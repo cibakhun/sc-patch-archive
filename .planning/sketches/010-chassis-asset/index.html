@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Skizze 010 — Chassis aus der Vorlage</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+* { box-sizing:border-box; }
+body { margin:0; background:#07090a; color:var(--text); font-family:var(--font-ui); padding-top:44px; }
+#variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; background:#11181b;
+  border-bottom:1px solid var(--line); padding:7px 14px; display:flex; gap:8px; align-items:center; }
+#variant-nav .ttl { font-size:12px; color:var(--muted); margin-right:8px; letter-spacing:.04em;
+  text-transform:uppercase; }
+.variant-tab { font:inherit; font-size:12px; padding:5px 12px; border:0; cursor:pointer;
+  border-radius:7px; background:#1e2629; color:var(--muted); }
+.variant-tab.active { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.variant { display:none; } .variant.active { display:block; }
+.stage { margin:16px auto; width:var(--vw,1280px); max-width:calc(100vw - 32px); }
+.stage__cap { display:flex; gap:12px; align-items:baseline; padding:0 2px 8px; font-size:12px;
+  color:var(--muted); }
+.stage__cap b { color:var(--text); font-size:13px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DAS CHASSIS — die Vorlage des Betreibers, zugeschnitten.
+
+   KEIN 9-Slice (`border-image`): das Verfahren streckt die Mitte jeder Kante,
+   und genau dort hat diese Vorlage ihre Zeichnung — mittige Steckerbuchse mit
+   Lüftungsgittern unten, angewinkelter Griffansatz oben. Beides würde
+   verschmieren. Stattdessen EIN Bild mit festem Seitenverhältnis; die
+   Bildfläche ist ein Prozentkasten darin. Nichts verzerrt, die Zeichnung
+   bleibt unangetastet, und der Rahmen wächst sauber mit der Fensterbreite.
+
+   Die Zahlen sind gemessen, nicht geschätzt — .planning/sketches/tools/
+   make-chassis.mjs hat den Zuschnitt und die Bildfläche eingemessen und dieses
+   CSS ausgegeben.
+   ══════════════════════════════════════════════════════════════════════════ */
+.chassis { position:relative; aspect-ratio:2552 / 1167;
+  background:url('chassis-1600.webp') center/100% 100% no-repeat; }
+/* Ab der doppelten Auflösung die größere Fassung — 43 statt 78 KB für alle
+   anderen. */
+@media (min-resolution:1.5dppx), (min-width:1700px) {
+  .chassis { background-image:url('chassis-2400.webp'); }
+}
+.chassis__screen { position:absolute;
+  left:7.367%; top:11.225%; width:88.088%; height:76.692%;
+  display:flex; flex-direction:column; min-height:0;
+  padding:8px; container-type:size; }
+
+/* Kopfzeile im Blech über der Bildfläche */
+.chassis__head { position:absolute; left:0; right:0; top:0; height:11.225%;
+  pointer-events:none; }
+/* ⚠ Titel und Versionszeile teilten sich vorher EINE zentrierte Flexbox — dann
+   ist die GRUPPE mittig und der Titel sitzt rechts daneben. Der Titel ist aber
+   das, was mittig gehört: er wird eigenständig zentriert, die Version steht
+   fest im flachen Teil des Kopfbands links davon. */
+.chassis__head h1 { position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%); margin:0;
+  font-size:clamp(15px, 1.75cqw, 26px); font-weight:600; letter-spacing:-.01em;
+  line-height:1; color:#f2fafb; white-space:nowrap;
+  text-shadow:0 1px 3px rgba(0,0,0,.95), 0 2px 12px rgba(0,0,0,.7); }
+/* Auf gebürstetem Blech verschwindet ein dünnes Bernstein-Mono: es braucht
+   eine eigene dunkle Unterlage, kein stärkeres Gelb. */
+.chassis__head .ver { position:absolute; left:24%; top:50%; transform:translateY(-50%);
+  font:600 clamp(8px,.66cqw,11px) var(--font-mono); letter-spacing:.18em;
+  text-transform:uppercase; color:#ffcf7a; white-space:nowrap;
+  padding:4px 9px; border-radius:5px; background:rgba(6,10,11,.7);
+  box-shadow: inset 0 0 0 1px rgba(255,207,122,.28); }
+.chassis__back { position:absolute; left:3.6%; top:50%; transform:translateY(-50%);
+  pointer-events:auto; font:600 10px var(--font-ui); letter-spacing:.1em;
+  text-transform:uppercase; color:#c2d2d0; text-decoration:none; padding:6px 11px;
+  border-radius:6px; background:rgba(8,12,13,.62);
+  box-shadow: inset 0 0 0 1px rgba(232,241,240,.2); }
+.chassis__back:hover { color:#fff; background:rgba(8,12,13,.85); }
+
+/* ── Füllung: die Werkbank ── */
+.wb__sub { margin:0 0 7px; text-align:center; font-size:var(--fs-4); color:#8ba0a2; }
+.wb__grid { display:grid; grid-template-columns:minmax(0,380px) minmax(0,1fr) minmax(0,230px);
+  gap:8px; flex:1; min-height:0; }
+.wb__pane, .wb__rig { background:rgba(16,22,25,.82); border-radius:9px; display:flex;
+  flex-direction:column; min-height:0; min-width:0; overflow:hidden; position:relative;
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.08), 0 3px 14px rgba(0,0,0,.5); }
+.wb__scroll { flex:1; overflow-y:auto; overflow-x:hidden; min-height:0; scrollbar-width:none; }
+.wb__scroll::-webkit-scrollbar { display:none; }
+.wb__filters { padding:7px 8px; display:flex; flex-direction:column; gap:5px; flex:0 0 auto; }
+.wb__help { font-size:var(--fs-4); color:var(--muted); padding:5px 8px; border-radius:7px;
+  background:rgba(6,9,10,.55); cursor:pointer; }
+.wb__frow { display:flex; align-items:center; gap:7px; }
+.wb__search { flex:1; min-width:0; background:rgba(6,9,10,.6); border:0; color:var(--text);
+  padding:6px 9px; font-size:var(--fs-5); border-radius:6px; font-family:inherit; }
+.wb__c { font-size:var(--fs-3); color:var(--muted); font-family:var(--font-mono); }
+.wb__chips { display:flex; gap:4px; flex-wrap:wrap; }
+.wb__chip { font-size:var(--fs-3); padding:3px 8px; border:0; background:rgba(6,9,10,.55);
+  color:var(--muted); border-radius:999px; cursor:pointer; font-family:inherit; }
+.wb__chip.is-on { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.wb__tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:4px;
+  padding:0 7px 7px; }
+.wb__tile { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 5px; align-content:center;
+  padding:4px 5px 4px 8px; border-radius:7px; cursor:pointer; background:rgba(6,9,10,.55);
+  box-shadow: inset 0 1px 0 rgba(232,241,240,.05); transition:background .15s; }
+.wb__tile:hover { background:#242c2f; }
+.wb__tile.is-sel { background:color-mix(in srgb,var(--accent-2) 22%,transparent);
+  box-shadow: inset 0 0 0 1px var(--accent-2); }
+.wb__tn { grid-column:1/-1; font-size:var(--fs-4); font-weight:500; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.wb__ts { align-self:center; font-size:var(--fs-3); color:var(--vio); font-family:var(--font-mono); }
+.wb__pin { grid-column:2; align-self:center; width:24px; height:24px; display:grid;
+  place-items:center; border:0; background:rgba(6,9,10,.65); color:var(--muted); cursor:pointer;
+  border-radius:6px; line-height:0; }
+.wb__pin svg { width:13px; height:13px; pointer-events:none; }
+.wb__pin.is-on { background:var(--accent-2); color:var(--ink); }
+.wb__id { padding:9px 11px 7px; flex:0 0 auto; }
+.wb__idrow { display:flex; align-items:flex-start; gap:9px; }
+.wb__id h2 { font-size:var(--fs-11); font-weight:600; line-height:1.05; margin:0; }
+.wb__tags { display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
+.wb__tag { font-size:var(--fs-3); padding:2px 6px; border-radius:999px; background:rgba(6,9,10,.6);
+  color:var(--muted); }
+.wb__tag.is-rar { background:color-mix(in srgb,var(--accent-2) 18%,transparent); color:var(--accent-2); }
+.wb__tag.is-vol { background:var(--vio-dim); color:var(--vio); }
+.wb__sigbox { margin-left:auto; text-align:right; }
+.wb__lbl { font-size:var(--fs-3); color:var(--muted); }
+.wb__sigbox b { display:block; font-size:var(--fs-9); color:var(--vio); font-weight:600;
+  font-family:var(--font-mono); line-height:1.1; }
+.wb__pinbig { display:inline-flex; align-items:center; gap:6px; align-self:center; padding:7px 11px;
+  border:0; border-radius:8px; cursor:pointer; font-family:inherit; font-size:var(--fs-4);
+  font-weight:600; color:var(--text); background:#242c2f; white-space:nowrap;
+  box-shadow: inset 0 0 0 1px rgba(232,241,240,.12); }
+.wb__pinbig svg { width:14px; height:14px; }
+.wb__sec { padding:0 11px 9px; }
+.wb__sec h4 { font-size:var(--fs-3); font-weight:600; color:var(--muted); margin:0 0 6px;
+  padding-bottom:4px; position:relative; }
+.wb__sec h4::after { content:''; position:absolute; left:0; right:0; bottom:0; height:3px;
+  background:repeating-linear-gradient(90deg, rgba(232,241,240,.14) 0 1px, transparent 1px 7px); }
+.wb__locs { display:flex; flex-direction:column; gap:3px; }
+.wb__row2 { display:grid; grid-template-columns:1fr auto; align-items:center; gap:9px;
+  padding:4px 8px; border-radius:6px; background:rgba(6,9,10,.5); }
+.wb__row2 .p { font-size:var(--fs-4); font-weight:500; display:block; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.wb__row2 .s { font-size:var(--fs-3); color:var(--muted); display:block; }
+.wb__row2 .r { display:flex; align-items:center; gap:7px; }
+.wb__lpin { width:20px; height:20px; display:grid; place-items:center; border:0;
+  background:rgba(6,9,10,.65); color:var(--muted); cursor:pointer; border-radius:5px; line-height:0; }
+.wb__lpin svg { width:11px; height:11px; }
+.wb__lpin.is-on { background:var(--accent-2); color:var(--ink); }
+.wb__bar { width:40px; height:5px; border-radius:3px; overflow:hidden; background:rgba(6,9,10,.75); }
+.wb__bar i { display:block; height:100%;
+  background:repeating-linear-gradient(90deg, var(--vio) 0 3px, transparent 3px 5px); }
+.wb__row2 em { font-size:var(--fs-3); color:var(--muted); font-style:normal; width:44px;
+  text-align:right; font-family:var(--font-mono); }
+.wb__links { display:flex; gap:5px; flex-wrap:wrap; }
+.wb__link { display:inline-flex; gap:5px; padding:5px 9px; border-radius:6px;
+  background:rgba(6,9,10,.55); color:var(--text); font-size:var(--fs-4); text-decoration:none; }
+.wb__link b { color:var(--accent-2); font-family:var(--font-mono); }
+#tabbar { display:flex; gap:4px; padding:7px 8px; flex:0 0 auto; }
+.wb__tab { flex:1; font-size:var(--fs-3); padding:5px 7px; border:0; border-radius:6px;
+  background:rgba(6,9,10,.55); color:var(--muted); cursor:pointer; font-family:inherit; }
+.wb__tab.is-on { background:var(--accent-2); color:var(--ink); font-weight:600; }
+.wb__scanbox { padding:7px 8px; }
+.wb__scan { width:100%; background:rgba(6,9,10,.65); border:0; color:var(--vio); padding:7px 9px;
+  font-size:var(--fs-6); text-align:center; border-radius:6px; font-family:var(--font-mono); }
+.wb__scan::placeholder { color:var(--muted); font-family:var(--font-ui); font-size:var(--fs-4); }
+.trk { margin:7px 8px; padding:8px; border-radius:9px; background:rgba(6,9,10,.55); }
+.trk__hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
+.trk__hd b { font-size:var(--fs-5); }
+.trk svg { display:block; width:100%; height:52px; }
+.wb__empty { padding:11px; text-align:center; color:var(--muted); font-size:var(--fs-3);
+  line-height:1.5; margin:0; }
+.wb__rig { flex-direction:row; align-items:center; gap:14px; padding:6px 11px; margin-top:8px;
+  flex:0 0 auto; }
+.wb__rgrp { display:flex; flex-direction:column; gap:2px; }
+.wb__sel { background:#222a2d; border:0; color:var(--text); font-size:var(--fs-4); padding:5px 8px;
+  border-radius:6px; font-family:inherit; }
+.wb__frac { margin-left:auto; display:flex; align-items:center; gap:10px; padding:6px 11px;
+  border-radius:8px; text-decoration:none; background:rgba(6,9,10,.55);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent); }
+.wb__frac__t { display:flex; flex-direction:column; line-height:1.2; }
+.wb__frac__t b { font-size:var(--fs-4); color:var(--text); }
+.wb__frac__go { font-size:var(--fs-3); font-weight:600; color:var(--accent); }
+
+.gauge { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:10px auto 40px;
+  width:var(--vw,1280px); max-width:calc(100vw - 32px); }
+.gauge div { background:#1a2124; border-radius:10px; padding:9px 11px; }
+.gauge span { display:block; font-size:11px; color:var(--muted); letter-spacing:.05em;
+  text-transform:uppercase; }
+.gauge b { font:600 20px var(--font-mono); color:var(--accent); }
+.gauge b.bad { color:#ff6b6b; }
+#sketch-tools { position:fixed; bottom:12px; right:12px; z-index:9999; font-family:system-ui;
+  font-size:12px; background:rgba(0,0,0,.8); color:#fff; padding:8px 12px; border-radius:8px;
+  opacity:.45; transition:opacity .2s; display:flex; gap:8px; }
+#sketch-tools button { font:inherit; font-size:11px; border:0; border-radius:5px; padding:3px 7px;
+  background:#333; color:#fff; cursor:pointer; }
+body.no-vio { --vio:#2FBFA4; --vio-2:#2FBFA4; --vio-dim:rgba(47,191,164,.2); }
+body.show-box .chassis__screen { outline:2px dashed #ff4d4d; outline-offset:-1px; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="ttl">010 · Chassis aus der Vorlage</span>
+  <button class="variant-tab active" data-v="a">A: 1280 breit</button>
+  <button class="variant-tab" data-v="b">B: 1600 breit</button>
+  <button class="variant-tab" data-v="c">C: 1920 breit</button>
+</div>
+
+<div id="variant-a" class="variant active">
+  <div class="stage" style="--vw:1280px">
+    <div class="stage__cap"><b>A — 1280 px</b>
+      <span>Die kritische Breite. Chassis 585 px hoch, Bildfläche 1128 × 449.</span></div>
+    <div class="chassis" data-chassis></div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+<div id="variant-b" class="variant">
+  <div class="stage" style="--vw:1600px">
+    <div class="stage__cap"><b>B — 1600 px</b>
+      <span>Rahmen wächst mit, ohne dass eine Fräsung verzerrt.</span></div>
+    <div class="chassis" data-chassis></div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+<div id="variant-c" class="variant">
+  <div class="stage" style="--vw:1920px">
+    <div class="stage__cap"><b>C — 1920 px</b>
+      <span>Hier greift die 2400er Fassung der Grafik.</span></div>
+    <div class="chassis" data-chassis></div>
+  </div>
+  <div class="gauge" data-gauge></div>
+</div>
+
+<div id="sketch-tools" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.45'">
+  <button onclick="document.body.classList.toggle('show-box')">Bildfläche zeigen</button>
+  <button onclick="document.body.classList.toggle('no-vio')">Violett aus/an</button>
+</div>
+
+<script>
+const MIN = [
+  ['Quantainium','legendary',3170],['Savrilium','legendary',3200],['Stileron','legendary',3185],
+  ['Lindinium','epic',3400],['Ouratite','epic',3370],['Riccite','epic',3385],
+  ['Beryl','rare',3540],['Bexalite','rare',3600],['Borase','rare',3570],['Gold','rare',3585],
+  ['Taranite','rare',3555],['Agricium','uncommon',3885],['Aslarite','uncommon',3840],
+  ['Laranite','uncommon',3825],['Titanium','uncommon',3855],['Torite','uncommon',3900],
+  ['Tungsten','uncommon',3870],['Aluminum','common',4285],['Copper','common',4240],
+  ['Corundum','common',4225],['Hephaestanite','common',4180],['Ice','common',4300],
+  ['Iron','common',4270],['Quartz','common',4210],['Silicon','common',4255],['Tin','common',4195],
+  ['Aphorite',null,3000],['Beradom',null,4000],['Carinite',null,4000],['Dolivine',null,3000],
+  ['Feynmaline',null,4000],['Glacosite',null,4000],['Hadanite',null,3000],['Jaclium',null,3000],
+  ['Janalite',null,3000],['Sadaryx',null,3000],['Saldynium',null,3000]];
+const LOCS = [['Aaron Halo','Stanton · Gürtel'],['Asteroid Cluster (Low Yield)','Stanton · Cluster'],
+  ['Asteroid Cluster (Medium Yield)','Stanton · Cluster'],['Hurston','Stanton · Planet'],
+  ['microTech','Stanton · Planet'],['Aberdeen','Stanton · Mond'],['Arial','Stanton · Mond']];
+const RAR = {legendary:'legendär',epic:'episch',rare:'selten',uncommon:'ungewöhnlich',common:'häufig'};
+const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8"/></svg>';
+
+function curve() {
+  const p = [];
+  for (let x = 0; x <= 100; x++) p.push(`${x*2.6},${6 + 42*(1 - Math.exp(-x/26))}`);
+  return `<div class="trk"><div class="trk__hd"><b>Stabilität</b>
+    <span class="wb__lbl">bis Bruch 01:28</span></div>
+    <svg viewBox="0 0 260 52" preserveAspectRatio="none">
+      <polyline fill="none" stroke="var(--vio)" stroke-width="1.8" points="${p.join(' ')}"/>
+      <circle cx="260" cy="46" r="3" fill="var(--vio-2)"/></svg></div>`;
+}
+
+function inner() { return `
+  <p class="wb__sub">Erz wählen — Fundorte, Physik und Raffinerie-Ertrag stehen daneben.</p>
+  <div class="wb__grid">
+    <div class="wb__pane">
+      <div class="wb__filters">
+        <div class="wb__help">▸ Wie funktioniert die Mining-Werkbank?</div>
+        <div class="wb__frow"><input class="wb__search" type="search" placeholder="Mineral suchen">
+          <span class="wb__c" data-count>37</span></div>
+        <div class="wb__chips"><button class="wb__chip">Pyro</button>
+          <button class="wb__chip">Stanton</button><button class="wb__chip">Nyx</button></div>
+      </div>
+      <div class="wb__scroll"><div class="wb__tiles">${MIN.map((m,i)=>`
+        <div class="wb__tile${i===0?' is-sel':''}" data-min="${m[0]}" role="button" tabindex="0">
+          <span class="wb__tn">${m[0]}</span><span class="wb__ts">${m[2]}</span>
+          <button class="wb__pin">${pin}</button></div>`).join('')}</div></div>
+    </div>
+    <div class="wb__pane">
+      <div class="wb__id"><div class="wb__idrow">
+        <div><h2 data-name>Quantainium</h2><div class="wb__tags">
+          <span class="wb__tag is-rar">legendär</span><span class="wb__tag is-vol">hochflüchtig</span>
+          <span class="wb__tag">Schiff</span><span class="wb__tag">Erz</span></div></div>
+        <div class="wb__sigbox"><span class="wb__lbl">Signatur</span><b data-sig>3170</b></div>
+        <button class="wb__pinbig">${pin}Anheften</button></div></div>
+      <div class="wb__scroll">
+        <div class="wb__sec"><h4>Fundorte: 17</h4><div class="wb__locs">${LOCS.map(l=>`
+          <div class="wb__row2"><span><span class="p">${l[0]}</span>
+            <span class="s">${l[1]} — Schiff, bis 78.3 %</span></span>
+            <span class="r"><button class="wb__lpin">${pin}</button>
+            <span class="wb__bar"><i style="width:36%"></i></span><em>2 %</em></span></div>`).join('')}
+        </div></div>
+        <div class="wb__sec"><h4>Verwendung</h4><div class="wb__links">
+          <a class="wb__link" href="#">Blueprints <b>187</b></a>
+          <a class="wb__link" href="#">Prospector <b>32 SCU</b></a>
+          <a class="wb__link" href="#">MOLE <b>96 SCU</b></a></div></div>
+      </div>
+    </div>
+    <div class="wb__pane">
+      <div id="tabbar"><button class="wb__tab is-on">Signaturen</button>
+        <button class="wb__tab">Fundorte: 1</button></div>
+      <div class="wb__scanbox"><input class="wb__scan" placeholder="Scanwert"></div>
+      ${curve()}
+      <p class="wb__empty">Auf einer Erz-Kachel links den Anheft-Knopf drücken.</p>
+    </div>
+  </div>
+  <div class="wb__rig">
+    <div class="wb__rgrp"><span class="wb__lbl">Station</span>
+      <select class="wb__sel"><option>Port Olisar — Starlight</option></select></div>
+    <a class="wb__frac" href="#"><span class="wb__frac__t"><b>Fracturing-Rechner</b>
+      <span class="wb__lbl">Quantainium</span></span>
+      <span class="wb__frac__go">Bricht der Brocken? →</span></a>
+  </div>`;
+}
+
+document.querySelectorAll('[data-chassis]').forEach(el => {
+  el.innerHTML = `
+    <div class="chassis__head">
+      <a class="chassis__back" href="#">← Archiv</a>
+      <span class="ver">Alpha 4.9.0 · Live-Daten</span>
+      <h1>Mining</h1>
+    </div>
+    <div class="chassis__screen">${inner()}</div>`;
+});
+
+document.querySelectorAll('.variant').forEach(root => {
+  const sel = q => root.querySelector(q);
+  root.addEventListener('click', e => {
+    const p = e.target.closest('.wb__pin,.wb__lpin,.wb__pinbig');
+    if (p) { e.stopPropagation(); p.classList.toggle('is-on'); return; }
+    const c = e.target.closest('.wb__chip');
+    if (c) { c.classList.toggle('is-on'); return; }
+    const t = e.target.closest('.wb__tab');
+    if (t) { root.querySelectorAll('.wb__tab').forEach(x=>x.classList.remove('is-on'));
+             t.classList.add('is-on'); return; }
+    const tile = e.target.closest('.wb__tile');
+    if (tile) {
+      root.querySelectorAll('.wb__tile').forEach(x=>x.classList.remove('is-sel'));
+      tile.classList.add('is-sel');
+      const rec = MIN.find(m => m[0] === tile.dataset.min);
+      sel('[data-name]').textContent = rec[0];
+      sel('[data-sig]').textContent = rec[2];
+      sel('.wb__tag.is-rar').textContent = RAR[rec[1]] || 'ohne Stufe';
+      sel('.wb__frac__t .wb__lbl').textContent = rec[0];
+    }
+  });
+  const q = sel('.wb__search');
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase(); let n = 0;
+    root.querySelectorAll('.wb__tile').forEach(t => {
+      const hit = t.dataset.min.toLowerCase().includes(v);
+      t.style.display = hit ? '' : 'none'; if (hit) n++; });
+    sel('[data-count]').textContent = n;
+  });
+});
+
+function measure(root) {
+  const ch = root.querySelector('.chassis');
+  const sc = root.querySelector('.chassis__screen');
+  const g  = root.querySelector('[data-gauge]');
+  const tile = root.querySelector('.wb__tile');
+  const cr = ch.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+  /* Läuft irgendetwas aus der Bildfläche heraus? Das ist die einzige Frage,
+     die dieser Aufbau überhaupt noch stellen kann — der Rahmen selbst kann
+     nicht mehr verrutschen, er ist Teil der Grafik. */
+  /* ⚠ NICHT über alle Nachfahren messen: der Inhalt der Bildlauf-Kästen ragt
+     naturgemäß über deren Rand hinaus, wird dort aber abgeschnitten. Über alle
+     Knoten gemessen kamen 206 px „Austritt" heraus, obwohl nichts austritt.
+     Gemessen wird, was wirklich im Fluss der Bildfläche liegt. */
+  let over = 0;
+  root.querySelectorAll('.chassis__screen > *').forEach(n => {
+    const r = n.getBoundingClientRect();
+    over = Math.max(over, r.bottom - sr.bottom, r.right - sr.right);
+  });
+  let visible = 0;
+  root.querySelectorAll('.wb__tile').forEach(t => {
+    if (t.getBoundingClientRect().bottom <= sr.bottom) visible++; });
+  g.innerHTML = `
+    <div><span>Chassis</span><b>${Math.round(cr.width)} × ${Math.round(cr.height)}</b></div>
+    <div><span>Bildfläche</span><b>${Math.round(sr.width)} × ${Math.round(sr.height)}</b></div>
+    <div><span>Kacheln sichtbar</span><b class="${visible<20?'bad':''}">${visible} / 37</b></div>
+    <div><span>Austritt aus der Fläche</span><b class="${over>1?'bad':''}">${Math.max(0,Math.round(over))} px</b></div>`;
+}
+function showVariant(v) {
+  document.querySelectorAll('.variant').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+  const root = document.getElementById('variant-' + v);
+  root.classList.add('active');
+  document.querySelector(`.variant-tab[data-v="${v}"]`).classList.add('active');
+  measure(root);
+}
+document.querySelectorAll('.variant-tab').forEach(t =>
+  t.addEventListener('click', () => showVariant(t.dataset.v)));
+window.addEventListener('load', () => { ['a','b','c'].forEach(showVariant); showVariant('a'); });
+</script>
+</body>
+</html>
