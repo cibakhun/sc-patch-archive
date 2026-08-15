@@ -692,6 +692,7 @@ bereits auf Deckungsgleichheit. Es fehlt die Ansicht, nicht die Datenarbeit.
   ⚠ Hier stand bis zur Phasenbesprechung „Balken nach `eff` rangiert und
   Scan-Signatur". Beides ist am 15.08. in `12-CONTEXT.md` anders entschieden
   worden; der Stichpunkt war seither stale und ist hier richtiggestellt.
+
 - Spurenerze (niedriger Höchstanteil) **markiert statt ausgeblendet**
 - Kopf mit System und Ortstyp; bei Lagrange-Fundorten die echten
   Anflugpunkte (ARC-L3, CRU-L5 …) statt der Sammelbezeichnung
@@ -700,11 +701,14 @@ bereits auf Deckungsgleichheit. Es fehlt die Ansicht, nicht die Datenarbeit.
 
 1. **Keine Preise.** scmdb zeigt auf seiner Fundort-Seite selbst keine —
    und `refinery-data.json` deckt nur 26 der 37 Erze.
+
 2. **Keine Gruppenanteile** im scmdb-Stil („Ship Mining 51,0 %"). Deren Zahl
    rechnet Derelict Salvage und Debris mit; das ist eine Bergungsdatenbank,
    die wir nicht führen. Der Anteil wäre ohne diese Grundmenge erfunden.
+
 3. **Keine Adernzahl** („3–5"). Steht nicht in unseren Daten; `deposits`
    zählt Felsarten und ist nicht dasselbe.
+
 4. **Keine neuen Seiten oder Routen.** Betreiberentscheidung vom 15.08.:
    ausschließlich Umschaltung innerhalb der Werkbank.
 
@@ -723,10 +727,10 @@ sowie die 48 Zustandszusicherungen im Abschnitt `## UI Considerations` von
 `12-UI-SPEC.md` (39 belegt, 9 als Nachweis offen). Gleicher Umgang wie in den
 Phasen 7, 9 und 10.
 **Depends on:** Phase 10 (Fundort-Merkliste und Presets der Werkbank)
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 
-- [ ] 12-01-PLAN.md — Tracer: Klick auf eine Fundort-Zeile öffnet die Fundort-Ansicht (Kopf, nach Methode gruppierte und nach Chance sortierte Erzliste, gedämpfte Spurenzeilen), Zurück-Pfeil führt aufs Erz
+- [x] 12-01-PLAN.md — Tracer: Klick auf eine Fundort-Zeile öffnet die Fundort-Ansicht (Kopf, nach Methode gruppierte und nach Chance sortierte Erzliste, gedämpfte Spurenzeilen), Zurück-Pfeil führt aufs Erz
 - [ ] 12-02-PLAN.md — Das Netz schließt sich: Erzzeile führt zum Erz (D-02), Merklistenzeile trägt denselben Klick (D-03), Kachelspalte markiert die Erze des Ortes (D-09)
 - [ ] 12-03-PLAN.md — Adresse `?fundort=` (D-04), Hilfetexte in beiden Sprachen nachgezogen, die 9 offenen Zustandszusicherungen gemessen und als Sichtrunde übergeben

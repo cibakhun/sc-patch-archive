@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 12
 current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
-status: planned
-stopped_at: Phase 12 geplant — 3 Plaene, Plan-Pruefer bestanden
-last_updated: "2026-08-15T14:47:52.414Z"
+status: executing
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-08-15T15:46:36.033Z"
 last_activity: 2026-08-15
-last_activity_desc: Phase 12 geplant (3 Plaene, Plan-Pruefer bestanden)
+last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 16
   completed_phases: 10
   total_plans: 53
-  completed_plans: 43
+  completed_plans: 44
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -54,9 +54,9 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 10 (mining-presets-bedienbar-machen) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
+Phase: 12 (fundorte-in-der-mining-werkbank-anklickbar) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 
 ---
 
@@ -68,7 +68,7 @@ gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
 abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
 **Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
 Branch: claude/donation-button-feature-98ba38 (Worktree)
-Last activity: 2026-08-15 — Phase 10 execution started
+Last activity: 2026-08-15 — Phase 12 execution started
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
 
@@ -163,7 +163,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 86%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -218,6 +218,7 @@ Progress: [█████████░] 86%
 | Phase 04 P03 | 65min | 3 tasks | 9 files |
 | Phase 10 P01 | 35min | 3 tasks | 4 files |
 | Phase 10 P02 | 35min | 3 tasks | 7 files |
+| Phase 12 P01 | 50min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -301,6 +302,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 10-02: Reiterleiste ersatzlos entfernt statt umgebaut -- beide Listen wurden ohnehin bei jedem renderAll() gezeichnet, der Reiter blendete nur eine aus
 - [Phase ?]: 10-02: Rastermass 470px 1fr 330px wie im Plan vorentschieden uebernommen (Claude's Discretion aus CONTEXT.md)
 - [Phase ?]: 10-02: mining.ctl.pins wird zum Nachschlagewerk-Text, mining.ctl.presets nennt die vier Preset-Handlungen aus 10-01; scripts/verify-help.mjs bewusst nicht angefasst
+- [Phase ?]: 12-01: [data-ore]-Klick in der Fundort-Ansicht bewusst unverdrahtet -- Markup-Vorbereitung (data-ore/role/tabindex) fuer Welle 2/3, Objective weist diesen Ein-/Ausstieg dort explizit zu
+- [Phase ?]: 12-01: T-12-04 auf gruppenlokale statt globale Chance-Monotonie korrigiert -- Sortieren-dann-Gruppieren (Schiff->ROC->Hand) macht die Gesamtliste nicht monoton, nur jede Methodengruppe fuer sich; Implementierung folgt dem detaillierten Handlungstext
 
 ### Pending Todos
 
@@ -350,6 +353,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T14:47:52.389Z
-Stopped at: Phase 12 geplant — 3 Plaene, Plan-Pruefer bestanden
-Resume file: .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-01-PLAN.md
+Last session: 2026-08-15T15:46:36.006Z
+Stopped at: Completed 12-01-PLAN.md
+Resume file: None
