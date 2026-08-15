@@ -146,7 +146,6 @@ const fracturingPath = href('/fracturing.html', lang);
    ausgeliefert hat. */
 const chassisFrame = versioned('assets/chassis-frame.webp', '/assets/chassis-frame.webp');
 const chassisPlug = versioned('assets/chassis-plug.webp', '/assets/chassis-plug.webp');
-const chassisLamp = versioned('assets/chassis-lamp.webp', '/assets/chassis-lamp.webp');
 
 /* Zwei benannte Konstanten statt eines `de ? {…} : {…}`-Ternarys: ein in nur
    einem Zweig vergessener Schluessel fiel bislang erst im Browser der ANDEREN
@@ -241,7 +240,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
 <section class="wb" id="db" data-wb
-         style={`--wb-frame:url('${chassisFrame}');--wb-plug:url('${chassisPlug}');--wb-lamp:url('${chassisLamp}')`}>
+         style={`--wb-frame:url('${chassisFrame}');--wb-plug:url('${chassisPlug}')`}>
   {/* ───────────────────────── Gehaeuse ─────────────────────────
       Der Rahmen ist EINE Grafik mit festem Seitenverhaeltnis, die Bildflaeche
       ein Prozentkasten darin. KEIN `border-image`/9-Slice: das streckt die
@@ -322,7 +321,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         Vorleseprogramme nicht verschwinden. Die Vorzeile ist ersatzlos weg —
         die Spielversion steht ohnehin in der Fusszeile. */}
     <h1 class="wb__ctitle" set:text={title} />
-    <span class="wb__lamp-l" aria-hidden="true"></span>
     <div class="wb__cscreen">
       <p class="wb__clead" set:text={lead} />
 
@@ -561,7 +559,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    traf. `mask-image` loest sie auf; erst dadurch sitzen sie IM Blech statt
    darauf. Wer die Stuecke wieder anfasst: die Maske ist kein Feinschliff,
    sondern die Bedingung, unter der sie ueberhaupt funktionieren. */
-.wb__chassis::before,.wb__chassis::after{content:'';position:absolute;
+.wb__chassis::after{content:'';position:absolute;
   pointer-events:none;z-index:2}
 /* Steckerbuchse (640x166 in der Vorlage). */
 .wb__chassis::after{left:50%;transform:translateX(-50%);
@@ -570,20 +568,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   background:var(--wb-plug) center/100% 100% no-repeat;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
-/* Leuchtsegment im rechten Holm (106x190 in der Vorlage). */
-.wb__chassis::before{right:calc(var(--rahmen)*-1);width:var(--rahmen);
-  top:50%;transform:translateY(-50%);height:calc(var(--rahmen)*480/106);
-  background:var(--wb-lamp) center/100% 100% no-repeat;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent);
-  mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent)}
-/* Dasselbe Segment gespiegelt im linken Holm. Ein eigenes Element, weil ein
-   Kasten nur zwei Pseudo-Elemente hat und der Titel keines belegen soll. */
-.wb__lamp-l{position:absolute;pointer-events:none;z-index:2;
-  left:calc(var(--rahmen)*-1);width:var(--rahmen);
-  top:50%;transform:translateY(-50%) scaleX(-1);height:calc(var(--rahmen)*480/106);
-  background:var(--wb-lamp) center/100% 100% no-repeat;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent);
-  mask-image:linear-gradient(180deg,transparent,#000 11%,#000 89%,transparent)}
 
 /* ⚠ Titel und Vorzeile standen bis 15.08.2026 SICHTBAR im Kopfband und sind
    auf Ansage des Betreibers gestrichen ("ultra ugly"): das Blech traegt seine

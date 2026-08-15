@@ -74,15 +74,20 @@ const INSET = {
    nicht mehr: die Ecken tragen die Bolzen und die angeschrägte Kontur und
    müssen unberührt bleiben. Im ersten Anlauf endete die Kopfband-Fläche 120 px
    zu früh — genau dort stand die Seriennummer und blieb stehen. */
+/* ⚠⚠ NUR die WAAGERECHTEN Balken werden glattgezogen, die HOLME NICHT.
+   Nachgerechnet: der gerenderte Holm ist bei 1920 rund 826 px hoch bei 858 px
+   Vorlage — Faktor 0,96, praktisch 1:1; selbst im hoechsten Fall (1180 px
+   Gehaeuse) sind es 1,23. Ein Holm darf seine Zeichnung also behalten, sie
+   verzerrt kaum. Die Balken dagegen werden bei 1280 auf 0,52 gestaucht — dort
+   ist Glattziehen samt separater Steckerbuchse richtig.
+   Das war die Ursache des zuletzt gemeldeten „gerade abgeschnitten": ich hatte
+   den Holmen ihre Zeichnung genommen und sie durch ein gleichfoermiges Profil
+   ersetzt, das an der Eckkachel unvermittelt anstiess. */
 const HEALS = [
   // Kopfband zwischen den Ecken: angewinkelte Mitte, Bolzen, Seriennummer
   { s: [620, 62, 1, 143], d: [503, 62, 2203, 143] },
   // Sockel zwischen den Ecken: Erdungssymbol, Lüftungsgitter, Steckerbuchse
   { s: [700, 1063, 1, 166], d: [503, 1063, 2203, 166] },
-  // Linker Holm zwischen den Ecken: Gitter und Leuchtsegmente
-  { s: [279, 700, 224, 1], d: [279, 205, 224, 858] },
-  // Rechter Holm: dito
-  { s: [2706, 700, 106, 1], d: [2706, 205, 106, 858] },
   /* ⚠ Die Seriennummer ragt ueber die Streckgrenze (x 2706) hinaus IN die
      rechte obere Eckkachel — und die bleibt sonst unberuehrt. Sie braucht
      deshalb einen eigenen, eng gefassten Flicken. Die Quellspur liegt bei
@@ -136,15 +141,20 @@ const result = await page.evaluate(async ({ url, DEV, APT, HEALS, PIECES }) => {
     const pg = patch.getContext('2d');
     pg.imageSmoothingEnabled = false;      // die Spur soll gestreckt, nicht weichgezeichnet werden
     pg.drawImage(full, s[0], s[1], s[2], s[3], 0, 0, d[2], d[3]);
-    /* Nur ein schmaler Ausklang an den Stossstellen zu den Ecken — ohne ihn
-       steht dort eine harte Kante zwischen Spur und Originalblech. */
+    /* Kurzer Ausklang an den Stossstellen zu den Ecken.
+       ⚠ Ein LANGER Ausklang (14 %) war zwischendurch drin — als Versuch, den
+       Uebergang an den Holmen weicher zu machen. Er ist wieder raus, weil die
+       Holme gar nicht mehr uebermalt werden UND weil er an den Balken die
+       Seriennummer wieder durchscheinen liess: 14 % von 2203 px heisst, dass
+       der Flicken ab x 2398 durchsichtig wird — genau dort steht sie. Wer die
+       Zahl erhoeht, prueft die obere rechte Ecke nach. */
     const waagerecht = d[2] >= d[3];
     const grad = waagerecht
       ? pg.createLinearGradient(0, 0, d[2], 0)
       : pg.createLinearGradient(0, 0, 0, d[3]);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(0.02, 'rgba(0,0,0,1)');
-    grad.addColorStop(0.98, 'rgba(0,0,0,1)');
+    grad.addColorStop(0.03, 'rgba(0,0,0,1)');
+    grad.addColorStop(0.97, 'rgba(0,0,0,1)');
     grad.addColorStop(1, 'rgba(0,0,0,0)');
     pg.globalCompositeOperation = 'destination-in';
     pg.fillStyle = grad; pg.fillRect(0, 0, d[2], d[3]);
