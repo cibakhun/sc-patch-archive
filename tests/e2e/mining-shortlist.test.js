@@ -172,6 +172,14 @@ function locRow(ctx, loc) {
     .find((row) => row.getAttribute('data-loc') === loc) || null;
 }
 
+/** Eine Erzzeile INNERHALB der geoeffneten Fundort-Ansicht (#wb-locview),
+ *  gefunden ueber den entschluesselten data-ore-Wert -- Phase 12, Plan 02,
+ *  Task 1 (D-02). */
+function oreRow(ctx, name) {
+  return ctx.document.getElementById('wb-locview').querySelectorAll('.wb__row2')
+    .find((row) => row.getAttribute('data-ore') === name) || null;
+}
+
 /** Zweitgeschrieben aus locIndex in assets/mining-workbench.js -- fuer
  *  Testzwecke, um reale Fundorte mit bestimmten Eigenschaften (mehrere Erze,
  *  mehrere Methoden, Spuren gemischt mit Vollzeilen) im Mock-Bestand zu
@@ -1417,3 +1425,68 @@ test('T-12-09: Fundort mit den meisten Erzen -- keine Zeile geht beim Gruppieren
     'Summe aus Gruppenueberschriften und Zeilen sollte exakt Gruppen + Eintraege sein -- nichts verloren, nichts verdoppelt'
   );
 });
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 02, Task 1 — Erzzeile INNERHALB der Fundort-Ansicht fuehrt
+// zum Erz (D-02): der Rueckweg, der die Fundort-Ansicht vom Plan-01-Tracer
+// zu einem Netz aus beiden Richtungen macht.
+// ---------------------------------------------------------------------
+
+test('T-12-10: Fundort oeffnen, auf eine Erzzeile klicken: das gewaehlte Erz ist danach genau dieses Erz, die Erz-Ansicht ist sichtbar, die Fundort-Ansicht verborgen, und der Fusszeilentext nennt das neue Erz', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc && entries.length >= 2, 'Testbestand sollte einen Fundort mit mindestens zwei Erzen liefern');
+  const target = entries.find((e) => e.n !== entries[0].n);
+  assert.ok(target, 'Testbestand sollte ein zweites, abweichendes Erz am selben Fundort liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'Vorbedingung: Fundort-Ansicht sollte offen sein');
+
+  const row = oreRow(ctx, target.n);
+  assert.ok(row, `Erzzeile fuer "${target.n}" im geoeffneten Fundort nicht gefunden`);
+  ctx.fire(row, 'click');
+
+  assert.strictEqual(ctx.elements['wb-name'].textContent, target.n, 'das gewaehlte Erz sollte das angeklickte Erz sein');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'der Erz-Kopf sollte sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'die Erz-Ansicht sollte sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'der Fundort-Kopf sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'die Fundort-Ansicht sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-frac-ore'].textContent, target.n, 'die Fusszeile sollte das neue Erz nennen (renderDetail() laeuft in jedem Durchlauf)');
+});
+
+test('T-12-11: Enter auf einer fokussierten Erzzeile bewirkt dasselbe wie der Klick; ein Klick auf eine Stationszeile in #wb-refs bewirkt weiterhin nichts', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  assert.ok(loc && entries.length >= 2, 'Testbestand sollte einen Fundort mit mindestens zwei Erzen liefern');
+  const target = entries.find((e) => e.n !== entries[0].n);
+  assert.ok(target, 'Testbestand sollte ein zweites, abweichendes Erz am selben Fundort liefern');
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const row = oreRow(ctx, target.n);
+  assert.ok(row, `Erzzeile fuer "${target.n}" nicht gefunden`);
+  ctx.fire(row, 'keydown', { key: 'Enter' });
+
+  assert.strictEqual(ctx.elements['wb-name'].textContent, target.n, 'Enter auf der Erzzeile sollte wie der Klick das Erz wechseln');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'die Erz-Ansicht sollte nach Enter sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'die Fundort-Ansicht sollte nach Enter verborgen sein');
+
+  // Eine Stationszeile in #wb-refs traegt weder data-loc noch data-ore -- ein
+  // Klick auf sie darf weder das Erz noch die Ansicht aendern. "Gold" hat im
+  // Testbestand zuverlaessig Ertragsprofile (siehe rankRefineries()) --
+  // target.n aus biggestLoc() ist dafuer nicht garantiert (elf Edelsteine
+  // werden laut Kopfkommentar von yieldFor() nicht raffiniert).
+  selectMineral(ctx, 'Gold');
+  const refRow = ctx.document.getElementById('wb-refs').querySelectorAll('.wb__row2')[0];
+  assert.ok(refRow, 'Vorbedingung: #wb-refs sollte fuer Gold mindestens eine Stationszeile tragen');
+  const selBefore = ctx.elements['wb-name'].textContent;
+  const viewBefore = ctx.elements['wb-oreview'].hidden;
+  ctx.fire(refRow, 'click');
+  assert.strictEqual(ctx.elements['wb-name'].textContent, selBefore, 'ein Klick auf eine Stationszeile darf das gewaehlte Erz nicht aendern');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, viewBefore, 'ein Klick auf eine Stationszeile darf die Ansicht nicht wechseln');
+});
+

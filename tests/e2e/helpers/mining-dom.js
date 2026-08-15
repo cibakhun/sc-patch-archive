@@ -19,10 +19,13 @@
 //      Klasse und Attribut-Anwesenheit reicht fuer alle Aufrufwege --
 //      Attributselektoren OHNE Wert (wie '[data-loc]') deckt die bestehende
 //      Regex bereits generisch ab, keine neue Selektorform noetig.
-//   2. fire(el, typ) -- die meisten Handler haengen delegiert am document,
-//      die Preset-Knoepfe direkt am Element. fire() ruft erst die Handler
-//      des Elements (MockElement.dispatchEvent deckt das ab), danach die
-//      des Dokuments mit target = el.
+//   2. fire(el, typ, init) -- die meisten Handler haengen delegiert am
+//      document, die Preset-Knoepfe direkt am Element. fire() ruft erst die
+//      Handler des Elements (MockElement.dispatchEvent deckt das ab), danach
+//      die des Dokuments mit target = el. init (optional, Phase 12, Plan 02)
+//      reicht zusaetzliche Event-Felder wie `key` bis zum delegierten
+//      keydown-Handler durch -- ohne den Parameter blieb e.key immer
+//      undefined und Enter/Leertaste-Faelle (T-12-11) waren nicht pruefbar.
 //   3. localStorage als Objekt im vm-Kontext (get/set/remove).
 //   4. window.VBAccount als Attrappe -- session() liefert eine vorgetaeuschte
 //      Sitzung, loginHref() eine Zeichenkette, rest(sess, method, path,
@@ -90,10 +93,17 @@ function makeDocEvents() {
     add(type, fn) {
       (byType[type] || (byType[type] = [])).push(fn);
     },
-    fire(type, target) {
+    // init (optional, Phase 12, Plan 02): zusaetzliche Event-Felder wie
+    // `key` -- der bestehende keydown-Handler in mining-workbench.js fragt
+    // e.key ab (Enter/Leertaste je Fundort-/Erzzeile, T-12-11). Ohne diesen
+    // Parameter blieb e.key immer undefined und der Handler kehrte sofort
+    // um, bevor irgendein Zweig ueberhaupt erreicht wurde -- rein additiv,
+    // kein bestehender zweiargumentiger Aufruf aendert sein Verhalten.
+    fire(type, target, init) {
       const ev = {
         type, target, currentTarget: null,
         preventDefault() {}, stopPropagation() {},
+        ...(init || {}),
       };
       (byType[type] || []).slice().forEach((fn) => fn(ev));
     },
@@ -411,9 +421,12 @@ export function makeMiningDomContext(opts = {}) {
   const account = makeAccount(opts.account);
   const windowObj = { VBAccount: account, document };
 
-  function fire(el, type) {
-    el.dispatchEvent(type);
-    docEvents.fire(type, el);
+  // init (optional): durchgereicht an docEvents.fire() -- siehe Kommentar
+  // dort. dispatchEvent() selbst kennt init bereits (dom-mock.js), die
+  // delegierten document-Handler brauchten das Feld hier zusaetzlich.
+  function fire(el, type, init) {
+    el.dispatchEvent(type, init);
+    docEvents.fire(type, el, init);
   }
 
   return {

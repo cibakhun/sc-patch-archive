@@ -452,13 +452,13 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         list.map(function (e2) {
           var bar = maxCh > 0 ? Math.round((e2.ch || 0) / maxCh * 100) : 0;
           /* data-ore + role/tabindex: dieselbe Attributkombination wie
-             .wb__tile -- die Klick-/Tastaturverdrahtung dieser Zeilen (Erz-
-             Auswahl aus der Fundort-Ansicht heraus) baut Welle 2/3 darauf
-             auf, ohne die Bauform hier noch einmal anzufassen. Kein pinKey:
-             an einem Fundort wird kein einzelnes Erz angeheftet. Kein
-             locSub() in der Unterzeile -- Art und System stehen bereits im
-             Kopf und waeren an jeder Zeile dieselben. Kein Scan-Signatur-
-             Element (D-08) -- Spalte 3 leistet das bereits. */
+             .wb__tile -- der delegierte Klick-/Tastatur-Handler verdrahtet
+             seit Plan 02 (D-02) genau diesen Zweig: ein Klick oder Enter auf
+             die Zeile fuehrt zurueck zum Erz. Kein pinKey: an einem Fundort
+             wird kein einzelnes Erz angeheftet. Kein locSub() in der
+             Unterzeile -- Art und System stehen bereits im Kopf und waeren
+             an jeder Zeile dieselben. Kein Scan-Signatur-Element (D-08) --
+             Spalte 3 leistet das bereits. */
           var opts = { attrs: 'data-ore="' + esc(e2.n) + '" role="button" tabindex="0"' };
           if ((e2.ms || 0) <= TRACE_MAX) {
             opts.cls = 'is-trace';
@@ -1016,6 +1016,20 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (back) { S.view = 'ore'; S.selLoc = null; renderAll(); return; }
     var locRow = t.closest('[data-loc]');
     if (locRow) { S.selLoc = locRow.getAttribute('data-loc'); S.view = 'loc'; renderAll(); return; }
+    /* Erzzeile INNERHALB der Fundort-Ansicht (Phase 12, D-02) -- der
+       Rueckweg zum Erz. Derselbe Vorsichtsabgleich wie an anderer Stelle
+       (locPinValid() gegen byName): ein unbekannter Name wird still
+       verworfen, der Zweig endet aber TROTZDEM mit return, kein
+       Durchfallen zu [data-pin]. Kein zweiter Render-Pfad fuer die
+       Erz-Seite: renderDetail() bleibt die einzige Zeichenroutine des
+       Erzes, renderLocation() schaltet nur die Sichtbarkeit -- zwei Wege
+       zu derselben Ansicht waeren zwei Wahrheiten. */
+    var oreRow = t.closest('[data-ore]');
+    if (oreRow) {
+      var oreName = oreRow.getAttribute('data-ore');
+      if (byName[oreName]) { S.sel = oreName; S.view = 'ore'; S.selLoc = null; renderAll(); }
+      return;
+    }
     var pin = t.closest('[data-pin]');
     if (pin) {
       var pn = pin.getAttribute('data-pin'), at = S.pins.indexOf(pn);
@@ -1064,14 +1078,24 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     /* Fundort-Ansicht (Phase 12): liegt das Ziel innerhalb eines ECHTEN
        <button> (die Nadel in der Zeile, der Zurueck-Knopf), loest der
        Browser dort bereits von sich aus einen Klick aus -- die neuen Zweige
-       bleiben dafuer aus, sonst zeichnete Enter/Space doppelt. */
+       bleiben dafuer aus, sonst zeichnete Enter/Space doppelt. Die Erzzeile
+       traegt keinen verschachtelten Knopf (kein pinKey), der Fall tritt
+       dort also nie ein -- der Vorbehalt bleibt trotzdem die eine
+       gemeinsame Stelle, an der das entschieden wird, statt je Zweig neu. */
     if (e.target.closest('button')) return;
     var locRow = e.target.closest('[data-loc]');
-    if (!locRow) return;
+    if (locRow) {
+      e.preventDefault();
+      S.selLoc = locRow.getAttribute('data-loc');
+      S.view = 'loc';
+      renderAll();
+      return;
+    }
+    var oreRow = e.target.closest('[data-ore]');
+    if (!oreRow) return;
     e.preventDefault();
-    S.selLoc = locRow.getAttribute('data-loc');
-    S.view = 'loc';
-    renderAll();
+    var oreName = oreRow.getAttribute('data-ore');
+    if (byName[oreName]) { S.sel = oreName; S.view = 'ore'; S.selLoc = null; renderAll(); }
   });
 
   document.addEventListener('change', function (e) {
