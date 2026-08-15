@@ -666,3 +666,54 @@ Null. Das spricht nicht gegen den Bau, wohl aber dagegen, ihn vorzuziehen.
 Plans:
 
 - [ ] TBD (run /gsd-plan-phase 11 to break down)
+
+### Phase 12: Fundorte in der Mining-Werkbank anklickbar
+
+**Goal:** Die Werkbank beantwortet bisher nur eine Richtung — „wo finde ich
+DIESES Erz?". Die Gegenrichtung — „was gibt es an DIESEM Ort?" — ist die
+Frage, die man sich beim Fliegen tatsächlich stellt, und sie ist heute
+unbeantwortbar: die Fundortzeilen sind tote Textzeilen, allein die
+Anheft-Nadel reagiert. Ein Klick auf den Namen schaltet die Mittelspalte auf
+eine Fundort-Ansicht um, mit Rückweg zum Erz.
+
+Die Datenhälfte dafür liegt seit der Fundort-Korrektur (14./15.08.) fertig im
+Bestand und wird im UI **nirgends** benutzt: `assets/mining-db.json` führt
+neben `minerals[]` auch `bodies[]` — 45 Fundorte, je Erz `chance`,
+`maxShare`, `eff`, `mining`, `rarity`. `verify:mining` prüft beide Richtungen
+bereits auf Deckungsgleichheit. Es fehlt die Ansicht, nicht die Datenarbeit.
+
+**Inhalt der Fundort-Ansicht:**
+
+- Erzliste, gruppiert nach Abbaumethode (ship / roc / fps / hand)
+- je Erz Chance, Höchstanteil, Balken (nach `eff` rangiert) und Scan-Signatur
+- Spurenerze (niedriger Höchstanteil) **markiert statt ausgeblendet**
+- Kopf mit System und Ortstyp; bei Lagrange-Fundorten die echten
+  Anflugpunkte (ARC-L3, CRU-L5 …) statt der Sammelbezeichnung
+
+⚠ **Ausdrücklich nicht** (mit scmdb verglichen, 15.08.2026):
+
+1. **Keine Preise.** scmdb zeigt auf seiner Fundort-Seite selbst keine —
+   und `refinery-data.json` deckt nur 26 der 37 Erze.
+2. **Keine Gruppenanteile** im scmdb-Stil („Ship Mining 51,0 %"). Deren Zahl
+   rechnet Derelict Salvage und Debris mit; das ist eine Bergungsdatenbank,
+   die wir nicht führen. Der Anteil wäre ohne diese Grundmenge erfunden.
+3. **Keine Adernzahl** („3–5"). Steht nicht in unseren Daten; `deposits`
+   zählt Felsarten und ist nicht dasselbe.
+4. **Keine neuen Seiten oder Routen.** Betreiberentscheidung vom 15.08.:
+   ausschließlich Umschaltung innerhalb der Werkbank.
+
+⚠ **Kein Datenbefund aus dem scmdb-Vergleich.** Wir listen an Pyro Deep Space
+Asteroids 12 Erze gegen deren 7, und Aluminium steht bei uns auf 29,8 % gegen
+deren 14,9 %. Beides ist geprüft und erklärt: die Chance summiert bei uns über
+alle Felsarten, die das Erz führen (2 × 14,9), und die fünf „fehlenden" Erze
+sind genau die mit Höchstanteil 5–10 % — scmdb blendet Spuren aus. Das
+Mehrfach-Slot-Doppelzählen ist in `datamine-locations.mjs:130-159` behandelt.
+Definitionsunterschied, kein Fehler. Hier ist nichts zu reparieren.
+
+**Requirements**: TBD
+**Depends on:** Phase 10 (Fundort-Merkliste und Presets der Werkbank)
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 12 to break down)
