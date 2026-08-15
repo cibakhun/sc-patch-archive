@@ -43,8 +43,8 @@ const { lang, title, eyebrow, lead } = Astro.props;
 /* Dieselbe Gehaeuse-Grafik wie die Mining-Werkbank — die beiden Seiten sind
    ein Paar, und zwei verschiedene Rahmen waeren ein Bruch. Ueber versioned(),
    damit der sha1 am Inhalt haengt statt an einer hochgezaehlten `?v=`-Zahl. */
-const chassis1x = versioned('assets/chassis-1600.webp', '/assets/chassis-1600.webp');
-const chassis2x = versioned('assets/chassis-2400.webp', '/assets/chassis-2400.webp');
+const chassisFrame = versioned('assets/chassis-frame.webp', '/assets/chassis-frame.webp');
+
 const de = lang === 'de';
 const h = useHelp(lang);
 const hlp = (k: string) => h(`fracturing.ctl.${k}` as HelpKey);
@@ -154,15 +154,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
 <section class="fc" id="calc" data-fc
-         style={`--fc-chassis-img:url('${chassis1x}');--fc-chassis-img-2x:url('${chassis2x}')`}>
+         style={`--fc-frame:url('${chassisFrame}')`}>
   {/* Gehaeuse: EIN Bild mit festem Seitenverhaeltnis, Bildflaeche als
       Prozentkasten. Begruendung, Messwerte und der verworfene 9-Slice-Weg
       stehen in .planning/sketches/010-chassis-asset/README.md. */}
   <div class="fc__chassis">
-    <div class="fc__chead">
-      <div class="fc__ceyebrow" set:text={eyebrow} />
-      <h1 class="fc__ctitle" set:text={title} />
-    </div>
+    <h1 class="fc__ctitle" set:text={title} />
+
     <div class="fc__cscreen">
       <p class="fc__clead" set:text={lead} />
   <div class="fc__grid">
@@ -262,7 +260,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 <script is:inline src={versioned('assets/fracturing-calc.js', '/assets/fracturing-calc.js')}></script>
 
 <style is:inline>
-.fc{max-width:1560px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 1.4rem;
+.fc{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  padding:0 clamp(10px,1.5vw,30px) 1.4rem;
   display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
   line-height:1.3;position:relative;isolation:isolate;
   /* Titelstreifen plus Abstaende. Anders als in der Mining-Werkbank haengt
@@ -272,31 +271,28 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      Scrollen, waehrend unter der Werkbank 8 px Falzluft ungenutzt lagen.
      178 gibt sie dem Raster. Wer die Zahl anfasst, misst beides nach:
      `#fc-list` darf nicht scrollen UND `.fc` nicht unter die Falz laufen. */
-  --fc-chrome:178px}
-/* ═══════════════════════ Gehaeuse ═══════════════════════
-   Dieselbe Grafik und dieselben gemessenen Prozentwerte wie in der
-   Mining-Werkbank — die beiden Seiten sind ein Paar. Belege und der
-   verworfene 9-Slice-Weg: .planning/sketches/010-chassis-asset/README.md.
-   ⚠ Der alte Zier-Grund `.fc::before` ist damit entfallen: er reichte 8 px
-   ueber die Sektion hinaus und legte einen Lichthof um den Rahmen. */
-.fc__chassis{position:relative;aspect-ratio:2552/1167;width:100%;
-  background:var(--fc-chassis-img) center/100% 100% no-repeat}
-@media (min-resolution:1.5dppx),(min-width:1700px){
-  .fc__chassis{background-image:var(--fc-chassis-img-2x)}}
-.fc__chead{position:absolute;left:0;right:0;top:0;height:11.225%;pointer-events:none;
-  container-type:size}
-/* ⚠ Titel eigenstaendig zentrieren, NICHT gemeinsam mit der Vorzeile in einer
-   Flexbox — sonst ist die Gruppe mittig und der Titel sitzt daneben. */
-.fc__ctitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;
-  font-size:clamp(1rem,1.75cqw,1.65rem);font-weight:600;letter-spacing:var(--ls-1);
-  line-height:1;color:#f2fafb;white-space:nowrap;text-shadow:0 1px 3px var(--shadow-color),0 2px 12px var(--shadow-color)}
-.fc__ceyebrow{position:absolute;left:24%;top:50%;transform:translateY(-50%);
-  font-family:var(--font-mono,ui-monospace);font-weight:600;
-  font-size:clamp(.5rem,.66cqw,.7rem);letter-spacing:var(--ls-15);text-transform:uppercase;
-  color:#ffcf7a;white-space:nowrap;padding:4px 9px;border-radius:5px;background:var(--veil-2);box-shadow:inset 0 0 0 1px rgba(255,207,122,.28)}
-@media(max-width:1180px){.fc__ceyebrow{display:none}}
-.fc__cscreen{position:absolute;left:7.367%;top:11.225%;width:88.088%;height:76.692%;
-  display:flex;flex-direction:column;gap:8px;min-height:0}
+  --fc-chrome:132px}
+/* ═══════════════════════ Gehaeuse — 9-Slice ═══════════════════════
+   Baugleich mit der Mining-Werkbank; die vollstaendige Begruendung steht dort
+   (MiningWorkbench.astro, Abschnitt „Gehaeuse — 9-Slice"). Kurz: die erste
+   Bauform war EIN Bild mit festem Seitenverhaeltnis, damit hing die
+   Rahmenstaerke an der Breite. Jetzt ist sie eine freie Zahl (--rahmen), und
+   Groesse, Hoehe und Staerke sind voneinander unabhaengig.
+   ⚠ `border-image-width` und `border-width` muessen uebereinstimmen.
+   ⚠ `fill` ist Pflicht. */
+.fc__chassis{--rahmen:clamp(15px,1.6vw,32px);
+  position:relative;display:flex;flex-direction:column;min-height:0;
+  border-style:solid;border-color:transparent;
+  border-image-source:var(--fc-frame);
+  border-image-slice:143 106 166 224 fill;
+  border-image-width:calc(var(--rahmen)*.86) var(--rahmen) calc(var(--rahmen)*1.2) var(--rahmen);
+  border-width:calc(var(--rahmen)*.86) var(--rahmen) calc(var(--rahmen)*1.2) var(--rahmen);
+  height:clamp(430px,calc(100vh - var(--fc-chrome)),1180px)}
+/* Titel unsichtbar, aber vorhanden — wie in der Werkbank. Sichtbarer Titel und
+   Vorzeile im Blech sind auf Ansage des Betreibers gestrichen. */
+.fc__ctitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.fc__cscreen{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1}
 .fc__clead{margin:0;text-align:center;font-size:var(--fs-4);
   color:color-mix(in srgb,var(--muted) 92%,transparent)}
 /* ⚠ Hier lag bis 15.08.2026 ein CSS-Raster als Grund der Bildflaeche. Es ist
@@ -462,21 +458,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .fc__pane{height:auto}
   .fc__pane--list{height:min(62vh,560px)}
   .fc__scroll{max-height:none}
-  /* ⚠ Gehaeuse AUS — wie in der Mining-Werkbank. Es hat ein festes
-     Seitenverhaeltnis von 2552:1167; bei schmalen Fenstern schrumpft seine
-     Bildflaeche damit auf eine Hoehe, in der nichts mehr Platz hat, waehrend
-     die Spalten untereinander in die Laenge wachsen. */
-  .fc__chassis{aspect-ratio:auto;background:none;display:flex;flex-direction:column;gap:10px}
-  /* ⚠ `container-type:size` MUSS hier zurueck. Ein Groessen-Container
-     berechnet seine Hoehe OHNE seinen Inhalt (Size-Containment) — das
-     Kopfband fiel dadurch auf die reine Polsterung von 5 px zusammen,
-     waehrend die <h1> darueber hinausragte und den Untertitel ueberdeckte.
-     Gemessen bei 390 px: chead 5 px hoch, ctitle 29 px. */
-  .fc__chead{position:static;height:auto;padding:0 0 .3rem;container-type:normal}
-  .fc__ctitle{position:static;transform:none;white-space:normal;text-shadow:none;
-    color:var(--text);font-size:clamp(1.6rem,3vw,2.1rem)}
-  .fc__cscreen{position:static;left:auto;top:auto;width:auto;height:auto}
-  .fc__clead{text-align:left;font-size:var(--fs-6)}
+  /* ⚠ Fruehere Fassung schaltete das Gehaeuse hier AUS — bei festem
+     Seitenverhaeltnis schrumpfte seine Bildflaeche auf schmalen Fenstern auf
+     eine unbrauchbare Hoehe. Mit dem 9-Slice entfaellt der Grund: die
+     Rahmenstaerke haengt nicht mehr an der Breite, und der Rahmen traegt auch
+     bei 390 px. Er BLEIBT also an; hier wird nur der Inhalt einspaltig.
+     Die frueheren Ruecksetzungen fuer Kopfband und Titel sind mit ihnen
+     entfallen — beide Elemente gibt es nicht mehr. */
 }
 @media(max-width:760px){
   .fc__pane--list{height:auto}
@@ -485,8 +473,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .fc__mrow .s{grid-column:1/-1;text-align:right}
 }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .fc__ctitle{color:#525a5b}
-:root[data-theme="light"] .fc__ceyebrow{color:#735103}
 :root[data-theme="light"] .fc__dot.is-ok{color:#036b26}
 :root[data-theme="light"] .fc__dot.is-bad{color:#9b2a10}
 :root[data-theme="light"] .fc__gauge.is-ok{color:#036b26}
