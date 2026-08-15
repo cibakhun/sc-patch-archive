@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 242,
-  "totalListings": 5864,
+  "updates": 243,
+  "totalListings": 5866,
   "totalSold": 253,
   "distinctItems": 1160
  },
@@ -125225,6 +125225,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786779907,
    "dateExpiration": 1791963907
+  },
+  "162708": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786780828,
+   "dateExpiration": 1791964828
+  },
+  "162709": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786780953,
+   "dateExpiration": 1791964953
   }
  }
 }
