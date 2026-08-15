@@ -142,6 +142,9 @@ const S_DE = {
   presetRename: 'Umbenennen', presetRenamed: 'Umbenannt.', presetNameTaken: 'Dieser Name ist schon vergeben.',
   presetListEmpty: 'Noch kein Preset gespeichert. Erze oder Fundorte anheften, dann mit „+" benennen.',
   presetDelAsk: 'Wirklich löschen?',
+  presetUpdate: 'Mit der aktuellen Auswahl überschreiben', presetUpdated: 'Überschrieben.',
+  presetShow: 'Inhalt anzeigen', presetHide: 'Inhalt ausblenden',
+  presetRemoveEntry: 'Aus dem Preset entfernen', presetNoEntries: 'Dieses Preset ist leer.',
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
   presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
@@ -164,6 +167,9 @@ const S_EN = {
   presetRename: 'Rename', presetRenamed: 'Renamed.', presetNameTaken: 'That name is already taken.',
   presetListEmpty: 'No preset saved yet. Pin ores or locations, then name one with the plus button.',
   presetDelAsk: 'Really delete?',
+  presetUpdate: 'Overwrite with the current selection', presetUpdated: 'Overwritten.',
+  presetShow: 'Show contents', presetHide: 'Hide contents',
+  presetRemoveEntry: 'Remove from preset', presetNoEntries: 'This preset is empty.',
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
   presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
@@ -238,6 +244,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
       <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
+    </symbol>
+    {/* Pfeil in die Ablage — "hier hinein speichern" (Phase 10, D-02 Form 2:
+        Ueberschreiben mit der aktuellen Auswahl). */}
+    <symbol id="wb-i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v10m0 0-4-4m4 4 4-4" />
+      <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
     </symbol>
   </svg>
 
@@ -657,7 +670,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pre-name{flex:1;min-width:0;border:0;background:0;padding:0;margin:0;text-align:left;
   font-family:inherit;font-size:var(--fs-5);color:var(--text);cursor:pointer;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__pre-cnt{margin-right:auto;font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);
+/* Zaehlzeile — seit D-02 Form 3 zugleich der Aufklapp-Griff: die Zahl selbst
+   ist der Griff (button statt span), aria-expanded traegt den Zustand. Kein
+   Klappzeichen aus einer Schriftart. */
+.wb__pre-cnt{margin-right:auto;border:0;background:0;padding:0;font-family:inherit;text-align:left;
+  cursor:pointer;font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wb__pre-a{flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;border:0;
   border-radius:6px;cursor:pointer;background:color-mix(in srgb,var(--ink) 34%,transparent);
@@ -680,6 +697,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   font-family:inherit;font-size:var(--fs-4);font-weight:600;padding:5px 8px;color:var(--ink);
   background:repeating-linear-gradient(-45deg,var(--accent-2) 0 9px,
     color-mix(in srgb,var(--accent-2) 55%,var(--ink)) 9px 18px)}
+/* Aufklapp-Ansicht einer Preset-Zeile (D-02 Form 3): bleibt INNERHALB der
+   Panelgrenzen -- .wb__pane traegt overflow:hidden und schneidet jede
+   Overlay-Positionierung restlos weg (Pitfall 1, bereits einmal vorgefuehrt
+   und zurueckgenommen). Die Klasse wb__scroll daneben liefert die sichtbare
+   Bildlaufleiste, weil assets/mobile-ux.css sie klassenbasiert registriert
+   -- kein neuer Eintrag dort noetig. */
+.wb__pre-body{max-height:150px;margin-top:5px;display:flex;flex-direction:column;gap:2px}
+.wb__pre-ent{display:flex;align-items:center;gap:6px;font-size:var(--fs-3);
+  color:color-mix(in srgb,var(--muted) 92%,transparent);padding:2px 4px}
+.wb__pre-ent span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__pre-ent button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
+  cursor:pointer;font-size:var(--fs-6);line-height:1;padding:0 2px}
 
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
@@ -743,7 +772,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__search:focus-visible,.wb__scan:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
 .wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
-.wb__pre-name:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
+.wb__pre-name:focus-visible,.wb__pre-cnt:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}

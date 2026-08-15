@@ -398,6 +398,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   var preCur = '';    // Name der aktuell markierten Zeile (is-sel)
   var preEditFor = null; // null = Neuanlage, sonst der alte Name beim Umbenennen
   var preAsk = null;  // Name der Zeile mit offener Loesch-Rueckfrage (D-01), sonst null
+  var preOpen = null; // Name der aufgeklappten Zeile (D-02 Form 3), sonst null
 
   function preSay(text, ms) {
     if (!preMsg) return;
@@ -423,28 +424,55 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
          volle Zeilenbreite beschriftete Schaltflaeche die gesamte
          Aktionszeile -- die einzige Aktion im Bauteil mit Worten statt
          eines Zeichens, an einem anderen Ort als jedes ×. */
+      var head;
       if (preAsk === p.name) {
-        return '<div class="wb__pre-item' + (p.name === preCur ? ' is-sel' : '') + '" data-preset="' + esc(p.name) + '">' +
-          '<div class="wb__pre-top">' +
-            '<button type="button" class="wb__pre-name" data-pre-pick="1">' + esc(p.name) + '</button>' +
-          '</div>' +
-          '<button type="button" class="wb__pre-ask" data-pre-delok="1">' + esc(T.presetDelAsk) + '</button>' +
-        '</div>';
-      }
-      var cnt = p.minerals.length + ' ' + T.signatures + ' · ' + p.locations.length + ' ' + T.locations;
-      return '<div class="wb__pre-item' + (p.name === preCur ? ' is-sel' : '') + '" data-preset="' + esc(p.name) + '">' +
-        '<div class="wb__pre-top">' +
-          '<button type="button" class="wb__pre-name" data-pre-pick="1">' + esc(p.name) + '</button>' +
-        '</div>' +
-        '<div class="wb__pre-act">' +
-          '<span class="wb__pre-cnt">' + esc(cnt) + '</span>' +
+        head = '<button type="button" class="wb__pre-ask" data-pre-delok="1">' + esc(T.presetDelAsk) + '</button>';
+      } else {
+        var cnt = p.minerals.length + ' ' + T.signatures + ' · ' + p.locations.length + ' ' + T.locations;
+        var isOpen = preOpen === p.name;
+        /* Reihenfolge in der Aktionszeile ist Pflicht: Zaehlzeile,
+           Ueberschreiben, Umbenennen, Loeschen. Die Zaehlzeile ist zugleich
+           der Aufklapp-Griff (data-pre-open, aria-expanded) -- die Zahl
+           selbst ist der Griff, kein Klappzeichen aus einer Schriftart. */
+        head = '<div class="wb__pre-act">' +
+          '<button type="button" class="wb__pre-cnt" data-pre-open="1" aria-expanded="' + isOpen + '" title="' +
+            esc(isOpen ? T.presetHide : T.presetShow) + '">' + esc(cnt) + '</button>' +
+          '<button type="button" class="wb__pre-a" data-pre-update="1" aria-label="' + esc(T.presetUpdate) + '">' +
+            '<svg aria-hidden="true" focusable="false"><use href="#wb-i-save" /></svg>' +
+          '</button>' +
           '<button type="button" class="wb__pre-a" data-pre-rename="1" aria-label="' + esc(T.presetRename) + '">' +
             '<svg aria-hidden="true" focusable="false"><use href="#wb-i-edit" /></svg>' +
           '</button>' +
           '<button type="button" class="wb__pre-a wb__pre-a--del" data-pre-del="1" aria-label="' + esc(T.presetDel) + '">' +
             '<svg aria-hidden="true" focusable="false"><use href="#wb-i-trash" /></svg>' +
           '</button>' +
-        '</div></div>';
+        '</div>';
+      }
+      /* Aufklapp-Ansicht (D-02 Form 3): zeigt jedes gespeicherte Erz und
+         jedes gespeicherte Fundort-Paar mit je einem Entfernen-Knopf.
+         ⚠ data-pre-rmmin/data-pre-rmloc heissen bewusst NICHT data-pin/
+         data-locpin -- die tragen im delegierten Handler die Bedeutung
+         "Arbeitsstand umschalten"; hier soll NUR die gespeicherte Zeile
+         geaendert werden. */
+      var body = '';
+      if (preOpen === p.name) {
+        var entries = p.minerals.map(function (name) {
+          return '<div class="wb__pre-ent"><span>' + esc(name) + '</span>' +
+            '<button type="button" data-pre-rmmin="' + esc(name) + '" aria-label="' + esc(T.presetRemoveEntry) + '">×</button></div>';
+        }).concat(p.locations.map(function (pair) {
+          var idx = pair.indexOf('||');
+          var label = pair.slice(0, idx) + ' — ' + pair.slice(idx + 2);
+          return '<div class="wb__pre-ent"><span>' + esc(label) + '</span>' +
+            '<button type="button" data-pre-rmloc="' + esc(pair) + '" aria-label="' + esc(T.presetRemoveEntry) + '">×</button></div>';
+        })).join('');
+        body = '<div class="wb__pre-body wb__scroll">' +
+          (entries || '<p class="wb__empty">' + esc(T.presetNoEntries) + '</p>') +
+        '</div>';
+      }
+      return '<div class="wb__pre-item' + (p.name === preCur ? ' is-sel' : '') + '" data-preset="' + esc(p.name) + '">' +
+        '<div class="wb__pre-top">' +
+          '<button type="button" class="wb__pre-name" data-pre-pick="1">' + esc(p.name) + '</button>' +
+        '</div>' + head + body + '</div>';
     }).join('');
   }
   function preLoad() {
@@ -462,7 +490,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       })
       .catch(function () { /* offline: die Liste bleibt leer, das Werkzeug laeuft weiter */ });
   }
-  function preSave(name) {
+  /* okText (optional): "Speichern" (Neuanlage) und "Ueberschreiben"
+     (D-02, Form 2: mit der aktuellen Auswahl ueberschreiben) sind dieselbe
+     Schreiboperation, sollen sich aber in der Rueckmeldung unterscheiden. */
+  function preSave(name, okText) {
     if (!S.pins.length && !S.locPins.length) { preSay(T.presetEmpty); return; }
     var body = [{ name: name, minerals: S.pins.slice(), locations: S.locPins.slice() }];
     /* Upsert auf (user_id, name): derselbe Name ueberschreibt, statt an einem
@@ -476,8 +507,30 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       'resolution=merge-duplicates,return=minimal')
       .then(function (r) {
         if (!r.ok) { preSay(T.presetFail, 4000); return; }
-        preSay(T.presetSaved);
+        preSay(okText || T.presetSaved);
         preCur = name;
+        return preLoad();
+      })
+      .catch(function () { preSay(T.presetFail, 4000); });
+  }
+  /* Einzeleintrag entfernen (D-02, Form 3) — gezielter PATCH auf GENAU die
+     gespeicherte Zeile, OHNE preApply(): das blosse Ausduennen eines
+     gespeicherten Presets darf weder den Arbeitsstand (S.pins/S.locPins)
+     noch das aktive Preset (preCur) aendern -- sonst loest sich die Grenze
+     zu "ueberschreiben" auf (CONTEXT.md, Abschnitt "Im Planungslauf
+     nachgeschaerft"). Das verkuerzte Array entstammt dem zuletzt GELADENEN
+     Serverstand (`presets`), nie dem Arbeitsstand (T-10-04). */
+  function preRemoveEntry(name, field, value) {
+    var preset = null;
+    for (var i = 0; i < presets.length; i++) if (presets[i].name === name) { preset = presets[i]; break; }
+    if (!preset) return;
+    var next = (preset[field] || []).filter(function (v) { return v !== value; });
+    var body = {};
+    body[field] = next;
+    return window.VBAccount.rest(preSess, 'PATCH', TBL + '?name=eq.' + encodeURIComponent(name), body)
+      .then(function (r) {
+        if (!r.ok) { preSay(T.presetFail, 4000); return; }
+        preSay(T.presetSaved);
         return preLoad();
       })
       .catch(function () { preSay(T.presetFail, 4000); });
@@ -632,6 +685,43 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (prePickBtn) {
       var pickRow = prePickBtn.closest('[data-preset]');
       if (pickRow) preApply(pickRow.getAttribute('data-preset'));
+      return;
+    }
+    /* Zaehlzeile = Aufklapp-Griff (D-02 Form 3): NUR Ansehen, kein
+       preApply(), kein Netzwerkaufruf -- das blosse Ansehen eines
+       gespeicherten Presets darf weder den Arbeitsstand noch den
+       gespeicherten Stand aendern. */
+    var openBtn = t.closest('[data-pre-open]');
+    if (openBtn) {
+      var openRow = openBtn.closest('[data-preset]');
+      var openName = openRow ? openRow.getAttribute('data-preset') : null;
+      preOpen = preOpen === openName ? null : openName;
+      renderPresetList();
+      return;
+    }
+    /* Ueberschreiben (D-02, Form 2): preSave() schreibt den AKTUELLEN
+       Arbeitsstand unter demselben Namen per Upsert -- das IST bereits
+       "ueberschreiben", nur die Rueckmeldung unterscheidet sich von
+       "neu angelegt". */
+    var updateBtn = t.closest('[data-pre-update]');
+    if (updateBtn) {
+      var updateRow = updateBtn.closest('[data-preset]');
+      if (updateRow) preSave(updateRow.getAttribute('data-preset'), T.presetUpdated);
+      return;
+    }
+    /* Einzeleintrag entfernen (D-02, Form 3): der Wert kommt vom Knopf
+       selbst (data-pre-rmmin/data-pre-rmloc), der Name der Zeile aus dem
+       Zeilencontainer -- dieselbe Trennung wie bei Umbenennen/Auswahl. */
+    var rmMin = t.closest('[data-pre-rmmin]');
+    if (rmMin) {
+      var rmMinRow = rmMin.closest('[data-preset]');
+      if (rmMinRow) preRemoveEntry(rmMinRow.getAttribute('data-preset'), 'minerals', rmMin.getAttribute('data-pre-rmmin'));
+      return;
+    }
+    var rmLoc = t.closest('[data-pre-rmloc]');
+    if (rmLoc) {
+      var rmLocRow = rmLoc.closest('[data-preset]');
+      if (rmLocRow) preRemoveEntry(rmLocRow.getAttribute('data-preset'), 'locations', rmLoc.getAttribute('data-pre-rmloc'));
       return;
     }
     /* ⚠ Reihenfolge ist Pflicht: [data-locpin] MUSS vor [data-pin] geprueft
