@@ -596,11 +596,11 @@ in Phase 7 und Phase 9), samt der beiden Nachschaerfungen vom 15.08.2026 zu D-01
 (zwei Klicks, der zweite traegt Worte) und D-02 (Aufklapp-Ansicht an der Preset-Zeile,
 gezielter Schreibaufruf ohne Laden des Presets).
 **Depends on:** Phase 9
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 
-- [ ] 10-01-PLAN.md (Welle 1) — Leitschuss durch alle Schichten: sichtbare Preset-Liste
+- [x] 10-01-PLAN.md (Welle 1) — Leitschuss durch alle Schichten: sichtbare Preset-Liste
   statt Auswahlfeld, Umbenennen ueber genau einen PATCH auf den Primaerschluessel samt
   eigenem Zweig fuer den vergebenen Namen; danach Loeschen mit beschrifteter Rueckfrage
   (Muelleimer statt `×`, andere Stelle, Warnschraffur) sowie Ueberschreiben und
@@ -635,13 +635,17 @@ weiß nur, wer ihn geflogen ist. Bewertete Routen sind die Brücke zwischen
 korrekten Zahlen und brauchbarem Rat.
 
 ⚠ **Vor der Planung zu entscheiden** (bestimmt das Datenmodell):
+
 1. Urheberschaft — es gibt bereits öffentliche Profile `/pilot/<handle>`;
    Veröffentlichen wäre damit eine Preisgabe der Identität.
+
 2. Bewertungsform — Daumen, Sterne oder „hat funktioniert"; eine Stimme je
    Konto und Preset, sonst wertlos.
+
 3. Missbrauch — öffentliche Namensfelder sind ein Einfallstor für Spam und
    Beleidigungen; es braucht mindestens einen Weg für den Betreiber, etwas
    zu entfernen.
+
 4. Kopieren oder folgen — eine übernommene Route als eingefrorene Kopie
    oder als Abonnement, das sich mitändert.
 

@@ -238,3 +238,11 @@ Zusaetzlich: `STAGING=1 npm run build` erfolgreich (17359 Seiten), `node --test 
 ---
 *Phase: 10-mining-presets-bedienbar-machen*
 *Completed: 2026-08-15*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/10-mining-presets-bedienbar-machen/10-01-SUMMARY.md`
+- FOUND: `f10a69f` (Task 1 commit)
+- FOUND: `eac6c4d` (Task 2 commit)
+- FOUND: `aeaa177` (Task 3 commit)
+- FOUND: `22851f5` (this SUMMARY commit)
