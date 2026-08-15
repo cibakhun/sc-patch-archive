@@ -596,7 +596,7 @@ in Phase 7 und Phase 9), samt der beiden Nachschaerfungen vom 15.08.2026 zu D-01
 (zwei Klicks, der zweite traegt Worte) und D-02 (Aufklapp-Ansicht an der Preset-Zeile,
 gezielter Schreibaufruf ohne Laden des Presets).
 **Depends on:** Phase 9
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 
 Plans:
 
@@ -606,12 +606,18 @@ Plans:
   (Muelleimer statt `×`, andere Stelle, Warnschraffur) sowie Ueberschreiben und
   eintragsweises Ausduennen direkt an der gespeicherten Zeile (D-01, D-02, D-05)
 
-- [ ] 10-02-PLAN.md (Welle 2) — Ausbau: die Reiter entfallen, Signaturenliste und
-  Fundort-Merkliste stehen gestapelt und gleichzeitig sichtbar, die rechte Spalte
-  waechst um 68 px zulasten der Mitte; der Scanwert entfaellt ersatzlos samt
-  Treffermarkierung, Sprachschluessel und Hilfetext, waehrend die Vielfachen bleiben;
-  Hilfetexte in DE und EN auf den neuen Stand, beide Torlaeufe und die Sichtrunde
-  benannt an den Betreiber (D-03, D-04, D-06, D-07)
+- [x] 10-02-PLAN.md (Welle 2) — Ausbau vollzogen: die Reiter sind entfallen,
+  Signaturenliste und Fundort-Merkliste stehen gestapelt (`.wb__stack`/`.wb__sec2`) und
+  gleichzeitig sichtbar, jede mit eigener Ueberschrift samt Zaehler (`wb-pinsh`/`wb-lpinsh`);
+  die rechte Spalte ist um 68 px auf 330 px gewachsen, zulasten der Mitte (`470px 1fr 330px`),
+  die linke Erzliste unangetastet. Der Scanwert ist restlos abgetragen — Eingabefeld,
+  Treffermarkierung `is-hit`, Sprachschluessel `scanPlaceholder`, Hilfeschluessel
+  `mining.ctl.scan`/`mining.ctl.tabs` — waehrend die Vielfachen-Anzeige vollstaendig steht.
+  Hilfetexte in DE und EN auf den neuen Stand (Preset-Handlungen, Nachschlagewerk-Rahmung,
+  keine Reiter-/Scanwert-Erwaehnung mehr). Beide Torlaeufe gruen (normal und mit
+  `STAGING=1`, 18/18 Schritte), `verify:help` 12/12 Werkzeuge, `audit:site` 0 FEHLER,
+  `test:e2e` 270/270 (267 vor der Phase + 3 neue Faelle). Sichtrunde als Eintrag id 11 in
+  `.planning/WINDOWS.md` an den Betreiber uebergeben (D-03, D-04, D-06, D-07)
 
 Entschieden beim Zuschnitt (Claude's Discretion aus der CONTEXT.md): **Umbenennen ist
 EIN `PATCH` auf `(user_id, name)`**, nicht „neu anlegen + altes loeschen". Die
