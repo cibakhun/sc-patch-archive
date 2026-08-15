@@ -724,6 +724,15 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     $('wb-pre-ok').addEventListener('click', function () {
       var n = (preName.value || '').trim();
       if (!n) { preName.focus(); return; }
+      /* eq.null-Falle, prospektiver Teil (Review Phase 10, MEDIUM): PostgREST
+         liest den literalen Text "null" hinter `eq.` als IS NULL statt als
+         Gleichheit mit dem Text -- ein Preset mit genau diesem Namen liesse
+         sich ueber diese Oberflaeche danach nie wieder umbenennen, loeschen
+         oder ausduennen (Begruendung fuer den unquotierten Filter steht bei
+         `var TBL` oben). Gilt fuer BEIDE Anlaesse dieses Feldes (Neuanlage
+         UND Umbenennen), deshalb hier an der gemeinsamen Stelle geprueft,
+         nicht erst in preSave(). */
+      if (n.toLowerCase() === 'null') { preSay(T.presetFail, 4000); return; }
       var editFor = preEditFor;
       preMode(false);
       if (editFor) preRename(editFor, n); else preSave(n);

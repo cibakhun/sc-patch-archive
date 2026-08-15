@@ -1079,6 +1079,40 @@ test('REVIEW MEDIUM: Einzeleintrag-Entfernen an einem serverseitig bereits versc
 });
 
 // ---------------------------------------------------------------------
+// Code-Review Phase 10 (10-REVIEW.md) — MEDIUM/eq.null-Falle: der Name
+// "null" wird bereits bei Anlage/Umbenennen abgewiesen (prospektiver Teil
+// des Fixes; der retroaktive Teil ist der Treffer-Check im vorigen Commit).
+// ---------------------------------------------------------------------
+
+test('REVIEW eq.null-Falle: Preset-Name "null" (Gross-/Kleinschreibung, mit Leerraum) wird beim Anlegen abgewiesen, kein POST', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+
+  ctx.fire(ctx.elements['wb-pre-new'], 'click');
+  ctx.elements['wb-pre-name'].value = '  Null  ';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'ein Preset namens "null" darf nie angelegt werden');
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false);
+  assert.strictEqual(msg.textContent, ctx.T.presetFail);
+});
+
+test('REVIEW eq.null-Falle: ein Preset auf den Namen "NULL" umbenennen wird abgewiesen, kein PATCH', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'Alt', minerals: ['Gold'] }] } });
+
+  ctx.fire(renameBtn(ctx, 'Alt'), 'click');
+  ctx.elements['wb-pre-name'].value = 'NULL';
+  ctx.fire(ctx.elements['wb-pre-ok'], 'click');
+  await flush();
+
+  assert.strictEqual(countCalls(ctx, 'PATCH'), 0, 'das Umbenennen auf "NULL" darf keinen Aufruf ausloesen');
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.textContent, ctx.T.presetFail);
+  assert.ok(presetRow(ctx, 'Alt'), 'die Zeile sollte weiterhin unter dem alten Namen stehen');
+});
+
+// ---------------------------------------------------------------------
 // Code-Review Phase 10 (10-REVIEW.md) — LOW: preOpen folgt dem Umbenennen
 // nicht (die aufgeklappte Ansicht klappte nach einem Umbenennen unbemerkt zu).
 // ---------------------------------------------------------------------
