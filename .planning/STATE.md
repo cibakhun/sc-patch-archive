@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 12
 current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
 status: executing
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-08-15T15:46:36.033Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-08-15T16:38:05.659Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 16
   completed_phases: 10
   total_plans: 53
-  completed_plans: 44
+  completed_plans: 45
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 12 (fundorte-in-der-mining-werkbank-anklickbar) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 
 ---
@@ -163,7 +163,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 83%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
@@ -219,6 +219,7 @@ Progress: [████████░░] 83%
 | Phase 10 P01 | 35min | 3 tasks | 4 files |
 | Phase 10 P02 | 35min | 3 tasks | 7 files |
 | Phase 12 P01 | 50min | 2 tasks | 4 files |
+| Phase 12 P02 | 50min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -304,6 +305,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 10-02: mining.ctl.pins wird zum Nachschlagewerk-Text, mining.ctl.presets nennt die vier Preset-Handlungen aus 10-01; scripts/verify-help.mjs bewusst nicht angefasst
 - [Phase ?]: 12-01: [data-ore]-Klick in der Fundort-Ansicht bewusst unverdrahtet -- Markup-Vorbereitung (data-ore/role/tabindex) fuer Welle 2/3, Objective weist diesen Ein-/Ausstieg dort explizit zu
 - [Phase ?]: 12-01: T-12-04 auf gruppenlokale statt globale Chance-Monotonie korrigiert -- Sortieren-dann-Gruppieren (Schiff->ROC->Hand) macht die Gesamtliste nicht monoton, nur jede Methodengruppe fuer sich; Implementierung folgt dem detaillierten Handlungstext
+- [Phase ?]: 12-02: hereIdx-Berechnung an S.view === 'loc' gebunden, nicht nur an S.selLoc -- ein direkter Kachelklick waehrend die Fundort-Ansicht offen ist setzt S.view sofort zurueck, laesst S.selLoc aber stehen; ohne die View-Bedingung bliebe is-here faelschlich aktiv
+- [Phase ?]: 12-02: mining-dom.js fire(el, type, init) um optionalen dritten Parameter erweitert (Rule 3) -- reicht Event-Felder wie key an den delegierten keydown-Handler durch, sonst war Enter/Leertaste im node:vm-Fixture nicht pruefbar
 
 ### Pending Todos
 
@@ -353,6 +356,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T15:46:36.006Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-08-15T16:38:05.632Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
