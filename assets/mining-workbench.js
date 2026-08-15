@@ -225,6 +225,25 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   function renderList() {
     var q = S.q.trim().toLowerCase(), shown = 0;
     var tiles = listEl.querySelectorAll('.wb__tile');
+    /* Nachschlageobjekt der Erznamen, die am AKTUELL offenen Fundort
+       vorkommen (Phase 12, D-09) -- EINMAL vor der Schleife aus locIndex
+       gebaut, statt in der Schleife je Kachel ueber die Eintragsliste zu
+       laufen (37 * bis zu 17 Vergleiche waeren vermeidbare Arbeit im
+       Zeichenpfad). Gebunden an S.view === 'loc', NICHT nur an S.selLoc:
+       ein direkter Kachelklick waehrend die Fundort-Ansicht offen ist setzt
+       S.view sofort auf 'ore' zurueck, laesst S.selLoc aber unveraendert
+       stehen (derselbe Zweig wie schon vor dieser Phase) -- ohne die
+       View-Bedingung bliebe die Markierung nach genau diesem Wechsel
+       faelschlich aktiv. Leer, wenn kein Fundort offen ist; die Umschaltung
+       unten entfernt is-here dann von ALLEN Kacheln, sonst bliebe die
+       Markierung nach dem Zuruecksperingen stehen. Die Filterzeile bleibt
+       die alleinige Instanz, die ueber `display` entscheidet, was sichtbar
+       ist -- is-here annotiert nur, filtert nichts. */
+    var hereIdx = {};
+    if (S.view === 'loc' && locIndex[S.selLoc]) {
+      var hereEntries = locIndex[S.selLoc];
+      for (var hi = 0; hi < hereEntries.length; hi++) hereIdx[hereEntries[hi].n] = true;
+    }
     for (var i = 0; i < tiles.length; i++) {
       var el = tiles[i], m = byName[el.getAttribute('data-min')];
       if (!m) continue;
@@ -233,6 +252,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       if (hit && S.sys) hit = m.systems.indexOf(S.sys) >= 0;
       el.style.display = hit ? '' : 'none';
       el.classList.toggle('is-sel', m.name === S.sel);
+      el.classList.toggle('is-here', !!hereIdx[m.name]);
       /* Der Zustand steckt in der Klasse, nicht im Zeichen: das Symbol bleibt
          stehen, nur die Flaeche faerbt sich (wie bei .wb__chip.is-on). Fuer
          Screenreader traegt ihn aria-pressed — ein Umschalter, kein Link. */

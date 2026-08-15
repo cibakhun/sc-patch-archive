@@ -187,6 +187,13 @@ function locPinRow(ctx, loc) {
     .find((row) => row.getAttribute('data-loc') === loc) || null;
 }
 
+/** Eine Kachel in Spalte 1, gefunden ueber data-min -- wie selectMineral()
+ *  oben, aber ohne den Klick zu feuern (Phase 12, Plan 02, Task 3, D-09). */
+function tileByName(ctx, name) {
+  return ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile')
+    .find((t) => t.getAttribute('data-min') === name) || null;
+}
+
 /** Zweitgeschrieben aus locIndex in assets/mining-workbench.js -- fuer
  *  Testzwecke, um reale Fundorte mit bestimmten Eigenschaften (mehrere Erze,
  *  mehrere Methoden, Spuren gemischt mit Vollzeilen) im Mock-Bestand zu
@@ -1550,3 +1557,53 @@ test('T-12-13: Klick auf das Kreuz derselben Zeile loest das Paar, OHNE die Ansi
   );
 });
 
+// ---------------------------------------------------------------------
+// Phase 12, Plan 02, Task 3 — Die Kachelspalte zeigt, was an einem offenen
+// Fundort vorkommt -- und was nicht (D-09). Filtert nichts, annotiert nur.
+// ---------------------------------------------------------------------
+
+test('T-12-14: Fundort oeffnen -- Zahl der markierten Kacheln entspricht der Zahl der Eintraege, alle 37 Kacheln bleiben stehen (D-09)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  const total = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile').length;
+  selectMineral(ctx, entries[0].n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  const tiles = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile');
+  assert.strictEqual(tiles.length, total, 'die Gesamtzahl der Kacheln sollte unveraendert bleiben -- die Markierung filtert nicht');
+  const marked = tiles.filter((t) => t.classList.contains('is-here'));
+  assert.strictEqual(marked.length, entries.length, 'die Zahl der markierten Kacheln sollte der Zahl der Eintraege dieses Fundorts entsprechen');
+  const markedNames = marked.map((t) => t.getAttribute('data-min'));
+  for (const name of entries.map((e) => e.n)) {
+    assert.ok(markedNames.includes(name), `"${name}" sollte markiert sein`);
+  }
+});
+
+test('T-12-15: Zurueck auf die Erz-Ansicht -- keine Kachel traegt mehr is-here; markiert und ausgewaehlt schliessen einander waehrend die Fundort-Ansicht offen ist nicht aus', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc, entries } = biggestLoc(probe);
+  const target = entries[0];
+
+  const ctx = await runAsync({ account: { rows: [] } });
+  selectMineral(ctx, target.n);
+  ctx.fire(locRow(ctx, loc), 'click');
+
+  // Ueberlagerung waehrend die Fundort-Ansicht offen ist: die weiterhin
+  // gewaehlte Kachel (S.sel aendert sich durch das Oeffnen eines Fundorts
+  // nicht) traegt gleichzeitig is-sel UND is-here.
+  const selTile = tileByName(ctx, target.n);
+  assert.ok(selTile, `Kachel fuer "${target.n}" nicht gefunden`);
+  assert.ok(selTile.classList.contains('is-sel'), 'die gewaehlte Kachel sollte is-sel tragen');
+  assert.ok(selTile.classList.contains('is-here'), 'die gewaehlte Kachel sollte gleichzeitig is-here tragen -- die beiden Zustaende duerfen sich nicht verdraengen');
+
+  const back = ctx.elements['wb-back'];
+  assert.ok(back, 'Zurueck-Knopf nicht im Mock-DOM registriert');
+  ctx.fire(back, 'click');
+
+  const tiles = ctx.document.getElementById('wb-list').querySelectorAll('.wb__tile');
+  const stillMarked = tiles.filter((t) => t.classList.contains('is-here'));
+  assert.strictEqual(stillMarked.length, 0, 'nach dem Zurueckspringen sollte keine Kachel mehr is-here tragen');
+  assert.ok(tileByName(ctx, target.n).classList.contains('is-sel'), 'die Erzauswahl selbst sollte durch das Zurueckspringen unveraendert bleiben');
+});
