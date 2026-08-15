@@ -546,15 +546,16 @@ Entscheidungen D-01 bis D-07 aus
 `.planning/phases/09-mining-werkbank-fundort-merkliste/CONTEXT.md` (gleicher Umgang wie
 in Phase 7).
 **Depends on:** Phase 8
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 
-- [ ] 09-01-PLAN.md (Welle 1) — Leitschuss durch alle vier Schichten: Spalte `locations`
+- [x] 09-01-PLAN.md (Welle 1) — Leitschuss durch alle vier Schichten: Spalte `locations`
   an `mining_sig_presets` (Altbestand laedt weiter), Mitte einspaltig mit umgehaengtem
   Erz-Kopf, zweiter Reiter mit der Merkliste, EIN angehefteter Fundort ueberlebt den
   Preset-Rundlauf — maschinell belegt gegen das echte Client-Skript; danach die toten
   Reste der Detailspalte und ein Wachposten in `verify:mining` fuer den Paar-Schluessel
+
 - [ ] 09-02-PLAN.md (Welle 2) — Ausbau: Werte je Paar (Chance, Hoechstanteil),
   Loesen an beiden Enden, Gast-Arbeitsstand, Obergrenze mit Ansage; Hilfetexte und
   Oberflaeche in DE und EN auf den neuen Stand; beide Torlaeufe (normal und Vorschau)
