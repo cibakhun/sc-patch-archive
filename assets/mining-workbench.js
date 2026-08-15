@@ -503,7 +503,15 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      gestapelt statt hinter einem zweiten Reiter — erz-uebergreifend (D-06).
      Eintrag "Erz — Fundort" mit Geviertstrich, derselbe ×-Knopf traegt dasselbe
      data-locpin wie die Nadel in der Fundort-Zeile: EIN Attribut, zwei
-     Richtungen (Praezedenz: data-pin bei den Signaturen). */
+     Richtungen (Praezedenz: data-pin bei den Signaturen).
+     Seit Phase 12 (D-03) traegt die Zeile SELBST zusaetzlich data-loc: ein
+     Klick irgendwo auf die Zeile oeffnet denselben Fundort wie die
+     Fundort-Zeile in der Mitte. Der delegierte Handler braucht dafuer
+     KEINEN neuen Zweig -- der [data-loc]-Zweig aus Plan 01 findet diese
+     Zeile ueber genau dasselbe Attribut, und [data-locpin] steht davor
+     unveraendert an erster Stelle (dieselbe Vorrangfrage ist an dieser
+     Datei bereits zweimal beantwortet: [data-locpin] vor [data-pin],
+     data-pre-rmloc bewusst NICHT als data-locpin benannt). */
   function renderLocPins() {
     var box = $('wb-locpins');
     /* Zaehler in der Ueberschrift #wb-lpinsh (D-03, vorher in der
@@ -532,7 +540,11 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         ? '<div class="wb__lmeta"><span>' + esc(lsub ? lort + ' · ' + lsub : lort) +
           '</span><em>' + esc(pctRight(l)) + '</em></div>'
         : '';
-      return '<div class="wb__pin-item"><div class="wb__pin-top">' +
+      /* data-loc traegt NUR den Fundort-Teil des Paares, durch esc() gefuehrt
+         wie der Paar-Schluessel im Kreuz-Knopf daneben (T-12-05/threat model
+         T-12-05) -- role/tabindex dieselbe Kombination wie .wb__tile und
+         .wb__row2[data-loc]. */
+      return '<div class="wb__pin-item" data-loc="' + esc(loc) + '" role="button" tabindex="0"><div class="wb__pin-top">' +
         '<span class="nm">' + esc(label) + '</span>' +
         '<button type="button" data-locpin="' + esc(pair) + '" aria-label="' + esc(T.unpin + ': ' + label) + '">×</button>' +
         '</div>' + meta + '</div>';

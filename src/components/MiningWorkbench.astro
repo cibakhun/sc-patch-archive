@@ -800,6 +800,14 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
+/* Merklistenzeile klickbar (Phase 12, D-03) — dieselbe Klickbarkeit wie die
+   Fundort-Zeile in der Mitte, wortgleicher Hover. data-loc traegt NUR diese
+   Zeile: die Signaturen-Eintraege in #wb-pins benutzen dieselbe Klasse
+   .wb__pin-item, aber ohne das Attribut -- die Selektor-Bedingung ist
+   deshalb Pflicht, sonst bekaeme die Signaturenliste eine Klickbarkeit, die
+   sie nicht hat. */
+.wb__pin-item[data-loc]{cursor:pointer;transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__pin-item[data-loc]:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
 .wb__pin-top{display:flex;align-items:center;gap:7px}
 .wb__pin-top .nm{font-size:var(--fs-5);font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wb__pin-top button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
@@ -861,7 +869,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
 .wb__pre-name:focus-visible,.wb__pre-cnt:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible,
-.wb__row2[data-loc]:focus-visible,.wb__row2[data-ore]:focus-visible,.wb__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.wb__row2[data-loc]:focus-visible,.wb__row2[data-ore]:focus-visible,
+.wb__pin-item[data-loc]:focus-visible,.wb__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
 

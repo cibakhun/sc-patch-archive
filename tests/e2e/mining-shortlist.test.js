@@ -180,6 +180,13 @@ function oreRow(ctx, name) {
     .find((row) => row.getAttribute('data-ore') === name) || null;
 }
 
+/** Eine Merklistenzeile in #wb-locpins, gefunden ueber den entschluesselten
+ *  data-loc-Wert -- Phase 12, Plan 02, Task 2 (D-03). */
+function locPinRow(ctx, loc) {
+  return ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item')
+    .find((row) => row.getAttribute('data-loc') === loc) || null;
+}
+
 /** Zweitgeschrieben aus locIndex in assets/mining-workbench.js -- fuer
  *  Testzwecke, um reale Fundorte mit bestimmten Eigenschaften (mehrere Erze,
  *  mehrere Methoden, Spuren gemischt mit Vollzeilen) im Mock-Bestand zu
@@ -1488,5 +1495,58 @@ test('T-12-11: Enter auf einer fokussierten Erzzeile bewirkt dasselbe wie der Kl
   ctx.fire(refRow, 'click');
   assert.strictEqual(ctx.elements['wb-name'].textContent, selBefore, 'ein Klick auf eine Stationszeile darf das gewaehlte Erz nicht aendern');
   assert.strictEqual(ctx.elements['wb-oreview'].hidden, viewBefore, 'ein Klick auf eine Stationszeile darf die Ansicht nicht wechseln');
+});
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 02, Task 2 — Die Fundort-Merkliste reagiert genauso: eine
+// Zeile, zwei Bedeutungen (D-03). Das Loesen-Kreuz behaelt seinen Vorrang.
+// ---------------------------------------------------------------------
+
+test('T-12-12: Ein Paar anheften, dann in der Merkliste auf die Zeile (nicht auf das Kreuz) klicken: die Fundort-Ansicht dieses Ortes ist offen, das Paar bleibt angeheftet', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+
+  const row = locPinRow(ctx, loc);
+  assert.ok(row, `Merklistenzeile fuer Gold||${loc} nicht gefunden`);
+
+  ctx.fire(row, 'click');
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'die Fundort-Ansicht sollte nach dem Zeilenklick offen sein');
+  assert.strictEqual(ctx.elements['wb-locname'].textContent, loc, 'der Kopf sollte den geklickten Fundort zeigen');
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length, 1,
+    'das Paar sollte nach dem Oeffnen weiterhin angeheftet sein'
+  );
+});
+
+test('T-12-13: Klick auf das Kreuz derselben Zeile loest das Paar, OHNE die Ansicht zu wechseln; der Ortsname mit HTML-Sonderzeichen steht escaped im data-loc-Attributwert', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+
+  const crossBtn = locPinBtn(ctx, 'Gold', loc);
+  assert.ok(crossBtn, 'Loesen-Kreuz nicht gefunden');
+  ctx.fire(crossBtn, 'click');
+
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length, 0,
+    'das Paar sollte nach dem Kreuz-Klick geloest sein'
+  );
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'die Fundort-Ansicht darf durch den Kreuz-Klick NICHT geoeffnet werden');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'die Erz-Ansicht sollte weiterhin sichtbar sein');
+
+  // Sonderzeichen: escaped im data-loc-Attributwert der Merklistenzeile,
+  // dieselben vier Zeichen wie bereits bei der Fundort-Zeile (T-12-07).
+  ctx.fire(locPinBtn(ctx, 'Gold', ctx.SPECIAL_LOC), 'click');
+  const specialRow = locPinRow(ctx, ctx.SPECIAL_LOC);
+  assert.ok(specialRow, 'Merklistenzeile fuer den Sonderzeichen-Fundort nicht gefunden');
+  assert.strictEqual(specialRow.getAttribute('data-loc'), ctx.SPECIAL_LOC, 'der volle Originaltext sollte ueber getAttribute() (dekodiert) im data-loc stehen');
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').querySelectorAll('danger').length, 0,
+    'unescapter Text haette ein <danger>-Element erzeugt'
+  );
 });
 
