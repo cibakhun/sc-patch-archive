@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 248,
-  "totalListings": 6016,
+  "updates": 249,
+  "totalListings": 6025,
   "totalSold": 256,
-  "distinctItems": 1172
+  "distinctItems": 1175
  },
  "listings": {
   "156580": {
@@ -128449,6 +128449,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786801390,
    "dateExpiration": 1791985390
+  },
+  "162795": {
+   "idItem": null,
+   "idCategory": 17,
+   "title": "XDL Snowfall Rangefinder",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786803780,
+   "dateExpiration": 1791987780
+  },
+  "162796": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786803960,
+   "dateExpiration": 1791987960
+  },
+  "162797": {
+   "idItem": 5327,
+   "idCategory": 17,
+   "title": "RD-1 Jaeger (1x Red Dot)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786803991,
+   "dateExpiration": 1791987991
+  },
+  "162798": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786804008,
+   "dateExpiration": 1791988008
+  },
+  "162799": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1030000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786804101,
+   "dateExpiration": 1791988101
+  },
+  "162800": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "WTT A Full set (9 RCMBNTS) for YOUR pure Carinite",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786804198,
+   "dateExpiration": 1791988198
+  },
+  "162801": {
+   "idItem": 1956,
+   "idCategory": 21,
+   "title": "TurboDrive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786804567,
+   "dateExpiration": 1791988566
+  },
+  "162803": {
+   "idItem": 971,
+   "idCategory": 22,
+   "title": "Yeager",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786804780,
+   "dateExpiration": 1791988780
+  },
+  "162804": {
+   "idItem": 951,
+   "idCategory": 23,
+   "title": "SecureShield",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 20000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786804898,
+   "dateExpiration": 1791988898
   }
  }
 }
