@@ -6,13 +6,13 @@ current_phase: 5
 current_phase_name: Spenden-Unterstuetzung
 status: in_progress
 stopped_at: Completed 02-06-PLAN.md (fuenf Seitenpaare, 22 Themen-Koerper, 5 Konto-Ansichten, PilotPage, ShipsOverview auf die Skala umgestellt)
-last_updated: "2026-08-15T01:32:37.434Z"
+last_updated: "2026-08-15T03:09:19.873Z"
 last_activity: 2026-08-02
 last_activity_desc: staging zusammengeführt, Phase 5 auf Umbau umgestellt
 progress:
-  total_phases: 13
+  total_phases: 15
   completed_phases: 10
-  total_plans: 47
+  total_plans: 50
   completed_plans: 41
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
@@ -26,6 +26,18 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 **Current focus:** Phase 5 — Spenden-Unterstützung
+
+> **Nachtrag 15.08.2026 — Phase 10 ist geplant, ausführbereit.**
+> „Mining-Presets bedienbar machen", 2 Pläne in 2 Wellen
+> (`.planning/phases/10-mining-presets-bedienbar-machen/`), Plan-Prüfer bestanden.
+> Nächster Schritt: `/gsd-execute-phase 10`.
+>
+> ⚠ Der übrige Text dieser Datei beschreibt weiterhin den Stand vom **02.08.2026**
+> (Phase 5). Die Phasen 6, 7, 8 und 9 sind seither aus anderen Sitzungen
+> ausgeliefert worden, ohne diesen Abschnitt fortzuschreiben — die Angaben unter
+> „Current Position" sind entsprechend veraltet und nicht als Lagebild zu lesen.
+> Absichtlich nicht überschrieben: an Phase 5 arbeitet laut demselben Abschnitt
+> eine parallele Sitzung.
 
 ## Current Position
 
