@@ -1150,6 +1150,28 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     for (var n in byName) if (n.toLowerCase() === key) { S.sel = n; deepLinked = true; return; }
   })();
 
+  /* Tieflink ?fundort=<Ortsname> (Phase 12, D-04) -- ab Auslieferung eine
+     OEFFENTLICHE ZUSAGE: der Name ist der Schluessel aus den Fundortdaten,
+     geteilte Verweise brechen, wenn dieser Schluessel sich spaeter aendert
+     (Bewertung "costly", nicht "one-way", siehe 12-03-PLAN.md). Dieselbe
+     Bauform wie der Mineral-Zweig oben, nicht ein zweites Verfahren: Lesen
+     in try/catch, frueher Ausstieg bei fehlendem Wert, Abgleich ueber
+     trim()+toLowerCase() gegen die vorhandenen locIndex-Schluessel. Ein
+     Treffer setzt S.selLoc auf den KANONISCHEN Schluessel (nie den
+     gelesenen Wert) und S.view auf die Fundort-Ansicht; kein Treffer heisst:
+     nichts tun -- kein Fehlertext, kein Konsolenausdruck, keine Umleitung.
+     Laeuft NACH dem Laden des gespeicherten Zustands (oben) und VOR dem
+     ersten renderAll() (unten) -- sonst gewinnt der gespeicherte Zustand.
+     Beide Parameter vertragen sich: der Mineral-Zweig bestimmt weiterhin das
+     gewaehlte Erz (Fusszeile), dieser Zweig nur die ANSICHT. */
+  (function fromQueryLoc() {
+    var want;
+    try { want = new URLSearchParams(location.search).get('fundort'); } catch (e) { return; }
+    if (!want) return;
+    var key = want.trim().toLowerCase();
+    for (var p in locIndex) if (p.toLowerCase() === key) { S.selLoc = p; S.view = 'loc'; return; }
+  })();
+
   if ($('wb-ref')) $('wb-ref').value = String(S.ref);
   renderAll();
 

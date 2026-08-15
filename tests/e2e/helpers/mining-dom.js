@@ -320,7 +320,11 @@ function mk(tag, id, className) {
  *   localStorageSeed  — Rumpf, der unter dem Schluessel LS_KEY vorbelegt wird
  *                       (Altbestands-Nachweis ohne locPins-Feld: dieses Feld
  *                       einfach weglassen)
- *   search            — location.search, Default '' (kein Tieflink-Test hier)
+ *   search            — location.search, Default '' (kein Tieflink-Test hier).
+ *                       War von Anfang an fuer den ?mineral=-Zweig vorhanden;
+ *                       seit Phase 12, Plan 03 traegt sie zusaetzlich den
+ *                       ?fundort=-Zweig (T-12-16..18) -- dieselbe Option,
+ *                       keine neue.
  */
 export function makeMiningDomContext(opts = {}) {
   const payload = buildPayload();

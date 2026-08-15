@@ -1607,3 +1607,70 @@ test('T-12-15: Zurueck auf die Erz-Ansicht -- keine Kachel traegt mehr is-here; 
   assert.strictEqual(stillMarked.length, 0, 'nach dem Zurueckspringen sollte keine Kachel mehr is-here tragen');
   assert.ok(tileByName(ctx, target.n).classList.contains('is-sel'), 'die Erzauswahl selbst sollte durch das Zurueckspringen unveraendert bleiben');
 });
+
+// ---------------------------------------------------------------------
+// Phase 12, Plan 03, Task 1 — Ein Fundort bekommt eine Adresse: der
+// Tieflink-Parameter ?fundort= (D-04), dieselbe Bauform wie der bestehende
+// ?mineral=-Zweig (T-12-04 ff. fuer den Rest der Bauform, hier nur der neue
+// Adresszweig selbst).
+// ---------------------------------------------------------------------
+
+test('T-12-16: ?fundort= mit abweichender Gross-/Kleinschreibung und umschliessenden Leerzeichen oeffnet die Fundort-Ansicht dieses Ortes; #wb-locname traegt die kanonische Schreibweise aus den Daten', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc } = biggestLoc(probe);
+  assert.ok(loc, 'Testbestand sollte einen groessten Fundort liefern');
+  const messy = '  ' + loc.toUpperCase() + '  ';
+
+  const ctx = await runAsync({ account: { rows: [] }, search: '?fundort=' + encodeURIComponent(messy) });
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'die Fundort-Ansicht sollte beim Laden bereits offen sein');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, false, 'wb-locview sollte beim Laden bereits sichtbar sein');
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, true, 'die Erz-Ansicht sollte verborgen sein');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, true, 'die Erz-Ansicht sollte verborgen sein');
+  assert.strictEqual(
+    ctx.elements['wb-locname'].textContent, loc,
+    '#wb-locname sollte die KANONISCHE Schreibweise aus den Daten tragen, nicht den eingegebenen (grossgeschriebenen, umschlossenen) Wert'
+  );
+});
+
+test('T-12-17 (Sicherheitsnachweis): ein unbekannter ?fundort=-Wert mit HTML-Sonderzeichen und Skript-Anfang laesst die Erz-Ansicht stehen; der eingegebene Wert erscheint im gesamten gezeichneten Markup an keiner Stelle', async () => {
+  const evil = '<script>alert(1)</script>&"\'';
+
+  const ctx = await runAsync({ account: { rows: [] }, search: '?fundort=' + encodeURIComponent(evil) });
+
+  assert.strictEqual(ctx.elements['wb-orehead'].hidden, false, 'die Erz-Ansicht sollte stehen bleiben');
+  assert.strictEqual(ctx.elements['wb-oreview'].hidden, false, 'die Erz-Ansicht sollte stehen bleiben');
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, true, 'ein unbekannter Wert darf die Fundort-Ansicht NICHT oeffnen');
+  assert.strictEqual(ctx.elements['wb-locview'].hidden, true, 'ein unbekannter Wert darf die Fundort-Ansicht NICHT oeffnen');
+
+  // Sicherheitsnachweis: das gesamte gezeichnete Markup (Text UND
+  // Attributwerte) darf den eingegebenen Wert an KEINER Stelle enthalten --
+  // weder ganz noch in Fragmenten. Ein unbekannter Wert wird von
+  // fromQueryLoc() nirgends geschrieben; dieser Test belegt genau das, statt
+  // es nur aus dem Quelltext zu folgern. (Das Mock-DOM traegt selbst ein
+  // #wb-data-<script>-Element fuer die JSON-Nutzlast -- ein blosser
+  // '<script>'-Teilstring-Test wuerde also grundlos gegen die eigene
+  // Testinfrastruktur schlagen; der Nachweis prueft deshalb gezielt den
+  // eingegebenen Wert und sein auffaelligstes Fragment.)
+  const markup = ctx.root.outerHTML;
+  assert.ok(!markup.includes(evil), 'der volle rohe Eingabewert darf im gezeichneten Markup nicht vorkommen');
+  assert.ok(!markup.includes('alert(1)'), 'kein Fragment des Werts darf im gezeichneten Markup vorkommen');
+});
+
+test('T-12-18: ?mineral= UND ?fundort= gleichzeitig -- der genannte Ort ist offen UND das genannte Erz ist gewaehlt, belegbar am Fusszeilentext', async () => {
+  const probe = run({ account: { rows: [] } });
+  const { name: loc } = biggestLoc(probe);
+  assert.ok(loc, 'Testbestand sollte einen groessten Fundort liefern');
+  const mineral = 'Quantainium';
+  assert.ok(probe.byName[mineral], 'Testbestand sollte "Quantainium" kennen');
+
+  const search = '?mineral=' + encodeURIComponent(mineral) + '&fundort=' + encodeURIComponent(loc);
+  const ctx = await runAsync({ account: { rows: [] }, search });
+
+  assert.strictEqual(ctx.elements['wb-lochead'].hidden, false, 'der genannte Ort sollte offen sein');
+  assert.strictEqual(ctx.elements['wb-locname'].textContent, loc, '#wb-locname sollte den genannten Ort tragen');
+  assert.strictEqual(
+    ctx.elements['wb-frac-ore'].textContent, mineral,
+    'die Fusszeile sollte weiterhin das genannte Erz nennen -- die beiden Adresszweige heben sich nicht gegenseitig auf'
+  );
+});
