@@ -102,9 +102,25 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      Zeile in der Mitte) UND renderLocPins() (Wertezeile der Merkliste) genutzt,
      damit beide Ansichten garantiert denselben Text zeigen statt zwei Kopien der
      Formel zu pflegen. */
+  /* ⚠ Die Liste ist nach `ef` sortiert (Erwartungswert des Anteils) und der Balken
+     zeichnet `ef` — sichtbar waren aber nur `ch` und `ms`. Wo ein Ort mehrere
+     Gesteinsarten mischt, laufen die Groessen auseinander, und die angezeigte Zahl
+     sprang: Silicon stand mit 69,5 → 36 → 36 → 51,5 % da, obwohl 29 → 28,2 → 28,2
+     → 21,5 die richtige Ordnung ist.
+     Rechts steht deshalb NUR noch die rangbildende Zahl — sie faellt monoton und
+     deckt sich mit dem Balken daneben. Chance und Hoechstanteil ziehen in die
+     Unterzeile: der rechte Block ist 142 px breit, alle drei Werte nebeneinander
+     brauchten 309 px und liefen sichtbar aus der Spalte. */
   function pctRight(l) {
-    return (l.ch != null ? nPct(l.ch) + ' %' : '—') +
-      (l.ms != null ? ' · ' + T.upTo + ' ' + nPct(l.ms) + ' %' : '');
+    return l.ef != null ? nPct(l.ef) + ' %' : (l.ch != null ? nPct(l.ch) + ' %' : '—');
+  }
+  /* Die Detailzahlen unter dem Ortsnamen — von der Fundort-Zeile UND der
+     Merkliste genutzt, damit beide denselben Text zeigen. */
+  function pctSub(l) {
+    var t = [];
+    if (l.ch != null) t.push(nPct(l.ch) + ' % ' + T.chance);
+    if (l.ms != null) t.push(T.upTo + ' ' + nPct(l.ms) + ' %');
+    return t.join(' · ');
   }
 
   /* Die Daten kennen VIER Abbaumethoden (ship 26, roc 4, fps 4, hand 3). Die
@@ -119,11 +135,16 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   }
 
   /* Ertragsprofile sind nach Materialnamen MIT Suffix gekeyt
-     ("Taranite (Raw)"), der Katalog fuehrt den sauberen Namen. */
+     ("Taranite (Raw)"), der Katalog fuehrt den sauberen Namen.
+     ⚠ Zwei Erze tragen das Wort aber als PRAEFIX: "Raw Ice" und "Raw Silicon".
+     Solange nur Suffixe geprueft wurden, fand der Join sie nie — Ice (19 Fundorte)
+     und Silicon (23) standen ohne "Beste Stationen" da, obwohl ihr Bonus in den
+     Profilen steht (+10 bzw. +8). Gemessen am 15.08.: 17 von 37 Erzen ohne
+     Ertragsspalte, davon 11 zu Recht (Edelsteine werden nicht raffiniert). */
   function yieldFor(profId, name) {
     var prof = D.profiles[profId];
     if (!prof) return null;
-    var keys = [name, name + ' (Ore)', name + ' (Raw)', name + ' (Pure)'];
+    var keys = [name, name + ' (Ore)', name + ' (Raw)', name + ' (Pure)', 'Raw ' + name];
     for (var i = 0; i < keys.length; i++) if (typeof prof[keys[i]] === 'number') return prof[keys[i]];
     return null;
   }
@@ -232,7 +253,8 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     $('wb-locs').innerHTML = locs.length
       ? locs.map(function (l) {
           var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
-          return row2(l.p, l.s, bar, pctRight(l), false, false, m.name + '||' + l.p);
+          var sub = pctSub(l);
+          return row2(l.p, sub ? l.s + ' · ' + sub : l.s, bar, pctRight(l), false, false, m.name + '||' + l.p);
         }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
@@ -342,8 +364,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
          verschwunden ist (Datenlauf); die Wertezeile faellt dann schlicht weg,
          der Eintrag selbst bleibt stehen. */
       var l = locOf(ore, loc);
+      var lsub = l ? pctSub(l) : '';
       var meta = l
-        ? '<div class="wb__lmeta"><span>' + esc(l.s || '') + '</span><em>' + esc(pctRight(l)) + '</em></div>'
+        ? '<div class="wb__lmeta"><span>' + esc(lsub ? (l.s || '') + ' · ' + lsub : (l.s || '')) +
+          '</span><em>' + esc(pctRight(l)) + '</em></div>'
         : '';
       return '<div class="wb__pin-item"><div class="wb__pin-top">' +
         '<span class="nm">' + esc(label) + '</span>' +

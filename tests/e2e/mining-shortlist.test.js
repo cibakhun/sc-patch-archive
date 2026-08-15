@@ -333,7 +333,7 @@ test('T-09-01: ein Fundortname mit HTML-Sonderzeichen landet escaped im Markup (
 // Phase 9, Plan 02, Task 1 — O-3: Werte je Eintrag aus dem Katalog.
 // ---------------------------------------------------------------------
 
-test('Merklisten-Eintrag zeigt System, Chance und Hoechstanteil aus dem Katalog, nicht aus dem gespeicherten Paar (O-3, T-09-06)', async () => {
+test('Merklisten-Eintrag zeigt System, Chance, Hoechstanteil und Ø-Anteil aus dem Katalog, nicht aus dem gespeicherten Paar (O-3, T-09-06)', async () => {
   const ctx = await runAsync({ account: { rows: [] } });
   const loc = realLocOf(ctx, 'Quantainium');
   const cat = ctx.byName.Quantainium.locs.find((l) => l.p === loc);
@@ -346,14 +346,23 @@ test('Merklisten-Eintrag zeigt System, Chance und Hoechstanteil aus dem Katalog,
   const meta = box.querySelector('.wb__lmeta');
   assert.ok(meta, 'erwartet eine Wertezeile (.wb__lmeta) im Merklisten-Eintrag');
 
+  /* Seit 15.08.2026 anders aufgeteilt: die <em> traegt die RANGBILDENDE Zahl (`ef`,
+     dieselbe, die den Balken zeichnet), damit die Liste sichtbar der Ordnung folgt,
+     der sie gehorcht; Chance und Hoechstanteil stehen in der <span> neben dem System.
+     Vorher standen ch/ms rechts, sortiert wurde nach ef — die Liste sah dadurch
+     unsortiert aus (Silicon: 69,5 → 36 → 36 → 51,5 %). Geprueft bleibt, worum es
+     dem Test geht: JEDER Wert stammt aus dem Katalog, keiner aus dem Paar. */
   const sysSpan = meta.querySelector('span');
-  assert.ok(sysSpan, 'Wertezeile sollte das System in einer <span> tragen');
-  assert.strictEqual(sysSpan.textContent, cat.s);
+  assert.ok(sysSpan, 'Wertezeile sollte System und Detailwerte in einer <span> tragen');
+  const teile = [];
+  if (cat.ch != null) teile.push(`${nPctForTest(cat.ch)} % ${ctx.T.chance}`);
+  if (cat.ms != null) teile.push(`${ctx.T.upTo} ${nPctForTest(cat.ms)} %`);
+  assert.strictEqual(sysSpan.textContent, teile.length ? `${cat.s} · ${teile.join(' · ')}` : cat.s);
 
   const valuesEm = meta.querySelector('em');
-  assert.ok(valuesEm, 'Wertezeile sollte Chance/Hoechstanteil in einer <em> tragen');
-  let expected = cat.ch != null ? `${nPctForTest(cat.ch)} %` : '—';
-  if (cat.ms != null) expected += ` · ${ctx.T.upTo} ${nPctForTest(cat.ms)} %`;
+  assert.ok(valuesEm, 'Wertezeile sollte die rangbildende Zahl in einer <em> tragen');
+  const expected = cat.ef != null ? `${nPctForTest(cat.ef)} %`
+    : cat.ch != null ? `${nPctForTest(cat.ch)} %` : '—';
   assert.strictEqual(valuesEm.textContent, expected);
 });
 
