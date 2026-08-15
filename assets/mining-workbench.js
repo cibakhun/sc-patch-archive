@@ -1009,9 +1009,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }
     /* Fundort-Ansicht (Phase 12, D-01/D-02): zwei neue Zweige NACH
        [data-locpin] (die Nadel bleibt vorrangig -- ein Klick auf sie oeffnet
-       den Fundort NICHT zusaetzlich) und VOR [data-pin]. Geloest ueber die
-       Reihenfolge, nicht ueber stopPropagation() -- das kommt im ganzen
-       Bestand nicht vor. */
+       den Fundort NICHT zusaetzlich) und VOR [data-pin]. Geloest ausschliess-
+       lich ueber die Reihenfolge der Abfragen, nie ueber ein Unterbinden der
+       Ereignisweitergabe -- das kommt im ganzen Bestand nicht vor. */
     var back = t.closest('[data-back]');
     if (back) { S.view = 'ore'; S.selLoc = null; renderAll(); return; }
     var locRow = t.closest('[data-loc]');
