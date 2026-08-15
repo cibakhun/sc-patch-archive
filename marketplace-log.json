@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 238,
-  "totalListings": 5849,
-  "totalSold": 250,
-  "distinctItems": 1158
+  "updates": 239,
+  "totalListings": 5854,
+  "totalSold": 251,
+  "distinctItems": 1159
  },
  "listings": {
   "156580": {
@@ -113679,6 +113679,10 @@
     {
      "d": "2026-08-13",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 850000
     }
    ],
    "soldOut": false,
@@ -124872,9 +124876,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-15",
+   "soldOutPrice": 500000,
    "dateAdded": 1786758811,
    "dateExpiration": 1791942811
   },
@@ -124898,6 +124902,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786764709,
    "dateExpiration": 1791948709
+  },
+  "162674": {
+   "idItem": 3873,
+   "idCategory": 17,
+   "title": "Gamma LL (1x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786767078,
+   "dateExpiration": 1791951078
+  },
+  "162675": {
+   "idItem": 4464,
+   "idCategory": 3,
+   "title": "ADP-mk4 Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786767105,
+   "dateExpiration": 1791951105
+  },
+  "162676": {
+   "idItem": 5222,
+   "idCategory": 3,
+   "title": "Morozov-SH-C Helmet Spite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786767458,
+   "dateExpiration": 1791951458
+  },
+  "162677": {
+   "idItem": 4719,
+   "idCategory": 3,
+   "title": "CBH-3 Helmet Executive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786767753,
+   "dateExpiration": 1791951753
+  },
+  "162679": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Morosov -SH Lifeforce Full Armor Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786769085,
+   "dateExpiration": 1791953085
   }
  }
 }
