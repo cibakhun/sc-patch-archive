@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 239,
-  "totalListings": 5854,
-  "totalSold": 251,
+  "updates": 240,
+  "totalListings": 5856,
+  "totalSold": 253,
   "distinctItems": 1159
  },
  "listings": {
@@ -123087,9 +123087,9 @@
      "p": 3000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-15",
+   "soldOutPrice": 3000000,
    "dateAdded": 1786732749,
    "dateExpiration": 1791916749
   },
@@ -124939,9 +124939,9 @@
      "p": 1750000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-15",
+   "soldOutPrice": 1750000,
    "dateAdded": 1786767105,
    "dateExpiration": 1791951105
   },
@@ -124987,6 +124987,27 @@
    "dateAdded": 1786767753,
    "dateExpiration": 1791951753
   },
+  "162678": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "WTS 970 IRON (1 AND 2 SCU BOX)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786768881,
+   "dateExpiration": 1797136881
+  },
   "162679": {
    "idItem": null,
    "idCategory": 7,
@@ -125007,6 +125028,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786769085,
    "dateExpiration": 1791953085
+  },
+  "162686": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium (2.33 scu of 905q,7.5mil scu/17mil for all 2.33 scu)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786770488,
+   "dateExpiration": 1791954488
   }
  }
 }
