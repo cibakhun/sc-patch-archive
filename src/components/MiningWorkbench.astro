@@ -141,11 +141,12 @@ const S_DE = {
   presetDel: 'Löschen', presetName: 'Name des Presets', presetCancel: 'Abbrechen',
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
-  presetEmpty: 'Erst Erze anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
+  presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
   signature: 'Signatur',
   station: 'Station', fracturing: 'Fracturing-Rechner', fracturingGo: 'Bricht der Brocken? →',
   none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte bekannt.',
   locPinsEmpty: 'Noch keine Fundorte angeheftet. Bei einem Erz mit Fundorten die Nadel neben einer Zeile drücken.',
+  locPinsFull: 'Die Merkliste ist voll (128 Fundorte). Erst einen lösen, dann neu anheften.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
   chance: 'Chance', upTo: 'bis',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
@@ -159,11 +160,12 @@ const S_EN = {
   presetDel: 'Delete', presetName: 'Preset name', presetCancel: 'Cancel',
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
-  presetEmpty: 'Pin some ores first, then save.', presetFail: 'Saving failed.',
+  presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
   signature: 'Signature',
   station: 'Station', fracturing: 'Fracturing calculator', fracturingGo: 'Will it break? →',
   none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations known.',
   locPinsEmpty: 'No locations pinned yet. On an ore with locations, hit the pin next to a row.',
+  locPinsFull: 'The shortlist is full (128 locations). Unpin one before pinning another.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
   chance: 'chance', upTo: 'up to',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
@@ -622,6 +624,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pin-top .nm{font-size:var(--fs-5);font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wb__pin-top button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
   cursor:pointer;font-size:var(--fs-6);line-height:1;padding:0 2px}
+/* Wertezeile der Fundort-Merkliste (O-3): System links, Chance/Hoechstanteil
+   rechts -- gebaut wie .wb__row2 .s und .wb__row2 em (Mono-Ziffern, gedaempfte
+   Farbe), damit beide Ansichten derselben Werte gleich aussehen. Kein neuer
+   Farbtoken: build-light-palettes.mjs kennt nur seine feste Namensliste. */
+.wb__lmeta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.wb__lmeta span{font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__lmeta em{font-size:var(--fs-3);color:var(--muted);font-style:normal;
+  font-family:var(--font-mono,ui-monospace);white-space:nowrap;flex:0 0 auto}
 .wb__mult{display:flex;gap:3px;margin-top:5px}
 .wb__mult i{flex:1;font-family:var(--font-mono,ui-monospace);font-size:var(--fs-3);font-style:normal;
   text-align:center;padding:3px 0;border-radius:5px;color:var(--muted);

@@ -1,6 +1,6 @@
 // Automatisierter Rundlauf-Nachweis der Mining-Werkbank-Fundort-Merkliste
-// (Phase 9, Plan 01, Task 2) — deckt D-04, D-05, D-06, D-07, O-2 und T-09-01
-// ab.
+// (Phase 9, Plan 01 Task 2 + Plan 02 Task 1) — deckt D-04, D-05, D-06, D-07,
+// O-2, O-3, T-09-01 und T-09-07 ab.
 //
 // Warum ueberhaupt: die haertere Anforderung dieser Phase ist die
 // verlustfreie Migration des Preset-Altbestands (D-04), nicht die Optik.
@@ -59,6 +59,28 @@ function realLocOf(ctx, ore) {
   const loc = ctx.byName[ore].locs.find((l) => l.p !== ctx.SPECIAL_LOC);
   assert.ok(loc, `Erz "${ore}" hat im Testbestand keinen echten Fundort`);
   return loc.p;
+}
+
+/** Zweitgeschrieben aus nPct() in assets/mining-workbench.js (payload.lang ist
+ *  in mining-dom.js immer 'de') -- derselbe Rundungs- und Komma-Weg, damit der
+ *  erwartete Text hier unabhaengig von der Produktionsfunktion entsteht. */
+function nPctForTest(v) {
+  return (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, '').replace('.', ',');
+}
+
+/** Sammelt bis zu `limit` echte, in `ctx.byName` verankerte Fundort-Paare (nie
+ *  den synthetischen T-09-01-Sonderfundort) — fuer die 128er-Grenzprobe (T-09-07). */
+function collectRealPairs(ctx, limit) {
+  const out = [];
+  for (const name in ctx.byName) {
+    const m = ctx.byName[name];
+    for (let i = 0; i < m.locs.length && out.length < limit; i++) {
+      if (m.locs[i].p === ctx.SPECIAL_LOC) continue;
+      out.push(`${name}||${m.locs[i].p}`);
+    }
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 function newPreset(ctx, name) {
@@ -305,4 +327,138 @@ test('T-09-01: ein Fundortname mit HTML-Sonderzeichen landet escaped im Markup (
   const freshBtn = locPinBtn(ctx, 'Gold', ctx.SPECIAL_LOC);
   assert.ok(freshBtn, 'Nadelknopf nach dem Anheften nicht mehr auffindbar (Attributwert vermutlich abgeschnitten)');
   assert.strictEqual(freshBtn.getAttribute('data-locpin'), `Gold||${ctx.SPECIAL_LOC}`);
+});
+
+// ---------------------------------------------------------------------
+// Phase 9, Plan 02, Task 1 — O-3: Werte je Eintrag aus dem Katalog.
+// ---------------------------------------------------------------------
+
+test('Merklisten-Eintrag zeigt System, Chance und Hoechstanteil aus dem Katalog, nicht aus dem gespeicherten Paar (O-3, T-09-06)', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Quantainium');
+  const cat = ctx.byName.Quantainium.locs.find((l) => l.p === loc);
+  assert.ok(cat, 'Katalog-Eintrag fuer Quantainium/loc nicht gefunden');
+
+  selectMineral(ctx, 'Quantainium');
+  ctx.fire(locPinBtn(ctx, 'Quantainium', loc), 'click');
+
+  const box = ctx.document.getElementById('wb-locpins');
+  const meta = box.querySelector('.wb__lmeta');
+  assert.ok(meta, 'erwartet eine Wertezeile (.wb__lmeta) im Merklisten-Eintrag');
+
+  const sysSpan = meta.querySelector('span');
+  assert.ok(sysSpan, 'Wertezeile sollte das System in einer <span> tragen');
+  assert.strictEqual(sysSpan.textContent, cat.s);
+
+  const valuesEm = meta.querySelector('em');
+  assert.ok(valuesEm, 'Wertezeile sollte Chance/Hoechstanteil in einer <em> tragen');
+  let expected = cat.ch != null ? `${nPctForTest(cat.ch)} %` : '—';
+  if (cat.ms != null) expected += ` · ${ctx.T.upTo} ${nPctForTest(cat.ms)} %`;
+  assert.strictEqual(valuesEm.textContent, expected);
+});
+
+// ---------------------------------------------------------------------
+// Phase 9, Plan 02, Task 1 — Loesen an beiden Enden (D-05/D-06).
+// ---------------------------------------------------------------------
+
+test('Loesen ueber den ×-Knopf in der Merkliste raeumt auch das is-on der Nadel in der Fundort-Zeile ab', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+
+  const pinnedFirst = locPinBtn(ctx, 'Gold', loc);
+  assert.ok(pinnedFirst.classList.contains('is-on'), 'Vorbedingung: Nadel sollte nach dem Anheften is-on tragen');
+
+  const box = ctx.document.getElementById('wb-locpins');
+  // Tag-Selektor statt Attributselektor: der Mock-Parser aus dom-mock.js traegt
+  // keine "[attr]"-Selektoren ohne Wert (siehe Kopfkommentar mining-dom.js Punkt 1);
+  // "button" trifft ueber die Regex-Gruppe fuer Tag-Namen zuverlaessig.
+  const xBtn = box.querySelector('button');
+  assert.ok(xBtn, 'Loesch-Knopf in der Merkliste nicht gefunden');
+  assert.strictEqual(xBtn.getAttribute('data-locpin'), `Gold||${loc}`, 'derselbe Schluessel wie die Nadel');
+  ctx.fire(xBtn, 'click');
+
+  assert.strictEqual(
+    ctx.document.getElementById('wb-locpins').textContent,
+    ctx.T.locPinsEmpty,
+    'Merkliste sollte nach dem Loesen ueber den x-Knopf leer sein'
+  );
+  const freshPin = locPinBtn(ctx, 'Gold', loc);
+  assert.ok(freshPin, 'Nadel sollte nach dem Loesen weiterhin auffindbar sein');
+  assert.ok(!freshPin.classList.contains('is-on'), 'Nadel sollte NICHT mehr is-on tragen');
+  assert.strictEqual(freshPin.getAttribute('aria-pressed'), 'false');
+});
+
+test('ein angeheftetes Paar bleibt in der Merkliste stehen, wenn ein ANDERES Erz gewaehlt wird (D-06)', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const loc = realLocOf(ctx, 'Quantainium');
+  selectMineral(ctx, 'Quantainium');
+  ctx.fire(locPinBtn(ctx, 'Quantainium', loc), 'click');
+
+  selectMineral(ctx, 'Gold');
+
+  const box = ctx.document.getElementById('wb-locpins');
+  assert.strictEqual(box.querySelectorAll('.wb__pin-item').length, 1, 'das Paar sollte nach dem Erzwechsel weiterhin stehen');
+  assert.match(box.textContent, /Quantainium/);
+});
+
+// ---------------------------------------------------------------------
+// Phase 9, Plan 02, Task 1 — Grenze mit Ansage (T-09-07).
+// ---------------------------------------------------------------------
+
+test('Merkliste bei 128 Paaren voll: ein weiteres Anheften wird abgewiesen und ueber #wb-pre-msg gemeldet (T-09-07)', async () => {
+  const probe = run({ account: { rows: [] } });
+  const pairs = collectRealPairs(probe, 128);
+  assert.strictEqual(pairs.length, 128, `Testbestand sollte mindestens 128 echte Paare liefern (gefunden: ${pairs.length})`);
+
+  const ctx = await runAsync({ account: { rows: [{ name: 'Voll', minerals: [], locations: pairs }] } });
+  ctx.elements['wb-preset'].value = 'Voll'; // fires 'change' -> preApply('Voll')
+
+  const before = ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length;
+  assert.strictEqual(before, 128, 'Vorbedingung: Merkliste sollte 128 Eintraege zeigen');
+
+  // Ein Paar, das NICHT in `pairs` steckt -- durchsucht denselben Bestand wie
+  // collectRealPairs(), nur weiter, bis eines uebrig bleibt.
+  let extra = null;
+  for (const name in ctx.byName) {
+    const m = ctx.byName[name];
+    for (let i = 0; i < m.locs.length && !extra; i++) {
+      if (m.locs[i].p === ctx.SPECIAL_LOC) continue;
+      const key = `${name}||${m.locs[i].p}`;
+      if (!pairs.includes(key)) extra = { ore: name, loc: m.locs[i].p };
+    }
+    if (extra) break;
+  }
+  assert.ok(extra, 'kein ungenutztes Paar fuer die Grenzprobe gefunden');
+
+  selectMineral(ctx, extra.ore);
+  const btn = locPinBtn(ctx, extra.ore, extra.loc);
+  assert.ok(btn, `Nadelknopf fuer ${extra.ore}@${extra.loc} nicht gefunden`);
+  ctx.fire(btn, 'click');
+
+  const after = ctx.document.getElementById('wb-locpins').querySelectorAll('.wb__pin-item').length;
+  assert.strictEqual(after, 128, 'Merkliste sollte bei 128 Paaren nicht weiter wachsen');
+  assert.ok(!btn.classList.contains('is-on'), 'die abgewiesene Nadel sollte nicht is-on tragen');
+
+  const msg = ctx.document.getElementById('wb-pre-msg');
+  assert.strictEqual(msg.hidden, false, 'Meldungszeile sollte nach der Abweisung sichtbar sein');
+  assert.strictEqual(msg.textContent, ctx.T.locPinsFull);
+});
+
+// ---------------------------------------------------------------------
+// Phase 9, Plan 02, Task 1 — Zaehler in der Reiter-Beschriftung.
+// ---------------------------------------------------------------------
+
+test('Reiter-Beschriftung "Fundorte" nennt die Zahl der Paare erst, sobald welche da sind', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const tabBtn = ctx.elements['wb-tab-loc'];
+  assert.ok(tabBtn, 'wb-tab-loc nicht im Mock-DOM registriert');
+  assert.strictEqual(tabBtn.textContent, ctx.T.locations, 'ohne Eintraege traegt der Reiter nur die Beschriftung');
+
+  const loc = realLocOf(ctx, 'Gold');
+  selectMineral(ctx, 'Gold');
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+
+  assert.strictEqual(tabBtn.textContent, `${ctx.T.locations} · 1`);
 });

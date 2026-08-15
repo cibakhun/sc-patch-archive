@@ -44,6 +44,26 @@
     return m.locs.some(function (l) { return l.p === loc; });
   }
 
+  /* Nachschlagefunktion fuer die Werte eines Fundort-Paares in der Merkliste (O-3):
+     Chance und Hoechstanteil kommen HIER, zur Anzeigezeit, aus dem ausgelieferten
+     Katalog -- NICHT aus dem gespeicherten Paar (T-09-06). Ein manipulierter oder
+     veralteter localStorage-/Datenbankeintrag traegt nur den Schluessel, nie eine
+     Zahl; ein Datenlauf zieht die Werte automatisch mit statt sie einzufrieren.
+     null, wenn das Paar nicht mehr existiert -- faellt bereits beim Laden ueber
+     locPinValid() heraus, die Funktion haelt den Fall trotzdem aus. */
+  function locOf(ore, loc) {
+    var m = byName[ore];
+    if (!m) return null;
+    for (var i = 0; i < m.locs.length; i++) if (m.locs[i].p === loc) return m.locs[i];
+    return null;
+  }
+
+  /* 128 -- muss mit der Pruefklausel der Migration
+     supabase/migrations/20260815090000_mining_preset_locations.sql
+     (check array_length(locations,1) <= 128) uebereinstimmen. Hebt sich einer,
+     muss sich der andere mitheben (T-09-07). */
+  var LOCPIN_MAX = 128;
+
   var S = { sel: D.minerals[0].name, pins: [], locPins: [], ref: 0, q: '', sys: null };
   /* Ein alter Speicherstand traegt noch laser/mods/gadget/mass. Die Felder
      werden schlicht nicht mehr gelesen und beim naechsten Schreiben fallen
@@ -77,6 +97,15 @@
    Fundort-Felder tragen eine Nachkommastelle. n2 haengte stets zwei an ("28,50 %")
    und tat damit genauer, als die Quelle ist. */
 function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, ''); return D.lang === 'de' ? s.replace('.', ',') : s; }
+
+  /* Chance/Hoechstanteil in EINER Schreibweise (O-3): von renderDetail() (Fundort-
+     Zeile in der Mitte) UND renderLocPins() (Wertezeile der Merkliste) genutzt,
+     damit beide Ansichten garantiert denselben Text zeigen statt zwei Kopien der
+     Formel zu pflegen. */
+  function pctRight(l) {
+    return (l.ch != null ? nPct(l.ch) + ' %' : '—') +
+      (l.ms != null ? ' · ' + T.upTo + ' ' + nPct(l.ms) + ' %' : '');
+  }
 
   /* Die Daten kennen VIER Abbaumethoden (ship 26, roc 4, fps 4, hand 3). Die
      zweite Fassung warf alles ausser `ship` in denselben Topf „Hand" — die
@@ -203,9 +232,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     $('wb-locs').innerHTML = locs.length
       ? locs.map(function (l) {
           var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
-          var right = (l.ch != null ? nPct(l.ch) + ' %' : '—') +
-            (l.ms != null ? ' · ' + T.upTo + ' ' + nPct(l.ms) + ' %' : '');
-          return row2(l.p, l.s, bar, right, false, false, m.name + '||' + l.p);
+          return row2(l.p, l.s, bar, pctRight(l), false, false, m.name + '||' + l.p);
         }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
@@ -295,6 +322,11 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      Richtungen (Praezedenz: data-pin bei den Signaturen). */
   function renderLocPins() {
     var box = $('wb-locpins');
+    /* Zaehler in der Reiter-Beschriftung, Form wie #wb-loch: Beschriftung,
+       Trennpunkt, Zahl -- nur sobald mindestens ein Paar angeheftet ist. Guard
+       gegen fehlendes Element, wie ueberall sonst in dieser Datei ($()===null). */
+    var tabBtn = $('wb-tab-loc');
+    if (tabBtn) tabBtn.textContent = T.locations + (S.locPins.length ? ' · ' + S.locPins.length : '');
     if (!box) return;
     if (!S.locPins.length) {
       box.innerHTML = '<p class="wb__empty">' + esc(T.locPinsEmpty) + '</p>';
@@ -304,10 +336,19 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       var idx = pair.indexOf('||');
       var ore = pair.slice(0, idx), loc = pair.slice(idx + 2);
       var label = ore + ' — ' + loc;
+      /* Werte je Eintrag (O-3): System links, Chance/Hoechstanteil rechts, aus
+         dem Katalog nachgeschlagen -- NIE aus dem gespeicherten Paar (T-09-06).
+         locOf() liefert null, wenn das Paar zwischen Anheften und Zeichnen
+         verschwunden ist (Datenlauf); die Wertezeile faellt dann schlicht weg,
+         der Eintrag selbst bleibt stehen. */
+      var l = locOf(ore, loc);
+      var meta = l
+        ? '<div class="wb__lmeta"><span>' + esc(l.s || '') + '</span><em>' + esc(pctRight(l)) + '</em></div>'
+        : '';
       return '<div class="wb__pin-item"><div class="wb__pin-top">' +
         '<span class="nm">' + esc(label) + '</span>' +
         '<button type="button" data-locpin="' + esc(pair) + '" aria-label="' + esc(T.unpin + ': ' + label) + '">×</button>' +
-        '</div></div>';
+        '</div>' + meta + '</div>';
     }).join('');
   }
 
@@ -485,7 +526,16 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     var lp = t.closest('[data-locpin]');
     if (lp) {
       var lk = lp.getAttribute('data-locpin'), lat = S.locPins.indexOf(lk);
-      if (lat >= 0) S.locPins.splice(lat, 1); else S.locPins.push(lk);
+      if (lat >= 0) {
+        S.locPins.splice(lat, 1);
+      } else {
+        /* Grenze mit Ansage (T-09-07): bei 128 Paaren wird NICHT angeheftet,
+           die bestehende Meldungszeile #wb-pre-msg sagt es statt still zu
+           schlucken. preSay() ist als Funktionsdeklaration weiter unten
+           definiert und dadurch hier bereits sichtbar (hoisting). */
+        if (S.locPins.length >= LOCPIN_MAX) { preSay(T.locPinsFull); return; }
+        S.locPins.push(lk);
+      }
       renderAll(); return;
     }
     var pin = t.closest('[data-pin]');

@@ -202,6 +202,12 @@ function buildPayload() {
     bestRef: 'BEST-REF', yieldMod: 'YIELD', worst: 'WORST', yourPick: 'YOUR-PICK',
     usedIn: 'USED-IN', ships: 'SHIPS', openCrafting: 'OPEN-CRAFTING',
     locPinsEmpty: 'NO-LOC-PINS',
+    // Phase 9, Plan 02 (O-3/T-09-07): chance/upTo faerbt schon die Fundort-Zeile
+    // in der Mitte (#wb-locs), fehlte hier aber bislang -- ohne den Platzhalter
+    // haette pctRight() in assets/mining-workbench.js "undefined" statt "UP-TO"
+    // in den Text gemischt, ungeprueft, weil kein Testfall den rechten Text
+    // bisher wortwoertlich verglich. locPinsFull ist neu (Grenze bei 128).
+    chance: 'CHANCE', upTo: 'UP-TO', locPinsFull: 'LOC-PINS-FULL',
   };
 
   // Echte Stationen + Ertragsprofile: ohne sie liefe rankRefineries() fuer
@@ -307,13 +313,23 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('span', 'wb-frac-ore')));
   root.appendChild(reg(mk('select', 'wb-ref')));
 
-  // Spalte 3 — Scan-Kasten, Signaturenliste, Fundort-Merkliste (die beiden
-  // Reiterkoerper selbst braucht das Skript nicht als Element — es schaltet
-  // nur ihr `hidden`; die Tor-Zusicherungen hier pruefen S.locPins/DOM-Inhalt,
-  // nicht die Sichtbarkeit der Reiter).
+  // Spalte 3 — Scan-Kasten, Signaturenliste, Fundort-Merkliste. Die Reiterknoepfe
+  // (wb-tab-sig/wb-tab-loc) UND ihre Koerper (wb-sig-pane/wb-loc-pane) sind seit
+  // Plan 02 registriert: renderLocPins() schreibt den Paarzaehler in die
+  // Beschriftung von wb-tab-loc (guard $()===null davor macht das optional, aber
+  // der Zaehler soll hier tatsaechlich geprueft werden koennen), der Klick-
+  // Handler schaltet `hidden` an den beiden Koerpern.
   root.appendChild(reg(mk('input', 'wb-scan')));
   root.appendChild(reg(mk('div', 'wb-pins')));
   root.appendChild(reg(mk('div', 'wb-locpins')));
+  var tabSig = reg(mk('button', 'wb-tab-sig'));
+  tabSig.textContent = payload.t.signatures;
+  root.appendChild(tabSig);
+  var tabLoc = reg(mk('button', 'wb-tab-loc'));
+  tabLoc.textContent = payload.t.locations;
+  root.appendChild(tabLoc);
+  root.appendChild(reg(mk('div', 'wb-sig-pane')));
+  root.appendChild(reg(mk('div', 'wb-loc-pane')));
 
   // Presets.
   root.appendChild(reg(mk('select', 'wb-preset')));
