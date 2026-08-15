@@ -163,6 +163,9 @@ const S_DE = {
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
+  // Phase 12: Fundort-Ansicht (D-01/D-11) — Zurueck-Knopf-Beschriftung und
+  // das Spur-Abzeichen fuer Erze mit hoechstens 10 % Anteil (D-07).
+  backToOre: 'Zurück zur Erz-Ansicht', trace: 'Spur',
 };
 const S_EN = {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
@@ -190,6 +193,9 @@ const S_EN = {
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
+  // Phase 12: location view (D-01/D-11) — back-button label and the trace
+  // badge for ores with at most 10% share (D-07).
+  backToOre: 'Back to ore view', trace: 'Trace',
 };
 
 /* Bricht den Build ab, statt eine Sprache mit fehlendem Schluessel stumm
@@ -260,6 +266,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <path d="M12 3v10m0 0-4-4m4 4 4-4" />
       <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
     </symbol>
+    {/* Pfeil zurueck — der Zurueck-Knopf im Fundort-Kopf (Phase 12, D-01),
+        fuehrt zur zuletzt gewaehlten Erz-Ansicht. Dieselbe Stilfamilie wie
+        jedes andere Symbol hier. */}
+    <symbol id="wb-i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4 4 12l7 8M4 12h16" />
+    </symbol>
   </svg>
 
   <div class="wb__grid">
@@ -314,7 +327,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         Physik, Qualitaetsstufen und „Steine mit diesem Erz" sind mit der
         Detailspalte ersatzlos gestrichen, nicht verschoben. */}
     <div class="wb__pane wb__pane--mid chamf">
-      <div class="wb__id">
+      <div class="wb__id" id="wb-orehead">
         <div class="wb__idrow">
           <div class="wb__idl">
             <h2 id="wb-name" set:text={sel.name} />
@@ -333,11 +346,31 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           </button>
         </div>
       </div>
-      <div class="wb__scroll">
+      {/* Fundort-Kopf (Phase 12, D-01/D-11) — Geschwister von wb-orehead, nicht
+          Overlay: renderLocation() in assets/mining-workbench.js schaltet
+          beide gegeneinander um. Zurueck-Knopf -> Textblock (Name + Unterzeile
+          aus Art · System · Anflugpunkten); rechts davon steht ABSICHTLICH
+          nichts -- Signaturkasten und grosser Anheft-Knopf entfallen
+          ersatzlos, kein Platzhalter. wb-locname/wb-locsub bleiben server-
+          seitig leer, weil sie erst zur Laufzeit ueber textContent befuellt
+          werden (kein Ladezustand noetig, die Daten liegen bereits inline). */}
+      <div class="wb__id wb__id--loc" id="wb-lochead" hidden>
+        <div class="wb__idrow">
+          <button type="button" class="wb__back" id="wb-back" data-back aria-label={S.backToOre} title={S.backToOre}>
+            <svg class="wb__back__i" aria-hidden="true" focusable="false"><use href="#wb-i-back" /></svg>
+          </button>
+          <div class="wb__idl">
+            <h2 id="wb-locname" />
+            <div class="wb__locsub" id="wb-locsub"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wb__scroll" id="wb-oreview">
         <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
         <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
         <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
       </div>
+      <div class="wb__scroll" id="wb-locview" hidden></div>
     </div>
 
     <!-- =========================================== Spalte 3: Signaturen -->
@@ -572,6 +605,28 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pinbig.is-on{background:var(--accent-2);color:var(--ink);box-shadow:none}
 .wb__pinbig__i{width:17px;height:17px;flex:0 0 auto}
 
+/* ---------------- Fundort-Kopf (Phase 12, D-01/D-11) ---------------- */
+/* .wb__id--loc erbt Polsterung und Zeilenstruktur von .wb__id UNVERAENDERT
+   (11px 14px 9px) — das --wb-chrome:236px-Budget laesst bei 1080p rund 2 px
+   Luft, keine eigene Regel hier. */
+.wb__locsub{font-size:var(--fs-3);color:color-mix(in srgb,var(--muted) 88%,transparent);margin-top:6px}
+/* Bauform von .wb__pin (Z. 535-544 oben), aber KEIN Umschalter: kein is-on,
+   kein aria-pressed. Ruhezustand neutral, Hover wortgleich zu
+   .wb__tile:hover .wb__pin — kein --accent-2 hier (der ist site-weit fuer
+   "an/ausgewaehlt/angeheftet" reserviert). */
+.wb__back{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;
+  border:0;background:color-mix(in srgb,var(--ink) 34%,transparent);
+  color:color-mix(in srgb,var(--muted) 78%,transparent);
+  cursor:pointer;border-radius:7px;line-height:0;position:relative;
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__back:hover{background:color-mix(in srgb,var(--ink) 55%,transparent);color:var(--text)}
+/* Vergroessertes Tippziel, dieselbe Loesung wie bei .wb__pin::before. */
+.wb__back::before{content:'';position:absolute;inset:-4px -6px}
+.wb__back__i{width:17px;height:17px;pointer-events:none}
+/* [hidden] NACH den Grundregeln notieren — die Datei hat den umgekehrten
+   Fall bereits zweimal bezahlt (s. Kommentar bei .wb__pre__pick[hidden]). */
+#wb-lochead[hidden],#wb-locview[hidden],#wb-oreview[hidden]{display:none}
+
 .wb__sec{padding:0 14px 11px}
 .wb__sec h4{font-size:var(--fs-4);font-weight:600;color:color-mix(in srgb,var(--muted) 88%,transparent);
   margin:0 0 7px;padding-bottom:5px;position:relative}
@@ -609,6 +664,29 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   white-space:nowrap;font-family:var(--font-mono,ui-monospace)}
 /* Die in der Rig-Leiste gewaehlte Station. */
 .wb__row2.is-pick{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-2) 60%,transparent)}
+/* Klickbare Fundort-Zeile (Phase 12, D-01) — wortgleicher Hover zu
+   .wb__tile:hover, damit "hier kann man klicken" nicht wie "ausgewaehlt"
+   aussieht (--accent-2 bleibt fuer Zustaende reserviert). Stationszeilen
+   tragen kein data-loc und bleiben dadurch ohne Zeigerhand. */
+.wb__row2[data-loc]{cursor:pointer;transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__row2[data-loc]:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
+/* Zeilenkopf fuer den Fall mit Abzeichen (Spur, D-07) — .p behaelt seine
+   Ellipsenkuerzung, weil sie nicht mehr allein die Flex-Breite traegt. */
+.wb__nm{display:flex;align-items:center;gap:6px;min-width:0}
+.wb__nm .p{min-width:0}
+/* Spurenerze (Hoechstanteil <= 10 %, D-07): Daempfung AUSSCHLIESSLICH ueber
+   color-mix()/opacity, NIE ueber eine gedimmte Flaeche -- build-light-
+   overrides.mjs (PROPS) deckt kein `background` ab, der Hellmodus bekaeme
+   sonst lautlos keine Entsprechung. Die Zeilen-Flaeche (.wb__row2 background)
+   bleibt unveraendert; nur Text, Unterzeile, Prozentzahl und Balken daempfen. */
+.wb__row2.is-trace .p{color:color-mix(in srgb,var(--text) 62%,transparent)}
+.wb__row2.is-trace .s{color:color-mix(in srgb,var(--muted) 65%,transparent)}
+.wb__row2.is-trace em{color:color-mix(in srgb,var(--muted) 65%,transparent)}
+.wb__row2.is-trace .wb__bar{opacity:.6}
+/* Das Abzeichen selbst bleibt bei voller Deckkraft -- es ist das Signal,
+   nicht das Gedaempfte. Eigene Modifikatorklasse, NICHT .wb__tag.is-rar
+   (Seltenheitsstufe) und NICHT --accent-2 (reserviert fuer "an/ausgewaehlt"). */
+.wb__tag.is-trace{background:color-mix(in srgb,var(--muted) 22%,transparent);color:var(--muted)}
 .wb__links{display:flex;gap:6px;flex-wrap:wrap}
 .wb__link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;
   background:color-mix(in srgb,var(--ink) 28%,transparent);color:var(--text);
@@ -780,7 +858,8 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pin:focus-visible,.wb__tile:focus-visible,.wb__link:focus-visible,
 .wb__pre__in:focus-visible,.wb__pre__b:focus-visible,
 .wb__pre-name:focus-visible,.wb__pre-cnt:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
-.wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible,
+.wb__row2[data-loc]:focus-visible,.wb__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
 
