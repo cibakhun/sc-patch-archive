@@ -1,0 +1,39 @@
+/* Skizzen-Theme „Werkbank / Violett + Gehäuse" — abgeleitet aus dem
+   ECHTEN Bestand, nicht erfunden:
+     · Grundpalette 1:1 aus src/components/topics/mining.astro :root
+     · Schriftskala/Bewegung aus assets/theme.css
+   Neu und zur Abnahme gestellt sind nur die --vio-* Werte und die
+   --hull-* Gehäusetöne. Alles andere ist der ausgelieferte Stand. */
+:root {
+  /* --- Bestand: Mining-Palette (unverändert) --- */
+  --bg: #14181a;
+  --bg-2: #181d1f;
+  --surface: #1e2427;
+  --surface-2: #252c30;
+  --text: #e8f1f0;
+  --muted: #93a7a6;
+  --ink: #0b0e0f;
+  --accent: #2FBFA4;      /* Teal — bleibt der tragende Grundton */
+  --accent-2: #E0A526;    /* Bernstein — Auswahl/Handlung */
+  --line: rgba(232,241,240,.12);
+
+  /* --- NEU: Violett-Familie (Bild 1) --- */
+  --vio: #A970FF;         /* Datenbalken, Signaturkurve */
+  --vio-2: #D96BE8;       /* magentaner Endpunkt für Verläufe */
+  --vio-dim: rgba(169,112,255,.22);
+
+  /* --- NEU: Gehäusetöne (Bild 2) --- */
+  --hull-1: #2a3033;      /* Kanten-Lichtseite */
+  --hull-2: #171c1e;      /* Kanten-Schattenseite */
+  --hull-3: #0e1213;      /* tiefste Fuge */
+  --hull-edge: rgba(232,241,240,.16);
+  --hull-lamp: #35d6ff;   /* die seitlichen Leuchtstreifen aus Bild 2 */
+
+  /* --- Bestand: Skala --- */
+  --fs-3: .68rem; --fs-4: .74rem; --fs-5: .82rem; --fs-6: .9rem;
+  --fs-9: 1.15rem; --fs-11: 1.5rem; --fs-13: 1.95rem;
+  --ls-1: -.01em; --ls-4: .02em;
+  --dur-fast: .15s; --ease-ui: cubic-bezier(.4, 0, .2, 1);
+  --font-ui: 'Barlow', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}

@@ -34,6 +34,7 @@ Keine externen Vorbilder — die Referenz ist die eigene Seite. Konkret herangez
 | 003 | mittelspalte-dichte | Passen Identität, Fundorte, Physik, Urteil und Refinery in EINE Spalte — und wenn nein, was gibt nach? | **C — zweispaltig innerhalb der Spalte** (11.08.2026, nur strukturell). Die befürchtete Überfüllung war ein Ein-Spalten-Problem: bei 768 px Breite passen alle 10 Fundorte plus Refinery ohne Scrollen und ohne Klick, mit 298 px Luft | layout, mining, werkbank, dichte |
 | 004 | verarbeitungsgrad | Wie hochwertig muss die Werkbank verarbeitet sein, um neben einem Panel aus dem Spiel zu bestehen — ohne generisch zu werden? | **A — Zurückgenommen** (11.08.2026). Verarbeitung wäre budgetär gratis gewesen (0 px Überlauf in allen drei Stufen) — gewählt wurde trotzdem der schlichteste Weg: „hochwertig" heißt hier Präzision, nicht Detail | design, mining, werkbank, verarbeitung |
 | 005 | paneel-sprache | Wie viel Glas trägt die Werkbank, wenn der Foto-Hintergrund gestrichen ist, der das Glas in den Mockups erst lesbar macht? | **D — Glas nur tragend + reicherer Grund** (11.08.2026) — ⚠ **überholt durch 006**. Bleibende Befunde: Schräge geht ganz ohne `clip-path` (840-ms-Falle baulich ausgeschlossen); Flächenfarben müssen Variablen sein, sonst kein Hellmodus | design, mining, werkbank, glas, ueberholt |
+| 007 | gehaeuse-rahmen | Wie viel Gehäuse verträgt die Werkbank, bevor der Rahmen die Daten verdrängt? | offen (15.08.2026) — A 124 px / B 163 / C 187 Aufschlag, alle ohne Überlauf | design, mining, werkbank, gehaeuse, violett |
 | 006 | baujahr-2026 | Wie sieht die Werkbank aus, wenn sie aussehen soll, als wäre sie 2026 entworfen worden — industriell, modern, nicht futuristisch? | **A — Ruhig** (11.08.2026). **Endstand der Gestaltungssprache.** Radius 12/8/6, Sans-Labels in Satzschreibung, Mono nur für Zahlen, Flächenabstufungen statt Ränder, Farbe nur für Zustand. Kostet 52 px und 3 Mineralzeilen gegen die HUD-Sprache — bewusst bezahlt | design, mining, werkbank, modernitaet |
 
 ## Zweite Design-Welt: „Werkbank" (ab 002) — ENDSTAND aus Skizze 006 A
@@ -85,6 +86,16 @@ Verlaufstext, Scanlines, Sechsecke, Neon.
 **Preis der Moderne, offen benannt:** 52 px und 3 Mineralzeilen gegen die
 HUD-Sprache aus 005 — 9 statt 12 Zeilen über der Falz bei 1280×720. Bewusst
 bezahlt.
+
+## ⚠ Endstand 006 gegen den gebauten Stand (15.08.2026)
+
+Der oben notierte „Endstand der Gestaltungssprache" (006 A, „Ruhig") beschreibt
+den **gebauten Stand nicht mehr**. `MiningWorkbench.astro:406ff` trägt Glas
+(`backdrop-filter: blur(14px) saturate(1.2)`), eine angeschrägte Ecke (`.chamf`)
+und gezähnte Segmentbalken — alles drei ist in 005/006 ausdrücklich verworfen
+worden und im Code trotzdem vorhanden. Wer 006 als geltende Vorgabe liest,
+liest an der Seite vorbei. Skizze 007 schreibt deshalb den **Ist-Zustand** fort,
+nicht den Endstand; mit ihrer Entscheidung ist der Abschnitt oben nachzuziehen.
 
 ## Übernommene Befunde aus dem Bestands-CSS
 
