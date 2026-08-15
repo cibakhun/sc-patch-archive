@@ -296,7 +296,14 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   }
 
   function renderPins() {
-    var scan = parseInt(($('wb-scan').value || '').replace(/[^0-9]/g, ''), 10);
+    /* Zaehler in der Ueberschrift #wb-pinsh (D-03), Form wie #wb-loch:
+       Beschriftung, Trennpunkt, Zahl -- nur sobald mindestens ein Erz
+       angeheftet ist. Guard gegen fehlendes Element, wie ueberall sonst in
+       dieser Datei ($()===null). MUSS vor dem fruehen Ausstieg unten stehen:
+       sonst friert der Zaehler beim Leeren der Liste auf seinem letzten Wert
+       ein. */
+    var pinsh = $('wb-pinsh');
+    if (pinsh) pinsh.textContent = T.signatures + (S.pins.length ? ' · ' + S.pins.length : '');
     if (!S.pins.length) {
       $('wb-pins').innerHTML = '<p class="wb__empty">' + esc(T.pinHint) + '</p>';
       return;
@@ -306,8 +313,8 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       if (!m || !m.sig) return '';
       var max = MAXCLUSTER[m.rarity] || 4, mult = '';
       for (var k = 1; k <= max; k++) {
-        var val = k * m.sig, hit = scan && Math.abs(val - scan) / scan <= 0.10;
-        mult += '<i class="' + (hit ? 'is-hit' : '') + '" title="×' + k + '">' + NF.format(val) + '</i>';
+        var val = k * m.sig;
+        mult += '<i title="×' + k + '">' + NF.format(val) + '</i>';
       }
       return '<div class="wb__pin-item"><div class="wb__pin-top">' +
         '<span class="nm">' + esc(m.name) + '</span>' +
@@ -316,17 +323,19 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }).join('');
   }
 
-  /* Die Fundort-Merkliste im zweiten Reiter — erz-uebergreifend (D-06).
+  /* Die Fundort-Merkliste, seit Phase 10 (D-03) unter der Signaturenliste
+     gestapelt statt hinter einem zweiten Reiter — erz-uebergreifend (D-06).
      Eintrag "Erz — Fundort" mit Geviertstrich, derselbe ×-Knopf traegt dasselbe
      data-locpin wie die Nadel in der Fundort-Zeile: EIN Attribut, zwei
      Richtungen (Praezedenz: data-pin bei den Signaturen). */
   function renderLocPins() {
     var box = $('wb-locpins');
-    /* Zaehler in der Reiter-Beschriftung, Form wie #wb-loch: Beschriftung,
-       Trennpunkt, Zahl -- nur sobald mindestens ein Paar angeheftet ist. Guard
-       gegen fehlendes Element, wie ueberall sonst in dieser Datei ($()===null). */
-    var tabBtn = $('wb-tab-loc');
-    if (tabBtn) tabBtn.textContent = T.locations + (S.locPins.length ? ' · ' + S.locPins.length : '');
+    /* Zaehler in der Ueberschrift #wb-lpinsh (D-03, vorher in der
+       Reiter-Beschriftung), Form wie #wb-loch: Beschriftung, Trennpunkt,
+       Zahl -- nur sobald mindestens ein Paar angeheftet ist. Guard gegen
+       fehlendes Element, wie ueberall sonst in dieser Datei ($()===null). */
+    var lpinsh = $('wb-lpinsh');
+    if (lpinsh) lpinsh.textContent = T.locations + (S.locPins.length ? ' · ' + S.locPins.length : '');
     if (!box) return;
     if (!S.locPins.length) {
       box.innerHTML = '<p class="wb__empty">' + esc(T.locPinsEmpty) + '</p>';
@@ -772,19 +781,6 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       }
       return;
     }
-    /* Reiterleiste Signaturen/Fundorte rechts — eigenes Attribut data-tab,
-       bewusst nicht data-seg (das gehoert der mobilen Segmentleiste oben und
-       wuerde dort kollidieren). */
-    var tab = t.closest('[data-tab]');
-    if (tab) {
-      var tk = tab.getAttribute('data-tab');
-      var sigPane = $('wb-sig-pane'), locPane = $('wb-loc-pane');
-      var sigTab = $('wb-tab-sig'), locTab = $('wb-tab-loc');
-      if (sigPane) sigPane.hidden = tk !== 'sig';
-      if (locPane) locPane.hidden = tk !== 'loc';
-      if (sigTab) { sigTab.classList.toggle('is-on', tk === 'sig'); sigTab.setAttribute('aria-selected', String(tk === 'sig')); }
-      if (locTab) { locTab.classList.toggle('is-on', tk === 'loc'); locTab.setAttribute('aria-selected', String(tk === 'loc')); }
-    }
   });
 
   document.addEventListener('keydown', function (e) {
@@ -803,7 +799,6 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
 
   document.addEventListener('input', function (e) {
     if (e.target.id === 'wb-q') { S.q = e.target.value; renderList(); }
-    else if (e.target.id === 'wb-scan') { renderPins(); }
   });
 
   /* Tieflink ?mineral=<Name> aus der Crafting-Datenbank (miningLinks.ts:129,

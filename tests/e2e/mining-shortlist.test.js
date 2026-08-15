@@ -534,19 +534,76 @@ test('Merkliste bei 128 Paaren voll: ein weiteres Anheften wird abgewiesen und u
 
 // ---------------------------------------------------------------------
 // Phase 9, Plan 02, Task 1 — Zaehler in der Reiter-Beschriftung.
+// Phase 10, Plan 02, Task 1 — der Traeger wechselt von der Reiter-
+// Beschriftung (wb-tab-loc, jetzt entfallen) zur eigenen Ueberschrift der
+// gestapelten Merkliste (wb-lpinsh, D-03); die geprueft Anforderung bleibt
+// woertlich dieselbe: die Zahl erscheint erst ab einem Eintrag.
 // ---------------------------------------------------------------------
 
-test('Reiter-Beschriftung "Fundorte" nennt die Zahl der Paare erst, sobald welche da sind', async () => {
+test('Ueberschrift der Fundort-Merkliste nennt die Zahl der Paare erst, sobald welche da sind', async () => {
   const ctx = await runAsync({ account: { rows: [] } });
-  const tabBtn = ctx.elements['wb-tab-loc'];
-  assert.ok(tabBtn, 'wb-tab-loc nicht im Mock-DOM registriert');
-  assert.strictEqual(tabBtn.textContent, ctx.T.locations, 'ohne Eintraege traegt der Reiter nur die Beschriftung');
+  const head = ctx.elements['wb-lpinsh'];
+  assert.ok(head, 'wb-lpinsh nicht im Mock-DOM registriert');
+  assert.strictEqual(head.textContent, ctx.T.locations, 'ohne Eintraege traegt die Ueberschrift nur die Beschriftung');
 
   const loc = realLocOf(ctx, 'Gold');
   selectMineral(ctx, 'Gold');
   ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
 
-  assert.strictEqual(tabBtn.textContent, `${ctx.T.locations} · 1`);
+  assert.strictEqual(head.textContent, `${ctx.T.locations} · 1`);
+
+  ctx.fire(locPinBtn(ctx, 'Gold', loc), 'click');
+  assert.strictEqual(head.textContent, ctx.T.locations, 'nach dem Loesen des letzten Eintrags nur noch die Beschriftung');
+});
+
+// ---------------------------------------------------------------------
+// Phase 10, Plan 02, Task 1 — beide Listen stehen gleichzeitig sichtbar
+// (D-03): keine der beiden traegt mehr `hidden`, beide sind ueber ihre id
+// auffindbar, und die Signaturen-Ueberschrift traegt denselben Zaehler wie
+// die Merklisten-Ueberschrift (nur fuer angeheftete Erze statt Fundorte).
+// ---------------------------------------------------------------------
+
+test('Signaturenliste und Fundort-Merkliste sind nach dem Zeichnen beide vorhanden, keine traegt hidden', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const pins = ctx.elements['wb-pins'];
+  const locpins = ctx.elements['wb-locpins'];
+  assert.ok(pins, 'wb-pins nicht im Mock-DOM registriert');
+  assert.ok(locpins, 'wb-locpins nicht im Mock-DOM registriert');
+  assert.notStrictEqual(pins.hidden, true, 'Signaturenliste sollte nicht hidden sein');
+  assert.notStrictEqual(locpins.hidden, true, 'Fundort-Merkliste sollte nicht hidden sein');
+});
+
+test('Ueberschrift der Signaturenliste nennt die Zahl der angehefteten Erze erst, sobald welche da sind, und wieder nicht nach dem letzten Loesen', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const head = ctx.elements['wb-pinsh'];
+  assert.ok(head, 'wb-pinsh nicht im Mock-DOM registriert');
+  assert.strictEqual(head.textContent, ctx.T.signatures, 'ohne angeheftete Erze traegt die Ueberschrift nur die Beschriftung');
+
+  const btn = tilePinBtn(ctx, 'Gold');
+  ctx.fire(btn, 'click');
+  assert.strictEqual(head.textContent, `${ctx.T.signatures} · 1`);
+
+  ctx.fire(btn, 'click');
+  assert.strictEqual(head.textContent, ctx.T.signatures, 'nach dem Loesen des letzten Erzes nur noch die Beschriftung');
+});
+
+test('Ein angeheftetes Erz erzeugt so viele Vielfachen-Felder wie seine Seltenheit erlaubt, keines mit Hervorhebungsklasse', async () => {
+  const ctx = await runAsync({ account: { rows: [] } });
+  const gold = ctx.byName['Gold'];
+  assert.ok(gold && gold.sig, 'Vorbedingung: Gold traegt eine Signatur im Testbestand');
+
+  ctx.fire(tilePinBtn(ctx, 'Gold'), 'click');
+
+  const item = ctx.elements['wb-pins'].querySelector('.wb__pin-item');
+  assert.ok(item, 'Pin-Eintrag fuer Gold nicht gefunden');
+  // Der Mock-Selektor-Parser (dom-mock.js) kennt keine Nachfahren-Kombination
+  // (".wb__mult i"), deshalb ueber den Tagnamen allein suchen -- im
+  // Pin-Eintrag stehen ausschliesslich die Vielfachen-Felder als <i>.
+  const mults = item.querySelectorAll('i');
+  const MAXCLUSTER = { common: 6, uncommon: 5, rare: 4, epic: 3, legendary: 2 };
+  const expected = MAXCLUSTER[gold.rarity] || 4;
+  assert.strictEqual(mults.length, expected, 'Zahl der Vielfachen-Felder sollte der Seltenheit entsprechen');
+  assert.ok(mults.every((el) => !el.classList.contains('is-hit')), 'kein Vielfachen-Feld sollte is-hit tragen');
 });
 
 // ---------------------------------------------------------------------

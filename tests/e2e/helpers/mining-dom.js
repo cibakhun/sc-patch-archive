@@ -10,11 +10,12 @@
 //
 // Vier Dinge fehlen der geerbten Element-Klasse und entstehen hier neu:
 //   1. closest() -- mining-workbench.js ruft es fuer '.wb', '[data-pin]',
-//      '.wb__tile', '[data-sys]', '[data-seg]', '[data-locpin]', '[data-tab]'
-//      und seit Phase 10 (10-01) zusaetzlich '[data-preset]', '[data-pre-pick]',
-//      '[data-pre-rename]'. matches() aus dom-mock.js ist nicht exportiert;
-//      ein kleiner eigener Vergleich fuer Klasse und Attribut-Anwesenheit
-//      reicht fuer alle Aufrufwege.
+//      '.wb__tile', '[data-sys]', '[data-seg]', '[data-locpin]', seit Phase 10
+//      (10-01) zusaetzlich '[data-preset]', '[data-pre-pick]',
+//      '[data-pre-rename]' -- '[data-tab]' ist seit Plan 02 entfallen, die
+//      Reiterleiste gibt es nicht mehr. matches() aus dom-mock.js ist nicht
+//      exportiert; ein kleiner eigener Vergleich fuer Klasse und
+//      Attribut-Anwesenheit reicht fuer alle Aufrufwege.
 //   2. fire(el, typ) -- die meisten Handler haengen delegiert am document,
 //      die Preset-Knoepfe direkt am Element. fire() ruft erst die Handler
 //      des Elements (MockElement.dispatchEvent deckt das ab), danach die
@@ -341,23 +342,16 @@ export function makeMiningDomContext(opts = {}) {
   root.appendChild(reg(mk('span', 'wb-frac-ore')));
   root.appendChild(reg(mk('select', 'wb-ref')));
 
-  // Spalte 3 — Scan-Kasten, Signaturenliste, Fundort-Merkliste. Die Reiterknoepfe
-  // (wb-tab-sig/wb-tab-loc) UND ihre Koerper (wb-sig-pane/wb-loc-pane) sind seit
-  // Plan 02 registriert: renderLocPins() schreibt den Paarzaehler in die
-  // Beschriftung von wb-tab-loc (guard $()===null davor macht das optional, aber
-  // der Zaehler soll hier tatsaechlich geprueft werden koennen), der Klick-
-  // Handler schaltet `hidden` an den beiden Koerpern.
-  root.appendChild(reg(mk('input', 'wb-scan')));
+  // Spalte 3 — Signaturenliste und Fundort-Merkliste, seit Phase 10 (Plan 02,
+  // D-03) gestapelt statt hinter Reitern: wb-scan/wb-tab-sig/wb-tab-loc/
+  // wb-sig-pane/wb-loc-pane sind entfallen, neu registriert sind wb-pinsh und
+  // wb-lpinsh -- renderPins()/renderLocPins() schreiben den jeweiligen
+  // Paarzaehler in diese Ueberschriften (guard $()===null davor macht das
+  // optional, aber der Zaehler soll hier tatsaechlich geprueft werden koennen).
   root.appendChild(reg(mk('div', 'wb-pins')));
   root.appendChild(reg(mk('div', 'wb-locpins')));
-  var tabSig = reg(mk('button', 'wb-tab-sig'));
-  tabSig.textContent = payload.t.signatures;
-  root.appendChild(tabSig);
-  var tabLoc = reg(mk('button', 'wb-tab-loc'));
-  tabLoc.textContent = payload.t.locations;
-  root.appendChild(tabLoc);
-  root.appendChild(reg(mk('div', 'wb-sig-pane')));
-  root.appendChild(reg(mk('div', 'wb-loc-pane')));
+  root.appendChild(reg(mk('h4', 'wb-pinsh')));
+  root.appendChild(reg(mk('h4', 'wb-lpinsh')));
 
   // Presets (Phase 10, Plan 01: sichtbare Liste statt <select>, D-05).
   root.appendChild(reg(mk('div', 'wb-preset-list')));
