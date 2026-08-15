@@ -113,7 +113,30 @@ for (const [kind, arr] of NAME_GROUPS) {
   }
 }
 
-// 12) game_version gegen den installierten Client (best effort — verify:mining
+// 12) Wachposten gegen "|" in Mineral- oder Fundortnamen (Phase 9, D-07).
+// mining-workbench.js baut den Schluessel eines angehefteten Fundort-Paares
+// als "<Erz>||<Fundort>" (Migration 20260815090000_mining_preset_locations.sql,
+// comment on column). Truege ein Name selbst ein "|", liesse sich der
+// Schluessel beim Trennen nicht mehr eindeutig in Erz und Fundort zerlegen —
+// das zerlegt gespeicherte Merklisten von Nutzern. FEHLER, nicht WARNUNG: die
+// Handlungsanweisung dahinter (den Namen aendern) ist immer richtig.
+const pipeCheckedNames = new Set();
+for (const m of db.minerals) {
+  pipeCheckedNames.add(m.name);
+  if (m.name.includes('|')) fail.push(`Mineral "${m.name}" enthaelt "|" — wuerde den Paar-Schluessel "<Erz>||<Fundort>" der Fundort-Merkliste mehrdeutig machen`);
+}
+for (const m of db.minerals) for (const l of m.locations || []) {
+  if (pipeCheckedNames.has(l.location)) continue;
+  pipeCheckedNames.add(l.location);
+  if (l.location.includes('|')) fail.push(`Fundort "${l.location}" enthaelt "|" — wuerde den Paar-Schluessel "<Erz>||<Fundort>" der Fundort-Merkliste mehrdeutig machen`);
+}
+for (const b of db.bodies) {
+  if (pipeCheckedNames.has(b.body)) continue;
+  pipeCheckedNames.add(b.body);
+  if (b.body.includes('|')) fail.push(`Fundort "${b.body}" enthaelt "|" — wuerde den Paar-Schluessel "<Erz>||<Fundort>" der Fundort-Merkliste mehrdeutig machen`);
+}
+
+// 13) game_version gegen den installierten Client (best effort — verify:mining
 // soll ausdruecklich ohne p4k/Netz funktionieren, siehe Kopfkommentar).
 const bmPath = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
 if (existsSync(bmPath)) {
@@ -129,4 +152,4 @@ if (existsSync(bmPath)) {
 }
 
 if (fail.length) { console.error(`FAIL (${fail.length}):\n` + fail.slice(0, 40).join('\n')); process.exit(1); }
-console.log(`OK — Mining-Daten konsistent: ${model.elements.length} Elemente, ${model.compositions.length} Komp., ${usableLasers.length} Laser, ${db.minerals.length} Minerale, ${db.bodies.length} Bodies · ${db.game_version}`);
+console.log(`OK — Mining-Daten konsistent: ${model.elements.length} Elemente, ${model.compositions.length} Komp., ${usableLasers.length} Laser, ${db.minerals.length} Minerale, ${db.bodies.length} Bodies, ${pipeCheckedNames.size} Namen ohne "|" geprueft · ${db.game_version}`);

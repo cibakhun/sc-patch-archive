@@ -137,10 +137,6 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     $('wb-count').textContent = shown === D.minerals.length ? String(shown) : shown + '/' + D.minerals.length;
   }
 
-  function stat(label, val, cls) {
-    return '<div class="wb__stat ' + (cls || '') + '"><span class="wb__lbl">' + esc(label) +
-      '</span><b class="num">' + esc(val) + '</b></div>';
-  }
   /* Siebter Parameter pinKey (optional): NUR der Fundort-Aufruf uebergibt
      ihn. Die drei Stations-Aufrufe (#wb-refs) und der Ersatzeintrag der
      gewaehlten Station bleiben sechsstellig — sie bekommen dadurch keinen
@@ -186,48 +182,13 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
 
     /* ⚠ Hier stand bis 12.08.2026 zusaetzlich „effektiv" — der Widerstand
        NACH dem Res-Mod der Ausruestung. Der Wert gehoert zum Rechnen, nicht
-       zum Nachschlagen, und steht jetzt im Fracturing-Rechner. Was bleibt,
-       sind die Zahlen des Erzes selbst.
-       ⚠ Task 1 (Phase 9) hat die Kaesten wb-stats/wb-bands/wb-rocks samt
-       Detailspalte aus dem Astro-Koerper entfernt (D-01); die drei Zuweisungen
-       hier fallen erst in Task 3 mit. Bis dahin schuetzen die drei Waechter
-       ($()===null) davor, dass renderDetail() an dieser Stelle abbricht und
-       Fundorte/Stationen/Verweise weiter unten gar nicht mehr gezeichnet
-       werden — ein durch die Astro-Aenderung verursachter Laufzeitfehler,
-       kein Verhalten, das irgendwer wollte (Deviation Rule 1). */
-    var stEl = $('wb-stats');
-    if (stEl) {
-      var st = '';
-      if (m.res !== null) st += stat(T.resistance, n2(m.res));
-      if (m.inst !== null) st += stat(T.instability, NF.format(m.inst));
-      if (m.dens !== null) st += stat(T.density, n2(m.dens));
-      if (m.win !== null) st += stat(T.window, n2(m.win));
-      if (m.scu) st += stat('SCU', n2(m.scu));
-      stEl.innerHTML = st || '<p class="wb__empty">' + esc(T.noPhys) + '</p>';
-    }
-
-    var bandsEl = $('wb-bands');
-    if (bandsEl) {
-      var bands = m.bands || [];
-      bandsEl.innerHTML = bands.length
-        ? bands.map(function (b, i) {
-            var h = 22 + (i / Math.max(1, bands.length - 1)) * 78;
-            return '<i class="' + (i > bands.length / 2 ? 'is-hi' : '') + '" style="height:' + h.toFixed(0) +
-              '%" title="' + (i + 1) + ': ' + NF.format(b) + '"></i>';
-          }).join('')
-        : '<p class="wb__empty">' + esc(T.none) + '</p>';
-    }
-
-    /* Welche Steine fuehren dieses Erz — aus den 211 Kompositionen. */
-    var rockH = $('wb-rockh'), rockEl = $('wb-rocks');
-    if (rockH && rockEl) {
-      rockH.textContent = T.rocks + (m.rockCount ? ' · ' + m.rocks.length + ' ' + T.ofRocks + ' ' + m.rockCount : '');
-      rockEl.innerHTML = m.rocks.length
-        ? m.rocks.map(function (r) {
-            return row2(r.rock, r.prob + ' % ' + T.chance, r.max, r.min + '–' + r.max + ' %', true);
-          }).join('')
-        : '<p class="wb__empty">' + esc(T.none) + '</p>';
-    }
+       zum Nachschlagen, und steht jetzt im Fracturing-Rechner. Physik,
+       Qualitaetsstufen und „Steine mit diesem Erz" sind seit Phase 9 (D-01)
+       ganz aus der Werkbank gestrichen, nicht nur aus dem Astro-Koerper: die
+       Kaesten wb-stats/wb-bands/wb-rocks entstanden hier bis Task 3 nur noch
+       ueber schuetzende $()===null-Zweige (Deviation Rule 1 im 09-01-Summary,
+       Task 1) — jetzt, wo nichts mehr auf sie zeigt, sind auch diese drei
+       Zuweisungen weg. */
 
     /* Fundorte nach ef (Erwartungswert des Anteils) rangieren, nicht nach ch.
        ch allein sagt nur, WIE OFT das Erz vorkommt, nicht wie ergiebig; ms allein

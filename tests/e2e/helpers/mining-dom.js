@@ -173,7 +173,7 @@ function buildPayload() {
     return {
       name: m.name, kind: m.kind, rarity: m.rarity || null,
       method: m.method, methods: m.methods || [], refine: !!m.needs_refine,
-      systems: m.systems || [], scu: m.weight_scu,
+      systems: m.systems || [],
       locs: (m.locations || []).map((l) => ({
         p: l.location, s: l.system, t: l.type, mi: l.mining, ms: l.maxShare, ch: l.chance, ef: l.eff,
       })),

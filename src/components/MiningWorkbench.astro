@@ -76,70 +76,6 @@ const rarIdx = (r: string | null) => {
   return i < 0 ? RAR_ORDER.length : i;
 };
 
-/* Die Kompositionsnamen sind interne Bezeichner. Ungefiltert standen sie im
-   sichtbaren Text — „LegendaryShipMineablesAsteroid_Quantainium",
-   „FelsicDeposit_Aluminium" —, was weder lesbar ist noch zur Regel passt,
-   dass die Herkunft der Daten nirgends durchschlaegt. Abgebildet wird auf
-   die Begriffe, die der Scanner im Spiel selbst benutzt: Gesteinsart bzw.
-   Asteroidenklasse. Vier Bauformen decken alle 211 Namen ab. */
-const ROCK_FAMILY: Record<string, { de: string; en: string }> = {
-  Felsic: { de: 'Felsit', en: 'Felsic' }, Granite: { de: 'Granit', en: 'Granite' },
-  Gneiss: { de: 'Gneis', en: 'Gneiss' }, Igneous: { de: 'Magmatit', en: 'Igneous' },
-  Obsidian: { de: 'Obsidian', en: 'Obsidian' }, Quartzite: { de: 'Quarzit', en: 'Quartzite' },
-  Shale: { de: 'Schiefer', en: 'Shale' }, Atacamite: { de: 'Atacamit', en: 'Atacamite' },
-};
-function rockLabel(raw: string): { main: string; variant: string | null } {
-  const n = String(raw || '');
-  let m = n.match(/^GroundVehicle_Composition_(.+?)(?:Deposit)?$/);
-  if (m) return { main: de ? 'ROC-Vorkommen' : 'ROC deposit', variant: m[1] };
-  if (n === 'Asteroid_GoldOnly') return { main: de ? 'Asteroid' : 'Asteroid', variant: 'Gold' };
-  m = n.match(/^Asteroid_([A-Z])Type(?:_(.+))?$/);
-  if (m) return { main: de ? `${m[1]}-Typ-Asteroid` : `${m[1]}-type asteroid`, variant: m[2] || null };
-  /* Die Seltenheits-Vorsilbe wird verworfen: sie steht bereits als eigene
-     Marke am Erz und wuerde hier nur doppeln. */
-  m = n.match(/^(?:Common|Uncommon|Rare|Epic|Legendary)ShipMineables(Asteroid)?_(.+?)(?:_RCD)?$/);
-  if (m) {
-    return {
-      main: m[1] ? 'Asteroid' : (de ? 'Oberflächen-Vorkommen' : 'Surface deposit'),
-      variant: m[2],
-    };
-  }
-  m = n.match(/^([A-Za-z]+?)Deposit(?:_(.+))?$/);
-  if (m) {
-    const fam = ROCK_FAMILY[m[1]];
-    const label = fam ? fam[lang] : m[1].replace(/([a-z])([A-Z])/g, '$1 $2');
-    return { main: de ? `${label}-Vorkommen` : `${label} deposit`, variant: m[2] || null };
-  }
-  return { main: n.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2'), variant: null };
-}
-
-/* Welche Steine fuehren welches Erz — aus MODEL.compositions (211 Stueck).
-   Je Erz die ergiebigsten zuerst: Wahrscheinlichkeit mal Maximalanteil. */
-const rocksByElement: Record<string, any[]> = {};
-for (const c of (MODEL.compositions as any[])) {
-  const lbl = rockLabel(String(c.name || ''));
-  for (const p of (c.parts || [])) {
-    /* Die Spielart nennt das Erz, das den Stein praegt. Ist das gerade das
-       betrachtete Erz, sagt sie nichts und faellt weg. */
-    const variant = lbl.variant && lbl.variant !== p.element ? lbl.variant : null;
-    (rocksByElement[p.element] ||= []).push({
-      rock: variant ? `${lbl.main} · ${variant}` : lbl.main,
-      prob: Math.round((p.probability || 0) * 100),
-      min: Math.round(p.minPercent || 0), max: Math.round(p.maxPercent || 0),
-    });
-  }
-}
-/* Nach der Saeuberung fallen Namensdubletten zusammen — etwa zwei
-   Asteroiden-Kompositionen desselben Erzes. Die ergiebigste gewinnt. */
-for (const k of Object.keys(rocksByElement)) {
-  const best = new Map<string, any>();
-  for (const r of rocksByElement[k]) {
-    const cur = best.get(r.rock);
-    if (!cur || r.prob * r.max > cur.prob * cur.max) best.set(r.rock, r);
-  }
-  rocksByElement[k] = [...best.values()].sort((a, b) => (b.prob * b.max) - (a.prob * a.max));
-}
-
 /* Ertragsprofile: fuer jedes Erz die Stationen nach Aufschlag sortieren.
    Das ist die Antwort auf „wo bringe ich DAS hin?" und stand bisher nirgends. */
 const refineries = (MODEL.refineries as any[]).map((r) => ({ n: r.name, s: r.system, p: r.profileId }));
@@ -158,15 +94,7 @@ const minerals = (DB.minerals as any[])
       locs: (m.locations || []).map((l: any) => ({
         p: l.location, s: l.system, t: l.type, mi: l.mining, ms: l.maxShare, ch: l.chance, ef: l.eff,
       })),
-      res: typeof e.resistance === 'number' ? e.resistance : null,
-      inst: typeof e.instability === 'number' ? e.instability : null,
-      dens: typeof e.density === 'number' ? e.density : null,
       sig: e.scanSignature || null,
-      gsig: e.groundScanSignature || null,
-      win: typeof e.optimalWindowThinness === 'number' ? e.optimalWindowThinness : null,
-      bands: e.qualityBands || null,
-      rocks: (rocksByElement[m.name] || []).slice(0, 8),
-      rockCount: (rocksByElement[m.name] || []).length,
       bp: blueprintsPerMineral[m.name] || 0,
     };
   })
@@ -200,7 +128,12 @@ for (const [meth, ids] of Object.entries(VEHICLE_FOR)) {
 
 const fracturingPath = href('/fracturing.html', lang);
 
-const S = de ? {
+/* Zwei benannte Konstanten statt eines `de ? {…} : {…}`-Ternarys: ein in nur
+   einem Zweig vergessener Schluessel fiel bislang erst im Browser der ANDEREN
+   Sprache auf. Die Pruefung darunter bricht das stattdessen beim Bauen ab —
+   Vorbild und Begruendung: assertHelpParity() in src/i18n/help.ts, seit
+   Phase 01.2 im selben Amt. */
+const S_DE = {
   minerals: 'Minerale', view: 'Ansicht', signatures: 'Signaturen', locations: 'Fundorte',
   search: 'Mineral suchen',
   scanPlaceholder: 'Scanwert', pinHint: 'Auf einer Erz-Kachel links den Anheft-Knopf drücken — oder oben am gewählten Erz „Anheften". Diese Spalte zeigt dann seine Signatur mal Clustergröße.',
@@ -209,17 +142,16 @@ const S = de ? {
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
   presetEmpty: 'Erst Erze anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
-  physics: 'Physik', resistance: 'Widerstand', instability: 'Instabilität',
-  density: 'Dichte', window: 'Fenster', bands: 'Qualitätsstufen', signature: 'Signatur',
-  noPhys: 'keine Physikdaten',
+  signature: 'Signatur',
   station: 'Station', fracturing: 'Fracturing-Rechner', fracturingGo: 'Bricht der Brocken? →',
   none: '—', pin: 'Anheften', unpin: 'Lösen', noLocs: 'Keine Fundorte bekannt.',
   locPinsEmpty: 'Noch keine Fundorte angeheftet. Bei einem Erz mit Fundorten die Nadel neben einer Zeile drücken.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
-  rocks: 'Steine mit diesem Erz', ofRocks: 'von', chance: 'Chance', share: 'Anteil', upTo: 'bis',
+  chance: 'Chance', upTo: 'bis',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
-} : {
+};
+const S_EN = {
   minerals: 'Minerals', view: 'View', signatures: 'Signatures', locations: 'Locations',
   search: 'Search mineral',
   scanPlaceholder: 'Scan value', pinHint: 'Hit the pin button on an ore tile at the left — or “Pin” above the selected ore. This column then shows its signature times cluster size.',
@@ -228,17 +160,37 @@ const S = de ? {
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
   presetEmpty: 'Pin some ores first, then save.', presetFail: 'Saving failed.',
-  physics: 'Physics', resistance: 'Resistance', instability: 'Instability',
-  density: 'Density', window: 'Window', bands: 'Quality tiers', signature: 'Signature',
-  noPhys: 'no physics data',
+  signature: 'Signature',
   station: 'Station', fracturing: 'Fracturing calculator', fracturingGo: 'Will it break? →',
   none: '—', pin: 'Pin', unpin: 'Unpin', noLocs: 'No locations known.',
   locPinsEmpty: 'No locations pinned yet. On an ore with locations, hit the pin next to a row.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
-  rocks: 'Rocks carrying this ore', ofRocks: 'of', chance: 'chance', share: 'share', upTo: 'up to',
+  chance: 'chance', upTo: 'up to',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
 };
+
+/* Bricht den Build ab, statt eine Sprache mit fehlendem Schluessel stumm
+   auszuliefern (leerer Text bzw. "undefined" im HTML). Laeuft fuer JEDEN
+   Aufruf der Komponente (also fuer beide Sprachseiten je einmal) — das
+   reicht, weil beide Zweige feste Objektliterale sind, keine Laufzeitdaten. */
+function assertMiningLangParity(): void {
+  const deKeys = Object.keys(S_DE);
+  const enKeys = Object.keys(S_EN);
+  const deSet = new Set(deKeys);
+  const enSet = new Set(enKeys);
+  const missingInEn = deKeys.filter((k) => !enSet.has(k));
+  const missingInDe = enKeys.filter((k) => !deSet.has(k));
+  if (missingInEn.length || missingInDe.length) {
+    throw new Error(
+      `MiningWorkbench: Sprachschluessel von DE und EN weichen ab. ` +
+        `Fehlt in EN: ${missingInEn.join(', ') || '—'}; fehlt in DE: ${missingInDe.join(', ') || '—'}`
+    );
+  }
+}
+assertMiningLangParity();
+
+const S = de ? S_DE : S_EN;
 
 const payload = {
   lang, minerals, refineries, profiles, t: S,
@@ -578,18 +530,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   margin:0 0 7px;padding-bottom:5px;position:relative}
 .wb__sec h4::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
   background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 14%,transparent) 0 1px,transparent 1px 7px)}
-.wb__stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-/* Versenkte Wanne je Messwert — Licht von oben. */
-.wb__stat{padding:7px 10px;border-radius:7px;
-  background:color-mix(in srgb,var(--ink) 40%,transparent);
-  box-shadow:inset 0 1px 3px color-mix(in srgb,var(--ink) 60%,transparent),
-    inset 0 -1px 0 color-mix(in srgb,var(--text) 6%,transparent)}
-.wb__stat b{display:block;font-size:var(--fs-9);font-weight:600;margin-top:2px;color:var(--text)}
-.wb__stat.is-hot b{color:var(--accent-2)}
-.wb__bands{display:flex;gap:3px;align-items:flex-end;height:34px}
-.wb__bands i{flex:1;border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--surface-2) 86%,var(--text))}
-.wb__bands i.is-hi{background:var(--accent-2);opacity:.85}
-.wb__rocks,.wb__locs,.wb__refs{display:flex;flex-direction:column;gap:3px}
+.wb__locs,.wb__refs{display:flex;flex-direction:column;gap:3px}
 .wb__row2{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
   padding:5px 9px;border-radius:7px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
 .wb__row2 .p{font-size:var(--fs-5);font-weight:500;color:var(--text);display:block;
