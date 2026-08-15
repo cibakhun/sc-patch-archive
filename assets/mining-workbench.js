@@ -507,9 +507,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
          fuer die Begruendung, warum das Pflicht ist). */
       var head;
       if (preAsk === p.name && preAskWhat === 'del') {
-        head = '<button type="button" class="wb__pre-ask wb__pre-ask--del" data-pre-delok="1">' + esc(T.presetDelAsk) + '</button>';
+        head = '<button type="button" class="wb__pre-ask wb__pre-ask--del" data-pre-delok="1"><span>' + esc(T.presetDelAsk) + '</span></button>';
       } else if (preAsk === p.name && preAskWhat === 'upd') {
-        head = '<button type="button" class="wb__pre-ask wb__pre-ask--upd" data-pre-updok="1">' + esc(T.presetUpdAsk) + '</button>';
+        head = '<button type="button" class="wb__pre-ask wb__pre-ask--upd" data-pre-updok="1"><span>' + esc(T.presetUpdAsk) + '</span></button>';
       } else {
         var cnt = p.minerals.length + ' ' + T.signatures + ' · ' + p.locations.length + ' ' + T.locations;
         var isOpen = preOpen === p.name;
