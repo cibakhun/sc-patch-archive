@@ -696,15 +696,30 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    color-mix()/opacity, NIE ueber eine gedimmte Flaeche -- build-light-
    overrides.mjs (PROPS) deckt kein `background` ab, der Hellmodus bekaeme
    sonst lautlos keine Entsprechung. Die Zeilen-Flaeche (.wb__row2 background)
-   bleibt unveraendert; nur Text, Unterzeile, Prozentzahl und Balken daempfen. */
-.wb__row2.is-trace .p{color:color-mix(in srgb,var(--text) 62%,transparent)}
-.wb__row2.is-trace .s{color:color-mix(in srgb,var(--muted) 65%,transparent)}
-.wb__row2.is-trace em{color:color-mix(in srgb,var(--muted) 65%,transparent)}
+   bleibt unveraendert; nur Text, Unterzeile, Prozentzahl und Balken daempfen.
+   Die Werte 82 %/90 % sind GEMESSEN (scripts/probes/mining-locview-messung.mjs,
+   15.08.2026, am gerenderten Bildpunkt in beiden Farbmodi) -- die Startwerte
+   62 %/65 % aus dem UI-SPEC waren ausdruecklich kein Freigabewert und lagen
+   bei der Unterzeile real bei nur 2,9:1 bis 3,4:1 (Marke 4,5:1). Schlechtester
+   gemessener Wert bei 82 %/90 %: Unterzeile hell 4,91:1. */
+.wb__row2.is-trace .p{color:color-mix(in srgb,var(--text) 82%,transparent)}
+.wb__row2.is-trace .s{color:color-mix(in srgb,var(--muted) 90%,transparent)}
+.wb__row2.is-trace em{color:color-mix(in srgb,var(--muted) 90%,transparent)}
 .wb__row2.is-trace .wb__bar{opacity:.6}
 /* Das Abzeichen selbst bleibt bei voller Deckkraft -- es ist das Signal,
    nicht das Gedaempfte. Eigene Modifikatorklasse, NICHT .wb__tag.is-rar
-   (Seltenheitsstufe) und NICHT --accent-2 (reserviert fuer "an/ausgewaehlt"). */
-.wb__tag.is-trace{background:color-mix(in srgb,var(--muted) 22%,transparent);color:var(--muted)}
+   (Seltenheitsstufe) und NICHT --accent-2 (reserviert fuer "an/ausgewaehlt").
+   line-height:1 (Fund 15.08.2026, scripts/probes/mining-locview-messung.mjs,
+   Backstop E5/long-text): das geerbte .wb__tag benutzt die Komponentenbasis
+   1.3 (15,21px bei 11,7px Schrift) + 2px Innenabstand oben/unten = 19,2px --
+   hoeher als die 17,55px einer .p-Zeile. In der Fundort-Ansicht sitzen Name
+   und Abzeichen zum ERSTEN MAL in derselben Flex-Zeile (.wb__nm), dort macht
+   das Abzeichen die Zeile 1,6px hoeher als eine gewoehnliche -- gemessen an
+   JEDER Spurenzeile, nicht nur bei langen Namen. line-height:1 (11,7px + 4px
+   Innenabstand = 15,7px) bleibt unter den 17,55px von .p, die Zeilenhoehe
+   gleicht sich wieder an. Nur die is-trace-Zeilenmarke, nicht das geerbte
+   .wb__tag selbst (das lebt auch ausserhalb dieser Zeile, z. B. #wb-tags). */
+.wb__tag.is-trace{background:color-mix(in srgb,var(--muted) 22%,transparent);color:var(--muted);line-height:1}
 .wb__links{display:flex;gap:6px;flex-wrap:wrap}
 .wb__link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;
   background:color-mix(in srgb,var(--ink) 28%,transparent);color:var(--text);
