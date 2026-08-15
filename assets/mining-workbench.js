@@ -122,6 +122,24 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (l.ms != null) t.push(T.upTo + ' ' + nPct(l.ms) + ' %');
     return t.join(' · ');
   }
+  var TYPE_LBL = {
+    planet: 'tPlanet', moon: 'tMoon', belt: 'tBelt', lagrange: 'tLagrange',
+    cluster: 'tCluster', cave: 'tCave', event: 'tEvent', special: 'tSpecial',
+  };
+  /* Ortsart und System gehoeren zur ORTSANGABE, nicht zu den Kennzahlen.
+     Ohne die Art standen bei Stileron zwei Asteroidenfelder (Akiro Cluster,
+     Pyro Deep Space Asteroids) und fuenf Planeten ununterscheidbar
+     untereinander — zwei voellig verschiedene Anflugarten. Das Feld lag die
+     ganze Zeit in den Daten und wurde nur nie gezeichnet. */
+  function locSub(l) {
+    var art = TYPE_LBL[l.t] ? T[TYPE_LBL[l.t]] : null;
+    return art ? art + ' · ' + (l.s || '') : (l.s || '');
+  }
+  /* "Lagrange D" ist fuer sich keine Ortsangabe: angeflogen werden ARC-L3,
+     CRU-L5, MIC-L4. Die Punkte stehen deshalb direkt hinter dem Namen. */
+  function locName(l) {
+    return l.pt && l.pt.length ? l.p + ' · ' + l.pt.join(', ') : l.p;
+  }
 
   /* Die Daten kennen VIER Abbaumethoden (ship 26, roc 4, fps 4, hand 3). Die
      zweite Fassung warf alles ausser `ship` in denselben Topf „Hand" — die
@@ -253,8 +271,8 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     $('wb-locs').innerHTML = locs.length
       ? locs.map(function (l) {
           var bar = maxEf > 0 ? Math.round((l.ef || 0) / maxEf * 100) : 0;
-          var sub = pctSub(l);
-          return row2(l.p, sub ? l.s + ' · ' + sub : l.s, bar, pctRight(l), false, false, m.name + '||' + l.p);
+          var sub = pctSub(l), ort = locSub(l);
+          return row2(locName(l), sub ? ort + ' · ' + sub : ort, bar, pctRight(l), false, false, m.name + '||' + l.p);
         }).join('')
       : '<p class="wb__empty">' + esc(T.noLocs) + '</p>';
 
@@ -364,9 +382,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
          verschwunden ist (Datenlauf); die Wertezeile faellt dann schlicht weg,
          der Eintrag selbst bleibt stehen. */
       var l = locOf(ore, loc);
-      var lsub = l ? pctSub(l) : '';
+      var lsub = l ? pctSub(l) : '', lort = l ? locSub(l) : '';
       var meta = l
-        ? '<div class="wb__lmeta"><span>' + esc(lsub ? (l.s || '') + ' · ' + lsub : (l.s || '')) +
+        ? '<div class="wb__lmeta"><span>' + esc(lsub ? lort + ' · ' + lsub : lort) +
           '</span><em>' + esc(pctRight(l)) + '</em></div>'
         : '';
       return '<div class="wb__pin-item"><div class="wb__pin-top">' +

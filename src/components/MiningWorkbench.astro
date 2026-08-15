@@ -92,7 +92,11 @@ const minerals = (DB.minerals as any[])
       // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft
       // an allen Fundorten identisch ist.
       locs: (m.locations || []).map((l: any) => ({
+        // `pt` = die realen Anflugpunkte. "Lagrange D" ist fuer sich keine
+        // Ortsangabe — angeflogen werden ARC-L3, CRU-L5, MIC-L4. Das Feld lag
+        // in den Daten (68 Paare) und wurde hier bisher fallen gelassen.
         p: l.location, s: l.system, t: l.type, mi: l.mining, ms: l.maxShare, ch: l.chance, ef: l.eff,
+        pt: l.points || null,
       })),
       sig: e.scanSignature || null,
       bp: blueprintsPerMineral[m.name] || 0,
@@ -149,6 +153,8 @@ const S_DE = {
   locPinsFull: 'Die Merkliste ist voll (128 Fundorte). Erst einen lösen, dann neu anheften.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
+  tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
+  tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
   bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
 };
@@ -168,6 +174,8 @@ const S_EN = {
   locPinsFull: 'The shortlist is full (128 locations). Unpin one before pinning another.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
+  tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
+  tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
   bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
 };
