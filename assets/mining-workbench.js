@@ -466,7 +466,16 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   var preSess = null; // gueltige Session oder null (= Gast)
   var preCur = '';    // Name der aktuell markierten Zeile (is-sel)
   var preEditFor = null; // null = Neuanlage, sonst der alte Name beim Umbenennen
-  var preAsk = null;  // Name der Zeile mit offener Loesch-Rueckfrage (D-01), sonst null
+  var preAsk = null;     // Name der Zeile mit offener Rueckfrage (D-01, D-02 Form 2), sonst null
+  /* Betreiber-Befund 15.08.2026: "Ueberschreiben" bekommt dieselbe zweistufige
+     Rueckfrage mit Worten wie "Loeschen" (D-01) -- beide Aktionen verwerfen
+     gespeicherten Inhalt unwiederbringlich. preAskWhat unterscheidet, WELCHE
+     der beiden gemeint ist ('del' oder 'upd'); es darf immer nur EINE Zeile
+     UND immer nur EINE Rueckfrage gleichzeitig bewaffnet sein -- ein Klick auf
+     "Ueberschreiben" entwaffnet eine offene Loesch-Rueckfrage (auch in einer
+     anderen Zeile) und umgekehrt, weil beide Felder immer gemeinsam gesetzt
+     werden, nie preAsk allein. */
+  var preAskWhat = null; // 'del' oder 'upd', nur gueltig solange preAsk gesetzt ist
   var preOpen = null; // Name der aufgeklappten Zeile (D-02 Form 3), sonst null
 
   function preSay(text, ms) {
@@ -489,13 +498,18 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       return;
     }
     preList.innerHTML = presets.map(function (p) {
-      /* Traegt die Zeile die offene Loesch-Rueckfrage (D-01), ersetzt eine
-         volle Zeilenbreite beschriftete Schaltflaeche die gesamte
-         Aktionszeile -- die einzige Aktion im Bauteil mit Worten statt
-         eines Zeichens, an einem anderen Ort als jedes ×. */
+      /* Traegt die Zeile eine offene Rueckfrage (Loeschen D-01 ODER
+         Ueberschreiben, Betreiber-Befund 15.08.2026), ersetzt eine volle
+         Zeilenbreite beschriftete Schaltflaeche die gesamte Aktionszeile --
+         im Bauteil die einzigen Aktionen mit Worten statt eines Zeichens, an
+         einem anderen Ort als jedes ×. Modifikatorklasse + Wortlaut
+         unterscheiden die beiden auf einen Blick (s. Stilblock .wb__pre-ask--*
+         fuer die Begruendung, warum das Pflicht ist). */
       var head;
-      if (preAsk === p.name) {
-        head = '<button type="button" class="wb__pre-ask" data-pre-delok="1">' + esc(T.presetDelAsk) + '</button>';
+      if (preAsk === p.name && preAskWhat === 'del') {
+        head = '<button type="button" class="wb__pre-ask wb__pre-ask--del" data-pre-delok="1">' + esc(T.presetDelAsk) + '</button>';
+      } else if (preAsk === p.name && preAskWhat === 'upd') {
+        head = '<button type="button" class="wb__pre-ask wb__pre-ask--upd" data-pre-updok="1">' + esc(T.presetUpdAsk) + '</button>';
       } else {
         var cnt = p.minerals.length + ' ' + T.signatures + ' · ' + p.locations.length + ' ' + T.locations;
         var isOpen = preOpen === p.name;
@@ -506,13 +520,13 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         head = '<div class="wb__pre-act">' +
           '<button type="button" class="wb__pre-cnt" data-pre-open="1" aria-expanded="' + isOpen + '" title="' +
             esc(isOpen ? T.presetHide : T.presetShow) + '">' + esc(cnt) + '</button>' +
-          '<button type="button" class="wb__pre-a" data-pre-update="1" aria-label="' + esc(T.presetUpdate) + '">' +
-            '<svg aria-hidden="true" focusable="false"><use href="#wb-i-save" /></svg>' +
+          '<button type="button" class="wb__pre-a" data-pre-update="1" title="' + esc(T.presetUpdate) + '" aria-label="' + esc(T.presetUpdate) + '">' +
+            '<svg aria-hidden="true" focusable="false"><use href="#wb-i-update" /></svg>' +
           '</button>' +
-          '<button type="button" class="wb__pre-a" data-pre-rename="1" aria-label="' + esc(T.presetRename) + '">' +
+          '<button type="button" class="wb__pre-a" data-pre-rename="1" title="' + esc(T.presetRename) + '" aria-label="' + esc(T.presetRename) + '">' +
             '<svg aria-hidden="true" focusable="false"><use href="#wb-i-edit" /></svg>' +
           '</button>' +
-          '<button type="button" class="wb__pre-a wb__pre-a--del" data-pre-del="1" aria-label="' + esc(T.presetDel) + '">' +
+          '<button type="button" class="wb__pre-a wb__pre-a--del" data-pre-del="1" title="' + esc(T.presetDel) + '" aria-label="' + esc(T.presetDel) + '">' +
             '<svg aria-hidden="true" focusable="false"><use href="#wb-i-trash" /></svg>' +
           '</button>' +
         '</div>';
@@ -767,31 +781,55 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
-    /* Loesch-Rueckfrage (D-01) zuerst, noch vor Umbenennen/Auswahl: der
-       zweite, bestaetigende Klick loescht; der erste verwandelt den
-       Muelleimer nur in eine beschriftete Zeile, ohne Netzwerkaufruf. */
+    /* Rueckfragen (D-01 Loeschen, Betreiber-Befund 15.08.2026 Ueberschreiben)
+       zuerst, noch vor Umbenennen/Auswahl: der zweite, bestaetigende Klick
+       fuehrt die Aktion aus; der erste verwandelt den Knopf nur in eine
+       beschriftete Zeile, ohne Netzwerkaufruf. */
     var delOk = t.closest('[data-pre-delok]');
     if (delOk) {
       var delRow = delOk.closest('[data-preset]');
-      preAsk = null;
+      preAsk = null; preAskWhat = null;
       if (delRow) preDrop(delRow.getAttribute('data-preset'));
       return;
     }
+    var updOk = t.closest('[data-pre-updok]');
+    if (updOk) {
+      var updOkRow = updOk.closest('[data-preset]');
+      preAsk = null; preAskWhat = null;
+      /* Ueberschreiben (D-02, Form 2): preSave() schreibt den AKTUELLEN
+         Arbeitsstand unter demselben Namen per Upsert -- das IST bereits
+         "ueberschreiben", nur die Rueckmeldung unterscheidet sich von
+         "neu angelegt". Erst nach der zweiten, bestaetigenden Rueckfrage. */
+      if (updOkRow) preSave(updOkRow.getAttribute('data-preset'), T.presetUpdated);
+      return;
+    }
+    /* Beide bewaffnenden Klicks setzen preAsk/preAskWhat IMMER gemeinsam neu
+       -- das entwaffnet automatisch jede andersartige oder andernorts offene
+       Rueckfrage (nur eine gleichzeitig, s. Kommentar bei `var preAskWhat`). */
     var delAsk = t.closest('[data-pre-del]');
     if (delAsk) {
       var askRow = delAsk.closest('[data-preset]');
       preAsk = askRow ? askRow.getAttribute('data-preset') : null;
+      preAskWhat = askRow ? 'del' : null;
       renderPresetList();
       return;
     }
-    /* Ein Klick daneben bricht die Rueckfrage ab, laeuft aber normal weiter
-       (kein return hier) — der Klick kann z.B. gleichzeitig ein anderes
-       Preset auswaehlen. ⚠ Der Handler steigt oben mit `if (!inWb(t)) return;`
-       aus; ein Klick voellig ausserhalb der Werkbank laesst die Rueckfrage
-       bewusst stehen — sie verlangt ohnehin einen zweiten, gezielten Klick,
-       und ein Handler, der bei jedem Seitenklick neu zeichnet, waere teurer
-       als der gewonnene Komfort. */
-    if (preAsk) { preAsk = null; renderPresetList(); }
+    var updAsk = t.closest('[data-pre-update]');
+    if (updAsk) {
+      var updAskRow = updAsk.closest('[data-preset]');
+      preAsk = updAskRow ? updAskRow.getAttribute('data-preset') : null;
+      preAskWhat = updAskRow ? 'upd' : null;
+      renderPresetList();
+      return;
+    }
+    /* Ein Klick daneben bricht jede offene Rueckfrage ab, laeuft aber normal
+       weiter (kein return hier) — der Klick kann z.B. gleichzeitig ein
+       anderes Preset auswaehlen. ⚠ Der Handler steigt oben mit
+       `if (!inWb(t)) return;` aus; ein Klick voellig ausserhalb der
+       Werkbank laesst die Rueckfrage bewusst stehen — sie verlangt ohnehin
+       einen zweiten, gezielten Klick, und ein Handler, der bei jedem
+       Seitenklick neu zeichnet, waere teurer als der gewonnene Komfort. */
+    if (preAsk) { preAsk = null; preAskWhat = null; renderPresetList(); }
     /* Presetzeile: Umbenennen-Stift und Namensflaeche, VOR jeder
        Interpretation als data-pin/data-locpin. Der Name kommt IMMER aus dem
        Zeilencontainer [data-preset], nie aus dem Knopf selbst — ein
@@ -819,16 +857,6 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       var openName = openRow ? openRow.getAttribute('data-preset') : null;
       preOpen = preOpen === openName ? null : openName;
       renderPresetList();
-      return;
-    }
-    /* Ueberschreiben (D-02, Form 2): preSave() schreibt den AKTUELLEN
-       Arbeitsstand unter demselben Namen per Upsert -- das IST bereits
-       "ueberschreiben", nur die Rueckmeldung unterscheidet sich von
-       "neu angelegt". */
-    var updateBtn = t.closest('[data-pre-update]');
-    if (updateBtn) {
-      var updateRow = updateBtn.closest('[data-preset]');
-      if (updateRow) preSave(updateRow.getAttribute('data-preset'), T.presetUpdated);
       return;
     }
     /* Einzeleintrag entfernen (D-02, Form 3): der Wert kommt vom Knopf

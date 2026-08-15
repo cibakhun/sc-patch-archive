@@ -896,7 +896,7 @@ test('Nach dem Entfernen eines Eintrags bleibt dieselbe Zeile aufgeklappt und ze
   assert.match(body.textContent, /Quantainium/, 'das verbleibende Erz sollte weiterhin stehen');
 });
 
-test('Ueberschreiben schickt den bestehenden Upsert unter demselben Namen mit dem AKTUELLEN Arbeitsstand, kein DELETE, kein zweiter Aufruf', async () => {
+test('Ueberschreiben schickt den bestehenden Upsert unter demselben Namen mit dem AKTUELLEN Arbeitsstand, kein DELETE, kein zweiter Aufruf (erst nach der zweiten, bestaetigenden Rueckfrage)', async () => {
   const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'], locations: [] }] } });
   const loc = realLocOf(ctx, 'Quantainium');
 
@@ -907,7 +907,10 @@ test('Ueberschreiben schickt den bestehenden Upsert unter demselben Namen mit de
   const postsBefore = countCalls(ctx, 'POST');
   const btn = updateBtn(ctx, 'A');
   assert.ok(btn, 'Ueberschreiben-Knopf fuer "A" nicht gefunden');
-  ctx.fire(btn, 'click');
+  ctx.fire(btn, 'click'); // erster Klick: bewaffnet nur, kein Netzwerkaufruf
+  assert.strictEqual(countCalls(ctx, 'POST'), postsBefore, 'der erste Klick darf keinen POST ausloesen');
+
+  ctx.fire(askBtn(ctx, 'A'), 'click'); // zweiter, bestaetigender Klick
   await flush();
 
   assert.strictEqual(countCalls(ctx, 'POST'), postsBefore + 1, 'genau ein neuer POST-Aufruf');
@@ -1129,4 +1132,123 @@ test('REVIEW LOW: war die umbenannte Preset-Zeile aufgeklappt, bleibt sie es unt
   await flush();
 
   assert.ok(entryBody(ctx, 'Neu'), 'die aufgeklappte Ansicht sollte unter dem neuen Namen weiterhin stehen, nicht unbemerkt zuklappen');
+});
+
+// ---------------------------------------------------------------------
+// Betreiber-Befund 15.08.2026 (Preset-Zeile), aus der Benutzung auf staging.
+// ---------------------------------------------------------------------
+
+// Befund 1: #wb-i-save (Ueberschreiben-Symbol) war die uebliche Download-
+// Glyphe (Pfeil nach unten in eine offene Wanne) und wurde genau so gelesen.
+// Das Symbol selbst lebt nur im Astro-Sprite (nie von mining-workbench.js
+// erzeugt) -- ein Textnachweis am Quellstand ist hier der einzig ehrliche Weg,
+// diesen Teil des Fixes ausserhalb eines echten Browsers zu pruefen.
+test('Befund 1: das Sprite-Symbol wurde von wb-i-save (Download-Glyphe) auf wb-i-update (Kreispfeil) umbenannt', () => {
+  const astroSrc = fs.readFileSync(path.resolve('src/components/MiningWorkbench.astro'), 'utf8');
+  assert.doesNotMatch(astroSrc, /id="wb-i-save"/, 'das alte Symbol wb-i-save sollte nicht mehr existieren');
+  assert.match(astroSrc, /id="wb-i-update"/, 'das neue Symbol wb-i-update sollte definiert sein');
+  assert.doesNotMatch(astroSrc, /#wb-i-save/, 'kein <use> darf noch auf die alte Glyphe verweisen');
+});
+
+// Der von mining-workbench.js erzeugte <use>-Verweis ist der Teil des Fixes,
+// der sich echt gegen den Rundlauf-Test fuehren laesst.
+test('Befund 1: der Ueberschreiben-Knopf verweist auf #wb-i-update, nicht mehr auf die Download-Glyphe #wb-i-save', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  const btn = updateBtn(ctx, 'A');
+  assert.ok(btn, 'Ueberschreiben-Knopf fuer "A" nicht gefunden');
+  const use = btn.querySelector('use');
+  assert.ok(use, 'kein <use>-Element im Ueberschreiben-Knopf gefunden');
+  assert.strictEqual(use.getAttribute('href'), '#wb-i-update', 'sollte auf das neue Kreispfeil-Symbol verweisen');
+  assert.notStrictEqual(use.getAttribute('href'), '#wb-i-save', 'darf nicht mehr auf die Download-Glyphe verweisen');
+});
+
+// Befund 2: die drei Aktionsknoepfe trugen nur aria-label, kein title --
+// sehende Mausnutzer bekamen dadurch nirgends einen Text (die Zaehlzeile
+// daneben hatte bereits eines).
+test('Befund 2: Ueberschreiben-, Umbenennen- und Loeschknopf tragen alle drei ein title mit demselben Text wie aria-label', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  const upd = updateBtn(ctx, 'A');
+  const ren = renameBtn(ctx, 'A');
+  const del = deleteBtn(ctx, 'A');
+  assert.ok(upd && ren && del, 'nicht alle drei Aktionsknoepfe gefunden');
+
+  [upd, ren, del].forEach((btn) => {
+    const title = btn.getAttribute('title');
+    assert.ok(title, `Knopf sollte ein title-Attribut tragen (aria-label: ${btn.getAttribute('aria-label')})`);
+    assert.strictEqual(title, btn.getAttribute('aria-label'), 'title und aria-label sollten denselben Text tragen');
+  });
+});
+
+// Befund 3 (Betreiber-Entscheidung): Ueberschreiben verwirft den gespeicherten
+// Inhalt ebenso unwiederbringlich wie Loeschen und bekommt dieselbe
+// zweistufige Rueckfrage mit Worten (D-01-Vorbild) -- unterscheidbar per
+// Wortlaut UND Farbe/Modifikatorklasse, nie beide gleichzeitig bewaffnet.
+test('Befund 3: erster Klick auf Ueberschreiben loest keinen POST aus, zeigt presetUpdAsk in eigener Modifikatorklasse', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(updateBtn(ctx, 'A'), 'click');
+
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'der erste Klick darf keinen POST ausloesen');
+  const ask = askBtn(ctx, 'A');
+  assert.ok(ask, 'Zeile sollte nach dem ersten Klick die beschriftete Rueckfrage zeigen');
+  assert.strictEqual(ask.textContent, ctx.T.presetUpdAsk);
+  assert.ok(ask.classList.contains('wb__pre-ask--upd'), 'Rueckfrage sollte den Ueberschreiben-Modifikator tragen');
+  assert.ok(!ask.classList.contains('wb__pre-ask--del'), 'darf NICHT den Loeschen-Modifikator tragen (Farb-/Zeichenverwechslung)');
+});
+
+test('Befund 3: Klick auf eine andere Stelle der Werkbank bricht die Ueberschreiben-Rueckfrage ab, kein POST', async () => {
+  const ctx = await runAsync({ account: { rows: [{ name: 'A', minerals: ['Gold'] }] } });
+
+  ctx.fire(updateBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte stehen');
+
+  selectMineral(ctx, 'Gold'); // ein Klick "daneben" innerhalb der Werkbank
+
+  assert.ok(!askBtn(ctx, 'A'), 'Rueckfrage sollte nach dem Klick daneben abgeraeumt sein');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0);
+});
+
+// ⚠ Innerhalb DERSELBEN Zeile lassen sich "Loeschen" und "Ueberschreiben"
+// waehrend einer offenen Rueckfrage nicht gegeneinander anklicken: die
+// Rueckfrage ersetzt dort die GESAMTE Aktionszeile (Zaehlzeile + alle drei
+// Knoepfe) durch die beschriftete Flaeche (renderPresetList(), Kommentar bei
+// `var head`) -- der jeweils andere Knopf existiert waehrenddessen im DOM gar
+// nicht. Die vom Betreiber geforderte Entwaffnung "auch in einer anderen
+// Zeile" ist deshalb ausschliesslich der Zeilenwechsel-Fall, unten geprueft
+// in BEIDEN Richtungen (del->upd und upd->del).
+
+test('Befund 3: Rueckfrage bei Preset A (Loeschen), Klick auf Ueberschreiben von Preset B: die Rueckfrage wandert zu B als Ueberschreiben, A bleibt unberuehrt', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  ctx.fire(deleteBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A').classList.contains('wb__pre-ask--del'), 'Vorbedingung: Loesch-Rueckfrage sollte bei A stehen');
+
+  ctx.fire(updateBtn(ctx, 'B'), 'click');
+
+  assert.ok(!askBtn(ctx, 'A'), 'A sollte die Rueckfrage nicht mehr tragen');
+  const askB = askBtn(ctx, 'B');
+  assert.ok(askB && askB.classList.contains('wb__pre-ask--upd'), 'B sollte jetzt die Ueberschreiben-Rueckfrage tragen');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0, 'A darf nicht geloescht worden sein');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'das blosse Umschalten darf noch nichts ueberschreiben');
+});
+
+test('Befund 3: Rueckfrage bei Preset A (Ueberschreiben), Klick auf Loeschen von Preset B: die Rueckfrage wandert zu B als Loeschen, A bleibt unberuehrt', async () => {
+  const ctx = await runAsync({
+    account: { rows: [{ name: 'A', minerals: ['Gold'] }, { name: 'B', minerals: [] }] },
+  });
+
+  ctx.fire(updateBtn(ctx, 'A'), 'click');
+  assert.ok(askBtn(ctx, 'A'), 'Vorbedingung: Rueckfrage sollte bei A stehen');
+
+  ctx.fire(deleteBtn(ctx, 'B'), 'click');
+
+  assert.ok(!askBtn(ctx, 'A'), 'A sollte die Rueckfrage nicht mehr tragen');
+  const askB = askBtn(ctx, 'B');
+  assert.ok(askB && askB.classList.contains('wb__pre-ask--del'), 'B sollte jetzt die Loesch-Rueckfrage tragen');
+  assert.strictEqual(countCalls(ctx, 'POST'), 0, 'A darf nicht ueberschrieben worden sein');
+  assert.strictEqual(countCalls(ctx, 'DELETE'), 0);
 });
