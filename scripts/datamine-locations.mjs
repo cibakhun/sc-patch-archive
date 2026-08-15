@@ -6,7 +6,8 @@
 // Baut element->locations (VOLLSTAENDIG, nach eff sortiert) + bodies (Reverse) aus
 // EINER aggregierten Menge, damit sich beide Sichten nicht widersprechen koennen.
 // Je (Element, Fundort, Methode): chance = Summe der Deposit-Wahrscheinlichkeiten,
-// maxShare = hoechster Massenanteil, eff = Erwartungswert des Anteils.
+// maxShare = hoechster Massenanteil ueber die Deposits, je Deposit die SUMME der
+// Slots desselben Elements (sie sind Adern eines Felsens), eff = Erwartungswert.
 //
 // Aufruf: node scripts/datamine-locations.mjs [--p4k <Data.p4k>] [--verify]
 // Ausgabe: assets/mining-locations-gamefiles.json (Zwischenprodukt fuer build-mining-db).
@@ -127,13 +128,24 @@ for (const r of db.records) {
       const depositPct = (e.rp / tot) * 100;
       if (depositPct <= 0) { nZeroProb++; continue; }  // Deposit mit rp=0 spawnt nie
       // Ein Element kann in DERSELBEN Komposition mehrfach stehen (mehrere
-      // compositionArray-Eintraege auf dasselbe mineableElement). Seine
-      // Auftrittswahrscheinlichkeit darf pro Deposit trotzdem nur EINMAL zaehlen —
-      // sonst summiert sich chance ueber 100 (gemessen: Daymar 104,3 %).
+      // compositionArray-Eintraege auf dasselbe mineableElement). Zwei Groessen,
+      // zwei Regeln — das eine ist nicht das andere:
+      //   Auftrittswahrscheinlichkeit: zaehlt pro Deposit nur EINMAL. Ob das Erz
+      //     einen oder drei Slots belegt, aendert nicht, wie oft der Fels spawnt
+      //     (naiv iterieren ergab Daymar 104,3 %).
+      //   Massenanteil: die Slots ADDIEREN sich. Sie sind Adern DESSELBEN Felsens,
+      //     nicht Alternativen. LegendaryShipMineables_Stileron fuehrt Stileron mit
+      //     15,7 % + 74,3 % neben Taranite 10 % — Summe exakt 100. Frueheres
+      //     Math.max() zeigte 74,3 statt 90 und untertrieb den Anteil.
+      // Belegt fuer die ganze Menge: alle 59 Mehrfach-Slot-Faelle liegen in den 60
+      // ShipMineables-Kompositionen, und die addieren sich ausnahmslos auf 100.
+      // Die generischen Asteroid_*-Kompositionen (Sum 330-500, wo eine Summe
+      // unsinnig waere) fuehren KEIN Element doppelt. Bei einem Slot ist die Summe
+      // ohnehin gleich dem Maximum, die Regel ist also ueberall sicher.
       const perEl = new Map();
       for (const part of parts) {
         const mat = matByGuid.get(part.el); if (!mat) continue;
-        perEl.set(mat, Math.max(perEl.get(mat) ?? 0, part.max));
+        perEl.set(mat, (perEl.get(mat) ?? 0) + (part.max || 0));
       }
       for (const [mat, maxPct] of perEl) {
         (matMethods[mat] ??= new Set()).add(mining);
@@ -155,13 +167,18 @@ const r1 = (n) => +n.toFixed(1);
 // NICHT auf 100 kappen: chance > 100 waere ein Rechenfehler, und eine stille Kappung
 // wuerde ihn verstecken statt melden. Innerhalb einer Gruppe summieren sich die
 // Deposit-Wahrscheinlichkeiten auf 100, also ist jede Teilmenge davon <= 100.
+// Gleiches gilt fuer maxShare, seit die Slots eines Elements addiert werden: mehr
+// als 100 % Massenanteil kann ein Fels nicht fuehren. Die Summe ist nur zulaessig,
+// weil die betroffenen Kompositionen sich auf genau 100 addieren — reisst diese
+// Voraussetzung (neuer Patch, neue Kompositionsart), muss es hier knallen.
 const overflow = [];
 for (const v of agg.values()) {
-  if (v.chance > 100.05) overflow.push(`${v.material} @ ${v.location} (${v.mining}): ${v.chance.toFixed(1)} %`);
+  if (v.chance > 100.05) overflow.push(`chance ${v.material} @ ${v.location} (${v.mining}): ${v.chance.toFixed(1)} %`);
+  if (v.maxShare > 100.05) overflow.push(`maxShare ${v.material} @ ${v.location} (${v.mining}): ${v.maxShare.toFixed(1)} %`);
   v.chance = r1(v.chance); v.maxShare = r1(v.maxShare); v.eff = r1(v.eff);
 }
 if (overflow.length) {
-  console.error(`FEHLER: ${overflow.length} Aggregat(e) mit chance > 100 %:`);
+  console.error(`FEHLER: ${overflow.length} Aggregat(e) ueber 100 %:`);
   for (const s of overflow.slice(0, 10)) console.error('  ' + s);
   process.exit(1);
 }
@@ -200,13 +217,19 @@ writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n');
 console.log(`Geschrieben: ${OUT}`);
 
 /* ---- Gegenprobe gegen scmdb 4.9 ----
-   Beide Seiten werden IDENTISCH aggregiert (Chance summiert, Anteil maximiert) und
-   ueber die volle Menge verglichen. Die fruehere Fassung leitete scmdb mit derselben
-   "bestes Deposit"-Auswahl ab und verglich nur die Top-5 je System — sie pruefte damit
-   die eigene Kappung gegen sich selbst und konnte gar nicht auffallen lassen, dass der
-   Element-Sicht knapp die Haelfte der Paare fehlte.
+   Beide Seiten werden IDENTISCH aggregiert (Chance summiert, Anteil maximiert, je
+   Deposit pro Element nur EIN Beitrag) und ueber die volle Menge verglichen.
+   Zwei Fassungen sind hier schon gescheitert, beide durch eine Asymmetrie:
+   - Die erste leitete scmdb mit derselben "bestes Deposit"-Auswahl ab und verglich
+     nur die Top-5 je System — sie pruefte die eigene Kappung gegen sich selbst.
+   - Die zweite deduplizierte nur UNSERE Seite und liess die Vergleichsseite jeden
+     compositionArray-Eintrag zaehlen. Ergebnis: 31 von 33 Elementen als abweichend
+     gemeldet, samt und sonders Fehlalarm (nachgeprueft an scmdb.net selbst, 6/6
+     Stichproben gleich). Eine Gegenprobe, die auf beiden Seiten anders rechnet,
+     misst ihre eigene Asymmetrie — nicht die Daten.
    Verglichen wird ein Multiset aus (System, Chance, Anteil), nicht ueber Fundort-Namen:
-   scmdb benennt Orte anders als unsere kuratierte Starmap-Zuordnung. */
+   scmdb benennt Orte anders als unsere kuratierte Starmap-Zuordnung, und es fasst
+   Cluster/Lagrange/Guertel zusammen, wo wir einzeln fuehren. */
 if (VERIFY) {
   const BASE = 'https://scmdb.net/data';
   const H = { 'User-Agent': 'sc-patch-archiv fan site (non-commercial)', Accept: 'application/json' };
@@ -221,26 +244,74 @@ if (VERIFY) {
     for (const d of grp.deposits || []) {
       const comp = data.compositions[d.compositionGuid]; if (!comp?.parts) continue;
       const dp = (d.relativeProbability || 0) / tot * 100;
+      /* ⚠⚠ Auch HIER je Deposit pro Element deduplizieren — exakt wie oben auf
+         unserer Seite. Ohne das zaehlte die Gegenprobe die Wahrscheinlichkeit
+         eines Elements so oft, wie es in der Komposition steht (57 der 249
+         Kompositionen fuehren eines mehrfach, z. B. RareShipMineables_Beryl mit
+         11,7 % + 88,3 %). Sie meldete dadurch 31 von 33 Elementen als abweichend
+         — alles Fehlalarm: scmdb.net zeigt in seiner Oberflaeche exakt unsere
+         Werte (Beryl @ Aaron Halo 18,0 %, Ice @ Clio 40,0 %). */
+      const perEl = new Map();
       for (const p of comp.parts) {
         const en = cleanMat(String(p.elementName || '').replace(/\s*\((?:Ore|Raw|Pure)\)\s*$/i, '').trim()); if (!en) continue;
+        perEl.set(en, (perEl.get(en) ?? 0) + (p.maxPercent ?? 0));
+      }
+      for (const [en, mx] of perEl) {
         const k = `${en}|${loc.locationName}`;
-        const cur = sAgg.get(k) || { element: en, system: loc.system, chance: 0, maxShare: 0 };
+        const cur = sAgg.get(k) || { element: en, system: loc.system, location: loc.locationName, chance: 0, maxShare: 0 };
         cur.chance += dp;
-        cur.maxShare = Math.max(cur.maxShare, p.maxPercent ?? 0);
+        cur.maxShare = Math.max(cur.maxShare, mx);
         sAgg.set(k, cur);
       }
     }
   }
-  for (const v of sAgg.values()) { v.chance = r1(Math.min(v.chance, 100)); v.maxShare = r1(v.maxShare); }
+  /* NICHT auf 100 kappen. Die fruehere Kappung war kein Schutz, sondern die
+     Tarnung des Zaehlfehlers darueber: eine Wahrscheinlichkeit, die gekappt
+     werden MUSS, ist falsch gerechnet. Bleibt eine ueber 100, ist das ein
+     Befund und gehoert gemeldet — wie auf unserer Seite auch. */
+  const sOver = [];
+  for (const v of sAgg.values()) {
+    if (v.chance > 100.05) sOver.push(`${v.element} @ ${v.location ?? '?'}: ${v.chance.toFixed(1)} %`);
+    v.chance = r1(v.chance); v.maxShare = r1(v.maxShare);
+  }
+  if (sOver.length) console.log(`  ! Vergleichsseite: ${sOver.length} Aggregat(e) ueber 100 % — ${sOver.slice(0, 3).join(', ')}`);
   const sByMat = new Map();
   for (const v of sAgg.values()) (sByMat.get(v.element) ?? sByMat.set(v.element, []).get(v.element)).push(v);
-  const sig = (arr) => arr.map((l) => `${l.system}:${l.chance}:${l.maxShare}`).sort().join(',');
-  let ok = 0, diff = 0; const details = [];
+  const key = (l) => `${l.system}:${l.chance}:${l.maxShare}`;
+  const sig = (arr) => arr.map(key).sort().join(',');
+  /* Multiset-Differenz statt Gleichheit. scmdb fuehrt Orte, die es aus den
+     Spieldaten NICHT ableiten kann und selbst als Schaetzung kennzeichnet
+     ("Based on personal guesstimate, not game data" — Breaker Stations, Nyx),
+     dazu Hoehlen-Zuordnungen ohne Record und Deposits mit Wahrscheinlichkeit 0.
+     Sind unsere Eintraege darin restlos enthalten, ist das kein Widerspruch,
+     sondern eine Obermenge — und muss von einer echten Wertabweichung
+     unterscheidbar bleiben, sonst ertrinkt der eine Befund im Rauschen. */
+  const fehlt = (vonArr, inArr) => {
+    const zaehl = new Map();
+    for (const l of inArr) zaehl.set(key(l), (zaehl.get(key(l)) || 0) + 1);
+    const out = [];
+    for (const l of vonArr) { const k = key(l); const n = zaehl.get(k) || 0; if (n > 0) zaehl.set(k, n - 1); else out.push(l); }
+    return out;
+  };
+  /* Vorgefuehrt rot am 15.08.2026: Beryls erster Fundort um 7 Punkte verfaelscht
+     -> "identisch 25, scmdb-Obermenge 7, echte Abweichung 1". Die Unterscheidung
+     erkennt also einen falschen WERT, ohne an den 7 Zusatzorten haengenzubleiben. */
+  let ok = 0, ober = 0, diff = 0; const oberDet = [], details = [];
   for (const m of outMats) {
     const s = sByMat.get(m); if (!s) continue;
-    const a = sig(byMat.get(m) || []), b = sig(s);
-    if (a === b) ok++; else { diff++; if (details.length < 10) details.push(`  ${m}:\n    game : ${a}\n    scmdb: ${b}`); }
+    const meins = byMat.get(m) || [];
+    if (sig(meins) === sig(s)) { ok++; continue; }
+    const unsereFehlenDort = fehlt(meins, s);   // haben wir, scmdb nicht -> echter Widerspruch
+    const nurBeiScmdb = fehlt(s, meins);        // hat scmdb zusaetzlich
+    if (!unsereFehlenDort.length) {
+      ober++;
+      if (oberDet.length < 8) oberDet.push(`    ${m}: +${nurBeiScmdb.map((l) => `${l.system} ${l.chance} %${l.location ? ' (' + l.location + ')' : ''}`).join(', ')}`);
+    } else {
+      diff++;
+      if (details.length < 10) details.push(`  ${m}:\n    game : ${sig(meins)}\n    scmdb: ${sig(s)}`);
+    }
   }
-  console.log(`  (System, Chance, Anteil)-Multiset ueber ALLE Fundorte: OK ${ok}, abweichend ${diff}`);
-  if (details.length) console.log(details.join('\n'));
+  console.log(`  (System, Chance, Anteil)-Multiset ueber ALLE Fundorte: identisch ${ok}, scmdb-Obermenge ${ober}, echte Abweichung ${diff}`);
+  if (oberDet.length) { console.log('  scmdb fuehrt zusaetzliche Fundorte (Schaetzung/Hoehle/Wahrscheinlichkeit 0 — kein Widerspruch):'); console.log(oberDet.join('\n')); }
+  if (details.length) { console.log('  ECHTE Abweichungen:'); console.log(details.join('\n')); }
 }

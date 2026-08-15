@@ -49,7 +49,11 @@ const ores = [...oreSet]
     const rated = cells.filter((c) => c.v != null) as { label: string; full: string; systems: string[]; v: number }[];
     rated.sort((a, b) => b.v - a.v);
     const best = rated.length ? rated[0] : null;
-    return { name: o.replace(/ \((?:Ore|Raw|Pure)\)$/, ''), full: o, cells, rated, best };
+    // Suffix ("Taranite (Raw)") UND Praefix ("Raw Ice", "Raw Silicon") abstreifen —
+    // sonst stehen Ice und Silicon als eigene, verwaiste Zeilen in der Matrix,
+    // waehrend die Werkbank sie unter ihrem Erznamen fuehrt. Zwei Schreibweisen
+    // fuer dasselbe Erz sind fuer den Leser nicht als dasselbe erkennbar.
+    return { name: o.replace(/ \((?:Ore|Raw|Pure)\)$/, '').replace(/^Raw\s+/, ''), full: o, cells, rated, best };
   })
   .sort((a, b) => a.name.localeCompare(b.name));
 
