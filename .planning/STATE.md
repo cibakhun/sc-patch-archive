@@ -5,12 +5,12 @@ milestone_name: milestone
 current_phase: 10
 current_phase_name: mining-presets-bedienbar-machen
 status: verifying
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-08-15T04:28:49.215Z"
+stopped_at: Phase 12 context gathered
+last_updated: "2026-08-15T13:22:07.080Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 10 execution started
 progress:
-  total_phases: 15
+  total_phases: 16
   completed_phases: 10
   total_plans: 50
   completed_plans: 43
@@ -337,6 +337,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T04:28:49.189Z
-Stopped at: Completed 10-02-PLAN.md
-Resume file: None
+Last session: 2026-08-15T13:22:07.054Z
+Stopped at: Phase 12 context gathered
+Resume file: .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-CONTEXT.md
