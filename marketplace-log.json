@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 236,
-  "totalListings": 5847,
-  "totalSold": 249,
+  "updates": 237,
+  "totalListings": 5848,
+  "totalSold": 250,
   "distinctItems": 1158
  },
  "listings": {
@@ -123545,9 +123545,9 @@
      "p": 25000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-15",
+   "soldOutPrice": 25000000,
    "dateAdded": 1786739184,
    "dateExpiration": 1791923184
   },
@@ -124856,6 +124856,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786756434,
    "dateExpiration": 1791940434
+  },
+  "162645": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786758811,
+   "dateExpiration": 1791942811
   }
  }
 }
