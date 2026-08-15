@@ -301,12 +301,19 @@ Detailvertrag sind ausdrücklich **kein Freigabewert**.
   Fundort-Ansicht selbst. Visuell ist die Zeile dadurch identisch mit den
   heutigen Stationszeilen in `#wb-refs`, MUSS aber `data-ore` tragen, um
   klickbar zu sein — sonst bleibt sie so inert wie eine Stationszeile.
-- **Rechter Wert = CHANCE, nicht Erwartungswert (D-06):** `pctRight()`
-  unverändert wiederverwenden, aber der Balken (`barPct`) und die Sortierung
-  MÜSSEN hier gegen `l.ch` (Chance) statt `l.ef` rechnen — bewusst
-  asymmetrisch zur Erz-Ansicht (die nach `ef` rangiert, Z. 267-269). Der
-  Balken bezieht sich relativ auf die höchste Chance **dieses Fundorts**,
-  nicht auf einen globalen Höchstwert.
+- **Rechter Wert = CHANCE, nicht Erwartungswert (D-06):** Zahl, Balken
+  (`barPct`) und Sortierung rechnen hier ALLE gegen `l.ch` (Chance) statt
+  `l.ef` — bewusst asymmetrisch zur Erz-Ansicht (die nach `ef` rangiert,
+  Z. 267-269). Der Balken bezieht sich relativ auf die höchste Chance
+  **dieses Fundorts**, nicht auf einen globalen Höchstwert.
+  ⚠ **Richtiggestellt am 15.08. (vom Planer gemeldet).** Hier stand
+  „`pctRight()` unverändert wiederverwenden" — das ist mit D-06 unvereinbar:
+  `pctRight()` liefert `ef` und fällt erst ohne `ef` auf `ch` zurück, die
+  sichtbare Zahl würde also die Reihenfolge nicht mehr erklären. Genau der
+  Fehler, der in Phase 9 schon einmal bezahlt wurde. Der Weg ist ein
+  optionaler nachgestellter Parameter an `pctRight()` und `pctSub()` — **keine
+  dritte Formatierstelle**, damit beide Richtungen weiter denselben Text
+  erzeugen.
 - **Kein Scan-Signatur-Element in der Zeile (D-08)** — Spalte 3 leistet das
   bereits, `pctSub()`/`locSub()`-Unterzeile bleibt wie in der Fundort-Zeile.
 - Zurück-Navigation: Klick führt zu `S.sel = <Erzname>; S.view = 'ore'` und

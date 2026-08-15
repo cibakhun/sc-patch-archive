@@ -685,7 +685,13 @@ bereits auf Deckungsgleichheit. Es fehlt die Ansicht, nicht die Datenarbeit.
 **Inhalt der Fundort-Ansicht:**
 
 - Erzliste, gruppiert nach Abbaumethode (ship / roc / fps / hand)
-- je Erz Chance, Höchstanteil, Balken (nach `eff` rangiert) und Scan-Signatur
+- je Erz Chance, Höchstanteil und Balken — **Chance ist die Leitgröße**, Balken
+  und Sortierung folgen ihr (D-06, bewusst asymmetrisch zur Erz-Ansicht, die
+  Fundorte nach `eff` rangiert). **Keine Scan-Signatur in der Zeile** (D-08) —
+  die Signaturenliste in Spalte 3 leistet das bereits.
+  ⚠ Hier stand bis zur Phasenbesprechung „Balken nach `eff` rangiert und
+  Scan-Signatur". Beides ist am 15.08. in `12-CONTEXT.md` anders entschieden
+  worden; der Stichpunkt war seither stale und ist hier richtiggestellt.
 - Spurenerze (niedriger Höchstanteil) **markiert statt ausgeblendet**
 - Kopf mit System und Ortstyp; bei Lagrange-Fundorten die echten
   Anflugpunkte (ARC-L3, CRU-L5 …) statt der Sammelbezeichnung
