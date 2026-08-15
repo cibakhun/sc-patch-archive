@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-15",
-  "updates": 240,
-  "totalListings": 5856,
+  "updates": 241,
+  "totalListings": 5858,
   "totalSold": 253,
   "distinctItems": 1159
  },
@@ -122665,6 +122665,10 @@
     {
      "d": "2026-08-15",
      "p": 12000000
+    },
+    {
+     "d": "2026-08-15",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -125049,6 +125053,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786770488,
    "dateExpiration": 1791954488
+  },
+  "162695": {
+   "idItem": 8062,
+   "idCategory": 18,
+   "title": "XDL \"Tactical\" Monocular Rangefinder",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786775081,
+   "dateExpiration": 1791959081
+  },
+  "162697": {
+   "idItem": 5065,
+   "idCategory": 18,
+   "title": "XDL Monocular Rangefinder \"Snowfall\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-15",
+   "lastSeen": "2026-08-15",
+   "prices": [
+    {
+     "d": "2026-08-15",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786775262,
+   "dateExpiration": 1791959262
   }
  }
 }
