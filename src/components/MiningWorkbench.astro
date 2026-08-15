@@ -313,10 +313,14 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   </svg>
 
   <div class="wb__chassis">
-    <div class="wb__chead">
-      <div class="wb__ceyebrow" set:text={eyebrow} />
-      <h1 class="wb__ctitle" set:text={title} />
-    </div>
+    {/* ⚠ Titel und Vorzeile standen bis 15.08.2026 sichtbar im Kopfband. Der
+        Betreiber hat sie als „ultra ugly" gestrichen — das Blech traegt seine
+        eigene Beschriftung (die aufgedruckte Seriennummer), ein zweiter
+        Schriftzug darauf war Fremdkoerper. Die <h1> BLEIBT, nur unsichtbar:
+        sie ist die Ueberschrift des Dokuments und darf fuer Suchmaschinen und
+        Vorleseprogramme nicht verschwinden. Die Vorzeile ist ersatzlos weg —
+        die Spielversion steht ohnehin in der Fusszeile. */}
+    <h1 class="wb__ctitle" set:text={title} />
     <div class="wb__cscreen">
       <p class="wb__clead" set:text={lead} />
 
@@ -481,7 +485,14 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 <script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>
 
 <style is:inline>
-.wb{max-width:1560px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 1.4rem;
+/* ⚠ Randlos (15.08.2026): das Gehaeuse soll bis an die Fensterkanten laufen.
+   Die vorherigen 1560 px Deckel plus 1–2 rem Polsterung liessen es bei 1920
+   nur 1488 px breit werden — und weil seine Hoehe ueber das feste
+   Seitenverhaeltnis an der Breite haengt, war es dadurch auch zu flach.
+   `100vw` statt `100%`, damit die Breite nicht an einem Eltern-Container
+   haengt; der negative Rand holt die Sektion aus dem Textkoerper heraus. */
+.wb{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  padding:0 0 1.4rem;
   display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
   line-height:1.3;position:relative;isolation:isolate;
   /* Alles, was oberhalb und unterhalb des Rasters Hoehe kostet: Titelstreifen,
@@ -501,22 +512,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 @media (min-resolution:1.5dppx),(min-width:1700px){
   .wb__chassis{background-image:var(--wb-chassis-img-2x)}}
 
-/* Kopfband: traegt den Seitentitel, der dafuer aus dem `.hero` verschwindet. */
-.wb__chead{position:absolute;left:0;right:0;top:0;height:11.225%;pointer-events:none;
-  container-type:size}
-/* ⚠ Titel und Vorzeile duerfen sich NICHT eine zentrierte Flexbox teilen: dann
-   ist die GRUPPE mittig und der Titel sitzt rechts daneben. Vorgefuehrt in
-   Skizze 010. Der Titel wird eigenstaendig zentriert. */
-.wb__ctitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;
-  font-size:clamp(1rem,1.75cqw,1.65rem);font-weight:600;letter-spacing:var(--ls-1);
-  line-height:1;color:#f2fafb;white-space:nowrap;text-shadow:0 1px 3px var(--shadow-color),0 2px 12px var(--shadow-color)}
-/* Auf gebuerstetem Blech verschwindet duennes Bernstein-Mono. Es braucht eine
-   eigene dunkle Unterlage — ein kraeftigeres Gelb allein reicht nicht. */
-.wb__ceyebrow{position:absolute;left:24%;top:50%;transform:translateY(-50%);
-  font-family:var(--font-mono,ui-monospace);font-weight:600;
-  font-size:clamp(.5rem,.66cqw,.7rem);letter-spacing:var(--ls-15);text-transform:uppercase;
-  color:#ffcf7a;white-space:nowrap;padding:4px 9px;border-radius:5px;background:var(--veil-2);box-shadow:inset 0 0 0 1px rgba(255,207,122,.28)}
-@media(max-width:1180px){.wb__ceyebrow{display:none}}
+/* ⚠ Titel und Vorzeile standen bis 15.08.2026 SICHTBAR im Kopfband und sind
+   auf Ansage des Betreibers gestrichen ("ultra ugly"): das Blech traegt seine
+   eigene Beschriftung, ein zweiter Schriftzug darauf war Fremdkoerper.
+   Die <h1> bleibt — sie ist die Ueberschrift des Dokuments und darf fuer
+   Suchmaschinen und Vorleseprogramme nicht verschwinden. Deshalb unsichtbar
+   statt geloescht, und NICHT per display:none (das nimmt sie auch dem
+   Vorleseprogramm). Gleiche Bauart wie `.skip` im Layout. */
+.wb__ctitle{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 .wb__cscreen{position:absolute;left:7.367%;top:11.225%;width:88.088%;height:76.692%;
   display:flex;flex-direction:column;gap:8px;min-height:0}
@@ -573,8 +577,29 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    Die Spaltenbreiten aus Phase 10 bleiben unangetastet — nur `minmax(0,…)`
    statt fester Werte, weil das Raster jetzt in einem Flex-Kasten sitzt und
    eine feste Spalte dort nicht mehr schrumpfen duerfte. */
+/* ⚠⚠ Die MITTE braucht eine Untergrenze. Am ausgelieferten Stand nachgemessen:
+   bei 1280 px Fensterbreite ist die Bildflaeche des Gehaeuses 1064 px breit —
+   470 + 330 + zwei Luecken lassen der Mitte 234 px. Die Fundortzeilen brachen
+   dort vierzeilig um und der Anheft-Knopf wurde vom Nachbarpaneel
+   abgeschnitten. Die beiden Aussenspalten duerfen dafuer nachgeben (minmax mit
+   0 als Minimum), die Mitte nicht: bei 1064 ergibt das rund 434/300/310 statt
+   470/234/330. Die Erzliste behaelt damit ihre vier Kachelspalten
+   (434 - 16 Polsterung = 418, bei minmax(104px,1fr) also vier). */
+/* ⚠ Erster Anlauf war `minmax(0,470px)` fuer die Erzliste — dann nahm sich das
+   Raster die fehlende Breite dort statt rechts und die Liste fiel bei 1280 auf
+   DREI Kachelspalten (gemessen 414/300/330). 447 ist die gerechnete Untergrenze
+   fuer vier: 4x104 Kachel + 3x5 Luecke + 16 Polsterung. Nachgeben soll die
+   rechte Spalte, sie traegt Listen ohne feste Zeilenbreite. */
+/* ⚠⚠ Feste Spaltenbreiten funktionieren hier NICHT mehr. Gemessen: mit
+   470/1fr/330 bekam bei 1920 allein die MITTE den Zugewinn (871 px) und bei
+   1280 blieb ihr nichts (234 px) — die Fundortzeilen brachen vierzeilig um und
+   der Anheft-Knopf wurde abgeschnitten. Jetzt Untergrenze + Wachstumsanteil je
+   Spalte: unter Druck geben alle drei bis zu ihrem Minimum nach, im Ueberfluss
+   wachsen alle drei mit. Die Erzliste bekommt den groessten Anteil, weil sie
+   die einzige Spalte ist, die aus Breite mehr ZEILEN macht (mehr Kacheln je
+   Reihe). Minimum 447 = 4x104 Kachel + 3x5 Luecke + 16 Polsterung. */
 .wb__grid{display:grid;
-  grid-template-columns:minmax(0,470px) minmax(0,1fr) minmax(0,330px);
+  grid-template-columns:minmax(447px,1fr) minmax(300px,1.2fr) minmax(280px,.7fr);
   gap:10px;min-height:0;flex:1}
 .wb__scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
 
@@ -935,9 +960,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      Kopfband fiel dadurch auf die reine Polsterung von 5 px zusammen,
      waehrend die <h1> darueber hinausragte und den Untertitel ueberdeckte.
      Gemessen bei 390 px: chead 5 px hoch, ctitle 29 px. */
-  .wb__chead{position:static;height:auto;padding:0 0 .3rem;container-type:normal}
-  .wb__ctitle{position:static;transform:none;white-space:normal;text-shadow:none;
-    color:var(--text);font-size:clamp(1.6rem,3vw,2.1rem)}
   .wb__cscreen{position:static;left:auto;top:auto;width:auto;height:auto}
   .wb__clead{text-align:left;font-size:var(--fs-6)}
 }
@@ -964,7 +986,4 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__rgrp .wb__sel{max-width:none}
   .wb__frac{margin-left:0}
 }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .wb__ctitle{color:#525a5b}
-:root[data-theme="light"] .wb__ceyebrow{color:#735103}
 </style>
