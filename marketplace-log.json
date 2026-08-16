@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 267,
-  "totalListings": 6398,
-  "totalSold": 275,
-  "distinctItems": 1196
+  "updates": 268,
+  "totalListings": 6401,
+  "totalSold": 276,
+  "distinctItems": 1197
  },
  "listings": {
   "156580": {
@@ -127082,6 +127082,10 @@
     {
      "d": "2026-08-15",
      "p": 350000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 150000
     }
    ],
    "soldOut": false,
@@ -128414,9 +128418,9 @@
      "p": 18500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 18500000,
    "dateAdded": 1786799086,
    "dateExpiration": 1791983086
   },
@@ -131972,6 +131976,10 @@
     {
      "d": "2026-08-16",
      "p": 11000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -132392,6 +132400,10 @@
     {
      "d": "2026-08-16",
      "p": 1150000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 1250000
     }
    ],
    "soldOut": false,
@@ -136607,6 +136619,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786889703,
    "dateExpiration": 1792073703
+  },
+  "163205": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786892963,
+   "dateExpiration": 1792076963
+  },
+  "163208": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "WTB MG Scrip 3000/u",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786894480,
+   "dateExpiration": 1792078480
+  },
+  "163210": {
+   "idItem": 6136,
+   "idCategory": 5,
+   "title": "Sol-III Core Aviator",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786894800,
+   "dateExpiration": 1792078800
   }
  }
 }
