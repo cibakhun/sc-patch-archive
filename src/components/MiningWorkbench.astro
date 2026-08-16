@@ -64,7 +64,8 @@ interface Props {
   lang: 'de' | 'en';
   title: string;
   eyebrow: string;
-  lead: string;
+  /* Optional seit 16.08.2026 — s. die Begruendung an der Rendering-Stelle. */
+  lead?: string;
 }
 const { lang, title, eyebrow, lead } = Astro.props;
 const de = lang === 'de';
@@ -437,7 +438,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
             mit Verlauf als Fund ohne Registry-Eintrag. Eine Klasse tut das
             nicht. */}
       <span class="wb__glare" aria-hidden="true"></span>
-      <p class="wb__clead" set:text={lead} />
+      {/* Die Vorzeile ist seit 16.08.2026 OPTIONAL und auf der Mining-Seite
+          abbestellt. Sie zaehlte „Physik, Gesteinsarten" auf — beides ist am
+          12.08. mit dem Fracturing-Rechner auf /fracturing.html gezogen, der
+          Satz versprach also seit vier Tagen Funktionen, die es hier nicht
+          mehr gibt. Ohne Vorzeile faellt auch ihr Zeilenkasten weg, statt
+          leer stehen zu bleiben. */}
+      {lead && <p class="wb__clead" set:text={lead} />}
 
   <div class="wb__grid">
 
@@ -670,7 +677,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       hier eine sichtbare Zusage, und wer sie sucht, muss erfahren, wohin sie
       gegangen ist, statt sie fuer geloescht zu halten. */}
   <div class="wb__rig chamf">
-    <label class="wb__rgrp"><span class="wb__lbl" set:text={S.station} />
+    {/* ⚠ VERBORGEN, NICHT ENTFERNT (16.08.2026, auf Ansage: „logik dahinter
+        drinlassen aber nur dem user nicht zeigen"). Das <select> bleibt samt
+        Optionen im Dokument, `S.ref` wird weiterhin geladen, gespeichert und
+        von renderDetail() gelesen — die Rangliste markiert also unveraendert
+        eine Station als „deine Wahl". Nur waehlen kann man sie nicht mehr:
+        ohne Bedienelement bleibt es beim gespeicherten Wert, bei neuen
+        Besuchern also bei der ersten Station. Das ist die Folge der Ansage,
+        keine Nebenwirkung — wer die Markierung ganz loswerden will, muss
+        renderDetail() anfassen, nicht dieses Attribut.
+        `hidden` am <label>, nicht am <select>: sonst bliebe die
+        Beschriftung „Station" allein stehen. */}
+    <label class="wb__rgrp" hidden><span class="wb__lbl" set:text={S.station} />
       <select class="wb__sel" id="wb-ref" data-help={hlp('station')}>{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
     </label>
     <a class="wb__frac" id="wb-frac" href={fracturingPath} data-help={hlp('fracturing')}>
@@ -1759,6 +1777,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    .planning/notes/mining-werkbank-rigbalken.md). */
 .wb__rig{flex:0 0 auto;flex-direction:row;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 14px}
 .wb__rgrp{flex:0 0 auto;display:flex;flex-direction:column;gap:3px}
+/* ⚠ MUSS NACH der display-Regel stehen — sonst schlaegt display:flex das
+   hidden-Attribut und die verborgene Stationswahl stuende weiterhin da.
+   Dieselbe Falle ist in dieser Datei bereits bei .wb__pre__pick und
+   .wb__popslot aufgeschrieben; sie ist hier zum dritten Mal einschlaegig. */
+.wb__rgrp[hidden]{display:none}
 .wb__rig::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;
   background:repeating-linear-gradient(90deg,var(--accent-2) 0 5px,transparent 5px 10px);opacity:.5}
 /* ⚠ Der Grund MUSS deckend sein. Mit `…,transparent)` steht das Feld auf

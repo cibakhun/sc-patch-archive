@@ -85,7 +85,11 @@ export const HELP = {
     'mining.purpose':
       'Ein Erz anklicken — Fundorte, beste Stationen und der Refinery-Ertrag stehen sofort daneben.',
     'mining.step1': 'Links ein Erz anklicken. Die Zahl auf der Kachel ist seine Scan-Signatur.',
-    'mining.step2': 'In der Mitte die Fundorte des gewählten Erzes nach Ergiebigkeit ablesen, darunter die Stationen mit dem besten Ertrag.',
+    // „Ertrag" allein war nicht falsch (es ist die Beschriftung der Spalte),
+    // aber im Deutschen genauso als Erlös lesbar. Da die Werkbank keinerlei
+    // Preise führt, benennt der Satz die Größe jetzt ausdrücklich — s. die
+    // englische Entsprechung, die als „pay best" tatsächlich falsch war.
+    'mining.step2': 'In der Mitte die Fundorte des gewählten Erzes nach Ergiebigkeit ablesen. Darunter die Stationen nach Raffinerie-Ertrag — die ± %, die sie herausholen oder verlieren, kein Preis.',
     'mining.step3': 'Unten die Station wählen — sie wird in der Ertrags-Rangliste rechts daneben hervorgehoben.',
     'mining.step4': 'Mit dem Anheft-Knopf auf einer Kachel ein Erz in die Signaturenliste rechts heften; die Nadel in einer Fundort-Zeile legt das Paar in die Fundort-Merkliste darunter — beide Listen stehen gleichzeitig sichtbar untereinander.',
     'mining.step5': 'Ein Preset hält Signaturen UND Fundorte unter einem Namen: oben rechts mit „+" speichern, später wieder aufrufen oder mit der aktuellen Auswahl überschreiben. Mit Konto auf jedem Gerät verfügbar.',
@@ -262,7 +266,13 @@ export const HELP = {
     'mining.purpose':
       'Pick an ore — locations, best stations and refinery yield stand right beside it.',
     'mining.step1': 'Click an ore on the left. The number on the tile is its scan signature.',
-    'mining.step2': 'Read the selected ore’s locations by yield in the middle, with the stations that pay best underneath.',
+    // ⚠ Stand hier bis 16.08.2026 als „the stations that pay best" und war
+    // schlicht falsch: die Rangliste sortiert nach yieldFor() und zeigt ± %
+    // Raffinerie-Ertrag, beschriftet mit „Yield". Einen Preis kennt diese
+    // Werkbank nirgends (0 Treffer auf price/aUEC im ganzen Skript). Der
+    // Satz widersprach damit der Zweckzeile direkt darueber, die „refinery
+    // yield" sagt — aufgefallen ist es dem Betreiber, nicht einer Pruefung.
+    'mining.step2': 'Read the selected ore’s locations by yield in the middle. Underneath, the stations ranked by refining yield — the ± % they add or lose, not a price.',
     'mining.step3': 'Pick a station along the bottom — it gets highlighted in the yield ranking beside it.',
     'mining.step4': 'Hit the pin button on an ore tile to pin it to the signature list on the right; the pin on a location row puts the pair into the location shortlist underneath — both lists stay visible at the same time, stacked.',
     'mining.step5': 'A preset holds signatures AND locations under one name: save it with the plus button at the top right, call it back later or overwrite it with your current selection. Stored with your account and available on every device.',
