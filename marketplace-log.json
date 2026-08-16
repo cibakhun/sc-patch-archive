@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 272,
-  "totalListings": 6483,
+  "updates": 273,
+  "totalListings": 6496,
   "totalSold": 279,
   "distinctItems": 1204
  },
@@ -131954,6 +131954,10 @@
     {
      "d": "2026-08-16",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -136031,6 +136035,10 @@
     {
      "d": "2026-08-16",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 600000
     }
    ],
    "soldOut": false,
@@ -136220,6 +136228,27 @@
     {
      "d": "2026-08-16",
      "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884825,
+   "dateExpiration": 1792068825
+  },
+  "163162": {
+   "idItem": 6815,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -137635,6 +137664,27 @@
    "dateAdded": 1786899417,
    "dateExpiration": 1792083417
   },
+  "163234": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Wikelo IDRIS (full set)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 500000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786899543,
+   "dateExpiration": 1792083543
+  },
   "163235": {
    "idItem": 4453,
    "idCategory": 3,
@@ -138432,6 +138482,237 @@
    "soldOutPrice": null,
    "dateAdded": 1786909279,
    "dateExpiration": 1792093279
+  },
+  "163292": {
+   "idItem": 4894,
+   "idCategory": 24,
+   "title": "Sabine Undersuit Daybreaker (HELMET ALSO AVAILABLE)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786909635,
+   "dateExpiration": 1792093635
+  },
+  "163294": {
+   "idItem": 7573,
+   "idCategory": 3,
+   "title": "Calva Helmet Daybreaker (UNDERSUIT ALSO AVAILABLE)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786909791,
+   "dateExpiration": 1792093791
+  },
+  "163296": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 600,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786910014,
+   "dateExpiration": 1792094014
+  },
+  "163298": {
+   "idItem": 6732,
+   "idCategory": 18,
+   "title": "ParaMed \"AA Support\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786910218,
+   "dateExpiration": 1792094218
+  },
+  "163306": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Guardian Wikelo Mod, Mil A",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 45000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786911149,
+   "dateExpiration": 1792095148
+  },
+  "163309": {
+   "idItem": 8054,
+   "idCategory": 38,
+   "title": "RCMBNT Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786911200,
+   "dateExpiration": 1792095200
+  },
+  "163314": {
+   "idItem": 8092,
+   "idCategory": 3,
+   "title": "Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786911497,
+   "dateExpiration": 1792095497
+  },
+  "163315": {
+   "idItem": 1774,
+   "idCategory": 21,
+   "title": "JS-300",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786911759,
+   "dateExpiration": 1792095759
+  },
+  "163318": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786912268,
+   "dateExpiration": 1792096268
+  },
+  "163320": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "975Q Aphorite - 750k per unit, cheapest on UEX, 6x in stock, 4M for all",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786912455,
+   "dateExpiration": 1792096455
+  },
+  "163321": {
+   "idItem": 3312,
+   "idCategory": 3,
+   "title": "Morningstar Helmet Neon Pink",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786912863,
+   "dateExpiration": 1792096863
   }
  }
 }
