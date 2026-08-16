@@ -32,8 +32,14 @@ export const SITE = {
 // Dagegen prüft `node discord/verify-invite.mjs` (kein Token nötig). Bewusst
 // NICHT im CI-Tor: der Lauf braucht Netz, und ein Discord-Ausfall darf keinen
 // Deploy reißen — nach jedem `discord/npm run build` von Hand laufen lassen.
+// ⚠ Wer die Einladung ANLEGT, dessen Name steht auf der Beitrittsseite („X hat
+// dich eingeladen") — änderbar ist er nicht. Diese hier ist bewusst von Hand
+// im Client angelegt, damit dort ein Mensch steht und nicht der Bot; die
+// vorige stammte von der längst gelöschten Test-App `test5` und trug deren
+// Namen. Beim Anlegen zwingend „Ablaufen nach: Nie" wählen — Discords Vorgabe
+// ist ein Ablaufdatum, und ein solcher Link stirbt nach vier Wochen lautlos.
 export const DISCORD = {
-  invite: 'https://discord.gg/eaXhkf8d3Y',
+  invite: 'https://discord.gg/czWY7r34aN',
   /** Servername, wie ihn Discord auf der Einladungsseite zeigt */
   serverName: 'Verse-Base',
 } as const;
