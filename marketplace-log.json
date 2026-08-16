@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 263,
-  "totalListings": 6277,
-  "totalSold": 272,
+  "updates": 264,
+  "totalListings": 6292,
+  "totalSold": 274,
   "distinctItems": 1183
  },
  "listings": {
@@ -127600,9 +127600,9 @@
      "p": 6000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 6000000,
    "dateAdded": 1786788545,
    "dateExpiration": 1791972545
   },
@@ -127917,6 +127917,10 @@
     {
      "d": "2026-08-15",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -128127,6 +128131,10 @@
     {
      "d": "2026-08-15",
      "p": 4750000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -130657,9 +130665,9 @@
      "p": 19000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 19000000,
    "dateAdded": 1786825258,
    "dateExpiration": 1792009258
   },
@@ -134038,6 +134046,321 @@
    "soldOutPrice": null,
    "dateAdded": 1786876355,
    "dateExpiration": 1792060355
+  },
+  "163077": {
+   "idItem": 4991,
+   "idCategory": 7,
+   "title": "Corbel Smolder Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786877192,
+   "dateExpiration": 1792061192
+  },
+  "163078": {
+   "idItem": 4987,
+   "idCategory": 7,
+   "title": "Corbel Halcyon Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786877258,
+   "dateExpiration": 1792061258
+  },
+  "163079": {
+   "idItem": 4992,
+   "idCategory": 7,
+   "title": "Corbel Mire Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786877325,
+   "dateExpiration": 1792061325
+  },
+  "163080": {
+   "idItem": 4982,
+   "idCategory": 7,
+   "title": "Corbel Patina Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786877385,
+   "dateExpiration": 1792061385
+  },
+  "163082": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ADP-mk4 Modified (XenoThreat) Heavy Armor set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786877526,
+   "dateExpiration": 1792061526
+  },
+  "163088": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 947Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 947,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786878372,
+   "dateExpiration": 1792062372
+  },
+  "163092": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Copper 958Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786878726,
+   "dateExpiration": 1792062726
+  },
+  "163095": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 942Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786879299,
+   "dateExpiration": 1792063299
+  },
+  "163098": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 874Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786879677,
+   "dateExpiration": 1792063677
+  },
+  "163100": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite 957Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 957,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786879954,
+   "dateExpiration": 1792063954
+  },
+  "163102": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 965Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786880150,
+   "dateExpiration": 1792064150
+  },
+  "163103": {
+   "idItem": null,
+   "idCategory": 12,
+   "title": "Beacon Rust Society",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786880324,
+   "dateExpiration": 1792064324
+  },
+  "163104": {
+   "idItem": null,
+   "idCategory": 12,
+   "title": "Beacon Crimson",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786880470,
+   "dateExpiration": 1792064470
+  },
+  "163105": {
+   "idItem": null,
+   "idCategory": 12,
+   "title": "Beacon Grey/Aqua",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786880623,
+   "dateExpiration": 1792064623
+  },
+  "163106": {
+   "idItem": null,
+   "idCategory": 12,
+   "title": "ForceFlex Arctic Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786880744,
+   "dateExpiration": 1792064743
   }
  }
 }
