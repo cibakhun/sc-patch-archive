@@ -1622,15 +1622,27 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   font-family:var(--font-mono,ui-monospace);white-space:nowrap;flex:0 0 auto}
 .wb__mult{display:flex;gap:3px;margin-top:5px}
 /* Die Vielfachen sind derselbe Messwert wie .wb__sigbox b (Z. 1200), nur klein
-   und in Reihe — sie bekommen deshalb dieselbe Sprache: Mono-Ziffern mit
-   fester Ziffernbreite, Phosphorglimmen. Statt
-   var(--muted) jetzt Terminalgruen: --accent (Teal) traegt hier die
-   Bedienelemente und --hot den EINEN grossen Wert; ein dritter, eigener Ton
-   haelt die Merkliste davon getrennt lesbar. Bewusst KEIN Paletten-Token,
-   sondern eine bauteillokale Variable — build-light-palettes.mjs kennt nur
-   seine feste Namensliste (gleicher Grund wie bei .wb__lmeta, Z. 1486);
-   build-light-overrides.mjs zaehlt eigene Variablen dagegen mit und erzeugt
-   die helle Entsprechung selbst.
+   und in Reihe — sie leuchten deshalb wie dort: Phosphorglimmen und feste
+   Ziffernbreite. Statt var(--muted) jetzt Terminalgruen: --accent (Teal)
+   traegt hier die Bedienelemente und --hot den EINEN grossen Wert; ein
+   dritter, eigener Ton haelt die Merkliste davon getrennt lesbar. Bewusst
+   KEIN Paletten-Token, sondern eine bauteillokale Variable —
+   build-light-palettes.mjs kennt nur seine feste Namensliste (gleicher Grund
+   wie bei .wb__lmeta, Z. 1486); build-light-overrides.mjs zaehlt eigene
+   Variablen dagegen mit und erzeugt die helle Entsprechung selbst.
+
+   SCHRIFT: --font-body (Barlow), nicht mono — auf Ansage („was weicheres",
+   16.08.). Vier Kandidaten am echten Bauteil gerendert und verglichen
+   (Barlow / Rajdhani / Share Tech Mono / Teko); Barlow ist die runde,
+   ruhige. Die feste Ziffernbreite kommt jetzt aus tabular-nums statt aus
+   der Bauform der Schrift — und die Zellen sind ohnehin flex:1, die Spalten
+   stehen also unabhaengig von der Textbreite.
+   ⚠ Landmine nebenan: --font-mono ist auf DIESER Seite gar nicht gesetzt
+   (das Werkzeug bringt keinen --font-*-Stapel mit). `var(--font-mono,
+   ui-monospace)` fiel hier still auf Consolas durch — Share Tech Mono stand
+   nie im Bild, obwohl der Token danach aussieht. .wb__lmeta em (Z. 1493)
+   und .wb__sigbox b (Z. 1203) haengen unveraendert in derselben Falle.
+
    ⚠ KEIN Zeilenraster wie bei .wb__sigbox b. Das deckt dort var(--fs-11);
    auf var(--fs-3) zersaegt ein Raster die Glyphen — der Ort entscheidet,
    nicht die Staerke (Befund aus dem Bildschirmeffekt-Durchgang).
@@ -1638,8 +1650,9 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    abgeraeumt: einmal ist es EIN Messwert, hier stehen bis zu sechs Zellen
    in einer Reihe — die Umrandung machte aus jeder einen Knopf, den es
    nicht gibt. Der Grund bleibt die flache Wanne von vorher. */
-.wb__mult i{--phos:#3dff6e;flex:1;font-family:var(--font-mono,ui-monospace);font-size:var(--fs-3);
-  font-style:normal;text-align:center;padding:3px 0;border-radius:5px;
+.wb__mult i{--phos:#3dff6e;flex:1;font-family:var(--font-body,'Barlow',system-ui,sans-serif);
+  font-size:var(--fs-3);font-weight:500;font-style:normal;text-align:center;
+  padding:3px 0;border-radius:5px;
   color:var(--phos);font-variant-numeric:tabular-nums;letter-spacing:var(--ls-5);
   text-shadow:0 0 7px color-mix(in srgb,var(--phos) 45%,transparent);
   background:color-mix(in srgb,var(--ink) 40%,transparent)}
