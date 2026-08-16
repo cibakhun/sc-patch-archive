@@ -444,12 +444,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <!-- ========================================= Spalte 1: alle 37 Erze -->
     <div class="wb__pane wb__pane--list chamf">
       <div class="wb__filters">
-        {/* Seit 16.08.2026 FUENF Schritte: die Spalte laesst sich in ein
-            eigenes Fenster legen, und eine Anleitung, die das verschweigt,
-            beschreibt das Werkzeug nicht mehr vollstaendig. Der Kasten
-            scrollt intern (max-height:min(22vh,140px), s. Stilblock) — der
-            fuenfte Schritt kostet also keine Hoehe, nur Bildlauf. */}
-        <ToolHelp tool="mining" lang={lang} steps={5} />
+        {/* Seit 16.08.2026 SECHS Schritte. Vier beschrieben das Werkzeug nur
+            bis zur Haelfte: die Presets kamen ueberhaupt nicht vor, das
+            ausgelagerte Fenster ebenso wenig — beides Dinge, die man ohne
+            Hinweis nicht findet („erklaert es nicht zb die presets, das
+            popout undso"). Reihenfolge folgt dem Arbeitsweg: erst anheften
+            (4), dann benennen (5), dann herausloesen (6). */}
+        <ToolHelp tool="mining" lang={lang} steps={6} />
         <div class="wb__frow">
           <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
           <span class="wb__c" id="wb-count">{minerals.length}</span>
@@ -1088,6 +1089,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      ein Eingriff in den geteilten Vertrag bzw. ins Hoehenbudget — eine
      Produktentscheidung, keine Fehlerbehebung. Steht als Sichturteil in
      .planning/notes/mining-werkbank-defekte.md. */
+/* ⚠⚠ ZWEI Zeilen, die zusammengehoeren — einzeln richtet keine etwas aus.
+   `position:relative` macht das <details> zum Bezug des absolut gesetzten
+   Rumpfes. Ohne sie fiel der Bezug auf .wb__filters (die einzige positionierte
+   Ahnin), und `top:calc(100% - 4px)` hiess: unter die GANZE Filterleiste,
+   also 99 px unterhalb der eigenen Ueberschrift, mit Suchfeld und Systemchips
+   dazwischen (gemessen 16.08.2026: Ueberschrift endet bei 171, Rumpf begann
+   bei 270). Der Betreiber dazu: „how does it work ist iwi deattached von dem
+   dropdown."
+   `overflow:visible` ist die Bedingung dafuer, dass das ueberhaupt geht:
+   .tool-help traegt `overflow:hidden` (ToolHelp.astro), und ein absolut
+   gesetzter Rumpf in einem positionierten Elternteil MIT overflow:hidden wird
+   restlos weggeschnitten — genau die Sackgasse, die beim Versuch „neben die
+   Spalte legen" schon einmal die ganze Hilfe unsichtbar gemacht hat. */
+.wb__filters .tool-help{position:relative;overflow:visible}
 .wb__filters .tool-help[open] .tool-help__body{position:absolute;top:calc(100% - 4px);left:0;right:0;
   z-index:14;background:var(--surface);border-radius:12px;line-height:1.45;
   box-shadow:0 10px 30px color-mix(in srgb,var(--ink) 60%,transparent);
@@ -1095,8 +1110,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      kuerzer, und der beim Erstbesuch selbsttaetig aufklappende Kasten deckte
      das Kachelraster VOLLSTAENDIG zu — der erste Eindruck der Seite war eine
      Anleitung ohne Minerale. Bei 168 px bleiben zwei Kachelzeilen sichtbar,
-     der Kasten scrollt dafuer intern. */
-  max-height:min(22vh,140px);overflow-y:auto;padding:10px 12px 12px}
+     der Kasten scrollt dafuer intern.
+     ⚠⚠ 16.08.2026 von 140 auf 300 px, und das kostet KEINE einzige Kachel
+     mehr: der Rumpf haengt seit der Zeile weiter oben an seiner eigenen
+     Ueberschrift statt am Fuss der Filterleiste und beginnt dadurch 99 px
+     hoeher. Gemessen (1600x900): Rumpf 171–471 statt 270–410, der Bildlaufkasten
+     der Kacheln beginnt bei 274 — verdeckt werden also 197 statt 136 px, bei
+     mehr als der doppelten Textmenge. Der Anlass war ein Befund des
+     Betreibers: „erklaert es nicht zb die presets, das popout undso" — der
+     Inhalt misst 472 px, sichtbar waren 140, also 30 %. Wer das hier weiter
+     aufzieht, nimmt ab jetzt echte Kachelzeilen. */
+  max-height:min(46vh,300px);overflow-y:auto;padding:10px 12px 12px}
 .wb__frow{display:flex;align-items:center;gap:8px}
 .wb__search{flex:1;min-width:0;background:color-mix(in srgb,var(--ink) 34%,transparent);border:0;
   color:var(--text);padding:7px 10px;font-size:var(--fs-6);border-radius:7px;font-family:inherit}
