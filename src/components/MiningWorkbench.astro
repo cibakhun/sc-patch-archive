@@ -233,6 +233,13 @@ const S_DE = {
   presetShow: 'Inhalt anzeigen', presetHide: 'Inhalt ausblenden',
   presetRemoveEntry: 'Aus dem Preset entfernen', presetNoEntries: 'Dieses Preset ist leer.',
   presetGuest: 'Zusammenstellungen speichern:', presetLogin: 'anmelden',
+  /* Eigenes Fenster (16.08.2026). „Popout" bleibt unuebersetzt stehen, weil
+     es im Deutschen keinen kuerzeren Begriff gibt, der dasselbe meint —
+     „Abdocken" waere geraten, „Eigenes Fenster" passt in keinen Knopf. */
+  popout: 'Eigenes Fenster', popoutBack: 'Zurück in die Spalte',
+  popoutOut: 'Die Listen liegen im eigenen Fenster.',
+  popoutTitle: 'Signaturen & Fundorte — verse-base',
+  popoutBlocked: 'Der Browser hat das Fenster blockiert. Popups für diese Seite erlauben, dann erneut.',
   presetSaved: 'Gespeichert.', presetDeleted: 'Gelöscht.',
   presetEmpty: 'Erst Erze oder Fundorte anheften, dann speichern.', presetFail: 'Speichern fehlgeschlagen.',
   signature: 'Signatur',
@@ -265,6 +272,10 @@ const S_EN = {
   presetShow: 'Show contents', presetHide: 'Hide contents',
   presetRemoveEntry: 'Remove from preset', presetNoEntries: 'This preset is empty.',
   presetGuest: 'Save your sets:', presetLogin: 'sign in',
+  popout: 'Own window', popoutBack: 'Back into the column',
+  popoutOut: 'The lists are in their own window.',
+  popoutTitle: 'Signatures & locations — verse-base',
+  popoutBlocked: 'The browser blocked the window. Allow popups for this site, then try again.',
   presetSaved: 'Saved.', presetDeleted: 'Deleted.',
   presetEmpty: 'Pin some ores or locations first, then save.', presetFail: 'Saving failed.',
   signature: 'Signature',
@@ -565,6 +576,31 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
     <!-- =========================================== Spalte 3: Signaturen -->
     <div class="wb__pane wb__pane--sig chamf">
+      {/* AUSLAGERN (16.08.2026). Der Knopf sitzt absolut in der oberen rechten
+          Ecke der SPALTE, nicht in der Presetzeile darunter: die Presetzeile
+          (#wb-pre-pick) ist fuer Gaeste verborgen, ein Knopf darin waere ohne
+          Konto unerreichbar. Absolut positioniert, weil die Spalte sonst eine
+          vierte Kopfzeile bekaeme und die Presets ihren dokumentierten Platz
+          „an oberster Stelle" (D-04) verlieren wuerden; .wb__pane traegt
+          bereits position:relative. Die Polsterung von .wb__pre ist rechts
+          entsprechend aufgeweitet, damit das „+" nicht darunter laeuft. */}
+      <button type="button" class="wb__popb" id="wb-pop" data-help={hlp('popout')}
+              title={S.popout} aria-label={S.popout}>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+      </button>
+      {/* Platzhalter, solange die Listen ausgelagert sind. Ohne ihn stuende
+          hier eine leere Spalte — von „ausgelagert" nicht zu unterscheiden.
+          Der Knopf darin ist der zweite Rueckweg neben dem Fensterkreuz. */}
+      <div class="wb__popslot" id="wb-pop-slot" hidden>
+        <p set:text={S.popoutOut} />
+        <button type="button" class="wb__popslot__b" id="wb-pop-back" set:text={S.popoutBack} />
+      </div>
+      {/* #wb-pop-body ist die EINE Huelle, die ins Fremdfenster wandert —
+          Presetzeile und beide Listen zusammen, damit ein Preset dort
+          aufrufbar bleibt. Sie erbt die Flex-Eigenschaften, die vorher direkt
+          an .wb__pre/.wb__stack gegen die Spalte wirkten (s. Stilblock);
+          ohne das faellt die Hoehenkette und die Listen scrollen nicht mehr. */}
+      <div class="wb__popbody" id="wb-pop-body">
       {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
           (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst AN
           OBERSTER STELLE der Spalte: das ist die sichtbare Form von „ein
@@ -618,6 +654,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
         </div>
       </div>
+      </div>{/* #wb-pop-body */}
     </div>
   </div>
 
@@ -1397,6 +1434,57 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__sec2 h4::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
   background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--text) 14%,transparent) 0 1px,transparent 1px 7px)}
 
+/* ---------------- Auslagern in ein eigenes Fenster (16.08.2026) ----------
+   Die Spalte kann in ein echtes, frei verschiebbares Betriebssystem-Fenster
+   umziehen (Document Picture-in-Picture, sonst window.open) — gedacht fuer
+   den zweiten Bildschirm neben dem laufenden Spiel.
+   ⚠ Diese Regeln muessen HIER stehen, nicht als JS-Zeichenkette: das
+   Fremdfenster bekommt saemtliche <style>- und <link>-Elemente dieser Seite
+   kopiert, also gilt dort dasselbe Blatt. Eine zweite, per JS gebaute
+   Stilquelle waere die uebliche Falle „im Fremdfenster sieht es anders aus".
+
+   Knopf: absolut in der Spaltenecke. `right:10px` statt buendig, damit er
+   nicht unter die 14 px grosse Fase von .chamf::after (z-index:3) laeuft. */
+.wb__popb{position:absolute;top:6px;right:10px;z-index:2;
+  width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:7px;
+  cursor:pointer;color:var(--muted);
+  background:color-mix(in srgb,var(--ink) 34%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__popb:hover{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.wb__popb svg{pointer-events:none}
+.wb__popb[hidden]{display:none}
+
+/* Die Presetzeile weicht dem Knopf rechts aus (10 + 24 + 6 px Luft). */
+.wb__pre{padding-right:40px}
+
+/* Traegt im Fremdfenster die Hoehenkette, die sonst .wb__pre/.wb__stack
+   direkt gegen die Spalte aufbauen — ohne sie scrollen die Listen dort
+   nicht mehr, sondern wachsen aus dem Fenster heraus. */
+.wb__popbody{display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* Platzhalter in der Spalte, solange die Listen draussen sind. */
+.wb__popslot{display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  flex:1;min-height:0;padding:14px 12px;font-size:var(--fs-3);
+  color:color-mix(in srgb,var(--muted) 88%,transparent)}
+.wb__popslot p{margin:0;line-height:1.45}
+.wb__popslot__b{border:0;border-radius:7px;cursor:pointer;font-family:inherit;
+  font-size:var(--fs-3);padding:7px 11px;color:var(--accent-2);
+  background:color-mix(in srgb,var(--accent-2) 20%,transparent);
+  transition:background var(--dur-fast,.15s) var(--ease-ui,ease),color var(--dur-fast,.15s) var(--ease-ui,ease)}
+.wb__popslot__b:hover{background:color-mix(in srgb,var(--accent-2) 32%,transparent);color:var(--text)}
+/* ⚠ NACH der display-Regel — sonst schlaegt display:flex das hidden-Attribut
+   (dieselbe Falle steht bei .wb__pre__pick schon einmal aufgeschrieben). */
+.wb__popslot[hidden]{display:none}
+
+/* Im Fremdfenster traegt die Werkbank-Huelle das GANZE Fenster. Die
+   Randlos-Regeln von .wb (100vw, negative Raender, Polsterung, Rasterhoehe
+   aus dem Seitenverhaeltnis des Gehaeuses) sind auf einen Textkoerper
+   gemuenzt, den es dort nicht gibt. */
+.wb--pop{width:100%;height:100%;margin:0;padding:0;gap:0}
+.wb--pop .wb__pane{height:100%;border-radius:0;box-shadow:none}
+/* Die Fase gehoert an die Ecke des GERAETS, nicht an eine Fensterkante. */
+.wb--pop .chamf::after{display:none}
+
 /* Eine Preset-Zeile — Vorbild .wb__pin-item (Name+Aktion-Zeile), Auswahl-
    zustand wortgleich zu .wb__tile.is-sel (D-05). */
 .wb__pre-item{padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
@@ -1490,7 +1578,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    .wb__pin-item, aber ohne das Attribut -- die Selektor-Bedingung ist
    deshalb Pflicht, sonst bekaeme die Signaturenliste eine Klickbarkeit, die
    sie nicht hat. */
-.wb__pin-item[data-loc]{cursor:pointer;transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
+/* ⚠ `display:block` ist hier KEINE Zierde, sondern eine Reparatur. Die Zeile
+   traegt role="button" (fuer die Tastatur, s.o.), und die globale Mobilregel
+   `@media(max-width:820px){button,[role="button"],summary{display:inline-flex}}`
+   macht daraus unterhalb von 820 px eine schrumpfende Inline-Schachtel:
+   Name, Kreuz und Wertezeile stehen dann NEBENeinander in einer einzigen
+   Zeile statt untereinander (gemessen 16.08.2026 bei 800 px: 404 statt 691 px
+   breit). Das ist ein Fehler der ausgelieferten Seite auf Tablet und Handy,
+   nicht erst im ausgelagerten Fenster — dort faellt er nur zwangslaeufig auf,
+   weil ein ~360 px breites Fenster IMMER die Mobilfassung der Seite bekommt.
+   Die Zeile ist optisch keine Schaltflaeche, sondern eine volle Listenzeile;
+   das role-Attribut sagt nur, dass sie sich mit Enter bedienen laesst.
+   Spezifitaet (0,2,0) schlaegt [role="button"] (0,1,0) unabhaengig von der
+   Reihenfolge — eine Umsortierung der Blaetter kann das nicht kippen. */
+.wb__pin-item[data-loc]{display:block;cursor:pointer;transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__pin-item[data-loc]:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
 .wb__pin-top{display:flex;align-items:center;gap:7px}
 .wb__pin-top .nm{font-size:var(--fs-5);font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -93,6 +93,17 @@ function makeDocEvents() {
     add(type, fn) {
       (byType[type] || (byType[type] = [])).push(fn);
     },
+    /* Gegenstueck zu add(): das Zurueckholen der ausgelagerten Spalte meldet
+       die delegierten Handler im Fremddokument wieder ab. Ohne remove() liefe
+       ein zweiter Durchgang doppelt — und der Nachweis „abgemeldet" waere
+       nicht zu fuehren. */
+    remove(type, fn) {
+      const list = byType[type];
+      if (!list) return;
+      const i = list.indexOf(fn);
+      if (i !== -1) list.splice(i, 1);
+    },
+    count(type) { return (byType[type] || []).length; },
     // init (optional, Phase 12, Plan 02): zusaetzliche Event-Felder wie
     // `key` -- der bestehende keydown-Handler in mining-workbench.js fragt
     // e.key ab (Enter/Leertaste je Fundort-/Erzzeile, T-12-11). Ohne diesen
@@ -258,6 +269,13 @@ function buildPayload() {
     bestRef: 'BEST-REF', yieldMod: 'YIELD', worst: 'WORST', yourPick: 'YOUR-PICK',
     usedIn: 'USED-IN', ships: 'SHIPS', openCrafting: 'OPEN-CRAFTING',
     locPinsEmpty: 'NO-LOC-PINS',
+    // 16.08.2026: Auslagern in ein eigenes Fenster. popoutBlocked ist der
+    // einzige der vier Texte, der ueberhaupt durch Code laeuft (preSay() bei
+    // geblocktem Popup) -- ohne Platzhalter setzte preSay() `hidden = !text`
+    // auf true und die Meldung waere ungeprueft still ausgeblieben.
+    popout: 'POPOUT', popoutBack: 'POPOUT-BACK',
+    popoutOut: 'POPOUT-OUT', popoutTitle: 'POPOUT-TITLE',
+    popoutBlocked: 'POPOUT-BLOCKED',
     // Phase 9, Plan 02 (O-3/T-09-07): chance/upTo faerbt schon die Fundort-Zeile
     // in der Mitte (#wb-locs), fehlte hier aber bislang -- ohne den Platzhalter
     // haette pctRight() in assets/mining-workbench.js "undefined" statt "UP-TO"
@@ -399,34 +417,129 @@ export function makeMiningDomContext(opts = {}) {
   // wb-lpinsh -- renderPins()/renderLocPins() schreiben den jeweiligen
   // Paarzaehler in diese Ueberschriften (guard $()===null davor macht das
   // optional, aber der Zaehler soll hier tatsaechlich geprueft werden koennen).
-  root.appendChild(reg(mk('div', 'wb-pins')));
-  root.appendChild(reg(mk('div', 'wb-locpins')));
-  root.appendChild(reg(mk('h4', 'wb-pinsh')));
-  root.appendChild(reg(mk('h4', 'wb-lpinsh')));
+  // Die Spalte ist seit 16.08.2026 NICHT mehr flach an root gehaengt: das
+  // Auslagern (#wb-pop) verschiebt genau einen Knoten (#wb-pop-body) samt
+  // Presetzeile und BEIDEN Listen in ein fremdes Dokument. Der Nachbau muss
+  // diese Verschachtelung tragen, sonst laesst sich der Umzug nicht
+  // nachstellen — und der Zweig, der ihn ueberhaupt erst funktionieren
+  // laesst ($()-Rueckfall, s. mining-popout.test.js), bliebe ungeprueft.
+  const popPane = mk('div', '', 'wb__pane wb__pane--sig');
+  const popSlot = reg(mk('div', 'wb-pop-slot'));
+  popSlot.hidden = true;
+  popSlot.appendChild(reg(mk('button', 'wb-pop-back')));
+  // hidden ausdruecklich auf false: im echten DOM ist das der Anfangswert,
+  // im Nachbau waere es sonst undefined — und ein Test, der „sichtbar
+  // geblieben" behauptet, verglichen gegen undefined statt gegen false.
+  const popBtn = reg(mk('button', 'wb-pop'));
+  popBtn.hidden = false;
+  popPane.appendChild(popBtn);
+  popPane.appendChild(popSlot);
+  const popBody = reg(mk('div', 'wb-pop-body'));
+  popPane.appendChild(popBody);
+  root.appendChild(popPane);
+
+  popBody.appendChild(reg(mk('div', 'wb-pins')));
+  popBody.appendChild(reg(mk('div', 'wb-locpins')));
+  popBody.appendChild(reg(mk('h4', 'wb-pinsh')));
+  popBody.appendChild(reg(mk('h4', 'wb-lpinsh')));
 
   // Presets (Phase 10, Plan 01: sichtbare Liste statt <select>, D-05).
-  root.appendChild(reg(mk('div', 'wb-preset-list')));
-  root.appendChild(reg(mk('div', 'wb-pre-pick')));
-  root.appendChild(reg(mk('div', 'wb-pre-edit')));
-  root.appendChild(reg(mk('p', 'wb-pre-msg')));
-  root.appendChild(reg(mk('p', 'wb-pre-guest')));
-  root.appendChild(reg(mk('input', 'wb-pre-name')));
-  root.appendChild(reg(mk('button', 'wb-pre-new')));
-  root.appendChild(reg(mk('button', 'wb-pre-cancel')));
-  root.appendChild(reg(mk('button', 'wb-pre-ok')));
-  root.appendChild(reg(mk('a', 'wb-pre-login')));
+  // Ebenfalls in #wb-pop-body — sie ziehen mit um (D-04: EIN gemeinsames
+  // Preset-System, es waere sinnlos ohne die Listen zurueckzubleiben).
+  popBody.appendChild(reg(mk('div', 'wb-preset-list')));
+  popBody.appendChild(reg(mk('div', 'wb-pre-pick')));
+  popBody.appendChild(reg(mk('div', 'wb-pre-edit')));
+  popBody.appendChild(reg(mk('p', 'wb-pre-msg')));
+  popBody.appendChild(reg(mk('p', 'wb-pre-guest')));
+  popBody.appendChild(reg(mk('input', 'wb-pre-name')));
+  popBody.appendChild(reg(mk('button', 'wb-pre-new')));
+  popBody.appendChild(reg(mk('button', 'wb-pre-cancel')));
+  popBody.appendChild(reg(mk('button', 'wb-pre-ok')));
+  popBody.appendChild(reg(mk('a', 'wb-pre-login')));
 
   const docEvents = makeDocEvents();
+
+  /* ⚠ getElementById war bis 16.08.2026 ein blosser Registrierungs-Blick und
+     damit UNEHRLICH: es lieferte einen Knoten auch dann noch, wenn der laengst
+     aus diesem Dokument herausgezogen war. Genau das kann der echte Browser
+     nicht — und genau darauf beruht der $()-Rueckfall in
+     assets/mining-workbench.js. Ohne diese Wahrheit hier waere ein Test, der
+     ihn prueft, gruen, egal ob der Rueckfall existiert.
+     Ueber parentNode nach oben laufen statt ueber die Kinderliste: das
+     Anhaengen im Fremddokument setzt parentNode um, und das ist die Kante,
+     auf die es ankommt. */
+  function inThisDocument(el) {
+    let n = el;
+    while (n) { if (n === root) return true; n = n.parentNode; }
+    return false;
+  }
+
   const document = {
-    getElementById: (id) => elements[id] || null,
+    documentElement: mk('html'),
+    body: mk('body'),
+    getElementById: (id) => {
+      const el = elements[id];
+      return el && inThisDocument(el) ? el : null;
+    },
     querySelector: (sel) => root.querySelector(sel),
     querySelectorAll: (sel) => root.querySelectorAll(sel),
-    createElement: (tag) => new MockElement(tag),
+    createElement: (tag) => mk(tag),
+    adoptNode: (node) => { if (node.parentNode) node.parentNode.removeChild(node); return node; },
     addEventListener: docEvents.add,
   };
+  document.body.appendChild(root);
+
+  /* Ein Fremdfenster als Attrappe (Rueckfallebene window.open — Document
+     Picture-in-Picture gibt es in node nicht, `documentPictureInPicture`
+     fehlt am window unten schlicht, und genau dann waehlt das Skript diesen
+     Weg). Eigene Ereignisregistrierung: der Nachweis, dass die delegierten
+     Handler DORT angemeldet werden, ist der halbe Sinn der Sache. */
+  const popWindows = [];
+  function makePopWindow() {
+    const popEvents = makeDocEvents();
+    const popRoot = mk('body');
+    const popDoc = {
+      documentElement: mk('html'),
+      body: popRoot,
+      head: mk('head'),
+      title: '',
+      getElementById: (id) => {
+        const el = elements[id];
+        if (!el) return null;
+        let n = el;
+        while (n) { if (n === popRoot) return el; n = n.parentNode; }
+        return null;
+      },
+      querySelector: (sel) => popRoot.querySelector(sel),
+      querySelectorAll: (sel) => popRoot.querySelectorAll(sel),
+      createElement: (tag) => mk(tag),
+      adoptNode: (node) => { if (node.parentNode) node.parentNode.removeChild(node); return node; },
+      addEventListener: popEvents.add,
+      removeEventListener: popEvents.remove,
+      write() {}, close() {},
+    };
+    const w = {
+      document: popDoc,
+      closed: false,
+      focus() {},
+      close() { this.closed = true; w.fire('pagehide', popRoot); },
+      addEventListener: popEvents.add,
+      // Testwerkzeug: ein Ereignis IM Fremdfenster ausloesen
+      fire: (type, target, init) => popEvents.fire(type, target, init),
+      fireOn: (el, type, init) => { el.dispatchEvent(type, init); popEvents.fire(type, el, init); },
+    };
+    popWindows.push(w);
+    return w;
+  }
+
+  const windowOpen = opts.noPopupWindow ? () => null : makePopWindow;
 
   const account = makeAccount(opts.account);
-  const windowObj = { VBAccount: account, document };
+  /* KEIN `documentPictureInPicture` an diesem Fenster: node hat es nicht, und
+     das Skript faellt dann bewusst auf window.open zurueck — genau die
+     Fassung, die auch Firefox- und Safari-Nutzer bekommen. Der PiP-Zweig
+     selbst ist im Browser nachgewiesen, nicht hier. */
+  const windowObj = { VBAccount: account, document, open: windowOpen };
 
   // init (optional): durchgereicht an docEvents.fire() -- siehe Kommentar
   // dort. dispatchEvent() selbst kennt init bereits (dom-mock.js), die
@@ -452,6 +565,11 @@ export function makeMiningDomContext(opts = {}) {
     console,
     // ---- Test-Werkzeuge (nicht vom Skript referenziert) ----
     elements,
+    // Die von window.open() ausgegebenen Attrappen, in Aufrufreihenfolge.
+    // popWindows[0].fireOn(el, 'click') loest ein Ereignis IM Fremdfenster
+    // aus — der Weg, auf dem sich die delegierten Handler dort pruefen lassen.
+    popWindows,
+    docEvents,
     byName,
     T: payload.t,
     account,

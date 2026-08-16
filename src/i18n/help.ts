@@ -94,6 +94,7 @@ export const HELP = {
     'mining.ctl.pinbtn': 'Heftet das gewählte Erz an die Signaturenliste rechts — dasselbe wie der Knopf auf der Kachel, nur größer.',
     'mining.ctl.pins': 'Nachschlagewerk: die angehefteten Erze mit ihrer Signatur mal Clustergröße, zum Vergleichen mit dem, was der Scanner im Spiel nennt.',
     'mining.ctl.presets': 'Benannte Zusammenstellungen — ein Preset hält Signaturen UND Fundorte zugleich: auswählen, umbenennen, mit der aktuellen Auswahl überschreiben oder einzelne Einträge entfernen; Löschen fragt zurück. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
+    'mining.ctl.popout': 'Legt diese Spalte in ein eigenes, frei verschiebbares Fenster. In Chrome, Edge und Opera bleibt es über allen anderen Fenstern liegen — auch neben dem laufenden Spiel, sofern das im randlosen Fenstermodus läuft. Andere Browser bekommen ein normales Extrafenster. Schließen legt die Liste zurück in die Spalte.',
     'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
     'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
     'mining.ctl.locpin': 'Die ganze Zeile öffnet diesen Fundort; die Nadel rechts heftet ihn zusätzlich an die Fundort-Merkliste darunter.',
@@ -268,6 +269,7 @@ export const HELP = {
     'mining.ctl.pinbtn': 'Pins the selected ore to the signature list on the right — same as the button on its tile, only bigger.',
     'mining.ctl.pins': 'Reference table: the pinned ores with their signature times cluster size, to compare against what the scanner calls out in-game.',
     'mining.ctl.presets': 'Named sets — one preset holds signatures AND locations together: pick, rename, overwrite with the current selection, or remove single entries; deleting asks for confirmation. Saved to your account and available on every device.',
+    'mining.ctl.popout': 'Moves this column into its own free-floating window. In Chrome, Edge and Opera it stays on top of every other window — next to the running game too, as long as that runs in borderless windowed mode. Other browsers get a plain extra window. Closing it puts the lists back into the column.',
     'mining.ctl.fracturing': 'Leads to the fracturing calculator: it says whether your gear cracks the rock.',
 
     // -- Fracturing calculator --

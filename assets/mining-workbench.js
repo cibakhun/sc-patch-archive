@@ -123,7 +123,19 @@
     } catch (e) { /* privater Modus */ }
   }
 
-  var $ = function (id) { return document.getElementById(id); };
+  /* Das Dokument des ausgelagerten Fensters, solange eines offen ist (s.
+     Abschnitt AUSLAGERN weiter unten). null heisst: alles steht in der Seite. */
+  var popDoc = null;
+
+  /* ⚠ Der Rueckfall auf popDoc ist die BEDINGUNG dafuer, dass die Auslagerung
+     ueberhaupt funktioniert: das ausgelagerte Stueck wird per adoptNode in ein
+     ANDERES Dokument verschoben, und document.getElementById dieser Seite
+     findet es danach nicht mehr. Ohne diese Zeile liefe renderPins() beim
+     ersten Anheften in `null.innerHTML` — und zwar erst NACH dem Auslagern,
+     also genau dort, wo man es beim Bauen zuletzt sucht. */
+  var $ = function (id) {
+    return document.getElementById(id) || (popDoc ? popDoc.getElementById(id) : null);
+  };
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -987,7 +999,17 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      dort werfen oder ein gleichnamiges data-Attribut treffen. */
   function inWb(t) { return t && typeof t.closest === 'function' && !!t.closest('.wb'); }
 
-  document.addEventListener('click', function (e) {
+  /* Alle vier delegierten Handler laufen ueber diese Anmeldung statt direkt
+     ueber document.addEventListener. Grund: Ereignisse aus dem ausgelagerten
+     Fenster steigen NICHT in dieses Dokument auf — sie enden an dessen
+     eigenem document. Die Liste erlaubt, dieselben Handler beim Auslagern
+     zusaetzlich dort anzumelden und beim Zurueckholen wieder abzumelden.
+     ⚠ Die Handler duerfen deshalb nichts ueber `document` nachschlagen, was
+     im Fremdfenster liegen kann — dafuer ist $() zustaendig (s.o.). */
+  var DELEGATED = [];
+  function onDoc(type, fn) { DELEGATED.push([type, fn]); document.addEventListener(type, fn); }
+
+  onDoc('click', function (e) {
     var t = e.target;
     if (!inWb(t)) return;
     /* Rueckfragen (D-01 Loeschen, Betreiber-Befund 15.08.2026 Ueberschreiben)
@@ -1159,7 +1181,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     }
   });
 
-  document.addEventListener('keydown', function (e) {
+  onDoc('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (!inWb(e.target)) return;
     var tile = e.target.closest('.wb__tile');
@@ -1193,13 +1215,180 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     if (byName[oreName]) { S.sel = oreName; S.view = 'ore'; S.selLoc = null; renderAll(); }
   });
 
-  document.addEventListener('change', function (e) {
+  onDoc('change', function (e) {
     if (e.target.id === 'wb-ref') { S.ref = +e.target.value; renderDetail(); save(); }
   });
 
-  document.addEventListener('input', function (e) {
+  onDoc('input', function (e) {
     if (e.target.id === 'wb-q') { S.q = e.target.value; renderList(); }
   });
+
+  /* ==========================================================
+     AUSLAGERN — die rechte Spalte als eigenes Fenster
+     ==========================================================
+     Wunsch des Betreibers (16.08.2026): die Signaturen- und die
+     Fundortliste sollen sich "ueberall rumschieben" lassen, auch ueber
+     andere Fenster und Programme. Das geht, und zwar ohne Erweiterung:
+
+       1. documentPictureInPicture.requestWindow() — Chromium ab 116
+          (Chrome, Edge, Opera). Liefert ein randloses Fenster, das UEBER
+          allen anderen Fenstern liegt, auch ueber fremden Programmen.
+          Das ist die Fassung, die der Wunsch meint.
+       2. window.open('', …, 'popup=yes') — ueberall sonst (Firefox,
+          Safari). Ein echtes, frei verschiebbares Fenster, aber KEIN
+          Immer-obenauf: es faellt hinter das Fenster, das man anklickt.
+          Auf einem zweiten Bildschirm ist das gleichwertig.
+
+     ⚠ Was hier NICHT geht und wovon niemand ausgehen sollte: ueber ein
+     Spiel im ECHTEN Vollbild legt sich kein Fenster — weder dieses noch
+     ein anderes. Star Citizen muss im randlosen Fenstermodus laufen (oder
+     auf dem zweiten Bildschirm stehen). Das steht so auch im Hilfetext,
+     damit es nicht als Fehler zurueckkommt.
+
+     VERFAHREN: nicht neu zeichnen, sondern UMZIEHEN. Beide Fenster teilen
+     sich denselben JavaScript-Kontext, deshalb wandert der bestehende
+     Knoten #wb-pop-body per adoptNode hinueber und bringt seine direkt
+     angehefteten Handler (Preset-Knoepfe) mit. Was NICHT von allein
+     mitkommt, sind genau zwei Dinge — beide oben geloest:
+       · document.getElementById findet den Knoten danach nicht mehr  -> $()
+       · Ereignisse steigen nicht ins Seitendokument auf              -> DELEGATED
+     Ein Nachbau als zweite Zeichenroutine waere die Alternative gewesen und
+     haette zwei Wahrheiten ueber denselben Zustand ergeben. */
+  (function popout() {
+    var btn = $('wb-pop'), slot = $('wb-pop-slot'), backBtn = $('wb-pop-back');
+    var body = $('wb-pop-body');
+    if (!btn || !slot || !backBtn || !body) return;
+    var pane = body.parentNode;
+    var win = null;
+    var W = 360, H = 620;
+
+    /* Das Fremdfenster bekommt SAEMTLICHE Stilquellen dieser Seite kopiert —
+       die inline eingebetteten <style> (dort steht die Werkbank selbst) UND
+       die gebuendelten <link> aus /_astro/ (dort steht das Farbthema).
+       ⚠ Nur eine der beiden Quellen zu kopieren ist die naheliegende Falle:
+       das Bündel ist im HTML nicht zu sehen, die inline-Bloecke sind es
+       schon (dieselbe Verwechslung ist beim Menue-Eintritt schon einmal
+       aufgelaufen). Ueber die ELEMENTE gehen, nicht ueber document.styleSheets
+       — cssRules wirft bei fremder Herkunft. */
+    function copyStyles(doc) {
+      var src = document.querySelectorAll('link[rel="stylesheet"],style');
+      for (var i = 0; i < src.length; i++) {
+        var n = src[i], el;
+        if (n.tagName === 'LINK') { el = doc.createElement('link'); el.rel = 'stylesheet'; el.href = n.href; }
+        else { el = doc.createElement('style'); el.textContent = n.textContent; }
+        doc.head.appendChild(el);
+      }
+      /* Zuletzt, damit es das kopierte Blatt schlaegt: das Fremdfenster IST
+         die Seite, es hat keinen Textkoerper darum. Der Grundton steht mit
+         hartem Rueckfall da — ohne ihn stuende bei einem fehlgeschlagenen
+         Kopiervorgang schwarzer Text auf weissem Grund. */
+      var base = doc.createElement('style');
+      base.textContent = 'html,body{margin:0;padding:0;height:100%;overflow:hidden}' +
+        'body{background:var(--bg,#0a0d12);color:var(--text,#dfe4ec)}';
+      doc.head.appendChild(base);
+    }
+
+    /* Farbthema und Sprache haengen als Attribute am <html> der Seite; ohne
+       sie greifen die kopierten Regeln fuer [data-theme] drueben ins Leere. */
+    function mirrorRoot(doc) {
+      var a = document.documentElement.attributes;
+      for (var i = 0; i < a.length; i++) {
+        try { doc.documentElement.setAttribute(a[i].name, a[i].value); } catch (e) { /* egal */ }
+      }
+      doc.body.className = document.body.className;
+    }
+
+    function mount(w) {
+      var doc = w.document;
+      try {
+        win = w;
+        doc.title = T.popoutTitle || 'verse-base';
+        mirrorRoot(doc);
+        copyStyles(doc);
+        /* Dieselbe Klassenkette wie in der Seite: .wb ist der Riegel, gegen
+           den inWb() prueft, .wb__pane--sig traegt die Spaltengestalt. */
+        var shell = doc.createElement('div');
+        shell.className = 'wb wb--pop';
+        var host = doc.createElement('div');
+        host.className = 'wb__pane wb__pane--sig chamf';
+        shell.appendChild(host);
+        doc.body.appendChild(shell);
+        host.appendChild(doc.adoptNode(body));
+        popDoc = doc;
+        for (var i = 0; i < DELEGATED.length; i++) doc.addEventListener(DELEGATED[i][0], DELEGATED[i][1]);
+        btn.hidden = true;
+        slot.hidden = false;
+        /* Das Fensterkreuz ist der eine Rueckweg, der Knopf im Platzhalter
+           der andere — beide enden hier. */
+        w.addEventListener('pagehide', takeBack);
+      } catch (e) { takeBack(); }
+    }
+
+    /* Idempotent: laeuft sowohl aus dem pagehide des Fremdfensters als auch
+       aus dem Platzhalter-Knopf und aus dem Fehlerzweig von mount(). */
+    function takeBack() {
+      var doc = popDoc;
+      popDoc = null;
+      win = null;
+      btn.hidden = false;
+      slot.hidden = true;
+      if (!doc) return;
+      for (var i = 0; i < DELEGATED.length; i++) {
+        try { doc.removeEventListener(DELEGATED[i][0], DELEGATED[i][1]); } catch (e) { /* egal */ }
+      }
+      /* Ans Ende der Spalte — dort stand der Knoten vorher, hinter Knopf und
+         Platzhalter. */
+      try { pane.appendChild(document.adoptNode(body)); } catch (e) { /* egal */ }
+      renderAll();
+    }
+
+    /* Rueckfallebene. ⚠ about:blank bekommt in manchen Browsern nach dem
+       Oeffnen noch ein leeres Dokument nachgeschoben, das Eingefuegtes
+       wieder wegnimmt; ein synchrones write()+close() friert das Dokument
+       fest. Ohne Skript darin — das Fenster teilt sich unseren Kontext. */
+    function openPlain() {
+      var w = window.open('', 'vb-mining-lists',
+        'popup=yes,width=' + W + ',height=' + H + ',menubar=no,toolbar=no,location=no,status=no,resizable=yes');
+      if (!w) { preSay(T.popoutBlocked, 6000); return; }
+      try {
+        w.document.write('<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>');
+        w.document.close();
+      } catch (e) { /* das vorgefundene about:blank tut es auch */ }
+      if (!w.document || !w.document.body) { preSay(T.popoutBlocked, 6000); return; }
+      mount(w);
+    }
+
+    function openPop() {
+      if (win && !win.closed) { try { win.focus(); } catch (e) { /* egal */ } return; }
+      /* Fenster weg, ohne dass pagehide durchkam — Zustand nachziehen, sonst
+         zeigte die Spalte weiter den Platzhalter fuer ein Fenster, das es
+         nicht mehr gibt. */
+      if (win) takeBack();
+      var p = null;
+      try {
+        if (window.documentPictureInPicture && window.documentPictureInPicture.requestWindow) {
+          p = window.documentPictureInPicture.requestWindow({ width: W, height: H });
+        }
+      } catch (e) { p = null; }
+      /* Der Rueckfall im .catch() laeuft noch innerhalb der kurzzeitigen
+         Klick-Berechtigung des Browsers (einige Sekunden), window.open wird
+         dort also nicht als unaufgeforderte Werbung geblockt. */
+      if (p && typeof p.then === 'function') p.then(mount).catch(openPlain);
+      else openPlain();
+    }
+
+    btn.addEventListener('click', openPop);
+    backBtn.addEventListener('click', function () {
+      if (win) { try { win.close(); } catch (e) { /* egal */ } }
+      takeBack();
+    });
+    /* Kein verwaistes Fenster: verlaesst die Seite den Browser-Tab, geht das
+       Popup mit. Es haengt an DIESEM Kontext — ohne ihn stuenden dort tote
+       Knoepfe. (Das PiP-Fenster schliesst der Browser von sich aus.) */
+    addEventListener('pagehide', function () {
+      if (win) { try { win.close(); } catch (e) { /* egal */ } }
+    });
+  })();
 
   /* Tieflink ?mineral=<Name> aus der Crafting-Datenbank (miningLinks.ts:129,
      ueber 8000 Verweise). VORRANG vor dem gespeicherten Zustand: wer von dort

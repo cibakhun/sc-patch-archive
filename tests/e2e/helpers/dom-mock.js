@@ -53,6 +53,22 @@ export class MockElement {
     this.parentNode = null;
   }
   
+  /* className und classList auseinanderlaufen zu lassen, war eine stille
+     Unehrlichkeit dieses Nachbaus: `el.className = 'a b'` liess classList auf
+     dem alten Stand stehen, und jedes closest('.a')/matches('.a') urteilte
+     danach falsch. Im echten DOM sind beide dieselbe Sache.
+     ⚠ Der Setter laeuft schon aus dem Konstruktor (Zeile `this.className =
+     className` VOR `this.classList = …`), deshalb die Wachen: solange
+     classList/attributes noch nicht stehen, wird nur der Rohwert gemerkt —
+     der Konstruktor baut classList unmittelbar danach ohnehin aus ihm auf. */
+  get className() { return this._className || ''; }
+
+  set className(value) {
+    this._className = String(value == null ? '' : value);
+    if (this.classList) this.classList.set = new Set(this._className.split(' ').filter(Boolean));
+    if (this.attributes) this.attributes['class'] = this._className;
+  }
+
   setAttribute(name, value) {
     this.attributes[name] = String(value);
     if (name === 'class') {
