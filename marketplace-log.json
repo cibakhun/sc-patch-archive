@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 258,
-  "totalListings": 6144,
-  "totalSold": 267,
+  "updates": 259,
+  "totalListings": 6151,
+  "totalSold": 268,
   "distinctItems": 1180
  },
  "listings": {
@@ -120646,9 +120646,9 @@
      "p": 450000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 450000,
    "dateAdded": 1786674921,
    "dateExpiration": 1791858921
   },
@@ -131209,6 +131209,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786839950,
    "dateExpiration": 1792023950
+  },
+  "162952": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "CRAFTED FR-66 750Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786841663,
+   "dateExpiration": 1792022063
+  },
+  "162955": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "CRAFTED fr-76 800q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 800,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786841912,
+   "dateExpiration": 1792022311
+  },
+  "162956": {
+   "idItem": 8054,
+   "idCategory": 38,
+   "title": "RCMBNT Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786842257,
+   "dateExpiration": 1792026257
+  },
+  "162958": {
+   "idItem": 6019,
+   "idCategory": 3,
+   "title": "ORC-mkX Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786842549,
+   "dateExpiration": 1792026549
+  },
+  "162961": {
+   "idItem": 5012,
+   "idCategory": 38,
+   "title": "RCMBNT-PWL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786844304,
+   "dateExpiration": 1792028304
+  },
+  "162963": {
+   "idItem": 159,
+   "idCategory": 23,
+   "title": "FullBlock",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 270000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786844399,
+   "dateExpiration": 1792028399
+  },
+  "162964": {
+   "idItem": 8037,
+   "idCategory": 7,
+   "title": "Crafted Defiance Tactical Sets .45 .44 .43 DR Sets Available - With Purgatory Camo Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 908,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786844630,
+   "dateExpiration": 1792028630
   }
  }
 }
