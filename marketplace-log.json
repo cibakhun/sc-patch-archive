@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 266,
-  "totalListings": 6394,
+  "updates": 267,
+  "totalListings": 6398,
   "totalSold": 275,
   "distinctItems": 1196
  },
@@ -134412,6 +134412,10 @@
     {
      "d": "2026-08-16",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -136519,6 +136523,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786886449,
    "dateExpiration": 1792070449
+  },
+  "163186": {
+   "idItem": 115,
+   "idCategory": 29,
+   "title": "CRAFTED Helix II Mining Laser 14% more power",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786888162,
+   "dateExpiration": 1792068562
+  },
+  "163188": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "972 stilleron 0.52 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786888572,
+   "dateExpiration": 1792068972
+  },
+  "163189": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron 681 .54 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 681,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786888727,
+   "dateExpiration": 1792069127
+  },
+  "163193": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 716Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 716,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 375000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786889703,
+   "dateExpiration": 1792073703
   }
  }
 }
