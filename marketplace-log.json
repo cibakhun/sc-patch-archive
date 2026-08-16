@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 261,
-  "totalListings": 6185,
-  "totalSold": 269,
+  "updates": 262,
+  "totalListings": 6187,
+  "totalSold": 270,
   "distinctItems": 1180
  },
  "listings": {
@@ -126214,6 +126214,10 @@
     {
      "d": "2026-08-15",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 35000000
     }
    ],
    "soldOut": false,
@@ -132078,6 +132082,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786851759,
    "dateExpiration": 1792035759
+  },
+  "162986": {
+   "idItem": 2034,
+   "idCategory": 23,
+   "title": "Mirage",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 210000
+    }
+   ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 210000,
+   "dateAdded": 1786852507,
+   "dateExpiration": 1792036507
+  },
+  "162987": {
+   "idItem": 5837,
+   "idCategory": 2,
+   "title": "Palatino Backpack Necropolis",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786853250,
+   "dateExpiration": 1792037249
   }
  }
 }
