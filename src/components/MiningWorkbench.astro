@@ -247,6 +247,16 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 <section class="wb" id="db" data-wb
          style={`--wb-frame:url('${chassisFrame}');--wb-plug:url('${chassisPlug}')`}>
+  {/* ⚠ DIE WAND hinter dem Geraet (16.08.2026, auf Ansage: der Grund zwischen
+      Fensterrand und Geraetekante soll als RAUM lesen, nicht als flache
+      Flaeche). Ein ECHTES Element, kein `::before` — eine Pseudo-Selektor-
+      Familie mit Verlauf meldet `verify:layers` (Zusicherung 5) zu Recht als
+      Fund ohne Registry-Eintrag; das hat dieses Bauteil schon zweimal
+      gekostet.
+      Sie steht VOR dem Gehaeuse im Markup und liegt mit z-index 0 dahinter —
+      das Gehaeuse hebt sich mit z-index 1 darueber. */}
+  <span class="wb__wall" aria-hidden="true"></span>
+
   {/* ───────────────────────── Gehaeuse ─────────────────────────
       Der Rahmen ist EINE Grafik mit festem Seitenverhaeltnis, die Bildflaeche
       ein Prozentkasten darin. KEIN `border-image`/9-Slice: das streckt die
@@ -540,21 +550,78 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    kleiner machen, und den Rahmen etwas breiter". */
 .wb{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
   padding:0 clamp(16px,2.6vw,56px) 1.4rem;
-  /* Ein weicher Lichtsaum HINTER dem Gehaeuse. Der Schlagschatten allein
-     reicht nicht: dunkel auf dunkel bleibt die Kante ein harter Sprung. Erst
-     eine leichte Aufhellung ringsum gibt ihr etwas, wogegen sie ausklingt —
-     denselben Dienst tat in der Vorlage die Szene hinter dem Geraet.
-     Als `background` an der Sektion, NICHT als eigenes ::before: eine neue
-     Zier-Schicht braeuchte einen Eintrag in der Schichten-Registry
-     (verify:layers, Zusicherung 5). */
-  background:radial-gradient(120% 78% at 50% 46%,
-    color-mix(in srgb,var(--accent) 6%,transparent) 0%, transparent 72%);
+  /* ⚠ Hier lag bis 16.08.2026 ein Lichtsaum von 6 % als `background` der
+     Sektion. Er ist in `.wb__wall` aufgegangen — als Hintergrund der Sektion
+     konnte er nicht ueber deren Kasten hinausreichen, und genau das braucht
+     die Wand: sie muss oben und unten AUSLAUFEN, sonst steht der Raum in
+     einem sichtbaren Rechteck. */
   display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
   line-height:1.3;position:relative;isolation:isolate;
   /* Alles, was oberhalb und unterhalb des Rasters Hoehe kostet: Titelstreifen,
      Rig-Leiste, Abstaende. Steht als Variable, weil die Rig-Leiste je nach
      Breite umbricht und dann mehr braucht — s. die Medienabfragen unten. */
   --wb-chrome:132px}
+
+/* ══════════════════════ DIE WAND HINTER DEM GERAET ══════════════════════
+   Ansage 16.08.2026: „das was hinter dem ganzen liegt … so gestalten dass es
+   so aussieht als wäre es in einem 3d space, also hervorheben vom
+   Hintergrund." Gewaehlt wurde von den drei vorgelegten Raumbildern die
+   BELEUCHTETE WAND: das Geraet schwebt davor, kein Boden.
+
+   ⚠⚠ DIE ENTSCHEIDENDE MESSUNG ZUERST — an der ausgelieferten Seite, nicht
+   geschaetzt: das Umfeld ist ein SCHMALER RAHMEN. 33 px (1280) bis 56 px
+   (2560) an den Seiten, 79 px oben, 53 px unten. Daraus folgen zwei Dinge,
+   die man ohne die Messung falsch macht:
+
+   (1) Ein auf das GERAET zentrierter Radialverlauf taugt hier NICHT als
+       Lichtwurf. Nachgerechnet: bei einer Ellipse ueber die Sektionsbreite
+       liegt der linke Fensterrand bei ~39 % des Verlaufs und die linke
+       Geraetekante bei ~37 % — ueber die ganzen 42 px Rahmen faellt der
+       Verlauf also um zwei Prozentpunkte. Das ist kein Lichtabfall, das ist
+       eine gleichmaessige Tuenche.
+       Das Licht muss der SILHOUETTE folgen, nicht der Sektionsmitte. Genau
+       das kann `drop-shadow` am Gehaeuse (es folgt der Alphakante der
+       Rahmengrafik, s. u.) — und ein Verlauf kann es nicht.
+   (2) Die Wand muss ueber die Sektion HINAUSREICHEN und auslaufen. Endet sie
+       an deren Kasten, sieht man ein Rechteck aus Dunkelheit mitten auf der
+       Seite. Darum negative Einrueckungen plus `mask-image`.
+
+   Alle Schichten sind DURCHSCHEINEND ueber dem Seitengrund — keine eigene
+   deckende Grundfarbe. Sonst muesste die Maske von „Wandfarbe" nach
+   „Seitenfarbe" ueberblenden und hinterliesse ein sichtbares Band. */
+.wb__wall{position:absolute;left:0;right:0;top:-46px;bottom:-190px;
+  z-index:0;pointer-events:none;
+  background:
+    /* 1. Der Rand ins Dunkle — der Haupthebel. Erst wenn der Rahmen merklich
+       tiefer steht als der Seitengrund, sitzt das Geraet in einer Nische statt
+       auf einer Flaeche.
+       ⚠⚠ HIER LAG DER FEHLER ZWEIER ANLAEUFE, und die Rechnung ist der Grund:
+       die beiden Prozentwerte vor `at` sind RADIEN in Breite/Hoehe des
+       Elements, nicht Durchmesser. Mit 112 % liegt der Fensterrand (800 px von
+       der Mitte bei 1600 px Breite) erst bei 800/1792 = 45 % des Verlaufs —
+       also fast am hellen Ende. Am Bildpunkt gemessen kam dort rgb(18,23,25)
+       gegen einen Seitengrund von rgb(20,24,26) heraus: ein Unterschied von
+       zwei Stufen, den kein Mensch sieht.
+       54 % setzt den Fensterrand auf 800/864 = 93 % — dorthin, wo der Verlauf
+       wirklich dunkel ist. Nachgerechnet UND nachgemessen, nicht geschaetzt. */
+    radial-gradient(54% 62% at 50% 46%,
+      transparent 0 34%,
+      color-mix(in srgb,var(--ink) 62%,transparent) 74%,
+      color-mix(in srgb,var(--ink) 96%,transparent) 100%),
+    /* 2. Die Wandflaeche selbst — bewusst KNAPP. Sie soll nur verhindern, dass
+       hinter dem Geraet totes Schwarz steht; das eigentliche Licht kommt vom
+       Silhouetten-Wurf am Gehaeuse.
+       ⚠ Bei 15 % war genau das falsch herum: die breite Aufhellung uebertoente
+       den Wurf, und was blieb, war eine gleichmaessige gruene Tuenche ueber
+       der ganzen Sektion. Ein Lichtabfall braucht ein Gefaelle, keine Decke. */
+    radial-gradient(74% 62% at 50% 44%,
+      color-mix(in srgb,var(--accent) 6%,transparent) 0%,
+      color-mix(in srgb,var(--accent) 2%,transparent) 54%,
+      transparent 82%);
+  /* Oben kurz, unten lang auslaufen: nach oben stoesst die Wand nach 46 px an
+     die feste Leiste, nach unten hat sie die ganze Seitenlaenge Zeit. */
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 7%,#000 72%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 7%,#000 72%,transparent 100%)}
 
 /* ═══════════════════════ Gehaeuse — 9-Slice ═══════════════════════
    ⚠⚠ ZWEITE BAUFORM (15.08.2026). Die erste war EIN Bild mit festem
@@ -598,16 +665,36 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   border-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   /* Die Hoehe haengt an nichts mehr — kein Seitenverhaeltnis diktiert sie. */
   height:clamp(430px,calc(100vh - var(--wb-chrome)),1180px);
+  /* Ueber der Wand liegen — sie steht mit z-index 0 dahinter. */
+  z-index:1;
   /* ⚠ Die Aussenkante endete hart gegen den flachen Seitengrund — gemeldet als
      „immer noch etwas zu abrupt abgeschnitten". In der Vorlage stand das Geraet
      in einer beleuchteten Szene, die Kante hatte etwas, in das sie auslaufen
      konnte; auf der Seite steht dahinter nichts. `drop-shadow` folgt der
      ALPHAKANTE der Rahmengrafik (anders als `box-shadow`, das dem rechteckigen
      Rahmenkasten folgt und die geschnittenen Ecken verfehlen wuerde) und setzt
-     das Geraet auf die Seite, statt es hineinzustanzen. Zwei Stufen: ein enger
-     Schlagschatten fuer die Kante, ein weiter fuer den Raum darunter. */
-  filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--ink) 70%,transparent))
-         drop-shadow(0 16px 38px color-mix(in srgb,var(--ink) 55%,transparent))}
+     das Geraet auf die Seite, statt es hineinzustanzen.
+
+     ⚠⚠ SEIT 16.08.2026 TRAEGT DIESE ZEILE DEN LICHTWURF, nicht die Wand.
+     Begruendung und Rechnung stehen bei `.wb__wall`; kurz: im 42 px schmalen
+     Rahmen faellt ein auf die Sektion zentrierter Verlauf um zwei
+     Prozentpunkte ab und wirkt als gleichmaessige Tuenche. `drop-shadow`
+     dagegen folgt der Silhouette — das Licht sitzt damit ueberall gleich weit
+     von der Geraetekante entfernt, also genau dort, wo ein Schirm seine
+     Umgebung anleuchtet.
+     Drei Stufen, in dieser Reihenfolge lesbar:
+       1. der Lichtwurf des Schirms auf die Wand (Akzent, weit),
+       2. ein enger, harter Saum, der die Kante vom Licht wieder abtrennt,
+       3. der Schlagschatten in den Raum — kraeftiger und tiefer als vorher
+          (55 %/38 px -> 76 %/46 px), weil er jetzt gegen eine ANGELEUCHTETE
+          Wand arbeitet statt gegen flaches Grau. Er ist es, der das Geraet
+          vor die Wand stellt, statt es darauf zu kleben.
+     ⚠ Der Streuradius des Lichtwurfs ist an der GEMESSENEN Rahmenbreite
+     gewaehlt (33–56 px): 48 px heisst, das Licht ist am Fensterrand gerade
+     ausgeklungen. Groesser waere Dunst, kleiner ein Strich um das Geraet. */
+  filter:drop-shadow(0 0 48px color-mix(in srgb,var(--accent) 34%,transparent))
+         drop-shadow(0 3px 4px color-mix(in srgb,var(--ink) 88%,transparent))
+         drop-shadow(0 22px 46px color-mix(in srgb,var(--ink) 76%,transparent))}
 
 /* ─── Zierstuecke, die aus den Streckbereichen genommen wurden, wieder an Ort
    Steckerbuchse mittig auf dem Sockel, Leuchtsegmente mittig in beiden Holmen.

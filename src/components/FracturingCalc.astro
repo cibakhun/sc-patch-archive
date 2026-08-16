@@ -159,6 +159,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   {/* Gehaeuse: EIN Bild mit festem Seitenverhaeltnis, Bildflaeche als
       Prozentkasten. Begruendung, Messwerte und der verworfene 9-Slice-Weg
       stehen in .planning/sketches/010-chassis-asset/README.md. */}
+  {/* Die Wand hinter dem Geraet — ECHTES Element (verify:layers, Zusicherung 5),
+      steht vor dem Gehaeuse im Markup und mit z-index 0 dahinter. */}
+  <span class="fc__wall" aria-hidden="true"></span>
+
   <div class="fc__chassis">
     <h1 class="fc__ctitle" set:text={title} />
 
@@ -269,8 +273,10 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   padding:0 clamp(16px,2.6vw,56px) 1.4rem;
   /* Lichtsaum hinter dem Gehaeuse — gibt der Aussenkante etwas, wogegen sie
      ausklingt. Als ackground, nicht als ::before (verify:layers). */
-  background:radial-gradient(120% 78% at 50% 46%,
-    color-mix(in srgb,var(--accent) 6%,transparent) 0%, transparent 72%);
+  /* ⚠ Der Lichtsaum von 6 % ist am 16.08.2026 in `.fc__wall` aufgegangen: als
+     Hintergrund der Sektion konnte er nicht ueber deren Kasten hinausreichen,
+     und die Wand muss oben und unten AUSLAUFEN — sonst steht der Raum in einem
+     sichtbaren Rechteck mitten auf der Seite. */
   display:flex;flex-direction:column;gap:10px;font-family:var(--font-ui,system-ui);
   line-height:1.3;position:relative;isolation:isolate;
   /* Titelstreifen plus Abstaende. Anders als in der Mining-Werkbank haengt
@@ -281,6 +287,34 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      178 gibt sie dem Raster. Wer die Zahl anfasst, misst beides nach:
      `#fc-list` darf nicht scrollen UND `.fc` nicht unter die Falz laufen. */
   --fc-chrome:132px}
+
+/* ══════════════════════ DIE WAND HINTER DEM GERAET ══════════════════════
+   Baugleich mit der Mining-Werkbank; die vollstaendige Begruendung samt der
+   beiden Rechenfehler, die zwei Anlaeufe gekostet haben, steht dort. Kurz:
+     · Das Umfeld ist ein SCHMALER RAHMEN (gemessen: 33–56 px seitlich). Der
+       Lichtwurf kann deshalb nicht aus einem auf die Sektion zentrierten
+       Verlauf kommen — er folgt der Silhouette, per `drop-shadow` am Gehaeuse.
+     · Die beiden Prozentwerte vor `at` sind RADIEN, nicht Durchmesser. Mit
+       112 % lag der Fensterrand erst bei 45 % des Verlaufs und war am
+       Bildpunkt nicht von der Seitenfarbe zu unterscheiden. 54 % setzt ihn
+       auf 93 %.
+     · Die Wand reicht ueber die Sektion hinaus und laeuft per Maske aus.
+   ⚠ Beide Seiten sind ein Paar — der Rechner hat Gehaeuse-Aenderungen schon
+   zweimal nicht mitbekommen und stand mit nacktem Blech neben der Werkbank. */
+.fc__wall{position:absolute;left:0;right:0;top:-46px;bottom:-190px;
+  z-index:0;pointer-events:none;
+  background:
+    radial-gradient(54% 62% at 50% 46%,
+      transparent 0 34%,
+      color-mix(in srgb,var(--ink) 62%,transparent) 74%,
+      color-mix(in srgb,var(--ink) 96%,transparent) 100%),
+    radial-gradient(74% 62% at 50% 44%,
+      color-mix(in srgb,var(--accent) 6%,transparent) 0%,
+      color-mix(in srgb,var(--accent) 2%,transparent) 54%,
+      transparent 82%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 7%,#000 72%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 7%,#000 72%,transparent 100%)}
+
 /* ═══════════════════════ Gehaeuse — 9-Slice ═══════════════════════
    Baugleich mit der Mining-Werkbank; die vollstaendige Begruendung steht dort
    (MiningWorkbench.astro, Abschnitt „Gehaeuse — 9-Slice"). Kurz: die erste
@@ -298,10 +332,15 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   border-image-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   border-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   height:clamp(430px,calc(100vh - var(--fc-chrome)),1180px);
-  /* Schlagschatten entlang der ALPHAKANTE der Rahmengrafik — setzt das Geraet
-     auf die Seite, statt es hineinzustanzen. Begruendung in der Werkbank. */
-  filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--ink) 70%,transparent))
-         drop-shadow(0 16px 38px color-mix(in srgb,var(--ink) 55%,transparent))}
+  /* Ueber der Wand liegen — sie steht mit z-index 0 dahinter. */
+  z-index:1;
+  /* Lichtwurf und Schlagschatten entlang der ALPHAKANTE der Rahmengrafik.
+     Der Streuradius des Lichtwurfs (48 px) ist an der gemessenen Rahmenbreite
+     gewaehlt: das Licht ist am Fensterrand gerade ausgeklungen. Begruendung in
+     der Werkbank. */
+  filter:drop-shadow(0 0 48px color-mix(in srgb,var(--accent) 34%,transparent))
+         drop-shadow(0 3px 4px color-mix(in srgb,var(--ink) 88%,transparent))
+         drop-shadow(0 22px 46px color-mix(in srgb,var(--ink) 76%,transparent))}
 /* ─── Zierstuecke, baugleich mit der Werkbank (dort steht die ausfuehrliche
    Begruendung). ⚠⚠ `mask-image` ist die BEDINGUNG, nicht der Feinschliff: ohne
    die weiche Laengskante liegen die Stuecke als rechteckige Flicken auf dem
