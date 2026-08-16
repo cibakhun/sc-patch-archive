@@ -13,7 +13,8 @@
     "order": "node order-roles.mjs",
     "announce": "node announce-milestone.mjs",
     "audit": "node audit.mjs",
-    "prune": "node prune.mjs"
+    "prune": "node prune.mjs",
+    "verify:invite": "node verify-invite.mjs"
   },
   "engines": {
     "node": ">=20.6"

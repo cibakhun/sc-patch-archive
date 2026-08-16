@@ -19,6 +19,25 @@ export const SITE = {
   ogDefault: '/assets/og-default.jpg',
 } as const;
 
+// Discord — die EINE Quelle für den Einladungslink. Der Server ist die
+// Werkstatt hinter der Seite: Fehler melden, mitbestimmen was als Nächstes
+// gebaut wird. KEIN allgemeiner Star-Citizen-Community-Server — davon gibt es
+// genug, und gegen die anzutreten hieße, überall Zweiter zu sein. Der Text an
+// jeder Verwendungsstelle muss diesen engen Zweck sagen, sonst kommen Leute
+// mit falscher Erwartung.
+//
+// ⚠ Der Code ist an DIESE Einladung gebunden (permanent, Ziel #welcome). Sie
+// wird von `discord/build.mjs` am Leben gehalten — verschwindet sie, legt der
+// Builder eine NEUE mit ANDEREM Code an und der Link hier zeigt ins Leere.
+// Dagegen prüft `node discord/verify-invite.mjs` (kein Token nötig). Bewusst
+// NICHT im CI-Tor: der Lauf braucht Netz, und ein Discord-Ausfall darf keinen
+// Deploy reißen — nach jedem `discord/npm run build` von Hand laufen lassen.
+export const DISCORD = {
+  invite: 'https://discord.gg/eaXhkf8d3Y',
+  /** Servername, wie ihn Discord auf der Einladungsseite zeigt */
+  serverName: 'Verse-Base',
+} as const;
+
 // Feedback-Formular — die Site bleibt statisch (kein eigenes Backend). Der
 // Versand läuft über Web3Forms (https://web3forms.com): der Browser POSTet an
 // deren API, Web3Forms schickt die Nachricht per Mail an das Zielkonto und

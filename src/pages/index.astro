@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
+import DiscordCard from '../components/DiscordCard.astro';
 import { getCollection } from 'astro:content';
 import { mergePatchEn } from '../i18n/patchText';
 
@@ -224,6 +225,9 @@ const tools = [
   /* ========== Layout ========== */
   main{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,3.5rem)}
   .sec{margin:clamp(3.5rem,7vw,6rem) 0 0}
+  /* Der letzte Abschnitt braucht Luft nach unten, sonst stoesst die Karte
+     unmittelbar an die Oberkante des Fusses. */
+  .sec--last{padding-bottom:clamp(3.5rem,7vw,6rem)}
   .sec__head{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.5rem}
   .sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:var(--ls-5);white-space:nowrap}
   .sec__head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
@@ -377,6 +381,13 @@ const tools = [
       </div>
       <div class="fresh__media" style={`background-image:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
     </a>
+  </section>
+
+  <!-- DISCORD — letzter Abschnitt: wer bis hierher gescrollt hat, hat die
+       Werkzeuge gesehen und weiss, worueber er dort reden wuerde. -->
+  <section class="sec sec--last reveal">
+    <div class="sec__head"><h2>Discord</h2><span class="rule"></span></div>
+    <DiscordCard lang="en" />
   </section>
 </main>
 

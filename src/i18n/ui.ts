@@ -93,6 +93,7 @@ const UI = {
     'nav.deck.sub.topics': 'Themen-Verzeichnis',
     'nav.deck.sub.evolution': 'Systeme × Patches',
     'nav.deck.sub.feedback': 'Ideen & Fehler melden',
+    'nav.deck.sub.discord': 'Werkstatt hinter der Seite',
     'nav.deck.sub.support': 'Server & Domain mitfinanzieren',
     'nav.deck.sub.account': 'Favoriten & Profil',
     'nav.deck.hint.nav': 'Navigieren',
@@ -145,6 +146,7 @@ const UI = {
     'footer.imprint': 'Impressum',
     'footer.privacy': 'Datenschutz',
     'footer.feedback': 'Feedback',
+    'footer.discord': 'Discord',
     'footer.support': 'Unterstützen',
     'footer.disclaimer':
       'Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC & Ltd. Keine Verbindung zu oder Förderung durch Cloud Imperium Games. Wiki-Inhalte von starcitizen.tools stehen unter CC-BY-SA 4.0; eingebettete Trailer und Standbilder © Cloud Imperium Games (Fan-Content-Nutzung).',
@@ -473,6 +475,7 @@ const UI = {
     'nav.deck.sub.topics': 'Topic directory',
     'nav.deck.sub.evolution': 'Systems × patches',
     'nav.deck.sub.feedback': 'Ideas & bug reports',
+    'nav.deck.sub.discord': 'The workshop behind the site',
     'nav.deck.sub.support': 'Help pay for server & domain',
     'nav.deck.sub.account': 'Favourites & profile',
     'nav.deck.hint.nav': 'Navigate',
@@ -525,6 +528,7 @@ const UI = {
     'footer.imprint': 'Legal Notice',
     'footer.privacy': 'Privacy',
     'footer.feedback': 'Feedback',
+    'footer.discord': 'Discord',
     'footer.support': 'Support',
     'footer.disclaimer':
       'Unofficial fan project for documentation purposes. Star Citizen® and all related marks are property of Cloud Imperium Rights LLC & Ltd. Not affiliated with or endorsed by Cloud Imperium Games. Wiki content from starcitizen.tools is licensed under CC-BY-SA 4.0; embedded trailers and stills © Cloud Imperium Games (fan-content use).',
