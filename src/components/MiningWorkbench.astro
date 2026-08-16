@@ -170,6 +170,25 @@ const groups = METHOD_ORDER.map((id) => {
   return { id, label: GRP_LBL[id][lang], gear: GRP_GEAR[id], total: mine.length, bands, solo };
 }).filter((g) => g.total);
 
+/* Bricht den Build ab, statt ein Mineral still aus der Liste fallen zu lassen.
+   METHOD_ORDER ist eine feste Dreierliste; kaeme aus den Spieldaten je ein
+   vierter Wert (etwa `harvest`), stuenden die betroffenen Erze in KEINER
+   Gruppe — die Seite saehe heil aus und waere unvollstaendig. Genau diese
+   Bauart hat das Projekt schon zweimal Erze gekostet. Vorbild:
+   assertMiningLangParity() weiter unten. */
+function assertEveryMineralGrouped(): void {
+  const placed = new Set(groups.flatMap((g) => g.bands.flatMap((b) => b.items.map((m) => m.name))));
+  const lost = minerals.filter((m) => !placed.has(m.name));
+  if (lost.length) {
+    throw new Error(
+      `MiningWorkbench: ${lost.length} Mineral(e) in keiner Abbauart-Gruppe — ` +
+        lost.map((m) => `${m.name} (methods: ${methodsOf(m).join(',') || 'keine'})`).join('; ') +
+        `. Bekannte Gruppen: ${METHOD_ORDER.join(', ')}.`
+    );
+  }
+}
+assertEveryMineralGrouped();
+
 /* Die zweite Fassung haengte `ships.slice(0,3)` an JEDES Erz — Prospector,
    MOLE und Golem standen also auch unter den elf Erzen, die sich gar nicht
    per Schiff abbauen lassen. Die Daten kennen vier Methoden: ship (26),
