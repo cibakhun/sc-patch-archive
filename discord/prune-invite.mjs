@@ -52,8 +52,11 @@ const CODE = val('--code');
 const DELETE = argv.includes('--delete');
 const SITE = siteInviteCode();
 
-// Snowflake -> Datum (dieselbe Rechnung wie in audit.mjs)
-const stamp = (id) => new Date(Number((BigInt(id) >> 22n) + 1420070400000n)).toISOString().slice(0, 10);
+// ⚠ Einladungen haben KEINE Snowflake-ID — anders als Kanaele, Rollen und
+// Nachrichten, wo audit.mjs das Datum aus der ID rechnet. Ihr Bezeichner ist
+// der Code selbst, und das Anlegedatum kommt als eigenes Feld. Der erste
+// Trockenlauf ist genau daran gestorben (BigInt(undefined)).
+const stamp = (inv) => (inv.createdAt ? inv.createdAt.toISOString().slice(0, 10) : '—');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 await client.login(process.env.DISCORD_TOKEN);
@@ -78,7 +81,7 @@ for (const i of invites.values()) {
   console.log(`  ${i.code}`);
   console.log(`    Ersteller  ${i.inviter?.username ?? '—'}${i.inviter?.bot ? ' (Bot/App)' : ''}`);
   console.log(`    Ziel       #${i.channel?.name ?? '?'}`);
-  console.log(`    Angelegt   ${stamp(i.id)} · ${i.uses} Nutzung(en)`);
+  console.log(`    Angelegt   ${stamp(i)} · ${i.uses} Nutzung(en)`);
   console.log(`    ${marks.join(' · ')}`);
 }
 
