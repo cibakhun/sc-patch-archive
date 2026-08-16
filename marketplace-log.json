@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 260,
-  "totalListings": 6182,
-  "totalSold": 268,
+  "updates": 261,
+  "totalListings": 6185,
+  "totalSold": 269,
   "distinctItems": 1180
  },
  "listings": {
@@ -121364,9 +121364,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 1000000,
    "dateAdded": 1786692564,
    "dateExpiration": 1791876564
   },
@@ -131794,6 +131794,10 @@
     {
      "d": "2026-08-16",
      "p": 12000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 11000000
     }
    ],
    "soldOut": false,
@@ -132011,6 +132015,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786845937,
    "dateExpiration": 1792029937
+  },
+  "162981": {
+   "idItem": 3858,
+   "idCategory": 3,
+   "title": "G-2 Helmet Executive",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786851334,
+   "dateExpiration": 1792035334
+  },
+  "162982": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Shattered Vanduul Lance Display",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786851336,
+   "dateExpiration": 1792035335
+  },
+  "162983": {
+   "idItem": 2343,
+   "idCategory": 3,
+   "title": "Sangar Helmet Grey/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786851759,
+   "dateExpiration": 1792035759
   }
  }
 }
