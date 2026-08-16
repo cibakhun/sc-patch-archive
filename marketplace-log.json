@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 257,
-  "totalListings": 6143,
-  "totalSold": 263,
+  "updates": 258,
+  "totalListings": 6144,
+  "totalSold": 267,
   "distinctItems": 1180
  },
  "listings": {
@@ -119430,7 +119430,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-13",
-   "lastSeen": "2026-08-15",
+   "lastSeen": "2026-08-16",
    "prices": [
     {
      "d": "2026-08-13",
@@ -119451,7 +119451,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-13",
-   "lastSeen": "2026-08-15",
+   "lastSeen": "2026-08-16",
    "prices": [
     {
      "d": "2026-08-13",
@@ -119472,7 +119472,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-13",
-   "lastSeen": "2026-08-15",
+   "lastSeen": "2026-08-16",
    "prices": [
     {
      "d": "2026-08-13",
@@ -120199,6 +120199,10 @@
     {
      "d": "2026-08-14",
      "p": 4900000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -125540,9 +125544,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 500000,
    "dateAdded": 1786758855,
    "dateExpiration": 1791942855
   },
@@ -125624,9 +125628,9 @@
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 400000,
    "dateAdded": 1786759128,
    "dateExpiration": 1791943128
   },
@@ -125834,9 +125838,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 500000,
    "dateAdded": 1786760061,
    "dateExpiration": 1791944061
   },
@@ -125855,9 +125859,9 @@
      "p": 750000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 750000,
    "dateAdded": 1786760202,
    "dateExpiration": 1791944202
   },
@@ -131184,6 +131188,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786836448,
    "dateExpiration": 1792020448
+  },
+  "162947": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 955 (0.81 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 955,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786839950,
+   "dateExpiration": 1792023950
   }
  }
 }
