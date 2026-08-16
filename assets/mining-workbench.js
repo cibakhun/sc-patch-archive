@@ -1330,15 +1330,24 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       var doc = popDoc;
       popDoc = null;
       win = null;
+      if (doc) {
+        for (var i = 0; i < DELEGATED.length; i++) {
+          try { doc.removeEventListener(DELEGATED[i][0], DELEGATED[i][1]); } catch (e) { /* egal */ }
+        }
+      }
+      /* ⚠ Das Zurueckhaengen haengt AUSDRUECKLICH nicht daran, ob popDoc stand.
+         adoptNode() loest den Knoten aus diesem Dokument, BEVOR er drueben
+         haengt — schlaegt das Anhaengen dazwischen fehl, ist er nirgends, und
+         eine Wiederherstellung, die erst ein bekanntes Fremddokument verlangt,
+         kaeme genau dann nicht mehr zum Zug. Gefragt wird deshalb der Knoten
+         selbst, nicht der Merkzettel ueber ihn.
+         Ans Ende der Spalte — dort stand er vorher, hinter Knopf und
+         Platzhalter. */
+      if (body.parentNode !== pane) {
+        try { pane.appendChild(document.adoptNode(body)); } catch (e) { /* egal */ }
+      }
       btn.hidden = false;
       slot.hidden = true;
-      if (!doc) return;
-      for (var i = 0; i < DELEGATED.length; i++) {
-        try { doc.removeEventListener(DELEGATED[i][0], DELEGATED[i][1]); } catch (e) { /* egal */ }
-      }
-      /* Ans Ende der Spalte — dort stand der Knoten vorher, hinter Knopf und
-         Platzhalter. */
-      try { pane.appendChild(document.adoptNode(body)); } catch (e) { /* egal */ }
       renderAll();
     }
 
