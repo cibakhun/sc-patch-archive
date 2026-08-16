@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 259,
-  "totalListings": 6151,
+  "updates": 260,
+  "totalListings": 6182,
   "totalSold": 268,
   "distinctItems": 1180
  },
@@ -128539,7 +128539,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-15",
-   "lastSeen": "2026-08-15",
+   "lastSeen": "2026-08-16",
    "prices": [
     {
      "d": "2026-08-15",
@@ -129703,6 +129703,10 @@
     {
      "d": "2026-08-15",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -130908,6 +130912,27 @@
    "dateAdded": 1786829075,
    "dateExpiration": 1792013075
   },
+  "162908": {
+   "idItem": 46,
+   "idCategory": 32,
+   "title": "WTB NDB-26 Repeater",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786829330,
+   "dateExpiration": 1792013330
+  },
   "162909": {
    "idItem": 7204,
    "idCategory": 18,
@@ -130921,6 +130946,27 @@
     {
      "d": "2026-08-15",
      "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786829527,
+   "dateExpiration": 1792013527
+  },
+  "162910": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 870",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 8000000
     }
    ],
    "soldOut": false,
@@ -130949,6 +130995,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786829690,
    "dateExpiration": 1792013690
+  },
+  "162912": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786829751,
+   "dateExpiration": 1792013751
+  },
+  "162913": {
+   "idItem": 8013,
+   "idCategory": 7,
+   "title": "Morozov-SH Crusader Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786829761,
+   "dateExpiration": 1792013761
   },
   "162914": {
    "idItem": null,
@@ -131017,6 +131105,27 @@
    "dateAdded": 1786829900,
    "dateExpiration": 1792013900
   },
+  "162917": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786829952,
+   "dateExpiration": 1792013952
+  },
   "162918": {
    "idItem": 2620,
    "idCategory": 18,
@@ -131063,6 +131172,48 @@
    "dateAdded": 1786830430,
    "dateExpiration": 1792014430
   },
+  "162920": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 881,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 36900
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786831117,
+   "dateExpiration": 1792015117
+  },
+  "162921": {
+   "idItem": 4464,
+   "idCategory": 3,
+   "title": "ADP-mk4 Helmet Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786831252,
+   "dateExpiration": 1792015252
+  },
   "162922": {
    "idItem": 5918,
    "idCategory": 36,
@@ -131104,6 +131255,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786833158,
    "dateExpiration": 1792017158
+  },
+  "162925": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 275000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786833554,
+   "dateExpiration": 1792017554
   },
   "162926": {
    "idItem": 5846,
@@ -131147,6 +131319,48 @@
    "dateAdded": 1786834774,
    "dateExpiration": 1792018774
   },
+  "162928": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786835053,
+   "dateExpiration": 1792019053
+  },
+  "162930": {
+   "idItem": 4272,
+   "idCategory": 5,
+   "title": "ORC mkx core xenothreat",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786836360,
+   "dateExpiration": 1792020360
+  },
   "162931": {
    "idItem": 1915,
    "idCategory": 32,
@@ -131189,6 +131403,258 @@
    "dateAdded": 1786836448,
    "dateExpiration": 1792020448
   },
+  "162933": {
+   "idItem": 2616,
+   "idCategory": 18,
+   "title": "Scourge \"Nightstalker\" Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786836513,
+   "dateExpiration": 1792020513
+  },
+  "162935": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 976,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786836777,
+   "dateExpiration": 1792020777
+  },
+  "162936": {
+   "idItem": 3927,
+   "idCategory": 4,
+   "title": "Morozov-SH legs Crusader Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786836786,
+   "dateExpiration": 1792020786
+  },
+  "162937": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "WTS MG Scrip QTY 1800",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786836991,
+   "dateExpiration": 1792020991
+  },
+  "162938": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase Q743 - 6.761 SCU - Orbituary",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 743,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786837039,
+   "dateExpiration": 1792021039
+  },
+  "162939": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786837108,
+   "dateExpiration": 1792021108
+  },
+  "162940": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786837268,
+   "dateExpiration": 1792021268
+  },
+  "162941": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase q903",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 903,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786837387,
+   "dateExpiration": 1792021387
+  },
+  "162942": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron Q874 - 1.329 SCU - Orbituary",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786837479,
+   "dateExpiration": 1792021479
+  },
+  "162943": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite Q743 - 0.890 SCU - Orbituary",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 743,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786837575,
+   "dateExpiration": 1792021574
+  },
+  "162944": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Renting out My Personal M2",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 280000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786838001,
+   "dateExpiration": 1792022000
+  },
+  "162946": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Gatac Railen",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786839790,
+   "dateExpiration": 1792023790
+  },
   "162947": {
    "idItem": 5865,
    "idCategory": 36,
@@ -131209,6 +131675,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786839950,
    "dateExpiration": 1792023950
+  },
+  "162948": {
+   "idItem": 4613,
+   "idCategory": 111,
+   "title": "DCHS-05 comp board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786840324,
+   "dateExpiration": 1792024324
+  },
+  "162949": {
+   "idItem": 4610,
+   "idCategory": 111,
+   "title": "DCHS-06 Comp Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786840493,
+   "dateExpiration": 1792024493
+  },
+  "162950": {
+   "idItem": 4610,
+   "idCategory": 61,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786840512,
+   "dateExpiration": 1792024512
   },
   "162952": {
    "idItem": 1748,
@@ -131294,6 +131823,48 @@
    "dateAdded": 1786842549,
    "dateExpiration": 1792026549
   },
+  "162959": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786842819,
+   "dateExpiration": 1792026819
+  },
+  "162960": {
+   "idItem": 4744,
+   "idCategory": 87,
+   "title": "898Q JANALITE",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 898,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 475000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786843916,
+   "dateExpiration": 1792027916
+  },
   "162961": {
    "idItem": 5012,
    "idCategory": 38,
@@ -131314,6 +131885,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786844304,
    "dateExpiration": 1792028304
+  },
+  "162962": {
+   "idItem": 5980,
+   "idCategory": 36,
+   "title": "Taranite .72SCU Q925",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 925,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786844386,
+   "dateExpiration": 1792028386
   },
   "162963": {
    "idItem": 159,
@@ -131356,6 +131948,69 @@
    "soldOutPrice": null,
    "dateAdded": 1786844630,
    "dateExpiration": 1792028630
+  },
+  "162965": {
+   "idItem": 4609,
+   "idCategory": 38,
+   "title": "DCHS-02 Security Encryption Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786845008,
+   "dateExpiration": 1792029008
+  },
+  "162967": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 959Q/909Q/880Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 909,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786845340,
+   "dateExpiration": 1792029340
+  },
+  "162971": {
+   "idItem": 4608,
+   "idCategory": 38,
+   "title": "DCHS-01 Executive Access Protocols Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 820000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786845937,
+   "dateExpiration": 1792029937
   }
  }
 }
