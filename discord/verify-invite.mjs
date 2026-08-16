@@ -23,34 +23,20 @@
      ein Netzausfall darf keinen Deploy reissen (dieselbe Lehre wie bei den
      UEX-Strecken, die aus CI grundsaetzlich nicht erreichbar sind).
    ============================================================ */
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-
-// Der Server, auf den die Einladung zeigen MUSS. Faellt sie auf einen anderen
-// Server, ist das kein Schoenheitsfehler, sondern ein Fremdlink im Fuss jeder
-// Seite — deshalb Exit 1 und nicht nur ein Hinweis.
-const GUILD_ID = '1528576072638271518';
-const GUILD_NAME = 'Verse-Base';
+import { siteInviteCode, GUILD_ID, GUILD_NAME } from './site-invite.mjs';
 
 const argv = process.argv.slice(2);
 const flag = (n) => argv.indexOf(n) >= 0;
 const value = (n) => (argv.indexOf(n) >= 0 ? argv[argv.indexOf(n) + 1] : null);
 
-/* ---------- Code aus der einen Quelle holen ---------- */
-// Bewusst per Regex statt per Import: consts.ts ist TypeScript, und dieses
-// Skript soll ohne Bauschritt aus dem discord/-Verzeichnis laufen.
 function codeAusConsts() {
-  const src = readFileSync(resolve(ROOT, 'src/consts.ts'), 'utf8');
-  const m = src.match(/invite:\s*'https:\/\/discord\.gg\/([A-Za-z0-9-]+)'/);
-  if (!m) {
+  const c = siteInviteCode();
+  if (!c) {
     console.error('FEHLER  src/consts.ts enthaelt kein DISCORD.invite in der erwarteten Form.');
     console.error('        Erwartet: invite: \'https://discord.gg/<code>\'');
     process.exit(2);
   }
-  return m[1];
+  return c;
 }
 
 const gegenprobe = flag('--gegenprobe');
@@ -100,11 +86,32 @@ if (inv.expires_at) {
   fehler.push(`laeuft ab am ${inv.expires_at} — der Link auf der Website muss permanent sein`);
 }
 
-console.log(`\n  Server   ${inv.guild?.name}`);
-console.log(`  Kanal    #${inv.channel?.name}`);
-console.log(`  Ablauf   ${inv.expires_at ?? 'nie (permanent)'}`);
+console.log(`\n  Server     ${inv.guild?.name}`);
+console.log(`  Kanal      #${inv.channel?.name}`);
+console.log(`  Ablauf     ${inv.expires_at ?? 'nie (permanent)'}`);
 if (typeof inv.approximate_member_count === 'number') {
   console.log(`  Mitglieder ${inv.approximate_member_count}`);
+}
+
+/* ---------- Was der Besucher tatsaechlich liest ---------- */
+// Discord setzt ueber den Beitritts-Dialog „<Ersteller> hat dich eingeladen".
+// Der Name ist NICHT aenderbar — er gehoert zur Einladung. Steht dort etwas
+// Fremdes (eine geloeschte Test-App, ein Bot), liest das jeder, der von der
+// Website kommt. Kein Exit 1: der Link funktioniert ja — aber es gehoert
+// sichtbar in den Bericht, weil man es sonst nie bemerkt.
+const inviter = inv.inviter;
+if (inviter) {
+  console.log(`\n  Beitritts-Dialog zeigt: „${inviter.username} hat dich eingeladen"`);
+  if (inviter.bot) {
+    console.log(`  HINWEIS  Der Ersteller ist ein Bot bzw. eine Application.`);
+    console.log(`           Aendern geht nur, indem ein Mensch eine NEUE Einladung anlegt`);
+    console.log(`           (Discord-Client: Rechtsklick auf #welcome -> Einladung, „Nie"`);
+    console.log(`           ablaufen, unbegrenzte Nutzungen), deren Code in src/consts.ts`);
+    console.log(`           eintraegt und die alte danach zurueckzieht:`);
+    console.log(`           node prune-invite.mjs --code ${code} --delete`);
+  }
+} else {
+  console.log('\n  Ersteller  unbekannt (Discord liefert keinen)');
 }
 
 if (fehler.length) {

@@ -14,7 +14,8 @@
     "announce": "node announce-milestone.mjs",
     "audit": "node audit.mjs",
     "prune": "node prune.mjs",
-    "verify:invite": "node verify-invite.mjs"
+    "verify:invite": "node verify-invite.mjs",
+    "prune:invite": "node prune-invite.mjs"
   },
   "engines": {
     "node": ">=20.6"

@@ -20,6 +20,7 @@ import * as bp from './blueprint.mjs';
 // and cross-check no-XP channels against what the always-on bot actually uses.
 import { RANKS, PRESTIGE, rankRoleName, rankPermissions, TRUSTED_PERMS } from './bot/src/ranks.mjs';
 import { DEFAULT_CONFIG } from './bot/src/config.mjs';
+import { siteInviteCode } from './site-invite.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VALIDATE = process.argv.includes('--validate');
@@ -625,16 +626,48 @@ async function build() {
   // ── Permanent invite ───────────────────────────────────────────────────────
   // Invites created by hand expire (30 days by default), which quietly breaks any
   // link on the website. Keep exactly one never-expiring invite alive.
+  //
+  // THE CODE THE WEBSITE LINKS IS THE ONE THAT MATTERS. This step used to accept
+  // *any* permanent invite as "already live" — so if the site's invite had been
+  // revoked and some other permanent one existed, the build reported green while
+  // the link in every page footer pointed nowhere. It now checks for the exact
+  // code from src/consts.ts (see site-invite.mjs) and says so when it is gone.
+  //
+  // It also lists extra permanent invites: more than one is how you end up with
+  // an old invite still naming a deleted application as the inviter.
   step('Invite');
   if (bp.guild.inviteChannel && channelId[bp.guild.inviteChannel]) {
     try {
       const existing = await guild.invites.fetch();
-      const permanent = [...existing.values()].find((i) => i.maxAge === 0 && i.maxUses === 0);
-      if (permanent) ok(`permanent invite already live: https://discord.gg/${permanent.code} (→ #${permanent.channel?.name})`);
-      else {
+      const permanents = [...existing.values()].filter((i) => i.maxAge === 0 && i.maxUses === 0);
+      const wanted = siteInviteCode();
+      const onSite = wanted ? permanents.find((i) => i.code === wanted) : null;
+
+      if (onSite) {
+        ok(`website invite live: https://discord.gg/${onSite.code} (→ #${onSite.channel?.name}, by ${onSite.inviter?.username ?? '?'})`);
+      } else if (wanted && permanents.length) {
+        warn(
+          `the invite the website links (${wanted}) does NOT exist — the link in every page footer is dead. ` +
+          `Permanent invites that DO exist: ${permanents.map((i) => `${i.code} (by ${i.inviter?.username ?? '?'})`).join(', ')}. ` +
+          `Point DISCORD.invite in src/consts.ts at one of them, or create a fresh one.`
+        );
+      } else if (!permanents.length) {
         const ch = guild.channels.cache.get(channelId[bp.guild.inviteChannel]);
         const inv = await ch.createInvite({ maxAge: 0, maxUses: 0, unique: false, reason: 'VerseBase permanent invite' });
-        add(`permanent invite created: https://discord.gg/${inv.code} (→ #${ch.name})`);
+        add(`permanent invite created: https://discord.gg/${inv.code} (→ #${ch.name}) — put this code into DISCORD.invite in src/consts.ts`);
+      } else {
+        ok(`permanent invite live: https://discord.gg/${permanents[0].code} (→ #${permanents[0].channel?.name})`);
+      }
+
+      // Jede Einladung zeigt dem Beitretenden den Namen ihres ERSTELLERS
+      // („X hat dich eingeladen"). Zusaetzliche permanente Einladungen sind
+      // deshalb nicht nur Unordnung — sie tragen fremde Namen nach aussen.
+      const extra = permanents.filter((i) => i.code !== (onSite?.code ?? permanents[0]?.code));
+      if (extra.length) {
+        warn(
+          `${extra.length} further permanent invite(s) exist: ${extra.map((i) => `${i.code} (by ${i.inviter?.username ?? '?'})`).join(', ')}. ` +
+          `Anyone using them sees that inviter's name on the join screen. Remove with: node prune-invite.mjs --code <code> --delete`
+        );
       }
     } catch (e) { warn(`invite step skipped: ${e.message}`); }
   }
