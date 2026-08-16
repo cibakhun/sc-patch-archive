@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 268,
-  "totalListings": 6401,
+  "updates": 269,
+  "totalListings": 6407,
   "totalSold": 276,
   "distinctItems": 1197
  },
@@ -128605,6 +128605,10 @@
     {
      "d": "2026-08-15",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -134428,6 +134432,10 @@
     {
      "d": "2026-08-16",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -136682,6 +136690,132 @@
    "soldOutPrice": null,
    "dateAdded": 1786894800,
    "dateExpiration": 1792078800
+  },
+  "163211": {
+   "idItem": 4987,
+   "idCategory": 7,
+   "title": "Corbel Halcyon Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786895216,
+   "dateExpiration": 1792079216
+  },
+  "163214": {
+   "idItem": 5808,
+   "idCategory": 5,
+   "title": "Sol-III Core Bombardier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786895420,
+   "dateExpiration": 1792079420
+  },
+  "163215": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 13500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786895983,
+   "dateExpiration": 1792079982
+  },
+  "163219": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786896785,
+   "dateExpiration": 1792080785
+  },
+  "163221": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 950 Quality PLUS ONLY",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786897229,
+   "dateExpiration": 1792081229
+  },
+  "163231": {
+   "idItem": 4392,
+   "idCategory": 61,
+   "title": "WTS Tundra Kopion Horn",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 10000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786898663,
+   "dateExpiration": 1792082663
   }
  }
 }
