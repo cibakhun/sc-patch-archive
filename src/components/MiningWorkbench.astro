@@ -1466,8 +1466,21 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pre-ent{display:flex;align-items:center;gap:6px;font-size:var(--fs-3);
   color:color-mix(in srgb,var(--muted) 92%,transparent);padding:2px 4px}
 .wb__pre-ent span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__pre-ent button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
+.wb__pre-ent button{margin-left:auto;position:relative;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
   cursor:pointer;font-size:var(--fs-6);line-height:1;padding:0 2px}
+/* Dasselbe zu kleine Kreuz (12,4 x 14,4 px) wie in der Merkliste daneben,
+   deshalb dasselbe Mittel -- aber senkrecht deutlich zurueckhaltender, und
+   das ist hier die eigentliche Entscheidung. Die Eintraege stehen dicht:
+   19,2 px Zeile, 2 px Abstand, zwischen den Kreuzen zweier Nachbarzeilen
+   liegen gemessen 6,8 px. Schon -3px stiessen die beiden Ziele bueendig
+   aneinander -- dann loescht ein knapp danebengegangener Klick den FALSCHEN
+   Eintrag, still. -2px laesst ein schmales totes Band (2,8 px) dazwischen:
+   dort passiert nichts, und nichts ist bei einer loeschenden Schaltflaeche
+   das bessere Ergebnis als das Falsche. Die Merkliste darf sich die vollen
+   24 px nehmen, weil die Alternative dort nicht "falscher Eintrag geloescht"
+   heisst, sondern "Fundort geht auf". Waagerecht begrenzt der Koerperrand
+   (4 px), dort gibt es keinen Nachbarn. */
+.wb__pre-ent button::before{content:'';position:absolute;inset:-2px -4px}
 
 .wb__pin-item{padding:7px 9px;margin:0 6px 3px;border-radius:8px;
   background:color-mix(in srgb,var(--ink) 22%,transparent)}
@@ -1481,8 +1494,22 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pin-item[data-loc]:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
 .wb__pin-top{display:flex;align-items:center;gap:7px}
 .wb__pin-top .nm{font-size:var(--fs-5);font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wb__pin-top button{margin-left:auto;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
+.wb__pin-top button{margin-left:auto;position:relative;background:0;border:0;color:color-mix(in srgb,var(--muted) 80%,transparent);
   cursor:pointer;font-size:var(--fs-6);line-height:1;padding:0 2px}
+/* Vergroessertes Tippziel, dieselbe Loesung wie bei .wb__pin::before -- hier
+   aber kein Feinschliff, sondern die Behebung eines gemeldeten Fehlers
+   (Betreiber, 16.08.2026: „das Kreuz funktioniert nicht, der Fundort oeffnet
+   sich"). Gemessen misst das Kreuz 12,4 x 14,4 px, die Zeile darum 268 x
+   48,8 px. Seit Phase 12 (D-03) traegt die Merklistenzeile data-loc, ein
+   Fehlgriff NEBEN das Kreuz oeffnet also den Fundort: von 49 Rasterpunkten
+   im +/-18-px-Umfeld trafen nur 9 das Kreuz, 27 oeffneten den Fundort --
+   schon 6 px ueber oder unter der Mitte. In der Signaturenliste faellt
+   derselbe Fehlgriff nicht auf, weil die Zeile dort KEINE eigene Wirkung
+   hat; daher der Eindruck „bei den Signaturen geht es, bei den Orten nicht".
+   -5px/-6px heben das Ziel auf 24,4 x 24,4 px (WCAG 2.2, 2.5.8 Zielgroesse).
+   Mehr geht nicht: 3,6 px unter dem Kreuz beginnt die Wertezeile .wb__lmeta,
+   links schliesst der Name buendig an (.wb__pin-top{gap:7px}). */
+.wb__pin-top button::before{content:'';position:absolute;inset:-5px -6px}
 /* Wertezeile der Fundort-Merkliste (O-3): System links, Chance/Hoechstanteil
    rechts -- gebaut wie .wb__row2 .s und .wb__row2 em (Mono-Ziffern, gedaempfte
    Farbe), damit beide Ansichten derselben Werte gleich aussehen. Kein neuer
