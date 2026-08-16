@@ -689,7 +689,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
         `hidden` am <label>, nicht am <select>: sonst bliebe die
         Beschriftung „Station" allein stehen. */}
     <label class="wb__rgrp" hidden><span class="wb__lbl" set:text={S.station} />
-      <select class="wb__sel" id="wb-ref" data-help={hlp('station')}>{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
+      {/* ⚠ KEIN data-help mehr: eine Erklaerung fuer ein Bedienelement, das
+          niemand sieht, ist keine Hilfe, sondern ein Eintrag im
+          Elemente-Modus, der auf nichts zeigt. Der Schluessel
+          mining.ctl.station ist mit entfallen — Zusicherung 7 in
+          verify-help.mjs haelt beides zusammen. */}
+      <select class="wb__sel" id="wb-ref">{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
     </label>
     <a class="wb__frac" id="wb-frac" href={fracturingPath} data-help={hlp('fracturing')}>
       <span class="wb__frac__ico" aria-hidden="true">

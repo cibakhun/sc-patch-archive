@@ -406,27 +406,31 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
        niemand. Sie ist jetzt markiert, und faellt sie aus den besten vier,
        bekommt sie eine eigene Zeile. Kennt das Ertragsprofil das Erz gar
        nicht, sagt die Zeile das ausdruecklich statt zu verschwinden. */
+    /* ⚠ OHNE „deine Wahl" seit 16.08.2026. Die Markierung hing an S.ref, und
+       S.ref kam aus der Stationswahl in der Fusszeile — die ist auf Ansage
+       verborgen worden. Eine Zeile als „deine Wahl" auszuzeichnen, wenn
+       niemand mehr waehlen kann, behauptet eine Entscheidung, die der Nutzer
+       nie getroffen hat: bei jedem neuen Besucher waere es einfach die erste
+       Station der Liste gewesen. Mit ihr entfallen die beiden Sonderzeilen
+       (die gewaehlte Station ausserhalb der besten vier bzw. eine, die das
+       Ertragsprofil gar nicht kennt) — beide gab es nur ihretwegen.
+       Geblieben ist die reine Rangliste: die besten vier und die
+       schlechteste. Der Vorbehalt `worst.i !== S.ref` faellt damit
+       ebenfalls weg, er schuetzte nur vor einer doppelten Markierung.
+       ⚠ S.ref selbst bleibt bestehen (Laden, Speichern, das verborgene
+       <select>) — auf Ansage. Es hat damit aber KEINEN Leser mehr; wer die
+       Stationswahl endgueltig ausbaut, kann es mit entfernen. */
     var ranked = rankRefineries(m.name);
-    var chosen = D.refineries[S.ref];
     if (!ranked.length) {
       $('wb-refs').innerHTML = '<p class="wb__empty">' + esc(T.none) + '</p>';
     } else {
-      var best = ranked.slice(0, 4), worst = ranked[ranked.length - 1];
+      var worst = ranked[ranked.length - 1];
       var maxAbs = Math.max(Math.abs(ranked[0].y), Math.abs(worst.y), 1);
-      var picked = null;
-      for (var pi = 0; pi < ranked.length; pi++) if (ranked[pi].i === S.ref) picked = ranked[pi];
-      var html = best.map(function (r) {
-        var mine = r.i === S.ref;
-        return row2(r.n, r.s + ' · ' + (mine ? T.yourPick : T.yieldMod),
-          Math.abs(r.y) / maxAbs * 100, (r.y > 0 ? '+' : '') + r.y + ' %', r.y >= 0, mine);
+      var html = ranked.slice(0, 4).map(function (r) {
+        return row2(r.n, r.s + ' · ' + T.yieldMod,
+          Math.abs(r.y) / maxAbs * 100, (r.y > 0 ? '+' : '') + r.y + ' %', r.y >= 0, false);
       }).join('');
-      if (picked && best.indexOf(picked) < 0) {
-        html += row2(picked.n, picked.s + ' · ' + T.yourPick, Math.abs(picked.y) / maxAbs * 100,
-          (picked.y > 0 ? '+' : '') + picked.y + ' %', picked.y >= 0, true);
-      } else if (!picked && chosen) {
-        html += row2(chosen.n, chosen.s + ' · ' + T.yourPick, null, T.none, false, true);
-      }
-      if (ranked.length > 4 && worst.i !== S.ref) {
+      if (ranked.length > 4) {
         html += row2(worst.n, worst.s + ' · ' + T.worst, Math.abs(worst.y) / maxAbs * 100,
           (worst.y > 0 ? '+' : '') + worst.y + ' %', false);
       }

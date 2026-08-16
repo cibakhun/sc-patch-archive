@@ -6,7 +6,8 @@
    als eigenstaendiges Werkzeug im Repository (`npm run verify:help`),
    absichtlich NICHT in `npm run build` eingehaengt.
 
-   Sechs Zusicherungen, jede mit Soll/Ist-Zeile:
+   Acht Zusicherungen, jede mit Soll/Ist-Zeile (7 und 8 seit 16.08.2026 —
+   sie halten Hilfetext und Bestand zusammen, s. ihren Block unten):
 
      1  Kostenfreiheit vor dem Oeffnen (DOC-06, D-11). Liest
         dist/assets/tool-help.js, findet die Marken
@@ -285,6 +286,72 @@ console.log('\n[6] Element-Hilfe je WERKZEUG (WR-05): jedes data-tool-id verlang
     `    Gepruefte Werkzeug-Vorkommen: ${checked}   ohne eigenen Anker: ${withoutAnchor}   ` +
       `mit leerem Wert: ${withEmptyValue}   Soll: 0 / 0`
   );
+}
+
+/* ---- Zusicherungen 7 und 8: der Hilfetext beschreibt, was es GIBT ----
+   Anlass (16.08.2026): der Betreiber fand einen Hilfesatz, der eine Zahlung
+   versprach, die es nicht gibt („the stations that pay best" — die Rangliste
+   zeigt ± % Raffinerie-Ertrag), und eine Vorzeile, die vier Tage lang Physik
+   und Gesteinsarten nannte, obwohl beide auf eine andere Seite gezogen sind.
+   Kein Tor sah das. Diese beiden hier sehen es AUCH NICHT — inhaltliche
+   Richtigkeit ist maschinell nicht zu haben, und das soll hier offen stehen
+   statt hinter einem gruenen Haken zu verschwinden.
+   Was sie sehr wohl fangen, ist die haerteste Form desselben Zerfalls:
+   Hilfe, die ins Leere zeigt. Genau das ist hier schon einmal passiert und
+   steht in .planning/notes/mining-werkbank-defekte.md als Befund 8 — neun
+   `mining.ctl.*` fuer Knoepfe, die der Werkbank-Umbau entfernt hatte.
+
+   ⚠ Was hier BEWUSST NICHT geprueft wird: ob der Anker auf einem verborgenen
+   Element sitzt. Gemessen am 16.08.2026 traefe das 18 Anker — davon sind 16
+   der kontogebundene Refinery-Tracker, dessen Felder serverseitig `hidden`
+   stehen und erst nach der Anmeldung per JS aufgehen. Ein Tor mit 89 %
+   Fehlalarm ist schlechter als keins; „verborgen beim Bauen" heisst auf
+   dieser Seite regelmaessig „wird spaeter eingeblendet". */
+{
+  const HELP_SRC = 'src/i18n/help.ts';
+  const src = readFileSync(HELP_SRC, 'utf8');
+  /* ⚠ Astro schreibt " als &#34;, NICHT als &quot;. Ohne die Zahlen-Entitaeten
+     meldete ein erster Anlauf mining.ctl.shortlist als verwaist, obwohl der
+     Anker danebenstand — der Pruefer war falsch, nicht der Bestand. */
+  const unesc = (s) => s
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+  const entries = (re) => {
+    const out = [];
+    for (const m of src.matchAll(re)) out.push({ key: m[1], text: m[2].replace(/\\'/g, "'") });
+    return out;
+  };
+
+  /* ---- 7: jeder *.ctl.*-Schluessel hat einen Anker im Bestand ---- */
+  console.log('\n[7] Element-Hilfe zeigt auf etwas: jeder *.ctl.*-Schluessel braucht >=1 data-help-Anker in dist/');
+  const ctlKeys = entries(/'([a-z0-9]+\.ctl\.[A-Za-z0-9]+)'\s*:\s*'((?:[^'\\]|\\.)*)'/g);
+  const anchored = new Set();
+  for (const f of htmlFiles) {
+    const html = htmlCache.get(f);
+    if (!html.includes('data-help=')) continue;
+    for (const m of html.matchAll(/data-help="([^"]*)"/g)) anchored.add(unesc(m[1]));
+  }
+  const orphans = ctlKeys.filter((k) => !anchored.has(k.text));
+  for (const o of orphans) fail(`${HELP_SRC}: "${o.key}" beschreibt ein Bedienelement, das es im Bestand nicht gibt`);
+  console.log(`    *.ctl.*-Schluessel: ${ctlKeys.length}   verschiedene Anker: ${anchored.size}   ohne Anker: ${orphans.length}   Soll: 0`);
+
+  /* ---- 8: jeder Schritt-/Zweck-/Titeltext wird auch ausgeliefert ----
+     Faengt die Falle, in die dieser Durchgang selbst zweimal getappt ist:
+     einen `mining.stepN` anlegen und `steps={N}` an ToolHelp zu erhoehen
+     vergessen. Der Schluessel steht dann da und niemand liest ihn je. */
+  console.log('\n[8] Anleitung wird auch ausgeliefert: jeder *.step/purpose/title-Text steht in einer gebauten Seite');
+  const bodyKeys = entries(/'([a-z0-9]+\.(?:step\d+|purpose|title))'\s*:\s*'((?:[^'\\]|\\.)*)'/g);
+  let helpHtml = '';
+  for (const f of htmlFiles) {
+    const html = htmlCache.get(f);
+    if (html.includes('tool-help__')) helpHtml += unesc(html);
+  }
+  const unused = bodyKeys.filter((k) => !helpHtml.includes(k.text));
+  for (const u of unused) fail(`${HELP_SRC}: "${u.key}" wird nirgends ausgeliefert (steps= am ToolHelp zu niedrig?)`);
+  console.log(`    Schritt-/Zweck-/Titeltexte: ${bodyKeys.length}   nicht ausgeliefert: ${unused.length}   Soll: 0`);
 }
 
 console.log(`\nverify-help: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);

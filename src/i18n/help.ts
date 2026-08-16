@@ -101,7 +101,9 @@ export const HELP = {
     'mining.ctl.pins': 'Nachschlagewerk: die angehefteten Erze mit ihrer Signatur mal Clustergröße, zum Vergleichen mit dem, was der Scanner im Spiel nennt.',
     'mining.ctl.presets': 'Benannte Zusammenstellungen — ein Preset hält Signaturen UND Fundorte zugleich: auswählen, umbenennen, mit der aktuellen Auswahl überschreiben oder einzelne Einträge entfernen; Löschen fragt zurück. Mit Konto gespeichert und auf jedem Gerät verfügbar.',
     'mining.ctl.popout': 'Legt diese Spalte in ein eigenes, frei verschiebbares Fenster. In Chrome, Edge und Opera bleibt es über allen anderen Fenstern liegen — auch neben dem laufenden Spiel, sofern das im randlosen Fenstermodus läuft. Andere Browser bekommen ein normales Extrafenster. Schließen legt die Liste zurück in die Spalte.',
-    'mining.ctl.station': 'Die Station, deren Ertrag in der Rangliste hervorgehoben wird.',
+    // 'mining.ctl.station' ist am 16.08.2026 entfallen: die Stationswahl ist
+    // verborgen und die Hervorhebung "deine Wahl" aus der Rangliste genommen.
+    // Der Satz beschrieb damit beides nicht mehr.
     'mining.ctl.fracturing': 'Führt zum Fracturing-Rechner: dort steht, ob der Brocken mit deiner Ausrüstung bricht.',
     'mining.ctl.locpin': 'Die ganze Zeile öffnet diesen Fundort; die Nadel rechts heftet ihn zusätzlich an die Fundort-Merkliste darunter.',
     'mining.ctl.shortlist': 'Die angehefteten Fundorte über alle Erze hinweg, als „Erz — Fundort". Klick öffnet den Fundort, das × löst ihn.',
@@ -304,7 +306,7 @@ export const HELP = {
     'fracturing.ctl.modules': 'Up to three modules, depending on the laser. They change damage and resistance.',
     'fracturing.ctl.gadget': 'A gadget changes the resistance of the rock.',
     'fracturing.ctl.mass': 'The assumed mass of the rock — it sets how much damage is needed.',
-    'mining.ctl.station': 'The station whose yield is highlighted in the ranking.',
+    // 'mining.ctl.station' — s. die deutsche Seite, dort steht der Grund.
     'mining.ctl.locpin': 'The whole row opens this location; the pin on the right additionally pins it to the shortlist below.',
     'mining.ctl.shortlist': 'The pinned locations across every ore, as “Ore — Location”. Click opens the location, the × unpins it.',
 
