@@ -444,7 +444,12 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
     <!-- ========================================= Spalte 1: alle 37 Erze -->
     <div class="wb__pane wb__pane--list chamf">
       <div class="wb__filters">
-        <ToolHelp tool="mining" lang={lang} steps={4} />
+        {/* Seit 16.08.2026 FUENF Schritte: die Spalte laesst sich in ein
+            eigenes Fenster legen, und eine Anleitung, die das verschweigt,
+            beschreibt das Werkzeug nicht mehr vollstaendig. Der Kasten
+            scrollt intern (max-height:min(22vh,140px), s. Stilblock) — der
+            fuenfte Schritt kostet also keine Hoehe, nur Bildlauf. */}
+        <ToolHelp tool="mining" lang={lang} steps={5} />
         <div class="wb__frow">
           <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
           <span class="wb__c" id="wb-count">{minerals.length}</span>

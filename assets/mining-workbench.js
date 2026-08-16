@@ -1341,6 +1341,14 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         host.appendChild(doc.adoptNode(body));
         popDoc = doc;
         for (var i = 0; i < DELEGATED.length; i++) doc.addEventListener(DELEGATED[i][0], DELEGATED[i][1]);
+        /* Der Elemente-Modus des Hilfe-Kastens muss mitkommen: drei der elf
+           data-help-Anker der Werkbank (Presets, Signaturen, Fundorte) leben
+           ab jetzt hier drueben. Ohne diese Anmeldung stand der Knopf „Wie
+           funktioniert …? › Elemente" fuer ein Drittel des Werkzeugs still —
+           je nach Klickreihenfolge ohne Sprechblase oder ganz ohne Wirkung.
+           Guard, weil tool-help.js mit `defer` laedt; hier laeuft ohnehin
+           erst ein Klick lange nach dem Laden. */
+        if (window.VBToolHelp) window.VBToolHelp.addDoc(doc);
         btn.hidden = true;
         slot.hidden = false;
         /* Das Fensterkreuz ist der eine Rueckweg, der Knopf im Platzhalter
@@ -1359,6 +1367,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         for (var i = 0; i < DELEGATED.length; i++) {
           try { doc.removeEventListener(DELEGATED[i][0], DELEGATED[i][1]); } catch (e) { /* egal */ }
         }
+        // Gegenstueck zum addDoc() in mount(): sonst haelt tool-help.js ein
+        // Dokument fest, das es nicht mehr gibt.
+        if (window.VBToolHelp) { try { window.VBToolHelp.removeDoc(doc); } catch (e) { /* egal */ } }
       }
       /* ⚠ Das Zurueckhaengen haengt AUSDRUECKLICH nicht daran, ob popDoc stand.
          adoptNode() loest den Knoten aus diesem Dokument, BEVOR er drueben

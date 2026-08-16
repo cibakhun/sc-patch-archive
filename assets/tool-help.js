@@ -79,9 +79,27 @@
   }
 
   /* HELP:STAGE2:BEGIN */
-  var styleEl = null;
-  var bubbleEl = null;
+  /* Der Elemente-Modus lief bis 16.08.2026 ausschliesslich auf DIESEM
+     Dokument: `data-help-on` am <html>, das Stilblatt in dessen <head>, die
+     Sprechblase in dessen <body>, die Zeigerhandler an dessen document.
+     Seit die Mining-Werkbank ihre rechte Spalte in ein eigenes Fenster
+     auslagern kann, reicht das nicht mehr — gemessen an der ausgelieferten
+     Seite: mit „Elemente" VOR dem Auslagern bekam das Fremdfenster zwar die
+     gestrichelten Ringe (sie reisen im kopierten Stilblatt mit), aber KEINE
+     Sprechblase; in der anderen Reihenfolge gar nichts. Der Knopf tat also
+     fuer ein Drittel des Werkzeugs sichtbar nichts.
+     Deshalb ist der Apparat jetzt pro Dokument angelegt. Fuer jedes Werkzeug
+     ohne Fremdfenster aendert sich nichts: die Liste enthaelt dann genau
+     dieses eine Dokument, und jeder Zweig unten laeuft einmal. */
+  var docs = [document];      // Dokumente, die der Modus bedienen soll
+  var stages = [];            // {doc, styleEl, bubbleEl} je AKTIVEM Dokument
   var describedEl = null; // Element, das gerade aria-describedby traegt, oder null
+
+  function stageFor(node) {
+    var d = node && node.ownerDocument;
+    for (var i = 0; i < stages.length; i++) if (stages[i].doc === d) return stages[i];
+    return null;
+  }
 
   var STAGE2_CSS =
     'html[data-help-on] [data-help]{outline:2px dashed var(--accent, #ff5e1a);outline-offset:3px;border-radius:2px;}' +
@@ -93,69 +111,112 @@
     '#tool-help__bubble .tool-help__bubble-eyebrow{display:block;font-size:var(--fs-4);font-weight:700;' +
     'letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--accent, #ff5e1a);margin-bottom:.2rem;}';
 
-  function activate() {
-    document.documentElement.setAttribute('data-help-on', '');
+  function stageOn(doc) {
+    if (!doc || !doc.body || stageForDoc(doc)) return;
+    doc.documentElement.setAttribute('data-help-on', '');
 
-    styleEl = document.createElement('style');
+    /* ⚠ Auch dann anlegen, wenn das Fremdfenster das Stilblatt beim Oeffnen
+       schon mitkopiert hat: zwei identische Regelsaetze schaden nicht, ein
+       fehlender schon — und welcher Fall vorliegt, haengt allein daran, in
+       welcher Reihenfolge der Nutzer geklickt hat. */
+    var styleEl = doc.createElement('style');
     styleEl.textContent = STAGE2_CSS;
-    document.head.appendChild(styleEl);
+    doc.head.appendChild(styleEl);
 
-    bubbleEl = document.createElement('div');
+    /* Die Blase MUSS im selben Dokument stehen wie ihr Anker: sie liegt
+       position:fixed und wird gegen DESSEN Sichtfeld gesetzt. Eine Blase im
+       Seitendokument waere fuer einen Anker im Fremdfenster unsichtbar. */
+    var bubbleEl = doc.createElement('div');
     bubbleEl.id = 'tool-help__bubble';
     bubbleEl.setAttribute('popover', 'auto');
     bubbleEl.setAttribute('role', 'tooltip');
-    var eyebrow = document.createElement('b');
+    var eyebrow = doc.createElement('b');
     eyebrow.className = 'tool-help__bubble-eyebrow';
     eyebrow.textContent = (activeBtn && activeBtn.getAttribute('data-bubble-label')) || '';
-    var text = document.createElement('span');
+    var text = doc.createElement('span');
     text.className = 'tool-help__bubble-text';
     bubbleEl.appendChild(eyebrow);
     bubbleEl.appendChild(text);
-    document.body.appendChild(bubbleEl);
+    doc.body.appendChild(bubbleEl);
 
-    document.addEventListener('focusin', onPoint);
-    document.addEventListener('mouseover', onPoint);
-    document.addEventListener('mouseout', onLeave);
-    document.addEventListener('focusout', onLeave);
-    document.addEventListener('keydown', onEscape);
+    doc.addEventListener('focusin', onPoint);
+    doc.addEventListener('mouseover', onPoint);
+    doc.addEventListener('mouseout', onLeave);
+    doc.addEventListener('focusout', onLeave);
+    doc.addEventListener('keydown', onEscape);
+
+    stages.push({ doc: doc, styleEl: styleEl, bubbleEl: bubbleEl });
   }
+
+  function stageForDoc(doc) {
+    for (var i = 0; i < stages.length; i++) if (stages[i].doc === doc) return stages[i];
+    return null;
+  }
+
+  function stageOff(doc) {
+    var st = stageForDoc(doc);
+    if (!st) return;
+    try { doc.documentElement.removeAttribute('data-help-on'); } catch (e) { /* Dokument schon weg */ }
+    try { st.styleEl.remove(); } catch (e) { /* egal */ }
+    if (st.bubbleEl) {
+      if (st.bubbleEl.hasAttribute('popover')) { try { st.bubbleEl.hidePopover(); } catch (e) {} }
+      try { st.bubbleEl.remove(); } catch (e) { /* egal */ }
+    }
+    try {
+      doc.removeEventListener('focusin', onPoint);
+      doc.removeEventListener('mouseover', onPoint);
+      doc.removeEventListener('mouseout', onLeave);
+      doc.removeEventListener('focusout', onLeave);
+      doc.removeEventListener('keydown', onEscape);
+    } catch (e) { /* Dokument schon weg */ }
+    stages.splice(stages.indexOf(st), 1);
+  }
+
+  function activate() { for (var i = 0; i < docs.length; i++) stageOn(docs[i]); }
 
   function deactivate() {
-    document.documentElement.removeAttribute('data-help-on');
-
-    if (styleEl) {
-      styleEl.remove();
-      styleEl = null;
-    }
-    if (bubbleEl) {
-      if (bubbleEl.hasAttribute('popover')) {
-        try {
-          bubbleEl.hidePopover();
-        } catch (e) {}
-      }
-      bubbleEl.remove();
-      bubbleEl = null;
-    }
     if (describedEl) {
-      describedEl.removeAttribute('aria-describedby');
+      try { describedEl.removeAttribute('aria-describedby'); } catch (e) { /* Dokument schon weg */ }
       describedEl = null;
     }
-
-    document.removeEventListener('focusin', onPoint);
-    document.removeEventListener('mouseover', onPoint);
-    document.removeEventListener('mouseout', onLeave);
-    document.removeEventListener('focusout', onLeave);
-    document.removeEventListener('keydown', onEscape);
+    // Ueber eine Kopie laufen: stageOff() kuerzt `stages` waehrenddessen.
+    var offen = stages.slice();
+    for (var i = 0; i < offen.length; i++) stageOff(offen[i].doc);
   }
+
+  /* Oeffentlicher Zugang fuer Werkzeuge, die Teile ihrer Oberflaeche in ein
+     zweites Fenster legen (heute nur die Mining-Werkbank). Bewusst schmal:
+     das Werkzeug meldet ein Dokument an und wieder ab, alles Weitere bleibt
+     hier. Die Alternative — tool-help.js das Fremdfenster selbst suchen zu
+     lassen — haette diese Datei an ein einzelnes Bauteil gebunden. */
+  window.VBToolHelp = {
+    addDoc: function (doc) {
+      if (!doc || docs.indexOf(doc) !== -1) return;
+      docs.push(doc);
+      if (activeBtn) stageOn(doc); // laeuft der Modus gerade, sofort mitnehmen
+    },
+    removeDoc: function (doc) {
+      var i = docs.indexOf(doc);
+      if (i === -1) return;
+      if (describedEl && describedEl.ownerDocument === doc) describedEl = null;
+      stageOff(doc);
+      docs.splice(i, 1);
+    },
+  };
 
   // Setzt die Blase an den SICHTBAREN Teil des Ankers und klappt nach
   // oben, wenn unterhalb kein Platz mehr ist (CR-01). Muss NACH
   // showPopover() laufen: davor ist die Blase noch display:none und
   // offsetWidth/offsetHeight waeren 0.
-  function place(el) {
+  /* ⚠ Alle Masse aus dem Dokument des ANKERS, nicht aus diesem hier: im
+     Fremdfenster sind Sichtfeldbreite und -hoehe voellig andere, und eine
+     gegen die Seite gerechnete Blase landete dort weit ausserhalb. */
+  function place(el, st) {
+    var doc = st.doc;
+    var bubbleEl = st.bubbleEl;
     var r = el.getBoundingClientRect();
-    var vw = document.documentElement.clientWidth;
-    var vh = document.documentElement.clientHeight;
+    var vw = doc.documentElement.clientWidth;
+    var vh = doc.documentElement.clientHeight;
     var bw = bubbleEl.offsetWidth;
     var bh = bubbleEl.offsetHeight;
     var anchorTop = Math.max(8, r.top);
@@ -168,7 +229,10 @@
 
   function onPoint(e) {
     var el = e.target && e.target.closest ? e.target.closest('[data-help]') : null;
-    if (!el || !bubbleEl) return;
+    if (!el) return;
+    var st = stageFor(el);
+    if (!st) return;
+    var bubbleEl = st.bubbleEl;
 
     bubbleEl.querySelector('.tool-help__bubble-text').textContent = el.getAttribute('data-help') || '';
 
@@ -183,7 +247,7 @@
       bubbleEl.showPopover();
     } catch (e) {}
 
-    place(el);
+    place(el, st);
   }
 
   // Verlaesst Zeiger oder Fokus den aktuellen Anker in Richtung eines
@@ -197,9 +261,10 @@
       describedEl.removeAttribute('aria-describedby');
       describedEl = null;
     }
-    if (bubbleEl) {
+    var st = stageFor(from);
+    if (st && st.bubbleEl) {
       try {
-        bubbleEl.hidePopover();
+        st.bubbleEl.hidePopover();
       } catch (err) {}
     }
   }
