@@ -1688,7 +1688,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__pre-name:focus-visible,.wb__pre-cnt:focus-visible,.wb__pre-a:focus-visible,.wb__pre-ask:focus-visible,
 .wb__frac:focus-visible,.wb__pinbig:focus-visible,.wb__lpin:focus-visible,
 .wb__row2[data-loc]:focus-visible,.wb__row2[data-ore]:focus-visible,
-.wb__pin-item[data-loc]:focus-visible,.wb__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.wb__pin-item[data-loc]:focus-visible,.wb__back:focus-visible,
+/* Die zwei Knoepfe des Auslagerns (16.08.2026). Sie stehen hier NICHT
+   der Vollstaendigkeit halber: die Liste ist der Ort, an dem dieses
+   Bauteil seinen eigenen Fokusring vergibt, und ein Knopf, der
+   stattdessen den Browser-Standardring bekaeme, faellt auf dem dunklen
+   Paneel kaum auf. */
+.wb__popb:focus-visible,.wb__popslot__b:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Das Sprite traegt nur <symbol> und darf keinen Platz belegen. */
 .wb__sprite{position:absolute;width:0;height:0;overflow:hidden}
 
