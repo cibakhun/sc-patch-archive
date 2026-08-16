@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 271,
-  "totalListings": 6476,
-  "totalSold": 278,
+  "updates": 272,
+  "totalListings": 6483,
+  "totalSold": 279,
   "distinctItems": 1204
  },
  "listings": {
@@ -128928,6 +128928,10 @@
     {
      "d": "2026-08-15",
      "p": 800000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 700000
     }
    ],
    "soldOut": false,
@@ -135462,9 +135466,9 @@
      "p": 600000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 600000,
    "dateAdded": 1786882502,
    "dateExpiration": 1792066502
   },
@@ -138281,6 +138285,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786906268,
    "dateExpiration": 1792090268
+  },
+  "163270": {
+   "idItem": 5161,
+   "idCategory": 18,
+   "title": "Killshot Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 898,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786906900,
+   "dateExpiration": 1792090900
+  },
+  "163274": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 618Q 585Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 618,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786907945,
+   "dateExpiration": 1792091945
+  },
+  "163279": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite 756Q 597Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 756,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786908218,
+   "dateExpiration": 1792092218
+  },
+  "163281": {
+   "idItem": 4842,
+   "idCategory": 2,
+   "title": "Geist Backpack ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786908234,
+   "dateExpiration": 1792092233
+  },
+  "163283": {
+   "idItem": null,
+   "idCategory": 55,
+   "title": "RSI Perseus Manned Heavy Gunship for Rent | Cold Harbor Contracting",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786908272,
+   "dateExpiration": 1797276272
+  },
+  "163287": {
+   "idItem": null,
+   "idCategory": 3,
+   "title": "Morozov-SH-I Helmet Pyrotechnic Vesper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786908534,
+   "dateExpiration": 1792092534
+  },
+  "163290": {
+   "idItem": 4455,
+   "idCategory": 24,
+   "title": "Ace Interceptor Flight Suit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786909279,
+   "dateExpiration": 1792093279
   }
  }
 }
