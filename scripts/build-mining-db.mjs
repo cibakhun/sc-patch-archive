@@ -45,6 +45,38 @@ if (existsSync(bm)) { try { const d = JSON.parse(readFileSync(bm, 'utf8')).Data;
 const prevByName = new Map(Object.entries(curated.minerals || {}));
 const withPoints = (l) => (LOC_POINTS[l.location] ? { ...l, points: LOC_POINTS[l.location] } : l);
 
+/* Abbauart je Material — aus dem Namensschema der Kompositionen (game-sourced).
+   Das Spiel benennt jede MineableComposition nach der Ausruestung, die den
+   Stein aufmacht: FPS_Composition_* (Multitool), GroundVehicle_Composition_*
+   (ROC) und alles Uebrige der Schiffslaser. Dieselbe Trennung steht im
+   Dateinamen der Elemente (minableelement_fps_* / _groundvehicle_ *).
+
+   ⚠ Vorher kam die Methode aus den providerpreset-Fundorten mit kuratiertem
+   Rueckfall. Das ging an zwei Stellen daneben:
+     · Erze, die es NUR in Hoehlen-/Event-Deposits gibt (Jaclium, Sadaryx,
+       Saldynium, Carinite), haben keinen providerpreset-Eintrag. Sie fielen
+       auf den kuratierten Wert 'hand' zurueck — ein zweiter Name fuer 'fps'.
+       Die Liste zeigte dadurch VIER Abbauarten, obwohl das Spiel drei kennt.
+     · Carinite stand kuratiert als reines ROC-Erz. Es traegt aber drei
+       Kompositionen: FPS_Composition_CariniteDeposit,
+       FPS_Composition_CarinitePureDeposit und GroundVehicle_Composition_Carinite
+       — es ist beides, und wer mit dem Multitool loszieht, fand es nicht.
+   Deshalb ist 'fps' als Wert weg: die Methode heisst jetzt ueberall 'hand'. */
+const COMP_METHOD = (name) => (/^FPS_/i.test(name) ? 'hand' : /^GroundVehicle_/i.test(name) ? 'roc' : 'ship');
+const methodsByMat = new Map();
+for (const c of game.compositions || []) {
+  const meth = COMP_METHOD(c.name || '');
+  for (const p of c.parts || []) {
+    if (!p.element) continue;
+    if (!methodsByMat.has(p.element)) methodsByMat.set(p.element, new Set());
+    methodsByMat.get(p.element).add(meth);
+  }
+}
+const byRank = (a, b) => (METHOD_RANK[a] ?? 9) - (METHOD_RANK[b] ?? 9);
+// Fundortzeilen tragen dieselbe Methode wie das Erz: 'fps' kam aus der
+// Gruppenbenennung der providerpresets und meint dasselbe wie 'hand'.
+const FPS_TO_HAND = (m) => (m === 'fps' ? 'hand' : m);
+
 // Mineralliste = alle realen Elemente (dedup nach Material), damit auch Hand-Edelsteine
 // ohne providerpreset-Fundort (Event-/Cave-Deposits) erhalten bleiben.
 const locByMat = new Map((locs.elements || []).map((e) => [e.material, e]));
@@ -53,22 +85,26 @@ const matList = [];
 for (const e of game.elements || []) { if (!seenMat.has(e.material)) { seenMat.add(e.material); matList.push(e.material); } }
 const minerals = matList.map((mat) => {
   const el = locByMat.get(mat) || { material: mat, methods: [], locations: [] };
-  const methods = el.methods || [];
   const prevM = prevByName.get(mat) || {};
-  const method = [...methods].sort((a, b) => (METHOD_RANK[a] ?? 9) - (METHOD_RANK[b] ?? 9))[0] || prevM.method || null;
+  // Kompositionen zuerst — sie kennen JEDES Material. Die Fundort-Gruppen und
+  // der kuratierte Wert bleiben nur als Rueckfall, falls ein Element ohne
+  // Komposition auftaucht.
+  const fromComp = [...(methodsByMat.get(mat) || [])].sort(byRank);
+  const fromLoc = [...new Set((el.methods || []).map(FPS_TO_HAND))].sort(byRank);
+  const methods = fromComp.length ? fromComp : fromLoc;
+  const method = methods[0] || FPS_TO_HAND(prevM.method) || null;
   const systems = [...new Set((el.locations || []).map((l) => l.system))].sort(bySys);
   let kind = prevM.kind || ''; if (KIND_FIX[kind]) kind = KIND_FIX[kind];
   return {
     name: mat, code: prevM.code || null, kind: kind || null, weight_scu: prevM.weight_scu || null,
     method,
-    // methods[] kommt aus den providerpreset-Fundorten. Erze, die nur in Hoehlen-/
-    // Event-Deposits vorkommen (Carinite, Jaclium, Sadaryx, Saldynium), haben dort
-    // keinen Eintrag — dann trug methods[] nichts, obwohl method kuratiert gesetzt war.
-    // Das widersprach sich und liess sie durch jeden Methoden-Filter fallen.
+    // methods[] fuehrt ALLE Abbauarten des Erzes — Carinite ist das eine
+    // Material, das zwei traegt (Multitool und ROC). method ist davon die
+    // erste nach METHOD_RANK und bleibt die Leitgroesse.
     methods: methods.length ? methods : (method ? [method] : []),
     rarity: rarityByMat[mat] || null,
     needs_refine: method === 'ship',
-    systems, locations: (el.locations || []).map(withPoints),
+    systems, locations: (el.locations || []).map(withPoints).map((l) => ({ ...l, mining: FPS_TO_HAND(l.mining) })),
   };
 }).filter((m) => m.code || m.kind || m.locations.length) // Phantome (weder kuratiert noch Fundort) raus
   .sort((a, b) => a.name.localeCompare(b.name));
@@ -79,7 +115,7 @@ const minerals = matList.map((mat) => {
 const dropped = matList.filter((mat) => !minerals.some((m) => m.name === mat));
 
 const bodies = (locs.bodies || []).map((b) => {
-  const mins = (b.minerals || []).map((m) => ({ ...m, rarity: rarityByMat[m.name] || null })).sort((x, y) => (y.chance - x.chance) || x.name.localeCompare(y.name));
+  const mins = (b.minerals || []).map((m) => ({ ...m, mining: FPS_TO_HAND(m.mining), rarity: rarityByMat[m.name] || null })).sort((x, y) => (y.chance - x.chance) || x.name.localeCompare(y.name));
   let best = null;
   for (const m of mins) { if (m.rarity == null) continue; const rank = RARITY_RANK[m.rarity] ?? 9; if (!best || rank < best.rank || (rank === best.rank && m.chance < best.chance)) best = { name: m.name, chance: m.chance, rarity: m.rarity, rank }; }
   return {
@@ -106,7 +142,8 @@ const payload = {
 };
 writeFileSync(OUT, JSON.stringify(payload) + '\n', 'utf8');
 console.log(`mining-db.json: v${game_version} — ${minerals.length} Minerale, ${bodies.length} Bodies`);
-console.log('  Methoden:', JSON.stringify(minerals.reduce((a, m) => ((a[m.method] = (a[m.method] || 0) + 1), a), {})));
+console.log('  Methoden (Leitgroesse):', JSON.stringify(minerals.reduce((a, m) => ((a[m.method] = (a[m.method] || 0) + 1), a), {})));
+console.log('  mehrere Abbauarten:', minerals.filter((m) => m.methods.length > 1).map((m) => `${m.name} (${m.methods.join('+')})`).join(', ') || '—');
 console.log('  ohne rarity:', minerals.filter((m) => !m.rarity).map((m) => m.name).join(', ') || '—');
 console.log('  ohne code/kind:', minerals.filter((m) => !m.code || !m.kind).map((m) => m.name).join(', ') || '—');
 console.log('  ohne weight_scu:', minerals.filter((m) => m.weight_scu == null).length + '/' + minerals.length + ' (kuratiertes Feld, steht nicht in den Spieldaten)');

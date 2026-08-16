@@ -121,6 +121,55 @@ const RAR_LBL: Record<string, { de: string; en: string }> = {
 };
 const rarLbl = (r: string | null) => (r && RAR_LBL[r] ? RAR_LBL[r][lang] : de ? 'ohne Stufe' : 'no tier');
 
+/* ───────────── Kachelliste: nach Abbauart, darin nach Qualitätsstufe ─────────
+   16.08.2026, auf Ansage: die Liste warf Schiff-, ROC- und Hand-Mining in
+   EINEN Topf, und die Stufe (legendär/episch/…) stand nur im Kopf des gerade
+   gewählten Erzes — man musste 37 Kacheln durchklicken, um sie zu erfahren.
+
+   Zwei Ebenen, beide aus den Daten:
+     1. Abbauart — welche Ausrüstung macht den Stein auf.
+     2. Qualitätsstufe — als eigene Bandüberschrift, nicht als Farbe allein.
+        Eine Farbe MUSS man erst lernen; die Überschrift steht da und sortiert
+        das Band gleich mit. Der farbige Kachelrand ist die Wiederholung, nicht
+        der Träger der Aussage.
+
+   ⚠ Ein Erz kann in ZWEI Gruppen stehen: Carinite trägt Kompositionen für das
+   Multitool UND für den ROC (siehe scripts/build-mining-db.mjs). Es bekommt
+   deshalb in beiden Gruppen eine Kachel — die Frage „was kann ich mit meinem
+   ROC abbauen?" wäre sonst falsch beantwortet. Beide Kacheln tragen dasselbe
+   data-min; renderList() in assets/mining-workbench.js läuft über
+   querySelectorAll und hält damit Auswahl- und Anheft-Zustand auf allen
+   Kacheln gleich. Der Zähler zählt deshalb NAMEN, nicht Kacheln.
+
+   ⚠ Die elf Hand-/ROC-Erze haben keine Stufe — sie stehen unter „ohne Stufe".
+   Das ist kein fehlender Wert, den man noch nachtragen könnte: das Spiel
+   vergibt Stufen nur an die 26 Schiff-Erze. */
+const METHOD_ORDER = ['ship', 'roc', 'hand'] as const;
+const BAND_ORDER = ['legendary', 'epic', 'rare', 'uncommon', 'common', 'none'];
+const GRP_LBL: Record<string, { de: string; en: string }> = {
+  ship: { de: 'Schiff-Mining', en: 'Ship mining' },
+  roc: { de: 'ROC / Bodenfahrzeug', en: 'ROC / ground vehicle' },
+  hand: { de: 'Hand-Mining', en: 'Hand mining' },
+};
+const GRP_GEAR: Record<string, string> = {
+  ship: 'Prospector · MOLE · Golem', roc: 'ROC · ROC-DS', hand: 'Multitool',
+};
+const methodsOf = (m: (typeof minerals)[number]) => (m.methods.length ? m.methods : m.method ? [m.method] : []);
+const groups = METHOD_ORDER.map((id) => {
+  const mine = minerals.filter((m) => methodsOf(m).includes(id));
+  const bands = BAND_ORDER.map((band) => ({
+    band,
+    label: rarLbl(band === 'none' ? null : band),
+    items: mine.filter((m) => (m.rarity || 'none') === band),
+  })).filter((b) => b.items.length);
+  /* Traegt eine Gruppe nur EIN Band, wandert dessen Beschriftung in die
+     Gruppenzeile. Sonst stuende ueber den vier ROC-Erzen eine eigene Zeile
+     „OHNE STUFE 4", die nichts sagt, was die Gruppenzeile nicht schon
+     eingerahmt haette — zwei Ueberschriften fuer eine Reihe Kacheln. */
+  const solo = bands.length === 1 ? bands[0].label : null;
+  return { id, label: GRP_LBL[id][lang], gear: GRP_GEAR[id], total: mine.length, bands, solo };
+}).filter((g) => g.total);
+
 /* Die zweite Fassung haengte `ships.slice(0,3)` an JEDES Erz — Prospector,
    MOLE und Golem standen also auch unter den elf Erzen, die sich gar nicht
    per Schiff abbauen lassen. Die Daten kennen vier Methoden: ship (26),
@@ -173,6 +222,8 @@ const S_DE = {
   locPinsEmpty: 'Noch keine Fundorte angeheftet. Bei einem Erz mit Fundorten die Nadel neben einer Zeile drücken.',
   locPinsFull: 'Die Merkliste ist voll (128 Fundorte). Erst einen lösen, dann neu anheften.',
   ship: 'Schiff', hand: 'Hand', roc: 'ROC', refinable: 'raffinierbar',
+  // Kachel-Abzeichen für ein Erz, das zwei Abbauarten trägt (nur Carinite).
+  also: 'auch', tier: 'Stufe',
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
   tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
@@ -203,6 +254,8 @@ const S_EN = {
   locPinsEmpty: 'No locations pinned yet. On an ore with locations, hit the pin next to a row.',
   locPinsFull: 'The shortlist is full (128 locations). Unpin one before pinning another.',
   ship: 'Ship', hand: 'Hand', roc: 'ROC', refinable: 'refinable',
+  // Tile badge for an ore that carries two mining methods (Carinite only).
+  also: 'also', tier: 'Tier',
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
@@ -384,18 +437,55 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
           bei 1920x1080 stehen weiterhin alle 37 im Bild, bei 1280x720 scrollt
           die Liste. Gemessen und begruendet in
           .planning/notes/signaturliste-anheften.md. */}
-      <div class="wb__scroll" id="wb-list">
-        <div class="wb__tiles" data-help={hlp('tiles')}>
-          {minerals.map((m) => (
-            <div class={`wb__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
-              <span class="wb__tn" set:text={m.name} />
-              <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
-              <button type="button" class="wb__pin" data-pin={m.name} aria-pressed="false" aria-label={`${S.pin}: ${m.name}`}>
-                <svg class="wb__pin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
-              </button>
-            </div>
-          ))}
-        </div>
+      {/* data-help sitzt am Kasten, nicht mehr an einem einzelnen Raster:
+          seit der Gruppierung gibt es mehrere .wb__tiles, und Zusicherung 3
+          von verify:help zaehlt die Anker je Sprache — ein Anker bleibt ein
+          Anker, egal wie viele Baender darunter liegen. */}
+      <div class="wb__scroll" id="wb-list" data-help={hlp('tiles')}>
+        {/* ⚠ `div`, NICHT `section`: die Seite traegt eine globale
+            `section{padding:…}`-Regel, die der Gruppe hier 99 px oben/unten
+            und 72 px seitlich verpasst hat — das Kachelraster verlor dadurch
+            eine Spalte und die Liste wurde dreimal so hoch. Dieselbe Falle
+            steckte schon im Konto-Panel. */}
+        {groups.map((g) => (
+          <div class="wb__grp" data-grp={g.id}>
+            <h3 class="wb__ghd">
+              <span class="wb__ghd__t" set:text={g.label} />
+              <span class="wb__ghd__g" set:text={g.solo ? `${g.gear} · ${g.solo}` : g.gear} />
+              <span class="wb__ghd__n num" set:text={String(g.total)} />
+            </h3>
+            {g.bands.map((b) => (
+              <div class="wb__band" data-band={b.band}>
+                {g.solo ? null : (
+                <h4 class={`wb__bhd wb__bhd--${b.band}`}>
+                  <span class="wb__bhd__t" set:text={b.label} />
+                  <i class="wb__bhd__r" aria-hidden="true"></i>
+                  <span class="wb__bhd__n num" set:text={String(b.items.length)} />
+                </h4>
+                )}
+                <div class="wb__tiles">
+                  {b.items.map((m) => {
+                    const other = methodsOf(m).filter((x) => x !== g.id).map((x) => (S as any)[x]);
+                    return (
+                      <div class={`wb__tile wb__tile--${b.band}${m.name === sel.name ? ' is-sel' : ''}`}
+                           data-min={m.name} role="button" tabindex="0"
+                           title={`${m.name} — ${S.tier}: ${b.label}${other.length ? ` · ${S.also} ${other.join(' / ')}` : ''}`}>
+                        <span class="wb__tn">
+                          <span class="wb__tn__n" set:text={m.name} />
+                          {other.length ? (<span class="wb__talso" set:text={`+${other.join('/')}`} />) : null}
+                        </span>
+                        <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
+                        <button type="button" class="wb__pin" data-pin={m.name} aria-pressed="false" aria-label={`${S.pin}: ${m.name}`}>
+                          <svg class="wb__pin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
 
@@ -960,7 +1050,47 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 /* Vier Spalten statt fuenf, in einer 470 statt 420 px breiten Saeule: 110 px
    je Kachel statt 79. Das ist der Platz, aus dem der Name seine volle Breite
    und der Anheft-Knopf sein eigenes Feld bekommt. */
-.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:0 8px 8px}
+/* padding-bottom 5 statt 8: es gibt jetzt bis zu sechs dieser Raster
+   untereinander, und die Luft zwischen Band und naechster Ueberschrift bringt
+   die Ueberschrift schon selbst mit. */
+.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:0 8px 5px}
+/* ---- Gruppen (Abbauart) und Baender (Qualitaetsstufe) ----------------------
+   Zwei Ueberschriftenebenen in einer 483 px breiten Saeule — sie duerfen
+   deshalb nur Zeilenhoehe kosten, keine Kaesten. Die Gruppe traegt eine
+   Haarlinie ueber sich (Trennung), das Band eine durchlaufende Linie neben
+   dem Wort (Bindung an seine Kacheln).
+   .wb__grp/.wb__band bekommen ihr `hidden` zur Laufzeit von renderList(),
+   wenn die Suche oder ein Systemchip alles darunter wegfiltert. */
+.wb__grp[hidden],.wb__band[hidden]{display:none}
+.wb__ghd{display:flex;align-items:baseline;gap:7px;margin:0;padding:9px 10px 4px;
+  font-size:var(--fs-3);font-weight:600;letter-spacing:var(--ls-11);text-transform:uppercase;
+  color:var(--text)}
+.wb__grp + .wb__grp .wb__ghd{margin-top:4px;border-top:1px solid color-mix(in srgb,var(--text) 9%,transparent)}
+.wb__ghd__g{flex:1;min-width:0;font-size:var(--fs-2);font-weight:400;letter-spacing:var(--ls-5);
+  text-transform:none;color:color-mix(in srgb,var(--muted) 85%,transparent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wb__ghd__n{flex:none;font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums;
+  color:color-mix(in srgb,var(--muted) 90%,transparent)}
+/* Bandueberschrift: das Wort in der Stufenfarbe, die Linie in derselben Farbe
+   stark abgeschwaecht. `color:var(--rar)` statt einer Flaeche — damit bleibt
+   der Kontrast an der Schrift messbar und die Regel faellt in den Bereich,
+   den build-light-overrides.mjs abdeckt (PROPS kennt `color`, kein
+   `background`). */
+.wb__bhd{--rar:var(--muted);display:flex;align-items:center;gap:7px;margin:0;padding:5px 10px 3px;
+  font-size:var(--fs-2);font-weight:700;letter-spacing:var(--ls-12);text-transform:uppercase;
+  color:var(--rar)}
+.wb__bhd__t{flex:none}
+.wb__bhd__r{flex:1;height:1px;min-width:8px;background:currentColor;opacity:.26}
+.wb__bhd__n{flex:none;font-family:var(--font-mono,ui-monospace);font-variant-numeric:tabular-nums;opacity:.8}
+/* Die Stufenfarben. --hot ist auf dieser Seite der dritte Akzent (Violett) und
+   traegt „episch"; „legendaer" braucht einen Ton, den die Palette nicht hat —
+   er steht deshalb als einziger Literalwert hier. */
+.wb__bhd--legendary,.wb__tile--legendary{--rar:#E0564B}
+.wb__bhd--epic,.wb__tile--epic{--rar:var(--hot)}
+.wb__bhd--rare,.wb__tile--rare{--rar:var(--accent-2)}
+.wb__bhd--uncommon,.wb__tile--uncommon{--rar:var(--accent)}
+.wb__bhd--common,.wb__tile--common{--rar:color-mix(in srgb,var(--muted) 78%,transparent)}
+.wb__bhd--none,.wb__tile--none{--rar:color-mix(in srgb,var(--muted) 42%,transparent)}
 /* Zwei Zeilen: oben der Name ueber die GANZE Breite (vorher teilte er sie mit
    nichts, war aber auf 54 px gedrueckt, weil der Stern rechts darueber lag),
    unten Signatur und Anheft-Knopf nebeneinander. */
@@ -970,12 +1100,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
      Groesse, Raster und Polsterung unveraendert — nur die Oberflaeche. */
   padding:5px 6px 5px 9px;border-radius:3px;cursor:pointer;
   background:color-mix(in srgb,var(--ink) 48%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text) 7%,transparent),
+  /* Erster Schatten = der Stufenrand. Er wiederholt, was die Bandueberschrift
+     sagt, damit die Stufe auch dann noch an der Kachel steht, wenn ihre
+     Ueberschrift aus dem Bild gescrollt ist. --rar kommt von .wb__tile--*. */
+  box-shadow:inset 3px 0 0 var(--rar,transparent),
+    inset 0 1px 0 color-mix(in srgb,var(--text) 7%,transparent),
     inset 0 0 0 1px color-mix(in srgb,var(--text) 5%,transparent);
   transition:background var(--dur-fast,.15s) var(--ease-ui,ease)}
 .wb__tile:hover{background:color-mix(in srgb,var(--surface-2) 88%,var(--text))}
+/* Der Stufenrand bleibt auch in der Auswahl stehen — sonst verlaere genau die
+   Kachel, auf die man sieht, ihre Stufenangabe. */
 .wb__tile.is-sel{background:color-mix(in srgb,var(--accent-2) 20%,transparent);
-  box-shadow:inset 0 0 0 1px var(--accent-2)}
+  box-shadow:inset 3px 0 0 var(--rar,transparent),inset 0 0 0 1px var(--accent-2)}
 /* Kachel-Markierung „kommt an diesem Fundort vor" (Phase 12, D-09). Eigene
    Bildebene (pointer-events:none, 10x10 px) statt einer ganzflaechigen
    Toenung oder eines Rings -- beides kollidierte mit der Flaechentoenung
@@ -989,11 +1125,24 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
    keine Auswahl. Token-basiert (var(--accent) im Verlauf) -- aendert sich
    mit der Palette mit, deshalb braucht build-light-overrides.mjs (PROPS,
    ohne background) hierfuer keine eigene Hellmodus-Entsprechung. */
-.wb__tile.is-here::before{content:'';position:absolute;top:-1px;left:-1px;
-  width:10px;height:10px;pointer-events:none;border-radius:8px 0 0 0;
-  background:linear-gradient(-135deg,var(--accent) 0 50%,transparent 50% 100%)}
-.wb__tn{grid-column:1/-1;font-size:var(--fs-5);font-weight:500;color:var(--text);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ⚠ 16.08.2026 von OBEN LINKS nach OBEN RECHTS gespiegelt. Nicht aus
+   Geschmack: seit die Kachel links einen 3 px breiten Stufenrand traegt,
+   sassen beide Marken auf denselben zehn Bildpunkten — die Fundort-Ecke
+   schnitt ein Stueck aus dem Stufenrand heraus, und in der Lupe las das
+   Ergebnis als Zeichenfehler, nicht als zwei Aussagen. Jetzt gehoert die
+   linke Kante der Stufe, die rechte obere Ecke dem Fundort. Der
+   Anheft-Knopf sitzt unten rechts und wird nicht gestreift. */
+.wb__tile.is-here::before{content:'';position:absolute;top:-1px;right:-1px;
+  width:10px;height:10px;pointer-events:none;border-radius:0 8px 0 0;
+  background:linear-gradient(45deg,transparent 0 50%,var(--accent) 50% 100%)}
+.wb__tn{grid-column:1/-1;display:flex;align-items:baseline;gap:4px;min-width:0;
+  font-size:var(--fs-5);font-weight:500;color:var(--text)}
+.wb__tn__n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* „+ROC" / „+Hand" an dem einen Erz, das zwei Abbauarten traegt: es steht in
+   BEIDEN Gruppen, und ohne diesen Hinweis sieht die zweite Kachel wie ein
+   Doppeleintrag aus. */
+.wb__talso{flex:none;font-size:var(--fs-1);font-weight:600;letter-spacing:var(--ls-5);
+  color:color-mix(in srgb,var(--muted) 90%,transparent)}
 .wb__ts{align-self:center;font-size:var(--fs-3);color:var(--hot);
   text-shadow:0 0 7px color-mix(in srgb,var(--hot) 60%,transparent)}
 /* ⚠ Zwei Fehlschlaege stecken in diesem Knopf, beide vom Nutzer gemeldet:
@@ -1412,4 +1561,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .wb__rgrp .wb__sel{max-width:none}
   .wb__frac{margin-left:0}
 }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .wb__bhd--legendary,.wb__tile--legendary{--rar:#a7040d}
 </style>

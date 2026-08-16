@@ -253,6 +253,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       var hereEntries = locIndex[S.selLoc];
       for (var hi = 0; hi < hereEntries.length; hi++) hereIdx[hereEntries[hi].n] = true;
     }
+    /* Seit der Gruppierung (16.08.2026) zaehlt `shown` NAMEN, nicht Kacheln:
+       Carinite steht in zwei Gruppen (Multitool und ROC) und haette den
+       Zaehler sonst um eins zu hoch getrieben. */
+    var seen = {};
     for (var i = 0; i < tiles.length; i++) {
       var el = tiles[i], m = byName[el.getAttribute('data-min')];
       if (!m) continue;
@@ -269,7 +273,24 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       pin.classList.toggle('is-on', on);
       pin.setAttribute('aria-pressed', String(on));
       pin.setAttribute('aria-label', (on ? T.unpin : T.pin) + ': ' + m.name);
-      if (hit) shown++;
+      if (hit && !seen[m.name]) { seen[m.name] = true; shown++; }
+    }
+    /* Ueberschriften ohne sichtbare Kachel darunter verschwinden mit: ein
+       leeres Band „LEGENDÄR 3" ueber einer leeren Flaeche waere eine Zusage,
+       die die Filterzeile gerade zurueckgenommen hat. Erst die Baender, dann
+       die Gruppen — eine Gruppe ist genau dann leer, wenn all ihre Baender es
+       sind. */
+    var bands = listEl.querySelectorAll('.wb__band');
+    for (var bi = 0; bi < bands.length; bi++) {
+      var bt = bands[bi].querySelectorAll('.wb__tile'), bOn = false;
+      for (var bj = 0; bj < bt.length; bj++) if (bt[bj].style.display !== 'none') { bOn = true; break; }
+      bands[bi].hidden = !bOn;
+    }
+    var grps = listEl.querySelectorAll('.wb__grp');
+    for (var gi = 0; gi < grps.length; gi++) {
+      var gb = grps[gi].querySelectorAll('.wb__band'), gOn = false;
+      for (var gj = 0; gj < gb.length; gj++) if (!gb[gj].hidden) { gOn = true; break; }
+      grps[gi].hidden = !gOn;
     }
     $('wb-count').textContent = shown === D.minerals.length ? String(shown) : shown + '/' + D.minerals.length;
   }
@@ -327,7 +348,12 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
     $('wb-tags').innerHTML =
       '<span class="wb__tag is-rar">' + esc(D.rar[m.rarity] || (D.lang === 'de' ? 'ohne Stufe' : 'no tier')) + '</span>' +
       '<span class="wb__tag">' + esc(m.kind) + '</span>' +
-      '<span class="wb__tag">' + esc(methodLabel(m.method)) + '</span>' +
+      /* ALLE Abbauarten, nicht nur die fuehrende: Carinite laesst sich mit
+         dem Multitool UND dem ROC abbauen, und im Kopf stand bisher nur
+         eine von beiden. */
+      (m.methods && m.methods.length ? m.methods : [m.method]).map(function (mm) {
+        return '<span class="wb__tag">' + esc(methodLabel(mm)) + '</span>';
+      }).join('') +
       (m.refine ? '<span class="wb__tag">' + esc(T.refinable) + '</span>' : '');
 
     /* ⚠ Hier stand bis 12.08.2026 zusaetzlich „effektiv" — der Widerstand
