@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-16",
-  "updates": 265,
-  "totalListings": 6367,
-  "totalSold": 274,
-  "distinctItems": 1195
+  "updates": 266,
+  "totalListings": 6394,
+  "totalSold": 275,
+  "distinctItems": 1196
  },
  "listings": {
   "156580": {
@@ -130058,6 +130058,10 @@
     {
      "d": "2026-08-15",
      "p": 12000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -131813,6 +131817,10 @@
     {
      "d": "2026-08-16",
      "p": 12000000
+    },
+    {
+     "d": "2026-08-16",
+     "p": 11000000
     }
    ],
    "soldOut": false,
@@ -132008,9 +132016,9 @@
      "p": 13000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-16",
+   "soldOutPrice": 13000000,
    "dateAdded": 1786842819,
    "dateExpiration": 1792026819
   },
@@ -135693,6 +135701,27 @@
    "dateAdded": 1786883605,
    "dateExpiration": 1792033200
   },
+  "163139": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 22000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786883608,
+   "dateExpiration": 1792067608
+  },
   "163140": {
    "idItem": null,
    "idCategory": 12,
@@ -135777,6 +135806,27 @@
    "dateAdded": 1786883813,
    "dateExpiration": 1792067813
   },
+  "163144": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 797,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786883931,
+   "dateExpiration": 1792067931
+  },
   "163145": {
    "idItem": null,
    "idCategory": 12,
@@ -135818,6 +135868,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786883991,
    "dateExpiration": 1792033200
+  },
+  "163147": {
+   "idItem": 4922,
+   "idCategory": 61,
+   "title": "Feynmaline Q906",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 906,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 75000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884035,
+   "dateExpiration": 1792068035
   },
   "163148": {
    "idItem": 3349,
@@ -135882,6 +135953,27 @@
    "dateAdded": 1786884232,
    "dateExpiration": 1792068232
   },
+  "163151": {
+   "idItem": 4586,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884311,
+   "dateExpiration": 1792068311
+  },
   "163152": {
    "idItem": null,
    "idCategory": 16,
@@ -135924,6 +136016,69 @@
    "dateAdded": 1786884344,
    "dateExpiration": 1792068344
   },
+  "163154": {
+   "idItem": 7670,
+   "idCategory": 18,
+   "title": "Custodian \"Scorched\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884381,
+   "dateExpiration": 1792068381
+  },
+  "163155": {
+   "idItem": 155,
+   "idCategory": 23,
+   "title": "Umbra",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884452,
+   "dateExpiration": 1792068452
+  },
+  "163156": {
+   "idItem": 2474,
+   "idCategory": 12,
+   "title": "Lamont Undersuit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884517,
+   "dateExpiration": 1792068517
+  },
   "163157": {
    "idItem": null,
    "idCategory": 7,
@@ -135944,6 +136099,426 @@
    "soldOutPrice": null,
    "dateAdded": 1786884533,
    "dateExpiration": 1792033200
+  },
+  "163158": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884564,
+   "dateExpiration": 1792068563
+  },
+  "163159": {
+   "idItem": 2476,
+   "idCategory": 12,
+   "title": "Lamont Arroyo Undersuit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884592,
+   "dateExpiration": 1792068592
+  },
+  "163160": {
+   "idItem": 2722,
+   "idCategory": 18,
+   "title": "Animus Missile Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884706,
+   "dateExpiration": 1792068706
+  },
+  "163161": {
+   "idItem": 6880,
+   "idCategory": 18,
+   "title": "Novian \"Ghostmaker\" Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 956,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884825,
+   "dateExpiration": 1792068825
+  },
+  "163163": {
+   "idItem": 4976,
+   "idCategory": 18,
+   "title": "A03 \"Scorched\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884848,
+   "dateExpiration": 1792068848
+  },
+  "163164": {
+   "idItem": 182,
+   "idCategory": 32,
+   "title": "Salvation Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884892,
+   "dateExpiration": 1792068892
+  },
+  "163165": {
+   "idItem": 4431,
+   "idCategory": 17,
+   "title": "OT8-RF \"Scorched\" (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884942,
+   "dateExpiration": 1792068942
+  },
+  "163166": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 2,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786884944,
+   "dateExpiration": 1792068944
+  },
+  "163167": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 4,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885028,
+   "dateExpiration": 1792069028
+  },
+  "163168": {
+   "idItem": 5322,
+   "idCategory": 17,
+   "title": "FocalWave-30 (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885094,
+   "dateExpiration": 1792069094
+  },
+  "163169": {
+   "idItem": 7035,
+   "idCategory": 1,
+   "title": "ADP-mk4 Arms Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885121,
+   "dateExpiration": 1792069121
+  },
+  "163171": {
+   "idItem": 1613,
+   "idCategory": 32,
+   "title": "NN-13 Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885282,
+   "dateExpiration": 1792069282
+  },
+  "163172": {
+   "idItem": 46,
+   "idCategory": 32,
+   "title": "NDB-26 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885335,
+   "dateExpiration": 1792069335
+  },
+  "163173": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 4,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885428,
+   "dateExpiration": 1792069428
+  },
+  "163174": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 2,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885638,
+   "dateExpiration": 1792069638
+  },
+  "163175": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 919/916/970 Recoil:-33.40% Dmg7.05%",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885706,
+   "dateExpiration": 1792069706
+  },
+  "163176": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 953/1000/970 Recoil:-38.12% Dmg7.05%",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885925,
+   "dateExpiration": 1792069925
+  },
+  "163177": {
+   "idItem": 4431,
+   "idCategory": 17,
+   "title": "OT8-RF \"Scorched\" (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786885960,
+   "dateExpiration": 1792069960
+  },
+  "163181": {
+   "idItem": 4608,
+   "idCategory": 38,
+   "title": "DCHS-01 Executive Access Protocols Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 820000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786886442,
+   "dateExpiration": 1792070442
+  },
+  "163182": {
+   "idItem": 4609,
+   "idCategory": 38,
+   "title": "DCHS-02 Security Encryption Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-16",
+   "lastSeen": "2026-08-16",
+   "prices": [
+    {
+     "d": "2026-08-16",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786886449,
+   "dateExpiration": 1792070449
   }
  }
 }
