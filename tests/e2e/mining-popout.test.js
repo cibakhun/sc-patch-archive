@@ -197,6 +197,26 @@ test('P-06: zweimal auslagern haengt die Handler nicht doppelt an', async () => 
   assert.equal(w1.closed, true, 'das erste Fenster darf nicht offen zurueckbleiben');
 });
 
+test('P-08: das Symbolsprite kommt als KOPIE mit, die Seite behaelt ihres', async () => {
+  // Gemeldeter Fehler (Betreiber, 16.08.2026: „icons fehlen"): die drei
+  // Preset-Knoepfe zeichnen ueber <use href="#wb-i-…">, und ein <use> loest
+  // gegen sein EIGENES Dokument auf. Ohne Sprite drueben blieben drei leere
+  // Kaesten stehen. Verschieben statt kopieren waere die falsche Abhilfe —
+  // dann fehlten sie in der Seite, wo dieselben Kennungen die Nadeln der
+  // mittleren Spalte speisen. Deshalb hier BEIDE Richtungen behauptet.
+  const ctx = await boot({});
+  const w = await auslagern(ctx);
+
+  const drueben = w.document.querySelector('.wb__sprite');
+  assert.ok(drueben, 'das Fremddokument braucht ein eigenes Sprite');
+  const kennungen = drueben.querySelectorAll('symbol').map((s) => s.id).sort();
+  assert.deepEqual(kennungen, ['wb-i-edit', 'wb-i-pin', 'wb-i-trash', 'wb-i-update'],
+    'die Kopie muss alle Symbolkennungen tragen');
+
+  assert.ok(ctx.document.querySelector('.wb__sprite'),
+    'die Seite darf ihr Sprite dabei NICHT verlieren — dort haengen die Nadeln der mittleren Spalte daran');
+});
+
 test('P-07: blockiert der Browser das Fenster, bleibt die Spalte stehen', async () => {
   // window.open liefert null — genau das tut ein Popup-Blocker.
   const ctx = await boot({ noPopupWindow: true });

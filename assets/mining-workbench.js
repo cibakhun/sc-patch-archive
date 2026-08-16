@@ -1307,8 +1307,33 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         copyStyles(doc);
         /* Dieselbe Klassenkette wie in der Seite: .wb ist der Riegel, gegen
            den inWb() prueft, .wb__pane--sig traegt die Spaltengestalt. */
+        /* ⚠⚠ Das Symbol-Sprite MUSS mitkommen, und zwar als KOPIE. Die drei
+           Preset-Knoepfe (Ueberschreiben, Umbenennen, Loeschen) und die Nadel
+           in der Fundort-Zeile zeichnen ihre Symbole ueber
+           `<use href="#wb-i-…">` — und ein <use> loest IMMER gegen sein
+           EIGENES Dokument auf. Das Sprite liegt aber weit oben im Bauteil,
+           ausserhalb von #wb-pop-body, zieht also nicht mit um: drueben
+           standen an ihrer Stelle drei leere graue Kaesten (Betreiber,
+           16.08.2026: „icons fehlen"). Verschieben statt kopieren waere die
+           naheliegende und falsche Abhilfe — dann fehlten die Symbole
+           stattdessen in der Seite, wo dieselben Kennungen die Nadeln der
+           mittleren Spalte speisen.
+           VOR dem Umzug der Huelle, damit die Kennungen schon dastehen, wenn
+           die <use>-Verweise ankommen. */
+        var sprite = document.querySelector('.wb__sprite');
+        if (sprite) { try { doc.body.appendChild(doc.importNode(sprite, true)); } catch (e) { /* dann eben ohne */ } }
+        /* ⚠ `wb__cscreen` ist hier kein Zierrat, sondern die Antwort auf
+           „das Fenster spricht nicht unsere Design-Sprache": diese Klasse
+           IST der Bildschirm des Geraets (Zeilenraster, Leuchtkegel,
+           Verlauf), und in der Werkbank schwimmen die Paneele mit 8 px
+           Abstand darauf. Das Fenster bekommt deshalb dieselbe Flaeche
+           statt eines nachempfundenen flachen Grundes — es ist ein
+           herausgeloestes Stueck desselben Schirms, kein Nachbau.
+           Das Raster liegt dabei HINTER dem deckenden Paneel und kreuzt
+           keine Glyphe; genau diese Ortswahl ist im Bildschirm-Durchgang
+           erarbeitet worden. */
         var shell = doc.createElement('div');
-        shell.className = 'wb wb--pop';
+        shell.className = 'wb wb--pop wb__cscreen';
         var host = doc.createElement('div');
         host.className = 'wb__pane wb__pane--sig chamf';
         shell.appendChild(host);

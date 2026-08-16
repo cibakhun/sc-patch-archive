@@ -423,6 +423,18 @@ export function makeMiningDomContext(opts = {}) {
   // diese Verschachtelung tragen, sonst laesst sich der Umzug nicht
   // nachstellen — und der Zweig, der ihn ueberhaupt erst funktionieren
   // laesst ($()-Rueckfall, s. mining-popout.test.js), bliebe ungeprueft.
+  /* Das Symbolsprite steht AUSSERHALB von #wb-pop-body — genau darin lag der
+     vom Betreiber gemeldete Fehler „icons fehlen": es zog beim Auslagern
+     nicht mit um, und die <use href="#wb-i-…"> der Presetknoepfe zeigten
+     drueben ins Leere. Hier deshalb an derselben Stelle wie im Bauteil
+     (weit oben, nicht in der Spalte), damit ein Test den Unterschied
+     zwischen „mitgekommen" und „nicht mitgekommen" ueberhaupt sehen kann. */
+  const sprite = mk('svg', '', 'wb__sprite');
+  ['wb-i-pin', 'wb-i-edit', 'wb-i-trash', 'wb-i-update'].forEach(function (id) {
+    sprite.appendChild(reg(mk('symbol', id)));
+  });
+  root.appendChild(sprite);
+
   const popPane = mk('div', '', 'wb__pane wb__pane--sig');
   const popSlot = reg(mk('div', 'wb-pop-slot'));
   popSlot.hidden = true;
@@ -514,6 +526,14 @@ export function makeMiningDomContext(opts = {}) {
       querySelectorAll: (sel) => popRoot.querySelectorAll(sel),
       createElement: (tag) => mk(tag),
       adoptNode: (node) => { if (node.parentNode) node.parentNode.removeChild(node); return node; },
+      /* Gegenstueck zu adoptNode: KOPIEREN statt verschieben. Genau diese
+         Unterscheidung traegt das Symbolsprite — es muss in BEIDEN
+         Dokumenten stehen, sonst fehlen die Symbole auf der einen Seite. */
+      importNode: (node, tief) => {
+        const kopie = mk(node.tagName.toLowerCase(), node.id || '', node.className || '');
+        if (tief) node.children.forEach((k) => kopie.appendChild(mk(k.tagName.toLowerCase(), k.id || '', k.className || '')));
+        return kopie;
+      },
       addEventListener: popEvents.add,
       removeEventListener: popEvents.remove,
       write() {}, close() {},
