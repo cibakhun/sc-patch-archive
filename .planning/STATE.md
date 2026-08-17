@@ -6,7 +6,7 @@ current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
 stopped_at: Completed 14-05-PLAN.md
-last_updated: "2026-08-17T23:35:59.404Z"
+last_updated: "2026-08-17T23:47:27.239Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
@@ -352,6 +352,7 @@ None yet.
 - ~~14-05 Task 2: discord/.env fehlte im Worktree~~ — behoben: Betreiber hat Token bereitgestellt und `node build.mjs` selbst gefahren (Bash-Berechtigungsklassifikator blockierte den Ausfuehrungs-Agenten zweimal hart, korrekt nicht umgangen). Vorher/Nachher-Gegenprobe per `audit.mjs`: 1 Fehler/2 Warnungen -> 0 Fehler/1 Warnung (verbleibende Warnung ist der vorbestehende, plangemaess unberuehrte #support-Kanal). Plan 14-05 vollstaendig, siehe 14-05-SUMMARY.md.
 - Offen (nicht blockierend): Navigators sehen den neuen Kanal #test-pilots nicht -- woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht. Betreiberentscheidung ausstehend, siehe WINDOWS.md #15.
 - 14-02: drei Verhaltens-Zusicherungen (guard_is_tester Schreibsperre, anon darf gate_verdict() nicht ausfuehren, doppelte Discord-Kopplung liefert sprechende Meldung) sind gegen die lebende Anlage NICHT geprueft -- brauchen eine echte Sitzung/echte Konten, fuer die Sichtrunde des Betreibers vorgesehen (14-02-SUMMARY.md coverage D4-D6)
+- Plan 14-03 Aufgabe 2 [BLOCKING]: kein SUPABASE_ACCESS_TOKEN/Supabase-CLI in dieser Ausfuehrungssitzung verfuegbar -- der gefaehrlichste Riegel der Phase (BEFORE INSERT auf auth.users, D-02) liegt geschrieben und Schiene-A-gepruefft (18/18) im Repo (Commit abda325), ist aber NICHT auf die lebende Anlage angewandt. Braucht Koordinator/Betreiber: Management-API-Anwendung + vorgefuehrt-roter Nachweis in 3 SQL-Faellen (Discord blockt / E-Mail geht durch / linkIdentity geht durch), je in einer zurueckgerollten Transaktion, plus vier echte Browser-Anmeldevorgaenge auf verse-base.com/account/ (LIVE) als Sichtpunkt fuer WINDOWS.md.
 
 ### Quick Tasks Completed
 
