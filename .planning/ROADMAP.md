@@ -857,8 +857,22 @@ Voraussetzung für Tor UND Abzeichen und gehört in die erste Welle.
 **Depends on:** Nichts. Die Phase berührt weder die Mining-Werkbank noch die
 Oberfläche der Phasen 1–4; die im Roadmap-Gerüst voreingetragene Abhängigkeit
 von Phase 13 ist ein Artefakt der Nummernfolge und gilt nicht.
-**Plans:** 0 plans
+**Requirements**: keine REQ-IDs — bindend sind die Entscheidungen **D-01 … D-25**
+in `14-CONTEXT.md`, wie in den Phasen 7, 9, 10 und 12. Alle 25 sind auf Pläne
+abgebildet; die Zuordnung steht in jedem `requirements`-Feld der Plan-Frontmatter.
+**Plans:** 12 plans in 6 Wellen
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 14 to break down)
+- [ ] 14-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
+- [ ] 14-02-PLAN.md — Supabase: Rollenspiegel, Sperrliste, Spiegelspalten, Torurteil in einem Aufruf (D-03, D-05, D-08, D-10, D-13, D-19, D-22)
+- [ ] 14-03-PLAN.md — Kontosperre: der Discord-Knopf legt nie ein Konto an, vorgeführt rot vor dem Scharfstellen (D-02)
+- [ ] 14-04-PLAN.md — Discord als zweiter Anmeldeweg im Konto und am Tor (D-01, D-03, D-11)
+- [ ] 14-05-PLAN.md — Discord-Server: Rolle nicht mehr selbst vergebbar, eigener privater Kanal (D-14, D-15, D-18)
+- [ ] 14-06-PLAN.md — Bestandsträger: Trockenlauf mit Namen und Anzahl, dann Entzug bei allen (D-16)
+- [ ] 14-07-PLAN.md — Bot: Server Members Intent, Rollenstand per Push, Vollabgleich beim Start (D-08, D-17, D-25)
+- [ ] 14-08-PLAN.md — Tor scharf: Testpiloten, Sperrliste, Ausfallverhalten, aufgezählte Ausnahmeliste (D-06, D-09, D-10, D-13)
+- [ ] 14-09-PLAN.md — Torkette: verify:gate (Schiene A), check:gate (Schiene C), Rauchtest-Bypass ohne Dauerschlüssel (D-06, D-07, D-12)
+- [ ] 14-10-PLAN.md — Perks auf der Seite: Profil-Abzeichen, Zustimmungsschalter, Namensnennung, Testpiloten-Übersicht (D-13, D-19, D-22)
+- [ ] 14-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
+- [ ] 14-12-PLAN.md — Scharfschaltung: beide Bauarten grün, Ausrollen, Beleg an der ausgelieferten Seite, Sichturteile an den Betreiber
