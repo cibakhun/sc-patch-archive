@@ -1,0 +1,264 @@
+# Sonde, kein Tor (wie probe-njs.yml). Baut das ECHTE Projekt-Image (mit dem
+# njs-Tuersteher aus Phase 14 Plan 01) und faehrt die Ende-zu-Ende-Pruefung aus
+# 14-01-PLAN.md dagegen — auf dem Entwicklungsrechner nicht moeglich, aus
+# demselben Grund wie bei probe-njs.yml: Docker braucht hier Administrator-
+# rechte (com.docker.service), die die Ausfuehrungsumgebung nicht hat.
+#
+# probe-njs.yml misst NUR, ob das Modul verfuegbar ist. Diese Sonde prueft die
+# tatsaechliche LAUFZEIT: Redirects, Cookie-Mint, Signatur-/Ablaufpruefung,
+# fail-closed ohne Geheimnis, Live-Bau unveraendert. Grundsatz 7 (CLAUDE.md):
+# gegen das Artefakt pruefen, und wissen, welches — hier ist es der laufende
+# Container aus dem echten Dockerfile, nicht dist/ und nicht die Recherche.
+#
+# WARUM ZWEI IDENTITAETS-BAHNEN:
+#   Bahn A (echtes Supabase-Projekt, dieselben oeffentlichen Werte wie im
+#   Plan-<verify> und in assets/account-lite.js): kein Bearer-Header -> 401
+#   ist gate.js-intern (nie ein Supabase-Aufruf); ein ERFUNDENER Token -> 403,
+#   weil Supabase ihn zurueckweist. Das prueft die echte Integration.
+#   Bahn B (statischer Mock-PostgREST, selbst nginx:alpine — kein neues Image
+#   noetig): liefert IMMER eine admin-Zeile, unabhaengig vom Header. Ohne ein
+#   echtes admin-Konto (bräuchte ein Supabase-Geheimnis als Repo-Secret, das
+#   heute nicht existiert und hier nicht spekulativ angelegt wird) ist das der
+#   einzige Weg, den ERFOLGSPFAD von gate.mint() — Cookie setzen, danach
+#   durchgelassen werden — gegen den echten Container zu pruefen. Es prueft
+#   NUR gate.js' eigene Mint-/Cookie-Logik, nicht Supabase' Tokenpruefung
+#   (die deckt Bahn A ab).
+#   Die Signatur-/Ablaufpruefung (T-14-01/T-14-02) braucht KEIN Supabase: das
+#   Pruefskript signiert selbst mit dem VB_GATE_SECRET, das dieser Workflow
+#   dem Container mitgibt — derselbe HMAC-Code wie nginx/gate.js.
+#
+# Offene Luecke, ausdruecklich benannt statt verschwiegen: der Login-auf-
+# /gate.html-Weg mit einem ECHTEN E-Mail/Passwort-Konto ist damit NICHT
+# automatisiert geprueft — das braucht ein echtes Testkonto und bleibt eine
+# manuelle Pruefung des Betreibers (14-01-SUMMARY.md, Abschnitt "Offene
+# Container-Nachweise").
+name: Sonde — Testpilot-Tor Ende-zu-Ende (Plan 14-01)
+
+on:
+  push:
+    branches:
+      - 'claude/staging-tester-role-access-308ebf'
+    paths:
+      - '.github/workflows/probe-gate-e2e.yml'
+      - 'Dockerfile'
+      - 'nginx/**'
+      - 'src/pages/gate.astro'
+      - 'src/lib/seo.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vorschau-Image bauen (STAGING=1 — derselbe Bauweg wie deploy-staging.yml)
+        run: docker build --build-arg STAGING=1 --build-arg GIT_SHA=${{ github.sha }} -t vb-gate-e2e:staging .
+
+      - name: Live-Image bauen (OHNE STAGING) — Gegenprobe fuer D-12
+        run: docker build -t vb-gate-e2e:live .
+
+      - name: Mock-PostgREST fuer Bahn B (liefert immer eine admin-Zeile)
+        run: |
+          mkdir -p mock
+          cat > mock/default.conf <<'CONF'
+          server {
+            listen 80 default_server;
+            location / {
+              default_type application/json;
+              return 200 '[{"role":"admin","user_id":"11111111-1111-1111-1111-111111111111"}]';
+            }
+          }
+          CONF
+          docker network create gatenet
+          docker run -d --rm --network gatenet --name mockrest \
+            -v "$PWD/mock/default.conf:/etc/nginx/conf.d/default.conf:ro" \
+            nginx:alpine
+          for i in $(seq 1 20); do
+            docker run --rm --network gatenet nginx:alpine wget -q -O - http://mockrest/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+      - name: "Container 1/4 starten: Bahn B (Mock-Supabase, echtes Geheimnis)"
+        run: |
+          docker run -d --rm --network gatenet -p 8099:80 --name vbgate-mock \
+            -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
+            -e VB_SUPABASE_URL=http://mockrest \
+            -e VB_SUPABASE_ANON_KEY=mock-key \
+            vb-gate-e2e:staging
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8099/gate.html && break; sleep 1; done
+
+      - name: "Container 2/4 starten: Bahn A (echtes Supabase-Projekt)"
+        run: |
+          docker run -d --rm -p 8098:80 --name vbgate-real \
+            -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
+            -e VB_SUPABASE_URL=https://trgjhmbnodoarnfmlcqx.supabase.co \
+            -e VB_SUPABASE_ANON_KEY=sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J \
+            vb-gate-e2e:staging
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8098/gate.html && break; sleep 1; done
+
+      - name: "Container 3/4 starten: OHNE VB_GATE_SECRET (fail-closed, T-14-04)"
+        run: |
+          docker run -d --rm -p 8097:80 --name vbgate-nosecret \
+            -e VB_SUPABASE_URL=https://trgjhmbnodoarnfmlcqx.supabase.co \
+            -e VB_SUPABASE_ANON_KEY=sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J \
+            vb-gate-e2e:staging
+          for i in $(seq 1 30); do curl -fsS -o /dev/null -w '' http://localhost:8097/gate.html && break; sleep 1; done
+
+      - name: "Container 4/4 starten: Live-Bild (ohne STAGING, D-12)"
+        run: |
+          docker run -d --rm -p 8096:80 --name vbgate-live vb-gate-e2e:live
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8096/ && break; sleep 1; done
+
+      - name: Zusicherungen — Redirects, Ausnahmeliste, fail-closed, Live-Bau
+        run: |
+          set +e
+          FEHLER=0
+          SOLL_IST=0
+          check() {
+            SOLL_IST=$((SOLL_IST+1))
+            if [ "$2" = "$3" ]; then
+              echo "OK     $1 — Soll $2 Ist $3"
+            else
+              echo "FEHLER $1 — Soll $2 Ist $3"
+              FEHLER=$((FEHLER+1))
+            fi
+          }
+          code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
+
+          ASTRO_FILE=$(docker exec vbgate-mock sh -c "ls /usr/share/nginx/html/_astro | head -1")
+          HOLO_FILE=$(docker exec vbgate-mock sh -c "ls /usr/share/nginx/html/holo | head -1")
+          echo "Astro-Datei fuer den Redirect-Test: $ASTRO_FILE"
+          echo "Holo-Datei fuer den Redirect-Test:  $HOLO_FILE"
+
+          echo "--- D-06: ohne Ausweis geht JEDE URL auf die Torseite ---"
+          check "/schiffe.html ohne Ausweis" 302 "$(code http://localhost:8099/schiffe.html)"
+          check "/ ohne Ausweis"             302 "$(code http://localhost:8099/)"
+          check "/de/schiffe.html ohne Ausweis" 302 "$(code http://localhost:8099/de/schiffe.html)"
+          check "/_astro/$ASTRO_FILE ohne Ausweis" 302 "$(code "http://localhost:8099/_astro/$ASTRO_FILE")"
+          check "/holo/$HOLO_FILE ohne Ausweis"    302 "$(code "http://localhost:8099/holo/$HOLO_FILE")"
+
+          echo "--- D-06/D-07: Ausnahmeliste bleibt offen ---"
+          check "/gate.html" 200 "$(code http://localhost:8099/gate.html)"
+          check "/build.json" 200 "$(code http://localhost:8099/build.json)"
+          check "/robots.txt" 200 "$(code http://localhost:8099/robots.txt)"
+          check "/assets/theme.css" 200 "$(code http://localhost:8099/assets/theme.css)"
+          check "/assets/fonts.css" 200 "$(code http://localhost:8099/assets/fonts.css)"
+
+          echo "--- Mint ohne Bearer-Header (gate.js-intern, kein Supabase-Aufruf) ---"
+          check "/_gate/mint ohne Authorization" 401 "$(code -X POST http://localhost:8099/_gate/mint)"
+
+          echo "--- Bahn A: erfundener Token gegen das ECHTE Supabase-Projekt ---"
+          MINT_FAKE=$(curl -sD - -o /tmp/fake-body.txt -X POST http://localhost:8098/_gate/mint \
+            -H 'Authorization: Bearer ganz-erfunden-und-ungueltig')
+          FAKE_CODE=$(printf '%s' "$MINT_FAKE" | head -1 | tr -d '\r' | awk '{print $2}')
+          check "/_gate/mint mit erfundenem Token" 403 "$FAKE_CODE"
+          if printf '%s' "$MINT_FAKE" | grep -qi '^set-cookie:'; then
+            echo "FEHLER erfundener Token setzt ein Cookie — darf nicht sein"
+            FEHLER=$((FEHLER+1))
+          else
+            echo "OK     erfundener Token setzt KEIN Cookie"
+          fi
+
+          echo "--- fail-closed ohne VB_GATE_SECRET (T-14-04) ---"
+          check "/schiffe.html ohne VB_GATE_SECRET" 302 "$(code http://localhost:8097/schiffe.html)"
+
+          echo "--- Live-Bau unveraendert (D-12) ---"
+          check "/schiffe.html im Live-Bau, kein Cookie" 200 "$(code http://localhost:8096/schiffe.html)"
+
+          echo ""
+          echo "Zusicherungen: $SOLL_IST   FEHLER: $FEHLER"
+          exit $FEHLER
+
+      - name: Zusicherungen — Signatur/Ablauf (T-14-01/T-14-02, kein Supabase noetig)
+        run: |
+          set +e
+          FEHLER=0
+          SECRET=probe-secret-nur-fuer-ci
+          SIGN=$(cat <<'NODE'
+          const crypto = require('crypto');
+          function b64url(buf) { return buf.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+          const [,, secret, exp] = process.argv;
+          const payload = b64url(Buffer.from(JSON.stringify({ sub: 'cafe0000-0000-0000-0000-000000000000', exp: Number(exp) })));
+          const sig = b64url(crypto.createHmac('sha256', secret).update(payload).digest());
+          console.log(payload + '.' + sig);
+          NODE
+          )
+          NOW=$(date +%s)
+          VALID_COOKIE=$(node -e "$SIGN" "$SECRET" "$((NOW+300))")
+          EXPIRED_COOKIE=$(node -e "$SIGN" "$SECRET" "$((NOW-300))")
+          TAMPERED_COOKIE="${VALID_COOKIE%?}X"
+          echo "gueltiges Cookie:    $VALID_COOKIE"
+          echo "abgelaufenes Cookie: $EXPIRED_COOKIE"
+          echo "verfaelschtes Cookie:$TAMPERED_COOKIE"
+
+          check() {
+            if [ "$2" = "$3" ]; then echo "OK     $1 — Soll $2 Ist $3"; else echo "FEHLER $1 — Soll $2 Ist $3"; FEHLER=$((FEHLER+1)); fi
+          }
+          code_with_cookie() { curl -s -o /dev/null -w '%{http_code}' -H "Cookie: vb_gate=$1" http://localhost:8099/schiffe.html; }
+
+          check "gueltig selbst signiertes Cookie -> durchgelassen" 200 "$(code_with_cookie "$VALID_COOKIE")"
+          check "verfaelschte Signatur -> zurueck ans Tor"          302 "$(code_with_cookie "$TAMPERED_COOKIE")"
+          check "abgelaufenes exp -> zurueck ans Tor"                302 "$(code_with_cookie "$EXPIRED_COOKIE")"
+
+          echo ""
+          echo "FEHLER: $FEHLER"
+          exit $FEHLER
+
+      - name: Zusicherung — Bahn B, echter Mint-Erfolgspfad (Mock-Supabase)
+        run: |
+          set +e
+          FEHLER=0
+          RESP=$(curl -sD - -o /tmp/mint-body.txt -X POST http://localhost:8099/_gate/mint \
+            -H 'Authorization: Bearer beliebig-Bahn-B-prueft-nur-gate.js')
+          CODE=$(printf '%s' "$RESP" | head -1 | tr -d '\r' | awk '{print $2}')
+          echo "Mint-Antwort: $CODE"
+          cat /tmp/mint-body.txt
+          if [ "$CODE" != "200" ]; then echo "FEHLER Mint gegen Mock-Supabase — Soll 200 Ist $CODE"; FEHLER=$((FEHLER+1)); fi
+
+          VB_GATE=$(printf '%s' "$RESP" | grep -i '^set-cookie: vb_gate=' | head -1 | sed -E 's/^[Ss]et-[Cc]ookie: vb_gate=([^;]+);.*/\1/' | tr -d '\r')
+          VB_GATE_EXP=$(printf '%s' "$RESP" | grep -i '^set-cookie: vb_gate_exp=' | head -1)
+          if [ -z "$VB_GATE" ]; then
+            echo "FEHLER kein vb_gate-Cookie in der Antwort"
+            FEHLER=$((FEHLER+1))
+          else
+            echo "OK     vb_gate-Cookie gesetzt (Laenge ${#VB_GATE})"
+            if printf '%s' "$RESP" | grep -qi '^set-cookie: vb_gate=.*HttpOnly.*Secure.*SameSite=Lax.*Max-Age=300'; then
+              echo "OK     vb_gate traegt HttpOnly; Secure; SameSite=Lax; Max-Age=300"
+            else
+              echo "FEHLER vb_gate-Attribute unvollstaendig"
+              FEHLER=$((FEHLER+1))
+            fi
+          fi
+          if [ -z "$VB_GATE_EXP" ]; then
+            echo "FEHLER kein vb_gate_exp-Cookie in der Antwort"
+            FEHLER=$((FEHLER+1))
+          else
+            echo "OK     vb_gate_exp-Cookie gesetzt: $(printf '%s' "$VB_GATE_EXP" | tr -d '\r')"
+          fi
+
+          if [ -n "$VB_GATE" ]; then
+            FOLLOWUP=$(curl -s -o /dev/null -w '%{http_code}' -H "Cookie: vb_gate=$VB_GATE" http://localhost:8099/schiffe.html)
+            if [ "$FOLLOWUP" = "200" ]; then
+              echo "OK     Folgeaufruf mit gemintetem Cookie -> 200"
+            else
+              echo "FEHLER Folgeaufruf mit gemintetem Cookie — Soll 200 Ist $FOLLOWUP"
+              FEHLER=$((FEHLER+1))
+            fi
+          fi
+
+          echo ""
+          echo "FEHLER: $FEHLER"
+          exit $FEHLER
+
+      - name: Aufraeumen
+        if: always()
+        run: |
+          docker stop vbgate-mock vbgate-real vbgate-nosecret vbgate-live mockrest 2>/dev/null || true
+          docker network rm gatenet 2>/dev/null || true
+
+      - name: Urteil
+        run: |
+          echo "BEFUND: die Ende-zu-Ende-Pruefung aus 14-01-PLAN.md Aufgabe 2 ist gegen den echten Container gefahren."
