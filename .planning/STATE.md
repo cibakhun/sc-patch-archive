@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Completed 14-10-PLAN.md
-last_updated: "2026-08-17T20:30:36.805Z"
+stopped_at: Completed 14-05-PLAN.md
+last_updated: "2026-08-17T23:35:59.404Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 49
+  completed_plans: 50
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 77%
 
 ## Performance Metrics
 
@@ -230,6 +230,7 @@ Progress: [████████░░] 75%
 | Phase 14 P01 | 110min | 2 tasks | 7 files |
 | Phase 14 P02 | ~65min | 3 tasks | 2 files |
 | Phase 14 P10 | ~55min | 3 tasks | 4 files |
+| Phase 14 P05 | ~2h35min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -333,6 +334,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 14]: 14-10: Testpilot-Abzeichen-Farbe #ff5e1a von der Discord-Rolle uebernommen (C.craftOrange), nach dem RSI-Abzeichen gepusht; Hellmodus-Gegenstueck von Hand ergaenzt
 - [Phase ?]: [Phase 14]: 14-10: Admin-Uebersicht (D-13) per direkter user_roles-Abfrage vor tester_overview() gegattert statt der is-admin-Klasse aus account-lite.js, das auf /account/-Seiten nicht laeuft
 - [Phase ?]: [Phase 14]: 14-10: Namensnennung auf der Feedback-Seite statt Unterstuetzen-Seite verdrahtet (die sagt woertlich 'no perks in your account'); vier Sichtpruefungen (D1-D4) an Plan 12 uebergeben, WINDOWS.md-Eintrag scheiterte an vorbestehendem CRLF-Parserfehler
+- [Phase ?]: [Phase 14]: 14-05: D-14 woertlich umgesetzt (nur Rollen-Kommentar geaendert, Objektzeile git-diff-unveraendert); D-15 vollstaendig inkl. zwei zusaetzlicher Fundstellen (start-here-Seed, Onboarding-Kopfkommentar); D-18 mit flight-computer-Mitsicht fuer den kuenftigen Deploy-Ping
+- [Phase ?]: [Phase 14]: 14-05: Task 2 (Live-Anwendung) NICHT vom Executor ausgefuehrt -- Bash-Berechtigungsklassifikator blockierte node build.mjs zweimal hart; Betreiber hat den Lauf selbst gefahren, Vorher/Nachher-Gegenprobe per audit.mjs bestaetigt 0 Fehler/1 Warnung (unveraenderte #support-Warnung, plangemaess)
+- [Phase ?]: [Phase 14]: 14-05: Navigators sehen #test-pilots nicht (woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht) -- als offene Betreiberentscheidung in WINDOWS.md #15 dokumentiert, nicht eigenmaechtig geaendert
 
 ### Pending Todos
 
@@ -385,6 +389,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T20:30:36.750Z
-Stopped at: Completed 14-10-PLAN.md
+Last session: 2026-08-17T23:35:52.833Z
+Stopped at: Completed 14-05-PLAN.md
 Resume file: None

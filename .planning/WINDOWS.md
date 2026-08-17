@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
+open_count: 7
 waived_count: 0
 fixed_count: 8
-total_count: 14
-last_updated: 2026-08-17T20:35:28.938Z
+total_count: 15
+last_updated: 2026-08-17T23:33:19.659Z
 ---
 
 # Broken Windows Ledger
@@ -29,6 +29,7 @@ last_updated: 2026-08-17T20:35:28.938Z
 | 12 | 12 | unrun-verify | .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-03-PLAN.md |  | Sichtrunde Phase 12 (Plaene 12-01+12-02+12-03) aus 12-03-PLAN.md Task 3 noch nicht durchgefuehrt -- braucht ein menschliches Urteil im Browser, kein Skript kann "wirkt lesbar" oder "liest sich als vorhanden, aber nicht abbauwuerdig" entscheiden. Sieben Punkte, je DE und EN, in beiden Farbmodi, bei 1920x1080 UND 1280x720: (1) Wirkt die Dreifach-Ueberlagerung auf einer Kachel -- markiert (is-here), ausgewaehlt (is-sel), angeheftet (Nadel is-on) -- tatsaechlich lesbar, oder sieht sie nur messbar verschieden aus? Strukturell + am Bildpunkt bereits belegt (mining-locview-messung.mjs Gruppe f, 24/24 Laeufe bestanden, Bildpunkt-Abstaende 84-231 auf einer 0-441-Skala). (2) Werden die gedaempften Spurenzeilen im Fluss als "vorhanden, aber nicht abbauwuerdig" gelesen, oder als Fehler? Gegenprobe: an einem Ort mit fuenf Spuren unter neun Erzen (z. B. Pyro Belt (Cool 1)) zaehlen, ob man sie ohne Nachdenken erkennt. (3) Traegt die Mitte weiterhin? Fundort-Kopf, Gruppenueberschriften und Erzliste uebereinander, ohne dass die Werkbank bei 1280x720 aeusseres Scrollen braucht. (4) Ist der Zurueck-Pfeil als Ausgang erkennbar, ohne mit der Nadel oder dem grossen Anheft-Knopf der Erz-Ansicht verwechselt zu werden -- dieselbe Frage, die in Phase 10 ein Preset gekostet hat, als zwei gleich aussehende Knoepfe gegensaetzlich wirkten. (5) Ist die ganze Fundort-Zeile als Klickziel spuerbar, ohne dass die Nadel darin schwerer zu treffen geworden ist -- dritte Runde an diesem Knopf, die beiden vorigen scheiterten an Groesse und Sichtbarkeit. (6) Die Merkliste rechts: oeffnet ein Klick auf die Zeile den Ort, und loest das Kreuz weiterhin nur -- merkt man den Unterschied beim Treffen? (7) Ein geteilter Verweis mit dem Adressparameter (?fundort=Name), aus der Zwischenablage in ein neues Fenster eingesetzt: oeffnet er den richtigen Ort, in beiden Sprachfassungen? Alle maschinellen Vorlaeufe gruen: node --test tests/e2e/mining-shortlist.test.js (63/63, davon T-12-16 bis T-12-18 neu fuer den Adressparameter ?fundort=), node --test tests/e2e/*.test.js (297/297), npm run build + npm run gate (18/18, normal UND mit STAGING=1), node scripts/verify-help.mjs --complete (12/12 Werkzeuge, mining.ctl.locpin/mining.ctl.shortlist inhaltlich nachgezogen), npm run audit:site (0 FEHLER), npm run verify:mining gruen. NEU seit diesem Plan, ausserhalb der Torkette: node scripts/probes/mining-locview-messung.mjs (4 Laeufe x 3 Orte x 6 Messgruppen = 72 Messpunkte, alle bestanden) -- die Spurenzeilen-Daempfung wurde dabei von den UI-SPEC-Startwerten 62%/65% auf gemessene 82%/90% angehoben (schlechtester Wert vorher 1,33:1, nachher 4,91:1 gegen die 4,5:1-Marke, beide Farbmodi) und eine 1,6px-Zeilenhoehenabweichung bei Spurenzeilen mit Abzeichen behoben (line-height:1 auf .wb__tag.is-trace, vorher hoeher als eine gewoehnliche Zeile). Die Sonde wurde einmal vorgefuehrt rot (Daempfung testweise auf 20% gesetzt: 4 von 24 Messpunkten fielen mit 1,33-1,43:1 durch) und danach zurueckgesetzt. Diese Sichtrunde deckt zugleich die noch offenen id 10 (Phase 9) und id 11 (Phase 10) inhaltlich mit ab, soweit deren Reiter-/Nadel-/Breitenfragen durch den Umbau dieser Phase ueberholt sind -- beide bleiben trotzdem als eigene Eintraege offen, bis der Betreiber alle drei gemeinsam abnimmt. | open |  | 2026-08-15T17:20:00.000Z |  |
 | 13 | design | unrun-verify | src/components/MiningWorkbench.astro |  | Sichturteil: der Werkzeug-Hilfe-Kasten klappt beim Erstbesuch selbsttaetig auf und deckt im Gehaeuse-Bildbereich bei 1280x720 das Kachelraster fast vollstaendig zu. Auf 140 px gekuerzt (vorher 244), damit eine Kachelzeile sichtbar bleibt; ganz aufloesen laesst es sich hier NICHT — .wb__pane{overflow:hidden} schneidet jede Positionierung neben die Spalte weg (vorgefuehrt). Echte Optionen: Auto-Oeffnen abschalten oder ToolHelp aus der Spalte heben — beides Eingriff in den geteilten Werkzeug-Hilfe-Vertrag und damit Produktentscheidung. | open |  | 2026-08-15T14:10:00.000Z |  |
 | 14 | 14 | unrun-verify | src/components/pilot/PilotPage.astro |  | Sichtrunde Phase 14, Plan 14-10 (Testpilot-Perks auf der Seite) — nicht durchgefuehrt, braucht ein angemeldetes Konto mit Testpilot-Status UND ein Admin-Konto gegen die LIVE-Datenbank; beides stand in der Ausfuehrungssitzung nicht zur Verfuegung. Vier Punkte, je DE und EN, in beiden Farbmodi: (1) Liest sich das Testpilot-Abzeichen im Piloten-Profil als gleichrangig neben der RSI-Verifizierung, oder draengt es sich vor? D-19 verlangt ausdruecklich NICHT prominenter als RSI — die Rangfolge der beiden Nachweise darf sich nicht verdrehen. (2) Der Zustimmungsschalter fuer die Namensnennung im Konto: geht der Rundlauf (setzen, neu laden, wieder da) durch, und enthaelt die Speicher-Nutzlast NIEMALS is_tester? Letzteres ist der eigentliche Pruefpunkt — der guard_is_tester-Trigger wuerde einen solchen Schreibversuch mit insufficient_privilege abweisen und dem Nutzer eine unverstaendliche Fehlermeldung zeigen. (3) Die Testpiloten-Uebersicht (D-13): sichtbar fuer ein Admin-Konto, und fuer ein Nicht-Admin-Konto NICHT sichtbar — tester_overview() wirft dort insufficient_privilege, die Oberflaeche muss das abfangen statt einen rohen Fehler zu zeigen. (4) Die Namensnennung auf der Feedback-Seite: erscheint ein Name erst NACH dem Einschalten des Schalters und verschwindet er beim Ausschalten wieder? Standard ist AUS (D-22), und niemand darf dort stehen, der nicht zugestimmt hat. Maschinell bereits gruen: npm run build + npm run gate 18/18 (normal UND mit STAGING=1), verify:theme, verify:layers, verify:sync und audit:site einzeln gruen, jede Task-eigene verify-Pruefung bestanden. | open |  | 2026-08-17T20:35:28.938Z |  |
+| 15 | 14 | unrun-verify | discord/blueprint.mjs |  | Offene Betreiberentscheidung (14-05): Navigators (Moderatoren) sehen #test-pilots NICHT -- der Kanal laesst per overwrites ausschliesslich tester und flight-computer herein, Fleet Command nur ueber Administrator (keine Ueberschreibung). D-18 ("nur fuer Testpiloten sichtbar") ist woertlich korrekt umgesetzt, meinte aber mit hoher Wahrscheinlichkeit "nicht fuer die Allgemeinheit" statt "auch nicht fuer die Moderation". Ein Moderator kann den Kanal weder lesen noch moderieren, obwohl dort ueber Unfertiges geredet wird. Bei 5 Mitgliedern folgenlos; sobald jemand moderiert, eine Luecke. Nicht eigenmaechtig geaendert -- Betreiberentscheidung noetig, ob navigators: { allow: [...] } zum Kanal-Overwrite ergaenzt wird. | open |  | 2026-08-17T23:33:19.659Z |  |
 
 ````json
 [
@@ -198,6 +199,18 @@ last_updated: 2026-08-17T20:35:28.938Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-17T20:35:28.938Z",
+    "resolved_at": null
+  },
+  {
+    "id": 15,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "discord/blueprint.mjs",
+    "line": null,
+    "description": "Offene Betreiberentscheidung (14-05): Navigators (Moderatoren) sehen #test-pilots NICHT -- der Kanal laesst per overwrites ausschliesslich tester und flight-computer herein, Fleet Command nur ueber Administrator (keine Ueberschreibung). D-18 (\"nur fuer Testpiloten sichtbar\") ist woertlich korrekt umgesetzt, meinte aber mit hoher Wahrscheinlichkeit \"nicht fuer die Allgemeinheit\" statt \"auch nicht fuer die Moderation\". Ein Moderator kann den Kanal weder lesen noch moderieren, obwohl dort ueber Unfertiges geredet wird. Bei 5 Mitgliedern folgenlos; sobald jemand moderiert, eine Luecke. Nicht eigenmaechtig geaendert -- Betreiberentscheidung noetig, ob navigators: { allow: [...] } zum Kanal-Overwrite ergaenzt wird.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-17T23:33:19.659Z",
     "resolved_at": null
   }
 ]
