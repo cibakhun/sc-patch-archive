@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-08-17T19:33:30.276Z"
+stopped_at: Completed 14-10-PLAN.md
+last_updated: "2026-08-17T20:30:36.805Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 48
+  completed_plans: 49
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [███████░░░] 74%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -229,6 +229,7 @@ Progress: [███████░░░] 74%
 | Phase 12 P03 | ~100min | 3 tasks | 7 files |
 | Phase 14 P01 | 110min | 2 tasks | 7 files |
 | Phase 14 P02 | ~65min | 3 tasks | 2 files |
+| Phase 14 P10 | ~55min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -329,6 +330,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 14]: 14-02: sync_discord_identity() faengt unique_violation auf discord_user_id (nicht user_id) ab und ersetzt sie durch eine sprechende Meldung (Kandidat a); foreign_key_violation/others werfen nur noch WARNING -- ein Spiegel-Eintrag ist nie wichtiger als eine funktionierende Anmeldung
 - [Phase ?]: [Phase 14]: 14-02: public_profiles wird gegen die JUENGSTE Migration gebaut (20260725110000_presence_two_signal.sql, presence-Spalte), nicht gegen ihre Urfassung -- is_tester ganz am Ende angehaengt
 - [Phase ?]: [Phase 14]: 14-02: Migrationen dieses Projekts laufen ueber die Supabase Management API (apply_migration, Namen ohne Datei-Zeitstempel), NICHT ueber supabase db push -- der CLI-Weg ist strukturell kaputt (24 lebende Migrationen tragen andere Namen als die 11 Repo-Dateien)
+- [Phase ?]: [Phase 14]: 14-10: Testpilot-Abzeichen-Farbe #ff5e1a von der Discord-Rolle uebernommen (C.craftOrange), nach dem RSI-Abzeichen gepusht; Hellmodus-Gegenstueck von Hand ergaenzt
+- [Phase ?]: [Phase 14]: 14-10: Admin-Uebersicht (D-13) per direkter user_roles-Abfrage vor tester_overview() gegattert statt der is-admin-Klasse aus account-lite.js, das auf /account/-Seiten nicht laeuft
+- [Phase ?]: [Phase 14]: 14-10: Namensnennung auf der Feedback-Seite statt Unterstuetzen-Seite verdrahtet (die sagt woertlich 'no perks in your account'); vier Sichtpruefungen (D1-D4) an Plan 12 uebergeben, WINDOWS.md-Eintrag scheiterte an vorbestehendem CRLF-Parserfehler
 
 ### Pending Todos
 
@@ -381,6 +385,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T19:33:30.246Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-08-17T20:30:36.750Z
+Stopped at: Completed 14-10-PLAN.md
 Resume file: None
