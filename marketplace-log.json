@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 286,
-  "totalListings": 6790,
+  "updates": 287,
+  "totalListings": 6799,
   "totalSold": 292,
-  "distinctItems": 1229
+  "distinctItems": 1232
  },
  "listings": {
   "156580": {
@@ -135936,6 +135936,10 @@
     {
      "d": "2026-08-16",
      "p": 950000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 1250000
     }
    ],
    "soldOut": false,
@@ -139316,6 +139320,10 @@
     {
      "d": "2026-08-16",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 13000000
     }
    ],
    "soldOut": false,
@@ -144991,6 +144999,195 @@
    "soldOutPrice": null,
    "dateAdded": 1786981548,
    "dateExpiration": 1792165548
+  },
+  "163594": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper 958 (1.6 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786982384,
+   "dateExpiration": 1792166384
+  },
+  "163596": {
+   "idItem": 3310,
+   "idCategory": 5,
+   "title": "Lynx Core Red",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 90000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786983284,
+   "dateExpiration": 1792167283
+  },
+  "163597": {
+   "idItem": 3728,
+   "idCategory": 4,
+   "title": "Clash Legs",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786983522,
+   "dateExpiration": 1792167521
+  },
+  "163599": {
+   "idItem": 2266,
+   "idCategory": 3,
+   "title": "Oracle Helmet Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786983733,
+   "dateExpiration": 1792167733
+  },
+  "163601": {
+   "idItem": 4082,
+   "idCategory": 3,
+   "title": "Microid Battle Suit Helmet Lodestone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 390000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786984102,
+   "dateExpiration": 1792168101
+  },
+  "163602": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "WTS Gold, 864Q, 0,748 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786984113,
+   "dateExpiration": 1792168113
+  },
+  "163603": {
+   "idItem": 1501,
+   "idCategory": 4,
+   "title": "Defiance Legs Tactical",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786984297,
+   "dateExpiration": 1792168297
+  },
+  "163604": {
+   "idItem": 3453,
+   "idCategory": 68,
+   "title": "Ectio Glasses",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786984427,
+   "dateExpiration": 1792168427
+  },
+  "163606": {
+   "idItem": 7640,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Shutdown",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786984710,
+   "dateExpiration": 1792168710
   }
  }
 }
