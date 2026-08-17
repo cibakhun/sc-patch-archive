@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 278,
-  "totalListings": 6658,
+  "updates": 279,
+  "totalListings": 6663,
   "totalSold": 287,
   "distinctItems": 1219
  },
@@ -141887,6 +141887,10 @@
     {
      "d": "2026-08-17",
      "p": 7000000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 6000000
     }
    ],
    "soldOut": false,
@@ -142167,6 +142171,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786952539,
    "dateExpiration": 1792136539
+  },
+  "163475": {
+   "idItem": 63,
+   "idCategory": 17,
+   "title": "Tacit Suppressor2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953012,
+   "dateExpiration": 1792137012
+  },
+  "163477": {
+   "idItem": 3940,
+   "idCategory": 17,
+   "title": "Tau Plus LL (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953232,
+   "dateExpiration": 1792137232
+  },
+  "163479": {
+   "idItem": 1594,
+   "idCategory": 18,
+   "title": "WTS Gallant Rifle 958Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953527,
+   "dateExpiration": 1792137527
+  },
+  "163486": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786955399,
+   "dateExpiration": 1792139399
+  },
+  "163488": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786955953,
+   "dateExpiration": 1792139953
   }
  }
 }
