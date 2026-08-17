@@ -192,38 +192,82 @@ waren bereits vor Anlage der Phase getroffen und stehen so in der ROADMAP.md.
   braucht eine Grundlage; die Datenschutzerklärung dieses Projekts ist an
   dieser Stelle sorgfältig, und die Liste soll dem nicht widersprechen.
 
+### Standort des Türstehers (nachgetragen 17.08.2026, nach der Recherche)
+
+- **D-23:** Der Türsteher läuft als **njs-Modul im bestehenden nginx-Image**. Er
+  prüft und stellt den Ausweis in demselben Prozess aus, der die Seite ohnehin
+  ausliefert. Verworfen: der Cloudflare Worker (viertes Auslieferungsziel mit
+  eigener CI-Kette und eigenem Geheimnis, und er höbe die PROJECT.md-Regel auf —
+  Pages Functions **sind** intern Workers, der Unterschied ist die
+  Deploy-Mechanik, nicht die Art des Codes) und ein eigenes staging-Image
+  (live und Vorschau wären dann nicht mehr dasselbe Blech mit einem Schalter,
+  und genau diese Gleichheit macht die Vorschau aussagekräftig).
+  — **Reversibility:** costly — das Modul und sein Ladebefehl sitzen im Image,
+  das auch die Live-Seite ausliefert; ein Rückbau ist ein Dockerfile- und
+  nginx-Konfigurationsschritt mit erneutem Ausrollen beider Anwendungen.
+  ⚠ **Der Betreiber hat den Preis ausdrücklich zur Kenntnis genommen:** Modul
+  und Server-JS liegen im selben Image wie die Live-Seite. Funktional aktiv
+  sind sie nur auf der Vorschau, über dasselbe `STAGING`-Argument, das heute
+  schon die Zähler-Hosts aus der CSP nimmt (`Dockerfile:65-69`).
+  ⚠ **Noch nicht belegt:** ob `nginx-module-njs` für den gepinnten
+  `nginx:alpine`-Tag überhaupt verfügbar und versionsgleich ist. Das ist die
+  **erste** Aufgabe des Plans, vor jeder anderen Arbeit — schlägt sie fehl,
+  ist `ngx_http_secure_link_module` der benannte Rückfall (schwächer, nur MD5,
+  Verfügbarkeit ebenfalls unbelegt) und die Entscheidung muss zurück zum
+  Betreiber.
+
+- **D-24:** Der **Ausstellungspunkt muss same-origin liegen.** Eine Supabase
+  Edge Function kann den Cookie nicht setzen: `Set-Cookie` aus einer
+  Cross-Origin-Antwort gilt für die antwortende Domain, nicht für die
+  aufrufende Seite. njs spricht stattdessen **server-zu-server** mit Supabase.
+  Das ist eine Browser-Grundregel, keine Projektbesonderheit — jeder Entwurf,
+  der `supabase.functions.invoke(...)` aus dem Browser zum Ausstellen des
+  Ausweises vorschlägt, ist damit widerlegt.
+
+- **D-25:** Der Rollenstand kommt per **Push** zum Türsteher: der Bot schreibt
+  bei `guildMemberUpdate` in eine Supabase-Tabelle, plus vollständiger Abgleich
+  bei jedem Bot-Start. Der Bot hängt damit **nicht** im Anfragepfad — sonst
+  wäre er ein Einzelausfallpunkt für die gesamte Vorschau und D-09 („gültige
+  Ausweise laufen bei Störung weiter") wäre wörtlich verletzt, sobald er neu
+  startet.
+  ⚠ **Handarbeit des Betreibers, die kein Code erledigt:** Das privilegierte
+  `GuildMembers`-Intent ist heute bewusst **aus** (`discord/README.md:79`
+  „No privileged intents are required — leave them off"; `prune.mjs:149-165`
+  und `audit.mjs:267-269` behandeln das als gewollten Zustand). Ohne
+  Aktivierung im Discord Developer Portal feuert `guildMemberUpdate` **nie** —
+  und zwar ohne Fehlermeldung, nur Stille.
+
 ### Claude's Discretion
 
-Diese Punkte sind bewusst **nicht** entschieden und gehören in die Recherche:
+Nach der Recherche verbleiben:
 
-1. **Wo der Türsteher sitzt.** Drei Kandidaten, gegeneinander zu bewerten:
-   Cloudflare Worker vor staging · nginx `auth_request` gegen den Bot · njs im
-   nginx-Image plus Supabase Edge Function. Bewertungsmaßstäbe: die Hausregel
-   „Serverlogik nur als Supabase Edge Function" (PROJECT.md Constraints; es
-   gibt **kein** Cloudflare-Pages-Projekt), die Zahl der Auslieferungsziele,
-   die dadurch entsteht, und D-08 („sofort", ohne Anfrage je Seitenaufruf).
-
-2. **Wie der Rollenstand zum Türsteher kommt.** Hängt der Bot direkt im
-   Anfragepfad (dann ist er ein Einzelausfallpunkt für die ganze Vorschau), oder
-   schiebt er Rollenänderungen bei `guildMemberUpdate` nach Supabase, sodass der
-   Türsteher nur eine schnelle, verlässliche Quelle fragt? Der zweite Weg
-   braucht zusätzlich einen vollständigen Abgleich beim Bot-Start, sonst driftet
-   der Stand nach jedem Neustart.
-
-3. **Wie der Nachweis den Rand erreicht.** ⚠ Die Sitzung liegt im
-   `localStorage` (`assets/account-lite.js:11`, `sb-…-auth-token`) — nginx und
-   Cloudflare sehen sie **nicht**. Es braucht zwingend einen eigenen,
-   signierten Cookie. Dessen Form, Lebensdauer und Erneuerung sind offen.
-
-4. **Ob die Torseite eine gebaute Astro-Seite ist oder vom Rand kommt** — und
-   was das für `verify:sync` bedeutet (siehe D-11).
-
-5. **Der Zuschnitt in Pläne.** Die Kopplung (D-01…D-03) ist Voraussetzung für
+1. **Der Zuschnitt in Pläne.** Die Kopplung (D-01…D-03) ist Voraussetzung für
    Tor **und** Abzeichen und gehört in die erste Welle. Ob Discord-Umbau,
    Torbau und Perks je eine eigene Welle bilden, entscheidet der Planer gegen
    den gemessenen Umfang — die Phasen 2, 3 und 9 haben gezeigt, dass die
    Init-Granularität den tatsächlichen Umfang regelmäßig um ein Vielfaches
-   unterschätzt.
+   unterschätzt (7 statt 2, 5 statt 2). Die Granularität steht auch hier auf
+   `coarse`; sie ist ein Ausgangspunkt, kein Ergebnis.
+
+2. **Form und Lebensdauer des Ausweises.** Die Recherche empfiehlt einen
+   opaken, HMAC-SHA256-signierten Cookie mit 5–10 Minuten Gültigkeit und
+   stiller Erneuerung nach dem Muster von `ensureSession()` in
+   `assets/account-lite.js`. Ausdrücklich **kein** JWT-Nachbau in njs — das
+   Signaturverfahren von Supabase ist im Umbruch (der neue
+   `sb_publishable_…`-Schlüsseltyp deutet auf asymmetrische Signatur), und
+   JWKS-Rotation in njs nachzubilden wäre brüchig. Feindetails gehören in den
+   Plan.
+
+3. **Wie der CI-Rauchtest durchs Tor kommt.** `scripts/browser-smoke.mjs`
+   lädt in `deploy-staging.yml` 15 Leitseiten gegen den frisch gebauten
+   Container — genau die, die D-06 sperrt. Ohne eigenen Weg reißt CI nach dem
+   Merge, ohne dass jemand den Rauchtest angefasst hat. Eigene Planaufgabe.
+
+4. **Ob die Torseite eine gebaute Astro-Seite ist oder vom Rand kommt.** Die
+   Recherche schlägt eine **ungepaarte** Astro-Seite vor (die Fallgruppe, die
+   `verify:sync` für die Onepager bereits kennt — keine neue Ausnahmeklasse)
+   mit **inline** eingebettetem CSS und JS, damit die Ausnahmeliste keine
+   content-gehashten Bündeldateien kennen muss. Vom Planer zu bestätigen.
 
 ### Folded Todos
 
