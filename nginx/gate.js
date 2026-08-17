@@ -198,9 +198,15 @@ function mint(r) {
         jsonResponse(r, 200, { ok: true, exp });
       })
       .catch((e) => {
+        /* r.error() ins nginx error.log — die JSON-Antwort bleibt bewusst
+           unbeschriftet (keine Interna nach aussen), aber ohne diese Zeile
+           war die Fehlerursache aus dem Container nicht ablesbar (Lauf
+           32046961882: 502 ohne jeden weiteren Hinweis). */
+        r.error('gate.mint: ngx.fetch fehlgeschlagen: ' + e);
         jsonResponse(r, 502, { ok: false, grund: 'supabase-nicht-erreichbar' });
       });
   } catch (e) {
+    r.error('gate.mint: unerwarteter Fehler: ' + e);
     jsonResponse(r, 500, { ok: false, grund: 'tuersteher-fehler' });
   }
 }
