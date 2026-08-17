@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 12
 current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
 status: executing
-stopped_at: Phase 14 context gathered
-last_updated: "2026-08-17T13:07:19.024Z"
+stopped_at: "Phase 14 geplant: 12 Plaene in 6 Wellen, Planpruefer bestanden"
+last_updated: "2026-08-17T14:32:59.441Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 18
   completed_phases: 11
-  total_plans: 53
+  total_plans: 65
   completed_plans: 46
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
@@ -370,6 +370,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T13:07:18.717Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-CONTEXT.md
+Last session: 2026-08-17T14:32:59.400Z
+Stopped at: Phase 14 geplant: 12 Plaene in 6 Wellen, Planpruefer bestanden
+Resume file: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-01-PLAN.md
