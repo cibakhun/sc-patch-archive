@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-08-17T19:01:51.342Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-08-17T19:33:30.276Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 47
+  completed_plans: 48
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [███████░░░] 72%
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
@@ -228,6 +228,7 @@ Progress: [███████░░░] 72%
 | Phase 12 P02 | 50min | 3 tasks | 4 files |
 | Phase 12 P03 | ~100min | 3 tasks | 7 files |
 | Phase 14 P01 | 110min | 2 tasks | 7 files |
+| Phase 14 P02 | ~65min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -325,6 +326,9 @@ Recent decisions affecting current work:
 - [Phase ?]: js_fetch_trusted_certificate (nicht ssl_trusted_certificate) ist die richtige Direktive fuer ngx.fetch()-TLS-Verifikation in njs — der server{}-Block hat keinen eigenen SSL-Kontext
 - [Phase ?]: Login mit einem echten E-Mail/Passwort-Testkonto auf gate.html bleibt eine manuelle Pruefung — kein Supabase-Testkonto als Repo-Secret angelegt (Vorsicht vor spekulativen Credentials)
 - [Phase ?]: Strukturbefund fuer 14-08/14-09/14-12: jede Pruefung gegen einen laufenden Container ist auf diesem Rechner nur per CI-Sonde moeglich, nie lokal
+- [Phase ?]: [Phase 14]: 14-02: sync_discord_identity() faengt unique_violation auf discord_user_id (nicht user_id) ab und ersetzt sie durch eine sprechende Meldung (Kandidat a); foreign_key_violation/others werfen nur noch WARNING -- ein Spiegel-Eintrag ist nie wichtiger als eine funktionierende Anmeldung
+- [Phase ?]: [Phase 14]: 14-02: public_profiles wird gegen die JUENGSTE Migration gebaut (20260725110000_presence_two_signal.sql, presence-Spalte), nicht gegen ihre Urfassung -- is_tester ganz am Ende angehaengt
+- [Phase ?]: [Phase 14]: 14-02: Migrationen dieses Projekts laufen ueber die Supabase Management API (apply_migration, Namen ohne Datei-Zeitstempel), NICHT ueber supabase db push -- der CLI-Weg ist strukturell kaputt (24 lebende Migrationen tragen andere Namen als die 11 Repo-Dateien)
 
 ### Pending Todos
 
@@ -338,6 +342,7 @@ None yet.
 - Vorbestehend, nicht aus Phase 1: der Astro-Dev-Server bricht bei `src/layouts/Layout.astro` mit `Unexpected ")"` in einem Inline-Skript ab. Der Produktionsbuild ist nicht betroffen — die Sichtprüfung lief deshalb gegen das gebaute `dist/`.
 - Reduzierte Bewegung ist in Phase 1 aus dem Code abgeleitet, nicht im Browser gemessen: der Prüfbrowser meldet `prefers-reduced-motion: false` und bietet keine Emulation.
 - 14-05 Task 2: discord/.env mit DISCORD_TOKEN fehlt im Worktree — Anwenden von blueprint.mjs auf den lebenden Server (node discord/build.mjs) braucht den Token UND ist laut Auftrag ausdruecklich Betreiber-Freigabe, nicht Executor-Handlung. Blueprint-Aenderung (D-14/D-15/D-18) ist committet (c386965), noch nicht auf dem Server.
+- 14-02: drei Verhaltens-Zusicherungen (guard_is_tester Schreibsperre, anon darf gate_verdict() nicht ausfuehren, doppelte Discord-Kopplung liefert sprechende Meldung) sind gegen die lebende Anlage NICHT geprueft -- brauchen eine echte Sitzung/echte Konten, fuer die Sichtrunde des Betreibers vorgesehen (14-02-SUMMARY.md coverage D4-D6)
 
 ### Quick Tasks Completed
 
@@ -376,6 +381,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T18:01:18.553Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-08-17T19:33:30.246Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
