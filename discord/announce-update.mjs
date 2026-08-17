@@ -43,7 +43,11 @@ const FORCE = process.argv.includes('--force');
 const EDIT = process.argv.includes('--edit');
 
 const ACCENT = 0x2dd4ff; // --accent, the site's signature cyan
-const REFS = ['suggestions', 'support'];
+// 17.08.2026: #suggestions und #support sind zu #feedback verschmolzen
+// (blueprint.mjs, cat-build). Stuende hier noch der alte Name, faende die
+// Aufloesung unten keinen Kanal und schriebe stumm den Klartext „#suggestions"
+// in die Ankuendigung — ein toter Verweis, der wie ein Link aussieht.
+const REFS = ['feedback'];
 
 /* ⚠ BODY wird je Ankuendigung UEBERSCHRIEBEN, nicht ergaenzt — die
    Doppelpost-Sperre unten vergleicht BODY.en.title gegen die letzten 50
@@ -75,7 +79,7 @@ const BODY = {
       '✅ **Corrected numbers** — location lists were cut short and mass shares were ' +
       'added up wrongly. Both are fixed, so what you see now is the full picture',
     nextTitle: 'Something look wrong?',
-    next: 'Tell me — {suggestions} and {support} are wide open. Wrong numbers are the ' +
+    next: 'Tell me — {feedback} is wide open. Wrong numbers are the ' +
       'kind of bug I most want to hear about.',
     footer: 'o7 · Krisz',
   },
@@ -103,7 +107,7 @@ const BODY = {
       '✅ **Korrigierte Zahlen** — Fundortlisten waren abgeschnitten und Massenanteile ' +
       'falsch aufsummiert. Beides behoben, du siehst jetzt das vollständige Bild',
     nextTitle: 'Sieht was falsch aus?',
-    next: 'Sag Bescheid — {suggestions} und {support} stehen offen. Falsche Zahlen sind ' +
+    next: 'Sag Bescheid — {feedback} steht offen. Falsche Zahlen sind ' +
       'genau die Sorte Fehler, von der ich am liebsten höre.',
     footer: 'o7 · Krisz',
   },

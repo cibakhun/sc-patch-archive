@@ -219,8 +219,21 @@ export const categories = [
           everyone: { allow: ['EmbedLinks', 'AttachFiles'] },
         },
       },
-      { key: 'suggestions', name: 'suggestions', type: 'text', topic: 'Ideas for verse-base.com — one per post, react to vote · Ideen für verse-base.com — eine pro Post, mit Reaktion abstimmen', slowmode: 30 },
-      { key: 'support', name: 'support', type: 'text', topic: 'Stuck on a tool or the bot? Ask here · Hängst du an einem Tool oder dem Bot? Frag hier' },
+      // 17.08.2026: #suggestions und #support zu EINEM #feedback verschmolzen.
+      // Dieselbe Begruendung wie bei den acht Werkzeug-Kanaelen darunter: zwei
+      // Tueren fuer dieselbe Sache ergeben bei dieser Servergroesse zwei halb
+      // leere Raeume. Eine Idee und ein „ich haenge fest" landen ohnehin beim
+      // selben Menschen.
+      //
+      // ⚠ Der Umzug laeuft ueber renames{} weiter unten: #suggestions wird
+      //   UMBENANNT und behaelt damit seinen Verlauf. Ohne diesen Eintrag baute
+      //   der Builder ein leeres #feedback daneben und liesse das Original
+      //   verwaist zurueck.
+      // ⚠ #support steht danach noch live, aber NICHT mehr im Blueprint. Das
+      //   ist Absicht: build.mjs loescht keine Kanaele, und Loeschen naehme die
+      //   Beitraege mit. Stilllegen (sperren + Wegweiser) ist Handarbeit,
+      //   nachzulesen im Abschluss dieser Aenderung.
+      { key: 'feedback', name: 'feedback', type: 'text', topic: 'Ideas, questions, anything about verse-base.com — one topic per post · Ideen, Fragen, alles zu verse-base.com — ein Thema pro Post', slowmode: 30 },
       // One channel replaces the eight per-tool channels. With a server this
       // size, eight rooms meant eight quiet rooms; the per-tool split now lives
       // in the #bug-reports forum tags, where it actually earns its keep.
@@ -269,6 +282,16 @@ export const renames = {
     '🩹・patch-notes': 'patch-notes',
     '🐞・bug-reports': 'bug-reports',
     '💡・suggestions': 'suggestions',
+    // Kette, und die REIHENFOLGE traegt sie: doRename() laeuft die Eintraege
+    // in Einfuegereihenfolge ab. Steht der Kanal live noch als „💡・suggestions",
+    // macht der Eintrag darueber daraus „suggestions", und erst dieser hier
+    // „feedback". Idempotent: existiert #feedback schon, ueberspringt doRename()
+    // beide Schritte, statt einen zweiten Kanal anzulegen.
+    'suggestions': 'feedback',
+    // ⚠ #support wird NICHT umbenannt — es geht in #feedback auf, aber sein
+    //   Verlauf soll nicht unter fremdem Namen weiterlaufen. Der Eintrag hier
+    //   putzt nur den alten Emoji-Namen, damit der stillgelegte Kanal sauber
+    //   dasteht, bis der Betreiber ueber ihn entscheidet.
     '🛟・support': 'support',
     '🧰・tools': 'tools',
     '🤖・bot-commands': 'bot-commands',
@@ -354,7 +377,7 @@ export const welcomeScreen = {
     { channel: 'start-here', emoji: '🧭', description: 'Map & tools · Karte & Tools' },
     { channel: 'rules', emoji: '📏', description: 'House rules · Serverregeln' },
     { channel: 'bug-reports', emoji: '🐞', description: 'Report a bug · Fehler melden' },
-    { channel: 'suggestions', emoji: '💡', description: 'Ideas · Ideen' },
+    { channel: 'feedback', emoji: '💡', description: 'Ideas & questions · Ideen & Fragen' },
     { channel: 'patch-notes', emoji: '🩹', description: 'Every patch · Alle Patches' },
   ],
 };
@@ -367,7 +390,7 @@ export const onboarding = {
   enabled: true,
   defaultChannels: [
     'welcome', 'rules', 'start-here', 'announcements', 'patch-notes',
-    'bug-reports', 'suggestions', 'support', 'tools', 'general',
+    'bug-reports', 'feedback', 'tools', 'general',
   ],
   prompts: [
     {
@@ -445,7 +468,7 @@ export const seed = {
         '🧭 Read <#start-here> for the map + every tool',
         '📏 Skim the <#rules>',
         '🐞 Found something broken? <#bug-reports>',
-        '💡 Got an idea? <#suggestions>',
+        '💡 Got an idea or a question? <#feedback>',
         '🎭 Pick your roles in onboarding — including your **language**, which sets the language the bot answers you in',
         DIV,
         `Das ist die Werkstatt hinter **[verse-base.com](${SITE})** — dem inoffiziellen Star-Citizen-Kompendium.`,
@@ -458,7 +481,7 @@ export const seed = {
         '🧭 Lies <#start-here> für die Karte + alle Tools',
         '📏 Überflieg die <#rules>',
         '🐞 Etwas kaputt gefunden? <#bug-reports>',
-        '💡 Eine Idee? <#suggestions>',
+        '💡 Eine Idee oder eine Frage? <#feedback>',
         '🎭 Wähl deine Rollen im Onboarding — inkl. deiner **Sprache**, die bestimmt, in welcher Sprache der Bot dir antwortet',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
@@ -474,7 +497,7 @@ export const seed = {
         { name: '1 · Respect the crew · Respektiere die Crew', value: 'No harassment, hate, slurs or personal attacks. Treat people the way you’d want on your own ship.\nKeine Belästigung, kein Hass, keine Beleidigungen oder persönlichen Angriffe. Behandle andere so, wie du es auf deinem eigenen Schiff wollen würdest.' },
         { name: '2 · This server is about the site · Hier geht es um die Seite', value: 'Bugs, ideas, questions about the tools and what’s coming next. General SC chat, news, org recruiting, LFG and CCU trading have dedicated servers that do them better — ask in <#general> and we’ll point you at one.\nFehler, Ideen, Fragen zu den Tools und was als Nächstes kommt. Allgemeiner SC-Plausch, News, Org-Anwerbung, LFG und CCU-Handel haben eigene Server, die das besser können — frag in <#general>, wir verweisen dich gern.' },
         { name: '3 · Any language welcome · Jede Sprache willkommen', value: 'English and Deutsch are both at home here — pick your language role and the bot answers you in it. Use whichever you like; be readable.\nEnglisch und Deutsch sind beide zu Hause — wähl deine Sprachrolle und der Bot antwortet dir darin. Schreib, wie es dir liegt; bleib verständlich.' },
-        { name: '4 · One bug, one thread · Ein Fehler, ein Thread', value: 'File bugs in <#bug-reports> as separate threads with the page and what you did. Ideas go to <#suggestions>, one per post. It’s the difference between something getting fixed and something getting lost.\nMelde Fehler in <#bug-reports> als einzelne Threads mit Seite und Vorgehen. Ideen nach <#suggestions>, eine pro Post. Das entscheidet, ob etwas behoben wird oder untergeht.' },
+        { name: '4 · One bug, one thread · Ein Fehler, ein Thread', value: 'File bugs in <#bug-reports> as separate threads with the page and what you did. Ideas and questions go to <#feedback>, one topic per post. It’s the difference between something getting fixed and something getting lost.\nMelde Fehler in <#bug-reports> als einzelne Threads mit Seite und Vorgehen. Ideen und Fragen nach <#feedback>, ein Thema pro Post. Das entscheidet, ob etwas behoben wird oder untergeht.' },
         { name: '5 · No spam or ads · Kein Spam, keine Werbung', value: 'No unsolicited DMs, server invites, referral links or self-promo. Invite links are blocked server-wide.\nKeine ungefragten DMs, Server-Invites, Referral-Links oder Eigenwerbung. Invite-Links sind serverweit gesperrt.' },
         { name: '6 · Keep it SFW & legal · Halte es SFW & legal', value: 'No NSFW, no piracy, no cheats/exploits, no account or credit trading. Follow Discord’s ToS and CIG’s rules.\nKein NSFW, keine Piraterie, keine Cheats/Exploits, kein Konto- oder Credit-Handel. Halte dich an Discords ToS und CIGs Regeln.' },
         { name: '🚦 New arrivals · Neuankömmlinge', value: 'You can chat straight away. **Links, images & attachments** unlock at ⛏ Prospect (level 5) — a few good messages. <#bug-reports> is exempt: screenshots work there from minute one.\nDu kannst sofort schreiben. **Links, Bilder & Anhänge** schalten ab ⛏ Prospect (Level 5) frei — ein paar gute Nachrichten. <#bug-reports> ist ausgenommen: Screenshots gehen dort ab der ersten Minute.' },
@@ -495,7 +518,7 @@ export const seed = {
       fields: [
         // Channel mentions already render with Discord's own channel glyph —
         // prefixing them with an emoji says the same thing twice.
-        { name: 'Build & feedback · Bauen & Feedback', value: '<#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n<#suggestions> — ideas, one per post, react to vote · Ideen, eine pro Post, per Reaktion abstimmen\n<#support> — stuck on a tool or the bot · hängst du an einem Tool oder dem Bot\n<#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n<#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
+        { name: 'Build & feedback · Bauen & Feedback', value: '<#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n<#feedback> — ideas, questions, stuck on something — one topic per post · Ideen, Fragen, festgefahren — ein Thema pro Post\n<#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n<#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
         { name: 'Releases', value: '<#announcements> — what shipped on the site · was auf der Seite live ging\n<#patch-notes> — every Star Citizen patch, mirrored from the archive · jeder Patch, aus dem Archiv gespiegelt' },
         { name: 'Ranks · Ränge', value: 'Chatting earns XP — climb from Drifter upward. Check your card with **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. The Flight Computer also answers **/ship**, **/price**, **/item** and **/patch** in your language.\nMit Chatten sammelst du XP — steig von Drifter auf. Deine Karte mit **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. Der Flight Computer beantwortet auch **/ship**, **/price**, **/item** und **/patch** in deiner Sprache.' },
         { name: 'Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops · test pilot), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases · Testpilot), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
