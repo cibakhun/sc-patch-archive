@@ -56,8 +56,14 @@ FROM nginx:alpine
 # D-23 verlangt ausdruecklich dasselbe Image fuer live und Vorschau; ein
 # geladenes, aber ungenutztes Modul ist folgenlos. Kein npm/PyPI/cargo-Paket,
 # kein Slopsquatting-Vektor: Erstanbieter-Paket aus dem nginx.org-Alpine-Repo
-# (T-14-SC). Machbarkeit belegt gegen dieses Image (nicht angenommen):
-# nginx-Version und Paketversion stehen in 14-01-SUMMARY.md.
+# (T-14-SC). Machbarkeit GEMESSEN, nicht angenommen — gegen dieses Image kann
+# auf dem Entwicklungsrechner nicht gebaut werden (kein Docker, siehe
+# 14-01-SUMMARY.md), deshalb per Sonde in CI (.github/workflows/probe-njs.yml,
+# Lauf 32043676193): nginx:alpine = nginx 1.31.3 (Digest sha256:4a73073b…,
+# gebaut 2026-07-15), Paket nginx-module-njs-1.31.3.1.0.0-r1 — die
+# Paketversion traegt die Kernversion woertlich, ein Mismatch ist bei diesem
+# Namensschema strukturell ausgeschlossen. Entscheidend war der Ladetest
+# (load_module + `nginx -t`), nicht nur der Bau: GRUEN. Imagezuwachs 113 KB.
 RUN apk add --no-cache nginx-module-njs
 COPY --from=build /app/dist /usr/share/nginx/html
 # Custom server config: security headers (HSTS et al.) + real 404 page.
