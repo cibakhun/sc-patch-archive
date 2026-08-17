@@ -49,12 +49,27 @@ jobs:
             --format 'Digest: {{index .RepoDigests 0}}{{"\n"}}Erstellt: {{.Created}}' || true
           echo "::endgroup::"
 
+      # ⚠ ALLE Aufrufe brauchen `--entrypoint`. Ohne ihn laeuft
+      # /docker-entrypoint.sh des Images mit und schreibt sechs Zeilen
+      # Konfigurationsgeplauder VOR die eigentliche Ausgabe. Der erste Lauf
+      # dieser Sonde ist genau daran gescheitert: das `sed` fand mehrere
+      # Treffer, der Wert wurde mehrzeilig, und GitHub wies den env-Schreib-
+      # vorgang ab („Invalid format"). Der Fehler sass im Pruefer, nicht im
+      # Geprueften — die Sonde meldete Fehlschlag, ohne njs je erreicht zu
+      # haben.
       - name: 1) nginx-Kern — Version und einkompilierte Module
         run: |
           echo "--- nginx -V ---"
-          docker run --rm nginx:alpine nginx -V 2>&1 | tee /tmp/nginx-v.txt
+          docker run --rm --entrypoint nginx nginx:alpine -V 2>&1 | tee /tmp/nginx-v.txt
           echo ""
-          NGINX_VER=$(docker run --rm nginx:alpine nginx -v 2>&1 | sed -n 's|.*nginx/\([0-9.]*\).*|\1|p')
+          # head -1: auch wenn wider Erwarten mehrere Zeilen passen, darf hier
+          # nur EIN Wert herauskommen — ein mehrzeiliger Wert bricht GITHUB_ENV.
+          NGINX_VER=$(docker run --rm --entrypoint nginx nginx:alpine -v 2>&1 \
+            | sed -n 's|.*nginx/\([0-9][0-9.]*\).*|\1|p' | head -1)
+          if [ -z "$NGINX_VER" ]; then
+            echo "FEHLER: Kernversion nicht ermittelbar — Sonde defekt, nicht das Image."
+            exit 1
+          fi
           echo "NGINX_VER=$NGINX_VER" >> "$GITHUB_ENV"
           echo "Kernversion: $NGINX_VER"
           echo ""
@@ -70,13 +85,13 @@ jobs:
         continue-on-error: true
         run: |
           echo "--- apk info nginx-module-njs ---"
-          docker run --rm nginx:alpine apk info nginx-module-njs 2>&1 | tee /tmp/apk-info.txt || true
+          docker run --rm --entrypoint apk nginx:alpine info nginx-module-njs 2>&1 | tee /tmp/apk-info.txt || true
           echo ""
           echo "--- apk policy (welche Version, aus welchem Repo) ---"
-          docker run --rm nginx:alpine apk policy nginx-module-njs 2>&1 || true
+          docker run --rm --entrypoint apk nginx:alpine policy nginx-module-njs 2>&1 || true
           echo ""
           echo "--- /etc/apk/repositories ---"
-          docker run --rm nginx:alpine cat /etc/apk/repositories 2>&1 || true
+          docker run --rm --entrypoint cat nginx:alpine /etc/apk/repositories 2>&1 || true
 
       - name: 3) Wuerde die Installation gelingen? (Trockenlauf)
         id: simulate
@@ -84,8 +99,8 @@ jobs:
         run: |
           echo "--- apk add --simulate ---"
           set +e
-          docker run --rm nginx:alpine sh -c \
-            'apk add --no-cache --simulate nginx-module-njs' 2>&1 | tee /tmp/simulate.txt
+          docker run --rm --entrypoint apk nginx:alpine \
+            add --no-cache --simulate nginx-module-njs 2>&1 | tee /tmp/simulate.txt
           RC=${PIPESTATUS[0]}
           set -e
           echo "Exit-Code: $RC"
@@ -111,12 +126,16 @@ jobs:
 
           echo ""
           echo "--- Installierte Modulversion ---"
-          MOD_VER=$(docker run --rm njs-probe apk info -v nginx-module-njs 2>/dev/null | head -1)
+          MOD_VER=$(docker run --rm --entrypoint apk njs-probe info -v nginx-module-njs 2>/dev/null | head -1)
           echo "Paket: $MOD_VER"
+          # Selbstversorgend statt auf GITHUB_ENV angewiesen: faellt Schritt 1
+          # je wieder aus, misst dieser Schritt trotzdem richtig.
+          NGINX_VER=$(docker run --rm --entrypoint nginx njs-probe -v 2>&1 \
+            | sed -n 's|.*nginx/\([0-9][0-9.]*\).*|\1|p' | head -1)
 
           echo ""
           echo "--- Liegt die .so-Datei, wo load_module sie sucht? ---"
-          docker run --rm njs-probe ls -la /usr/lib/nginx/modules/ 2>&1 || true
+          docker run --rm --entrypoint ls njs-probe -la /usr/lib/nginx/modules/ 2>&1 || true
 
           echo ""
           echo "--- VERSIONSGLEICHHEIT (das eigentliche Bruchrisiko) ---"
