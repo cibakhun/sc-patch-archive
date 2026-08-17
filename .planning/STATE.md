@@ -6,7 +6,7 @@ current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
 stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-08-17T18:01:18.582Z"
+last_updated: "2026-08-17T19:01:51.342Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
@@ -337,6 +337,7 @@ None yet.
 - GSD-Subagenten (`gsd-planner`, `gsd-executor`, …) liegen in `~/.claude/agents/`, waren in der Init-Sitzung aber noch nicht in der Agenten-Registry. Nach einem Neustart von Claude Code stehen sie zur Verfügung. Phase 1 lief deshalb inline.
 - Vorbestehend, nicht aus Phase 1: der Astro-Dev-Server bricht bei `src/layouts/Layout.astro` mit `Unexpected ")"` in einem Inline-Skript ab. Der Produktionsbuild ist nicht betroffen — die Sichtprüfung lief deshalb gegen das gebaute `dist/`.
 - Reduzierte Bewegung ist in Phase 1 aus dem Code abgeleitet, nicht im Browser gemessen: der Prüfbrowser meldet `prefers-reduced-motion: false` und bietet keine Emulation.
+- 14-05 Task 2: discord/.env mit DISCORD_TOKEN fehlt im Worktree — Anwenden von blueprint.mjs auf den lebenden Server (node discord/build.mjs) braucht den Token UND ist laut Auftrag ausdruecklich Betreiber-Freigabe, nicht Executor-Handlung. Blueprint-Aenderung (D-14/D-15/D-18) ist committet (c386965), noch nicht auf dem Server.
 
 ### Quick Tasks Completed
 
