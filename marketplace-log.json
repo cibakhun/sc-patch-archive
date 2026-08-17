@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 279,
-  "totalListings": 6663,
-  "totalSold": 287,
+  "updates": 280,
+  "totalListings": 6669,
+  "totalSold": 288,
   "distinctItems": 1219
  },
  "listings": {
@@ -141364,9 +141364,9 @@
      "p": 6000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-17",
+   "soldOutPrice": 6000000,
    "dateAdded": 1786927318,
    "dateExpiration": 1792111318
   },
@@ -142276,6 +142276,132 @@
    "soldOutPrice": null,
    "dateAdded": 1786955953,
    "dateExpiration": 1792139953
+  },
+  "163492": {
+   "idItem": 5343,
+   "idCategory": 18,
+   "title": "S71 \"Justified\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786956787,
+   "dateExpiration": 1792140787
+  },
+  "163493": {
+   "idItem": 2534,
+   "idCategory": 68,
+   "title": "AvantX Glasses",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786956864,
+   "dateExpiration": 1792140864
+  },
+  "163494": {
+   "idItem": 5343,
+   "idCategory": 18,
+   "title": "S71 \"Justified\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786958252,
+   "dateExpiration": 1792142252
+  },
+  "163495": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "C54 \"Justified\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786958376,
+   "dateExpiration": 1792142376
+  },
+  "163497": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Atzkav Venom, Deadeye, Igniter, Mirage",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786959656,
+   "dateExpiration": 1792143656
+  },
+  "163499": {
+   "idItem": null,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786959931,
+   "dateExpiration": 1792143931
   }
  }
 }
