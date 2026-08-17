@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 280,
-  "totalListings": 6669,
+  "updates": 281,
+  "totalListings": 6701,
   "totalSold": 288,
-  "distinctItems": 1219
+  "distinctItems": 1223
  },
  "listings": {
   "156580": {
@@ -133653,6 +133653,10 @@
     {
      "d": "2026-08-16",
      "p": 1200000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 1800000
     }
    ],
    "soldOut": false,
@@ -139834,6 +139838,10 @@
     {
      "d": "2026-08-16",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -141517,6 +141525,27 @@
    "dateAdded": 1786931873,
    "dateExpiration": 1792115873
   },
+  "163425": {
+   "idItem": 8042,
+   "idCategory": 7,
+   "title": "ADP-mk4 Justified Set (Dont need Helmet)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786932235,
+   "dateExpiration": 1792116235
+  },
   "163426": {
    "idItem": 6491,
    "idCategory": 18,
@@ -141579,6 +141608,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786933504,
    "dateExpiration": 1792117504
+  },
+  "163429": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 941,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786933619,
+   "dateExpiration": 1792117618
+  },
+  "163430": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 957,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 190000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786933823,
+   "dateExpiration": 1792117823
+  },
+  "163431": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite 867",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 867,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786934006,
+   "dateExpiration": 1792118006
+  },
+  "163432": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 886,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786934160,
+   "dateExpiration": 1792118160
   },
   "163433": {
    "idItem": 7997,
@@ -141705,6 +141818,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786939136,
    "dateExpiration": 1792123136
+  },
+  "163440": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium - - 974Q - - 0.724 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 974,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786939801,
+   "dateExpiration": 1792123801
   },
   "163441": {
    "idItem": 5585,
@@ -141899,6 +142033,48 @@
    "dateAdded": 1786943410,
    "dateExpiration": 1792127410
   },
+  "163450": {
+   "idItem": 4850,
+   "idCategory": 5,
+   "title": "WTS: Antium Core Maroon x2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786943633,
+   "dateExpiration": 1792127633
+  },
+  "163451": {
+   "idItem": 4851,
+   "idCategory": 1,
+   "title": "WTS: Antium Armor Arms Maroon x4",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786943896,
+   "dateExpiration": 1792127896
+  },
   "163452": {
    "idItem": null,
    "idCategory": 38,
@@ -141919,6 +142095,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786944709,
    "dateExpiration": 1792128709
+  },
+  "163454": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786945868,
+   "dateExpiration": 1792129868
+  },
+  "163455": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786945996,
+   "dateExpiration": 1792129995
   },
   "163456": {
    "idItem": 2297,
@@ -142024,6 +142242,111 @@
    "soldOutPrice": null,
    "dateAdded": 1786948160,
    "dateExpiration": 1792132160
+  },
+  "163461": {
+   "idItem": 1594,
+   "idCategory": 18,
+   "title": "Gallant Rifle Crafted",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786948432,
+   "dateExpiration": 1792132432
+  },
+  "163462": {
+   "idItem": 4716,
+   "idCategory": 5,
+   "title": "Defiance Core Scorched",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786948453,
+   "dateExpiration": 1792132453
+  },
+  "163463": {
+   "idItem": 1597,
+   "idCategory": 18,
+   "title": "P4-AR Rifle Crafted",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 700,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786948516,
+   "dateExpiration": 1792132516
+  },
+  "163464": {
+   "idItem": 5160,
+   "idCategory": 18,
+   "title": "Pulverizer LMG Crafted 970",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786948636,
+   "dateExpiration": 1792132636
+  },
+  "163465": {
+   "idItem": 4462,
+   "idCategory": 4,
+   "title": "ORC-mkV Legs Scorched",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786948717,
+   "dateExpiration": 1792132717
   },
   "163466": {
    "idItem": 5843,
@@ -142172,6 +142495,48 @@
    "dateAdded": 1786952539,
    "dateExpiration": 1792136539
   },
+  "163473": {
+   "idItem": 1347,
+   "idCategory": 22,
+   "title": "VK-00",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786952778,
+   "dateExpiration": 1792136778
+  },
+  "163474": {
+   "idItem": 5846,
+   "idCategory": 61,
+   "title": "Savrilium q905 1scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786952857,
+   "dateExpiration": 1792136857
+  },
   "163475": {
    "idItem": 63,
    "idCategory": 17,
@@ -142192,6 +142557,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786953012,
    "dateExpiration": 1792137012
+  },
+  "163476": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953164,
+   "dateExpiration": 1792137164
   },
   "163477": {
    "idItem": 3940,
@@ -142214,6 +142600,27 @@
    "dateAdded": 1786953232,
    "dateExpiration": 1792137232
   },
+  "163478": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 2600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953385,
+   "dateExpiration": 1792137385
+  },
   "163479": {
    "idItem": 1594,
    "idCategory": 18,
@@ -142234,6 +142641,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786953527,
    "dateExpiration": 1792137527
+  },
+  "163480": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953572,
+   "dateExpiration": 1792137572
+  },
+  "163481": {
+   "idItem": 1909,
+   "idCategory": 22,
+   "title": "TS-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 3100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953673,
+   "dateExpiration": 1792137672
+  },
+  "163483": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786953949,
+   "dateExpiration": 1792137949
+  },
+  "163484": {
+   "idItem": 1759,
+   "idCategory": 19,
+   "title": "Avalanche",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786954326,
+   "dateExpiration": 1792138326
   },
   "163486": {
    "idItem": 5845,
@@ -142256,6 +142747,27 @@
    "dateAdded": 1786955399,
    "dateExpiration": 1792139399
   },
+  "163487": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786955621,
+   "dateExpiration": 1792139621
+  },
   "163488": {
    "idItem": 5927,
    "idCategory": 36,
@@ -142276,6 +142788,48 @@
    "soldOutPrice": null,
    "dateAdded": 1786955953,
    "dateExpiration": 1792139953
+  },
+  "163489": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786956404,
+   "dateExpiration": 1792140404
+  },
+  "163491": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786956732,
+   "dateExpiration": 1792140732
   },
   "163492": {
    "idItem": 5343,
@@ -142361,6 +142915,27 @@
    "dateAdded": 1786958376,
    "dateExpiration": 1792142376
   },
+  "163496": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "972Q Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786958798,
+   "dateExpiration": 1792142798
+  },
   "163497": {
    "idItem": null,
    "idCategory": 18,
@@ -142382,6 +142957,27 @@
    "dateAdded": 1786959656,
    "dateExpiration": 1792143656
   },
+  "163498": {
+   "idItem": 2629,
+   "idCategory": 38,
+   "title": "WTS Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786959916,
+   "dateExpiration": 1792143916
+  },
   "163499": {
    "idItem": null,
    "idCategory": 18,
@@ -142402,6 +142998,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786959931,
    "dateExpiration": 1792143931
+  },
+  "163500": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 867,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786961007,
+   "dateExpiration": 1792145007
+  },
+  "163501": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786961108,
+   "dateExpiration": 1792145108
+  },
+  "163502": {
+   "idItem": 1526,
+   "idCategory": 23,
+   "title": "AllStop",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 190000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786961155,
+   "dateExpiration": 1792145155
+  },
+  "163503": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom (964Q)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 969,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786961355,
+   "dateExpiration": 1792145355
   }
  }
 }
