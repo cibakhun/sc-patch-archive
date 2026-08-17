@@ -99,6 +99,21 @@ jobs:
             vb-gate-e2e:staging
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8098/gate.html && break; sleep 1; done
 
+      - name: "Diagnose: kann vbgate-real DNS aufloesen und TLS zu Supabase aufbauen?"
+        run: |
+          echo "--- /etc/resolv.conf im Container ---"
+          docker exec vbgate-real cat /etc/resolv.conf || true
+          echo "--- nginx.conf: resolver-Zeile ---"
+          docker exec vbgate-real sh -c "grep -n resolver /etc/nginx/nginx.conf" || true
+          echo "--- DNS-Aufloesung (getent, busybox) ---"
+          docker exec vbgate-real getent hosts trgjhmbnodoarnfmlcqx.supabase.co || echo "getent: FEHLGESCHLAGEN"
+          echo "--- ca-certificates installiert? ---"
+          docker exec vbgate-real sh -c "ls /etc/ssl/certs/ca-certificates.crt && wc -l /etc/ssl/certs/ca-certificates.crt" || echo "CA-Bundle FEHLT"
+          echo "--- wget https von AUSSERHALB von njs (Gegenprobe: liegt es am System oder an njs?) ---"
+          docker exec vbgate-real wget -q -O /dev/null --timeout=8 https://trgjhmbnodoarnfmlcqx.supabase.co/ 2>&1; echo "wget-Exit: $?"
+          echo "--- nginx error.log (letzte 40 Zeilen, falls der Mint-Testaufruf schon lief) ---"
+          docker exec vbgate-real sh -c "tail -n 40 /var/log/nginx/error.log" || true
+
       - name: "Container 3/4 starten: OHNE VB_GATE_SECRET (fail-closed, T-14-04)"
         run: |
           docker run -d --rm -p 8097:80 --name vbgate-nosecret \
@@ -252,6 +267,14 @@ jobs:
           echo ""
           echo "FEHLER: $FEHLER"
           exit $FEHLER
+
+      - name: "Diagnose bei Fehlschlag: nginx error.log der beteiligten Container"
+        if: failure()
+        run: |
+          for c in vbgate-mock vbgate-real vbgate-nosecret vbgate-live; do
+            echo "=== $c: error.log (letzte 40 Zeilen) ==="
+            docker exec "$c" sh -c "tail -n 40 /var/log/nginx/error.log" 2>&1 || echo "  ($c nicht erreichbar)"
+          done
 
       - name: Aufraeumen
         if: always()
