@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 289,
-  "totalListings": 6803,
+  "updates": 290,
+  "totalListings": 6810,
   "totalSold": 293,
   "distinctItems": 1232
  },
@@ -144395,6 +144395,10 @@
     {
      "d": "2026-08-17",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 1700000
     }
    ],
    "soldOut": false,
@@ -145288,6 +145292,153 @@
    "soldOutPrice": null,
    "dateAdded": 1786991826,
    "dateExpiration": 1792175826
+  },
+  "163626": {
+   "idItem": 5116,
+   "idCategory": 38,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786992539,
+   "dateExpiration": 1792176539
+  },
+  "163627": {
+   "idItem": 4586,
+   "idCategory": 38,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786992609,
+   "dateExpiration": 1792176609
+  },
+  "163629": {
+   "idItem": 5050,
+   "idCategory": 18,
+   "title": "Scourge \"Quite Useful\" Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786993111,
+   "dateExpiration": 1792177111
+  },
+  "163630": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris Bit 10m. Payment up front. New Babbage.",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786994671,
+   "dateExpiration": 1792178671
+  },
+  "163631": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 970q 1scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786995293,
+   "dateExpiration": 1792179293
+  },
+  "163632": {
+   "idItem": 5352,
+   "idCategory": 7,
+   "title": "Palatino Set with Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786995613,
+   "dateExpiration": 1792179612
+  },
+  "163633": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Polaris Bit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 777,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786995756,
+   "dateExpiration": 1792179756
   }
  }
 }
