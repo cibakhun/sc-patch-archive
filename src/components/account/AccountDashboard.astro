@@ -26,6 +26,14 @@ const COPY = {
     secDesign: 'Banner & Avatar Design',
     secRoleStatus: 'Status & Citizen-Rolle',
     secRsi: 'RSI-Account & Verifizierung',
+    secTester: 'Testpilot',
+    testerConsent: 'Meinen Namen bei den Testpiloten nennen',
+    testerConsentHint: 'Ohne Zustimmung erscheint niemand auf der Liste — und die Zustimmung ist jederzeit widerrufbar.',
+    secTesterOverview: 'Testpiloten-Übersicht',
+    testerOverviewDesc: 'Wer die Rolle trägt und wann derjenige zuletzt auf der Vorschau war.',
+    testerOverviewEmpty: 'Aktuell trägt niemand die Testpilot-Rolle.',
+    testerNeverSeen: 'noch nie',
+    testerColName: 'Name', testerColHandle: 'Handle', testerColDiscord: 'Discord-ID', testerColSeen: 'Zuletzt auf der Vorschau',
     secSocial: 'Social Links & Organisation',
     secFavs: 'Deine Favoriten',
     secSecurity: 'Sicherheit',
@@ -160,6 +168,14 @@ const COPY = {
     secDesign: 'Banner & Avatar Design',
     secRoleStatus: 'Status & Citizen Role',
     secRsi: 'RSI Account & Verification',
+    secTester: 'Test Pilot',
+    testerConsent: 'List my name among the Test Pilots',
+    testerConsentHint: 'Without consent nobody shows up on the list — and consent can be withdrawn at any time.',
+    secTesterOverview: 'Test Pilots Overview',
+    testerOverviewDesc: 'Who holds the role and when they were last on the preview.',
+    testerOverviewEmpty: 'Nobody currently holds the Test Pilot role.',
+    testerNeverSeen: 'never yet',
+    testerColName: 'Name', testerColHandle: 'Handle', testerColDiscord: 'Discord ID', testerColSeen: 'Last seen on preview',
     secSocial: 'Social Links & Organization',
     secFavs: 'Your Favorites',
     secSecurity: 'Security',
@@ -325,6 +341,12 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-crop-title-avatar={COPY.cropTitleAvatar}
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
+  data-tester-overview-empty={COPY.testerOverviewEmpty}
+  data-tester-never-seen={COPY.testerNeverSeen}
+  data-tester-col-name={COPY.testerColName}
+  data-tester-col-handle={COPY.testerColHandle}
+  data-tester-col-discord={COPY.testerColDiscord}
+  data-tester-col-seen={COPY.testerColSeen}
 >
   <!-- ===== inline icon sprite (Dossier ic-*) ===== -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -584,6 +606,20 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 </div>
                 <p class="acx-status" id="pfStatus" role="status" aria-live="polite" hidden></p>
               </div>
+
+              <!-- Testpilot-Zustimmungsschalter (D-22) — nur sichtbar fuer
+                   Konten mit is_tester=true; per JS ein/ausgeblendet, siehe
+                   account-dashboard.ts. Standard AUS (DB-Vorgabewert). -->
+              <div class="subpanel" id="pfTesterPanel" hidden>
+                <h3 class="subhead">{COPY.secTester}</h3>
+                <div class="field" style="margin-bottom:0">
+                  <label style="display:flex;align-items:center;gap:0.55rem;font-weight:400">
+                    <input type="checkbox" id="pfTesterCredit" />
+                    <span>{COPY.testerConsent}</span>
+                  </label>
+                  <span class="hint">{COPY.testerConsentHint}</span>
+                </div>
+              </div>
             </form>
           </div>
 
@@ -629,6 +665,16 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 <button type="button" id="btnResetRsiVerify">({COPY.rsiReset})</button>
               </div>
             </div>
+          </div>
+
+          <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
+               von tester_overview() wird fuer alle anderen gar nicht erst
+               abgesetzt (siehe account-dashboard.ts). Div statt section: die
+               globale section-Regel dieses Projekts erbt 99/72px Polsterung. -->
+          <div class="seccard" id="testerOverviewCard" style="grid-column:1/-1" hidden>
+            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg></span><h3>{COPY.secTesterOverview}</h3></div>
+            <p class="sc-desc">{COPY.testerOverviewDesc}</p>
+            <div id="testerOverviewBody"></div>
           </div>
 
           <div class="seccard">
