@@ -143,59 +143,66 @@ function jsonResponse(r, status, bodyObj) {
 }
 
 function mint(r) {
-  r.discardRequestBody();
+  /* Synchroner Teil in try/catch: ein unerwarteter Fehler hier soll eine
+     eigene JSON-500-Antwort liefern, nicht nginx' generische Fehlerseite
+     (die die Sonde als blosses "500" ohne Grund sieht, Lauf 32045776329 —
+     dort riss r.discardRequestBody(), eine erfundene njs-Methode, jeden
+     einzelnen Mint-Aufruf mit einem unbeschrifteten 500). */
+  try {
+    const secret = (process.env.VB_GATE_SECRET || '').trim();
+    const supabaseUrl = (process.env.VB_SUPABASE_URL || '').trim();
+    const anonKey = (process.env.VB_SUPABASE_ANON_KEY || '').trim();
 
-  const secret = (process.env.VB_GATE_SECRET || '').trim();
-  const supabaseUrl = (process.env.VB_SUPABASE_URL || '').trim();
-  const anonKey = (process.env.VB_SUPABASE_ANON_KEY || '').trim();
+    if (!secret || !supabaseUrl || !anonKey) {
+      jsonResponse(r, 500, { ok: false, grund: 'tuersteher-nicht-konfiguriert' });
+      return;
+    }
 
-  if (!secret || !supabaseUrl || !anonKey) {
-    jsonResponse(r, 500, { ok: false, grund: 'tuersteher-nicht-konfiguriert' });
-    return;
+    const auth = r.headersIn.Authorization;
+    if (!auth) {
+      jsonResponse(r, 401, { ok: false, grund: 'keine-anmeldung' });
+      return;
+    }
+
+    ngx
+      .fetch(supabaseUrl + '/rest/v1/user_roles?select=role,user_id', {
+        headers: {
+          Authorization: auth,
+          apikey: anonKey,
+        },
+      })
+      .then((reply) => {
+        if (reply.status !== 200) {
+          jsonResponse(r, 403, { ok: false, grund: 'kein-zugang' });
+          return null;
+        }
+        return reply.json();
+      })
+      .then((rows) => {
+        if (rows === null) return; // bereits beantwortet (Status != 200)
+        const row = Array.isArray(rows) ? rows[0] : null;
+        if (!row || row.role !== 'admin' || typeof row.user_id !== 'string') {
+          jsonResponse(r, 403, { ok: false, grund: 'kein-zugang' });
+          return;
+        }
+
+        const exp = Math.floor(Date.now() / 1000) + 300;
+        const payloadB64Url = toBase64Url(Buffer.from(JSON.stringify({ sub: row.user_id, exp })).toString('base64'));
+        const sig = hmacBase64Url(secret, payloadB64Url);
+        const cookieVal = payloadB64Url + '.' + sig;
+
+        r.headersOut['Set-Cookie'] = [
+          `vb_gate=${cookieVal}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=300`,
+          `vb_gate_exp=${exp}; Path=/; Secure; SameSite=Lax; Max-Age=300`,
+        ];
+        jsonResponse(r, 200, { ok: true, exp });
+      })
+      .catch((e) => {
+        jsonResponse(r, 502, { ok: false, grund: 'supabase-nicht-erreichbar' });
+      });
+  } catch (e) {
+    jsonResponse(r, 500, { ok: false, grund: 'tuersteher-fehler' });
   }
-
-  const auth = r.headersIn.Authorization;
-  if (!auth) {
-    jsonResponse(r, 401, { ok: false, grund: 'keine-anmeldung' });
-    return;
-  }
-
-  ngx
-    .fetch(supabaseUrl + '/rest/v1/user_roles?select=role,user_id', {
-      headers: {
-        Authorization: auth,
-        apikey: anonKey,
-      },
-    })
-    .then((reply) => {
-      if (reply.status !== 200) {
-        jsonResponse(r, 403, { ok: false, grund: 'kein-zugang' });
-        return null;
-      }
-      return reply.json();
-    })
-    .then((rows) => {
-      if (rows === null) return; // bereits beantwortet (Status != 200)
-      const row = Array.isArray(rows) ? rows[0] : null;
-      if (!row || row.role !== 'admin' || typeof row.user_id !== 'string') {
-        jsonResponse(r, 403, { ok: false, grund: 'kein-zugang' });
-        return;
-      }
-
-      const exp = Math.floor(Date.now() / 1000) + 300;
-      const payloadB64Url = toBase64Url(Buffer.from(JSON.stringify({ sub: row.user_id, exp })).toString('base64'));
-      const sig = hmacBase64Url(secret, payloadB64Url);
-      const cookieVal = payloadB64Url + '.' + sig;
-
-      r.headersOut['Set-Cookie'] = [
-        `vb_gate=${cookieVal}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=300`,
-        `vb_gate_exp=${exp}; Path=/; Secure; SameSite=Lax; Max-Age=300`,
-      ];
-      jsonResponse(r, 200, { ok: true, exp });
-    })
-    .catch((e) => {
-      jsonResponse(r, 502, { ok: false, grund: 'supabase-nicht-erreichbar' });
-    });
 }
 
 /* njs erlaubt fuer js_import AUSSCHLIESSLICH einen Default-Export — ein
