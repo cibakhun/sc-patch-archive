@@ -6,10 +6,19 @@
 -- der Tuersteher (nginx/gate.js, Plan 01/Aufgabe 2 dieser Phase) ohnehin
 -- fragt -- der Bot PUSHT bei guildMemberUpdate, niemand fragt Discord live.
 --
--- D-05 gilt unveraendert: public.user_roles (scripts/supabase-schema.sql
--- Zeilen 68-91) bleibt in dieser Datei UNERWAEHNT. Die Testpilot-Eigenschaft
--- lebt in Discord, nicht in user_roles -- user_id ist dort Primaerschluessel,
--- ein Konto koennte sonst nicht gleichzeitig Admin und Testpilot sein.
+-- D-05 gilt unveraendert: public.user_roles bleibt in dieser Datei
+-- UNERWAEHNT. Die Testpilot-Eigenschaft lebt in Discord, nicht in
+-- user_roles -- user_id ist dort Primaerschluessel, ein Konto koennte sonst
+-- nicht gleichzeitig Admin und Testpilot sein.
+-- ⚠ scripts/supabase-schema.sql (Zeilen 68-91) ist bei dieser Aussage NICHT
+-- die lebende Wahrheit: dort steht `CHECK (role IN ('user','admin'))`, live
+-- gilt seit der Migration `user_roles_allow_beta` (24.07.2026, im Repo NICHT
+-- vorhanden) `role = ANY (ARRAY['user','admin','beta'])`. D-05 aendert das
+-- nicht -- die Entscheidung traegt auf dem Primaerschluessel (user_id, genau
+-- eine Rolle je Konto), nicht auf der Zahl der erlaubten Werte -- aber der
+-- Dateiverweis waere sonst irrefuehrend. Siehe auch die Warnung vor Abschnitt
+-- 5: in diesem Projekt ist KEINE Repo-Datei ein Beleg ueber die lebende
+-- Anlage, das gilt fuer Tabellen genauso wie fuer Views.
 
 -- ============================================================================
 -- 1. public.discord_role_state -- der Spiegel, den der Bot pflegt (D-03/D-25)
@@ -127,35 +136,69 @@ create trigger trg_guard_is_tester
   for each row execute function public.guard_is_tester();
 
 -- ============================================================================
--- 5. public.public_profiles neu erzeugen -- bestehende Spaltenliste aus
---    supabase/migrations/20260723000000_public_profile_views.sql WOERTLICH
---    uebernommen, plus is_tester (D-19: Abzeichen auf dem OEFFENTLICHEN
---    /pilot/<handle> sichtbar, ohne dass profiles selbst geoeffnet wird).
+-- 5. public.public_profiles neu erzeugen -- is_tester GANZ AM ENDE angehaengt
+--    (D-19: Abzeichen auf dem OEFFENTLICHEN /pilot/<handle> sichtbar, ohne
+--    dass profiles selbst geoeffnet wird).
+--
+--    ⚠ WARNUNG fuer kuenftige Leser/Aenderer dieser View: die Spaltenliste
+--    ist ueber DREI Migrationen gewachsen, nicht nur eine:
+--      1. supabase/migrations/20260723000000_public_profile_views.sql
+--         -- Urfassung, 14 Spalten, endet auf created_at.
+--      2. supabase/migrations/20260725000000_add_last_seen_presence.sql
+--         -- + presence (CASE-Ausdruck aus last_seen).
+--      3. supabase/migrations/20260725110000_presence_two_signal.sql
+--         -- presence auf ein Zwei-Signal-Modell (last_seen + last_active)
+--         umgestellt. DIES ist die aktuell lebende Fassung -- wer diese View
+--         ersetzt, MUSS von HIER aus weiterbauen, nicht von Datei 1.
+--    (Ein fruehrer Entwurf dieser Migration hat genau diesen Fehler gemacht:
+--    er baute gegen Datei 1 und liess presence ersatzlos wegfallen.
+--    `create or replace view` erlaubt nur ANHAENGEN ans Ende -- Name, Typ und
+--    Position bestehender Spalten sind unveraenderlich; waere presence nicht
+--    die letzte Spalte gewesen, haette der Push mit "cannot change name of
+--    view column" abgebrochen. presence WAR die letzte Spalte, also haette
+--    der Push stattdessen durchgegriffen und die Spalte stillschweigend
+--    entfernt -- src/components/pilot/PilotPage.astro fragt sie alle 40
+--    Sekunden fuer die Live-Praesenzanzeige auf JEDEM oeffentlichen
+--    Pilotenprofil ab, site-weit, nicht nur auf staging. Gefunden vor dem
+--    Anwenden, siehe 14-02-SUMMARY.md.)
+--
+--    security_barrier wird hier erneut EXPLIZIT gesetzt, obwohl Datei 2/3
+--    das WITH-Attribut weglassen -- `create or replace view` OHNE WITH-
+--    Klausel aendert bestehende Reloptions nicht (es ersetzt nur die Abfrage,
+--    nicht die View-Eigenschaften), die View sollte also ohnehin noch
+--    security_barrier tragen. Das hier zusaetzlich erneut zu setzen ist
+--    trotzdem sicherer als sich darauf zu verlassen.
 -- ============================================================================
 create or replace view public.public_profiles
 with (security_barrier = true) as
-select
-  handle,
-  display_name,
-  bio,
-  banner_url,
-  avatar_url,
-  avatar_icon,
-  avatar_color,
-  role,
-  status_state,
-  status_text,
-  rsi_handle,
-  rsi_verified,
-  is_tester,
-  org_name,
-  created_at
-from public.profiles
-where handle is not null;
+  select
+    handle, display_name, bio, banner_url, avatar_url, avatar_icon, avatar_color,
+    role, status_state, status_text, rsi_handle, rsi_verified, org_name, created_at,
+    case
+      when last_seen is null then 'offline'
+      when now() - last_seen < interval '80 seconds' then
+        case when last_active is not null and now() - last_active < interval '3 minutes' then 'online' else 'away' end
+      when now() - last_seen < interval '3 minutes' then 'away'
+      else 'offline'
+    end as presence,
+    is_tester
+  from public.profiles
+  where handle is not null;
 
 -- Der Grant geht bei `create or replace view` nicht verloren, steht hier
 -- trotzdem erneut, damit diese Migration fuer sich allein vollstaendig ist.
 grant select on public.public_profiles to anon, authenticated;
+
+-- Denkfehler-Gegenprobe (Koordinator-Auftrag, 17.08.2026): beide Migrationen
+-- dieser Phase wurden danach durchsucht, ob irgendwo sonst ein bestehendes
+-- Objekt gegen seine ERSTE statt seine JUENGSTE Definition geschrieben
+-- steht. Ergebnis: KEINE weitere Fundstelle. discord_role_state,
+-- tester_blocklist und tester_credits sind neue Objekte ohne Vorgeschichte;
+-- die profiles-Spalten kommen per `add column if not exists` (kein
+-- Redefinieren des gesamten Objekts); guard_is_tester(), sync_discord_
+-- identity(), gate_verdict() und tester_overview() sind neue Funktionsnamen.
+-- public_profiles (oben) ist das einzige bestehende Objekt, dessen
+-- Spaltenliste in dieser Phase neu geschrieben wird.
 
 -- ============================================================================
 -- 6. public.tester_credits -- eigene, sehr schmale View fuer die
