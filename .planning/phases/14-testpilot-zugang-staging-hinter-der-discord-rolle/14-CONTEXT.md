@@ -64,12 +64,29 @@ waren bereits vor Anlage der Phase getroffen und stehen so in der ROADMAP.md.
   seiner eigenen Vorschau aussperren. Kein zweites Notschloss per
   Umgebungsvariable — ein nie benutzter Schlüssel wird nie geprüft.
 
-- **D-05:** `public.user_roles` bleibt **unangetastet**. Die `CHECK`-Klausel
-  (`role IN ('user','admin')`, `scripts/supabase-schema.sql:73`) wird **nicht**
-  um `tester` erweitert. Grund: `user_id` ist Primärschlüssel, ein Konto trägt
-  also genau eine Rolle — ein Betreiber könnte sonst nicht gleichzeitig Admin
-  und Testpilot sein. Die Testpilot-Eigenschaft lebt in **Discord**; die
-  Tabelle trägt weiterhin nur `user`/`admin`.
+- **D-05:** `public.user_roles` bleibt **unangetastet** — die `CHECK`-Klausel
+  wird **nicht** um `tester` erweitert. Grund: `user_id` ist Primärschlüssel,
+  ein Konto trägt also genau eine Rolle; ein Betreiber könnte sonst nicht
+  gleichzeitig Admin und Testpilot sein. Die Testpilot-Eigenschaft lebt in
+  **Discord**.
+
+  ⚠ **Richtiggestellt am 17.08.2026 gegen die LEBENDE Anlage** (`list_tables`
+  auf `trgjhmbnodoarnfmlcqx`): Diese Entscheidung nannte ursprünglich
+  `role IN ('user','admin')` aus `scripts/supabase-schema.sql:73` als Beleg
+  und warf `INTEGRATIONS.md` vor, mit der Rolle `beta` falsch zu liegen.
+  **Das war umgekehrt.** Live gilt
+  `role = ANY (ARRAY['user','admin','beta'])` — angewandt durch die Migration
+  `user_roles_allow_beta` vom 24.07.2026, die im Repo **nicht** existiert.
+  Veraltet ist `scripts/supabase-schema.sql`, nicht `INTEGRATIONS.md`.
+  Die Entscheidung selbst ändert sich dadurch **nicht**: sie trägt auf dem
+  Primärschlüssel, nicht auf der Werteliste. Aber der Beleg war falsch, und
+  wer ihn nachschlägt, soll die Korrektur finden statt den Irrtum.
+
+  ⚠ **Lehre für diese Phase:** `scripts/supabase-schema.sql` ist eine
+  Momentaufnahme vom Aufbau, kein Abbild der Datenbank. Die lebende Anlage
+  trägt **24 angewandte Migrationen**, das Repo führt **11 Dateien** — und
+  die Zeitstempel decken sich nirgends. Wer eine Aussage über das Schema
+  braucht, holt sie aus der Anlage.
 
 ### Das Tor
 
@@ -415,19 +432,44 @@ Keine.
   D-20 (der Lauf kennt Commit-Kennung und Zeitpunkt), sofern der Ping nicht
   vom Bot selbst ausgelöst wird.
 
-### ⚠ Zwei Irrtümer in der eigenen Dokumentation (gegen den Bestand geprüft)
+### ⚠ Die Doku und die Anlage laufen auseinander — in BEIDE Richtungen
 
-1. **`INTEGRATIONS.md` nennt für `user_roles` die Rollen „`admin`, `beta`".**
-   Tatsächlich erlaubt die `CHECK`-Klausel nur `'user'` und `'admin'`
-   (`scripts/supabase-schema.sql:73`) — ein `beta` gibt es nicht. Außerdem ist
-   `user_id` Primärschlüssel: **ein Konto trägt genau eine Rolle**. Beides ist
-   Grundlage von D-05.
+⚠ **Richtiggestellt am 17.08.2026.** Dieser Abschnitt behauptete zuerst,
+`INTEGRATIONS.md` liege mit der Rolle `beta` falsch. Der Abgleich mit der
+lebenden Anlage hat das Gegenteil ergeben. Der Irrtum war meiner, und er
+entstand genau so, wie dieser Abschnitt es anderen vorwirft: aus einer
+Repo-Datei zitiert, statt die Anlage zu fragen.
 
-2. Dieselbe Datei lag am 03.08.2026 schon einmal falsch (sie behauptete, alle
-   Edge Functions verlangten ein Session-JWT; `register` läuft seit jeher ohne).
-   Der Irrtum hätte die Kontoanmeldung abgeschaltet. **Für diese Phase gilt
-   deshalb: `INTEGRATIONS.md` ist ein Wegweiser, kein Beleg** — jede Aussage
-   über die lebende Anlage ist dort zu prüfen, wo sie herkommt.
+1. **`scripts/supabase-schema.sql` ist veraltet.** Sie nennt
+   `CHECK (role IN ('user','admin'))`; live gilt seit dem 24.07.2026
+   `role = ANY (ARRAY['user','admin','beta'])`, gesetzt von der Migration
+   `user_roles_allow_beta`, die im Repo gar nicht liegt. `INTEGRATIONS.md`
+   hatte recht. Was unverändert stimmt und D-05 trägt: `user_id` ist
+   Primärschlüssel, **ein Konto trägt genau eine Rolle**.
+
+2. **Der Migrationsverlauf deckt sich nicht.** Die Anlage führt **24
+   angewandte Migrationen** mit Namen wie `accounts_profiles_favorites`;
+   `supabase/migrations/` führt **11 Dateien** mit ganz anderen Zeitstempeln.
+   Die bestehenden Migrationen sind also **nie über die CLI** gelaufen — ein
+   `supabase db push` bricht deshalb ab („Remote migration versions not found
+   in local migrations directory"), und der von der CLI vorgeschlagene
+   `migration repair --status reverted` über alle 24 wäre **falsch und
+   gefährlich**: er markierte angewandte Migrationen als zurückgenommen.
+   Neue Migrationen gehen denselben Weg wie die 24 davor.
+
+3. **`INTEGRATIONS.md` lag am 03.08.2026 tatsächlich einmal falsch** (sie
+   behauptete, alle Edge Functions verlangten ein Session-JWT; `register`
+   läuft seit jeher ohne). Der Irrtum hätte die Kontoanmeldung abgeschaltet.
+
+**Regel für diese Phase, aus allen drei Punkten:** Keine Repo-Datei ist ein
+Beleg über die lebende Anlage — weder `INTEGRATIONS.md` noch
+`scripts/supabase-schema.sql`. Wer eine Aussage über Schema, Rollen oder
+Migrationsstand braucht, holt sie aus der Anlage und schreibt dazu, wann.
+
+**Nebenbefund aus demselben Abgleich:** `public.profiles` trägt bereits eine
+Spalte `discord_tag` (Freitext, vom Nutzer selbst gepflegt). Sie ist **kein**
+geprüfter Nachweis einer Discord-Identität und darf mit `discord_user_id` aus
+`discord_role_state` nicht verwechselt werden. Stand: 7 Konten in `profiles`.
 
 </code_context>
 
