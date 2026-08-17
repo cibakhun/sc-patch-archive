@@ -1,0 +1,173 @@
+# Messsonde, kein Tor. Beantwortet EINE Frage, die auf dem Entwicklungsrechner
+# nicht zu beantworten ist: Traegt der `nginx:alpine`-Tag, aus dem unser
+# Auslieferungs-Image entsteht, das Modul `nginx-module-njs` — und ist es
+# versionsgleich mit dem darin laufenden nginx-Kern?
+#
+# WARUM HIER UND NICHT LOKAL: Das Image entsteht ohnehin in GitHub Actions
+# (deploy-image.yml, deploy-staging.yml), nicht auf dem Entwicklungsrechner.
+# Grundsatz 7 aus CLAUDE.md verlangt, gegen das Artefakt zu pruefen und zu
+# wissen, welches. Das Artefakt ist DIESES Image, gebaut in DIESER Umgebung.
+# Eine lokale Messung waere die schwaechere Aussage, selbst wenn Docker liefe.
+#
+# WARUM `push` UND NICHT `workflow_dispatch`: Ein `workflow_dispatch` ist nur
+# ausloesbar, wenn die Datei auf dem Vorgabezweig liegt — hier `main`. Der ist
+# in diesem Projekt ohne ausdrueckliche Ansage tabu. Der Auslöser hoert deshalb
+# eng auf den Arbeitszweig dieser Phase.
+#
+# LEBENSDAUER: Diese Datei ist eine Sonde und darf nach der Entscheidung zu
+# D-23 wieder verschwinden. Bleibt sie, ist sie beim naechsten Wechsel des
+# Basis-Images erneut nuetzlich — ein Versions-Mismatch zwischen nginx-Kern
+# und Modul ist ein dokumentiertes Bruchrisiko.
+#
+# Sie ist bewusst NICHT in scripts/lib/gate-registry.mjs eingetragen: sie
+# prueft keine Zusicherung dieses Bestands, sondern eine Eigenschaft eines
+# fremden Basis-Images. Ein FEHLER hier ist ein Befund, kein Regressionsfund.
+name: Sonde — njs im nginx-Basisimage
+
+on:
+  push:
+    branches:
+      - 'claude/staging-tester-role-access-308ebf'
+    paths:
+      - '.github/workflows/probe-njs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  messen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Basisimage holen und benennen
+        run: |
+          echo "::group::Aufgeloester Tag"
+          docker pull nginx:alpine
+          # Der Dockerfile pinnt `nginx:alpine` ohne Version. Welche Version das
+          # HEUTE ist, gehoert ins Protokoll — sonst misst dieser Lauf etwas
+          # anderes als der naechste, ohne dass es jemand merkt.
+          docker image inspect nginx:alpine \
+            --format 'Digest: {{index .RepoDigests 0}}{{"\n"}}Erstellt: {{.Created}}' || true
+          echo "::endgroup::"
+
+      - name: 1) nginx-Kern — Version und einkompilierte Module
+        run: |
+          echo "--- nginx -V ---"
+          docker run --rm nginx:alpine nginx -V 2>&1 | tee /tmp/nginx-v.txt
+          echo ""
+          NGINX_VER=$(docker run --rm nginx:alpine nginx -v 2>&1 | sed -n 's|.*nginx/\([0-9.]*\).*|\1|p')
+          echo "NGINX_VER=$NGINX_VER" >> "$GITHUB_ENV"
+          echo "Kernversion: $NGINX_VER"
+          echo ""
+          # Nebenbefund fuer den Rueckfall aus D-23: ist secure_link ueberhaupt
+          # einkompiliert? Die Recherche fand dazu keine eindeutige Quelle.
+          if grep -q 'http_secure_link_module' /tmp/nginx-v.txt; then
+            echo "RUECKFALL: ngx_http_secure_link_module IST einkompiliert."
+          else
+            echo "RUECKFALL: ngx_http_secure_link_module ist NICHT einkompiliert."
+          fi
+
+      - name: 2) Kennt der apk-Index das Modul?
+        continue-on-error: true
+        run: |
+          echo "--- apk info nginx-module-njs ---"
+          docker run --rm nginx:alpine apk info nginx-module-njs 2>&1 | tee /tmp/apk-info.txt || true
+          echo ""
+          echo "--- apk policy (welche Version, aus welchem Repo) ---"
+          docker run --rm nginx:alpine apk policy nginx-module-njs 2>&1 || true
+          echo ""
+          echo "--- /etc/apk/repositories ---"
+          docker run --rm nginx:alpine cat /etc/apk/repositories 2>&1 || true
+
+      - name: 3) Wuerde die Installation gelingen? (Trockenlauf)
+        id: simulate
+        continue-on-error: true
+        run: |
+          echo "--- apk add --simulate ---"
+          set +e
+          docker run --rm nginx:alpine sh -c \
+            'apk add --no-cache --simulate nginx-module-njs' 2>&1 | tee /tmp/simulate.txt
+          RC=${PIPESTATUS[0]}
+          set -e
+          echo "Exit-Code: $RC"
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+
+      - name: 4) Echte Installation, Versionsgleichheit und Groessenzuwachs
+        id: real
+        continue-on-error: true
+        run: |
+          set +e
+          docker build -t njs-probe -f - . <<'DOCKERFILE'
+          FROM nginx:alpine
+          RUN apk add --no-cache nginx-module-njs
+          DOCKERFILE
+          RC=$?
+          set -e
+          echo "Bau-Exit: $RC"
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+          if [ "$RC" -ne 0 ]; then
+            echo "ERGEBNIS: nginx-module-njs laesst sich NICHT installieren."
+            exit 0
+          fi
+
+          echo ""
+          echo "--- Installierte Modulversion ---"
+          MOD_VER=$(docker run --rm njs-probe apk info -v nginx-module-njs 2>/dev/null | head -1)
+          echo "Paket: $MOD_VER"
+
+          echo ""
+          echo "--- Liegt die .so-Datei, wo load_module sie sucht? ---"
+          docker run --rm njs-probe ls -la /usr/lib/nginx/modules/ 2>&1 || true
+
+          echo ""
+          echo "--- VERSIONSGLEICHHEIT (das eigentliche Bruchrisiko) ---"
+          # Das Modul ist an die exakte nginx-Kernversion gebunden. Ein
+          # Mismatch bricht nicht beim Bauen, sondern beim START von nginx —
+          # also erst auf dem Server. Deshalb hier gemessen, nicht vermutet.
+          echo "Kern:  $NGINX_VER"
+          echo "Modul: $MOD_VER"
+          case "$MOD_VER" in
+            *"$NGINX_VER"*) echo "→ versionsgleich" ;;
+            *) echo "→ ⚠ NICHT eindeutig versionsgleich — unten laedt der echte Test" ;;
+          esac
+
+          echo ""
+          echo "--- LAEDT nginx das Modul wirklich? (der einzige belastbare Test) ---"
+          docker build -t njs-load -f - . <<'DOCKERFILE'
+          FROM nginx:alpine
+          RUN apk add --no-cache nginx-module-njs
+          RUN printf 'load_module modules/ngx_http_js_module.so;\n' > /etc/nginx/modules-probe.conf \
+           && sed -i '1i include /etc/nginx/modules-probe.conf;' /etc/nginx/nginx.conf
+          RUN nginx -t
+          DOCKERFILE
+          LOAD_RC=$?
+          if [ "$LOAD_RC" -eq 0 ]; then
+            echo "→ nginx -t GRUEN mit geladenem ngx_http_js_module.so"
+          else
+            echo "→ ⚠ nginx -t ROT — Modul vorhanden, aber nicht ladbar"
+          fi
+
+          echo ""
+          echo "--- Groessenzuwachs des Images ---"
+          BASE=$(docker image inspect nginx:alpine --format '{{.Size}}')
+          WITH=$(docker image inspect njs-probe   --format '{{.Size}}')
+          echo "ohne njs: $((BASE/1024/1024)) MB"
+          echo "mit  njs: $((WITH/1024/1024)) MB"
+          echo "Zuwachs:  $(( (WITH-BASE)/1024 )) KB"
+
+      - name: Urteil
+        run: |
+          echo "══════════════════════════════════════════════"
+          echo " SONDE njs — Urteil"
+          echo "══════════════════════════════════════════════"
+          echo "Trockenlauf (apk --simulate): Exit ${{ steps.simulate.outputs.rc }}"
+          echo "Echter Bau + Ladetest:        Exit ${{ steps.real.outputs.rc }}"
+          echo ""
+          if [ "${{ steps.real.outputs.rc }}" = "0" ]; then
+            echo "BEFUND: njs ist verfuegbar. D-23 traegt, Plan 14-01 kann weiterlaufen."
+          else
+            echo "BEFUND: njs ist NICHT verfuegbar."
+            echo "Damit greift der Checkpoint aus D-23 — die Entscheidung geht"
+            echo "zurueck an den Betreiber. Rueckfall laut D-23 ist secure_link;"
+            echo "ob der ueberhaupt einkompiliert ist, steht in Schritt 1 oben."
+            exit 1
+          fi
