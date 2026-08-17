@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 276,
-  "totalListings": 6571,
-  "totalSold": 281,
-  "distinctItems": 1212
+  "updates": 277,
+  "totalListings": 6577,
+  "totalSold": 282,
+  "distinctItems": 1213
  },
  "listings": {
   "156580": {
@@ -133500,9 +133500,9 @@
      "p": 8000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-17",
+   "soldOutPrice": 8000000,
    "dateAdded": 1786867738,
    "dateExpiration": 1792051738
   },
@@ -140284,6 +140284,10 @@
     {
      "d": "2026-08-17",
      "p": 3999999
+    },
+    {
+     "d": "2026-08-17",
+     "p": 3199999
     }
    ],
    "soldOut": false,
@@ -140312,6 +140316,132 @@
    "soldOutPrice": null,
    "dateAdded": 1786923237,
    "dateExpiration": 1792107237
+  },
+  "163401": {
+   "idItem": 2552,
+   "idCategory": 18,
+   "title": "WTS Yubarev \"Venom\" Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786924596,
+   "dateExpiration": 1792108596
+  },
+  "163402": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "F8C \"Nightweaver\" Livery",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786924620,
+   "dateExpiration": 1792108620
+  },
+  "163405": {
+   "idItem": 5362,
+   "idCategory": 18,
+   "title": "Parallax \"Piconalia\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786925058,
+   "dateExpiration": 1792109058
+  },
+  "163408": {
+   "idItem": 3729,
+   "idCategory": 18,
+   "title": "Custodian \"Executive Edition\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786925745,
+   "dateExpiration": 1792109745
+  },
+  "163409": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786925877,
+   "dateExpiration": 1792109877
+  },
+  "163410": {
+   "idItem": 5658,
+   "idCategory": 3,
+   "title": "Overlord Helmet Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786926089,
+   "dateExpiration": 1792110089
   }
  }
 }
