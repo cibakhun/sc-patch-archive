@@ -110,6 +110,17 @@ for (const f of readdirSync('assets').filter((f) => f.endsWith('.js'))) {
 // ------------------------------------------------------- Laufzeit-Fähigkeiten --
 // Blob-Worker und WebAssembly tauchen in keinem Attribut auf, brauchen aber
 // eigene Einträge. Quelle ist der Code, der sie benutzt.
+
+// Der Supabase-Host steht in src/consts.ts — von dort liest ihn auch die Seite.
+// Abschreiben würde die Prüfung von der Wirklichkeit lösen, sobald das Projekt
+// umzieht. Der Block MUSS mitgematcht werden: `url:` steht in consts.ts
+// zweimal, und die erste Fundstelle ist SITE.url (verse-base.com). Ohne den
+// Blockanker prüfte das Tor auf den falschen Host — und wäre damit dauerhaft
+// rot. Genau das hat die Gegenprobe am 17.08.2026 aufgedeckt.
+const constsSrc = existsSync('src/consts.ts') ? readFileSync('src/consts.ts', 'utf8') : '';
+const supabaseUrl = /export const SUPABASE\s*=\s*\{[^}]*?\burl:\s*'(https:\/\/[^']+)'/.exec(constsSrc)?.[1];
+if (!supabaseUrl) { console.error('SUPABASE.url in src/consts.ts nicht gefunden.'); process.exit(2); }
+
 const capChecks = [
   { files: ['public/vendor/three/addons/loaders/DRACOLoader.js'], pattern: /new Worker\(/,
     need: ['worker-src', 'blob:'], why: 'DRACOLoader startet einen Worker aus einem Blob' },
@@ -119,6 +130,15 @@ const capChecks = [
     need: ['img-src', 'blob:'], why: 'GLTFLoader legt Texturen als blob:-URL an' },
   { files: ['assets/hero-video.js'], pattern: /createObjectURL/,
     need: ['media-src', 'blob:'], why: 'hero-video.js spielt das Video aus einem Blob' },
+  // Hochgeladene Profilbilder/Banner liegen im Supabase-Storage. Ihre URL kommt
+  // aus der Datenbank und steht in KEINER gebauten Seite — die Messung oben
+  // sieht sie nie. Ohne den Eintrag blockt der Browser sie still: leerer
+  // Avatar-Kreis, schwarzes Banner, und der Upload sieht trotzdem erfolgreich
+  // aus. Genau so war es bis zum 17.08.2026 auf staging UND live.
+  { files: ['src/components/pilot/PilotPage.astro', 'src/scripts/account-dashboard.ts'],
+    pattern: /avatar_url/,
+    need: ['img-src', supabaseUrl],
+    why: 'Profilbilder und Banner werden aus dem Supabase-Storage geladen (URL aus der DB)' },
 ];
 
 // ------------------------------------------------------------------ Bericht --
