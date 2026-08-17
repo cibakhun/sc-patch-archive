@@ -122,7 +122,7 @@ function verifyCookie(cookieValue, secret) {
   return payload;
 }
 
-export function check(r) {
+function check(r) {
   try {
     if (r.variables.vb_gate_on !== '1') return '1';
     if (isExempt(r.uri)) return '1';
@@ -142,7 +142,7 @@ function jsonResponse(r, status, bodyObj) {
   r.return(status, JSON.stringify(bodyObj));
 }
 
-export function mint(r) {
+function mint(r) {
   r.discardRequestBody();
 
   const secret = (process.env.VB_GATE_SECRET || '').trim();
@@ -197,3 +197,11 @@ export function mint(r) {
       jsonResponse(r, 502, { ok: false, grund: 'supabase-nicht-erreichbar' });
     });
 }
+
+/* njs erlaubt fuer js_import AUSSCHLIESSLICH einen Default-Export — ein
+   benannter Export ("export function check", "export function mint")
+   bricht den Bau mit "SyntaxError: Non-default export is not supported"
+   (gefunden durch die E2E-Sonde, Lauf 32045452259, RUN nginx -t). Referenz
+   in nginx/default.conf bleibt trotzdem gate.check / gate.mint — njs
+   loest das ueber den Default-Export auf. */
+export default { check, mint };
