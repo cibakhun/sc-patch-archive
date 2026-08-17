@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 283,
-  "totalListings": 6731,
-  "totalSold": 288,
-  "distinctItems": 1224
+  "updates": 284,
+  "totalListings": 6745,
+  "totalSold": 289,
+  "distinctItems": 1225
  },
  "listings": {
   "156580": {
@@ -136600,6 +136600,10 @@
     {
      "d": "2026-08-16",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 1800000
     }
    ],
    "soldOut": false,
@@ -143589,9 +143593,9 @@
      "p": 12000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-17",
+   "soldOutPrice": 12000000,
    "dateAdded": 1786969306,
    "dateExpiration": 1792153306
   },
@@ -143720,6 +143724,300 @@
    "soldOutPrice": null,
    "dateAdded": 1786970150,
    "dateExpiration": 1792154150
+  },
+  "163542": {
+   "idItem": 1767,
+   "idCategory": 19,
+   "title": "Blizzard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786971062,
+   "dateExpiration": 1792155062
+  },
+  "163544": {
+   "idItem": 933,
+   "idCategory": 19,
+   "title": "NightFall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786971146,
+   "dateExpiration": 1792155146
+  },
+  "163550": {
+   "idItem": 5565,
+   "idCategory": 7,
+   "title": "Palatino Deadlock Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786971675,
+   "dateExpiration": 1792155675
+  },
+  "163552": {
+   "idItem": 5322,
+   "idCategory": 17,
+   "title": "FocalWave-30 (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786971709,
+   "dateExpiration": 1792155709
+  },
+  "163553": {
+   "idItem": 7990,
+   "idCategory": 7,
+   "title": "Palatino Set Shadow Guild",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786971887,
+   "dateExpiration": 1792155887
+  },
+  "163554": {
+   "idItem": 5325,
+   "idCategory": 17,
+   "title": "HG-2 Jaeger (2x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786971965,
+   "dateExpiration": 1792155965
+  },
+  "163555": {
+   "idItem": 2167,
+   "idCategory": 17,
+   "title": "Black Prism (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786972172,
+   "dateExpiration": 1792156172
+  },
+  "163556": {
+   "idItem": 2230,
+   "idCategory": 17,
+   "title": "Omarof (16x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786972333,
+   "dateExpiration": 1792156333
+  },
+  "163557": {
+   "idItem": 4742,
+   "idCategory": 87,
+   "title": "Saldynium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 955,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786972644,
+   "dateExpiration": 1792156644
+  },
+  "163559": {
+   "idItem": 6181,
+   "idCategory": 5,
+   "title": "WTS Strata Neptune - Full Set with Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786973244,
+   "dateExpiration": 1792157243
+  },
+  "163560": {
+   "idItem": 2229,
+   "idCategory": 17,
+   "title": "Touchstone (8x Monitor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786973388,
+   "dateExpiration": 1792157388
+  },
+  "163561": {
+   "idItem": 6812,
+   "idCategory": 17,
+   "title": "OT4-RF \"Scorched\" (4x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786973646,
+   "dateExpiration": 1792157646
+  },
+  "163563": {
+   "idItem": 5412,
+   "idCategory": 5,
+   "title": "WTS Strata - Full Set with Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786973814,
+   "dateExpiration": 1792157814
+  },
+  "163565": {
+   "idItem": 7981,
+   "idCategory": 7,
+   "title": "Monde Set HighSec",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786974126,
+   "dateExpiration": 1792158126
   }
  }
 }
