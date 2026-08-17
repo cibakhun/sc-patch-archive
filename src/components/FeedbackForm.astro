@@ -33,6 +33,8 @@ const COPY = {
     errFail: 'Senden fehlgeschlagen. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
     errNet: 'Netzwerkfehler — Senden nicht möglich. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
     ratingField: 'Bewertung',
+    testersHeading: 'Testpiloten',
+    testersLede: 'Diese Leute sehen die Seite, bevor sie fertig ist, und melden, was kaputt ist.',
   },
   en: {
     rate: 'Rating', optional: '— optional', clear: 'clear',
@@ -52,10 +54,13 @@ const COPY = {
     errFail: 'Sending failed. Please try again later or e-mail krysx141@gmail.com.',
     errNet: 'Network error — could not send. Please try again later or e-mail krysx141@gmail.com.',
     ratingField: 'Rating',
+    testersHeading: 'Test Pilots',
+    testersLede: 'These people see the site before it is finished, and report what is broken.',
   },
 }[lang];
 
 const stars = [1, 2, 3, 4, 5];
+const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 ---
 
 <div class="fbx reveal">
@@ -131,6 +136,19 @@ const stars = [1, 2, 3, 4, 5];
     <button class="fbx-done__again" type="button" id="fbAgain">{COPY.again}</button>
   </div>
 </div>
+
+<!-- Testpiloten-Namensnennung (D-22) — leer, solange niemand zugestimmt hat
+     ODER die Abfrage scheitert; kein leerer Kasten, keine Überschrift ohne
+     Inhalt (Muster :empty wie PilotPage.astro .pp-badges). Die
+     Zustimmungsprüfung liegt in der View tester_credits, nicht hier. -->
+<div
+  class="fbx-testers"
+  id="fbTesters"
+  aria-live="polite"
+  data-heading={COPY.testersHeading}
+  data-lede={COPY.testersLede}
+  data-pilot-base={pilotBase}
+></div>
 
 <style>
   .fbx { max-width: 760px; margin: 0 auto; }
@@ -228,6 +246,24 @@ const stars = [1, 2, 3, 4, 5];
     transition: border-color var(--dur-fast) var(--ease-ui), background-color var(--dur-fast) var(--ease-ui);
   }
   .fbx-done__again:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+  /* ---- Testpiloten-Namensnennung (D-22) ---- */
+  .fbx-testers { max-width: 760px; margin: 2.2rem auto 0; }
+  .fbx-testers:empty { display: none; }
+  .fbx-testers__h {
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-6);
+    letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--text);
+    margin: 0 0 0.45rem;
+  }
+  .fbx-testers__lede { font-size: var(--fs-7); color: var(--muted); margin: 0 0 0.9rem; line-height: 1.5; }
+  .fbx-testers__list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .fbx-testerchip {
+    display: inline-flex; align-items: center;
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    padding: 0.34rem 0.75rem; font-size: var(--fs-7); color: var(--text); text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui);
+  }
+  .fbx-testerchip:hover { border-color: var(--accent); color: var(--accent); }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .fbx-input:user-invalid, .fbx-textarea:user-invalid{border-color:#c84248}
 :root[data-theme="light"] .fbx-status{color:#a2172b}
@@ -337,4 +373,34 @@ const stars = [1, 2, 3, 4, 5];
         .finally(function () { btn.disabled = false; btnTxt.textContent = D.send; });
     });
   })();
+</script>
+
+<!-- Namensnennung (D-22): SDK-freier PostgREST-Lesezugriff als anon gegen die
+     View tester_credits, dieselbe Bauform wie assets/account-lite.js. Die
+     Zustimmungsprüfung sitzt IN der View — hier steht keine Bedingung auf
+     tester_credit, nur das Rendern dessen, was die View liefert. -->
+<script>
+  import { SUPABASE } from '../consts';
+
+  const el = document.getElementById('fbTesters');
+  if (el) {
+    const heading = el.getAttribute('data-heading') || '';
+    const lede = el.getAttribute('data-lede') || '';
+    const pilotBase = el.getAttribute('data-pilot-base') || '/pilot/';
+    const esc = (s: string) =>
+      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+
+    fetch(`${SUPABASE.url}/rest/v1/tester_credits?select=handle,display_name`, {
+      headers: { apikey: SUPABASE.publishableKey, Accept: 'application/json' },
+    })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: Array<{ handle: string; display_name: string | null }>) => {
+        if (!Array.isArray(rows) || rows.length === 0) return; // bleibt leer -> :empty blendet den Kasten aus
+        const chips = rows
+          .map((r) => `<a class="fbx-testerchip" href="${pilotBase}${encodeURIComponent(r.handle)}">${esc(r.display_name || r.handle)}</a>`)
+          .join('');
+        el.innerHTML = `<h2 class="fbx-testers__h">${esc(heading)}</h2><p class="fbx-testers__lede">${esc(lede)}</p><div class="fbx-testers__list">${chips}</div>`;
+      })
+      .catch(() => { /* bleibt leer -- keine Fehlermeldung, siehe :empty-Muster oben */ });
+  }
 </script>
