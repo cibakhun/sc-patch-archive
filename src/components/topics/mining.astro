@@ -46,7 +46,52 @@ const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
    --nav-h und wird mit sichtbarer Zurück-Marke 116 px hoch (SiteNav:877) —
    dort steht die Werkbank ohnehin einspaltig, das Budget gilt da nicht. */
 main > .wb{padding-top:4.4rem}
-@media(max-width:1180px){main > .wb{padding-top:calc(var(--nav-h,116px) + .6rem)}}</style>
+@media(max-width:1180px){main > .wb{padding-top:calc(var(--nav-h,116px) + .6rem)}}
+
+/* ══════════ EIN BILDSCHIRM, KEIN DOKUMENT ══════════
+   Ansage 18.08.2026: „ich will einfach nur das tool haben ohne dass ich nach
+   unten scrollen kann". Bis hierher stand die Seite 337 px über dem Fenster —
+   und zwar bei JEDER Fenstergröße gleich viel (gemessen 1280×720, 1440×900,
+   1920×1080: Überhang immer 337). Der Grund ist nicht das Gerät, sondern die
+   Fußzeile: das Gehäuse rechnet sich mit `100vh - --wb-chrome` (132 px) schon
+   auf das Fenster, die 364 px hohe `footer.site-attr` steht aber außerhalb
+   dieser Rechnung darunter.
+   Deshalb NICHT `--wb-chrome` hochsetzen — das hätte das Gerät um die Höhe der
+   Fußzeile geschrumpft. Die Seite bekommt stattdessen die Fensterhöhe als
+   feste Größe, und das Gehäuse nimmt sich davon den Rest. Es WACHST dabei:
+   588 → 627 px bei 720 px Fensterhöhe, weil nur noch die eigene Polsterung
+   (70,4 oben für die feste Kopfleiste + 22,4 unten) von ihm abgeht statt der
+   pauschalen 132.
+
+   ⚠⚠ NUR im dreispaltigen Betrieb. Unterhalb von 1181 px stapelt die Werkbank
+   ihre drei Paneele untereinander (MiningWorkbench.astro, `@media
+   max-width:1180`); dort ist die Seite gemessen 1716 px hoch (1100×800) bzw.
+   1412 px (390×844). Eine Sperre würde dort zwei Drittel des Werkzeugs
+   unerreichbar machen — der Bildlauf bleibt.
+   ⚠ Dieselbe Klinke nach unten: unter 560 px Fensterhöhe blättert die Sperre
+   sich selbst weg. Vom Fenster gehen 93 px Polsterung, ~42 px Rahmenblech und
+   67 px Rig-Leiste ab; bei 560 bleiben dem Raster noch ~350 px, darunter wird
+   es zur Sehschlitz-Bedienung. */
+@media(min-width:1181px) and (min-height:560px){
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  /* Die Fußzeile ist das EINZIGE, was unter dem Werkzeug stand: RelatedTopics
+     rendert auf dieser Seite nichts (Mining ist `evergreen` und hängt an
+     keinem Patch, s. RelatedTopics.astro), und die Attribution steht genau
+     einmal — aus dem Seitenkörper, nicht aus dem Layout. */
+  body > footer.site-attr{display:none}
+  main{height:100dvh;display:flex;flex-direction:column}
+  main > .wb{flex:1;min-height:0}
+  /* ⚠ Die höhere Spezifität ist Pflicht, nicht Zierde: `.wb__chassis` rechnet
+     seine Höhe selbst, und sein Stilblock steht im Dokument SPÄTER als dieser
+     hier (er sitzt im Bauteil, dieser im Seitenkörper). Bei gleicher
+     Spezifität gäbe die Reihenfolge den Ausschlag und die eigene Rechnung
+     gewänne. `main .wb__chassis` (0,1,1) schlägt `.wb__chassis` (0,1,0)
+     unabhängig davon.
+     Der Deckel von 1180 px fällt hier bewusst mit weg: auf einem hohen Schirm
+     soll das Gerät die Fensterhöhe füllen, sonst stünde unter einer nicht
+     scrollbaren Seite ein Streifen Leere. */
+  main .wb__chassis{height:auto;flex:1;min-height:0}
+}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: "Mining" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: "Mining" }]} />
