@@ -47,6 +47,8 @@ import { SUPABASE, DISCORD } from '../consts';
       --text:#e8eefc;--muted:#a7b6cf;--line:rgba(110,168,255,.16);--err:#ff8a8a;
       --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
     }
+    /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+    :root[data-theme="light"]{--bg:#f4f7fe;--surface:#fdfdff;--text:#1b1f29;--muted:#4d596c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -60,11 +62,10 @@ import { SUPABASE, DISCORD } from '../consts';
     .card{width:100%;max-width:22rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1.6rem;display:flex;flex-direction:column;gap:.9rem}
     .field{display:flex;flex-direction:column;gap:.35rem;text-align:left}
     label{font-family:var(--font-ui);font-size:var(--fs-6);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted)}
-    input{font:inherit;font-size:var(--fs-9);padding:.6rem .7rem;border-radius:6px;border:1px solid var(--line);background:#0a0e18;color:var(--text)}
+    input{font:inherit;font-size:var(--fs-9);padding:.6rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--veil-2);color:var(--text)}
     input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     button{
-      font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-8);
-      color:#04121a;background:var(--accent);border:0;border-radius:6px;padding:.75rem 1rem;cursor:pointer;
+      font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-8);color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.75rem 1rem;cursor:pointer;
       transition:transform var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui);
     }
     button:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(45,212,255,.35)}
@@ -73,8 +74,7 @@ import { SUPABASE, DISCORD } from '../consts';
     .status[data-tone="error"]{color:var(--err)}
     .role-link{font-size:var(--fs-6);color:var(--muted)}
     .role-link a{color:var(--accent-2)}
-    :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-  </style>
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
 </head>
 <body>
   <div class="kicker">VerseBase</div>
