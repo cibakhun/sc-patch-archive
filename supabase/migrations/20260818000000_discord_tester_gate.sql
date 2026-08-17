@@ -183,6 +183,29 @@ grant select on public.tester_credits to anon, authenticated;
 --    in supabase/functions/verify-rsi/index.ts fuer die RSI-Kopplung.
 --    is_tester bleibt dabei unberuehrt; die Rollenwahrheit setzt allein der
 --    Bot (Push bei guildMemberUpdate, D-25).
+--
+--    ACHTUNG Eindeutigkeit: discord_role_state.discord_user_id traegt einen
+--    EIGENEN unique-Index, getrennt vom Primaerschluessel user_id. `on
+--    conflict (user_id)` deckt nur Konflikte auf DIESEM Index ab -- haelt
+--    ein ANDERES Konto dieselbe discord_user_id bereits, verletzt der Insert
+--    den unique-Index auf discord_user_id, den die on-conflict-Klausel nicht
+--    anspricht, und wirft roh weiter. Da dieser Trigger AFTER INSERT auf
+--    auth.identities sitzt, rollt eine unbehandelte Ausnahme das Anlegen der
+--    Identitaet komplett zurueck -- deshalb wird sie hier explizit
+--    abgefangen und durch eine sprechende Meldung ersetzt (Kandidat a,
+--    Koordinator-Entscheidung 17.08.2026): die Kopplung scheitert weiterhin
+--    -- ein Discord-Account darf nur an EIN Konto gebunden sein, das ist
+--    die gewollte Invariante -- aber mit einer Meldung, die die Oberflaeche
+--    dem Nutzer zeigen kann, statt der rohen Postgres-Fehlermeldung.
+--    Kandidat (b), die aeltere Zeile stillschweigend zu loesen, waere eine
+--    Entscheidung ueber ein FREMDES Konto und gehoert dem Betreiber, nicht
+--    dieser Migration.
+--
+--    Ein Spiegel-Eintrag ist trotzdem NIE wichtiger als eine funktionierende
+--    Anmeldung: jede ANDERE, unerwartete Ausnahme (z. B. new.provider_id ist
+--    null, oder new.user_id haette strukturwidrig kein Gegenstueck in
+--    auth.users) darf die Identitaets-Anlage nicht mitreissen und wird nur
+--    protokolliert.
 -- ============================================================================
 create or replace function public.sync_discord_identity()
 returns trigger
@@ -191,12 +214,52 @@ security definer
 set search_path = public
 as $$
 begin
-  if new.provider = 'discord' then
+  if new.provider <> 'discord' then
+    return new;
+  end if;
+
+  -- Ohne provider_id gibt es nichts Sinnvolles zu spiegeln -- eine Zeile mit
+  -- discord_user_id = NULL waere ohne Aussagekraft (und wuerde, weil NULL
+  -- in einem unique-Index nie mit einem anderen NULL kollidiert, ohnehin
+  -- keine der beiden Ausnahmen unten ausloesen). Einfach nichts tun.
+  if new.provider_id is null then
+    return new;
+  end if;
+
+  begin
     insert into public.discord_role_state (user_id, discord_user_id)
     values (new.user_id, new.provider_id)
     on conflict (user_id) do update
       set discord_user_id = excluded.discord_user_id;
-  end if;
+  exception
+    when unique_violation then
+      -- discord_user_id ist bereits an ein ANDERES Konto gebunden (siehe
+      -- Kommentar oben) -- die Kopplung scheitert bewusst, aber verstaendlich.
+      --
+      -- Der RAISE EXCEPTION hier wirft eine NEUE Ausnahme, nachdem der
+      -- Handler bereits ausgewaehlt wurde -- keine Schleife, kein erneutes
+      -- Abfangen durch denselben EXCEPTION-Block: ein Handler faengt nur
+      -- Ausnahmen aus dem zugehoerigen BEGIN-Block ab (Zeilen 230-233 oben),
+      -- niemals seine eigenen. Die neue Ausnahme verlaesst die Funktion
+      -- ungefangen -- genau das gewollte Verhalten, siehe Kommentarblock vor
+      -- der Funktion.
+      raise exception 'Dieser Discord-Account ist bereits mit einem anderen Konto verknuepft.'
+        using errcode = 'unique_violation',
+              hint = 'discord_role_state.discord_user_id ist bereits an ein anderes Konto gebunden';
+    when foreign_key_violation then
+      -- Strukturell sollte das nicht vorkommen -- auth.identities.user_id
+      -- ist selbst per FK an auth.users gebunden, also bereits gueltig, wenn
+      -- dieser AFTER-INSERT-Trigger laeuft. Falls doch: nur protokollieren,
+      -- die Identitaet trotzdem anlegen lassen.
+      raise warning 'sync_discord_identity: FK-Verletzung beim Spiegeln von user_id %, Identitaet wird trotzdem angelegt', new.user_id;
+    when others then
+      -- Jede weitere, unvorhergesehene Ausnahme wuerde sonst die gesamte
+      -- Identitaets-Anlage zurueckrollen (AFTER-INSERT-Trigger) -- fuer eine
+      -- reine Spiegeltabelle unverhaeltnismaessig. Protokollieren statt
+      -- scheitern lassen.
+      raise warning 'sync_discord_identity: unerwarteter Fehler beim Spiegeln von user_id %: %', new.user_id, sqlerrm;
+  end;
+
   return new;
 end;
 $$;
