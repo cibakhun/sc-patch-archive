@@ -64,7 +64,15 @@ FROM nginx:alpine
 # Paketversion traegt die Kernversion woertlich, ein Mismatch ist bei diesem
 # Namensschema strukturell ausgeschlossen. Entscheidend war der Ladetest
 # (load_module + `nginx -t`), nicht nur der Bau: GRUEN. Imagezuwachs 113 KB.
-RUN apk add --no-cache nginx-module-njs
+#
+# ca-certificates dazu: njs' ngx.fetch() in gate.mint() spricht HTTPS mit
+# Supabase, und das nackte nginx:alpine-Image bringt kein CA-Bundle mit —
+# ohne eines bricht jede ausgehende TLS-Verbindung mit einem unspezifischen
+# Verbindungsfehler (in gate.js als 502 "supabase-nicht-erreichbar"
+# beantwortet, T-14-SC-fremd). Gefunden durch die E2E-Sonde (Lauf
+# 32046388199): der Mock-Supabase-Weg (HTTP, Bahn B) war unbetroffen, der
+# ECHTE Supabase-Endpunkt (HTTPS, Bahn A) scheiterte.
+RUN apk add --no-cache nginx-module-njs ca-certificates
 COPY --from=build /app/dist /usr/share/nginx/html
 # Custom server config: security headers (HSTS et al.) + real 404 page.
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
