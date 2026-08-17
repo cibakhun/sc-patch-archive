@@ -385,8 +385,19 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-corner--br { bottom: 5px; right: 5px; border-left: 0; border-top: 0; }
 
   /* ---------- Identity-Hero ---------- */
+  /* Eigene Polsterung statt der geerbten: detail.css gibt JEDEM globalen
+     <section>-Block clamp(3rem,7vw,5.5rem) auf allen vier Seiten (dieselbe
+     Falle, gegen die .pp-sec weiter unten padding:0 setzt). Am Hero hat das
+     drei Dinge zerlegt: die Registry-Leiste saß 64 px eingerückt statt
+     randlos, unter dem Namen klaffte ein 90 px hohes totes Feld, und der
+     Hero-Inhalt floh 14 px aus der Flucht der Inhaltsspalte darunter.
+     Oben bleibt Platz — aber ein fester statt eines mitwachsenden: die
+     Kopfleiste ist position:fixed und über ALLE Breiten 67–69 px hoch,
+     während die geerbte Polsterung unter 900 px auf 54 px schrumpfte und die
+     Registry-Leiste damit halb unter die Kopfleiste schob. Der Banner liegt
+     absolut (inset:0 = Polsterkasten) und bleibt randlos. */
   .pp-hero {
-    position: relative; min-height: 420px;
+    position: relative; min-height: 420px; padding: 5.25rem 0 0;
     display: flex; flex-direction: column;background:var(--veil-2);
     border-bottom: 1px solid var(--line);
     overflow: hidden;
@@ -824,9 +835,18 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       // Registry-Chrome: Handle (uppercase) als Registrierungs-Kennung
       $('ppRegId')!.textContent = 'VB-' + String(p.handle).toUpperCase();
 
-      // Banner
-      ($('ppBannerImg') as HTMLElement).style.backgroundImage =
-        `url('${p.banner_url || '/assets/t-pyro-2.jpg'}')`;
+      // Banner. Ein hinterlegtes Banner wird erst geladen und dann gesetzt:
+      // scheitert es (gelöschte Datei, gesperrte Quelle), bliebe der Hero sonst
+      // schwarz und die Seite sähe kaputt aus, obwohl nur ein Bild fehlt.
+      const BANNER_FALLBACK = '/assets/t-pyro-2.jpg';
+      const bannerEl = $('ppBannerImg') as HTMLElement;
+      const setBanner = (url: string) => { bannerEl.style.backgroundImage = `url('${url}')`; };
+      setBanner(BANNER_FALLBACK);
+      if (p.banner_url && p.banner_url !== BANNER_FALLBACK) {
+        const probe = new Image();
+        probe.onload = () => setBanner(p.banner_url);
+        probe.src = p.banner_url;
+      }
 
       // Avatar (Icon + Farbe oder Bild) inkl. Ring- und Box-Farbe
       const color = p.avatar_color || '#2dd4ff';
@@ -834,12 +854,14 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       module_.style.color = color;
       const avTxt = $('ppAvatarText')!;
       const avImg = $('ppAvatarImg') as HTMLImageElement;
+      avTxt.textContent = p.avatar_icon || '◆';
       if (p.avatar_url) {
+        // Scheitert das Bild, bleibt sonst ein leerer Kreis stehen — dann
+        // zurück auf Symbol und Farbe, die das Profil ohnehin mitbringt.
+        avImg.onerror = () => { avImg.hidden = true; avTxt.hidden = false; };
         avImg.src = p.avatar_url;
         avImg.hidden = false;
         avTxt.hidden = true;
-      } else {
-        avTxt.textContent = p.avatar_icon || '◆';
       }
 
       // Status (Dot + Transmission) — dynamische Präsenz aus der View
