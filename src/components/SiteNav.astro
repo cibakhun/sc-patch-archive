@@ -156,7 +156,8 @@ const deckGroups: DeckGroup[] = [
         media: THUMB('t-align-1'),
         sub: t('nav.deck.sub.mining'),
         current: current.includes('/topics/mining'),
-        icon: '<path d="M6 3h12l4 6-10 12L2 9z"/>',
+        // Spitzhacke: das Schliff-Sechseck davor las sich bei 20 px als Herz.
+        icon: '<path d="M8 5a14 14 0 0 1 11 11"/><path d="M4.2 20.2 15.4 9"/>',
       },
       {
         href: L('/fracturing.html'),
