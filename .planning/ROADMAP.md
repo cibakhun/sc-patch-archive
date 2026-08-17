@@ -780,3 +780,90 @@ die Sperre durch D-01 aus `12-CONTEXT.md`.
 Plans:
 
 - [ ] TBD (run /gsd-plan-phase 13 to break down)
+
+### Phase 14: Schiffs-Datenkarte entstapeln
+
+**Goal:** Eine Schiffsseite liest sich in wenigen Kapiteln statt als Stapel
+gleichförmiger Kästen. Wer sie öffnet, erkennt ohne Scrollen, welche Kapitel
+es gibt, und springt in eines davon; jeder Kennwert steht genau einmal.
+
+**Ausgangsmessung** (Carrack, 1280 × 720, Dev-Server, 18.08.2026):
+
+| gemessen | Wert |
+| --- | --- |
+| Seitenhöhe | 5.554 px = 7,7 Bildschirme |
+| Blöcke unter dem Hero | 14 (10 × `.sd__panel` + Kennwerte-Leiste + Beschreibung + Ähnliche + Fußblöcke) |
+| Balkenspuren (`.sd__gtrack` / `.sd__proftrack`) | 20 |
+| Kopfzeilen-Codes (`.sd__code`) | 10, davon 6 nur „Anvil Aerospace" |
+| Sprungmarken | 0 |
+
+**Die Doppelungen, maschinell gezählt:** `126 m` steht **4×** (Hero-Zeile,
+Kennwerte-Leiste, Maße-Balken, Ähnliche Schiffe), `456 SCU` und `140 m/s`
+je **3×**, dazu `74 m`, `30 m`, `319.000 km/s` und `10,6 SCU` je 2×. Nicht in
+dieser Zählung, aber genauso doppelt: **alle sechs Felder des Panels
+„Datenblatt"** — Typ, Größe und Status stehen als Chips unter dem Titel, die
+Besatzung in der Kennwerte-Leiste, der Pledge-Preis im Kauf-Panel, der
+Hersteller als Logo. Und `Hülle 88.000 HP` + `Schilde 144.000 HP` ergeben
+exakt die `232.000 HP`, die zwei Panels weiter oben als „Defense" stehen.
+
+**D-01 — Kapitel und Sprungleiste, nicht Reiter** (Betreiber, 18.08.2026):
+Die zehn gleichförmigen Panels werden zu wenigen Kapiteln mit
+unterschiedlichem Gewicht gebündelt, darüber eine beim Scrollen erreichbare
+Sprungleiste. ⚠ **Reiter und Akkordeons sind ausgeschlossen** — der Betreiber
+hat ausdrücklich festgehalten, dass „alles steht da" die Stärke dieser Seite
+ist; was hinter einen Klick wandert, verletzt das. Ebenfalls verworfen: reine
+Zweispaltigkeit, weil sie die Länge halbiert, ohne die Gleichförmigkeit zu
+heilen.
+
+**D-02 — Balken nur, wo sie vergleichen** (Betreiber, 18.08.2026): Das
+Leistungsprofil behält seine Balken — dort steht der Balken für ein Perzentil
+gegen 227 Schiffe und vergleicht wirklich etwas. Bei Maßen, Tanks,
+Flugwerten und Verteidigung werden die Balken zu Zahlen. Ein Balken, der
+Länge gegen Breite gegen Höhe stellt, sieht aus wie Daten und ist keine.
+
+**Was NICHT angefasst wird:** Der Hero mit Hologramm-Bühne, Video- und
+Bilderumschalter trägt und bleibt unberührt. Ebenso die Datenlage — diese
+Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
+
+**Bekannte Rahmenbedingungen:**
+
+- `src/components/ShipDetail.astro` (2141 Zeilen) ist **EIN Körper für DE und
+  EN**; beide `[slug].astro` sind 27-Zeilen-Wrapper. Jede Änderung landet in
+  beiden Sprachen zugleich, neue sichtbare Zeichenketten brauchen ihren
+  Schlüssel in `src/i18n/ui.ts`.
+- Schiffsseiten laden **kein** `detail.css` — im gebauten
+  `dist/schiffe/anvl-carrack.html` stehen nur `fonts.css`, `mobile-ux.css`
+  und `theme.css`. Die site-weite Falle
+  `section{padding:clamp(3rem,7vw,5.5rem)…}` greift hier also nicht, und die
+  lokale Regel `*{margin:0;padding:0}` (`ShipDetail.astro:404`) neutralisiert
+  sie zusätzlich. Wer diese Zeile anfasst, holt die Falle zurück.
+- Die Panels stehen heute als `<section class="sd__panel">` in **einer**
+  Spalte (`.sd{max-width:var(--maxw)}`).
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
+**Depends on:** nichts
+**Plans:** 0 plans
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Auf der gebauten Carrack-Seite kommt jeder der sieben heute doppelten
+     Zahlwerte höchstens einmal vor; jede verbleibende Wiederholung ist als
+     Ausnahme benannt und begründet
+  2. Das Panel „Datenblatt" existiert in seiner heutigen Form nicht mehr —
+     seine sechs Felder stehen an jeweils genau einer Stelle
+  3. Beim Öffnen einer Schiffsseite ist ohne Scrollen erkennbar, welche
+     Kapitel die Seite hat; ein Klick springt dorthin, und die Sprungleiste
+     bleibt beim Scrollen erreichbar
+  4. Es stehen nicht mehr zehn gleich aussehende Rahmen untereinander — die
+     Kapitel sind optisch voneinander unterscheidbar
+  5. Balkenspuren gibt es nur noch im Leistungsprofil; überall sonst Zahlen
+  6. Die Seitenhöhe der Carrack bei 1280 × 720 liegt bei höchstens 4.200 px
+     (Ausgang 5.554 px) und wird als Sperrklinke festgeschrieben
+  7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi,
+     bis hinunter auf 360 px Breite
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1`
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 14 to break down)
