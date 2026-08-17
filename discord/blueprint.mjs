@@ -561,46 +561,38 @@ export const seed = {
       footer: 'VerseBase • verse-base.com',
     },
   ],
-  suggestions: [
-    {
-      title: 'Suggestions · Vorschläge',
-      color: C.cyan,
-      description: [
-        'Ideas for **verse-base.com** go here. One idea per post so others can react to vote — 👍 for yes, 👎 for no.',
-        '',
-        'The most useful suggestions say what you were **trying to do** when you wanted it, not just the feature name. Half the tools on the site started as a sentence in a channel like this one.',
-        '',
-        'Something **broken** rather than missing? That’s <#bug-reports>.',
-        DIV,
-        'Ideen für **verse-base.com** kommen hier rein. Eine Idee pro Post, damit andere per Reaktion abstimmen können — 👍 für ja, 👎 für nein.',
-        '',
-        'Die nützlichsten Vorschläge sagen, **was du gerade vorhattest**, als du es gebraucht hast — nicht nur den Namen der Funktion. Die Hälfte der Tools auf der Seite begann als ein Satz in einem Kanal wie diesem.',
-        '',
-        'Etwas **kaputt** statt fehlend? Das gehört nach <#bug-reports>.',
-      ].join('\n'),
-      footer: 'VerseBase • verse-base.com',
-    },
-  ],
-  support: {
+  // 17.08.2026: EIN Seed statt zweier — #suggestions und #support sind zu
+  // #feedback verschmolzen, also muss auch der angeheftete Beitrag beides
+  // tragen: Ideen UND Festgefahrenes. Der Knopf zum Formular stammt aus dem
+  // Support-Seed und bleibt, er fuehrt in dasselbe Postfach.
+  // ⚠ Ein Seed unter einem Schluessel, den kein Kanal mehr traegt, ist kein
+  //   stiller Rest: audit.mjs meldet ihn als FEHLER ("channel for seed … not
+  //   found"). Genau daran ist die erste Fassung dieser Zusammenlegung
+  //   aufgefallen.
+  feedback: {
     buttons: [{ label: 'Feedback-Formular', url: `${SITE}/feedback.html` }],
     embeds: [
     {
-      title: 'Support · Hilfe',
+      title: 'Feedback · Rückmeldung',
       color: C.cyan,
       description: [
-        'Stuck on a tool or the Discord bot? Ask here — say what you tried, and add a screenshot if you can.',
+        'Ideas, questions, stuck on something — it all goes here. **One topic per post**, so others can react to vote: 👍 for yes, 👎 for no.',
         '',
-        '• **Site & tools** — the item finder, mining, ships, crafting, the jump calc…',
-        '• **Your account** — sign-in, profile, favourites, the planner',
-        '• **The bot** — ranks, commands, roles not showing up',
+        '**Got an idea?** The most useful ones say what you were *trying to do* when you wanted it, not just the feature name. Half the tools on the site started as a sentence in a channel like this one.',
+        '',
+        '**Stuck instead?** Say what you tried, and add a screenshot if you can — the site and its tools, your account, or the bot.',
+        '',
+        'Something **broken** rather than missing? That’s <#bug-reports>.',
         '',
         `Prefer the website? The [feedback form](${SITE}/feedback.html) reaches the same inbox.`,
         DIV,
-        'Hängst du an einem Tool oder dem Discord-Bot? Frag hier — schreib, was du versucht hast, und ein Screenshot hilft.',
+        'Ideen, Fragen, Festgefahrenes — alles kommt hier rein. **Ein Thema pro Post**, damit andere per Reaktion abstimmen können: 👍 für ja, 👎 für nein.',
         '',
-        '• **Seite & Tools** — der Item-Finder, Mining, Schiffe, Handwerk, der Sprung-Rechner…',
-        '• **Dein Konto** — Anmeldung, Profil, Favoriten, der Planer',
-        '• **Der Bot** — Ränge, Befehle, Rollen die nicht auftauchen',
+        '**Eine Idee?** Die nützlichsten Vorschläge sagen, *was du gerade vorhattest*, als du sie gebraucht hast — nicht nur den Namen der Funktion. Die Hälfte der Tools auf der Seite begann als ein Satz in einem Kanal wie diesem.',
+        '',
+        '**Hängst du fest?** Schreib, was du versucht hast, und ein Screenshot hilft — ob Seite und Tools, dein Konto oder der Bot.',
+        '',
+        'Etwas **kaputt** statt fehlend? Das gehört nach <#bug-reports>.',
         '',
         'Lieber über die Website? Das Formular unten landet im selben Postfach.',
       ].join('\n'),
