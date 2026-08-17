@@ -92,7 +92,7 @@ jobs:
 
       - name: "Container 2/4 starten: Bahn A (echtes Supabase-Projekt)"
         run: |
-          docker run -d --rm -p 8098:80 --name vbgate-real \
+          docker run -d --rm --network gatenet -p 8098:80 --name vbgate-real \
             -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
             -e VB_SUPABASE_URL=https://trgjhmbnodoarnfmlcqx.supabase.co \
             -e VB_SUPABASE_ANON_KEY=sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J \
