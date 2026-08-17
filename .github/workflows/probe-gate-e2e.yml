@@ -114,8 +114,8 @@ jobs:
           # blockieren.
           echo "--- /etc/resolv.conf im Container ---"
           timeout 10 docker exec vbgate-real cat /etc/resolv.conf || echo "(Schritt fehlgeschlagen/Zeitueberschreitung)"
-          echo "--- nginx.conf: resolver-Zeile ---"
-          timeout 10 docker exec vbgate-real sh -c "grep -n resolver /etc/nginx/nginx.conf" || echo "(Schritt fehlgeschlagen/Zeitueberschreitung)"
+          echo "--- resolver-Zeile (sitzt im server{}-Block von default.conf, nicht nginx.conf) ---"
+          timeout 10 docker exec vbgate-real sh -c "grep -n resolver /etc/nginx/conf.d/default.conf" || echo "(Schritt fehlgeschlagen/Zeitueberschreitung)"
           echo "--- DNS-Aufloesung (getent, busybox) ---"
           timeout 10 docker exec vbgate-real getent hosts trgjhmbnodoarnfmlcqx.supabase.co || echo "getent: FEHLGESCHLAGEN/Zeitueberschreitung"
           echo "--- ca-certificates installiert? ---"
@@ -125,7 +125,13 @@ jobs:
             && echo "wget-Exit: 0 (Verbindung + TLS erfolgreich)" \
             || echo "wget-Exit: $? (ungleich 0; 124 = harte Zeitueberschreitung)"
           echo "--- nginx error.log (letzte 40 Zeilen, falls der Mint-Testaufruf schon lief) ---"
-          timeout 10 docker exec vbgate-real sh -c "tail -n 40 /var/log/nginx/error.log" || echo "(Schritt fehlgeschlagen/Zeitueberschreitung)"
+          # NICHT "docker exec ... tail /var/log/nginx/error.log": das
+          # offizielle nginx:alpine-Image verlinkt error.log auf /dev/stderr —
+          # ein tail DARAUF in einer NEUEN exec-Sitzung liest von einem fd
+          # ohne Schreiber und blockiert fuer immer (genau das liess Lauf
+          # 32047661925 haengen). "docker logs" liest stattdessen den echten
+          # Log-Strom des Containers.
+          timeout 10 docker logs --tail 40 vbgate-real || echo "(Schritt fehlgeschlagen/Zeitueberschreitung)"
 
       - name: "Container 3/4 starten: OHNE VB_GATE_SECRET (fail-closed, T-14-04)"
         run: |
@@ -285,9 +291,14 @@ jobs:
         if: failure()
         timeout-minutes: 2
         run: |
+          # "docker logs", NICHT "docker exec ... tail error.log" — das
+          # offizielle nginx:alpine-Image verlinkt error.log auf /dev/stderr;
+          # ein tail DARAUF in einer neuen exec-Sitzung blockiert fuer immer
+          # (Lauf 32047661925/32048848907 — alle vier Container haengten
+          # hier exakt 10s bis zum timeout, ohne je eine Zeile zu liefern).
           for c in vbgate-mock vbgate-real vbgate-nosecret vbgate-live; do
-            echo "=== $c: error.log (letzte 40 Zeilen) ==="
-            timeout 10 docker exec "$c" sh -c "tail -n 40 /var/log/nginx/error.log" 2>&1 \
+            echo "=== $c: Container-Log (letzte 40 Zeilen) ==="
+            timeout 10 docker logs --tail 40 "$c" 2>&1 \
               || echo "  ($c nicht erreichbar oder Zeitueberschreitung)"
           done
 
