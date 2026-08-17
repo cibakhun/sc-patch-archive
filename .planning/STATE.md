@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: "Phase 14 geplant: 12 Plaene in 6 Wellen, Planpruefer bestanden"
-last_updated: "2026-08-17T15:04:52.547Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-08-17T18:01:18.582Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 46
+  completed_plans: 47
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,8 +55,8 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 1 of 12
-Status: Executing Phase 14
+Plan: 2 of 12
+Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
 `.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 85%
+Progress: [███████░░░] 72%
 
 ## Performance Metrics
 
@@ -227,6 +227,7 @@ Progress: [█████████░] 85%
 | Phase 12 P01 | 50min | 2 tasks | 4 files |
 | Phase 12 P02 | 50min | 3 tasks | 4 files |
 | Phase 12 P03 | ~100min | 3 tasks | 7 files |
+| Phase 14 P01 | 110min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -320,6 +321,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 12-03: Backstop "Bildlaufleiste sichtbar" liess sich NICHT ueber offsetWidth-clientWidth messen (Plan-Vorschlag) -- dieses Chromium rendert scrollbar-width:thin als echten Overlay (0px reservierte Breite trotz echten Ueberlaufs); auf tatsaechliche Scroll-Wirkung (scrollTop verschiebt sichtbaren Inhalt) umgestellt
 - [Phase ?]: 12-03: npm install (ohne Argument) im Worktree ausgefuehrt, weil playwright-core in node_modules fehlte (weder Worktree noch Hauptrepo) -- reconciliert ausschliesslich aus dem committeten package-lock.json, package.json/package-lock.json vor/nach dem Lauf unveraendert (git status leer). Kein Fall des ausgeschlossenen "npm install <pkg>"-Musters
 - [Phase ?]: 12-03: Phase 12 technisch fertig (3/3 Plaene), NICHT "Complete" markiert -- Sichtrunde als WINDOWS.md id 12 an den Betreiber uebergeben, deckt inhaltlich auch die noch offenen id 10 (Phase 9) und id 11 (Phase 10) mit ab
+- [Phase ?]: Docker laeuft auf dem Entwicklungsrechner nicht (com.docker.service braucht Administratorrechte) — beide Plan-Verifikationen (njs-Machbarkeit, E2E-Weg) liefen stattdessen in GitHub Actions gegen das echte Artefakt, vom Betreiber ausdruecklich gebilligt (Grundsatz 7)
+- [Phase ?]: js_fetch_trusted_certificate (nicht ssl_trusted_certificate) ist die richtige Direktive fuer ngx.fetch()-TLS-Verifikation in njs — der server{}-Block hat keinen eigenen SSL-Kontext
+- [Phase ?]: Login mit einem echten E-Mail/Passwort-Testkonto auf gate.html bleibt eine manuelle Pruefung — kein Supabase-Testkonto als Repo-Secret angelegt (Vorsicht vor spekulativen Credentials)
+- [Phase ?]: Strukturbefund fuer 14-08/14-09/14-12: jede Pruefung gegen einen laufenden Container ist auf diesem Rechner nur per CI-Sonde moeglich, nie lokal
 
 ### Pending Todos
 
@@ -370,6 +375,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T14:32:59.400Z
-Stopped at: Phase 14 geplant: 12 Plaene in 6 Wellen, Planpruefer bestanden
-Resume file: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-01-PLAN.md
+Last session: 2026-08-17T18:01:18.553Z
+Stopped at: Completed 14-01-PLAN.md
+Resume file: None

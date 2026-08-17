@@ -860,11 +860,11 @@ von Phase 13 ist ein Artefakt der Nummernfolge und gilt nicht.
 **Requirements**: keine REQ-IDs — bindend sind die Entscheidungen **D-01 … D-25**
 in `14-CONTEXT.md`, wie in den Phasen 7, 9, 10 und 12. Alle 25 sind auf Pläne
 abgebildet; die Zuordnung steht in jedem `requirements`-Feld der Plan-Frontmatter.
-**Plans:** 12 plans in 6 Wellen
+**Plans:** 1/12 plans executed
 
 Plans:
 
-- [ ] 14-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
+- [x] 14-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
 - [ ] 14-02-PLAN.md — Supabase: Rollenspiegel, Sperrliste, Spiegelspalten, Torurteil in einem Aufruf (D-03, D-05, D-08, D-10, D-13, D-19, D-22)
 - [ ] 14-03-PLAN.md — Kontosperre: der Discord-Knopf legt nie ein Konto an, vorgeführt rot vor dem Scharfstellen (D-02)
 - [ ] 14-04-PLAN.md — Discord als zweiter Anmeldeweg im Konto und am Tor (D-01, D-03, D-11)
