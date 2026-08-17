@@ -51,9 +51,31 @@ RUN npm run build
 RUN npm run gate
 
 FROM nginx:alpine
+# Testpilot-Tuersteher (Phase 14 Plan 01, D-23): dasselbe Blech wie live, nur
+# der Schalter unten entscheidet, ob er greift. OHNE Bedingung installiert —
+# D-23 verlangt ausdruecklich dasselbe Image fuer live und Vorschau; ein
+# geladenes, aber ungenutztes Modul ist folgenlos. Kein npm/PyPI/cargo-Paket,
+# kein Slopsquatting-Vektor: Erstanbieter-Paket aus dem nginx.org-Alpine-Repo
+# (T-14-SC). Machbarkeit belegt gegen dieses Image (nicht angenommen):
+# nginx-Version und Paketversion stehen in 14-01-SUMMARY.md.
+RUN apk add --no-cache nginx-module-njs
 COPY --from=build /app/dist /usr/share/nginx/html
 # Custom server config: security headers (HSTS et al.) + real 404 page.
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# Der Tuersteher selbst (nginx/gate.js) — Ausfuhren `check`/`mint`, siehe
+# js_import in nginx/default.conf.
+COPY nginx/gate.js /etc/nginx/gate.js
+# njs-Modul laden + die drei Umgebungsvariablen des Tuerstehers durchreichen.
+# Main-Kontext (vor events{}), ohne Bedingung — dieselbe Begruendung wie oben:
+# das Modul liegt in JEDEM Image, nur $vb_gate_on (Vorschau-Schalter weiter
+# unten) entscheidet, ob es je etwas tut. Gegenkontrolle direkt danach: bricht
+# der Bau, wenn load_module aus irgendeinem Grund nicht ankam, gibt es KEIN
+# Image mit halb verdrahtetem Tuersteher.
+RUN sed -i "/^events {/i load_module modules/ngx_http_js_module.so;" /etc/nginx/nginx.conf && \
+    sed -i "/^events {/i env VB_GATE_SECRET;" /etc/nginx/nginx.conf && \
+    sed -i "/^events {/i env VB_SUPABASE_URL;" /etc/nginx/nginx.conf && \
+    sed -i "/^events {/i env VB_SUPABASE_ANON_KEY;" /etc/nginx/nginx.conf && \
+    grep -q 'ngx_http_js_module' /etc/nginx/nginx.conf
 # Die Vorschau darf nicht in die Live-Statistik zaehlen. Cloudflare haengt den
 # Web-Analytics-Zaehler ZONENWEIT ins HTML, also auch auf staging.verse-base.com;
 # abschalten laesst er sich nur fuer die ganze Zone. Ohne die zwei Hosts blockt
@@ -66,6 +88,16 @@ ARG STAGING=""
 RUN if [ -n "$STAGING" ]; then \
       sed -i '/^map \$http_cookie \$vb_rum_/,/^}/ s|^\( *default *\).*;|\1"";|' /etc/nginx/conf.d/default.conf; \
       ! sed -n '/^map \$http_cookie \$vb_rum_/,/^}/p' /etc/nginx/conf.d/default.conf | grep -q 'default .*https'; \
+    fi
+# Testpilot-Tuersteher scharfstellen — NUR im Vorschau-Bau (D-12: die Live-
+# Seite bleibt unveraendert). Derselbe sed+Gegenkontrolle-Bauplan wie oben bei
+# der RUM-Map: der Vorgabewert des Schalters $vb_gate_on (nginx/default.conf)
+# wandert von "0" auf "1", und die Gegenkontrolle bricht den Bau, wenn der
+# sed NICHT griff (z. B. weil der Map-Name sich geaendert hat) — sonst liefe
+# eine Vorschau aus, deren Tor niemand bewacht.
+RUN if [ -n "$STAGING" ]; then \
+      sed -i '/^map \$host \$vb_gate_on/,/^}/ s|^\( *default *\).*;|\1"1";|' /etc/nginx/conf.d/default.conf; \
+      ! sed -n '/^map \$host \$vb_gate_on/,/^}/p' /etc/nginx/conf.d/default.conf | grep -q 'default "0"'; \
     fi
 
 # Fail the build (in CI) on an invalid config, instead of only finding out when
