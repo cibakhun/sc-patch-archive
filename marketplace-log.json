@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-17",
-  "updates": 288,
-  "totalListings": 6799,
-  "totalSold": 292,
+  "updates": 289,
+  "totalListings": 6803,
+  "totalSold": 293,
   "distinctItems": 1232
  },
  "listings": {
@@ -141137,6 +141137,10 @@
     {
      "d": "2026-08-17",
      "p": 30000000
+    },
+    {
+     "d": "2026-08-17",
+     "p": 25000000
     }
    ],
    "soldOut": false,
@@ -142680,9 +142684,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-17",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786952857,
    "dateExpiration": 1792136857
   },
@@ -145200,6 +145204,90 @@
    "soldOutPrice": null,
    "dateAdded": 1786984710,
    "dateExpiration": 1792168710
+  },
+  "163620": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786990099,
+   "dateExpiration": 1797358099
+  },
+  "163621": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "WTS Gold, 864Q, 0,4 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786990554,
+   "dateExpiration": 1792174554
+  },
+  "163624": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Carinite 906Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786991282,
+   "dateExpiration": 1792175282
+  },
+  "163625": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-17",
+   "lastSeen": "2026-08-17",
+   "prices": [
+    {
+     "d": "2026-08-17",
+     "p": 4000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786991826,
+   "dateExpiration": 1792175826
   }
  }
 }
