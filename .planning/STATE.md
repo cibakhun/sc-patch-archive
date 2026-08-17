@@ -5,13 +5,13 @@ milestone_name: milestone
 current_phase: 12
 current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
 status: executing
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-08-15T17:35:00.000Z"
+stopped_at: Phase 14 context gathered
+last_updated: "2026-08-17T13:07:19.024Z"
 last_activity: 2026-08-15
-last_activity_desc: Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde (WINDOWS.md id 12) noch offen
+last_activity_desc: Phase 12 execution started
 progress:
-  total_phases: 16
-  completed_phases: 10
+  total_phases: 18
+  completed_phases: 11
   total_plans: 53
   completed_plans: 46
 parked_phase: 1.1
@@ -346,6 +346,7 @@ None yet.
 
 ### Roadmap Evolution
 
+- Phase 14 added (17.08.2026): Testpilot-Zugang — staging hinter der Discord-Rolle. `staging.verse-base.com` ist heute fuer jeden offen; kuenftig kommt nur hinein, wer die Discord-Rolle „Test Pilots" traegt. Vier Betreiberentscheidungen VOR der Planung getroffen: Nicht-Tester sehen ausschliesslich eine Anmeldeseite (kein 403, kein blosses Banner); die Rolle wird vom Betreiber VON HAND vergeben und faellt dafuer aus dem Discord-Onboarding; Discord wird an das bestehende Supabase-Site-Konto gekoppelt statt einen zweiten Anmeldeweg nur am Tor zu bauen; alle vier Perks sind gewaehlt (Profil-Abzeichen, privater Kanal mit Deploy-Ping, XP-Bonus, Namensnennung). Drei Vorbefunde aus der Bestandsaufnahme, gegen den Bestand gemessen: die `tester`-Rolle EXISTIERT bereits (blueprint.mjs:143), ist aber im Onboarding selbst vergebbar (blueprint.mjs:402) und taugt so nicht als Tuersteher; die Site hat KEINEN OAuth-Provider und keine Bruecke zwischen Discord-Identitaet und Konto — die Kopplung ist Grundlage von Tor UND Abzeichen; staging ist statisches nginx-HTML hinter Cloudflare, ein Gate im Browser-JS waere per `curl` umgehbar, das Tor muss vor die Auslieferung. Architektur bewusst NICHT vorentschieden (Cloudflare Worker vs. nginx auth_request gegen den Bot vs. njs + Edge Function) — Aufgabe der Recherche. Haengt an keiner Vorgaengerphase; die vom Geruest eingetragene Abhaengigkeit von Phase 13 ist ein Nummernfolge-Artefakt und wurde in der ROADMAP.md ausdruecklich aufgehoben.
 - Phase 12 added (15.08.2026): Fundorte in der Mining-Werkbank anklickbar. Die Werkbank kann bisher nur „wo finde ich DIESES Erz?"; die Gegenrichtung „was gibt es an DIESEM Ort?" fehlt, weil die Fundortzeilen tote Textzeilen sind (nur die Anheft-Nadel reagiert). Datengrundlage liegt seit der Fundort-Korrektur fertig und ungenutzt im Bestand: `mining-db.json` → `bodies[]`, 45 Fundorte mit vollstaendiger Erzliste, von `verify:mining` bereits gegen die Vorwaertsrichtung geprueft. Anlass: Betreiber-Hinweis mit scmdb als Vergleich. **Betreiberentscheidung: ausschliesslich Umschaltung in der Werkbank, KEINE eigenen Fundort-Seiten** (Alternative „45 x DE/EN statische Seiten" wurde vorgelegt und verworfen). Aus dem scmdb-Vergleich uebernommen: Gruppierung nach Methode, Signatur, Hoechstanteil, Chance, Balken. Bewusst NICHT uebernommen: Preise (scmdb zeigt dort selbst keine), Gruppenanteile (rechnen Salvage/Debris mit — Grundmenge fehlt uns, waere erfunden), Adernzahl (nicht in unseren Daten). Der scheinbare Datenbefund aus dem Vergleich (12 Erze gegen 7, Aluminium 29,8 % gegen 14,9 %) wurde nachgelesen und ist ein Definitionsunterschied, kein Fehler — haengt an keiner Vorgaengerphase ausser 10.
 - Phase 9 added (15.08.2026): Mining-Werkbank — Fundort-Merkliste. Die mittlere Spalte wird neu belegt: die Detailspalte (Physik, Qualitaetsstufen, „Steine mit diesem Erz") entfaellt ersatzlos und wird spaeter anders dargestellt; die Fundorte-Liste rueckt an ihre Stelle; auf dem frei werdenden Platz entsteht eine anheftbare Merkliste „Erz — Fundort" ueber mehrere Erze hinweg, als benanntes Preset kontogebunden speicherbar (wie `mining_sig_presets`). Anlass: Nutzerwunsch waehrend der Arbeit an den Fundort-Daten (Phase-fremd, haengt an keiner Vorgaengerphase). Datengrundlage ist bereits da — seit 14.08. traegt jedes Mineral seine vollstaendige Fundortliste (521 Paare statt 273).
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
@@ -369,6 +370,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T17:35:00.000Z
-Stopped at: Completed 12-03-PLAN.md — Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde WINDOWS.md id 12 offen
-Resume file: None
+Last session: 2026-08-17T13:07:18.717Z
+Stopped at: Phase 14 context gathered
+Resume file: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-CONTEXT.md
