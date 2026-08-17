@@ -100,6 +100,16 @@
 -- security definer + search_path -- Schutz gegen search_path-Umlenkung
 -- (T-14-22, Threat Register 14-03-PLAN.md)
 -- ============================================================================
+-- ⚠ Korrektur nach Betreiber-Entscheidung (Koordinator-Ruecklauf, 18.08.2026,
+-- Befund 1): der Trigger sitzt auf der LEBENDEN Datenbank und blockt den
+-- Discord-Signup ÜBERALL, wo diese Anlage Konten verwaltet -- nicht nur auf
+-- staging. Nach D-01 ist Discord ein zweiter Anmeldeweg FUER DIE SEITE, der
+-- Knopf steht also auch im normalen Konto-Bereich von verse-base.com. Die
+-- fruehere Meldung ("Für diese Vorschau...") begruendete die Absage mit
+-- staging-Wissen, das ein Nutzer im normalen Konto-Bereich nicht hat und
+-- nicht braucht. Der Satz unten begruendet stattdessen NICHTS -- er sagt nur,
+-- was zu tun ist, verstaendlich ohne Vorkenntnis: erst ein Konto per E-Mail,
+-- danach Discord verknuepfen.
 create or replace function public.block_discord_signup()
 returns trigger
 language plpgsql
@@ -111,7 +121,24 @@ begin
   -- abgewiesen. Jeder andere Provider (email, spaetere Ergaenzungen) ist von
   -- diesem Riegel vollstaendig unberuehrt.
   if new.raw_app_meta_data ->> 'provider' = 'discord' then
-    raise exception 'Für diese Vorschau brauchst du zuerst ein reguläres Konto auf verse-base.com. Registriere dich mit E-Mail und verknüpfe danach Discord.'
+    -- ⚠ Zwei getrennte Zusicherungen, nicht eine (Koordinator-Ruecklauf
+    -- Befund 2): (a) der Riegel blockt den INSERT -- das beweisen die drei
+    -- SQL-Gegenproben aus 14-03-PLAN.md Aufgabe 2, per Transaktion gegen die
+    -- lebende Anlage gefahren. (b) DIESER Text kommt beim Nutzer an, statt
+    -- von GoTrue in eine generische Antwort ("Database error saving new
+    -- user") verpackt zu werden -- das beweist KEINE SQL-Probe, egal wie
+    -- sorgfaeltig. Der einzige belastbare Nachweis fuer (b) ist ein echter
+    -- Discord-Signup-Versuch im Browser, erst moeglich, sobald der Provider
+    -- eingerichtet ist (Plan 14-04 + Betreiber-Handgriff im
+    -- Supabase-Dashboard). Bis dahin ist (b) OFFEN und als solches in
+    -- 14-03-SUMMARY.md / .planning/WINDOWS.md zu fuehren, nicht als erledigt
+    -- zu zaehlen, nur weil (a) gruen ist.
+    -- Stellt sich (b) als falsch heraus (Text kommt nicht an): die Antwort
+    -- ist NICHT, diesen Riegel zu aendern -- der Riegel haelt so oder so.
+    -- Die Oberflaeche (Login-Seite/Torseite) muss den Fehlerfall dann
+    -- selbst abfangen und etwas Verstaendliches zeigen. Das ist ein Punkt
+    -- fuer Plan 14-04, nicht fuer diese Migration.
+    raise exception 'Zu diesem Discord-Konto gibt es noch kein Konto auf verse-base.com. Registriere dich zuerst mit E-Mail und Passwort und verknüpfe Discord danach in deinem Konto.'
       using errcode = 'insufficient_privilege';
   end if;
 
