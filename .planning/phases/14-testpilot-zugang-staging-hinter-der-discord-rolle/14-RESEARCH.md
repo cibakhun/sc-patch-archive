@@ -338,7 +338,22 @@ function verify(cookieValue, secret) {
 
 **Falls diese Tabelle leer wäre:** Ist sie nicht — sechs Annahmen verlangen Bestätigung gegen die lebende Anlage, bevor der Plan sie als gesichert behandelt.
 
-## Open Questions
+## Open Questions (RESOLVED — jede Frage hat ihre Plan-Aufgabe)
+
+> Nachgetragen am 17.08.2026 nach der Planprüfung. Keine dieser Fragen ist im
+> Bestand beantwortet worden; alle fünf sind stattdessen einer Plan-Aufgabe
+> zugewiesen, die sie **misst** statt sie anzunehmen. Die Zuordnung:
+>
+> | Frage | Geklärt durch | Art der Klärung |
+> |---|---|---|
+> | 1 (Auth-Hook-Verfügbarkeit) | Plan 03 | bewusste Architekturentscheidung **gegen** den Auth-Hook — der Riegel sitzt woanders, die Tarif-Frage entfällt damit |
+> | 2 (JWT-Signaturverfahren) | Plan 01 / Plan 08 | bewusst umgangen: njs parst **nie** ein JWT, sondern ruft `rpc/gate_verdict` server-zu-server; das Verfahren ist damit gleichgültig |
+> | 3 (`nginx-module-njs` verfügbar?) | Plan 01, Aufgabe 1 | Machbarkeitsmessung als **allererste** Aufgabe der Phase, mit `checkpoint:decision` bei Fehlschlag |
+> | 4 (`secure_link` im Image?) | Plan 01, Aufgabe 1 | im selben Messlauf mit erhoben — er ist der benannte Rückfall aus D-23 |
+> | 5 (Zahl der Bestandsträger) | Plan 06, Aufgabe 1 | Trockenlauf per REST-Abruf, funktioniert ohne das privilegierte Intent und ist deshalb von Frage 3 entkoppelt |
+>
+> ⚠ „Zugewiesen" heißt **nicht** „beantwortet". Fragen 3 und 4 können die Phase
+> in Plan 01 zum Halten bringen — dafür ist der Checkpoint da.
 
 1. **Ist „Before User Created" auf dem gebuchten Supabase-Tarif verfügbar, und ist eine Postgres-Funktion oder ein HTTP-Endpunkt der bessere Weg für D-02?**
    - Was wir wissen: Der Mechanismus existiert, läuft vor dem Insert, kann per Postgres-Funktion (bleibt im Projekt, kein externer Aufruf) implementiert werden [CITED: supabase.com/docs/guides/auth/auth-hooks/before-user-created-hook].
