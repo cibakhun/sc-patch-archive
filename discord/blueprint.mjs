@@ -138,8 +138,11 @@ export const roles = [
   // Staff (MentionEveryone) and the bot's patch auto-post can still ping them.
   { key: 'patch-watch', name: 'Patch Pings', color: C.pingCyan, hoist: false, mentionable: false, permissions: [] },
   { key: 'announce-ping', name: 'Announcement Pings', color: C.pingBlue, hoist: false, mentionable: false, permissions: [] },
-  // 🧪 Testers get pinged when something needs trying before it ships. This is
-  // the one interest role that survives, because it's about the site's work.
+  // 🧪 Test Pilots get access to staging and a ping when something needs
+  // trying before it ships. NOT self-assignable — 17.08.2026 (D-15): unlike
+  // the pings above, this is a granted distinction, handed out by the
+  // operator, not picked in onboarding. See the private #test-pilots channel
+  // in BUILD & FEEDBACK for what it unlocks.
   { key: 'tester', name: 'Test Pilots', color: C.craftOrange, hoist: false, mentionable: false, permissions: [] },
 
   // Language
@@ -234,6 +237,23 @@ export const categories = [
       //   Beitraege mit. Stilllegen (sperren + Wegweiser) ist Handarbeit,
       //   nachzulesen im Abschluss dieser Aenderung.
       { key: 'feedback', name: 'feedback', type: 'text', topic: 'Ideas, questions, anything about verse-base.com — one topic per post · Ideen, Fragen, alles zu verse-base.com — ein Thema pro Post', slowmode: 30 },
+      // 17.08.2026 (D-18): private room for the Test Pilots role — deploy
+      // pings for the staging preview and talk about half-finished things.
+      // No category of its own: a lone room for a group that doesn't exist
+      // yet doesn't repeat the #suggestions/#support mistake above (that was
+      // two rooms for one purpose; this is one room for a purpose nothing
+      // else here covers). `flight-computer` gets the same view as `tester`
+      // so the bot can actually post the deploy ping — without this entry it
+      // would be posting into a channel it can't see.
+      {
+        key: 'test-pilots', name: 'test-pilots', type: 'text',
+        topic: 'Preview builds, half-finished things, and what broke · Vorschau-Stände, Halbfertiges, und was kaputt ging',
+        overwrites: {
+          everyone: { deny: ['ViewChannel'] },
+          tester: { allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+          'flight-computer': { allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+        },
+      },
       // One channel replaces the eight per-tool channels. With a server this
       // size, eight rooms meant eight quiet rooms; the per-tool split now lives
       // in the #bug-reports forum tags, where it actually earns its keep.
@@ -384,8 +404,10 @@ export const welcomeScreen = {
 
 // ── Onboarding (native role/interest selection) ────────────────────────────
 // Prompt/option titles are bilingual (EN · DE). The playstyle prompt is gone
-// with the playstyle roles; what's left is the three things that actually
-// change what a member receives: pings, test invites, and language.
+// with the playstyle roles; what's left is the things that actually change
+// what a member receives: pings and language. (17.08.2026, D-15: the Test
+// Pilots ping used to be a third option here — it's a granted role now, not
+// a self-service one, so it doesn't live in onboarding any more.)
 export const onboarding = {
   enabled: true,
   defaultChannels: [
@@ -399,7 +421,6 @@ export const onboarding = {
       options: [
         { title: 'Site updates · Seiten-Updates', description: 'When something new ships · Wenn etwas Neues live geht', emoji: '📢', roles: ['announce-ping'], channels: ['announcements'] },
         { title: 'Patch drops · Patch-Releases', description: 'New Star Citizen patches · Neue Star-Citizen-Patches', emoji: '🔔', roles: ['patch-watch'], channels: ['patch-notes'] },
-        { title: 'Test pilot · Testpilot', description: 'Try things before they ship · Neues testen, bevor es live geht', emoji: '🧪', roles: ['tester'], channels: ['tools'] },
       ],
     },
     {
@@ -521,7 +542,7 @@ export const seed = {
         { name: 'Build & feedback · Bauen & Feedback', value: '<#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n<#feedback> — ideas, questions, stuck on something — one topic per post · Ideen, Fragen, festgefahren — ein Thema pro Post\n<#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n<#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
         { name: 'Releases', value: '<#announcements> — what shipped on the site · was auf der Seite live ging\n<#patch-notes> — every Star Citizen patch, mirrored from the archive · jeder Patch, aus dem Archiv gespiegelt' },
         { name: 'Ranks · Ränge', value: 'Chatting earns XP — climb from Drifter upward. Check your card with **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. The Flight Computer also answers **/ship**, **/price**, **/item** and **/patch** in your language.\nMit Chatten sammelst du XP — steig von Drifter auf. Deine Karte mit **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. Der Flight Computer beantwortet auch **/ship**, **/price**, **/item** und **/patch** in deiner Sprache.' },
-        { name: 'Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops · test pilot), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases · Testpilot), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
+        { name: 'Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
         { name: 'Looking for more Star Citizen? · Mehr Star Citizen?', value: 'This server stays narrow on purpose. For news, orgs, LFG or CCU trading there are excellent dedicated servers — ask in <#general> and someone will name a good one.\nDieser Server bleibt bewusst eng. Für News, Orgs, LFG oder CCU-Handel gibt es hervorragende eigene Server — frag in <#general>, jemand nennt dir einen guten.' },
         { name: 'Credits · Danksagung', value: 'The Aaron Halo / Precision Jump calculator was contributed by **Jordessey** — with thanks.\nDer Aaron-Halo-/Precision-Jump-Rechner stammt mit Dank von **Jordessey**.' },
       ],
@@ -613,13 +634,13 @@ export const seed = {
         '',
         'The bot answers **/ship**, **/price**, **/item** and **/patch** right here, in your language.',
         '',
-        'Grab **🧪 Test Pilots** in onboarding if you want the ping when something needs trying before it ships.',
+        'The **🧪 Test Pilots** role is handed out, not picked — it gets you into the staging preview and its own channel. Ask if you’d like in.',
         DIV,
         'Ein Raum für alle — fragen, wie etwas funktioniert, Zahlen vergleichen, oder zeigen, was dabei herauskam.',
         '',
         'Der Bot beantwortet **/ship**, **/price**, **/item** und **/patch** direkt hier, in deiner Sprache.',
         '',
-        'Schnapp dir **Test Pilots** im Onboarding, wenn du den Ping willst, sobald etwas vor dem Release getestet werden soll.',
+        'Die Rolle **Test Pilots** wird vergeben, nicht selbst gewählt — sie gibt Zugang zur Vorschau auf staging und einen eigenen Kanal. Sag Bescheid, wenn du dabei sein willst.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },
