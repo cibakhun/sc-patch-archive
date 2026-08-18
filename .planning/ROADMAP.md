@@ -844,7 +844,7 @@ Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
 
 **Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
 **Depends on:** nichts
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 vorige gebaut hat)
 
 **Success Criteria** (was WAHR sein muss):
@@ -879,7 +879,7 @@ Plans:
       (`verify:shipcard`, vorerst ausgesetzt) einmal vorgeführt rot, plus die
       Messsonde, die die Ausgangsmessung von 5.554 px reproduziert
 
-- [ ] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
+- [x] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
       Ankerziel und 360 px am gerenderten Bildpunkt gemessen
 
 - [ ] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
