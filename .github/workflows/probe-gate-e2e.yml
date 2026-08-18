@@ -10,19 +10,35 @@
 # gegen das Artefakt pruefen, und wissen, welches — hier ist es der laufende
 # Container aus dem echten Dockerfile, nicht dist/ und nicht die Recherche.
 #
-# WARUM ZWEI IDENTITAETS-BAHNEN:
+# ERWEITERT in Plan 14-08 (nicht neu gebaut): mint() ruft seither
+# rpc/gate_verdict statt einen Tabellenblick auf user_roles. Die Sonde bekam
+# dafuer zwei Ergaenzungen:
+#   - Bahn B (Mock-PostgREST) antwortet jetzt je nach Authorization-Kopfzeile
+#     mit einem Testpilot-, Sperrlisten- oder Admin-Urteil (Container 1/5) —
+#     das prueft, ob gate.js JEDE Urteilsform korrekt in 200/403 uebersetzt.
+#     Die SQL-seitige Reihenfolge (Sperrliste schlaegt admin) ist bereits
+#     Plan-02-Code auf der lebenden Datenbank; ohne echte Testkonten mit
+#     is_tester/admin/Sperrlisten-Eintrag kann diese Sonde nur gate.js'
+#     ANTWORT-VERARBEITUNG pruefen, nicht die SQL-Reihenfolge selbst nachstellen
+#     — offener Punkt fuer die Sichtrunde des Betreibers (14-08-SUMMARY.md).
+#   - Ein fuenfter Container (vbgate-outage) hat ein gueltiges Geheimnis, aber
+#     eine UNERREICHBARE VB_SUPABASE_URL — das ist D-09 vorgefuehrt, nicht nur
+#     behauptet: ein selbst signiertes gueltiges Cookie kommt weiter durch,
+#     ein NEUES Ausstellen scheitert mit 503, beides gegen denselben Container
+#     gemessen.
+#
+# WARUM ZWEI IDENTITAETS-BAHNEN (Grundform aus Plan 01, unveraendert):
 #   Bahn A (echtes Supabase-Projekt, dieselben oeffentlichen Werte wie im
 #   Plan-<verify> und in assets/account-lite.js): kein Bearer-Header -> 401
 #   ist gate.js-intern (nie ein Supabase-Aufruf); ein ERFUNDENER Token -> 403,
-#   weil Supabase ihn zurueckweist. Das prueft die echte Integration.
+#   weil Supabase/PostgREST ihn zurueckweist (401 von PostgREST, gate.js
+#   bildet 401/403 beide auf 403 ab). Das prueft die echte Integration.
 #   Bahn B (statischer Mock-PostgREST, selbst nginx:alpine — kein neues Image
-#   noetig): liefert IMMER eine admin-Zeile, unabhaengig vom Header. Ohne ein
-#   echtes admin-Konto (bräuchte ein Supabase-Geheimnis als Repo-Secret, das
-#   heute nicht existiert und hier nicht spekulativ angelegt wird) ist das der
-#   einzige Weg, den ERFOLGSPFAD von gate.mint() — Cookie setzen, danach
-#   durchgelassen werden — gegen den echten Container zu pruefen. Es prueft
-#   NUR gate.js' eigene Mint-/Cookie-Logik, nicht Supabase' Tokenpruefung
-#   (die deckt Bahn A ab).
+#   noetig): antwortet mit vorgefertigten gate_verdict()-Antworten, je nach
+#   Authorization-Kopfzeile. Ohne ein echtes Testkonto (bräuchte ein Supabase-
+#   Geheimnis als Repo-Secret, das heute nicht existiert und hier nicht
+#   spekulativ angelegt wird) ist das der einzige Weg, gate.js' eigene Mint-/
+#   Cookie-Logik fuer ALLE Urteilsformen gegen den echten Container zu pruefen.
 #   Die Signatur-/Ablaufpruefung (T-14-01/T-14-02) braucht KEIN Supabase: das
 #   Pruefskript signiert selbst mit dem VB_GATE_SECRET, das dieser Workflow
 #   dem Container mitgibt — derselbe HMAC-Code wie nginx/gate.js.
@@ -31,8 +47,9 @@
 # /gate.html-Weg mit einem ECHTEN E-Mail/Passwort-Konto ist damit NICHT
 # automatisiert geprueft — das braucht ein echtes Testkonto und bleibt eine
 # manuelle Pruefung des Betreibers (14-01-SUMMARY.md, Abschnitt "Offene
-# Container-Nachweise").
-name: Sonde — Testpilot-Tor Ende-zu-Ende (Plan 14-01)
+# Container-Nachweise"). Dasselbe gilt jetzt zusaetzlich fuer echte
+# is_tester/tester_blocklist-Zustaende (siehe Erweiterung oben).
+name: Sonde — Testpilot-Tor Ende-zu-Ende (Plan 14-01/14-08)
 
 on:
   push:
@@ -42,6 +59,7 @@ on:
       - '.github/workflows/probe-gate-e2e.yml'
       - 'Dockerfile'
       - 'nginx/**'
+      - 'assets/**'
       - 'src/pages/gate.astro'
       - 'src/lib/seo.ts'
 
@@ -55,8 +73,9 @@ jobs:
     # (Lauf 32047661925, > 6 Minuten ohne jede Fehlermeldung auf einem
     # Schritt, der normalerweise Sekunden dauert) darf CI-Minuten nicht
     # unbegrenzt verbrauchen. Die einzelnen Docker-Builds brauchen bislang
-    # bis zu ~3 Min je Stufe; 20 Min laesst reichlich Luft.
-    timeout-minutes: 20
+    # bis zu ~3 Min je Stufe; 25 Min laesst reichlich Luft (ein Container mehr
+    # seit Plan 08).
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -66,15 +85,30 @@ jobs:
       - name: Live-Image bauen (OHNE STAGING) — Gegenprobe fuer D-12
         run: docker build -t vb-gate-e2e:live .
 
-      - name: Mock-PostgREST fuer Bahn B (liefert immer eine admin-Zeile)
+      - name: Mock-PostgREST fuer Bahn B — antwortet je nach Authorization-Kopfzeile
         run: |
           mkdir -p mock
+          # Default (jeder unbekannte/beliebige Token, auch KEIN Header noetig
+          # fuer diese location) bleibt das Admin-Urteil — das ist das
+          # Verhalten, gegen das der bestehende "echter Mint-Erfolgspfad"-Test
+          # (Plan 01) schon laeuft, und es bleibt UNVERAENDERT, damit dieser
+          # Test ohne Anpassung weiter gilt. Die drei neuen Testpilot-/
+          # Sperrlisten-Formen haengen an eigens verabredeten Test-Tokens
+          # (mock-tester/mock-blocked/mock-blocked-admin/mock-kein-testpilot),
+          # die NUR diese Sonde kennt — keine echten Zugangsdaten.
           cat > mock/default.conf <<'CONF'
+          map $http_authorization $mock_verdict {
+              default                              '{"allowed":true,"grund":"admin","sub":"11111111-1111-1111-1111-111111111111","exp_hint":300}';
+              "Bearer mock-tester"                 '{"allowed":true,"grund":"tester","sub":"22222222-2222-2222-2222-222222222222","exp_hint":300}';
+              "Bearer mock-blocked"                '{"allowed":false,"grund":"gesperrt"}';
+              "Bearer mock-blocked-admin"           '{"allowed":false,"grund":"gesperrt"}';
+              "Bearer mock-kein-testpilot"          '{"allowed":false,"grund":"kein-testpilot"}';
+          }
           server {
             listen 80 default_server;
             location / {
               default_type application/json;
-              return 200 '[{"role":"admin","user_id":"11111111-1111-1111-1111-111111111111"}]';
+              return 200 $mock_verdict;
             }
           }
           CONF
@@ -87,7 +121,7 @@ jobs:
             sleep 1
           done
 
-      - name: "Container 1/4 starten: Bahn B (Mock-Supabase, echtes Geheimnis)"
+      - name: "Container 1/5 starten: Bahn B (Mock-Supabase, echtes Geheimnis)"
         run: |
           docker run -d --rm --network gatenet -p 8099:80 --name vbgate-mock \
             -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
@@ -96,7 +130,7 @@ jobs:
             vb-gate-e2e:staging
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8099/gate.html && break; sleep 1; done
 
-      - name: "Container 2/4 starten: Bahn A (echtes Supabase-Projekt)"
+      - name: "Container 2/5 starten: Bahn A (echtes Supabase-Projekt)"
         run: |
           docker run -d --rm --network gatenet -p 8098:80 --name vbgate-real \
             -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
@@ -133,7 +167,7 @@ jobs:
           # Log-Strom des Containers.
           timeout 10 docker logs --tail 40 vbgate-real || echo "(Schritt fehlgeschlagen/Zeitueberschreitung)"
 
-      - name: "Container 3/4 starten: OHNE VB_GATE_SECRET (fail-closed, T-14-04)"
+      - name: "Container 3/5 starten: OHNE VB_GATE_SECRET (fail-closed, T-14-04)"
         run: |
           docker run -d --rm -p 8097:80 --name vbgate-nosecret \
             -e VB_SUPABASE_URL=https://trgjhmbnodoarnfmlcqx.supabase.co \
@@ -141,10 +175,26 @@ jobs:
             vb-gate-e2e:staging
           for i in $(seq 1 30); do curl -fsS -o /dev/null -w '' http://localhost:8097/gate.html && break; sleep 1; done
 
-      - name: "Container 4/4 starten: Live-Bild (ohne STAGING, D-12)"
+      - name: "Container 4/5 starten: Live-Bild (ohne STAGING, D-12)"
         run: |
           docker run -d --rm -p 8096:80 --name vbgate-live vb-gate-e2e:live
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8096/ && break; sleep 1; done
+
+      - name: "Container 5/5 starten: gueltiges Geheimnis, UNERREICHBARE VB_SUPABASE_URL (D-09)"
+        run: |
+          # 10.255.255.1 ist eine bekannte Schwarzes-Loch-Adresse fuer
+          # Zeitueberlauf-Proben (nicht geroutet, keine ICMP-Antwort) — die
+          # Verbindung haengt, statt schnell mit "connection refused" zu
+          # scheitern. Genau das prueft D-09s 5-Sekunden-Zeitueberlauf an
+          # ngx.fetch: ohne ihn wuerde dieser Container-Aufruf bis zum
+          # TCP-Zeitlimit des Kernels haengen (oft >60s), nicht nach 5s
+          # antworten.
+          docker run -d --rm -p 8095:80 --name vbgate-outage \
+            -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
+            -e VB_SUPABASE_URL=http://10.255.255.1 \
+            -e VB_SUPABASE_ANON_KEY=mock-key \
+            vb-gate-e2e:staging
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8095/gate.html && break; sleep 1; done
 
       - name: Zusicherungen — Redirects, Ausnahmeliste, fail-closed, Live-Bau
         run: |
@@ -174,7 +224,7 @@ jobs:
           check "/_astro/$ASTRO_FILE ohne Ausweis" 302 "$(code "http://localhost:8099/_astro/$ASTRO_FILE")"
           check "/holo/$HOLO_FILE ohne Ausweis"    302 "$(code "http://localhost:8099/holo/$HOLO_FILE")"
 
-          echo "--- D-06/D-07: Ausnahmeliste bleibt offen ---"
+          echo "--- D-06/D-07: Ausnahmeliste bleibt offen (Plan 08: jetzt 7 gemessene Eintraege) ---"
           check "/gate.html" 200 "$(code http://localhost:8099/gate.html)"
           check "/build.json" 200 "$(code http://localhost:8099/build.json)"
           check "/robots.txt" 200 "$(code http://localhost:8099/robots.txt)"
@@ -296,6 +346,120 @@ jobs:
           echo "FEHLER: $FEHLER"
           exit $FEHLER
 
+      - name: "Zusicherungen — Plan 14-08: Testpilot, Sperrliste, blockierter Admin (Bahn B)"
+        run: |
+          set +e
+          FEHLER=0
+          check() {
+            if [ "$2" = "$3" ]; then echo "OK     $1 — Soll $2 Ist $3"; else echo "FEHLER $1 — Soll $2 Ist $3"; FEHLER=$((FEHLER+1)); fi
+          }
+          mint_code() {
+            curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8099/_gate/mint -H "Authorization: Bearer $1"
+          }
+          mint_body() {
+            curl -s -X POST http://localhost:8099/_gate/mint -H "Authorization: Bearer $1"
+          }
+
+          echo "--- D-03: is_tester=true, KEIN Admin -> Ausweis (gate.js-Antwortverarbeitung, siehe Kopfkommentar zur SQL-Grenze) ---"
+          check "mock-tester -> 200" 200 "$(mint_code mock-tester)"
+          TESTER_BODY=$(mint_body mock-tester)
+          echo "    Antwort: $TESTER_BODY"
+          if printf '%s' "$TESTER_BODY" | grep -q '"ok":true'; then echo "OK     Antwortkoerper traegt ok:true"; else echo "FEHLER Antwortkoerper ohne ok:true"; FEHLER=$((FEHLER+1)); fi
+
+          echo "--- D-10: Sperrlisteneintrag -> KEIN Ausweis trotz (fiktiver) Tester-Rolle ---"
+          check "mock-blocked -> 403" 403 "$(mint_code mock-blocked)"
+          BLOCKED_BODY=$(mint_body mock-blocked)
+          echo "    Antwort: $BLOCKED_BODY"
+          if printf '%s' "$BLOCKED_BODY" | grep -q '"grund":"gesperrt"'; then echo "OK     Grund gesperrt wird durchgereicht"; else echo "FEHLER Grund fehlt/falsch"; FEHLER=$((FEHLER+1)); fi
+
+          echo "--- D-10: ein Admin-Konto auf der Sperrliste bekommt ebenfalls keinen Ausweis ---"
+          check "mock-blocked-admin -> 403" 403 "$(mint_code mock-blocked-admin)"
+
+          echo "--- Kein Testpilot, keine Sperre -> 403 mit anderem Grund (Unterscheidung fuer die Torseite) ---"
+          check "mock-kein-testpilot -> 403" 403 "$(mint_code mock-kein-testpilot)"
+          KEINTP_BODY=$(mint_body mock-kein-testpilot)
+          if printf '%s' "$KEINTP_BODY" | grep -q '"grund":"kein-testpilot"'; then echo "OK     Grund kein-testpilot wird durchgereicht"; else echo "FEHLER Grund fehlt/falsch"; FEHLER=$((FEHLER+1)); fi
+
+          echo "--- Kein Fall setzt ein Cookie ausser dem erlaubenden (mock-tester) ---"
+          for TOKEN in mock-blocked mock-blocked-admin mock-kein-testpilot; do
+            BODY_HEADERS=$(curl -sD - -o /dev/null -X POST http://localhost:8099/_gate/mint -H "Authorization: Bearer $TOKEN")
+            if printf '%s' "$BODY_HEADERS" | grep -qi '^set-cookie:'; then
+              echo "FEHLER $TOKEN setzt ein Cookie — darf nicht sein"
+              FEHLER=$((FEHLER+1))
+            else
+              echo "OK     $TOKEN setzt KEIN Cookie"
+            fi
+          done
+
+          echo ""
+          echo "FEHLER: $FEHLER"
+          exit $FEHLER
+
+      - name: "Zusicherung — Plan 14-08 / D-09: Ausfall (vbgate-outage)"
+        run: |
+          set +e
+          FEHLER=0
+          SECRET=probe-secret-nur-fuer-ci
+          SIGN=$(cat <<'NODE'
+          const crypto = require('crypto');
+          function b64url(buf) { return buf.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+          const [, secret, exp] = process.argv;
+          const payload = b64url(Buffer.from(JSON.stringify({ sub: 'cafe0000-0000-0000-0000-000000000000', exp: Number(exp) })));
+          const sig = b64url(crypto.createHmac('sha256', secret).update(payload).digest());
+          console.log(payload + '.' + sig);
+          NODE
+          )
+          NOW=$(date +%s)
+          VALID_COOKIE=$(node -e "$SIGN" "$SECRET" "$((NOW+300))")
+          echo "gueltiges Cookie (auf DIESEM Container selbst signiert): $VALID_COOKIE"
+
+          echo "--- ein gueltiges Cookie kommt WEITER durch, obwohl Supabase fuer diesen Container unerreichbar ist (D-09) ---"
+          CODE_MIT_COOKIE=$(curl -s -o /dev/null -w '%{http_code}' -H "Cookie: vb_gate=$VALID_COOKIE" http://localhost:8095/schiffe.html)
+          if [ "$CODE_MIT_COOKIE" = "200" ]; then
+            echo "OK     gueltiger Ausweis laeuft trotz Ausfall weiter — Soll 200 Ist $CODE_MIT_COOKIE"
+          else
+            echo "FEHLER gueltiger Ausweis haette weiterlaufen muessen — Soll 200 Ist $CODE_MIT_COOKIE"
+            FEHLER=$((FEHLER+1))
+          fi
+
+          echo "--- ein NEUES Ausstellen scheitert im selben Zustand mit 503, gemessen mit Zeit (5s-Zeitueberlauf, kein Haengen) ---"
+          START=$(date +%s)
+          MINT_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST http://localhost:8095/_gate/mint \
+            -H 'Authorization: Bearer beliebig-nie-erreicht-supabase')
+          ENDE=$(date +%s)
+          DAUER=$((ENDE-START))
+          echo "    Dauer bis zur Antwort: ${DAUER}s"
+          if [ "$MINT_CODE" = "503" ]; then
+            echo "OK     neues Ausstellen scheitert mit 503 (kein Ausweis aus unklarem Ausgang) — Soll 503 Ist $MINT_CODE"
+          else
+            echo "FEHLER neues Ausstellen — Soll 503 Ist $MINT_CODE"
+            FEHLER=$((FEHLER+1))
+          fi
+          # Grosszuegige Obergrenze (15s statt der internen 5s): CI-Netzwerk-
+          # Jitter soll den Befund nicht faelschlich rot faerben. Entscheidend
+          # ist NICHT haengen (>60s waere der TCP-Kernel-Zeitueberlauf ohne
+          # den eigenen 5s-Riegel), nicht die exakte Sekunde.
+          if [ "$DAUER" -le 15 ]; then
+            echo "OK     Antwort kam INNERHALB der 5s-Zeitueberlauf-Grenze (grosszuegig gemessen, ${DAUER}s <= 15s)"
+          else
+            echo "FEHLER Antwort brauchte laenger als plausibel fuer den 5s-Zeitueberlauf — ${DAUER}s > 15s (haengender Netzaufruf?)"
+            FEHLER=$((FEHLER+1))
+          fi
+
+          echo "--- das gescheiterte Ausstellen setzt KEIN Cookie ---"
+          MINT_HEADERS=$(curl -sD - -o /dev/null --max-time 20 -X POST http://localhost:8095/_gate/mint \
+            -H 'Authorization: Bearer beliebig-nie-erreicht-supabase')
+          if printf '%s' "$MINT_HEADERS" | grep -qi '^set-cookie:'; then
+            echo "FEHLER gescheitertes Ausstellen setzt ein Cookie — darf nicht sein"
+            FEHLER=$((FEHLER+1))
+          else
+            echo "OK     gescheitertes Ausstellen setzt KEIN Cookie"
+          fi
+
+          echo ""
+          echo "FEHLER: $FEHLER"
+          exit $FEHLER
+
       - name: "Diagnose bei Fehlschlag: nginx error.log der beteiligten Container"
         if: failure()
         timeout-minutes: 2
@@ -305,7 +469,7 @@ jobs:
           # ein tail DARAUF in einer neuen exec-Sitzung blockiert fuer immer
           # (Lauf 32047661925/32048848907 — alle vier Container haengten
           # hier exakt 10s bis zum timeout, ohne je eine Zeile zu liefern).
-          for c in vbgate-mock vbgate-real vbgate-nosecret vbgate-live; do
+          for c in vbgate-mock vbgate-real vbgate-nosecret vbgate-live vbgate-outage; do
             echo "=== $c: Container-Log (letzte 40 Zeilen) ==="
             timeout 10 docker logs --tail 40 "$c" 2>&1 \
               || echo "  ($c nicht erreichbar oder Zeitueberschreitung)"
@@ -314,9 +478,9 @@ jobs:
       - name: Aufraeumen
         if: always()
         run: |
-          docker stop vbgate-mock vbgate-real vbgate-nosecret vbgate-live mockrest 2>/dev/null || true
+          docker stop vbgate-mock vbgate-real vbgate-nosecret vbgate-live vbgate-outage mockrest 2>/dev/null || true
           docker network rm gatenet 2>/dev/null || true
 
       - name: Urteil
         run: |
-          echo "BEFUND: die Ende-zu-Ende-Pruefung aus 14-01-PLAN.md Aufgabe 2 ist gegen den echten Container gefahren."
+          echo "BEFUND: die Ende-zu-Ende-Pruefung aus 14-01-PLAN.md Aufgabe 2 UND die Erweiterung aus 14-08-PLAN.md Aufgabe 1 (gate_verdict-Pfade, D-09-Ausfallsimulation) sind gegen den echten Container gefahren."
