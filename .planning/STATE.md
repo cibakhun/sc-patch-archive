@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 14
+current_phase: 12
 current_phase_name: schiffs-datenkarte-entstapeln
 status: executing
-stopped_at: "Completed 14-02-PLAN.md -- Tracer: Sprungleiste + erstes Kapitel end-to-end, Hoehenbudget gemessen (34px statt geschaetzter 90px)"
-last_updated: "2026-08-18T02:17:06.336Z"
+stopped_at: Completed 14-03-PLAN.md -- vier Kapitel, Datenblatt weg, sechs Balkenstellen aufgeloest, verify-shipcard.mjs erstmals gruen
+last_updated: "2026-08-18T03:11:45.570Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 57
-  completed_plans: 48
+  completed_plans: 49
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -199,7 +199,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -259,6 +259,7 @@ Progress: [█████████░] 85%
 | Phase 12 P03 | ~100min | 3 tasks | 7 files |
 | Phase 14 P01 | 75min | 2 tasks | 6 files |
 | Phase 14 P02 | 50min | 2 tasks | 5 files |
+| Phase 14 P03 | 70min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -356,6 +357,8 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-01: Ausgangsmessung lief gegen npm run preview auf Port 4322 statt 4321 -- 4321 war von einem laufenden astro-dev-Server belegt
 - [Phase 14]: 14-01: document.fonts.ready vor jeder Bildpunkt-Messung ergaenzt -- ohne diese Wartestelle schwankte die Carrack-Seitenhoehe je nach Font-Swap-Zeitpunkt um bis zu 150 px zwischen zwei Laeufen derselben Seite
 - [Phase 14]: 14-02: Rahmen der Sprungleisten-Pillen als box-shadow:inset statt border gesetzt (kostet bei auto-Hoehe 0px Layout) -- noetig, weil das gemessene Hoehenbudget bei 1280x720 nur 34px betraegt, nicht die geschaetzten ~90px
+- [Phase ?]: Kein Kapitel-Icon fuer Ausstattung/Umfeld — keine natuerliche Vorlage, UI-SPEC fuehrt keine neuen Icons ein
+- [Phase ?]: verify-shipcard.mjs Ausnahme-Pruefung auf Unterabschnitts-Ebene erweitert (war seit Welle 1 dokumentiert, aber nicht implementiert) — noetig fuer zwei neue benannte Ausnahmen
 
 ### Pending Todos
 
@@ -405,6 +408,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T02:17:06.309Z
-Stopped at: Completed 14-02-PLAN.md -- Tracer: Sprungleiste + erstes Kapitel end-to-end, Hoehenbudget gemessen (34px statt geschaetzter 90px)
+Last session: 2026-08-18T03:11:45.541Z
+Stopped at: Completed 14-03-PLAN.md -- vier Kapitel, Datenblatt weg, sechs Balkenstellen aufgeloest, verify-shipcard.mjs erstmals gruen
 Resume file: None

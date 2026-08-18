@@ -844,7 +844,7 @@ Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
 
 **Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
 **Depends on:** nichts
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 vorige gebaut hat)
 
 **Success Criteria** (was WAHR sein muss):
@@ -882,7 +882,7 @@ Plans:
 - [x] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
       Ankerziel und 360 px am gerenderten Bildpunkt gemessen
 
-- [ ] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
+- [x] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
       getilgt; Balken nur noch im Leistungsprofil
 
 - [ ] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
