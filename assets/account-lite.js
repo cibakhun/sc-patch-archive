@@ -10,6 +10,14 @@
   var SB_KEY = 'sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J';
   var STORE = 'sb-trgjhmbnodoarnfmlcqx-auth-token';
   var LOCK = 'sb-lite-refresh-lock';
+  // Eigener Riegel fuer mintGatePass() (WR-02) -- getrennt von LOCK oben.
+  // Beide Riegel dienten vorher demselben Schluessel fuer zwei unabhaengige
+  // Zwecke: mintGatePass() setzte LOCK, BEVOR es ensureSession() aufruft,
+  // und ensureSession() haette den eigenen, gerade gesetzten Riegel dann als
+  // "ein anderer Tab refresht schon" gelesen -- der faellige Refresh waere
+  // uebersprungen worden. Zwei Schluessel koennen sich nicht mehr gegenseitig
+  // blockieren.
+  var GATE_MINT_LOCK = 'sb-lite-gate-mint-lock';
   var IS_DE = location.pathname === '/de.html' || location.pathname === '/de' || location.pathname.indexOf('/de/') === 0;
 
   function readRaw() {
@@ -371,8 +379,12 @@
 
   // Stellt den Ausweis neu aus. Ergebnis ist eines von drei Zustaenden:
   //   'ok'      — gemintet, das Cookie traegt einen neuen Ablaufzeitpunkt.
-  //   'locked'  — derselbe Riegel wie ensureSession() (LOCK) griff, weil ein
-  //               ANDERER Tab gerade ausstellt — kein Fehler, nur zu frueh.
+  //   'locked'  — der eigene Riegel (GATE_MINT_LOCK, seit WR-02) griff, weil
+  //               ein ANDERER Tab gerade ausstellt — kein Fehler, nur zu
+  //               frueh. Eigener Schluessel, NICHT LOCK von ensureSession():
+  //               sonst wuerde der von hier gesetzte Riegel ensureSession()
+  //               im selben Umlauf faelschlich einen fremden Refresh
+  //               vortaeuschen.
   //   'failed'  — echtes Scheitern (kein Token, 401/403/503, Netzfehler).
   // Die Unterscheidung entscheidet, ob spaeter neu geplant wird: ein
   // 'locked'-Ergebnis darf es (der andere Tab hat das Cookie vermutlich
@@ -382,9 +394,9 @@
   function mintGatePass() {
     var now = Date.now();
     var lock = 0;
-    try { lock = +localStorage.getItem(LOCK) || 0; } catch (e) { /* noop */ }
+    try { lock = +localStorage.getItem(GATE_MINT_LOCK) || 0; } catch (e) { /* noop */ }
     if (now - lock < 10000) return Promise.resolve('locked');
-    try { localStorage.setItem(LOCK, String(now)); } catch (e) { /* noop */ }
+    try { localStorage.setItem(GATE_MINT_LOCK, String(now)); } catch (e) { /* noop */ }
 
     return ensureSession().then(function (sess) {
       if (!sess || !sess.access_token) return 'failed';
