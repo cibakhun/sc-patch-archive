@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 18
+open_count: 19
 waived_count: 0
 fixed_count: 8
-total_count: 26
-last_updated: 2026-08-18T11:57:32.071Z
+total_count: 27
+last_updated: 2026-08-18T12:32:05.480Z
 ---
 
 # Broken Windows Ledger
@@ -41,6 +41,7 @@ last_updated: 2026-08-18T11:57:32.071Z
 | 24 | 14 | unrun-verify | nginx/gate.js |  | 14-08 Aufgabe 1: die vier gate_verdict()-Antwortformen (Testpilot, Sperrliste, gesperrter Admin, kein Testpilot) sind ueber einen erweiterten Mock-PostgREST (Bahn B) gegen den echten Container geprueft (CI run 32133474158), NICHT gegen ein echtes Supabase-Testkonto mit echtem is_tester/tester_blocklist-Zustand -- kein Repo-Secret vorhanden, keins spekulativ angelegt. Deckt sich mit 14-01-SUMMARY.md coverage D7 und 14-02-SUMMARY.md coverage D4-D6. | open |  | 2026-08-18T11:57:30.280Z |  |
 | 25 | 14 | unrun-verify | supabase/migrations/20260818001000_gate_verdict.sql |  | 14-08 Aufgabe 1: discord_role_state.last_staging_seen wird laut Quelltext-Review bei jedem allowed:true fortgeschrieben, aber nicht durch einen echten authentifizierten Aufruf gemessen -- keine Bahn-A-Sitzung mit echtem Testkonto verfuegbar. | open |  | 2026-08-18T11:57:30.657Z |  |
 | 26 | 14 | unrun-verify | nginx/default.conf |  | 14-08 Aufgabe 2: der rote Lauf fuer die theme.css-Ausnahme ist eine playwright-core-Nachbildung des dokumentierten Redirect-Verhaltens (kein lokales nginx verfuegbar), kein Originalbefund gegen einen echten Container ohne die Ausnahme. | open |  | 2026-08-18T11:57:32.071Z |  |
+| 27 | 14 | unrun-verify | .github/workflows/deploy-staging.yml |  | Vier Sichtpunkte aus 14-11 Aufgabe 2 nicht am lebenden Discord gefahren (Testthread-XP, Deploy-Ping-Optik, Betreiber-Urteil ueber die Betreffzeilen als Quelle, Kanal-Unsichtbarkeit ohne Rolle) -- Plan verbietet Live-Posts; Plan 12 fuehrt zusammen | open |  | 2026-08-18T12:32:05.480Z |  |
 
 ````json
 [
@@ -354,6 +355,18 @@ last_updated: 2026-08-18T11:57:32.071Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T11:57:32.071Z",
+    "resolved_at": null
+  },
+  {
+    "id": 27,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": ".github/workflows/deploy-staging.yml",
+    "line": null,
+    "description": "Vier Sichtpunkte aus 14-11 Aufgabe 2 nicht am lebenden Discord gefahren (Testthread-XP, Deploy-Ping-Optik, Betreiber-Urteil ueber die Betreffzeilen als Quelle, Kanal-Unsichtbarkeit ohne Rolle) -- Plan verbietet Live-Posts; Plan 12 fuehrt zusammen",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T12:32:05.480Z",
     "resolved_at": null
   }
 ]

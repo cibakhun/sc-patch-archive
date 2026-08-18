@@ -860,7 +860,7 @@ von Phase 13 ist ein Artefakt der Nummernfolge und gilt nicht.
 **Requirements**: keine REQ-IDs — bindend sind die Entscheidungen **D-01 … D-25**
 in `14-CONTEXT.md`, wie in den Phasen 7, 9, 10 und 12. Alle 25 sind auf Pläne
 abgebildet; die Zuordnung steht in jedem `requirements`-Feld der Plan-Frontmatter.
-**Plans:** 9/12 plans executed
+**Plans:** 10/12 plans executed
 
 Plans:
 
@@ -874,5 +874,5 @@ Plans:
 - [x] 14-08-PLAN.md — Tor scharf: Testpiloten, Sperrliste, Ausfallverhalten, aufgezählte Ausnahmeliste (D-06, D-09, D-10, D-13)
 - [ ] 14-09-PLAN.md — Torkette: verify:gate (Schiene A), check:gate (Schiene C), Rauchtest-Bypass ohne Dauerschlüssel (D-06, D-07, D-12)
 - [x] 14-10-PLAN.md — Perks auf der Seite: Profil-Abzeichen, Zustimmungsschalter, Namensnennung, Testpiloten-Übersicht (D-13, D-19, D-22)
-- [ ] 14-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
+- [x] 14-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
 - [ ] 14-12-PLAN.md — Scharfschaltung: beide Bauarten grün, Ausrollen, Beleg an der ausgelieferten Seite, Sichturteile an den Betreiber
