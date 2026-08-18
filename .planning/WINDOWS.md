@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 7
 waived_count: 0
 fixed_count: 8
-total_count: 12
-last_updated: 2026-08-15T17:20:00.000Z
+total_count: 15
+last_updated: 2026-08-18T04:20:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -28,6 +28,8 @@ last_updated: 2026-08-15T17:20:00.000Z
 | 11 | 10 | unrun-verify | .planning/phases/10-mining-presets-bedienbar-machen/10-02-PLAN.md |  | Sichtrunde Phase 10 (Plaene 10-01+10-02) aus 10-02-PLAN.md Task 3 noch nicht durchgefuehrt -- braucht ein menschliches Urteil im Browser. Sieben Punkte, je DE und EN, in beiden Farbmodi, bei 1920x1080 UND 1280x720: (1) Die zwei Listen (D-03): stehen Signaturen und Fundorte untereinander, beide gleichzeitig lesbar, jede mit eigener Ueberschrift und eigenem Bildlauf, teilen sie sich die Hoehe brauchbar wenn eine Liste lang und die andere leer ist. (2) Die Breiten (D-04): bleibt bei 1280x720 die Fundort-Zeile in der Mitte lesbar (Name/Balken/Prozentspanne/Nadel nebeneinander) trotz rund 68 px weniger, bleibt die Werkbank ohne aeusseres Scrollen bedienbar -- ggf. ist 470px 1fr 330px zurueckzunehmen, es ist eine Schaetzung mit Begruendung, keine Messung. (3) Die Preset-Liste (D-05): erkennt man auf einen Blick das gewaehlte Preset, sind Name/Zaehler/drei Symbolknoepfe bei 330px Spaltenbreite auseinanderzuhalten und zu treffen -- dieselbe Frage an die Zeile wie einst an den Anheft-Knopf (Phase 9, drei Runden). (4) Die Rueckfrage vor dem Loeschen (D-01): ist der Muelleimer vom x der Namenszeile auf einen Blick zu unterscheiden, wirkt die beschriftete Rueckfrage in BEIDEN Farbmodi als Warnung -- Gegenprobe: angeheftete Erz-Kachel derselben Grundfarbe daneben halten. (5) Kontogebunden mit Anmeldung: Preset anlegen/umbenennen/mit anderer Auswahl ueberschreiben/aufklappen/Einzeleintrag entfernen/loeschen, beim Umbenennen einmal einen vergebenen Namen eingeben -- eigene Meldung statt allgemeinem Fehler? (6) Ansehen ist keine Aenderung (D-02): Preset aufklappen ohne anzuwenden -- Listen unveraendert; Eintrag aus der aufgeklappten Ansicht entfernen -- nur der gespeicherte Stand aendert sich. (7) Der Altbestand: ein VOR Phase 9 gespeichertes Preset auswaehlen -- Signaturen vollstaendig, Merkliste leer, keine Fehlermeldung. Punkte 5-7 brauchen ein angemeldetes Konto und ein altes Preset; der Executor fuehrt sie NICHT aus. Alle maschinellen Vorlaeufe gruen: node --test tests/e2e/mining-shortlist.test.js (36/36), node --test tests/e2e/*.test.js (270/270), npm run build + npm run gate (18/18, normal UND mit STAGING=1), node scripts/verify-help.mjs --complete (12/12 Werkzeuge, alle Zusicherungen erfuellt), npm run audit:site (0 FEHLER), npm run verify:mining gruen. Diese Sichtrunde deckt zugleich noch offene id 10 (Phase 9) inhaltlich mit ab, soweit die Reiter-/Breitenfragen dort durch den Umbau dieser Phase ueberholt sind -- id 10 bleibt trotzdem als eigener Eintrag offen, bis der Betreiber beide gemeinsam abnimmt. | open |  | 2026-08-15T04:22:59.771Z |  |
 | 12 | 12 | unrun-verify | .planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-03-PLAN.md |  | Sichtrunde Phase 12 (Plaene 12-01+12-02+12-03) aus 12-03-PLAN.md Task 3 noch nicht durchgefuehrt -- braucht ein menschliches Urteil im Browser, kein Skript kann "wirkt lesbar" oder "liest sich als vorhanden, aber nicht abbauwuerdig" entscheiden. Sieben Punkte, je DE und EN, in beiden Farbmodi, bei 1920x1080 UND 1280x720: (1) Wirkt die Dreifach-Ueberlagerung auf einer Kachel -- markiert (is-here), ausgewaehlt (is-sel), angeheftet (Nadel is-on) -- tatsaechlich lesbar, oder sieht sie nur messbar verschieden aus? Strukturell + am Bildpunkt bereits belegt (mining-locview-messung.mjs Gruppe f, 24/24 Laeufe bestanden, Bildpunkt-Abstaende 84-231 auf einer 0-441-Skala). (2) Werden die gedaempften Spurenzeilen im Fluss als "vorhanden, aber nicht abbauwuerdig" gelesen, oder als Fehler? Gegenprobe: an einem Ort mit fuenf Spuren unter neun Erzen (z. B. Pyro Belt (Cool 1)) zaehlen, ob man sie ohne Nachdenken erkennt. (3) Traegt die Mitte weiterhin? Fundort-Kopf, Gruppenueberschriften und Erzliste uebereinander, ohne dass die Werkbank bei 1280x720 aeusseres Scrollen braucht. (4) Ist der Zurueck-Pfeil als Ausgang erkennbar, ohne mit der Nadel oder dem grossen Anheft-Knopf der Erz-Ansicht verwechselt zu werden -- dieselbe Frage, die in Phase 10 ein Preset gekostet hat, als zwei gleich aussehende Knoepfe gegensaetzlich wirkten. (5) Ist die ganze Fundort-Zeile als Klickziel spuerbar, ohne dass die Nadel darin schwerer zu treffen geworden ist -- dritte Runde an diesem Knopf, die beiden vorigen scheiterten an Groesse und Sichtbarkeit. (6) Die Merkliste rechts: oeffnet ein Klick auf die Zeile den Ort, und loest das Kreuz weiterhin nur -- merkt man den Unterschied beim Treffen? (7) Ein geteilter Verweis mit dem Adressparameter (?fundort=Name), aus der Zwischenablage in ein neues Fenster eingesetzt: oeffnet er den richtigen Ort, in beiden Sprachfassungen? Alle maschinellen Vorlaeufe gruen: node --test tests/e2e/mining-shortlist.test.js (63/63, davon T-12-16 bis T-12-18 neu fuer den Adressparameter ?fundort=), node --test tests/e2e/*.test.js (297/297), npm run build + npm run gate (18/18, normal UND mit STAGING=1), node scripts/verify-help.mjs --complete (12/12 Werkzeuge, mining.ctl.locpin/mining.ctl.shortlist inhaltlich nachgezogen), npm run audit:site (0 FEHLER), npm run verify:mining gruen. NEU seit diesem Plan, ausserhalb der Torkette: node scripts/probes/mining-locview-messung.mjs (4 Laeufe x 3 Orte x 6 Messgruppen = 72 Messpunkte, alle bestanden) -- die Spurenzeilen-Daempfung wurde dabei von den UI-SPEC-Startwerten 62%/65% auf gemessene 82%/90% angehoben (schlechtester Wert vorher 1,33:1, nachher 4,91:1 gegen die 4,5:1-Marke, beide Farbmodi) und eine 1,6px-Zeilenhoehenabweichung bei Spurenzeilen mit Abzeichen behoben (line-height:1 auf .wb__tag.is-trace, vorher hoeher als eine gewoehnliche Zeile). Die Sonde wurde einmal vorgefuehrt rot (Daempfung testweise auf 20% gesetzt: 4 von 24 Messpunkten fielen mit 1,33-1,43:1 durch) und danach zurueckgesetzt. Diese Sichtrunde deckt zugleich die noch offenen id 10 (Phase 9) und id 11 (Phase 10) inhaltlich mit ab, soweit deren Reiter-/Nadel-/Breitenfragen durch den Umbau dieser Phase ueberholt sind -- beide bleiben trotzdem als eigene Eintraege offen, bis der Betreiber alle drei gemeinsam abnimmt. | open |  | 2026-08-15T17:20:00.000Z |  |
 | 13 | design | sight | src/components/MiningWorkbench.astro |  | Sichturteil: der Werkzeug-Hilfe-Kasten klappt beim Erstbesuch selbsttaetig auf und deckt im Gehaeuse-Bildbereich bei 1280x720 das Kachelraster fast vollstaendig zu. Auf 140 px gekuerzt (vorher 244), damit eine Kachelzeile sichtbar bleibt; ganz aufloesen laesst es sich hier NICHT — .wb__pane{overflow:hidden} schneidet jede Positionierung neben die Spalte weg (vorgefuehrt). Echte Optionen: Auto-Oeffnen abschalten oder ToolHelp aus der Spalte heben — beides Eingriff in den geteilten Werkzeug-Hilfe-Vertrag und damit Produktentscheidung. | open |  | 2026-08-15T14:10:00.000Z |  |
+| 14 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: die Sprungleiste sitzt bei 1280x720 hart auf der Falzkante. Gemessen bleiben unter Hero (540) + Kopfleiste (56) + Kennwerte-Leiste (90) nur 34 px Platz — der UI-Vertrag hatte mit 90 px gerechnet und dabei .holo{margin-top:56px} uebersehen. Die Leiste wurde darum von 58,4 auf 30,6 px gestaucht (Rahmen zu box-shadow:inset, engere Polsterung, line-height:1); Reserve 3 px. Erfolgskriterium 3 („ohne Scrollen erkennbar“) ist damit erfuellt, ABER am Bild angesehen liest sich der unten angeschnittene Balken eher wie etwas Abgeschnittenes als wie ein Inhaltsverzeichnis. Zu entscheiden ist, ob das so bleibt, ob der Hero ein Stueck niedriger wird, oder ob die Kapitelpillen in die Kennwerte-Leiste selbst wandern. Kein Skript kann das beurteilen. | open |  | 2026-08-18T04:20:00.000Z |  |
+| 15 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: die deutschen Kapitelpillen sind bis zu 11 Zeichen lang („Ausstattung“), die englischen kuerzer. Bei 360 px laeuft die Leiste waagerecht; nachzusehen ist, ob die vier Pillen dort noch als Orientierung taugen oder ob das Wischen eine neue Huerde ist — und ob die deutsche Fassung dabei sichtbar schlechter dasteht als die englische. | open |  | 2026-08-18T04:20:00.000Z |  |
 
 ````json
 [
@@ -185,6 +187,30 @@ last_updated: 2026-08-15T17:20:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-15T14:10:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 14,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: die Sprungleiste sitzt bei 1280x720 hart auf der Falzkante. Gemessen bleiben unter Hero (540) + Kopfleiste (56) + Kennwerte-Leiste (90) nur 34 px Platz — der UI-Vertrag hatte mit 90 px gerechnet und dabei .holo{margin-top:56px} uebersehen. Die Leiste wurde darum von 58,4 auf 30,6 px gestaucht (Rahmen zu box-shadow:inset, engere Polsterung, line-height:1); Reserve 3 px. Erfolgskriterium 3 („ohne Scrollen erkennbar“) ist damit erfuellt, ABER am Bild angesehen liest sich der unten angeschnittene Balken eher wie etwas Abgeschnittenes als wie ein Inhaltsverzeichnis. Zu entscheiden ist, ob das so bleibt, ob der Hero ein Stueck niedriger wird, oder ob die Kapitelpillen in die Kennwerte-Leiste selbst wandern. Kein Skript kann das beurteilen.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T04:20:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 15,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: die deutschen Kapitelpillen sind bis zu 11 Zeichen lang („Ausstattung“), die englischen kuerzer. Bei 360 px laeuft die Leiste waagerecht; nachzusehen ist, ob die vier Pillen dort noch als Orientierung taugen oder ob das Wischen eine neue Huerde ist — und ob die deutsche Fassung dabei sichtbar schlechter dasteht als die englische.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T04:20:00.000Z",
     "resolved_at": null
   }
 ]
