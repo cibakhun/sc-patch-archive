@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Completed 14-04-PLAN.md
-last_updated: "2026-08-18T09:41:33.646Z"
+stopped_at: Checkpoint in 14-06-PLAN.md Aufgabe 2 (D-16 Entscheidung) -- Trockenlauf + Entzugsskript (Vorschau) fertig, Entzug selbst wartet auf Betreiber-Zustimmung
+last_updated: "2026-08-18T09:58:57.793Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 52
+  completed_plans: 53
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -233,6 +233,7 @@ Progress: [████████░░] 80%
 | Phase 14 P05 | ~2h35min | 2 tasks | 1 files |
 | Phase 14 P03 | ~30min | 2 tasks | 1 files |
 | Phase 14-testpilot-zugang-staging-hinter-der-discord-rolle P04 | ~50min | 2 tasks | 3 files |
+| Phase 14 P06 | ~55min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -343,6 +344,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 14]: 14-03: trg_sync_discord_identity aus Plan 02 ist jetzt real bestaetigt (T3-SQL-Gegenprobe setzt discord_role_state.discord_user_id) -- schliesst 14-02-SUMMARY.md coverage D6.
 - [Phase ?]: AuthLogin.astro Discord-redirectTo zeigt auf die Login-Seite selbst statt auf /account/ -- Rule-1-Fix, sonst ginge die D-02-Absage im Dashboard-Redirect verloren
 - [Phase ?]: D-02-Erkennung matcht zweigleisig (eigener Text ODER GoTrue-Generic-Wrapper) -- WINDOWS.md id 16 laesst offen, welche Form ankommt
+- [Phase ?]: 14-06: Trockenlauf zeigt 0 aktuelle Traeger der Discord-Rolle Test Pilots (5 Mitglieder gesamt) -- Massenentzug aus D-16 waere aktuell ein No-Op, Checkpoint-Zustimmung trotzdem erforderlich vor --rolle-wirklich-entziehen
 
 ### Pending Todos
 
@@ -359,6 +361,7 @@ None yet.
 - Offen (nicht blockierend): Navigators sehen den neuen Kanal #test-pilots nicht -- woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht. Betreiberentscheidung ausstehend, siehe WINDOWS.md #15.
 - 14-02: drei Verhaltens-Zusicherungen (guard_is_tester Schreibsperre, anon darf gate_verdict() nicht ausfuehren, doppelte Discord-Kopplung liefert sprechende Meldung) sind gegen die lebende Anlage NICHT geprueft -- brauchen eine echte Sitzung/echte Konten, fuer die Sichtrunde des Betreibers vorgesehen (14-02-SUMMARY.md coverage D4-D6)
 - Plan 14-03 Aufgabe 2 [BLOCKING]: kein SUPABASE_ACCESS_TOKEN/Supabase-CLI in dieser Ausfuehrungssitzung verfuegbar -- der gefaehrlichste Riegel der Phase (BEFORE INSERT auf auth.users, D-02) liegt geschrieben und Schiene-A-gepruefft (18/18) im Repo (Commit abda325), ist aber NICHT auf die lebende Anlage angewandt. Braucht Koordinator/Betreiber: Management-API-Anwendung + vorgefuehrt-roter Nachweis in 3 SQL-Faellen (Discord blockt / E-Mail geht durch / linkIdentity geht durch), je in einer zurueckgerollten Transaktion, plus vier echte Browser-Anmeldevorgaenge auf verse-base.com/account/ (LIVE) als Sichtpunkt fuer WINDOWS.md.
+- Phase 14 Plan 06: Checkpoint (D-16) unbeantwortet -- Entzugsskript discord/tester-revoke.mjs gebaut und im sicheren Vorschau-Modus verifiziert (0 aktuelle Traeger der Rolle Test Pilots), aber --rolle-wirklich-entziehen wurde bewusst nicht ausgefuehrt. Siehe 14-06-SUMMARY.md CHECKPOINT-Abschnitt.
 
 ### Quick Tasks Completed
 
@@ -397,6 +400,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T09:41:33.592Z
-Stopped at: Completed 14-04-PLAN.md
-Resume file: None
+Last session: 2026-08-18T09:58:57.763Z
+Stopped at: Checkpoint in 14-06-PLAN.md Aufgabe 2 (D-16 Entscheidung) -- Trockenlauf + Entzugsskript (Vorschau) fertig, Entzug selbst wartet auf Betreiber-Zustimmung
+Resume file: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-06-SUMMARY.md
