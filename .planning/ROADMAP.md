@@ -842,10 +842,17 @@ Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
 - Die Panels stehen heute als `<section class="sd__panel">` in **einer**
   Spalte (`.sd{max-width:var(--maxw)}`).
 
+**Schlussmessung** (Carrack, 1280 × 720, dunkler Modus, 18.08.2026,
+`node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322`
+gegen den nach Welle 4 gebauten `dist/` dieses Worktrees): **4.179 px DE /
+4.117 px EN** — 1.375 px unter dem Ausgang von 5.554 px (−24,8 %) und
+21 px unter der auf 4.200 px festgeschriebenen Sperrklinke. Alle 216
+Messpunkte (3 Schiffe × 2 Sprachen × 2 Breiten × 2 Farbmodi × 9
+Messgruppen) bestanden.
+
 **Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
 **Depends on:** nichts
-**Plans:** 3/4 plans executed
-vorige gebaut hat)
+**Plans:** 4/4 plans executed
 
 **Success Criteria** (was WAHR sein muss):
 
@@ -885,5 +892,5 @@ Plans:
 - [x] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
       getilgt; Balken nur noch im Leistungsprofil
 
-- [ ] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
+- [x] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
       Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`

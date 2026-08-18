@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 7
+open_count: 12
 waived_count: 0
 fixed_count: 8
-total_count: 15
-last_updated: 2026-08-18T04:20:00.000Z
+total_count: 20
+last_updated: 2026-08-18T05:58:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -30,6 +30,11 @@ last_updated: 2026-08-18T04:20:00.000Z
 | 13 | design | sight | src/components/MiningWorkbench.astro |  | Sichturteil: der Werkzeug-Hilfe-Kasten klappt beim Erstbesuch selbsttaetig auf und deckt im Gehaeuse-Bildbereich bei 1280x720 das Kachelraster fast vollstaendig zu. Auf 140 px gekuerzt (vorher 244), damit eine Kachelzeile sichtbar bleibt; ganz aufloesen laesst es sich hier NICHT — .wb__pane{overflow:hidden} schneidet jede Positionierung neben die Spalte weg (vorgefuehrt). Echte Optionen: Auto-Oeffnen abschalten oder ToolHelp aus der Spalte heben — beides Eingriff in den geteilten Werkzeug-Hilfe-Vertrag und damit Produktentscheidung. | open |  | 2026-08-15T14:10:00.000Z |  |
 | 14 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: die Sprungleiste sitzt bei 1280x720 hart auf der Falzkante. Gemessen bleiben unter Hero (540) + Kopfleiste (56) + Kennwerte-Leiste (90) nur 34 px Platz — der UI-Vertrag hatte mit 90 px gerechnet und dabei .holo{margin-top:56px} uebersehen. Die Leiste wurde darum von 58,4 auf 30,6 px gestaucht (Rahmen zu box-shadow:inset, engere Polsterung, line-height:1); Reserve 3 px. Erfolgskriterium 3 („ohne Scrollen erkennbar“) ist damit erfuellt, ABER am Bild angesehen liest sich der unten angeschnittene Balken eher wie etwas Abgeschnittenes als wie ein Inhaltsverzeichnis. Zu entscheiden ist, ob das so bleibt, ob der Hero ein Stueck niedriger wird, oder ob die Kapitelpillen in die Kennwerte-Leiste selbst wandern. Kein Skript kann das beurteilen. | open |  | 2026-08-18T04:20:00.000Z |  |
 | 15 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: die deutschen Kapitelpillen sind bis zu 11 Zeichen lang („Ausstattung“), die englischen kuerzer. Bei 360 px laeuft die Leiste waagerecht; nachzusehen ist, ob die vier Pillen dort noch als Orientierung taugen oder ob das Wischen eine neue Huerde ist — und ob die deutsche Fassung dabei sichtbar schlechter dasteht als die englische. | open |  | 2026-08-18T04:20:00.000Z |  |
+| 16 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Wirken die vier Kapitel (Kaufen/Leistung/Ausstattung/Umfeld) wirklich unterschiedlich wichtig, oder liest sich die Akzentfarben-Differenzierung am gerenderten Bildschirm zu subtil, um den Eindruck „zehn gleiche Kaesten“ tatsaechlich aufzuloesen? Mitgeben: die vier benutzten Akzentfarben (`--gold` Kaufen, `--accent` Cyan Leistung, `--accent-2` Stahlblau Ausstattung, `--muted` ohne eigenen Farbton Umfeld) und der in Welle 2 gemessene Kontrast des Zahl-Chips: 9,58:1 dunkel / 7,31:1 hell — weit ueber der 4,5:1-Marke. | open |  | 2026-08-18T05:58:00.000Z |  |
+| 17 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Wirkt ein Leistungsprofil mit wenigen Balken am kargsten geprueften Schiff wie ein vollstaendiges, absichtliches Kapitel, oder wie ein Rest, dem etwas fehlt? Mitgeben (Schlussmessung 14-04-PLAN.md Task 2): am kargsten Pruefschiff (`argo-atls`, nach Datenfuellgrad gewaehlt) rendert das Leistungsprofil-Kapitel ueberhaupt NICHT (0 von 6 Perzentilzeilen — die Bedingung `profile.length>0` greift nicht, das Fahrzeug traegt keine Flugleistungsdaten), waehrend es am groessten Schiff (`aegs-idris-m`) alle 6 Zeilen zeigt (Kapitelhoehe 386px, identisch mit der Carrack). Die Frage verschiebt sich damit von „wirkt duenn“ zu „wirkt die komplette Abwesenheit des Kapitels wie eine bewusste Leerstelle oder wie ein Fehler“ — Sichtanteil von Backstop E4, der messbare Anteil ist belegt. | open |  | 2026-08-18T05:58:00.000Z |  |
+| 18 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Traegt die Sprungleiste bei 360px noch als Orientierung, oder wirkt das waagerechte Wischen dort wie eine neue Huerde — jetzt einschliesslich der deutschen 11-Zeichen-Pille „Ausstattung“, die es in Welle 2 noch nicht gab? Mitgeben (Schlussmessung): 4 Pillen an Carrack und Idris-M (3 am kargsten Schiff `argo-atls`, dessen Ausstattung-Kapitel fehlt), Scrollbreite 457px gegen sichtbare 360px, eine sichtbar scrollende Bildlaufleiste (Testverschiebung 0→97px bestaetigt), kein waagerechter Ueberlauf der Gesamtseite, keine umbrechende Pille (alle 21,6px hoch, an allen drei Pruefschiffen und beiden Sprachen). | open |  | 2026-08-18T05:58:00.000Z |  |
+| 19 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Liest sich die Innenstruktur des Ausstattungs-Kapitels am groessten Schiff (`aegs-idris-m`, 243m) noch als EIN zusammengehoeriges Kapitel, oder zerfaellt sie optisch — jetzt zusaetzlich mit der kapitelinternen Zweispaltigkeit aus 14-04-PLAN.md Task 1 — wieder in vier gefuehlte Panels? Mitgeben: 4 Unterabschnitte (Masse & Fracht/Bewaffnung/Flugleistung/Komponenten), alle vier ab 1100px als 2×2-Raster, gemessene Kapitelhoehe 1.442px (deutlich mehr als die Carrack mit 1.058px, weil Idris-M mehr Turmgruppen und Komponenten traegt). | open |  | 2026-08-18T05:58:00.000Z |  |
+| 20 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Traegt eine Profilzeile ohne Rohwert (Tempo, Fracht, Quantum-Tempo zeigen seit Welle 3 nur noch Beschriftung, Balken und Perzentil), oder wirkt der Balken dort nackt und die Zeile unfertig? Mitgeben: die drei betroffenen Zeilen sind Geschwindigkeit (SCM), Fracht (SCU) und Quantum-Tempo — ihr Rohwert steht stattdessen je einmal im Ausstattungs-Kapitel; die drei uebrigen Zeilen (Agilitaet, Feuerkraft, Verteidigung) behalten ihren Rohwert in der Profilzeile unveraendert, weil er nirgends sonst auf der Seite steht. | open |  | 2026-08-18T05:58:00.000Z |  |
 
 ````json
 [
@@ -211,6 +216,66 @@ last_updated: 2026-08-18T04:20:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T04:20:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 16,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: Wirken die vier Kapitel (Kaufen/Leistung/Ausstattung/Umfeld) wirklich unterschiedlich wichtig, oder liest sich die Akzentfarben-Differenzierung am gerenderten Bildschirm zu subtil, um den Eindruck „zehn gleiche Kaesten“ tatsaechlich aufzuloesen? Mitgeben: die vier benutzten Akzentfarben (`--gold` Kaufen, `--accent` Cyan Leistung, `--accent-2` Stahlblau Ausstattung, `--muted` ohne eigenen Farbton Umfeld) und der in Welle 2 gemessene Kontrast des Zahl-Chips: 9,58:1 dunkel / 7,31:1 hell — weit ueber der 4,5:1-Marke.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T05:58:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: Wirkt ein Leistungsprofil mit wenigen Balken am kargsten geprueften Schiff wie ein vollstaendiges, absichtliches Kapitel, oder wie ein Rest, dem etwas fehlt? Mitgeben (Schlussmessung 14-04-PLAN.md Task 2): am kargsten Pruefschiff (`argo-atls`, nach Datenfuellgrad gewaehlt) rendert das Leistungsprofil-Kapitel ueberhaupt NICHT (0 von 6 Perzentilzeilen — die Bedingung `profile.length>0` greift nicht, das Fahrzeug traegt keine Flugleistungsdaten), waehrend es am groessten Schiff (`aegs-idris-m`) alle 6 Zeilen zeigt (Kapitelhoehe 386px, identisch mit der Carrack). Die Frage verschiebt sich damit von „wirkt duenn“ zu „wirkt die komplette Abwesenheit des Kapitels wie eine bewusste Leerstelle oder wie ein Fehler“ — Sichtanteil von Backstop E4, der messbare Anteil ist belegt.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T05:58:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 18,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: Traegt die Sprungleiste bei 360px noch als Orientierung, oder wirkt das waagerechte Wischen dort wie eine neue Huerde — jetzt einschliesslich der deutschen 11-Zeichen-Pille „Ausstattung“, die es in Welle 2 noch nicht gab? Mitgeben (Schlussmessung): 4 Pillen an Carrack und Idris-M (3 am kargsten Schiff `argo-atls`, dessen Ausstattung-Kapitel fehlt), Scrollbreite 457px gegen sichtbare 360px, eine sichtbar scrollende Bildlaufleiste (Testverschiebung 0→97px bestaetigt), kein waagerechter Ueberlauf der Gesamtseite, keine umbrechende Pille (alle 21,6px hoch, an allen drei Pruefschiffen und beiden Sprachen).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T05:58:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 19,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: Liest sich die Innenstruktur des Ausstattungs-Kapitels am groessten Schiff (`aegs-idris-m`, 243m) noch als EIN zusammengehoeriges Kapitel, oder zerfaellt sie optisch — jetzt zusaetzlich mit der kapitelinternen Zweispaltigkeit aus 14-04-PLAN.md Task 1 — wieder in vier gefuehlte Panels? Mitgeben: 4 Unterabschnitte (Masse & Fracht/Bewaffnung/Flugleistung/Komponenten), alle vier ab 1100px als 2×2-Raster, gemessene Kapitelhoehe 1.442px (deutlich mehr als die Carrack mit 1.058px, weil Idris-M mehr Turmgruppen und Komponenten traegt).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T05:58:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 20,
+    "kind": "sight",
+    "phase": "14",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "Sichturteil: Traegt eine Profilzeile ohne Rohwert (Tempo, Fracht, Quantum-Tempo zeigen seit Welle 3 nur noch Beschriftung, Balken und Perzentil), oder wirkt der Balken dort nackt und die Zeile unfertig? Mitgeben: die drei betroffenen Zeilen sind Geschwindigkeit (SCM), Fracht (SCU) und Quantum-Tempo — ihr Rohwert steht stattdessen je einmal im Ausstattungs-Kapitel; die drei uebrigen Zeilen (Agilitaet, Feuerkraft, Verteidigung) behalten ihren Rohwert in der Profilzeile unveraendert, weil er nirgends sonst auf der Seite steht.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T05:58:00.000Z",
     "resolved_at": null
   }
 ]
