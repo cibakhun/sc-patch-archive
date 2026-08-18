@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 15
+open_count: 18
 waived_count: 0
 fixed_count: 8
-total_count: 23
-last_updated: 2026-08-18T10:56:52.812Z
+total_count: 26
+last_updated: 2026-08-18T11:57:32.071Z
 ---
 
 # Broken Windows Ledger
@@ -38,6 +38,9 @@ last_updated: 2026-08-18T10:56:52.812Z
 | 21 | 14 | unrun-verify | discord/bot/src/role-sync.mjs |  | 14-07 Aufgabe 2: die vier realen Rollenwechsel-Nachweise (Rolle geben -> is_tester=true binnen 5s, Rolle nehmen -> false, andere Rollenaenderung loest KEINEN Schreibzugriff aus, Server-Austritt -> false) sind gegen die echte Anlage NICHT gefahren -- der Bot ist noch nicht mit dem neuen Code deployed (Deploy ist ausdruecklich nicht Teil dieses Plans, sondern Betreiber-/Coolify-Sache). Alle vier Zusicherungen sind statisch/automatisiert belegt (node --check, die drei grep-Zusicherungen aus dem Plan, npm run build && npm run gate 18/18); die vier Live-Zustandswechsel stehen nach dem naechsten Deploy aus. | open |  | 2026-08-18T10:56:40.616Z |  |
 | 22 | 14 | unrun-verify | discord/bot/src/role-reconcile.mjs |  | 14-07 Aufgabe 3: der Ausfallfall-Nachweis (Bot gestoppt, Rolle im Stillstand vergeben/entzogen, Bot neu gestartet -> Vollabgleich holt beide Richtungen nach) ist NICHT gegen die echte Anlage gefahren -- braucht ein deployed Bot mit dem neuen Code, Deploy ist nicht Teil dieses Plans. Statisch belegt: node --check, die drei grep-Zusicherungen aus dem Plan (members.fetch/discord_role_state/Rollenabgleich), reconcileRoles in der ClientReady-Sequenz verdrahtet. | open |  | 2026-08-18T10:56:52.214Z |  |
 | 23 | 14 | deviation | discord/bot/README.md |  | 14-07: discord/bot/README.md enthielt an ZWEI Stellen dieselbe jetzt falsche Behauptung wie discord/README.md ('no privileged intents', 'leave them off') -- vom Plan nicht namentlich in files_modified gelistet, aber derselbe Bot, derselbe Fehler. Als Rule-1-Fix mitkorrigiert, nicht Teil der urspruenglichen files_modified-Liste. | open |  | 2026-08-18T10:56:52.812Z |  |
+| 24 | 14 | unrun-verify | nginx/gate.js |  | 14-08 Aufgabe 1: die vier gate_verdict()-Antwortformen (Testpilot, Sperrliste, gesperrter Admin, kein Testpilot) sind ueber einen erweiterten Mock-PostgREST (Bahn B) gegen den echten Container geprueft (CI run 32133474158), NICHT gegen ein echtes Supabase-Testkonto mit echtem is_tester/tester_blocklist-Zustand -- kein Repo-Secret vorhanden, keins spekulativ angelegt. Deckt sich mit 14-01-SUMMARY.md coverage D7 und 14-02-SUMMARY.md coverage D4-D6. | open |  | 2026-08-18T11:57:30.280Z |  |
+| 25 | 14 | unrun-verify | supabase/migrations/20260818001000_gate_verdict.sql |  | 14-08 Aufgabe 1: discord_role_state.last_staging_seen wird laut Quelltext-Review bei jedem allowed:true fortgeschrieben, aber nicht durch einen echten authentifizierten Aufruf gemessen -- keine Bahn-A-Sitzung mit echtem Testkonto verfuegbar. | open |  | 2026-08-18T11:57:30.657Z |  |
+| 26 | 14 | unrun-verify | nginx/default.conf |  | 14-08 Aufgabe 2: der rote Lauf fuer die theme.css-Ausnahme ist eine playwright-core-Nachbildung des dokumentierten Redirect-Verhaltens (kein lokales nginx verfuegbar), kein Originalbefund gegen einen echten Container ohne die Ausnahme. | open |  | 2026-08-18T11:57:32.071Z |  |
 
 ````json
 [
@@ -315,6 +318,42 @@ last_updated: 2026-08-18T10:56:52.812Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T10:56:52.812Z",
+    "resolved_at": null
+  },
+  {
+    "id": 24,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "nginx/gate.js",
+    "line": null,
+    "description": "14-08 Aufgabe 1: die vier gate_verdict()-Antwortformen (Testpilot, Sperrliste, gesperrter Admin, kein Testpilot) sind ueber einen erweiterten Mock-PostgREST (Bahn B) gegen den echten Container geprueft (CI run 32133474158), NICHT gegen ein echtes Supabase-Testkonto mit echtem is_tester/tester_blocklist-Zustand -- kein Repo-Secret vorhanden, keins spekulativ angelegt. Deckt sich mit 14-01-SUMMARY.md coverage D7 und 14-02-SUMMARY.md coverage D4-D6.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T11:57:30.280Z",
+    "resolved_at": null
+  },
+  {
+    "id": 25,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "supabase/migrations/20260818001000_gate_verdict.sql",
+    "line": null,
+    "description": "14-08 Aufgabe 1: discord_role_state.last_staging_seen wird laut Quelltext-Review bei jedem allowed:true fortgeschrieben, aber nicht durch einen echten authentifizierten Aufruf gemessen -- keine Bahn-A-Sitzung mit echtem Testkonto verfuegbar.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T11:57:30.657Z",
+    "resolved_at": null
+  },
+  {
+    "id": 26,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "nginx/default.conf",
+    "line": null,
+    "description": "14-08 Aufgabe 2: der rote Lauf fuer die theme.css-Ausnahme ist eine playwright-core-Nachbildung des dokumentierten Redirect-Verhaltens (kein lokales nginx verfuegbar), kein Originalbefund gegen einen echten Container ohne die Ausnahme.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T11:57:32.071Z",
     "resolved_at": null
   }
 ]

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Completed 14-07-PLAN.md (Rollenwechsel-Push + Start-Vollabgleich verdrahtet, Doku richtiggestellt; Live-Zustandswechsel-Nachweise auf Deploy vertagt, WINDOWS.md ids 21/22)
-last_updated: "2026-08-18T10:59:42.374Z"
+stopped_at: Completed 14-08-PLAN.md (mint() auf gate_verdict umgestellt, Ausnahmeliste gemessen/begruendet, stille Ausweis-Erneuerung; CI run 32133474158 gruen)
+last_updated: "2026-08-18T11:58:57.685Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 54
+  completed_plans: 55
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 9 of 12
+Plan: 10 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 83%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
@@ -235,6 +235,7 @@ Progress: [████████░░] 83%
 | Phase 14-testpilot-zugang-staging-hinter-der-discord-rolle P04 | ~50min | 2 tasks | 3 files |
 | Phase 14 P06 | ~55min | 2 tasks | 2 files |
 | Phase 14 P07 | ~50min | 3 tasks | 8 files |
+| Phase 14 P08 | ~2h30min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -350,6 +351,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 14]: 14-07: PostgREST-PATCH statt Upsert fuer den Rollenspiegel -- discord_role_state.user_id ist Primaerschluessel ohne Default und wird nur vom sync_discord_identity()-Trigger gesetzt; PATCH+Filter auf discord_user_id trifft nie daneben
 - [Phase ?]: [Phase 14]: 14-07: audit.mjs/prune.mjs fordern jetzt selbst GatewayIntentBits.GuildMembers an und melden dessen Abwesenheit als Fund statt es als gewollten Zustand zu behandeln (vorher konnten beide Skripte das Fehlen gar nicht maschinell feststellen)
 - [Phase ?]: [Phase 14]: 14-07: die vier live-Zustandswechsel-Nachweise (Rolle geben/nehmen/Austritt/Ausfallfall) sind NICHT gefahren -- brauchen einen mit dem neuen Code deployten Bot, Deploy war ausdruecklich nicht Teil dieses Plans; als WINDOWS.md ids 21/22 verdrahtet
+- [Phase ?]: 14-08: mint() urteilt ueber gate_verdict() (Testpilot/Sperrliste/Admin/D-09 in einem Aufruf); Ausnahmeliste auf 7 gemessene GATE-AUSNAHME-Eintraege gebracht; stille Ausweis-Erneuerung in account-lite.js; CI-Sonde probe-gate-e2e.yml erweitert (nicht neu gebaut) -- alle Zusicherungen gruen (run 32133474158)
 
 ### Pending Todos
 
@@ -404,6 +406,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T10:59:42.345Z
-Stopped at: Completed 14-07-PLAN.md (Rollenwechsel-Push + Start-Vollabgleich verdrahtet, Doku richtiggestellt; Live-Zustandswechsel-Nachweise auf Deploy vertagt, WINDOWS.md ids 21/22)
+Last session: 2026-08-18T11:58:57.651Z
+Stopped at: Completed 14-08-PLAN.md (mint() auf gate_verdict umgestellt, Ausnahmeliste gemessen/begruendet, stille Ausweis-Erneuerung; CI run 32133474158 gruen)
 Resume file: None
