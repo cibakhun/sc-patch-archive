@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 315,
-  "totalListings": 7095,
+  "updates": 316,
+  "totalListings": 7108,
   "totalSold": 309,
-  "distinctItems": 1249
+  "distinctItems": 1250
  },
  "listings": {
   "156580": {
@@ -141421,6 +141421,10 @@
     {
      "d": "2026-08-18",
      "p": 800000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -149522,6 +149526,10 @@
     {
      "d": "2026-08-18",
      "p": 39000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 29000000
     }
    ],
    "soldOut": false,
@@ -151499,6 +151507,10 @@
     {
      "d": "2026-08-18",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 2500000
     }
    ],
    "soldOut": false,
@@ -151528,6 +151540,27 @@
    "dateAdded": 1787085448,
    "dateExpiration": 1792269448
   },
+  "163939": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787085825,
+   "dateExpiration": 1797453825
+  },
   "163940": {
    "idItem": 8011,
    "idCategory": 7,
@@ -151548,6 +151581,258 @@
    "soldOutPrice": null,
    "dateAdded": 1787085851,
    "dateExpiration": 1792269851
+  },
+  "163941": {
+   "idItem": 6145,
+   "idCategory": 1,
+   "title": "Strata Arms Neptune",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787086258,
+   "dateExpiration": 1792270258
+  },
+  "163943": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron - 972Q - 0.5 SCU -",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787086847,
+   "dateExpiration": 1792270847
+  },
+  "163944": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Guardian MX Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787086861,
+   "dateExpiration": 1792270861
+  },
+  "163946": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "Gold - 864 Q - 0.709 SCU - 4M",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 864,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787087253,
+   "dateExpiration": 1792271253
+  },
+  "163947": {
+   "idItem": 6428,
+   "idCategory": 11,
+   "title": "Vagabond Jacket Red Menace",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787087271,
+   "dateExpiration": 1792271271
+  },
+  "163948": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787088068,
+   "dateExpiration": 1792272068
+  },
+  "163950": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787088338,
+   "dateExpiration": 1792272338
+  },
+  "163951": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787088411,
+   "dateExpiration": 1792272411
+  },
+  "163953": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787088580,
+   "dateExpiration": 1792272580
+  },
+  "163954": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787088650,
+   "dateExpiration": 1792272650
+  },
+  "163956": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787088803,
+   "dateExpiration": 1792272803
+  },
+  "163957": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787089467,
+   "dateExpiration": 1792273467
   }
  }
 }
