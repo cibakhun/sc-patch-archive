@@ -127,6 +127,27 @@ const stageStats: { label: string; value: string }[] = [
   },
 ];
 
+// Kapitelliste (EINZIGE Quelle fuer Sprungleiste + Kapitelkoepfe, D-01).
+// Jeder Eintrag traegt die stabile, NICHT uebersetzte Kennung, den vollen
+// Kapiteltitel, das Kurzlabel fuer die Sprungleisten-Pille und die
+// Bedingung, unter der das Kapitel ueberhaupt rendert. Welle 3 verlaengert
+// diese Liste um drei Eintraege (ch-profile, ch-gear, ch-context) — sie
+// baut sie nicht um. Diese Liste ist die EINZIGE Quelle: eine Pille
+// entsteht nur zu einem Eintrag, der auch sein Element rendert; jede
+// Entkopplung erzeugt einen toten Anker, und tote Anker sind bei
+// `audit:site` ein FEHLER. Die Kapitelnummer wird aus der gefilterten
+// Liste fortlaufend abgeleitet, nicht aus einer festen Zuordnung — eine
+// Seite mit drei Kapiteln zeigt 01, 02, 03, nicht 01, 03, 04.
+const CHAPTERS_SOURCE: { id: string; title: string; pill: string; renders: boolean }[] = [
+  // Kaufen rendert strukturell IMMER (Rueckfalltext sd__nobuy ohne Kaufzeile).
+  { id: 'ch-buy', title: t('ship.buy.title'), pill: t('ship.jump.buy'), renders: true },
+];
+const chapters = CHAPTERS_SOURCE.filter((c) => c.renders).map((c, i) => ({
+  ...c,
+  num: String(i + 1).padStart(2, '0'),
+}));
+const chapterNum = (id: string) => chapters.find((c) => c.id === id)?.num ?? '';
+
 // ---------- Interaktives Komponenten-Hologramm ----------
 // Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
 // gerenderte Mesh und die Hardpoints (ship-hardpoints.json, COMPILED_BONES)
@@ -745,6 +766,67 @@ a{color:inherit;text-decoration:none}
 /* Mobil: Aktencode-Zeile (…//…) umbrechen statt clippen — voller Text sichtbar */
 @media(max-width:640px){.sd__phead{flex-direction:column;align-items:stretch;gap:.35rem}.sd__code{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}}
 
+/* Kapitel-Sprungleiste — klebt unter der Kopfleiste (--nav-h, SiteNav.astro
+   Z. 946-949) ueber .sd hinaus, Bauform wie .cdb-bar (CraftingApp.astro
+   Z. 560, einzige bestehende klebende Leiste des Hauses): position:sticky,
+   top:var(--nav-h), z-index:20, Glasflaeche. Eigene volle-Breite-Zeile auf
+   derselben Ebene wie .holo__bar, NICHT erstes Kind von .sd — .sd traegt
+   bereits eigenen Innenabstand, darin wuerde ein klebendes Element
+   schwimmen. Trennlinie NUR unten: oben trennt bereits die Kennwerte-
+   Leiste, zwei gestapelte Linien waeren ein Doppelstrich. */
+.sd__jump{position:sticky;top:var(--nav-h);z-index:20;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px)}
+.sd__jump__in{max-width:var(--maxw);margin:0 auto;display:flex;gap:.55rem;overflow-x:auto;
+  padding:.55rem clamp(1rem,3vw,2.5rem)}
+.sd__jump a{flex:none;white-space:nowrap;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  padding:.35rem .8rem;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.sd__jump a:hover,.sd__jump a:focus-visible{color:var(--text);border-color:var(--muted)}
+/* Bewusst der cyanfarbene Basis-Accent, NICHT die jeweilige Kapitelfarbe —
+   sonst muesste die Leiste selbst vier Zustandsfarben fuehren, kaum
+   unterscheidbar bei 360px. */
+.sd__jump a.is-active{color:var(--accent);border-color:var(--accent)}
+/* Sanftes Scrollen fuer Seitenanker rein ueber CSS, kein JS-scrollIntoView. */
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* Kapitelrahmen — Ersatz fuer .sd__panel NUR an den vier Kapitel-
+   Wurzelelementen (Kaufen/Leistung/Ausstattung/Umfeld). Innenraster und
+   Eckenschnitt UNVERAENDERT von .sd__panel uebernommen; einzige Abweichung
+   ist der groessere Aussenabstand — vier schwere Kapitel brauchen mehr Luft
+   als zehn duenne Kaesten. In dieser Welle wird nur --buy tatsaechlich
+   benutzt, die uebrigen drei Modifikatoren werden mitgeschrieben und in
+   Welle 3 verwendet (14-UI-SPEC.md Kapitel-Akzent-Tabelle). */
+.sd__chapter{position:relative;background:var(--surface);border:1px solid var(--line);
+  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+  margin-bottom:2.2rem;
+  /* 64px = geschaetzter Zuschlag aus 14-UI-SPEC.md Punkt 1; Task 2 ersetzt
+     ihn durch den am gerenderten Bildpunkt GEMESSENEN Wert. */
+  scroll-margin-top:calc(var(--nav-h) + 64px)}
+.sd__chapter--buy{border-top:3px solid var(--gold)}
+.sd__chapter--buy .sd__chnum{background:var(--gold)}
+.sd__chapter--buy .sd__phead h2{color:var(--gold)}
+.sd__chapter--profile{border-top:2px solid var(--accent)}
+.sd__chapter--profile .sd__chnum{background:var(--accent)}
+.sd__chapter--profile .sd__phead h2{color:var(--accent)}
+.sd__chapter--gear{border-top:2px solid var(--accent-2)}
+.sd__chapter--gear .sd__chnum{background:var(--accent-2)}
+.sd__chapter--gear .sd__phead h2{color:var(--accent-2)}
+.sd__chapter--context{background:var(--bg-2);border-top:1px solid var(--line)}
+.sd__chapter--context .sd__chnum{background:var(--muted)}
+.sd__chapter--context .sd__phead h2{color:var(--muted)}
+
+/* Kapitel-Kopf: .sd__phead bekommt ein drittes Element (sd__chtitle wraps
+   Zahl-Chip + Titel), Format (Trennlinie, Abstand) unveraendert. Heading
+   steigt nur INNERHALB eines Kapitels von fs-9 auf fs-12 — die neun noch
+   unkonvertierten .sd__panel behalten ihre heutige Groesse, bis Welle 3 sie
+   umbaut. */
+.sd__chtitle{display:flex;align-items:center;gap:.55rem;min-width:0}
+.sd__chtitle h2{min-width:0}
+.sd__chapter .sd__phead h2{font-size:var(--fs-12)}
+.sd__chnum{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--bg);
+  padding:.15rem .5rem;flex:none;
+  clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}
+
 /* Handel */
 .sd__pricehero{display:flex;flex-wrap:wrap;align-items:baseline;gap:.6rem 1rem;margin-bottom:1rem}
 .sd__pricehero .val{font-family:var(--font-ui);font-weight:700;font-size:clamp(1.7rem,4vw,2.4rem);color:var(--gold);font-variant-numeric:tabular-nums}
@@ -1177,11 +1259,25 @@ span.sd__ref{color:var(--muted)}
     </dl>
   </div>
 
+  <!-- Kapitel-Sprungleiste — EIN echter Anker je gerendertem Kapitel (chapters,
+       die einzige Quelle). Funktioniert vollstaendig ohne JavaScript; die
+       Aktivmarkierung (Skript nach </main>) ist reine Verbesserung. -->
+  <nav class="sd__jump" aria-label={t('ship.jump.aria')}>
+    <div class="sd__jump__in">
+      {chapters.map((c) => (
+        <a href={`#${c.id}`}>{c.pill}</a>
+      ))}
+    </div>
+  </nav>
+
   <div class="sd">
     <!-- KAUFEN IM VERSE -->
-    <section class="sd__panel" aria-label={t('ship.buy.title')}>
+    <section class="sd__chapter sd__chapter--buy" id="ch-buy" aria-label={t('ship.buy.title')}>
       <header class="sd__phead">
-        <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.handel} /></svg>{t('ship.buy.title')}</h2>
+        <span class="sd__chtitle">
+          <span class="sd__chnum">{chapterNum('ch-buy')}</span>
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.handel} /></svg>{t('ship.buy.title')}</h2>
+        </span>
         <span class="sd__code">{t('ship.code.trade')}&nbsp;//&nbsp;UEX · {t('ship.asof')} {pricesFetchedAt}</span>
       </header>
       {buyMin ? (
@@ -1613,6 +1709,53 @@ span.sd__ref{color:var(--muted)}
     </p>
   </div>
 </main>
+
+<script is:inline>
+// Aktivmarkierung der Kapitel-Sprungleiste (T-14-05: liest nur eigene
+// Elemente ueber Klassen-/Attributselektoren, setzt nur eine Klasse und
+// aria-current, schreibt NIRGENDS Markup — kein innerHTML, kein eval,
+// keine Adresszeile). Reine Verbesserung: bricht sofort ab, wenn die
+// Beobachter-Schnittstelle fehlt oder keine Sprungleiste im Dokument
+// steht — die Sprungleiste bleibt dann voll bedienbar, nur ohne
+// Hervorhebung. Kein Scroll-Aufruf, kein Zustandsspeicher, kein zweiter
+// Zuhoerer (T-14-06: hoechstens vier beobachtete Elemente, ein Beobachter).
+(function () {
+  if (typeof IntersectionObserver === 'undefined') return;
+  var jump = document.querySelector('.sd__jump');
+  if (!jump) return;
+  var links = [].slice.call(jump.querySelectorAll('a[href^="#"]'));
+  var sections = [].slice.call(document.querySelectorAll('.sd__chapter[id]'));
+  if (!links.length || !sections.length) return;
+  var byId = {};
+  for (var i = 0; i < links.length; i++) {
+    var href = links[i].getAttribute('href') || '';
+    if (href.charAt(0) === '#') byId[href.slice(1)] = links[i];
+  }
+  // Oberer Rand des Beobachtungsfensters aus dem gemessenen --nav-h plus der
+  // gemessenen Sprungleistenhoehe — nicht aus einer Zahl im Skript.
+  var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+  var jumpH = jump.getBoundingClientRect().height || 0;
+  var top = Math.round(navH + jumpH);
+  function setActive(id) {
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var active = a === byId[id];
+      a.classList.toggle('is-active', active);
+      if (active) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    }
+  }
+  var observer = new IntersectionObserver(
+    function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) { setActive(entries[i].target.id); break; }
+      }
+    },
+    { rootMargin: '-' + top + 'px 0px -70% 0px' }
+  );
+  for (var j = 0; j < sections.length; j++) observer.observe(sections[j]);
+})();
+</script>
 
 <script type="importmap" is:inline>
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}

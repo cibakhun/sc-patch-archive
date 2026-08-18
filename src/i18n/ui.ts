@@ -265,6 +265,14 @@ const UI = {
     'ship.slot.coolers': 'Kühler',
     'ship.slot.quantum': 'Quantum-Antrieb',
     'ship.slot.radar': 'Radar',
+    // -- Kapitel-Sprungleiste + konsolidierte Kapitel-Koepfe (Phase 14, Tracer) --
+    'ship.ch.gear': 'Ausstattung',
+    'ship.ch.context': 'Umfeld',
+    'ship.jump.buy': 'Kaufen',
+    'ship.jump.profile': 'Leistung',
+    'ship.jump.aria': 'Kapitel-Sprungleiste',
+    'ship.code.spec': 'SPEC',
+    'ship.code.ctx': 'CTX',
     // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
     'fav.save': 'Merken',
     'fav.saved': 'Gemerkt',
@@ -646,6 +654,14 @@ const UI = {
     'ship.slot.coolers': 'Coolers',
     'ship.slot.quantum': 'Quantum drive',
     'ship.slot.radar': 'Radar',
+    // -- Chapter jump-nav + consolidated chapter headers (Phase 14, tracer) --
+    'ship.ch.gear': 'Specs',
+    'ship.ch.context': 'Extras',
+    'ship.jump.buy': 'Buy',
+    'ship.jump.profile': 'Profile',
+    'ship.jump.aria': 'Chapter navigation',
+    'ship.code.spec': 'SPEC',
+    'ship.code.ctx': 'CTX',
     // -- Favorites (account feature; account-lite.js toggles the state) --
     'fav.save': 'Save',
     'fav.saved': 'Saved',
