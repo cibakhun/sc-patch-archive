@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 12
+open_count: 15
 waived_count: 0
 fixed_count: 8
-total_count: 20
-last_updated: 2026-08-18T10:26:15.363Z
+total_count: 23
+last_updated: 2026-08-18T10:56:52.812Z
 ---
 
 # Broken Windows Ledger
@@ -35,6 +35,9 @@ last_updated: 2026-08-18T10:26:15.363Z
 | 18 | 14 | unmet-truth | src/components/account/AuthLogin.astro |  | Die Supabase-Einstellung zum Verknuepfen von Identitaeten bei gleicher E-Mail-Adresse ('Allow manual linking' o.ae.) konnte der Betreiber im Dashboard nach Aufgabe 1 (14-04) NICHT lokalisieren -- Zustand ist UNGEKLAERT, nicht 'ist an'. Ist sie AUS, versucht Supabase bei einem BEKANNTEN Nutzer, der sich ueber Discord anmeldet, ein NEUES auth.users-Konto anzulegen; der D-02-Riegel aus Plan 03 (public.handle_new_user()) greift dann und der Nutzer landet in der 'registriere dich zuerst'-Anzeige, obwohl er bereits registriert ist. AuthLogin.astro/gate.astro koennen diesen Fall client-seitig NICHT von einem echten unbekannten Konto unterscheiden -- beide liefern denselben insufficient_privilege-Fehler ueber denselben Anzeigetext. Zu pruefen: ein Konto mit bekannter, bereits registrierter E-Mail-Adresse per Discord anmelden -- schlaegt es fehl, muss die Verknuepfungs-Einstellung im Supabase-Dashboard gefunden und aktiviert werden (moeglicherweise unter anderem Namen in dieser Oberflaechenversion). | open |  | 2026-08-18T09:36:39.758Z |  |
 | 19 | 14 | unrun-verify | .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-04-PLAN.md |  | Vier Durchlaeufe des Discord-Anmeldewegs (Aufgabe 2 <human-check>) nicht vom Executor durchgefuehrt -- braucht echte Discord-Konten (ein bekanntes, ein unbekanntes) und den Rundlauf durch drei fremde Systeme (Browser -> Discord -> Supabase -> Browser), kein Skript kann das nachstellen. (1) Bekanntes Konto: auf /account/ per E-Mail/Passwort anmelden, abmelden, mit dem Discord-Knopf anmelden -- Erwartung: angemeldet, KEIN zweites Konto, dieselbe E-Mail/dasselbe Profil/dieselben Favoriten. (2) Unbekanntes Discord-Konto: Erwartung 'Fuer dieses Discord-Konto gibt es noch kein Konto auf verse-base.com...' -- keine Fehlernummer, kein englischer Serverfehler; in Supabase Authentication->Users entsteht KEIN neues Konto. (3) Torseite: gesperrte URL aufrufen, Discord-Knopf auf gate.html nutzen -- Erwartung: Rueckkehr auf die urspruenglich gewuenschte URL. (4) Sichturteil (D-11): traegt die Torseite die Handschrift der Seite, sind die zwei Saetze verstaendlich, ist WIE man die Rolle bekommt erkennbar, steht der Discord-Knopf klar vor dem E-Mail-Formular ohne es zu verstecken -- bei 1920x1080 UND 360px, beide Farbmodi. Zusaetzlich offen (Koordinator-Rueckmeldung nach Aufgabe 1): ob die Verknuepfung von Identitaeten bei gleicher E-Mail-Adresse im Supabase-Dashboard ueberhaupt aktiv ist -- siehe eigener Eintrag zu dieser Frage. Maschinell bereits gruen: npm run build + npm run gate 18/18 (normal UND STAGING=1), npm run audit:csp sauber (0 neue Gegenstellen -- OAuth-Sprung ist Navigation, keine Richtlinie), das automatisierte <verify> aus dem Plan (Discord-Knopf in dist/gate.html + dist/account/login.html + dist/de/account/login.html, kein gebuendeltes Skript auf der Torseite). | open |  | 2026-08-18T09:37:16.493Z |  |
 | 20 | 14 | unrun-verify | discord/tester-revoke.mjs |  | D-16 bewusst vertagt (Betreiberentscheidung 18.08.2026): der Trockenlauf aus 14-06 (0 Traeger von 5 Mitgliedern, 18.08.2026) ist nur fuer diesen Tag belegt -- vergibt der Betreiber die Rolle zwischenzeitlich, ist die Zahl veraltet. VOR dem Scharfschalten des Tors (Plan 14-12, vor jedem Schritt, der die Vorschau hinter das Tor stellt): node discord/tester-dry-run.mjs erneut fahren, ERST DANN ueber den Entzug entscheiden (node discord/tester-revoke.mjs --rolle-wirklich-entziehen). Skripte sind fertig und in ihren sicheren Vorschaumodi geprueft (14-06-SUMMARY.md); nur der finale scharfe Lauf fehlt. | open |  | 2026-08-18T10:26:15.363Z |  |
+| 21 | 14 | unrun-verify | discord/bot/src/role-sync.mjs |  | 14-07 Aufgabe 2: die vier realen Rollenwechsel-Nachweise (Rolle geben -> is_tester=true binnen 5s, Rolle nehmen -> false, andere Rollenaenderung loest KEINEN Schreibzugriff aus, Server-Austritt -> false) sind gegen die echte Anlage NICHT gefahren -- der Bot ist noch nicht mit dem neuen Code deployed (Deploy ist ausdruecklich nicht Teil dieses Plans, sondern Betreiber-/Coolify-Sache). Alle vier Zusicherungen sind statisch/automatisiert belegt (node --check, die drei grep-Zusicherungen aus dem Plan, npm run build && npm run gate 18/18); die vier Live-Zustandswechsel stehen nach dem naechsten Deploy aus. | open |  | 2026-08-18T10:56:40.616Z |  |
+| 22 | 14 | unrun-verify | discord/bot/src/role-reconcile.mjs |  | 14-07 Aufgabe 3: der Ausfallfall-Nachweis (Bot gestoppt, Rolle im Stillstand vergeben/entzogen, Bot neu gestartet -> Vollabgleich holt beide Richtungen nach) ist NICHT gegen die echte Anlage gefahren -- braucht ein deployed Bot mit dem neuen Code, Deploy ist nicht Teil dieses Plans. Statisch belegt: node --check, die drei grep-Zusicherungen aus dem Plan (members.fetch/discord_role_state/Rollenabgleich), reconcileRoles in der ClientReady-Sequenz verdrahtet. | open |  | 2026-08-18T10:56:52.214Z |  |
+| 23 | 14 | deviation | discord/bot/README.md |  | 14-07: discord/bot/README.md enthielt an ZWEI Stellen dieselbe jetzt falsche Behauptung wie discord/README.md ('no privileged intents', 'leave them off') -- vom Plan nicht namentlich in files_modified gelistet, aber derselbe Bot, derselbe Fehler. Als Rule-1-Fix mitkorrigiert, nicht Teil der urspruenglichen files_modified-Liste. | open |  | 2026-08-18T10:56:52.812Z |  |
 
 ````json
 [
@@ -276,6 +279,42 @@ last_updated: 2026-08-18T10:26:15.363Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T10:26:15.363Z",
+    "resolved_at": null
+  },
+  {
+    "id": 21,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "discord/bot/src/role-sync.mjs",
+    "line": null,
+    "description": "14-07 Aufgabe 2: die vier realen Rollenwechsel-Nachweise (Rolle geben -> is_tester=true binnen 5s, Rolle nehmen -> false, andere Rollenaenderung loest KEINEN Schreibzugriff aus, Server-Austritt -> false) sind gegen die echte Anlage NICHT gefahren -- der Bot ist noch nicht mit dem neuen Code deployed (Deploy ist ausdruecklich nicht Teil dieses Plans, sondern Betreiber-/Coolify-Sache). Alle vier Zusicherungen sind statisch/automatisiert belegt (node --check, die drei grep-Zusicherungen aus dem Plan, npm run build && npm run gate 18/18); die vier Live-Zustandswechsel stehen nach dem naechsten Deploy aus.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T10:56:40.616Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "discord/bot/src/role-reconcile.mjs",
+    "line": null,
+    "description": "14-07 Aufgabe 3: der Ausfallfall-Nachweis (Bot gestoppt, Rolle im Stillstand vergeben/entzogen, Bot neu gestartet -> Vollabgleich holt beide Richtungen nach) ist NICHT gegen die echte Anlage gefahren -- braucht ein deployed Bot mit dem neuen Code, Deploy ist nicht Teil dieses Plans. Statisch belegt: node --check, die drei grep-Zusicherungen aus dem Plan (members.fetch/discord_role_state/Rollenabgleich), reconcileRoles in der ClientReady-Sequenz verdrahtet.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T10:56:52.214Z",
+    "resolved_at": null
+  },
+  {
+    "id": 23,
+    "kind": "deviation",
+    "phase": "14",
+    "file": "discord/bot/README.md",
+    "line": null,
+    "description": "14-07: discord/bot/README.md enthielt an ZWEI Stellen dieselbe jetzt falsche Behauptung wie discord/README.md ('no privileged intents', 'leave them off') -- vom Plan nicht namentlich in files_modified gelistet, aber derselbe Bot, derselbe Fehler. Als Rule-1-Fix mitkorrigiert, nicht Teil der urspruenglichen files_modified-Liste.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T10:56:52.812Z",
     "resolved_at": null
   }
 ]

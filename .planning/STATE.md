@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: "Completed 14-06-PLAN.md (D-16 Vollzug bewusst vertagt auf 14-12, WINDOWS.md #20)"
-last_updated: "2026-08-18T10:29:49.319Z"
+stopped_at: Completed 14-07-PLAN.md (Rollenwechsel-Push + Start-Vollabgleich verdrahtet, Doku richtiggestellt; Live-Zustandswechsel-Nachweise auf Deploy vertagt, WINDOWS.md ids 21/22)
+last_updated: "2026-08-18T10:59:42.374Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 53
+  completed_plans: 54
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 82%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -234,6 +234,7 @@ Progress: [████████░░] 82%
 | Phase 14 P03 | ~30min | 2 tasks | 1 files |
 | Phase 14-testpilot-zugang-staging-hinter-der-discord-rolle P04 | ~50min | 2 tasks | 3 files |
 | Phase 14 P06 | ~55min | 2 tasks | 2 files |
+| Phase 14 P07 | ~50min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -346,6 +347,9 @@ Recent decisions affecting current work:
 - [Phase ?]: D-02-Erkennung matcht zweigleisig (eigener Text ODER GoTrue-Generic-Wrapper) -- WINDOWS.md id 16 laesst offen, welche Form ankommt
 - [Phase ?]: 14-06: Trockenlauf zeigt 0 aktuelle Traeger der Discord-Rolle Test Pilots (5 Mitglieder gesamt) -- Massenentzug aus D-16 waere aktuell ein No-Op, Checkpoint-Zustimmung trotzdem erforderlich vor --rolle-wirklich-entziehen
 - [Phase ?]: 14-06: Betreiber vertagt D-16-Vollzug (18.08.2026) statt allen-entziehen/liste-kuerzen/nicht-entziehen -- vor dem Scharfschalten in 14-12 erneut node tester-dry-run.mjs fahren, dann entscheiden. Verdrahtet in WINDOWS.md #20. Trockenlauf-Ergebnis (5 Mitglieder, 0 Traeger) vom Betreiber unabhaengig bestaetigt
+- [Phase ?]: [Phase 14]: 14-07: PostgREST-PATCH statt Upsert fuer den Rollenspiegel -- discord_role_state.user_id ist Primaerschluessel ohne Default und wird nur vom sync_discord_identity()-Trigger gesetzt; PATCH+Filter auf discord_user_id trifft nie daneben
+- [Phase ?]: [Phase 14]: 14-07: audit.mjs/prune.mjs fordern jetzt selbst GatewayIntentBits.GuildMembers an und melden dessen Abwesenheit als Fund statt es als gewollten Zustand zu behandeln (vorher konnten beide Skripte das Fehlen gar nicht maschinell feststellen)
+- [Phase ?]: [Phase 14]: 14-07: die vier live-Zustandswechsel-Nachweise (Rolle geben/nehmen/Austritt/Ausfallfall) sind NICHT gefahren -- brauchen einen mit dem neuen Code deployten Bot, Deploy war ausdruecklich nicht Teil dieses Plans; als WINDOWS.md ids 21/22 verdrahtet
 
 ### Pending Todos
 
@@ -400,6 +404,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T10:29:49.289Z
-Stopped at: Completed 14-06-PLAN.md (D-16 Vollzug bewusst vertagt auf 14-12, WINDOWS.md #20)
+Last session: 2026-08-18T10:59:42.345Z
+Stopped at: Completed 14-07-PLAN.md (Rollenwechsel-Push + Start-Vollabgleich verdrahtet, Doku richtiggestellt; Live-Zustandswechsel-Nachweise auf Deploy vertagt, WINDOWS.md ids 21/22)
 Resume file: None
