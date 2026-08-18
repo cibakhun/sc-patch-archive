@@ -96,9 +96,24 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
           echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
 
+      # ---- Testpilot-Tor: der Rauchtest braucht einen Weg hindurch --------
+      # Das Tor steht auf diesem Container scharf (STAGING=1, Plan 08) --
+      # ohne einen Weg hindurch liefe JEDE Leitseite auf /gate.html statt
+      # auf sich selbst, und der Rauchtest risse an fast jeder Zusicherung
+      # (Plan-09-Anlass). Der Weg ist bewusst KEIN Dauerschluessel
+      # (T-14-56/T-14-57/T-14-58, siehe nginx/gate.js check()):
+      #   1. je Lauf frisch gewuerfelt (openssl rand -hex 32) und nirgends
+      #      gespeichert -- kein Repo-Secret, kein Coolify-Eintrag, keine
+      #      Datei. Der Vorschau-Container auf Coolify bekommt ihn NIE.
+      #   2. beide Seiten (Container-Umgebungsvariable VB_GATE_BYPASS UND
+      #      Rauchtest-Umgebungsvariable SMOKE_GATE_BYPASS) entstehen in
+      #      DIESEM Schritt, damit sie nicht auseinanderlaufen koennen.
+      #   3. der Wert wird erzeugt und verwendet, aber nie ausgegeben --
+      #      keine Zeile in diesem Schritt druckt ihn (T-14-58).
       - name: Rauchtest gegen das fertige Image
         run: |
-          docker run -d --rm -p 8080:80 --name smoke ghcr.io/cibakhun/sc-patch-archive:staging
+          GATE_BYPASS=$(openssl rand -hex 32)
+          docker run -d --rm -p 8080:80 -e VB_GATE_BYPASS="$GATE_BYPASS" --name smoke ghcr.io/cibakhun/sc-patch-archive:staging
           # auf nginx warten, statt blind zu schlafen
           for i in $(seq 1 30); do
             curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
@@ -106,9 +121,17 @@ jobs:
           done
           # `|| code=$?`, damit der Container auch nach einem Fehlschlag
           # gestoppt wird — unter `bash -e` bricht der Schritt sonst sofort ab
-          # und laesst ihn stehen. Der Exit-Code bleibt der des Rauchtests.
+          # und laesst ihn stehen. Der Exit-Code bleibt der letzten Pruefung.
           code=0
-          node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          SMOKE_GATE_BYPASS="$GATE_BYPASS" node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          # check-gate.mjs (Schiene C, Aufgabe 2) laeuft NACH dem Rauchtest
+          # und VOR dem Push, gegen denselben laufenden Container -- dort ist
+          # er am Platz, weil dort ein echtes Artefakt steht. Er bekommt den
+          # Bypass-Wert NICHT: seine eigene Zusicherung 4 wuerfelt einen
+          # FREMDEN Wert und misst, dass GENAU DER nicht durchkommt.
+          if [ "$code" -eq 0 ]; then
+            node scripts/check-gate.mjs --base http://localhost:8080 || code=$?
+          fi
           docker stop smoke >/dev/null || true
           exit $code
 

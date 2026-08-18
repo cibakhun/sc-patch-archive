@@ -6,15 +6,33 @@
 
      check(r)  js_set-Handler, laeuft bei JEDEM Aufruf. Synchron, ohne
                Netz, ohne Datenbank — liefert nur "1"/"0". "1" in genau
-               drei Faellen: das Tor ist am gepinnten Host aus
+               VIER Faellen: das Tor ist am gepinnten Host aus
                ($vb_gate_on != "1", Live-Betrieb D-12); der Pfad steht
                in der Ausnahmeliste (defense-in-depth zur Location-Liste
                in nginx/default.conf — beide muessen zusammenpassen,
-               Plan 09 friert das in einem Pruefer ein); oder das Cookie
+               Plan 09 friert das in einem Pruefer ein); die Kopfzeile
+               X-VB-Gate-Bypass traegt exakt den Wert aus VB_GATE_BYPASS
+               (Plan 09, Aufgabe 3 — der CI-Rauchtest kommt so durchs
+               Tor, ohne dass ein Ausweis noetig ist); oder das Cookie
                vb_gate traegt eine gueltige HMAC-SHA256-Signatur und ein
                exp in der Zukunft. KEIN ngx.fetch hier (D-08) — bei rund
                17.000 Unterseiten waere eine Discord-/Supabase-Anfrage je
                Seitenaufruf weder bezahlbar noch schnell.
+
+               VB_GATE_BYPASS ist ein PRUEFSCHLUESSEL, kein Dauerschluessel
+               (T-14-56/T-14-57/T-14-58): fehlt die Umgebungsvariable oder
+               ist sie leer, ist die Pruefung VOLLSTAENDIG aus — kein
+               Kopfzeilenwert der Welt kommt dann durch, der Vorschau-
+               Container auf Coolify bekommt sie nie gesetzt (der Weg
+               existiert dort schlicht nicht). Wird sie gesetzt (nur im
+               CI-Pruef-Container, Aufgabe 3 verdrahtet das), MUSS der
+               Wert je Lauf frisch gewuerfelt sein und darf nirgends
+               gespeichert werden — kein Repo-Secret, kein Coolify-
+               Eintrag, keine Datei. Der Vergleich laeuft ueber
+               safeEqual() (volle Laenge, kein Kurzschluss), exakt wie
+               beim Cookie selbst. `node scripts/check-gate.mjs`
+               (Schiene C) misst gegen die ausgelieferte Seite, dass ein
+               GERATENER Wert NICHT durchkommt.
 
      mint(r)   js_content-Handler fuer POST /_gate/mint. Liest die
                Authorization-Kopfzeile und ruft SERVER-ZU-SERVER GENAU
@@ -150,6 +168,19 @@ function check(r) {
   try {
     if (r.variables.vb_gate_on !== '1') return '1';
     if (isExempt(r.uri)) return '1';
+    /* Pruefschluessel fuer den CI-Rauchtest (Plan 09, Aufgabe 3) — siehe
+       Kopfkommentar dieser Datei fuer die drei Eigenschaften, die daraus
+       KEINEN Dauerschluessel machen. Leere/fehlende Umgebungsvariable
+       heisst: diese Pruefung ist vollstaendig aus, kein Kopfzeilenwert
+       kommt durch (der Vorschau-Container bekommt VB_GATE_BYPASS nie
+       gesetzt). safeEqual() vergleicht ueber die volle Laenge, kein
+       Kurzschluss (T-14-57) — dieselbe Funktion wie bei der Cookie-
+       Signatur, absichtlich WIEDERVERWENDET statt neu geschrieben. */
+    const bypass = (process.env.VB_GATE_BYPASS || '').trim();
+    if (bypass) {
+      const kopfwert = r.headersIn['X-Vb-Gate-Bypass'] || '';
+      if (kopfwert && safeEqual(kopfwert, bypass)) return '1';
+    }
     const secret = (process.env.VB_GATE_SECRET || '').trim();
     if (!secret) return '0';
     const cookieVal = readCookie(r.headersIn.Cookie, 'vb_gate');
