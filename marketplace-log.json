@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 303,
-  "totalListings": 6957,
+  "updates": 304,
+  "totalListings": 6959,
   "totalSold": 295,
   "distinctItems": 1240
  },
@@ -148570,6 +148570,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787036933,
    "dateExpiration": 1792220933
+  },
+  "163774": {
+   "idItem": 1597,
+   "idCategory": 18,
+   "title": "P4-AR Rifle [CRAFTED 900]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787044012,
+   "dateExpiration": 1792228012
+  },
+  "163775": {
+   "idItem": 8054,
+   "idCategory": 38,
+   "title": "RCMBNT Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787044980,
+   "dateExpiration": 1792228980
   }
  }
 }
