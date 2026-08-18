@@ -831,18 +831,20 @@ Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
   EN**; beide `[slug].astro` sind 27-Zeilen-Wrapper. Jede Änderung landet in
   beiden Sprachen zugleich, neue sichtbare Zeichenketten brauchen ihren
   Schlüssel in `src/i18n/ui.ts`.
+
 - Schiffsseiten laden **kein** `detail.css` — im gebauten
   `dist/schiffe/anvl-carrack.html` stehen nur `fonts.css`, `mobile-ux.css`
   und `theme.css`. Die site-weite Falle
   `section{padding:clamp(3rem,7vw,5.5rem)…}` greift hier also nicht, und die
   lokale Regel `*{margin:0;padding:0}` (`ShipDetail.astro:404`) neutralisiert
   sie zusätzlich. Wer diese Zeile anfasst, holt die Falle zurück.
+
 - Die Panels stehen heute als `<section class="sd__panel">` in **einer**
   Spalte (`.sd{max-width:var(--maxw)}`).
 
 **Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
 **Depends on:** nichts
-**Plans:** 4 plans in 4 Wellen (streng nacheinander — jede Welle misst, was die
+**Plans:** 1/4 plans executed
 vorige gebaut hat)
 
 **Success Criteria** (was WAHR sein muss):
@@ -850,29 +852,38 @@ vorige gebaut hat)
   1. Auf der gebauten Carrack-Seite kommt jeder der sieben heute doppelten
      Zahlwerte höchstens einmal vor; jede verbleibende Wiederholung ist als
      Ausnahme benannt und begründet
+
   2. Das Panel „Datenblatt" existiert in seiner heutigen Form nicht mehr —
      seine sechs Felder stehen an jeweils genau einer Stelle
+
   3. Beim Öffnen einer Schiffsseite ist ohne Scrollen erkennbar, welche
      Kapitel die Seite hat; ein Klick springt dorthin, und die Sprungleiste
      bleibt beim Scrollen erreichbar
+
   4. Es stehen nicht mehr zehn gleich aussehende Rahmen untereinander — die
      Kapitel sind optisch voneinander unterscheidbar
+
   5. Balkenspuren gibt es nur noch im Leistungsprofil; überall sonst Zahlen
   6. Die Seitenhöhe der Carrack bei 1280 × 720 liegt bei höchstens 4.200 px
      (Ausgang 5.554 px) und wird als Sperrklinke festgeschrieben
+
   7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi,
      bis hinunter auf 360 px Breite
+
   8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
      `STAGING=1`
 
 Plans:
 
-- [ ] 14-01-PLAN.md — Werkzeug vor Eingriff: das Entdopplungs-Tor
+- [x] 14-01-PLAN.md — Werkzeug vor Eingriff: das Entdopplungs-Tor
       (`verify:shipcard`, vorerst ausgesetzt) einmal vorgeführt rot, plus die
       Messsonde, die die Ausgangsmessung von 5.554 px reproduziert
+
 - [ ] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
       Ankerziel und 360 px am gerenderten Bildpunkt gemessen
+
 - [ ] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
       getilgt; Balken nur noch im Leistungsprofil
+
 - [ ] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
       Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`

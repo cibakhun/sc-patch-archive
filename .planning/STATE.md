@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 12
-current_phase_name: fundorte-in-der-mining-werkbank-anklickbar
+current_phase: 14
+current_phase_name: schiffs-datenkarte-entstapeln
 status: executing
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-08-15T17:35:00.000Z"
+stopped_at: "Completed 14-01-PLAN.md -- Werkzeug vor Eingriff: verify-shipcard.mjs vorgefuehrt rot, schiffskarte-messung.mjs reproduziert 5.554 px"
+last_updated: "2026-08-18T01:28:34.379Z"
 last_activity: 2026-08-15
-last_activity_desc: Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde (WINDOWS.md id 12) noch offen
+last_activity_desc: Phase 12 execution started
 progress:
-  total_phases: 16
-  completed_phases: 10
-  total_plans: 53
-  completed_plans: 46
+  total_phases: 18
+  completed_phases: 11
+  total_plans: 57
+  completed_plans: 47
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,8 +25,22 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 12 — fundorte-in-der-mining-werkbank-anklickbar
+**Current focus:** Phase 14 — schiffs-datenkarte-entstapeln
 
+> **Nachtrag 18.08.2026 — Phase 14 Plan 1 von 4 ausgefuehrt (Welle 1: Werkzeug vor Eingriff).**
+> „Schiffs-Datenkarte entstapeln" (`.planning/phases/14-schiffs-datenkarte-entstapeln/`),
+> 4 Plaene. **Plan 01 ist ausgefuehrt**: `verify-shipcard.mjs` (acht
+> Zusicherungen gegen `dist/schiffe`+`dist/de/schiffe`, einmal vorgefuehrt
+> rot: 1.385 Doppelungsbefunde, 4.256 verbliebene Einheitsrahmen) und
+> `scripts/probes/schiffskarte-messung.mjs` (reproduziert die Ausgangsmessung
+> Carrack 1280×720 dunkel exakt bei 5.554 px/DE, 5.498 px/EN). Diese Welle
+> aendert keine ausgelieferte Zeile — reine Messapparatur, Details in
+> `14-01-SUMMARY.md`. Naechster Schritt: `14-02-PLAN.md` (Tracer: ein
+> Kapitel end-to-end mit Sprungleiste).
+> ⚠ Phase 12 ist NICHT erledigt — sie wartet weiterhin auf ihre Sichtrunde
+> (`.planning/WINDOWS.md`, id 12). Der Kopf-Eintrag `current_phase` ist nur
+> deshalb auf 14 gewandert, weil dort jetzt gearbeitet wird.
+>
 > **Nachtrag 15.08.2026 (zweiter) — Phase 12 ist geplant, ausführbereit.**
 > „Fundorte in der Mining-Werkbank anklickbar", **3 Pläne in 3 Wellen**
 > (`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/`),
@@ -227,6 +241,7 @@ Progress: [█████████░] 85%
 | Phase 12 P01 | 50min | 2 tasks | 4 files |
 | Phase 12 P02 | 50min | 3 tasks | 4 files |
 | Phase 12 P03 | ~100min | 3 tasks | 7 files |
+| Phase 14 P01 | 75min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -320,6 +335,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 12-03: Backstop "Bildlaufleiste sichtbar" liess sich NICHT ueber offsetWidth-clientWidth messen (Plan-Vorschlag) -- dieses Chromium rendert scrollbar-width:thin als echten Overlay (0px reservierte Breite trotz echten Ueberlaufs); auf tatsaechliche Scroll-Wirkung (scrollTop verschiebt sichtbaren Inhalt) umgestellt
 - [Phase ?]: 12-03: npm install (ohne Argument) im Worktree ausgefuehrt, weil playwright-core in node_modules fehlte (weder Worktree noch Hauptrepo) -- reconciliert ausschliesslich aus dem committeten package-lock.json, package.json/package-lock.json vor/nach dem Lauf unveraendert (git status leer). Kein Fall des ausgeschlossenen "npm install <pkg>"-Musters
 - [Phase ?]: 12-03: Phase 12 technisch fertig (3/3 Plaene), NICHT "Complete" markiert -- Sichtrunde als WINDOWS.md id 12 an den Betreiber uebergeben, deckt inhaltlich auch die noch offenen id 10 (Phase 9) und id 11 (Phase 10) mit ab
+- [Phase ?]: 14-01: verify:shipcard registriert mit disabled statt scharf -- beurteilt den Zielzustand der Phase, ist bis 14-04-PLAN.md zwangslaeufig rot (Praezedenz verify:sync)
+- [Phase ?]: 14-01: Ausgangsmessung lief gegen npm run preview auf Port 4322 statt 4321 -- 4321 war von einem laufenden astro-dev-Server belegt
+- [Phase ?]: 14-01: document.fonts.ready vor jeder Bildpunkt-Messung ergaenzt -- ohne diese Wartestelle schwankte die Carrack-Seitenhoehe je nach Font-Swap-Zeitpunkt um bis zu 150 px zwischen zwei Laeufen derselben Seite
 
 ### Pending Todos
 
@@ -369,6 +387,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-15T17:35:00.000Z
-Stopped at: Completed 12-03-PLAN.md — Phase 12 alle 3 Plaene ausgefuehrt, Sichtrunde WINDOWS.md id 12 offen
+Last session: 2026-08-18T01:28:34.349Z
+Stopped at: Completed 14-01-PLAN.md -- Werkzeug vor Eingriff: verify-shipcard.mjs vorgefuehrt rot, schiffskarte-messung.mjs reproduziert 5.554 px
 Resume file: None
