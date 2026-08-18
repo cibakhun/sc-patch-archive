@@ -21,6 +21,7 @@
     "verify:typo": "node scripts/verify-typo-motion.mjs",
     "verify:layers": "node scripts/verify-layers.mjs",
     "verify:sync": "node scripts/verify-sync.mjs",
+    "verify:shipcard": "node scripts/verify-shipcard.mjs",
     "verify:theme": "node scripts/verify-theme-gen.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
