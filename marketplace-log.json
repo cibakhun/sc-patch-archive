@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 297,
-  "totalListings": 6922,
+  "updates": 298,
+  "totalListings": 6927,
   "totalSold": 294,
-  "distinctItems": 1238
+  "distinctItems": 1240
  },
  "listings": {
   "156580": {
@@ -141951,6 +141951,10 @@
     {
      "d": "2026-08-17",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 6000000
     }
    ],
    "soldOut": false,
@@ -142555,6 +142559,10 @@
     {
      "d": "2026-08-17",
      "p": 30000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 24000000
     }
    ],
    "soldOut": false,
@@ -145477,6 +145485,10 @@
     {
      "d": "2026-08-17",
      "p": 50000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -145834,6 +145846,10 @@
     {
      "d": "2026-08-17",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -147819,6 +147835,111 @@
    "soldOutPrice": null,
    "dateAdded": 1787020730,
    "dateExpiration": 1792204729
+  },
+  "163746": {
+   "idItem": 6791,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787021997,
+   "dateExpiration": 1792205997
+  },
+  "163747": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Wasteland crafted kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787022055,
+   "dateExpiration": 1792202455
+  },
+  "163750": {
+   "idItem": null,
+   "idCategory": 4,
+   "title": "adp-mk4 legs justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787022773,
+   "dateExpiration": 1792206773
+  },
+  "163751": {
+   "idItem": 6766,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms (XenoThreat)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787023059,
+   "dateExpiration": 1792207059
+  },
+  "163752": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure) - quick sell - discord in description",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 17000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787023645,
+   "dateExpiration": 1792207645
   }
  }
 }
