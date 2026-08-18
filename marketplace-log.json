@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 296,
-  "totalListings": 6913,
+  "updates": 297,
+  "totalListings": 6922,
   "totalSold": 294,
   "distinctItems": 1238
  },
@@ -141401,6 +141401,10 @@
     {
      "d": "2026-08-17",
      "p": 900000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 800000
     }
    ],
    "soldOut": false,
@@ -141993,6 +141997,10 @@
     {
      "d": "2026-08-17",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 7000000
     }
    ],
    "soldOut": false,
@@ -147622,6 +147630,195 @@
    "soldOutPrice": null,
    "dateAdded": 1787017293,
    "dateExpiration": 1792201293
+  },
+  "163735": {
+   "idItem": 4742,
+   "idCategory": 87,
+   "title": "Saldynium 575q - 20K, 861q - 100K, 938q - 200K",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787018329,
+   "dateExpiration": 1792202329
+  },
+  "163736": {
+   "idItem": 6833,
+   "idCategory": 3,
+   "title": "Neoni Jami Kask",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787018808,
+   "dateExpiration": 1792202808
+  },
+  "163737": {
+   "idItem": 4477,
+   "idCategory": 18,
+   "title": "Parallax \"Sunstone\" Enerji Taarruz Tfei",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787019138,
+   "dateExpiration": 1792203138
+  },
+  "163738": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot Pristine",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787019809,
+   "dateExpiration": 1792203809
+  },
+  "163739": {
+   "idItem": 7864,
+   "idCategory": 68,
+   "title": "Haruspec Goggles (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787020039,
+   "dateExpiration": 1792204039
+  },
+  "163741": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline 965q and 907q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787020357,
+   "dateExpiration": 1792204357
+  },
+  "163742": {
+   "idItem": 2438,
+   "idCategory": 5,
+   "title": "Arden-SL Core Balefire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787020364,
+   "dateExpiration": 1792204364
+  },
+  "163743": {
+   "idItem": 3219,
+   "idCategory": 3,
+   "title": "Zeus Keif Miferi Yldz Manzaras",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787020567,
+   "dateExpiration": 1792204567
+  },
+  "163744": {
+   "idItem": 5504,
+   "idCategory": 3,
+   "title": "Deadhead Kaskl Bruiser",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787020730,
+   "dateExpiration": 1792204729
   }
  }
 }
