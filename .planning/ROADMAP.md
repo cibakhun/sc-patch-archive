@@ -842,7 +842,8 @@ Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
 
 **Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
 **Depends on:** nichts
-**Plans:** 0 plans
+**Plans:** 4 plans in 4 Wellen (streng nacheinander — jede Welle misst, was die
+vorige gebaut hat)
 
 **Success Criteria** (was WAHR sein muss):
 
@@ -866,4 +867,12 @@ Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 14 to break down)
+- [ ] 14-01-PLAN.md — Werkzeug vor Eingriff: das Entdopplungs-Tor
+      (`verify:shipcard`, vorerst ausgesetzt) einmal vorgeführt rot, plus die
+      Messsonde, die die Ausgangsmessung von 5.554 px reproduziert
+- [ ] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
+      Ankerziel und 360 px am gerenderten Bildpunkt gemessen
+- [ ] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
+      getilgt; Balken nur noch im Leistungsprofil
+- [ ] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
+      Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`
