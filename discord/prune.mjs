@@ -81,7 +81,12 @@ const rankRoleNames = new Set(allRankRoleNames());
 const isBotOwnedRole = (name) =>
   rankRoleNames.has(name) || name.includes(PRESTIGE.star) || name.includes(PRESTIGE.name);
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// GuildMembers: privileged intent, expected to be ON since Phase 14 (the
+// Testpilot role mirror needs it — discord/README.md). Requesting it here
+// too lets this report actually detect and flag its absence below, instead
+// of silently treating "no member counts" as the deliberate, by-design state
+// it used to be before Phase 14.
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 await client.login(process.env.DISCORD_TOKEN);
 await new Promise((r) => { client.once('clientReady', r); client.once('ready', r); });
 const guild = await client.guilds.fetch(process.env.GUILD_ID);
@@ -146,9 +151,12 @@ if (doChannels) {
 }
 
 // ── Roles ──────────────────────────────────────────────────────────────────
-// Member counts need the privileged Server Members intent, which this bot
-// deliberately doesn't have. Printing "0 members" without it would be a lie, so
-// try once and simply say so when it isn't available.
+// Member counts need the privileged Server Members intent. Since Phase 14
+// (the Testpilot role mirror, discord/README.md) this intent is EXPECTED to
+// be on — its absence is no longer a deliberate, by-design state, it's a
+// drift that breaks the mirror too (see discord/bot/src/role-reconcile.mjs).
+// Printing "0 members" without it would be a lie, so try once and flag it
+// plainly when it isn't available.
 let memberCounts = null;
 if (doRoles) {
   // Without the intent this can sit waiting for a chunk that never arrives, so
@@ -161,6 +169,8 @@ if (doRoles) {
     memberCounts = true;
   } catch {
     memberCounts = false;
+    say(`  ${c.red}✗ Server Members Intent nicht verfuegbar -- seit Phase 14 ERWARTET (Testpilot-Rollenspiegel), keine gewollte Einstellung mehr.${c.off}`);
+    say(`  ${c.dim}  Pruefen: discord.com/developers/applications -> Bot -> Privileged Gateway Intents -> SERVER MEMBERS INTENT.${c.off}`);
   }
 }
 
@@ -190,7 +200,7 @@ if (doRoles) {
   }
   if (!orphanRoles.length) say(`${c.dim}  none.${c.off}`);
   if (orphanRoles.length && memberCounts === false) {
-    say(`${c.dim}  (member counts unavailable — the bot has no Server Members intent, by design)${c.off}`);
+    say(`${c.yellow}  (member counts unavailable — Server Members Intent missing, see the ✗ above; NOT by design since Phase 14)${c.off}`);
   }
   for (const r of orphanRoles.sort((a, b) => b.position - a.position)) {
     const above = r.position >= botTop;

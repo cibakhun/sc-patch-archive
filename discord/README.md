@@ -76,7 +76,18 @@ name it anything (the builder renames it to *VerseBase*). Done.
    ```
 4. *(Optional but tidy)* On the **Bot** tab, turn **off** "Public Bot" so only you can invite it.
 
-No privileged intents are required — leave them off.
+**One privileged intent IS required, since Phase 14 (Testpilot gate):** the
+always-on bot (`bot/`) mirrors membership in the `tester` role ("Test
+Pilots") into the site's database (D-08/D-17/D-25 — sofortiger Rollenentzug,
+ohne eine Discord-Anfrage je Seitenaufruf). That needs the **Server Members
+Intent** to receive `guildMemberUpdate`/`guildMemberAdd`/`guildMemberRemove`
+and to read the full member list on startup — without it, those events
+**never fire, silently, with no error**. On the **Bot** tab, scroll to
+**Privileged Gateway Intents** and switch on **only** "SERVER MEMBERS
+INTENT", then **Save Changes**. Leave **"PRESENCE INTENT"** and **"MESSAGE
+CONTENT INTENT"** off — both are reasoned opt-outs (see `COVERAGE.md`); a
+second privileged intent would widen data collection without benefit. Under
+100 servers this activation is instant, no Discord review required.
 
 ### 3. Invite the bot to your server (with Administrator)
 Open this URL, replacing `YOUR_APPLICATION_ID` with the **Application ID** from the
