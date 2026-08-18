@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 298,
-  "totalListings": 6927,
+  "updates": 299,
+  "totalListings": 6932,
   "totalSold": 294,
   "distinctItems": 1240
  },
@@ -147940,6 +147940,111 @@
    "soldOutPrice": null,
    "dateAdded": 1787023645,
    "dateExpiration": 1792207645
+  },
+  "163755": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787025218,
+   "dateExpiration": 1792209218
+  },
+  "163756": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787025286,
+   "dateExpiration": 1792209286
+  },
+  "163758": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS-05 Orbital Positioning Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787026922,
+   "dateExpiration": 1792210922
+  },
+  "163759": {
+   "idItem": 6789,
+   "idCategory": 5,
+   "title": "ORC-mkX Core (XenoThreat v2)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787027286,
+   "dateExpiration": 1792211286
+  },
+  "163760": {
+   "idItem": 114,
+   "idCategory": 29,
+   "title": "Helix I Mining Laser [14.6% Laser Power Increase]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 681,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787027708,
+   "dateExpiration": 1792211708
   }
  }
 }
