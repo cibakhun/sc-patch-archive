@@ -13,6 +13,7 @@
     "smoke": "node scripts/browser-smoke.mjs",
     "check:staging": "node scripts/check-deployed.mjs --base https://staging.verse-base.com --vorschau",
     "check:live": "node scripts/check-deployed.mjs --base https://verse-base.com --live",
+    "check:gate": "node scripts/check-gate.mjs --base https://staging.verse-base.com",
     "verify": "node scripts/_verify.mjs",
     "verify:wiring": "node scripts/verify-wiring.mjs",
     "verify:metrics": "node scripts/verify-metrics.mjs",

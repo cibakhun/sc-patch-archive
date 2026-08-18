@@ -101,10 +101,11 @@ function walk(dir, ext, out = []) {
 }
 function ersteDatei(dir) {
   if (!existsSync(dir)) return null;
-  const entries = readdirSync(dir)
+  const norm = dir.replace(/\/+$/, ''); // Aufrufer kann "dist/assets/fonts/" (mit Endschraegstrich) uebergeben
+  const entries = readdirSync(norm)
     .filter((n) => !n.startsWith('.'))
     .sort();
-  return entries.length ? `${dir}/${entries[0]}` : null;
+  return entries.length ? `${norm}/${entries[0]}` : null;
 }
 function distPfadZuUrl(distPfad) {
   return distPfad === 'dist/index.html' ? '/' : distPfad.slice('dist'.length);
