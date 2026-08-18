@@ -1,7 +1,7 @@
 ---
 phase: 14
 slug: schiffs-datenkarte-entstapeln
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-18
@@ -484,6 +484,63 @@ diese Konsolidierung nebenbei mit auflöst.
 
 ---
 
+### 9. Höhenbudget — die Rechnung, die auf 4.200 px führt
+
+> Nachgetragen auf Befund des UI-Prüfers (Check 6, FLAG, nicht blockierend):
+> der Vertrag nannte Erfolgskriterium 6 (≤ 4.200 px), rechnete aber nirgends
+> nach — und hebt gleichzeitig den Kapitelabstand von `1.6rem` auf `2.2rem`.
+> Ein Ziel ohne Rechnung ist eine Hoffnung. Hier ist die Rechnung.
+
+**Ausgang:** 5.554 px (Carrack, 1280 × 720). Davon sind 4.718 px Blockhöhe;
+die übrigen 836 px sind Kopfleiste (56), zwölf Zwischenräume à 29 px (348)
+und der Seitenfuß samt `.sd`-Unterpolsterung (432).
+
+| Posten | Rechnung | Δ |
+| --- | --- | --- |
+| Panel-Chrome: 10 Panels → 4 Kapitel | 10 × (48 px Polsterung + 40 px Kopf) + 9 × 29 px Lücke = 1.141 → 4 × 100 px + 3 × 40 px Lücke = 520, zzgl. 5 × 43 px `.sd__sub` in den zwei mehrteiligen Kapiteln = 215 | **−407** |
+| „Datenblatt" entfällt | 228 px + 29 px Lücke | **−257** |
+| Balken → Zahlen (4 Stellen) | Maße 90 · Flug 116 · Komponenten 24 · Bewaffnung 85 | **−315** |
+| Sprungleiste kommt hinzu | `.55rem` + 27 px + `.55rem` | **+48** |
+| **Zwischenstand** | | **4.623 px** |
+
+⚠ **4.623 px verfehlt das Ziel um 423 px.** Kapitelbildung, Entdopplung und
+Balkenrückbau allein reichen **nicht**. Das ist kein Grund, das Ziel zu
+senken — es ist der Grund, warum der nächste Posten **verbindlich** ist und
+nicht im Ermessen liegt:
+
+| Posten | Rechnung | Δ |
+| --- | --- | --- |
+| „Ausstattung" 2 × 2 statt 4 × 1 | nach Balkenrückbau 466 + 444 + 399 + 275 = 1.584 → `max(466,444) + max(399,275) + 29` = 894 | **−690** |
+| „Umfeld" zweispaltig | 238 + 268 + 210 + 2 × 29 = 774 → `max(238,268) + 210 + 29` = 507 | **−267** |
+| **Ergebnis** | | **3.666 px** — 534 px Reserve unter dem Ziel |
+
+**Daraus folgt verbindlich:**
+
+1. **Ab `1100px` Breite stehen die Unterabschnitte von „Ausstattung" als
+   2 × 2-Raster** (Maße & Fracht ∥ Bewaffnung / Flugleistung ∥ Komponenten &
+   Verteidigung), **und die von „Umfeld" zweispaltig.** Das ist genau die
+   Zweispaltigkeit, die `14-CONTEXT.md` D-01 ausdrücklich erlaubt und
+   wünscht — *innerhalb* eines Kapitels, nicht als Seitenlayout. Unter
+   1100 px fallen beide auf eine Spalte zurück (`grid-template-columns:1fr`).
+2. **Die 534 px Reserve sind das Budget für alles, was diese Rechnung nicht
+   kennt** — größere Kapitelköpfe als veranschlagt, `scroll-margin-top`,
+   Rundungen. Sie sind **kein** Freibrief für zusätzliche Luft.
+3. **Die Schlussmessung entscheidet, nicht diese Tabelle.** Landet die Carrack
+   über 4.200 px, ist Erfolgskriterium 6 gerissen — dann wird die Ursache
+   gesucht und behoben, nicht die Zahl angehoben. Eine Anhebung der
+   Sperrklinke braucht einen Commit, dessen Botschaft die Ursache nennt
+   (`docs/maschinelle-validierung.md`, Grundsatz 5).
+
+**Ehrlich vermerkt:** Punkt 6 dieses Vertrags (Perzentil bleibt, nur der
+Rohwert fällt) gibt gegenüber dem ersten Entwurf rund 100 px zurück. Das war
+der Preis dafür, keine Information zu verlieren, und er ist im Budget oben
+bereits eingerechnet.
+
+**Nicht in dieser Rechnung, bewusst:** der Seitenfuß (432 px) gehört nicht zu
+dieser Phase, und die Beschreibung (159 px) bleibt unangetastet.
+
+---
+
 ## Sichturteile (an `.planning/WINDOWS.md`, kein Skript)
 
 Diese Punkte entscheidet kein Prüfskript — sie gehen als benannte Punkte an
@@ -511,11 +568,27 @@ den Betreiber, sobald die Phase ausgeführt ist:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+`gsd-ui-checker`, 18.08.2026 — sechs Dimensionen und sechs phasenspezifische
+Prüfpunkte.
 
-**Approval:** pending
+- [x] Dimension 1 Copywriting: PASS — beide neuen i18n-Schlüssel DE+EN belegt
+- [x] Dimension 2 Visuals: PASS — Blickführung in fünf Ebenen benannt
+- [x] Dimension 3 Color: PASS — Akzentreservierung eng gefasst, Gold bleibt „Geld"
+- [x] Dimension 4 Typography: PASS — drei Rollen, zwei Gewichte, keine neue Größe erfunden
+- [x] Dimension 5 Spacing: PASS — nur drei neue Zahlen, jede mit Fundstelle
+- [x] Dimension 6 Registry Safety: PASS — keine Fremdbibliothek, kein shadcn
+- [x] D-01: PASS — kein Reiter, kein Akkordeon, kein `<details>`
+- [x] D-03: PASS — alle sieben Doppelwerte und alle sechs Datenblattfelder mit benanntem Zielort
+- [x] Kapitel-Unterscheidung: PASS — Mittel benannt, Wirkung als Sichturteil ausgelagert
+- [x] Sprungleiste bei 360 px: PASS — Bildlaufleisten-Allowlist als Fallstrick benannt
+- [x] Leere Kapitel: PASS — alle vier haben eine Leer-Bedingung
+- [x] Höhenbudget: **FLAG → aufgelöst.** Der Prüfer hat zu Recht bemängelt, dass
+      der Vertrag 4.200 px nennt, ohne nachzurechnen, und gleichzeitig den
+      Kapitelabstand anhebt. Nachgerechnet (Detailvertrag Punkt 9, neu): ohne
+      Zweispaltigkeit landet die Seite bei 4.623 px und **verfehlt das Ziel um
+      423 px**. Deshalb ist die kapitelinterne Zweispaltigkeit von
+      „Ausstattung" und „Umfeld" jetzt verbindlich statt fakultativ — damit
+      3.666 px, 534 px Reserve.
+
+**Approval:** APPROVED (18.08.2026). Kein blockierendes Defizit; das einzige
+FLAG ist im Vertrag aufgelöst, nicht an den Ausführenden vererbt.
