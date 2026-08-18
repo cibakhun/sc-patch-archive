@@ -13,7 +13,7 @@ import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
-import { buildFacts, buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
+import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import type { Visuals } from '../lib/shipVisuals';
 import { pickHero } from '../lib/shipRenders';
@@ -93,9 +93,6 @@ const spine = d.patches
   .map((v) => patches.find((p) => p.data.version === v))
   .filter(Boolean);
 
-// cargo/ore/dims werden anderswo (Maße & Fracht) gezeigt -> hier per stabilem
-// key ausfiltern (sprachunabhängig, da Labels jetzt lokalisiert sind).
-const facts = buildFacts(d, lang).filter((f) => !['cargo', 'ore', 'dims'].includes(f.key ?? ''));
 const armament = buildArmament(d, lang);
 const armStats = buildArmStats(d, lang);
 const desc = vDesc(d, lang);
@@ -138,9 +135,33 @@ const stageStats: { label: string; value: string }[] = [
 // `audit:site` ein FEHLER. Die Kapitelnummer wird aus der gefilterten
 // Liste fortlaufend abgeleitet, nicht aus einer festen Zuordnung — eine
 // Seite mit drei Kapiteln zeigt 01, 02, 03, nicht 01, 03, 04.
+// Wurzelbedingungen der drei neuen Kapitel — wortgleich die ODER-Verknuepfung
+// ihrer Unterabschnitts-Bedingungen weiter unten im Markup (nicht neu
+// formuliert, siehe Task-1-Anweisung). Vorgezogen, damit die Sprungleiste sie
+// kennt, bevor das Kapitel selbst gerendert wird.
+const gearDims = viz.dims != null || viz.cargo != null || viz.fuel.length > 0;
+// Der Bewaffnungs-Unterabschnitt verliert seinen Balken-Bestandteil der
+// Bedingung (viz.firepower) — der Balken faellt in Task 2, hier schon die
+// neue Formel: es gibt Waffenzeilen ODER Kennzahlenzellen.
+const gearArms = armament.length > 0 || armStats.length > 0;
+const gearFlight = viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0;
+const gearComp = viz.defense.length > 0 || slots.length > 0;
+const hasGear = gearDims || gearArms || gearFlight || gearComp;
+const hasContext = viz.insurance.length > 0 || paints.length > 0 || variants.length > 0 || loaners.length > 0 || spine.length > 0;
+// Umfeld-Kopfzeile: FleetYards-Stand nur, wenn tatsaechlich FleetYards-Inhalt
+// (Lackierungen ODER Varianten/Loaner) im Kapitel steht — sonst die
+// bestehende Standard-Angabe des Versicherungs-Panels (14-UI-SPEC.md Punkt 7).
+const ctxHasFleetYards = paints.length > 0 || variants.length > 0 || loaners.length > 0;
+const ctxCode = ctxHasFleetYards
+  ? `${t('ship.code.ctx')} // FleetYards · ${t('ship.asof')} ${extrasFetchedAt}`
+  : `${t('ship.code.ctx')} // ${t('ship.code.uee')}`;
+
 const CHAPTERS_SOURCE: { id: string; title: string; pill: string; renders: boolean }[] = [
   // Kaufen rendert strukturell IMMER (Rueckfalltext sd__nobuy ohne Kaufzeile).
   { id: 'ch-buy', title: t('ship.buy.title'), pill: t('ship.jump.buy'), renders: true },
+  { id: 'ch-profile', title: t('ship.profile.title'), pill: t('ship.jump.profile'), renders: profile.length > 0 },
+  { id: 'ch-gear', title: t('ship.ch.gear'), pill: t('ship.ch.gear'), renders: hasGear },
+  { id: 'ch-context', title: t('ship.ch.context'), pill: t('ship.ch.context'), renders: hasContext },
 ];
 const chapters = CHAPTERS_SOURCE.filter((c) => c.renders).map((c, i) => ({
   ...c,
@@ -757,9 +778,6 @@ a{color:inherit;text-decoration:none}
 .sd__makerlogo{display:block;align-self:flex-start;height:clamp(28px,3.4vw,44px);width:auto;max-width:min(240px,56vw);margin-bottom:.5rem;object-fit:contain;filter:drop-shadow(0 1px 3px var(--shadow-color))}
 /* Volle Marken-Logos (Emblem + Wortmarke) höher, damit der Schriftzug lesbar bleibt */
 .sd__makerlogo--full{height:clamp(46px,6vw,72px);max-width:min(340px,70vw)}
-.sd__panel{position:relative;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--accent);
-  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-  margin-bottom:1.6rem}
 .sd__phead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
 .sd__phead h2{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
 .sd__code{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -803,13 +821,14 @@ a{color:inherit;text-decoration:none}
 /* Sanftes Scrollen fuer Seitenanker rein ueber CSS, kein JS-scrollIntoView. */
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 
-/* Kapitelrahmen — Ersatz fuer .sd__panel NUR an den vier Kapitel-
-   Wurzelelementen (Kaufen/Leistung/Ausstattung/Umfeld). Innenraster und
-   Eckenschnitt UNVERAENDERT von .sd__panel uebernommen; einzige Abweichung
-   ist der groessere Aussenabstand — vier schwere Kapitel brauchen mehr Luft
-   als zehn duenne Kaesten. In dieser Welle wird nur --buy tatsaechlich
-   benutzt, die uebrigen drei Modifikatoren werden mitgeschrieben und in
-   Welle 3 verwendet (14-UI-SPEC.md Kapitel-Akzent-Tabelle). */
+/* Kapitelrahmen — Ersatz fuer das ehemalige .sd__panel (Welle 3 hat dessen
+   letzte Verwendung entfernt, die Regel selbst ist mit ihm gefallen) an den
+   vier Kapitel-Wurzelelementen (Kaufen/Leistung/Ausstattung/Umfeld).
+   Innenraster und Eckenschnitt UNVERAENDERT vom frueheren .sd__panel
+   uebernommen; einzige Abweichung ist der groessere Aussenabstand — vier
+   schwere Kapitel brauchen mehr Luft als zehn duenne Kaesten. Alle vier
+   Modifikatoren sind seit Welle 3 in Benutzung (14-UI-SPEC.md
+   Kapitel-Akzent-Tabelle). */
 .sd__chapter{position:relative;background:var(--surface);border:1px solid var(--line);
   padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
   margin-bottom:2.2rem;
@@ -834,9 +853,8 @@ a{color:inherit;text-decoration:none}
 
 /* Kapitel-Kopf: .sd__phead bekommt ein drittes Element (sd__chtitle wraps
    Zahl-Chip + Titel), Format (Trennlinie, Abstand) unveraendert. Heading
-   steigt nur INNERHALB eines Kapitels von fs-9 auf fs-12 — die neun noch
-   unkonvertierten .sd__panel behalten ihre heutige Groesse, bis Welle 3 sie
-   umbaut. */
+   steigt nur INNERHALB eines Kapitels von fs-9 auf fs-12 — seit Welle 3 gilt
+   das site-weit, weil kein unkonvertiertes .sd__panel mehr existiert. */
 .sd__chtitle{display:flex;align-items:center;gap:.55rem;min-width:0}
 .sd__chtitle h2{min-width:0}
 .sd__chapter .sd__phead h2{font-size:var(--fs-12)}
@@ -975,7 +993,7 @@ span.sd__ref{color:var(--muted)}
    wuerden Browser sie zu Leerzeichen zusammenfalten. */
 .sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:var(--fs-11);line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
-.sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.sd__spine h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
 .sd__spine a:hover{color:var(--gold);text-decoration:underline}
 .sd__spine span{color:var(--muted);font-weight:600}
@@ -1353,11 +1371,14 @@ span.sd__ref{color:var(--muted)}
       <p class="sd__hint">{t('ship.buy.hint')}</p>
     </section>
 
-    <!-- LEISTUNGSPROFIL -->
+    <!-- LEISTUNG -->
     {profile.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.profile.title')}>
+      <section class="sd__chapter sd__chapter--profile" id="ch-profile" aria-label={t('ship.profile.title')}>
         <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.profil} /></svg>{t('ship.profile.title')}</h2>
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-profile')}</span>
+            <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.profil} /></svg>{t('ship.profile.title')}</h2>
+          </span>
           <span class="sd__code">{t('ship.code.rank')}&nbsp;//&nbsp;{t('ship.profile.rank')} ({vehiclesSnapshot.count} {t('ship.unit.ships')})</span>
         </header>
         <div class="sd__prof">
@@ -1377,29 +1398,28 @@ span.sd__ref{color:var(--muted)}
 
     {desc && <p class="sd__desc">{desc}</p>}
 
-    <!-- DATENBLATT -->
-    <section class="sd__panel" aria-label={t('ship.sheet.title')}>
-      <header class="sd__phead">
-        <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.datenblatt} /></svg>{t('ship.sheet.title')}</h2>
-        <span class="sd__code">{t('ship.code.dat')}&nbsp;//&nbsp;{shipCode} · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}</span>
-      </header>
-      <dl class="sd__grid">
-        {facts.map((f) => (
-          <div class="sd__item">
-            <dt>{f.label}</dt>
-            <dd>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+    <!-- AUSSTATTUNG — vereinigt die vier vormaligen Panels Masse & Fracht,
+         Bewaffnung, Flugleistung und Komponenten & Verteidigung als
+         Unterabschnitte dritter Ebene. Jeder behaelt seine eigene Bedingung
+         einzeln (siehe gearDims/gearArms/gearFlight/gearComp oben) — ein
+         karges Schiff zeigt weiterhin nur, wofuer es Daten gibt. Kein
+         Kapitel-Icon: es gibt keinen bestehenden Icon-Pfad, der die vier
+         zusammengefassten Themen als Ganzes vertritt (UI-SPEC fuehrt fuer
+         diese Phase keine neuen Icons ein). -->
+    {hasGear && (
+      <section class="sd__chapter sd__chapter--gear" id="ch-gear" aria-label={t('ship.ch.gear')}>
+        <header class="sd__phead">
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-gear')}</span>
+            <h2>{t('ship.ch.gear')}</h2>
+          </span>
+          <span class="sd__code">{t('ship.code.spec')}&nbsp;//&nbsp;{shipCode}</span>
+        </header>
 
     <!-- MASSE & FRACHT -->
-    {(viz.dims || viz.cargo || viz.fuel.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.dims.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h2>
-          <span class="sd__code">{t('ship.code.space')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearDims && (
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h3>
         <div class="sd__dims">
           <div>
             {viz.dims && (
@@ -1444,16 +1464,13 @@ span.sd__ref{color:var(--muted)}
             )}
           </div>
         </div>
-      </section>
+      </>
     )}
 
     <!-- BEWAFFNUNG -->
-    {(armament.length > 0 || viz.firepower.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.arms.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h2>
-          <span class="sd__code">{t('ship.code.arsenal')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearArms && (
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h3>
         {viz.firepower.length > 0 && (
           <div class="sd__g" style="margin-bottom:1.1rem">
             {viz.firepower.map((b) => (
@@ -1523,16 +1540,13 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.arms.hint')}</p>
-      </section>
+      </>
     )}
 
     <!-- FLUGLEISTUNG & QUANTUM -->
-    {(viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.flight.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h2>
-          <span class="sd__code">{t('ship.code.drive')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearFlight && (
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h3>
         {viz.speeds.length > 0 && (
           <div class="sd__g">
             {viz.speeds.map((b) => (
@@ -1546,7 +1560,7 @@ span.sd__ref{color:var(--muted)}
         )}
         {viz.agility.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.flight.agility')}</h3>
+            <h4 class="sd__sub">{t('ship.flight.agility')}</h4>
             <div class="sd__g">
               {viz.agility.map((b) => (
                 <div class="sd__grow">
@@ -1560,7 +1574,7 @@ span.sd__ref{color:var(--muted)}
         )}
         {viz.quantum.length > 0 && (
           <>
-            <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>{t('ship.flight.quantum')}</h3>
+            <h4 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>{t('ship.flight.quantum')}</h4>
             <dl class="sd__qgrid">
               {viz.quantum.map((q) => (
                 <div class="sd__item">
@@ -1571,16 +1585,13 @@ span.sd__ref{color:var(--muted)}
             </dl>
           </>
         )}
-      </section>
+      </>
     )}
 
     <!-- KOMPONENTEN & VERTEIDIGUNG -->
-    {(viz.defense.length > 0 || slots.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.comp.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h2>
-          <span class="sd__code">{t('ship.code.works')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearComp && (
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h3>
         {viz.defense.length > 0 && (
           <div class="sd__g" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
             {viz.defense.map((b) => (
@@ -1608,16 +1619,28 @@ span.sd__ref{color:var(--muted)}
             )}
           </div>
         )}
+      </>
+    )}
       </section>
     )}
+    <!-- UMFELD — vereinigt Versicherung, Lackierungen, Varianten & Loaner
+         (kombinierter Unterabschnitt, wie zuvor als EIN Panel) und die
+         Patch-Chronik als vierten Block. Kein Kapitel-Icon aus demselben
+         Grund wie bei Ausstattung. -->
+    {hasContext && (
+      <section class="sd__chapter sd__chapter--context" id="ch-context" aria-label={t('ship.ch.context')}>
+        <header class="sd__phead">
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-context')}</span>
+            <h2>{t('ship.ch.context')}</h2>
+          </span>
+          <span class="sd__code">{ctxCode}</span>
+        </header>
 
     <!-- VERSICHERUNG -->
     {viz.insurance.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.ins.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h2>
-          <span class="sd__code">{t('ship.code.protect')}&nbsp;//&nbsp;{t('ship.code.uee')}</span>
-        </header>
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h3>
         <div class="sd__inscards">
           {viz.insurance.map((i) => (
             <div class={`sd__ins${i.gold ? ' sd__ins--gold' : ''}`}>
@@ -1627,16 +1650,13 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.ins.hint')}</p>
-      </section>
+      </>
     )}
 
     <!-- LACKIERUNGEN -->
     {paints.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.paints.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h2>
-          <span class="sd__code">{t('ship.code.skins')}&nbsp;//&nbsp;{paints.length} · FleetYards · {t('ship.asof')} {extrasFetchedAt}</span>
-        </header>
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h3>
         <div class="sd__paints">
           {paints.map((p) => (
             <figure class="sd__paint">
@@ -1648,19 +1668,16 @@ span.sd__ref{color:var(--muted)}
             </figure>
           ))}
         </div>
-      </section>
+      </>
     )}
 
     <!-- VARIANTEN & LOANER -->
     {(variants.length > 0 || loaners.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.series.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h2>
-          <span class="sd__code">{t('ship.code.series')}&nbsp;//&nbsp;FleetYards · {t('ship.asof')} {extrasFetchedAt}</span>
-        </header>
+      <>
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h3>
         {variants.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.series.variants')}</h3>
+            <h4 class="sd__sub">{t('ship.series.variants')}</h4>
             <div class="sd__reflist">
               {variants.map((v) =>
                 v.id ? <a class="sd__ref" href={L(`/schiffe/${v.id}.html`)}>{v.name}</a> : <span class="sd__ref">{v.name}</span>
@@ -1670,7 +1687,7 @@ span.sd__ref{color:var(--muted)}
         )}
         {loaners.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.series.loaners')}</h3>
+            <h4 class="sd__sub">{t('ship.series.loaners')}</h4>
             <div class="sd__reflist">
               {loaners.map((v) =>
                 v.id ? <a class="sd__ref" href={L(`/schiffe/${v.id}.html`)}>{v.name}</a> : <span class="sd__ref">{v.name}</span>
@@ -1678,17 +1695,19 @@ span.sd__ref{color:var(--muted)}
             </div>
           </>
         )}
-      </section>
+      </>
     )}
 
     {spine.length > 0 && (
       <section class="sd__spine" aria-label={t('ship.spine.title')}>
-        <h2>{t('ship.spine.title')}</h2>
+        <h3>{t('ship.spine.title')}</h3>
         {spine.map((p) => (
           <a href={L(`/patches/sc-${p!.id}.html`)}>
             Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay} →</span>
           </a>
         ))}
+      </section>
+    )}
       </section>
     )}
 
@@ -1721,7 +1740,7 @@ span.sd__ref{color:var(--muted)}
       {t('ship.version')}{shipAlphaLabel && ` ${shipAlphaLabel}`}
       · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
-      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> · {t('ship.asof')} {pricesFetchedAt}
+      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a>
       {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}
     </p>
   </div>
