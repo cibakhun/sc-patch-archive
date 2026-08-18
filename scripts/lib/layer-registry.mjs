@@ -504,13 +504,13 @@ export const DISCOVERED_REGISTRY = [
     // diesen Eintrag verweist: ein Verweis ins Leere waere ein Zombie.
     selectorFamilies: [],
     rationale:
-      'Der Titel steht seit 18.08.2026 ZENTRIERT im schmalen Kopfband. Der Standard-Scrim aus detail.css hat sein radiales Sichtfenster fest bei 78 % x / 18 % y — gebaut fuer den hohen Hero mit Titel unten links; unter einem zentrierten Titel schwaerzt das die linke Haelfte und laesst die rechte offen. Ueberschrieben wird deshalb NUR das radiale Fenster (jetzt 50 % / 40 %); die LINEARE Stufenfolge bleibt Zeichen fuer Zeichen die aus detail.css (scrim-2 -> scrim-4 55 % -> scrim-4 90 % -> bg) und ist hier identisch modelliert. Die noetige Abdunklung steckt BEWUSST im Schleier (scrim-4 -> scrim-5 ab 50 %) und nicht in einem filter: am Foto: ein filter waere optisch gleichwertig, fuer dieses Modell aber unsichtbar — der Eintrag wuerde dann eine Seite zertifizieren, die er gar nicht misst. An den Bildpunkten gemessen (Kernpunkte, ohne Kantenglaettung): orangenes Wort 4,21:1, helle Zeile 10,55:1.',
+      'Der Titel steht seit 18.08.2026 ZENTRIERT im schmalen Kopfband, gerahmt von zwei gegenueberliegenden Eckwinkeln (.cr-mark, nach dem Vorbild .uf-mark im Item Finder) — die Winkel haben das Band von 225 auf 243 px wachsen lassen, weshalb Streifen und Anker unten nachgerechnet sind. Der Standard-Scrim aus detail.css hat sein radiales Sichtfenster fest bei 78 % x / 18 % y — gebaut fuer den hohen Hero mit Titel unten links; unter einem zentrierten Titel schwaerzt das die linke Haelfte und laesst die rechte offen. Ueberschrieben wird deshalb NUR das radiale Fenster (jetzt 50 % / 40 %); die LINEARE Stufenfolge bleibt Zeichen fuer Zeichen die aus detail.css (scrim-2 -> scrim-4 55 % -> scrim-4 90 % -> bg) und ist hier identisch modelliert. Die noetige Abdunklung steckt BEWUSST im Schleier (scrim-4 -> scrim-5 ab 50 %) und nicht in einem filter: am Foto: ein filter waere optisch gleichwertig, fuer dieses Modell aber unsichtbar — der Eintrag wuerde dann eine Seite zertifizieren, die er gar nicht misst. An den Bildpunkten gemessen (Kernpunkte, ohne Kantenglaettung): orangenes Wort 4,21:1, helle Zeile 10,55:1.',
     kind: 'photo',
     images: [{ id: 'crafting-hero', path: 'public/assets/t-craft-1.jpg', usedBy: 'src/components/topics/crafting.astro (.hero__photo)' }],
     // ⚠ Ankerpunkt NACHGERECHNET, in zwei Stufen, und beide Male korrigiert:
-    // (1) Das Band ist ein AUSSCHNITT. Bei 1280x225 mit background-size:cover
-    //     zeigt es vom 1919x823-Bild nur den Streifen yFrac 0.295..0.705; der
-    //     Titel liegt darin bei 0.508..0.660. Der erste Anlauf stand auf 0.78 —
+    // (1) Das Band ist ein AUSSCHNITT. Bei 1280x243 mit background-size:cover
+    //     zeigt es vom 1919x823-Bild nur den Streifen yFrac 0.279..0.721; der
+    //     Titel liegt darin bei 0.516..0.665. Der erste Anlauf stand auf 0.78 —
     //     ausserhalb des Streifens. Das Tor mass einen Bildteil, den das Band
     //     nie zeigt, und meldete 18.47:1 gruen.
     // (2) sampleAnchorColor MITTELT ueber 3 % der Bildflaeche (58x25 px hier).
@@ -518,9 +518,9 @@ export const DISCOVERED_REGISTRY = [
     //     licht) verschwindet in diesem Mittel restlos — auf ihn gesetzt blieb
     //     der Wert bei 5.79:1 und reagierte kaum auf den Schleier. 0.67/0.522
     //     ist der hellste PATCH-MITTELWERT im sichtbaren Streifen (RGB
-    //     200,196,192) und damit der unguenstigste Fall, den dieses Modell
+    //     202,198,194) und damit der unguenstigste Fall, den dieses Modell
     //     ueberhaupt sehen kann.
-    anchor: { xFrac: 0.67, yFrac: 0.522 },
+    anchor: { xFrac: 0.67, yFrac: 0.52 },
     scrim: { layers: [{ angle: 180, stops: [{ t: 0, tok: 'scrim2' }, { t: 0.5, tok: 'scrim5' }, { t: 0.9, tok: 'scrim5' }, { t: 1, tok: 'bg' }] }] },
     // Gemessen wird die DUNKLERE der beiden Titelfarben: das Wort "Crafting"
     // laeuft im Verlauf auf --accent-media aus, die Zeile darueber steht in der
