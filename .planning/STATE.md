@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
-status: executing
-stopped_at: "Completed 14-09-PLAN.md (verify:gate + check:gate + Rauchtest-Bypass -- Docker lokal nicht verfuegbar, Nachweis gegen echten Container in WINDOWS.md id 28 fuer Plan 12 offen)"
-last_updated: "2026-08-18T14:52:35.525Z"
+status: verifying
+stopped_at: Completed 14-12-PLAN.md (Aufgabe 2 blockiert -- siehe Checkpoint in 14-12-SUMMARY.md)
+last_updated: "2026-08-18T15:38:38.753Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 65
-  completed_plans: 57
+  completed_plans: 58
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -56,7 +56,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
 Plan: 12 of 12
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
 `.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -238,6 +238,7 @@ Progress: [█████████░] 88%
 | Phase 14 P08 | ~2h30min | 3 tasks | 4 files |
 | Phase 14 P11 | ~50min | 2 tasks | 4 files |
 | Phase 14 P09 | ~2h | 3 tasks | 8 files |
+| Phase 14 P12 | 35min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -359,6 +360,8 @@ Recent decisions affecting current work:
 - [Phase ?]: verify-gate.mjs (Schiene A) friert die 7-Eintrag GATE-AUSNAHME-Liste ein; check-gate.mjs (Schiene C) misst die ausgelieferte Zugriffskontrolle -- zwei Prüfer, weil Schiene A nie einen HTTP-Status sehen kann
 - [Phase ?]: Rauchtest-Bypass (X-VB-Gate-Bypass gegen VB_GATE_BYPASS) ist ein Prüfschlüssel, kein Dauerschlüssel: je CI-Lauf gewürfelt, nirgends gespeichert, voller Längenvergleich
 - [Phase ?]: Docker lokal nicht verfügbar -- check-gate.mjs und der Bypass wurden gegen einen unabhängig implementierten node:http-Testwerkstand geprüft, echter Container-Nachweis steht in WINDOWS.md id 28 für Plan 12 offen
+- [Phase ?]: Aufgabe 2 (staging-Ausrollen) bewusst nicht ausgefuehrt -- Coolify-Umgebungsvariablen unbestaetigt, kein Push
+- [Phase ?]: WINDOWS.md: 15 scattered Phase-14-Sichtpunkte zu 9 ortsbezogenen Eintraegen konsolidiert (ids 15/20 unveraendert, 7 neue ids 29-35) statt fuenf weiterer Anhaenge
 
 ### Pending Todos
 
@@ -375,6 +378,7 @@ None yet.
 - Offen (nicht blockierend): Navigators sehen den neuen Kanal #test-pilots nicht -- woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht. Betreiberentscheidung ausstehend, siehe WINDOWS.md #15.
 - 14-02: drei Verhaltens-Zusicherungen (guard_is_tester Schreibsperre, anon darf gate_verdict() nicht ausfuehren, doppelte Discord-Kopplung liefert sprechende Meldung) sind gegen die lebende Anlage NICHT geprueft -- brauchen eine echte Sitzung/echte Konten, fuer die Sichtrunde des Betreibers vorgesehen (14-02-SUMMARY.md coverage D4-D6)
 - Plan 14-03 Aufgabe 2 [BLOCKING]: kein SUPABASE_ACCESS_TOKEN/Supabase-CLI in dieser Ausfuehrungssitzung verfuegbar -- der gefaehrlichste Riegel der Phase (BEFORE INSERT auf auth.users, D-02) liegt geschrieben und Schiene-A-gepruefft (18/18) im Repo (Commit abda325), ist aber NICHT auf die lebende Anlage angewandt. Braucht Koordinator/Betreiber: Management-API-Anwendung + vorgefuehrt-roter Nachweis in 3 SQL-Faellen (Discord blockt / E-Mail geht durch / linkIdentity geht durch), je in einer zurueckgerollten Transaktion, plus vier echte Browser-Anmeldevorgaenge auf verse-base.com/account/ (LIVE) als Sichtpunkt fuer WINDOWS.md.
+- 14-12 Aufgabe 2 (staging-Ausrollen) blockiert: fuenf Coolify-Umgebungsvariablen unbestaetigt (VB_GATE_SECRET/VB_SUPABASE_URL/VB_SUPABASE_ANON_KEY am Vorschau-Container, SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY am Bot-Container). Vor dem Push zusaetzlich node discord/tester-dry-run.mjs neu fahren (D-16).
 
 ### Quick Tasks Completed
 
@@ -413,6 +417,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T14:52:35.473Z
-Stopped at: Completed 14-09-PLAN.md (verify:gate + check:gate + Rauchtest-Bypass -- Docker lokal nicht verfuegbar, Nachweis gegen echten Container in WINDOWS.md id 28 fuer Plan 12 offen)
+Last session: 2026-08-18T15:38:31.071Z
+Stopped at: Completed 14-12-PLAN.md (Aufgabe 2 blockiert -- siehe Checkpoint in 14-12-SUMMARY.md)
 Resume file: None
