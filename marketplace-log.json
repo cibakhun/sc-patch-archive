@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 302,
-  "totalListings": 6937,
+  "updates": 303,
+  "totalListings": 6957,
   "totalSold": 295,
   "distinctItems": 1240
  },
@@ -147353,6 +147353,27 @@
    "dateAdded": 1787006726,
    "dateExpiration": 1792190726
   },
+  "163704": {
+   "idItem": 4454,
+   "idCategory": 36,
+   "title": "500 MG Scripts",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787007605,
+   "dateExpiration": 1792191605
+  },
   "163705": {
    "idItem": 4882,
    "idCategory": 18,
@@ -147479,6 +147500,27 @@
    "dateAdded": 1787009340,
    "dateExpiration": 1792193340
   },
+  "163711": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 344,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787009904,
+   "dateExpiration": 1792193904
+  },
   "163712": {
    "idItem": 4875,
    "idCategory": 4,
@@ -147584,6 +147626,111 @@
    "dateAdded": 1787011664,
    "dateExpiration": 1792195664
   },
+  "163717": {
+   "idItem": 7214,
+   "idCategory": 18,
+   "title": "Karna \"Scorched\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787011776,
+   "dateExpiration": 1792195776
+  },
+  "163718": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl | 937Q | 1.939SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012268,
+   "dateExpiration": 1792196268
+  },
+  "163719": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium 852Q 0.4SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 852,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012314,
+   "dateExpiration": 1792196314
+  },
+  "163720": {
+   "idItem": 6482,
+   "idCategory": 18,
+   "title": "S71 \"Scorched\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012370,
+   "dateExpiration": 1792196370
+  },
+  "163721": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "Savrilium 878Q 0.642SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 878,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012543,
+   "dateExpiration": 1792196543
+  },
   "163722": {
    "idItem": 2236,
    "idCategory": 61,
@@ -147604,6 +147751,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787012608,
    "dateExpiration": 1792196608
+  },
+  "163723": {
+   "idItem": 4391,
+   "idCategory": 18,
+   "title": "C54 \"Scorched\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012648,
+   "dateExpiration": 1792196648
+  },
+  "163724": {
+   "idItem": 7670,
+   "idCategory": 18,
+   "title": "Custodian \"Scorched\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012907,
+   "dateExpiration": 1792196907
+  },
+  "163725": {
+   "idItem": 6600,
+   "idCategory": 18,
+   "title": "R97 \"Scorched\" Shotgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787013087,
+   "dateExpiration": 1792197087
   },
   "163726": {
    "idItem": 5843,
@@ -147626,6 +147836,27 @@
    "dateAdded": 1787013163,
    "dateExpiration": 1792197162
   },
+  "163728": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 729Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 729,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787013887,
+   "dateExpiration": 1792197887
+  },
   "163729": {
    "idItem": 7192,
    "idCategory": 18,
@@ -147647,6 +147878,27 @@
    "dateAdded": 1787013988,
    "dateExpiration": 1792197988
   },
+  "163730": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787016454,
+   "dateExpiration": 1792200454
+  },
   "163731": {
    "idItem": 6042,
    "idCategory": 2,
@@ -147667,6 +147919,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787017293,
    "dateExpiration": 1792201293
+  },
+  "163732": {
+   "idItem": 4608,
+   "idCategory": 38,
+   "title": "DCHS-01 Executive Access Protocols Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787017934,
+   "dateExpiration": 1792201934
+  },
+  "163733": {
+   "idItem": 4609,
+   "idCategory": 38,
+   "title": "DCHS-02 Security Encryption Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787017997,
+   "dateExpiration": 1792201997
+  },
+  "163734": {
+   "idItem": 4611,
+   "idCategory": 38,
+   "title": "DCHS-03 Vehicle Management Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787018076,
+   "dateExpiration": 1792202076
   },
   "163735": {
    "idItem": 4742,
@@ -147773,6 +148088,27 @@
    "dateAdded": 1787020039,
    "dateExpiration": 1792204039
   },
+  "163740": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787020354,
+   "dateExpiration": 1792204353
+  },
   "163741": {
    "idItem": 4922,
    "idCategory": 87,
@@ -147857,6 +148193,27 @@
    "dateAdded": 1787020730,
    "dateExpiration": 1792204729
   },
+  "163745": {
+   "idItem": 8092,
+   "idCategory": 3,
+   "title": "Oni Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787021616,
+   "dateExpiration": 1792205616
+  },
   "163746": {
    "idItem": 6791,
    "idCategory": 1,
@@ -147898,6 +148255,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787022055,
    "dateExpiration": 1792202455
+  },
+  "163749": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 874Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787022654,
+   "dateExpiration": 1792206654
   },
   "163750": {
    "idItem": null,
@@ -148088,6 +148466,27 @@
    "dateAdded": 1787028899,
    "dateExpiration": 1792212899
   },
+  "163763": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787029838,
+   "dateExpiration": 1792213838
+  },
   "163764": {
    "idItem": 5565,
    "idCategory": 7,
@@ -148150,6 +148549,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787030806,
    "dateExpiration": 1792214806
+  },
+  "163767": {
+   "idItem": 4745,
+   "idCategory": 69,
+   "title": "WTS Quantanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787036933,
+   "dateExpiration": 1792220933
   }
  }
 }
