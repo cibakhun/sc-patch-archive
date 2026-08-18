@@ -773,19 +773,33 @@ a{color:inherit;text-decoration:none}
    derselben Ebene wie .holo__bar, NICHT erstes Kind von .sd — .sd traegt
    bereits eigenen Innenabstand, darin wuerde ein klebendes Element
    schwimmen. Trennlinie NUR unten: oben trennt bereits die Kennwerte-
-   Leiste, zwei gestapelte Linien waeren ein Doppelstrich. */
-.sd__jump{position:sticky;top:var(--nav-h);z-index:20;border-bottom:1px solid var(--line);
+   Leiste, zwei gestapelte Linien waeren ein Doppelstrich.
+
+   HOEHENBUDGET, gemessen 18.08.2026 mit scripts/probes/schiffskarte-messung.mjs
+   gegen die Carrack, 1280x720: die Kennwerte-Leiste endet NICHT bei 630px
+   (die UI-SPEC-Schaetzung vergass .holo{margin-top:56px}), sondern bei
+   686px — es bleiben nur 34px bis zum unteren Fensterrand, nicht die
+   geschaetzten ~90px. Deshalb hier BEIDE Stellschrauben aus der
+   14-UI-SPEC.md-Reihenfolge gezogen (Aussenabstand des inneren Kastens,
+   dann Innenabstand der Pillen) UND die Rahmen als `box-shadow: inset`
+   statt `border` gesetzt — ein Rahmen ist bei auto-Hoehe IMMER zusaetzliche
+   Layout-Hoehe, auch mit dem site-weiten box-sizing:border-box (das wirkt
+   nur bei EXPLIZIT gesetzten Massen), ein inset-box-shadow sieht optisch
+   identisch aus und kostet 0px. `line-height:1` auf der Pille verhindert
+   zusaetzlich die ererbte Fliesstext-Zeilenhoehe (~1,9 statt 1) — derselbe
+   Kniff wie bei .snav__back (SiteNav.astro Z. 978-981). */
+.sd__jump{position:sticky;top:var(--nav-h);z-index:20;box-shadow:inset 0 -1px 0 0 var(--line);
   background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px)}
-.sd__jump__in{max-width:var(--maxw);margin:0 auto;display:flex;gap:.55rem;overflow-x:auto;
-  padding:.55rem clamp(1rem,3vw,2.5rem)}
-.sd__jump a{flex:none;white-space:nowrap;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
-  padding:.35rem .8rem;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
-.sd__jump a:hover,.sd__jump a:focus-visible{color:var(--text);border-color:var(--muted)}
+.sd__jump__in{max-width:var(--maxw);margin:0 auto;display:flex;gap:.5rem;overflow-x:auto;
+  padding:.25rem clamp(1rem,3vw,2.5rem)}
+.sd__jump a{flex:none;white-space:nowrap;line-height:1;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);
+  padding:.2rem .7rem;transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui)}
+.sd__jump a:hover,.sd__jump a:focus-visible{color:var(--text);box-shadow:inset 0 0 0 1px var(--muted)}
 /* Bewusst der cyanfarbene Basis-Accent, NICHT die jeweilige Kapitelfarbe —
    sonst muesste die Leiste selbst vier Zustandsfarben fuehren, kaum
    unterscheidbar bei 360px. */
-.sd__jump a.is-active{color:var(--accent);border-color:var(--accent)}
+.sd__jump a.is-active{color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 /* Sanftes Scrollen fuer Seitenanker rein ueber CSS, kein JS-scrollIntoView. */
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 
@@ -799,9 +813,12 @@ a{color:inherit;text-decoration:none}
 .sd__chapter{position:relative;background:var(--surface);border:1px solid var(--line);
   padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
   margin-bottom:2.2rem;
-  /* 64px = geschaetzter Zuschlag aus 14-UI-SPEC.md Punkt 1; Task 2 ersetzt
-     ihn durch den am gerenderten Bildpunkt GEMESSENEN Wert. */
-  scroll-margin-top:calc(var(--nav-h) + 64px)}
+  /* Zuschlag GEMESSEN 18.08.2026 mit scripts/probes/schiffskarte-messung.mjs
+     gegen die Carrack (DE+EN, hell+dunkel) bei 1280x720 UND 360x740: die
+     Sprungleiste ist an beiden Breiten exakt 30.6px hoch (Padding/Pillen
+     haengen nicht von der Breite ab) -> aufgerundet 31px. Ersetzt den
+     geschaetzten 64px-Wert aus Task 1 / 14-UI-SPEC.md Punkt 1. */
+  scroll-margin-top:calc(var(--nav-h) + 31px)}
 .sd__chapter--buy{border-top:3px solid var(--gold)}
 .sd__chapter--buy .sd__chnum{background:var(--gold)}
 .sd__chapter--buy .sd__phead h2{color:var(--gold)}

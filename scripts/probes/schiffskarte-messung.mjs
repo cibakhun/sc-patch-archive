@@ -355,6 +355,13 @@ for (const ziel of ZIELE) {
           if (!(await chip.count())) {
             melde(lauf, ziel.id, 'f-kontrast-chip', true, 'nicht vorhanden — gibt es in dieser Welle noch nicht');
           } else {
+            // Das Kapitel liegt bei 1280x720 unterhalb des Falzes (y ~778px
+            // bei 720px Fensterhoehe) — page.screenshot({clip}) akzeptiert
+            // NUR den sichtbaren Ausschnitt, ein Clip ausserhalb wirft
+            // "Clipped area is either empty or outside the resulting image".
+            // Erst ins Bild scrollen, dann die Box NEU lesen (scrollIntoView
+            // aendert die Seitenkoordinaten).
+            await chip.scrollIntoViewIfNeeded();
             const box = await chip.boundingBox();
             if (!box) throw new Error('.sd__chnum ohne Bounding-Box');
             const ext = await sampleExtremes(page, box);
