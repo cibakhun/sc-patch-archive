@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Checkpoint in 14-06-PLAN.md Aufgabe 2 (D-16 Entscheidung) -- Trockenlauf + Entzugsskript (Vorschau) fertig, Entzug selbst wartet auf Betreiber-Zustimmung
-last_updated: "2026-08-18T09:58:57.793Z"
+stopped_at: "Completed 14-06-PLAN.md (D-16 Vollzug bewusst vertagt auf 14-12, WINDOWS.md #20)"
+last_updated: "2026-08-18T10:29:49.319Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -345,6 +345,7 @@ Recent decisions affecting current work:
 - [Phase ?]: AuthLogin.astro Discord-redirectTo zeigt auf die Login-Seite selbst statt auf /account/ -- Rule-1-Fix, sonst ginge die D-02-Absage im Dashboard-Redirect verloren
 - [Phase ?]: D-02-Erkennung matcht zweigleisig (eigener Text ODER GoTrue-Generic-Wrapper) -- WINDOWS.md id 16 laesst offen, welche Form ankommt
 - [Phase ?]: 14-06: Trockenlauf zeigt 0 aktuelle Traeger der Discord-Rolle Test Pilots (5 Mitglieder gesamt) -- Massenentzug aus D-16 waere aktuell ein No-Op, Checkpoint-Zustimmung trotzdem erforderlich vor --rolle-wirklich-entziehen
+- [Phase ?]: 14-06: Betreiber vertagt D-16-Vollzug (18.08.2026) statt allen-entziehen/liste-kuerzen/nicht-entziehen -- vor dem Scharfschalten in 14-12 erneut node tester-dry-run.mjs fahren, dann entscheiden. Verdrahtet in WINDOWS.md #20. Trockenlauf-Ergebnis (5 Mitglieder, 0 Traeger) vom Betreiber unabhaengig bestaetigt
 
 ### Pending Todos
 
@@ -361,7 +362,6 @@ None yet.
 - Offen (nicht blockierend): Navigators sehen den neuen Kanal #test-pilots nicht -- woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht. Betreiberentscheidung ausstehend, siehe WINDOWS.md #15.
 - 14-02: drei Verhaltens-Zusicherungen (guard_is_tester Schreibsperre, anon darf gate_verdict() nicht ausfuehren, doppelte Discord-Kopplung liefert sprechende Meldung) sind gegen die lebende Anlage NICHT geprueft -- brauchen eine echte Sitzung/echte Konten, fuer die Sichtrunde des Betreibers vorgesehen (14-02-SUMMARY.md coverage D4-D6)
 - Plan 14-03 Aufgabe 2 [BLOCKING]: kein SUPABASE_ACCESS_TOKEN/Supabase-CLI in dieser Ausfuehrungssitzung verfuegbar -- der gefaehrlichste Riegel der Phase (BEFORE INSERT auf auth.users, D-02) liegt geschrieben und Schiene-A-gepruefft (18/18) im Repo (Commit abda325), ist aber NICHT auf die lebende Anlage angewandt. Braucht Koordinator/Betreiber: Management-API-Anwendung + vorgefuehrt-roter Nachweis in 3 SQL-Faellen (Discord blockt / E-Mail geht durch / linkIdentity geht durch), je in einer zurueckgerollten Transaktion, plus vier echte Browser-Anmeldevorgaenge auf verse-base.com/account/ (LIVE) als Sichtpunkt fuer WINDOWS.md.
-- Phase 14 Plan 06: Checkpoint (D-16) unbeantwortet -- Entzugsskript discord/tester-revoke.mjs gebaut und im sicheren Vorschau-Modus verifiziert (0 aktuelle Traeger der Rolle Test Pilots), aber --rolle-wirklich-entziehen wurde bewusst nicht ausgefuehrt. Siehe 14-06-SUMMARY.md CHECKPOINT-Abschnitt.
 
 ### Quick Tasks Completed
 
@@ -400,6 +400,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T09:58:57.763Z
-Stopped at: Checkpoint in 14-06-PLAN.md Aufgabe 2 (D-16 Entscheidung) -- Trockenlauf + Entzugsskript (Vorschau) fertig, Entzug selbst wartet auf Betreiber-Zustimmung
-Resume file: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-06-SUMMARY.md
+Last session: 2026-08-18T10:29:49.289Z
+Stopped at: Completed 14-06-PLAN.md (D-16 Vollzug bewusst vertagt auf 14-12, WINDOWS.md #20)
+Resume file: None

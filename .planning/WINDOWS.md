@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 11
+open_count: 12
 waived_count: 0
 fixed_count: 8
-total_count: 19
-last_updated: 2026-08-18T09:37:16.493Z
+total_count: 20
+last_updated: 2026-08-18T10:26:15.363Z
 ---
 
 # Broken Windows Ledger
@@ -34,6 +34,7 @@ last_updated: 2026-08-18T09:37:16.493Z
 | 17 | 14 | unrun-verify | src/components/account/AuthLogin.astro |  | Vier echte Anmeldevorgaenge auf https://verse-base.com/account/ (LIVE) aus 14-03 Aufgabe 2: (1) neues Konto mit erreichbarer E-Mail-Adresse registrieren, (2) mit bestehendem Konto per E-Mail/Passwort anmelden, (3) abmelden und wieder anmelden, (4) Passwort zurueksetzen anstossen. Wichtiger als beim urspruenglichen Plan, weil der Riegel (Discord-Signup-Sperre, D-02) jetzt NICHT mehr in einem eigenen Trigger sitzt, sondern in public.handle_new_user() -- der Funktion, die JEDE Registrierung traegt (Betreiber-Entscheidung nach 42501-Befund: eigener Trigger auf auth.users ist auf der verwalteten Plattform nicht anlegbar, auth.users gehoert supabase_auth_admin). Die SQL-Gegenprobe aus Aufgabe 2 deckt nur den Datenbankpfad ab, nicht den echten Weg durch GoTrue. Klemmt einer der vier Schritte: der Riegel muss sofort untersucht werden (Rueckbau-Anleitung steht im Kommentarblock der Migration). | open |  | 2026-08-18T00:06:28.659Z |  |
 | 18 | 14 | unmet-truth | src/components/account/AuthLogin.astro |  | Die Supabase-Einstellung zum Verknuepfen von Identitaeten bei gleicher E-Mail-Adresse ('Allow manual linking' o.ae.) konnte der Betreiber im Dashboard nach Aufgabe 1 (14-04) NICHT lokalisieren -- Zustand ist UNGEKLAERT, nicht 'ist an'. Ist sie AUS, versucht Supabase bei einem BEKANNTEN Nutzer, der sich ueber Discord anmeldet, ein NEUES auth.users-Konto anzulegen; der D-02-Riegel aus Plan 03 (public.handle_new_user()) greift dann und der Nutzer landet in der 'registriere dich zuerst'-Anzeige, obwohl er bereits registriert ist. AuthLogin.astro/gate.astro koennen diesen Fall client-seitig NICHT von einem echten unbekannten Konto unterscheiden -- beide liefern denselben insufficient_privilege-Fehler ueber denselben Anzeigetext. Zu pruefen: ein Konto mit bekannter, bereits registrierter E-Mail-Adresse per Discord anmelden -- schlaegt es fehl, muss die Verknuepfungs-Einstellung im Supabase-Dashboard gefunden und aktiviert werden (moeglicherweise unter anderem Namen in dieser Oberflaechenversion). | open |  | 2026-08-18T09:36:39.758Z |  |
 | 19 | 14 | unrun-verify | .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-04-PLAN.md |  | Vier Durchlaeufe des Discord-Anmeldewegs (Aufgabe 2 <human-check>) nicht vom Executor durchgefuehrt -- braucht echte Discord-Konten (ein bekanntes, ein unbekanntes) und den Rundlauf durch drei fremde Systeme (Browser -> Discord -> Supabase -> Browser), kein Skript kann das nachstellen. (1) Bekanntes Konto: auf /account/ per E-Mail/Passwort anmelden, abmelden, mit dem Discord-Knopf anmelden -- Erwartung: angemeldet, KEIN zweites Konto, dieselbe E-Mail/dasselbe Profil/dieselben Favoriten. (2) Unbekanntes Discord-Konto: Erwartung 'Fuer dieses Discord-Konto gibt es noch kein Konto auf verse-base.com...' -- keine Fehlernummer, kein englischer Serverfehler; in Supabase Authentication->Users entsteht KEIN neues Konto. (3) Torseite: gesperrte URL aufrufen, Discord-Knopf auf gate.html nutzen -- Erwartung: Rueckkehr auf die urspruenglich gewuenschte URL. (4) Sichturteil (D-11): traegt die Torseite die Handschrift der Seite, sind die zwei Saetze verstaendlich, ist WIE man die Rolle bekommt erkennbar, steht der Discord-Knopf klar vor dem E-Mail-Formular ohne es zu verstecken -- bei 1920x1080 UND 360px, beide Farbmodi. Zusaetzlich offen (Koordinator-Rueckmeldung nach Aufgabe 1): ob die Verknuepfung von Identitaeten bei gleicher E-Mail-Adresse im Supabase-Dashboard ueberhaupt aktiv ist -- siehe eigener Eintrag zu dieser Frage. Maschinell bereits gruen: npm run build + npm run gate 18/18 (normal UND STAGING=1), npm run audit:csp sauber (0 neue Gegenstellen -- OAuth-Sprung ist Navigation, keine Richtlinie), das automatisierte <verify> aus dem Plan (Discord-Knopf in dist/gate.html + dist/account/login.html + dist/de/account/login.html, kein gebuendeltes Skript auf der Torseite). | open |  | 2026-08-18T09:37:16.493Z |  |
+| 20 | 14 | unrun-verify | discord/tester-revoke.mjs |  | D-16 bewusst vertagt (Betreiberentscheidung 18.08.2026): der Trockenlauf aus 14-06 (0 Traeger von 5 Mitgliedern, 18.08.2026) ist nur fuer diesen Tag belegt -- vergibt der Betreiber die Rolle zwischenzeitlich, ist die Zahl veraltet. VOR dem Scharfschalten des Tors (Plan 14-12, vor jedem Schritt, der die Vorschau hinter das Tor stellt): node discord/tester-dry-run.mjs erneut fahren, ERST DANN ueber den Entzug entscheiden (node discord/tester-revoke.mjs --rolle-wirklich-entziehen). Skripte sind fertig und in ihren sicheren Vorschaumodi geprueft (14-06-SUMMARY.md); nur der finale scharfe Lauf fehlt. | open |  | 2026-08-18T10:26:15.363Z |  |
 
 ````json
 [
@@ -263,6 +264,18 @@ last_updated: 2026-08-18T09:37:16.493Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T09:37:16.493Z",
+    "resolved_at": null
+  },
+  {
+    "id": 20,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "discord/tester-revoke.mjs",
+    "line": null,
+    "description": "D-16 bewusst vertagt (Betreiberentscheidung 18.08.2026): der Trockenlauf aus 14-06 (0 Traeger von 5 Mitgliedern, 18.08.2026) ist nur fuer diesen Tag belegt -- vergibt der Betreiber die Rolle zwischenzeitlich, ist die Zahl veraltet. VOR dem Scharfschalten des Tors (Plan 14-12, vor jedem Schritt, der die Vorschau hinter das Tor stellt): node discord/tester-dry-run.mjs erneut fahren, ERST DANN ueber den Entzug entscheiden (node discord/tester-revoke.mjs --rolle-wirklich-entziehen). Skripte sind fertig und in ihren sicheren Vorschaumodi geprueft (14-06-SUMMARY.md); nur der finale scharfe Lauf fehlt.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T10:26:15.363Z",
     "resolved_at": null
   }
 ]
