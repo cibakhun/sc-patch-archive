@@ -961,23 +961,29 @@ Zahl neu berechnet. Diese Phase ordnet an und verbindet, was vorliegt.
 
 **Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
 **Depends on:** Phase 14 (Kapitel, Sprungleiste, `verify:shipcard`, Höhenklinke)
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 **Success Criteria** (was WAHR sein muss):
 
   1. Auf jeder der 227 Schiffsseiten wählt man ein System und sieht am
      gerenderten Schiff, wo es sitzt; die Auslesung dazu steht daneben
+
   2. Bei abgeschaltetem JavaScript zeigt dieselbe Seite alle Systeme
      untereinander als lesbare Liste — maschinell belegt gegen das gebaute
      `dist/`, nicht behauptet
+
   3. Der indexierbare Textbestand je Schiffsseite ist **nicht kleiner** als die
      heute gemessenen ~5 KB; die Zahl wird als Sperrklinke festgeschrieben
+
   4. Bei 360 px ist die Konsole gestapelt bedienbar: Modell, Chip-Reihe,
      Auslesung — ohne waagerechten Überlauf
+
   5. Beim Seitenaufruf wird weder `three.module.min.js` noch ein GLB geladen;
      beides kommt erst, wenn die Bühne in den sichtbaren Bereich gescrollt wird
+
   6. Marker sitzen an den Positionen aus dem Schiffsmodell, und die Vorbehalte
      `np` und `est` bleiben am Marker sichtbar
+
   7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi
   8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
      `STAGING=1` — einschließlich `verify:shipcard` aus Phase 14, das an den
@@ -985,7 +991,7 @@ Zahl neu berechnet. Diese Phase ordnet an und verbindet, was vorliegt.
 
 Plans:
 
-- [ ] 15-01-PLAN.md — Welle 1, Tracer: P-3 an der Zählung entscheiden, P-1 (Füllgrad ≥ 70 %) und P-2 (kein Dauer-Label) am gerenderten Bildpunkt belegen, Textbestand vor dem Eingriff messen, Sichturteil S-0 nach WINDOWS.md
+- [x] 15-01-PLAN.md — Welle 1, Tracer: P-3 an der Zählung entscheiden, P-1 (Füllgrad ≥ 70 %) und P-2 (kein Dauer-Label) am gerenderten Bildpunkt belegen, Textbestand vor dem Eingriff messen, Sichturteil S-0 nach WINDOWS.md
 - [ ] 15-02-PLAN.md — Welle 2, Werkzeug vor Eingriff: `verify:shipconsole` (acht Zusicherungen, ausgesetzt, einmal vorgeführt rot); `verify:shipcard`s Entdopplungs-Scan nimmt `section.holo` mit auf
 - [ ] 15-03-PLAN.md — Welle 3, D-02: vier Systemabschnitte serverseitig im ausgelieferten HTML, Rail als Ankerliste, Bewaffnung und Bauteilliste ziehen aus `ch-gear` in die Konsole, Beweis mit abgeschaltetem JavaScript
 - [ ] 15-04-PLAN.md — Welle 4, D-01/D-03/D-04: dreispaltiges Raster, Rail als Einfachauswahl, Auslesung mit zwei Zuständen, Laden beim Scrollen ohne Startknopf, gestapelt bei 360 px, Netzverkehr gemessen

@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 12
-current_phase_name: schiffs-datenkarte-entstapeln
+current_phase: 15
+current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: Completed 14-04-PLAN.md -- kapitelinterne Zweispaltigkeit, Carrack unter 4.200px (4.179px DE/4.117px EN), verify:shipcard scharf, fuenf Sichturteile an WINDOWS.md uebergeben
-last_updated: "2026-08-18T04:13:26.000Z"
+stopped_at: Completed 15-01-PLAN.md -- P-3 Variante C entschieden, P-1/P-2 am Bildpunkt gemessen (Luecke bei langen Schiffen an S-0 uebergeben), Sonde schiffskonsole-messung.mjs fertig
+last_updated: "2026-08-18T15:43:47.705Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
-  total_phases: 18
-  completed_phases: 11
-  total_plans: 57
-  completed_plans: 49
+  total_phases: 19
+  completed_phases: 12
+  total_plans: 62
+  completed_plans: 51
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,8 +25,32 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 14 — schiffs-datenkarte-entstapeln
+**Current focus:** Phase 15 — das-schiff-ist-die-navigation
 
+> **Nachtrag 18.08.2026 (fuenfter) — Phase 15 Plan 1 von 5 ausgefuehrt (Welle 1: Tracer P-1/P-2/P-3).**
+> `15-01-PLAN.md` ist ausgefuehrt: P-3 auf gemessener Grundlage entschieden
+> (Variante C — `thruster_main`/`thruster_retro`/`thruster_vtol` bekommen
+> immer einen Marker, `thruster_mav` bleibt aussen vor; gegen das
+> ausgelieferte `holodata` gegengeprueft, 908 Schiff-Gruppen-Paare, 0
+> Abweichungen). `fitCamera()` in `assets/holo-viewer.js` iterativ
+> umgebaut — zielt auf die KUeRZERE Buehnenkante statt symmetrisch auf beide,
+> das schoepft bei langen Schiffen zusaetzlichen Zoom-Spielraum aus. P-2
+> (nur der gewaehlte/ueberfahrene Marker traegt Text) umgesetzt, inkl. eines
+> gefundenen Bugs (`setLabels(false)` schaltete mobil die gesamte
+> Beschriftungsschicht ab, auch fuer den aktiven Marker — Aufruf entfernt).
+> **Ergebnis der fertigen Sonde** (`scripts/probes/schiffskonsole-messung.mjs`,
+> 180 Messpunkte): 168 bestehen. Kompakte/mittlere Schiffe erfuellen P-1
+> (≥70% Fuellgrad) an allen sechs Pruefbreiten; die zwei laengsten
+> Pruefschiffe (Carrack, Ironclad) verfehlen die Marke bei 860/414/360px
+> (53,5-68,3% statt 70%) — geometrisch bedingt bei fixer 3/4-Kamera und
+> landscape-Buehne, kein Bug. **Nicht eigenmaechtig per Kamera-Azimut
+> geloest** (sichtbare, seitenweite Design-Aenderung) — als S-0
+> (`.planning/WINDOWS.md` id 21) mit 24 Bildschirmfotos an den Betreiber
+> uebergeben. `npm run build && npm run gate` gruen, normal UND mit
+> `STAGING=1`. Details in `15-01-SUMMARY.md`. Naechster Schritt:
+> `15-02-PLAN.md` (Welle 2: `verify:shipconsole` als Werkzeug vor dem
+> Eingriff, Entdopplungs-Scan erweitert).
+>
 > **Nachtrag 18.08.2026 (vierter) — Phase 14 Plan 4 von 4 ausgefuehrt (Welle 4: Zweispaltigkeit, Schlussmessung, Tor scharf).**
 > `14-04-PLAN.md` ist ausgefuehrt: Ausstattung und Umfeld stehen ab 1100px
 > als kapitelinterne Zweispaltigkeit (`.sd__ch2col`/`.sd__chsec`). Die
@@ -283,6 +307,7 @@ Progress: [█████████░] 86%
 | Phase 14 P02 | 50min | 2 tasks | 5 files |
 | Phase 14 P03 | 70min | 2 tasks | 6 files |
 | Phase 14 P04 | ~75min | 3 tasks | 5 files |
+| Phase 15 P01 | 185min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -388,6 +413,7 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-04: Hoehen-Sperrklinke bleibt bei 4.200px stehen (nicht auf den gemessenen 4.179px abgesenkt) -- 21px Reserve gegen Rundungsschwankungen zwischen Laeufen
 - [Phase 14]: 14-04: verify:shipcard scharf geschaltet (Aussetzungsgrund entfernt) -- 0 Befunde, npm run gate laeuft 19 statt 18 Schritte gruen, normal UND STAGING=1
 - [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
+- [Phase ?]: [Phase 15]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
 
 ### Pending Todos
 
@@ -437,6 +463,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T03:11:45.541Z
-Stopped at: Completed 14-03-PLAN.md -- vier Kapitel, Datenblatt weg, sechs Balkenstellen aufgeloest, verify-shipcard.mjs erstmals gruen
+Last session: 2026-08-18T15:43:47.654Z
+Stopped at: Completed 15-01-PLAN.md -- P-3 Variante C entschieden, P-1/P-2 am Bildpunkt gemessen (Luecke bei langen Schiffen an S-0 uebergeben), Sonde schiffskonsole-messung.mjs fertig
 Resume file: None
