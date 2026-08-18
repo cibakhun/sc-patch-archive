@@ -995,18 +995,26 @@ span.sd__ref{color:var(--muted)}
   .sd__ch2col .sd__qgrid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
   .sd__ch2col .sd__slots{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
   .sd__ch2col .sd__inscards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
-  /* arm__sum (Bewaffnung-Kennzahlen): eine Mindestbreite fuer vier Spalten
-     (~100px) liess "GEGENMASSNAHMEN" (15 Zeichen, ein zusammengesetztes
-     Wort ohne Leerzeichen) am Bildpunkt ueber die Zellgrenze in die
-     Nachbarzelle hineinlaufen -- vorgefuehrt und verworfen (Bildschirmfoto).
-     `hyphens:auto` (mit `lang` auf <html>, siehe Layout.astro) plus
-     `overflow-wrap:anywhere` als Sicherheitsnetz erlauben stattdessen einen
-     kontrollierten Umbruch INNERHALB des Wortes ("GEGENMASSN-AHMEN"), ohne
-     dass etwas die Zellgrenze verlaesst -- optisch nicht perfekt (die
-     Trennung faellt nicht immer auf eine Silbengrenze), aber gemessen ohne
-     Ueberlauf. Nur hier gescopet, keine site-weite Typografie-Aenderung. */
-  .sd__ch2col .arm__scell span{hyphens:auto;overflow-wrap:anywhere}
-  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+  /* arm__sum (Bewaffnung-Kennzahlen): hier NICHT die Spaltenzahl der vollen
+     Breite halten, sondern bewusst halbieren. Am Bildpunkt gemessen: der
+     Container ist in der halben Spalte 469px breit, "Gegenmaßnahmen" misst
+     ungetrennt 147px und braucht mit der Zellpolsterung 176px. Vier Spalten
+     geben jeder Zelle 87px — das Wort passt in keiner Aufteilung, und
+     overflow-wrap:anywhere hat es dann strichlos mitten durchgeschnitten
+     ("GEGENMASSN / AHMEN", "TURMSTATIO / NEN"). Ein frueherer Kommentar an
+     dieser Stelle behauptete, hyphens:auto erzeuge dabei einen Trennstrich —
+     das Bildschirmfoto zeigt keinen: bei 87px erreicht die Silbentrennung nie
+     eine zulaessige Trennstelle.
+     anywhere war dabei doppelt schaedlich, weil es zusaetzlich die
+     Mindestbreite verkleinert, mit der auto-fit rechnet, und die zu schmalen
+     Spalten damit ueberhaupt erst einlaedt. break-word bricht nur, wenn ein
+     Wort allein auf seiner Zeile nicht passt, und bleibt als Sicherheitsnetz.
+     minmax(180px) ergibt bei 469px genau zwei Spalten -> 2x2 statt 1x4, alle
+     vier Labels einzeilig. Kosten: 10px Seitenhoehe (4.179 -> 4.189), die
+     Klinke von 4.200px haelt. Bei 1100px Ansichtsbreite ist der Container
+     ~403px und ergibt dieselben zwei Spalten. */
+  .sd__ch2col .arm__scell span{hyphens:auto;overflow-wrap:break-word}
+  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 }
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
