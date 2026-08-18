@@ -894,3 +894,95 @@ Plans:
 
 - [x] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
       Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`
+
+### Phase 15: Das Schiff ist die Navigation
+
+**Goal:** Die Schiffs-Detailseite wird zur Konsole. Man wählt links ein System,
+das Schiff zeigt am gerenderten Mesh, **wo** dieses System sitzt, und rechts
+steht die Auslesung dazu. Die vier Kapitel aus Phase 14 entfallen als
+Seitenaufbau — die Konsole ist die Seite.
+
+**Herkunft:** Betreiber-Befund 18.08.2026 zu Attrappe 012: „ich stelle mir vor
+dass man so eine datenblatt seite so unfassbar kreativ machen kann. momentan
+sind wir auf kreativitätstufe 0." Aus drei vorgelegten Konzepten
+(`.planning/sketches/013-konzepte/`) hat der Betreiber **B — „Konsole"**
+gewählt.
+
+**Der Befund, der die Phase trägt:** Der Mechanismus existiert bereits und ist
+nur begraben. Geprüft am 18.08.2026:
+
+| geprüft | Befund |
+| --- | --- |
+| Abdeckung | **227 / 227 Schiffe** haben Mesh UND Hardpoints — keine Lücke |
+| Hardpoints je Schiff | Median **48**, min 13, max 130 (Carrack 60 in 14 Arten) |
+| Positionen | echte 3D-Koordinaten `p:[x,y,z]`, benannt (`n`), typisiert (`k`), mit Hüllkörper (`bbox`) |
+| bereits angebunden | Item-Finder je Port: `cat`, `price`, `shops`, `iid` |
+| bereits ehrlich | `np` = nicht physicalisiert, `est` = Position geschätzt — Vorbehalt steht am Marker |
+| Gewicht | `three.module.min.js` 360 KB · GLB im Median 0,37 MB (Carrack 0,28) |
+| Viewer | `public/assets/holo-viewer.js`, 41.821 Bytes, in Betrieb |
+
+Heute ist das **einer von drei Reitern** im Hero („VIDEO | BILDER | 3D-HOLO")
+hinter einem „Hologramm aktivieren"-Knopf — und die Daten stehen davon getrennt
+in Kapiteln darunter. Diese Phase verbindet, was schon da ist.
+
+⚠ **Marker auf einem Foto können nicht funktionieren** — der Kamerawinkel eines
+Fotos ist unbekannt. Die Attrappe `013-konzepte/b-konsole.html` tut genau das
+und ist an dieser Stelle irreführend. Marker funktionieren nur über dem
+gerenderten Mesh, wo die Kamera bekannt ist. Das ist der bestehende Viewer.
+
+**D-01 — Die Konsole ersetzt die Kapitel** (Betreiber, 18.08.2026). Ausdrückliche
+**Lockerung der Sperre aus Phase 14** (`14-CONTEXT.md` D-01, „nichts hinter
+einem Klick"). Dem Betreiber wurde vorgelegt, dass eine Auswahl links eine
+Interaktion ist und dass die konsequente Fassung mit dem bisherigen Grundsatz
+bricht; er hat sie trotzdem gewählt. Die vier Kapitel entfallen als Aufbau.
+
+**D-02 — Alles steht im ausgelieferten HTML; die Konsole blendet nur um.**
+Bedingung, unter der D-01 sicher ist. Keine Auslesung wird nachgeladen, keine
+per JavaScript erzeugt. Ohne JavaScript zeigt die Seite alle Systeme
+untereinander als schlichte Liste — nicht eine leere Fläche.
+**Begründung, nicht verhandelbar:** ~17.000 indexierbare Seiten, und der Zulauf
+kommt praktisch vollständig aus Suche (30 Tage: Bing 67, DDG 38, ChatGPT 10,
+Google 7). Gemessen am 18.08.2026 trägt `dist/de/schiffe/anvl-carrack.html`
+heute **~5 KB echten Text** im Quelltext — Waffennamen, Bauteilnamen, Fracht.
+Eine im Quelltext leere Schiffsseite fällt aus dem Index und nimmt den Zulauf
+mit.
+
+**D-03 — Mobil gestapelt** (Betreiber): Modell oben, Systemliste als waagerechte
+Chip-Reihe darunter, Auslesung darunter. Dieselbe Idee, andere Anordnung. Keine
+zweite Oberfläche, kein Ausschluss mobiler Besucher.
+
+**D-04 — Das 3D lädt beim Scrollen in den Blick** (Betreiber): ein statisches
+Standbild steht sofort, das Mesh löst es ab, sobald die Bühne sichtbar wird.
+Kein Startknopf — wenn das Schiff die Navigation IST, darf es nicht hinter
+einem Knopf liegen. Wer nie hinunterscrollt, lädt nichts.
+
+**Was NICHT angefasst wird:** die Datenlage. Kein Feld wird neu erhoben, keine
+Zahl neu berechnet. Diese Phase ordnet an und verbindet, was vorliegt.
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
+**Depends on:** Phase 14 (Kapitel, Sprungleiste, `verify:shipcard`, Höhenklinke)
+**Plans:** 0 plans
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Auf jeder der 227 Schiffsseiten wählt man ein System und sieht am
+     gerenderten Schiff, wo es sitzt; die Auslesung dazu steht daneben
+  2. Bei abgeschaltetem JavaScript zeigt dieselbe Seite alle Systeme
+     untereinander als lesbare Liste — maschinell belegt gegen das gebaute
+     `dist/`, nicht behauptet
+  3. Der indexierbare Textbestand je Schiffsseite ist **nicht kleiner** als die
+     heute gemessenen ~5 KB; die Zahl wird als Sperrklinke festgeschrieben
+  4. Bei 360 px ist die Konsole gestapelt bedienbar: Modell, Chip-Reihe,
+     Auslesung — ohne waagerechten Überlauf
+  5. Beim Seitenaufruf wird weder `three.module.min.js` noch ein GLB geladen;
+     beides kommt erst, wenn die Bühne in den sichtbaren Bereich gescrollt wird
+  6. Marker sitzen an den Positionen aus dem Schiffsmodell, und die Vorbehalte
+     `np` und `est` bleiben am Marker sichtbar
+  7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1` — einschließlich `verify:shipcard` aus Phase 14, das an den
+     neuen Aufbau angepasst werden muss statt umgangen zu werden
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 15 to break down)
