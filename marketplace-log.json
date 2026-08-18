@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 307,
-  "totalListings": 6985,
-  "totalSold": 297,
+  "updates": 308,
+  "totalListings": 6997,
+  "totalSold": 298,
   "distinctItems": 1245
  },
  "listings": {
@@ -148913,9 +148913,9 @@
      "p": 25000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 25000000,
    "dateAdded": 1787047116,
    "dateExpiration": 1792231116
   },
@@ -149170,6 +149170,258 @@
    "soldOutPrice": null,
    "dateAdded": 1787057050,
    "dateExpiration": 1792241050
+  },
+  "163795": {
+   "idItem": 5754,
+   "idCategory": 3,
+   "title": "DCP Armor Helmet Cobalt Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787059161,
+   "dateExpiration": 1792243161
+  },
+  "163796": {
+   "idItem": 5749,
+   "idCategory": 5,
+   "title": "DCP Armor Core Cobalt Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787059220,
+   "dateExpiration": 1792243220
+  },
+  "163797": {
+   "idItem": 4155,
+   "idCategory": 3,
+   "title": "Deadhead Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787059737,
+   "dateExpiration": 1792243737
+  },
+  "163798": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium 930q - 0.486 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 930,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787059810,
+   "dateExpiration": 1792243810
+  },
+  "163799": {
+   "idItem": 6015,
+   "idCategory": 4,
+   "title": "DCP Armor Legs Hunter Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787059829,
+   "dateExpiration": 1792243829
+  },
+  "163800": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum 919q - 1.311 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 919,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787059954,
+   "dateExpiration": 1792243954
+  },
+  "163801": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 927q - 0.258 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 927,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060111,
+   "dateExpiration": 1792244111
+  },
+  "163802": {
+   "idItem": 6800,
+   "idCategory": 5,
+   "title": "ORC-mkX Core Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060292,
+   "dateExpiration": 1792244292
+  },
+  "163803": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper 917q - 2.296 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 917,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060319,
+   "dateExpiration": 1792244319
+  },
+  "163804": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron (907Q, 1.098scu)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060341,
+   "dateExpiration": 1792244341
+  },
+  "163805": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 907q - 1.68 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 907,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060423,
+   "dateExpiration": 1792244423
+  },
+  "163807": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 874Q (variety of boxes)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060623,
+   "dateExpiration": 1792244623
   }
  }
 }
