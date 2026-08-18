@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 316,
-  "totalListings": 7108,
+  "updates": 317,
+  "totalListings": 7115,
   "totalSold": 309,
-  "distinctItems": 1250
+  "distinctItems": 1251
  },
  "listings": {
   "156580": {
@@ -151833,6 +151833,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787089467,
    "dateExpiration": 1792273467
+  },
+  "163958": {
+   "idItem": 1759,
+   "idCategory": 19,
+   "title": "Avalanche",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787089625,
+   "dateExpiration": 1792273624
+  },
+  "163959": {
+   "idItem": 467,
+   "idCategory": 2,
+   "title": "CSP-68M Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 150000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787090197,
+   "dateExpiration": 1792274196
+  },
+  "163960": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787090719,
+   "dateExpiration": 1792274719
+  },
+  "163961": {
+   "idItem": 1774,
+   "idCategory": 21,
+   "title": "JS-300",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787091433,
+   "dateExpiration": 1792275432
+  },
+  "163965": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Feynmaline 500 and up needed",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787092254,
+   "dateExpiration": 1792276254
+  },
+  "163970": {
+   "idItem": 2534,
+   "idCategory": 68,
+   "title": "AvantX Glasses -Available-",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787092548,
+   "dateExpiration": 1792276548
+  },
+  "163977": {
+   "idItem": 2535,
+   "idCategory": 68,
+   "title": "Avalos Scout Goggles -Available-",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787093055,
+   "dateExpiration": 1792277055
   }
  }
 }
