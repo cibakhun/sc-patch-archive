@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 9
+open_count: 11
 waived_count: 0
 fixed_count: 8
-total_count: 17
-last_updated: 2026-08-18T00:06:28.659Z
+total_count: 19
+last_updated: 2026-08-18T09:37:16.493Z
 ---
 
 # Broken Windows Ledger
@@ -32,6 +32,8 @@ last_updated: 2026-08-18T00:06:28.659Z
 | 15 | 14 | unrun-verify | discord/blueprint.mjs |  | Offene Betreiberentscheidung (14-05): Navigators (Moderatoren) sehen #test-pilots NICHT -- der Kanal laesst per overwrites ausschliesslich tester und flight-computer herein, Fleet Command nur ueber Administrator (keine Ueberschreibung). D-18 ("nur fuer Testpiloten sichtbar") ist woertlich korrekt umgesetzt, meinte aber mit hoher Wahrscheinlichkeit "nicht fuer die Allgemeinheit" statt "auch nicht fuer die Moderation". Ein Moderator kann den Kanal weder lesen noch moderieren, obwohl dort ueber Unfertiges geredet wird. Bei 5 Mitgliedern folgenlos; sobald jemand moderiert, eine Luecke. Nicht eigenmaechtig geaendert -- Betreiberentscheidung noetig, ob navigators: { allow: [...] } zum Kanal-Overwrite ergaenzt wird. | open |  | 2026-08-17T23:33:19.659Z |  |
 | 16 | 14 | unrun-verify | supabase/migrations/20260818002000_block_discord_signup.sql |  | Nachweispunkt (b) aus 14-03 Aufgabe 2: die drei SQL-Gegenproben (in einer zurueckgerollten Transaktion, gegen public.handle_new_user()) belegen NUR, dass der INSERT beim Discord-Weg abbricht (a) -- NICHT, dass der Nutzer im Browser den formulierten Text sieht, statt einer von GoTrue generisch verpackten Antwort ("Database error saving new user"). Erst pruefbar durch einen echten Discord-Signup-Versuch im Browser, sobald der Provider eingerichtet ist (Plan 14-04). Faellt der Text weg: NICHT den Riegel aendern, sondern die Oberflaeche (Login-/Torseite) faengt den Fehlerfall ab und zeigt selbst etwas Verstaendliches -- Punkt fuer Plan 14-04. | open |  | 2026-08-18T00:06:16.403Z |  |
 | 17 | 14 | unrun-verify | src/components/account/AuthLogin.astro |  | Vier echte Anmeldevorgaenge auf https://verse-base.com/account/ (LIVE) aus 14-03 Aufgabe 2: (1) neues Konto mit erreichbarer E-Mail-Adresse registrieren, (2) mit bestehendem Konto per E-Mail/Passwort anmelden, (3) abmelden und wieder anmelden, (4) Passwort zurueksetzen anstossen. Wichtiger als beim urspruenglichen Plan, weil der Riegel (Discord-Signup-Sperre, D-02) jetzt NICHT mehr in einem eigenen Trigger sitzt, sondern in public.handle_new_user() -- der Funktion, die JEDE Registrierung traegt (Betreiber-Entscheidung nach 42501-Befund: eigener Trigger auf auth.users ist auf der verwalteten Plattform nicht anlegbar, auth.users gehoert supabase_auth_admin). Die SQL-Gegenprobe aus Aufgabe 2 deckt nur den Datenbankpfad ab, nicht den echten Weg durch GoTrue. Klemmt einer der vier Schritte: der Riegel muss sofort untersucht werden (Rueckbau-Anleitung steht im Kommentarblock der Migration). | open |  | 2026-08-18T00:06:28.659Z |  |
+| 18 | 14 | unmet-truth | src/components/account/AuthLogin.astro |  | Die Supabase-Einstellung zum Verknuepfen von Identitaeten bei gleicher E-Mail-Adresse ('Allow manual linking' o.ae.) konnte der Betreiber im Dashboard nach Aufgabe 1 (14-04) NICHT lokalisieren -- Zustand ist UNGEKLAERT, nicht 'ist an'. Ist sie AUS, versucht Supabase bei einem BEKANNTEN Nutzer, der sich ueber Discord anmeldet, ein NEUES auth.users-Konto anzulegen; der D-02-Riegel aus Plan 03 (public.handle_new_user()) greift dann und der Nutzer landet in der 'registriere dich zuerst'-Anzeige, obwohl er bereits registriert ist. AuthLogin.astro/gate.astro koennen diesen Fall client-seitig NICHT von einem echten unbekannten Konto unterscheiden -- beide liefern denselben insufficient_privilege-Fehler ueber denselben Anzeigetext. Zu pruefen: ein Konto mit bekannter, bereits registrierter E-Mail-Adresse per Discord anmelden -- schlaegt es fehl, muss die Verknuepfungs-Einstellung im Supabase-Dashboard gefunden und aktiviert werden (moeglicherweise unter anderem Namen in dieser Oberflaechenversion). | open |  | 2026-08-18T09:36:39.758Z |  |
+| 19 | 14 | unrun-verify | .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-04-PLAN.md |  | Vier Durchlaeufe des Discord-Anmeldewegs (Aufgabe 2 <human-check>) nicht vom Executor durchgefuehrt -- braucht echte Discord-Konten (ein bekanntes, ein unbekanntes) und den Rundlauf durch drei fremde Systeme (Browser -> Discord -> Supabase -> Browser), kein Skript kann das nachstellen. (1) Bekanntes Konto: auf /account/ per E-Mail/Passwort anmelden, abmelden, mit dem Discord-Knopf anmelden -- Erwartung: angemeldet, KEIN zweites Konto, dieselbe E-Mail/dasselbe Profil/dieselben Favoriten. (2) Unbekanntes Discord-Konto: Erwartung 'Fuer dieses Discord-Konto gibt es noch kein Konto auf verse-base.com...' -- keine Fehlernummer, kein englischer Serverfehler; in Supabase Authentication->Users entsteht KEIN neues Konto. (3) Torseite: gesperrte URL aufrufen, Discord-Knopf auf gate.html nutzen -- Erwartung: Rueckkehr auf die urspruenglich gewuenschte URL. (4) Sichturteil (D-11): traegt die Torseite die Handschrift der Seite, sind die zwei Saetze verstaendlich, ist WIE man die Rolle bekommt erkennbar, steht der Discord-Knopf klar vor dem E-Mail-Formular ohne es zu verstecken -- bei 1920x1080 UND 360px, beide Farbmodi. Zusaetzlich offen (Koordinator-Rueckmeldung nach Aufgabe 1): ob die Verknuepfung von Identitaeten bei gleicher E-Mail-Adresse im Supabase-Dashboard ueberhaupt aktiv ist -- siehe eigener Eintrag zu dieser Frage. Maschinell bereits gruen: npm run build + npm run gate 18/18 (normal UND STAGING=1), npm run audit:csp sauber (0 neue Gegenstellen -- OAuth-Sprung ist Navigation, keine Richtlinie), das automatisierte <verify> aus dem Plan (Discord-Knopf in dist/gate.html + dist/account/login.html + dist/de/account/login.html, kein gebuendeltes Skript auf der Torseite). | open |  | 2026-08-18T09:37:16.493Z |  |
 
 ````json
 [
@@ -237,6 +239,30 @@ last_updated: 2026-08-18T00:06:28.659Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T00:06:28.659Z",
+    "resolved_at": null
+  },
+  {
+    "id": 18,
+    "kind": "unmet-truth",
+    "phase": "14",
+    "file": "src/components/account/AuthLogin.astro",
+    "line": null,
+    "description": "Die Supabase-Einstellung zum Verknuepfen von Identitaeten bei gleicher E-Mail-Adresse ('Allow manual linking' o.ae.) konnte der Betreiber im Dashboard nach Aufgabe 1 (14-04) NICHT lokalisieren -- Zustand ist UNGEKLAERT, nicht 'ist an'. Ist sie AUS, versucht Supabase bei einem BEKANNTEN Nutzer, der sich ueber Discord anmeldet, ein NEUES auth.users-Konto anzulegen; der D-02-Riegel aus Plan 03 (public.handle_new_user()) greift dann und der Nutzer landet in der 'registriere dich zuerst'-Anzeige, obwohl er bereits registriert ist. AuthLogin.astro/gate.astro koennen diesen Fall client-seitig NICHT von einem echten unbekannten Konto unterscheiden -- beide liefern denselben insufficient_privilege-Fehler ueber denselben Anzeigetext. Zu pruefen: ein Konto mit bekannter, bereits registrierter E-Mail-Adresse per Discord anmelden -- schlaegt es fehl, muss die Verknuepfungs-Einstellung im Supabase-Dashboard gefunden und aktiviert werden (moeglicherweise unter anderem Namen in dieser Oberflaechenversion).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T09:36:39.758Z",
+    "resolved_at": null
+  },
+  {
+    "id": 19,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": ".planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-04-PLAN.md",
+    "line": null,
+    "description": "Vier Durchlaeufe des Discord-Anmeldewegs (Aufgabe 2 <human-check>) nicht vom Executor durchgefuehrt -- braucht echte Discord-Konten (ein bekanntes, ein unbekanntes) und den Rundlauf durch drei fremde Systeme (Browser -> Discord -> Supabase -> Browser), kein Skript kann das nachstellen. (1) Bekanntes Konto: auf /account/ per E-Mail/Passwort anmelden, abmelden, mit dem Discord-Knopf anmelden -- Erwartung: angemeldet, KEIN zweites Konto, dieselbe E-Mail/dasselbe Profil/dieselben Favoriten. (2) Unbekanntes Discord-Konto: Erwartung 'Fuer dieses Discord-Konto gibt es noch kein Konto auf verse-base.com...' -- keine Fehlernummer, kein englischer Serverfehler; in Supabase Authentication->Users entsteht KEIN neues Konto. (3) Torseite: gesperrte URL aufrufen, Discord-Knopf auf gate.html nutzen -- Erwartung: Rueckkehr auf die urspruenglich gewuenschte URL. (4) Sichturteil (D-11): traegt die Torseite die Handschrift der Seite, sind die zwei Saetze verstaendlich, ist WIE man die Rolle bekommt erkennbar, steht der Discord-Knopf klar vor dem E-Mail-Formular ohne es zu verstecken -- bei 1920x1080 UND 360px, beide Farbmodi. Zusaetzlich offen (Koordinator-Rueckmeldung nach Aufgabe 1): ob die Verknuepfung von Identitaeten bei gleicher E-Mail-Adresse im Supabase-Dashboard ueberhaupt aktiv ist -- siehe eigener Eintrag zu dieser Frage. Maschinell bereits gruen: npm run build + npm run gate 18/18 (normal UND STAGING=1), npm run audit:csp sauber (0 neue Gegenstellen -- OAuth-Sprung ist Navigation, keine Richtlinie), das automatisierte <verify> aus dem Plan (Discord-Knopf in dist/gate.html + dist/account/login.html + dist/de/account/login.html, kein gebuendeltes Skript auf der Torseite).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T09:37:16.493Z",
     "resolved_at": null
   }
 ]

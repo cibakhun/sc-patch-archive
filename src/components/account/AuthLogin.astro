@@ -23,6 +23,13 @@ const COPY = {
     errNet: 'Netzwerkfehler — bitte später erneut versuchen.',
     toRegister: 'Neu hier? Konto erstellen',
     toReset: 'Passwort vergessen?',
+    discordBtn: 'Mit Discord anmelden',
+    // D-02: unbekanntes Discord-Konto -> Weg nennen, nicht den Rohtext der
+    // Datenbank. GoTrue verpackt die im Trigger geworfene Ausnahme mancherorts
+    // generisch statt sie durchzureichen (offener Punkt .planning/WINDOWS.md
+    // id 16) -- dieser Text gilt daher fuer BEIDE Faelle.
+    errDiscordBlocked: 'Für dieses Discord-Konto gibt es noch kein Konto auf verse-base.com. Registriere dich zuerst mit E-Mail und Passwort und verknüpfe Discord danach in deinem Konto.',
+    errOauth: 'Discord-Anmeldung fehlgeschlagen — bitte versuche es erneut oder melde dich mit E-Mail und Passwort an.',
   },
   en: {
     email: 'E-mail', emailPh: 'you@example.com',
@@ -35,6 +42,9 @@ const COPY = {
     errNet: 'Network error — please try again later.',
     toRegister: 'New here? Create an account',
     toReset: 'Forgot your password?',
+    discordBtn: 'Sign in with Discord',
+    errDiscordBlocked: 'There is no verse-base.com account linked to this Discord account yet. Register with e-mail and password first, then link Discord in your account.',
+    errOauth: 'Discord sign-in failed — please try again, or sign in with e-mail and password.',
   },
 }[lang];
 
@@ -54,6 +64,8 @@ const resetHref = href('/account/reset.html', lang);
     data-msg-net={COPY.errNet}
     data-busy={COPY.busy}
     data-submit={COPY.submit}
+    data-msg-discord-blocked={COPY.errDiscordBlocked}
+    data-msg-oauth={COPY.errOauth}
   >
     <div class="acx-field">
       <label class="acx-label" for="loEmail">{COPY.email} <span class="reqm">*</span></label>
@@ -68,11 +80,21 @@ const resetHref = href('/account/reset.html', lang);
     </div>
     <p class="acx-status" id="loginStatus" role="alert" aria-live="assertive" hidden></p>
   </form>
+  <hr class="acx-divider" />
+  <button type="button" class="acx-submit acx-discord" id="discordBtn">
+    <span id="discordBtnTxt">{COPY.discordBtn}</span>
+  </button>
   <div class="acx-links">
     <a href={registerHref}>{COPY.toRegister}</a>
     <a href={resetHref}>{COPY.toReset}</a>
   </div>
 </div>
+
+<style>
+  /* D-01: gleichrangig neben E-Mail/Passwort — volle Breite wie der Submit-
+     Knopf des Formulars, kein Kleingedrucktes. */
+  .acx-discord { width: 100%; justify-content: center; margin-top: 1.5rem; }
+</style>
 
 <script>
   import { supabase } from '../../lib/supabase';
@@ -106,12 +128,36 @@ const resetHref = href('/account/reset.html', lang);
 
     const go = () => location.replace(next);
 
+    // Discord-OAuth-Rücksprung mit Fehler (D-02): bei flowType 'implicit'
+    // kommt eine Absage als #error=…&error_description=… im Fragment
+    // zurück, NICHT als ?-Parameter. GoTrue verpackt die im Trigger
+    // geworfene Ausnahme mancherorts generisch ("Database error saving new
+    // user", error_code "unexpected_failure") statt den eigenen Text
+    // durchzureichen — offener Punkt .planning/WINDOWS.md id 16, darum wird
+    // auf BEIDE Formen reagiert. Der Rohtext aus error_description wird nie
+    // angezeigt — nur der handgeschriebene Hinweis.
+    const hashParams = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : '');
+    const oauthError = hashParams.get('error');
+    if (oauthError) {
+      const desc = (hashParams.get('error_description') || '').toLowerCase();
+      const code = (hashParams.get('error_code') || '').toLowerCase();
+      const looksBlocked =
+        desc.includes('kein konto auf verse-base.com') ||
+        desc.includes('database error saving new user') ||
+        code === 'unexpected_failure';
+      status.textContent = looksBlocked ? D.msgDiscordBlocked! : D.msgOauth!;
+      status.hidden = false;
+      // Fragment sofort entfernen (T-14-23): kein Fehlertext im Verlauf/Screenshot.
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+
     if (params.get('confirmed') === '1') {
       ok.textContent = D.msgConfirmed!;
       ok.hidden = false;
     }
 
-    // Bereits eingeloggt (oder Session frisch aus dem E-Mail-Link übernommen)?
+    // Bereits eingeloggt (oder Session frisch aus dem Discord-Rücksprung /
+    // E-Mail-Link von supabase-js' detectSessionInUrl übernommen)?
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) go();
     });
@@ -145,5 +191,35 @@ const resetHref = href('/account/reset.html', lang);
         btnTxt.textContent = D.submit!;
       }
     });
+
+    const discordBtn = document.getElementById('discordBtn') as HTMLButtonElement | null;
+    if (discordBtn) {
+      discordBtn.addEventListener('click', async () => {
+        discordBtn.disabled = true;
+        status.hidden = true;
+        // Keine zusätzlichen Scopes: identify+email ist die Provider-Vorgabe
+        // und reicht (D-03) — Rollenfragen beantwortet der Bot-Token
+        // server-zu-server, nicht das Nutzertoken.
+        //
+        // redirectTo zeigt bewusst auf DIESE Login-Seite selbst, nicht auf
+        // /account/ (Dashboard): das Dashboard-Skript (account-dashboard.ts)
+        // leitet ohne Sitzung sofort per location.replace() zu dieser Seite
+        // weiter — dabei ginge ein #error=…-Fragment aus einer abgewiesenen
+        // Anmeldung verloren, bevor es je gelesen werden könnte. Der
+        // Rücksprung auf sich selbst behandelt Erfolg (supabase-js liest die
+        // Session aus dem Fragment, der bestehende getSession()-Zweig oben
+        // leitet dann weiter) UND Fehler (Block oben) an derselben Stelle.
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'discord',
+          options: { redirectTo: location.origin + location.pathname + location.search },
+        });
+        if (error) {
+          status.textContent = D.msgOauth!;
+          status.hidden = false;
+          discordBtn.disabled = false;
+        }
+        // Kein error: der Browser navigiert bereits zu Discord weg.
+      });
+    }
   }
 </script>
