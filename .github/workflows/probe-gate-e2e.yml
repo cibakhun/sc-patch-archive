@@ -123,8 +123,14 @@ jobs:
 
       - name: "Container 1/5 starten: Bahn B (Mock-Supabase, echtes Geheimnis)"
         run: |
+          # VB_GATE_BYPASS zusaetzlich gesetzt (CR-02/WR-01): dieser Container
+          # ist der EINZIGE Ort, an dem der `env VB_GATE_BYPASS;`-Eintrag aus
+          # dem Dockerfile jemals gegen einen echten, laufenden njs-Prozess
+          # geprueft wird -- kein Repo-Secret, ein reiner CI-Probenwert, den
+          # ausser diesem Schritt niemand kennt und der nie ausgegeben wird.
           docker run -d --rm --network gatenet -p 8099:80 --name vbgate-mock \
             -e VB_GATE_SECRET=probe-secret-nur-fuer-ci \
+            -e VB_GATE_BYPASS=probe-bypass-nur-fuer-ci \
             -e VB_SUPABASE_URL=http://mockrest \
             -e VB_SUPABASE_ANON_KEY=mock-key \
             vb-gate-e2e:staging
@@ -254,6 +260,40 @@ jobs:
 
           echo ""
           echo "Zusicherungen: $SOLL_IST   FEHLER: $FEHLER"
+          exit $FEHLER
+
+      - name: "Zusicherungen — CI-Rauchtest-Bypass gegen den echten njs-Container (CR-02/WR-01)"
+        run: |
+          set +e
+          FEHLER=0
+          check() {
+            if [ "$2" = "$3" ]; then echo "OK     $1 — Soll $2 Ist $3"; else echo "FEHLER $1 — Soll $2 Ist $3"; FEHLER=$((FEHLER+1)); fi
+          }
+          # `code()` ist je `run:`-Schritt ein eigener Shell-Prozess -- die
+          # Definition aus dem vorherigen Schritt (Redirects/Ausnahmeliste)
+          # gilt hier nicht mehr und wird deshalb erneut definiert.
+          code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
+          # Dies ist der einzige Ort im gesamten geprueften Bestand, an dem
+          # VB_GATE_BYPASS gegen einen ECHTEN, aus dem Dockerfile gebauten
+          # njs-Container gemessen wird -- weder verify-gate.mjs (kein Netz,
+          # Schiene A) noch check-gate.mjs alleine (braucht Docker, das auf
+          # dem Entwicklungsrechner fehlt) koennen das. Ohne die
+          # `env VB_GATE_BYPASS;`-Zeile im Dockerfile (CR-02) waeren ALLE
+          # drei Zusicherungen unten falsch: der Positivfall wuerde 302 statt
+          # 200 liefern, weil process.env.VB_GATE_BYPASS in njs leer bliebe.
+          echo "--- der ECHTE Bypass-Wert oeffnet eine gesperrte Seite OHNE Cookie ---"
+          check "/schiffe.html mit korrektem X-VB-Gate-Bypass" 200 \
+            "$(code -H 'X-VB-Gate-Bypass: probe-bypass-nur-fuer-ci' http://localhost:8099/schiffe.html)"
+
+          echo "--- ein FALSCHER Wert bleibt gesperrt (T-14-56/T-14-57, kein Dauerschluessel) ---"
+          check "/schiffe.html mit falschem X-VB-Gate-Bypass" 302 \
+            "$(code -H 'X-VB-Gate-Bypass: geraten-und-falsch' http://localhost:8099/schiffe.html)"
+
+          echo "--- kein Kopfzeilenwert -> weiterhin gesperrt (Grundzustand unveraendert) ---"
+          check "/schiffe.html ohne X-VB-Gate-Bypass" 302 "$(code http://localhost:8099/schiffe.html)"
+
+          echo ""
+          echo "FEHLER: $FEHLER"
           exit $FEHLER
 
       - name: Zusicherungen — Signatur/Ablauf (T-14-01/T-14-02, kein Supabase noetig)

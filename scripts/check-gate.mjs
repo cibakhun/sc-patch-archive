@@ -17,7 +17,7 @@
    auseinanderlaufen koennten, waeren genau die Sorte Pruefer, die
    gruen meldet und nichts misst (T-14-60).
 
-   Fuenf Zusicherungen, jede mit Soll/Ist:
+   Sechs Zusicherungen, jede mit Soll/Ist:
 
      1  Gesperrt ist gesperrt: jede gesperrte Stichprobe antwortet OHNE
         Cookie mit 302 auf /gate.html. Ein 200 ist FEHLER.
@@ -38,6 +38,16 @@
      5  Die Live-Seite ist unberuehrt (nur mit --live <url>): eine
         gewoehnliche Seite antwortet mit 200 ohne jedes Cookie (D-12) —
         gegen das Artefakt geprueft, nicht behauptet.
+     6  Der ECHTE Bypass kommt durch (nur mit --bypass <wert>, WR-01):
+        Zusicherung 4 prueft ausschliesslich den Negativfall (ein
+        FREMDER Wert darf nicht durchkommen) — das allein haette CR-02
+        (die fehlende `env VB_GATE_BYPASS;`-Zeile im Dockerfile) NIE
+        aufdecken koennen, denn ein toter Bypass-Zweig laesst den
+        Negativfall unveraendert gruen. Zusicherung 6 schliesst genau
+        diese Luecke: derselbe Wert, den DIESER CI-Lauf per
+        `docker run -e VB_GATE_BYPASS=...` gesetzt hat, muss auf eine
+        gesperrte Stichprobe mit 200 antworten. Ohne --bypass wird die
+        Zusicherung sichtbar uebersprungen (nicht still gruen).
 
    Selbstauskunft: gepruefte Adresse, Zahl der gesperrten und der
    offenen Stichproben. Untergrenzen als Sperrklinken — duerfen nur
@@ -58,6 +68,12 @@ const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
 const BASE = flag('--base', 'https://staging.verse-base.com').replace(/\/$/, '');
 const LIVE = flag('--live', null);
 const WEICH = argv.includes('--weich');
+// Der ECHTE, fuer DIESEN Lauf gueltige Bypass-Wert (WR-01) — NUR fuer
+// Zusicherung 6 (Positivfall). Anders als Zusicherung 4 (die einen
+// FREMDEN, selbst gewuerfelten Wert prueft) braucht dieser Wert eine
+// Gegenstelle, die ihn kennt: der CI-Schritt, der denselben Wert per
+// `docker run -e VB_GATE_BYPASS=...` gesetzt hat. Nirgends geloggt.
+const BYPASS = flag('--bypass', null);
 
 // Kopfzeile, gegen die eine gesperrte Stichprobe geprueft wird — dieselbe
 // Marke, die nginx/gate.js check() (Aufgabe 3) und scripts/browser-smoke.mjs
@@ -285,6 +301,23 @@ if (LIVE) {
     if (r.status !== 200) fail(`${liveBase}/ antwortet ${r.status} statt 200 ohne jedes Cookie — die Live-Seite waere hinter dem Tor gelandet (D-12)`);
   } catch (e) {
     fail(`Live-Probe gegen ${liveBase} fehlgeschlagen (${e.message})`);
+  }
+}
+
+/* ---- [6] Der ECHTE Bypass kommt durch (nur mit --bypass) ---- */
+console.log(`\n[6] Der echte Bypass kommt durch (WR-01)${BYPASS ? '' : ' — uebersprungen, kein --bypass angegeben'}`);
+if (BYPASS) {
+  const ziel = gesperrteStichproben[0];
+  try {
+    const r = await holen(ziel, { headers: { [BYPASS_HEADER]: BYPASS } });
+    const trifft = r.status === 200;
+    console.log(`    ${ziel} mit dem echten Bypass-Wert in ${BYPASS_HEADER} — Soll: 200   Ist: ${r.status}`);
+    if (!trifft)
+      fail(
+        `${ziel} mit dem echten, fuer diesen Lauf gueltigen Bypass-Wert antwortet ${r.status} statt 200 — der CI-Rauchtest-Weg durchs Tor ist nicht verdrahtet (siehe Dockerfile env-Direktiven, CR-02)`
+      );
+  } catch (e) {
+    fail(`Positiv-Bypass-Probe gegen ${ziel} fehlgeschlagen (${e.message})`);
   }
 }
 

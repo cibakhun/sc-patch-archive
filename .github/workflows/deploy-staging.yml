@@ -126,11 +126,17 @@ jobs:
           SMOKE_GATE_BYPASS="$GATE_BYPASS" node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
           # check-gate.mjs (Schiene C, Aufgabe 2) laeuft NACH dem Rauchtest
           # und VOR dem Push, gegen denselben laufenden Container -- dort ist
-          # er am Platz, weil dort ein echtes Artefakt steht. Er bekommt den
-          # Bypass-Wert NICHT: seine eigene Zusicherung 4 wuerfelt einen
-          # FREMDEN Wert und misst, dass GENAU DER nicht durchkommt.
+          # er am Platz, weil dort ein echtes Artefakt steht. Zusicherung 4
+          # wuerfelt einen FREMDEN Wert und misst, dass GENAU DER nicht
+          # durchkommt (Negativfall, bekommt den echten Wert nicht). Seit
+          # WR-01 bekommt er zusaetzlich per --bypass den ECHTEN, fuer DIESEN
+          # Lauf gueltigen Wert und misst in Zusicherung 6, dass GENAU DER
+          # eine gesperrte Stichprobe oeffnet (Positivfall) -- genau die
+          # Pruefung, deren Fehlen CR-02 (fehlende env-Direktive im
+          # Dockerfile) unentdeckt liess. Der Wert wird auch hier nicht
+          # ausgegeben (T-14-58).
           if [ "$code" -eq 0 ]; then
-            node scripts/check-gate.mjs --base http://localhost:8080 || code=$?
+            node scripts/check-gate.mjs --base http://localhost:8080 --bypass "$GATE_BYPASS" || code=$?
           fi
           docker stop smoke >/dev/null || true
           exit $code
