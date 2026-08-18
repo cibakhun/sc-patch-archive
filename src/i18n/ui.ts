@@ -186,6 +186,11 @@ const UI = {
     'holo.legend.np': 'Gestrichelt + Raute: Bauteil ist im Schiffsmesh nicht verortet — Marker rein schematisch.',
     'holo.legend.est': 'Gestrichelt: Position ungefähr (auf ein nachgebautes Modell übertragen).',
     'holo.panel.close': 'Details schließen',
+    // VERWAIST (15-01-PLAN.md Task 2, P-2): der Beschriftungs-Umschalter
+    // #holoblabels ist aus dem Markup entfernt — kein Marker traegt mehr
+    // eine DAUERHAFTE Beschriftung, die sich ein-/ausschalten liesse. Diese
+    // beiden Schluessel werden bewusst NICHT geloescht (Loeschung liegt beim
+    // Executor spaeterer Wellen, kein Blocker).
     'holo.labels.toggle': 'Beschriftungen ein/aus',
     'holo.labels.short': 'Labels',
     'holo.filter.aria': 'Komponenten-Ebenen',
@@ -577,6 +582,7 @@ const UI = {
     'holo.legend.np': 'Dashed + diamond: component has no location in the ship mesh — marker is schematic only.',
     'holo.legend.est': 'Dashed: approximate position (mapped onto a fan-made model).',
     'holo.panel.close': 'Close details',
+    // ORPHANED (15-01-PLAN.md Task 2, P-2): see the DE block above for why.
     'holo.labels.toggle': 'Toggle labels',
     'holo.labels.short': 'Labels',
     'holo.filter.aria': 'Component layers',

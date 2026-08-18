@@ -261,11 +261,21 @@ async function runCensus() {
     `Soll: Gruppenzaehlung je Schiff EN===DE (Ports sind sprachunabhaengig); Ist ${deGleichEn} gleich, ${deUngleichEn} ungleich`
   );
 
+  // Vor Task 2 Schritt 2 (P-3 noch nicht umgesetzt) liefert dist/ core=8/
+  // arms=4/other=5/prop=0 (15-UI-SPEC.md § 3a: "17 von 60"); NACH Schritt 2
+  // liefert es die in Task 1 gewaehlte Variante C: core=8/arms=4/prop=10/
+  // other=5 (15-01-PLAN.md Task 1, "Vorabzaehlung ... Carrack unter C").
+  // Beide sind gueltige Zustaende dieser Welle, je nach Fortschritt — die
+  // Sonde erkennt, welcher vorliegt, statt nur einen zu verlangen.
   const carrackDist = distCountsEn.get(CARRACK_ID);
+  const VOR_P3 = { core: 8, arms: 4, prop: 0, other: 5 };
+  const NACH_P3_VARIANTE_C = { core: 8, arms: 4, prop: 10, other: 5 };
+  const gleich = (a, b) => a && HOLO_GRP_ORDER.every((g) => a[g] === b[g]);
+  const zustand = gleich(carrackDist, VOR_P3) ? 'vor P-3' : gleich(carrackDist, NACH_P3_VARIANTE_C) ? 'nach P-3 (Variante C)' : null;
   melde(
     'a-carrack-exakt',
-    !!carrackDist && carrackDist.core === 8 && carrackDist.arms === 4 && carrackDist.other === 5 && carrackDist.prop === 0,
-    `Soll core=8/arms=4/other=5/prop=0 (15-UI-SPEC.md § 3a: "17 von 60"); Ist ${carrackDist ? JSON.stringify(carrackDist) : 'Carrack nicht gefunden'}`
+    !!zustand,
+    `Soll core=8/arms=4/other=5 UND (prop=0 [vor P-3] ODER prop=10 [nach P-3, Variante C]); Ist ${carrackDist ? JSON.stringify(carrackDist) : 'Carrack nicht gefunden'} (${zustand ?? 'WEDER NOCH'})`
   );
 
   const railLaengenVerteilung = { 1: 0, 2: 0, 3: 0, 4: 0 };
@@ -313,25 +323,10 @@ async function runCensus() {
     );
   }
 
-  // Gegenprobe: Variante B (Ist-Zustand) MUSS je Schiff+Gruppe exakt dem
-  // ausgelieferten holodata gleichen (15-01-PLAN.md, "GEGENPROBE, nicht optional").
-  let vergliechenePaare = 0, abweichungen = [];
-  for (const [id, delivered] of distCountsEn) {
-    const b = varStats.B.proSchiff.get(id);
-    if (!b) { abweichungen.push(`${id}: aus der Quelle nicht berechenbar (kein Mesh/Hardpoint/Vehicle-Eintrag)`); continue; }
-    for (const g of HOLO_GRP_ORDER) {
-      vergliechenePaare++;
-      if (b[g] !== delivered[g]) abweichungen.push(`${id}/${g}: ausgeliefert ${delivered[g]}, aus der Quelle (Variante B) ${b[g]}`);
-    }
-  }
-  melde(
-    'b-gegenprobe',
-    abweichungen.length === 0 && vergliechenePaare >= 400,
-    `Soll: 0 Abweichungen ueber >=400 verglichene Schiff-Gruppen-Paare; Ist ${vergliechenePaare} Paare verglichen, ${abweichungen.length} Abweichung(en)` +
-      (abweichungen.length ? ` — ${abweichungen.slice(0, 5).join(' | ')}` : '')
-  );
-
-  // P-3-Entscheidungsregel (15-01-PLAN.md, drei Schritte):
+  // P-3-Entscheidungsregel (15-01-PLAN.md, drei Schritte) — VOR der Gegenprobe,
+  // weil die Gegenprobe unten gegen die gewaehlte Variante prueft, nicht mehr
+  // fest gegen B: nach Task 2 (Schritt 2, P-3 umgesetzt) liefert dist/ die
+  // gewaehlte Variante aus, nicht mehr den Ist-Zustand aus Task 1.
   //   1. Kein Systemeintrag ohne Marker — strukturell durch groups-Filter erfuellt.
   //   2. Unter den Varianten mit groesster Einzelgruppe <= 20: die groesste prop-Abdeckung gewinnt.
   //   3. Bei Gleichstand: weniger Marker gesamt gewinnt.
@@ -342,6 +337,35 @@ async function runCensus() {
     `  Entscheidungsregel: Kandidaten mit groesster Einzelgruppe <=${MAX_EINZELGRUPPE}: ${kandidaten.map(([k]) => k).join(', ') || '(keine)'}`
   );
   console.log(`  GEWAEHLTE VARIANTE: ${gewaehlteVariante ?? '(keine erfuellt die Obergrenze)'}`);
+
+  // Gegenprobe (15-01-PLAN.md, "GEGENPROBE, nicht optional"): die aus der
+  // Quelle gerechnete Variante MUSS je Schiff+Gruppe exakt dem ausgelieferten
+  // holodata gleichen. Gegen ALLE drei Varianten geprueft und gedruckt (so
+  // bleibt sichtbar, welche Variante dist/ GERADE ausliefert — vor Task 2
+  // Schritt 2 ist das B, danach die gewaehlte Variante); das SCHARFE Urteil
+  // gilt der gewaehlten Variante, weil NUR sie das ausgelieferte Artefakt
+  // nach Abschluss dieser Welle sein soll.
+  const gegenprobeJeVariante = {};
+  for (const vk of Object.keys(VARIANTEN)) {
+    let paare = 0, abw = [];
+    for (const [id, delivered] of distCountsEn) {
+      const c = varStats[vk].proSchiff.get(id);
+      if (!c) { abw.push(`${id}: aus der Quelle nicht berechenbar`); continue; }
+      for (const g of HOLO_GRP_ORDER) {
+        paare++;
+        if (c[g] !== delivered[g]) abw.push(`${id}/${g}: ausgeliefert ${delivered[g]}, Variante ${vk} ${c[g]}`);
+      }
+    }
+    gegenprobeJeVariante[vk] = { paare, abw };
+    console.log(`  Gegenprobe Variante ${vk}: ${paare} Paare verglichen, ${abw.length} Abweichung(en)${abw.length ? ' — z.B. ' + abw[0] : ''}`);
+  }
+  const gp = gewaehlteVariante ? gegenprobeJeVariante[gewaehlteVariante] : { paare: 0, abw: ['keine Variante gewaehlt'] };
+  melde(
+    'b-gegenprobe',
+    gp.abw.length === 0 && gp.paare >= 400,
+    `Soll: 0 Abweichungen zur gewaehlten Variante ${gewaehlteVariante} ueber >=400 verglichene Schiff-Gruppen-Paare; Ist ${gp.paare} Paare verglichen, ${gp.abw.length} Abweichung(en)` +
+      (gp.abw.length ? ` — ${gp.abw.slice(0, 5).join(' | ')}` : '')
+  );
 
   // ShipDetail.astro Z. 377 listet in holoData.groups NUR Gruppen mit
   // present.has(gr) (present = Gruppen mit mindestens einem Port) — diese
@@ -397,13 +421,255 @@ async function runCensus() {
 }
 
 /* ============================================================
-   FAMILIE B — Messung am gerenderten Bildpunkt (Browser). Kommt in Task 2
-   dieses Plans hinzu; P-3 muss zuerst entschieden sein (Familie A oben),
-   weil sie festlegt, mit welcher Markerdichte diese Familie rechnen muss.
+   FAMILIE B — Messung am gerenderten Bildpunkt (Browser). Braucht
+   playwright-core + einen installierten Chrome (kein Browser im Paket).
    ============================================================ */
+
+/* ---------- Browser finden (Bauform wie scripts/probes/schiffskarte-messung.mjs) ---------- */
+const KANDIDATEN = [
+  process.env.CHROME_PATH,
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium',
+].filter(Boolean);
+
+/* Sperrklinke in Hausform (docs/maschinelle-validierung.md Grundsatz 5):
+   Wert, Regel — wandert nur nach oben —, Anlass mit Messlauf/Datum/Breite/
+   Ist-Wert. Ausgangswert 25% im Anlasstext, wie 15-01-PLAN.md Task 2
+   Schritt 3 verlangt. */
+const FUELLGRAD_KLINKE = {
+  wert: 70,
+  regel: 'min', // wandert nur nach oben
+  anlass:
+    'Messlauf 18.08.2026 (15-01-PLAN.md Task 2) gegen den frisch gebauten dist/ dieses Worktrees, node scripts/probes/schiffskonsole-messung.mjs --base http://localhost:4322: Ausgangswert (--baseline, unveraenderter Viewer) bei der Carrack/860px rund 25% (UI-SPEC 15-UI-SPEC.md § 3a); nach der fitSphere-Korrektur (Modell+Marker statt rig mit Aura/Kegel/Staub) misst dieselbe Sonde am selben Lauf den unten protokollierten Ist-Wert je Schiff/Sprache/Breite. Die Klinke bleibt bei 70% stehen (Erfolgskriterium P-1) — wandert nur nach oben.',
+};
+
+function findBrowser() {
+  const p = KANDIDATEN.find((k) => existsSync(k));
+  if (!p) {
+    console.error('\nKein Browser gefunden. Gesucht wurde an diesen Stellen:\n');
+    for (const k of KANDIDATEN) console.error(`  ${k}`);
+    console.error('\nEinen Pfad ueber CHROME_PATH setzen, dann laeuft es.\n');
+    process.exit(2);
+  }
+  return p;
+}
+
+const SPRACHEN = [
+  { id: 'en', pfad: (id) => `/schiffe/${id}.html` },
+  { id: 'de', pfad: (id) => `/de/schiffe/${id}.html` },
+];
+/* 15-UI-SPEC.md Detailvertrag Punkt 1 — Buehnenbreiten-Tabelle (Rail 220 +
+   Auslesung 320, in dieser Welle gibt es beides NOCH NICHT, siehe
+   15-01-PLAN.md Planungsnotizen "Warum der Tracer hier steht"). Fuer
+   Messgruppe g nur als Vergleichsmarke fuer SPAETERE Wellen gedruckt, nicht
+   als Zusicherung dieser Welle — #holo3d ist heute randlos die volle
+   .holo-Breite, nicht durch Rail/Auslesung eingeengt. */
+const BUEHNENBREITE_TABELLE = { 1440: 900, 1280: 740, 1100: 560, 414: 378, 360: 324 };
+const ANSICHTSBREITEN = [1440, 1280, 1100, 860, 414, 360];
+
+async function pruefschiffeErmitteln(quellen, gewaehlteVariante) {
+  const bypass = VARIANTEN[gewaehlteVariante ?? 'C'].bypass;
+  let kargstes = null, kargsteZahl = Infinity;
+  let dichtestes = null, dichtesteZahl = -1, dichtesteGruppe = null;
+  const proSchiffGruppen = new Map();
+  for (const id of Object.keys(quellen.shipHardpoints.ships)) {
+    const c = gruppenZaehlungFuer(id, bypass, quellen);
+    if (!c) continue;
+    proSchiffGruppen.set(id, c);
+    const tot = c.core + c.arms + c.prop + c.other;
+    if (tot < kargsteZahl) { kargsteZahl = tot; kargstes = id; }
+    for (const g of HOLO_GRP_ORDER) {
+      if (c[g] > dichtesteZahl) { dichtesteZahl = c[g]; dichtestes = id; dichtesteGruppe = g; }
+    }
+  }
+  const gruppenVon = (id) => HOLO_GRP_ORDER.filter((g) => (proSchiffGruppen.get(id)?.[g] ?? 0) > 0);
+  return [
+    { id: CARRACK_ID, grund: 'Bezug aus 15-UI-SPEC.md § 3a ("17 von 60")', gruppen: gruppenVon(CARRACK_ID) },
+    { id: kargstes, grund: `kargstes Schiff unter Variante ${gewaehlteVariante} (${kargsteZahl} Marker gesamt)`, gruppen: gruppenVon(kargstes) },
+    { id: dichtestes, grund: `groesste Einzelgruppe unter Variante ${gewaehlteVariante} (${dichtesteGruppe}=${dichtesteZahl})`, gruppen: gruppenVon(dichtestes) },
+  ];
+}
+
+/* Im Browser ausgefuehrt: pollt auf das Messhandle, das ShipDetail.astro nur
+   unter ?holometrics ans Fenster haengt (siehe dort). */
+async function warteAufViewer(page, timeoutMs = 15000) {
+  await page.waitForFunction(() => !!window.__holoViewer, { timeout: timeoutMs });
+}
+
 async function runBrowserMessung() {
-  console.error('\nFamilie B (Browsermessung: Fuellgrad/Markergroesse/Dauerlabels/Buehnenbreite) ist in dieser Welle noch nicht gebaut — sie folgt in Task 2 dieses Plans, NACHDEM P-3 aus Familie A entschieden ist (--census). Bis dahin nur `--census` aufrufen.\n');
-  process.exit(2);
+  const browser = findBrowser();
+  console.log(`\n=== Familie B: Messung am gerenderten Bildpunkt gegen ${BASE} ===`);
+  console.log(`Browser: ${browser}`);
+  console.log(`Modus: ${BASELINE ? '--baseline (Ausgangszustand, UNVERAENDERTER Viewer, nur Bericht)' : 'Tor (P-1-Klinke bei 70%)'}`);
+
+  const holoMeshes = JSON.parse(readFileSync('src/data/holo-meshes.json', 'utf8'));
+  const shipHardpoints = JSON.parse(readFileSync('src/data/ship-hardpoints.json', 'utf8'));
+  const shipLoadouts = JSON.parse(readFileSync('src/data/ship-loadouts.json', 'utf8'));
+  const vehiclesRaw = JSON.parse(readFileSync('src/data/vehicles.json', 'utf8'));
+  const vehById = new Map((vehiclesRaw.vehicles ?? []).map((v) => [v.id, v]));
+  const quellen = { holoMeshes, shipHardpoints, shipLoadouts, vehById };
+
+  const ZIELE_ALLE = await pruefschiffeErmitteln(quellen, 'C');
+  const ZIELE = NUR ? ZIELE_ALLE.filter((z) => z.id === NUR) : ZIELE_ALLE;
+  console.log('Pruefschiffe (aus den Daten gewaehlt):');
+  for (const z of ZIELE) console.log(`  ${z.id} — ${z.grund} — Gruppen: ${z.gruppen.join(',') || '(keine)'}`);
+  console.log('');
+
+  const chromium = (await import('playwright-core')).chromium;
+  const b = await chromium.launch({ executablePath: browser, headless: !KOPF });
+
+  const fuellgradWerte = []; // fuer den Klinkendruck am Ende
+  let minMarkerDurchmesser = Infinity, minMarkerLauf = '';
+
+  for (const ziel of ZIELE) {
+    for (const sprache of SPRACHEN) {
+      for (const breite of ANSICHTSBREITEN) {
+        const lauf = `${ziel.id}/${sprache.id}/${breite}`;
+        const kontext = await b.newContext({ viewport: { width: breite, height: 900 } });
+        await kontext.addInitScript(() => {
+          try { localStorage.setItem('vb.help.seen', JSON.stringify({ all: 1 })); } catch (e) { /* privater Modus */ }
+        });
+        const page = await kontext.newPage();
+        await page.bringToFront(); // sonst rAF-Drosselung ab dem zweiten Kontext (siehe unten)
+        const url = `${BASE}${sprache.pfad(ziel.id)}?holometrics`;
+        try {
+          await page.goto(url, { waitUntil: 'domcontentloaded' });
+          await page.evaluate(() => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()));
+          // Reach the 3D: falls ein Umschalter existiert, klicken (Canvas
+          // schluckt Zeigerereignisse -> ueber die Elementmethode, nicht ueber
+          // einen gewoehnlichen Klick, der 30s lang nachfasst).
+          const btn3d = page.locator('#btn3d');
+          if (await btn3d.count()) await btn3d.evaluate((el) => el.click());
+          await warteAufViewer(page);
+        } catch (e) {
+          for (const g of ['d-fuellgrad', 'e-markergroesse', 'f-dauerlabels-ruhe', 'f-dauerlabels-hover', 'g-buehnenbreite']) {
+            melde(g, false, `[${lauf}] Seitenaufruf/Viewer-Start fehlgeschlagen: ${e.message}`);
+          }
+          await page.close();
+          await kontext.close();
+          continue;
+        }
+
+        try {
+          // (f, Ruhezustand) VOR jeder Interaktion: ohne Zeigerkontakt und ohne
+          // Auswahl darf kein Beschriftungskasten sichtbar sein (Soll 0 NACH
+          // Schritt 3; --baseline berichtet nur den Ist-Wert ohne Urteil).
+          const labelBoxenRuhe = await page.evaluate(() =>
+            Array.from(document.querySelectorAll('.holo-lbl')).filter((el) => getComputedStyle(el).display !== 'none').length
+          );
+          melde(
+            'f-dauerlabels-ruhe',
+            BASELINE || labelBoxenRuhe === 0,
+            `[${lauf}] Soll 0 sichtbare Beschriftungskaesten ohne Zeigerkontakt/Auswahl; Ist ${labelBoxenRuhe}` +
+              (BASELINE ? ' (Bericht, kein Urteil — Ausgangszustand hat dauerhafte core-Labels per Entwurf)' : '')
+          );
+
+          // Alle vorhandenen Gruppen sichtbar schalten -> misst den WORST CASE
+          // (insbesondere fuer das "dichtestes Schiff"-Ziel, dessen dichteste
+          // Gruppe per Vorgabe nicht in HOLO_DEFAULT_ON=[core,arms] steht).
+          // NUR ausserhalb --baseline: die Gruppenliste stammt aus der in
+          // Task 1 gewaehlten Variante C und existiert im UNVERAENDERTEN
+          // Viewer (Ausgangszustand, Variante B) noch gar nicht als Marker —
+          // --baseline misst bewusst den echten Ausgangszustand unter
+          // Standardsichtbarkeit (HOLO_DEFAULT_ON=[core,arms]), nichts erzwungen.
+          if (!BASELINE && ziel.gruppen.length) {
+            await page.evaluate((groups) => window.__holoViewer.setFilter(groups), ziel.gruppen);
+            await page.waitForTimeout(120); // ein Render-Frame Ruhe fuer layoutLabels()
+          }
+
+          const m = await page.evaluate(() => window.__holoViewer.metrics());
+          const kuerzereKanteMarke = FUELLGRAD_KLINKE.wert / 100;
+          const passtFuellgrad = m.fuellgrad >= kuerzereKanteMarke;
+          fuellgradWerte.push({ lauf, fuellgrad: m.fuellgrad });
+          melde(
+            'd-fuellgrad',
+            BASELINE || passtFuellgrad,
+            `[${lauf}] Soll >=${FUELLGRAD_KLINKE.wert}% der kuerzeren Buehnenkante (Ausgang ~25%); Ist ${(m.fuellgrad * 100).toFixed(1)}% (Canvas ${m.canvas.w}x${m.canvas.h}, spanX=${m.spanX.toFixed(1)} spanY=${m.spanY.toFixed(1)})`
+          );
+
+          if (m.markers.length) {
+            const durchmesser = m.markers.map((x) => x.durchmesser).sort((a, b2) => a - b2);
+            const minD = durchmesser[0], maxD = durchmesser[durchmesser.length - 1];
+            const medD = durchmesser[Math.floor(durchmesser.length / 2)];
+            if (minD < minMarkerDurchmesser) { minMarkerDurchmesser = minD; minMarkerLauf = lauf; }
+            melde(
+              'e-markergroesse',
+              true,
+              `[${lauf}] ${m.markers.length} sichtbare Marker (Gruppen ${ziel.gruppen.join(',')}), Durchmesser min=${minD.toFixed(1)}px median=${medD.toFixed(1)}px max=${maxD.toFixed(1)}px`
+            );
+
+            // (f, Hover) EINEN Marker "ueberfahren" (echte Pointer-Koordinate,
+            // Canvas-relative cx/cy aus metrics() + Canvas-Bounding-Box) und
+            // gegenpruefen: genau 1 Kasten sichtbar, Text nicht leer.
+            const canvasBox = await page.locator('#holo3d canvas').boundingBox();
+            if (canvasBox) {
+              const ziel0 = m.markers[0];
+              await page.mouse.move(canvasBox.x + ziel0.cx, canvasBox.y + ziel0.cy);
+              // 350ms statt 120ms: bei vielen sequentiellen Kontexten in EINEM
+              // Chrome-Prozess (36 Laeufe) fiel die render-loop-getriebene
+              // layoutLabels()-Aktualisierung unter Last gelegentlich hinter ein
+              // kurzes Zeitfenster zurueck (Einzelschiff-Lauf bestand, der volle
+              // Lauf ueber alle drei Pruefschiffe nicht) — mehr Luft statt Raten.
+              await page.waitForTimeout(350);
+              const nachHover = await page.evaluate(() =>
+                Array.from(document.querySelectorAll('.holo-lbl'))
+                  .filter((el) => getComputedStyle(el).display !== 'none')
+                  .map((el) => el.textContent.trim())
+              );
+              melde(
+                'f-dauerlabels-hover',
+                BASELINE || (nachHover.length === 1 && nachHover[0].length > 0),
+                `[${lauf}] Soll genau 1 sichtbarer Kasten mit Text nach Ueberfahren; Ist ${nachHover.length} (${nachHover.map((t2) => JSON.stringify(t2)).join(', ') || '—'})`
+              );
+              await page.mouse.move(0, 0);
+            } else {
+              melde('f-dauerlabels-hover', false, `[${lauf}] #holo3d canvas ohne Bounding-Box — Hover nicht simulierbar`);
+            }
+          } else {
+            melde('e-markergroesse', BASELINE, `[${lauf}] 0 sichtbare Marker fuer Gruppen ${ziel.gruppen.join(',') || '(keine)'}`);
+            melde('f-dauerlabels-hover', BASELINE, `[${lauf}] keine Marker vorhanden — Hover nicht pruefbar`);
+          }
+
+          const stageBox = await page.locator('#holo3d').boundingBox();
+          const soll = BUEHNENBREITE_TABELLE[breite];
+          melde(
+            'g-buehnenbreite',
+            true,
+            `[${lauf}] gemessen ${stageBox ? stageBox.width.toFixed(1) : '?'}px` +
+              (soll != null ? ` — Detailvertrag Punkt 1 nennt ${soll}px fuer die SPAETERE 3-Spalten-Konsole (Rail+Auslesung existieren in dieser Welle noch nicht, kein Soll-Vergleich hier)` : ' — kein Tabelleneintrag fuer diese Breite')
+          );
+        } catch (e) {
+          melde('d-fuellgrad', false, `[${lauf}] Messung fehlgeschlagen: ${e.message}`);
+        }
+
+        await page.close();
+        await kontext.close();
+      }
+    }
+  }
+  await b.close();
+
+  console.log(`\n=== Selbstauskunft Familie B ===`);
+  console.log(`  gefahrene Messpunkte: ${gemessen}  bestanden: ${gemessen - fehlgeschlagen}  fehlgeschlagen: ${fehlgeschlagen}`);
+  if (fuellgradWerte.length) {
+    const werte = fuellgradWerte.map((x) => x.fuellgrad * 100);
+    console.log(`  Fuellgrad ueber alle Laeufe: min=${Math.min(...werte).toFixed(1)}% max=${Math.max(...werte).toFixed(1)}%`);
+  }
+  if (minMarkerDurchmesser < Infinity) console.log(`  kleinster gemessener Markerdurchmesser gesamt: ${minMarkerDurchmesser.toFixed(1)}px (${minMarkerLauf})`);
+  console.log(`  Sperrklinke (Hausform): P-1 wandert nur nach oben — ${JSON.stringify(FUELLGRAD_KLINKE)}`);
+
+  if (fehlgeschlagen) {
+    console.error(`\nschiffskonsole-messung: ${fehlgeschlagen} FEHLGESCHLAGENE Messung(en):\n`);
+    for (const r of ergebnisse) if (!r.ok) console.error(`  · [${r.gruppe}] ${r.detail}`);
+    console.error('');
+    process.exitCode = 1;
+  } else {
+    console.log('\nschiffskonsole-messung (Familie B): ALLE ZUSICHERUNGEN ERFUELLT ✓\n');
+  }
 }
 
 if (CENSUS) {

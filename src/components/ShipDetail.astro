@@ -179,8 +179,14 @@ const chapterNum = (id: string) => chapters.find((c) => c.id === id)?.num ?? '';
 // Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
 // gerenderte Mesh und die Hardpoints (ship-hardpoints.json, COMPILED_BONES)
 // teilen denselben Raum -> Marker EXAKT, nur feste Achsvertauschung
-// cry->glTF (x, z, -y). Angezeigt werden bewusst NUR Komponenten (core) +
-// Bewaffnung (arms) — Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
+// cry->glTF (x, z, -y). P-3 (15-01-PLAN.md, Variante C): drei der vier
+// Triebwerksarten (thruster_main/retro/vtol) umgehen den Stock-Loadout-Join
+// unten und bekommen IMMER einen Marker, auch ohne Stock-Item — Triebwerke
+// sind Geometrie, kein Ausruestungsplatz, es gibt fuer sie kein Stock-Item,
+// das der Join finden koennte. thruster_mav (die vielen kleinen Manoevrier-
+// triebwerke) bleibt aussen vor: unter Variante C waere ihre Einzelgruppe
+// (40 Marker am dichtesten Schiff, drak-corsair) ueber der am Bildpunkt
+// belegten 20er-Obergrenze aus Task 1/2 dieses Plans.
 type HoloPort = {
   k: string; g: string; p: number[];
   label: string | null; size: number | null;
@@ -204,6 +210,12 @@ const HOLO_GRP: Record<string, string> = {
 };
 const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'] as const;
 const HOLO_DEFAULT_ON = ['core', 'arms'];
+// P-3 (15-01-PLAN.md Task 1, Variante C — gemessen gegen das ausgelieferte
+// holodata gegengeprueft, 908 Schiff-Gruppen-Paare, 0 Abweichungen): diese
+// Triebwerksarten umgehen unten den Stock-Loadout-Join und bekommen IMMER
+// einen Marker, auch ohne Stock-Item. thruster_mav bleibt aussen vor, siehe
+// Kommentar am Kopf dieses Abschnitts.
+const HOLO_BYPASS_STOCK_JOIN = new Set(['thruster_main', 'thruster_retro', 'thruster_vtol']);
 const gameMesh = (holoMeshesSnapshot as any).meshes?.[id] ?? null;
 const gameHp = gameMesh ? ((shipHardpointsSnapshot as any).ships?.[id] ?? null) : null;
 const hasHolo = !!(gameMesh && gameHp);
@@ -285,26 +297,38 @@ if (hasHolo) {
   for (const hp of srcPorts) {
     const g = HOLO_GRP[hp.k];
     if (stock) {
-      // DataCore-Pfad: Marker NUR, wenn der Bone ein echtes Stock-Item trägt.
-      // Bones ohne Item (Controller, Regen-Pools, Waffenschränke, Phantom-Bones
-      // geteilter Varianten-Geometrie) fallen weg — kein namenloser/gestapelter
-      // Müll mehr.
+      // DataCore-Pfad: Marker NUR, wenn der Bone ein echtes Stock-Item trägt —
+      // AUSSER die Art umgeht den Join (P-3, HOLO_BYPASS_STOCK_JOIN oben).
+      // Bones ohne Item UND ohne Bypass (Controller, Regen-Pools, Waffen-
+      // schränke, Phantom-Bones geteilter Varianten-Geometrie) fallen weg —
+      // kein namenloser/gestapelter Müll mehr.
       const items = hp.n ? stock[hp.n.toLowerCase()] : undefined;
-      if (!items || !items.length) continue;
+      if ((!items || !items.length) && !HOLO_BYPASS_STOCK_JOIN.has(hp.k)) continue;
       if (g === 'core') coreKindsSeen.add(hp.k);
-      // Name aus den Spieldateien; fehlt die Lokalisierung (z.B. fest verbaute
-      // Capital-Ship-Komponenten ohne Shop-Namen), auf das Art-Label ausweichen
-      // statt den internen Klassennamen (COOL_AEGS_S04_…) zu zeigen.
-      const label = items.map((it) => (it.count > 1 ? `${it.count}× ` : '') + (it.name || t(`holo.kind.${hp.k}` as any))).join(' / ');
-      const sizes = new Set(items.map((it) => it.size));
-      const single = items.length === 1 ? items[0] : null;
-      holoPorts.push({
-        k: hp.k, g, p: hp.p,
-        label,
-        size: sizes.size === 1 ? (items[0].size ?? null) : null,
-        ...(single?.name ? enrich(single.name) : {}),
-        ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
-      });
+      if (items && items.length) {
+        // Name aus den Spieldateien; fehlt die Lokalisierung (z.B. fest verbaute
+        // Capital-Ship-Komponenten ohne Shop-Namen), auf das Art-Label ausweichen
+        // statt den internen Klassennamen (COOL_AEGS_S04_…) zu zeigen.
+        const label = items.map((it) => (it.count > 1 ? `${it.count}× ` : '') + (it.name || t(`holo.kind.${hp.k}` as any))).join(' / ');
+        const sizes = new Set(items.map((it) => it.size));
+        const single = items.length === 1 ? items[0] : null;
+        holoPorts.push({
+          k: hp.k, g, p: hp.p,
+          label,
+          size: sizes.size === 1 ? (items[0].size ?? null) : null,
+          ...(single?.name ? enrich(single.name) : {}),
+          ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
+        });
+      } else {
+        // Bypass-Fall: kein Stock-Item fuer diesen Triebwerks-Bone (erwartet —
+        // Triebwerke sind Geometrie, kein Ausruestungsplatz). Marker traegt nur
+        // die Art als Text, keine Item-Finder-Anreicherung (kein Item-Name).
+        holoPorts.push({
+          k: hp.k, g, p: hp.p,
+          label: t(`holo.kind.${hp.k}` as any),
+          size: null,
+        });
+      }
     } else {
       // Kein DataCore-Loadout fuer diesen Bone: alte Reihenfolge-Zuordnung als Fallback.
       const pool = pools[hp.k];
@@ -688,12 +712,18 @@ a{color:inherit;text-decoration:none}
     linear-gradient(0deg,var(--accent) 0 22px,transparent 22px) bottom right/2px 44px no-repeat;
   opacity:.6}
 /* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
-   sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus) */
+   sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus). pointer-events:
+   none (15-01-PLAN.md Task 2 — vorgefunden, nicht neu eingefuehrt): reines
+   Wasserzeichen-Chrome, aber ohne dieses Attribut schluckt es Zeigerereignisse
+   fuer alles darunter. Sichtbar wurde das erst durch die neue Sonde: bei
+   414px sitzt .holo__hud (top:18px/left:16px) exakt ueber einem Marker
+   nahe dem Bug (argo-csv-cargo), der Marker war per Maus-simulation nicht
+   erreichbar (elementFromPoint traf .holo__hud statt den Canvas). */
 .holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted)}
+  letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted);pointer-events:none}
 .holo__hud b{color:var(--accent);font-weight:700}
 .holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right}
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right;pointer-events:none}
 /* Die Buehne liegt bewusst randlos UNTER der Kopfleiste. Haengt dort die
    freie Zurueck-Marke (SiteNav, ~101 px hinunter), laege sie genau auf
    „HANGAR // <Hersteller>". Die HUD-Zeile rueckt dann als PAAR nach unten —
@@ -1303,25 +1333,24 @@ span.sd__ref{color:var(--muted)}
         <div class="holo__status" id="holostatus" role="status"></div>
         {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
-        {holoData && (holoData.groups.length > 1 || holoData.ports.some((p) => p.lab)) && (
+        {holoData && holoData.groups.length > 1 && (
           <div class="holo__layers" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
             <button type="button" class="holo__layers-h" id="holo-layers-toggle" aria-expanded="true">
               <span>{t('holo.layers.title')}</span>
               <svg class="holo__layers-chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            {holoData.groups.length > 1 && holoData.groups.map((gr) => (
+            {holoData.groups.map((gr) => (
               <button type="button" class="holo__layer" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>
                 <svg class="holo__layer-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
                 <span class="holo__layer-lb">{t(`holo.grp.${gr}` as any)}</span>
                 <span class="holo__layer-ct">{holoData!.ports.filter((p) => p.g === gr).length}</span>
               </button>
             ))}
-            {holoData.ports.some((p) => p.lab) && (
-              <button type="button" class="holo__layer holo__layer--lab" id="holoblabels" aria-pressed="true" title={t('holo.labels.toggle')}>
-                <svg class="holo__layer-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span class="holo__layer-lb">{t('holo.labels.short')}</span>
-              </button>
-            )}
+            {/* P-2 (15-01-PLAN.md Task 2): der Beschriftungs-Umschalter ist
+                entfallen — kein Marker traegt mehr eine DAUERHAFTE Beschriftung,
+                also gibt es nichts mehr, dessen Sichtbarkeit dieser Knopf
+                umschalten koennte. holo.labels.toggle/holo.labels.short sind
+                dadurch verwaist (src/i18n/ui.ts), nicht geloescht. */}
           </div>
         )}
         <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')} data-auec={t('holo.panel.auec')}>
@@ -2292,6 +2321,12 @@ span.sd__ref{color:var(--muted)}
     var loadingTpl = stage.getAttribute('data-loading') || '3D-Modell lädt … %p% %';
     var errorTxt = stage.getAttribute('data-error') || '3D-Modell konnte nicht geladen werden.';
     var debug = /[?&]holodebug/.test(location.search);
+    // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (15-01-PLAN.md
+    // Task 2) — ausdruecklich NICHT an holodebug gehaengt: dessen Zweig haengt
+    // einen AxesHelper an rig VOR der Bildung von fitSphere (holo-viewer.js
+    // Z. 609 f.), wer darueber misst, misst eine andere Kamera als der
+    // Besucher sieht. Eigene Adressmarke, keine Geometrie.
+    var metricsMode = /[?&]holometrics/.test(location.search);
 
     var row = function (id, val) {
       var r = document.getElementById(id + 'row'), d = document.getElementById(id);
@@ -2342,23 +2377,34 @@ span.sd__ref{color:var(--muted)}
         .then(function (m) {
           return m.initHolo(wrap, {
             url: cfg.url, ports: cfg.ports, mesh: cfg.mesh, ax: cfg.ax,
-            defaultOn: cfg.defaultOn, debug: debug,
+            defaultOn: cfg.defaultOn, debug: debug, kinds: cfg.kinds,
             onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
             onSelect: showPanel,
           });
         })
         .then(function (v) {
           viewer = v; loading = false;
+          if (metricsMode) window.__holoViewer = v;
           status.textContent = '';
           stage.classList.remove('is-loading');
           showHolo(); // blendet via applyMode das Ebenen-Panel ein
-          // Mobil: dauerhafte Bauteil-Labels standardmäßig AUS — auf dem kleinen
-          // Modell überlappen sie sich sonst und mit dem Ebenen-Panel. Antippen
-          // eines Markers zeigt weiterhin die Detailkarte; "Labels" schaltet an.
+          // Mobil: die Beschriftungsschicht bleibt AN (Kurskorrektur, 15-01-
+          // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
+          // sie per setLabels(false) ganz abschalten, mit der Begruendung,
+          // ein einzelner Auswahl-Kasten koenne mit dem Ebenen-Panel
+          // ueberlappen). Das widersprach P-2 (15-UI-SPEC.md § 3a): P-2 gilt
+          // "fuer ALLE Gruppen einschliesslich core" OHNE Ausnahme fuer
+          // schmale Buehnen, und Messgruppe f-dauerlabels der Sonde prueft
+          // GENAU DAS bei 414px und 360px mit — mit setLabels(false) blieb
+          // der Kasten nach Antippen/Ueberfahren leer (0 statt 1 sichtbarer
+          // Kasten, gemessen bei allen drei Pruefschiffen). Da seit P-2 nie
+          // mehr als EIN Kasten gleichzeitig sichtbar ist, ist die
+          // Ueberfuellungs-Sorge von damals (viele Dauer-Labels auf kleinem
+          // Bildschirm) gegenstandslos; ein moegliches Ueberlappen mit dem
+          // (in Welle 3 ohnehin entfallenden, UI-SPEC Punkt 5) Ebenen-Panel
+          // ist ein reines Positionierungsdetail, kein Grund, die ganze
+          // Schicht abzuschalten.
           if (matchMedia('(max-width: 760px)').matches) {
-            try { v.setLabels(false); } catch (er) {}
-            var lblBtn = document.getElementById('holoblabels');
-            if (lblBtn) lblBtn.setAttribute('aria-pressed', 'false');
             // Panel standardmäßig zugeklappt -> gibt das kleine Modell frei
             if (filters) filters.classList.add('is-collapsed');
             var lt0 = document.getElementById('holo-layers-toggle');
@@ -2386,7 +2432,6 @@ span.sd__ref{color:var(--muted)}
       if (!b || !viewer) return;
       var pr = b.getAttribute('aria-pressed') !== 'true';
       b.setAttribute('aria-pressed', String(pr));
-      if (b.id === 'holoblabels') { viewer.setLabels(pr); return; }
       if (!b.hasAttribute('data-g')) return;
       var groups = [];
       filters.querySelectorAll('button[data-g][aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
