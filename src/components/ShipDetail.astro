@@ -938,6 +938,37 @@ span.sd__ref{color:var(--muted)}
 .sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:var(--fs-11);line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
 .sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
+
+/* Kapitelinterne Zweispaltigkeit (14-04-PLAN.md Task 1, UI-SPEC Punkt 9) —
+   traegt 957px des Hoehenbudgets, ohne die 4.200px rechnerisch unerreichbar
+   sind. .sd__ch2col umschliesst die Unterabschnitte EINES Kapitels
+   (Ausstattung: 4 Zellen, Umfeld: 4 Zellen), .sd__chsec je einen einzelnen
+   Unterabschnitt (Ueberschrift + Koerper). Unter 1100px: unveraendert
+   gegenueber Welle 3, einspaltig ohne eigenen Zeilenabstand — die
+   bestehenden sd__sub-Aussenabstaende tragen dort weiterhin den Rhythmus.
+   Ab 1100px (dieselbe lokale Hoechstbreite --maxw, NICHT die site-weiten
+   1280px): zwei gleich breite, schrumpfbare Spalten (minmax(0,1fr) haelt
+   lange Inhalte vom Aufblaehen der Zelle ab); Spalten- UND Zeilenabstand
+   uebernehmen denselben 1.6rem-Wert, den sd__sub schon als oberen
+   Aussenabstand traegt -- keine neue Zahl. Die erste Ueberschrift jeder
+   Zelle verliert dabei ihren oberen Aussenabstand, sonst waere die
+   Zeilen-Luecke des Rasters UND der sd__sub-Aussenabstand gleichzeitig
+   wirksam und die Zellen begaennen nicht buendig oben. */
+.sd__ch2col{display:grid;grid-template-columns:1fr}
+.sd__chsec{min-width:0}
+@media(min-width:1100px){
+  .sd__ch2col{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.6rem;row-gap:1.6rem}
+  .sd__ch2col .sd__chsec > .sd__sub:first-child{margin-top:0}
+  /* Vorweggenommener Sonderfall: das Grundriss-Raster (sd__dims) traegt
+     seine eigene 760px-Medienabfrage auf die FENSTERWEITE, nicht die
+     Spaltenbreite -- in einer halbierten sd__ch2col-Spalte stuende es bei
+     1280px Fenster in ~490px Breite und waere gequetscht. Deshalb hier
+     ausdruecklich auf eine Spalte gesetzt; ".sd__ch2col .sd__dims" hat
+     durch die zwei Klassen hoehere Spezifitaet als die Basisregel weiter
+     unten (Zeile ~1039) und gewinnt unabhaengig von der Reihenfolge im
+     Stilblock. Die bestehende 760px-Medienabfrage bleibt unangetastet. */
+  .sd__ch2col .sd__dims{grid-template-columns:1fr}
+}
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
    für sich lesbar: Stückzahl · Größenklasse (mit maßstäblichem Balken) ·
@@ -1420,9 +1451,14 @@ span.sd__ref{color:var(--muted)}
           <span class="sd__code">{t('ship.code.spec')}&nbsp;//&nbsp;{shipCode}</span>
         </header>
 
+    <!-- Kapitelinterne Zweispaltigkeit ab 1100px (14-04-PLAN.md Task 1):
+         vier Unterabschnitte als 2x2-Raster, unter 1100px unveraendert
+         einspaltig. Jede Bedingung bleibt UNVERAENDERT an ihrer Stelle --
+         faellt eine weg, faellt ihre Zelle mit, die Platzierung rueckt nach. -->
+    <div class="sd__ch2col">
     <!-- MASSE & FRACHT -->
     {gearDims && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h3>
         <div class="sd__dims">
           <div>
@@ -1465,12 +1501,12 @@ span.sd__ref{color:var(--muted)}
             )}
           </div>
         </div>
-      </>
+      </div>
     )}
 
     <!-- BEWAFFNUNG -->
     {gearArms && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h3>
         <!-- Die Piloten-/Turm-DPS-Balken entfallen ERSATZLOS (D-02): beide Werte
              stehen bereits als Text in dieser Uebersicht — Piloten-DPS in der
@@ -1542,12 +1578,12 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.arms.hint')}</p>
-      </>
+      </div>
     )}
 
     <!-- FLUGLEISTUNG & QUANTUM -->
     {gearFlight && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h3>
         {viz.speeds.length > 0 && (
           <dl class="sd__grid">
@@ -1585,12 +1621,12 @@ span.sd__ref{color:var(--muted)}
             </dl>
           </>
         )}
-      </>
+      </div>
     )}
 
     <!-- KOMPONENTEN & VERTEIDIGUNG -->
     {gearComp && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h3>
         {viz.defense.length > 0 && (
           <dl class="sd__grid" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
@@ -1618,8 +1654,9 @@ span.sd__ref{color:var(--muted)}
             )}
           </div>
         )}
-      </>
+      </div>
     )}
+    </div>
       </section>
     )}
     <!-- UMFELD — vereinigt Versicherung, Lackierungen, Varianten & Loaner
@@ -1636,9 +1673,12 @@ span.sd__ref{color:var(--muted)}
           <span class="sd__code">{ctxCode}</span>
         </header>
 
+    <!-- Kapitelinterne Zweispaltigkeit ab 1100px (14-04-PLAN.md Task 1) --
+         siehe Kommentar an derselben Stelle im Ausstattungs-Kapitel oben. -->
+    <div class="sd__ch2col">
     <!-- VERSICHERUNG -->
     {viz.insurance.length > 0 && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h3>
         <div class="sd__inscards">
           {viz.insurance.map((i) => (
@@ -1649,12 +1689,12 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.ins.hint')}</p>
-      </>
+      </div>
     )}
 
     <!-- LACKIERUNGEN -->
     {paints.length > 0 && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h3>
         <div class="sd__paints">
           {paints.map((p) => (
@@ -1667,12 +1707,12 @@ span.sd__ref{color:var(--muted)}
             </figure>
           ))}
         </div>
-      </>
+      </div>
     )}
 
     <!-- VARIANTEN & LOANER -->
     {(variants.length > 0 || loaners.length > 0) && (
-      <>
+      <div class="sd__chsec">
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h3>
         {variants.length > 0 && (
           <>
@@ -1694,10 +1734,11 @@ span.sd__ref{color:var(--muted)}
             </div>
           </>
         )}
-      </>
+      </div>
     )}
 
     {spine.length > 0 && (
+      <div class="sd__chsec">
       <section class="sd__spine" aria-label={t('ship.spine.title')}>
         <h3>{t('ship.spine.title')}</h3>
         {spine.map((p) => (
@@ -1706,7 +1747,9 @@ span.sd__ref{color:var(--muted)}
           </a>
         ))}
       </section>
+      </div>
     )}
+    </div>
       </section>
     )}
 
