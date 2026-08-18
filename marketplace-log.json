@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 311,
-  "totalListings": 7027,
+  "updates": 312,
+  "totalListings": 7037,
   "totalSold": 307,
   "distinctItems": 1246
  },
@@ -140012,6 +140012,10 @@
     {
      "d": "2026-08-16",
      "p": 5500000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 7500000
     }
    ],
    "soldOut": false,
@@ -145203,6 +145207,10 @@
     {
      "d": "2026-08-18",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 11000000
     }
    ],
    "soldOut": false,
@@ -150064,6 +150072,216 @@
    "soldOutPrice": null,
    "dateAdded": 1787071412,
    "dateExpiration": 1792255411
+  },
+  "163845": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "F7C Super Hornet MKII Wikelo Edition Mil A comp",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787071669,
+   "dateExpiration": 1792255669
+  },
+  "163849": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Terrapin Medic Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787072057,
+   "dateExpiration": 1792256057
+  },
+  "163850": {
+   "idItem": 1758,
+   "idCategory": 21,
+   "title": "Bolide Lot of Three (3) 860 Power Plants",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 863,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787072058,
+   "dateExpiration": 1792256058
+  },
+  "163852": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 957,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787072410,
+   "dateExpiration": 1792256410
+  },
+  "163853": {
+   "idItem": 8006,
+   "idCategory": 7,
+   "title": "Testudo Deathblow Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787072544,
+   "dateExpiration": 1792256544
+  },
+  "163854": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "WTS, Gold 916Q, 0,56 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787073206,
+   "dateExpiration": 1792257205
+  },
+  "163857": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Scorpius Wikelo Edition Stealth A Comp",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 17000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787074557,
+   "dateExpiration": 1792258557
+  },
+  "163858": {
+   "idItem": 7594,
+   "idCategory": 5,
+   "title": "Dust Devil Armor Core",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 550000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787074682,
+   "dateExpiration": 1792258682
+  },
+  "163862": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787075542,
+   "dateExpiration": 1792259541
+  },
+  "163863": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Zeus Mk II ES Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787075634,
+   "dateExpiration": 1792259634
   }
  }
 }
