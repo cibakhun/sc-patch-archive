@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 310,
-  "totalListings": 7020,
-  "totalSold": 300,
-  "distinctItems": 1245
+  "updates": 311,
+  "totalListings": 7027,
+  "totalSold": 307,
+  "distinctItems": 1246
  },
  "listings": {
   "156580": {
@@ -145539,6 +145539,10 @@
     {
      "d": "2026-08-17",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -148900,9 +148904,9 @@
      "p": 15000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 15000000,
    "dateAdded": 1787044980,
    "dateExpiration": 1792228980
   },
@@ -148942,9 +148946,9 @@
      "p": 750000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 750000,
    "dateAdded": 1787049029,
    "dateExpiration": 1792233029
   },
@@ -149761,9 +149765,9 @@
      "p": 200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 200000,
    "dateAdded": 1787067195,
    "dateExpiration": 1792251195
   },
@@ -149782,9 +149786,9 @@
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 400000,
    "dateAdded": 1787067255,
    "dateExpiration": 1792251255
   },
@@ -149803,9 +149807,9 @@
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 400000,
    "dateAdded": 1787067311,
    "dateExpiration": 1792251311
   },
@@ -149824,9 +149828,9 @@
      "p": 600000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 600000,
    "dateAdded": 1787067397,
    "dateExpiration": 1792251397
   },
@@ -149845,9 +149849,9 @@
      "p": 250000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 250000,
    "dateAdded": 1787067464,
    "dateExpiration": 1792251464
   },
@@ -149913,6 +149917,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787067684,
    "dateExpiration": 1792251684
+  },
+  "163835": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787068135,
+   "dateExpiration": 1792252135
+  },
+  "163836": {
+   "idItem": 1770,
+   "idCategory": 21,
+   "title": "JS-500",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787069146,
+   "dateExpiration": 1792253145
+  },
+  "163837": {
+   "idItem": 8026,
+   "idCategory": 38,
+   "title": "Corbel Crush Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787069719,
+   "dateExpiration": 1792253719
+  },
+  "163839": {
+   "idItem": null,
+   "idCategory": 19,
+   "title": "Blizzard crafted 66.66 coolant rating",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787070284,
+   "dateExpiration": 1792254284
+  },
+  "163840": {
+   "idItem": 581,
+   "idCategory": 21,
+   "title": "Genoa",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 460000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787070393,
+   "dateExpiration": 1792254393
+  },
+  "163841": {
+   "idItem": 1771,
+   "idCategory": 21,
+   "title": "Fierell Cascade Lot of 3 Power Plants",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787070798,
+   "dateExpiration": 1792254798
+  },
+  "163844": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Sabre Firebird (Wikelo Kit) Mil Grade A Comp",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787071412,
+   "dateExpiration": 1792255411
   }
  }
 }
