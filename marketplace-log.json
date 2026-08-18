@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 299,
-  "totalListings": 6932,
+  "updates": 300,
+  "totalListings": 6936,
   "totalSold": 294,
   "distinctItems": 1240
  },
@@ -148045,6 +148045,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787027708,
    "dateExpiration": 1792211708
+  },
+  "163761": {
+   "idItem": 7992,
+   "idCategory": 7,
+   "title": "Overlord Gilded Set - BERSERKER HELM INSTEAD",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787028899,
+   "dateExpiration": 1792212899
+  },
+  "163764": {
+   "idItem": 5565,
+   "idCategory": 7,
+   "title": "Palatino Deadlock Set with backpack and F55 LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787030035,
+   "dateExpiration": 1792214035
+  },
+  "163765": {
+   "idItem": 7981,
+   "idCategory": 7,
+   "title": "Monde HighSec set with matching A03 rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787030418,
+   "dateExpiration": 1792214418
+  },
+  "163766": {
+   "idItem": 7990,
+   "idCategory": 7,
+   "title": "Palatino Shadow Guild set with Fresnel LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787030806,
+   "dateExpiration": 1792214806
   }
  }
 }
