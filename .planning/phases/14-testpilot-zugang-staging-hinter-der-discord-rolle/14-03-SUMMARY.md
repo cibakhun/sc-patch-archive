@@ -180,3 +180,7 @@ None fuer diesen Plan direkt. Die vier echten Anmeldevorgaenge (WINDOWS.md id 17
 ---
 *Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
+
+## Self-Check: PASSED
+
+Migrationsdatei (`supabase/migrations/20260818002000_block_discord_signup.sql`) und diese SUMMARY.md auf der Platte gefunden; alle sechs zitierten Commit-Hashes (`abda325`, `f965ef5`, `f2a6e46`, `9ad80ea`, `f7b74f7`, `a677f0e`) im Verlauf des Zweigs `claude/staging-tester-role-access-308ebf` gefunden. `npm run build && npm run gate` zuletzt nach `f7b74f7` grün (18/18, Schiene A). Anwendung auf die lebende Anlage vom Koordinator über die Management API bestätigt (drei SQL-Gegenproben, wörtliche Ausgaben oben); die zwei offenen Nachweispunkte (b) und die vier echten Anmeldevorgänge sind als `.planning/WINDOWS.md` id 16/17 dokumentiert, nicht als erledigt behauptet.
