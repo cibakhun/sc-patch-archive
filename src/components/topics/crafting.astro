@@ -56,6 +56,27 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
    729 px, also neun Pixel unter der Falz von 720. */
 .hero--tool{min-height:0;justify-content:flex-start;padding:calc(var(--nav-h,104px) + .6rem) clamp(1.25rem,5vw,4rem) 1.2rem}
 .hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
+.hero--tool .hero__in{text-align:center}
+/* Der Standard-Schleier (.hero__photo::after, detail.css) hat sein helles
+   Sichtfenster fest bei 78 % x / 18 % y — gebaut fuer den hohen Hero mit
+   Titel unten LINKS. Unter einem zentrierten Titel im Band macht genau das
+   den Fehler sichtbar: die linke Haelfte wird toter schwarzer Streifen, die
+   rechte bleibt offen, und der Titel landet auf der unruhigsten Stelle des
+   Fotos. Hier deshalb symmetrisch um die Mitte — gleiche Bauart wie beim
+   Item Finder (ItemFinderPage.astro:80), aber ohne dessen Duoton — das
+   Motiv bleibt farbig, es wird nur mittig geoeffnet.
+   ⚠ Geaendert wird das radiale Sichtfenster (78/18 -> 50/40) UND die Tiefe
+   des senkrechten Schleiers (scrim-4 -> scrim-5 ab 50 %).
+   Der senkrechte Schleier behaelt Token und Stopps aus detail.css: ein
+   erster Anlauf mit eigenen color-mix-Werten war 20 Prozentpunkte heller
+   und drueckte das orangene Wort auf 2,45:1 — unter den Grenzwert.
+   ⚠ Ein zweiter Anlauf loeste dasselbe per filter:brightness(.68) am Foto.
+   Optisch gleichwertig (0,68 x 0,42 Durchlass ~ scrim-5), aber fuer
+   verify:layers UNSICHTBAR: die Registry kennt nur Schleier-Token, kein
+   filter. Ein Regler, den das Tor nicht sehen kann, ist hier der falsche —
+   deshalb steckt die Abdunklung jetzt im Schleier, nicht im Bild.
+   Registry-Eintrag D6 in scripts/lib/layer-registry.mjs. */
+.hero--tool .hero__photo::after{background:linear-gradient(180deg,var(--scrim-2),var(--scrim-5) 50%,var(--scrim-5) 90%,var(--bg)),radial-gradient(120% 130% at 50% 40%,transparent,var(--bg) 88%)}
 @media (max-width:700px){.hero--tool h1{font-size:clamp(1.7rem,7.4vw,2.2rem)}}
 /* „Worum geht es hier" — steht UNTER dem Werkzeug, gleiche Anordnung wie
    .uf-about im Item Finder. Bewusst nicht display:none und nicht
