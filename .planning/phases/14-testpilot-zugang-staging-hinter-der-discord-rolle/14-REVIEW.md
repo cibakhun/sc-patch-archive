@@ -25,20 +25,24 @@ findings:
   total: 5
 status: issues_found
 fixed_at: 2026-08-18T19:30:00Z
-fix_status: fixed_pending_ci_proof
+fix_status: fixed_ci_proven_cr01_pending_deploy
 fixes:
   - id: CR-01
     status: fixed
     commit: 5af641d
+    proof: "menschliche Bestaetigung gegen die lebende Anlage aussteht -- braucht deployten Bot, siehe WINDOWS.md ids 21/22"
   - id: CR-02
     status: fixed
     commit: 98d4526
+    proof: "CI-Lauf 32165782075 (probe-gate-e2e.yml, Zweig claude/staging-tester-role-access-308ebf) -- gruen, echter njs-Container"
   - id: WR-01
     status: fixed
     commit: e8cda21
+    proof: "CI-Lauf 32165782075, Schritt 'Zusicherungen — CI-Rauchtest-Bypass gegen den echten njs-Container (CR-02/WR-01)': 3/3 Zusicherungen bestanden (200/302/302), FEHLER: 0"
   - id: WR-02
     status: fixed
     commit: 138b86c
+    proof: "node --check + npm run gate (19/19), kein weiterer Nachweis noetig"
   - id: IN-01
     status: not_fixed
     reason: "Optional, geringe Prioritaet lt. Fix-Vorschlag -- kein Blocker fuer den Rollout, nicht Teil dieses Fix-Auftrags (nur CR-01, CR-02, WR-01, WR-02 in Scope)."
@@ -138,10 +142,13 @@ gegen einen echten njs-Container liegt jetzt in `probe-gate-e2e.yml` (siehe
 WR-01, derselbe Commit-Rahmen wie dort) — dieselbe Sonde, die die Analyse
 oben als „einzige, die den echten Container hochfährt" benennt, bekommt in
 Commit `e8cda21` einen eigenen Zusicherungsblock, der ausschließlich diesen
-Fix (die vierte `env`-Zeile) beweist. **Noch nicht ausgeführt:** dieser
-CI-Lauf selbst — der Push des Arbeitszweigs und `gh run view --log` gegen
-`probe-gate-e2e.yml` stehen als nächster Schritt aus, siehe Notiz am
-Dateiende.
+Fix (die vierte `env`-Zeile) beweist. **Real bewiesen:** CI-Lauf
+[`32165782075`](https://github.com/cibakhun/sc-patch-archive/actions/runs/32165782075)
+(`probe-gate-e2e.yml`, Zweig `claude/staging-tester-role-access-308ebf`,
+6m10s, alle Schritte grün) — Schritt „Zusicherungen — CI-Rauchtest-Bypass
+gegen den echten njs-Container (CR-02/WR-01)": `OK /schiffe.html mit
+korrektem X-VB-Gate-Bypass — Soll 200 Ist 200`, FEHLER: 0. Der Bypass
+erreicht njs jetzt nachweislich.
 
 ## Warnings
 
@@ -163,12 +170,15 @@ aus dem Dockerfile gebauten njs-Container — bekommt `VB_GATE_BYPASS` am
 `vbgate-mock`-Container und einen eigenen Zusicherungsblock (echter Wert
 → 200, falscher Wert → 302, kein Header → 302 unverändert). Das ist der
 einzige Ort im gesamten Bestand, an dem CR-02s Fix gegen einen echten
-Prozess bewiesen wird. **Noch nicht ausgeführt:** der CI-Lauf selbst — der
-Arbeitszweig ist noch nicht gepusht seit diesen Commits; `gh run view --log`
-gegen den nächsten `probe-gate-e2e.yml`-Lauf ist der ausstehende reale
-Nachweis (kritische Vorgabe des Fix-Auftrags). Alle 18 `run:`-Blöcke in
-`probe-gate-e2e.yml` und alle 8 in `deploy-staging.yml` wurden mit
-`bash -n` syntaktisch geprüft (bestanden), das YAML selbst mit
+Prozess bewiesen wird. **Real bewiesen:** CI-Lauf
+[`32165782075`](https://github.com/cibakhun/sc-patch-archive/actions/runs/32165782075)
+(`probe-gate-e2e.yml`, gepusht als Commit `77e3f71`, 6m10s Gesamtlaufzeit,
+alle Schritte grün) — der neue Zusicherungsblock lieferte 3/3 bestanden
+(200 fuer den echten Wert, 302 fuer einen falschen Wert, 302 ohne
+Kopfzeile), `FEHLER: 0`. `gh run view --log` gegen genau diesen Lauf
+gelesen, kein blosses „sollte gruen sein". Alle 18 `run:`-Blöcke in
+`probe-gate-e2e.yml` und alle 8 in `deploy-staging.yml` wurden zusätzlich
+lokal mit `bash -n` syntaktisch geprüft (bestanden), das YAML selbst mit
 `yaml.safe_load`.
 
 ### WR-02: `account-lite.js` verwendet denselben localStorage-Schlüssel für zwei unabhängige Sperren — Session-Refresh und Gate-Mint-Dedupe
@@ -219,17 +229,20 @@ setzt einen mit dem neuen Code deployten Bot voraus und ist damit nicht aus
 diesem Arbeitsschritt heraus zu erbringen — dieselbe Einschränkung, die
 Plan 07 bereits für D3/D4 in `WINDOWS.md` ids 21/22 dokumentiert hat.
 
-**CR-02 und WR-01 brauchen den ausstehenden CI-Lauf als Beweis:**
-`probe-gate-e2e.yml` wurde um einen Zusicherungsblock erweitert, der genau
-diesen Fix gegen einen echten, aus dem Dockerfile gebauten njs-Container
-misst — das ist gemäß Fix-Auftrag der einzige Ort, an dem sich das beweisen
-lässt (Docker ist auf dem Entwicklungsrechner nicht verfügbar, siehe
-14-01/14-08/14-09-SUMMARY.md). Der Arbeitszweig
-`claude/staging-tester-role-access-308ebf` trägt die vier Fix-Commits, ist
-aber noch NICHT gepusht — der nächste Schritt ist `git push` gefolgt von
-`gh run view --log` gegen den ausgelösten `probe-gate-e2e.yml`-Lauf, um den
-neuen Zusicherungsblock „Zusicherungen — CI-Rauchtest-Bypass gegen den
-echten njs-Container (CR-02/WR-01)" tatsächlich grün zu sehen.
+**CR-02 und WR-01 sind gegen einen echten njs-Container bewiesen, nicht nur
+behauptet:** `probe-gate-e2e.yml` wurde um einen Zusicherungsblock erweitert
+(Commit `e8cda21`), der genau diesen Fix gegen einen echten, aus dem
+Dockerfile gebauten njs-Container misst — gemäß Fix-Auftrag der einzige Ort,
+an dem sich das beweisen lässt (Docker ist auf dem Entwicklungsrechner nicht
+verfügbar, siehe 14-01/14-08/14-09-SUMMARY.md). Der Arbeitszweig wurde
+gepusht (Commit `77e3f71`), der dadurch ausgelöste Lauf
+[`32165782075`](https://github.com/cibakhun/sc-patch-archive/actions/runs/32165782075)
+ist **grün** (6m10s, alle 20 Schritte bestanden): der neue Schritt
+„Zusicherungen — CI-Rauchtest-Bypass gegen den echten njs-Container
+(CR-02/WR-01)" meldet `OK /schiffe.html mit korrektem X-VB-Gate-Bypass —
+Soll 200 Ist 200`, `OK ... mit falschem Wert — Soll 302 Ist 302`, `OK ...
+ohne Kopfzeile — Soll 302 Ist 302`, `FEHLER: 0` — gelesen per `gh run view
+--log`, kein blosses „sollte grün sein".
 
 WR-02 ist vollständig durch statische Prüfung (Syntax + Tor) abgedeckt,
 kein ausstehender Nachweis.
