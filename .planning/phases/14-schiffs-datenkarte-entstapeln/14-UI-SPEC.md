@@ -186,7 +186,7 @@ Muster wie die bestehenden `ship.*`-Einträge).
 
 **Geprüfte Oberflächen (E1–E6):** E1 Sprungleiste · E2 Kapitel „Ausstattung"
 (vier Unterabschnitte) · E3 Kapitel „Umfeld" (drei Unterabschnitte + Spine) ·
-E4 Kapitel „Leistung" (getrimmte Metrikliste, siehe Detailvertrag Punkt 6) ·
+E4 Kapitel „Leistung" (sechs Metriken, drei davon ohne Rohwert — Detailvertrag Punkt 6) ·
 E5 Balken→Zahl-Zeile · E6 Kapitel-Zahl-Chip.
 
 Applicable state considerations resolved: **17 covered, 4 backstop, 0 unresolved** (21 gesamt)
@@ -196,7 +196,7 @@ Applicable state considerations resolved: **17 covered, 4 backstop, 0 unresolved
 | empty | E1 | ✅ covered | Die Sprungleiste zeigt nur Pillen für tatsächlich gerenderte Kapitel — bei einem Schiff mit leerem Ausstattung- UND Umfeld-Kapitel (kein Fall in 227 Schiffen erwartet, aber möglich) blieben zwei Pillen: Kaufen (hat immer Fallback-Text `sd__nobuy`) und ggf. Leistung. Nie eine leere Sprungleiste, weil Kaufen strukturell immer rendert |
 | empty | E2 | ✅ covered | Ausstattung entfällt komplett nur, wenn ALLE VIER Unterbedingungen (`viz.dims\|\|viz.cargo\|\|viz.fuel.length`, `armament.length\|\|viz.firepower...`→jetzt ohne Bar-Bedingung, `viz.speeds\|\|viz.agility\|\|viz.quantum`, `viz.defense\|\|slots.length`) falsch sind — exakt dieselbe Verknüpfung wie heute, nur eine Ebene höher zusammengefasst |
 | empty | E3 | ✅ covered | Umfeld entfällt komplett nur, wenn Versicherung UND Lackierungen UND Varianten/Loaner UND Spine alle leer sind — seltener Fall (junge/nicht fliegbare Fahrzeuge), aber strukturell abgedeckt durch dieselbe Verknüpfungslogik wie E2 |
-| empty | E4 | ✅ covered | Nach dem Metrik-Trimm (Detailvertrag Punkt 6) kann Leistung bei einem waffenlosen, nicht-frachttauglichen, kaum agilen Schiff auf 1 Balken (nur Verteidigung) sinken — nie auf 0, weil Hülle/Schilde praktisch jedes fliegbare Fahrzeug trägt. Das bereits bestehende `{profile.length > 0 && (...)}` deckt den echten Nullfall (kein Balken mehr übrig) weiterhin ab: Kapitel entfällt |
+| empty | E4 | ✅ covered | Leistung baut nur Balken für Metriken mit Datenlage; bei einem waffenlosen, kaum agilen Schiff kann das auf wenige Balken sinken — praktisch nie auf 0, weil Hülle/Schilde jedes fliegbare Fahrzeug trägt. Das bereits bestehende `{profile.length > 0 && (...)}` deckt den echten Nullfall (kein Balken mehr übrig) weiterhin ab: Kapitel entfällt |
 | loading | E1–E6 | ✅ covered | Kein Nachladen — alle Werte liegen bereits im SSG-Build vor (Astro-Frontmatter, keine Client-Fetches außer dem bestehenden, unveränderten Hologramm/Video-Pfad im Hero). Kein Ladezustand zu gestalten |
 | error | E1–E6 | ✅ covered | Kein neuer Fehlerzustand — kein neues Formular, kein neuer Netzwerkpfad. Die Sprungleisten-Links sind reine `<a href="#…">`-Anker, funktionieren ohne JavaScript und können nicht „fehlschlagen" |
 | populated | E1–E6 | ✅ covered | Normalfall an der Carrack (Ausgangsmessung) belegt: 4 Sprungleisten-Pillen, Ausstattung mit 4 Unterabschnitten, Umfeld mit 3 (Versicherung+Lackierungen+Varianten) + Spine, Leistung mit bis zu 4 Balken (Agilität/Feuerkraft/Verteidigung, ggf. weniger) |
@@ -207,7 +207,7 @@ Applicable state considerations resolved: **17 covered, 4 backstop, 0 unresolved
 | overflow | E6 | ✅ covered | Der Zahl-Chip ist ein fester Zwei-Zeichen-Text („01"–„04"), keine variable Länge, kein Umbruchrisiko |
 | zero-one-many | E1 | ✅ covered | 1 bis 4 Pillen, siehe „empty" oben — nie mehr als 4 (die Kapitelzahl ist strukturell fest), nie 0 |
 | zero-one-many | E2, E3 | ✅ covered | 0 bis 4 (Ausstattung) bzw. 0 bis 4 (Umfeld: Versicherung/Lackierungen/Varianten/Spine) sichtbare Unterabschnitte je Kapitel — jede Kombination bereits heute einzeln bedingt gerendert, nur die Klammer ist neu |
-| zero-one-many | E4 | 🧪 backstop | 1 bis 4 Balken in Leistung, je nach Datenlage (Detailvertrag Punkt 6) — am kargen UND am sehr großen Schiff (Konkrete Vorgabe 2) nachweisen, dass 1–2 Balken nicht wie ein kaputtes/unfertiges Kapitel wirken (Sichturteil, siehe unten) |
+| zero-one-many | E4 | 🧪 backstop | 1 bis 6 Balken in Leistung, je nach Datenlage (Detailvertrag Punkt 6) — am kargen UND am sehr großen Schiff (Konkrete Vorgabe 2) nachweisen, dass 1–2 Balken nicht wie ein kaputtes/unfertiges Kapitel wirken (Sichturteil, siehe unten) |
 | long-text | E1 | 🧪 backstop | DE „Ausstattung" (11 Zeichen) ist die längste Pille — bei 360 px in der schmalsten getesteten Breite nachweisen, dass sie weder umbricht noch die Pille sprengt (`white-space:nowrap`, siehe Detailvertrag Punkt 1) |
 | long-text | E5 | ✅ covered | Die `dt`-Labels der Balken→Zahl-Umwandlung sind kurze, feste Übersetzungsschlüssel (`gauge.length`/`gauge.hull`/… — bereits vorhanden, unverändert), keine variable Länge |
 
@@ -392,33 +392,52 @@ Zeilen 1267–1281) verliert keine Information. Der `facts`-Filter
 der `buildFacts`-Import/Aufruf werden mit entfernt — totes Markup, kein
 totes Datenfeld.
 
-### 6. Leistungsprofil — Metrikliste getrimmt, nicht das Bar-Prinzip
+### 6. Leistungsprofil — der Rohwert fällt, das Perzentil bleibt
 
-D-02 schützt den BALKEN-MECHANISMUS in Leistung, nicht zwingend jede
-heutige Zeile. Von den sechs möglichen `ProfileBar`-Metriken
-(`shipExtras.ts` `METRICS`, Speed/Agility/Firepower/Defense/Cargo/QSpeed)
-sind **Agilität** (Durchschnitt aus Pitch/Yaw/Roll) und **Feuerkraft/
-Verteidigung** (Summe aus Piloten+Turm-DPS bzw. Hülle+Schilde) rechnerische
-Aggregate, die als Zahl an KEINER anderen Stelle der Seite stehen — sie
-bleiben. **Geschwindigkeit (SCM)**, **Fracht (SCU)** und **Quantum-Tempo**
-sind dagegen Rohwerte, die identisch (gleiche Formatierung) in einem
-Detail-Kapitel wiederkehren (Flugleistung bzw. Maße & Fracht) — sie
-entfallen aus Leistung:
+D-02 schützt den Balken-Mechanismus in Leistung. Von den sechs
+`ProfileBar`-Metriken (`shipExtras.ts` `METRICS`:
+Speed/Agility/Firepower/Defense/Cargo/QSpeed) sind drei rechnerische
+Aggregate, die als Zahl nirgends sonst stehen — **Agilität** (Ø aus
+Pitch/Yaw/Roll), **Feuerkraft** (Piloten+Turm-DPS) und **Verteidigung**
+(Hülle+Schilde). Die drei anderen — **Geschwindigkeit (SCM)**, **Fracht (SCU)**
+und **Quantum-Tempo** — sind Rohwerte, die identisch in einem Detail-Kapitel
+wiederkehren.
 
-| Metrik | Bleibt in Leistung? | Grund |
-|---|---|---|
-| Geschwindigkeit (SCM) | **entfällt** | identischer Rohwert in Ausstattung → Flugleistung (dort mit Boost/Max als Familie, nicht sinnvoll trennbar) |
-| Agilität (Ø Pitch/Yaw/Roll) | **bleibt** | Durchschnittswert existiert nirgendwo sonst als Zahl |
-| Feuerkraft (Piloten+Turm-DPS Summe) | **bleibt** | Summe existiert nirgendwo sonst als Zahl (Bewaffnung zeigt nur Einzelwerte je Gruppe) |
-| Verteidigung (Hülle+Schilde Summe) | **bleibt** | Summe existiert nirgendwo sonst als Zahl (Komponenten zeigt Hülle/Schilde einzeln) |
-| Fracht (SCU) | **entfällt** | identischer Rohwert in Ausstattung → Maße & Fracht (dort mit Würfel-Visualisierung — die reichere, nicht ersetzbare Darstellung) |
-| Quantum-Tempo | **entfällt** | identischer Rohwert in Ausstattung → Flugleistung → Quantum (dort mit Reichweite/Spool/Tank als Familie) |
+⚠ **Zurückgedreht (Orchestrator, 18.08.2026): Diese drei Zeilen werden NICHT
+gestrichen.** Ein erster Entwurf dieses Vertrags wollte `METRICS` von sechs auf
+drei Einträge kürzen. Das ist Informationsverlust, nicht Entdopplung: die
+Profilzeile trägt neben dem Rohwert das **Perzentil** (`P8`, `P66`, `P57` bei
+der Carrack), und das Perzentil steht an KEINER anderen Stelle der Seite. Mit
+den Zeilen fiele die einzige Antwort auf „wo liegt dieses Schiff im Katalog?"
+für Tempo, Fracht und Quantum weg. Freigegeben sind ausschließlich Doppelungen
+(D-03) — das Perzentil ist keine.
 
-Umsetzung: `METRICS`-Array in `src/lib/shipExtras.ts` auf die drei
-verbleibenden Einträge kürzen (`metric.agility`, `metric.firepower`,
-`metric.defense`) — **keine Datenänderung** (D-Vorgabe „keine Zahl neu
-berechnet"): dieselben drei Formeln, dieselben Quellfelder, nur drei der
-sechs Zeilen werden nicht mehr gebaut.
+**Stattdessen fällt in der Profilzeile der Rohwert, nicht die Zeile.** Die
+Zeile besteht heute aus `Label · Balken · {p.value}<i>P{p.pct}</i>`
+(`ShipDetail.astro`, `.sd__profval`). Künftig:
+
+| Metrik | Zeile bleibt? | Rohwert in der Profilzeile | Rohwert steht stattdessen in |
+|---|---|---|---|
+| Geschwindigkeit (SCM) | **ja** | **entfällt** | Ausstattung → Flugleistung (mit Boost/Max als Familie) |
+| Fracht (SCU) | **ja** | **entfällt** | Ausstattung → Maße & Fracht (mit Würfel-Darstellung) |
+| Quantum-Tempo | **ja** | **entfällt** | Ausstattung → Flugleistung → Quantum (mit Reichweite/Spool/Tank) |
+| Agilität (Ø Pitch/Yaw/Roll) | **ja** | **bleibt** | nirgends sonst — der Durchschnitt existiert nur hier |
+| Feuerkraft (Summe DPS) | **ja** | **bleibt** | nirgends sonst — Bewaffnung zeigt nur Einzelwerte je Gruppe |
+| Verteidigung (Hülle+Schilde) | **ja** | **bleibt** | nirgends sonst — Komponenten zeigt Hülle und Schilde einzeln |
+
+Damit gilt D-03 sauber: `140 m/s`, `456 SCU` und `319.000 km/s` stehen je
+genau einmal (im Detail-Kapitel), das Perzentil je genau einmal (in Leistung),
+und keine Information geht verloren.
+
+**Umsetzung:** `METRICS` in `src/lib/shipExtras.ts` bleibt bei sechs
+Einträgen. Die Metrik bekommt eine Marke (z. B. `valueInProfile: false` für
+die drei Rohwert-Metriken); `buildProfile` liefert `value` weiterhin mit, das
+Markup gibt es für markierte Metriken nicht aus. Keine Datenänderung — dieselben
+Formeln, dieselben Quellfelder.
+
+⚠ **Sichturteil, kein Skript:** ob eine Zeile aus `Label · Balken · P8` ohne
+Rohwert noch trägt, oder ob der Balken dann nackt wirkt, entscheidet das Auge.
+Als Punkt an `.planning/WINDOWS.md` (siehe unten).
 
 ### 7. `.sd__code`-Konsolidierung
 
@@ -483,6 +502,10 @@ den Betreiber, sobald die Phase ausgeführt ist:
    Unterabschnitte, teils mit Zweispalten-Rastern) am sehr großen Schiff
    (Konkrete Vorgabe 2) noch als EIN zusammengehöriges Kapitel, oder
    zerfällt sie optisch wieder in vier gefühlte Panels?
+
+5. **Trägt eine Profilzeile ohne Rohwert** (Tempo, Fracht,
+   Quantum-Tempo zeigen künftig nur `Label · Balken · P{n}`), oder wirkt
+   der Balken dort nackt und die Zeile unfertig? Siehe Detailvertrag Punkt 6.
 
 ---
 
