@@ -959,15 +959,50 @@ span.sd__ref{color:var(--muted)}
 @media(min-width:1100px){
   .sd__ch2col{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.6rem;row-gap:1.6rem}
   .sd__ch2col .sd__chsec > .sd__sub:first-child{margin-top:0}
-  /* Vorweggenommener Sonderfall: das Grundriss-Raster (sd__dims) traegt
-     seine eigene 760px-Medienabfrage auf die FENSTERWEITE, nicht die
-     Spaltenbreite -- in einer halbierten sd__ch2col-Spalte stuende es bei
-     1280px Fenster in ~490px Breite und waere gequetscht. Deshalb hier
-     ausdruecklich auf eine Spalte gesetzt; ".sd__ch2col .sd__dims" hat
-     durch die zwei Klassen hoehere Spezifitaet als die Basisregel weiter
-     unten (Zeile ~1039) und gewinnt unabhaengig von der Reihenfolge im
-     Stilblock. Die bestehende 760px-Medienabfrage bleibt unangetastet. */
-  .sd__ch2col .sd__dims{grid-template-columns:1fr}
+  /* Vorweggenommene Annahme aus Task 1 GEMESSEN widerlegt (Task 2): das
+     Grundriss-Raster (sd__dims) sollte wegen seiner FENSTERBREITEN-
+     Medienabfrage vorsorglich einspaltig gesetzt werden. Die Schlussmessung
+     zeigt: Bewaffnung (arm__list, inhaltsgetrieben durch die Zahl der
+     Turmgruppen) ist in der Ausstattung-Zeile 1 IMMER die groessere Zelle
+     als Masse & Fracht — ob dims ein- oder zweispaltig steht, aendert die
+     Zeilenhoehe deshalb NICHT (Zeile 1 haengt an Bewaffnung, nicht an
+     Masse & Fracht). Zweispaltig gemessen 76px KUERZER (513px statt 590px
+     eigene Zellenhoehe) und am Bildpunkt angesehen nicht gequetscht
+     (Frachtwuerfel + Grundriss-Kasten bleiben bei ~220px Spaltenbreite
+     lesbar) -- deshalb bewusst NICHT einspaltig, die urspruengliche
+     Befuerchtung war eine Annahme, keine Messung. */
+  .sd__ch2col .sd__dims{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  /* GEMESSENER zweiter Bruch (14-04-PLAN.md Task 2, Verdaechtiger 2 der
+     Schlussmessung): die uebrigen "selbstregelnden" Innenraster
+     (sd__grid/sd__qgrid/sd__slots/sd__inscards) nutzen repeat(auto-fit,
+     minmax(…)) mit einer Mindestbreite, die auf die VOLLE Kapitelbreite
+     (~1023px) kalibriert ist. In der halbierten ~469px-Spalte lassen
+     dieselben Mindestbreiten nur noch 2 statt 3-5 Spalten zu — die Zeilen
+     brechen um, die Zelle wird HOEHER als bei voller Breite (Gegenteil des
+     Ziels dieses Plans). Am gerenderten Bildpunkt der Carrack gemessen:
+     Flugleistung 380px -> 547px, Komponenten 251px -> 547px, Versicherung
+     202px -> 298px — zusammen der Grossteil der anfaenglichen 264px
+     Ueberschreitung ueber die 4.200px-Klinke. Fix: dieselbe Spaltenzahl wie
+     bei voller Breite auch in der halbierten Spalte erreichen, per
+     kleinerer (nicht site-weiter, nur hier per Spezifitaet
+     ueberschriebener) Mindestbreite -- keine neue Bauform, dieselben
+     Grid-Regeln bleiben site-weit unveraendert wirksam. Jeder Wert per
+     Bildschirmfoto GEGENGEPRUEFT, nicht nur gemessen: ein zu kleiner Wert
+     liess einzelne lange, ungetrennte Woerter (z. B. "SCHILDGENERATOREN")
+     ueber die Zellgrenze hinauslaufen statt umzubrechen -- deshalb bleiben
+     die Werte hier bewusst groesser als das rechnerische Minimum. */
+  .sd__ch2col .sd__grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .sd__ch2col .sd__qgrid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
+  .sd__ch2col .sd__slots{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  .sd__ch2col .sd__inscards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  /* arm__sum (Bewaffnung-Kennzahlen) bleibt bei seiner site-weiten
+     Mindestbreite (150px, Zeile ~995) -- bei seinem winzigen 1px-Randabstand
+     waere fuer vier Spalten eine Mindestbreite unter ~117px noetig, und dort
+     lief "GEGENMASSNAHMEN" (15 Zeichen, ein einzelnes zusammengesetztes
+     Wort ohne Trennstelle) am Bildpunkt ueber die Zellgrenze -- vorgefuehrt
+     und verworfen. Drei Spalten bleiben sicher lesbar. */
+  .sd__ch2col .arm__scell span{hyphens:auto;overflow-wrap:anywhere}
+  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
 }
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist

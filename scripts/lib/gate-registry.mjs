@@ -132,8 +132,6 @@ export const CHECKS = [
     rail: 'A',
     checks:
       'die Schiffs-Detailseite traegt genau ein Kapitelgeruest mit Sprungleiste, keinen Einheitsrahmen mehr, Balken nur beim Leistungsprofil, und jeder Wert steht an genau einer Stelle (D-01/D-02/D-03)',
-    disabled:
-      'beurteilt den ZIELZUSTAND von Phase 14 (Schiffs-Datenkarte entstapeln) und ist bis zu deren Abschluss zwangslaeufig rot — vorgefuehrt in 14-01-SUMMARY.md, scharf geschaltet in 14-04-PLAN.md. Praezedenz verify:sync (Kopf von scripts/verify-sync.mjs): "erst beheben, dann scharf".',
   },
   {
     id: 'verify:theme',

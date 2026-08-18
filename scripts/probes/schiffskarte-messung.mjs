@@ -40,7 +40,10 @@
 
    MESSMATRIX: 3 Schiffe x 2 Sprachen (Wurzelpfad, /de/-Praefix) x 2 Breiten
    (1280x720, 360x740) x 2 Farbmodi (data-theme am Wurzelelement gesetzt,
-   Neuzeichnen abgewartet) = 24 Laeufe, acht Messgruppen (a-h) je Lauf.
+   Neuzeichnen abgewartet) = 24 Laeufe, NEUN Messgruppen (a-i) je Lauf.
+   Gruppe i (Backstop E2, seit 14-04-PLAN.md Task 2) laeuft nur bei
+   1280x720: kein Innenraster ueberschreitet die Breite seines Kapitels,
+   kein Kapitel ueberschreitet die lokale Hoechstbreite von 1100px.
 
    MESSMETHODE Kontrast (Gruppe f): kein zweites Kontrastmass — dieselbe
    contrast()/luminance()-Formel wie scripts/verify-layers.mjs und
@@ -139,7 +142,19 @@ const BREITEN = [
 ];
 const FARBMODI = ['dark', 'light'];
 
-const HOEHEN_MARKE_CARRACK_DUNKEL_1280 = 4200;
+/* Hoehen-Sperrklinke, Hausform wie scripts/lib/metrics-baseline.mjs: Wert,
+   Regel (wandert NUR nach unten, docs/maschinelle-validierung.md
+   Grundsatz 5), und ein Anlass mit Messlauf, Datum, Messbreite, Farbmodus
+   und dem gemessenen Ist-Wert. Eine Anhebung von `wert` braucht einen
+   eigenen Commit, dessen Botschaft die Ursache nennt — kein stilles
+   Nachgeben, wenn ein spaeterer Umbau die Seite wieder waechst. */
+const HOEHEN_KLINKE_CARRACK_DUNKEL_1280 = {
+  wert: 4200,
+  regel: 'max', // wandert nur nach unten
+  anlass:
+    'Schlussmessung 18.08.2026 (14-04-PLAN.md Task 2) gegen den nach Welle 4 gebauten dist/ dieses Worktrees — Carrack, DE, 1280x720, dunkler Modus, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322: gemessener Ist-Wert 4.179px (Ausgang 5.554px aus 14-CONTEXT.md, -1.375px / -24,8%). EN misst 4.117px am selben Lauf. Die Klinke bleibt bei den in Erfolgskriterium 6 festgeschriebenen 4.200px stehen (nicht auf 4.179px abgesenkt) — 21px Reserve gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes, siehe Grundsatz 5: eine Klinke ist eine Untergrenze fuer KUENFTIGE Läufe, kein exakter Momentwert des heutigen.',
+};
+const HOEHEN_MARKE_CARRACK_DUNKEL_1280 = HOEHEN_KLINKE_CARRACK_DUNKEL_1280.wert;
 const KONTRAST_MARKE = 4.5;
 const LAENGSTE_PILLE_DE = 'Ausstattung'; // 11 Zeichen, laut UI-SPEC Punkt 1 der Referenzfall fuer Umbruch/Ueberlauf
 
@@ -230,7 +245,7 @@ for (const ziel of ZIELE) {
           const err = await farbmodusSetzen(page, schema);
           if (err) throw new Error(err);
         } catch (e) {
-          for (const g of ['a-seitenhoehe', 'b-sprungleiste', 'c-scroll-margin', 'd-pillen-360', 'e-umbruch', 'f-kontrast-chip', 'g-ueberlauf-360', 'h-struktur']) {
+          for (const g of ['a-seitenhoehe', 'b-sprungleiste', 'c-scroll-margin', 'd-pillen-360', 'e-umbruch', 'f-kontrast-chip', 'g-ueberlauf-360', 'h-struktur', 'i-rasterbreite-1280']) {
             melde(lauf, ziel.id, g, false, `Seitenaufruf fehlgeschlagen: ${e.message}`);
           }
           await page.close();
@@ -386,13 +401,59 @@ for (const ziel of ZIELE) {
         }
 
         // (h) Struktur: Zahl der Kapitel und Pillen — Gegenprobe zum Tor,
-        // am lebenden Dokument statt am HTML-Text gemessen.
+        // am lebenden Dokument statt am HTML-Text gemessen. Zusaetzlich der
+        // messbare Teil von Backstop E4 (14-04-PLAN.md Task 2): Zahl der
+        // Perzentilzeilen und Kapitelhoehe des Leistungsprofils, am kargsten
+        // und groessten Pruefschiff steht das direkt im Beleg.
         try {
           const kapitel = await page.locator('.sd__chapter').count();
           const pillenGesamt = await page.locator('.sd__jump a').count();
-          melde(lauf, ziel.id, 'h-struktur', true, `${kapitel} Kapitel, ${pillenGesamt} Pille(n)`);
+          const profilZeilen = await page.locator('#ch-profile .sd__profrow').count();
+          const profilHoehe = await page.locator('#ch-profile').count()
+            ? (await page.locator('#ch-profile').boundingBox())?.height ?? null
+            : null;
+          melde(lauf, ziel.id, 'h-struktur', true, `${kapitel} Kapitel, ${pillenGesamt} Pille(n), Leistungsprofil: ${profilZeilen} Perzentilzeile(n)${profilHoehe != null ? `, Kapitelhoehe ${profilHoehe.toFixed(1)}px` : ' (Kapitel nicht vorhanden)'}`);
         } catch (e) {
           melde(lauf, ziel.id, 'h-struktur', false, e.message);
+        }
+
+        // (i) Backstop E2 (14-04-PLAN.md Task 2, nur bei 1280x720): kein
+        // Kapitel ueberschreitet die lokale Hoechstbreite (var(--maxw) =
+        // 1100px), und innerhalb der kapitelinternen Zweispaltigkeit
+        // (.sd__ch2col) ueberschreitet kein Innenraster die rechte Kante
+        // seines Kapitels. Gemessen am Bildpunkt (getBoundingClientRect),
+        // nicht am CSS-Wert — derselbe Grund wie bei allen anderen Gruppen.
+        if (breite.id === '1280x720') {
+          try {
+            const raster = await page.evaluate(() => {
+              const KAPITEL_MAX = 1100;
+              const kandidaten = ['.sd__dims', '.sd__grid', '.arm__sum', '.arm__list', '.sd__slots', '.sd__inscards', '.sd__paints', '.sd__reflist', '.sd__qgrid', '.sd__ch2col'];
+              const chapters = Array.from(document.querySelectorAll('.sd__chapter'));
+              let schmalster = Infinity;
+              const befunde = [];
+              for (const ch of chapters) {
+                const cb = ch.getBoundingClientRect();
+                const spielKapitel = KAPITEL_MAX - cb.width;
+                if (spielKapitel < schmalster) schmalster = spielKapitel;
+                if (spielKapitel < -1) befunde.push(`${ch.id || '(ohne id)'}: Kapitelbreite ${cb.width.toFixed(1)}px > ${KAPITEL_MAX}px`);
+                for (const sel of kandidaten) {
+                  ch.querySelectorAll(sel).forEach((el) => {
+                    const eb = el.getBoundingClientRect();
+                    const spielInner = cb.right - eb.right;
+                    if (spielInner < schmalster) schmalster = spielInner;
+                    if (spielInner < -1) befunde.push(`${ch.id || '(ohne id)'} ${sel}: ${eb.right.toFixed(1)}px rechts vom Kapitelrand ${cb.right.toFixed(1)}px`);
+                  });
+                }
+              }
+              return { schmalster, befunde };
+            });
+            const ok3 = raster.befunde.length === 0;
+            melde(lauf, ziel.id, 'i-rasterbreite-1280', ok3, `schmalster Spielraum ${raster.schmalster === Infinity ? 'n/a' : raster.schmalster.toFixed(1)}px${ok3 ? '' : ' — ' + raster.befunde.join(' | ')}`);
+          } catch (e) {
+            melde(lauf, ziel.id, 'i-rasterbreite-1280', false, e.message);
+          }
+        } else {
+          melde(lauf, ziel.id, 'i-rasterbreite-1280', true, 'nur bei 1280x720 geprueft');
         }
 
         await page.close();
@@ -404,9 +465,9 @@ for (const ziel of ZIELE) {
 await browser.close();
 
 /* ---------- Selbstauskunft + Urteil ---------- */
-const ERWARTET = ZIELE.length * SPRACHEN.length * BREITEN.length * FARBMODI.length * 8;
+const ERWARTET = ZIELE.length * SPRACHEN.length * BREITEN.length * FARBMODI.length * 9;
 console.log(`\n=== Selbstauskunft ===`);
-console.log(`  Schiffe: ${ZIELE.length}  Sprachen: ${SPRACHEN.length}  Breiten: ${BREITEN.length}  Farbmodi: ${FARBMODI.length}  Messgruppen je Lauf: 8`);
+console.log(`  Schiffe: ${ZIELE.length}  Sprachen: ${SPRACHEN.length}  Breiten: ${BREITEN.length}  Farbmodi: ${FARBMODI.length}  Messgruppen je Lauf: 9`);
 console.log(`  gefahrene Messpunkte: ${gemessen}  (erwartet ${ERWARTET})`);
 console.log(`  bestanden: ${gemessen - fehlgeschlagen}  fehlgeschlagen: ${fehlgeschlagen}`);
 console.log(`  gemessener --nav-h (site-weit, zuletzt gesehener Wert): ${navHoehe ?? '?'}px`);
