@@ -265,7 +265,10 @@ Fortführung eines bestehenden Musters — **keine davon ist eine Neuerfindung**
    Markerzahl von potenziell 130 auf die größte EINZELGRUPPE eines Schiffs
    — bei der Carrack z. B. 21 (Bewaffnung: 7 Waffen + 14 Turmstationen,
    `k`-Aufschlüsselung siehe Bestandsaufnahme oben).
-2. **Dauerhafte Beschriftung bleibt exklusiv der `core`-Gruppe vorbehalten**
+2. ⚠ **AUFGEHOBEN durch Punkt 3a/P-2** — der Spike vom 18.08.2026 hat die acht
+   dauerhaften `core`-Labels als Ursache der Label-Leiter gemessen. Der
+   folgende Absatz beschreibt den ALTEN Stand und gilt nicht mehr:
+   ~~Dauerhafte Beschriftung bleibt exklusiv der `core`-Gruppe vorbehalten~~
    (bestehendes `lab`-Feld, `HoloPort.lab`, nur für `core`-Arten gesetzt,
    Zeilen 306/319/336, unverändert) — Bewaffnung/Antrieb/Sonstiges zeigen
    NUR den Marker-Punkt, keine dauerhaft eingeblendete Textbox. Ein
@@ -285,6 +288,86 @@ Fortführung eines bestehenden Musters — **keine davon ist eine Neuerfindung**
 das nimmt der Bühne die Bürde, jede Information selbst lesbar zu machen; die
 Bühne muss nur noch die RÄUMLICHE Frage beantworten, die Auslesung die
 INHALTLICHE.
+
+### 3a. Nachgeschärft aus dem Spike vom 18.08.2026 — drei bindende Punkte
+
+> Dieser Abschnitt entstand NACH dem übrigen Vertrag. Er wurde am laufenden
+> Viewer erhoben (gebautes `dist/`, echte Ansichtsbreiten, WebGL im
+> kopflosen Chrome), nicht am Code gelesen. Wo er §3 widerspricht, gilt er.
+>
+> **Zwei eigene Fehlschlüsse aus demselben Spike, damit sie niemand wiederholt:**
+> (a) Die Bühne per CSS zu verkleinern taugt als Messung NICHT — der Viewer
+> misst seinen Container nicht neu, das Canvas bleibt breit, und man
+> fotografiert eine 1280er-Darstellung durch ein schmales Fenster.
+> Immer die echte Ansichtsbreite setzen und die Seite selbst umbrechen lassen.
+> (b) Ausgelieferte Portkoordinaten dürfen NICHT gegen den Hüllkörper im
+> Rohformat gehalten werden: für three.js werden die Achsen getauscht
+> (CryEngine `+X Steuerbord, +Y Bug, +Z oben` → three.js Y-oben), das
+> ausgelieferte `z` ist das rohe `y`. Richtig geprüft: **0 von 227 Schiffen**
+> haben Ports außerhalb ihres Hüllkörpers. Die Daten sind einwandfrei.
+
+**Der Befund.** Bei 860 px Ansichtsbreite (Canvas 860 × 557) rahmt die heutige
+Kamera das Schiff auf **etwa ein Viertel der Bühnenbreite**. Die vier
+Bewaffnungs-Marker der Carrack werden korrekt gerendert, an den richtigen
+Stellen, in der richtigen Gruppenfarbe — sie sind bei dieser Distanz aber nur
+2–3 Bildpunkte groß und am Bildschirm **nicht auffindbar**. Erst bei
+dreifacher Bildpunktdichte und herangezoomt werden sie sichtbar.
+
+Daraus die Zwickmühle, in der der heutige Viewer steckt:
+
+| Zustand | Ergebnis am Bild |
+| --- | --- |
+| Labels aus | Marker praktisch unsichtbar |
+| Labels an (`core`, 8 Stück) | acht Textkästen bedecken **mehr Fläche als das Schiff** |
+
+Beides ist verträglich, solange das Hologramm ein Schauobjekt im Hero ist. Als
+**Navigation** ist beides untauglich — und genau das soll es hier werden.
+
+---
+
+**P-1 (bindend) — Das Schiff füllt die Bühne.** Die Kamera wird so gesetzt,
+dass die Hüllkurve des Schiffs mindestens **70 % der kürzeren Bühnenkante**
+einnimmt, in jeder der drei Breiten aus Punkt 1. Es ist eine Konsole, kein
+Vignettenbild. Der Ausgangswert ~25 % wird als Sperrklinke festgehalten und
+darf nur nach oben wandern.
+
+*Nachweis:* am gerenderten Bildpunkt messen, nicht aus der Kamerakonfiguration
+ableiten. Ein brauchbares Verfahren ist die Spanne der projizierten
+Portpositionen gegen die Canvas-Breite; ein Rückgriff auf `readPixels` braucht
+`preserveDrawingBuffer` und ist deshalb nicht der erste Weg.
+
+**P-2 (bindend) — Kein Dauer-Label. Punkt 2 aus §3 ist damit aufgehoben.**
+Beschriftet wird **ausschließlich** der gewählte oder überfahrene Marker, für
+ALLE Gruppen einschließlich `core`. Die acht dauerhaften `core`-Labels sind
+die gemessene Ursache der Label-Leiter; sie verschwinden.
+
+Damit die Marker ohne Label auffindbar bleiben, muss die Markerdarstellung bei
+der Größe aus P-1 für sich lesbar sein — Größe, Kontrast und Trennung sind
+Sache der Umsetzung, aber die Zusicherung lautet: **ein Marker ist ohne
+Beschriftung als Marker erkennbar.** Das ist ein Sichturteil, siehe unten.
+
+Das bestehende `lab`-Feld auf `HoloPort` bleibt in den Daten; es steuert
+künftig nur noch, welcher Text beim Auswählen erscheint, nicht mehr, ob
+dauerhaft eingeblendet wird.
+
+**P-3 (bindend, zuerst zu klären) — Die Rail darf nichts anbieten, das die
+Bühne nicht zeigen kann.** Gemessen am ausgelieferten `holodata` der Carrack:
+es trägt **17 von 60 Hardpoints** — `core` 8, `arms` 4, `other` 5. Die Gruppe
+`prop` fehlt vollständig; die zwölf `thruster_mav`, vier `thruster_vtol`, vier
+`thruster_main` und zwei `thruster_retro` aus den Rohdaten sind herausgefiltert
+und erscheinen nicht.
+
+Eine linke Spalte, die „Antrieb" anbietet und dann eine leere Bühne zeigt, ist
+schlimmer als gar kein Eintrag. Vor der Planung ist zu entscheiden — und im
+Plan festzuhalten —, ob
+
+- die Triebwerke in `holodata` aufgenommen werden (dann wächst die Portzahl je
+  Schiff erheblich, und P-1/P-2 müssen bei dieser Dichte erneut belegt werden), **oder**
+- die Rail nur Gruppen führt, die für das jeweilige Schiff tatsächlich Marker
+  haben (dann ist die Rail je Schiff verschieden lang, und der Leerzustand aus
+  Punkt 2 muss das abdecken).
+
+Ein Eintrag ohne Marker ist in keinem Fall zulässig.
 
 ### 4. Die Auslesung — zwei Zustände, ein Bauteil
 
@@ -545,6 +628,14 @@ Direkte Bearbeitung der Datei (siehe Fallstrick oben — `gsd-tools windows
 append` NICHT verwenden). Alle Punkte gehören zu Phase 15 und sollten so früh
 wie möglich beantwortet werden, weil laut Phasenziel die gesamte Phase an
 Punkt 1 hängt:
+**S-0 (zuerst, die Phase haengt daran) — Ist ein Marker ohne Beschriftung
+als Marker erkennbar?** Nach P-1 fuellt das Schiff die Buehne, nach P-2 gibt es
+keine Dauer-Labels mehr. Damit steht und faellt alles an der Frage, ob ein
+unbeschrifteter Punkt bei dieser Groesse gefunden wird — am kargsten Schiff
+(13 Ports) wie am dichtesten (130). Gemessen wurde am 18.08.2026 der
+Ausgangszustand: bei ~25 % Bildanteil sind die Marker 2–3 Bildpunkte gross und
+nicht auffindbar. Das ist die Latte, die geschlagen werden muss.
+
 
 1. **Die tragende Frage der Phase:** Erkennt man bei ~380px Bühnenbreite
    (Detailvertrag Punkt 1, typischer Telefon-Viewport nach dem Stapeln aus
