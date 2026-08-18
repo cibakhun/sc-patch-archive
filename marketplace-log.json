@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 312,
-  "totalListings": 7037,
-  "totalSold": 307,
-  "distinctItems": 1246
+  "updates": 313,
+  "totalListings": 7057,
+  "totalSold": 308,
+  "distinctItems": 1247
  },
  "listings": {
   "156580": {
@@ -140016,6 +140016,10 @@
     {
      "d": "2026-08-18",
      "p": 7500000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 6500000
     }
    ],
    "soldOut": false,
@@ -141279,6 +141283,10 @@
     {
      "d": "2026-08-17",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -141436,9 +141444,9 @@
      "p": 0
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 0,
    "dateAdded": 1786926889,
    "dateExpiration": 1792110889
   },
@@ -149666,6 +149674,10 @@
     {
      "d": "2026-08-18",
      "p": 15000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 7500000
     }
    ],
    "soldOut": false,
@@ -150282,6 +150294,426 @@
    "soldOutPrice": null,
    "dateAdded": 1787075634,
    "dateExpiration": 1792259634
+  },
+  "163865": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 710 (3.0 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 710,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076130,
+   "dateExpiration": 1792260130
+  },
+  "163866": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "C1 Spirit Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076358,
+   "dateExpiration": 1792260358
+  },
+  "163867": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 874 (1.6 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 874,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076370,
+   "dateExpiration": 1792260370
+  },
+  "163868": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Stirling Exploration Suite (ASD Edition)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076426,
+   "dateExpiration": 1792260426
+  },
+  "163869": {
+   "idItem": 3347,
+   "idCategory": 3,
+   "title": "Aril Helmet Quicksilver",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 225000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076588,
+   "dateExpiration": 1792260588
+  },
+  "163870": {
+   "idItem": 6660,
+   "idCategory": 3,
+   "title": "Overlord Helmet Polarity",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076745,
+   "dateExpiration": 1792260745
+  },
+  "163871": {
+   "idItem": 6654,
+   "idCategory": 3,
+   "title": "Paladin Helmet White/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076841,
+   "dateExpiration": 1792260841
+  },
+  "163872": {
+   "idItem": 3219,
+   "idCategory": 3,
+   "title": "Zeus Exploration Helmet Starscape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787076948,
+   "dateExpiration": 1792260948
+  },
+  "163873": {
+   "idItem": 7933,
+   "idCategory": 3,
+   "title": "Fortifier Helmet Icefall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077037,
+   "dateExpiration": 1792261037
+  },
+  "163874": {
+   "idItem": 1974,
+   "idCategory": 3,
+   "title": "Morningstar Helmet Black Steel",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077125,
+   "dateExpiration": 1792261125
+  },
+  "163875": {
+   "idItem": 7640,
+   "idCategory": 3,
+   "title": "Deadhead Helmet Shutdown",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 95000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077279,
+   "dateExpiration": 1792261279
+  },
+  "163877": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077506,
+   "dateExpiration": 1792261506
+  },
+  "163880": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Sabre Peregrine Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077682,
+   "dateExpiration": 1792261682
+  },
+  "163882": {
+   "idItem": 2032,
+   "idCategory": 22,
+   "title": "Spicule",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077724,
+   "dateExpiration": 1792261724
+  },
+  "163885": {
+   "idItem": 2113,
+   "idCategory": 22,
+   "title": "Spectre",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787077919,
+   "dateExpiration": 1792261919
+  },
+  "163886": {
+   "idItem": 3397,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Graphite Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787078046,
+   "dateExpiration": 1792262046
+  },
+  "163887": {
+   "idItem": 933,
+   "idCategory": 19,
+   "title": "NightFall",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 550,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787078605,
+   "dateExpiration": 1792262605
+  },
+  "163888": {
+   "idItem": 6842,
+   "idCategory": 18,
+   "title": "Novian \"Nighthunter\" Crossbow [CRAFTED 14% DMG INCREASE]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 850,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2650000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079192,
+   "dateExpiration": 1792263192
+  },
+  "163889": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079458,
+   "dateExpiration": 1792263458
+  },
+  "163890": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079559,
+   "dateExpiration": 1792263559
   }
  }
 }
