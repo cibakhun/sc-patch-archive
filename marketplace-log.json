@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 295,
-  "totalListings": 6911,
-  "totalSold": 293,
-  "distinctItems": 1237
+  "updates": 296,
+  "totalListings": 6913,
+  "totalSold": 294,
+  "distinctItems": 1238
  },
  "listings": {
   "156580": {
@@ -147155,9 +147155,9 @@
      "p": 3000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 3000000,
    "dateAdded": 1787004386,
    "dateExpiration": 1792188386
   },
@@ -147580,6 +147580,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787013163,
    "dateExpiration": 1792197162
+  },
+  "163729": {
+   "idItem": 7192,
+   "idCategory": 18,
+   "title": "WTS Karna \"Dominion Camo\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787013988,
+   "dateExpiration": 1792197988
+  },
+  "163731": {
+   "idItem": 6042,
+   "idCategory": 2,
+   "title": "(TJMFC) WTB Testudo Deathblow Backpack!",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 35000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787017293,
+   "dateExpiration": 1792201293
   }
  }
 }
