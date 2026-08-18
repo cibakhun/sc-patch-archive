@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 308,
-  "totalListings": 6997,
-  "totalSold": 298,
+  "updates": 309,
+  "totalListings": 7009,
+  "totalSold": 300,
   "distinctItems": 1245
  },
  "listings": {
@@ -145195,6 +145195,10 @@
     {
      "d": "2026-08-17",
      "p": 12000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -148850,9 +148854,9 @@
      "p": 300000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 300000,
    "dateAdded": 1787043607,
    "dateExpiration": 1792227607
   },
@@ -149165,9 +149169,9 @@
      "p": 2100000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 2100000,
    "dateAdded": 1787057050,
    "dateExpiration": 1792241050
   },
@@ -149422,6 +149426,258 @@
    "soldOutPrice": null,
    "dateAdded": 1787060623,
    "dateExpiration": 1792244623
+  },
+  "163808": {
+   "idItem": 6798,
+   "idCategory": 4,
+   "title": "ORC-mkX Legs Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060885,
+   "dateExpiration": 1792244885
+  },
+  "163809": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase 892Q (variety of boxes)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787060951,
+   "dateExpiration": 1792244951
+  },
+  "163811": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Wikelo Guardian Mod - Ready to pickup",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 42000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787061205,
+   "dateExpiration": 1792245205
+  },
+  "163812": {
+   "idItem": 6007,
+   "idCategory": 1,
+   "title": "FBL-8a Arms Justified",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787061430,
+   "dateExpiration": 1792245430
+  },
+  "163813": {
+   "idItem": 64,
+   "idCategory": 17,
+   "title": "Tacit Suppressor3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787062207,
+   "dateExpiration": 1792246207
+  },
+  "163814": {
+   "idItem": 4463,
+   "idCategory": 3,
+   "title": "Morozov-SH Helmet Scorched-X",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787062296,
+   "dateExpiration": 1792246296
+  },
+  "163815": {
+   "idItem": 5386,
+   "idCategory": 18,
+   "title": "WTS Boomtube \"Ruby\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787062707,
+   "dateExpiration": 1792246707
+  },
+  "163816": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Ana Endro set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787062831,
+   "dateExpiration": 1792246831
+  },
+  "163817": {
+   "idItem": 8092,
+   "idCategory": 3,
+   "title": "Oni Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787063267,
+   "dateExpiration": 1792247266
+  },
+  "163818": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "Fr-66 [920Q]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 920,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787063342,
+   "dateExpiration": 1792247342
+  },
+  "163819": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76[813Q]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 813,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787063461,
+   "dateExpiration": 1792247461
+  },
+  "163821": {
+   "idItem": 2434,
+   "idCategory": 18,
+   "title": "Atzkav \"Deadeye\" Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787063687,
+   "dateExpiration": 1792247687
   }
  }
 }
