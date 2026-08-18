@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 301,
-  "totalListings": 6936,
+  "updates": 302,
+  "totalListings": 6937,
   "totalSold": 295,
   "distinctItems": 1240
  },
@@ -146302,6 +146302,27 @@
    "soldOutPrice": null,
    "dateAdded": 1786999442,
    "dateExpiration": 1792183442
+  },
+  "163654": {
+   "idItem": 5848,
+   "idCategory": 36,
+   "title": "Unwanted Agricium - 500q - 588q - 667q",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1786999491,
+   "dateExpiration": 1792183491
   },
   "163655": {
    "idItem": 5918,
