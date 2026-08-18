@@ -95,6 +95,12 @@ const spine = d.patches
 
 const armament = buildArmament(d, lang);
 const armStats = buildArmStats(d, lang);
+// Turm-DPS-Summe als ZUSAETZLICHE Zelle nur bei MEHR als einer Turmgruppe
+// (14-UI-SPEC.md Detailvertrag Punkt 4) — bei genau einer Turmgruppe steht
+// derselbe Wert bereits als arm__gval in deren eigener Zeile, eine zweite
+// Zelle waere die Doppelung, die D-03 verbietet.
+const turretDpsTotal =
+  d.turrets.length > 1 && d.turretDps ? Math.round(d.turretDps).toLocaleString(loc) : null;
 const desc = vDesc(d, lang);
 // FleetYards liefert vereinzelt "<= PLACEHOLDER =>" als Komponentennamen
 // (z. B. Javelin, ROC-DS) — solche Einträge tragen keine Information und
@@ -892,6 +898,11 @@ a{color:inherit;text-decoration:none}
 .sd__proffill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
 .sd__profval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
 .sd__profval i{font-style:normal;color:var(--muted);font-size:var(--fs-6);margin-left:.45rem}
+/* Drei Metriken zeigen keinen Rohwert mehr (14-UI-SPEC.md Detailvertrag
+   Punkt 6) — das Perzentil-Element ist dort das ERSTE (einzige) Kind von
+   .sd__profval; der fuer den Normalfall gedachte linke Abstand haenge sonst
+   ins Leere. */
+.sd__profval i:first-child{margin-left:0}
 /* Mobil: Label + Wert in eine Zeile (Label links, Wert rechts), der Balken
    darunter über die volle Breite — so überlappt der Text NIE den Balken und
    längere EN-Labels haben Platz (keine feste, auf DE getunte Label-Spalte). */
@@ -1016,20 +1027,13 @@ span.sd__ref{color:var(--muted)}
 .sd__src a{text-decoration:underline}
 .sd__src a:hover{color:var(--accent)}
 
-/* Gauges (generisch, katalog-relativ) */
-.sd__g{display:flex;flex-direction:column;gap:.55rem}
-.sd__grow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
+/* Die generische Gauge-Bauform (Zeile, Spur, Fuellung, Wert — Praefix
+   sd__g-*) samt ihrer 640px-Medienabfrage ist mit Task 2 dieser Phase
+   entfallen — alle sechs Fundstellen sind entweder ersatzlos weg (D-02)
+   oder zu Zahlen im sd__grid/sd__item-Raster geworden. sd__glabel BLEIBT:
+   es traegt weiterhin die beiden Ueberschriften "Top view" / "Cargo hold"
+   in Maße & Fracht. */
 .sd__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
-.sd__gtrack{position:relative;height:9px;background:var(--veil-hi);border:1px solid var(--line);overflow:hidden}
-.sd__gtrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--veil-hi)}
-.sd__gfill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
-.sd__gval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
-@media(max-width:640px){
-  .sd__grow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
-  .sd__glabel{grid-column:1;grid-row:1}
-  .sd__gval{grid-column:2;grid-row:1;justify-self:end;margin-top:0}
-  .sd__gtrack{grid-column:1 / -1;grid-row:2;margin-top:.15rem}
-}
 
 /* Maße & Fracht */
 .sd__dims{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.6rem}
@@ -1388,7 +1392,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__proftrack" role="img" aria-label={`${p.label}: ${p.value}, ${t('ship.profile.percentile')} ${p.pct}`}>
                 <div class="sd__proffill" style={`width:${p.pct}%`}></div>
               </div>
-              <span class="sd__profval">{p.value}<i>P{p.pct}</i></span>
+              <span class="sd__profval">{p.showValue && p.value}<i>P{p.pct}</i></span>
             </div>
           ))}
         </div>
@@ -1428,15 +1432,13 @@ span.sd__ref{color:var(--muted)}
                 <div class="sd__footbox" style={`width:${viz.dims.footWidthPct}%;aspect-ratio:${viz.dims.footAspect}`} role="img"
                   aria-label={t('ship.dims.aria').replace('%l%', String(viz.dims.l)).replace('%w%', String(viz.dims.w))}></div>
                 <div class="sd__footcap">{t('ship.abbr.l')} {viz.dims.l.toLocaleString(loc)} m · {t('ship.abbr.w')} {viz.dims.w.toLocaleString(loc)} m · {t('ship.abbr.h')} {viz.dims.h.toLocaleString(loc)} m</div>
-                <div class="sd__g" style="margin-top:.9rem">
-                  {viz.dims.bars.map((b) => (
-                    <div class="sd__grow">
-                      <span class="sd__glabel">{b.label}</span>
-                      <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                      <span class="sd__gval">{b.value}</span>
-                    </div>
-                  ))}
-                </div>
+                <!-- Die drei Masse-Balken (Laenge/Breite/Hoehe) entfallen ERSATZLOS
+                     (D-02): ein Balken, der drei Groessen gegeneinanderstellt, die
+                     nichts miteinander zu tun haben, vergleicht nichts — und
+                     dieselben drei Zahlen stehen bereits als Text in der
+                     Bildunterschrift direkt darueber (sd__footcap oben). Sie zu
+                     Zahlen zu machen erzeugte genau die Doppelung, die D-03
+                     verbietet. -->
               </>
             )}
           </div>
@@ -1452,15 +1454,14 @@ span.sd__ref{color:var(--muted)}
               </>
             )}
             {viz.fuel.length > 0 && (
-              <div class="sd__g" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
+              <dl class="sd__grid" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
                 {viz.fuel.map((b) => (
-                  <div class="sd__grow">
-                    <span class="sd__glabel">{b.label}</span>
-                    <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                    <span class="sd__gval">{b.value}</span>
+                  <div class="sd__item">
+                    <dt>{b.label}</dt>
+                    <dd>{b.value}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             )}
           </div>
         </div>
@@ -1471,17 +1472,12 @@ span.sd__ref{color:var(--muted)}
     {gearArms && (
       <>
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h3>
-        {viz.firepower.length > 0 && (
-          <div class="sd__g" style="margin-bottom:1.1rem">
-            {viz.firepower.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <!-- Die Piloten-/Turm-DPS-Balken entfallen ERSATZLOS (D-02): beide Werte
+             stehen bereits als Text in dieser Uebersicht — Piloten-DPS in der
+             Pilotenzeile, Turm-DPS je Turmgruppe (arm__gval unten). Einzige
+             Ausnahme: mehr als eine Turmgruppe macht die SUMME zu einer echten,
+             sonst nirgends sichtbaren Information — dafuer die Zusatzzelle
+             turretDpsTotal im arm__sum-Raster. -->
         {armStats.length > 0 && (
           <div class="arm__sum">
             {armStats.map((s) => (
@@ -1491,6 +1487,12 @@ span.sd__ref{color:var(--muted)}
                 {s.range && <i>{s.range}</i>}
               </div>
             ))}
+            {turretDpsTotal && (
+              <div class="arm__scell">
+                <b>{turretDpsTotal} DPS</b>
+                <span>{t('arm.stat.totalDps')}</span>
+              </div>
+            )}
           </div>
         )}
         <div class="arm__list">
@@ -1548,28 +1550,26 @@ span.sd__ref{color:var(--muted)}
       <>
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h3>
         {viz.speeds.length > 0 && (
-          <div class="sd__g">
+          <dl class="sd__grid">
             {viz.speeds.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
+              <div class="sd__item">
+                <dt>{b.label}</dt>
+                <dd>{b.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
         {viz.agility.length > 0 && (
           <>
             <h4 class="sd__sub">{t('ship.flight.agility')}</h4>
-            <div class="sd__g">
+            <dl class="sd__grid">
               {viz.agility.map((b) => (
-                <div class="sd__grow">
-                  <span class="sd__glabel">{b.label}</span>
-                  <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                  <span class="sd__gval">{b.value}</span>
+                <div class="sd__item">
+                  <dt>{b.label}</dt>
+                  <dd>{b.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </>
         )}
         {viz.quantum.length > 0 && (
@@ -1593,15 +1593,14 @@ span.sd__ref{color:var(--muted)}
       <>
         <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h3>
         {viz.defense.length > 0 && (
-          <div class="sd__g" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
+          <dl class="sd__grid" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
             {viz.defense.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
+              <div class="sd__item">
+                <dt>{b.label}</dt>
+                <dd>{b.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
         {slots.length > 0 && (
           <div class="sd__slots">

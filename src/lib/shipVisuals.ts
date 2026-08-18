@@ -109,9 +109,14 @@ export function buildVisuals(all: { data: VehicleData }[], d: VehicleData, lang:
   return {
     dims,
     cargo,
+    // Der Quantum-Tank steht NICHT hier: dasselbe Feld (d.qtFuel) erscheint
+    // wenige Zeilen weiter unten bereits als Quantum-Kennwert (`quantum`) —
+    // das war die in der Ausgangsmessung gezaehlte Doppelung (D-03,
+    // 14-UI-SPEC.md Detailvertrag Punkt 4-Nachbarschaft "Der zweifach
+    // gezaehlte Wert"). Die Quantum-Gruppe behaelt ihn, weil dort
+    // Reichweite, Ladezeit und Tank als Familie zusammenstehen.
     fuel: gs([
       g(t('gauge.h2'), d.h2Fuel, c.h2, (n) => `${nf(n, 1)} SCU`),
-      g(t('gauge.qtank'), d.qtFuel, c.qt, (n) => `${nf(n, 1)} SCU`),
     ]),
     speeds: gs([
       g(t('gauge.scm'), d.scmSpeed, c.scm, (n) => `${nf(n)} m/s`),

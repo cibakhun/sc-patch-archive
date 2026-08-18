@@ -290,6 +290,16 @@ function computeRegions(cleanHtml) {
     const baseKey = regionKeyForChild(child);
     const pieces = splitSubHeadings(child);
     pieces.forEach((piece, i) => {
+      // Ausnahmen wirken seit Task 2 (14-03-PLAN.md) auch je UNTERABSCHNITT,
+      // nicht nur je direktem Kind von div.sd — ein Kapitel wie "Specs" (vier
+      // Unterabschnitte in EINEM Kind) braucht sonst entweder gar keine oder
+      // eine viel zu breite Ausnahme, um einen einzelnen falsch-positiven
+      // Unterabschnitt zu erklaeren.
+      const pieceExcl = REGION_EXCLUSIONS.find((e) => e.match(piece));
+      if (pieceExcl) {
+        excludeUsage.set(pieceExcl.id, (excludeUsage.get(pieceExcl.id) || 0) + 1);
+        return;
+      }
       const key = i === 0 ? baseKey : `${baseKey} › ${regionKeyForSubpiece(piece)}`;
       regions.push({ key, html: piece });
     });

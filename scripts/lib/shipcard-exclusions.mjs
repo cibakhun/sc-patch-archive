@@ -7,10 +7,12 @@
    Skriptkoerper — jede Sonderregel steht benannt und begruendet hier.
 
    Beim Anlegen (Welle 1, 14-01-PLAN.md) enthaelt diese Liste genau ZWEI
-   Eintraege. Weitere entstehen ERST aus dem `--report`-Berichtslauf in
-   Welle 4 (14-04-PLAN.md) und NICHT auf Verdacht — eine Ausnahme auf
-   Vorrat, die auf kein einziges Vorkommen trifft, reisst sofort den
-   Zombie-Waechter (Zusicherung 8 in verify-shipcard.mjs).
+   Eintraege. Weitere entstehen NICHT auf Verdacht, sondern erst, wenn ein
+   Tor-Lauf einen echten, benennbaren Fund liefert — Welle 3 (14-03-PLAN.md,
+   Task 2) hat bereits zwei foerdern muessen, weil der Balkenrueckbau selbst
+   erste Kandidaten produziert hat. Eine Ausnahme auf Vorrat, die auf kein
+   einziges Vorkommen trifft, reisst sofort den Zombie-Waechter (Zusicherung
+   8 in verify-shipcard.mjs).
 
    Zwei Modi:
      - 'exclude-region' — eine ganze Region (ein direktes Kind von div.sd,
@@ -28,6 +30,53 @@
    ============================================================ */
 
 export const EXCLUSIONS = [
+  {
+    id: 'X-ch-profile-aggregate',
+    mode: 'exclude-region',
+    /* Prueft die rohe Region-HTML des Kapitel-Wurzelelements auf id="ch-profile". */
+    match: (regionHtml) => /\bid\s*=\s*"ch-profile"/.test(regionHtml),
+    reason:
+      '14-03-PLAN.md (Task 2, "Bewusste Ausnahme, benannt statt verschwiegen") haelt zwei Werte im ' +
+      'Leistungsprofil-Kapitel ausdruecklich NICHT fuer Doppelungen: die Feuerkraft-Summe ' +
+      '(Piloten-DPS + Turm-DPS) und die Verteidigungs-Summe (Huelle-HP + Schilde-HP). Beide sind ' +
+      'rechnerische Aggregate, die als SUMME an keiner anderen Stelle der Seite stehen — Ausstattung ' +
+      'zeigt Piloten- und Turm-DPS bzw. Huelle- und Schild-HP nur EINZELN. Bei Schiffen mit genau ' +
+      'EINER Waffengruppe bzw. nur Huelle ODER nur Schilden ist die Summe zufaellig IDENTISCH mit dem ' +
+      'einzelnen Wert (Beispiel: eine reine Pilotenwaffen-Fregatte ohne Tuerme hat Feuerkraft-Summe == ' +
+      'Piloten-DPS) — das Zahl+Einheit-Token-Verfahren dieses Tors kann diesen Sonderfall nicht von ' +
+      'einer echten Doppelung unterscheiden, weil es nur den TEXT vergleicht, nicht die Bedeutung. ' +
+      'Nach dem Wegfall des Rohwerts bei Tempo/Fracht/Quantum-Tempo (14-UI-SPEC.md Detailvertrag ' +
+      'Punkt 6) bleiben Feuerkraft und Verteidigung die EINZIGEN Zahlen+Einheit-Werte, die das ' +
+      'Leistungsprofil-Kapitel noch sichtbar traegt — der Ausschluss der gesamten Region ist deshalb ' +
+      'nicht breiter als noetig. Faellt das Leistungsprofil-Kapitel weg oder verliert es die id ' +
+      '"ch-profile", trifft diese Ausnahme auf keine Region mehr zu, und der Zombie-Waechter ' +
+      '(Zusicherung 8) meldet sie.',
+  },
+  {
+    id: 'X-cargo-cube-legende',
+    mode: 'exclude-region',
+    /* Prueft die rohe HTML eines UNTERABSCHNITTS (nicht nur eines direkten
+       Kindes von div.sd, siehe die generische Subpiece-Pruefung in
+       verify-shipcard.mjs computeRegions()) auf die Wuerfel-Massstabs-
+       Legende "■ = N SCU" unter dem Frachtraum-Piktogramm. */
+    match: (regionHtml) => /■\s*=\s*\d/.test(regionHtml),
+    reason:
+      'Gefunden beim ersten Tor-Lauf gegen Task 2 (14-03-PLAN.md): rsi-salvation traegt sowohl einen ' +
+      '1-SCU-Wasserstoff-Tank als auch einen 1-SCU-Quantum-Tank UND einen Frachtraum, dessen ' +
+      'Wuerfel-Legende ("■ = 1 SCU") DENSELBEN Zahlentext traegt wie der Quantum-Treibstoff-Wert im ' +
+      'Unterabschnitt Quantum-Reise. Die Legende beschreibt den MASSSTAB der Wuerfel-Anzeige ' +
+      '(`viz.cargo.cubeVal`, eine Zweierpotenz zwischen 1 und 128) — nicht eine Eigenschaft des ' +
+      'Schiffs, die anderswo stehen koennte, und ist deshalb bei JEDEM Schiff mit Frachtraum ein ' +
+      'moeglicher Kandidat, nicht nur bei rsi-salvation (der Ausschluss greift folgerichtig auf allen ' +
+      '206 Seiten mit Frachtraum, nicht nur auf dem einen Fund). Der Fund ist eine reine ' +
+      'TEXT-Koinzidenz zwischen voellig unabhaengigen Groessen (Legenden-Massstab vs. Treibstoff-Tank ' +
+      'bzw. — bei anderen Schiffen potenziell — die freie Beschreibung in sd__desc), keine Doppelung ' +
+      'im Sinne von D-03 — dieselbe Klasse Fehlalarm wie X-sd-simgrid, nur innerhalb einer Seite statt ' +
+      'zwischen Seiten. Der Ausschluss trifft NUR den Unterabschnitt "Maße & Fracht" (dort und nur ' +
+      'dort steht die Legende), nicht das ganze Ausstattungs-Kapitel. Verschwindet die Wuerfel-Legende ' +
+      'aus dem Markup, trifft diese Ausnahme auf keinen Unterabschnitt mehr zu, und der ' +
+      'Zombie-Waechter (Zusicherung 8) meldet sie.',
+  },
   {
     id: 'X-sd-simgrid',
     mode: 'exclude-region',
