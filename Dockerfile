@@ -79,17 +79,32 @@ COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 # Der Tuersteher selbst (nginx/gate.js) — Ausfuhren `check`/`mint`, siehe
 # js_import in nginx/default.conf.
 COPY nginx/gate.js /etc/nginx/gate.js
-# njs-Modul laden + die drei Umgebungsvariablen des Tuerstehers durchreichen.
+# njs-Modul laden + die vier Umgebungsvariablen des Tuerstehers durchreichen.
 # Main-Kontext (vor events{}), ohne Bedingung — dieselbe Begruendung wie oben:
 # das Modul liegt in JEDEM Image, nur $vb_gate_on (Vorschau-Schalter weiter
-# unten) entscheidet, ob es je etwas tut. Gegenkontrolle direkt danach: bricht
-# der Bau, wenn load_module aus irgendeinem Grund nicht ankam, gibt es KEIN
-# Image mit halb verdrahtetem Tuersteher.
+# unten) entscheidet, ob es je etwas tut. VB_GATE_BYPASS (vierte Zeile, CR-02)
+# ist der Pruefschluessel fuer den CI-Rauchtest (nginx/gate.js check()) — auf
+# dem von Coolify betriebenen Vorschau-Container wird diese Variable NIE
+# gesetzt (der Weg existiert dort nicht, siehe deploy-staging.yml), das
+# Freigeben der Env-Direktive allein oeffnet also fuer echte Besucher nichts.
+# nginx entfernt beim Start jede NICHT per `env NAME;` freigegebene Variable
+# aus der Worker-Umgebung — fehlt eine Zeile hier, sieht njs' process.env die
+# zugehoerige Variable nie, unabhaengig davon, was `docker run -e ...` setzt.
+# Gegenkontrolle direkt danach: nicht nur `load_module` pruefen (das haette
+# genau CR-02 nicht gefangen — die vierte `env`-Zeile konnte fehlen, ohne dass
+# dieses grep es je gemerkt haette), sondern JEDE einzelne `env NAME;`-Zeile
+# einzeln bestaetigen. Bricht der Bau, wenn eine Zeile aus irgendeinem Grund
+# nicht ankam (z. B. ein stiller sed-Fehltreffer), gibt es KEIN Image mit
+# halb verdrahtetem Tuersteher.
 RUN sed -i "/^events {/i load_module modules/ngx_http_js_module.so;" /etc/nginx/nginx.conf && \
     sed -i "/^events {/i env VB_GATE_SECRET;" /etc/nginx/nginx.conf && \
     sed -i "/^events {/i env VB_SUPABASE_URL;" /etc/nginx/nginx.conf && \
     sed -i "/^events {/i env VB_SUPABASE_ANON_KEY;" /etc/nginx/nginx.conf && \
-    grep -q 'ngx_http_js_module' /etc/nginx/nginx.conf
+    sed -i "/^events {/i env VB_GATE_BYPASS;" /etc/nginx/nginx.conf && \
+    grep -q 'ngx_http_js_module' /etc/nginx/nginx.conf && \
+    for v in VB_GATE_SECRET VB_SUPABASE_URL VB_SUPABASE_ANON_KEY VB_GATE_BYPASS; do \
+      grep -q "^env $v;" /etc/nginx/nginx.conf || { echo "FEHLER: env $v; fehlt in nginx.conf -- Tuersteher-Umgebung unvollstaendig" >&2; exit 1; }; \
+    done
 # Die Vorschau darf nicht in die Live-Statistik zaehlen. Cloudflare haengt den
 # Web-Analytics-Zaehler ZONENWEIT ins HTML, also auch auf staging.verse-base.com;
 # abschalten laesst er sich nur fuer die ganze Zone. Ohne die zwei Hosts blockt
