@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 306,
-  "totalListings": 6979,
-  "totalSold": 296,
-  "distinctItems": 1244
+  "updates": 307,
+  "totalListings": 6985,
+  "totalSold": 297,
+  "distinctItems": 1245
  },
  "listings": {
   "156580": {
@@ -141468,6 +141468,10 @@
     {
      "d": "2026-08-17",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 1400000
     }
    ],
    "soldOut": false,
@@ -145911,9 +145915,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 10000000,
    "dateAdded": 1786994671,
    "dateExpiration": 1792178671
   },
@@ -146060,6 +146064,10 @@
     {
      "d": "2026-08-17",
      "p": 95000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 85000000
     }
    ],
    "soldOut": false,
@@ -146316,6 +146324,10 @@
     {
      "d": "2026-08-17",
      "p": 41000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 28000000
     }
    ],
    "soldOut": false,
@@ -149032,6 +149044,132 @@
    "soldOutPrice": null,
    "dateAdded": 1787053037,
    "dateExpiration": 1792237037
+  },
+  "163783": {
+   "idItem": 8032,
+   "idCategory": 7,
+   "title": "Antium Midnight Sun Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787053837,
+   "dateExpiration": 1792237837
+  },
+  "163790": {
+   "idItem": 4718,
+   "idCategory": 5,
+   "title": "Inquisitor Core Rager",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787056449,
+   "dateExpiration": 1792240449
+  },
+  "163791": {
+   "idItem": 4713,
+   "idCategory": 1,
+   "title": "DustUp Arms Scorched",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787056518,
+   "dateExpiration": 1792240517
+  },
+  "163792": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "WTR POLARIS WITH GOOD LOOKING PAINT. FAST RESPONSE",
+   "operation": "rent",
+   "currency": "UEC",
+   "quality": 100,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787056538,
+   "dateExpiration": 1792240538
+  },
+  "163793": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787056889,
+   "dateExpiration": 1792240889
+  },
+  "163794": {
+   "idItem": 5844,
+   "idCategory": 38,
+   "title": "Expired Quantanium Fuel Canister",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787057050,
+   "dateExpiration": 1792241050
   }
  }
 }
