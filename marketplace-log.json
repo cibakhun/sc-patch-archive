@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 305,
-  "totalListings": 6974,
-  "totalSold": 295,
-  "distinctItems": 1242
+  "updates": 306,
+  "totalListings": 6979,
+  "totalSold": 296,
+  "distinctItems": 1244
  },
  "listings": {
   "156580": {
@@ -144278,9 +144278,9 @@
      "p": 7000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 7000000,
    "dateAdded": 1786971675,
    "dateExpiration": 1792155675
   },
@@ -148927,6 +148927,111 @@
    "soldOutPrice": null,
    "dateAdded": 1787049029,
    "dateExpiration": 1792233029
+  },
+  "163778": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787050846,
+   "dateExpiration": 1792234846
+  },
+  "163779": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WTS Wikelo Sneak Wolf L21 \"Where Wolf? Here Wolf\"",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787051091,
+   "dateExpiration": 1792235091
+  },
+  "163780": {
+   "idItem": 2708,
+   "idCategory": 23,
+   "title": "SecureHyde",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787052549,
+   "dateExpiration": 1792236549
+  },
+  "163781": {
+   "idItem": 1766,
+   "idCategory": 19,
+   "title": "Polar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 90000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787052913,
+   "dateExpiration": 1792236913
+  },
+  "163782": {
+   "idItem": 938,
+   "idCategory": 21,
+   "title": "Charger",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 120000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787053037,
+   "dateExpiration": 1792237037
   }
  }
 }
