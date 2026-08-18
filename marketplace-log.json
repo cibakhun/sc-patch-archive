@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 313,
-  "totalListings": 7057,
+  "updates": 314,
+  "totalListings": 7080,
   "totalSold": 308,
-  "distinctItems": 1247
+  "distinctItems": 1248
  },
  "listings": {
   "156580": {
@@ -147637,6 +147637,10 @@
     {
      "d": "2026-08-18",
      "p": 400000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 300000
     }
    ],
    "soldOut": false,
@@ -150714,6 +150718,489 @@
    "soldOutPrice": null,
    "dateAdded": 1787079559,
    "dateExpiration": 1792263559
+  },
+  "163893": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 912,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079695,
+   "dateExpiration": 1792263695
+  },
+  "163894": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "WTB DCHS-06",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079706,
+   "dateExpiration": 1792263706
+  },
+  "163895": {
+   "idItem": 3906,
+   "idCategory": 3,
+   "title": "Arden-SL Helmet PH (chrome)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079829,
+   "dateExpiration": 1792263829
+  },
+  "163897": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "Sadaryx 940q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 940,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787079915,
+   "dateExpiration": 1792263915
+  },
+  "163898": {
+   "idItem": 7987,
+   "idCategory": 7,
+   "title": "Palatino Set Mark 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080063,
+   "dateExpiration": 1792264063
+  },
+  "163899": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Wikelo Intrepid",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080156,
+   "dateExpiration": 1792264156
+  },
+  "163901": {
+   "idItem": 3940,
+   "idCategory": 17,
+   "title": "Tau Plus LL (4x Telescopic) (Low Light Mode)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080182,
+   "dateExpiration": 1792264182
+  },
+  "163902": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080231,
+   "dateExpiration": 1792264231
+  },
+  "163903": {
+   "idItem": 7380,
+   "idCategory": 2,
+   "title": "4.9 Chiron Backpack Samaritan [VED-THD Store]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080282,
+   "dateExpiration": 1792264282
+  },
+  "163904": {
+   "idItem": 7970,
+   "idCategory": 7,
+   "title": "Artimex Set Chairman",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080395,
+   "dateExpiration": 1792264395
+  },
+  "163905": {
+   "idItem": 5458,
+   "idCategory": 18,
+   "title": "MaxLift AA Support Tractor Beam",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080589,
+   "dateExpiration": 1792264589
+  },
+  "163906": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 959q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 12500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080758,
+   "dateExpiration": 1792264758
+  },
+  "163907": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Golem Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080817,
+   "dateExpiration": 1792264817
+  },
+  "163908": {
+   "idItem": 3992,
+   "idCategory": 87,
+   "title": "Hadanite 959q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080845,
+   "dateExpiration": 1792264845
+  },
+  "163910": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite 975q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787080990,
+   "dateExpiration": 1792264990
+  },
+  "163912": {
+   "idItem": 3768,
+   "idCategory": 87,
+   "title": "Aphorite 916q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081064,
+   "dateExpiration": 1792265064
+  },
+  "163914": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom 967q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 967,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081188,
+   "dateExpiration": 1792265188
+  },
+  "163915": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom 937q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081239,
+   "dateExpiration": 1792265239
+  },
+  "163916": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine 957q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 957,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081338,
+   "dateExpiration": 1792265338
+  },
+  "163917": {
+   "idItem": 3769,
+   "idCategory": 87,
+   "title": "Dolivine 901q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 901,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081402,
+   "dateExpiration": 1792265402
+  },
+  "163918": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "4.9 Irradiated Valakkar Pearl (AAA) [VED-THD Store]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081467,
+   "dateExpiration": 1792265467
+  },
+  "163919": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 942q - 2.078 scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081542,
+   "dateExpiration": 1792265542
+  },
+  "163921": {
+   "idItem": null,
+   "idCategory": 40,
+   "title": "WTS Hauler services (640 SCU)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787081739,
+   "dateExpiration": 1792265739
   }
  }
 }
