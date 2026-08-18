@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 314,
-  "totalListings": 7080,
-  "totalSold": 308,
-  "distinctItems": 1248
+  "updates": 315,
+  "totalListings": 7095,
+  "totalSold": 309,
+  "distinctItems": 1249
  },
  "listings": {
   "156580": {
@@ -145221,9 +145221,9 @@
      "p": 11000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-18",
+   "soldOutPrice": 11000000,
    "dateAdded": 1786982384,
    "dateExpiration": 1792166384
   },
@@ -147070,6 +147070,10 @@
     {
      "d": "2026-08-17",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 3500000
     }
    ],
    "soldOut": false,
@@ -147553,6 +147557,10 @@
     {
      "d": "2026-08-18",
      "p": 295000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 149999
     }
    ],
    "soldOut": false,
@@ -149510,6 +149518,10 @@
     {
      "d": "2026-08-18",
      "p": 42000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 39000000
     }
    ],
    "soldOut": false,
@@ -149745,6 +149757,10 @@
     {
      "d": "2026-08-18",
      "p": 40000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 30000000
     }
    ],
    "soldOut": false,
@@ -150963,6 +150979,10 @@
     {
      "d": "2026-08-18",
      "p": 12500000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -151047,6 +151067,10 @@
     {
      "d": "2026-08-18",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -151089,6 +151113,10 @@
     {
      "d": "2026-08-18",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -151131,6 +151159,10 @@
     {
      "d": "2026-08-18",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -151201,6 +151233,321 @@
    "soldOutPrice": null,
    "dateAdded": 1787081739,
    "dateExpiration": 1792265739
+  },
+  "163922": {
+   "idItem": 5387,
+   "idCategory": 18,
+   "title": "Boomtube \"Mean Green\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787082433,
+   "dateExpiration": 1792266433
+  },
+  "163923": {
+   "idItem": 5386,
+   "idCategory": 18,
+   "title": "Boomtube \"Ruby\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787082489,
+   "dateExpiration": 1792266489
+  },
+  "163924": {
+   "idItem": 5142,
+   "idCategory": 18,
+   "title": "Boomtube Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787082533,
+   "dateExpiration": 1792266533
+  },
+  "163926": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787083473,
+   "dateExpiration": 1792267472
+  },
+  "163929": {
+   "idItem": 3216,
+   "idCategory": 3,
+   "title": "Zeus Exploration Suit Helmet Solar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787083962,
+   "dateExpiration": 1792267962
+  },
+  "163930": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787084184,
+   "dateExpiration": 1792268184
+  },
+  "163931": {
+   "idItem": 3220,
+   "idCategory": 24,
+   "title": "Zeus Exploration Suit Starscape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787084296,
+   "dateExpiration": 1792268296
+  },
+  "163932": {
+   "idItem": 3218,
+   "idCategory": 2,
+   "title": "Zeus Exploration Suit Backpack Starscape",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787084415,
+   "dateExpiration": 1792268414
+  },
+  "163933": {
+   "idItem": 3223,
+   "idCategory": 2,
+   "title": "Zeus Exploration Suit Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787084506,
+   "dateExpiration": 1792268506
+  },
+  "163934": {
+   "idItem": 5353,
+   "idCategory": 7,
+   "title": "Defiance Hailstorm Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787084829,
+   "dateExpiration": 1792268829
+  },
+  "163935": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 681,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787084862,
+   "dateExpiration": 1797452862
+  },
+  "163936": {
+   "idItem": 1759,
+   "idCategory": 19,
+   "title": "Avalanche",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787085061,
+   "dateExpiration": 1792269061
+  },
+  "163937": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 747,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787085205,
+   "dateExpiration": 1797453205
+  },
+  "163938": {
+   "idItem": 8040,
+   "idCategory": 7,
+   "title": "Defiance Firestarter Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787085448,
+   "dateExpiration": 1792269448
+  },
+  "163940": {
+   "idItem": 8011,
+   "idCategory": 7,
+   "title": "Morozov-SH-I Pyrotechnic Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787085851,
+   "dateExpiration": 1792269851
   }
  }
 }
