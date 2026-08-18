@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-18",
-  "updates": 294,
-  "totalListings": 6904,
+  "updates": 295,
+  "totalListings": 6911,
   "totalSold": 293,
-  "distinctItems": 1234
+  "distinctItems": 1237
  },
  "listings": {
   "156580": {
@@ -137002,6 +137002,10 @@
     {
      "d": "2026-08-16",
      "p": 20000000
+    },
+    {
+     "d": "2026-08-18",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -147429,6 +147433,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787009340,
    "dateExpiration": 1792193340
+  },
+  "163712": {
+   "idItem": 4875,
+   "idCategory": 4,
+   "title": "Geist Armor Legs",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 120000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787010605,
+   "dateExpiration": 1792194605
+  },
+  "163713": {
+   "idItem": 4815,
+   "idCategory": 4,
+   "title": "Geist Armor Legs Rogue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787010607,
+   "dateExpiration": 1792194607
+  },
+  "163714": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "Absolution Distortion Scattergun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787011273,
+   "dateExpiration": 1792195273
+  },
+  "163715": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Yormandi Pack (2 eyes and 1 Tongue)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787011280,
+   "dateExpiration": 1792195280
+  },
+  "163716": {
+   "idItem": 2167,
+   "idCategory": 17,
+   "title": "WTS Black Prism (8x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787011664,
+   "dateExpiration": 1792195664
+  },
+  "163722": {
+   "idItem": 2236,
+   "idCategory": 61,
+   "title": "Heart of the Woods",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 25000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787012608,
+   "dateExpiration": 1792196608
+  },
+  "163726": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTB Stileron 500q: hungry for more!",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-18",
+   "lastSeen": "2026-08-18",
+   "prices": [
+    {
+     "d": "2026-08-18",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787013163,
+   "dateExpiration": 1792197162
   }
  }
 }
