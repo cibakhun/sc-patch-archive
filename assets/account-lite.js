@@ -350,4 +350,90 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+
+  // ---- Testpilot-Ausweis: stille Erneuerung (Phase 14 Plan 08, D-08) -------
+  // Der Ausweis (Cookie vb_gate) laeuft nach fuenf Minuten ab (nginx/gate.js).
+  // Existiert das Begleit-Cookie vb_gate_exp NICHT, ist dieser ganze Block ein
+  // reines No-Op — auf der LIVE-Seite gibt es dieses Cookie nie ($vb_gate_on
+  // steht dort fest auf "0", D-12), und diese Datei liegt unveraendert auf
+  // beiden Seiten. Das ist der Schalter, der ohne eine zweite Konfiguration
+  // auskommt: kein STAGING-Flag hier noetig, das Cookie selbst entscheidet.
+  var GATE_EXP_COOKIE = 'vb_gate_exp';
+  var GATE_RENEW_MARGIN_S = 60; // 60s vor dem im Cookie genannten Ablauf erneuern
+  var gateRenewTimer = null;
+  var gateRenewPausedByHidden = false;
+
+  function gateExp() {
+    var m = document.cookie.match(/(?:^|;\s*)vb_gate_exp=([^;]*)/);
+    var n = m ? parseInt(m[1], 10) : NaN;
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // Stellt den Ausweis neu aus. Ergebnis ist eines von drei Zustaenden:
+  //   'ok'      — gemintet, das Cookie traegt einen neuen Ablaufzeitpunkt.
+  //   'locked'  — derselbe Riegel wie ensureSession() (LOCK) griff, weil ein
+  //               ANDERER Tab gerade ausstellt — kein Fehler, nur zu frueh.
+  //   'failed'  — echtes Scheitern (kein Token, 401/403/503, Netzfehler).
+  // Die Unterscheidung entscheidet, ob spaeter neu geplant wird: ein
+  // 'locked'-Ergebnis darf es (der andere Tab hat das Cookie vermutlich
+  // laengst erneuert), ein 'failed'-Ergebnis darf es NICHT — "schlaegt das
+  // Ausstellen fehl, nicht weiterprobieren", der naechste Seitenaufruf landet
+  // dann auf der Torseite, die erklaert, was los ist.
+  function mintGatePass() {
+    var now = Date.now();
+    var lock = 0;
+    try { lock = +localStorage.getItem(LOCK) || 0; } catch (e) { /* noop */ }
+    if (now - lock < 10000) return Promise.resolve('locked');
+    try { localStorage.setItem(LOCK, String(now)); } catch (e) { /* noop */ }
+
+    return ensureSession().then(function (sess) {
+      if (!sess || !sess.access_token) return 'failed';
+      return fetch('/_gate/mint', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + sess.access_token },
+      })
+        .then(function (r) { return r.ok ? 'ok' : 'failed'; })
+        .catch(function () { return 'failed'; });
+    }).catch(function () { return 'failed'; });
+  }
+
+  function scheduleGateRenewal() {
+    if (gateRenewTimer) { clearTimeout(gateRenewTimer); gateRenewTimer = null; }
+    var exp = gateExp();
+    if (exp === null) return; // kein Ausweis-Cookie -> nichts zu tun, nichts zu melden
+    if (document.visibilityState === 'hidden') {
+      // Aussetzen, solange der Tab im Hintergrund liegt (sonst haette ein
+      // drei Stunden verstecktes Tab 36-mal ausgestellt) — visibilitychange
+      // unten holt GENAU EINMAL nach, sobald der Tab wieder sichtbar wird.
+      gateRenewPausedByHidden = true;
+      return;
+    }
+    var fireInMs = (exp - GATE_RENEW_MARGIN_S) * 1000 - Date.now();
+    if (fireInMs < 0) fireInMs = 0;
+    gateRenewTimer = setTimeout(function () {
+      mintGatePass().then(function (result) {
+        // 'ok' -> anhand des FRISCHEN Cookies neu planen. 'locked' -> ein
+        // anderer Tab stellt gerade aus, spaeter erneut anhand des dann
+        // (vermutlich schon erneuerten) Cookies pruefen. 'failed' -> NICHT
+        // weiterprobieren, siehe Kommentar an mintGatePass().
+        if (result === 'ok') scheduleGateRenewal();
+        else if (result === 'locked') gateRenewTimer = setTimeout(scheduleGateRenewal, 2000);
+      });
+    }, fireInMs);
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+      if (gateRenewTimer) { clearTimeout(gateRenewTimer); gateRenewTimer = null; }
+      if (gateExp() !== null) gateRenewPausedByHidden = true;
+    } else if (document.visibilityState === 'visible' && gateRenewPausedByHidden) {
+      gateRenewPausedByHidden = false;
+      mintGatePass().then(function (result) {
+        if (result === 'ok' || result === 'locked') scheduleGateRenewal();
+        // 'failed': nichts weiter — naechster Seitenaufruf zeigt die Torseite.
+      });
+    }
+  });
+
+  scheduleGateRenewal();
 })();
