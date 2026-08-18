@@ -27,3 +27,18 @@ export function deriveClientId(token) {
     return undefined;
   }
 }
+
+/**
+ * SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY — the Testpilot role mirror
+ * (D-08/D-17/D-25, Phase 14 Plan 07). Both are OPTIONAL for the bot to
+ * start (T-14-45): missing them disables the role mirror only, ranks/XP/
+ * language/patch-watch keep running unchanged. Returns `null` when either
+ * is absent or blank — callers must treat `null` as "mirroring inactive",
+ * never throw or exit on it.
+ */
+export function getSupabaseConfig() {
+  const url = (process.env.SUPABASE_URL || '').trim();
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!url || !key) return null;
+  return { url: url.replace(/\/+$/, ''), key };
+}

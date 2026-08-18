@@ -2,8 +2,11 @@
 //  index.mjs — the always-on bot. Wires the gateway client to the XP engine,
 //  the voice sweep, role provisioning and the slash-command handlers.
 //
-//  Intents: Guilds, GuildMessages, GuildVoiceStates — all NON-privileged.
-//  (We never read message content, only that a message happened.)
+//  Intents: Guilds, GuildMessages, GuildVoiceStates — non-privileged, plus
+//  ONE privileged intent since Phase 14 Plan 07: GuildMembers, purpose-bound
+//  to the Testpilot role mirror (D-08/D-17/D-25) — see the comment at the
+//  Client construction below. Presence and MessageContent stay OFF (we
+//  never read message content, only that a message happened).
 // ═══════════════════════════════════════════════════════════════════════════
 import { Client, GatewayIntentBits, Events, ActivityType } from 'discord.js';
 import { join, dirname } from 'node:path';
@@ -13,10 +16,12 @@ import { RankRoles } from './roles.mjs';
 import { grantXp } from './award.mjs';
 import { startVoiceSweep } from './voice.mjs';
 import { startPatchWatch } from './patch-watch.mjs';
+import { registerRoleSync } from './role-sync.mjs';
+import { reconcileRoles } from './role-reconcile.mjs';
 import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
 import { ensureAvatar } from './avatar.mjs';
-import { loadEnv } from './env.mjs';
+import { loadEnv, getSupabaseConfig } from './env.mjs';
 import { effectiveMultiplier, applyMultiplier, randomXp } from './leveling.mjs';
 import { isNoXpChannel } from './config.mjs';
 import { resolveLocale, t } from './i18n.mjs';
@@ -34,10 +39,35 @@ const DB_PATH = process.env.DB_PATH || join(here, '..', 'data', 'leveling.db');
 const db = openDb(DB_PATH);
 const roles = new RankRoles();
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+    // GuildMembers: PRIVILEGED intent (Discord Developer Portal → Bot →
+    // Privileged Gateway Intents → Server Members Intent, enabled 18.08.2026
+    // for Phase 14 Plan 07). Purpose-bound to the Testpilot role mirror
+    // (D-08/D-17/D-25): guildMemberUpdate/Add/Remove for role-sync.mjs and
+    // the full member list for role-reconcile.mjs's startup reconcile. The
+    // full member list is NEVER printed/posted anywhere — only used to
+    // resolve "tester" role membership. Presence and MessageContent stay
+    // OFF (see discord/README.md and COVERAGE.md — both are reasoned
+    // opt-outs; a second privileged intent would widen data collection
+    // without benefit).
+    GatewayIntentBits.GuildMembers,
+  ],
 });
-const ctx = { client, db, roles };
+const supabase = getSupabaseConfig();
+const ctx = { client, db, roles, supabase };
 const cooldowns = new Map(); // `${guildId}:${userId}` -> epoch ms
+
+if (!supabase) {
+  console.warn('  ! SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY fehlen -- Testpilot-Rollenspiegelung inaktiv. Raenge/XP/Sprache/Patch-Wache laufen unveraendert weiter.');
+}
+
+// ── Testpilot role mirror (D-08/D-17/D-25) ──────────────────────────────────
+// Registered here, alongside the other top-level event listeners below —
+// NOT gated behind ClientReady, same style as MessageCreate/InteractionCreate.
+registerRoleSync(ctx);
 
 client.once(Events.ClientReady, async (c) => {
   console.log(`✓ ${c.user.tag} online — ${c.guilds.cache.size} guild(s)`);
@@ -54,6 +84,11 @@ client.once(Events.ClientReady, async (c) => {
     try { await roles.ensure(guild); console.log(`  · rank roles ready in ${guild.name}`); }
     catch (e) { console.warn(`  ! roles in ${guild.name}: ${e.message}`); }
     try { await ensureEmoji(guild); } catch (e) { console.warn(`  ! emoji in ${guild.name}: ${e.message}`); }
+    // Vollabgleich des Testpilot-Rollenspiegels (D-25) — laeuft EINMAL beim
+    // Start, neben roles.ensure(guild). reconcileRoles() wirft nie (siehe
+    // Kommentarblock dort); der try/catch hier ist defensive Verdopplung,
+    // damit ein unerwarteter Fehler die ClientReady-Sequenz nicht abbricht.
+    try { await reconcileRoles(ctx, guild); } catch (e) { console.warn(`  ! Rollenabgleich in ${guild.name}: ${e.message}`); }
   }
   if (c.guilds.cache.size === 0) console.log('  · not in any server yet — invite the bot; commands register automatically on join.');
   startVoiceSweep(ctx);
