@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 12
 current_phase_name: schiffs-datenkarte-entstapeln
 status: executing
-stopped_at: Completed 14-03-PLAN.md -- vier Kapitel, Datenblatt weg, sechs Balkenstellen aufgeloest, verify-shipcard.mjs erstmals gruen
-last_updated: "2026-08-18T03:11:45.570Z"
+stopped_at: Completed 14-04-PLAN.md -- kapitelinterne Zweispaltigkeit, Carrack unter 4.200px (4.179px DE/4.117px EN), verify:shipcard scharf, fuenf Sichturteile an WINDOWS.md uebergeben
+last_updated: "2026-08-18T04:13:26.000Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
@@ -27,6 +27,28 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 **Current focus:** Phase 14 — schiffs-datenkarte-entstapeln
 
+> **Nachtrag 18.08.2026 (vierter) — Phase 14 Plan 4 von 4 ausgefuehrt (Welle 4: Zweispaltigkeit, Schlussmessung, Tor scharf).**
+> `14-04-PLAN.md` ist ausgefuehrt: Ausstattung und Umfeld stehen ab 1100px
+> als kapitelinterne Zweispaltigkeit (`.sd__ch2col`/`.sd__chsec`). Die
+> Schlussmessung landet bei **4.179px DE / 4.117px EN** (Ausgang 5.554px,
+> Marke 4.200px) — unterwegs widerlegte die Messung eine eigene Annahme aus
+> Welle 4 Task 1 selbst (das Grundriss-Raster sollte einspaltig stehen; die
+> Messung zeigt, Bewaffnung dominiert die Zeile ohnehin, zweispaltig ist
+> 76px kuerzer) und fand einen zweiten, im UI-SPEC nicht vorausberechneten
+> Hoehentreiber (mehrere `auto-fit`-Innenraster brachen in der halbierten
+> Spalte um und wurden dadurch HOEHER als bei voller Breite — gescopet mit
+> kleineren Mindestbreiten behoben, jeder Wert per Bildschirmfoto gegen
+> Text-Ueberlauf geprueft). `verify:shipcard` ist scharf geschaltet
+> (Aussetzungsgrund entfernt, 0 Befunde, Zombie-Waechter greift), `npm run
+> gate` laeuft jetzt 19 statt 18 Schritte gruen, normal UND mit
+> `STAGING=1`. Fuenf neue Sichturteile (id 16-20, `.planning/WINDOWS.md`)
+> uebergeben — auffaelligster Neubefund: das kargste Pruefschiff
+> (`argo-atls`) rendert ueberhaupt kein Leistungsprofil-Kapitel, nicht bloss
+> ein duennes. **Phase 14 ist damit technisch vollstaendig (4/4 Plaene),
+> aber NICHT „Complete" markiert** — 7 offene Sichtrunden-Punkte zu Phase 14
+> (id 14-20) warten auf den Betreiber, dieselbe Konvention wie bei den
+> Phasen 1.2/2/3/9/10/12. Details in `14-04-SUMMARY.md`.
+>
 > **Nachtrag 18.08.2026 (zweiter) — Phase 14 Plan 2 von 4 ausgefuehrt (Welle 2: Tracer).**
 > `14-02-PLAN.md` ist ausgefuehrt: EIN Weg durch alle Schichten — klebende
 > Kapitel-Sprungleiste unter der Kennwerte-Leiste, "Kaufen im Verse" als
@@ -260,6 +282,7 @@ Progress: [█████████░] 86%
 | Phase 14 P01 | 75min | 2 tasks | 6 files |
 | Phase 14 P02 | 50min | 2 tasks | 5 files |
 | Phase 14 P03 | 70min | 2 tasks | 6 files |
+| Phase 14 P04 | ~75min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -359,6 +382,12 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-02: Rahmen der Sprungleisten-Pillen als box-shadow:inset statt border gesetzt (kostet bei auto-Hoehe 0px Layout) -- noetig, weil das gemessene Hoehenbudget bei 1280x720 nur 34px betraegt, nicht die geschaetzten ~90px
 - [Phase ?]: Kein Kapitel-Icon fuer Ausstattung/Umfeld — keine natuerliche Vorlage, UI-SPEC fuehrt keine neuen Icons ein
 - [Phase ?]: verify-shipcard.mjs Ausnahme-Pruefung auf Unterabschnitts-Ebene erweitert (war seit Welle 1 dokumentiert, aber nicht implementiert) — noetig fuer zwei neue benannte Ausnahmen
+- [Phase 14]: 14-04: Grundriss-Raster (sd__dims) bleibt in der halbierten Ausstattung-Spalte zweispaltig, entgegen der in 14-04 Task 1 selbst vorweggenommenen Annahme -- Bewaffnung dominiert Zeile 1 ohnehin (turmgruppen-getrieben), zweispaltig ist 76px kuerzer und am Bild nicht gequetscht
+- [Phase 14]: 14-04: auto-fit-Innenraster (sd__grid/sd__qgrid/sd__slots/sd__inscards) brachen in der halbierten Kapitelspalte in mehr Zeilen um als bei voller Breite -- gescopete kleinere Mindestbreiten (nur innerhalb .sd__ch2col) behoben, per Bildschirmfoto gegen Text-Ueberlauf geprueft
+- [Phase 14]: 14-04: arm__sum bekam hyphens:auto + overflow-wrap:anywhere, weil eine reine Mindestbreiten-Verkleinerung "GEGENMASSNAHMEN" ueber die Zellgrenze laufen liess -- kontrollierter Wortumbruch statt Rohtext-Ueberlauf
+- [Phase 14]: 14-04: Hoehen-Sperrklinke bleibt bei 4.200px stehen (nicht auf den gemessenen 4.179px abgesenkt) -- 21px Reserve gegen Rundungsschwankungen zwischen Laeufen
+- [Phase 14]: 14-04: verify:shipcard scharf geschaltet (Aussetzungsgrund entfernt) -- 0 Befunde, npm run gate laeuft 19 statt 18 Schritte gruen, normal UND STAGING=1
+- [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
 
 ### Pending Todos
 
