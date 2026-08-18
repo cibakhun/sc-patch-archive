@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 19
+open_count: 20
 waived_count: 0
 fixed_count: 8
-total_count: 27
-last_updated: 2026-08-18T12:32:05.480Z
+total_count: 28
+last_updated: 2026-08-18T14:48:56.778Z
 ---
 
 # Broken Windows Ledger
@@ -42,6 +42,7 @@ last_updated: 2026-08-18T12:32:05.480Z
 | 25 | 14 | unrun-verify | supabase/migrations/20260818001000_gate_verdict.sql |  | 14-08 Aufgabe 1: discord_role_state.last_staging_seen wird laut Quelltext-Review bei jedem allowed:true fortgeschrieben, aber nicht durch einen echten authentifizierten Aufruf gemessen -- keine Bahn-A-Sitzung mit echtem Testkonto verfuegbar. | open |  | 2026-08-18T11:57:30.657Z |  |
 | 26 | 14 | unrun-verify | nginx/default.conf |  | 14-08 Aufgabe 2: der rote Lauf fuer die theme.css-Ausnahme ist eine playwright-core-Nachbildung des dokumentierten Redirect-Verhaltens (kein lokales nginx verfuegbar), kein Originalbefund gegen einen echten Container ohne die Ausnahme. | open |  | 2026-08-18T11:57:32.071Z |  |
 | 27 | 14 | unrun-verify | .github/workflows/deploy-staging.yml |  | Vier Sichtpunkte aus 14-11 Aufgabe 2 nicht am lebenden Discord gefahren (Testthread-XP, Deploy-Ping-Optik, Betreiber-Urteil ueber die Betreffzeilen als Quelle, Kanal-Unsichtbarkeit ohne Rolle) -- Plan verbietet Live-Posts; Plan 12 fuehrt zusammen | open |  | 2026-08-18T12:32:05.480Z |  |
+| 28 | 14 | unrun-verify | scripts/check-gate.mjs |  | 14-09 Aufgabe 2/3: das im Plan vorgegebene <verify> (docker build/run gegen den echten Container, dann check-gate.mjs und browser-smoke.mjs gegen localhost:8098/8080) konnte NICHT gefahren werden -- Docker ist auf diesem Rechner nicht verfuegbar (wie 14-01/14-08). Ersatzweise funktional gegen einen eigens gebauten node:http-Testwerkstand geprueft (unabhaengig implementiert, liest dieselbe Ausnahmeliste + dist/): normaler Lauf gruen, zwei vorgefuehrte rote Laeufe. Der echte Nachweis gegen den gebauten Vorschau-Container steht aus -- naechster echter staging-Deploy oder ein Lauf ueber probe-gate-e2e.yml/deploy-staging.yml in CI. | open |  | 2026-08-18T14:48:56.778Z |  |
 
 ````json
 [
@@ -367,6 +368,18 @@ last_updated: 2026-08-18T12:32:05.480Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T12:32:05.480Z",
+    "resolved_at": null
+  },
+  {
+    "id": 28,
+    "kind": "unrun-verify",
+    "phase": "14",
+    "file": "scripts/check-gate.mjs",
+    "line": null,
+    "description": "14-09 Aufgabe 2/3: das im Plan vorgegebene <verify> (docker build/run gegen den echten Container, dann check-gate.mjs und browser-smoke.mjs gegen localhost:8098/8080) konnte NICHT gefahren werden -- Docker ist auf diesem Rechner nicht verfuegbar (wie 14-01/14-08). Ersatzweise funktional gegen einen eigens gebauten node:http-Testwerkstand geprueft (unabhaengig implementiert, liest dieselbe Ausnahmeliste + dist/): normaler Lauf gruen, zwei vorgefuehrte rote Laeufe. Der echte Nachweis gegen den gebauten Vorschau-Container steht aus -- naechster echter staging-Deploy oder ein Lauf ueber probe-gate-e2e.yml/deploy-staging.yml in CI.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-18T14:48:56.778Z",
     "resolved_at": null
   }
 ]

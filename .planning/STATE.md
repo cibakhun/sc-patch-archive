@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: executing
-stopped_at: Completed 14-11-PLAN.md (XP je Fehlerbericht-Thread D-21, Deploy-Ping D-20 -- lokal gegen Wegwerf-Webhook + echte GitHub-Compare-API getestet, CRLF-Bug im eigenen Skript gefunden und behoben)
-last_updated: "2026-08-18T12:36:33.066Z"
+stopped_at: "Completed 14-09-PLAN.md (verify:gate + check:gate + Rauchtest-Bypass -- Docker lokal nicht verfuegbar, Nachweis gegen echten Container in WINDOWS.md id 28 fuer Plan 12 offen)"
+last_updated: "2026-08-18T14:52:35.525Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 18
   completed_phases: 11
   total_plans: 65
-  completed_plans: 56
+  completed_plans: 57
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -169,7 +169,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -237,6 +237,7 @@ Progress: [█████████░] 86%
 | Phase 14 P07 | ~50min | 3 tasks | 8 files |
 | Phase 14 P08 | ~2h30min | 3 tasks | 4 files |
 | Phase 14 P11 | ~50min | 2 tasks | 4 files |
+| Phase 14 P09 | ~2h | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -355,6 +356,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 14-08: mint() urteilt ueber gate_verdict() (Testpilot/Sperrliste/Admin/D-09 in einem Aufruf); Ausnahmeliste auf 7 gemessene GATE-AUSNAHME-Eintraege gebracht; stille Ausweis-Erneuerung in account-lite.js; CI-Sonde probe-gate-e2e.yml erweitert (nicht neu gebaut) -- alle Zusicherungen gruen (run 32133474158)
 - [Phase ?]: D-21 XP-Bonus 50 (Skala aus config.mjs/leveling.mjs hergeleitet, im Kopfkommentar begruendet); Sperre ist Primaerschluessel bug_xp_threads(thread_id), nicht Code-Logik
 - [Phase ?]: D-20 Quelle GitHub-Compare-API statt git log (Checkout ist flach); ein Embed statt zwei EN/DE (Betreffzeilen sind keine uebersetzbaren Redaktionstexte)
+- [Phase ?]: verify-gate.mjs (Schiene A) friert die 7-Eintrag GATE-AUSNAHME-Liste ein; check-gate.mjs (Schiene C) misst die ausgelieferte Zugriffskontrolle -- zwei Prüfer, weil Schiene A nie einen HTTP-Status sehen kann
+- [Phase ?]: Rauchtest-Bypass (X-VB-Gate-Bypass gegen VB_GATE_BYPASS) ist ein Prüfschlüssel, kein Dauerschlüssel: je CI-Lauf gewürfelt, nirgends gespeichert, voller Längenvergleich
+- [Phase ?]: Docker lokal nicht verfügbar -- check-gate.mjs und der Bypass wurden gegen einen unabhängig implementierten node:http-Testwerkstand geprüft, echter Container-Nachweis steht in WINDOWS.md id 28 für Plan 12 offen
 
 ### Pending Todos
 
@@ -409,6 +413,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T12:33:31.111Z
-Stopped at: Completed 14-11-PLAN.md (XP je Fehlerbericht-Thread D-21, Deploy-Ping D-20 -- lokal gegen Wegwerf-Webhook + echte GitHub-Compare-API getestet, CRLF-Bug im eigenen Skript gefunden und behoben)
+Last session: 2026-08-18T14:52:35.473Z
+Stopped at: Completed 14-09-PLAN.md (verify:gate + check:gate + Rauchtest-Bypass -- Docker lokal nicht verfuegbar, Nachweis gegen echten Container in WINDOWS.md id 28 fuer Plan 12 offen)
 Resume file: None
