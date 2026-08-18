@@ -102,3 +102,60 @@ export async function reconcileRoles(ctx, guild) {
   // Schienen-A-Tore der Website, CLAUDE.md § 4).
   console.log(`  · Rollenabgleich: ${members.size} Mitglieder gelesen, ${holderIds.size} Traeger, ${changes} Aenderungen geschrieben.`);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Periodischer Nachlauf (CR-01, Code-Review 18.08.2026 der Phase 14).
+//
+//  Luecke, die der einmalige Start-Vollabgleich oben NICHT schliesst: ein
+//  Discord-Mitglied bekommt die Rolle "Test Pilots" -- role-sync.mjs feuert
+//  GuildMemberUpdate, aber der PATCH auf discord_role_state trifft NULL
+//  Zeilen, weil dieses Discord-Konto noch nie mit einem verse-base.com-Konto
+//  verknuepft wurde (Normalfall, siehe role-sync.mjs). Verknuepft sich dieser
+//  Nutzer DANACH zum ersten Mal (dem von D-01 favorisierten Weg folgend),
+//  legt sync_discord_identity() (Migration 20260818000000) die Zeile NEU an
+//  -- is_tester bekommt dabei den Tabellen-Default `false`, weil eine reine
+//  SQL-Funktion Discord nicht fragen kann, ob die Rolle tatsaechlich vorliegt.
+//  Ohne einen weiteren Nachlauf bliebe dieser (fuer D-01 der NORMALFALL, kein
+//  Randfall) Nutzer bis zum naechsten Bot-Neustart faelschlich ausgesperrt.
+//
+//  ⚠ D-08 ("ein Rollenentzug wirkt sofort beim naechsten Aufruf") bleibt
+//  UNVERAENDERT der GuildMemberUpdate-Pfad in role-sync.mjs -- der schreibt
+//  weiterhin in Millisekunden, sobald ein Konto einmal verknuepft ist.
+//  Dieser periodische Pass schliesst NUR die Erstverknuepfungs-Luecke oben;
+//  er ist eine ZUSAETZLICHE Reparatur, kein Ersatz fuer den Ereignis-Pfad --
+//  wer den Ereignis-Pfad spaeter zugunsten dieses Passes "wegoptimiert",
+//  verletzt D-08 (Entzug wuerde dann erst nach bis zu INTERVALL_MS wirken).
+//
+//  INTERVALL_MS: 2 Minuten. Der Server traegt ~5 Mitglieder -- ein GET auf
+//  discord_role_state plus hoechstens eine Handvoll PATCHes je Durchlauf
+//  sind kein spuerbarer Aufwand (dieselbe reconcileRoles()-Funktion wie beim
+//  Start, kein zweiter Code-Pfad). Kurz genug, dass "Rolle geben, dann
+//  verknuepfen" fuer einen Menschen wie ein kurzes Warten wirkt.
+const INTERVALL_MS = 2 * 60 * 1000;
+let laeuftBereits = false;
+
+/**
+ * Startet den periodischen Nachlauf fuer ALLE Gilden des Clients. Der erste
+ * Tick feuert erst NACH einem vollen Intervall -- der Start-Vollabgleich in
+ * ClientReady (index.mjs) ist gerade erst gelaufen; ein sofortiger zweiter
+ * Durchlauf waere ein Abgleich-Sturm beim Boot ohne Nutzen. `laeuftBereits`
+ * verhindert, dass ein langsamer Durchlauf sich selbst ueberholt, falls
+ * INTERVALL_MS je kuerzer als eine reale Laufzeit wird.
+ */
+export function startPeriodicReconcile(ctx) {
+  setInterval(async () => {
+    if (laeuftBereits) {
+      console.warn('  ! periodischer Rollenabgleich uebersprungen -- vorheriger Durchlauf laeuft noch.');
+      return;
+    }
+    laeuftBereits = true;
+    try {
+      for (const guild of ctx.client.guilds.cache.values()) {
+        try { await reconcileRoles(ctx, guild); }
+        catch (e) { console.warn(`  ! periodischer Rollenabgleich in ${guild.name}: ${e.message}`); }
+      }
+    } finally {
+      laeuftBereits = false;
+    }
+  }, INTERVALL_MS);
+}
