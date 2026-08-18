@@ -18,6 +18,7 @@ import { startVoiceSweep } from './voice.mjs';
 import { startPatchWatch } from './patch-watch.mjs';
 import { registerRoleSync } from './role-sync.mjs';
 import { reconcileRoles } from './role-reconcile.mjs';
+import { registerBugThreadXp } from './bug-thread-xp.mjs';
 import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
 import { ensureAvatar } from './avatar.mjs';
@@ -68,6 +69,12 @@ if (!supabase) {
 // Registered here, alongside the other top-level event listeners below —
 // NOT gated behind ClientReady, same style as MessageCreate/InteractionCreate.
 registerRoleSync(ctx);
+
+// ── Fehlerbericht-XP-Bonus (D-21) ───────────────────────────────────────────
+// Events.ThreadCreate liegt unter dem bereits vorhandenen Guilds-Intent --
+// kein neues Intent noetig. Top-Level registriert, wie MessageCreate/
+// InteractionCreate/registerRoleSync oben.
+registerBugThreadXp(ctx);
 
 client.once(Events.ClientReady, async (c) => {
   console.log(`✓ ${c.user.tag} online — ${c.guilds.cache.size} guild(s)`);
