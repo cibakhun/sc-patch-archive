@@ -1,5 +1,6 @@
 /* ============================================================
-   gate.js — Testpilot-Türsteher (Phase 14 Plan 01, D-04/D-06/D-11/D-23/D-24).
+   gate.js — Testpilot-Türsteher (Phase 14 Plan 01/08,
+   D-03/D-04/D-06/D-08/D-09/D-10/D-11/D-13/D-23/D-24).
 
    Erstes Server-JS im nginx-Image. Zwei Ausfuhren, mehr nicht:
 
@@ -11,16 +12,24 @@
                in nginx/default.conf — beide muessen zusammenpassen,
                Plan 09 friert das in einem Pruefer ein); oder das Cookie
                vb_gate traegt eine gueltige HMAC-SHA256-Signatur und ein
-               exp in der Zukunft.
+               exp in der Zukunft. KEIN ngx.fetch hier (D-08) — bei rund
+               17.000 Unterseiten waere eine Discord-/Supabase-Anfrage je
+               Seitenaufruf weder bezahlbar noch schnell.
 
      mint(r)   js_content-Handler fuer POST /_gate/mint. Liest die
-               Authorization-Kopfzeile, prueft SERVER-ZU-SERVER gegen
-               Supabase PostgREST (RLS liefert nur die eigene Zeile,
-               die Nutzer-ID kommt also aus der Antwort, nie aus dem
-               Rumpf), und setzt bei role='admin' zwei Cookies. Same-
-               origin gemintet (D-24) — ein Set-Cookie aus einer
-               Cross-Origin-Antwort gilt fuer die ANTWORTENDE Domain,
-               nicht fuer staging.verse-base.com.
+               Authorization-Kopfzeile und ruft SERVER-ZU-SERVER GENAU
+               EINMAL `public.gate_verdict()` auf (Plan 02) — dieselbe
+               Kopfzeile durchgereicht, kein Service-Schluessel, die
+               Funktion liest ihre Identitaet ausschliesslich aus
+               auth.uid(). Das Urteil traegt in einem Aufruf, was vorher
+               ein blosser Tabellenblick auf die Rollentabelle war: den
+               Admin-Kurzschluss (D-04, jetzt IN der Funktion statt in
+               njs), die Testpilot-Rolle aus discord_role_state (D-03),
+               die Sperrliste VOR jeder Rolle (D-10) und die
+               Fortschreibung von last_staging_seen (D-13). Same-origin
+               gemintet (D-24) — ein Set-Cookie aus einer Cross-Origin-
+               Antwort gilt fuer die ANTWORTENDE Domain, nicht fuer
+               staging.verse-base.com.
 
    Nutzlastform: base64url(JSON.stringify({ sub, exp })) + "." +
    base64url(HMAC-SHA256(payload, VB_GATE_SECRET)). Kein JWT-Nachbau —
@@ -32,6 +41,21 @@
    Fehlt VB_GATE_SECRET oder ist es leer: check() liefert "0" und
    mint() antwortet mit 500 — ein Tuersteher ohne Schluessel laesst
    NIEMANDEN durch, statt jeden (T-14-04, fail-closed).
+
+   D-09, und warum das hier fast von selbst stimmt: check() fragt
+   niemanden — sie prueft nur eine Signatur. Ein Ausfall von Supabase,
+   des Bots oder von Discord beruehrt sie NICHT: wer ein gueltiges
+   Cookie hat, kommt weiter durch, bis dessen Laufzeit (300s) endet.
+   Betroffen ist ausschliesslich mint(), und dort gilt hart: JEDE
+   Antwort ausser einem klaren `allowed: true` — Zeitueberlauf (5s an
+   ngx.fetch, eine haengende Gegenstelle darf den nginx-Arbeiter nicht
+   binden), Netzfehler, ein Status ungleich 200, eine unlesbare Antwort
+   oder ein Urteil ohne eindeutiges `allowed` — fuehrt zu 503 OHNE
+   Ausweis. Im Zweifel bleibt das Tor zu. WER DIESE STELLE SPAETER
+   "ROBUSTER" MACHEN UND BEI EINEM NETZFEHLER DURCHLASSEN WILL: genau
+   das ist die Umkehrung von D-09 — gueltige Ausweise laufen bei einer
+   Stoerung weiter, aber KEIN neuer Ausweis wird je aus einem unklaren
+   Ausgang gemintet. Bitte nicht aendern, ohne D-09 neu zu verhandeln.
    ============================================================ */
 
 import crypto from 'crypto';
@@ -142,6 +166,13 @@ function jsonResponse(r, status, bodyObj) {
   r.return(status, JSON.stringify(bodyObj));
 }
 
+/* 5000ms — eine haengende Gegenstelle darf den nginx-Arbeiter nicht binden
+   (D-09, siehe Kopfkommentar). njs kennt setTimeout()/clearTimeout(); ein
+   Promise.race gegen einen Zeitgeber ist der uebliche Weg, weil der
+   ausgehende Netzaufruf (ngx' fetch-Methode) selbst keine eigene
+   Zeitueberlauf-Option kennt. */
+const MINT_TIMEOUT_MS = 5000;
+
 function mint(r) {
   /* Synchroner Teil in try/catch: ein unerwarteter Fehler hier soll eine
      eigene JSON-500-Antwort liefern, nicht nginx' generische Fehlerseite
@@ -164,46 +195,105 @@ function mint(r) {
       return;
     }
 
-    ngx
-      .fetch(supabaseUrl + '/rest/v1/user_roles?select=role,user_id', {
-        headers: {
-          Authorization: auth,
-          apikey: anonKey,
-        },
-      })
-      .then((reply) => {
-        if (reply.status !== 200) {
-          jsonResponse(r, 403, { ok: false, grund: 'kein-zugang' });
-          return null;
+    /* Antworten darf GENAU EINMAL passieren — Timeout und Netzaufruf laufen
+       gegeneinander (Promise.race), und ohne diesen Riegel koennten beide
+       Zweige "gleichzeitig" antworten (r.return zweimal). */
+    let beantwortet = false;
+    const antworten = (status, body) => {
+      if (beantwortet) return;
+      beantwortet = true;
+      jsonResponse(r, status, body);
+    };
+
+    let timeoutId = null;
+    const zeitgeber = new Promise((resolve) => {
+      timeoutId = setTimeout(() => resolve({ zeitueberlauf: true }), MINT_TIMEOUT_MS);
+    });
+
+    Promise.race([
+      ngx
+        .fetch(supabaseUrl + '/rest/v1/rpc/gate_verdict', {
+          method: 'POST',
+          headers: {
+            Authorization: auth,
+            apikey: anonKey,
+            'Content-Type': 'application/json',
+          },
+          /* gate_verdict() ist parameterlos (Identitaet ausschliesslich
+             aus auth.uid()) — PostgREST verlangt trotzdem einen Rumpf fuer
+             POST /rpc/…, ein leeres Objekt ist der korrekte Leerwert. */
+          body: '{}',
+        })
+        .then((reply) => {
+          if (reply.status !== 200) {
+            /* Status ungleich 200 heisst: das URTEIL selbst ist gescheitert
+               (5xx von PostgREST, ein abgelehntes/abgelaufenes Token faellt
+               NICHT hierunter — Supabase liefert dafuer 401/403, s.u.). Kein
+               klares allowed:true -> 503, nie ein Ausweis (D-09). */
+            return { zeitueberlauf: false, status: reply.status, verdict: null };
+          }
+          return reply.json().then(
+            (verdict) => ({ zeitueberlauf: false, status: 200, verdict }),
+            () => ({ zeitueberlauf: false, status: 200, verdict: undefined }), // unlesbare Antwort
+          );
+        }),
+      zeitgeber,
+    ])
+      .then((ergebnis) => {
+        if (beantwortet) return; // Zeitgeber gewann NACHDEM bereits geantwortet wurde
+        clearTimeout(timeoutId);
+
+        if (ergebnis.zeitueberlauf) {
+          antworten(503, { ok: false, grund: 'supabase-zeitueberlauf' });
+          return;
         }
-        return reply.json();
-      })
-      .then((rows) => {
-        if (rows === null) return; // bereits beantwortet (Status != 200)
-        const row = Array.isArray(rows) ? rows[0] : null;
-        if (!row || row.role !== 'admin' || typeof row.user_id !== 'string') {
-          jsonResponse(r, 403, { ok: false, grund: 'kein-zugang' });
+        if (ergebnis.status === 401 || ergebnis.status === 403) {
+          /* Supabase weist das Token selbst zurueck (erfunden/abgelaufen) —
+             das ist eine klare Ablehnung, kein unklarer Ausgang. */
+          antworten(403, { ok: false, grund: 'kein-zugang' });
+          return;
+        }
+        const verdict = ergebnis.verdict;
+        if (verdict === null || verdict === undefined || typeof verdict !== 'object') {
+          /* jeder sonstige unklare Ausgang: 5xx, unlesbare Antwort, ein
+             Objekt, das gar kein Urteil ist — 503, NIE ein Ausweis. */
+          antworten(503, { ok: false, grund: 'urteil-unklar' });
+          return;
+        }
+        if (verdict.allowed === false) {
+          antworten(403, { ok: false, grund: typeof verdict.grund === 'string' ? verdict.grund : 'kein-zugang' });
+          return;
+        }
+        if (verdict.allowed !== true || typeof verdict.sub !== 'string' || !verdict.sub) {
+          /* allowed ist weder true noch false (kaputtes/fremdes JSON) —
+             ein Ausweis wird in KEINEM Fall ausgestellt, in dem allowed
+             nicht AUSDRUECKLICH true ist. */
+          antworten(503, { ok: false, grund: 'urteil-unklar' });
           return;
         }
 
-        const exp = Math.floor(Date.now() / 1000) + 300;
-        const payloadB64Url = toBase64Url(Buffer.from(JSON.stringify({ sub: row.user_id, exp })).toString('base64'));
+        const expHint = Number.isFinite(verdict.exp_hint) && verdict.exp_hint > 0 ? verdict.exp_hint : 300;
+        const exp = Math.floor(Date.now() / 1000) + expHint;
+        const payloadB64Url = toBase64Url(Buffer.from(JSON.stringify({ sub: verdict.sub, exp })).toString('base64'));
         const sig = hmacBase64Url(secret, payloadB64Url);
         const cookieVal = payloadB64Url + '.' + sig;
 
         r.headersOut['Set-Cookie'] = [
-          `vb_gate=${cookieVal}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=300`,
-          `vb_gate_exp=${exp}; Path=/; Secure; SameSite=Lax; Max-Age=300`,
+          `vb_gate=${cookieVal}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${expHint}`,
+          `vb_gate_exp=${exp}; Path=/; Secure; SameSite=Lax; Max-Age=${expHint}`,
         ];
-        jsonResponse(r, 200, { ok: true, exp });
+        antworten(200, { ok: true, exp });
       })
       .catch((e) => {
+        if (beantwortet) return;
+        clearTimeout(timeoutId);
         /* r.error() ins nginx error.log — die JSON-Antwort bleibt bewusst
            unbeschriftet (keine Interna nach aussen), aber ohne diese Zeile
            war die Fehlerursache aus dem Container nicht ablesbar (Lauf
-           32046961882: 502 ohne jeden weiteren Hinweis). */
+           32046961882: 502 ohne jeden weiteren Hinweis). Netzfehler ist
+           ein unklarer Ausgang -> 503, nie ein Ausweis (D-09). */
         r.error('gate.mint: ngx.fetch fehlgeschlagen: ' + e);
-        jsonResponse(r, 502, { ok: false, grund: 'supabase-nicht-erreichbar' });
+        antworten(503, { ok: false, grund: 'supabase-nicht-erreichbar' });
       });
   } catch (e) {
     r.error('gate.mint: unerwarteter Fehler: ' + e);
