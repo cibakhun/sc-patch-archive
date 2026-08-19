@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 337,
-  "totalListings": 7458,
-  "totalSold": 326,
+  "updates": 338,
+  "totalListings": 7459,
+  "totalSold": 327,
   "distinctItems": 1293
  },
  "listings": {
@@ -147994,9 +147994,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 500000,
    "dateAdded": 1787013163,
    "dateExpiration": 1792197162
   },
@@ -159315,6 +159315,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787176254,
    "dateExpiration": 1792360254
+  },
+  "164286": {
+   "idItem": 5846,
+   "idCategory": 36,
+   "title": "WTB Savrilium 905q: hungry for more!",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 905,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787178474,
+   "dateExpiration": 1792362474
   }
  }
 }
