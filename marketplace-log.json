@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 319,
-  "totalListings": 7194,
+  "updates": 320,
+  "totalListings": 7200,
   "totalSold": 310,
-  "distinctItems": 1254
+  "distinctItems": 1256
  },
  "listings": {
   "156580": {
@@ -153655,6 +153655,132 @@
    "soldOutPrice": null,
    "dateAdded": 1787098424,
    "dateExpiration": 1792282424
+  },
+  "164002": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 970Q N1 Weapon for PVE/PVP !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787100780,
+   "dateExpiration": 1792284780
+  },
+  "164005": {
+   "idItem": 4433,
+   "idCategory": 18,
+   "title": "Parallax \"Shock Trooper\" Energy Assault Rifle [11% DAMAGE INC]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 808,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 3800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787101137,
+   "dateExpiration": 1792285137
+  },
+  "164006": {
+   "idItem": 5327,
+   "idCategory": 17,
+   "title": "RD-1 Jaeger (1x Red Dot)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787101554,
+   "dateExpiration": 1792285554
+  },
+  "164007": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "WTB Behring CQ7 \"Goldsmith\" Bullpup Rifle",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787102407,
+   "dateExpiration": 1792286407
+  },
+  "164009": {
+   "idItem": 3467,
+   "idCategory": 3,
+   "title": "Oracle Helmet Violet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787102803,
+   "dateExpiration": 1792286803
+  },
+  "164010": {
+   "idItem": 7774,
+   "idCategory": 5,
+   "title": "Carrion Core Ashen",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787102988,
+   "dateExpiration": 1792286988
   }
  }
 }
