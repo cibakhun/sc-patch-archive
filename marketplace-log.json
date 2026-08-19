@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 322,
-  "totalListings": 7228,
+  "updates": 323,
+  "totalListings": 7243,
   "totalSold": 310,
-  "distinctItems": 1258
+  "distinctItems": 1260
  },
  "listings": {
   "156580": {
@@ -152514,6 +152514,10 @@
     {
      "d": "2026-08-19",
      "p": 15550000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 14550000
     }
    ],
    "soldOut": false,
@@ -153656,6 +153660,27 @@
    "dateAdded": 1787098424,
    "dateExpiration": 1792282424
   },
+  "164001": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 942q 2.5SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787099277,
+   "dateExpiration": 1792283276
+  },
   "164002": {
    "idItem": 8065,
    "idCategory": 18,
@@ -153676,6 +153701,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787100780,
    "dateExpiration": 1792284780
+  },
+  "164003": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTS Stileron 974 Q - 69 cSCU / 947 Q - 60 cSCU Stileron",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 974,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 116000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787100846,
+   "dateExpiration": 1792284846
+  },
+  "164004": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787101063,
+   "dateExpiration": 1792285063
   },
   "164005": {
    "idItem": 4433,
@@ -153795,6 +153862,10 @@
     {
      "d": "2026-08-19",
      "p": 300000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 285000
     }
    ],
    "soldOut": false,
@@ -153866,6 +153937,27 @@
    "dateAdded": 1787104590,
    "dateExpiration": 1792288590
   },
+  "164015": {
+   "idItem": 937,
+   "idCategory": 21,
+   "title": "Slipstream",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787104851,
+   "dateExpiration": 1792288851
+  },
   "164016": {
    "idItem": 5177,
    "idCategory": 38,
@@ -153907,6 +153999,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787106882,
    "dateExpiration": 1792290882
+  },
+  "164018": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron | 972Q | 2SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 972,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 25000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787106958,
+   "dateExpiration": 1792290958
+  },
+  "164019": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "WTS Tevarin War Service Marker (Pristine) 800k ea",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787107158,
+   "dateExpiration": 1792291158
   },
   "164021": {
    "idItem": 4466,
@@ -154369,6 +154503,195 @@
    "soldOutPrice": null,
    "dateAdded": 1787110587,
    "dateExpiration": 1792294587
+  },
+  "164044": {
+   "idItem": 1478,
+   "idCategory": 5,
+   "title": "Morozov-SH Core Vesper",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787111394,
+   "dateExpiration": 1792295394
+  },
+  "164045": {
+   "idItem": 2030,
+   "idCategory": 22,
+   "title": "Drift",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 55000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113536,
+   "dateExpiration": 1792297536
+  },
+  "164046": {
+   "idItem": 1771,
+   "idCategory": 21,
+   "title": "Fierell Cascade",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 75000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113538,
+   "dateExpiration": 1792297538
+  },
+  "164047": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113541,
+   "dateExpiration": 1792297541
+  },
+  "164048": {
+   "idItem": 964,
+   "idCategory": 19,
+   "title": "HeatSink",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 65000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113543,
+   "dateExpiration": 1792297543
+  },
+  "164049": {
+   "idItem": 1766,
+   "idCategory": 19,
+   "title": "Polar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 55000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113545,
+   "dateExpiration": 1792297545
+  },
+  "164050": {
+   "idItem": 927,
+   "idCategory": 19,
+   "title": "SnowBlind",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113548,
+   "dateExpiration": 1792297548
+  },
+  "164051": {
+   "idItem": 2114,
+   "idCategory": 23,
+   "title": "Veil",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787113550,
+   "dateExpiration": 1792297550
+  },
+  "164052": {
+   "idItem": 7429,
+   "idCategory": 18,
+   "title": "Boomtube \"Clanguard\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787114151,
+   "dateExpiration": 1792298151
   }
  }
 }
