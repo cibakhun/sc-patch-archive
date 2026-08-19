@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 333,
-  "totalListings": 7341,
+  "updates": 334,
+  "totalListings": 7370,
   "totalSold": 318,
-  "distinctItems": 1279
+  "distinctItems": 1280
  },
  "listings": {
   "156580": {
@@ -152332,6 +152332,10 @@
     {
      "d": "2026-08-18",
      "p": 1500000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 1250000
     }
    ],
    "soldOut": false,
@@ -152378,6 +152382,10 @@
     {
      "d": "2026-08-18",
      "p": 2500000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -152420,6 +152428,10 @@
     {
      "d": "2026-08-18",
      "p": 5000000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 4500000
     }
    ],
    "soldOut": false,
@@ -154087,6 +154099,10 @@
     {
      "d": "2026-08-19",
      "p": 800000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 700000
     }
    ],
    "soldOut": false,
@@ -156702,6 +156718,27 @@
    "dateAdded": 1787145250,
    "dateExpiration": 1792329250
   },
+  "164153": {
+   "idItem": 114,
+   "idCategory": 29,
+   "title": "WTB Helix I Mining Laser with 30% or more Power",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787145396,
+   "dateExpiration": 1792329396
+  },
   "164154": {
    "idItem": 5907,
    "idCategory": 36,
@@ -156743,6 +156780,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787147538,
    "dateExpiration": 1792331538
+  },
+  "164157": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium - 954Q 930Q 585Q 305Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 954,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787147890,
+   "dateExpiration": 1792331890
+  },
+  "164158": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "WTS Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148046,
+   "dateExpiration": 1792332046
   },
   "164159": {
    "idItem": 4976,
@@ -156786,6 +156865,174 @@
    "dateAdded": 1787148248,
    "dateExpiration": 1792332248
   },
+  "164161": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148354,
+   "dateExpiration": 1792332354
+  },
+  "164162": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "Laranite - 910Q 858Q 707Q 698Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 910,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148436,
+   "dateExpiration": 1792332436
+  },
+  "164163": {
+   "idItem": 5885,
+   "idCategory": 36,
+   "title": "Copper - 855Q 742Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 855,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148937,
+   "dateExpiration": 1792332937
+  },
+  "164164": {
+   "idItem": 8092,
+   "idCategory": 3,
+   "title": "Oni Kiba Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148999,
+   "dateExpiration": 1792332999
+  },
+  "164165": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite 942Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787149326,
+   "dateExpiration": 1792333326
+  },
+  "164166": {
+   "idItem": 6033,
+   "idCategory": 17,
+   "title": "Torrent Compensator2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787149393,
+   "dateExpiration": 1792333393
+  },
+  "164167": {
+   "idItem": 5328,
+   "idCategory": 17,
+   "title": "TS-25 Basara (2.5x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787149533,
+   "dateExpiration": 1792333533
+  },
+  "164168": {
+   "idItem": 5329,
+   "idCategory": 17,
+   "title": "TS-35 Basara (3.5x Telescopic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787149642,
+   "dateExpiration": 1792333642
+  },
   "164169": {
    "idItem": 5685,
    "idCategory": 18,
@@ -156806,6 +157053,384 @@
    "soldOutPrice": null,
    "dateAdded": 1787149656,
    "dateExpiration": 1792333656
+  },
+  "164170": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron - 970Q 907Q 874Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787150251,
+   "dateExpiration": 1792334251
+  },
+  "164171": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "WTS Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787150563,
+   "dateExpiration": 1792334563
+  },
+  "164172": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "Stileron - 681Q 517Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 517,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787150630,
+   "dateExpiration": 1792334630
+  },
+  "164173": {
+   "idItem": 5658,
+   "idCategory": 3,
+   "title": "Overlord Helmet Gilded",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787150886,
+   "dateExpiration": 1792334886
+  },
+  "164174": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip x 6250 avail @ 5k ea",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 5000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151023,
+   "dateExpiration": 1792335023
+  },
+  "164175": {
+   "idItem": 6001,
+   "idCategory": 61,
+   "title": "UNE Gold Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151037,
+   "dateExpiration": 1792335037
+  },
+  "164176": {
+   "idItem": 7429,
+   "idCategory": 18,
+   "title": "Boomtube \"Clanguard\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151042,
+   "dateExpiration": 1792335041
+  },
+  "164177": {
+   "idItem": 5586,
+   "idCategory": 61,
+   "title": "UNE Silver Ingot (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151127,
+   "dateExpiration": 1792335127
+  },
+  "164178": {
+   "idItem": 2638,
+   "idCategory": 38,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151460,
+   "dateExpiration": 1792335460
+  },
+  "164179": {
+   "idItem": 4860,
+   "idCategory": 38,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151727,
+   "dateExpiration": 1792335726
+  },
+  "164180": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 5000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787151886,
+   "dateExpiration": 1792335886
+  },
+  "164181": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 3000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787152503,
+   "dateExpiration": 1792336503
+  },
+  "164182": {
+   "idItem": 3397,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Graphite Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787152817,
+   "dateExpiration": 1792336817
+  },
+  "164183": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium | Quality 784 | 700,000 aUEC",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 784,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787152924,
+   "dateExpiration": 1792336924
+  },
+  "164184": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "WTS NDB-30 Repeater, Looted",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787153219,
+   "dateExpiration": 1792337219
+  },
+  "164185": {
+   "idItem": 5520,
+   "idCategory": 83,
+   "title": "Ecouter",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787153250,
+   "dateExpiration": 1792337250
+  },
+  "164186": {
+   "idItem": 1810,
+   "idCategory": 32,
+   "title": "WTB 2 Absolution Distortion Scattergun",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787153379,
+   "dateExpiration": 1792337379
+  },
+  "164187": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 275000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787154157,
+   "dateExpiration": 1792338157
   }
  }
 }
