@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 334,
-  "totalListings": 7370,
+  "updates": 335,
+  "totalListings": 7383,
   "totalSold": 318,
-  "distinctItems": 1280
+  "distinctItems": 1281
  },
  "listings": {
   "156580": {
@@ -157431,6 +157431,279 @@
    "soldOutPrice": null,
    "dateAdded": 1787154157,
    "dateExpiration": 1792338157
+  },
+  "164189": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle Crafted 970 quality",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787154519,
+   "dateExpiration": 1792338519
+  },
+  "164190": {
+   "idItem": 4814,
+   "idCategory": 5,
+   "title": "Geist Armor Core Whiteout",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787154533,
+   "dateExpiration": 1792338533
+  },
+  "164192": {
+   "idItem": 4735,
+   "idCategory": 38,
+   "title": "Polaris bits. 10m each. Payment up front.",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787154832,
+   "dateExpiration": 1792338832
+  },
+  "164194": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle Crafted",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 860,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787154958,
+   "dateExpiration": 1792338958
+  },
+  "164195": {
+   "idItem": 3202,
+   "idCategory": 3,
+   "title": "Xanthule Sehya Flight Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787155083,
+   "dateExpiration": 1792339083
+  },
+  "164198": {
+   "idItem": 5324,
+   "idCategory": 17,
+   "title": "HG-15 Jaeger (1.5x Holographic) (Always available)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 850000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787155624,
+   "dateExpiration": 1792339624
+  },
+  "164199": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle Crafted 7.05 % extra Damage !",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787155649,
+   "dateExpiration": 1792339649
+  },
+  "164200": {
+   "idItem": 3203,
+   "idCategory": 3,
+   "title": "Xanthule Tahn Flight Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787155660,
+   "dateExpiration": 1792339660
+  },
+  "164201": {
+   "idItem": 7490,
+   "idCategory": 3,
+   "title": "Aves Shrike Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787155793,
+   "dateExpiration": 1792339793
+  },
+  "164203": {
+   "idItem": 5328,
+   "idCategory": 17,
+   "title": "TS-25 Basara (2.5x Telescopic) (Always Available)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787155876,
+   "dateExpiration": 1792339876
+  },
+  "164207": {
+   "idItem": 4874,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787156193,
+   "dateExpiration": 1792340193
+  },
+  "164211": {
+   "idItem": 954,
+   "idCategory": 19,
+   "title": "Glacier",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787156932,
+   "dateExpiration": 1792340932
+  },
+  "164213": {
+   "idItem": 158,
+   "idCategory": 23,
+   "title": "FR-86",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 700,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787157749,
+   "dateExpiration": 1792341748
   }
  }
 }
