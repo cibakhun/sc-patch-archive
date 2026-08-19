@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 327,
-  "totalListings": 7253,
+  "updates": 328,
+  "totalListings": 7257,
   "totalSold": 312,
   "distinctItems": 1261
  },
@@ -154918,6 +154918,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787128498,
    "dateExpiration": 1792312498
+  },
+  "164090": {
+   "idItem": 5328,
+   "idCategory": 17,
+   "title": "TS-25 Basara (2.5x Telescopic)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787130549,
+   "dateExpiration": 1792314549
+  },
+  "164092": {
+   "idItem": 5329,
+   "idCategory": 17,
+   "title": "TS-35 Basara (3.5x Telescopic)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787130610,
+   "dateExpiration": 1792314610
+  },
+  "164095": {
+   "idItem": 46,
+   "idCategory": 32,
+   "title": "NDB-26 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787131100,
+   "dateExpiration": 1792315100
+  },
+  "164098": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS Comp-Board FULL SET (all 7)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787131440,
+   "dateExpiration": 1792315440
   }
  }
 }
