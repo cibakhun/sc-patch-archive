@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 326,
-  "totalListings": 7251,
-  "totalSold": 311,
+  "updates": 327,
+  "totalListings": 7253,
+  "totalSold": 312,
   "distinctItems": 1261
  },
  "listings": {
@@ -151393,6 +151393,10 @@
     {
      "d": "2026-08-19",
      "p": 200000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 180000
     }
    ],
    "soldOut": false,
@@ -154720,9 +154724,9 @@
      "p": 8000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 8000000,
    "dateAdded": 1787116214,
    "dateExpiration": 1792300214
   },
@@ -154872,6 +154876,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787124275,
    "dateExpiration": 1792308275
+  },
+  "164082": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "WTS Gold 916Q, 0,69 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787127828,
+   "dateExpiration": 1792311828
+  },
+  "164083": {
+   "idItem": 5015,
+   "idCategory": 38,
+   "title": "RCMBNT-RGL-2",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787128498,
+   "dateExpiration": 1792312498
   }
  }
 }
