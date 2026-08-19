@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 329,
-  "totalListings": 7257,
+  "updates": 330,
+  "totalListings": 7258,
   "totalSold": 312,
   "distinctItems": 1261
  },
@@ -155010,6 +155010,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787131440,
    "dateExpiration": 1792315440
+  },
+  "164110": {
+   "idItem": 4477,
+   "idCategory": 18,
+   "title": "Parallax \"Sunstone\" Energy Assault Rifle [Crafted, 880Q]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1999997
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787139205,
+   "dateExpiration": 1792323205
   }
  }
 }
