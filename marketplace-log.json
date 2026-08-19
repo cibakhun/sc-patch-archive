@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 323,
-  "totalListings": 7243,
+  "updates": 324,
+  "totalListings": 7245,
   "totalSold": 310,
   "distinctItems": 1260
  },
@@ -146977,6 +146977,10 @@
     {
      "d": "2026-08-17",
      "p": 1200000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -154692,6 +154696,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787114151,
    "dateExpiration": 1792298151
+  },
+  "164056": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten 959Q A small amount",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 959,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787116214,
+   "dateExpiration": 1792300214
+  },
+  "164063": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium and gold and lindinium 500-750q",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 700,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787117903,
+   "dateExpiration": 1792301903
   }
  }
 }
