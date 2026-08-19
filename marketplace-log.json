@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 324,
-  "totalListings": 7245,
+  "updates": 325,
+  "totalListings": 7247,
   "totalSold": 310,
   "distinctItems": 1260
  },
@@ -154738,6 +154738,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787117903,
    "dateExpiration": 1792301903
+  },
+  "164065": {
+   "idItem": 7969,
+   "idCategory": 7,
+   "title": "Geist Armor Set Epoque with bonus items: BoomTube rocket launcher, Exec Custodian SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787118952,
+   "dateExpiration": 1792302951
+  },
+  "164071": {
+   "idItem": null,
+   "idCategory": 111,
+   "title": "DCHS Cards Full set 1-7",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 8000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787121293,
+   "dateExpiration": 1792305293
   }
  }
 }
