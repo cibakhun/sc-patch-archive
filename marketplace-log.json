@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 332,
-  "totalListings": 7337,
-  "totalSold": 317,
-  "distinctItems": 1278
+  "updates": 333,
+  "totalListings": 7341,
+  "totalSold": 318,
+  "distinctItems": 1279
  },
  "listings": {
   "156580": {
@@ -151583,9 +151583,9 @@
      "p": 3500
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 3500,
    "dateAdded": 1787080164,
    "dateExpiration": 1792264163
   },
@@ -154150,6 +154150,10 @@
     {
      "d": "2026-08-19",
      "p": 9000000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 4900000
     }
    ],
    "soldOut": false,
@@ -156718,6 +156722,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787145444,
    "dateExpiration": 1792329444
+  },
+  "164156": {
+   "idItem": 8093,
+   "idCategory": 36,
+   "title": "Vanduul Cryopod 100 pcs. FAST",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787147538,
+   "dateExpiration": 1792331538
+  },
+  "164159": {
+   "idItem": 4976,
+   "idCategory": 18,
+   "title": "A03 \"Scorched\" Sniper Rifle w/Extras",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148204,
+   "dateExpiration": 1792332204
+  },
+  "164160": {
+   "idItem": 5232,
+   "idCategory": 61,
+   "title": "Vanduul Plating",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787148248,
+   "dateExpiration": 1792332248
+  },
+  "164169": {
+   "idItem": 5685,
+   "idCategory": 18,
+   "title": "VCK-1 Blade",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787149656,
+   "dateExpiration": 1792333656
   }
  }
 }
