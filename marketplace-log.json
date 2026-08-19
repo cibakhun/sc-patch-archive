@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 325,
-  "totalListings": 7247,
-  "totalSold": 310,
-  "distinctItems": 1260
+  "updates": 326,
+  "totalListings": 7251,
+  "totalSold": 311,
+  "distinctItems": 1261
  },
  "listings": {
   "156580": {
@@ -145391,6 +145391,10 @@
     {
      "d": "2026-08-17",
      "p": 7000000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 9000000
     }
    ],
    "soldOut": false,
@@ -145762,9 +145766,9 @@
      "p": 4000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 4000000,
    "dateAdded": 1786990554,
    "dateExpiration": 1792174554
   },
@@ -147090,6 +147094,10 @@
     {
      "d": "2026-08-18",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 4000000
     }
    ],
    "soldOut": false,
@@ -154780,6 +154788,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787121293,
    "dateExpiration": 1792305293
+  },
+  "164076": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787123362,
+   "dateExpiration": 1792307362
+  },
+  "164077": {
+   "idItem": 6491,
+   "idCategory": 18,
+   "title": "S71 \"Purgatory Camo\" Rifle q800",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 800,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787123593,
+   "dateExpiration": 1792307593
+  },
+  "164078": {
+   "idItem": 589,
+   "idCategory": 22,
+   "title": "Agni 600q CRAFTED",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 600,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787123882,
+   "dateExpiration": 1792307882
+  },
+  "164079": {
+   "idItem": 7441,
+   "idCategory": 18,
+   "title": "BR-2 \"Purgatory Camo\" Shotgun q750",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 700,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787124275,
+   "dateExpiration": 1792308275
   }
  }
 }
