@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 331,
-  "totalListings": 7333,
-  "totalSold": 313,
+  "updates": 332,
+  "totalListings": 7337,
+  "totalSold": 317,
   "distinctItems": 1278
  },
  "listings": {
@@ -148120,9 +148120,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 500000,
    "dateAdded": 1787017997,
    "dateExpiration": 1792201997
   },
@@ -148141,9 +148141,9 @@
      "p": 500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 500000,
    "dateAdded": 1787018076,
    "dateExpiration": 1792202076
   },
@@ -150874,9 +150874,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 1000000,
    "dateAdded": 1787076370,
    "dateExpiration": 1792260370
   },
@@ -151405,6 +151405,10 @@
     {
      "d": "2026-08-19",
      "p": 180000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -151495,9 +151499,9 @@
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-19",
+   "soldOutPrice": 400000,
    "dateAdded": 1787079860,
    "dateExpiration": 1792263860
   },
@@ -154335,6 +154339,10 @@
     {
      "d": "2026-08-19",
      "p": 445000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 399999
     }
    ],
    "soldOut": false,
@@ -154356,6 +154364,10 @@
     {
      "d": "2026-08-19",
      "p": 98000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 94999
     }
    ],
    "soldOut": false,
@@ -154713,6 +154725,10 @@
     {
      "d": "2026-08-19",
      "p": 55000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 49999
     }
    ],
    "soldOut": false,
@@ -155973,6 +155989,10 @@
     {
      "d": "2026-08-19",
      "p": 495000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 399999
     }
    ],
    "soldOut": false,
@@ -156456,6 +156476,10 @@
     {
      "d": "2026-08-19",
      "p": 195000
+    },
+    {
+     "d": "2026-08-19",
+     "p": 189999
     }
    ],
    "soldOut": false,
@@ -156610,6 +156634,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787142410,
    "dateExpiration": 1792326410
+  },
+  "164150": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "DustUp Ultimatum medium Full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787144059,
+   "dateExpiration": 1792328059
+  },
+  "164151": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "5x DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787144561,
+   "dateExpiration": 1792328561
+  },
+  "164152": {
+   "idItem": 5843,
+   "idCategory": 36,
+   "title": "WTS STILERON Q747 - 0.280 SCU - 980k auec",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 747,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 980000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787145250,
+   "dateExpiration": 1792329250
+  },
+  "164154": {
+   "idItem": 5907,
+   "idCategory": 36,
+   "title": "WTS GOLD Q786 - 0.126 SCU - 250000 auec",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 786,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787145444,
+   "dateExpiration": 1792329444
   }
  }
 }
