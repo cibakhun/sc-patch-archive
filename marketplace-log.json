@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-19",
-  "updates": 321,
-  "totalListings": 7206,
+  "updates": 322,
+  "totalListings": 7228,
   "totalSold": 310,
-  "distinctItems": 1257
+  "distinctItems": 1258
  },
  "listings": {
   "156580": {
@@ -153907,6 +153907,468 @@
    "soldOutPrice": null,
    "dateAdded": 1787106882,
    "dateExpiration": 1792290882
+  },
+  "164021": {
+   "idItem": 4466,
+   "idCategory": 1,
+   "title": "ADP-mk4 Arms Righteous",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108093,
+   "dateExpiration": 1792292092
+  },
+  "164022": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Tailwind Flight Set - FULL SET",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108124,
+   "dateExpiration": 1792292124
+  },
+  "164023": {
+   "idItem": 2768,
+   "idCategory": 3,
+   "title": "Caudillo Helmet (Modified)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108182,
+   "dateExpiration": 1792292182
+  },
+  "164024": {
+   "idItem": 2231,
+   "idCategory": 17,
+   "title": "Gamma Plus (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 245000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108331,
+   "dateExpiration": 1792292331
+  },
+  "164025": {
+   "idItem": 6575,
+   "idCategory": 17,
+   "title": "PT3 \"Deadfall\" (3x Holographic)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 295000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108334,
+   "dateExpiration": 1792292334
+  },
+  "164026": {
+   "idItem": 3398,
+   "idCategory": 2,
+   "title": "Pembroke Backpack RSI Ivory Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108347,
+   "dateExpiration": 1792292347
+  },
+  "164027": {
+   "idItem": 1988,
+   "idCategory": 1,
+   "title": "ORC-mkX Arms Nightfire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108467,
+   "dateExpiration": 1792292467
+  },
+  "164029": {
+   "idItem": 2278,
+   "idCategory": 18,
+   "title": "P8-AR Assault Rifle 976 AVG W/ 1000 Q Heph",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 976,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787108585,
+   "dateExpiration": 1797476584
+  },
+  "164030": {
+   "idItem": 4900,
+   "idCategory": 18,
+   "title": "Fresnel \"Rockfall\" Energy LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 185000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110051,
+   "dateExpiration": 1792294051
+  },
+  "164031": {
+   "idItem": 5096,
+   "idCategory": 18,
+   "title": "GP-33 MOD \"Quite Useful\" Grenade Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 445000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110054,
+   "dateExpiration": 1792294054
+  },
+  "164032": {
+   "idItem": 2320,
+   "idCategory": 18,
+   "title": "GP-33 MOD Grenade Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 98000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110055,
+   "dateExpiration": 1792294055
+  },
+  "164033": {
+   "idItem": 3489,
+   "idCategory": 18,
+   "title": "Karna \"Valor\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 60000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110057,
+   "dateExpiration": 1792294057
+  },
+  "164034": {
+   "idItem": 2817,
+   "idCategory": 18,
+   "title": "Lumin V \"Valor\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 595000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110058,
+   "dateExpiration": 1792294058
+  },
+  "164035": {
+   "idItem": 4384,
+   "idCategory": 18,
+   "title": "Parallax Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110058,
+   "dateExpiration": 1792294058
+  },
+  "164036": {
+   "idItem": 5819,
+   "idCategory": 18,
+   "title": "Novian Crossbow",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 145000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110059,
+   "dateExpiration": 1792294059
+  },
+  "164037": {
+   "idItem": 4506,
+   "idCategory": 18,
+   "title": "Quartz \"Lumen\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 90000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110059,
+   "dateExpiration": 1792294059
+  },
+  "164038": {
+   "idItem": 4502,
+   "idCategory": 18,
+   "title": "Quartz \"Deadfall\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 90000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110061,
+   "dateExpiration": 1792294061
+  },
+  "164039": {
+   "idItem": 5354,
+   "idCategory": 18,
+   "title": "Quartz \"Piconalia\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 295000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110062,
+   "dateExpiration": 1792294062
+  },
+  "164040": {
+   "idItem": 2321,
+   "idCategory": 18,
+   "title": "S71 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110062,
+   "dateExpiration": 1792294062
+  },
+  "164041": {
+   "idItem": 4808,
+   "idCategory": 18,
+   "title": "Zenith \"Thunderstrike\" Laser Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 195000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110066,
+   "dateExpiration": 1792294066
+  },
+  "164042": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten 2.3 scu 858 20 mil for all",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110318,
+   "dateExpiration": 1792294318
+  },
+  "164043": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "L-21 Wolf / L-22 Alpha Wolf Rift Walker paint",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-19",
+   "lastSeen": "2026-08-19",
+   "prices": [
+    {
+     "d": "2026-08-19",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787110587,
+   "dateExpiration": 1792294587
   }
  }
 }
