@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 13
+open_count: 14
 waived_count: 0
 fixed_count: 8
-total_count: 21
-last_updated: 2026-08-18T17:20:00.000Z
+total_count: 22
+last_updated: 2026-08-20T15:40:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -36,6 +36,7 @@ last_updated: 2026-08-18T17:20:00.000Z
 | 19 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Liest sich die Innenstruktur des Ausstattungs-Kapitels am groessten Schiff (`aegs-idris-m`, 243m) noch als EIN zusammengehoeriges Kapitel, oder zerfaellt sie optisch — jetzt zusaetzlich mit der kapitelinternen Zweispaltigkeit aus 14-04-PLAN.md Task 1 — wieder in vier gefuehlte Panels? Mitgeben: 4 Unterabschnitte (Masse & Fracht/Bewaffnung/Flugleistung/Komponenten), alle vier ab 1100px als 2×2-Raster, gemessene Kapitelhoehe 1.442px (deutlich mehr als die Carrack mit 1.058px, weil Idris-M mehr Turmgruppen und Komponenten traegt). | open |  | 2026-08-18T05:58:00.000Z |  |
 | 20 | 14 | sight | src/components/ShipDetail.astro |  | Sichturteil: Traegt eine Profilzeile ohne Rohwert (Tempo, Fracht, Quantum-Tempo zeigen seit Welle 3 nur noch Beschriftung, Balken und Perzentil), oder wirkt der Balken dort nackt und die Zeile unfertig? Mitgeben: die drei betroffenen Zeilen sind Geschwindigkeit (SCM), Fracht (SCU) und Quantum-Tempo — ihr Rohwert steht stattdessen je einmal im Ausstattungs-Kapitel; die drei uebrigen Zeilen (Agilitaet, Feuerkraft, Verteidigung) behalten ihren Rohwert in der Profilzeile unveraendert, weil er nirgends sonst auf der Seite steht. | open |  | 2026-08-18T05:58:00.000Z |  |
 | 21 | 15 | sight | assets/holo-viewer.js |  | S-0, die tragende Frage der Phase (15-UI-SPEC.md § Sichturteile): erkennt man einen unbeschrifteten Marker nach P-1 (Buehnen-Einpassung) und P-2 (kein Dauer-Label mehr)? Ausgangsbefund 18.08.2026 als Vergleichsmarke: ~25% Bildanteil, Marker 2-3 Bildpunkte, nicht auffindbar. Gemessen (node scripts/probes/schiffskonsole-messung.mjs, 18.08.2026, gegen frisch gebautes dist/): P-3 Variante C (gewaehlt, groesste Einzelgruppe 20, 206/227 Schiffe mit prop). Fuellgrad vorher/nachher am Referenzschiff (Carrack, 860px, eigene --baseline-Messung von Task 2 Schritt 1): ~19,3% vorher, danach 68,3% (Carrack) bzw. 93,2% bei 1440px. Kleinster gemessener Markerdurchmesser: 81,9px (kargstes Schiff argo-csv-cargo) bzw. 1.342,8px (Carrack, Grossaufnahme) bei 1280px; 28,3px (argo-csv-cargo) bzw. 400,9px (drak-ironclad) bei 360px — nirgends unter der 8px-Sorge aus dem Plan. Drei Pruefschiffe: argo-csv-cargo (kargstes, 3 Marker), anvl-carrack (UI-SPEC-Referenz, 27 Marker), drak-ironclad (dichteste Einzelgruppe, 44 sichtbare Marker in prop). EIGENES URTEIL (24 Bildschirmfotos, 3 Schiffe x 2 Sprachen x 2 Breiten x 2 Zustaende, 18.08.2026): bei 1280px sind alle Marker aller drei Schiffe ohne Beschriftung klar als Marker erkennbar, einschliesslich der 18-44 dicht stehenden Punkte am Ironclad; nach Auswahl erscheint genau ein lesbarer Beschriftungskasten mit Leader-Linie zum Marker, deutlich vom unmarkierten Rest unterschieden. Bei 360px gilt dasselbe fuer das kargste Schiff (76,4% Fuellgrad, Marker weiterhin klar erkennbar) — beim Carrack und beim Ironclad jedoch NICHT ohne Weiteres: P-1s 70%-Marke wird dort verfehlt (Carrack 55,4%, Ironclad 53,5%), das Schiff erscheint als schmaler Streifen, und die Marker sind zwar noch als farbige Punkte vom Rumpf unterscheidbar (kein Ruecksprung auf den 2-3px-Ausgangsbefund), aber deutlich muehsamer zu finden als bei 1280px oder am kompakten Schiff. Ursache gemessen und verstanden (15-01-SUMMARY.md): bei fester 3/4-Kamera-Ausrichtung und landscape-Buehne bindet bei einem SEHR LANGEN Schiff die Breite, bevor die Hoehe (die kuerzere Kante) das Zielmass erreicht — ein Ausweichen braeuchte eine schiffsabhaengige Kamera-Ausrichtung (Azimut), das ist eine sichtbare, seitenweite Design-Entscheidung und kein reiner Fit-Parameter mehr. FRAGE AN DEN BETREIBER: reicht die erreichte Markergroesse bei 860/414/360px fuer LANGE Schiffe (Carrack-Klasse) noch aus, oder braucht P-1 fuer diese Schiffsklasse eine eigene Loesung (z. B. azimut-bewusste Kamera, oder eine tiefere P-1-Untergrenze fuer stark elongierte Schiffe), bevor Welle 2 die Konsole darauf aufbaut? Nebenbefund (nicht Teil dieses Urteils, siehe deferred-items.md): bei allen drei Schiffen zeigt sich unter 820px ein funktionsloser "Hologramm aktivieren"-Knopf mittig auf der Buehne (praexistenter Fehler, Fix in 15-02 vorgesehen). | open |  | 2026-08-18T17:20:00.000Z |  |
+| 22 | 15 | sight | src/components/ShipDetail.astro |  | D-04 ist woertlich erfuellt, aber wirtschaftlich hohl - Entscheidung des Betreibers noetig. D-04 lautet: das 3D laedt erst, wenn die Buehne in den Blick scrollt, damit "wer nie hinunterscrollt, nichts laedt". Gemessen am 20.08.2026 gegen das gebaute dist/: beim load-Ereignis werden three.module.min.js=0, GLB=0 und holo-viewer.js=0 angefordert - die Verzoegerung greift also technisch. ABER: #holostage steht bei top=56px und ist bei 1280px WIE BEI 360px vom ersten Moment an im Blick (gemessen: 1280px oben 56 / unten 506 bei 900px Viewport; 360px oben 56 / unten 830). Der IntersectionObserver feuert deshalb fuer JEDEN Besucher sofort; alle drei Dateien treffen innerhalb von rund vier Sekunden ein. Die beabsichtigte Ersparnis tritt damit NICHT ein: jeder Aufruf einer Schiffsseite laedt three.js (360 KB) plus ein GLB (Median 0,37 MB, max 0,63 MB), zusammen rund 730 KB. Das ist kein Fehler in der Umsetzung - es ist die Folge davon, dass die Buehne das erste Element der Seite IST, was nach D-01 auch so gewollt ist. FRAGE AN DEN BETREIBER: so lassen (die Buehne ist der Zweck der Seite, die Ladezeit ist der Preis dafuer), oder eintauschen - etwa Standbild bis zum ersten Bedienen der Rail, kleinere Meshes, oder three.js erst bei Interaktion. Bezug: 15-CONTEXT.md D-04, Messung im Orchestrator-Protokoll vom 20.08.2026. | open |  | 2026-08-20T15:40:00.000Z |  |
 
 ````json
 [
@@ -289,6 +290,18 @@ last_updated: 2026-08-18T17:20:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-18T17:20:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "sight",
+    "phase": "15",
+    "file": "src/components/ShipDetail.astro",
+    "line": null,
+    "description": "D-04 ist woertlich erfuellt, aber wirtschaftlich hohl - Entscheidung des Betreibers noetig. D-04 lautet: das 3D laedt erst, wenn die Buehne in den Blick scrollt, damit \"wer nie hinunterscrollt, nichts laedt\". Gemessen am 20.08.2026 gegen das gebaute dist/: beim load-Ereignis werden three.module.min.js=0, GLB=0 und holo-viewer.js=0 angefordert - die Verzoegerung greift also technisch. ABER: #holostage steht bei top=56px und ist bei 1280px WIE BEI 360px vom ersten Moment an im Blick (gemessen: 1280px oben 56 / unten 506 bei 900px Viewport; 360px oben 56 / unten 830). Der IntersectionObserver feuert deshalb fuer JEDEN Besucher sofort; alle drei Dateien treffen innerhalb von rund vier Sekunden ein. Die beabsichtigte Ersparnis tritt damit NICHT ein: jeder Aufruf einer Schiffsseite laedt three.js (360 KB) plus ein GLB (Median 0,37 MB, max 0,63 MB), zusammen rund 730 KB. Das ist kein Fehler in der Umsetzung - es ist die Folge davon, dass die Buehne das erste Element der Seite IST, was nach D-01 auch so gewollt ist. FRAGE AN DEN BETREIBER: so lassen (die Buehne ist der Zweck der Seite, die Ladezeit ist der Preis dafuer), oder eintauschen - etwa Standbild bis zum ersten Bedienen der Rail, kleinere Meshes, oder three.js erst bei Interaktion. Bezug: 15-CONTEXT.md D-04, Messung im Orchestrator-Protokoll vom 20.08.2026.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-20T15:40:00.000Z",
     "resolved_at": null
   }
 ]
