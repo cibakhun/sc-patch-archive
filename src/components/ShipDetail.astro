@@ -520,6 +520,18 @@ a{color:inherit;text-decoration:none}
 .holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
   border-bottom:1px solid var(--line);
   display:grid;grid-template-columns:220px 1fr 320px}
+/* 15-05-PLAN.md (Kollisionsbehebung, 1280px): margin-top:56px reicht nur,
+   solange keine Zurueck-Marke ueber der Buehne schwebt. Ist sie sichtbar
+   (SiteNav.astro Zeile 947/949, --nav-h waechst von 68 auf 104/116px), lag
+   die Marke bisher auf der ERSTEN RAIL-ZEILE ("KOMPONENTEN 8") -- vorher war
+   das unbedenklich, weil an dieser Stelle nur Hintergrund/HUD-Text stand,
+   inzwischen liegt dort ein klickbares Bedienelement. Zusatz exakt in Hoehe
+   des --nav-h-Zuwachses (104-68=36px, 116-68=48px), nicht auf einen neuen
+   Absolutwert geraten. */
+:root:has(.snav__back:not([hidden])) .holo{margin-top:92px}
+@media(max-width:860px){
+  :root:has(.snav__back:not([hidden])) .holo{margin-top:104px}
+}
 /* 15-04-PLAN.md Task 1, SCHRITT 1 (15-UI-SPEC.md Detailvertrag Punkt 1):
    drei feste Grid-Spalten, Breiten UND Bruchkanten UNVERAENDERT aus dem
    UI-SPEC uebernommen (220px/320px/1100px/760px). Explizite Platzierung
@@ -874,10 +886,18 @@ a{color:inherit;text-decoration:none}
 .holo__readout .arm__sum{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .holo__readout .arm__scell span,
+.holo__readout .sd__slot .t,
 .holo__readout .sd__slot .n,
 .holo__readout .arm__name,
 .holo__readout .hp__name,
 .holo__readout .hp__kind{hyphens:auto;overflow-wrap:break-word}
+/* 15-05-PLAN.md (Kollisionsbehebung, 1280px): .sd__slot .t (Kategorie-Label,
+   z.B. "SCHILDGENERATOREN") fehlte in der obigen Liste -- ein einzelnes
+   zusammengesetztes Wort ohne Leerstelle kann ohne overflow-wrap NICHT
+   umbrechen und lief bei 110px-Mindestspaltenbreite ueber die Kartenkante
+   hinaus, sichtbar abgeschnitten am rechten Seitenrand (Sichtbefund
+   `deferred-items.md` 20.08.2026). Dieselbe Behandlung wie .n direkt
+   darunter, keine neue Regel-Familie. */
 .holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
 
 /* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
@@ -899,12 +919,16 @@ a{color:inherit;text-decoration:none}
 .holo__hud b{color:var(--accent);font-weight:700}
 .holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
   letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right;pointer-events:none}
-/* Die Buehne liegt bewusst randlos UNTER der Kopfleiste. Haengt dort die
-   freie Zurueck-Marke (SiteNav, ~101 px hinunter), laege sie genau auf
-   „HANGAR // <Hersteller>". Die HUD-Zeile rueckt dann als PAAR nach unten —
-   .holo__dims gegenueber muss auf gleicher Hoehe bleiben. */
-:root:has(.snav__back:not([hidden])) .holo__hud,
-:root:has(.snav__back:not([hidden])) .holo__dims{top:58px}
+/* Die urspruengliche Begruendung hier ("die freie Zurueck-Marke haengt an
+   .holo, HUD/Dims ruecken deshalb als Paar 26->58px nach unten") ist mit
+   15-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
+   Zurueck-Marken-Zuschlag (siehe :root:has(...) .holo{margin-top:...} an
+   der .holo-Basisregel oben) -- HUD und Dims sitzen als Kind von
+   .holo__wrap bereits IN diesem verschobenen Block und muessten sich sonst
+   ein zweites Mal nach unten schieben (26+32=58 zusaetzlich zu den bereits
+   verschobenen 92/104px .holo-margin -- zu weit). Keine eigene Regel mehr
+   noetig, die vormalige Ueberschneidung mit der Zurueck-Marke ist bereits
+   durch die .holo-Verschiebung behoben. */
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;padding:.5rem .95rem}
@@ -980,8 +1004,13 @@ a{color:inherit;text-decoration:none}
   .holo__chips{gap:.35rem;margin-top:.4rem}
   .holo__chips span{font-size:var(--fs-3);padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
-  /* mobil ist die Marke tiefer (44-px-Fingerkuppe, --nav-h 116px) */
-  :root:has(.snav__back:not([hidden])) .holo__hud{top:56px}
+  /* Der vormalige mobile Zuschlag (top:18->56px bei sichtbarer Zurueck-Marke,
+     44-px-Fingerkuppe, --nav-h 116px) ist mit 15-05-PLAN.md ueberholt: .holo
+     traegt den Zuschlag jetzt selbst (@media(max-width:860px) an der
+     .holo-Basisregel, deckt auch diese engere 760px-Kante ab) -- ein
+     zweiter Zuschlag an .holo__hud wuerde die HUD-Zeile ein zweites Mal
+     verschieben. Siehe Begruendung an der urspruenglichen, jetzt entfernten
+     Desktop-Fassung dieser Regel weiter oben. */
   /* Rail (15-03-PLAN.md Task 1, SCHRITT 3): kein eingeklappter Zustand mehr
      -- bei hoechstens vier Eintraegen in einer eigenen Zeile ist nichts
      mehr einzuklappen, der gesparte Platz war nur noetig, solange die Rail
@@ -1421,18 +1450,32 @@ span.sd__ref{color:var(--muted)}
   {/* data-media-surface: die Bühne zeigt Hologramm, Renderbilder und Video —
       sie bleibt in beiden Modi dunkel. Siehe „Dunkle Inseln" in theme.css. */}
   <section class="holo" id="holo" data-media-surface aria-label={`${d.name} — Visual`}>
-    <div class="holo__frame" aria-hidden="true"></div>
-    <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
-    {dims && <div class="holo__dims">{dims}</div>}
     <div class="holo__wrap">
       {/* SCHRITT 1 (15-03-PLAN.md Task 1): .holo__grid/.holo__pad sind
           bottom-verankert (bottom:-4%/7%) -- an .holo direkt haengend
           wuerden sie an den Fuss des jetzt gewachsenen GESAMTBLOCKS rutschen
           statt unter das Modell zu bleiben. Sie wandern deshalb in denselben
           Container wie die Buehne (.holo__wrap), der seine feste Hoehe
-          behaelt. .holo__frame/.holo__hud/.holo__dims sind TOP-verankert und
-          bleiben bewusst aussen -- sie rahmen/beschriften bewusst den
-          GESAMTEN Konsolen-Block, nicht nur die Buehne. */}
+          behaelt.
+          15-05-PLAN.md (Kollisionsbehebung, 1280px): .holo__frame/
+          .holo__hud/.holo__dims standen bis hierher noch AUSSEN, mit der
+          Begruendung, sie rahmten/beschrifteten den GESAMTEN Konsolen-Block.
+          Das war die Annahme aus der Zeit VOR Rail und Auslesung als eigene
+          Grid-Spalten (15-04-PLAN.md Task 1) und stimmt seither nicht mehr:
+          alle drei sind bei fehlenden grid-column/-row weiterhin relativ zum
+          GESAMTEN .holo positioniert (CSS Grid: ein abs.-positioniertes
+          Grid-Kind ohne Linienangabe spannt per Spezifikation den vollen
+          Grid-Bereich) -- die HUD-Zeile links liegt dadurch auf der Rail,
+          die Massanzeige rechts auf der Auslesung, und der Eckenrahmen
+          markiert eine Ecke irgendwo im Auslesungsinhalt statt die Buehne zu
+          rahmen (Sichtbefund `deferred-items.md` 20.08.2026). Alle drei
+          rahmen/beschriften jetzt nur noch die BUEHNE (dieselbe Aufgabe wie
+          zuvor gemeint, nur auf den tatsaechlich noch vorhandenen
+          Vollbild-Bereich bezogen) -- deshalb Kind von .holo__wrap, dessen
+          eigene position:relative sie exakt dort haelt. */}
+      <div class="holo__frame" aria-hidden="true"></div>
+      <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
+      {dims && <div class="holo__dims">{dims}</div>}
       <div class="holo__grid" aria-hidden="true"></div>
       <div class="holo__pad" aria-hidden="true"></div>
       <header class="holo__title">
