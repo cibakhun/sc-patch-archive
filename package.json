@@ -68,6 +68,7 @@
     "audit:site": "node scripts/audit-site.mjs",
     "audit:csp": "node scripts/audit-csp.mjs",
     "verify:gate": "node scripts/verify-gate.mjs",
+    "verify:windows": "node scripts/verify-windows.mjs",
     "pretest:e2e": "node scripts/_test-prereqs.mjs",
     "test:e2e": "node --test tests/e2e/**/*.test.js"
   },

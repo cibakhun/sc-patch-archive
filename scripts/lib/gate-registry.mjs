@@ -109,6 +109,19 @@ export const CHECKS = [
     // ausschliesslich dist/ und die beiden nginx-Dateien als Text.
   },
   {
+    // Direkt nach verify:gate, weil beide dasselbe Muster haben: sie messen
+    // eine Datei, die voellig normal AUSSIEHT, waehrend ein Werkzeug an ihr
+    // scheitert.
+    id: 'verify:windows',
+    npm: 'verify:windows',
+    script: 'scripts/verify-windows.mjs',
+    rail: 'A',
+    checks:
+      '.planning/WINDOWS.md bleibt fuer gsd-tools lesbar — geprueft mit gsd-cores EIGENEM parseLedger (keine zweite, nachgebaute Auslegung), dazu die drei Muster, die es am 20.08.2026 je einmal zerlegt haben: kind "sight" (kein gueltiger Wert), CRLF (bricht die Frontmatter) und null statt Zeichenkette bei description/reason. Ein unlesbares Register liefert GAR KEINE Eintraege, nicht die uebrigen — der Ausfall ist total und faellt beim Lesen der Datei nicht auf',
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest eine
+    // Textdatei und laedt ein lokales Modul.
+  },
+  {
     id: 'verify:crafting',
     npm: 'verify:crafting',
     script: 'scripts/verify-crafting-specs.mjs',

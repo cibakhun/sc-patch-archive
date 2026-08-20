@@ -103,6 +103,19 @@ const COPY = {
     rsiNotFound: 'Code "%code%" wurde noch nicht in der Bio von @%handle% auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI (die Anzeige kann 1–2 Minuten dauern).',
     rsiServerErr: 'Der Verifizierungsserver ist gerade nicht erreichbar — bitte später erneut versuchen.',
     discordTag: 'Discord Tag', discordPh: 'z. B. Pilot#1234 oder @pilot',
+    secDiscordLink: 'Discord-Konto verbinden',
+    dcLinkDesc: 'Verbinde dein Discord-Konto mit diesem Konto. Welche E-Mail-Adresse du bei Discord benutzt, spielt dabei keine Rolle — die Verbindung laeuft ueber Discord selbst. Erst dadurch weiss die Seite, welche Discord-Rollen dir gehoeren (z. B. Test Pilots fuer die Vorschau).',
+    dcLinkNone: 'Nicht verbunden',
+    dcLinkOne: 'Verbunden mit %name%',
+    dcLinkBtn: 'Mit Discord verbinden',
+    dcLinkBusy: 'Weiterleitung zu Discord …',
+    dcUnlinkBtn: 'Verbindung loesen',
+    dcUnlinkBusy: 'Loese …',
+    dcUnlinkDone: 'Verbindung geloest. Discord-Rollen wirken damit nicht mehr auf dieser Seite.',
+    dcLinkErrDisabled: 'Das Verbinden ist auf dem Server nicht freigeschaltet. Bitte dem Betreiber melden.',
+    dcLinkErrTaken: 'Dieses Discord-Konto ist bereits mit einem anderen Konto auf verse-base.com verbunden.',
+    dcLinkErr: 'Das Verbinden hat nicht geklappt — bitte spaeter erneut versuchen.',
+    dcUnlinkNeedsTwo: 'Zum Loesen brauchst du noch einen zweiten Anmeldeweg — setze zuerst ein Passwort fuer dieses Konto.',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
@@ -245,6 +258,19 @@ const COPY = {
     rsiNotFound: 'Code "%code%" was not found in @%handle%\'s bio on robertsspaceindustries.com yet. Please save your bio on RSI (it can take 1–2 minutes to show up).',
     rsiServerErr: 'The verification server is currently unreachable — please try again later.',
     discordTag: 'Discord Tag', discordPh: 'e.g. Pilot#1234 or @pilot',
+    secDiscordLink: 'Connect Discord account',
+    dcLinkDesc: 'Connect your Discord account to this one. It does not matter which e-mail address you use on Discord — the connection runs through Discord itself. Only then does the site know which Discord roles are yours (for example Test Pilots for the preview).',
+    dcLinkNone: 'Not connected',
+    dcLinkOne: 'Connected as %name%',
+    dcLinkBtn: 'Connect with Discord',
+    dcLinkBusy: 'Redirecting to Discord …',
+    dcUnlinkBtn: 'Disconnect',
+    dcUnlinkBusy: 'Disconnecting …',
+    dcUnlinkDone: 'Disconnected. Discord roles no longer apply on this site.',
+    dcLinkErrDisabled: 'Connecting is not enabled on the server. Please tell the operator.',
+    dcLinkErrTaken: 'This Discord account is already connected to a different verse-base.com account.',
+    dcLinkErr: 'Connecting did not work — please try again later.',
+    dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in — set a password for this account first.',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
@@ -341,6 +367,13 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-crop-title-avatar={COPY.cropTitleAvatar}
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
+  data-dc-link-none={COPY.dcLinkNone}
+  data-dc-link-one={COPY.dcLinkOne}
+  data-dc-unlink-done={COPY.dcUnlinkDone}
+  data-dc-link-err-disabled={COPY.dcLinkErrDisabled}
+  data-dc-link-err-taken={COPY.dcLinkErrTaken}
+  data-dc-link-err={COPY.dcLinkErr}
+  data-dc-unlink-needs-two={COPY.dcUnlinkNeedsTwo}
   data-tester-overview-empty={COPY.testerOverviewEmpty}
   data-tester-never-seen={COPY.testerNeverSeen}
   data-tester-col-name={COPY.testerColName}
@@ -665,6 +698,24 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 <button type="button" id="btnResetRsiVerify">({COPY.rsiReset})</button>
               </div>
             </div>
+          </div>
+
+          <!-- Discord-Verbindung. Der Freitext "Discord Tag" im Profil bleibt
+               daneben bestehen, ist aber eine BEHAUPTUNG; hier entsteht ein
+               NACHWEIS. Ohne ihn kann keine Discord-Rolle auf dieses Konto
+               wirken: der Bot gleicht ausschliesslich Zeilen ab, die eine
+               discord_user_id tragen, und die entsteht erst durch diese
+               Verbindung (Trigger sync_discord_identity auf auth.identities).
+               Div statt section: die globale section-Regel erbt 99/72px. -->
+          <div class="seccard" id="discordLinkCard" style="grid-column:1/-1">
+            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-id"/></svg></span><h3>{COPY.secDiscordLink}</h3></div>
+            <p class="sc-desc">{COPY.dcLinkDesc}</p>
+            <div class="rsi-row">
+              <div class="sec-current mono" id="dcLinkState">{COPY.dcLinkNone}</div>
+              <button type="button" class="btn ok" id="btnDiscordLink" data-idle={COPY.dcLinkBtn} data-busy={COPY.dcLinkBusy}>{COPY.dcLinkBtn}</button>
+              <button type="button" class="btn" id="btnDiscordUnlink" data-idle={COPY.dcUnlinkBtn} data-busy={COPY.dcUnlinkBusy} hidden>{COPY.dcUnlinkBtn}</button>
+            </div>
+            <p class="acx-status" id="dcLinkStatus" role="status" aria-live="polite" hidden></p>
           </div>
 
           <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
