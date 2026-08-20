@@ -114,8 +114,27 @@ if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } 
    Seite, mal zwei Sprachfassungen = -234; die restlichen 2 kommen aus
    dem ebenfalls entfallenen Schiff-Abschnitt. Es ist also eine
    Mengenaenderung durch Konsolidierung, kein Rueckfall auf rohe Werte —
-   Zusicherung 6 (skalenpflichtiger Rest) steht unveraendert auf 0. */
-const MIN_TOKEN_USAGES = 235539;
+   Zusicherung 6 (skalenpflichtiger Rest) steht unveraendert auf 0.
+
+   ABSENKUNG 20.08.2026: 235539 -> 230091 (-5448).
+   URSACHE: D-01 der Schiffskonsole — die Konsole ersetzt die vier Kapitel,
+   statt neben ihnen zu stehen. Damit ist das Kapitel-CSS ersatzlos gefallen
+   (.sd__jump, .sd__chapter samt vier Modifikatoren, .sd__phead, .sd__code,
+   .sd__chtitle, .sd__chnum — 81 Zeilen in ShipDetail.astro) und .sd__code
+   aus der Flex-Mono-Zeile in Layout.astro.
+
+   GEMESSEN, nicht gerechnet: dist zweimal gebaut und mit genau diesem
+   Skript (Zusicherung 2) gezaehlt — 238511 vor dem Umbau, 233063 danach,
+   Differenz exakt 5448. Die Gegenrechnung geht auf: die entfernten
+   Quellzeilen tragen 12 Token-Verweise, das Komponenten-CSS liegt inline in
+   jeder Schiffsseite, 12 x 454 Seiten = 5448. Kein Rueckfall auf rohe
+   Werte: die neu entstandenen Konsolenabschnitte erben die Token-Regeln von
+   .holo__sys, Zusicherung 6 (skalenpflichtiger Rest) steht unveraendert
+   auf 0.
+
+   Abgesenkt wird um die GEMESSENE Ursache, nicht auf den Ist-Wert: die
+   2972 aufgelaufenen Reserve ueber der Klinke bleibt Reserve. */
+const MIN_TOKEN_USAGES = 230091;
 
 function walk(dir, ext) {
   let out = [];

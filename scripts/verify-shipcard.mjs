@@ -29,17 +29,19 @@
      1  Bestand und Selbstauskunft. Gelesene Schiffsseiten je Sprache und
         in Summe; Sperrklinke bei < 440 (heute 454 = 227 je Sprache,
         scripts/lib/metrics-baseline.mjs#seitenSchiffe).
-     2  Kapitelgeruest. Je Seite genau EIN .sd__jump; ein bis vier
-        .sd__chapter mit je einer id aus {ch-buy, ch-profile, ch-gear,
-        ch-context}, keine doppelt.
-     3  Bijektion Pille <-> Kapitel. Jeder Anker in .sd__jump zeigt auf
-        eine vorhandene Kapitel-id derselben Seite; jedes Kapitel mit id
-        hat genau eine Pille.
+     2  Konsolengeruest UND Abwesenheit der Kapitel (D-01). Null
+        .sd__chapter und null .sd__jump site-weit; je Seite genau EINE
+        .holo__rail; ein bis acht .holo__sys mit je einer id aus SYS_IDS,
+        keine doppelt.
+     3  Bijektion Rail-Eintrag <-> Abschnitt. Jeder Anker in .holo__rail
+        zeigt auf eine vorhandene sys-id derselben Seite; jeder Abschnitt
+        mit id hat genau einen Rail-Eintrag.
      4  Der Einheitsrahmen ist weg. Null .sd__panel site-weit; je Seite
-        Zahl(.sd__code) === Zahl(.sd__chapter) (UI-SPEC Punkt 7).
+        Zahl(.holo__sys-ct) === Zahl(.holo__sys) — jeder Abschnitt traegt
+        genau eine Herkunftszeile (UI-SPEC Punkt 7).
      5  Balken nur, wo sie vergleichen (D-02). Null .sd__gtrack
-        site-weit; .sd__proftrack nur auf Seiten mit einem
-        ch-profile-Kapitel, dort mindestens eines.
+        site-weit; .sd__proftrack nur auf Seiten mit einem sys-rank-
+        Abschnitt, dort mindestens eines.
      6  Entdopplung (D-03) — der Kern. div.sd wird in Regionen zerlegt
         (jedes direkte Kind + jede .sd__sub-Unterueberschrift trennt neu
         auf), das Raster fuer aehnliche Schiffe faellt per benannter
@@ -47,8 +49,8 @@
         Text (Meter, SCU, m/s, km/s, HP, DPS), das in mehr als einer
         Region derselben Seite steht, ist ein Befund.
      7  Sprachparitaet. Je EN/DE-Seitenpaar (scripts/lib/page-pairs.mjs)
-        muessen die Zaehlungen von Kapiteln, Pillen, Balkenspuren,
-        Perzentilspuren und Kopfzeilen-Codezeilen uebereinstimmen.
+        muessen die Zaehlungen von Konsolenabschnitten, Rail-Eintraegen,
+        Balkenspuren, Perzentilspuren und Herkunftszeilen uebereinstimmen.
      8  Zombie-Waechter. Jede Ausnahme aus shipcard-exclusions.mjs muss in
         DIESEM Durchgang mindestens einmal gegriffen haben.
 
@@ -76,8 +78,26 @@ import { EXCLUSIONS } from './lib/shipcard-exclusions.mjs';
 const REPORT_MODE = process.argv.includes('--report');
 const MIN_PAGES = 440;
 const MIN_PAIRS = 200;
-const CHAPTER_IDS = ['ch-buy', 'ch-profile', 'ch-gear', 'ch-context'];
-const PROFILE_CHAPTER_ID = 'ch-profile';
+/* Bis D-01 standen hier die vier Kapitel-ids. Sie sind mit dem Kapitelgeruest
+   entfallen: die Konsole ist an seine Stelle getreten. Die Zusicherungen 2, 3,
+   5 und 7 pruefen seither DIESELBE Aussage an der neuen Struktur — sie wurden
+   umgehaengt, nicht stillgelegt.
+
+   ⚠ Genau dieser Schritt fehlte in Phase 16 und ist der Grund, warum D-01
+   fuenf Wellen lang nicht geliefert wurde: verify-shipcard VERLANGTE das
+   Kapitelgeruest, verify-shipconsole verlangte die Konsole, und der einzige
+   Zustand mit beiden Toren gruen war der falsche — beides uebereinander.
+   Wer hier eine Struktur festschreibt, muss sie mitziehen, wenn eine spaetere
+   Phase sie abloest. */
+const SYS_IDS = [
+  // Portgruppen (Marker auf der Buehne, HOLO_GRP_ORDER in ShipDetail.astro)
+  'sys-core', 'sys-arms', 'sys-prop', 'sys-other',
+  // Inhaltsgruppen (CONTENT_GROUPS_SOURCE, vormals die vier Kapitel)
+  'sys-spec', 'sys-trade', 'sys-rank', 'sys-context',
+];
+/* Der Rang-Abschnitt ist der Erbe von ch-profile: nur dort gehoeren
+   Perzentilbalken hin (D-02). */
+const PROFILE_SYS_ID = 'sys-rank';
 const UNIT_ALTS = ['km/s', 'm/s', 'SCU', 'DPS', 'HP', 'm'];
 const VOID_TAGS = new Set([
   'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr',
@@ -392,19 +412,26 @@ function main() {
     const html = readFileSync(f, 'utf8');
     const clean = stripCommentsAndScripts(html);
     const els = scanElements(html);
-    const chapterEls = els.filter((e) => e.classes.includes('sd__chapter'));
-    const chapterIds = chapterEls.map((e) => e.id).filter(Boolean);
-    const jumpEls = els.filter((e) => e.classes.includes('sd__jump'));
+    /* Abgeloeste Struktur — hier NUR noch gezaehlt, um ihre Abwesenheit zu
+       belegen (Zusicherung 2). Solange diese drei Zeilen stehen, kann das
+       Kapitelgeruest nicht unbemerkt zurueckkehren. */
+    const chapterCount = els.filter((e) => e.classes.includes('sd__chapter')).length;
+    const jumpCount = els.filter((e) => e.classes.includes('sd__jump')).length;
     const panelCount = els.filter((e) => e.classes.includes('sd__panel')).length;
-    const codeCount = els.filter((e) => e.classes.includes('sd__code')).length;
+
+    /* Aktuelle Struktur: die Konsole. */
+    const sysEls = els.filter((e) => e.classes.includes('holo__sys'));
+    const sysIds = sysEls.map((e) => e.id).filter(Boolean);
+    const railCount = els.filter((e) => e.classes.includes('holo__rail')).length;
+    const sysCtCount = els.filter((e) => e.classes.includes('holo__sys-ct')).length;
     const gtrackCount = els.filter((e) => e.classes.includes('sd__gtrack')).length;
     const proftrackCount = els.filter((e) => e.classes.includes('sd__proftrack')).length;
 
-    let pillTargets = [];
-    if (jumpEls.length) {
-      const jumpRegion = extractRegion(clean, /<nav\b[^>]*class="[^"]*\bsd__jump\b[^"]*"[^>]*>/g, 'nav');
-      if (jumpRegion) {
-        pillTargets = scanElements(jumpRegion)
+    let railTargets = [];
+    if (railCount) {
+      const railRegion = extractRegion(clean, /<nav\b[^>]*class="[^"]*\bholo__rail\b[^"]*"[^>]*>/g, 'nav');
+      if (railRegion) {
+        railTargets = scanElements(railRegion)
           .filter((e) => e.tag === 'a' && e.href && e.href.startsWith('#'))
           .map((e) => e.href.slice(1));
       }
@@ -412,96 +439,130 @@ function main() {
 
     fileData.set(f, {
       clean,
-      chapterEls,
-      chapterIds,
-      jumpCount: jumpEls.length,
+      chapterCount,
+      jumpCount,
       panelCount,
-      codeCount,
+      sysEls,
+      sysIds,
+      railCount,
+      sysCtCount,
       gtrackCount,
       proftrackCount,
-      pillTargets,
+      railTargets,
     });
   }
 
-  /* ---- Zusicherung 2: Kapitelgeruest ---- */
-  console.log('\n[2] Kapitelgeruest (sd__jump genau 1x, sd__chapter 1-4x mit fester id-Menge)');
+  /* ---- Zusicherung 2: Konsolengeruest — und die Abwesenheit der Kapitel ---- */
+  console.log('\n[2] Konsolengeruest (holo__rail genau 1x, holo__sys 1-8x mit fester id-Menge) + Kapitel weg');
   {
-    let jumpBad = [];
-    let chapterCountBad = [];
-    let chapterIdBad = [];
-    let chapterDupBad = [];
-    const distribution = { 4: 0, 3: 0, 2: 0, 1: 0, 0: 0 };
+    const railBad = [];
+    const sysCountBad = [];
+    const sysIdBad = [];
+    const sysDupBad = [];
+    const chapterRest = [];
+    const jumpRest = [];
+    let chapterTotal = 0;
+    let jumpTotal = 0;
+    const distribution = {};
     for (const [f, d] of fileData) {
-      if (d.jumpCount !== 1) jumpBad.push(`${f} (${d.jumpCount}x)`);
-      const n = d.chapterEls.length;
-      distribution[Math.min(n, 4)] = (distribution[Math.min(n, 4)] || 0) + 1;
-      if (n < 1 || n > 4) chapterCountBad.push(`${f} (${n} Kapitel)`);
-      for (const cid of d.chapterIds) {
-        if (!CHAPTER_IDS.includes(cid)) chapterIdBad.push(`${f}: unbekannte id "${cid}"`);
+      /* D-01: die Konsole ERSETZT die Kapitel. Genau diese Zeilen fehlten dem
+         Tor bis hierher — es prueft die Anwesenheit der neuen Struktur UND die
+         Abwesenheit der alten. Ohne den zweiten Teil ist "ersetzt" von
+         "zusaetzlich" nicht zu unterscheiden. */
+      chapterTotal += d.chapterCount;
+      jumpTotal += d.jumpCount;
+      if (d.chapterCount) chapterRest.push(`${f} (${d.chapterCount}x .sd__chapter)`);
+      if (d.jumpCount) jumpRest.push(`${f} (${d.jumpCount}x .sd__jump)`);
+
+      if (d.railCount !== 1) railBad.push(`${f} (${d.railCount}x)`);
+      const n = d.sysEls.length;
+      distribution[n] = (distribution[n] || 0) + 1;
+      if (n < 1 || n > SYS_IDS.length) sysCountBad.push(`${f} (${n} Abschnitte)`);
+      for (const sid of d.sysIds) {
+        if (!SYS_IDS.includes(sid)) sysIdBad.push(`${f}: unbekannte id "${sid}"`);
       }
       const seen = new Set();
-      for (const cid of d.chapterIds) {
-        if (seen.has(cid)) chapterDupBad.push(`${f}: id "${cid}" doppelt`);
-        seen.add(cid);
+      for (const sid of d.sysIds) {
+        if (seen.has(sid)) sysDupBad.push(`${f}: id "${sid}" doppelt`);
+        seen.add(sid);
       }
     }
-    console.log(`    sd__jump je Seite — Soll: genau 1   Ist Verstoesse: ${jumpBad.length} von ${allFiles.length} Seiten`);
-    console.log(`    sd__chapter je Seite — Soll: 1-4   Ist Verstoesse: ${chapterCountBad.length} von ${allFiles.length} Seiten`);
-    console.log(
-      `    Verteilung Kapitelzahl: 4=${distribution[4]} 3=${distribution[3]} 2=${distribution[2]} 1=${distribution[1]} 0=${distribution[0]}`
-    );
-    console.log(`    Kapitel-id ausserhalb {${CHAPTER_IDS.join(', ')}} — Soll: 0   Ist: ${chapterIdBad.length}`);
-    console.log(`    Doppelte Kapitel-id je Seite — Soll: 0   Ist: ${chapterDupBad.length}`);
-    if (jumpBad.length) fail(`sd__jump nicht genau 1x: ${jumpBad.slice(0, 10).join(', ')}`);
-    if (chapterCountBad.length) fail(`sd__chapter ausserhalb 1-4: ${chapterCountBad.slice(0, 10).join(', ')}`);
-    if (chapterIdBad.length) fail(`unbekannte Kapitel-id: ${chapterIdBad.slice(0, 10).join(', ')}`);
-    if (chapterDupBad.length) fail(`doppelte Kapitel-id: ${chapterDupBad.slice(0, 10).join(', ')}`);
+    const verteilung = Object.keys(distribution)
+      .map(Number).sort((a, b) => b - a)
+      .map((k) => `${k}=${distribution[k]}`).join(' ');
+    console.log(`    .sd__chapter site-weit — Soll: 0   Ist: ${chapterTotal}`);
+    console.log(`    .sd__jump site-weit — Soll: 0   Ist: ${jumpTotal}`);
+    console.log(`    holo__rail je Seite — Soll: genau 1   Ist Verstoesse: ${railBad.length} von ${allFiles.length} Seiten`);
+    console.log(`    holo__sys je Seite — Soll: 1-${SYS_IDS.length}   Ist Verstoesse: ${sysCountBad.length} von ${allFiles.length} Seiten`);
+    console.log(`    Verteilung Abschnittszahl: ${verteilung}`);
+    console.log(`    sys-id ausserhalb {${SYS_IDS.join(', ')}} — Soll: 0   Ist: ${sysIdBad.length}`);
+    console.log(`    Doppelte sys-id je Seite — Soll: 0   Ist: ${sysDupBad.length}`);
+    if (chapterRest.length) {
+      fail(
+        `D-01 verletzt: .sd__chapter noch vorhanden auf ${chapterRest.length} Seite(n) — die Konsole soll die ` +
+          `Kapitel ERSETZEN, nicht ergaenzen: ${chapterRest.slice(0, 10).join(', ')}`
+      );
+    }
+    if (jumpRest.length) {
+      fail(
+        `D-01 verletzt: .sd__jump noch vorhanden auf ${jumpRest.length} Seite(n) — zwei Navigationen ` +
+          `uebereinander: ${jumpRest.slice(0, 10).join(', ')}`
+      );
+    }
+    if (railBad.length) fail(`holo__rail nicht genau 1x: ${railBad.slice(0, 10).join(', ')}`);
+    if (sysCountBad.length) fail(`holo__sys ausserhalb 1-${SYS_IDS.length}: ${sysCountBad.slice(0, 10).join(', ')}`);
+    if (sysIdBad.length) fail(`unbekannte sys-id: ${sysIdBad.slice(0, 10).join(', ')}`);
+    if (sysDupBad.length) fail(`doppelte sys-id: ${sysDupBad.slice(0, 10).join(', ')}`);
   }
 
-  /* ---- Zusicherung 3: Bijektion Pille <-> Kapitel ---- */
-  console.log('\n[3] Bijektion Sprungleisten-Pille <-> Kapitel-id');
+  /* ---- Zusicherung 3: Bijektion Rail-Eintrag <-> Konsolenabschnitt ---- */
+  console.log('\n[3] Bijektion Rail-Eintrag <-> sys-id');
   {
     let pairsChecked = 0;
     const danglingAnchors = [];
-    const missingPills = [];
+    const missingEntries = [];
     for (const [f, d] of fileData) {
-      const chapterIdSet = new Set(d.chapterIds);
-      for (const target of d.pillTargets) {
+      const sysIdSet = new Set(d.sysIds);
+      for (const target of d.railTargets) {
         pairsChecked++;
-        if (!chapterIdSet.has(target)) danglingAnchors.push(`${f}: Anker zeigt auf fehlende Kapitel-id "${target}"`);
+        if (!sysIdSet.has(target)) danglingAnchors.push(`${f}: Anker zeigt auf fehlende sys-id "${target}"`);
       }
       const targetCounts = new Map();
-      for (const t of d.pillTargets) targetCounts.set(t, (targetCounts.get(t) || 0) + 1);
-      for (const cid of d.chapterIds) {
+      for (const t of d.railTargets) targetCounts.set(t, (targetCounts.get(t) || 0) + 1);
+      for (const sid of d.sysIds) {
         pairsChecked++;
-        const n = targetCounts.get(cid) || 0;
-        if (n !== 1) missingPills.push(`${f}: Kapitel "${cid}" hat ${n} Pille(n) (erwartet genau 1)`);
+        const n = targetCounts.get(sid) || 0;
+        if (n !== 1) missingEntries.push(`${f}: Abschnitt "${sid}" hat ${n} Rail-Eintrag/-Eintraege (erwartet genau 1)`);
       }
     }
-    console.log(`    Geprueft: ${pairsChecked} Paar(e)   Soll: 0 Verstoesse   Ist: ${danglingAnchors.length + missingPills.length}`);
-    if (danglingAnchors.length) fail(`Anker ohne Kapitel-Ziel: ${danglingAnchors.slice(0, 10).join(', ')}`);
-    if (missingPills.length) fail(`Kapitel ohne genau eine Pille: ${missingPills.slice(0, 10).join(', ')}`);
+    console.log(`    Geprueft: ${pairsChecked} Paar(e)   Soll: 0 Verstoesse   Ist: ${danglingAnchors.length + missingEntries.length}`);
+    if (danglingAnchors.length) fail(`Rail-Anker ohne Abschnitt: ${danglingAnchors.slice(0, 10).join(', ')}`);
+    if (missingEntries.length) fail(`Abschnitt ohne genau einen Rail-Eintrag: ${missingEntries.slice(0, 10).join(', ')}`);
   }
 
   /* ---- Zusicherung 4: Einheitsrahmen weg ---- */
-  console.log('\n[4] Der Einheitsrahmen ist weg (sd__panel) — sd__code === Kapitelzahl je Seite');
+  console.log('\n[4] Der Einheitsrahmen ist weg (sd__panel) — holo__sys-ct === Abschnittszahl je Seite');
   {
     let totalPanel = 0;
-    const codeMismatch = [];
+    const ctMismatch = [];
     for (const [f, d] of fileData) {
       totalPanel += d.panelCount;
-      if (d.codeCount !== d.chapterEls.length) {
-        codeMismatch.push(`${f}: sd__code=${d.codeCount} != sd__chapter=${d.chapterEls.length}`);
+      /* Erbe der frueheren Pruefung "sd__code === sd__chapter": jeder Abschnitt
+         traegt GENAU EINE Herkunftszeile. Sie ist der Quellen- und
+         Standnachweis (UEX, FleetYards, Spielstand) — faellt sie weg, steht
+         eine Zahl ohne Herkunft auf der Seite. */
+      if (d.sysCtCount !== d.sysEls.length) {
+        ctMismatch.push(`${f}: holo__sys-ct=${d.sysCtCount} != holo__sys=${d.sysEls.length}`);
       }
     }
     console.log(`    sd__panel site-weit — Soll: 0   Ist: ${totalPanel}`);
-    console.log(`    sd__code === sd__chapter je Seite — Soll: 0 Abweichungen   Ist: ${codeMismatch.length}`);
+    console.log(`    holo__sys-ct === holo__sys je Seite — Soll: 0 Abweichungen   Ist: ${ctMismatch.length}`);
     if (totalPanel) fail(`sd__panel noch vorhanden: ${totalPanel} Vorkommen ueber ${allFiles.length} Seiten`);
-    if (codeMismatch.length) fail(`sd__code != Kapitelzahl: ${codeMismatch.slice(0, 10).join(', ')}`);
+    if (ctMismatch.length) fail(`holo__sys-ct != Abschnittszahl: ${ctMismatch.slice(0, 10).join(', ')}`);
   }
 
   /* ---- Zusicherung 5: Balken nur, wo sie vergleichen (D-02) ---- */
-  console.log('\n[5] Balken nur, wo sie vergleichen — sd__gtrack weg, sd__proftrack nur mit ch-profile');
+  console.log(`\n[5] Balken nur, wo sie vergleichen — sd__gtrack weg, sd__proftrack nur mit ${PROFILE_SYS_ID}`);
   {
     let totalGtrack = 0;
     let totalProftrack = 0;
@@ -509,18 +570,22 @@ function main() {
     for (const [f, d] of fileData) {
       totalGtrack += d.gtrackCount;
       totalProftrack += d.proftrackCount;
-      const hasProfileChapter = d.chapterIds.includes(PROFILE_CHAPTER_ID);
-      if (hasProfileChapter && d.proftrackCount < 1) {
-        profBad.push(`${f}: Kapitel ${PROFILE_CHAPTER_ID} vorhanden, aber 0 sd__proftrack`);
+      /* Umgehaengt von ch-profile auf sys-rank: dieselbe Kopplung, neue
+         Struktur. Ohne diesen Schritt haette D-01 das Tor gerissen — jede
+         Seite mit Perzentilbalken waere zum Befund geworden, weil es das
+         Kapitel nicht mehr gibt. */
+      const hasRankSection = d.sysIds.includes(PROFILE_SYS_ID);
+      if (hasRankSection && d.proftrackCount < 1) {
+        profBad.push(`${f}: Abschnitt ${PROFILE_SYS_ID} vorhanden, aber 0 sd__proftrack`);
       }
-      if (!hasProfileChapter && d.proftrackCount > 0) {
-        profBad.push(`${f}: sd__proftrack (${d.proftrackCount}x) ohne Kapitel ${PROFILE_CHAPTER_ID}`);
+      if (!hasRankSection && d.proftrackCount > 0) {
+        profBad.push(`${f}: sd__proftrack (${d.proftrackCount}x) ohne Abschnitt ${PROFILE_SYS_ID}`);
       }
     }
     console.log(`    sd__gtrack site-weit — Soll: 0   Ist: ${totalGtrack}`);
     console.log(`    sd__proftrack site-weit — Ist gesamt: ${totalProftrack}   Verstoesse gegen die Kopplung: ${profBad.length}`);
     if (totalGtrack) fail(`sd__gtrack noch vorhanden: ${totalGtrack} Vorkommen ueber ${allFiles.length} Seiten`);
-    if (profBad.length) fail(`sd__proftrack <-> ${PROFILE_CHAPTER_ID} nicht gekoppelt: ${profBad.slice(0, 10).join(', ')}`);
+    if (profBad.length) fail(`sd__proftrack <-> ${PROFILE_SYS_ID} nicht gekoppelt: ${profBad.slice(0, 10).join(', ')}`);
   }
 
   /* ---- Zusicherung 6: Entdopplung (D-03) — der Kern ---- */
@@ -592,30 +657,31 @@ function main() {
   }
 
   /* ---- Zusicherung 7: Sprachparitaet ---- */
-  console.log('\n[7] Sprachparitaet EN<->DE (Kapitel, Pillen, Balkenspuren, Perzentilspuren, Kopfzeilen-Code)');
+  console.log('\n[7] Sprachparitaet EN<->DE (Abschnitte, Rail-Eintraege, Balkenspuren, Perzentilspuren, Herkunftszeilen)');
   {
     const { pairs } = findPagePairs(allFiles);
     assertMinimumPairs(pairs, fail, MIN_PAIRS);
     let mismatches = 0;
     const examples = [];
+    /* Gezaehlt wird jetzt die Konsole statt der Kapitel. Die Aussage bleibt
+       dieselbe: eine Sprache darf nie mehr oder weniger zeigen als die andere.
+       Die Rail-Eintraege sind dabei die schaerfere Groesse als die frueheren
+       Pillen — sie decken auch die Portgruppen ab. */
+    const sig = (x) =>
+      `Sys=${x.sysEls.length},Rail=${x.railTargets.length},GT=${x.gtrackCount},PT=${x.proftrackCount},Ct=${x.sysCtCount}`;
     for (const [en, de] of pairs) {
       const a = fileData.get(en);
       const b = fileData.get(de);
       if (!a || !b) continue;
       const same =
-        a.chapterEls.length === b.chapterEls.length &&
-        a.jumpCount === b.jumpCount &&
+        a.sysEls.length === b.sysEls.length &&
+        a.railTargets.length === b.railTargets.length &&
         a.gtrackCount === b.gtrackCount &&
         a.proftrackCount === b.proftrackCount &&
-        a.codeCount === b.codeCount;
+        a.sysCtCount === b.sysCtCount;
       if (!same) {
         mismatches++;
-        if (examples.length < 10) {
-          examples.push(
-            `${en} (Kap=${a.chapterEls.length},Jump=${a.jumpCount},GT=${a.gtrackCount},PT=${a.proftrackCount},Code=${a.codeCount}) <-> ` +
-              `${de} (Kap=${b.chapterEls.length},Jump=${b.jumpCount},GT=${b.gtrackCount},PT=${b.proftrackCount},Code=${b.codeCount})`
-          );
-        }
+        if (examples.length < 10) examples.push(`${en} (${sig(a)}) <-> ${de} (${sig(b)})`);
       }
     }
     console.log(`    Verglichene Seitenpaare: ${pairs.length}   Soll: 0 Abweichungen   Ist: ${mismatches}`);

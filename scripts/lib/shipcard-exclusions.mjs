@@ -31,10 +31,13 @@
 
 export const EXCLUSIONS = [
   {
-    id: 'X-ch-profile-aggregate',
+    id: 'X-rang-aggregate',
     mode: 'exclude-region',
-    /* Prueft die rohe Region-HTML des Kapitel-Wurzelelements auf id="ch-profile". */
-    match: (regionHtml) => /\bid\s*=\s*"ch-profile"/.test(regionHtml),
+    /* Prueft die rohe Region-HTML des Abschnitts-Wurzelelements auf
+       id="sys-rank". Hiess bis D-01 X-ch-profile-aggregate und suchte
+       id="ch-profile" — der Anlass ist unveraendert, nur die Adresse hat
+       gewechselt (siehe letzten Absatz der Begruendung). */
+    match: (regionHtml) => /\bid\s*=\s*"sys-rank"/.test(regionHtml),
     reason:
       '14-03-PLAN.md (Task 2, "Bewusste Ausnahme, benannt statt verschwiegen") haelt zwei Werte im ' +
       'Leistungsprofil-Kapitel ausdruecklich NICHT fuer Doppelungen: die Feuerkraft-Summe ' +
@@ -48,9 +51,14 @@ export const EXCLUSIONS = [
       'Nach dem Wegfall des Rohwerts bei Tempo/Fracht/Quantum-Tempo (14-UI-SPEC.md Detailvertrag ' +
       'Punkt 6) bleiben Feuerkraft und Verteidigung die EINZIGEN Zahlen+Einheit-Werte, die das ' +
       'Leistungsprofil-Kapitel noch sichtbar traegt — der Ausschluss der gesamten Region ist deshalb ' +
-      'nicht breiter als noetig. Faellt das Leistungsprofil-Kapitel weg oder verliert es die id ' +
-      '"ch-profile", trifft diese Ausnahme auf keine Region mehr zu, und der Zombie-Waechter ' +
-      '(Zusicherung 8) meldet sie.',
+      'nicht breiter als noetig. Faellt der Rang-Abschnitt weg oder verliert er die id "sys-rank", ' +
+      'trifft diese Ausnahme auf keine Region mehr zu, und der Zombie-Waechter (Zusicherung 8) ' +
+      'meldet sie. GENAU DAS ist am 20.08.2026 passiert: D-01 hat das Kapitel ch-profile durch den ' +
+      'Konsolenabschnitt sys-rank ersetzt, die Ausnahme traf auf 0 Regionen, der Zombie-Waechter ' +
+      'schlug an — und Zusicherung 6 meldete zugleich 99 DPS-Befunde, weil die Feuerkraft-Summe ohne ' +
+      'den Ausschluss wieder gegen die Einzelwerte im Bewaffnungs-Abschnitt lief. Beide Meldungen ' +
+      'hatten dieselbe Ursache, und der Wortlaut oben hatte sie vorhergesagt. Umgehaengt, nicht ' +
+      'gestrichen: der Anlass besteht unveraendert fort, nur an neuer Adresse.',
   },
   {
     id: 'X-cargo-cube-legende',

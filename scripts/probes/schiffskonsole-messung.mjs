@@ -758,10 +758,24 @@ async function runBrowserMessung() {
 
         const leererText = messungOhne.abschnitte.find((a) => a.text.length === 0);
         const nullHoehe = messungOhne.abschnitte.find((a) => a.hoehe <= 0);
+        /* Seit D-01 (20.08.2026) traegt die Konsole ausser den Portgruppen des
+           Schiffs auch die vier Inhaltsgruppen (Technik, Handel, Rang,
+           Kontext) — ziel.gruppen zaehlt nur die Portgruppen und ist damit
+           NICHT mehr die Rail-Laenge. Die Aussage von D-02 haengt ohnehin
+           nicht an einer Fixture-Zahl, sondern an einer Deckung: jeder
+           Rail-Eintrag hat ohne JavaScript einen sichtbaren Abschnitt, und
+           KEIN Abschnitt ist versteckt. Beides wird jetzt gemessen statt
+           gegen eine Liste gehalten. Die Portgruppen muessen weiterhin
+           mindestens enthalten sein — sonst waere die Deckung auch mit einer
+           leeren Konsole erfuellt. */
+        const deckung =
+          messungOhne.abschnitteSichtbar === messungOhne.ankerZahl &&
+          messungOhne.abschnitteSichtbar === messungOhne.abschnitteGesamt &&
+          messungOhne.abschnitteSichtbar >= sollAbschnitte;
         melde(
           'j-ohne-javascript',
-          messungOhne.abschnitteSichtbar === sollAbschnitte && !leererText && !nullHoehe && messungOhne.ankerOk && !messungOhne.ueberlauf,
-          `[${lauf}] Soll ${sollAbschnitte} sichtbare .holo__sys (Rail-Laenge), jede Hoehe>0, kein leerer Text, jeder Rail-Anker auf vorhandene id, kein waagerechter Ueberlauf; ` +
+          deckung && !leererText && !nullHoehe && messungOhne.ankerOk && !messungOhne.ueberlauf,
+          `[${lauf}] Soll: sichtbare .holo__sys == Rail-Laenge == Gesamtzahl und >= ${sollAbschnitte} Portgruppen, jede Hoehe>0, kein leerer Text, jeder Rail-Anker auf vorhandene id, kein waagerechter Ueberlauf; ` +
             `Ist ${messungOhne.abschnitteSichtbar} sichtbar (${messungOhne.abschnitteGesamt} gesamt), ` +
             `Hoehen [${messungOhne.abschnitte.map((a) => a.hoehe.toFixed(0)).join(',')}]px, ` +
             `leerer Text: ${leererText ? leererText.id : 'keiner'}, ` +
