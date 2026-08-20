@@ -40,7 +40,8 @@
 
    MESSMATRIX: 3 Schiffe x 2 Sprachen (Wurzelpfad, /de/-Praefix) x 2 Breiten
    (1280x720, 360x740) x 2 Farbmodi (data-theme am Wurzelelement gesetzt,
-   Neuzeichnen abgewartet) = 24 Laeufe, NEUN Messgruppen (a-i) je Lauf.
+   Neuzeichnen abgewartet) = 24 Laeufe, ZEHN Messgruppen (a-j, seit
+   15-05-PLAN.md Task 2: j-konsolen-kontrast) je Lauf.
    Gruppe i (Backstop E2, seit 14-04-PLAN.md Task 2) laeuft nur bei
    1280x720: kein Innenraster ueberschreitet die Breite seines Kapitels,
    kein Kapitel ueberschreitet die lokale Hoechstbreite von 1100px.
@@ -152,7 +153,8 @@ const HOEHEN_KLINKE_CARRACK_DUNKEL_1280 = {
   wert: 4200,
   regel: 'max', // wandert nur nach unten
   anlass:
-    'Schlussmessung 18.08.2026 (14-04-PLAN.md Task 2) gegen den nach Welle 4 gebauten dist/ dieses Worktrees — Carrack, DE, 1280x720, dunkler Modus, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322: gemessener Ist-Wert 4.179px (Ausgang 5.554px aus 14-CONTEXT.md, -1.375px / -24,8%). EN misst 4.117px am selben Lauf. Die Klinke bleibt bei den in Erfolgskriterium 6 festgeschriebenen 4.200px stehen (nicht auf 4.179px abgesenkt) — 21px Reserve gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes, siehe Grundsatz 5: eine Klinke ist eine Untergrenze fuer KUENFTIGE Läufe, kein exakter Momentwert des heutigen.',
+    'Schlussmessung 18.08.2026 (14-04-PLAN.md Task 2) gegen den nach Welle 4 gebauten dist/ dieses Worktrees — Carrack, DE, 1280x720, dunkler Modus, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322: gemessener Ist-Wert 4.179px (Ausgang 5.554px aus 14-CONTEXT.md, -1.375px / -24,8%). EN misst 4.117px am selben Lauf. Die Klinke bleibt bei den in Erfolgskriterium 6 festgeschriebenen 4.200px stehen (nicht auf 4.179px abgesenkt) — 21px Reserve gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes, siehe Grundsatz 5: eine Klinke ist eine Untergrenze fuer KUENFTIGE Läufe, kein exakter Momentwert des heutigen. ' +
+    'NACHGEMESSEN 20.08.2026 (15-05-PLAN.md Task 2, Fall 1 der Drei-Faelle-Regel) gegen den nach der Konsole gebauten dist/ dieses Worktrees, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4399: EN 3.609px, DE 3.641px — deutlich UNTER der Marke, obwohl document.documentElement.scrollHeight weiterhin die volle Seitenhoehe misst (Rail/Buehne/Auslesung, dann die drei verbliebenen ch-gear-Unterabschnitte). Grund: die Konsole ersetzt Bewaffnung/Komponenten als hohe, gestapelte Kapitelinhalte durch ein KOMPAKTES Drei-Spalten-Band (.holo__wrap clamp(380px,50vh,450px) bei 1280x720, gegen die vormalige Einspalten-Hero-Klammer clamp(540px,74vh,760px)) — die Rail-/Auslesung-Spalten wachsen NICHT additiv zur Seitenhoehe, weil sie GRID-SPALTEN sind, keine gestapelten Bloecke. Fall 1 der Drei-Faelle-Regel (Grundsatz 5): die Marke bleibt bei 4.200px stehen, nicht abgesenkt — obwohl sie messbar nicht mehr ausgereizt wird, ist eine Klinke eine Untergrenze fuer KUENFTIGE Laeufe, kein Momentwert des heutigen.',
 };
 const HOEHEN_MARKE_CARRACK_DUNKEL_1280 = HOEHEN_KLINKE_CARRACK_DUNKEL_1280.wert;
 const KONTRAST_MARKE = 4.5;
@@ -245,7 +247,7 @@ for (const ziel of ZIELE) {
           const err = await farbmodusSetzen(page, schema);
           if (err) throw new Error(err);
         } catch (e) {
-          for (const g of ['a-seitenhoehe', 'b-sprungleiste', 'c-scroll-margin', 'd-pillen-360', 'e-umbruch', 'f-kontrast-chip', 'g-ueberlauf-360', 'h-struktur', 'i-rasterbreite-1280']) {
+          for (const g of ['a-seitenhoehe', 'b-sprungleiste', 'c-scroll-margin', 'd-pillen-360', 'e-umbruch', 'f-kontrast-chip', 'g-ueberlauf-360', 'h-struktur', 'i-rasterbreite-1280', 'j-konsolen-kontrast']) {
             melde(lauf, ziel.id, g, false, `Seitenaufruf fehlgeschlagen: ${e.message}`);
           }
           await page.close();
@@ -456,6 +458,56 @@ for (const ziel of ZIELE) {
           melde(lauf, ziel.id, 'i-rasterbreite-1280', true, 'nur bei 1280x720 geprueft');
         }
 
+        // (j) Konsolen-Kontrast (15-05-PLAN.md Task 2, Erfolgskriterium 7 —
+        // "beide Farbmodi sind gemessen"): dieselbe contrast()-Bibliothek
+        // wie Gruppe f, hier auf zwei Konsolen-Stellen angewendet, die
+        // Gruppe f (Kapitel-Zahl-Chip) nicht abdeckt — die Rail-Zaehlzeile
+        // (.holo__rail-ct, Farbe je System per --gc) und die "Augenbraue"
+        // der Auslesung (.holo__sys-h, dieselbe --gc-Logik, Kopfzeile ueber
+        // der Gruppen-/Einzelansicht). Beide existieren erst ab Welle 3/4 —
+        // vorher wird das als "nicht vorhanden" gemeldet wie bei Gruppe f.
+        try {
+          const railCt = page.locator('.holo__rail-ct').first();
+          const sysH = page.locator('.holo__readout .holo__sys-h, .holo__sys-h').first();
+          const railVorhanden = await railCt.count();
+          const sysHVorhanden = await sysH.count();
+          if (!railVorhanden && !sysHVorhanden) {
+            melde(lauf, ziel.id, 'j-konsolen-kontrast', true, 'nicht vorhanden — gibt es in dieser Welle noch nicht');
+          } else {
+            const teile = [];
+            let alleOk = true;
+            if (railVorhanden) {
+              await railCt.scrollIntoViewIfNeeded();
+              const box = await railCt.boundingBox();
+              if (box) {
+                const ext = await sampleExtremes(page, box);
+                const ok4 = ext.ratio >= KONTRAST_MARKE;
+                if (!ok4) alleOk = false;
+                teile.push(`Rail-Zaehlzeile ${ext.ratio.toFixed(2)}:1${ok4 ? '' : ' UNTER DER MARKE'}`);
+              } else {
+                alleOk = false;
+                teile.push('Rail-Zaehlzeile ohne Bounding-Box');
+              }
+            }
+            if (sysHVorhanden) {
+              await sysH.scrollIntoViewIfNeeded();
+              const box = await sysH.boundingBox();
+              if (box) {
+                const ext = await sampleExtremes(page, box);
+                const ok5 = ext.ratio >= KONTRAST_MARKE;
+                if (!ok5) alleOk = false;
+                teile.push(`Auslesung-Augenbraue ${ext.ratio.toFixed(2)}:1${ok5 ? '' : ' UNTER DER MARKE'}`);
+              } else {
+                alleOk = false;
+                teile.push('Auslesung-Augenbraue ohne Bounding-Box');
+              }
+            }
+            melde(lauf, ziel.id, 'j-konsolen-kontrast', alleOk, `${teile.join(', ')} (Marke ${KONTRAST_MARKE}:1)`);
+          }
+        } catch (e) {
+          melde(lauf, ziel.id, 'j-konsolen-kontrast', false, e.message);
+        }
+
         await page.close();
         await kontext.close();
       }
@@ -465,9 +517,9 @@ for (const ziel of ZIELE) {
 await browser.close();
 
 /* ---------- Selbstauskunft + Urteil ---------- */
-const ERWARTET = ZIELE.length * SPRACHEN.length * BREITEN.length * FARBMODI.length * 9;
+const ERWARTET = ZIELE.length * SPRACHEN.length * BREITEN.length * FARBMODI.length * 10;
 console.log(`\n=== Selbstauskunft ===`);
-console.log(`  Schiffe: ${ZIELE.length}  Sprachen: ${SPRACHEN.length}  Breiten: ${BREITEN.length}  Farbmodi: ${FARBMODI.length}  Messgruppen je Lauf: 9`);
+console.log(`  Schiffe: ${ZIELE.length}  Sprachen: ${SPRACHEN.length}  Breiten: ${BREITEN.length}  Farbmodi: ${FARBMODI.length}  Messgruppen je Lauf: 10`);
 console.log(`  gefahrene Messpunkte: ${gemessen}  (erwartet ${ERWARTET})`);
 console.log(`  bestanden: ${gemessen - fehlgeschlagen}  fehlgeschlagen: ${fehlgeschlagen}`);
 console.log(`  gemessener --nav-h (site-weit, zuletzt gesehener Wert): ${navHoehe ?? '?'}px`);
