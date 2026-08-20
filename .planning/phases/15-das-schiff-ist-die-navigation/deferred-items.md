@@ -37,6 +37,14 @@ wird laut `15-UI-SPEC.md` Detailvertrag Punkt 7 in einer spaeteren Welle
 (Ladeausloeser Klick->Scroll, D-04) ohnehin ERSATZLOS ENTFERNT. Ein
 Zwischen-Fix waere Arbeit an Markup, das in Kuerze verschwindet.
 
-**Empfehlung:** beim Umsetzen von Detailvertrag Punkt 7 (voraussichtlich
-15-02) den Knopf entfernen wie dort beschrieben — kein separater Fix noetig,
-kein Blocker fuer 15-01.
+**Empfehlung:** beim Umsetzen von Detailvertrag Punkt 7 den Knopf entfernen
+wie dort beschrieben — kein separater Fix noetig, kein Blocker.
+
+**Korrektur (15-02):** die urspruengliche Einschaetzung "voraussichtlich
+15-02" hat sich nicht bestaetigt — `15-02-PLAN.md`s beide Tasks beruehren
+ausschliesslich Pruefskripte (`scripts/verify-shipconsole.mjs`,
+`scripts/lib/gate-registry.mjs`, `package.json`, `scripts/verify-shipcard.mjs`),
+kein Markup und kein CSS. Detailvertrag Punkt 7 (Ladeausloeser Klick->Scroll,
+D-04) ist noch nicht umgesetzt. Weiterhin offen, weiterhin kein Blocker —
+faellt bei der Umsetzung von Punkt 7 in einer spaeteren Welle (voraussichtlich
+15-03 oder 15-04) ohnehin ersatzlos weg.

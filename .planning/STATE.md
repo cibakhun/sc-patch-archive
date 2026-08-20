@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 15
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: Completed 15-01-PLAN.md -- P-3 Variante C entschieden, P-1/P-2 am Bildpunkt gemessen (Luecke bei langen Schiffen an S-0 uebergeben), Sonde schiffskonsole-messung.mjs fertig
-last_updated: "2026-08-18T15:43:47.705Z"
+stopped_at: "Completed 15-02-PLAN.md -- verify:shipconsole angelegt und vorgefuehrt rot, ausgesetzt bis 15-05; verify:shipcard scannt section.holo mit, echter Fund (.holo__dims) benannt"
+last_updated: "2026-08-20T08:58:58.435Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 19
   completed_phases: 12
   total_plans: 62
-  completed_plans: 51
+  completed_plans: 52
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -27,6 +27,29 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 **Current focus:** Phase 15 — das-schiff-ist-die-navigation
 
+> **Nachtrag 20.08.2026 — Phase 15 Plan 2 von 5 ausgefuehrt (Welle 2: Werkzeug vor Eingriff).**
+> `15-02-PLAN.md` ist ausgefuehrt: `scripts/verify-shipconsole.mjs` angelegt
+> (acht Zusicherungen gegen den Zielzustand der Konsole — Rail<->System-
+> Bijektion, P-3-Markerzahl gegen `#holodata`, D-02-Sichtbarkeit ohne
+> JavaScript, Textbestands-Klinke, Sprachparitaet), gegen den heutigen Stand
+> vorgefuehrt rot (454/454 Seiten ohne `.holo__sys`, erste reissende
+> Zusicherung [2]) und mit benanntem Anlass ausgesetzt (Registry-Eintrag
+> `disabled`, scharfgeschaltet in `15-05-PLAN.md`, Praezedenz
+> `verify:shipcard` 14-01->14-04). `verify:shipcard`s Entdopplungs-Scan
+> nimmt jetzt zusaetzlich `section.holo` in die Regionsbildung auf — und hat
+> dabei sofort einen echten, vorher unsichtbaren Fund gemacht: `.holo__dims`
+> (HUD-Kurzanzeige L/B/H auf der Buehne) dupliziert dieselben Werte wie das
+> Kapitel "Ausstattung > Masse & Fracht". Als fuenfte benannte Ausnahme
+> `X-holo-dims-hud` dokumentiert statt die Erweiterung zurueckzudrehen.
+> Textbestands-Klinke (Erfolgskriterium 3) auf den heute gemessenen
+> Minimalwert 3.177 Bytes ueber alle 454 Seiten gesetzt, mit 2% Reserve.
+> `#holoact` (toter Knopf, `deferred-items.md`) bewusst NICHT angefasst —
+> ausserhalb des Aufgabenbereichs dieser Welle, Einschaetzung im
+> Deferred-Dokument korrigiert. `npm run build && npm run gate` gruen,
+> normal UND mit `STAGING=1`. Details in `15-02-SUMMARY.md`. Naechster
+> Schritt: `15-03-PLAN.md` (Welle 3: D-02 — vier Systemabschnitte
+> serverseitig im HTML, Rail als Ankerliste, Beweis ohne JavaScript).
+>
 > **Nachtrag 18.08.2026 (fuenfter) — Phase 15 Plan 1 von 5 ausgefuehrt (Welle 1: Tracer P-1/P-2/P-3).**
 > `15-01-PLAN.md` ist ausgefuehrt: P-3 auf gemessener Grundlage entschieden
 > (Variante C — `thruster_main`/`thruster_retro`/`thruster_vtol` bekommen
@@ -245,7 +268,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 86%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -308,6 +331,7 @@ Progress: [█████████░] 86%
 | Phase 14 P03 | 70min | 2 tasks | 6 files |
 | Phase 14 P04 | ~75min | 3 tasks | 5 files |
 | Phase 15 P01 | 185min | 3 tasks | 6 files |
+| Phase 15 P02 | 30min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -414,6 +438,7 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-04: verify:shipcard scharf geschaltet (Aussetzungsgrund entfernt) -- 0 Befunde, npm run gate laeuft 19 statt 18 Schritte gruen, normal UND STAGING=1
 - [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
 - [Phase ?]: [Phase 15]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
+- [Phase ?]: [Phase 15]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
 
 ### Pending Todos
 
@@ -463,6 +488,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T15:43:47.654Z
-Stopped at: Completed 15-01-PLAN.md -- P-3 Variante C entschieden, P-1/P-2 am Bildpunkt gemessen (Luecke bei langen Schiffen an S-0 uebergeben), Sonde schiffskonsole-messung.mjs fertig
+Last session: 2026-08-20T08:58:58.386Z
+Stopped at: Completed 15-02-PLAN.md -- verify:shipconsole angelegt und vorgefuehrt rot, ausgesetzt bis 15-05; verify:shipcard scannt section.holo mit, echter Fund (.holo__dims) benannt
 Resume file: None
