@@ -10,8 +10,11 @@ fully configurable from inside Discord.
 > messages and voice activity, which only a Gateway connection delivers.
 > Workers receive slash commands but never message/voice events, so XP-from-
 > activity is impossible there. This bot runs as a small Node process next to
-> the site. It needs **no privileged intents** (it never reads message content —
-> only that a message happened).
+> the site. It never reads message content — only that a message happened —
+> so Presence and Message Content intents stay off. It **does** need one
+> privileged intent since Phase 14 (Testpilot gate): **Server Members**, to
+> mirror the `tester` role into the site's database (D-08/D-17/D-25) — see
+> Setup step 1 below.
 
 This complements the one-shot server **builder** in [`../`](../): the builder
 creates the channels/roles once; this bot runs continuously for ranks. They share
@@ -70,8 +73,16 @@ Prestige adds ✦ **Ascended** tiers on top. Edit the whole ladder in
 
 ### 1. Bot application
 Use the same application as the rest of VerseBase (or make one at
-<https://discord.com/developers/applications>). Copy the **Bot token**. No
-privileged intents are required — leave them off.
+<https://discord.com/developers/applications>). Copy the **Bot token**.
+
+**Since Phase 14 (Testpilot gate), one privileged intent is required:** on
+the **Bot** tab → **Privileged Gateway Intents**, switch on **only** "SERVER
+MEMBERS INTENT" → **Save Changes**. Without it, `guildMemberUpdate` /
+`guildMemberAdd` / `guildMemberRemove` never fire — silently, with no
+error — and the Testpilot role mirror (`src/role-sync.mjs`,
+`src/role-reconcile.mjs`) stays permanently empty. Leave **"PRESENCE
+INTENT"** and **"MESSAGE CONTENT INTENT"** off (reasoned opt-outs, see
+`../COVERAGE.md`).
 
 ### 2. Invite it (with Manage Roles)
 Replace `YOUR_APP_ID` with your Application ID:

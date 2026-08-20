@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Konzept B — „Konsole“</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ============================================================
+   KONZEPT B — „KONSOLE“
+   Das Schiff IST die Navigation. Keine Kapitelleiste — man waehlt ein
+   System, und das Schiff zeigt, WO dieses System sitzt. Die Daten
+   erscheinen als Auslesung neben der markierten Stelle.
+
+   ⭐ Das kann NUR VerseBase: die Port-Positionen liegen aus dem
+   Spielmesh vor, 227/227 Schiffe (siehe holo-components-page).
+   RSI und die Wiki haben diese Daten nicht.
+
+   ⚠ Attrappe: die Marker sitzen hier auf geschaetzten Bildkoordinaten.
+   In Produktion kommen sie aus den echten Portpositionen.
+   ============================================================ */
+:root{
+  --grund:#05080e;
+  --flaeche:#0b1119;
+  --hoch:#131c28;
+  --text:#e9f0f8;
+  --fliess:#94a3b4;
+  --leise:#5f6b7a;
+  --an:#5ad2ff;
+  --warm:#e8b45c;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--grund);color:var(--fliess);
+  font:400 15px/1.6 "Barlow",system-ui,sans-serif}
+.buehne{display:grid;grid-template-columns:230px 1fr 340px;min-height:100vh;gap:0}
+
+/* ---------- Links: Systemwahl ---------- */
+.systeme{background:var(--flaeche);padding:28px 0;display:flex;flex-direction:column}
+.systeme .marke{padding:0 24px 22px;font:700 14px "Barlow",system-ui,sans-serif;color:var(--text);letter-spacing:.1em}
+.sys{display:flex;align-items:center;gap:13px;padding:13px 24px;cursor:pointer;
+  border-left:2px solid transparent;transition:background .18s,border-color .18s}
+.sys:hover{background:rgba(90,210,255,.04)}
+.sys.aktiv{background:rgba(90,210,255,.07);border-left-color:var(--an)}
+.sys .ikon{width:9px;height:9px;border-radius:2px;background:var(--leise);transform:rotate(45deg)}
+.sys.aktiv .ikon{background:var(--an);box-shadow:0 0 12px rgba(90,210,255,.7)}
+.sys .nm{color:var(--fliess);font-size:14px}
+.sys.aktiv .nm{color:var(--text);font-weight:600}
+.sys .zahl{margin-left:auto;font:400 12px var(--mono);color:var(--leise)}
+.systeme .fuss{margin-top:auto;padding:22px 24px 0;font:400 11px/1.7 var(--mono);color:var(--leise)}
+
+/* ---------- Mitte: das Schiff ---------- */
+.schiff{position:relative;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 45%,#0d1canvas 0%,transparent 70%),var(--grund);
+  overflow:hidden}
+.schiff::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(60,130,190,.16),transparent 72%)}
+.bild{position:relative;width:88%;max-width:760px}
+.bild img{width:100%;display:block;filter:saturate(.82) contrast(1.05)}
+.marker{position:absolute;width:26px;height:26px;transform:translate(-50%,-50%);cursor:pointer}
+.marker i{position:absolute;inset:8px;border-radius:50%;background:var(--an);display:block}
+.marker::after{content:"";position:absolute;inset:0;border-radius:50%;
+  border:1px solid var(--an);opacity:.55;animation:puls 2.6s ease-out infinite}
+@keyframes puls{0%{transform:scale(.55);opacity:.85}100%{transform:scale(1.5);opacity:0}}
+.marker.aus i{background:var(--leise)}
+.marker.aus::after{display:none}
+.marker .fahne{position:absolute;left:30px;top:-6px;white-space:nowrap;
+  background:rgba(11,17,25,.94);border-left:2px solid var(--an);
+  padding:7px 12px;border-radius:0 5px 5px 0}
+.marker .fahne b{display:block;color:var(--text);font-size:13px;font-weight:600}
+.marker .fahne span{font:400 11px var(--mono);color:var(--leise)}
+.schiffKopf{position:absolute;top:34px;left:38px}
+.schiffKopf .werft{font:400 11px var(--mono);color:var(--an);letter-spacing:.18em}
+.schiffKopf h1{font:700 40px/1 "Barlow",system-ui,sans-serif;color:var(--text);margin-top:6px;letter-spacing:-.02em}
+.schiffFuss{position:absolute;bottom:26px;left:38px;right:38px;
+  display:flex;gap:34px;font:400 12px var(--mono);color:var(--leise)}
+.schiffFuss b{color:var(--text);font-weight:600;font-size:14px;display:block}
+
+/* ---------- Rechts: Auslesung ---------- */
+.auslesung{background:var(--flaeche);padding:30px 28px;overflow:auto}
+.auslesung .titel{font:400 11px var(--mono);color:var(--an);letter-spacing:.2em;margin-bottom:4px}
+.auslesung h2{font:600 21px "Barlow",system-ui,sans-serif;color:var(--text);margin-bottom:20px}
+.gruppe{margin-bottom:26px}
+.gruppe .kopf{display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
+.gruppe .kopf .l{font-size:13px;color:var(--fliess)}
+.gruppe .kopf .r{font:600 14px var(--mono);color:var(--text)}
+.z{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:7px 0}
+.z .l{color:var(--leise);font-size:14px}
+.z .v{color:var(--text);font:600 14px var(--mono);text-align:right;white-space:nowrap}
+.gr{background:var(--hoch);color:var(--text);border-radius:4px;padding:1px 7px;
+  font:600 11px var(--mono);margin-right:8px}
+.summe{background:var(--hoch);border-radius:8px;padding:16px 18px;margin-bottom:24px}
+.summe .k{font:400 11px var(--mono);color:var(--leise);letter-spacing:.14em}
+.summe .v{font:700 27px "Barlow",system-ui,sans-serif;color:var(--an);margin-top:2px;font-variant-numeric:tabular-nums}
+.hinweis{font-size:12px;color:var(--leise);line-height:1.65;margin-top:20px;
+  padding-top:16px;border-top:1px solid rgba(255,255,255,.07)}
+</style>
+</head>
+<body>
+<div class="buehne">
+
+  <nav class="systeme">
+    <div class="marke">VERSE·BASE</div>
+    <div class="sys aktiv"><span class="ikon"></span><span class="nm">Bewaffnung</span><span class="zahl">8</span></div>
+    <div class="sys"><span class="ikon"></span><span class="nm">Antrieb</span><span class="zahl">4</span></div>
+    <div class="sys"><span class="ikon"></span><span class="nm">Schilde</span><span class="zahl">2</span></div>
+    <div class="sys"><span class="ikon"></span><span class="nm">Fracht</span><span class="zahl">456</span></div>
+    <div class="sys"><span class="ikon"></span><span class="nm">Besatzung</span><span class="zahl">6–12</span></div>
+    <div class="sys"><span class="ikon"></span><span class="nm">Kühlung</span><span class="zahl">2</span></div>
+    <div class="sys"><span class="ikon"></span><span class="nm">Radar</span><span class="zahl">1</span></div>
+    <div class="fuss">
+      ANVL_Carrack<br>
+      Alpha 4.9.0 · 03.08.2026<br>
+      Positionen aus dem Schiffsmodell
+    </div>
+  </nav>
+
+  <main class="schiff">
+    <div class="schiffKopf">
+      <div class="werft">ANVIL AEROSPACE</div>
+      <h1>Carrack</h1>
+    </div>
+
+    <div class="bild">
+      <img src="https://media.starcitizen.tools/thumb/9/92/Carrack_over_microTech_3.8.png/1280px-Carrack_over_microTech_3.8.png.webp" alt="Carrack">
+      <div class="marker" style="left:44%;top:30%"><i></i>
+        <div class="fahne"><b>6 × S4 Repeater</b><span>bemannte Türme · 4.907 DPS</span></div></div>
+      <div class="marker" style="left:63%;top:54%"><i></i>
+        <div class="fahne"><b>2 × S4 ferngesteuert</b><span>1.636 DPS</span></div></div>
+      <div class="marker aus" style="left:28%;top:62%"><i></i></div>
+      <div class="marker aus" style="left:79%;top:44%"><i></i></div>
+    </div>
+
+    <div class="schiffFuss">
+      <span>LÄNGE<b>126 m</b></span>
+      <span>BESATZUNG<b>6–12</b></span>
+      <span>REISETEMPO<b>140 m/s</b></span>
+      <span>IM VERSE AB<b style="color:#e8b45c">34.398.000 aUEC</b></span>
+    </div>
+  </main>
+
+  <aside class="auslesung">
+    <div class="titel">SYSTEM 01</div>
+    <h2>Bewaffnung</h2>
+
+    <div class="summe">
+      <div class="k">FEUERKRAFT GESAMT</div>
+      <div class="v">6.543 DPS</div>
+    </div>
+
+    <div class="gruppe">
+      <div class="kopf"><span class="l">Bemannte Türme</span><span class="r">4.907 DPS</span></div>
+      <div class="z"><span class="l"><span class="gr">S4</span>CF-447 Rhino Repeater</span><span class="v">6 ×</span></div>
+      <div class="z"><span class="l">Stationen</span><span class="v">3 × je 2</span></div>
+    </div>
+
+    <div class="gruppe">
+      <div class="kopf"><span class="l">Ferngesteuerte Türme</span><span class="r">1.636 DPS</span></div>
+      <div class="z"><span class="l"><span class="gr">S4</span>CF-447 Rhino Repeater</span><span class="v">2 ×</span></div>
+      <div class="z"><span class="l">Stationen</span><span class="v">1 × je 2</span></div>
+    </div>
+
+    <div class="gruppe">
+      <div class="kopf"><span class="l">Gegenmaßnahmen</span><span class="r">2 Werfer</span></div>
+    </div>
+
+    <p class="hinweis">Die Marker sitzen an den Stellen, an denen die Hardpoints im
+    Schiffsmodell tatsächlich sitzen — nicht an gestalteten Positionen. Ein Klick
+    auf einen Marker öffnet das Bauteil im Item-Finder.</p>
+  </aside>
+
+</div>
+</body>
+</html>

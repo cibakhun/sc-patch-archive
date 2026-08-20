@@ -91,16 +91,24 @@ export function shipGallery(id: string, d: VehicleData): GalleryImage[] {
 }
 
 /* ---------- Leistungsprofil: Perzentile im Gesamtkatalog ---------- */
-export type ProfileBar = { label: string; value: string; pct: number };
+// showValue: false bei den drei Metriken, deren Rohwert identisch in einem
+// Detail-Unterabschnitt der Ausstattung wiederkehrt (Geschwindigkeit, Fracht,
+// Quantum-Tempo) — nur der Rohwert entfaellt in der Profilzeile, nicht die
+// Zeile selbst; das Perzentil steht sonst nirgends auf der Seite
+// (14-UI-SPEC.md Detailvertrag Punkt 6). Default true fuer die drei
+// rechnerischen Aggregate (Agilitaet/Feuerkraft/Verteidigung), die es
+// nirgends sonst gibt.
+export type ProfileBar = { label: string; value: string; pct: number; showValue: boolean };
 
 type MetricDef = {
   labelKey: UIKey;
   get: (d: VehicleData) => number | null;
   fmt: (n: number, loc: string) => string;
+  showValue?: boolean;
 };
 const nf = (n: number, loc: string) => n.toLocaleString(loc, { maximumFractionDigits: 0 });
 const METRICS: MetricDef[] = [
-  { labelKey: 'metric.speed', get: (d) => d.scmSpeed ?? null, fmt: (n, loc) => `${nf(n, loc)} m/s SCM` },
+  { labelKey: 'metric.speed', get: (d) => d.scmSpeed ?? null, fmt: (n, loc) => `${nf(n, loc)} m/s SCM`, showValue: false },
   {
     labelKey: 'metric.agility',
     get: (d) => (d.pitch != null && d.yaw != null && d.roll != null ? (d.pitch + d.yaw + d.roll) / 3 : null),
@@ -122,8 +130,8 @@ const METRICS: MetricDef[] = [
     },
     fmt: (n, loc) => `${nf(n, loc)} HP`,
   },
-  { labelKey: 'metric.cargo', get: (d) => (d.cargoSCU != null && d.cargoSCU > 0 ? d.cargoSCU : null), fmt: (n, loc) => `${nf(n, loc)} SCU` },
-  { labelKey: 'metric.qspeed', get: (d) => d.qtSpeedMs ?? null, fmt: (n, loc) => `${nf(n / 1000, loc)} km/s` },
+  { labelKey: 'metric.cargo', get: (d) => (d.cargoSCU != null && d.cargoSCU > 0 ? d.cargoSCU : null), fmt: (n, loc) => `${nf(n, loc)} SCU`, showValue: false },
+  { labelKey: 'metric.qspeed', get: (d) => d.qtSpeedMs ?? null, fmt: (n, loc) => `${nf(n / 1000, loc)} km/s`, showValue: false },
 ];
 
 let sortedCache: number[][] | null = null;
@@ -157,7 +165,12 @@ export function buildProfile(all: { data: VehicleData }[], d: VehicleData, lang:
   METRICS.forEach((m, i) => {
     const x = m.get(d);
     if (x == null) return;
-    bars.push({ label: t(m.labelKey), value: m.fmt(x, loc), pct: Math.max(3, pctRank(sorted[i], x)) });
+    bars.push({
+      label: t(m.labelKey),
+      value: m.fmt(x, loc),
+      pct: Math.max(3, pctRank(sorted[i], x)),
+      showValue: m.showValue !== false,
+    });
   });
   return bars;
 }

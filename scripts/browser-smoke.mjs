@@ -47,6 +47,18 @@ const BASE = (flag('--base', process.env.SMOKE_BASE || 'http://localhost:8080'))
 const NUR = flag('--only', null);          // Teilmenge zur Diagnose
 const KOPF = argv.includes('--headed');    // zum Zusehen
 
+// Testpilot-Tor (Plan 09, Aufgabe 3): steht das Tor auf dem Ziel scharf
+// (CI-Pruef-Container, VB_GATE_BYPASS gesetzt), kaeme der Rauchtest ohne
+// diesen Wert nicht an einer einzigen Leitseite vorbei — jeder Aufruf
+// liefe auf /gate.html statt auf die echte Seite. Der Wert wandert an
+// ZWEI Stellen: in jeden Browser-Kontext (extraHTTPHeaders, damit jeder
+// Seitenaufruf ihn traegt) und an den robots.txt-Abruf VOR dem Lauf unten
+// (sonst bricht der ohne den Wert schon mit Exit 2 ab, bevor der Browser
+// ueberhaupt startet). Ist die Variable nicht gesetzt (lokal gegen astro
+// preview, wo es kein Tor gibt), aendert sich am Verhalten nichts.
+const GATE_BYPASS = process.env.SMOKE_GATE_BYPASS || '';
+const GATE_BYPASS_HEADERS = GATE_BYPASS ? { 'X-VB-Gate-Bypass': GATE_BYPASS } : {};
+
 // Untergrenze der Aufrufe. Wie ueberall im Projekt: darf nur nach OBEN
 // wandern. Ohne sie waere eine leergeraeumte Seitenliste von einem
 // vollstaendigen Lauf nicht zu unterscheiden — beide melden gruen.
@@ -336,7 +348,7 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
    GEGENTEIL voneinander. */
 let IST_VORSCHAU = false;
 try {
-  const r = await fetch(`${BASE}/robots.txt`);
+  const r = await fetch(`${BASE}/robots.txt`, { headers: GATE_BYPASS_HEADERS });
   IST_VORSCHAU = /^Disallow:\s*\/\s*$/m.test(await r.text());
 } catch (e) {
   console.error(`\n${BASE}/robots.txt ist nicht erreichbar (${e.message}) — laeuft der Server?\n`);
@@ -346,6 +358,10 @@ try {
 /* ---------- Lauf ---------- */
 console.log(`\n=== Browser-Rauchtest gegen ${BASE} ===`);
 console.log(`Artefakt: ${IST_VORSCHAU ? 'Vorschau-Build (site-weit noindex)' : 'Live-Build'}`);
+// Selbstauskunft, unter welcher Bedingung dieser Lauf gruen war (Grundsatz
+// 7) — und dieselbe Zeile macht sichtbar, wenn jemand lokal versehentlich
+// MIT Bypass misst.
+console.log(`Testpilot-Tor-Bypass: ${GATE_BYPASS ? 'MIT Bypass geprueft (SMOKE_GATE_BYPASS gesetzt)' : 'ohne Bypass'}`);
 console.log(`Browser: ${BROWSER}\n`);
 
 const browser = await chromium.launch({ executablePath: BROWSER, headless: !KOPF });
@@ -364,6 +380,7 @@ for (const variante of VARIANTEN) {
     viewport: { width: variante.breite, height: variante.hoehe },
     colorScheme: variante.schema,
     ignoreHTTPSErrors: true,
+    extraHTTPHeaders: GATE_BYPASS_HEADERS,
   });
   // CSP-Verstoesse am Dokument mitschreiben — das ist das einzige Signal,
   // das den echten nginx-Header prueft. Muss VOR dem ersten Laden haengen.

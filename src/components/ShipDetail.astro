@@ -13,7 +13,7 @@ import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
-import { buildFacts, buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
+import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import type { Visuals } from '../lib/shipVisuals';
 import { pickHero } from '../lib/shipRenders';
@@ -93,11 +93,14 @@ const spine = d.patches
   .map((v) => patches.find((p) => p.data.version === v))
   .filter(Boolean);
 
-// cargo/ore/dims werden anderswo (Maße & Fracht) gezeigt -> hier per stabilem
-// key ausfiltern (sprachunabhängig, da Labels jetzt lokalisiert sind).
-const facts = buildFacts(d, lang).filter((f) => !['cargo', 'ore', 'dims'].includes(f.key ?? ''));
 const armament = buildArmament(d, lang);
 const armStats = buildArmStats(d, lang);
+// Turm-DPS-Summe als ZUSAETZLICHE Zelle nur bei MEHR als einer Turmgruppe
+// (14-UI-SPEC.md Detailvertrag Punkt 4) — bei genau einer Turmgruppe steht
+// derselbe Wert bereits als arm__gval in deren eigener Zeile, eine zweite
+// Zelle waere die Doppelung, die D-03 verbietet.
+const turretDpsTotal =
+  d.turrets.length > 1 && d.turretDps ? Math.round(d.turretDps).toLocaleString(loc) : null;
 const desc = vDesc(d, lang);
 // FleetYards liefert vereinzelt "<= PLACEHOLDER =>" als Komponentennamen
 // (z. B. Javelin, ROC-DS) — solche Einträge tragen keine Information und
@@ -127,12 +130,64 @@ const stageStats: { label: string; value: string }[] = [
   },
 ];
 
+// Kapitelliste (EINZIGE Quelle fuer Sprungleiste + Kapitelkoepfe, D-01).
+// Jeder Eintrag traegt die stabile, NICHT uebersetzte Kennung, den vollen
+// Kapiteltitel, das Kurzlabel fuer die Sprungleisten-Pille und die
+// Bedingung, unter der das Kapitel ueberhaupt rendert. Welle 3 verlaengert
+// diese Liste um drei Eintraege (ch-profile, ch-gear, ch-context) — sie
+// baut sie nicht um. Diese Liste ist die EINZIGE Quelle: eine Pille
+// entsteht nur zu einem Eintrag, der auch sein Element rendert; jede
+// Entkopplung erzeugt einen toten Anker, und tote Anker sind bei
+// `audit:site` ein FEHLER. Die Kapitelnummer wird aus der gefilterten
+// Liste fortlaufend abgeleitet, nicht aus einer festen Zuordnung — eine
+// Seite mit drei Kapiteln zeigt 01, 02, 03, nicht 01, 03, 04.
+// Wurzelbedingungen der drei neuen Kapitel — wortgleich die ODER-Verknuepfung
+// ihrer Unterabschnitts-Bedingungen weiter unten im Markup (nicht neu
+// formuliert, siehe Task-1-Anweisung). Vorgezogen, damit die Sprungleiste sie
+// kennt, bevor das Kapitel selbst gerendert wird.
+const gearDims = viz.dims != null || viz.cargo != null || viz.fuel.length > 0;
+const gearFlight = viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0;
+// 16-03-PLAN.md SCHRITT 4: Bewaffnung (vormals gearArms) und die
+// Bauteilliste (vormals Teil von gearComp) wandern VOLLSTAENDIG aus dem
+// Kapitel in die Konsole — sie tragen darum nicht mehr zur
+// Kapitel-Sichtbarkeit bei. Nur die Widerstandswerte (Huelle/Schild,
+// aggregierte Ganzschiff-Kennzahlen ohne Einbauort) bleiben im Kapitel.
+const gearDefense = viz.defense.length > 0;
+const hasGear = gearDims || gearFlight || gearDefense;
+const hasContext = viz.insurance.length > 0 || paints.length > 0 || variants.length > 0 || loaners.length > 0 || spine.length > 0;
+// Umfeld-Kopfzeile: FleetYards-Stand nur, wenn tatsaechlich FleetYards-Inhalt
+// (Lackierungen ODER Varianten/Loaner) im Kapitel steht — sonst die
+// bestehende Standard-Angabe des Versicherungs-Panels (14-UI-SPEC.md Punkt 7).
+const ctxHasFleetYards = paints.length > 0 || variants.length > 0 || loaners.length > 0;
+const ctxCode = ctxHasFleetYards
+  ? `${t('ship.code.ctx')} // FleetYards · ${t('ship.asof')} ${extrasFetchedAt}`
+  : `${t('ship.code.ctx')} // ${t('ship.code.uee')}`;
+
+const CHAPTERS_SOURCE: { id: string; title: string; pill: string; renders: boolean }[] = [
+  // Kaufen rendert strukturell IMMER (Rueckfalltext sd__nobuy ohne Kaufzeile).
+  { id: 'ch-buy', title: t('ship.buy.title'), pill: t('ship.jump.buy'), renders: true },
+  { id: 'ch-profile', title: t('ship.profile.title'), pill: t('ship.jump.profile'), renders: profile.length > 0 },
+  { id: 'ch-gear', title: t('ship.ch.gear'), pill: t('ship.ch.gear'), renders: hasGear },
+  { id: 'ch-context', title: t('ship.ch.context'), pill: t('ship.ch.context'), renders: hasContext },
+];
+const chapters = CHAPTERS_SOURCE.filter((c) => c.renders).map((c, i) => ({
+  ...c,
+  num: String(i + 1).padStart(2, '0'),
+}));
+const chapterNum = (id: string) => chapters.find((c) => c.id === id)?.num ?? '';
+
 // ---------- Interaktives Komponenten-Hologramm ----------
 // Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
 // gerenderte Mesh und die Hardpoints (ship-hardpoints.json, COMPILED_BONES)
 // teilen denselben Raum -> Marker EXAKT, nur feste Achsvertauschung
-// cry->glTF (x, z, -y). Angezeigt werden bewusst NUR Komponenten (core) +
-// Bewaffnung (arms) — Triebwerke sind ausgeblendet (zu viele, kein Mehrwert).
+// cry->glTF (x, z, -y). P-3 (16-01-PLAN.md, Variante C): drei der vier
+// Triebwerksarten (thruster_main/retro/vtol) umgehen den Stock-Loadout-Join
+// unten und bekommen IMMER einen Marker, auch ohne Stock-Item — Triebwerke
+// sind Geometrie, kein Ausruestungsplatz, es gibt fuer sie kein Stock-Item,
+// das der Join finden koennte. thruster_mav (die vielen kleinen Manoevrier-
+// triebwerke) bleibt aussen vor: unter Variante C waere ihre Einzelgruppe
+// (40 Marker am dichtesten Schiff, drak-corsair) ueber der am Bildpunkt
+// belegten 20er-Obergrenze aus Task 1/2 dieses Plans.
 type HoloPort = {
   k: string; g: string; p: number[];
   label: string | null; size: number | null;
@@ -156,6 +211,12 @@ const HOLO_GRP: Record<string, string> = {
 };
 const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'] as const;
 const HOLO_DEFAULT_ON = ['core', 'arms'];
+// P-3 (16-01-PLAN.md Task 1, Variante C — gemessen gegen das ausgelieferte
+// holodata gegengeprueft, 908 Schiff-Gruppen-Paare, 0 Abweichungen): diese
+// Triebwerksarten umgehen unten den Stock-Loadout-Join und bekommen IMMER
+// einen Marker, auch ohne Stock-Item. thruster_mav bleibt aussen vor, siehe
+// Kommentar am Kopf dieses Abschnitts.
+const HOLO_BYPASS_STOCK_JOIN = new Set(['thruster_main', 'thruster_retro', 'thruster_vtol']);
 const gameMesh = (holoMeshesSnapshot as any).meshes?.[id] ?? null;
 const gameHp = gameMesh ? ((shipHardpointsSnapshot as any).ships?.[id] ?? null) : null;
 const hasHolo = !!(gameMesh && gameHp);
@@ -237,26 +298,38 @@ if (hasHolo) {
   for (const hp of srcPorts) {
     const g = HOLO_GRP[hp.k];
     if (stock) {
-      // DataCore-Pfad: Marker NUR, wenn der Bone ein echtes Stock-Item trägt.
-      // Bones ohne Item (Controller, Regen-Pools, Waffenschränke, Phantom-Bones
-      // geteilter Varianten-Geometrie) fallen weg — kein namenloser/gestapelter
-      // Müll mehr.
+      // DataCore-Pfad: Marker NUR, wenn der Bone ein echtes Stock-Item trägt —
+      // AUSSER die Art umgeht den Join (P-3, HOLO_BYPASS_STOCK_JOIN oben).
+      // Bones ohne Item UND ohne Bypass (Controller, Regen-Pools, Waffen-
+      // schränke, Phantom-Bones geteilter Varianten-Geometrie) fallen weg —
+      // kein namenloser/gestapelter Müll mehr.
       const items = hp.n ? stock[hp.n.toLowerCase()] : undefined;
-      if (!items || !items.length) continue;
+      if ((!items || !items.length) && !HOLO_BYPASS_STOCK_JOIN.has(hp.k)) continue;
       if (g === 'core') coreKindsSeen.add(hp.k);
-      // Name aus den Spieldateien; fehlt die Lokalisierung (z.B. fest verbaute
-      // Capital-Ship-Komponenten ohne Shop-Namen), auf das Art-Label ausweichen
-      // statt den internen Klassennamen (COOL_AEGS_S04_…) zu zeigen.
-      const label = items.map((it) => (it.count > 1 ? `${it.count}× ` : '') + (it.name || t(`holo.kind.${hp.k}` as any))).join(' / ');
-      const sizes = new Set(items.map((it) => it.size));
-      const single = items.length === 1 ? items[0] : null;
-      holoPorts.push({
-        k: hp.k, g, p: hp.p,
-        label,
-        size: sizes.size === 1 ? (items[0].size ?? null) : null,
-        ...(single?.name ? enrich(single.name) : {}),
-        ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
-      });
+      if (items && items.length) {
+        // Name aus den Spieldateien; fehlt die Lokalisierung (z.B. fest verbaute
+        // Capital-Ship-Komponenten ohne Shop-Namen), auf das Art-Label ausweichen
+        // statt den internen Klassennamen (COOL_AEGS_S04_…) zu zeigen.
+        const label = items.map((it) => (it.count > 1 ? `${it.count}× ` : '') + (it.name || t(`holo.kind.${hp.k}` as any))).join(' / ');
+        const sizes = new Set(items.map((it) => it.size));
+        const single = items.length === 1 ? items[0] : null;
+        holoPorts.push({
+          k: hp.k, g, p: hp.p,
+          label,
+          size: sizes.size === 1 ? (items[0].size ?? null) : null,
+          ...(single?.name ? enrich(single.name) : {}),
+          ...(g === 'core' ? { lab: t(`holo.kind.${hp.k}` as any) } : {}),
+        });
+      } else {
+        // Bypass-Fall: kein Stock-Item fuer diesen Triebwerks-Bone (erwartet —
+        // Triebwerke sind Geometrie, kein Ausruestungsplatz). Marker traegt nur
+        // die Art als Text, keine Item-Finder-Anreicherung (kein Item-Name).
+        holoPorts.push({
+          k: hp.k, g, p: hp.p,
+          label: t(`holo.kind.${hp.k}` as any),
+          size: null,
+        });
+      }
     } else {
       // Kein DataCore-Loadout fuer diesen Bone: alte Reihenfolge-Zuordnung als Fallback.
       const pool = pools[hp.k];
@@ -337,6 +410,26 @@ if (hasHolo) {
   }
 }
 
+// ---------- Systemabschnitte der Konsole (16-03-PLAN.md Task 1, SCHRITT 2) ----------
+// Zaehlung + Gruppierung fuer den Gruppen-Zustand jedes Systemabschnitts.
+// arms uebernimmt armStats/armament UNVERAENDERT (siehe Markup), core
+// uebernimmt slots UNVERAENDERT — beide sind bereits vorhandene
+// Aggregationen derselben Aussage und werden hier NICHT verdoppelt. prop
+// und other bekommen dieselbe FORMEL wie armStats (Ports nach Bauteilart
+// buendeln, Anzahl + t('holo.kind.<k>')), zum ersten Mal ausgeschrieben.
+type SysKindCount = { k: string; label: string; n: number };
+const sysKindCounts = (gr: string): SysKindCount[] => {
+  const counts = new Map<string, number>();
+  for (const p of holoData?.ports ?? []) {
+    if (p.g !== gr) continue;
+    counts.set(p.k, (counts.get(p.k) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([k, n]) => ({ k, n, label: t(`holo.kind.${k}` as any) }))
+    .sort((a, b) => b.n - a.n);
+};
+const sysPortCount = (gr: string): number => holoData?.ports.filter((p) => p.g === gr).length ?? 0;
+
 // Belastbarkeit der gezeigten Positionen — steuert die Herkunfts-Zeile unter dem
 // Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
 // conf:low), darf dort nicht "Positionen aus den Spieldateien" stehen.
@@ -349,7 +442,16 @@ const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
 const holoAvail = !!(holoData || holoUrl);
 const hasGallery = gallery.length > 0;
 const stageModeCount = (hasVideo ? 1 : 0) + (hasGallery ? 1 : 0) + (holoAvail ? 1 : 0);
-const defaultMode: 'video' | 'img' | 'holo' = hasVideo ? 'video' : hasGallery ? 'img' : 'holo';
+// 16-04-PLAN.md Task 3, AENDERUNG 2 (16-UI-SPEC.md Detailvertrag Punkt 7/8):
+// das Mesh ist IMMER der Standardmodus, sobald es fuer ein Schiff vorliegt --
+// haengt nicht mehr an Video-/Bildverfuegbarkeit. Begruendung (Planungsnotizen
+// dieses Plans): Erfolgskriterium 1 verlangt, dass man auf JEDER Schiffsseite
+// ein System waehlt und am gerenderten Schiff sieht, wo es sitzt -- startete
+// die Buehne im Videomodus, zeigte die Konsole beim ersten Blick ein Video
+// statt das Schiff, und die Rail zeigte auf nichts. Der Umschalter
+// Video/Bilder/3D BLEIBT bestehen (siehe .holo__toggle unten) -- das
+// kuratierte Marketing-Video ist einen Klick entfernt, kein Datenverlust.
+const defaultMode: 'video' | 'img' | 'holo' = holoAvail ? 'holo' : hasVideo ? 'video' : hasGallery ? 'img' : 'holo';
 const metaDesc = t('ship.meta.desc')
   .replace('%name%', d.name)
   .replace('%maker%', d.manufacturer ?? t('ship.maker.unknown'));
@@ -411,8 +513,64 @@ a{color:inherit;text-decoration:none}
 /* ============ HANGAR-BÜHNE ============ */
 /* Layout: Info links, interaktive Holo-Bühne rechts (Grid). Das Hologramm
    ist eingebettet (kein Popup-Toggle mehr) und lädt lazy beim Scrollen. */
-.holo{position:relative;height:clamp(540px,74vh,760px);margin-top:56px;overflow:hidden;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
-  border-bottom:1px solid var(--line)}
+/* SCHRITT 1 (16-03-PLAN.md Task 1): .holo muss mit den Systemabschnitten
+   UND der Rail wachsen duerfen -- Hoehe und Beschnitt wandern deshalb auf
+   .holo__wrap (die Buehne selbst, unten). Bleiben sie hier, schneidet
+   .holo die neuen Abschnitte ab. */
+.holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
+  border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:220px 1fr 320px}
+/* 16-05-PLAN.md (Kollisionsbehebung, 1280px): margin-top:56px reicht nur,
+   solange keine Zurueck-Marke ueber der Buehne schwebt. Ist sie sichtbar
+   (SiteNav.astro Zeile 947/949, --nav-h waechst von 68 auf 104/116px), lag
+   die Marke bisher auf der ERSTEN RAIL-ZEILE ("KOMPONENTEN 8") -- vorher war
+   das unbedenklich, weil an dieser Stelle nur Hintergrund/HUD-Text stand,
+   inzwischen liegt dort ein klickbares Bedienelement. Zusatz exakt in Hoehe
+   des --nav-h-Zuwachses (104-68=36px, 116-68=48px), nicht auf einen neuen
+   Absolutwert geraten. */
+:root:has(.snav__back:not([hidden])) .holo{margin-top:92px}
+@media(max-width:860px){
+  :root:has(.snav__back:not([hidden])) .holo{margin-top:104px}
+}
+/* 16-04-PLAN.md Task 1, SCHRITT 1 (16-UI-SPEC.md Detailvertrag Punkt 1):
+   drei feste Grid-Spalten, Breiten UND Bruchkanten UNVERAENDERT aus dem
+   UI-SPEC uebernommen (220px/320px/1100px/760px). Explizite Platzierung
+   statt Dokumentreihenfolge, weil die Rail (nav.holo__rail) im Markup NACH
+   der Buehne (.holo__wrap) steht -- D-02 verlangt genau diese
+   Lesereihenfolge fuer den No-JS-Fall (erst das Schiff, dann die
+   Sprungliste) -- aber optisch LINKS von ihr stehen muss.
+   .holo__sys-Abschnitte (No-JS-Restbestand: bleiben Kind von .holo, bis ein
+   Skript sie in die Auslesung verschiebt) spannen die volle Breite und
+   stapeln sich als eigene Zeilen darunter, unabhaengig von der Spaltenzahl. */
+.holo__rail{grid-column:1;grid-row:1;min-width:0}
+.holo__wrap{grid-column:2;grid-row:1;min-width:0}
+.holo__readout{grid-column:3;grid-row:1;min-width:0}
+.holo__sys{grid-column:1/-1}
+@media(max-width:1099px){
+  .holo{grid-template-columns:220px 1fr}
+  /* grid-row:2 ist PFLICHT hier -- ohne diese Zeile bleibt die Basisregel
+     grid-row:1 stehen (CSS-Kaskade ueberschreibt nur, was neu genannt
+     wird), und die Auslesung ueberlagert dann WOERTLICH die Buehne in
+     derselben Zelle statt in eine neue Zeile zu fallen (gefunden per
+     elementFromPoint-Diagnose bei 860px: ein Auslesungs-Textknoten lag
+     ueber dem Canvas, "kein sichtbarer Beschriftungskasten nach Hover"
+     war die Folge, nicht der eigentliche Fund -- der eigentliche Fund war
+     dieser Ueberlagerungsfehler). */
+  .holo__readout{grid-column:1/-1;grid-row:2}
+}
+@media(max-width:760px){
+  /* 760px, nicht 759px: dieselbe Bruchkante, die .holo__wrap/.holo__bar in
+     diesem Bauteil bereits an mehreren Stellen benutzen (Zeilen siehe
+     UI-SPEC-Fundstelle) — der UI-SPEC-Beispielcode schrieb 759px, um keine
+     Ueberschneidung mit einer min-width:760px-Query zu riskieren, aber
+     dieser Vertrag hat keine solche Query; 760px haelt die Bruchkante mit
+     dem Rest der Datei konsistent (sonst gaebe es bei GENAU 760px eine
+     Ein-Pixel-Luecke zwischen zwei sich widersprechenden Regelsaetzen). */
+  .holo{grid-template-columns:1fr}
+  .holo__wrap{grid-column:1;grid-row:1}
+  .holo__rail{grid-column:1;grid-row:2}
+  .holo__readout{grid-column:1;grid-row:3}
+}
 .holo__grid{position:absolute;left:-24%;right:-24%;bottom:-4%;height:56%;pointer-events:none;
   transform:perspective(760px) rotateX(63deg);transform-origin:50% 100%;
   background:
@@ -426,8 +584,31 @@ a{color:inherit;text-decoration:none}
 .is-3d-active .holo__pad{background:radial-gradient(50% 50% at 50% 50%,rgba(45,212,255,.55),rgba(45,212,255,.16) 55%,transparent 72%)}
 /* Vollbreite: Bühne randlos über die ganze Hero-Breite -> Modell mittig,
    groß, und bis zum Bildschirmrand verschiebbar. Titel liegt als Overlay auf. */
-.holo__wrap{position:relative;z-index:2;height:100%;width:100%}
-.holo__stage{position:absolute;inset:0;min-height:360px}
+/* SCHRITT 1 (16-03-PLAN.md Task 1): traegt jetzt die feste Hoehe UND den
+   Beschnitt, die vorher an .holo hingen (siehe Kommentar dort) -- die
+   Buehne selbst bleibt dadurch unveraendert gross, waechst aber nicht mit
+   der Rail/den Systemabschnitten darunter mit.
+   16-04-PLAN.md Task 3 (Fuellgrad-Klinke haelt bei den NEUEN, schmaleren
+   Buehnenbreiten): der urspruengliche Hoehenwert (540-760px, aus der Zeit
+   VOR Rail+Auslesung, als .holo noch die volle Seitenbreite war) ergab nach
+   Task 1 ein zu QUADRATISCHES Seitenverhaeltnis (z.B. 740x666 bei 1280px
+   statt vorher 1280x666) -- fitCamera() (holo-viewer.js) haelt die
+   VERTIKALE Sichtfeldweite konstant, ein schmaleres Seitenverhaeltnis gibt
+   ihr deshalb WENIGER Zoom-Spielraum, bevor die laengere Kante (bei einem
+   elongierten Schiff meist die Breite) am harten Bildrand ankommt --
+   gemessen brach die Carrack/Ironclad-Fuellgrad-Klinke dadurch NEU bei
+   1440/1280/1100/860px, die bei Welle 1 dort noch hielt (nur 860/414/360
+   fielen damals durch). Fix: die Hoehe schrumpft mit der (jetzt schmaleren)
+   Buehnenbreite mit, um ein grosszuegigeres Seitenverhaeltnis
+   wiederherzustellen -- am gerenderten Bildpunkt gegengeprueft (siehe
+   16-04-SUMMARY.md), nicht geschaetzt. */
+.holo__wrap{position:relative;z-index:2;height:clamp(380px,50vh,450px);width:100%;overflow:hidden}
+/* min-height war 360px (aeltere Vorsichtsgrenze aus der Zeit vor dieser
+   Klinken-Reparatur) -- blockierte bei 1100px (Buehnenbreite 560px) die
+   oben noetige kleinere Hoehe. 160px bleibt als Schutz gegen eine
+   entartete Buehne bei extremen Randfaellen stehen, bindet bei keiner der
+   hier gemessenen Breiten. */
+.holo__stage{position:absolute;inset:0;min-height:160px}
 /* Bilder fuellen die Buehne randlos wie das Video (cover statt contain) —
    User-Feedback "Bild nicht ueber die ganze Breite". Volle Ansichten ohne
    Beschnitt liefert weiterhin die Galerie-Sektion darunter. */
@@ -442,11 +623,12 @@ a{color:inherit;text-decoration:none}
 /* Status (Lade-%/Fehler) nur zeigen, solange geladen wird oder 3D aktiv ist —
    ein stiller Auto-Start-Fehlschlag darf das Foto nicht dauerhaft überlagern */
 .holo__stage:not(.is-3d):not(.is-loading) .holo__status{display:none}
-.holo__activate{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;cursor:pointer;
-  appearance:none;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);background:var(--scrim-5);color:var(--accent);
-  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-15);text-transform:uppercase;padding:.7rem 1.2rem;
-  backdrop-filter:blur(4px)}
-.holo__activate:hover{background:color-mix(in srgb,var(--accent) 16%,var(--scrim-5))}
+/* .holo__activate/#holoact (16-04-PLAN.md Task 3, D-04) sind ERSATZLOS
+   ENTFERNT -- der Knopf war bereits vor dieser Welle inert (hidden,
+   deferred-items.md), und ein Ladeausloeser per Knopf widerspricht D-04
+   ohnehin ("wenn das Schiff die Navigation IST, darf es nicht hinter einem
+   Knopf liegen"). Das Laden loest jetzt ausschliesslich der
+   IntersectionObserver weiter unten aus. */
 .holo__hintline{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);z-index:4;pointer-events:none;white-space:nowrap;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
@@ -495,40 +677,46 @@ a{color:inherit;text-decoration:none}
    wirkt wie ein natives Hintergrund-Video (bei reduce-motion per JS deaktiviert) */
 .holo__videoshield{position:absolute;inset:0;z-index:4;cursor:default}
 @media(prefers-reduced-motion:reduce){.holo__ship img{transition:none}}
-/* ===== Ebenen-Panel (oben links) — Sci-Fi-MFD ===== */
-.holo__layers{position:absolute;left:clamp(14px,3vw,30px);top:52px;z-index:6;width:min(184px,44vw);
-  display:flex;flex-direction:column;padding:.2rem .2rem .25rem;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-5));border:1px solid var(--line);
-  backdrop-filter:blur(7px);box-shadow:0 10px 30px var(--on-media-shadow);
-  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
-/* Ebenen-Panel NUR in der Holo-Ansicht: display:none schlägt das base
-   display:flex (das sonst das [hidden]-Attribut aushebelt) */
-.holo__stage:not(.is-3d) .holo__layers{display:none}
-.holo__layers-h{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;
-  appearance:none;background:transparent;border:0;border-bottom:1px solid var(--on-media-line);cursor:default;text-align:left;
-  font:700 .62rem/1 var(--font-ui);letter-spacing:var(--ls-18);text-transform:uppercase;color:var(--muted);
-  padding:.5rem .55rem .5rem;margin-bottom:.15rem}
-.holo__layers-chev{width:13px;height:13px;flex:none;color:var(--muted);display:none;transition:transform var(--dur-base) var(--ease-ui)}
-.holo__layer{--gc:var(--accent);display:flex;align-items:center;gap:.55rem;width:100%;cursor:pointer;appearance:none;border:0;
-  background:transparent;padding:.44rem .55rem;border-radius:3px;
-  font:700 .74rem/1 var(--font-ui);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted);
-  transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui),opacity var(--dur-fast) var(--ease-ui)}
-.holo__layer[data-g="arms"]{--gc:var(--gold)}
-.holo__layer[data-g="prop"]{--gc:var(--accent-2)}
-.holo__layer[data-g="other"]{--gc:#a78bfa}
-.holo__layer:hover{background:var(--on-media-veil);color:var(--text)}
-.holo__layer-ic{width:17px;height:17px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
-  transition:filter var(--dur-fast) var(--ease-ui)}
-.holo__layer-lb{flex:1;text-align:left;white-space:nowrap}
-.holo__layer-ct{flex:none;font-size:var(--fs-4);font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--gc) 80%,var(--on-media));
-  background:color-mix(in srgb,var(--gc) 16%,transparent);
-  clip-path:polygon(3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%,0 3px);padding:.08rem .4rem;min-width:1.5rem;text-align:center}
-.holo__layer[aria-pressed="true"]{color:var(--on-media)}
-.holo__layer[aria-pressed="true"] .holo__layer-ic{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 70%,transparent))}
-.holo__layer[aria-pressed="false"]{opacity:.5}
-.holo__layer[aria-pressed="false"] .holo__layer-ct{background:transparent;color:var(--muted)}
-.holo__layer--lab{margin-top:.15rem;padding-top:.5rem;border-top:1px solid var(--on-media-line)}
-.holo__layer-eye{width:15px;height:15px;flex:none;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.holo__layer--lab[aria-pressed="false"] .holo__layer-eye{stroke:var(--muted)}
+/* ===== Rail — reine Anker-Liste, ersetzt den schwebenden Ebenen-Kasten =====
+   SCHRITT 3 (16-03-PLAN.md Task 1): funktioniert vollstaendig ohne Skript,
+   exakt das Muster von .sd__jump (Kapitel-Sprungleiste, Phase 14) — bare
+   <a>, Styling ausschliesslich ueber den Nachfahren-Selektor. Farbzuordnung
+   je Gruppe (--gc) UNVERAENDERT aus dem fruehereren .holo__layer[data-g]
+   uebernommen — keine neue Farbe.
+   Seit 16-04-PLAN.md Task 1 ist .holo__rail die erste Grid-Spalte (220px,
+   siehe .holo-Basisregel oben) — flex-direction:column macht daraus
+   verlaesslich eine SENKRECHTE Liste (bei nur vier kurzen Labels wuerde
+   flex-wrap allein zwar meist ebenfalls umbrechen, aber nicht garantiert).
+   Bei <=760px (D-03) wird daraus wieder eine WAAGERECHTE Chip-Reihe unter
+   der Buehne — siehe Medienabfrage weiter unten, die flex-direction
+   zurueck auf row stellt. */
+.holo__rail{position:relative;z-index:3;display:flex;flex-direction:column;flex-wrap:wrap;gap:.5rem;
+  padding:.9rem .8rem;background:var(--bg-2);border-right:1px solid var(--line)}
+.holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.5rem;
+  border:1px solid var(--line);background:var(--surface);padding:.4rem .7rem;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--muted);
+  transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.holo__rail a:hover,.holo__rail a:focus-visible{color:var(--text);border-color:var(--gc)}
+.holo__rail a[aria-current="true"]{color:var(--text);border-color:var(--gc);background:color-mix(in srgb,var(--gc) 12%,var(--surface))}
+.holo__rail a[data-g="arms"]{--gc:var(--gold)}
+.holo__rail a[data-g="prop"]{--gc:var(--accent-2)}
+.holo__rail a[data-g="other"]{--gc:#a78bfa}
+.holo__rail-ic{width:16px;height:16px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.holo__rail-lb{white-space:nowrap}
+/* 16-05-PLAN.md Task 2: die Mischung war 80% --gc/20% --muted -- fuer die
+   Gruppe "Antrieb" (--accent-2, Stahlblau) im dunklen Farbmodus reichte das
+   nicht: gemessen 4,43:1 gegen die 4,5:1-Marke (argo-atls, einziges
+   Pruefschiff mit NUR dieser Gruppe in der Rail, dadurch bislang von keiner
+   Messung getroffen). Anheben auf 95% brachte nur 4,54:1 -- kaum Reserve,
+   die letzten Prozent Beimischung tragen fast nichts mehr zur Helligkeit
+   bei. Reine --gc-Farbe (kein Mix mehr) statt eines weiteren Prozentwerts:
+   dieselbe Farbe, die auch Icon und Rahmen der Gruppe schon tragen (siehe
+   .holo__rail-ic direkt darueber), 4,60:1 im dunklen Modus gemessen (0,10
+   Reserve statt einer Punktlandung bei exakt der Marke). Kein zweiter, gruppenspezifischer Wert -- gilt fuer
+   alle vier Gruppen gleich, die drei anderen lagen ohnehin komfortabel
+   darueber und bleiben es. */
+.holo__rail-ct{font-variant-numeric:tabular-nums;color:var(--gc);
+  background:color-mix(in srgb,var(--gc) 16%,transparent);padding:.08rem .4rem;min-width:1.4rem;text-align:center}
 
 /* Dauerhafte Komponenten-Beschriftungen: entzerrte HUD-Callouts. Gestapelt als
    Leader-Linien (unten) · Text-Chips (Mitte) · Positions-Knoten (oben) — so
@@ -585,8 +773,15 @@ a{color:inherit;text-decoration:none}
 .holo-nodes circle.is-np.is-active{stroke:#ffe9a8;filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--gold))}
 .holo-nodes circle.is-est{fill:none;stroke:#dff6ff;stroke-width:2.2}
 
-/* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) ===== */
-.holo__panel{--gc:var(--accent);position:absolute;right:clamp(14px,2vw,24px);top:52px;z-index:7;width:min(272px,86vw);background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));backdrop-filter:blur(8px);
+/* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) =====
+   16-04-PLAN.md Task 2 (16-UI-SPEC.md Detailvertrag Punkt 4): der
+   Einzel-Zustand der Auslesung. Verliert seine absolute Overlay-Position
+   und wird per appendChild (Skriptpfad, wie die Systemabschnitte) zum
+   normalen Block-Kind von .holo__readout -- position/right/top/z-index/
+   width sind deshalb entfallen (die Breite kommt jetzt von der Grid-Spalte
+   selbst). Optik (Rahmenoberkante/Eck-Klammer/Scanlines/Farbzuordnung je
+   Gruppe) UNVERAENDERT. */
+.holo__panel{--gc:var(--accent);position:relative;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));backdrop-filter:blur(8px);
   border:1px solid color-mix(in srgb,var(--gc) 42%,transparent);box-shadow:0 14px 44px var(--on-media-shadow),0 0 26px color-mix(in srgb,var(--gc) 14%,transparent);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
 .holo__panel[data-g="arms"]{--gc:var(--gold)}
@@ -626,8 +821,11 @@ a{color:inherit;text-decoration:none}
   border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent);text-transform:none;letter-spacing:var(--ls-3)}
 .holo__panel .hp__note::before{content:"!";position:absolute;margin-left:-1.35rem;margin-top:.02rem;
   width:.95rem;height:.95rem;line-height:.95rem;text-align:center;font-weight:900;font-size:var(--fs-4);color:var(--ink-media);background:var(--gold);border-radius:50%}
-/* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines */
-.holo__layers::before,.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
+/* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines. Bezog frueher auch
+   .holo__layers (den schwebenden Ebenen-Kasten) mit ein — die Rail
+   (16-03-PLAN.md Task 1, SCHRITT 3) ist eine flache Zeile, keine MFD-Kachel
+   mehr, und traegt diese Eck-Klammer deshalb nicht. */
+.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
   border-top:2px solid var(--accent);border-left:2px solid var(--accent);pointer-events:none}
 .holo__panel::before{border-color:var(--gc)}
 .holo__panel::after{content:"";position:absolute;inset:0;pointer-events:none;
@@ -639,19 +837,110 @@ a{color:inherit;text-decoration:none}
     linear-gradient(270deg,var(--accent) 0 22px,transparent 22px) bottom right/44px 2px no-repeat,
     linear-gradient(0deg,var(--accent) 0 22px,transparent 22px) bottom right/2px 44px no-repeat;
   opacity:.6}
+
+/* ===== Systemabschnitte — SCHRITT 2, 16-03-PLAN.md Task 1 (D-02) =====
+   Grundzustand OHNE Skript: gestapelte, sichtbare <section>-Elemente in
+   Dokumentreihenfolge unter der Rail, kein Versteck-Attribut, keine
+   Vorlagenhuelle (16-UI-SPEC.md Detailvertrag Punkt 6.1). Farbzuordnung je
+   Gruppe (--gc) UNVERAENDERT aus .holo__panel/.holo__layer uebernommen.
+   Seit 16-04-PLAN.md Task 1 (SCHRITT 1) traegt .holo__sys zusaetzlich
+   grid-column:1/-1 (siehe .holo-Basisregel oben) -- das betrifft nur den
+   No-JS-Restbestand (direktes Kind von .holo); sobald ein Skript die
+   Abschnitte in .holo__readout verschiebt, gilt dort die schmalere,
+   scoped Innenraster-Regel weiter unten. */
+.holo__sys{--gc:var(--accent);position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;
+  padding:1.3rem clamp(1rem,3vw,2.5rem) 1.6rem;border-top:1px solid var(--line)}
+.holo__sys[data-g="arms"]{--gc:var(--gold)}
+.holo__sys[data-g="prop"]{--gc:var(--accent-2)}
+.holo__sys[data-g="other"]{--gc:#a78bfa}
+.holo__sys-h{display:flex;align-items:center;gap:.55rem;margin-bottom:.2rem;
+  font-family:var(--font-ui);font-weight:800;font-size:var(--fs-11);letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--gc)}
+.holo__sys-h svg{width:22px;height:22px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.holo__sys-ct{margin:0 0 .8rem;font-size:var(--fs-7);color:var(--muted)}
+/* prop/other: neue, aber strukturgleiche Stueckzahl-Liste (dieselbe Formel
+   wie arm__scell, nur ohne dessen Bewaffnungs-spezifischen Klassennamen). */
+.holo__sys-list{display:flex;flex-wrap:wrap;gap:.5rem}
+.holo__sys-row{display:flex;align-items:baseline;gap:.45rem;padding:.5rem .75rem;
+  background:var(--bg-2);border:1px solid var(--line)}
+.holo__sys-row b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--gc);font-variant-numeric:tabular-nums}
+.holo__sys-row span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+
+/* ===== Auslesung (.holo__readout) — dritte Grid-Spalte, 16-04-PLAN.md
+   Task 1 (16-UI-SPEC.md Detailvertrag Punkt 1/4) =====
+   Im ausgelieferten HTML LEER (aria-label traegt den neuen Schluessel
+   ship.console.readout.aria); ihren Inhalt bekommt sie ausschliesslich
+   durchs Umhaengen im Skriptpfad (SCHRITT 2 unten, appendChild statt
+   Kopie). Hoehe/Beschnitt spiegeln .holo__wrap, damit die Auslesung nicht
+   die Grid-Zeile aufblaeht, wenn ihr Inhalt (dichteste Gruppe, z.B.
+   Carrack-Bewaffnung) hoeher waere als die Buehne -- ob das je eintritt,
+   misst Task 3 (Backstop "overflow E4"); die Absicherung steht defensiv
+   bereits hier. */
+.holo__readout{max-height:clamp(380px,50vh,450px);overflow-y:auto;scrollbar-gutter:stable}
+/* 16-04-PLAN.md Task 3: spiegelt .holo__wrap's Fuellgrad-Klinken-Reparatur
+   (siehe dortiger Kommentar an der .holo__wrap-Basisregel) -- dieselbe
+   dritte Stufe fuer die schmale 3-Spalten-Untergrenze bei 1100px
+   (Buehnenbreite dort nur 560px, braucht eine kleinere Hoehe als bei
+   1280/1440px, sonst reisst die Klinke genau dort). */
+@media(max-width:1279px){.holo__readout{max-height:clamp(300px,36vh,360px)}}
+@media(max-width:900px){.holo__readout{max-height:clamp(320px,42vh,420px)}}
+/* D-05: haelt sich an .holo__wrap's Hoehe im gestapelten Zustand (siehe
+   dortiger Kommentar) -- die Auslesung darf hier nicht knapper bemessen
+   sein als die Buehne, sonst waere sie der erste Kasten, der unnoetig
+   scrollt. */
+@media(max-width:760px){.holo__readout{max-height:clamp(640px,86vh,820px)}}
+/* Phase-14-Lektion (14-04-SUMMARY.md Deviation 2/3) auf die neue, noch
+   schmalere ~272px-Nutzbreite (320px Spalte minus Innenabstand)
+   uebertragen: Innenraster mit automatischer Spaltenzahl brechen dort in
+   mehr Zeilen um und werden dadurch HOEHER statt kuerzer; zusammengesetzte
+   Woerter koennen ueber die Zellgrenze laufen. Werte kleiner als die
+   14-04-Werte (dort ~469px Spaltenbreite) -- am Bildschirmfoto
+   gegengeprueft (16-04-SUMMARY.md). */
+.holo__readout .arm__sum{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.holo__readout .arm__scell span,
+.holo__readout .sd__slot .t,
+.holo__readout .sd__slot .n,
+.holo__readout .arm__name,
+.holo__readout .hp__name,
+.holo__readout .hp__kind{hyphens:auto;overflow-wrap:break-word}
+/* 16-05-PLAN.md (Kollisionsbehebung, 1280px): .sd__slot .t (Kategorie-Label,
+   z.B. "SCHILDGENERATOREN") fehlte in der obigen Liste -- ein einzelnes
+   zusammengesetztes Wort ohne Leerstelle kann ohne overflow-wrap NICHT
+   umbrechen und lief bei 110px-Mindestspaltenbreite ueber die Kartenkante
+   hinaus, sichtbar abgeschnitten am rechten Seitenrand (Sichtbefund
+   `deferred-items.md` 20.08.2026). Dieselbe Behandlung wie .n direkt
+   darunter, keine neue Regel-Familie. */
+.holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
+
+/* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
+   Koerper (arm__sum/arm__list bzw. sd__slots) aus dem Kapitel-Umzug
+   UNVERAENDERT -- keine eigene Farbregel noetig: .holo traegt
+   data-media-surface (theme.css "Dunkle Inseln"), das setzt --text/--muted/
+   --line/--bg-2/--surface fuer ALLE Nachfahren bereits korrekt, auch im
+   Hellmodus, ohne dass hier etwas ueberschrieben werden muss. */
 /* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
-   sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus) */
+   sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus). pointer-events:
+   none (16-01-PLAN.md Task 2 — vorgefunden, nicht neu eingefuehrt): reines
+   Wasserzeichen-Chrome, aber ohne dieses Attribut schluckt es Zeigerereignisse
+   fuer alles darunter. Sichtbar wurde das erst durch die neue Sonde: bei
+   414px sitzt .holo__hud (top:18px/left:16px) exakt ueber einem Marker
+   nahe dem Bug (argo-csv-cargo), der Marker war per Maus-simulation nicht
+   erreichbar (elementFromPoint traf .holo__hud statt den Canvas). */
 .holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted)}
+  letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted);pointer-events:none}
 .holo__hud b{color:var(--accent);font-weight:700}
 .holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right}
-/* Die Buehne liegt bewusst randlos UNTER der Kopfleiste. Haengt dort die
-   freie Zurueck-Marke (SiteNav, ~101 px hinunter), laege sie genau auf
-   „HANGAR // <Hersteller>". Die HUD-Zeile rueckt dann als PAAR nach unten —
-   .holo__dims gegenueber muss auf gleicher Hoehe bleiben. */
-:root:has(.snav__back:not([hidden])) .holo__hud,
-:root:has(.snav__back:not([hidden])) .holo__dims{top:58px}
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right;pointer-events:none}
+/* Die urspruengliche Begruendung hier ("die freie Zurueck-Marke haengt an
+   .holo, HUD/Dims ruecken deshalb als Paar 26->58px nach unten") ist mit
+   16-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
+   Zurueck-Marken-Zuschlag (siehe :root:has(...) .holo{margin-top:...} an
+   der .holo-Basisregel oben) -- HUD und Dims sitzen als Kind von
+   .holo__wrap bereits IN diesem verschobenen Block und muessten sich sonst
+   ein zweites Mal nach unten schieben (26+32=58 zusaetzlich zu den bereits
+   verschobenen 92/104px .holo-margin -- zu weit). Keine eigene Regel mehr
+   noetig, die vormalige Ueberschneidung mit der Zurueck-Marke ist bereits
+   durch die .holo-Verschiebung behoben. */
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;padding:.5rem .95rem}
@@ -676,18 +965,46 @@ a{color:inherit;text-decoration:none}
 /* Hinweis nur auf der leeren Bilder-Bühne — nie über Video oder 3D-Holo */
 .holo__stage.is-video .holo__none,.holo__stage.is-3d .holo__none{display:none}
 @media(max-width:900px){
-  .holo__panel{top:auto;bottom:52px;right:clamp(10px,3vw,20px);left:auto;width:min(280px,92%)}
+  /* .holo__panel-Override entfallen (16-04-PLAN.md Task 2): die Karte ist
+     seit Task 2 kein absolut positioniertes Overlay mehr, sondern ein
+     normaler Block-Kind von .holo__readout -- ihre Breite kommt von der
+     Grid-Spalte selbst, es gibt kein right/bottom mehr zu verschieben. */
   .holo__title{max-width:74%}
 }
+/* 16-04-PLAN.md Task 3 (Fuellgrad-Klinke): dritte Hoehenstufe fuer die
+   schmale 3-Spalten-Untergrenze (Buehnenbreite bei 1100px nur 560px, siehe
+   Kommentar an der .holo__wrap-Basisregel) -- ohne diese Stufe reisst die
+   Klinke genau dort (Carrack/Ironclad gemessen 55,7%/53,9% mit der
+   Basisregel allein, 72,6%/75,7% mit dieser Stufe). */
+@media(max-width:1279px){.holo__wrap{height:clamp(300px,36vh,360px)}}
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
-@media(max-width:900px){.holo{height:clamp(430px,62vh,620px)}}
+/* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
+   (siehe Kommentar an dessen Basisregel oben) — dieselben Werte. */
+@media(max-width:900px){.holo__wrap{height:clamp(320px,42vh,420px)}}
 @media(max-width:760px){
-  /* Hero auf kleinen Geräten flacher, damit der Inhalt darunter früher sichtbar ist */
-  .holo{height:clamp(400px,58vh,560px)}
-  /* Holo: 3D-Modell bekommt die obere Zone (Canvas unten einkürzen), damit es
-     nicht hinter dem Titel klumpt. Viewer skaliert per ResizeObserver mit. */
-  .holo__3d{bottom:44%}
+  /* D-05 (18.08.2026, Betreiber; 16-04-PLAN.md Task 3, AENDERUNG 3): bei
+     schmalen Breiten wird die Buehne HOCHFORMATIG statt querformatig.
+     Ursache des Befunds (WINDOWS.md id 21, Ausgangsmarke 55,4%/53,5%/76,4%
+     bei 360px): NICHT .holo__wrap selbst (das ist mit height:522px bei
+     width:360px schon rechnerisch hochformatig), sondern .holo__3d
+     darunter, das per bottom:44% nur die OBERE 56% dieser Hoehe fuer das
+     Canvas nutzte (522*0,56=292px) -- ein 360x292-Canvas ist trotz
+     hochformatigem Aussenrahmen selbst QUERFORMATIG, und genau DAS misst
+     fitCamera() (holo-viewer.js, W()/H() = die tatsaechliche Canvas-Groesse,
+     nicht die des .holo__wrap). Fix: .holo__wrap waechst UND .holo__3d
+     bekommt mehr Anteil davon (bottom:44% -> 30%) -- die Kamera braucht
+     KEINE eigene Aenderung, fitCamera() waehlt die kuerzere Kante bereits
+     dynamisch aus W()/H() (kein Azimut, EINE Kamera fuer alle Schiffe,
+     Konkrete Vorgabe D-05). Kosten bewusst in Kauf genommen (D-05): die
+     Buehne nimmt mehr senkrechten Platz, die Auslesung rueckt entsprechend
+     nach unten. */
+  .holo__wrap{height:clamp(640px,86vh,820px)}
+  /* Holo: 3D-Modell bekommt einen groesseren Anteil der (jetzt groesseren)
+     Buehnenhoehe; der Titel behaelt seine untere Zone, nur schmaler
+     bemessen (siehe .holo__title unten). Viewer skaliert per
+     ResizeObserver mit. */
+  .holo__3d{bottom:30%}
   /* Toggle volle Breite unten (größere Tap-Ziele) */
   .holo__toggle{left:14px;right:14px;bottom:14px}
   .holo__toggle button{flex:1}
@@ -699,18 +1016,29 @@ a{color:inherit;text-decoration:none}
   .holo__chips{gap:.35rem;margin-top:.4rem}
   .holo__chips span{font-size:var(--fs-3);padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
-  /* mobil ist die Marke tiefer (44-px-Fingerkuppe, --nav-h 116px) */
-  :root:has(.snav__back:not([hidden])) .holo__hud{top:56px}
-  /* Ebenen-Panel kompakter + einklappbar (Klasse hieß fälschlich .holo__filters) */
-  .holo__layers{top:44px;left:12px;width:min(148px,42vw)}
-  .holo__layers-h{font-size:var(--fs-1);padding:.42rem .5rem .42rem;cursor:pointer}
-  .holo__layers-chev{display:block}
-  .holo__layer{padding:.34rem .5rem;font:700 .66rem/1 var(--font-ui);gap:.4rem}
-  .holo__layer-ic{width:15px;height:15px}
-  /* zugeklappt: nur der Kopf bleibt sichtbar, gibt das Modell frei */
-  .holo__layers.is-collapsed .holo__layer{display:none}
-  .holo__layers.is-collapsed .holo__layers-h{border-bottom:0;margin-bottom:0}
-  .holo__layers.is-collapsed .holo__layers-chev{transform:rotate(-90deg)}
+  /* Der vormalige mobile Zuschlag (top:18->56px bei sichtbarer Zurueck-Marke,
+     44-px-Fingerkuppe, --nav-h 116px) ist mit 16-05-PLAN.md ueberholt: .holo
+     traegt den Zuschlag jetzt selbst (@media(max-width:860px) an der
+     .holo-Basisregel, deckt auch diese engere 760px-Kante ab) -- ein
+     zweiter Zuschlag an .holo__hud wuerde die HUD-Zeile ein zweites Mal
+     verschieben. Siehe Begruendung an der urspruenglichen, jetzt entfernten
+     Desktop-Fassung dieser Regel weiter oben. */
+  /* Rail (16-03-PLAN.md Task 1, SCHRITT 3): kein eingeklappter Zustand mehr
+     -- bei hoechstens vier Eintraegen in einer eigenen Zeile ist nichts
+     mehr einzuklappen, der gesparte Platz war nur noetig, solange die Rail
+     ueber dem Modell SCHWEBTE. Kompaktere Chips reichen.
+     16-04-PLAN.md Task 1/3 (D-03): unter der Buehne wird die Rail wieder
+     eine WAAGERECHTE Chip-Reihe -- flex-direction zurueck auf row (die
+     Basisregel oben macht sie fuer die Spalten-Breiten column), kein
+     Umbruch (nowrap) plus eigener waagerechter Bildlauf, falls vier Chips
+     nicht nebeneinander passen (D-05 macht die Buehne hier hochformatig,
+     das kostet Rail-Breite nicht mehr, sie stand ohnehin schon unter der
+     vollen Buehnenbreite). Ob der Bildlauf-Kasten die
+     Sechs-Stellen-Ausnahmeliste braucht, misst Task 3. */
+  .holo__rail{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;border-right:0;border-top:1px solid var(--line);
+    padding:.6rem clamp(.7rem,3vw,1.2rem);gap:.4rem}
+  .holo__rail a{padding:.32rem .55rem;font-size:var(--fs-4);flex:none}
+  .holo__rail-ic{width:14px;height:14px}
   .holo__ship{inset:0}
 }
 
@@ -736,14 +1064,89 @@ a{color:inherit;text-decoration:none}
 .sd__makerlogo{display:block;align-self:flex-start;height:clamp(28px,3.4vw,44px);width:auto;max-width:min(240px,56vw);margin-bottom:.5rem;object-fit:contain;filter:drop-shadow(0 1px 3px var(--shadow-color))}
 /* Volle Marken-Logos (Emblem + Wortmarke) höher, damit der Schriftzug lesbar bleibt */
 .sd__makerlogo--full{height:clamp(46px,6vw,72px);max-width:min(340px,70vw)}
-.sd__panel{position:relative;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--accent);
-  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-  margin-bottom:1.6rem}
 .sd__phead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
 .sd__phead h2{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
 .sd__code{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Mobil: Aktencode-Zeile (…//…) umbrechen statt clippen — voller Text sichtbar */
 @media(max-width:640px){.sd__phead{flex-direction:column;align-items:stretch;gap:.35rem}.sd__code{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}}
+
+/* Kapitel-Sprungleiste — klebt unter der Kopfleiste (--nav-h, SiteNav.astro
+   Z. 946-949) ueber .sd hinaus, Bauform wie .cdb-bar (CraftingApp.astro
+   Z. 560, einzige bestehende klebende Leiste des Hauses): position:sticky,
+   top:var(--nav-h), z-index:20, Glasflaeche. Eigene volle-Breite-Zeile auf
+   derselben Ebene wie .holo__bar, NICHT erstes Kind von .sd — .sd traegt
+   bereits eigenen Innenabstand, darin wuerde ein klebendes Element
+   schwimmen. Trennlinie NUR unten: oben trennt bereits die Kennwerte-
+   Leiste, zwei gestapelte Linien waeren ein Doppelstrich.
+
+   HOEHENBUDGET, gemessen 18.08.2026 mit scripts/probes/schiffskarte-messung.mjs
+   gegen die Carrack, 1280x720: die Kennwerte-Leiste endet NICHT bei 630px
+   (die UI-SPEC-Schaetzung vergass .holo{margin-top:56px}), sondern bei
+   686px — es bleiben nur 34px bis zum unteren Fensterrand, nicht die
+   geschaetzten ~90px. Deshalb hier BEIDE Stellschrauben aus der
+   14-UI-SPEC.md-Reihenfolge gezogen (Aussenabstand des inneren Kastens,
+   dann Innenabstand der Pillen) UND die Rahmen als `box-shadow: inset`
+   statt `border` gesetzt — ein Rahmen ist bei auto-Hoehe IMMER zusaetzliche
+   Layout-Hoehe, auch mit dem site-weiten box-sizing:border-box (das wirkt
+   nur bei EXPLIZIT gesetzten Massen), ein inset-box-shadow sieht optisch
+   identisch aus und kostet 0px. `line-height:1` auf der Pille verhindert
+   zusaetzlich die ererbte Fliesstext-Zeilenhoehe (~1,9 statt 1) — derselbe
+   Kniff wie bei .snav__back (SiteNav.astro Z. 978-981). */
+.sd__jump{position:sticky;top:var(--nav-h);z-index:20;box-shadow:inset 0 -1px 0 0 var(--line);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px)}
+.sd__jump__in{max-width:var(--maxw);margin:0 auto;display:flex;gap:.5rem;overflow-x:auto;
+  padding:.25rem clamp(1rem,3vw,2.5rem)}
+.sd__jump a{flex:none;white-space:nowrap;line-height:1;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);
+  padding:.2rem .7rem;transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui)}
+.sd__jump a:hover,.sd__jump a:focus-visible{color:var(--text);box-shadow:inset 0 0 0 1px var(--muted)}
+/* Bewusst der cyanfarbene Basis-Accent, NICHT die jeweilige Kapitelfarbe —
+   sonst muesste die Leiste selbst vier Zustandsfarben fuehren, kaum
+   unterscheidbar bei 360px. */
+.sd__jump a.is-active{color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+/* Sanftes Scrollen fuer Seitenanker rein ueber CSS, kein JS-scrollIntoView. */
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* Kapitelrahmen — Ersatz fuer das ehemalige .sd__panel (Welle 3 hat dessen
+   letzte Verwendung entfernt, die Regel selbst ist mit ihm gefallen) an den
+   vier Kapitel-Wurzelelementen (Kaufen/Leistung/Ausstattung/Umfeld).
+   Innenraster und Eckenschnitt UNVERAENDERT vom frueheren .sd__panel
+   uebernommen; einzige Abweichung ist der groessere Aussenabstand — vier
+   schwere Kapitel brauchen mehr Luft als zehn duenne Kaesten. Alle vier
+   Modifikatoren sind seit Welle 3 in Benutzung (14-UI-SPEC.md
+   Kapitel-Akzent-Tabelle). */
+.sd__chapter{position:relative;background:var(--surface);border:1px solid var(--line);
+  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+  margin-bottom:2.2rem;
+  /* Zuschlag GEMESSEN 18.08.2026 mit scripts/probes/schiffskarte-messung.mjs
+     gegen die Carrack (DE+EN, hell+dunkel) bei 1280x720 UND 360x740: die
+     Sprungleiste ist an beiden Breiten exakt 30.6px hoch (Padding/Pillen
+     haengen nicht von der Breite ab) -> aufgerundet 31px. Ersetzt den
+     geschaetzten 64px-Wert aus Task 1 / 14-UI-SPEC.md Punkt 1. */
+  scroll-margin-top:calc(var(--nav-h) + 31px)}
+.sd__chapter--buy{border-top:3px solid var(--gold)}
+.sd__chapter--buy .sd__chnum{background:var(--gold)}
+.sd__chapter--buy .sd__phead h2{color:var(--gold)}
+.sd__chapter--profile{border-top:2px solid var(--accent)}
+.sd__chapter--profile .sd__chnum{background:var(--accent)}
+.sd__chapter--profile .sd__phead h2{color:var(--accent)}
+.sd__chapter--gear{border-top:2px solid var(--accent-2)}
+.sd__chapter--gear .sd__chnum{background:var(--accent-2)}
+.sd__chapter--gear .sd__phead h2{color:var(--accent-2)}
+.sd__chapter--context{background:var(--bg-2);border-top:1px solid var(--line)}
+.sd__chapter--context .sd__chnum{background:var(--muted)}
+.sd__chapter--context .sd__phead h2{color:var(--muted)}
+
+/* Kapitel-Kopf: .sd__phead bekommt ein drittes Element (sd__chtitle wraps
+   Zahl-Chip + Titel), Format (Trennlinie, Abstand) unveraendert. Heading
+   steigt nur INNERHALB eines Kapitels von fs-9 auf fs-12 — seit Welle 3 gilt
+   das site-weit, weil kein unkonvertiertes .sd__panel mehr existiert. */
+.sd__chtitle{display:flex;align-items:center;gap:.55rem;min-width:0}
+.sd__chtitle h2{min-width:0}
+.sd__chapter .sd__phead h2{font-size:var(--fs-12)}
+.sd__chnum{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--bg);
+  padding:.15rem .5rem;flex:none;
+  clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}
 
 /* Handel */
 .sd__pricehero{display:flex;flex-wrap:wrap;align-items:baseline;gap:.6rem 1rem;margin-bottom:1rem}
@@ -775,6 +1178,11 @@ a{color:inherit;text-decoration:none}
 .sd__proffill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
 .sd__profval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
 .sd__profval i{font-style:normal;color:var(--muted);font-size:var(--fs-6);margin-left:.45rem}
+/* Drei Metriken zeigen keinen Rohwert mehr (14-UI-SPEC.md Detailvertrag
+   Punkt 6) — das Perzentil-Element ist dort das ERSTE (einzige) Kind von
+   .sd__profval; der fuer den Normalfall gedachte linke Abstand haenge sonst
+   ins Leere. */
+.sd__profval i:first-child{margin-left:0}
 /* Mobil: Label + Wert in eine Zeile (Label links, Wert rechts), der Balken
    darunter über die volle Breite — so überlappt der Text NIE den Balken und
    längere EN-Labels haben Platz (keine feste, auf DE getunte Label-Spalte). */
@@ -810,6 +1218,84 @@ span.sd__ref{color:var(--muted)}
 .sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:var(--fs-11);line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
 .sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
+
+/* Kapitelinterne Zweispaltigkeit (14-04-PLAN.md Task 1, UI-SPEC Punkt 9) —
+   traegt 957px des Hoehenbudgets, ohne die 4.200px rechnerisch unerreichbar
+   sind. .sd__ch2col umschliesst die Unterabschnitte EINES Kapitels
+   (Ausstattung: 4 Zellen, Umfeld: 4 Zellen), .sd__chsec je einen einzelnen
+   Unterabschnitt (Ueberschrift + Koerper). Unter 1100px: unveraendert
+   gegenueber Welle 3, einspaltig ohne eigenen Zeilenabstand — die
+   bestehenden sd__sub-Aussenabstaende tragen dort weiterhin den Rhythmus.
+   Ab 1100px (dieselbe lokale Hoechstbreite --maxw, NICHT die site-weiten
+   1280px): zwei gleich breite, schrumpfbare Spalten (minmax(0,1fr) haelt
+   lange Inhalte vom Aufblaehen der Zelle ab); Spalten- UND Zeilenabstand
+   uebernehmen denselben 1.6rem-Wert, den sd__sub schon als oberen
+   Aussenabstand traegt -- keine neue Zahl. Die erste Ueberschrift jeder
+   Zelle verliert dabei ihren oberen Aussenabstand, sonst waere die
+   Zeilen-Luecke des Rasters UND der sd__sub-Aussenabstand gleichzeitig
+   wirksam und die Zellen begaennen nicht buendig oben. */
+.sd__ch2col{display:grid;grid-template-columns:1fr}
+.sd__chsec{min-width:0}
+@media(min-width:1100px){
+  .sd__ch2col{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.6rem;row-gap:1.6rem}
+  .sd__ch2col .sd__chsec > .sd__sub:first-child{margin-top:0}
+  /* Vorweggenommene Annahme aus Task 1 GEMESSEN widerlegt (Task 2): das
+     Grundriss-Raster (sd__dims) sollte wegen seiner FENSTERBREITEN-
+     Medienabfrage vorsorglich einspaltig gesetzt werden. Die Schlussmessung
+     zeigt: Bewaffnung (arm__list, inhaltsgetrieben durch die Zahl der
+     Turmgruppen) ist in der Ausstattung-Zeile 1 IMMER die groessere Zelle
+     als Masse & Fracht — ob dims ein- oder zweispaltig steht, aendert die
+     Zeilenhoehe deshalb NICHT (Zeile 1 haengt an Bewaffnung, nicht an
+     Masse & Fracht). Zweispaltig gemessen 76px KUERZER (513px statt 590px
+     eigene Zellenhoehe) und am Bildpunkt angesehen nicht gequetscht
+     (Frachtwuerfel + Grundriss-Kasten bleiben bei ~220px Spaltenbreite
+     lesbar) -- deshalb bewusst NICHT einspaltig, die urspruengliche
+     Befuerchtung war eine Annahme, keine Messung. */
+  .sd__ch2col .sd__dims{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  /* GEMESSENER zweiter Bruch (14-04-PLAN.md Task 2, Verdaechtiger 2 der
+     Schlussmessung): die uebrigen "selbstregelnden" Innenraster
+     (sd__grid/sd__qgrid/sd__slots/sd__inscards) nutzen repeat(auto-fit,
+     minmax(…)) mit einer Mindestbreite, die auf die VOLLE Kapitelbreite
+     (~1023px) kalibriert ist. In der halbierten ~469px-Spalte lassen
+     dieselben Mindestbreiten nur noch 2 statt 3-5 Spalten zu — die Zeilen
+     brechen um, die Zelle wird HOEHER als bei voller Breite (Gegenteil des
+     Ziels dieses Plans). Am gerenderten Bildpunkt der Carrack gemessen:
+     Flugleistung 380px -> 547px, Komponenten 251px -> 547px, Versicherung
+     202px -> 298px — zusammen der Grossteil der anfaenglichen 264px
+     Ueberschreitung ueber die 4.200px-Klinke. Fix: dieselbe Spaltenzahl wie
+     bei voller Breite auch in der halbierten Spalte erreichen, per
+     kleinerer (nicht site-weiter, nur hier per Spezifitaet
+     ueberschriebener) Mindestbreite -- keine neue Bauform, dieselben
+     Grid-Regeln bleiben site-weit unveraendert wirksam. Jeder Wert per
+     Bildschirmfoto GEGENGEPRUEFT, nicht nur gemessen: ein zu kleiner Wert
+     liess einzelne lange, ungetrennte Woerter (z. B. "SCHILDGENERATOREN")
+     ueber die Zellgrenze hinauslaufen statt umzubrechen -- deshalb bleiben
+     die Werte hier bewusst groesser als das rechnerische Minimum. */
+  .sd__ch2col .sd__grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .sd__ch2col .sd__qgrid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
+  .sd__ch2col .sd__slots{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  .sd__ch2col .sd__inscards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  /* arm__sum (Bewaffnung-Kennzahlen): hier NICHT die Spaltenzahl der vollen
+     Breite halten, sondern bewusst halbieren. Am Bildpunkt gemessen: der
+     Container ist in der halben Spalte 469px breit, "Gegenmaßnahmen" misst
+     ungetrennt 147px und braucht mit der Zellpolsterung 176px. Vier Spalten
+     geben jeder Zelle 87px — das Wort passt in keiner Aufteilung, und
+     overflow-wrap:anywhere hat es dann strichlos mitten durchgeschnitten
+     ("GEGENMASSN / AHMEN", "TURMSTATIO / NEN"). Ein frueherer Kommentar an
+     dieser Stelle behauptete, hyphens:auto erzeuge dabei einen Trennstrich —
+     das Bildschirmfoto zeigt keinen: bei 87px erreicht die Silbentrennung nie
+     eine zulaessige Trennstelle.
+     anywhere war dabei doppelt schaedlich, weil es zusaetzlich die
+     Mindestbreite verkleinert, mit der auto-fit rechnet, und die zu schmalen
+     Spalten damit ueberhaupt erst einlaedt. break-word bricht nur, wenn ein
+     Wort allein auf seiner Zeile nicht passt, und bleibt als Sicherheitsnetz.
+     minmax(180px) ergibt bei 469px genau zwei Spalten -> 2x2 statt 1x4, alle
+     vier Labels einzeilig. Kosten: 10px Seitenhoehe (4.179 -> 4.189), die
+     Klinke von 4.200px haelt. Bei 1100px Ansichtsbreite ist der Container
+     ~403px und ergibt dieselben zwei Spalten. */
+  .sd__ch2col .arm__scell span{hyphens:auto;overflow-wrap:break-word}
+  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+}
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
    für sich lesbar: Stückzahl · Größenklasse (mit maßstäblichem Balken) ·
@@ -876,7 +1362,7 @@ span.sd__ref{color:var(--muted)}
    wuerden Browser sie zu Leerzeichen zusammenfalten. */
 .sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:var(--fs-11);line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
-.sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.sd__spine h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
 .sd__spine a:hover{color:var(--gold);text-decoration:underline}
 .sd__spine span{color:var(--muted);font-weight:600}
@@ -899,20 +1385,13 @@ span.sd__ref{color:var(--muted)}
 .sd__src a{text-decoration:underline}
 .sd__src a:hover{color:var(--accent)}
 
-/* Gauges (generisch, katalog-relativ) */
-.sd__g{display:flex;flex-direction:column;gap:.55rem}
-.sd__grow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
+/* Die generische Gauge-Bauform (Zeile, Spur, Fuellung, Wert — Praefix
+   sd__g-*) samt ihrer 640px-Medienabfrage ist mit Task 2 dieser Phase
+   entfallen — alle sechs Fundstellen sind entweder ersatzlos weg (D-02)
+   oder zu Zahlen im sd__grid/sd__item-Raster geworden. sd__glabel BLEIBT:
+   es traegt weiterhin die beiden Ueberschriften "Top view" / "Cargo hold"
+   in Maße & Fracht. */
 .sd__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
-.sd__gtrack{position:relative;height:9px;background:var(--veil-hi);border:1px solid var(--line);overflow:hidden}
-.sd__gtrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--veil-hi)}
-.sd__gfill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
-.sd__gval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
-@media(max-width:640px){
-  .sd__grow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
-  .sd__glabel{grid-column:1;grid-row:1}
-  .sd__gval{grid-column:2;grid-row:1;justify-self:end;margin-top:0}
-  .sd__gtrack{grid-column:1 / -1;grid-row:2;margin-top:.15rem}
-}
 
 /* Maße & Fracht */
 .sd__dims{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.6rem}
@@ -983,12 +1462,34 @@ span.sd__ref{color:var(--muted)}
   {/* data-media-surface: die Bühne zeigt Hologramm, Renderbilder und Video —
       sie bleibt in beiden Modi dunkel. Siehe „Dunkle Inseln" in theme.css. */}
   <section class="holo" id="holo" data-media-surface aria-label={`${d.name} — Visual`}>
-    <div class="holo__grid" aria-hidden="true"></div>
-    <div class="holo__pad" aria-hidden="true"></div>
-    <div class="holo__frame" aria-hidden="true"></div>
-    <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
-    {dims && <div class="holo__dims">{dims}</div>}
     <div class="holo__wrap">
+      {/* SCHRITT 1 (16-03-PLAN.md Task 1): .holo__grid/.holo__pad sind
+          bottom-verankert (bottom:-4%/7%) -- an .holo direkt haengend
+          wuerden sie an den Fuss des jetzt gewachsenen GESAMTBLOCKS rutschen
+          statt unter das Modell zu bleiben. Sie wandern deshalb in denselben
+          Container wie die Buehne (.holo__wrap), der seine feste Hoehe
+          behaelt.
+          16-05-PLAN.md (Kollisionsbehebung, 1280px): .holo__frame/
+          .holo__hud/.holo__dims standen bis hierher noch AUSSEN, mit der
+          Begruendung, sie rahmten/beschrifteten den GESAMTEN Konsolen-Block.
+          Das war die Annahme aus der Zeit VOR Rail und Auslesung als eigene
+          Grid-Spalten (16-04-PLAN.md Task 1) und stimmt seither nicht mehr:
+          alle drei sind bei fehlenden grid-column/-row weiterhin relativ zum
+          GESAMTEN .holo positioniert (CSS Grid: ein abs.-positioniertes
+          Grid-Kind ohne Linienangabe spannt per Spezifikation den vollen
+          Grid-Bereich) -- die HUD-Zeile links liegt dadurch auf der Rail,
+          die Massanzeige rechts auf der Auslesung, und der Eckenrahmen
+          markiert eine Ecke irgendwo im Auslesungsinhalt statt die Buehne zu
+          rahmen (Sichtbefund `deferred-items.md` 20.08.2026). Alle drei
+          rahmen/beschriften jetzt nur noch die BUEHNE (dieselbe Aufgabe wie
+          zuvor gemeint, nur auf den tatsaechlich noch vorhandenen
+          Vollbild-Bereich bezogen) -- deshalb Kind von .holo__wrap, dessen
+          eigene position:relative sie exakt dort haelt. */}
+      <div class="holo__frame" aria-hidden="true"></div>
+      <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
+      {dims && <div class="holo__dims">{dims}</div>}
+      <div class="holo__grid" aria-hidden="true"></div>
+      <div class="holo__pad" aria-hidden="true"></div>
       <header class="holo__title">
         {makerLogo ? (
           <img
@@ -1102,29 +1603,17 @@ span.sd__ref{color:var(--muted)}
         )}
         <div class="holo__3d" id="holo3d" aria-label={t('ship.holo.drag')}></div>
         <div class="holo__status" id="holostatus" role="status"></div>
-        {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
+        {/* #holoact ("Hologramm aktivieren") ersatzlos entfernt (16-04-PLAN.md
+            Task 3, D-04) -- war bereits vor dieser Welle inert (hidden, siehe
+            deferred-items.md), und ein Ladeausloeser per Knopf widerspricht
+            D-04: wenn das Schiff die Navigation IST, darf es nicht hinter
+            einem Knopf liegen. Laden loest jetzt ausschliesslich der
+            IntersectionObserver im Skriptblock unten aus. */}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
-        {holoData && (holoData.groups.length > 1 || holoData.ports.some((p) => p.lab)) && (
-          <div class="holo__layers" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
-            <button type="button" class="holo__layers-h" id="holo-layers-toggle" aria-expanded="true">
-              <span>{t('holo.layers.title')}</span>
-              <svg class="holo__layers-chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            {holoData.groups.length > 1 && holoData.groups.map((gr) => (
-              <button type="button" class="holo__layer" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>
-                <svg class="holo__layer-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
-                <span class="holo__layer-lb">{t(`holo.grp.${gr}` as any)}</span>
-                <span class="holo__layer-ct">{holoData!.ports.filter((p) => p.g === gr).length}</span>
-              </button>
-            ))}
-            {holoData.ports.some((p) => p.lab) && (
-              <button type="button" class="holo__layer holo__layer--lab" id="holoblabels" aria-pressed="true" title={t('holo.labels.toggle')}>
-                <svg class="holo__layer-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span class="holo__layer-lb">{t('holo.labels.short')}</span>
-              </button>
-            )}
-          </div>
-        )}
+        {/* Der schwebende Ebenen-Kasten (#holofilters/.holo__layers) ist
+            entfallen (16-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
+            Rail (nav.holo__rail), die als eigener Block NACH der Buehne
+            steht (siehe unten, ausserhalb von .holo__wrap). */}
         <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')} data-auec={t('holo.panel.auec')}>
           <div class="hp__head">
             <span class="hp__eyebrow" id="hpgrp"></span>
@@ -1145,15 +1634,178 @@ span.sd__ref{color:var(--muted)}
           <p class="hp__note" id="hpnote" hidden></p>
         </aside>
       </div>
+      {/* .holo__toggle ist bottom-verankert (bottom:24px) -- gehoert seit
+          SCHRITT 1 (16-03-PLAN.md Task 1) in .holo__wrap, sonst rutscht der
+          Umschalter an den Fuss des gewachsenen GESAMTBLOCKS statt am
+          unteren Rand der Buehne zu bleiben (derselbe Fund wie bei
+          .holo__grid/.holo__pad oben, hier per Bildpunkt-Audit ergaenzt). */}
+      {stageModeCount > 1 && (
+        <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
+          {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
+          {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
+          {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
+        </div>
+      )}
     </div>
-    {stageModeCount > 1 && (
-      <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
-        {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
-        {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
-        {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
-      </div>
+
+    {/* ===== Rail — reine Anker-Liste, funktioniert ohne Skript.
+        Ersetzt den frueheren schwebenden Ebenen-Kasten; steht in
+        Dokumentreihenfolge NACH der Buehne (D-02 verlangt "erst das Schiff,
+        dann die Liste" ohne Skript), optisch aber die erste Grid-Spalte
+        (16-04-PLAN.md Task 1, SCHRITT 1). Bedingung wie frueher am alten
+        Kasten "mindestens eine Gruppe" statt "mehr als eine" -- der
+        eingeklappte Zustand entfaellt ersatzlos (16-03-PLAN.md SCHRITT 3).
+        aria-current serverseitig auf dem ERSTEN Eintrag (Detailvertrag
+        Punkt 2, Vorbelegung ohne Klick) -- das Skript unten haelt es beim
+        Umschalten synchron; Punkt 6 des Vertrags gewinnt gegen den
+        aelteren aria-pressed-Wortlaut (siehe Planungsnotizen). */}
+    {holoData && holoData.groups.length > 0 && (
+      <nav class="holo__rail" id="holorail" aria-label={t('ship.console.rail.aria')}>
+        {holoData.groups.map((gr, i) => (
+          <a href={`#sys-${gr}`} data-g={gr} aria-current={i === 0 ? 'true' : undefined}>
+            <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
+            <span class="holo__rail-lb">{t(`holo.grp.${gr}` as any)}</span>
+            <span class="holo__rail-ct">{sysPortCount(gr)}</span>
+          </a>
+        ))}
+      </nav>
     )}
+
+    {/* ===== Auslesung — SCHRITT 1/2, 16-04-PLAN.md Task 1 (16-UI-SPEC.md
+        Detailvertrag Punkt 1/4): dritte Grid-Spalte, im ausgelieferten HTML
+        LEER. Ihren Inhalt bekommt sie AUSSCHLIESSLICH durchs Umhaengen im
+        Skriptpfad (appendChild, keine Kopie) -- ohne Skript bleibt sie leer
+        und unsichtbar, der gestapelte No-JS-Zustand aus Welle 3 bleibt
+        dadurch unveraendert (die Systemabschnitte stehen weiterhin direkt
+        in .holo, siehe unten). */}
+    {holoData && holoData.groups.length > 0 && (
+      <div class="holo__readout" id="holoreadout" aria-label={t('ship.console.readout.aria')}></div>
+    )}
+
+    {/* ===== Systemabschnitte — SCHRITT 2 + 4, D-02: JEDES vorhandene System
+        steht als eigener, sichtbarer <section> im ausgelieferten HTML, ohne
+        JavaScript, ohne Versteck-Attribut, ohne Vorlagenhuelle. arms/core
+        uebernehmen ihren Koerper UNVERAENDERT aus dem fruehereren
+        Ausstattungs-Kapitel (SCHRITT 4 -- der Umzug, keine zweite
+        Aggregation derselben Aussage); prop/other bekommen die neue, aber
+        strukturgleiche Stueckzahl-Liste (sysKindCounts). */}
+    {holoData && holoData.groups.map((gr) => (
+      <section class="holo__sys" id={`sys-${gr}`} data-g={gr} aria-label={t(`holo.grp.${gr}` as any)}>
+        <h2 class="holo__sys-h">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
+          {t(`holo.grp.${gr}` as any)}
+        </h2>
+        <p class="holo__sys-ct">{t('ship.console.count').replace('%n%', String(sysPortCount(gr)))}</p>
+
+        {gr === 'arms' && (
+          <>
+            {armStats.length > 0 && (
+              <div class="arm__sum">
+                {armStats.map((s) => (
+                  <div class={`arm__scell${s.gold ? ' arm__scell--g' : ''}`}>
+                    <b>{s.n}</b>
+                    <span>{s.label}</span>
+                    {s.range && <i>{s.range}</i>}
+                  </div>
+                ))}
+                {turretDpsTotal && (
+                  <div class="arm__scell">
+                    <b>{turretDpsTotal} DPS</b>
+                    <span>{t('arm.stat.totalDps')}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            <div class="arm__list">
+              {armament.map((r) => (
+                <div class={`arm__grp${r.gold ? ' arm__grp--g' : ''}`}>
+                  <div class="arm__ghead">
+                    <span class="arm__glabel">{r.label}</span>
+                    {r.meta && <span class="arm__gmeta">{r.meta}</span>}
+                    {r.value && <span class="arm__gval">{r.value}</span>}
+                  </div>
+                  {r.lines.length > 0 && (
+                    <ul class="arm__lines">
+                      {r.lines.map((l) => (
+                        <li class="arm__line">
+                          <span class="arm__n">{l.count}<i>×</i></span>
+                          {l.size != null ? (
+                            <span class="arm__size" style={`--s:${l.size}`}
+                                  title={`${t('arm.sizeTip')} ${l.size}`}>
+                              <em>S{l.size}</em>
+                            </span>
+                          ) : (
+                            <span class="arm__size arm__size--n"><em>?</em></span>
+                          )}
+                          <span class="arm__name">
+                            {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
+                          </span>
+                          {l.mount != null && l.size != null && (
+                            l.mount > l.size ? (
+                              <span class="arm__bdg arm__bdg--up"
+                                    title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
+                                {t('arm.upgrade')} S{l.mount}
+                              </span>
+                            ) : (
+                              <span class="arm__bdg" title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
+                                {t('arm.maxed')}
+                              </span>
+                            )
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {r.note && (
+                    <p class="arm__note"><span>{t('arm.loadout')}</span>{r.note}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p class="sd__hint">{t('ship.arms.hint')}</p>
+          </>
+        )}
+
+        {gr === 'core' && slots.length > 0 && (
+          <div class="sd__slots">
+            {slots.map(([label, items]) =>
+              items.map((it) => (
+                <div class="sd__slot">
+                  <div class="t">{label}</div>
+                  <div class="n">{it.name}</div>
+                  <span class="sd__hprow">
+                    {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
+                    {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {(gr === 'prop' || gr === 'other') && (
+          <div class="holo__sys-list">
+            {sysKindCounts(gr).map((kc) => (
+              <div class="holo__sys-row">
+                <b>{kc.n}×</b>
+                <span>{kc.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    ))}
   </section>
+  {holoData && holoData.groups.length > 0 && (
+    /* 16-04-PLAN.md Task 1, SCHRITT 2 (16-UI-SPEC.md Detailvertrag Punkt
+       6.3, "kein Flackern"): setzt die Klasse has-console UNMITTELBAR nach
+       dem Konsolen-Markup, synchron waehrend der Parser noch hier steht --
+       nicht am Dokumentende, wo der Browser die gestapelte No-JS-Liste
+       schon gezeichnet haette. Die Klasse allein aendert nichts (das Grid
+       steht bereits fest, siehe .holo-Basisregel); sie ist nur das Signal
+       fuers Hauptskript weiter unten, dass es jetzt sicher umhaengen darf. */
+    <script is:inline>document.getElementById('holo')?.classList.add('has-console');</script>
+  )}
   {(holoData || holoUrl) && (
     <script
       type="application/json"
@@ -1177,11 +1829,25 @@ span.sd__ref{color:var(--muted)}
     </dl>
   </div>
 
+  <!-- Kapitel-Sprungleiste — EIN echter Anker je gerendertem Kapitel (chapters,
+       die einzige Quelle). Funktioniert vollstaendig ohne JavaScript; die
+       Aktivmarkierung (Skript nach </main>) ist reine Verbesserung. -->
+  <nav class="sd__jump" aria-label={t('ship.jump.aria')}>
+    <div class="sd__jump__in">
+      {chapters.map((c) => (
+        <a href={`#${c.id}`}>{c.pill}</a>
+      ))}
+    </div>
+  </nav>
+
   <div class="sd">
     <!-- KAUFEN IM VERSE -->
-    <section class="sd__panel" aria-label={t('ship.buy.title')}>
+    <section class="sd__chapter sd__chapter--buy" id="ch-buy" aria-label={t('ship.buy.title')}>
       <header class="sd__phead">
-        <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.handel} /></svg>{t('ship.buy.title')}</h2>
+        <span class="sd__chtitle">
+          <span class="sd__chnum">{chapterNum('ch-buy')}</span>
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.handel} /></svg>{t('ship.buy.title')}</h2>
+        </span>
         <span class="sd__code">{t('ship.code.trade')}&nbsp;//&nbsp;UEX · {t('ship.asof')} {pricesFetchedAt}</span>
       </header>
       {buyMin ? (
@@ -1240,11 +1906,14 @@ span.sd__ref{color:var(--muted)}
       <p class="sd__hint">{t('ship.buy.hint')}</p>
     </section>
 
-    <!-- LEISTUNGSPROFIL -->
+    <!-- LEISTUNG -->
     {profile.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.profile.title')}>
+      <section class="sd__chapter sd__chapter--profile" id="ch-profile" aria-label={t('ship.profile.title')}>
         <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.profil} /></svg>{t('ship.profile.title')}</h2>
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-profile')}</span>
+            <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.profil} /></svg>{t('ship.profile.title')}</h2>
+          </span>
           <span class="sd__code">{t('ship.code.rank')}&nbsp;//&nbsp;{t('ship.profile.rank')} ({vehiclesSnapshot.count} {t('ship.unit.ships')})</span>
         </header>
         <div class="sd__prof">
@@ -1254,7 +1923,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__proftrack" role="img" aria-label={`${p.label}: ${p.value}, ${t('ship.profile.percentile')} ${p.pct}`}>
                 <div class="sd__proffill" style={`width:${p.pct}%`}></div>
               </div>
-              <span class="sd__profval">{p.value}<i>P{p.pct}</i></span>
+              <span class="sd__profval">{p.showValue && p.value}<i>P{p.pct}</i></span>
             </div>
           ))}
         </div>
@@ -1264,29 +1933,34 @@ span.sd__ref{color:var(--muted)}
 
     {desc && <p class="sd__desc">{desc}</p>}
 
-    <!-- DATENBLATT -->
-    <section class="sd__panel" aria-label={t('ship.sheet.title')}>
-      <header class="sd__phead">
-        <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.datenblatt} /></svg>{t('ship.sheet.title')}</h2>
-        <span class="sd__code">{t('ship.code.dat')}&nbsp;//&nbsp;{shipCode} · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}</span>
-      </header>
-      <dl class="sd__grid">
-        {facts.map((f) => (
-          <div class="sd__item">
-            <dt>{f.label}</dt>
-            <dd>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-
-    <!-- MASSE & FRACHT -->
-    {(viz.dims || viz.cargo || viz.fuel.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.dims.title')}>
+    <!-- AUSSTATTUNG — traegt seit 16-03-PLAN.md SCHRITT 4 nur noch DREI statt
+         vier Unterabschnitte (Masse & Fracht, Flugleistung, Verteidigung):
+         Bewaffnung und die Bauteilliste sind vollstaendig in die Konsole
+         gewandert. Jeder verbliebene Unterabschnitt behaelt seine eigene
+         Bedingung einzeln (siehe gearDims/gearFlight/gearDefense oben) — ein
+         karges Schiff zeigt weiterhin nur, wofuer es Daten gibt. Kein
+         Kapitel-Icon: es gibt keinen bestehenden Icon-Pfad, der die
+         zusammengefassten Themen als Ganzes vertritt (UI-SPEC fuehrt fuer
+         diese Phase keine neuen Icons ein). -->
+    {hasGear && (
+      <section class="sd__chapter sd__chapter--gear" id="ch-gear" aria-label={t('ship.ch.gear')}>
         <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h2>
-          <span class="sd__code">{t('ship.code.space')}&nbsp;//&nbsp;{shipCode}</span>
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-gear')}</span>
+            <h2>{t('ship.ch.gear')}</h2>
+          </span>
+          <span class="sd__code">{t('ship.code.spec')}&nbsp;//&nbsp;{shipCode}</span>
         </header>
+
+    <!-- Kapitelinterne Zweispaltigkeit ab 1100px (14-04-PLAN.md Task 1):
+         vier Unterabschnitte als 2x2-Raster, unter 1100px unveraendert
+         einspaltig. Jede Bedingung bleibt UNVERAENDERT an ihrer Stelle --
+         faellt eine weg, faellt ihre Zelle mit, die Platzierung rueckt nach. -->
+    <div class="sd__ch2col">
+    <!-- MASSE & FRACHT -->
+    {gearDims && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h3>
         <div class="sd__dims">
           <div>
             {viz.dims && (
@@ -1295,15 +1969,13 @@ span.sd__ref{color:var(--muted)}
                 <div class="sd__footbox" style={`width:${viz.dims.footWidthPct}%;aspect-ratio:${viz.dims.footAspect}`} role="img"
                   aria-label={t('ship.dims.aria').replace('%l%', String(viz.dims.l)).replace('%w%', String(viz.dims.w))}></div>
                 <div class="sd__footcap">{t('ship.abbr.l')} {viz.dims.l.toLocaleString(loc)} m · {t('ship.abbr.w')} {viz.dims.w.toLocaleString(loc)} m · {t('ship.abbr.h')} {viz.dims.h.toLocaleString(loc)} m</div>
-                <div class="sd__g" style="margin-top:.9rem">
-                  {viz.dims.bars.map((b) => (
-                    <div class="sd__grow">
-                      <span class="sd__glabel">{b.label}</span>
-                      <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                      <span class="sd__gval">{b.value}</span>
-                    </div>
-                  ))}
-                </div>
+                <!-- Die drei Masse-Balken (Laenge/Breite/Hoehe) entfallen ERSATZLOS
+                     (D-02): ein Balken, der drei Groessen gegeneinanderstellt, die
+                     nichts miteinander zu tun haben, vergleicht nichts — und
+                     dieselben drei Zahlen stehen bereits als Text in der
+                     Bildunterschrift direkt darueber (sd__footcap oben). Sie zu
+                     Zahlen zu machen erzeugte genau die Doppelung, die D-03
+                     verbietet. -->
               </>
             )}
           </div>
@@ -1319,135 +1991,57 @@ span.sd__ref{color:var(--muted)}
               </>
             )}
             {viz.fuel.length > 0 && (
-              <div class="sd__g" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
+              <dl class="sd__grid" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
                 {viz.fuel.map((b) => (
-                  <div class="sd__grow">
-                    <span class="sd__glabel">{b.label}</span>
-                    <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                    <span class="sd__gval">{b.value}</span>
+                  <div class="sd__item">
+                    <dt>{b.label}</dt>
+                    <dd>{b.value}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             )}
           </div>
         </div>
-      </section>
+      </div>
     )}
 
-    <!-- BEWAFFNUNG -->
-    {(armament.length > 0 || viz.firepower.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.arms.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h2>
-          <span class="sd__code">{t('ship.code.arsenal')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
-        {viz.firepower.length > 0 && (
-          <div class="sd__g" style="margin-bottom:1.1rem">
-            {viz.firepower.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {armStats.length > 0 && (
-          <div class="arm__sum">
-            {armStats.map((s) => (
-              <div class={`arm__scell${s.gold ? ' arm__scell--g' : ''}`}>
-                <b>{s.n}</b>
-                <span>{s.label}</span>
-                {s.range && <i>{s.range}</i>}
-              </div>
-            ))}
-          </div>
-        )}
-        <div class="arm__list">
-          {armament.map((r) => (
-            <div class={`arm__grp${r.gold ? ' arm__grp--g' : ''}`}>
-              <div class="arm__ghead">
-                <span class="arm__glabel">{r.label}</span>
-                {r.meta && <span class="arm__gmeta">{r.meta}</span>}
-                {r.value && <span class="arm__gval">{r.value}</span>}
-              </div>
-              {r.lines.length > 0 && (
-                <ul class="arm__lines">
-                  {r.lines.map((l) => (
-                    <li class="arm__line">
-                      <span class="arm__n">{l.count}<i>×</i></span>
-                      {l.size != null ? (
-                        <span class="arm__size" style={`--s:${l.size}`}
-                              title={`${t('arm.sizeTip')} ${l.size}`}>
-                          <em>S{l.size}</em>
-                        </span>
-                      ) : (
-                        <span class="arm__size arm__size--n"><em>?</em></span>
-                      )}
-                      <span class="arm__name">
-                        {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
-                      </span>
-                      {l.mount != null && l.size != null && (
-                        l.mount > l.size ? (
-                          <span class="arm__bdg arm__bdg--up"
-                                title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
-                            {t('arm.upgrade')} S{l.mount}
-                          </span>
-                        ) : (
-                          <span class="arm__bdg" title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
-                            {t('arm.maxed')}
-                          </span>
-                        )
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {r.note && (
-                <p class="arm__note"><span>{t('arm.loadout')}</span>{r.note}</p>
-              )}
-            </div>
-          ))}
-        </div>
-        <p class="sd__hint">{t('ship.arms.hint')}</p>
-      </section>
-    )}
+    <!-- BEWAFFNUNG ist VOLLSTAENDIG in die Konsole gewandert (16-03-PLAN.md
+         SCHRITT 4, System "Bewaffnung", section.holo__sys[data-g="arms"]
+         oben) -- steht ab jetzt nur noch an dieser einen Stelle der Seite.
+         verify:shipcard Zusicherung 6 (Entdopplungs-Scan) sieht seit
+         16-02-PLAN.md in BEIDE Bloecke (div.sd UND section.holo) und wuerde
+         einen versehentlich hier belassenen Rest melden. -->
 
     <!-- FLUGLEISTUNG & QUANTUM -->
-    {(viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.flight.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h2>
-          <span class="sd__code">{t('ship.code.drive')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearFlight && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h3>
         {viz.speeds.length > 0 && (
-          <div class="sd__g">
+          <dl class="sd__grid">
             {viz.speeds.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
+              <div class="sd__item">
+                <dt>{b.label}</dt>
+                <dd>{b.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
         {viz.agility.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.flight.agility')}</h3>
-            <div class="sd__g">
+            <h4 class="sd__sub">{t('ship.flight.agility')}</h4>
+            <dl class="sd__grid">
               {viz.agility.map((b) => (
-                <div class="sd__grow">
-                  <span class="sd__glabel">{b.label}</span>
-                  <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                  <span class="sd__gval">{b.value}</span>
+                <div class="sd__item">
+                  <dt>{b.label}</dt>
+                  <dd>{b.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </>
         )}
         {viz.quantum.length > 0 && (
           <>
-            <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>{t('ship.flight.quantum')}</h3>
+            <h4 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>{t('ship.flight.quantum')}</h4>
             <dl class="sd__qgrid">
               {viz.quantum.map((q) => (
                 <div class="sd__item">
@@ -1458,53 +2052,55 @@ span.sd__ref{color:var(--muted)}
             </dl>
           </>
         )}
-      </section>
+      </div>
     )}
 
-    <!-- KOMPONENTEN & VERTEIDIGUNG -->
-    {(viz.defense.length > 0 || slots.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.comp.title')}>
+    <!-- VERTEIDIGUNG — vormals "Komponenten & Verteidigung"; die Bauteilliste
+         (slots) ist VOLLSTAENDIG in die Konsole gewandert (System
+         "Komponenten", section.holo__sys[data-g="core"] oben). Huelle/Schild
+         sind aggregierte GANZSCHIFF-Kennzahlen ohne Einbauort und bleiben
+         deshalb hier — sie verlieren dabei ihre bisherige, geteilte
+         Ueberschrift und bekommen eine eigene (ship.defense.title,
+         16-03-PLAN.md SCHRITT 4). Bleibt ein gewoehnliches Wertraster
+         (sd__grid), KEINE Balkenspur — sonst reisst verify:shipcard
+         Zusicherung 5 ("Balken nur, wo sie vergleichen"). -->
+    {gearDefense && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.verteidigung} /></svg>{t('ship.defense.title')}</h3>
+        <dl class="sd__grid">
+          {viz.defense.map((b) => (
+            <div class="sd__item">
+              <dt>{b.label}</dt>
+              <dd>{b.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    )}
+    </div>
+      </section>
+    )}
+    <!-- UMFELD — vereinigt Versicherung, Lackierungen, Varianten & Loaner
+         (kombinierter Unterabschnitt, wie zuvor als EIN Panel) und die
+         Patch-Chronik als vierten Block. Kein Kapitel-Icon aus demselben
+         Grund wie bei Ausstattung. -->
+    {hasContext && (
+      <section class="sd__chapter sd__chapter--context" id="ch-context" aria-label={t('ship.ch.context')}>
         <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h2>
-          <span class="sd__code">{t('ship.code.works')}&nbsp;//&nbsp;{shipCode}</span>
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-context')}</span>
+            <h2>{t('ship.ch.context')}</h2>
+          </span>
+          <span class="sd__code">{ctxCode}</span>
         </header>
-        {viz.defense.length > 0 && (
-          <div class="sd__g" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
-            {viz.defense.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {slots.length > 0 && (
-          <div class="sd__slots">
-            {slots.map(([label, items]) =>
-              items.map((it) => (
-                <div class="sd__slot">
-                  <div class="t">{label}</div>
-                  <div class="n">{it.name}</div>
-                  <span class="sd__hprow">
-                    {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
-                    {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </section>
-    )}
 
+    <!-- Kapitelinterne Zweispaltigkeit ab 1100px (14-04-PLAN.md Task 1) --
+         siehe Kommentar an derselben Stelle im Ausstattungs-Kapitel oben. -->
+    <div class="sd__ch2col">
     <!-- VERSICHERUNG -->
     {viz.insurance.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.ins.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h2>
-          <span class="sd__code">{t('ship.code.protect')}&nbsp;//&nbsp;{t('ship.code.uee')}</span>
-        </header>
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h3>
         <div class="sd__inscards">
           {viz.insurance.map((i) => (
             <div class={`sd__ins${i.gold ? ' sd__ins--gold' : ''}`}>
@@ -1514,16 +2110,13 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.ins.hint')}</p>
-      </section>
+      </div>
     )}
 
     <!-- LACKIERUNGEN -->
     {paints.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.paints.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h2>
-          <span class="sd__code">{t('ship.code.skins')}&nbsp;//&nbsp;{paints.length} · FleetYards · {t('ship.asof')} {extrasFetchedAt}</span>
-        </header>
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h3>
         <div class="sd__paints">
           {paints.map((p) => (
             <figure class="sd__paint">
@@ -1535,19 +2128,16 @@ span.sd__ref{color:var(--muted)}
             </figure>
           ))}
         </div>
-      </section>
+      </div>
     )}
 
     <!-- VARIANTEN & LOANER -->
     {(variants.length > 0 || loaners.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.series.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h2>
-          <span class="sd__code">{t('ship.code.series')}&nbsp;//&nbsp;FleetYards · {t('ship.asof')} {extrasFetchedAt}</span>
-        </header>
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h3>
         {variants.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.series.variants')}</h3>
+            <h4 class="sd__sub">{t('ship.series.variants')}</h4>
             <div class="sd__reflist">
               {variants.map((v) =>
                 v.id ? <a class="sd__ref" href={L(`/schiffe/${v.id}.html`)}>{v.name}</a> : <span class="sd__ref">{v.name}</span>
@@ -1557,7 +2147,7 @@ span.sd__ref{color:var(--muted)}
         )}
         {loaners.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.series.loaners')}</h3>
+            <h4 class="sd__sub">{t('ship.series.loaners')}</h4>
             <div class="sd__reflist">
               {loaners.map((v) =>
                 v.id ? <a class="sd__ref" href={L(`/schiffe/${v.id}.html`)}>{v.name}</a> : <span class="sd__ref">{v.name}</span>
@@ -1565,17 +2155,22 @@ span.sd__ref{color:var(--muted)}
             </div>
           </>
         )}
-      </section>
+      </div>
     )}
 
     {spine.length > 0 && (
+      <div class="sd__chsec">
       <section class="sd__spine" aria-label={t('ship.spine.title')}>
-        <h2>{t('ship.spine.title')}</h2>
+        <h3>{t('ship.spine.title')}</h3>
         {spine.map((p) => (
           <a href={L(`/patches/sc-${p!.id}.html`)}>
             Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay} →</span>
           </a>
         ))}
+      </section>
+      </div>
+    )}
+    </div>
       </section>
     )}
 
@@ -1608,11 +2203,58 @@ span.sd__ref{color:var(--muted)}
       {t('ship.version')}{shipAlphaLabel && ` ${shipAlphaLabel}`}
       · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
-      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> · {t('ship.asof')} {pricesFetchedAt}
+      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a>
       {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}
     </p>
   </div>
 </main>
+
+<script is:inline>
+// Aktivmarkierung der Kapitel-Sprungleiste (T-14-05: liest nur eigene
+// Elemente ueber Klassen-/Attributselektoren, setzt nur eine Klasse und
+// aria-current, schreibt NIRGENDS Markup — kein innerHTML, kein eval,
+// keine Adresszeile). Reine Verbesserung: bricht sofort ab, wenn die
+// Beobachter-Schnittstelle fehlt oder keine Sprungleiste im Dokument
+// steht — die Sprungleiste bleibt dann voll bedienbar, nur ohne
+// Hervorhebung. Kein Scroll-Aufruf, kein Zustandsspeicher, kein zweiter
+// Zuhoerer (T-14-06: hoechstens vier beobachtete Elemente, ein Beobachter).
+(function () {
+  if (typeof IntersectionObserver === 'undefined') return;
+  var jump = document.querySelector('.sd__jump');
+  if (!jump) return;
+  var links = [].slice.call(jump.querySelectorAll('a[href^="#"]'));
+  var sections = [].slice.call(document.querySelectorAll('.sd__chapter[id]'));
+  if (!links.length || !sections.length) return;
+  var byId = {};
+  for (var i = 0; i < links.length; i++) {
+    var href = links[i].getAttribute('href') || '';
+    if (href.charAt(0) === '#') byId[href.slice(1)] = links[i];
+  }
+  // Oberer Rand des Beobachtungsfensters aus dem gemessenen --nav-h plus der
+  // gemessenen Sprungleistenhoehe — nicht aus einer Zahl im Skript.
+  var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+  var jumpH = jump.getBoundingClientRect().height || 0;
+  var top = Math.round(navH + jumpH);
+  function setActive(id) {
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var active = a === byId[id];
+      a.classList.toggle('is-active', active);
+      if (active) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    }
+  }
+  var observer = new IntersectionObserver(
+    function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) { setActive(entries[i].target.id); break; }
+      }
+    },
+    { rootMargin: '-' + top + 'px 0px -70% 0px' }
+  );
+  for (var j = 0; j < sections.length; j++) observer.observe(sections[j]);
+})();
+</script>
 
 <script type="importmap" is:inline>
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
@@ -1652,9 +2294,11 @@ span.sd__ref{color:var(--muted)}
     stage.classList.toggle('is-video', mode === 'video');
     stage.classList.toggle('is-3d', mode === 'holo');
     if (holoSec) holoSec.classList.toggle('is-3d-active', mode === 'holo');
-    // Ebenen-Panel nur in der Holo-Ansicht (und erst wenn der Viewer geladen ist)
-    var f = document.getElementById('holofilters');
-    if (f) f.hidden = !(mode === 'holo' && viewer);
+    // Die Rail (nav.holo__rail, 16-03-PLAN.md Task 1) ist serverseitig immer
+    // gerendert und braucht kein Ein-/Ausblenden je Modus mehr -- anders als
+    // der fruehere schwebende Ebenen-Kasten, der nur ueber der Buehne Sinn
+    // ergab. Der vormalige #holofilters-Sichtbarkeitsschalter ist deshalb
+    // ersatzlos entfallen.
     if (mode === 'img') startSlideshow();
     // Video-Modus: selbst-gehostetes <video> (stummer Loop, kein Chrome) hat
     // Vorrang; sonst der YouTube-Pfad. Beim Verlassen jeweils pausieren.
@@ -2018,12 +2662,70 @@ span.sd__ref{color:var(--muted)}
   if (dataEl) {
     var cfg = JSON.parse(dataEl.textContent);
     var wrap = document.getElementById('holo3d');
-    var filters = document.getElementById('holofilters');
     var panel = document.getElementById('holopanel');
     var pclose = document.getElementById('holopclose');
     var loadingTpl = stage.getAttribute('data-loading') || '3D-Modell lädt … %p% %';
     var errorTxt = stage.getAttribute('data-error') || '3D-Modell konnte nicht geladen werden.';
     var debug = /[?&]holodebug/.test(location.search);
+    // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (16-01-PLAN.md
+    // Task 2) — ausdruecklich NICHT an holodebug gehaengt: dessen Zweig haengt
+    // einen AxesHelper an rig VOR der Bildung von fitSphere (holo-viewer.js
+    // Z. 609 f.), wer darueber misst, misst eine andere Kamera als der
+    // Besucher sieht. Eigene Adressmarke, keine Geometrie.
+    var metricsMode = /[?&]holometrics/.test(location.search);
+
+    // ---------- Konsole: Rail-Einfachauswahl + Umhaengen ohne Dopplung
+    // (16-04-PLAN.md Task 1, SCHRITT 2/3) ----------
+    var railEl = document.getElementById('holorail');
+    var readoutEl = document.getElementById('holoreadout');
+    var sysEls = [].slice.call(document.querySelectorAll('.holo__sys'));
+    var activeGroup = (cfg.groups && cfg.groups[0]) || null;
+    var showGroup = null;
+    if (railEl && readoutEl && sysEls.length) {
+      // VERSCHIEBEN, nicht kopieren: appendChild entfernt den Knoten aus
+      // seiner alten Position (Kind von .holo bzw. .holo__stage) und haengt
+      // ihn an die neue (Kind von .holo__readout) — derselbe Knoten, kein
+      // zweiter im DOM. Kein Bauteiltext steht danach zweimal (Detailvertrag
+      // Punkt 6.2). Die Detailkarte (panel, Task 2) wandert mit — beide
+      // Zustaende der Auslesung leben ab jetzt in EINEM Behaelter.
+      for (var si = 0; si < sysEls.length; si++) readoutEl.appendChild(sysEls[si]);
+      if (panel) readoutEl.appendChild(panel);
+      showGroup = function (gr) {
+        activeGroup = gr;
+        for (var i = 0; i < sysEls.length; i++) {
+          sysEls[i].hidden = sysEls[i].getAttribute('data-g') !== gr;
+        }
+        var links = railEl.querySelectorAll('a');
+        for (var j = 0; j < links.length; j++) {
+          if (links[j].getAttribute('data-g') === gr) links[j].setAttribute('aria-current', 'true');
+          else links[j].removeAttribute('aria-current');
+        }
+        // Ein Gruppenwechsel faellt immer auf den Gruppen-Zustand zurueck
+        // (Detailvertrag Punkt 4b) — unabhaengig davon, ob der Viewer schon
+        // geladen ist. viewer.setFilter() wuerde das ohnehin ueber seinen
+        // eigenen onSelect(null)-Rueckruf erledigen, aber NUR wenn der
+        // Viewer schon existiert; hier steht es deshalb explizit und
+        // bedingungslos, nicht als Nebenwirkung eines anderen Aufrufs.
+        if (panel) panel.hidden = true;
+        // Genau EIN Gruppenname (16-UI-SPEC.md Detailvertrag Punkt 3.1) —
+        // die Buehne zeigt danach nie mehr als eine Gruppe gleichzeitig.
+        // viewer kann noch null sein (D-04: laedt erst beim Scrollen);
+        // start() unten holt die aktuelle Auswahl nach, sobald es soweit ist.
+        if (viewer) viewer.setFilter([gr]);
+      };
+      railEl.addEventListener('click', function (ev) {
+        var a = ev.target.closest ? ev.target.closest('a[data-g]') : null;
+        if (!a) return;
+        ev.preventDefault();
+        var gr = a.getAttribute('data-g');
+        if (gr !== activeGroup) showGroup(gr);
+      });
+      // Vorbelegung (Detailvertrag Punkt 2) ist bereits serverseitig
+      // sichtbar (erstes System ungefiltert, Rail-Eintrag traegt schon
+      // aria-current="true") — hier nur den JS-Zustand synchron dazu setzen,
+      // damit ein spaeterer Klick auf denselben Eintrag korrekt no-opt.
+      if (activeGroup) showGroup(activeGroup);
+    }
 
     var row = function (id, val) {
       var r = document.getElementById(id + 'row'), d = document.getElementById(id);
@@ -2031,9 +2733,23 @@ span.sd__ref{color:var(--muted)}
       if (val == null || val === '') { r.hidden = true; }
       else { d.textContent = val; r.hidden = false; }
     };
+    // Auslesung, Einzel-Zustand (16-04-PLAN.md Task 2, 16-UI-SPEC.md
+    // Detailvertrag Punkt 4b) — der Rueckweg in den Gruppen-Zustand:
+    // den aktuell aktiven Systemabschnitt (activeGroup, von showGroup
+    // gepflegt) wieder sichtbar machen. Kein eigener Knopf noetig — der
+    // Viewer ruft diesen Rueckruf bereits mit i=null bei Klick auf freie
+    // Buehnenflaeche UND bei setFilter(), wenn der gewaehlte Marker aus der
+    // sichtbaren Gruppe faellt (holo-viewer.js showGroup()/setFilter()).
+    var showGroupState = function () {
+      if (!activeGroup) return;
+      for (var gi = 0; gi < sysEls.length; gi++) {
+        sysEls[gi].hidden = sysEls[gi].getAttribute('data-g') !== activeGroup;
+      }
+    };
     showPanel = function (i) {
       if (i == null || !cfg.ports[i]) {
         panel.hidden = true;
+        showGroupState();
         if (viewer) viewer.select(null);
         return;
       }
@@ -2061,6 +2777,9 @@ span.sd__ref{color:var(--muted)}
       var noteTxt = p.np ? panel.getAttribute('data-np') : (p.est ? panel.getAttribute('data-est') : '');
       note.textContent = noteTxt;
       note.hidden = !noteTxt;
+      // Einzel-Zustand: der Gruppen-Zustand tritt zurueck (Detailvertrag
+      // Punkt 4b) — alle Systemabschnitte verstecken, nur die Karte zeigen.
+      for (var hi = 0; hi < sysEls.length; hi++) sysEls[hi].hidden = true;
       panel.hidden = false;
       if (viewer) viewer.select(i);
     };
@@ -2074,28 +2793,40 @@ span.sd__ref{color:var(--muted)}
         .then(function (m) {
           return m.initHolo(wrap, {
             url: cfg.url, ports: cfg.ports, mesh: cfg.mesh, ax: cfg.ax,
-            defaultOn: cfg.defaultOn, debug: debug,
+            defaultOn: cfg.defaultOn, debug: debug, kinds: cfg.kinds,
             onProgress: function (p) { status.textContent = loadingTpl.replace('%p%', p); },
             onSelect: showPanel,
           });
         })
         .then(function (v) {
           viewer = v; loading = false;
+          if (metricsMode) window.__holoViewer = v;
           status.textContent = '';
           stage.classList.remove('is-loading');
-          showHolo(); // blendet via applyMode das Ebenen-Panel ein
-          // Mobil: dauerhafte Bauteil-Labels standardmäßig AUS — auf dem kleinen
-          // Modell überlappen sie sich sonst und mit dem Ebenen-Panel. Antippen
-          // eines Markers zeigt weiterhin die Detailkarte; "Labels" schaltet an.
-          if (matchMedia('(max-width: 760px)').matches) {
-            try { v.setLabels(false); } catch (er) {}
-            var lblBtn = document.getElementById('holoblabels');
-            if (lblBtn) lblBtn.setAttribute('aria-pressed', 'false');
-            // Panel standardmäßig zugeklappt -> gibt das kleine Modell frei
-            if (filters) filters.classList.add('is-collapsed');
-            var lt0 = document.getElementById('holo-layers-toggle');
-            if (lt0) lt0.setAttribute('aria-expanded', 'false');
-          }
+          showHolo();
+          // Konsole (16-04-PLAN.md Task 1): initHolo() selbst kennt nur den
+          // server-berechneten cfg.defaultOn (Mehrfachauswahl, alter Stand).
+          // Die Rail kann laengst umgeschaltet haben, waehrend der Viewer
+          // noch lud (D-04 laedt erst beim Scrollen) — hier den tatsaechlich
+          // aktiven Rail-Stand nachholen, damit die Buehne von Anfang an nur
+          // GENAU eine Gruppe zeigt, nie die alte Mehrfachauswahl.
+          if (activeGroup) viewer.setFilter([activeGroup]);
+          // Mobil: die Beschriftungsschicht bleibt AN (Kurskorrektur, 15-01-
+          // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
+          // sie per setLabels(false) ganz abschalten, mit der Begruendung,
+          // ein einzelner Auswahl-Kasten koenne mit dem Ebenen-Panel
+          // ueberlappen). Das widersprach P-2 (16-UI-SPEC.md § 3a): P-2 gilt
+          // "fuer ALLE Gruppen einschliesslich core" OHNE Ausnahme fuer
+          // schmale Buehnen, und Messgruppe f-dauerlabels der Sonde prueft
+          // GENAU DAS bei 414px und 360px mit — mit setLabels(false) blieb
+          // der Kasten nach Antippen/Ueberfahren leer (0 statt 1 sichtbarer
+          // Kasten, gemessen bei allen drei Pruefschiffen). Da seit P-2 nie
+          // mehr als EIN Kasten gleichzeitig sichtbar ist, ist die
+          // Ueberfuellungs-Sorge von damals (viele Dauer-Labels auf kleinem
+          // Bildschirm) gegenstandslos. Der fruehere, hier ANSCHLIESSENDE
+          // mobile Einklapp-Zweig fuer den Ebenen-Kasten (#holofilters) ist
+          // mit dessen Ersetzung durch die Rail entfallen (16-03-PLAN.md
+          // Task 1, SCHRITT 3) — die Rail hat keinen eingeklappten Zustand.
         })
         .catch(function (e) {
           console.error(e);
@@ -2106,27 +2837,51 @@ span.sd__ref{color:var(--muted)}
     };
 
     autoHolo = start; // Eskalationsziel, wenn alle Galerie-Bilder tot sind
+    // #btn3d bleibt als Modusumschaltung aktiv, DARF weiterhin laden, aber
+    // ist ab jetzt ein Rueckfallweg, kein Hauptweg mehr (16-04-PLAN.md Task
+    // 3, AENDERUNG 1): wer auf Video/Bilder umgeschaltet hatte und dann
+    // explizit "3D-Holo" drueckt, bevor der Beobachter unten ausgeloest hat,
+    // soll nicht auf den naechsten Scroll warten muessen.
     if (btn3d) btn3d.addEventListener('click', function () { viewer ? showHolo() : start(true); });
     if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
-    var layersToggle = document.getElementById('holo-layers-toggle');
-    if (layersToggle) layersToggle.addEventListener('click', function () {
-      var collapsed = filters.classList.toggle('is-collapsed');
-      layersToggle.setAttribute('aria-expanded', String(!collapsed));
-    });
-    if (filters) filters.addEventListener('click', function (ev) {
-      var b = ev.target.closest('button');
-      if (!b || !viewer) return;
-      var pr = b.getAttribute('aria-pressed') !== 'true';
-      b.setAttribute('aria-pressed', String(pr));
-      if (b.id === 'holoblabels') { viewer.setLabels(pr); return; }
-      if (!b.hasAttribute('data-g')) return;
-      var groups = [];
-      filters.querySelectorAll('button[data-g][aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
-      viewer.setFilter(groups);
-    });
+    // Der fruehere Klick-Handler auf #holofilters (Mehrfachauswahl ->
+    // viewer.setFilter()) ist mit dem Ebenen-Kasten selbst entfallen
+    // (16-03-PLAN.md Task 1, SCHRITT 3). Die Rail ist in dieser Welle eine
+    // reine Anker-Liste ohne Skript-Interaktion; die Einfachauswahl mit
+    // Buehnen-Umschaltung ist Welle 4 (16-UI-SPEC.md Detailvertrag Punkt 5).
 
-    // Holo ist der einzige Modus (kein Video, keine Bilder) -> direkt laden
-    if (defaultMode === 'holo') start(false);
+    // ---------- Laden beim Scrollen, kein Startknopf (16-04-PLAN.md Task 3,
+    // AENDERUNG 1 -- D-04, Erfolgskriterium 5) ----------
+    // GENAU EIN Beobachter auf .holo (dem Rasterbehaelter, nicht nur der
+    // Buehne) loest start() GENAU EINMAL aus, sobald die Konsole in den
+    // sichtbaren Bereich scrollt -- dasselbe Beobachter-Muster, das
+    // holo-viewer.js bereits fuer die Render-Loop-Pause benutzt (dort
+    // threshold 0.02, pausiert/setzt fort; hier threshold 0.1, feuert
+    // einmal und trennt sich sofort). Die Zeile, die bisher sofort laedt,
+    // wenn Holo der einzige Modus ist ("if (defaultMode === 'holo')
+    // start(false)"), ist ERSATZLOS entfallen -- sie verletzte
+    // Erfolgskriterium 5 fuer jedes Schiff ohne Video/Galerie (das war die
+    // grosse Mehrheit): 0 Byte Netzverkehr beim Seitenaufruf war fuer diese
+    // Schiffe vorher nie erreichbar.
+    if (holoSec && typeof IntersectionObserver !== 'undefined') {
+      var loadObserver = new IntersectionObserver(
+        function (entries) {
+          for (var oi = 0; oi < entries.length; oi++) {
+            if (entries[oi].isIntersecting) {
+              start(false);
+              loadObserver.disconnect();
+              break;
+            }
+          }
+        },
+        { threshold: 0.1 }
+      );
+      loadObserver.observe(holoSec);
+    } else {
+      // Kein IntersectionObserver im Browser: sofortiges Laden ist besser
+      // als ein dauerhaft leerer Rumpf, den niemand je fuellt.
+      start(false);
+    }
   }
 
   // Start-Watchdog (autoHolo ist ab hier gesetzt): das aktive Bild kann schon

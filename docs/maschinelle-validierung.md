@@ -448,6 +448,31 @@ git/Netz/p4k, deterministisch, Budget heute 76 s → Ziel ≤ ~3 min inklusive
 aller Neuzugänge. Schiene B darf alles, läuft aber nur dort, wo die Wahrheit
 liegt. Schiene C fragt ausschließlich die ausgelieferte Seite.
 
+**Nachtrag Phase 14 (Testpilot-Tor auf `staging`):** Das Zugriffstor hinter
+der Discord-Rolle „Test Pilots" (D-06 ff.) brachte zwei neue Strecken, eine
+je Seite der Grenze zwischen Build und Auslieferung:
+
+- **`verify:gate` (Schiene A)** prüft die Ausnahmeliste des Tors gegen
+  `nginx/default.conf` und `dist/gate.html`: jeder Eintrag trägt seinen
+  Anlass, deckt genau das, was die Torseite wirklich anfordert, kein
+  erfundener Eintrag, `nginx/gate.js` trägt kein eingebautes Geheimnis. Liest
+  ausschließlich `dist/` und die beiden nginx-Dateien als Text — kein git,
+  kein Netz, kein Kindprozess, deshalb Schiene A wie jede andere
+  Invarianten-Prüfung gegen das Artefakt (B1).
+- **`check:gate` (Schiene C)** misst die AUSGELIEFERTE Zugriffskontrolle:
+  gesperrte Stichproben aus `dist/` antworten ohne Ausweis mit `302` auf die
+  Torseite, jeder Eintrag der Ausnahmeliste antwortet mit `200`, `/build.json`
+  trägt eine Commit-Kennung (D-07), und ein gewürfelter Wert in der
+  Bypass-Kopfzeile öffnet das Tor NICHT. Das kann strukturell nicht auf
+  Schiene A laufen: Es misst per `fetch()` gegen die tatsächlich laufende
+  Domain (`redirect: "manual"`, der `302` muss sichtbar bleiben statt gefolgt
+  zu werden) — dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei
+  `check:staging` trifft es ebenso (401/403/429), deshalb `--weich` im
+  Workflow und streng vom Entwicklungsrechner aus. Die Aussage betrifft den
+  ausgelieferten Zustand, nicht den Build — genau der Unterschied, den
+  Grundsatz 7 zwischen „gegen `dist/`" und „gegen die ausgelieferte Seite"
+  macht.
+
 **Mensch bleibt vierte Instanz:** Sichturteile laufen unverändert über
 `.planning/WINDOWS.md` (benannte Punkte, Abnahme durch den Betreiber). Die
 Schienen liefern ihr die Vorarbeit — sortierte Verdachtslisten statt „schau

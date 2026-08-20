@@ -98,6 +98,17 @@ export const CHECKS = [
     checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers',
   },
   {
+    // Direkt nach audit:csp — beide betreffen nginx/default.conf.
+    id: 'verify:gate',
+    npm: 'verify:gate',
+    script: 'scripts/verify-gate.mjs',
+    rail: 'A',
+    checks:
+      'die Ausnahmeliste des Testpilot-Tors (nginx/default.conf, GATE-AUSNAHME-Zeilen) traegt jeden Anlass, deckt genau das, was dist/gate.html anfordert, hat keinen erfundenen Eintrag, die Torseite bleibt ungepaart und ohne /_astro/-Buendel, nginx/gate.js traegt kein eingebautes Geheimnis, und der $vb_gate_on-Schalter steht in der Form, auf die der Dockerfile-sed zielt (D-06, D-09, D-12)',
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
+    // ausschliesslich dist/ und die beiden nginx-Dateien als Text.
+  },
+  {
     id: 'verify:crafting',
     npm: 'verify:crafting',
     script: 'scripts/verify-crafting-specs.mjs',
@@ -124,6 +135,29 @@ export const CHECKS = [
     script: 'scripts/verify-sync.mjs',
     rail: 'A',
     checks: 'EN und DE tragen dieselbe Geruestform ueber alle gebauten Seitenpaare',
+  },
+  {
+    id: 'verify:shipcard',
+    npm: 'verify:shipcard',
+    script: 'scripts/verify-shipcard.mjs',
+    rail: 'A',
+    checks:
+      'die Schiffs-Detailseite traegt genau ein Kapitelgeruest mit Sprungleiste, keinen Einheitsrahmen mehr, Balken nur beim Leistungsprofil, und jeder Wert steht an genau einer Stelle (D-01/D-02/D-03)',
+  },
+  {
+    id: 'verify:shipconsole',
+    npm: 'verify:shipconsole',
+    script: 'scripts/verify-shipconsole.mjs',
+    rail: 'A',
+    checks:
+      'die Schiffs-Konsole (Rail, Systemabschnitte, Marker-Zaehlung, Textbestand) steht vollstaendig im ausgelieferten HTML, ohne JavaScript sichtbar, mit Bijektion Rail<->System und Sprachparitaet (Phase 16, D-01/D-02/P-1/P-2/P-3)',
+    // SCHARF seit 16-05-PLAN.md Task 1: bei der Anlage (15-02) noch AUSGESETZT
+    // (vorgefuehrt rot gegen den nach Welle 1 gebauten Stand, Meldung siehe
+    // 16-02-SUMMARY.md — Konsole existierte damals noch nicht), Wellen 3/4
+    // haben den Zielzustand gebaut. Vor der Scharfschaltung erneut gruen
+    // gelaufen (alle acht Zusicherungen, Zombie-Waechter meldet "0
+    // Ausnahmen registriert" -- explizit, keine stille Leere), Praezedenz
+    // verify:shipcard (14-01 -> 14-04): erst beheben/gruen, dann scharf.
   },
   {
     id: 'verify:theme',
@@ -232,6 +266,17 @@ export const CHECKS = [
       'die Vorschau-Domain liefert wirklich den zuletzt gebauten Stand aus (dist/build.json gegen origin/staging) und traegt einen Vorschau-Build, keinen Live-Build',
     env:
       'Netz: fetch() gegen <base>/build.json. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
+  },
+
+  {
+    id: 'check:gate',
+    npm: 'check:gate',
+    script: 'scripts/check-gate.mjs',
+    rail: 'C',
+    checks:
+      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07), und ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57)',
+    env:
+      'Netz: fetch() gegen <base>/…, redirect:"manual" (der 302 muss SICHTBAR bleiben, nicht gefolgt werden) — dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:staging (401/403/429), deshalb --weich im Workflow, streng vom Entwicklungsrechner aus. Sonst beruehrt es nichts ausserhalb der Umgebung: die Stichproben kommen ausschliesslich aus dist/ und aus dem Text von nginx/default.conf, nicht aus einer zweiten, handgepflegten Liste.',
   },
 
   // ---------------------------------------------------------------

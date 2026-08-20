@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Attrappe 012 — Schiffskarte „Ruhe“</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ============================================================
+   WEGWERF-ATTRAPPE. Kein Produktionscode, keine Tokens der Seite.
+   Richtung: RSI-nah — weiche Kaertchen, tiefes entsaettigtes Blau,
+   viel Leerraum, gemischte Schreibung, EIN lautes Element.
+   Alle Daten sind die echten der Carrack aus dem gebauten dist/.
+   ============================================================ */
+:root{
+  /* Vier Flaechenstufen, eng beieinander (RSI-Prinzip: kein harter Sprung) */
+  --grund:#080e17;
+  --karte:#0f1a28;
+  --hoch:#17253a;
+  --hoeher:#1e2f49;
+  /* Text: Fliesstext ist warmes Grau, NICHT weiss */
+  --text:#e7edf6;
+  --fliess:#a3aebd;
+  --leise:#6e7c90;
+  /* Akzente sparsam */
+  --blau:#5fb2f0;
+  --gold:#d9b45f;
+  --haar:rgba(255,255,255,.07);
+  /* Nur VIER Schriftgrade auf der ganzen Seite */
+  --t-mikro:12px;
+  --t-text:15px;
+  --t-sub:19px;
+  --t-titel:46px;
+  --radius:10px;
+  --radius-gross:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{background:var(--grund);color:var(--fliess);
+  font:400 var(--t-text)/1.65 "Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  padding-bottom:120px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+/* ---------- Kopfleiste (nur angedeutet) ---------- */
+.nav{height:60px;display:flex;align-items:center;gap:28px;
+  background:rgba(8,14,23,.86);backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:40}
+.nav .marke{font-weight:700;color:var(--text);letter-spacing:.06em}
+.nav a{color:var(--leise);text-decoration:none;font-size:var(--t-mikro)}
+
+/* ---------- Hero ---------- */
+.hero{margin:28px auto 0;max-width:1180px;padding:0 32px}
+.heroKarte{position:relative;border-radius:var(--radius-gross);overflow:hidden;
+  background:var(--karte);display:grid;grid-template-columns:1.35fr .95fr;min-height:400px}
+.heroBild{position:relative;background:#060a11}
+.heroBild img{width:100%;height:100%;object-fit:cover;display:block;opacity:.96}
+/* Weiche Kante statt harter Schnittlinie zwischen Bild und Text */
+.heroBild::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 55%,var(--karte) 99%)}
+.heroText{padding:44px 44px 40px;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.hersteller{display:flex;align-items:center;gap:12px}
+.hersteller img{height:30px;width:auto;opacity:.9}
+h1{font-size:var(--t-titel);line-height:1.02;font-weight:700;color:var(--text);letter-spacing:-.015em}
+.untertitel{color:var(--leise);font-size:var(--t-text);margin-top:-10px}
+.marken{display:flex;flex-wrap:wrap;gap:8px}
+.marke-chip{font-size:var(--t-mikro);color:var(--fliess);background:var(--hoch);
+  padding:5px 11px;border-radius:99px}
+.marke-chip.bereit{color:#8fd6a4;background:rgba(80,190,120,.13)}
+.anriss{color:var(--fliess);max-width:46ch}
+
+/* ---------- Kennwerte-Band: keine Kaesten, nur Raum ---------- */
+.kennband{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:26px;
+  background:var(--karte);border-radius:var(--radius);padding:22px 8px}
+.kenn{padding:0 22px;position:relative}
+.kenn + .kenn::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:1px;background:var(--haar)}
+.kenn dt{font-size:var(--t-mikro);color:var(--leise);margin-bottom:3px}
+.kenn dd{font-size:var(--t-sub);color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.kenn.preis dd{color:var(--gold)}
+
+/* ---------- Sprungleiste: leise, rechtsbuendig, kein Kasten ---------- */
+.sprung{position:sticky;top:60px;z-index:30;background:rgba(8,14,23,.88);
+  backdrop-filter:blur(8px);margin-top:26px}
+.sprung .wrap{display:flex;gap:26px;padding-top:14px;padding-bottom:14px}
+.sprung a{color:var(--leise);text-decoration:none;font-size:var(--t-mikro);
+  padding-bottom:3px;border-bottom:1px solid transparent;transition:color .18s}
+.sprung a:hover{color:var(--fliess)}
+.sprung a.aktiv{color:var(--text);border-bottom-color:var(--blau)}
+
+/* ---------- Kapitel ---------- */
+.kapitel{margin-top:64px}
+.kapKopf{display:flex;align-items:baseline;justify-content:space-between;gap:20px;
+  margin-bottom:20px;padding-left:14px;position:relative}
+.kapKopf::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:3px;
+  border-radius:2px;background:var(--ton,var(--blau));opacity:.75}
+.kapKopf h2{font-size:var(--t-sub);font-weight:600;color:var(--text);letter-spacing:-.005em}
+.kapKopf .meta{font-size:var(--t-mikro);color:var(--leise)}
+
+/* Karten: weich, randlos, Flaeche statt Rahmen */
+.karten{display:grid;gap:18px}
+.karten.zwei{grid-template-columns:1fr 1fr}
+.karte{background:var(--karte);border-radius:var(--radius);padding:26px 28px}
+.karte h3{font-size:var(--t-text);font-weight:600;color:var(--text);margin-bottom:16px}
+.karte h3 .zusatz{font-weight:400;color:var(--leise);margin-left:8px}
+
+/* Wertzeilen: Haarlinie statt Kasten, Wert rechtsbuendig */
+.zeilen{display:flex;flex-direction:column}
+.zeile{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding:9px 0;border-top:1px solid var(--haar)}
+.zeile:first-child{border-top:0;padding-top:0}
+.zeile .l{color:var(--leise);font-size:var(--t-text)}
+.zeile .v{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.zeile .v small{display:block;font-weight:400;font-size:var(--t-mikro);color:var(--leise)}
+
+/* Preis-Held: das EINE laute Element der Seite */
+.preisHeld{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.preisHeld .zahl{font-size:34px;font-weight:700;color:var(--gold);
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.preisHeld .wo{color:var(--leise);font-size:var(--t-text)}
+
+/* Perzentil: der einzige Ort mit Balken */
+.pz{display:flex;flex-direction:column;gap:2px}
+/* Wertspalte breit genug fuer den laengsten Wert ("232.000 HP" + "P88") in EINER
+   Zeile — 84px liessen ihn umbrechen, derselbe Fehler wie live bei arm__sum. */
+.pzZeile{display:grid;grid-template-columns:140px 1fr 148px;align-items:center;gap:16px;padding:7px 0}
+.pzWert{white-space:nowrap}
+.pzZeile .l{color:var(--leise);font-size:var(--t-text)}
+.spur{height:5px;border-radius:99px;background:var(--hoch);overflow:hidden}
+.fuell{height:100%;border-radius:99px;background:linear-gradient(90deg,#3d7fb8,var(--blau))}
+.pzWert{text-align:right;color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;font-size:var(--t-text)}
+.pzWert em{font-style:normal;color:var(--leise);font-weight:400;font-size:var(--t-mikro);margin-left:6px}
+
+/* Fracht-Wuerfel */
+.wuerfel{display:flex;flex-wrap:wrap;gap:3px;margin:10px 0 8px}
+.wuerfel i{width:11px;height:11px;border-radius:2px;background:var(--gold);opacity:.72}
+.gross{font-size:var(--t-sub);color:var(--gold);font-weight:600}
+
+/* Waffenzeilen */
+.waffe{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--haar)}
+.waffe:first-of-type{border-top:0}
+.waffe .n{color:var(--leise);font-size:var(--t-mikro);min-width:26px}
+.gr{background:var(--hoch);color:var(--text);border-radius:5px;padding:2px 8px;
+  font-size:var(--t-mikro);font-weight:600}
+.waffe .nm{color:var(--fliess);flex:1}
+.waffe .dps{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* Bauteil-Kaertchen */
+.teile{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.teil{background:var(--hoch);border-radius:8px;padding:12px 14px}
+.teil .t{font-size:var(--t-mikro);color:var(--leise);margin-bottom:2px}
+.teil .n{color:var(--text);font-weight:600}
+.teil .n span{color:var(--leise);font-weight:400;font-size:var(--t-mikro);margin-left:5px}
+
+/* Lackierungen */
+.lacke{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.lack{flex:0 0 168px}
+.lack .bild{height:96px;border-radius:8px;background:var(--hoch)}
+.lack .nm{font-size:var(--t-mikro);color:var(--leise);margin-top:7px}
+
+/* Verweise */
+.verweise{display:flex;flex-wrap:wrap;gap:9px}
+.verweis{background:var(--hoch);color:var(--fliess);text-decoration:none;
+  border-radius:99px;padding:7px 15px;font-size:var(--t-mikro);transition:background .18s,color .18s}
+.verweis:hover{background:var(--hoeher);color:var(--text)}
+
+/* Beschreibung: bekommt endlich einen Ort statt zwischen den Kapiteln zu treiben */
+.beschreibung{color:var(--fliess);max-width:68ch;line-height:1.75}
+
+/* Aehnliche */
+.sim{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.simKarte{background:var(--karte);border-radius:var(--radius);overflow:hidden;text-decoration:none;display:block}
+.simKarte .bild{height:104px;background:var(--hoch)}
+.simKarte .tx{padding:13px 15px}
+.simKarte .nm{color:var(--text);font-weight:600}
+.simKarte .mt{color:var(--leise);font-size:var(--t-mikro)}
+
+.quelle{margin-top:44px;font-size:var(--t-mikro);color:var(--leise);line-height:1.9}
+.quelle a{color:var(--leise)}
+
+@media(max-width:980px){
+  .heroKarte{grid-template-columns:1fr}
+  .heroBild{min-height:260px}
+  .heroBild::after{background:linear-gradient(0deg,var(--karte) 2%,transparent 55%)}
+  .karten.zwei{grid-template-columns:1fr}
+  .kennband{grid-template-columns:repeat(2,1fr);gap:18px 0}
+  .kenn + .kenn::before{display:none}
+  .sim{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="nav wrap"><span class="marke">VERSE·BASE</span><a href="#">Schiffe</a><a href="#">Items</a><a href="#">Crafting</a><a href="#">Mining</a></div>
+
+<div class="hero">
+  <div class="heroKarte">
+    <div class="heroBild">
+      <img src="https://media.starcitizen.tools/thumb/9/92/Carrack_over_microTech_3.8.png/1280px-Carrack_over_microTech_3.8.png.webp" alt="Carrack">
+    </div>
+    <div class="heroText">
+      <div class="hersteller"><img src="http://localhost:8411/assets/manufacturers/anvil-aerospace.png" alt="Anvil Aerospace"></div>
+      <h1>Carrack</h1>
+      <p class="untertitel">Anvil Aerospace · Erkundung, Expedition</p>
+      <div class="marken">
+        <span class="marke-chip bereit">Flugbereit</span>
+        <span class="marke-chip">Groß</span>
+        <span class="marke-chip">Besatzung 6–12</span>
+      </div>
+      <p class="anriss">Ein selbstversorgendes Erkundungsschiff für Langstrecke und Sprungpunkt-Kartierung — mit eigenem Hangar, Traktorstrahl und Tier-2-Medizinbett.</p>
+    </div>
+  </div>
+
+  <dl class="kennband">
+    <div class="kenn"><dt>Länge</dt><dd>126 m</dd></div>
+    <div class="kenn"><dt>Fracht</dt><dd>456 SCU</dd></div>
+    <div class="kenn"><dt>Reisetempo</dt><dd>140 m/s</dd></div>
+    <div class="kenn"><dt>Feuerkraft</dt><dd>6.543 DPS</dd></div>
+    <div class="kenn preis"><dt>Im Verse ab</dt><dd>34.398.000 aUEC</dd></div>
+  </dl>
+</div>
+
+<div class="sprung">
+  <div class="wrap">
+    <a href="#kaufen" class="aktiv">Kaufen</a>
+    <a href="#leistung">Leistung</a>
+    <a href="#ausstattung">Ausstattung</a>
+    <a href="#umfeld">Umfeld</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="kapitel" id="kaufen" style="--ton:#d9b45f">
+    <div class="kapKopf"><h2>Kaufen im Verse</h2><span class="meta">UEX · Stand 03.08.2026</span></div>
+    <div class="karten zwei">
+      <div class="karte">
+        <div class="preisHeld"><span class="zahl">34.398.000 aUEC</span></div>
+        <div class="zeilen">
+          <div class="zeile"><span class="l">Astro Armada</span><span class="v">34.398.000 aUEC<small>Area 18 · Stanton</small></span></div>
+          <div class="zeile"><span class="l">Pledge-Store</span><span class="v">$600<small>Echtgeld</small></span></div>
+        </div>
+      </div>
+      <div class="karte">
+        <h3>Verfügbarkeit</h3>
+        <div class="zeilen">
+          <div class="zeile"><span class="l">Zustand</span><span class="v">Flugbereit</span></div>
+          <div class="zeile"><span class="l">Mieten</span><span class="v">nicht möglich</span></div>
+          <div class="zeile"><span class="l">Versicherung</span><span class="v">48 min<small>Express 16 min · 19.595 aUEC</small></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kapitel" id="leistung" style="--ton:#5fb2f0">
+    <div class="kapKopf"><h2>Leistung im Vergleich</h2><span class="meta">Perzentil unter 227 Schiffen</span></div>
+    <div class="karte">
+      <div class="pz">
+        <div class="pzZeile"><span class="l">Reisetempo</span><div class="spur"><div class="fuell" style="width:8%"></div></div><span class="pzWert"><em>P8</em></span></div>
+        <div class="pzZeile"><span class="l">Wendigkeit</span><div class="spur"><div class="fuell" style="width:8%"></div></div><span class="pzWert">20,7 °/s<em>P8</em></span></div>
+        <div class="pzZeile"><span class="l">Feuerkraft</span><div class="spur"><div class="fuell" style="width:85%"></div></div><span class="pzWert">6.543 DPS<em>P85</em></span></div>
+        <div class="pzZeile"><span class="l">Verteidigung</span><div class="spur"><div class="fuell" style="width:88%"></div></div><span class="pzWert">232.000 HP<em>P88</em></span></div>
+        <div class="pzZeile"><span class="l">Fracht</span><div class="spur"><div class="fuell" style="width:66%"></div></div><span class="pzWert"><em>P66</em></span></div>
+        <div class="pzZeile"><span class="l">Quantum-Tempo</span><div class="spur"><div class="fuell" style="width:97%"></div></div><span class="pzWert"><em>P97</em></span></div>
+      </div>
+    </div>
+    <p class="beschreibung" style="margin-top:24px">Das Abenteuer ruft, und Anvil Aerospace antwortet mit der Carrack. Auf extreme Bedingungen sowohl im Weltraum als auch in Atmosphären ausgelegt, hat sich dieses selbstversorgende Erkundungsschiff seinen traditionellen Status als Fernspäher der Wahl sowohl zu militärischen als auch zu zivilen Zwecken mehr als verdient.</p>
+  </section>
+
+  <section class="kapitel" id="ausstattung" style="--ton:#6f8fc4">
+    <div class="kapKopf"><h2>Ausstattung</h2><span class="meta">Anvil Aerospace</span></div>
+    <div class="karten zwei">
+
+      <div class="karte">
+        <h3>Maße &amp; Fracht</h3>
+        <div class="zeilen">
+          <div class="zeile"><span class="l">Länge</span><span class="v">126 m</span></div>
+          <div class="zeile"><span class="l">Breite</span><span class="v">74 m</span></div>
+          <div class="zeile"><span class="l">Höhe</span><span class="v">30 m</span></div>
+          <div class="zeile"><span class="l">Wasserstofftank</span><span class="v">360 SCU</span></div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="gross">456 SCU Frachtraum</div>
+          <div class="wuerfel"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div style="font-size:var(--t-mikro);color:var(--leise)">jedes Feld = 32 SCU</div>
+        </div>
+      </div>
+
+      <div class="karte">
+        <h3>Bewaffnung <span class="zusatz">6.543 DPS gesamt</span></h3>
+        <div class="zeilen">
+          <div class="zeile"><span class="l">Waffen-Hardpoints</span><span class="v">8 <small>Größe 4</small></span></div>
+          <div class="zeile"><span class="l">Turmstationen</span><span class="v">4</span></div>
+          <div class="zeile"><span class="l">Gegenmaßnahmen</span><span class="v">2 Werfer</span></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="waffe"><span class="n">6×</span><span class="gr">S4</span><span class="nm">CF-447 Rhino Repeater</span><span class="dps">4.907 DPS</span></div>
+          <div class="waffe"><span class="n">2×</span><span class="gr">S4</span><span class="nm">CF-447 Rhino Repeater<br><span style="font-size:var(--t-mikro);color:var(--leise)">ferngesteuert</span></span><span class="dps">1.636 DPS</span></div>
+        </div>
+      </div>
+
+      <div class="karte">
+        <h3>Flug &amp; Quantum</h3>
+        <div class="zeilen">
+          <div class="zeile"><span class="l">Reisetempo (SCM)</span><span class="v">140 m/s</span></div>
+          <div class="zeile"><span class="l">Boost</span><span class="v">315 m/s</span></div>
+          <div class="zeile"><span class="l">Höchsttempo</span><span class="v">1.050 m/s</span></div>
+          <div class="zeile"><span class="l">Nick / Gier / Roll</span><span class="v">16 / 16 / 30 °/s</span></div>
+          <div class="zeile"><span class="l">Quantum-Tempo</span><span class="v">319.000 km/s</span></div>
+          <div class="zeile"><span class="l">Quantum-Reichweite</span><span class="v">274 Gm<small>Spool 7 s · 10,6 SCU Treibstoff</small></span></div>
+        </div>
+      </div>
+
+      <div class="karte">
+        <h3>Komponenten <span class="zusatz">88.000 HP Hülle · 144.000 HP Schilde</span></h3>
+        <div class="teile">
+          <div class="teil"><div class="t">Generatoren</div><div class="n">Reliance <span>×2</span></div></div>
+          <div class="teil"><div class="t">Schildgeneratoren</div><div class="n">Barbican <span>×2</span></div></div>
+          <div class="teil"><div class="t">Kühler</div><div class="n">Ice-Flush <span>×2</span></div></div>
+          <div class="teil"><div class="t">Quantum-Antrieb</div><div class="n">Kama</div></div>
+          <div class="teil"><div class="t">Radar</div><div class="n">Surveyor</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="kapitel" id="umfeld" style="--ton:#5b6779">
+    <div class="kapKopf"><h2>Umfeld</h2><span class="meta">FleetYards · Stand 16.07.2026</span></div>
+    <div class="karten zwei">
+      <div class="karte">
+        <h3>Lackierungen <span class="zusatz">13</span></h3>
+        <div class="lacke">
+          <div class="lack"><div class="bild"></div><div class="nm">2950 Best in Show</div></div>
+          <div class="lack"><div class="bild"></div><div class="nm">2952 Best in Show</div></div>
+          <div class="lack"><div class="bild"></div><div class="nm">2953 Auspicious Red</div></div>
+        </div>
+      </div>
+      <div class="karte">
+        <h3>Serie &amp; Leihschiffe</h3>
+        <div style="margin-bottom:14px;font-size:var(--t-mikro);color:var(--leise)">Leihschiffe bis zur Flugfreigabe</div>
+        <div class="verweise">
+          <a class="verweis" href="#">Ursa</a>
+          <a class="verweis" href="#">C8 Pisces</a>
+          <a class="verweis" href="#">C8X Pisces Expedition</a>
+          <a class="verweis" href="#">Carrack Expedition</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kapitel">
+    <div class="kapKopf" style="--ton:transparent"><h2>Ähnliche Schiffe</h2></div>
+    <div class="sim">
+      <a class="simKarte" href="#"><div class="bild"></div><div class="tx"><div class="nm">Carrack Expedition</div><div class="mt">Erkundung · 126 m</div></div></a>
+      <a class="simKarte" href="#"><div class="bild"></div><div class="tx"><div class="nm">600i</div><div class="mt">Erkundung · 91,5 m</div></div></a>
+      <a class="simKarte" href="#"><div class="bild"></div><div class="tx"><div class="nm">600i 2951 BIS</div><div class="mt">Erkundung · 91,5 m</div></div></a>
+      <a class="simKarte" href="#"><div class="bild"></div><div class="tx"><div class="nm">600i Touring</div><div class="mt">Erkundung · 91,5 m</div></div></a>
+    </div>
+  </section>
+
+  <p class="quelle">Spielversion Alpha 4.9.0 · Stand 03.08.2026 · Ingame-Preise <a href="#">UEX Corp</a> · Lackierungen und Serien-Daten <a href="#">FleetYards.net</a></p>
+
+</div>
+</body>
+</html>

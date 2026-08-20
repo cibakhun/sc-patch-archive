@@ -138,8 +138,11 @@ export const roles = [
   // Staff (MentionEveryone) and the bot's patch auto-post can still ping them.
   { key: 'patch-watch', name: 'Patch Pings', color: C.pingCyan, hoist: false, mentionable: false, permissions: [] },
   { key: 'announce-ping', name: 'Announcement Pings', color: C.pingBlue, hoist: false, mentionable: false, permissions: [] },
-  // 🧪 Testers get pinged when something needs trying before it ships. This is
-  // the one interest role that survives, because it's about the site's work.
+  // 🧪 Test Pilots get access to staging and a ping when something needs
+  // trying before it ships. NOT self-assignable — 17.08.2026 (D-15): unlike
+  // the pings above, this is a granted distinction, handed out by the
+  // operator, not picked in onboarding. See the private #test-pilots channel
+  // in BUILD & FEEDBACK for what it unlocks.
   { key: 'tester', name: 'Test Pilots', color: C.craftOrange, hoist: false, mentionable: false, permissions: [] },
 
   // Language
@@ -219,8 +222,38 @@ export const categories = [
           everyone: { allow: ['EmbedLinks', 'AttachFiles'] },
         },
       },
-      { key: 'suggestions', name: 'suggestions', type: 'text', topic: 'Ideas for verse-base.com — one per post, react to vote · Ideen für verse-base.com — eine pro Post, mit Reaktion abstimmen', slowmode: 30 },
-      { key: 'support', name: 'support', type: 'text', topic: 'Stuck on a tool or the bot? Ask here · Hängst du an einem Tool oder dem Bot? Frag hier' },
+      // 17.08.2026: #suggestions und #support zu EINEM #feedback verschmolzen.
+      // Dieselbe Begruendung wie bei den acht Werkzeug-Kanaelen darunter: zwei
+      // Tueren fuer dieselbe Sache ergeben bei dieser Servergroesse zwei halb
+      // leere Raeume. Eine Idee und ein „ich haenge fest" landen ohnehin beim
+      // selben Menschen.
+      //
+      // ⚠ Der Umzug laeuft ueber renames{} weiter unten: #suggestions wird
+      //   UMBENANNT und behaelt damit seinen Verlauf. Ohne diesen Eintrag baute
+      //   der Builder ein leeres #feedback daneben und liesse das Original
+      //   verwaist zurueck.
+      // ⚠ #support steht danach noch live, aber NICHT mehr im Blueprint. Das
+      //   ist Absicht: build.mjs loescht keine Kanaele, und Loeschen naehme die
+      //   Beitraege mit. Stilllegen (sperren + Wegweiser) ist Handarbeit,
+      //   nachzulesen im Abschluss dieser Aenderung.
+      { key: 'feedback', name: 'feedback', type: 'text', topic: 'Ideas, questions, anything about verse-base.com — one topic per post · Ideen, Fragen, alles zu verse-base.com — ein Thema pro Post', slowmode: 30 },
+      // 17.08.2026 (D-18): private room for the Test Pilots role — deploy
+      // pings for the staging preview and talk about half-finished things.
+      // No category of its own: a lone room for a group that doesn't exist
+      // yet doesn't repeat the #suggestions/#support mistake above (that was
+      // two rooms for one purpose; this is one room for a purpose nothing
+      // else here covers). `flight-computer` gets the same view as `tester`
+      // so the bot can actually post the deploy ping — without this entry it
+      // would be posting into a channel it can't see.
+      {
+        key: 'test-pilots', name: 'test-pilots', type: 'text',
+        topic: 'Preview builds, half-finished things, and what broke · Vorschau-Stände, Halbfertiges, und was kaputt ging',
+        overwrites: {
+          everyone: { deny: ['ViewChannel'] },
+          tester: { allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+          'flight-computer': { allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+        },
+      },
       // One channel replaces the eight per-tool channels. With a server this
       // size, eight rooms meant eight quiet rooms; the per-tool split now lives
       // in the #bug-reports forum tags, where it actually earns its keep.
@@ -269,6 +302,16 @@ export const renames = {
     '🩹・patch-notes': 'patch-notes',
     '🐞・bug-reports': 'bug-reports',
     '💡・suggestions': 'suggestions',
+    // Kette, und die REIHENFOLGE traegt sie: doRename() laeuft die Eintraege
+    // in Einfuegereihenfolge ab. Steht der Kanal live noch als „💡・suggestions",
+    // macht der Eintrag darueber daraus „suggestions", und erst dieser hier
+    // „feedback". Idempotent: existiert #feedback schon, ueberspringt doRename()
+    // beide Schritte, statt einen zweiten Kanal anzulegen.
+    'suggestions': 'feedback',
+    // ⚠ #support wird NICHT umbenannt — es geht in #feedback auf, aber sein
+    //   Verlauf soll nicht unter fremdem Namen weiterlaufen. Der Eintrag hier
+    //   putzt nur den alten Emoji-Namen, damit der stillgelegte Kanal sauber
+    //   dasteht, bis der Betreiber ueber ihn entscheidet.
     '🛟・support': 'support',
     '🧰・tools': 'tools',
     '🤖・bot-commands': 'bot-commands',
@@ -354,20 +397,22 @@ export const welcomeScreen = {
     { channel: 'start-here', emoji: '🧭', description: 'Map & tools · Karte & Tools' },
     { channel: 'rules', emoji: '📏', description: 'House rules · Serverregeln' },
     { channel: 'bug-reports', emoji: '🐞', description: 'Report a bug · Fehler melden' },
-    { channel: 'suggestions', emoji: '💡', description: 'Ideas · Ideen' },
+    { channel: 'feedback', emoji: '💡', description: 'Ideas & questions · Ideen & Fragen' },
     { channel: 'patch-notes', emoji: '🩹', description: 'Every patch · Alle Patches' },
   ],
 };
 
 // ── Onboarding (native role/interest selection) ────────────────────────────
 // Prompt/option titles are bilingual (EN · DE). The playstyle prompt is gone
-// with the playstyle roles; what's left is the three things that actually
-// change what a member receives: pings, test invites, and language.
+// with the playstyle roles; what's left is the things that actually change
+// what a member receives: pings and language. (17.08.2026, D-15: the Test
+// Pilots ping used to be a third option here — it's a granted role now, not
+// a self-service one, so it doesn't live in onboarding any more.)
 export const onboarding = {
   enabled: true,
   defaultChannels: [
     'welcome', 'rules', 'start-here', 'announcements', 'patch-notes',
-    'bug-reports', 'suggestions', 'support', 'tools', 'general',
+    'bug-reports', 'feedback', 'tools', 'general',
   ],
   prompts: [
     {
@@ -376,7 +421,6 @@ export const onboarding = {
       options: [
         { title: 'Site updates · Seiten-Updates', description: 'When something new ships · Wenn etwas Neues live geht', emoji: '📢', roles: ['announce-ping'], channels: ['announcements'] },
         { title: 'Patch drops · Patch-Releases', description: 'New Star Citizen patches · Neue Star-Citizen-Patches', emoji: '🔔', roles: ['patch-watch'], channels: ['patch-notes'] },
-        { title: 'Test pilot · Testpilot', description: 'Try things before they ship · Neues testen, bevor es live geht', emoji: '🧪', roles: ['tester'], channels: ['tools'] },
       ],
     },
     {
@@ -445,7 +489,7 @@ export const seed = {
         '🧭 Read <#start-here> for the map + every tool',
         '📏 Skim the <#rules>',
         '🐞 Found something broken? <#bug-reports>',
-        '💡 Got an idea? <#suggestions>',
+        '💡 Got an idea or a question? <#feedback>',
         '🎭 Pick your roles in onboarding — including your **language**, which sets the language the bot answers you in',
         DIV,
         `Das ist die Werkstatt hinter **[verse-base.com](${SITE})** — dem inoffiziellen Star-Citizen-Kompendium.`,
@@ -458,7 +502,7 @@ export const seed = {
         '🧭 Lies <#start-here> für die Karte + alle Tools',
         '📏 Überflieg die <#rules>',
         '🐞 Etwas kaputt gefunden? <#bug-reports>',
-        '💡 Eine Idee? <#suggestions>',
+        '💡 Eine Idee oder eine Frage? <#feedback>',
         '🎭 Wähl deine Rollen im Onboarding — inkl. deiner **Sprache**, die bestimmt, in welcher Sprache der Bot dir antwortet',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
@@ -474,7 +518,7 @@ export const seed = {
         { name: '1 · Respect the crew · Respektiere die Crew', value: 'No harassment, hate, slurs or personal attacks. Treat people the way you’d want on your own ship.\nKeine Belästigung, kein Hass, keine Beleidigungen oder persönlichen Angriffe. Behandle andere so, wie du es auf deinem eigenen Schiff wollen würdest.' },
         { name: '2 · This server is about the site · Hier geht es um die Seite', value: 'Bugs, ideas, questions about the tools and what’s coming next. General SC chat, news, org recruiting, LFG and CCU trading have dedicated servers that do them better — ask in <#general> and we’ll point you at one.\nFehler, Ideen, Fragen zu den Tools und was als Nächstes kommt. Allgemeiner SC-Plausch, News, Org-Anwerbung, LFG und CCU-Handel haben eigene Server, die das besser können — frag in <#general>, wir verweisen dich gern.' },
         { name: '3 · Any language welcome · Jede Sprache willkommen', value: 'English and Deutsch are both at home here — pick your language role and the bot answers you in it. Use whichever you like; be readable.\nEnglisch und Deutsch sind beide zu Hause — wähl deine Sprachrolle und der Bot antwortet dir darin. Schreib, wie es dir liegt; bleib verständlich.' },
-        { name: '4 · One bug, one thread · Ein Fehler, ein Thread', value: 'File bugs in <#bug-reports> as separate threads with the page and what you did. Ideas go to <#suggestions>, one per post. It’s the difference between something getting fixed and something getting lost.\nMelde Fehler in <#bug-reports> als einzelne Threads mit Seite und Vorgehen. Ideen nach <#suggestions>, eine pro Post. Das entscheidet, ob etwas behoben wird oder untergeht.' },
+        { name: '4 · One bug, one thread · Ein Fehler, ein Thread', value: 'File bugs in <#bug-reports> as separate threads with the page and what you did. Ideas and questions go to <#feedback>, one topic per post. It’s the difference between something getting fixed and something getting lost.\nMelde Fehler in <#bug-reports> als einzelne Threads mit Seite und Vorgehen. Ideen und Fragen nach <#feedback>, ein Thema pro Post. Das entscheidet, ob etwas behoben wird oder untergeht.' },
         { name: '5 · No spam or ads · Kein Spam, keine Werbung', value: 'No unsolicited DMs, server invites, referral links or self-promo. Invite links are blocked server-wide.\nKeine ungefragten DMs, Server-Invites, Referral-Links oder Eigenwerbung. Invite-Links sind serverweit gesperrt.' },
         { name: '6 · Keep it SFW & legal · Halte es SFW & legal', value: 'No NSFW, no piracy, no cheats/exploits, no account or credit trading. Follow Discord’s ToS and CIG’s rules.\nKein NSFW, keine Piraterie, keine Cheats/Exploits, kein Konto- oder Credit-Handel. Halte dich an Discords ToS und CIGs Regeln.' },
         { name: '🚦 New arrivals · Neuankömmlinge', value: 'You can chat straight away. **Links, images & attachments** unlock at ⛏ Prospect (level 5) — a few good messages. <#bug-reports> is exempt: screenshots work there from minute one.\nDu kannst sofort schreiben. **Links, Bilder & Anhänge** schalten ab ⛏ Prospect (Level 5) frei — ein paar gute Nachrichten. <#bug-reports> ist ausgenommen: Screenshots gehen dort ab der ersten Minute.' },
@@ -495,10 +539,10 @@ export const seed = {
       fields: [
         // Channel mentions already render with Discord's own channel glyph —
         // prefixing them with an emoji says the same thing twice.
-        { name: 'Build & feedback · Bauen & Feedback', value: '<#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n<#suggestions> — ideas, one per post, react to vote · Ideen, eine pro Post, per Reaktion abstimmen\n<#support> — stuck on a tool or the bot · hängst du an einem Tool oder dem Bot\n<#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n<#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
+        { name: 'Build & feedback · Bauen & Feedback', value: '<#bug-reports> — something broken? one thread per bug · etwas kaputt? ein Thread pro Fehler\n<#feedback> — ideas, questions, stuck on something — one topic per post · Ideen, Fragen, festgefahren — ein Thema pro Post\n<#tools> — using the tools, and the data behind them · die Tools nutzen und die Daten dahinter\n<#bot-commands> — bot spam welcome, earns no XP · Bot-Spam erwünscht, bringt kein XP' },
         { name: 'Releases', value: '<#announcements> — what shipped on the site · was auf der Seite live ging\n<#patch-notes> — every Star Citizen patch, mirrored from the archive · jeder Patch, aus dem Archiv gespiegelt' },
         { name: 'Ranks · Ränge', value: 'Chatting earns XP — climb from Drifter upward. Check your card with **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. The Flight Computer also answers **/ship**, **/price**, **/item** and **/patch** in your language.\nMit Chatten sammelst du XP — steig von Drifter auf. Deine Karte mit **/rank**, **/leaderboard** & **/ranks** in <#bot-commands>. Der Flight Computer beantwortet auch **/ship**, **/price**, **/item** und **/patch** in deiner Sprache.' },
-        { name: 'Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops · test pilot), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases · Testpilot), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
+        { name: 'Your roles · Deine Rollen', value: 'Open **Channels & Roles** at the top of the channel list any time. Pings (site updates · patch drops), your **language** — which sets the bot’s reply language — and pronouns.\nÖffne **Kanäle & Rollen** oben in der Kanalliste. Pings (Seiten-Updates · Patch-Releases), deine **Sprache** — sie bestimmt die Antwortsprache des Bots — und Pronomen.' },
         { name: 'Looking for more Star Citizen? · Mehr Star Citizen?', value: 'This server stays narrow on purpose. For news, orgs, LFG or CCU trading there are excellent dedicated servers — ask in <#general> and someone will name a good one.\nDieser Server bleibt bewusst eng. Für News, Orgs, LFG oder CCU-Handel gibt es hervorragende eigene Server — frag in <#general>, jemand nennt dir einen guten.' },
         { name: 'Credits · Danksagung', value: 'The Aaron Halo / Precision Jump calculator was contributed by **Jordessey** — with thanks.\nDer Aaron-Halo-/Precision-Jump-Rechner stammt mit Dank von **Jordessey**.' },
       ],
@@ -538,46 +582,38 @@ export const seed = {
       footer: 'VerseBase • verse-base.com',
     },
   ],
-  suggestions: [
-    {
-      title: 'Suggestions · Vorschläge',
-      color: C.cyan,
-      description: [
-        'Ideas for **verse-base.com** go here. One idea per post so others can react to vote — 👍 for yes, 👎 for no.',
-        '',
-        'The most useful suggestions say what you were **trying to do** when you wanted it, not just the feature name. Half the tools on the site started as a sentence in a channel like this one.',
-        '',
-        'Something **broken** rather than missing? That’s <#bug-reports>.',
-        DIV,
-        'Ideen für **verse-base.com** kommen hier rein. Eine Idee pro Post, damit andere per Reaktion abstimmen können — 👍 für ja, 👎 für nein.',
-        '',
-        'Die nützlichsten Vorschläge sagen, **was du gerade vorhattest**, als du es gebraucht hast — nicht nur den Namen der Funktion. Die Hälfte der Tools auf der Seite begann als ein Satz in einem Kanal wie diesem.',
-        '',
-        'Etwas **kaputt** statt fehlend? Das gehört nach <#bug-reports>.',
-      ].join('\n'),
-      footer: 'VerseBase • verse-base.com',
-    },
-  ],
-  support: {
+  // 17.08.2026: EIN Seed statt zweier — #suggestions und #support sind zu
+  // #feedback verschmolzen, also muss auch der angeheftete Beitrag beides
+  // tragen: Ideen UND Festgefahrenes. Der Knopf zum Formular stammt aus dem
+  // Support-Seed und bleibt, er fuehrt in dasselbe Postfach.
+  // ⚠ Ein Seed unter einem Schluessel, den kein Kanal mehr traegt, ist kein
+  //   stiller Rest: audit.mjs meldet ihn als FEHLER ("channel for seed … not
+  //   found"). Genau daran ist die erste Fassung dieser Zusammenlegung
+  //   aufgefallen.
+  feedback: {
     buttons: [{ label: 'Feedback-Formular', url: `${SITE}/feedback.html` }],
     embeds: [
     {
-      title: 'Support · Hilfe',
+      title: 'Feedback · Rückmeldung',
       color: C.cyan,
       description: [
-        'Stuck on a tool or the Discord bot? Ask here — say what you tried, and add a screenshot if you can.',
+        'Ideas, questions, stuck on something — it all goes here. **One topic per post**, so others can react to vote: 👍 for yes, 👎 for no.',
         '',
-        '• **Site & tools** — the item finder, mining, ships, crafting, the jump calc…',
-        '• **Your account** — sign-in, profile, favourites, the planner',
-        '• **The bot** — ranks, commands, roles not showing up',
+        '**Got an idea?** The most useful ones say what you were *trying to do* when you wanted it, not just the feature name. Half the tools on the site started as a sentence in a channel like this one.',
+        '',
+        '**Stuck instead?** Say what you tried, and add a screenshot if you can — the site and its tools, your account, or the bot.',
+        '',
+        'Something **broken** rather than missing? That’s <#bug-reports>.',
         '',
         `Prefer the website? The [feedback form](${SITE}/feedback.html) reaches the same inbox.`,
         DIV,
-        'Hängst du an einem Tool oder dem Discord-Bot? Frag hier — schreib, was du versucht hast, und ein Screenshot hilft.',
+        'Ideen, Fragen, Festgefahrenes — alles kommt hier rein. **Ein Thema pro Post**, damit andere per Reaktion abstimmen können: 👍 für ja, 👎 für nein.',
         '',
-        '• **Seite & Tools** — der Item-Finder, Mining, Schiffe, Handwerk, der Sprung-Rechner…',
-        '• **Dein Konto** — Anmeldung, Profil, Favoriten, der Planer',
-        '• **Der Bot** — Ränge, Befehle, Rollen die nicht auftauchen',
+        '**Eine Idee?** Die nützlichsten Vorschläge sagen, *was du gerade vorhattest*, als du sie gebraucht hast — nicht nur den Namen der Funktion. Die Hälfte der Tools auf der Seite begann als ein Satz in einem Kanal wie diesem.',
+        '',
+        '**Hängst du fest?** Schreib, was du versucht hast, und ein Screenshot hilft — ob Seite und Tools, dein Konto oder der Bot.',
+        '',
+        'Etwas **kaputt** statt fehlend? Das gehört nach <#bug-reports>.',
         '',
         'Lieber über die Website? Das Formular unten landet im selben Postfach.',
       ].join('\n'),
@@ -598,13 +634,13 @@ export const seed = {
         '',
         'The bot answers **/ship**, **/price**, **/item** and **/patch** right here, in your language.',
         '',
-        'Grab **🧪 Test Pilots** in onboarding if you want the ping when something needs trying before it ships.',
+        'The **🧪 Test Pilots** role is handed out, not picked — it gets you into the staging preview and its own channel. Ask if you’d like in.',
         DIV,
         'Ein Raum für alle — fragen, wie etwas funktioniert, Zahlen vergleichen, oder zeigen, was dabei herauskam.',
         '',
         'Der Bot beantwortet **/ship**, **/price**, **/item** und **/patch** direkt hier, in deiner Sprache.',
         '',
-        'Schnapp dir **Test Pilots** im Onboarding, wenn du den Ping willst, sobald etwas vor dem Release getestet werden soll.',
+        'Die Rolle **Test Pilots** wird vergeben, nicht selbst gewählt — sie gibt Zugang zur Vorschau auf staging und einen eigenen Kanal. Sag Bescheid, wenn du dabei sein willst.',
       ].join('\n'),
       footer: 'VerseBase • verse-base.com',
     },

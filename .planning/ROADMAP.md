@@ -780,3 +780,315 @@ die Sperre durch D-01 aus `12-CONTEXT.md`.
 Plans:
 
 - [ ] TBD (run /gsd-plan-phase 13 to break down)
+
+### Phase 14: Schiffs-Datenkarte entstapeln
+
+**Goal:** Eine Schiffsseite liest sich in wenigen Kapiteln statt als Stapel
+gleichförmiger Kästen. Wer sie öffnet, erkennt ohne Scrollen, welche Kapitel
+es gibt, und springt in eines davon; jeder Kennwert steht genau einmal.
+
+**Ausgangsmessung** (Carrack, 1280 × 720, Dev-Server, 18.08.2026):
+
+| gemessen | Wert |
+| --- | --- |
+| Seitenhöhe | 5.554 px = 7,7 Bildschirme |
+| Blöcke unter dem Hero | 14 (10 × `.sd__panel` + Kennwerte-Leiste + Beschreibung + Ähnliche + Fußblöcke) |
+| Balkenspuren (`.sd__gtrack` / `.sd__proftrack`) | 20 |
+| Kopfzeilen-Codes (`.sd__code`) | 10, davon 6 nur „Anvil Aerospace" |
+| Sprungmarken | 0 |
+
+**Die Doppelungen, maschinell gezählt:** `126 m` steht **4×** (Hero-Zeile,
+Kennwerte-Leiste, Maße-Balken, Ähnliche Schiffe), `456 SCU` und `140 m/s`
+je **3×**, dazu `74 m`, `30 m`, `319.000 km/s` und `10,6 SCU` je 2×. Nicht in
+dieser Zählung, aber genauso doppelt: **alle sechs Felder des Panels
+„Datenblatt"** — Typ, Größe und Status stehen als Chips unter dem Titel, die
+Besatzung in der Kennwerte-Leiste, der Pledge-Preis im Kauf-Panel, der
+Hersteller als Logo. Und `Hülle 88.000 HP` + `Schilde 144.000 HP` ergeben
+exakt die `232.000 HP`, die zwei Panels weiter oben als „Defense" stehen.
+
+**D-01 — Kapitel und Sprungleiste, nicht Reiter** (Betreiber, 18.08.2026):
+Die zehn gleichförmigen Panels werden zu wenigen Kapiteln mit
+unterschiedlichem Gewicht gebündelt, darüber eine beim Scrollen erreichbare
+Sprungleiste. ⚠ **Reiter und Akkordeons sind ausgeschlossen** — der Betreiber
+hat ausdrücklich festgehalten, dass „alles steht da" die Stärke dieser Seite
+ist; was hinter einen Klick wandert, verletzt das. Ebenfalls verworfen: reine
+Zweispaltigkeit, weil sie die Länge halbiert, ohne die Gleichförmigkeit zu
+heilen.
+
+**D-02 — Balken nur, wo sie vergleichen** (Betreiber, 18.08.2026): Das
+Leistungsprofil behält seine Balken — dort steht der Balken für ein Perzentil
+gegen 227 Schiffe und vergleicht wirklich etwas. Bei Maßen, Tanks,
+Flugwerten und Verteidigung werden die Balken zu Zahlen. Ein Balken, der
+Länge gegen Breite gegen Höhe stellt, sieht aus wie Daten und ist keine.
+
+**Was NICHT angefasst wird:** Der Hero mit Hologramm-Bühne, Video- und
+Bilderumschalter trägt und bleibt unberührt. Ebenso die Datenlage — diese
+Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
+
+**Bekannte Rahmenbedingungen:**
+
+- `src/components/ShipDetail.astro` (2141 Zeilen) ist **EIN Körper für DE und
+  EN**; beide `[slug].astro` sind 27-Zeilen-Wrapper. Jede Änderung landet in
+  beiden Sprachen zugleich, neue sichtbare Zeichenketten brauchen ihren
+  Schlüssel in `src/i18n/ui.ts`.
+
+- Schiffsseiten laden **kein** `detail.css` — im gebauten
+  `dist/schiffe/anvl-carrack.html` stehen nur `fonts.css`, `mobile-ux.css`
+  und `theme.css`. Die site-weite Falle
+  `section{padding:clamp(3rem,7vw,5.5rem)…}` greift hier also nicht, und die
+  lokale Regel `*{margin:0;padding:0}` (`ShipDetail.astro:404`) neutralisiert
+  sie zusätzlich. Wer diese Zeile anfasst, holt die Falle zurück.
+
+- Die Panels stehen heute als `<section class="sd__panel">` in **einer**
+  Spalte (`.sd{max-width:var(--maxw)}`).
+
+**Schlussmessung** (Carrack, 1280 × 720, dunkler Modus, 18.08.2026,
+`node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322`
+gegen den nach Welle 4 gebauten `dist/` dieses Worktrees): **4.179 px DE /
+4.117 px EN** — 1.375 px unter dem Ausgang von 5.554 px (−24,8 %) und
+21 px unter der auf 4.200 px festgeschriebenen Sperrklinke. Alle 216
+Messpunkte (3 Schiffe × 2 Sprachen × 2 Breiten × 2 Farbmodi × 9
+Messgruppen) bestanden.
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
+**Depends on:** nichts
+**Plans:** 4/4 plans executed
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Auf der gebauten Carrack-Seite kommt jeder der sieben heute doppelten
+     Zahlwerte höchstens einmal vor; jede verbleibende Wiederholung ist als
+     Ausnahme benannt und begründet
+
+  2. Das Panel „Datenblatt" existiert in seiner heutigen Form nicht mehr —
+     seine sechs Felder stehen an jeweils genau einer Stelle
+
+  3. Beim Öffnen einer Schiffsseite ist ohne Scrollen erkennbar, welche
+     Kapitel die Seite hat; ein Klick springt dorthin, und die Sprungleiste
+     bleibt beim Scrollen erreichbar
+
+  4. Es stehen nicht mehr zehn gleich aussehende Rahmen untereinander — die
+     Kapitel sind optisch voneinander unterscheidbar
+
+  5. Balkenspuren gibt es nur noch im Leistungsprofil; überall sonst Zahlen
+  6. Die Seitenhöhe der Carrack bei 1280 × 720 liegt bei höchstens 4.200 px
+     (Ausgang 5.554 px) und wird als Sperrklinke festgeschrieben
+
+  7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi,
+     bis hinunter auf 360 px Breite
+
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1`
+
+Plans:
+
+- [x] 14-01-PLAN.md — Werkzeug vor Eingriff: das Entdopplungs-Tor
+      (`verify:shipcard`, vorerst ausgesetzt) einmal vorgeführt rot, plus die
+      Messsonde, die die Ausgangsmessung von 5.554 px reproduziert
+
+- [x] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
+      Ankerziel und 360 px am gerenderten Bildpunkt gemessen
+
+- [x] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
+      getilgt; Balken nur noch im Leistungsprofil
+
+- [x] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
+      Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`
+
+### Phase 15: Testpilot-Zugang: staging hinter der Discord-Rolle
+
+**Goal:** `staging.verse-base.com` steht nicht mehr offen. Wer die Rolle
+„Test Pilots" auf dem Discord-Server trägt, kommt hinein; alle anderen sehen
+ausschließlich eine Anmeldeseite. Die Rolle ist dabei nicht länger ein
+Ping-Abo, das man sich selbst nimmt, sondern eine vergebene Auszeichnung —
+und sie trägt sichtbare Vorteile, damit sie etwas wert ist.
+
+**Entscheidungen des Betreibers (17.08.2026, vor der Planung getroffen):**
+
+1. **Strenge** — Ein Besucher ohne Rolle bekommt auf JEDER URL eine
+   Anmeldeseite („Diese Vorschau ist für Testpiloten") mit Discord-Knopf.
+   Nicht 403 ohne Erklärung, und ausdrücklich **kein** bloßes Banner über
+   der weiterhin offenen Seite.
+
+2. **Vergabe** — Der Betreiber vergibt die Rolle **von Hand**. Sie fällt
+   dafür aus dem Discord-Onboarding heraus. Verworfen: Bewerbungsverfahren,
+   automatische Vergabe ab Rang, und der Status quo (selbst vergebbar).
+
+3. **Identität** — Discord wird an das **bestehende Supabase-Site-Konto**
+   gekoppelt („Discord verknüpfen" im Konto-Bereich). Verworfen: ein
+   zweiter, eigener Anmeldeweg nur am Tor — er könnte die Perks auf der
+   Seite nicht tragen.
+
+4. **Perks** — **alle vier** ausgewählt: Abzeichen im Piloten-Profil,
+   privater Discord-Kanal mit Deploy-Ping, Rang-/XP-Bonus im Bot,
+   Namensnennung auf der Seite.
+
+**Vorbefunde der Bestandsaufnahme (17.08.2026, gegen den Bestand gemessen —
+nicht aus der Doku):**
+
+- ⚠ **Die Rolle existiert bereits und taugt so nicht als Türsteher.**
+  `discord/blueprint.mjs:143` führt `tester` / „Test Pilots" (Farbe
+  craftOrange, **null Berechtigungen**). `blueprint.mjs:402` macht sie im
+  Onboarding **selbst vergebbar** — jeder Beitretende klickt einmal und hat
+  sie. Entscheidung 2 ist deshalb kein Beiwerk, sondern Voraussetzung: ohne
+  sie hinge der Schlüssel neben der Tür.
+
+- ⚠ **Die Website kennt keine Discord-Identität.** Auth ist Supabase mit
+  E-Mail/Passwort (`AuthLogin.astro:129`, `signInWithPassword`), **kein
+  einziger OAuth-Provider** ist eingerichtet. Der Bot führt eine eigene
+  SQLite-DB (`discord/bot/src/db.mjs`) mit Discord-User-IDs; zwischen beiden
+  Welten gibt es **keine Brücke**. Sie ist zu bauen und ist die Grundlage
+  sowohl des Tors als auch des Profil-Abzeichens.
+
+- ⚠ **Ein Tor im Browser-JS wäre wirkungslos.** staging ist statisches HTML
+  aus nginx im Coolify-Container hinter Cloudflare (`nginx/default.conf`,
+  `.github/workflows/deploy-staging.yml`). Wer `curl` bedient, liest die
+  Seite trotzdem. Das Tor muss **vor** die Auslieferung.
+
+- Der Bot läuft 24/7 auf Coolify mit lebender Guild-Verbindung — er könnte
+  „hat diese Person die Rolle?" in Echtzeit beantworten, **horcht aber auf
+  keinem Port** (kein `createServer`/`listen` im Bestand).
+
+**Offene Architekturfrage für die Recherche** (bestimmt den Zuschnitt, ist
+NICHT vorentschieden): Cloudflare Worker vor staging · nginx `auth_request`
+gegen den Bot · njs im nginx-Image + Supabase Edge Function. Zu bewerten
+gegen die Hausregel „serverseitiger Code nur als Supabase Edge Function"
+(die Seite läuft nicht auf Cloudflare Pages) und gegen die Zahl der
+Auslieferungsziele, die dadurch entsteht.
+
+⚠ **Die typische Leckstelle benannt:** Das Tor muss seine **eigene**
+Anmeldeseite, deren Assets und den OAuth-Rückweg durchlassen. Diese
+Ausnahmeliste ist der Ort, an dem solche Tore lecken — sie gehört
+aufgezählt und vorgeführt rot, nicht angenommen.
+
+⚠ **Umfang über drei getrennte Systeme:** Discord-Server (Blueprint, Bot),
+Konto/Supabase (OAuth-Kopplung, Profil), Auslieferung (nginx/Cloudflare/CI).
+Der Zuschnitt in Pläne hat das zu berücksichtigen; die Kopplung ist
+Voraussetzung für Tor UND Abzeichen und gehört in die erste Welle.
+
+**Requirements**: TBD — voraussichtlich wie in den Phasen 7, 9, 10 und 12
+über Entscheidungen D-01… in der CONTEXT.md statt über REQ-IDs.
+**Depends on:** Nichts. Die Phase berührt weder die Mining-Werkbank noch die
+Oberfläche der Phasen 1–4; die im Roadmap-Gerüst voreingetragene Abhängigkeit
+von Phase 13 ist ein Artefakt der Nummernfolge und gilt nicht.
+**Requirements**: keine REQ-IDs — bindend sind die Entscheidungen **D-01 … D-25**
+in `14-CONTEXT.md`, wie in den Phasen 7, 9, 10 und 12. Alle 25 sind auf Pläne
+abgebildet; die Zuordnung steht in jedem `requirements`-Feld der Plan-Frontmatter.
+**Plans:** 12/12 plans executed
+
+Plans:
+
+- [x] 15-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
+- [x] 15-02-PLAN.md — Supabase: Rollenspiegel, Sperrliste, Spiegelspalten, Torurteil in einem Aufruf (D-03, D-05, D-08, D-10, D-13, D-19, D-22)
+- [x] 15-03-PLAN.md — Kontosperre: der Discord-Knopf legt nie ein Konto an, vorgeführt rot vor dem Scharfstellen (D-02)
+- [x] 15-04-PLAN.md — Discord als zweiter Anmeldeweg im Konto und am Tor (D-01, D-03, D-11)
+- [x] 15-05-PLAN.md — Discord-Server: Rolle nicht mehr selbst vergebbar, eigener privater Kanal (D-14, D-15, D-18)
+- [x] 15-06-PLAN.md — Bestandsträger: Trockenlauf mit Namen und Anzahl, dann Entzug bei allen (D-16)
+- [x] 15-07-PLAN.md — Bot: Server Members Intent, Rollenstand per Push, Vollabgleich beim Start (D-08, D-17, D-25)
+- [x] 15-08-PLAN.md — Tor scharf: Testpiloten, Sperrliste, Ausfallverhalten, aufgezählte Ausnahmeliste (D-06, D-09, D-10, D-13)
+- [x] 15-09-PLAN.md — Torkette: verify:gate (Schiene A), check:gate (Schiene C), Rauchtest-Bypass ohne Dauerschlüssel (D-06, D-07, D-12)
+- [x] 15-10-PLAN.md — Perks auf der Seite: Profil-Abzeichen, Zustimmungsschalter, Namensnennung, Testpiloten-Übersicht (D-13, D-19, D-22)
+- [x] 15-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
+- [x] 15-12-PLAN.md — Scharfschaltung: beide Bauarten grün, Ausrollen, Beleg an der ausgelieferten Seite, Sichturteile an den Betreiber
+
+### Phase 16: Das Schiff ist die Navigation
+
+**Goal:** Die Schiffs-Detailseite wird zur Konsole. Man wählt links ein System,
+das Schiff zeigt am gerenderten Mesh, **wo** dieses System sitzt, und rechts
+steht die Auslesung dazu. Die vier Kapitel aus Phase 14 entfallen als
+Seitenaufbau — die Konsole ist die Seite.
+
+**Herkunft:** Betreiber-Befund 18.08.2026 zu Attrappe 012: „ich stelle mir vor
+dass man so eine datenblatt seite so unfassbar kreativ machen kann. momentan
+sind wir auf kreativitätstufe 0." Aus drei vorgelegten Konzepten
+(`.planning/sketches/013-konzepte/`) hat der Betreiber **B — „Konsole"**
+gewählt.
+
+**Der Befund, der die Phase trägt:** Der Mechanismus existiert bereits und ist
+nur begraben. Geprüft am 18.08.2026:
+
+| geprüft | Befund |
+| --- | --- |
+| Abdeckung | **227 / 227 Schiffe** haben Mesh UND Hardpoints — keine Lücke |
+| Hardpoints je Schiff | Median **48**, min 13, max 130 (Carrack 60 in 14 Arten) |
+| Positionen | echte 3D-Koordinaten `p:[x,y,z]`, benannt (`n`), typisiert (`k`), mit Hüllkörper (`bbox`) |
+| bereits angebunden | Item-Finder je Port: `cat`, `price`, `shops`, `iid` |
+| bereits ehrlich | `np` = nicht physicalisiert, `est` = Position geschätzt — Vorbehalt steht am Marker |
+| Gewicht | `three.module.min.js` 360 KB · GLB im Median 0,37 MB (Carrack 0,28) |
+| Viewer | `public/assets/holo-viewer.js`, 41.821 Bytes, in Betrieb |
+
+Heute ist das **einer von drei Reitern** im Hero („VIDEO | BILDER | 3D-HOLO")
+hinter einem „Hologramm aktivieren"-Knopf — und die Daten stehen davon getrennt
+in Kapiteln darunter. Diese Phase verbindet, was schon da ist.
+
+⚠ **Marker auf einem Foto können nicht funktionieren** — der Kamerawinkel eines
+Fotos ist unbekannt. Die Attrappe `013-konzepte/b-konsole.html` tut genau das
+und ist an dieser Stelle irreführend. Marker funktionieren nur über dem
+gerenderten Mesh, wo die Kamera bekannt ist. Das ist der bestehende Viewer.
+
+**D-01 — Die Konsole ersetzt die Kapitel** (Betreiber, 18.08.2026). Ausdrückliche
+**Lockerung der Sperre aus Phase 14** (`14-CONTEXT.md` D-01, „nichts hinter
+einem Klick"). Dem Betreiber wurde vorgelegt, dass eine Auswahl links eine
+Interaktion ist und dass die konsequente Fassung mit dem bisherigen Grundsatz
+bricht; er hat sie trotzdem gewählt. Die vier Kapitel entfallen als Aufbau.
+
+**D-02 — Alles steht im ausgelieferten HTML; die Konsole blendet nur um.**
+Bedingung, unter der D-01 sicher ist. Keine Auslesung wird nachgeladen, keine
+per JavaScript erzeugt. Ohne JavaScript zeigt die Seite alle Systeme
+untereinander als schlichte Liste — nicht eine leere Fläche.
+**Begründung, nicht verhandelbar:** ~17.000 indexierbare Seiten, und der Zulauf
+kommt praktisch vollständig aus Suche (30 Tage: Bing 67, DDG 38, ChatGPT 10,
+Google 7). Gemessen am 18.08.2026 trägt `dist/de/schiffe/anvl-carrack.html`
+heute **~5 KB echten Text** im Quelltext — Waffennamen, Bauteilnamen, Fracht.
+Eine im Quelltext leere Schiffsseite fällt aus dem Index und nimmt den Zulauf
+mit.
+
+**D-03 — Mobil gestapelt** (Betreiber): Modell oben, Systemliste als waagerechte
+Chip-Reihe darunter, Auslesung darunter. Dieselbe Idee, andere Anordnung. Keine
+zweite Oberfläche, kein Ausschluss mobiler Besucher.
+
+**D-04 — Das 3D lädt beim Scrollen in den Blick** (Betreiber): ein statisches
+Standbild steht sofort, das Mesh löst es ab, sobald die Bühne sichtbar wird.
+Kein Startknopf — wenn das Schiff die Navigation IST, darf es nicht hinter
+einem Knopf liegen. Wer nie hinunterscrollt, lädt nichts.
+
+**Was NICHT angefasst wird:** die Datenlage. Kein Feld wird neu erhoben, keine
+Zahl neu berechnet. Diese Phase ordnet an und verbindet, was vorliegt.
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
+**Depends on:** Phase 14 (Kapitel, Sprungleiste, `verify:shipcard`, Höhenklinke)
+**Plans:** 5/5 plans executed
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Auf jeder der 227 Schiffsseiten wählt man ein System und sieht am
+     gerenderten Schiff, wo es sitzt; die Auslesung dazu steht daneben
+
+  2. Bei abgeschaltetem JavaScript zeigt dieselbe Seite alle Systeme
+     untereinander als lesbare Liste — maschinell belegt gegen das gebaute
+     `dist/`, nicht behauptet
+
+  3. Der indexierbare Textbestand je Schiffsseite ist **nicht kleiner** als die
+     heute gemessenen ~5 KB; die Zahl wird als Sperrklinke festgeschrieben
+
+  4. Bei 360 px ist die Konsole gestapelt bedienbar: Modell, Chip-Reihe,
+     Auslesung — ohne waagerechten Überlauf
+
+  5. Beim Seitenaufruf wird weder `three.module.min.js` noch ein GLB geladen;
+     beides kommt erst, wenn die Bühne in den sichtbaren Bereich gescrollt wird
+
+  6. Marker sitzen an den Positionen aus dem Schiffsmodell, und die Vorbehalte
+     `np` und `est` bleiben am Marker sichtbar
+
+  7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1` — einschließlich `verify:shipcard` aus Phase 14, das an den
+     neuen Aufbau angepasst werden muss statt umgangen zu werden
+
+Plans:
+
+- [x] 16-01-PLAN.md — Welle 1, Tracer: P-3 an der Zählung entscheiden, P-1 (Füllgrad ≥ 70 %) und P-2 (kein Dauer-Label) am gerenderten Bildpunkt belegen, Textbestand vor dem Eingriff messen, Sichturteil S-0 nach WINDOWS.md
+- [x] 16-02-PLAN.md — Welle 2, Werkzeug vor Eingriff: `verify:shipconsole` (acht Zusicherungen, ausgesetzt, einmal vorgeführt rot); `verify:shipcard`s Entdopplungs-Scan nimmt `section.holo` mit auf
+- [x] 16-03-PLAN.md — Welle 3, D-02: vier Systemabschnitte serverseitig im ausgelieferten HTML, Rail als Ankerliste, Bewaffnung und Bauteilliste ziehen aus `ch-gear` in die Konsole, Beweis mit abgeschaltetem JavaScript
+- [x] 16-04-PLAN.md — Welle 4, D-01/D-03/D-04: dreispaltiges Raster, Rail als Einfachauswahl, Auslesung mit zwei Zuständen, Laden beim Scrollen ohne Startknopf, gestapelt bei 360 px, Netzverkehr gemessen
+- [x] 16-05-PLAN.md — Welle 5: Rot-Vorführung der erweiterten Entdopplungs-Region einlösen, `verify:shipconsole` scharf, Sperrklinken festschreiben, Schlussmessung DE/EN in beiden Farbmodi, fünf Sichturteile nach WINDOWS.md

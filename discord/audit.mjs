@@ -91,7 +91,12 @@ const can = (eff, perm) => eff.admin || (eff.bitfield & PermissionFlagsBits[perm
 // ── connect ────────────────────────────────────────────────────────────────
 const token = process.env.DISCORD_TOKEN;
 if (!token) { console.error('No DISCORD_TOKEN found (discord/.env).'); process.exit(1); }
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// GuildMembers: privileged intent, expected to be ON since Phase 14 (the
+// Testpilot role mirror needs it — discord/README.md). Requesting it here
+// too lets this audit actually detect and flag its absence below, instead
+// of silently checking only the owner as the deliberate, by-design state it
+// used to be before Phase 14.
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 await client.login(token);
 await new Promise((res) => { client.once('clientReady', res); client.once('ready', res); });
 
@@ -264,8 +269,29 @@ else {
 const managedAbove = [...guild.roles.cache.values()].filter((r) => r.managed && r.position > (botRole?.position ?? 0));
 if (managedAbove.length) info('roles', 'managed roles above the bot role', managedAbove.map((r) => r.name).join(', '));
 
-// Who actually holds the staff roles? Enumerating members needs the privileged
-// GuildMembers intent, so check the owner (the one member we can always fetch).
+// Full member enumeration needs the privileged Server Members intent. Since
+// Phase 14 (the Testpilot role mirror, discord/README.md) it's EXPECTED to
+// be on — its absence is no longer a deliberate, by-design state, it breaks
+// the mirror too (discord/bot/src/role-sync.mjs, role-reconcile.mjs). Race
+// it against a timeout so a missing intent can't hang the audit.
+let memberCounts = null;
+try {
+  await Promise.race([
+    guild.members.fetch(),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10_000)),
+  ]);
+  memberCounts = true;
+} catch {
+  memberCounts = false;
+}
+if (memberCounts === false) {
+  err('roles', 'Server Members Intent nicht verfuegbar', 'seit Phase 14 erforderlich fuer den Testpilot-Rollenspiegel — Developer Portal → Bot → Privileged Gateway Intents → SERVER MEMBERS INTENT einschalten und speichern');
+} else {
+  ok(`Server Members Intent aktiv — ${guild.memberCount ?? guild.members.cache.size} Mitglieder gelesen`);
+}
+
+// Who actually holds the staff roles? The owner is always fetchable directly
+// by id regardless of the intent, so check it as a second, redundant signal.
 const owner = await guild.members.fetch(guild.ownerId).catch(() => null);
 if (owner) {
   const staffKeys = ['fleet-command', 'navigators'];

@@ -44,6 +44,12 @@ export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/account/update-password.html',
   '/refinery.html',
   '/pilot.html',
+  // Testpilot-Torseite (Phase 14 Plan 01): existiert auch im Live-Build (sie
+  // ist eine normale Astro-Seite, nur $vb_gate_on entscheidet, ob nginx sie
+  // je zeigt), hat dort aber keinen Zweck — niemand soll auf staging' internen
+  // Anmeldeweg verwiesen werden. Ungepaart (kein /de/gate.html), siehe
+  // scripts/lib/page-pairs.mjs.
+  '/gate.html',
 ]);
 
 /**

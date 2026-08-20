@@ -186,8 +186,17 @@ const UI = {
     'holo.legend.np': 'Gestrichelt + Raute: Bauteil ist im Schiffsmesh nicht verortet — Marker rein schematisch.',
     'holo.legend.est': 'Gestrichelt: Position ungefähr (auf ein nachgebautes Modell übertragen).',
     'holo.panel.close': 'Details schließen',
+    // VERWAIST (16-01-PLAN.md Task 2, P-2): der Beschriftungs-Umschalter
+    // #holoblabels ist aus dem Markup entfernt — kein Marker traegt mehr
+    // eine DAUERHAFTE Beschriftung, die sich ein-/ausschalten liesse. Diese
+    // beiden Schluessel werden bewusst NICHT geloescht (Loeschung liegt beim
+    // Executor spaeterer Wellen, kein Blocker).
     'holo.labels.toggle': 'Beschriftungen ein/aus',
     'holo.labels.short': 'Labels',
+    // VERWAIST (16-03-PLAN.md Task 1, SCHRITT 3): der schwebende Ebenen-
+    // Kasten (#holofilters/.holo__layers), der diese beiden Schluessel
+    // trug, ist durch die Rail (nav.holo__rail) ersetzt -- bewusst NICHT
+    // geloescht (Loeschung liegt beim Executor spaeterer Wellen).
     'holo.filter.aria': 'Komponenten-Ebenen',
     'holo.layers.title': 'Ebenen',
     'holo.grp.core': 'Komponenten',
@@ -212,6 +221,12 @@ const UI = {
     // Für Schiffe, bei denen KEIN Marker eine echte Position hat (kein Hardpoint
     // im Mesh) — die Kopfzeile darf dort keine Verortung behaupten.
     'holo.src.none': 'Komponenten-Positionen schematisch, nicht exakt verortet',
+    // -- Konsole (16-03-PLAN.md Task 1, D-02): Rail + Systemabschnitte --
+    'ship.console.rail.aria': 'Systemwahl',
+    // Wird in dieser Welle angelegt, aber erst in Welle 4 (Auslesung-Spalte)
+    // tatsaechlich verwendet -- 16-03-PLAN.md SCHRITT 4, absichtlich vorgezogen.
+    'ship.console.readout.aria': 'Auslesung',
+    'ship.console.count': '%n% am Schiff verortet',
     'ship.stage.length': 'Länge',
     'ship.stage.crew': 'Besatzung',
     'ship.stage.cargo': 'Fracht',
@@ -231,7 +246,6 @@ const UI = {
     'ship.profile.rank': 'Perzentil im Katalog',
     'ship.unit.ships': 'Schiffe',
     'ship.profile.hint': 'P100 = Spitzenwert im Katalog, P50 = Mittelfeld — Balkenmitte markiert den Median.',
-    'ship.sheet.title': 'Datenblatt',
     'ship.dims.title': 'Maße & Fracht',
     'ship.dims.top': 'Draufsicht · maßstäblich zum größten Schiff im Katalog',
     'ship.dims.cargo': 'Frachtraum',
@@ -242,6 +256,10 @@ const UI = {
     'ship.flight.agility': 'Agilität',
     'ship.flight.quantum': 'Quantum-Reise',
     'ship.comp.title': 'Komponenten & Verteidigung',
+    // Eigene Ueberschrift des Widerstands-Unterabschnitts, seit die
+    // Bauteilliste (die sich diesen Unterabschnitt bisher teilte) in die
+    // Konsole gewandert ist (16-03-PLAN.md SCHRITT 4).
+    'ship.defense.title': 'Verteidigung',
     'ship.ins.title': 'Versicherung',
     'ship.ins.hint': 'Claim = kostenlose Wiederbeschaffung nach Verlust; Express verkürzt die Wartezeit gegen aUEC.',
     'ship.paints.title': 'Lackierungen',
@@ -265,6 +283,14 @@ const UI = {
     'ship.slot.coolers': 'Kühler',
     'ship.slot.quantum': 'Quantum-Antrieb',
     'ship.slot.radar': 'Radar',
+    // -- Kapitel-Sprungleiste + konsolidierte Kapitel-Koepfe (Phase 14, Tracer) --
+    'ship.ch.gear': 'Ausstattung',
+    'ship.ch.context': 'Umfeld',
+    'ship.jump.buy': 'Kaufen',
+    'ship.jump.profile': 'Leistung',
+    'ship.jump.aria': 'Kapitel-Sprungleiste',
+    'ship.code.spec': 'SPEC',
+    'ship.code.ctx': 'CTX',
     // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
     'fav.save': 'Merken',
     'fav.saved': 'Gemerkt',
@@ -314,6 +340,7 @@ const UI = {
     'arm.stat.racks': 'Raketenwerfer',
     'arm.stat.stations': 'Turmstationen',
     'arm.stat.cm': 'Gegenmaßnahmen',
+    'arm.stat.totalDps': 'Gesamt',
     'payload.gun': 'Geschütz',
     'payload.missile': 'Raketenwerfer',
     'payload.bomb': 'Bombenschacht',
@@ -569,8 +596,10 @@ const UI = {
     'holo.legend.np': 'Dashed + diamond: component has no location in the ship mesh — marker is schematic only.',
     'holo.legend.est': 'Dashed: approximate position (mapped onto a fan-made model).',
     'holo.panel.close': 'Close details',
+    // ORPHANED (16-01-PLAN.md Task 2, P-2): see the DE block above for why.
     'holo.labels.toggle': 'Toggle labels',
     'holo.labels.short': 'Labels',
+    // ORPHANED (16-03-PLAN.md Task 1, SCHRITT 3): see the DE block above.
     'holo.filter.aria': 'Component layers',
     'holo.layers.title': 'Layers',
     'holo.grp.core': 'Components',
@@ -593,6 +622,12 @@ const UI = {
     'holo.kind.fuel': 'Fuel',
     'holo.src': 'Component positions game-accurate',
     'holo.src.none': 'Component positions schematic, not exactly located',
+    // -- Console (16-03-PLAN.md Task 1, D-02): rail + system sections --
+    'ship.console.rail.aria': 'System selection',
+    // Created this wave, used starting wave 4 (readout column) —
+    // 16-03-PLAN.md SCHRITT 4, deliberately front-loaded.
+    'ship.console.readout.aria': 'Readout',
+    'ship.console.count': '%n% located on the ship',
     'ship.stage.length': 'Length',
     'ship.stage.crew': 'Crew',
     'ship.stage.cargo': 'Cargo',
@@ -612,7 +647,6 @@ const UI = {
     'ship.profile.rank': 'percentile in the catalog',
     'ship.unit.ships': 'ships',
     'ship.profile.hint': 'P100 = top value in the catalog, P50 = mid-field — the bar’s center marks the median.',
-    'ship.sheet.title': 'Data sheet',
     'ship.dims.title': 'Dimensions & Cargo',
     'ship.dims.top': 'Top view · to scale with the largest ship in the catalog',
     'ship.dims.cargo': 'Cargo hold',
@@ -623,6 +657,10 @@ const UI = {
     'ship.flight.agility': 'Agility',
     'ship.flight.quantum': 'Quantum travel',
     'ship.comp.title': 'Components & Defense',
+    // Own heading for the defense sub-section, now that the component list
+    // (which used to share this sub-section) moved into the console
+    // (16-03-PLAN.md SCHRITT 4).
+    'ship.defense.title': 'Defense',
     'ship.ins.title': 'Insurance',
     'ship.ins.hint': 'Claim = free replacement after loss; Expedite shortens the wait for aUEC.',
     'ship.paints.title': 'Paints',
@@ -646,6 +684,14 @@ const UI = {
     'ship.slot.coolers': 'Coolers',
     'ship.slot.quantum': 'Quantum drive',
     'ship.slot.radar': 'Radar',
+    // -- Chapter jump-nav + consolidated chapter headers (Phase 14, tracer) --
+    'ship.ch.gear': 'Specs',
+    'ship.ch.context': 'Extras',
+    'ship.jump.buy': 'Buy',
+    'ship.jump.profile': 'Profile',
+    'ship.jump.aria': 'Chapter navigation',
+    'ship.code.spec': 'SPEC',
+    'ship.code.ctx': 'CTX',
     // -- Favorites (account feature; account-lite.js toggles the state) --
     'fav.save': 'Save',
     'fav.saved': 'Saved',
@@ -695,6 +741,7 @@ const UI = {
     'arm.stat.racks': 'Missile racks',
     'arm.stat.stations': 'Turret stations',
     'arm.stat.cm': 'Countermeasures',
+    'arm.stat.totalDps': 'Total',
     'payload.gun': 'Gun',
     'payload.missile': 'Missile rack',
     'payload.bomb': 'Bomb bay',

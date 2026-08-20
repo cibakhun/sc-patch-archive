@@ -1,0 +1,326 @@
+---
+// gate.astro — Testpilot-Torseite (Phase 14 Plan 01, D-11).
+//
+// EIGENSTAENDIGE, UNGEPAARTE Seite: kein src/pages/de/gate.astro, kein
+// Layout.astro, kein SiteNav — die Menuestruktur eines gesperrten Bereichs
+// waere selbst eine Auskunft (D-11). `findPagePairs` (scripts/lib/page-
+// pairs.mjs) ueberspringt eine EN-only-Datei ohne Partner still, es braucht
+// also keine neue Ausnahmeklasse in verify:sync (Pitfall 5, 14-RESEARCH.md).
+// Nur Englisch (D-11); nach dem Anmelden geht es normal in der gewuenschten
+// Sprache weiter.
+//
+// Saemtliches Skript/Stil steht INLINE im Dokument (Pitfall 6): ein
+// content-gehashtes /_astro/-Buendel waere bei jedem Bau ein anderer
+// Dateiname und damit nicht als feste Ausnahme in nginx/default.conf
+// benennbar. `define:vars` haengt die Astro-Frontmatter-Werte (Supabase-URL/
+// -Key/Storage-Key) als literale Konstanten ins Skript — Astro behandelt den
+// Block dabei genau wie is:inline (keine Bundelung, kein separates Chunk).
+// Aus demselben Grund kein supabase-js hier: die Sitzung wird SDK-frei aus
+// localStorage gelesen/geschrieben, genau wie assets/account-lite.js es
+// seit jeher tut.
+//
+// Warum die Torseite SELBST anmelden muss, obwohl D-11 nur den
+// Discord-Knopf nennt: staging.verse-base.com und verse-base.com sind
+// verschiedene Ursprünge und teilen keinen localStorage. Eine Anmeldung auf
+// der Live-Seite erzeugt auf der Vorschau keine Sitzung, und /account/ liegt
+// auf der Vorschau selbst hinter dem Tor. D-04 verlangt zusaetzlich
+// ausdruecklich einen Weg, der NICHT von Discord abhaengt — das E-Mail-
+// Formular ist dieser Weg (Discord kommt in Plan 04 als optisch fuehrender
+// Knopf daneben, ohne dass sich diese Bauform aendert).
+// Plan 04 (D-01/D-03/D-11): Discord wird der Hauptweg, das E-Mail-Formular
+// bleibt der von D-04 verlangte Discord-unabhängige Weg. Der OAuth-Rücksprung
+// (`?code=` nicht relevant hier — Supabase liefert bei einer Client-seitigen
+// Anfrage an /auth/v1/authorize das implizite Ergebnis im URL-Fragment) wird
+// unten vom bestehenden Inline-Skript ausgewertet, SDK-frei wie der Rest der
+// Seite (Pitfall 6 — kein /_astro/-Bündel).
+import { versioned } from '../lib/assetVersion';
+import { SUPABASE, DISCORD } from '../consts';
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="Sign in to access the VerseBase Test Pilot preview." />
+  <title>Test Pilot Access — VerseBase</title>
+  <link href={versioned('assets/theme.css', '/assets/theme.css')} rel="stylesheet" />
+  <link href={versioned('assets/fonts.css', '/assets/fonts.css')} rel="stylesheet" />
+  <style is:inline>
+    :root{
+      --bg:#05070d;--surface:#0f1524;--accent:#2dd4ff;--accent-2:#6ea8ff;
+      --text:#e8eefc;--muted:#a7b6cf;--line:rgba(110,168,255,.16);--err:#ff8a8a;
+      --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+    }
+    /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+    :root[data-theme="light"]{--bg:#f4f7fe;--surface:#fdfdff;--text:#1b1f29;--muted:#4d596c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:1.3rem;text-align:center;padding:2rem 1.5rem;
+      background:radial-gradient(120% 90% at 50% 20%,rgba(45,212,255,.10),transparent 60%),var(--bg);
+      color:var(--text);font-family:var(--font-body);
+    }
+    .kicker{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent)}
+    h1{font-family:var(--font-display);font-weight:700;font-size:var(--fs-17);letter-spacing:var(--ls-4)}
+    .lede{max-width:42ch;color:var(--muted);font-size:var(--fs-11);line-height:1.5}
+    .card{width:100%;max-width:22rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1.6rem;display:flex;flex-direction:column;gap:.9rem}
+    .field{display:flex;flex-direction:column;gap:.35rem;text-align:left}
+    label{font-family:var(--font-ui);font-size:var(--fs-6);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted)}
+    input{font:inherit;font-size:var(--fs-9);padding:.6rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--veil-2);color:var(--text)}
+    input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    button{
+      font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-8);color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.75rem 1rem;cursor:pointer;
+      transition:transform var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui);
+    }
+    button:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(45,212,255,.35)}
+    button:disabled{opacity:.6;cursor:progress}
+    .status{font-size:var(--fs-5);color:var(--muted);min-height:1.2em}
+    .status[data-tone="error"]{color:var(--err)}
+    .status a{color:var(--accent-2)}
+    .role-link{font-size:var(--fs-6);color:var(--muted)}
+    .role-link a{color:var(--accent-2)}
+    /* D-01/D-11: Discord ist der Hauptweg -- gleiche Knopfform wie das
+       E-Mail-Formular, volle Kartenbreite, oben platziert. */
+    .discord-btn{
+      width:100%;max-width:22rem;display:flex;align-items:center;justify-content:center;gap:.6rem;
+      font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-8);
+      color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.85rem 1rem;cursor:pointer;
+      transition:transform var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui);
+    }
+    .discord-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(45,212,255,.35)}
+    .discord-btn:disabled{opacity:.6;cursor:progress}
+    .divider{font-family:var(--font-ui);font-size:var(--fs-5);color:var(--muted);text-transform:uppercase;letter-spacing:var(--ls-8);margin:.2rem 0}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
+</head>
+<body>
+  <div class="kicker">VerseBase</div>
+  <h1>Test Pilot Preview</h1>
+  <p class="lede">This preview is for Test Pilots. Sign in to continue.</p>
+
+  <button type="button" class="discord-btn" id="gateDiscordBtn"><span id="gateDiscordBtnTxt">Sign in with Discord</span></button>
+  <p class="status" id="gateDiscordStatus" role="alert" aria-live="assertive"></p>
+
+  <p class="divider">or sign in with e-mail</p>
+
+  <form class="card" id="gateForm" novalidate>
+    <div class="field">
+      <label for="gateEmail">E-mail</label>
+      <input id="gateEmail" name="email" type="email" required autocomplete="email" />
+    </div>
+    <div class="field">
+      <label for="gatePass">Password</label>
+      <input id="gatePass" name="password" type="password" required autocomplete="current-password" />
+    </div>
+    <button type="submit" id="gateBtn"><span id="gateBtnTxt">Sign in</span></button>
+    <p class="status" id="gateStatus" role="alert" aria-live="assertive"></p>
+  </form>
+
+  <p class="role-link">Not a Test Pilot yet? <a href={DISCORD.invite}>Get the role on Discord</a>.</p>
+
+  <script define:vars={{ SB_URL: SUPABASE.url, SB_KEY: SUPABASE.publishableKey, STORE: SUPABASE.storageKey }}>
+    (function () {
+      'use strict';
+
+      // Nur SAME-ORIGIN-Rücksprungziele akzeptieren (kein offener Redirect,
+      // T-14-05): genau ein führender "/", kein "//" (Protokoll-relativ).
+      // Zusätzlich gegen die eigene Origin aufgelöst, Muster aus
+      // AuthLogin.astro übernommen.
+      function safeNext(raw) {
+        if (!raw || raw.charAt(0) !== '/' || raw.charAt(1) === '/') return '/';
+        try {
+          var u = new URL(raw, location.origin);
+          if (u.origin !== location.origin) return '/';
+          return u.pathname + u.search + u.hash;
+        } catch (e) {
+          return '/';
+        }
+      }
+      var next = safeNext(new URLSearchParams(location.search).get('next') || '');
+
+      function readSession() {
+        try {
+          var raw = localStorage.getItem(STORE);
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+
+      // Ablageform exakt wie assets/account-lite.js (ensureSession): fehlt
+      // expires_at, wird es aus expires_in berechnet.
+      function storeSession(sess) {
+        if (!sess.expires_at) sess.expires_at = Math.floor(Date.now() / 1000) + (sess.expires_in || 3600);
+        try { localStorage.setItem(STORE, JSON.stringify(sess)); } catch (e) { /* noop */ }
+      }
+
+      function mint(accessToken) {
+        return fetch('/_gate/mint', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + accessToken },
+        });
+      }
+
+      // Schon angemeldet (Sitzung aus einem frueheren Besuch oder von
+      // account-lite.js aktualisiert)? Dann direkt minten und weiterspringen.
+      (function tryEnter() {
+        var sess = readSession();
+        if (!sess || !sess.access_token) return;
+        mint(sess.access_token).then(function (r) {
+          if (r.ok) location.replace(next);
+        }).catch(function () { /* bleibt auf der Torseite */ });
+      })();
+
+      var form = document.getElementById('gateForm');
+      var status = document.getElementById('gateStatus');
+      var btn = document.getElementById('gateBtn');
+      var btnTxt = document.getElementById('gateBtnTxt');
+      var discordBtn = document.getElementById('gateDiscordBtn');
+      var discordBtnTxt = document.getElementById('gateDiscordBtnTxt');
+      var discordStatus = document.getElementById('gateDiscordStatus');
+
+      function showStatus(msg, tone) {
+        status.textContent = msg;
+        if (tone) status.setAttribute('data-tone', tone);
+        else status.removeAttribute('data-tone');
+      }
+
+      // innerHTML ist hier unbedenklich: msg ist IMMER eine der drei
+      // handgeschriebenen Konstanten unten, NIE error_description roh.
+      function showDiscordStatus(msg, tone) {
+        discordStatus.innerHTML = msg;
+        if (tone) discordStatus.setAttribute('data-tone', tone);
+        else discordStatus.removeAttribute('data-tone');
+      }
+
+      discordBtn.addEventListener('click', function () {
+        discordBtn.disabled = true;
+        discordBtnTxt.textContent = 'Redirecting …';
+        // Keine zusaetzlichen Scopes -- identify+email ist die
+        // Provider-Vorgabe (D-03, siehe Koordinator-Gegenprobe:
+        // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst
+        // (next bleibt erhalten), damit der Ruecksprung SDK-frei vom
+        // bestehenden Inline-Skript gelesen werden kann.
+        var redirectTo = location.origin + '/gate.html?next=' + encodeURIComponent(next);
+        location.href = SB_URL + '/auth/v1/authorize?provider=discord&redirect_to=' + encodeURIComponent(redirectTo);
+      });
+
+      // D-02: unbekanntes Discord-Konto -> Weg nennen, nicht den Rohtext der
+      // Datenbank. GoTrue verpackt die im Trigger geworfene Ausnahme
+      // mancherorts generisch ("Database error saving new user",
+      // error_code "unexpected_failure") statt den eigenen Text
+      // durchzureichen (offener Punkt .planning/WINDOWS.md id 16) -- darum
+      // wird auf BEIDE Formen reagiert.
+      function looksLikeSignupBlocked(desc, code) {
+        var d = (desc || '').toLowerCase();
+        var c = (code || '').toLowerCase();
+        return d.indexOf('kein konto auf verse-base.com') !== -1 ||
+          d.indexOf('database error saving new user') !== -1 ||
+          c === 'unexpected_failure';
+      }
+
+      (function handleOauthReturn() {
+        var hp = new URLSearchParams(location.hash.charAt(0) === '#' ? location.hash.slice(1) : '');
+        var accessToken = hp.get('access_token');
+        var oauthErr = hp.get('error');
+        if (!accessToken && !oauthErr) return;
+
+        // Fragment sofort entfernen (T-14-23): kein Access-Token/Fehlertext
+        // im Verlauf, in einem Lesezeichen oder in einem Bildschirmfoto.
+        history.replaceState(null, '', location.pathname + location.search);
+
+        if (oauthErr) {
+          if (looksLikeSignupBlocked(hp.get('error_description'), hp.get('error_code'))) {
+            showDiscordStatus(
+              'There is no verse-base.com account linked to this Discord account yet. ' +
+              'Register with e-mail and password first on ' +
+              '<a href="https://verse-base.com/account/register.html">the live site</a>, ' +
+              'then link Discord in your account.',
+              'error'
+            );
+          } else {
+            showDiscordStatus('Discord sign-in failed — please try again, or sign in with e-mail and password below.', 'error');
+          }
+          discordBtnTxt.textContent = 'Sign in with Discord';
+          return;
+        }
+
+        // Erfolgsfall: Sitzung in derselben Ablageform wie assets/account-lite.js
+        var sess = {
+          access_token: accessToken,
+          refresh_token: hp.get('refresh_token'),
+          expires_in: parseInt(hp.get('expires_in') || '3600', 10),
+          token_type: hp.get('token_type') || 'bearer',
+        };
+        storeSession(sess);
+        mint(sess.access_token).then(function (r) {
+          if (r.ok) {
+            location.replace(next);
+            return;
+          }
+          showDiscordStatus(
+            r.status === 403
+              ? 'Signed in, but this account has no Test Pilot access.'
+              : 'Could not verify access — please try again.',
+            'error'
+          );
+          discordBtnTxt.textContent = 'Sign in with Discord';
+        }).catch(function () {
+          showDiscordStatus('Network error — please try again.', 'error');
+          discordBtnTxt.textContent = 'Sign in with Discord';
+        });
+      })();
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = form.elements.namedItem('email').value.trim();
+        var password = form.elements.namedItem('password').value;
+        if (!email || !password) return;
+
+        btn.disabled = true;
+        btnTxt.textContent = 'Signing in …';
+        showStatus('');
+
+        // SDK-frei, same-origin-unabhaengig: derselbe Endpunkt, den
+        // assets/account-lite.js fuer den Refresh nutzt (grant_type
+        // unterscheidet sich).
+        fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password }),
+        })
+          .then(function (r) {
+            return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+          })
+          .then(function (result) {
+            if (!result.ok || !result.body || !result.body.access_token) {
+              showStatus('Wrong e-mail or password.', 'error');
+              btn.disabled = false;
+              btnTxt.textContent = 'Sign in';
+              return;
+            }
+            storeSession(result.body);
+            return mint(result.body.access_token).then(function (r) {
+              if (r.ok) {
+                location.replace(next);
+                return;
+              }
+              showStatus(
+                r.status === 403
+                  ? 'Signed in, but this account has no Test Pilot access.'
+                  : 'Could not verify access — please try again.',
+                'error'
+              );
+              btn.disabled = false;
+              btnTxt.textContent = 'Sign in';
+            });
+          })
+          .catch(function () {
+            showStatus('Network error — please try again.', 'error');
+            btn.disabled = false;
+            btnTxt.textContent = 'Sign in';
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

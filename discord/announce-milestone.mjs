@@ -63,7 +63,9 @@ const IMAGE_NAME = IMAGE ? `milestone${IMAGE.slice(IMAGE.lastIndexOf('.'))}` : n
 const ACCENT = 0x2dd4ff; // --accent, the site's signature cyan
 
 // Channels referenced in the body, by blueprint key → resolved to real mentions.
-const REFS = ['suggestions', 'support'];
+// 17.08.2026: #suggestions und #support sind zu #feedback verschmolzen
+// (blueprint.mjs, cat-build) — derselbe Grund wie in announce-update.mjs.
+const REFS = ['feedback'];
 
 const BODY = {
   en: {
@@ -83,7 +85,7 @@ const BODY = {
       '🧭 Jordessey\'s Aaron Halo jump calculator\n' +
       '🤖 And Verse-Bot right here — `/ship` `/price` `/item` `/patch`',
     nextTitle: 'Next stop: 500',
-    next: 'If a tool helped you, tell a wingman. If something\'s missing, {suggestions} and {support} are wide open.',
+    next: 'If a tool helped you, tell a wingman. If something\'s missing, {feedback} is wide open.',
     footer: 'o7 · Krisz',
   },
   de: {
@@ -103,7 +105,7 @@ const BODY = {
       '🧭 Jordesseys Aaron-Halo-Sprungrechner\n' +
       '🤖 Und Verse-Bot direkt hier — `/ship` `/price` `/item` `/patch`',
     nextTitle: 'Nächstes Ziel: 500',
-    next: 'Wenn dir ein Tool geholfen hat, erzähl\'s einem Wingman. Wenn was fehlt: {suggestions} und {support} stehen offen.',
+    next: 'Wenn dir ein Tool geholfen hat, erzähl\'s einem Wingman. Wenn was fehlt: {feedback} steht offen.',
     footer: 'o7 · Krisz',
   },
 };
