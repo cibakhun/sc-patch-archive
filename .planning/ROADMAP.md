@@ -961,7 +961,7 @@ Zahl neu berechnet. Diese Phase ordnet an und verbindet, was vorliegt.
 
 **Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
 **Depends on:** Phase 14 (Kapitel, Sprungleiste, `verify:shipcard`, Höhenklinke)
-**Plans:** 3/5 plans executed
+**Plans:** 5/5 plans executed
 
 **Success Criteria** (was WAHR sein muss):
 
@@ -995,4 +995,4 @@ Plans:
 - [x] 15-02-PLAN.md — Welle 2, Werkzeug vor Eingriff: `verify:shipconsole` (acht Zusicherungen, ausgesetzt, einmal vorgeführt rot); `verify:shipcard`s Entdopplungs-Scan nimmt `section.holo` mit auf
 - [x] 15-03-PLAN.md — Welle 3, D-02: vier Systemabschnitte serverseitig im ausgelieferten HTML, Rail als Ankerliste, Bewaffnung und Bauteilliste ziehen aus `ch-gear` in die Konsole, Beweis mit abgeschaltetem JavaScript
 - [x] 15-04-PLAN.md — Welle 4, D-01/D-03/D-04: dreispaltiges Raster, Rail als Einfachauswahl, Auslesung mit zwei Zuständen, Laden beim Scrollen ohne Startknopf, gestapelt bei 360 px, Netzverkehr gemessen
-- [ ] 15-05-PLAN.md — Welle 5: Rot-Vorführung der erweiterten Entdopplungs-Region einlösen, `verify:shipconsole` scharf, Sperrklinken festschreiben, Schlussmessung DE/EN in beiden Farbmodi, fünf Sichturteile nach WINDOWS.md
+- [x] 15-05-PLAN.md — Welle 5: Rot-Vorführung der erweiterten Entdopplungs-Region einlösen, `verify:shipconsole` scharf, Sperrklinken festschreiben, Schlussmessung DE/EN in beiden Farbmodi, fünf Sichturteile nach WINDOWS.md

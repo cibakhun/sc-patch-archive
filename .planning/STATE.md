@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 12
+current_phase: 15
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: "Completed 15-04-PLAN.md -- Konsolen-Raster, Einfachauswahl, Scroll-Laden, hochformatige Buehne (D-05); P-1 bei allen drei Pruefschiffen und jeder Breite erfuellt"
-last_updated: "2026-08-20T15:45:00.000Z"
+stopped_at: Completed 15-05-PLAN.md -- Phase 15 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
+last_updated: "2026-08-20T15:45:30.370Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 19
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 62
-  completed_plans: 53
+  completed_plans: 55
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -27,6 +27,34 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 **Current focus:** Phase 15 — das-schiff-ist-die-navigation
 
+> **Nachtrag 20.08.2026 (sechster) — Phase 15 Plan 5 von 5 ausgefuehrt (Welle 5: Torschaerfung, Schlussmessung, fuenf Sichturteile).**
+> `15-05-PLAN.md` ist ausgefuehrt — **Phase 15 ist damit technisch vollstaendig
+> (5/5 Plaene)**. Vor Task 1 zusaetzlich die vier 1280px-Kollisionen behoben,
+> die der Orchestrator nach Welle 4 gefunden hatte (`deferred-items.md`):
+> Hero-Chrome-Elemente (`.holo__frame`/`.holo__hud`/`.holo__dims`) spannten
+> ohne eigenes `grid-column` den GESAMTEN Konsolen-Bereich statt nur die
+> Buehne — jetzt Kind von `.holo__wrap`. Rot-Vorfuehrung eingeloest
+> (Bewaffnungs-Kennwert absichtlich doppelt, `verify:shipcard` riss woertlich
+> in beiden Regionen, Dopplung zurueckgenommen). `verify:shipconsole` ist
+> SCHARF (`disabled` entfernt, Schiene A jetzt 19 Strecken, 0 ausgesetzt).
+> Textbestands-Klinke auf 3.224 Bytes (Ausgang 3.177). Hoehenklinke aus
+> Phase 14 (4.200px) haelt trotz neuer Konsole bei 3.609-3.641px — Fall 1
+> der Drei-Faelle-Regel, Marke unveraendert. Neue Kontrast-Messgruppe fand
+> und behob einen echten Fund (Rail-Gruppe „Antrieb" 4,43:1 im dunklen
+> Modus, jetzt >=4,54:1 site-weit). Fuenf neue Sichturteile in
+> `.planning/WINDOWS.md` (ids 23-27). `npm run build && npm run gate` gruen
+> (20/20), normal UND mit `STAGING=1`. Details in `15-05-SUMMARY.md`.
+> **Phase 15 bleibt NICHT als „Complete" markiert** — sieben offene
+> Sichtrunden-Punkte (ids 21-27) warten auf den Betreiber, dieselbe
+> Konvention wie bei den Phasen 1.2/2/3/9/10/12/14.
+> ⚠ `current_phase` im Kopf dieser Datei stand seit einer frueheren Sitzung
+> faelschlich auf 12 (Phase 12, laengst abgeschlossen), waehrend
+> `current_phase_name` bereits korrekt „das-schiff-ist-die-navigation" (Phase
+> 15) nannte — in dieser Sitzung berichtigt. Ebenso: `15-03-PLAN.md` und
+> `15-04-PLAN.md` haben in fruaeheren Sitzungen keinen eigenen Nachtrag-Absatz
+> hier hinterlassen (nur `15-04-SUMMARY.md` und der ROADMAP-Haken belegen sie)
+> — nicht rekonstruiert, ausserhalb des Aufgabenbereichs dieser Welle.
+>
 > **Nachtrag 20.08.2026 — Phase 15 Plan 2 von 5 ausgefuehrt (Welle 2: Werkzeug vor Eingriff).**
 > `15-02-PLAN.md` ist ausgefuehrt: `scripts/verify-shipconsole.mjs` angelegt
 > (acht Zusicherungen gegen den Zielzustand der Konsole — Rail<->System-
@@ -153,15 +181,20 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 12 (fundorte-in-der-mining-werkbank-anklickbar) — 3/3 Plaene ausgefuehrt
-Plan: 3 of 3 — abgeschlossen (`12-03-SUMMARY.md`)
+Phase: 15 (das-schiff-ist-die-navigation) — 5/5 Plaene ausgefuehrt
+Plan: 5 of 5 — abgeschlossen (`15-05-SUMMARY.md`)
 Status: **Technisch fertig, NICHT „Complete" markiert** — dieselbe Konvention wie
-Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
-Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
-`.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
-`STAGING=1`), 297 e2e-Testfaelle gruen, die neue Messsonde
-`scripts/probes/mining-locview-messung.mjs` bestaetigt alle 9 UI-SPEC-
-Backstops am gerenderten Bildpunkt (72/72 Messpunkte).
+Phasen 1.2/2/3/9/10/12/14: die menschliche Sichtrunde steht noch aus, sieben
+offene Eintraege `.planning/WINDOWS.md` ids 21-27 (S-0/Markererkennbarkeit,
+D-04-Wirtschaftlichkeit, und die fuenf Punkte aus Welle 5: schmalste
+Buehnenbreite, Rail-Einfachauswahl, Auslesung-Uebersicht, dichteste
+Einzelgruppe am groessten Schiff, Buehnen-Anziehungskraft ohne
+Video-Standardmodus). Alle 20 Schienen-A-Schritte gruen (normal UND
+`STAGING=1`), inklusive des jetzt scharfen `verify:shipconsole`.
+
+(Die vorherige Phase 12 — fundorte-in-der-mining-werkbank-anklickbar — bleibt
+unveraendert bei 3/3 Plaenen, ebenfalls technisch fertig und NICHT „Complete"
+markiert, offener Eintrag `.planning/WINDOWS.md` id 12.)
 
 ---
 
@@ -333,6 +366,7 @@ Progress: [█████████░] 85%
 | Phase 15 P01 | 185min | 3 tasks | 6 files |
 | Phase 15 P02 | 30min | 2 tasks | 6 files |
 | Phase 15 P03 | ~90min | 2 tasks | 3 files |
+| Phase 15 P05 | ~1h50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -441,6 +475,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 15]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
 - [Phase ?]: [Phase 15]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
 - [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
+- [Phase ?]: 15-05: Vier 1280px-Kollisionen (Hero-Chrome ohne grid-column spannte den gesamten Konsolen-Bereich) vor der Torschaerfung behoben; verify:shipconsole scharf; Hoehenklinke haelt trotz Konsole weit unter der Marke; ein neuer Kontrastfund (Rail-Gruppe Antrieb, dunkler Modus) behoben statt uebergeben
 
 ### Pending Todos
 
@@ -490,6 +525,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T09:54:04.261Z
-Stopped at: Completed 15-03-PLAN.md -- vier Systemabschnitte serverseitig im HTML, Rail als Ankerliste, Bewaffnung/Bauteilliste aus ch-gear in die Konsole gewandert, D-02 mit abgeschaltetem JavaScript bewiesen (36/36 Anker-Spruenge), Textbestand gewachsen statt geschrumpft
+Last session: 2026-08-20T15:45:30.317Z
+Stopped at: Completed 15-05-PLAN.md -- Phase 15 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
 Resume file: None
