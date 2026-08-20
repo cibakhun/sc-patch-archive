@@ -1,7 +1,7 @@
 # 15-04 — Konsolen-Raster, Einfachauswahl, Scroll-Laden, Hochformat
 
 **Abgeschlossen:** 2026-08-20
-**Plan:** `15-04-PLAN.md`
+**Plan:** `16-04-PLAN.md`
 **Commits:** `21cb059`, `dde04e0`, `318d4f1`
 
 ---

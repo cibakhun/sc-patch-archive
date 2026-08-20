@@ -1,5 +1,5 @@
 ---
-phase: 15-das-schiff-ist-die-navigation
+phase: 16-das-schiff-ist-die-navigation
 plan: 01
 subsystem: ui
 tags: [three.js, holo-viewer, camera-fitting, playwright, probe]
@@ -71,7 +71,7 @@ completed: 2026-08-18
 status: complete
 ---
 
-# Phase 15 Plan 1: Tracer -- P-1/P-2/P-3 am gerenderten Bildpunkt Summary
+# Phase 16 Plan 1: Tracer -- P-1/P-2/P-3 am gerenderten Bildpunkt Summary
 
 **Kamera-Einpassung, Auswahl-Beschriftung und Triebwerks-Marker fertiggestellt und gemessen; fuer kompakte/mittlere Schiffe erreicht das Konzept die 70%-Fuellgrad-Marke an allen sechs Pruefbreiten, fuer die zwei laengsten Pruefschiffe bleibt eine gemessene, dokumentierte Luecke bei schmalen Breiten -- als S-0 an den Betreiber uebergeben, nicht verdeckt.**
 
@@ -109,7 +109,7 @@ Task 1 war beim Start dieser Sitzung bereits ausgefuehrt und committet (Handover
 - `src/i18n/ui.ts` - `holo.labels.toggle`/`holo.labels.short` als verwaist markiert (nicht geloescht)
 - `.planning/WINDOWS.md` - S-0 als Eintrag 21 (Tabelle + JSON-Spiegel + Kopfzeilen-Zaehler synchron)
 - `scripts/probes/README.md` - Tabellenzeile + Aufrufzeilen fuer die neue Sonde (Task 1)
-- `.planning/phases/15-das-schiff-ist-die-navigation/deferred-items.md` - Nebenfund `#holoact` dokumentiert, nicht behoben (ausserhalb des Scopes)
+- `.planning/phases/16-das-schiff-ist-die-navigation/deferred-items.md` - Nebenfund `#holoact` dokumentiert, nicht behoben (ausserhalb des Scopes)
 
 ## Decisions Made
 
@@ -189,7 +189,7 @@ None - keine externe Dienstkonfiguration.
 - `npm run build && npm run gate` gruen, normal UND mit `STAGING=1` (19/19 Schritte, beide Laeufe).
 
 ---
-*Phase: 15-das-schiff-ist-die-navigation*
+*Phase: 16-das-schiff-ist-die-navigation*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED
@@ -197,5 +197,5 @@ None - keine externe Dienstkonfiguration.
 Alle sieben genannten Dateien gefunden (`scripts/probes/schiffskonsole-messung.mjs`,
 `assets/holo-viewer.js`, `src/components/ShipDetail.astro`, `src/i18n/ui.ts`,
 `.planning/WINDOWS.md`, `scripts/probes/README.md`,
-`.planning/phases/15-das-schiff-ist-die-navigation/deferred-items.md`).
+`.planning/phases/16-das-schiff-ist-die-navigation/deferred-items.md`).
 Alle drei genannten Commit-Hashes gefunden (`7bb10df`, `d849dea`, `f6cd68d`).

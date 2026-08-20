@@ -105,12 +105,12 @@ export const EXCLUSIONS = [
        .holo__hud links daneben). */
     match: (regionHtml) => /class="[^"]*\bholo__dims\b[^"]*"/.test(regionHtml),
     reason:
-      'Gefunden beim ersten Lauf gegen die in 15-02-PLAN.md Task 2 erweiterte Regionsbildung (section.holo neu ' +
-      'aufgenommen). Die Planungsannahme in 15-02-PLAN.md ("section.holo traegt heute ... aber keine ' +
+      'Gefunden beim ersten Lauf gegen die in 16-02-PLAN.md Task 2 erweiterte Regionsbildung (section.holo neu ' +
+      'aufgenommen). Die Planungsannahme in 16-02-PLAN.md ("section.holo traegt heute ... aber keine ' +
       'Zahl-plus-Einheit-Token") hat sich als falsch erwiesen: `.holo__dims` rendert exakt "L <Laenge> m · ' +
       'W <Breite> m · H <Hoehe> m" als HUD-Kurzreferenz DIREKT AUF der Buehne — dieselbe Zahl, die formal im ' +
       'Kapitel "Ausstattung" Unterabschnitt "Masse & Fracht" (ch-gear, unveraendert von dieser Phase, ' +
-      '15-UI-SPEC.md Detailvertrag Punkt 9) steht. Es ist eine Kurzanzeige UNMITTELBAR AM visuellen Objekt, das ' +
+      '16-UI-SPEC.md Detailvertrag Punkt 9) steht. Es ist eine Kurzanzeige UNMITTELBAR AM visuellen Objekt, das ' +
       'sie beschreibt, kein zweiter Dateneintrag im Fliesstext — dieselbe Klasse Fehlalarm wie ' +
       'X-cargo-cube-legende (dort: Massstabs-Legende neben dem Frachtraum-Piktogramm; hier: Massangabe neben ' +
       'dem gerenderten Schiff), nur bei den Schiffs-Gesamtmassen statt bei der Wuerfel-Groesse der ' +

@@ -1,11 +1,11 @@
 ---
-phase: 15-das-schiff-ist-die-navigation
+phase: 16-das-schiff-ist-die-navigation
 plan: 05
 subsystem: ui
 tags: [gate, verify-script, ratchet, contrast, wcag, css-grid, node, playwright]
 
 requires:
-  - phase: 15-das-schiff-ist-die-navigation
+  - phase: 16-das-schiff-ist-die-navigation
     provides: "15-01..15-04: die Konsole (Rail/Buehne/Auslesung) steht end-to-end, verify:shipconsole ausgesetzt mit benanntem Anlass, D-05 hochformatige Buehne bei schmalen Breiten"
 provides:
   - "Vier 1280px-Kollisionen behoben: Hero-Chrome (.holo__frame/.holo__hud/.holo__dims) ist jetzt Kind von .holo__wrap (rahmt nur die Buehne, nicht mehr die ganze Konsole); .holo{margin-top} beruecksichtigt die sichtbare Zurueck-Marke; .sd__slot .t bricht in der schmalen Auslesung-Spalte um"
@@ -34,7 +34,7 @@ key-files:
 
 key-decisions:
   - "Vier 1280px-Kollisionen (Zurueck-Marke auf der Rail, Brotkrume abgeschnitten, Massanzeige auf der Auslesung, unumbrochenes Kategorie-Label) VOR der Torschaerfung behoben, obwohl sie nicht in der urspruenglichen Plan-Frontmatter files_modified standen -- der Orchestrator hatte sie explizit als Blocker fuer staging benannt (deferred-items.md 20.08.2026) und dieselbe Ursachenfamilie: Hero-Chrome-Elemente, die den gesamten .holo-Grid-Bereich statt nur die Buehnenspalte spannen."
-  - "Hoehenklinke NICHT abgesenkt und NICHT praezisiert (Fall 1 der Drei-Faelle-Regel aus 15-05-PLAN.md): die Konsole ist ein kompaktes Drei-Spalten-Band, keine gestapelte Kapitelinhalt-Erweiterung -- die volle Seitenhoehe faellt trotz neuer Konsole von 4.179px (Phase 14) auf 3.609-3.641px."
+  - "Hoehenklinke NICHT abgesenkt und NICHT praezisiert (Fall 1 der Drei-Faelle-Regel aus 16-05-PLAN.md): die Konsole ist ein kompaktes Drei-Spalten-Band, keine gestapelte Kapitelinhalt-Erweiterung -- die volle Seitenhoehe faellt trotz neuer Konsole von 4.179px (Phase 14) auf 3.609-3.641px."
   - "Neue Kontrast-Messgruppe fuer die Konsole selbst geschrieben (schiffskarte-messung.mjs, nicht schiffskonsole-messung.mjs, da nur ersteres in files_modified stand) -- fand einen echten, bislang unentdeckten Befund: die Gruppe 'Antrieb' lag bei 4,43:1 im dunklen Modus, weil kein bisher gemessenes Pruefschiff sie als EINZIGE Rail-Gruppe hatte."
   - "Kontrastfund behoben statt an WINDOWS.md uebergeben: .holo__rail-ct traegt jetzt die reine --gc-Farbe statt einer 80/20-Mischung mit --muted -- derselbe kleine, risikoarme Eingriff, den Icon und Rahmen der Gruppe ohnehin schon nutzen (Groesse des Eingriffs entscheidet laut Planvorgabe, ob behoben oder uebergeben wird)."
 
@@ -45,7 +45,7 @@ completed: 2026-08-20
 status: complete
 ---
 
-# Phase 15 Plan 5: Torschaerfung, Schlussmessung und fuenf Sichturteile -- die vier 1280px-Kollisionen sind mitbehoben Summary
+# Phase 16 Plan 5: Torschaerfung, Schlussmessung und fuenf Sichturteile -- die vier 1280px-Kollisionen sind mitbehoben Summary
 
 **`verify:shipconsole` laeuft scharf in der Torkette, vier Hero-Chrome-Kollisionen bei 1280px sind behoben (Ursache: Elemente ohne grid-column spannten den gesamten Konsolen-Bereich statt nur die Buehne), die Hoehenklinke aus Phase 14 haelt trotz neuer Konsole weit unter der Marke (3.609px statt 4.200px), und ein neuer Kontrastfund bei der Rail-Gruppe "Antrieb" im dunklen Modus (4,43:1) ist behoben.**
 
@@ -58,7 +58,7 @@ status: complete
 
 ## Accomplishments
 
-- **Vier 1280px-Kollisionen behoben, per Bildschirmfoto belegt (nicht nur per gruener Torfarbe).** `.holo__frame`/`.holo__hud`/`.holo__dims` waren Kind von `section.holo` ohne eigenes `grid-column`/`grid-row` -- CSS Grid spannt einem so positionierten Kind automatisch den GESAMTEN Grid-Bereich, nicht nur eine Spalte. Das war unbedenklich, solange `.holo` die einzige Spalte war; seit 15-04-PLAN.md Rail und Auslesung als eigene Spalten anlegte, lag die Zurueck-Marke auf der ersten Rail-Zeile, die Brotkrume wurde von der Rail verdeckt, und die Massanzeige ueberlagerte den Auslesung-Kopf. Fix: alle drei sind jetzt Kind von `.holo__wrap` (rahmen nur noch die Buehne). Zusaetzlich: `.holo{margin-top:56px}` kannte die sichtbare Zurueck-Marke nicht (SiteNav-Zuschlag `--nav-h` 68->104/116px) -- ein passender `:root:has(.snav__back:not([hidden]))`-Zuschlag ergaenzt, die dadurch ueberholten Text-Nachjustierungen an `.holo__hud`/`.holo__dims` entfernt. Vierte Kollision: `.sd__slot .t` (Kategorie-Label wie "SCHILDGENERATOREN") fehlte in der overflow-wrap/hyphens-Liste der schmalen Auslesung-Spalte und lief unumbrochen ueber den Rand -- ergaenzt.
+- **Vier 1280px-Kollisionen behoben, per Bildschirmfoto belegt (nicht nur per gruener Torfarbe).** `.holo__frame`/`.holo__hud`/`.holo__dims` waren Kind von `section.holo` ohne eigenes `grid-column`/`grid-row` -- CSS Grid spannt einem so positionierten Kind automatisch den GESAMTEN Grid-Bereich, nicht nur eine Spalte. Das war unbedenklich, solange `.holo` die einzige Spalte war; seit 16-04-PLAN.md Rail und Auslesung als eigene Spalten anlegte, lag die Zurueck-Marke auf der ersten Rail-Zeile, die Brotkrume wurde von der Rail verdeckt, und die Massanzeige ueberlagerte den Auslesung-Kopf. Fix: alle drei sind jetzt Kind von `.holo__wrap` (rahmen nur noch die Buehne). Zusaetzlich: `.holo{margin-top:56px}` kannte die sichtbare Zurueck-Marke nicht (SiteNav-Zuschlag `--nav-h` 68->104/116px) -- ein passender `:root:has(.snav__back:not([hidden]))`-Zuschlag ergaenzt, die dadurch ueberholten Text-Nachjustierungen an `.holo__hud`/`.holo__dims` entfernt. Vierte Kollision: `.sd__slot .t` (Kategorie-Label wie "SCHILDGENERATOREN") fehlte in der overflow-wrap/hyphens-Liste der schmalen Auslesung-Spalte und lief unumbrochen ueber den Rand -- ergaenzt.
 - **Rot-Vorfuehrung eingeloest.** Ein Bewaffnungs-Kennwert ("48.433 DPS", Javelin) voruebergehend zusaetzlich im Ausstattungs-Kapitel dupliziert, `verify:shipcard` riss mit der woertlichen Meldung `"48,433 DPS" in Regionen [Specs › Defense | Weapons]` (EN) / `"48.433 DPS" in Regionen [Ausstattung › Verteidigung | Bewaffnung]` (DE) -- Dopplung sofort zurueckgenommen, zweiter Lauf wieder gruen, `git status --porcelain` nennt `ShipDetail.astro` nicht mehr.
 - **`verify:shipconsole` scharf geschaltet.** `disabled` aus dem Registry-Eintrag entfernt, `run-gate --list` zeigt Schiene A mit 19 Strecken, 0 ausgesetzt, keinen Schuldenposten mehr aus dieser Phase.
 - **Textbestands-Klinke auf 3.224 Bytes gesetzt** (Ausgangswert Welle 1/2: 3.177, +47 Bytes, wandert nach oben wie Grundsatz 5 verlangt).
@@ -129,7 +129,7 @@ None - keine externe Dienstkonfiguration.
 
 ## Next Phase Readiness
 
-- **Phase 15 ist technisch vollstaendig (5/5 Plaene), aber NICHT als "Complete" markiert** -- dieselbe Konvention wie bei den Phasen 1.2/2/3/9/10/12/14. Sieben offene Sichtrunden-Punkte zu Phase 15 (`.planning/WINDOWS.md` ids 21-27) warten auf den Betreiber:
+- **Phase 16 ist technisch vollstaendig (5/5 Plaene), aber NICHT als "Complete" markiert** -- dieselbe Konvention wie bei den Phasen 1.2/2/3/9/10/12/14. Sieben offene Sichtrunden-Punkte zu Phase 16 (`.planning/WINDOWS.md` ids 21-27) warten auf den Betreiber:
   - id 21 (S-0, die tragende Frage der Phase, siehe Ergaenzung id 23)
   - id 22 (D-04 woertlich erfuellt, aber wirtschaftlich hohl -- Produktentscheidung)
   - id 23-27 (diese Welle, siehe oben)
@@ -138,7 +138,7 @@ None - keine externe Dienstkonfiguration.
 - `npm run check:staging` steht noch aus -- die Fertig-Meldung faellt erst, wenn die ausgelieferte Seite den neuen Stand zeigt.
 
 ---
-*Phase: 15-das-schiff-ist-die-navigation*
+*Phase: 16-das-schiff-ist-die-navigation*
 *Completed: 2026-08-20*
 
 ## Self-Check: PASSED

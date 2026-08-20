@@ -1,17 +1,17 @@
 ---
-phase: 15-das-schiff-ist-die-navigation
+phase: 16-das-schiff-ist-die-navigation
 plan: 03
 subsystem: ui
 tags: [astro, i18n, ship-console, no-js, playwright, probe]
 
 requires:
-  - phase: 15-das-schiff-ist-die-navigation
+  - phase: 16-das-schiff-ist-die-navigation
     provides: "15-01: P-3 entschieden (Variante C), P-1/P-2 gemessen; 15-02: verify:shipconsole angelegt und vorgefuehrt rot, ausgesetzt bis 15-05"
 provides:
   - "Vier Systemabschnitte (section.holo__sys, id sys-core/sys-arms/sys-prop/sys-other) im ausgelieferten HTML aller 454 Seiten -- sichtbar ohne JavaScript, kein Versteck-Attribut, keine Vorlagenhuelle (D-02)"
   - "Rail (nav.holo__rail) als reine Anker-Liste, ersetzt den schwebenden Ebenen-Kasten -- funktioniert vollstaendig ohne Skript"
   - "Bewaffnung und Bauteilliste sind vollstaendig aus ch-gear in die Konsole gewandert, an genau einer Stelle der Seite -- verify:shipcard sieht in beide Bloecke und bleibt gruen"
-  - "verify:shipconsole --report meldet nach diesem Plan 0 Befunde in allen acht Zusicherungen (bleibt bis 15-05-PLAN.md ausgesetzt)"
+  - "verify:shipconsole --report meldet nach diesem Plan 0 Befunde in allen acht Zusicherungen (bleibt bis 16-05-PLAN.md ausgesetzt)"
   - "D-02 mit ABGESCHALTETEM JavaScript am gebauten dist/ bewiesen (Messgruppe j-ohne-javascript), nicht durch Lesen des Codes -- 36/36 Anker-Spruenge landen am Abschnitt, Gegenprobe mit JavaScript liefert dieselbe Abschnittszahl"
   - "Textbestand ueber alle 454 Seiten NICHT geschrumpft: min 3177->3242, median 4652->4798, max 5391->5557, Carrack DE 4971->5157 Bytes (Messgruppe k-textbestand-danach)"
 affects: [15-04-das-schiff-ist-die-navigation, 15-05-das-schiff-ist-die-navigation]
@@ -31,13 +31,13 @@ key-files:
     - src/components/ShipDetail.astro
     - src/i18n/ui.ts
     - scripts/probes/schiffskonsole-messung.mjs
-    - .planning/phases/15-das-schiff-ist-die-navigation/deferred-items.md
+    - .planning/phases/16-das-schiff-ist-die-navigation/deferred-items.md
 
 key-decisions:
   - "Zwei zusaetzliche bottom-verankerte Dekorationen (.holo__toggle) mussten wie die im Plan genannten .holo__grid/.holo__pad in .holo__wrap wandern -- .holo__frame/.holo__hud/.holo__dims (top-verankert) blieben bewusst aussen, weil ihre Positionierung durch das Wachstum von .holo NICHT bricht"
   - "prop/other bekommen eine neue Klasse .holo__sys-list/.holo__sys-row statt die Bewaffnungs-spezifischen arm__*-Klassen wiederzuverwenden -- strukturgleiche Formel (Anzahl+Art gruppiert), aber eigener Klassenname, weil arm__scell semantisch an Bewaffnung gebunden ist"
   - "Playwrights locator.click() fuer die Anker-Sprung-Pruefung durch location.hash-Navigation + Scroll-Stillstands-Polling ersetzt -- die urspruengliche Klick-Kette liess spaetere Rail-Anker bis zum 30s-Timeout haengen (Automatisierungs-Artefakt aus dem Zusammenspiel mit scroll-behavior:smooth, kein Produktfehler)"
-  - "Vorher-Werte fuer Messgruppe k-textbestand-danach aus den bereits in 15-01-SUMMARY.md/15-02-PLAN.md protokollierten Zahlen uebernommen (3177/4652/5391/4971), keine risikoreiche Neumessung gegen einen temporaer ausgecheckten Vorzustand"
+  - "Vorher-Werte fuer Messgruppe k-textbestand-danach aus den bereits in 16-01-SUMMARY.md/16-02-PLAN.md protokollierten Zahlen uebernommen (3177/4652/5391/4971), keine risikoreiche Neumessung gegen einen temporaer ausgecheckten Vorzustand"
 
 requirements-completed: [D-02, D-01, P-3]
 
@@ -88,7 +88,7 @@ completed: 2026-08-20
 status: complete
 ---
 
-# Phase 15 Plan 3: Die Konsole ohne JavaScript -- vier Systemabschnitte, Rail als Ankerliste, D-02 gemessen Summary
+# Phase 16 Plan 3: Die Konsole ohne JavaScript -- vier Systemabschnitte, Rail als Ankerliste, D-02 gemessen Summary
 
 **D-02 ist die Bedingung, unter der D-01 sicher ist -- und sie ist nach diesem Plan gemessen erfuellt: alle 454 Schiffsseiten zeigen ihre Systeme mit ABGESCHALTETEM JavaScript als lesbare Liste, der Textbestand ist durchgehend gewachsen statt geschrumpft, und `verify:shipconsole --report` meldet bereits 0 Befunde in allen acht Zusicherungen -- vier Wellen vor dessen Scharfschaltung.**
 
@@ -108,7 +108,7 @@ status: complete
 - **Vier neue i18n-Schluessel** (`ship.console.rail.aria`, `ship.console.readout.aria`, `ship.console.count`, `ship.defense.title`), je DE und EN. `holo.filter.aria`/`holo.layers.title` als verwaist markiert (der Kasten, den sie beschrifteten, ist entfallen).
 - **D-02 mit abgeschaltetem JavaScript bewiesen**: neue Messgruppe `j-ohne-javascript` (`newContext({ javaScriptEnabled: false })`) prueft an drei Pruefschiffen (Carrack/argo-csv-cargo/Ironclad) x zwei Sprachen x zwei Breiten (1280/360px): sichtbare Systemabschnitte == Rail-Laenge, jede Hoehe > 0, kein leerer Text, jeder Rail-Anker zeigt auf eine vorhandene id, kein waagerechter Ueberlauf, UND 36/36 tatsaechliche Anker-Spruenge landen am Zielabschnitt. Gegenprobe im selben Lauf MIT JavaScript liefert dieselbe Abschnittszahl (0 Abweichungen — in dieser Welle wird noch nichts versteckt).
 - **Textbestand gewachsen statt geschrumpft**: neue Messgruppe `k-textbestand-danach` stellt den Ausgangswert (min 3177/median 4652/max 5391/Carrack-DE 4971 Bytes, protokolliert in 15-01/15-02) dem Nachher-Wert gegenueber: min 3242 (+2,0%), median 4798 (+3,1%), max 5557 (+3,1%), Carrack-DE 5157 (+3,7%) — kein Wert kleiner geworden, ein leichter Anstieg wie im Plan erwartet.
-- **`verify:shipconsole --report` meldet bereits 0 Befunde** in allen acht Zusicherungen nach diesem Plan (Rail<->System-Bijektion, P-3-Markerzahl, D-02-Sichtbarkeit, Textbestands-Klinke, Sprachparitaet) — das Tor bleibt trotzdem bis `15-05-PLAN.md` ausgesetzt, weil dessen Scharfschaltung eine bewusste, geplante Reihenfolge ist (Praezedenz `verify:shipcard` 14-01->14-04) und der No-JS-Beweis dieser Sonde vorbehalten war.
+- **`verify:shipconsole --report` meldet bereits 0 Befunde** in allen acht Zusicherungen nach diesem Plan (Rail<->System-Bijektion, P-3-Markerzahl, D-02-Sichtbarkeit, Textbestands-Klinke, Sprachparitaet) — das Tor bleibt trotzdem bis `16-05-PLAN.md` ausgesetzt, weil dessen Scharfschaltung eine bewusste, geplante Reihenfolge ist (Praezedenz `verify:shipcard` 14-01->14-04) und der No-JS-Beweis dieser Sonde vorbehalten war.
 
 ## Task Commits
 
@@ -122,7 +122,7 @@ status: complete
 - `src/components/ShipDetail.astro` - `.holo`/`.holo__wrap` Hoehe/Beschnitt getauscht; `.holo__grid`/`.holo__pad`/`.holo__toggle` in `.holo__wrap` verschoben; `.holo__layers`/`.holo__layer*`-CSS ersetzt durch `.holo__rail*`; neue `.holo__sys*`-CSS; vier `section.holo__sys` + `nav.holo__rail` als Markup; `sysKindCounts()`/`sysPortCount()`-Helfer; Bewaffnungs-Unterabschnitt aus `ch-gear` entfernt; Komponenten&Verteidigung zu reinem Verteidigungs-Unterabschnitt reduziert; `gearArms`/`gearComp` durch `gearDefense` ersetzt; tote `#holofilters`-JS-Referenzen entfernt (Ein-/Ausblenden, Einklapp-Umschalter, Mehrfachauswahl-Klick-Handler)
 - `src/i18n/ui.ts` - vier neue Schluessel `ship.console.rail.aria`/`ship.console.readout.aria`/`ship.console.count`/`ship.defense.title`, je DE und EN; `holo.filter.aria`/`holo.layers.title` als verwaist markiert
 - `scripts/probes/schiffskonsole-messung.mjs` - Messgruppe `k-textbestand-danach` (Familie A, dist-Scan) und `j-ohne-javascript`/`j-ohne-javascript-gegenprobe` (Familie B, JS-abgeschalteter Kontext) ergaenzt; `PRUEFBREITEN_J`-Konstante
-- `.planning/phases/15-das-schiff-ist-die-navigation/deferred-items.md` - toten CSS-Fund (`.sd__ch2col .sd__slots`/`.arm__sum`) dokumentiert, nicht behoben
+- `.planning/phases/16-das-schiff-ist-die-navigation/deferred-items.md` - toten CSS-Fund (`.sd__ch2col .sd__slots`/`.arm__sum`) dokumentiert, nicht behoben
 
 ## Decisions Made
 
@@ -158,9 +158,9 @@ status: complete
 
 ## Issues Encountered
 
-- **Bewusst hingenommener Zwischenzustand** (wie in `15-03-PLAN.md` Planungsnotizen vorgesehen): die Rail ist nach diesem Plan eine Ankerliste OHNE Filterwirkung — die Buehne zeigt weiterhin die bisherige Startauswahl (Komponenten+Bewaffnung), ein Klick auf einen Rail-Eintrag springt zum Textabschnitt statt die Buehne umzuschalten. Die Einfachauswahl und die Buehnen-Umschaltung sind Welle 4. Die Seite ist in diesem Zwischenstand vollstaendig benutzbar und vollstaendig lesbar (belegt durch die No-JS-Messung).
+- **Bewusst hingenommener Zwischenzustand** (wie in `16-03-PLAN.md` Planungsnotizen vorgesehen): die Rail ist nach diesem Plan eine Ankerliste OHNE Filterwirkung — die Buehne zeigt weiterhin die bisherige Startauswahl (Komponenten+Bewaffnung), ein Klick auf einen Rail-Eintrag springt zum Textabschnitt statt die Buehne umzuschalten. Die Einfachauswahl und die Buehnen-Umschaltung sind Welle 4. Die Seite ist in diesem Zwischenstand vollstaendig benutzbar und vollstaendig lesbar (belegt durch die No-JS-Messung).
 - **Tote CSS-Regeln in `.sd__ch2col`** (`.sd__slots`/`.arm__sum`/`.arm__scell span`-Feinabstimmungen aus `14-04-PLAN.md`) greifen seit dem Kapitel-Umzug ins Leere — nicht entfernt (ausserhalb der Task-1-Anweisung), dokumentiert in `deferred-items.md` fuer den naechsten Eingriff in diesen Block.
-- **`d-fuellgrad`-Fehlschlaege bei Carrack/Ironclad an 860/414/360px** sind unveraendert der bereits in `15-01-SUMMARY.md` dokumentierte, an den Betreiber uebergebene S-0-Befund (`.planning/WINDOWS.md` id 21) — nicht neu, nicht von diesem Plan verursacht, exakt dieselben Prozentwerte wie in Welle 1 gemessen.
+- **`d-fuellgrad`-Fehlschlaege bei Carrack/Ironclad an 860/414/360px** sind unveraendert der bereits in `16-01-SUMMARY.md` dokumentierte, an den Betreiber uebergebene S-0-Befund (`.planning/WINDOWS.md` id 21) — nicht neu, nicht von diesem Plan verursacht, exakt dieselben Prozentwerte wie in Welle 1 gemessen.
 
 ## User Setup Required
 
@@ -168,18 +168,18 @@ None - keine externe Dienstkonfiguration.
 
 ## Next Phase Readiness
 
-- **`15-04-PLAN.md` kann direkt auf dem heutigen Stand aufbauen**: die vier Systemabschnitte und die Rail existieren bereits vollstaendig serverseitig; Welle 4 fuegt das Drei-Spalten-Grid (Detailvertrag Punkt 1), die Einfachauswahl mit Buehnen-Umschaltung (Punkt 5) und die JS-Progressiv-Erweiterung (Punkt 6, Verschieben statt Kopieren) hinzu.
-- **`verify:shipconsole` ist bereits inhaltlich gruen** (0 Befunde in `--report`) — Welle 4/5 sollten das nach jeder Aenderung erneut pruefen, um die Bijektion/Klinke nicht versehentlich zu reissen, bevor das Tor in `15-05-PLAN.md` scharfgeschaltet wird.
-- **`.planning/phases/15-das-schiff-ist-die-navigation/deferred-items.md`**: der tote `.sd__ch2col`-CSS-Fund wartet auf den naechsten Eingriff in diesen Block (voraussichtlich Welle 4).
+- **`16-04-PLAN.md` kann direkt auf dem heutigen Stand aufbauen**: die vier Systemabschnitte und die Rail existieren bereits vollstaendig serverseitig; Welle 4 fuegt das Drei-Spalten-Grid (Detailvertrag Punkt 1), die Einfachauswahl mit Buehnen-Umschaltung (Punkt 5) und die JS-Progressiv-Erweiterung (Punkt 6, Verschieben statt Kopieren) hinzu.
+- **`verify:shipconsole` ist bereits inhaltlich gruen** (0 Befunde in `--report`) — Welle 4/5 sollten das nach jeder Aenderung erneut pruefen, um die Bijektion/Klinke nicht versehentlich zu reissen, bevor das Tor in `16-05-PLAN.md` scharfgeschaltet wird.
+- **`.planning/phases/16-das-schiff-ist-die-navigation/deferred-items.md`**: der tote `.sd__ch2col`-CSS-Fund wartet auf den naechsten Eingriff in diesen Block (voraussichtlich Welle 4).
 - `npm run build && npm run gate` gruen, normal UND mit `STAGING=1` (19/19 Schritte, beide Laeufe).
 
 ---
-*Phase: 15-das-schiff-ist-die-navigation*
+*Phase: 16-das-schiff-ist-die-navigation*
 *Completed: 2026-08-20*
 
 ## Self-Check: PASSED
 
 Alle vier genannten Dateien gefunden (`src/components/ShipDetail.astro`,
 `src/i18n/ui.ts`, `scripts/probes/schiffskonsole-messung.mjs`,
-`.planning/phases/15-das-schiff-ist-die-navigation/deferred-items.md`).
+`.planning/phases/16-das-schiff-ist-die-navigation/deferred-items.md`).
 Beide genannten Commit-Hashes gefunden (`8f50e68`, `cfd4878`).

@@ -1,4 +1,4 @@
-# Phase 15: Das Schiff ist die Navigation — Kontext
+# Phase 16: Das Schiff ist die Navigation — Kontext
 
 **Erhoben:** 2026-08-18
 **Status:** Bereit zur Planung

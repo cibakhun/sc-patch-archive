@@ -1,6 +1,6 @@
 /* ============================================================
    verify-shipconsole.mjs — Konsolen-Tor fuer die Schiffs-Detailseite
-   (Phase 15, D-01/D-02/P-1/P-2/P-3, 15-UI-SPEC.md).
+   (Phase 16, D-01/D-02/P-1/P-2/P-3, 16-UI-SPEC.md).
 
    Pruefverfahren gegen den GEBAUTEN Stand von dist/schiffe/*.html und
    dist/de/schiffe/*.html — Vorbild scripts/verify-shipcard.mjs (Hausform:
@@ -16,11 +16,11 @@
    und derselbe Vorbehalt wie in scripts/probes/schiffskonsole-messung.mjs
    Kopfkommentar: verify-shipcard.mjs bricht beim Import sofort mit
    process.exit(1) ab, wenn dist/ fehlt, und dieser Task darf nur die drei
-   in 15-02-PLAN.md Task 1 genannten Dateien beruehren. Aendern sich die
+   in 16-02-PLAN.md Task 1 genannten Dateien beruehren. Aendern sich die
    Grundwerkzeuge dort, muss diese Kopie von Hand nachgezogen werden — an
    dieser Stelle vermerkt.
 
-   WARUM ES DEN GIBT: D-02 (15-CONTEXT.md) ist die Bedingung, unter der
+   WARUM ES DEN GIBT: D-02 (16-CONTEXT.md) ist die Bedingung, unter der
    D-01 ueberhaupt sicher ist — die Konsole darf die vier Kapitel nur
    ersetzen, solange jede Auslesung im ausgelieferten HTML steht. Bei rund
    17.000 indexierbaren Seiten und einem Zulauf, der praktisch vollstaendig
@@ -32,7 +32,7 @@
    JavaScript als lesbare Liste) und ist deshalb bis zu deren Abschluss
    zwangslaeufig ROT gegen den heutigen Stand. Der Registry-Eintrag steht
    deshalb vorerst auf `disabled` (scripts/lib/gate-registry.mjs) —
-   scharfgeschaltet in 15-05-PLAN.md, Praezedenz verify:shipcard
+   scharfgeschaltet in 16-05-PLAN.md, Praezedenz verify:shipcard
    (14-01 -> 14-04: erst beheben, dann scharf).
 
    Gegen WELCHES Artefakt: dist/schiffe/*.html + dist/de/schiffe/*.html,
@@ -88,7 +88,7 @@ try {
   ({ EXCLUSIONS } = await import('./lib/shipconsole-exclusions.mjs'));
 } catch {
   // Keine Ausnahmeliste vorhanden — das ist der erwartete Zustand beim
-  // Anlegen dieses Tors (15-02-PLAN.md): eine Liste entsteht NUR, wenn ein
+  // Anlegen dieses Tors (16-02-PLAN.md): eine Liste entsteht NUR, wenn ein
   // Berichtslauf sie erzwingt, nie auf Verdacht (sonst reisst der
   // Zombie-Waechter sofort). EXCLUSIONS bleibt [].
 }
@@ -113,15 +113,15 @@ const TEXTBESTAND_KLINKE = {
   regel: 'min', // wandert nur nach oben
   toleranzProzent: 2,
   anlass:
-    'Messlauf 20.08.2026 (15-05-PLAN.md Task 1, Scharfschaltung) gegen den nach Welle 4+Kollisionsfix ' +
+    'Messlauf 20.08.2026 (16-05-PLAN.md Task 1, Scharfschaltung) gegen den nach Welle 4+Kollisionsfix ' +
     'gebauten dist/ dieses Worktrees (Commit ae2f1f2, frisch gebaut fuer diesen Lauf: npm run build, dann ' +
     'node scripts/verify-shipconsole.mjs --report) — Minimum ueber alle 454 Schiffsseiten jetzt 3.224 Bytes ' +
     '(dist/schiffe/argo-atls-geo-collector-grad01.html), Median 4.777, Maximum 5.536 ' +
-    '(dist/de/schiffe/drak-cutlass-black.html). Ausgangswert aus Welle 1/2 (15-02-PLAN.md Task 1, Messlauf ' +
+    '(dist/de/schiffe/drak-cutlass-black.html). Ausgangswert aus Welle 1/2 (16-02-PLAN.md Task 1, Messlauf ' +
     '20.08.2026 gegen den nach Welle 1 gebauten Stand, Commit bfdffe8): 3.177 Bytes — Differenz +47 Bytes, die ' +
     'Klinke wandert damit nach OBEN, wie Grundsatz 5 verlangt (Bewaffnung/Komponenten sind seit Welle 3/4 aus dem ' +
     'Ausstattungs-Kapitel in die Konsole umgezogen und tragen dort dieselbe Aussage plus die neu ausgeschriebenen ' +
-    'prop/other-Stueckzahllisten, siehe 15-UI-SPEC.md Punkt 12). Reserve weiterhin 2% (effektive Untergrenze ' +
+    'prop/other-Stueckzahllisten, siehe 16-UI-SPEC.md Punkt 12). Reserve weiterhin 2% (effektive Untergrenze ' +
     '~3.160 Bytes) gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes — u. a. traegt jede Seite ' +
     'ein Datum (t(\'ship.asof\') + pricesFetchedAt) und eine variable Zahl an Shopzeilen, die sich mit jedem ' +
     'Preislauf leicht verschieben koennen, ohne dass das etwas mit dieser Phase zu tun hat. Praezedenz: die ' +
@@ -230,7 +230,7 @@ function extractRegion(cleanHtml, openPattern, tagName) {
    und nach dieser Phase ausschliesslich diese eine Klasse (ShipDetail.astro
    Z. 1214, `class="holo"`), dieselbe Genauigkeitsstufe wie das bestehende
    `<div class="sd">` in verify-shipcard.mjs. GEGENPROBE gegen
-   Ueberreichweite (15-UI-SPEC.md Punkt 11.3-Forderung "exakt am
+   Ueberreichweite (16-UI-SPEC.md Punkt 11.3-Forderung "exakt am
    Klassenattribut, nicht per Praefix"): die Zeichenkette
    `class="holo__bar"` (Kennwerte-Leiste, ShipDetail.astro Z. 1397, ein
    SIBLING von section.holo, kein Kind) enthaelt NICHT die Teilzeichenkette
@@ -318,7 +318,7 @@ function holodataAus(html, file) {
 
 /* ---------- Rail-Eintraege aus .holo__rail lesen: <a href="#sys-x">...</a>-
    Bloecke, mit optionalem Zaehl-Chip .holo__rail-ct als Kindelement.
-   Anker duerfen KEINE eigene Klasse tragen (D-02, 15-UI-SPEC.md Punkt 6:
+   Anker duerfen KEINE eigene Klasse tragen (D-02, 16-UI-SPEC.md Punkt 6:
    "reine Anker-Liste", exakt das .sd__jump-Muster) — das href-Praefix
    #sys- ist deshalb das robustere Merkmal als ein Klassenname. ---------- */
 function railEntriesAus(railHtml) {

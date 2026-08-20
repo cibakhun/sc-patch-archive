@@ -1,4 +1,4 @@
-# Deferred Items — Phase 15
+# Deferred Items — Phase 16
 
 Funde, die WAEHREND dieser Phase entdeckt, aber NICHT von der aktuellen
 Task/Welle verursacht wurden (Scope-Grenze, siehe Executor-Regeln). Nicht
@@ -12,7 +12,7 @@ angefasst, hier nur protokolliert.
 
 **Befund:** `#holoact` traegt das `hidden`-Attribut und *keinen*
 Klick-Listener (bestaetigt, `grep -n "holoact" src/components/ShipDetail.astro`
-findet nur die eine Markup-Zeile) — laut `15-UI-SPEC.md` Detailvertrag Punkt 10
+findet nur die eine Markup-Zeile) — laut `16-UI-SPEC.md` Detailvertrag Punkt 10
 ("Bekannte Fallstricke") soll er bereits inert/unsichtbar sein. Das stimmt
 NICHT: `assets/mobile-ux.css` traegt eine sitweite Regel
 `@media(max-width:820px){button,[role="button"],summary{display:inline-flex;...}}`
@@ -31,9 +31,9 @@ auf der Buehne (Bildschirmfoto: `carrack-anvl-carrack_en_360_A-unselektiert`,
 gehoeren zu den Dateien dieses Tasks (P-1/P-2/P-3); die Regel in
 `mobile-ux.css` ist site-weit und wirkt auf JEDEN Knopf mit `hidden`, ein
 Fix dort braucht eine eigene Gegenprobe ueber alle betroffenen Seiten.
-Ausserdem: `15-01-PLAN.md` <artifacts_this_phase_produces> listet
+Ausserdem: `16-01-PLAN.md` <artifacts_this_phase_produces> listet
 `.holo__activate`/`#holoact` bereits unter "Getilgt, nicht neu" — der Knopf
-wird laut `15-UI-SPEC.md` Detailvertrag Punkt 7 in einer spaeteren Welle
+wird laut `16-UI-SPEC.md` Detailvertrag Punkt 7 in einer spaeteren Welle
 (Ladeausloeser Klick->Scroll, D-04) ohnehin ERSATZLOS ENTFERNT. Ein
 Zwischen-Fix waere Arbeit an Markup, das in Kuerze verschwindet.
 
@@ -41,7 +41,7 @@ Zwischen-Fix waere Arbeit an Markup, das in Kuerze verschwindet.
 wie dort beschrieben — kein separater Fix noetig, kein Blocker.
 
 **Korrektur (15-02):** die urspruengliche Einschaetzung "voraussichtlich
-15-02" hat sich nicht bestaetigt — `15-02-PLAN.md`s beide Tasks beruehren
+15-02" hat sich nicht bestaetigt — `16-02-PLAN.md`s beide Tasks beruehren
 ausschliesslich Pruefskripte (`scripts/verify-shipconsole.mjs`,
 `scripts/lib/gate-registry.mjs`, `package.json`, `scripts/verify-shipcard.mjs`),
 kein Markup und kein CSS. Detailvertrag Punkt 7 (Ladeausloeser Klick->Scroll,

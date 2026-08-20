@@ -147,7 +147,7 @@ const stageStats: { label: string; value: string }[] = [
 // kennt, bevor das Kapitel selbst gerendert wird.
 const gearDims = viz.dims != null || viz.cargo != null || viz.fuel.length > 0;
 const gearFlight = viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0;
-// 15-03-PLAN.md SCHRITT 4: Bewaffnung (vormals gearArms) und die
+// 16-03-PLAN.md SCHRITT 4: Bewaffnung (vormals gearArms) und die
 // Bauteilliste (vormals Teil von gearComp) wandern VOLLSTAENDIG aus dem
 // Kapitel in die Konsole — sie tragen darum nicht mehr zur
 // Kapitel-Sichtbarkeit bei. Nur die Widerstandswerte (Huelle/Schild,
@@ -180,7 +180,7 @@ const chapterNum = (id: string) => chapters.find((c) => c.id === id)?.num ?? '';
 // Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
 // gerenderte Mesh und die Hardpoints (ship-hardpoints.json, COMPILED_BONES)
 // teilen denselben Raum -> Marker EXAKT, nur feste Achsvertauschung
-// cry->glTF (x, z, -y). P-3 (15-01-PLAN.md, Variante C): drei der vier
+// cry->glTF (x, z, -y). P-3 (16-01-PLAN.md, Variante C): drei der vier
 // Triebwerksarten (thruster_main/retro/vtol) umgehen den Stock-Loadout-Join
 // unten und bekommen IMMER einen Marker, auch ohne Stock-Item — Triebwerke
 // sind Geometrie, kein Ausruestungsplatz, es gibt fuer sie kein Stock-Item,
@@ -211,7 +211,7 @@ const HOLO_GRP: Record<string, string> = {
 };
 const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'] as const;
 const HOLO_DEFAULT_ON = ['core', 'arms'];
-// P-3 (15-01-PLAN.md Task 1, Variante C — gemessen gegen das ausgelieferte
+// P-3 (16-01-PLAN.md Task 1, Variante C — gemessen gegen das ausgelieferte
 // holodata gegengeprueft, 908 Schiff-Gruppen-Paare, 0 Abweichungen): diese
 // Triebwerksarten umgehen unten den Stock-Loadout-Join und bekommen IMMER
 // einen Marker, auch ohne Stock-Item. thruster_mav bleibt aussen vor, siehe
@@ -410,7 +410,7 @@ if (hasHolo) {
   }
 }
 
-// ---------- Systemabschnitte der Konsole (15-03-PLAN.md Task 1, SCHRITT 2) ----------
+// ---------- Systemabschnitte der Konsole (16-03-PLAN.md Task 1, SCHRITT 2) ----------
 // Zaehlung + Gruppierung fuer den Gruppen-Zustand jedes Systemabschnitts.
 // arms uebernimmt armStats/armament UNVERAENDERT (siehe Markup), core
 // uebernimmt slots UNVERAENDERT — beide sind bereits vorhandene
@@ -442,7 +442,7 @@ const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
 const holoAvail = !!(holoData || holoUrl);
 const hasGallery = gallery.length > 0;
 const stageModeCount = (hasVideo ? 1 : 0) + (hasGallery ? 1 : 0) + (holoAvail ? 1 : 0);
-// 15-04-PLAN.md Task 3, AENDERUNG 2 (15-UI-SPEC.md Detailvertrag Punkt 7/8):
+// 16-04-PLAN.md Task 3, AENDERUNG 2 (16-UI-SPEC.md Detailvertrag Punkt 7/8):
 // das Mesh ist IMMER der Standardmodus, sobald es fuer ein Schiff vorliegt --
 // haengt nicht mehr an Video-/Bildverfuegbarkeit. Begruendung (Planungsnotizen
 // dieses Plans): Erfolgskriterium 1 verlangt, dass man auf JEDER Schiffsseite
@@ -513,14 +513,14 @@ a{color:inherit;text-decoration:none}
 /* ============ HANGAR-BÜHNE ============ */
 /* Layout: Info links, interaktive Holo-Bühne rechts (Grid). Das Hologramm
    ist eingebettet (kein Popup-Toggle mehr) und lädt lazy beim Scrollen. */
-/* SCHRITT 1 (15-03-PLAN.md Task 1): .holo muss mit den Systemabschnitten
+/* SCHRITT 1 (16-03-PLAN.md Task 1): .holo muss mit den Systemabschnitten
    UND der Rail wachsen duerfen -- Hoehe und Beschnitt wandern deshalb auf
    .holo__wrap (die Buehne selbst, unten). Bleiben sie hier, schneidet
    .holo die neuen Abschnitte ab. */
 .holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
   border-bottom:1px solid var(--line);
   display:grid;grid-template-columns:220px 1fr 320px}
-/* 15-05-PLAN.md (Kollisionsbehebung, 1280px): margin-top:56px reicht nur,
+/* 16-05-PLAN.md (Kollisionsbehebung, 1280px): margin-top:56px reicht nur,
    solange keine Zurueck-Marke ueber der Buehne schwebt. Ist sie sichtbar
    (SiteNav.astro Zeile 947/949, --nav-h waechst von 68 auf 104/116px), lag
    die Marke bisher auf der ERSTEN RAIL-ZEILE ("KOMPONENTEN 8") -- vorher war
@@ -532,7 +532,7 @@ a{color:inherit;text-decoration:none}
 @media(max-width:860px){
   :root:has(.snav__back:not([hidden])) .holo{margin-top:104px}
 }
-/* 15-04-PLAN.md Task 1, SCHRITT 1 (15-UI-SPEC.md Detailvertrag Punkt 1):
+/* 16-04-PLAN.md Task 1, SCHRITT 1 (16-UI-SPEC.md Detailvertrag Punkt 1):
    drei feste Grid-Spalten, Breiten UND Bruchkanten UNVERAENDERT aus dem
    UI-SPEC uebernommen (220px/320px/1100px/760px). Explizite Platzierung
    statt Dokumentreihenfolge, weil die Rail (nav.holo__rail) im Markup NACH
@@ -584,11 +584,11 @@ a{color:inherit;text-decoration:none}
 .is-3d-active .holo__pad{background:radial-gradient(50% 50% at 50% 50%,rgba(45,212,255,.55),rgba(45,212,255,.16) 55%,transparent 72%)}
 /* Vollbreite: Bühne randlos über die ganze Hero-Breite -> Modell mittig,
    groß, und bis zum Bildschirmrand verschiebbar. Titel liegt als Overlay auf. */
-/* SCHRITT 1 (15-03-PLAN.md Task 1): traegt jetzt die feste Hoehe UND den
+/* SCHRITT 1 (16-03-PLAN.md Task 1): traegt jetzt die feste Hoehe UND den
    Beschnitt, die vorher an .holo hingen (siehe Kommentar dort) -- die
    Buehne selbst bleibt dadurch unveraendert gross, waechst aber nicht mit
    der Rail/den Systemabschnitten darunter mit.
-   15-04-PLAN.md Task 3 (Fuellgrad-Klinke haelt bei den NEUEN, schmaleren
+   16-04-PLAN.md Task 3 (Fuellgrad-Klinke haelt bei den NEUEN, schmaleren
    Buehnenbreiten): der urspruengliche Hoehenwert (540-760px, aus der Zeit
    VOR Rail+Auslesung, als .holo noch die volle Seitenbreite war) ergab nach
    Task 1 ein zu QUADRATISCHES Seitenverhaeltnis (z.B. 740x666 bei 1280px
@@ -601,7 +601,7 @@ a{color:inherit;text-decoration:none}
    fielen damals durch). Fix: die Hoehe schrumpft mit der (jetzt schmaleren)
    Buehnenbreite mit, um ein grosszuegigeres Seitenverhaeltnis
    wiederherzustellen -- am gerenderten Bildpunkt gegengeprueft (siehe
-   15-04-SUMMARY.md), nicht geschaetzt. */
+   16-04-SUMMARY.md), nicht geschaetzt. */
 .holo__wrap{position:relative;z-index:2;height:clamp(380px,50vh,450px);width:100%;overflow:hidden}
 /* min-height war 360px (aeltere Vorsichtsgrenze aus der Zeit vor dieser
    Klinken-Reparatur) -- blockierte bei 1100px (Buehnenbreite 560px) die
@@ -623,7 +623,7 @@ a{color:inherit;text-decoration:none}
 /* Status (Lade-%/Fehler) nur zeigen, solange geladen wird oder 3D aktiv ist —
    ein stiller Auto-Start-Fehlschlag darf das Foto nicht dauerhaft überlagern */
 .holo__stage:not(.is-3d):not(.is-loading) .holo__status{display:none}
-/* .holo__activate/#holoact (15-04-PLAN.md Task 3, D-04) sind ERSATZLOS
+/* .holo__activate/#holoact (16-04-PLAN.md Task 3, D-04) sind ERSATZLOS
    ENTFERNT -- der Knopf war bereits vor dieser Welle inert (hidden,
    deferred-items.md), und ein Ladeausloeser per Knopf widerspricht D-04
    ohnehin ("wenn das Schiff die Navigation IST, darf es nicht hinter einem
@@ -678,12 +678,12 @@ a{color:inherit;text-decoration:none}
 .holo__videoshield{position:absolute;inset:0;z-index:4;cursor:default}
 @media(prefers-reduced-motion:reduce){.holo__ship img{transition:none}}
 /* ===== Rail — reine Anker-Liste, ersetzt den schwebenden Ebenen-Kasten =====
-   SCHRITT 3 (15-03-PLAN.md Task 1): funktioniert vollstaendig ohne Skript,
+   SCHRITT 3 (16-03-PLAN.md Task 1): funktioniert vollstaendig ohne Skript,
    exakt das Muster von .sd__jump (Kapitel-Sprungleiste, Phase 14) — bare
    <a>, Styling ausschliesslich ueber den Nachfahren-Selektor. Farbzuordnung
    je Gruppe (--gc) UNVERAENDERT aus dem fruehereren .holo__layer[data-g]
    uebernommen — keine neue Farbe.
-   Seit 15-04-PLAN.md Task 1 ist .holo__rail die erste Grid-Spalte (220px,
+   Seit 16-04-PLAN.md Task 1 ist .holo__rail die erste Grid-Spalte (220px,
    siehe .holo-Basisregel oben) — flex-direction:column macht daraus
    verlaesslich eine SENKRECHTE Liste (bei nur vier kurzen Labels wuerde
    flex-wrap allein zwar meist ebenfalls umbrechen, aber nicht garantiert).
@@ -703,7 +703,7 @@ a{color:inherit;text-decoration:none}
 .holo__rail a[data-g="other"]{--gc:#a78bfa}
 .holo__rail-ic{width:16px;height:16px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .holo__rail-lb{white-space:nowrap}
-/* 15-05-PLAN.md Task 2: die Mischung war 80% --gc/20% --muted -- fuer die
+/* 16-05-PLAN.md Task 2: die Mischung war 80% --gc/20% --muted -- fuer die
    Gruppe "Antrieb" (--accent-2, Stahlblau) im dunklen Farbmodus reichte das
    nicht: gemessen 4,43:1 gegen die 4,5:1-Marke (argo-atls, einziges
    Pruefschiff mit NUR dieser Gruppe in der Rail, dadurch bislang von keiner
@@ -774,7 +774,7 @@ a{color:inherit;text-decoration:none}
 .holo-nodes circle.is-est{fill:none;stroke:#dff6ff;stroke-width:2.2}
 
 /* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) =====
-   15-04-PLAN.md Task 2 (15-UI-SPEC.md Detailvertrag Punkt 4): der
+   16-04-PLAN.md Task 2 (16-UI-SPEC.md Detailvertrag Punkt 4): der
    Einzel-Zustand der Auslesung. Verliert seine absolute Overlay-Position
    und wird per appendChild (Skriptpfad, wie die Systemabschnitte) zum
    normalen Block-Kind von .holo__readout -- position/right/top/z-index/
@@ -823,7 +823,7 @@ a{color:inherit;text-decoration:none}
   width:.95rem;height:.95rem;line-height:.95rem;text-align:center;font-weight:900;font-size:var(--fs-4);color:var(--ink-media);background:var(--gold);border-radius:50%}
 /* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines. Bezog frueher auch
    .holo__layers (den schwebenden Ebenen-Kasten) mit ein — die Rail
-   (15-03-PLAN.md Task 1, SCHRITT 3) ist eine flache Zeile, keine MFD-Kachel
+   (16-03-PLAN.md Task 1, SCHRITT 3) ist eine flache Zeile, keine MFD-Kachel
    mehr, und traegt diese Eck-Klammer deshalb nicht. */
 .holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
   border-top:2px solid var(--accent);border-left:2px solid var(--accent);pointer-events:none}
@@ -838,12 +838,12 @@ a{color:inherit;text-decoration:none}
     linear-gradient(0deg,var(--accent) 0 22px,transparent 22px) bottom right/2px 44px no-repeat;
   opacity:.6}
 
-/* ===== Systemabschnitte — SCHRITT 2, 15-03-PLAN.md Task 1 (D-02) =====
+/* ===== Systemabschnitte — SCHRITT 2, 16-03-PLAN.md Task 1 (D-02) =====
    Grundzustand OHNE Skript: gestapelte, sichtbare <section>-Elemente in
    Dokumentreihenfolge unter der Rail, kein Versteck-Attribut, keine
-   Vorlagenhuelle (15-UI-SPEC.md Detailvertrag Punkt 6.1). Farbzuordnung je
+   Vorlagenhuelle (16-UI-SPEC.md Detailvertrag Punkt 6.1). Farbzuordnung je
    Gruppe (--gc) UNVERAENDERT aus .holo__panel/.holo__layer uebernommen.
-   Seit 15-04-PLAN.md Task 1 (SCHRITT 1) traegt .holo__sys zusaetzlich
+   Seit 16-04-PLAN.md Task 1 (SCHRITT 1) traegt .holo__sys zusaetzlich
    grid-column:1/-1 (siehe .holo-Basisregel oben) -- das betrifft nur den
    No-JS-Restbestand (direktes Kind von .holo); sobald ein Skript die
    Abschnitte in .holo__readout verschiebt, gilt dort die schmalere,
@@ -865,8 +865,8 @@ a{color:inherit;text-decoration:none}
 .holo__sys-row b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--gc);font-variant-numeric:tabular-nums}
 .holo__sys-row span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
 
-/* ===== Auslesung (.holo__readout) — dritte Grid-Spalte, 15-04-PLAN.md
-   Task 1 (15-UI-SPEC.md Detailvertrag Punkt 1/4) =====
+/* ===== Auslesung (.holo__readout) — dritte Grid-Spalte, 16-04-PLAN.md
+   Task 1 (16-UI-SPEC.md Detailvertrag Punkt 1/4) =====
    Im ausgelieferten HTML LEER (aria-label traegt den neuen Schluessel
    ship.console.readout.aria); ihren Inhalt bekommt sie ausschliesslich
    durchs Umhaengen im Skriptpfad (SCHRITT 2 unten, appendChild statt
@@ -876,7 +876,7 @@ a{color:inherit;text-decoration:none}
    misst Task 3 (Backstop "overflow E4"); die Absicherung steht defensiv
    bereits hier. */
 .holo__readout{max-height:clamp(380px,50vh,450px);overflow-y:auto;scrollbar-gutter:stable}
-/* 15-04-PLAN.md Task 3: spiegelt .holo__wrap's Fuellgrad-Klinken-Reparatur
+/* 16-04-PLAN.md Task 3: spiegelt .holo__wrap's Fuellgrad-Klinken-Reparatur
    (siehe dortiger Kommentar an der .holo__wrap-Basisregel) -- dieselbe
    dritte Stufe fuer die schmale 3-Spalten-Untergrenze bei 1100px
    (Buehnenbreite dort nur 560px, braucht eine kleinere Hoehe als bei
@@ -894,7 +894,7 @@ a{color:inherit;text-decoration:none}
    mehr Zeilen um und werden dadurch HOEHER statt kuerzer; zusammengesetzte
    Woerter koennen ueber die Zellgrenze laufen. Werte kleiner als die
    14-04-Werte (dort ~469px Spaltenbreite) -- am Bildschirmfoto
-   gegengeprueft (15-04-SUMMARY.md). */
+   gegengeprueft (16-04-SUMMARY.md). */
 .holo__readout .arm__sum{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .holo__readout .arm__scell span,
@@ -903,7 +903,7 @@ a{color:inherit;text-decoration:none}
 .holo__readout .arm__name,
 .holo__readout .hp__name,
 .holo__readout .hp__kind{hyphens:auto;overflow-wrap:break-word}
-/* 15-05-PLAN.md (Kollisionsbehebung, 1280px): .sd__slot .t (Kategorie-Label,
+/* 16-05-PLAN.md (Kollisionsbehebung, 1280px): .sd__slot .t (Kategorie-Label,
    z.B. "SCHILDGENERATOREN") fehlte in der obigen Liste -- ein einzelnes
    zusammengesetztes Wort ohne Leerstelle kann ohne overflow-wrap NICHT
    umbrechen und lief bei 110px-Mindestspaltenbreite ueber die Kartenkante
@@ -920,7 +920,7 @@ a{color:inherit;text-decoration:none}
    Hellmodus, ohne dass hier etwas ueberschrieben werden muss. */
 /* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
    sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus). pointer-events:
-   none (15-01-PLAN.md Task 2 — vorgefunden, nicht neu eingefuehrt): reines
+   none (16-01-PLAN.md Task 2 — vorgefunden, nicht neu eingefuehrt): reines
    Wasserzeichen-Chrome, aber ohne dieses Attribut schluckt es Zeigerereignisse
    fuer alles darunter. Sichtbar wurde das erst durch die neue Sonde: bei
    414px sitzt .holo__hud (top:18px/left:16px) exakt ueber einem Marker
@@ -933,7 +933,7 @@ a{color:inherit;text-decoration:none}
   letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right;pointer-events:none}
 /* Die urspruengliche Begruendung hier ("die freie Zurueck-Marke haengt an
    .holo, HUD/Dims ruecken deshalb als Paar 26->58px nach unten") ist mit
-   15-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
+   16-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
    Zurueck-Marken-Zuschlag (siehe :root:has(...) .holo{margin-top:...} an
    der .holo-Basisregel oben) -- HUD und Dims sitzen als Kind von
    .holo__wrap bereits IN diesem verschobenen Block und muessten sich sonst
@@ -965,13 +965,13 @@ a{color:inherit;text-decoration:none}
 /* Hinweis nur auf der leeren Bilder-Bühne — nie über Video oder 3D-Holo */
 .holo__stage.is-video .holo__none,.holo__stage.is-3d .holo__none{display:none}
 @media(max-width:900px){
-  /* .holo__panel-Override entfallen (15-04-PLAN.md Task 2): die Karte ist
+  /* .holo__panel-Override entfallen (16-04-PLAN.md Task 2): die Karte ist
      seit Task 2 kein absolut positioniertes Overlay mehr, sondern ein
      normaler Block-Kind von .holo__readout -- ihre Breite kommt von der
      Grid-Spalte selbst, es gibt kein right/bottom mehr zu verschieben. */
   .holo__title{max-width:74%}
 }
-/* 15-04-PLAN.md Task 3 (Fuellgrad-Klinke): dritte Hoehenstufe fuer die
+/* 16-04-PLAN.md Task 3 (Fuellgrad-Klinke): dritte Hoehenstufe fuer die
    schmale 3-Spalten-Untergrenze (Buehnenbreite bei 1100px nur 560px, siehe
    Kommentar an der .holo__wrap-Basisregel) -- ohne diese Stufe reisst die
    Klinke genau dort (Carrack/Ironclad gemessen 55,7%/53,9% mit der
@@ -979,11 +979,11 @@ a{color:inherit;text-decoration:none}
 @media(max-width:1279px){.holo__wrap{height:clamp(300px,36vh,360px)}}
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
-/* SCHRITT 1 (15-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
+/* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
    (siehe Kommentar an dessen Basisregel oben) — dieselben Werte. */
 @media(max-width:900px){.holo__wrap{height:clamp(320px,42vh,420px)}}
 @media(max-width:760px){
-  /* D-05 (18.08.2026, Betreiber; 15-04-PLAN.md Task 3, AENDERUNG 3): bei
+  /* D-05 (18.08.2026, Betreiber; 16-04-PLAN.md Task 3, AENDERUNG 3): bei
      schmalen Breiten wird die Buehne HOCHFORMATIG statt querformatig.
      Ursache des Befunds (WINDOWS.md id 21, Ausgangsmarke 55,4%/53,5%/76,4%
      bei 360px): NICHT .holo__wrap selbst (das ist mit height:522px bei
@@ -1017,17 +1017,17 @@ a{color:inherit;text-decoration:none}
   .holo__chips span{font-size:var(--fs-3);padding:.2rem .48rem}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
   /* Der vormalige mobile Zuschlag (top:18->56px bei sichtbarer Zurueck-Marke,
-     44-px-Fingerkuppe, --nav-h 116px) ist mit 15-05-PLAN.md ueberholt: .holo
+     44-px-Fingerkuppe, --nav-h 116px) ist mit 16-05-PLAN.md ueberholt: .holo
      traegt den Zuschlag jetzt selbst (@media(max-width:860px) an der
      .holo-Basisregel, deckt auch diese engere 760px-Kante ab) -- ein
      zweiter Zuschlag an .holo__hud wuerde die HUD-Zeile ein zweites Mal
      verschieben. Siehe Begruendung an der urspruenglichen, jetzt entfernten
      Desktop-Fassung dieser Regel weiter oben. */
-  /* Rail (15-03-PLAN.md Task 1, SCHRITT 3): kein eingeklappter Zustand mehr
+  /* Rail (16-03-PLAN.md Task 1, SCHRITT 3): kein eingeklappter Zustand mehr
      -- bei hoechstens vier Eintraegen in einer eigenen Zeile ist nichts
      mehr einzuklappen, der gesparte Platz war nur noetig, solange die Rail
      ueber dem Modell SCHWEBTE. Kompaktere Chips reichen.
-     15-04-PLAN.md Task 1/3 (D-03): unter der Buehne wird die Rail wieder
+     16-04-PLAN.md Task 1/3 (D-03): unter der Buehne wird die Rail wieder
      eine WAAGERECHTE Chip-Reihe -- flex-direction zurueck auf row (die
      Basisregel oben macht sie fuer die Spalten-Breiten column), kein
      Umbruch (nowrap) plus eigener waagerechter Bildlauf, falls vier Chips
@@ -1463,17 +1463,17 @@ span.sd__ref{color:var(--muted)}
       sie bleibt in beiden Modi dunkel. Siehe „Dunkle Inseln" in theme.css. */}
   <section class="holo" id="holo" data-media-surface aria-label={`${d.name} — Visual`}>
     <div class="holo__wrap">
-      {/* SCHRITT 1 (15-03-PLAN.md Task 1): .holo__grid/.holo__pad sind
+      {/* SCHRITT 1 (16-03-PLAN.md Task 1): .holo__grid/.holo__pad sind
           bottom-verankert (bottom:-4%/7%) -- an .holo direkt haengend
           wuerden sie an den Fuss des jetzt gewachsenen GESAMTBLOCKS rutschen
           statt unter das Modell zu bleiben. Sie wandern deshalb in denselben
           Container wie die Buehne (.holo__wrap), der seine feste Hoehe
           behaelt.
-          15-05-PLAN.md (Kollisionsbehebung, 1280px): .holo__frame/
+          16-05-PLAN.md (Kollisionsbehebung, 1280px): .holo__frame/
           .holo__hud/.holo__dims standen bis hierher noch AUSSEN, mit der
           Begruendung, sie rahmten/beschrifteten den GESAMTEN Konsolen-Block.
           Das war die Annahme aus der Zeit VOR Rail und Auslesung als eigene
-          Grid-Spalten (15-04-PLAN.md Task 1) und stimmt seither nicht mehr:
+          Grid-Spalten (16-04-PLAN.md Task 1) und stimmt seither nicht mehr:
           alle drei sind bei fehlenden grid-column/-row weiterhin relativ zum
           GESAMTEN .holo positioniert (CSS Grid: ein abs.-positioniertes
           Grid-Kind ohne Linienangabe spannt per Spezifikation den vollen
@@ -1603,7 +1603,7 @@ span.sd__ref{color:var(--muted)}
         )}
         <div class="holo__3d" id="holo3d" aria-label={t('ship.holo.drag')}></div>
         <div class="holo__status" id="holostatus" role="status"></div>
-        {/* #holoact ("Hologramm aktivieren") ersatzlos entfernt (15-04-PLAN.md
+        {/* #holoact ("Hologramm aktivieren") ersatzlos entfernt (16-04-PLAN.md
             Task 3, D-04) -- war bereits vor dieser Welle inert (hidden, siehe
             deferred-items.md), und ein Ladeausloeser per Knopf widerspricht
             D-04: wenn das Schiff die Navigation IST, darf es nicht hinter
@@ -1611,7 +1611,7 @@ span.sd__ref{color:var(--muted)}
             IntersectionObserver im Skriptblock unten aus. */}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
         {/* Der schwebende Ebenen-Kasten (#holofilters/.holo__layers) ist
-            entfallen (15-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
+            entfallen (16-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
             Rail (nav.holo__rail), die als eigener Block NACH der Buehne
             steht (siehe unten, ausserhalb von .holo__wrap). */}
         <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')} data-auec={t('holo.panel.auec')}>
@@ -1635,7 +1635,7 @@ span.sd__ref{color:var(--muted)}
         </aside>
       </div>
       {/* .holo__toggle ist bottom-verankert (bottom:24px) -- gehoert seit
-          SCHRITT 1 (15-03-PLAN.md Task 1) in .holo__wrap, sonst rutscht der
+          SCHRITT 1 (16-03-PLAN.md Task 1) in .holo__wrap, sonst rutscht der
           Umschalter an den Fuss des gewachsenen GESAMTBLOCKS statt am
           unteren Rand der Buehne zu bleiben (derselbe Fund wie bei
           .holo__grid/.holo__pad oben, hier per Bildpunkt-Audit ergaenzt). */}
@@ -1652,9 +1652,9 @@ span.sd__ref{color:var(--muted)}
         Ersetzt den frueheren schwebenden Ebenen-Kasten; steht in
         Dokumentreihenfolge NACH der Buehne (D-02 verlangt "erst das Schiff,
         dann die Liste" ohne Skript), optisch aber die erste Grid-Spalte
-        (15-04-PLAN.md Task 1, SCHRITT 1). Bedingung wie frueher am alten
+        (16-04-PLAN.md Task 1, SCHRITT 1). Bedingung wie frueher am alten
         Kasten "mindestens eine Gruppe" statt "mehr als eine" -- der
-        eingeklappte Zustand entfaellt ersatzlos (15-03-PLAN.md SCHRITT 3).
+        eingeklappte Zustand entfaellt ersatzlos (16-03-PLAN.md SCHRITT 3).
         aria-current serverseitig auf dem ERSTEN Eintrag (Detailvertrag
         Punkt 2, Vorbelegung ohne Klick) -- das Skript unten haelt es beim
         Umschalten synchron; Punkt 6 des Vertrags gewinnt gegen den
@@ -1671,7 +1671,7 @@ span.sd__ref{color:var(--muted)}
       </nav>
     )}
 
-    {/* ===== Auslesung — SCHRITT 1/2, 15-04-PLAN.md Task 1 (15-UI-SPEC.md
+    {/* ===== Auslesung — SCHRITT 1/2, 16-04-PLAN.md Task 1 (16-UI-SPEC.md
         Detailvertrag Punkt 1/4): dritte Grid-Spalte, im ausgelieferten HTML
         LEER. Ihren Inhalt bekommt sie AUSSCHLIESSLICH durchs Umhaengen im
         Skriptpfad (appendChild, keine Kopie) -- ohne Skript bleibt sie leer
@@ -1797,7 +1797,7 @@ span.sd__ref{color:var(--muted)}
     ))}
   </section>
   {holoData && holoData.groups.length > 0 && (
-    /* 15-04-PLAN.md Task 1, SCHRITT 2 (15-UI-SPEC.md Detailvertrag Punkt
+    /* 16-04-PLAN.md Task 1, SCHRITT 2 (16-UI-SPEC.md Detailvertrag Punkt
        6.3, "kein Flackern"): setzt die Klasse has-console UNMITTELBAR nach
        dem Konsolen-Markup, synchron waehrend der Parser noch hier steht --
        nicht am Dokumentende, wo der Browser die gestapelte No-JS-Liste
@@ -1933,7 +1933,7 @@ span.sd__ref{color:var(--muted)}
 
     {desc && <p class="sd__desc">{desc}</p>}
 
-    <!-- AUSSTATTUNG — traegt seit 15-03-PLAN.md SCHRITT 4 nur noch DREI statt
+    <!-- AUSSTATTUNG — traegt seit 16-03-PLAN.md SCHRITT 4 nur noch DREI statt
          vier Unterabschnitte (Masse & Fracht, Flugleistung, Verteidigung):
          Bewaffnung und die Bauteilliste sind vollstaendig in die Konsole
          gewandert. Jeder verbliebene Unterabschnitt behaelt seine eigene
@@ -2005,11 +2005,11 @@ span.sd__ref{color:var(--muted)}
       </div>
     )}
 
-    <!-- BEWAFFNUNG ist VOLLSTAENDIG in die Konsole gewandert (15-03-PLAN.md
+    <!-- BEWAFFNUNG ist VOLLSTAENDIG in die Konsole gewandert (16-03-PLAN.md
          SCHRITT 4, System "Bewaffnung", section.holo__sys[data-g="arms"]
          oben) -- steht ab jetzt nur noch an dieser einen Stelle der Seite.
          verify:shipcard Zusicherung 6 (Entdopplungs-Scan) sieht seit
-         15-02-PLAN.md in BEIDE Bloecke (div.sd UND section.holo) und wuerde
+         16-02-PLAN.md in BEIDE Bloecke (div.sd UND section.holo) und wuerde
          einen versehentlich hier belassenen Rest melden. -->
 
     <!-- FLUGLEISTUNG & QUANTUM -->
@@ -2061,7 +2061,7 @@ span.sd__ref{color:var(--muted)}
          sind aggregierte GANZSCHIFF-Kennzahlen ohne Einbauort und bleiben
          deshalb hier — sie verlieren dabei ihre bisherige, geteilte
          Ueberschrift und bekommen eine eigene (ship.defense.title,
-         15-03-PLAN.md SCHRITT 4). Bleibt ein gewoehnliches Wertraster
+         16-03-PLAN.md SCHRITT 4). Bleibt ein gewoehnliches Wertraster
          (sd__grid), KEINE Balkenspur — sonst reisst verify:shipcard
          Zusicherung 5 ("Balken nur, wo sie vergleichen"). -->
     {gearDefense && (
@@ -2294,7 +2294,7 @@ span.sd__ref{color:var(--muted)}
     stage.classList.toggle('is-video', mode === 'video');
     stage.classList.toggle('is-3d', mode === 'holo');
     if (holoSec) holoSec.classList.toggle('is-3d-active', mode === 'holo');
-    // Die Rail (nav.holo__rail, 15-03-PLAN.md Task 1) ist serverseitig immer
+    // Die Rail (nav.holo__rail, 16-03-PLAN.md Task 1) ist serverseitig immer
     // gerendert und braucht kein Ein-/Ausblenden je Modus mehr -- anders als
     // der fruehere schwebende Ebenen-Kasten, der nur ueber der Buehne Sinn
     // ergab. Der vormalige #holofilters-Sichtbarkeitsschalter ist deshalb
@@ -2667,7 +2667,7 @@ span.sd__ref{color:var(--muted)}
     var loadingTpl = stage.getAttribute('data-loading') || '3D-Modell lädt … %p% %';
     var errorTxt = stage.getAttribute('data-error') || '3D-Modell konnte nicht geladen werden.';
     var debug = /[?&]holodebug/.test(location.search);
-    // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (15-01-PLAN.md
+    // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (16-01-PLAN.md
     // Task 2) — ausdruecklich NICHT an holodebug gehaengt: dessen Zweig haengt
     // einen AxesHelper an rig VOR der Bildung von fitSphere (holo-viewer.js
     // Z. 609 f.), wer darueber misst, misst eine andere Kamera als der
@@ -2675,7 +2675,7 @@ span.sd__ref{color:var(--muted)}
     var metricsMode = /[?&]holometrics/.test(location.search);
 
     // ---------- Konsole: Rail-Einfachauswahl + Umhaengen ohne Dopplung
-    // (15-04-PLAN.md Task 1, SCHRITT 2/3) ----------
+    // (16-04-PLAN.md Task 1, SCHRITT 2/3) ----------
     var railEl = document.getElementById('holorail');
     var readoutEl = document.getElementById('holoreadout');
     var sysEls = [].slice.call(document.querySelectorAll('.holo__sys'));
@@ -2707,7 +2707,7 @@ span.sd__ref{color:var(--muted)}
         // Viewer schon existiert; hier steht es deshalb explizit und
         // bedingungslos, nicht als Nebenwirkung eines anderen Aufrufs.
         if (panel) panel.hidden = true;
-        // Genau EIN Gruppenname (15-UI-SPEC.md Detailvertrag Punkt 3.1) —
+        // Genau EIN Gruppenname (16-UI-SPEC.md Detailvertrag Punkt 3.1) —
         // die Buehne zeigt danach nie mehr als eine Gruppe gleichzeitig.
         // viewer kann noch null sein (D-04: laedt erst beim Scrollen);
         // start() unten holt die aktuelle Auswahl nach, sobald es soweit ist.
@@ -2733,7 +2733,7 @@ span.sd__ref{color:var(--muted)}
       if (val == null || val === '') { r.hidden = true; }
       else { d.textContent = val; r.hidden = false; }
     };
-    // Auslesung, Einzel-Zustand (15-04-PLAN.md Task 2, 15-UI-SPEC.md
+    // Auslesung, Einzel-Zustand (16-04-PLAN.md Task 2, 16-UI-SPEC.md
     // Detailvertrag Punkt 4b) — der Rueckweg in den Gruppen-Zustand:
     // den aktuell aktiven Systemabschnitt (activeGroup, von showGroup
     // gepflegt) wieder sichtbar machen. Kein eigener Knopf noetig — der
@@ -2804,7 +2804,7 @@ span.sd__ref{color:var(--muted)}
           status.textContent = '';
           stage.classList.remove('is-loading');
           showHolo();
-          // Konsole (15-04-PLAN.md Task 1): initHolo() selbst kennt nur den
+          // Konsole (16-04-PLAN.md Task 1): initHolo() selbst kennt nur den
           // server-berechneten cfg.defaultOn (Mehrfachauswahl, alter Stand).
           // Die Rail kann laengst umgeschaltet haben, waehrend der Viewer
           // noch lud (D-04 laedt erst beim Scrollen) — hier den tatsaechlich
@@ -2815,7 +2815,7 @@ span.sd__ref{color:var(--muted)}
           // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
           // sie per setLabels(false) ganz abschalten, mit der Begruendung,
           // ein einzelner Auswahl-Kasten koenne mit dem Ebenen-Panel
-          // ueberlappen). Das widersprach P-2 (15-UI-SPEC.md § 3a): P-2 gilt
+          // ueberlappen). Das widersprach P-2 (16-UI-SPEC.md § 3a): P-2 gilt
           // "fuer ALLE Gruppen einschliesslich core" OHNE Ausnahme fuer
           // schmale Buehnen, und Messgruppe f-dauerlabels der Sonde prueft
           // GENAU DAS bei 414px und 360px mit — mit setLabels(false) blieb
@@ -2825,7 +2825,7 @@ span.sd__ref{color:var(--muted)}
           // Ueberfuellungs-Sorge von damals (viele Dauer-Labels auf kleinem
           // Bildschirm) gegenstandslos. Der fruehere, hier ANSCHLIESSENDE
           // mobile Einklapp-Zweig fuer den Ebenen-Kasten (#holofilters) ist
-          // mit dessen Ersetzung durch die Rail entfallen (15-03-PLAN.md
+          // mit dessen Ersetzung durch die Rail entfallen (16-03-PLAN.md
           // Task 1, SCHRITT 3) — die Rail hat keinen eingeklappten Zustand.
         })
         .catch(function (e) {
@@ -2838,7 +2838,7 @@ span.sd__ref{color:var(--muted)}
 
     autoHolo = start; // Eskalationsziel, wenn alle Galerie-Bilder tot sind
     // #btn3d bleibt als Modusumschaltung aktiv, DARF weiterhin laden, aber
-    // ist ab jetzt ein Rueckfallweg, kein Hauptweg mehr (15-04-PLAN.md Task
+    // ist ab jetzt ein Rueckfallweg, kein Hauptweg mehr (16-04-PLAN.md Task
     // 3, AENDERUNG 1): wer auf Video/Bilder umgeschaltet hatte und dann
     // explizit "3D-Holo" drueckt, bevor der Beobachter unten ausgeloest hat,
     // soll nicht auf den naechsten Scroll warten muessen.
@@ -2846,11 +2846,11 @@ span.sd__ref{color:var(--muted)}
     if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
     // Der fruehere Klick-Handler auf #holofilters (Mehrfachauswahl ->
     // viewer.setFilter()) ist mit dem Ebenen-Kasten selbst entfallen
-    // (15-03-PLAN.md Task 1, SCHRITT 3). Die Rail ist in dieser Welle eine
+    // (16-03-PLAN.md Task 1, SCHRITT 3). Die Rail ist in dieser Welle eine
     // reine Anker-Liste ohne Skript-Interaktion; die Einfachauswahl mit
-    // Buehnen-Umschaltung ist Welle 4 (15-UI-SPEC.md Detailvertrag Punkt 5).
+    // Buehnen-Umschaltung ist Welle 4 (16-UI-SPEC.md Detailvertrag Punkt 5).
 
-    // ---------- Laden beim Scrollen, kein Startknopf (15-04-PLAN.md Task 3,
+    // ---------- Laden beim Scrollen, kein Startknopf (16-04-PLAN.md Task 3,
     // AENDERUNG 1 -- D-04, Erfolgskriterium 5) ----------
     // GENAU EIN Beobachter auf .holo (dem Rasterbehaelter, nicht nur der
     // Buehne) loest start() GENAU EINMAL aus, sobald die Konsole in den

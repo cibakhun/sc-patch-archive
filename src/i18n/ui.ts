@@ -186,14 +186,14 @@ const UI = {
     'holo.legend.np': 'Gestrichelt + Raute: Bauteil ist im Schiffsmesh nicht verortet — Marker rein schematisch.',
     'holo.legend.est': 'Gestrichelt: Position ungefähr (auf ein nachgebautes Modell übertragen).',
     'holo.panel.close': 'Details schließen',
-    // VERWAIST (15-01-PLAN.md Task 2, P-2): der Beschriftungs-Umschalter
+    // VERWAIST (16-01-PLAN.md Task 2, P-2): der Beschriftungs-Umschalter
     // #holoblabels ist aus dem Markup entfernt — kein Marker traegt mehr
     // eine DAUERHAFTE Beschriftung, die sich ein-/ausschalten liesse. Diese
     // beiden Schluessel werden bewusst NICHT geloescht (Loeschung liegt beim
     // Executor spaeterer Wellen, kein Blocker).
     'holo.labels.toggle': 'Beschriftungen ein/aus',
     'holo.labels.short': 'Labels',
-    // VERWAIST (15-03-PLAN.md Task 1, SCHRITT 3): der schwebende Ebenen-
+    // VERWAIST (16-03-PLAN.md Task 1, SCHRITT 3): der schwebende Ebenen-
     // Kasten (#holofilters/.holo__layers), der diese beiden Schluessel
     // trug, ist durch die Rail (nav.holo__rail) ersetzt -- bewusst NICHT
     // geloescht (Loeschung liegt beim Executor spaeterer Wellen).
@@ -221,10 +221,10 @@ const UI = {
     // Für Schiffe, bei denen KEIN Marker eine echte Position hat (kein Hardpoint
     // im Mesh) — die Kopfzeile darf dort keine Verortung behaupten.
     'holo.src.none': 'Komponenten-Positionen schematisch, nicht exakt verortet',
-    // -- Konsole (15-03-PLAN.md Task 1, D-02): Rail + Systemabschnitte --
+    // -- Konsole (16-03-PLAN.md Task 1, D-02): Rail + Systemabschnitte --
     'ship.console.rail.aria': 'Systemwahl',
     // Wird in dieser Welle angelegt, aber erst in Welle 4 (Auslesung-Spalte)
-    // tatsaechlich verwendet -- 15-03-PLAN.md SCHRITT 4, absichtlich vorgezogen.
+    // tatsaechlich verwendet -- 16-03-PLAN.md SCHRITT 4, absichtlich vorgezogen.
     'ship.console.readout.aria': 'Auslesung',
     'ship.console.count': '%n% am Schiff verortet',
     'ship.stage.length': 'Länge',
@@ -258,7 +258,7 @@ const UI = {
     'ship.comp.title': 'Komponenten & Verteidigung',
     // Eigene Ueberschrift des Widerstands-Unterabschnitts, seit die
     // Bauteilliste (die sich diesen Unterabschnitt bisher teilte) in die
-    // Konsole gewandert ist (15-03-PLAN.md SCHRITT 4).
+    // Konsole gewandert ist (16-03-PLAN.md SCHRITT 4).
     'ship.defense.title': 'Verteidigung',
     'ship.ins.title': 'Versicherung',
     'ship.ins.hint': 'Claim = kostenlose Wiederbeschaffung nach Verlust; Express verkürzt die Wartezeit gegen aUEC.',
@@ -596,10 +596,10 @@ const UI = {
     'holo.legend.np': 'Dashed + diamond: component has no location in the ship mesh — marker is schematic only.',
     'holo.legend.est': 'Dashed: approximate position (mapped onto a fan-made model).',
     'holo.panel.close': 'Close details',
-    // ORPHANED (15-01-PLAN.md Task 2, P-2): see the DE block above for why.
+    // ORPHANED (16-01-PLAN.md Task 2, P-2): see the DE block above for why.
     'holo.labels.toggle': 'Toggle labels',
     'holo.labels.short': 'Labels',
-    // ORPHANED (15-03-PLAN.md Task 1, SCHRITT 3): see the DE block above.
+    // ORPHANED (16-03-PLAN.md Task 1, SCHRITT 3): see the DE block above.
     'holo.filter.aria': 'Component layers',
     'holo.layers.title': 'Layers',
     'holo.grp.core': 'Components',
@@ -622,10 +622,10 @@ const UI = {
     'holo.kind.fuel': 'Fuel',
     'holo.src': 'Component positions game-accurate',
     'holo.src.none': 'Component positions schematic, not exactly located',
-    // -- Console (15-03-PLAN.md Task 1, D-02): rail + system sections --
+    // -- Console (16-03-PLAN.md Task 1, D-02): rail + system sections --
     'ship.console.rail.aria': 'System selection',
     // Created this wave, used starting wave 4 (readout column) —
-    // 15-03-PLAN.md SCHRITT 4, deliberately front-loaded.
+    // 16-03-PLAN.md SCHRITT 4, deliberately front-loaded.
     'ship.console.readout.aria': 'Readout',
     'ship.console.count': '%n% located on the ship',
     'ship.stage.length': 'Length',
@@ -659,7 +659,7 @@ const UI = {
     'ship.comp.title': 'Components & Defense',
     // Own heading for the defense sub-section, now that the component list
     // (which used to share this sub-section) moved into the console
-    // (15-03-PLAN.md SCHRITT 4).
+    // (16-03-PLAN.md SCHRITT 4).
     'ship.defense.title': 'Defense',
     'ship.ins.title': 'Insurance',
     'ship.ins.hint': 'Claim = free replacement after loss; Expedite shortens the wait for aUEC.',

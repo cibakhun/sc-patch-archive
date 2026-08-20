@@ -5,7 +5,7 @@ milestone_name: milestone
 current_phase: 15
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: Completed 15-05-PLAN.md -- Phase 15 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
+stopped_at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
 last_updated: "2026-08-20T15:45:30.370Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
@@ -25,10 +25,10 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 15 — das-schiff-ist-die-navigation
+**Current focus:** Phase 16 — das-schiff-ist-die-navigation
 
-> **Nachtrag 20.08.2026 (sechster) — Phase 15 Plan 5 von 5 ausgefuehrt (Welle 5: Torschaerfung, Schlussmessung, fuenf Sichturteile).**
-> `15-05-PLAN.md` ist ausgefuehrt — **Phase 15 ist damit technisch vollstaendig
+> **Nachtrag 20.08.2026 (sechster) — Phase 16 Plan 5 von 5 ausgefuehrt (Welle 5: Torschaerfung, Schlussmessung, fuenf Sichturteile).**
+> `16-05-PLAN.md` ist ausgefuehrt — **Phase 16 ist damit technisch vollstaendig
 > (5/5 Plaene)**. Vor Task 1 zusaetzlich die vier 1280px-Kollisionen behoben,
 > die der Orchestrator nach Welle 4 gefunden hatte (`deferred-items.md`):
 > Hero-Chrome-Elemente (`.holo__frame`/`.holo__hud`/`.holo__dims`) spannten
@@ -43,26 +43,26 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 > und behob einen echten Fund (Rail-Gruppe „Antrieb" 4,43:1 im dunklen
 > Modus, jetzt >=4,54:1 site-weit). Fuenf neue Sichturteile in
 > `.planning/WINDOWS.md` (ids 23-27). `npm run build && npm run gate` gruen
-> (20/20), normal UND mit `STAGING=1`. Details in `15-05-SUMMARY.md`.
-> **Phase 15 bleibt NICHT als „Complete" markiert** — sieben offene
+> (20/20), normal UND mit `STAGING=1`. Details in `16-05-SUMMARY.md`.
+> **Phase 16 bleibt NICHT als „Complete" markiert** — sieben offene
 > Sichtrunden-Punkte (ids 21-27) warten auf den Betreiber, dieselbe
 > Konvention wie bei den Phasen 1.2/2/3/9/10/12/14.
 > ⚠ `current_phase` im Kopf dieser Datei stand seit einer frueheren Sitzung
 > faelschlich auf 12 (Phase 12, laengst abgeschlossen), waehrend
 > `current_phase_name` bereits korrekt „das-schiff-ist-die-navigation" (Phase
-> 15) nannte — in dieser Sitzung berichtigt. Ebenso: `15-03-PLAN.md` und
-> `15-04-PLAN.md` haben in fruaeheren Sitzungen keinen eigenen Nachtrag-Absatz
-> hier hinterlassen (nur `15-04-SUMMARY.md` und der ROADMAP-Haken belegen sie)
+> 15) nannte — in dieser Sitzung berichtigt. Ebenso: `16-03-PLAN.md` und
+> `16-04-PLAN.md` haben in fruaeheren Sitzungen keinen eigenen Nachtrag-Absatz
+> hier hinterlassen (nur `16-04-SUMMARY.md` und der ROADMAP-Haken belegen sie)
 > — nicht rekonstruiert, ausserhalb des Aufgabenbereichs dieser Welle.
 >
-> **Nachtrag 20.08.2026 — Phase 15 Plan 2 von 5 ausgefuehrt (Welle 2: Werkzeug vor Eingriff).**
-> `15-02-PLAN.md` ist ausgefuehrt: `scripts/verify-shipconsole.mjs` angelegt
+> **Nachtrag 20.08.2026 — Phase 16 Plan 2 von 5 ausgefuehrt (Welle 2: Werkzeug vor Eingriff).**
+> `16-02-PLAN.md` ist ausgefuehrt: `scripts/verify-shipconsole.mjs` angelegt
 > (acht Zusicherungen gegen den Zielzustand der Konsole — Rail<->System-
 > Bijektion, P-3-Markerzahl gegen `#holodata`, D-02-Sichtbarkeit ohne
 > JavaScript, Textbestands-Klinke, Sprachparitaet), gegen den heutigen Stand
 > vorgefuehrt rot (454/454 Seiten ohne `.holo__sys`, erste reissende
 > Zusicherung [2]) und mit benanntem Anlass ausgesetzt (Registry-Eintrag
-> `disabled`, scharfgeschaltet in `15-05-PLAN.md`, Praezedenz
+> `disabled`, scharfgeschaltet in `16-05-PLAN.md`, Praezedenz
 > `verify:shipcard` 14-01->14-04). `verify:shipcard`s Entdopplungs-Scan
 > nimmt jetzt zusaetzlich `section.holo` in die Regionsbildung auf — und hat
 > dabei sofort einen echten, vorher unsichtbaren Fund gemacht: `.holo__dims`
@@ -74,12 +74,12 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 > `#holoact` (toter Knopf, `deferred-items.md`) bewusst NICHT angefasst —
 > ausserhalb des Aufgabenbereichs dieser Welle, Einschaetzung im
 > Deferred-Dokument korrigiert. `npm run build && npm run gate` gruen,
-> normal UND mit `STAGING=1`. Details in `15-02-SUMMARY.md`. Naechster
-> Schritt: `15-03-PLAN.md` (Welle 3: D-02 — vier Systemabschnitte
+> normal UND mit `STAGING=1`. Details in `16-02-SUMMARY.md`. Naechster
+> Schritt: `16-03-PLAN.md` (Welle 3: D-02 — vier Systemabschnitte
 > serverseitig im HTML, Rail als Ankerliste, Beweis ohne JavaScript).
 >
-> **Nachtrag 18.08.2026 (fuenfter) — Phase 15 Plan 1 von 5 ausgefuehrt (Welle 1: Tracer P-1/P-2/P-3).**
-> `15-01-PLAN.md` ist ausgefuehrt: P-3 auf gemessener Grundlage entschieden
+> **Nachtrag 18.08.2026 (fuenfter) — Phase 16 Plan 1 von 5 ausgefuehrt (Welle 1: Tracer P-1/P-2/P-3).**
+> `16-01-PLAN.md` ist ausgefuehrt: P-3 auf gemessener Grundlage entschieden
 > (Variante C — `thruster_main`/`thruster_retro`/`thruster_vtol` bekommen
 > immer einen Marker, `thruster_mav` bleibt aussen vor; gegen das
 > ausgelieferte `holodata` gegengeprueft, 908 Schiff-Gruppen-Paare, 0
@@ -98,8 +98,8 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 > geloest** (sichtbare, seitenweite Design-Aenderung) — als S-0
 > (`.planning/WINDOWS.md` id 21) mit 24 Bildschirmfotos an den Betreiber
 > uebergeben. `npm run build && npm run gate` gruen, normal UND mit
-> `STAGING=1`. Details in `15-01-SUMMARY.md`. Naechster Schritt:
-> `15-02-PLAN.md` (Welle 2: `verify:shipconsole` als Werkzeug vor dem
+> `STAGING=1`. Details in `16-01-SUMMARY.md`. Naechster Schritt:
+> `16-02-PLAN.md` (Welle 2: `verify:shipconsole` als Werkzeug vor dem
 > Eingriff, Entdopplungs-Scan erweitert).
 >
 > **Nachtrag 18.08.2026 (vierter) — Phase 14 Plan 4 von 4 ausgefuehrt (Welle 4: Zweispaltigkeit, Schlussmessung, Tor scharf).**
@@ -182,7 +182,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 15 (das-schiff-ist-die-navigation) — 5/5 Plaene ausgefuehrt
-Plan: 5 of 5 — abgeschlossen (`15-05-SUMMARY.md`)
+Plan: 5 of 5 — abgeschlossen (`16-05-SUMMARY.md`)
 Status: **Technisch fertig, NICHT „Complete" markiert** — dieselbe Konvention wie
 Phasen 1.2/2/3/9/10/12/14: die menschliche Sichtrunde steht noch aus, sieben
 offene Eintraege `.planning/WINDOWS.md` ids 21-27 (S-0/Markererkennbarkeit,
@@ -363,10 +363,10 @@ Progress: [█████████░] 85%
 | Phase 14 P02 | 50min | 2 tasks | 5 files |
 | Phase 14 P03 | 70min | 2 tasks | 6 files |
 | Phase 14 P04 | ~75min | 3 tasks | 5 files |
-| Phase 15 P01 | 185min | 3 tasks | 6 files |
-| Phase 15 P02 | 30min | 2 tasks | 6 files |
-| Phase 15 P03 | ~90min | 2 tasks | 3 files |
-| Phase 15 P05 | ~1h50min | 3 tasks | 5 files |
+| Phase 16 P01 | 185min | 3 tasks | 6 files |
+| Phase 16 P02 | 30min | 2 tasks | 6 files |
+| Phase 16 P03 | ~90min | 2 tasks | 3 files |
+| Phase 16 P05 | ~1h50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -472,8 +472,8 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-04: Hoehen-Sperrklinke bleibt bei 4.200px stehen (nicht auf den gemessenen 4.179px abgesenkt) -- 21px Reserve gegen Rundungsschwankungen zwischen Laeufen
 - [Phase 14]: 14-04: verify:shipcard scharf geschaltet (Aussetzungsgrund entfernt) -- 0 Befunde, npm run gate laeuft 19 statt 18 Schritte gruen, normal UND STAGING=1
 - [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
-- [Phase ?]: [Phase 15]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
-- [Phase ?]: [Phase 15]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
+- [Phase ?]: [Phase 16]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
+- [Phase ?]: [Phase 16]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
 - [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
 - [Phase ?]: 15-05: Vier 1280px-Kollisionen (Hero-Chrome ohne grid-column spannte den gesamten Konsolen-Bereich) vor der Torschaerfung behoben; verify:shipconsole scharf; Hoehenklinke haelt trotz Konsole weit unter der Marke; ein neuer Kontrastfund (Rail-Gruppe Antrieb, dunkler Modus) behoben statt uebergeben
 
@@ -526,5 +526,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-08-20T15:45:30.317Z
-Stopped at: Completed 15-05-PLAN.md -- Phase 15 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
+Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
 Resume file: None

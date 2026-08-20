@@ -895,7 +895,7 @@ Plans:
 - [x] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
       Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`
 
-### Phase 15: Das Schiff ist die Navigation
+### Phase 16: Das Schiff ist die Navigation
 
 **Goal:** Die Schiffs-Detailseite wird zur Konsole. Man wählt links ein System,
 das Schiff zeigt am gerenderten Mesh, **wo** dieses System sitzt, und rechts
@@ -991,8 +991,8 @@ Zahl neu berechnet. Diese Phase ordnet an und verbindet, was vorliegt.
 
 Plans:
 
-- [x] 15-01-PLAN.md — Welle 1, Tracer: P-3 an der Zählung entscheiden, P-1 (Füllgrad ≥ 70 %) und P-2 (kein Dauer-Label) am gerenderten Bildpunkt belegen, Textbestand vor dem Eingriff messen, Sichturteil S-0 nach WINDOWS.md
-- [x] 15-02-PLAN.md — Welle 2, Werkzeug vor Eingriff: `verify:shipconsole` (acht Zusicherungen, ausgesetzt, einmal vorgeführt rot); `verify:shipcard`s Entdopplungs-Scan nimmt `section.holo` mit auf
-- [x] 15-03-PLAN.md — Welle 3, D-02: vier Systemabschnitte serverseitig im ausgelieferten HTML, Rail als Ankerliste, Bewaffnung und Bauteilliste ziehen aus `ch-gear` in die Konsole, Beweis mit abgeschaltetem JavaScript
-- [x] 15-04-PLAN.md — Welle 4, D-01/D-03/D-04: dreispaltiges Raster, Rail als Einfachauswahl, Auslesung mit zwei Zuständen, Laden beim Scrollen ohne Startknopf, gestapelt bei 360 px, Netzverkehr gemessen
-- [x] 15-05-PLAN.md — Welle 5: Rot-Vorführung der erweiterten Entdopplungs-Region einlösen, `verify:shipconsole` scharf, Sperrklinken festschreiben, Schlussmessung DE/EN in beiden Farbmodi, fünf Sichturteile nach WINDOWS.md
+- [x] 16-01-PLAN.md — Welle 1, Tracer: P-3 an der Zählung entscheiden, P-1 (Füllgrad ≥ 70 %) und P-2 (kein Dauer-Label) am gerenderten Bildpunkt belegen, Textbestand vor dem Eingriff messen, Sichturteil S-0 nach WINDOWS.md
+- [x] 16-02-PLAN.md — Welle 2, Werkzeug vor Eingriff: `verify:shipconsole` (acht Zusicherungen, ausgesetzt, einmal vorgeführt rot); `verify:shipcard`s Entdopplungs-Scan nimmt `section.holo` mit auf
+- [x] 16-03-PLAN.md — Welle 3, D-02: vier Systemabschnitte serverseitig im ausgelieferten HTML, Rail als Ankerliste, Bewaffnung und Bauteilliste ziehen aus `ch-gear` in die Konsole, Beweis mit abgeschaltetem JavaScript
+- [x] 16-04-PLAN.md — Welle 4, D-01/D-03/D-04: dreispaltiges Raster, Rail als Einfachauswahl, Auslesung mit zwei Zuständen, Laden beim Scrollen ohne Startknopf, gestapelt bei 360 px, Netzverkehr gemessen
+- [x] 16-05-PLAN.md — Welle 5: Rot-Vorführung der erweiterten Entdopplungs-Region einlösen, `verify:shipconsole` scharf, Sperrklinken festschreiben, Schlussmessung DE/EN in beiden Farbmodi, fünf Sichturteile nach WINDOWS.md

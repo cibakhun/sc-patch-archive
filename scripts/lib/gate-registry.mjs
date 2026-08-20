@@ -139,10 +139,10 @@ export const CHECKS = [
     script: 'scripts/verify-shipconsole.mjs',
     rail: 'A',
     checks:
-      'die Schiffs-Konsole (Rail, Systemabschnitte, Marker-Zaehlung, Textbestand) steht vollstaendig im ausgelieferten HTML, ohne JavaScript sichtbar, mit Bijektion Rail<->System und Sprachparitaet (Phase 15, D-01/D-02/P-1/P-2/P-3)',
-    // SCHARF seit 15-05-PLAN.md Task 1: bei der Anlage (15-02) noch AUSGESETZT
+      'die Schiffs-Konsole (Rail, Systemabschnitte, Marker-Zaehlung, Textbestand) steht vollstaendig im ausgelieferten HTML, ohne JavaScript sichtbar, mit Bijektion Rail<->System und Sprachparitaet (Phase 16, D-01/D-02/P-1/P-2/P-3)',
+    // SCHARF seit 16-05-PLAN.md Task 1: bei der Anlage (15-02) noch AUSGESETZT
     // (vorgefuehrt rot gegen den nach Welle 1 gebauten Stand, Meldung siehe
-    // 15-02-SUMMARY.md — Konsole existierte damals noch nicht), Wellen 3/4
+    // 16-02-SUMMARY.md — Konsole existierte damals noch nicht), Wellen 3/4
     // haben den Zielzustand gebaut. Vor der Scharfschaltung erneut gruen
     // gelaufen (alle acht Zusicherungen, Zombie-Waechter meldet "0
     // Ausnahmen registriert" -- explizit, keine stille Leere), Praezedenz

@@ -41,7 +41,7 @@
    MESSMATRIX: 3 Schiffe x 2 Sprachen (Wurzelpfad, /de/-Praefix) x 2 Breiten
    (1280x720, 360x740) x 2 Farbmodi (data-theme am Wurzelelement gesetzt,
    Neuzeichnen abgewartet) = 24 Laeufe, ZEHN Messgruppen (a-j, seit
-   15-05-PLAN.md Task 2: j-konsolen-kontrast) je Lauf.
+   16-05-PLAN.md Task 2: j-konsolen-kontrast) je Lauf.
    Gruppe i (Backstop E2, seit 14-04-PLAN.md Task 2) laeuft nur bei
    1280x720: kein Innenraster ueberschreitet die Breite seines Kapitels,
    kein Kapitel ueberschreitet die lokale Hoechstbreite von 1100px.
@@ -154,7 +154,7 @@ const HOEHEN_KLINKE_CARRACK_DUNKEL_1280 = {
   regel: 'max', // wandert nur nach unten
   anlass:
     'Schlussmessung 18.08.2026 (14-04-PLAN.md Task 2) gegen den nach Welle 4 gebauten dist/ dieses Worktrees — Carrack, DE, 1280x720, dunkler Modus, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322: gemessener Ist-Wert 4.179px (Ausgang 5.554px aus 14-CONTEXT.md, -1.375px / -24,8%). EN misst 4.117px am selben Lauf. Die Klinke bleibt bei den in Erfolgskriterium 6 festgeschriebenen 4.200px stehen (nicht auf 4.179px abgesenkt) — 21px Reserve gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes, siehe Grundsatz 5: eine Klinke ist eine Untergrenze fuer KUENFTIGE Läufe, kein exakter Momentwert des heutigen. ' +
-    'NACHGEMESSEN 20.08.2026 (15-05-PLAN.md Task 2, Fall 1 der Drei-Faelle-Regel) gegen den nach der Konsole gebauten dist/ dieses Worktrees, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4399: EN 3.609px, DE 3.641px — deutlich UNTER der Marke, obwohl document.documentElement.scrollHeight weiterhin die volle Seitenhoehe misst (Rail/Buehne/Auslesung, dann die drei verbliebenen ch-gear-Unterabschnitte). Grund: die Konsole ersetzt Bewaffnung/Komponenten als hohe, gestapelte Kapitelinhalte durch ein KOMPAKTES Drei-Spalten-Band (.holo__wrap clamp(380px,50vh,450px) bei 1280x720, gegen die vormalige Einspalten-Hero-Klammer clamp(540px,74vh,760px)) — die Rail-/Auslesung-Spalten wachsen NICHT additiv zur Seitenhoehe, weil sie GRID-SPALTEN sind, keine gestapelten Bloecke. Fall 1 der Drei-Faelle-Regel (Grundsatz 5): die Marke bleibt bei 4.200px stehen, nicht abgesenkt — obwohl sie messbar nicht mehr ausgereizt wird, ist eine Klinke eine Untergrenze fuer KUENFTIGE Laeufe, kein Momentwert des heutigen.',
+    'NACHGEMESSEN 20.08.2026 (16-05-PLAN.md Task 2, Fall 1 der Drei-Faelle-Regel) gegen den nach der Konsole gebauten dist/ dieses Worktrees, node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4399: EN 3.609px, DE 3.641px — deutlich UNTER der Marke, obwohl document.documentElement.scrollHeight weiterhin die volle Seitenhoehe misst (Rail/Buehne/Auslesung, dann die drei verbliebenen ch-gear-Unterabschnitte). Grund: die Konsole ersetzt Bewaffnung/Komponenten als hohe, gestapelte Kapitelinhalte durch ein KOMPAKTES Drei-Spalten-Band (.holo__wrap clamp(380px,50vh,450px) bei 1280x720, gegen die vormalige Einspalten-Hero-Klammer clamp(540px,74vh,760px)) — die Rail-/Auslesung-Spalten wachsen NICHT additiv zur Seitenhoehe, weil sie GRID-SPALTEN sind, keine gestapelten Bloecke. Fall 1 der Drei-Faelle-Regel (Grundsatz 5): die Marke bleibt bei 4.200px stehen, nicht abgesenkt — obwohl sie messbar nicht mehr ausgereizt wird, ist eine Klinke eine Untergrenze fuer KUENFTIGE Laeufe, kein Momentwert des heutigen.',
 };
 const HOEHEN_MARKE_CARRACK_DUNKEL_1280 = HOEHEN_KLINKE_CARRACK_DUNKEL_1280.wert;
 const KONTRAST_MARKE = 4.5;
@@ -458,7 +458,7 @@ for (const ziel of ZIELE) {
           melde(lauf, ziel.id, 'i-rasterbreite-1280', true, 'nur bei 1280x720 geprueft');
         }
 
-        // (j) Konsolen-Kontrast (15-05-PLAN.md Task 2, Erfolgskriterium 7 —
+        // (j) Konsolen-Kontrast (16-05-PLAN.md Task 2, Erfolgskriterium 7 —
         // "beide Farbmodi sind gemessen"): dieselbe contrast()-Bibliothek
         // wie Gruppe f, hier auf zwei Konsolen-Stellen angewendet, die
         // Gruppe f (Kapitel-Zahl-Chip) nicht abdeckt — die Rail-Zaehlzeile

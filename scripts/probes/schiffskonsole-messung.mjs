@@ -1,6 +1,6 @@
 /* ============================================================
    schiffskonsole-messung.mjs — die drei bindenden Punkte P-1/P-2/P-3 aus
-   15-UI-SPEC.md § 3a AM GERENDERTEN BILDPUNKT bzw. AM AUSGELIEFERTEN
+   16-UI-SPEC.md § 3a AM GERENDERTEN BILDPUNKT bzw. AM AUSGELIEFERTEN
    ARTEFAKT belegt, nicht aus der Konfiguration behauptet.
 
    EINE SONDE, KEIN TOR: liegt in scripts/probes/, wird von keinem
@@ -11,7 +11,7 @@
 
    WARUM UEBERHAUPT: der Spike vom 18.08.2026 hat am laufenden Viewer
    gemessen, dass die heutige Kamera das Konzept "Konsole" nicht traegt
-   (15-UI-SPEC.md § 3a): bei 860px Ansichtsbreite fuellt das Schiff rund
+   (16-UI-SPEC.md § 3a): bei 860px Ansichtsbreite fuellt das Schiff rund
    ein Viertel der Buehne, die Marker sind 2-3 Bildpunkte gross und nicht
    auffindbar. Drei bindende Punkte folgen daraus — P-1 (Schiff fuellt
    >=70% der kuerzeren Buehnenkante), P-2 (kein Dauer-Label, nur der
@@ -28,7 +28,7 @@
      visibleText()-Verfahren aus scripts/verify-shipcard.mjs (Messgruppe
      c — hier dupliziert statt importiert: verify-shipcard.mjs bricht
      beim Import sofort mit process.exit(1) ab, wenn dist/ fehlt, und
-     dieser Task darf nur die zwei in 15-01-PLAN.md Task 1 genannten
+     dieser Task darf nur die zwei in 16-01-PLAN.md Task 1 genannten
      Dateien beruehren. Aendert sich visibleText() dort, muss diese
      Kopie von Hand nachgezogen werden — an dieser Stelle vermerkt).
      Vollstaendig ab Task 1 dieses Plans.
@@ -39,7 +39,7 @@
      Vorbedingung: erst die Markerdichte festlegen, dann am Bildpunkt
      messen, ob sie bei dieser Dichte noch gefunden wird).
 
-   15-03-PLAN.md Task 2 ergaenzt zwei weitere Messgruppen:
+   16-03-PLAN.md Task 2 ergaenzt zwei weitere Messgruppen:
      k-textbestand-danach (Familie A, kein Browser) — derselbe
      visibleText()-Textbestand wie Messgruppe c, dem in Welle 1/2
      protokollierten Ausgangswert (VOR Welle 3) gegenuebergestellt.
@@ -51,7 +51,7 @@
      sichtbarer Abschnitte erwartet — in dieser Welle wird noch nichts
      versteckt).
 
-   15-04-PLAN.md Task 3 ergaenzt drei weitere Messgruppen (Familie B):
+   16-04-PLAN.md Task 3 ergaenzt drei weitere Messgruppen (Familie B):
      h-netz (D-04, Erfolgskriterium 5) — Netzverkehr beim Seitenaufruf,
      gemessen am 'load'-Ereignis (Soll je 0 fuer three.module.min.js/GLB)
      gegen denselben Kontext nach dem Scrollen in den sichtbaren Bereich
@@ -110,14 +110,14 @@ const HOLO_GRP = {
 };
 const HOLO_GRP_ORDER = ['core', 'arms', 'prop', 'other'];
 const THRUSTER_KINDS = ['thruster_main', 'thruster_retro', 'thruster_vtol', 'thruster_mav'];
-/* Drei P-3-Kandidaten aus 15-01-PLAN.md Task 1 — welche Triebwerksarten
+/* Drei P-3-Kandidaten aus 16-01-PLAN.md Task 1 — welche Triebwerksarten
    den Stock-Loadout-Join umgehen (siehe ShipDetail.astro Z. 287-293). */
 const VARIANTEN = {
   B: { bypass: new Set() }, // Ist-Zustand: Join gilt fuer ALLE Arten
   A: { bypass: new Set(THRUSTER_KINDS) }, // alle vier Triebwerksarten umgehen ihn
   C: { bypass: new Set(['thruster_main', 'thruster_retro', 'thruster_vtol']) }, // thruster_mav bleibt draussen
 };
-const MAX_EINZELGRUPPE = 20; // P-3-Entscheidungsregel Schritt 2 (15-01-PLAN.md)
+const MAX_EINZELGRUPPE = 20; // P-3-Entscheidungsregel Schritt 2 (16-01-PLAN.md)
 const realName = (it) => !/placeholder|<=|=>|\bTBD\b/i.test(it?.name ?? '');
 
 function poolsFor(d) {
@@ -197,7 +197,7 @@ function holodataAus(html) {
    warum hier dupliziert statt importiert. Angewendet auf das GANZE Dokument
    (Kommentare/Skript-/Stilruempfe entfernt): das ist der Text, den eine
    Suchmaschine im ausgelieferten HTML tatsaechlich sieht (D-02-Begruendung
-   in 15-CONTEXT.md), nicht nur ein Unterausschnitt. ---------- */
+   in 16-CONTEXT.md), nicht nur ein Unterausschnitt. ---------- */
 function stripCommentsAndScripts(html) {
   let s = html.replace(/<!--[\s\S]*?-->/g, '');
   s = s.replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi, '$1$3');
@@ -221,7 +221,7 @@ function textBytesVon(html) {
 }
 
 const CARRACK_ID = 'anvl-carrack';
-/* Vom Planer am 18.08.2026 gegen genau diese Datei gemessen (15-01-PLAN.md
+/* Vom Planer am 18.08.2026 gegen genau diese Datei gemessen (16-01-PLAN.md
    Messgruppe c). Sperrklinken-Bezug fuer Erfolgskriterium 3 in Welle 5 —
    hier nur Ausgangsmessung, kein Urteil. */
 const TEXTBESTAND_CARRACK_DE_ERWARTUNG = { wert: 5114, toleranzProzent: 2 };
@@ -288,9 +288,9 @@ async function runCensus() {
   );
 
   // Vor Task 2 Schritt 2 (P-3 noch nicht umgesetzt) liefert dist/ core=8/
-  // arms=4/other=5/prop=0 (15-UI-SPEC.md § 3a: "17 von 60"); NACH Schritt 2
+  // arms=4/other=5/prop=0 (16-UI-SPEC.md § 3a: "17 von 60"); NACH Schritt 2
   // liefert es die in Task 1 gewaehlte Variante C: core=8/arms=4/prop=10/
-  // other=5 (15-01-PLAN.md Task 1, "Vorabzaehlung ... Carrack unter C").
+  // other=5 (16-01-PLAN.md Task 1, "Vorabzaehlung ... Carrack unter C").
   // Beide sind gueltige Zustaende dieser Welle, je nach Fortschritt — die
   // Sonde erkennt, welcher vorliegt, statt nur einen zu verlangen.
   const carrackDist = distCountsEn.get(CARRACK_ID);
@@ -349,7 +349,7 @@ async function runCensus() {
     );
   }
 
-  // P-3-Entscheidungsregel (15-01-PLAN.md, drei Schritte) — VOR der Gegenprobe,
+  // P-3-Entscheidungsregel (16-01-PLAN.md, drei Schritte) — VOR der Gegenprobe,
   // weil die Gegenprobe unten gegen die gewaehlte Variante prueft, nicht mehr
   // fest gegen B: nach Task 2 (Schritt 2, P-3 umgesetzt) liefert dist/ die
   // gewaehlte Variante aus, nicht mehr den Ist-Zustand aus Task 1.
@@ -364,7 +364,7 @@ async function runCensus() {
   );
   console.log(`  GEWAEHLTE VARIANTE: ${gewaehlteVariante ?? '(keine erfuellt die Obergrenze)'}`);
 
-  // Gegenprobe (15-01-PLAN.md, "GEGENPROBE, nicht optional"): die aus der
+  // Gegenprobe (16-01-PLAN.md, "GEGENPROBE, nicht optional"): die aus der
   // Quelle gerechnete Variante MUSS je Schiff+Gruppe exakt dem ausgelieferten
   // holodata gleichen. Gegen ALLE drei Varianten geprueft und gedruckt (so
   // bleibt sichtbar, welche Variante dist/ GERADE ausliefert — vor Task 2
@@ -429,15 +429,15 @@ async function runCensus() {
     !!carrackDeText,
     `Soll ${untergrenze}-${obergrenze} Bytes (${TEXTBESTAND_CARRACK_DE_ERWARTUNG.wert} +/-${TEXTBESTAND_CARRACK_DE_ERWARTUNG.toleranzProzent}%, Planer-Vorabmessung 18.08.2026); Ist ${carrackDeText?.bytes ?? '(nicht gefunden)'} Bytes` +
       (carrackDeText && (carrackDeText.bytes < untergrenze || carrackDeText.bytes > obergrenze)
-        ? ' — AUSSERHALB der Toleranz, Erklaerung siehe 15-01-SUMMARY.md (Bericht statt Urteil: Messgruppe c faellt hier nicht durch, das Soll-Feld dokumentiert nur die Ausgangserwartung)'
+        ? ' — AUSSERHALB der Toleranz, Erklaerung siehe 16-01-SUMMARY.md (Bericht statt Urteil: Messgruppe c faellt hier nicht durch, das Soll-Feld dokumentiert nur die Ausgangserwartung)'
         : '')
   );
 
-  /* ---------- Messgruppe k-textbestand-danach (15-03-PLAN.md Task 2) ----------
+  /* ---------- Messgruppe k-textbestand-danach (16-03-PLAN.md Task 2) ----------
      Derselbe visibleText()-Textbestand wie Messgruppe c, hier dem in Welle 1
-     (Carrack, Task-1-Commit 7bb10df, 15-01-SUMMARY.md Issues Encountered:
+     (Carrack, Task-1-Commit 7bb10df, 16-01-SUMMARY.md Issues Encountered:
      4.971 Bytes) UND Welle 2 (min/median/max ueber alle 454 Seiten, Messlauf
-     20.08.2026 gegen den nach Welle 1 gebauten dist/, 15-02-PLAN.md Task 1 /
+     20.08.2026 gegen den nach Welle 1 gebauten dist/, 16-02-PLAN.md Task 1 /
      scripts/verify-shipconsole.mjs TEXTBESTAND_KLINKE-Anlasstext) PROTOKOLLIERTEN
      Ausgangswert gegenuebergestellt — beide VOR den Welle-3-Aenderungen dieser
      Sitzung gemessen. Soll: kein Wert kleiner geworden; erwartet ein leichter
@@ -496,13 +496,13 @@ const KANDIDATEN = [
 
 /* Sperrklinke in Hausform (docs/maschinelle-validierung.md Grundsatz 5):
    Wert, Regel — wandert nur nach oben —, Anlass mit Messlauf/Datum/Breite/
-   Ist-Wert. Ausgangswert 25% im Anlasstext, wie 15-01-PLAN.md Task 2
+   Ist-Wert. Ausgangswert 25% im Anlasstext, wie 16-01-PLAN.md Task 2
    Schritt 3 verlangt. */
 const FUELLGRAD_KLINKE = {
   wert: 70,
   regel: 'min', // wandert nur nach oben
   anlass:
-    'Messlauf 18.08.2026 (15-01-PLAN.md Task 2) gegen den frisch gebauten dist/ dieses Worktrees, node scripts/probes/schiffskonsole-messung.mjs --base http://localhost:4322: Ausgangswert (--baseline, unveraenderter Viewer) bei der Carrack/860px rund 25% (UI-SPEC 15-UI-SPEC.md § 3a); nach der fitSphere-Korrektur (Modell+Marker statt rig mit Aura/Kegel/Staub) misst dieselbe Sonde am selben Lauf den unten protokollierten Ist-Wert je Schiff/Sprache/Breite. Die Klinke bleibt bei 70% stehen (Erfolgskriterium P-1) — wandert nur nach oben.',
+    'Messlauf 18.08.2026 (16-01-PLAN.md Task 2) gegen den frisch gebauten dist/ dieses Worktrees, node scripts/probes/schiffskonsole-messung.mjs --base http://localhost:4322: Ausgangswert (--baseline, unveraenderter Viewer) bei der Carrack/860px rund 25% (UI-SPEC 16-UI-SPEC.md § 3a); nach der fitSphere-Korrektur (Modell+Marker statt rig mit Aura/Kegel/Staub) misst dieselbe Sonde am selben Lauf den unten protokollierten Ist-Wert je Schiff/Sprache/Breite. Die Klinke bleibt bei 70% stehen (Erfolgskriterium P-1) — wandert nur nach oben.',
 };
 
 function findBrowser() {
@@ -520,15 +520,15 @@ const SPRACHEN = [
   { id: 'en', pfad: (id) => `/schiffe/${id}.html` },
   { id: 'de', pfad: (id) => `/de/schiffe/${id}.html` },
 ];
-/* 15-UI-SPEC.md Detailvertrag Punkt 1 — Buehnenbreiten-Tabelle (Rail 220 +
+/* 16-UI-SPEC.md Detailvertrag Punkt 1 — Buehnenbreiten-Tabelle (Rail 220 +
    Auslesung 320, in dieser Welle gibt es beides NOCH NICHT, siehe
-   15-01-PLAN.md Planungsnotizen "Warum der Tracer hier steht"). Fuer
+   16-01-PLAN.md Planungsnotizen "Warum der Tracer hier steht"). Fuer
    Messgruppe g nur als Vergleichsmarke fuer SPAETERE Wellen gedruckt, nicht
    als Zusicherung dieser Welle — #holo3d ist heute randlos die volle
    .holo-Breite, nicht durch Rail/Auslesung eingeengt. */
 const BUEHNENBREITE_TABELLE = { 1440: 900, 1280: 740, 1100: 560, 414: 378, 360: 324 };
 const ANSICHTSBREITEN = [1440, 1280, 1100, 860, 414, 360];
-/* Messgruppe j-ohne-javascript (15-03-PLAN.md Task 2, D-02) braucht keine
+/* Messgruppe j-ohne-javascript (16-03-PLAN.md Task 2, D-02) braucht keine
    Fuellgrad-Feinabstufung wie Messgruppe d — zwei Bruecken reichen, um den
    Grundzustand (Desktop) UND das engste gepruefte Layout (D-03-Bereich)
    abzudecken. */
@@ -551,7 +551,7 @@ async function pruefschiffeErmitteln(quellen, gewaehlteVariante) {
   }
   const gruppenVon = (id) => HOLO_GRP_ORDER.filter((g) => (proSchiffGruppen.get(id)?.[g] ?? 0) > 0);
   return [
-    { id: CARRACK_ID, grund: 'Bezug aus 15-UI-SPEC.md § 3a ("17 von 60")', gruppen: gruppenVon(CARRACK_ID) },
+    { id: CARRACK_ID, grund: 'Bezug aus 16-UI-SPEC.md § 3a ("17 von 60")', gruppen: gruppenVon(CARRACK_ID) },
     { id: kargstes, grund: `kargstes Schiff unter Variante ${gewaehlteVariante} (${kargsteZahl} Marker gesamt)`, gruppen: gruppenVon(kargstes) },
     { id: dichtestes, grund: `groesste Einzelgruppe unter Variante ${gewaehlteVariante} (${dichtesteGruppe}=${dichtesteZahl})`, gruppen: gruppenVon(dichtestes) },
   ];
@@ -716,7 +716,7 @@ async function runBrowserMessung() {
   }
 
   /* ============================================================
-     Messgruppe j-ohne-javascript (15-03-PLAN.md Task 2, D-02) — gegen das
+     Messgruppe j-ohne-javascript (16-03-PLAN.md Task 2, D-02) — gegen das
      GEBAUTE Artefakt, mit ABGESCHALTETEM JavaScript im Browser, nicht durch
      Lesen des Codes. Kopfzeile druckt ausdruecklich, dass der Kontext ohne
      Skript lief (Erfolgskriterium/Abnahme dieser Welle). ============================================================ */
@@ -818,7 +818,7 @@ async function runBrowserMessung() {
         await pageOhne.close(); await kontextOhne.close();
 
         // ---- Gegenprobe MIT JavaScript (derselbe Aufruf) ----
-        // 15-04-PLAN.md Task 1 (Rail-Einfachauswahl): seit dieser Welle
+        // 16-04-PLAN.md Task 1 (Rail-Einfachauswahl): seit dieser Welle
         // verschiebt das Skript die Systemabschnitte in die Auslesung UND
         // zeigt genau EINEN (das serverseitig vorbelegte erste System) --
         // die Erwartung aus Welle 3 ("dieselbe Zahl wie ohne JS") ist damit
@@ -843,7 +843,7 @@ async function runBrowserMessung() {
           melde(
             'j-ohne-javascript-gegenprobe',
             mitJs.anzahl === sollMitJs && mitJs.alleInReadout,
-            `[${lauf}] Gegenprobe MIT JavaScript (Rail-Einfachauswahl, 15-04-PLAN.md Task 1): Soll genau ${sollMitJs} sichtbare(r) Abschnitt(e) (vorbelegtes erstes System), alle Abschnitte in .holo__readout verschoben; ` +
+            `[${lauf}] Gegenprobe MIT JavaScript (Rail-Einfachauswahl, 16-04-PLAN.md Task 1): Soll genau ${sollMitJs} sichtbare(r) Abschnitt(e) (vorbelegtes erstes System), alle Abschnitte in .holo__readout verschoben; ` +
               `Ist ${mitJs.anzahl} sichtbar, in .holo__readout: ${mitJs.alleInReadout}`
           );
         } catch (e) {
@@ -856,7 +856,7 @@ async function runBrowserMessung() {
   console.log(`  Anker-Spruenge geprueft: ${jSpruengeGeprueft}  Fehlschlaege: ${jSpruengeFehlgeschlagen}`);
 
   /* ============================================================
-     Messgruppe h-netz (15-04-PLAN.md Task 3, D-04, Erfolgskriterium 5) —
+     Messgruppe h-netz (16-04-PLAN.md Task 3, D-04, Erfolgskriterium 5) —
      Netzverkehr beim Seitenaufruf. Zwei Faelle aus den Pruefschiffen
      abgeleitet, nicht verdrahtet: eines MIT Video/Bilder-Umschalter
      (.holo__toggle traegt #btnvid/#btnimg), eines OHNE — der zweite Fall
@@ -908,7 +908,7 @@ async function runBrowserMessung() {
     // Abstandshalter im <head> ERWEITERT, BEVOR sie den Browser erreicht.
     // Damit ist .holo von der allerersten Bildzusammensetzung an
     // nachweislich ausserhalb des sichtbaren Bereichs -- kein Zeitfenster,
-    // kein Raten. Verifiziert (siehe 15-04-SUMMARY.md): 0 Treffer VOR dem
+    // kein Raten. Verifiziert (siehe 16-04-SUMMARY.md): 0 Treffer VOR dem
     // Scrollen ueber mehrere Wiederholungen, .holo tatsaechlich bei
     // top:3000px.
     await page.route(`${BASE}${pfad}`, async (route) => {
@@ -968,7 +968,7 @@ async function runBrowserMessung() {
   }
 
   /* ============================================================
-     Messgruppe i-ueberlauf (15-04-PLAN.md Task 3, D-03, Erfolgskriterium 4)
+     Messgruppe i-ueberlauf (16-04-PLAN.md Task 3, D-03, Erfolgskriterium 4)
      + die beiden Backstop-Punkte "overflow E4"/"long-text E4" aus dem
      UI-SPEC (Auslesungsspalte bei 1280px). ============================================================ */
   console.log(`\n=== Messgruppe i-ueberlauf: waagerechter Ueberlauf bei 360px + Backstops overflow/long-text E4 ===`);
@@ -1060,7 +1060,7 @@ async function runBrowserMessung() {
   }
 
   /* ============================================================
-     Messgruppe l-sprachparitaet (15-04-PLAN.md Task 3) — je Pruefschiff
+     Messgruppe l-sprachparitaet (16-04-PLAN.md Task 3) — je Pruefschiff
      dieselben Kennzahlen in DE und EN nebeneinander. ============================================================ */
   console.log(`\n=== Messgruppe l-sprachparitaet: DE/EN Kennzahlen + Hoehenabweichung <=5% ===`);
   for (const ziel of ZIELE) {

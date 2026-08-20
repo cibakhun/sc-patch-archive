@@ -270,10 +270,10 @@ function extractTokens(text) {
 }
 
 /* ---------- Regionen einer Seite (Zusicherung 6) ----------
-   Zwei Bloecke werden abgetastet, seit 15-02-PLAN.md Task 2: weiterhin
+   Zwei Bloecke werden abgetastet, seit 16-02-PLAN.md Task 2: weiterhin
    div.sd (Phase 14, die vier Kapitel), UND zusaetzlich section.holo (Phase
    15, die Konsole). Anlass: die Konsole liegt AUSSERHALB von div.sd; ohne
-   diese Erweiterung koennte der Scan die in 15-UI-SPEC.md Punkt 6
+   diese Erweiterung koennte der Scan die in 16-UI-SPEC.md Punkt 6
    verbindliche Regel "kein Bauteiltext zweimal im DOM" fuer die Konsole gar
    nicht pruefen — er saehe dort nicht hin, und das waere ein blinder Fleck,
    keine Entwarnung. Beide Bloecke werden mit derselben Tiefenzaehlung
@@ -285,7 +285,7 @@ function extractTokens(text) {
    — extractRegion() schneidet section.holo an dessen eigenem schliessenden
    </section>-Tag (Tiefenzaehlung), lange bevor holo__bar im Dokument folgt,
    ueberreicht also strukturell gar nicht bis dorthin. GEGENPROBE gegen eine
-   Praefix-Ueberreichweite am Klassenattribut selbst (15-UI-SPEC.md Punkt
+   Praefix-Ueberreichweite am Klassenattribut selbst (16-UI-SPEC.md Punkt
    11.3-Forderung "exakt am Klassenattribut, nicht per Praefix"): das
    Oeffnungsmuster ist EXAKT `class="holo"` (kein Klassenlisten-Wortabgleich)
    — die Zeichenkette `class="holo__bar"` enthaelt diese exakte Zeichenfolge
@@ -530,7 +530,7 @@ function main() {
     let totalFindings = 0;
     const reportEntries = [];
     const diagnosticEntries = [];
-    // Selbstauskunft, erweitert seit 15-02-PLAN.md Task 2 (Grundsatz 2): wie
+    // Selbstauskunft, erweitert seit 16-02-PLAN.md Task 2 (Grundsatz 2): wie
     // viele Regionen aus div.sd und wie viele aus section.holo stammen, je
     // Sprache und in Summe. Ohne diese Zahl ist ein Schnitt, der
     // section.holo verfehlt (z. B. weil das Klassenattribut spaeter eine

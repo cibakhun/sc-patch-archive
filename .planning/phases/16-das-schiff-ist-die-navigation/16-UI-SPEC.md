@@ -1,5 +1,5 @@
 ---
-phase: 15
+phase: 16
 slug: das-schiff-ist-die-navigation
 status: draft
 shadcn_initialized: false
@@ -7,7 +7,7 @@ preset: none
 created: 2026-08-18
 ---
 
-# Phase 15 — UI Design Contract
+# Phase 16 — UI Design Contract
 
 > Design-Vertrag für „Das Schiff ist die Navigation". Diese Phase baut
 > `src/components/ShipDetail.astro` (EIN Körper für DE und EN, 227 Seiten je
@@ -420,7 +420,7 @@ gesparte Platz war früher nötig, weil die Rail über dem Modell SCHWEBTE.
 
 ### 6. Ohne JavaScript — die Konsole als schlichte Liste (D-02)
 
-**Harte Vorgabe, nicht verhandelbar (Konkrete Vorgabe 1+2 in `15-CONTEXT.md`):**
+**Harte Vorgabe, nicht verhandelbar (Konkrete Vorgabe 1+2 in `16-CONTEXT.md`):**
 jedes System steht als eigener, sichtbarer Abschnitt im ausgelieferten HTML
 — nicht per JS erzeugt, nicht per `hidden`-Attribut standardmäßig versteckt.
 
@@ -625,7 +625,7 @@ neue Zahl ein.
 ## Sichturteile (an `.planning/WINDOWS.md`, kein Skript)
 
 Direkte Bearbeitung der Datei (siehe Fallstrick oben — `gsd-tools windows
-append` NICHT verwenden). Alle Punkte gehören zu Phase 15 und sollten so früh
+append` NICHT verwenden). Alle Punkte gehören zu Phase 16 und sollten so früh
 wie möglich beantwortet werden, weil laut Phasenziel die gesamte Phase an
 Punkt 1 hängt:
 **S-0 (zuerst, die Phase haengt daran) — Ist ein Marker ohne Beschriftung
