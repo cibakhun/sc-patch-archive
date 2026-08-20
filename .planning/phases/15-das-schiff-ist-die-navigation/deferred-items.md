@@ -48,3 +48,29 @@ kein Markup und kein CSS. Detailvertrag Punkt 7 (Ladeausloeser Klick->Scroll,
 D-04) ist noch nicht umgesetzt. Weiterhin offen, weiterhin kein Blocker —
 faellt bei der Umsetzung von Punkt 7 in einer spaeteren Welle (voraussichtlich
 15-03 oder 15-04) ohnehin ersatzlos weg.
+
+---
+
+## Nachtrag des Orchestrators (18.08.2026) — was der erweiterte Scan über Phase 14 aussagt
+
+`X-holo-dims-hud` ist als Ausnahme sachlich in Ordnung: eine Kurzanzeige
+unmittelbar am gerenderten Objekt ist etwas anderes als ein zweiter
+Dateneintrag im Fließtext, und die Begründung nennt Anlass, Fundstelle und
+Zombie-Wächter. **Aber sie hat eine Nebenwirkung, die im Protokoll stehen muss:**
+
+Phase 14 hat Erfolgskriterium 1 („jeder der sieben doppelten Zahlwerte kommt
+höchstens einmal vor") gegen eine **engere Regionsmenge** geprüft, als wir jetzt
+kennen — `computeRegions()` sah damals nur `div.sd`, nicht `section.holo`. Die
+Doppelung `L 126 m · B 74 m · H 30 m` in `.holo__dims` war also nicht etwa
+erlaubt, sondern **außerhalb des Sichtfelds des Tors**. In der
+Ausgangsmessung von `14-CONTEXT.md` steht sie sogar ausdrücklich drin: `126 m`
+wurde dort mit vier Vorkommen gezählt, eines davon „Hero-Zeile".
+
+Das ändert an Phase 14 nichts rückwirkend — die Zusicherung war nicht falsch,
+nur schmaler als angenommen. Es ist aber genau der Fall, vor dem
+`docs/maschinelle-validierung.md` Grundsatz 2 warnt: ein Tor, das weniger
+prüft, als man glaubt, ist von einem vollständigen nicht zu unterscheiden,
+solange niemand die Reichweite misst. Wer künftig eine Zusicherung dieser
+Familie erweitert, sollte damit rechnen, dass Altbefunde auftauchen.
+
+**Kein Blocker, keine Aufgabe** — nur eine Tatsache fürs Gedächtnis.
