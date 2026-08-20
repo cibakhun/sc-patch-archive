@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>014 A — „Vollbild“</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Rajdhani:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   014 A — „VOLLBILD“
+   Die kleinste der drei Verschiebungen: dieselbe Konsole wie heute,
+   aber sie IST der Bildschirm statt ein 450-px-Band darueber.
+
+   Drei Eingriffe gegenueber dem Live-Stand:
+   1. Die Konsole fuellt das Fenster. Darunter beginnt kein Dokument
+      mehr, sondern eine ZWEITE Ansicht (Fliesstext, aehnliche
+      Schiffe, Quellen) — sichtbar angekuendigt, nicht angeschnitten.
+   2. Der Name steht NICHT auf dem Rumpf. Er sitzt als Schild links
+      unten; das Schiff bleibt Gegenstand, nicht Hintergrund.
+   3. Die Auslesung ist kein dauerhaftes drittes Feld mehr, sondern
+      eine Karte, die AN DER GEWAEHLTEN STELLE aufgeht. Ohne Auswahl
+      steht das Schiff frei.
+
+   ⚠ Attrappe: Markerpositionen sind hier auf dem Foto geschaetzt.
+   In Produktion kommen sie aus den echten Portpositionen des Meshes.
+   ============================================================ */
+:root{
+  --grund:#05080e; --flaeche:#0b1119; --hoch:#131c28;
+  --text:#e9f0f8; --fliess:#94a3b4; --leise:#5f6b7a;
+  --an:#5ad2ff; --warm:#e8b45c; --lila:#a78bfa;
+  --linie:rgba(110,168,255,.16);
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ui:"Rajdhani",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--grund);color:var(--fliess);
+  font:400 15px/1.6 "Barlow",system-ui,sans-serif}
+
+/* ============ ERSTE ANSICHT: die Konsole, volle Fensterhoehe ============ */
+.konsole{height:100vh;display:grid;grid-template-columns:212px 1fr;
+  grid-template-rows:1fr auto;position:relative;overflow:hidden}
+
+/* ---------- Rail: schmal, nur Auswahl ---------- */
+.rail{grid-column:1;grid-row:1/-1;background:var(--flaeche);
+  border-right:1px solid var(--linie);display:flex;flex-direction:column;padding:16px 0}
+.rail .kopf{padding:0 18px 16px;border-bottom:1px solid var(--linie);margin-bottom:12px}
+.rail .zurueck{font:600 11px var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--leise)}
+.eintrag{--gc:var(--an);display:flex;align-items:center;gap:11px;padding:9px 18px;cursor:pointer;
+  border-left:2px solid transparent;transition:background .18s,border-color .18s}
+.eintrag:hover{background:rgba(90,210,255,.05)}
+.eintrag.aktiv{background:rgba(90,210,255,.08);border-left-color:var(--gc)}
+.eintrag[data-g=arms]{--gc:var(--warm)} .eintrag[data-g=prop]{--gc:#6ea8ff}
+.eintrag[data-g=other]{--gc:var(--lila)}
+.eintrag .pkt{width:8px;height:8px;flex:none;background:var(--leise);transform:rotate(45deg)}
+.eintrag.aktiv .pkt{background:var(--gc);box-shadow:0 0 10px var(--gc)}
+.eintrag .nm{font:700 12px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--fliess)}
+.eintrag.aktiv .nm{color:var(--text)}
+.eintrag .z{margin-left:auto;font:500 11px var(--mono);color:var(--leise)}
+.eintrag.aktiv .z{color:var(--gc)}
+.rail .trenner{height:1px;background:var(--linie);margin:10px 18px}
+.rail .fuss{margin-top:auto;padding:14px 18px 0;font:400 10px/1.7 var(--mono);color:var(--leise)}
+
+/* ---------- Buehne: das Schiff, gross ---------- */
+.buehne{grid-column:2;grid-row:1;position:relative;display:grid;place-items:center;overflow:hidden}
+.buehne::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 62% 58% at 50% 46%,rgba(60,130,190,.18),transparent 70%)}
+.buehne::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(0,0,0,.16) 3px 4px);opacity:.5}
+.schiff{position:relative;width:84%;max-width:940px}
+.schiff img{width:100%;display:block;filter:saturate(.8) contrast(1.06)}
+
+/* Marker */
+.mk{position:absolute;width:24px;height:24px;transform:translate(-50%,-50%);cursor:pointer;z-index:3}
+.mk b{position:absolute;inset:8px;background:var(--an);display:block;transform:rotate(45deg)}
+.mk::after{content:"";position:absolute;inset:0;border:1px solid var(--an);opacity:.5;transform:rotate(45deg)}
+.mk.gewaehlt::after{inset:-5px;opacity:1;box-shadow:0 0 16px rgba(90,210,255,.5)}
+
+/* Auslesung: geht AN DER STELLE auf, nicht in einer festen Spalte */
+.karte{position:absolute;z-index:5;width:250px;background:rgba(11,17,25,.94);
+  border:1px solid var(--an);backdrop-filter:blur(8px);
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  padding:12px 14px 13px}
+.karte .kat{font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--an)}
+.karte h3{font:700 17px var(--ui);letter-spacing:.02em;color:var(--text);margin:2px 0 8px}
+.karte dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:12.5px}
+.karte dt{color:var(--leise)}
+.karte dd{color:var(--fliess);font-family:var(--mono);font-size:12px;text-align:right}
+.karte .fuss{margin-top:9px;padding-top:8px;border-top:1px solid var(--linie);
+  font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--an)}
+.fuehrung{position:absolute;z-index:4;border-top:1px solid rgba(90,210,255,.45)}
+
+/* Namensschild: unten links, NEBEN dem Schiff, nicht darauf */
+.schild{position:absolute;left:34px;bottom:30px;z-index:4}
+.schild .marke{font:500 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--leise)}
+.schild h1{font:700 46px/1 var(--ui);letter-spacing:.01em;color:var(--text);margin:5px 0 9px}
+.schild .kette{display:flex;gap:7px}
+.schild .kette span{font:700 10px var(--ui);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--fliess);border:1px solid var(--linie);padding:3px 9px}
+
+/* ---------- Kennwerte: schmales Band, Teil der Konsole ---------- */
+.werte{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(5,1fr);
+  border-top:1px solid var(--linie);background:rgba(11,17,25,.7)}
+.werte div{padding:11px 20px;border-left:1px solid var(--linie)}
+.werte div:first-child{border-left:0}
+.werte .t{font:500 9.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--leise)}
+.werte .v{font:700 19px var(--ui);color:var(--text);margin-top:1px}
+.werte .v.gold{color:var(--warm)}
+
+/* Ankuendigung der zweiten Ansicht — angekuendigt, nicht angeschnitten */
+.weiter{position:absolute;right:22px;bottom:74px;z-index:6;text-align:right}
+.weiter .t{font:500 10px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--leise)}
+.weiter .p{font:700 20px var(--ui);color:var(--an);line-height:1}
+
+/* ============ ZWEITE ANSICHT: das Dokument, klar getrennt ============ */
+.dok{padding:64px clamp(24px,6vw,90px) 80px;border-top:1px solid var(--linie);background:var(--flaeche)}
+.dok .marke{font:500 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--leise)}
+.dok p{max-width:62ch;margin:14px 0 0;color:var(--fliess)}
+.dok h2{font:700 13px var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--text);margin:38px 0 14px}
+.aehn{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.aehn a{display:block;aspect-ratio:16/10;background:var(--hoch);border:1px solid var(--linie);
+  display:grid;place-items:center;font:700 11px var(--ui);letter-spacing:.12em;color:var(--leise);text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<section class="konsole">
+  <nav class="rail">
+    <div class="kopf"><span class="zurueck">&larr; Schiffe</span></div>
+    <div class="eintrag aktiv" data-g="core"><i class="pkt"></i><span class="nm">Komponenten</span><span class="z">8</span></div>
+    <div class="eintrag" data-g="arms"><i class="pkt"></i><span class="nm">Bewaffnung</span><span class="z">4</span></div>
+    <div class="eintrag" data-g="prop"><i class="pkt"></i><span class="nm">Antrieb</span><span class="z">10</span></div>
+    <div class="eintrag" data-g="other"><i class="pkt"></i><span class="nm">Sonstiges</span><span class="z">5</span></div>
+    <div class="trenner"></div>
+    <div class="eintrag"><i class="pkt"></i><span class="nm">Ausstattung</span><span class="z">3</span></div>
+    <div class="eintrag"><i class="pkt"></i><span class="nm">Kaufen</span><span class="z">1</span></div>
+    <div class="eintrag"><i class="pkt"></i><span class="nm">Leistung</span><span class="z">6</span></div>
+    <div class="eintrag"><i class="pkt"></i><span class="nm">Umfeld</span><span class="z">3</span></div>
+    <div class="fuss">Positionen<br>spielgetreu</div>
+  </nav>
+
+  <div class="buehne">
+    <div class="schiff">
+      <img src="https://media.starcitizen.tools/thumb/9/92/Carrack_over_microTech_3.8.png/1280px-Carrack_over_microTech_3.8.png.webp" alt="Anvil Carrack">
+      <span class="mk" style="left:30%;top:47%"><b></b></span>
+      <span class="mk" style="left:38%;top:41%"><b></b></span>
+      <span class="mk gewaehlt" style="left:46%;top:52%"><b></b></span>
+      <span class="mk" style="left:54%;top:44%"><b></b></span>
+      <span class="mk" style="left:62%;top:56%"><b></b></span>
+      <span class="mk" style="left:70%;top:49%"><b></b></span>
+      <span class="fuehrung" style="left:47.5%;top:52%;width:14%"></span>
+      <div class="karte" style="left:63%;top:31%">
+        <div class="kat">Schildgenerator</div>
+        <h3>Barbican</h3>
+        <dl>
+          <dt>Größe</dt><dd>3</dd>
+          <dt>Anzahl</dt><dd>×2</dd>
+          <dt>Kapazität</dt><dd>18.480</dd>
+          <dt>Günstigster Kauf</dt><dd>28.900 aUEC</dd>
+        </dl>
+        <div class="fuss">Im Item Finder öffnen &rarr;</div>
+      </div>
+    </div>
+
+    <div class="schild">
+      <div class="marke">Anvil Aerospace</div>
+      <h1>Carrack</h1>
+      <div class="kette"><span>Expedition</span><span>Groß</span><span>Flugbereit</span></div>
+    </div>
+
+    <div class="weiter"><div class="t">Weiter unten</div><div class="p">Beschreibung · Umfeld &darr;</div></div>
+  </div>
+
+  <div class="werte">
+    <div><div class="t">Länge</div><div class="v">126 m</div></div>
+    <div><div class="t">Besatzung</div><div class="v">6–12</div></div>
+    <div><div class="t">Fracht</div><div class="v">456 SCU</div></div>
+    <div><div class="t">SCM</div><div class="v">140 m/s</div></div>
+    <div><div class="t">Im Verse ab</div><div class="v gold">34.398.000</div></div>
+  </div>
+</section>
+
+<section class="dok">
+  <div class="marke">Über dieses Schiff</div>
+  <p>Das Abenteuer ruft, und Anvil Aerospace antwortet mit der Carrack. Auf extreme
+  Bedingungen sowohl im Weltraum als auch in Atmosphären ausgelegt, hat sich dieses
+  selbstversorgende Erkundungsschiff seinen traditionellen Status als Fernspäher der
+  Wahl sowohl zu militärischen als auch zu zivilen Zwecken mehr als verdient.</p>
+  <h2>Ähnliche Schiffe</h2>
+  <div class="aehn"><a>600i Explorer</a><a>Constellation Aquila</a><a>Corsair</a><a>Odyssey</a></div>
+</section>
+
+</body>
+</html>
