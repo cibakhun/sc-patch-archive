@@ -1065,13 +1065,28 @@ export async function initHolo(container, cfg) {
       // Weltpunkte im Abstand der (unpulsierten) Basisgroesse projiziert und
       // deren Bildpunkt-Abstand gemessen ist der tatsaechliche Bildschirm-
       // durchmesser, ohne tan(fov/2)-Annaeherung.
+      // ⚠ KORREKTUR 20.08.2026: hier stand `sp.userData.base / 2`. Das ist die
+      // LOKALE Sprite-Groesse, wurde aber gegen eine WELT-Achse abgetragen —
+      // und die Marker haengen an `rig`, das mit `s = 2.4 / maxDim` skaliert
+      // ist (Z. 228-230). Die Messung war damit um genau 1/s daneben und
+      // meldete fuer die Carrack bei einer 710px breiten Buehne einen
+      // "Durchmesser" von 919,6px. Eine Marke, die breiter ist als die Buehne,
+      // haette auffallen muessen; der Wert wurde nie geprueft, weil
+      // e-markergroesse in der Sonde fest `true` meldet — ein Bericht, kein
+      // Urteil. getWorldScale() nimmt den Rig-Massstab mit und ist gegen
+      // weitere Verschachtelung unempfindlich.
       const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
       const _mc = new THREE.Vector3(), _e1 = new THREE.Vector3(), _e2 = new THREE.Vector3();
+      const _ws = new THREE.Vector3();
       const sichtbareMarker = [];
       for (const sp of markers) {
         if (!sp.visible) continue;
         sp.getWorldPosition(_mc);
-        const halfScale = sp.userData.base / 2; // Basisgroesse, NICHT der Hover/Select-Puls
+        // Weltgroesse statt lokaler; base statt sp.scale, damit der Hover-/
+        // Auswahl-Puls die Messung nicht aufblaeht.
+        sp.getWorldScale(_ws);
+        const puls = sp.scale.x || 1;
+        const halfScale = (_ws.x / puls) * sp.userData.base / 2;
         _e1.copy(_mc).addScaledVector(camRight, halfScale);
         _e2.copy(_mc).addScaledVector(camRight, -halfScale);
         const p0 = _mc.clone().project(camera);

@@ -115,18 +115,44 @@ soll groß sein", sondern: *bei 860 px füllte das Schiff ein Viertel der Bühne
 die Marker waren 2–3 Bildpunkte groß und **nicht auffindbar**.* Gemessen wurde
 der Füllgrad, gemeint war die Auffindbarkeit.
 
-⚠ **Die Messgröße, die das direkt sagen würde, existiert — taugt aber nicht.**
-`e-markergroesse` in derselben Sonde meldet fest `melde(..., true, ...)`: ein
-Bericht, kein Urteil. Und die Zahlen sind ungeeicht — sie liefert für die
-Carrack bei 1280 „Durchmesser min 919,6 px" auf einer **710 px breiten** Bühne.
-Das kann nicht die sichtbare Marke sein; gemessen wird die Sprite-Fläche
-(`sp.userData.base`, `assets/holo-viewer.js` Z. 1063–1084), und die ist
-überwiegend durchsichtig. Als Klinke ist der Wert erst nach Eichung brauchbar.
+⚠ **Die Messgröße, die das direkt sagen würde, existiert — war aber falsch.**
+`e-markergroesse` meldete fest `melde(..., true, ...)`: ein Bericht, kein
+Urteil. Und die Zahl war um genau den Rig-Maßstab daneben: sie trug die
+**lokale** Sprite-Größe (`sp.userData.base`) gegen eine **Welt**-Achse ab,
+während die Marker an `rig` hängen, das mit `s = 2.4 / maxDim` skaliert ist.
+Ergebnis war „Durchmesser min 919,6 px" auf einer **710 px breiten** Bühne —
+eine Marke breiter als die Bühne. Niemandem aufgefallen, weil die Messgruppe
+nie ein Urteil gefällt hat.
 
-**Damit ist P-1 heute die einzige Sicherung gegen unauffindbare Marker.** Wer
-sie lockert, muss vorher die Ersatzsicherung bauen — sonst fällt eine
-Zusicherung ersatzlos weg, und genau das darf nach `CLAUDE.md` Grundsatz 5
-nicht stillschweigend passieren.
+**Am 20.08.2026 korrigiert** (`assets/holo-viewer.js`, `getWorldScale()` statt
+lokaler Größe; die Sonde weist zusätzlich die *gezeichnete* Marke aus — die
+Raute füllt 84 von 128 Texturpunkten, also rund 66 % der Sprite-Kante).
+
+**Und der erste Blick auf die richtige Zahl ist unangenehm:**
+
+| Ansichtsbreite | Sprite | gezeichnete Marke | P-1 meldet |
+| --- | --- | --- | --- |
+| 1440 | 20,1 px | ~13,3 px | 90,1 % ✓ |
+| 1280 | 17,3 px | ~11,4 px | 72,5 % ✓ |
+| 1100 | 13,0 px | ~8,6 px | 76,4 % ✓ |
+| 860 | 15,0 px | ~9,9 px | 71,2 % ✓ |
+| **414 / 360** | **5,6 px** | **~3,7 px** | **92,5 % ✓** |
+
+Auf dem Telefon liegen die Marker damit auf dem **Welle-1-Ausgangszustand**
+(„die Marker sind 2–3 Bildpunkte groß und nicht auffindbar") — und P-1 meldet
+dort den **höchsten** Füllgrad des ganzen Laufs. Der Stellvertreter ist nicht
+nur ungenau; an der Stelle, an der es zählt, zeigt er in die falsche Richtung.
+Ursache: die Marker haben eine feste Weltgröße, die Kamera passt das Schiff in
+die Ansicht — auf einem kleinen Schirm schrumpft alles mit, der *Anteil* bleibt
+gleich, die *absolute* Größe fällt.
+
+Zum Vergleich: die Fingerkuppen-Regel dieses Hauses ist **44 px**
+(`assets/mobile-ux.css` Abschnitt 2).
+
+**Damit ist P-1 heute die einzige Sicherung gegen unauffindbare Marker — und
+sie greift ausgerechnet mobil nicht.** Wer sie lockert, muss vorher die
+Ersatzsicherung bauen; wer sie behält, hat den mobilen Befund trotzdem am Hals.
+Er ist unabhängig von Phase 17 und bestand schon vorher.
 
 ---
 

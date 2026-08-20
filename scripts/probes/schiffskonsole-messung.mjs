@@ -659,10 +659,30 @@ async function runBrowserMessung() {
             const minD = durchmesser[0], maxD = durchmesser[durchmesser.length - 1];
             const medD = durchmesser[Math.floor(durchmesser.length / 2)];
             if (minD < minMarkerDurchmesser) { minMarkerDurchmesser = minD; minMarkerLauf = lauf; }
+            /* Die gemessene Zahl ist die SPRITE-Kante. Die gezeichnete Marke
+               fuellt sie nicht aus: markerTexture() zeichnet die Raute mit
+               d=42 auf einer 128er-Leinwand (assets/holo-viewer.js Z. 37-67),
+               also 84/128 = rund 66 % der Kante. Beide Zahlen ausweisen —
+               getroffen wird die Marke, nicht das Sprite.
+
+               ⚠ Diese Messgruppe meldet weiterhin fest `true`: sie ist ein
+               BERICHT, kein Urteil. Bis zum 20.08.2026 war sie ausserdem um
+               den Rig-Massstab daneben (919,6px "Durchmesser" auf einer
+               710px-Buehne, siehe Korrektur in holo-viewer.js). Erst mit der
+               korrigierten Zahl ist ueberhaupt zu sehen, was eine Klinke hier
+               bedeuten wuerde — und der erste Blick darauf ist unangenehm:
+               bei 360/414px misst die Marke rund 3,7px und liegt damit auf
+               dem Welle-1-Ausgangszustand ("2-3px, nicht auffindbar"),
+               waehrend P-1 dort 92,5 % meldet. Welche Untergrenze gilt, ist
+               eine Betreiberentscheidung (17-CONTEXT.md, offener Punkt 1) —
+               diese Sonde faellt darueber ausdruecklich kein Urteil. */
+            const sichtbar = (px) => px * 0.66;
             melde(
               'e-markergroesse',
               true,
-              `[${lauf}] ${m.markers.length} sichtbare Marker (Gruppen ${ziel.gruppen.join(',')}), Durchmesser min=${minD.toFixed(1)}px median=${medD.toFixed(1)}px max=${maxD.toFixed(1)}px`
+              `[${lauf}] ${m.markers.length} sichtbare Marker (Gruppen ${ziel.gruppen.join(',')}), ` +
+                `Sprite min=${minD.toFixed(1)}px median=${medD.toFixed(1)}px max=${maxD.toFixed(1)}px · ` +
+                `gezeichnete Marke min=${sichtbar(minD).toFixed(1)}px median=${sichtbar(medD).toFixed(1)}px`
             );
 
             // (f, Hover) EINEN Marker "ueberfahren" (echte Pointer-Koordinate,
