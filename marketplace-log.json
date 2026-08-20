@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 350,
-  "totalListings": 7615,
-  "totalSold": 332,
-  "distinctItems": 1303
+  "updates": 351,
+  "totalListings": 7622,
+  "totalSold": 334,
+  "distinctItems": 1304
  },
  "listings": {
   "156580": {
@@ -152444,6 +152444,10 @@
     {
      "d": "2026-08-19",
      "p": 4500000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 4000000
     }
    ],
    "soldOut": false,
@@ -157873,6 +157877,10 @@
     {
      "d": "2026-08-19",
      "p": 8000000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 5000000
     }
    ],
    "soldOut": false,
@@ -158504,9 +158512,9 @@
      "p": 2000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-20",
+   "soldOutPrice": 2000,
    "dateAdded": 1787161934,
    "dateExpiration": 1792345933
   },
@@ -158819,9 +158827,9 @@
      "p": 10000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-20",
+   "soldOutPrice": 10000000,
    "dateAdded": 1787164405,
    "dateExpiration": 1792348405
   },
@@ -162716,6 +162724,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787243647,
    "dateExpiration": 1792427647
+  },
+  "164438": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787244795,
+   "dateExpiration": 1792428795
+  },
+  "164442": {
+   "idItem": 4819,
+   "idCategory": 3,
+   "title": "Geist Armor Helmet Forest",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245237,
+   "dateExpiration": 1792429236
+  },
+  "164446": {
+   "idItem": 1750,
+   "idCategory": 23,
+   "title": "FR-76",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245391,
+   "dateExpiration": 1792429391
+  },
+  "164457": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246389,
+   "dateExpiration": 1792430389
+  },
+  "164462": {
+   "idItem": 976,
+   "idCategory": 22,
+   "title": "XL-1 [CRAFTED]",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246895,
+   "dateExpiration": 1792430895
+  },
+  "164467": {
+   "idItem": 114,
+   "idCategory": 29,
+   "title": "Helix I Mining Laser 30%-31%-35% Fracture Power",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 940,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787247644,
+   "dateExpiration": 1792431644
+  },
+  "164468": {
+   "idItem": 4397,
+   "idCategory": 29,
+   "title": "Pitman Mining Laser 30%-31%-35% Fracture Power",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787247769,
+   "dateExpiration": 1792431769
   }
  }
 }
