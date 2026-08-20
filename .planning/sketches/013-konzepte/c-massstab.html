@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Konzept C — „Maßstab“</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ============================================================
+   KONZEPT C — „MASSSTAB“
+   Die Seite beantwortet nicht „was ist dieses Schiff“, sondern die
+   Frage, die man beim Lesen wirklich hat: „ist es das richtige?“
+   Vergleich ist nicht ein Werkzeug auf der Seite — Vergleich IST die
+   Seite. Kein Wert steht allein; jeder steht neben der Flotte und,
+   auf Wunsch, neben einem angehefteten Rivalen.
+   126 m wird als Silhouette gegen Mensch, Jäger und Zerstörer gezeigt,
+   nicht als Zahl.
+   ============================================================ */
+:root{
+  --grund:#07090f;
+  --flaeche:#0e131d;
+  --hoch:#161d2b;
+  --text:#eaf0f8;
+  --fliess:#9aa6b6;
+  --leise:#66717f;
+  --ich:#59c2ff;
+  --rival:#ffa14a;
+  --gut:#6bd39a;
+  --schlecht:#e2707a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--grund);color:var(--fliess);
+  font:400 15px/1.6 "Barlow",system-ui,sans-serif;padding-bottom:110px}
+.w{max-width:1180px;margin:0 auto;padding:0 34px}
+
+/* ---------- Kopf: zwei Schiffe, nicht eins ---------- */
+.duell{display:grid;grid-template-columns:1fr auto 1fr;gap:26px;align-items:center;
+  padding:34px 0 26px}
+.karte{background:var(--flaeche);border-radius:12px;padding:22px 26px}
+.karte.ich{border-left:3px solid var(--ich)}
+.karte.rival{border-left:3px solid var(--rival)}
+.karte .werft{font-size:12px;color:var(--leise);letter-spacing:.1em}
+.karte h1{font:700 34px/1.1 "Barlow",sans-serif;color:var(--text);margin:3px 0 6px}
+.karte .rolle{font-size:13px;color:var(--fliess)}
+.vs{font:700 13px "Barlow",sans-serif;color:var(--leise);letter-spacing:.22em;
+  background:var(--hoch);border-radius:99px;padding:9px 15px}
+.tausch{margin-top:12px;display:inline-block;font-size:12px;color:var(--rival);
+  text-decoration:none;border-bottom:1px dashed rgba(255,161,74,.45)}
+
+/* ---------- Maßstabsband: 126 m wird sichtbar ---------- */
+.band{background:var(--flaeche);border-radius:12px;padding:26px 30px 20px;margin-bottom:34px}
+.band h2{font-size:13px;color:var(--leise);letter-spacing:.14em;margin-bottom:22px}
+/* Echter Maßstabsvergleich: ALLE Silhouetten beginnen an derselben Nulllinie,
+   nur die BREITE trägt die Aussage. Versetzt gestapelt saehe huebscher aus und
+   wuerde das Lineal darunter zur Luege machen. */
+.bahn{position:relative;border-bottom:1px solid rgba(255,255,255,.11);padding-bottom:6px}
+.reihe{position:relative;height:30px;display:flex;align-items:center}
+.sil{border-radius:2px 5px 5px 2px;position:relative}
+.sil span{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  white-space:nowrap;font-size:11px;letter-spacing:.05em}
+.sil.mensch{background:var(--leise);height:5px}
+.sil.mensch span{color:var(--leise)}
+.sil.jaeger{background:#3f4c60;height:13px}
+.sil.jaeger span{color:#8794a8}
+.sil.ich{background:linear-gradient(90deg,#2f6f9e,var(--ich));height:34px;
+  box-shadow:0 0 26px rgba(89,194,255,.3)}
+.sil.ich span{color:var(--ich);font-weight:600}
+.sil.rival{background:linear-gradient(90deg,#96521e,var(--rival));height:26px}
+.sil.rival span{color:var(--rival);font-weight:600}
+.sil.gross{background:#232c3b;height:58px}
+.sil.gross span{color:#6d7a8c}
+.lineal{display:flex;justify-content:space-between;margin-top:9px;
+  font-size:11px;color:var(--leise);font-variant-numeric:tabular-nums}
+
+/* ---------- Vergleichszeilen: jeder Wert gegen Flotte + Rival ---------- */
+.vergleich{background:var(--flaeche);border-radius:12px;padding:8px 30px 22px}
+.vergleich h2{font-size:13px;color:var(--leise);letter-spacing:.14em;padding:20px 0 6px}
+.vz{display:grid;grid-template-columns:150px 1fr 210px;gap:20px;align-items:center;
+  padding:15px 0;border-top:1px solid rgba(255,255,255,.055)}
+.vz .l{color:var(--fliess)}
+.vz .l small{display:block;font-size:11px;color:var(--leise)}
+.feld{position:relative;height:34px}
+.feld .achse{position:absolute;left:0;right:0;top:16px;height:2px;
+  background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.14),rgba(255,255,255,.05));
+  border-radius:2px}
+.feld .med{position:absolute;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.22);left:50%}
+.feld .pkt{position:absolute;top:9px;width:16px;height:16px;border-radius:50%;
+  transform:translateX(-50%)}
+.feld .pkt.ich{background:var(--ich);box-shadow:0 0 0 4px rgba(89,194,255,.16)}
+.feld .pkt.rival{background:var(--rival);box-shadow:0 0 0 4px rgba(255,161,74,.14)}
+.feld .spanne{position:absolute;top:15px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.1)}
+.werte{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.werte .a{color:var(--ich);font-weight:600}
+.werte .b{color:var(--rival);font-size:13px}
+.werte .d{display:block;font-size:12px;margin-top:2px}
+.werte .d.plus{color:var(--gut)}
+.werte .d.minus{color:var(--schlecht)}
+
+/* ---------- Urteil: was der Vergleich bedeutet ---------- */
+.urteil{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:34px}
+.urteilKarte{background:var(--flaeche);border-radius:12px;padding:24px 28px}
+.urteilKarte h3{font-size:13px;letter-spacing:.14em;margin-bottom:14px}
+.urteilKarte.fuer h3{color:var(--gut)}
+.urteilKarte.gegen h3{color:var(--schlecht)}
+.urteilKarte li{list-style:none;padding:8px 0 8px 20px;position:relative;color:var(--fliess)}
+.urteilKarte li::before{content:"";position:absolute;left:0;top:15px;width:8px;height:2px}
+.urteilKarte.fuer li::before{background:var(--gut)}
+.urteilKarte.gegen li::before{background:var(--schlecht)}
+.urteilKarte li b{color:var(--text);font-weight:600}
+</style>
+</head>
+<body>
+<div class="w">
+
+  <div class="duell">
+    <div class="karte ich">
+      <div class="werft">ANVIL AEROSPACE</div>
+      <h1>Carrack</h1>
+      <div class="rolle">Erkundung · Expedition · Groß · Flugbereit</div>
+    </div>
+    <div class="vs">GEGEN</div>
+    <div class="karte rival">
+      <div class="werft">ORIGIN JUMPWORKS</div>
+      <h1>600i Explorer</h1>
+      <div class="rolle">Erkundung · Groß · Flugbereit</div>
+      <a class="tausch" href="#">anderes Schiff anheften →</a>
+    </div>
+  </div>
+
+  <div class="band">
+    <h2>MASSSTAB — WIE GROSS 126 METER WIRKLICH SIND</h2>
+    <div class="bahn">
+      <div class="reihe"><div class="sil mensch" style="width:.75%;height:5px"><span>Mensch · 1,8 m</span></div></div>
+      <div class="reihe"><div class="sil jaeger" style="width:8.3%;height:13px"><span>Gladius · 20 m</span></div></div>
+      <div class="reihe"><div class="sil rival" style="width:38%;height:24px"><span>600i · 91,5 m</span></div></div>
+      <div class="reihe" style="height:44px"><div class="sil ich" style="width:52.5%;height:36px"><span>Carrack · 126 m</span></div></div>
+      <div class="reihe"><div class="sil gross" style="width:100%;height:18px;opacity:.4"><span style="left:auto;right:10px;color:#6d7a8c">Idris-M · 240 m</span></div></div>
+    </div>
+    <div class="lineal"><span>0 m</span><span>60</span><span>120</span><span>180</span><span>240 m</span></div>
+  </div>
+
+  <div class="vergleich">
+    <h2>JEDER WERT GEGEN DIE FLOTTE — UND GEGEN DEN RIVALEN</h2>
+
+    <div class="vz">
+      <span class="l">Fracht<small>Frachtraum</small></span>
+      <div class="feld"><div class="achse"></div><div class="med"></div>
+        <div class="spanne" style="left:40%;width:26%"></div>
+        <div class="pkt rival" style="left:40%"></div><div class="pkt ich" style="left:66%"></div></div>
+      <div class="werte"><span class="a">456 SCU</span> <span class="b">/ 100 SCU</span>
+        <span class="d plus">+356 SCU · das Vierfache</span></div>
+    </div>
+
+    <div class="vz">
+      <span class="l">Feuerkraft<small>Piloten + Türme</small></span>
+      <div class="feld"><div class="achse"></div><div class="med"></div>
+        <div class="spanne" style="left:58%;width:27%"></div>
+        <div class="pkt rival" style="left:58%"></div><div class="pkt ich" style="left:85%"></div></div>
+      <div class="werte"><span class="a">6.543 DPS</span> <span class="b">/ 3.180 DPS</span>
+        <span class="d plus">+3.363 DPS</span></div>
+    </div>
+
+    <div class="vz">
+      <span class="l">Verteidigung<small>Hülle + Schilde</small></span>
+      <div class="feld"><div class="achse"></div><div class="med"></div>
+        <div class="spanne" style="left:71%;width:17%"></div>
+        <div class="pkt rival" style="left:71%"></div><div class="pkt ich" style="left:88%"></div></div>
+      <div class="werte"><span class="a">232.000 HP</span> <span class="b">/ 158.000 HP</span>
+        <span class="d plus">+74.000 HP</span></div>
+    </div>
+
+    <div class="vz">
+      <span class="l">Wendigkeit<small>Ø Nick/Gier/Roll</small></span>
+      <div class="feld"><div class="achse"></div><div class="med"></div>
+        <div class="spanne" style="left:8%;width:19%"></div>
+        <div class="pkt ich" style="left:8%"></div><div class="pkt rival" style="left:27%"></div></div>
+      <div class="werte"><span class="a">20,7 °/s</span> <span class="b">/ 27,3 °/s</span>
+        <span class="d minus">−6,6 °/s · träger</span></div>
+    </div>
+
+    <div class="vz">
+      <span class="l">Quantum-Reichweite<small>eine Ladung</small></span>
+      <div class="feld"><div class="achse"></div><div class="med"></div>
+        <div class="spanne" style="left:62%;width:35%"></div>
+        <div class="pkt rival" style="left:62%"></div><div class="pkt ich" style="left:97%"></div></div>
+      <div class="werte"><span class="a">274 Gm</span> <span class="b">/ 181 Gm</span>
+        <span class="d plus">+93 Gm</span></div>
+    </div>
+
+    <div class="vz">
+      <span class="l">Im Verse ab<small>günstigster Kauf</small></span>
+      <div class="feld"><div class="achse"></div><div class="med"></div>
+        <div class="spanne" style="left:63%;width:26%"></div>
+        <div class="pkt rival" style="left:63%"></div><div class="pkt ich" style="left:89%"></div></div>
+      <div class="werte"><span class="a">34.398.000</span> <span class="b">/ 21.780.000</span>
+        <span class="d minus">+12,6 Mio aUEC</span></div>
+    </div>
+  </div>
+
+  <div class="urteil">
+    <div class="urteilKarte fuer">
+      <h3>SPRICHT FÜR DIE CARRACK</h3>
+      <ul>
+        <li>Das <b>Vierfache an Fracht</b> — 456 gegen 100 SCU</li>
+        <li><b>93 Gm mehr Quantum-Reichweite</b>, seltener nachtanken</li>
+        <li>Eigener <b>Hangar mit Pisces und Ursa</b>, der 600i hat keinen</li>
+      </ul>
+    </div>
+    <div class="urteilKarte gegen">
+      <h3>SPRICHT DAGEGEN</h3>
+      <ul>
+        <li><b>Träger</b> — 20,7 gegen 27,3 °/s</li>
+        <li><b>12,6 Mio aUEC teurer</b> im Verse</li>
+        <li>Braucht <b>6 statt 4 Leute</b>, um wirklich zu tragen</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

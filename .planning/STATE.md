@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 15
-current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
-status: verifying
-stopped_at: Phase 15 mit staging zusammengefuehrt (Phasennummer 14 -> 15, WINDOWS.md-Register entdoppelt); Ausrollen steht aus
-last_updated: "2026-08-20T00:00:00.000Z"
+current_phase: 16
+current_phase_name: das-schiff-ist-die-navigation
+status: executing
+stopped_at: "Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5). Phase 15 (Testpilot-Zugang) aus einer Parallelsitzung mit hereingefuehrt; Ausrollen dort steht aus."
+last_updated: "2026-08-20T17:30:00.000Z"
 last_activity: 2026-08-20
-last_activity_desc: Phase 15 (Torphase) mit staging zusammengefuehrt
+last_activity_desc: Phase 16 abgeschlossen und mit staging zusammengefuehrt (Phasennummer 15 -> 16 wegen Kollision)
 progress:
-  total_phases: 19
-  completed_phases: 12
-  total_plans: 69
-  completed_plans: 61
+  total_phases: 20
+  completed_phases: 14
+  total_plans: 84
+  completed_plans: 76
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -26,6 +26,136 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 **Current focus:** Phase 15 — testpilot-zugang-staging-hinter-der-discord-rolle
+
+**Current focus:** Phase 16 — das-schiff-ist-die-navigation
+
+> **Nachtrag 20.08.2026 (sechster) — Phase 16 Plan 5 von 5 ausgefuehrt (Welle 5: Torschaerfung, Schlussmessung, fuenf Sichturteile).**
+> `16-05-PLAN.md` ist ausgefuehrt — **Phase 16 ist damit technisch vollstaendig
+> (5/5 Plaene)**. Vor Task 1 zusaetzlich die vier 1280px-Kollisionen behoben,
+> die der Orchestrator nach Welle 4 gefunden hatte (`deferred-items.md`):
+> Hero-Chrome-Elemente (`.holo__frame`/`.holo__hud`/`.holo__dims`) spannten
+> ohne eigenes `grid-column` den GESAMTEN Konsolen-Bereich statt nur die
+> Buehne — jetzt Kind von `.holo__wrap`. Rot-Vorfuehrung eingeloest
+> (Bewaffnungs-Kennwert absichtlich doppelt, `verify:shipcard` riss woertlich
+> in beiden Regionen, Dopplung zurueckgenommen). `verify:shipconsole` ist
+> SCHARF (`disabled` entfernt, Schiene A jetzt 19 Strecken, 0 ausgesetzt).
+> Textbestands-Klinke auf 3.224 Bytes (Ausgang 3.177). Hoehenklinke aus
+> Phase 14 (4.200px) haelt trotz neuer Konsole bei 3.609-3.641px — Fall 1
+> der Drei-Faelle-Regel, Marke unveraendert. Neue Kontrast-Messgruppe fand
+> und behob einen echten Fund (Rail-Gruppe „Antrieb" 4,43:1 im dunklen
+> Modus, jetzt >=4,54:1 site-weit). Fuenf neue Sichturteile in
+> `.planning/WINDOWS.md` (ids 23-27). `npm run build && npm run gate` gruen
+> (20/20), normal UND mit `STAGING=1`. Details in `16-05-SUMMARY.md`.
+> **Phase 16 bleibt NICHT als „Complete" markiert** — sieben offene
+> Sichtrunden-Punkte (ids 21-27) warten auf den Betreiber, dieselbe
+> Konvention wie bei den Phasen 1.2/2/3/9/10/12/14.
+> ⚠ `current_phase` im Kopf dieser Datei stand seit einer frueheren Sitzung
+> faelschlich auf 12 (Phase 12, laengst abgeschlossen), waehrend
+> `current_phase_name` bereits korrekt „das-schiff-ist-die-navigation" (Phase
+> 15) nannte — in dieser Sitzung berichtigt. Ebenso: `16-03-PLAN.md` und
+> `16-04-PLAN.md` haben in fruaeheren Sitzungen keinen eigenen Nachtrag-Absatz
+> hier hinterlassen (nur `16-04-SUMMARY.md` und der ROADMAP-Haken belegen sie)
+> — nicht rekonstruiert, ausserhalb des Aufgabenbereichs dieser Welle.
+>
+> **Nachtrag 20.08.2026 — Phase 16 Plan 2 von 5 ausgefuehrt (Welle 2: Werkzeug vor Eingriff).**
+> `16-02-PLAN.md` ist ausgefuehrt: `scripts/verify-shipconsole.mjs` angelegt
+> (acht Zusicherungen gegen den Zielzustand der Konsole — Rail<->System-
+> Bijektion, P-3-Markerzahl gegen `#holodata`, D-02-Sichtbarkeit ohne
+> JavaScript, Textbestands-Klinke, Sprachparitaet), gegen den heutigen Stand
+> vorgefuehrt rot (454/454 Seiten ohne `.holo__sys`, erste reissende
+> Zusicherung [2]) und mit benanntem Anlass ausgesetzt (Registry-Eintrag
+> `disabled`, scharfgeschaltet in `16-05-PLAN.md`, Praezedenz
+> `verify:shipcard` 14-01->14-04). `verify:shipcard`s Entdopplungs-Scan
+> nimmt jetzt zusaetzlich `section.holo` in die Regionsbildung auf — und hat
+> dabei sofort einen echten, vorher unsichtbaren Fund gemacht: `.holo__dims`
+> (HUD-Kurzanzeige L/B/H auf der Buehne) dupliziert dieselben Werte wie das
+> Kapitel "Ausstattung > Masse & Fracht". Als fuenfte benannte Ausnahme
+> `X-holo-dims-hud` dokumentiert statt die Erweiterung zurueckzudrehen.
+> Textbestands-Klinke (Erfolgskriterium 3) auf den heute gemessenen
+> Minimalwert 3.177 Bytes ueber alle 454 Seiten gesetzt, mit 2% Reserve.
+> `#holoact` (toter Knopf, `deferred-items.md`) bewusst NICHT angefasst —
+> ausserhalb des Aufgabenbereichs dieser Welle, Einschaetzung im
+> Deferred-Dokument korrigiert. `npm run build && npm run gate` gruen,
+> normal UND mit `STAGING=1`. Details in `16-02-SUMMARY.md`. Naechster
+> Schritt: `16-03-PLAN.md` (Welle 3: D-02 — vier Systemabschnitte
+> serverseitig im HTML, Rail als Ankerliste, Beweis ohne JavaScript).
+>
+> **Nachtrag 18.08.2026 (fuenfter) — Phase 16 Plan 1 von 5 ausgefuehrt (Welle 1: Tracer P-1/P-2/P-3).**
+> `16-01-PLAN.md` ist ausgefuehrt: P-3 auf gemessener Grundlage entschieden
+> (Variante C — `thruster_main`/`thruster_retro`/`thruster_vtol` bekommen
+> immer einen Marker, `thruster_mav` bleibt aussen vor; gegen das
+> ausgelieferte `holodata` gegengeprueft, 908 Schiff-Gruppen-Paare, 0
+> Abweichungen). `fitCamera()` in `assets/holo-viewer.js` iterativ
+> umgebaut — zielt auf die KUeRZERE Buehnenkante statt symmetrisch auf beide,
+> das schoepft bei langen Schiffen zusaetzlichen Zoom-Spielraum aus. P-2
+> (nur der gewaehlte/ueberfahrene Marker traegt Text) umgesetzt, inkl. eines
+> gefundenen Bugs (`setLabels(false)` schaltete mobil die gesamte
+> Beschriftungsschicht ab, auch fuer den aktiven Marker — Aufruf entfernt).
+> **Ergebnis der fertigen Sonde** (`scripts/probes/schiffskonsole-messung.mjs`,
+> 180 Messpunkte): 168 bestehen. Kompakte/mittlere Schiffe erfuellen P-1
+> (≥70% Fuellgrad) an allen sechs Pruefbreiten; die zwei laengsten
+> Pruefschiffe (Carrack, Ironclad) verfehlen die Marke bei 860/414/360px
+> (53,5-68,3% statt 70%) — geometrisch bedingt bei fixer 3/4-Kamera und
+> landscape-Buehne, kein Bug. **Nicht eigenmaechtig per Kamera-Azimut
+> geloest** (sichtbare, seitenweite Design-Aenderung) — als S-0
+> (`.planning/WINDOWS.md` id 21) mit 24 Bildschirmfotos an den Betreiber
+> uebergeben. `npm run build && npm run gate` gruen, normal UND mit
+> `STAGING=1`. Details in `16-01-SUMMARY.md`. Naechster Schritt:
+> `16-02-PLAN.md` (Welle 2: `verify:shipconsole` als Werkzeug vor dem
+> Eingriff, Entdopplungs-Scan erweitert).
+>
+> **Nachtrag 18.08.2026 (vierter) — Phase 14 Plan 4 von 4 ausgefuehrt (Welle 4: Zweispaltigkeit, Schlussmessung, Tor scharf).**
+> `14-04-PLAN.md` ist ausgefuehrt: Ausstattung und Umfeld stehen ab 1100px
+> als kapitelinterne Zweispaltigkeit (`.sd__ch2col`/`.sd__chsec`). Die
+> Schlussmessung landet bei **4.179px DE / 4.117px EN** (Ausgang 5.554px,
+> Marke 4.200px) — unterwegs widerlegte die Messung eine eigene Annahme aus
+> Welle 4 Task 1 selbst (das Grundriss-Raster sollte einspaltig stehen; die
+> Messung zeigt, Bewaffnung dominiert die Zeile ohnehin, zweispaltig ist
+> 76px kuerzer) und fand einen zweiten, im UI-SPEC nicht vorausberechneten
+> Hoehentreiber (mehrere `auto-fit`-Innenraster brachen in der halbierten
+> Spalte um und wurden dadurch HOEHER als bei voller Breite — gescopet mit
+> kleineren Mindestbreiten behoben, jeder Wert per Bildschirmfoto gegen
+> Text-Ueberlauf geprueft). `verify:shipcard` ist scharf geschaltet
+> (Aussetzungsgrund entfernt, 0 Befunde, Zombie-Waechter greift), `npm run
+> gate` laeuft jetzt 19 statt 18 Schritte gruen, normal UND mit
+> `STAGING=1`. Fuenf neue Sichturteile (id 16-20, `.planning/WINDOWS.md`)
+> uebergeben — auffaelligster Neubefund: das kargste Pruefschiff
+> (`argo-atls`) rendert ueberhaupt kein Leistungsprofil-Kapitel, nicht bloss
+> ein duennes. **Phase 14 ist damit technisch vollstaendig (4/4 Plaene),
+> aber NICHT „Complete" markiert** — 7 offene Sichtrunden-Punkte zu Phase 14
+> (id 14-20) warten auf den Betreiber, dieselbe Konvention wie bei den
+> Phasen 1.2/2/3/9/10/12. Details in `14-04-SUMMARY.md`.
+>
+> **Nachtrag 18.08.2026 (zweiter) — Phase 14 Plan 2 von 4 ausgefuehrt (Welle 2: Tracer).**
+> `14-02-PLAN.md` ist ausgefuehrt: EIN Weg durch alle Schichten — klebende
+> Kapitel-Sprungleiste unter der Kennwerte-Leiste, "Kaufen im Verse" als
+> erstes Kapitel mit Zahl-Chip und goldener Rahmenoberkante, sieben neue
+> i18n-Schluessel, Aktivmarkierung per IntersectionObserver. Am gerenderten
+> Bildpunkt gemessen statt geschaetzt: das Hoehenbudget bei 1280x720 betraegt
+> nur 34px (nicht die im UI-SPEC angenommenen ~90px — die Schaetzung vergass
+> `.holo{margin-top:56px}`), die Sprungleiste wurde entsprechend auf 30,6px
+> verdichtet (Rahmen als `box-shadow:inset` statt `border`) und passt jetzt
+> mit 3px Reserve ohne Scrollen ins Bild (Erfolgskriterium 3).
+> `verify-shipcard --report`: Zusicherung 2/3/7 ohne Befund auf allen 454
+> Seiten; 4/5/6 melden erwartungsgemaess weiter Befunde (Tracer, nicht
+> Phasenabschluss). `npm run build && npm run gate` gruen, je zweimal
+> zusaetzlich mit `STAGING=1`. Details in `14-02-SUMMARY.md`. Naechster
+> Schritt: `14-03-PLAN.md` (Leistung, Ausstattung und Umfeld als Kapitel).
+>
+> **Nachtrag 18.08.2026 (erster) — Phase 14 Plan 1 von 4 ausgefuehrt (Welle 1: Werkzeug vor Eingriff).**
+> „Schiffs-Datenkarte entstapeln" (`.planning/phases/14-schiffs-datenkarte-entstapeln/`),
+> 4 Plaene. **Plan 01 ist ausgefuehrt**: `verify-shipcard.mjs` (acht
+> Zusicherungen gegen `dist/schiffe`+`dist/de/schiffe`, einmal vorgefuehrt
+> rot: 1.385 Doppelungsbefunde, 4.256 verbliebene Einheitsrahmen) und
+> `scripts/probes/schiffskarte-messung.mjs` (reproduziert die Ausgangsmessung
+> Carrack 1280×720 dunkel exakt bei 5.554 px/DE, 5.498 px/EN). Diese Welle
+> aendert keine ausgelieferte Zeile — reine Messapparatur, Details in
+> `14-01-SUMMARY.md`. Naechster Schritt: `14-02-PLAN.md` (Tracer: ein
+> Kapitel end-to-end mit Sprungleiste).
+> ⚠ Phase 12 ist NICHT erledigt — sie wartet weiterhin auf ihre Sichtrunde
+> (`.planning/WINDOWS.md`, id 12). Der Kopf-Eintrag `current_phase` ist nur
+> deshalb auf 14 gewandert, weil dort jetzt gearbeitet wird.
+>
 > **Nachtrag 15.08.2026 (zweiter) — Phase 12 ist geplant, ausführbereit.**
 > „Fundorte in der Mining-Werkbank anklickbar", **3 Pläne in 3 Wellen**
 > (`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/`),
@@ -62,6 +192,21 @@ Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
 `STAGING=1`), 297 e2e-Testfaelle gruen, die neue Messsonde
 `scripts/probes/mining-locview-messung.mjs` bestaetigt alle 9 UI-SPEC-
 Backstops am gerenderten Bildpunkt (72/72 Messpunkte).
+
+Phase: 15 (das-schiff-ist-die-navigation) — 5/5 Plaene ausgefuehrt
+Plan: 5 of 5 — abgeschlossen (`16-05-SUMMARY.md`)
+Status: **Technisch fertig, NICHT „Complete" markiert** — dieselbe Konvention wie
+Phasen 1.2/2/3/9/10/12/14: die menschliche Sichtrunde steht noch aus, sieben
+offene Eintraege `.planning/WINDOWS.md` ids 21-27 (S-0/Markererkennbarkeit,
+D-04-Wirtschaftlichkeit, und die fuenf Punkte aus Welle 5: schmalste
+Buehnenbreite, Rail-Einfachauswahl, Auslesung-Uebersicht, dichteste
+Einzelgruppe am groessten Schiff, Buehnen-Anziehungskraft ohne
+Video-Standardmodus). Alle 20 Schienen-A-Schritte gruen (normal UND
+`STAGING=1`), inklusive des jetzt scharfen `verify:shipconsole`.
+
+(Die vorherige Phase 12 — fundorte-in-der-mining-werkbank-anklickbar — bleibt
+unveraendert bei 3/3 Plaenen, ebenfalls technisch fertig und NICHT „Complete"
+markiert, offener Eintrag `.planning/WINDOWS.md` id 12.)
 
 ---
 
@@ -170,6 +315,8 @@ Umgang wie bei Phase 1.2 oben.
 
 Progress: [█████████░] 88%
 
+Progress: [█████████░] 85%
+
 ## Performance Metrics
 
 **Velocity:**
@@ -242,6 +389,11 @@ Progress: [█████████░] 88%
 | Phase 15 P11 | ~50min | 2 tasks | 4 files |
 | Phase 15 P09 | ~2h | 3 tasks | 8 files |
 | Phase 15 P12 | 35min | 3 tasks | 2 files |
+
+| Phase 16 P01 | 185min | 3 tasks | 6 files |
+| Phase 16 P02 | 30min | 2 tasks | 6 files |
+| Phase 16 P03 | ~90min | 2 tasks | 3 files |
+| Phase 16 P05 | ~1h50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -378,6 +530,11 @@ Recent decisions affecting current work:
 - [Phase ?]: Aufgabe 2 (staging-Ausrollen) bewusst nicht ausgefuehrt -- Coolify-Umgebungsvariablen unbestaetigt, kein Push
 - [Phase ?]: WINDOWS.md: 15 scattered Phase-14-Sichtpunkte zu 9 ortsbezogenen Eintraegen konsolidiert (ids 15/20 unveraendert, 7 neue ids 29-35) statt fuenf weiterer Anhaenge
 
+- [Phase ?]: [Phase 16]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
+- [Phase ?]: [Phase 16]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
+- [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
+- [Phase ?]: 15-05: Vier 1280px-Kollisionen (Hero-Chrome ohne grid-column spannte den gesamten Konsolen-Bereich) vor der Torschaerfung behoben; verify:shipconsole scharf; Hoehenklinke haelt trotz Konsole weit unter der Marke; ein neuer Kontrastfund (Rail-Gruppe Antrieb, dunkler Modus) behoben statt uebergeben
+
 ### Pending Todos
 
 None yet.
@@ -434,4 +591,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-08-20T00:00:00.000Z
 Stopped at: Phase 15 mit staging zusammengefuehrt -- Umgebungsvariablen und Discord-Webhook gesetzt, Push und check:gate stehen aus
+
+Last session: 2026-08-20T15:45:30.317Z
+Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
 Resume file: None

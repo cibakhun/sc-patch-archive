@@ -96,6 +96,29 @@ export const EXCLUSIONS = [
       'zu, und der Zombie-Waechter (Zusicherung 8) meldet sie.',
   },
   {
+    id: 'X-holo-dims-hud',
+    mode: 'exclude-region',
+    /* Prueft die rohe Region-HTML (direktes Kind von section.holo) auf die
+       Klasse holo__dims — die HUD-Kurzanzeige "L ... m · W ... m · H ... m"
+       oben rechts auf der 3D-Buehne (ShipDetail.astro Z. 119/725/1219,
+       `position:absolute`, dieselbe dekorative Chrome-Familie wie
+       .holo__hud links daneben). */
+    match: (regionHtml) => /class="[^"]*\bholo__dims\b[^"]*"/.test(regionHtml),
+    reason:
+      'Gefunden beim ersten Lauf gegen die in 16-02-PLAN.md Task 2 erweiterte Regionsbildung (section.holo neu ' +
+      'aufgenommen). Die Planungsannahme in 16-02-PLAN.md ("section.holo traegt heute ... aber keine ' +
+      'Zahl-plus-Einheit-Token") hat sich als falsch erwiesen: `.holo__dims` rendert exakt "L <Laenge> m · ' +
+      'W <Breite> m · H <Hoehe> m" als HUD-Kurzreferenz DIREKT AUF der Buehne — dieselbe Zahl, die formal im ' +
+      'Kapitel "Ausstattung" Unterabschnitt "Masse & Fracht" (ch-gear, unveraendert von dieser Phase, ' +
+      '16-UI-SPEC.md Detailvertrag Punkt 9) steht. Es ist eine Kurzanzeige UNMITTELBAR AM visuellen Objekt, das ' +
+      'sie beschreibt, kein zweiter Dateneintrag im Fliesstext — dieselbe Klasse Fehlalarm wie ' +
+      'X-cargo-cube-legende (dort: Massstabs-Legende neben dem Frachtraum-Piktogramm; hier: Massangabe neben ' +
+      'dem gerenderten Schiff), nur bei den Schiffs-Gesamtmassen statt bei der Wuerfel-Groesse der ' +
+      'Frachtraum-Visualisierung. Ein Fehlalarm dieser Art ist teurer als eine Luecke (Grundsatz 3, ' +
+      'docs/maschinelle-validierung.md). Verschwindet `.holo__dims` aus dem Markup oder verliert die Klasse, ' +
+      'trifft diese Ausnahme auf keine Region mehr zu, und der Zombie-Waechter (Zusicherung 8) meldet sie.',
+  },
+  {
     id: 'X-einheiten-ausserhalb-des-vorrats',
     mode: 'ignored-units',
     /* Jede dieser Einheiten wird von verify-shipcard.mjs aktiv auf jeder

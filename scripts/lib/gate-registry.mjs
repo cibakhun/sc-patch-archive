@@ -145,6 +145,21 @@ export const CHECKS = [
       'die Schiffs-Detailseite traegt genau ein Kapitelgeruest mit Sprungleiste, keinen Einheitsrahmen mehr, Balken nur beim Leistungsprofil, und jeder Wert steht an genau einer Stelle (D-01/D-02/D-03)',
   },
   {
+    id: 'verify:shipconsole',
+    npm: 'verify:shipconsole',
+    script: 'scripts/verify-shipconsole.mjs',
+    rail: 'A',
+    checks:
+      'die Schiffs-Konsole (Rail, Systemabschnitte, Marker-Zaehlung, Textbestand) steht vollstaendig im ausgelieferten HTML, ohne JavaScript sichtbar, mit Bijektion Rail<->System und Sprachparitaet (Phase 16, D-01/D-02/P-1/P-2/P-3)',
+    // SCHARF seit 16-05-PLAN.md Task 1: bei der Anlage (15-02) noch AUSGESETZT
+    // (vorgefuehrt rot gegen den nach Welle 1 gebauten Stand, Meldung siehe
+    // 16-02-SUMMARY.md — Konsole existierte damals noch nicht), Wellen 3/4
+    // haben den Zielzustand gebaut. Vor der Scharfschaltung erneut gruen
+    // gelaufen (alle acht Zusicherungen, Zombie-Waechter meldet "0
+    // Ausnahmen registriert" -- explizit, keine stille Leere), Praezedenz
+    // verify:shipcard (14-01 -> 14-04): erst beheben/gruen, dann scharf.
+  },
+  {
     id: 'verify:theme',
     npm: 'verify:theme',
     script: 'scripts/verify-theme-gen.mjs',
