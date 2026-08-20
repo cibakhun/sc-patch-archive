@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 14
+current_phase: 15
 current_phase_name: testpilot-zugang-staging-hinter-der-discord-rolle
 status: verifying
-stopped_at: Completed 14-12-PLAN.md (Aufgabe 2 blockiert -- siehe Checkpoint in 14-12-SUMMARY.md)
-last_updated: "2026-08-18T15:38:38.753Z"
-last_activity: 2026-08-17
-last_activity_desc: Phase 14 execution started
+stopped_at: Phase 15 mit staging zusammengefuehrt (Phasennummer 14 -> 15, WINDOWS.md-Register entdoppelt); Ausrollen steht aus
+last_updated: "2026-08-20T00:00:00.000Z"
+last_activity: 2026-08-20
+last_activity_desc: Phase 15 (Torphase) mit staging zusammengefuehrt
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 12
-  total_plans: 65
-  completed_plans: 58
+  total_plans: 69
+  completed_plans: 61
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,8 +25,7 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 14 — testpilot-zugang-staging-hinter-der-discord-rolle
-
+**Current focus:** Phase 15 — testpilot-zugang-staging-hinter-der-discord-rolle
 > **Nachtrag 15.08.2026 (zweiter) — Phase 12 ist geplant, ausführbereit.**
 > „Fundorte in der Mining-Werkbank anklickbar", **3 Pläne in 3 Wellen**
 > (`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/`),
@@ -169,7 +168,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -227,18 +226,22 @@ Progress: [█████████░] 89%
 | Phase 12 P01 | 50min | 2 tasks | 4 files |
 | Phase 12 P02 | 50min | 3 tasks | 4 files |
 | Phase 12 P03 | ~100min | 3 tasks | 7 files |
-| Phase 14 P01 | 110min | 2 tasks | 7 files |
-| Phase 14 P02 | ~65min | 3 tasks | 2 files |
-| Phase 14 P10 | ~55min | 3 tasks | 4 files |
-| Phase 14 P05 | ~2h35min | 2 tasks | 1 files |
-| Phase 14 P03 | ~30min | 2 tasks | 1 files |
-| Phase 14-testpilot-zugang-staging-hinter-der-discord-rolle P04 | ~50min | 2 tasks | 3 files |
-| Phase 14 P06 | ~55min | 2 tasks | 2 files |
-| Phase 14 P07 | ~50min | 3 tasks | 8 files |
-| Phase 14 P08 | ~2h30min | 3 tasks | 4 files |
-| Phase 14 P11 | ~50min | 2 tasks | 4 files |
-| Phase 14 P09 | ~2h | 3 tasks | 8 files |
-| Phase 14 P12 | 35min | 3 tasks | 2 files |
+| Phase 14 P01 | 75min | 2 tasks | 6 files |
+| Phase 14 P02 | 50min | 2 tasks | 5 files |
+| Phase 14 P03 | 70min | 2 tasks | 6 files |
+| Phase 14 P04 | ~75min | 3 tasks | 5 files |
+| Phase 15 P01 | 110min | 2 tasks | 7 files |
+| Phase 15 P02 | ~65min | 3 tasks | 2 files |
+| Phase 15 P10 | ~55min | 3 tasks | 4 files |
+| Phase 15 P05 | ~2h35min | 2 tasks | 1 files |
+| Phase 15 P03 | ~30min | 2 tasks | 1 files |
+| Phase 15-testpilot-zugang-staging-hinter-der-discord-rolle P04 | ~50min | 2 tasks | 3 files |
+| Phase 15 P06 | ~55min | 2 tasks | 2 files |
+| Phase 15 P07 | ~50min | 3 tasks | 8 files |
+| Phase 15 P08 | ~2h30min | 3 tasks | 4 files |
+| Phase 15 P11 | ~50min | 2 tasks | 4 files |
+| Phase 15 P09 | ~2h | 3 tasks | 8 files |
+| Phase 15 P12 | 35min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -332,29 +335,41 @@ Recent decisions affecting current work:
 - [Phase ?]: 12-03: Backstop "Bildlaufleiste sichtbar" liess sich NICHT ueber offsetWidth-clientWidth messen (Plan-Vorschlag) -- dieses Chromium rendert scrollbar-width:thin als echten Overlay (0px reservierte Breite trotz echten Ueberlaufs); auf tatsaechliche Scroll-Wirkung (scrollTop verschiebt sichtbaren Inhalt) umgestellt
 - [Phase ?]: 12-03: npm install (ohne Argument) im Worktree ausgefuehrt, weil playwright-core in node_modules fehlte (weder Worktree noch Hauptrepo) -- reconciliert ausschliesslich aus dem committeten package-lock.json, package.json/package-lock.json vor/nach dem Lauf unveraendert (git status leer). Kein Fall des ausgeschlossenen "npm install <pkg>"-Musters
 - [Phase ?]: 12-03: Phase 12 technisch fertig (3/3 Plaene), NICHT "Complete" markiert -- Sichtrunde als WINDOWS.md id 12 an den Betreiber uebergeben, deckt inhaltlich auch die noch offenen id 10 (Phase 9) und id 11 (Phase 10) mit ab
+- [Phase 14]: 14-01: verify:shipcard registriert mit disabled statt scharf -- beurteilt den Zielzustand der Phase, ist bis 14-04-PLAN.md zwangslaeufig rot (Praezedenz verify:sync)
+- [Phase 14]: 14-01: Ausgangsmessung lief gegen npm run preview auf Port 4322 statt 4321 -- 4321 war von einem laufenden astro-dev-Server belegt
+- [Phase 14]: 14-01: document.fonts.ready vor jeder Bildpunkt-Messung ergaenzt -- ohne diese Wartestelle schwankte die Carrack-Seitenhoehe je nach Font-Swap-Zeitpunkt um bis zu 150 px zwischen zwei Laeufen derselben Seite
+- [Phase 14]: 14-02: Rahmen der Sprungleisten-Pillen als box-shadow:inset statt border gesetzt (kostet bei auto-Hoehe 0px Layout) -- noetig, weil das gemessene Hoehenbudget bei 1280x720 nur 34px betraegt, nicht die geschaetzten ~90px
+- [Phase ?]: Kein Kapitel-Icon fuer Ausstattung/Umfeld — keine natuerliche Vorlage, UI-SPEC fuehrt keine neuen Icons ein
+- [Phase ?]: verify-shipcard.mjs Ausnahme-Pruefung auf Unterabschnitts-Ebene erweitert (war seit Welle 1 dokumentiert, aber nicht implementiert) — noetig fuer zwei neue benannte Ausnahmen
+- [Phase 14]: 14-04: Grundriss-Raster (sd__dims) bleibt in der halbierten Ausstattung-Spalte zweispaltig, entgegen der in 14-04 Task 1 selbst vorweggenommenen Annahme -- Bewaffnung dominiert Zeile 1 ohnehin (turmgruppen-getrieben), zweispaltig ist 76px kuerzer und am Bild nicht gequetscht
+- [Phase 14]: 14-04: auto-fit-Innenraster (sd__grid/sd__qgrid/sd__slots/sd__inscards) brachen in der halbierten Kapitelspalte in mehr Zeilen um als bei voller Breite -- gescopete kleinere Mindestbreiten (nur innerhalb .sd__ch2col) behoben, per Bildschirmfoto gegen Text-Ueberlauf geprueft
+- [Phase 14]: 14-04: arm__sum bekam hyphens:auto + overflow-wrap:anywhere, weil eine reine Mindestbreiten-Verkleinerung "GEGENMASSNAHMEN" ueber die Zellgrenze laufen liess -- kontrollierter Wortumbruch statt Rohtext-Ueberlauf
+- [Phase 14]: 14-04: Hoehen-Sperrklinke bleibt bei 4.200px stehen (nicht auf den gemessenen 4.179px abgesenkt) -- 21px Reserve gegen Rundungsschwankungen zwischen Laeufen
+- [Phase 14]: 14-04: verify:shipcard scharf geschaltet (Aussetzungsgrund entfernt) -- 0 Befunde, npm run gate laeuft 19 statt 18 Schritte gruen, normal UND STAGING=1
+- [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
 - [Phase ?]: Docker laeuft auf dem Entwicklungsrechner nicht (com.docker.service braucht Administratorrechte) — beide Plan-Verifikationen (njs-Machbarkeit, E2E-Weg) liefen stattdessen in GitHub Actions gegen das echte Artefakt, vom Betreiber ausdruecklich gebilligt (Grundsatz 7)
 - [Phase ?]: js_fetch_trusted_certificate (nicht ssl_trusted_certificate) ist die richtige Direktive fuer ngx.fetch()-TLS-Verifikation in njs — der server{}-Block hat keinen eigenen SSL-Kontext
 - [Phase ?]: Login mit einem echten E-Mail/Passwort-Testkonto auf gate.html bleibt eine manuelle Pruefung — kein Supabase-Testkonto als Repo-Secret angelegt (Vorsicht vor spekulativen Credentials)
-- [Phase ?]: Strukturbefund fuer 14-08/14-09/14-12: jede Pruefung gegen einen laufenden Container ist auf diesem Rechner nur per CI-Sonde moeglich, nie lokal
-- [Phase ?]: [Phase 14]: 14-02: sync_discord_identity() faengt unique_violation auf discord_user_id (nicht user_id) ab und ersetzt sie durch eine sprechende Meldung (Kandidat a); foreign_key_violation/others werfen nur noch WARNING -- ein Spiegel-Eintrag ist nie wichtiger als eine funktionierende Anmeldung
-- [Phase ?]: [Phase 14]: 14-02: public_profiles wird gegen die JUENGSTE Migration gebaut (20260725110000_presence_two_signal.sql, presence-Spalte), nicht gegen ihre Urfassung -- is_tester ganz am Ende angehaengt
-- [Phase ?]: [Phase 14]: 14-02: Migrationen dieses Projekts laufen ueber die Supabase Management API (apply_migration, Namen ohne Datei-Zeitstempel), NICHT ueber supabase db push -- der CLI-Weg ist strukturell kaputt (24 lebende Migrationen tragen andere Namen als die 11 Repo-Dateien)
-- [Phase ?]: [Phase 14]: 14-10: Testpilot-Abzeichen-Farbe #ff5e1a von der Discord-Rolle uebernommen (C.craftOrange), nach dem RSI-Abzeichen gepusht; Hellmodus-Gegenstueck von Hand ergaenzt
-- [Phase ?]: [Phase 14]: 14-10: Admin-Uebersicht (D-13) per direkter user_roles-Abfrage vor tester_overview() gegattert statt der is-admin-Klasse aus account-lite.js, das auf /account/-Seiten nicht laeuft
-- [Phase ?]: [Phase 14]: 14-10: Namensnennung auf der Feedback-Seite statt Unterstuetzen-Seite verdrahtet (die sagt woertlich 'no perks in your account'); vier Sichtpruefungen (D1-D4) an Plan 12 uebergeben, WINDOWS.md-Eintrag scheiterte an vorbestehendem CRLF-Parserfehler
-- [Phase ?]: [Phase 14]: 14-05: D-14 woertlich umgesetzt (nur Rollen-Kommentar geaendert, Objektzeile git-diff-unveraendert); D-15 vollstaendig inkl. zwei zusaetzlicher Fundstellen (start-here-Seed, Onboarding-Kopfkommentar); D-18 mit flight-computer-Mitsicht fuer den kuenftigen Deploy-Ping
-- [Phase ?]: [Phase 14]: 14-05: Task 2 (Live-Anwendung) NICHT vom Executor ausgefuehrt -- Bash-Berechtigungsklassifikator blockierte node build.mjs zweimal hart; Betreiber hat den Lauf selbst gefahren, Vorher/Nachher-Gegenprobe per audit.mjs bestaetigt 0 Fehler/1 Warnung (unveraenderte #support-Warnung, plangemaess)
-- [Phase ?]: [Phase 14]: 14-05: Navigators sehen #test-pilots nicht (woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht) -- als offene Betreiberentscheidung in WINDOWS.md #15 dokumentiert, nicht eigenmaechtig geaendert
-- [Phase ?]: [Phase 14]: 14-03: D-02-Riegel sitzt in public.handle_new_user() statt einem eigenen Trigger auf auth.users -- auth.users gehoert supabase_auth_admin, ein eigener Trigger scheiterte gemessen an ERROR 42501 (must be owner of relation). Betreiber hat nach Abwaegung von drei Wegen die Funktionserweiterung gewaehlt; Wirkung identisch zum Plan.
-- [Phase ?]: [Phase 14]: 14-03: trg_sync_discord_identity aus Plan 02 ist jetzt real bestaetigt (T3-SQL-Gegenprobe setzt discord_role_state.discord_user_id) -- schliesst 14-02-SUMMARY.md coverage D6.
+- [Phase ?]: Strukturbefund fuer 15-08/15-09/15-12: jede Pruefung gegen einen laufenden Container ist auf diesem Rechner nur per CI-Sonde moeglich, nie lokal
+- [Phase ?]: [Phase 15]: 15-02: sync_discord_identity() faengt unique_violation auf discord_user_id (nicht user_id) ab und ersetzt sie durch eine sprechende Meldung (Kandidat a); foreign_key_violation/others werfen nur noch WARNING -- ein Spiegel-Eintrag ist nie wichtiger als eine funktionierende Anmeldung
+- [Phase ?]: [Phase 15]: 15-02: public_profiles wird gegen die JUENGSTE Migration gebaut (20260725110000_presence_two_signal.sql, presence-Spalte), nicht gegen ihre Urfassung -- is_tester ganz am Ende angehaengt
+- [Phase ?]: [Phase 15]: 15-02: Migrationen dieses Projekts laufen ueber die Supabase Management API (apply_migration, Namen ohne Datei-Zeitstempel), NICHT ueber supabase db push -- der CLI-Weg ist strukturell kaputt (24 lebende Migrationen tragen andere Namen als die 11 Repo-Dateien)
+- [Phase ?]: [Phase 15]: 15-10: Testpilot-Abzeichen-Farbe #ff5e1a von der Discord-Rolle uebernommen (C.craftOrange), nach dem RSI-Abzeichen gepusht; Hellmodus-Gegenstueck von Hand ergaenzt
+- [Phase ?]: [Phase 15]: 15-10: Admin-Uebersicht (D-13) per direkter user_roles-Abfrage vor tester_overview() gegattert statt der is-admin-Klasse aus account-lite.js, das auf /account/-Seiten nicht laeuft
+- [Phase ?]: [Phase 15]: 15-10: Namensnennung auf der Feedback-Seite statt Unterstuetzen-Seite verdrahtet (die sagt woertlich 'no perks in your account'); vier Sichtpruefungen (D1-D4) an Plan 12 uebergeben, WINDOWS.md-Eintrag scheiterte an vorbestehendem CRLF-Parserfehler
+- [Phase ?]: [Phase 15]: 15-05: D-14 woertlich umgesetzt (nur Rollen-Kommentar geaendert, Objektzeile git-diff-unveraendert); D-15 vollstaendig inkl. zwei zusaetzlicher Fundstellen (start-here-Seed, Onboarding-Kopfkommentar); D-18 mit flight-computer-Mitsicht fuer den kuenftigen Deploy-Ping
+- [Phase ?]: [Phase 15]: 15-05: Task 2 (Live-Anwendung) NICHT vom Executor ausgefuehrt -- Bash-Berechtigungsklassifikator blockierte node build.mjs zweimal hart; Betreiber hat den Lauf selbst gefahren, Vorher/Nachher-Gegenprobe per audit.mjs bestaetigt 0 Fehler/1 Warnung (unveraenderte #support-Warnung, plangemaess)
+- [Phase ?]: [Phase 15]: 15-05: Navigators sehen #test-pilots nicht (woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht) -- als offene Betreiberentscheidung in WINDOWS.md #15 dokumentiert, nicht eigenmaechtig geaendert
+- [Phase ?]: [Phase 15]: 15-03: D-02-Riegel sitzt in public.handle_new_user() statt einem eigenen Trigger auf auth.users -- auth.users gehoert supabase_auth_admin, ein eigener Trigger scheiterte gemessen an ERROR 42501 (must be owner of relation). Betreiber hat nach Abwaegung von drei Wegen die Funktionserweiterung gewaehlt; Wirkung identisch zum Plan.
+- [Phase ?]: [Phase 15]: 15-03: trg_sync_discord_identity aus Plan 02 ist jetzt real bestaetigt (T3-SQL-Gegenprobe setzt discord_role_state.discord_user_id) -- schliesst 15-02-SUMMARY.md coverage D6.
 - [Phase ?]: AuthLogin.astro Discord-redirectTo zeigt auf die Login-Seite selbst statt auf /account/ -- Rule-1-Fix, sonst ginge die D-02-Absage im Dashboard-Redirect verloren
 - [Phase ?]: D-02-Erkennung matcht zweigleisig (eigener Text ODER GoTrue-Generic-Wrapper) -- WINDOWS.md id 16 laesst offen, welche Form ankommt
-- [Phase ?]: 14-06: Trockenlauf zeigt 0 aktuelle Traeger der Discord-Rolle Test Pilots (5 Mitglieder gesamt) -- Massenentzug aus D-16 waere aktuell ein No-Op, Checkpoint-Zustimmung trotzdem erforderlich vor --rolle-wirklich-entziehen
-- [Phase ?]: 14-06: Betreiber vertagt D-16-Vollzug (18.08.2026) statt allen-entziehen/liste-kuerzen/nicht-entziehen -- vor dem Scharfschalten in 14-12 erneut node tester-dry-run.mjs fahren, dann entscheiden. Verdrahtet in WINDOWS.md #20. Trockenlauf-Ergebnis (5 Mitglieder, 0 Traeger) vom Betreiber unabhaengig bestaetigt
-- [Phase ?]: [Phase 14]: 14-07: PostgREST-PATCH statt Upsert fuer den Rollenspiegel -- discord_role_state.user_id ist Primaerschluessel ohne Default und wird nur vom sync_discord_identity()-Trigger gesetzt; PATCH+Filter auf discord_user_id trifft nie daneben
-- [Phase ?]: [Phase 14]: 14-07: audit.mjs/prune.mjs fordern jetzt selbst GatewayIntentBits.GuildMembers an und melden dessen Abwesenheit als Fund statt es als gewollten Zustand zu behandeln (vorher konnten beide Skripte das Fehlen gar nicht maschinell feststellen)
-- [Phase ?]: [Phase 14]: 14-07: die vier live-Zustandswechsel-Nachweise (Rolle geben/nehmen/Austritt/Ausfallfall) sind NICHT gefahren -- brauchen einen mit dem neuen Code deployten Bot, Deploy war ausdruecklich nicht Teil dieses Plans; als WINDOWS.md ids 21/22 verdrahtet
-- [Phase ?]: 14-08: mint() urteilt ueber gate_verdict() (Testpilot/Sperrliste/Admin/D-09 in einem Aufruf); Ausnahmeliste auf 7 gemessene GATE-AUSNAHME-Eintraege gebracht; stille Ausweis-Erneuerung in account-lite.js; CI-Sonde probe-gate-e2e.yml erweitert (nicht neu gebaut) -- alle Zusicherungen gruen (run 32133474158)
+- [Phase ?]: 15-06: Trockenlauf zeigt 0 aktuelle Traeger der Discord-Rolle Test Pilots (5 Mitglieder gesamt) -- Massenentzug aus D-16 waere aktuell ein No-Op, Checkpoint-Zustimmung trotzdem erforderlich vor --rolle-wirklich-entziehen
+- [Phase ?]: 15-06: Betreiber vertagt D-16-Vollzug (18.08.2026) statt allen-entziehen/liste-kuerzen/nicht-entziehen -- vor dem Scharfschalten in 14-12 erneut node tester-dry-run.mjs fahren, dann entscheiden. Verdrahtet in WINDOWS.md #20. Trockenlauf-Ergebnis (5 Mitglieder, 0 Traeger) vom Betreiber unabhaengig bestaetigt
+- [Phase ?]: [Phase 15]: 15-07: PostgREST-PATCH statt Upsert fuer den Rollenspiegel -- discord_role_state.user_id ist Primaerschluessel ohne Default und wird nur vom sync_discord_identity()-Trigger gesetzt; PATCH+Filter auf discord_user_id trifft nie daneben
+- [Phase ?]: [Phase 15]: 15-07: audit.mjs/prune.mjs fordern jetzt selbst GatewayIntentBits.GuildMembers an und melden dessen Abwesenheit als Fund statt es als gewollten Zustand zu behandeln (vorher konnten beide Skripte das Fehlen gar nicht maschinell feststellen)
+- [Phase ?]: [Phase 15]: 15-07: die vier live-Zustandswechsel-Nachweise (Rolle geben/nehmen/Austritt/Ausfallfall) sind NICHT gefahren -- brauchen einen mit dem neuen Code deployten Bot, Deploy war ausdruecklich nicht Teil dieses Plans; als WINDOWS.md ids 21/22 verdrahtet
+- [Phase ?]: 15-08: mint() urteilt ueber gate_verdict() (Testpilot/Sperrliste/Admin/D-09 in einem Aufruf); Ausnahmeliste auf 7 gemessene GATE-AUSNAHME-Eintraege gebracht; stille Ausweis-Erneuerung in account-lite.js; CI-Sonde probe-gate-e2e.yml erweitert (nicht neu gebaut) -- alle Zusicherungen gruen (run 32133474158)
 - [Phase ?]: D-21 XP-Bonus 50 (Skala aus config.mjs/leveling.mjs hergeleitet, im Kopfkommentar begruendet); Sperre ist Primaerschluessel bug_xp_threads(thread_id), nicht Code-Logik
 - [Phase ?]: D-20 Quelle GitHub-Compare-API statt git log (Checkout ist flach); ein Embed statt zwei EN/DE (Betreffzeilen sind keine uebersetzbaren Redaktionstexte)
 - [Phase ?]: verify-gate.mjs (Schiene A) friert die 7-Eintrag GATE-AUSNAHME-Liste ein; check-gate.mjs (Schiene C) misst die ausgelieferte Zugriffskontrolle -- zwei Prüfer, weil Schiene A nie einen HTTP-Status sehen kann
@@ -417,6 +432,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T15:38:31.071Z
-Stopped at: Completed 14-12-PLAN.md (Aufgabe 2 blockiert -- siehe Checkpoint in 14-12-SUMMARY.md)
+Last session: 2026-08-20T00:00:00.000Z
+Stopped at: Phase 15 mit staging zusammengefuehrt -- Umgebungsvariablen und Discord-Webhook gesetzt, Push und check:gate stehen aus
 Resume file: None

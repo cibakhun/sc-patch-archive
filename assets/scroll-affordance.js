@@ -25,9 +25,9 @@
   // bringt ihre eigene mit, die auf ihre klebende System-Spalte Ruecksicht
   // nimmt (src/pages/evolution.astro).
   var SEL_DRAG =
-    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.evo__scroll';
+    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.evo__scroll,.sd__jump__in';
   var SEL_FADE =
-    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints';
+    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.sd__jump__in';
   // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
   var SEL_VFADE = '.vb-scrollbox';
 

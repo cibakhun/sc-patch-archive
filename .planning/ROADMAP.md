@@ -781,7 +781,121 @@ Plans:
 
 - [ ] TBD (run /gsd-plan-phase 13 to break down)
 
-### Phase 14: Testpilot-Zugang: staging hinter der Discord-Rolle
+### Phase 14: Schiffs-Datenkarte entstapeln
+
+**Goal:** Eine Schiffsseite liest sich in wenigen Kapiteln statt als Stapel
+gleichförmiger Kästen. Wer sie öffnet, erkennt ohne Scrollen, welche Kapitel
+es gibt, und springt in eines davon; jeder Kennwert steht genau einmal.
+
+**Ausgangsmessung** (Carrack, 1280 × 720, Dev-Server, 18.08.2026):
+
+| gemessen | Wert |
+| --- | --- |
+| Seitenhöhe | 5.554 px = 7,7 Bildschirme |
+| Blöcke unter dem Hero | 14 (10 × `.sd__panel` + Kennwerte-Leiste + Beschreibung + Ähnliche + Fußblöcke) |
+| Balkenspuren (`.sd__gtrack` / `.sd__proftrack`) | 20 |
+| Kopfzeilen-Codes (`.sd__code`) | 10, davon 6 nur „Anvil Aerospace" |
+| Sprungmarken | 0 |
+
+**Die Doppelungen, maschinell gezählt:** `126 m` steht **4×** (Hero-Zeile,
+Kennwerte-Leiste, Maße-Balken, Ähnliche Schiffe), `456 SCU` und `140 m/s`
+je **3×**, dazu `74 m`, `30 m`, `319.000 km/s` und `10,6 SCU` je 2×. Nicht in
+dieser Zählung, aber genauso doppelt: **alle sechs Felder des Panels
+„Datenblatt"** — Typ, Größe und Status stehen als Chips unter dem Titel, die
+Besatzung in der Kennwerte-Leiste, der Pledge-Preis im Kauf-Panel, der
+Hersteller als Logo. Und `Hülle 88.000 HP` + `Schilde 144.000 HP` ergeben
+exakt die `232.000 HP`, die zwei Panels weiter oben als „Defense" stehen.
+
+**D-01 — Kapitel und Sprungleiste, nicht Reiter** (Betreiber, 18.08.2026):
+Die zehn gleichförmigen Panels werden zu wenigen Kapiteln mit
+unterschiedlichem Gewicht gebündelt, darüber eine beim Scrollen erreichbare
+Sprungleiste. ⚠ **Reiter und Akkordeons sind ausgeschlossen** — der Betreiber
+hat ausdrücklich festgehalten, dass „alles steht da" die Stärke dieser Seite
+ist; was hinter einen Klick wandert, verletzt das. Ebenfalls verworfen: reine
+Zweispaltigkeit, weil sie die Länge halbiert, ohne die Gleichförmigkeit zu
+heilen.
+
+**D-02 — Balken nur, wo sie vergleichen** (Betreiber, 18.08.2026): Das
+Leistungsprofil behält seine Balken — dort steht der Balken für ein Perzentil
+gegen 227 Schiffe und vergleicht wirklich etwas. Bei Maßen, Tanks,
+Flugwerten und Verteidigung werden die Balken zu Zahlen. Ein Balken, der
+Länge gegen Breite gegen Höhe stellt, sieht aus wie Daten und ist keine.
+
+**Was NICHT angefasst wird:** Der Hero mit Hologramm-Bühne, Video- und
+Bilderumschalter trägt und bleibt unberührt. Ebenso die Datenlage — diese
+Phase ändert kein einziges Datenfeld und keinen einzigen Wert.
+
+**Bekannte Rahmenbedingungen:**
+
+- `src/components/ShipDetail.astro` (2141 Zeilen) ist **EIN Körper für DE und
+  EN**; beide `[slug].astro` sind 27-Zeilen-Wrapper. Jede Änderung landet in
+  beiden Sprachen zugleich, neue sichtbare Zeichenketten brauchen ihren
+  Schlüssel in `src/i18n/ui.ts`.
+
+- Schiffsseiten laden **kein** `detail.css` — im gebauten
+  `dist/schiffe/anvl-carrack.html` stehen nur `fonts.css`, `mobile-ux.css`
+  und `theme.css`. Die site-weite Falle
+  `section{padding:clamp(3rem,7vw,5.5rem)…}` greift hier also nicht, und die
+  lokale Regel `*{margin:0;padding:0}` (`ShipDetail.astro:404`) neutralisiert
+  sie zusätzlich. Wer diese Zeile anfasst, holt die Falle zurück.
+
+- Die Panels stehen heute als `<section class="sd__panel">` in **einer**
+  Spalte (`.sd{max-width:var(--maxw)}`).
+
+**Schlussmessung** (Carrack, 1280 × 720, dunkler Modus, 18.08.2026,
+`node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4322`
+gegen den nach Welle 4 gebauten `dist/` dieses Worktrees): **4.179 px DE /
+4.117 px EN** — 1.375 px unter dem Ausgang von 5.554 px (−24,8 %) und
+21 px unter der auf 4.200 px festgeschriebenen Sperrklinke. Alle 216
+Messpunkte (3 Schiffe × 2 Sprachen × 2 Breiten × 2 Farbmodi × 9
+Messgruppen) bestanden.
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 und D-02.
+**Depends on:** nichts
+**Plans:** 4/4 plans executed
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Auf der gebauten Carrack-Seite kommt jeder der sieben heute doppelten
+     Zahlwerte höchstens einmal vor; jede verbleibende Wiederholung ist als
+     Ausnahme benannt und begründet
+
+  2. Das Panel „Datenblatt" existiert in seiner heutigen Form nicht mehr —
+     seine sechs Felder stehen an jeweils genau einer Stelle
+
+  3. Beim Öffnen einer Schiffsseite ist ohne Scrollen erkennbar, welche
+     Kapitel die Seite hat; ein Klick springt dorthin, und die Sprungleiste
+     bleibt beim Scrollen erreichbar
+
+  4. Es stehen nicht mehr zehn gleich aussehende Rahmen untereinander — die
+     Kapitel sind optisch voneinander unterscheidbar
+
+  5. Balkenspuren gibt es nur noch im Leistungsprofil; überall sonst Zahlen
+  6. Die Seitenhöhe der Carrack bei 1280 × 720 liegt bei höchstens 4.200 px
+     (Ausgang 5.554 px) und wird als Sperrklinke festgeschrieben
+
+  7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi,
+     bis hinunter auf 360 px Breite
+
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1`
+
+Plans:
+
+- [x] 14-01-PLAN.md — Werkzeug vor Eingriff: das Entdopplungs-Tor
+      (`verify:shipcard`, vorerst ausgesetzt) einmal vorgeführt rot, plus die
+      Messsonde, die die Ausgangsmessung von 5.554 px reproduziert
+
+- [x] 14-02-PLAN.md — Tracer: Sprungleiste und erstes Kapitel end-to-end,
+      Ankerziel und 360 px am gerenderten Bildpunkt gemessen
+
+- [x] 14-03-PLAN.md — Leistung, Ausstattung und Umfeld als Kapitel; Datenblatt
+      getilgt; Balken nur noch im Leistungsprofil
+
+- [x] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
+      Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`
+
+### Phase 15: Testpilot-Zugang: staging hinter der Discord-Rolle
 
 **Goal:** `staging.verse-base.com` steht nicht mehr offen. Wer die Rolle
 „Test Pilots" auf dem Discord-Server trägt, kommt hinein; alle anderen sehen
@@ -864,15 +978,15 @@ abgebildet; die Zuordnung steht in jedem `requirements`-Feld der Plan-Frontmatte
 
 Plans:
 
-- [x] 14-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
-- [x] 14-02-PLAN.md — Supabase: Rollenspiegel, Sperrliste, Spiegelspalten, Torurteil in einem Aufruf (D-03, D-05, D-08, D-10, D-13, D-19, D-22)
-- [x] 14-03-PLAN.md — Kontosperre: der Discord-Knopf legt nie ein Konto an, vorgeführt rot vor dem Scharfstellen (D-02)
-- [x] 14-04-PLAN.md — Discord als zweiter Anmeldeweg im Konto und am Tor (D-01, D-03, D-11)
-- [x] 14-05-PLAN.md — Discord-Server: Rolle nicht mehr selbst vergebbar, eigener privater Kanal (D-14, D-15, D-18)
-- [x] 14-06-PLAN.md — Bestandsträger: Trockenlauf mit Namen und Anzahl, dann Entzug bei allen (D-16)
-- [x] 14-07-PLAN.md — Bot: Server Members Intent, Rollenstand per Push, Vollabgleich beim Start (D-08, D-17, D-25)
-- [x] 14-08-PLAN.md — Tor scharf: Testpiloten, Sperrliste, Ausfallverhalten, aufgezählte Ausnahmeliste (D-06, D-09, D-10, D-13)
-- [x] 14-09-PLAN.md — Torkette: verify:gate (Schiene A), check:gate (Schiene C), Rauchtest-Bypass ohne Dauerschlüssel (D-06, D-07, D-12)
-- [x] 14-10-PLAN.md — Perks auf der Seite: Profil-Abzeichen, Zustimmungsschalter, Namensnennung, Testpiloten-Übersicht (D-13, D-19, D-22)
-- [x] 14-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
-- [x] 14-12-PLAN.md — Scharfschaltung: beide Bauarten grün, Ausrollen, Beleg an der ausgelieferten Seite, Sichturteile an den Betreiber
+- [x] 15-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
+- [x] 15-02-PLAN.md — Supabase: Rollenspiegel, Sperrliste, Spiegelspalten, Torurteil in einem Aufruf (D-03, D-05, D-08, D-10, D-13, D-19, D-22)
+- [x] 15-03-PLAN.md — Kontosperre: der Discord-Knopf legt nie ein Konto an, vorgeführt rot vor dem Scharfstellen (D-02)
+- [x] 15-04-PLAN.md — Discord als zweiter Anmeldeweg im Konto und am Tor (D-01, D-03, D-11)
+- [x] 15-05-PLAN.md — Discord-Server: Rolle nicht mehr selbst vergebbar, eigener privater Kanal (D-14, D-15, D-18)
+- [x] 15-06-PLAN.md — Bestandsträger: Trockenlauf mit Namen und Anzahl, dann Entzug bei allen (D-16)
+- [x] 15-07-PLAN.md — Bot: Server Members Intent, Rollenstand per Push, Vollabgleich beim Start (D-08, D-17, D-25)
+- [x] 15-08-PLAN.md — Tor scharf: Testpiloten, Sperrliste, Ausfallverhalten, aufgezählte Ausnahmeliste (D-06, D-09, D-10, D-13)
+- [x] 15-09-PLAN.md — Torkette: verify:gate (Schiene A), check:gate (Schiene C), Rauchtest-Bypass ohne Dauerschlüssel (D-06, D-07, D-12)
+- [x] 15-10-PLAN.md — Perks auf der Seite: Profil-Abzeichen, Zustimmungsschalter, Namensnennung, Testpiloten-Übersicht (D-13, D-19, D-22)
+- [x] 15-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
+- [x] 15-12-PLAN.md — Scharfschaltung: beide Bauarten grün, Ausrollen, Beleg an der ausgelieferten Seite, Sichturteile an den Betreiber

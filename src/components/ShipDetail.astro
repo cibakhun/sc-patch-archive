@@ -13,7 +13,7 @@ import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
-import { buildFacts, buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
+import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import type { Visuals } from '../lib/shipVisuals';
 import { pickHero } from '../lib/shipRenders';
@@ -93,11 +93,14 @@ const spine = d.patches
   .map((v) => patches.find((p) => p.data.version === v))
   .filter(Boolean);
 
-// cargo/ore/dims werden anderswo (Maße & Fracht) gezeigt -> hier per stabilem
-// key ausfiltern (sprachunabhängig, da Labels jetzt lokalisiert sind).
-const facts = buildFacts(d, lang).filter((f) => !['cargo', 'ore', 'dims'].includes(f.key ?? ''));
 const armament = buildArmament(d, lang);
 const armStats = buildArmStats(d, lang);
+// Turm-DPS-Summe als ZUSAETZLICHE Zelle nur bei MEHR als einer Turmgruppe
+// (14-UI-SPEC.md Detailvertrag Punkt 4) — bei genau einer Turmgruppe steht
+// derselbe Wert bereits als arm__gval in deren eigener Zeile, eine zweite
+// Zelle waere die Doppelung, die D-03 verbietet.
+const turretDpsTotal =
+  d.turrets.length > 1 && d.turretDps ? Math.round(d.turretDps).toLocaleString(loc) : null;
 const desc = vDesc(d, lang);
 // FleetYards liefert vereinzelt "<= PLACEHOLDER =>" als Komponentennamen
 // (z. B. Javelin, ROC-DS) — solche Einträge tragen keine Information und
@@ -126,6 +129,51 @@ const stageStats: { label: string; value: string }[] = [
     value: buyMin ? aUEC(buyMin.price, lang) : d.msrpUSD != null ? `$${d.msrpUSD.toLocaleString('en-US')}` : '—',
   },
 ];
+
+// Kapitelliste (EINZIGE Quelle fuer Sprungleiste + Kapitelkoepfe, D-01).
+// Jeder Eintrag traegt die stabile, NICHT uebersetzte Kennung, den vollen
+// Kapiteltitel, das Kurzlabel fuer die Sprungleisten-Pille und die
+// Bedingung, unter der das Kapitel ueberhaupt rendert. Welle 3 verlaengert
+// diese Liste um drei Eintraege (ch-profile, ch-gear, ch-context) — sie
+// baut sie nicht um. Diese Liste ist die EINZIGE Quelle: eine Pille
+// entsteht nur zu einem Eintrag, der auch sein Element rendert; jede
+// Entkopplung erzeugt einen toten Anker, und tote Anker sind bei
+// `audit:site` ein FEHLER. Die Kapitelnummer wird aus der gefilterten
+// Liste fortlaufend abgeleitet, nicht aus einer festen Zuordnung — eine
+// Seite mit drei Kapiteln zeigt 01, 02, 03, nicht 01, 03, 04.
+// Wurzelbedingungen der drei neuen Kapitel — wortgleich die ODER-Verknuepfung
+// ihrer Unterabschnitts-Bedingungen weiter unten im Markup (nicht neu
+// formuliert, siehe Task-1-Anweisung). Vorgezogen, damit die Sprungleiste sie
+// kennt, bevor das Kapitel selbst gerendert wird.
+const gearDims = viz.dims != null || viz.cargo != null || viz.fuel.length > 0;
+// Der Bewaffnungs-Unterabschnitt verliert seinen Balken-Bestandteil der
+// Bedingung (viz.firepower) — der Balken faellt in Task 2, hier schon die
+// neue Formel: es gibt Waffenzeilen ODER Kennzahlenzellen.
+const gearArms = armament.length > 0 || armStats.length > 0;
+const gearFlight = viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0;
+const gearComp = viz.defense.length > 0 || slots.length > 0;
+const hasGear = gearDims || gearArms || gearFlight || gearComp;
+const hasContext = viz.insurance.length > 0 || paints.length > 0 || variants.length > 0 || loaners.length > 0 || spine.length > 0;
+// Umfeld-Kopfzeile: FleetYards-Stand nur, wenn tatsaechlich FleetYards-Inhalt
+// (Lackierungen ODER Varianten/Loaner) im Kapitel steht — sonst die
+// bestehende Standard-Angabe des Versicherungs-Panels (14-UI-SPEC.md Punkt 7).
+const ctxHasFleetYards = paints.length > 0 || variants.length > 0 || loaners.length > 0;
+const ctxCode = ctxHasFleetYards
+  ? `${t('ship.code.ctx')} // FleetYards · ${t('ship.asof')} ${extrasFetchedAt}`
+  : `${t('ship.code.ctx')} // ${t('ship.code.uee')}`;
+
+const CHAPTERS_SOURCE: { id: string; title: string; pill: string; renders: boolean }[] = [
+  // Kaufen rendert strukturell IMMER (Rueckfalltext sd__nobuy ohne Kaufzeile).
+  { id: 'ch-buy', title: t('ship.buy.title'), pill: t('ship.jump.buy'), renders: true },
+  { id: 'ch-profile', title: t('ship.profile.title'), pill: t('ship.jump.profile'), renders: profile.length > 0 },
+  { id: 'ch-gear', title: t('ship.ch.gear'), pill: t('ship.ch.gear'), renders: hasGear },
+  { id: 'ch-context', title: t('ship.ch.context'), pill: t('ship.ch.context'), renders: hasContext },
+];
+const chapters = CHAPTERS_SOURCE.filter((c) => c.renders).map((c, i) => ({
+  ...c,
+  num: String(i + 1).padStart(2, '0'),
+}));
+const chapterNum = (id: string) => chapters.find((c) => c.id === id)?.num ?? '';
 
 // ---------- Interaktives Komponenten-Hologramm ----------
 // Positionsquelle ist das echte Spielmesh (src/data/holo-meshes.json): das
@@ -736,14 +784,89 @@ a{color:inherit;text-decoration:none}
 .sd__makerlogo{display:block;align-self:flex-start;height:clamp(28px,3.4vw,44px);width:auto;max-width:min(240px,56vw);margin-bottom:.5rem;object-fit:contain;filter:drop-shadow(0 1px 3px var(--shadow-color))}
 /* Volle Marken-Logos (Emblem + Wortmarke) höher, damit der Schriftzug lesbar bleibt */
 .sd__makerlogo--full{height:clamp(46px,6vw,72px);max-width:min(340px,70vw)}
-.sd__panel{position:relative;background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--accent);
-  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-  margin-bottom:1.6rem}
 .sd__phead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.55rem;margin-bottom:1rem}
 .sd__phead h2{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
 .sd__code{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Mobil: Aktencode-Zeile (…//…) umbrechen statt clippen — voller Text sichtbar */
 @media(max-width:640px){.sd__phead{flex-direction:column;align-items:stretch;gap:.35rem}.sd__code{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}}
+
+/* Kapitel-Sprungleiste — klebt unter der Kopfleiste (--nav-h, SiteNav.astro
+   Z. 946-949) ueber .sd hinaus, Bauform wie .cdb-bar (CraftingApp.astro
+   Z. 560, einzige bestehende klebende Leiste des Hauses): position:sticky,
+   top:var(--nav-h), z-index:20, Glasflaeche. Eigene volle-Breite-Zeile auf
+   derselben Ebene wie .holo__bar, NICHT erstes Kind von .sd — .sd traegt
+   bereits eigenen Innenabstand, darin wuerde ein klebendes Element
+   schwimmen. Trennlinie NUR unten: oben trennt bereits die Kennwerte-
+   Leiste, zwei gestapelte Linien waeren ein Doppelstrich.
+
+   HOEHENBUDGET, gemessen 18.08.2026 mit scripts/probes/schiffskarte-messung.mjs
+   gegen die Carrack, 1280x720: die Kennwerte-Leiste endet NICHT bei 630px
+   (die UI-SPEC-Schaetzung vergass .holo{margin-top:56px}), sondern bei
+   686px — es bleiben nur 34px bis zum unteren Fensterrand, nicht die
+   geschaetzten ~90px. Deshalb hier BEIDE Stellschrauben aus der
+   14-UI-SPEC.md-Reihenfolge gezogen (Aussenabstand des inneren Kastens,
+   dann Innenabstand der Pillen) UND die Rahmen als `box-shadow: inset`
+   statt `border` gesetzt — ein Rahmen ist bei auto-Hoehe IMMER zusaetzliche
+   Layout-Hoehe, auch mit dem site-weiten box-sizing:border-box (das wirkt
+   nur bei EXPLIZIT gesetzten Massen), ein inset-box-shadow sieht optisch
+   identisch aus und kostet 0px. `line-height:1` auf der Pille verhindert
+   zusaetzlich die ererbte Fliesstext-Zeilenhoehe (~1,9 statt 1) — derselbe
+   Kniff wie bei .snav__back (SiteNav.astro Z. 978-981). */
+.sd__jump{position:sticky;top:var(--nav-h);z-index:20;box-shadow:inset 0 -1px 0 0 var(--line);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px)}
+.sd__jump__in{max-width:var(--maxw);margin:0 auto;display:flex;gap:.5rem;overflow-x:auto;
+  padding:.25rem clamp(1rem,3vw,2.5rem)}
+.sd__jump a{flex:none;white-space:nowrap;line-height:1;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
+  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);
+  padding:.2rem .7rem;transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui)}
+.sd__jump a:hover,.sd__jump a:focus-visible{color:var(--text);box-shadow:inset 0 0 0 1px var(--muted)}
+/* Bewusst der cyanfarbene Basis-Accent, NICHT die jeweilige Kapitelfarbe —
+   sonst muesste die Leiste selbst vier Zustandsfarben fuehren, kaum
+   unterscheidbar bei 360px. */
+.sd__jump a.is-active{color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+/* Sanftes Scrollen fuer Seitenanker rein ueber CSS, kein JS-scrollIntoView. */
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* Kapitelrahmen — Ersatz fuer das ehemalige .sd__panel (Welle 3 hat dessen
+   letzte Verwendung entfernt, die Regel selbst ist mit ihm gefallen) an den
+   vier Kapitel-Wurzelelementen (Kaufen/Leistung/Ausstattung/Umfeld).
+   Innenraster und Eckenschnitt UNVERAENDERT vom frueheren .sd__panel
+   uebernommen; einzige Abweichung ist der groessere Aussenabstand — vier
+   schwere Kapitel brauchen mehr Luft als zehn duenne Kaesten. Alle vier
+   Modifikatoren sind seit Welle 3 in Benutzung (14-UI-SPEC.md
+   Kapitel-Akzent-Tabelle). */
+.sd__chapter{position:relative;background:var(--surface);border:1px solid var(--line);
+  padding:1.25rem 1.5rem 1.4rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+  margin-bottom:2.2rem;
+  /* Zuschlag GEMESSEN 18.08.2026 mit scripts/probes/schiffskarte-messung.mjs
+     gegen die Carrack (DE+EN, hell+dunkel) bei 1280x720 UND 360x740: die
+     Sprungleiste ist an beiden Breiten exakt 30.6px hoch (Padding/Pillen
+     haengen nicht von der Breite ab) -> aufgerundet 31px. Ersetzt den
+     geschaetzten 64px-Wert aus Task 1 / 14-UI-SPEC.md Punkt 1. */
+  scroll-margin-top:calc(var(--nav-h) + 31px)}
+.sd__chapter--buy{border-top:3px solid var(--gold)}
+.sd__chapter--buy .sd__chnum{background:var(--gold)}
+.sd__chapter--buy .sd__phead h2{color:var(--gold)}
+.sd__chapter--profile{border-top:2px solid var(--accent)}
+.sd__chapter--profile .sd__chnum{background:var(--accent)}
+.sd__chapter--profile .sd__phead h2{color:var(--accent)}
+.sd__chapter--gear{border-top:2px solid var(--accent-2)}
+.sd__chapter--gear .sd__chnum{background:var(--accent-2)}
+.sd__chapter--gear .sd__phead h2{color:var(--accent-2)}
+.sd__chapter--context{background:var(--bg-2);border-top:1px solid var(--line)}
+.sd__chapter--context .sd__chnum{background:var(--muted)}
+.sd__chapter--context .sd__phead h2{color:var(--muted)}
+
+/* Kapitel-Kopf: .sd__phead bekommt ein drittes Element (sd__chtitle wraps
+   Zahl-Chip + Titel), Format (Trennlinie, Abstand) unveraendert. Heading
+   steigt nur INNERHALB eines Kapitels von fs-9 auf fs-12 — seit Welle 3 gilt
+   das site-weit, weil kein unkonvertiertes .sd__panel mehr existiert. */
+.sd__chtitle{display:flex;align-items:center;gap:.55rem;min-width:0}
+.sd__chtitle h2{min-width:0}
+.sd__chapter .sd__phead h2{font-size:var(--fs-12)}
+.sd__chnum{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--bg);
+  padding:.15rem .5rem;flex:none;
+  clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}
 
 /* Handel */
 .sd__pricehero{display:flex;flex-wrap:wrap;align-items:baseline;gap:.6rem 1rem;margin-bottom:1rem}
@@ -775,6 +898,11 @@ a{color:inherit;text-decoration:none}
 .sd__proffill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
 .sd__profval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
 .sd__profval i{font-style:normal;color:var(--muted);font-size:var(--fs-6);margin-left:.45rem}
+/* Drei Metriken zeigen keinen Rohwert mehr (14-UI-SPEC.md Detailvertrag
+   Punkt 6) — das Perzentil-Element ist dort das ERSTE (einzige) Kind von
+   .sd__profval; der fuer den Normalfall gedachte linke Abstand haenge sonst
+   ins Leere. */
+.sd__profval i:first-child{margin-left:0}
 /* Mobil: Label + Wert in eine Zeile (Label links, Wert rechts), der Balken
    darunter über die volle Breite — so überlappt der Text NIE den Balken und
    längere EN-Labels haben Platz (keine feste, auf DE getunte Label-Spalte). */
@@ -810,6 +938,84 @@ span.sd__ref{color:var(--muted)}
 .sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:var(--fs-11);line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
 .sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
+
+/* Kapitelinterne Zweispaltigkeit (14-04-PLAN.md Task 1, UI-SPEC Punkt 9) —
+   traegt 957px des Hoehenbudgets, ohne die 4.200px rechnerisch unerreichbar
+   sind. .sd__ch2col umschliesst die Unterabschnitte EINES Kapitels
+   (Ausstattung: 4 Zellen, Umfeld: 4 Zellen), .sd__chsec je einen einzelnen
+   Unterabschnitt (Ueberschrift + Koerper). Unter 1100px: unveraendert
+   gegenueber Welle 3, einspaltig ohne eigenen Zeilenabstand — die
+   bestehenden sd__sub-Aussenabstaende tragen dort weiterhin den Rhythmus.
+   Ab 1100px (dieselbe lokale Hoechstbreite --maxw, NICHT die site-weiten
+   1280px): zwei gleich breite, schrumpfbare Spalten (minmax(0,1fr) haelt
+   lange Inhalte vom Aufblaehen der Zelle ab); Spalten- UND Zeilenabstand
+   uebernehmen denselben 1.6rem-Wert, den sd__sub schon als oberen
+   Aussenabstand traegt -- keine neue Zahl. Die erste Ueberschrift jeder
+   Zelle verliert dabei ihren oberen Aussenabstand, sonst waere die
+   Zeilen-Luecke des Rasters UND der sd__sub-Aussenabstand gleichzeitig
+   wirksam und die Zellen begaennen nicht buendig oben. */
+.sd__ch2col{display:grid;grid-template-columns:1fr}
+.sd__chsec{min-width:0}
+@media(min-width:1100px){
+  .sd__ch2col{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.6rem;row-gap:1.6rem}
+  .sd__ch2col .sd__chsec > .sd__sub:first-child{margin-top:0}
+  /* Vorweggenommene Annahme aus Task 1 GEMESSEN widerlegt (Task 2): das
+     Grundriss-Raster (sd__dims) sollte wegen seiner FENSTERBREITEN-
+     Medienabfrage vorsorglich einspaltig gesetzt werden. Die Schlussmessung
+     zeigt: Bewaffnung (arm__list, inhaltsgetrieben durch die Zahl der
+     Turmgruppen) ist in der Ausstattung-Zeile 1 IMMER die groessere Zelle
+     als Masse & Fracht — ob dims ein- oder zweispaltig steht, aendert die
+     Zeilenhoehe deshalb NICHT (Zeile 1 haengt an Bewaffnung, nicht an
+     Masse & Fracht). Zweispaltig gemessen 76px KUERZER (513px statt 590px
+     eigene Zellenhoehe) und am Bildpunkt angesehen nicht gequetscht
+     (Frachtwuerfel + Grundriss-Kasten bleiben bei ~220px Spaltenbreite
+     lesbar) -- deshalb bewusst NICHT einspaltig, die urspruengliche
+     Befuerchtung war eine Annahme, keine Messung. */
+  .sd__ch2col .sd__dims{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  /* GEMESSENER zweiter Bruch (14-04-PLAN.md Task 2, Verdaechtiger 2 der
+     Schlussmessung): die uebrigen "selbstregelnden" Innenraster
+     (sd__grid/sd__qgrid/sd__slots/sd__inscards) nutzen repeat(auto-fit,
+     minmax(…)) mit einer Mindestbreite, die auf die VOLLE Kapitelbreite
+     (~1023px) kalibriert ist. In der halbierten ~469px-Spalte lassen
+     dieselben Mindestbreiten nur noch 2 statt 3-5 Spalten zu — die Zeilen
+     brechen um, die Zelle wird HOEHER als bei voller Breite (Gegenteil des
+     Ziels dieses Plans). Am gerenderten Bildpunkt der Carrack gemessen:
+     Flugleistung 380px -> 547px, Komponenten 251px -> 547px, Versicherung
+     202px -> 298px — zusammen der Grossteil der anfaenglichen 264px
+     Ueberschreitung ueber die 4.200px-Klinke. Fix: dieselbe Spaltenzahl wie
+     bei voller Breite auch in der halbierten Spalte erreichen, per
+     kleinerer (nicht site-weiter, nur hier per Spezifitaet
+     ueberschriebener) Mindestbreite -- keine neue Bauform, dieselben
+     Grid-Regeln bleiben site-weit unveraendert wirksam. Jeder Wert per
+     Bildschirmfoto GEGENGEPRUEFT, nicht nur gemessen: ein zu kleiner Wert
+     liess einzelne lange, ungetrennte Woerter (z. B. "SCHILDGENERATOREN")
+     ueber die Zellgrenze hinauslaufen statt umzubrechen -- deshalb bleiben
+     die Werte hier bewusst groesser als das rechnerische Minimum. */
+  .sd__ch2col .sd__grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .sd__ch2col .sd__qgrid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
+  .sd__ch2col .sd__slots{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  .sd__ch2col .sd__inscards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  /* arm__sum (Bewaffnung-Kennzahlen): hier NICHT die Spaltenzahl der vollen
+     Breite halten, sondern bewusst halbieren. Am Bildpunkt gemessen: der
+     Container ist in der halben Spalte 469px breit, "Gegenmaßnahmen" misst
+     ungetrennt 147px und braucht mit der Zellpolsterung 176px. Vier Spalten
+     geben jeder Zelle 87px — das Wort passt in keiner Aufteilung, und
+     overflow-wrap:anywhere hat es dann strichlos mitten durchgeschnitten
+     ("GEGENMASSN / AHMEN", "TURMSTATIO / NEN"). Ein frueherer Kommentar an
+     dieser Stelle behauptete, hyphens:auto erzeuge dabei einen Trennstrich —
+     das Bildschirmfoto zeigt keinen: bei 87px erreicht die Silbentrennung nie
+     eine zulaessige Trennstelle.
+     anywhere war dabei doppelt schaedlich, weil es zusaetzlich die
+     Mindestbreite verkleinert, mit der auto-fit rechnet, und die zu schmalen
+     Spalten damit ueberhaupt erst einlaedt. break-word bricht nur, wenn ein
+     Wort allein auf seiner Zeile nicht passt, und bleibt als Sicherheitsnetz.
+     minmax(180px) ergibt bei 469px genau zwei Spalten -> 2x2 statt 1x4, alle
+     vier Labels einzeilig. Kosten: 10px Seitenhoehe (4.179 -> 4.189), die
+     Klinke von 4.200px haelt. Bei 1100px Ansichtsbreite ist der Container
+     ~403px und ergibt dieselben zwei Spalten. */
+  .sd__ch2col .arm__scell span{hyphens:auto;overflow-wrap:break-word}
+  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+}
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
    für sich lesbar: Stückzahl · Größenklasse (mit maßstäblichem Balken) ·
@@ -876,7 +1082,7 @@ span.sd__ref{color:var(--muted)}
    wuerden Browser sie zu Leerzeichen zusammenfalten. */
 .sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:var(--fs-11);line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
-.sd__spine h2{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.sd__spine h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
 .sd__spine a:hover{color:var(--gold);text-decoration:underline}
 .sd__spine span{color:var(--muted);font-weight:600}
@@ -899,20 +1105,13 @@ span.sd__ref{color:var(--muted)}
 .sd__src a{text-decoration:underline}
 .sd__src a:hover{color:var(--accent)}
 
-/* Gauges (generisch, katalog-relativ) */
-.sd__g{display:flex;flex-direction:column;gap:.55rem}
-.sd__grow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
+/* Die generische Gauge-Bauform (Zeile, Spur, Fuellung, Wert — Praefix
+   sd__g-*) samt ihrer 640px-Medienabfrage ist mit Task 2 dieser Phase
+   entfallen — alle sechs Fundstellen sind entweder ersatzlos weg (D-02)
+   oder zu Zahlen im sd__grid/sd__item-Raster geworden. sd__glabel BLEIBT:
+   es traegt weiterhin die beiden Ueberschriften "Top view" / "Cargo hold"
+   in Maße & Fracht. */
 .sd__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
-.sd__gtrack{position:relative;height:9px;background:var(--veil-hi);border:1px solid var(--line);overflow:hidden}
-.sd__gtrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--veil-hi)}
-.sd__gfill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
-.sd__gval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
-@media(max-width:640px){
-  .sd__grow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
-  .sd__glabel{grid-column:1;grid-row:1}
-  .sd__gval{grid-column:2;grid-row:1;justify-self:end;margin-top:0}
-  .sd__gtrack{grid-column:1 / -1;grid-row:2;margin-top:.15rem}
-}
 
 /* Maße & Fracht */
 .sd__dims{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.6rem}
@@ -1177,11 +1376,25 @@ span.sd__ref{color:var(--muted)}
     </dl>
   </div>
 
+  <!-- Kapitel-Sprungleiste — EIN echter Anker je gerendertem Kapitel (chapters,
+       die einzige Quelle). Funktioniert vollstaendig ohne JavaScript; die
+       Aktivmarkierung (Skript nach </main>) ist reine Verbesserung. -->
+  <nav class="sd__jump" aria-label={t('ship.jump.aria')}>
+    <div class="sd__jump__in">
+      {chapters.map((c) => (
+        <a href={`#${c.id}`}>{c.pill}</a>
+      ))}
+    </div>
+  </nav>
+
   <div class="sd">
     <!-- KAUFEN IM VERSE -->
-    <section class="sd__panel" aria-label={t('ship.buy.title')}>
+    <section class="sd__chapter sd__chapter--buy" id="ch-buy" aria-label={t('ship.buy.title')}>
       <header class="sd__phead">
-        <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.handel} /></svg>{t('ship.buy.title')}</h2>
+        <span class="sd__chtitle">
+          <span class="sd__chnum">{chapterNum('ch-buy')}</span>
+          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.handel} /></svg>{t('ship.buy.title')}</h2>
+        </span>
         <span class="sd__code">{t('ship.code.trade')}&nbsp;//&nbsp;UEX · {t('ship.asof')} {pricesFetchedAt}</span>
       </header>
       {buyMin ? (
@@ -1240,11 +1453,14 @@ span.sd__ref{color:var(--muted)}
       <p class="sd__hint">{t('ship.buy.hint')}</p>
     </section>
 
-    <!-- LEISTUNGSPROFIL -->
+    <!-- LEISTUNG -->
     {profile.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.profile.title')}>
+      <section class="sd__chapter sd__chapter--profile" id="ch-profile" aria-label={t('ship.profile.title')}>
         <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.profil} /></svg>{t('ship.profile.title')}</h2>
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-profile')}</span>
+            <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.profil} /></svg>{t('ship.profile.title')}</h2>
+          </span>
           <span class="sd__code">{t('ship.code.rank')}&nbsp;//&nbsp;{t('ship.profile.rank')} ({vehiclesSnapshot.count} {t('ship.unit.ships')})</span>
         </header>
         <div class="sd__prof">
@@ -1254,7 +1470,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__proftrack" role="img" aria-label={`${p.label}: ${p.value}, ${t('ship.profile.percentile')} ${p.pct}`}>
                 <div class="sd__proffill" style={`width:${p.pct}%`}></div>
               </div>
-              <span class="sd__profval">{p.value}<i>P{p.pct}</i></span>
+              <span class="sd__profval">{p.showValue && p.value}<i>P{p.pct}</i></span>
             </div>
           ))}
         </div>
@@ -1264,29 +1480,33 @@ span.sd__ref{color:var(--muted)}
 
     {desc && <p class="sd__desc">{desc}</p>}
 
-    <!-- DATENBLATT -->
-    <section class="sd__panel" aria-label={t('ship.sheet.title')}>
-      <header class="sd__phead">
-        <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.datenblatt} /></svg>{t('ship.sheet.title')}</h2>
-        <span class="sd__code">{t('ship.code.dat')}&nbsp;//&nbsp;{shipCode} · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}</span>
-      </header>
-      <dl class="sd__grid">
-        {facts.map((f) => (
-          <div class="sd__item">
-            <dt>{f.label}</dt>
-            <dd>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-
-    <!-- MASSE & FRACHT -->
-    {(viz.dims || viz.cargo || viz.fuel.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.dims.title')}>
+    <!-- AUSSTATTUNG — vereinigt die vier vormaligen Panels Masse & Fracht,
+         Bewaffnung, Flugleistung und Komponenten & Verteidigung als
+         Unterabschnitte dritter Ebene. Jeder behaelt seine eigene Bedingung
+         einzeln (siehe gearDims/gearArms/gearFlight/gearComp oben) — ein
+         karges Schiff zeigt weiterhin nur, wofuer es Daten gibt. Kein
+         Kapitel-Icon: es gibt keinen bestehenden Icon-Pfad, der die vier
+         zusammengefassten Themen als Ganzes vertritt (UI-SPEC fuehrt fuer
+         diese Phase keine neuen Icons ein). -->
+    {hasGear && (
+      <section class="sd__chapter sd__chapter--gear" id="ch-gear" aria-label={t('ship.ch.gear')}>
         <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h2>
-          <span class="sd__code">{t('ship.code.space')}&nbsp;//&nbsp;{shipCode}</span>
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-gear')}</span>
+            <h2>{t('ship.ch.gear')}</h2>
+          </span>
+          <span class="sd__code">{t('ship.code.spec')}&nbsp;//&nbsp;{shipCode}</span>
         </header>
+
+    <!-- Kapitelinterne Zweispaltigkeit ab 1100px (14-04-PLAN.md Task 1):
+         vier Unterabschnitte als 2x2-Raster, unter 1100px unveraendert
+         einspaltig. Jede Bedingung bleibt UNVERAENDERT an ihrer Stelle --
+         faellt eine weg, faellt ihre Zelle mit, die Platzierung rueckt nach. -->
+    <div class="sd__ch2col">
+    <!-- MASSE & FRACHT -->
+    {gearDims && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.masse} /></svg>{t('ship.dims.title')}</h3>
         <div class="sd__dims">
           <div>
             {viz.dims && (
@@ -1295,15 +1515,13 @@ span.sd__ref{color:var(--muted)}
                 <div class="sd__footbox" style={`width:${viz.dims.footWidthPct}%;aspect-ratio:${viz.dims.footAspect}`} role="img"
                   aria-label={t('ship.dims.aria').replace('%l%', String(viz.dims.l)).replace('%w%', String(viz.dims.w))}></div>
                 <div class="sd__footcap">{t('ship.abbr.l')} {viz.dims.l.toLocaleString(loc)} m · {t('ship.abbr.w')} {viz.dims.w.toLocaleString(loc)} m · {t('ship.abbr.h')} {viz.dims.h.toLocaleString(loc)} m</div>
-                <div class="sd__g" style="margin-top:.9rem">
-                  {viz.dims.bars.map((b) => (
-                    <div class="sd__grow">
-                      <span class="sd__glabel">{b.label}</span>
-                      <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                      <span class="sd__gval">{b.value}</span>
-                    </div>
-                  ))}
-                </div>
+                <!-- Die drei Masse-Balken (Laenge/Breite/Hoehe) entfallen ERSATZLOS
+                     (D-02): ein Balken, der drei Groessen gegeneinanderstellt, die
+                     nichts miteinander zu tun haben, vergleicht nichts — und
+                     dieselben drei Zahlen stehen bereits als Text in der
+                     Bildunterschrift direkt darueber (sd__footcap oben). Sie zu
+                     Zahlen zu machen erzeugte genau die Doppelung, die D-03
+                     verbietet. -->
               </>
             )}
           </div>
@@ -1319,39 +1537,30 @@ span.sd__ref{color:var(--muted)}
               </>
             )}
             {viz.fuel.length > 0 && (
-              <div class="sd__g" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
+              <dl class="sd__grid" style={viz.cargo ? 'margin-top:1.2rem' : ''}>
                 {viz.fuel.map((b) => (
-                  <div class="sd__grow">
-                    <span class="sd__glabel">{b.label}</span>
-                    <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                    <span class="sd__gval">{b.value}</span>
+                  <div class="sd__item">
+                    <dt>{b.label}</dt>
+                    <dd>{b.value}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             )}
           </div>
         </div>
-      </section>
+      </div>
     )}
 
     <!-- BEWAFFNUNG -->
-    {(armament.length > 0 || viz.firepower.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.arms.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h2>
-          <span class="sd__code">{t('ship.code.arsenal')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
-        {viz.firepower.length > 0 && (
-          <div class="sd__g" style="margin-bottom:1.1rem">
-            {viz.firepower.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
+    {gearArms && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h3>
+        <!-- Die Piloten-/Turm-DPS-Balken entfallen ERSATZLOS (D-02): beide Werte
+             stehen bereits als Text in dieser Uebersicht — Piloten-DPS in der
+             Pilotenzeile, Turm-DPS je Turmgruppe (arm__gval unten). Einzige
+             Ausnahme: mehr als eine Turmgruppe macht die SUMME zu einer echten,
+             sonst nirgends sichtbaren Information — dafuer die Zusatzzelle
+             turretDpsTotal im arm__sum-Raster. -->
         {armStats.length > 0 && (
           <div class="arm__sum">
             {armStats.map((s) => (
@@ -1361,6 +1570,12 @@ span.sd__ref{color:var(--muted)}
                 {s.range && <i>{s.range}</i>}
               </div>
             ))}
+            {turretDpsTotal && (
+              <div class="arm__scell">
+                <b>{turretDpsTotal} DPS</b>
+                <span>{t('arm.stat.totalDps')}</span>
+              </div>
+            )}
           </div>
         )}
         <div class="arm__list">
@@ -1410,44 +1625,39 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.arms.hint')}</p>
-      </section>
+      </div>
     )}
 
     <!-- FLUGLEISTUNG & QUANTUM -->
-    {(viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.flight.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h2>
-          <span class="sd__code">{t('ship.code.drive')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearFlight && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.flug} /></svg>{t('ship.flight.title')}</h3>
         {viz.speeds.length > 0 && (
-          <div class="sd__g">
+          <dl class="sd__grid">
             {viz.speeds.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
+              <div class="sd__item">
+                <dt>{b.label}</dt>
+                <dd>{b.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
         {viz.agility.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.flight.agility')}</h3>
-            <div class="sd__g">
+            <h4 class="sd__sub">{t('ship.flight.agility')}</h4>
+            <dl class="sd__grid">
               {viz.agility.map((b) => (
-                <div class="sd__grow">
-                  <span class="sd__glabel">{b.label}</span>
-                  <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                  <span class="sd__gval">{b.value}</span>
+                <div class="sd__item">
+                  <dt>{b.label}</dt>
+                  <dd>{b.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </>
         )}
         {viz.quantum.length > 0 && (
           <>
-            <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>{t('ship.flight.quantum')}</h3>
+            <h4 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.quantum} /></svg>{t('ship.flight.quantum')}</h4>
             <dl class="sd__qgrid">
               {viz.quantum.map((q) => (
                 <div class="sd__item">
@@ -1458,26 +1668,22 @@ span.sd__ref{color:var(--muted)}
             </dl>
           </>
         )}
-      </section>
+      </div>
     )}
 
     <!-- KOMPONENTEN & VERTEIDIGUNG -->
-    {(viz.defense.length > 0 || slots.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.comp.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h2>
-          <span class="sd__code">{t('ship.code.works')}&nbsp;//&nbsp;{shipCode}</span>
-        </header>
+    {gearComp && (
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h3>
         {viz.defense.length > 0 && (
-          <div class="sd__g" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
+          <dl class="sd__grid" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
             {viz.defense.map((b) => (
-              <div class="sd__grow">
-                <span class="sd__glabel">{b.label}</span>
-                <div class="sd__gtrack"><div class="sd__gfill" style={`width:${b.pct}%`}></div></div>
-                <span class="sd__gval">{b.value}</span>
+              <div class="sd__item">
+                <dt>{b.label}</dt>
+                <dd>{b.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
         {slots.length > 0 && (
           <div class="sd__slots">
@@ -1495,16 +1701,32 @@ span.sd__ref{color:var(--muted)}
             )}
           </div>
         )}
+      </div>
+    )}
+    </div>
       </section>
     )}
+    <!-- UMFELD — vereinigt Versicherung, Lackierungen, Varianten & Loaner
+         (kombinierter Unterabschnitt, wie zuvor als EIN Panel) und die
+         Patch-Chronik als vierten Block. Kein Kapitel-Icon aus demselben
+         Grund wie bei Ausstattung. -->
+    {hasContext && (
+      <section class="sd__chapter sd__chapter--context" id="ch-context" aria-label={t('ship.ch.context')}>
+        <header class="sd__phead">
+          <span class="sd__chtitle">
+            <span class="sd__chnum">{chapterNum('ch-context')}</span>
+            <h2>{t('ship.ch.context')}</h2>
+          </span>
+          <span class="sd__code">{ctxCode}</span>
+        </header>
 
+    <!-- Kapitelinterne Zweispaltigkeit ab 1100px (14-04-PLAN.md Task 1) --
+         siehe Kommentar an derselben Stelle im Ausstattungs-Kapitel oben. -->
+    <div class="sd__ch2col">
     <!-- VERSICHERUNG -->
     {viz.insurance.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.ins.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h2>
-          <span class="sd__code">{t('ship.code.protect')}&nbsp;//&nbsp;{t('ship.code.uee')}</span>
-        </header>
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.versicherung} /></svg>{t('ship.ins.title')}</h3>
         <div class="sd__inscards">
           {viz.insurance.map((i) => (
             <div class={`sd__ins${i.gold ? ' sd__ins--gold' : ''}`}>
@@ -1514,16 +1736,13 @@ span.sd__ref{color:var(--muted)}
           ))}
         </div>
         <p class="sd__hint">{t('ship.ins.hint')}</p>
-      </section>
+      </div>
     )}
 
     <!-- LACKIERUNGEN -->
     {paints.length > 0 && (
-      <section class="sd__panel" aria-label={t('ship.paints.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h2>
-          <span class="sd__code">{t('ship.code.skins')}&nbsp;//&nbsp;{paints.length} · FleetYards · {t('ship.asof')} {extrasFetchedAt}</span>
-        </header>
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.paints} /></svg>{t('ship.paints.title')}</h3>
         <div class="sd__paints">
           {paints.map((p) => (
             <figure class="sd__paint">
@@ -1535,19 +1754,16 @@ span.sd__ref{color:var(--muted)}
             </figure>
           ))}
         </div>
-      </section>
+      </div>
     )}
 
     <!-- VARIANTEN & LOANER -->
     {(variants.length > 0 || loaners.length > 0) && (
-      <section class="sd__panel" aria-label={t('ship.series.title')}>
-        <header class="sd__phead">
-          <h2><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h2>
-          <span class="sd__code">{t('ship.code.series')}&nbsp;//&nbsp;FleetYards · {t('ship.asof')} {extrasFetchedAt}</span>
-        </header>
+      <div class="sd__chsec">
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.varianten} /></svg>{t('ship.series.title')}</h3>
         {variants.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.series.variants')}</h3>
+            <h4 class="sd__sub">{t('ship.series.variants')}</h4>
             <div class="sd__reflist">
               {variants.map((v) =>
                 v.id ? <a class="sd__ref" href={L(`/schiffe/${v.id}.html`)}>{v.name}</a> : <span class="sd__ref">{v.name}</span>
@@ -1557,7 +1773,7 @@ span.sd__ref{color:var(--muted)}
         )}
         {loaners.length > 0 && (
           <>
-            <h3 class="sd__sub">{t('ship.series.loaners')}</h3>
+            <h4 class="sd__sub">{t('ship.series.loaners')}</h4>
             <div class="sd__reflist">
               {loaners.map((v) =>
                 v.id ? <a class="sd__ref" href={L(`/schiffe/${v.id}.html`)}>{v.name}</a> : <span class="sd__ref">{v.name}</span>
@@ -1565,17 +1781,22 @@ span.sd__ref{color:var(--muted)}
             </div>
           </>
         )}
-      </section>
+      </div>
     )}
 
     {spine.length > 0 && (
+      <div class="sd__chsec">
       <section class="sd__spine" aria-label={t('ship.spine.title')}>
-        <h2>{t('ship.spine.title')}</h2>
+        <h3>{t('ship.spine.title')}</h3>
         {spine.map((p) => (
           <a href={L(`/patches/sc-${p!.id}.html`)}>
             Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay} →</span>
           </a>
         ))}
+      </section>
+      </div>
+    )}
+    </div>
       </section>
     )}
 
@@ -1608,11 +1829,58 @@ span.sd__ref{color:var(--muted)}
       {t('ship.version')}{shipAlphaLabel && ` ${shipAlphaLabel}`}
       · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
-      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> · {t('ship.asof')} {pricesFetchedAt}
+      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a>
       {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}
     </p>
   </div>
 </main>
+
+<script is:inline>
+// Aktivmarkierung der Kapitel-Sprungleiste (T-14-05: liest nur eigene
+// Elemente ueber Klassen-/Attributselektoren, setzt nur eine Klasse und
+// aria-current, schreibt NIRGENDS Markup — kein innerHTML, kein eval,
+// keine Adresszeile). Reine Verbesserung: bricht sofort ab, wenn die
+// Beobachter-Schnittstelle fehlt oder keine Sprungleiste im Dokument
+// steht — die Sprungleiste bleibt dann voll bedienbar, nur ohne
+// Hervorhebung. Kein Scroll-Aufruf, kein Zustandsspeicher, kein zweiter
+// Zuhoerer (T-14-06: hoechstens vier beobachtete Elemente, ein Beobachter).
+(function () {
+  if (typeof IntersectionObserver === 'undefined') return;
+  var jump = document.querySelector('.sd__jump');
+  if (!jump) return;
+  var links = [].slice.call(jump.querySelectorAll('a[href^="#"]'));
+  var sections = [].slice.call(document.querySelectorAll('.sd__chapter[id]'));
+  if (!links.length || !sections.length) return;
+  var byId = {};
+  for (var i = 0; i < links.length; i++) {
+    var href = links[i].getAttribute('href') || '';
+    if (href.charAt(0) === '#') byId[href.slice(1)] = links[i];
+  }
+  // Oberer Rand des Beobachtungsfensters aus dem gemessenen --nav-h plus der
+  // gemessenen Sprungleistenhoehe — nicht aus einer Zahl im Skript.
+  var navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+  var jumpH = jump.getBoundingClientRect().height || 0;
+  var top = Math.round(navH + jumpH);
+  function setActive(id) {
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var active = a === byId[id];
+      a.classList.toggle('is-active', active);
+      if (active) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    }
+  }
+  var observer = new IntersectionObserver(
+    function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) { setActive(entries[i].target.id); break; }
+      }
+    },
+    { rootMargin: '-' + top + 'px 0px -70% 0px' }
+  );
+  for (var j = 0; j < sections.length; j++) observer.observe(sections[j]);
+})();
+</script>
 
 <script type="importmap" is:inline>
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}

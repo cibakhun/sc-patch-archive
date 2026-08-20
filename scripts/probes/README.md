@@ -13,12 +13,14 @@ fragen die Spieldaten; eine Sonde (seit Phase 12) misst stattdessen gegen die
 | `dustdevil-all.mjs` | Wie viel lässt sich über **ein** Item aus den Spieldaten wirklich zusammentragen? | [`docs/spieldaten-dustdevil-referenz.md`](../../docs/spieldaten-dustdevil-referenz.md) |
 | `recipe.mjs` | Wie hängen `CraftingBlueprintRecord` und Materialien zusammen? | — (nur Konsolenausgabe) |
 | `mining-locview-messung.mjs` | Halten die neun 🧪-backstop-Zusicherungen der Fundort-Ansicht (Phase 12, UI-SPEC „UI Considerations") am GERENDERTEN Bildpunkt — Spurenzeilen-Kontrast in beiden Farbmodi, Kopf-/Zeilenhöhen, Bildlauf, Dreifach-Überlagerung auf der Kachel? Braucht `playwright-core` + einen installierten Chrome/Edge gegen eine echte Vorschau. | [`.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-03-SUMMARY.md`](../../.planning/phases/12-fundorte-in-der-mining-werkbank-anklickbar/12-03-SUMMARY.md) |
+| `schiffskarte-messung.mjs` | Haelt die Schiffs-Detailseite (Phase 14, „Schiffs-Datenkarte entstapeln") die Hoehen-Sperrklinke (Carrack bei 1280×720 dunkel ≤ 4.200 px), die Sprungleisten-Backstops bei 360 px und den Kontrast des Kapitel-Zahl-Chips — am gerenderten Bildpunkt, in drei aus den Daten gewaehlten Schiffen, zwei Sprachen, zwei Breiten, zwei Farbmodi? `--baseline` reproduziert stattdessen nur die Ausgangsmessung (kein Urteil). Braucht `playwright-core` + einen installierten Chrome/Edge gegen eine echte Vorschau. | [`.planning/phases/14-schiffs-datenkarte-entstapeln/14-01-SUMMARY.md`](../../.planning/phases/14-schiffs-datenkarte-entstapeln/14-01-SUMMARY.md) und spaeter [`14-04-SUMMARY.md`](../../.planning/phases/14-schiffs-datenkarte-entstapeln/14-04-SUMMARY.md) |
 
 Aufruf, jeweils aus dem Projektwurzelverzeichnis:
 
 ```
 node scripts/probes/census.mjs
 node scripts/probes/mining-locview-messung.mjs --base http://localhost:4321
+node scripts/probes/schiffskarte-messung.mjs --base http://localhost:4321 --baseline
 ```
 
 Die datengetriebenen Sonden lesen über `scripts/lib/p4k.mjs` und `scripts/lib/datacore.mjs`
