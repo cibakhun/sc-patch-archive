@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 09
 subsystem: infra
 tags: [njs, nginx, gate-registry, playwright, ci, verify, check-deployed]
@@ -177,7 +177,7 @@ Keine neuen — alle in `<threat_model>` des Plans genannten Bedrohungen (T-14-5
 
 ## Issues Encountered
 
-- **Docker ist auf diesem Rechner weiterhin nicht verfügbar** (wie in 14-01/14-08-SUMMARY.md dokumentiert). Der im Plan für Aufgabe 2 vorgegebene `<verify>`-Block (`docker build --build-arg STAGING=1 ... && docker run ... && node scripts/check-gate.mjs`) konnte nicht gefahren werden. Ersatzweise wurde ein eigens gebauter `node:http`-Testwerkstand verwendet (unabhängig implementiert — liest dieselbe GATE-AUSNAHME-Liste und `dist/`, ruft aber keinen Code aus `check-gate.mjs` selbst auf, damit die Probe nicht tautologisch wird): normaler Lauf grün (5 gesperrte, 7 offene Stichproben, über den Klinken), zwei vorgeführte rote Läufe (Tor komplett aus — simuliert einen Container ohne `STAGING=1`; eine Bypass-Prüfung, die jeden nicht-leeren Wert annimmt). Ebenso konnte der reale Rauchtest-Nachweis (grün MIT Bypass gegen einen scharf gestellten Container, rot OHNE) nicht gegen einen echten Container gefahren werden — nur regressionsfrei gegen `astro preview` (kein Tor dort). Als **WINDOWS.md id 28** (`unrun-verify`, phase 14) eingetragen. Plan 12 sieht die Zusammenführung ausdrücklich vor: sein must_have "Die ausgelieferte Vorschau sperrt wirklich — belegt mit `npm run check:gate` gegen die echte Adresse" ist genau dieser offene Nachweis.
+- **Docker ist auf diesem Rechner weiterhin nicht verfügbar** (wie in 14-01/15-08-SUMMARY.md dokumentiert). Der im Plan für Aufgabe 2 vorgegebene `<verify>`-Block (`docker build --build-arg STAGING=1 ... && docker run ... && node scripts/check-gate.mjs`) konnte nicht gefahren werden. Ersatzweise wurde ein eigens gebauter `node:http`-Testwerkstand verwendet (unabhängig implementiert — liest dieselbe GATE-AUSNAHME-Liste und `dist/`, ruft aber keinen Code aus `check-gate.mjs` selbst auf, damit die Probe nicht tautologisch wird): normaler Lauf grün (5 gesperrte, 7 offene Stichproben, über den Klinken), zwei vorgeführte rote Läufe (Tor komplett aus — simuliert einen Container ohne `STAGING=1`; eine Bypass-Prüfung, die jeden nicht-leeren Wert annimmt). Ebenso konnte der reale Rauchtest-Nachweis (grün MIT Bypass gegen einen scharf gestellten Container, rot OHNE) nicht gegen einen echten Container gefahren werden — nur regressionsfrei gegen `astro preview` (kein Tor dort). Als **WINDOWS.md id 28** (`unrun-verify`, phase 14) eingetragen. Plan 12 sieht die Zusammenführung ausdrücklich vor: sein must_have "Die ausgelieferte Vorschau sperrt wirklich — belegt mit `npm run check:gate` gegen die echte Adresse" ist genau dieser offene Nachweis.
 - **Sitzungsunterbrechung mitten in Aufgabe 2**: der Ausführungsagent wurde vom Sitzungsgrenzwert unterbrochen, unmittelbar nachdem `scripts/check-gate.mjs` geschrieben, aber noch nicht registriert oder geprüft war. Der Koordinator hat den Stand per `wip`-Commit (`192e351`) gesichert (dieselbe Maßnahme wie bei `cc1bf3a` in Plan 01, Anlass: defektes Netzteil, siehe ROADMAP Phase 5). Die Fortsetzung hat den gesicherten Stand übernommen, registriert, geprüft und die verbleibenden zwei gefundenen Fehler behoben — kein Neuaufbau nötig.
 
 ## User Setup Required
@@ -192,7 +192,7 @@ None — dieser Plan legt keine neuen dauerhaften Umgebungsvariablen an. `VB_GAT
 - Kein Blocker für die Fortsetzung der Phase — der nächste `staging`-Push liefert automatisch den echten Nachweis für beide offenen Punkte (WINDOWS.md id 28), weil `deploy-staging.yml` jetzt sowohl `check-gate.mjs` als auch den bypass-gestützten Rauchtest bei jedem Lauf ausführt.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

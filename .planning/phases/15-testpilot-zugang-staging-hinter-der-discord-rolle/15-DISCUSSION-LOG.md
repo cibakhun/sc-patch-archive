@@ -4,7 +4,7 @@
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
 **Date:** 2026-08-17
-**Phase:** 14-testpilot-zugang-staging-hinter-der-discord-rolle
+**Phase:** 15-testpilot-zugang-staging-hinter-der-discord-rolle
 **Areas discussed:** Vorabentscheidungen, Anmeldeweg am Tor, Aktualität der Rolle, Reichweite des Tors, Perks im Einzelnen, Nachgelagerte Punkte (Bestand, Name, Vergabe, Kanal)
 
 ---

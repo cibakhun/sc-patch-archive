@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 05
 subsystem: discord
 tags: [discord.js, discord-blueprint, onboarding, permissions]
@@ -42,7 +42,7 @@ coverage:
     requirement: "D-14, D-15, D-18"
     verification:
       - kind: other
-        ref: "node -e Assertions gegen discord/blueprint.mjs (4 Zusicherungen: Rollendefinition, Onboarding-roles-Array, Kanal-Schlüssel, drei Overwrite-Einträge) — Kommandozeile in 14-05-PLAN.md Task 1 <verify>, Regex einer Zusicherung korrigiert (siehe Deviations)"
+        ref: "node -e Assertions gegen discord/blueprint.mjs (4 Zusicherungen: Rollendefinition, Onboarding-roles-Array, Kanal-Schlüssel, drei Overwrite-Einträge) — Kommandozeile in 15-05-PLAN.md Task 1 <verify>, Regex einer Zusicherung korrigiert (siehe Deviations)"
         status: pass
       - kind: other
         ref: "npm run validate (discord/, offline Blueprint-Prüfung)"
@@ -178,5 +178,5 @@ None - `discord/.env` und `discord/node_modules` sind bereits vom Betreiber im A
 - `GuildMembers`-Intent bleibt bewusst aus (Plan 14-07), `audit.mjs` hat das in beiden Läufen nicht als Fehler behandelt.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-17*

@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 10
 subsystem: ui
 tags: [astro, supabase, postgrest, i18n]
@@ -144,7 +144,7 @@ None — keine neuen Umgebungsvariablen oder Dashboard-Konfiguration. Die Migrat
 - Kein Blocker für die Fortsetzung der Phase.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-17*
 
 ## Self-Check: PASSED

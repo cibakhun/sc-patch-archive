@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 04
 subsystem: auth
 tags: [supabase-auth, discord-oauth, implicit-flow, gotrue, astro]
@@ -125,7 +125,7 @@ Keins fuer diesen Plan direkt (Aufgabe 1 wurde bereits vom Koordinator/Betreiber
 - Kein Blocker fuer die Fortsetzung der Phase. Zwei neue Sichtpunkte (WINDOWS.md id 18, id 19) sind an den Betreiber uebergeben, keiner davon blockiert die naechsten Plaene.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

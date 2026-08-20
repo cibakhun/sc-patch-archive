@@ -9,7 +9,7 @@
 
 ### Locked Decisions
 
-Alle 22 Entscheidungen D-01 bis D-22 aus `14-CONTEXT.md` sind bindend und werden unten nicht erneut zur Debatte gestellt. Kurzfassung (Volltext in CONTEXT.md):
+Alle 22 Entscheidungen D-01 bis D-22 aus `15-CONTEXT.md` sind bindend und werden unten nicht erneut zur Debatte gestellt. Kurzfassung (Volltext in CONTEXT.md):
 
 - **D-01** Discord = zweiter, gleichberechtigter Anmeldeweg (Supabase-Provider ab Werk)
 - **D-02** Discord-Knopf meldet nur an, legt NIE ein Konto an — Riegel serverseitig, vorgeführt rot vor Scharfschaltung
@@ -278,7 +278,7 @@ from public.profiles where handle is not null;
 **Was schiefgeht:** Ein Worker wird als „nur ein bisschen JS an der Edge" verkauft und am `PROJECT.md`-Constraint vorbeigeplant.
 **Warum es passiert:** Die Constraint-Formulierung nennt wörtlich „Pages Function"; ein Worker ist technisch ein anderes Cloudflare-Produkt.
 **Wie vermeiden:** Die Recherche stellt klar: Pages Functions SIND intern Workers [CITED: developers.cloudflare.com/pages/functions/, morphllm.com Cloudflare-Vergleich] — der Unterschied ist Deploy-Mechanik (`wrangler` + eigenes Konto/Token vs. Coolify/GHCR), nicht die Art von Code, die läuft. Ein Worker fügt ein VIERTES Ausliefungsziel (heute: GHCR-Image, Supabase Edge Functions, Bot-Image) mit eigenem CI-Schritt, eigenem Secret (`CLOUDFLARE_API_TOKEN`) und eigener Beobachtungsfläche hinzu. Das ist kein Verbot, aber der Preis muss dem Betreiber genannt werden, bevor jemand ihn zahlt.
-**Warnzeichen:** Ein Plan, der Kandidat (a) wählt, ohne diesen Preis explizit zu benennen und ohne dass der Betreiber das Constraint ausdrücklich neu entschieden hat (Präzedenzfall: die Aufhebung der Discord-Out-of-Scope-Zeile in D-nichts / `14-CONTEXT.md` deckt NUR Discord/Konto-Ausbau ab, nicht die Serverlogik-Regel).
+**Warnzeichen:** Ein Plan, der Kandidat (a) wählt, ohne diesen Preis explizit zu benennen und ohne dass der Betreiber das Constraint ausdrücklich neu entschieden hat (Präzedenzfall: die Aufhebung der Discord-Out-of-Scope-Zeile in D-nichts / `15-CONTEXT.md` deckt NUR Discord/Konto-Ausbau ab, nicht die Serverlogik-Regel).
 
 ### Pitfall 5: `verify:sync` und die Torseite
 **Was schiefgeht:** Die Torseite wird als normale, gepaarte Astro-Seite angelegt (mit `/de/`-Gegenstück) — widerspricht D-11 (nur Englisch) und würde `verify:sync`s 8.678-Paar-Vergleich für ein Paar verfälschen, das es laut Entscheidung nicht geben soll.

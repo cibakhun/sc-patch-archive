@@ -524,5 +524,5 @@ geprüfter Nachweis einer Discord-Identität und darf mit `discord_user_id` aus
 
 ---
 
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Context gathered: 2026-08-17*

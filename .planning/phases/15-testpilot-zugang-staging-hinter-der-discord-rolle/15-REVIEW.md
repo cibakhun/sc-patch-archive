@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 reviewed: 2026-08-18T00:00:00Z
 depth: deep
 files_reviewed: 14
@@ -118,7 +118,7 @@ sed -i "/^events {/i env VB_SUPABASE_ANON_KEY;" /etc/nginx/nginx.conf && \
 ```
 `VB_GATE_BYPASS` — die vierte, in `nginx/gate.js:179-183` gelesene Variable (`process.env.VB_GATE_BYPASS`) — fehlt in dieser Liste vollständig. Im CI-Rauchtest (`deploy-staging.yml:115-116`) wird der Container mit `docker run ... -e VB_GATE_BYPASS="$GATE_BYPASS" ...` gestartet — dieser Wert würde nginx beim Start abgeschnitten, `check()` sähe `bypass = ''` und der `if (bypass)`-Zweig bliebe für **jeden** Aufruf tot. Jede Leitseite, die `browser-smoke.mjs` mit `X-VB-Gate-Bypass: $GATE_BYPASS` abruft, würde weiterhin mit 302 auf `/gate.html` antworten statt mit 200 — der Rauchtest-Schritt in `deploy-staging.yml` (Zeile 113-136) würde dadurch fehlschlagen und der nachfolgende `docker push`-Schritt (Zeile 138-141) nie erreicht.
 
-Diese Lesart wird durch die eigene Historie der Phase gestützt: `14-09-SUMMARY.md` (Zeile 190) hält ausdrücklich fest, dass „der Rauchtest-Bypass ... lokal regressionsfrei geprüft, aber NICHT gegen einen echten, scharf gestellten Container verifiziert" ist (Docker fehlt lokal). Der zitierte „grüne CI-Lauf 32133474158" (35 Zusicherungen) lief laut `.planning/WINDOWS.md` id 35 gegen einen **erweiterten Mock-PostgREST**, nicht gegen den echten njs-Container. Auch `probe-gate-e2e.yml` — die einzige Sonde, die den echten Container mit echtem `nginx-module-njs` real hochfährt und minutiös gegen `docker run -e VB_GATE_SECRET=...` testet — erwähnt `VB_GATE_BYPASS` an keiner einzigen Stelle. Es gibt damit **keinen** bestehenden Nachweis, dass diese konkrete Variable jemals in einem echten njs-Prozess ankam.
+Diese Lesart wird durch die eigene Historie der Phase gestützt: `15-09-SUMMARY.md` (Zeile 190) hält ausdrücklich fest, dass „der Rauchtest-Bypass ... lokal regressionsfrei geprüft, aber NICHT gegen einen echten, scharf gestellten Container verifiziert" ist (Docker fehlt lokal). Der zitierte „grüne CI-Lauf 32133474158" (35 Zusicherungen) lief laut `.planning/WINDOWS.md` id 35 gegen einen **erweiterten Mock-PostgREST**, nicht gegen den echten njs-Container. Auch `probe-gate-e2e.yml` — die einzige Sonde, die den echten Container mit echtem `nginx-module-njs` real hochfährt und minutiös gegen `docker run -e VB_GATE_SECRET=...` testet — erwähnt `VB_GATE_BYPASS` an keiner einzigen Stelle. Es gibt damit **keinen** bestehenden Nachweis, dass diese konkrete Variable jemals in einem echten njs-Prozess ankam.
 
 `check-gate.mjs`s Zusicherung 4 (siehe WR-01 unten) kann diesen Fehler strukturell nicht aufdecken, weil sie nur den **Negativfall** (geratener Wert soll scheitern) prüft, nie den Positivfall (der echte, vom CI-Lauf selbst gesetzte Wert soll durchkommen).
 
@@ -234,7 +234,7 @@ behauptet:** `probe-gate-e2e.yml` wurde um einen Zusicherungsblock erweitert
 (Commit `e8cda21`), der genau diesen Fix gegen einen echten, aus dem
 Dockerfile gebauten njs-Container misst — gemäß Fix-Auftrag der einzige Ort,
 an dem sich das beweisen lässt (Docker ist auf dem Entwicklungsrechner nicht
-verfügbar, siehe 14-01/14-08/14-09-SUMMARY.md). Der Arbeitszweig wurde
+verfügbar, siehe 14-01/14-08/15-09-SUMMARY.md). Der Arbeitszweig wurde
 gepusht (Commit `77e3f71`), der dadurch ausgelöste Lauf
 [`32165782075`](https://github.com/cibakhun/sc-patch-archive/actions/runs/32165782075)
 ist **grün** (6m10s, alle 20 Schritte bestanden): der neue Schritt

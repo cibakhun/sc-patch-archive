@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 12
 subsystem: infra
 tags: [gate-registry, docs, windows-ledger, ci-cd, discord]
@@ -62,7 +62,7 @@ coverage:
     description: "docs/maschinelle-validierung.md beschreibt verify:gate und check:gate an der Stelle, wo die Datei ihre Schienen aufzaehlt (§5), inkl. Begruendung fuer Schiene C bei check:gate"
     verification:
       - kind: other
-        ref: "node -e Check aus 14-12-PLAN.md Aufgabe 1 <automated>: beide Strecken-Namen im Dokument gefunden (Soll 2, Ist 2)"
+        ref: "node -e Check aus 15-12-PLAN.md Aufgabe 1 <automated>: beide Strecken-Namen im Dokument gefunden (Soll 2, Ist 2)"
         status: pass
     human_judgment: false
   - id: D3
@@ -128,8 +128,8 @@ status: complete
 **1. [Rule 4 — im Kern eine Anpassung an eine ueberholte Planannahme, nicht an neue Architektur] WINDOWS.md-Konsolidierung statt fuenf zusaetzlicher Anhaenge**
 
 - **Found during:** Aufgabe 3, vor dem ersten Schreibzugriff auf `.planning/WINDOWS.md`
-- **Issue:** `14-12-PLAN.md` Aufgabe 3 geht davon aus, dass Plan 12 als Erster fuenf neue Phase-14-Eintraege anlegt, und das automatisierte `<verify>` zaehlt woertlich `zeilen.length!==5` gegen alle Zeilen mit `| 14 |` im Ledger. Tatsaechlich hatten die Plaene 03, 04, 07, 08, 09, 10 und 11 bereits **15** eigene Eintraege angelegt (ids 14-28), jeweils mit dem etablierten `unrun-verify`-Muster, bevor Plan 12 lief. Ein woertlicher Vollzug (fuenf weitere Zeilen anhaengen) haette 20 ueberlappende, teils redundante Zeilen ergeben — exakt das Problem, das die Ausfuehrungsanweisung ("Consolidate them into ONE coherent round the operator can actually work through in one sitting — grouped by where he has to be... not by which plan produced them") beheben sollte.
-- **Fix:** 13 der 15 vorbestehenden Eintraege wurden inhaltlich VOLLSTAENDIG in sieben neue, nach Ort gruppierte Eintraege uebernommen (nichts geht verloren — jeder "was gebaut/was maschinell belegt/was der Mensch entscheiden soll"-Absatz der alten Eintraege steht im neuen Eintrag). Zwei bereits atomare Eintraege (id 15, id 20) blieben unveraendert. Die Transformation lief ueber die pure `parseLedger`/`renderLedger`-API aus `broken-windows.cjs` (nicht per Hand an der Markdown-Tabelle), inklusive einer Rueckles-Pruefung vor dem Schreiben. Neue IDs beginnen bei 29 (ein Schritt hinter dem historischen Maximum 28) statt bei der ersten freigewordenen Nummer, damit bestehende woertliche Verweise wie "WINDOWS.md id 27" (in `14-11-SUMMARY.md`) nicht spaeter auf unrelated neuen Inhalt zeigen.
+- **Issue:** `15-12-PLAN.md` Aufgabe 3 geht davon aus, dass Plan 12 als Erster fuenf neue Phase-14-Eintraege anlegt, und das automatisierte `<verify>` zaehlt woertlich `zeilen.length!==5` gegen alle Zeilen mit `| 14 |` im Ledger. Tatsaechlich hatten die Plaene 03, 04, 07, 08, 09, 10 und 11 bereits **15** eigene Eintraege angelegt (ids 14-28), jeweils mit dem etablierten `unrun-verify`-Muster, bevor Plan 12 lief. Ein woertlicher Vollzug (fuenf weitere Zeilen anhaengen) haette 20 ueberlappende, teils redundante Zeilen ergeben — exakt das Problem, das die Ausfuehrungsanweisung ("Consolidate them into ONE coherent round the operator can actually work through in one sitting — grouped by where he has to be... not by which plan produced them") beheben sollte.
+- **Fix:** 13 der 15 vorbestehenden Eintraege wurden inhaltlich VOLLSTAENDIG in sieben neue, nach Ort gruppierte Eintraege uebernommen (nichts geht verloren — jeder "was gebaut/was maschinell belegt/was der Mensch entscheiden soll"-Absatz der alten Eintraege steht im neuen Eintrag). Zwei bereits atomare Eintraege (id 15, id 20) blieben unveraendert. Die Transformation lief ueber die pure `parseLedger`/`renderLedger`-API aus `broken-windows.cjs` (nicht per Hand an der Markdown-Tabelle), inklusive einer Rueckles-Pruefung vor dem Schreiben. Neue IDs beginnen bei 29 (ein Schritt hinter dem historischen Maximum 28) statt bei der ersten freigewordenen Nummer, damit bestehende woertliche Verweise wie "WINDOWS.md id 27" (in `15-11-SUMMARY.md`) nicht spaeter auf unrelated neuen Inhalt zeigen.
 - **Files modified:** `.planning/WINDOWS.md`
 - **Verification:** `bw.parseLedger()` gegen die frisch geschriebene Datei bestanden (bijektive Kopfzaehler); `node "$HOME/.claude/gsd-core/bin/gsd-tools.cjs" windows status` bestaetigt open=14/total=22 uebereinstimmend. Das WOERTLICHE `<verify>` aus Aufgabe 3 wurde zusaetzlich gegen die konsolidierte Datei gefahren und schlaegt erwartungsgemaess fehl (Ist 9 statt Soll 5) — dokumentiert hier statt stillschweigend uebergangen.
 - **Committed in:** `411c128`
@@ -142,7 +142,7 @@ status: complete
 ## Issues Encountered
 
 - **Aufgabe 2 blockiert von Anfang an.** Die im Plan genannte Precondition (fuenf Coolify-Umgebungsvariablen ueber Vorschau- und Bot-Container) ist laut der Ausfuehrungsvorgabe fuer diese Sitzung ausdruecklich unbestaetigt — "the operator has the list and has not confirmed". Selbst der als reines Lesen beschriebene erste Schritt (`node discord/tester-dry-run.mjs`, D-16-Neumessung) war in dieser Sitzung technisch nicht moeglich: der Leseversuch auf `discord/.env` (Bot-Token) wurde von der Berechtigungssperre dieser Ausfuehrungsumgebung abgewiesen. Beides zusammen macht Aufgabe 2 vollstaendig unausfuehrbar in dieser Sitzung — kein Teilfortschritt, keine Datei geaendert, kein Commit fuer diese Aufgabe.
-- **Automatisiertes `<verify>` aus Aufgabe 3 jetzt strukturell veraltet** — siehe Deviation 1 oben. Dieselbe Klasse Befund wie bereits in `14-03-SUMMARY.md` dokumentiert ("das automatisierte `<verify>` ... ist jetzt strukturell veraltet"): ein Plan-Verifikationsschritt, der auf einer Annahme beruht, die sich waehrend der Phasenausfuehrung durch andere Plaene ueberholt hat. Ersatzverifikation ist die Rueckles-Pruefung des Ledgers selbst (bijektive Kopfzaehler) plus die inhaltliche Vollstaendigkeitspruefung (jede alte Beschreibung ist wortgetreu in einem neuen Eintrag wiederzufinden).
+- **Automatisiertes `<verify>` aus Aufgabe 3 jetzt strukturell veraltet** — siehe Deviation 1 oben. Dieselbe Klasse Befund wie bereits in `15-03-SUMMARY.md` dokumentiert ("das automatisierte `<verify>` ... ist jetzt strukturell veraltet"): ein Plan-Verifikationsschritt, der auf einer Annahme beruht, die sich waehrend der Phasenausfuehrung durch andere Plaene ueberholt hat. Ersatzverifikation ist die Rueckles-Pruefung des Ledgers selbst (bijektive Kopfzaehler) plus die inhaltliche Vollstaendigkeitspruefung (jede alte Beschreibung ist wortgetreu in einem neuen Eintrag wiederzufinden).
 
 ## User Setup Required
 
@@ -157,7 +157,7 @@ status: complete
 
 | Was | Wo |
 |---|---|
-| `DISCORD_TESTPILOT_WEBHOOK` (Repo-Secret) | GitHub -> Settings -> Secrets and variables -> Actions (Anleitung in `14-11-SUMMARY.md`) |
+| `DISCORD_TESTPILOT_WEBHOOK` (Repo-Secret) | GitHub -> Settings -> Secrets and variables -> Actions (Anleitung in `15-11-SUMMARY.md`) |
 | Bot-Neurollout | Coolify (traegt sonst weiterhin den alten Code ohne `bug-thread-xp.mjs`/`role-sync.mjs`-Nachweise) |
 
 ## Next Phase Readiness
@@ -167,7 +167,7 @@ status: complete
 - **Offener Punkt ausserhalb des Ledgers** (aus dem Plantext uebernommen, an den Betreiber weitergereicht): Die Rolle "Test Pilots" traegt derzeit niemand (Trockenlauf 18.08.2026: 0 Traeger bei 5 gelesenen Mitgliedern). Der Entzug wurde deshalb vertagt statt ausgefuehrt (WINDOWS.md id 20). Wem sie gegeben werden soll, ist bewusst Handarbeit des Betreibers (D-16/D-17) — ohne diesen Schritt steht eine gesperrte Vorschau da, die ausser dem Betreiber selbst niemand betreten kann, sobald Aufgabe 2 einmal laeuft.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

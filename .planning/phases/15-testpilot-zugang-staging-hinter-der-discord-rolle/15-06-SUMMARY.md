@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 06
 subsystem: discord
 tags: [discord.js, discord-rest, mass-action, dry-run]
@@ -167,7 +167,7 @@ Der Plan sah fuer den Entscheidungs-Checkpoint aus Aufgabe 2 drei Antworten vor:
 
 **Zwei Haelften von D-16, beide festgehalten:**
 
-- **Inhaltlich ist der von D-16 gewuenschte Zustand heute bereits erreicht.** Niemand traegt die Rolle "Test Pilots" (0 von 5 Mitgliedern), und seit Plan 14-05 kann sich auch niemand mehr selbst die Rolle geben -- die Onboarding-Option ist entfernt, am lebenden Server bestaetigt (`14-05-SUMMARY.md`). Ein Bestandsentzug haette heute buchstaeblich niemanden getroffen.
+- **Inhaltlich ist der von D-16 gewuenschte Zustand heute bereits erreicht.** Niemand traegt die Rolle "Test Pilots" (0 von 5 Mitgliedern), und seit Plan 14-05 kann sich auch niemand mehr selbst die Rolle geben -- die Onboarding-Option ist entfernt, am lebenden Server bestaetigt (`15-05-SUMMARY.md`). Ein Bestandsentzug haette heute buchstaeblich niemanden getroffen.
 - **Formal ist D-16 noch nicht abgeschlossen.** Der von D-16 verlangte bestaetigte Entzugslauf (`--rolle-wirklich-entziehen`) wurde nie ausgefuehrt -- weder heute (weil er ein No-Op waere und der Betreiber lieber kurz vor dem Scharfschalten neu misst) noch je zuvor. Dieser Vollzug ist jetzt Plan 14-12 zugeordnet.
 
 **Verdrahtet, nicht nur notiert:** Eintrag `#20` in `.planning/WINDOWS.md` (Art `unrun-verify`, Phase `14`), der genau das festhaelt: vor dem Scharfschalten `node discord/tester-dry-run.mjs` erneut fahren, ERST DANN ueber den Entzug entscheiden. Siehe "Next Phase Readiness" unten fuer die Stelle in Plan 14-12, an der dieser Schritt einzureihen ist.
@@ -189,7 +189,7 @@ Der Plan sah fuer den Entscheidungs-Checkpoint aus Aufgabe 2 drei Antworten vor:
 ## Decisions Made
 
 - Rollenaufloesung ausschliesslich ueber den Blueprint-Schluessel `tester`, keine fest eingetragene ID -- schuetzt vor Drift, falls die Rolle je umbenannt wird (D-14 sagt zwar "nie umbenennen", aber der Code haengt trotzdem nicht am Namen als String-Literal in zwei Dateien)
-- Mitgliederliste ueber die REST-Route `guild.members.list()` statt `guild.members.fetch()` (Gateway-Cache) -- funktioniert ohne das privilegierte Intent, entkoppelt diesen Plan von Plan 14-07 (siehe 14-RESEARCH.md Open Question 5)
+- Mitgliederliste ueber die REST-Route `guild.members.list()` statt `guild.members.fetch()` (Gateway-Cache) -- funktioniert ohne das privilegierte Intent, entkoppelt diesen Plan von Plan 14-07 (siehe 15-RESEARCH.md Open Question 5)
 - Geteilte Hilfsfunktion `resolveRoleAndHolders()` statt zweier unabhaengiger Implementierungen -- verhindert, dass Trockenlauf und Entzug je auseinanderlaufen
 - **Betreiberentscheidung 18.08.2026 (Aufgabe 2): vertagen statt einer der drei geplanten Antworten** -- ein heute erhobener Nullbefund kann durch eine zwischenzeitliche Rollenvergabe veralten; vor dem Scharfschalten wird deshalb neu gemessen. Diese Entscheidung ist selbst final (Aufgabe 2 ist abgeschlossen), nur ihr Vollzug ist vertagt
 
@@ -208,7 +208,7 @@ None - keine technischen Abweichungen. Beide Skripte folgen der Plan-Vorgabe.
 
 ## Issues Encountered
 
-Keine technischen Probleme. Der Nullbefund (0 aktuelle Traeger) ist kein Fehler, sondern das erwartete Ergebnis, wenn die Vermutung aus `14-05-SUMMARY.md` zutrifft -- und wurde vom Betreiber unabhaengig bestaetigt.
+Keine technischen Probleme. Der Nullbefund (0 aktuelle Traeger) ist kein Fehler, sondern das erwartete Ergebnis, wenn die Vermutung aus `15-05-SUMMARY.md` zutrifft -- und wurde vom Betreiber unabhaengig bestaetigt.
 
 ## User Setup Required
 
@@ -224,18 +224,18 @@ None fuer diesen Plan. Der naechste Schritt liegt bei Plan 14-12 (siehe unten), 
   2. das Ergebnis dem Betreiber vorgelegt werden (Namen + Anzahl),
   3. bei Traegern eine Entscheidung getroffen werden, ob entzogen wird (`node discord/tester-revoke.mjs --rolle-wirklich-entziehen`) -- **wahrscheinlich wieder ein Checkpoint**, aus denselben Gruenden wie hier (Berechtigungsklassifikator, echte Nutzerdaten).
 
-  **Fundstelle in `14-12-PLAN.md`:** Aufgabe 3 traegt bereits einen `<human-check>`-Absatz, der davon ausgeht, der Entzug aus Plan 06 sei bereits erfolgt ("Die Rolle trägt nach dem Entzug aus Plan 06 niemand mehr. Wem soll sie gegeben werden?") -- diese Annahme stimmt nach der Vertagung nicht mehr und sollte korrigiert werden. Der am besten passende Ort fuer den obigen Drei-Schritt-Ablauf waere vor oder als Teil von **Aufgabe 2** ("Auf staging ausrollen und an der ausgelieferten Seite belegen"), weil genau dort der Push nach `staging` passiert, der das Tor scharf schaltet. Diese Aenderung wurde dem Koordinator gemeldet, NICHT selbst an `14-12-PLAN.md` vorgenommen (fremder Plan).
+  **Fundstelle in `15-12-PLAN.md`:** Aufgabe 3 traegt bereits einen `<human-check>`-Absatz, der davon ausgeht, der Entzug aus Plan 06 sei bereits erfolgt ("Die Rolle trägt nach dem Entzug aus Plan 06 niemand mehr. Wem soll sie gegeben werden?") -- diese Annahme stimmt nach der Vertagung nicht mehr und sollte korrigiert werden. Der am besten passende Ort fuer den obigen Drei-Schritt-Ablauf waere vor oder als Teil von **Aufgabe 2** ("Auf staging ausrollen und an der ausgelieferten Seite belegen"), weil genau dort der Push nach `staging` passiert, der das Tor scharf schaltet. Diese Aenderung wurde dem Koordinator gemeldet, NICHT selbst an `15-12-PLAN.md` vorgenommen (fremder Plan).
 - Plan 14-07 (GuildMembers-Intent) ist NICHT mehr Voraussetzung fuer diesen Plan -- der Trockenlauf funktioniert bereits ohne das Intent. Plan 14-07 bleibt fuer D-25 (Push-Sync bei `guildMemberUpdate`) noetig.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED
 
 - FOUND: discord/tester-dry-run.mjs
 - FOUND: discord/tester-revoke.mjs
-- FOUND: .planning/phases/14-testpilot-zugang-staging-hinter-der-discord-rolle/14-06-SUMMARY.md
+- FOUND: .planning/phases/15-testpilot-zugang-staging-hinter-der-discord-rolle/15-06-SUMMARY.md
 - FOUND: commit 245a542 (Aufgabe 1)
 - FOUND: commit 601eaf8 (Aufgabe 3)
 - FOUND: .planning/WINDOWS.md Eintrag #20 (kind unrun-verify, phase 14)

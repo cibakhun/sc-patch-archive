@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 11
 subsystem: discord
 tags: [discord.js, github-actions, jq, better-sqlite3, webhook]
@@ -225,7 +225,7 @@ Ohne dieses Secret laeuft der neue Workflow-Schritt weiterhin gruen durch (`::wa
 - `npm run build && npm run gate`: 18/18 gruen, unveraendert gegenueber dem Stand vor diesem Plan (die geaenderten/neuen Dateien liegen ausserhalb der von `npm run gate` geprueften Baeume).
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

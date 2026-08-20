@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 03
 subsystem: auth
 tags: [supabase, postgres, plpgsql, security-definer, discord-oauth, auth-users, gotrue]
@@ -10,7 +10,7 @@ requires:
 provides:
   - "D-02-Riegel gegen die stille Kontoerstellung ueber den Discord-Weg -- live auf trgjhmbnodoarnfmlcqx, vorgefuehrt rot in drei Richtungen"
   - "Rueckbau-Dokumentation (vorherige Fassung von public.handle_new_user()) im Migrationskommentar, ohne Archaeologie zurueckspielbar"
-  - "Erster tatsaechlicher (nicht nur logisch erschlossener) Nachweis fuer trg_sync_discord_identity aus Plan 02 -- schliesst 14-02-SUMMARY.md coverage D6"
+  - "Erster tatsaechlicher (nicht nur logisch erschlossener) Nachweis fuer trg_sync_discord_identity aus Plan 02 -- schliesst 15-02-SUMMARY.md coverage D6"
 affects: [14-04, 14-08, 14-09, 14-12]
 
 tech-stack:
@@ -45,7 +45,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D2
-    description: "trg_sync_discord_identity aus Plan 02 wird im Zusammenspiel tatsaechlich ausgeloest und setzt discord_role_state.discord_user_id korrekt -- schliesst die bis dahin nur logisch erschlossene Zusicherung aus 14-02-SUMMARY.md (coverage D6)"
+    description: "trg_sync_discord_identity aus Plan 02 wird im Zusammenspiel tatsaechlich ausgeloest und setzt discord_role_state.discord_user_id korrekt -- schliesst die bis dahin nur logisch erschlossene Zusicherung aus 15-02-SUMMARY.md (coverage D6)"
     requirement: D-03
     verification:
       - kind: integration
@@ -87,7 +87,7 @@ status: complete
 - Meldungstext nach Koordinator-Ruecklauf korrigiert: begruendet die Absage nicht mehr mit Vorschau-Wissen (der Riegel wirkt site-weit, D-01), sondern sagt nur, was zu tun ist.
 - Migrationsdatei enthaelt die woertlich angewandte Funktionsfassung, die vorherige Fassung als Rueckbau-Kommentarblock (beide per `pg_get_functiondef` aus der lebenden Anlage geholt), den 42501-Befund samt Begruendung, und eine Warnung zu `SET search_path TO ''`.
 - Drei SQL-Gegenproben in einer zurueckgerollten Transaktion gegen die lebende Anlage gefahren (Koordinator, Supabase Management API) -- alle drei bestanden, wortgetreue Ausgaben unten.
-- Nebenbefund: `trg_sync_discord_identity` aus Plan 02 wurde dabei zum ERSTEN MAL tatsaechlich im Zusammenspiel gemessen (vorher nur logisch erschlossen, 14-02-SUMMARY.md coverage D6) -- schliesst diese offene Zusicherung.
+- Nebenbefund: `trg_sync_discord_identity` aus Plan 02 wurde dabei zum ERSTEN MAL tatsaechlich im Zusammenspiel gemessen (vorher nur logisch erschlossen, 15-02-SUMMARY.md coverage D6) -- schliesst diese offene Zusicherung.
 
 ## Task Commits
 
@@ -134,7 +134,7 @@ Ruckstandskontrolle danach: 7 Nutzer, 7 Profile -- unveraendert; 0 Probe-Nutzer,
 
 **1. [Rule 4 - Architectural] Eigener Trigger auf auth.users nicht anlegbar -- Riegel in bestehende Funktion verlegt**
 - **Found during:** Aufgabe 2, erster `apply_migration`-Versuch
-- **Issue:** Der von 14-03-PLAN.md Aufgabe 1 vorgegebene Bauplan (`create trigger trg_block_discord_signup before insert on auth.users`) scheiterte an `ERROR 42501: must be owner of relation users` -- `auth.users` gehoert der von Supabase verwalteten Rolle `supabase_auth_admin`, nicht der Rolle, mit der Migrationen laufen.
+- **Issue:** Der von 15-03-PLAN.md Aufgabe 1 vorgegebene Bauplan (`create trigger trg_block_discord_signup before insert on auth.users`) scheiterte an `ERROR 42501: must be owner of relation users` -- `auth.users` gehoert der von Supabase verwalteten Rolle `supabase_auth_admin`, nicht der Rolle, mit der Migrationen laufen.
 - **Fix:** Der Koordinator hat dem Betreiber drei Wege mit Preisen vorgelegt; gewaehlt wurde die Erweiterung der bestehenden, `postgres`-eigenen Funktion `public.handle_new_user()` um den Riegel als erste Bedingung. Wirkung identisch (Postgres rollt bei einer Ausnahme in einem AFTER-Trigger die gesamte Transaktion zurueck), nur an einer tatsaechlich beschreibbaren Stelle.
 - **Files modified:** `supabase/migrations/20260818002000_block_discord_signup.sql` (vollstaendig umgeschrieben, `f7b74f7`)
 - **Verification:** Drei SQL-Gegenproben (siehe oben), `npm run build && npm run gate` 18/18 nach jeder Ueberarbeitung.
@@ -163,7 +163,7 @@ Ruckstandskontrolle danach: 7 Nutzer, 7 Profile -- unveraendert; 0 Probe-Nutzer,
 ## Issues Encountered
 
 - **Kein Datenbankzugriff in der Ausfuehrungssitzung** (kein `SUPABASE_ACCESS_TOKEN`, keine Supabase-CLI) -- wie von den `critical_notes` des Plans verlangt, wurde nichts selbst an die Datenbank angewendet. Aufgabe 2 wurde vollstaendig vom Koordinator ueber die Management API gefahren, mit den woertlichen Ausgaben oben zurueckgemeldet.
-- **Das automatisierte `<verify>` aus 14-03-PLAN.md Aufgabe 1 ist jetzt strukturell veraltet** -- es prueft woertlich auf den String `before insert on auth.users`, der die tatsaechlich angewandte Architektur nicht mehr beschreibt. Das ist erwartet und in der Migrationsdatei selbst dokumentiert (Kopfkommentar), nicht ein uebersehener Fehler. Ersatzverifikation sind die drei SQL-Gegenproben (Aufgabe 2) plus `npm run build && npm run gate` (18/18, mehrfach nach jeder Ueberarbeitung gefahren).
+- **Das automatisierte `<verify>` aus 15-03-PLAN.md Aufgabe 1 ist jetzt strukturell veraltet** -- es prueft woertlich auf den String `before insert on auth.users`, der die tatsaechlich angewandte Architektur nicht mehr beschreibt. Das ist erwartet und in der Migrationsdatei selbst dokumentiert (Kopfkommentar), nicht ein uebersehener Fehler. Ersatzverifikation sind die drei SQL-Gegenproben (Aufgabe 2) plus `npm run build && npm run gate` (18/18, mehrfach nach jeder Ueberarbeitung gefahren).
 - **Zwei Nachweispunkte bleiben offen**, beide als `.planning/WINDOWS.md`-Eintraege gefuehrt (id 16, id 17) statt stillschweigend als erledigt gezaehlt -- siehe `coverage` D3/D4 oben.
 
 ## User Setup Required
@@ -173,12 +173,12 @@ None fuer diesen Plan direkt. Die vier echten Anmeldevorgaenge (WINDOWS.md id 17
 ## Next Phase Readiness
 
 - Der D-02-Riegel ist live und in drei Richtungen vorgefuehrt rot -- Plan 14-04 (Discord-Provider einrichten + Torseite) kann darauf aufbauen, OHNE dass ein unbekanntes Discord-Konto je still ein Site-Konto anlegen kann.
-- **Vertragspunkt fuer Plan 14-04** (aus 14-03-PLAN.md `artifacts_produced` unveraendert gueltig): ein abgelehnter Discord-Anmeldeversuch kommt im Browser als OAuth-Fehler zurueck (bei `flowType: 'implicit'` im URL-Fragment). Plan 14-04 muss diesen Fall auf der Torseite UND in `AuthLogin.astro` in eine verstaendliche Anzeige uebersetzen, statt einen nackten Serverfehler zu zeigen -- UND muss dabei klaeren, ob GoTrue den hier formulierten Text durchreicht oder generisch verpackt (WINDOWS.md id 16 direkt an Plan 14-04 uebergeben, inkl. der Festlegung: ein Fehlschlagen von (b) aendert NICHT den Riegel, sondern ist ein Oberflaechen-Punkt).
-- `trg_sync_discord_identity` aus Plan 02 ist jetzt real (nicht nur logisch) bestaetigt -- 14-02-SUMMARY.md coverage D6 kann als geschlossen gelten.
+- **Vertragspunkt fuer Plan 14-04** (aus 15-03-PLAN.md `artifacts_produced` unveraendert gueltig): ein abgelehnter Discord-Anmeldeversuch kommt im Browser als OAuth-Fehler zurueck (bei `flowType: 'implicit'` im URL-Fragment). Plan 14-04 muss diesen Fall auf der Torseite UND in `AuthLogin.astro` in eine verstaendliche Anzeige uebersetzen, statt einen nackten Serverfehler zu zeigen -- UND muss dabei klaeren, ob GoTrue den hier formulierten Text durchreicht oder generisch verpackt (WINDOWS.md id 16 direkt an Plan 14-04 uebergeben, inkl. der Festlegung: ein Fehlschlagen von (b) aendert NICHT den Riegel, sondern ist ein Oberflaechen-Punkt).
+- `trg_sync_discord_identity` aus Plan 02 ist jetzt real (nicht nur logisch) bestaetigt -- 15-02-SUMMARY.md coverage D6 kann als geschlossen gelten.
 - Kein Blocker fuer die Fortsetzung der Phase. Zwei offene Sichtpunkte (WINDOWS.md id 16, id 17) sind an den Betreiber uebergeben, keiner davon blockiert Plan 14-04.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

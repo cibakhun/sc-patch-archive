@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 07
 subsystem: discord
 tags: [discord.js, discord-gateway, postgrest, supabase, privileged-intent]
@@ -192,7 +192,7 @@ Ohne diese beiden Variablen startet der Bot weiterhin normal (T-14-45), die Roll
 - Drei neue WINDOWS.md-Eintraege (ids 21, 22, 23) fuer diesen Plan -- open_count jetzt 15 (vorher 12).
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

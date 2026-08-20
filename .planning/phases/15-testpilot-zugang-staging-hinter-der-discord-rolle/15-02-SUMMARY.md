@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 02
 subsystem: database
 tags: [supabase, postgres, rls, security-definer, plpgsql, discord-oauth, triggers]
@@ -39,7 +39,7 @@ key-decisions:
 
 patterns-established:
   - "Jede ON CONFLICT-Klausel gegen ALLE unique-Constraints der Zieltabelle prüfen, die der INSERT tatsächlich beschreibt — nicht nur gegen den Primärschlüssel, gegen den sie geschrieben ist."
-  - "Vor jedem CREATE OR REPLACE VIEW/FUNCTION auf ein bestehendes Objekt: die jüngste Migration suchen, die es zuletzt definiert hat. Keine Repo-Datei ist ein Beleg über die lebende Anlage (14-CONTEXT.md, Commit c56ee5f) — aber unter den Repo-Dateien selbst gilt trotzdem: die jüngste zählt, nicht die erste."
+  - "Vor jedem CREATE OR REPLACE VIEW/FUNCTION auf ein bestehendes Objekt: die jüngste Migration suchen, die es zuletzt definiert hat. Keine Repo-Datei ist ein Beleg über die lebende Anlage (15-CONTEXT.md, Commit c56ee5f) — aber unter den Repo-Dateien selbst gilt trotzdem: die jüngste zählt, nicht die erste."
   - "Migrationen dieses Projekts werden über die Supabase Management API angewendet, benannt ohne Datei-Zeitstempel (z. B. `discord_tester_gate` statt `20260818000000_discord_tester_gate`) — nicht über `supabase db push`. Künftige Pläne mit Datenbank-Migrationen sollten denselben Weg gehen, nicht den CLI-Weg neu versuchen."
 
 requirements-completed: [D-03, D-05, D-08, D-10, D-13, D-19, D-22]
@@ -194,7 +194,7 @@ None — diese Migrationen brauchen keine neuen Umgebungsvariablen oder Dashboar
 - Kein Blocker für die Fortsetzung der Phase.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-17*
 
 ## Self-Check: PASSED

@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 08
 subsystem: infra
 tags: [njs, nginx, gate_verdict, postgrest, ci-probe, hmac]
@@ -37,7 +37,7 @@ key-files:
 key-decisions:
   - "mint() unterscheidet HTTP 401/403 von PostgREST (Token selbst abgelehnt -> 403 kein-zugang) von jedem anderen unklaren Ausgang (5xx, Zeitueberlauf, Netzfehler, unlesbare/fremdgeformte Antwort -> 503 urteil-unklar/supabase-*) -- beide fuehren NIE zu einem Ausweis, aber nur die zweite Gruppe ist im Sinne von D-09 'ein Ausfall', die erste ist eine echte Ablehnung."
   - "In assets/account-lite.js unterscheidet mintGatePass() 'locked' (ein anderer Tab stellt gerade aus -> spaeter erneut pruefen, das Cookie ist vermutlich laengst erneuert) von 'failed' (echtes Scheitern -> NICHT weiterprobieren, wie der Plan es verlangt). Eine reine ok/failed-Unterscheidung haette einen durch den Riegel blockierten Tab dauerhaft ohne eigenen Erneuerungs-Zeitplan zurueckgelassen."
-  - "Die CI-Sonde testet die vier gate_verdict()-Antwortformen (Testpilot/Sperrliste/gesperrter Admin/kein Testpilot) ueber einen erweiterten Mock-PostgREST (Bahn B), NICHT gegen echte Supabase-Testkonten mit echtem is_tester/tester_blocklist-Zustand -- dafuer existiert kein Repo-Secret und keins wurde spekulativ angelegt. Das prueft gate.js' eigene Antwort-VERARBEITUNG vollstaendig; die SQL-seitige Reihenfolge (Sperrliste schlaegt admin) bleibt Plan-02-Code-Review plus ein offener Punkt fuer die Sichtrunde des Betreibers -- derselbe Musterentscheid wie in 14-01-SUMMARY.md (Bahn A/B) und 14-02-SUMMARY.md (coverage D4-D6)."
+  - "Die CI-Sonde testet die vier gate_verdict()-Antwortformen (Testpilot/Sperrliste/gesperrter Admin/kein Testpilot) ueber einen erweiterten Mock-PostgREST (Bahn B), NICHT gegen echte Supabase-Testkonten mit echtem is_tester/tester_blocklist-Zustand -- dafuer existiert kein Repo-Secret und keins wurde spekulativ angelegt. Das prueft gate.js' eigene Antwort-VERARBEITUNG vollstaendig; die SQL-seitige Reihenfolge (Sperrliste schlaegt admin) bleibt Plan-02-Code-Review plus ein offener Punkt fuer die Sichtrunde des Betreibers -- derselbe Musterentscheid wie in 15-01-SUMMARY.md (Bahn A/B) und 15-02-SUMMARY.md (coverage D4-D6)."
 
 patterns-established:
   - "D-09-Ausfallsimulation mit einer nicht gerouteten Schwarzes-Loch-Adresse (10.255.255.1) statt einem sofort verweigernden Host -- prueft den EIGENEN 5s-Zeitueberlauf, nicht nur 'irgendein Netzfehler'."
@@ -50,7 +50,7 @@ coverage:
     requirement: D-08
     verification:
       - kind: unit
-        ref: "node -e Substring-Pruefung aus 14-08-PLAN.md Aufgabe 1 <verify> -- lokal ausgefuehrt, bestanden"
+        ref: "node -e Substring-Pruefung aus 15-08-PLAN.md Aufgabe 1 <verify> -- lokal ausgefuehrt, bestanden"
         status: pass
     human_judgment: false
   - id: D2
@@ -75,13 +75,13 @@ coverage:
     requirement: D-13
     verification: []
     human_judgment: true
-    rationale: "gate_verdict() (Plan 02, bereits live) schreibt last_staging_seen unbedingt bei jedem allowed:true per INSERT ... ON CONFLICT UPDATE -- durch Quelltext-Review der bereits angewandten Migration bestaetigt, nicht durch einen echten authentifizierten Aufruf gemessen (keine Bahn-A-Sitzung mit echtem Testkonto verfuegbar). Fuer die Sichtrunde des Betreibers vorgesehen, wie in 14-02-SUMMARY.md coverage D2/D3 bereits angelegt."
+    rationale: "gate_verdict() (Plan 02, bereits live) schreibt last_staging_seen unbedingt bei jedem allowed:true per INSERT ... ON CONFLICT UPDATE -- durch Quelltext-Review der bereits angewandten Migration bestaetigt, nicht durch einen echten authentifizierten Aufruf gemessen (keine Bahn-A-Sitzung mit echtem Testkonto verfuegbar). Fuer die Sichtrunde des Betreibers vorgesehen, wie in 15-02-SUMMARY.md coverage D2/D3 bereits angelegt."
   - id: D5
     description: "Ausnahmeliste aufgezaehlt und je begruendet (D-06): 7 GATE-AUSNAHME-Eintraege, kein Sammelmuster ausser der einen erlaubten Schriftverzeichnis-Ausnahme, gegen einen echten Browser-Mitschnitt von /gate.html ohne Cookie gemessen"
     requirement: D-06
     verification:
       - kind: unit
-        ref: "node -e Substring-/Regex-Pruefung aus 14-08-PLAN.md Aufgabe 2 <verify> -- 7 Anlaesse == 7 Bloecke, kein /assets/-Sammelmuster; playwright-core+Chrome gegen /gate.html auf lokalem Vorschau-Server (astro preview) protokolliert exakt 7 Anfragen, alle bereits in der Liste"
+        ref: "node -e Substring-/Regex-Pruefung aus 15-08-PLAN.md Aufgabe 2 <verify> -- 7 Anlaesse == 7 Bloecke, kein /assets/-Sammelmuster; playwright-core+Chrome gegen /gate.html auf lokalem Vorschau-Server (astro preview) protokolliert exakt 7 Anfragen, alle bereits in der Liste"
         status: pass
     human_judgment: false
   - id: D6
@@ -192,13 +192,13 @@ Keine neuen — alle in `<threat_model>` des Plans genannten Bedrohungen (T-14-4
 
 ## Issues Encountered
 
-- **Docker ist auf diesem Rechner weiterhin nicht verfuegbar** (wie in 14-01-SUMMARY.md dokumentiert) — jede Pruefung gegen einen laufenden Container lief ueber die erweiterte CI-Sonde, nicht lokal. Lauf [32133474158](https://github.com/cibakhun/sc-patch-archive/actions/runs/32133474158) ist vollstaendig gruen.
-- **Keine echten Supabase-Testkonten mit is_tester/admin/tester_blocklist-Zustand verfuegbar** — die vier `gate_verdict()`-Antwortformen sind gegen einen erweiterten Mock-PostgREST gepruft (gate.js' eigene Antwort-Verarbeitung, vollstaendig), nicht gegen die tatsaechliche SQL-Reihenfolge in der lebenden Datenbank. Diese Grenze ist im Kopfkommentar der CI-Sonde selbst benannt und deckt sich mit denselben offenen Punkten aus 14-01-SUMMARY.md (coverage D7) und 14-02-SUMMARY.md (coverage D4-D6) — alle fuer dieselbe Sichtrunde des Betreibers vorgesehen, sobald ein Testkonto verfuegbar ist.
+- **Docker ist auf diesem Rechner weiterhin nicht verfuegbar** (wie in 15-01-SUMMARY.md dokumentiert) — jede Pruefung gegen einen laufenden Container lief ueber die erweiterte CI-Sonde, nicht lokal. Lauf [32133474158](https://github.com/cibakhun/sc-patch-archive/actions/runs/32133474158) ist vollstaendig gruen.
+- **Keine echten Supabase-Testkonten mit is_tester/admin/tester_blocklist-Zustand verfuegbar** — die vier `gate_verdict()`-Antwortformen sind gegen einen erweiterten Mock-PostgREST gepruft (gate.js' eigene Antwort-Verarbeitung, vollstaendig), nicht gegen die tatsaechliche SQL-Reihenfolge in der lebenden Datenbank. Diese Grenze ist im Kopfkommentar der CI-Sonde selbst benannt und deckt sich mit denselben offenen Punkten aus 15-01-SUMMARY.md (coverage D7) und 15-02-SUMMARY.md (coverage D4-D6) — alle fuer dieselbe Sichtrunde des Betreibers vorgesehen, sobald ein Testkonto verfuegbar ist.
 - **Der rote Lauf fuer die theme.css-Ausnahme ist eine Nachbildung, kein Originalbefund** — ohne lokales nginx wurde das dokumentierte Redirect-Verhalten (HTML statt CSS, vom Browser wegen MIME-Pruefung verworfen) mit `playwright-core`-Routenabfangen nachgestellt, nicht ein echter Config-Entfernen-und-neu-Bauen-Zyklus gegen einen laufenden Container gefahren. Das Ergebnis (vier kollabierende Kennzahlen: Schriftgroesse, Buchstabenabstand, Knopftextfarbe) ist eindeutig, aber methodisch eine Simulation.
 
 ## User Setup Required
 
-None — diese Aufgabe braucht keine neuen Umgebungsvariablen. Die drei `VB_GATE_SECRET`/`VB_SUPABASE_URL`/`VB_SUPABASE_ANON_KEY`-Variablen aus Plan 01 (noch nicht in Coolify gesetzt, siehe 14-01-SUMMARY.md) bleiben Voraussetzung dafuer, dass der Tuersteher auf der tatsaechlichen Vorschau-Umgebung ueberhaupt greift — unveraendert durch diesen Plan.
+None — diese Aufgabe braucht keine neuen Umgebungsvariablen. Die drei `VB_GATE_SECRET`/`VB_SUPABASE_URL`/`VB_SUPABASE_ANON_KEY`-Variablen aus Plan 01 (noch nicht in Coolify gesetzt, siehe 15-01-SUMMARY.md) bleiben Voraussetzung dafuer, dass der Tuersteher auf der tatsaechlichen Vorschau-Umgebung ueberhaupt greift — unveraendert durch diesen Plan.
 
 ## Next Phase Readiness
 
@@ -208,7 +208,7 @@ None — diese Aufgabe braucht keine neuen Umgebungsvariablen. Die drei `VB_GATE
 - Kein Blocker fuer die Fortsetzung der Phase.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-18*
 
 ## Self-Check: PASSED

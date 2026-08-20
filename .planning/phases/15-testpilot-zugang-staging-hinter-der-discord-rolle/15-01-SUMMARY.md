@@ -1,5 +1,5 @@
 ---
-phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle
+phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle
 plan: 01
 subsystem: infra
 tags: [njs, nginx, docker, github-actions, supabase, auth, hmac, ci-probe]
@@ -258,7 +258,7 @@ Diese Einrichtung ist noch NICHT erfolgt (kein Zugriff auf Coolify aus dieser Si
 - Kein Blocker für die Fortsetzung der Phase.
 
 ---
-*Phase: 14-testpilot-zugang-staging-hinter-der-discord-rolle*
+*Phase: 15-testpilot-zugang-staging-hinter-der-discord-rolle*
 *Completed: 2026-08-17*
 
 ## Self-Check: PASSED

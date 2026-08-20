@@ -4,7 +4,7 @@
 > begründete Entscheidung — nicht eine Lücke, an die niemand gedacht hat.
 
 **Detektor:** `gsd-core/bin/lib/api-coverage.cjs --json` gegen
-`14-CONTEXT.md` + `14-RESEARCH.md` + den ROADMAP-Abschnitt.
+`15-CONTEXT.md` + `15-RESEARCH.md` + den ROADMAP-Abschnitt.
 Mit dem mitgelieferten (englischen) Vokabular meldet er `detected: false` —
 die Phasenunterlagen sind deutsch. Mit der am Aufrufort erlaubten
 Vokabel-Erweiterung (`--verbs …,kopplung,anbinden,verdrahten --nouns
