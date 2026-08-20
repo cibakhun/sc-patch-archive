@@ -96,7 +96,20 @@ try {
 const REPORT_MODE = process.argv.includes('--report');
 const MIN_PAGES = 440;
 const MIN_PAIRS = 200;
-const SYS_IDS = ['sys-core', 'sys-arms', 'sys-prop', 'sys-other'];
+/* PORTgruppen — die Gruppen MIT Markern auf der Buehne. Nur sie zaehlen fuer
+   die Rail-Laengen-Verteilung (WELLE1_RAIL_VERTEILUNG) und fuer P-3
+   (Zusicherung 4): beides sind Aussagen ueber Marker, nicht ueber Abschnitte. */
+const PORT_SYS_IDS = ['sys-core', 'sys-arms', 'sys-prop', 'sys-other'];
+/* INHALTSgruppen — seit D-01 (20.08.2026) stehen die vier frueheren Kapitel als
+   gleichgebaute .holo__sys-Abschnitte in derselben Konsole. Sie tragen keine
+   Marker, erscheinen deshalb NICHT in GROUP_FOR_SYS_ID und werden von
+   Zusicherung 4 uebersprungen (dort `if (!grp) continue`).
+
+   ⚠ Waeren sie hier nicht eingetragen, meldete Zusicherung 2 sie als
+   "unbekannte id" — 1808 Befunde, gemessen. Genau diese Verkopplung zweier
+   Tore an EINE Struktur hat D-01 fuenf Wellen lang blockiert. */
+const CONTENT_SYS_IDS = ['sys-spec', 'sys-trade', 'sys-rank', 'sys-context'];
+const SYS_IDS = [...PORT_SYS_IDS, ...CONTENT_SYS_IDS];
 const GROUP_FOR_SYS_ID = { 'sys-core': 'core', 'sys-arms': 'arms', 'sys-prop': 'prop', 'sys-other': 'other' };
 const VOID_TAGS = new Set([
   'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr',
@@ -384,7 +397,15 @@ async function main() {
     const distDe = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
     for (const [f, d] of fileData) {
       const n = d.sysSections.length;
-      const bucket = Math.min(n, 4);
+      /* Gezaehlt wird die Zahl der PORTgruppen, nicht die aller Abschnitte:
+         WELLE1_RAIL_VERTEILUNG misst, wie viele Markergruppen ein Schiff hat
+         (ein karges Schiff hat 1, ein dichtes 4). Die vier Inhaltsgruppen aus
+         D-01 haengen an keiner Markerzahl und wuerden diese Verteilung sonst
+         flachdruecken — gemessen: alle 454 Seiten fielen in den Eimer 4, die
+         Klinke riss achtfach. Die Klinke selbst bleibt damit unveraendert
+         gueltig, sie wird nur wieder auf das gerichtet, was sie misst. */
+      const nPort = d.sysSections.filter((s) => PORT_SYS_IDS.includes(s.id)).length;
+      const bucket = Math.min(nPort, 4);
       (f.startsWith('dist/de/') ? distDe : distEn)[bucket]++;
       if (n < 1) pagesWithoutSys.push(f);
       const seen = new Set();
@@ -397,8 +418,8 @@ async function main() {
       }
     }
     console.log(`    .holo__sys je Seite — Soll: >= 1   Ist Verstoesse: ${pagesWithoutSys.length} von ${allFiles.length} Seiten`);
-    console.log(`    Verteilung Systemzahl EN: 4=${distEn[4]} 3=${distEn[3]} 2=${distEn[2]} 1=${distEn[1]} 0=${distEn[0]}`);
-    console.log(`    Verteilung Systemzahl DE: 4=${distDe[4]} 3=${distDe[3]} 2=${distDe[2]} 1=${distDe[1]} 0=${distDe[0]}`);
+    console.log(`    Verteilung Portgruppenzahl EN: 4=${distEn[4]} 3=${distEn[3]} 2=${distEn[2]} 1=${distEn[1]} 0=${distEn[0]}`);
+    console.log(`    Verteilung Portgruppenzahl DE: 4=${distDe[4]} 3=${distDe[3]} 2=${distDe[2]} 1=${distDe[1]} 0=${distDe[0]}`);
     console.log(
       `    Soll (Welle-1-Messung, je Sprache): 4=${WELLE1_RAIL_VERTEILUNG[4]} 3=${WELLE1_RAIL_VERTEILUNG[3]} ` +
         `2=${WELLE1_RAIL_VERTEILUNG[2]} 1=${WELLE1_RAIL_VERTEILUNG[1]}`
