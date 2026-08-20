@@ -68,6 +68,46 @@ Bereich kommt, lädt das Mesh nach und löst es ab. **Kein Startknopf** — wenn
 das Schiff die Navigation ist, darf es nicht hinter einem Knopf liegen. Wer
 nie hinunterscrollt, lädt nichts.
 
+### D-05 — Bei schmalen Breiten wird die Bühne hochformatig (Betreiber, 18.08.2026)
+
+**Anlass:** Welle 1 hat S-0 beantwortet und dabei eine Grenze gemessen
+(`.planning/WINDOWS.md` id 21). Bei 1280 px trägt die Konsole für alle drei
+Prüfschiffe. Bei 360 px trägt sie für kompakte Schiffe (argo-csv-cargo: 76,4 %
+Füllgrad), aber **anvl-carrack erreicht nur 55,4 % und drak-ironclad 53,5 %** —
+das Schiff wird zum schmalen Streifen, die Marker sind zwar noch als farbige
+Punkte erkennbar, aber deutlich mühsamer zu finden.
+
+**Die Ursache ist geometrisch, kein Fehler:** bei fester 3/4-Kameraausrichtung
+auf einer **querformatigen** Bühne bindet bei einem sehr langen Schiff die
+BREITE, bevor die Höhe — die kürzere Kante, an der P-1 misst — das Zielmaß
+erreicht.
+
+**Entscheidung:** Bei schmalen Breiten wird die Bühne **höher als breit**. Damit
+ist die Breite die kürzere Kante; ein langes Schiff, diagonal hineingelegt,
+füllt sie deutlich besser. Das behebt die Ursache statt das Symptom und kommt
+mit **EINER Kamera für alle Schiffe** aus.
+
+⚠ **Zwei Wege wurden vorgelegt und verworfen:**
+
+- *Kamera dreht sich je nach Schiff* (stark gestreckte Schiffe stärker von
+  vorn): füllt am besten, aber jedes Schiff stünde in einem anderen Winkel, und
+  der Vergleich zweier Schiffsseiten nebeneinander würde schwerer. Das ist eine
+  sichtbare, seitenweite Gestaltungsentscheidung, kein Fit-Parameter.
+- *Untergrenze für lange Schiffe absenken* (z. B. 50 % ab 3:1 Streckung):
+  kleinster Eingriff, aber ein Eingeständnis — auf dem Handy bliebe die Carrack
+  ein Streifen.
+
+**Was das kostet und wer es bezahlt:** auf dem Handy nimmt die Bühne mehr
+senkrechten Platz. Das ist bewusst in Kauf genommen; die Auslesung steht nach
+D-03 ohnehin darunter und rückt entsprechend nach.
+
+**Woran es gemessen wird:** P-1 gilt unverändert (≥ 70 % der kürzeren
+Bühnenkante) — jetzt aber gegen eine Bühne, deren kürzere Kante bei schmalen
+Breiten die Breite ist. Die Messung läuft mit demselben Werkzeug wie in Welle 1
+(`scripts/probes/schiffskonsole-messung.mjs`), an denselben drei Prüfschiffen,
+und die Zahlen aus id 21 (55,4 % / 53,5 % / 76,4 %) sind die Vergleichsmarke.
+Wird sie verfehlt, ist das ein Befund und keine Nachverhandlung der Marke.
+
 ### Claudes Ermessen
 
 - Zuschnitt und Reihenfolge der Systemliste (die Gruppen `core`/`arms`/`prop`/
