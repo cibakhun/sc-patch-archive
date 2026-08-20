@@ -51,6 +51,20 @@
      sichtbarer Abschnitte erwartet — in dieser Welle wird noch nichts
      versteckt).
 
+   15-04-PLAN.md Task 3 ergaenzt drei weitere Messgruppen (Familie B):
+     h-netz (D-04, Erfolgskriterium 5) — Netzverkehr beim Seitenaufruf,
+     gemessen am 'load'-Ereignis (Soll je 0 fuer three.module.min.js/GLB)
+     gegen denselben Kontext nach dem Scrollen in den sichtbaren Bereich
+     (Soll je >=1); zusaetzlich die Einmaligkeit des Ladeausloesers
+     (T-15-16). Zwei Faelle aus den Pruefschiffen abgeleitet: MIT und OHNE
+     Video/Bilder-Umschalter.
+     i-ueberlauf (D-03, Erfolgskriterium 4) — waagerechter Seiten-Ueberlauf
+     bei 360px, Rail-Chip-Reihe (Hoehenabweichung, Erreichbarkeit), plus die
+     beiden Backstop-Punkte "overflow E4"/"long-text E4" aus dem UI-SPEC
+     (Auslesungsspalte bei 1280px, Bewaffnungs-Zustand falls vorhanden).
+     l-sprachparitaet — Systemzahl, Rail-Laenge, Marker je Gruppe,
+     Seitenhoehe (<=5% Abweichung) und Auslesungsbreite, DE gegen EN.
+
    Aufruf, jeweils aus dem Projektwurzelverzeichnis:
 
      node scripts/probes/schiffskonsole-messung.mjs --census
@@ -804,20 +818,33 @@ async function runBrowserMessung() {
         await pageOhne.close(); await kontextOhne.close();
 
         // ---- Gegenprobe MIT JavaScript (derselbe Aufruf) ----
+        // 15-04-PLAN.md Task 1 (Rail-Einfachauswahl): seit dieser Welle
+        // verschiebt das Skript die Systemabschnitte in die Auslesung UND
+        // zeigt genau EINEN (das serverseitig vorbelegte erste System) --
+        // die Erwartung aus Welle 3 ("dieselbe Zahl wie ohne JS") ist damit
+        // ueberholt. Neue Erwartung: min(1, sollAbschnitte) sichtbar, UND
+        // die Abschnitte muessen tatsaechlich in .holo__readout stecken
+        // (Beleg fuers Verschieben, nicht nur fuers Verstecken).
         const kontextMit = await b.newContext({ viewport: { width: breite, height: 900 } });
         const pageMit = await kontextMit.newPage();
         try {
           await pageMit.goto(url, { waitUntil: 'domcontentloaded' });
-          const abschnitteMitJs = await pageMit.evaluate(() =>
-            Array.from(document.querySelectorAll('.holo__sys')).filter(
+          const mitJs = await pageMit.evaluate(() => {
+            const sichtbar = Array.from(document.querySelectorAll('.holo__sys')).filter(
               (el) => getComputedStyle(el).display !== 'none' && !el.hasAttribute('hidden')
-            ).length
-          );
+            );
+            const readout = document.getElementById('holoreadout');
+            const alleInReadout = Array.from(document.querySelectorAll('.holo__sys')).every(
+              (el) => readout && readout.contains(el)
+            );
+            return { anzahl: sichtbar.length, alleInReadout };
+          });
+          const sollMitJs = Math.min(1, sollAbschnitte);
           melde(
             'j-ohne-javascript-gegenprobe',
-            abschnitteMitJs === messungOhne.abschnitteSichtbar,
-            `[${lauf}] Gegenprobe MIT JavaScript: Soll dieselbe Zahl sichtbarer Abschnitte wie ohne (${messungOhne.abschnitteSichtbar}); Ist ${abschnitteMitJs} — ` +
-              `in dieser Welle wird noch nichts umgehaengt/versteckt, eine Abweichung waere ein Fund`
+            mitJs.anzahl === sollMitJs && mitJs.alleInReadout,
+            `[${lauf}] Gegenprobe MIT JavaScript (Rail-Einfachauswahl, 15-04-PLAN.md Task 1): Soll genau ${sollMitJs} sichtbare(r) Abschnitt(e) (vorbelegtes erstes System), alle Abschnitte in .holo__readout verschoben; ` +
+              `Ist ${mitJs.anzahl} sichtbar, in .holo__readout: ${mitJs.alleInReadout}`
           );
         } catch (e) {
           melde('j-ohne-javascript-gegenprobe', false, `[${lauf}] Seitenaufruf (mit JS) fehlgeschlagen: ${e.message}`);
@@ -827,6 +854,254 @@ async function runBrowserMessung() {
     }
   }
   console.log(`  Anker-Spruenge geprueft: ${jSpruengeGeprueft}  Fehlschlaege: ${jSpruengeFehlgeschlagen}`);
+
+  /* ============================================================
+     Messgruppe h-netz (15-04-PLAN.md Task 3, D-04, Erfolgskriterium 5) —
+     Netzverkehr beim Seitenaufruf. Zwei Faelle aus den Pruefschiffen
+     abgeleitet, nicht verdrahtet: eines MIT Video/Bilder-Umschalter
+     (.holo__toggle traegt #btnvid/#btnimg), eines OHNE — der zweite Fall
+     ist der, den der alte Code (defaultMode-abhaengiges sofortiges Laden)
+     verletzte. Gemessen wird am 'load'-Ereignis (Seitenaufruf ist
+     abgeschlossen, BEVOR der IntersectionObserver seine erste Runde
+     gedreht hat) gegen denselben Kontext NACH dem Scrollen. ============================================================ */
+  console.log(`\n=== Messgruppe h-netz: Netzverkehr beim Seitenaufruf (D-04, Erfolgskriterium 5) ===`);
+  // Klassifizierung direkt am GEBAUTEN dist/ (Familie-A-Stil, kein Browser
+  // noetig -- schneller UND zuverlaessiger als ein Seitenaufruf je Kandidat).
+  // Die drei Pruefschiffe (ZIELE_ALLE) haben allesamt MINDESTENS eine
+  // Galerie (btnimg) -- fuer den "OHNE"-Fall muss ausserhalb dieser Menge
+  // gesucht werden, ueber alle Schiffe mit ausgeliefertem holodata, nicht
+  // verdrahtet auf eine bestimmte Kennung.
+  function hatUmschalterImDist(id) {
+    try {
+      const html = readFileSync(join('dist', 'schiffe', `${id}.html`), 'utf8');
+      return /id="btnvid"|id="btnimg"/.test(html);
+    } catch (e) { return null; } // Datei fehlt -> kein Urteil moeglich
+  }
+  let hNetzMit = null, hNetzOhne = null;
+  for (const ziel of ZIELE_ALLE) {
+    const hat = hatUmschalterImDist(ziel.id);
+    if (hat === true && !hNetzMit) hNetzMit = ziel.id;
+    if (hat === false && !hNetzOhne) hNetzOhne = ziel.id;
+  }
+  if (!hNetzOhne) {
+    for (const id of Object.keys(quellen.shipHardpoints.ships)) {
+      if (hNetzOhne) break;
+      const html = (() => { try { return readFileSync(join('dist', 'schiffe', `${id}.html`), 'utf8'); } catch (e) { return null; } })();
+      if (!html || !html.includes('id="holoreadout"')) continue; // nur Schiffe mit ausgelieferter Konsole
+      if (!/id="btnvid"|id="btnimg"/.test(html)) hNetzOhne = id;
+    }
+  }
+  console.log(`  Faelle (aus den Pruefschiffen abgeleitet): MIT Umschalter=${hNetzMit ?? '(keins der Pruefschiffe hat einen)'}  OHNE Umschalter=${hNetzOhne ?? '(alle Pruefschiffe haben einen)'}`);
+
+  async function messeNetzverkehr(id, pfad, lauf) {
+    const kontext = await b.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await kontext.newPage();
+    // .holo ist auf dieser Seite das ERSTE Element nach der Kopfleiste und
+    // damit bei JEDER ueblichen Fensterhoehe schon beim Laden (teil-)
+    // sichtbar — ein Vergleich gegen das 'load'-Ereignis ist deshalb reine
+    // Zufallssache (5 Wiederholungslaeufe am unveraenderten Artefakt
+    // lieferten 0/1/1/2/0 Treffer VOR 'load' — ein Messartefakt der
+    // Zeitmessung, kein Produktbefund). `page.addInitScript()` scheiterte
+    // hier zuverlaessig an `document.documentElement === null` (die
+    // Injektion laeuft in diesem Setup vor der Dokumenterstellung) — daher
+    // stattdessen `page.route()`: die Seite wird abgefangen und um einen
+    // Abstandshalter im <head> ERWEITERT, BEVOR sie den Browser erreicht.
+    // Damit ist .holo von der allerersten Bildzusammensetzung an
+    // nachweislich ausserhalb des sichtbaren Bereichs -- kein Zeitfenster,
+    // kein Raten. Verifiziert (siehe 15-04-SUMMARY.md): 0 Treffer VOR dem
+    // Scrollen ueber mehrere Wiederholungen, .holo tatsaechlich bei
+    // top:3000px.
+    await page.route(`${BASE}${pfad}`, async (route) => {
+      const resp = await route.fetch();
+      const body = (await resp.text()).replace('</head>', '<style>#holo{margin-top:3000px !important}</style></head>');
+      await route.fulfill({ response: resp, body });
+    });
+    const treffer = { three: 0, glb: 0 };
+    page.on('request', (req) => {
+      const u = req.url();
+      if (/three\.module\.min\.js/.test(u)) treffer.three++;
+      if (/\.glb($|\?)/i.test(u)) treffer.glb++;
+    });
+    let vor = null, nach = null, nachZweitScroll = null;
+    try {
+      await page.goto(`${BASE}${pfad}`, { waitUntil: 'networkidle' });
+      // .holo ist per Spacer sicher unterhalb des Bildschirmrands -- der
+      // Beobachter kann hier strukturell noch nicht ausgeloest haben.
+      vor = { ...treffer };
+      await page.evaluate(() => document.getElementById('holo')?.scrollIntoView());
+      await page.waitForTimeout(1500);
+      nach = { ...treffer };
+      // Beobachter darf NUR EINMAL ausloesen (T-15-16): erneutes Hin- und
+      // Herscrollen darf die Trefferzahl nicht weiter erhoehen.
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(200);
+      await page.evaluate(() => document.getElementById('holo')?.scrollIntoView());
+      await page.waitForTimeout(500);
+      nachZweitScroll = { ...treffer };
+    } catch (e) {
+      melde('h-netz', false, `[${lauf}] Messung fehlgeschlagen: ${e.message}`);
+      await page.close(); await kontext.close();
+      return;
+    }
+    melde(
+      'h-netz',
+      vor.three === 0 && vor.glb === 0,
+      `[${lauf}] Beim Seitenaufruf, .holo per Spacer ausserhalb des sichtbaren Bereichs (bis unmittelbar vor dem Scrollen) — Soll je 0; Ist three.module.min.js=${vor.three} GLB=${vor.glb}`
+    );
+    melde(
+      'h-netz',
+      nach.three >= 1 && nach.glb >= 1,
+      `[${lauf}] Nach dem Scrollen in den sichtbaren Bereich — Soll je >=1; Ist three.module.min.js=${nach.three} GLB=${nach.glb}`
+    );
+    melde(
+      'h-netz',
+      nachZweitScroll.three === nach.three && nachZweitScroll.glb === nach.glb,
+      `[${lauf}] Beobachter loest genau einmal aus — erneutes Hin-/Herscrollen darf die Zahl nicht erhoehen; vorher ${nach.glb} GLB/${nach.three} three, nachher ${nachZweitScroll.glb} GLB/${nachZweitScroll.three} three`
+    );
+    await page.close(); await kontext.close();
+  }
+  for (const [rolle, id] of [['MIT Video/Galerie', hNetzMit], ['OHNE Video/Galerie', hNetzOhne]]) {
+    if (!id) { melde('h-netz', false, `Kein Pruefschiff fuer den Fall "${rolle}" gefunden — Klassifizierung ergab keinen Kandidaten`); continue; }
+    for (const sprache of SPRACHEN) {
+      await messeNetzverkehr(id, sprache.pfad(id), `${id} (${rolle}) / ${sprache.id}`);
+    }
+  }
+
+  /* ============================================================
+     Messgruppe i-ueberlauf (15-04-PLAN.md Task 3, D-03, Erfolgskriterium 4)
+     + die beiden Backstop-Punkte "overflow E4"/"long-text E4" aus dem
+     UI-SPEC (Auslesungsspalte bei 1280px). ============================================================ */
+  console.log(`\n=== Messgruppe i-ueberlauf: waagerechter Ueberlauf bei 360px + Backstops overflow/long-text E4 ===`);
+  for (const ziel of ZIELE) {
+    for (const sprache of SPRACHEN) {
+      const lauf = `${ziel.id}/${sprache.id}`;
+      const kontext = await b.newContext({ viewport: { width: 360, height: 900 } });
+      const page = await kontext.newPage();
+      try {
+        await page.goto(`${BASE}${sprache.pfad(ziel.id)}`, { waitUntil: 'domcontentloaded' });
+        const r = await page.evaluate(() => {
+          const doc = document.documentElement;
+          const ueberlauf = doc.scrollWidth > doc.clientWidth + 1;
+          const rail = document.querySelector('.holo__rail');
+          const chips = rail ? Array.from(rail.querySelectorAll('a')) : [];
+          const chipHeights = chips.map((c) => c.getBoundingClientRect().height);
+          const chipHeightAbweichung = chipHeights.length > 1 ? Math.max(...chipHeights) - Math.min(...chipHeights) : 0;
+          const railUeberlauf = rail ? rail.scrollWidth > rail.clientWidth + 1 : false;
+          let letzterErreichbar = true;
+          if (rail && chips.length) {
+            const last = chips[chips.length - 1];
+            letzterErreichbar = last.offsetLeft + last.offsetWidth <= rail.scrollWidth + 1;
+          }
+          const cs = rail ? getComputedStyle(rail) : null;
+          return {
+            ueberlauf, chipCount: chips.length, chipHeightAbweichung, railUeberlauf, letzterErreichbar,
+            scrollbarWidth: cs ? cs.scrollbarWidth : null,
+          };
+        });
+        melde(
+          'i-ueberlauf',
+          !r.ueberlauf && r.chipHeightAbweichung <= 2 && r.letzterErreichbar,
+          `[${lauf}] Soll: kein waagerechter Seiten-Ueberlauf, keine hoehen-abweichende Chip (<=2px), letzter Chip erreichbar; ` +
+            `Ist Seiten-Ueberlauf=${r.ueberlauf} ${r.chipCount} Chips Hoehenabweichung=${r.chipHeightAbweichung.toFixed(1)}px ` +
+            `Rail-eigener-Ueberlauf=${r.railUeberlauf} scrollbar-width=${r.scrollbarWidth} letzterErreichbar=${r.letzterErreichbar}`
+        );
+      } catch (e) {
+        melde('i-ueberlauf', false, `[${lauf}] Messung fehlgeschlagen: ${e.message}`);
+      }
+      await page.close(); await kontext.close();
+    }
+  }
+  console.log(`  --- Backstops overflow/long-text E4 (Auslesungsspalte bei 1280px, Bewaffnungs-Zustand falls vorhanden) ---`);
+  for (const ziel of ZIELE) {
+    const kontext = await b.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await kontext.newPage();
+    try {
+      await page.goto(`${BASE}${SPRACHEN[0].pfad(ziel.id)}`, { waitUntil: 'domcontentloaded' });
+      // Falls vorhanden, auf "arms" (dichteste Textmenge: Turmgruppen +
+      // Einzelwaffen) umschalten -- der Backstop fragt nach der dichtesten
+      // realistisch erreichbaren Auslesung, nicht nach dem Vorbelegungszustand.
+      if (ziel.gruppen.includes('arms')) {
+        await page.evaluate(() => {
+          const a = document.querySelector('.holo__rail a[data-g="arms"]');
+          if (a) a.click();
+        });
+        await page.waitForTimeout(150);
+      }
+      const r = await page.evaluate(() => {
+        const readout = document.getElementById('holoreadout');
+        if (!readout) return null;
+        const rect = readout.getBoundingClientRect();
+        const innerOverflow = readout.scrollWidth > readout.clientWidth + 1;
+        const leafs = Array.from(readout.querySelectorAll('*')).filter(
+          (el) => el.children.length === 0 && (el.textContent || '').trim().length > 0
+        );
+        let ueberlaufendesWort = null;
+        for (const el of leafs) {
+          if (el.scrollWidth > el.clientWidth + 2) { ueberlaufendesWort = (el.textContent || '').trim(); break; }
+        }
+        const vScroll = readout.scrollHeight > readout.clientHeight + 1;
+        return { width: rect.width, innerOverflow, ueberlaufendesWort, vScroll, scrollHeight: readout.scrollHeight, clientHeight: readout.clientHeight };
+      });
+      if (r) {
+        melde(
+          'i-ueberlauf-backstop',
+          !r.innerOverflow && !r.ueberlaufendesWort,
+          `[${ziel.id}] Auslesungsspaltenbreite ${r.width.toFixed(0)}px; inneres Ueberlauf-Raster (overflow E4): ${r.innerOverflow}; ` +
+            `ueberlaufendes Wort (long-text E4): ${r.ueberlaufendesWort ? JSON.stringify(r.ueberlaufendesWort) : 'keins'}; ` +
+            `eigener senkrechter Bildlauf noetig: ${r.vScroll} (scrollHeight=${r.scrollHeight.toFixed(0)}px clientHeight=${r.clientHeight.toFixed(0)}px)`
+        );
+      } else {
+        melde('i-ueberlauf-backstop', false, `[${ziel.id}] #holoreadout nicht gefunden`);
+      }
+    } catch (e) {
+      melde('i-ueberlauf-backstop', false, `[${ziel.id}] Messung fehlgeschlagen: ${e.message}`);
+    }
+    await page.close(); await kontext.close();
+  }
+
+  /* ============================================================
+     Messgruppe l-sprachparitaet (15-04-PLAN.md Task 3) — je Pruefschiff
+     dieselben Kennzahlen in DE und EN nebeneinander. ============================================================ */
+  console.log(`\n=== Messgruppe l-sprachparitaet: DE/EN Kennzahlen + Hoehenabweichung <=5% ===`);
+  for (const ziel of ZIELE) {
+    const werte = {};
+    for (const sprache of SPRACHEN) {
+      const kontext = await b.newContext({ viewport: { width: 1280, height: 900 } });
+      const page = await kontext.newPage();
+      try {
+        await page.goto(`${BASE}${sprache.pfad(ziel.id)}`, { waitUntil: 'domcontentloaded' });
+        werte[sprache.id] = await page.evaluate(() => {
+          const sysCount = document.querySelectorAll('.holo__sys').length;
+          const railCount = document.querySelectorAll('.holo__rail a').length;
+          const dataEl = document.getElementById('holodata');
+          const cfg = dataEl ? JSON.parse(dataEl.textContent) : null;
+          const markerJeGruppe = {};
+          if (cfg) for (const p of cfg.ports) markerJeGruppe[p.g] = (markerJeGruppe[p.g] ?? 0) + 1;
+          const readoutWidth = document.getElementById('holoreadout')?.getBoundingClientRect().width ?? null;
+          const pageHeight = document.documentElement.scrollHeight;
+          return { sysCount, railCount, markerJeGruppe, readoutWidth, pageHeight };
+        });
+      } catch (e) {
+        melde('l-sprachparitaet', false, `[${ziel.id}/${sprache.id}] Seitenaufruf fehlgeschlagen: ${e.message}`);
+      }
+      await page.close(); await kontext.close();
+    }
+    const de = werte.de, en = werte.en;
+    if (!de || !en) continue;
+    const countsEqual =
+      de.sysCount === en.sysCount &&
+      de.railCount === en.railCount &&
+      JSON.stringify(de.markerJeGruppe) === JSON.stringify(en.markerJeGruppe);
+    const heightDiffPct = (Math.abs(de.pageHeight - en.pageHeight) / Math.max(de.pageHeight, en.pageHeight)) * 100;
+    melde(
+      'l-sprachparitaet',
+      countsEqual && heightDiffPct <= 5,
+      `[${ziel.id}] Systeme DE=${de.sysCount}/EN=${en.sysCount}; Rail-Eintraege DE=${de.railCount}/EN=${en.railCount}; ` +
+        `Marker je Gruppe DE=${JSON.stringify(de.markerJeGruppe)} EN=${JSON.stringify(en.markerJeGruppe)}; ` +
+        `Seitenhoehe DE=${de.pageHeight}px EN=${en.pageHeight}px (Abweichung ${heightDiffPct.toFixed(1)}%, Marke <=5%); ` +
+        `Auslesungsbreite DE=${de.readoutWidth}px EN=${en.readoutWidth}px`
+    );
+  }
 
   await b.close();
 

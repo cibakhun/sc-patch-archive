@@ -442,7 +442,16 @@ const shipCode = d.manufacturer ?? d.makerCode ?? t('ship.code.ship');
 const holoAvail = !!(holoData || holoUrl);
 const hasGallery = gallery.length > 0;
 const stageModeCount = (hasVideo ? 1 : 0) + (hasGallery ? 1 : 0) + (holoAvail ? 1 : 0);
-const defaultMode: 'video' | 'img' | 'holo' = hasVideo ? 'video' : hasGallery ? 'img' : 'holo';
+// 15-04-PLAN.md Task 3, AENDERUNG 2 (15-UI-SPEC.md Detailvertrag Punkt 7/8):
+// das Mesh ist IMMER der Standardmodus, sobald es fuer ein Schiff vorliegt --
+// haengt nicht mehr an Video-/Bildverfuegbarkeit. Begruendung (Planungsnotizen
+// dieses Plans): Erfolgskriterium 1 verlangt, dass man auf JEDER Schiffsseite
+// ein System waehlt und am gerenderten Schiff sieht, wo es sitzt -- startete
+// die Buehne im Videomodus, zeigte die Konsole beim ersten Blick ein Video
+// statt das Schiff, und die Rail zeigte auf nichts. Der Umschalter
+// Video/Bilder/3D BLEIBT bestehen (siehe .holo__toggle unten) -- das
+// kuratierte Marketing-Video ist einen Klick entfernt, kein Datenverlust.
+const defaultMode: 'video' | 'img' | 'holo' = holoAvail ? 'holo' : hasVideo ? 'video' : hasGallery ? 'img' : 'holo';
 const metaDesc = t('ship.meta.desc')
   .replace('%name%', d.name)
   .replace('%maker%', d.manufacturer ?? t('ship.maker.unknown'));
@@ -527,7 +536,15 @@ a{color:inherit;text-decoration:none}
 .holo__sys{grid-column:1/-1}
 @media(max-width:1099px){
   .holo{grid-template-columns:220px 1fr}
-  .holo__readout{grid-column:1/-1}
+  /* grid-row:2 ist PFLICHT hier -- ohne diese Zeile bleibt die Basisregel
+     grid-row:1 stehen (CSS-Kaskade ueberschreibt nur, was neu genannt
+     wird), und die Auslesung ueberlagert dann WOERTLICH die Buehne in
+     derselben Zelle statt in eine neue Zeile zu fallen (gefunden per
+     elementFromPoint-Diagnose bei 860px: ein Auslesungs-Textknoten lag
+     ueber dem Canvas, "kein sichtbarer Beschriftungskasten nach Hover"
+     war die Folge, nicht der eigentliche Fund -- der eigentliche Fund war
+     dieser Ueberlagerungsfehler). */
+  .holo__readout{grid-column:1/-1;grid-row:2}
 }
 @media(max-width:760px){
   /* 760px, nicht 759px: dieselbe Bruchkante, die .holo__wrap/.holo__bar in
@@ -558,9 +575,28 @@ a{color:inherit;text-decoration:none}
 /* SCHRITT 1 (15-03-PLAN.md Task 1): traegt jetzt die feste Hoehe UND den
    Beschnitt, die vorher an .holo hingen (siehe Kommentar dort) -- die
    Buehne selbst bleibt dadurch unveraendert gross, waechst aber nicht mit
-   der Rail/den Systemabschnitten darunter mit. */
-.holo__wrap{position:relative;z-index:2;height:clamp(540px,74vh,760px);width:100%;overflow:hidden}
-.holo__stage{position:absolute;inset:0;min-height:360px}
+   der Rail/den Systemabschnitten darunter mit.
+   15-04-PLAN.md Task 3 (Fuellgrad-Klinke haelt bei den NEUEN, schmaleren
+   Buehnenbreiten): der urspruengliche Hoehenwert (540-760px, aus der Zeit
+   VOR Rail+Auslesung, als .holo noch die volle Seitenbreite war) ergab nach
+   Task 1 ein zu QUADRATISCHES Seitenverhaeltnis (z.B. 740x666 bei 1280px
+   statt vorher 1280x666) -- fitCamera() (holo-viewer.js) haelt die
+   VERTIKALE Sichtfeldweite konstant, ein schmaleres Seitenverhaeltnis gibt
+   ihr deshalb WENIGER Zoom-Spielraum, bevor die laengere Kante (bei einem
+   elongierten Schiff meist die Breite) am harten Bildrand ankommt --
+   gemessen brach die Carrack/Ironclad-Fuellgrad-Klinke dadurch NEU bei
+   1440/1280/1100/860px, die bei Welle 1 dort noch hielt (nur 860/414/360
+   fielen damals durch). Fix: die Hoehe schrumpft mit der (jetzt schmaleren)
+   Buehnenbreite mit, um ein grosszuegigeres Seitenverhaeltnis
+   wiederherzustellen -- am gerenderten Bildpunkt gegengeprueft (siehe
+   15-04-SUMMARY.md), nicht geschaetzt. */
+.holo__wrap{position:relative;z-index:2;height:clamp(380px,50vh,450px);width:100%;overflow:hidden}
+/* min-height war 360px (aeltere Vorsichtsgrenze aus der Zeit vor dieser
+   Klinken-Reparatur) -- blockierte bei 1100px (Buehnenbreite 560px) die
+   oben noetige kleinere Hoehe. 160px bleibt als Schutz gegen eine
+   entartete Buehne bei extremen Randfaellen stehen, bindet bei keiner der
+   hier gemessenen Breiten. */
+.holo__stage{position:absolute;inset:0;min-height:160px}
 /* Bilder fuellen die Buehne randlos wie das Video (cover statt contain) —
    User-Feedback "Bild nicht ueber die ganze Breite". Volle Ansichten ohne
    Beschnitt liefert weiterhin die Galerie-Sektion darunter. */
@@ -575,11 +611,12 @@ a{color:inherit;text-decoration:none}
 /* Status (Lade-%/Fehler) nur zeigen, solange geladen wird oder 3D aktiv ist —
    ein stiller Auto-Start-Fehlschlag darf das Foto nicht dauerhaft überlagern */
 .holo__stage:not(.is-3d):not(.is-loading) .holo__status{display:none}
-.holo__activate{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;cursor:pointer;
-  appearance:none;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);background:var(--scrim-5);color:var(--accent);
-  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-15);text-transform:uppercase;padding:.7rem 1.2rem;
-  backdrop-filter:blur(4px)}
-.holo__activate:hover{background:color-mix(in srgb,var(--accent) 16%,var(--scrim-5))}
+/* .holo__activate/#holoact (15-04-PLAN.md Task 3, D-04) sind ERSATZLOS
+   ENTFERNT -- der Knopf war bereits vor dieser Welle inert (hidden,
+   deferred-items.md), und ein Ladeausloeser per Knopf widerspricht D-04
+   ohnehin ("wenn das Schiff die Navigation IST, darf es nicht hinter einem
+   Knopf liegen"). Das Laden loest jetzt ausschliesslich der
+   IntersectionObserver weiter unten aus. */
 .holo__hintline{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);z-index:4;pointer-events:none;white-space:nowrap;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
@@ -814,9 +851,19 @@ a{color:inherit;text-decoration:none}
    Carrack-Bewaffnung) hoeher waere als die Buehne -- ob das je eintritt,
    misst Task 3 (Backstop "overflow E4"); die Absicherung steht defensiv
    bereits hier. */
-.holo__readout{max-height:clamp(540px,74vh,760px);overflow-y:auto;scrollbar-gutter:stable}
-@media(max-width:900px){.holo__readout{max-height:clamp(430px,62vh,620px)}}
-@media(max-width:760px){.holo__readout{max-height:clamp(400px,58vh,560px)}}
+.holo__readout{max-height:clamp(380px,50vh,450px);overflow-y:auto;scrollbar-gutter:stable}
+/* 15-04-PLAN.md Task 3: spiegelt .holo__wrap's Fuellgrad-Klinken-Reparatur
+   (siehe dortiger Kommentar an der .holo__wrap-Basisregel) -- dieselbe
+   dritte Stufe fuer die schmale 3-Spalten-Untergrenze bei 1100px
+   (Buehnenbreite dort nur 560px, braucht eine kleinere Hoehe als bei
+   1280/1440px, sonst reisst die Klinke genau dort). */
+@media(max-width:1279px){.holo__readout{max-height:clamp(300px,36vh,360px)}}
+@media(max-width:900px){.holo__readout{max-height:clamp(320px,42vh,420px)}}
+/* D-05: haelt sich an .holo__wrap's Hoehe im gestapelten Zustand (siehe
+   dortiger Kommentar) -- die Auslesung darf hier nicht knapper bemessen
+   sein als die Buehne, sonst waere sie der erste Kasten, der unnoetig
+   scrollt. */
+@media(max-width:760px){.holo__readout{max-height:clamp(640px,86vh,820px)}}
 /* Phase-14-Lektion (14-04-SUMMARY.md Deviation 2/3) auf die neue, noch
    schmalere ~272px-Nutzbreite (320px Spalte minus Innenabstand)
    uebertragen: Innenraster mit automatischer Spaltenzahl brechen dort in
@@ -888,17 +935,40 @@ a{color:inherit;text-decoration:none}
      Grid-Spalte selbst, es gibt kein right/bottom mehr zu verschieben. */
   .holo__title{max-width:74%}
 }
+/* 15-04-PLAN.md Task 3 (Fuellgrad-Klinke): dritte Hoehenstufe fuer die
+   schmale 3-Spalten-Untergrenze (Buehnenbreite bei 1100px nur 560px, siehe
+   Kommentar an der .holo__wrap-Basisregel) -- ohne diese Stufe reisst die
+   Klinke genau dort (Carrack/Ironclad gemessen 55,7%/53,9% mit der
+   Basisregel allein, 72,6%/75,7% mit dieser Stufe). */
+@media(max-width:1279px){.holo__wrap{height:clamp(300px,36vh,360px)}}
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
 /* SCHRITT 1 (15-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
    (siehe Kommentar an dessen Basisregel oben) — dieselben Werte. */
-@media(max-width:900px){.holo__wrap{height:clamp(430px,62vh,620px)}}
+@media(max-width:900px){.holo__wrap{height:clamp(320px,42vh,420px)}}
 @media(max-width:760px){
-  /* Hero auf kleinen Geräten flacher, damit der Inhalt darunter früher sichtbar ist */
-  .holo__wrap{height:clamp(400px,58vh,560px)}
-  /* Holo: 3D-Modell bekommt die obere Zone (Canvas unten einkürzen), damit es
-     nicht hinter dem Titel klumpt. Viewer skaliert per ResizeObserver mit. */
-  .holo__3d{bottom:44%}
+  /* D-05 (18.08.2026, Betreiber; 15-04-PLAN.md Task 3, AENDERUNG 3): bei
+     schmalen Breiten wird die Buehne HOCHFORMATIG statt querformatig.
+     Ursache des Befunds (WINDOWS.md id 21, Ausgangsmarke 55,4%/53,5%/76,4%
+     bei 360px): NICHT .holo__wrap selbst (das ist mit height:522px bei
+     width:360px schon rechnerisch hochformatig), sondern .holo__3d
+     darunter, das per bottom:44% nur die OBERE 56% dieser Hoehe fuer das
+     Canvas nutzte (522*0,56=292px) -- ein 360x292-Canvas ist trotz
+     hochformatigem Aussenrahmen selbst QUERFORMATIG, und genau DAS misst
+     fitCamera() (holo-viewer.js, W()/H() = die tatsaechliche Canvas-Groesse,
+     nicht die des .holo__wrap). Fix: .holo__wrap waechst UND .holo__3d
+     bekommt mehr Anteil davon (bottom:44% -> 30%) -- die Kamera braucht
+     KEINE eigene Aenderung, fitCamera() waehlt die kuerzere Kante bereits
+     dynamisch aus W()/H() (kein Azimut, EINE Kamera fuer alle Schiffe,
+     Konkrete Vorgabe D-05). Kosten bewusst in Kauf genommen (D-05): die
+     Buehne nimmt mehr senkrechten Platz, die Auslesung rueckt entsprechend
+     nach unten. */
+  .holo__wrap{height:clamp(640px,86vh,820px)}
+  /* Holo: 3D-Modell bekommt einen groesseren Anteil der (jetzt groesseren)
+     Buehnenhoehe; der Titel behaelt seine untere Zone, nur schmaler
+     bemessen (siehe .holo__title unten). Viewer skaliert per
+     ResizeObserver mit. */
+  .holo__3d{bottom:30%}
   /* Toggle volle Breite unten (größere Tap-Ziele) */
   .holo__toggle{left:14px;right:14px;bottom:14px}
   .holo__toggle button{flex:1}
@@ -1478,7 +1548,12 @@ span.sd__ref{color:var(--muted)}
         )}
         <div class="holo__3d" id="holo3d" aria-label={t('ship.holo.drag')}></div>
         <div class="holo__status" id="holostatus" role="status"></div>
-        {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
+        {/* #holoact ("Hologramm aktivieren") ersatzlos entfernt (15-04-PLAN.md
+            Task 3, D-04) -- war bereits vor dieser Welle inert (hidden, siehe
+            deferred-items.md), und ein Ladeausloeser per Knopf widerspricht
+            D-04: wenn das Schiff die Navigation IST, darf es nicht hinter
+            einem Knopf liegen. Laden loest jetzt ausschliesslich der
+            IntersectionObserver im Skriptblock unten aus. */}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
         {/* Der schwebende Ebenen-Kasten (#holofilters/.holo__layers) ist
             entfallen (15-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
@@ -2707,6 +2782,11 @@ span.sd__ref{color:var(--muted)}
     };
 
     autoHolo = start; // Eskalationsziel, wenn alle Galerie-Bilder tot sind
+    // #btn3d bleibt als Modusumschaltung aktiv, DARF weiterhin laden, aber
+    // ist ab jetzt ein Rueckfallweg, kein Hauptweg mehr (15-04-PLAN.md Task
+    // 3, AENDERUNG 1): wer auf Video/Bilder umgeschaltet hatte und dann
+    // explizit "3D-Holo" drueckt, bevor der Beobachter unten ausgeloest hat,
+    // soll nicht auf den naechsten Scroll warten muessen.
     if (btn3d) btn3d.addEventListener('click', function () { viewer ? showHolo() : start(true); });
     if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
     // Der fruehere Klick-Handler auf #holofilters (Mehrfachauswahl ->
@@ -2715,8 +2795,38 @@ span.sd__ref{color:var(--muted)}
     // reine Anker-Liste ohne Skript-Interaktion; die Einfachauswahl mit
     // Buehnen-Umschaltung ist Welle 4 (15-UI-SPEC.md Detailvertrag Punkt 5).
 
-    // Holo ist der einzige Modus (kein Video, keine Bilder) -> direkt laden
-    if (defaultMode === 'holo') start(false);
+    // ---------- Laden beim Scrollen, kein Startknopf (15-04-PLAN.md Task 3,
+    // AENDERUNG 1 -- D-04, Erfolgskriterium 5) ----------
+    // GENAU EIN Beobachter auf .holo (dem Rasterbehaelter, nicht nur der
+    // Buehne) loest start() GENAU EINMAL aus, sobald die Konsole in den
+    // sichtbaren Bereich scrollt -- dasselbe Beobachter-Muster, das
+    // holo-viewer.js bereits fuer die Render-Loop-Pause benutzt (dort
+    // threshold 0.02, pausiert/setzt fort; hier threshold 0.1, feuert
+    // einmal und trennt sich sofort). Die Zeile, die bisher sofort laedt,
+    // wenn Holo der einzige Modus ist ("if (defaultMode === 'holo')
+    // start(false)"), ist ERSATZLOS entfallen -- sie verletzte
+    // Erfolgskriterium 5 fuer jedes Schiff ohne Video/Galerie (das war die
+    // grosse Mehrheit): 0 Byte Netzverkehr beim Seitenaufruf war fuer diese
+    // Schiffe vorher nie erreichbar.
+    if (holoSec && typeof IntersectionObserver !== 'undefined') {
+      var loadObserver = new IntersectionObserver(
+        function (entries) {
+          for (var oi = 0; oi < entries.length; oi++) {
+            if (entries[oi].isIntersecting) {
+              start(false);
+              loadObserver.disconnect();
+              break;
+            }
+          }
+        },
+        { threshold: 0.1 }
+      );
+      loadObserver.observe(holoSec);
+    } else {
+      // Kein IntersectionObserver im Browser: sofortiges Laden ist besser
+      // als ein dauerhaft leerer Rumpf, den niemand je fuellt.
+      start(false);
+    }
   }
 
   // Start-Watchdog (autoHolo ist ab hier gesetzt): das aktive Bild kann schon
