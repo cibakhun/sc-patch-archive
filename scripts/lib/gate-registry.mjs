@@ -140,16 +140,13 @@ export const CHECKS = [
     rail: 'A',
     checks:
       'die Schiffs-Konsole (Rail, Systemabschnitte, Marker-Zaehlung, Textbestand) steht vollstaendig im ausgelieferten HTML, ohne JavaScript sichtbar, mit Bijektion Rail<->System und Sprachparitaet (Phase 15, D-01/D-02/P-1/P-2/P-3)',
-    // AUSGESETZT bis 15-05-PLAN.md: dieses Tor prueft den ZIELZUSTAND der
-    // Konsole (Wellen 3/4), die es beim Anlegen (15-02) noch nicht gibt —
-    // vorgefuehrt rot gegen den nach Welle 1 gebauten Stand, Meldung siehe
-    // 15-02-SUMMARY.md. Praezedenz verify:shipcard (14-01 -> 14-04): erst
-    // beheben, dann scharf. `npm run gate` bleibt in den Wellen 2-4 gruen,
-    // weil dieser Eintrag als Schuldenposten bei jedem Lauf gedruckt wird
-    // (scripts/run-gate.mjs meldeSchulden()).
-    disabled:
-      '15-02-PLAN.md: prueft den Zielzustand der Konsole (Wellen 3/4), ist bis zu deren Abschluss ' +
-      'zwangslaeufig rot gegen den heutigen Stand. Scharfgeschaltet in 15-05-PLAN.md.',
+    // SCHARF seit 15-05-PLAN.md Task 1: bei der Anlage (15-02) noch AUSGESETZT
+    // (vorgefuehrt rot gegen den nach Welle 1 gebauten Stand, Meldung siehe
+    // 15-02-SUMMARY.md — Konsole existierte damals noch nicht), Wellen 3/4
+    // haben den Zielzustand gebaut. Vor der Scharfschaltung erneut gruen
+    // gelaufen (alle acht Zusicherungen, Zombie-Waechter meldet "0
+    // Ausnahmen registriert" -- explizit, keine stille Leere), Praezedenz
+    // verify:shipcard (14-01 -> 14-04): erst beheben/gruen, dann scharf.
   },
   {
     id: 'verify:theme',

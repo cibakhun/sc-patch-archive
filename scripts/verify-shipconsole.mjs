@@ -109,21 +109,26 @@ const VOID_TAGS = new Set([
    toleranzProzent), hier auf den Textbestand einer Schiffsseite
    angewendet statt auf eine Bestandszahl. */
 const TEXTBESTAND_KLINKE = {
-  wert: 3177,
+  wert: 3224,
   regel: 'min', // wandert nur nach oben
   toleranzProzent: 2,
   anlass:
-    'Messlauf 20.08.2026 (15-02-PLAN.md Task 1) gegen den nach Welle 1 gebauten dist/ dieses Worktrees ' +
-    '(Commit bfdffe8, frisch gebaut fuer diesen Lauf: npm run build, dann node scripts/probes/schiffskonsole-messung.mjs ' +
-    '--census) — Messgruppe c-textbestand: Minimum ueber alle 454 Schiffsseiten 3.177 Bytes ' +
-    '(argo-atls-geo-collector-grad01), Median 4.652, Maximum 5.391. Reserve 2% (effektive Untergrenze ~3.113 Bytes) ' +
-    'gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes — u. a. traegt jede Seite ein Datum ' +
-    '(t(\'ship.asof\') + pricesFetchedAt) und eine variable Zahl an Shopzeilen, die sich mit jedem Preislauf leicht ' +
-    'verschieben koennen, ohne dass das etwas mit dieser Phase zu tun hat. Praezedenz: die Hoehenklinke aus ' +
-    '14-04-PLAN.md blieb 21px ueber dem gemessenen Ist-Wert stehen (docs/maschinelle-validierung.md Grundsatz 5: eine ' +
-    'Klinke ist eine Untergrenze fuer KUENFTIGE Laeufe, kein exakter Momentwert des heutigen) — hier ein Prozentsatz ' +
-    'statt eines festen Byte-Versatzes, weil dieselbe Mechanik (regel "min" + toleranzProzent) bereits in ' +
-    'scripts/lib/metrics-baseline.mjs fuer genau diesen Zweck existiert.',
+    'Messlauf 20.08.2026 (15-05-PLAN.md Task 1, Scharfschaltung) gegen den nach Welle 4+Kollisionsfix ' +
+    'gebauten dist/ dieses Worktrees (Commit ae2f1f2, frisch gebaut fuer diesen Lauf: npm run build, dann ' +
+    'node scripts/verify-shipconsole.mjs --report) — Minimum ueber alle 454 Schiffsseiten jetzt 3.224 Bytes ' +
+    '(dist/schiffe/argo-atls-geo-collector-grad01.html), Median 4.777, Maximum 5.536 ' +
+    '(dist/de/schiffe/drak-cutlass-black.html). Ausgangswert aus Welle 1/2 (15-02-PLAN.md Task 1, Messlauf ' +
+    '20.08.2026 gegen den nach Welle 1 gebauten Stand, Commit bfdffe8): 3.177 Bytes — Differenz +47 Bytes, die ' +
+    'Klinke wandert damit nach OBEN, wie Grundsatz 5 verlangt (Bewaffnung/Komponenten sind seit Welle 3/4 aus dem ' +
+    'Ausstattungs-Kapitel in die Konsole umgezogen und tragen dort dieselbe Aussage plus die neu ausgeschriebenen ' +
+    'prop/other-Stueckzahllisten, siehe 15-UI-SPEC.md Punkt 12). Reserve weiterhin 2% (effektive Untergrenze ' +
+    '~3.160 Bytes) gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes — u. a. traegt jede Seite ' +
+    'ein Datum (t(\'ship.asof\') + pricesFetchedAt) und eine variable Zahl an Shopzeilen, die sich mit jedem ' +
+    'Preislauf leicht verschieben koennen, ohne dass das etwas mit dieser Phase zu tun hat. Praezedenz: die ' +
+    'Hoehenklinke aus 14-04-PLAN.md blieb 21px ueber dem gemessenen Ist-Wert stehen (docs/maschinelle-validierung.md ' +
+    'Grundsatz 5: eine Klinke ist eine Untergrenze fuer KUENFTIGE Laeufe, kein exakter Momentwert des heutigen) — ' +
+    'hier ein Prozentsatz statt eines festen Byte-Versatzes, weil dieselbe Mechanik (regel "min" + toleranzProzent) ' +
+    'bereits in scripts/lib/metrics-baseline.mjs fuer genau diesen Zweck existiert.',
 };
 
 /* Rail-Laengen-Verteilung je Sprache (EN und DE identisch, da Ports
