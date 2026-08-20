@@ -50,13 +50,27 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
    Erster Anlauf hatte hier 5rem fuer Schmalschirme stehen — bei 390 px lief
    die Marke „← ALPHA 4.9" damit quer durch die Zeile „Blueprint-Datenbank".
    Am Bild gesehen, nicht gerechnet. */
-/* Unten knapp: die 1,2rem sind gemessen, nicht gewaehlt. Beim ERSTEN Besuch
-   klappt die Werkzeug-Hilfe von selbst auf (assets/tool-help.js) und schiebt
-   die Liste um 280 px nach unten — mit 1,8rem stand die erste Karte dann bei
-   729 px, also neun Pixel unter der Falz von 720. */
+/* Unten knapp: die 1,2rem sind gemessen, nicht gewaehlt — mit 1,8rem stand
+   die erste Karte beim ERSTEN Besuch bei 729 px statt 719. Seit die
+   Eckwinkel dazugekommen sind (+18 px Bandhoehe) traegt dieser Trick nicht
+   mehr allein: erster Besuch 737 px, die erste Karte beginnt dann knapp
+   unter der Falz. Beim zweiten Besuch — Hilfe zu, der Normalfall — steht sie
+   bei 514 px, drei ganze Karten im Bild. Die 1,2rem bleiben trotzdem: sie
+   kosten nichts und halten das Band schmal.
+   ⚠ Beide Zustaende messen. Die Werkzeug-Hilfe klappt beim ersten Besuch von
+   selbst auf (assets/tool-help.js) und schiebt die Liste um ~280 px. */
 .hero--tool{min-height:0;justify-content:flex-start;padding:calc(var(--nav-h,104px) + .6rem) clamp(1.25rem,5vw,4rem) 1.2rem}
 .hero--tool h1{font-size:clamp(1.9rem,4.4vw,3.2rem)}
 .hero--tool .hero__in{text-align:center}
+/* Eckwinkel um den Titel — dasselbe Zeichen wie im Item Finder (.uf-mark),
+   aber in der Farbrolle DIESER Seite: dort ist Bernstein die Kantenfarbe,
+   hier ist es --accent-2 (Blau) — dieselbe Farbe traegt schon der Rahmen des
+   Hinweiskastens und die Werte in den Kennzahlen. Zwei gegenueberliegende
+   Winkel, nicht vier: sie rahmen, ohne einen Kasten zu behaupten. */
+.cr-mark{position:relative;display:inline-block;padding:.5rem 1.35rem}
+.cr-mark::before,.cr-mark::after{content:"";position:absolute;width:18px;height:18px;border:1px solid var(--accent-2)}
+.cr-mark::before{top:0;left:0;border-right:0;border-bottom:0}
+.cr-mark::after{bottom:0;right:0;border-left:0;border-top:0}
 /* Der Standard-Schleier (.hero__photo::after, detail.css) hat sein helles
    Sichtfenster fest bei 78 % x / 18 % y — gebaut fuer den hohen Hero mit
    Titel unten LINKS. Unter einem zentrierten Titel im Band macht genau das
@@ -117,7 +131,7 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-craft-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <h1><span class="thin">{de ? 'Blueprint-Datenbank' : 'Blueprint database'}</span>Crafting</h1>
+      <div class="cr-mark"><h1><span class="thin">{de ? 'Blueprint-Datenbank' : 'Blueprint database'}</span>Crafting</h1></div>
     </div>
   </section>
 

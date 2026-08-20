@@ -42,6 +42,17 @@ export function openDb(path) {
       value    TEXT,
       PRIMARY KEY (guild_id, key)
     );
+
+    -- Einmal-je-Thread-Sperre fuer den Fehlerbericht-XP-Bonus (D-21, Phase 14
+    -- Plan 11). thread_id ist der Primaerschluessel und IST die Sperre -- ein
+    -- zweiter Versuch fuer denselben Thread schlaegt auf der Eindeutigkeit
+    -- auf, kein Sonderfall im Aufrufer-Code noetig. Siehe bug-thread-xp.mjs.
+    CREATE TABLE IF NOT EXISTS bug_xp_threads (
+      thread_id  TEXT    PRIMARY KEY,
+      guild_id   TEXT    NOT NULL,
+      user_id    TEXT    NOT NULL,
+      granted_at INTEGER NOT NULL
+    );
   `);
 
   const S = {
@@ -66,6 +77,8 @@ export function openDb(path) {
     getMeta:     db.prepare('SELECT value FROM meta WHERE guild_id=? AND key=?'),
     setMeta:     db.prepare(`INSERT INTO meta (guild_id,key,value) VALUES (?,?,?)
                              ON CONFLICT(guild_id,key) DO UPDATE SET value=excluded.value`),
+    getBugXp:    db.prepare('SELECT 1 FROM bug_xp_threads WHERE thread_id=?'),
+    setBugXp:    db.prepare('INSERT INTO bug_xp_threads (thread_id,guild_id,user_id,granted_at) VALUES (?,?,?,?)'),
   };
 
   const zero = (g, u) => ({ guild_id: g, user_id: u, xp: 0, prestige: 0, total_xp: 0, messages: 0, voice_seconds: 0, updated_at: 0 });
@@ -148,6 +161,19 @@ export function openDb(path) {
 
     setMeta(g, key, value) {
       S.setMeta.run(g, key, value == null ? null : String(value));
+    },
+
+    /** "schon vergeben?" -- die Einmal-je-Thread-Sperre fuer den
+     * Fehlerbericht-XP-Bonus (D-21). Der eigentliche Schutz ist der
+     * Primaerschluessel auf thread_id; dies ist die lesende Vorabpruefung. */
+    hasBugXp(threadId) {
+      return !!S.getBugXp.get(threadId);
+    },
+
+    /** "als vergeben eintragen" -- wird vom Aufrufer ERST NACH einem
+     * erfolgreichen grantXp() aufgerufen (siehe bug-thread-xp.mjs). */
+    markBugXp(threadId, guildId, userId) {
+      S.setBugXp.run(threadId, guildId, userId, Date.now());
     },
 
     close() {

@@ -172,6 +172,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         rsi_verified: false,
         discord_tag: '',
         org_name: '',
+        is_tester: false,
+        tester_credit: false,
       };
 
       // Zähler für den Stats-Readout (werden nach dem jeweiligen Load gesetzt)
@@ -208,6 +210,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
       // Enforce DB value: rsi_verified is only true if explicitly boolean true in DB
       profileState.rsi_verified = profileState.rsi_verified === true;
+      // Testpilot-Spiegelspalten (D-19/D-22): is_tester ist ausschliesslich
+      // gelesen (siehe Speicherstellen-Kommentar weiter unten, der es NIE
+      // mitsendet); tester_credit ist die eigene Zustimmung des Nutzers und
+      // wird beim Speichern mitgesendet.
+      profileState.is_tester = profileState.is_tester === true;
+      profileState.tester_credit = profileState.tester_credit === true;
 
       // Serverseitige RSI-Bio-Prüfung über die Supabase Edge Function
       // 'verify-rsi' — die Site ist statisch (Docker/nginx auf Coolify) und
@@ -278,6 +286,14 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       rsiHandleInput.value = profileState.rsi_handle || '';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
+
+      // Testpilot-Zustimmungsschalter (D-22): nur sichtbar, wenn das Konto
+      // die Eigenschaft traegt. Wer die Rolle nicht hat, sieht keinen
+      // Schalter fuer eine Liste, in die er ohnehin nicht kaeme.
+      const testerPanel = document.getElementById('pfTesterPanel');
+      const testerCreditInput = document.getElementById('pfTesterCredit') as HTMLInputElement | null;
+      if (testerPanel) testerPanel.hidden = profileState.is_tester !== true;
+      if (testerCreditInput) testerCreditInput.checked = profileState.tester_credit === true;
 
       // Visual Pickers Binding
       const bannerButtons = document.querySelectorAll('.banner-thumb-card');
@@ -1204,13 +1220,20 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           return;
         }
 
-        // WICHTIG: rsi_verified wird hier NIEMALS mitgesendet — das Badge darf
-        // ausschließlich nach erfolgreicher serverseitiger Prüfung (bzw. durch
-        // Auto-Revocation auf false) gesetzt werden. Sonst wäre der Speichern-
-        // Button ein manueller Bypass der Verifizierung.
+        // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
+        // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
+        // Prüfung (bzw. durch Auto-Revocation auf false) gesetzt werden, sonst
+        // wäre der Speichern-Button ein manueller Bypass der Verifizierung.
+        // is_tester spiegelt die Discord-Rolle (D-19) und ist grundsätzlich
+        // NIE eine Client-Entscheidung — der DB-Trigger guard_is_tester()
+        // sperrt einen Schreibversuch ohnehin, dieser Client sendet das Feld
+        // aber erst gar nicht. tester_credit ist der Unterschied dazu: das
+        // ist die eigene Zustimmung des Nutzers (D-22) und wird unten bewusst
+        // MITgesendet.
         // Das RSI-Handle wird normal persistiert; weicht es vom verifizierten
         // Handle ab, erlischt die Verknüpfung (Revoke in Richtung false).
         const rsiHandleVal = rsiHandleInput.value.trim() || null;
+        const testerCreditVal = testerCreditInput ? testerCreditInput.checked : profileState.tester_credit === true;
 
         // Alle sichtbaren Profilfelder aus Inputs + Picker-State übernehmen,
         // damit DB-Persistenz UND der localStorage-Cache konsistent sind.
@@ -1227,6 +1250,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           rsi_handle: rsiHandleVal || '',
           discord_tag: discordInput.value.trim(),
           org_name: orgInput.value.trim(),
+          tester_credit: testerCreditVal,
         });
 
         const payload: Record<string, any> = {
@@ -1244,6 +1268,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           discord_tag: profileState.discord_tag || null,
           org_name: profileState.org_name || null,
           rsi_handle: rsiHandleVal,
+          tester_credit: testerCreditVal,
         };
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
@@ -1525,6 +1550,56 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           delBtn.disabled = false;
         }
       });
+
+      // Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten. Die
+      // Rechtepruefung sitzt IN tester_overview() (siehe Migration), aber der
+      // Aufruf wird fuer Nicht-Admins gar nicht erst abgesetzt: dieselbe
+      // Bedingung, die assets/account-lite.js schon ueber die Klasse
+      // is-admin ausdrueckt — hier direkt gegen user_roles gepruft, weil
+      // account-lite.js auf /account/-Seiten nicht laeuft (volles
+      // supabase-js). Fire-and-forget, blockiert die Dashboard-Anzeige nicht.
+      (async () => {
+        const overviewCard = document.getElementById('testerOverviewCard');
+        const overviewBody = document.getElementById('testerOverviewBody');
+        if (!overviewCard || !overviewBody) return;
+        try {
+          const { data: roleRow } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (!roleRow || roleRow.role !== 'admin') return; // Karte bleibt verborgen, KEIN Aufruf von tester_overview()
+
+          const { data: rows, error } = await supabase.rpc('tester_overview');
+          // Schlaegt der Aufruf fehl (Rolle waehrenddessen entzogen o.ae.),
+          // bleibt die Karte verborgen statt eine Fehlermeldung zu zeigen.
+          if (error) return;
+          const list: Array<{ handle: string; display_name: string | null; discord_user_id: string | null; last_staging_seen: string | null }> =
+            Array.isArray(rows) ? rows : [];
+
+          if (list.length === 0) {
+            overviewBody.textContent = D.testerOverviewEmpty || '';
+          } else {
+            // Sortierung kommt unveraendert aus tester_overview() (zuletzt
+            // gesehen absteigend, Nie-Erschienene am Ende) — hier NICHT
+            // umsortieren, sonst gaebe es zwei Wahrheiten ueber dieselbe
+            // Reihenfolge.
+            const neverSeen = D.testerNeverSeen || '';
+            const bodyRows = list.map((r) => {
+              const seen = r.last_staging_seen
+                ? new Date(r.last_staging_seen).toLocaleString(lang === 'de' ? 'de-DE' : 'en-US')
+                : neverSeen;
+              return `<tr><td>${escHtml(r.display_name || r.handle)}</td><td class="mono">@${escHtml(r.handle)}</td><td class="mono">${escHtml(r.discord_user_id || '—')}</td><td>${escHtml(seen)}</td></tr>`;
+            }).join('');
+            overviewBody.innerHTML =
+              `<table class="tbl-tester"><thead><tr>` +
+              `<th>${escHtml(D.testerColName || '')}</th><th>${escHtml(D.testerColHandle || '')}</th>` +
+              `<th>${escHtml(D.testerColDiscord || '')}</th><th>${escHtml(D.testerColSeen || '')}</th>` +
+              `</tr></thead><tbody>${bodyRows}</tbody></table>`;
+          }
+          overviewCard.hidden = false;
+        } catch { /* verborgen bei jedem Fehler -- keine Fehlermeldung */ }
+      })();
 
       // Show Dashboard
       loadingEl.hidden = true;

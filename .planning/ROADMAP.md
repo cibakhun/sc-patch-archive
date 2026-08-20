@@ -895,6 +895,102 @@ Plans:
 - [x] 14-04-PLAN.md — kapitelinterne Zweispaltigkeit, Schlussmessung samt
       Sperrklinke, Tor scharf, fünf Sichturteile nach `.planning/WINDOWS.md`
 
+### Phase 15: Testpilot-Zugang: staging hinter der Discord-Rolle
+
+**Goal:** `staging.verse-base.com` steht nicht mehr offen. Wer die Rolle
+„Test Pilots" auf dem Discord-Server trägt, kommt hinein; alle anderen sehen
+ausschließlich eine Anmeldeseite. Die Rolle ist dabei nicht länger ein
+Ping-Abo, das man sich selbst nimmt, sondern eine vergebene Auszeichnung —
+und sie trägt sichtbare Vorteile, damit sie etwas wert ist.
+
+**Entscheidungen des Betreibers (17.08.2026, vor der Planung getroffen):**
+
+1. **Strenge** — Ein Besucher ohne Rolle bekommt auf JEDER URL eine
+   Anmeldeseite („Diese Vorschau ist für Testpiloten") mit Discord-Knopf.
+   Nicht 403 ohne Erklärung, und ausdrücklich **kein** bloßes Banner über
+   der weiterhin offenen Seite.
+
+2. **Vergabe** — Der Betreiber vergibt die Rolle **von Hand**. Sie fällt
+   dafür aus dem Discord-Onboarding heraus. Verworfen: Bewerbungsverfahren,
+   automatische Vergabe ab Rang, und der Status quo (selbst vergebbar).
+
+3. **Identität** — Discord wird an das **bestehende Supabase-Site-Konto**
+   gekoppelt („Discord verknüpfen" im Konto-Bereich). Verworfen: ein
+   zweiter, eigener Anmeldeweg nur am Tor — er könnte die Perks auf der
+   Seite nicht tragen.
+
+4. **Perks** — **alle vier** ausgewählt: Abzeichen im Piloten-Profil,
+   privater Discord-Kanal mit Deploy-Ping, Rang-/XP-Bonus im Bot,
+   Namensnennung auf der Seite.
+
+**Vorbefunde der Bestandsaufnahme (17.08.2026, gegen den Bestand gemessen —
+nicht aus der Doku):**
+
+- ⚠ **Die Rolle existiert bereits und taugt so nicht als Türsteher.**
+  `discord/blueprint.mjs:143` führt `tester` / „Test Pilots" (Farbe
+  craftOrange, **null Berechtigungen**). `blueprint.mjs:402` macht sie im
+  Onboarding **selbst vergebbar** — jeder Beitretende klickt einmal und hat
+  sie. Entscheidung 2 ist deshalb kein Beiwerk, sondern Voraussetzung: ohne
+  sie hinge der Schlüssel neben der Tür.
+
+- ⚠ **Die Website kennt keine Discord-Identität.** Auth ist Supabase mit
+  E-Mail/Passwort (`AuthLogin.astro:129`, `signInWithPassword`), **kein
+  einziger OAuth-Provider** ist eingerichtet. Der Bot führt eine eigene
+  SQLite-DB (`discord/bot/src/db.mjs`) mit Discord-User-IDs; zwischen beiden
+  Welten gibt es **keine Brücke**. Sie ist zu bauen und ist die Grundlage
+  sowohl des Tors als auch des Profil-Abzeichens.
+
+- ⚠ **Ein Tor im Browser-JS wäre wirkungslos.** staging ist statisches HTML
+  aus nginx im Coolify-Container hinter Cloudflare (`nginx/default.conf`,
+  `.github/workflows/deploy-staging.yml`). Wer `curl` bedient, liest die
+  Seite trotzdem. Das Tor muss **vor** die Auslieferung.
+
+- Der Bot läuft 24/7 auf Coolify mit lebender Guild-Verbindung — er könnte
+  „hat diese Person die Rolle?" in Echtzeit beantworten, **horcht aber auf
+  keinem Port** (kein `createServer`/`listen` im Bestand).
+
+**Offene Architekturfrage für die Recherche** (bestimmt den Zuschnitt, ist
+NICHT vorentschieden): Cloudflare Worker vor staging · nginx `auth_request`
+gegen den Bot · njs im nginx-Image + Supabase Edge Function. Zu bewerten
+gegen die Hausregel „serverseitiger Code nur als Supabase Edge Function"
+(die Seite läuft nicht auf Cloudflare Pages) und gegen die Zahl der
+Auslieferungsziele, die dadurch entsteht.
+
+⚠ **Die typische Leckstelle benannt:** Das Tor muss seine **eigene**
+Anmeldeseite, deren Assets und den OAuth-Rückweg durchlassen. Diese
+Ausnahmeliste ist der Ort, an dem solche Tore lecken — sie gehört
+aufgezählt und vorgeführt rot, nicht angenommen.
+
+⚠ **Umfang über drei getrennte Systeme:** Discord-Server (Blueprint, Bot),
+Konto/Supabase (OAuth-Kopplung, Profil), Auslieferung (nginx/Cloudflare/CI).
+Der Zuschnitt in Pläne hat das zu berücksichtigen; die Kopplung ist
+Voraussetzung für Tor UND Abzeichen und gehört in die erste Welle.
+
+**Requirements**: TBD — voraussichtlich wie in den Phasen 7, 9, 10 und 12
+über Entscheidungen D-01… in der CONTEXT.md statt über REQ-IDs.
+**Depends on:** Nichts. Die Phase berührt weder die Mining-Werkbank noch die
+Oberfläche der Phasen 1–4; die im Roadmap-Gerüst voreingetragene Abhängigkeit
+von Phase 13 ist ein Artefakt der Nummernfolge und gilt nicht.
+**Requirements**: keine REQ-IDs — bindend sind die Entscheidungen **D-01 … D-25**
+in `14-CONTEXT.md`, wie in den Phasen 7, 9, 10 und 12. Alle 25 sind auf Pläne
+abgebildet; die Zuordnung steht in jedem `requirements`-Feld der Plan-Frontmatter.
+**Plans:** 12/12 plans executed
+
+Plans:
+
+- [x] 15-01-PLAN.md — Türsteher-Tracer: njs-Machbarkeit belegen (D-23) und EIN Weg end-to-end durchs Tor über den Admin-Kurzschluss (D-04, D-06, D-11, D-24)
+- [x] 15-02-PLAN.md — Supabase: Rollenspiegel, Sperrliste, Spiegelspalten, Torurteil in einem Aufruf (D-03, D-05, D-08, D-10, D-13, D-19, D-22)
+- [x] 15-03-PLAN.md — Kontosperre: der Discord-Knopf legt nie ein Konto an, vorgeführt rot vor dem Scharfstellen (D-02)
+- [x] 15-04-PLAN.md — Discord als zweiter Anmeldeweg im Konto und am Tor (D-01, D-03, D-11)
+- [x] 15-05-PLAN.md — Discord-Server: Rolle nicht mehr selbst vergebbar, eigener privater Kanal (D-14, D-15, D-18)
+- [x] 15-06-PLAN.md — Bestandsträger: Trockenlauf mit Namen und Anzahl, dann Entzug bei allen (D-16)
+- [x] 15-07-PLAN.md — Bot: Server Members Intent, Rollenstand per Push, Vollabgleich beim Start (D-08, D-17, D-25)
+- [x] 15-08-PLAN.md — Tor scharf: Testpiloten, Sperrliste, Ausfallverhalten, aufgezählte Ausnahmeliste (D-06, D-09, D-10, D-13)
+- [x] 15-09-PLAN.md — Torkette: verify:gate (Schiene A), check:gate (Schiene C), Rauchtest-Bypass ohne Dauerschlüssel (D-06, D-07, D-12)
+- [x] 15-10-PLAN.md — Perks auf der Seite: Profil-Abzeichen, Zustimmungsschalter, Namensnennung, Testpiloten-Übersicht (D-13, D-19, D-22)
+- [x] 15-11-PLAN.md — Perks auf Discord: XP je Fehlerbericht-Thread, Deploy-Ping im Testpiloten-Kanal (D-20, D-21)
+- [x] 15-12-PLAN.md — Scharfschaltung: beide Bauarten grün, Ausrollen, Beleg an der ausgelieferten Seite, Sichturteile an den Betreiber
+
 ### Phase 16: Das Schiff ist die Navigation
 
 **Goal:** Die Schiffs-Detailseite wird zur Konsole. Man wählt links ein System,

@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 15
+current_phase: 16
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
-last_updated: "2026-08-20T15:45:30.370Z"
-last_activity: 2026-08-15
-last_activity_desc: Phase 12 execution started
+stopped_at: "Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5). Phase 15 (Testpilot-Zugang) aus einer Parallelsitzung mit hereingefuehrt; Ausrollen dort steht aus."
+last_updated: "2026-08-20T17:30:00.000Z"
+last_activity: 2026-08-20
+last_activity_desc: Phase 16 abgeschlossen und mit staging zusammengefuehrt (Phasennummer 15 -> 16 wegen Kollision)
 progress:
-  total_phases: 19
-  completed_phases: 13
-  total_plans: 62
-  completed_plans: 55
+  total_phases: 20
+  completed_phases: 14
+  total_plans: 84
+  completed_plans: 76
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,6 +25,8 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
+**Current focus:** Phase 15 — testpilot-zugang-staging-hinter-der-discord-rolle
+
 **Current focus:** Phase 16 — das-schiff-ist-die-navigation
 
 > **Nachtrag 20.08.2026 (sechster) — Phase 16 Plan 5 von 5 ausgefuehrt (Welle 5: Torschaerfung, Schlussmessung, fuenf Sichturteile).**
@@ -181,6 +183,16 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
+Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
+Plan: 12 of 12
+Status: Phase complete — ready for verification
+Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
+Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
+`.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
+`STAGING=1`), 297 e2e-Testfaelle gruen, die neue Messsonde
+`scripts/probes/mining-locview-messung.mjs` bestaetigt alle 9 UI-SPEC-
+Backstops am gerenderten Bildpunkt (72/72 Messpunkte).
+
 Phase: 15 (das-schiff-ist-die-navigation) — 5/5 Plaene ausgefuehrt
 Plan: 5 of 5 — abgeschlossen (`16-05-SUMMARY.md`)
 Status: **Technisch fertig, NICHT „Complete" markiert** — dieselbe Konvention wie
@@ -206,7 +218,7 @@ gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
 abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
 **Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
 Branch: claude/donation-button-feature-98ba38 (Worktree)
-Last activity: 2026-08-15 — Phase 12 execution started
+Last activity: 2026-08-17 — Phase 14 execution started
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
 
@@ -301,6 +313,8 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
+Progress: [█████████░] 88%
+
 Progress: [█████████░] 85%
 
 ## Performance Metrics
@@ -363,6 +377,19 @@ Progress: [█████████░] 85%
 | Phase 14 P02 | 50min | 2 tasks | 5 files |
 | Phase 14 P03 | 70min | 2 tasks | 6 files |
 | Phase 14 P04 | ~75min | 3 tasks | 5 files |
+| Phase 15 P01 | 110min | 2 tasks | 7 files |
+| Phase 15 P02 | ~65min | 3 tasks | 2 files |
+| Phase 15 P10 | ~55min | 3 tasks | 4 files |
+| Phase 15 P05 | ~2h35min | 2 tasks | 1 files |
+| Phase 15 P03 | ~30min | 2 tasks | 1 files |
+| Phase 15-testpilot-zugang-staging-hinter-der-discord-rolle P04 | ~50min | 2 tasks | 3 files |
+| Phase 15 P06 | ~55min | 2 tasks | 2 files |
+| Phase 15 P07 | ~50min | 3 tasks | 8 files |
+| Phase 15 P08 | ~2h30min | 3 tasks | 4 files |
+| Phase 15 P11 | ~50min | 2 tasks | 4 files |
+| Phase 15 P09 | ~2h | 3 tasks | 8 files |
+| Phase 15 P12 | 35min | 3 tasks | 2 files |
+
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
 | Phase 16 P03 | ~90min | 2 tasks | 3 files |
@@ -472,6 +499,37 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-04: Hoehen-Sperrklinke bleibt bei 4.200px stehen (nicht auf den gemessenen 4.179px abgesenkt) -- 21px Reserve gegen Rundungsschwankungen zwischen Laeufen
 - [Phase 14]: 14-04: verify:shipcard scharf geschaltet (Aussetzungsgrund entfernt) -- 0 Befunde, npm run gate laeuft 19 statt 18 Schritte gruen, normal UND STAGING=1
 - [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
+- [Phase ?]: Docker laeuft auf dem Entwicklungsrechner nicht (com.docker.service braucht Administratorrechte) — beide Plan-Verifikationen (njs-Machbarkeit, E2E-Weg) liefen stattdessen in GitHub Actions gegen das echte Artefakt, vom Betreiber ausdruecklich gebilligt (Grundsatz 7)
+- [Phase ?]: js_fetch_trusted_certificate (nicht ssl_trusted_certificate) ist die richtige Direktive fuer ngx.fetch()-TLS-Verifikation in njs — der server{}-Block hat keinen eigenen SSL-Kontext
+- [Phase ?]: Login mit einem echten E-Mail/Passwort-Testkonto auf gate.html bleibt eine manuelle Pruefung — kein Supabase-Testkonto als Repo-Secret angelegt (Vorsicht vor spekulativen Credentials)
+- [Phase ?]: Strukturbefund fuer 15-08/15-09/15-12: jede Pruefung gegen einen laufenden Container ist auf diesem Rechner nur per CI-Sonde moeglich, nie lokal
+- [Phase ?]: [Phase 15]: 15-02: sync_discord_identity() faengt unique_violation auf discord_user_id (nicht user_id) ab und ersetzt sie durch eine sprechende Meldung (Kandidat a); foreign_key_violation/others werfen nur noch WARNING -- ein Spiegel-Eintrag ist nie wichtiger als eine funktionierende Anmeldung
+- [Phase ?]: [Phase 15]: 15-02: public_profiles wird gegen die JUENGSTE Migration gebaut (20260725110000_presence_two_signal.sql, presence-Spalte), nicht gegen ihre Urfassung -- is_tester ganz am Ende angehaengt
+- [Phase ?]: [Phase 15]: 15-02: Migrationen dieses Projekts laufen ueber die Supabase Management API (apply_migration, Namen ohne Datei-Zeitstempel), NICHT ueber supabase db push -- der CLI-Weg ist strukturell kaputt (24 lebende Migrationen tragen andere Namen als die 11 Repo-Dateien)
+- [Phase ?]: [Phase 15]: 15-10: Testpilot-Abzeichen-Farbe #ff5e1a von der Discord-Rolle uebernommen (C.craftOrange), nach dem RSI-Abzeichen gepusht; Hellmodus-Gegenstueck von Hand ergaenzt
+- [Phase ?]: [Phase 15]: 15-10: Admin-Uebersicht (D-13) per direkter user_roles-Abfrage vor tester_overview() gegattert statt der is-admin-Klasse aus account-lite.js, das auf /account/-Seiten nicht laeuft
+- [Phase ?]: [Phase 15]: 15-10: Namensnennung auf der Feedback-Seite statt Unterstuetzen-Seite verdrahtet (die sagt woertlich 'no perks in your account'); vier Sichtpruefungen (D1-D4) an Plan 12 uebergeben, WINDOWS.md-Eintrag scheiterte an vorbestehendem CRLF-Parserfehler
+- [Phase ?]: [Phase 15]: 15-05: D-14 woertlich umgesetzt (nur Rollen-Kommentar geaendert, Objektzeile git-diff-unveraendert); D-15 vollstaendig inkl. zwei zusaetzlicher Fundstellen (start-here-Seed, Onboarding-Kopfkommentar); D-18 mit flight-computer-Mitsicht fuer den kuenftigen Deploy-Ping
+- [Phase ?]: [Phase 15]: 15-05: Task 2 (Live-Anwendung) NICHT vom Executor ausgefuehrt -- Bash-Berechtigungsklassifikator blockierte node build.mjs zweimal hart; Betreiber hat den Lauf selbst gefahren, Vorher/Nachher-Gegenprobe per audit.mjs bestaetigt 0 Fehler/1 Warnung (unveraenderte #support-Warnung, plangemaess)
+- [Phase ?]: [Phase 15]: 15-05: Navigators sehen #test-pilots nicht (woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht) -- als offene Betreiberentscheidung in WINDOWS.md #15 dokumentiert, nicht eigenmaechtig geaendert
+- [Phase ?]: [Phase 15]: 15-03: D-02-Riegel sitzt in public.handle_new_user() statt einem eigenen Trigger auf auth.users -- auth.users gehoert supabase_auth_admin, ein eigener Trigger scheiterte gemessen an ERROR 42501 (must be owner of relation). Betreiber hat nach Abwaegung von drei Wegen die Funktionserweiterung gewaehlt; Wirkung identisch zum Plan.
+- [Phase ?]: [Phase 15]: 15-03: trg_sync_discord_identity aus Plan 02 ist jetzt real bestaetigt (T3-SQL-Gegenprobe setzt discord_role_state.discord_user_id) -- schliesst 15-02-SUMMARY.md coverage D6.
+- [Phase ?]: AuthLogin.astro Discord-redirectTo zeigt auf die Login-Seite selbst statt auf /account/ -- Rule-1-Fix, sonst ginge die D-02-Absage im Dashboard-Redirect verloren
+- [Phase ?]: D-02-Erkennung matcht zweigleisig (eigener Text ODER GoTrue-Generic-Wrapper) -- WINDOWS.md id 16 laesst offen, welche Form ankommt
+- [Phase ?]: 15-06: Trockenlauf zeigt 0 aktuelle Traeger der Discord-Rolle Test Pilots (5 Mitglieder gesamt) -- Massenentzug aus D-16 waere aktuell ein No-Op, Checkpoint-Zustimmung trotzdem erforderlich vor --rolle-wirklich-entziehen
+- [Phase ?]: 15-06: Betreiber vertagt D-16-Vollzug (18.08.2026) statt allen-entziehen/liste-kuerzen/nicht-entziehen -- vor dem Scharfschalten in 14-12 erneut node tester-dry-run.mjs fahren, dann entscheiden. Verdrahtet in WINDOWS.md #20. Trockenlauf-Ergebnis (5 Mitglieder, 0 Traeger) vom Betreiber unabhaengig bestaetigt
+- [Phase ?]: [Phase 15]: 15-07: PostgREST-PATCH statt Upsert fuer den Rollenspiegel -- discord_role_state.user_id ist Primaerschluessel ohne Default und wird nur vom sync_discord_identity()-Trigger gesetzt; PATCH+Filter auf discord_user_id trifft nie daneben
+- [Phase ?]: [Phase 15]: 15-07: audit.mjs/prune.mjs fordern jetzt selbst GatewayIntentBits.GuildMembers an und melden dessen Abwesenheit als Fund statt es als gewollten Zustand zu behandeln (vorher konnten beide Skripte das Fehlen gar nicht maschinell feststellen)
+- [Phase ?]: [Phase 15]: 15-07: die vier live-Zustandswechsel-Nachweise (Rolle geben/nehmen/Austritt/Ausfallfall) sind NICHT gefahren -- brauchen einen mit dem neuen Code deployten Bot, Deploy war ausdruecklich nicht Teil dieses Plans; als WINDOWS.md ids 21/22 verdrahtet
+- [Phase ?]: 15-08: mint() urteilt ueber gate_verdict() (Testpilot/Sperrliste/Admin/D-09 in einem Aufruf); Ausnahmeliste auf 7 gemessene GATE-AUSNAHME-Eintraege gebracht; stille Ausweis-Erneuerung in account-lite.js; CI-Sonde probe-gate-e2e.yml erweitert (nicht neu gebaut) -- alle Zusicherungen gruen (run 32133474158)
+- [Phase ?]: D-21 XP-Bonus 50 (Skala aus config.mjs/leveling.mjs hergeleitet, im Kopfkommentar begruendet); Sperre ist Primaerschluessel bug_xp_threads(thread_id), nicht Code-Logik
+- [Phase ?]: D-20 Quelle GitHub-Compare-API statt git log (Checkout ist flach); ein Embed statt zwei EN/DE (Betreffzeilen sind keine uebersetzbaren Redaktionstexte)
+- [Phase ?]: verify-gate.mjs (Schiene A) friert die 7-Eintrag GATE-AUSNAHME-Liste ein; check-gate.mjs (Schiene C) misst die ausgelieferte Zugriffskontrolle -- zwei Prüfer, weil Schiene A nie einen HTTP-Status sehen kann
+- [Phase ?]: Rauchtest-Bypass (X-VB-Gate-Bypass gegen VB_GATE_BYPASS) ist ein Prüfschlüssel, kein Dauerschlüssel: je CI-Lauf gewürfelt, nirgends gespeichert, voller Längenvergleich
+- [Phase ?]: Docker lokal nicht verfügbar -- check-gate.mjs und der Bypass wurden gegen einen unabhängig implementierten node:http-Testwerkstand geprüft, echter Container-Nachweis steht in WINDOWS.md id 28 für Plan 12 offen
+- [Phase ?]: Aufgabe 2 (staging-Ausrollen) bewusst nicht ausgefuehrt -- Coolify-Umgebungsvariablen unbestaetigt, kein Push
+- [Phase ?]: WINDOWS.md: 15 scattered Phase-14-Sichtpunkte zu 9 ortsbezogenen Eintraegen konsolidiert (ids 15/20 unveraendert, 7 neue ids 29-35) statt fuenf weiterer Anhaenge
+
 - [Phase ?]: [Phase 16]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
 - [Phase ?]: [Phase 16]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
 - [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
@@ -488,6 +546,11 @@ None yet.
 - GSD-Subagenten (`gsd-planner`, `gsd-executor`, …) liegen in `~/.claude/agents/`, waren in der Init-Sitzung aber noch nicht in der Agenten-Registry. Nach einem Neustart von Claude Code stehen sie zur Verfügung. Phase 1 lief deshalb inline.
 - Vorbestehend, nicht aus Phase 1: der Astro-Dev-Server bricht bei `src/layouts/Layout.astro` mit `Unexpected ")"` in einem Inline-Skript ab. Der Produktionsbuild ist nicht betroffen — die Sichtprüfung lief deshalb gegen das gebaute `dist/`.
 - Reduzierte Bewegung ist in Phase 1 aus dem Code abgeleitet, nicht im Browser gemessen: der Prüfbrowser meldet `prefers-reduced-motion: false` und bietet keine Emulation.
+- ~~14-05 Task 2: discord/.env fehlte im Worktree~~ — behoben: Betreiber hat Token bereitgestellt und `node build.mjs` selbst gefahren (Bash-Berechtigungsklassifikator blockierte den Ausfuehrungs-Agenten zweimal hart, korrekt nicht umgangen). Vorher/Nachher-Gegenprobe per `audit.mjs`: 1 Fehler/2 Warnungen -> 0 Fehler/1 Warnung (verbleibende Warnung ist der vorbestehende, plangemaess unberuehrte #support-Kanal). Plan 14-05 vollstaendig, siehe 14-05-SUMMARY.md.
+- Offen (nicht blockierend): Navigators sehen den neuen Kanal #test-pilots nicht -- woertlich korrekte D-18-Umsetzung, vermutlich nicht die Absicht. Betreiberentscheidung ausstehend, siehe WINDOWS.md #15.
+- 14-02: drei Verhaltens-Zusicherungen (guard_is_tester Schreibsperre, anon darf gate_verdict() nicht ausfuehren, doppelte Discord-Kopplung liefert sprechende Meldung) sind gegen die lebende Anlage NICHT geprueft -- brauchen eine echte Sitzung/echte Konten, fuer die Sichtrunde des Betreibers vorgesehen (14-02-SUMMARY.md coverage D4-D6)
+- Plan 14-03 Aufgabe 2 [BLOCKING]: kein SUPABASE_ACCESS_TOKEN/Supabase-CLI in dieser Ausfuehrungssitzung verfuegbar -- der gefaehrlichste Riegel der Phase (BEFORE INSERT auf auth.users, D-02) liegt geschrieben und Schiene-A-gepruefft (18/18) im Repo (Commit abda325), ist aber NICHT auf die lebende Anlage angewandt. Braucht Koordinator/Betreiber: Management-API-Anwendung + vorgefuehrt-roter Nachweis in 3 SQL-Faellen (Discord blockt / E-Mail geht durch / linkIdentity geht durch), je in einer zurueckgerollten Transaktion, plus vier echte Browser-Anmeldevorgaenge auf verse-base.com/account/ (LIVE) als Sichtpunkt fuer WINDOWS.md.
+- 14-12 Aufgabe 2 (staging-Ausrollen) blockiert: fuenf Coolify-Umgebungsvariablen unbestaetigt (VB_GATE_SECRET/VB_SUPABASE_URL/VB_SUPABASE_ANON_KEY am Vorschau-Container, SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY am Bot-Container). Vor dem Push zusaetzlich node discord/tester-dry-run.mjs neu fahren (D-16).
 
 ### Quick Tasks Completed
 
@@ -502,6 +565,7 @@ None yet.
 
 ### Roadmap Evolution
 
+- Phase 14 added (17.08.2026): Testpilot-Zugang — staging hinter der Discord-Rolle. `staging.verse-base.com` ist heute fuer jeden offen; kuenftig kommt nur hinein, wer die Discord-Rolle „Test Pilots" traegt. Vier Betreiberentscheidungen VOR der Planung getroffen: Nicht-Tester sehen ausschliesslich eine Anmeldeseite (kein 403, kein blosses Banner); die Rolle wird vom Betreiber VON HAND vergeben und faellt dafuer aus dem Discord-Onboarding; Discord wird an das bestehende Supabase-Site-Konto gekoppelt statt einen zweiten Anmeldeweg nur am Tor zu bauen; alle vier Perks sind gewaehlt (Profil-Abzeichen, privater Kanal mit Deploy-Ping, XP-Bonus, Namensnennung). Drei Vorbefunde aus der Bestandsaufnahme, gegen den Bestand gemessen: die `tester`-Rolle EXISTIERT bereits (blueprint.mjs:143), ist aber im Onboarding selbst vergebbar (blueprint.mjs:402) und taugt so nicht als Tuersteher; die Site hat KEINEN OAuth-Provider und keine Bruecke zwischen Discord-Identitaet und Konto — die Kopplung ist Grundlage von Tor UND Abzeichen; staging ist statisches nginx-HTML hinter Cloudflare, ein Gate im Browser-JS waere per `curl` umgehbar, das Tor muss vor die Auslieferung. Architektur bewusst NICHT vorentschieden (Cloudflare Worker vs. nginx auth_request gegen den Bot vs. njs + Edge Function) — Aufgabe der Recherche. Haengt an keiner Vorgaengerphase; die vom Geruest eingetragene Abhaengigkeit von Phase 13 ist ein Nummernfolge-Artefakt und wurde in der ROADMAP.md ausdruecklich aufgehoben.
 - Phase 12 added (15.08.2026): Fundorte in der Mining-Werkbank anklickbar. Die Werkbank kann bisher nur „wo finde ich DIESES Erz?"; die Gegenrichtung „was gibt es an DIESEM Ort?" fehlt, weil die Fundortzeilen tote Textzeilen sind (nur die Anheft-Nadel reagiert). Datengrundlage liegt seit der Fundort-Korrektur fertig und ungenutzt im Bestand: `mining-db.json` → `bodies[]`, 45 Fundorte mit vollstaendiger Erzliste, von `verify:mining` bereits gegen die Vorwaertsrichtung geprueft. Anlass: Betreiber-Hinweis mit scmdb als Vergleich. **Betreiberentscheidung: ausschliesslich Umschaltung in der Werkbank, KEINE eigenen Fundort-Seiten** (Alternative „45 x DE/EN statische Seiten" wurde vorgelegt und verworfen). Aus dem scmdb-Vergleich uebernommen: Gruppierung nach Methode, Signatur, Hoechstanteil, Chance, Balken. Bewusst NICHT uebernommen: Preise (scmdb zeigt dort selbst keine), Gruppenanteile (rechnen Salvage/Debris mit — Grundmenge fehlt uns, waere erfunden), Adernzahl (nicht in unseren Daten). Der scheinbare Datenbefund aus dem Vergleich (12 Erze gegen 7, Aluminium 29,8 % gegen 14,9 %) wurde nachgelesen und ist ein Definitionsunterschied, kein Fehler — haengt an keiner Vorgaengerphase ausser 10.
 - Phase 9 added (15.08.2026): Mining-Werkbank — Fundort-Merkliste. Die mittlere Spalte wird neu belegt: die Detailspalte (Physik, Qualitaetsstufen, „Steine mit diesem Erz") entfaellt ersatzlos und wird spaeter anders dargestellt; die Fundorte-Liste rueckt an ihre Stelle; auf dem frei werdenden Platz entsteht eine anheftbare Merkliste „Erz — Fundort" ueber mehrere Erze hinweg, als benanntes Preset kontogebunden speicherbar (wie `mining_sig_presets`). Anlass: Nutzerwunsch waehrend der Arbeit an den Fundort-Daten (Phase-fremd, haengt an keiner Vorgaengerphase). Datengrundlage ist bereits da — seit 14.08. traegt jedes Mineral seine vollstaendige Fundortliste (521 Paare statt 273).
 - Phase 01.1 inserted after Phase 1: Ambiente-Effekte stilllegen — Mauszeiger-Schein raus, Partikel opt-in (Besucher-Rueckmeldung 29.07.2026) (URGENT)
@@ -524,6 +588,9 @@ Items acknowledged and carried forward from previous milestone close:
 | *(none)* | | | |
 
 ## Session Continuity
+
+Last session: 2026-08-20T00:00:00.000Z
+Stopped at: Phase 15 mit staging zusammengefuehrt -- Umgebungsvariablen und Discord-Webhook gesetzt, Push und check:gate stehen aus
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
