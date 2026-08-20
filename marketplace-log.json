@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 348,
-  "totalListings": 7591,
-  "totalSold": 331,
+  "updates": 349,
+  "totalListings": 7598,
+  "totalSold": 332,
   "distinctItems": 1302
  },
  "listings": {
@@ -157535,9 +157535,9 @@
      "p": 5000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-20",
+   "soldOutPrice": 5000,
    "dateAdded": 1787151886,
    "dateExpiration": 1792335886
   },
@@ -162204,6 +162204,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787235343,
    "dateExpiration": 1792419343
+  },
+  "164418": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 880q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787237688,
+   "dateExpiration": 1792421688
+  },
+  "164419": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "953q Aluminum 0.92SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 953,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 30000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787237996,
+   "dateExpiration": 1792421996
+  },
+  "164420": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle 970 iron, 927 avg",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 927,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787238371,
+   "dateExpiration": 1792422371
+  },
+  "164421": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Guardian MX Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787238508,
+   "dateExpiration": 1792422508
+  },
+  "164423": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Ares Inferno Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787239061,
+   "dateExpiration": 1792423061
+  },
+  "164425": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Sabre Firebird (Wikelo Kit) Mil Grade A Comp",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787240062,
+   "dateExpiration": 1792424062
+  },
+  "164427": {
+   "idItem": 159,
+   "idCategory": 23,
+   "title": "FullBlock",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787240530,
+   "dateExpiration": 1792424530
   }
  }
 }
