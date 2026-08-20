@@ -553,12 +553,13 @@ async function main() {
   /* ---- Zusicherung 8: Zombie-Waechter ---- */
   console.log('\n[8] Zombie-Waechter: jede Ausnahme muss in diesem Durchgang gegriffen haben');
   {
+    console.log(`    Soll: jede Ausnahme >= 1 Treffer   Ist: ${EXCLUSIONS.length} Ausnahme(n) registriert`);
     if (!EXCLUSIONS.length) {
       console.log('    keine Ausnahmen');
     } else {
       for (const ex of EXCLUSIONS) {
         const usedCount = ex.usedCount ?? 0;
-        console.log(`    ${ex.id}: ${usedCount} Treffer`);
+        console.log(`    ${ex.id} — Soll: >= 1 Treffer   Ist: ${usedCount} Treffer`);
         if (usedCount === 0) fail(`Ausnahme ${ex.id} hat kein einziges Mal gegriffen — Anlass entfallen, Eintrag entfernen`);
       }
     }
