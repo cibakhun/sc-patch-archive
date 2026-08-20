@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 354,
-  "totalListings": 7645,
+  "updates": 355,
+  "totalListings": 7683,
   "totalSold": 336,
-  "distinctItems": 1305
+  "distinctItems": 1310
  },
  "listings": {
   "156580": {
@@ -162498,6 +162498,27 @@
    "dateAdded": 1787238508,
    "dateExpiration": 1792422508
   },
+  "164422": {
+   "idItem": 2629,
+   "idCategory": 38,
+   "title": "Tevarin War Service Marker (Prestine) 500k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787239058,
+   "dateExpiration": 1792423058
+  },
   "164423": {
    "idItem": null,
    "idCategory": 102,
@@ -162518,6 +162539,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787239061,
    "dateExpiration": 1792423061
+  },
+  "164424": {
+   "idItem": 2638,
+   "idCategory": 38,
+   "title": "UNE Unifivation War Medal (Prestine) 750k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787239183,
+   "dateExpiration": 1792423183
   },
   "164425": {
    "idItem": null,
@@ -162750,6 +162792,48 @@
    "dateAdded": 1787243647,
    "dateExpiration": 1792427647
   },
+  "164436": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet x 4 --- 1.35m/ea or 4 for 5m",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787243865,
+   "dateExpiration": 1792427864
+  },
+  "164437": {
+   "idItem": 7968,
+   "idCategory": 7,
+   "title": "Ana Armor Entro Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787243885,
+   "dateExpiration": 1792427885
+  },
   "164438": {
    "idItem": 4583,
    "idCategory": 61,
@@ -162770,6 +162854,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787244795,
    "dateExpiration": 1792428795
+  },
+  "164440": {
+   "idItem": 4564,
+   "idCategory": 3,
+   "title": "Stirling Exploration Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245057,
+   "dateExpiration": 1792429057
   },
   "164442": {
    "idItem": 4819,
@@ -162792,6 +162897,69 @@
    "dateAdded": 1787245237,
    "dateExpiration": 1792429236
   },
+  "164443": {
+   "idItem": 4441,
+   "idCategory": 3,
+   "title": "Berserker Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245253,
+   "dateExpiration": 1792429252
+  },
+  "164444": {
+   "idItem": 5137,
+   "idCategory": 7,
+   "title": "Antium Armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245284,
+   "dateExpiration": 1792429284
+  },
+  "164445": {
+   "idItem": 2638,
+   "idCategory": 61,
+   "title": "UNE Unification War Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245388,
+   "dateExpiration": 1792429388
+  },
   "164446": {
    "idItem": 1750,
    "idCategory": 23,
@@ -162812,6 +162980,216 @@
    "soldOutPrice": null,
    "dateAdded": 1787245391,
    "dateExpiration": 1792429391
+  },
+  "164447": {
+   "idItem": 4505,
+   "idCategory": 3,
+   "title": "Antium Armor Helmet Maroon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245525,
+   "dateExpiration": 1792429525
+  },
+  "164448": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite - 716 Qual",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 716,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245544,
+   "dateExpiration": 1792429544
+  },
+  "164449": {
+   "idItem": 7336,
+   "idCategory": 1,
+   "title": "Antium Arms Jet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 200003
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245627,
+   "dateExpiration": 1792429627
+  },
+  "164450": {
+   "idItem": 4869,
+   "idCategory": 4,
+   "title": "Antium Armor Legs Storm",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245704,
+   "dateExpiration": 1792429704
+  },
+  "164451": {
+   "idItem": 2448,
+   "idCategory": 3,
+   "title": "Parasite V: Dark Birth Replica Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245807,
+   "dateExpiration": 1792429807
+  },
+  "164452": {
+   "idItem": 3223,
+   "idCategory": 2,
+   "title": "Zeus Exploration Suit Backpack",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787245921,
+   "dateExpiration": 1792429921
+  },
+  "164453": {
+   "idItem": 5352,
+   "idCategory": 7,
+   "title": "Palatino Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246067,
+   "dateExpiration": 1792430067
+  },
+  "164454": {
+   "idItem": 6747,
+   "idCategory": 5,
+   "title": "Palatino Core Sunstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246236,
+   "dateExpiration": 1792430236
+  },
+  "164455": {
+   "idItem": 6657,
+   "idCategory": 1,
+   "title": "Palatino Arms Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246325,
+   "dateExpiration": 1792430325
+  },
+  "164456": {
+   "idItem": 6676,
+   "idCategory": 4,
+   "title": "Palatino Legs Daystar",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246364,
+   "dateExpiration": 1792430363
   },
   "164457": {
    "idItem": 1775,
@@ -162834,6 +163212,90 @@
    "dateAdded": 1787246389,
    "dateExpiration": 1792430389
   },
+  "164458": {
+   "idItem": 5835,
+   "idCategory": 1,
+   "title": "Palatino Arms Sunstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246426,
+   "dateExpiration": 1792430426
+  },
+  "164459": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 853,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1499999
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246591,
+   "dateExpiration": 1792430591
+  },
+  "164460": {
+   "idItem": 7336,
+   "idCategory": 1,
+   "title": "Antium Arms Jet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246617,
+   "dateExpiration": 1792430617
+  },
+  "164461": {
+   "idItem": 1775,
+   "idCategory": 21,
+   "title": "JS-400",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246828,
+   "dateExpiration": 1792430828
+  },
   "164462": {
    "idItem": 976,
    "idCategory": 22,
@@ -162854,6 +163316,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787246895,
    "dateExpiration": 1792430895
+  },
+  "164463": {
+   "idItem": 4359,
+   "idCategory": 61,
+   "title": "Alignment Blade",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787246900,
+   "dateExpiration": 1792430900
+  },
+  "164465": {
+   "idItem": 7573,
+   "idCategory": 3,
+   "title": "WTT Calva Helmet Daybreaker for standard black Calva Helmet.",
+   "operation": "trade",
+   "currency": "UEC",
+   "quality": 1,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787247412,
+   "dateExpiration": 1792431412
+  },
+  "164466": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787247447,
+   "dateExpiration": 1792431447
   },
   "164467": {
    "idItem": 114,
@@ -162896,6 +163421,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787247769,
    "dateExpiration": 1792431769
+  },
+  "164469": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 850,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787248295,
+   "dateExpiration": 1792432295
+  },
+  "164471": {
+   "idItem": 70,
+   "idCategory": 18,
+   "title": "LH86 Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787248777,
+   "dateExpiration": 1792432777
   },
   "164473": {
    "idItem": null,
@@ -163358,6 +163925,237 @@
    "soldOutPrice": null,
    "dateAdded": 1787258481,
    "dateExpiration": 1792442481
+  },
+  "164525": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787258792,
+   "dateExpiration": 1792442792
+  },
+  "164526": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787258941,
+   "dateExpiration": 1792442941
+  },
+  "164527": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Meteor Wikelo Stealth Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259189,
+   "dateExpiration": 1792443189
+  },
+  "164528": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259213,
+   "dateExpiration": 1792443213
+  },
+  "164529": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259364,
+   "dateExpiration": 1792443364
+  },
+  "164532": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259447,
+   "dateExpiration": 1792443447
+  },
+  "164533": {
+   "idItem": 10,
+   "idCategory": 32,
+   "title": "Crafted: C-788 Cannon 7.8% impact force",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 883,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 12000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259681,
+   "dateExpiration": 1792443681
+  },
+  "164534": {
+   "idItem": 10,
+   "idCategory": 32,
+   "title": "Crafted: C-788 Cannon 7.9% impact force",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 898,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259797,
+   "dateExpiration": 1792443797
+  },
+  "164535": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787259936,
+   "dateExpiration": 1792443936
+  },
+  "164543": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787261054,
+   "dateExpiration": 1792445054
+  },
+  "164547": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite Q880-909",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 909,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787262029,
+   "dateExpiration": 1792446029
   }
  }
 }
