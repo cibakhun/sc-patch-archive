@@ -209,8 +209,34 @@ gate` 19/19 grün.
 
 **Fix:** Optional, geringe Priorität: `location ^~ /_gate/mint` auf der Live-Seite mit `if ($vb_gate_on != "1") { return 404; }` (oder ähnlich) unterbinden, falls die Sauberkeit der `last_staging_seen`-Kennzahl wichtig ist. Kein Blocker für den Rollout.
 
-**Nicht behoben** — ausdrücklich außerhalb des Fix-Auftrags (nur CR-01,
-CR-02, WR-01, WR-02 in Scope), siehe `fixes` im Frontmatter.
+**Behoben am 20.08.2026** (`90fda27`) — nachträglich, außerhalb des
+ursprünglichen Fix-Auftrags (der umfasste nur CR-01, CR-02, WR-01, WR-02,
+siehe `fixes` im Frontmatter). Anlass für die Nachholung: der Befund wird
+überhaupt erst mit der Freigabe nach `main` wahr — heute antwortet
+`verse-base.com/_gate/mint` mit 404, weil das Live-Image den Torcode noch
+nicht kennt. Die Freigabe steht an, also wäre „optional" ab diesem Zeitpunkt
+zu „unbemerkt eingetreten" geworden.
+
+Umgesetzt als `if ($vb_gate_on != "1") { return 404; }` in der
+`location ^~ /_gate/mint`. `if` in einer location ist berüchtigt; `return`
+ist einer der zwei dokumentiert unbedenklichen Fälle — es beendet die
+Anfrage, statt einen zweiten Inhaltsgeber zu erzeugen, und lässt das
+Kopfzeilen-Erbe aus dem `server`-Block unberührt.
+
+Der Riegel wäre für sich genommen Dekoration gewesen: auf staging ist das
+Tor an, dort ändert er nichts, und CI hätte ihn nie angefasst. Deshalb zwei
+Zusicherungen in der bestehenden D-12-Gegenprobe von `probe-gate-e2e.yml`,
+gemessen an echten Containern (Lauf 32383722968, 16 Zusicherungen, 0 Fehler):
+
+```
+OK     /_gate/mint im Live-Bau — Soll 404 Ist 404
+OK     /_gate/mint im Vorschau-Bau, ohne Kopfzeile — Soll 401 Ist 401
+```
+
+Die zweite ist die Klinke. Ein Riegel, der überall zumacht, sähe mit der
+ersten Zeile allein wie ein bestandener Lauf aus und hätte in Wahrheit den
+Ausstellungspunkt getötet — also das ganze Tor. Der Sollwert 401 ist nicht
+geraten, sondern vorher an der laufenden staging-Seite abgeholt.
 
 ---
 
