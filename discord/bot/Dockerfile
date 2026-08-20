@@ -30,6 +30,38 @@ COPY discord/bot/ ./
 # is `npm run avatar:apply` from discord/, not a redeploy.
 COPY discord/assets/verse-bot-avatar.png ./assets/verse-bot-avatar.png
 
+# Der Server-Blueprint. src/role-sync.mjs zieht daraus den Namen der
+# Testpiloten-Rolle, damit Bot und `discord/build.mjs` nicht mit zwei
+# getrennt gepflegten Zeichenketten auseinanderlaufen.
+#
+# Warum ausgerechnet im Wurzelverzeichnis: im Repo liegt die Datei als
+# discord/blueprint.mjs, der Importeur als discord/bot/src/role-sync.mjs --
+# `../../blueprint.mjs` trifft sie dort genau. Im Abbild landet derselbe
+# Quelltext aber unter /app/src/ (WORKDIR /app + `COPY discord/bot/ ./`),
+# und dieselbe relative Angabe zeigt damit auf /blueprint.mjs. Die beiden
+# Ablagen unterscheiden sich um genau eine Ebene. Die Datei hierhin zu legen
+# laesst EINE Importzeile in beiden Welten stimmen -- die Alternative waere,
+# den Bot im Abbild nach /app/bot/src/ umzuhaengen und damit jeden anderen
+# Pfad anzufassen.
+#
+# Ohne diese Zeile stuerzte der Bot am 20.08.2026 in einer Neustartschleife
+# ab (ERR_MODULE_NOT_FOUND, 'file:///blueprint.mjs'). Aufgefallen ist es
+# NICHT beim Bauen, sondern erst am laufenden Dienst: nichts prueft je den
+# Bot-Container, deshalb steht die Gegenprobe jetzt direkt darunter.
+COPY discord/blueprint.mjs /blueprint.mjs
+
+# Gegenprobe im Bau (Grundsatz 7: gegen das Artefakt pruefen, nicht gegen den
+# Quellbaum). Importiert die Datei, die den Absturz ausgeloest hat, in DIESEM
+# Abbild und mit DIESEN Pfaden -- das laeuft die ganze Importkette ab. Zweite
+# Bedingung: der Rollenname darf nicht leer sein, sonst faende der Abgleich
+# spaeter still niemanden, obwohl alles aufloest. role-sync.mjs hat auf
+# oberster Ebene nur Importe, eine Konstante und Funktionsdeklarationen --
+# kein Verbindungsaufbau, der Import ist im Bau unbedenklich.
+RUN node --input-type=module -e "\
+const m = await import('/app/src/role-sync.mjs');\
+if (!m.TESTER_ROLE_NAME) { console.error('FEHLER: TESTER_ROLE_NAME ist leer -- Blueprint ohne Rolle \\'tester\\'?'); process.exit(1); }\
+console.log('Gegenprobe: role-sync.mjs aufloesbar, Rolle =', m.TESTER_ROLE_NAME);"
+
 # Bundle the game-data snapshot + manufacturer logos read at runtime.
 COPY src/data /app/gamedata
 COPY assets/manufacturers /app/logos
