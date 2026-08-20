@@ -413,6 +413,27 @@ export async function initHolo(container, cfg) {
   }
 
   /* ---------- Komponenten-Marker ---------- */
+  // Zielgroesse der gezeichneten Marke in BILDPUNKTEN (siehe Begruendung im
+  // Bildschleifen-Abschnitt weiter unten). Schmale Ansichten bekommen mehr:
+  // dort wird mit dem Finger getroffen, und die Fingerkuppen-Regel des Hauses
+  // ist 44px (assets/mobile-ux.css Abschnitt 2). Die volle 44 waeren bei
+  // dichten Schiffen ein Teppich aus Marken — 30 ist der belegbare Mittelweg,
+  // gemessen gegen die dichteste Gruppe (drak-ironclad-assault, 20 Ports).
+  const MARKER_PX = 22;
+  const MARKER_PX_SCHMAL = 30;
+  // Ab welcher LEINWANDBREITE traegt der Raum Dauer-Beschriftungen (Phase 17)?
+  // Begruendung an der Fundstelle in layoutLabels(); der Wert ist gegen die
+  // breiteste Beschriftung (158px) und fuenf gleichzeitige Kaesten gemessen.
+  const RAUM_LABEL_MIN_PX = 900;
+  // Sperrfläche am oberen Buehnenrand: dort liegt die Blende (margin-top
+  // 3,1rem ≈ 56px plus rund 44px Leistenhoehe). 108px lassen einen Hauch Luft
+  // darunter, ohne die obere Buehnenhaelfte zu verschenken.
+  const RAUM_TOP_SPERRE = 108;
+  // Hierarchie wie bisher: Kern-Komponenten groesser als die vielen
+  // Waffen-Marker, damit Cluster ruhiger wirken.
+  const MARKER_HIER = { core: 1.3, arms: 0.92, rest: 1 };
+  const _camPos = new THREE.Vector3();
+  const _mkPos = new THREE.Vector3();
   const markers = [];
   const baseScale = maxDim * 0.034;
   for (const [i, port] of (cfg.ports ?? []).entries()) {
@@ -467,20 +488,53 @@ export async function initHolo(container, cfg) {
   nodeSvg.setAttribute('class', 'holo-nodes');
   labelLayer.appendChild(leaderSvg);
   container.appendChild(labelLayer);
+  /* Art-Vertreter (Phase 17, "Hangar"): der Raum traegt eine Beschriftung je
+     ART, nicht je Port. Gemessen am gebauten dist/ ueber alle 227 Schiffe und
+     826 Schiff-Gruppen-Paare:
+
+       je Port beschriftet:  Median 5, P90 9, MAX 20  -> 381 Gruppen ueber fuenf
+       je Art  beschriftet:  Median 2, P90 5, MAX  5  -> KEINE ueber fuenf
+
+     Das ist kein Schaetzwert mit Reserve, sondern das Maximum ueber den
+     gesamten Bestand. Fuenf Kaesten sind eine Raumbeschriftung, zwanzig waeren
+     eine Tapete — und genau daran ist die alte Label-Leiter gescheitert
+     (15-UI-SPEC.md § 3a: acht Kaesten bedecken mehr Flaeche als das Schiff).
+
+     Vertreter ist der ERSTE Port seiner Art; die uebrigen behalten ihren
+     Marker und ihren eigenen Kasten fuer Hover/Auswahl. */
+  const artZahl = new Map();
+  const artVertreter = new Map();
+  for (const sp of markers) {
+    const p = sp.userData.port;
+    const key = p.g + '|' + p.k;
+    artZahl.set(key, (artZahl.get(key) || 0) + 1);
+    if (!artVertreter.has(key)) artVertreter.set(key, sp.userData.i);
+  }
+
   const labels = [];
   for (const sp of markers) {
     const port = sp.userData.port;
     // Text-Prioritaet (P-2): lab -> Art aus cfg.kinds -> label. Jeder Port
     // bekommt einen Kasten — vorher nur, wenn port.lab gesetzt war.
     const lblText = port.lab || (cfg.kinds && cfg.kinds[port.k]) || port.label || '';
+    const artKey = port.g + '|' + port.k;
+    const istVertreter = artVertreter.get(artKey) === sp.userData.i;
+    const artN = artZahl.get(artKey) || 1;
+    // Der Vertreter traegt die Stueckzahl mit ("3x Haupttriebwerk") — dieselbe
+    // Form, die die Konsole fuer prop/other schon als Liste zeigt.
+    const artText = artN > 1 ? artN + '× ' + lblText : lblText;
     const st = styleOf(port);
     const el = document.createElement('div');
     // Der Chip ist die Stelle, an der die Seite eine Behauptung aufstellt
     // ("SCHILDGENERATOR -> hier"). Bei np/est trägt er darum den Vorbehalt
     // selbst — sichtbar sobald der Kasten erscheint (Hover/Auswahl), sonst
     // liest sich der Callout als Fakt.
-    el.className = 'holo-lbl' + (st !== 'solid' ? ' is-' + st : '');
-    el.textContent = lblText;
+    el.className = 'holo-lbl' + (st !== 'solid' ? ' is-' + st : '')
+      + (istVertreter ? ' is-art' : '');
+    // Vertreter starten im Art-Zustand ("3x Haupttriebwerk"); wird GENAU
+    // dieser Marker ueberfahren oder gewaehlt, wechselt der Kasten auf den
+    // Einzeltext — sonst beschriebe er beim Zeigen auf ein Triebwerk drei.
+    el.textContent = istVertreter ? artText : lblText;
     if (port.badge) {
       // Echtes Leerzeichen, nicht nur CSS-Margin: sonst liest sich der Chip als
       // "GENERATOROHNE EINBAUORT" (Screenreader, Copy-Paste, Suche).
@@ -503,7 +557,14 @@ export async function initHolo(container, cfg) {
     // mx/my: projizierte Marker-Position · ax/ay: Ankerpunkt (mittig über Marker)
     // cx/cy: geglättete Kastenmitte (bleibt über Frames erhalten -> kein Springen)
     // occ: Bauteil auf der abgewandten Modellhälfte -> Beschriftung ausgeblendet
-    labels.push({ sp, el, line, node, shown: true, init: false, occ: false, w: 0, h: 0, mx: 0, my: 0, ax: 0, ay: 0, cx: 0, cy: 0 });
+    labels.push({
+      sp, el, line, node, shown: true, init: false, occ: false,
+      w: 0, h: 0, mx: 0, my: 0, ax: 0, ay: 0, cx: 0, cy: 0,
+      // rep: dieser Kasten steht dauerhaft im Raum (Art-Vertreter).
+      // artText/portText + modus: Textwechsel nur beim Zustandswechsel, nicht
+      // je Bild — sonst schreibt die Bildschleife 27-mal pro Frame ins DOM.
+      rep: istVertreter, artText, portText: lblText, modus: istVertreter ? 'art' : 'port',
+    });
   }
   labelLayer.appendChild(nodeSvg); // zuletzt -> Knoten liegen über den Chips
   const _lblV = new THREE.Vector3();
@@ -533,6 +594,24 @@ export async function initHolo(container, cfg) {
     // "hinten" (abgewandte Hälfte) = deutlich weiter weg als die Mitte.
     _cenViz.copy(fitSphere.center).applyMatrix4(camera.matrixWorldInverse);
     const cz = _cenViz.z, span = fitSphere.radius;
+    /* Traegt dieser Raum ueberhaupt Beschriftungen?
+       Ein Kasten ist bis zu 158px breit ("2x Schildgenerator"), und es koennen
+       fuenf gleichzeitig sein. Auf einer 390px-Leinwand gemessen liegen sie
+       dann samt und sonders AUF dem Rumpf und decken ihn zu — die Beschriftung
+       frisst genau das, was sie erklaeren soll. Das ist derselbe Befund, der
+       schon die alte Label-Leiter gekippt hat (15-UI-SPEC.md § 3a), nur eine
+       Bildschirmgroesse tiefer.
+
+       Unterhalb der Schwelle traegt der Raum deshalb KEINE Dauer-Beschriftung:
+       der ueberfahrene/angetippte Marker bekommt seinen Kasten wie bisher, und
+       die vollstaendige Liste steht ohnehin unmittelbar unter der Buehne. Es
+       geht nichts verloren, es wird nur nichts verdeckt. */
+    const raumBeschriftung = w >= RAUM_LABEL_MIN_PX;
+    // Schiffsmitte AUF DEM BILDSCHIRM — Bezugspunkt fuer die radiale
+    // Platzierung der Dauer-Beschriftungen weiter unten.
+    _lblV.copy(fitSphere.center).project(camera);
+    const cxPx = (_lblV.x * 0.5 + 0.5) * w;
+    const cyPx = (-_lblV.y * 0.5 + 0.5) * h;
     const vis = [];
     for (const L of labels) {
       // P-2: nur der ueberfahrene ODER der gewaehlte Marker traegt einen
@@ -540,9 +619,32 @@ export async function initHolo(container, cfg) {
       // VOR jedem anderen Sichtbarkeits-Grund (Filter, Rueckseite, Kamera-
       // Tiefe): ein nicht aktiver Marker bekommt gar nicht erst die teureren
       // Pruefungen darunter.
-      const aktiv = L.sp.userData.i === hoverIdx || L.sp.userData.i === selectIdx;
+      /* P-2, NEUFASSUNG 20.08.2026 (Phase 17 "Hangar"):
+         Der Raum traegt Beschriftungen — aber je ART, nicht je Port, und nur
+         fuer die eingeblendete Gruppe. Gemessen ueber alle 227 Schiffe sind
+         das hoechstens FUENF gleichzeitig (826 Schiff-Gruppen-Paare, kein
+         einziges darueber). Der alte Wortlaut ("nur der ueberfahrene oder
+         gewaehlte Marker traegt Text") stammte aus der Zeit, als JEDER Port
+         einen Dauerkasten bekam — acht davon bedeckten mehr Flaeche als das
+         Schiff. Der Anlass bleibt gueltig, die Zahl loest ihn auf.
+
+         Unveraendert gilt: der ueberfahrene/gewaehlte Marker traegt IMMER
+         seinen eigenen Text, und er gewinnt gegen den Art-Zustand. */
+      const eigen = L.sp.userData.i === hoverIdx || L.sp.userData.i === selectIdx;
+      const aktiv = eigen || (L.rep && raumBeschriftung);
       if (!aktiv) { hideLabel(L); continue; }
       if (!L.sp.visible) { hideLabel(L); continue; }
+      const willModus = eigen ? 'port' : 'art';
+      if (L.modus !== willModus) {
+        L.modus = willModus;
+        const neu = willModus === 'art' ? L.artText : L.portText;
+        // firstChild ist der Textknoten aus `el.textContent = …`; bei leerem
+        // Text gibt es keinen — dann anlegen statt auf null zugreifen.
+        if (L.el.firstChild && L.el.firstChild.nodeType === 3) L.el.firstChild.nodeValue = neu;
+        else L.el.insertBefore(document.createTextNode(neu), L.el.firstChild);
+        L.el.classList.toggle('is-art', willModus === 'art');
+        L.w = 0; // Breite neu messen, der Text hat sich geaendert
+      }
       L.sp.getWorldPosition(_lblW);
       _lblViz.copy(_lblW).applyMatrix4(camera.matrixWorldInverse);
       // Rueckseiten-Cull mit Hysterese ENTFAELLT fuer den aktiven Kasten (P-2,
@@ -564,8 +666,34 @@ export async function initHolo(container, cfg) {
       if (!L.w) { L.w = L.el.offsetWidth; L.h = L.el.offsetHeight; }
       L.mx = (_lblV.x * 0.5 + 0.5) * w;
       L.my = (-_lblV.y * 0.5 + 0.5) * h;
-      L.ax = L.mx;                       // Anker: horizontal am Marker …
-      L.ay = L.my - LBL_LEAD - L.h / 2;  // … vertikal knapp darüber
+      if (L.rep && !eigen) {
+        /* Dauer-Beschriftung (Phase 17): NACH AUSSEN vom Schiffsmittelpunkt
+           weg, nicht stur nach oben.
+
+           Die naheliegende Loesung waere gewesen, alle Kaesten in Randspalten
+           links und rechts zu stellen — wie in der Attrappe gezeichnet. Am
+           gebauten Stand gemessen gibt es diese Raender nicht: bei 78,6 %
+           Fuellgrad nimmt der Rumpf den Raum in BEIDE Richtungen ein, seitlich
+           blieben rund 140px und ein Kasten ist bis zu 158px breit.
+
+           Radial geloest braucht es keine Raender: jeder Kasten weicht in die
+           Richtung aus, in der an SEINER Stelle Platz ist. Kaesten am Bug
+           gehen nach vorn, Kaesten oben nach oben — die Fuehrungslinie bleibt
+           kurz, und die Mitte des Rumpfes (wo man das Schiff ansieht) bleibt
+           frei. Die Entzerrung darunter loest den Rest. */
+        const dx = L.mx - cxPx, dy = L.my - cyPx;
+        const len = Math.hypot(dx, dy) || 1;
+        const weg = LBL_LEAD + L.h / 2 + 10;
+        L.ax = L.mx + (dx / len) * (weg + L.w * 0.28);
+        L.ay = L.my + (dy / len) * weg;
+        // Nie ueber den Buehnenrand hinaus — sonst steht die Haelfte im Nichts.
+        const randX = L.w / 2 + 10, randY = L.h / 2 + 8;
+        L.ax = Math.min(Math.max(L.ax, randX), w - randX);
+        L.ay = Math.min(Math.max(L.ay, randY), h - randY);
+      } else {
+        L.ax = L.mx;                       // Anker: horizontal am Marker …
+        L.ay = L.my - LBL_LEAD - L.h / 2;  // … vertikal knapp darüber
+      }
       if (!L.init) { L.cx = L.ax; L.cy = L.ay; L.init = true; }
       else { L.cx += (L.ax - L.cx) * LBL_EASE; L.cy += (L.ay - L.cy) * LBL_EASE; }
       vis.push(L);
@@ -609,7 +737,13 @@ export async function initHolo(container, cfg) {
     }
     for (const L of vis) {
       L.cx = Math.max(L.w / 2 + 2, Math.min(w - L.w / 2 - 2, L.cx));
-      L.cy = Math.max(L.h / 2 + 2, Math.min(h - L.h / 2 - 2, L.cy));
+      /* Der obere Rand der Buehne gehoert der Blende (Registerleiste, Phase 17)
+         — dort gemessen schob sich der Kasten "Radar" unter sie. Die Sperre
+         gilt nur, wo die Leiste ueberhaupt steht: unterhalb der Schwelle traegt
+         der Raum keine Dauer-Beschriftung, und der Kasten des angetippten
+         Markers soll auch dicht am oberen Rand stehen duerfen. */
+      const obenFrei = (L.rep && raumBeschriftung) ? RAUM_TOP_SPERRE : 2;
+      L.cy = Math.max(obenFrei + L.h / 2, Math.min(h - L.h / 2 - 2, L.cy));
       L.el.style.left = L.cx.toFixed(1) + 'px';
       L.el.style.top = L.cy.toFixed(1) + 'px';
       // Leader vom Marker bis zum Kastenrand (Segment an der Box abgeschnitten)
@@ -979,9 +1113,37 @@ export async function initHolo(container, cfg) {
       }
       aura.material.opacity = 0.08 + 0.035 * Math.sin(t * 1.7);
     }
-    // Marker: Hover/Select-Puls
+    // Marker: konstante BILDSCHIRMGROESSE + Hover/Select-Puls.
+    //
+    // ⚠ Bis zum 20.08.2026 hatte der Marker eine feste WELTgroesse
+    // (baseScale = maxDim * 0.034). Das sieht auf dem Schreibtisch richtig aus
+    // und bricht auf dem Telefon: die Kamera passt das Schiff in die Ansicht,
+    // also schrumpft mit dem Schiff auch der Marker. Gemessen an der Carrack
+    // war die gezeichnete Marke bei 1280px rund 11,4px gross und bei 360px nur
+    // noch 3,7px — der Ausgangszustand aus Welle 1 ("2-3px, nicht
+    // auffindbar"). Die Fuellgrad-Klinke P-1 meldete dort 92,5 % und damit den
+    // HOECHSTEN Wert des ganzen Laufs: sie misst einen Anteil, das Problem ist
+    // aber absolut.
+    //
+    // Ein Marker ist eine Kartennadel, kein Bauteil des Schiffs. Er bekommt
+    // deshalb seine Groesse vom Bildschirm, nicht vom Modell: bei
+    // perspektivischer Kamera ist die Bildpunktgroesse
+    //   px = weltgroesse * H / (2 * tan(fov/2) * abstand)
+    // also umgestellt weltgroesse = zielPx * 2 * tan(fov/2) * abstand / H.
+    // sp.scale ist LOKAL zu rig (Massstab s), daher noch durch s geteilt.
+    const zielPx = W() < 760 ? MARKER_PX_SCHMAL : MARKER_PX;
+    const tanHalbFov = Math.tan((camera.fov * Math.PI) / 360);
+    const hPx = H() || 1;
+    camera.getWorldPosition(_camPos);
     for (const sp of markers) {
-      const { i, base } = sp.userData;
+      const { i, port } = sp.userData;
+      sp.getWorldPosition(_mkPos);
+      const abstand = _camPos.distanceTo(_mkPos) || 1;
+      const weltGroesse = zielPx * MARKER_HIER[port.g === 'core' ? 'core' : port.g === 'arms' ? 'arms' : 'rest']
+        * 2 * tanHalbFov * abstand / hPx;
+      // base bleibt die UNGEPULSTE Groesse — metrics() rechnet damit.
+      const base = weltGroesse / s;
+      sp.userData.base = base;
       let sc = base;
       if (i === selectIdx) sc = base * (1.25 + (reduceMotion ? 0 : Math.sin(t * 5) * 0.09));
       else if (i === hoverIdx) sc = base * 1.35;

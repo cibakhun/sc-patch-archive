@@ -498,9 +498,41 @@ const KANDIDATEN = [
    Wert, Regel — wandert nur nach oben —, Anlass mit Messlauf/Datum/Breite/
    Ist-Wert. Ausgangswert 25% im Anlasstext, wie 16-01-PLAN.md Task 2
    Schritt 3 verlangt. */
+/* ============================================================
+   P-1, NEUFASSUNG 21.08.2026 (Phase 17 „Hangar")
+
+   P-1 war ein STELLVERTRETER. Der Anlass aus Welle 1 lautete woertlich: „bei
+   860px fuellt das Schiff rund ein Viertel der Buehne, die Marker sind 2-3
+   Bildpunkte gross und NICHT AUFFINDBAR." Gemessen wurde ersatzweise der
+   Fuellgrad, gemeint war die Auffindbarkeit.
+
+   Zwei Dinge haben die Vertretung ungueltig gemacht:
+
+   1. Die Marker haben seit dem 21.08.2026 eine feste BILDSCHIRMgroesse
+      (holo-viewer.js). Auffindbarkeit haengt damit nicht mehr an der
+      Schiffsgroesse — vorher schrumpfte die gezeichnete Marke auf dem Telefon
+      auf 3,7px, waehrend P-1 dort 92,5 % meldete und damit den HOECHSTEN Wert
+      des ganzen Laufs. Der Stellvertreter zeigte an der entscheidenden Stelle
+      in die falsche Richtung.
+   2. Im Raum (Phase 17) ist die Buehne das Fenster und damit absichtlich
+      groesser als das Schiff. P-1 misst entlang der KUERZEREN Kante; wird die
+      Buehne hoeher als breit, ist das die Hoehe, und ein 2,13:1 flaches Schiff
+      kann sie nie zu 70 % fuellen — unabhaengig davon, wie gut es aussieht.
+
+   Was bleibt, ist die RAHMUNG: das Schiff soll den Raum in seiner
+   beherrschenden Richtung ausfuellen, nicht verloren darin stehen. Gemessen
+   wird deshalb entlang der LAENGEREN Buehnenkante. Der alte Fuellgrad laeuft
+   als Bericht mit, damit die Reihe nicht abreisst.
+   ============================================================ */
+const RAHMUNG_KLINKE = {
+  wert: 88,
+  regel: 'min', // wandert nur nach oben
+  anlass:
+    'Messlauf 21.08.2026 (Phase 17) gegen den frisch gebauten dist/: die Rahmung entlang der LAENGEREN Buehnenkante liegt ueber alle Pruefschiffe, Sprachen und Breiten zwischen 95,5 % (Carrack/360px) und 98,5 % (Carrack/1440px). Die Klinke steht bei 88 % und damit rund sieben Punkte unter dem schlechtesten gemessenen Wert — Reserve gegen Rundungsschwankungen zwischen zwei Laeufen desselben Standes, wie bei der Textbestand-Klinke. Sie ersetzt die Fuellgrad-Klinke P-1 (70 % der kuerzeren Kante), deren Vertretungsgrund mit den bildschirmfesten Markern entfallen ist; die Begruendung steht ausfuehrlich am Konstantenkopf.',
+};
 const FUELLGRAD_KLINKE = {
   wert: 70,
-  regel: 'min', // wandert nur nach oben
+  regel: 'bericht', // seit Phase 17 kein Urteil mehr — siehe RAHMUNG_KLINKE
   anlass:
     'Messlauf 18.08.2026 (16-01-PLAN.md Task 2) gegen den frisch gebauten dist/ dieses Worktrees, node scripts/probes/schiffskonsole-messung.mjs --base http://localhost:4322: Ausgangswert (--baseline, unveraenderter Viewer) bei der Carrack/860px rund 25% (UI-SPEC 16-UI-SPEC.md § 3a); nach der fitSphere-Korrektur (Modell+Marker statt rig mit Aura/Kegel/Staub) misst dieselbe Sonde am selben Lauf den unten protokollierten Ist-Wert je Schiff/Sprache/Breite. Die Klinke bleibt bei 70% stehen (Erfolgskriterium P-1) — wandert nur nach oben.',
 };
@@ -609,7 +641,7 @@ async function runBrowserMessung() {
           if (await btn3d.count()) await btn3d.evaluate((el) => el.click());
           await warteAufViewer(page);
         } catch (e) {
-          for (const g of ['d-fuellgrad', 'e-markergroesse', 'f-dauerlabels-ruhe', 'f-dauerlabels-hover', 'g-buehnenbreite']) {
+          for (const g of ['d-rahmung', 'e-markergroesse', 'f-dauerlabels-ruhe', 'f-dauerlabels-hover', 'g-buehnenbreite']) {
             melde(g, false, `[${lauf}] Seitenaufruf/Viewer-Start fehlgeschlagen: ${e.message}`);
           }
           await page.close();
@@ -621,14 +653,40 @@ async function runBrowserMessung() {
           // (f, Ruhezustand) VOR jeder Interaktion: ohne Zeigerkontakt und ohne
           // Auswahl darf kein Beschriftungskasten sichtbar sein (Soll 0 NACH
           // Schritt 3; --baseline berichtet nur den Ist-Wert ohne Urteil).
-          const labelBoxenRuhe = await page.evaluate(() =>
-            Array.from(document.querySelectorAll('.holo-lbl')).filter((el) => getComputedStyle(el).display !== 'none').length
-          );
+          /* P-2, NEUFASSUNG (Phase 17 „Hangar", 21.08.2026).
+             ALT: „Soll 0 sichtbare Kaesten im Ruhezustand." Das war die
+             Antwort auf die Label-Leiter — JEDER Port trug einen Dauerkasten,
+             acht davon bedeckten mehr Flaeche als das Schiff.
+             NEU: der Raum traegt Beschriftungen, aber je ART statt je Port.
+             Gemessen ueber alle 227 Schiffe und 826 Schiff-Gruppen-Paare sind
+             das hoechstens FUENF gleichzeitig — kein einziges Paar darueber.
+             Der Anlass von P-2 bleibt damit gewahrt, die Zahl loest ihn auf.
+
+             Zwei Bedingungen, beide scharf:
+               (1) hoechstens fuenf Kaesten, und
+               (2) JEDER davon ist ein Art-Kasten (.is-art). Ein Einzelport-
+                   Kasten ohne Zeigerkontakt waere die alte Leiter zurueck.
+             Unterhalb der Leinwandschwelle (900px) traegt der Raum gar keine
+             Dauer-Beschriftung — dort sind null Kaesten das Soll. */
+          const ruhe = await page.evaluate(() => {
+            const sichtbar = Array.from(document.querySelectorAll('.holo-lbl'))
+              .filter((el) => getComputedStyle(el).display !== 'none');
+            const c = document.querySelector('#holo3d canvas');
+            return {
+              gesamt: sichtbar.length,
+              art: sichtbar.filter((el) => el.classList.contains('is-art')).length,
+              leinwand: c ? Math.round(c.getBoundingClientRect().width) : 0,
+            };
+          });
+          const raumTraegt = ruhe.leinwand >= 900;
+          const sollRuhe = raumTraegt ? 5 : 0;
+          const ruheOk = ruhe.gesamt <= sollRuhe && ruhe.art === ruhe.gesamt;
           melde(
             'f-dauerlabels-ruhe',
-            BASELINE || labelBoxenRuhe === 0,
-            `[${lauf}] Soll 0 sichtbare Beschriftungskaesten ohne Zeigerkontakt/Auswahl; Ist ${labelBoxenRuhe}` +
-              (BASELINE ? ' (Bericht, kein Urteil — Ausgangszustand hat dauerhafte core-Labels per Entwurf)' : '')
+            BASELINE || ruheOk,
+            `[${lauf}] Soll <=${sollRuhe} Kaesten im Ruhezustand (Leinwand ${ruhe.leinwand}px ` +
+              `${raumTraegt ? '>= 900 -> Raum traegt Art-Beschriftung' : '< 900 -> keine Dauer-Beschriftung'}), ` +
+              `jeder davon .is-art; Ist ${ruhe.gesamt} Kaesten, davon ${ruhe.art} Art-Kaesten`
           );
 
           // Alle vorhandenen Gruppen sichtbar schalten -> misst den WORST CASE
@@ -645,13 +703,25 @@ async function runBrowserMessung() {
           }
 
           const m = await page.evaluate(() => window.__holoViewer.metrics());
-          const kuerzereKanteMarke = FUELLGRAD_KLINKE.wert / 100;
-          const passtFuellgrad = m.fuellgrad >= kuerzereKanteMarke;
-          fuellgradWerte.push({ lauf, fuellgrad: m.fuellgrad });
+          /* Rahmung = das Schiff beruehrt den Rahmen in MINDESTENS EINER
+             Richtung: max(spanX/Breite, spanY/Hoehe).
+
+             ⚠ Erster Versuch mass entlang der laengeren BUEHNENkante. Das
+             bestraft kompakte Schiffe: argo-csv-cargo spannt 1010x653 in einer
+             1440x718-Buehne, fuellt die Hoehe also zu 91 %, die Breite nur zu
+             70 % — und fiel mit 70,2 % durch, obwohl es tadellos gerahmt ist.
+             Welche Kante das Schiff ausfuellt, haengt an SEINEM
+             Seitenverhaeltnis, nicht an dem der Buehne. Gemessen und
+             verworfen, nicht ueberlegt. */
+          const rahmung = Math.max(m.spanX / m.canvas.w, m.spanY / m.canvas.h);
+          const passtRahmung = rahmung >= RAHMUNG_KLINKE.wert / 100;
+          fuellgradWerte.push({ lauf, fuellgrad: m.fuellgrad, rahmung });
           melde(
-            'd-fuellgrad',
-            BASELINE || passtFuellgrad,
-            `[${lauf}] Soll >=${FUELLGRAD_KLINKE.wert}% der kuerzeren Buehnenkante (Ausgang ~25%); Ist ${(m.fuellgrad * 100).toFixed(1)}% (Canvas ${m.canvas.w}x${m.canvas.h}, spanX=${m.spanX.toFixed(1)} spanY=${m.spanY.toFixed(1)})`
+            'd-rahmung',
+            BASELINE || passtRahmung,
+            `[${lauf}] Soll >=${RAHMUNG_KLINKE.wert}% Rahmung (Schiff beruehrt den Rahmen in mind. EINER Richtung); Ist ${(rahmung * 100).toFixed(1)}% ` +
+              `(Canvas ${m.canvas.w}x${m.canvas.h}, spanX=${m.spanX.toFixed(1)} spanY=${m.spanY.toFixed(1)}) · ` +
+              `alter Fuellgrad an der kuerzeren Kante ${(m.fuellgrad * 100).toFixed(1)}% (Bericht, kein Urteil)`
           );
 
           if (m.markers.length) {
@@ -698,15 +768,28 @@ async function runBrowserMessung() {
               // kurzes Zeitfenster zurueck (Einzelschiff-Lauf bestand, der volle
               // Lauf ueber alle drei Pruefschiffe nicht) — mehr Luft statt Raten.
               await page.waitForTimeout(350);
-              const nachHover = await page.evaluate(() =>
-                Array.from(document.querySelectorAll('.holo-lbl'))
-                  .filter((el) => getComputedStyle(el).display !== 'none')
-                  .map((el) => el.textContent.trim())
-              );
+              /* NEUFASSUNG (Phase 17): geurteilt wird ueber die EINZELPORT-
+                 Kaesten, nicht ueber alle. Der Raum traegt seit D-01/Phase 17
+                 dauerhaft Art-Kaesten (.is-art) — und dieser Lauf hat oben
+                 ABSICHTLICH alle Gruppen zugeschaltet (Worst Case), also
+                 stehen hier mehr Art-Kaesten als auf der echten Seite, wo die
+                 Blende immer genau eine Gruppe zeigt.
+                 Unveraendert scharf bleibt der Kern von P-2: das Ueberfahren
+                 erzeugt GENAU EINEN Einzelport-Kasten, und der traegt Text. */
+              const nachHover = await page.evaluate(() => {
+                const sichtbar = Array.from(document.querySelectorAll('.holo-lbl'))
+                  .filter((el) => getComputedStyle(el).display !== 'none');
+                return {
+                  einzel: sichtbar.filter((el) => !el.classList.contains('is-art')).map((el) => el.textContent.trim()),
+                  art: sichtbar.filter((el) => el.classList.contains('is-art')).length,
+                };
+              });
               melde(
                 'f-dauerlabels-hover',
-                BASELINE || (nachHover.length === 1 && nachHover[0].length > 0),
-                `[${lauf}] Soll genau 1 sichtbarer Kasten mit Text nach Ueberfahren; Ist ${nachHover.length} (${nachHover.map((t2) => JSON.stringify(t2)).join(', ') || '—'})`
+                BASELINE || (nachHover.einzel.length === 1 && nachHover.einzel[0].length > 0),
+                `[${lauf}] Soll genau 1 EINZELPORT-Kasten mit Text nach Ueberfahren; Ist ${nachHover.einzel.length} ` +
+                  `(${nachHover.einzel.map((t2) => JSON.stringify(t2)).join(', ') || '—'}) · ` +
+                  `dazu ${nachHover.art} Art-Kaesten (alle Gruppen erzwungen, kein Urteil)`
               );
               await page.mouse.move(0, 0);
             } else {
@@ -726,7 +809,7 @@ async function runBrowserMessung() {
               (soll != null ? ` — Detailvertrag Punkt 1 nennt ${soll}px fuer die SPAETERE 3-Spalten-Konsole (Rail+Auslesung existieren in dieser Welle noch nicht, kein Soll-Vergleich hier)` : ' — kein Tabelleneintrag fuer diese Breite')
           );
         } catch (e) {
-          melde('d-fuellgrad', false, `[${lauf}] Messung fehlgeschlagen: ${e.message}`);
+          melde('d-rahmung', false, `[${lauf}] Messung fehlgeschlagen: ${e.message}`);
         }
 
         await page.close();
@@ -1142,11 +1225,16 @@ async function runBrowserMessung() {
   console.log(`\n=== Selbstauskunft Familie B ===`);
   console.log(`  gefahrene Messpunkte: ${gemessen}  bestanden: ${gemessen - fehlgeschlagen}  fehlgeschlagen: ${fehlgeschlagen}`);
   if (fuellgradWerte.length) {
-    const werte = fuellgradWerte.map((x) => x.fuellgrad * 100);
-    console.log(`  Fuellgrad ueber alle Laeufe: min=${Math.min(...werte).toFixed(1)}% max=${Math.max(...werte).toFixed(1)}%`);
+    const rah = fuellgradWerte.map((x) => x.rahmung * 100);
+    const fue = fuellgradWerte.map((x) => x.fuellgrad * 100);
+    console.log(`  Rahmung (laengere Kante) ueber alle Laeufe: min=${Math.min(...rah).toFixed(1)}% max=${Math.max(...rah).toFixed(1)}%`);
+    console.log(`  Fuellgrad (kuerzere Kante, nur Bericht):    min=${Math.min(...fue).toFixed(1)}% max=${Math.max(...fue).toFixed(1)}%`);
   }
-  if (minMarkerDurchmesser < Infinity) console.log(`  kleinster gemessener Markerdurchmesser gesamt: ${minMarkerDurchmesser.toFixed(1)}px (${minMarkerLauf})`);
-  console.log(`  Sperrklinke (Hausform): P-1 wandert nur nach oben — ${JSON.stringify(FUELLGRAD_KLINKE)}`);
+  if (minMarkerDurchmesser < Infinity) {
+    console.log(`  kleinster Marker gesamt: Sprite ${minMarkerDurchmesser.toFixed(1)}px · gezeichnet ${(minMarkerDurchmesser * 0.66).toFixed(1)}px (${minMarkerLauf})`);
+  }
+  console.log(`  Sperrklinke (Hausform): Rahmung wandert nur nach oben — ${JSON.stringify(RAHMUNG_KLINKE)}`);
+  console.log(`  ABGELOEST, nur noch Bericht: ${JSON.stringify(FUELLGRAD_KLINKE)}`);
 
   if (fehlgeschlagen) {
     console.error(`\nschiffskonsole-messung: ${fehlgeschlagen} FEHLGESCHLAGENE Messung(en):\n`);

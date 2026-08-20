@@ -584,7 +584,7 @@ a{color:inherit;text-decoration:none}
    .holo die neuen Abschnitte ab. */
 .holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
   border-bottom:1px solid var(--line);
-  display:grid;grid-template-columns:220px 1fr 320px}
+  display:grid;grid-template-columns:1fr}
 /* 16-05-PLAN.md (Kollisionsbehebung, 1280px): margin-top:56px reicht nur,
    solange keine Zurueck-Marke ueber der Buehne schwebt. Ist sie sichtbar
    (SiteNav.astro Zeile 947/949, --nav-h waechst von 68 auf 104/116px), lag
@@ -607,36 +607,26 @@ a{color:inherit;text-decoration:none}
    .holo__sys-Abschnitte (No-JS-Restbestand: bleiben Kind von .holo, bis ein
    Skript sie in die Auslesung verschiebt) spannen die volle Breite und
    stapeln sich als eigene Zeilen darunter, unabhaengig von der Spaltenzahl. */
-.holo__rail{grid-column:1;grid-row:1;min-width:0}
-.holo__wrap{grid-column:2;grid-row:1;min-width:0}
-.holo__readout{grid-column:3;grid-row:1;min-width:0}
+/* ===== PHASE 17 „HANGAR": aus drei Spalten wird EIN RAUM ======================
+   Bis hierher standen Rail (220px), Bühne (1fr) und Auslesung (320px)
+   nebeneinander. Damit blieb der Bühne bei 1280px genau 740px, und die
+   Beschriftungen im Raum hatten keine Randspalte, in die sie ausweichen
+   konnten — sie lagen auf dem Rumpf (Sichtbefund 20.08.2026).
+
+   Jetzt: die Bühne nimmt die volle Breite, die Rail liegt als Blende ÜBER
+   ihrem unteren Rand, und die Auslesung wandert als Streifen DARUNTER.
+   Die Lesereihenfolge im Markup bleibt unverändert (D-02: erst das Schiff,
+   dann die Liste) — verschoben wird nur optisch, per Grid-Platzierung. */
+.holo__wrap{grid-column:1/-1;grid-row:1;min-width:0}
+.holo__rail{grid-column:1/-1;grid-row:1;min-width:0;align-self:start;z-index:6}
 .holo__sys{grid-column:1/-1}
-@media(max-width:1099px){
-  .holo{grid-template-columns:220px 1fr}
-  /* grid-row:2 ist PFLICHT hier -- ohne diese Zeile bleibt die Basisregel
-     grid-row:1 stehen (CSS-Kaskade ueberschreibt nur, was neu genannt
-     wird), und die Auslesung ueberlagert dann WOERTLICH die Buehne in
-     derselben Zelle statt in eine neue Zeile zu fallen (gefunden per
-     elementFromPoint-Diagnose bei 860px: ein Auslesungs-Textknoten lag
-     ueber dem Canvas, "kein sichtbarer Beschriftungskasten nach Hover"
-     war die Folge, nicht der eigentliche Fund -- der eigentliche Fund war
-     dieser Ueberlagerungsfehler). */
-  .holo__readout{grid-column:1/-1;grid-row:2}
-}
-@media(max-width:760px){
-  /* 760px, nicht 759px: dieselbe Bruchkante, die .holo__wrap/.holo__bar in
-     diesem Bauteil bereits an mehreren Stellen benutzen (Zeilen siehe
-     UI-SPEC-Fundstelle) — der UI-SPEC-Beispielcode schrieb 759px, um keine
-     Ueberschneidung mit einer min-width:760px-Query zu riskieren, aber
-     dieser Vertrag hat keine solche Query; 760px haelt die Bruchkante mit
-     dem Rest der Datei konsistent (sonst gaebe es bei GENAU 760px eine
-     Ein-Pixel-Luecke zwischen zwei sich widersprechenden Regelsaetzen). */
-  .holo{grid-template-columns:1fr}
-  .holo__wrap{grid-column:1;grid-row:1}
-  /* (Die 250px-Rail-Spalte endet schon bei 900px, siehe Regel dort.) */
-  .holo__rail{grid-column:1;grid-row:2}
-  .holo__readout{grid-column:1;grid-row:3}
-}
+/* Die früheren Bruchkanten 1099px und 760px hingen ausschließlich am
+   Drei-Spalten-Raster: sie schoben die Auslesung aus der dritten Spalte in
+   eine eigene Zeile und die Rail unter die Bühne. Mit dem Raum (Phase 17)
+   steht die Bühne auf JEDER Breite über die volle Breite, die Blende liegt in
+   ihr, die Auslesung darunter — es gibt nichts mehr umzusortieren. Die
+   Regelsätze sind deshalb ersatzlos entfallen und nicht etwa vergessen
+   worden. */
 .holo__grid{position:absolute;left:-24%;right:-24%;bottom:-4%;height:56%;pointer-events:none;
   transform:perspective(760px) rotateX(63deg);transform-origin:50% 100%;
   background:
@@ -691,7 +681,25 @@ a{color:inherit;text-decoration:none}
    Rail/Auslesung die volle Hoehe geben — oder P-1 neu fassen) ist ein
    Sichturteil fuer den Betreiber, kein Skriptbefund. Als benannter Punkt in
    .planning/WINDOWS.md. */
-.holo__wrap{position:relative;z-index:2;height:clamp(440px,50vh,450px);width:100%;overflow:hidden}
+/* PHASE 17: der Raum bekommt das Fenster.
+   Beide Abzugswerte sind gemessen, nicht geschätzt: die Konsole beginnt bei
+   y=92 (margin-top 56px plus sichtbare Zurück-Marke) und die Kennwerte-Leiste
+   darunter ist 90px hoch — 100dvh − 182px lässt Raum UND Kennwerte genau auf
+   dem ersten Bildschirm enden.
+
+   ⚠ Das reißt P-1 in seiner alten Fassung, und zwar unvermeidbar: P-1 misst
+   den Füllgrad entlang der KÜRZEREN Bühnenkante; wird die Bühne höher als
+   breit, ist das die Höhe, und ein 2,13:1 flaches Schiff kann sie nie zu 70 %
+   füllen. P-1 ist dafür aber auch nie gedacht gewesen — der Anlass aus Welle 1
+   war „die Marker sind 2–3px und nicht auffindbar", gemessen wurde ersatzweise
+   der Füllgrad. Diese Vertretung ist mit den bildschirmfesten Markern
+   (holo-viewer.js, konstante Zielgröße in Bildpunkten) gegenstandslos
+   geworden: Auffindbarkeit hängt nicht mehr an der Schiffsgröße. Die Sonde
+   misst seither beides getrennt — Rahmung an der LÄNGEREN Kante,
+   Auffindbarkeit an der gezeichneten Marke. */
+.holo__wrap{position:relative;z-index:2;width:100%;overflow:hidden;
+  height:clamp(460px,calc(100vh - 182px),820px);
+  height:clamp(460px,calc(100dvh - 182px),820px)}
 /* min-height war 360px (aeltere Vorsichtsgrenze aus der Zeit vor dieser
    Klinken-Reparatur) -- blockierte bei 1100px (Buehnenbreite 560px) die
    oben noetige kleinere Hoehe. 160px bleibt als Schutz gegen eine
@@ -718,7 +726,17 @@ a{color:inherit;text-decoration:none}
    ohnehin ("wenn das Schiff die Navigation IST, darf es nicht hinter einem
    Knopf liegen"). Das Laden loest jetzt ausschliesslich der
    IntersectionObserver weiter unten aus. */
-.holo__hintline{position:absolute;left:50%;bottom:2%;transform:translateX(-50%);z-index:4;pointer-events:none;white-space:nowrap;
+/* ⚠ bottom war 2 % — seit die Blende (Phase 17) am unteren Bühnenrand liegt,
+   lag die Hinweiszeile darunter und wurde von ihr verdeckt (gemessen: auf
+   ALLEN vier Desktop-Breiten überlappt). Fester Abstand statt Prozent: die
+   Blende ist ~46px hoch plus 1,15rem Abstand, das sind rund 67px — 84px lässt
+   Luft, ohne dass die Zeile in die Bühnenmitte rutscht. */
+/* ⚠ Stand mittig (left:50%) und damit GENAU im hellsten Teil des
+   Projektorstrahls — die Zeile war dort am Bildpunkt nicht mehr zu lesen. Sie
+   beschreibt ohnehin die Bedienung der Bühne und gehört zu deren Umschalter:
+   rechts, unmittelbar über ihm. Unter 760px rückt sie zurück in die Mitte,
+   weil der Umschalter dort die volle Breite nimmt. */
+.holo__hintline{position:absolute;right:clamp(1rem,3vw,2.5rem);bottom:106px;z-index:4;pointer-events:none;white-space:nowrap;text-align:right;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .6s}
 .holo__stage.is-3d .holo__hintline{opacity:.75}
 /* ===== Bilder-Slideshow: alle Slides liegen im selben Grid-Feld, langsames Crossfade ===== */
@@ -779,14 +797,51 @@ a{color:inherit;text-decoration:none}
    Bei <=760px (D-03) wird daraus wieder eine WAAGERECHTE Chip-Reihe unter
    der Buehne — siehe Medienabfrage weiter unten, die flex-direction
    zurueck auf row stellt. */
-.holo__rail{position:relative;z-index:3;display:flex;flex-direction:column;flex-wrap:wrap;gap:.5rem;
-  padding:.9rem .8rem;background:var(--bg-2);border-right:1px solid var(--line)}
-.holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.5rem;
-  border:1px solid var(--line);background:var(--surface);padding:.4rem .7rem;
-  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--muted);
-  transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
-.holo__rail a:hover,.holo__rail a:focus-visible{color:var(--text);border-color:var(--gc)}
-.holo__rail a[aria-current="true"]{color:var(--text);border-color:var(--gc);background:color-mix(in srgb,var(--gc) 12%,var(--surface))}
+/* Blende (Phase 17): waagerecht, mittig, ÜBER dem unteren Bühnenrand — sie
+   schaltet Ebenen um, sie führt nicht weg. Deshalb keine eigene Spalte mehr,
+   keine trennende Kante, sondern eine schwebende Leiste auf dunklem Glas:
+   sie gehört zum Raum, nicht zum Seitenrahmen. */
+/* Breite gemessen, nicht geschätzt: mit den ursprünglichen Werten brauchten
+   die acht Einträge 1315px und passten NUR bei 1440 — bei 1280 lief der
+   letzte („Umfeld") aus dem Bild. Enger gesetzt sind es rund 1000px; darunter
+   bricht die Leiste in eine zweite Reihe statt seitwärts wegzuscrollen, denn
+   ein Eintrag, den man erst scrollen muss, ist in einer Blende unsichtbar. */
+.holo__rail{position:relative;z-index:6;display:flex;flex-direction:row;flex-wrap:wrap;gap:0;
+  /* OBEN, nicht unten: der untere Bühnenrand trägt bereits Titelblock,
+     Merken-Knopf, Hinweiszeile und Modus-Umschalter — dort gemessen kollidiert
+     die Blende mit allen vieren. Der obere Rand trägt nur die Herkunftszeile
+     und die Maßangabe und hat Platz. Als Registerleiste am Kopf liest sie sich
+     ohnehin eher als Ebenenwahl denn als Fußnavigation. */
+  justify-self:center;justify-content:center;margin-top:3.1rem;
+  max-width:min(calc(100% - 1.5rem),1240px);
+  /* KEIN Kasten. Ein umrandetes Feld am Kopf der Bühne schneidet den Rumpf an
+     (Sichtbefund: die Nase der Carrack lag hinter der Kastenkante und las sich
+     als Beschnitt). Eine Leiste ohne Rahmen, nur mit Grundlinie, schwebt über
+     dem Hologramm statt es zu zerteilen — und ist die Form, die ein
+     Visier-Umschalter ohnehin hat. */
+  background:none;border:0;box-shadow:inset 0 -1px 0 0 color-mix(in srgb,var(--accent) 22%,transparent);
+  /* ⚠ Die Leiste liegt ÜBER der Bühne. Ihr Kasten fing damit Zeigerereignisse
+     auch dort ab, wo sie durchsichtig ist — ein Marker unter der Leiste war
+     nicht mehr anzufassen (gemessen an argo-csv-cargo/414: Marker[0] lag bei
+     y=181, die Leiste bei 144–190, der Kasten blieb leer). Nur die Felder
+     selbst nehmen Zeiger an, die Zwischenräume lassen durch. */
+  pointer-events:none}
+.holo__rail a{pointer-events:auto}
+/* Ein Eintrag der Blende: keine eigene Kachel mehr, sondern ein Feld in einer
+   durchgehenden Leiste — getrennt nur durch eine Haarlinie, markiert durch
+   eine Unterkante in der Gruppenfarbe. Das ist die Form eines Visier-Umschalters
+   und nicht die einer Navigationsliste. */
+.holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.45rem;flex:none;
+  border:0;border-left:1px solid color-mix(in srgb,var(--accent) 14%,transparent);
+  background:color-mix(in srgb,var(--media-void) 62%,transparent);backdrop-filter:blur(7px);
+  padding:.54rem .62rem;box-shadow:inset 0 -2px 0 0 transparent;
+  text-shadow:0 1px 4px var(--on-media-shadow);
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--on-media-dim);
+  transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.holo__rail a:first-child{border-left:0}
+.holo__rail a:hover,.holo__rail a:focus-visible{color:var(--on-media);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.holo__rail a[aria-current="true"]{color:var(--on-media);background:color-mix(in srgb,var(--gc) 12%,transparent);
+  box-shadow:inset 0 -2px 0 0 var(--gc)}
 .holo__rail a[data-g="arms"]{--gc:var(--gold)}
 .holo__rail a[data-g="prop"]{--gc:var(--accent-2)}
 .holo__rail a[data-g="other"]{--gc:#a78bfa}
@@ -814,7 +869,12 @@ a{color:inherit;text-decoration:none}
    Buehne wieder auf exakt ihren alten Breiten (1440:900, 1280:740, 1100:560),
    und die Auslesung hat trotzdem Luft: seit die Bauteilkarten einspaltig
    stehen, braucht das laengste Label 144px von rund 248 verfuegbaren. */
-.holo__rail-lb{white-space:normal;min-width:0}
+/* Waagerechte Blende: die Beschriftung bleibt einzeilig. Der Umbruch war die
+   Antwort auf eine 220px-SPALTE, und die gibt es seit Phase 17 nicht mehr —
+   in einer Leiste würde er die Höhe treiben, ohne Platz zu sparen. Die kurzen
+   Rail-Beschriftungen (ship.rail.*) bleiben trotzdem: sie halten die Leiste
+   auch bei acht Einträgen unter der Fensterbreite. */
+.holo__rail-lb{white-space:nowrap}
 /* 16-05-PLAN.md Task 2: die Mischung war 80% --gc/20% --muted -- fuer die
    Gruppe "Antrieb" (--accent-2, Stahlblau) im dunklen Farbmodus reichte das
    nicht: gemessen 4,43:1 gegen die 4,5:1-Marke (argo-atls, einziges
@@ -857,6 +917,18 @@ a{color:inherit;text-decoration:none}
   clip-path:polygon(0 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%);
   transition:border-color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui);will-change:left,top}
 .holo-lbl.is-active{border-color:var(--accent);color:var(--on-media);box-shadow:0 4px 18px var(--on-media-shadow),0 0 16px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 14px color-mix(in srgb,var(--accent) 14%,transparent)}
+/* --- Dauer-Beschriftung im Raum (Phase 17 „Hangar") ---------------------------
+   Der Art-Vertreter steht STAENDIG da (höchstens fünf gleichzeitig, gemessen
+   über alle 227 Schiffe). Er darf deshalb nicht so laut sein wie der Callout,
+   den man selbst aufgerufen hat — sonst gewinnt der Dauerzustand gegen die
+   eigene Handlung, und genau das war die Ursache der alten Label-Leiter.
+   Leiser: kein Rahmen ringsum, nur die Akzentkante links; Fläche flacher;
+   kein Schein. Der aktive Kasten (.is-active) bleibt unverändert laut und
+   sticht dadurch heraus. */
+.holo-lbl.is-art{border-color:transparent;border-left-color:color-mix(in srgb,var(--accent) 70%,transparent);
+  background:linear-gradient(180deg,var(--scrim-4),var(--scrim-4));
+  box-shadow:none;color:var(--on-media-dim)}
+.holo-lbl.is-art.is-active{border-color:var(--accent)}
 
 /* --- Vorbehalt am Callout selbst ---------------------------------------------
    Ein normaler Chip behauptet "Bauteil sitzt HIER". Zwei Abstufungen, bewusst
@@ -996,19 +1068,20 @@ a{color:inherit;text-decoration:none}
    Ohne diese zwei Eintraege lagen hier gemessen 109 Bildpunkte verborgen,
    ohne jedes Anzeichen — im Bildschirmfoto sah es nach einer abgeschnittenen
    Karte aus, nicht nach einem scrollbaren Kasten. */
-.holo__readout{max-height:clamp(440px,50vh,450px);overflow-y:auto;scrollbar-gutter:stable}
+/* Phase 17: kein Seitenstreifen mehr, sondern die Zeile UNTER dem Raum. Damit
+   entfällt die Höhenbindung an die Bühne (sie standen in derselben Grid-Zeile)
+   und mit ihr der eigene Bildlauf — der Abschnitt darf so hoch sein, wie sein
+   Inhalt ist. Breite wie der übrige Fließtext der Seite, damit die Liste nicht
+   über die volle Fensterbreite ausfranst. */
+.holo__readout{max-width:var(--maxw);margin:0 auto;width:100%;padding:0 clamp(1rem,3vw,2.5rem) 1.6rem}
 /* 16-04-PLAN.md Task 3: spiegelt .holo__wrap's Fuellgrad-Klinken-Reparatur
    (siehe dortiger Kommentar an der .holo__wrap-Basisregel) -- dieselbe
    dritte Stufe fuer die schmale 3-Spalten-Untergrenze bei 1100px
    (Buehnenbreite dort nur 560px, braucht eine kleinere Hoehe als bei
    1280/1440px, sonst reisst die Klinke genau dort). */
-@media(max-width:1279px){.holo__readout{max-height:clamp(300px,36vh,360px)}}
-@media(max-width:900px){.holo__readout{max-height:clamp(320px,42vh,420px)}}
-/* D-05: haelt sich an .holo__wrap's Hoehe im gestapelten Zustand (siehe
-   dortiger Kommentar) -- die Auslesung darf hier nicht knapper bemessen
-   sein als die Buehne, sonst waere sie der erste Kasten, der unnoetig
-   scrollt. */
-@media(max-width:760px){.holo__readout{max-height:clamp(640px,86vh,820px)}}
+/* (Die Höhendeckel der Auslesung sind mit der Spalte entfallen — sie stand in
+   derselben Grid-Zeile wie die Bühne und durfte diese nicht aufblähen. Als
+   Zeile DARUNTER darf sie so hoch sein wie ihr Inhalt.) */
 /* Phase-14-Lektion (14-04-SUMMARY.md Deviation 2/3) auf die neue, noch
    schmalere ~272px-Nutzbreite (320px Spalte minus Innenabstand)
    uebertragen: Innenraster mit automatischer Spaltenzahl brechen dort in
@@ -1117,7 +1190,12 @@ a{color:inherit;text-decoration:none}
    Kommentar an der .holo__wrap-Basisregel) -- ohne diese Stufe reisst die
    Klinke genau dort (Carrack/Ironclad gemessen 55,7%/53,9% mit der
    Basisregel allein, 72,6%/75,7% mit dieser Stufe). */
-@media(max-width:1279px){.holo__wrap{height:clamp(300px,36vh,360px)}}
+/* (Die 1279er-Höhenstufe ist mit dem Drei-Spalten-Raster entfallen. Sie
+   drückte die Bühne dort auf 300–360px, weil ihr zwischen Rail und Auslesung
+   nur 560–660px Breite blieben und ein zu hoher Rahmen den Füllgrad riss.
+   Im Raum ist die Bühne auf JEDER Breite so breit wie das Fenster — gemessen
+   bei 1024px: Füllgrad 93,2 % bei voller Höhe. Die Stufe hätte die Bühne nur
+   noch grundlos auf ein Drittel gestutzt.) */
 /* D-01-Nacharbeit: die Rail traegt hier acht Eintraege statt vier und misst
    ungekuerzt 434px — in eine 300-360px hohe Zeile passt das nicht, gemessen
    bei 1200x800 ragte sie 134px unter der Buehne heraus, sichtbar als Stufe.
@@ -1130,16 +1208,19 @@ a{color:inherit;text-decoration:none}
    (Regel im 760px-Block), ab da bestimmt nicht mehr die Zeilenzahl die Hoehe.
    Gemessen bei 860x900 mit der ungekuerzten Rail: 434px gegen 378px Buehne,
    also 56px Stufe. */
-@media(min-width:761px) and (max-width:1279px){
-  .holo__rail{gap:.25rem;padding:.45rem .6rem;justify-content:center}
-  .holo__rail a{padding:.12rem .5rem;font-size:var(--fs-4)}
+/* (Die senkrechte Kompaktfassung für 761–1279px ist mit Phase 17 entfallen:
+   die Blende ist auf JEDER Breite waagerecht, ihre Höhe hängt nicht mehr an
+   der Zahl der Einträge, und die Stufe unter der Bühne kann damit nicht mehr
+   entstehen.) */
+@media(max-width:640px){
+  .holo__rail a{padding:.5rem .7rem;font-size:var(--fs-4);gap:.35rem}
   .holo__rail-ic{width:13px;height:13px}
 }
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
 /* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
    (siehe Kommentar an dessen Basisregel oben) — dieselben Werte. */
-@media(max-width:900px){.holo__wrap{height:clamp(320px,42vh,420px)}}
+/* (Ebenso die 900er-Stufe — gleicher Grund, gleiche Herkunft.) */
 @media(max-width:760px){
   /* D-05 (18.08.2026, Betreiber; 16-04-PLAN.md Task 3, AENDERUNG 3): bei
      schmalen Breiten wird die Buehne HOCHFORMATIG statt querformatig.
@@ -1157,12 +1238,26 @@ a{color:inherit;text-decoration:none}
      Konkrete Vorgabe D-05). Kosten bewusst in Kauf genommen (D-05): die
      Buehne nimmt mehr senkrechten Platz, die Auslesung rueckt entsprechend
      nach unten. */
-  .holo__wrap{height:clamp(640px,86vh,820px)}
+  /* NACHTRAG Phase 17: 86vh (gemessen 726px Rahmen, 508px Leinwand) waren
+     nötig, solange der Füllgrad die einzige Sicherung gegen unauffindbare
+     Marker war — je höher die Leinwand, desto eher ist die BREITE die kürzere
+     Kante, und desto besser fällt die Messung aus. Seit die Marker eine feste
+     Bildschirmgröße haben (holo-viewer.js), ist das gegenstandslos: die
+     Auffindbarkeit hängt nicht mehr am Rahmen.
+     Sichtbefund bei 390×844: das Schiff ist breitenbegrenzt (360 von 390px)
+     und nur ~170px hoch — zwei Drittel der 508px-Leinwand blieben leer. Der
+     Rahmen rückt deshalb ans Schiff heran; das Schiff wird dadurch nicht
+     kleiner, nur die Leere. */
+  .holo__wrap{height:clamp(400px,58vh,540px)}
   /* Holo: 3D-Modell bekommt einen groesseren Anteil der (jetzt groesseren)
      Buehnenhoehe; der Titel behaelt seine untere Zone, nur schmaler
      bemessen (siehe .holo__title unten). Viewer skaliert per
      ResizeObserver mit. */
-  .holo__3d{bottom:30%}
+  /* 30 % war der Titelzone zugeschlagen, als der Rahmen 726px hoch war (das
+     sind 218px). Bei jetzt ~490px braucht dieselbe Titelzone einen größeren
+     Anteil, sonst rutscht sie in die Leinwand: 44 % von 490 sind 216px —
+     derselbe absolute Platz, nur am kleineren Rahmen gemessen. */
+  .holo__3d{bottom:44%}
   /* Toggle volle Breite unten (größere Tap-Ziele) */
   .holo__toggle{left:14px;right:14px;bottom:14px}
   .holo__toggle button{flex:1}
@@ -1193,19 +1288,33 @@ a{color:inherit;text-decoration:none}
      das kostet Rail-Breite nicht mehr, sie stand ohnehin schon unter der
      vollen Buehnenbreite). Ob der Bildlauf-Kasten die
      Sechs-Stellen-Ausnahmeliste braucht, misst Task 3. */
-  .holo__rail{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;border-right:0;border-top:1px solid var(--line);
-    padding:.6rem clamp(.7rem,3vw,1.2rem);gap:.4rem}
-  .holo__rail a{padding:.32rem .55rem;font-size:var(--fs-4);flex:none}
+  /* Die Blende ist seit Phase 17 auf JEDER Breite waagerecht und liegt am
+     Kopf der Bühne — hier bleibt nur die engere Typografie. Die frühere
+     220px-Spalte ist mit dem Drei-Spalten-Raster entfallen; sie stand hier
+     noch und hat die Bühne auf 220px eingeschnürt (gemessen bei 390px:
+     Bühne 220×508 statt 390 breit). */
+  .holo__rail a{padding:.42rem .55rem;font-size:var(--fs-4);flex:none}
   .holo__rail-ic{width:14px;height:14px}
-  /* Waagerecht braucht die Beschriftung ihre eine Zeile zurueck: hier scrollt
-     die Rail seitwaerts, ein Umbruch wuerde die Leiste nur hoeher machen,
-     ohne Platz zu sparen. Nimmt die Basisregel .holo__rail-lb zurueck. */
-  .holo__rail-lb{white-space:nowrap}
-  /* Und die Spalte darf wieder 220px sein: waagerecht bestimmt nicht mehr die
-     laengste Beschriftung ihre Breite. Die 30px gehen zurueck an die Buehne —
-     mit 250px fiel drak-ironclad bei 860px auf gemessene 69,7% Fuellgrad und
-     riss die 70%-Klinke (P-1). */
-  .holo{grid-template-columns:220px 1fr}
+  /* Umbruch war die richtige Antwort am Schreibtisch und die falsche hier:
+     gemessen bei 390px braucht die Blende VIER Reihen und frisst den halben
+     Bildschirm. Eine Registerleiste darf seitwärts laufen — das ist auf einem
+     Telefon die erwartete Form, und der Kasten bleibt einzeilig. */
+  .holo__rail{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;
+    max-width:100%;margin-top:0}
+  /* Kein Überlagern mehr, sobald die Bühne kurz wird: bei 414px ist sie nur
+     292px hoch, und eine 46px-Leiste nimmt davon ein Sechstel — Marker darunter
+     wären selbst mit Durchlass schwer zu treffen. Hier bekommt die Blende eine
+     eigene Zeile ÜBER der Bühne. Am Schreibtisch (718px Bühne, leerer Himmel
+     oben) bleibt sie eine schwebende Leiste. */
+  .holo{grid-template-rows:auto 1fr}
+  .holo__rail{grid-row:1;align-self:auto;position:relative;
+    background:color-mix(in srgb,var(--media-void) 72%,transparent)}
+  .holo__wrap{grid-row:2}
+  /* ⚠ Die Hinweiszeile nennt ZIEHEN, RECHTSKLICK und SCROLLEN — drei Dinge,
+     die es auf einem Touchgerät nicht gibt. Sie lief hier zusätzlich über
+     beide Ränder hinaus (nowrap bei 390px). Nicht umbrechen, sondern weg:
+     sie beschreibt eine Bedienung, die hier niemand hat. */
+  .holo__hintline{display:none}
   .holo__ship{inset:0}
 }
 
@@ -1776,9 +1885,11 @@ span.sd__ref{color:var(--muted)}
         und unsichtbar, der gestapelte No-JS-Zustand aus Welle 3 bleibt
         dadurch unveraendert (die Systemabschnitte stehen weiterhin direkt
         in .holo, siehe unten). */}
-    {(portGroups.length + contentGroups.length) > 0 && (
-      <div class="holo__readout" id="holoreadout" aria-label={t('ship.console.readout.aria')}></div>
-    )}
+    {/* (Der Behälter selbst steht seit Phase 17 NACH der Kennwerte-Leiste,
+        siehe dort — die Kennwerte gehören unmittelbar unter den Raum, die
+        Bauteilliste erst darunter. Die Systemabschnitte bleiben unverändert
+        Kinder von .holo: D-02 verlangt sie im ausgelieferten HTML, und
+        verify:shipconsole prüft genau das am statischen Artefakt.) */}
 
     {/* ===== Systemabschnitte — SCHRITT 2 + 4, D-02: JEDES vorhandene System
         steht als eigener, sichtbarer <section> im ausgelieferten HTML, ohne
@@ -2254,6 +2365,16 @@ span.sd__ref{color:var(--muted)}
     </dl>
   </div>
 
+  {/* ===== Auslesung (Phase 17): der Streifen UNTER dem Raum und unter den
+      Kennwerten. Im ausgelieferten HTML LEER — ihren Inhalt bekommt sie
+      ausschliesslich durchs Umhaengen im Skriptpfad (appendChild, keine
+      Kopie). Ohne Skript bleibt sie leer und unsichtbar, und die
+      Systemabschnitte stehen gestapelt in .holo, wo D-02 sie verlangt.
+      Reihenfolge: erst das Schiff, dann seine Kennwerte, dann die Liste der
+      gewaehlten Gruppe — vorher stand die Liste vor den Kennwerten. */}
+  {(portGroups.length + contentGroups.length) > 0 && (
+    <div class="holo__readout" id="holoreadout" aria-label={t('ship.console.readout.aria')}></div>
+  )}
 
   <div class="sd">
 
