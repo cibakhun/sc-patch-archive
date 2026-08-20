@@ -269,16 +269,38 @@ function extractTokens(text) {
   return out;
 }
 
-/* ---------- Regionen einer Seite (Zusicherung 6) ---------- */
+/* ---------- Regionen einer Seite (Zusicherung 6) ----------
+   Zwei Bloecke werden abgetastet, seit 15-02-PLAN.md Task 2: weiterhin
+   div.sd (Phase 14, die vier Kapitel), UND zusaetzlich section.holo (Phase
+   15, die Konsole). Anlass: die Konsole liegt AUSSERHALB von div.sd; ohne
+   diese Erweiterung koennte der Scan die in 15-UI-SPEC.md Punkt 6
+   verbindliche Regel "kein Bauteiltext zweimal im DOM" fuer die Konsole gar
+   nicht pruefen — er saehe dort nicht hin, und das waere ein blinder Fleck,
+   keine Entwarnung. Beide Bloecke werden mit derselben Tiefenzaehlung
+   geschnitten, in dieselbe Regionsliste zerlegt und unterliegen denselben
+   benannten Ausnahmen.
+
+   AUSDRUECKLICH NICHT MITGENOMMEN: die Kennwerte-Leiste `div.holo__bar`
+   (ShipDetail.astro). Sie ist ein SIBLING von section.holo, kein Kind davon
+   — extractRegion() schneidet section.holo an dessen eigenem schliessenden
+   </section>-Tag (Tiefenzaehlung), lange bevor holo__bar im Dokument folgt,
+   ueberreicht also strukturell gar nicht bis dorthin. GEGENPROBE gegen eine
+   Praefix-Ueberreichweite am Klassenattribut selbst (15-UI-SPEC.md Punkt
+   11.3-Forderung "exakt am Klassenattribut, nicht per Praefix"): das
+   Oeffnungsmuster ist EXAKT `class="holo"` (kein Klassenlisten-Wortabgleich)
+   — die Zeichenkette `class="holo__bar"` enthaelt diese exakte Zeichenfolge
+   NICHT, weil das schliessende Anfuehrungszeichen unmittelbar auf "holo"
+   folgen muesste und bei "holo__bar" stattdessen "_" folgt. Dieselbe
+   Genauigkeitsstufe wie das bestehende `<div class="sd">` unten. */
 const REGION_EXCLUSIONS = EXCLUSIONS.filter((e) => e.mode === 'exclude-region');
 const IGNORED_UNIT_EXCLUSIONS = EXCLUSIONS.filter((e) => e.mode === 'ignored-units');
 const excludeUsage = new Map();
 const ignoredUnitUsage = new Map();
 
-function computeRegions(cleanHtml) {
-  const sdRegion = extractRegion(cleanHtml, /<div class="sd">/g, 'div');
-  if (!sdRegion) return [];
-  const inner = sdRegion.slice(sdRegion.indexOf('>') + 1, sdRegion.length - '</div>'.length);
+function extractRegionsFromBlock(cleanHtml, openPattern, tagName, blockLabel) {
+  const region = extractRegion(cleanHtml, openPattern, tagName);
+  if (!region) return [];
+  const inner = region.slice(region.indexOf('>') + 1, region.length - `</${tagName}>`.length);
   const children = splitTopLevelChildren(inner);
   const regions = [];
   for (const child of children) {
@@ -301,10 +323,16 @@ function computeRegions(cleanHtml) {
         return;
       }
       const key = i === 0 ? baseKey : `${baseKey} › ${regionKeyForSubpiece(piece)}`;
-      regions.push({ key, html: piece });
+      regions.push({ key, html: piece, block: blockLabel });
     });
   }
   return regions;
+}
+
+function computeRegions(cleanHtml) {
+  const sdRegions = extractRegionsFromBlock(cleanHtml, /<div class="sd">/g, 'div', 'sd');
+  const holoRegions = extractRegionsFromBlock(cleanHtml, /<section\b[^>]*\bclass="holo"[^>]*>/g, 'section', 'holo');
+  return [...sdRegions, ...holoRegions];
 }
 
 function findingsForPage(regions) {
@@ -502,8 +530,26 @@ function main() {
     let totalFindings = 0;
     const reportEntries = [];
     const diagnosticEntries = [];
+    // Selbstauskunft, erweitert seit 15-02-PLAN.md Task 2 (Grundsatz 2): wie
+    // viele Regionen aus div.sd und wie viele aus section.holo stammen, je
+    // Sprache und in Summe. Ohne diese Zahl ist ein Schnitt, der
+    // section.holo verfehlt (z. B. weil das Klassenattribut spaeter eine
+    // zweite Klasse bekommt und das exakte Oeffnungsmuster nicht mehr
+    // greift), von einem echten nicht zu unterscheiden — beide meldeten
+    // "0 Befunde", eines davon aus Leerlauf statt aus Entwarnung.
+    let sdRegionsEn = 0, sdRegionsDe = 0, holoRegionsEn = 0, holoRegionsDe = 0;
+    let minHoloRegionsPerPage = Infinity;
+    let minHoloRegionsPage = null;
     for (const [f, d] of fileData) {
       const regions = computeRegions(d.clean);
+      const sdCount = regions.filter((r) => r.block === 'sd').length;
+      const holoCount = regions.filter((r) => r.block === 'holo').length;
+      const isDe = f.startsWith('dist/de/');
+      if (isDe) { sdRegionsDe += sdCount; holoRegionsDe += holoCount; } else { sdRegionsEn += sdCount; holoRegionsEn += holoCount; }
+      if (holoCount < minHoloRegionsPerPage) {
+        minHoloRegionsPerPage = holoCount;
+        minHoloRegionsPage = f;
+      }
       const { findings, tokenOccurrences } = findingsForPage(regions);
       totalTokenOccurrences += tokenOccurrences;
       totalFindings += findings.length;
@@ -514,6 +560,14 @@ function main() {
     }
     console.log(`    Gelesene Seiten: ${allFiles.length}   Gefundene Token (Vorkommen gesamt): ${totalTokenOccurrences}`);
     console.log(`    Befunde (Token in > 1 Region derselben Seite): ${totalFindings}   davon durch benannte Ausnahme erklaert: 0`);
+    console.log(`    Regionen aus div.sd: EN ${sdRegionsEn}   DE ${sdRegionsDe}   Summe ${sdRegionsEn + sdRegionsDe}`);
+    console.log(`    Regionen aus section.holo: EN ${holoRegionsEn}   DE ${holoRegionsDe}   Summe ${holoRegionsEn + holoRegionsDe}`);
+    console.log(
+      `    Kleinste section.holo-Regionenzahl je Seite — Soll: >= 1   Ist: ${minHoloRegionsPerPage} (${minHoloRegionsPage})`
+    );
+    if (minHoloRegionsPerPage < 1) {
+      fail(`section.holo liefert auf mindestens einer Seite 0 Regionen (${minHoloRegionsPage}) — der Schnitt greift dort nicht`);
+    }
 
     if (REPORT_MODE) {
       const grouped = new Map();
