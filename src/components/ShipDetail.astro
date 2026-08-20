@@ -146,13 +146,14 @@ const stageStats: { label: string; value: string }[] = [
 // formuliert, siehe Task-1-Anweisung). Vorgezogen, damit die Sprungleiste sie
 // kennt, bevor das Kapitel selbst gerendert wird.
 const gearDims = viz.dims != null || viz.cargo != null || viz.fuel.length > 0;
-// Der Bewaffnungs-Unterabschnitt verliert seinen Balken-Bestandteil der
-// Bedingung (viz.firepower) — der Balken faellt in Task 2, hier schon die
-// neue Formel: es gibt Waffenzeilen ODER Kennzahlenzellen.
-const gearArms = armament.length > 0 || armStats.length > 0;
 const gearFlight = viz.speeds.length > 0 || viz.agility.length > 0 || viz.quantum.length > 0;
-const gearComp = viz.defense.length > 0 || slots.length > 0;
-const hasGear = gearDims || gearArms || gearFlight || gearComp;
+// 15-03-PLAN.md SCHRITT 4: Bewaffnung (vormals gearArms) und die
+// Bauteilliste (vormals Teil von gearComp) wandern VOLLSTAENDIG aus dem
+// Kapitel in die Konsole — sie tragen darum nicht mehr zur
+// Kapitel-Sichtbarkeit bei. Nur die Widerstandswerte (Huelle/Schild,
+// aggregierte Ganzschiff-Kennzahlen ohne Einbauort) bleiben im Kapitel.
+const gearDefense = viz.defense.length > 0;
+const hasGear = gearDims || gearFlight || gearDefense;
 const hasContext = viz.insurance.length > 0 || paints.length > 0 || variants.length > 0 || loaners.length > 0 || spine.length > 0;
 // Umfeld-Kopfzeile: FleetYards-Stand nur, wenn tatsaechlich FleetYards-Inhalt
 // (Lackierungen ODER Varianten/Loaner) im Kapitel steht — sonst die
@@ -409,6 +410,26 @@ if (hasHolo) {
   }
 }
 
+// ---------- Systemabschnitte der Konsole (15-03-PLAN.md Task 1, SCHRITT 2) ----------
+// Zaehlung + Gruppierung fuer den Gruppen-Zustand jedes Systemabschnitts.
+// arms uebernimmt armStats/armament UNVERAENDERT (siehe Markup), core
+// uebernimmt slots UNVERAENDERT — beide sind bereits vorhandene
+// Aggregationen derselben Aussage und werden hier NICHT verdoppelt. prop
+// und other bekommen dieselbe FORMEL wie armStats (Ports nach Bauteilart
+// buendeln, Anzahl + t('holo.kind.<k>')), zum ersten Mal ausgeschrieben.
+type SysKindCount = { k: string; label: string; n: number };
+const sysKindCounts = (gr: string): SysKindCount[] => {
+  const counts = new Map<string, number>();
+  for (const p of holoData?.ports ?? []) {
+    if (p.g !== gr) continue;
+    counts.set(p.k, (counts.get(p.k) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([k, n]) => ({ k, n, label: t(`holo.kind.${k}` as any) }))
+    .sort((a, b) => b.n - a.n);
+};
+const sysPortCount = (gr: string): number => holoData?.ports.filter((p) => p.g === gr).length ?? 0;
+
 // Belastbarkeit der gezeigten Positionen — steuert die Herkunfts-Zeile unter dem
 // Titel. Wenn KEIN Marker verortet ist (Schiffe ohne Hardpoints im Mesh bzw.
 // conf:low), darf dort nicht "Positionen aus den Spieldateien" stehen.
@@ -483,7 +504,11 @@ a{color:inherit;text-decoration:none}
 /* ============ HANGAR-BÜHNE ============ */
 /* Layout: Info links, interaktive Holo-Bühne rechts (Grid). Das Hologramm
    ist eingebettet (kein Popup-Toggle mehr) und lädt lazy beim Scrollen. */
-.holo{position:relative;height:clamp(540px,74vh,760px);margin-top:56px;overflow:hidden;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
+/* SCHRITT 1 (15-03-PLAN.md Task 1): .holo muss mit den Systemabschnitten
+   UND der Rail wachsen duerfen -- Hoehe und Beschnitt wandern deshalb auf
+   .holo__wrap (die Buehne selbst, unten). Bleiben sie hier, schneidet
+   .holo die neuen Abschnitte ab. */
+.holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
   border-bottom:1px solid var(--line)}
 .holo__grid{position:absolute;left:-24%;right:-24%;bottom:-4%;height:56%;pointer-events:none;
   transform:perspective(760px) rotateX(63deg);transform-origin:50% 100%;
@@ -498,7 +523,11 @@ a{color:inherit;text-decoration:none}
 .is-3d-active .holo__pad{background:radial-gradient(50% 50% at 50% 50%,rgba(45,212,255,.55),rgba(45,212,255,.16) 55%,transparent 72%)}
 /* Vollbreite: Bühne randlos über die ganze Hero-Breite -> Modell mittig,
    groß, und bis zum Bildschirmrand verschiebbar. Titel liegt als Overlay auf. */
-.holo__wrap{position:relative;z-index:2;height:100%;width:100%}
+/* SCHRITT 1 (15-03-PLAN.md Task 1): traegt jetzt die feste Hoehe UND den
+   Beschnitt, die vorher an .holo hingen (siehe Kommentar dort) -- die
+   Buehne selbst bleibt dadurch unveraendert gross, waechst aber nicht mit
+   der Rail/den Systemabschnitten darunter mit. */
+.holo__wrap{position:relative;z-index:2;height:clamp(540px,74vh,760px);width:100%;overflow:hidden}
 .holo__stage{position:absolute;inset:0;min-height:360px}
 /* Bilder fuellen die Buehne randlos wie das Video (cover statt contain) —
    User-Feedback "Bild nicht ueber die ganze Breite". Volle Ansichten ohne
@@ -567,40 +596,27 @@ a{color:inherit;text-decoration:none}
    wirkt wie ein natives Hintergrund-Video (bei reduce-motion per JS deaktiviert) */
 .holo__videoshield{position:absolute;inset:0;z-index:4;cursor:default}
 @media(prefers-reduced-motion:reduce){.holo__ship img{transition:none}}
-/* ===== Ebenen-Panel (oben links) — Sci-Fi-MFD ===== */
-.holo__layers{position:absolute;left:clamp(14px,3vw,30px);top:52px;z-index:6;width:min(184px,44vw);
-  display:flex;flex-direction:column;padding:.2rem .2rem .25rem;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-5));border:1px solid var(--line);
-  backdrop-filter:blur(7px);box-shadow:0 10px 30px var(--on-media-shadow);
-  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
-/* Ebenen-Panel NUR in der Holo-Ansicht: display:none schlägt das base
-   display:flex (das sonst das [hidden]-Attribut aushebelt) */
-.holo__stage:not(.is-3d) .holo__layers{display:none}
-.holo__layers-h{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;
-  appearance:none;background:transparent;border:0;border-bottom:1px solid var(--on-media-line);cursor:default;text-align:left;
-  font:700 .62rem/1 var(--font-ui);letter-spacing:var(--ls-18);text-transform:uppercase;color:var(--muted);
-  padding:.5rem .55rem .5rem;margin-bottom:.15rem}
-.holo__layers-chev{width:13px;height:13px;flex:none;color:var(--muted);display:none;transition:transform var(--dur-base) var(--ease-ui)}
-.holo__layer{--gc:var(--accent);display:flex;align-items:center;gap:.55rem;width:100%;cursor:pointer;appearance:none;border:0;
-  background:transparent;padding:.44rem .55rem;border-radius:3px;
-  font:700 .74rem/1 var(--font-ui);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted);
-  transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui),opacity var(--dur-fast) var(--ease-ui)}
-.holo__layer[data-g="arms"]{--gc:var(--gold)}
-.holo__layer[data-g="prop"]{--gc:var(--accent-2)}
-.holo__layer[data-g="other"]{--gc:#a78bfa}
-.holo__layer:hover{background:var(--on-media-veil);color:var(--text)}
-.holo__layer-ic{width:17px;height:17px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
-  transition:filter var(--dur-fast) var(--ease-ui)}
-.holo__layer-lb{flex:1;text-align:left;white-space:nowrap}
-.holo__layer-ct{flex:none;font-size:var(--fs-4);font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--gc) 80%,var(--on-media));
-  background:color-mix(in srgb,var(--gc) 16%,transparent);
-  clip-path:polygon(3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%,0 3px);padding:.08rem .4rem;min-width:1.5rem;text-align:center}
-.holo__layer[aria-pressed="true"]{color:var(--on-media)}
-.holo__layer[aria-pressed="true"] .holo__layer-ic{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--gc) 70%,transparent))}
-.holo__layer[aria-pressed="false"]{opacity:.5}
-.holo__layer[aria-pressed="false"] .holo__layer-ct{background:transparent;color:var(--muted)}
-.holo__layer--lab{margin-top:.15rem;padding-top:.5rem;border-top:1px solid var(--on-media-line)}
-.holo__layer-eye{width:15px;height:15px;flex:none;stroke:var(--accent);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.holo__layer--lab[aria-pressed="false"] .holo__layer-eye{stroke:var(--muted)}
+/* ===== Rail — reine Anker-Liste, ersetzt den schwebenden Ebenen-Kasten =====
+   SCHRITT 3 (15-03-PLAN.md Task 1): funktioniert vollstaendig ohne Skript,
+   exakt das Muster von .sd__jump (Kapitel-Sprungleiste, Phase 14) — bare
+   <a>, Styling ausschliesslich ueber den Nachfahren-Selektor. Kein Grid in
+   dieser Welle (15-UI-SPEC.md Detailvertrag Punkt 1 ist Welle 4): normaler
+   Dokumentfluss unter der Buehne. Farbzuordnung je Gruppe (--gc) UNVERAENDERT
+   aus dem fruehereren .holo__layer[data-g] uebernommen — keine neue Farbe. */
+.holo__rail{position:relative;z-index:3;display:flex;flex-wrap:wrap;gap:.5rem;
+  padding:.9rem clamp(1rem,3vw,2.5rem);background:var(--bg-2);border-bottom:1px solid var(--line)}
+.holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.5rem;
+  border:1px solid var(--line);background:var(--surface);padding:.4rem .7rem;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--muted);
+  transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.holo__rail a:hover,.holo__rail a:focus-visible{color:var(--text);border-color:var(--gc)}
+.holo__rail a[data-g="arms"]{--gc:var(--gold)}
+.holo__rail a[data-g="prop"]{--gc:var(--accent-2)}
+.holo__rail a[data-g="other"]{--gc:#a78bfa}
+.holo__rail-ic{width:16px;height:16px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.holo__rail-lb{white-space:nowrap}
+.holo__rail-ct{font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--gc) 80%,var(--muted));
+  background:color-mix(in srgb,var(--gc) 16%,transparent);padding:.08rem .4rem;min-width:1.4rem;text-align:center}
 
 /* Dauerhafte Komponenten-Beschriftungen: entzerrte HUD-Callouts. Gestapelt als
    Leader-Linien (unten) · Text-Chips (Mitte) · Positions-Knoten (oben) — so
@@ -698,8 +714,11 @@ a{color:inherit;text-decoration:none}
   border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent);text-transform:none;letter-spacing:var(--ls-3)}
 .holo__panel .hp__note::before{content:"!";position:absolute;margin-left:-1.35rem;margin-top:.02rem;
   width:.95rem;height:.95rem;line-height:.95rem;text-align:center;font-weight:900;font-size:var(--fs-4);color:var(--ink-media);background:var(--gold);border-radius:50%}
-/* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines */
-.holo__layers::before,.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
+/* Diegetische HUD-Details: Eck-Klammer + MFD-Scanlines. Bezog frueher auch
+   .holo__layers (den schwebenden Ebenen-Kasten) mit ein — die Rail
+   (15-03-PLAN.md Task 1, SCHRITT 3) ist eine flache Zeile, keine MFD-Kachel
+   mehr, und traegt diese Eck-Klammer deshalb nicht. */
+.holo__panel::before{content:"";position:absolute;top:5px;left:5px;width:12px;height:12px;
   border-top:2px solid var(--accent);border-left:2px solid var(--accent);pointer-events:none}
 .holo__panel::before{border-color:var(--gc)}
 .holo__panel::after{content:"";position:absolute;inset:0;pointer-events:none;
@@ -711,6 +730,35 @@ a{color:inherit;text-decoration:none}
     linear-gradient(270deg,var(--accent) 0 22px,transparent 22px) bottom right/44px 2px no-repeat,
     linear-gradient(0deg,var(--accent) 0 22px,transparent 22px) bottom right/2px 44px no-repeat;
   opacity:.6}
+
+/* ===== Systemabschnitte — SCHRITT 2, 15-03-PLAN.md Task 1 (D-02) =====
+   Grundzustand OHNE Skript: gestapelte, sichtbare <section>-Elemente in
+   Dokumentreihenfolge unter der Rail, kein Versteck-Attribut, keine
+   Vorlagenhuelle (15-UI-SPEC.md Detailvertrag Punkt 6.1). Kein Grid in
+   dieser Welle (Detailvertrag Punkt 1 ist Welle 4). Farbzuordnung je Gruppe
+   (--gc) UNVERAENDERT aus .holo__panel/.holo__layer uebernommen. */
+.holo__sys{--gc:var(--accent);position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;
+  padding:1.3rem clamp(1rem,3vw,2.5rem) 1.6rem;border-top:1px solid var(--line)}
+.holo__sys[data-g="arms"]{--gc:var(--gold)}
+.holo__sys[data-g="prop"]{--gc:var(--accent-2)}
+.holo__sys[data-g="other"]{--gc:#a78bfa}
+.holo__sys-h{display:flex;align-items:center;gap:.55rem;margin-bottom:.2rem;
+  font-family:var(--font-ui);font-weight:800;font-size:var(--fs-11);letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--gc)}
+.holo__sys-h svg{width:22px;height:22px;flex:none;stroke:var(--gc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.holo__sys-ct{margin:0 0 .8rem;font-size:var(--fs-7);color:var(--muted)}
+/* prop/other: neue, aber strukturgleiche Stueckzahl-Liste (dieselbe Formel
+   wie arm__scell, nur ohne dessen Bewaffnungs-spezifischen Klassennamen). */
+.holo__sys-list{display:flex;flex-wrap:wrap;gap:.5rem}
+.holo__sys-row{display:flex;align-items:baseline;gap:.45rem;padding:.5rem .75rem;
+  background:var(--bg-2);border:1px solid var(--line)}
+.holo__sys-row b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--gc);font-variant-numeric:tabular-nums}
+.holo__sys-row span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+/* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
+   Koerper (arm__sum/arm__list bzw. sd__slots) aus dem Kapitel-Umzug
+   UNVERAENDERT -- keine eigene Farbregel noetig: .holo traegt
+   data-media-surface (theme.css "Dunkle Inseln"), das setzt --text/--muted/
+   --line/--bg-2/--surface fuer ALLE Nachfahren bereits korrekt, auch im
+   Hellmodus, ohne dass hier etwas ueberschrieben werden muss. */
 /* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
    sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus). pointer-events:
    none (15-01-PLAN.md Task 2 — vorgefunden, nicht neu eingefuehrt): reines
@@ -759,10 +807,12 @@ a{color:inherit;text-decoration:none}
 }
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
-@media(max-width:900px){.holo{height:clamp(430px,62vh,620px)}}
+/* SCHRITT 1 (15-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
+   (siehe Kommentar an dessen Basisregel oben) — dieselben Werte. */
+@media(max-width:900px){.holo__wrap{height:clamp(430px,62vh,620px)}}
 @media(max-width:760px){
   /* Hero auf kleinen Geräten flacher, damit der Inhalt darunter früher sichtbar ist */
-  .holo{height:clamp(400px,58vh,560px)}
+  .holo__wrap{height:clamp(400px,58vh,560px)}
   /* Holo: 3D-Modell bekommt die obere Zone (Canvas unten einkürzen), damit es
      nicht hinter dem Titel klumpt. Viewer skaliert per ResizeObserver mit. */
   .holo__3d{bottom:44%}
@@ -779,16 +829,13 @@ a{color:inherit;text-decoration:none}
   .holo__hud{left:16px;top:18px}.holo__dims{display:none}
   /* mobil ist die Marke tiefer (44-px-Fingerkuppe, --nav-h 116px) */
   :root:has(.snav__back:not([hidden])) .holo__hud{top:56px}
-  /* Ebenen-Panel kompakter + einklappbar (Klasse hieß fälschlich .holo__filters) */
-  .holo__layers{top:44px;left:12px;width:min(148px,42vw)}
-  .holo__layers-h{font-size:var(--fs-1);padding:.42rem .5rem .42rem;cursor:pointer}
-  .holo__layers-chev{display:block}
-  .holo__layer{padding:.34rem .5rem;font:700 .66rem/1 var(--font-ui);gap:.4rem}
-  .holo__layer-ic{width:15px;height:15px}
-  /* zugeklappt: nur der Kopf bleibt sichtbar, gibt das Modell frei */
-  .holo__layers.is-collapsed .holo__layer{display:none}
-  .holo__layers.is-collapsed .holo__layers-h{border-bottom:0;margin-bottom:0}
-  .holo__layers.is-collapsed .holo__layers-chev{transform:rotate(-90deg)}
+  /* Rail (15-03-PLAN.md Task 1, SCHRITT 3): kein eingeklappter Zustand mehr
+     -- bei hoechstens vier Eintraegen in einer eigenen Zeile ist nichts
+     mehr einzuklappen, der gesparte Platz war nur noetig, solange die Rail
+     ueber dem Modell SCHWEBTE. Kompaktere Chips reichen. */
+  .holo__rail{padding:.6rem clamp(.7rem,3vw,1.2rem);gap:.4rem}
+  .holo__rail a{padding:.32rem .55rem;font-size:var(--fs-4)}
+  .holo__rail-ic{width:14px;height:14px}
   .holo__ship{inset:0}
 }
 
@@ -1212,12 +1259,20 @@ span.sd__ref{color:var(--muted)}
   {/* data-media-surface: die Bühne zeigt Hologramm, Renderbilder und Video —
       sie bleibt in beiden Modi dunkel. Siehe „Dunkle Inseln" in theme.css. */}
   <section class="holo" id="holo" data-media-surface aria-label={`${d.name} — Visual`}>
-    <div class="holo__grid" aria-hidden="true"></div>
-    <div class="holo__pad" aria-hidden="true"></div>
     <div class="holo__frame" aria-hidden="true"></div>
     <div class="holo__hud">{t('ship.code.hangar')}&nbsp;//&nbsp;<b>{d.manufacturer ?? d.makerCode ?? t('ship.code.ship')}</b></div>
     {dims && <div class="holo__dims">{dims}</div>}
     <div class="holo__wrap">
+      {/* SCHRITT 1 (15-03-PLAN.md Task 1): .holo__grid/.holo__pad sind
+          bottom-verankert (bottom:-4%/7%) -- an .holo direkt haengend
+          wuerden sie an den Fuss des jetzt gewachsenen GESAMTBLOCKS rutschen
+          statt unter das Modell zu bleiben. Sie wandern deshalb in denselben
+          Container wie die Buehne (.holo__wrap), der seine feste Hoehe
+          behaelt. .holo__frame/.holo__hud/.holo__dims sind TOP-verankert und
+          bleiben bewusst aussen -- sie rahmen/beschriften bewusst den
+          GESAMTEN Konsolen-Block, nicht nur die Buehne. */}
+      <div class="holo__grid" aria-hidden="true"></div>
+      <div class="holo__pad" aria-hidden="true"></div>
       <header class="holo__title">
         {makerLogo ? (
           <img
@@ -1333,26 +1388,10 @@ span.sd__ref{color:var(--muted)}
         <div class="holo__status" id="holostatus" role="status"></div>
         {(holoData || holoUrl) && <button type="button" class="holo__activate" id="holoact" hidden>{t('holo.activate')}</button>}
         <div class="holo__hintline" aria-hidden="true">{t('holo.hint')}</div>
-        {holoData && holoData.groups.length > 1 && (
-          <div class="holo__layers" id="holofilters" role="group" aria-label={t('holo.filter.aria')} hidden>
-            <button type="button" class="holo__layers-h" id="holo-layers-toggle" aria-expanded="true">
-              <span>{t('holo.layers.title')}</span>
-              <svg class="holo__layers-chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            {holoData.groups.map((gr) => (
-              <button type="button" class="holo__layer" data-g={gr} aria-pressed={String(holoData!.defaultOn.includes(gr))}>
-                <svg class="holo__layer-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
-                <span class="holo__layer-lb">{t(`holo.grp.${gr}` as any)}</span>
-                <span class="holo__layer-ct">{holoData!.ports.filter((p) => p.g === gr).length}</span>
-              </button>
-            ))}
-            {/* P-2 (15-01-PLAN.md Task 2): der Beschriftungs-Umschalter ist
-                entfallen — kein Marker traegt mehr eine DAUERHAFTE Beschriftung,
-                also gibt es nichts mehr, dessen Sichtbarkeit dieser Knopf
-                umschalten koennte. holo.labels.toggle/holo.labels.short sind
-                dadurch verwaist (src/i18n/ui.ts), nicht geloescht. */}
-          </div>
-        )}
+        {/* Der schwebende Ebenen-Kasten (#holofilters/.holo__layers) ist
+            entfallen (15-03-PLAN.md Task 1, SCHRITT 3) -- ersetzt durch die
+            Rail (nav.holo__rail), die als eigener Block NACH der Buehne
+            steht (siehe unten, ausserhalb von .holo__wrap). */}
         <aside class="holo__panel" id="holopanel" hidden data-np={t('holo.panel.notPhys')} data-est={t('holo.panel.estimated')} data-auec={t('holo.panel.auec')}>
           <div class="hp__head">
             <span class="hp__eyebrow" id="hpgrp"></span>
@@ -1373,14 +1412,151 @@ span.sd__ref{color:var(--muted)}
           <p class="hp__note" id="hpnote" hidden></p>
         </aside>
       </div>
+      {/* .holo__toggle ist bottom-verankert (bottom:24px) -- gehoert seit
+          SCHRITT 1 (15-03-PLAN.md Task 1) in .holo__wrap, sonst rutscht der
+          Umschalter an den Fuss des gewachsenen GESAMTBLOCKS statt am
+          unteren Rand der Buehne zu bleiben (derselbe Fund wie bei
+          .holo__grid/.holo__pad oben, hier per Bildpunkt-Audit ergaenzt). */}
+      {stageModeCount > 1 && (
+        <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
+          {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
+          {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
+          {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
+        </div>
+      )}
     </div>
-    {stageModeCount > 1 && (
-      <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
-        {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
-        {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
-        {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
-      </div>
+
+    {/* ===== Rail — SCHRITT 3, reine Anker-Liste, funktioniert ohne Skript.
+        Ersetzt den frueheren schwebenden Ebenen-Kasten; steht jetzt in
+        Dokumentreihenfolge NACH der Buehne (kein Grid in dieser Welle,
+        15-UI-SPEC.md Detailvertrag Punkt 1 ist Welle 4). Bedingung wie
+        frueher am alten Kasten "mindestens eine Gruppe" statt "mehr als
+        eine" -- der eingeklappte Zustand entfaellt ersatzlos (SCHRITT 3). */}
+    {holoData && holoData.groups.length > 0 && (
+      <nav class="holo__rail" id="holorail" aria-label={t('ship.console.rail.aria')}>
+        {holoData.groups.map((gr) => (
+          <a href={`#sys-${gr}`} data-g={gr}>
+            <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
+            <span class="holo__rail-lb">{t(`holo.grp.${gr}` as any)}</span>
+            <span class="holo__rail-ct">{sysPortCount(gr)}</span>
+          </a>
+        ))}
+      </nav>
     )}
+
+    {/* ===== Systemabschnitte — SCHRITT 2 + 4, D-02: JEDES vorhandene System
+        steht als eigener, sichtbarer <section> im ausgelieferten HTML, ohne
+        JavaScript, ohne Versteck-Attribut, ohne Vorlagenhuelle. arms/core
+        uebernehmen ihren Koerper UNVERAENDERT aus dem fruehereren
+        Ausstattungs-Kapitel (SCHRITT 4 -- der Umzug, keine zweite
+        Aggregation derselben Aussage); prop/other bekommen die neue, aber
+        strukturgleiche Stueckzahl-Liste (sysKindCounts). */}
+    {holoData && holoData.groups.map((gr) => (
+      <section class="holo__sys" id={`sys-${gr}`} data-g={gr} aria-label={t(`holo.grp.${gr}` as any)}>
+        <h2 class="holo__sys-h">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
+          {t(`holo.grp.${gr}` as any)}
+        </h2>
+        <p class="holo__sys-ct">{t('ship.console.count').replace('%n%', String(sysPortCount(gr)))}</p>
+
+        {gr === 'arms' && (
+          <>
+            {armStats.length > 0 && (
+              <div class="arm__sum">
+                {armStats.map((s) => (
+                  <div class={`arm__scell${s.gold ? ' arm__scell--g' : ''}`}>
+                    <b>{s.n}</b>
+                    <span>{s.label}</span>
+                    {s.range && <i>{s.range}</i>}
+                  </div>
+                ))}
+                {turretDpsTotal && (
+                  <div class="arm__scell">
+                    <b>{turretDpsTotal} DPS</b>
+                    <span>{t('arm.stat.totalDps')}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            <div class="arm__list">
+              {armament.map((r) => (
+                <div class={`arm__grp${r.gold ? ' arm__grp--g' : ''}`}>
+                  <div class="arm__ghead">
+                    <span class="arm__glabel">{r.label}</span>
+                    {r.meta && <span class="arm__gmeta">{r.meta}</span>}
+                    {r.value && <span class="arm__gval">{r.value}</span>}
+                  </div>
+                  {r.lines.length > 0 && (
+                    <ul class="arm__lines">
+                      {r.lines.map((l) => (
+                        <li class="arm__line">
+                          <span class="arm__n">{l.count}<i>×</i></span>
+                          {l.size != null ? (
+                            <span class="arm__size" style={`--s:${l.size}`}
+                                  title={`${t('arm.sizeTip')} ${l.size}`}>
+                              <em>S{l.size}</em>
+                            </span>
+                          ) : (
+                            <span class="arm__size arm__size--n"><em>?</em></span>
+                          )}
+                          <span class="arm__name">
+                            {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
+                          </span>
+                          {l.mount != null && l.size != null && (
+                            l.mount > l.size ? (
+                              <span class="arm__bdg arm__bdg--up"
+                                    title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
+                                {t('arm.upgrade')} S{l.mount}
+                              </span>
+                            ) : (
+                              <span class="arm__bdg" title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
+                                {t('arm.maxed')}
+                              </span>
+                            )
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {r.note && (
+                    <p class="arm__note"><span>{t('arm.loadout')}</span>{r.note}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p class="sd__hint">{t('ship.arms.hint')}</p>
+          </>
+        )}
+
+        {gr === 'core' && slots.length > 0 && (
+          <div class="sd__slots">
+            {slots.map(([label, items]) =>
+              items.map((it) => (
+                <div class="sd__slot">
+                  <div class="t">{label}</div>
+                  <div class="n">{it.name}</div>
+                  <span class="sd__hprow">
+                    {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
+                    {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {(gr === 'prop' || gr === 'other') && (
+          <div class="holo__sys-list">
+            {sysKindCounts(gr).map((kc) => (
+              <div class="holo__sys-row">
+                <b>{kc.n}×</b>
+                <span>{kc.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    ))}
   </section>
   {(holoData || holoUrl) && (
     <script
@@ -1509,12 +1685,13 @@ span.sd__ref{color:var(--muted)}
 
     {desc && <p class="sd__desc">{desc}</p>}
 
-    <!-- AUSSTATTUNG — vereinigt die vier vormaligen Panels Masse & Fracht,
-         Bewaffnung, Flugleistung und Komponenten & Verteidigung als
-         Unterabschnitte dritter Ebene. Jeder behaelt seine eigene Bedingung
-         einzeln (siehe gearDims/gearArms/gearFlight/gearComp oben) — ein
+    <!-- AUSSTATTUNG — traegt seit 15-03-PLAN.md SCHRITT 4 nur noch DREI statt
+         vier Unterabschnitte (Masse & Fracht, Flugleistung, Verteidigung):
+         Bewaffnung und die Bauteilliste sind vollstaendig in die Konsole
+         gewandert. Jeder verbliebene Unterabschnitt behaelt seine eigene
+         Bedingung einzeln (siehe gearDims/gearFlight/gearDefense oben) — ein
          karges Schiff zeigt weiterhin nur, wofuer es Daten gibt. Kein
-         Kapitel-Icon: es gibt keinen bestehenden Icon-Pfad, der die vier
+         Kapitel-Icon: es gibt keinen bestehenden Icon-Pfad, der die
          zusammengefassten Themen als Ganzes vertritt (UI-SPEC fuehrt fuer
          diese Phase keine neuen Icons ein). -->
     {hasGear && (
@@ -1580,82 +1757,12 @@ span.sd__ref{color:var(--muted)}
       </div>
     )}
 
-    <!-- BEWAFFNUNG -->
-    {gearArms && (
-      <div class="sd__chsec">
-        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.bewaffnung} /></svg>{t('ship.arms.title')}</h3>
-        <!-- Die Piloten-/Turm-DPS-Balken entfallen ERSATZLOS (D-02): beide Werte
-             stehen bereits als Text in dieser Uebersicht — Piloten-DPS in der
-             Pilotenzeile, Turm-DPS je Turmgruppe (arm__gval unten). Einzige
-             Ausnahme: mehr als eine Turmgruppe macht die SUMME zu einer echten,
-             sonst nirgends sichtbaren Information — dafuer die Zusatzzelle
-             turretDpsTotal im arm__sum-Raster. -->
-        {armStats.length > 0 && (
-          <div class="arm__sum">
-            {armStats.map((s) => (
-              <div class={`arm__scell${s.gold ? ' arm__scell--g' : ''}`}>
-                <b>{s.n}</b>
-                <span>{s.label}</span>
-                {s.range && <i>{s.range}</i>}
-              </div>
-            ))}
-            {turretDpsTotal && (
-              <div class="arm__scell">
-                <b>{turretDpsTotal} DPS</b>
-                <span>{t('arm.stat.totalDps')}</span>
-              </div>
-            )}
-          </div>
-        )}
-        <div class="arm__list">
-          {armament.map((r) => (
-            <div class={`arm__grp${r.gold ? ' arm__grp--g' : ''}`}>
-              <div class="arm__ghead">
-                <span class="arm__glabel">{r.label}</span>
-                {r.meta && <span class="arm__gmeta">{r.meta}</span>}
-                {r.value && <span class="arm__gval">{r.value}</span>}
-              </div>
-              {r.lines.length > 0 && (
-                <ul class="arm__lines">
-                  {r.lines.map((l) => (
-                    <li class="arm__line">
-                      <span class="arm__n">{l.count}<i>×</i></span>
-                      {l.size != null ? (
-                        <span class="arm__size" style={`--s:${l.size}`}
-                              title={`${t('arm.sizeTip')} ${l.size}`}>
-                          <em>S{l.size}</em>
-                        </span>
-                      ) : (
-                        <span class="arm__size arm__size--n"><em>?</em></span>
-                      )}
-                      <span class="arm__name">
-                        {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
-                      </span>
-                      {l.mount != null && l.size != null && (
-                        l.mount > l.size ? (
-                          <span class="arm__bdg arm__bdg--up"
-                                title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
-                            {t('arm.upgrade')} S{l.mount}
-                          </span>
-                        ) : (
-                          <span class="arm__bdg" title={`${t('arm.mountTip')} S${l.mount} · ${t('arm.fittedTip')} S${l.size}`}>
-                            {t('arm.maxed')}
-                          </span>
-                        )
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {r.note && (
-                <p class="arm__note"><span>{t('arm.loadout')}</span>{r.note}</p>
-              )}
-            </div>
-          ))}
-        </div>
-        <p class="sd__hint">{t('ship.arms.hint')}</p>
-      </div>
-    )}
+    <!-- BEWAFFNUNG ist VOLLSTAENDIG in die Konsole gewandert (15-03-PLAN.md
+         SCHRITT 4, System "Bewaffnung", section.holo__sys[data-g="arms"]
+         oben) -- steht ab jetzt nur noch an dieser einen Stelle der Seite.
+         verify:shipcard Zusicherung 6 (Entdopplungs-Scan) sieht seit
+         15-02-PLAN.md in BEIDE Bloecke (div.sd UND section.holo) und wuerde
+         einen versehentlich hier belassenen Rest melden. -->
 
     <!-- FLUGLEISTUNG & QUANTUM -->
     {gearFlight && (
@@ -1700,36 +1807,26 @@ span.sd__ref{color:var(--muted)}
       </div>
     )}
 
-    <!-- KOMPONENTEN & VERTEIDIGUNG -->
-    {gearComp && (
+    <!-- VERTEIDIGUNG — vormals "Komponenten & Verteidigung"; die Bauteilliste
+         (slots) ist VOLLSTAENDIG in die Konsole gewandert (System
+         "Komponenten", section.holo__sys[data-g="core"] oben). Huelle/Schild
+         sind aggregierte GANZSCHIFF-Kennzahlen ohne Einbauort und bleiben
+         deshalb hier — sie verlieren dabei ihre bisherige, geteilte
+         Ueberschrift und bekommen eine eigene (ship.defense.title,
+         15-03-PLAN.md SCHRITT 4). Bleibt ein gewoehnliches Wertraster
+         (sd__grid), KEINE Balkenspur — sonst reisst verify:shipcard
+         Zusicherung 5 ("Balken nur, wo sie vergleichen"). -->
+    {gearDefense && (
       <div class="sd__chsec">
-        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.kern} /></svg>{t('ship.comp.title')}</h3>
-        {viz.defense.length > 0 && (
-          <dl class="sd__grid" style={slots.length > 0 ? 'margin-bottom:1.1rem' : ''}>
-            {viz.defense.map((b) => (
-              <div class="sd__item">
-                <dt>{b.label}</dt>
-                <dd>{b.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {slots.length > 0 && (
-          <div class="sd__slots">
-            {slots.map(([label, items]) =>
-              items.map((it) => (
-                <div class="sd__slot">
-                  <div class="t">{label}</div>
-                  <div class="n">{it.name}</div>
-                  <span class="sd__hprow">
-                    {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
-                    {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        <h3 class="sd__sub"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d={IC.verteidigung} /></svg>{t('ship.defense.title')}</h3>
+        <dl class="sd__grid">
+          {viz.defense.map((b) => (
+            <div class="sd__item">
+              <dt>{b.label}</dt>
+              <dd>{b.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     )}
     </div>
@@ -1949,9 +2046,11 @@ span.sd__ref{color:var(--muted)}
     stage.classList.toggle('is-video', mode === 'video');
     stage.classList.toggle('is-3d', mode === 'holo');
     if (holoSec) holoSec.classList.toggle('is-3d-active', mode === 'holo');
-    // Ebenen-Panel nur in der Holo-Ansicht (und erst wenn der Viewer geladen ist)
-    var f = document.getElementById('holofilters');
-    if (f) f.hidden = !(mode === 'holo' && viewer);
+    // Die Rail (nav.holo__rail, 15-03-PLAN.md Task 1) ist serverseitig immer
+    // gerendert und braucht kein Ein-/Ausblenden je Modus mehr -- anders als
+    // der fruehere schwebende Ebenen-Kasten, der nur ueber der Buehne Sinn
+    // ergab. Der vormalige #holofilters-Sichtbarkeitsschalter ist deshalb
+    // ersatzlos entfallen.
     if (mode === 'img') startSlideshow();
     // Video-Modus: selbst-gehostetes <video> (stummer Loop, kein Chrome) hat
     // Vorrang; sonst der YouTube-Pfad. Beim Verlassen jeweils pausieren.
@@ -2315,7 +2414,6 @@ span.sd__ref{color:var(--muted)}
   if (dataEl) {
     var cfg = JSON.parse(dataEl.textContent);
     var wrap = document.getElementById('holo3d');
-    var filters = document.getElementById('holofilters');
     var panel = document.getElementById('holopanel');
     var pclose = document.getElementById('holopclose');
     var loadingTpl = stage.getAttribute('data-loading') || '3D-Modell lädt … %p% %';
@@ -2387,7 +2485,7 @@ span.sd__ref{color:var(--muted)}
           if (metricsMode) window.__holoViewer = v;
           status.textContent = '';
           stage.classList.remove('is-loading');
-          showHolo(); // blendet via applyMode das Ebenen-Panel ein
+          showHolo();
           // Mobil: die Beschriftungsschicht bleibt AN (Kurskorrektur, 15-01-
           // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
           // sie per setLabels(false) ganz abschalten, mit der Begruendung,
@@ -2400,16 +2498,10 @@ span.sd__ref{color:var(--muted)}
           // Kasten, gemessen bei allen drei Pruefschiffen). Da seit P-2 nie
           // mehr als EIN Kasten gleichzeitig sichtbar ist, ist die
           // Ueberfuellungs-Sorge von damals (viele Dauer-Labels auf kleinem
-          // Bildschirm) gegenstandslos; ein moegliches Ueberlappen mit dem
-          // (in Welle 3 ohnehin entfallenden, UI-SPEC Punkt 5) Ebenen-Panel
-          // ist ein reines Positionierungsdetail, kein Grund, die ganze
-          // Schicht abzuschalten.
-          if (matchMedia('(max-width: 760px)').matches) {
-            // Panel standardmäßig zugeklappt -> gibt das kleine Modell frei
-            if (filters) filters.classList.add('is-collapsed');
-            var lt0 = document.getElementById('holo-layers-toggle');
-            if (lt0) lt0.setAttribute('aria-expanded', 'false');
-          }
+          // Bildschirm) gegenstandslos. Der fruehere, hier ANSCHLIESSENDE
+          // mobile Einklapp-Zweig fuer den Ebenen-Kasten (#holofilters) ist
+          // mit dessen Ersetzung durch die Rail entfallen (15-03-PLAN.md
+          // Task 1, SCHRITT 3) — die Rail hat keinen eingeklappten Zustand.
         })
         .catch(function (e) {
           console.error(e);
@@ -2422,21 +2514,11 @@ span.sd__ref{color:var(--muted)}
     autoHolo = start; // Eskalationsziel, wenn alle Galerie-Bilder tot sind
     if (btn3d) btn3d.addEventListener('click', function () { viewer ? showHolo() : start(true); });
     if (pclose) pclose.addEventListener('click', function () { showPanel(null); });
-    var layersToggle = document.getElementById('holo-layers-toggle');
-    if (layersToggle) layersToggle.addEventListener('click', function () {
-      var collapsed = filters.classList.toggle('is-collapsed');
-      layersToggle.setAttribute('aria-expanded', String(!collapsed));
-    });
-    if (filters) filters.addEventListener('click', function (ev) {
-      var b = ev.target.closest('button');
-      if (!b || !viewer) return;
-      var pr = b.getAttribute('aria-pressed') !== 'true';
-      b.setAttribute('aria-pressed', String(pr));
-      if (!b.hasAttribute('data-g')) return;
-      var groups = [];
-      filters.querySelectorAll('button[data-g][aria-pressed="true"]').forEach(function (x) { groups.push(x.getAttribute('data-g')); });
-      viewer.setFilter(groups);
-    });
+    // Der fruehere Klick-Handler auf #holofilters (Mehrfachauswahl ->
+    // viewer.setFilter()) ist mit dem Ebenen-Kasten selbst entfallen
+    // (15-03-PLAN.md Task 1, SCHRITT 3). Die Rail ist in dieser Welle eine
+    // reine Anker-Liste ohne Skript-Interaktion; die Einfachauswahl mit
+    // Buehnen-Umschaltung ist Welle 4 (15-UI-SPEC.md Detailvertrag Punkt 5).
 
     // Holo ist der einzige Modus (kein Video, keine Bilder) -> direkt laden
     if (defaultMode === 'holo') start(false);
