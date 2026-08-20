@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 351,
-  "totalListings": 7622,
+  "updates": 352,
+  "totalListings": 7624,
   "totalSold": 334,
   "distinctItems": 1304
  },
@@ -162871,6 +162871,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787247769,
    "dateExpiration": 1792431769
+  },
+  "164473": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Zeus Mk II ES Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787250538,
+   "dateExpiration": 1792434538
+  },
+  "164474": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Terrapin Medic Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787250645,
+   "dateExpiration": 1792434645
   }
  }
 }
