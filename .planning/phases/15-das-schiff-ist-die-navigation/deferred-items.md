@@ -74,3 +74,30 @@ solange niemand die Reichweite misst. Wer künftig eine Zusicherung dieser
 Familie erweitert, sollte damit rechnen, dass Altbefunde auftauchen.
 
 **Kein Blocker, keine Aufgabe** — nur eine Tatsache fürs Gedächtnis.
+
+---
+
+## Tote CSS-Regeln in `.sd__ch2col` seit 15-03 (Bewaffnung/Bauteilliste umgezogen)
+
+**Gefunden:** 15-03, Task 1, beim Umzug von Bewaffnung und Bauteilliste aus
+`ch-gear` in die Konsole.
+
+**Befund:** Drei Zweispalter-Feinabstimmungen aus `14-04-PLAN.md`
+(`.sd__ch2col .sd__slots{...}`, `.sd__ch2col .arm__scell span{...}`,
+`.sd__ch2col .arm__sum{...}`, `src/components/ShipDetail.astro`
+Z. rund 1071-1073/1093-1094) greifen ins Leere: `.sd__slots` und
+`.arm__sum`/`.arm__list` stehen seit diesem Task nicht mehr innerhalb
+eines `.sd__ch2col`-Kapitels (sie sind vollstaendig in `section.holo__sys`
+gewandert) — die Selektoren treffen nichts mehr.
+
+**Warum nicht in diesem Task entfernt:** Die Regeln dokumentieren
+hart erarbeitete Hoehenbudget-Messungen aus Phase 14 (konkrete
+Bildschirmfoto-Gegenproben gegen Wortumbrueche); sie zu loeschen war
+nicht Teil der Task-1-Anweisung (SCHRITT 4 nennt nur den Markup-Umzug),
+und ein Fehlgriff beim Loeschen historischer Kommentare waere teurer
+als das harmlose tote CSS selbst. `npm run gate` sieht das nicht (kein
+Tor prueft auf ungenutzte Selektoren).
+
+**Empfehlung:** beim naechsten Eingriff in diesen CSS-Block (voraussichtlich
+Welle 4, wenn `.sd__ch2col` fuer `ch-gear` ohnehin neu vermessen wird)
+die drei Regeln entfernen oder explizit als historisch markieren.

@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 15
+current_phase: 12
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: "Completed 15-02-PLAN.md -- verify:shipconsole angelegt und vorgefuehrt rot, ausgesetzt bis 15-05; verify:shipcard scannt section.holo mit, echter Fund (.holo__dims) benannt"
-last_updated: "2026-08-20T08:58:58.435Z"
+stopped_at: Completed 15-03-PLAN.md -- vier Systemabschnitte serverseitig im HTML, Rail als Ankerliste, Bewaffnung/Bauteilliste aus ch-gear in die Konsole gewandert, D-02 mit abgeschaltetem JavaScript bewiesen (36/36 Anker-Spruenge), Textbestand gewachsen statt geschrumpft
+last_updated: "2026-08-20T09:54:04.307Z"
 last_activity: 2026-08-15
 last_activity_desc: Phase 12 execution started
 progress:
   total_phases: 19
   completed_phases: 12
   total_plans: 62
-  completed_plans: 52
+  completed_plans: 53
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -268,7 +268,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
@@ -332,6 +332,7 @@ Progress: [████████░░] 84%
 | Phase 14 P04 | ~75min | 3 tasks | 5 files |
 | Phase 15 P01 | 185min | 3 tasks | 6 files |
 | Phase 15 P02 | 30min | 2 tasks | 6 files |
+| Phase 15 P03 | ~90min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -439,6 +440,7 @@ Recent decisions affecting current work:
 - [Phase 14]: 14-04: Phase 14 technisch vollstaendig (4/4 Plaene), NICHT "Complete" markiert -- 7 offene Sichtrunden-Punkte (WINDOWS.md id 14-20) warten auf den Betreiber
 - [Phase ?]: [Phase 15]: 15-01: P-3=Variante C entschieden und gegen ausgeliefertes holodata gegengeprueft (908 Paare, 0 Abweichungen); P-1/P-2 fuer kompakte/mittlere Schiffe an allen sechs Breiten belegt, fuer stark elongierte Schiffe (Carrack, Ironclad) bei 860/414/360px bleibt eine gemessene Fuellgrad-Luecke -- als S-0 (WINDOWS.md id 21) an den Betreiber uebergeben, nicht eigenmaechtig per Kamera-Azimut geloest
 - [Phase ?]: [Phase 15]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
+- [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
 
 ### Pending Todos
 
@@ -488,6 +490,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T08:58:58.386Z
-Stopped at: Completed 15-02-PLAN.md -- verify:shipconsole angelegt und vorgefuehrt rot, ausgesetzt bis 15-05; verify:shipcard scannt section.holo mit, echter Fund (.holo__dims) benannt
+Last session: 2026-08-20T09:54:04.261Z
+Stopped at: Completed 15-03-PLAN.md -- vier Systemabschnitte serverseitig im HTML, Rail als Ankerliste, Bewaffnung/Bauteilliste aus ch-gear in die Konsole gewandert, D-02 mit abgeschaltetem JavaScript bewiesen (36/36 Anker-Spruenge), Textbestand gewachsen statt geschrumpft
 Resume file: None
