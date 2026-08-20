@@ -258,6 +258,16 @@ jobs:
           echo "--- Live-Bau unveraendert (D-12) ---"
           check "/schiffe.html im Live-Bau, kein Cookie" 200 "$(code http://localhost:8096/schiffe.html)"
 
+          # IN-01: der Ausstellungspunkt haengt jetzt selbst an $vb_gate_on.
+          # BEIDE Richtungen pruefen -- ein Riegel, der ueberall zumacht, saehe
+          # in der ersten Zeile allein wie ein bestandener Lauf aus und haette
+          # in Wahrheit das Tor unbenutzbar gemacht. Die zweite Zeile ist die
+          # Klinke: im Vorschau-Bau muss derselbe Pfad weiterhin antworten
+          # (401 ohne Kopfzeile, gate.js mint()), nur eben nicht 404.
+          echo "--- Ausstellungspunkt nur im Vorschau-Bau (IN-01) ---"
+          check "/_gate/mint im Live-Bau" 404 "$(code http://localhost:8096/_gate/mint)"
+          check "/_gate/mint im Vorschau-Bau, ohne Kopfzeile" 401 "$(code http://localhost:8098/_gate/mint)"
+
           echo ""
           echo "Zusicherungen: $SOLL_IST   FEHLER: $FEHLER"
           exit $FEHLER
