@@ -3,14 +3,23 @@
    mit und ohne Ausweis (D-06, D-07, D-09/D-12, Phase 14 Plan 09).
 
    `node scripts/check-gate.mjs --base <url> [--live <url>] [--weich]`
+                            `[--dist <verzeichnis>] [--bypass <wert>]`
    `npm run check:gate`   -> gegen https://staging.verse-base.com
+
+   --dist nennt den gebauten Stand, aus dem die gesperrten Stichproben
+   abgeleitet werden; ohne Angabe `dist/`. In CI gibt es kein dist/ --
+   dort entsteht der Bau IM Image. Der Workflow kopiert deshalb den
+   Webwurzel-Inhalt aus dem laufenden Container heraus und uebergibt
+   ihn hier. Das ist nicht bloss ein Ersatz, sondern strenger: die
+   Stichproben stammen dann aus genau dem Artefakt, das geprueft wird
+   (Grundsatz 7), statt aus einem daneben liegenden zweiten Bau.
 
    Vorbild: scripts/check-deployed.mjs — fragt eine LAUFENDE Seite,
    nicht den Quelltext, braucht deshalb Netz und kann prinzipbedingt
    nicht ins Dockerfile-Tor (Schiene A hat keinen laufenden Server;
    was OHNE Netz messbar ist, prueft scripts/verify-gate.mjs).
 
-   Keine eigene Pfadliste: die gesperrten Stichproben kommen aus dist/
+   Keine eigene Pfadliste: die gesperrten Stichproben kommen aus dem Bau
    (ein paar Leitseiten, dazu je eine Datei unter /_astro/ und /holo/),
    die offenen aus den GATE-AUSNAHME-Zeilen in nginx/default.conf —
    derselbe Text, den scripts/verify-gate.mjs liest. Zwei Listen, die
@@ -74,6 +83,10 @@ const WEICH = argv.includes('--weich');
 // Gegenstelle, die ihn kennt: der CI-Schritt, der denselben Wert per
 // `docker run -e VB_GATE_BYPASS=...` gesetzt hat. Nirgends geloggt.
 const BYPASS = flag('--bypass', null);
+// Verzeichnis des gebauten Stands. Kein Endschraegstrich, damit
+// distPfadZuUrl() die Praefixlaenge zuverlaessig abschneiden kann.
+const DIST = flag('--dist', 'dist').replace(/\/+$/, '');
+const DIST_TIEFE = DIST.split('/').length;
 
 // Kopfzeile, gegen die eine gesperrte Stichprobe geprueft wird — dieselbe
 // Marke, die nginx/gate.js check() (Aufgabe 3) und scripts/browser-smoke.mjs
@@ -94,10 +107,11 @@ const fail = (msg) => {
   console.error(`  FEHLER: ${msg}`);
 };
 
-if (!existsSync('dist')) {
+if (!existsSync(DIST)) {
   console.error(
-    'check-gate: dist/ fehlt. Erst `npm run build`, dann `node scripts/check-gate.mjs` — ' +
-      'die Stichproben werden aus dem gebauten Stand abgeleitet.'
+    `check-gate: ${DIST}/ fehlt. Erst \`npm run build\`, dann \`node scripts/check-gate.mjs\` — ` +
+      'die Stichproben werden aus dem gebauten Stand abgeleitet. In CI stattdessen ' +
+      'den Webwurzel-Inhalt aus dem Container kopieren und per --dist uebergeben.'
   );
   process.exit(1);
 }
@@ -106,7 +120,7 @@ if (!existsSync('nginx/default.conf')) {
   process.exit(1);
 }
 
-/* ---------- Stichproben aus dist/ und der Ausnahmeliste ableiten ---------- */
+/* ------- Stichproben aus dem gebauten Stand und der Ausnahmeliste ------- */
 function walk(dir, ext, out = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = `${dir}/${e.name}`;
@@ -124,25 +138,28 @@ function ersteDatei(dir) {
   return entries.length ? `${norm}/${entries[0]}` : null;
 }
 function distPfadZuUrl(distPfad) {
-  return distPfad === 'dist/index.html' ? '/' : distPfad.slice('dist'.length);
+  return distPfad === `${DIST}/index.html` ? '/' : distPfad.slice(DIST.length);
 }
 
 // Gesperrte Stichproben: Wurzel + zwei weitere Leitseiten (build.format:
 // 'file' legt sie direkt unter dist/ ab, keine Unterverzeichnisse), dazu
 // je eine Datei unter /_astro/ und /holo/ (D-06 sperrt ausdruecklich auch
 // diese beiden, siehe nginx/default.conf).
-const wurzelHtml = walk('dist', '.html')
-  .filter((f) => f.split('/').length === 2 && f !== 'dist/gate.html' && f !== 'dist/404.html')
+const wurzelHtml = walk(DIST, '.html')
+  .filter(
+    (f) =>
+      f.split('/').length === DIST_TIEFE + 1 && f !== `${DIST}/gate.html` && f !== `${DIST}/404.html`
+  )
   .sort();
-const leitseiten = ['dist/index.html', ...wurzelHtml.filter((f) => f !== 'dist/index.html')].slice(0, 3);
-const astroDatei = ersteDatei('dist/_astro');
-const holoDatei = ersteDatei('dist/holo');
+const leitseiten = [`${DIST}/index.html`, ...wurzelHtml.filter((f) => f !== `${DIST}/index.html`)].slice(0, 3);
+const astroDatei = ersteDatei(`${DIST}/_astro`);
+const holoDatei = ersteDatei(`${DIST}/holo`);
 const gesperrteStichproben = [...leitseiten, astroDatei, holoDatei].filter(Boolean).map(distPfadZuUrl);
 
 // Offene Stichproben: aus den GATE-AUSNAHME-Zeilen in nginx/default.conf —
 // keine eigene, zweite Liste, sondern derselbe Text, den scripts/verify-
 // gate.mjs liest. Eine Praefix-Ausnahme (endet auf "/") wird ueber die
-// erste Datei im entsprechenden dist/-Verzeichnis in eine konkrete URL
+// erste Datei im entsprechenden Verzeichnis des gebauten Stands in eine URL
 // aufgeloest.
 const confText = readFileSync('nginx/default.conf', 'utf8');
 const AUSNAHME_RE = /^# GATE-AUSNAHME: (.+)$/gm;
@@ -155,7 +172,7 @@ while ((am = AUSNAHME_RE.exec(confText))) {
 }
 function offeneStichprobeFuer(pfad) {
   if (!pfad.endsWith('/')) return pfad;
-  const lokal = ersteDatei(`dist${pfad}`);
+  const lokal = ersteDatei(`${DIST}${pfad}`);
   return lokal ? distPfadZuUrl(lokal) : null;
 }
 const offeneStichproben = ausnahmePfade
@@ -163,12 +180,12 @@ const offeneStichproben = ausnahmePfade
   .filter((e) => e.url);
 
 console.log(`\n=== check-gate: die ausgelieferte Zugriffskontrolle gegen ${BASE} ===`);
-console.log(`Gesperrte Stichproben (aus dist/): ${gesperrteStichproben.length}   ${gesperrteStichproben.join(', ') || '—'}`);
+console.log(`Gesperrte Stichproben (aus ${DIST}/): ${gesperrteStichproben.length}   ${gesperrteStichproben.join(', ') || '—'}`);
 console.log(`Offene Stichproben (aus nginx/default.conf): ${offeneStichproben.length}   ${offeneStichproben.map((e) => e.url).join(', ') || '—'}`);
 
 if (gesperrteStichproben.length < MIN_GESPERRT)
   fail(
-    `nur ${gesperrteStichproben.length} gesperrte Stichproben abgeleitet, Untergrenze ist ${MIN_GESPERRT} — Ursache klaeren (dist/ unvollstaendig?), nicht die Untergrenze senken`
+    `nur ${gesperrteStichproben.length} gesperrte Stichproben abgeleitet, Untergrenze ist ${MIN_GESPERRT} — Ursache klaeren (${DIST}/ unvollstaendig?), nicht die Untergrenze senken`
   );
 if (offeneStichproben.length < MIN_OFFEN)
   fail(

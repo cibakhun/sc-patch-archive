@@ -136,7 +136,22 @@ jobs:
           # Dockerfile) unentdeckt liess. Der Wert wird auch hier nicht
           # ausgegeben (T-14-58).
           if [ "$code" -eq 0 ]; then
-            node scripts/check-gate.mjs --base http://localhost:8080 --bypass "$GATE_BYPASS" || code=$?
+            # check-gate leitet seine gesperrten Stichproben aus dem gebauten
+            # Stand ab (keine zweite, handgepflegte Pfadliste). Hier gibt es
+            # kein dist/ -- der Astro-Bau entsteht IM Image, der Runner sieht
+            # ihn nie. Am 20.08.2026 riss der Schritt genau daran ab, nachdem
+            # browser-smoke alle Zusicherungen erfuellt hatte.
+            # Der Webwurzel-Inhalt wird deshalb aus dem laufenden Container
+            # geholt. Das ist kein Notbehelf, sondern strenger als ein
+            # lokales dist/: die Stichproben stammen dann aus genau dem
+            # Artefakt, das geprueft wird (Grundsatz 7).
+            mkdir -p image-dist
+            docker cp smoke:/usr/share/nginx/html/. image-dist/
+            # Gegenprobe, damit ein leeres Verzeichnis nicht wie ein
+            # bestandener Lauf aussieht -- check-gate selbst faengt das ueber
+            # seine Untergrenzen zwar ab, aber hier ist die Ursache lesbar.
+            test -f image-dist/index.html || { echo "FEHLER: image-dist/index.html fehlt -- Webwurzel im Image geaendert?" >&2; exit 1; }
+            node scripts/check-gate.mjs --base http://localhost:8080 --dist image-dist --bypass "$GATE_BYPASS" || code=$?
           fi
           docker stop smoke >/dev/null || true
           exit $code
