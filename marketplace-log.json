@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 355,
-  "totalListings": 7683,
-  "totalSold": 336,
-  "distinctItems": 1310
+  "updates": 356,
+  "totalListings": 7701,
+  "totalSold": 337,
+  "distinctItems": 1313
  },
  "listings": {
   "156580": {
@@ -154516,6 +154516,10 @@
     {
      "d": "2026-08-19",
      "p": 145000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 250000
     }
    ],
    "soldOut": false,
@@ -154537,6 +154541,10 @@
     {
      "d": "2026-08-19",
      "p": 90000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 300000
     }
    ],
    "soldOut": false,
@@ -154558,6 +154566,10 @@
     {
      "d": "2026-08-19",
      "p": 90000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 250000
     }
    ],
    "soldOut": false,
@@ -154579,6 +154591,10 @@
     {
      "d": "2026-08-19",
      "p": 295000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -156312,6 +156328,10 @@
     {
      "d": "2026-08-20",
      "p": 245000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 2500000
     }
    ],
    "soldOut": false,
@@ -156333,6 +156353,10 @@
     {
      "d": "2026-08-19",
      "p": 395000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -156354,6 +156378,10 @@
     {
      "d": "2026-08-19",
      "p": 295000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -156396,6 +156424,10 @@
     {
      "d": "2026-08-19",
      "p": 95000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -156564,6 +156596,10 @@
     {
      "d": "2026-08-19",
      "p": 1950000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 2000000
     }
    ],
    "soldOut": false,
@@ -156585,6 +156621,10 @@
     {
      "d": "2026-08-19",
      "p": 380000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 1500000
     }
    ],
    "soldOut": false,
@@ -156627,6 +156667,10 @@
     {
      "d": "2026-08-19",
      "p": 190000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -156828,6 +156872,10 @@
     {
      "d": "2026-08-19",
      "p": 480000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -156849,6 +156897,10 @@
     {
      "d": "2026-08-19",
      "p": 195000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 500000
     }
    ],
    "soldOut": false,
@@ -157087,7 +157139,7 @@
    "currency": "UEC",
    "quality": 0,
    "firstSeen": "2026-08-19",
-   "lastSeen": "2026-08-19",
+   "lastSeen": "2026-08-20",
    "prices": [
     {
      "d": "2026-08-19",
@@ -157138,6 +157190,10 @@
     {
      "d": "2026-08-19",
      "p": 250000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 390000
     }
    ],
    "soldOut": false,
@@ -157369,6 +157425,10 @@
     {
      "d": "2026-08-19",
      "p": 800000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -158552,6 +158612,10 @@
     {
      "d": "2026-08-19",
      "p": 250000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 390000
     }
    ],
    "soldOut": false,
@@ -162679,6 +162743,10 @@
     {
      "d": "2026-08-20",
      "p": 1700000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 17000000
     }
    ],
    "soldOut": false,
@@ -163443,6 +163511,27 @@
    "dateAdded": 1787248295,
    "dateExpiration": 1792432295
   },
+  "164470": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "ADP mk-4 Woodland Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 910,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787248619,
+   "dateExpiration": 1792432619
+  },
   "164471": {
    "idItem": 70,
    "idCategory": 18,
@@ -163800,6 +163889,27 @@
    "dateAdded": 1787257376,
    "dateExpiration": 1792441376
   },
+  "164516": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787257580,
+   "dateExpiration": 1792441580
+  },
   "164518": {
    "idItem": 4453,
    "idCategory": 3,
@@ -163983,9 +164093,9 @@
      "p": 20000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-20",
+   "soldOutPrice": 20000000,
    "dateAdded": 1787259189,
    "dateExpiration": 1792443189
   },
@@ -164156,6 +164266,342 @@
    "soldOutPrice": null,
    "dateAdded": 1787262029,
    "dateExpiration": 1792446029
+  },
+  "164548": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "35x ASD Secure Drive 250k aUEC Each",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787262364,
+   "dateExpiration": 1792446364
+  },
+  "164550": {
+   "idItem": 5022,
+   "idCategory": 61,
+   "title": "Yormandi Eye/Yormandi Tongue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787262608,
+   "dateExpiration": 1792446608
+  },
+  "164551": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite Bulk",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787263064,
+   "dateExpiration": 1792447064
+  },
+  "164553": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Asgard",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 109000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787263212,
+   "dateExpiration": 1792447212
+  },
+  "164555": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - ARES Ion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 24000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787263487,
+   "dateExpiration": 1792447487
+  },
+  "164557": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - ARES Inferno",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 24000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787263651,
+   "dateExpiration": 1792447651
+  },
+  "164558": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 4500
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787263833,
+   "dateExpiration": 1792447833
+  },
+  "164560": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - MIRAI Guardian",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 29000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787263997,
+   "dateExpiration": 1792447997
+  },
+  "164561": {
+   "idItem": 4823,
+   "idCategory": 1,
+   "title": "Geist Armor Arms Rogue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264269,
+   "dateExpiration": 1792448269
+  },
+  "164562": {
+   "idItem": 4839,
+   "idCategory": 5,
+   "title": "Geist Armor Core ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264274,
+   "dateExpiration": 1792448274
+  },
+  "164563": {
+   "idItem": 4812,
+   "idCategory": 5,
+   "title": "Geist Armor Core Rogue",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264276,
+   "dateExpiration": 1792448276
+  },
+  "164564": {
+   "idItem": 4840,
+   "idCategory": 4,
+   "title": "Geist Armor Legs ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264282,
+   "dateExpiration": 1792448282
+  },
+  "164565": {
+   "idItem": 4807,
+   "idCategory": 4,
+   "title": "Geist Armor Legs Whiteout",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264285,
+   "dateExpiration": 1792448285
+  },
+  "164566": {
+   "idItem": 4842,
+   "idCategory": 2,
+   "title": "Geist Backpack ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264301,
+   "dateExpiration": 1792448301
+  },
+  "164568": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - A2 Hercules",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 549000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787264712,
+   "dateExpiration": 1792448712
+  },
+  "164571": {
+   "idItem": 5232,
+   "idCategory": 61,
+   "title": "Vanduul Plating and Vanduul Metal",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787265393,
+   "dateExpiration": 1792449393
   }
  }
 }
