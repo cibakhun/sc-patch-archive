@@ -1601,6 +1601,113 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         } catch { /* verborgen bei jedem Fehler -- keine Fehlermeldung */ }
       })();
 
+      // ── Discord-Verbindung (linkIdentity) ──────────────────────────────
+      // Warum nicht "mit Discord anmelden": das verknuepft nur, wenn die
+      // E-Mail-Adresse auf BEIDEN Seiten dieselbe ist (Supabase' automatisches
+      // Linking). Das ist bei fast niemandem der Fall -- Discord-Adresse und
+      // Seiten-Adresse sind normalerweise verschieden, und dann versucht
+      // Supabase ein NEUES Konto anzulegen, was der Riegel in
+      // handle_new_user() zurecht abweist. linkIdentity() haengt die
+      // Discord-Identitaet dagegen an das GERADE ANGEMELDETE Konto, ohne
+      // Adressvergleich. Der Rest der Kette existiert schon: der Trigger
+      // sync_discord_identity auf auth.identities traegt die discord_user_id
+      // in discord_role_state ein, und erst daran findet der Bot das Konto.
+      await (async () => {
+        const dcCard = document.getElementById('discordLinkCard');
+        const dcState = document.getElementById('dcLinkState');
+        const dcBtn = document.getElementById('btnDiscordLink') as HTMLButtonElement | null;
+        const dcOff = document.getElementById('btnDiscordUnlink') as HTMLButtonElement | null;
+        const dcStatus = document.getElementById('dcLinkStatus');
+        if (!dcCard || !dcState || !dcBtn || !dcOff) return;
+
+        const dcSay = (msg: string, cls = '') => {
+          if (!dcStatus) return;
+          dcStatus.textContent = msg;
+          dcStatus.className = 'acx-status' + (cls ? ' ' + cls : '');
+          dcStatus.hidden = !msg;
+        };
+        const dcBusy = (b: HTMLButtonElement, on: boolean) => {
+          b.disabled = on;
+          b.textContent = on ? (b.dataset.busy || '') : (b.dataset.idle || '');
+        };
+
+        const dcIdentities = async (): Promise<any[]> => {
+          try {
+            const { data, error } = await (supabase.auth as any).getUserIdentities();
+            if (error) return [];
+            return (data && data.identities) || [];
+          } catch { return []; }
+        };
+
+        // Anzeigename aus den Discord-Rohdaten. Reihenfolge nach Brauchbarkeit;
+        // faellt am Ende auf die reine ID zurueck, damit die Zeile nie leer ist.
+        const dcName = (idn: any): string => {
+          const d = (idn && idn.identity_data) || {};
+          return String(d.user_name || d.preferred_username || d.full_name || d.name || idn.id || '?');
+        };
+
+        const dcRender = async () => {
+          const ids = await dcIdentities();
+          const dc = ids.find((i) => i.provider === 'discord');
+          if (dc) {
+            dcState.textContent = (D.dcLinkOne || 'Connected as %name%').replace('%name%', dcName(dc));
+            dcBtn.hidden = true;
+            dcOff.hidden = false;
+          } else {
+            dcState.textContent = D.dcLinkNone || 'Not connected';
+            dcBtn.hidden = false;
+            dcOff.hidden = true;
+          }
+        };
+        await dcRender();
+
+        dcBtn.addEventListener('click', async () => {
+          dcSay('');
+          dcBusy(dcBtn, true);
+          try {
+            // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der
+            // Rueckweg auf der Site-URL, und der Nutzer stuende nach dem
+            // Verbinden woanders als dort, wo er den Knopf gedrueckt hat.
+            const { error } = await (supabase.auth as any).linkIdentity({
+              provider: 'discord',
+              options: { redirectTo: window.location.origin + window.location.pathname },
+            });
+            if (!error) return; // Erfolg = Weiterleitung zu Discord, hier geht es nicht weiter
+            dcBusy(dcBtn, false);
+            const m = String(error.message || '').toLowerCase();
+            if (m.includes('manual linking') || m.includes('not enabled') || m.includes('disabled')) dcSay(D.dcLinkErrDisabled || '', 'err');
+            else if (m.includes('already') || m.includes('exists') || m.includes('taken')) dcSay(D.dcLinkErrTaken || '', 'err');
+            else dcSay(D.dcLinkErr || '', 'err');
+          } catch {
+            dcBusy(dcBtn, false);
+            dcSay(D.dcLinkErr || '', 'err');
+          }
+        });
+
+        dcOff.addEventListener('click', async () => {
+          dcSay('');
+          const ids = await dcIdentities();
+          // Supabase verweigert das Loesen der LETZTEN Identitaet -- sonst
+          // koennte sich jemand selbst aussperren. Das hier vorweg zu pruefen
+          // ist der Unterschied zwischen einem verstaendlichen Hinweis und
+          // einer rohen englischen Fehlermeldung.
+          if (ids.length < 2) { dcSay(D.dcUnlinkNeedsTwo || '', 'err'); return; }
+          const dc = ids.find((i) => i.provider === 'discord');
+          if (!dc) { await dcRender(); return; }
+          dcBusy(dcOff, true);
+          try {
+            const { error } = await (supabase.auth as any).unlinkIdentity(dc);
+            dcBusy(dcOff, false);
+            if (error) { dcSay(D.dcLinkErr || '', 'err'); return; }
+            dcSay(D.dcUnlinkDone || '', 'ok');
+            await dcRender();
+          } catch {
+            dcBusy(dcOff, false);
+            dcSay(D.dcLinkErr || '', 'err');
+          }
+        });
+      })();
+
       // Show Dashboard
       loadingEl.hidden = true;
       (dash as HTMLElement).hidden = false;
