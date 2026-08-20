@@ -283,9 +283,16 @@ const UI = {
     'ship.slot.coolers': 'Kühler',
     'ship.slot.quantum': 'Quantum-Antrieb',
     'ship.slot.radar': 'Radar',
-    // -- Kapitel-Sprungleiste + konsolidierte Kapitel-Koepfe (Phase 14, Tracer) --
+    // -- Konsolen-Rail + konsolidierte Abschnitts-Koepfe (Phase 14, Tracer) --
     'ship.ch.gear': 'Ausstattung',
     'ship.ch.context': 'Umfeld',
+    // Kurzform NUR fuer die Rail. Die abgeloeste Kapitel-Sprungleiste fuehrte
+    // aus demselben Grund eigene Pillen-Beschriftungen (ship.jump.*): eine
+    // 220px-Spalte traegt "Leistungsprofil" nicht, gemessen 207px Eintrag
+    // gegen 191px Platz — und das deutsche Wort hat keine Trennstelle, an der
+    // es umbrechen koennte. Der Abschnitt selbst behaelt seinen vollen Titel.
+    'ship.rail.trade': 'Kaufen',
+    'ship.rail.rank': 'Leistung',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
     // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
@@ -681,9 +688,13 @@ const UI = {
     'ship.slot.coolers': 'Coolers',
     'ship.slot.quantum': 'Quantum drive',
     'ship.slot.radar': 'Radar',
-    // -- Chapter jump-nav + consolidated chapter headers (Phase 14, tracer) --
+    // -- Console rail + consolidated section headers (Phase 14, tracer) --
     'ship.ch.gear': 'Specs',
     'ship.ch.context': 'Extras',
+    // Short form for the rail only — see the German comment for the measured
+    // reason. The section itself keeps its full title.
+    'ship.rail.trade': 'Buy',
+    'ship.rail.rank': 'Profile',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
     // -- Favorites (account feature; account-lite.js toggles the state) --

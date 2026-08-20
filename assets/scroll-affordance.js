@@ -33,7 +33,12 @@
   var SEL_FADE =
     '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints';
   // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
-  var SEL_VFADE = '.vb-scrollbox';
+  // .holo__readout (Schiffskonsole) traegt die Klasse .vb-scrollbox bewusst
+  // NICHT — deren max-height:calc(100vh…) wuerde die Hoehenbindung an die
+  // Buehne zerreissen, beide sitzen in derselben Grid-Zeile —, gehoert aber in
+  // genau dieselbe Behandlung und steht deshalb hier namentlich. Zweiter
+  // Pflichteintrag dazu in mobile-ux.css Abschnitt 5d.
+  var SEL_VFADE = '.vb-scrollbox,.holo__readout';
 
   var faders = [];
   var vfaders = [];

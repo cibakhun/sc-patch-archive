@@ -618,7 +618,17 @@ summary:active {
 .wb__filters .tool-help__body,
 /* Fracturing-Rechner (/fracturing.html) — dieselbe Bauart, eigener Praefix. */
 .fc__scroll,
-.fc__filters .tool-help__body {
+.fc__filters .tool-help__body,
+/* Schiffskonsole, Auslesungsspalte. Bewusst NICHT .vb-scrollbox — aus
+   demselben Grund wie bei .wb__scroll daneben: dessen max-height:calc(100vh…)
+   wuerde die Hoehenbindung an die Buehne zerreissen, die .holo__readout
+   braucht (beide sitzen in derselben Grid-Zeile).
+   ⚠ Gemessen am 20.08.2026, Carrack/1280x720: scrollHeight 489 gegen
+   clientHeight 380 — 109 Bildpunkte lagen verborgen, Leistenbreite 0. Der
+   Kasten scrollte also, aber NICHTS zeigte es an; im Bildschirmfoto sah es
+   nach einer abgeschnittenen Karte aus. Genau der Fall, vor dem der
+   Kopfkommentar oben warnt. */
+.holo__readout {
   scrollbar-width: thin !important;
   /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
      Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
@@ -633,7 +643,8 @@ summary:active {
 .wb__scroll::-webkit-scrollbar,
 .wb__filters .tool-help__body::-webkit-scrollbar,
 .fc__scroll::-webkit-scrollbar,
-.fc__filters .tool-help__body::-webkit-scrollbar {
+.fc__filters .tool-help__body::-webkit-scrollbar,
+.holo__readout::-webkit-scrollbar {
   display: block !important;
   /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
      ebenfalls .vb-scrollbox. */
@@ -649,7 +660,8 @@ summary:active {
 .wb__scroll::-webkit-scrollbar-thumb,
 .wb__filters .tool-help__body::-webkit-scrollbar-thumb,
 .fc__scroll::-webkit-scrollbar-thumb,
-.fc__filters .tool-help__body::-webkit-scrollbar-thumb {
+.fc__filters .tool-help__body::-webkit-scrollbar-thumb,
+.holo__readout::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
   border-radius: 999px;
 }
