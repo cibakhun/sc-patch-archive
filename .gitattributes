@@ -1,0 +1,15 @@
+# Zeilenenden fuer maschinell gelesene Planungsdateien festnageln.
+#
+# Anlass, zweimal bezahlt: core.autocrlf=true checkt .md-Dateien mit CRLF aus.
+# `gsd-tools` liest STATE.md und WINDOWS.md ueber parseLedger/Frontmatter-Parser,
+# und der bricht am angehaengten \r ab ("Ledger frontmatter line is not
+# key: value: \"last_updated: ...\\r\""). Ergebnis: das ganze Register ist
+# unlesbar, obwohl jede einzelne Zeile richtig aussieht -- am 18.08.2026 einmal
+# von Hand repariert (915e0a8), am 20.08.2026 beim Zusammenfuehren wieder
+# vorgefunden. Ohne diese Datei kommt der Defekt bei JEDEM Auschecken zurueck.
+#
+# Bewusst eng gefasst: nur die zwei Dateien, die ein Werkzeug parst. Prosa im
+# Rest des Baums darf CRLF behalten, damit hier kein baumweiter
+# Zeilenenden-Umbruch entsteht.
+.planning/STATE.md   text eol=lf
+.planning/WINDOWS.md text eol=lf
