@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 352,
-  "totalListings": 7624,
-  "totalSold": 334,
-  "distinctItems": 1304
+  "updates": 353,
+  "totalListings": 7632,
+  "totalSold": 335,
+  "distinctItems": 1305
  },
  "listings": {
   "156580": {
@@ -156299,6 +156299,27 @@
    "dateAdded": 1787141292,
    "dateExpiration": 1792325292
   },
+  "164120": {
+   "idItem": 4841,
+   "idCategory": 1,
+   "title": "Geist Armor Arms ASD Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 245000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787141293,
+   "dateExpiration": 1792325293
+  },
   "164121": {
    "idItem": 4822,
    "idCategory": 1,
@@ -159551,6 +159572,10 @@
     {
      "d": "2026-08-20",
      "p": 12000000
+    },
+    {
+     "d": "2026-08-20",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -161321,9 +161346,9 @@
      "p": 1800000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-20",
+   "soldOutPrice": 1800000,
    "dateAdded": 1787216102,
    "dateExpiration": 1792400102
   },
@@ -162913,6 +162938,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787250645,
    "dateExpiration": 1792434645
+  },
+  "164478": {
+   "idItem": 4881,
+   "idCategory": 2,
+   "title": "Geist Backpack Desert",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787252238,
+   "dateExpiration": 1792436238
+  },
+  "164479": {
+   "idItem": 4811,
+   "idCategory": 2,
+   "title": "Geist Backpack Forest",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787252239,
+   "dateExpiration": 1792436239
+  },
+  "164480": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Scorpius Wikelo Edition Stealth A",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 17000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787252932,
+   "dateExpiration": 1792436932
+  },
+  "164482": {
+   "idItem": 4001,
+   "idCategory": 5,
+   "title": "WTB Inquisitor Core Neon Pink -Active-",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 450000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787253021,
+   "dateExpiration": 1792437020
+  },
+  "164488": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "C1 Spirit Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787253632,
+   "dateExpiration": 1792437632
+  },
+  "164498": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 965,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 35000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787254694,
+   "dateExpiration": 1792438694
+  },
+  "164502": {
+   "idItem": null,
+   "idCategory": 61,
+   "title": "Yormandi Eyes(4) and Tongues(2)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 3400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787254901,
+   "dateExpiration": 1792438901
   }
  }
 }
