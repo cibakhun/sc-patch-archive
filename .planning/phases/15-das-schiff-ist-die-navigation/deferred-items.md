@@ -101,3 +101,36 @@ Tor prueft auf ungenutzte Selektoren).
 **Empfehlung:** beim naechsten Eingriff in diesen CSS-Block (voraussichtlich
 Welle 4, wenn `.sd__ch2col` fuer `ch-gear` ohnehin neu vermessen wird)
 die drei Regeln entfernen oder explizit als historisch markieren.
+
+---
+
+## Sichtbefund des Orchestrators (20.08.2026) — Kollisionen bei 1280 px, MUSS in 15-05
+
+Nach Welle 4 am gebauten `dist/` angesehen (`astro preview`, 1280 × 900, Carrack
+DE). Bei **360 px ist alles in Ordnung** — die hochformatige Bühne trägt, die
+Rail wird zur Chip-Reihe, die Marker sitzen sichtbar auf dem Rumpf.
+
+**Bei 1280 px kollidiert die alte, absolut positionierte Hero-Chrome mit dem
+neuen Drei-Spalten-Raster.** Kein Tor kann das sehen; alle 19 Schritte sind grün
+und `verify:shipconsole --report` meldet 0 Befunde über acht Zusicherungen.
+
+1. **`← SCHIFFE` liegt auf dem ersten Rail-Eintrag.** Der Zurück-Link und
+   „KOMPONENTEN 8" stehen übereinander an derselben Stelle oben links.
+2. **Die Brotkrume ist abgeschnitten.** Von „HANGAR // ANVIL AEROSPACE" ist nur
+   noch `OSPACE` sichtbar — die Rail überdeckt den Anfang.
+3. **`.holo__dims` liegt auf der Auslesung.** „L 126 M · B 74 M · H 30 M"
+   überlagert die Zeile „8 am Schiff verortet" im rechten Kopf.
+   ⚠ Zusammenhang: genau diese HUD-Anzeige trägt die benannte Ausnahme
+   `X-holo-dims-hud` aus Welle 2. Wenn sie hier ohnehin umgezogen oder entfernt
+   wird, sollte die Ausnahme mit überprüft werden — der Zombie-Wächter meldet
+   sie sonst.
+4. **`SCHILDGENERATOREN` wird rechts angeschnitten**, und die Auslesungsspalte
+   läuft unten aus der Bühne heraus (die Radar-Karte ist gekappt).
+
+**Warum das hierhergehört und nicht in einen Schnellfix:** die vier Punkte haben
+dieselbe Ursache — Elemente, die für eine bildfüllende Hero-Bühne gedacht waren,
+stehen jetzt in einem Raster mit drei Spalten. Sie einzeln zu verschieben ist
+Flickwerk; sie gehören in einem Zug in das Raster überführt.
+
+**Kein Blocker für die Sicherung von Welle 4** (die ist committet und grün),
+aber ein **Blocker für staging**.
