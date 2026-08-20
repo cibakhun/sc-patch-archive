@@ -712,8 +712,15 @@ a{color:inherit;text-decoration:none}
 .holo-nodes circle.is-np.is-active{stroke:#ffe9a8;filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--gold))}
 .holo-nodes circle.is-est{fill:none;stroke:#dff6ff;stroke-width:2.2}
 
-/* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) ===== */
-.holo__panel{--gc:var(--accent);position:absolute;right:clamp(14px,2vw,24px);top:52px;z-index:7;width:min(272px,86vw);background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));backdrop-filter:blur(8px);
+/* ===== Komponenten-Detail-Karte (Bord-MFD, gruppenfarbig) =====
+   15-04-PLAN.md Task 2 (15-UI-SPEC.md Detailvertrag Punkt 4): der
+   Einzel-Zustand der Auslesung. Verliert seine absolute Overlay-Position
+   und wird per appendChild (Skriptpfad, wie die Systemabschnitte) zum
+   normalen Block-Kind von .holo__readout -- position/right/top/z-index/
+   width sind deshalb entfallen (die Breite kommt jetzt von der Grid-Spalte
+   selbst). Optik (Rahmenoberkante/Eck-Klammer/Scanlines/Farbzuordnung je
+   Gruppe) UNVERAENDERT. */
+.holo__panel{--gc:var(--accent);position:relative;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));backdrop-filter:blur(8px);
   border:1px solid color-mix(in srgb,var(--gc) 42%,transparent);box-shadow:0 14px 44px var(--on-media-shadow),0 0 26px color-mix(in srgb,var(--gc) 14%,transparent);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
 .holo__panel[data-g="arms"]{--gc:var(--gold)}
@@ -821,7 +828,9 @@ a{color:inherit;text-decoration:none}
 .holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .holo__readout .arm__scell span,
 .holo__readout .sd__slot .n,
-.holo__readout .arm__name{hyphens:auto;overflow-wrap:break-word}
+.holo__readout .arm__name,
+.holo__readout .hp__name,
+.holo__readout .hp__kind{hyphens:auto;overflow-wrap:break-word}
 .holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
 
 /* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
@@ -873,7 +882,10 @@ a{color:inherit;text-decoration:none}
 /* Hinweis nur auf der leeren Bilder-Bühne — nie über Video oder 3D-Holo */
 .holo__stage.is-video .holo__none,.holo__stage.is-3d .holo__none{display:none}
 @media(max-width:900px){
-  .holo__panel{top:auto;bottom:52px;right:clamp(10px,3vw,20px);left:auto;width:min(280px,92%)}
+  /* .holo__panel-Override entfallen (15-04-PLAN.md Task 2): die Karte ist
+     seit Task 2 kein absolut positioniertes Overlay mehr, sondern ein
+     normaler Block-Kind von .holo__readout -- ihre Breite kommt von der
+     Grid-Spalte selbst, es gibt kein right/bottom mehr zu verschieben. */
   .holo__title{max-width:74%}
 }
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
@@ -2541,10 +2553,13 @@ span.sd__ref{color:var(--muted)}
     var showGroup = null;
     if (railEl && readoutEl && sysEls.length) {
       // VERSCHIEBEN, nicht kopieren: appendChild entfernt den Knoten aus
-      // seiner alten Position (Kind von .holo) und haengt ihn an die neue
-      // (Kind von .holo__readout) — derselbe Knoten, kein zweiter im DOM.
-      // Kein Bauteiltext steht danach zweimal (Detailvertrag Punkt 6.2).
+      // seiner alten Position (Kind von .holo bzw. .holo__stage) und haengt
+      // ihn an die neue (Kind von .holo__readout) — derselbe Knoten, kein
+      // zweiter im DOM. Kein Bauteiltext steht danach zweimal (Detailvertrag
+      // Punkt 6.2). Die Detailkarte (panel, Task 2) wandert mit — beide
+      // Zustaende der Auslesung leben ab jetzt in EINEM Behaelter.
       for (var si = 0; si < sysEls.length; si++) readoutEl.appendChild(sysEls[si]);
+      if (panel) readoutEl.appendChild(panel);
       showGroup = function (gr) {
         activeGroup = gr;
         for (var i = 0; i < sysEls.length; i++) {
@@ -2555,6 +2570,13 @@ span.sd__ref{color:var(--muted)}
           if (links[j].getAttribute('data-g') === gr) links[j].setAttribute('aria-current', 'true');
           else links[j].removeAttribute('aria-current');
         }
+        // Ein Gruppenwechsel faellt immer auf den Gruppen-Zustand zurueck
+        // (Detailvertrag Punkt 4b) — unabhaengig davon, ob der Viewer schon
+        // geladen ist. viewer.setFilter() wuerde das ohnehin ueber seinen
+        // eigenen onSelect(null)-Rueckruf erledigen, aber NUR wenn der
+        // Viewer schon existiert; hier steht es deshalb explizit und
+        // bedingungslos, nicht als Nebenwirkung eines anderen Aufrufs.
+        if (panel) panel.hidden = true;
         // Genau EIN Gruppenname (15-UI-SPEC.md Detailvertrag Punkt 3.1) —
         // die Buehne zeigt danach nie mehr als eine Gruppe gleichzeitig.
         // viewer kann noch null sein (D-04: laedt erst beim Scrollen);
@@ -2581,9 +2603,23 @@ span.sd__ref{color:var(--muted)}
       if (val == null || val === '') { r.hidden = true; }
       else { d.textContent = val; r.hidden = false; }
     };
+    // Auslesung, Einzel-Zustand (15-04-PLAN.md Task 2, 15-UI-SPEC.md
+    // Detailvertrag Punkt 4b) — der Rueckweg in den Gruppen-Zustand:
+    // den aktuell aktiven Systemabschnitt (activeGroup, von showGroup
+    // gepflegt) wieder sichtbar machen. Kein eigener Knopf noetig — der
+    // Viewer ruft diesen Rueckruf bereits mit i=null bei Klick auf freie
+    // Buehnenflaeche UND bei setFilter(), wenn der gewaehlte Marker aus der
+    // sichtbaren Gruppe faellt (holo-viewer.js showGroup()/setFilter()).
+    var showGroupState = function () {
+      if (!activeGroup) return;
+      for (var gi = 0; gi < sysEls.length; gi++) {
+        sysEls[gi].hidden = sysEls[gi].getAttribute('data-g') !== activeGroup;
+      }
+    };
     showPanel = function (i) {
       if (i == null || !cfg.ports[i]) {
         panel.hidden = true;
+        showGroupState();
         if (viewer) viewer.select(null);
         return;
       }
@@ -2611,6 +2647,9 @@ span.sd__ref{color:var(--muted)}
       var noteTxt = p.np ? panel.getAttribute('data-np') : (p.est ? panel.getAttribute('data-est') : '');
       note.textContent = noteTxt;
       note.hidden = !noteTxt;
+      // Einzel-Zustand: der Gruppen-Zustand tritt zurueck (Detailvertrag
+      // Punkt 4b) — alle Systemabschnitte verstecken, nur die Karte zeigen.
+      for (var hi = 0; hi < sysEls.length; hi++) sysEls[hi].hidden = true;
       panel.hidden = false;
       if (viewer) viewer.select(i);
     };
