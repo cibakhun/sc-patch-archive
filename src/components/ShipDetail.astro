@@ -509,7 +509,39 @@ a{color:inherit;text-decoration:none}
    .holo__wrap (die Buehne selbst, unten). Bleiben sie hier, schneidet
    .holo die neuen Abschnitte ab. */
 .holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
-  border-bottom:1px solid var(--line)}
+  border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:220px 1fr 320px}
+/* 15-04-PLAN.md Task 1, SCHRITT 1 (15-UI-SPEC.md Detailvertrag Punkt 1):
+   drei feste Grid-Spalten, Breiten UND Bruchkanten UNVERAENDERT aus dem
+   UI-SPEC uebernommen (220px/320px/1100px/760px). Explizite Platzierung
+   statt Dokumentreihenfolge, weil die Rail (nav.holo__rail) im Markup NACH
+   der Buehne (.holo__wrap) steht -- D-02 verlangt genau diese
+   Lesereihenfolge fuer den No-JS-Fall (erst das Schiff, dann die
+   Sprungliste) -- aber optisch LINKS von ihr stehen muss.
+   .holo__sys-Abschnitte (No-JS-Restbestand: bleiben Kind von .holo, bis ein
+   Skript sie in die Auslesung verschiebt) spannen die volle Breite und
+   stapeln sich als eigene Zeilen darunter, unabhaengig von der Spaltenzahl. */
+.holo__rail{grid-column:1;grid-row:1;min-width:0}
+.holo__wrap{grid-column:2;grid-row:1;min-width:0}
+.holo__readout{grid-column:3;grid-row:1;min-width:0}
+.holo__sys{grid-column:1/-1}
+@media(max-width:1099px){
+  .holo{grid-template-columns:220px 1fr}
+  .holo__readout{grid-column:1/-1}
+}
+@media(max-width:760px){
+  /* 760px, nicht 759px: dieselbe Bruchkante, die .holo__wrap/.holo__bar in
+     diesem Bauteil bereits an mehreren Stellen benutzen (Zeilen siehe
+     UI-SPEC-Fundstelle) — der UI-SPEC-Beispielcode schrieb 759px, um keine
+     Ueberschneidung mit einer min-width:760px-Query zu riskieren, aber
+     dieser Vertrag hat keine solche Query; 760px haelt die Bruchkante mit
+     dem Rest der Datei konsistent (sonst gaebe es bei GENAU 760px eine
+     Ein-Pixel-Luecke zwischen zwei sich widersprechenden Regelsaetzen). */
+  .holo{grid-template-columns:1fr}
+  .holo__wrap{grid-column:1;grid-row:1}
+  .holo__rail{grid-column:1;grid-row:2}
+  .holo__readout{grid-column:1;grid-row:3}
+}
 .holo__grid{position:absolute;left:-24%;right:-24%;bottom:-4%;height:56%;pointer-events:none;
   transform:perspective(760px) rotateX(63deg);transform-origin:50% 100%;
   background:
@@ -599,17 +631,24 @@ a{color:inherit;text-decoration:none}
 /* ===== Rail — reine Anker-Liste, ersetzt den schwebenden Ebenen-Kasten =====
    SCHRITT 3 (15-03-PLAN.md Task 1): funktioniert vollstaendig ohne Skript,
    exakt das Muster von .sd__jump (Kapitel-Sprungleiste, Phase 14) — bare
-   <a>, Styling ausschliesslich ueber den Nachfahren-Selektor. Kein Grid in
-   dieser Welle (15-UI-SPEC.md Detailvertrag Punkt 1 ist Welle 4): normaler
-   Dokumentfluss unter der Buehne. Farbzuordnung je Gruppe (--gc) UNVERAENDERT
-   aus dem fruehereren .holo__layer[data-g] uebernommen — keine neue Farbe. */
-.holo__rail{position:relative;z-index:3;display:flex;flex-wrap:wrap;gap:.5rem;
-  padding:.9rem clamp(1rem,3vw,2.5rem);background:var(--bg-2);border-bottom:1px solid var(--line)}
+   <a>, Styling ausschliesslich ueber den Nachfahren-Selektor. Farbzuordnung
+   je Gruppe (--gc) UNVERAENDERT aus dem fruehereren .holo__layer[data-g]
+   uebernommen — keine neue Farbe.
+   Seit 15-04-PLAN.md Task 1 ist .holo__rail die erste Grid-Spalte (220px,
+   siehe .holo-Basisregel oben) — flex-direction:column macht daraus
+   verlaesslich eine SENKRECHTE Liste (bei nur vier kurzen Labels wuerde
+   flex-wrap allein zwar meist ebenfalls umbrechen, aber nicht garantiert).
+   Bei <=760px (D-03) wird daraus wieder eine WAAGERECHTE Chip-Reihe unter
+   der Buehne — siehe Medienabfrage weiter unten, die flex-direction
+   zurueck auf row stellt. */
+.holo__rail{position:relative;z-index:3;display:flex;flex-direction:column;flex-wrap:wrap;gap:.5rem;
+  padding:.9rem .8rem;background:var(--bg-2);border-right:1px solid var(--line)}
 .holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.5rem;
   border:1px solid var(--line);background:var(--surface);padding:.4rem .7rem;
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--muted);
   transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
 .holo__rail a:hover,.holo__rail a:focus-visible{color:var(--text);border-color:var(--gc)}
+.holo__rail a[aria-current="true"]{color:var(--text);border-color:var(--gc);background:color-mix(in srgb,var(--gc) 12%,var(--surface))}
 .holo__rail a[data-g="arms"]{--gc:var(--gold)}
 .holo__rail a[data-g="prop"]{--gc:var(--accent-2)}
 .holo__rail a[data-g="other"]{--gc:#a78bfa}
@@ -734,9 +773,13 @@ a{color:inherit;text-decoration:none}
 /* ===== Systemabschnitte — SCHRITT 2, 15-03-PLAN.md Task 1 (D-02) =====
    Grundzustand OHNE Skript: gestapelte, sichtbare <section>-Elemente in
    Dokumentreihenfolge unter der Rail, kein Versteck-Attribut, keine
-   Vorlagenhuelle (15-UI-SPEC.md Detailvertrag Punkt 6.1). Kein Grid in
-   dieser Welle (Detailvertrag Punkt 1 ist Welle 4). Farbzuordnung je Gruppe
-   (--gc) UNVERAENDERT aus .holo__panel/.holo__layer uebernommen. */
+   Vorlagenhuelle (15-UI-SPEC.md Detailvertrag Punkt 6.1). Farbzuordnung je
+   Gruppe (--gc) UNVERAENDERT aus .holo__panel/.holo__layer uebernommen.
+   Seit 15-04-PLAN.md Task 1 (SCHRITT 1) traegt .holo__sys zusaetzlich
+   grid-column:1/-1 (siehe .holo-Basisregel oben) -- das betrifft nur den
+   No-JS-Restbestand (direktes Kind von .holo); sobald ein Skript die
+   Abschnitte in .holo__readout verschiebt, gilt dort die schmalere,
+   scoped Innenraster-Regel weiter unten. */
 .holo__sys{--gc:var(--accent);position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;
   padding:1.3rem clamp(1rem,3vw,2.5rem) 1.6rem;border-top:1px solid var(--line)}
 .holo__sys[data-g="arms"]{--gc:var(--gold)}
@@ -753,6 +796,34 @@ a{color:inherit;text-decoration:none}
   background:var(--bg-2);border:1px solid var(--line)}
 .holo__sys-row b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--gc);font-variant-numeric:tabular-nums}
 .holo__sys-row span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+
+/* ===== Auslesung (.holo__readout) — dritte Grid-Spalte, 15-04-PLAN.md
+   Task 1 (15-UI-SPEC.md Detailvertrag Punkt 1/4) =====
+   Im ausgelieferten HTML LEER (aria-label traegt den neuen Schluessel
+   ship.console.readout.aria); ihren Inhalt bekommt sie ausschliesslich
+   durchs Umhaengen im Skriptpfad (SCHRITT 2 unten, appendChild statt
+   Kopie). Hoehe/Beschnitt spiegeln .holo__wrap, damit die Auslesung nicht
+   die Grid-Zeile aufblaeht, wenn ihr Inhalt (dichteste Gruppe, z.B.
+   Carrack-Bewaffnung) hoeher waere als die Buehne -- ob das je eintritt,
+   misst Task 3 (Backstop "overflow E4"); die Absicherung steht defensiv
+   bereits hier. */
+.holo__readout{max-height:clamp(540px,74vh,760px);overflow-y:auto;scrollbar-gutter:stable}
+@media(max-width:900px){.holo__readout{max-height:clamp(430px,62vh,620px)}}
+@media(max-width:760px){.holo__readout{max-height:clamp(400px,58vh,560px)}}
+/* Phase-14-Lektion (14-04-SUMMARY.md Deviation 2/3) auf die neue, noch
+   schmalere ~272px-Nutzbreite (320px Spalte minus Innenabstand)
+   uebertragen: Innenraster mit automatischer Spaltenzahl brechen dort in
+   mehr Zeilen um und werden dadurch HOEHER statt kuerzer; zusammengesetzte
+   Woerter koennen ueber die Zellgrenze laufen. Werte kleiner als die
+   14-04-Werte (dort ~469px Spaltenbreite) -- am Bildschirmfoto
+   gegengeprueft (15-04-SUMMARY.md). */
+.holo__readout .arm__sum{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.holo__readout .arm__scell span,
+.holo__readout .sd__slot .n,
+.holo__readout .arm__name{hyphens:auto;overflow-wrap:break-word}
+.holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
+
 /* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
    Koerper (arm__sum/arm__list bzw. sd__slots) aus dem Kapitel-Umzug
    UNVERAENDERT -- keine eigene Farbregel noetig: .holo traegt
@@ -832,9 +903,18 @@ a{color:inherit;text-decoration:none}
   /* Rail (15-03-PLAN.md Task 1, SCHRITT 3): kein eingeklappter Zustand mehr
      -- bei hoechstens vier Eintraegen in einer eigenen Zeile ist nichts
      mehr einzuklappen, der gesparte Platz war nur noetig, solange die Rail
-     ueber dem Modell SCHWEBTE. Kompaktere Chips reichen. */
-  .holo__rail{padding:.6rem clamp(.7rem,3vw,1.2rem);gap:.4rem}
-  .holo__rail a{padding:.32rem .55rem;font-size:var(--fs-4)}
+     ueber dem Modell SCHWEBTE. Kompaktere Chips reichen.
+     15-04-PLAN.md Task 1/3 (D-03): unter der Buehne wird die Rail wieder
+     eine WAAGERECHTE Chip-Reihe -- flex-direction zurueck auf row (die
+     Basisregel oben macht sie fuer die Spalten-Breiten column), kein
+     Umbruch (nowrap) plus eigener waagerechter Bildlauf, falls vier Chips
+     nicht nebeneinander passen (D-05 macht die Buehne hier hochformatig,
+     das kostet Rail-Breite nicht mehr, sie stand ohnehin schon unter der
+     vollen Buehnenbreite). Ob der Bildlauf-Kasten die
+     Sechs-Stellen-Ausnahmeliste braucht, misst Task 3. */
+  .holo__rail{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;border-right:0;border-top:1px solid var(--line);
+    padding:.6rem clamp(.7rem,3vw,1.2rem);gap:.4rem}
+  .holo__rail a{padding:.32rem .55rem;font-size:var(--fs-4);flex:none}
   .holo__rail-ic{width:14px;height:14px}
   .holo__ship{inset:0}
 }
@@ -1426,22 +1506,38 @@ span.sd__ref{color:var(--muted)}
       )}
     </div>
 
-    {/* ===== Rail — SCHRITT 3, reine Anker-Liste, funktioniert ohne Skript.
-        Ersetzt den frueheren schwebenden Ebenen-Kasten; steht jetzt in
-        Dokumentreihenfolge NACH der Buehne (kein Grid in dieser Welle,
-        15-UI-SPEC.md Detailvertrag Punkt 1 ist Welle 4). Bedingung wie
-        frueher am alten Kasten "mindestens eine Gruppe" statt "mehr als
-        eine" -- der eingeklappte Zustand entfaellt ersatzlos (SCHRITT 3). */}
+    {/* ===== Rail — reine Anker-Liste, funktioniert ohne Skript.
+        Ersetzt den frueheren schwebenden Ebenen-Kasten; steht in
+        Dokumentreihenfolge NACH der Buehne (D-02 verlangt "erst das Schiff,
+        dann die Liste" ohne Skript), optisch aber die erste Grid-Spalte
+        (15-04-PLAN.md Task 1, SCHRITT 1). Bedingung wie frueher am alten
+        Kasten "mindestens eine Gruppe" statt "mehr als eine" -- der
+        eingeklappte Zustand entfaellt ersatzlos (15-03-PLAN.md SCHRITT 3).
+        aria-current serverseitig auf dem ERSTEN Eintrag (Detailvertrag
+        Punkt 2, Vorbelegung ohne Klick) -- das Skript unten haelt es beim
+        Umschalten synchron; Punkt 6 des Vertrags gewinnt gegen den
+        aelteren aria-pressed-Wortlaut (siehe Planungsnotizen). */}
     {holoData && holoData.groups.length > 0 && (
       <nav class="holo__rail" id="holorail" aria-label={t('ship.console.rail.aria')}>
-        {holoData.groups.map((gr) => (
-          <a href={`#sys-${gr}`} data-g={gr}>
+        {holoData.groups.map((gr, i) => (
+          <a href={`#sys-${gr}`} data-g={gr} aria-current={i === 0 ? 'true' : undefined}>
             <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={HOLO_GRP_ICON[gr]} /></svg>
             <span class="holo__rail-lb">{t(`holo.grp.${gr}` as any)}</span>
             <span class="holo__rail-ct">{sysPortCount(gr)}</span>
           </a>
         ))}
       </nav>
+    )}
+
+    {/* ===== Auslesung — SCHRITT 1/2, 15-04-PLAN.md Task 1 (15-UI-SPEC.md
+        Detailvertrag Punkt 1/4): dritte Grid-Spalte, im ausgelieferten HTML
+        LEER. Ihren Inhalt bekommt sie AUSSCHLIESSLICH durchs Umhaengen im
+        Skriptpfad (appendChild, keine Kopie) -- ohne Skript bleibt sie leer
+        und unsichtbar, der gestapelte No-JS-Zustand aus Welle 3 bleibt
+        dadurch unveraendert (die Systemabschnitte stehen weiterhin direkt
+        in .holo, siehe unten). */}
+    {holoData && holoData.groups.length > 0 && (
+      <div class="holo__readout" id="holoreadout" aria-label={t('ship.console.readout.aria')}></div>
     )}
 
     {/* ===== Systemabschnitte — SCHRITT 2 + 4, D-02: JEDES vorhandene System
@@ -1558,6 +1654,16 @@ span.sd__ref{color:var(--muted)}
       </section>
     ))}
   </section>
+  {holoData && holoData.groups.length > 0 && (
+    /* 15-04-PLAN.md Task 1, SCHRITT 2 (15-UI-SPEC.md Detailvertrag Punkt
+       6.3, "kein Flackern"): setzt die Klasse has-console UNMITTELBAR nach
+       dem Konsolen-Markup, synchron waehrend der Parser noch hier steht --
+       nicht am Dokumentende, wo der Browser die gestapelte No-JS-Liste
+       schon gezeichnet haette. Die Klasse allein aendert nichts (das Grid
+       steht bereits fest, siehe .holo-Basisregel); sie ist nur das Signal
+       fuers Hauptskript weiter unten, dass es jetzt sicher umhaengen darf. */
+    <script is:inline>document.getElementById('holo')?.classList.add('has-console');</script>
+  )}
   {(holoData || holoUrl) && (
     <script
       type="application/json"
@@ -2426,6 +2532,49 @@ span.sd__ref{color:var(--muted)}
     // Besucher sieht. Eigene Adressmarke, keine Geometrie.
     var metricsMode = /[?&]holometrics/.test(location.search);
 
+    // ---------- Konsole: Rail-Einfachauswahl + Umhaengen ohne Dopplung
+    // (15-04-PLAN.md Task 1, SCHRITT 2/3) ----------
+    var railEl = document.getElementById('holorail');
+    var readoutEl = document.getElementById('holoreadout');
+    var sysEls = [].slice.call(document.querySelectorAll('.holo__sys'));
+    var activeGroup = (cfg.groups && cfg.groups[0]) || null;
+    var showGroup = null;
+    if (railEl && readoutEl && sysEls.length) {
+      // VERSCHIEBEN, nicht kopieren: appendChild entfernt den Knoten aus
+      // seiner alten Position (Kind von .holo) und haengt ihn an die neue
+      // (Kind von .holo__readout) — derselbe Knoten, kein zweiter im DOM.
+      // Kein Bauteiltext steht danach zweimal (Detailvertrag Punkt 6.2).
+      for (var si = 0; si < sysEls.length; si++) readoutEl.appendChild(sysEls[si]);
+      showGroup = function (gr) {
+        activeGroup = gr;
+        for (var i = 0; i < sysEls.length; i++) {
+          sysEls[i].hidden = sysEls[i].getAttribute('data-g') !== gr;
+        }
+        var links = railEl.querySelectorAll('a');
+        for (var j = 0; j < links.length; j++) {
+          if (links[j].getAttribute('data-g') === gr) links[j].setAttribute('aria-current', 'true');
+          else links[j].removeAttribute('aria-current');
+        }
+        // Genau EIN Gruppenname (15-UI-SPEC.md Detailvertrag Punkt 3.1) —
+        // die Buehne zeigt danach nie mehr als eine Gruppe gleichzeitig.
+        // viewer kann noch null sein (D-04: laedt erst beim Scrollen);
+        // start() unten holt die aktuelle Auswahl nach, sobald es soweit ist.
+        if (viewer) viewer.setFilter([gr]);
+      };
+      railEl.addEventListener('click', function (ev) {
+        var a = ev.target.closest ? ev.target.closest('a[data-g]') : null;
+        if (!a) return;
+        ev.preventDefault();
+        var gr = a.getAttribute('data-g');
+        if (gr !== activeGroup) showGroup(gr);
+      });
+      // Vorbelegung (Detailvertrag Punkt 2) ist bereits serverseitig
+      // sichtbar (erstes System ungefiltert, Rail-Eintrag traegt schon
+      // aria-current="true") — hier nur den JS-Zustand synchron dazu setzen,
+      // damit ein spaeterer Klick auf denselben Eintrag korrekt no-opt.
+      if (activeGroup) showGroup(activeGroup);
+    }
+
     var row = function (id, val) {
       var r = document.getElementById(id + 'row'), d = document.getElementById(id);
       if (!r || !d) return;
@@ -2486,6 +2635,13 @@ span.sd__ref{color:var(--muted)}
           status.textContent = '';
           stage.classList.remove('is-loading');
           showHolo();
+          // Konsole (15-04-PLAN.md Task 1): initHolo() selbst kennt nur den
+          // server-berechneten cfg.defaultOn (Mehrfachauswahl, alter Stand).
+          // Die Rail kann laengst umgeschaltet haben, waehrend der Viewer
+          // noch lud (D-04 laedt erst beim Scrollen) — hier den tatsaechlich
+          // aktiven Rail-Stand nachholen, damit die Buehne von Anfang an nur
+          // GENAU eine Gruppe zeigt, nie die alte Mehrfachauswahl.
+          if (activeGroup) viewer.setFilter([activeGroup]);
           // Mobil: die Beschriftungsschicht bleibt AN (Kurskorrektur, 15-01-
           // PLAN.md Task 2 — der vorherige Kommentar an dieser Stelle wollte
           // sie per setLabels(false) ganz abschalten, mit der Begruendung,
