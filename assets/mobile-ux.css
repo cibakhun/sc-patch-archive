@@ -490,8 +490,7 @@ summary:active {
 .md__tblWrap,
 .pj-tblscroll,
 .uif-table-wrapper,
-.sd__paints,
-.sd__jump__in {
+.sd__paints {
   scrollbar-width: thin !important;
   scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
   background-image: linear-gradient(
@@ -508,8 +507,7 @@ summary:active {
 .md__tblWrap::-webkit-scrollbar,
 .pj-tblscroll::-webkit-scrollbar,
 .uif-table-wrapper::-webkit-scrollbar,
-.sd__paints::-webkit-scrollbar,
-.sd__jump__in::-webkit-scrollbar {
+.sd__paints::-webkit-scrollbar {
   display: block !important;
   height: 8px !important;
   background: transparent !important;
@@ -518,8 +516,7 @@ summary:active {
 .md__tblWrap::-webkit-scrollbar-thumb,
 .pj-tblscroll::-webkit-scrollbar-thumb,
 .uif-table-wrapper::-webkit-scrollbar-thumb,
-.sd__paints::-webkit-scrollbar-thumb,
-.sd__jump__in::-webkit-scrollbar-thumb {
+.sd__paints::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--accent) 55%, transparent);
   border-radius: 999px;
 }
