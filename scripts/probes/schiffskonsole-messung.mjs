@@ -39,6 +39,18 @@
      Vorbedingung: erst die Markerdichte festlegen, dann am Bildpunkt
      messen, ob sie bei dieser Dichte noch gefunden wird).
 
+   15-03-PLAN.md Task 2 ergaenzt zwei weitere Messgruppen:
+     k-textbestand-danach (Familie A, kein Browser) — derselbe
+     visibleText()-Textbestand wie Messgruppe c, dem in Welle 1/2
+     protokollierten Ausgangswert (VOR Welle 3) gegenuebergestellt.
+     j-ohne-javascript (Familie B, Browser mit ABGESCHALTETEM JavaScript,
+     `newContext({ javaScriptEnabled: false })`) — belegt D-02 am
+     gebauten Artefakt: sichtbare Systemabschnitte, ihre Hoehe und ihr
+     Text, die Rail-Anker und ob der Anker-Sprung wirklich zum Abschnitt
+     fuehrt. Gegenprobe im selben Lauf MIT JavaScript (dieselbe Zahl
+     sichtbarer Abschnitte erwartet — in dieser Welle wird noch nichts
+     versteckt).
+
    Aufruf, jeweils aus dem Projektwurzelverzeichnis:
 
      node scripts/probes/schiffskonsole-messung.mjs --census
@@ -407,6 +419,38 @@ async function runCensus() {
         : '')
   );
 
+  /* ---------- Messgruppe k-textbestand-danach (15-03-PLAN.md Task 2) ----------
+     Derselbe visibleText()-Textbestand wie Messgruppe c, hier dem in Welle 1
+     (Carrack, Task-1-Commit 7bb10df, 15-01-SUMMARY.md Issues Encountered:
+     4.971 Bytes) UND Welle 2 (min/median/max ueber alle 454 Seiten, Messlauf
+     20.08.2026 gegen den nach Welle 1 gebauten dist/, 15-02-PLAN.md Task 1 /
+     scripts/verify-shipconsole.mjs TEXTBESTAND_KLINKE-Anlasstext) PROTOKOLLIERTEN
+     Ausgangswert gegenuebergestellt — beide VOR den Welle-3-Aenderungen dieser
+     Sitzung gemessen. Soll: kein Wert kleiner geworden; erwartet ein leichter
+     Anstieg (prop/other erstmals ausgeschrieben). */
+  console.log(`\n--- Messgruppe k-textbestand-danach ---`);
+  const VORHER = { min: 3177, median: 4652, max: 5391, carrackDe: 4971 };
+  const nachherCarrackDe = carrackDeText?.bytes ?? null;
+  const diff = (vor, nach) => {
+    const d = nach - vor;
+    return `${nach} (${d >= 0 ? '+' : ''}${d} Bytes, ${((d / vor) * 100).toFixed(1)}%)`;
+  };
+  console.log(`  Vorher (Welle 1/2, VOR Welle 3): min=${VORHER.min} median=${VORHER.median} max=${VORHER.max} Carrack-DE=${VORHER.carrackDe}`);
+  console.log(`  Nachher (dieser Lauf):           min=${diff(VORHER.min, alleBytes[0])} median=${diff(VORHER.median, medianBytes)} max=${diff(VORHER.max, alleBytes[alleBytes.length - 1])}` +
+    (nachherCarrackDe != null ? ` Carrack-DE=${diff(VORHER.carrackDe, nachherCarrackDe)}` : ' Carrack-DE=(nicht gefunden)'));
+  const kFehlschlaege = [];
+  if (alleBytes[0] < VORHER.min) kFehlschlaege.push(`Minimum gesunken: ${VORHER.min} -> ${alleBytes[0]}`);
+  if (medianBytes < VORHER.median) kFehlschlaege.push(`Median gesunken: ${VORHER.median} -> ${medianBytes}`);
+  if (alleBytes[alleBytes.length - 1] < VORHER.max) kFehlschlaege.push(`Maximum gesunken: ${VORHER.max} -> ${alleBytes[alleBytes.length - 1]}`);
+  if (nachherCarrackDe != null && nachherCarrackDe < VORHER.carrackDe) kFehlschlaege.push(`Carrack DE gesunken: ${VORHER.carrackDe} -> ${nachherCarrackDe}`);
+  melde(
+    'k-textbestand-danach',
+    kFehlschlaege.length === 0,
+    kFehlschlaege.length === 0
+      ? `Soll: kein Wert kleiner geworden; Ist: alle vier Werte gleich oder groesser (min/median/max/Carrack-DE)`
+      : `Soll: kein Wert kleiner geworden; Ist ${kFehlschlaege.length} Verstoss/Verstoesse — ${kFehlschlaege.join(' | ')}`
+  );
+
   /* ---------- Selbstauskunft ---------- */
   console.log(`\n=== Selbstauskunft Familie A ===`);
   console.log(`  gefahrene Messpunkte: ${gemessen}  bestanden: ${gemessen - fehlgeschlagen}  fehlgeschlagen: ${fehlgeschlagen}`);
@@ -470,6 +514,11 @@ const SPRACHEN = [
    .holo-Breite, nicht durch Rail/Auslesung eingeengt. */
 const BUEHNENBREITE_TABELLE = { 1440: 900, 1280: 740, 1100: 560, 414: 378, 360: 324 };
 const ANSICHTSBREITEN = [1440, 1280, 1100, 860, 414, 360];
+/* Messgruppe j-ohne-javascript (15-03-PLAN.md Task 2, D-02) braucht keine
+   Fuellgrad-Feinabstufung wie Messgruppe d — zwei Bruecken reichen, um den
+   Grundzustand (Desktop) UND das engste gepruefte Layout (D-03-Bereich)
+   abzudecken. */
+const PRUEFBREITEN_J = [1280, 360];
 
 async function pruefschiffeErmitteln(quellen, gewaehlteVariante) {
   const bypass = VARIANTEN[gewaehlteVariante ?? 'C'].bypass;
@@ -651,6 +700,134 @@ async function runBrowserMessung() {
       }
     }
   }
+
+  /* ============================================================
+     Messgruppe j-ohne-javascript (15-03-PLAN.md Task 2, D-02) — gegen das
+     GEBAUTE Artefakt, mit ABGESCHALTETEM JavaScript im Browser, nicht durch
+     Lesen des Codes. Kopfzeile druckt ausdruecklich, dass der Kontext ohne
+     Skript lief (Erfolgskriterium/Abnahme dieser Welle). ============================================================ */
+  console.log(`\n=== Messgruppe j-ohne-javascript: Kontext OHNE JavaScript (newContext({ javaScriptEnabled:false })) ===`);
+  let jSpruengeGeprueft = 0, jSpruengeFehlgeschlagen = 0;
+  for (const ziel of ZIELE) {
+    for (const sprache of SPRACHEN) {
+      for (const breite of PRUEFBREITEN_J) {
+        const lauf = `${ziel.id}/${sprache.id}/${breite}/ohne-js`;
+        const url = `${BASE}${sprache.pfad(ziel.id)}`;
+        const sollAbschnitte = ziel.gruppen.length;
+
+        // ---- ohne JavaScript ----
+        const kontextOhne = await b.newContext({ viewport: { width: breite, height: 900 }, javaScriptEnabled: false });
+        const pageOhne = await kontextOhne.newPage();
+        let messungOhne = null;
+        try {
+          await pageOhne.goto(url, { waitUntil: 'load' });
+          messungOhne = await pageOhne.evaluate(() => {
+            const sys = Array.from(document.querySelectorAll('.holo__sys'));
+            const sichtbar = sys.filter((el) => getComputedStyle(el).display !== 'none' && !el.hasAttribute('hidden'));
+            const abschnitte = sichtbar.map((el) => ({
+              id: el.id,
+              hoehe: el.getBoundingClientRect().height,
+              text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+            }));
+            const anker = Array.from(document.querySelectorAll('.holo__rail a')).map((a) => a.getAttribute('href') || '');
+            const ankerZiele = anker.map((h) => h.replace(/^#/, ''));
+            const vorhandeneIds = new Set(sys.map((el) => el.id));
+            const ankerOk = ankerZiele.every((z) => vorhandeneIds.has(z));
+            const ueberlauf = document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
+            return { abschnitteGesamt: sys.length, abschnitteSichtbar: sichtbar.length, abschnitte, ankerZahl: anker.length, ankerOk, ueberlauf };
+          });
+        } catch (e) {
+          melde('j-ohne-javascript', false, `[${lauf}] Seitenaufruf fehlgeschlagen: ${e.message}`);
+          await pageOhne.close(); await kontextOhne.close();
+          continue;
+        }
+
+        const leererText = messungOhne.abschnitte.find((a) => a.text.length === 0);
+        const nullHoehe = messungOhne.abschnitte.find((a) => a.hoehe <= 0);
+        melde(
+          'j-ohne-javascript',
+          messungOhne.abschnitteSichtbar === sollAbschnitte && !leererText && !nullHoehe && messungOhne.ankerOk && !messungOhne.ueberlauf,
+          `[${lauf}] Soll ${sollAbschnitte} sichtbare .holo__sys (Rail-Laenge), jede Hoehe>0, kein leerer Text, jeder Rail-Anker auf vorhandene id, kein waagerechter Ueberlauf; ` +
+            `Ist ${messungOhne.abschnitteSichtbar} sichtbar (${messungOhne.abschnitteGesamt} gesamt), ` +
+            `Hoehen [${messungOhne.abschnitte.map((a) => a.hoehe.toFixed(0)).join(',')}]px, ` +
+            `leerer Text: ${leererText ? leererText.id : 'keiner'}, ` +
+            `${messungOhne.ankerZahl} Rail-Anker (alle auf vorhandene id: ${messungOhne.ankerOk}), ` +
+            `waagerechter Ueberlauf: ${messungOhne.ueberlauf}`
+        );
+
+        // Anker-Sprung: pruefen, ob der Zielabschnitt nach dem Sprung
+        // wirklich am oberen Rand des sichtbaren Bereichs steht. NICHT per
+        // locator.click() (das loest Playwrights eigene Scroll-in-View- und
+        // Stabilitaets-Wartelogik aus, die mit dem site-weiten CSS
+        // `scroll-behavior:smooth` in Konflikt geraet — wiederholtes
+        // Nachjustieren liess einzelne Klicks bis zum 30s-Timeout haengen,
+        // ein Mess-Artefakt der Automatisierung, kein Befund am Produkt).
+        // Stattdessen: dieselbe Navigation, die ein Klick ausloest
+        // (location.hash setzen — funktioniert auch ohne Seiten-JavaScript,
+        // Playwrights evaluate() laeuft ueber CDP unabhaengig vom
+        // javaScriptEnabled-Schalter der Seite selbst, siehe die
+        // .holo__sys-Messung oben, die genauso funktioniert), danach auf
+        // Scroll-Stillstand pollen statt eine feste Wartezeit zu raten.
+        const ankerZiele = await pageOhne.evaluate(() =>
+          Array.from(document.querySelectorAll('.holo__rail a')).map((a) => (a.getAttribute('href') || '').replace(/^#/, ''))
+        );
+        for (const zielId of ankerZiele) {
+          jSpruengeGeprueft++;
+          try {
+            await pageOhne.evaluate((id) => { location.hash = id; }, zielId);
+            // Auf Scroll-Stillstand pollen (scroll-behavior:smooth ist CSS,
+            // keine feste Dauer garantiert) — max. 1,5s Budget.
+            let vorher = -1, stabil = false;
+            for (let tick = 0; tick < 15; tick++) {
+              await pageOhne.waitForTimeout(100);
+              const y = await pageOhne.evaluate(() => window.scrollY);
+              if (y === vorher) { stabil = true; break; }
+              vorher = y;
+            }
+            const top = await pageOhne.evaluate((id) => {
+              const el = document.getElementById(id);
+              return el ? el.getBoundingClientRect().top : null;
+            }, zielId);
+            // Grosszuegige Toleranz (300px): es geht um "der Sprung fuehrt
+            // tatsaechlich zum Abschnitt", nicht um pixelgenaues Andocken
+            // (das haengt von scroll-margin-top ab, hier nicht gesetzt).
+            if (top == null || top < -50 || top > 300) {
+              jSpruengeFehlgeschlagen++;
+              melde('j-ohne-javascript', false, `[${lauf}] Anker #${zielId}: Sprung fuehrte NICHT zum Abschnitt (top=${top}px, Scroll stabil: ${stabil})`);
+            }
+          } catch (e) {
+            jSpruengeFehlgeschlagen++;
+            melde('j-ohne-javascript', false, `[${lauf}] Anker-Sprung #${zielId} fehlgeschlagen: ${e.message}`);
+          }
+        }
+
+        await pageOhne.close(); await kontextOhne.close();
+
+        // ---- Gegenprobe MIT JavaScript (derselbe Aufruf) ----
+        const kontextMit = await b.newContext({ viewport: { width: breite, height: 900 } });
+        const pageMit = await kontextMit.newPage();
+        try {
+          await pageMit.goto(url, { waitUntil: 'domcontentloaded' });
+          const abschnitteMitJs = await pageMit.evaluate(() =>
+            Array.from(document.querySelectorAll('.holo__sys')).filter(
+              (el) => getComputedStyle(el).display !== 'none' && !el.hasAttribute('hidden')
+            ).length
+          );
+          melde(
+            'j-ohne-javascript-gegenprobe',
+            abschnitteMitJs === messungOhne.abschnitteSichtbar,
+            `[${lauf}] Gegenprobe MIT JavaScript: Soll dieselbe Zahl sichtbarer Abschnitte wie ohne (${messungOhne.abschnitteSichtbar}); Ist ${abschnitteMitJs} — ` +
+              `in dieser Welle wird noch nichts umgehaengt/versteckt, eine Abweichung waere ein Fund`
+          );
+        } catch (e) {
+          melde('j-ohne-javascript-gegenprobe', false, `[${lauf}] Seitenaufruf (mit JS) fehlgeschlagen: ${e.message}`);
+        }
+        await pageMit.close(); await kontextMit.close();
+      }
+    }
+  }
+  console.log(`  Anker-Spruenge geprueft: ${jSpruengeGeprueft}  Fehlschlaege: ${jSpruengeFehlgeschlagen}`);
+
   await b.close();
 
   console.log(`\n=== Selbstauskunft Familie B ===`);
