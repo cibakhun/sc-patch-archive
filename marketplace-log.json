@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-20",
-  "updates": 353,
-  "totalListings": 7632,
-  "totalSold": 335,
+  "updates": 354,
+  "totalListings": 7645,
+  "totalSold": 336,
   "distinctItems": 1305
  },
  "listings": {
@@ -156947,9 +156947,9 @@
      "p": 15000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-20",
+   "soldOutPrice": 15000000,
    "dateAdded": 1787144561,
    "dateExpiration": 1792328561
   },
@@ -163085,6 +163085,279 @@
    "soldOutPrice": null,
    "dateAdded": 1787254901,
    "dateExpiration": 1792438901
+  },
+  "164508": {
+   "idItem": 47,
+   "idCategory": 32,
+   "title": "NDB-30 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787255817,
+   "dateExpiration": 1792439817
+  },
+  "164509": {
+   "idItem": 1915,
+   "idCategory": 32,
+   "title": "NDB-28 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787256244,
+   "dateExpiration": 1792440244
+  },
+  "164510": {
+   "idItem": 46,
+   "idCategory": 32,
+   "title": "NDB-26 Repeater",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787256674,
+   "dateExpiration": 1792440674
+  },
+  "164512": {
+   "idItem": 1613,
+   "idCategory": 32,
+   "title": "NN-13 Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787256886,
+   "dateExpiration": 1792440886
+  },
+  "164513": {
+   "idItem": 1614,
+   "idCategory": 32,
+   "title": "NN-14 Cannon",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787257135,
+   "dateExpiration": 1792441135
+  },
+  "164514": {
+   "idItem": null,
+   "idCategory": 87,
+   "title": "Aphorite 975Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787257275,
+   "dateExpiration": 1792441275
+  },
+  "164515": {
+   "idItem": null,
+   "idCategory": 87,
+   "title": "Hadanite 959Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787257376,
+   "dateExpiration": 1792441376
+  },
+  "164518": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787257670,
+   "dateExpiration": 1792441670
+  },
+  "164519": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787257802,
+   "dateExpiration": 1792441802
+  },
+  "164520": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Guardian QI Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787258033,
+   "dateExpiration": 1792442032
+  },
+  "164522": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787258171,
+   "dateExpiration": 1792442171
+  },
+  "164523": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787258385,
+   "dateExpiration": 1792442385
+  },
+  "164524": {
+   "idItem": 5992,
+   "idCategory": 36,
+   "title": "Tungsten Q858 0.517 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 858,
+   "firstSeen": "2026-08-20",
+   "lastSeen": "2026-08-20",
+   "prices": [
+    {
+     "d": "2026-08-20",
+     "p": 2700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787258481,
+   "dateExpiration": 1792442481
   }
  }
 }
