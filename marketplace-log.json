@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 366,
-  "totalListings": 7847,
+  "updates": 367,
+  "totalListings": 7850,
   "totalSold": 341,
   "distinctItems": 1323
  },
@@ -167732,6 +167732,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787305108,
    "dateExpiration": 1792489108
+  },
+  "164689": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787305593,
+   "dateExpiration": 1792489593
+  },
+  "164690": {
+   "idItem": 115,
+   "idCategory": 29,
+   "title": "Crafted Helix II Mining Laser 32.9% Laser Power increase (Patch 4.9)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787305960,
+   "dateExpiration": 1792489960
+  },
+  "164692": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787309028,
+   "dateExpiration": 1792493028
   }
  }
 }
