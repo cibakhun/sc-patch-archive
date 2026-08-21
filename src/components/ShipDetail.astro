@@ -2992,21 +2992,35 @@ span.sd__ref{color:var(--muted)}
         return c ? c.getBoundingClientRect().width >= 900 : window.innerWidth >= 900;
       })();
       if (panel && !karteImRaum) readoutEl.appendChild(panel);
-      /* Sperrflaechen fuer die Massszahl: was IM Raum liegt und nicht
+      /* Sperrflaechen fuer die Masskette: was IM Raum liegt und nicht
          ueberschrieben werden darf. Der Viewer kennt dieses Markup nicht — er
          bekommt die Elemente gereicht und rechnet sie je Bild selbst in
          Leinwandkoordinaten um (dieselbe Bauart wie setHindernis).
-         Gemessen am 21.08.: der Titelblock nimmt bei 1280 die Flaeche
-         45/414–351/682 ein, also die ganze untere linke Ecke; die Blende liegt
-         als Streifen ueber dem oberen Bildrand; der Leuchtfleck des Projektors
-         (534/632–1054/668) ist die hellste Stelle der Buehne, auf der eine
-         duenne Ziffer verschwindet. */
+         ⚠⚠ Gereicht wird die TINTE, nicht der Titelblock. `.holo__title` misst
+         bei 1280 die Flaeche 45/414–351/682 — die ganze untere linke Ecke, zu
+         drei Vierteln leer. Gegen diesen Klotz gemessen galt jede Kette als
+         getroffen (der Caterpillar meldete 479px "im Titelblock" bei tadellosem
+         Bild), und dem Ausweichen unten blieb kein freier Versatz uebrig. Die
+         einzelnen Stuecke lassen die Baender dazwischen frei: zwischen
+         Wortmarke und Chips liegen rund 23px, zwischen Chips und Merken-Knopf
+         rund 15px — genau der Spielraum, den die Kette braucht.
+         Registerpunkt id 42. */
       function massSperren() {
-        return [
-          document.querySelector('.holo__title'),
-          document.querySelector('.holo__rail'),
-          document.querySelector('.holo__pad'),
+        var sel = [
+          '.holo__title h1',
+          '.holo__title .sd__makerlogo', '.holo__title .sd__maker',
+          '.holo__chips',
+          '.holo__fav',
+          '.holo__src',
+          '.holo__rail',          // Blende, oben quer
+          '.holo__pad',           // Leuchtfleck des Projektors, unten mittig
         ];
+        var out = [];
+        for (var i = 0; i < sel.length; i++) {
+          var el = document.querySelector(sel[i]);
+          if (el) out.push(el);
+        }
+        return out;
       }
       showGroup = function (gr) {
         activeGroup = gr;

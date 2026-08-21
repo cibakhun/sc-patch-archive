@@ -669,18 +669,57 @@ export async function initHolo(container, cfg) {
      Wie beim Hindernis der Beschriftungen gilt: das ist Markup der SEITE, nicht
      des Viewers, und wird deshalb von aussen gesetzt (setMasskette). */
   let massSperrEls = [];
+  const _massRange = document.createRange();
+  /* ⚠⚠ Gemessen wird die TINTE, nicht der Kasten. Ein Range ueber den INHALT
+     liefert die Vereinigung der tatsaechlichen Inhaltsboxen: bei einer
+     Ueberschrift das enge Textrechteck statt der Spaltenbreite, bei einem
+     Behaelter den Knopf darin statt des Behaelters. Der Unterschied ist gross
+     und hat schon zweimal ein Fehlurteil erzeugt — `.holo__fav` misst 45..351,
+     der Knopf "MERKEN" darin nur 45..155; gegen den Behaelter gemessen galt die
+     Kette als getroffen, waehrend sie im Bild sichtbar daneben lag.
+     Rueckfall auf das Element selbst, wenn der Inhalt leer ist (der Leuchtfleck
+     ist ein leeres div — sein Range waere ein Nullrechteck und damit blind). */
   function massSperren() {
     const cr = renderer.domElement.getBoundingClientRect();
     const out = [];
     for (const el of massSperrEls) {
       if (!el || el.hidden) continue;
-      const r = el.getBoundingClientRect();
+      let r;
+      try {
+        _massRange.selectNodeContents(el);
+        r = _massRange.getBoundingClientRect();
+      } catch { r = null; }
+      if (!r || r.width <= 0 || r.height <= 0) r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) {
         out.push({ l: r.left - cr.left, r: r.right - cr.left, t: r.top - cr.top, b: r.bottom - cr.top });
       }
     }
     return out;
   }
+
+  /* Schneidet die STRECKE das Rechteck? (Liang-Barsky)
+     ⚠⚠ Nicht das umschliessende Rechteck der Strecke nehmen. Bei einer
+     Diagonale ist das grob falsch — genau dieser Kurzschluss hat am 21.08. ein
+     Fehlurteil erzeugt ("kreuzt den Titelblock", waehrend die Linie im Bild
+     sichtbar daneben lag). Eine Masskette ist fast immer schraeg. */
+  function streckeTrifft(ax, ay, bx, by, r) {
+    const px = bx - ax, py = by - ay;
+    let t0 = 0, t1 = 1;
+    const p = [-px, px, -py, py];
+    const q = [ax - r.l, r.r - ax, ay - r.t, r.b - ay];
+    for (let i = 0; i < 4; i++) {
+      if (p[i] === 0) { if (q[i] < 0) return false; continue; }
+      const t = q[i] / p[i];
+      if (p[i] < 0) { if (t > t1) return false; if (t > t0) t0 = t; }
+      else { if (t < t0) return false; if (t < t1) t1 = t; }
+    }
+    return t1 > t0;
+  }
+
+  /* Letzter Versatz je Kette, ueber Bilder gemerkt — die Kette zieht sanft zu
+     ihrem Ziel, statt zu springen. Dieselbe Idee wie bei den Beschriftungen
+     (layoutLabels haelt die Kastenmitte ueber Bilder und zieht sie nur nach). */
+  const _massAb = new Map();
 
   /* ⚠ Die Breite der Massszahl wird GEMESSEN, nicht geschaetzt. Vorher stand
      hier ein fester Rand von 56px als Platzhalter fuer "die Zahl passt schon";
@@ -773,14 +812,14 @@ export async function initHolo(container, cfg) {
        Zeichnung haelt. Vorher entschied der Abstand zur Bildmitte, und der
        kippte je nach Kamerastand: dieselbe Seite sah einmal so und einmal so
        aus, und die Laengenkette landete ueber dem Schiff in der Blende. */
-    const kette = (p1, p2, text, hin) => {
+    const kette = (p1, p2, text, hin, schluessel) => {
       const dx = p2.x - p1.x, dy = p2.y - p1.y;
       const len = Math.hypot(dx, dy) || 1;
       let nx = -dy / len, ny = dx / len;
       const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
       if (nx * hin[0] + ny * hin[1] < 0) { nx = -nx; ny = -ny; }
       /* Wunschversatz: knapp ausserhalb des Rumpfs. Stuetzfunktion ueber die
-         sechs projizierten Flaechenmitten, gemessen VON DER ACHSLINIE aus. */
+         projizierten Rumpfpunkte, gemessen VON DER ACHSLINIE aus. */
       let stuetz = 0;
       for (const e of stuetzPunkte) {
         const s = (e.x - mx) * nx + (e.y - my) * ny;
@@ -796,7 +835,42 @@ export async function initHolo(container, cfg) {
       /* Die Randklemmung gewinnt gegen den Wunsch — sonst schoebe der
          Mindestabstand von 26px die Kette wieder aus dem Bild. Nur der
          Vorzeichenwechsel wird verhindert (Boden 8px). */
-      const ab = Math.max(8, Math.min(Math.max(26, stuetz + 22), platz));
+      const boden = 8, decke = Math.max(boden, platz);
+      const soll = Math.max(boden, Math.min(Math.max(26, stuetz + 22), decke));
+
+      /* Ausweichen (Registerpunkt id 42): trifft die Kette samt Endmarken eine
+         Sperrflaeche, wird der VERSATZ um wenige Bildpunkte nachgefuehrt — die
+         Linie wird nicht verbogen und nicht gekuerzt, sie rueckt nur zur Seite.
+         Gesucht wird vom Wunschwert aus in Vierer-Schritten, nach AUSSEN zuerst
+         (weg vom Rumpf, wo mehr Platz ist). Die Hilfslinien bleiben aussen vor:
+         sie MUESSEN vom Rumpf zur Kette laufen, ein Ausweichen gibt es fuer sie
+         nicht — waeren sie Teil der Pruefung, faende die Suche nie ein freies
+         Ziel. */
+      const trifftSperre = (v) => {
+        const ax = p1.x + nx * v, ay = p1.y + ny * v;
+        const bx = p2.x + nx * v, by = p2.y + ny * v;
+        for (const s of sperren) {
+          if (streckeTrifft(ax, ay, bx, by, s)) return true;
+          if (streckeTrifft(ax - nx * tick, ay - ny * tick, ax + nx * tick, ay + ny * tick, s)) return true;
+          if (streckeTrifft(bx - nx * tick, by - ny * tick, bx + nx * tick, by + ny * tick, s)) return true;
+        }
+        return false;
+      };
+      let ziel = soll;
+      if (trifftSperre(ziel)) {
+        for (let versatz = 4; versatz <= 72; versatz += 4) {
+          if (soll + versatz <= decke && !trifftSperre(soll + versatz)) { ziel = soll + versatz; break; }
+          if (soll - versatz >= boden && !trifftSperre(soll - versatz)) { ziel = soll - versatz; break; }
+        }
+      }
+      /* Sanft nachziehen statt springen. Das Ziel haengt NUR an der Geometrie
+         (Rumpf, Kamera, Sperrflaechen), nicht am aktuellen Versatz — es gibt
+         also keine Rueckkopplung, die schwingen koennte; das Nachziehen
+         glaettet nur den Sprung beim Drehen. */
+      const vorher = _massAb.get(schluessel);
+      const ab = vorher == null ? ziel : vorher + Math.max(-9, Math.min(9, ziel - vorher));
+      _massAb.set(schluessel, ab);
+
       const a = { x: p1.x + nx * ab, y: p1.y + ny * ab };
       const b = { x: p2.x + nx * ab, y: p2.y + ny * ab };
 
@@ -835,9 +909,9 @@ export async function initHolo(container, cfg) {
     };
 
     const [l1, l2] = achsePunkte(_laengsAchse, w, h);
-    d += kette(l1, l2, masseWerte.laenge, [0, 1]);   // Laenge: unter den Rumpf
+    d += kette(l1, l2, masseWerte.laenge, [0, 1], 'laenge');   // Laenge: unter den Rumpf
     const [h1, h2] = achsePunkte('y', w, h);
-    d += kette(h1, h2, masseWerte.hoehe, [1, 0]);    // Hoehe: rechts daneben
+    d += kette(h1, h2, masseWerte.hoehe, [1, 0], 'hoehe');     // Hoehe: rechts daneben
     masseSvg.innerHTML = d;
   }
 
