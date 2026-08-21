@@ -1116,8 +1116,15 @@ a{color:inherit;text-decoration:none}
 /* prop/other: neue, aber strukturgleiche Stueckzahl-Liste (dieselbe Formel
    wie arm__scell, nur ohne dessen Bewaffnungs-spezifischen Klassennamen). */
 .holo__sys-list{display:flex;flex-wrap:wrap;gap:.5rem}
-.holo__sys-row{display:flex;align-items:baseline;gap:.45rem;padding:.5rem .75rem;
-  background:var(--bg-2);border:1px solid var(--line)}
+/* Dieselbe Handschrift wie .sd__slot (siehe dort) — Stueckzahl-Zeilen sind
+   kleiner, deshalb nur Grund und Lichtsaum, kein Eckwinkel: bei 32px Hoehe
+   waere er ein Fleck statt eines Zeichens. */
+.holo__sys-row{position:relative;display:flex;align-items:baseline;gap:.45rem;padding:.5rem .75rem;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gc,var(--accent)) 7%,var(--bg-2)) 0%,var(--bg-2) 70%)}
+.holo__sys-row::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gc,var(--accent)) 34%,transparent) 30%,transparent 80%);
+  pointer-events:none}
 .holo__sys-row b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--gc);font-variant-numeric:tabular-nums}
 .holo__sys-row span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
 
@@ -1412,7 +1419,14 @@ a{color:inherit;text-decoration:none}
 }
 
 /* Kennwerte-Leiste */
-.holo__bar{border-bottom:1px solid var(--line);background:var(--bg-2)}
+/* ⚠ Die Kennwerte-Leiste stand auf flachem var(--bg-2) und schnitt den Raum
+   damit hart ab: oben die Buehne mit ihrem Verlauf, dann ein fremdes Band,
+   dann die Auslesung. Jetzt traegt sie KEINEN eigenen Grund mehr, sondern nur
+   den Bodenschatten des Raums, der nach unten ausblendet — der Verlauf von
+   .holo laeuft darunter weiter, und die Naht verschwindet. Die Trennung
+   uebernimmt die Haarlinie, nicht die Flaeche. */
+.holo__bar{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--media-void) 58%,transparent) 0%,transparent 88%)}
 .holo__bar dl{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
   gap:0;padding:0 clamp(1rem,3vw,2.5rem)}
 .holo__bar .kv{padding:.85rem 1rem .9rem;border-left:1px solid var(--line)}
@@ -1471,24 +1485,42 @@ a{color:inherit;text-decoration:none}
 @media(max-width:640px){.sd__shoprow{grid-template-columns:1fr auto}.sd__shopwhere{grid-column:1 / -1;margin-top:-.2rem}}
 
 /* Leistungsprofil */
-.sd__prof{display:flex;flex-direction:column;gap:.65rem}
-.sd__profrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.9rem;align-items:center}
+/* ⚠⚠ DAS GITTER LIEGT AM CONTAINER, nicht an der Zeile. Vorher war jede
+   .sd__profrow ihr EIGENES Grid — dann koennen sich die Spalten zwischen den
+   Zeilen nicht ausrichten, und die auto-Spalte rechts wurde je Zeile so breit
+   wie ihr eigener Wert. Folge: verschieden lange Schienen (gemessen bei 1280:
+   Firepower endete bei 1540, Speed bei 1935) und damit BALKEN, DIE NICHT MEHR
+   VERGLEICHEN — Defense P88 endete vor Cargo P88. Genau das, wozu ein
+   Perzentilprofil da ist, war kaputt. Jetzt traegt .sd__prof das Gitter, die
+   Zeile ist per display:contents durchsichtig, und alle Schienen sind gleich
+   lang. */
+.sd__prof{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:.65rem .9rem;align-items:center}
+.sd__profrow{display:contents}
 .sd__proflabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
 .sd__proftrack{position:relative;height:10px;background:var(--veil-hi);border:1px solid var(--line);overflow:hidden}
-.sd__proftrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--veil-hi)}
+/* Median-Marke. ⚠ Sie stand auf var(--veil-hi) — derselben Farbe wie die
+   Schiene darunter — und war deshalb nur dort zu sehen, wo zufaellig die
+   Fuellung darunter lag. Die Hinweiszeile verspricht sie aber immer. */
+.sd__proftrack::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:color-mix(in srgb,var(--text) 32%,transparent)}
 .sd__proffill{height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,transparent),var(--accent))}
-.sd__profval{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
-.sd__profval i{font-style:normal;color:var(--muted);font-size:var(--fs-6);margin-left:.45rem}
-/* Drei Metriken zeigen keinen Rohwert mehr (14-UI-SPEC.md Detailvertrag
-   Punkt 6) — das Perzentil-Element ist dort das ERSTE (einzige) Kind von
-   .sd__profval; der fuer den Normalfall gedachte linke Abstand haenge sonst
-   ins Leere. */
-.sd__profval i:first-child{margin-left:0}
+/* flex + gap statt margin-left: der Abstand entsteht nur zwischen tatsaechlich
+   vorhandenen Kindern. Drei Metriken zeigen keinen Rohwert (14-UI-SPEC.md
+   Detailvertrag Punkt 6) — dort steht das Perzentil allein, ohne Vorsatz. */
+.sd__profval{display:inline-flex;align-items:baseline;gap:.45rem;justify-self:end;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
+.sd__profval i{font-style:normal;color:var(--muted);font-size:var(--fs-6)}
+.sd__profval b{font-weight:700}
 /* Mobil: Label + Wert in eine Zeile (Label links, Wert rechts), der Balken
    darunter über die volle Breite — so überlappt der Text NIE den Balken und
    längere EN-Labels haben Platz (keine feste, auf DE getunte Label-Spalte). */
 @media(max-width:640px){
-  .sd__profrow{grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
+  /* Hier traegt wieder die ZEILE das Gitter: zwei Zeilen je Metrik lassen sich
+     nicht als durchsichtige Zeile in ein gemeinsames Spaltenraster legen.
+     Gleich lange Schienen entstehen mobil ohnehin, weil sie die volle Breite
+     nehmen. */
+  .sd__prof{display:flex;flex-direction:column;gap:.65rem}
+  .sd__profrow{display:grid;grid-template-columns:1fr auto;column-gap:.8rem;row-gap:.3rem;align-items:baseline}
   .sd__proflabel{grid-column:1;grid-row:1}
   .sd__profval{grid-column:2;grid-row:1;justify-self:end;margin-top:0}
   .sd__proftrack{grid-column:1 / -1;grid-row:2;margin-top:.15rem}
@@ -1661,7 +1693,15 @@ span.sd__ref{color:var(--muted)}
 /* white-space:pre-line: vDesc() wandelt die woertlichen "\n"-Folgen der
    Spieltexte in echte Zeilenumbrueche (01.4-05, D-07) — ohne dieses Attribut
    wuerden Browser sie zu Leerzeichen zusammenfalten. */
-.sd__desc{max-width:78ch;margin:0 0 1.6rem;font-size:var(--fs-11);line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
+/* Der Beschreibungstext ist die Geschichte des Schiffs und stand als nackter
+   Absatz mitten auf der Seite — die einzige groessere Flaeche ohne jede Form.
+   Eine duenne Achse links gibt ihm ein Rueckgrat und bindet ihn an die
+   Akzentsprache des Raums, ohne ihn in einen Kasten zu sperren. Sie blendet
+   nach unten aus, damit sie nicht als Rahmenkante missverstanden wird. */
+.sd__desc{position:relative;max-width:78ch;margin:0 0 1.6rem;padding-left:1.15rem;
+  font-size:var(--fs-11);line-height:1.65;color:var(--text);opacity:.92;white-space:pre-line}
+.sd__desc::before{content:"";position:absolute;left:0;top:.4rem;bottom:.4rem;width:2px;
+  background:linear-gradient(180deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 10%,transparent) 100%)}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
 .sd__spine h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
@@ -1669,11 +1709,31 @@ span.sd__ref{color:var(--muted)}
 .sd__spine span{color:var(--muted);font-weight:600}
 
 .sd__simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem}
+/* ⚠ Mobil ergab minmax(200px) EINE Spalte — vier Karten mit 16:9-Bild sind
+   dann 1150px hoch (gemessen bei 390px), also ein Drittel der ganzen Seite
+   fuer ein Nebenmodul. Zwei Spalten halbieren das; 150px passen zweimal in
+   die 354px Inhaltsbreite. Der Name darf dabei zweizeilig werden. */
+@media(max-width:520px){
+  .sd__simgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+  .sd__sim .tx{padding:.5rem .6rem .6rem}
+  .sd__sim .nm{font-size:var(--fs-8)}
+  .sd__sim .mt{font-size:var(--fs-5)}
+}
 .sd__sim{border:1px solid var(--line);background:var(--surface);transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui);display:flex;flex-direction:column}
 .sd__sim:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:var(--surface-2)}
-.sd__sim .im{aspect-ratio:16/9;background:var(--veil-2);display:grid;place-items:center;overflow:hidden}
+/* ⚠ Fehlt das Vorschaubild, stand hier ein graues Rechteck mit dem Wort
+   "KEIN BILD" — ein sichtbares Loch in der Reihe. Die Flaeche traegt jetzt ein
+   feines Rissraster wie ein Konstruktionsblatt: die Kachel sieht gemeint aus
+   statt kaputt, und der Hinweis wird leise statt laut. Liegt ein Bild vor,
+   deckt es das Raster vollstaendig ab (object-fit:cover). */
+.sd__sim .im{aspect-ratio:16/9;display:grid;place-items:center;overflow:hidden;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 23px,color-mix(in srgb,var(--line) 70%,transparent) 23px 24px),
+    repeating-linear-gradient(180deg,transparent 0 23px,color-mix(in srgb,var(--line) 70%,transparent) 23px 24px),
+    var(--veil-2)}
 .sd__sim .im img{width:100%;height:100%;object-fit:cover}
-.sd__sim .im span{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-16);color:var(--muted);font-size:var(--fs-4)}
+.sd__sim .im span{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-16);
+  color:color-mix(in srgb,var(--muted) 72%,transparent);font-size:var(--fs-3)}
 .sd__sim .tx{padding:.6rem .8rem .7rem}
 .sd__sim .nm{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text)}
 .sd__sim .mt{font-size:var(--fs-7);color:var(--muted)}
@@ -1714,9 +1774,25 @@ span.sd__ref{color:var(--muted)}
 
 /* Komponenten-Slots */
 .sd__slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
-.sd__slot{border:1px solid var(--line);background:var(--bg-2);padding:.6rem .8rem}
-.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted)}
-.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);margin:.15rem 0 .3rem}
+/* Karten als INSTRUMENT, nicht als Kasten. Bis hierher war das ein flacher
+   Rahmen auf flacher Flaeche — unter der Buehne las sich die Seite dadurch wie
+   eine andere Website. Drei sparsame Mittel, dieselben, die der Raum schon
+   fuehrt: ein Hauch der Gruppenfarbe im Grund, ein Lichtsaum an der Oberkante
+   und ein Eckwinkel oben links. Kein zweiter Rahmen, kein Schlagschatten. */
+.sd__slot{position:relative;border:1px solid var(--line);padding:.6rem .8rem;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gc,var(--accent)) 6%,var(--bg-2)) 0%,var(--bg-2) 62%)}
+.sd__slot::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gc,var(--accent)) 38%,transparent) 22%,transparent 78%);
+  pointer-events:none}
+.sd__slot::before{content:"";position:absolute;left:-1px;top:-1px;width:10px;height:10px;
+  border-top:2px solid color-mix(in srgb,var(--gc,var(--accent)) 72%,transparent);
+  border-left:2px solid color-mix(in srgb,var(--gc,var(--accent)) 72%,transparent);
+  pointer-events:none}
+/* Kopfzeile der Karte: Art links, Groesse/Stueckzahl rechts. min-height haelt
+   alle Karten auf derselben Grundlinie, auch wo keine Stueckzahl steht. */
+.sd__slothead{display:flex;align-items:center;justify-content:space-between;gap:.6rem;min-height:24px}
+.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);min-width:0}
+.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.25rem 0 0;line-height:1.2}
 
 /* Quantum-Chips */
 .sd__qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem 1.4rem}
@@ -2093,15 +2169,25 @@ span.sd__ref{color:var(--muted)}
 
         {gr === 'core' && slots.length > 0 && (
           <div class="sd__slots">
+            {/* ⚠ Kommentar MUSS hier stehen, nicht innerhalb der Klammer der
+                Pfeilfunktion unten: dort waeren es zwei Ausdruecke, und der
+                Astro-Compiler bricht mit `Expected ")" but found "$$render"`
+                ab (einmal bezahlt am 21.08.).
+                Zur Sache: Kopfzeile der Karte traegt die Art links und
+                Groesse/Stueckzahl RECHTS in derselben Zeile. Vorher standen
+                sie untereinander — die Karte war dadurch rechts zur Haelfte
+                leer und las sich wie ein angefangener Absatz. */}
             {slots.map(([label, items]) =>
               items.map((it) => (
                 <div class="sd__slot">
-                  <div class="t">{label}</div>
+                  <div class="sd__slothead">
+                    <span class="t">{label}</span>
+                    <span class="sd__hprow">
+                      {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
+                      {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
+                    </span>
+                  </div>
                   <div class="n">{it.name}</div>
-                  <span class="sd__hprow">
-                    {it.size != null && <i class="sd__hp" style={`--hs:${it.size}`}>{it.size}</i>}
-                    {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
-                  </span>
                 </div>
               ))
             )}
@@ -2349,7 +2435,14 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__proftrack" role="img" aria-label={`${p.label}: ${p.value}, ${t('ship.profile.percentile')} ${p.pct}`}>
                 <div class="sd__proffill" style={`width:${p.pct}%`}></div>
               </div>
-              <span class="sd__profval">{p.showValue && p.value}<i>P{p.pct}</i></span>
+              {/* Wert als eigenes Element, NICHT als blosser Textknoten:
+                  der Abstand zum Perzentil kommt aus dem flex-gap von
+                  .sd__profval. Vorher stand hier `{p.showValue && p.value}`
+                  als Text, und die Regel `i:first-child{margin-left:0}` griff
+                  deshalb IMMER — :first-child zaehlt nur Elemente, und das
+                  <i> war stets das einzige. "6,543 DPS" und "P85" klebten
+                  aneinander. */}
+              <span class="sd__profval">{p.showValue && <b>{p.value}</b>}<i>P{p.pct}</i></span>
             </div>
           ))}
         </div>

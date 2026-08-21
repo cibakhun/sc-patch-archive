@@ -30,8 +30,21 @@
   // (.holo__rail in ShipDetail.astro).
   var SEL_DRAG =
     '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.evo__scroll';
+  /* ⚠⚠ .holo__rail NACHGETRAGEN 21.08.2026. Der Kommentar oben hielt fest, die
+     Rail "bringt ihre eigene waagerechte Form mit" — das stimmt (unter 900px
+     flex-wrap:nowrap + overflow-x:auto), nur bekam sie nie einen HINWEIS
+     darauf. Gemessen bei 390px: die Blende ist 1128px breit in 390px Fenster,
+     also liegen fuenf der acht Gruppen ausserhalb des Bildes — und theme.css
+     blendet mit `*{scrollbar-width:none!important}` jede Leiste aus. Die
+     Hauptnavigation der Seite war auf dem Telefon zu zwei Dritteln unsichtbar.
+     Bewusst NUR in dieser Liste und NICHT in SEL_DRAG: am Schreibtisch bricht
+     die Blende um statt zu schieben, ein Maus-Ziehen waere dort wirkungslos
+     und koennte Klicks auf die Eintraege stoeren. Auch keine sichtbare
+     Bildlaufleiste wie bei den Tabellen in mobile-ux.css 5c — eine 8px-Leiste
+     unter den Registerkarten liegt mitten im Bild der Buehne. Die weiche Kante
+     traegt hier allein. */
   var SEL_FADE =
-    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints';
+    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.holo__rail';
   // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
   // .holo__readout (Schiffskonsole) traegt die Klasse .vb-scrollbox bewusst
   // NICHT — deren max-height:calc(100vh…) wuerde die Hoehenbindung an die
