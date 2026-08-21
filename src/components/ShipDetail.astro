@@ -227,6 +227,7 @@ let holoData: {
   url: string | null; mesh: { c: number[]; s: number[] } | null; ax: number[] | null;
   ports: HoloPort[]; groups: readonly string[]; defaultOn: string[]; kinds: Record<string, string>;
   grpLabels: Record<string, string>; icons: Record<string, string>; loc: string; finder: string;
+  masse: { laenge: string; hoehe: string } | null;
 } | null = null;
 
 if (hasHolo) {
@@ -408,6 +409,14 @@ if (hasHolo) {
       icons: Object.fromEntries([...new Set(holoPorts.map((p2) => p2.k))].filter((k) => HOLO_ICON[k]).map((k) => [k, HOLO_ICON[k]])),
       loc,
       finder: L('/item-finder.html'),
+      /* Masskette der Gruppe „Ausstattung" (Phase 17): fertige Zeichenketten,
+         weil die Sprache und die Einheit hier bekannt sind und im Viewer
+         nicht. NUR wenn beide Masse wirklich vorliegen — eine 0 ist kein Mass
+         (siehe Begruendung an `dims`), und eine Kette ohne Zahl waere ein
+         Strich, der so tut, als messe er etwas. */
+      masse: d.lengthM != null && d.lengthM > 0 && d.heightM != null && d.heightM > 0
+        ? { laenge: `${d.lengthM.toLocaleString(loc)} m`, hoehe: `${d.heightM.toLocaleString(loc)} m` }
+        : null,
     };
   }
 }
@@ -940,6 +949,25 @@ a{color:inherit;text-decoration:none}
    Saum zur Abgrenzung, heller Schein darüber — in beiden Modi gleich. */
 .holo-nodes circle.is-active{stroke:var(--accent-media);
   filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--on-media))}
+/* --- Maßkette (Phase 17, Gruppe „Ausstattung") --------------------------------
+   Für die Ausstattung ist die Antwort der Rumpf selbst: Länge und Höhe sind
+   keine Tabellenzeilen, sondern Ausdehnungen. Die Kette folgt der projizierten
+   Hülle je Bild und dreht sich mit dem Schiff mit.
+   Formensprache bewusst technische Zeichnung, nicht HUD: dünne gerade Striche,
+   Endmarken, Mono-Ziffern — dieselbe Handschrift wie die Maßketten in Attrappe
+   013-A. Ein zweiter Akzent kommt nicht dazu; die Kette ist Geometrie, keine
+   Meldung, und nimmt deshalb den ruhigen Vordergrundton. */
+.holo-masse{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;overflow:visible}
+.holo-masse .hm__l{stroke:color-mix(in srgb,var(--on-media) 52%,transparent);stroke-width:1}
+/* Hilfslinien vom Rumpf zur Kette: leiser als die Kette selbst — sie zeigen
+   nur, WO gemessen wurde, sie sind nicht das Maß. */
+.holo-masse .hm__h{stroke:color-mix(in srgb,var(--on-media) 24%,transparent);stroke-width:1;stroke-dasharray:3 3}
+/* Massszahl auf der Skala, nicht in Rohwerten: --fs-4 (12,6px) ist der
+   Nachbar der frueheren 12px und derselbe Grad, den die Beschriftungen tragen;
+   --ls-12 ist exakt die vormaligen .12em. verify:typo erzwingt das. */
+.holo-masse .hm__t{fill:var(--on-media-dim);font-family:var(--font-ui);font-weight:700;
+  font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
+  paint-order:stroke;stroke:var(--media-void);stroke-width:3px;stroke-linejoin:round}
 .holo-lbl{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--on-media-dim);
   padding:.22rem .5rem .22rem .62rem;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));
@@ -2436,7 +2464,7 @@ span.sd__ref{color:var(--muted)}
       id="holodata"
       is:inline
       set:html={JSON.stringify(
-        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {}, grpLabels: {}, icons: {}, loc, finder: L('/item-finder.html') }
+        holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {}, grpLabels: {}, icons: {}, masse: null, loc, finder: L('/item-finder.html') }
       ).replace(/</g, '\\u003c')}
     />
   )}
@@ -2964,6 +2992,22 @@ span.sd__ref{color:var(--muted)}
         return c ? c.getBoundingClientRect().width >= 900 : window.innerWidth >= 900;
       })();
       if (panel && !karteImRaum) readoutEl.appendChild(panel);
+      /* Sperrflaechen fuer die Massszahl: was IM Raum liegt und nicht
+         ueberschrieben werden darf. Der Viewer kennt dieses Markup nicht — er
+         bekommt die Elemente gereicht und rechnet sie je Bild selbst in
+         Leinwandkoordinaten um (dieselbe Bauart wie setHindernis).
+         Gemessen am 21.08.: der Titelblock nimmt bei 1280 die Flaeche
+         45/414–351/682 ein, also die ganze untere linke Ecke; die Blende liegt
+         als Streifen ueber dem oberen Bildrand; der Leuchtfleck des Projektors
+         (534/632–1054/668) ist die hellste Stelle der Buehne, auf der eine
+         duenne Ziffer verschwindet. */
+      function massSperren() {
+        return [
+          document.querySelector('.holo__title'),
+          document.querySelector('.holo__rail'),
+          document.querySelector('.holo__pad'),
+        ];
+      }
       showGroup = function (gr) {
         activeGroup = gr;
         for (var i = 0; i < sysEls.length; i++) {
@@ -3001,6 +3045,13 @@ span.sd__ref{color:var(--muted)}
         // Herkunftszeile nur, wo ueberhaupt Positionen gezeigt werden.
         var srcEl = document.getElementById('holosrc');
         if (srcEl) srcEl.classList.toggle('is-off', !isPortGroup(gr));
+        /* „Das Schiff antwortet" (Phase 17): fuer die Ausstattung ist die
+           Antwort der Rumpf selbst — Laenge und Hoehe als Masskette an der
+           Silhouette statt als zwei Tabellenzeilen. Nur fuer diese eine
+           Gruppe, und nur wenn die Masse vorliegen. */
+        if (viewer && viewer.setMasskette) {
+          viewer.setMasskette(gr === 'spec' ? cfg.masse : null, massSperren());
+        }
       };
       railEl.addEventListener('click', function (ev) {
         var a = ev.target.closest ? ev.target.closest('a[data-g]') : null;
@@ -3108,6 +3159,10 @@ span.sd__ref{color:var(--muted)}
           if (panel && v.setHindernis && panel.closest('.holo__wrap, .holo') && !readoutEl?.contains(panel)) {
             v.setHindernis(panel);
           }
+          // Der Viewer laedt erst beim Scrollen (D-04) — die Blende kann
+          // laengst auf „Ausstattung" stehen. Den Stand hier nachholen, sonst
+          // fehlt die Masskette genau dann, wenn sie gemeint war.
+          if (v.setMasskette) v.setMasskette(activeGroup === 'spec' ? cfg.masse : null, massSperren());
           status.textContent = '';
           stage.classList.remove('is-loading');
           showHolo();
