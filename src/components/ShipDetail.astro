@@ -3071,6 +3071,17 @@ span.sd__ref{color:var(--muted)}
       for (var hi = 0; hi < sysEls.length; hi++) sysEls[hi].hidden = true;
       panel.hidden = false;
       if (viewer) viewer.select(i);
+      /* ⚠ Steht die Karte NICHT im Raum, sondern in der Auslesung (schmale
+         Geraete), liegt sie unter der Buehne UND unter der Kennwerte-Leiste —
+         gemessen bei 390x844 oeffnete sie bei y=858, also knapp ausserhalb des
+         Bildes. Dasselbe Muster, das am Schreibtisch schon einmal zugeschlagen
+         hat: die Antwort auf einen Klick war unsichtbar.
+         Im Raum steht sie ohnehin im Blick — dort NICHT scrollen, ein
+         Sprung ohne Anlass ist schlimmer als keiner. */
+      if (!karteImRaum && panel.scrollIntoView) {
+        var sanft = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        panel.scrollIntoView({ behavior: sanft ? 'smooth' : 'auto', block: 'center' });
+      }
     };
 
     var start = function (explicit) {
