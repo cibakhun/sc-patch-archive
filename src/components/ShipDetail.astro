@@ -1280,6 +1280,16 @@ a{color:inherit;text-decoration:none}
        um 32px nach oben. Ein Wechsel der Gruppe darf das Schiff nicht
        verruecken. visibility haelt den Platz. */
 .holo__src.is-off{visibility:hidden}
+/* ⚠⚠ Die Zeile behauptet "Komponenten-Positionen spielgetreu". Das Skript
+   blendet sie aus, wenn eine INHALTSgruppe gewaehlt ist — es kannte aber den
+   BUEHNENMODUS nicht. Gemessen am 21.08.: im Bilder-Modus (und im Video-Modus)
+   stand sie ueber einem Renderbild ohne einen einzigen Marker. Eine Aussage
+   ueber Positionen, wo keine Position gezeigt wird, ist eine Behauptung.
+   visibility statt display aus demselben Grund wie oben: der Titelblock darf
+   beim Umschalten nicht springen.
+   Faellt :has() aus, greift die Regel nicht und es bleibt beim alten
+   Verhalten — kein Rueckschritt, nur keine Verbesserung. */
+.holo__wrap:has(.holo__stage:not(.is-3d)) .holo__src{visibility:hidden}
 .holo__src{margin-top:.7rem;display:flex;flex-direction:column;gap:.28rem;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted);opacity:.8}
 /* Vorbehalt zur Herkunft: gold wie die betroffenen Marker/Chips, damit die Zeile
@@ -1468,7 +1478,22 @@ a{color:inherit;text-decoration:none}
 /* sehr schmal: kompaktere Kennwerte, damit lange aUEC-Werte einzeilig passen */
 @media(max-width:560px){.holo__bar .kv{padding:.6rem .7rem .65rem}.holo__bar dd{font-size:var(--fs-10)}.holo__bar dt{font-size:var(--fs-4);letter-spacing:var(--ls-12)}}
 
-.sd{max-width:var(--maxw);margin:0 auto;padding:1.8rem clamp(1rem,3vw,2.5rem) 4rem}
+/* Der Seitenfuss GEHOERT ZUM RAUM. Bis hierher endete der Verlauf von .holo
+   mit der Auslesung, und alles darunter lag auf flachem Grund — die Seite
+   hoerte auf, ein Ort zu sein, und wurde ein Dokument.
+   Kein Zierrat hinter Text: nur EIN ferner Horizont am unteren Rand, wie das
+   Ende einer Halle, das sich im Dunkeln verliert. Sehr schwach (7 %) — er soll
+   Tiefe geben, nicht auffallen. z-index:-1 legt ihn hinter allen Inhalt; .sd
+   hat keinen eigenen Grund, er trifft also direkt auf die Seitenfarbe. */
+.sd{position:relative;max-width:var(--maxw);margin:0 auto;padding:1.8rem clamp(1rem,3vw,2.5rem) 4rem}
+/* ⚠⚠ NICHT breiter als der Kasten machen. Ein erster Versuch stand auf
+   left:50% mit width:min(1500px,150%) und translateX(-50%) — absolut
+   positioniert zaehlt das trotzdem in den Ueberlauf, und die Seite wuchs bei
+   1280px Fenster auf 1390px Dokumentbreite. Der Verlauf selbst gibt die
+   Ausdehnung vor, nicht die Kastenbreite. */
+.sd::after{content:"";position:absolute;left:0;right:0;bottom:0;
+  height:230px;pointer-events:none;z-index:-1;
+  background:radial-gradient(72% 100% at 50% 100%,color-mix(in srgb,var(--accent) 7%,transparent),transparent 70%)}
 .sd__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
 /* Echtes Hersteller-Logo (weiß-auf-transparent -> sichtbar auf
    dunklem Grund). Höhe fix, Breite proportional; leichter Glow für Trennung. */
@@ -1748,7 +1773,16 @@ span.sd__ref{color:var(--muted)}
   .sd__sim .nm{font-size:var(--fs-8)}
   .sd__sim .mt{font-size:var(--fs-5)}
 }
-.sd__sim{border:1px solid var(--line);background:var(--surface);transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui);display:flex;flex-direction:column}
+/* Dieselbe Handschrift wie die Karten der Auslesung (.sd__slot): Eckwinkel und
+   Lichtsaum. Damit traegt die ganze Seite EINE Materialsprache statt zweier —
+   oben Instrument, unten Web-Karte. Der Winkel liegt ueber dem Bild und liest
+   sich dort als Rahmenmarke. */
+.sd__sim{position:relative;border:1px solid var(--line);background:var(--surface);transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui);display:flex;flex-direction:column}
+.sd__sim::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 34%,transparent) 25%,transparent 80%)}
+.sd__sim::before{content:"";position:absolute;left:-1px;top:-1px;width:10px;height:10px;z-index:2;pointer-events:none;
+  border-top:2px solid color-mix(in srgb,var(--accent) 70%,transparent);
+  border-left:2px solid color-mix(in srgb,var(--accent) 70%,transparent)}
 .sd__sim:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:var(--surface-2)}
 /* ⚠ Fehlt das Vorschaubild, stand hier ein graues Rechteck mit dem Wort
    "KEIN BILD" — ein sichtbares Loch in der Reihe. Die Flaeche traegt jetzt ein
