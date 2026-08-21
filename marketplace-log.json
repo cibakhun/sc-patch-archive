@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 363,
-  "totalListings": 7833,
+  "updates": 364,
+  "totalListings": 7836,
   "totalSold": 339,
   "distinctItems": 1323
  },
@@ -167422,6 +167422,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787290585,
    "dateExpiration": 1792474585
+  },
+  "164666": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 900,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787296156,
+   "dateExpiration": 1792476556
+  },
+  "164671": {
+   "idItem": 4454,
+   "idCategory": 61,
+   "title": "MG Scrip (LOT)",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1900
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787296783,
+   "dateExpiration": 1792480783
+  },
+  "164673": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787297862,
+   "dateExpiration": 1792481862
   }
  }
 }
