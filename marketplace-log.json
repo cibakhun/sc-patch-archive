@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 365,
-  "totalListings": 7841,
-  "totalSold": 339,
+  "updates": 366,
+  "totalListings": 7847,
+  "totalSold": 341,
   "distinctItems": 1323
  },
  "listings": {
@@ -161467,9 +161467,9 @@
      "p": 800000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 800000,
    "dateAdded": 1787216458,
    "dateExpiration": 1792400458
   },
@@ -161805,6 +161805,10 @@
     {
      "d": "2026-08-20",
      "p": 1300000
+    },
+    {
+     "d": "2026-08-21",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -165069,9 +165073,9 @@
      "p": 1800000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 1800000,
    "dateAdded": 1787261054,
    "dateExpiration": 1792445054
   },
@@ -167602,6 +167606,132 @@
    "soldOutPrice": null,
    "dateAdded": 1787301855,
    "dateExpiration": 1792485855
+  },
+  "164682": {
+   "idItem": 4899,
+   "idCategory": 18,
+   "title": "Fresnel Energy LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 705,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787302693,
+   "dateExpiration": 1792486693
+  },
+  "164683": {
+   "idItem": 1597,
+   "idCategory": 18,
+   "title": "P4-AR Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787303228,
+   "dateExpiration": 1792487228
+  },
+  "164684": {
+   "idItem": 8065,
+   "idCategory": 18,
+   "title": "CQ7 Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 842,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787303808,
+   "dateExpiration": 1792487808
+  },
+  "164685": {
+   "idItem": 5353,
+   "idCategory": 7,
+   "title": "Defiance Hailstorm Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787304292,
+   "dateExpiration": 1792488292
+  },
+  "164686": {
+   "idItem": 6491,
+   "idCategory": 18,
+   "title": "S71 \"Purgatory Camo\" Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 750,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787304402,
+   "dateExpiration": 1792488402
+  },
+  "164688": {
+   "idItem": 5582,
+   "idCategory": 7,
+   "title": "Artimex Full set Q952",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 952,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787305108,
+   "dateExpiration": 1792489108
   }
  }
 }
