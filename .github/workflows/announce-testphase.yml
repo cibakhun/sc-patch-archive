@@ -1,0 +1,167 @@
+# Testphase eroeffnen — die Ansage an die Testpiloten.
+#
+# WARUM NICHT MEHR AUTOMATISCH: bis zum 20.08.2026 hing dieser Ping am
+# staging-Deploy und feuerte bei JEDEM Push. An einem Tag mit zwei parallel
+# arbeitenden Sitzungen sind das Dutzende Nachrichten, und der Kanal wird zu
+# Rauschen, das niemand mehr liest. Eine Ansage, die immer kommt, sagt nichts.
+# Der Betreiber hat es so entschieden: der Ping soll bedeuten "hier ist etwas
+# zum Anschauen", und das ist eine Entscheidung, kein Nebenprodukt eines
+# Builds.
+#
+# WIE ES BENUTZT WIRD: Actions -> "Testphase eroeffnen" -> Run workflow.
+#   nur_vorschau=true  (Vorgabe): zeigt die fertige Nachricht im Protokoll,
+#                                 sendet NICHTS. Hausregel dieses Projekts --
+#                                 Ankuendigungen laufen erst trocken.
+#   nur_vorschau=false          : sendet und setzt die Marke neu.
+#
+# WELCHE AENDERUNGEN DRINSTEHEN: alles seit der letzten Ansage. Gemerkt wird
+# das ueber das git-Tag `testphase-zuletzt`, das dieser Workflow nach dem
+# Senden selbst weitersetzt. Gibt es das Tag noch nicht (erste Ansage), nimmt
+# er die letzten 20 Commits und sagt das ausdruecklich -- eine geratene Liste
+# waere schlimmer als eine kurze.
+name: Testphase eroeffnen
+
+on:
+  workflow_dispatch:
+    inputs:
+      notiz:
+        description: 'Ein Satz an die Testpiloten (optional) — steht ueber der Aenderungsliste'
+        required: false
+        type: string
+      nur_vorschau:
+        description: 'Nur anzeigen, nichts senden'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write # zum Weitersetzen des Tags
+
+concurrency:
+  group: testphase-ansage
+  cancel-in-progress: false
+
+jobs:
+  ansage:
+    runs-on: ubuntu-latest
+    steps:
+      # Voller Klon: der Vergleich braucht die Historie und das Tag.
+      - uses: actions/checkout@v4
+        with:
+          ref: staging
+          fetch-depth: 0
+
+      - name: Aenderungen seit der letzten Ansage sammeln
+        id: sammeln
+        run: |
+          MARKE="testphase-zuletzt"
+          AKTUELL=$(git rev-parse HEAD)
+          echo "SHA_KURZ=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+
+          # Zeilenenden: die Betreffzeilen wandern gleich durch jq in JSON.
+          # `.` trifft kein \r (CLAUDE.md-Falle) -- deshalb ueberall gsub.
+          if git rev-parse -q --verify "refs/tags/$MARKE" >/dev/null; then
+            VON=$(git rev-parse "refs/tags/$MARKE")
+            echo "Letzte Ansage: $VON"
+            ANZ=$(git rev-list --count "$VON..$AKTUELL")
+            SUBJECTS=$(git log --format=%s "$VON..$AKTUELL")
+            ERSTE="nein"
+          else
+            echo "::notice::Tag $MARKE existiert noch nicht — erste Ansage, nehme die letzten 20 Commits."
+            ANZ=$(git rev-list --count -n 20 "$AKTUELL")
+            SUBJECTS=$(git log --format=%s -n 20 "$AKTUELL")
+            ERSTE="ja"
+          fi
+
+          echo "ERSTE=$ERSTE" >> "$GITHUB_ENV"
+          echo "ANZ=$ANZ" >> "$GITHUB_ENV"
+          # Mehrzeiliges in GITHUB_ENV braucht einen Begrenzer, sonst bricht
+          # der Schreibvorgang ab (am 18.08. schon einmal eine Sonde gerissen).
+          {
+            echo 'SUBJECTS<<VB_ENDE'
+            printf '%s\n' "$SUBJECTS" | tr -d '\r'
+            echo 'VB_ENDE'
+          } >> "$GITHUB_ENV"
+
+          if [ "$ANZ" -eq 0 ]; then
+            echo "::warning::Seit der letzten Ansage hat sich nichts geaendert — nichts zu melden."
+          fi
+
+      - name: Nachricht bauen und (je nach Eingabe) senden
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_TESTPILOT_WEBHOOK }}
+          NOTIZ: ${{ inputs.notiz }}
+          NUR_VORSCHAU: ${{ inputs.nur_vorschau }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::DISCORD_TESTPILOT_WEBHOOK ist nicht gesetzt — ohne Webhook keine Ansage."
+            exit 1
+          fi
+          if [ "$ANZ" -eq 0 ]; then
+            echo "Keine Aenderungen seit der letzten Ansage. Es wird nichts gesendet."
+            exit 0
+          fi
+
+          # Discord kappt lange Nachrichten mitten im Satz. Ab elf Zeilen die
+          # ersten zehn zeigen und die Restzahl nennen -- lieber ehrlich
+          # gekuerzt als unsichtbar abgeschnitten.
+          # Zeilenumbrueche ueber eine Variable statt woertlich im
+          # Quelltext: eine Fortsetzungszeile in Spalte 0 beendet den
+          # YAML-Blockskalar, und die Datei ist dann kein gueltiges YAML
+          # mehr. Hier einmal passiert, vom Syntaxpruefer gefangen.
+          NL=$'\n'
+          GEZEIGT=$(printf '%s\n' "$SUBJECTS" | head -10 | sed 's/^/- /')
+          REST=$((ANZ - 10))
+          if [ "$REST" -gt 0 ]; then
+            GEZEIGT="${GEZEIGT}${NL}... und ${REST} weitere"
+          fi
+
+          KOPF=""
+          if [ -n "$NOTIZ" ]; then KOPF="${NOTIZ}${NL}${NL}"; fi
+          if [ "$ERSTE" = "ja" ]; then
+            KOPF="${KOPF}_(erste Ansage - die Liste zeigt die letzten 20 Commits, nicht einen echten Zeitraum)_${NL}${NL}"
+          fi
+
+          BESCHREIBUNG="${KOPF}${GEZEIGT}${NL}${NL}-> staging.verse-base.com"
+
+          PAYLOAD=$(jq -n --arg d "$BESCHREIBUNG" --arg s "$SHA_KURZ" '{
+            embeds: [{
+              title: "Testphase eroeffnet · Test phase open",
+              description: ($d | gsub("\r"; "")),
+              color: 3003647,
+              footer: { text: ("Stand " + $s) }
+            }]
+          }')
+
+          echo "--- Nachricht ---"
+          echo "$PAYLOAD" | jq -r '.embeds[0].description'
+          echo "-----------------"
+
+          if [ "$NUR_VORSCHAU" = "true" ]; then
+            echo "::notice::Vorschau — es wurde NICHTS gesendet. Fuer den echten Lauf nur_vorschau abwaehlen."
+            exit 0
+          fi
+
+          BODY=$(mktemp)
+          CODE=$(curl -sS -o "$BODY" -w '%{http_code}' "$WEBHOOK" \
+            -H "Content-Type: application/json" -d "$PAYLOAD")
+          echo "HTTP $CODE"
+          echo "Antwort: $(head -c 400 "$BODY")"
+          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+            echo "::error::Discord lehnt den Webhook-Post ab (HTTP $CODE)."
+            exit 1
+          fi
+          echo "Ansage gesendet ($ANZ Aenderung(en))."
+          echo "GESENDET=ja" >> "$GITHUB_ENV"
+
+      # Die Marke wandert NUR nach einem echten Versand. Nach einer Vorschau
+      # stehenzubleiben ist Absicht: sonst waere der Zeitraum verbraucht,
+      # ohne dass jemand die Nachricht gesehen hat.
+      - name: Marke weitersetzen
+        if: env.GESENDET == 'ja'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f testphase-zuletzt HEAD
+          git push -f origin refs/tags/testphase-zuletzt
+          echo "Marke testphase-zuletzt steht jetzt auf $(git rev-parse --short HEAD)."
