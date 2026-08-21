@@ -116,11 +116,20 @@ const slots: [string, { name: string; size: number | null; count: number }[]][] 
   ] as [string, { name: string; size: number | null; count: number }[]][]
 ).filter(([, a]) => a.length > 0);
 
-const dims = [d.lengthM, d.widthM, d.heightM].every((x) => x != null)
+/* ⚠ Die Pruefung war `!= null` — und traf damit die 0 nicht. Zwei Fahrzeuge
+   fuehren 0 statt fehlender Masse (aegs-javelin, argo-moth, gemessen ueber
+   src/data/vehicles.json), und ihre Seiten zeigten "L 0 M · B 0 M · H 0 M"
+   und "LAENGE 0 m". Eine Null ist hier kein Messwert, sondern ein
+   fehlender Wert in Zahlengestalt — und damit schlechter als der
+   Gedankenstrich, denn sie sieht aus wie eine Aussage.
+   NUR fuer Masse und Tempo: 0 SCU Fracht ist bei 124 Fahrzeugen ECHT (ein
+   Jaeger hat keinen Frachtraum) und bleibt deshalb unangetastet. */
+const dims = [d.lengthM, d.widthM, d.heightM].every((x) => x != null && x > 0)
   ? `${t('ship.abbr.l')} ${d.lengthM} m · ${t('ship.abbr.w')} ${d.widthM} m · ${t('ship.abbr.h')} ${d.heightM} m`
   : null;
 const stageStats: { label: string; value: string }[] = [
-  { label: t('ship.stage.length'), value: d.lengthM != null ? `${d.lengthM.toLocaleString(loc)} m` : '—' },
+  // 0 m ist kein Schiff — siehe Begruendung an `dims` oben.
+  { label: t('ship.stage.length'), value: d.lengthM != null && d.lengthM > 0 ? `${d.lengthM.toLocaleString(loc)} m` : '—' },
   { label: t('ship.stage.crew'), value: crewFmt(d) },
   { label: t('ship.stage.cargo'), value: d.cargoSCU != null ? `${d.cargoSCU.toLocaleString(loc)} SCU` : '—' },
   { label: t('ship.stage.scm'), value: d.scmSpeed != null ? `${d.scmSpeed} m/s` : '—' },
