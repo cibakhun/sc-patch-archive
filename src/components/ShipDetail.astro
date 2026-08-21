@@ -1169,6 +1169,13 @@ a{color:inherit;text-decoration:none}
 .holo__chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
 .holo__chips span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:var(--scrim-4);padding:.28rem .6rem}
+/* Herkunftszeile bei Inhaltsgruppen: UNSICHTBAR, nicht entfernt.
+   ⚠ Zwei Fallen hintereinander, beide am Bild gefunden:
+   (1) `hidden` allein wirkte nicht — display:flex schlaegt das Attribut.
+   (2) Mit display:none wirkte es, aber der Titelblock sprang beim Umschalten
+       um 32px nach oben. Ein Wechsel der Gruppe darf das Schiff nicht
+       verruecken. visibility haelt den Platz. */
+.holo__src.is-off{visibility:hidden}
 .holo__src{margin-top:.7rem;display:flex;flex-direction:column;gap:.28rem;
   font-family:var(--font-ui);font-weight:600;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted);opacity:.8}
 /* Vorbehalt zur Herkunft: gold wie die betroffenen Marker/Chips, damit die Zeile
@@ -1723,8 +1730,12 @@ span.sd__ref{color:var(--muted)}
             <span class="js-fav-txt">{t('fav.save')}</span>
           </button>
         </div>
+        {/* id: das Skript blendet diese Zeile aus, sobald eine INHALTSgruppe
+            gewaehlt ist. Sie behauptet "Komponenten-Positionen spielgetreu" —
+            bei "Kaufen" oder "Rang" wird gar keine Position gezeigt, und die
+            Zeile stuende als Behauptung ueber einem blanken Rumpf. */}
         {holoData && holoData.ports.length > 0 && (
-          <div class="holo__src">
+          <div class="holo__src" id="holosrc">
             <span class={holoAllNp ? 'holo__caveat' : undefined}>{holoAllNp ? t('holo.src.none' as any) : t('holo.src')}</span>
             {holoNp > 0 && !holoAllNp && <span class="holo__caveat">{t('holo.legend.np' as any)}</span>}
           </div>
@@ -2883,12 +2894,21 @@ span.sd__ref{color:var(--muted)}
         // viewer kann noch null sein (D-04: laedt erst beim Scrollen);
         // start() unten holt die aktuelle Auswahl nach, sobald es soweit ist.
         //
-        // NUR fuer Portgruppen (D-01): cfg.groups fuehrt ausschliesslich die
-        // Gruppen MIT Markern. Die Inhaltsgruppen (Technik, Handel, Rang,
-        // Kontext) haben keine — ein setFilter() auf sie wuerde jeden Marker
-        // ausblenden, das Schiff bliebe leer zurueck. Ihre Wahl laesst die
-        // Buehne deshalb unangetastet stehen.
-        if (viewer && isPortGroup(gr)) viewer.setFilter([gr]);
+        // Portgruppe -> genau ihre Marker. Inhaltsgruppe -> GAR KEINE.
+        //
+        // ⚠ Bis Phase 17 liess eine Inhaltsgruppe die Buehne unangetastet —
+        // wer "Kaufen" waehlte, sah weiterhin die Marker der zuvor gewaehlten
+        // Portgruppe samt Beschriftung (gemessen: 5 Marker, 2 Kaesten aus
+        // "Sonstiges"). Das Schiff behauptete damit etwas, das mit der Frage
+        // nichts zu tun hat. Zu "Kaufen" gibt es kein Bauteil, auf das man
+        // zeigen koennte — also zeigt der Raum den blanken Rumpf, und die
+        // Antwort steht in der Auslesung darunter.
+        // (Das Schiff selbst verschwindet dabei NICHT: setFilter betrifft nur
+        // die Marker-Sprites, nicht das Modell.)
+        if (viewer) viewer.setFilter(isPortGroup(gr) ? [gr] : []);
+        // Herkunftszeile nur, wo ueberhaupt Positionen gezeigt werden.
+        var srcEl = document.getElementById('holosrc');
+        if (srcEl) srcEl.classList.toggle('is-off', !isPortGroup(gr));
       };
       railEl.addEventListener('click', function (ev) {
         var a = ev.target.closest ? ev.target.closest('a[data-g]') : null;
