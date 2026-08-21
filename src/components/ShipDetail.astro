@@ -1212,6 +1212,23 @@ a{color:inherit;text-decoration:none}
    Wortbruch wieder an, gegen den die Einspaltigkeit einmal antrat. */
 .holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
+/* Eintritt beim Gruppenwechsel. Bis hierher sprang der Inhalt hart um: die
+   Blende ist das Hauptbedienelement der Seite, und ein harter Sprung liest
+   sich wie ein Seitenwechsel statt wie eine Antwort desselben Schiffs.
+   Die Regel greift, weil `hidden` das Element von display:none auf sichtbar
+   schaltet — die Animation laeuft also GENAU beim Wechsel und nicht bei jedem
+   Neuzeichnen. Kurz gehalten (240ms) wie der Menue-Eintritt; alles darueber
+   fuehlt sich zaeh an.
+   ⚠ Bewusst NICHT an data-fx gehaengt: das schaltet Zierrat ab (Sterne,
+   Glut), nicht die Rueckmeldung auf einen Klick. An prefers-reduced-motion
+   sehr wohl. */
+@media(prefers-reduced-motion:no-preference){
+  .holo__readout .holo__sys:not([hidden]){animation:sysEintritt .24s var(--ease-ui) both}
+}
+@keyframes sysEintritt{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:none}
+}
 
 /* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
    Koerper (arm__sum/arm__list bzw. sd__slots) aus dem Kapitel-Umzug
@@ -1571,6 +1588,12 @@ span.sd__ref{color:var(--muted)}
 .sd__chsec{min-width:0}
 @media(min-width:1100px){
   .sd__ch2col{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.6rem;row-gap:1.6rem}
+  /* Steht die LETZTE Zelle allein in ihrer Reihe (ungerade Anzahl), nimmt sie
+     die volle Breite. Sonst klafft neben ihr eine leere Spalte — beim Umfeld
+     der Carrack sind das gemessene 380px Leere neben "Varianten & Loaner",
+     waehrend die Reihe darueber randvoll ist. Greift nur bei ungerader
+     Zellenzahl; die vier Zellen der Ausstattung bleiben unberuehrt. */
+  .sd__ch2col .sd__chsec:last-child:nth-child(odd){grid-column:1/-1}
   .sd__ch2col .sd__chsec > .sd__sub:first-child{margin-top:0}
   /* Vorweggenommene Annahme aus Task 1 GEMESSEN widerlegt (Task 2): das
      Grundriss-Raster (sd__dims) sollte wegen seiner FENSTERBREITEN-
@@ -1713,8 +1736,14 @@ span.sd__ref{color:var(--muted)}
    dann 1150px hoch (gemessen bei 390px), also ein Drittel der ganzen Seite
    fuer ein Nebenmodul. Zwei Spalten halbieren das; 150px passen zweimal in
    die 354px Inhaltsbreite. Der Name darf dabei zweizeilig werden. */
+/* Zwei Spalten schon ab 900px: mit vier aehnlichen Schiffen ergibt die
+   auto-fit-Formel dort 3+1, also eine Reihe mit einer einzelnen Karte und
+   einer Luecke daneben. 2+2 steht ruhiger. */
+@media(max-width:900px){
+  .sd__simgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 @media(max-width:520px){
-  .sd__simgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+  .sd__simgrid{gap:.6rem}
   .sd__sim .tx{padding:.5rem .6rem .6rem}
   .sd__sim .nm{font-size:var(--fs-8)}
   .sd__sim .mt{font-size:var(--fs-5)}
@@ -1779,7 +1808,12 @@ span.sd__ref{color:var(--muted)}
    eine andere Website. Drei sparsame Mittel, dieselben, die der Raum schon
    fuehrt: ein Hauch der Gruppenfarbe im Grund, ein Lichtsaum an der Oberkante
    und ein Eckwinkel oben links. Kein zweiter Rahmen, kein Schlagschatten. */
-.sd__slot{position:relative;border:1px solid var(--line);padding:.6rem .8rem;
+/* Spalte mit dem Namen UNTEN: bricht ein langes Art-Wort um (bei 768px etwa
+   "SCHILDGENERATO-REN"), waechst nur die Kopfzeile — die Namen aller Karten
+   einer Reihe bleiben auf derselben Grundlinie. Vorher sass "Barbican" 47px
+   tiefer als "Reliance" daneben. */
+.sd__slot{position:relative;display:flex;flex-direction:column;gap:.3rem;
+  border:1px solid var(--line);padding:.6rem .8rem;
   background:linear-gradient(180deg,color-mix(in srgb,var(--gc,var(--accent)) 6%,var(--bg-2)) 0%,var(--bg-2) 62%)}
 .sd__slot::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;
   background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gc,var(--accent)) 38%,transparent) 22%,transparent 78%);
@@ -1791,8 +1825,14 @@ span.sd__ref{color:var(--muted)}
 /* Kopfzeile der Karte: Art links, Groesse/Stueckzahl rechts. min-height haelt
    alle Karten auf derselben Grundlinie, auch wo keine Stueckzahl steht. */
 .sd__slothead{display:flex;align-items:center;justify-content:space-between;gap:.6rem;min-height:24px}
+/* ⚠ Groessenmarke und Stueckzahl duerfen NICHT auseinanderbrechen. Bei 768px
+   bricht ein langes Wort wie "SCHILDGENERATOREN" auf zwei Zeilen, und das
+   umbrechende .sd__hprow schob das "×2" darunter — die Zahl stand dann unter
+   der Marke statt neben ihr. flex:none haelt die Gruppe zusammen und laesst
+   das Wort umbrechen, nicht die Zahl. */
+.sd__slothead .sd__hprow{flex:none;flex-wrap:nowrap}
 .sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);min-width:0}
-.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.25rem 0 0;line-height:1.2}
+.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:auto 0 0;line-height:1.2}
 
 /* Quantum-Chips */
 .sd__qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem 1.4rem}
