@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 370,
+  "updates": 371,
   "totalListings": 7889,
-  "totalSold": 342,
+  "totalSold": 349,
   "distinctItems": 1323
  },
  "listings": {
@@ -161569,16 +161569,16 @@
    "currency": "UEC",
    "quality": 585,
    "firstSeen": "2026-08-20",
-   "lastSeen": "2026-08-20",
+   "lastSeen": "2026-08-21",
    "prices": [
     {
      "d": "2026-08-20",
      "p": 400000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 400000,
    "dateAdded": 1787218884,
    "dateExpiration": 1792402884
   },
@@ -161741,7 +161741,7 @@
    "currency": "UEC",
    "quality": 322,
    "firstSeen": "2026-08-20",
-   "lastSeen": "2026-08-20",
+   "lastSeen": "2026-08-21",
    "prices": [
     {
      "d": "2026-08-20",
@@ -161762,7 +161762,7 @@
    "currency": "UEC",
    "quality": 580,
    "firstSeen": "2026-08-20",
-   "lastSeen": "2026-08-20",
+   "lastSeen": "2026-08-21",
    "prices": [
     {
      "d": "2026-08-20",
@@ -161790,9 +161790,9 @@
      "p": 700000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 700000,
    "dateAdded": 1787219887,
    "dateExpiration": 1792403887
   },
@@ -161815,9 +161815,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 1000000,
    "dateAdded": 1787219937,
    "dateExpiration": 1792403937
   },
@@ -161840,9 +161840,9 @@
      "p": 4000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 4000000,
    "dateAdded": 1787220028,
    "dateExpiration": 1792404028
   },
@@ -166996,9 +166996,9 @@
      "p": 4500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 4500000,
    "dateAdded": 1787274723,
    "dateExpiration": 1797646323
   },
@@ -168239,9 +168239,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 1000000,
    "dateAdded": 1787309625,
    "dateExpiration": 1792493625
   },
@@ -168575,9 +168575,9 @@
      "p": 375000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 375000,
    "dateAdded": 1787317995,
    "dateExpiration": 1792501995
   },
@@ -168615,6 +168615,10 @@
     {
      "d": "2026-08-21",
      "p": 500000
+    },
+    {
+     "d": "2026-08-21",
+     "p": 342000
     }
    ],
    "soldOut": false,
