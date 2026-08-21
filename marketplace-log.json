@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 360,
-  "totalListings": 7823,
-  "totalSold": 338,
+  "updates": 361,
+  "totalListings": 7824,
+  "totalSold": 339,
   "distinctItems": 1323
  },
  "listings": {
@@ -159426,6 +159426,10 @@
     {
      "d": "2026-08-19",
      "p": 3000000
+    },
+    {
+     "d": "2026-08-21",
+     "p": 1000000
     }
    ],
    "soldOut": false,
@@ -167187,11 +167191,32 @@
      "p": 8000000
     }
    ],
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 8000000,
+   "dateAdded": 1787280031,
+   "dateExpiration": 1792464031
+  },
+  "164650": {
+   "idItem": 7992,
+   "idCategory": 7,
+   "title": "Overlord Gilded Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1200000
+    }
+   ],
    "soldOut": false,
    "soldOutAt": null,
    "soldOutPrice": null,
-   "dateAdded": 1787280031,
-   "dateExpiration": 1792464031
+   "dateAdded": 1787280968,
+   "dateExpiration": 1792464968
   }
  }
 }
