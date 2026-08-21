@@ -1033,7 +1033,12 @@ a{color:inherit;text-decoration:none}
    Abschnitte in .holo__readout verschiebt, gilt dort die schmalere,
    scoped Innenraster-Regel weiter unten. */
 .holo__sys{--gc:var(--accent);position:relative;z-index:3;max-width:var(--maxw);margin:0 auto;
-  padding:1.3rem clamp(1rem,3vw,2.5rem) 1.6rem;border-top:1px solid var(--line)}
+  padding:1.3rem clamp(1rem,3vw,2.5rem) 1.6rem;border-top:1px solid var(--line);
+  /* ⚠ Ohne Skript ist jeder Blenden-Eintrag ein echter Anker (D-02), und der
+     Sprung landet unter der KLEBENDEN Kopfleiste — die Ueberschrift des
+     Abschnitts stand dahinter (am Bild nachgeprueft). --nav-h ist die
+     gemessene Hoehe dieser Leiste (SiteNav.astro), plus etwas Luft. */
+  scroll-margin-top:calc(var(--nav-h) + 12px)}
 .holo__sys[data-g="arms"]{--gc:var(--gold)}
 .holo__sys[data-g="prop"]{--gc:var(--accent-2)}
 .holo__sys[data-g="other"]{--gc:#a78bfa}
