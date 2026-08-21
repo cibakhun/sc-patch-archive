@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 378,
-  "totalListings": 7992,
-  "totalSold": 353,
-  "distinctItems": 1330
+  "updates": 379,
+  "totalListings": 8022,
+  "totalSold": 355,
+  "distinctItems": 1333
  },
  "listings": {
   "156580": {
@@ -162631,6 +162631,10 @@
     {
      "d": "2026-08-20",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-21",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -162891,6 +162895,10 @@
     {
      "d": "2026-08-20",
      "p": 3500000
+    },
+    {
+     "d": "2026-08-21",
+     "p": 3000000
     }
    ],
    "soldOut": false,
@@ -168150,9 +168158,9 @@
      "p": 2000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 2000000,
    "dateAdded": 1787305593,
    "dateExpiration": 1792489593
   },
@@ -169355,9 +169363,9 @@
      "p": 1000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 1000000,
    "dateAdded": 1787328890,
    "dateExpiration": 1792512890
   },
@@ -170705,6 +170713,27 @@
    "dateAdded": 1787346428,
    "dateExpiration": 1792530428
   },
+  "164825": {
+   "idItem": 5015,
+   "idCategory": 61,
+   "title": "RCMBNT-RGL-2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787346750,
+   "dateExpiration": 1792530750
+  },
   "164826": {
    "idItem": 4454,
    "idCategory": 61,
@@ -170747,6 +170776,69 @@
    "dateAdded": 1787346821,
    "dateExpiration": 1792530821
   },
+  "164828": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787347902,
+   "dateExpiration": 1792531902
+  },
+  "164829": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787347986,
+   "dateExpiration": 1792531986
+  },
+  "164830": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787348334,
+   "dateExpiration": 1792532334
+  },
   "164831": {
    "idItem": 4441,
    "idCategory": 3,
@@ -170767,6 +170859,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787348470,
    "dateExpiration": 1792532470
+  },
+  "164832": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787348482,
+   "dateExpiration": 1792532482
   },
   "164833": {
    "idItem": 6654,
@@ -170809,6 +170922,531 @@
    "soldOutPrice": null,
    "dateAdded": 1787348701,
    "dateExpiration": 1792532701
+  },
+  "164835": {
+   "idItem": 7920,
+   "idCategory": 3,
+   "title": "Fortifier Helmet Brimstone",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787348840,
+   "dateExpiration": 1792532839
+  },
+  "164836": {
+   "idItem": 5711,
+   "idCategory": 3,
+   "title": "Testudo Helmet Earthshake",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787348938,
+   "dateExpiration": 1792532938
+  },
+  "164837": {
+   "idItem": 3347,
+   "idCategory": 3,
+   "title": "Aril Helmet Quicksilver",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787349041,
+   "dateExpiration": 1792533041
+  },
+  "164838": {
+   "idItem": 7490,
+   "idCategory": 3,
+   "title": "Aves Shrike Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787349184,
+   "dateExpiration": 1792533184
+  },
+  "164839": {
+   "idItem": 7521,
+   "idCategory": 3,
+   "title": "Badami Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787349377,
+   "dateExpiration": 1792533377
+  },
+  "164840": {
+   "idItem": 6977,
+   "idCategory": 1,
+   "title": "Morozov-SH Arms Spitfire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787349633,
+   "dateExpiration": 1792533633
+  },
+  "164841": {
+   "idItem": 7735,
+   "idCategory": 5,
+   "title": "Citadel Core Earthwork",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787349799,
+   "dateExpiration": 1792533799
+  },
+  "164842": {
+   "idItem": 2030,
+   "idCategory": 22,
+   "title": "Drift",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787349970,
+   "dateExpiration": 1792533970
+  },
+  "164843": {
+   "idItem": 1751,
+   "idCategory": 23,
+   "title": "Sheut",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 40000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787350040,
+   "dateExpiration": 1792534040
+  },
+  "164844": {
+   "idItem": 6982,
+   "idCategory": 3,
+   "title": "Morozov-SH-S Helmet Terrene",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787350572,
+   "dateExpiration": 1792534571
+  },
+  "164847": {
+   "idItem": 7598,
+   "idCategory": 17,
+   "title": "Emod \"Tweaker\" Stabilizer2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351181,
+   "dateExpiration": 1792535181
+  },
+  "164848": {
+   "idItem": 59,
+   "idCategory": 17,
+   "title": "Sion Compensator1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351207,
+   "dateExpiration": 1792535207
+  },
+  "164849": {
+   "idItem": 60,
+   "idCategory": 17,
+   "title": "Sion Compensator2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351323,
+   "dateExpiration": 1792535323
+  },
+  "164850": {
+   "idItem": 4044,
+   "idCategory": 17,
+   "title": "Sion \"Tweaker\" Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351443,
+   "dateExpiration": 1792535443
+  },
+  "164851": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium Q916 1.610SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 916,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 11500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351570,
+   "dateExpiration": 1792535570
+  },
+  "164852": {
+   "idItem": 5327,
+   "idCategory": 17,
+   "title": "RD-1 Jaeger (1x Red Dot)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351625,
+   "dateExpiration": 1792535625
+  },
+  "164854": {
+   "idItem": 5725,
+   "idCategory": 17,
+   "title": "Stark Compensator 1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351812,
+   "dateExpiration": 1792535812
+  },
+  "164855": {
+   "idItem": 5332,
+   "idCategory": 17,
+   "title": "Stark Compensator 2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787351903,
+   "dateExpiration": 1792535903
+  },
+  "164856": {
+   "idItem": 6194,
+   "idCategory": 17,
+   "title": "Stark Compensator3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787352087,
+   "dateExpiration": 1792536087
+  },
+  "164857": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "18.58% DMG P6-LR, also various 870-970Q, read post for details",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787352090,
+   "dateExpiration": 1792536090
+  },
+  "164858": {
+   "idItem": 6033,
+   "idCategory": 17,
+   "title": "Torrent Compensator2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787352591,
+   "dateExpiration": 1792536591
+  },
+  "164859": {
+   "idItem": 6232,
+   "idCategory": 17,
+   "title": "Torrent Compensator3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787352784,
+   "dateExpiration": 1792536783
+  },
+  "164861": {
+   "idItem": 5337,
+   "idCategory": 17,
+   "title": "Quell Suppressor1",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787352920,
+   "dateExpiration": 1792536920
+  },
+  "164863": {
+   "idItem": 4892,
+   "idCategory": 38,
+   "title": "WTB ASD Secure Drives 200k aUEC Each",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787353043,
+   "dateExpiration": 1797721042
+  },
+  "164864": {
+   "idItem": 5142,
+   "idCategory": 18,
+   "title": "Boomtube Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 600000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787353186,
+   "dateExpiration": 1792537186
   }
  }
 }
