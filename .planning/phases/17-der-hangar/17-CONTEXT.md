@@ -1,8 +1,17 @@
 # Phase 17: Der Hangar — Kontext
 
 **Erhoben:** 2026-08-20
-**Status:** Bereit zur Planung — **zwei Betreiberentscheidungen offen** (siehe
-zuletzt), ohne die kein Plan geschrieben werden darf.
+**Status:** ✅ **GEBAUT und auf staging** (21.08.2026). Der Betreiber hat die
+beiden offenen Punkte nicht einzeln beantwortet, sondern durchgewinkt
+(„mach solange bis … alles full polished") — sie sind unten unter
+„Entschieden" festgehalten, mitsamt der Messung, auf der die Entscheidung
+beruht. Ledger id 40 ist damit geschlossen.
+
+⚠ **Was NICHT gebaut wurde:** Attrappe **B** („Das Schiff antwortet") bleibt
+offen. Die vier Inhaltsgruppen zeigen im Raum den blanken Rumpf und
+beantworten ihre Frage in der Auslesung darunter — das ist stimmig, aber es
+ist nicht „der Rumpf beantwortet jede Frage selbst". Das bleibt der nächste
+Schritt, und es ist ein eigener.
 **Herkunft:** Betreiber-Befund vom 20.08.2026 nach der Lieferung von D-01
 (*„wir kommen dem ganzen immer näher, sind aber noch weit entfernt … noch
 meilen weit weg davon"*), danach drei Attrappen vorgelegt
@@ -209,15 +218,41 @@ statt einem Zielbehälter.
 
 ---
 
-## Offen beim Betreiber — ohne diese zwei Antworten kein Plan
+## Entschieden (21.08.2026)
 
-1. **P-1 (Ledger id 40).** Fällt die Füllgrad-Klinke zugunsten einer
-   Auffindbarkeits-Klinke? Ohne Antwort ist C nicht baubar: jede fensterhohe
-   Bühne reißt sie bei flachen Schiffen rechnerisch, obwohl das Schiff darin
-   größer aussieht als je zuvor.
-2. **P-2.** Wird die Neufassung oben angenommen — kein Text auf dem Rumpf,
-   höchstens fünf Beschriftungen in den Randspalten, Einzelport-Text weiterhin
-   nur bei Auswahl?
+**P-1 — abgelöst, nicht stillgelegt.** Die Frage „fällt die Füllgrad-Klinke?"
+hat sich erledigt, weil ihre *Voraussetzung* entfallen ist: P-1 war ein
+Stellvertreter für Auffindbarkeit, und Auffindbarkeit hängt nicht mehr an der
+Schiffsgröße, seit die Marker eine feste Bildschirmgröße haben. An die Stelle
+des Füllgrads tritt die **Rahmung** — berührt das Schiff den Rahmen in
+mindestens einer Richtung, `max(spanX/Breite, spanY/Höhe)`. Klinke 88 %,
+gemessenes Minimum 90,9 %. Der alte Füllgrad läuft als Bericht mit.
 
-Beides sind Sichturteile mit Messunterbau, keine Skriptbefunde. Sie gehören
-nach `CLAUDE.md` an den Betreiber und nicht in eine Planentscheidung.
+**P-2 — neu gefasst wie vorgeschlagen, mit einer Ergänzung aus der Messung.**
+Kein Text auf dem Rumpf; höchstens fünf Beschriftungen, je Art statt je Port;
+Einzelport-Text weiterhin nur bei Auswahl oder Zeigerkontakt. Ergänzt: **unter
+900 px Leinwandbreite trägt der Raum gar keine Dauer-Beschriftung** — fünf
+Kästen von bis zu 158 px decken auf 390 px den Rumpf zu. Die Randspalten aus
+der Attrappe gibt es nicht (bei 78,6 % Füllgrad blieben seitlich 140 px gegen
+158 px Kastenbreite); die Kästen weichen stattdessen **radial** vom
+Schiffsmittelpunkt aus.
+
+**Beide Entscheidungen sind gemessen belegt, nicht abgewogen** — die Zahlen
+stehen oben und in den Commit-Botschaften.
+
+---
+
+## Was der Bau zusätzlich zutage gefördert hat
+
+Keiner dieser Punkte stand im Plan; alle fünf kamen aus dem Hinsehen:
+
+- Die **Marker-Messung war um den Rig-Maßstab falsch** (919,6 px auf einer
+  710-px-Bühne) und meldete fest `true` — ein Wächter, der nie urteilt.
+- Auf dem Telefon lagen die Marker bei **3,7 px** und damit auf dem
+  Welle-1-Ausgangszustand, während P-1 dort den höchsten Wert des Laufs meldete.
+- Die **Blende fing Zeigerereignisse ab**, wo sie durchsichtig ist — ein Marker
+  darunter war nicht mehr anzufassen.
+- Eine **Inhaltsgruppe zeigte die Marker der zuvor gewählten Portgruppe**; das
+  Schiff behauptete etwas, das mit der Frage nichts zu tun hatte.
+- Zwei Fahrzeuge zeigten **„L 0 M · B 0 M · H 0 M"** — eine Null, die
+  „unbekannt" meint, ist schlechter als ein Gedankenstrich.
