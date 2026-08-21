@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 358,
-  "totalListings": 7783,
-  "totalSold": 337,
-  "distinctItems": 1321
+  "updates": 359,
+  "totalListings": 7818,
+  "totalSold": 338,
+  "distinctItems": 1322
  },
  "listings": {
   "156580": {
@@ -157284,9 +157284,9 @@
      "p": 12000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-21",
+   "soldOutPrice": 12000000,
    "dateAdded": 1787148999,
    "dateExpiration": 1792332999
   },
@@ -166328,6 +166328,48 @@
    "dateAdded": 1787272819,
    "dateExpiration": 1797644419
   },
+  "164607": {
+   "idItem": 972,
+   "idCategory": 22,
+   "title": "Nova",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787272928,
+   "dateExpiration": 1792456928
+  },
+  "164608": {
+   "idItem": 928,
+   "idCategory": 19,
+   "title": "Bracer",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273077,
+   "dateExpiration": 1792457077
+  },
   "164609": {
    "idItem": 7985,
    "idCategory": 7,
@@ -166348,6 +166390,699 @@
    "soldOutPrice": null,
    "dateAdded": 1787273106,
    "dateExpiration": 1792457106
+  },
+  "164610": {
+   "idItem": 943,
+   "idCategory": 21,
+   "title": "SonicLite",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273142,
+   "dateExpiration": 1792457142
+  },
+  "164611": {
+   "idItem": 7988,
+   "idCategory": 7,
+   "title": "Palatino Set Metropolis (crafted) -43% dmg (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 8500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273204,
+   "dateExpiration": 1792457204
+  },
+  "164612": {
+   "idItem": 1353,
+   "idCategory": 19,
+   "title": "Mercury",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273300,
+   "dateExpiration": 1792457300
+  },
+  "164613": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase Q892 - 5.83SCU = 10M (BULK SALE)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 892,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273363,
+   "dateExpiration": 1797644963
+  },
+  "164614": {
+   "idItem": 7991,
+   "idCategory": 7,
+   "title": "Palatino Set Sunstone (crafted) -43% dmg (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 942,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 8500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273387,
+   "dateExpiration": 1792457387
+  },
+  "164615": {
+   "idItem": 1748,
+   "idCategory": 23,
+   "title": "FR-66",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273432,
+   "dateExpiration": 1792457432
+  },
+  "164616": {
+   "idItem": 5094,
+   "idCategory": 18,
+   "title": "Pulse Laser Pistol Q937 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 3200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273473,
+   "dateExpiration": 1797641473
+  },
+  "164617": {
+   "idItem": 7985,
+   "idCategory": 7,
+   "title": "Palatino Set Daystar (crafted) -44% dmg (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273508,
+   "dateExpiration": 1792457508
+  },
+  "164618": {
+   "idItem": 965,
+   "idCategory": 21,
+   "title": "Radiance",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273508,
+   "dateExpiration": 1792457508
+  },
+  "164619": {
+   "idItem": 934,
+   "idCategory": 21,
+   "title": "Centurion",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 700000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273598,
+   "dateExpiration": 1792457598
+  },
+  "164620": {
+   "idItem": 7988,
+   "idCategory": 7,
+   "title": "Palatino Set Metropolis (crafted) -44% dmg (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273629,
+   "dateExpiration": 1792457629
+  },
+  "164621": {
+   "idItem": 70,
+   "idCategory": 18,
+   "title": "LH86 Pistol Q955 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 955,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273632,
+   "dateExpiration": 1797641631
+  },
+  "164622": {
+   "idItem": 5870,
+   "idCategory": 36,
+   "title": "Borase Q903 2.52SCU = 7M (BULK SALE)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 903,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273688,
+   "dateExpiration": 1797645288
+  },
+  "164623": {
+   "idItem": 7991,
+   "idCategory": 7,
+   "title": "Palatino Set Sunstone (crafted) -44% dmg (crafted backpack optional for free)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273745,
+   "dateExpiration": 1792457745
+  },
+  "164624": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 970Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273773,
+   "dateExpiration": 1792457773
+  },
+  "164625": {
+   "idItem": 553,
+   "idCategory": 18,
+   "title": "Devastator Shotgun Q953 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 953,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273780,
+   "dateExpiration": 1797641780
+  },
+  "164626": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "\"Red Alert\" Weapons & Armor Collection (RSI Store)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273951,
+   "dateExpiration": 1792457950
+  },
+  "164627": {
+   "idItem": 3348,
+   "idCategory": 18,
+   "title": "F55 LMG Q958 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 958,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 4000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787273964,
+   "dateExpiration": 1797641964
+  },
+  "164628": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274065,
+   "dateExpiration": 1792458065
+  },
+  "164629": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Ultimate Ascension Kit",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 14000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274276,
+   "dateExpiration": 1792458276
+  },
+  "164630": {
+   "idItem": 4899,
+   "idCategory": 18,
+   "title": "Fresnel Energy LMG Q950 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 950,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274283,
+   "dateExpiration": 1797642283
+  },
+  "164631": {
+   "idItem": 1673,
+   "idCategory": 18,
+   "title": "Karna Rifle Q955 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 955,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274493,
+   "dateExpiration": 1797642492
+  },
+  "164632": {
+   "idItem": 5923,
+   "idCategory": 36,
+   "title": "Laranite 975Q 1.3 SCU",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 975,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 13500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274539,
+   "dateExpiration": 1792458539
+  },
+  "164633": {
+   "idItem": 4745,
+   "idCategory": 36,
+   "title": "Quantainium Various qualities",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274622,
+   "dateExpiration": 1792458622
+  },
+  "164634": {
+   "idItem": 6582,
+   "idCategory": 18,
+   "title": "R97 \"Righteous\" Shotgun Q970 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 970,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274683,
+   "dateExpiration": 1797642683
+  },
+  "164635": {
+   "idItem": 5845,
+   "idCategory": 36,
+   "title": "Riccite Q870 2.24SCU = 4.5M (BULK SALE)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 870,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274723,
+   "dateExpiration": 1797646323
+  },
+  "164636": {
+   "idItem": 1706,
+   "idCategory": 18,
+   "title": "Ravager-212 Twin Shotgun Q963 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 963,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 3500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274892,
+   "dateExpiration": 1797642892
+  },
+  "164637": {
+   "idItem": 5703,
+   "idCategory": 87,
+   "title": "Beradom",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 937,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787274937,
+   "dateExpiration": 1792458937
+  },
+  "164638": {
+   "idItem": 6842,
+   "idCategory": 18,
+   "title": "18.47% Novian \"Nighthunter\" Crossbow Q963 AVG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 963,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 4500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787275052,
+   "dateExpiration": 1797643052
+  },
+  "164639": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787275174,
+   "dateExpiration": 1792459174
+  },
+  "164640": {
+   "idItem": 5386,
+   "idCategory": 18,
+   "title": "Boomtube \"Ruby\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787275258,
+   "dateExpiration": 1792459258
+  },
+  "164641": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787275263,
+   "dateExpiration": 1792459263
+  },
+  "164642": {
+   "idItem": 6223,
+   "idCategory": 7,
+   "title": "Stirling Exploration Suit Olympian Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787275810,
+   "dateExpiration": 1792459810
   }
  }
 }
