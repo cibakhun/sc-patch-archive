@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-21",
-  "updates": 361,
-  "totalListings": 7824,
+  "updates": 362,
+  "totalListings": 7827,
   "totalSold": 339,
   "distinctItems": 1323
  },
@@ -157647,6 +157647,10 @@
     {
      "d": "2026-08-19",
      "p": 5000
+    },
+    {
+     "d": "2026-08-21",
+     "p": 4000
     }
    ],
    "soldOut": false,
@@ -167217,6 +167221,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787280968,
    "dateExpiration": 1792464968
+  },
+  "164653": {
+   "idItem": 6721,
+   "idCategory": 18,
+   "title": "Parallax \"Fun Kopion Tooth\" Energy Assault Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787286085,
+   "dateExpiration": 1792470085
+  },
+  "164654": {
+   "idItem": 4613,
+   "idCategory": 38,
+   "title": "DCHS-05 Orbital Positioning Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787286772,
+   "dateExpiration": 1792470772
+  },
+  "164655": {
+   "idItem": 4610,
+   "idCategory": 38,
+   "title": "DCHS-06 Communication Comp-Board",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-21",
+   "lastSeen": "2026-08-21",
+   "prices": [
+    {
+     "d": "2026-08-21",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787286933,
+   "dateExpiration": 1792470933
   }
  }
 }
