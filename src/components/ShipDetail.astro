@@ -706,9 +706,16 @@ a{color:inherit;text-decoration:none}
    geworden: Auffindbarkeit hängt nicht mehr an der Schiffsgröße. Die Sonde
    misst seither beides getrennt — Rahmung an der LÄNGEREN Kante,
    Auffindbarkeit an der gezeichneten Marke. */
+/* Zweite Grenze, nur fuer HOCHFORMATIGE Fenster: der Raum darf nicht viel
+   hoeher werden als er breit ist. Gemessen bei 768x1024 stand das Schiff in
+   einer 768x820-Buehne und fuellte davon 92,9 % der BREITE, aber nur rund ein
+   Drittel der Hoehe — darueber und darunter blieb je ein leeres Band. Das
+   Schiff wird durch mehr Hoehe nicht groesser (es ist breitenbegrenzt), nur
+   die Leere. 0,72 x Breite haelt am Schreibtisch nichts auf: bei 1280x900
+   waeren das 922px gegen die 718px, die die Fensterhoehe ohnehin vorgibt. */
 .holo__wrap{position:relative;z-index:2;width:100%;overflow:hidden;
-  height:clamp(460px,calc(100vh - 182px),820px);
-  height:clamp(460px,calc(100dvh - 182px),820px)}
+  height:clamp(460px,min(calc(100vh - 182px),calc(100vw * 0.72)),820px);
+  height:clamp(460px,min(calc(100dvh - 182px),calc(100vw * 0.72)),820px)}
 /* min-height war 360px (aeltere Vorsichtsgrenze aus der Zeit vor dieser
    Klinken-Reparatur) -- blockierte bei 1100px (Buehnenbreite 560px) die
    oben noetige kleinere Hoehe. 160px bleibt als Schutz gegen eine
@@ -840,14 +847,17 @@ a{color:inherit;text-decoration:none}
    durchgehenden Leiste — getrennt nur durch eine Haarlinie, markiert durch
    eine Unterkante in der Gruppenfarbe. Das ist die Form eines Visier-Umschalters
    und nicht die einer Navigationsliste. */
+/* ⚠ Die Felder trennte eine border-left, mit :first-child als Ausnahme. Das
+   haelt nur in EINER Reihe: bei 768px bricht die Leiste um, und die Trennlinie
+   stand als verirrter Strich links am ersten Feld der zweiten Reihe (am Bild
+   gefunden). Ein Abstand bricht sauber um, eine Kante nicht. */
 .holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.45rem;flex:none;
-  border:0;border-left:1px solid color-mix(in srgb,var(--accent) 14%,transparent);
+  border:0;margin:1px;
   background:color-mix(in srgb,var(--media-void) 62%,transparent);backdrop-filter:blur(7px);
   padding:.54rem .62rem;box-shadow:inset 0 -2px 0 0 transparent;
   text-shadow:0 1px 4px var(--on-media-shadow);
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--on-media-dim);
   transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
-.holo__rail a:first-child{border-left:0}
 .holo__rail a:hover,.holo__rail a:focus-visible{color:var(--on-media);background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .holo__rail a[aria-current="true"]{color:var(--on-media);background:color-mix(in srgb,var(--gc) 12%,transparent);
   box-shadow:inset 0 -2px 0 0 var(--gc)}
@@ -1245,6 +1255,12 @@ a{color:inherit;text-decoration:none}
   .holo__rail a{padding:.5rem .7rem;font-size:var(--fs-4);gap:.35rem}
   .holo__rail-ic{width:13px;height:13px}
 }
+/* Die Hinweiszeile ("ZIEHEN · RECHTSKLICK · SCROLLEN") ist rund 400px lang und
+   rechtsbuendig. Unter 900px reicht sie damit bis in die Buehnenmitte und
+   kreuzt den Projektorstrahl (Sichtbefund bei 768px). Sie beschreibt ausserdem
+   Maus-Bedienung, die auf einem Geraet dieser Breite oft gar nicht vorliegt —
+   also weg, statt sie zu quetschen. */
+@media(max-width:899px){.holo__hintline{display:none}}
 /* Tablet-Portrait: Hero nicht ganz so wuchtig (steht VOR der 760er-Query,
    damit Handys unten die noch flachere Variante behalten) */
 /* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
@@ -1356,6 +1372,19 @@ a{color:inherit;text-decoration:none}
 .holo__bar dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted)}
 .holo__bar dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);font-variant-numeric:tabular-nums;color:var(--text)}
 .holo__bar .kv--price dd{color:var(--gold)}
+/* 761–899px: fuenf Zellen zu je 140px brauchen 700px, bei 768px abzueglich
+   Innenabstand bleibt der letzten zu wenig — "34.398.000 aUEC" brach in zwei
+   Zeilen (am Bild gefunden). Mit 165px Mindestbreite bricht die LEISTE sauber
+   in zwei Reihen, statt einen Wert zu zerreissen.
+   ⚠ Muss NACH der Basisregel stehen: die erste Fassung stand davor und wurde
+   von ihr ueberschrieben — gleiche Spezifitaet, spaeter gewinnt. */
+@media(min-width:761px) and (max-width:899px){
+  .holo__bar dl{grid-template-columns:repeat(3,1fr)}
+  /* Beim Umbruch traegt jede Zelle oben eine Linie statt links einer — sonst
+     haengt die zweite Reihe ohne Trennung unter der ersten. Dieselbe Loesung
+     wie im 760er-Block darunter. */
+  .holo__bar .kv{border-left:0;border-top:1px solid var(--line)}
+}
 @media(max-width:760px){.holo__bar dl{grid-template-columns:repeat(2,1fr)}.holo__bar .kv{border-left:0;border-top:1px solid var(--line)}}
 /* sehr schmal: kompaktere Kennwerte, damit lange aUEC-Werte einzeilig passen */
 @media(max-width:560px){.holo__bar .kv{padding:.6rem .7rem .65rem}.holo__bar dd{font-size:var(--fs-10)}.holo__bar dt{font-size:var(--fs-4);letter-spacing:var(--ls-12)}}
