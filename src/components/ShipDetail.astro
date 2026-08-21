@@ -1127,8 +1127,16 @@ a{color:inherit;text-decoration:none}
    auf SCHILDGENERAT|OREN — Symptomkur, einmal ausprobiert und verworfen.
    EINE Spalte gibt dem Label die vollen ~288px; kein Label der Auslesung
    kommt dem nahe. Der Platz dafuer ist da, seit die Konsole dem Fenster
-   folgt: die Auslesung misst bei 1280x900 jetzt 718px statt 380. */
-.holo__readout .sd__slots{grid-template-columns:1fr}
+   folgt: die Auslesung misst bei 1280x900 jetzt 718px statt 380.
+
+   NACHTRAG Phase 17 („Hangar"): die Einspaltigkeit war die Antwort auf eine
+   320px breite SPALTE. Die Auslesung ist jetzt die Zeile UNTER dem Raum und
+   rund 1000px breit — dort standen fünf Karten untereinander mit je gut
+   800px Leerraum daneben (am Bild nachgeprüft). Zurück zum mitwachsenden
+   Raster, aber mit 220px Mindestbreite statt der ursprünglichen 110: das
+   längste Label braucht gemessene 144px, und unterhalb davon fängt genau der
+   Wortbruch wieder an, gegen den die Einspaltigkeit einmal antrat. */
+.holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
 
 /* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
