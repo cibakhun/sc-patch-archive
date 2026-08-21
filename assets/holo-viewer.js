@@ -573,6 +573,9 @@ export async function initHolo(container, cfg) {
   const _cenViz = new THREE.Vector3(); // Modellmitte im Kameraraum
   let labelsOn = true;
   let leadW = 0, leadH = 0;
+  // Von aussen gesetztes Hindernis fuer die Beschriftungs-Entzerrung (die
+  // Detailkarte der Seite, siehe layoutLabels).
+  let hindernisEl = null;
 
   // Beschriftungen aus 3D projizieren und entzerren. Kernidee gegen Zappeln:
   // die Kastenmitte (cx,cy) bleibt über Frames ERHALTEN und wird nur sanft zum
@@ -607,6 +610,20 @@ export async function initHolo(container, cfg) {
        die vollstaendige Liste steht ohnehin unmittelbar unter der Buehne. Es
        geht nichts verloren, es wird nur nichts verdeckt. */
     const raumBeschriftung = w >= RAUM_LABEL_MIN_PX;
+    /* Hindernis: die Detailkarte schwebt seit Phase 17 IM Raum (rechter Rand).
+       Die Entzerrung unten kannte bis hierher nur Knoten und andere Kaesten —
+       bei 1024px lag der Kasten "Radar" dadurch UNTER der Karte (gemessen).
+       Die Karte ist Seiten-Markup, nicht Teil des Viewers; sie wird deshalb
+       von aussen gesetzt (setHindernis) und hier je Bild in Leinwand-
+       koordinaten umgerechnet. */
+    let hindernis = null;
+    if (hindernisEl && !hindernisEl.hidden) {
+      const cr = renderer.domElement.getBoundingClientRect();
+      const hr = hindernisEl.getBoundingClientRect();
+      if (hr.width > 0 && hr.height > 0) {
+        hindernis = { l: hr.left - cr.left, r: hr.right - cr.left, t: hr.top - cr.top, b: hr.bottom - cr.top };
+      }
+    }
     // Schiffsmitte AUF DEM BILDSCHIRM — Bezugspunkt fuer die radiale
     // Platzierung der Dauer-Beschriftungen weiter unten.
     _lblV.copy(fitSphere.center).project(camera);
@@ -731,6 +748,22 @@ export async function initHolo(container, cfg) {
           const up = dy < 0 || (dy === 0 && a < b); // A oberhalb -> A hoch, B runter
           if (up) { A.cy -= push; B.cy += push; } else { A.cy += push; B.cy -= push; }
           moved = true;
+        }
+      }
+      /* Kaesten aus dem Hindernis (Detailkarte) schieben — waagerecht, auf dem
+         kuerzesten Weg hinaus. Waagerecht und nicht senkrecht, weil die Karte
+         die volle mittlere Hoehe der Buehne einnimmt: nach oben oder unten
+         auszuweichen hiesse, an ihr entlangzuwandern. */
+      if (hindernis) {
+        for (const L of vis) {
+          const hl = L.cx - L.w / 2, hr2 = L.cx + L.w / 2;
+          const ht = L.cy - L.h / 2, hb = L.cy + L.h / 2;
+          if (hr2 > hindernis.l - 6 && hl < hindernis.r + 6 && hb > hindernis.t && ht < hindernis.b) {
+            const nachLinks = hindernis.l - 6 - L.w / 2;
+            const nachRechts = hindernis.r + 6 + L.w / 2;
+            L.cx = Math.abs(L.cx - nachLinks) <= Math.abs(nachRechts - L.cx) ? nachLinks : nachRechts;
+            moved = true;
+          }
         }
       }
       if (!moved) break;
@@ -1192,6 +1225,13 @@ export async function initHolo(container, cfg) {
     setLabels(on) {
       labelsOn = on;
       labelLayer.style.display = on ? '' : 'none';
+    },
+    /* Ein Element der SEITE, um das die Beschriftungen einen Bogen machen —
+       die Detailkarte, die seit Phase 17 im Raum schwebt. Der Viewer kennt
+       das Seiten-Markup nicht und soll es nicht kennen; er bekommt den Knoten
+       und liest je Bild dessen Rechteck. null hebt es wieder auf. */
+    setHindernis(el) {
+      hindernisEl = el || null;
     },
     // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (15-01-PLAN.md
     // Task 2 Schritt 1) — OHNE Seiteneffekt, liest nur den aktuellen Frame.

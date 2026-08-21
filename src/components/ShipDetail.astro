@@ -3090,6 +3090,13 @@ span.sd__ref{color:var(--muted)}
         .then(function (v) {
           viewer = v; loading = false;
           if (metricsMode) window.__holoViewer = v;
+          // Die Detailkarte schwebt im Raum — die Beschriftungen sollen einen
+          // Bogen um sie machen (bei 1024px lag "Radar" sonst darunter). Nur
+          // wenn sie ueberhaupt im Raum steht: haengt sie in der Auslesung,
+          // gibt es nichts zu umgehen.
+          if (panel && v.setHindernis && panel.closest('.holo__wrap, .holo') && !readoutEl?.contains(panel)) {
+            v.setHindernis(panel);
+          }
           status.textContent = '';
           stage.classList.remove('is-loading');
           showHolo();
