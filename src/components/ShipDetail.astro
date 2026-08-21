@@ -861,6 +861,18 @@ a{color:inherit;text-decoration:none}
 .holo__rail a:hover,.holo__rail a:focus-visible{color:var(--on-media);background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .holo__rail a[aria-current="true"]{color:var(--on-media);background:color-mix(in srgb,var(--gc) 12%,transparent);
   box-shadow:inset 0 -2px 0 0 var(--gc)}
+/* Zäsur zwischen den beiden Arten von Einträgen (siehe Markup): ein Abstand
+   plus eine Haarlinie. Bewusst KEINE zweite Akzentfarbe — die Blende führt
+   ohnehin schon vier Gruppenfarben, eine fünfte Bedeutungsebene in Farbe wäre
+   nicht mehr lesbar. Bricht die Leiste um, verschwindet die Linie mit ihr;
+   der Abstand allein trägt die Aussage dann weiter. */
+.holo__rail a.is-schnitt{margin-left:1.15rem;position:relative}
+.holo__rail a.is-schnitt::before{content:"";position:absolute;left:-.62rem;top:20%;bottom:20%;
+  width:1px;background:color-mix(in srgb,var(--accent) 26%,transparent)}
+/* Die Inhaltsgruppen tragen ein leiseres Zählwerk: ihre Zahl ist eine
+   Abschnittszahl, keine Markerzahl am Rumpf. */
+.holo__rail a[data-kind="inhalt"] .holo__rail-ct{color:var(--on-media-dim);opacity:.8}
+.holo__rail a[data-kind="inhalt"][aria-current="true"] .holo__rail-ct{color:var(--gc);opacity:1}
 .holo__rail a[data-g="arms"]{--gc:var(--gold)}
 .holo__rail a[data-g="prop"]{--gc:var(--accent-2)}
 .holo__rail a[data-g="other"]{--gc:#a78bfa}
@@ -1929,8 +1941,14 @@ span.sd__ref{color:var(--muted)}
             eigenes Symbol. Die Vorbelegung bleibt beim ersten PORT-Eintrag —
             faellt die Buehne ganz weg (kein Mesh), erbt sie der erste
             Inhaltseintrag, damit nie NULL Eintraege aria-current tragen. */}
+        {/* data-kind + is-schnitt: die Blende fuehrt ZWEI Arten von Eintraegen.
+            Portgruppen markieren Stellen AM RUMPF, Inhaltsgruppen oeffnen
+            einen Text — sie sahen bis hierher identisch aus, obwohl ein Klick
+            voellig Verschiedenes tut. Eine Zaesur vor dem ersten
+            Inhaltseintrag sagt das, ohne ein Wort zu kosten. */}
         {contentGroups.map((cg, i) => (
-          <a href={`#sys-${cg.id}`} data-g={cg.id}
+          <a href={`#sys-${cg.id}`} data-g={cg.id} data-kind="inhalt"
+            class={i === 0 && portGroups.length > 0 ? 'is-schnitt' : undefined}
             aria-current={portGroups.length === 0 && i === 0 ? 'true' : undefined}>
             <svg class="holo__rail-ic" viewBox="0 0 24 24" aria-hidden="true"><path d={cg.icon} /></svg>
             <span class="holo__rail-lb">{cg.rail}</span>
