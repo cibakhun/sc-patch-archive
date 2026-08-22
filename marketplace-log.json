@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 398,
-  "totalListings": 8234,
-  "totalSold": 373,
+  "updates": 399,
+  "totalListings": 8251,
+  "totalSold": 375,
   "distinctItems": 1344
  },
  "listings": {
@@ -169551,9 +169551,9 @@
      "p": 3000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3000000,
    "dateAdded": 1787331499,
    "dateExpiration": 1792515499
   },
@@ -172579,9 +172579,9 @@
      "p": 3000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3000000,
    "dateAdded": 1787368245,
    "dateExpiration": 1792552245
   },
@@ -175927,6 +175927,363 @@
    "soldOutPrice": null,
    "dateAdded": 1787424170,
    "dateExpiration": 1792608170
+  },
+  "165079": {
+   "idItem": 3351,
+   "idCategory": 18,
+   "title": "ParaMed \"Oxide\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424411,
+   "dateExpiration": 1792608411
+  },
+  "165081": {
+   "idItem": 5479,
+   "idCategory": 18,
+   "title": "Paramed \"Cyanosis\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424496,
+   "dateExpiration": 1792608496
+  },
+  "165082": {
+   "idItem": 4824,
+   "idCategory": 18,
+   "title": "ParaMed \"Amalgam\" Medical Device",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424579,
+   "dateExpiration": 1792608579
+  },
+  "165084": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 909Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 909,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424624,
+   "dateExpiration": 1792608624
+  },
+  "165085": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite Q880",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424735,
+   "dateExpiration": 1792608735
+  },
+  "165086": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424738,
+   "dateExpiration": 1792608738
+  },
+  "165087": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Guardian MX Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787424892,
+   "dateExpiration": 1792608892
+  },
+  "165089": {
+   "idItem": 4394,
+   "idCategory": 61,
+   "title": "UEE 6th Platoon Medal (Pristine) 800k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787425028,
+   "dateExpiration": 1792609028
+  },
+  "165090": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine) 900k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787425119,
+   "dateExpiration": 1792609119
+  },
+  "165092": {
+   "idItem": 4860,
+   "idCategory": 61,
+   "title": "Government Cartography Agency Medal (Pristine) 800k",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787425235,
+   "dateExpiration": 1792609235
+  },
+  "165094": {
+   "idItem": 158,
+   "idCategory": 23,
+   "title": "FR-86",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787426444,
+   "dateExpiration": 1792610444
+  },
+  "165095": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set 925Q Crafted",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 925,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 7500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787426477,
+   "dateExpiration": 1792610477
+  },
+  "165096": {
+   "idItem": 4922,
+   "idCategory": 87,
+   "title": "Feynmaline q500-700",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 550,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 0
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787426540,
+   "dateExpiration": 1792610540
+  },
+  "165097": {
+   "idItem": 2224,
+   "idCategory": 18,
+   "title": "FS-9 LMG (954/1000/1000)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 985,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 9000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787426749,
+   "dateExpiration": 1792610749
+  },
+  "165099": {
+   "idItem": 6008,
+   "idCategory": 61,
+   "title": "Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787427224,
+   "dateExpiration": 1792611224
+  },
+  "165100": {
+   "idItem": 5116,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AAA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787427508,
+   "dateExpiration": 1792611508
+  },
+  "165102": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 150000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787427619,
+   "dateExpiration": 1792611619
   }
  }
 }
