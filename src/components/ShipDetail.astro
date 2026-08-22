@@ -1211,7 +1211,14 @@ a{color:inherit;text-decoration:none}
    längste Label braucht gemessene 144px, und unterhalb davon fängt genau der
    Wortbruch wieder an, gegen den die Einspaltigkeit einmal antrat. */
 .holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 1rem 1.1rem;border-top:0}
+/* ⚠⚠ KEINE waagerechte Polsterung. Die Auslesung selbst steht schon in der
+   Inhaltsspalte (max-width 1100, padding 38.4px -> Spalte bei 128.4). Ein
+   zusaetzliches 1rem hier schob Kapitelkopf UND Karten auf 146 — 18px rechts
+   von Beschreibung, Aehnlichen, Knopfreihe und Quellenzeile. Gemessen bei
+   1280px: die Seite hatte DREI Inhaltskanten (128, 146, 45), wo sie eine
+   haben muss. Genau solche Beinahe-Treffer lesen sich als schlampig, ohne
+   dass man sie benennen kann. */
+.holo__readout .holo__sys{max-width:none;margin:0;padding:.9rem 0 1.1rem;border-top:0}
 /* Eintritt beim Gruppenwechsel. Bis hierher sprang der Inhalt hart um: die
    Blende ist das Hauptbedienelement der Seite, und ein harter Sprung liest
    sich wie ein Seitenwechsel statt wie eine Antwort desselben Schiffs.
@@ -1244,11 +1251,11 @@ a{color:inherit;text-decoration:none}
    414px sitzt .holo__hud (top:18px/left:16px) exakt ueber einem Marker
    nahe dem Bug (argo-csv-cargo), der Marker war per Maus-simulation nicht
    erreichbar (elementFromPoint traf .holo__hud statt den Canvas). */
-.holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--muted);pointer-events:none}
+.holo__hud{position:absolute;top:26px;left:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);
+  letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted);pointer-events:none}
 .holo__hud b{color:var(--accent);font-weight:700}
-.holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);
-  letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);text-align:right;pointer-events:none}
+.holo__dims{position:absolute;top:26px;right:30px;z-index:3;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);
+  letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted);text-align:right;pointer-events:none}
 /* Die urspruengliche Begruendung hier ("die freie Zurueck-Marke haengt an
    .holo, HUD/Dims ruecken deshalb als Paar 26->58px nach unten") ist mit
    16-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
@@ -1261,12 +1268,24 @@ a{color:inherit;text-decoration:none}
    durch die .holo-Verschiebung behoben. */
 .holo__toggle{position:absolute;right:26px;bottom:24px;z-index:6;display:flex;border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px)}
 .holo__toggle button{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
-  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;padding:.5rem .95rem}
+  /* ROLLE „Bedienbeschriftung": fs-6 + ls-12 — dieselbe wie Chips, Blende und
+     Knopfreihe. Der Umschalter fuehrte ls-14, der Merken-Knopf fs-5/ls-11 und
+     die Chips daneben fs-6/ls-12: drei Setzungen fuer drei Knoepfe, die im
+     selben Bild uebereinander stehen. */
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;padding:.5rem .95rem}
 .holo__toggle button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 /* z6: ueber der Video-Ebene (z5) — Schiffsname/Logo/Chips/Save bleiben in
    ALLEN Modi lesbar (User-Wunsch). pointer-events:none laesst Drag/Hover fuers
    Holo durch; nur der Save-Button faengt Klicks (siehe .holo__fav). */
-.holo__title{position:absolute;left:clamp(18px,3.5vw,46px);bottom:clamp(18px,4vh,40px);z-index:6;
+/* ⚠⚠ Der Titelblock stand bei 45px, waehrend die ganze Seite darunter bei
+   128px fluchtet — der Name des Schiffs gehoerte optisch zu nichts. Jetzt
+   setzt er sich auf DIESELBE Inhaltsspalte: Containerrand plus Polsterung,
+   dieselbe Rechnung wie .sd/.holo__bar/.holo__readout (max-width var(--maxw),
+   padding clamp(1rem,3vw,2.5rem)). min() faengt Fenster ab, die schmaler sind
+   als die Spalte. Die Rahmen-Chrome (.holo__hud bei 30px) bleibt bewusst am
+   Rahmen: sie beschriftet die Buehne, nicht den Inhalt. */
+.holo__title{position:absolute;bottom:clamp(18px,4vh,40px);z-index:6;
+  left:calc((100% - min(100%,var(--maxw)))/2 + clamp(1rem,3vw,2.5rem));
   max-width:min(56%,600px);pointer-events:none;display:flex;flex-direction:column}
 .holo__title .sd__maker{margin-bottom:.15rem}
 .holo__title h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.02;color:var(--on-media);text-shadow:0 2px 26px var(--on-media-shadow),0 0 44px rgba(45,212,255,.22)}
@@ -1390,7 +1409,10 @@ a{color:inherit;text-decoration:none}
   .holo__toggle button{flex:1}
   /* Titel kompakt in die freie untere Zone (über dem Toggle); Hersteller weg
      (steht bereits im HUD oben) */
-  .holo__title{left:14px;right:14px;max-width:none;bottom:64px}
+  /* Dieselbe Rinne wie der Seiteninhalt (clamp(1rem,3vw,2.5rem)), nicht 14px:
+     gemessen bei 390px standen Titel 14, Chrome 16 und Inhalt 18 — drei
+     Beinahe-Treffer, die man nicht benennen kann und trotzdem sieht. */
+  .holo__title{left:clamp(1rem,3vw,2.5rem);right:clamp(1rem,3vw,2.5rem);max-width:none;bottom:64px}
   .holo__title .sd__maker,.holo__title .sd__makerlogo{display:none}
   .holo__title h1{font-size:var(--fs-15)}
   .holo__chips{gap:.35rem;margin-top:.4rem}
@@ -1457,7 +1479,10 @@ a{color:inherit;text-decoration:none}
 .holo__bar dl{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
   gap:0;padding:0 clamp(1rem,3vw,2.5rem)}
 .holo__bar .kv{padding:.85rem 1rem .9rem;border-left:1px solid var(--line)}
-.holo__bar .kv:first-child{border-left:0}
+/* Die ERSTE Zelle traegt keine Trennlinie und braucht deshalb auch links
+   keine Luft: ihr Etikett setzt die Inhaltsspalte (128px), an der alles
+   darunter fluchtet. Mit 1rem stand es bei 146 und riss die Flucht auf. */
+.holo__bar .kv:first-child{border-left:0;padding-left:0}
 .holo__bar dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted)}
 .holo__bar dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);font-variant-numeric:tabular-nums;color:var(--text)}
 .holo__bar .kv--price dd{color:var(--gold)}
@@ -1494,7 +1519,11 @@ a{color:inherit;text-decoration:none}
 .sd::after{content:"";position:absolute;left:0;right:0;bottom:0;
   height:230px;pointer-events:none;z-index:-1;
   background:radial-gradient(72% 100% at 50% 100%,color-mix(in srgb,var(--accent) 7%,transparent),transparent 70%)}
-.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent)}
+/* ROLLE „Chrome": fs-5 + ls-15 — Beschriftung der BUEHNE (Hangar-Zeile,
+   Massangabe, Kennwerte-Etiketten, Hersteller). Weiter gesperrt als die
+   Inhalts-Etiketten, damit sie als Rahmen und nicht als Inhalt liest — aber
+   EINE Sperrung, nicht vier. */
+.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--accent)}
 /* Echtes Hersteller-Logo (weiß-auf-transparent -> sichtbar auf
    dunklem Grund). Höhe fix, Breite proportional; leichter Glow für Trennung. */
 /* Höhe treibt die Größe (einheitliche Zeile), Breite proportional; max-width
@@ -1589,9 +1618,12 @@ span.sd__ref{color:var(--muted)}
 
 .sd__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem 1.4rem;margin:0}
 .sd__item{border-left:1px solid var(--line);padding-left:.8rem}
-.sd__item dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted)}
+.sd__item dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
 .sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:var(--fs-11);line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
-.sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);
+/* ROLLE „Abschnitts-Etikett": fs-6 + ls-13 (siehe Rollen-Kommentar an
+   .sd__slot .t). Gilt fuer .sd__sub, .sd__item dt, .sd__glabel,
+   .sd__proflabel, .sd__more summary, .arm__glabel, .sd__spine h3. */
+.sd__sub{display:flex;align-items:center;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);
   margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
 
 /* Kapitelinterne Zweispaltigkeit (14-04-PLAN.md Task 1, UI-SPEC Punkt 9) —
@@ -1698,7 +1730,7 @@ span.sd__ref{color:var(--muted)}
 .arm__grp--g{border-left-color:color-mix(in srgb,var(--gold) 60%,transparent)}
 .arm__ghead{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem .7rem;
   padding-bottom:.45rem;border-bottom:1px solid var(--line-soft);margin-bottom:.5rem}
-.arm__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-13);
+.arm__glabel{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);
   text-transform:uppercase;color:var(--text)}
 .arm__gmeta{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--muted)}
 .arm__gval{margin-left:auto;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);
@@ -1725,12 +1757,12 @@ span.sd__ref{color:var(--muted)}
 .arm__grp--g .arm__size em{color:var(--gold)}
 .arm__name{min-width:0;font-size:var(--fs-10);color:var(--text)}
 .arm__anon{color:var(--muted)}
-.arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;
+.arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
   color:var(--muted);white-space:nowrap}
 .arm__bdg--up{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
   background:color-mix(in srgb,var(--accent) 8%,transparent);padding:.14rem .4rem}
 .arm__note{margin:.5rem 0 0;font-size:var(--fs-8);color:var(--muted);line-height:1.5}
-.arm__note span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-11);
+.arm__note span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);
   text-transform:uppercase;margin-right:.4rem}
 @media(max-width:640px){
   .arm__line{grid-template-columns:2.2rem 48px minmax(0,1fr);row-gap:.15rem}
@@ -1751,7 +1783,7 @@ span.sd__ref{color:var(--muted)}
 .sd__desc::before{content:"";position:absolute;left:0;top:.4rem;bottom:.4rem;width:2px;
   background:linear-gradient(180deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 10%,transparent) 100%)}
 .sd__spine{margin-bottom:1.6rem;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--bg-2);padding:1rem 1.2rem}
-.sd__spine h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.sd__spine h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
 .sd__spine a{display:block;padding:.3rem 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10)}
 .sd__spine a:hover{color:var(--gold);text-decoration:underline}
 .sd__spine span{color:var(--muted);font-weight:600}
@@ -1795,14 +1827,14 @@ span.sd__ref{color:var(--muted)}
     repeating-linear-gradient(180deg,transparent 0 23px,color-mix(in srgb,var(--line) 70%,transparent) 23px 24px),
     var(--veil-2)}
 .sd__sim .im img{width:100%;height:100%;object-fit:cover}
-.sd__sim .im span{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-16);
-  color:color-mix(in srgb,var(--muted) 72%,transparent);font-size:var(--fs-3)}
+.sd__sim .im span{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-12);
+  color:color-mix(in srgb,var(--muted) 72%,transparent);font-size:var(--fs-4)}
 .sd__sim .tx{padding:.6rem .8rem .7rem}
 .sd__sim .nm{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text)}
 .sd__sim .mt{font-size:var(--fs-7);color:var(--muted)}
 
 .sd__links{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem}
-.sd__links a{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);letter-spacing:var(--ls-11);text-transform:uppercase;
+.sd__links a{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   border:1px solid var(--line);padding:.45rem .9rem;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .sd__links a:hover{border-color:var(--accent);color:var(--accent)}
 .sd__src{margin-top:1.4rem;font-size:var(--fs-7);color:var(--muted)}
@@ -1865,7 +1897,13 @@ span.sd__ref{color:var(--muted)}
    der Marke statt neben ihr. flex:none haelt die Gruppe zusammen und laesst
    das Wort umbrechen, nicht die Zahl. */
 .sd__slothead .sd__hprow{flex:none;flex-wrap:nowrap}
-.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted);min-width:0}
+/* ROLLE „Mikro-Etikett": fs-4 + ls-12, 700, Versalien, --muted. Gemessen am
+   21.08. trug dieselbe Rolle auf EINER Seite vier Grade und acht Laufweiten
+   (1,008 bis 3,168px) — 21 verschiedene Schriftbilder insgesamt. Das ist der
+   Hauptgrund, warum die Seite hingerotzt aussah: dasselbe Ding, jedes Mal
+   leicht anders gesetzt. Wer hier etwas Neues beschriftet, nimmt diese zwei
+   Werte und erfindet keine dritten. */
+.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted);min-width:0}
 .sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:auto 0 0;line-height:1.2}
 
 /* Quantum-Chips */
@@ -1874,7 +1912,7 @@ span.sd__ref{color:var(--muted)}
 /* Versicherung */
 .sd__inscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem}
 .sd__ins{border:1px solid var(--line);background:var(--bg-2);padding:.7rem .9rem}
-.sd__ins .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--muted)}
+.sd__ins .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
 .sd__ins .v{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-13);font-variant-numeric:tabular-nums;color:var(--text);margin-top:.15rem}
 .sd__ins--gold .v{color:var(--gold)}
 
@@ -1889,7 +1927,7 @@ span.sd__ref{color:var(--muted)}
    kaeme kein Klick am Button an. */
 .holo__fav{margin-top:.7rem;pointer-events:auto}
 .favbtn{display:inline-flex;align-items:center;gap:.45rem;background:var(--veil);border:1px solid var(--line);color:var(--muted);
-  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-11);text-transform:uppercase;padding:.42rem .85rem;cursor:pointer;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;padding:.42rem .85rem;cursor:pointer;
   transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .favbtn:hover{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .favbtn.is-fav{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 60%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
