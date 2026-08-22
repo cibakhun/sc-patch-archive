@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 391,
-  "totalListings": 8096,
-  "totalSold": 368,
-  "distinctItems": 1338
+  "updates": 392,
+  "totalListings": 8131,
+  "totalSold": 369,
+  "distinctItems": 1339
  },
  "listings": {
   "156580": {
@@ -170685,9 +170685,9 @@
      "p": 700000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 700000,
    "dateAdded": 1787345912,
    "dateExpiration": 1792529912
   },
@@ -172375,6 +172375,27 @@
    "dateAdded": 1787368245,
    "dateExpiration": 1792552245
   },
+  "164910": {
+   "idItem": 5805,
+   "idCategory": 7,
+   "title": "Geist Armor ASD Edition Set Full",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787368515,
+   "dateExpiration": 1792552515
+  },
   "164911": {
    "idItem": 5845,
    "idCategory": 36,
@@ -172711,6 +172732,27 @@
    "dateAdded": 1787382538,
    "dateExpiration": 1792566538
   },
+  "164930": {
+   "idItem": 5918,
+   "idCategory": 36,
+   "title": "Iron 2SCU 874Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787382785,
+   "dateExpiration": 1792566785
+  },
   "164931": {
    "idItem": null,
    "idCategory": 102,
@@ -172837,6 +172879,48 @@
    "dateAdded": 1787385028,
    "dateExpiration": 1792569028
   },
+  "164937": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Corbel Crush Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787385853,
+   "dateExpiration": 1792569853
+  },
+  "164938": {
+   "idItem": null,
+   "idCategory": 36,
+   "title": "Antium Ana Endro Full Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787386084,
+   "dateExpiration": 1792570084
+  },
   "164939": {
    "idItem": 4922,
    "idCategory": 87,
@@ -172942,6 +173026,384 @@
    "dateAdded": 1787389168,
    "dateExpiration": 1792573168
   },
+  "164944": {
+   "idItem": 810,
+   "idCategory": 5,
+   "title": "Morozov-SH Core Snowdrift",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389253,
+   "dateExpiration": 1792573253
+  },
+  "164945": {
+   "idItem": 8008,
+   "idCategory": 7,
+   "title": "Testudo Earthshake Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389447,
+   "dateExpiration": 1792573447
+  },
+  "164946": {
+   "idItem": 5711,
+   "idCategory": 3,
+   "title": "Testudo Helmet Earthshake",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389503,
+   "dateExpiration": 1792573503
+  },
+  "164947": {
+   "idItem": 6047,
+   "idCategory": 5,
+   "title": "Testudo Core Earthshake",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389621,
+   "dateExpiration": 1792573621
+  },
+  "164948": {
+   "idItem": 5669,
+   "idCategory": 1,
+   "title": "Testudo Arms Earthshake",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389674,
+   "dateExpiration": 1792573674
+  },
+  "164949": {
+   "idItem": 6654,
+   "idCategory": 3,
+   "title": "Paladin Helmet White/Black",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389747,
+   "dateExpiration": 1792573747
+  },
+  "164950": {
+   "idItem": 3347,
+   "idCategory": 3,
+   "title": "Aril Helmet Quicksilver",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389831,
+   "dateExpiration": 1792573831
+  },
+  "164951": {
+   "idItem": 7521,
+   "idCategory": 3,
+   "title": "Badami Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787389885,
+   "dateExpiration": 1792573885
+  },
+  "164952": {
+   "idItem": 5413,
+   "idCategory": 18,
+   "title": "Ripper \"Sunblock\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390001,
+   "dateExpiration": 1792574001
+  },
+  "164953": {
+   "idItem": 1769,
+   "idCategory": 21,
+   "title": "UltraFlux",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390126,
+   "dateExpiration": 1792574126
+  },
+  "164954": {
+   "idItem": 1526,
+   "idCategory": 23,
+   "title": "AllStop",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390181,
+   "dateExpiration": 1792574181
+  },
+  "164955": {
+   "idItem": 2625,
+   "idCategory": 18,
+   "title": "P6-LR Sniper Rifle",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390318,
+   "dateExpiration": 1792574318
+  },
+  "164956": {
+   "idItem": 2320,
+   "idCategory": 18,
+   "title": "GP-33 MOD Grenade Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390421,
+   "dateExpiration": 1792574421
+  },
+  "164957": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390584,
+   "dateExpiration": 1792574584
+  },
+  "164958": {
+   "idItem": 5887,
+   "idCategory": 36,
+   "title": "WTS Corundum Q665 - 54 SCU Available!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 665,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 75000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787390723,
+   "dateExpiration": 1792574723
+  },
+  "164960": {
+   "idItem": 4453,
+   "idCategory": 3,
+   "title": "Ace Interceptor Helmet",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787391093,
+   "dateExpiration": 1792575093
+  },
+  "164961": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "WTS Aluminum Q783 - 2.371 SCU Available!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 783,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787391295,
+   "dateExpiration": 1792575295
+  },
+  "164962": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 2500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787392866,
+   "dateExpiration": 1792576866
+  },
   "164963": {
    "idItem": 1069,
    "idCategory": 5,
@@ -172962,6 +173424,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787393813,
    "dateExpiration": 1792577813
+  },
+  "164964": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "WTS Titanium 866",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 866,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 2800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787394472,
+   "dateExpiration": 1792578472
+  },
+  "164965": {
+   "idItem": 5050,
+   "idCategory": 18,
+   "title": "Scourge \"Quite Useful\" Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787394544,
+   "dateExpiration": 1792578544
   },
   "164966": {
    "idItem": null,
@@ -173025,6 +173529,237 @@
    "soldOutPrice": null,
    "dateAdded": 1787395471,
    "dateExpiration": 1792579471
+  },
+  "164969": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Starlancer TAC",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 169000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787395672,
+   "dateExpiration": 1792579672
+  },
+  "164970": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Guardian QI",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 39000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787395870,
+   "dateExpiration": 1792579870
+  },
+  "164971": {
+   "idItem": 6964,
+   "idCategory": 3,
+   "title": "Morozov-SH Helmet Spitfire",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787395892,
+   "dateExpiration": 1792579892
+  },
+  "164972": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Bokto Full Set - From Wikelo (Heavy Armor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787396060,
+   "dateExpiration": 1792580060
+  },
+  "164973": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Scorpius",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 15000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787396133,
+   "dateExpiration": 1792580133
+  },
+  "164974": {
+   "idItem": 5137,
+   "idCategory": 7,
+   "title": "Antium Armor full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 3900000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787396260,
+   "dateExpiration": 1792580260
+  },
+  "164975": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "Ana Endro Set - From Wikelo (Heavy Armor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 5000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787396647,
+   "dateExpiration": 1792580647
+  },
+  "164976": {
+   "idItem": 6014,
+   "idCategory": 7,
+   "title": "Geist Armor Snow Camo Set - From Wikelo (Light Armor)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 6500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787397712,
+   "dateExpiration": 1792581711
+  },
+  "164977": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - F8C Lightning Military",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 119000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787397749,
+   "dateExpiration": 1792581749
+  },
+  "164979": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - F8C Lightning Stealth",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 109000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787397982,
+   "dateExpiration": 1792581982
+  },
+  "164980": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Prowler Utility",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 109000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787398127,
+   "dateExpiration": 1792582127
   }
  }
 }
