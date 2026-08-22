@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 393,
-  "totalListings": 8156,
-  "totalSold": 369,
+  "updates": 394,
+  "totalListings": 8169,
+  "totalSold": 370,
   "distinctItems": 1341
  },
  "listings": {
@@ -170601,9 +170601,9 @@
      "p": 200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 200000,
    "dateAdded": 1787343939,
    "dateExpiration": 1792527939
   },
@@ -174118,6 +174118,27 @@
    "dateAdded": 1787398815,
    "dateExpiration": 1792582815
   },
+  "164983": {
+   "idItem": 5989,
+   "idCategory": 36,
+   "title": "WTS Torite Q785 - 2.837 SCU Available!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 785,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 250000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787400554,
+   "dateExpiration": 1792584553
+  },
   "164984": {
    "idItem": 4394,
    "idCategory": 61,
@@ -174285,6 +174306,258 @@
    "soldOutPrice": null,
    "dateAdded": 1787401657,
    "dateExpiration": 1792585657
+  },
+  "164992": {
+   "idItem": 4586,
+   "idCategory": 38,
+   "title": "Irradiated Valakkar Fang (Apex)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 2000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787403501,
+   "dateExpiration": 1792587501
+  },
+  "164993": {
+   "idItem": 7987,
+   "idCategory": 7,
+   "title": "WTS Wikelo Palatino MK1 SET COMPLETO",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404023,
+   "dateExpiration": 1792588023
+  },
+  "164994": {
+   "idItem": null,
+   "idCategory": 7,
+   "title": "WTS ORC-mkX Righteous full set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 10000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404177,
+   "dateExpiration": 1792588177
+  },
+  "164995": {
+   "idItem": 5852,
+   "idCategory": 36,
+   "title": "Aluminum 783Q / 1,098 scu / 1 mill / Mic L5 stanton",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 783,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404276,
+   "dateExpiration": 1792588275
+  },
+  "164996": {
+   "idItem": 5859,
+   "idCategory": 36,
+   "title": "Aslarite 854 Q / 0,893 scu / 1.5 mill / mic L5 stanton",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 854,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404466,
+   "dateExpiration": 1792588466
+  },
+  "164997": {
+   "idItem": 4583,
+   "idCategory": 61,
+   "title": "[WTS] Irradiated Valakkar Pearl (AA)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 70000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404471,
+   "dateExpiration": 1792588471
+  },
+  "164998": {
+   "idItem": 5865,
+   "idCategory": 36,
+   "title": "Beryl 717 Q / 1,402 scu / 1mill / Mic L5 stanton",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 717,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404692,
+   "dateExpiration": 1792588692
+  },
+  "164999": {
+   "idItem": 5011,
+   "idCategory": 87,
+   "title": "Carinite (Pure)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 20000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404851,
+   "dateExpiration": 1792588851
+  },
+  "165000": {
+   "idItem": 5867,
+   "idCategory": 36,
+   "title": "Bexalite 756Q / 1,500 scu / 1 mill / L5 mic stanton",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 756,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787404884,
+   "dateExpiration": 1792588884
+  },
+  "165003": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "972 glacosite x3",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787405302,
+   "dateExpiration": 1792589302
+  },
+  "165006": {
+   "idItem": 5943,
+   "idCategory": 36,
+   "title": "Ouratite 779 Q / 1,114 scu / 1 mill / Mic L5",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 779,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787405986,
+   "dateExpiration": 1792589986
+  },
+  "165008": {
+   "idItem": 5987,
+   "idCategory": 36,
+   "title": "Titanium 784 Q / 1,556 Scu / 1 mill / Mic L5",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 784,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406194,
+   "dateExpiration": 1792590194
   }
  }
 }
