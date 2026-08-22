@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 382,
-  "totalListings": 8046,
+  "updates": 383,
+  "totalListings": 8053,
   "totalSold": 365,
   "distinctItems": 1338
  },
@@ -163844,6 +163844,10 @@
     {
      "d": "2026-08-20",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 1499999
     }
    ],
    "soldOut": false,
@@ -171959,6 +171963,153 @@
    "soldOutPrice": null,
    "dateAdded": 1787363107,
    "dateExpiration": 1792547107
+  },
+  "164891": {
+   "idItem": 5232,
+   "idCategory": 61,
+   "title": "Vanduul Plating",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363142,
+   "dateExpiration": 1792547142
+  },
+  "164892": {
+   "idItem": 3349,
+   "idCategory": 18,
+   "title": "Scourge Railgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363169,
+   "dateExpiration": 1792547169
+  },
+  "164893": {
+   "idItem": 2320,
+   "idCategory": 18,
+   "title": "GP-33 MOD Grenade Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363264,
+   "dateExpiration": 1792547264
+  },
+  "164894": {
+   "idItem": 7968,
+   "idCategory": 7,
+   "title": "Ana Armor Entro Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 50000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363353,
+   "dateExpiration": 1792547353
+  },
+  "164895": {
+   "idItem": 1769,
+   "idCategory": 21,
+   "title": "UltraFlux",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363488,
+   "dateExpiration": 1792547488
+  },
+  "164898": {
+   "idItem": 1758,
+   "idCategory": 21,
+   "title": "Bolide",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363565,
+   "dateExpiration": 1792547565
+  },
+  "164899": {
+   "idItem": 1771,
+   "idCategory": 21,
+   "title": "Fierell Cascade",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 50000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363641,
+   "dateExpiration": 1792547641
   }
  }
 }
