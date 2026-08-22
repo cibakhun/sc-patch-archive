@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 399,
-  "totalListings": 8251,
-  "totalSold": 375,
+  "updates": 400,
+  "totalListings": 8255,
+  "totalSold": 376,
   "distinctItems": 1344
  },
  "listings": {
@@ -167945,6 +167945,10 @@
     {
      "d": "2026-08-21",
      "p": 2000000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 1900000
     }
    ],
    "soldOut": false,
@@ -167966,6 +167970,10 @@
     {
      "d": "2026-08-21",
      "p": 1000000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 800000
     }
    ],
    "soldOut": false,
@@ -168029,6 +168037,10 @@
     {
      "d": "2026-08-21",
      "p": 200000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 180000
     }
    ],
    "soldOut": false,
@@ -168050,6 +168062,10 @@
     {
      "d": "2026-08-21",
      "p": 200000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 150000
     }
    ],
    "soldOut": false,
@@ -168071,6 +168087,10 @@
     {
      "d": "2026-08-21",
      "p": 200000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 180000
     }
    ],
    "soldOut": false,
@@ -168113,6 +168133,10 @@
     {
      "d": "2026-08-21",
      "p": 200000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 180000
     }
    ],
    "soldOut": false,
@@ -176090,9 +176114,9 @@
      "p": 800000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 800000,
    "dateAdded": 1787425028,
    "dateExpiration": 1792609028
   },
@@ -176214,6 +176238,10 @@
     {
      "d": "2026-08-22",
      "p": 9000000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 7500000
     }
    ],
    "soldOut": false,
@@ -176284,6 +176312,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787427619,
    "dateExpiration": 1792611619
+  },
+  "165104": {
+   "idItem": 2627,
+   "idCategory": 61,
+   "title": "Large Artifact Fragment (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787428482,
+   "dateExpiration": 1792612482
+  },
+  "165105": {
+   "idItem": 5387,
+   "idCategory": 18,
+   "title": "Boomtube \"Mean Green\" Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787428899,
+   "dateExpiration": 1792612898
+  },
+  "165106": {
+   "idItem": 5142,
+   "idCategory": 18,
+   "title": "Boomtube Rocket Launcher",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787428976,
+   "dateExpiration": 1792612976
+  },
+  "165107": {
+   "idItem": 7949,
+   "idCategory": 17,
+   "title": "Escalate Stabilizer2",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787429521,
+   "dateExpiration": 1792613521
   }
  }
 }
