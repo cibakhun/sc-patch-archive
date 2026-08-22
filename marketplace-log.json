@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 385,
-  "totalListings": 8070,
+  "updates": 386,
+  "totalListings": 8071,
   "totalSold": 365,
   "distinctItems": 1338
  },
@@ -172467,6 +172467,27 @@
    "soldOutPrice": null,
    "dateAdded": 1787372591,
    "dateExpiration": 1792556591
+  },
+  "164924": {
+   "idItem": 2032,
+   "idCategory": 22,
+   "title": "Spicule",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 600,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787374781,
+   "dateExpiration": 1792558781
   }
  }
 }
