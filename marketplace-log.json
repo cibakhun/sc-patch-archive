@@ -4,10 +4,10 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 394,
-  "totalListings": 8169,
-  "totalSold": 370,
-  "distinctItems": 1341
+  "updates": 395,
+  "totalListings": 8174,
+  "totalSold": 371,
+  "distinctItems": 1343
  },
  "listings": {
   "156580": {
@@ -167204,9 +167204,9 @@
      "p": 1100000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 1100000,
    "dateAdded": 1787277819,
    "dateExpiration": 1792461819
   },
@@ -174496,6 +174496,27 @@
    "dateAdded": 1787404884,
    "dateExpiration": 1792588884
   },
+  "165002": {
+   "idItem": 2629,
+   "idCategory": 61,
+   "title": "Tevarin War Service Marker (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787405250,
+   "dateExpiration": 1792589250
+  },
   "165003": {
    "idItem": null,
    "idCategory": 38,
@@ -174538,6 +174559,27 @@
    "dateAdded": 1787405986,
    "dateExpiration": 1792589986
   },
+  "165007": {
+   "idItem": 2627,
+   "idCategory": 61,
+   "title": "Large Artifact Fragment (Pristine)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 1000,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406122,
+   "dateExpiration": 1792590122
+  },
   "165008": {
    "idItem": 5987,
    "idCategory": 36,
@@ -174558,6 +174600,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787406194,
    "dateExpiration": 1792590194
+  },
+  "165009": {
+   "idItem": 7968,
+   "idCategory": 7,
+   "title": "Ana Armor Entro Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 3000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406286,
+   "dateExpiration": 1792590286
+  },
+  "165012": {
+   "idItem": 6024,
+   "idCategory": 18,
+   "title": "Quartz \"Cobalt Camo\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406555,
+   "dateExpiration": 1792590555
+  },
+  "165013": {
+   "idItem": 5806,
+   "idCategory": 18,
+   "title": "Quartz \"Jungle Camo\" Energy SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406671,
+   "dateExpiration": 1792590671
   }
  }
 }
