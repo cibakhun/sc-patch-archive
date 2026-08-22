@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 390,
-  "totalListings": 8092,
-  "totalSold": 367,
+  "updates": 391,
+  "totalListings": 8096,
+  "totalSold": 368,
   "distinctItems": 1338
  },
  "listings": {
@@ -170706,9 +170706,9 @@
      "p": 700000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 700000,
    "dateAdded": 1787346155,
    "dateExpiration": 1792530155
   },
@@ -172941,6 +172941,90 @@
    "soldOutPrice": null,
    "dateAdded": 1787389168,
    "dateExpiration": 1792573168
+  },
+  "164963": {
+   "idItem": 1069,
+   "idCategory": 5,
+   "title": "Defiance Core Firestarter",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787393813,
+   "dateExpiration": 1792577813
+  },
+  "164966": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Super Hornet MkII (F7)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 19000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787394911,
+   "dateExpiration": 1792578911
+  },
+  "164967": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Polaris Wikelo Special",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 749000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787395322,
+   "dateExpiration": 1792579322
+  },
+  "164968": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Sabre Firebird",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 18000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787395471,
+   "dateExpiration": 1792579471
   }
  }
 }
