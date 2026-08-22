@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 381,
-  "totalListings": 8043,
-  "totalSold": 356,
+  "updates": 382,
+  "totalListings": 8046,
+  "totalSold": 365,
   "distinctItems": 1338
  },
  "listings": {
@@ -166621,9 +166621,9 @@
      "p": 3200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3200000,
    "dateAdded": 1787273473,
    "dateExpiration": 1797641473
   },
@@ -166726,9 +166726,9 @@
      "p": 2500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 2500000,
    "dateAdded": 1787273632,
    "dateExpiration": 1797641631
   },
@@ -166810,9 +166810,9 @@
      "p": 3500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3500000,
    "dateAdded": 1787273780,
    "dateExpiration": 1797641780
   },
@@ -166852,9 +166852,9 @@
      "p": 4000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 4000000,
    "dateAdded": 1787273964,
    "dateExpiration": 1797641964
   },
@@ -166919,9 +166919,9 @@
      "p": 6000000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 6000000,
    "dateAdded": 1787274283,
    "dateExpiration": 1797642283
   },
@@ -166940,9 +166940,9 @@
      "p": 3500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3500000,
    "dateAdded": 1787274493,
    "dateExpiration": 1797642492
   },
@@ -167003,9 +167003,9 @@
      "p": 3500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3500000,
    "dateAdded": 1787274683,
    "dateExpiration": 1797642683
   },
@@ -167045,9 +167045,9 @@
      "p": 3500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 3500000,
    "dateAdded": 1787274892,
    "dateExpiration": 1797642892
   },
@@ -167087,9 +167087,9 @@
      "p": 4500000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 4500000,
    "dateAdded": 1787275052,
    "dateExpiration": 1797643052
   },
@@ -171896,6 +171896,69 @@
    "soldOutPrice": null,
    "dateAdded": 1787358008,
    "dateExpiration": 1792542008
+  },
+  "164886": {
+   "idItem": 4741,
+   "idCategory": 87,
+   "title": "Carinite 880Q",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 880,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787359609,
+   "dateExpiration": 1792543609
+  },
+  "164887": {
+   "idItem": 5704,
+   "idCategory": 87,
+   "title": "FOR SALE: Sadaryx Gems - The \"688\" Master Crafter Bulk Haul!",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 688,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787359804,
+   "dateExpiration": 1792543804
+  },
+  "164890": {
+   "idItem": 5233,
+   "idCategory": 61,
+   "title": "Vanduul Metal",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 100000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787363107,
+   "dateExpiration": 1792547107
   }
  }
 }
