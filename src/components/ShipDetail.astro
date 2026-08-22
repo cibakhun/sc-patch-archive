@@ -722,9 +722,20 @@ a{color:inherit;text-decoration:none}
    Schiff wird durch mehr Hoehe nicht groesser (es ist breitenbegrenzt), nur
    die Leere. 0,72 x Breite haelt am Schreibtisch nichts auf: bei 1280x900
    waeren das 922px gegen die 718px, die die Fensterhoehe ohnehin vorgibt. */
+/* ⚠⚠ DER RAUM BEKOMMT DIE FORM SEINES BEWOHNERS.
+   Bis hierher war die Buehne fuer JEDES Schiff gleich geformt (Faktor 0,72,
+   also 1,39:1). Ein flacher Rumpf laesst darin Leere: die Carrack misst
+   projiziert 1249x564, das sind bei 1280x718 rund 40 % ungenutzte Hoehe.
+   Genau das war Ledger id 40 ("54,6 % Fuellgrad") — geschlossen wurde damals
+   die KENNZAHL, nicht die Leere.
+   `--holo-ar` kommt je Schiff aus Laenge/Hoehe (gedaempft und geklemmt, siehe
+   dort): ein langer flacher Rumpf bekommt eine breitere, niedrigere Halle, ein
+   gedrungener eine hohe. Die aeussere clamp bleibt unveraendert die Huelle —
+   auf dem Telefon bindet weiterhin die 460px-Untergrenze, es aendert sich dort
+   also nichts. Rueckfall 1,39 = der bisherige Wert, falls die Zahl fehlt. */
 .holo__wrap{position:relative;z-index:2;width:100%;overflow:hidden;
-  height:clamp(460px,min(calc(100vh - 182px),calc(100vw * 0.72)),820px);
-  height:clamp(460px,min(calc(100dvh - 182px),calc(100vw * 0.72)),820px)}
+  height:clamp(460px,min(calc(100vh - 182px),calc(100vw / var(--holo-ar,1.39))),820px);
+  height:clamp(460px,min(calc(100dvh - 182px),calc(100vw / var(--holo-ar,1.39))),820px)}
 /* min-height war 360px (aeltere Vorsichtsgrenze aus der Zeit vor dieser
    Klinken-Reparatur) -- blockierte bei 1100px (Buehnenbreite 560px) die
    oben noetige kleinere Hoehe. 160px bleibt als Schutz gegen eine
@@ -736,6 +747,11 @@ a{color:inherit;text-decoration:none}
    Beschnitt liefert weiterhin die Galerie-Sektion darunter. */
 .holo__ship{position:absolute;inset:0;display:grid;grid-template:100%/100%;place-items:center;min-height:0}
 .holo__ship img{width:100%;height:100%;object-fit:cover;transition:opacity .6s}
+/* ⚠ Ein reserviertes Band am Kastenboden (--holo-band) war der erste Versuch
+   und ist VORGEFUEHRT gescheitert: bei 168px auf einer 574px-Buehne blieben
+   406px, der Rumpf rutschte in den oberen Streifen, die Blende schnitt ihn an
+   und die Beschriftungen kollidierten. Die Loesung liegt nicht im Kasten,
+   sondern eine Ebene hoeher — der Titel steht nicht mehr IN der Buehne. */
 .holo__3d{position:absolute;inset:0;opacity:0;pointer-events:none;cursor:grab;transition:opacity .6s}
 .holo__3d:active{cursor:grabbing}
 .holo__stage.is-3d .holo__ship img{opacity:0}
@@ -1950,7 +1966,29 @@ span.sd__ref{color:var(--muted)}
   <!-- HANGAR-BÜHNE: Info links, interaktives Komponenten-Hologramm rechts -->
   {/* data-media-surface: die Bühne zeigt Hologramm, Renderbilder und Video —
       sie bleibt in beiden Modi dunkel. Siehe „Dunkle Inseln" in theme.css. */}
-  <section class="holo" id="holo" data-media-surface aria-label={`${d.name} — Visual`}>
+  {/* --holo-ar: das Seitenverhaeltnis der HALLE, aus dem Schiff abgeleitet
+      (siehe die ausfuehrliche Begruendung an .holo__wrap).
+      ⚠⚠ Der Faktor ist ANGESEHEN, nicht gerechnet. Die Zahl konnte es nicht
+      entscheiden: gemessen ueberlappt der HUELLKASTEN den Titelblock bei JEDER
+      Hallenform um dieselben 117-123px (scratch/hallenform.mjs) — die
+      Kollision waere also schon heute da. Was sich aendert, ist die SICHTBARE
+      Silhouette, und die ist vom Kasten weit entfernt (1249px Kastenspanne
+      gegen rund 830px Rumpf). Also vier Formen gebaut und angesehen:
+      bei 2,23 beruehrt die Wortmarke den Bauch, bei 2,05 steht sie klar
+      darunter. 2,05 / 4,2 = 0,49 — daher der Faktor.
+      Geklemmt auf 1,55..2,20: darunter wird die Halle fuer einen gedrungenen
+      Rumpf nicht hoeher als heute (die aeussere clamp bindet ohnehin),
+      darueber wandert der Titel auf den Rumpf. Fehlt eine der beiden Zahlen,
+      bleibt es beim bisherigen Wert (Rueckfall in der CSS-Regel). */}
+  <section
+    class="holo"
+    id="holo"
+    data-media-surface
+    aria-label={`${d.name} — Visual`}
+    style={d.lengthM > 0 && d.heightM > 0
+      ? `--holo-ar:${Math.min(2.20, Math.max(1.55, (d.lengthM / d.heightM) * 0.49)).toFixed(2)}`
+      : undefined}
+  >
     <div class="holo__wrap">
       {/* SCHRITT 1 (16-03-PLAN.md Task 1): .holo__grid/.holo__pad sind
           bottom-verankert (bottom:-4%/7%) -- an .holo direkt haengend
