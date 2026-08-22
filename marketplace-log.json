@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 387,
-  "totalListings": 8073,
+  "updates": 388,
+  "totalListings": 8075,
   "totalSold": 366,
   "distinctItems": 1338
  },
@@ -165695,6 +165695,10 @@
     {
      "d": "2026-08-20",
      "p": 200000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 100000
     }
    ],
    "soldOut": false,
@@ -172534,6 +172538,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787380063,
    "dateExpiration": 1792564063
+  },
+  "164931": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Golem Wikelo Edition",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 6000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787382892,
+   "dateExpiration": 1792566892
+  },
+  "164932": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Guardian QI Wikelo Mod",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 40000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787383374,
+   "dateExpiration": 1792567374
   }
  }
 }
