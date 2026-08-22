@@ -4,8 +4,8 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 396,
-  "totalListings": 8186,
+  "updates": 397,
+  "totalListings": 8192,
   "totalSold": 372,
   "distinctItems": 1343
  },
@@ -174915,6 +174915,132 @@
    "soldOutPrice": null,
    "dateAdded": 1787413467,
    "dateExpiration": 1792597467
+  },
+  "165033": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Polaris (Wikelo Kit) (No Pure Carinite, No Polaris Bits)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 350000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787414430,
+   "dateExpiration": 1797782430
+  },
+  "165034": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "Idris (Wikelo Kit) (No Pure Carinite, No Polaris Bits)",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 700000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787414711,
+   "dateExpiration": 1797782711
+  },
+  "165036": {
+   "idItem": 4385,
+   "idCategory": 61,
+   "title": "Wikelo Favor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787415716,
+   "dateExpiration": 1792599716
+  },
+  "165037": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - Terrapin Medic",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787416105,
+   "dateExpiration": 1792600105
+  },
+  "165038": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - RSI Meteor",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 24000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787416525,
+   "dateExpiration": 1792600524
+  },
+  "165040": {
+   "idItem": null,
+   "idCategory": 102,
+   "title": "WIKELO Package - L-21 Wolf Stealth",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 13000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787416738,
+   "dateExpiration": 1792600738
   }
  }
 }
