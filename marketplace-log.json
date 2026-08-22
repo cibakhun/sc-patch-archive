@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 386,
-  "totalListings": 8071,
-  "totalSold": 365,
+  "updates": 387,
+  "totalListings": 8073,
+  "totalSold": 366,
   "distinctItems": 1338
  },
  "listings": {
@@ -171160,9 +171160,9 @@
      "p": 4200000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 4200000,
    "dateAdded": 1787350737,
    "dateExpiration": 1792534737
   },
@@ -171284,6 +171284,10 @@
     {
      "d": "2026-08-21",
      "p": 11500000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 10000000
     }
    ],
    "soldOut": false,
@@ -172488,6 +172492,48 @@
    "soldOutPrice": null,
    "dateAdded": 1787374781,
    "dateExpiration": 1792558781
+  },
+  "164926": {
+   "idItem": 5927,
+   "idCategory": 36,
+   "title": "Lindinium q954 2scu",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 7000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787379640,
+   "dateExpiration": 1792560040
+  },
+  "164927": {
+   "idItem": 1757,
+   "idCategory": 21,
+   "title": "QuadraCell",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 650,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1500000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787380063,
+   "dateExpiration": 1792564063
   }
  }
 }
