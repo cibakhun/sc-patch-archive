@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 395,
-  "totalListings": 8174,
-  "totalSold": 371,
+  "updates": 396,
+  "totalListings": 8186,
+  "totalSold": 372,
   "distinctItems": 1343
  },
  "listings": {
@@ -168774,9 +168774,9 @@
      "p": 342000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 342000,
    "dateAdded": 1787319278,
    "dateExpiration": 1792503278
   },
@@ -174663,6 +174663,258 @@
    "soldOutPrice": null,
    "dateAdded": 1787406671,
    "dateExpiration": 1792590671
+  },
+  "165014": {
+   "idItem": 2427,
+   "idCategory": 18,
+   "title": "FS-9 \"Finish Line\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406759,
+   "dateExpiration": 1792590759
+  },
+  "165015": {
+   "idItem": 2801,
+   "idCategory": 18,
+   "title": "C54 \"Luckbringer\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406826,
+   "dateExpiration": 1792590826
+  },
+  "165017": {
+   "idItem": 4902,
+   "idCategory": 18,
+   "title": "Fresnel \"Molten\" Energy LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787406905,
+   "dateExpiration": 1792590905
+  },
+  "165018": {
+   "idItem": 3729,
+   "idCategory": 18,
+   "title": "Custodian \"Executive Edition\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 330000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787407020,
+   "dateExpiration": 1792591020
+  },
+  "165019": {
+   "idItem": 2277,
+   "idCategory": 18,
+   "title": "Devastator \"Executive Edition\" Shotgun",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 300000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787407135,
+   "dateExpiration": 1792591135
+  },
+  "165020": {
+   "idItem": 5570,
+   "idCategory": 18,
+   "title": "FS-9 \"Blacklist\" LMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 950000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787407210,
+   "dateExpiration": 1792591209
+  },
+  "165021": {
+   "idItem": 6658,
+   "idCategory": 18,
+   "title": "P8-SC \"Executive Edition\" SMG",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 350000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787407310,
+   "dateExpiration": 1792591310
+  },
+  "165022": {
+   "idItem": 7197,
+   "idCategory": 18,
+   "title": "LH86 \"Executive Edition\" Pistol",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 500,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 750000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787407367,
+   "dateExpiration": 1792591367
+  },
+  "165023": {
+   "idItem": 2471,
+   "idCategory": 2,
+   "title": "CSP-68L Backpack Night Camo",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1400000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787409095,
+   "dateExpiration": 1792593094
+  },
+  "165024": {
+   "idItem": 7993,
+   "idCategory": 7,
+   "title": "Overlord Cardinal Set",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 7800000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787410483,
+   "dateExpiration": 1792594483
+  },
+  "165025": {
+   "idItem": 5844,
+   "idCategory": 38,
+   "title": "Expired Quantanium Fuel Canister",
+   "operation": "sell",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1200000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787410823,
+   "dateExpiration": 1792594823
+  },
+  "165030": {
+   "idItem": null,
+   "idCategory": 38,
+   "title": "Pyro RYT \"Hurston\" Multi-Tool",
+   "operation": "buy",
+   "currency": "UEC",
+   "quality": 0,
+   "firstSeen": "2026-08-22",
+   "lastSeen": "2026-08-22",
+   "prices": [
+    {
+     "d": "2026-08-22",
+     "p": 1000000
+    }
+   ],
+   "soldOut": false,
+   "soldOutAt": null,
+   "soldOutPrice": null,
+   "dateAdded": 1787413467,
+   "dateExpiration": 1792597467
   }
  }
 }
