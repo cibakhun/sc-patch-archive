@@ -4,9 +4,9 @@
   "note": "Rollendes Fenster von 500 Inseraten. Verschwinden != Verkauf; nur soldOut zaehlt als Abschluss-Hinweis.",
   "firstSeen": "2026-08-02",
   "lastChange": "2026-08-22",
-  "updates": 388,
+  "updates": 389,
   "totalListings": 8075,
-  "totalSold": 366,
+  "totalSold": 367,
   "distinctItems": 1338
  },
  "listings": {
@@ -167920,6 +167920,10 @@
     {
      "d": "2026-08-21",
      "p": 25000000
+    },
+    {
+     "d": "2026-08-22",
+     "p": 15000000
     }
    ],
    "soldOut": false,
@@ -168300,9 +168304,9 @@
      "p": 800000
     }
    ],
-   "soldOut": false,
-   "soldOutAt": null,
-   "soldOutPrice": null,
+   "soldOut": true,
+   "soldOutAt": "2026-08-22",
+   "soldOutPrice": 800000,
    "dateAdded": 1787309644,
    "dateExpiration": 1792493644
   },
