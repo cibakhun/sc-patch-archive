@@ -46,6 +46,10 @@ import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DB = resolve(__dirname, '..', 'assets', 'crafting-db.json');
 const OUT_DIS = resolve(__dirname, '..', 'assets', 'dismantling-items.json');
+// Begleitdatei statt Huelle (D-04): dismantling-items.json bleibt ein Array
+// am Wurzelknoten — der Client-Abruf in CraftingApp.astro haengt an einer
+// Abrufkennung, die nur am Crafting-Datenstand haengt, nicht an dieser Datei.
+const OUT_DIS_META = resolve(__dirname, '..', 'assets', 'dismantling-items.meta.json');
 const MISSIONS = resolve(__dirname, '..', 'src', 'data', 'missions.json');
 
 const argv = process.argv.slice(2);
@@ -511,7 +515,22 @@ for (const item of dis) {
   if (oldJson !== newJson) { item.recipe = recipe; updated++; } else unchanged++;
 }
 writeFileSync(OUT_DIS, JSON.stringify(dis, null, 2) + '\n');
+
+// Begleitdatei (D-04): dieselbe patchLabel-Variable wie crafting-db.json
+// `version` oben — nie eine zweite Ermittlung, sonst koennten beide Dateien
+// aus unterschiedlichen Laeufen stammen. itemCount ist die Zusicherung, dass
+// diese Kennung zu GENAU diesem Bestand gehoert (Tor der naechsten Welle
+// vergleicht sie gegen die Array-Laenge). Kein Herkunftsbegriff: die Datei
+// wird nach public/assets/ gespiegelt und ist oeffentlich abrufbar.
+const disMeta = {
+  gameVersion: patchLabel ?? 'LIVE (Build unbekannt)',
+  generatedAt: new Date().toISOString().slice(0, 10),
+  itemCount: dis.length,
+};
+writeFileSync(OUT_DIS_META, JSON.stringify(disMeta, null, 2) + '\n');
+
 console.log(`dismantling-items: ${updated} Rezepte aktualisiert, ${unchanged} unveraendert, ${unmatched.length} ohne Blueprint-Match`);
 if (unmatched.length) console.log('  ohne Match:', unmatched.slice(0, 20).join(' | ') + (unmatched.length > 20 ? ` … (+${unmatched.length - 20})` : ''));
+console.log(`dismantling-items.meta.json: gameVersion=${disMeta.gameVersion} itemCount=${disMeta.itemCount}`);
 
 console.log(`fertig in ${((Date.now() - t0) / 1000).toFixed(1)} s — Patch: ${out.version}`);
