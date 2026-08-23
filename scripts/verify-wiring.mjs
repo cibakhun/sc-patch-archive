@@ -51,7 +51,9 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // nach unten nur mit geklaerter Ursache, sichtbar im Commit-Diff.
 // Stand 18.08.2026: 23 Dateien (21 vom 09.08., dazu verify-gate und
 // check-gate aus Phase 14 Plan 09).
-const MIN_SCRIPTS = 23;
+// Stand 23.08.2026 (18-04-PLAN.md): 24 — Zugang verify-datastand.mjs (D-04,
+// Kreuzvergleich der committeten Patch-Kennungen).
+const MIN_SCRIPTS = 24;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };

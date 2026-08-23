@@ -234,6 +234,23 @@ export const CHECKS = [
     // gehabt, ihn zu melden: ob die Werte gleich bleiben, weiss man erst
     // NACH dem Lauf.
   },
+  {
+    // Direkt nach verify:mining — beide bilden dieselbe Torfamilie
+    // (Patch-Kennung gegen Verzug), aber verify:mining prueft EINEN
+    // Datenstand gegen den EINEN installierten Client, dieses Tor haelt
+    // ALLE Datenstaende committeter Kennungen GEGENEINANDER — der Vergleich,
+    // der missions.json 18.261 Changelists unbemerkt zurueckfallen liess.
+    id: 'verify:datastand',
+    npm: 'verify:datastand',
+    script: 'scripts/verify-datastand.mjs',
+    rail: 'A',
+    checks:
+      'die committeten Patch-Kennungen aller Datenstaende (Missionen, Mining, Crafting, Item-Katalog, Refinery, Zerlegung, Wikelo) stimmen im Kreuzvergleich ueberein und liegen ueber ihrer Klinke',
+    env: 'Data.p4k nur als Pfadableitung: der Client-Abgleich haengt hinter existsSync(build_manifest.id) und wird ohne lokale Spielinstallation still uebersprungen — das Skript oeffnet das Archiv selbst nie',
+    // SCHARF seit Anlage (18-04-PLAN.md): die Wellen 1 bis 3 haben den
+    // Zielzustand bereits hergestellt (alle sechs maschinellen Datenstaende
+    // auf CL 12344265), das Tor lief beim ersten Lauf gruen.
+  },
 
   // ---------------------------------------------------------------
   // Schiene B — der Datenlauf. Laeuft NUR lokal (npm run gate:data),
