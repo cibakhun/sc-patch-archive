@@ -1132,10 +1132,14 @@ Durchreichen. Gemessen gegen die installierte 4.9.0 (CL 12344265):
    während CL 12344265 installiert war — rund 18.000 Changelists Verzug, und
    aufgefallen ist es nur, weil diese Datei ihre Kennung überhaupt mitführt.
    `mining-db` und `crafting-db` führen sie ebenfalls und waren aktuell.
-   `universal-items.json`, `wikelo-trades.json`, `dismantling-items.json` und
-   `refinery-data.json` führen **keine** — dort kann niemand feststellen, gegen
-   welchen Stand sie stimmen. `wikelo-trades.json` hat zusätzlich kein
-   Erzeugerskript (63 handgepflegte Einträge, kein Datum).
+   `refinery-data.json` führt sie als `meta.gameVersion`, durchgereicht aus
+   `mining-db.json`. Ohne Kennung sind **drei** Dateien: `universal-items.json`,
+   `dismantling-items.json` und `wikelo-trades.json` — dort kann niemand
+   feststellen, gegen welchen Stand sie stimmen. `wikelo-trades.json` hat
+   zusätzlich kein Erzeugerskript (63 handgepflegte Einträge, kein Datum).
+   *(Korrigiert nach der Recherche: die erste Fassung dieser Zeile zählte
+   `refinery-data.json` fälschlich mit — sie war nur nicht dort gesucht worden,
+   wo die Kennung tatsächlich steht.)*
 
 **D-01 — Die Ortskante wird gezogen.** `locationMissionAvailable` wird
 mitgelesen und als Ort geführt, wo `localityAvailable` fehlt. Erwartung: von 43
@@ -1152,8 +1156,12 @@ die die Kante nicht hat.
 werden im Missionstext unterscheidbar geführt und beschriftet, statt als eine
 Sorte Platzhalter zu erscheinen.
 
-**D-04 — Jeder Datenstand nennt seinen Patch.** Die vier Dateien ohne Kennung
+**D-04 — Jeder Datenstand nennt seinen Patch.** Die drei Dateien ohne Kennung
 bekommen eine, und ein Tor meldet Verzug gegenüber der gebauten Auslieferung.
+Für `wikelo-trades.json` wäre eine Changelist gelogen — handgepflegte Daten
+stammen aus keinem Auslesevorgang. Dort steht stattdessen, gegen welchen Stand
+zuletzt **nachgesehen** wurde, und das Tor meldet Verzug dort als WARNUNG, nie
+als FEHLER (Grundsatz 3: Verzug einer Fremdquelle blockt nicht).
 Das ist die dünnste Verbindung zwischen den sonst autonomen Bereichen: Sie
 melden nur eine Zahl, und genau die fängt den Fall, den kein Bereich allein
 sehen kann.
@@ -1171,7 +1179,7 @@ nachweisen, dass sich das geändert hat.
 **Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
 **Depends on:** keine. Die Phase berührt nur den Missionsbereich und die
 Kennungszeile der Datenstände; sie hängt an keiner Arbeit aus Phase 14–17.
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 **Success Criteria** (was WAHR sein muss):
 
@@ -1200,4 +1208,7 @@ Kennungszeile der Datenstände; sie hängt an keiner Arbeit aus Phase 14–17.
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 18 to break down)
+- [ ] 18-01-PLAN.md — Welle 1, Tracer: Ausgangsmessung als Sonde gegen die erzeugte `missions.json`, zweiter Lesepfad (`locationMissionAvailable`), sieben kuratierte Ortsnamen, Beweis am gebauten HTML (Filterzahl gleich gezählte Kante), Sperrklinke `missionenMitOrt` bei 800
+- [ ] 18-02-PLAN.md — Welle 2, D-02 vollständig und D-03: Regeln für Monde/Lagrange-Punkte/Rest; die Slot-Art kehrt zurück — selektiv (nur Ortsmarken), leerzeichenfrei (wegen `clip()`), lesbar beschriftet; Sperrklinke `missionsOrtsarten` bei 4; Sprachparität gezählt
+- [ ] 18-03-PLAN.md — Welle 3, D-04 Kennungen: `universal-items.json` bekommt `gameVersion`; `dismantling-items.json` und `wikelo-trades.json` bekommen eine Begleitdatei mit Eintragszahl statt einer Hülle (kein Leser wird angefasst); `refinery-data.json` holt seine eigene Quelle ein
+- [ ] 18-04-PLAN.md — Welle 4, D-04 Tor: `verify:datastand` (Kreuzvergleich der committeten Kennungen, Schiene A, acht Zusicherungen), Rot-Vorführung je FEHLER-Klasse mit Prüfsummen-Beleg, Registry + `MIN_SCRIPTS` 23→24, Schlussmessung und vier Sichturteile nach `WINDOWS.md`
