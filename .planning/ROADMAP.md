@@ -1179,7 +1179,7 @@ nachweisen, dass sich das geändert hat.
 **Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
 **Depends on:** keine. Die Phase berührt nur den Missionsbereich und die
 Kennungszeile der Datenstände; sie hängt an keiner Arbeit aus Phase 14–17.
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 **Success Criteria** (was WAHR sein muss):
 
@@ -1208,7 +1208,7 @@ Kennungszeile der Datenstände; sie hängt an keiner Arbeit aus Phase 14–17.
 
 Plans:
 
-- [ ] 18-01-PLAN.md — Welle 1, Tracer: Ausgangsmessung als Sonde gegen die erzeugte `missions.json`, zweiter Lesepfad (`locationMissionAvailable`), sieben kuratierte Ortsnamen, Beweis am gebauten HTML (Filterzahl gleich gezählte Kante), Sperrklinke `missionenMitOrt` bei 800
+- [x] 18-01-PLAN.md — Welle 1, Tracer: Ausgangsmessung als Sonde gegen die erzeugte `missions.json`, zweiter Lesepfad (`locationMissionAvailable`), sieben kuratierte Ortsnamen, Beweis am gebauten HTML (Filterzahl gleich gezählte Kante), Sperrklinke `missionenMitOrt` bei 800
 - [ ] 18-02-PLAN.md — Welle 2, D-02 vollständig und D-03: Regeln für Monde/Lagrange-Punkte/Rest; die Slot-Art kehrt zurück — selektiv (nur Ortsmarken), leerzeichenfrei (wegen `clip()`), lesbar beschriftet; Sperrklinke `missionsOrtsarten` bei 4; Sprachparität gezählt
 - [ ] 18-03-PLAN.md — Welle 3, D-04 Kennungen: `universal-items.json` bekommt `gameVersion`; `dismantling-items.json` und `wikelo-trades.json` bekommen eine Begleitdatei mit Eintragszahl statt einer Hülle (kein Leser wird angefasst); `refinery-data.json` holt seine eigene Quelle ein
 - [ ] 18-04-PLAN.md — Welle 4, D-04 Tor: `verify:datastand` (Kreuzvergleich der committeten Kennungen, Schiene A, acht Zusicherungen), Rot-Vorführung je FEHLER-Klasse mit Prüfsummen-Beleg, Registry + `MIN_SCRIPTS` 23→24, Schlussmessung und vier Sichturteile nach `WINDOWS.md`

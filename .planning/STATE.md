@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 16
+current_phase: 14
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: "Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5). Phase 15 (Testpilot-Zugang) aus einer Parallelsitzung mit hereingefuehrt; Ausrollen dort steht aus."
-last_updated: "2026-08-20T17:30:00.000Z"
-last_activity: 2026-08-20
-last_activity_desc: Phase 16 abgeschlossen und mit staging zusammengefuehrt (Phasennummer 15 -> 16 wegen Kollision)
+stopped_at: Completed 18-01-PLAN.md -- Ortskante D-01/D-02 end-to-end (609/1347 Familien mit Ortsangabe, ROADMAP-Zielwert 800 nicht erreicht, siehe WINDOWS.md deviation)
+last_updated: "2026-08-23T14:51:17.760Z"
+last_activity: 2026-08-17
+last_activity_desc: Phase 14 execution started
 progress:
-  total_phases: 20
+  total_phases: 21
   completed_phases: 14
-  total_plans: 84
-  completed_plans: 76
+  total_plans: 78
+  completed_plans: 68
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -313,7 +313,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 87%
 
 Progress: [█████████░] 85%
 
@@ -389,6 +389,7 @@ Progress: [█████████░] 85%
 | Phase 15 P11 | ~50min | 2 tasks | 4 files |
 | Phase 15 P09 | ~2h | 3 tasks | 8 files |
 | Phase 15 P12 | 35min | 3 tasks | 2 files |
+| Phase 18 P01 | 65min | 2 tasks | 6 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -534,6 +535,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 16]: 15-02: verify:shipconsole angelegt (8 Zusicherungen), vorgefuehrt rot (454/454 Seiten ohne .holo__sys), ausgesetzt bis 15-05; verify:shipcard scannt jetzt auch section.holo und fand dabei einen echten Fund (.holo__dims dupliziert L/B/H) -- als X-holo-dims-hud-Ausnahme benannt statt versteckt
 - [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
 - [Phase ?]: 15-05: Vier 1280px-Kollisionen (Hero-Chrome ohne grid-column spannte den gesamten Konsolen-Bereich) vor der Torschaerfung behoben; verify:shipconsole scharf; Hoehenklinke haelt trotz Konsole weit unter der Marke; ein neuer Kontrastfund (Rail-Gruppe Antrieb, dunkler Modus) behoben statt uebergeben
+- [Phase ?]: Phase 18 Plan 01: Sperrklinke missionenMitOrt auf gemessenem Wert 600 (nicht ROADMAP-Zielwert 800) -- Ortskante erreicht 609/1347 Familien, dritte reale Datenquelle ausgeschoepft, Betreiber-Entscheidung zum Zielwert offen (siehe WINDOWS.md)
 
 ### Pending Todos
 
@@ -590,9 +592,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-20T00:00:00.000Z
-Stopped at: Phase 15 mit staging zusammengefuehrt -- Umgebungsvariablen und Discord-Webhook gesetzt, Push und check:gate stehen aus
+Last session: 2026-08-23T14:49:52.152Z
+Stopped at: Completed 18-01-PLAN.md -- Ortskante D-01/D-02 end-to-end (609/1347 Familien mit Ortsangabe, ROADMAP-Zielwert 800 nicht erreicht, siehe WINDOWS.md deviation)
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
-Resume file: None
+Resume file: .planning/phases/18-missionen-wissen-wo-sie-spielen/18-02-PLAN.md
