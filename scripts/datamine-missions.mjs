@@ -97,24 +97,85 @@ const humanize = (key) => String(key)
   .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
   .replace(/\s+/g, ' ').trim();
 
-// Kuratierte Kernnamen fuer StarMapObject-Rohbezeichner (D-02). Sieben
-// Eintraege, die nach Messung der Recherche 98,2 % aller Vorkommen von
-// `locationMissionAvailable` decken. Die beiden Sternennamen tragen den
-// Zusatz "(System)" ausdruecklich: D-02 verlangt, dass die Anzeige keine
-// Genauigkeit vortaeuscht, die die Kante nicht hat — `StantonStar` heisst
-// "irgendwo im Stanton-System", nicht "beim Stern". Monde, Lagrange-Punkte
-// und Sonderzonen (der 1,8-%-Langschwalz) sind ausdruecklich Welle 2; hier
-// faellt dieser Rest auf humanize() zurueck.
+// Kuratierte Kernnamen fuer StarMapObject-Rohbezeichner (D-02). Acht
+// Eintraege (die urspruenglichen sieben plus NyxStar, Welle 2) — die
+// Systemebene traegt den Zusatz "(System)" ausdruecklich: D-02 verlangt,
+// dass die Anzeige keine Genauigkeit vortaeuscht, die die Kante nicht hat —
+// `StantonStar` heisst "irgendwo im Stanton-System", nicht "beim Stern".
 const STARMAP_NAMES = {
   stantonstar: 'Stanton (System)',
   pyrostar: 'Pyro (System)',
+  nyxstar: 'Nyx (System)',
   stanton1: 'Hurston',
   stanton2: 'Crusader',
   stanton3: 'ArcCorp',
   stanton4: 'microTech',
   delamar: 'Delamar',
 };
-const prettyLoc = (rohbezeichner) => STARMAP_NAMES[String(rohbezeichner).toLowerCase()] ?? humanize(rohbezeichner);
+
+// E-2 (Betreiber-Auftrag nach Welle 1): mehrere Rohbezeichner-Familien meinen
+// dasselbe System und wuerden ohne Normalisierung getrennte Katalogeintraege
+// erzeugen, weil kebab('PyroStar') != kebab('PyroSolarSystem') != kebab('Pyro').
+// Gemessen: Stanton/Pyro/Nyx tragen je einen *Star-Rohbezeichner
+// (StarMapObject), einen *SolarSystem-Rohbezeichner (StarMapObject, vom
+// Betreiber benannt) UND — erst nach E-1 sichtbar, weil `localityAvailable`
+// jetzt auch die drei "bloss System, kein Planet"-MissionLocality-Eintraege
+// erreicht — einen BLOSSEN Systemnamen ("Pyro"/"Stanton"/"Nyx",
+// MissionLocality). Alle drei meinen "irgendwo im System" — *Star gewinnt
+// (bereits kuratiert), die MissionLocality-Variante bringt zusaetzlich ihre
+// eigenen `places[]` mit (s. Reihenfolge unten: MissionLocality wird VOR
+// jedem locBucket()-Aufruf in locByKebab eingetragen, die Katalogfassung mit
+// `places[]` gewinnt deshalb automatisch die Id).
+const ROH_ALIAS = {
+  pyrosolarsystem: 'PyroStar',
+  stantonsolarsystem: 'StantonStar',
+  nyxsolarsystem: 'NyxStar',
+  pyro: 'PyroStar',
+  stanton: 'StantonStar',
+  nyx: 'NyxStar',
+};
+// Kanonisiert einen Rohbezeichner VOR der Bucket-Bildung (kebab/id), damit
+// Varianten desselben Ortes in DENSELBEN Katalogeintrag fallen statt einen
+// sichtbaren Duplikat-Eintrag zu erzeugen (E-2). Ausserdem E-3: Aussenposten
+// ohne eigenen Anzeigenamen im Spiel (siehe prettyLoc unten, Zweig
+// "rueckfall" traegt bei ihnen keinen lesbaren Namen) werden auf den
+// tragenden Planeten/Mond hochgezogen statt als sichtbarer interner Code
+// ("Pyro2 Outpost col m scrp indy 001") im Filter zu erscheinen — das
+// StarMapObject-Praefix vor "_Outpost_" IST bereits der Planeten-/Mondschluessel.
+function kanonRoh(rohbezeichnerRaw) {
+  const s = String(rohbezeichnerRaw);
+  const alias = ROH_ALIAS[s.toLowerCase()];
+  if (alias) return alias;
+  const m = /^([A-Za-z0-9]+)_Outpost_/i.exec(s);
+  if (m) return m[1];
+  return s;
+}
+
+// prettyLoc() loest einen (kanonisierten) Rohbezeichner in drei Stufen auf,
+// spezifisch vor allgemein, und meldet den Zweig fuer die Selbstauskunft:
+//   1. kuratiert     — STARMAP_NAMES (Systeme/Kernplaneten, s.o.)
+//   2. spielintern    — das Spiel selbst nennt ueber sein `name`-Feld einen
+//      lesbaren Eigennamen (starmapKeyToDisplay, s.u.) — deckt empirisch
+//      ALLE Monde, Lagrange-Punkte und benannten Sonderzonen (Rest Stops,
+//      Gefaengnis) ab, OHNE eine zweite Tabelle zu pflegen: das Spiel fuehrt
+//      diese Namen bereits (z.B. Stanton1b -> "Aberdeen", Stanton2_L1 ->
+//      "CRU L1", PrisonMine_Stanton1b -> "Klescher Rehabilitation Facility").
+//      Ersetzt damit die im Plan vorgesehene separate Mond-Tabelle
+//      (uebernommen aus datamine-stanton-anchors.mjs) und die Lagrange-Regex
+//      — beide waeren nur ein Duplikat dessen, was Zweig 2 bereits liefert,
+//      und koennten veralten, waehrend Zweig 2 sich mit dem Patch mitzieht.
+//   3. rueckfall      — humanize() des Rohbezeichners; sichtbar in der
+//      Selbstauskunft, damit ein neuer Patch mit neuen Orten auffaellt.
+const rueckfallRohbezeichner = new Set();
+function prettyLoc(rohbezeichnerRaw) {
+  const rohbezeichner = kanonRoh(rohbezeichnerRaw);
+  const lower = rohbezeichner.toLowerCase();
+  if (STARMAP_NAMES[lower]) return { name: STARMAP_NAMES[lower], zweig: 'kuratiert' };
+  const spielName = starmapKeyToDisplay.get(rohbezeichner);
+  if (spielName) return { name: spielName, zweig: 'spielintern' };
+  rueckfallRohbezeichner.add(rohbezeichner);
+  return { name: humanize(rohbezeichner), zweig: 'rueckfall' };
+}
 
 /* ---------------- Nachschlagetabellen ---------------- */
 // Tags: 18.600 Records, Name ist die GUID -> echter Name steckt in tagName.
@@ -217,21 +278,35 @@ for (const r of byStruct('MissionGiver')) {
 // StarMap-Objekte: echte Ortsnamen. starmapKey haelt zusaetzlich den
 // ROHBEZEICHNER (nicht den aufgeloesten Anzeigenamen) fest — den
 // stabilen Schluessel, auf dem STARMAP_NAMES (D-02) sitzt.
+// starmapKeyToDisplay (E-3): derselbe loc(displayName)/loc(name)-Versuch,
+// aber OHNE den shortName()-Nachnagel — nur wenn das Spiel selbst wirklich
+// einen lesbaren Namen fuehrt, landet der Rohbezeichner hier. `prettyLoc()`
+// nutzt das als Zweig 2 ("spielintern") fuer den gesamten Langschwanz
+// (Monde, Lagrange-Punkte, Rest Stops, Gefaengnis) — eine Tabelle statt
+// vieler. Trim() gegen einen bekannten Datenfehler (Stanton1c traegt ein
+// Leerzeichen nach "Magda" in der global.ini).
 const starmap = new Map();
 const starmapKey = new Map();
+const starmapKeyToDisplay = new Map();
 for (const r of byStruct('StarMapObject')) {
   const d = db.readRecord(r, { maxDepth: 1 });
   starmap.set(r.id, loc(d?.displayName) ?? loc(d?.name) ?? shortName(r));
   starmapKey.set(r.id, shortName(r));
+  const spielName = loc(d?.displayName) ?? loc(d?.name);
+  if (spielName) starmapKeyToDisplay.set(shortName(r), spielName.trim());
 }
 
 // Localities: Bereich -> konkrete Orte
 const localities = new Map();
 for (const r of byStruct('MissionLocality')) {
   const d = db.readRecord(r, { maxDepth: 1 });
-  const key = shortName(r);
+  // E-2: kanonRoh() faltet die drei blossen Systemnamen (Pyro/Stanton/Nyx)
+  // auf ihren *Star-Rohbezeichner, damit sie dieselbe Katalog-Id wie die
+  // StarMapObject-Systemeintraege tragen (s. Kommentar bei ROH_ALIAS).
+  const key = kanonRoh(shortName(r));
   const places = (d?.availableLocations ?? []).map((x) => (x?.__ref ? starmap.get(x.__ref) : null)).filter(Boolean);
-  localities.set(r.id, { id: kebab(key), key, name: prettyLoc(key), places: [...new Set(places)] });
+  const pl = prettyLoc(key);
+  localities.set(r.id, { id: kebab(key), key, name: pl.name, zweig: pl.zweig, places: [...new Set(places)] });
 }
 console.log(`types ${missionTypes.size} | givers ${givers.size} | localities ${localities.size} | starmap ${starmap.size}`);
 
@@ -246,14 +321,24 @@ console.log(`types ${missionTypes.size} | givers ${givers.size} | localities ${l
 const locByKebab = new Map();
 for (const entry of localities.values()) locByKebab.set(entry.id, entry);
 const extraLocalities = new Map();
-function locBucket(rohbezeichner) {
+function locBucket(rohbezeichnerRaw) {
+  const rohbezeichner = kanonRoh(rohbezeichnerRaw); // E-2/E-3: Alias/Outpost-Hochzug VOR der Id-Bildung
   const id = kebab(rohbezeichner);
   const bestehend = locByKebab.get(id);
   if (bestehend) return bestehend;
-  const neu = { id, key: rohbezeichner, name: prettyLoc(rohbezeichner), places: [] };
+  const pl = prettyLoc(rohbezeichner);
+  const neu = { id, key: rohbezeichner, name: pl.name, zweig: pl.zweig, places: [] };
   extraLocalities.set(id, neu);
   locByKebab.set(id, neu);
   return neu;
+}
+// Vorkommen-Zaehler nach Namensherkunft (Task 1 Selbstauskunft) — gezaehlt
+// bei jedem tatsaechlichen ORTS-TREFFER (nicht bei jeder Katalog-Neuanlage),
+// ueber ALLE vier Quellen hinweg (Broker Quelle1/Quelle2, Contract/subContract/
+// Handler Quelle3/Quelle4).
+const zweigVorkommen = { kuratiert: 0, spielintern: 0, rueckfall: 0 };
+function zaehleOrtsVorkommen(bucket) {
+  if (bucket?.zweig) zweigVorkommen[bucket.zweig] = (zweigVorkommen[bucket.zweig] ?? 0) + 1;
 }
 
 // Organisationen: liefern die Contractor-Titelfragmente fuer ~mission(Contractor|X)
@@ -528,29 +613,59 @@ function contractResults(node) {
   return out;
 }
 
-// Deviation (Rule 2, Task 1 Schritt 4 dieses Plans): der reine Broker-Pfad
-// (d.localityAvailable/d.locationMissionAvailable) erreicht gemessen nur 366
-// von 1.347 Familien mit Ortsangabe — Deckel 432, weil 915 Familien
-// ausschliesslich aus Contract-Eintraegen bestehen und Contract/CareerContract
-// STRUKTURELL keines der beiden Broker-Felder besitzt (nachgemessen: kein
-// einziges der bekannten Contract-Structs traegt ein Ortsfeld). Der
-// ROADMAP-Zielwert (>=800, D-01, verbindlich) ist mit der im Plan
-// beschriebenen Zwei-Quellen-Kaskade allein nicht erreichbar. Eine DRITTE,
-// ebenfalls real im DataCore vorhandene Quelle schliesst die Luecke, ohne die
-// Datenstruktur zu aendern: `ContractPrerequisite_Location.locationAvailable`
-// zeigt auf denselben StarMapObject-Record-Typ wie die anderen beiden Quellen
-// und taucht sowohl je Handler (defaultAvailability.prerequisites) als auch
-// je Contract (additionalPrerequisites) auf. Contract-Ebene hat Vorrang
-// (spezifischer), Handler-Ebene ist der Rueckfall — dieselbe
-// Vorrang-Konvention wie bei den ersten beiden Quellen. Muendet in denselben
-// `locByKebab`/`locBucket`-Mechanismus, keine neue Datenstruktur.
-function findLocPrereq(list) {
-  for (const p of list ?? []) {
-    if (p?.__type === 'ContractPrerequisite_Location' && p.locationAvailable?.__ref) return p.locationAvailable.__ref;
-  }
+// Deviation (Rule 2, Welle 1, Task 1 Schritt 4 jenes Plans): der reine
+// Broker-Pfad (d.localityAvailable/d.locationMissionAvailable) erreicht
+// gemessen nur 366 von 1.347 Familien mit Ortsangabe — Deckel 432, weil 915
+// Familien ausschliesslich aus Contract-Eintraegen bestehen und
+// Contract/CareerContract STRUKTURELL keines der beiden Broker-Felder
+// besitzt. Welle 1 schloss die Luecke mit `ContractPrerequisite_Location.
+// locationAvailable` (Quelle 3, -> StarMapObject) auf 609/1.347.
+//
+// E-1 (Betreiber-Auftrag nach Welle 1, hoechste Prioritaet): Quelle 3 war
+// das SELTENERE der beiden Praereqisit-Felder. `ContractPrerequisite_
+// Locality.localityAvailable` (-> MissionLocality, reicher: traegt bereits
+// mehrere places[]) kommt in der frisch gemessenen 4.9.0 uebers 8-fache so
+// oft vor UND — bislang gar nicht gelesen — auch auf einer DRITTEN Ebene:
+// `subContracts[].additionalPrerequisites[]`. Vorrangkette bleibt spezifisch
+// vor allgemein: Contract-Ebene -> subContract-Ebene -> Handler-Ebene;
+// innerhalb einer Ebene hat localityAvailable Vorrang vor locationAvailable
+// (haeufiger, reichere Zielstruktur). Beide Feldarten muenden weiterhin in
+// denselben `locByKebab`/`locBucket`- bzw. `localities`-Mechanismus — die
+// Oberflaeche bekommt keine zweite Filterliste.
+//
+// WICHTIG: die Praereqisit-Eintraege tragen bei tiefem Lesen NICHT
+// zuverlaessig ein `__type`-Feld (an manchen Stellen fehlt es) — die
+// Erkennung prueft deshalb auf das VORHANDENSEIN des jeweiligen Feldes
+// selbst (`p.localityAvailable?.__ref` / `p.locationAvailable?.__ref`),
+// nicht auf `p.__type`.
+function findLocalityRefInListe(list) {
+  for (const p of list ?? []) if (p?.localityAvailable?.__ref) return { kind: 'locality', ref: p.localityAvailable.__ref };
+  for (const p of list ?? []) if (p?.locationAvailable?.__ref) return { kind: 'location', ref: p.locationAvailable.__ref };
   return null;
 }
+function findLocRefKaskade(c, hPre) {
+  let treffer = findLocalityRefInListe(c.additionalPrerequisites);
+  if (treffer) return { ...treffer, ebene: 'contract' };
+  for (const sc of c.subContracts ?? []) {
+    treffer = findLocalityRefInListe(sc?.additionalPrerequisites);
+    if (treffer) return { ...treffer, ebene: 'subcontract' };
+  }
+  treffer = findLocalityRefInListe(hPre);
+  if (treffer) return { ...treffer, ebene: 'handler' };
+  return null;
+}
+// kind 'locality' zeigt DIREKT auf einen MissionLocality-Record (bereits in
+// `localities` mit lesbarem Namen + places[] aufgeloest); kind 'location'
+// zeigt auf StarMapObject und laeuft wie Quelle 2 ueber `locBucket()`.
+function resolveLocHit(hit) {
+  if (!hit) return null;
+  if (hit.kind === 'locality') return localities.get(hit.ref) ?? null;
+  const rohbezeichner = starmapKey.get(hit.ref);
+  return rohbezeichner ? locBucket(rohbezeichner) : null;
+}
 let ortQuelleContract = 0;
+let vierteQuelleLocality = 0, vierteQuelleLocation = 0;
+let vierteQuelleContractEbene = 0, vierteQuelleSubContractEbene = 0, vierteQuelleHandlerEbene = 0;
 
 const contracts = [];
 const brokerLinked = new Map(); // MissionBrokerEntry-Recordname -> Contract-Zusatzinfos
@@ -588,13 +703,21 @@ for (const gen of byStruct('ContractGenerator')) {
       const mx = c.maxStanding?.__ref ? standings.get(c.maxStanding.__ref) : null;
       const brokerKey = c.missionBrokerEntry?.name ? shortName(c.missionBrokerEntry) : null;
 
-      // Dritte Ortsquelle (siehe Kommentar oben `contracts`/`brokerLinked`):
-      // Contract-Ebene vor Handler-Ebene.
-      const locRef = findLocPrereq(c.additionalPrerequisites) ?? findLocPrereq(hPre);
+      // Dritte UND vierte Ortsquelle (siehe Kommentar oben `contracts`/
+      // `brokerLinked`): Kaskade Contract-Ebene -> subContract-Ebene ->
+      // Handler-Ebene.
+      const locHit = findLocRefKaskade(c, hPre);
       let cLocality = null;
-      if (locRef) {
-        const rohbezeichner = starmapKey.get(locRef);
-        if (rohbezeichner) { cLocality = locBucket(rohbezeichner); ortQuelleContract++; }
+      if (locHit) {
+        cLocality = resolveLocHit(locHit);
+        if (cLocality) {
+          ortQuelleContract++;
+          zaehleOrtsVorkommen(cLocality);
+          if (locHit.kind === 'locality') vierteQuelleLocality++; else vierteQuelleLocation++;
+          if (locHit.ebene === 'contract') vierteQuelleContractEbene++;
+          else if (locHit.ebene === 'subcontract') vierteQuelleSubContractEbene++;
+          else vierteQuelleHandlerEbene++;
+        }
       }
 
       const entry = {
@@ -633,6 +756,9 @@ for (const gen of byStruct('ContractGenerator')) {
 }
 console.log(`contracts: ${genCount} Generatoren -> ${contracts.length} eigenstaendig + ${brokerLinked.size} an Brett-Eintraege gebunden`);
 console.log(`  mit Blueprints: ${contracts.filter((c) => c.blueprints.length).length}`);
+console.log(`orte (Quelle 3+4, Contract/subContract/Handler-Praereqisite): ${ortQuelleContract} Treffer gesamt`);
+console.log(`  Feldart: localityAvailable (Quelle 4, E-1) ${vierteQuelleLocality} | locationAvailable (Quelle 3) ${vierteQuelleLocation}`);
+console.log(`  Ebene: Contract ${vierteQuelleContractEbene} | subContract ${vierteQuelleSubContractEbene} (E-1, bisher ungelesen) | Handler ${vierteQuelleHandlerEbene}`);
 
 /* ---------------- Missionen einlesen ---------------- */
 const brokers = byStruct('MissionBrokerEntry');
@@ -640,14 +766,11 @@ const entries = [];
 let skippedDev = 0;
 // Selbstauskunft der Ortskante (D-01/D-02): wie viele Brett-Eintraege ihren
 // Ort aus Quelle 1 (localityAvailable) bzw. Quelle 2 (locationMissionAvailable)
-// bekommen haben, wie viele verschiedene Rohbezeichner aus Quelle 2 vorkamen
-// (unabhaengig davon, ob Quelle 1 ohnehin schon vorging), und welcher Anteil
-// der VORKOMMEN einen kuratierten Namen (STARMAP_NAMES) bekam.
+// bekommen haben. Die Namensherkunft (kuratiert/spielintern/rueckfall) zaehlt
+// `zaehleOrtsVorkommen()` bereits ueber ALLE vier Quellen hinweg in
+// `zweigVorkommen` mit (s.o.).
 let ortQuelleBroker = 0;
 let ortQuelleStarmap = 0;
-let starmapVorkommen = 0;
-let kuratierteVorkommen = 0;
-const rohBezeichnerVorkommen = new Map(); // Rohbezeichner (klein) -> Anzahl
 for (const r of brokers) {
   const d = db.readRecord(r, { maxDepth: 5 });
   if (!d) continue;
@@ -663,23 +786,13 @@ for (const r of brokers) {
   let locality = localityAvailable;
   if (locality) {
     ortQuelleBroker++;
+    zaehleOrtsVorkommen(locality);
   } else if (d.locationMissionAvailable?.__ref) {
     const rohbezeichner = starmapKey.get(d.locationMissionAvailable.__ref);
     if (rohbezeichner) {
       locality = locBucket(rohbezeichner);
       ortQuelleStarmap++;
-    }
-  }
-  // Selbstauskunft ueber ALLE Vorkommen von locationMissionAvailable, auch
-  // dort, wo Quelle 1 ohnehin schon vorging — deckt sich mit der in der
-  // Recherche gemessenen Grundgesamtheit (1.836 von 2.584 Brett-Eintraegen).
-  if (d.locationMissionAvailable?.__ref) {
-    const rohbezeichner = starmapKey.get(d.locationMissionAvailable.__ref);
-    if (rohbezeichner) {
-      starmapVorkommen++;
-      const rohLower = String(rohbezeichner).toLowerCase();
-      rohBezeichnerVorkommen.set(rohLower, (rohBezeichnerVorkommen.get(rohLower) ?? 0) + 1);
-      if (STARMAP_NAMES[rohLower]) kuratierteVorkommen++;
+      zaehleOrtsVorkommen(locality);
     }
   }
   const reward = d.missionReward ?? {};
@@ -757,14 +870,20 @@ for (const r of brokers) {
 }
 console.log(`broker entries: ${brokers.length} | notForRelease uebersprungen: ${skippedDev} | live: ${entries.length}`);
 
-// Selbstauskunft der Ortskante (D-01/D-02).
-const ohneKuratiertenName = [...rohBezeichnerVorkommen.keys()].filter((k) => !STARMAP_NAMES[k]).sort();
-const abdeckungProzent = starmapVorkommen ? ((kuratierteVorkommen / starmapVorkommen) * 100).toFixed(1) : '0.0';
-console.log(`orte: Quelle 1 (localityAvailable) ${ortQuelleBroker} | Quelle 2 (locationMissionAvailable) ${ortQuelleStarmap} | Quelle 3 (ContractPrerequisite_Location) ${ortQuelleContract}`);
-console.log(`orte: ${rohBezeichnerVorkommen.size} verschiedene Rohbezeichner aus locationMissionAvailable, ${starmapVorkommen} Vorkommen`);
-console.log(`orte: kuratierter Name deckt ${abdeckungProzent}% der Vorkommen (${kuratierteVorkommen}/${starmapVorkommen})`);
-console.log(`orte: ohne kuratierten Namen (${ohneKuratiertenName.length}): ${ohneKuratiertenName.join(', ') || '—'}`);
-console.log(`localities: ${localities.size} aus MissionLocality + ${extraLocalities.size} neu aus locationMissionAvailable = ${locByKebab.size} gesamt`);
+// Selbstauskunft der Ortskante (D-01/D-02, E-1/E-2/E-3). Der Plan (Task 1
+// dieses Plans) verlangte vier Zweigzahlen (kuratiert/Lagrange/Mond/
+// Rueckfall) — die tatsaechliche Aufloesung braucht nur DREI, weil das Spiel
+// Monde, Lagrange-Punkte, Rest Stops UND die Gefaengniskolonie allesamt ueber
+// dasselbe Feld (StarMapObject.name) benennt (Zweig "spielintern") statt
+// zwei getrennte kuratierte Tabellen zu brauchen — Begruendung im SUMMARY.
+const gesamtVorkommen = zweigVorkommen.kuratiert + zweigVorkommen.spielintern + zweigVorkommen.rueckfall;
+const proz = (n) => (gesamtVorkommen ? ((n / gesamtVorkommen) * 100).toFixed(1) : '0.0');
+console.log(`orte: Quelle 1 (localityAvailable) ${ortQuelleBroker} | Quelle 2 (locationMissionAvailable) ${ortQuelleStarmap} | Quelle 3+4 (Contract/subContract/Handler-Praereqisite) ${ortQuelleContract}`);
+console.log(`orte: Namensherkunft ueber alle Quellen (${gesamtVorkommen} Vorkommen gesamt):`);
+console.log(`  kuratiert:   ${zweigVorkommen.kuratiert} (${proz(zweigVorkommen.kuratiert)}%)`);
+console.log(`  spielintern: ${zweigVorkommen.spielintern} (${proz(zweigVorkommen.spielintern)}%) — Monde/Lagrange-Punkte/Rest-Stops/Sonderzonen ueber StarMapObject.name`);
+console.log(`  rueckfall:   ${zweigVorkommen.rueckfall} (${proz(zweigVorkommen.rueckfall)}%) — humanize(), Rohbezeichner ohne lesbaren Namen: ${[...rueckfallRohbezeichner].sort().join(', ') || '—'}`);
+console.log(`localities: ${localities.size} aus MissionLocality + ${extraLocalities.size} neu aus StarMapObject = ${locByKebab.size} gesamt`);
 
 // Eigenstaendige Contracts in dieselbe Form bringen, damit sie durch dieselbe
 // Familienbildung laufen wie die Brett-Eintraege. Felder, die es im Contract-
@@ -1003,21 +1122,36 @@ const out = {
       mitOrt: families.filter((f) => (f.localities ?? []).filter((x) => x != null && x !== '').length > 0).length,
       ortQuelleBroker,
       ortQuelleStarmap,
-      // Dritte Quelle (Deviation, s. Kommentar bei `const contracts = []`):
-      // ohne sie bleibt der ROADMAP-Zielwert (>=800 Familien) unerreichbar,
-      // weil 915 der 1.347 Familien ausschliesslich aus Contract-Eintraegen
-      // bestehen, die kein Broker-Feld besitzen.
+      // Dritte+vierte Quelle (Welle 1 + E-1-Deviation, s. Kommentar bei
+      // `const contracts = []`): ohne sie bleibt der ROADMAP-Zielwert
+      // (>=800 Familien) unerreichbar, weil 915 der 1.347 Familien
+      // ausschliesslich aus Contract-Eintraegen bestehen, die kein
+      // Broker-Feld besitzen.
       ortQuelleContract,
+      ortQuelleContractLocality: vierteQuelleLocality,
+      ortQuelleContractLocation: vierteQuelleLocation,
+      ortQuelleContractEbeneContract: vierteQuelleContractEbene,
+      ortQuelleContractEbeneSubContract: vierteQuelleSubContractEbene,
+      ortQuelleContractEbeneHandler: vierteQuelleHandlerEbene,
+      // Namensherkunft der Ortsvorkommen (E-3/Task 1 dieses Plans): drei
+      // Zweige statt der vom Plan angenommenen vier, siehe Kommentar bei
+      // `zweigVorkommen`.
+      ortsNamenKuratiert: zweigVorkommen.kuratiert,
+      ortsNamenSpielintern: zweigVorkommen.spielintern,
+      ortsNamenRueckfall: zweigVorkommen.rueckfall,
     },
   },
   guilds: uniq(families.flatMap((f) => f.guilds)).sort().map((g) => ({ id: kebab(g), key: g, name: g })),
   types: [...missionTypes.values()].filter((x) => usedTypes.has(x.id)).sort((a, b) => a.name.localeCompare(b.name)),
   givers: [...givers.values()].filter((x) => usedGivers.has(x.id)).sort((a, b) => a.name.localeCompare(b.name)),
   factions: [...factions.values()].filter((f) => usedFactions.has(f.id)).sort((a, b) => a.name.localeCompare(b.name)),
-  // D-01: der Ortskatalog speist sich jetzt aus ZWEI Quellen — den
-  // urspruenglichen MissionLocality-Eintraegen UND den neuen, aus
-  // locationMissionAvailable erzeugten extraLocalities. Entdoppelt ueber
-  // die id (kebab), gefiltert auf tatsaechlich benutzte Eintraege.
+  // D-01/E-1: der Ortskatalog speist sich aus den urspruenglichen
+  // MissionLocality-Eintraegen (`localities`, direkt ODER ueber
+  // ContractPrerequisite_Locality.localityAvailable erreicht) UND den
+  // extraLocalities, die aus StarMapObject-Rohbezeichnern entstehen
+  // (locationMissionAvailable / ContractPrerequisite_Location.
+  // locationAvailable). Entdoppelt ueber die id (kebab, nach kanonRoh()),
+  // gefiltert auf tatsaechlich benutzte Eintraege.
   localities: [...new Map([...localities.values(), ...extraLocalities.values()].map((x) => [x.id, x])).values()]
     .filter((x) => usedLocs.has(x.id))
     .sort((a, b) => a.name.localeCompare(b.name)),
