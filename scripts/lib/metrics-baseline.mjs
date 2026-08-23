@@ -116,11 +116,18 @@ export const BASELINE = [
   // ---------------- Missionen ----------------
   {
     id: 'missionenMitOrt',
-    wert: 600,
+    wert: 1150,
     regel: 'min',
     toleranzProzent: 2,
     anlass:
-      'Phase 18 (Missionen wissen, wo sie spielen), Messlauf 23.08.2026. Ausgangswert vor dem Eingriff: 43 von 1.347 Familien mit Ortsangabe. Nach dem Datenlauf gemessen: 609. Abweichung vom ROADMAP-Zielwert (>=800, D-01): mit den real im DataCore vorhandenen Ortsfeldern (localityAvailable, locationMissionAvailable UND der zusaetzlich erschlossenen ContractPrerequisite_Location) ist 800 strukturell nicht erreichbar — 915 der 1.347 Familien bestehen ausschliesslich aus Contract-Eintraegen, fuer die keine weitere bekannte Quelle existiert. Die Klinke steht auf dem TATSAECHLICH GEMESSENEN Wert, nicht auf der unbelegten Behauptung, sonst risse npm run gate dauerhaft und faelschlich (Betreiber-Entscheidung zum ROADMAP-Zielwert steht aus, siehe 18-01-SUMMARY.md). Rueckbau der Ortskante faengt diese Klinke trotzdem, da 600 klar ueber dem Ausgangswert 43 liegt.',
+      'Phase 18 (Missionen wissen, wo sie spielen), Messlauf 23.08.2026, angehoben nach Betreiber-Auftrag E-1 (Plan 02, "vierte Ortsquelle"). Ausgangswert vor jedem Eingriff: 43 von 1.347 Familien mit Ortsangabe. Welle 1 (D-01, ContractPrerequisite_Location.locationAvailable): 609 — unter dem urspruenglichen ROADMAP-Zielwert 800, weil die dort gelesene Praereqisit-Sorte die SELTENERE der beiden im DataCore vorhandenen war. E-1 hat zusaetzlich `ContractPrerequisite_Locality.localityAvailable` (-> MissionLocality, ueber achtmal so oft vorkommend) sowie eine bislang ungelesene dritte Fundstelle (`subContracts[].additionalPrerequisites[]`) erschlossen: gemessen 1.180. Klinke auf 1150 (2% Toleranz unter dem gemessenen Wert), NICHT auf 1180 exakt, damit ein legitim schwankender Missionsbestand (neue Contracts je Patch) das Tor nicht bei jedem Patch reisst. Rueckbau der Ortskante faengt diese Klinke trotzdem, da 1150 weit ueber dem Ausgangswert 43 liegt.',
+  },
+  {
+    id: 'missionsOrtsarten',
+    wert: 4,
+    regel: 'min',
+    anlass:
+      'Phase 18 (Missionen wissen, wo sie spielen), Plan 02, Task 3, Messlauf 23.08.2026. Ausgangszustand: alle vier Ortsarten (Spielort/Zielort/Abholort/Lieferort) fielen in `braces()` auf eine einzige Sammelmarke `{Address}` zusammen (932 Vorkommen in missions.json), womit die Frachtroute einer Liefermission nicht mehr rekonstruierbar war. Die Unterscheidung entsteht in EINER Zeile des Erzeugers (die Selektionsbedingung in `braces()`) — ihr Verlust braeche nichts sichtbar (die Seite baut weiter, sieht vollstaendig aus), waehrend Abhol- und Lieferstelle wieder ununterscheidbar waeren. Untergrenze 4, nicht der gemessene Ist-Wert (6): D-03 benennt vier Ortsarten als Ziel, mehr ist Zugewinn (z.B. ein Rueckfall auf das unbekannte erste Segment zaehlt als eigene Art), weniger ist Rueckbau.',
   },
 
   // ---------------- Der gebaute Stand ----------------

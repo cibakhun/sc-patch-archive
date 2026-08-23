@@ -85,6 +85,11 @@ const ABLESER = {
   // Wert kommt aus meta.counts.mitOrt (vom Erzeuger geschrieben), NICHT ein
   // zweites Mal aus der Missionsliste nachgerechnet (Phase 18, 18-01-PLAN.md).
   missionenMitOrt: () => rd('src/data/missions.json').meta?.counts?.mitOrt,
+  // Zahl der unterschiedenen Ortsarten im Missionstext (Spielort/Zielort/
+  // Abholort/Lieferort, ggf. mehr) — Phase 18 Plan 02, Task 3. `null` statt
+  // `0`, wenn das Feld fehlt: das Tor meldet dann "Quelle nicht lesbar"
+  // statt faelschlich eine Schrumpfung zu behaupten.
+  missionsOrtsarten: () => rd('src/data/missions.json').meta?.counts?.ortsarten ?? null,
 
   // --- Der gebaute Stand ---
   seitenGesamt: () => zaehleHtml(DIST),
