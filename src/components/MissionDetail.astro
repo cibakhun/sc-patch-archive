@@ -558,7 +558,12 @@ const t = useTranslations(lang);
     border-left: 2px solid var(--line); overflow-wrap: anywhere;
   }
 
-  .md__tags { display: flex; flex-wrap: wrap; gap: .3rem; }
+  /* `ul` mit `display:flex` behaelt seine Listenmarken — sie rendern als Punkt
+     rechts an jeder Pille plus einen Waisenpunkt je Zeile. Faellt bei 43 Seiten
+     mit Ortsangabe kaum auf, bei 1.180 und bis zu 40 Chips je Seite sehr wohl
+     (Betreiber-Abnahme 23.08.). Betrifft alle drei `.md__tags`-Listen: Orte,
+     Bauplan-Toepfe und hier herstellbare Gegenstaende. */
+  .md__tags { display: flex; flex-wrap: wrap; gap: .3rem; list-style: none; margin: 0; padding: 0; }
   .md__tag {
     font-family: var(--font-ui); font-size: var(--fs-4); padding: .2rem .55rem; border-radius: 50px; color: var(--muted);
     border: 1px solid var(--line-soft); background: var(--surface);
