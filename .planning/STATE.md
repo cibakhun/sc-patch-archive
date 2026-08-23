@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: Completed 18-01-PLAN.md -- Ortskante D-01/D-02 end-to-end (609/1347 Familien mit Ortsangabe, ROADMAP-Zielwert 800 nicht erreicht, siehe WINDOWS.md deviation)
-last_updated: "2026-08-23T14:51:17.760Z"
+stopped_at: Completed 18-02-PLAN.md -- vierte Ortsquelle (E-1), Katalog-Dedup (E-2), Langschwanz lesbar (E-3), Slot-Art D-03, zweite Sperrklinke
+last_updated: "2026-08-23T16:21:37.194Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 21
   completed_phases: 14
   total_plans: 78
-  completed_plans: 68
+  completed_plans: 69
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -29,6 +29,34 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Current focus:** Phase 16 — das-schiff-ist-die-navigation
 
+> **Nachtrag 23.08.2026 (zweiter) — Phase 18 Plan 2 von mind. 2 ausgefuehrt
+> (vierte Ortsquelle, Katalog-Dedup, Langschwanz lesbar, Slot-Art D-03).**
+> `18-02-PLAN.md` ist ausgefuehrt, ERWEITERT um drei Betreiber-Auftraege nach
+> Welle 1 (E-1/E-2/E-3, siehe `18-02-SUMMARY.md`): E-1 erschliesst eine vierte
+> Ortsquelle (`ContractPrerequisite_Locality.localityAvailable`, zusaetzlich
+> auf der bislang ungelesenen `subContracts[]`-Ebene) und hebt Familien mit
+> Ortsangabe von 609 auf **1.180 von 1.347** — deutlich ueber dem
+> urspruenglichen ROADMAP-Zielwert 800 (`.planning/WINDOWS.md` id 44
+> geschlossen). E-2 entdoppelt den Ortskatalog (Stanton/Pyro/Nyx als
+> *Star/*SolarSystem/blosser Systemname fielen sonst dreifach in den Filter).
+> E-3 loest den Langschwanz (Monde, Lagrange-Punkte, Rest Stops, Gefaengnis)
+> ueber das Spiel-eigene `StarMapObject.name`-Feld auf statt ueber eine
+> zweite Handtabelle — u.a. `Klescher Rehabilitation Facility`, `Aberdeen`,
+> `CRU L1`, `Starlight Service Station`. D-03 (Slot-Art) laesst `braces()`
+> Spielort/Zielort/Abholort/Lieferort wieder unterscheiden statt sie auf
+> `{Address}` zusammenfallen zu lassen (932 -> 0 Vorkommen); Chip-Text laeuft
+> jetzt durch `phLabel()` in beiden Anzeige-Bauteilen. Zweite Sperrklinke
+> `missionsOrtsarten` (min 4) + `missionenMitOrt` auf 1150 angehoben.
+> `npm run build && npm run gate` gruen (22/22), normal UND mit `STAGING=1`
+> (ein erster STAGING-Lauf riss an einer selbstverursachten Nebenlaeufigkeit,
+> siehe SUMMARY „Issues Encountered" — der saubere Wiederholungslauf ist
+> gruen). ⚠ `current_phase` im Kopf dieser Datei zeigt weiterhin auf 14 (eine
+> parallele Sitzung) — nicht veraendert, dieselbe Konvention wie bei allen
+> vorherigen Nachtraegen dieser Art. Naechster Schritt: `18-03-PLAN.md` (D-04,
+> Patch-Kennung je Datenstand) oder Betreiber-Sichtrunde ueber die neun
+> verbleibenden Rueckfall-Katalogeintraege (Region A-D u.a., siehe SUMMARY
+> „Next Phase Readiness").
+>
 > **Nachtrag 20.08.2026 (sechster) — Phase 16 Plan 5 von 5 ausgefuehrt (Welle 5: Torschaerfung, Schlussmessung, fuenf Sichturteile).**
 > `16-05-PLAN.md` ist ausgefuehrt — **Phase 16 ist damit technisch vollstaendig
 > (5/5 Plaene)**. Vor Task 1 zusaetzlich die vier 1280px-Kollisionen behoben,
@@ -390,6 +418,7 @@ Progress: [█████████░] 85%
 | Phase 15 P09 | ~2h | 3 tasks | 8 files |
 | Phase 15 P12 | 35min | 3 tasks | 2 files |
 | Phase 18 P01 | 65min | 2 tasks | 6 files |
+| Phase 18 P02 | ~3h | 3 tasks | 9 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -536,6 +565,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 15-03: D-02 mit abgeschaltetem JavaScript bewiesen -- vier Systemabschnitte serverseitig, Rail als Ankerliste, Bewaffnung/Bauteilliste vollstaendig in die Konsole gewandert, Textbestand gewachsen (min 3177->3242 Bytes)
 - [Phase ?]: 15-05: Vier 1280px-Kollisionen (Hero-Chrome ohne grid-column spannte den gesamten Konsolen-Bereich) vor der Torschaerfung behoben; verify:shipconsole scharf; Hoehenklinke haelt trotz Konsole weit unter der Marke; ein neuer Kontrastfund (Rail-Gruppe Antrieb, dunkler Modus) behoben statt uebergeben
 - [Phase ?]: Phase 18 Plan 01: Sperrklinke missionenMitOrt auf gemessenem Wert 600 (nicht ROADMAP-Zielwert 800) -- Ortskante erreicht 609/1347 Familien, dritte reale Datenquelle ausgeschoepft, Betreiber-Entscheidung zum Zielwert offen (siehe WINDOWS.md)
+- [Phase ?]: Phase 18 Plan 02: E-1 (vierte Ortsquelle, ContractPrerequisite_Locality.localityAvailable inkl. subContracts-Ebene) hebt Familien mit Ortsangabe 609 -> 1180/1347, ueber dem ROADMAP-Zielwert 800
+- [Phase ?]: Phase 18 Plan 02: E-3-Langschwanz ueber Spiel-eigenes StarMapObject.name geloest statt einer zweiten kuratierten Tabelle -- deckt Monde, Lagrange-Punkte, Rest Stops und Gefaengniskolonie mit echten Spielnamen ab
 
 ### Pending Todos
 
@@ -592,9 +623,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T14:49:52.152Z
-Stopped at: Completed 18-01-PLAN.md -- Ortskante D-01/D-02 end-to-end (609/1347 Familien mit Ortsangabe, ROADMAP-Zielwert 800 nicht erreicht, siehe WINDOWS.md deviation)
+Last session: 2026-08-23T16:21:37.118Z
+Stopped at: Completed 18-02-PLAN.md -- vierte Ortsquelle (E-1), Katalog-Dedup (E-2), Langschwanz lesbar (E-3), Slot-Art D-03, zweite Sperrklinke
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
-Resume file: .planning/phases/18-missionen-wissen-wo-sie-spielen/18-02-PLAN.md
+Resume file: None
