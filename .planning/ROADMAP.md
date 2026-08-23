@@ -1212,3 +1212,92 @@ Plans:
 - [x] 18-02-PLAN.md — Welle 2, D-02 vollständig und D-03: Regeln für Monde/Lagrange-Punkte/Rest; die Slot-Art kehrt zurück — selektiv (nur Ortsmarken), leerzeichenfrei (wegen `clip()`), lesbar beschriftet; Sperrklinke `missionsOrtsarten` bei 4; Sprachparität gezählt
 - [x] 18-03-PLAN.md — Welle 3, D-04 Kennungen: `universal-items.json` bekommt `gameVersion`; `dismantling-items.json` und `wikelo-trades.json` bekommen eine Begleitdatei mit Eintragszahl statt einer Hülle (kein Leser wird angefasst); `refinery-data.json` holt seine eigene Quelle ein
 - [x] 18-04-PLAN.md — Welle 4, D-04 Tor: `verify:datastand` (Kreuzvergleich der committeten Kennungen, Schiene A, acht Zusicherungen), Rot-Vorführung je FEHLER-Klasse mit Prüfsummen-Beleg, Registry + `MIN_SCRIPTS` 23→24, Schlussmessung und vier Sichturteile nach `WINDOWS.md`
+
+### Phase 19: Der Ortskatalog trägt bis in die Chips
+
+**Goal:** Phase 18 hat einen sauberen Ortskatalog gebaut — 49 Einträge, lesbare
+Namen, keine Doubletten. Er wirkt aber nur an zwei von vier Stellen. Die
+Chipliste und die Angebotstabelle der Missionsseite ziehen weiter aus dem rohen
+Feld, und der Filter führt vier Einträge, die niemand bedienen kann. Diese Phase
+lässt den Katalog überall dort ankommen, wo Ortsnamen sichtbar werden.
+
+**Herkunft:** Betreiber-Abnahme 23.08.2026 (`WINDOWS.md` id 45–48). Alle sieben
+Befunde stammen aus dem Hinsehen, keiner aus einem Tor — kein Prüfskript des
+Projekts sieht Listenmarken, Doubletten in einer Chipreihe oder ein englisches
+„And" mitten im deutschen Filter.
+
+**Der Befund, der die Phase trägt:** Drei der sieben Punkte haben **eine**
+Ursache. `MissionDetail.astro:246` rendert die Chipliste aus `m.places`, Zeile
+361 die Angebotstabelle ebenso; kuratiert wurde in Phase 18 nur `localityNames`
+(Zeile 228) und der Filter. Wer den Katalog baut, aber die Anzeige aus dem
+Rohfeld speist, hat die Arbeit an zwei von vier Stellen getan.
+
+**D-01 — Die Chipliste zeigt kuratierte Namen.** Heute stehen dort `Pyro` neben
+`Pyro System` und `Stanton` neben `Stanton System` als getrennte Chips derselben
+Sache, dazu `PYAM-FARSTAT-2-0` und `RR_P2_LEO_CLINIC`. Die feineren Orte
+(`Cellin`, `Daymar`, `Calliope`) sind erwünscht und bleiben — es geht um
+Doubletten und Rohform, nicht um die Auflösung.
+⚠ `HUR L1`, `CRU L4`, `MIC L3` sind **nicht falsch, nur falsch geschrieben**: im
+Spiel heißen sie `HUR-L1` mit Bindestrich. Der Unterstrich der Rohform wurde zu
+einem Leerzeichen statt zu einem Bindestrich.
+
+**D-02 — Region A bis D bekommen Namen.** Sie tragen zusammen **452 Missionen**
+— der zweitgrößte Block der Filterliste — und sagen nichts. Aus ihren `places`
+sind sie ablesbar: Region A = Pyro I + Monox, B = Bloom + Orbituary, C = Pyro
+IV/V + Ignis, D = Terminus.
+
+**D-03 — Der Filter hält, was seine Beschriftung verspricht.** Unter „Region"
+stehen heute vier einzelne Stationen (Klescher Rehabilitation Facility, Rod's
+Fuel 'N Supplies, Starlight Service Station, Megumi Refueling). Entweder sie
+wandern auf ihre Ebene hoch, oder die Beschriftung wird ehrlich. Dazu: fünf
+Rohbezeichner im Katalog (`CRU L1/L4/L5`, `PYR6 L1`, `RR P6 LEO`) und drei
+Einträge mit englischem `And` im deutschen Filter (`Pyro And Nyx`, `Stanton And
+Nyx`, `Stanton And Pyro`).
+
+**D-04 — Eine Marke, eine Schreibweise je Seite.** Die Tabelle „Appears in game
+as" zieht aus `m.titleVariants` und wurde von der Beschriftungsumstellung nicht
+erfasst; dort steht weiter roh `Bounty Assignment: {TargetName}`. Auf derselben
+Seite stehen damit beide Schreibweisen derselben Marke.
+
+**Was NICHT angefasst wird:** die Ortskante selbst. 1180 von 1347 Familien
+tragen ihren Ort, und die Zahl ist mit einer Sperrklinke festgeschrieben. Diese
+Phase ändert die **Darstellung**, nicht die Erhebung.
+
+**Bereits erledigt, gehört aber zum Anlass:** Die `.md__tags`-Listen trugen ihre
+Listenmarken sichtbar mit (`ul` mit `display:flex` ohne `list-style`-Rücksetzung)
+— ein Punkt rechts an jeder Pille plus ein Waisenpunkt je Zeile, auf 1180 Seiten
+mit bis zu 40 Chips. Behoben in `7a0ab58`, weil die Wirkung sonst mit Phase 18
+live gegangen wäre.
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
+**Depends on:** Phase 18 (Ortskatalog und Slot-Arten müssen stehen)
+**Plans:** 0 plans
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Kein Ort erscheint in einer Chipreihe zweimal unter verschiedenen
+     Schreibweisen — gezählt über alle 1180 Missionsseiten im gebauten `dist/`
+
+  2. Lagrange-Punkte tragen ihre Spielschreibweise mit Bindestrich
+     (`HUR-L1` statt `HUR L1`), nachgezählt gegen den Katalog
+
+  3. Region A bis D sind benannt oder aufgelöst; die 452 Missionen dahinter
+     bleiben auffindbar
+
+  4. Unter der Filterbeschriftung „Region" steht keine einzelne Station mehr —
+     oder die Beschriftung sagt, was dort steht
+
+  5. Kein Katalogeintrag trägt einen Rohbezeichner. Die Prüfung dafür ist
+     **breiter als die aus Phase 18**, die `CRU L1` und `RR P6 LEO`
+     durchgelassen hat, weil sie nur nach `outpost`/`scrp`/`otlw` suchte
+
+  6. Im deutschen Filter steht kein englisches Bindewort
+
+  7. Auf einer Missionsseite erscheint jede Marke in genau einer Schreibweise
+
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1`; DE und EN deckungsgleich, beide Farbmodi
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 19 to break down)
