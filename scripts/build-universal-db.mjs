@@ -70,6 +70,13 @@ if (!existsSync(gameDbPath)) {
 // mit einer Warnung weiterzulaufen.
 let GLOBAL_INI_TEXT;
 let catalogSourceLabel;
+// Patch-Kennung fuer den Katalogkopf (D-04). Schreibweise richtet sich nach
+// assets/mining-db.json `game_version` (`4.9.0-live.12344265`, siehe
+// scripts/build-mining-db.mjs Z. 43) — dieselbe Form, dieselbe Wortwahl, kein
+// zweites Vokabular fuer denselben Spielstand. Best effort: bleibt null, wenn
+// die p4k nicht geoeffnet wird (--global-ini-Pfad) oder build_manifest.id
+// fehlt/unlesbar ist.
+let gameVersion = null;
 if (explicitIni) {
   if (!existsSync(explicitIni)) {
     abort(`ABBRUCH: --global-ini zeigt auf eine nicht vorhandene Datei: ${explicitIni}`);
@@ -98,6 +105,15 @@ if (explicitIni) {
     abort(`ABBRUCH: lokale Data.p4k nicht erreichbar (erwarteter Pfad: ${DEFAULT_P4K}). SC_P4K setzen oder --global-ini <pfad> angeben.\n${err.message}`);
   }
   GLOBAL_INI_TEXT = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
+  // Patch-Kennung aus der Build-Manifest-Datei neben dem p4k (best effort),
+  // solange die p4k ohnehin schon offen ist — kein zweiter Pfad-Aufbau.
+  const bm = resolve(dirname(p4k.path), 'build_manifest.id');
+  if (existsSync(bm)) {
+    try {
+      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data ?? {};
+      gameVersion = d.RequestedP4ChangeNum ? `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}` : null;
+    } catch { /* egal */ }
+  }
   p4k.close();
   catalogSourceLabel = 'der lokalen Data.p4k';  // ohne Pfad — siehe Kommentar oben
 }
@@ -378,6 +394,7 @@ const counts = {
 const db = {
   generator: 'scripts/build-universal-db.mjs',
   generatedAt: new Date().toISOString().slice(0, 10),
+  gameVersion,
   pricesAsOf: uexDb.fetchedAt,
   note: 'Keine fabrizierten Werte: Items ohne bekannte Quelle haben obtain:[] (Katalog). Preise/Orte Patch-volatil — ingame prüfen.',
   sources: {
