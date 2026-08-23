@@ -6,14 +6,14 @@ current_phase: 14
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
 stopped_at: Completed 18-02-PLAN.md -- vierte Ortsquelle (E-1), Katalog-Dedup (E-2), Langschwanz lesbar (E-3), Slot-Art D-03, zweite Sperrklinke
-last_updated: "2026-08-23T16:21:37.194Z"
+last_updated: "2026-08-23T17:03:32.335Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 21
   completed_phases: 14
   total_plans: 78
-  completed_plans: 69
+  completed_plans: 70
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -29,6 +29,39 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Current focus:** Phase 16 — das-schiff-ist-die-navigation
 
+> **Nachtrag 23.08.2026 (dritter) — Phase 18 Plan 3 von mind. 3 ausgefuehrt
+> (D-04: jeder Datenstand nennt seinen Patch).**
+> `18-03-PLAN.md` ist ausgefuehrt: `assets/universal-items.json` traegt jetzt
+> ein Feld `gameVersion` (`4.9.0-live.12344265`), Schreibweise bytegleich zu
+> `assets/mining-db.json` `game_version` (Muster aus `build-mining-db.mjs`
+> uebernommen, nicht aus `datamine-missions.mjs`). Zwei bislang kopflose
+> Bestaende bekamen eine **Begleitdatei statt Huelle** (RESEARCH.md-Annahme
+> A4 bewusst nicht gefolgt — der Client-Fetch in `CraftingApp.astro` haengt
+> an einer Abrufkennung, die nur am Crafting-Datenstand haengt, nicht an
+> `dismantling-items.json` selbst): `assets/dismantling-items.meta.json`
+> (maschinell, aus `datamine-crafting.mjs`, `itemCount` 854) und
+> `assets/wikelo-trades.meta.json` (von Hand, `reviewedVersion`/`reviewedAt`
+> statt Changelist — 63 handgepflegte Eintraege haben keinen Auslesevorgang).
+> `assets/refinery-data.json` neu erzeugt (`build-refinery-data.mjs`
+> unveraendert), holt seine Kennung von `mining-db.json` ein
+> (`4.9.0-live.12248363` -> `4.9.0-live.12344265`). Alle sechs maschinell
+> erzeugten Datenstaende (Missionen, Mining, Crafting, Item-Katalog,
+> Refinery, Zerlegung) nennen jetzt CL 12344265 — Zwischenstand fuer das
+> Verzugstor der naechsten Welle (`18-04-PLAN.md`, noch nicht gebaut).
+> Vorbedingung `assets/items-gamefiles.json` fehlte im frischen Worktree und
+> wurde per `npm run datamine:items` nachgeholt (nur lokale `Data.p4k`, kein
+> Netz — Rule 3, siehe `18-03-SUMMARY.md`). Alle Bestandszahlen halten exakt
+> auf ihrer Klinke (kein Rueckgang): Item-Katalog 9168/4574/6642/23705/136,
+> Refinery 26/20/9. `npm run gate` gruen (22/22), normal UND mit `STAGING=1`,
+> strikt sequenziell nach Task 2 und Task 3 durchlaufen. `npm run gate:data`
+> bleibt rot an `verify:items` — derselbe vorbestehende, unabhaengige Befund
+> aus 18-01/18-02, kein Regress dieser Welle. D-04 ist damit zur Haelfte
+> erfuellt (Kennungen stehen); das Verzugs-Tor selbst ist Welle 4. ⚠
+> `current_phase` im Kopf dieser Datei zeigt weiterhin auf 14 (eine parallele
+> Sitzung) — nicht veraendert, dieselbe Konvention wie bei allen vorherigen
+> Nachtraegen dieser Art. Naechster Schritt: `18-04-PLAN.md` (`verify:datastand`-
+> Tor bauen) oder Betreiber-Sichtrunde ueber die Phase-18-Rueckfall-Katalogeintraege.
+>
 > **Nachtrag 23.08.2026 (zweiter) — Phase 18 Plan 2 von mind. 2 ausgefuehrt
 > (vierte Ortsquelle, Katalog-Dedup, Langschwanz lesbar, Slot-Art D-03).**
 > `18-02-PLAN.md` ist ausgefuehrt, ERWEITERT um drei Betreiber-Auftraege nach
@@ -419,6 +452,7 @@ Progress: [█████████░] 85%
 | Phase 15 P12 | 35min | 3 tasks | 2 files |
 | Phase 18 P01 | 65min | 2 tasks | 6 files |
 | Phase 18 P02 | ~3h | 3 tasks | 9 files |
+| Phase 18 P03 | ~70min | 3 tasks | 7 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -567,6 +601,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 18 Plan 01: Sperrklinke missionenMitOrt auf gemessenem Wert 600 (nicht ROADMAP-Zielwert 800) -- Ortskante erreicht 609/1347 Familien, dritte reale Datenquelle ausgeschoepft, Betreiber-Entscheidung zum Zielwert offen (siehe WINDOWS.md)
 - [Phase ?]: Phase 18 Plan 02: E-1 (vierte Ortsquelle, ContractPrerequisite_Locality.localityAvailable inkl. subContracts-Ebene) hebt Familien mit Ortsangabe 609 -> 1180/1347, ueber dem ROADMAP-Zielwert 800
 - [Phase ?]: Phase 18 Plan 02: E-3-Langschwanz ueber Spiel-eigenes StarMapObject.name geloest statt einer zweiten kuratierten Tabelle -- deckt Monde, Lagrange-Punkte, Rest Stops und Gefaengniskolonie mit echten Spielnamen ab
+- [Phase ?]: Phase 18 Plan 03: alle sechs maschinell erzeugten Datenstaende nennen jetzt CL 12344265 (D-04) — universal-items.json gameVersion neu, dismantling-items.meta.json + wikelo-trades.meta.json als Begleitdateien statt Huelle, refinery-data.json nachgezogen
 
 ### Pending Todos
 
