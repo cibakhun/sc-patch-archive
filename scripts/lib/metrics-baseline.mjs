@@ -113,6 +113,16 @@ export const BASELINE = [
       'Messlauf 09.08.2026. verify:mining prueft die Stimmigkeit der Mineraldaten, nicht ihre Vollstaendigkeit — ein halbierter Datenlauf bliebe dort gruen.',
   },
 
+  // ---------------- Missionen ----------------
+  {
+    id: 'missionenMitOrt',
+    wert: 600,
+    regel: 'min',
+    toleranzProzent: 2,
+    anlass:
+      'Phase 18 (Missionen wissen, wo sie spielen), Messlauf 23.08.2026. Ausgangswert vor dem Eingriff: 43 von 1.347 Familien mit Ortsangabe. Nach dem Datenlauf gemessen: 609. Abweichung vom ROADMAP-Zielwert (>=800, D-01): mit den real im DataCore vorhandenen Ortsfeldern (localityAvailable, locationMissionAvailable UND der zusaetzlich erschlossenen ContractPrerequisite_Location) ist 800 strukturell nicht erreichbar — 915 der 1.347 Familien bestehen ausschliesslich aus Contract-Eintraegen, fuer die keine weitere bekannte Quelle existiert. Die Klinke steht auf dem TATSAECHLICH GEMESSENEN Wert, nicht auf der unbelegten Behauptung, sonst risse npm run gate dauerhaft und faelschlich (Betreiber-Entscheidung zum ROADMAP-Zielwert steht aus, siehe 18-01-SUMMARY.md). Rueckbau der Ortskante faengt diese Klinke trotzdem, da 600 klar ueber dem Ausgangswert 43 liegt.',
+  },
+
   // ---------------- Der gebaute Stand ----------------
   // Warum ueberhaupt Seitenzahlen: getStaticPaths kann bei kaputter
   // Datenquelle eine LEERE Liste liefern. Der Build meldet dann keinen

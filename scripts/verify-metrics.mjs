@@ -79,6 +79,13 @@ const ABLESER = {
   blueprints: () => (rd('assets/crafting-db.json').blueprints ?? []).length,
   minerale: () => (rd('assets/mining-db.json').minerals ?? []).length,
 
+  // --- Missionen (src/data/missions.json) ---
+  // Familien mit nichtleerem localities[] (nach Filterung von null/leeren
+  // Strings) — dieselbe Definition wie scripts/probes/missionsorte-messung.mjs.
+  // Wert kommt aus meta.counts.mitOrt (vom Erzeuger geschrieben), NICHT ein
+  // zweites Mal aus der Missionsliste nachgerechnet (Phase 18, 18-01-PLAN.md).
+  missionenMitOrt: () => rd('src/data/missions.json').meta?.counts?.mitOrt,
+
   // --- Der gebaute Stand ---
   seitenGesamt: () => zaehleHtml(DIST),
   seitenItems: () => zaehleHtml(join(DIST, 'items')),
