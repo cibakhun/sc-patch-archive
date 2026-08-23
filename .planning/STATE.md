@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 14
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
-stopped_at: Completed 18-02-PLAN.md -- vierte Ortsquelle (E-1), Katalog-Dedup (E-2), Langschwanz lesbar (E-3), Slot-Art D-03, zweite Sperrklinke
-last_updated: "2026-08-23T17:03:32.335Z"
+stopped_at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
+last_updated: "2026-08-23T18:47:25.187Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
   total_phases: 21
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 78
-  completed_plans: 70
+  completed_plans: 71
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -374,7 +374,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 91%
 
 Progress: [█████████░] 85%
 
@@ -453,6 +453,7 @@ Progress: [█████████░] 85%
 | Phase 18 P01 | 65min | 2 tasks | 6 files |
 | Phase 18 P02 | ~3h | 3 tasks | 9 files |
 | Phase 18 P03 | ~70min | 3 tasks | 7 files |
+| Phase 18 P04 | ~2h | 3 tasks | 1 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -602,6 +603,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 18 Plan 02: E-1 (vierte Ortsquelle, ContractPrerequisite_Locality.localityAvailable inkl. subContracts-Ebene) hebt Familien mit Ortsangabe 609 -> 1180/1347, ueber dem ROADMAP-Zielwert 800
 - [Phase ?]: Phase 18 Plan 02: E-3-Langschwanz ueber Spiel-eigenes StarMapObject.name geloest statt einer zweiten kuratierten Tabelle -- deckt Monde, Lagrange-Punkte, Rest Stops und Gefaengniskolonie mit echten Spielnamen ab
 - [Phase ?]: Phase 18 Plan 03: alle sechs maschinell erzeugten Datenstaende nennen jetzt CL 12344265 (D-04) — universal-items.json gameVersion neu, dismantling-items.meta.json + wikelo-trades.meta.json als Begleitdateien statt Huelle, refinery-data.json nachgezogen
+- [Phase 14]: Rot-Vorfuehrung D (Verzug ueber Toleranz) durch Anheben statt Absenken einer Changelist umgesetzt — bei identischen Klinken-/juengste-CL-Werten war das der einzige Weg, Zusicherung 4 und 5 sauber zu trennen
+- [Phase 14]: Checksummen-Methode auf git hash-object umgestellt, nachdem die anfaengliche eigene sha1-Batch-Schleife bei 2 von 7 Dateien einen fehlerhaften vorher-Wert lieferte (vermutlich Windows fork/cygheap-Fehler)
 
 ### Pending Todos
 
@@ -658,8 +661,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T16:21:37.118Z
-Stopped at: Completed 18-02-PLAN.md -- vierte Ortsquelle (E-1), Katalog-Dedup (E-2), Langschwanz lesbar (E-3), Slot-Art D-03, zweite Sperrklinke
+Last session: 2026-08-23T18:47:25.113Z
+Stopped at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
