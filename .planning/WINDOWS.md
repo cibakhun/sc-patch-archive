@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 27
+open_count: 31
 waived_count: 0
 fixed_count: 16
-total_count: 43
-last_updated: 2026-08-23T18:00:00.000Z
+total_count: 47
+last_updated: 2026-08-23T17:34:52.266Z
 ---
 
 # Broken Windows Ledger
@@ -58,6 +58,10 @@ last_updated: 2026-08-23T18:00:00.000Z
 | 42 | 17 | unrun-verify | assets/holo-viewer.js |  | Sichturteil: die Endmarke der LAENGENkette landet bei der Carrack in der RUHELAGE auf dem Chip "FLUGBEREIT" (gemessen 21.08. bei 1280x718: linkes Kettenende (228,585), Chipreihe y 568-600, x 45-350). Umschau ueber sechs aus den Daten gewaehlte Extremformen (Carrack L/H 4,2 - Idris-P 243m/4,2 - Caterpillar 8,3 - Santokyai 1,0 - Railen 1,3 - ATLS 3,2m/2,0), je in Ruhe- und Drehlage: fuenf von sechs sitzen in BEIDEN Lagen sauber, dies ist der einzige echte Treffer im Feld. Die Massszahl selbst weicht bereits aus (sie wandert laengs der Kette an Titelblock, Blende und Leuchtfleck vorbei); die Endmarke kann es nicht, weil sie den gemessenen Punkt markiert. ⚠ Zwei maschinelle Pruefsaetze haben hier NACHEINANDER falsch geurteilt: der erste verglich das umschliessende Rechteck der Diagonale mit dem Sperrfeld, der zweite (Liang-Barsky, richtig gerechnet) meldet fuer den Caterpillar 479px "im Titelblock" bei tadellosem Bild — das Sperr-Rechteck ist viel groesser als die Tinte darin. Eine Kennzahl kann diesen Punkt nicht entscheiden. Moeglicher Ansatz, falls behoben werden soll: die Sperrflaechen auf die tatsaechliche Tinte verkleinern (h1, Chips und Merken-Knopf einzeln statt des ganzen .holo__title) und die Kette bei Treffer um wenige Bildpunkte nachfuehren. | fixed | Behoben 21.08.2026. Zwei Aenderungen, die zusammengehoeren: (1) Die Seite reicht nicht mehr den Titelblock als EINEN Klotz, sondern seine Stuecke einzeln (Wortmarke, Logo, Chips, Merken-Knopf, Herkunftszeile) plus Blende und Leuchtfleck. (2) Der Viewer misst diese Stuecke per Range ueber den INHALT statt per getBoundingClientRect des Kastens — der Unterschied ist gross und war die eigentliche Ursache: `.holo__fav` misst 45..351, der Knopf "MERKEN" darin nur 45..155; die Ueberschrift ist so breit wie die Spalte, ihr Text viel schmaler. Dazu kommt das Ausweichen selbst: trifft die Kette samt Endmarken eine Sperrflaeche, wird der VERSATZ in Vierer-Schritten nachgefuehrt (nach aussen zuerst), die Linie wird nicht verbogen und nicht gekuerzt; ueber Bilder wird der Versatz sanft nachgezogen. ⚠⚠ Der im urspruenglichen Eintrag vorgeschlagene Weg allein REICHTE NICHT und wurde vorgefuehrt widerlegt: mit den Kasten-Rechtecken der Einzelstuecke liegt die Tinte als Stapel mit 9-13px Luecken (Logo 414-486, Wortmarke 495-554, Chips 566-602, Merken 614-649, Herkunft 662-682), waehrend die Diagonale ueber die Spaltenbreite um rund 20px faellt — sie passt in KEINE Luecke, und die Suche fand ueber +-72px keinen freien Versatz. Erst die Range-Messung machte den Platz frei. Gemessen ueber sechs Extremformen in je zwei Lagen: 11 von 12 Laengenketten jetzt vollstaendig frei (vorher 5 von 12); der Rest ist die Idris in Drehlage, deren Kette den weichen Projektorstrahl quert — die Zahl bleibt durch ihren Saum lesbar. Sichtgeprueft bei dreifacher Aufloesung: die Endmarke steht im freien Band unter der Chipreihe, rechts vom Merken-Knopf. | 2026-08-21T08:30:00.000Z | 2026-08-21T14:30:00.000Z |
 | 43 | 17 | unrun-verify | assets/holo-viewer.js |  | Sichturteil: bei HOHEN Ruempfen laeuft das obere Ende der Hoehenkette unter die Blende (.holo__rail). Gemessen 21.08. bei 1280x718 an Railen, Santokyai und ATLS: Kettenende y 55, Blende 44/56-1236/100, also rund 42px des Strichs hinter der Leiste. ⚠ Bei dreifacher Aufloesung nachgesehen, und der Befund faellt milder aus als die Zahl: die Blende ist DECKEND, die Kette verschwindet dahinter wie hinter jedem Vordergrund. Sichtbar bleibt nur ein rund 3px langer Rest der Endmarke und die gestrichelte Hilfslinie an der Oberkante der Leiste. Vor allem: der RUMPF selbst laeuft genauso unter die Blende (die Fluegelspitze der Railen endet bei y~57) — es ist also eine Eigenschaft der Blende, die ueber der Buehne liegt, und kein Fehler der Masskette. Ein Ausweichen gibt es hier bauartbedingt nicht: die Hoehenkette wird WAAGERECHT versetzt, ihr senkrechter Umfang haengt an den Achsenendpunkten und aendert sich durch keinen Versatz. Kuerzen scheidet aus — die Kette wuerde dann weniger messen, als sie behauptet. Zu entscheiden: (a) so lassen, die Kette verhaelt sich wie das Schiff; (b) die Masskette am unteren Rand der Blende abschneiden (Clip), dann endet der Strich sauber an der Leiste, verliert dort aber seine Endmarke; (c) der Blende an dieser Stelle einen Freiraum geben — betrifft dann auch den Rumpf und damit das Layout der ganzen Konsole. | open |  | 2026-08-21T08:30:00.000Z |  |
 | 44 | 18 | deviation | scripts/lib/metrics-baseline.mjs |  | D-01-Zielwert der ROADMAP (>=800 von 1.347 Missionsfamilien mit Ortsangabe) mit den real im DataCore vorhandenen Ortsfeldern strukturell nicht erreichbar. 18-01-PLAN.md sah zwei Quellen vor (localityAvailable, locationMissionAvailable); gemessen erreichten die zwei allein nur 366 Familien (Deckel 432 -- 915 der 1.347 Familien bestehen ausschliesslich aus Contract-Eintraegen ohne jedes Broker-Feld). Eine dritte, im DataCore ebenfalls real vorhandene Quelle (ContractPrerequisite_Location) wurde ergaenzt (Rule 2, ausserhalb des im Plan beschriebenen Zwei-Quellen-Umfangs) und hebt den Wert auf 609/1.347 (45.2%). Die Sperrklinke missionenMitOrt steht auf dem gemessenen Wert 600 (min, Toleranz 2%), NICHT auf 800 -- ein hoeherer Wert wuerde npm run gate dauerhaft und faelschlich reissen. Betreiber-Entscheidung noetig: ROADMAP-Zielwert 800 senken/anerkennen, oder eine vierte Ortsquelle in einer Folgewelle suchen (kein weiterer bekannter Kandidat im DataCore identifiziert). | fixed | Geschlossen 23.08.2026 durch 18-02-PLAN.md Erweiterung E-1 (Betreiber-Auftrag): die vierte Ortsquelle (ContractPrerequisite_Locality.localityAvailable -> MissionLocality, zusaetzlich auf der bislang ungelesenen subContracts-Ebene) hebt Familien mit Ortsangabe auf 1.180/1.347 (87,6%) -- deutlich ueber dem urspruenglichen ROADMAP-Zielwert 800. Sperrklinke missionenMitOrt auf 1150 angehoben (scripts/lib/metrics-baseline.mjs). Siehe 18-02-SUMMARY.md. | 2026-08-23T14:47:06.635Z | 2026-08-23T18:00:00.000Z |
+| 45 | 18 | unrun-verify | src/components/MissionsApp.astro, src/components/MissionDetail.astro |  | S-1: Traegt die Ortsangabe (Erfolgskriterium 4)? Region-Zeile einer Missions-Detailseite UND das Filterfeld #mx-loc auf /missionen bzw. /de/missionen ansehen: wirkt 'Hurston' bzw. 'Stanton (System)' glaubwuerdig als Planeten-/Systemebene, oder liest es sich wie eine Stationsangabe? DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. Kein Skripturteil (CLAUDE.md). | open |  | 2026-08-23T17:34:37.301Z |  |
+| 46 | 18 | unrun-verify | src/lib/missions.ts |  | S-2: Sind die vier Ortsarten-Chips (Location/Destination/Pickup Location/Dropoff Location) im englischen Fliesstext einer Missions-Detailseite verstaendlich, oder braucht die deutsche Fassung eigene deutsche Beschriftungen (z.B. Abholort/Lieferort)? Die Planung hat sich bewusst fuer englische Marken in BEIDEN Sprachfassungen entschieden (Spieltexte liegen nur englisch vor) -- dieser Punkt legt genau diese Entscheidung zur Abnahme vor. DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. | open |  | 2026-08-23T17:34:51.413Z |  |
+| 47 | 18 | unrun-verify | src/components/MissionsApp.astro |  | S-3: Ist das Ortsfeld #mx-loc auf /missionen bzw. /de/missionen mit 49 Eintraegen (vorher 7) noch bedienbar als flache Liste, oder braucht es eine Gruppierung nach System (Stanton/Pyro/Nyx)? DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. | open |  | 2026-08-23T17:34:51.840Z |  |
+| 48 | 18 | unrun-verify | src/lib/missions.ts |  | S-4: Traegt die geaenderte Beschriftung der Chip-Marken site-weit? Marken (z.B. Target Name, Serial Number, Reputation Rank) erscheinen jetzt als lesbare Worte statt in zusammengeschriebener Binnengrossschreibung ({TargetName} -> Target Name) -- auch auf Missionsseiten, die mit D-01..D-04 inhaltlich nichts zu tun haben. Eine beliebige Missions-Detailseite pruefen. DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. | open |  | 2026-08-23T17:34:52.266Z |  |
 
 ````json
 [
@@ -576,6 +580,54 @@ last_updated: 2026-08-23T18:00:00.000Z
     "reason": "Geschlossen 23.08.2026 durch 18-02-PLAN.md Erweiterung E-1 (Betreiber-Auftrag): die vierte Ortsquelle (ContractPrerequisite_Locality.localityAvailable -> MissionLocality, zusaetzlich auf der bislang ungelesenen subContracts-Ebene) hebt Familien mit Ortsangabe auf 1.180/1.347 (87,6%) -- deutlich ueber dem urspruenglichen ROADMAP-Zielwert 800. Sperrklinke missionenMitOrt auf 1150 angehoben (scripts/lib/metrics-baseline.mjs). Siehe 18-02-SUMMARY.md.",
     "recorded_at": "2026-08-23T14:47:06.635Z",
     "resolved_at": "2026-08-23T18:00:00.000Z"
+  },
+  {
+    "id": 45,
+    "kind": "unrun-verify",
+    "phase": "18",
+    "file": "src/components/MissionsApp.astro, src/components/MissionDetail.astro",
+    "line": null,
+    "description": "S-1: Traegt die Ortsangabe (Erfolgskriterium 4)? Region-Zeile einer Missions-Detailseite UND das Filterfeld #mx-loc auf /missionen bzw. /de/missionen ansehen: wirkt 'Hurston' bzw. 'Stanton (System)' glaubwuerdig als Planeten-/Systemebene, oder liest es sich wie eine Stationsangabe? DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. Kein Skripturteil (CLAUDE.md).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-23T17:34:37.301Z",
+    "resolved_at": null
+  },
+  {
+    "id": 46,
+    "kind": "unrun-verify",
+    "phase": "18",
+    "file": "src/lib/missions.ts",
+    "line": null,
+    "description": "S-2: Sind die vier Ortsarten-Chips (Location/Destination/Pickup Location/Dropoff Location) im englischen Fliesstext einer Missions-Detailseite verstaendlich, oder braucht die deutsche Fassung eigene deutsche Beschriftungen (z.B. Abholort/Lieferort)? Die Planung hat sich bewusst fuer englische Marken in BEIDEN Sprachfassungen entschieden (Spieltexte liegen nur englisch vor) -- dieser Punkt legt genau diese Entscheidung zur Abnahme vor. DE+EN, beide Farbmodi, 1920x1080 UND 1280x720.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-23T17:34:51.413Z",
+    "resolved_at": null
+  },
+  {
+    "id": 47,
+    "kind": "unrun-verify",
+    "phase": "18",
+    "file": "src/components/MissionsApp.astro",
+    "line": null,
+    "description": "S-3: Ist das Ortsfeld #mx-loc auf /missionen bzw. /de/missionen mit 49 Eintraegen (vorher 7) noch bedienbar als flache Liste, oder braucht es eine Gruppierung nach System (Stanton/Pyro/Nyx)? DE+EN, beide Farbmodi, 1920x1080 UND 1280x720.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-23T17:34:51.840Z",
+    "resolved_at": null
+  },
+  {
+    "id": 48,
+    "kind": "unrun-verify",
+    "phase": "18",
+    "file": "src/lib/missions.ts",
+    "line": null,
+    "description": "S-4: Traegt die geaenderte Beschriftung der Chip-Marken site-weit? Marken (z.B. Target Name, Serial Number, Reputation Rank) erscheinen jetzt als lesbare Worte statt in zusammengeschriebener Binnengrossschreibung ({TargetName} -> Target Name) -- auch auf Missionsseiten, die mit D-01..D-04 inhaltlich nichts zu tun haben. Eine beliebige Missions-Detailseite pruefen. DE+EN, beide Farbmodi, 1920x1080 UND 1280x720.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-23T17:34:52.266Z",
+    "resolved_at": null
   }
 ]
 ````
