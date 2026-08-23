@@ -1092,3 +1092,112 @@ Plans:
 - [x] 16-03-PLAN.md — Welle 3, D-02: vier Systemabschnitte serverseitig im ausgelieferten HTML, Rail als Ankerliste, Bewaffnung und Bauteilliste ziehen aus `ch-gear` in die Konsole, Beweis mit abgeschaltetem JavaScript
 - [x] 16-04-PLAN.md — Welle 4, D-01/D-03/D-04: dreispaltiges Raster, Rail als Einfachauswahl, Auslesung mit zwei Zuständen, Laden beim Scrollen ohne Startknopf, gestapelt bei 360 px, Netzverkehr gemessen
 - [x] 16-05-PLAN.md — Welle 5: Rot-Vorführung der erweiterten Entdopplungs-Region einlösen, `verify:shipconsole` scharf, Sperrklinken festschreiben, Schlussmessung DE/EN in beiden Farbmodi, fünf Sichturteile nach WINDOWS.md
+
+### Phase 18: Missionen wissen, wo sie spielen
+
+**Goal:** Die Missionsseite ist die einzige Seite, die alle anderen Bereiche
+berührt — Wirtschaft, Rang, Fraktion, Auftraggeber, Bauplan — und die einzige,
+die ihre eigene Ortskante nicht führt. Diese Phase zieht zwei Kanten, die in den
+Quelldaten **bereits vorliegen** und beim Einlesen verworfen werden: wo eine
+Mission spielt, und welcher Art eine Ortsangabe im Missionstext ist.
+
+**Herkunft:** Messsitzung 23.08.2026. Ausgangspunkt war eine Zuschrift, die
+VerseBase nicht als „noch eine Datenbank" beschreibt, sondern als Explorer für
+die inneren Zusammenhänge des Spiels — entlang der Kette Mission → Auftraggeber
+→ Voraussetzung → Belohnungstopf → Bauplan → Gegenstand → Zutat → Fundort. Die
+Prüfung ergab, dass diese Kette im Bestand fast vollständig geschlossen ist
+(335 Missionen ↔ 335 Bauplan-Rückverweise, sauber über `slug`, in beide
+Richtungen). Das schwächste Glied ist der Ort.
+
+**Der Befund, der die Phase trägt:** Es fehlt kein Datensatz. Es fehlt das
+Durchreichen. Gemessen gegen die installierte 4.9.0 (CL 12344265):
+
+1. **Zwei Ortsfelder, eines gelesen.** `MissionBrokerEntry` führt
+   `localityAvailable` (407 von 2584 gefüllt) und `locationMissionAvailable`
+   (**1836** von 2584 gefüllt). Der Erzeuger liest nur das erste — daraus
+   entstehen heute **43 von 1347** Missionsfamilien mit Ortsangabe. Das zweite
+   Feld zeigt auf `StarMapObject`, also auf denselben Ortsknoten, den
+   `scripts/datamine-missions.mjs` in Zeile 200 **bereits einliest** (2067
+   Einträge). Die Kante wird nur nicht weitergegeben.
+
+2. **Die Slot-Art wird weggeworfen.** `scripts/datamine-missions.mjs:244`
+   normalisiert die Spieltexte mit `t.split('|').pop()` und behält nur das
+   letzte Segment. Die Quelle unterscheidet aber: Spielort (1256×), Zielort
+   (438×), Abholort (77×), Lieferort (73×) — nach der Normalisierung sind alle
+   vier ununterscheidbar `{Address}` (932× in `missions.json`). Damit ist die
+   Frachtroute einer Liefermission nicht mehr rekonstruierbar. Insgesamt gehen
+   416 unterschiedene Slot-Arten auf ihre Endsilben zusammen.
+
+3. **Der Datenstand ist unsichtbar.** `missions.json` stand auf CL 12326004,
+   während CL 12344265 installiert war — rund 18.000 Changelists Verzug, und
+   aufgefallen ist es nur, weil diese Datei ihre Kennung überhaupt mitführt.
+   `mining-db` und `crafting-db` führen sie ebenfalls und waren aktuell.
+   `universal-items.json`, `wikelo-trades.json`, `dismantling-items.json` und
+   `refinery-data.json` führen **keine** — dort kann niemand feststellen, gegen
+   welchen Stand sie stimmen. `wikelo-trades.json` hat zusätzlich kein
+   Erzeugerskript (63 handgepflegte Einträge, kein Datum).
+
+**D-01 — Die Ortskante wird gezogen.** `locationMissionAvailable` wird
+mitgelesen und als Ort geführt, wo `localityAvailable` fehlt. Erwartung: von 43
+auf mindestens 800 Missionsfamilien mit Ortsangabe.
+
+**D-02 — Die Ortsangabe wird ehrlich grob dargestellt.** Die Kante trägt 24
+verschiedene Orte auf Planeten- und Systemebene (StantonStar 537, Stanton1 361,
+Stanton4 338, Stanton2 265, Stanton3 209, PyroStar 84, Delamar 9, Rest
+einstellig). Sie beantwortet „welche Missionen spielen bei microTech" und
+**nicht** „an welcher Station". Die Anzeige darf keine Genauigkeit vortäuschen,
+die die Kante nicht hat.
+
+**D-03 — Die Slot-Art bleibt erhalten.** Abhol-, Liefer-, Ziel- und Spielort
+werden im Missionstext unterscheidbar geführt und beschriftet, statt als eine
+Sorte Platzhalter zu erscheinen.
+
+**D-04 — Jeder Datenstand nennt seinen Patch.** Die vier Dateien ohne Kennung
+bekommen eine, und ein Tor meldet Verzug gegenüber der gebauten Auslieferung.
+Das ist die dünnste Verbindung zwischen den sonst autonomen Bereichen: Sie
+melden nur eine Zahl, und genau die fängt den Fall, den kein Bereich allein
+sehen kann.
+
+**Was NICHT angefasst wird:** Die Datenbeschaffung. Kein Feld wird neu erhoben.
+Diese Phase reicht durch, was beim Einlesen bereits vorliegt.
+
+**Ausdrücklich ausgeschlossen — geprüfte Sackgasse:**
+`CraftingQualityLocationOverrideRecord` (12 Einträge) sieht nach einer
+Ort↔Fertigung-Kante aus, führt aber bei **allen zwölf** einen leeren
+Verteilungssatz. Das ist unfertige Arbeit auf Herstellerseite, keine Daten.
+Wer sie in dieser oder einer späteren Phase anfassen will, muss zuerst
+nachweisen, dass sich das geändert hat.
+
+**Requirements**: keine REQ-IDs — bindend sind D-01 bis D-04.
+**Depends on:** keine. Die Phase berührt nur den Missionsbereich und die
+Kennungszeile der Datenstände; sie hängt an keiner Arbeit aus Phase 14–17.
+**Plans:** 0 plans
+
+**Success Criteria** (was WAHR sein muss):
+
+  1. Mindestens 800 der 1347 Missionsfamilien tragen eine Ortsangabe —
+     maschinell gezählt gegen die erzeugte `missions.json`, nicht behauptet
+
+  2. Auf der Missionsseite lässt sich nach Ort eingrenzen, und die Trefferzahl
+     stimmt mit der gezählten Kante überein
+
+  3. Im Missionstext sind Abholort, Lieferort, Zielort und Spielort
+     voneinander unterscheidbar — heute erscheinen alle vier gleich
+
+  4. Die Ortsangabe ist als Planeten-/Systemebene erkennbar und behauptet
+     keine Station; ein Sichturteil nach `WINDOWS.md` bestätigt das
+
+  5. Alle Datenstände unter `public/assets/` und `src/data/` nennen ihre
+     Patch-Kennung; ein Tor reißt bei Verzug gegenüber der Auslieferung
+
+  6. Kein Herkunftshinweis im sichtbaren Text — `audit:site` bleibt grün
+
+  7. Deutsche und englische Fassung sind deckungsgleich, in beiden Farbmodi
+
+  8. `npm run build && npm run gate` grün, ebenso der Vorschau-Bau mit
+     `STAGING=1`; jedes neue Tor ist einmal vorgeführt rot gewesen und in
+     `scripts/lib/gate-registry.mjs` eingetragen
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 18 to break down)
