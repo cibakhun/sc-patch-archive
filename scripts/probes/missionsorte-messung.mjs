@@ -29,6 +29,15 @@
 
      node scripts/probes/missionsorte-messung.mjs
      node scripts/probes/missionsorte-messung.mjs --json
+     node scripts/probes/missionsorte-messung.mjs --slots
+
+   --slots (D-03, Phase 18 Plan 02, Task 2): liest `meta.counts.ortsarten`
+   und `meta.counts.slotArten` direkt aus der committeten Datei — GENAU
+   dieselbe Definition wie der Erzeuger sie schreibt (kein zweites Mal
+   nachgerechnet, dieselbe Konvention wie `familienMitOrt` oben) — UND
+   zaehlt zusaetzlich, unabhaengig vom Erzeuger-Feld, dieselben vier
+   bekannten Ortsmarken direkt an den Familientexten (title/desc/
+   titleVariants[].text) als Gegenprobe.
    ============================================================ */
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -36,6 +45,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const JSON_OUT = process.argv.includes('--json');
+const SLOTS = process.argv.includes('--slots');
 const SRC = resolve(ROOT, 'src', 'data', 'missions.json');
 
 const db = JSON.parse(readFileSync(SRC, 'utf8'));
@@ -79,12 +89,24 @@ const tokenListe = [...tokenZaehler.entries()]
   .slice(0, 15)
   .map(([token, n]) => ({ token, n }));
 
+// --slots (D-03): Gegenprobe unabhaengig von meta.counts.slotArten — zaehlt
+// die vier bekannten Ortsmarken direkt an denselben Familientexten, mit
+// derselben Regex wie zaehleTokens() oben.
+const SLOT_MARKEN = ['PlayLocation', 'Destination', 'PickupLocation', 'DropoffLocation'];
+const slotGegenprobe = {};
+for (const marke of SLOT_MARKEN) slotGegenprobe[marke] = tokenZaehler.get(marke) ?? 0;
+
 const ergebnis = {
   patch: db.meta?.patch ?? null,
   familien: families.length,
   familienMitOrt: mitOrt.length,
   ortskatalog: katalog,
   tokenHaeufigkeit: tokenListe,
+  ...(SLOTS ? {
+    ortsarten: db.meta?.counts?.ortsarten ?? null,
+    slotArten: db.meta?.counts?.slotArten ?? null,
+    slotGegenprobe,
+  } : {}),
 };
 
 if (JSON_OUT) {
@@ -97,4 +119,14 @@ if (JSON_OUT) {
   for (const k of katalog) console.log(`  ${k.id}:${k.name} — ${k.treffer}`);
   console.log(`\nToken-Haeufigkeit (Top ${tokenListe.length}):`);
   for (const t of tokenListe) console.log(`  {${t.token}} — ${t.n}`);
+  if (SLOTS) {
+    console.log(`\nSlot-Arten (aus meta.counts, vom Erzeuger geschrieben): ${ergebnis.ortsarten}`);
+    if (ergebnis.slotArten) {
+      for (const [marke, n] of Object.entries(ergebnis.slotArten).sort((a, b) => b[1] - a[1])) console.log(`  {${marke}}: ${n}`);
+    } else {
+      console.log('  (meta.counts.slotArten fehlt — Erzeuger vor Task 2 gelaufen?)');
+    }
+    console.log('\nGegenprobe (unabhaengig an den Familientexten gezaehlt):');
+    for (const [marke, n] of Object.entries(slotGegenprobe)) console.log(`  {${marke}}: ${n}`);
+  }
 }

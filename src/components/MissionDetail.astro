@@ -6,7 +6,7 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount, seoTitle, seoText, clip } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount, seoTitle, seoText, clip, phLabel } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { blueprintPath, blueprintsByMission } from '../lib/crafting';
@@ -93,9 +93,11 @@ const S = {
 }[lang];
 
 // Regex mit geschweiften Klammern gehoert ins Frontmatter: im Template zaehlt
-// der Astro-Compiler die Klammern des Literals mit und bricht ab.
+// der Astro-Compiler die Klammern des Literals mit und bricht ab. Der
+// Chip-Text laeuft durch phLabel() (D-03) — dieselbe Aufbereitung wie in
+// MissionsApp.astro.
 const parts = (s: string) => String(s).split(/(\{[^}]*\})/).filter(Boolean)
-  .map((x) => (x.startsWith('{') ? { t: x.slice(1, -1), ph: true } : { t: x, ph: false }));
+  .map((x) => (x.startsWith('{') ? { t: phLabel(x.slice(1, -1)), ph: true } : { t: x, ph: false }));
 const titleParts = parts(m.title);
 const descParts = m.desc ? parts(m.desc) : null;
 const reps = repSummary(m);

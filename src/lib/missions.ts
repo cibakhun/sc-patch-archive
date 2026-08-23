@@ -190,6 +190,14 @@ const PH_TITLE: Record<string, string> = {
   // Orts-Slots, die nicht schon selbst lesbar sind ({Location} bleibt via Split)
   defendlocationwrapperlocation: 'Location',
   address: 'Location',
+  // D-03 (Slot-Art erhalten statt kollabieren, Phase 18 Plan 02): die vier
+  // Ortsarten, die braces() in scripts/datamine-missions.mjs jetzt aus dem
+  // ersten statt dem letzten Trennsegment bildet ({PlayLocation}/
+  // {Destination}/{PickupLocation}/{DropoffLocation} statt {Address}).
+  playlocation: 'Location',
+  destination: 'Destination',
+  pickuplocation: 'Pickup Location',
+  dropofflocation: 'Dropoff Location',
   racetype: 'Race',
   // Rang-/Frachtklassen-/Lohn-Slots: ersatzlos — der Satz traegt ohne sie
   // ("{ReputationRank} Hauler Needed for {CargoGradeToken} Shipment"
@@ -210,6 +218,18 @@ const PH_TITLE: Record<string, string> = {
 /** "CargoGradeToken" -> "Cargo Grade Token"; "location" -> "Location". */
 const deCamel = (s: string) =>
   s.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^[a-z]/, (c) => c.toUpperCase());
+
+/**
+ * Lesbare Beschriftung einer Chip-Marke (D-03, Phase 18 Plan 02) — erst
+ * PH_TITLE, sonst deCamel(). Anders als seoTitle() darf sie NICHT ersatzlos
+ * loeschen: Marken mit leerem PH_TITLE-Wert (z.B. "reward") sind fuer den
+ * Suchmaschinentitel verzichtbar, bleiben aber auf der Seite selbst als
+ * sichtbarer Marker stehen — die Ehrlichkeitsregel hinter PH_TITLE.
+ */
+export function phLabel(marke: string): string {
+  const v = PH_TITLE[String(marke).toLowerCase()];
+  return v ? v : deCamel(marke);
+}
 
 /** Missionstitel fuer <title>/og — Platzhalter ersetzt, Trenner aufgeraeumt. */
 export function seoTitle(title: string): string {

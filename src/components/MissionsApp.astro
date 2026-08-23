@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, uec, cmpSign, bpCount, clip } from '../lib/missions';
+import { db, missions, rewardLabel, repSummary, uec, cmpSign, bpCount, clip, phLabel } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -76,10 +76,12 @@ const S = {
 }[lang];
 
 // Platzhalter sichtbar machen: "{ReputationRank} Rank - ..." wird in Text/Chip-
-// Teile zerlegt, statt die geschweiften Klammern roh anzuzeigen.
+// Teile zerlegt, statt die geschweiften Klammern roh anzuzeigen. Der
+// Chip-Text laeuft durch phLabel() (D-03) — dieselbe Aufbereitung, die die
+// SEO-Texte schon immer benutzen, gilt jetzt auch fuer die sichtbaren Marker.
 function titleParts(t: string): { t: string; ph: boolean }[] {
   return String(t).split(/(\{[^}]*\})/).filter(Boolean)
-    .map((s) => (s.startsWith('{') ? { t: s.slice(1, -1), ph: true } : { t: s, ph: false }));
+    .map((s) => (s.startsWith('{') ? { t: phLabel(s.slice(1, -1)), ph: true } : { t: s, ph: false }));
 }
 
 const nf = lang === 'de' ? 'de-DE' : 'en-US';

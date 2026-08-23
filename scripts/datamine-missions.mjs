@@ -369,8 +369,47 @@ console.log(`orgs: ${orgs.size} | contractor-Fragmente: ${contractorTitles.size}
 // Wir loesen auf, was aufloesbar ist (Contractor-Fragmente), und markieren den
 // Rest als dynamisch, statt einen erfundenen Titel als Fakt hinzuschreiben.
 const TMPL_RE = /~mission\(([^)]*)\)/g;
-// Platzhalter lesbar machen: ~mission(ReputationRank) -> {ReputationRank}
-const braces = (s) => String(s).replace(TMPL_RE, (_, t) => `{${t.split('|').pop()}}`);
+// D-03 (Slot-Art erhalten statt kollabieren): die Quelle traegt bei
+// Ortsmarken zwei Trennsegmente — Slot-Art (Location/Destination/PickupN/
+// DropoffN) VOR der Adressform. `t.split('|').pop()` behielt bisher NUR das
+// LETZTE Segment, wodurch alle vier Ortsarten zu `{Address}` kollabierten.
+// ORT_FORM ist genau dieser Marke — an ihr erkennt braces() eine Ortsmarke
+// und nimmt SELEKTIV das erste Segment statt des letzten. Alle uebrigen 47
+// Markensorten (voran die Contractor-Titelfragmente, wo das LETZTE Segment
+// den lesbaren Auftragsnamen traegt) bleiben woertlich beim heutigen
+// Verhalten — eine pauschale Umstellung waere ein Rueckschritt.
+const ORT_FORM = 'Address';
+// Kleingeschriebenes ERSTES Trennsegment (Endziffern abgeschnitten, die
+// Quelle zaehlt Abhol-/Lieferstellen durch: Pickup1..Pickup9) -> Marke.
+// Marken bleiben LEERZEICHENFREI (Binnengrossschreibung) — clip() in
+// src/lib/missions.ts schneidet Kartentexte an der Wortgrenze und verlaesst
+// sich darauf, dass eine Marke kein Leerzeichen enthaelt.
+const SLOT_NAMES = {
+  location: 'PlayLocation',
+  destination: 'Destination',
+  pickup: 'PickupLocation',
+  dropoff: 'DropoffLocation',
+};
+// Welche Marken durch den Ortsform-Zweig entstanden sind — Set statt
+// Zaehler, weil braces() VOR der Familienbuendelung laeuft (Vorkommen dort
+// noch nicht dedupliziert); die eigentliche Haeufigkeit wird NACH der
+// Familienbildung an den FAMILIEN-Texten gezaehlt (s.u.), damit Erzeuger-
+// Selbstauskunft und die Sonde (missionsorte-messung.mjs --slots) dieselbe
+// Zahl nennen.
+const ortsMarken = new Set();
+// Platzhalter lesbar machen: ~mission(ReputationRank) -> {ReputationRank};
+// ~mission(Location|Address) -> {PlayLocation} (Ortsform, selektiv).
+const braces = (s) => String(s).replace(TMPL_RE, (_, t) => {
+  const segs = t.split('|');
+  const last = segs[segs.length - 1];
+  if (segs.length > 1 && String(last).toLowerCase() === ORT_FORM.toLowerCase()) {
+    const ersteRoh = segs[0].replace(/\d+$/, '');
+    const marke = SLOT_NAMES[ersteRoh.toLowerCase()] ?? ersteRoh;
+    ortsMarken.add(marke);
+    return `{${marke}}`;
+  }
+  return `{${last}}`;
+});
 // Das Spiel formatiert Missionstexte mit eigenen Tags: <EM4> hebt Werte hervor
 // (6.736 Vorkommen), <EM>/<I> selten. Inhalt behalten, Tag weg — die
 // {Platzhalter} darin werden ohnehin als Chip gerendert. Andere spitze Klammern
@@ -1083,6 +1122,30 @@ for (const list of famKeys.map((k) => famMap.get(k))) {
 }
 families.sort((a, b) => (b.count - a.count) || String(a.title ?? a.slug).localeCompare(String(b.title ?? b.slug)));
 
+// D-03 Selbstauskunft: Haeufigkeit je Slot-Marke, gezaehlt an den FAMILIEN-
+// Texten (title/desc/titleVariants[].text) — GENAU wie die Sonde
+// (scripts/probes/missionsorte-messung.mjs --slots) es tut, damit Erzeuger
+// und Sonde dieselbe Zahl nennen. `ortsMarken` (oben, aus braces()) sagt,
+// welche `{...}`-Tokens ueberhaupt Ortsmarken sind — sonst wuerden auch
+// Nicht-Ortsmarken wie {TargetName} mitgezaehlt.
+const TOKEN_RE_SLOTS = /\{([^}]*)\}/g;
+const slotArten = {};
+function zaehleSlotMarken(text) {
+  if (typeof text !== 'string' || !text) return;
+  for (const m of text.matchAll(TOKEN_RE_SLOTS)) {
+    const t = m[1];
+    if (ortsMarken.has(t)) slotArten[t] = (slotArten[t] ?? 0) + 1;
+  }
+}
+for (const f of families) {
+  zaehleSlotMarken(f.title);
+  zaehleSlotMarken(f.desc);
+  for (const v of f.titleVariants ?? []) zaehleSlotMarken(v?.text);
+}
+const ortsartenAnzahl = Object.keys(slotArten).length;
+console.log(`\nslot-arten (D-03): ${ortsartenAnzahl} unterschiedene Ortsarten`);
+for (const [marke, n] of Object.entries(slotArten).sort((a, b) => b[1] - a[1])) console.log(`  {${marke}}: ${n}`);
+
 /* ---------------- Schreiben ---------------- */
 // Filter-Listen nur mit dem, was auch vorkommt — sonst bietet die UI 40 Typen
 // an, von denen 20 kein Ergebnis liefern.
@@ -1139,6 +1202,11 @@ const out = {
       ortsNamenKuratiert: zweigVorkommen.kuratiert,
       ortsNamenSpielintern: zweigVorkommen.spielintern,
       ortsNamenRueckfall: zweigVorkommen.rueckfall,
+      // D-03 (Task 2 dieses Plans): Zahl der unterschiedenen Ortsarten
+      // (Spielort/Zielort/Abholort/Lieferort, ggf. mehr) und ihre
+      // Haeufigkeit je Marke — gezaehlt an den Familientexten, s.o.
+      ortsarten: ortsartenAnzahl,
+      slotArten,
     },
   },
   guilds: uniq(families.flatMap((f) => f.guilds)).sort().map((g) => ({ id: kebab(g), key: g, name: g })),
