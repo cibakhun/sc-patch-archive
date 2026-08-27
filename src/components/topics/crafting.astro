@@ -4,8 +4,6 @@
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
 import SiteNav from '../../components/SiteNav.astro';
-import TopicFacts from '../../components/TopicFacts.astro';
-import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
 import CraftingApp from '../../components/CraftingApp.astro';
 import DB from '../../../assets/crafting-db.json';
@@ -164,10 +162,8 @@ const patchCrumb = patchHref ? { label: `Alpha ${patch}`, href: patchHref } : { 
     </p>
   </aside>
 
-  <TopicFacts topicSlug="crafting" />
 </main>
 
-<RelatedTopics topicSlug="crafting" />
 <Attribution sources={["RSI"]} updated={snap} />
 
 <script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
