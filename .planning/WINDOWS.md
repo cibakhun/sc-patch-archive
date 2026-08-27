@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 24
+open_count: 25
 waived_count: 1
 fixed_count: 23
-total_count: 48
-last_updated: 2026-08-27T14:27:47.659Z
+total_count: 49
+last_updated: 2026-08-27T15:40:11.950Z
 ---
 
 # Broken Windows Ledger
@@ -63,6 +63,7 @@ last_updated: 2026-08-27T14:27:47.659Z
 | 47 | 18 | unrun-verify | src/components/MissionsApp.astro |  | S-3: Ist das Ortsfeld #mx-loc auf /missionen bzw. /de/missionen mit 49 Eintraegen (vorher 7) noch bedienbar als flache Liste, oder braucht es eine Gruppierung nach System (Stanton/Pyro/Nyx)? DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. | fixed | Betreiber-Urteil 23.08.2026: die Zahl 49 ist nicht das Problem, und 'flach vs. gruppiert' ist die falsche Achse — eine Gruppierung nach System koennte Region A-D und die drei 'X And Y' gar nicht aufnehmen, weil sie zu keinem einzelnen System gehoeren. Die flache Liste bleibt bedienbar, Trefferzahlen laufen korrekt mit (Hurston 387, Region A 198, Terminus 8, Klescher Rehabilitation Facility 2). Unbedienbar sind vier Eintraege DARIN, alle als Nacharbeit in Phase 19: (1) Region A bis Region D tragen zusammen 452 Missionen — der zweitgroesste Block der Liste — und die Namen sagen nichts; wer 'Region B' waehlt, bekommt 106 Missionen und weiss danach so viel wie vorher. Aus ihren places waeren sie benennbar (Region A = Pyro I + Monox, B = Bloom + Orbituary, C = Pyro IV/V + Ignis, D = Terminus). (2) Fuenf Rohbezeichner im Katalog: CRU L1, CRU L4, CRU L5, PYR6 L1, RR P6 LEO — die Zusicherung '0 Rohbezeichner' traf damit auf das nicht zu, was im Feld steht; die Pruefregex suchte nach outpost/scrp/otlw und war zu eng. (3) Drei Eintraege mit englischem 'And' im deutschen Filter: Pyro And Nyx, Stanton And Nyx, Stanton And Pyro — die uebrigen Beschriftungen dort sind sauber deutsch. (4) Vier einzelne Stationen unter der Beschriftung 'Region' (siehe id 45). | 2026-08-23T17:34:51.840Z | 2026-08-23T22:30:00.000Z |
 | 48 | 18 | unrun-verify | src/lib/missions.ts |  | S-4: Traegt die geaenderte Beschriftung der Chip-Marken site-weit? Marken (z.B. Target Name, Serial Number, Reputation Rank) erscheinen jetzt als lesbare Worte statt in zusammengeschriebener Binnengrossschreibung ({TargetName} -> Target Name) -- auch auf Missionsseiten, die mit D-01..D-04 inhaltlich nichts zu tun haben. Eine beliebige Missions-Detailseite pruefen. DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. | fixed | Betreiber-Urteil 23.08.2026: deutliche Verbesserung, gegen live gemessen. Die H1 'Bounty Assignment: [Target] (HRT)' steht jetzt einzeilig statt auf zwei Zeilen; im Fliesstext wurde aus 'TargetName · Address · Last · Last' nun 'Target · Location · Target · Target'. Das 'Last' auf live war aktiv irrefuehrend — ein Rest von {TargetName.Last}, der sich als das Wort 'Last' las — und ist weg. Die Chips sind als umrandete Pillen deutlich vom Fliesstext abgesetzt und lesen sich als Platzhalter, nicht als fehlender Text: kein Fund in die Richtung, nach der die Frage suchte. LUECKE, als Nacharbeit nach Phase 19: die Tabelle 'Appears in game as' zieht aus `m.titleVariants` (MissionDetail.astro:209/214) und wurde von der Umstellung nicht erfasst; dort steht weiterhin roh 'Bounty Assignment: {TargetName}', 'Wanted: {TargetName}', 'Active Bounty: {TargetName} (MRT)', byte-identisch mit live. Auf ein und derselben Seite stehen damit beide Schreibweisen derselben Marke nebeneinander. | 2026-08-23T17:34:52.266Z | 2026-08-23T22:30:00.000Z |
 | 49 | 19 | unmet-truth | assets/crafting-db.json |  | Vier Bauplan-Namen stehen fuer mehrere verschiedene Baupläne und erzeugen auf 48 der 335 Missionsseiten (14,3 %) zwei oder drei OPTISCH IDENTISCHE Chips, die auf verschiedene Seiten zeigen. Gemessen 27.08.2026 an /missionen/lrg-purchase-order-ship-mined-ore.html: 41 Eintraege, 41 verschiedene Ziele, aber nur 40 verschiedene Namen — "BroadSpec" steht zweimal da und fuehrt nach /crafting/broadspec.html bzw. /crafting/broadspec-2.html. Der Nutzer kann nicht entscheiden, welchen er will. Vorbestehend, nicht neu: derselbe Fehler stand schon in der alten Liste, er faellt nur auf, seit der rohe Pool daneben entfallen ist. Die vier Namen sind NICHT ein Fall, sondern vier verschiedene: (1) BroadSpec — 2 Baupläne, gleiche Kategorie (Vehiclegear/Radar), ABWEICHENDE Werte (590 kg vs. 220 kg): echte verschiedene Items, brauchen einen Unterscheider, und die Kategorie taugt nicht dafuer. (2) FullForce — 2 Baupläne mit DERSELBEN entity_guid (bf4e6cc08d) und identischen Werten: das ist eine Doublette im Bestand, kein Anzeigeproblem. (3) Cinch Scraper Module — 3 Baupläne, gleiche Kategorie (Vehiclegear/Salvage), identische item_stats, aber DREI verschiedene guids: entweder tragen sie einen Unterschied, den crafting-db.json nicht mitfuehrt, oder es sind Doubletten. (4) Antium Core Jet — 2 Baupläne, Armour/Hunter/Heavy, Werte auf den ersten Blick gleich, voller Vergleich steht aus. Erst diese Unterscheidung entscheidet die Handlungsanweisung: (2) und ggf. (3) gehoeren in den Erzeuger (datamine-crafting.mjs), (1) und (4) in die Anzeige. Die vorhandene Sperre COLLIDING_NAMES (src/lib/crafting.ts:283) faengt nur die Gruppe mit abweichenden item_stats, also (1) — die anderen drei laufen an ihr vorbei. Anlass, es hier zu vermerken statt es zu reparieren: eine Reparatur, die alle vier gleich behandelt, waere in mindestens zwei Faellen falsch. Verwandt mit Phase 19 D-01, wo dieselbe Doubletten-Frage fuer die ORTS-Chips ansteht. | open |  | 2026-08-27T14:27:47.659Z |  |
+| 50 | 4.10-datenlauf | unrun-verify | src/components/patches/sc-4-10-0.astro |  | Sichtabnahme der neuen 4.10.0-Archivseite steht aus: traegt der Kino-Koerper (Bernstein-Himmel gegen tuerkise Instanz-Klammer) das Motiv, ist der RSI-Ausschnitt trailer-4-10-0.jpg der richtige Leitframe, und liest sich die Tempostufen-Grafik im Abschnitt Quantum-Staffelung als Plateau (vorher) gegen Rampe (nachher)? Alle maschinellen Laeufe sind gruen: Schiene A 23/23 normal UND mit STAGING=1, gate:data 2/2, DE und EN sowie 360px ohne Queruberlauf, ohne JS-Fehler, ohne 4xx. Offen ist ausschliesslich das menschliche Urteil ueber die Gestaltung. | open |  | 2026-08-27T15:40:11.950Z |  |
 
 ````json
 [
@@ -640,6 +641,18 @@ last_updated: 2026-08-27T14:27:47.659Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-27T14:27:47.659Z",
+    "resolved_at": null
+  },
+  {
+    "id": 50,
+    "kind": "unrun-verify",
+    "phase": "4.10-datenlauf",
+    "file": "src/components/patches/sc-4-10-0.astro",
+    "line": null,
+    "description": "Sichtabnahme der neuen 4.10.0-Archivseite steht aus: traegt der Kino-Koerper (Bernstein-Himmel gegen tuerkise Instanz-Klammer) das Motiv, ist der RSI-Ausschnitt trailer-4-10-0.jpg der richtige Leitframe, und liest sich die Tempostufen-Grafik im Abschnitt Quantum-Staffelung als Plateau (vorher) gegen Rampe (nachher)? Alle maschinellen Laeufe sind gruen: Schiene A 23/23 normal UND mit STAGING=1, gate:data 2/2, DE und EN sowie 360px ohne Queruberlauf, ohne JS-Fehler, ohne 4xx. Offen ist ausschliesslich das menschliche Urteil ueber die Gestaltung.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T15:40:11.950Z",
     "resolved_at": null
   }
 ]
