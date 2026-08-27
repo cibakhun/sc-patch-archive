@@ -46,6 +46,13 @@ const tf = (key: Parameters<typeof t>[0], vars: Record<string, string | number>)
 
 const dives = (n: number) => tf(n === 1 ? 'arch.deepdive' : 'arch.deepdives', { n });
 const pad2 = (n: number) => String(n).padStart(2, '0');
+
+// The flight path below reads newest-first (a.eras), but the ribbon is a plot
+// of real time and runs oldest-left. Its DOM has to run that way too: the
+// chapter dividers are drawn by `.ribbon__band + .ribbon__band` on each band's
+// LEFT edge, so a reversed list puts a hairline at x=0 and drops the one
+// between the last two chapters.
+const ribbonBands = a.eras.slice().reverse();
 ---
 
 {/* Runs while the document is still parsing, so the reveal styles are armed
@@ -116,13 +123,17 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
         is legible before any entry is read. */}
     <nav class="ribbon" aria-label={t('arch.ribbon.aria')}>
       <div class="ribbon__plot">
-        {a.eras.map((era, ei) => (
+        {/* Numeral and data-chapter both come from era.chapter — the
+            CHRONOLOGICAL number, which is what the chapter heading below prints
+            and what archive.js lights up when that chapter takes the screen. */}
+        {ribbonBands.map((era) => (
           <span
             class:list={['ribbon__band', { 'is-narrow': era.to - era.from < 6 }]}
+            data-chapter={era.chapter}
             style={`--from:${era.from.toFixed(2)}%;--to:${era.to.toFixed(2)}%;--c:${era.accent}`}
             aria-hidden="true"
           >
-            <i class="ribbon__band-n">{pad2(ei + 1)}</i>
+            <i class="ribbon__band-n">{pad2(era.chapter)}</i>
           </span>
         ))}
 
@@ -205,21 +216,24 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
     </div>
 
     <div class="flight">
-      {a.eras.map((era, ei) => (
+      {a.eras.map((era) => (
         // data-accent/-accent2 drive the shared --era contract that archive.js
-        // morphs on scroll; data-label feeds the control-bar readout.
+        // morphs on scroll; data-label feeds the control-bar readout;
+        // data-chapter pairs the block with its ribbon band (the two lists run
+        // in opposite directions, so an index would pair the wrong ones).
         <div
           class="era"
-          id={`era-${ei}`}
+          id={`era-${era.chapter}`}
           data-accent={era.accent}
           data-accent2={era.accent2}
           data-label={era.label}
+          data-chapter={era.chapter}
           style={`--c:${era.accent};--c2:${era.accent2}`}
         >
           <div class="era__head reveal">
-            <span class="era__glyph" aria-hidden="true">{pad2(ei + 1)}</span>
+            <span class="era__glyph" aria-hidden="true">{pad2(era.chapter)}</span>
             <div class="era__id">
-              <p class="era__kicker">{lang === 'de' ? 'Kapitel' : 'Chapter'} {pad2(ei + 1)}</p>
+              <p class="era__kicker">{lang === 'de' ? 'Kapitel' : 'Chapter'} {pad2(era.chapter)}</p>
               <h3 class="era__name">{era.label}</h3>
               <p class="era__meta">
                 <span class="era__range">{era.range}</span>
