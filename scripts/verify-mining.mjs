@@ -14,6 +14,7 @@ const rd = (n) => JSON.parse(readFileSync(resolve(A, n), 'utf8'));
 const model = rd('mining-model.json');
 const db = rd('mining-db.json');
 const fail = [];
+const warn = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
 
 // 1) FracturingCalc: jede Komposition-Part.element muss ein element.name sein
@@ -136,14 +137,38 @@ for (const b of db.bodies) {
   if (b.body.includes('|')) fail.push(`Fundort "${b.body}" enthaelt "|" — wuerde den Paar-Schluessel "<Erz>||<Fundort>" der Fundort-Merkliste mehrdeutig machen`);
 }
 
-// 13) game_version gegen den installierten Client (best effort — verify:mining
-// soll ausdruecklich ohne p4k/Netz funktionieren, siehe Kopfkommentar).
+// 13) game_version gegen den installierten Client — WARNUNG, nie FEHLER.
+//
+// Bis 27.08.2026 stand hier ein `need(...)`, also ein FEHLER, der die ganze
+// Schiene A abbrach. Am 26.08.2026 kam 4.10.0 (CL 12519617) auf die
+// Betreiber-Maschine, und `npm run gate` war ab diesem Moment lokal rot —
+// bei gruener CI, weil im Container gar kein Client liegt. Ein Tor, das nur
+// auf EINER Maschine reisst und dort jeden Push blockiert, bis ein
+// Datenlauf durch ist, meldet nicht mehr "kaputt", sondern "veraltet".
+//
+// Grundsatz 3 (docs/maschinelle-validierung.md § 4): ein Befund wird erst
+// FEHLER, wenn die Handlungsanweisung dahinter IMMER richtig ist. Hier ist
+// sie es nicht — der richtige naechste Schritt ist ein Datenlauf auf
+// Schiene B, nicht der Abbruch der Auslieferung. Das juengere
+// verify:datastand (Phase 18) bewertet genau dieselbe Tatsache seit seiner
+// Anlage als WARNUNG; die beiden Tore widersprachen sich.
+//
+// Grundsatz 4 dazu: Schiene A darf keine lokale Spielinstallation
+// voraussetzen. Der Kopfkommentar dieser Datei sagt das seit jeher
+// ("Braucht WEDER scmdb NOCH die Data.p4k"). Der Abgleich bleibt erhalten —
+// als Hinweis, nicht als Klinke.
+//
+// Was hier NICHT nachgelassen hat: Zusicherung 7 oben haelt model und db
+// weiter hart gegeneinander und verbietet 4.8. Der Verzug gegen den Client
+// ist die einzige Aussage, die von FEHLER auf WARNUNG faellt.
 const bmPath = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
 if (existsSync(bmPath)) {
   try {
     const d = JSON.parse(readFileSync(bmPath, 'utf8'))?.Data ?? {};
     const clientVersion = `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`;
-    need(model.game_version === clientVersion, `game_version (${model.game_version}) stimmt nicht mit dem installierten Client ueberein (${clientVersion})`);
+    console.log(`  Client-Abgleich: committet ${model.game_version} · installiert ${clientVersion}`);
+    if (model.game_version !== clientVersion)
+      warn.push(`game_version (${model.game_version}) stimmt nicht mit dem installierten Client ueberein (${clientVersion}) — Datenlauf faellig (npm run sync:mining, danach npm run gate:data)`);
   } catch {
     console.log('  (game_version-Abgleich uebersprungen: build_manifest.id nicht lesbar)');
   }
@@ -152,4 +177,5 @@ if (existsSync(bmPath)) {
 }
 
 if (fail.length) { console.error(`FAIL (${fail.length}):\n` + fail.slice(0, 40).join('\n')); process.exit(1); }
-console.log(`OK — Mining-Daten konsistent: ${model.elements.length} Elemente, ${model.compositions.length} Komp., ${usableLasers.length} Laser, ${db.minerals.length} Minerale, ${db.bodies.length} Bodies, ${pipeCheckedNames.size} Namen ohne "|" geprueft · ${db.game_version}`);
+for (const w of warn) console.log(`  WARNUNG: ${w}`);
+console.log(`OK — Mining-Daten konsistent: ${model.elements.length} Elemente, ${model.compositions.length} Komp., ${usableLasers.length} Laser, ${db.minerals.length} Minerale, ${db.bodies.length} Bodies, ${pipeCheckedNames.size} Namen ohne "|" geprueft · ${db.game_version} · ${warn.length} Warnungen`);
