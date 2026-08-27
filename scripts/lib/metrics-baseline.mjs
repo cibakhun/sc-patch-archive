@@ -29,42 +29,42 @@ export const BASELINE = [
   // ---------------- Item-Katalog ----------------
   {
     id: 'items',
-    wert: 9168,
+    wert: 9201,
     regel: 'min',
     toleranzProzent: 1,
     anlass:
-      'Messlauf 09.08.2026. Die Kennzahl existiert wegen des Vorfalls im Juli 2026: sync:item-prices lief gegen eine veraltete externe global.ini und verkleinerte den Katalog um 834 Eintraege — Wochen unbemerkt.',
+      'Messlauf 09.08.2026. Die Kennzahl existiert wegen des Vorfalls im Juli 2026: sync:item-prices lief gegen eine veraltete externe global.ini und verkleinerte den Katalog um 834 Eintraege — Wochen unbemerkt. 4.10-Datenlauf 27.08.2026: 9168 -> 9201.',
   },
   {
     id: 'itemsMitBezugsquelle',
-    wert: 4574,
+    wert: 4601,
     regel: 'min',
     toleranzProzent: 1,
     anlass:
-      'Messlauf 09.08.2026. Beim selben Vorfall verloren 319 Items ihre Bezugsquellen, ohne dass die Gesamtzahl der Items das allein gezeigt haette — deshalb eine eigene Klinke neben `items`.',
+      'Messlauf 09.08.2026. Beim selben Vorfall verloren 319 Items ihre Bezugsquellen, ohne dass die Gesamtzahl der Items das allein gezeigt haette — deshalb eine eigene Klinke neben `items`. 4.10-Datenlauf 27.08.2026: 4574 -> 4601.',
   },
   {
     id: 'itemsMitSpieldaten',
-    wert: 6642,
+    wert: 6686,
     regel: 'min',
     toleranzProzent: 1,
     anlass:
-      'Messlauf 09.08.2026. Faellt der Join zwischen Katalog und DataCore-Extraktion aus, bleiben die Items bestehen und verlieren nur ihre technischen Daten — sichtbar allein an dieser Zahl.',
+      'Messlauf 09.08.2026. Faellt der Join zwischen Katalog und DataCore-Extraktion aus, bleiben die Items bestehen und verlieren nur ihre technischen Daten — sichtbar allein an dieser Zahl. 4.10-Datenlauf 27.08.2026: 6642 -> 6686.',
   },
   {
     id: 'uexPreiszeilen',
-    wert: 23705,
+    wert: 23757,
     regel: 'min',
     toleranzProzent: 5,
     anlass:
-      'Messlauf 09.08.2026. Groessere Toleranz als der Rest: Shops und Terminals kommen und gehen mit jedem Patch, ein Rueckgang um wenige Prozent ist normale Bewegung, ein Einbruch nicht.',
+      'Messlauf 09.08.2026. Groessere Toleranz als der Rest: Shops und Terminals kommen und gehen mit jedem Patch, ein Rueckgang um wenige Prozent ist normale Bewegung, ein Einbruch nicht. 4.10-Datenlauf 27.08.2026 mit frischen UEX-Preisen (pricesAsOf 2026-08-27): 23705 -> 23757.',
   },
   {
     id: 'ruestungsSets',
-    wert: 136,
+    wert: 139,
     regel: 'min',
     anlass:
-      'Messlauf 09.08.2026. Die Sets entstehen aus der Dreier-Kette in scripts/lib/armor-sets.mjs; reisst die Kette, faellt die Zahl auf 0 und /armor-sets.html ist leer, ohne dass etwas bricht.',
+      'Messlauf 09.08.2026. Die Sets entstehen aus der Dreier-Kette in scripts/lib/armor-sets.mjs; reisst die Kette, faellt die Zahl auf 0 und /armor-sets.html ist leer, ohne dass etwas bricht. 4.10-Datenlauf 27.08.2026: 136 -> 139, drei neue Sets.',
   },
 
   // ---------------- Fahrzeuge ----------------
@@ -91,19 +91,27 @@ export const BASELINE = [
   },
   {
     id: 'fahrzeugeMitHardpoints',
-    wert: 227,
+    wert: 226,
     regel: 'min',
     anlass:
-      'Grundlage der 3D-Hologramme (227/227). Faellt die Zahl, zeigen Schiffs-Datenblaetter still keine Marker mehr.',
+      'Grundlage der 3D-Hologramme. Faellt die Zahl, zeigen Schiffs-Datenblaetter still keine Marker mehr. ' +
+      'GESENKT 227 -> 226 im 4.10-Datenlauf 27.08.2026, und zwar mit geklaerter Ursache statt als Stellschraube: ' +
+      'die RSI Hermes faellt aus der Extraktion, weil ihr in 4.10 die RUMPF-Geometrie fehlt (extract-hardpoints meldet ' +
+      '"no-cga, flight-ready"). Nachgesehen statt vermutet: die 4.10-p4k fuehrt 98 .cga-Dateien mit "hermes" im Namen, ' +
+      'aber ausschliesslich Bauteile (Schraenke, Tueren, Lichtkappen, LODs) — eine RSI_Hermes.cga gibt es nicht, waehrend ' +
+      'RSI_Polaris.cga, RSI_Perseus.cga und DRAK_Corsair.cga vorhanden sind. Es ist also kein Namenswechsel, dem der ' +
+      'Extraktor folgen koennte, und kein Fehler auf unserer Seite: CIG liefert die Geometrie in diesem Patch nicht mit, ' +
+      'obwohl das Schiff im DataCore flugbereit steht. Die Klinke bleibt bei 226 stehen — kommt die Geometrie zurueck, ' +
+      'steigt der Ist-Wert von selbst auf 227 und die Klinke faengt jeden WEITEREN Verlust unveraendert ab.',
   },
 
   // ---------------- Crafting / Bergbau ----------------
   {
     id: 'blueprints',
-    wert: 1594,
+    wert: 1605,
     regel: 'min',
     anlass:
-      'Phase 08, Messlauf 09.08.2026. 1.514 der Karten tragen eine Chip-Reihe; verify:crafting prueft deren Inhalt, aber nicht, ob ueberhaupt noch alle Karten da sind.',
+      'Phase 08, Messlauf 09.08.2026. 1.514 der Karten tragen eine Chip-Reihe; verify:crafting prueft deren Inhalt, aber nicht, ob ueberhaupt noch alle Karten da sind. 4.10-Datenlauf 27.08.2026: 1594 -> 1605 — das sind 1607 aus der Extraktion minus 2 zeichengleiche Doubletten (FullForce, Glacis), die datamine-crafting.mjs seither entfernt.',
   },
   {
     id: 'minerale',
@@ -129,6 +137,14 @@ export const BASELINE = [
     anlass:
       'Phase 18 (Missionen wissen, wo sie spielen), Plan 02, Task 3, Messlauf 23.08.2026. Ausgangszustand: alle vier Ortsarten (Spielort/Zielort/Abholort/Lieferort) fielen in `braces()` auf eine einzige Sammelmarke `{Address}` zusammen (932 Vorkommen in missions.json), womit die Frachtroute einer Liefermission nicht mehr rekonstruierbar war. Die Unterscheidung entsteht in EINER Zeile des Erzeugers (die Selektionsbedingung in `braces()`) — ihr Verlust braeche nichts sichtbar (die Seite baut weiter, sieht vollstaendig aus), waehrend Abhol- und Lieferstelle wieder ununterscheidbar waeren. Untergrenze 4, nicht der gemessene Ist-Wert (6): D-03 benennt vier Ortsarten als Ziel, mehr ist Zugewinn (z.B. ein Rueckfall auf das unbekannte erste Segment zaehlt als eigene Art), weniger ist Rueckbau.',
   },
+  {
+    id: 'missionenMitBauplan',
+    wert: 342,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Angelegt 27.08.2026, als der rohe Blueprint-Pool von der Missions-Detailseite entfiel. Bis dahin standen dort zwei Listen uebereinander: der Pool aus den Spieldaten (Kennung `BP_MISSIONREWARD_...` als sichtbarer Text, Eintraege wie `klwe_pistol_energy_01_black02` ohne Verweis) und darunter dieselbe Sache lesbar und verlinkt. Die Messung ueber alle 335 Familien mit Pool zeigte, dass der Rohblock nichts trug: 3.823 Pool-Eintraege, davon 0 mit Gewicht ungleich 1; 74 Familien mit mehreren Pools, davon 0 mit abweichender Chance; und in 335 von 335 Faellen ist die lesbare Liste mindestens so lang wie der Pool. Er ist entfallen — womit die verlinkte Liste die EINZIGE ist. Sie entsteht aus der Rueckwaertskante blueprint.missions[].id, weil die Pool-Kennungen in keiner committeten Datei ein zweites Mal vorkommen (datamine-crafting.mjs:455 kennt die Verbindungsregel, schreibt aber nur ihr Ergebnis heraus). Bricht dieser Join, verschwaende der Abschnitt still und die Detailseite saehe vollstaendig aus — derselbe Ausfallmodus, gegen den dieses Tor gebaut ist. Ist-Wert bei Anlage 335 = 335 Familien mit Pool = 335 Missions-Ids in crafting-db, keine verwaist. Toleranz 3 %: der Missionsbestand schwankt je Patch, ein gebrochener Join faellt dagegen auf nahe 0. 4.10-Datenlauf 27.08.2026: 335 -> 342.',
+  },
 
   // ---------------- Der gebaute Stand ----------------
   // Warum ueberhaupt Seitenzahlen: getStaticPaths kann bei kaputter
@@ -137,32 +153,32 @@ export const BASELINE = [
   // gegen den dieses Tor gebaut ist.
   {
     id: 'seitenGesamt',
-    wert: 17361,
+    wert: 17466,
     regel: 'min',
     toleranzProzent: 2,
     anlass:
-      'Messlauf 09.08.2026 (Build fa3591b). Toleranz 2 %, weil einzelne Seiten legitim kommen und gehen; ein Einbruch bedeutet eine ausgefallene Datenquelle.',
+      'Messlauf 09.08.2026 (Build fa3591b). Toleranz 2 %, weil einzelne Seiten legitim kommen und gehen; ein Einbruch bedeutet eine ausgefallene Datenquelle. 4.10-Datenlauf 27.08.2026: 17361 -> 17466.',
   },
   {
     id: 'seitenItems',
-    wert: 5386,
+    wert: 5417,
     regel: 'min',
     toleranzProzent: 2,
-    anlass: 'Messlauf 09.08.2026 — der groesste Einzelbereich, gespeist aus assets/universal-items.json.',
+    anlass: 'Messlauf 09.08.2026 — der groesste Einzelbereich, gespeist aus assets/universal-items.json. 4.10-Datenlauf 27.08.2026: 5386 -> 5417.',
   },
   {
     id: 'seitenMissionen',
-    wert: 1347,
+    wert: 1355,
     regel: 'min',
     toleranzProzent: 2,
-    anlass: 'Messlauf 09.08.2026 — aus der DataCore-Missionsextraktion.',
+    anlass: 'Messlauf 09.08.2026 — aus der DataCore-Missionsextraktion. 4.10-Datenlauf 27.08.2026: 1347 -> 1355 Missionsfamilien.',
   },
   {
     id: 'seitenCrafting',
-    wert: 1655,
+    wert: 1667,
     regel: 'min',
     toleranzProzent: 2,
-    anlass: 'Messlauf 09.08.2026 — aus assets/crafting-db.json.',
+    anlass: 'Messlauf 09.08.2026 — aus assets/crafting-db.json. 4.10-Datenlauf 27.08.2026: 1655 -> 1667.',
   },
   {
     id: 'seitenSchiffe',

@@ -90,6 +90,25 @@ const ABLESER = {
   // `0`, wenn das Feld fehlt: das Tor meldet dann "Quelle nicht lesbar"
   // statt faelschlich eine Schrumpfung zu behaupten.
   missionsOrtsarten: () => rd('src/data/missions.json').meta?.counts?.ortsarten ?? null,
+  // Familien, deren Blueprint-Abschnitt ueberhaupt etwas Lesbares zeigen kann:
+  // die Crafting-Datenbank nennt sie als Quelle (blueprint.missions[].id) UND
+  // missions.json kennt den Slug. Seit dem 27.08.2026 ist das die EINZIGE
+  // Liste in diesem Abschnitt — der rohe Pool daneben ist entfallen, weil er
+  // nachweislich nichts trug (alle 3.823 Gewichte = 1, keine abweichende
+  // Pool-Chance, lesbare Liste nie kuerzer als der Pool). Reisst der Join bei
+  // einem kuenftigen Datenlauf, verschwaende der Abschnitt STILL. Diese Klinke
+  // faengt das vorher ab.
+  // null statt 0, wenn eine der beiden Listen fehlt — sonst meldet das Tor
+  // eine Schrumpfung, wo eine Quelle fehlt (siehe Kopfkommentar).
+  missionenMitBauplan: () => {
+    const familien = rd('src/data/missions.json').missions;
+    const bauplaene = rd('assets/crafting-db.json').blueprints;
+    if (!Array.isArray(familien) || !Array.isArray(bauplaene)) return null;
+    const slugs = new Set(familien.map((f) => f.slug));
+    const ids = new Set();
+    for (const b of bauplaene) for (const mi of b.missions ?? []) if (slugs.has(mi.id)) ids.add(mi.id);
+    return ids.size;
+  },
 
   // --- Der gebaute Stand ---
   seitenGesamt: () => zaehleHtml(DIST),

@@ -151,6 +151,17 @@ export const CHECKS = [
   },
   {
     id: 'verify:shipcard',
+    disabled:
+      'AUSGESETZT auf live seit 27.08.2026, NICHT auf staging. Die Schiffs-'
+      + 'Detailseite steht auf live bewusst auf ihrem Stand vom 14.08.2026 '
+      + '(Betreiberentscheidung: der Umbau aus den Phasen 14/16/17 — vier '
+      + 'Kapitel, Konsole, Hangar — ist beta und kam nur durch drei '
+      + 'Fast-forward-Live-Pushes ungewollt nach draussen). Dieses Tor prueft '
+      + 'GENAU diesen Umbau; gegen die alte Seite meldet es zwangslaeufig rot '
+      + 'und wuerde jeden Live-Build verhindern — kein Image, alter Stand '
+      + 'bleibt online. Es bleibt auf staging scharf und ist hier nur '
+      + 'stillgelegt, bis der Entwurf abgenommen ist und live nachzieht. '
+      + 'Schuldenposten: laeuft bei JEDEM Lauf als ausgesetzt mit.',
     npm: 'verify:shipcard',
     script: 'scripts/verify-shipcard.mjs',
     rail: 'A',
@@ -159,6 +170,17 @@ export const CHECKS = [
   },
   {
     id: 'verify:shipconsole',
+    disabled:
+      'AUSGESETZT auf live seit 27.08.2026, NICHT auf staging. Die Schiffs-'
+      + 'Detailseite steht auf live bewusst auf ihrem Stand vom 14.08.2026 '
+      + '(Betreiberentscheidung: der Umbau aus den Phasen 14/16/17 — vier '
+      + 'Kapitel, Konsole, Hangar — ist beta und kam nur durch drei '
+      + 'Fast-forward-Live-Pushes ungewollt nach draussen). Dieses Tor prueft '
+      + 'GENAU diesen Umbau; gegen die alte Seite meldet es zwangslaeufig rot '
+      + 'und wuerde jeden Live-Build verhindern — kein Image, alter Stand '
+      + 'bleibt online. Es bleibt auf staging scharf und ist hier nur '
+      + 'stillgelegt, bis der Entwurf abgenommen ist und live nachzieht. '
+      + 'Schuldenposten: laeuft bei JEDEM Lauf als ausgesetzt mit.',
     npm: 'verify:shipconsole',
     script: 'scripts/verify-shipconsole.mjs',
     rail: 'A',

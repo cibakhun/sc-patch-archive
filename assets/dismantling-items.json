@@ -4743,17 +4743,17 @@
       {
         "materialId": "iron",
         "name": "Iron",
-        "quantity_cSCU": 4
+        "quantity_cSCU": 3
       },
       {
         "materialId": "copper",
         "name": "Copper",
-        "quantity_cSCU": 4
+        "quantity_cSCU": 3
       },
       {
         "materialId": "sadaryx",
         "name": "Sadaryx",
-        "quantity_cSCU": 400
+        "quantity_cSCU": 300
       }
     ]
   },

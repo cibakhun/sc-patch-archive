@@ -6,10 +6,10 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, missions, bpCount, seoTitle, seoText, clip, phLabel } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, missions, seoTitle, seoText, clip, phLabel } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
-import { blueprintPath, blueprintsByMission } from '../lib/crafting';
+import { blueprintPath, blueprintsByMission, blueprintListLabels } from '../lib/crafting';
 import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
@@ -48,9 +48,7 @@ const S = {
     module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
     guild: 'Gilde', rank: 'Karrierestufe', src: 'Quelle', calcReward: 'wird zur Laufzeit berechnet',
     bpH: 'Blueprints', bpChance: 'Chance',
-    bpCraft: 'Rezepte mit dieser Mission als Quelle',
-    bpP: 'Diese Mission kann Blueprints abwerfen. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, entscheidet der Zufall, du bekommst nicht die ganze Liste.',
-    bpPool: 'Pool', bpWeight: 'Gewicht',
+    bpP: 'Diese Mission kann Blueprints abwerfen. Welcher davon fällt, entscheidet der Zufall — du bekommst nicht die ganze Liste.',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
     srcNote: 'Es gibt zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
     src: 'Quelle', srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Missionstexte gibt es nur auf Englisch.',
@@ -82,9 +80,7 @@ const S = {
     module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
     guild: 'Guild', rank: 'Career rank', src: 'Source', calcReward: 'calculated at runtime',
     bpH: 'Blueprints', bpChance: 'Chance',
-    bpCraft: 'Recipes that name this mission as a source',
-    bpP: 'This mission can drop blueprints. A pool is a weighted list — which blueprint drops is chance-based, you do not get the whole list.',
-    bpPool: 'Pool', bpWeight: 'Weight',
+    bpP: 'This mission can drop blueprints. Which one drops is chance-based — you do not get the whole list.',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
     srcNote: 'There are two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
     src: 'Source', srcP: 'Game-accurate to the current live build (patch 4.9). Mission text exists in English only.',
@@ -101,10 +97,18 @@ const parts = (s: string) => String(s).split(/(\{[^}]*\})/).filter(Boolean)
 const titleParts = parts(m.title);
 const descParts = m.desc ? parts(m.desc) : null;
 const reps = repSummary(m);
-const bpTotal = bpCount(m);
-// Rezepte, die DIESE Mission als Quelle nennen (Join nur in dieser Richtung
-// moeglich — die Pools oben tragen interne Kennungen, keine Anzeigenamen).
+// Rezepte, die DIESE Mission als Quelle nennen. Der Join geht nur in dieser
+// Richtung: der Pool in missions.json fuehrt interne Kennungen
+// (`klwe_pistol_energy_01_black02`), und die stehen in KEINER committeten
+// Datei ein zweites Mal — weder als item.id noch als Blueprint-Name.
+// datamine-crafting.mjs:455 kennt die Regel, die beide verbindet, schreibt
+// aber nur das Ergebnis (blueprint.missions[]) heraus, nicht den Schluessel.
+// Darum wird hier von der Bauplan-Seite her aufgeloest, nicht vom Pool her.
 const craftedHere = blueprintsByMission.get(m.slug) ?? [];
+// Gleichnamige Bauplaene in DERSELBEN Liste bekommen einen Unterscheider —
+// sonst stehen zwei identische Chips da, die auf verschiedene Seiten fuehren
+// (Register id 49). Details in blueprintListLabels().
+const craftedLabels = blueprintListLabels(craftedHere, lang);
 const srcLabel = m.sources.map((s) => (s === 'broker' ? S.srcBroker : S.srcContract)).join(' + ');
 const legal = m.lawful && m.unlawful ? S.mixed : m.lawful ? S.lawful : S.unlawful;
 const v0 = m.variants[0];
@@ -248,37 +252,40 @@ const t = useTranslations(lang);
         )}
       </section>
 
-      {/* Blueprints — die Antwort auf "wirft die was ab?" */}
-      {(m.blueprints.length > 0 || craftedHere.length > 0) && (
+      {/* Blueprints — die Antwort auf "wirft die was ab?"
+
+          Bis 27.08.2026 standen hier ZWEI Listen uebereinander: erst der rohe
+          Pool aus den Spieldaten — die Kennung `BP_MISSIONREWARD_…` als
+          sichtbarer Text, darunter Eintraege wie `klwe_pistol_energy_01_black02`
+          ohne Verweis —, darunter dieselbe Sache noch einmal lesbar und
+          verlinkt. Gemessen ueber alle 335 Familien mit Pool:
+
+            3.823 Pool-Eintraege, davon 0 mit einem Gewicht ungleich 1
+            74 Familien mit mehr als einem Pool, davon 0 mit abweichender Chance
+            335 von 335 Familien: die lesbare Liste ist mindestens so lang
+                wie der Pool — Unterdeckung 0, Familien ohne lesbare Liste 0
+
+          Der Rohblock trug damit keine einzige Angabe, die nicht daneben stand.
+          Was er stattdessen trug: 483 Maschinenkennungen auf 335 Seiten, davon
+          224 Seiten mit rohen Klassennamen als Listeneintrag. Er ist ersatzlos
+          entfallen; Anzahl und Chance stehen weiter in der Ueberschrift.
+
+          Die Zahl 335 haelt ab jetzt die Klinke `missionenMitBauplan`
+          (scripts/lib/metrics-baseline.mjs). Bricht ein kuenftiger Datenlauf
+          den Join, verschwindet dieser Abschnitt nicht mehr still — das Tor
+          reisst vorher. */}
+      {craftedHere.length > 0 && (
         <section class="md__sec">
           <h2 class="md__h2">
-            <Fragment set:html={ICON_BLUEPRINT} /> {S.bpH} <span class="md__n">{bpTotal || craftedHere.length}</span>
+            <Fragment set:html={ICON_BLUEPRINT} /> {S.bpH} <span class="md__n">{craftedHere.length}</span>
             {m.bpChance != null && <span class="md__badge md__badge--bp">{S.bpChance} {Math.round(m.bpChance * 100)}%</span>}
           </h2>
-          {m.blueprints.length > 0 && <p class="md__p">{S.bpP}</p>}
-          {m.blueprints.map((p) => (
-            <>
-              <h3 class="md__h3">{S.bpPool}: <code class="md__code">{p.poolKey}</code>{p.chance != null && ` · ${S.bpChance} ${Math.round(p.chance * 100)}%`}</h3>
-              <ul class="md__tags">
-                {p.blueprints.map((b) => (
-                  <li class="md__tag md__tag--bp">{b.name}{b.weight !== 1 && <span class="md__dim"> ×{b.weight}</span>}</li>
-                ))}
-              </ul>
-            </>
-          ))}
-          {/* Die Pools oben führen interne Kennungen. Die Crafting-Datenbank
-              nennt umgekehrt pro Rezept seine Missionen — daraus entsteht die
-              lesbare, verlinkte Liste. */}
-          {craftedHere.length > 0 && (
-            <>
-              <h3 class="md__h3">{S.bpCraft}</h3>
-              <ul class="md__tags">
-                {craftedHere.map((b) => (
-                  <li class="md__tag md__tag--bp"><a href={L(blueprintPath(b))}>{b.name}</a></li>
-                ))}
-              </ul>
-            </>
-          )}
+          <p class="md__p">{S.bpP}</p>
+          <ul class="md__tags">
+            {craftedHere.map((b, i) => (
+              <li class="md__tag md__tag--bp"><a href={L(blueprintPath(b))}>{craftedLabels[i]}</a></li>
+            ))}
+          </ul>
         </section>
       )}
 

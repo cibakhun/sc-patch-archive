@@ -153,7 +153,17 @@ const TEXTBESTAND_KLINKE = {
    ist seit Welle 1 (7bb10df) entschieden und fest — diese Verteilung
    aendert sich nicht mehr durch spaetere Wellen, nur durch eine neue
    P-3-Entscheidung. */
-const WELLE1_RAIL_VERTEILUNG = { 1: 6, 2: 22, 3: 20, 4: 179 };
+/* 4.10-Datenlauf 27.08.2026: 4=179 -> 4=178, dazu erstmals ein Schiff mit 0
+   Portgruppen. Beides ist DASSELBE Schiff und dieselbe Ursache wie bei der
+   Klinke fahrzeugeMitHardpoints (227 -> 226): der RSI Hermes fehlt in 4.10 die
+   Rumpf-Geometrie (extract-hardpoints: "no-cga, flight-ready"), also gibt es
+   keine Ports, also keine Markergruppen. In der 4.10-p4k liegen 98 .cga-Dateien
+   mit "hermes" im Namen, aber ausschliesslich Bauteile — eine RSI_Hermes.cga
+   existiert nicht, waehrend RSI_Polaris.cga und RSI_Perseus.cga vorhanden sind.
+   Keine P-3-Entscheidung, keine Regression der Konsole: eine Fremdquelle liefert
+   weniger. Summe bleibt 227 (6+22+20+178+1). Kommt die Geometrie zurueck, meldet
+   diese Verteilung es beim naechsten Lauf. */
+const WELLE1_RAIL_VERTEILUNG = { 0: 1, 1: 6, 2: 22, 3: 20, 4: 178 };
 
 if (!existsSync('dist')) {
   console.error(
@@ -421,8 +431,8 @@ async function main() {
     console.log(`    Verteilung Portgruppenzahl EN: 4=${distEn[4]} 3=${distEn[3]} 2=${distEn[2]} 1=${distEn[1]} 0=${distEn[0]}`);
     console.log(`    Verteilung Portgruppenzahl DE: 4=${distDe[4]} 3=${distDe[3]} 2=${distDe[2]} 1=${distDe[1]} 0=${distDe[0]}`);
     console.log(
-      `    Soll (Welle-1-Messung, je Sprache): 4=${WELLE1_RAIL_VERTEILUNG[4]} 3=${WELLE1_RAIL_VERTEILUNG[3]} ` +
-        `2=${WELLE1_RAIL_VERTEILUNG[2]} 1=${WELLE1_RAIL_VERTEILUNG[1]}`
+      `    Soll (je Sprache): 4=${WELLE1_RAIL_VERTEILUNG[4]} 3=${WELLE1_RAIL_VERTEILUNG[3]} ` +
+        `2=${WELLE1_RAIL_VERTEILUNG[2]} 1=${WELLE1_RAIL_VERTEILUNG[1]} 0=${WELLE1_RAIL_VERTEILUNG[0] ?? 0}`
     );
     console.log(`    id ausserhalb {${SYS_IDS.join(', ')}} oder fehlend — Soll: 0   Ist: ${badIds.length}`);
     console.log(`    doppelte id je Seite — Soll: 0   Ist: ${dupIds.length}`);

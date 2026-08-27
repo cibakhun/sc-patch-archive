@@ -43,6 +43,15 @@ const effect = (v: number, mult: boolean) =>
 // {min,max} bzw. Schadens-Multiplikatoren je Kanal (+ Ruestungsprofil).
 // Angezeigt wird die Reduktion (1 − Multiplikator), wie im Item-Datenblatt und
 // im Spiel-UI — 0,6 als "60 %" zu lesen waere genau verkehrt herum.
+// Mining-Modifikatoren in fester Reihenfolge, nur die gesetzten. Die
+// Reihenfolge ist die des Spiels (Ladefenster vor Widerstand vor Splitterung),
+// nicht die des JSON — sonst wechselt sie mit jedem Datenlauf.
+const MIN_ORDER = ['optimal_charge_window_size', 'optimal_charge_window_rate', 'catastrophic_charge_window_rate',
+  'instability', 'resistance', 'shatter_damage', 'cluster_factor', 'filter'] as const;
+const minMods = MIN_ORDER
+  .map((k) => [k, (stats.mining_modifiers as Record<string, { value: number; mode: string }> | undefined)?.[k]] as const)
+  .filter((p): p is readonly [string, { value: number; mode: string }] => !!p[1]);
+
 const tempRes = stats.temperature_resistance;
 const dmgRes = stats.damage_resistance;
 // formatResist ist dieselbe Funktion, die das Item-Datenblatt benutzt — gleiche
@@ -145,10 +154,22 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
 
   {/* -- Werte des fertigen Items -- */}
   {(stats.mass_kg || stats.overheat_temperature || tempRes || resistRow ||
-    stats.fire_modes?.length || stats.max_ammo) && (
+    stats.fire_modes?.length || stats.max_ammo || stats.cargo_capacity_scu != null ||
+    minMods.length > 0) && (
     <section class="dp-sec">
       <h2>{t('bpItemStats')}</h2>
       <ul class="dp-stats">
+        {/* Erz-Pod: Fassungsvermoegen und Haltbarkeit stehen VORNE — sie sind
+            der Grund, warum man einen Pod dem anderen vorzieht. */}
+        {stats.cargo_capacity_scu != null && <li class="dp-stat"><b>{t('bpCargo')}</b><span>{num(stats.cargo_capacity_scu, lang)} SCU</span></li>}
+        {stats.health != null && <li class="dp-stat"><b>{t('bpHealth')}</b><span>{num(stats.health, lang)}</span></li>}
+        {/* Mining-Modul: jeder gesetzte Modifikator als eigene Zeile, mit
+            Vorzeichen und Einheit. `additiv` und `multiplikativ` stehen im
+            Spiel nebeneinander — ohne die Unterscheidung waere "+20" gegen
+            "-15,5 %" nicht lesbar. */}
+        {minMods.map(([k, m]) => (
+          <li class="dp-stat"><b>{t('bpMin_' + k)}</b><span>{m.value > 0 ? '+' : ''}{num(m.value, lang)}{m.mode === 'multiplikativ' ? ' %' : ''}</span></li>
+        ))}
         {stats.mass_kg != null && <li class="dp-stat"><b>{t('bpMass')}</b><span>{num(stats.mass_kg, lang)} kg</span></li>}
         {stats.overheat_temperature != null && <li class="dp-stat"><b>{t('bpOverheat')}</b><span>{num(stats.overheat_temperature, lang)} °C</span></li>}
         {tempRes && <li class="dp-stat"><b>{t('bpTempRes')}</b><span>{tempRes.min} / {tempRes.max} °C</span></li>}

@@ -59,8 +59,12 @@
     root.style.setProperty('--era', c);
     root.style.setProperty('--era-2', c2);
     if (eraNow) eraNow.textContent = el.dataset.label || '';
-    bands.forEach(function (b, k) {
-      b.classList.toggle('is-now', k === i);
+    // Pair by chapter, never by index: the flight path reads newest-first while
+    // the ribbon plots oldest-left, so eras[i] and bands[i] are opposite ends of
+    // the voyage.
+    var chapter = el.dataset.chapter;
+    bands.forEach(function (b) {
+      b.classList.toggle('is-now', b.dataset.chapter === chapter);
     });
     if (setStarTint) setStarTint(c);
   }

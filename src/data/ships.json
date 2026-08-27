@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-03",
+  "fetchedAt": "2026-08-27",
   "source": "FleetYards.net (api.fleetyards.net/v1) — fan-made, based on the official Ship Matrix",
   "misses": [
     "Drake Command Module"
@@ -73,7 +73,7 @@
       "cargoSCU": 0,
       "crewMin": 1,
       "crewMax": 1,
-      "lengthM": 13.7,
+      "lengthM": 15.25,
       "sizeLabel": "Small",
       "priceUSD": 110,
       "fleetyardsUrl": "https://fleetyards.net/ships/grey-basher",
@@ -204,9 +204,9 @@
       "focus": "Heavy Dropship",
       "productionStatus": "flight-ready",
       "cargoSCU": 1440,
-      "crewMin": 1,
-      "crewMax": 9,
-      "lengthM": 120,
+      "crewMin": 7,
+      "crewMax": 7,
+      "lengthM": 117,
       "sizeLabel": "Large",
       "priceUSD": 650,
       "fleetyardsUrl": "https://fleetyards.net/ships/drak-ironclad-assault",

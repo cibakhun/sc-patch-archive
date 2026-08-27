@@ -2640,6 +2640,195 @@
       "fixesNote": "80+ documented fixes in the LIVE notes (roughly 70 bug fixes plus crash/stability fixes, 8 client / 2 server) — including docking collars, jump tunnel misdestinations, player-to-player aUEC trade, inaccessible inventories, and the Railen instant explosion. The Spectrum post cited \"166+ since 4.8\" — a block accidentally recycled from the 4.8 notes.",
       "wipe": "No wipe — Long-Term Persistence preserved, starting aUEC 20,000.",
       "topics": []
+    },
+    "4-10-0": {
+      "dateDisplayEn": "August 26, 2026",
+      "tagline": "Siege of Orison returns as the first instanced mission, quantum drives are re-tiered, and the Arlington lever-action rifle arrives.",
+      "summary": "Alpha 4.10.0 delivers what 4.9.0 explicitly deferred: Siege of Orison is back — no longer an open free-for-all, but the first mission running on the new instancing. Crusader's cloud platforms have fallen to the Nine Tails; a squad gets its own instance, takes the platforms back and walks away with the \"Stronghold\" gear. The change with the widest reach, though, is the quantum re-tiering: 176 of 227 vehicles fly with a new jump speed (144 faster, 32 slower), and spool-up is no longer a flat four seconds for everyone but sits between 4.4 and 5.3 seconds per drive — twenty round speed tiers have become twenty-six individually tuned ones. On top of that: the Arlington lever-action rifle in four variants, thirteen new blueprints around ore pods and mining modules, the continuation of Recco Battaglia's story, and new refuelling and distress contracts. What the patch does not bring is a new flyable ship: the Kruger S-65 Stingray sits in the build with weapon mounts and four liveries, but you cannot fly it yet.",
+      "keyFacts": [
+        {
+          "label": "Siege of Orison",
+          "value": "Back as the first mission on instancing — your own squad space instead of an open free-for-all"
+        },
+        {
+          "label": "Quantum re-tiering",
+          "value": "176 of 227 vehicles with a new jump speed (144 faster, 32 slower)"
+        },
+        {
+          "label": "Spool-up",
+          "value": "No longer a flat 4 s — now 4.4 to 5.3 s per drive (171 vehicles affected)"
+        },
+        {
+          "label": "New weapon",
+          "value": "Arlington lever-action rifle, four variants, 20-round magazine (was 25)"
+        },
+        {
+          "label": "Blueprints",
+          "value": "1,607 instead of 1,594 — ore pods and seven new mining and salvage modules"
+        },
+        {
+          "label": "New ship",
+          "value": "None flyable — the Kruger S-65 Stingray sits prepared in the build"
+        },
+        {
+          "label": "Wipe",
+          "value": "No full wipe — finish pending refinery and crafting jobs beforehand"
+        }
+      ],
+      "features": [
+        {
+          "name": "Siege of Orison",
+          "system": "Missions & Activities",
+          "desc": "Crusader's cloud platforms have fallen to the Nine Tails. The operation returns as a closed squad contract: take the platforms back, rescue civilians, root out the anarchists. Two new entries cover it in the mission data — \"Orison Platforms Under Attack\" and \"Retake Platforms From Nine Tails\".",
+          "facts": [
+            {
+              "label": "Enemy",
+              "value": "Nine Tails"
+            },
+            {
+              "label": "Location",
+              "value": "Orison · Crusader (Stanton)"
+            },
+            {
+              "label": "Squad size",
+              "value": "Designed for four to six players"
+            }
+          ]
+        },
+        {
+          "name": "Instancing on demand",
+          "system": "Server technology",
+          "desc": "The groundwork behind the operation: instead of dropping every player into the same open zone, a group gets its own self-contained space. Siege of Orison is the first content running on it — the tech is laid down as a foundation for further operations."
+        },
+        {
+          "name": "Quantum drives re-tiered",
+          "system": "Ship systems",
+          "desc": "Previously the fleet shared twenty round speed tiers — a great many sat exactly on 165,000,000 or 190,000,000. Now there are 26 individually tuned values, and spool-up is fanned out too. Anyone who used to jump by rule of thumb now does the maths per ship.",
+          "facts": [
+            {
+              "label": "Speed changed",
+              "value": "176 of 227 — 144 faster, 32 slower"
+            },
+            {
+              "label": "Speed tiers",
+              "value": "20 round values before, 26 tuned ones after"
+            },
+            {
+              "label": "Spool-up",
+              "value": "171 vehicles; a flat 4 s becomes 4.4–5.3 s"
+            }
+          ]
+        },
+        {
+          "name": "Arlington lever-action rifle",
+          "system": "Weapons & Gear",
+          "desc": "A new lever-action rifle, carried in four variants: the base model plus \"Gamekeeper\", \"Watchpoint\" and \"Widowmaker\". The magazine holds 20 rounds — the 25-round variant listed before has disappeared.",
+          "facts": [
+            {
+              "label": "Variants",
+              "value": "Arlington · Gamekeeper · Watchpoint · Widowmaker"
+            },
+            {
+              "label": "Magazine",
+              "value": "20 rounds (was 25)"
+            }
+          ]
+        },
+        {
+          "name": "\"Stronghold\" gear",
+          "system": "Weapons & Gear",
+          "desc": "The spoils from the operation: the heavy Morozov armour gains arms, core and legs in the \"Stronghold\" finish, along with the matching Morozov-CH backpack. The Vendetta HMG carries the same finish.",
+          "facts": [
+            {
+              "label": "New pieces",
+              "value": "Morozov-SH-I arms · core · legs · Morozov-CH backpack"
+            }
+          ]
+        },
+        {
+          "name": "Ore pods",
+          "system": "Mining",
+          "desc": "Five new blueprints for ore containers — from Argo, Drake and MISC, plus the GOLEM MC-4 and a reinforced MISC version. They widen what you can carry away from a dig and put through processing.",
+          "facts": [
+            {
+              "label": "New",
+              "value": "Argo · Drake · MISC · MISC reinforced · GOLEM MC-4"
+            }
+          ]
+        },
+        {
+          "name": "New mining and salvage modules",
+          "system": "Mining",
+          "desc": "Seven modules arrive as blueprints: Clearcut, Deluge, Overrun, Stampede and Torrent III for mining, Comer and Hart as scrapers for salvage.",
+          "facts": [
+            {
+              "label": "Mining",
+              "value": "Clearcut · Deluge · Overrun · Stampede · Torrent III"
+            },
+            {
+              "label": "Salvage",
+              "value": "Comer · Hart"
+            }
+          ]
+        },
+        {
+          "name": "Recco Battaglia's story continues",
+          "system": "Missions & Activities",
+          "desc": "The storyline around the mining coordinator announced in 4.9.0 carries on. Several new contracts show up for it, among them \"Emergency: Blinding Hope in Trouble\", \"Heavy and Bright\", \"Idea for Isaac\", \"Too Much Gun\" and \"Welcome to the System\"."
+        },
+        {
+          "name": "Refuelling contracts",
+          "system": "Missions & Activities",
+          "desc": "Two rush jobs join the board: \"CRITICAL FLEET REFUEL\" and \"URGENT CAPITAL FLEET REFUEL\" — refuelling against the clock, up to capital-ship scale."
+        },
+        {
+          "name": "Distress contracts by urgency",
+          "system": "Missions & Activities",
+          "desc": "New graded calls for help: ships in trouble and under fire are posted as yellow, orange and red level contracts — the grade tells you how bad it is at the far end."
+        },
+        {
+          "name": "Kruger S-65 Stingray — prepared, not flyable",
+          "system": "Ship systems",
+          "desc": "The fighter is announced and already partly in the build: two S4 missile racks, a gimbal mount, the Whiptail repeater and four liveries. The catalogue does not carry it as a flyable vehicle — the fleet stays at 227.",
+          "facts": [
+            {
+              "label": "In the build",
+              "value": "S4 missile racks · STR-E2 gimbal mount · Whiptail · 4 liveries"
+            },
+            {
+              "label": "Flyable",
+              "value": "No — fleet count unchanged at 227"
+            }
+          ]
+        },
+        {
+          "name": "Skull and crossbones liveries",
+          "system": "Cosmetics",
+          "desc": "Four ships get the \"Skull and Crossbones\" paint: Basher, Clipper, Ironclad and Shiv."
+        },
+        {
+          "name": "Catalogue growth",
+          "system": "Items",
+          "desc": "On balance the catalogue grows by 41 new entries to 9,201 — alongside weapons and armour there is smaller stuff too: a telescopic scope, a nose-mount conversion for the Mercury and several racing suits.",
+          "facts": [
+            {
+              "label": "Catalogue",
+              "value": "9,201 entries (was 9,168)"
+            }
+          ]
+        }
+      ],
+      "ships": [
+        {
+          "role": "Fighter",
+          "status": "announced",
+          "notes": "Weapon mounts, gimbal mount and four liveries sit in the build — not yet included as a flyable vehicle"
+        }
+      ],
+      "events": [],
+      "fixesNote": "The LIVE notes put the emphasis on stability and bug fixing; the data itself mainly shows the quantum re-tiering and 41 new catalogue entries.",
+      "wipe": "No full wipe — pending refinery and crafting jobs should be finished before the update.",
+      "topics": []
     }
   }
 }

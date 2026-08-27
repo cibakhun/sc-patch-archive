@@ -413,27 +413,6 @@ export async function initHolo(container, cfg) {
   }
 
   /* ---------- Komponenten-Marker ---------- */
-  // Zielgroesse der gezeichneten Marke in BILDPUNKTEN (siehe Begruendung im
-  // Bildschleifen-Abschnitt weiter unten). Schmale Ansichten bekommen mehr:
-  // dort wird mit dem Finger getroffen, und die Fingerkuppen-Regel des Hauses
-  // ist 44px (assets/mobile-ux.css Abschnitt 2). Die volle 44 waeren bei
-  // dichten Schiffen ein Teppich aus Marken — 30 ist der belegbare Mittelweg,
-  // gemessen gegen die dichteste Gruppe (drak-ironclad-assault, 20 Ports).
-  const MARKER_PX = 22;
-  const MARKER_PX_SCHMAL = 30;
-  // Ab welcher LEINWANDBREITE traegt der Raum Dauer-Beschriftungen (Phase 17)?
-  // Begruendung an der Fundstelle in layoutLabels(); der Wert ist gegen die
-  // breiteste Beschriftung (158px) und fuenf gleichzeitige Kaesten gemessen.
-  const RAUM_LABEL_MIN_PX = 900;
-  // Sperrfläche am oberen Buehnenrand: dort liegt die Blende (margin-top
-  // 3,1rem ≈ 56px plus rund 44px Leistenhoehe). 108px lassen einen Hauch Luft
-  // darunter, ohne die obere Buehnenhaelfte zu verschenken.
-  const RAUM_TOP_SPERRE = 108;
-  // Hierarchie wie bisher: Kern-Komponenten groesser als die vielen
-  // Waffen-Marker, damit Cluster ruhiger wirken.
-  const MARKER_HIER = { core: 1.3, arms: 0.92, rest: 1 };
-  const _camPos = new THREE.Vector3();
-  const _mkPos = new THREE.Vector3();
   const markers = [];
   const baseScale = maxDim * 0.034;
   for (const [i, port] of (cfg.ports ?? []).entries()) {
@@ -464,15 +443,9 @@ export async function initHolo(container, cfg) {
     for (const sp of markers) sp.visible = vis.has(sp.userData.port.g);
   }
 
-  /* ---------- Beschriftungen (P-2, 15-01-PLAN.md Task 2 Schritt 3) ----------
-     DOM-Labels, jeden Frame aus 3D auf den Bildschirm projiziert — mit
-     Leader-Line zum Marker. VORHER: nur Kern-Komponenten mit gesetztem
-     port.lab bekamen einen Kasten, und der blieb DAUERHAFT sichtbar — die
-     gemessene Ursache der Label-Leiter (15-UI-SPEC.md § 3a: acht Kaesten
-     bedecken mehr Flaeche als das Schiff). JETZT: JEDER Port bekommt einen
-     Kasten in dieser Schicht (fuer ALLE Gruppen, nicht nur core), aber
-     sichtbar ist unten in layoutLabels() ausschliesslich der Kasten des
-     ueberfahrenen oder des gewaehlten Markers. */
+  /* ---------- Dauerhafte Beschriftungen (Marker mit port.lab) ---------- */
+  // DOM-Labels, jeden Frame aus 3D auf den Bildschirm projiziert — mit
+  // Leader-Line zum Marker (wie im Mockup). Nur Kern-Komponenten tragen ein lab.
   const labelLayer = document.createElement('div');
   labelLayer.className = 'holo-lbllayer';
   // Drei Ebenen, bewusst gestapelt:
@@ -488,53 +461,17 @@ export async function initHolo(container, cfg) {
   nodeSvg.setAttribute('class', 'holo-nodes');
   labelLayer.appendChild(leaderSvg);
   container.appendChild(labelLayer);
-  /* Art-Vertreter (Phase 17, "Hangar"): der Raum traegt eine Beschriftung je
-     ART, nicht je Port. Gemessen am gebauten dist/ ueber alle 227 Schiffe und
-     826 Schiff-Gruppen-Paare:
-
-       je Port beschriftet:  Median 5, P90 9, MAX 20  -> 381 Gruppen ueber fuenf
-       je Art  beschriftet:  Median 2, P90 5, MAX  5  -> KEINE ueber fuenf
-
-     Das ist kein Schaetzwert mit Reserve, sondern das Maximum ueber den
-     gesamten Bestand. Fuenf Kaesten sind eine Raumbeschriftung, zwanzig waeren
-     eine Tapete — und genau daran ist die alte Label-Leiter gescheitert
-     (15-UI-SPEC.md § 3a: acht Kaesten bedecken mehr Flaeche als das Schiff).
-
-     Vertreter ist der ERSTE Port seiner Art; die uebrigen behalten ihren
-     Marker und ihren eigenen Kasten fuer Hover/Auswahl. */
-  const artZahl = new Map();
-  const artVertreter = new Map();
-  for (const sp of markers) {
-    const p = sp.userData.port;
-    const key = p.g + '|' + p.k;
-    artZahl.set(key, (artZahl.get(key) || 0) + 1);
-    if (!artVertreter.has(key)) artVertreter.set(key, sp.userData.i);
-  }
-
   const labels = [];
   for (const sp of markers) {
     const port = sp.userData.port;
-    // Text-Prioritaet (P-2): lab -> Art aus cfg.kinds -> label. Jeder Port
-    // bekommt einen Kasten — vorher nur, wenn port.lab gesetzt war.
-    const lblText = port.lab || (cfg.kinds && cfg.kinds[port.k]) || port.label || '';
-    const artKey = port.g + '|' + port.k;
-    const istVertreter = artVertreter.get(artKey) === sp.userData.i;
-    const artN = artZahl.get(artKey) || 1;
-    // Der Vertreter traegt die Stueckzahl mit ("3x Haupttriebwerk") — dieselbe
-    // Form, die die Konsole fuer prop/other schon als Liste zeigt.
-    const artText = artN > 1 ? artN + '× ' + lblText : lblText;
+    if (!port.lab) continue;
     const st = styleOf(port);
     const el = document.createElement('div');
     // Der Chip ist die Stelle, an der die Seite eine Behauptung aufstellt
     // ("SCHILDGENERATOR -> hier"). Bei np/est trägt er darum den Vorbehalt
-    // selbst — sichtbar sobald der Kasten erscheint (Hover/Auswahl), sonst
-    // liest sich der Callout als Fakt.
-    el.className = 'holo-lbl' + (st !== 'solid' ? ' is-' + st : '')
-      + (istVertreter ? ' is-art' : '');
-    // Vertreter starten im Art-Zustand ("3x Haupttriebwerk"); wird GENAU
-    // dieser Marker ueberfahren oder gewaehlt, wechselt der Kasten auf den
-    // Einzeltext — sonst beschriebe er beim Zeigen auf ein Triebwerk drei.
-    el.textContent = istVertreter ? artText : lblText;
+    // selbst — sichtbar OHNE Klick, sonst liest sich der Callout als Fakt.
+    el.className = 'holo-lbl' + (st !== 'solid' ? ' is-' + st : '');
+    el.textContent = port.lab;
     if (port.badge) {
       // Echtes Leerzeichen, nicht nur CSS-Margin: sonst liest sich der Chip als
       // "GENERATOROHNE EINBAUORT" (Screenreader, Copy-Paste, Suche).
@@ -557,14 +494,7 @@ export async function initHolo(container, cfg) {
     // mx/my: projizierte Marker-Position · ax/ay: Ankerpunkt (mittig über Marker)
     // cx/cy: geglättete Kastenmitte (bleibt über Frames erhalten -> kein Springen)
     // occ: Bauteil auf der abgewandten Modellhälfte -> Beschriftung ausgeblendet
-    labels.push({
-      sp, el, line, node, shown: true, init: false, occ: false,
-      w: 0, h: 0, mx: 0, my: 0, ax: 0, ay: 0, cx: 0, cy: 0,
-      // rep: dieser Kasten steht dauerhaft im Raum (Art-Vertreter).
-      // artText/portText + modus: Textwechsel nur beim Zustandswechsel, nicht
-      // je Bild — sonst schreibt die Bildschleife 27-mal pro Frame ins DOM.
-      rep: istVertreter, artText, portText: lblText, modus: istVertreter ? 'art' : 'port',
-    });
+    labels.push({ sp, el, line, node, shown: true, init: false, occ: false, w: 0, h: 0, mx: 0, my: 0, ax: 0, ay: 0, cx: 0, cy: 0 });
   }
   labelLayer.appendChild(nodeSvg); // zuletzt -> Knoten liegen über den Chips
   const _lblV = new THREE.Vector3();
@@ -573,9 +503,6 @@ export async function initHolo(container, cfg) {
   const _cenViz = new THREE.Vector3(); // Modellmitte im Kameraraum
   let labelsOn = true;
   let leadW = 0, leadH = 0;
-  // Von aussen gesetztes Hindernis fuer die Beschriftungs-Entzerrung (die
-  // Detailkarte der Seite, siehe layoutLabels).
-  let hindernisEl = null;
 
   // Beschriftungen aus 3D projizieren und entzerren. Kernidee gegen Zappeln:
   // die Kastenmitte (cx,cy) bleibt über Frames ERHALTEN und wird nur sanft zum
@@ -597,120 +524,24 @@ export async function initHolo(container, cfg) {
     // "hinten" (abgewandte Hälfte) = deutlich weiter weg als die Mitte.
     _cenViz.copy(fitSphere.center).applyMatrix4(camera.matrixWorldInverse);
     const cz = _cenViz.z, span = fitSphere.radius;
-    /* Traegt dieser Raum ueberhaupt Beschriftungen?
-       Ein Kasten ist bis zu 158px breit ("2x Schildgenerator"), und es koennen
-       fuenf gleichzeitig sein. Auf einer 390px-Leinwand gemessen liegen sie
-       dann samt und sonders AUF dem Rumpf und decken ihn zu — die Beschriftung
-       frisst genau das, was sie erklaeren soll. Das ist derselbe Befund, der
-       schon die alte Label-Leiter gekippt hat (15-UI-SPEC.md § 3a), nur eine
-       Bildschirmgroesse tiefer.
-
-       Unterhalb der Schwelle traegt der Raum deshalb KEINE Dauer-Beschriftung:
-       der ueberfahrene/angetippte Marker bekommt seinen Kasten wie bisher, und
-       die vollstaendige Liste steht ohnehin unmittelbar unter der Buehne. Es
-       geht nichts verloren, es wird nur nichts verdeckt. */
-    const raumBeschriftung = w >= RAUM_LABEL_MIN_PX;
-    /* Hindernis: die Detailkarte schwebt seit Phase 17 IM Raum (rechter Rand).
-       Die Entzerrung unten kannte bis hierher nur Knoten und andere Kaesten —
-       bei 1024px lag der Kasten "Radar" dadurch UNTER der Karte (gemessen).
-       Die Karte ist Seiten-Markup, nicht Teil des Viewers; sie wird deshalb
-       von aussen gesetzt (setHindernis) und hier je Bild in Leinwand-
-       koordinaten umgerechnet. */
-    let hindernis = null;
-    if (hindernisEl && !hindernisEl.hidden) {
-      const cr = renderer.domElement.getBoundingClientRect();
-      const hr = hindernisEl.getBoundingClientRect();
-      if (hr.width > 0 && hr.height > 0) {
-        hindernis = { l: hr.left - cr.left, r: hr.right - cr.left, t: hr.top - cr.top, b: hr.bottom - cr.top };
-      }
-    }
-    // Schiffsmitte AUF DEM BILDSCHIRM — Bezugspunkt fuer die radiale
-    // Platzierung der Dauer-Beschriftungen weiter unten.
-    _lblV.copy(fitSphere.center).project(camera);
-    const cxPx = (_lblV.x * 0.5 + 0.5) * w;
-    const cyPx = (-_lblV.y * 0.5 + 0.5) * h;
     const vis = [];
     for (const L of labels) {
-      // P-2: nur der ueberfahrene ODER der gewaehlte Marker traegt einen
-      // sichtbaren Kasten — fuer ALLE Gruppen einschliesslich core. Das gilt
-      // VOR jedem anderen Sichtbarkeits-Grund (Filter, Rueckseite, Kamera-
-      // Tiefe): ein nicht aktiver Marker bekommt gar nicht erst die teureren
-      // Pruefungen darunter.
-      /* P-2, NEUFASSUNG 20.08.2026 (Phase 17 "Hangar"):
-         Der Raum traegt Beschriftungen — aber je ART, nicht je Port, und nur
-         fuer die eingeblendete Gruppe. Gemessen ueber alle 227 Schiffe sind
-         das hoechstens FUENF gleichzeitig (826 Schiff-Gruppen-Paare, kein
-         einziges darueber). Der alte Wortlaut ("nur der ueberfahrene oder
-         gewaehlte Marker traegt Text") stammte aus der Zeit, als JEDER Port
-         einen Dauerkasten bekam — acht davon bedeckten mehr Flaeche als das
-         Schiff. Der Anlass bleibt gueltig, die Zahl loest ihn auf.
-
-         Unveraendert gilt: der ueberfahrene/gewaehlte Marker traegt IMMER
-         seinen eigenen Text, und er gewinnt gegen den Art-Zustand. */
-      const eigen = L.sp.userData.i === hoverIdx || L.sp.userData.i === selectIdx;
-      const aktiv = eigen || (L.rep && raumBeschriftung);
-      if (!aktiv) { hideLabel(L); continue; }
       if (!L.sp.visible) { hideLabel(L); continue; }
-      const willModus = eigen ? 'port' : 'art';
-      if (L.modus !== willModus) {
-        L.modus = willModus;
-        const neu = willModus === 'art' ? L.artText : L.portText;
-        // firstChild ist der Textknoten aus `el.textContent = …`; bei leerem
-        // Text gibt es keinen — dann anlegen statt auf null zugreifen.
-        if (L.el.firstChild && L.el.firstChild.nodeType === 3) L.el.firstChild.nodeValue = neu;
-        else L.el.insertBefore(document.createTextNode(neu), L.el.firstChild);
-        L.el.classList.toggle('is-art', willModus === 'art');
-        L.w = 0; // Breite neu messen, der Text hat sich geaendert
-      }
       L.sp.getWorldPosition(_lblW);
       _lblViz.copy(_lblW).applyMatrix4(camera.matrixWorldInverse);
-      // Rueckseiten-Cull mit Hysterese ENTFAELLT fuer den aktiven Kasten (P-2,
-      // 15-01-PLAN.md Task 2 Schritt 3): die Heuristik stammte aus der Zeit
-      // VIELER gleichzeitig sichtbarer Dauer-Labels und sollte Ueberfuellung
-      // vermeiden — bei GENAU EINEM aktiven Kasten gibt es dieses Problem
-      // nicht mehr, und der Marker selbst ist per depthTest:false ohnehin
-      // IMMER sichtbar ("scheint durch den Rumpf"). Mit dem seit P-1
-      // verkleinerten fitSphere (Modell+Marker statt der grossen Rig-Kugel
-      // mit Aura) war die alte Hysterese-Schwelle (span*0.04) zu eng: ein
-      // rein internes Bauteil wie bei argo-csv-cargo lag 15% des (jetzt
-      // kleineren) Kugelradius hinter der Mitte und wurde faelschlich als
-      // Rueckseite behandelt — der Kasten blieb nach dem Ueberfahren leer.
-      // Ein Marker, der per Raycast getroffen wurde (aktiv), ist per
-      // definitionem gefunden worden -> sein Kasten gehoert gezeigt.
+      // Rückseiten-Cull mit Hysterese (kein Flackern nahe der Mittelebene):
+      // ausblenden, wenn klar hinter der Mitte; erst wieder zeigen, wenn klar davor.
+      if (L.occ) { if (_lblViz.z > cz + span * 0.04) L.occ = false; }
+      else { if (_lblViz.z < cz - span * 0.04) L.occ = true; }
+      if (L.occ) { hideLabel(L); continue; }
       _lblV.copy(_lblW).project(camera);
-      if (_lblV.z > 1) { hideLabel(L); continue; } // ausdruecklich hinter der Kamera (Nahebene)
+      if (_lblV.z > 1) { hideLabel(L); continue; }
       if (!L.shown) { L.el.style.display = ''; L.line.style.display = ''; L.node.style.display = ''; L.shown = true; }
       if (!L.w) { L.w = L.el.offsetWidth; L.h = L.el.offsetHeight; }
       L.mx = (_lblV.x * 0.5 + 0.5) * w;
       L.my = (-_lblV.y * 0.5 + 0.5) * h;
-      if (L.rep && !eigen) {
-        /* Dauer-Beschriftung (Phase 17): NACH AUSSEN vom Schiffsmittelpunkt
-           weg, nicht stur nach oben.
-
-           Die naheliegende Loesung waere gewesen, alle Kaesten in Randspalten
-           links und rechts zu stellen — wie in der Attrappe gezeichnet. Am
-           gebauten Stand gemessen gibt es diese Raender nicht: bei 78,6 %
-           Fuellgrad nimmt der Rumpf den Raum in BEIDE Richtungen ein, seitlich
-           blieben rund 140px und ein Kasten ist bis zu 158px breit.
-
-           Radial geloest braucht es keine Raender: jeder Kasten weicht in die
-           Richtung aus, in der an SEINER Stelle Platz ist. Kaesten am Bug
-           gehen nach vorn, Kaesten oben nach oben — die Fuehrungslinie bleibt
-           kurz, und die Mitte des Rumpfes (wo man das Schiff ansieht) bleibt
-           frei. Die Entzerrung darunter loest den Rest. */
-        const dx = L.mx - cxPx, dy = L.my - cyPx;
-        const len = Math.hypot(dx, dy) || 1;
-        const weg = LBL_LEAD + L.h / 2 + 10;
-        L.ax = L.mx + (dx / len) * (weg + L.w * 0.28);
-        L.ay = L.my + (dy / len) * weg;
-        // Nie ueber den Buehnenrand hinaus — sonst steht die Haelfte im Nichts.
-        const randX = L.w / 2 + 10, randY = L.h / 2 + 8;
-        L.ax = Math.min(Math.max(L.ax, randX), w - randX);
-        L.ay = Math.min(Math.max(L.ay, randY), h - randY);
-      } else {
-        L.ax = L.mx;                       // Anker: horizontal am Marker …
-        L.ay = L.my - LBL_LEAD - L.h / 2;  // … vertikal knapp darüber
-      }
+      L.ax = L.mx;                       // Anker: horizontal am Marker …
+      L.ay = L.my - LBL_LEAD - L.h / 2;  // … vertikal knapp darüber
       if (!L.init) { L.cx = L.ax; L.cy = L.ay; L.init = true; }
       else { L.cx += (L.ax - L.cx) * LBL_EASE; L.cy += (L.ay - L.cy) * LBL_EASE; }
       vis.push(L);
@@ -750,33 +581,11 @@ export async function initHolo(container, cfg) {
           moved = true;
         }
       }
-      /* Kaesten aus dem Hindernis (Detailkarte) schieben — waagerecht, auf dem
-         kuerzesten Weg hinaus. Waagerecht und nicht senkrecht, weil die Karte
-         die volle mittlere Hoehe der Buehne einnimmt: nach oben oder unten
-         auszuweichen hiesse, an ihr entlangzuwandern. */
-      if (hindernis) {
-        for (const L of vis) {
-          const hl = L.cx - L.w / 2, hr2 = L.cx + L.w / 2;
-          const ht = L.cy - L.h / 2, hb = L.cy + L.h / 2;
-          if (hr2 > hindernis.l - 6 && hl < hindernis.r + 6 && hb > hindernis.t && ht < hindernis.b) {
-            const nachLinks = hindernis.l - 6 - L.w / 2;
-            const nachRechts = hindernis.r + 6 + L.w / 2;
-            L.cx = Math.abs(L.cx - nachLinks) <= Math.abs(nachRechts - L.cx) ? nachLinks : nachRechts;
-            moved = true;
-          }
-        }
-      }
       if (!moved) break;
     }
     for (const L of vis) {
       L.cx = Math.max(L.w / 2 + 2, Math.min(w - L.w / 2 - 2, L.cx));
-      /* Der obere Rand der Buehne gehoert der Blende (Registerleiste, Phase 17)
-         — dort gemessen schob sich der Kasten "Radar" unter sie. Die Sperre
-         gilt nur, wo die Leiste ueberhaupt steht: unterhalb der Schwelle traegt
-         der Raum keine Dauer-Beschriftung, und der Kasten des angetippten
-         Markers soll auch dicht am oberen Rand stehen duerfen. */
-      const obenFrei = (L.rep && raumBeschriftung) ? RAUM_TOP_SPERRE : 2;
-      L.cy = Math.max(obenFrei + L.h / 2, Math.min(h - L.h / 2 - 2, L.cy));
+      L.cy = Math.max(L.h / 2 + 2, Math.min(h - L.h / 2 - 2, L.cy));
       L.el.style.left = L.cx.toFixed(1) + 'px';
       L.el.style.top = L.cy.toFixed(1) + 'px';
       // Leader vom Marker bis zum Kastenrand (Segment an der Box abgeschnitten)
@@ -841,40 +650,7 @@ export async function initHolo(container, cfg) {
   // Kamera so setzen, dass das GANZE Modell ins Bild passt — auch sehr große
   // oder sehr breite Schiffe (Bounding-Sphere gegen vertikales UND horizontales
   // Sichtfeld gefittet), inkl. Neuanpassung bei Größenänderung.
-  //
-  // P-1 (15-01-PLAN.md Task 2, 15-UI-SPEC.md § 3a): `new
-  // THREE.Box3().setFromObject(rig)` — der VORHERIGE Code hier — nahm die
-  // Huellkurve von RIG, und rig traegt neben dem Modell auch die Aura
-  // (Z. ~267, maxDim*1.35 Sprite-Skalierung), den Projektorkegel (~coneH/s
-  // Hoehe UNTER dem Modell), den Kern-Strahl, das Emitter-Pad, die Ringe und
-  // die Staubsaeule — jedes einzelne davon ein Sprite/Mesh mit EIGENER
-  // Geometrie, die in die Box3-Berechnung eingeht. Der eingepasste Kreis war
-  // dadurch ein Vielfaches des Schiffs: gemessener Ausgangswert (--baseline,
-  // 18.08.2026) an der Carrack bei 860px ~19,3% der kuerzeren Buehnenkante.
-  // Jetzt: die Huellkugel entsteht NUR aus dem Modell-Huellkoerper (`box`,
-  // Z. 224, VOR jedem Projektor-Kind gebildet) vereinigt mit den Marker-
-  // Positionen selbst (`cfg.ports`) — Projektoraufbau und Staub bleiben
-  // ausdruecklich draussen. Nebenwirkung, positiv: der `?holodebug`-
-  // AxesHelper (unten, an rig gehaengt) faellt dadurch automatisch aus
-  // dieser Rechnung heraus — er wird NICHT mehr traversiert, weil hier kein
-  // setFromObject(rig) mehr steht. Die Adressmarke ?holometrics bleibt
-  // trotzdem das vorgeschriebene Messhandle (siehe metrics() unten), falls
-  // sich das je wieder aendert.
-  const _fitLocal = box.clone();
-  for (const port of cfg.ports ?? []) _fitLocal.expandByPoint(new THREE.Vector3(port.p[0], port.p[1], port.p[2]));
-  rig.updateMatrixWorld(true);
-  const _fitWorldBox = new THREE.Box3();
-  const _fitWorldCorners = []; // fuer fitCamera()s anisotrope Einpassung unten wiederverwendet
-  for (const x of [_fitLocal.min.x, _fitLocal.max.x]) {
-    for (const y of [_fitLocal.min.y, _fitLocal.max.y]) {
-      for (const z of [_fitLocal.min.z, _fitLocal.max.z]) {
-        const c = new THREE.Vector3(x, y, z).applyMatrix4(rig.matrixWorld);
-        _fitWorldCorners.push(c);
-        _fitWorldBox.expandByPoint(c);
-      }
-    }
-  }
-  const fitSphere = _fitWorldBox.getBoundingSphere(new THREE.Sphere());
+  const fitSphere = new THREE.Box3().setFromObject(rig).getBoundingSphere(new THREE.Sphere());
 
   // Nah-/Fernebene an die AKTUELLE Zoom-Distanz koppeln.
   //
@@ -895,122 +671,16 @@ export async function initHolo(container, cfg) {
     camera.updateProjectionMatrix();
   }
 
-  // P-1 (15-01-PLAN.md Task 2 Schritt 3): zwei geschlossene Formeln wurden
-  // versucht und beide scheiterten am gerenderten Bildpunkt — (1) eine reine
-  // Kugel-Einpassung (Radius = halbe Raumdiagonale) traegt bei einem LANGEN
-  // Schiff (z.B. Carrack) nur die Diagonale, nicht den tatsaechlichen
-  // Querschnitt: gemessen 37,1% statt 70%; (2) eine "flache" Winkel-Naeherung
-  // (Distanz = Achsenversatz / tan(halbes Sichtfeld)) ignoriert, dass jede
-  // Ecke der Huellbox auf einer ANDEREN Blicktiefe liegt — bei einer Kamera,
-  // die so nah steht wie hier, ist dieser Tiefenversatz NICHT vernachlaessig-
-  // bar: gemessen 19,3-152,1%, quer durchs Feld, je nach Seitenverhaeltnis.
-  // Statt einer weiteren Formel: ITERATIV an der REALEN Projektion
-  // nachgeschaerft — derselben Rechnung (`.project()`), die metrics() unten
-  // fuer die Selbstauskunft benutzt. Start bei einer groben Kugel-Schaetzung,
-  // dann bis zu 24 Runden: die acht Weltecken (Modell+Marker,
-  // `_fitWorldCorners`) mit der AKTUELLEN Kandidaten-Kamera projizieren, den
-  // am weitesten ueberschreitenden NDC-Rand messen, Distanz und laterale
-  // Zielpunkt-Verschiebung proportional nachziehen.
-  //
-  // DRITTER Fund, NACH dem ersten Vollmessungslauf dieser Sonde (18.08.2026):
-  // ein SYMMETRISCHES Ziel (dieselbe NDC-Schwelle `target` fuer X UND Y)
-  // erfuellt P-1 nicht zuverlaessig. P-1 verlangt 70% der KUERZEREN
-  // Buehnenkante — bei einer LANDSCAPE-Buehne (Breite > Hoehe, der Regelfall
-  // hier: die Hoehe bleibt bei jeder gemessenen Breite <=665px) ist das die
-  // HOEHE. Ein langgestrecktes Schiff (drak-ironclad, anvl-carrack) fuellt
-  // aus der Standard-Schraegansicht die BREITE deutlich staerker als die
-  // Hoehe — der alte Code stoppte, sobald die BREITE (nicht die kritische
-  // Achse) `target` erreichte, und liess dabei bis zu 26 Prozentpunkte
-  // ungenutzten Zoom-Spielraum auf der Hoehe liegen (gemessen:
-  // drak-ironclad/1100px, Breite 90,4% erreicht, Hoehe blieb bei 66,4% statt
-  // moeglicher 73,4%). Jetzt: die KURZE Buehnenkante bekommt das weiche Ziel
-  // `target` (Komfort-Abstand zum Rand); die LANGE Kante bekommt NUR die
-  // harte Grenze 1,0 (Bildrand) als Obergrenze, ohne selbst ein Ziel zu sein
-  // — das schoepft den gesamten Zoom-Spielraum aus, den die lange Kante noch
-  // frei hat, bevor sie selbst am Rand ankommt. Bindend ist danach, welche
-  // der beiden Bedingungen (kurze Kante bei `target` ODER lange Kante bei
-  // 1,0) zuerst erreicht wird — geometrisch bedingt (Schiffsform x
-  // Kameraperspektive x Buehnenformat), nicht frei waehlbar.
-  function fitCamera(margin = 1.08) {
+  function fitCamera(margin = 1.18) {
+    const r = fitSphere.radius * margin;
+    const vFov = (camera.fov * Math.PI) / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    const dist = r / Math.sin(Math.min(vFov, hFov) / 2);
     let dir = new THREE.Vector3().subVectors(camera.position, controls.target);
     if (dir.lengthSq() < 1e-6) dir.set(0.7, 0.32, 0.7);
     dir.normalize();
-
-    const vFov = (camera.fov * Math.PI) / 180;
-    const tanV = Math.tan(vFov / 2);
-    const target = 1 / margin; // Weiches Ziel fuer die KURZE Kante (margin=1.08 -> 92,6%)
-    const kurzIstX = W() <= H(); // kuerzere Buehnenkante: Breite oder Hoehe?
-    const aimPoint = fitSphere.center.clone();
-    let dist = fitSphere.radius * 2.2; // grobe Kugel-Startschaetzung
-    const _p = new THREE.Vector3();
-
-    // GEDAEMPFT (Faktor 0.5 je Korrektur, bis zu 24 Runden): Distanz- und
-    // Zentrier-Korrektur greifen ineinander (beide aendern, WELCHE Ecke im
-    // naechsten Durchlauf am Rand liegt) — ungedaempft schwang das System
-    // sichtbar (dist sprang 3,07 -> 3,14 -> 2,04 -> 2,78 ohne sich zu
-    // beruhigen, sechs Runden reichten nicht). Mit halber Schrittweite je
-    // Runde konvergiert es stabil; die Abbruchschwelle prueft zusaetzlich
-    // GENUEGEND Abstand zum Rand, nicht nur exakte Gleichheit, damit eine
-    // leicht zu fruehe letzte Runde nicht doch ueberschiesst (kein Teil des
-    // Schiffs darf aus dem Bild fallen).
-    for (let iter = 0; iter < 24; iter++) {
-      camera.position.copy(aimPoint).addScaledVector(dir, dist);
-      camera.up.set(0, 1, 0);
-      camera.lookAt(aimPoint);
-      camera.updateMatrixWorld(true);
-      camera.updateProjectionMatrix();
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      for (const c of _fitWorldCorners) {
-        _p.copy(c).project(camera);
-        if (_p.x < minX) minX = _p.x; if (_p.x > maxX) maxX = _p.x;
-        if (_p.y < minY) minY = _p.y; if (_p.y > maxY) maxY = _p.y;
-      }
-      const extX = Math.max(Math.abs(minX), Math.abs(maxX));
-      const extY = Math.max(Math.abs(minY), Math.abs(maxY));
-      const extKurz = kurzIstX ? extX : extY;
-      const extLang = kurzIstX ? extY : extX;
-      // Bindende Groesse: entweder die kurze Kante ist noch nicht bei `target`,
-      // oder die lange Kante steht schon (fast) am harten Bildrand 1,0 —
-      // je nachdem, was zuerst zuschlaegt. `bindend` > 1 heisst "noch zu klein,
-      // weiter heranzoomen"; < 1 heisst "schon zu gross, zurueck".
-      const bindend = Math.max(extKurz / target, extLang / 1.0);
-      if (!isFinite(bindend) || bindend < 1e-6) break;
-      if (bindend <= 1.01 && bindend >= 0.98) break; // nah genug, ohne zu ueberschiessen
-      dist *= 1 + 0.5 * (bindend - 1); // halbe Schrittweite Richtung Zielrand
-      // Zielpunkt lateral (in Bildschirm-Rechts-/Auf-Richtung, NICHT in
-      // Blickrichtung) auf die Mitte der Box-Projektion nachziehen — sonst
-      // bleibt bei einem asymmetrisch ausladenden Schiff (mehr Ausladung
-      // nach einer Seite) Luft auf der knappen Seite, waehrend die ausladende
-      // Seite die Distanz weiter bestimmt.
-      const midXndc = (minX + maxX) / 2, midYndc = (minY + maxY) / 2;
-      if (Math.abs(midXndc) > 1e-4 || Math.abs(midYndc) > 1e-4) {
-        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
-        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
-        const tanH = tanV * camera.aspect;
-        aimPoint.addScaledVector(right, 0.5 * midXndc * tanH * dist).addScaledVector(up, 0.5 * midYndc * tanV * dist);
-      }
-    }
-    // Sicherheitsnetz gegen eine unwahrscheinliche Nicht-Konvergenz: die
-    // ECHTE Zusicherung ist "nichts liegt ausserhalb des Bildes" (NDC-Rand
-    // 1.0), nicht der weichere Zielrand `target` — eine letzte Messung, und
-    // falls doch etwas ueber 1.0 liegt, wird NUR SO WEIT nachgeschoben, dass
-    // es wieder genau am Rand liegt (kein Teil des Schiffs faellt aus dem Bild).
-    {
-      camera.position.copy(aimPoint).addScaledVector(dir, dist);
-      camera.up.set(0, 1, 0);
-      camera.lookAt(aimPoint);
-      camera.updateMatrixWorld(true);
-      camera.updateProjectionMatrix();
-      let worstFinal = 0;
-      for (const c of _fitWorldCorners) {
-        _p.copy(c).project(camera);
-        worstFinal = Math.max(worstFinal, Math.abs(_p.x), Math.abs(_p.y));
-      }
-      if (worstFinal > 1) dist *= worstFinal;
-    }
-
-    camera.position.copy(aimPoint).addScaledVector(dir, dist);
-    controls.target.copy(aimPoint);
+    controls.target.copy(fitSphere.center);
+    camera.position.copy(fitSphere.center).addScaledVector(dir, dist);
     // Nah heran erlaubt (Detail-Ansicht einzelner Hardpoints) — der Anschlag
     // hält die Kamera nur so weit vor dem Zielpunkt, dass sie nicht im Rumpf
     // steckt; früher war hier bei ~0,6 Modellradien Schluss.
@@ -1146,37 +816,9 @@ export async function initHolo(container, cfg) {
       }
       aura.material.opacity = 0.08 + 0.035 * Math.sin(t * 1.7);
     }
-    // Marker: konstante BILDSCHIRMGROESSE + Hover/Select-Puls.
-    //
-    // ⚠ Bis zum 20.08.2026 hatte der Marker eine feste WELTgroesse
-    // (baseScale = maxDim * 0.034). Das sieht auf dem Schreibtisch richtig aus
-    // und bricht auf dem Telefon: die Kamera passt das Schiff in die Ansicht,
-    // also schrumpft mit dem Schiff auch der Marker. Gemessen an der Carrack
-    // war die gezeichnete Marke bei 1280px rund 11,4px gross und bei 360px nur
-    // noch 3,7px — der Ausgangszustand aus Welle 1 ("2-3px, nicht
-    // auffindbar"). Die Fuellgrad-Klinke P-1 meldete dort 92,5 % und damit den
-    // HOECHSTEN Wert des ganzen Laufs: sie misst einen Anteil, das Problem ist
-    // aber absolut.
-    //
-    // Ein Marker ist eine Kartennadel, kein Bauteil des Schiffs. Er bekommt
-    // deshalb seine Groesse vom Bildschirm, nicht vom Modell: bei
-    // perspektivischer Kamera ist die Bildpunktgroesse
-    //   px = weltgroesse * H / (2 * tan(fov/2) * abstand)
-    // also umgestellt weltgroesse = zielPx * 2 * tan(fov/2) * abstand / H.
-    // sp.scale ist LOKAL zu rig (Massstab s), daher noch durch s geteilt.
-    const zielPx = W() < 760 ? MARKER_PX_SCHMAL : MARKER_PX;
-    const tanHalbFov = Math.tan((camera.fov * Math.PI) / 360);
-    const hPx = H() || 1;
-    camera.getWorldPosition(_camPos);
+    // Marker: Hover/Select-Puls
     for (const sp of markers) {
-      const { i, port } = sp.userData;
-      sp.getWorldPosition(_mkPos);
-      const abstand = _camPos.distanceTo(_mkPos) || 1;
-      const weltGroesse = zielPx * MARKER_HIER[port.g === 'core' ? 'core' : port.g === 'arms' ? 'arms' : 'rest']
-        * 2 * tanHalbFov * abstand / hPx;
-      // base bleibt die UNGEPULSTE Groesse — metrics() rechnet damit.
-      const base = weltGroesse / s;
-      sp.userData.base = base;
+      const { i, base } = sp.userData;
       let sc = base;
       if (i === selectIdx) sc = base * (1.25 + (reduceMotion ? 0 : Math.sin(t * 5) * 0.09));
       else if (i === hoverIdx) sc = base * 1.35;
@@ -1225,82 +867,6 @@ export async function initHolo(container, cfg) {
     setLabels(on) {
       labelsOn = on;
       labelLayer.style.display = on ? '' : 'none';
-    },
-    /* Ein Element der SEITE, um das die Beschriftungen einen Bogen machen —
-       die Detailkarte, die seit Phase 17 im Raum schwebt. Der Viewer kennt
-       das Seiten-Markup nicht und soll es nicht kennen; er bekommt den Knoten
-       und liest je Bild dessen Rechteck. null hebt es wieder auf. */
-    setHindernis(el) {
-      hindernisEl = el || null;
-    },
-    // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (15-01-PLAN.md
-    // Task 2 Schritt 1) — OHNE Seiteneffekt, liest nur den aktuellen Frame.
-    // Reicht ShipDetail.astro nur nach aussen, wenn die Adresse ?holometrics
-    // traegt (siehe dort) — ausdruecklich NICHT ?holodebug, dessen Zweig einen
-    // AxesHelper an rig haengt VOR der Bildung von fitSphere (Z. 607 ff.); wer
-    // durch holodebug misst, misst eine andere Kamera als der Besucher sieht.
-    metrics() {
-      const w = W(), h = H();
-      // Fuellgrad: projizierte Spanne der acht Eckpunkte des MODELL-
-      // Huellkoerpers (box, Z. 224 — NICHT rig/fitSphere, die tragen Aura/
-      // Kegel/Staub mit) gegen die kuerzere Canvas-Kante. `box` steht in
-      // rig-lokalem Raum (bei ihrer Bildung hatte rig noch keinen Transform,
-      // siehe Kommentar dort) -> rig.matrixWorld transformiert sie an ihren
-      // tatsaechlichen Weltort.
-      const _p = new THREE.Vector3();
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      for (const dx of [box.min.x, box.max.x]) {
-        for (const dy of [box.min.y, box.max.y]) {
-          for (const dz of [box.min.z, box.max.z]) {
-            _p.set(dx, dy, dz).applyMatrix4(rig.matrixWorld).project(camera);
-            const px = (_p.x * 0.5 + 0.5) * w, py = (-_p.y * 0.5 + 0.5) * h;
-            if (px < minX) minX = px; if (px > maxX) maxX = px;
-            if (py < minY) minY = py; if (py > maxY) maxY = py;
-          }
-        }
-      }
-      const spanX = maxX - minX, spanY = maxY - minY;
-      const kuerzereKante = Math.min(w, h);
-      const fuellgrad = (w <= h ? spanX : spanY) / kuerzereKante;
-      // Markerdurchmesser: Sprite ist immer kameraflaechig (Billboard), ihre
-      // lokale Rechts-Achse ist deshalb exakt die Kamera-Rechts-Achse — zwei
-      // Weltpunkte im Abstand der (unpulsierten) Basisgroesse projiziert und
-      // deren Bildpunkt-Abstand gemessen ist der tatsaechliche Bildschirm-
-      // durchmesser, ohne tan(fov/2)-Annaeherung.
-      // ⚠ KORREKTUR 20.08.2026: hier stand `sp.userData.base / 2`. Das ist die
-      // LOKALE Sprite-Groesse, wurde aber gegen eine WELT-Achse abgetragen —
-      // und die Marker haengen an `rig`, das mit `s = 2.4 / maxDim` skaliert
-      // ist (Z. 228-230). Die Messung war damit um genau 1/s daneben und
-      // meldete fuer die Carrack bei einer 710px breiten Buehne einen
-      // "Durchmesser" von 919,6px. Eine Marke, die breiter ist als die Buehne,
-      // haette auffallen muessen; der Wert wurde nie geprueft, weil
-      // e-markergroesse in der Sonde fest `true` meldet — ein Bericht, kein
-      // Urteil. getWorldScale() nimmt den Rig-Massstab mit und ist gegen
-      // weitere Verschachtelung unempfindlich.
-      const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
-      const _mc = new THREE.Vector3(), _e1 = new THREE.Vector3(), _e2 = new THREE.Vector3();
-      const _ws = new THREE.Vector3();
-      const sichtbareMarker = [];
-      for (const sp of markers) {
-        if (!sp.visible) continue;
-        sp.getWorldPosition(_mc);
-        // Weltgroesse statt lokaler; base statt sp.scale, damit der Hover-/
-        // Auswahl-Puls die Messung nicht aufblaeht.
-        sp.getWorldScale(_ws);
-        const puls = sp.scale.x || 1;
-        const halfScale = (_ws.x / puls) * sp.userData.base / 2;
-        _e1.copy(_mc).addScaledVector(camRight, halfScale);
-        _e2.copy(_mc).addScaledVector(camRight, -halfScale);
-        const p0 = _mc.clone().project(camera);
-        const p1 = _e1.clone().project(camera);
-        const p2 = _e2.clone().project(camera);
-        const cx = (p0.x * 0.5 + 0.5) * w, cy = (-p0.y * 0.5 + 0.5) * h;
-        const x1 = (p1.x * 0.5 + 0.5) * w, x2 = (p2.x * 0.5 + 0.5) * w;
-        const y1 = (-p1.y * 0.5 + 0.5) * h, y2 = (-p2.y * 0.5 + 0.5) * h;
-        const durchmesser = Math.hypot(x1 - x2, y1 - y2);
-        sichtbareMarker.push({ i: sp.userData.i, g: sp.userData.port.g, cx, cy, durchmesser });
-      }
-      return { canvas: { w, h }, spanX, spanY, fuellgrad, markers: sichtbareMarker };
     },
     dispose() {
       alive = false;

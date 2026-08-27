@@ -269,6 +269,58 @@ function readEntity(ref) {
       stats.temperature_resistance = { min: r6(cloth.TemperatureResistance.MinResistance), max: r6(cloth.TemperatureResistance.MaxResistance) };
     }
   }
+  /* --- Erz-Behaelter und Mining-Module (4.10) ---------------------------
+     Anlass: der Abgleich gegen scmdb am 27.08.2026. Die zwoelf mit 4.10
+     dazugekommenen Erz-Pods und Mining-Module standen bei uns als nacktes
+     "Vehiclegear" mit Masse und Ueberhitzung da, waehrend ihre eigentlichen
+     Werte im DataCore liegen — scmdb parst sie, wir nicht. Nachgesehen statt
+     vermutet: die Pods tragen `ResourceContainer`, die Module
+     `ItemMiningModifierParams` innerhalb der Modifikatorliste.
+
+     Bewusst NUR fuer diese beiden Faelle: `SHealthComponentParams` haengt an
+     sehr vielen Entities, und `health` bei allen mitzuschreiben waere eine
+     stille Bestandsaenderung ueber 1.600 Bauplaene. Hier traegt sie eine
+     Aussage (ein Pod geht kaputt), sonst nicht. */
+  const resContainer = comps.get('ResourceContainer');
+  if (resContainer?.capacity?.standardCargoUnits != null) {
+    stats = stats ?? {};
+    stats.type = 'ore_pod';
+    stats.cargo_capacity_scu = r6(resContainer.capacity.standardCargoUnits);
+    const hp = comps.get('SHealthComponentParams')?.Health;
+    if (hp != null) stats.health = r6(hp);
+  }
+
+  // Mining-Modifikatoren. Jeder Eintrag ist {value, mode} — additiv und
+  // multiplikativ stehen im Spiel nebeneinander (optimalChargeWindowRate ist
+  // additiv, resistance multiplikativ), und ohne die Angabe waere "20" gegen
+  // "-15.5" nicht lesbar. `null` heisst: dieses Modul ruehrt den Wert nicht an.
+  const modParams = comps.get('EntityComponentAttachableModifierParams');
+  if (modParams?.modifiers?.length) {
+    const mm = modParams.modifiers.find((m) => m?.__type === 'ItemMiningModifierParams')?.MiningLaserModifier;
+    const filt = modParams.modifiers.find((m) => m?.__type === 'MiningFilterItemModifierParams')?.filterParams?.filterModifier;
+    const feld = (m) => (m && m.value != null
+      ? { value: r6(m.value), mode: m.__type === 'FloatModifierAdditive' ? 'additiv' : 'multiplikativ' }
+      : null);
+    const roh = {
+      instability: feld(mm?.laserInstability),
+      optimal_charge_window_size: feld(mm?.optimalChargeWindowSizeModifier),
+      optimal_charge_window_rate: feld(mm?.optimalChargeWindowRateModifier),
+      catastrophic_charge_window_rate: feld(mm?.catastrophicChargeWindowRateModifier),
+      resistance: feld(mm?.resistanceModifier),
+      shatter_damage: feld(mm?.shatterdamageModifier),
+      cluster_factor: feld(mm?.clusterFactorModifier),
+      filter: feld(filt),
+    };
+    const gesetzt = Object.fromEntries(Object.entries(roh).filter(([, v]) => v));
+    if (Object.keys(gesetzt).length) {
+      stats = stats ?? {};
+      stats.type = 'mining_module';
+      stats.mining_modifiers = gesetzt;
+      const hp = comps.get('SHealthComponentParams')?.Health;
+      if (hp != null) stats.health = r6(hp);
+    }
+  }
+
   if (massKg != null || overheat != null) {
     stats = stats ?? {};
     if (massKg != null) stats.mass_kg = r6(massKg);
@@ -472,6 +524,36 @@ for (const r of db.records) {
     dismantleByName.set(ent.name.toLowerCase(), recipe);
   }
 }
+/* ---------------- Entdopplung ---------------- */
+// Zwei CraftingBlueprintRecords koennen dieselbe EntityClassDefinition mit
+// identischen Parametern beschreiben. Dann steht derselbe Bauplan zweimal im
+// Bestand, bekommt zwei Seiten (`/crafting/fullforce.html` und `…-2.html`) und
+// die Missionsseite zeigt zwei optisch gleiche Chips, die auf verschiedene
+// Seiten fuehren. Gefunden 27.08.2026 an `FullForce` (Register id 49).
+//
+// Verglichen wird der GANZE Eintrag, nicht die guid allein: zwei Rezepte fuer
+// dasselbe Item mit verschiedenen Zutaten waeren zwei echte Wege und muessen
+// bleiben. Genau daran trennen sich die beiden Faelle des Befunds — FullForce
+// ist in jedem Feld gleich (faellt weg), BroadSpec traegt zwei guids, zwei
+// Wertesignaturen, zwei Fertigungszeiten und zwei Zutatenmengen (bleibt).
+const kanonisch = (v) => {
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  if (Array.isArray(v)) return `[${v.map(kanonisch).join(',')}]`;
+  return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${kanonisch(v[k])}`).join(',')}}`;
+};
+const gesehen = new Map();
+const doubletten = [];
+const eindeutig = [];
+for (const b of blueprints) {
+  const sig = kanonisch(b);
+  if (gesehen.has(sig)) { doubletten.push(b.name); continue; }
+  gesehen.set(sig, true);
+  eindeutig.push(b);
+}
+console.log(`entdoppelt: ${doubletten.length} zeichengleiche Doublette(n)${doubletten.length ? ` — ${[...new Set(doubletten)].join(', ')}` : ''}`);
+blueprints.length = 0;
+blueprints.push(...eindeutig);
+
 blueprints.sort((a, b) => a.name.localeCompare(b.name, 'en'));
 console.log(`blueprints: ${blueprints.length} (ohne entityClass: ${skippedNoEntity}, Template ohne Namen uebersprungen: ${skippedTemplate}, humanize-Fallback: ${fallbackNames})`);
 

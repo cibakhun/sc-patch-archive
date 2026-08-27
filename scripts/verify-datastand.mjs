@@ -86,13 +86,16 @@ const HANDPFLEGE = [
 // Rueckfall darunter heisst, ein Erzeuger ist gegen einen aelteren Client
 // gelaufen — die Handlungsanweisung ("neu erzeugen") ist dann immer richtig.
 // Nach unten nur per Commit, dessen Botschaft die Ursache nennt.
+// 27.08.2026, Datenlauf auf sc-alpha-4.10.0 (Client CL 12519617): alle sechs
+// Staende gemeinsam von CL 12344265 auf 12519617 gehoben — nach OBEN, wie es
+// Grundsatz 5 verlangt.
 const KLINKEN = {
-  Missionen: 12344265,
-  Mining: 12344265,
-  Crafting: 12344265,
-  'Item-Katalog': 12344265,
-  Refinery: 12344265,
-  Zerlegung: 12344265,
+  Missionen: 12519617,
+  Mining: 12519617,
+  Crafting: 12519617,
+  'Item-Katalog': 12519617,
+  Refinery: 12519617,
+  Zerlegung: 12519617,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine
@@ -220,7 +223,15 @@ for (const s of begleitZeilen) {
 console.log('\n[8] Handpflege und Client-Abgleich (beide WARNUNG, nie FEHLER)');
 const juengsteStandId = maschinelleCLs.find(([, cl]) => cl === juengsteCL)?.[0];
 const juengsteKennung = juengsteStandId ? kennungen.get(juengsteStandId) : null;
-const VERSION_RX = /^\d+\.\d+\.\d+/;
+// 27.08.2026: der Anker ^ machte diesen Vergleich zu Dekoration. Die juengste
+// Kennung ist je nach Erzeuger "sc-alpha-4.10.0@12519617", "PUBLIC-4.10.0-12519617"
+// oder "LIVE-4.9.0-12232306" — nur EINE der vier Formen faengt mit der Ziffer an.
+// In den anderen drei lieferte match() null, juengsteFassung wurde null, und die
+// Warnung unten war stumm geschaltet. Sie hat damit nie gefeuert, obwohl Wikelo
+// seit dem 4.10-Lauf sichtbar auf "4.9.0" stand. Ohne Anker trifft der Ausdruck
+// die ERSTE Dreiergruppe, und das ist in allen vier Formen die Fassung — die
+// Changelist dahinter traegt keine Punkte und kann nicht faelschlich matchen.
+const VERSION_RX = /\d+\.\d+\.\d+/;
 const juengsteFassung = typeof juengsteKennung === 'string' ? juengsteKennung.match(VERSION_RX)?.[0] : null;
 
 for (const h of handReads) {

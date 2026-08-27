@@ -12,6 +12,7 @@ import DB from '../../../assets/crafting-db.json';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
+import { patchPageHref } from '../../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -22,7 +23,12 @@ const ver = DB.version;
 // Patch label derived from the database version ("LIVE-4.9.0-12232306" -> "4.9")
 // so title/breadcrumbs follow every regeneration automatically.
 const patch = (ver.match(/(\d+\.\d+)/) ?? [])[1] ?? '4.9';
-const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/patches/sc-${patch.replace(/\./g, '-')}-0.html`;
+// Das LABEL folgt jedem Datenlauf automatisch, der VERWEIS darf das nicht:
+// Patch-Seiten sind handgeschrieben. Nach dem 4.10-Lauf zeigte er ins Leere
+// (npm run verify, 27.08.2026: 2 tote Verweise). patchPageHref liefert `null`,
+// wenn die Seite fehlt — dann bleibt das Label als reiner Text stehen.
+const patchHref = patchPageHref(patch, lang);
+const patchCrumb = patchHref ? { label: `Alpha ${patch}`, href: patchHref } : { label: `Alpha ${patch}` };
 ---
 <TopicSeo slug="crafting" image="/assets/t-craft-1.jpg" />
 <style is:inline>
@@ -116,7 +122,7 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
 .cr-browse a:hover{color:var(--accent-2);border-color:var(--accent-2)}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
-<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: `Alpha ${patch}`, href: patchHref }, { label: "Crafting" }] : [{ label: 'Archive', href: '/archiv.html' }, { label: `Alpha ${patch}`, href: patchHref }, { label: "Crafting" }]} />
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, patchCrumb, { label: "Crafting" }] : [{ label: 'Archive', href: '/archiv.html' }, patchCrumb, { label: "Crafting" }]} />
 
 <main id="main">
   {/* Kopfband statt Hero (17.08.2026): das Werkzeug stand vorher bei 1297 px,
@@ -146,7 +152,7 @@ const patchHref = de ? `/de/patches/sc-${patch.replace(/\./g, '-')}-0.html` : `/
       dafuer egal, ihr Vorhandensein nicht. */}
   <aside class="cr-about">
     <p class="cr-about__lead">{de ? 'Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer.' : 'Blueprints, ingredients, quality simulator, fabricator planner.'}</p>
-    <div class="qbar"><span>Blueprints <b>{total}</b></span><span>{de ? 'Ressourcen ' : 'Resources '}<b>{nRes}</b></span><span>Patch <a href={patchHref}><b>{patch}</b></a></span><span>{de ? 'Stand ' : 'As of '}<b>{snap}</b></span></div>
+    <div class="qbar"><span>Blueprints <b>{total}</b></span><span>{de ? 'Ressourcen ' : 'Resources '}<b>{nRes}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patch}</b></a> : <b>{patch}</b>}</span><span>{de ? 'Stand ' : 'As of '}<b>{snap}</b></span></div>
     <div class="cr-note">
       <span>Patch <b>{ver}</b>{de ? ', Stand ' : ', as of '}<b>{snap}</b> — <b>{de ? 'patch-volatil, ingame prüfen' : 'patch-volatile, verify in-game'}</b><Fragment set:html={de ? '. „Im Besitz"-Markierungen &amp; der Planer werden im Konto gespeichert, wenn du angemeldet bist — sonst nur lokal in diesem Browser.' : '. “Owned” marks &amp; the planner are saved to your account when you’re signed in — otherwise only locally in this browser.'} /></span>
     </div>
