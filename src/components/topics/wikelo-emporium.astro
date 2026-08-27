@@ -10,6 +10,7 @@ import Attribution from '../../components/Attribution.astro';
 import WikeloBridge from '../../components/WikeloBridge.astro';
 import { matchItemName } from '../../lib/wikeloItemMatch';
 import TRADES from '../../../assets/wikelo-trades.json';
+import TRADES_META from '../../../assets/wikelo-trades.meta.json';
 import { existsSync } from 'node:fs';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
@@ -214,7 +215,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
   </div>
 
   <!-- AT A GLANCE -->
-  <TopicFacts topicSlug="wikelo-emporium" />
+  <TopicFacts topicSlug="wikelo-emporium" dataVersion={TRADES_META.reviewedVersion} />
 
   <!-- STAT STRIP -->
   <div class="statstrip reveal">
