@@ -129,6 +129,14 @@ export const BASELINE = [
     anlass:
       'Phase 18 (Missionen wissen, wo sie spielen), Plan 02, Task 3, Messlauf 23.08.2026. Ausgangszustand: alle vier Ortsarten (Spielort/Zielort/Abholort/Lieferort) fielen in `braces()` auf eine einzige Sammelmarke `{Address}` zusammen (932 Vorkommen in missions.json), womit die Frachtroute einer Liefermission nicht mehr rekonstruierbar war. Die Unterscheidung entsteht in EINER Zeile des Erzeugers (die Selektionsbedingung in `braces()`) — ihr Verlust braeche nichts sichtbar (die Seite baut weiter, sieht vollstaendig aus), waehrend Abhol- und Lieferstelle wieder ununterscheidbar waeren. Untergrenze 4, nicht der gemessene Ist-Wert (6): D-03 benennt vier Ortsarten als Ziel, mehr ist Zugewinn (z.B. ein Rueckfall auf das unbekannte erste Segment zaehlt als eigene Art), weniger ist Rueckbau.',
   },
+  {
+    id: 'missionenMitBauplan',
+    wert: 335,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Angelegt 27.08.2026, als der rohe Blueprint-Pool von der Missions-Detailseite entfiel. Bis dahin standen dort zwei Listen uebereinander: der Pool aus den Spieldaten (Kennung `BP_MISSIONREWARD_...` als sichtbarer Text, Eintraege wie `klwe_pistol_energy_01_black02` ohne Verweis) und darunter dieselbe Sache lesbar und verlinkt. Die Messung ueber alle 335 Familien mit Pool zeigte, dass der Rohblock nichts trug: 3.823 Pool-Eintraege, davon 0 mit Gewicht ungleich 1; 74 Familien mit mehreren Pools, davon 0 mit abweichender Chance; und in 335 von 335 Faellen ist die lesbare Liste mindestens so lang wie der Pool. Er ist entfallen — womit die verlinkte Liste die EINZIGE ist. Sie entsteht aus der Rueckwaertskante blueprint.missions[].id, weil die Pool-Kennungen in keiner committeten Datei ein zweites Mal vorkommen (datamine-crafting.mjs:455 kennt die Verbindungsregel, schreibt aber nur ihr Ergebnis heraus). Bricht dieser Join, verschwaende der Abschnitt still und die Detailseite saehe vollstaendig aus — derselbe Ausfallmodus, gegen den dieses Tor gebaut ist. Ist-Wert bei Anlage 335 = 335 Familien mit Pool = 335 Missions-Ids in crafting-db, keine verwaist. Toleranz 3 %: der Missionsbestand schwankt je Patch, ein gebrochener Join faellt dagegen auf nahe 0.',
+  },
 
   // ---------------- Der gebaute Stand ----------------
   // Warum ueberhaupt Seitenzahlen: getStaticPaths kann bei kaputter
