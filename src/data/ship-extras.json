@@ -1,8 +1,8 @@
 {
- "fetchedAt": "2026-07-16",
+ "fetchedAt": "2026-08-27",
  "source": "FleetYards.net",
  "matched": 225,
- "holoCount": 224,
+ "holoCount": 225,
  "holoInherited": 14,
  "extras": {
   "orig-100i": {
@@ -1117,6 +1117,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjM4NGNkYzg4LTRkNTktNDBlZC1iMWE4LTBjNDIzMDZhNWZlYyIsInB1ciI6ImJsb2JfaWQifX0=--04d16d72dd0e922d5646fdb1fd7398d29dcd8da7/Star_Citizen_PirateWeek_2025_ANVL_Asgard_SKU-1971d93f-16d5-4c19-9ce8-dd4512b3fea7.jpg/"
     },
     {
+     "name": "SteelTek",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVhMGY2ODEwLTk0MjEtNDYyOC1iNjEyLWY1MzUxZDcyZTQwNyIsInB1ciI6ImJsb2JfaWQifX0=--31a4286788e2852ebd5650e9216585a5bda3518f/source.jpg/"
+    },
+    {
      "name": "Valhalla",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImUxYmZiOTYzLTMwZGMtNGU3ZC05ZTIwLTA4NDMwMzk2NjRiZSIsInB1ciI6ImJsb2JfaWQifX0=--8ad571cd4abc4915d6a3c2d71045627cb44ebee2/Star_Citizen_ANVL_Asgard_SKU_Paint_Asgard_VIP_Copper-109bcd5a-cb72-4c1e-b74a-e5380bf08d97.jpg/"
     }
@@ -1144,6 +1148,10 @@
     {
      "name": "Cobalt",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjQxOTVmYzFjLTI5NDgtNDM0Yi05NjA5LTU2NDI2MTgyNTc5YSIsInB1ciI6ImJsb2JfaWQifX0=--d1bfe0f98751332f256656f5f42f78c5f6f99c25/Star_Citizen_Atlas_Geo_BlueGreyWhite_SKU_4k-1449a454-d327-46c9-9e7d-34c6924c9b0d.jpg/"
+    },
+    {
+     "name": "Foundation Festival",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFiMDY2NTkzLTY0ZWItNDZjYi05YjBiLTY2OTYyYmY5MjVjYiIsInB1ciI6ImJsb2JfaWQifX0=--23399a8dd92358a99150b736f00eca85d7ca3840/source.jpg/"
     },
     {
      "name": "Granite",
@@ -1488,6 +1496,14 @@
     {
      "name": "Cloudbuster",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImE0ZDRlNzUwLWY5M2QtNDQwYy04ZTU4LWIwMDEyZGM0ZDI0MCIsInB1ciI6ImJsb2JfaWQifX0=--d60a9d9c0179321c52df37ed386be39f108019be/RSI_Aurora_MK2_Paint_aurora_mk2_white_blue_yellow_SKU_4K-f97971cf-975b-4cee-9a2f-ea81c4fece10.jpg/"
+    },
+    {
+     "name": "Foundation Festival",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImM4ODcwYTQzLTU0MzUtNDVhNi04ZTgwLTcwYjVmNmJlNTMxYyIsInB1ciI6ImJsb2JfaWQifX0=--3afb319ff19787ddeed956044095f8ebdab619ca/source.jpg/"
+    },
+    {
+     "name": "Foundation Guide",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVkMDQ0ZmEzLWZhZGEtNDdjMi04YmNiLWNiZGRmYTg3ZDA0MiIsInB1ciI6ImJsb2JfaWQifX0=--7e8137baf5ef1172c1b2ae669ca0328136ca9ba8/source.jpg/"
     },
     {
      "name": "Medallion",
@@ -2818,8 +2834,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -3260,8 +3276,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -3853,8 +3869,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -4123,8 +4139,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -4166,8 +4182,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -5202,8 +5218,8 @@
   },
   "misc-freelancer-max": {
    "fySlug": "misc-freelancer-max",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU2NDBkZjIxLWY3ZWItNGE0My1hODU4LWIzZTcwMDE3NGFhNiIsInB1ciI6ImJsb2JfaWQifX0=--275483944a207d38ba9ad2294762c580827b0069/holo-2deafe0f-640f-4867-b6bb-3fc9f2afaa83.gltf/",
-   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxMmMwZjU4LWMwYTAtNGNlNi04OGM2LTg2NTYzMDNmZThkOSIsInB1ciI6ImJsb2JfaWQifX0=--6b80d08344bcff12040e7648bf06f361afa36f7c/MISC_Freelancer_Max-31b13314-4445-4ebb-ab66-03638b6dd902-11f10f4c-9d17-4a7a-a906-54e60ea9b352.jpg/",
+   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU2NDBkZjIxLWY3ZWItNGE0My1hODU4LWIzZTcwMDE3NGFhNiIsInB1ciI6ImJsb2JfaWQifX0=--275483944a207d38ba9ad2294762c580827b0069/holo-2deafe0f-640f-4867-b6bb-3fc9f2afaa83.gltf/",
+   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxMmMwZjU4LWMwYTAtNGNlNi04OGM2LTg2NTYzMDNmZThkOSIsInB1ciI6ImJsb2JfaWQifX0=--6b80d08344bcff12040e7648bf06f361afa36f7c/MISC_Freelancer_Max-31b13314-4445-4ebb-ab66-03638b6dd902-11f10f4c-9d17-4a7a-a906-54e60ea9b352.jpg/",
    "paints": [
     {
      "name": "2950 Invictus Storm Surge",
@@ -5378,6 +5394,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImRlMjQwMzI5LTQyMTMtNGUxNi04N2JjLTU4YzE5YmI1NGU4YyIsInB1ciI6ImJsb2JfaWQifX0=--32fbdce1720f97b036147d1612dbd8266d303f5c/Star_Citizen_Stella_Fortuna_2024_Fury_SKU-154513ea-f8a8-4b3c-b37d-2f79c2e4f206.jpg/"
     },
     {
+     "name": "Goldsmith",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjIxOTE3MzRhLTFiY2MtNGQ0Ny05MWExLTBkNTJlMWQ5YmI4NSIsInB1ciI6ImJsb2JfaWQifX0=--8ad45d5b948882b4fef09671fff29a03304260f4/source.jpg/"
+    },
+    {
      "name": "Leatherback",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImIwNDZiMWM3LTg1ZmUtNDQ5MS1iNTJmLWYwYzc3YTIxYWQ5YSIsInB1ciI6ImJsb2JfaWQifX0=--89d652e8e8a1666b97644b530561ef286b87d3ed/star-citizen-misc-fury-leatherback-sku-a8e04b79-b10d-4f2a-9fdd-a3e87860ff69.webp/"
     },
@@ -5414,8 +5434,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -5435,6 +5455,10 @@
     {
      "name": "Fortuna",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY5Y2Y4ZjM1LTBjNTEtNDU1Ny1hZGFiLTUzMzdjMjNmYmMzZSIsInB1ciI6ImJsb2JfaWQifX0=--e87b47651204e6ffc90ec311cc107ffe5e4ebbac/Star_Citizen_Stella_Fortuna_2024_Fury_SKU-9d1235d2-0444-41a2-8d6d-d785e241404d.jpg/"
+    },
+    {
+     "name": "Goldsmith",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjM1NWUxNTMyLTZjZjMtNDcwNy1iMGVmLTdmYzY2YzQwZDQxNSIsInB1ciI6ImJsb2JfaWQifX0=--dce1253a4290e975973223d8954ef7474e5525b9/source.jpg/"
     },
     {
      "name": "Leatherback",
@@ -5473,8 +5497,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -5494,6 +5518,10 @@
     {
      "name": "Fortuna",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImMwNTRkZGU1LTE4ODgtNGFjMC04NDVmLTE0NjQ3OTEyZDFiYSIsInB1ciI6ImJsb2JfaWQifX0=--4f93e11c666bff774a36d0b00894709064a3e0d8/Star_Citizen_Stella_Fortuna_2024_Fury_SKU-b67ba508-391e-4794-936c-1652454dfd09.jpg/"
+    },
+    {
+     "name": "Goldsmith",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjU1NjllMTI5LTQ1MzEtNDAxNy05NDdhLTQ1YWU5NzEyN2ZkNyIsInB1ciI6ImJsb2JfaWQifX0=--1670ea63627a87f896f18c1339af0e349cf1c314/source.jpg/"
     },
     {
      "name": "Leatherback",
@@ -5532,8 +5560,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -5745,6 +5773,10 @@
     {
      "name": "Flashpoint",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjNjNWU3OWNlLTc3ZDktNDc1YS1hNjVjLTFlOGJjYmZjNDQzMCIsInB1ciI6ImJsb2JfaWQifX0=--6bf87ce81c0fe5db33888e0c0c4f7162f1ec5964/Drak_golem_orange_white_orange-73e95ee3-8d72-45ca-90d4-d612c0535044.jpg/"
+    },
+    {
+     "name": "Foundation Festival",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImIzMDkzZTdmLWJiMGYtNGNmZC1hZDY4LTI0ZmVlZjI5MTA3ZCIsInB1ciI6ImJsb2JfaWQifX0=--3aea8833f052e3d8a31b7cd68199a9c8ed626444/source.jpg/"
     },
     {
      "name": "Greysteel",
@@ -6204,8 +6236,8 @@
   },
   "misc-hull-b": {
    "fySlug": "misc-hull-b",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVlYzNlZTkwLThmNTMtNDIzZC04N2VhLTc5M2Q3MDRiYTZiMSIsInB1ciI6ImJsb2JfaWQifX0=--76e4b512120e6efe595c282795358c6bc1c0b2d4/holo.gltf/",
-   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY0NjM5MDI5LWI1NzYtNDIzYy1iZWZiLWE3YThhYjEwMmEzZCIsInB1ciI6ImJsb2JfaWQifX0=--2b1b406dd4c4bde1b983f7ce40f58f88d7265a91/_re_.webp/",
+   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVlYzNlZTkwLThmNTMtNDIzZC04N2VhLTc5M2Q3MDRiYTZiMSIsInB1ciI6ImJsb2JfaWQifX0=--76e4b512120e6efe595c282795358c6bc1c0b2d4/holo.gltf/",
+   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY0NjM5MDI5LWI1NzYtNDIzYy1iZWZiLWE3YThhYjEwMmEzZCIsInB1ciI6ImJsb2JfaWQifX0=--2b1b406dd4c4bde1b983f7ce40f58f88d7265a91/_re_.webp/",
    "paints": [
     {
      "name": "Dusk",
@@ -6616,8 +6648,8 @@
   },
   "krig-l22-alphawolf": {
    "fySlug": "krig-l-22-alpha-wolf",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk4YzY1Y2MwLTcwNjEtNGRiMS04MjRkLWNjZmNjN2IwNzIxYSIsInB1ciI6ImJsb2JfaWQifX0=--90bca7d38f2b36cf103112c9672ddc64cbe98fd8/holo-577ff125-bdf4-43e4-b40c-1a790bbfa217.gltf/",
-   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxZWMxMGJmLTVmMGQtNDljNC1hYzYxLTBkZTNkMTVmYzE4NyIsInB1ciI6ImJsb2JfaWQifX0=--e1f8bb9a60b6c57b03d94f24073d0c370ecd4352/Star_Citizen_Krug_Alpha_Wolf_Flying-c285d557-d461-42aa-97bd-ab505058a891.jpg/",
+   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk4YzY1Y2MwLTcwNjEtNGRiMS04MjRkLWNjZmNjN2IwNzIxYSIsInB1ciI6ImJsb2JfaWQifX0=--90bca7d38f2b36cf103112c9672ddc64cbe98fd8/holo-577ff125-bdf4-43e4-b40c-1a790bbfa217.gltf/",
+   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxZWMxMGJmLTVmMGQtNDljNC1hYzYxLTBkZTNkMTVmYzE4NyIsInB1ciI6ImJsb2JfaWQifX0=--e1f8bb9a60b6c57b03d94f24073d0c370ecd4352/Star_Citizen_Krug_Alpha_Wolf_Flying-c285d557-d461-42aa-97bd-ab505058a891.jpg/",
    "paints": [
     {
      "name": "Allegro",
@@ -6734,8 +6766,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -6930,8 +6962,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7080,12 +7112,7 @@
     }
    ],
    "variants": [],
-   "loaners": [
-    {
-     "name": "Prospector",
-     "id": "misc-prospector"
-    }
-   ]
+   "loaners": []
   },
   "argo-moth": {
    "fySlug": "argo-moth",
@@ -7254,8 +7281,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7308,8 +7335,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7338,8 +7365,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7647,8 +7674,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7702,8 +7729,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7753,8 +7780,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -7911,8 +7938,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -8164,8 +8191,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -8203,8 +8230,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -8259,7 +8286,7 @@
   },
   "gama-railen": {
    "fySlug": "gama-railen",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImE2OGFhYmFhLTU5OWMtNDYzNi1iZmQ1LWIyOTBiNzZjZGNjOCIsInB1ciI6ImJsb2JfaWQifX0=--52896a7a59da26803e1511a3fed600fda45ae7e3/holo-7d0bab9a-8950-4057-9365-46ba597c4c8b.gltf/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjlmZmJlZDAwLTg2MTktNGViOS04MGIzLWY4ZWY1ODI0YmI4ZiIsInB1ciI6ImJsb2JfaWQifX0=--4291a2c66a6ee48d0607b4e79b774a78d4e7f116/holo.gltf/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImQxNTEwNmJhLTQ0MWMtNGU4OC04MzNkLWRmYzVlYWNkMjVhYSIsInB1ciI6ImJsb2JfaWQifX0=--4627fa08bdd8e61d671b734ed77b59853d476ce0/XIAN_Dev03_Promo_Base_Paint_Scheme_PJ01-1-Min-1-bc090c87-c068-4f02-829a-02b06b2425c8.jpg/",
    "paints": [
     {
@@ -8484,12 +8511,7 @@
     }
    ],
    "variants": [],
-   "loaners": [
-    {
-     "name": "Arrow",
-     "id": "anvl-arrow"
-    }
-   ]
+   "loaners": []
   },
   "misc-reliant": {
    "fySlug": "misc-reliant-kore",
@@ -9116,6 +9138,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjU4OGUzMjJiLTM2MGYtNDg4Zi1hZmQ3LTIwZmViYzA3MzI4NCIsInB1ciI6ImJsb2JfaWQifX0=--c6af668d1b44fe1b4af7ddbc91a57e0fc99c1390/Star_Citizen_RSI_Salvation_SKU_Solo_Black-And-Gold-ddd26732-55f3-4828-98b8-68e821b8dca0.jpg/"
     },
     {
+     "name": "Foundation Festival",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjE3NTIyMGQzLTY5MjQtNDQxMS04YmQ3LWUyMGI5NzIxYmUyMSIsInB1ciI6ImJsb2JfaWQifX0=--c1b43ba74f262a06c52d51a386ad486f44863c9d/source.jpg/"
+    },
+    {
      "name": "Lovestruck",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjdiZTdjZDhlLWQyMDMtNDgxMC04ZmEwLTQ4MjI0MDAyNWIyYSIsInB1ciI6ImJsb2JfaWQifX0=--c6e4d5f5f5836bb2377b4c33d8299e70292a3018/Star_Citizen_RSI_Salvation_Coramor_2026_SKU-8645e7df-177a-4b55-b0a2-cc4f66ab1d7e.jpg/"
     },
@@ -9388,15 +9414,15 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I LN",
-     "id": "rsi-aurora-gs-ln"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
   "misc-starfarer": {
    "fySlug": "misc-starfarer",
-   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjMxYmU0MDQ0LTY3ZjQtNDBlMy1iMzY0LWQyMmIzYjUzYjM5NSIsInB1ciI6ImJsb2JfaWQifX0=--78540ba4bd32b22c0f117536bc5875b321ec26d3/holo-7f392897-15d9-4371-bc07-064ab284a49f.gltf/",
-   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjNmNDE3YjJmLTk2ZjMtNDZlZS1iN2E1LTMxNDU1YWZhYTdmZCIsInB1ciI6ImJsb2JfaWQifX0=--a509755ae493cbe28ee2b3c4a9a0f984a07407e1/MISC_Starfarer_16_9-841ab582-fe0a-4808-8a04-2df4b8316c99-c4c3eb24-1f84-4ac4-be48-f780d3bfa684.jpg/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjMxYmU0MDQ0LTY3ZjQtNDBlMy1iMzY0LWQyMmIzYjUzYjM5NSIsInB1ciI6ImJsb2JfaWQifX0=--78540ba4bd32b22c0f117536bc5875b321ec26d3/holo-7f392897-15d9-4371-bc07-064ab284a49f.gltf/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjNmNDE3YjJmLTk2ZjMtNDZlZS1iN2E1LTMxNDU1YWZhYTdmZCIsInB1ciI6ImJsb2JfaWQifX0=--a509755ae493cbe28ee2b3c4a9a0f984a07407e1/MISC_Starfarer_16_9-841ab582-fe0a-4808-8a04-2df4b8316c99-c4c3eb24-1f84-4ac4-be48-f780d3bfa684.jpg/",
    "paints": [
     {
      "name": "2950 Invictus Black",
@@ -9685,8 +9711,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -9720,8 +9746,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -9754,8 +9780,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -9987,7 +10013,7 @@
   },
   "gama-tyilui": {
    "fySlug": "gama-tyilui",
-   "holo": null,
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjZlZTc1ODgxLWJjYzQtNDEyZi1iZDk2LWFlMDI2ZTYyNzVlNSIsInB1ciI6ImJsb2JfaWQifX0=--08b1116db1f7d72ed47112604180235167db350c/holo.gltf/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjU2Nzk5ODhkLTQ5ZjItNDY0Zi04Nzk5LWJlMDUwMWI2MTQ1OSIsInB1ciI6ImJsb2JfaWQifX0=--b678b67d6483991faf0235afc8dd50504e0aa3ed/source.jpg/",
    "paints": [
     {
@@ -10205,8 +10231,8 @@
    "variants": [],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -10582,8 +10608,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -10633,8 +10659,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },
@@ -10680,8 +10706,8 @@
    ],
    "loaners": [
     {
-     "name": "Aurora Mk I MR",
-     "id": "rsi-aurora-gs-mr"
+     "name": "Mustang Alpha",
+     "id": "cnou-mustang-alpha"
     }
    ]
   },

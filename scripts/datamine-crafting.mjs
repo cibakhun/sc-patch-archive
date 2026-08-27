@@ -472,6 +472,36 @@ for (const r of db.records) {
     dismantleByName.set(ent.name.toLowerCase(), recipe);
   }
 }
+/* ---------------- Entdopplung ---------------- */
+// Zwei CraftingBlueprintRecords koennen dieselbe EntityClassDefinition mit
+// identischen Parametern beschreiben. Dann steht derselbe Bauplan zweimal im
+// Bestand, bekommt zwei Seiten (`/crafting/fullforce.html` und `…-2.html`) und
+// die Missionsseite zeigt zwei optisch gleiche Chips, die auf verschiedene
+// Seiten fuehren. Gefunden 27.08.2026 an `FullForce` (Register id 49).
+//
+// Verglichen wird der GANZE Eintrag, nicht die guid allein: zwei Rezepte fuer
+// dasselbe Item mit verschiedenen Zutaten waeren zwei echte Wege und muessen
+// bleiben. Genau daran trennen sich die beiden Faelle des Befunds — FullForce
+// ist in jedem Feld gleich (faellt weg), BroadSpec traegt zwei guids, zwei
+// Wertesignaturen, zwei Fertigungszeiten und zwei Zutatenmengen (bleibt).
+const kanonisch = (v) => {
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  if (Array.isArray(v)) return `[${v.map(kanonisch).join(',')}]`;
+  return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${kanonisch(v[k])}`).join(',')}}`;
+};
+const gesehen = new Map();
+const doubletten = [];
+const eindeutig = [];
+for (const b of blueprints) {
+  const sig = kanonisch(b);
+  if (gesehen.has(sig)) { doubletten.push(b.name); continue; }
+  gesehen.set(sig, true);
+  eindeutig.push(b);
+}
+console.log(`entdoppelt: ${doubletten.length} zeichengleiche Doublette(n)${doubletten.length ? ` — ${[...new Set(doubletten)].join(', ')}` : ''}`);
+blueprints.length = 0;
+blueprints.push(...eindeutig);
+
 blueprints.sort((a, b) => a.name.localeCompare(b.name, 'en'));
 console.log(`blueprints: ${blueprints.length} (ohne entityClass: ${skippedNoEntity}, Template ohne Namen uebersprungen: ${skippedTemplate}, humanize-Fallback: ${fallbackNames})`);
 
