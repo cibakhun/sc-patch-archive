@@ -1,0 +1,223 @@
+{
+  "version": "4.10.0",
+  "codename": "Siege of Orison",
+  "date": "2026-08-26",
+  "dateDisplay": "26. August 2026",
+  "notesUrl": "https://robertsspaceindustries.com/spectrum/community/SC/forum/190048/thread/star-citizen-alpha-4-10-live-release-notes",
+  "era": "Frontier",
+  "type": "major",
+  "tagline": "Siege of Orison kehrt als erste Instanz-Mission zurück, die Quantum-Antriebe werden neu gestaffelt, und das Arlington-Unterhebelgewehr kommt.",
+  "heroImage": "/assets/trailer-4-10-0.jpg",
+  "summary": "Alpha 4.10.0 löst ein, was 4.9.0 ausdrücklich vertagt hatte: Siege of Orison kehrt zurück — diesmal nicht als offenes Gedränge, sondern als erste Mission auf der neuen Instanzierung. Die Wolkenplattformen über Crusader sind an die Nine Tails gefallen; ein Trupp bekommt seine eigene Instanz, holt die Plattformen zurück und trägt dafür die „Stronghold\"-Ausrüstung davon. Der Eingriff mit der größten Reichweite ist aber die Quantum-Staffelung: 176 der 227 Fahrzeuge fliegen mit neuer Sprunggeschwindigkeit (144 schneller, 32 langsamer), und die Spulzeit ist nicht mehr für alle pauschal vier Sekunden, sondern liegt jetzt je Antrieb zwischen 4,4 und 5,3 Sekunden — aus 20 runden Tempostufen sind 26 einzeln abgestimmte geworden. Dazu das Arlington-Unterhebelgewehr in vier Ausführungen, dreizehn neue Baupläne rund um Erz-Pods und Bergbaumodule, die Fortsetzung von Recco Battaglias Geschichte und neue Betankungs- und Notruf-Kontrakte. Ein neues fliegbares Schiff bringt der Patch nicht: die Kruger S-65 Stingray liegt mit Waffenhalterungen und vier Lackierungen im Build, fliegen lässt sie sich noch nicht.",
+  "palette": {
+    "bg": "#111a1f",
+    "accent": "#e8955f",
+    "accent2": "#4fd8b4",
+    "warm": true
+  },
+  "keyFacts": [
+    {
+      "label": "Siege of Orison",
+      "value": "Zurück als erste Mission auf der Instanzierung — eigener Trupp-Raum statt offenem Gedränge"
+    },
+    {
+      "label": "Quantum-Staffelung",
+      "value": "176 von 227 Fahrzeugen mit neuer Sprunggeschwindigkeit (144 schneller, 32 langsamer)"
+    },
+    {
+      "label": "Spulzeit",
+      "value": "Nicht mehr pauschal 4 s — jetzt 4,4 bis 5,3 s je Antrieb (171 Fahrzeuge betroffen)"
+    },
+    {
+      "label": "Neue Waffe",
+      "value": "Arlington-Unterhebelgewehr, vier Ausführungen, 20-Schuss-Magazin (vorher 25)"
+    },
+    {
+      "label": "Baupläne",
+      "value": "1.607 statt 1.594 — Erz-Pods und sieben neue Bergbau- und Bergungsmodule"
+    },
+    {
+      "label": "Neues Schiff",
+      "value": "Keins fliegbar — die Kruger S-65 Stingray liegt vorbereitet im Build"
+    },
+    {
+      "label": "Wipe",
+      "value": "Kein voller Wipe — laufende Raffinerie- und Fertigungsaufträge vorher abschließen",
+      "unverified": true
+    }
+  ],
+  "features": [
+    {
+      "name": "Siege of Orison",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Die Wolkenplattformen über Crusader sind an die Nine Tails gefallen. Der Einsatz kehrt als geschlossener Trupp-Auftrag zurück: Plattformen zurückholen, Zivilisten bergen, die Anarchisten ausheben. Im Missionsbestand liegen dafür zwei neue Einträge — „Orison Platforms Under Attack\" und „Retake Platforms From Nine Tails\".",
+      "facts": [
+        {
+          "label": "Gegner",
+          "value": "Nine Tails"
+        },
+        {
+          "label": "Ort",
+          "value": "Orison · Crusader (Stanton)"
+        },
+        {
+          "label": "Truppgröße",
+          "value": "Ausgelegt auf vier bis sechs Spieler",
+          "unverified": true
+        }
+      ]
+    },
+    {
+      "name": "Instanzierung auf Anforderung",
+      "system": "Server-Technik",
+      "kind": "tech",
+      "desc": "Der Unterbau hinter dem Einsatz: Statt alle Spieler in dieselbe offene Zone zu werfen, bekommt eine Gruppe ihren eigenen abgeschlossenen Raum. Siege of Orison ist der erste Inhalt, der darauf läuft — angelegt ist die Technik als Fundament für weitere Einsätze."
+    },
+    {
+      "name": "Quantum-Antriebe neu gestaffelt",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Vorher teilten sich die Fahrzeuge zwanzig runde Tempostufen — sehr viele lagen exakt auf 165.000.000 oder 190.000.000. Jetzt sind es 26 einzeln abgestimmte Werte, und auch die Spulzeit ist aufgefächert. Wer bisher nach Faustregel gesprungen ist, rechnet ab hier je Schiff.",
+      "facts": [
+        {
+          "label": "Geschwindigkeit geändert",
+          "value": "176 von 227 — 144 schneller, 32 langsamer"
+        },
+        {
+          "label": "Tempostufen",
+          "value": "20 runde Werte vorher, 26 abgestimmte danach"
+        },
+        {
+          "label": "Spulzeit",
+          "value": "171 Fahrzeuge; aus pauschal 4 s werden 4,4–5,3 s"
+        }
+      ]
+    },
+    {
+      "name": "Arlington-Unterhebelgewehr",
+      "system": "Waffen & Ausrüstung",
+      "kind": "gameplay",
+      "desc": "Neues Gewehr mit Unterhebel-Repetierung, im Bestand in vier Ausführungen: Grundmodell sowie „Gamekeeper\", „Watchpoint\" und „Widowmaker\". Das Magazin fasst 20 Schuss — die zuvor geführte 25-Schuss-Variante ist verschwunden.",
+      "facts": [
+        {
+          "label": "Ausführungen",
+          "value": "Arlington · Gamekeeper · Watchpoint · Widowmaker"
+        },
+        {
+          "label": "Magazin",
+          "value": "20 Schuss (vorher 25)"
+        }
+      ]
+    },
+    {
+      "name": "„Stronghold\"-Ausrüstung",
+      "system": "Waffen & Ausrüstung",
+      "kind": "gameplay",
+      "desc": "Die Beute aus dem Einsatz: Zur schweren Morozov-Panzerung kommen Arme, Torso und Beine in der Ausführung „Stronghold\", dazu der passende Morozov-CH-Rucksack. Das Vendetta-MG trägt dieselbe Ausführung.",
+      "facts": [
+        {
+          "label": "Neue Teile",
+          "value": "Morozov-SH-I Arme · Torso · Beine · Morozov-CH-Rucksack"
+        }
+      ]
+    },
+    {
+      "name": "Erz-Pods",
+      "system": "Mining",
+      "kind": "gameplay",
+      "desc": "Fünf neue Baupläne für Erz-Behälter — von Argo, Drake und MISC, dazu der GOLEM MC-4 und eine verstärkte MISC-Ausführung. Sie erweitern das, was sich beim Abbau mitführen und weiterverarbeiten lässt.",
+      "facts": [
+        {
+          "label": "Neu",
+          "value": "Argo · Drake · MISC · MISC verstärkt · GOLEM MC-4"
+        }
+      ],
+      "topicSlug": "mining",
+      "evergreen": true
+    },
+    {
+      "name": "Neue Bergbau- und Bergungsmodule",
+      "system": "Mining",
+      "kind": "gameplay",
+      "desc": "Sieben Module kommen als Baupläne dazu: Clearcut, Deluge, Overrun, Stampede und Torrent III für den Abbau, Comer und Hart als Schaber für die Bergung.",
+      "facts": [
+        {
+          "label": "Abbau",
+          "value": "Clearcut · Deluge · Overrun · Stampede · Torrent III"
+        },
+        {
+          "label": "Bergung",
+          "value": "Comer · Hart"
+        }
+      ],
+      "topicSlug": "crafting",
+      "evergreen": true
+    },
+    {
+      "name": "Recco Battaglias Fortsetzung",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Die in 4.9.0 angekündigte Geschichte rund um die Bergbau-Koordinatorin geht weiter. Im Bestand tauchen dafür mehrere neue Aufträge auf, darunter „Emergency: Blinding Hope in Trouble\", „Heavy and Bright\", „Idea for Isaac\", „Too Much Gun\" und „Welcome to the System\"."
+    },
+    {
+      "name": "Betankungs-Kontrakte",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Zwei Eilaufträge kommen dazu: „CRITICAL FLEET REFUEL\" und „URGENT CAPITAL FLEET REFUEL\" — Betankung unter Zeitdruck, bis hinauf zum Großkampfschiff."
+    },
+    {
+      "name": "Notruf-Kontrakte nach Dringlichkeit",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neue gestufte Hilferufe: Schiffe in Not und unter Beschuss werden als Kontrakt in Gelb, Orange und Rot ausgeschrieben — die Stufe sagt, wie ernst die Lage am Zielort ist."
+    },
+    {
+      "name": "Kruger S-65 Stingray — vorbereitet, nicht fliegbar",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Der Jäger ist angekündigt und liegt teilweise schon im Build: zwei S4-Raketenhalterungen, eine Lafette, der Whiptail-Repetierer und vier Lackierungen. Als fliegbares Fahrzeug führt der Bestand ihn nicht — die Flotte bleibt bei 227.",
+      "facts": [
+        {
+          "label": "Im Build",
+          "value": "S4-Raketenhalterungen · STR-E2-Lafette · Whiptail · 4 Lackierungen"
+        },
+        {
+          "label": "Fliegbar",
+          "value": "Nein — Flottenstand unverändert 227"
+        }
+      ]
+    },
+    {
+      "name": "Totenkopf-Lackierungen",
+      "system": "Kosmetik",
+      "kind": "qol",
+      "desc": "Vier Schiffe bekommen die „Skull and Crossbones\"-Bemalung: Basher, Clipper, Ironclad und Shiv."
+    },
+    {
+      "name": "Katalog-Zuwachs",
+      "system": "Items",
+      "kind": "qol",
+      "desc": "Unterm Strich wächst der Bestand um 41 neue Einträge auf 9.201 — neben Waffen und Panzerung auch Kleinkram wie ein Zielfernrohr, ein Nasenlafetten-Umbau für die Mercury und mehrere Rennanzüge.",
+      "facts": [
+        {
+          "label": "Bestand",
+          "value": "9.201 Einträge (vorher 9.168)"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "S-65 Stingray",
+      "manufacturer": "Kruger Intergalactic",
+      "role": "Jäger",
+      "status": "angekündigt",
+      "notes": "Waffenhalterungen, Lafette und vier Lackierungen liegen im Build — als fliegbares Fahrzeug noch nicht enthalten"
+    }
+  ],
+  "events": [],
+  "fixesNote": "Die LIVE-Notes setzen den Schwerpunkt auf Stabilität und Fehlerbehebung; im Bestand selbst zeigen sich vor allem die Quantum-Staffelung und 41 neue Katalog-Einträge.",
+  "wipe": "Kein voller Wipe — laufende Raffinerie- und Fertigungsaufträge sollten vor dem Update abgeschlossen werden.",
+  "topics": []
+}

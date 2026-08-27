@@ -98,8 +98,8 @@ export interface CraftingDb {
 
 export const craftDb = DB as unknown as CraftingDb;
 
-/** Patch-Label aus der DB-Version ("LIVE-4.9.0-12232306" -> "4.9"). */
-export const craftPatch = (/(\d+\.\d+)/.exec(craftDb.version) ?? [])[1] ?? '4.9';
+/** Patch-Label aus der DB-Version ("PUBLIC-4.10.0-12519617" -> "4.10"). */
+export const craftPatch = (/(\d+\.\d+)/.exec(craftDb.version) ?? [])[1] ?? '4.10';
 
 /* ---------- Slugs ---------- */
 

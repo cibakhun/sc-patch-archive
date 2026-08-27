@@ -1,0 +1,431 @@
+---
+// „sc-4-10-0" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../../components/SiteNav.astro';
+import QuickFacts from '../../components/dossier/QuickFacts.astro';
+import PatchDossier from '../../components/dossier/PatchDossier.astro';
+import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
+import { versioned } from '../../lib/assetVersion';
+import { localeFromPath } from '../../i18n/ui';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+const entry = await getEntry('patches', '4-10-0');
+if (!entry) throw new Error('Patch-Daten 4-10-0 fehlen in src/data/patches/');
+const patch = mergePatchEn('4-10-0', entry.data, lang);
+---
+<PatchSeo patch={patch} image="/assets/trailer-4-10-0.jpg" />
+<style is:inline>
+
+/* 4.10.0 "Siege of Orison" — Wolkenstadt unter Belagerung.
+   Design-Welt: Bernstein-Himmel über Crusader, kaltes Türkis der
+   Plattform-Kanten, Instanz-Klammer als Signatur. Der Patch hat zwei
+   Temperaturen — draußen die Abendsonne, drinnen das Gefecht. */
+:root{
+  --bg:#111a1f;--bg-2:#16232a;--surface:#1b2b33;--surface-2:#22363f;
+  --accent:#e8955f;--accent-2:#4fd8b4;--hot:#e8955f;
+  --text:#eef2f3;--muted:#9fb0b6;
+  --line:rgba(232,149,95,.24);--line-soft:rgba(238,242,243,.10);
+  --glow:0 0 44px rgba(232,149,95,.28);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;
+  --maxw:1280px;
+}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f0f9fe;--bg-2:#e4f0f7;--surface:#fcfefe;--surface-2:#e9f5fa;--text:#1d2021;--muted:#4c5b60;--accent:#8c4402;--accent-2:#006550;--hot:#803d02;--ink:#ffffff;--accent-media:#e8955f;--accent-2-media:#4fd8b4;--line:rgba(159,96,53,.3);--line-soft:rgba(43,46,47,.12);--glow:0 6px 22px rgba(166,91,37,.18)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
+
+/* Effekt-Overlays: Abendvignette + feine Scanlines */
+body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 38%,transparent 54%,var(--vignette) 100%);opacity:var(--ambient-opacity);-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%)}
+
+/* HERO */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
+.hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/trailer-4-10-0.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
+.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--scrim-4) 90%,var(--bg)),radial-gradient(120% 90% at 78% 22%,transparent,var(--bg) 88%)}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+#haze{position:absolute;inset:0;z-index:1;opacity:.55}html:not([data-fx="on"]) #haze{display:none}
+.hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
+.eyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent-2)}
+.hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.82;letter-spacing:var(--ls-1);margin:.6rem 0 .1rem;font-size:clamp(4rem,19vw,15rem);background:linear-gradient(180deg,var(--title-hi),var(--accent) 75%,#6b3216);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 36px rgba(232,149,95,.45))}
+.hero h1::after{content:attr(data-text);position:absolute;left:3px;top:0;-webkit-text-fill-color:var(--accent-2);color:var(--accent-2);opacity:0;mix-blend-mode:screen;animation:rgbs 9s steps(1) infinite}
+@keyframes rgbs{0%,93%,100%{opacity:0;transform:translate(0,0)}94%{opacity:.5;transform:translate(-4px,2px)}96%{opacity:0}}
+.hero .codename{font-family:var(--font-display);font-weight:700;font-size:clamp(1.3rem,4vw,2.6rem);color:var(--on-media)}
+.hero .codename span{color:var(--accent-2)}
+.hero .tagline{font-family:var(--font-ui);font-weight:600;font-size:clamp(1rem,2vw,1.4rem);color:var(--accent);letter-spacing:var(--ls-5);margin-top:.7rem}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.tag{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-5);padding:.4rem .8rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
+.tag.hot{border-color:rgba(79,216,180,.55);color:#8fe9d0}
+.scrollcue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+/* Marquee */
+.marquee{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
+.mtrack{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 34s linear infinite;font-family:var(--font-display);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--accent)}
+.mtrack .dot{color:var(--accent-2)}
+@keyframes scrollx{to{transform:translateX(-50%)}}
+
+/* Section */
+section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)}
+.wrap{max-width:var(--maxw);margin:0 auto}
+.sec-head{display:flex;align-items:center;gap:1rem;margin-bottom:2rem}
+.sec-head .num{font-family:var(--font-display);font-weight:900;font-size:var(--fs-9);color:var(--accent);opacity:.8}
+.sec-head h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,3.5vw,2.3rem)}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+.lead{max-width:64ch;color:var(--muted);font-size:var(--fs-10);line-height:1.55;margin-bottom:1.4rem}
+.lead b{color:#f3b489}
+
+/* BENTO */
+.bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:185px;gap:.8rem}
+@media(max-width:820px){.bento{grid-template-columns:repeat(2,1fr)}}
+.tile{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:1.2rem}
+.tile .tbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:transform .9s ease}
+.tile:hover .tbg{transform:scale(1.09)}
+.tile.img::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+.tile.img::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,var(--scrim-6),var(--scrim-0) 65%)}
+.tile>*{position:relative;z-index:2}
+.tile .lbl{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-7);font-size:var(--fs-10);text-shadow:0 1px 8px var(--on-media-shadow)}
+.tile .sub{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-4);color:var(--accent-2);margin-top:.2rem}
+.tile.word{background:linear-gradient(140deg,var(--surface),var(--bg-2));justify-content:center}
+.tile.word b{font-family:var(--font-display);font-weight:900;font-size:clamp(1.35rem,2.4vw,2.1rem);line-height:.95;color:var(--accent)}
+.tile.word.hot b{color:#8fe9d0}
+.tile.word small{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-4);color:var(--muted);margin-top:.5rem}
+.tile.stat{background:linear-gradient(140deg,var(--surface-2),var(--bg-2));align-items:center;justify-content:center;text-align:center}
+.tile.stat .num{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,5vw,3.6rem);color:var(--accent);line-height:1}
+.tile.stat .cap{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-13);font-size:var(--fs-4);color:var(--muted);margin-top:.5rem}
+.w2{grid-column:span 2}.h2{grid-row:span 2}.b2{grid-column:span 2;grid-row:span 2}
+@media(max-width:820px){.b2{grid-column:span 2}.h2{grid-row:span 1}}
+
+/* SHOT */
+.shot{position:relative;min-height:90vh;display:flex;align-items:flex-end;padding:clamp(2.5rem,7vw,7rem) clamp(1.25rem,5vw,4.5rem);overflow:hidden}
+.shot .sbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;animation:kb2 26s ease-in-out infinite alternate}
+@keyframes kb2{from{transform:scale(1.08)}to{transform:scale(1.24) translate(-3%,-2%)}}
+.shot::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+.shot::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--scrim-0),var(--scrim-3) 60%,var(--scrim-3) 90%,var(--bg)),linear-gradient(90deg,var(--scrim-4),transparent 55%)}
+.shot__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
+.shot .kx{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-20);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-6)}
+.shot .big{font-family:var(--font-display);font-weight:900;font-size:clamp(2.6rem,13vw,10rem);line-height:.8;color:var(--on-media);text-shadow:0 6px 70px var(--on-media-shadow),0 0 50px rgba(232,149,95,.26);overflow-wrap:normal;text-wrap:balance}
+.shot p{max-width:48ch;color:var(--on-media-dim);font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.6rem;text-shadow:0 2px 14px var(--on-media-shadow)}
+
+/* INSTANZ-KLAMMER — Signatur dieser Seite.
+   Die eckige Klammer ist das Bild für den abgeschlossenen Raum: was
+   drinnen liegt, gehört dem Trupp allein. */
+.inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.8rem}
+.icard{position:relative;background:var(--surface);border:1px solid var(--line-soft);padding:1.2rem 1.35rem 1.05rem}
+.icard::before,.icard::after{content:"";position:absolute;width:16px;height:16px;border:2px solid var(--accent-2);opacity:.75}
+.icard::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.icard::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.icard .ik{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
+.icard b{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.35rem 0 .3rem}
+.icard small{display:block;color:var(--muted);font-size:var(--fs-8);line-height:1.5}
+
+/* QUANTUM-STAFFELUNG — der Zahlenbefund dieses Patches.
+   Zwei Leitern nebeneinander: vorher runde Stufen, nachher abgestimmte. */
+.qgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:.9rem}
+@media(max-width:900px){.qgrid{grid-template-columns:1fr}}
+.qpanel{background:var(--surface);border:1px solid var(--line-soft);padding:1.15rem 1.3rem;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.qpanel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:.8rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.85rem}
+.qpanel .phead h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text)}
+.qpanel .phead .pc{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-12);color:var(--accent-2);text-transform:uppercase}
+.split{display:flex;gap:.5rem;align-items:stretch;height:46px;margin-bottom:.9rem}
+.split i{display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--font-mono);font-size:var(--fs-8);letter-spacing:var(--ls-9);color:var(--ink-media);border-radius:3px}
+.split .up{flex:144;background:linear-gradient(90deg,rgba(79,216,180,.85),rgba(79,216,180,.55));color:#07231d}
+.split .dn{flex:32;background:linear-gradient(90deg,rgba(232,149,95,.8),rgba(232,149,95,.5));color:#2a1206}
+.split .same{flex:51;background:var(--surface-2);color:var(--muted)}
+.splitleg{display:flex;flex-wrap:wrap;gap:.9rem;font-family:var(--font-mono);font-size:var(--fs-6);color:var(--muted);letter-spacing:var(--ls-7)}
+.splitleg em{font-style:normal}
+.splitleg .k1{color:#8fe9d0}.splitleg .k2{color:#f3b489}
+.readout{display:grid;gap:.4rem;font-family:var(--font-mono);font-size:var(--fs-8)}
+.readout .row{display:flex;align-items:baseline;gap:.6rem}
+.readout dt{color:var(--muted);font-size:var(--fs-5);letter-spacing:var(--ls-12);text-transform:uppercase;flex:none}
+.readout .lead2{flex:1;border-bottom:1px dotted rgba(238,242,243,.25);transform:translateY(-3px)}
+.readout dd{color:var(--text);text-align:right}
+.readout dd em{color:var(--accent-2);font-style:normal}
+.tierbar{display:flex;gap:3px;margin:.2rem 0 .9rem;height:74px;align-items:flex-end}
+.tierbar span{flex:1;background:linear-gradient(180deg,var(--accent-2),rgba(79,216,180,.25));border-radius:2px 2px 0 0;opacity:.85}
+.tierbar.before span{background:linear-gradient(180deg,var(--muted),rgba(159,176,182,.2))}
+.tierlab{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--muted);margin-bottom:.35rem;text-transform:uppercase}
+
+/* BEUTE — Ausrüstungsraster */
+.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+.gcard{background:var(--surface);border:1px solid var(--line-soft);border-left:2px solid var(--accent-2);padding:1.05rem 1.15rem .95rem}
+.gcard .gk{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
+.gcard b{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.35rem 0 .25rem}
+.gcard small{display:block;color:var(--muted);font-size:var(--fs-8);line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
+.chip{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--text);border:1px solid rgba(79,216,180,.4);padding:.28rem .6rem;border-radius:2px;background:var(--veil)}
+
+/* WERKBANK — die 13 neuen Baupläne */
+.bp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem}
+.bpcol{background:linear-gradient(140deg,var(--surface-2),var(--bg-2));border:1px solid var(--line-soft);padding:1.1rem 1.2rem 1rem}
+.bpcol h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--accent);margin-bottom:.2rem}
+.bpcol .cnt{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-11);color:var(--muted);text-transform:uppercase}
+.bplist{list-style:none;display:grid;gap:.35rem;margin-top:.75rem;font-family:var(--font-mono);font-size:var(--fs-8)}
+.bplist li{display:flex;gap:.6rem;align-items:baseline;border-left:2px solid rgba(79,216,180,.35);padding:.26rem 0 .26rem .65rem;color:var(--text)}
+.bplist .mk{color:var(--accent-2);flex:none;font-size:var(--fs-6)}
+
+/* STINGRAY — Bühne mit Statuszeile */
+.sr{display:grid;grid-template-columns:1.25fr .75fr;gap:.9rem}
+@media(max-width:900px){.sr{grid-template-columns:1fr}}
+/* Der Stingray-Kasten ist eine .tile.img: Verdunklung und Raster kommen aus
+   der site-eigenen, in der Layer-Registry gefuehrten Familie, statt aus einem
+   zweiten handgeschriebenen Scrim. .srshot setzt nur noch die Hoehe. */
+.srshot{min-height:330px}
+.srnote{background:var(--surface);border:1px solid var(--line-soft);border-top:2px solid var(--accent);padding:1.15rem 1.3rem}
+.srnote h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text);margin-bottom:.5rem}
+.srnote p{color:var(--muted);font-size:var(--fs-8);line-height:1.55}
+.srflag{display:inline-block;margin-top:.85rem;font-family:var(--font-mono);font-size:var(--fs-6);letter-spacing:var(--ls-9);color:#f3b489;border:1px dashed rgba(232,149,95,.5);padding:.45rem .7rem}
+
+/* Footer */
+footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5rem,6vw,4rem) clamp(1.25rem,5vw,4.5rem) 3rem}
+.pager{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;max-width:var(--maxw);margin-inline:auto}
+.pager>a,.pager>span{flex:1;min-width:min(200px,100%);display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:1.1rem 1.3rem;background:var(--surface);transition:border-color var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
+.pager a:hover{border-color:var(--accent);transform:translateY(-2px)}
+.pager .dir{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-14);font-size:var(--fs-4);color:var(--muted)}
+.pager .ttl{font-family:var(--font-display);font-weight:700;font-size:var(--fs-10);margin-top:.3rem;overflow-wrap:break-word}
+.pager .next{text-align:right}
+.pager .disabled{opacity:.35}
+.foot-meta{max-width:var(--maxw);margin:0 auto;display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;font-size:var(--fs-7);color:var(--muted)}
+.foot-meta a{color:var(--accent)}
+.home-link{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-6)}
+.disclaimer{max-width:var(--maxw);margin:1.6rem auto 0;font-size:var(--fs-4);color:var(--muted);opacity:.65;border-top:1px solid var(--line-soft);padding-top:1.2rem}
+
+/* Klickbar-Affordance + Lightbox */
+.tile.img,.tile.word,.tile.stat{cursor:pointer}
+.zoomic{position:absolute;top:.7rem;right:.7rem;z-index:3;width:34px;height:34px;border-radius:50%;background:var(--scrim-4);border:1px solid var(--line);display:grid;place-items:center;font-size:var(--fs-8);color:var(--on-media);opacity:.55;transition:opacity var(--dur-base) var(--ease-ui),background var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
+.tile.img:hover .zoomic,.tile.word:hover .zoomic,.tile.stat:hover .zoomic{opacity:1;background:var(--accent);color:var(--ink-media);transform:scale(1.12)}
+.lb{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;background:var(--lb-backdrop);backdrop-filter:blur(5px);padding:3vh 3vw}
+.lb.open{display:flex}
+.lb__body{position:relative;max-width:1120px;width:100%}
+.lb__body img{display:block;width:100%;height:auto;max-height:88vh;object-fit:contain;border:1px solid var(--line);border-radius:8px}
+.lb__x{position:absolute;top:-3.4rem;right:0;background:none;border:1px solid var(--line);color:var(--on-media);width:46px;height:46px;border-radius:50%;font-size:var(--fs-12);cursor:pointer;transition:background var(--dur-base) var(--ease-ui),color var(--dur-base) var(--ease-ui)}
+.lb__x:hover{background:var(--accent);color:var(--ink-media)}
+.lb__info{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:88vh;overflow-y:auto}
+.lb__info img{display:block;width:100%;max-height:46vh;object-fit:cover}
+.lb__txt{padding:1.4rem 1.7rem}
+.lb__txt h3{font-family:var(--font-display);font-weight:800;font-size:var(--fs-14);color:var(--accent);margin-bottom:.5rem}
+.lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .tag.hot{border-color:rgba(9,140,112,.73);color:#016755}
+:root[data-theme="light"] .lead b{color:#864403}
+:root[data-theme="light"] .tile.word.hot b{color:#016755}
+:root[data-theme="light"] .splitleg .k1{color:#016755}
+:root[data-theme="light"] .splitleg .k2{color:#864403}
+:root[data-theme="light"] .srflag{color:#864403}
+</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.10.0' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.10.0' }]} />
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" aria-hidden="true"></div>
+    <canvas id="haze" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow">{de ? '26. August 2026 · Major-Patch' : 'August 26, 2026 · Major Patch'}</div>
+      <h1 data-text="4.10">4.10</h1>
+      <div class="codename">Siege of <span>Orison</span></div>
+      <div class="tagline">{de ? 'Crusader ruft — die Wolkenstadt ist gefallen' : 'Crusader is calling — the cloud city has fallen'}</div>
+      <div class="tags">
+        <span class="tag hot">{de ? 'Instanzierung' : 'Instancing'}</span><span class="tag">Nine Tails</span><span class="tag">Orison</span><span class="tag">{de ? 'Quantum-Staffelung' : 'Quantum re-tiering'}</span><span class="tag">Arlington</span><span class="tag">{de ? 'Kein voller Wipe' : 'No Full Wipe'}</span>
+      </div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="mtrack">
+      <span>SIEGE OF ORISON</span><span class="dot">◆</span><span>NINE TAILS</span><span class="dot">◆</span><span>{de ? 'INSTANZIERUNG' : 'INSTANCING'}</span><span class="dot">◆</span><span>{de ? '176 VON 227' : '176 OF 227'}</span><span class="dot">◆</span><span>ARLINGTON</span><span class="dot">◆</span><span>STRONGHOLD</span><span class="dot">◆</span><span>{de ? '13 NEUE BAUPLÄNE' : '13 NEW BLUEPRINTS'}</span><span class="dot">◆</span>
+      <span>SIEGE OF ORISON</span><span class="dot">◆</span><span>NINE TAILS</span><span class="dot">◆</span><span>{de ? 'INSTANZIERUNG' : 'INSTANCING'}</span><span class="dot">◆</span><span>{de ? '176 VON 227' : '176 OF 227'}</span><span class="dot">◆</span><span>ARLINGTON</span><span class="dot">◆</span><span>STRONGHOLD</span><span class="dot">◆</span><span>{de ? '13 NEUE BAUPLÄNE' : '13 NEW BLUEPRINTS'}</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang={de ? 'de' : 'en'} />
+
+  <!-- BENTO HIGHLIGHTS -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
+      <div class="bento reveal">
+        <div class="tile img b2" data-lb="img:/assets/trailer-4-10-0.jpg"><div class="tbg" style="background-image:url('/assets/trailer-4-10-0.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Orison</div><div class="sub">{de ? 'Wolkenplattformen über Crusader' : 'Cloud platforms above Crusader'}</div></div>
+        <div class="tile word hot" data-info data-title={de ? 'Der eigene Raum' : 'A room of your own'} data-text={de ? 'Siege of Orison ist der erste Inhalt, der auf der neuen Instanzierung läuft: Statt alle Spieler in dieselbe offene Zone zu werfen, bekommt eine Gruppe ihren eigenen abgeschlossenen Raum. Was drinnen passiert, gehört dem Trupp allein — kein fremdes Gedränge, keine geteilte Beute. Angelegt ist die Technik als Fundament für weitere Einsätze.' : 'Siege of Orison is the first content running on the new instancing: instead of dropping every player into the same open zone, a group gets its own self-contained space. What happens inside belongs to the squad alone — no strangers, no shared loot. The tech is laid down as a foundation for further operations.'}><span class="zoomic">+</span><b>EIGENER<br>RAUM</b><small>{de ? 'Instanzierung auf Anforderung' : 'Instancing on demand'}</small></div>
+        <div class="tile stat" data-info data-title={de ? '176 von 227 Fahrzeugen' : '176 of 227 vehicles'} data-text={de ? 'Die Quantum-Staffelung ist der Eingriff mit der größten Reichweite: 176 der 227 Fahrzeuge fliegen mit neuer Sprunggeschwindigkeit — 144 schneller, 32 langsamer. Vorher teilten sich die Schiffe zwanzig runde Tempostufen, sehr viele lagen exakt auf 165.000.000 oder 190.000.000. Jetzt sind es 26 einzeln abgestimmte Werte.' : 'The quantum re-tiering has the widest reach of anything in this patch: 176 of 227 vehicles fly with a new jump speed — 144 faster, 32 slower. Previously the fleet shared twenty round speed tiers, a great many sitting exactly on 165,000,000 or 190,000,000. Now there are 26 individually tuned values.'}><span class="zoomic">+</span><div class="num">176</div><div class="cap">{de ? 'Neue QT-Werte' : 'New QT values'}</div></div>
+        <div class="tile img w2" data-lb="img:/assets/t-orison-1.jpg"><div class="tbg" style="background-image:url('/assets/t-orison-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">{de ? 'Die Plattformen' : 'The platforms'}</div><div class="sub">{de ? 'Nine Tails halten die Stadt' : 'Nine Tails hold the city'}</div></div>
+        <div class="tile stat" data-info data-title={de ? '13 neue Baupläne' : '13 new blueprints'} data-text={de ? 'Die Werkbank wächst von 1.594 auf 1.607 Baupläne. Der Schwerpunkt liegt beim Abbau: fünf Erz-Pods (Argo, Drake, MISC, MISC verstärkt, GOLEM MC-4) und sieben Module — Clearcut, Deluge, Overrun, Stampede und Torrent III für den Abbau, Comer und Hart als Schaber für die Bergung. Dazu kommen Panzerungs-Ausführungen in Schneetarn und SecondWind.' : 'The workbench grows from 1,594 to 1,607 blueprints. The focus is on mining: five ore pods (Argo, Drake, MISC, MISC reinforced, GOLEM MC-4) and seven modules — Clearcut, Deluge, Overrun, Stampede and Torrent III for mining, Comer and Hart as scrapers for salvage. Plus armour finishes in snow camo and SecondWind.'}><span class="zoomic">+</span><div class="num">+13</div><div class="cap">{de ? 'Baupläne' : 'Blueprints'}</div></div>
+        <div class="tile word" data-info data-title="Arlington" data-text={de ? 'Neues Gewehr mit Unterhebel-Repetierung, im Bestand in vier Ausführungen: Grundmodell sowie „Gamekeeper", „Watchpoint" und „Widowmaker". Das Magazin fasst 20 Schuss — die zuvor geführte 25-Schuss-Variante ist verschwunden.' : 'A new lever-action rifle, carried in four variants: the base model plus "Gamekeeper", "Watchpoint" and "Widowmaker". The magazine holds 20 rounds — the 25-round variant listed before has disappeared.'}><span class="zoomic">+</span><b>ARLINGTON</b><small>{de ? 'Unterhebelgewehr · 4 Ausführungen' : 'Lever action · 4 variants'}</small></div>
+        <div class="tile img w2" data-lb="img:/assets/t-stingray-1.jpg"><div class="tbg" style="background-image:url('/assets/t-stingray-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger S-65 Stingray</div><div class="sub">{de ? 'Angekündigt · noch nicht fliegbar' : 'Announced · not yet flyable'}</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOT ORISON -->
+  <section class="shot">
+    <div class="sbg" style="background-image:url('/assets/t-orison-1.jpg')" aria-hidden="true"></div>
+    <div class="shot__in reveal">
+      <div class="kx">{de ? 'Nine Tails · Orison, Crusader' : 'Nine Tails · Orison, Crusader'}</div>
+      <div class="big">ORISON</div>
+      <p><Fragment set:html={de ? 'Der einst mondäne Rückzugsort über den Wolken Crusaders ist an die Nine Tails gefallen. Ein Trupp, eine Instanz, ein Auftrag: Plattformen zurückholen, Menschen herausholen.' : 'The once prestigious getaway above Crusader\'s clouds has fallen to the Nine Tails. One squad, one instance, one job: take the platforms back and get people out.'} /></p>
+    </div>
+  </section>
+
+  <!-- INSTANZ -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Der Einsatz' : 'The operation'}</h2><span class="rule"></span></div>
+      <p class="lead reveal">{de ? 'Siege of Orison war schon einmal da — als offenes Ereignis, in dem sich beliebig viele Spieler auf denselben Plattformen drängten. Diesmal ist es ' : 'Siege of Orison has been here before — as an open event where any number of players crowded onto the same platforms. This time it is '}<b>{de ? 'ein geschlossener Raum je Trupp' : 'a closed space per squad'}</b>{de ? '. Im Missionsbestand liegen dafür zwei neue Einträge.' : '. Two new entries cover it in the mission data.'}</p>
+      <div class="inst reveal">
+        <article class="icard"><span class="ik">{de ? 'Lage // 01' : 'Situation // 01'}</span><b>{de ? 'Plattformen unter Beschuss' : 'Platforms under attack'}</b><small>{de ? '„Orison Platforms Under Attack" — die Stadt meldet den Angriff, der Einsatz beginnt an den Landeplattformen.' : '"Orison Platforms Under Attack" — the city reports the assault; the operation starts at the landing platforms.'}</small></article>
+        <article class="icard"><span class="ik">{de ? 'Auftrag // 02' : 'Contract // 02'}</span><b>{de ? 'Zurückholen, was ihnen gehört' : 'Take back what is theirs'}</b><small>{de ? '„Retake Platforms From Nine Tails" — Plattform für Plattform räumen, bis die Gang von der Stadt herunter ist.' : '"Retake Platforms From Nine Tails" — clear platform by platform until the gang is off the city.'}</small></article>
+        <article class="icard"><span class="ik">{de ? 'Raum // 03' : 'Space // 03'}</span><b>{de ? 'Instanzierung auf Anforderung' : 'Instancing on demand'}</b><small>{de ? 'Der Trupp bekommt seine eigene Instanz. Ausgelegt ist der Einsatz auf vier bis sechs Leute.' : 'The squad gets its own instance. The operation is designed for four to six people.'}</small></article>
+        <article class="icard"><span class="ik">{de ? 'Beute // 04' : 'Spoils // 04'}</span><b>{de ? '„Stronghold"-Ausführung' : 'The "Stronghold" finish'}</b><small>{de ? 'Wer durchkommt, trägt die schwere Morozov-Panzerung in der Ausführung „Stronghold" davon.' : 'Those who make it through walk away with the heavy Morozov armour in the "Stronghold" finish.'}</small></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUANTUM -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Quantum-Staffelung' : 'Quantum re-tiering'}</h2><span class="rule"></span></div>
+      <p class="lead reveal">{de ? 'Der stillste und zugleich weitreichendste Eingriff des Patches. Vorher teilten sich die Fahrzeuge wenige runde Tempostufen — jetzt hat fast jeder Antrieb seinen eigenen Wert. ' : 'The quietest and at the same time furthest-reaching change in this patch. Previously the fleet shared a handful of round speed tiers — now nearly every drive has its own value. '}<b>{de ? 'Wer nach Faustregel gesprungen ist, rechnet ab hier je Schiff.' : 'Anyone who used to jump by rule of thumb now does the maths per ship.'}</b></p>
+      <div class="qgrid reveal">
+        <div class="qpanel">
+          <div class="phead"><h3>{de ? 'Wer wurde angefasst' : 'What changed'}</h3><span class="pc">227 {de ? 'Fahrzeuge' : 'vehicles'}</span></div>
+          <div class="split" aria-hidden="true"><i class="up">144</i><i class="dn">32</i><i class="same">51</i></div>
+          <div class="splitleg">
+            <em class="k1">{de ? '▮ 144 schneller' : '▮ 144 faster'}</em><em class="k2">{de ? '▮ 32 langsamer' : '▮ 32 slower'}</em><em>{de ? '▮ 51 ohne QT-Wert' : '▮ 51 without a QT value'}</em>
+          </div>
+          <div class="tierlab"><span>{de ? 'vorher · 20 runde Stufen' : 'before · 20 round tiers'}</span></div>
+          <div class="tierbar before" aria-hidden="true"><span style="height:26%"></span><span style="height:26%"></span><span style="height:26%"></span><span style="height:26%"></span><span style="height:54%"></span><span style="height:54%"></span><span style="height:54%"></span><span style="height:78%"></span><span style="height:78%"></span><span style="height:78%"></span></div>
+          <div class="tierlab"><span>{de ? 'nachher · 26 abgestimmte Werte' : 'after · 26 tuned values'}</span></div>
+          <div class="tierbar" aria-hidden="true"><span style="height:22%"></span><span style="height:30%"></span><span style="height:38%"></span><span style="height:45%"></span><span style="height:53%"></span><span style="height:61%"></span><span style="height:69%"></span><span style="height:77%"></span><span style="height:86%"></span><span style="height:95%"></span></div>
+        </div>
+        <div class="qpanel">
+          <div class="phead"><h3>{de ? 'Ablesewerte' : 'Readout'}</h3><span class="pc">{de ? 'aus dem Bestand' : 'from the data'}</span></div>
+          <dl class="readout">
+            <div class="row"><dt>{de ? 'Geschwindigkeit' : 'Speed'}</dt><span class="lead2"></span><dd>176 / 227</dd></div>
+            <div class="row"><dt>{de ? 'schneller' : 'faster'}</dt><span class="lead2"></span><dd><em>144</em></dd></div>
+            <div class="row"><dt>{de ? 'langsamer' : 'slower'}</dt><span class="lead2"></span><dd>32</dd></div>
+            <div class="row"><dt>{de ? 'Tempostufen' : 'Speed tiers'}</dt><span class="lead2"></span><dd>20 → <em>26</em></dd></div>
+            <div class="row"><dt>{de ? 'Spulzeit' : 'Spool-up'}</dt><span class="lead2"></span><dd>{de ? '4 s → 4,4–5,3 s' : '4 s → 4.4–5.3 s'}</dd></div>
+            <div class="row"><dt>{de ? 'davon betroffen' : 'affected'}</dt><span class="lead2"></span><dd>171</dd></div>
+            <div class="row"><dt>{de ? 'Flottenstand' : 'Fleet count'}</dt><span class="lead2"></span><dd>227 {de ? 'unverändert' : 'unchanged'}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEUTE & WAFFEN -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Beute & Waffen' : 'Spoils & weapons'}</h2><span class="rule"></span></div>
+      <div class="gear reveal">
+        <article class="gcard"><span class="gk">{de ? 'Gewehr' : 'Rifle'}</span><b>Arlington</b><small>{de ? 'Unterhebel-Repetierer. Das Magazin fasst 20 Schuss; die 25-Schuss-Variante ist aus dem Bestand verschwunden.' : 'Lever-action repeater. The magazine holds 20 rounds; the 25-round variant has disappeared from the data.'}</small><div class="chips"><span class="chip">Arlington</span><span class="chip">Gamekeeper</span><span class="chip">Watchpoint</span><span class="chip">Widowmaker</span></div></article>
+        <article class="gcard"><span class="gk">{de ? 'Panzerung' : 'Armour'}</span><b>Morozov „Stronghold"</b><small>{de ? 'Die schwere Panzerung bekommt Arme, Torso und Beine in der neuen Ausführung, dazu den passenden CH-Rucksack.' : 'The heavy armour gains arms, core and legs in the new finish, plus the matching CH backpack.'}</small><div class="chips"><span class="chip">{de ? 'Arme' : 'Arms'}</span><span class="chip">{de ? 'Torso' : 'Core'}</span><span class="chip">{de ? 'Beine' : 'Legs'}</span><span class="chip">{de ? 'Rucksack' : 'Backpack'}</span></div></article>
+        <article class="gcard"><span class="gk">{de ? 'Maschinengewehr' : 'HMG'}</span><b>Vendetta „Stronghold"</b><small>{de ? 'Das Vendetta-MG trägt dieselbe Ausführung — die Waffe selbst gab es schon vor diesem Patch.' : 'The Vendetta HMG carries the same finish — the weapon itself predates this patch.'}</small></article>
+        <article class="gcard"><span class="gk">{de ? 'Lackierungen' : 'Liveries'}</span><b>Skull and Crossbones</b><small>{de ? 'Vier Schiffe bekommen die Totenkopf-Bemalung.' : 'Four ships get the skull-and-crossbones paint.'}</small><div class="chips"><span class="chip">Basher</span><span class="chip">Clipper</span><span class="chip">Ironclad</span><span class="chip">Shiv</span></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- WERKBANK -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>{de ? 'Werkbank' : 'Workbench'}</h2><span class="rule"></span></div>
+      <p class="lead reveal">{de ? '1.594 → 1.607 Baupläne. Der Zuwachs sitzt fast vollständig beim Abbau und der Bergung — ' : '1,594 → 1,607 blueprints. Almost all of the growth sits in mining and salvage — '}<b>{de ? 'Behälter und Module, nicht Waffen.' : 'containers and modules, not weapons.'}</b></p>
+      <div class="bp reveal">
+        <div class="bpcol">
+          <h3>{de ? 'Erz-Pods' : 'Ore pods'}</h3><span class="cnt">{de ? '5 neu' : '5 new'}</span>
+          <ul class="bplist">
+            <li><span class="mk">▸</span>Argo</li><li><span class="mk">▸</span>Drake</li><li><span class="mk">▸</span>MISC</li><li><span class="mk">▸</span>{de ? 'MISC verstärkt' : 'MISC Enhanced'}</li><li><span class="mk">▸</span>GOLEM MC-4</li>
+          </ul>
+        </div>
+        <div class="bpcol">
+          <h3>{de ? 'Module' : 'Modules'}</h3><span class="cnt">{de ? '7 neu' : '7 new'}</span>
+          <ul class="bplist">
+            <li><span class="mk">▸</span>Clearcut</li><li><span class="mk">▸</span>Deluge</li><li><span class="mk">▸</span>Overrun</li><li><span class="mk">▸</span>Stampede</li><li><span class="mk">▸</span>Torrent III</li><li><span class="mk">▸</span>Comer</li><li><span class="mk">▸</span>Hart</li>
+          </ul>
+        </div>
+        <div class="bpcol">
+          <h3>{de ? 'Panzerung' : 'Armour'}</h3><span class="cnt">{de ? '6 neu' : '6 new'}</span>
+          <ul class="bplist">
+            <li><span class="mk">▸</span>ADP-mk4 SecondWind</li><li><span class="mk">▸</span>FBL-8u SecondWind</li><li><span class="mk">▸</span>Antium Arms Maroon</li><li><span class="mk">▸</span>BUL-H4 {de ? 'Schneetarn' : 'Snow Camo'}</li><li><span class="mk">▸</span>BUL-H4 {de ? 'Helm Schneetarn' : 'Helmet Snow Camo'}</li><li><span class="mk">▸</span>H4-PBF {de ? 'Schneetarn' : 'Snow Camo'}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STINGRAY -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>Kruger S-65 Stingray</h2><span class="rule"></span></div>
+      <div class="sr reveal">
+        <div class="tile img srshot" data-lb="img:/assets/t-stingray-1.jpg"><div class="tbg" style="background-image:url('/assets/t-stingray-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">S-65 Stingray</div><div class="sub">Kruger Intergalactic</div></div>
+        <div class="srnote">
+          <h3>{de ? 'Vorbereitet, nicht fliegbar' : 'Prepared, not flyable'}</h3>
+          <p>{de ? 'Der Jäger ist angekündigt und liegt teilweise schon im Build: zwei S4-Raketenhalterungen, die STR-E2-Lafette, der Whiptail-Repetierer und vier Lackierungen. Als fliegbares Fahrzeug führt der Bestand ihn nicht.' : 'The fighter is announced and already partly in the build: two S4 missile racks, the STR-E2 gimbal mount, the Whiptail repeater and four liveries. The catalogue does not carry it as a flyable vehicle.'}</p>
+          <span class="srflag">{de ? 'Flottenstand unverändert · 227' : 'Fleet count unchanged · 227'}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
+  <PatchDossier patch={patch} num="07" lang={de ? 'de' : 'en'} />
+
+</main>
+
+<footer>
+  <nav class="pager" aria-label={de ? 'Patch-Navigation' : 'Patch navigation'}>
+    <a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}><span class="dir">{de ? '← Älter' : '← Older'}</span><span class="ttl">4.9.0 · Frontier Tensions</span></a>
+    <span class="next disabled"><span class="dir">{de ? 'Neuer →' : 'Newer →'}</span><span class="ttl">{de ? 'Aktuellster Patch' : 'Latest patch'}</span></span>
+  </nav>
+  <div class="foot-meta">
+    <a class="home-link" href={de ? '/de/archiv.html' : '/archiv.html'}>{de ? '⌂ Alle Patches' : '⌂ All patches'}</a>
+    <span><Fragment set:html={de ? 'Quellen: RSI Patch Notes &amp; Comm-Links · starcitizen.tools · YouTube' : 'Sources: RSI patch notes &amp; comm-links · starcitizen.tools · YouTube'} /></span>
+  </div>
+  <p class="disclaimer"><Fragment set:html={de ? 'Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. — keine Verbindung zu CIG. Trailer, Standbilder &amp; Schiff-/System-Bilder aus offiziellen bzw. Community-Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.' : 'Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Trailers, stills &amp; ship/system imagery from official or community sources (© Cloud Imperium Games), fan-content usage.'} /></p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+<script is:inline>
+
+const tb=document.getElementById('topbar');
+addEventListener('scroll',()=>tb.classList.toggle('scrolled',scrollY>40),{passive:true});
+const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px',threshold:0});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+/* Lightbox: Karten/Bilder klickbar */
+(function(){const lb=document.getElementById('lb'),lbc=lb.querySelector('.lb__content');
+function show(h){lbc.innerHTML=h;lb.classList.add('open');lb.setAttribute('aria-hidden','false');}
+function close(){lb.classList.remove('open');lbc.innerHTML='';lb.setAttribute('aria-hidden','true');}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+document.querySelectorAll('[data-lb]').forEach(el=>el.addEventListener('click',()=>{const v=el.getAttribute('data-lb');show('<img src="'+v.slice(4)+'" alt="">');}));
+document.querySelectorAll('[data-info]').forEach(el=>el.addEventListener('click',()=>{const img=el.getAttribute('data-img'),ti=esc(el.getAttribute('data-title')),tx=esc(el.getAttribute('data-text'));show('<div class="lb__info">'+(img?'<img src="'+img+'" alt="">':'')+'<div class="lb__txt"><h3>'+ti+'</h3><p>'+tx+'</p></div></div>');}));
+lb.addEventListener('click',e=>{if(e.target===lb||e.target.closest('.lb__x'))close();});
+addEventListener('keydown',e=>{if(e.key==='Escape')close();});})();
+/* Wolkendunst: weiche Schleier, die langsam über die Wolkenstadt ziehen */
+(function(){const c=document.getElementById('haze');if(!c)return;const x=c.getContext('2d');let running=false;const fxOn=()=>document.documentElement.getAttribute('data-fx')==='on';let w,h,st;const COL=['#e8955f','#4fd8b4','#f3d0b0','#9fb0b6'];
+function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,1);st=Array.from({length:Math.min(90,Math.floor(w/16))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2.2+.6,a:Math.random(),s:Math.random()*.009+.002,vx:Math.random()*.22+.05,vy:-(Math.random()*.05+.01),c:COL[Math.floor(Math.random()*COL.length)]}));}
+function tick(){if(!running)return;x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;s.x+=s.vx;s.y+=s.vy;if(s.x>w+6)s.x=-6;if(s.y<-6)s.y=h+6;const o=.12+Math.abs(Math.sin(s.a))*.45;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
+size();addEventListener('resize',size);document.addEventListener('vbfxchange',(e)=>{if(e.detail.on&&!running){size();running=true;requestAnimationFrame(tick);}else if(!e.detail.on){running=false;}});if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&fxOn()){running=true;tick();}})();
+
+</script>
+<link rel="stylesheet" href={versioned('assets/a11y.css', '/assets/a11y.css')} />
+<script is:inline src={versioned('assets/a11y.js', '/assets/a11y.js')}></script>

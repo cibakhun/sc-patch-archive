@@ -157,7 +157,10 @@ export interface Item {
 export interface ItemsDb {
   generator: string;
   generatedAt: string;
-  /** Spielstand der Extraktion, z. B. "4.10.0-live.12519617". Quelle von ITEM_PATCH. */
+  /**
+   * Spielstand der Extraktion, z. B. "4.10.0-live.12519617" — seit dem
+   * Datenlauf auf 4.10.0 traegt die DB ihn selbst. Quelle von ITEM_PATCH.
+   */
   gameVersion?: string;
   pricesAsOf: string;
   note?: string;
@@ -575,24 +578,23 @@ export function clip(s: string, max = 160): string {
 }
 
 /**
- * Spielstand, aus dem der Katalog stammt. Item-Finder und Item-Seiten ziehen
- * das Label von hier, statt es mehrfach zu tippen.
+ * Spielstand, aus dem der Katalog stammt — abgeleitet aus der DB-Kennung
+ * ("4.10.0-live.12519617" -> "4.10"), nach demselben Muster wie craftPatch in
+ * lib/crafting.ts. Item-Finder und Item-Seiten ziehen das Label von hier.
  *
- * ⚠ Stand hier bis zum 27.08.2026 FEST auf '4.9', mit der Begruendung,
- * universal-items.json trage selbst keine Versionsnummer. Das stimmt nicht
- * mehr: `gameVersion` ("4.10.0-live.12519617") steht seit laengerem im Kopf der
- * Datei und wird von verify:datastand sogar geprueft. Die feste Zahl haette den
- * 4.10-Datenlauf still ueberlebt — 5.237 Item-Seiten haetten "Star Citizen 4.9"
- * behauptet und 4.10-Daten gezeigt. Jetzt abgeleitet, mit '4.9' nur noch als
- * Rueckfall fuer einen Katalog ohne Kopf.
+ * ⚠ Bis zum 27.08.2026 stand hier ein von Hand gepflegtes '4.9', mit der
+ * Begruendung, universal-items.json trage keine Versionsnummer. Sie traegt eine,
+ * und verify:datastand prueft sie sogar. Das Literal blieb beim Datenlauf
+ * zwangslaeufig stehen: 5.237 Item-Seiten haetten "Star Citizen 4.9" behauptet
+ * und 4.10-Daten gezeigt. Der Rueckfall greift nur noch, wenn die Kennung fehlt.
  *
- * Der Verweis auf die zugehoerige Patch-Seite gehoert NICHT hierher: sie ist
+ * Der VERWEIS auf die zugehoerige Patch-Seite gehoert NICHT hierher: sie ist
  * handgeschrieben und existiert nicht fuer jeden Datenstand. Dafuer gibt es
  * patchPageHref() in src/lib/patchPages.ts, das `null` liefert, wenn die Seite
  * fehlt. Die frueher hier stehende Konstante ITEM_PATCH_HREF war ungenutzt und
- * ist entfallen.
+ * schrieb genau die Annahme fest, die am 27.08. zwei tote Verweise erzeugt hat.
  */
-export const ITEM_PATCH = (/(\d+\.\d+)/.exec(db.gameVersion ?? '') ?? [])[1] ?? '4.9';
+export const ITEM_PATCH = (/(\d+\.\d+)/.exec(db.gameVersion ?? '') ?? [])[1] ?? '4.10';
 
 /* ---------- URLs (Basisform = EN-Pfad; href() praefixt DE) ---------- */
 

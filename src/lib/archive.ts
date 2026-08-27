@@ -38,6 +38,7 @@ const ART: Record<string, string> = {
   '4-8-2': 'img-railen',
   '4-8-3': 't-xeno-1',
   '4-9-0': 'trailer-4-9-0',
+  '4-10-0': 'trailer-4-10-0',
 };
 
 /**
