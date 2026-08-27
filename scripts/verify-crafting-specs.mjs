@@ -136,8 +136,10 @@ need(sizeNChecked === 57, `SizeN-Gegenprobe: erwartet 57 geprueft, gemessen ${si
 need(sizeNBad === 0, `SizeN-Gegenprobe: ${sizeNBad} Abweichungen`);
 
 /* ---------- 3) Die 15 gleichnamigen Blueprints ---------- */
-console.log('3) Die 15 gleichnamigen Blueprints — Diskriminante item_stats …');
-const EXPECTED_COLLIDING = ['antium core jet', 'broadspec', 'main powerplant', 'serac', 'stellate'].sort();
+console.log('3) Die 13 gleichnamigen Blueprints — Diskriminante item_stats …');
+// 4.10.0 (CL 12519617): "antium core jet" kollidiert nicht mehr — CIG hat die
+// item_stats der beiden Karten auseinandergezogen. Damit 5 -> 4 Gruppen.
+const EXPECTED_COLLIDING = ['broadspec', 'main powerplant', 'serac', 'stellate'].sort();
 
 const dupGroups = [...byName.entries()].filter(([, list]) => list.length > 1);
 let groupsCollidingMeasured = 0, groupsCollidingCards = 0, groupsUnauffaellig = 0;
@@ -181,16 +183,16 @@ console.log(`   Namensgruppen: ${dupGroups.length} | kollidierend: ${groupsColli
 console.log(`   kollidierende Namen: ${[...collidingNames].sort().join(', ')}`);
 console.log(`   per entity_guid eindeutig bestimmt: ${guidResolvedCards} Karten (zeigen Kennwerte) | nur per Name auffindbar: ${nameOnlyCards} (bleiben leer)`);
 console.log(`   Selbstprobe: ein Vergleich nur ueber overheat_temperature faende ${overheatOnlyDiffering} von ${groupsCollidingMeasured} Gruppen — Hinweis, damit der Vergleich nie auf dieses eine Feld verschlankt wird.`);
-// Alle 10 Karten der Kollisionsgruppen sind seit den guidAliases/Varianten-Ids
+// Alle 8 Karten der Kollisionsgruppen sind seit den guidAliases/Varianten-Ids
 // eindeutig bestimmt. Faellt das je zurueck, ist ein Schluessel verloren
 // gegangen — dann zeigt die Seite wieder weniger, als sie belegen koennte.
-need(guidResolvedCards === 10, `per guid bestimmte Kollisionskarten: erwartet 10, gemessen ${guidResolvedCards}`);
+need(guidResolvedCards === 8, `per guid bestimmte Kollisionskarten: erwartet 8, gemessen ${guidResolvedCards}`);
 need(nameOnlyCards === 0, `nur per Name auffindbare Kollisionskarten: erwartet 0, gemessen ${nameOnlyCards}`);
 
-need(dupGroups.length === 15, `Namensgruppen: erwartet 15, gemessen ${dupGroups.length}`);
-need(groupsCollidingMeasured === 5, `kollidierende Gruppen: erwartet 5, gemessen ${groupsCollidingMeasured}`);
-need(groupsCollidingCards === 10, `gesperrte Karten: erwartet 10, gemessen ${groupsCollidingCards}`);
-need(groupsUnauffaellig === 10, `unauffaellige Gruppen: erwartet 10, gemessen ${groupsUnauffaellig}`);
+need(dupGroups.length === 13, `Namensgruppen: erwartet 13, gemessen ${dupGroups.length}`);
+need(groupsCollidingMeasured === 4, `kollidierende Gruppen: erwartet 4, gemessen ${groupsCollidingMeasured}`);
+need(groupsCollidingCards === 8, `gesperrte Karten: erwartet 8, gemessen ${groupsCollidingCards}`);
+need(groupsUnauffaellig === 9, `unauffaellige Gruppen: erwartet 9, gemessen ${groupsUnauffaellig}`);
 const measuredColliding = [...collidingNames].sort();
 need(
   JSON.stringify(measuredColliding) === JSON.stringify(EXPECTED_COLLIDING),
@@ -226,7 +228,7 @@ for (const b of armourBps) {
   if (sp?.tone != null) { armourWithTone++; fail.push(`Ruestung mit Ton: "${b.name}" liefert Ton "${sp.tone}" (D-05 verletzt)`); }
 }
 console.log(`   Armour-Blueprints geprueft: ${armourBps.length} | mit Ton: ${armourWithTone}`);
-need(armourBps.length === 913, `Armour-Blueprints: erwartet 913, gemessen ${armourBps.length}`);
+need(armourBps.length === 916, `Armour-Blueprints: erwartet 916, gemessen ${armourBps.length}`);
 need(armourWithTone === 0, `${armourWithTone} Armour-Blueprints mit Ton`);
 
 /* ---------- 6) Abdeckung ---------- */
@@ -315,14 +317,14 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // Alle fuenf zeigen jetzt nichts an statt eines geratenen Wertes (D-06).
 // Offen als Folgearbeit: die vier Varianten-Items koennten ihre Groessen als
 // "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
-need(totalWithSpec === 1532, `Chip-Reihen: erwartet 1532, gemessen ${totalWithSpec}`);
+need(totalWithSpec === 1542, `Chip-Reihen: erwartet 1542, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1532, `Groesse: erwartet 1532, gemessen ${totalSize}`);
+need(totalSize === 1542, `Groesse: erwartet 1542, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
@@ -340,7 +342,7 @@ need(
 need(totalTone === 506, `Ton: erwartet 506, gemessen ${totalTone}`);
 need(toneFromClass === 406, `Ton aus game.class: erwartet 406, gemessen ${toneFromClass}`);
 need(toneFromPath === 100, `Ton aus dem Pfad: erwartet 100, gemessen ${toneFromPath}`);
-need(totalNone === 62, `ohne jede Angabe: erwartet 62, gemessen ${totalNone}`);
+need(totalNone === 65, `ohne jede Angabe: erwartet 65, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 9) Wertebereich Ton ---------- */

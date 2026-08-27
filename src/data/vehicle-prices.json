@@ -1,5 +1,5 @@
 {
- "fetchedAt": "2026-08-03",
+ "fetchedAt": "2026-08-27",
  "source": "UEX Corp (uexcorp.space)",
  "matched": 179,
  "buyable": 179,
@@ -1056,12 +1056,6 @@
     },
     {
      "price": 223256,
-     "shop": "Traveler Tressler",
-     "where": "Port Tressler",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
      "shop": "Traveler Terra Gateway (Stanton)",
      "where": "Terra Gateway",
      "system": "Stanton"
@@ -1070,12 +1064,6 @@
      "price": 223256,
      "shop": "Vantage Lorville",
      "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
      "system": "Stanton"
     },
     {
@@ -1094,6 +1082,12 @@
      "price": 223256,
      "shop": "Vantage Terra Gateway (Stanton)",
      "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
@@ -1158,20 +1152,26 @@
     },
     {
      "price": 223257,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
      "shop": "Vantage Stanton Gateway (Pyro)",
      "where": "Stanton Gateway",
      "system": "Pyro"
     },
     {
      "price": 223257,
-     "shop": "Vantage ARC-L1",
-     "where": "ARC-L1 Wide Forest Station",
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
      "system": "Stanton"
     },
     {
      "price": 223257,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
      "system": "Stanton"
     },
     {
@@ -1792,12 +1792,6 @@
     },
     {
      "price": 9525,
-     "shop": "Traveler Tressler",
-     "where": "Port Tressler",
-     "system": "Stanton"
-    },
-    {
-     "price": 9525,
      "shop": "Traveler Terra Gateway (Stanton)",
      "where": "Terra Gateway",
      "system": "Stanton"
@@ -1837,6 +1831,12 @@
      "shop": "Traveler Stanton Gateway (Pyro)",
      "where": "Stanton Gateway",
      "system": "Pyro"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
+     "system": "Stanton"
     },
     {
      "price": 9526,
@@ -1912,12 +1912,6 @@
     },
     {
      "price": 2598,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
      "shop": "Vantage MIC-L5",
      "where": "MIC-L5 Modern Icarus Station",
      "system": "Stanton"
@@ -1932,6 +1926,12 @@
      "price": 2598,
      "shop": "Vantage MIC-L1",
      "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2598,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
@@ -1972,6 +1972,12 @@
     },
     {
      "price": 2599,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
      "shop": "Vantage HUR-L1",
      "where": "HUR-L1 Green Glade Station",
      "system": "Stanton"
@@ -1986,12 +1992,6 @@
      "price": 2599,
      "shop": "Vantage CRU-L1",
      "where": "CRU-L1 Ambitious Dream Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2599,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
@@ -2272,12 +2272,6 @@
     },
     {
      "price": 73237,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
      "shop": "Vantage MIC-L5",
      "where": "MIC-L5 Modern Icarus Station",
      "system": "Stanton"
@@ -2296,14 +2290,14 @@
     },
     {
      "price": 73237,
-     "shop": "Traveler Seraphim",
-     "where": "Seraphim Station",
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
      "price": 73237,
-     "shop": "Traveler Tressler",
-     "where": "Port Tressler",
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
      "system": "Stanton"
     },
     {
@@ -2356,6 +2350,12 @@
     },
     {
      "price": 73238,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
      "shop": "Vantage HUR-L1",
      "where": "HUR-L1 Green Glade Station",
      "system": "Stanton"
@@ -2374,12 +2374,6 @@
     },
     {
      "price": 73238,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 73238,
      "shop": "Traveler Stanton Gateway (Pyro)",
      "where": "Stanton Gateway",
      "system": "Pyro"
@@ -2388,6 +2382,12 @@
      "price": 73238,
      "shop": "Traveler Baijini",
      "where": "Baijini Point",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
      "system": "Stanton"
     },
     {
@@ -4668,12 +4668,6 @@
     },
     {
      "price": 223256,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
      "shop": "Vantage Nyx Gateway (Pyro)",
      "where": "Nyx Gateway",
      "system": "Pyro"
@@ -4682,6 +4676,18 @@
      "price": 223256,
      "shop": "Vantage Lorville",
      "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
      "system": "Stanton"
     },
     {

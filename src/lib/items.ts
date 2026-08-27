@@ -157,6 +157,8 @@ export interface Item {
 export interface ItemsDb {
   generator: string;
   generatedAt: string;
+  /** z. B. "4.10.0-live.12519617" — seit dem Datenlauf 4.10.0 traegt die DB ihn selbst */
+  gameVersion?: string;
   pricesAsOf: string;
   note?: string;
   sources?: unknown;
@@ -573,12 +575,13 @@ export function clip(s: string, max = 160): string {
 }
 
 /**
- * Spielstand, aus dem der Katalog stammt. universal-items.json traegt selbst
- * keine Versionsnummer (die Extraktion laeuft gegen die installierte Data.p4k),
- * deshalb steht das Label hier an EINER Stelle — Item-Finder und Item-Seiten
- * ziehen es von hier, statt "4.9" mehrfach zu tippen.
+ * Spielstand, aus dem der Katalog stammt — abgeleitet aus der DB-Kennung
+ * ("4.10.0-live.12519617" -> "4.10"), nach demselben Muster wie craftPatch in
+ * lib/crafting.ts. Bis 4.10.0 stand hier ein von Hand gepflegtes Literal; es
+ * blieb beim Datenlauf zwangslaeufig stehen und liess Titel und Verweis auf den
+ * VORIGEN Patch zeigen. Der Rueckfall greift nur, wenn die Kennung fehlt.
  */
-export const ITEM_PATCH = '4.9';
+export const ITEM_PATCH = (/(\d+\.\d+)/.exec(db.gameVersion ?? '') ?? [])[1] ?? '4.10';
 export const ITEM_PATCH_HREF = `/patches/sc-${ITEM_PATCH.replace(/\./g, '-')}-0.html`;
 
 /* ---------- URLs (Basisform = EN-Pfad; href() praefixt DE) ---------- */

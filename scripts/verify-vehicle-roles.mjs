@@ -130,11 +130,13 @@ const eclipse = roles.vehicles['aegs-eclipse'];
 need(!!eclipse, `aegs-eclipse fehlt in der Momentaufnahme`);
 if (eclipse) need((eclipse.families || []).includes('bomber'), `aegs-eclipse traegt nicht die Familie bomber`);
 
-console.log(`\n=== K) Merkmalsleiste (D-09): genau cargo (102) und ground (37), keine weitere Kennung ===`);
+console.log(`\n=== K) Merkmalsleiste (D-09): genau cargo (103) und ground (37), keine weitere Kennung ===`);
 const cargoIds = roleIds.filter((id) => (roles.vehicles[id].feat || []).includes('cargo'));
 const groundIds = roleIds.filter((id) => (roles.vehicles[id].feat || []).includes('ground'));
 console.log(`  cargo: ${cargoIds.length}, ground: ${groundIds.length}`);
-need(cargoIds.length === 102, `feat=cargo: ${cargoIds.length} statt 102`);
+// 4.10.0 (CL 12519617): aegs-hammerhead-showdown traegt jetzt Frachtkapazitaet
+// und faellt damit unter das Merkmal — 102 -> 103.
+need(cargoIds.length === 103, `feat=cargo: ${cargoIds.length} statt 103`);
 need(groundIds.length === 37, `feat=ground: ${groundIds.length} statt 37`);
 const badFeat = roleIds.filter((id) => (roles.vehicles[id].feat || []).some((f) => f !== 'cargo' && f !== 'ground'));
 need(badFeat.length === 0, `Fahrzeuge mit unerwarteter Merkmalskennung: ${badFeat.join(', ')}`);

@@ -28,7 +28,7 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // vergleicht Namen; "NightFall" ist zugleich die Kurzform des *Nightfall
 // Repeater*). Eintrag wiederhergestellt, Regel abgesichert.
 // Begruendung ausfuehrlich in scripts/verify-crafting-specs.mjs.
-const TOTAL_SPEC_ROWS = 1532;
+const TOTAL_SPEC_ROWS = 1542;
 const TOTAL_TONE_CHIPS = 506;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
@@ -188,7 +188,7 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
 
     test('keine Armour-Karte traegt einen Ton-Chip (Gegenprobe zu SC3, je Kartenausschnitt)', () => {
       const cards = cardsWithCategoryRoot(html, 'Armour');
-      assert.strictEqual(cards.length, 913, `Armour-Karten: erwartet 913, gefunden ${cards.length}`);
+      assert.strictEqual(cards.length, 916, `Armour-Karten: erwartet 916, gefunden ${cards.length}`);
       const withTone = cards.filter((c) => c.includes('class="tone"'));
       assert.strictEqual(withTone.length, 0, `${withTone.length} Armour-Karten tragen dennoch einen Ton-Chip`);
     });
