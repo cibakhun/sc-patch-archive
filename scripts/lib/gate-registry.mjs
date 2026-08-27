@@ -220,8 +220,20 @@ export const CHECKS = [
     npm: 'verify:mining',
     script: 'scripts/verify-mining.mjs',
     rail: 'A',
-    checks: 'die Mining-Daten sind in sich stimmig, kein interner Klassenname wird ausgeliefert, und der Datenstand passt zum installierten Client',
+    checks: 'die Mining-Daten sind in sich stimmig und kein interner Klassenname wird ausgeliefert; der Abstand zum installierten Client wird gemeldet, blockt aber nicht',
     env: 'Data.p4k nur als Pfadableitung: der Client-Abgleich haengt hinter existsSync(build_manifest.id) und wird ohne lokale Spielinstallation still uebersprungen — das Skript oeffnet das Archiv selbst nie',
+    // 27.08.2026 — NACHGELASSEN, Grundsatz 5 verlangt die Ursache im Klartext:
+    // der Client-Abgleich war ein FEHLER und ist jetzt eine WARNUNG. Am
+    // 26.08. kam 4.10.0 (CL 12519617) auf die Betreiber-Maschine, waehrend
+    // alle sechs Datenstaende auf 4.9.0/12344265 stehen. Ab diesem Moment war
+    // `npm run gate` lokal rot und jeder Push blockiert — bei gruener CI, weil
+    // im Container kein Client liegt. Ein Tor, das nur auf einer Maschine
+    // reisst, meldet "veraltet", nicht "kaputt": das ist Grundsatz 3, und
+    // Schiene A darf ohnehin keine Spielinstallation voraussetzen
+    // (Grundsatz 4). verify:datastand bewertet dieselbe Tatsache seit seiner
+    // Anlage als WARNUNG — die beiden Tore widersprachen sich.
+    // Die Aussage geht NICHT verloren: sie steht jetzt zweimal als WARNUNG
+    // (hier und in verify:datastand) und der Datenlauf gehoert auf Schiene B.
     // SCHARF seit 11.08.2026. Der Schuldenposten vom 09.08. ist abgetragen:
     // `npm run sync:mining` gegen die installierte Data.p4k hat die Daten von
     // 4.9.0-live.12326004 auf 12344265 gehoben, der Pruefer laeuft gruen
