@@ -15,11 +15,13 @@ import {
 import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
+import { patchPageHref } from '../lib/patchPages';
 
 interface Props { item: Item; lang: Locale }
 const { item, lang } = Astro.props;
 
 const t = itemT(lang);
+const patchHref = patchPageHref(ITEM_PATCH, lang);
 const seo = itemSeo(item, lang);
 const name = displayName(item, lang);
 const alt = altName(item, lang);
@@ -254,6 +256,11 @@ const crumbs = [
   <div class="dp-actions">
     <a class="dp-btn dp-btn--ghost" href={href(categoryPath(catSlug), lang)}>{t('allInCategory')}: {leafCategory(item.category)}</a>
     <a class="dp-btn dp-btn--ghost" href={href('/item-finder.html', lang)}>{t('backToFinder')}</a>
-    <a class="dp-btn dp-btn--ghost" href={href(`/patches/sc-${ITEM_PATCH.replace(/\./g, '-')}-0.html`, lang)}>Alpha {ITEM_PATCH}</a>
+    {/* Nur verlinken, wenn die Patch-Seite existiert — sie ist handgeschrieben
+        und folgt einem Datenlauf NICHT automatisch (src/lib/patchPages.ts).
+        Fehlt sie, entfaellt der Knopf ganz: ein <span> mit Knopf-Klassen saehe
+        aus wie ein Knopf und waere keiner. Die Patch-Kennung steht ohnehin im
+        Seitentitel. */}
+    {patchHref && <a class="dp-btn dp-btn--ghost" href={patchHref}>Alpha {ITEM_PATCH}</a>}
   </div>
 </DataShell>
