@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 25
+open_count: 26
 waived_count: 1
 fixed_count: 23
-total_count: 49
-last_updated: 2026-08-27T15:40:11.950Z
+total_count: 50
+last_updated: 2026-08-27T15:59:10.791Z
 ---
 
 # Broken Windows Ledger
@@ -64,6 +64,7 @@ last_updated: 2026-08-27T15:40:11.950Z
 | 48 | 18 | unrun-verify | src/lib/missions.ts |  | S-4: Traegt die geaenderte Beschriftung der Chip-Marken site-weit? Marken (z.B. Target Name, Serial Number, Reputation Rank) erscheinen jetzt als lesbare Worte statt in zusammengeschriebener Binnengrossschreibung ({TargetName} -> Target Name) -- auch auf Missionsseiten, die mit D-01..D-04 inhaltlich nichts zu tun haben. Eine beliebige Missions-Detailseite pruefen. DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. | fixed | Betreiber-Urteil 23.08.2026: deutliche Verbesserung, gegen live gemessen. Die H1 'Bounty Assignment: [Target] (HRT)' steht jetzt einzeilig statt auf zwei Zeilen; im Fliesstext wurde aus 'TargetName · Address · Last · Last' nun 'Target · Location · Target · Target'. Das 'Last' auf live war aktiv irrefuehrend — ein Rest von {TargetName.Last}, der sich als das Wort 'Last' las — und ist weg. Die Chips sind als umrandete Pillen deutlich vom Fliesstext abgesetzt und lesen sich als Platzhalter, nicht als fehlender Text: kein Fund in die Richtung, nach der die Frage suchte. LUECKE, als Nacharbeit nach Phase 19: die Tabelle 'Appears in game as' zieht aus `m.titleVariants` (MissionDetail.astro:209/214) und wurde von der Umstellung nicht erfasst; dort steht weiterhin roh 'Bounty Assignment: {TargetName}', 'Wanted: {TargetName}', 'Active Bounty: {TargetName} (MRT)', byte-identisch mit live. Auf ein und derselben Seite stehen damit beide Schreibweisen derselben Marke nebeneinander. | 2026-08-23T17:34:52.266Z | 2026-08-23T22:30:00.000Z |
 | 49 | 19 | unmet-truth | assets/crafting-db.json |  | Vier Bauplan-Namen stehen fuer mehrere verschiedene Baupläne und erzeugen auf 48 der 335 Missionsseiten (14,3 %) zwei oder drei OPTISCH IDENTISCHE Chips, die auf verschiedene Seiten zeigen. Gemessen 27.08.2026 an /missionen/lrg-purchase-order-ship-mined-ore.html: 41 Eintraege, 41 verschiedene Ziele, aber nur 40 verschiedene Namen — "BroadSpec" steht zweimal da und fuehrt nach /crafting/broadspec.html bzw. /crafting/broadspec-2.html. Der Nutzer kann nicht entscheiden, welchen er will. Vorbestehend, nicht neu: derselbe Fehler stand schon in der alten Liste, er faellt nur auf, seit der rohe Pool daneben entfallen ist. Die vier Namen sind NICHT ein Fall, sondern vier verschiedene: (1) BroadSpec — 2 Baupläne, gleiche Kategorie (Vehiclegear/Radar), ABWEICHENDE Werte (590 kg vs. 220 kg): echte verschiedene Items, brauchen einen Unterscheider, und die Kategorie taugt nicht dafuer. (2) FullForce — 2 Baupläne mit DERSELBEN entity_guid (bf4e6cc08d) und identischen Werten: das ist eine Doublette im Bestand, kein Anzeigeproblem. (3) Cinch Scraper Module — 3 Baupläne, gleiche Kategorie (Vehiclegear/Salvage), identische item_stats, aber DREI verschiedene guids: entweder tragen sie einen Unterschied, den crafting-db.json nicht mitfuehrt, oder es sind Doubletten. (4) Antium Core Jet — 2 Baupläne, Armour/Hunter/Heavy, Werte auf den ersten Blick gleich, voller Vergleich steht aus. Erst diese Unterscheidung entscheidet die Handlungsanweisung: (2) und ggf. (3) gehoeren in den Erzeuger (datamine-crafting.mjs), (1) und (4) in die Anzeige. Die vorhandene Sperre COLLIDING_NAMES (src/lib/crafting.ts:283) faengt nur die Gruppe mit abweichenden item_stats, also (1) — die anderen drei laufen an ihr vorbei. Anlass, es hier zu vermerken statt es zu reparieren: eine Reparatur, die alle vier gleich behandelt, waere in mindestens zwei Faellen falsch. Verwandt mit Phase 19 D-01, wo dieselbe Doubletten-Frage fuer die ORTS-Chips ansteht. | open |  | 2026-08-27T14:27:47.659Z |  |
 | 50 | 4.10-datenlauf | unrun-verify | src/components/patches/sc-4-10-0.astro |  | Sichtabnahme der neuen 4.10.0-Archivseite steht aus: traegt der Kino-Koerper (Bernstein-Himmel gegen tuerkise Instanz-Klammer) das Motiv, ist der RSI-Ausschnitt trailer-4-10-0.jpg der richtige Leitframe, und liest sich die Tempostufen-Grafik im Abschnitt Quantum-Staffelung als Plateau (vorher) gegen Rampe (nachher)? Alle maschinellen Laeufe sind gruen: Schiene A 23/23 normal UND mit STAGING=1, gate:data 2/2, DE und EN sowie 360px ohne Queruberlauf, ohne JS-Fehler, ohne 4xx. Offen ist ausschliesslich das menschliche Urteil ueber die Gestaltung. | open |  | 2026-08-27T15:40:11.950Z |  |
+| 51 | 4.10-datenlauf | unmet-truth | assets/wikelo-trades.meta.json |  | Wikelo-Tauschliste steht auf reviewedVersion 4.9.0, waehrend alle sechs maschinellen Staende auf 4.10.0 stehen — und die 4.10-Notes fuehren ausdruecklich Wikelo Inventory Updates. Die Liste ist handgepflegt (kein Erzeugerlauf, 63 Eintraege); ein Nachziehen der Kennung ohne inhaltliche Pruefung im Spiel waere eine Falschaussage. Braucht eine Sichtung der Tauschangebote am lebenden Spiel. Das Tor meldet den Verzug seit 378e1bc von selbst als WARNUNG (verify:datastand, Zusicherung 8) — vorher war dieser Vergleich durch einen ^-Anker tot und hat nie gefeuert. | open |  | 2026-08-27T15:59:10.791Z |  |
 
 ````json
 [
@@ -653,6 +654,18 @@ last_updated: 2026-08-27T15:40:11.950Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-27T15:40:11.950Z",
+    "resolved_at": null
+  },
+  {
+    "id": 51,
+    "kind": "unmet-truth",
+    "phase": "4.10-datenlauf",
+    "file": "assets/wikelo-trades.meta.json",
+    "line": null,
+    "description": "Wikelo-Tauschliste steht auf reviewedVersion 4.9.0, waehrend alle sechs maschinellen Staende auf 4.10.0 stehen — und die 4.10-Notes fuehren ausdruecklich Wikelo Inventory Updates. Die Liste ist handgepflegt (kein Erzeugerlauf, 63 Eintraege); ein Nachziehen der Kennung ohne inhaltliche Pruefung im Spiel waere eine Falschaussage. Braucht eine Sichtung der Tauschangebote am lebenden Spiel. Das Tor meldet den Verzug seit 378e1bc von selbst als WARNUNG (verify:datastand, Zusicherung 8) — vorher war dieser Vergleich durch einen ^-Anker tot und hat nie gefeuert.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T15:59:10.791Z",
     "resolved_at": null
   }
 ]
