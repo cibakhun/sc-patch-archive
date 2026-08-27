@@ -28,8 +28,12 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // vergleicht Namen; "NightFall" ist zugleich die Kurzform des *Nightfall
 // Repeater*). Eintrag wiederhergestellt, Regel abgesichert.
 // Begruendung ausfuehrlich in scripts/verify-crafting-specs.mjs.
-const TOTAL_SPEC_ROWS = 1532;
-const TOTAL_TONE_CHIPS = 506;
+// 4.10-Datenlauf 27.08.2026: 1532 -> 1540 (1.605 statt 1.594 Bauplaene, nach
+// Abzug der zwei zeichengleichen Doubletten FullForce und Glacis). Dieselbe
+// Zahl steht in scripts/verify-crafting-specs.mjs — sie wird hier gegen das
+// gebaute HTML geprueft, dort gegen die Datenschicht.
+const TOTAL_SPEC_ROWS = 1540;
+const TOTAL_TONE_CHIPS = 504;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
@@ -188,7 +192,8 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
 
     test('keine Armour-Karte traegt einen Ton-Chip (Gegenprobe zu SC3, je Kartenausschnitt)', () => {
       const cards = cardsWithCategoryRoot(html, 'Armour');
-      assert.strictEqual(cards.length, 913, `Armour-Karten: erwartet 913, gefunden ${cards.length}`);
+      // 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
+      assert.strictEqual(cards.length, 916, `Armour-Karten: erwartet 916, gefunden ${cards.length}`);
       const withTone = cards.filter((c) => c.includes('class="tone"'));
       assert.strictEqual(withTone.length, 0, `${withTone.length} Armour-Karten tragen dennoch einen Ton-Chip`);
     });

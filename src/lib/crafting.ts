@@ -118,9 +118,15 @@ export interface BlueprintEntry extends Blueprint {
 }
 
 /**
- * 16 Blueprint-Namen kommen doppelt vor (gleiches Item in zwei Varianten).
+ * 11 Blueprint-Namen kommen doppelt vor (gleiches Item in zwei Varianten).
  * Der zweite und jeder weitere bekommt ein "-2"/"-3"-Suffix, damit die URL
  * eindeutig bleibt — Reihenfolge = DB-Reihenfolge, also build-stabil.
+ *
+ * ⚠ Die Zahl stand hier als "16" und war nach dem 4.10-Datenlauf still falsch:
+ * `datamine-crafting.mjs` entdoppelt seit dem 27.08.2026 zeichengleiche
+ * Eintraege (FullForce, Glacis), und 4.10 selbst hat weitere Namensgruppen
+ * aufgeloest. Sie ist reine Beschreibung, keine Zusicherung — die harte Zahl
+ * steht in verify-crafting-specs.mjs.
  */
 export const blueprints: BlueprintEntry[] = (() => {
   const used = new Map<string, number>();
@@ -135,6 +141,47 @@ export const blueprints: BlueprintEntry[] = (() => {
 export const blueprintBySlug = new Map(blueprints.map((b) => [b.slug, b]));
 /** Name (klein) -> Blueprint, fuer den Join Item <-> Rezept. */
 export const blueprintByName = new Map(blueprints.map((b) => [b.name.toLowerCase(), b]));
+
+/**
+ * Beschriftungen fuer eine LISTE von Bauplaenen — mit Unterscheider dort, wo
+ * derselbe Anzeigename mehrfach in DERSELBEN Liste steht.
+ *
+ * Anlass (Register id 49, gefunden 27.08.2026): die Bauplan-Liste der
+ * Missionsseite zeigte zweimal `BroadSpec`, und die beiden Chips fuehrten auf
+ * `/crafting/broadspec.html` und `/crafting/broadspec-2.html`. Der Slug war
+ * eindeutig, die Beschriftung nicht — der Leser konnte nicht entscheiden,
+ * welchen er will. Wieder derselbe Grundfehler: der Anzeigename ist kein
+ * Schluessel.
+ *
+ * Unterschieden wird an der ersten Angabe, die WIRKLICH auseinandergeht:
+ *   1. die Masse, wenn sie fuer alle Gleichnamigen vorliegt und paarweise
+ *      verschieden ist (BroadSpec 590 kg vs. 220 kg — zwei echte Items);
+ *   2. sonst eine laufende Nummer, die zum Slug passt (`… (2)` -> `…-2`).
+ * Der zweite Fall trifft die Gruppen, die sich nur in den ZUTATEN
+ * unterscheiden (FoxFire: gleiche guid, gleiche Werte, Torite statt Tungsten)
+ * — zwei Wege zum selben Item. Deren Unterschied gehoert auf die Bauplanseite,
+ * nicht in einen Chip.
+ *
+ * Namen, die nur EINMAL in der Liste stehen, bleiben unangetastet.
+ * Zugesichert von verify-crafting-specs.mjs Pruefblock 10, je DE und EN.
+ */
+export function blueprintListLabels(list: Blueprint[], lang: Locale): string[] {
+  const anzahl = new Map<string, number>();
+  for (const b of list) anzahl.set(b.name, (anzahl.get(b.name) ?? 0) + 1);
+
+  const lauf = new Map<string, number>();
+  return list.map((b) => {
+    if ((anzahl.get(b.name) ?? 0) < 2) return b.name;
+    const n = (lauf.get(b.name) ?? 0) + 1;
+    lauf.set(b.name, n);
+    const massen = list.filter((x) => x.name === b.name).map((x) => x.item_stats?.mass_kg);
+    const brauchbar = massen.every((m) => typeof m === 'number') && new Set(massen).size === massen.length;
+    const m = b.item_stats?.mass_kg;
+    if (brauchbar && typeof m === 'number')
+      return `${b.name} · ${m.toLocaleString(lang === 'de' ? 'de-DE' : 'en-US')} kg`;
+    return `${b.name} (${n})`;
+  });
+}
 
 /* ---------- Kategorien ---------- */
 

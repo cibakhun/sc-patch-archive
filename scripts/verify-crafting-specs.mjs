@@ -1,9 +1,11 @@
 // verify-crafting-specs.mjs — Datengatter fuer Groesse/Grade/Ton auf den
-// Crafting-Karten (Phase 08 / CRAFT-01..04). Prueft die 15 gleichnamigen
+// Crafting-Karten (Phase 08 / CRAFT-01..04). Prueft die 11 gleichnamigen
 // Blueprint-Gruppen, die 57 SizeN-Quantumdrives als unabhaengige Gegenprobe
 // des Namens-Joins, die Wertebereiche, die Abdeckung je Vehiclegear-Typ, den
 // Schiffswaffen-Ton aus dem Kategorie-Pfad und die Gesamtabdeckung nach der
-// Sperre ueber alle 1594 Blueprints.
+// Sperre ueber alle 1605 Blueprints, und seit dem 27.08.2026 zusaetzlich,
+// dass gleichnamige Bauplaene in EINER Liste unterscheidbar beschriftet
+// werden (Pruefblock 10, Register id 49).
 //
 // KEINE SPIEGELUNG MEHR (07.08.2026): dieses Skript prueft die ECHTEN
 // Funktionen aus src/lib/crafting.ts und src/lib/items.ts. Frueher stand hier
@@ -16,7 +18,7 @@
 // gebuendelt und importiert. Aendert sich die Logik, prueft das Gatter sie
 // automatisch mit.
 //
-// Pruefblock 3 (die 15 Namensgruppen) vergleicht weiterhin bewusst NICHT
+// Pruefblock 3 (die 11 Namensgruppen) vergleicht weiterhin bewusst NICHT
 // gegen das Ergebnis der echten Funktion — das waere zirkulaer —, sondern
 // gegen eine hier neu berechnete Diskriminante (item_stats-Signatur).
 //
@@ -65,7 +67,7 @@ try {
   process.exit(1);
 }
 
-const { blueprintSpecs, COLLIDING_NAMES, toneFromWeaponCategoryPath, resolvedByGuid } = src.craft;
+const { blueprintSpecs, COLLIDING_NAMES, toneFromWeaponCategoryPath, resolvedByGuid, blueprintListLabels } = src.craft;
 const { GRADE_BEARING_TYPES, hasGradeSemantics, rootCategory } = src.itemlib;
 const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
 const collidingNames = COLLIDING_NAMES;
@@ -135,9 +137,15 @@ console.log(`   geprueft: ${sizeNChecked} | abweichend: ${sizeNBad}`);
 need(sizeNChecked === 57, `SizeN-Gegenprobe: erwartet 57 geprueft, gemessen ${sizeNChecked}`);
 need(sizeNBad === 0, `SizeN-Gegenprobe: ${sizeNBad} Abweichungen`);
 
-/* ---------- 3) Die 15 gleichnamigen Blueprints ---------- */
-console.log('3) Die 15 gleichnamigen Blueprints — Diskriminante item_stats …');
-const EXPECTED_COLLIDING = ['antium core jet', 'broadspec', 'main powerplant', 'serac', 'stellate'].sort();
+/* ---------- 3) Die 11 gleichnamigen Blueprints ---------- */
+// 4.10-Datenlauf 27.08.2026: 15 -> 13 Namensgruppen, 5 -> 4 kollidierende.
+// `antium core jet` ist herausgefallen — die beiden gleichnamigen Baupläne
+// führen in 4.10 identische item_stats, sind also keine nachweislich
+// verschiedenen Items mehr. Das ist eine ECHTE Aenderung der Spieldaten, keine
+// Messschwankung: die Sperre COLLIDING_NAMES leitet sich bei jedem Build aus
+// den Daten ab und hat die Gruppe deshalb von selbst freigegeben.
+console.log('3) Die 11 gleichnamigen Blueprints — Diskriminante item_stats …');
+const EXPECTED_COLLIDING = ['broadspec', 'main powerplant', 'serac', 'stellate'].sort();
 
 const dupGroups = [...byName.entries()].filter(([, list]) => list.length > 1);
 let groupsCollidingMeasured = 0, groupsCollidingCards = 0, groupsUnauffaellig = 0;
@@ -181,16 +189,21 @@ console.log(`   Namensgruppen: ${dupGroups.length} | kollidierend: ${groupsColli
 console.log(`   kollidierende Namen: ${[...collidingNames].sort().join(', ')}`);
 console.log(`   per entity_guid eindeutig bestimmt: ${guidResolvedCards} Karten (zeigen Kennwerte) | nur per Name auffindbar: ${nameOnlyCards} (bleiben leer)`);
 console.log(`   Selbstprobe: ein Vergleich nur ueber overheat_temperature faende ${overheatOnlyDiffering} von ${groupsCollidingMeasured} Gruppen — Hinweis, damit der Vergleich nie auf dieses eine Feld verschlankt wird.`);
-// Alle 10 Karten der Kollisionsgruppen sind seit den guidAliases/Varianten-Ids
+// Alle Karten der Kollisionsgruppen sind seit den guidAliases/Varianten-Ids
 // eindeutig bestimmt. Faellt das je zurueck, ist ein Schluessel verloren
 // gegangen — dann zeigt die Seite wieder weniger, als sie belegen koennte.
-need(guidResolvedCards === 10, `per guid bestimmte Kollisionskarten: erwartet 10, gemessen ${guidResolvedCards}`);
+// 10 -> 8 im 4.10-Lauf, weil die Gruppe `antium core jet` (2 Karten) nicht
+// mehr kollidiert; nameOnlyCards bleibt bei 0, es ist kein Schluessel verloren.
+need(guidResolvedCards === 8, `per guid bestimmte Kollisionskarten: erwartet 8, gemessen ${guidResolvedCards}`);
 need(nameOnlyCards === 0, `nur per Name auffindbare Kollisionskarten: erwartet 0, gemessen ${nameOnlyCards}`);
 
-need(dupGroups.length === 15, `Namensgruppen: erwartet 15, gemessen ${dupGroups.length}`);
-need(groupsCollidingMeasured === 5, `kollidierende Gruppen: erwartet 5, gemessen ${groupsCollidingMeasured}`);
-need(groupsCollidingCards === 10, `gesperrte Karten: erwartet 10, gemessen ${groupsCollidingCards}`);
-need(groupsUnauffaellig === 10, `unauffaellige Gruppen: erwartet 10, gemessen ${groupsUnauffaellig}`);
+// Alle vier Zahlen 4.10-Datenlauf 27.08.2026, gemessen an 1.605 Bauplaenen
+// (vorher 1.594). Die Gruppenzahl SINKT, obwohl der Bestand waechst — 4.10 hat
+// gleichnamige Doubletten aufgeloest, nicht neue erzeugt.
+need(dupGroups.length === 11, `Namensgruppen: erwartet 11, gemessen ${dupGroups.length}`);
+need(groupsCollidingMeasured === 4, `kollidierende Gruppen: erwartet 4, gemessen ${groupsCollidingMeasured}`);
+need(groupsCollidingCards === 8, `gesperrte Karten: erwartet 8, gemessen ${groupsCollidingCards}`);
+need(groupsUnauffaellig === 7, `unauffaellige Gruppen: erwartet 7, gemessen ${groupsUnauffaellig}`);
 const measuredColliding = [...collidingNames].sort();
 need(
   JSON.stringify(measuredColliding) === JSON.stringify(EXPECTED_COLLIDING),
@@ -226,7 +239,8 @@ for (const b of armourBps) {
   if (sp?.tone != null) { armourWithTone++; fail.push(`Ruestung mit Ton: "${b.name}" liefert Ton "${sp.tone}" (D-05 verletzt)`); }
 }
 console.log(`   Armour-Blueprints geprueft: ${armourBps.length} | mit Ton: ${armourWithTone}`);
-need(armourBps.length === 913, `Armour-Blueprints: erwartet 913, gemessen ${armourBps.length}`);
+// 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
+need(armourBps.length === 916, `Armour-Blueprints: erwartet 916, gemessen ${armourBps.length}`);
 need(armourWithTone === 0, `${armourWithTone} Armour-Blueprints mit Ton`);
 
 /* ---------- 6) Abdeckung ---------- */
@@ -238,10 +252,13 @@ console.log('6) Abdeckung je Vehiclegear-Typ …');
 // heisst aber ein eigenstaendiger Kuehler so. Die Regel entscheidet am Namen und
 // loeschte den Kuehler mit. Eintrag wiederhergestellt, Regel um einen Schutz
 // fuer Eintraege mit Spieldaten ergaenzt -> wieder 71/71/70.
+// 4.10-Datenlauf 27.08.2026: Powerplant und Shield je -1, weil die
+// Entdopplung in datamine-crafting.mjs genau dort je eine zeichengleiche
+// Doublette entfernt hat (FullForce = Powerplant, Glacis = Shield).
 const COVERAGE_EXPECTED = {
-  Powerplant: { n: 75, leer: 0, size: 75, grade: 75, tone: 73 },
+  Powerplant: { n: 74, leer: 0, size: 74, grade: 74, tone: 72 },
   Cooler: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
-  Shield: { n: 62, leer: 0, size: 62, grade: 62, tone: 61 },
+  Shield: { n: 61, leer: 0, size: 61, grade: 61, tone: 60 },
   Radar: { n: 60, leer: 3, size: 57, grade: 57, tone: 57 },
   Quantumdrive: { n: 57, leer: 0, size: 57, grade: 57, tone: 56 },
 };
@@ -315,20 +332,25 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // Alle fuenf zeigen jetzt nichts an statt eines geratenen Wertes (D-06).
 // Offen als Folgearbeit: die vier Varianten-Items koennten ihre Groessen als
 // "S3 / S4 / S6" zeigen, so wie es die Item-Seite bereits tut.
-need(totalWithSpec === 1532, `Chip-Reihen: erwartet 1532, gemessen ${totalWithSpec}`);
+// 1532 -> 1540 im 4.10-Datenlauf 27.08.2026 (1.605 statt 1.594 Bauplaene).
+// ⚠ Diese Zahl haengt NICHT nur an crafting-db.json: sie wird ueber
+// itemSizes() aus dem Item-Katalog abgeleitet. Ein Zwischenstand mitten im
+// Datenlauf mass 1534 — erst nach `sync:items` stand sie bei 1542, nach der Entdopplung bei 1540. Diese
+// Erwartungen also immer NACH dem vollstaendigen Lauf ablesen, nie zwischendrin.
+need(totalWithSpec === 1540, `Chip-Reihen: erwartet 1540, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1532, `Groesse: erwartet 1532, gemessen ${totalSize}`);
+need(totalSize === 1540, `Groesse: erwartet 1540, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
 // Karten ein "Grade A", das nur der Vorgabewert aus AttachDef.Grade war —
 // aufgefallen an einer Dominance-1 Scattergun. Siehe GRADE_BEARING_TYPES.
-need(totalGrade === 324, `Grade: erwartet 324, gemessen ${totalGrade}`);
+need(totalGrade === 322, `Grade: erwartet 322, gemessen ${totalGrade}`);
 need(
   ['PowerPlant', 'Cooler', 'Shield', 'Radar', 'QuantumDrive'].every((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes deckt die fuenf Bauteilarten nicht ab: [${[...gradeBearingTypes].sort().join(', ')}]`,
@@ -337,11 +359,50 @@ need(
   !['WeaponGun', 'WeaponPersonal', 'Char_Armor_Helmet', 'Paints'].some((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes laesst eine Art mit konstantem Grade durch: [${[...gradeBearingTypes].sort().join(', ')}]`,
 );
-need(totalTone === 506, `Ton: erwartet 506, gemessen ${totalTone}`);
-need(toneFromClass === 406, `Ton aus game.class: erwartet 406, gemessen ${toneFromClass}`);
+need(totalTone === 504, `Ton: erwartet 504, gemessen ${totalTone}`);
+need(toneFromClass === 404, `Ton aus game.class: erwartet 404, gemessen ${toneFromClass}`);
 need(toneFromPath === 100, `Ton aus dem Pfad: erwartet 100, gemessen ${toneFromPath}`);
-need(totalNone === 62, `ohne jede Angabe: erwartet 62, gemessen ${totalNone}`);
+// 62 -> 65 im 4.10-Datenlauf 27.08.2026. Zusammen mit 1540 Chip-Reihen ergibt
+// das genau die 1.605 Bauplaene — die Selbstprobe eine Zeile tiefer haelt beide
+// Zahlen aneinander, eine allein koennte still auseinanderlaufen.
+need(totalNone === 65, `ohne jede Angabe: erwartet 65, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
+
+/* ---------- 10) Zwei gleiche Chips nebeneinander ---------- */
+// Anlass: Register id 49 (27.08.2026). Die Bauplan-Liste der Missionsseite
+// zeigte zweimal `BroadSpec`; beide Chips fuehrten auf verschiedene Seiten,
+// waren aber zeichengleich beschriftet. Der Slug war eindeutig, die Beschrif-
+// tung nicht.
+//
+// Geprueft wird die ECHTE Funktion aus src/lib/crafting.ts, gefuettert mit
+// jeder gleichnamigen Gruppe des Bestands — das ist der schaerfste Fall, der
+// in einer Liste auftreten kann. Kommen zwei gleiche Beschriftungen heraus,
+// ist der Unterscheider unbrauchbar geworden (etwa weil ein Patch die Massen
+// angeglichen hat) und die Seite raet wieder.
+console.log('10) Gleichnamige Bauplaene tragen unterscheidbare Beschriftungen …');
+// Dieselbe Menge wie in Pruefblock 3 — dort ist ihre Groesse zugesichert.
+let gruppenGeprueft = 0;
+// ⚠ Gegen list[0].name vergleichen, NICHT gegen den Map-Schluessel: byName ist
+// kleingeschrieben, die Beschriftung traegt die echte Schreibweise. Der erste
+// Anlauf verglich gegen den Schluessel und meldete elf Fehlalarme.
+for (const [, list] of dupGroups) {
+  const name = list[0].name;
+  for (const lang of ['de', 'en']) {
+    const labels = blueprintListLabels(list, lang);
+    gruppenGeprueft++;
+    if (new Set(labels).size !== labels.length)
+      fail.push(`gleichnamige Gruppe "${name}" [${lang}]: Beschriftungen nicht unterscheidbar — [${labels.join(' | ')}]`);
+    if (labels.some((l) => !l.startsWith(name)))
+      fail.push(`gleichnamige Gruppe "${name}" [${lang}]: Beschriftung verliert den Namen — [${labels.join(' | ')}]`);
+  }
+}
+// Gegenprobe: ein Name, der nur EINMAL vorkommt, darf keinen Zusatz bekommen.
+const einzel = [...byName.values()].find((list) => list.length === 1);
+if (einzel) {
+  const l = blueprintListLabels(einzel, 'de');
+  need(l.length === 1 && l[0] === einzel[0].name, `Einzelname "${einzel[0].name}" wurde veraendert zu "${l[0]}"`);
+}
+console.log(`   gleichnamige Gruppen: ${dupGroups.length} | Beschriftungssaetze geprueft: ${gruppenGeprueft} (je DE und EN) | Einzelname-Gegenprobe: 1`);
 
 /* ---------- 9) Wertebereich Ton ---------- */
 console.log('9) Wertebereich Ton …');
