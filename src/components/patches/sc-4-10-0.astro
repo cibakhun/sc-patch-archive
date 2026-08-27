@@ -17,6 +17,24 @@ const de = lang === 'de';
 const entry = await getEntry('patches', '4-10-0');
 if (!entry) throw new Error('Patch-Daten 4-10-0 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-10-0', entry.data, lang);
+
+/* Belegung der Quantum-Tempostufen, absteigend: ein Wert je Stufe, die Zahl
+   sagt, wie viele der 176 Schiffe mit QT-Wert darauf sitzen.
+   GEMESSEN, nicht gestaltet — hier standen bis zum 27.08.2026 zwei fest
+   verdrahtete Balkenreihen (26/26/26/54/54/78 … und eine glatte Rampe), die
+   nichts abbildeten. Die Zahlen unten stammen aus src/data/vehicles.json,
+   `vorher` aus demselben Bestand beim Commit 5501665 (Stand 4.9.0/12344265),
+   `nachher` aus dem 4.10-Lauf. Die Vorher-Reihe laesst sich aus dem
+   committeten Baum NICHT mehr nachrechnen — sie lebt nur in der Historie,
+   deshalb steht sie hier als eingefrorene Messung und nicht als Ableitung.
+   Nachrechnen: git show 5501665:src/data/vehicles.json, Feld qtSpeedMs,
+   Werte zaehlen, absteigend sortieren. */
+const QT = {
+  n: 176,
+  vorher: [54, 18, 14, 13, 12, 11, 11, 9, 7, 7, 6, 3, 3, 2, 1, 1, 1, 1, 1, 1],
+  nachher: [26, 18, 13, 13, 12, 11, 11, 10, 10, 9, 7, 6, 4, 4, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1],
+  max: 54,
+};
 ---
 <PatchSeo patch={patch} image="/assets/trailer-4-10-0.jpg" />
 <style is:inline>
@@ -151,10 +169,18 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .readout .lead2{flex:1;border-bottom:1px dotted rgba(238,242,243,.25);transform:translateY(-3px)}
 .readout dd{color:var(--text);text-align:right}
 .readout dd em{color:var(--accent-2);font-style:normal}
-.tierbar{display:flex;gap:3px;margin:.2rem 0 .9rem;height:74px;align-items:flex-end}
-.tierbar span{flex:1;background:linear-gradient(180deg,var(--accent-2),rgba(79,216,180,.25));border-radius:2px 2px 0 0;opacity:.85}
+/* Ein Balken je Tempostufe — 20 vorher, 26 nachher. `gap` in Prozent statt
+   Pixel, damit beide Reihen dieselbe Gesamtbreite fuellen und die Hoehen
+   vergleichbar bleiben; beide skalieren gegen denselben Hoechstwert (54). */
+.tierbar{display:flex;gap:1.5%;margin:.2rem 0 .9rem;height:78px;align-items:flex-end}
+.tierbar span{flex:1;min-width:2px;background:linear-gradient(180deg,var(--accent-2),rgba(79,216,180,.25));border-radius:2px 2px 0 0;opacity:.85}
 .tierbar.before span{background:linear-gradient(180deg,var(--muted),rgba(159,176,182,.2))}
-.tierlab{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--muted);margin-bottom:.35rem;text-transform:uppercase}
+/* Der Stapel, um den es geht: 54 von 176 Schiffen auf EINEM Wert. Er traegt
+   die Aussage des Abschnitts und wird deshalb hervorgehoben, nicht der Rest. */
+.tierbar.before span:first-child{background:linear-gradient(180deg,var(--hot),rgba(255,94,26,.25));opacity:1}
+.tierlab{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--muted);margin-bottom:.35rem;text-transform:uppercase}
+.tierlab b{color:var(--text);font-weight:600;white-space:nowrap}
+.tiernote{margin:.1rem 0 0;color:var(--muted);font-size:var(--fs-7);line-height:1.5;max-width:52ch}
 
 /* BEUTE — Ausrüstungsraster */
 .gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
@@ -310,20 +336,26 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
           <div class="splitleg">
             <em class="k1">{de ? '▮ 144 schneller' : '▮ 144 faster'}</em><em class="k2">{de ? '▮ 32 langsamer' : '▮ 32 slower'}</em><em>{de ? '▮ 51 ohne QT-Wert' : '▮ 51 without a QT value'}</em>
           </div>
-          <div class="tierlab"><span>{de ? 'vorher · 20 runde Stufen' : 'before · 20 round tiers'}</span></div>
-          <div class="tierbar before" aria-hidden="true"><span style="height:26%"></span><span style="height:26%"></span><span style="height:26%"></span><span style="height:26%"></span><span style="height:54%"></span><span style="height:54%"></span><span style="height:54%"></span><span style="height:78%"></span><span style="height:78%"></span><span style="height:78%"></span></div>
-          <div class="tierlab"><span>{de ? 'nachher · 26 abgestimmte Werte' : 'after · 26 tuned values'}</span></div>
-          <div class="tierbar" aria-hidden="true"><span style="height:22%"></span><span style="height:30%"></span><span style="height:38%"></span><span style="height:45%"></span><span style="height:53%"></span><span style="height:61%"></span><span style="height:69%"></span><span style="height:77%"></span><span style="height:86%"></span><span style="height:95%"></span></div>
+          <div class="tierlab"><span>{de ? `vorher · ${QT.vorher.length} Stufen` : `before · ${QT.vorher.length} tiers`}</span><b>{de ? `größter Stapel ${QT.vorher[0]} Schiffe` : `biggest stack ${QT.vorher[0]} ships`}</b></div>
+          <div class="tierbar before" aria-hidden="true">{QT.vorher.map((n) => <span style={`height:${Math.round((n / QT.max) * 100)}%`} data-n={n}></span>)}</div>
+          <div class="tierlab"><span>{de ? `nachher · ${QT.nachher.length} Stufen` : `after · ${QT.nachher.length} tiers`}</span><b>{de ? `größter Stapel ${QT.nachher[0]} Schiffe` : `biggest stack ${QT.nachher[0]} ships`}</b></div>
+          <div class="tierbar" aria-hidden="true">{QT.nachher.map((n) => <span style={`height:${Math.round((n / QT.max) * 100)}%`} data-n={n}></span>)}</div>
+          <p class="tiernote">{de
+            ? `Ein Balken je Tempostufe, Höhe = wie viele der ${QT.n} Schiffe mit QT-Wert darauf sitzen. Vorher trug eine einzige Stufe ${QT.vorher[0]} Schiffe — ${Math.round((QT.vorher[0] / QT.n) * 100)} % der Flotte auf demselben Wert. Jetzt ist der größte Stapel ${QT.nachher[0]} (${Math.round((QT.nachher[0] / QT.n) * 100)} %).`
+            : `One bar per speed tier, height = how many of the ${QT.n} ships with a QT value sit on it. Before, a single tier carried ${QT.vorher[0]} ships — ${Math.round((QT.vorher[0] / QT.n) * 100)} % of the fleet on one value. Now the biggest stack is ${QT.nachher[0]} (${Math.round((QT.nachher[0] / QT.n) * 100)} %).`}</p>
         </div>
         <div class="qpanel">
           <div class="phead"><h3>{de ? 'Ablesewerte' : 'Readout'}</h3><span class="pc">{de ? 'aus dem Bestand' : 'from the data'}</span></div>
+          {/* Bewusst OHNE die vier Zahlen, die links schon im Balken stehen
+              (176/227, 144, 32, 20→26). Hier steht nur, was das Bild nicht
+              zeigen kann — sonst liest man dieselbe Sache zweimal. */}
           <dl class="readout">
-            <div class="row"><dt>{de ? 'Geschwindigkeit' : 'Speed'}</dt><span class="lead2"></span><dd>176 / 227</dd></div>
-            <div class="row"><dt>{de ? 'schneller' : 'faster'}</dt><span class="lead2"></span><dd><em>144</em></dd></div>
-            <div class="row"><dt>{de ? 'langsamer' : 'slower'}</dt><span class="lead2"></span><dd>32</dd></div>
-            <div class="row"><dt>{de ? 'Tempostufen' : 'Speed tiers'}</dt><span class="lead2"></span><dd>20 → <em>26</em></dd></div>
+            <div class="row"><dt>{de ? 'größter Stapel' : 'biggest stack'}</dt><span class="lead2"></span><dd>54 → <em>26</em> {de ? 'Schiffe' : 'ships'}</dd></div>
+            <div class="row"><dt>{de ? 'langsamster Antrieb' : 'slowest drive'}</dt><span class="lead2"></span><dd>138 → 161 Mm/s</dd></div>
+            <div class="row"><dt>{de ? 'schnellster Antrieb' : 'fastest drive'}</dt><span class="lead2"></span><dd>876 → <em>1263</em> Mm/s</dd></div>
             <div class="row"><dt>{de ? 'Spulzeit' : 'Spool-up'}</dt><span class="lead2"></span><dd>{de ? '4 s → 4,4–5,3 s' : '4 s → 4.4–5.3 s'}</dd></div>
-            <div class="row"><dt>{de ? 'davon betroffen' : 'affected'}</dt><span class="lead2"></span><dd>171</dd></div>
+            <div class="row"><dt>{de ? 'Spulzeit geändert' : 'spool-up changed'}</dt><span class="lead2"></span><dd>171</dd></div>
+            <div class="row"><dt>{de ? 'ohne QT-Antrieb' : 'without a QT drive'}</dt><span class="lead2"></span><dd>51</dd></div>
             <div class="row"><dt>{de ? 'Flottenstand' : 'Fleet count'}</dt><span class="lead2"></span><dd>227 {de ? 'unverändert' : 'unchanged'}</dd></div>
           </dl>
         </div>
