@@ -117,6 +117,38 @@ export interface BlueprintEntry extends Blueprint {
   index: number;
 }
 
+/* ---------- Join Blueprint <-> Item ---------- */
+
+const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
+/**
+ * Record-Id -> Item, und wo bekannt die konkrete Ausfuehrung.
+ *
+ * Drei Wege fuehren auf denselben Katalogeintrag, und alle drei sind noetig,
+ * weil `datamine-items.mjs` gleichnamige Spiel-Items zusammenzieht:
+ *  1. `game.guid` — der Eintrag selbst.
+ *  2. `game.guidAliases` — Geschwister, die beim Dedupe wegfielen. Sie tragen
+ *     nachweislich dieselbe Groesse, denselben Grade und dieselbe Klasse,
+ *     sonst waeren sie nicht aufgenommen worden.
+ *  3. `game.variants[].guid` — bei mehrdeutigen Anzeigenamen die einzelne
+ *     Ausfuehrung. Hier zaehlt der Treffer MEHR als der Eintrag: er sagt, dass
+ *     dieses Rezept die S3 meint und nicht "S3 / S4 / S6".
+ */
+interface GuidTreffer { item: Item; variant?: ItemVariant }
+const itemByGuid = new Map<string, GuidTreffer>();
+for (const i of items) {
+  const g = i.game;
+  if (!g) continue;
+  if (g.guid && !itemByGuid.has(g.guid)) itemByGuid.set(g.guid, { item: i });
+  for (const a of g.guidAliases ?? []) if (!itemByGuid.has(a)) itemByGuid.set(a, { item: i });
+}
+// Ausfuehrungen ZULETZT und ueberschreibend: die guid des Katalogeintrags ist
+// zugleich die einer seiner Ausfuehrungen (der beste Vertreter IST eine davon).
+// Wuerde der Eintrags-Treffer gewinnen, saehe ausgerechnet diese Karte
+// "S2 / S3" statt ihres eigenen "S2" — der unpraezisere Wert.
+for (const i of items) {
+  for (const v of i.game?.variants ?? []) if (v.guid) itemByGuid.set(v.guid, { item: i, variant: v });
+}
+
 /**
  * 11 Blueprint-Namen kommen doppelt vor (gleiches Item in zwei Varianten).
  * Der zweite und jeder weitere bekommt ein "-2"/"-3"-Suffix, damit die URL
@@ -127,16 +159,52 @@ export interface BlueprintEntry extends Blueprint {
  * Eintraege (FullForce, Glacis), und 4.10 selbst hat weitere Namensgruppen
  * aufgeloest. Sie ist reine Beschreibung, keine Zusicherung — die harte Zahl
  * steht in verify-crafting-specs.mjs.
+ *
+ * ---
+ *
+ * Und: Bauplaene ohne jedes Item dahinter erscheinen NICHT auf der Seite.
+ *
+ * Anlass (Register id 53, gemessen 27.08.2026): 42 der 1.605 Bauplaene trafen
+ * ihr Item nicht ueber die entity_guid. 33 davon finden es doch — ueber den
+ * Namen; ihre Seiten sind vollstaendig. Die uebrigen 9 finden es auf KEINEM
+ * Weg, und ihre Seite zeigt darum ein Rezept ohne einen einzigen Kennwert:
+ *
+ *   Cool Aegs S04 Javelin Scitem · Cool S04 Cnou Pioneer · Torrez
+ *   Radr Gnrp S03 Idris Temp · Radr Rsi S04 Polaris · Radr Wlop S03 Lephari
+ *   Metamaterial Test #146 · Metamaterial Test #152 · Probe
+ *
+ * Alle neun tragen unfertige Werkstattnamen aus dem Spielbuild ("Cool …" =
+ * Kuehler, "Radr …" = Radar, dazu zwei ausdrueckliche Tests). Sie sind keine
+ * Extraktionsfehler — sie liegen so im ausgelieferten Spiel; der Erzeuger
+ * arbeitet richtig. Sie gehoeren nur nicht auf eine Seite, die vorgibt, ein
+ * Item zu beschreiben.
+ *
+ * Gefiltert wird HIER und nicht im Erzeuger: crafting-db.json bleibt damit ein
+ * vollstaendiges Abbild des Spielbestands (und verify:crafting prueft weiter
+ * gegen alle 1.605), waehrend die SEITE nur zeigt, was etwas zeigen kann.
+ * Die Bedingung ist bewusst hart — kein Namensmuster, keine Liste: was ein
+ * Item findet, bleibt. Faellt ein kuenftiger Patch-Lauf hier hinein, sinkt die
+ * Zahl und die Klinke `blueprints` in metrics-baseline.mjs meldet es.
  */
+const hatItem = (b: Blueprint): boolean => {
+  if (b.entity_guid && itemByGuid.has(b.entity_guid)) return true;
+  return itemByName.has(b.name.toLowerCase());
+};
+
 export const blueprints: BlueprintEntry[] = (() => {
   const used = new Map<string, number>();
-  return craftDb.blueprints.map((b, index) => {
-    const base = slugify(b.name);
-    const n = (used.get(base) ?? 0) + 1;
-    used.set(base, n);
-    return { ...b, index, slug: n > 1 ? `${base}-${n}` : base };
-  });
+  return craftDb.blueprints
+    .map((b, index) => {
+      const base = slugify(b.name);
+      const n = (used.get(base) ?? 0) + 1;
+      used.set(base, n);
+      return { ...b, index, slug: n > 1 ? `${base}-${n}` : base };
+    })
+    .filter(hatItem);
 })();
+
+/** Wie viele Bauplaene die Seite auslaesst, weil kein Item dahinter steht. */
+export const blueprintsOhneItem = craftDb.blueprints.length - blueprints.length;
 
 export const blueprintBySlug = new Map(blueprints.map((b) => [b.slug, b]));
 /** Name (klein) -> Blueprint, fuer den Join Item <-> Rezept. */
@@ -240,37 +308,6 @@ export const CRAFT_PER_PAGE = 100;
 export const craftPageCount = (c: CraftCategory) =>
   Math.max(1, Math.ceil(c.blueprints.length / CRAFT_PER_PAGE));
 
-/* ---------- Join Blueprint <-> Item ---------- */
-
-const itemByName = new Map(items.map((i) => [i.name.toLowerCase(), i]));
-/**
- * Record-Id -> Item, und wo bekannt die konkrete Ausfuehrung.
- *
- * Drei Wege fuehren auf denselben Katalogeintrag, und alle drei sind noetig,
- * weil `datamine-items.mjs` gleichnamige Spiel-Items zusammenzieht:
- *  1. `game.guid` — der Eintrag selbst.
- *  2. `game.guidAliases` — Geschwister, die beim Dedupe wegfielen. Sie tragen
- *     nachweislich dieselbe Groesse, denselben Grade und dieselbe Klasse,
- *     sonst waeren sie nicht aufgenommen worden.
- *  3. `game.variants[].guid` — bei mehrdeutigen Anzeigenamen die einzelne
- *     Ausfuehrung. Hier zaehlt der Treffer MEHR als der Eintrag: er sagt, dass
- *     dieses Rezept die S3 meint und nicht "S3 / S4 / S6".
- */
-interface GuidTreffer { item: Item; variant?: ItemVariant }
-const itemByGuid = new Map<string, GuidTreffer>();
-for (const i of items) {
-  const g = i.game;
-  if (!g) continue;
-  if (g.guid && !itemByGuid.has(g.guid)) itemByGuid.set(g.guid, { item: i });
-  for (const a of g.guidAliases ?? []) if (!itemByGuid.has(a)) itemByGuid.set(a, { item: i });
-}
-// Ausfuehrungen ZULETZT und ueberschreibend: die guid des Katalogeintrags ist
-// zugleich die einer seiner Ausfuehrungen (der beste Vertreter IST eine davon).
-// Wuerde der Eintrags-Treffer gewinnen, saehe ausgerechnet diese Karte
-// "S2 / S3" statt ihres eigenen "S2" — der unpraezisere Wert.
-for (const i of items) {
-  for (const v of i.game?.variants ?? []) if (v.guid) itemByGuid.set(v.guid, { item: i, variant: v });
-}
 
 /**
  * Wurde das Item ueber den echten Schluessel gefunden?
