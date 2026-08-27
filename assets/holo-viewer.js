@@ -222,56 +222,6 @@ export async function initHolo(container, cfg) {
   rig.add(model);
 
   const box = new THREE.Box3().setFromObject(model);
-
-  /* Stuetzpunkte des RUMPFS — eine grobe konvexe Huelle aus den echten
-     Netzpunkten, einmal beim Laden gebildet.
-     ⚠⚠ Warum nicht der Huellkasten: unter Perspektive ist er ein schlechter
-     Vertreter des Schiffs. Seine kameranahen Ecken projizieren weit ueber die
-     Silhouette hinaus — bei der Carrack 1249px Kastenspanne gegen rund 830px
-     sichtbaren Rumpf. Eine Masskette, die sich am Kasten ausrichtet, steht
-     entsprechend zu weit draussen (gemessen: 400px Versatz statt der noetigen
-     ~190) und landet in Titelblock und Projektorstrahl. Die sechs
-     Flaechenmitten sind der Gegenfehler — mit ihnen laeuft die Kette DURCH den
-     Rumpf. Nur das Netz selbst sagt die Wahrheit.
-     ⚠ 26 Richtungen (Flaechen/Kanten/Ecken des Wuerfels) waren zu grob: der
-     Silhouettenpunkt der aktuellen Kamera faellt zwischen sie, und der
-     behaltene Punkt lag dann weit innen — die Hoehenkette stand bei 1025px, wo
-     der Rumpf bis 1180 reicht. 128 Richtungen auf einer Fibonacci-Kugel lassen
-     hoechstens ~7,5 Grad Luecke, das sind wenige Bildpunkte Fehler.
-     Gleiche Raumlage wie `box` — also matrixWorld VON JETZT, bevor rig unten
-     seinen Transform bekommt. */
-  const _rumpfPunkte = (() => {
-    const N = 128, gold = Math.PI * (3 - Math.sqrt(5));
-    const dirs = [];
-    for (let i = 0; i < N; i++) {
-      const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(Math.max(0, 1 - y * y)), th = gold * i;
-      dirs.push(new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r));
-    }
-    model.updateWorldMatrix(true, true);
-    // Erst zaehlen, dann mit EINER globalen Schrittweite abtasten: sonst
-    // entscheidet die Zahl der Teilnetze ueber die Rechenzeit.
-    let gesamt = 0;
-    model.traverse((o) => {
-      const pos = o.isMesh && o.geometry && o.geometry.getAttribute('position');
-      if (pos) gesamt += pos.count;
-    });
-    const schritt = Math.max(1, Math.ceil(gesamt / 40000));
-    const best = dirs.map(() => ({ s: -Infinity, p: new THREE.Vector3() }));
-    const v = new THREE.Vector3();
-    model.traverse((o) => {
-      const pos = o.isMesh && o.geometry && o.geometry.getAttribute('position');
-      if (!pos) return;
-      for (let n = 0; n < pos.count; n += schritt) {
-        v.fromBufferAttribute(pos, n).applyMatrix4(o.matrixWorld);
-        for (let d = 0; d < N; d++) {
-          const sd = v.x * dirs[d].x + v.y * dirs[d].y + v.z * dirs[d].z;
-          if (sd > best[d].s) { best[d].s = sd; best[d].p.copy(v); }
-        }
-      }
-    });
-    return best.filter((b) => b.s > -Infinity).map((b) => b.p);
-  })();
-
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -626,294 +576,6 @@ export async function initHolo(container, cfg) {
   // Von aussen gesetztes Hindernis fuer die Beschriftungs-Entzerrung (die
   // Detailkarte der Seite, siehe layoutLabels).
   let hindernisEl = null;
-
-  /* Projizierte Huelle des MODELLS in Bildpunkten — die acht Eckpunkte von
-     `box` (Z. 224, rig-lokal) an ihren Weltort gebracht und projiziert.
-     Ausdruecklich NICHT rig/fitSphere: die tragen Aura, Kegel und Staub mit.
-     Zwei Nutzer: metrics() (Rahmung) und die Masskette unten. */
-  const _huelleP = new THREE.Vector3();
-  function projizierteHuelle(w, h) {
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for (const dx of [box.min.x, box.max.x]) {
-      for (const dy of [box.min.y, box.max.y]) {
-        for (const dz of [box.min.z, box.max.z]) {
-          _huelleP.set(dx, dy, dz).applyMatrix4(rig.matrixWorld).project(camera);
-          const px = (_huelleP.x * 0.5 + 0.5) * w, py = (-_huelleP.y * 0.5 + 0.5) * h;
-          if (px < minX) minX = px; if (px > maxX) maxX = px;
-          if (py < minY) minY = py; if (py > maxY) maxY = py;
-        }
-      }
-    }
-    return { minX, maxX, minY, maxY };
-  }
-
-  /* ---------- Masskette (Phase 17, „das Schiff antwortet") ----------
-     Fuer die Gruppe „Ausstattung" ist die Antwort der Rumpf SELBST: Laenge und
-     Hoehe sind keine Tabellenzeilen, sie sind Ausdehnungen. Die Kette folgt der
-     projizierten Huelle je Bild, dreht sich also mit dem Schiff mit.
-
-     Bewusst NUR Laenge und Hoehe: beide sind an der Silhouette wirklich
-     ablesbar. Die BREITE liegt in der Tiefenachse und waere in der 3/4-Ansicht
-     eine Behauptung — sie steht weiterhin als Zahl in der Kopfzeile, nicht als
-     Strich am Rumpf. Eine Masskette, die etwas misst, das man nicht sieht,
-     waere Dekoration mit Messgeraet-Kostuem. */
-  const masseSvg = document.createElementNS(SVGNS, 'svg');
-  masseSvg.setAttribute('class', 'holo-masse');
-  masseSvg.style.display = 'none';
-  labelLayer.appendChild(masseSvg);
-  let masseWerte = null;   // { laenge: "126 m", hoehe: "30 m" } oder null
-  let masseW = 0, masseH = 0;
-
-  /* Sperrflaechen der Masskette: Seiten-Markup, das IM Raum liegt — Titelblock
-     (unten links), Blende (oben), Leuchtfleck des Projektors (unten mittig).
-     Wie beim Hindernis der Beschriftungen gilt: das ist Markup der SEITE, nicht
-     des Viewers, und wird deshalb von aussen gesetzt (setMasskette). */
-  let massSperrEls = [];
-  const _massRange = document.createRange();
-  /* ⚠⚠ Gemessen wird die TINTE, nicht der Kasten. Ein Range ueber den INHALT
-     liefert die Vereinigung der tatsaechlichen Inhaltsboxen: bei einer
-     Ueberschrift das enge Textrechteck statt der Spaltenbreite, bei einem
-     Behaelter den Knopf darin statt des Behaelters. Der Unterschied ist gross
-     und hat schon zweimal ein Fehlurteil erzeugt — `.holo__fav` misst 45..351,
-     der Knopf "MERKEN" darin nur 45..155; gegen den Behaelter gemessen galt die
-     Kette als getroffen, waehrend sie im Bild sichtbar daneben lag.
-     Rueckfall auf das Element selbst, wenn der Inhalt leer ist (der Leuchtfleck
-     ist ein leeres div — sein Range waere ein Nullrechteck und damit blind). */
-  function massSperren() {
-    const cr = renderer.domElement.getBoundingClientRect();
-    const out = [];
-    for (const el of massSperrEls) {
-      if (!el || el.hidden) continue;
-      let r;
-      try {
-        _massRange.selectNodeContents(el);
-        r = _massRange.getBoundingClientRect();
-      } catch { r = null; }
-      if (!r || r.width <= 0 || r.height <= 0) r = el.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) {
-        out.push({ l: r.left - cr.left, r: r.right - cr.left, t: r.top - cr.top, b: r.bottom - cr.top });
-      }
-    }
-    return out;
-  }
-
-  /* Schneidet die STRECKE das Rechteck? (Liang-Barsky)
-     ⚠⚠ Nicht das umschliessende Rechteck der Strecke nehmen. Bei einer
-     Diagonale ist das grob falsch — genau dieser Kurzschluss hat am 21.08. ein
-     Fehlurteil erzeugt ("kreuzt den Titelblock", waehrend die Linie im Bild
-     sichtbar daneben lag). Eine Masskette ist fast immer schraeg. */
-  function streckeTrifft(ax, ay, bx, by, r) {
-    const px = bx - ax, py = by - ay;
-    let t0 = 0, t1 = 1;
-    const p = [-px, px, -py, py];
-    const q = [ax - r.l, r.r - ax, ay - r.t, r.b - ay];
-    for (let i = 0; i < 4; i++) {
-      if (p[i] === 0) { if (q[i] < 0) return false; continue; }
-      const t = q[i] / p[i];
-      if (p[i] < 0) { if (t > t1) return false; if (t > t0) t0 = t; }
-      else { if (t < t0) return false; if (t < t1) t1 = t; }
-    }
-    return t1 > t0;
-  }
-
-  /* Letzter Versatz je Kette, ueber Bilder gemerkt — die Kette zieht sanft zu
-     ihrem Ziel, statt zu springen. Dieselbe Idee wie bei den Beschriftungen
-     (layoutLabels haelt die Kastenmitte ueber Bilder und zieht sie nur nach). */
-  const _massAb = new Map();
-
-  /* ⚠ Die Breite der Massszahl wird GEMESSEN, nicht geschaetzt. Vorher stand
-     hier ein fester Rand von 56px als Platzhalter fuer "die Zahl passt schon";
-     der haelt fuer "30 m", aber die Zahl waechst mit der Sprache (Tausender-
-     punkt gegen -komma) und mit dem Schiff. Einmal je Zeichenkette gemessen und
-     gemerkt — das kostet nichts und raet nicht. */
-  const _textBreite = new Map();
-  function textBreite(s) {
-    let b = _textBreite.get(s);
-    if (b == null) {
-      const t = document.createElementNS(SVGNS, 'text');
-      t.setAttribute('class', 'hm__t');
-      t.setAttribute('x', '-9999'); t.setAttribute('y', '-9999');
-      t.textContent = s;
-      masseSvg.appendChild(t);
-      b = t.getBBox().width;
-      t.remove();
-      /* getBBox liefert 0, solange ein Vorfahr display:none traegt. Eine 0 hier
-         zu merken, froere sie fuer die ganze Sitzung ein — also nicht merken,
-         sondern diesmal einen Notwert nehmen und beim naechsten Bild erneut
-         messen. */
-      if (!b) return 44;
-      _textBreite.set(s, b);
-    }
-    return b;
-  }
-
-  /* Welche lokale Achse ist die Laenge? Die groesste Ausdehnung von `box`.
-     Y ist im glTF-Raum die Hoehe (cry->glTF ist x, z, -y, siehe Kopf). */
-  const _achsen = ['x', 'y', 'z'];
-  const _laengsAchse = _achsen
-    .map((a) => ({ a, s: box.max[a] - box.min[a] }))
-    .filter((o) => o.a !== 'y')
-    .sort((p, q) => q.s - p.s)[0].a;
-  const _mA = new THREE.Vector3();
-  const _stuetzPuffer = _rumpfPunkte.map(() => ({ x: 0, y: 0 }));
-
-  /* Ein Endpunktpaar einer Achse projizieren. Bewusst die ACHSE und nicht die
-     Huellkasten-Ecken: ein achsparalleler Kasten projiziert breiter als die
-     Silhouette (seine Ecken stehen ueber den Rumpf hinaus, gemessen 1249px
-     Kastenspanne gegen rund 880px sichtbaren Rumpf). Eine Masskette, die den
-     Kasten misst, zeigt auf nichts. */
-  function achsePunkte(achse, w, h) {
-    const mitte = {
-      x: (box.min.x + box.max.x) / 2,
-      y: (box.min.y + box.max.y) / 2,
-      z: (box.min.z + box.max.z) / 2,
-    };
-    const a = { ...mitte }, b = { ...mitte };
-    a[achse] = box.min[achse]; b[achse] = box.max[achse];
-    const proj = (p) => {
-      _mA.set(p.x, p.y, p.z).applyMatrix4(rig.matrixWorld).project(camera);
-      return { x: (_mA.x * 0.5 + 0.5) * w, y: (-_mA.y * 0.5 + 0.5) * h };
-    };
-    return [proj(a), proj(b)];
-  }
-
-  function zeichneMasskette() {
-    const w = W(), h = H();
-    if (masseW !== w || masseH !== h) {
-      masseSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-      masseW = w; masseH = h;
-    }
-    const tick = 7;
-    /* ⚠ Der Versatz misst NICHT von der Achse, sondern vom RUMPF. Die Achse
-       laeuft durch das Schiff hindurch; eine Kette 30px daneben laege noch
-       immer mitten im Rumpf (so gesehen im ersten Bau). Wie weit die Huelle in
-       Richtung der Normalen reicht, sagt ihre Stuetzfunktion — und zwar die des
-       RUMPFS (_rumpfPunkte, Z. 226 ff.), nicht die des Huellkastens. Warum,
-       steht dort; kurz: der Kasten steht unter Perspektive weit ueber der
-       Silhouette, seine Flaechenmitten weit darunter, und beide Fehler sind an
-       dieser Kette gemessen worden. */
-    // In einen festen Puffer projizieren: zeichneMasskette() laeuft je Bild,
-    // 128 frische Objekte pro Bild waeren Muell fuer nichts.
-    for (let i = 0; i < _rumpfPunkte.length; i++) {
-      _mA.copy(_rumpfPunkte[i]).applyMatrix4(rig.matrixWorld).project(camera);
-      _stuetzPuffer[i].x = (_mA.x * 0.5 + 0.5) * w;
-      _stuetzPuffer[i].y = (-_mA.y * 0.5 + 0.5) * h;
-    }
-    const stuetzPunkte = _stuetzPuffer;
-    const sperren = massSperren();
-    let d = '';
-
-    /* Eine Kette: Linie PARALLEL zur gemessenen Achse, um `ab` nach aussen
-       versetzt, mit Endmarken laengs der Versatzrichtung und der Zahl in der
-       Mitte. Genau die Form einer technischen Zeichnung — und sie dreht sich
-       mit dem Schiff, weil sie an der Achse haengt und nicht am Bildrand. */
-    /* `hin` ist die BEVORZUGTE Seite, nicht eine gerechnete: die Laenge steht
-       unter dem Rumpf, die Hoehe rechts daneben — so, wie es jede technische
-       Zeichnung haelt. Vorher entschied der Abstand zur Bildmitte, und der
-       kippte je nach Kamerastand: dieselbe Seite sah einmal so und einmal so
-       aus, und die Laengenkette landete ueber dem Schiff in der Blende. */
-    const kette = (p1, p2, text, hin, schluessel) => {
-      const dx = p2.x - p1.x, dy = p2.y - p1.y;
-      const len = Math.hypot(dx, dy) || 1;
-      let nx = -dy / len, ny = dx / len;
-      const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
-      if (nx * hin[0] + ny * hin[1] < 0) { nx = -nx; ny = -ny; }
-      /* Wunschversatz: knapp ausserhalb des Rumpfs. Stuetzfunktion ueber die
-         projizierten Rumpfpunkte, gemessen VON DER ACHSLINIE aus. */
-      let stuetz = 0;
-      for (const e of stuetzPunkte) {
-        const s = (e.x - mx) * nx + (e.y - my) * ny;
-        if (s > stuetz) stuetz = s;
-      }
-      const tw = textBreite(text), th = 15;
-      // Platz fuer die Zahl jenseits der Kette (13px Versatz + halbe Breite).
-      const rand = 13 + tw / 2 + 8;
-      const platz = Math.min(
-        nx > 0 ? (w - rand - mx) / nx : nx < 0 ? (rand - mx) / nx : Infinity,
-        ny > 0 ? (h - rand - my) / ny : ny < 0 ? (rand - my) / ny : Infinity
-      );
-      /* Die Randklemmung gewinnt gegen den Wunsch — sonst schoebe der
-         Mindestabstand von 26px die Kette wieder aus dem Bild. Nur der
-         Vorzeichenwechsel wird verhindert (Boden 8px). */
-      const boden = 8, decke = Math.max(boden, platz);
-      const soll = Math.max(boden, Math.min(Math.max(26, stuetz + 22), decke));
-
-      /* Ausweichen (Registerpunkt id 42): trifft die Kette samt Endmarken eine
-         Sperrflaeche, wird der VERSATZ um wenige Bildpunkte nachgefuehrt — die
-         Linie wird nicht verbogen und nicht gekuerzt, sie rueckt nur zur Seite.
-         Gesucht wird vom Wunschwert aus in Vierer-Schritten, nach AUSSEN zuerst
-         (weg vom Rumpf, wo mehr Platz ist). Die Hilfslinien bleiben aussen vor:
-         sie MUESSEN vom Rumpf zur Kette laufen, ein Ausweichen gibt es fuer sie
-         nicht — waeren sie Teil der Pruefung, faende die Suche nie ein freies
-         Ziel. */
-      const trifftSperre = (v) => {
-        const ax = p1.x + nx * v, ay = p1.y + ny * v;
-        const bx = p2.x + nx * v, by = p2.y + ny * v;
-        for (const s of sperren) {
-          if (streckeTrifft(ax, ay, bx, by, s)) return true;
-          if (streckeTrifft(ax - nx * tick, ay - ny * tick, ax + nx * tick, ay + ny * tick, s)) return true;
-          if (streckeTrifft(bx - nx * tick, by - ny * tick, bx + nx * tick, by + ny * tick, s)) return true;
-        }
-        return false;
-      };
-      let ziel = soll;
-      if (trifftSperre(ziel)) {
-        for (let versatz = 4; versatz <= 72; versatz += 4) {
-          if (soll + versatz <= decke && !trifftSperre(soll + versatz)) { ziel = soll + versatz; break; }
-          if (soll - versatz >= boden && !trifftSperre(soll - versatz)) { ziel = soll - versatz; break; }
-        }
-      }
-      /* Sanft nachziehen statt springen. Das Ziel haengt NUR an der Geometrie
-         (Rumpf, Kamera, Sperrflaechen), nicht am aktuellen Versatz — es gibt
-         also keine Rueckkopplung, die schwingen koennte; das Nachziehen
-         glaettet nur den Sprung beim Drehen. */
-      const vorher = _massAb.get(schluessel);
-      const ab = vorher == null ? ziel : vorher + Math.max(-9, Math.min(9, ziel - vorher));
-      _massAb.set(schluessel, ab);
-
-      const a = { x: p1.x + nx * ab, y: p1.y + ny * ab };
-      const b = { x: p2.x + nx * ab, y: p2.y + ny * ab };
-
-      /* Die Zahl ist die lesbare Fracht der Kette. Sie sitzt mittig — steht
-         dort aber eine Sperrflaeche (Titelblock, Blende, Leuchtfleck), WANDERT
-         sie laengs der Kette, statt die Kette zu verbiegen. Eine aus der Mitte
-         gerueckte Massszahl ist in jeder technischen Zeichnung ueblich; eine
-         verbogene Masslinie ist es nicht. */
-      const ux = dx / len, uy = dy / len;
-      const cx0 = (a.x + b.x) / 2 + nx * 13, cy0 = (a.y + b.y) / 2 + ny * 13;
-      const frei = (cx, cy) => {
-        const tl = cx - tw / 2 - 4, tr = cx + tw / 2 + 4;
-        const tt = cy - th / 2 - 2, tb = cy + th / 2 + 2;
-        if (tl < 4 || tr > w - 4 || tt < 4 || tb > h - 4) return false;
-        for (const s of sperren) if (tr > s.l && tl < s.r && tb > s.t && tt < s.b) return false;
-        return true;
-      };
-      let tm = { x: cx0, y: cy0 };
-      if (!frei(cx0, cy0)) {
-        const weit = len * 0.42;   // weiter aussen haengt sie an der Endmarke
-        for (let s = 14; s <= weit; s += 14) {
-          if (frei(cx0 + ux * s, cy0 + uy * s)) { tm = { x: cx0 + ux * s, y: cy0 + uy * s }; break; }
-          if (frei(cx0 - ux * s, cy0 - uy * s)) { tm = { x: cx0 - ux * s, y: cy0 - uy * s }; break; }
-        }
-      }
-      return (
-        `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" class="hm__l"/>` +
-        // Hilfslinien vom Rumpf zur Kette
-        `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${(a.x + nx * tick).toFixed(1)}" y2="${(a.y + ny * tick).toFixed(1)}" class="hm__h"/>` +
-        `<line x1="${p2.x.toFixed(1)}" y1="${p2.y.toFixed(1)}" x2="${(b.x + nx * tick).toFixed(1)}" y2="${(b.y + ny * tick).toFixed(1)}" class="hm__h"/>` +
-        // Endmarken quer zur Kette
-        `<line x1="${(a.x - nx * tick).toFixed(1)}" y1="${(a.y - ny * tick).toFixed(1)}" x2="${(a.x + nx * tick).toFixed(1)}" y2="${(a.y + ny * tick).toFixed(1)}" class="hm__l"/>` +
-        `<line x1="${(b.x - nx * tick).toFixed(1)}" y1="${(b.y - ny * tick).toFixed(1)}" x2="${(b.x + nx * tick).toFixed(1)}" y2="${(b.y + ny * tick).toFixed(1)}" class="hm__l"/>` +
-        `<text x="${tm.x.toFixed(1)}" y="${tm.y.toFixed(1)}" class="hm__t" text-anchor="middle" dominant-baseline="middle">${text}</text>`
-      );
-    };
-
-    const [l1, l2] = achsePunkte(_laengsAchse, w, h);
-    d += kette(l1, l2, masseWerte.laenge, [0, 1], 'laenge');   // Laenge: unter den Rumpf
-    const [h1, h2] = achsePunkte('y', w, h);
-    d += kette(h1, h2, masseWerte.hoehe, [1, 0], 'hoehe');     // Hoehe: rechts daneben
-    masseSvg.innerHTML = d;
-  }
 
   // Beschriftungen aus 3D projizieren und entzerren. Kernidee gegen Zappeln:
   // die Kastenmitte (cx,cy) bleibt über Frames ERHALTEN und wird nur sanft zum
@@ -1526,7 +1188,6 @@ export async function initHolo(container, cfg) {
     // Labels aus 3D auf den Bildschirm projizieren (nach dem Render, damit die
     // Kamera aktuell ist), entzerren und mit Leader-Linien verbinden.
     if (labelsOn && labels.length) layoutLabels();
-    if (masseWerte) zeichneMasskette();
     requestAnimationFrame(tick);
   })();
 
@@ -1572,18 +1233,6 @@ export async function initHolo(container, cfg) {
     setHindernis(el) {
       hindernisEl = el || null;
     },
-    /* Masskette an- oder abschalten. `werte` = { laenge, hoehe } als fertige
-       Zeichenketten (die Seite kennt Einheit und Sprache, der Viewer nicht),
-       null blendet sie aus. `sperrEls` sind Elemente der SEITE, die im Raum
-       liegen und von der Massszahl nicht ueberschrieben werden duerfen
-       (Titelblock, Blende, Leuchtfleck) — der Viewer kennt das Seiten-Markup
-       nicht und bekommt sie deshalb von aussen gereicht. */
-    setMasskette(werte, sperrEls) {
-      masseWerte = werte && werte.laenge && werte.hoehe ? werte : null;
-      if (sperrEls) massSperrEls = sperrEls.filter(Boolean);
-      masseSvg.style.display = masseWerte ? '' : 'none';
-      if (masseWerte) zeichneMasskette();
-    },
     // Messhandle fuer scripts/probes/schiffskonsole-messung.mjs (15-01-PLAN.md
     // Task 2 Schritt 1) — OHNE Seiteneffekt, liest nur den aktuellen Frame.
     // Reicht ShipDetail.astro nur nach aussen, wenn die Adresse ?holometrics
@@ -1598,18 +1247,19 @@ export async function initHolo(container, cfg) {
       // rig-lokalem Raum (bei ihrer Bildung hatte rig noch keinen Transform,
       // siehe Kommentar dort) -> rig.matrixWorld transformiert sie an ihren
       // tatsaechlichen Weltort.
-      const { minX, maxX, minY, maxY } = projizierteHuelle(w, h);
-      const spanX = maxX - minX, spanY = maxY - minY;
-      // Diagnose fuer die Masskette: Groesse und projizierte Bildschirmlaenge
-      // jeder lokalen Achse. Nur ein Bericht, kostet nichts.
-      const achsen = {};
-      for (const a of ['x', 'y', 'z']) {
-        const [p1, p2] = achsePunkte(a, w, h);
-        achsen[a] = {
-          groesse: +(box.max[a] - box.min[a]).toFixed(2),
-          bildpunkte: +Math.hypot(p2.x - p1.x, p2.y - p1.y).toFixed(1),
-        };
+      const _p = new THREE.Vector3();
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const dx of [box.min.x, box.max.x]) {
+        for (const dy of [box.min.y, box.max.y]) {
+          for (const dz of [box.min.z, box.max.z]) {
+            _p.set(dx, dy, dz).applyMatrix4(rig.matrixWorld).project(camera);
+            const px = (_p.x * 0.5 + 0.5) * w, py = (-_p.y * 0.5 + 0.5) * h;
+            if (px < minX) minX = px; if (px > maxX) maxX = px;
+            if (py < minY) minY = py; if (py > maxY) maxY = py;
+          }
+        }
       }
+      const spanX = maxX - minX, spanY = maxY - minY;
       const kuerzereKante = Math.min(w, h);
       const fuellgrad = (w <= h ? spanX : spanY) / kuerzereKante;
       // Markerdurchmesser: Sprite ist immer kameraflaechig (Billboard), ihre
@@ -1650,7 +1300,7 @@ export async function initHolo(container, cfg) {
         const durchmesser = Math.hypot(x1 - x2, y1 - y2);
         sichtbareMarker.push({ i: sp.userData.i, g: sp.userData.port.g, cx, cy, durchmesser });
       }
-      return { canvas: { w, h }, spanX, spanY, fuellgrad, markers: sichtbareMarker, achsen, laengsAchse: _laengsAchse };
+      return { canvas: { w, h }, spanX, spanY, fuellgrad, markers: sichtbareMarker };
     },
     dispose() {
       alive = false;

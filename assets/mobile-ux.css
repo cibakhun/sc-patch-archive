@@ -521,17 +521,6 @@ summary:active {
   border-radius: 999px;
 }
 
-/* NACHTRAG 21.08.2026: `.holo__rail` (Blende der Schiffskonsole) steht in
-   SEL_FADE von assets/scroll-affordance.js, aber ABSICHTLICH in keiner der
-   beiden Selektorlisten hier darueber. Grund: die beiden Regelsaetze oben
-   geben zusaetzlich eine 8px hohe, dauerhaft sichtbare Bildlaufleiste — bei
-   einer Tabelle ist das genau richtig, unter den Registerkarten der Blende
-   laege sie mitten im Bild der Buehne. Die Blende bekommt deshalb nur die
-   weiche Kante aus [data-edgefade].is-more direkt darunter. Sie ist damit der
-   einzige Kasten mit Kante ohne Leiste; ohne JS bleibt sie hinweislos, was
-   vertretbar ist, weil ohne JS alle Gruppen ohnehin gestapelt untereinander
-   stehen (D-02) und die Blende dort nur ein Sprungziel-Verzeichnis ist. */
-
 /* Mit JS uebernimmt die zustandsbewusste Kante. Der pauschale Verlauf
    muss dann weg, sonst behauptet er am rechten Ende weiter „da kommt was". */
 [data-edgefade] {
