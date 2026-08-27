@@ -107,6 +107,8 @@ export interface ArchiveEntry {
 export interface ArchiveEra {
   key: string;
   label: string;
+  /** chronological chapter number, 1-based — NOT the index in `eras` */
+  chapter: number;
   accent: string;
   accent2: string;
   /** "Dec 2024 – Feb 2025" */
@@ -118,7 +120,17 @@ export interface ArchiveEra {
 }
 
 export interface Archive {
+  /**
+   * Every release, oldest first. This is the chronological spine: the ribbon
+   * plots its ticks from it, left to right in time, so tab order follows the
+   * eye. Reading order lives on `eras` instead.
+   */
   entries: ArchiveEntry[];
+  /**
+   * Chapters in READING order — newest first, and newest first inside each
+   * chapter. `chapter` carries the chronological number, so a chapter keeps
+   * its identity (and its ribbon band) no matter where it is read.
+   */
   eras: ArchiveEra[];
   latest: ArchiveEntry;
   keyTopics: ArchiveTopic[];
@@ -206,6 +218,7 @@ export function buildArchive(raw: Patch[], lang: Locale): Archive {
       era = {
         key: e.era,
         label: eraLabel(e.era, lang),
+        chapter: eras.length + 1,
         accent: e.accent,
         accent2: e.accent2,
         range: '',
@@ -252,6 +265,18 @@ export function buildArchive(raw: Patch[], lang: Locale): Archive {
     if (!g) topicGroups.push((g = { line: key, accent: t.accent, topics: [] }));
     g.topics.push(t);
   }
+
+  // ── Reading order ────────────────────────────────────────────────────────
+  // Everything above is computed chronologically — era spans, ranges, ribbon
+  // percentages, the `t` of every tick — and only the order in which the page
+  // reads them flips here: newest chapter first, newest release first inside
+  // it, newest version line first in the topic index. `entries` deliberately
+  // stays oldest-first; it is the ribbon's spine, and that plot runs left to
+  // right in time.
+  eras.reverse();
+  for (const era of eras) era.entries.reverse();
+  topicGroups.reverse();
+  for (const g of topicGroups) g.topics.reverse();
 
   return {
     entries,
