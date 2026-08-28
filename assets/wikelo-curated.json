@@ -1,0 +1,11 @@
+{
+  "source": "Kuratierte Wikelo-Zusatzfelder — von Hand gepflegt, keyed by Vertrags-id, vom Erzeuger gelesen und nie überschrieben.",
+  "reviewedAt": "2026-08-28",
+  "trades": {
+    "a7405276a983ba2f34bc1b65f81c61b7": {
+      "cat": "ship",
+      "name": "ATLS GEO \"Cool Metal\"",
+      "img": "wk-atls.png"
+    }
+  }
+}

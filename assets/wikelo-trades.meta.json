@@ -1,6 +1,13 @@
 {
+  "generator": "scripts/build-wikelo-trades.mjs",
+  "generatedAt": "2026-08-28T10:48:33.764Z",
+  "gameVersion": "4.10.0-live.12519617",
+  "patch": "4.10.0",
+  "entryCount": 69,
+  "contractCount": 69,
+  "orderLineCount": 285,
+  "curatedCount": 1,
+  "curatedReviewedAt": "2026-08-28",
   "reviewedVersion": "4.10.0",
-  "reviewedAt": "2026-08-27",
-  "entryCount": 63,
-  "note": "Handgepflegte Tauschliste fuer Wikelo's Emporium. Aenderungen im Spiel muessen von Hand nachgetragen werden. Stand 4.10.0, belegt durch drei Abgleiche am 27.08.2026 gegen eine unabhaengige Gegenquelle: alle 63 Eintraege sind in 4.10 weiterhin auffindbar; die Gegenquelle fuehrt 62 Vertraege in derselben Gliederung; und im Mengenvergleich stimmen 39 von 44 vergleichbaren Eintraegen exakt ueberein. OFFEN (Register id 51): ein Verdachtsfall (Apollo Triage — hier 48x Savrilium zusaetzlich), 19 Eintraege ohne Gegenstueck (ueberwiegend Ruestungs-SETS, die drueben als Einzelteile stehen), und drei Vertraege, die in 4.10 vorkommen und in keiner der beiden Listen stehen: \"Armor with horn and string\", \"Heavy and Bright\", \"ICC Special Delivery\"."
+  "reviewedAt": "2026-08-28"
 }
