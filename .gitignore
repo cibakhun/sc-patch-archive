@@ -32,6 +32,7 @@ build.log
 /assets/mining-locations-gamefiles.json
 /assets/mining-gear-gamefiles.json
 /assets/items-gamefiles.json
+/assets/wikelo-gamefiles.json
 
 # Fahrzeug-Katalog-Zwischenstufe (scripts/datamine-vehicles.mjs): Vergleichsgrundlage
 # fuer verify-vehicles.mjs, kein Liefergegenstand — der ist src/data/vehicles.json
