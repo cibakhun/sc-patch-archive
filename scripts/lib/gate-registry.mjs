@@ -67,7 +67,7 @@ export const CHECKS = [
     script: 'scripts/verify-metrics.mjs',
     rail: 'A',
     checks:
-      'die Bestandszahlen (Items, Fahrzeuge, Blueprints, gebaute Seiten je Bereich, Sitemaps) liegen ueber ihren Klinken — ein Datenlauf darf den Bestand nicht still verkleinern',
+      'die Bestandszahlen (Items, Fahrzeuge, Blueprints, Wikelo-Vertraege und -Warenposten, gebaute Seiten je Bereich, Sitemaps) liegen ueber ihren Klinken — ein Datenlauf darf den Bestand nicht still verkleinern',
   },
   {
     id: 'test:e2e',
