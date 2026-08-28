@@ -1334,15 +1334,26 @@ Verträge mit den kuratierten Feldern der Handliste vereint. Schlüssel ist die
 Vertrags-Id, nicht der Anzeigename (⚠ [[display-name-not-a-key]]).
 
 **D-02 — Die sieben unbekannten Verträge.** „Armor with horn and string",
-„Heavy and Bright", „ICC Special Delivery", „New Move Big Starlancer Ship",
-„Noxy Mod", „Too Much Gun", „Very Hungry", „Wikelo Arrive to System" stehen im
-Bestand und in keiner Liste. Erst prüfen, welche davon ausgelieferte Angebote
-sind und welche Werkstattreste — dieselbe Trennung wie bei den neun leeren
-Bauplan-Seiten (Register id 53).
+„Heavy and Bright", „New Move Big Starlancer Ship", „Noxy Mod", „Too Much
+Gun", „Very Hungry", „Wikelo Arrive to System" stehen im Bestand und in
+keiner Liste — sieben, nicht acht. Der ursprünglich mitgeführte achte Name,
+„ICC Special Delivery", stammt aus dem älteren, im Register-Eintrag id 51
+selbst als überholt dokumentierten ersten Fund (Basis: `missions.json` mit
+56 Familien, vor dem Bau von `scripts/datamine-wikelo.mjs`) und kommt im
+heutigen 69-Vertrags-Bestand unter keinem Titel und keinem `debugName` vor —
+gestrichen (Phase 20, Plan 02, Register-Einträge id 55/56). Erst prüfen,
+welche der sieben ausgelieferte Angebote sind und welche Werkstattreste —
+dieselbe Trennung wie bei den neun leeren Bauplan-Seiten (Register id 53).
 
-**D-03 — Die drei, die nur die Gegenquelle kennt.** Die ATLS-Farbaufträge
-(`ATLS Cool Metal Color`, `ATLS Orange Line`, `ATLS Snowland Color`) fehlen in
-4.10. Entfernt oder umbenannt? Entscheidet, ob sie von der Seite verschwinden.
+**D-03 — Die ATLS-Farbaufträge fehlen nicht, sie tragen nur keinen
+auflösbaren Namen.** Die drei ATLS-Zusatzaufträge (`ATLS Cool Metal Color`,
+`ATLS Orange Line`, `ATLS Snowland Color`) sind NICHT entfernt oder
+umbenannt — sie existieren im 4.10-Bestand, nur ohne `Title`-Feld
+(`titel: null`), weshalb ein titelbasierter Vergleich sie übersehen hat. Die
+Frage ist nicht mehr „entfernt oder umbenannt?", sondern „welcher
+Farbauftrag trägt welchen Namen, welches Bild?" — `RedNBlue` = „ATLS GEO
+'Cool Metal'" ist bereits per exaktem Materialabgleich gelöst (Plan 01);
+`OrangeNGrey` und `WhiteNGreen` bleiben offen (Register-Eintrag id 56).
 
 **D-04 — Klinke und Verzugstor.** `wikelo-gamefiles.json` braucht eine
 Sperrklinke in `metrics-baseline.mjs` (Verträge, Warenposten) und einen Platz
