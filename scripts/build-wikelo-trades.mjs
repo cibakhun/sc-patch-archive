@@ -98,12 +98,15 @@ const meta = {
   contractCount: game.counts?.contracts ?? null,
   orderLineCount: game.counts?.orderLines ?? null,
   curatedCount: curatedById.size,
+  // curatedReviewedAt beantwortet eine ANDERE Frage als gameVersion: wann
+  // wurde die kuratierte Overlay-Datei (Bild/Ausstattung/Reputationstext)
+  // zuletzt gegen den Bestand gehalten — nicht, gegen welchen Client
+  // ausgelesen wurde. Bleibt deshalb bestehen.
   curatedReviewedAt: curated.reviewedAt ?? null,
-  // verify-datastand.mjs liest diese zwei Felder in DIESER Welle noch als
-  // FEHLER-Pflichtfelder seiner HANDPFLEGE-Tabelle — sie fallen erst in
-  // Plan 03 zusammen mit der Tabellenzeile weg (Phase 20, 20-01-PLAN.md).
-  reviewedVersion: patch,
-  reviewedAt: curated.reviewedAt ?? null,
+  // reviewedVersion/reviewedAt sind mit Phase 20 (D-04) entfallen: ihr
+  // einziger Leser war die HANDPFLEGE-Zeile in verify-datastand.mjs, die
+  // Wikelo jetzt als maschinellen Datenstand (STANDS, Feld gameVersion)
+  // fuehrt. Ein Feld ohne Leser ist eine Behauptung ohne Pruefung.
 };
 
 writeFileSync(OUT, JSON.stringify(trades) + '\n', 'utf8');

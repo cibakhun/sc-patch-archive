@@ -262,6 +262,10 @@ export const CHECKS = [
     // SCHARF seit Anlage (18-04-PLAN.md): die Wellen 1 bis 3 haben den
     // Zielzustand bereits hergestellt (alle sechs maschinellen Datenstaende
     // auf CL 12344265), das Tor lief beim ersten Lauf gruen.
+    // 28.08.2026 (20-03-PLAN.md, D-04): Wikelo ist aus HANDPFLEGE in STANDS
+    // gewandert — die Kennung kommt jetzt aus scripts/build-wikelo-trades.mjs
+    // (Datenlauf) statt aus einer menschlichen Sichtung. Damit ist
+    // Register-Eintrag id 51 aufloesbar.
   },
 
   // ---------------------------------------------------------------

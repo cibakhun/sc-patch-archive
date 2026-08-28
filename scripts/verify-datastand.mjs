@@ -9,8 +9,13 @@
 // AUSSCHLIESSLICH committete JSON-Dateien und haelt ihre Kennungen gegeneinander —
 // und wirkt damit genau dort, wo ueber das Auslieferungsbild entschieden wird.
 //
-// Geprueft werden sechs maschinell erzeugte Datenstaende (Missionen, Mining,
-// Crafting, Item-Katalog, Refinery, Zerlegung) und ein handgepflegter (Wikelo).
+// Geprueft werden sieben maschinell erzeugte Datenstaende (Missionen, Mining,
+// Crafting, Item-Katalog, Refinery, Zerlegung, Wikelo) und derzeit kein
+// handgepflegter — Wikelo ist die 20-03-PLAN.md (D-04) aus der Handpflege
+// in die maschinellen Staende gewandert, weil seine Kennung jetzt aus dem
+// Datenlauf (scripts/build-wikelo-trades.mjs) statt aus einer menschlichen
+// Sichtung stammt. Die HANDPFLEGE-Tabelle und ihre Mechanik bleiben stehen,
+// leer, fuer den naechsten Fall.
 //
 // ACHT ZUSICHERUNGEN:
 //   1  Bestand und Selbstauskunft — wie viele Datenstaende gelesen wurden.
@@ -24,7 +29,8 @@
 //   6  Zombie-Waechter: eine Ausnahme, die die Toleranz wieder einhaelt, muss
 //      raus.
 //   7  Begleitdatei-Deckung: Zaehlfeld = Array-Laenge der begleiteten Datei.
-//   8  Handpflege (FEHLER bei fehlendem Feld) + Client-Abgleich (WARNUNG).
+//   8  Handpflege (FEHLER bei fehlendem Feld, derzeit leer — kein Datenstand
+//      mehr betroffen) + Client-Abgleich (WARNUNG, ihr verbleibender Inhalt).
 //
 // TOLERANZ-REGEL (MAX_VERZUG): eine OBERGRENZE, wandert nur nach UNTEN — nach
 // oben nur per Commit, dessen Botschaft die Ursache nennt. Das ist umgekehrt zu
@@ -49,10 +55,14 @@ const say = (msg) => { warn.push(msg); console.log(`    WARNUNG: ${msg}`); };
 
 /* ---------- Datentabellen ---------- */
 
-// Sechs maschinell erzeugte Datenstaende. Die Zeile "Zerlegung" ist eine der
-// beiden Begleitdatei-Zeilen: dismantling-items.json ist ein nacktes Array ohne
-// Kopf (Pitfall 3, 18-RESEARCH.md), die Kennung sitzt in einer eigenen Datei
-// daneben — companion prueft, dass beide zueinander gehoeren (Zusicherung 7).
+// Sieben maschinell erzeugte Datenstaende. Die Zeilen "Zerlegung" und "Wikelo"
+// sind die beiden Begleitdatei-Zeilen: die jeweilige *.json ist ein nacktes
+// Array ohne Kopf (Pitfall 3, 18-RESEARCH.md), die Kennung sitzt in einer
+// eigenen Datei daneben — companion prueft, dass beide zueinander gehoeren
+// (Zusicherung 7). Wikelo ist Phase 20 (D-04) aus HANDPFLEGE hierher
+// gewandert: die Kennung kommt jetzt aus dem Datenlauf
+// (scripts/build-wikelo-trades.mjs), nicht mehr aus einer menschlichen
+// Sichtung.
 const STANDS = [
   { id: 'Missionen', file: 'src/data/missions.json', get: (j) => j?.meta?.patch },
   { id: 'Mining', file: 'assets/mining-db.json', get: (j) => j?.game_version },
@@ -65,20 +75,21 @@ const STANDS = [
     get: (j) => j?.gameVersion,
     companion: { file: 'assets/dismantling-items.json', countField: 'itemCount' },
   },
-];
-
-// Ein handgepflegter Datenstand — keine Changelist (waere eine Luege ueber
-// einen Auslesevorgang, den es nicht gab), stattdessen reviewedVersion/
-// reviewedAt. Zweite Begleitdatei-Zeile (Zusicherung 7).
-const HANDPFLEGE = [
   {
     id: 'Wikelo',
     file: 'assets/wikelo-trades.meta.json',
-    versionField: 'reviewedVersion',
-    dateField: 'reviewedAt',
+    get: (j) => j?.gameVersion,
     companion: { file: 'assets/wikelo-trades.json', countField: 'entryCount' },
   },
 ];
+
+// Derzeit KEIN handgepflegter Datenstand. Wikelo war bis Phase 20 (D-04) der
+// einzige Eintrag dieser Tabelle — mit der Zusicherung 1 ist die Ausgabe von
+// dieser Migration abhaengig, s. dort. Die Mechanik (keine Changelist, waere
+// eine Luege ueber einen Auslesevorgang, den es nicht gab, stattdessen
+// reviewedVersion/reviewedAt) bleibt fuer den naechsten handgepflegten Fall
+// stehen.
+const HANDPFLEGE = [];
 
 // Sperrklinken je maschinellem Datenstand — nur nach OBEN wandern
 // (Grundsatz 5). Gesetzt aus der in 18-03-SUMMARY.md protokollierten
@@ -96,6 +107,9 @@ const KLINKEN = {
   'Item-Katalog': 12519617,
   Refinery: 12519617,
   Zerlegung: 12519617,
+  // Phase 20 (D-04): Wikelo wandert aus HANDPFLEGE hierher, ihre Kennung
+  // stammt jetzt aus demselben 4.10-Datenlauf wie die anderen sechs.
+  Wikelo: 12519617,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine
@@ -127,10 +141,15 @@ const handReads = HANDPFLEGE.map((h) => ({ ...h, data: read(h.file) }));
 console.log('\n[1] Bestand und Selbstauskunft');
 const maschinellGelesen = standReads.filter((s) => s.data.ok).length;
 const handpflegeGelesen = handReads.filter((h) => h.data.ok).length;
-console.log(`    maschinelle Datenstaende gelesen — Soll: 6   Ist: ${maschinellGelesen}`);
-console.log(`    handgepflegte Datenstaende gelesen — Soll: 1   Ist: ${handpflegeGelesen}`);
-need(maschinellGelesen >= 6, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 6) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
-need(handpflegeGelesen >= 1, `nur ${handpflegeGelesen} handgepflegte Datenstaende lesbar (Soll 1) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
+console.log(`    maschinelle Datenstaende gelesen — Soll: 7   Ist: ${maschinellGelesen}`);
+console.log(`    handgepflegte Datenstaende gelesen — Soll: 0   Ist: ${handpflegeGelesen}`);
+// 7 statt 6: Wikelo ist Phase 20 (D-04) aus HANDPFLEGE in STANDS gewandert.
+need(maschinellGelesen >= 7, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 7) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
+// 0 statt 1: es gibt derzeit keinen handgepflegten Datenstand mehr, weil der
+// einzige (Wikelo) jetzt maschinell erzeugt wird. Die Mechanik bleibt fuer
+// den naechsten handgepflegten Fall stehen (>= 0 ist immer wahr, aber die
+// Zeile bleibt als Selbstauskunft und Ansatzpunkt fuer den naechsten Fall).
+need(handpflegeGelesen >= 0, `nur ${handpflegeGelesen} handgepflegte Datenstaende lesbar (Soll 0) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
 for (const s of standReads) if (!s.data.ok) fail.push(`${s.id} (${s.file}): Datei nicht lesbar — ${s.data.error.message}`);
 for (const h of handReads) if (!h.data.ok) fail.push(`${h.id} (${h.file}): Datei nicht lesbar — ${h.data.error.message}`);
 
