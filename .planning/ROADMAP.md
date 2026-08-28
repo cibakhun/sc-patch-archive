@@ -1370,7 +1370,7 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -1379,7 +1379,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 20-02-PLAN.md — Kuration: die 63 Handeinträge auf Vertrags-`id`s abbilden; offene Urteile ins Register, D-02/D-03 in der ROADMAP berichtigen
+- [x] 20-02-PLAN.md — Kuration: die 63 Handeinträge auf Vertrags-`id`s abbilden; offene Urteile ins Register, D-02/D-03 in der ROADMAP berichtigen
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
