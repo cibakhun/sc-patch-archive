@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 14
-current_phase_name: das-schiff-ist-die-navigation
+current_phase: 20
+current_phase_name: wikelos-angebote-kommen-aus-dem-bestand
 status: executing
 stopped_at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
-last_updated: "2026-08-28T03:55:17.790Z"
-last_activity: 2026-08-17
-last_activity_desc: Phase 14 execution started
+last_updated: "2026-08-28T10:40:56.723Z"
+last_activity: 2026-08-28
+last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 23
   completed_phases: 15
@@ -25,7 +25,7 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 15 — testpilot-zugang-staging-hinter-der-discord-rolle
+**Current focus:** Phase 20 — wikelos-angebote-kommen-aus-dem-bestand
 
 **Current focus:** Phase 16 — das-schiff-ist-die-navigation
 
@@ -244,9 +244,9 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 12 of 12
-Status: Ready to execute
+Phase: 20 (wikelos-angebote-kommen-aus-dem-bestand) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 20
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
 `.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
@@ -279,7 +279,7 @@ gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
 abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
 **Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
 Branch: claude/donation-button-feature-98ba38 (Worktree)
-Last activity: 2026-08-17 — Phase 14 execution started
+Last activity: 2026-08-28 — Phase 20 execution started
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
 
