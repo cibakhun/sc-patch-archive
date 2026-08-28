@@ -153,6 +153,16 @@ None - keine externe Dienstkonfiguration noetig.
 - Plan 03 (Sperrklinke, `STANDS`-Umzug) kann `wikelo-trades.meta.json.patch` als `get`-Funktion fuer eine neue `STANDS`-Zeile nutzen; `reviewedVersion`/`reviewedAt` sind bewusst noch vorhanden und muessen beim Umzug aus der `HANDPFLEGE`-Tabelle entfernt werden.
 - Kein Blocker fuer die naechste Welle. `assets/wikelo-gamefiles.json` liegt bereits lokal vor (aus der Recherche-Sitzung), spaetere Sitzungen ohne lokalen Spielstand muessten vor einem `sync:wikelo`-Lauf zuerst `npm run datamine:wikelo` fahren (vom Skript selbst als FEHLER-Hinweis ausgegeben, falls die Datei fehlt).
 
+## Self-Check: PASSED
+
+- FOUND: `scripts/build-wikelo-trades.mjs`
+- FOUND: `assets/wikelo-curated.json`
+- FOUND: `.planning/phases/20-wikelos-angebote-kommen-aus-dem-bestand/COVERAGE.md`
+- FOUND: `.planning/phases/20-wikelos-angebote-kommen-aus-dem-bestand/20-01-SUMMARY.md`
+- FOUND commit `5d0782d` (Task 1)
+- FOUND commit `d4082a2` (Task 2)
+- FOUND commit `b7a8c99` (SUMMARY.md)
+
 ---
 *Phase: 20-wikelos-angebote-kommen-aus-dem-bestand*
 *Completed: 2026-08-28*

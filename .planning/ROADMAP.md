@@ -1359,12 +1359,12 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — Tracer: die Zusammenführung end-to-end an einer Karte (Erzeuger, kuratierte Zulieferdatei, `sync:wikelo`, COVERAGE.md)
+- [x] 20-01-PLAN.md — Tracer: die Zusammenführung end-to-end an einer Karte (Erzeuger, kuratierte Zulieferdatei, `sync:wikelo`, COVERAGE.md)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

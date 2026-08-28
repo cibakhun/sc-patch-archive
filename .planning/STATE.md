@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 20
 current_phase_name: wikelos-angebote-kommen-aus-dem-bestand
 status: executing
-stopped_at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
-last_updated: "2026-08-28T10:40:56.723Z"
+stopped_at: Completed 20-01-PLAN.md -- Wikelo-Zusammenfuehrung end-to-end bewiesen (69 Karten, 1 kuratiertes Bild), Gate 23/23 gruen normal+STAGING
+last_updated: "2026-08-28T11:07:21.512Z"
 last_activity: 2026-08-28
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 23
   completed_phases: 15
   total_plans: 82
-  completed_plans: 71
+  completed_plans: 72
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -245,8 +245,8 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 20 (wikelos-angebote-kommen-aus-dem-bestand) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 20
+Plan: 2 of 4
+Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
 `.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND
@@ -374,7 +374,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 88%
 
 Progress: [█████████░] 85%
 
@@ -454,6 +454,7 @@ Progress: [█████████░] 85%
 | Phase 18 P02 | ~3h | 3 tasks | 9 files |
 | Phase 18 P03 | ~70min | 3 tasks | 7 files |
 | Phase 18 P04 | ~2h | 3 tasks | 1 files |
+| Phase 20 P01 | 25min | 3 tasks | 6 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -605,6 +606,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 18 Plan 03: alle sechs maschinell erzeugten Datenstaende nennen jetzt CL 12344265 (D-04) — universal-items.json gameVersion neu, dismantling-items.meta.json + wikelo-trades.meta.json als Begleitdateien statt Huelle, refinery-data.json nachgezogen
 - [Phase 14]: Rot-Vorfuehrung D (Verzug ueber Toleranz) durch Anheben statt Absenken einer Changelist umgesetzt — bei identischen Klinken-/juengste-CL-Werten war das der einzige Weg, Zusicherung 4 und 5 sauber zu trennen
 - [Phase 14]: Checksummen-Methode auf git hash-object umgestellt, nachdem die anfaengliche eigene sha1-Batch-Schleife bei 2 von 7 Dateien einen fehlerhaften vorher-Wert lieferte (vermutlich Windows fork/cygheap-Fehler)
+- [Phase 20]: Phase 20 Plan 01: Vertrags-id (nicht der Anzeigename) ist der Zusammenfuehrungs-Schluessel fuer Wikelo-Trades — drei Vertraege ohne Titel waeren sonst verloren gegangen.
 
 ### Pending Todos
 
@@ -662,8 +664,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T18:47:25.113Z
-Stopped at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
+Last session: 2026-08-28T11:07:21.441Z
+Stopped at: Completed 20-01-PLAN.md -- Wikelo-Zusammenfuehrung end-to-end bewiesen (69 Karten, 1 kuratiertes Bild), Gate 23/23 gruen normal+STAGING
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte
