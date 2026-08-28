@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 20
 current_phase_name: wikelos-angebote-kommen-aus-dem-bestand
 status: executing
-stopped_at: Completed 20-02-PLAN.md -- Kuration-Umzug (59/69 kuratiert), Register id 55/56, ROADMAP D-02/D-03 berichtigt, Gate 23/23 gruen normal+STAGING
-last_updated: "2026-08-28T11:35:50.035Z"
+stopped_at: Completed 20-03-PLAN.md -- Sperrklinken wikeloVertraege/wikeloWarenposten, Wikelo im Verzugstor von Handpflege zu STANDS, drei Tore vorgefuehrt rot, Register id 51 geschlossen, Gate 23/23 gruen normal+STAGING
+last_updated: "2026-08-28T11:57:05.989Z"
 last_activity: 2026-08-28
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 23
   completed_phases: 15
   total_plans: 82
-  completed_plans: 73
+  completed_plans: 74
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -245,7 +245,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 ## Current Position
 
 Phase: 20 (wikelos-angebote-kommen-aus-dem-bestand) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -374,7 +374,7 @@ id 5 an den Betreiber übergeben. **Phase 2 ist damit technisch fertig (7/7 Plä
 aber NICHT als „Complete" markiert**, solange die Sichtrunde aussteht — derselbe
 Umgang wie bei Phase 1.2 oben.
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 90%
 
 Progress: [█████████░] 85%
 
@@ -456,6 +456,7 @@ Progress: [█████████░] 85%
 | Phase 18 P04 | ~2h | 3 tasks | 1 files |
 | Phase 20 P01 | 25min | 3 tasks | 6 files |
 | Phase 20 P02 | 40min | 3 tasks | 6 files |
+| Phase 20 P03 | 22min | 3 tasks | 7 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -610,6 +611,8 @@ Recent decisions affecting current work:
 - [Phase 20]: Phase 20 Plan 01: Vertrags-id (nicht der Anzeigename) ist der Zusammenfuehrungs-Schluessel fuer Wikelo-Trades — drei Vertraege ohne Titel waeren sonst verloren gegangen.
 - [Phase ?]: Zuordnungssonde in drei Stufen (materialien-exakt/belohnungsname-exakt/belohnungsname-teilmenge) mit beidseitiger Eindeutigkeit -- 59 von 69 Vertraegen kuratiert, 10 Kollisionen/Reste namentlich ins Register statt geraten
 - [Phase ?]: Defekter Handbestand-Bildverweis (img: wk-l22, keine Datei) beim Schreiben von wikelo-curated.json entfernt statt uebernommen (Rule 1)
+- [Phase ?]: Wikelo-Sperrklinken lesen assets/wikelo-trades.meta.json (committet), nicht die gitignorierte Rohextraktion — Grundsatz 4
+- [Phase ?]: Register-Eintrag id 51 geschlossen: Wikelo-Kennung wandert mit dem Datenlauf (STANDS statt HANDPFLEGE), 69 Vertraege/285 Warenposten geschuetzt
 
 ### Pending Todos
 
@@ -667,8 +670,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-28T11:35:49.975Z
-Stopped at: Completed 20-02-PLAN.md -- Kuration-Umzug (59/69 kuratiert), Register id 55/56, ROADMAP D-02/D-03 berichtigt, Gate 23/23 gruen normal+STAGING
+Last session: 2026-08-28T11:57:05.924Z
+Stopped at: Completed 20-03-PLAN.md -- Sperrklinken wikeloVertraege/wikeloWarenposten, Wikelo im Verzugstor von Handpflege zu STANDS, drei Tore vorgefuehrt rot, Register id 51 geschlossen, Gate 23/23 gruen normal+STAGING
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte

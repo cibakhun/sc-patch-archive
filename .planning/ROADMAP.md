@@ -1370,7 +1370,7 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -1383,7 +1383,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 20-03-PLAN.md — D-04: zwei Sperrklinken mit Ablesern, Wikelo von Handpflege nach maschinell im Verzugstor, dreimal vorgeführt rot, Register id 51 schließen
+- [x] 20-03-PLAN.md — D-04: zwei Sperrklinken mit Ablesern, Wikelo von Handpflege nach maschinell im Verzugstor, dreimal vorgeführt rot, Register id 51 schließen
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
