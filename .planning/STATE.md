@@ -6,13 +6,13 @@ current_phase: 14
 current_phase_name: das-schiff-ist-die-navigation
 status: executing
 stopped_at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
-last_updated: "2026-08-23T18:47:25.187Z"
+last_updated: "2026-08-28T03:55:17.790Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 14 execution started
 progress:
-  total_phases: 21
+  total_phases: 23
   completed_phases: 15
-  total_plans: 78
+  total_plans: 82
   completed_plans: 71
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
@@ -246,7 +246,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
 Plan: 12 of 12
-Status: Phase complete — ready for verification
+Status: Ready to execute
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
 `.planning/WINDOWS.md` id 12. Alle 18 Schienen-A-Schritte gruen (normal UND

@@ -1352,16 +1352,28 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 
 1. Die Wikelo-Seite zeigt Angebote und Mengen aus dem Bestand, nicht aus der
    Handliste — und behält Bilder, Ausstattung und Reputationstext.
+
 2. Register id 51 (Wikelo-Verzug) ist geschlossen: die Kennung wandert mit dem
    Datenlauf, nicht mit einer Sichtung.
+
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 20-01-PLAN.md — Tracer: die Zusammenführung end-to-end an einer Karte (Erzeuger, kuratierte Zulieferdatei, `sync:wikelo`, COVERAGE.md)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 20-02-PLAN.md — Kuration: die 63 Handeinträge auf Vertrags-`id`s abbilden; offene Urteile ins Register, D-02/D-03 in der ROADMAP berichtigen
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 20-03-PLAN.md — D-04: zwei Sperrklinken mit Ablesern, Wikelo von Handpflege nach maschinell im Verzugstor, dreimal vorgeführt rot, Register id 51 schließen
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register
