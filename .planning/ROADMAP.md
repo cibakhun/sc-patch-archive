@@ -1357,6 +1357,11 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
+**Plans:** 4 plans
+
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 20 to break down)
+- [ ] 20-01-PLAN.md — Tracer: die Zusammenführung end-to-end an einer Karte (Erzeuger, kuratierte Zulieferdatei, `sync:wikelo`, COVERAGE.md)
+- [ ] 20-02-PLAN.md — Kuration: die 63 Handeinträge auf Vertrags-`id`s abbilden; offene Urteile ins Register, D-02/D-03 in der ROADMAP berichtigen
+- [ ] 20-03-PLAN.md — D-04: zwei Sperrklinken mit Ablesern, Wikelo von Handpflege nach maschinell im Verzugstor, dreimal vorgeführt rot, Register id 51 schließen
+- [ ] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register
