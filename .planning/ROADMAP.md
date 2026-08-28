@@ -1370,7 +1370,7 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -1387,4 +1387,4 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register
+- [x] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register
