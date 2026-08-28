@@ -79,6 +79,19 @@ const ABLESER = {
   blueprints: () => (rd('assets/crafting-db.json').blueprints ?? []).length,
   minerale: () => (rd('assets/mining-db.json').minerals ?? []).length,
 
+  // --- Wikelo (assets/wikelo-trades.meta.json) ---
+  // Bewusst NICHT die gitignorierte Wikelo-Rohextraktion (.gitignore Zeile 35,
+  // Build-EINGABE von scripts/datamine-wikelo.mjs, so noch in 20-RESEARCH.md
+  // vorformuliert) — diese Datei existiert auf einer Bauumgebung ohne lokale
+  // Spielinstallation gar nicht. Ein Ableser gegen eine fehlende Quelle
+  // meldet laut Kopfkommentar oben FEHLER "Quelle nicht lesbar", nicht
+  // Schrumpfung — das Tor risse also auf jeder CI-Maschine (Grundsatz 4,
+  // "Torfaehigkeit vor Verkabelung"). assets/wikelo-trades.meta.json ist
+  // committet, traegt dieselben Zahlen unveraendert aus dem Erzeugerlauf
+  // (scripts/build-wikelo-trades.mjs) und erfuellt damit Grundsatz 4.
+  wikeloVertraege: () => rd('assets/wikelo-trades.meta.json').contractCount,
+  wikeloWarenposten: () => rd('assets/wikelo-trades.meta.json').orderLineCount,
+
   // --- Missionen (src/data/missions.json) ---
   // Familien mit nichtleerem localities[] (nach Filterung von null/leeren
   // Strings) — dieselbe Definition wie scripts/probes/missionsorte-messung.mjs.

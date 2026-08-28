@@ -1,6 +1,11 @@
 {
-  "reviewedVersion": "4.10.0",
-  "reviewedAt": "2026-08-27",
-  "entryCount": 63,
-  "note": "Handgepflegte Tauschliste fuer Wikelo's Emporium. Aenderungen im Spiel muessen von Hand nachgetragen werden. Stand 4.10.0 belegt durch zwei Abgleiche am 27.08.2026: alle 63 Eintraege sind in 4.10 weiterhin auffindbar, und eine unabhaengige Gegenquelle fuehrt 62 Vertraege in derselben Gliederung. NICHT geprueft und weiterhin offen (Register id 51): die Materialmengen je Angebot, sowie drei Vertraege, die weder hier noch in der Gegenquelle stehen — \"Armor with horn and string\", \"Heavy and Bright\", \"ICC Special Delivery\"."
+  "generator": "scripts/build-wikelo-trades.mjs",
+  "generatedAt": "2026-08-28T11:40:53.159Z",
+  "gameVersion": "4.10.0-live.12519617",
+  "patch": "4.10.0",
+  "entryCount": 69,
+  "contractCount": 69,
+  "orderLineCount": 285,
+  "curatedCount": 59,
+  "curatedReviewedAt": "2026-08-28"
 }

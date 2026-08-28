@@ -1,0 +1,1466 @@
+{
+  "source": "Kuratierte Wikelo-Zusatzfelder — von Hand gepflegt, keyed by Vertrags-id, vom Erzeuger gelesen und nie überschrieben.",
+  "reviewedAt": "2026-08-28",
+  "trades": {
+    "a7405276a983ba2f34bc1b65f81c61b7": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "ATLS GEO \"Cool Metal\"",
+      "img": "wk-atls.png"
+    },
+    "5446550eff0e2b37cf84cb582054caa3": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Testudo Clanguard (Set)",
+      "img": "wk-a-testudo.png"
+    },
+    "cf4c57f07296f15b15eafeed09d3d4bd": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Asgard",
+      "img": "wk-asgard.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Bolide",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "4x",
+          "n": "CoverAll",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Yeager",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "3x",
+          "n": "PermaFrost",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        }
+      ]
+    },
+    "cb477ee501e524044e0b5649f879daba": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Scorpius",
+      "img": "wk-scorpius.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Slipstream",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "Umbra",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Spectre",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "SnowBlind",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "A"
+        }
+      ]
+    },
+    "24402725ac59449c2a25df8180a0f1b8": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Boomtube \"Clanguard\" Rocket Launcher",
+      "img": "wk-w-boomtube.png"
+    },
+    "d443626b6dff329df554410ed585718b": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Strata Heatwave (Set)",
+      "img": "wk-a-strata.jpg"
+    },
+    "4945f4d45068d2d480e40bee78a4afa0": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "L-22 Alpha Wolf"
+    },
+    "ea4f4c71e11bf81e564260c2a4e78591": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Sabre Firebird",
+      "img": "wk-firebird.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "QuadraCell",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "FR-66",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "VK-00",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Glacier",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        }
+      ]
+    },
+    "b3446aada6da5b7ce4d5dd136b7974a3": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Fortune",
+      "img": "wk-fortune.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Lotus",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "3x",
+          "n": "7SA 'Concord'",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Atlas",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Aufeis",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        }
+      ]
+    },
+    "0f4a779bc204f031966a609bf88900a5": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Parallax \"Fun Kopion Skull\" Energy Assault Rifle",
+      "img": "wk-w-kopionskull.png"
+    },
+    "2346b485d8c2414374c60e48f4ef7182": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Parallax \"Fun Military Skull\" Energy Assault Rifle",
+      "img": "wk-w-militaryskull.png"
+    },
+    "6f45da84fccd125726c0049d7c69ed97": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Golem",
+      "img": "wk-golem.jpg",
+      "comps": [
+        {
+          "k": "weapon",
+          "q": "2x",
+          "n": "NN-13 Cannon",
+          "s": "1",
+          "cl": "NA",
+          "g": ""
+        },
+        {
+          "k": "cooler",
+          "q": "",
+          "n": "Thermax",
+          "s": "",
+          "cl": "",
+          "g": ""
+        },
+        {
+          "k": "pwr",
+          "q": "",
+          "n": "Fortitude",
+          "s": "",
+          "cl": "",
+          "g": ""
+        },
+        {
+          "k": "qd",
+          "q": "",
+          "n": "Goliath",
+          "s": "",
+          "cl": "",
+          "g": ""
+        },
+        {
+          "k": "shield",
+          "q": "",
+          "n": "Bulwark",
+          "s": "",
+          "cl": "",
+          "g": ""
+        }
+      ]
+    },
+    "1945ec3d09924c684cd147df497f6ca8": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Guardian",
+      "img": "wk-guardian.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "QuadraCell",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "FR-76",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "VK-00",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Glacier",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        }
+      ]
+    },
+    "a94d5056f613f11a918aafdc7696f3ab": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Guardian QI",
+      "img": "wk-guardian.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "LumaCore",
+          "s": "1",
+          "cl": "Competition",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "Haltur",
+          "s": "2",
+          "cl": "Competition",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "SunFire",
+          "s": "2",
+          "cl": "Competition",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "AbsoluteZero",
+          "s": "2",
+          "cl": "Competition",
+          "g": "B"
+        }
+      ]
+    },
+    "2b4414d37c5a59adfdcf560a14eaceac": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Guardian MX",
+      "img": "wk-guardian.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Bolide",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "CoverAll",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "XL-1",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "PermaFrost",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        }
+      ]
+    },
+    "d443626b6dff329d4337410ed585718b": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Geist Armor Snow Camo (Set)",
+      "img": "wk-a-geist.png"
+    },
+    "92467d0fb43d4eba4de88530fe8e9d8b": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "TripleDown \"Heatwave\" Pistol",
+      "img": "wk-w-tripledown.jpg"
+    },
+    "114379de4a70ec5d52b95dd0f953d188": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Ursa Medivac",
+      "img": "wk-ursa.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "MagnaBloom",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "Castra",
+          "s": "0",
+          "cl": "Industrial",
+          "g": "C"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Kelvid",
+          "s": "0",
+          "cl": "Civilian",
+          "g": "B"
+        }
+      ]
+    },
+    "95417d99c6f604e4c99893858f1a488e": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Prism \"Irradiated\" Laser Shotgun",
+      "img": "wk-w-prism.png"
+    },
+    "d246984e6205b999f8bdd3be26097eaa": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Starlancer MAX",
+      "img": "wk-starlancer-max.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Lotus",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "Parapet",
+          "s": "3",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Hemera",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Aufeis",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        }
+      ]
+    },
+    "a646c0eb1648495c0d33b0d463d43ca2": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Starlancer TAC",
+      "img": "wk-starlancer-tac.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Durango",
+          "s": "3",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "FullBlock",
+          "s": "3",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Yeager",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Blizzard",
+          "s": "3",
+          "cl": "Military",
+          "g": "A"
+        }
+      ]
+    },
+    "244f5574fb8f5be0ca0cfcdfe943cfbb": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Polaris Wikelo Special",
+      "img": "wk-polaris.jpg"
+    },
+    "3e430d2c8755e9ad0c0bc87d5e86c487": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Sabre Peregrine",
+      "img": "wk-sabre.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "LumaCore",
+          "s": "1",
+          "cl": "Competition",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "Jaghte",
+          "s": "2",
+          "cl": "Competition",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "FoxFire",
+          "s": "1",
+          "cl": "Competition",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "ZeroRush",
+          "s": "1",
+          "cl": "Competition",
+          "g": "B"
+        }
+      ]
+    },
+    "054f0bc70fef0d200f59f8a7efb38f91": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "MISC Prospector",
+      "img": "wk-prospector.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Sedulity",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "Guardian",
+          "s": "1",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Colossus",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Snowpack",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        }
+      ]
+    },
+    "75472fdfe6c8c4fee7357cfbe3c0c3b8": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Argo Raft",
+      "img": "wk-raft.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Sedulity",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "3x",
+          "n": "Citadel",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Huracan",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Snowfall",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        }
+      ]
+    },
+    "a54090bbfc00bb052b6676f84f21ffbc": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Monde Crimson Camo (Set)",
+      "img": "wk-a-monde.png"
+    },
+    "9c4ed02e24cd80ccd1f3bd6b6e7610aa": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "R97 \"Crimson Camo\" Shotgun",
+      "img": "wk-w-r97.png"
+    },
+    "7e4175bb3272b2715a7e78d9b5a80980": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Meteor",
+      "img": "wk-meteor.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Slipstream",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "Mirage",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Zephyr",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "VaporBlock",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "B"
+        }
+      ]
+    },
+    "d443626b6dff329d4537410ed585718b": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Corbel Crush (Set)",
+      "img": "wk-a-corbel.png"
+    },
+    "6f42512e5d9457638ba8c6846f9c83b1": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "F8C Lightning (Stealth Spec)",
+      "img": "wk-f8c.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Eclipse",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "Umbra",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Colossus",
+          "s": "1",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "SnowBlind",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "A"
+        }
+      ]
+    },
+    "ea4f72bea7d119dae3dbff970d883e80": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Ares Star Fighter Ion",
+      "img": "wk-ares.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "GammaMax",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "Sheut",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Bolt",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "3x",
+          "n": "IceBox",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        }
+      ]
+    },
+    "30479ea274c252aba81719277a9111a3": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Zenith \"Snow Camo\" Laser Sniper Rifle",
+      "img": "wk-w-zenith.png"
+    },
+    "974c2fe88288fa7799cb581715a7ab9c": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Idris-P",
+      "img": "wk-idris.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Main Powerplant",
+          "s": "4",
+          "cl": "<null>",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "Holdstrong",
+          "s": "4",
+          "cl": "<null>",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Frontline",
+          "s": "4",
+          "cl": "<null>",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Exotherm",
+          "s": "4",
+          "cl": "<null>",
+          "g": "A"
+        }
+      ],
+      "rep": "Very Best Customer"
+    },
+    "fa42c6627a1af0646836fa7d536b628a": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "C1 Spirit",
+      "img": "wk-c1.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Lotus",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "7MA 'Lorica'",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Hemera",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Aufeis",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        }
+      ]
+    },
+    "00444c3f31a3e6f702a1ff5bd7dbcfa4": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Ares Star Fighter Inferno",
+      "img": "wk-ares.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Bolide",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "CoverAll",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Yeager",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "3x",
+          "n": "PermaFrost",
+          "s": "2",
+          "cl": "Military",
+          "g": "B"
+        }
+      ]
+    },
+    "10422376b08d693b10ab91d425205396": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "A2 Hercules Starlifter",
+      "img": "wk-a2b.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "JS-500",
+          "s": "3",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "3x",
+          "n": "FR-86",
+          "s": "3",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Balandin",
+          "s": "3",
+          "cl": "Military",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Mercury",
+          "s": "3",
+          "cl": "Military",
+          "g": "C"
+        }
+      ]
+    },
+    "13420a314f33e3ea83c08c244db8e588": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Tailwind Flight Dominion Camo (Set)",
+      "img": "wk-a-tailwind.png"
+    },
+    "a54b971b7ec18b3111f86e07810c27a5": {
+      "basis": "materialien-exakt",
+      "cat": "armor",
+      "name": "Palatino Mark 1 (Set)",
+      "img": "wk-a-palatino.png"
+    },
+    "884777999c61fd7d42c321d27156bb80": {
+      "basis": "materialien-exakt",
+      "cat": "conv",
+      "name": "Wikelo Favor",
+      "get": "Wikelo Favor"
+    },
+    "274e5e117c7a71f68764b5018eecfe8e": {
+      "basis": "materialien-exakt",
+      "cat": "conv",
+      "name": "Wikelo Favor",
+      "get": "Wikelo Favor"
+    },
+    "7c4bc2fa2c634387fa113f688ea411ae": {
+      "basis": "materialien-exakt",
+      "cat": "conv",
+      "name": "Wikelo Favor",
+      "get": "Wikelo Favor"
+    },
+    "af478db381c341118e5a98358a9bebb8": {
+      "basis": "materialien-exakt",
+      "cat": "conv",
+      "name": "Wikelo Favor",
+      "get": "Wikelo Favor"
+    },
+    "8041d984619f5cc5eb4d52feb2ea1587": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Intrepid",
+      "img": "wk-intrepid.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "WhiteRose",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "Palisade",
+          "s": "1",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Atlas",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Ultra-Flow",
+          "s": "1",
+          "cl": "Industrial",
+          "g": "A"
+        }
+      ]
+    },
+    "974dd5f118ef972550ed0d906f8ba4bb": {
+      "basis": "materialien-exakt",
+      "cat": "misc",
+      "name": "Very Hungry"
+    },
+    "634cc585fe49788d2f7957ae1ba75497": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Constellation Taurus",
+      "img": "wk-taurus.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "QuadraCell MT",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "1x",
+          "n": "FR-86",
+          "s": "3",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "XL-1",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Avalanche",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        }
+      ]
+    },
+    "1a4dd9a4a2fdbd9420f3ed8e51687b87": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Terrapin Medic",
+      "img": "wk-terrapin.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "IonSurge",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "BLOC",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1",
+          "n": "Hyperion",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Gelid",
+          "s": "1",
+          "cl": "Civilian",
+          "g": "A"
+        }
+      ]
+    },
+    "21479ef86a6b8e75972f7b7dc21e9eae": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "L-21 Wolf (Stealth Spec)",
+      "img": "wk-wolf-stealth.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "DeltaMax",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "Veil",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Zephyr",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "VaporBlock",
+          "s": "1",
+          "cl": "Stealth",
+          "g": "B"
+        }
+      ]
+    },
+    "da49255e5a9c3dc686eaab0687b75482": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "F7C-M Super Hornet Mk II",
+      "img": "wk-superhornet.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "JS-400",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "FR-66",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "VK-00",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Glacier",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        }
+      ]
+    },
+    "024387c8a9d9f78d01cabd8837863cb9": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Fresnel \"Yormandi\" LMG",
+      "img": "wk-w-yormandi.png"
+    },
+    "6443c5e9eb44c7dccfae4b86399bd2a1": {
+      "basis": "materialien-exakt",
+      "cat": "weapon",
+      "name": "Killshot \"Dominion Camo\" Rifle Blueprint",
+      "img": "wk-w-killshot.png"
+    },
+    "3242404fe02e72c3250e1d4a256fabac": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Zeus Mk II CL",
+      "img": "wk-zeus-cl.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Genoa",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "3x",
+          "n": "Rampart",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Hemera",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Snowpack",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        }
+      ]
+    },
+    "cd49b605eb67db694231991f838341bf": {
+      "basis": "materialien-exakt",
+      "cat": "ship",
+      "name": "Zeus Mk II ES",
+      "img": "wk-zeus-es.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "Genoa",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "4x",
+          "n": "Rampart",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Hemera",
+          "s": "2",
+          "cl": "Civilian",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Snowpack",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "A"
+        }
+      ]
+    },
+    "b54af3de06d5a082342f10c73388e0b0": {
+      "basis": "belohnungsname-exakt",
+      "cat": "conv",
+      "name": "Polaris Bit",
+      "get": "Polaris Bit"
+    },
+    "6b49f6a52dbaa0b47a0649ce0b5f04bc": {
+      "basis": "belohnungsname-teilmenge",
+      "cat": "armor",
+      "name": "Bokto (Set)",
+      "img": "wk-a-bokto.png"
+    },
+    "014d2a5e29cb0473d489e7b69527bb80": {
+      "basis": "belohnungsname-teilmenge",
+      "cat": "ship",
+      "name": "Pulse",
+      "img": "wk-pulse.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Radix",
+          "s": "0",
+          "cl": "Civilian",
+          "g": "C"
+        },
+        {
+          "k": "cooler",
+          "q": "1x",
+          "n": "Kelvid",
+          "s": "0",
+          "cl": "Civilian",
+          "g": "B"
+        }
+      ]
+    },
+    "134c13d3329c833c4beabdb545ebe0ad": {
+      "basis": "belohnungsname-teilmenge",
+      "cat": "ship",
+      "name": "L-21 Wolf (Military Spec)",
+      "img": "wk-wolf-mil.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "JS-300",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "FR-66",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "VK-00",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Glacier",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        }
+      ],
+      "rep": "Very Good Customer"
+    },
+    "0a44dc37d50ca1eb8c5d5eccdb18ff8e": {
+      "basis": "belohnungsname-teilmenge",
+      "cat": "ship",
+      "name": "F8C Lightning (Military Spec)",
+      "img": "wk-f8c.png",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "LuxCore",
+          "s": "2",
+          "cl": "Competition",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "2x",
+          "n": "FR-76",
+          "s": "2",
+          "cl": "Military",
+          "g": "A"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Colossus",
+          "s": "1",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Glacier",
+          "s": "1",
+          "cl": "Military",
+          "g": "A"
+        }
+      ]
+    },
+    "fb4cbba132bac1fee64425792f8ac9ad": {
+      "basis": "belohnungsname-teilmenge",
+      "cat": "ship",
+      "name": "Prowler Utility",
+      "img": "wk-prowler.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "1x",
+          "n": "Eclipse",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "A"
+        },
+        {
+          "k": "shield",
+          "q": "4x",
+          "n": "Citadel",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Huracan",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "Snowfall",
+          "s": "2",
+          "cl": "Industrial",
+          "g": "B"
+        }
+      ]
+    },
+    "3549636d63a813af834fe4735dd5c6be": {
+      "basis": "belohnungsname-teilmenge",
+      "cat": "ship",
+      "name": "Apollo Triage",
+      "img": "wk-apollo.jpg",
+      "comps": [
+        {
+          "k": "pwr",
+          "q": "2x",
+          "n": "GammaMax",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "shield",
+          "q": "4x",
+          "n": "Sheut",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "qd",
+          "q": "1x",
+          "n": "Bolt",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        },
+        {
+          "k": "cooler",
+          "q": "2x",
+          "n": "IceBox",
+          "s": "2",
+          "cl": "Stealth",
+          "g": "B"
+        }
+      ]
+    }
+  }
+}

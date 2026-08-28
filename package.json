@@ -40,6 +40,8 @@
     "datamine:aaron-halo": "node scripts/datamine-aaron-halo.mjs",
     "datamine:stanton-anchors": "node scripts/datamine-stanton-anchors.mjs",
     "datamine:missions": "node scripts/datamine-missions.mjs",
+    "datamine:wikelo": "node scripts/datamine-wikelo.mjs",
+    "sync:wikelo": "node scripts/datamine-wikelo.mjs && node scripts/build-wikelo-trades.mjs && node scripts/_sync-assets.mjs",
     "datamine:logos": "node scripts/datamine-manufacturer-logos.mjs",
     "datamine:loadouts": "node scripts/datamine-ship-loadouts.mjs",
     "datamine:vehicles": "node scripts/datamine-vehicles.mjs",
