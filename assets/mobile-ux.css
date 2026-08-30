@@ -596,7 +596,8 @@ summary:active {
 .md__tblWrap,
 .pj-tblscroll,
 .uif-table-wrapper,
-.sd__paints {
+.sd__paints,
+.dp-tablewrap {
   scrollbar-width: thin !important;
   scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
   background-image: linear-gradient(
@@ -613,7 +614,8 @@ summary:active {
 .md__tblWrap::-webkit-scrollbar,
 .pj-tblscroll::-webkit-scrollbar,
 .uif-table-wrapper::-webkit-scrollbar,
-.sd__paints::-webkit-scrollbar {
+.sd__paints::-webkit-scrollbar,
+.dp-tablewrap::-webkit-scrollbar {
   display: block !important;
   height: 8px !important;
   background: transparent !important;
@@ -622,11 +624,21 @@ summary:active {
 .md__tblWrap::-webkit-scrollbar-thumb,
 .pj-tblscroll::-webkit-scrollbar-thumb,
 .uif-table-wrapper::-webkit-scrollbar-thumb,
-.sd__paints::-webkit-scrollbar-thumb {
+.sd__paints::-webkit-scrollbar-thumb,
+.dp-tablewrap::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--accent) 55%, transparent);
   border-radius: 999px;
 }
 
+/* NACHTRAG 30.08.2026: `.dp-tablewrap` (Datentabelle der Item-, Blueprint-
+   und Missionsseiten) kam in alle drei Listen darueber. Gemessen ueber 214
+   Seiten bei 390 px: auf 30 Item-Seiten waren 103 px waagerecht verborgen,
+   ohne dass irgendetwas es zeigte — genau die Falle aus dem Kopfkommentar.
+   Sie steht bewusst NICHT in SEL_FADE von assets/scroll-affordance.js: der
+   Kasten traegt zugleich `.vb-scrollbox` (SEL_VFADE, senkrechte Kante), und
+   zwei Masken auf demselben Element ueberschreiben einander — die spaetere
+   Regel aus 5d gewaenne, die waagerechte Kante waere wirkungslos. Die
+   dauerhafte 8-px-Leiste aus dieser Gruppe kollidiert dagegen mit nichts. */
 /* NACHTRAG 21.08.2026: `.holo__rail` (Blende der Schiffskonsole) steht in
    SEL_FADE von assets/scroll-affordance.js, aber ABSICHTLICH in keiner der
    beiden Selektorlisten hier darueber. Grund: die beiden Regelsaetze oben

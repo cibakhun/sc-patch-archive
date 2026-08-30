@@ -51,7 +51,14 @@
   // Buehne zerreissen, beide sitzen in derselben Grid-Zeile —, gehoert aber in
   // genau dieselbe Behandlung und steht deshalb hier namentlich. Zweiter
   // Pflichteintrag dazu in mobile-ux.css Abschnitt 5d.
-  var SEL_VFADE = '.vb-scrollbox,.holo__readout';
+  // .snav-deck__frame (Hauptmenue) kam am 30.08.2026 dazu. Gemessen bei
+  // 390x844: 19 Eintraege, 1361 px Inhalt in 844 px Rahmen — sechs Zeilen
+  // standen unter der Kante, im Querformat (844x390) fuenfzehn. Der Rahmen
+  // traegt overflow-y:auto, also WAR er scrollbar; nur sagte das niemandem
+  // etwas, weil assets/theme.css jede Bildlaufleiste ausblendet. Genau die
+  // Falle, die der Kopfkommentar von mobile-ux.css 5c fuer Tabellen
+  // beschreibt — hier traf sie das Menue jeder einzelnen Seite.
+  var SEL_VFADE = '.vb-scrollbox,.holo__readout,.snav-deck__frame';
 
   var faders = [];
   var vfaders = [];
