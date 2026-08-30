@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 31
+open_count: 34
 waived_count: 1
 fixed_count: 26
-total_count: 58
-last_updated: 2026-08-28T12:45:00.000Z
+total_count: 61
+last_updated: 2026-08-30T13:42:25.074Z
 ---
 
 # Broken Windows Ledger
@@ -73,6 +73,9 @@ last_updated: 2026-08-28T12:45:00.000Z
 | 57 | 20 | unrun-verify | src/components/topics/wikelo-emporium.astro |  | Sichtrunde zur berichtigten Wikelo-Anzeige (Plan 04, letzte Welle der Phase). Nur am ausgeliefertem staging-Stand zu beurteilen (npm run check:staging vorher), je DE+EN, beide Farbmodi, 1920x1080 UND 1280x720. Vier Bloecke: (a) Anzeigenamen -- 53 der 69 Karten tragen jetzt einen von der Kuration ueberschriebenen Belohnungsnamen statt der kurzen Handlisten-Bezeichnung (Selbstauskunft build-wikelo-trades.mjs: "Namensueberschreibungen durch Kuration: 53"). Liest sich das an Karten mit UND ohne Ueberschreibung weiterhin als Angebot, oder wie eine Katalogzeile? (b) Platzhalter statt Foto -- 18 von 69 Karten zeigen das Kategoriesymbol statt eines Fotos: 17, weil keine Kuration ein Bild traegt (Armor with horn and string, Drake Clipper Wikelo War Special, L-22 Alpha Wolf, Heavy and Bright, Argo ATLS IKTI, Argo ATLS GEO IKTI, Aopoa Nox Wikelo Special, ATLS GEO x2, Too Much Gun, Wikelo Favor x4, Very Hungry, Polaris Bit, Wikelo Arrive to System), eine zusaetzlich (Guardian MX), weil wk-guardian.png bereits zweimal auf der Seite steht und die bestehende Bild-Regel (dieselbe Datei hoechstens 2x je Seite) ab dem dritten Vorkommen den Platzhalter erzwingt -- keine Folge dieser Phase. Wirkt die Reihe als Luecke, oder traegt das Kategoriesymbol? (c) Filter-Pillen -- 10 der 69 Karten stehen auf dem misc-Rueckfall (keine kuratierte Kategorie), zusammen mit der einen bewusst kuratierten misc-Karte ("Very Hungry", keine Belohnung) macht das 11 unter "Sonstiges" (gesamt: ship 36, weapon 9, armor 8, conv 5, misc 11 -- Summe 69). Jede Pille einmal durchklicken und die Trefferzahl gegen diese Selbstauskunft halten. (d) Berichtigte Quellenangabe -- liest sich der Absatz unter dem Karten-Raster (jetzt "Spielversion: Alpha 4.10.0" statt fester Patch-Nummer 4.8.1) als Aussage ueber den eigenen Stand, und bleibt wikelotrades.com als Quelle fuer Bilder/Ausstattung/Reputationstext weiterhin erkennbar zugeschrieben? Verweise: dieselbe Sichtrunde sollte die beiden aus Plan 02 offenen Punkte in einem Zug mitentscheiden -- Register id 55 (D-02, unkuratierte Vertraege inkl. "Wikelo Arrive to System" ohne Belohnung, unter (b)/(c) sichtbar auf dem misc-Rueckfall ohne Bild) und Register id 56 (D-03, vier ATLS-Farb-/Zusatzauftraege, ebenfalls unter (b)/(c) sichtbar). | open |  | 2026-08-28T12:13:27.986Z |  |
 | 58 | 20 | unmet-truth | scripts/probes/wikelo-kuration-zuordnung.mjs | 115 | CR-01 aus dem Code-Review der Phase 20 (20-REVIEW.md): Stufe 2 der Zuordnungssonde (stufe2 / schluesselAufloesen) prueft Eindeutigkeit nur PRO SCHLUESSEL, nicht ueber die ganze Stufe. Ein Vertrag wird in Stufe 2 unter mehreren Schluesseln registriert (Titel UND jeder Belohnungsname) -- derselbe Vertrag kann darum zwei verschiedenen Handeintraegen zufallen, genau der Bijektionsbruch, den der Kopfkommentar der Sonde ausdruecklich verhindern will. Bei --schreiben ueberschreibt die zweite Zuordnung die erste kommentarlos. NACHGEMESSEN 28.08.2026 am ausgelieferten Stand: der Befund ist LATENT, nicht eingetreten. Die Sonde meldet in ihrer Selbstauskunft "59 von 69 Vertraegen zugeordnet, 59 von 63 Handeintraegen zugeordnet" -- eine saubere 59-zu-59-Bijektion; alle drei Mehrdeutigkeiten (der ATLS-Cluster) wurden namentlich als Kollision gemeldet statt still aufgeloest. Die in Welle 2 geschriebene Kuration ist also in Ordnung, und dieser Eintrag stellt sie NICHT in Frage. OFFEN ist die Gefahr fuer den naechsten Datenlauf: sobald sich Titel oder Belohnungsnamen im Bestand aendern, kann derselbe Fall still danebengehen und ein falsches Bild auf eine echte Karte setzen. Fix: Eindeutigkeit je Stufe global pruefen (Vertrag UND Handeintrag duerfen je Stufe genau einmal vergeben werden) und jede Kollision namentlich melden statt zu ueberschreiben. | open |  | 2026-08-28T12:45:00.000Z |  |
 | 59 | 20 | unmet-truth | scripts/build-wikelo-trades.mjs | 98 | CR-02 aus dem Code-Review der Phase 20 (20-REVIEW.md): contractCount und orderLineCount werden in scripts/build-wikelo-trades.mjs ungeprueft aus dem Selbstauskunfts-Feld der gitignorierten assets/wikelo-gamefiles.json uebernommen, obwohl das Skript game.contracts vollstaendig vorliegen hat und beide Zahlen selbst gegenrechnen koennte. Genau diese zwei Felder speisen die Sperrklinken wikeloVertraege (69) und wikeloWarenposten (285) in scripts/lib/metrics-baseline.mjs. Folge: ein Zaehlfehler im Extraktionsskript wuerde von KEINER Instanz bemerkt -- die Klinke prueft die Zahl dann gegen sich selbst statt gegen den tatsaechlich verarbeiteten Bestand. Das verletzt den Grundsatz "Selbstauskunft" aus docs/maschinelle-validierung.md §4. Die Klinke funktioniert heute nachweislich (in Plan 03 dreimal vorgefuehrt rot und woertlich protokolliert); der Mangel ist die fehlende Gegenrechnung, nicht ein falscher Wert. Damit ist Erfolgskriterium 3 der Phase heute erfuellt, aber nicht gegen kuenftige Abweichungen abgesichert. Fix: beide Zahlen im Erzeuger aus game.contracts selbst zaehlen, gegen die Selbstauskunft der Rohdatei pruefen und bei Abweichung mit genannter Differenz abbrechen. | open |  | 2026-08-28T12:45:00.000Z |  |
+| 60 | aufloesung | unrun-verify | src/components/PrecisionJumpApp.astro |  | Sichturteil offen (Aufloesungs-Durchgang 30.08.2026): auf mehreren WERKZEUG-Seiten steht die erste Bedienung bei 1280x720 unter der Falz. Gemessen wurde der Abstand vom oberen Fensterrand bis zum ersten Bedienelement im Hauptbereich: /precision-jump.html 611px (85 % des Fensters), /evolution.html 626px (87 %), /schiffe.html 545px (76 %), /refinery.html 440px (61 %). Bei 1181x560 sind es 108 %, 111 %, 97 % und 78 % -- dort ist die Bedienung gar nicht mehr im Bild. Die Hausregel dazu ist bereits gefallen und dokumentiert (ShipsOverview.astro, 'Werkzeug, keine Leinwand', 03.08.2026: min-height des Hero ersatzlos gestrichen, weil er bei 1280x720 61 % des Fensters frass). Auf /missionen.html ist sie in diesem Durchgang nachgezogen worden - der Hero faellt unter 800px Fensterhoehe auf Inhaltsmass zusammen, gemessen 928px auf rund 410px. Fuer die vier oben genannten Seiten ist 'darf der Hero hier kleiner werden' ein GESTALTUNGSURTEIL und wurde deshalb nicht selbst entschieden. Messwerkzeug: .planning/sketches/tools/probe-hero.mjs | open |  | 2026-08-30T13:42:04.904Z |  |
+| 61 | aufloesung | unrun-verify | src/components/MissionsApp.astro |  | Produkt- und SEO-Entscheidung offen (Aufloesungs-Durchgang 30.08.2026): die Katalogseiten sind auf dem Telefon extrem lang. Gemessen als Dokumenthoehe bei 320-414px Breite: /topics/crafting.html 453.600px, /missionen.html 418.900px, /armor-sets.html 175.600px, /downloads.html 73.700px. Das sind bei 390px Breite rund 530 Bildschirme Bildlauf. Ursache ist kein Fehler, sondern eine bewusste Grenze: assets/mobile-ux.css Abschnitt 5d gibt der Ergebnisliste erst AB 821px einen eigenen Bildlaufkasten, und der Kopfkommentar dort nennt vier Gruende, warum das darunter nicht gilt. Unter 821px liegt die vollstaendige Liste im Seitenfluss. Eine Blaetterung oder ein 'mehr laden' waere die Loesung, beruehrt aber die mobile-first-Indexierung (Googlebot rendert mit 412px Breite) und damit direkt das offene Sichtbarkeitsproblem der Seite. Deshalb hier als benannter Punkt statt als stiller Umbau. Messwerkzeug: .planning/sketches/tools/audit-responsive.mjs, Abschnitt 2 des Berichts. | open |  | 2026-08-30T13:42:24.281Z |  |
+| 62 | aufloesung | unrun-verify | assets/tool-help.js |  | Sichturteil offen (Aufloesungs-Durchgang 30.08.2026): die Erstbesuch-Hilfe klappt sich auf JEDEM Fenster selbst auf (openOnFirstVisit, D-09). Auf einem flachen Fenster kostet das den Arbeitsplatz: bei 1181x560 steht auf /missionen.html nach Kopfleiste (67px) und geschrumpftem Hero (rund 410px) nur noch die aufgeklappte Hilfe im Bild - Filterkonsole und erste Karte liegen darunter. Auf dem Telefon (390x844) ist der Effekt vertretbar. Ob die Hilfe unterhalb einer Fensterhoehe von etwa 700px zugeklappt starten soll, ist eine Onboarding-Entscheidung und wurde deshalb nicht selbst getroffen. | open |  | 2026-08-30T13:42:25.074Z |  |
 
 ````json
 [
@@ -770,6 +773,42 @@ last_updated: 2026-08-28T12:45:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-28T12:45:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 60,
+    "kind": "unrun-verify",
+    "phase": "aufloesung",
+    "file": "src/components/PrecisionJumpApp.astro",
+    "line": null,
+    "description": "Sichturteil offen (Aufloesungs-Durchgang 30.08.2026): auf mehreren WERKZEUG-Seiten steht die erste Bedienung bei 1280x720 unter der Falz. Gemessen wurde der Abstand vom oberen Fensterrand bis zum ersten Bedienelement im Hauptbereich: /precision-jump.html 611px (85 % des Fensters), /evolution.html 626px (87 %), /schiffe.html 545px (76 %), /refinery.html 440px (61 %). Bei 1181x560 sind es 108 %, 111 %, 97 % und 78 % -- dort ist die Bedienung gar nicht mehr im Bild. Die Hausregel dazu ist bereits gefallen und dokumentiert (ShipsOverview.astro, 'Werkzeug, keine Leinwand', 03.08.2026: min-height des Hero ersatzlos gestrichen, weil er bei 1280x720 61 % des Fensters frass). Auf /missionen.html ist sie in diesem Durchgang nachgezogen worden - der Hero faellt unter 800px Fensterhoehe auf Inhaltsmass zusammen, gemessen 928px auf rund 410px. Fuer die vier oben genannten Seiten ist 'darf der Hero hier kleiner werden' ein GESTALTUNGSURTEIL und wurde deshalb nicht selbst entschieden. Messwerkzeug: .planning/sketches/tools/probe-hero.mjs",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T13:42:04.904Z",
+    "resolved_at": null
+  },
+  {
+    "id": 61,
+    "kind": "unrun-verify",
+    "phase": "aufloesung",
+    "file": "src/components/MissionsApp.astro",
+    "line": null,
+    "description": "Produkt- und SEO-Entscheidung offen (Aufloesungs-Durchgang 30.08.2026): die Katalogseiten sind auf dem Telefon extrem lang. Gemessen als Dokumenthoehe bei 320-414px Breite: /topics/crafting.html 453.600px, /missionen.html 418.900px, /armor-sets.html 175.600px, /downloads.html 73.700px. Das sind bei 390px Breite rund 530 Bildschirme Bildlauf. Ursache ist kein Fehler, sondern eine bewusste Grenze: assets/mobile-ux.css Abschnitt 5d gibt der Ergebnisliste erst AB 821px einen eigenen Bildlaufkasten, und der Kopfkommentar dort nennt vier Gruende, warum das darunter nicht gilt. Unter 821px liegt die vollstaendige Liste im Seitenfluss. Eine Blaetterung oder ein 'mehr laden' waere die Loesung, beruehrt aber die mobile-first-Indexierung (Googlebot rendert mit 412px Breite) und damit direkt das offene Sichtbarkeitsproblem der Seite. Deshalb hier als benannter Punkt statt als stiller Umbau. Messwerkzeug: .planning/sketches/tools/audit-responsive.mjs, Abschnitt 2 des Berichts.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T13:42:24.281Z",
+    "resolved_at": null
+  },
+  {
+    "id": 62,
+    "kind": "unrun-verify",
+    "phase": "aufloesung",
+    "file": "assets/tool-help.js",
+    "line": null,
+    "description": "Sichturteil offen (Aufloesungs-Durchgang 30.08.2026): die Erstbesuch-Hilfe klappt sich auf JEDEM Fenster selbst auf (openOnFirstVisit, D-09). Auf einem flachen Fenster kostet das den Arbeitsplatz: bei 1181x560 steht auf /missionen.html nach Kopfleiste (67px) und geschrumpftem Hero (rund 410px) nur noch die aufgeklappte Hilfe im Bild - Filterkonsole und erste Karte liegen darunter. Auf dem Telefon (390x844) ist der Effekt vertretbar. Ob die Hilfe unterhalb einer Fensterhoehe von etwa 700px zugeklappt starten soll, ist eine Onboarding-Entscheidung und wurde deshalb nicht selbst getroffen.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T13:42:25.074Z",
     "resolved_at": null
   }
 ]

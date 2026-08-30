@@ -65,3 +65,6 @@ skills-lock.json
 # (siehe .github/workflows/track-marketplace.yml), nicht auf staging/main — sonst
 # loest jeder Daten-Commit ein komplettes Deploy aus.
 /data/
+
+# Messdaten und Aufnahmen der Aufloesungs-Werkzeuge (16 MB, reproduzierbar)
+/.planning/sketches/tools/out/
