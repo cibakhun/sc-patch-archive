@@ -63,6 +63,15 @@ const RECIPE = /repeat\(\s*auto-(?:fit|fill)\s*,\s*minmax\(\s*([^,()]*(?:\([^()]
 let recipes = 0;
 const rigid = [];
 
+/* Nicht nur .astro/.css: ein Spaltenrezept kann auch aus einer JS-Datei in die
+   Seite geschrieben werden (assets/tool-help.js baut z. B. seinen Blasen-Stil
+   als Zeichenkette), und die eigenstaendigen Seiten unter public/ tragen ihr
+   CSS ohnehin inline. Heute steht in keiner dieser Dateien ein Rezept — genau
+   deshalb kostet die Abdeckung nichts und schliesst ein Loch, bevor es eins
+   gibt. Gegengeprueft am 30.08.2026 gegen das ARTEFAKT: 6561 Rezepte in
+   dist/, davon 0 starr. */
+const RECIPE_DATEIEN = /\.(astro|css|js|mjs|ts)$/;
+
 for (const root of ROOTS) {
   walk(root, (p) => {
     /* Ueber die GANZE Datei, nicht zeilenweise: ein Rezept darf umgebrochen
@@ -81,8 +90,21 @@ for (const root of ROOTS) {
       const line = src.slice(0, m.index).split('\n').length;
       rigid.push({ file: p, line, min: low });
     }
-  }, (n) => n.endsWith('.astro') || n.endsWith('.css'));
+  }, (n) => RECIPE_DATEIEN.test(n));
 }
+
+/* Die eigenstaendigen Seiten tragen ihr CSS inline — dieselbe Regel gilt. */
+walk(PUBLIC, (p) => {
+  const src = readFileSync(p, 'utf8');
+  RECIPE.lastIndex = 0;
+  let m;
+  while ((m = RECIPE.exec(src))) {
+    recipes++;
+    const low = m[1].trim().replace(/\s+/g, ' ');
+    if (/^(min|clamp)\s*\(/.test(low) || /^(auto|0)$/.test(low)) continue;
+    rigid.push({ file: p, line: src.slice(0, m.index).split('\n').length, min: low });
+  }
+}, (n) => n.endsWith('.html'));
 
 /* ---- 2) Eigenstaendige Seiten unter public/ -------------------------- */
 let standalone = 0;

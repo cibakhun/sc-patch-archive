@@ -441,6 +441,10 @@ body {
   font-weight: 600;
   font-size: 1.15em;
   letter-spacing: var(--ls-5);
+  /* Gemessen 30.08.2026 bei 280 px auf /de/crafting.html: der Zusatz hinter
+     der Ueberschrift stand 16 px ueber dem rechten Rand. Sperrung plus
+     grosser Grad machen ihn breiter als das Wort davor. */
+  overflow-wrap: anywhere;
 }
 .dp-sec > h3 {
   font-family: var(--font-ui);
@@ -916,6 +920,19 @@ a.dp-card--cat:hover em { color: var(--tone-1); }
   /* Chips klebten bei 0,45 rem zu einem durchgehenden Band zusammen. */
   .dp-chips { gap: 0.55rem; }
   .dp-chip { padding: 0.42rem 0.8rem 0.42rem 0.7rem; }
+
+  /* ⚠ Gemessen 30.08.2026 (Tiefenpruefung des Aufloesungs-Durchgangs) bei
+     320 px: `white-space: nowrap` haelt den Chip in EINER Zeile, egal wie
+     lang der Wert ist. Auf /items/arden-sl-legs-coramor-edition-kismet.html
+     ragte er dadurch 67 px ueber den rechten Rand und war dort
+     abgeschnitten — der Wert war also genau bei den langen Namen nicht zu
+     lesen, bei denen er zaehlt. Auf dem Telefon darf er umbrechen; das
+     `nowrap` bleibt am Schreibtisch stehen, wo Platz ist. */
+  .dp-chip {
+    white-space: normal;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Druckzustand — Touch kennt kein :hover, ohne ihn bleibt jeder Tipp bis

@@ -151,6 +151,13 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
    Zwei Leitern nebeneinander: vorher runde Stufen, nachher abgestimmte. */
 .qgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:.9rem}
 @media(max-width:900px){.qgrid{grid-template-columns:1fr}}
+/* ⚠ Einspaltig heisst noch nicht schmal: Rasterkinder tragen `min-width:auto`.
+   Gemessen 30.08.2026 bei 320 px auf /de/patches/sc-4-10-0.html standen
+   Kopfzeile, Stufenbezeichnung, Beinaufteilung und die Werte der Ablesezeile
+   je 12 px ueber dem rechten Rand — deutsche Komposita in einer Zelle, die
+   nicht nachgibt. */
+.qgrid>*{min-width:0}
+.qpanel .phead,.qpanel .tierlab,.qpanel .splitleg,.qpanel .tiernote,.qpanel .readout dd{min-width:0;overflow-wrap:anywhere}
 .qpanel{background:var(--surface);border:1px solid var(--line-soft);padding:1.15rem 1.3rem;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 .qpanel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:.8rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.85rem}
 .qpanel .phead h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text)}

@@ -45,7 +45,7 @@ for (const spec of process.argv.slice(2)) {
   /* Nach unten laufen: `.reveal` steht bis zum ersten IntersectionObserver-
      Durchlauf auf opacity:0 — eine Vollseiten-Aufnahme zeigt sonst eine
      leere Seite und behauptet einen Fehler, den es nicht gibt. */
-  await page.evaluate(async () => {
+  if (!process.env.NO_PRESCROLL) await page.evaluate(async () => {
     const h = document.documentElement.scrollHeight;
     for (let y = 0; y < h; y += Math.floor(window.innerHeight * 0.8)) {
       window.scrollTo(0, y);

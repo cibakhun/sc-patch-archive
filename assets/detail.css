@@ -65,7 +65,13 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)}
 .wrap{max-width:var(--maxw);margin:0 auto}
 .wrap--wide{max-width:1400px}
-.sec-head{display:flex;align-items:center;gap:1rem;margin-bottom:1.8rem}
+/* flex-wrap + min-width:0 + anywhere: gemessen 30.08.2026 bei 320px auf
+   /de/topics/4-5-0-engineering.html und /de/topics/wikelo-emporium.html ragte
+   die h2 dieser Zeile 40 px ueber den rechten Rand — deutsche Komposita in
+   einem Flex-Kind, das von sich aus nicht schmaler wird als sein laengstes
+   Wort. Die Trennlinie `.rule` mit flex:1 fuellt in jeder Zeile den Rest. */
+.sec-head{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-bottom:1.8rem}
+.sec-head h2{min-width:0;overflow-wrap:anywhere}
 .sec-head .num{font-family:var(--font-display);font-weight:900;font-size:var(--fs-9);color:var(--accent);opacity:.8}
 .sec-head h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.5rem,3.5vw,2.4rem);line-height:1.05}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
@@ -383,6 +389,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
    ============================================================ */
 @media(max-width:860px){
   .split,.sticky,.versus{grid-template-columns:1fr}
+  /* ⚠ Einspaltig heisst noch nicht schmal: ein Rasterkind traegt
+     `min-width:auto` und bleibt so breit wie sein laengstes unteilbares Wort.
+     Gemessen 30.08.2026 bei 320 px auf /de/topics/4-5-0-engineering.html
+     standen beide Haelften 12 px ueber dem Rand — deutsche Komposita. */
+  .split>*,.sticky>*,.versus>*{min-width:0}
+  .split__text h3,.split__text p{overflow-wrap:anywhere}
   .split--rev{direction:ltr}
   .split__media,.versus .side{min-height:46vh}
   .sticky__media{position:relative;top:0;aspect-ratio:16/10}

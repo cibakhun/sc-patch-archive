@@ -99,6 +99,12 @@ const PROBE = () => {
     if (st.visibility === 'hidden' || st.display === 'none' || Number(st.opacity) === 0) return false;
     /* nur-fuer-Screenreader / bewusst geparkt */
     if (el.closest('[hidden],[aria-hidden="true"]')) return false;
+    /* ⚠ Ein geschlossenes <details> liefert fuer seinen Inhalt WEITERHIN
+       einen Kasten mit Groesse — gemessen 30.08.2026 an .cdb-subs: 167 px
+       hoch, aber unsichtbar. checkVisibility() kennt den Unterschied,
+       getComputedStyle nicht. Ohne diese Zeile meldet der Messer
+       Phantom-Ueberlaeufe und Phantom-Verdeckungen. */
+    if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true, contentVisibilityAuto: true })) return false;
     if (/inset\(50%\)|rect\(/.test(st.clipPath) || st.clip !== 'auto') return false;
     if (r.width <= 2 && r.height <= 2) return false;
     if (r.right <= 1 || r.left >= vw - 1) return false;   /* off-canvas geparkt */

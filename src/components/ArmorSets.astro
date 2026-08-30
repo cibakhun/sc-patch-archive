@@ -185,6 +185,22 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
      Leiste betrifft (.dp-bar 4rem + .as-jump ca. 3rem = 7rem). */
   .dp-sec[id] { scroll-margin-top: 7rem; }
 
+  /* ⚠ NACHGEMESSEN 30.08.2026 (Tiefenpruefung): das „ca. 3rem" oben stimmt
+     nur fuer die EINZEILIGE Leiste. Wo sie umbricht — ab 1181 px Breite auf
+     einem Fenster ueber 800 px Hoehe — ist sie mit 22 Herstellern vierzeilig
+     und 226 px hoch. Gemessen nach einem Klick auf die erste Sprungmarke:
+     das Ziel landete auf 126 px, die klebende Kante lag bei 226 px — die
+     Ueberschrift stand also 100 px UNTER der Leiste, auf die man gerade
+     geklickt hatte. Bei 320..1180 px (einzeilig, Kante bei 87..96 px) war
+     dieselbe Messung sauber.
+     16rem = 288 px deckt die vier Zeilen mit 62 px Luft; eine fuenfte Zeile
+     (283 px) traegt sie noch, eine sechste nicht mehr. Die Zahl haengt an
+     der Zahl der Hersteller, und die steht unter der Sperrklinke von
+     verify:metrics. */
+  @media (min-width: 1181px) and (min-height: 801px) {
+    .dp-sec[id] { scroll-margin-top: 16rem; }
+  }
+
   /* Set-Karte: dieselbe Konsole wie die Kategorie-Karten, eine Stufe ruhiger. */
   .as-set {
     position: relative;
@@ -226,10 +242,17 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   /* Teile als Kacheln statt als unterstrichene Linkwand: bei 30 Varianten je
      Slot war die alte Reihe eine einzige unterstrichene Textflaeche. */
   .as-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem; }
+  /* ⚠ `min-width`/`max-width`/`overflow-wrap` gemessen 30.08.2026 bei 320 px
+     auf /de/armor-sets.html: die deutschen Teilenamen und die Seltenheits-
+     Marke `.as-rar--excl` sprengten die Kachel um bis zu 48 px ueber den
+     rechten Rand — ein Flex-Kind traegt `min-width:auto` und bleibt so breit
+     wie sein laengstes Wort. EN blieb sauber; erst die laengeren deutschen
+     Woerter haben es sichtbar gemacht. */
   .as-parts li {
     display: inline-flex; align-items: center; gap: .3rem;
     font-size: var(--fs-7); padding: .22rem .55rem;
     background: var(--dp-fill-2); border: 1px solid var(--line-soft); border-radius: 2px;
+    min-width: 0; max-width: 100%; overflow-wrap: anywhere;
   }
   .as-parts a { color: var(--text); text-decoration: none; }
   .as-parts li:has(a):hover { border-color: var(--tone-1); background: var(--dp-tint); }
@@ -263,8 +286,13 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
      mobile-ux.css 5c laege hier mitten unter den Sprungmarken.
      Die zweite Bedingung ist die Hoehe: bei 1181x560 (breit, aber flach)
      blieb die Leiste 226 px = 40 % des Fensters. Breit genug fuer zwei
-     Zeilen ist eben nicht dasselbe wie hoch genug fuer zwei Zeilen. */
-  @media (max-width: 1180px), (max-height: 700px) {
+     Zeilen ist eben nicht dasselbe wie hoch genug fuer zwei Zeilen.
+     NACHGEMESSEN 30.08.2026 in der Tiefenpruefung: mit 700 px stand die
+     Leiste bei 1280x720 — dem haeufigsten Laptop — weiter vierzeilig und
+     226 px hoch = 31 % des Fensters, klebend. Die Grenze ist deshalb
+     800 px, dieselbe Zahl wie beim Hero der Missionsseite. Einzeilig
+     misst sie dort 74 px; das sind 152 px zurueckgegebener Arbeitsplatz. */
+  @media (max-width: 1180px), (max-height: 800px) {
     .as-jump {
       flex-wrap: nowrap;
       overflow-x: auto;
