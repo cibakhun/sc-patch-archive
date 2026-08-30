@@ -44,7 +44,7 @@
      unter den Registerkarten liegt mitten im Bild der Buehne. Die weiche Kante
      traegt hier allein. */
   var SEL_FADE =
-    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.holo__rail';
+    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.holo__rail,.as-jump';
   // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
   // .holo__readout (Schiffskonsole) traegt die Klasse .vb-scrollbox bewusst
   // NICHT — deren max-height:calc(100vh…) wuerde die Hoehenbindung an die

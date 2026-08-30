@@ -1184,7 +1184,7 @@ a{color:inherit;text-decoration:none}
    Woerter koennen ueber die Zellgrenze laufen. Werte kleiner als die
    14-04-Werte (dort ~469px Spaltenbreite) -- am Bildschirmfoto
    gegengeprueft (16-04-SUMMARY.md). */
-.holo__readout .arm__sum{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.holo__readout .arm__sum{grid-template-columns:repeat(auto-fit,minmax(min(110px,100%),1fr))}
 /* .sd__slots stand hier bis zum 20.08.2026 mit derselben 110px-Formel; sie
    ist der einspaltigen Regel weiter unten gewichen (Begruendung dort). */
 .holo__readout .arm__scell span,
@@ -1226,7 +1226,7 @@ a{color:inherit;text-decoration:none}
    Raster, aber mit 220px Mindestbreite statt der ursprünglichen 110: das
    längste Label braucht gemessene 144px, und unterhalb davon fängt genau der
    Wortbruch wieder an, gegen den die Einspaltigkeit einmal antrat. */
-.holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.holo__readout .sd__slots{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
 /* ⚠⚠ KEINE waagerechte Polsterung. Die Auslesung selbst steht schon in der
    Inhaltsspalte (max-width 1100, padding 38.4px -> Spalte bei 128.4). Ein
    zusaetzliches 1rem hier schob Kapitelkopf UND Karten auf 146 — 18px rechts
@@ -1492,7 +1492,7 @@ a{color:inherit;text-decoration:none}
    uebernimmt die Haarlinie, nicht die Flaeche. */
 .holo__bar{border-bottom:1px solid var(--line);
   background:linear-gradient(180deg,color-mix(in srgb,var(--media-void) 58%,transparent) 0%,transparent 88%)}
-.holo__bar dl{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+.holo__bar dl{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));
   gap:0;padding:0 clamp(1rem,3vw,2.5rem)}
 .holo__bar .kv{padding:.85rem 1rem .9rem;border-left:1px solid var(--line)}
 /* Die ERSTE Zelle traegt keine Trennlinie und braucht deshalb auch links
@@ -1632,7 +1632,7 @@ a.sd__ref::after{content:"→";color:var(--muted)}
 a.sd__ref:hover::after{color:var(--accent)}
 span.sd__ref{color:var(--muted)}
 
-.sd__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem 1.4rem;margin:0}
+.sd__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:.7rem 1.4rem;margin:0}
 .sd__item{border-left:1px solid var(--line);padding-left:.8rem}
 .sd__item dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted)}
 .sd__item dd{margin:.15rem 0 0;font-weight:500;font-size:var(--fs-11);line-height:1.35;font-variant-numeric:tabular-nums;color:var(--text)}
@@ -1700,10 +1700,10 @@ span.sd__ref{color:var(--muted)}
      liess einzelne lange, ungetrennte Woerter (z. B. "SCHILDGENERATOREN")
      ueber die Zellgrenze hinauslaufen statt umzubrechen -- deshalb bleiben
      die Werte hier bewusst groesser als das rechnerische Minimum. */
-  .sd__ch2col .sd__grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
-  .sd__ch2col .sd__qgrid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
-  .sd__ch2col .sd__slots{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
-  .sd__ch2col .sd__inscards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  .sd__ch2col .sd__grid{grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr))}
+  .sd__ch2col .sd__qgrid{grid-template-columns:repeat(auto-fit,minmax(min(90px,100%),1fr))}
+  .sd__ch2col .sd__slots{grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr))}
+  .sd__ch2col .sd__inscards{grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr))}
   /* arm__sum (Bewaffnung-Kennzahlen): hier NICHT die Spaltenzahl der vollen
      Breite halten, sondern bewusst halbieren. Am Bildpunkt gemessen: der
      Container ist in der halben Spalte 469px breit, "Gegenmaßnahmen" misst
@@ -1723,14 +1723,14 @@ span.sd__ref{color:var(--muted)}
      Klinke von 4.200px haelt. Bei 1100px Ansichtsbreite ist der Container
      ~403px und ergibt dieselben zwei Spalten. */
   .sd__ch2col .arm__scell span{hyphens:auto;overflow-wrap:break-word}
-  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .sd__ch2col .arm__sum{grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))}
 }
 /* ---------------- Bewaffnung: Hardpoint-Ledger ----------------
    Eine Zeile je Waffenart statt einer Reihe nackter Zahlen. Jede Zeile ist
    für sich lesbar: Stückzahl · Größenklasse (mit maßstäblichem Balken) ·
    Name · Schadensart · Hardpoint-Reserve. Die Größen-Chips bilden eine
    linksbündige Spalte -> das Kaliberprofil ist senkrecht abscanbar. */
-.arm__sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+.arm__sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:1px;
   background:var(--line);border:1px solid var(--line);margin-bottom:1.2rem}
 .arm__scell{background:var(--bg-2);padding:.6rem .8rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:.05rem .45rem}
 .arm__scell b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-14);line-height:1.1;color:var(--accent);
@@ -1804,7 +1804,7 @@ span.sd__ref{color:var(--muted)}
 .sd__spine a:hover{color:var(--gold);text-decoration:underline}
 .sd__spine span{color:var(--muted);font-weight:600}
 
-.sd__simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem}
+.sd__simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:.8rem}
 /* ⚠ Mobil ergab minmax(200px) EINE Spalte — vier Karten mit 16:9-Bild sind
    dann 1150px hoch (gemessen bei 390px), also ein Drittel der ganzen Seite
    fuer ein Nebenmodul. Zwei Spalten halbieren das; 150px passen zweimal in
@@ -1884,7 +1884,7 @@ span.sd__ref{color:var(--muted)}
 .sd__hprow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 
 /* Komponenten-Slots */
-.sd__slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
+.sd__slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:.7rem}
 /* Karten als INSTRUMENT, nicht als Kasten. Bis hierher war das ein flacher
    Rahmen auf flacher Flaeche — unter der Buehne las sich die Seite dadurch wie
    eine andere Website. Drei sparsame Mittel, dieselben, die der Raum schon
@@ -1923,10 +1923,10 @@ span.sd__ref{color:var(--muted)}
 .sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:auto 0 0;line-height:1.2}
 
 /* Quantum-Chips */
-.sd__qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem 1.4rem}
+.sd__qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:.7rem 1.4rem}
 
 /* Versicherung */
-.sd__inscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem}
+.sd__inscards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:.7rem}
 .sd__ins{border:1px solid var(--line);background:var(--bg-2);padding:.7rem .9rem}
 .sd__ins .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
 .sd__ins .v{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-13);font-variant-numeric:tabular-nums;color:var(--text);margin-top:.15rem}

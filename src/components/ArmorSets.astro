@@ -253,6 +253,26 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   .as-rar--legendary { color: var(--rar-legendary); }
   .as-rar--excl { color: var(--rar-warn); }
 
+  /* ⚠ Gemessen 30.08.2026 (Aufloesungs-Durchgang): die UMBRECHENDE Leiste
+     wurde bei 320 px 1044 px hoch — 184 % der Fensterhoehe — und klebt oben.
+     Sie verdeckte damit den gesamten Bildschirm; bei 390 px waren es 780 px
+     (92 %), bei 1024x768 noch 277 px (36 %). Unterhalb von 1181 px laeuft sie
+     deshalb in EINER Zeile und wird seitwaerts gewischt.
+     Die weiche rechte Kante kommt aus assets/scroll-affordance.js (SEL_FADE),
+     wie bei .holo__rail — eine dauerhafte 8-px-Leiste wie bei den Tabellen in
+     mobile-ux.css 5c laege hier mitten unter den Sprungmarken.
+     Die zweite Bedingung ist die Hoehe: bei 1181x560 (breit, aber flach)
+     blieb die Leiste 226 px = 40 % des Fensters. Breit genug fuer zwei
+     Zeilen ist eben nicht dasselbe wie hoch genug fuer zwei Zeilen. */
+  @media (max-width: 1180px), (max-height: 700px) {
+    .as-jump {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+    .as-jump a { flex: none; white-space: nowrap; }
+  }
+
   @media (max-width: 820px) {
     .as-jump a { min-height: 44px; }
     .as-parts li { min-height: 34px; }

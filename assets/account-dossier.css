@@ -600,7 +600,7 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dpanels{padding-block:clamp(2.4rem,4vw,3.4rem) 110px}
 
 /* Favoriten fuellen die Breite (auto 4 Spalten auf grossen Screens) */
-.favgrid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.favgrid{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
 
 /* Sicherheit: zwei ausgewogene Spalten */
 .seccols{gap:20px}
@@ -977,7 +977,7 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
    Schiffe -> echtes Schiffbild als Hintergrund (Manifest ship-thumbs.json),
    andere Arten -> großes, dezentes Wasserzeichen-Icon. Name unten, Remove oben.
    ========================================================================== */
-.dsr .favgrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.dsr .favgrid{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px}
 .dsr .fav{
   position:relative;overflow:hidden;min-height:152px;
   display:flex;align-items:flex-end;padding:0;border-radius:14px;

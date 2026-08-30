@@ -138,7 +138,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 /* INSTANZ-KLAMMER — Signatur dieser Seite.
    Die eckige Klammer ist das Bild für den abgeschlossenen Raum: was
    drinnen liegt, gehört dem Trupp allein. */
-.inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.8rem}
+.inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:.8rem}
 .icard{position:relative;background:var(--surface);border:1px solid var(--line-soft);padding:1.2rem 1.35rem 1.05rem}
 .icard::before,.icard::after{content:"";position:absolute;width:16px;height:16px;border:2px solid var(--accent-2);opacity:.75}
 .icard::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
@@ -183,7 +183,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .tiernote{margin:.1rem 0 0;color:var(--muted);font-size:var(--fs-7);line-height:1.5;max-width:52ch}
 
 /* BEUTE — Ausrüstungsraster */
-.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:.8rem}
 .gcard{background:var(--surface);border:1px solid var(--line-soft);border-left:2px solid var(--accent-2);padding:1.05rem 1.15rem .95rem}
 .gcard .gk{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
 .gcard b{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.35rem 0 .25rem}
@@ -192,7 +192,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .chip{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--text);border:1px solid rgba(79,216,180,.4);padding:.28rem .6rem;border-radius:2px;background:var(--veil)}
 
 /* WERKBANK — die 13 neuen Baupläne */
-.bp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem}
+.bp{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:.8rem}
 .bpcol{background:linear-gradient(140deg,var(--surface-2),var(--bg-2));border:1px solid var(--line-soft);padding:1.1rem 1.2rem 1rem}
 .bpcol h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--accent);margin-bottom:.2rem}
 .bpcol .cnt{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-11);color:var(--muted);text-transform:uppercase}

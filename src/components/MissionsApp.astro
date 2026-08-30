@@ -294,6 +294,20 @@ const cards = missions.map((m: Mission) => {
   }
   .mx__lead { max-width: 62ch; color: var(--muted); font-size: clamp(.98rem, 1.6vw, 1.12rem); }
   .mx__stats { display: flex; flex-wrap: wrap; gap: 1.6rem 2.6rem; margin-top: 1.6rem; }
+
+  /* „Werkzeug, keine Leinwand" — aber nur dort, wo das Fenster flach ist.
+     Gemessen 30.08.2026 bei 1181x560: Kopfleiste 67 px + Hero 490 px = das
+     GANZE Fenster. Weder Filterkonsole noch eine einzige Karte waren ohne
+     Scrollen zu sehen; die Seite eroeffnete mit einem Plakat.
+     Die Schiffsseite hat dieselbe Lehre schon 2026-08-03 gezogen und ihr
+     min-height ersatzlos gestrichen (ShipsOverview.astro, „Werkzeug, keine
+     Leinwand"). Hier bleibt der hohe Hero auf hohen Fenstern stehen — er
+     kostet dort keinen Arbeitsplatz — und faellt nur unter 800 px
+     Fensterhoehe auf Inhaltsmass zusammen. */
+  @media (max-height: 800px) {
+    .mx__hero { min-height: 0; padding-top: 4.6rem; padding-bottom: 1.5rem; }
+    .mx__stats { gap: .7rem 1.8rem; margin-top: 1rem; }
+  }
   .mx__stats b {
     display: block; font-family: var(--font-display); font-size: clamp(1.3rem, 2.6vw, 1.9rem);
     font-weight: 800; color: var(--accent); line-height: 1;
@@ -337,7 +351,7 @@ const cards = missions.map((m: Mission) => {
   /* ---------- Karten ---------- */
   /* 17rem, nicht 19: die Wurzel steht auf 112,5 %, 1rem sind also 18px — bei
      19rem passen auf 1280er-Viewports nur zwei Spalten. */
-  .mx__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
+  .mx__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(17rem,100%), 1fr)); gap: 1rem; }
   .mc {
     border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
     transition: border-color var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui), box-shadow var(--dur-base) var(--ease-ui);
@@ -398,7 +412,14 @@ const cards = missions.map((m: Mission) => {
   }
   .mx__srcMeta { margin-top: .7rem; font-size: var(--fs-5); opacity: .8; }
 
-  @media (max-width: 640px) {
+  /* ⚠ Gemessen 30.08.2026: die klebende Leiste wurde bei 768×1024 396 px
+     hoch (39 % des Fensters) und bei 1024×768 328 px (43 %) — sie bleibt
+     dabei dauerhaft stehen, während die Ergebnisliste unter 821 px KEINEN
+     eigenen Bildlaufkasten hat (mobile-ux.css 5d greift erst ab 821). Die
+     Grenze ist deshalb dieselbe: kleben nur dort, wo die Liste daneben
+     scrollt — sonst normaler Seiteninhalt, der wegscrollt. Die 640 px
+     davor waren zu eng gefasst. */
+  @media (max-width: 820px) {
     .mx__bar { position: static; }
     .mx__f { min-width: 100%; }
     .mx__count { margin-left: 0; }

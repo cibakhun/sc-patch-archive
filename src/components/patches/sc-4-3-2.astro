@@ -120,7 +120,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .shot p{max-width:46ch;color:var(--on-media-dim);font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.6rem;text-shadow:0 2px 14px var(--on-media-shadow)}
 
 /* Ship garage */
-.garage{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.2rem}
+.garage{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:1.2rem}
 .ship{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3;display:flex;align-items:flex-end;transition:transform var(--dur-slow) var(--ease-ui),border-color var(--dur-slow) var(--ease-ui),box-shadow var(--dur-slow) var(--ease-ui)}
 .ship .sbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:transform .9s}
 .ship:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:var(--glow)}

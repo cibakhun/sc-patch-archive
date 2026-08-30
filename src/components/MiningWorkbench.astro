@@ -840,6 +840,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   border-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   /* Die Hoehe haengt an nichts mehr — kein Seitenverhaeltnis diktiert sie. */
   height:clamp(430px,calc(100vh - var(--wb-chrome)),1180px);
+  height:clamp(430px,calc(100dvh - var(--wb-chrome)),1180px);
   /* Ueber der Wand liegen — sie steht mit z-index 0 dahinter. */
   z-index:1;
   /* ⚠ Die Aussenkante endete hart gegen den flachen Seitengrund — gemeldet als
@@ -1161,7 +1162,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 /* padding-bottom 5 statt 8: es gibt jetzt bis zu sechs dieser Raster
    untereinander, und die Luft zwischen Band und naechster Ueberschrift bringt
    die Ueberschrift schon selbst mit. */
-.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:0 8px 5px}
+.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(104px,100%),1fr));gap:5px;padding:0 8px 5px}
 /* ---- Gruppen (Abbauart) und Baender (Qualitaetsstufe) ----------------------
    Zwei Ueberschriftenebenen in einer 483 px breiten Saeule — sie duerfen
    deshalb nur Zeilenhoehe kosten, keine Kaesten. Die Gruppe traegt eine

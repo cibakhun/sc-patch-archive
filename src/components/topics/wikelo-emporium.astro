@@ -96,7 +96,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-lede{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-6)}
 
 /* ---- Bento (stations + reward categories) ---- */
-.wk-bento{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;max-width:var(--maxw);margin:0 auto}
+.wk-bento{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:1rem;max-width:var(--maxw);margin:0 auto}
 .wk-cell{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.3rem 1.4rem;display:flex;flex-direction:column;gap:.5rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
 .wk-cell .wk-ic{color:var(--accent);line-height:0;width:34px;height:34px}
 .wk-cell.alt .wk-ic{color:var(--accent-2)}
@@ -120,7 +120,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-pill{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);border:1px solid var(--line);background:var(--veil);padding:.42rem .9rem;border-radius:50px;cursor:pointer;transition:color var(--dur-base) var(--ease-ui),border-color var(--dur-base) var(--ease-ui),background-color var(--dur-base) var(--ease-ui)}
 .wk-pill:hover{color:var(--text);border-color:var(--accent)}
 .wk-pill[aria-pressed="true"]{color:var(--ink);background:var(--accent);border-color:var(--accent)}
-.wk-tc-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem}
+.wk-tc-grid{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:1rem}
 .wk-tc{border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:.85rem;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
 .wk-tc[data-cat="conv"]{border-top-color:var(--accent-2)}
 .wk-tc[hidden]{display:none}

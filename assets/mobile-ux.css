@@ -48,6 +48,40 @@
 }
 
 /* ------------------------------------------------------------
+   1b) Untergrenze der Schriftskala auf dem Telefon
+   ------------------------------------------------------------
+   Gemessen 30.08.2026 ueber 44 Seiten x 10 Aufloesungen: unterhalb
+   von 821 px rendern rund 21.000 Textstellen mit 10,8 px oder
+   weniger — fast alle davon Mikro-Versalien mit Sperrung, also die
+   Beschriftungen der Datenkarten (dt, .mc__chip, .fcard__stat dt,
+   .cbp__cat, .as-rar …). Am Schreibtisch, aus 60 cm und ohne
+   Wackeln, traegt das; auf einem Telefon in der Hand nicht mehr.
+
+   Die drei untersten Stufen der Skala bekommen deshalb NUR unter
+   821 px einen gemeinsamen Boden von 0,7rem = 12,6 px — genau der
+   Wert der naechsten Stufe --fs-4. Damit bleibt die Skala monoton
+   (kein Grad wird groesser als der naechsthoehere), und die
+   Abstufung zwischen 9,9 / 10,8 / 11,7 px, die auf dem Telefon
+   ohnehin niemand als Rangfolge liest, faellt dort weg.
+
+   ⚠ Das aendert die BREITE tausender Etiketten um bis zu 17 %.
+   Genau deshalb steht der Auflaufmesser dahinter: nach dieser
+   Aenderung wurde derselbe Durchgang erneut gefahren (Ueberlauf und
+   abgeschnittener Text).
+
+   ⚠ Steht bewusst NICHT im :root von theme.css: dort waere es eine
+   Aenderung der Schriftskala fuer ALLE Geraete. Hier ist es das,
+   was es ist — eine Ergonomie-Regel fuer kleine Schirme.
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  :root {
+    --fs-1: 0.7rem;
+    --fs-2: 0.7rem;
+    --fs-3: 0.7rem;
+  }
+}
+
+/* ------------------------------------------------------------
    2) Bedienelemente auf Fingerkuppen-Mass
    ------------------------------------------------------------
    Gilt fuer echte Schaltflaechen und Felder. Fliesstext-Links
@@ -142,6 +176,78 @@
   .evo__cell,
   .ribbon__tick {
     min-height: 0;
+  }
+}
+
+/* ------------------------------------------------------------
+   2c) Nachtrag Aufloesungs-Durchgang 30.08.2026
+   ------------------------------------------------------------
+   Nachgemessen wurde mit einem Messer, der die HITFLAECHE kennt und
+   nicht nur den gezeichneten Kasten: ein `::after` mit inset:0 spannt
+   den ganzen Kartenkoerper auf, und genau so arbeiten .fcard__name a,
+   .icard__t a und .uif-card-link. Die drei standen in der ersten
+   Messung faelschlich als „16 px" da und sind in Wahrheit
+   kartengross. Was danach uebrig blieb, steht hier.
+
+   AUSDRUECKLICH NICHT angefasst, mit Grund:
+     .cbp__mine     31x44 — die 44 stehen, zu schmal ist nur der KURZE
+                    Erzname. Breiter ginge nur ueber Polsterung, die
+                    1400 Zeilen laenger machte.
+     .dp-crumbs a   29x44 — dito, Brotkrume mit kurzem Wort. Waagerecht
+                    aufspannen hiesse den Nachbareintrag ueberdecken.
+     .acx-label,    Beschriftungen UEBER ihrem Feld. Das Feld darunter
+     .mx__f label,  ist 44 px hoch und traegt die Bedienung; ein
+     .pj-label      44-px-Etikett dazu waere nur Luft.
+     .evo__cell,    stehen schon oben in Abschnitt 2 als benannte
+     .evo__col a    Ausnahmen (dichtes Raster).
+------------------------------------------------------------ */
+@media (max-width: 820px) {
+  /* Gemessen 30x30: Sterne einer Bewertung sind das Bedienelement,
+     nicht Zierrat. Hier waechst die gezeichnete Flaeche mit — 44 px
+     Sterne sind auf dem Telefon richtig. */
+  .fbx-star {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Gemessen 37x44 bzw. 88x30: einmal fehlt die Breite (kurzes
+     Chip-Wort), einmal die Hoehe (Verweis mit 6 px Polsterung). */
+  .wb__chip,
+  .fc__chip {
+    min-width: 44px;
+  }
+  .wb__link,
+  .holo__rail a,
+  #holorail a {
+    min-height: 44px;
+  }
+
+  /* Gemessen 142x24 (.do__link), 41x20 (.alm__series a), 222x27
+     (.uf-about__links a), 22x44 (.wb__lpin): hier bleibt die
+     gezeichnete Flaeche, wo sie ist, und ein durchsichtiges ::after
+     spannt die Fingerkuppe auf — derselbe Kniff wie bei .cbar__x
+     oben. Wichtig ist der positionierte Elternkasten, sonst haengt
+     das Pseudoelement am naechsten positionierten Vorfahren. */
+  .do__link,
+  .alm__series a,
+  .uf-about__links a,
+  .wb__lpin {
+    position: relative;
+  }
+  .do__link::after,
+  .alm__series a::after,
+  .uf-about__links a::after,
+  .wb__lpin::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: max(100%, 44px);
+    height: max(100%, 44px);
   }
 }
 

@@ -112,7 +112,7 @@ button.rd,a.rd{cursor:pointer;width:100%}
 .rd__rsi.no{color:var(--muted)}
 
 /* Quick actions */
-.qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.75rem}
+.qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:.75rem}
 .qa__item{position:relative;display:flex;align-items:center;gap:.85rem;background:var(--surface);border:1px solid var(--line);padding:.9rem 1rem;transition:border-color var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui);cursor:pointer;text-align:left;color:inherit;text-decoration:none;font:inherit;width:100%}
 .qa__item:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent);transform:translateY(-3px);box-shadow:0 12px 30px color-mix(in srgb,var(--accent) 14%,transparent)}
 .qa__item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -277,13 +277,13 @@ button.rd,a.rd{cursor:pointer;width:100%}
 
   .acx-grid-2 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(240px,100%), 1fr));
     gap: 1.2rem;
   }
 
   .banner-grid-picker {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(130px,100%), 1fr));
     gap: 0.8rem;
     margin-top: 0.4rem;
   }
@@ -331,7 +331,7 @@ button.rd,a.rd{cursor:pointer;width:100%}
 
   .avatar-grid-picker {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(50px,100%), 1fr));
     gap: 0.6rem;
     margin-top: 0.4rem;
   }

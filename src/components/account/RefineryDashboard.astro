@@ -235,7 +235,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
   .rfd-empty { color: var(--muted); text-align: center; font-size: var(--fs-9); }
 
   /* ---- Statistik-Kacheln ---- */
-  .rfd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.9rem; margin-bottom: 0.6rem; }
+  .rfd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px,100%), 1fr)); gap: 0.9rem; margin-bottom: 0.6rem; }
   .rfd-tile {
     border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
     padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.2rem;
