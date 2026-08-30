@@ -565,6 +565,11 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .fc__slot:focus-visible,.fc__tile:focus-visible,.fc__back:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 @media(max-width:1180px){
+  /* ⚠ Gleiche Lehre wie in MiningWorkbench.astro (dort ausfuehrlich): das
+     Gehaeuse darf einspaltig nicht mehr aus der FENSTERHOEHE rechnen, sonst
+     ragt der Inhalt unten heraus. Gemessen 30.08.2026 bei 390x844: 12 px
+     Ueberstand — weniger als bei der Werkbank, aber dieselbe Ursache. */
+  .fc__chassis{height:auto}
   .fc__grid{grid-template-columns:1fr;height:auto;flex:none}
   .fc__pane{height:auto}
   .fc__pane--list{height:min(62vh,560px)}
