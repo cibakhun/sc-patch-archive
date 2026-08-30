@@ -33,6 +33,7 @@ const S = {
     all: 'Alle', lawful: 'Legal', unlawful: 'Illegal',
     sort: 'Sortierung', sName: 'Name', sReward: 'Belohnung', sCount: 'Angebote',
     reset: 'Zurücksetzen', results: 'Treffer', none: 'Keine Mission passt zu diesen Filtern.',
+    filterBtn: 'Filter', close: 'Schließen',
     variants: 'Angebote', variant: 'Angebot',
     reward: 'Belohnung', rep: 'Reputation', region: 'Region', giver: 'Auftraggeber',
     internal: 'Interner Name', internalT: 'Diese Mission hat im Spiel keinen Titel — angezeigt wird ihr interner Name.',
@@ -59,6 +60,7 @@ const S = {
     all: 'All', lawful: 'Lawful', unlawful: 'Unlawful',
     sort: 'Sort', sName: 'Name', sReward: 'Reward', sCount: 'Offers',
     reset: 'Reset', results: 'results', none: 'No mission matches these filters.',
+    filterBtn: 'Filters', close: 'Close',
     variants: 'offers', variant: 'offer',
     reward: 'Reward', rep: 'Reputation', region: 'Region', giver: 'Contractor',
     internal: 'Internal name', internalT: 'This mission has no title in the game — its internal name is shown instead.',
@@ -121,8 +123,32 @@ const cards = missions.map((m: Mission) => {
   <div class="mx__wrap">
     <ToolHelp tool="missions" lang={lang} steps={4} />
 
+    {/* Auf schmalen und flachen Fenstern faehrt die Filterkonsole als
+        Schublade aus — dieselbe Mechanik wie auf der Crafting-Seite
+        (assets/offcanvas.js: `data-offcanvas` am Panel, `data-offcanvas-toggle`
+        an der Schaltflaeche). Gemessen 30.08.2026: die Konsole war bei 390 px
+        844 px hoch — ein ganzer Bildschirm — und der erste Treffer stand bei
+        1932 px. Trefferzahl und Umschalter bleiben AUSSERHALB der Schublade,
+        sonst verschwindet mit den Filtern auch die Rueckmeldung. */}
+    <div class="mx__mbar">
+      <button
+        type="button"
+        class="mx__filterbtn"
+        id="mx-filter-toggle"
+        aria-expanded="false"
+        aria-controls="mx-bar"
+        data-offcanvas-toggle="mx-bar"
+        data-help={h('missions.ctl.filter')}
+      >☰ {S.filterBtn}</button>
+      <output class="mx__count mx__count--out" id="mx-count-m" aria-live="polite"></output>
+    </div>
+
     <!-- Filter -->
-    <form class="mx__bar" id="mx-bar" role="search" onsubmit="return false">
+    <form class="mx__bar" id="mx-bar" role="search" onsubmit="return false" data-offcanvas data-offcanvas-flach>
+      <div class="mx__side-hd">
+        <span>{S.filterBtn}</span>
+        <button type="button" id="mx-filter-close" class="mx__x" aria-label={S.close}>✕</button>
+      </div>
       <div class="mx__f mx__f--grow" data-help={h('missions.ctl.search')}>
         <label for="mx-q">{S.search}</label>
         <input type="search" id="mx-q" placeholder={S.searchPh} autocomplete="off" />
@@ -419,11 +445,52 @@ const cards = missions.map((m: Mission) => {
      Grenze ist deshalb dieselbe: kleben nur dort, wo die Liste daneben
      scrollt — sonst normaler Seiteninhalt, der wegscrollt. Die 640 px
      davor waren zu eng gefasst. */
-  @media (max-width: 820px) {
-    .mx__bar { position: static; }
+  /* ---------- Filter als Schublade (schmal/flach) ----------
+     Umschalter und Trefferzahl stehen AUSSERHALB des Formulars, damit die
+     Rueckmeldung nicht mit den Filtern verschwindet. Am Schreibtisch ist
+     beides unsichtbar — dort steht die Konsole wie bisher im Fluss. */
+  .mx__mbar { display: none; }
+  .mx__side-hd { display: none; }
+  .mx__filterbtn {
+    font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-11);
+    font-size: var(--fs-6); cursor: pointer; color: var(--text); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 9px; padding: .6rem 1rem;
+  }
+  .mx__x {
+    background: var(--veil); border: 1px solid var(--line); border-radius: 6px;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    color: var(--text); font-size: var(--fs-10); cursor: pointer; flex: none;
+  }
+
+  @media (max-width: 820px), (max-height: 600px) {
+    .mx__mbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: .8rem; margin-bottom: 1.2rem;
+    }
+    .mx__count--out { margin-left: 0; }
+    .mx__side-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; margin-bottom: .4rem; font-weight: 800;
+      font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-11);
+    }
+    /* Die Schublade selbst — Masse und Verhalten wie .cdb-sidebar auf der
+       Crafting-Seite, damit offcanvas.js (isDrawerMode prueft auf
+       position:fixed unter 821 px) sie erkennt. */
+    .mx__bar {
+      position: fixed; top: 0; left: 0; z-index: 9250;
+      width: min(340px, 90%); height: 100%; max-height: none;
+      border-radius: 0; margin-bottom: 0;
+      overflow-y: auto; overscroll-behavior: contain;
+      flex-direction: column; flex-wrap: nowrap; align-items: stretch;
+      transform: translateX(-100%);
+      background: color-mix(in srgb, var(--surface) 97%, transparent);
+    }
+    .mx__bar.is-open { transform: translateX(0); }
+    html.js .mx__bar { transition: transform var(--dur-slow) var(--ease-ui); }
     .mx__f { min-width: 100%; }
     .mx__count { margin-left: 0; }
   }
+
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .mc__chip--il{color:#982d1d;border-color:rgba(199,70,42,.58)}
 :root[data-theme="light"] .mc__chip--guild{color:#1c6656;border-color:rgba(71,133,117,.52)}

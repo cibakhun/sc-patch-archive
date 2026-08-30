@@ -289,6 +289,24 @@ a{color:inherit;text-decoration:none}
   .fprice--game{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:.25rem}
 }
 
+/* ⚠ GEMESSEN 30.08.2026, danach vom Betreiber entschieden: die zwei Spalten
+   oben tragen bis etwa 430 px Fensterbreite. Darunter ist die Karte 171 px
+   breit, und dann kuerzt die Ellipse genau die Angaben weg, wegen derer man
+   auf der Uebersicht ist — die Rolle um 58 px („Starter / Light Fighter" ->
+   „Starter / Pathfind…") und die Signaturzeile um 175 px. Sichtbar bleibt
+   ein Briefmarkenfoto und ein Name.
+   Eine Spalte kostet Scrollweg und gibt dafuer das Foto, die volle Rolle und
+   die Signatur zurueck. Die Grenze liegt bei 430 px, nicht bei 520: bei
+   440 px sind die zwei Spalten je 200 px breit und die Rolle passt wieder. */
+@media(max-width:430px){
+  .sdb__fleet{grid-template-columns:1fr}
+  /* Was fuer die enge Doppelspalte gestrichen war, kommt zurueck. */
+  .fcard__stat:nth-child(3){display:block}
+  .fcard__stats{grid-template-columns:repeat(3,1fr)}
+  .fcard__prices{grid-template-columns:1fr 1fr;gap:.4rem}
+  .fprice--game{border-left:1px solid var(--line);padding-left:.6rem;border-top:0;padding-top:0}
+}
+
 .sdb__src{margin-top:1.5rem;font-size:var(--fs-7);color:var(--muted)}
 .sdb__src a{text-decoration:underline}
 .sdb__src a:hover{color:var(--accent)}

@@ -39,8 +39,22 @@
 
   var SEEN_KEY = 'vb.help.seen';
 
+  // Ab welcher Fensterhoehe der Erstbesuch-Abschnitt von selbst aufgeht.
+  //
+  // ⚠ GEMESSEN 30.08.2026, danach vom Betreiber entschieden: der aufgeklappte
+  // Abschnitt kostet 300 bis 500 px. Auf einem flachen Fenster ist das der
+  // ganze Arbeitsplatz — bei 844x390 (Telefon quer) stand auf /missionen.html
+  // der erste Treffer bei 1167 px = DREI Bildschirme, davon gingen 344 px
+  // allein auf die Hilfe. Bei 390x844 waren es 500 px von 1932.
+  // Unterhalb dieser Grenze bleibt der Abschnitt zu — und wird ausdruecklich
+  // NICHT als gesehen vermerkt, damit er beim naechsten Besuch auf einem
+  // hohen Schirm seine Aufgabe noch erfuellt. Der Knopf ist da, die
+  // Erklaerung also einen Fingertipp entfernt.
+  var MIN_HOEHE_FUER_AUTO = 700;
+
   // ---- Erstbesuch: EIN Lesen, EIN Schreiben, danach nichts mehr. ----
   (function openOnFirstVisit() {
+    if (window.innerHeight < MIN_HOEHE_FUER_AUTO) return;
     var seen = {};
     try {
       var raw = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');

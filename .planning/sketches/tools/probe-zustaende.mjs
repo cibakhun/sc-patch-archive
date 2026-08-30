@@ -25,6 +25,7 @@ await new Promise((r) => srv.listen(4215, '127.0.0.1', r));
 const FAELLE = [
   { name: 'Crafting: Filter-Schublade', url: '/topics/crafting.html', klick: '#cdb-filter-toggle', panel: '#cdb-sidebar', zu: '.cdb-side-hd button, #cdb-sidebar .cdb-x' },
   { name: 'Crafting: Planer', url: '/topics/crafting.html', klick: '#cdb-planner-open', panel: '#cdb-planner', zu: '#cdb-planner .cdb-x' },
+  { name: 'Missionen: Filter', url: '/missionen.html', klick: '#mx-filter-toggle', panel: '#mx-bar', zu: '#mx-filter-close' },
   { name: 'Menue-Deck', url: '/index.html', klick: '.snav__menu-btn', panel: '#snavDeck', zu: '#snavDeck button, #snavDeck a' },
   { name: 'Suchschicht', url: '/index.html', klick: '.snav__search', panel: '#scs', zu: '.scs__x, #scs button' },
   { name: 'Item-Finder: Modal', url: '/item-finder.html', klick: '.uif-card-link', panel: '.uif-modal-overlay, .uif-modal-container', zu: '.uif-modal-close' },

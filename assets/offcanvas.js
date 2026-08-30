@@ -40,8 +40,17 @@
      - <= 820 px — dieselbe Grenze wie in mobile-ux.css. Der Planer-Schub
        ist auch am Desktop fixed; dort soll sich nichts aendern, er hat
        Esc und Klick-daneben bereits selbst. */
+  /* NACHTRAG 30.08.2026: ein Telefon im QUERFORMAT ist 844 px breit und faellt
+     damit aus der Breitengrenze — hat aber nur 390 px Hoehe, also genau die
+     Not, gegen die eine Schublade hilft. Panels, die das ausdruecklich wollen,
+     tragen `data-offcanvas-flach` und gelten dann auch auf flachen Fenstern
+     als Schublade. Als Opt-in, nicht pauschal: der Crafting-Planer ist auch am
+     Schreibtisch fixed und bringt Esc und Klick-daneben selbst mit — er darf
+     nicht ploetzlich ein zweites Mal verdunkelt und geschlossen werden. */
   function isDrawerMode(panel) {
-    return window.innerWidth <= 820 && getComputedStyle(panel).position === 'fixed';
+    if (getComputedStyle(panel).position !== 'fixed') return false;
+    if (window.innerWidth <= 820) return true;
+    return panel.hasAttribute('data-offcanvas-flach') && window.innerHeight <= 600;
   }
 
   function toggleFor(panel) {

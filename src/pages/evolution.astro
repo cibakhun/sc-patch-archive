@@ -336,7 +336,16 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 }
 @media(max-width:560px){
   .evo{padding-top:6.5rem}
-  .evo__syshead,.evo__sys{min-width:128px}
+  /* ⚠ GEMESSEN 30.08.2026 bei 390 px: die Systemspalte war trotz
+     min-width:128px ganze 197 px breit — eine Untergrenze ist eben nur eine
+     Untergrenze, und eine Tabelle mit table-layout:auto verteilt den Rest
+     nach Inhalt. Von 390 px blieben so 148 px fuer die Patches: 2,3 von
+     20 Spalten waren zu sehen, der Rest der Matrix lag im Seitwaerts-Scroll.
+     Mit fester Breite und schmaleren Patch-Spalten sind es 4.
+     Die Zeile darunter (white-space:normal) laesst die langen Systemnamen
+     dafuer umbrechen. */
+  .evo__syshead,.evo__sys{min-width:128px;width:128px;max-width:128px}
+  .evo__col{min-width:52px}
   .evo__sys{white-space:normal}
 }</style>
 
