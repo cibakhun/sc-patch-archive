@@ -150,6 +150,17 @@ const tools = [
   .hero__search .p{color:var(--accent-media);font-weight:800;flex:none}
   .hero__search .h{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .hero__search .k{display:flex;gap:.3rem;flex:none}
+  /* ⚠ GEMESSEN 31.08.2026: auf einem Touchgerät gibt es kein Ctrl+K. Die
+     beiden Tastenkappen nahmen dort 78 px (DE „Strg“ 82 px) und drückten den
+     Platzhalter auf einem 320-px-Gerät zu „Search i…“ zusammen — ein
+     Bedienhinweis, der nicht bedienbar ist, kostet die Beschriftung, die es
+     wäre. Sie sind ohnehin aria-hidden, es geht also nichts verloren.
+     Nachgemessen mit isMobile (setzt hover:none + pointer:coarse): das sind
+     die EINZIGEN beiden sichtbaren Tastenhinweise der Seite, alle anderen
+     (Nav-Suche, Deck, Overlay-Fuß) sind auf Touch längst ausgeblendet. */
+  @media (hover: none) and (pointer: coarse){
+    .hero__search .k{display:none}
+  }
   /* Tastenkappen auf undurchsichtigem Grund: der aufhellende Schleier ließ
      "Ctrl"/"K" über hellen Stellen des Hero-Fotos auf 1,3:1 fallen. */
   .hero__search kbd{font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-9);color:var(--on-media);

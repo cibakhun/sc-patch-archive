@@ -867,6 +867,38 @@ a.dp-card--cat:hover em { color: var(--tone-1); }
 @media (max-width: 640px) {
   .dp-crumbs { font-size: var(--fs-4); }
   .dp-crumbs [aria-current='page'] { max-width: 15ch; }
+
+  /* ⚠⚠ GEMESSEN 31.08.2026 — der teuerste Befund des Auflösungs-Durchgangs.
+     Der Krumen ist ein Flex mit `flex-wrap:wrap`. Auf den 13.872 Item- und
+     Bauplan-Seiten hat er drei Stufen („Blueprints › Cannon › 10-Series
+     Greatsword Cannon"), und die brechen auf schmalen Geräten in DREI Zeilen
+     um. Weil .dp-bar `position:sticky; top:0` ist, wächst damit die KLEBENDE
+     Kopfleiste mit:
+         320x568   Leiste 171 px  =  30 % des Bildschirms, dauerhaft belegt
+         360x640   Leiste 145 px
+         390x844   Leiste  96–145 px
+     Und trotz drei Zeilen war die letzte Stufe noch mit Ellipse abgeschnitten
+     — der Umbruch hat also nichts gerettet, nur Platz gekostet.
+     ⚠ Warum keine frühere Messung das sah: die Sperrflächen-Sonde lief über
+     390x844, wo dieselbe Leiste je nach Titel-Länge auch mal 96 px bleibt,
+     und die 30-%-Klinke schlug erst bei 320 px an.
+
+     Auf schmalen Geräten bleibt darum nur die unmittelbare Elternstufe
+     stehen — der Rückweg. Die aktuelle Seite steht ohnehin als H1 direkt
+     darunter, und der volle Pfad liegt weiter im JSON-LD und im Menü. */
+  .dp-crumbs { flex-wrap: nowrap; }
+  .dp-crumbs a:not(:last-of-type),
+  .dp-crumbs .dp-sep,
+  .dp-crumbs a ~ [aria-current='page'] { display: none; }
+  /* Ohne Link davor (einstufiger Krumen, z. B. /crafting.html) greift der
+     Geschwister-Wähler nicht — dort bleibt die Seite selbst stehen. */
+  .dp-crumbs a:last-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .dp-crumbs a:last-of-type::before { content: '‹'; padding-right: .35em; }
   .dp-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
   .dp-key span { font-size: var(--fs-14); }
   /* Der Hero-Rahmen frisst auf 375 px zu viel Rinne: er behaelt die Schiene

@@ -1383,6 +1383,43 @@ a{color:inherit;text-decoration:none}
 /* SCHRITT 1 (16-03-PLAN.md Task 1): Ziel ist jetzt .holo__wrap statt .holo
    (siehe Kommentar an dessen Basisregel oben) — dieselben Werte. */
 /* (Ebenso die 900er-Stufe — gleicher Grund, gleiche Herkunft.) */
+/* ⚠ GEMESSEN 31.08.2026 — QUERFORMAT. Die einzeilige, seitwärts laufende
+   Blende steht seit dem 21.08. im Block darunter, aber der fragt nur die
+   BREITE ab (max-width:760px). Ein quer gehaltenes Telefon ist 844 px breit
+   und nur 390 px hoch: dort blieb die Blende zweizeilig, und die h1 mit dem
+   Schiffsnamen rutschte auf 379–418 px — bei 390 px Fensterhöhe waren 28 %
+   davon zu sehen. Wer die Seite quer öffnet, liest also nicht, welches
+   Schiff er anschaut.
+   Nur die drei Regeln, die Höhe sparen, werden hier wiederholt; den ganzen
+   760er-Block zu öffnen wäre falsch — seine übrigen Regeln sind für 390 px
+   BREITE gedacht und auf 844 px Verschwendung. */
+@media(max-height:520px){
+  .holo__rail{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;
+    max-width:100%;margin-top:0}
+  .holo__rail a{padding:.42rem .55rem;font-size:var(--fs-4);flex:none}
+  .holo__rail-ic{width:14px;height:14px}
+  /* ⚠⚠ Und der eigentliche Posten: die Bühne trägt `clamp(460px, …, 820px)`.
+     Der UNTERE Anschlag von 460 px ist auf einem 390 px hohen Fenster höher
+     als der Bildschirm selbst — gemessen lief sie von 104 bis 564 px. Die
+     Blende einzeilig zu machen hat deshalb keinen Millimeter gebracht: sie
+     war nie der Engpass, sie war nur der auffälligere.
+     Hier gilt die Fensterhöhe minus dem, was darüber steht (Navigation und
+     Blende, zusammen ~110 px). Der Rest der clamp-Formel bleibt für alle
+     anderen Auflösungen unangetastet. */
+  /* ⚠ Und die Blende braucht ihre EIGENE Zeile, sonst legt sie sich über
+     die Kopfzeile des Raums: gemessen 14 px Überlappung über „HANGAR //
+     AEGIS DYNAMICS" bei 844x390 und 932x430. Am Schreibtisch schwebt sie
+     absichtlich über der Bühne (dort steht die Kopfzeile 74 px höher);
+     der 760er-Block hebt das für schmale Fenster schon auf, nur eben nach
+     der BREITE. */
+  .holo{grid-template-rows:auto 1fr}
+  .holo__rail{grid-row:1;align-self:auto;position:relative;
+    background:color-mix(in srgb,var(--media-void) 72%,transparent)}
+  .holo__wrap{grid-row:2}
+  /* Abzug 150 px statt 110: Navigation UND die jetzt eigenständige Blende. */
+  .holo__wrap{height:max(180px, calc(100vh - 150px));
+              height:max(180px, calc(100dvh - 150px))}
+}
 @media(max-width:760px){
   /* D-05 (18.08.2026, Betreiber; 16-04-PLAN.md Task 3, AENDERUNG 3): bei
      schmalen Breiten wird die Buehne HOCHFORMATIG statt querformatig.

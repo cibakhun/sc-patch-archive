@@ -313,6 +313,25 @@ a{color:inherit;text-decoration:none}
 /* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
 @media(max-width:640px){
   .sdb__filter{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+}
+/* ⚠ GEMESSEN 30.08.2026: in zwei Spalten ist jedes Auswahlfeld
+   (Fensterbreite − 76) / 2 breit. Der laengste gewaehlte Text ist
+   „All manufacturers" und braucht mit Polsterung und Pfeil 173 px — zwei
+   Spalten gehen also erst ab 422 px Fenster auf. Darunter schnitt der
+   Browser den Text hart ab, ohne Ellipse:
+     320 px  6 von 7 Feldern zu schmal, „All manufacturers" fehlten 54 px
+     360 px  3 Felder,                                       bis 34 px
+     390 px  2 Felder,                                       bis 19 px
+   Ein Auswahlfeld, das „All manufact⌄" zeigt, ist unbrauchbar. Unter
+   520 px steht deshalb eine Spalte.
+   ⚠ Die erste Fassung nahm 430 px, aus der Rechnung „Feld = (W − 76) / 2".
+   Nachgemessen war das Feld bei 430 px nur 150 px breit, nicht 177 — der
+   Abzug ist 130, nicht 76, und es fehlten weiter 16 px. Zwischen 430 und
+   768 px liegt ohnehin kein gängiges Gerät, also kostet die grosszügigere
+   Grenze nichts und lässt 29 px Reserve statt 9. Gerechnet wird nicht
+   mehr, es wird gemessen. */
+@media(max-width:519px){
+  .sdb__filter{grid-template-columns:1fr}
   .sdb__filter input{grid-column:1/-1;min-width:0}
   .sdb__filter select{min-width:0}
   .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}

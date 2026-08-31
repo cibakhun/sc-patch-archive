@@ -876,6 +876,16 @@ const JS_T = ITEM_UI[lang];
        Leiste bleibt dreizeilig. Mit Basis 0 nimmt sie schlicht den Rest. */
     .uif-sort { flex: 1 1 0; min-width: 0; }
     .uif-sort select { width: 100%; min-width: 0; padding: 0.4rem 0.7rem; }
+    /* ⚠ GEMESSEN 31.08.2026: die Rechnung oben geht auf, solange vom Rest
+       noch genug fuer den GEWAEHLTEN Optionstext bleibt. Bei 320 px blieb
+       „Na⌄", bei 360 px „Name (A⌄" — ein `select` bekommt keine Ellipse,
+       es schneidet hart ab, und der Pfeil steht hinter dem Wortstumpf.
+       Unter 520 px (dieselbe Grenze wie bei den Schiffs-Filtern) ist eine
+       dritte Zeile darum das kleinere Uebel als ein unlesbares Feld. */
+    @media (max-width: 519px) {
+      .uif-sort { flex: 1 1 100%; }
+      .uif-view { flex: 1 1 100%; }
+    }
     .uif-viewbtn { padding: 0.4rem 0.65rem; font-size: var(--fs-5); }
 
     .uif-modal-container { padding: 1.25rem; }
