@@ -45,7 +45,11 @@ for (const url of seiten) {
   try {
     await page.goto('http://127.0.0.1:4245' + url, { waitUntil: 'domcontentloaded', timeout: 40000 });
     await page.waitForTimeout(1200);
-    for (let i = 0; i < schirme; i++) {
+    /* AB=<n> springt n Bildschirme tief, bevor aufgenommen wird. Ohne das
+       sieht man auf einer 400.000-px-Seite immer nur den Anfang — und dort
+       ist alles in Ordnung, weil genau dort schon jemand hingesehen hat. */
+    const ab = Number(process.env.AB || 0);
+    for (let i = ab; i < ab + schirme; i++) {
       await page.evaluate((y) => window.scrollTo(0, y), i * h);
       await page.waitForTimeout(600);
       bilder.push('data:image/png;base64,' + (await page.screenshot()).toString('base64'));
