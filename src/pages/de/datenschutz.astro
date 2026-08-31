@@ -37,7 +37,14 @@ body{font-family:var(--font-body)}
    dadurch bei 768×1024 zwanzig Pixel HINTER der Leiste. --nav-h veröffentlicht
    SiteNav; der Rückfallwert deckt den Fall ohne SiteNav ab. */
 .lg-wrap{max-width:var(--maxw);margin:0 auto;padding:calc(var(--nav-h, 69px) + 2.4rem) 1.25rem 4rem}
-.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem}
+/* ⚠ GEMESSEN 31.08.2026: „Datenschutzerklärung" braucht bei dieser Größe
+   456 px und hatte auf einem 360-px-Gerät 299 — der Browser brach mitten
+   im Wort um („Datenschutze / rklärung"). Silbentrennung statt harter
+   Schnitt: die Seite trägt lang="de", der Browser kennt die deutschen
+   Trennmuster und setzt „Datenschutz- / erklärung". Die englische Fassung
+   („Privacy Policy") ist kurz genug und bleibt unberührt — aber die Regel
+   steht in beiden Sprachfassungen, damit sie nicht auseinanderlaufen. */
+.lg-wrap h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,6vw,3rem);color:var(--text);margin:0 0 1.6rem;hyphens:auto;-webkit-hyphens:auto}
 .lg-wrap h2{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-9);color:var(--accent);margin:2.2rem 0 .6rem;border-bottom:1px solid var(--line);padding-bottom:.4rem}
 .lg-wrap p, .lg-wrap li{color:var(--text);line-height:1.7;font-size:var(--fs-10)}
 .lg-wrap ul{padding-left:1.2rem}

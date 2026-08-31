@@ -17,8 +17,12 @@ const srv = createServer(async (req, res) => {
   if (p.endsWith('/')) p += 'index.html';
   let f = join(DIST, p);
   if (!existsSync(f) && existsSync(f + '.html')) f += '.html';
-  try { res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' }); res.end(await readFile(f)); }
-  catch { res.writeHead(404); res.end('x'); }
+  /* ⚠ ERST lesen, DANN Header: umgekehrt stirbt der Prozess an
+     ERR_HTTP_HEADERS_SENT, sobald eine Datei fehlt — mitten im Messlauf. */
+  let b;
+  try { b = await readFile(f); } catch { res.writeHead(404); res.end('x'); return; }
+  res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' });
+  res.end(b);
 });
 const PORT = Number(process.env.PORT_NR || 4283);
 await new Promise((r) => srv.listen(PORT, '127.0.0.1', r));
@@ -56,7 +60,16 @@ for (const vp of (process.env.VP_LIST || '320x568').split(',')) {
              eigenen Schrift. */
           const txt = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(' ').trim();
           if (!txt) continue;
-          const woerter = txt.split(/\s+/).filter((x) => x.length > 3);
+          /* ⚠⚠ NICHT nur an Leerzeichen trennen: der Browser bricht auch
+             NACH einem Bindestrich, Schraegstrich oder Geviertstrich. Die
+             erste Fassung meldete „Salvage-Ueberarbeitung" (211 px in 177 px)
+             auf vier deutschen Patch-Seiten als Wortbruch — nachgesehen
+             stand dort sauber „Salvage-" / „Ueberarbeitung &" / „Refining".
+             Deutsche Komposita haetten diese Sonde sonst dauerhaft rot
+             gehalten, ohne dass je etwas kaputt war. */
+          const woerter = txt.split(/[\s]+/)
+            .flatMap((x) => x.split(/(?<=[-\/\u2013\u2014\u00ad])/))
+            .filter((x) => x.length > 3);
           if (!woerter.length) continue;
           lineal.style.font = st.font;
           lineal.style.letterSpacing = st.letterSpacing;

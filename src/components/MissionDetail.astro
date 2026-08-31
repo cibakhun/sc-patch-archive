@@ -417,7 +417,15 @@ const t = useTranslations(lang);
     color: var(--accent); margin-bottom: .6rem;
   }
   .md__h1 {
-    font-family: var(--font-display); font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.04; font-weight: 900;
+    /* ⚠ GEMESSEN 31.08.2026: der untere Anschlag von 1.9rem (34,2 px) greift
+       auf jedem Telefon. „XENOTHREAT SURVEILLANCE" brauchte damit 312 px bei
+       271 px Platz und brach mitten im Wort („SURVEILLAN / CE"). Die
+       Missionstitel setzen den Teil nach dem Doppelpunkt in VERSALIEN, und
+       versale Glyphen sind breiter als ihre gemeinen — die Formel muss sich
+       am laengsten davon ausrichten, nicht am Durchschnitt.
+       Ab 380 px Fensterbreite ist ohnehin die 5vw-Komponente die groessere;
+       darueber aendert dieser Anschlag nichts. */
+    font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 3.4rem); line-height: 1.04; font-weight: 900;
     letter-spacing: var(--ls-2); margin-bottom: .7rem; color: var(--text);
   }
   .md__ph {

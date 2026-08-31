@@ -135,6 +135,17 @@ html:not([data-fx="on"]) #embers { display: none; }
    (02-03-PLAN.md) nimmt em-Schriftgrade bewusst aus der rem-Skala aus
    (D-05 gilt hier nicht, ein var(--fs-*)-Token waere sachlich falsch,
    nicht nur ungenau). Absichtlich woertlich stehen lassen. */
+/* ⚠ GEMESSEN 31.08.2026 — QUERFORMAT. Die Formel oben rechnet nur in vw.
+   Auf einem quer gehaltenen Telefon (844x390) ergibt 12vw eine Schrift von
+   101 px — auf einem 390 px hohen Bildschirm. „Media & One-Pagers" brauchte
+   dort drei Zeilen, die letzte lag unter der Kante, und vom Rest der Seite
+   war nichts zu sehen. min() nimmt die kleinere der beiden Grenzen; ueber
+   560 px Fensterhoehe aendert diese Regel nichts.
+   ⚠ Die Themenseiten fuehren eigene .hero h1-Regeln mit hoeherer
+   Spezifitaet und haben ihren eigenen Deckel — sie sind hiervon unberuehrt. */
+@media (max-height:560px){
+  .hero h1{font-size:min(12vw,13vh)}
+}
 .hero h1 .thin{font-weight:500;-webkit-text-fill-color:var(--text);color:var(--text);filter:none;display:block;font-size:.34em;letter-spacing:var(--ls-5);margin-bottom:.2em;opacity:.95}
 .hero .lead{max-width:62ch;font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--on-media-dim);text-shadow:0 2px 14px var(--on-media-shadow)}
 .scrollcue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);animation:bob 2s ease-in-out infinite}

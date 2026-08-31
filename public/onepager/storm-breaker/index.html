@@ -451,7 +451,12 @@
             }
 
             h1 {
-                font-size: clamp(2.1rem, 12vw, 4rem);
+                /* ⚠ NACHGEMESSEN 31.08.2026: 12vw sind bei 320 px 38,4 px,
+                   und „STORMBREAKER" braucht dort 340 px bei 280 px Platz —
+                   der Titel brach mitten im Wort („STORMBREA / KER").
+                   9.5vw sind 30,4 px und lassen 11 px Reserve. Der obere
+                   Anschlag bleibt, oberhalb von 337 px aendert sich nichts. */
+                font-size: clamp(1.8rem, 9.5vw, 4rem);
                 letter-spacing: 1px;
                 overflow-wrap: anywhere;
             }

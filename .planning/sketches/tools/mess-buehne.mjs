@@ -11,8 +11,12 @@ const srv = createServer(async (req, res) => {
   if (p.endsWith('/')) p += 'index.html';
   let f = join(DIST, p);
   if (!existsSync(f) && existsSync(f + '.html')) f += '.html';
-  try { res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' }); res.end(await readFile(f)); }
-  catch { res.writeHead(404); res.end('x'); }
+  /* ⚠ ERST lesen, DANN Header: umgekehrt stirbt der Prozess an
+     ERR_HTTP_HEADERS_SENT, sobald eine Datei fehlt — mitten im Messlauf. */
+  let b;
+  try { b = await readFile(f); } catch { res.writeHead(404); res.end('x'); return; }
+  res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' });
+  res.end(b);
 });
 await new Promise((r) => srv.listen(4279, '127.0.0.1', r));
 const b = await chromium.launch({ executablePath: CHROME });
