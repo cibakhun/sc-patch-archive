@@ -1049,7 +1049,7 @@ const CLIENT = {
   .pj-dens--medium-low { color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }
 
   /* ---- Info cards ---- */
-  .pj-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--line); margin-top: 1rem; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .pj-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px,100%), 1fr)); gap: 1px; background: var(--line); margin-top: 1rem; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
   .pj-infocard { background: var(--surface); padding: 1.1rem 1.2rem; }
   .pj-infocard--credit { border-top: 2px solid var(--accent); }
   .pj-infocard__ttl { font-family: var(--font-ui); font-weight: 700; letter-spacing: var(--ls-12); text-transform: uppercase; font-size: var(--fs-3); color: var(--accent-2); margin-bottom: .55rem; }

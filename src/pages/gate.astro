@@ -68,7 +68,15 @@ import { SUPABASE, DISCORD } from '../consts';
     .card{width:100%;max-width:22rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1.6rem;display:flex;flex-direction:column;gap:.9rem}
     .field{display:flex;flex-direction:column;gap:.35rem;text-align:left}
     label{font-family:var(--font-ui);font-size:var(--fs-6);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted)}
-    input{font:inherit;font-size:var(--fs-9);padding:.6rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--veil-2);color:var(--text)}
+    /* ⚠ --fs-8 (0,9rem = 16,2 px), nicht --fs-9 (0,95rem = 15,2 px): Safari
+       zoomt beim Fokus in JEDES Feld mit weniger als 16 px hinein und der
+       Nutzer sitzt danach in einem verschobenen Viewport fest. Gemessen
+       30.08.2026 bei 390x844 UND 844x390. Diese Seite laedt
+       assets/mobile-ux.css NICHT (sie ist die Tuer davor und traegt ihr CSS
+       komplett selbst), die dortige Regel aus Abschnitt 1 greift hier also
+       nicht — und ein roher 16px-Wert waere ein Rest ausserhalb der Skala,
+       den verify:typo zu Recht meldet (einmal vorgefuehrt). */
+    input{font:inherit;font-size:var(--fs-8);padding:.6rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--veil-2);color:var(--text)}
     input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     button{
       font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-8);color:var(--ink);background:var(--accent);border:0;border-radius:6px;padding:.75rem 1rem;cursor:pointer;

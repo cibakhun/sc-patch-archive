@@ -119,7 +119,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .shot p{max-width:46ch;color:var(--on-media-dim);font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.6rem;text-shadow:0 2px 14px var(--on-media-shadow)}
 
 /* Video wall */
-.vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem}
+.vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(310px,100%),1fr));gap:1rem}
 .video{position:relative;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--media-void) center/cover no-repeat;cursor:pointer}
 .video::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .video::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--scrim-4),transparent 55%);pointer-events:none}

@@ -693,7 +693,7 @@ const JS_T = ITEM_UI[lang];
   }
   .uif-spec-chip b { color: var(--text, #eef1f5); font-weight: 600; margin-right: 0.3rem; }
   .uif-stat-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px,100%), 1fr));
     gap: 0.6rem; margin-bottom: 1rem;
   }
   /* Varianten: mehrere Spiel-Items unter einem Anzeigenamen, je Größe ein Block */
@@ -727,7 +727,7 @@ const JS_T = ITEM_UI[lang];
 
   .uif-crafting-header {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px,100%), 1fr));
     gap: 1rem;background:var(--surface-2, var(--veil-2));
     padding: 1rem;
     border-radius: 6px;
@@ -809,7 +809,7 @@ const JS_T = ITEM_UI[lang];
 
     #uif-category-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(140px,100%), 1fr));
       gap: 0.5rem;
     }
 
@@ -876,6 +876,16 @@ const JS_T = ITEM_UI[lang];
        Leiste bleibt dreizeilig. Mit Basis 0 nimmt sie schlicht den Rest. */
     .uif-sort { flex: 1 1 0; min-width: 0; }
     .uif-sort select { width: 100%; min-width: 0; padding: 0.4rem 0.7rem; }
+    /* ⚠ GEMESSEN 31.08.2026: die Rechnung oben geht auf, solange vom Rest
+       noch genug fuer den GEWAEHLTEN Optionstext bleibt. Bei 320 px blieb
+       „Na⌄", bei 360 px „Name (A⌄" — ein `select` bekommt keine Ellipse,
+       es schneidet hart ab, und der Pfeil steht hinter dem Wortstumpf.
+       Unter 520 px (dieselbe Grenze wie bei den Schiffs-Filtern) ist eine
+       dritte Zeile darum das kleinere Uebel als ein unlesbares Feld. */
+    @media (max-width: 519px) {
+      .uif-sort { flex: 1 1 100%; }
+      .uif-view { flex: 1 1 100%; }
+    }
     .uif-viewbtn { padding: 0.4rem 0.65rem; font-size: var(--fs-5); }
 
     .uif-modal-container { padding: 1.25rem; }

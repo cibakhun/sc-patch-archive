@@ -233,6 +233,17 @@ a{color:inherit;text-decoration:none}
    9rem lassen Platz fuer die feste Leiste (65 px) und etwas Luft. */
 .evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2);
   max-height:calc(100vh - 9rem);max-height:calc(100dvh - 9rem)}
+/* ⚠ NACHGEMESSEN 30.08.2026: die Deckelung ist auf einem FLACHEN Fenster
+   selbst das Problem. 100dvh - 9rem ergab bei 844x390 (Telefon quer) nur
+   228 px fuer eine Matrix mit 1138 px Inhalt — drei Zeilen von 23, in einem
+   Kasten, der zusaetzlich seitwaerts scrollt. Zwei Bildlaufrichtungen auf
+   228 px sind keine Tabelle mehr, sondern ein Sehschlitz.
+   Unterhalb von 620 px Fensterhoehe faellt der Deckel weg und die Matrix
+   steht in voller Hoehe im Seitenfluss; gescrollt wird dann die Seite.
+   Dieselbe Lehre wie bei .vb-scrollbox in mobile-ux.css 5d. */
+@media (max-height:620px){
+  .evo__scroll{max-height:none}
+}
 /* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
    ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
    selbst eines und gewinnt sonst. */
@@ -316,7 +327,7 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .edet__feat:first-of-type{border-top:0}
 .edet__feat h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11)}
 .edet__feat p{font-size:var(--fs-10);color:var(--text);opacity:.85;max-width:88ch}
-.edet__facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.5rem 1.2rem;margin:.6rem 0 0}
+.edet__facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:.5rem 1.2rem;margin:.6rem 0 0}
 .edet__facts div{border-left:2px solid var(--line);padding-left:.6rem}
 .edet__facts dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
 .edet__facts dd{margin:.05rem 0 0;font-size:var(--fs-9)}
@@ -336,7 +347,16 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 }
 @media(max-width:560px){
   .evo{padding-top:6.5rem}
-  .evo__syshead,.evo__sys{min-width:128px}
+  /* ⚠ GEMESSEN 30.08.2026 bei 390 px: die Systemspalte war trotz
+     min-width:128px ganze 197 px breit — eine Untergrenze ist eben nur eine
+     Untergrenze, und eine Tabelle mit table-layout:auto verteilt den Rest
+     nach Inhalt. Von 390 px blieben so 148 px fuer die Patches: 2,3 von
+     20 Spalten waren zu sehen, der Rest der Matrix lag im Seitwaerts-Scroll.
+     Mit fester Breite und schmaleren Patch-Spalten sind es 4.
+     Die Zeile darunter (white-space:normal) laesst die langen Systemnamen
+     dafuer umbrechen. */
+  .evo__syshead,.evo__sys{min-width:128px;width:128px;max-width:128px}
+  .evo__col{min-width:52px}
   .evo__sys{white-space:normal}
 }</style>
 

@@ -417,7 +417,15 @@ const t = useTranslations(lang);
     color: var(--accent); margin-bottom: .6rem;
   }
   .md__h1 {
-    font-family: var(--font-display); font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.04; font-weight: 900;
+    /* ⚠ GEMESSEN 31.08.2026: der untere Anschlag von 1.9rem (34,2 px) greift
+       auf jedem Telefon. „XENOTHREAT SURVEILLANCE" brauchte damit 312 px bei
+       271 px Platz und brach mitten im Wort („SURVEILLAN / CE"). Die
+       Missionstitel setzen den Teil nach dem Doppelpunkt in VERSALIEN, und
+       versale Glyphen sind breiter als ihre gemeinen — die Formel muss sich
+       am laengsten davon ausrichten, nicht am Durchschnitt.
+       Ab 380 px Fensterbreite ist ohnehin die 5vw-Komponente die groessere;
+       darueber aendert dieser Anschlag nichts. */
+    font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 3.4rem); line-height: 1.04; font-weight: 900;
     letter-spacing: var(--ls-2); margin-bottom: .7rem; color: var(--text);
   }
   .md__ph {
@@ -455,8 +463,11 @@ const t = useTranslations(lang);
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(245, 165, 36, .03) 3px 4px);
   }
+  /* flex-wrap: gemessen 30.08.2026 bei 320 px ragte `.md__mgCode` (nowrap,
+     rechtsbuendig ueber margin-left:auto) 11 px ueber den Rand und war dort
+     abgeschnitten. Mit Umbruch rutscht der Code in die zweite Zeile. */
   .md__mgHead {
-    display: flex; align-items: center; gap: .55rem; margin-bottom: .85rem; padding-bottom: .6rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-bottom: .85rem; padding-bottom: .6rem;
     border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
     font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-17); font-size: var(--fs-2);
     color: var(--accent);
@@ -502,7 +513,7 @@ const t = useTranslations(lang);
   }
   .md__note b { color: var(--accent-2); }
 
-  .md__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .8rem; }
+  .md__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(13rem,100%), 1fr)); gap: .8rem; }
   .md__facts > div {
     padding: .7rem .8rem; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); min-width: 0;
   }
@@ -576,7 +587,7 @@ const t = useTranslations(lang);
     border: 1px solid var(--line-soft); background: var(--surface);
   }
 
-  .md__rel { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .6rem; }
+  .md__rel { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(15rem,100%), 1fr)); gap: .6rem; }
   .md__rel a {
     display: block; padding: .7rem .8rem; border: 1px solid var(--line-soft); border-radius: 10px;
     background: var(--surface); transition: border-color var(--dur-fast) var(--ease-ui);

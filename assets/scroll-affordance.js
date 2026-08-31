@@ -27,9 +27,15 @@
   var SEL_DRAG =
     '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.evo__scroll';
   var SEL_FADE =
-    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints';
+    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.as-jump';
   // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
-  var SEL_VFADE = '.vb-scrollbox';
+  // .snav-deck__frame (Hauptmenue) kam am 30.08.2026 dazu. Gemessen bei
+  // 390x844: 19 Eintraege, 1361 px Inhalt in 844 px Rahmen — sechs Zeilen
+  // standen unter der Kante, im Querformat (844x390) fuenfzehn. Der Rahmen
+  // traegt overflow-y:auto, also WAR er scrollbar; nur sagte das niemandem
+  // etwas, weil assets/theme.css jede Bildlaufleiste ausblendet.
+  var SEL_VFADE = '.vb-scrollbox,.snav-deck__frame';
+
 
   var faders = [];
   var vfaders = [];

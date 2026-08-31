@@ -82,10 +82,39 @@ const COMPLETE = process.argv.includes('--complete');
 const STAGE2_BEGIN = 'HELP:STAGE2:BEGIN';
 const STAGE2_END = 'HELP:STAGE2:END';
 const BANNED = [
-  'mouseover', 'focusin', 'keydown', 'getBoundingClientRect',
+  'mouseover', 'focusin', 'keydown',
   'requestAnimationFrame', 'setInterval', 'setTimeout', 'fetch',
   'createElement', 'XMLHttpRequest',
 ];
+
+/* ⚠ BENANNTE AUSNAHME, 31.08.2026 — mit Anlass, wie CLAUDE.md § 4 Punkt 6
+   es verlangt, und als ZAEHLUNG statt als Verbot, damit sie nicht stumm
+   wachsen kann (dasselbe Muster wie beim einen erlaubten addEventListener
+   darunter).
+
+   ANLASS: Der Erstbesuch-Abschnitt klappte sich auf jedem Fenster selbst
+   auf und schob die Bedienung aus dem Bild. Die erste Reparatur war eine
+   feste Hoehengrenze (700 px) — und die war nachweislich falsch. Gemessen
+   auf /missionen.html, Lage der ersten Auswahl:
+       1024x768   815 px = 106 % des Fensters
+       1280x720   865 px = 120 %
+       1440x900   937 px = 104 %
+   Eine hoehere Zahl waere Raten gewesen; bei 950 px klappt der Abschnitt
+   auf praktisch keinem Laptop mehr auf, und sein Zweck faellt weg.
+   Deshalb misst tool-help.js jetzt EINMAL beim Laden, ob hinter dem
+   aufgeklappten Abschnitt noch Bedienung im Bild bleibt.
+
+   WARUM VERTRETBAR: der Aufruf steht in demselben Arbeitsschritt, in dem
+   `section.open = true` ohnehin einen Umbruch erzwingt — es kommt kein
+   zweiter dazu. Er laeuft genau einmal, nicht je Element und nicht je
+   Ereignis.
+
+   WAS DIE ZUSICHERUNG WEITERHIN HAELT: alles andere aus BANNED bleibt
+   verboten, und mehr als EIN Aufruf reisst dieses Tor.
+   ZOMBIE-WAECHTER: faellt der Aufruf weg (Soll 0 statt 1), reisst es
+   ebenfalls — dann ist diese Ausnahme ihren Anlass los und gehoert
+   geloescht. */
+const AUSNAHME_LESEN = 'getBoundingClientRect';
 
 function stripComments(code) {
   return code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
@@ -136,6 +165,16 @@ console.log('\n[1] Kostenfreiheit vor dem Oeffnen — dist/assets/tool-help.js')
       const leaks = BANNED.filter((name) => outside.includes(name));
       console.log(`    Verbotene Bezeichner ausserhalb der Marken — Soll: 0   Ist: ${leaks.length}`);
       if (leaks.length) fail(`Bezeichner ausserhalb der Marken gefunden: ${leaks.join(', ')}`);
+
+      /* Die benannte Ausnahme oben: genau EIN Lesen der Lage, nicht null
+         und nicht zwei. Null hiesse, die Messung ist weg und der
+         Abschnitt klappt wieder blind auf; zwei hiesse, jemand hat
+         nachgelegt, ohne den Anlass zu pruefen. */
+      const leseCount = (outside.match(new RegExp(AUSNAHME_LESEN, 'g')) || []).length;
+      console.log(`    ${AUSNAHME_LESEN} ausserhalb der Marken — Soll: 1   Ist: ${leseCount}`);
+      if (leseCount !== 1) {
+        fail(`Erwartet genau 1 ${AUSNAHME_LESEN} ausserhalb der Marken (die Platzmessung des Erstbesuchs), gefunden ${leseCount}`);
+      }
 
       const listenerCount = (outside.match(/addEventListener/g) || []).length;
       console.log(`    addEventListener ausserhalb der Marken — Soll: 1   Ist: ${listenerCount}`);

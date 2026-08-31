@@ -65,7 +65,13 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)}
 .wrap{max-width:var(--maxw);margin:0 auto}
 .wrap--wide{max-width:1400px}
-.sec-head{display:flex;align-items:center;gap:1rem;margin-bottom:1.8rem}
+/* flex-wrap + min-width:0 + anywhere: gemessen 30.08.2026 bei 320px auf
+   /de/topics/4-5-0-engineering.html und /de/topics/wikelo-emporium.html ragte
+   die h2 dieser Zeile 40 px ueber den rechten Rand — deutsche Komposita in
+   einem Flex-Kind, das von sich aus nicht schmaler wird als sein laengstes
+   Wort. Die Trennlinie `.rule` mit flex:1 fuellt in jeder Zeile den Rest. */
+.sec-head{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-bottom:1.8rem}
+.sec-head h2{min-width:0;overflow-wrap:anywhere}
 .sec-head .num{font-family:var(--font-display);font-weight:900;font-size:var(--fs-9);color:var(--accent);opacity:.8}
 .sec-head h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.5rem,3.5vw,2.4rem);line-height:1.05}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
@@ -129,6 +135,17 @@ html:not([data-fx="on"]) #embers { display: none; }
    (02-03-PLAN.md) nimmt em-Schriftgrade bewusst aus der rem-Skala aus
    (D-05 gilt hier nicht, ein var(--fs-*)-Token waere sachlich falsch,
    nicht nur ungenau). Absichtlich woertlich stehen lassen. */
+/* ⚠ GEMESSEN 31.08.2026 — QUERFORMAT. Die Formel oben rechnet nur in vw.
+   Auf einem quer gehaltenen Telefon (844x390) ergibt 12vw eine Schrift von
+   101 px — auf einem 390 px hohen Bildschirm. „Media & One-Pagers" brauchte
+   dort drei Zeilen, die letzte lag unter der Kante, und vom Rest der Seite
+   war nichts zu sehen. min() nimmt die kleinere der beiden Grenzen; ueber
+   560 px Fensterhoehe aendert diese Regel nichts.
+   ⚠ Die Themenseiten fuehren eigene .hero h1-Regeln mit hoeherer
+   Spezifitaet und haben ihren eigenen Deckel — sie sind hiervon unberuehrt. */
+@media (max-height:560px){
+  .hero h1{font-size:min(12vw,13vh)}
+}
 .hero h1 .thin{font-weight:500;-webkit-text-fill-color:var(--text);color:var(--text);filter:none;display:block;font-size:.34em;letter-spacing:var(--ls-5);margin-bottom:.2em;opacity:.95}
 .hero .lead{max-width:62ch;font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--on-media-dim);text-shadow:0 2px 14px var(--on-media-shadow)}
 .scrollcue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);animation:bob 2s ease-in-out infinite}
@@ -197,7 +214,7 @@ html:not([data-fx="on"]) #embers { display: none; }
 /* ============================================================
    ARCHETYPE 5 — STAT STRIP  (full-width big numbers, no boxes)
    ============================================================ */
-.statstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.statstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .statstrip .s{padding:clamp(1.6rem,3vw,2.6rem) 1.4rem;border-right:1px solid var(--line-soft);text-align:center}
 .statstrip .s:last-child{border-right:0}
 .statstrip .n{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.4rem);color:var(--accent);line-height:1;hyphens:auto;overflow-wrap:break-word}
@@ -217,7 +234,7 @@ html:not([data-fx="on"]) #embers { display: none; }
    ARCHETYPE 7 — FLOW  (connected horizontal step sequence)
    Numbered nodes on a line — process without boxy cards.
    ============================================================ */
-.flow{position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1.4rem}
+.flow{position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:1.4rem}
 .flow::before{content:"";position:absolute;top:26px;left:6%;right:6%;height:2px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);z-index:0}
 .flow .node{position:relative;z-index:1;text-align:center;padding:0 .4rem}
 .flow .node .dot{width:54px;height:54px;margin:0 auto 1rem;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:900;font-size:var(--fs-13);color:var(--ink);background:var(--accent);box-shadow:0 0 0 6px var(--bg)}
@@ -257,7 +274,7 @@ html:not([data-fx="on"]) #embers { display: none; }
 /* ============================================================
    ARCHETYPE 10 — SPECS  (editorial key/value table for ships)
    ============================================================ */
-.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .specs .row{padding:1.3rem 1.4rem;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:var(--surface)}
 .specs .k{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-4);color:var(--muted)}
 .specs .v{font-family:var(--font-display);font-weight:800;font-size:var(--fs-13);color:var(--accent);margin-top:.35rem}
@@ -357,12 +374,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 
 /* SCROLLYTELLING — FULL-BLEED background crossfades; step text overlays on top */
 .scrolly{position:relative}
-.scrolly__media{position:sticky;top:0;height:100vh;overflow:hidden}
+.scrolly__media{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
 .scrolly__media .frame{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.08);transition:opacity 1s ease,transform 2.6s ease}
 .scrolly__media .frame.active{opacity:1;transform:scale(1)}
 .scrolly__media::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .scrolly__media::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,var(--scrim-5),var(--scrim-1) 50%,transparent),linear-gradient(0deg,var(--bg),var(--scrim-1) 10%,transparent 32%)}
-.scrolly__steps{position:relative;z-index:2;margin-top:-100vh;max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(1.25rem,5vw,4rem)}
+.scrolly__steps{position:relative;z-index:2;margin-top:-100vh;margin-top:-100svh;max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(1.25rem,5vw,4rem)}
 /* D-02 (Phase 3, Plan 2): .sstep ist jetzt ohne JavaScript UND vor dem ersten
    IntersectionObserver-Durchlauf undurchsichtig -- die Abdunklung inaktiver
    Schritte greift NUR, wenn detail.js das Attribut data-sstep-live gesetzt hat
@@ -383,6 +400,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
    ============================================================ */
 @media(max-width:860px){
   .split,.sticky,.versus{grid-template-columns:1fr}
+  /* ⚠ Einspaltig heisst noch nicht schmal: ein Rasterkind traegt
+     `min-width:auto` und bleibt so breit wie sein laengstes unteilbares Wort.
+     Gemessen 30.08.2026 bei 320 px auf /de/topics/4-5-0-engineering.html
+     standen beide Haelften 12 px ueber dem Rand — deutsche Komposita. */
+  .split>*,.sticky>*,.versus>*{min-width:0}
+  .split__text h3,.split__text p{overflow-wrap:anywhere}
   .split--rev{direction:ltr}
   .split__media,.versus .side{min-height:46vh}
   .sticky__media{position:relative;top:0;aspect-ratio:16/10}

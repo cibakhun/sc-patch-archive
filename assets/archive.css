@@ -901,6 +901,11 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   align-items: center;
   gap: 0.9rem;
   margin-bottom: clamp(1.8rem, 3.2vw, 2.6rem);
+  /* Gemessen 30.08.2026 bei 320 px: die Zeile aus Nummer, Ueberschrift,
+     Trennlinie und `.sec__tag` (nowrap) ragte 41 px ueber den Rand — der
+     Zusatz rechts war schlicht abgeschnitten. Umbrechen statt abschneiden;
+     `.sec__rule` mit flex:1 fuellt in jeder Zeile den Rest. */
+  flex-wrap: wrap;
 }
 .sec__idx {
   font-family: var(--font-mono);

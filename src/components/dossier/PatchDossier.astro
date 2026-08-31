@@ -250,6 +250,19 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
       grid-template-columns: 1fr;
     }
   }
+  /* ⚠ Ein Rasterkind traegt `min-width:auto` und kann darum nicht schmaler
+     werden als sein breitester unteilbarer Inhalt — und weil alle Karten in
+     EINER Spalte liegen, spreizt die breiteste Karte die Spalte fuer alle
+     auf. Gemessen 30.08.2026 bei 320 px auf /patches/sc-4-7-0.html: Spalte
+     219 px, Karten 274 px, also 4 bis 7 px ueber dem Rand abgeschnitten — auf
+     ALLEN Patch-Seiten und in beiden Sprachen (50 Vorkommen im Messlauf).
+     Verursacher war die nowrap-Kachel `.do__chip` („Combat & Weapons", 174 px)
+     neben der Ueberschrift. `min-width:0` gibt die Spalte frei;
+     `overflow-wrap:anywhere` senkt zusaetzlich die Mindestbreite des Textes
+     (`break-word` taete das NICHT — es bricht erst beim Rendern). */
+  .do__feat { min-width: 0; }
+  .do__feat h4,
+  .do__desc { overflow-wrap: anywhere; }
   .do__feat {background:var(--bg-2, var(--veil));border:1px solid var(--line, var(--line-soft));
     border-top: 2px solid color-mix(in srgb, var(--accent, #2dd4ff) 30%, transparent);
     padding: 0.9rem 1.1rem 0.85rem;
@@ -283,6 +296,14 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     border: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 35%, transparent);
     padding: 0.12rem 0.5rem;
     white-space: nowrap;
+    /* Gemessen 30.08.2026 bei 280 px (Fold-Aussenschirm; dieselbe Breite
+       entsteht bei 320 px mit 114 % Browserzoom): „Combat & Weapons" stand
+       mit nowrap 26 px ueber dem Rand. Ab 320 px bindet die Regel nicht. */
+    max-width: 100%;
+    min-width: 0;
+  }
+  @media (max-width: 319px) {
+    .do__chip { white-space: normal; overflow-wrap: anywhere; }
   }
   .do__desc {
     font-size: var(--fs-10);
@@ -292,7 +313,7 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
   }
   .do__facts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(150px,100%), 1fr));
     gap: 0.55rem 1.2rem;
     margin: 0.8rem 0 0;
   }

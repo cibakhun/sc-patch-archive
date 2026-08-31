@@ -132,7 +132,7 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
     .sec-intro { color: var(--muted); font-size: var(--fs-10); line-height: 1.6; max-width: 72ch; margin: -0.6rem 0 1.6rem; }
     .sec-intro b { color: var(--text); }
 
-    .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.1rem; }
+    .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px,100%), 1fr)); gap: 1.1rem; }
     .op {
       display: flex; flex-direction: column; border: 1px solid var(--line);
       background: linear-gradient(180deg, var(--surface), var(--bg-2));
@@ -164,6 +164,10 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
     .op__view:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .op__hint { margin-top: 0.9rem; font-size: var(--fs-6); color: var(--muted); opacity: 0.85; }
 
+    /* ⚠ Gemessen 30.08.2026 bei 320×568: 310 px hoch = 55 % des Fensters,
+       dauerhaft stehend. Die Regel am Ende dieses Blocks löst das Kleben
+       unter 821 px wieder — dort gibt es keinen eigenen Bildlaufkasten,
+       der das Kleben rechtfertigen würde. */
     .tools {
       position: sticky; top: 3rem; z-index: 60; margin-bottom: 1.6rem;
       display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center;
@@ -200,7 +204,7 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
     }
     .catblock__head .rule { flex: 1; height: 1px; background: var(--line-soft); }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.9rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px,100%), 1fr)); gap: 0.9rem; }
     .dl {
       display: flex; flex-direction: column; border: 1px solid var(--line-soft);
       background: var(--surface); position: relative; overflow: hidden;
@@ -237,8 +241,13 @@ const desc = `VerseBase downloads: grab every one of the ${totalImgs} image asse
     }
     .usage b { color: var(--text); }
 
+    /* Siehe Kommentar an .tools. */
+    @media (max-width: 820px) {
+      .tools { position: static; }
+    }
+
     @media (max-width: 560px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(min(150px,100%), 1fr)); }
     }</style>
 
   <a class="skip" href="#main">Skip to content</a>

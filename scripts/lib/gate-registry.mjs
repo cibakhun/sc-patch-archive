@@ -136,6 +136,22 @@ export const CHECKS = [
     checks: 'Schriftgrad, Laufweite und Uebergangsdauer kommen site-weit aus der Skala in assets/theme.css statt aus seitenlokalen Einzelwerten',
   },
   {
+    id: 'verify:responsive',
+    npm: 'verify:responsive',
+    script: 'scripts/verify-responsive.mjs',
+    rail: 'A',
+    checks:
+      'Spaltenrezepte koennen unter ihre eigene Mindestbreite schrumpfen (minmax(min(x,100%),…)) und jede eigenstaendige Seite unter public/ traegt eigene Mobilregeln — beides gemessene Ursachen abgeschnittener Seiten auf 320px',
+  },
+  {
+    id: 'verify:sprachpaar-css',
+    npm: 'verify:sprachpaar-css',
+    script: 'scripts/verify-sprachpaar-css.mjs',
+    rail: 'A',
+    checks:
+      'EN- und DE-Fassung derselben Seite tragen dieselben Media-Queries — Seiten-CSS ist je Sprache dupliziert und ist zweimal nachweislich auseinandergelaufen, ohne dass verify:sync (das die Geruestform vergleicht) es sah',
+  },
+  {
     id: 'verify:layers',
     npm: 'verify:layers',
     script: 'scripts/verify-layers.mjs',

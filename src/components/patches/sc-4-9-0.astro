@@ -120,7 +120,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 /* CONTRACT BOARD — Alliance-Aushang (Signatur-Element dieser Seite) */
 .cbnote{max-width:64ch;color:var(--muted);font-size:var(--fs-10);line-height:1.55;margin-bottom:1.4rem}
 .cbnote b{color:#ffa08f}
-.cboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:.8rem}
+.cboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(255px,100%),1fr));gap:.8rem}
 .contract{position:relative;background:var(--surface);border:1px solid var(--line-soft);border-top:2px solid var(--accent-2);padding:1.05rem 1.15rem .95rem;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
 .contract::before{content:"";position:absolute;top:0;right:0;width:34px;height:34px;background:repeating-linear-gradient(-45deg,rgba(227,170,75,.5) 0 5px,transparent 5px 10px);clip-path:polygon(100% 0,0 0,100% 100%);opacity:.5}
 .contract .cid{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
@@ -172,7 +172,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 /* HIT MARKERS — Reticle-Zustandsleiste */
 .hmnote{max-width:64ch;color:var(--muted);font-size:var(--fs-10);line-height:1.55;margin-bottom:1.4rem}
 .hmnote b{color:#ffa08f}
-.hms{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem}
+.hms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:.8rem}
 .hm{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.6rem;background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:1.1rem .8rem .95rem;transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .hm:hover{border-color:var(--line);background:var(--surface-2)}
 .hm svg{width:56px;height:56px;flex:none}
@@ -183,7 +183,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .hmsrc{margin-top:.6rem;font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-7);color:var(--muted);opacity:.75}
 
 /* Video wall */
-.vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem}
+.vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(310px,100%),1fr));gap:1rem}
 .video{position:relative;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--media-void) center/cover no-repeat;cursor:pointer}
 .video::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .video::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--scrim-4),transparent 55%);pointer-events:none}

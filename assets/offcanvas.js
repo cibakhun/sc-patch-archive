@@ -40,8 +40,17 @@
      - <= 820 px — dieselbe Grenze wie in mobile-ux.css. Der Planer-Schub
        ist auch am Desktop fixed; dort soll sich nichts aendern, er hat
        Esc und Klick-daneben bereits selbst. */
+  /* NACHTRAG 30.08.2026: ein Telefon im QUERFORMAT ist 844 px breit und faellt
+     damit aus der Breitengrenze — hat aber nur 390 px Hoehe, also genau die
+     Not, gegen die eine Schublade hilft. Panels, die das ausdruecklich wollen,
+     tragen `data-offcanvas-flach` und gelten dann auch auf flachen Fenstern
+     als Schublade. Als Opt-in, nicht pauschal: der Crafting-Planer ist auch am
+     Schreibtisch fixed und bringt Esc und Klick-daneben selbst mit — er darf
+     nicht ploetzlich ein zweites Mal verdunkelt und geschlossen werden. */
   function isDrawerMode(panel) {
-    return window.innerWidth <= 820 && getComputedStyle(panel).position === 'fixed';
+    if (getComputedStyle(panel).position !== 'fixed') return false;
+    if (window.innerWidth <= 820) return true;
+    return panel.hasAttribute('data-offcanvas-flach') && window.innerHeight <= 600;
   }
 
   function toggleFor(panel) {
@@ -148,11 +157,31 @@
     }
   }
 
+  /* ⚠⚠ GEMESSEN 31.08.2026 mit gedrueckter TAB-Taste: eine geschlossene
+     Schublade ist per `transform` nur WEGGESCHOBEN. Sie bleibt sichtbar im
+     Sinne des Browsers (visibility:visible, pointer-events:auto), behaelt
+     ihre Groesse und damit ihre Fokus-Reihenfolge. Auf /missionen.html
+     wanderte der Tastaturfokus dadurch durch eff Bedienelemente bei
+     x = −51 px — unsichtbar, aber erreichbar, und ein Screenreader las die
+     Filter als Teil der Seite vor.
+     `inert` nimmt das Panel aus Fokus UND Vorlese-Baum, solange es
+     geschlossen IST UND als Schublade laeuft. Am Schreibtisch, wo dieselbe
+     Spalte sichtbar im Fluss steht, darf es nie gesetzt werden — deshalb
+     wird bei jeder Groessenaenderung neu entschieden. */
+  function inertPflegen(panel) {
+    var alsSchublade = isDrawerMode(panel);
+    var offen = panel.classList.contains(OPEN);
+    if (alsSchublade && !offen) panel.setAttribute('inert', '');
+    else panel.removeAttribute('inert');
+  }
+
   function watch(panel) {
+    inertPflegen(panel);
     new MutationObserver(function () {
       var open = panel.classList.contains(OPEN) && isDrawerMode(panel);
       if (open && active !== panel) setup(panel);
       else if (!open && active === panel) teardown(panel);
+      inertPflegen(panel);
     }).observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 
@@ -168,6 +197,18 @@
     scrim.addEventListener('click', close);
     document.body.appendChild(scrim);
     for (var i = 0; i < panels.length; i++) watch(panels[i]);
+    /* Aus einer Schublade wird beim Drehen eine Spalte und umgekehrt —
+       `inert` muss dann sofort fallen, sonst ist die sichtbare Filterspalte
+       am Schreibtisch nicht mehr bedienbar. */
+    var warten = 0;
+    function neuBewerten() {
+      clearTimeout(warten);
+      warten = setTimeout(function () {
+        for (var i = 0; i < panels.length; i++) inertPflegen(panels[i]);
+      }, 120);
+    }
+    window.addEventListener('resize', neuBewerten);
+    window.addEventListener('orientationchange', neuBewerten);
   }
 
   if (document.readyState === 'loading') {

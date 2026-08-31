@@ -289,12 +289,49 @@ a{color:inherit;text-decoration:none}
   .fprice--game{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:.25rem}
 }
 
+/* ⚠ GEMESSEN 30.08.2026, danach vom Betreiber entschieden: die zwei Spalten
+   oben tragen bis etwa 430 px Fensterbreite. Darunter ist die Karte 171 px
+   breit, und dann kuerzt die Ellipse genau die Angaben weg, wegen derer man
+   auf der Uebersicht ist — die Rolle um 58 px („Starter / Light Fighter" ->
+   „Starter / Pathfind…") und die Signaturzeile um 175 px. Sichtbar bleibt
+   ein Briefmarkenfoto und ein Name.
+   Eine Spalte kostet Scrollweg und gibt dafuer das Foto, die volle Rolle und
+   die Signatur zurueck. Die Grenze liegt bei 430 px, nicht bei 520: bei
+   440 px sind die zwei Spalten je 200 px breit und die Rolle passt wieder. */
+@media(max-width:430px){
+  .sdb__fleet{grid-template-columns:1fr}
+  /* Was fuer die enge Doppelspalte gestrichen war, kommt zurueck. */
+  .fcard__stat:nth-child(3){display:block}
+  .fcard__stats{grid-template-columns:repeat(3,1fr)}
+  .fcard__prices{grid-template-columns:1fr 1fr;gap:.4rem}
+  .fprice--game{border-left:1px solid var(--line);padding-left:.6rem;border-top:0;padding-top:0}
+}
+
 .sdb__src{margin-top:1.5rem;font-size:var(--fs-7);color:var(--muted)}
 .sdb__src a{text-decoration:underline}
 .sdb__src a:hover{color:var(--accent)}
 /* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
 @media(max-width:640px){
   .sdb__filter{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+}
+/* ⚠ GEMESSEN 30.08.2026: in zwei Spalten ist jedes Auswahlfeld
+   (Fensterbreite − 76) / 2 breit. Der laengste gewaehlte Text ist
+   „All manufacturers" und braucht mit Polsterung und Pfeil 173 px — zwei
+   Spalten gehen also erst ab 422 px Fenster auf. Darunter schnitt der
+   Browser den Text hart ab, ohne Ellipse:
+     320 px  6 von 7 Feldern zu schmal, „All manufacturers" fehlten 54 px
+     360 px  3 Felder,                                       bis 34 px
+     390 px  2 Felder,                                       bis 19 px
+   Ein Auswahlfeld, das „All manufact⌄" zeigt, ist unbrauchbar. Unter
+   520 px steht deshalb eine Spalte.
+   ⚠ Die erste Fassung nahm 430 px, aus der Rechnung „Feld = (W − 76) / 2".
+   Nachgemessen war das Feld bei 430 px nur 150 px breit, nicht 177 — der
+   Abzug ist 130, nicht 76, und es fehlten weiter 16 px. Zwischen 430 und
+   768 px liegt ohnehin kein gängiges Gerät, also kostet die grosszügigere
+   Grenze nichts und lässt 29 px Reserve statt 9. Gerechnet wird nicht
+   mehr, es wird gemessen. */
+@media(max-width:519px){
+  .sdb__filter{grid-template-columns:1fr}
   .sdb__filter input{grid-column:1/-1;min-width:0}
   .sdb__filter select{min-width:0}
   .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}

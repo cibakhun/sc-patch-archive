@@ -840,6 +840,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   border-width:calc(var(--rahmen)*.579) calc(var(--rahmen)*.986) calc(var(--rahmen)*.471) var(--rahmen);
   /* Die Hoehe haengt an nichts mehr — kein Seitenverhaeltnis diktiert sie. */
   height:clamp(430px,calc(100vh - var(--wb-chrome)),1180px);
+  height:clamp(430px,calc(100dvh - var(--wb-chrome)),1180px);
   /* Ueber der Wand liegen — sie steht mit z-index 0 dahinter. */
   z-index:1;
   /* ⚠ Die Aussenkante endete hart gegen den flachen Seitengrund — gemeldet als
@@ -1161,7 +1162,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 /* padding-bottom 5 statt 8: es gibt jetzt bis zu sechs dieser Raster
    untereinander, und die Luft zwischen Band und naechster Ueberschrift bringt
    die Ueberschrift schon selbst mit. */
-.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:0 8px 5px}
+.wb__tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(104px,100%),1fr));gap:5px;padding:0 8px 5px}
 /* ---- Gruppen (Abbauart) und Baender (Qualitaetsstufe) ----------------------
    Zwei Ueberschriftenebenen in einer 483 px breiten Saeule — sie duerfen
    deshalb nur Zeilenhoehe kosten, keine Kaesten. Die Gruppe traegt eine
@@ -1811,6 +1812,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__frac__t{min-width:0;display:flex;flex-direction:column;line-height:1.25}
 .wb__frac__t b{font-size:var(--fs-5);font-weight:600;color:var(--text)}
 .wb__frac__t .wb__lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ⚠ GEMESSEN 31.08.2026 bei 320 px: der Kasten steht als EINE Flex-Zeile —
+   Symbol, Titel mit Mineralnamen, und rechts „Will it break? →". Auf einem
+   320-px-Gerät hatte die Zeile 23 px zu wenig: der Mineralname stand als
+   „Quant…" da, und fett gesetzter Titel und Aufforderung berührten sich
+   ohne Lücke („calculatorWill it break?"). Bei so schmalen Fenstern bekommt
+   die Aufforderung darum ihre eigene Zeile — dann trägt der Name wieder. */
+@media(max-width:400px){
+  .wb__frac{flex-wrap:wrap;margin-left:0}
+  .wb__frac__t{flex:1 1 60%}
+  .wb__frac__go{flex:1 1 100%;padding-left:29px}
+}
 .wb__frac__go{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;color:var(--accent);white-space:nowrap}
 
 .wb__search:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
@@ -1831,6 +1843,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
 .wb__seg{display:none}
 @media(max-width:1180px){
+  /* ⚠⚠ GEMESSEN 30.08.2026 bei 390x844: das Geraet rechnete seine Hoehe
+     weiterhin aus dem FENSTER (`clamp(430px, 100dvh - 132px, 1180px)` =
+     712 px), waehrend der Inhalt darunter einspaltig steht und 779 px
+     braucht. Ergebnis: die Erzliste ragte 156 px unten aus dem Gehaeuse
+     heraus und lag ueber der Fusszeile — im Bild sah man Bruchstuecke von
+     „HOME … DISCORD" hinter den Kacheln.
+     Einspaltig ist die Fensterhoehe die falsche Bezugsgroesse: dort scrollt
+     die Seite ohnehin, und das Geraet darf laenger als ein Bildschirm sein.
+     `height:auto` laesst den Rahmen mit dem Inhalt wachsen; das 9-Slice
+     traegt jede Hoehe (siehe Kommentar am border-image oben). */
+  .wb__chassis{height:auto}
   .wb__grid{grid-template-columns:1fr;height:auto;flex:none}
   .wb__pane{height:min(62vh,560px)}
   /* ⚠ Fruehere Fassung schaltete das Gehaeuse hier AUS — bei festem

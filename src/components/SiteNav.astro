@@ -2109,6 +2109,15 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         if (armed) return;
         armed = true;
         deck.classList.add('is-open');
+        // ⚠ Gemessen 30.08.2026 bei 390x844: der Rahmen traegt 19 Eintraege
+        // = 1361 px in 844 px und ist scrollbar — sechs Zeilen stehen unter
+        // der Kante, im Querformat fuenfzehn. assets/theme.css blendet aber
+        // JEDE Bildlaufleiste aus, also sagte das niemandem etwas. Der Kasten
+        // steht seit demselben Tag in SEL_VFADE; er kann dort aber erst
+        // erfasst werden, wenn er GEOEFFNET ist — beim ersten scan() ist er
+        // 0x0 gross. Deshalb hier der erneute Anlauf, wie ihn
+        // assets/item-finder-app.js fuer sein Modal schon macht.
+        if (window.VBScrollAffordance) window.VBScrollAffordance();
       };
       requestAnimationFrame(arm);
       setTimeout(arm, 60);

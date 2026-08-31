@@ -21,6 +21,10 @@
   var selSort = document.getElementById('mx-sort');
   var reset = document.getElementById('mx-reset');
   var out = document.getElementById('mx-count');
+  // Zweite Anzeige ausserhalb der Schublade: unter 821 px faehrt die
+  // Filterkonsole als Panel aus (siehe MissionsApp.astro), und mit ihr
+  // verschwaende die Trefferzahl. Die Leiste daneben zeigt sie dort.
+  var outM = document.getElementById('mx-count-m');
   var none = document.getElementById('mx-none');
 
   // Karten einmal einlesen; ab dann nur noch Zahlen/Strings vergleichen.
@@ -71,7 +75,9 @@
       c.el.hidden = !ok;
       if (ok) n++;
     }
-    if (out) out.textContent = n + ' ' + (T.results || 'results');
+    var txt = n + ' ' + (T.results || 'results');
+    if (out) out.textContent = txt;
+    if (outM) outM.textContent = txt;
     if (none) none.hidden = n !== 0;
     sort();
   }
@@ -134,6 +140,25 @@
       any = true;
     }
     if (any && bar.scrollIntoView) bar.scrollIntoView({ block: 'start' });
+  })();
+
+  // ---- Filter-Schublade (nur schmal/flach; siehe MissionsApp.astro) ----
+  // assets/offcanvas.js bringt Esc, Klick auf den Verdunkler und das
+  // Wisch-Schliessen mit; das Auf- und Zuklappen selbst macht die App —
+  // genauso wie assets/crafting-app.js es fuer .cdb-sidebar tut.
+  (function drawer() {
+    var panel = document.getElementById('mx-bar');
+    var toggle = document.getElementById('mx-filter-toggle');
+    if (!panel || !toggle) return;
+    toggle.addEventListener('click', function () {
+      var open = panel.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    var zu = document.getElementById('mx-filter-close');
+    if (zu) zu.addEventListener('click', function () {
+      panel.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
   })();
 
   apply();

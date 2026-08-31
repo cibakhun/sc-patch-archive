@@ -441,6 +441,10 @@ body {
   font-weight: 600;
   font-size: 1.15em;
   letter-spacing: var(--ls-5);
+  /* Gemessen 30.08.2026 bei 280 px auf /de/crafting.html: der Zusatz hinter
+     der Ueberschrift stand 16 px ueber dem rechten Rand. Sperrung plus
+     grosser Grad machen ihn breiter als das Wort davor. */
+  overflow-wrap: anywhere;
 }
 .dp-sec > h3 {
   font-family: var(--font-ui);
@@ -463,7 +467,29 @@ body {
 .dp-tablewrap {
   overflow-x: auto;
   border: 1px solid var(--line-soft);
-  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  /* ⚠⚠ NACHTRAG 30.08.2026 — `background` war die KURZFORM und setzte damit
+     `background-image` auf none zurueck. Der Verlauf an der rechten Kante,
+     den mobile-ux.css 5c fuer genau diesen Kasten mitbringt, war deshalb
+     geloescht: diese Datei wird NACH mobile-ux.css geladen.
+     Gemessen 30.08.2026 auf /items/10-series-greatsword-cannon.html bei
+     390 px: 68 px waagerecht verborgen, Leiste `thin` gesetzt — und im
+     Bildschirmfoto war trotzdem NICHTS zu sehen. Overlay-Leisten (iOS
+     Safari, Chrome/Android) zeigen im Ruhezustand nichts; der Verlauf ist
+     dort das einzige Signal. Genau der Fall aus dem Kopfkommentar von 5c.
+     `background-color` statt der Kurzform, Verlauf daneben.
+     `attachment: scroll` wie in 5c: der Kasten steht in keiner der beiden
+     JS-Listen (Begruendung im Kommentar darueber), es gibt also keine
+     zustandsbewusste Kante, die ihn am Ende abschalten koennte. */
+  background-color: color-mix(in srgb, var(--surface) 45%, transparent);
+  background-image: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    transparent 34px
+  );
+  background-repeat: no-repeat;
+  background-size: 34px 100%;
+  background-position: right center;
+  background-attachment: scroll;
 }
 .dp-table {
   width: 100%;
@@ -841,7 +867,54 @@ a.dp-card--cat:hover em { color: var(--tone-1); }
 @media (max-width: 640px) {
   .dp-crumbs { font-size: var(--fs-4); }
   .dp-crumbs [aria-current='page'] { max-width: 15ch; }
+
+  /* ⚠⚠ GEMESSEN 31.08.2026 — der teuerste Befund des Auflösungs-Durchgangs.
+     Der Krumen ist ein Flex mit `flex-wrap:wrap`. Auf den 13.872 Item- und
+     Bauplan-Seiten hat er drei Stufen („Blueprints › Cannon › 10-Series
+     Greatsword Cannon"), und die brechen auf schmalen Geräten in DREI Zeilen
+     um. Weil .dp-bar `position:sticky; top:0` ist, wächst damit die KLEBENDE
+     Kopfleiste mit:
+         320x568   Leiste 171 px  =  30 % des Bildschirms, dauerhaft belegt
+         360x640   Leiste 145 px
+         390x844   Leiste  96–145 px
+     Und trotz drei Zeilen war die letzte Stufe noch mit Ellipse abgeschnitten
+     — der Umbruch hat also nichts gerettet, nur Platz gekostet.
+     ⚠ Warum keine frühere Messung das sah: die Sperrflächen-Sonde lief über
+     390x844, wo dieselbe Leiste je nach Titel-Länge auch mal 96 px bleibt,
+     und die 30-%-Klinke schlug erst bei 320 px an.
+
+     Auf schmalen Geräten bleibt darum nur die unmittelbare Elternstufe
+     stehen — der Rückweg. Die aktuelle Seite steht ohnehin als H1 direkt
+     darunter, und der volle Pfad liegt weiter im JSON-LD und im Menü. */
+  .dp-crumbs { flex-wrap: nowrap; }
+  .dp-crumbs a:not(:last-of-type),
+  .dp-crumbs .dp-sep,
+  .dp-crumbs a ~ [aria-current='page'] { display: none; }
+  /* Ohne Link davor (einstufiger Krumen, z. B. /crafting.html) greift der
+     Geschwister-Wähler nicht — dort bleibt die Seite selbst stehen. */
+  .dp-crumbs a:last-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .dp-crumbs a:last-of-type::before { content: '‹'; padding-right: .35em; }
   .dp-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
+  /* ⚠ GEMESSEN 31.08.2026: die Etiketten der Kennzahlen stehen auf nowrap
+     mit Ellipse. Am Schreibtisch hält das die Kästen auf gleicher Höhe;
+     auf einem Telefon kostet es die Beschriftung:
+       „Missions that drop this bl…"   163 px gekappt (13.872 Seiten)
+       „Complete (4 core slots)"        77 px
+       „Total material need"            43 px
+     Platz nach UNTEN ist da, Platz nach rechts nicht — also umbrechen.
+     Der Kasten wird dadurch zweizeilig, das Raster streckt die Nachbarn
+     mit; das ist der ganze Preis. */
+  .dp-key b {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: break-word;
+  }
   .dp-key span { font-size: var(--fs-14); }
   /* Der Hero-Rahmen frisst auf 375 px zu viel Rinne: er behaelt die Schiene
      und die Klammern, verliert aber Kasten und Innenabstand. */
@@ -916,6 +989,19 @@ a.dp-card--cat:hover em { color: var(--tone-1); }
   /* Chips klebten bei 0,45 rem zu einem durchgehenden Band zusammen. */
   .dp-chips { gap: 0.55rem; }
   .dp-chip { padding: 0.42rem 0.8rem 0.42rem 0.7rem; }
+
+  /* ⚠ Gemessen 30.08.2026 (Tiefenpruefung des Aufloesungs-Durchgangs) bei
+     320 px: `white-space: nowrap` haelt den Chip in EINER Zeile, egal wie
+     lang der Wert ist. Auf /items/arden-sl-legs-coramor-edition-kismet.html
+     ragte er dadurch 67 px ueber den rechten Rand und war dort
+     abgeschnitten — der Wert war also genau bei den langen Namen nicht zu
+     lesen, bei denen er zaehlt. Auf dem Telefon darf er umbrechen; das
+     `nowrap` bleibt am Schreibtisch stehen, wo Platz ist. */
+  .dp-chip {
+    white-space: normal;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Druckzustand — Touch kennt kein :hover, ohne ihn bleibt jeder Tipp bis

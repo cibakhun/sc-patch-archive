@@ -284,7 +284,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
   .fm-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(300px,100%), 1fr));
     gap: 0.9rem;
   }
   .fm-list { display: flex; flex-direction: column; gap: 0.7rem; }

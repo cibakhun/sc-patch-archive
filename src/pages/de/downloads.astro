@@ -138,7 +138,7 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     .sec-intro b { color: var(--text); }
 
     /* ---- Onepager-Karten ---- */
-    .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.1rem; }
+    .ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px,100%), 1fr)); gap: 1.1rem; }
     .op {
       display: flex; flex-direction: column; border: 1px solid var(--line);
       background: linear-gradient(180deg, var(--surface), var(--bg-2));
@@ -170,7 +170,13 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     .op__view:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .op__hint { margin-top: 0.9rem; font-size: var(--fs-6); color: var(--muted); opacity: 0.85; }
 
-    /* ---- Toolbar (Suche + Kategorie-Chips) — klebt unter der fixen Nav ---- */
+    /* ---- Toolbar (Suche + Kategorie-Chips) — klebt unter der fixen Nav ----
+       ⚠ Gemessen 30.08.2026 bei 320×568: 310 px hoch = 55 % des Fensters,
+       dauerhaft stehend. Die Regel am Ende dieses Blocks löst das Kleben
+       unter 821 px wieder — dort gibt es keinen eigenen Bildlaufkasten,
+       der das Kleben rechtfertigen würde. Dieselbe Regel steht in
+       src/pages/downloads.astro; beide Sprachfassungen tragen ihr CSS
+       getrennt, ein Fix hier gilt NICHT automatisch drüben. */
     .tools {
       position: sticky; top: 3rem; z-index: 60; margin-bottom: 1.6rem;
       display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; align-items: center;
@@ -208,7 +214,7 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     .catblock__head .rule { flex: 1; height: 1px; background: var(--line-soft); }
 
     /* ---- Bild-Raster ---- */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.9rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px,100%), 1fr)); gap: 0.9rem; }
     .dl {
       display: flex; flex-direction: column; border: 1px solid var(--line-soft);
       background: var(--surface); position: relative; overflow: hidden;
@@ -245,8 +251,13 @@ const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der 
     }
     .usage b { color: var(--text); }
 
+    /* Siehe Kommentar an .tools. */
+    @media (max-width: 820px) {
+      .tools { position: static; }
+    }
+
     @media (max-width: 560px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(min(150px,100%), 1fr)); }
     }</style>
 
   <a class="skip" href="#main">Zum Inhalt springen</a>

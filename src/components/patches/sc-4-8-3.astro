@@ -121,7 +121,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 /* Mission objectives (event tasks, not ship releases) */
 .objnote{max-width:64ch;color:var(--muted);font-size:var(--fs-10);line-height:1.55;margin-bottom:1.4rem}
 .objnote b{color:#ffab7a}
-.objectives{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:.8rem}
+.objectives{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(258px,100%),1fr));gap:.8rem}
 .objectives li{display:flex;gap:.9rem;align-items:flex-start;padding:1.05rem 1.2rem;background:var(--surface);border:1px solid var(--line);border-left:2px solid var(--line-soft);border-radius:10px}
 .objectives li.boss{border-left-color:var(--accent);background:linear-gradient(140deg,var(--surface-2),var(--bg-2))}
 .objectives .on{font-family:var(--font-display);font-weight:900;font-size:var(--fs-11);color:var(--accent);flex:none;line-height:1.25}
@@ -130,7 +130,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .objectives li.boss b{color:#ffab7a}
 
 /* Video wall */
-.vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem}
+.vwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(310px,100%),1fr));gap:1rem}
 .video{position:relative;aspect-ratio:16/9;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--media-void) center/cover no-repeat;cursor:pointer}
 .video::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
 .video::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--scrim-4),transparent 55%);pointer-events:none}
