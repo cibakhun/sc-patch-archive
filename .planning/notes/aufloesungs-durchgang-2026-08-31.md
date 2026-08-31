@@ -190,6 +190,100 @@ reinen Textdateien, CRLF-sicher, mit lautem Abbruch.
   Schiffskarten, `.wb__ghd__g` in der Werkbank). Beides Aufzählungen ohne
   feste Länge; Umbruch machte Karte bzw. Kopfzeile höher.
 
+## Abschlusslauf über 784 Seiten — und was er noch fand
+
+Nach dem Hinsehen und den Reparaturen lief die ganze Sondenkette noch
+einmal über den vollen Bestand. **Die Messung ist damit nicht überflüssig
+geworden, nur zweitrangig: sie fand zwei echte Sachen, die das Auge nicht
+gesehen hatte.**
+
+| Abschnitt | Messungen | Befunde |
+|---|---|---|
+| Überschrift unter der Kante | 3.136 | 0 |
+| Wortbruch in Überschriften | 2.352 | 8 → repariert |
+| Abgeschnittene Auswahlfelder | 2.352 | 0 |
+| Ellipsen, die wirklich greifen | 1.568 | 1 echter → repariert |
+| Still gekappter Inhalt | 1.568 | 0 (nach Fehlalarm-Filter) |
+| Tabfallen | 24 | 0 |
+
+### Deutsche Komposita — und ein Kommentar, der das Gegenteil behauptete
+
+In `src/layouts/Layout.astro` steht eine globale Regel
+
+```css
+:where(h1, h2, h3, h4, .big, …) { overflow-wrap: break-word }
+```
+
+und darüber stand der Satz: *„Kurze DE-Strings umbrechen nie → DE
+unverändert."* Der Satz war falsch. Deutsche Komposita sind **länger** als
+das englische Original, und `break-word` bricht sie ohne Bindestrich:
+
+```
+„Störsignalwerf / er"      jede DE-Item-Seite mit langem Namen
+„Missionsanpassun / gen"   Patch-Dossier 4.1.0
+„Versorgungsmissio / nen"  Patch-Dossier 4.6.0
+„zurückset / zen"          Konto-Zurücksetzen
+```
+
+Der Bruch entstand also genau dort, wo die Regel ihn erlauben sollte — in
+der Sprache, für die sie angeblich folgenlos war. `hyphens: auto` in
+derselben Regel setzt einen Bindestrich vor: der Browser trennt nach den
+Mustern von `<html lang>`.
+
+### Der Kategoriepfad verlor die entscheidende Stufe
+
+Auf der Item-Finder-Karte stand bei 320 px „VEHICLEGEAR / W…" — von
+„Vehiclegear / Weapons / Missiles" blieb alles außer der **ersten** Stufe.
+`text-overflow: ellipsis` schneidet immer rechts, und ausgerechnet die
+letzte Stufe ordnet den Gegenstand ein. Unter 430 px wird umgebrochen.
+
+Nicht repariert wurde der Fundort in der Preiszeile: umgebrochen wurde er
+dreizeilig und rechtsbündig, **im Bild schlechter als die Ellipse** — und
+das „+2" daneben sagt ohnehin, dass es mehr gibt.
+
+### Drei weitere Fehlmessungen
+
+7. **Die Wortbruch-Sonde kannte `hyphens:auto` nicht** und meldete
+   „Datenschutzerklärung" auf drei Auflösungen — also genau die Stelle, an
+   der die Reparatur schon saß. Sie hielt die Lösung für das Problem.
+8. **Laufschriften sind kein Befund.** Aus dem Laufband der Patch-Seiten
+   meldete die Sonde bis zu 300 px „still gekappt" — dort *ist* der
+   Überstand die Funktion.
+9. **Der Lauf selbst starb zweimal an der Git-Bash**, nicht an den Sonden:
+   `cygheap read copy failed … fork: Resource temporarily unavailable`.
+   Nach einer langen Sitzung mit vielen Kindprozessen kann die Shell keine
+   neuen mehr starten. Der Lauf läuft jetzt als **ein** Node-Prozess, der
+   seine Sonden per `spawn` aufruft und jeden Rückgabewert abfängt.
+
+### Zwei eigene Fehler beim Reparieren
+
+- Die neue Regel stand zuerst **vor** der Basisregel. Eine Medienabfrage
+  erhöht die Spezifität nicht — bei gleicher gewinnt die spätere. Zum
+  zweiten Mal in diesem Durchgang.
+- Der Versuch, den Block per Zeilenindex zu verschieben, ließ eine
+  schließende Klammer fallen und schob ihn hinter den erzeugten Hellblock.
+  `verify:theme` fing es: *„Blockzahl 1 (Bestand) != 0 (Ablage)"*. In
+  Dateien mit erzeugten Blöcken gehört jede Änderung als reine
+  **Textersetzung** gesetzt, nie über Zeilennummern.
+
+## Auslieferung
+
+Die Arbeit ging auf **beide** Zweige. Auf live nur diese Arbeit: von den
+51 Commits, die zwischen `main` und dem Arbeitszweig lagen, waren 29 fremd
+(Wikelo Phase 20, Schiffsumbau 14/16/17) und blieben zurück. Vorgehen:
+eigener Worktree von `origin/main`, Gesamt-Diff per `git apply --3way`
+(drei Konfliktdateien statt Dutzender), jeder Konflikt mit der Frage
+„gehört das zu dieser Arbeit oder zu einer anderen Phase?".
+
+⚠ Eine Reparatur ließ sich **nicht übertragen, nur neu schreiben**: die
+Schiffs-Bühne trägt auf live `clamp(430px,62vh,620px)` an `.holo`, auf
+staging `clamp(460px,…)` an `.holo__wrap` — dieselbe Krankheit, andere
+Formel. Auf dem Zielzweig neu gemessen.
+
+⚠ Die Sperrklinke `MIN_RECIPES` steht auf live bei 85 statt 90, mit Ursache
+im Code: live trägt weniger Dateien (88 statt 95 Spaltenrezepte), weil die
+Phasen 14/16/17 dort nicht ausgerollt sind.
+
 ## Nicht abgedeckt
 
 - **Angemeldete Ansichten.** Alles wurde als Gast geprüft;
