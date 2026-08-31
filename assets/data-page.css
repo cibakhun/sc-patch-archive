@@ -467,7 +467,29 @@ body {
 .dp-tablewrap {
   overflow-x: auto;
   border: 1px solid var(--line-soft);
-  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  /* ⚠⚠ NACHTRAG 30.08.2026 — `background` war die KURZFORM und setzte damit
+     `background-image` auf none zurueck. Der Verlauf an der rechten Kante,
+     den mobile-ux.css 5c fuer genau diesen Kasten mitbringt, war deshalb
+     geloescht: diese Datei wird NACH mobile-ux.css geladen.
+     Gemessen 30.08.2026 auf /items/10-series-greatsword-cannon.html bei
+     390 px: 68 px waagerecht verborgen, Leiste `thin` gesetzt — und im
+     Bildschirmfoto war trotzdem NICHTS zu sehen. Overlay-Leisten (iOS
+     Safari, Chrome/Android) zeigen im Ruhezustand nichts; der Verlauf ist
+     dort das einzige Signal. Genau der Fall aus dem Kopfkommentar von 5c.
+     `background-color` statt der Kurzform, Verlauf daneben.
+     `attachment: scroll` wie in 5c: der Kasten steht in keiner der beiden
+     JS-Listen (Begruendung im Kommentar darueber), es gibt also keine
+     zustandsbewusste Kante, die ihn am Ende abschalten koennte. */
+  background-color: color-mix(in srgb, var(--surface) 45%, transparent);
+  background-image: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    transparent 34px
+  );
+  background-repeat: no-repeat;
+  background-size: 34px 100%;
+  background-position: right center;
+  background-attachment: scroll;
 }
 .dp-table {
   width: 100%;

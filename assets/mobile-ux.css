@@ -734,7 +734,24 @@ summary:active {
   mask-image: linear-gradient(180deg, #000 calc(100% - 40px), transparent);
 }
 
-@media (min-width: 821px) {
+/* ⚠⚠ NACHGEMESSEN 30.08.2026 — die Grenze brauchte eine ZWEITE Zahl.
+   Der Kopfkommentar oben argumentiert nur ueber die BREITE ("auf einem
+   667-px-Fenster blieben nach Nav und Leiste nur zwei Karten, das ist kein
+   Kasten, sondern ein Schlitz"). Genau dieser Schlitz entsteht aber auch auf
+   einem BREITEN, flachen Fenster — und dort griff die Regel weiter:
+
+     844x390 (Telefon quer)  Kasten  97 px, Karte 394 px
+     932x430                 Kasten 137 px, Karte 345 px
+     1024x600 (Netbook)      Kasten 307 px, Karte 321 px
+
+   Bei 97 px sieht man ein Viertel einer Karte in einem Kasten, der 208.000 px
+   Inhalt hat. Die Rechnung dahinter: max-height = 100dvh - --vb-top (203) -
+   --vb-air (90). Damit EINE ganze Karte plus Anschnitt (rund 420 px) bleibt,
+   braucht das Fenster 420 + 203 + 90 = 713 px Hoehe. 720 px ist die naechste
+   runde Zahl und zugleich die Hoehe des haeufigsten Laptops.
+   Unterhalb faellt der Kasten weg und die Liste laeuft im Seitenfluss — genau
+   wie unter 821 px Breite. */
+@media (min-width: 821px) and (min-height: 720px) {
   .vb-scrollbox {
     /* Doppel-Deklaration: 100vh als Rueckfall, 100dvh danach — dvh misst
        den tatsaechlich sichtbaren Bereich, aeltere Browser nehmen die
