@@ -49,6 +49,16 @@ for (const vp of (process.env.VP_LIST || '844x390').split(',')) {
           if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
           const r = el.getBoundingClientRect();
           if (r.width < vw * 0.5) continue;              /* nur volle Baender */
+          /* ⚠ FEHLALARM-FILTER (31.08.2026): /archiv.html wurde mit 100 %
+             gemeldet. Der Uebeltaeter war div.space — der dekorative
+             Sternenhimmel, position:fixed ueber den ganzen Schirm, aber
+             durchlaessig und hinter allem. Er sperrt gar nichts. Gezaehlt
+             wird nur, was Klicks abfaengt UND einen eigenen Grund malt. */
+          if (st.pointerEvents === 'none') continue;
+          const grund = st.backgroundColor;
+          const durchsichtig = grund === 'transparent' || /,\s*0\)$/.test(grund);
+          const malt = /blur|url\(|gradient/.test(st.backdropFilter + ' ' + st.backgroundImage);
+          if (durchsichtig && !malt) continue;
           if (r.height < 8 || r.height > vh) continue;
           if (r.bottom < 0 || r.top > vh) continue;
           const nm = el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/)[0] : '');
