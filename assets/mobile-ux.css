@@ -39,10 +39,35 @@
    16px hart, nicht 1rem: die Wurzel steht auf 112,5 % (18 px),
    ein rem-Wert waere hier groesser als noetig.
 ------------------------------------------------------------ */
-@media (max-width: 820px) {
+/* ⚠⚠ NACHTRAG 30.08.2026 — die Regel hatte ZWEI Loecher, beide gemessen:
+
+   (a) Die Breitengrenze verfehlt das QUERFORMAT. Ein Telefon quer ist
+       844 px breit; `max-width: 820px` greift dort nicht, und genau dort
+       standen `#fc-q` (14,4), `#uif-sort-select` (13,3) und `#wb-q` (14,4)
+       wieder unter der Grenze. Die zweite Bedingung faengt das ab: flacher
+       als 600 px ist kein Schreibtischfenster.
+
+   (b) Ein Elementname (0,0,1) verliert gegen jeden Klassennamen (0,1,0) im
+       Seiten-CSS. Wo dieses Seiten-CSS die Groesse NICHT selbst setzt,
+       reicht der Klassenname hier — die Liste unten nennt diese Faelle.
+       Wo es sie selbst setzt, hilft er NICHT: diese Datei wird VOR dem
+       Seiten-CSS geladen, und bei gleicher Spezifitaet gewinnt die
+       spaetere. `.fc__sel` und `.fc__slot` standen darum kurz hier und
+       waren wirkungslos; sie sind jetzt in FracturingCalc.astro repariert,
+       wo sie hingehoeren — dieselbe Begruendung wie fuer die `.dp-*`-Regeln
+       am Ende dieser Datei.
+   Wer hier ein Feld ergaenzt, misst mit
+   .planning/sketches/tools/probe-ios.mjs NACH, ob es wirklich greift.   */
+@media (max-width: 820px), (max-height: 600px) {
   input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='submit']):not([type='button']),
   select,
-  textarea {
+  textarea,
+  .fc__search,
+  .wb__search,
+  .wb__sel,
+  #uif-sort-select,
+  .cdb-res-search,
+  .pj-filter {
     font-size: var(--fs-8);
   }
 }
@@ -737,6 +762,7 @@ summary:active {
 .vb-scrollbox,
 .uif-sidebar,
 .cdb-sidebar,
+.mx__bar,
 .mdb-sidebar,
 .calc-sidebar,
 /* Mining-Werkbank: VIER senkrechte Kaesten auf einer Seite (Mineralliste,
@@ -767,6 +793,7 @@ summary:active {
 .vb-scrollbox::-webkit-scrollbar,
 .uif-sidebar::-webkit-scrollbar,
 .cdb-sidebar::-webkit-scrollbar,
+.mx__bar::-webkit-scrollbar,
 .mdb-sidebar::-webkit-scrollbar,
 .calc-sidebar::-webkit-scrollbar,
 .wb__scroll::-webkit-scrollbar,
@@ -784,6 +811,7 @@ summary:active {
 .vb-scrollbox::-webkit-scrollbar-thumb,
 .uif-sidebar::-webkit-scrollbar-thumb,
 .cdb-sidebar::-webkit-scrollbar-thumb,
+.mx__bar::-webkit-scrollbar-thumb,
 .mdb-sidebar::-webkit-scrollbar-thumb,
 .calc-sidebar::-webkit-scrollbar-thumb,
 .wb__scroll::-webkit-scrollbar-thumb,

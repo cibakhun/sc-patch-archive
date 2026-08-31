@@ -556,6 +556,20 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   background:color-mix(in srgb,var(--ink) 34%,var(--surface))}
 .fc__slot.is-full{color:#6FBE7A;background:color-mix(in srgb,currentColor 18%,transparent)}
 .fc__slot:disabled{opacity:.3;cursor:not-allowed}
+/* ⚠ 16 px auf Touch-Fenstern. Safari zoomt beim Fokus in JEDES Feld mit
+   weniger als 16 px hinein und laesst den Nutzer in einem verschobenen
+   Viewport sitzen. Gemessen 30.08.2026: `.fc__sel` 13,5 px, `.fc__slot`
+   12,6 px — bei 320, 390 UND im Querformat.
+   Die Regel steht HIER und nicht in assets/mobile-ux.css Abschnitt 1: jene
+   Datei wird VOR dem Seiten-CSS geladen, und bei gleicher Spezifitaet
+   (`.fc__sel` gegen `.fc__sel`) gewinnt die spaetere Datei. Genau dieselbe
+   Begruendung steht am Ende von mobile-ux.css fuer die `.dp-*`-Regeln.
+   Die zweite Bedingung faengt das Querformat: ein Telefon quer ist 844 px
+   breit und faellt sonst durch jede Breitengrenze. */
+@media (max-width:820px), (max-height:600px) {
+  .fc__sel, .fc__slot { font-size: var(--fs-8); }
+  .fc__slot { height: auto; min-height: 34px; }
+}
 .fc__rstat{margin-top:2px;display:flex;gap:14px;padding-top:11px;
   border-top:1px solid color-mix(in srgb,var(--text) 10%,transparent)}
 .fc__kv{flex:1}

@@ -373,7 +373,11 @@
            haengt an 820 px — derselben Grenze wie assets/mobile-ux.css
            der Hauptseite, damit beide Welten dieselbe Zahl benutzen.
         ------------------------------------------------------------ */
-        @media (max-width: 820px) {
+        /* Die zweite Bedingung faengt das QUERFORMAT: ein Telefon quer ist
+           844 px breit und faellt durch jede Breitengrenze. Gemessen
+           30.08.2026 bei 844x390 ragte die h1 von Storm Breaker dort 48 px
+           ueber den Rand. */
+        @media (max-width: 820px), (max-height: 600px) {
             .container { padding: 1.1rem; }
 
             .hero-banner {
