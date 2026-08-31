@@ -250,11 +250,32 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
        Zweifel umbrechen statt vom Container abgeschnitten zu werden. :where()
        hat Spezifität 0 -> keine bestehende Regel wird überschrieben; da keine
        dieser Klassen overflow-wrap selbst setzt, greift der Fallback nur dort,
-       wo bisher nichts stand. Kurze DE-Strings umbrechen nie -> DE unverändert. */
+       wo bisher nichts stand.
+
+       ⚠⚠ DER SATZ „Kurze DE-Strings umbrechen nie -> DE unverändert" STAND
+       HIER UND WAR FALSCH. Deutsche Komposita sind nicht kurz, sie sind
+       LÄNGER als das englische Original, und `break-word` bricht sie ohne
+       Bindestrich mitten im Wort. Gemessen am 31.08.2026 über 784 Seiten bei
+       320 px:
+           „Störsignalwerf / er"    (jede DE-Item-Seite mit langem Namen)
+           „Missionsanpassun / gen" (Patch-Dossier 4.1.0)
+           „Versorgungsmissio / nen" (Patch-Dossier 4.6.0)
+           „zurückset / zen"        (Konto-Zurücksetzen)
+       Der Bruch ist damit genau dort entstanden, wo diese Regel ihn erlauben
+       sollte — nur eben in der Sprache, für die sie angeblich folgenlos war.
+
+       `hyphens: auto` setzt der Sache einen Bindestrich vor: der Browser
+       trennt nach den Mustern der Seitensprache (`<html lang>` steht auf
+       beiden Fassungen), und aus „Störsignalwerf / er" wird
+       „Störsignal- / werfer". Für EN gilt dasselbe, dort ist es nur seltener
+       nötig. `break-word` bleibt als Notnagel darunter stehen — für Wörter,
+       die auch der Trenner nicht kleinbekommt (Kennungen, URLs). */
     :where(h1, h2, h3, h4, .big, .shot .big, .holo__title h1, .tile .lbl,
       .tile.word b, .tile.stat .num, .tile.stat .cap, .ship h3, .pcard .name,
       .pcard .ver, .ktcard b, .sd__sim .nm, .hubrows .ht, .kt b) {
       overflow-wrap: break-word;
+      -webkit-hyphens: auto;
+      hyphens: auto;
     }
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
