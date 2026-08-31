@@ -52,6 +52,13 @@ for (const vp of (process.env.VP_LIST || '320x568').split(',')) {
           const st = getComputedStyle(el);
           /* Nur wo ein harter Bruch ueberhaupt erlaubt ist. */
           if (!/anywhere|break-word/.test(st.overflowWrap + ' ' + st.wordBreak)) continue;
+          /* ⚠⚠ hyphens:auto ist die LOESUNG, nicht das Problem: der Browser
+             trennt dort nach den Mustern der Seitensprache und setzt einen
+             Bindestrich. „Datenschutz- / erklärung" ist sauber, auch wenn
+             das Wort 456 px braucht und nur 259 hat. Ohne diese Zeile
+             meldete die Sonde genau die Stelle weiter, an der die Reparatur
+             schon sass — dreimal, auf drei Aufloesungen. */
+          if (/auto/.test(st.hyphens || st.webkitHyphens || '')) continue;
           /* ⚠⚠ NICHT el.textContent: eine h1 traegt oft eine Augenbraue als
              eigenes Kind, und textContent klebt beide ohne Trennung
              zusammen — die erste Fassung meldete das Phantomwort
