@@ -21,6 +21,7 @@
     "verify:help": "node scripts/verify-help.mjs --complete",
     "verify:typo": "node scripts/verify-typo-motion.mjs",
     "verify:responsive": "node scripts/verify-responsive.mjs",
+    "verify:sprachpaar-css": "node scripts/verify-sprachpaar-css.mjs",
     "verify:layers": "node scripts/verify-layers.mjs",
     "verify:sync": "node scripts/verify-sync.mjs",
     "verify:shipcard": "node scripts/verify-shipcard.mjs",
