@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 34
+open_count: 35
 waived_count: 1
-fixed_count: 26
-total_count: 61
-last_updated: 2026-08-30T13:42:25.074Z
+fixed_count: 27
+total_count: 63
+last_updated: 2026-08-31T15:10:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -806,9 +806,33 @@ last_updated: 2026-08-30T13:42:25.074Z
     "file": "assets/tool-help.js",
     "line": null,
     "description": "Sichturteil offen (Aufloesungs-Durchgang 30.08.2026): die Erstbesuch-Hilfe klappt sich auf JEDEM Fenster selbst auf (openOnFirstVisit, D-09). Auf einem flachen Fenster kostet das den Arbeitsplatz: bei 1181x560 steht auf /missionen.html nach Kopfleiste (67px) und geschrumpftem Hero (rund 410px) nur noch die aufgeklappte Hilfe im Bild - Filterkonsole und erste Karte liegen darunter. Auf dem Telefon (390x844) ist der Effekt vertretbar. Ob die Hilfe unterhalb einer Fensterhoehe von etwa 700px zugeklappt starten soll, ist eine Onboarding-Entscheidung und wurde deshalb nicht selbst getroffen.",
+    "status": "fixed",
+    "reason": "Betreiber hat die Erstbesuch-Hilfe am 31.08.2026 ausdruecklich als eine von vier Baustellen benannt. Umgesetzt in assets/tool-help.js: openOnFirstVisit steigt unterhalb von 700px Fensterhoehe aus (MIN_HOEHE_FUER_AUTO). Bewusst OHNE die Seite als gesehen zu markieren -- wer die Seite spaeter an einem hohen Fenster oeffnet, bekommt die Hilfe dort noch einmal angeboten. Auf dem Telefon (390x844) bleibt sie wie bisher aufgeklappt, dort war der Effekt vertretbar.",
+    "recorded_at": "2026-08-30T13:42:25.074Z",
+    "resolved_at": "2026-08-31T15:10:00.000Z"
+  },
+  {
+    "id": 63,
+    "kind": "unrun-verify",
+    "phase": "aufloesung",
+    "file": "src/components/ships/ShipsOverview.astro",
+    "line": null,
+    "description": "Gestaltungsurteil offen (Auflösungs-Durchgang 31.08.2026): auf sehr breiten Schirmen bleibt viel Flaeche ungenutzt. Gemessen bei 2560x1440 auf /schiffe.html: die Inhaltsspalte ist auf rund 1060px begrenzt und zentriert, links und rechts stehen je rund 470px leer; das Kartenraster zeigt vier Spalten, obwohl der Platz fuer sechs reicht. Das ist KEIN Fehler -- eine Hoechstbreite ist eine Lesbarkeitsentscheidung, und Zeilen ueber 1100px sind schwer zu verfolgen. Ob die KARTEN (die keine Fliesstextzeilen sind) diese Grenze mitmachen muessen, ist ein Gestaltungsurteil und wurde deshalb nicht selbst entschieden. Betrifft gleichermassen /crafting, /items, /missionen. Messwerkzeug: .planning/sketches/tools/aufloesungsbogen.mjs mit dem Satz \"breit\".",
     "status": "open",
     "reason": "",
-    "recorded_at": "2026-08-30T13:42:25.074Z",
+    "recorded_at": "2026-08-31T15:10:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 64,
+    "kind": "unrun-verify",
+    "phase": "aufloesung",
+    "file": "src/components/ships/ShipsOverview.astro",
+    "line": null,
+    "description": "Sichturteil offen (Auflösungs-Durchgang 31.08.2026): zwei Textstellen werden auf schmalen Geraeten weiterhin mit Ellipse gekappt, und zwar bewusst -- gemessen mit .planning/sketches/tools/mess-ellipse.mjs, das nur meldet, wo die Ellipse WIRKLICH greift. (a) .fcard__sig auf drei Schiffskarten bei 360px: \"IR Signature 0.75 - EM Sig...\" fehlen 18-19px, eine technische Zusatzzeile. (b) .wb__ghd__g in der Mining-Werkbank bei 360px: \"ROC - ROC-DS - no tier\" fehlen 40px, die Geraeteliste in Kurzform. Beide sind Aufzaehlungen ohne feste Laenge; ein Umbruch wuerde die Karte bzw. die Kopfzeile hoeher machen. Die vergleichbaren Faelle mit fester, kurzer Beschriftung (.dp-key b auf 13.872 Seiten, .wb__lbl im Fracturing-Verweis) sind in diesem Durchgang auf Umbruch umgestellt worden. Ob diese beiden nachziehen sollen, haengt davon ab, wie wichtig die vollstaendige Angabe ist -- eine Produktentscheidung.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-31T15:10:00.000Z",
     "resolved_at": null
   }
 ]
