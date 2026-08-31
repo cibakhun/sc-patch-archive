@@ -55,11 +55,39 @@ const inPx = (w) => {
   return null;                                      /* vh/% haengen von der Hoehe ab */
 };
 
+/* ⚠ GEMESSEN 31.08.2026: ohne Media-Kontext ist die Liste wertlos. Der
+   groesste gemeldete Fund war `.sup__sch{width:clamp(300px,21vw,400px)}` —
+   „300px in einem 288px-Kasten". Die Regel steht aber in
+   `@media (min-width:1800px)`, wo 21vw = 378px sind und der untere
+   Anschlag gar nicht greift. Regeln, die bei der gemessenen Fensterbreite
+   ueberhaupt nicht gelten, werden deshalb uebersprungen. */
+const giltHier = (s, index) => {
+  /* Klammern bis zur Fundstelle zaehlen und die offenen @media merken. */
+  let tiefe = 0;
+  const offen = [];
+  for (let i = 0; i < index; i++) {
+    if (s[i] === '{') { tiefe++; continue; }
+    if (s[i] === '}') { tiefe--; while (offen.length && offen[offen.length - 1].t > tiefe) offen.pop(); continue; }
+    if (s[i] === '@' && s.startsWith('@media', i)) {
+      const bis = s.indexOf('{', i);
+      if (bis > 0) offen.push({ t: tiefe, txt: s.slice(i, bis) });
+    }
+  }
+  for (const o of offen) {
+    for (const mm of o.txt.matchAll(/min-width\s*:\s*([0-9.]+)px/g))
+      if (FENSTER < Number(mm[1])) return false;
+    for (const mm of o.txt.matchAll(/max-width\s*:\s*([0-9.]+)px/g))
+      if (FENSTER > Number(mm[1]) && !/\bor\b|,/.test(o.txt)) return false;
+  }
+  return true;
+};
+
 const funde = [];
 for (const f of dateien) {
   const s = readFileSync(f, 'utf8');
   for (const m of s.matchAll(/([a-z-]+)\s*:\s*clamp\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) {
     const prop = m[1];
+    if (!giltHier(s, m.index)) continue;
     if (!/font-size|height|min-height|width/.test(prop)) continue;
     const teile = m[2].split(/,(?![^(]*\))/).map((x) => x.trim());
     if (teile.length !== 3) continue;
