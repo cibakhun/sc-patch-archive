@@ -900,6 +900,21 @@ a.dp-card--cat:hover em { color: var(--tone-1); }
   }
   .dp-crumbs a:last-of-type::before { content: '‹'; padding-right: .35em; }
   .dp-keys { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
+  /* ⚠ GEMESSEN 31.08.2026: die Etiketten der Kennzahlen stehen auf nowrap
+     mit Ellipse. Am Schreibtisch hält das die Kästen auf gleicher Höhe;
+     auf einem Telefon kostet es die Beschriftung:
+       „Missions that drop this bl…"   163 px gekappt (13.872 Seiten)
+       „Complete (4 core slots)"        77 px
+       „Total material need"            43 px
+     Platz nach UNTEN ist da, Platz nach rechts nicht — also umbrechen.
+     Der Kasten wird dadurch zweizeilig, das Raster streckt die Nachbarn
+     mit; das ist der ganze Preis. */
+  .dp-key b {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: break-word;
+  }
   .dp-key span { font-size: var(--fs-14); }
   /* Der Hero-Rahmen frisst auf 375 px zu viel Rinne: er behaelt die Schiene
      und die Klammern, verliert aber Kasten und Innenabstand. */

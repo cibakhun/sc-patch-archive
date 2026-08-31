@@ -1812,6 +1812,17 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 .wb__frac__t{min-width:0;display:flex;flex-direction:column;line-height:1.25}
 .wb__frac__t b{font-size:var(--fs-5);font-weight:600;color:var(--text)}
 .wb__frac__t .wb__lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ⚠ GEMESSEN 31.08.2026 bei 320 px: der Kasten steht als EINE Flex-Zeile —
+   Symbol, Titel mit Mineralnamen, und rechts „Will it break? →". Auf einem
+   320-px-Gerät hatte die Zeile 23 px zu wenig: der Mineralname stand als
+   „Quant…" da, und fett gesetzter Titel und Aufforderung berührten sich
+   ohne Lücke („calculatorWill it break?"). Bei so schmalen Fenstern bekommt
+   die Aufforderung darum ihre eigene Zeile — dann trägt der Name wieder. */
+@media(max-width:400px){
+  .wb__frac{flex-wrap:wrap;margin-left:0}
+  .wb__frac__t{flex:1 1 60%}
+  .wb__frac__go{flex:1 1 100%;padding-left:29px}
+}
 .wb__frac__go{flex:0 0 auto;font-size:var(--fs-4);font-weight:600;color:var(--accent);white-space:nowrap}
 
 .wb__search:focus-visible,.wb__sel:focus-visible,.wb__chip:focus-visible,
