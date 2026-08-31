@@ -50,7 +50,41 @@
   // NICHT als gesehen vermerkt, damit er beim naechsten Besuch auf einem
   // hohen Schirm seine Aufgabe noch erfuellt. Der Knopf ist da, die
   // Erklaerung also einen Fingertipp entfernt.
-  var MIN_HOEHE_FUER_AUTO = 700;
+  var MIN_HOEHE_FUER_AUTO = 500;
+
+  // ⚠⚠ NACHGEMESSEN 31.08.2026: eine feste Hoehengrenze reicht nicht.
+  // Der aufgeklappte Abschnitt ist 279 px hoch und steht ZWISCHEN Hero und
+  // Bedienung. Gemessen auf /missionen.html, wo die erste Auswahl liegt:
+  //     1024x768   815 px = 106 % des Fensters   (Grenze 700 greift nicht)
+  //     1280x720   865 px = 120 %
+  //     1440x900   937 px = 104 %
+  // Auch auf einem grossen Laptop war die Filterkonsole also nicht im Bild.
+  // Eine hoehere Zahl waere Raten gewesen — bei 950 px klappt der Abschnitt
+  // auf praktisch keinem Laptop mehr auf, und sein Zweck faellt weg.
+  //
+  // Statt einer Zahl wird jetzt GEMESSEN: aufklappen, nachsehen, ob das
+  // naechste Bedienelement dahinter noch im Bild liegt, und nur dann
+  // offen lassen. Das geschieht synchron im selben Arbeitsschritt — der
+  // Browser malt erst danach, es flackert also nichts.
+  //
+  // Wo ueberhaupt keine Bedienung folgt (Themenseiten), ist nichts zu
+  // verlieren; dort bleibt der Abschnitt offen.
+  function bedienungBleibtImBild(section) {
+    var alle = document.querySelectorAll('button, input, select, textarea, a[href]');
+    for (var i = 0; i < alle.length; i++) {
+      var el = alle[i];
+      // Nur was NACH dem Abschnitt kommt und nicht zu ihm gehoert.
+      if (section.contains(el)) continue;
+      if (!(section.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+      if (el.closest('nav, header, footer, .snav, .dp-bar, .dp-foot')) continue;
+      var r = el.getBoundingClientRect();
+      if (r.width < 20 || r.height < 12) continue;
+      if (r.right <= 0 || r.left >= window.innerWidth) continue;   // ausgelagert
+      // Das erste echte Bedienelement dahinter entscheidet.
+      return r.top < window.innerHeight;
+    }
+    return true;   // nichts dahinter — nichts zu verlieren
+  }
 
   // ---- Erstbesuch: EIN Lesen, EIN Schreiben, danach nichts mehr. ----
   (function openOnFirstVisit() {
@@ -70,6 +104,14 @@
       var id = section.getAttribute('data-tool-id');
       if (id && !seen[id]) {
         section.open = true;
+        if (!bedienungBleibtImBild(section)) {
+          // Zu wenig Platz: wieder zu — und ausdruecklich NICHT als gesehen
+          // vermerkt, damit der Abschnitt beim naechsten Besuch auf einem
+          // hoeheren Fenster seine Aufgabe noch erfuellt. Der Knopf ist da,
+          // die Erklaerung also einen Fingertipp entfernt.
+          section.open = false;
+          continue;
+        }
         seen[id] = 1;
         changed = true;
       }
