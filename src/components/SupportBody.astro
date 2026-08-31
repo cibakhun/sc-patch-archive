@@ -210,6 +210,17 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    Behebung (Anzeige, Knopf). Positionsnummern bleiben bewusst grau: sie sind
    Gliederung, kein Hinweis. */
 :root{--bg:#0d0a06;--bg-2:#14100a;--surface:#191309;--surface-2:#221a0e;--accent:#e8a83c;--accent-2:#ffcf7a;--hot:#e8a83c;--text:#f2ece1;--muted:#ab9d88;--line:rgba(232,168,60,.22);--line-soft:rgba(242,236,225,.10);--ink:#1a1004;--maxw:1180px;}
+/* ⚠⚠ GEMESSEN 30.08.2026: die Schrift-Token stehen weiter unten auf `.sup`
+   — also NUR innerhalb des Seitenkoerpers. Alles daneben erbt sie nicht,
+   und das ist hier die Fusszeile: die sechs Verweise und die Zeile
+   "VerseBase · a Star Citizen fan project" liefen auf generisches
+   sans-serif, der Rechtshinweis darunter auf Times New Roman. Auf einer
+   Seite, auf der um Geld gebeten wird, ist das die falsche Stelle fuer
+   einen Bruch. Die Token gehoeren deshalb zusaetzlich an die Wurzel.
+   Dieselbe Ursache wie auf /impressum und /datenschutz (dort im
+   Kontaktbogen als Times-Seite aufgefallen). */
+:root{--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace}
+body{font-family:var(--font-body)}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#fbf7f0;--bg-2:#f3ede4;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231f17;--muted:#635643;--accent:#795201;--accent-2:#6f4f02;--hot:#6f4a01;--ink:#ffffff;--accent-media:#e8a83c;--accent-2-media:#ffcf7a;--line:rgba(145,105,37,.3);--line-soft:rgba(49,45,37,.12)}
 

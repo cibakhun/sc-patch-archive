@@ -229,6 +229,17 @@ a{color:inherit;text-decoration:none}
    9rem lassen Platz fuer die feste Leiste (65 px) und etwas Luft. */
 .evo__scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg-2);
   max-height:calc(100vh - 9rem);max-height:calc(100dvh - 9rem)}
+/* ⚠ NACHGEMESSEN 30.08.2026: die Deckelung ist auf einem FLACHEN Fenster
+   selbst das Problem. 100dvh - 9rem ergab bei 844x390 (Telefon quer) nur
+   228 px fuer eine Matrix mit 1138 px Inhalt — drei Zeilen von 23, in einem
+   Kasten, der zusaetzlich seitwaerts scrollt. Zwei Bildlaufrichtungen auf
+   228 px sind keine Tabelle mehr, sondern ein Sehschlitz.
+   Unterhalb von 620 px Fensterhoehe faellt der Deckel weg und die Matrix
+   steht in voller Hoehe im Seitenfluss; gescrollt wird dann die Seite.
+   Dieselbe Lehre wie bei .vb-scrollbox in mobile-ux.css 5d. */
+@media (max-height:620px){
+  .evo__scroll{max-height:none}
+}
 /* Bildlaufleiste zurückholen — nur für diese eine Tabelle. Das !important
    ist kein Schmuck: die globale Ausblendung in assets/theme.css trägt
    selbst eines und gewinnt sonst. */
