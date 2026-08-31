@@ -90,7 +90,12 @@ const showImg = TRADES.map((t: { img?: string }) => {
 :root[data-theme="light"]{--bg:#effaf7;--bg-2:#e3f2ed;--surface:#f9fffd;--surface-2:#e9f6f2;--text:#1c201f;--muted:#4a5d57;--accent:#046a5f;--accent-2:#754b02;--hot:#9e0500;--ink:#ffffff;--accent-media:#1FB8A6;--accent-2-media:#E8A33D;--line:rgba(43,129,118,.3);--line-soft:rgba(43,47,46,.12);--glow:0 6px 22px rgba(43,129,118,.18)}
 
 /* page-local accents */
-.hero h1{font-size:clamp(2.8rem,12vw,9rem)}
+.hero h1{font-size:clamp(2.1rem,12vw,9rem)}
+/* ⚠ GEMESSEN 31.08.2026 — QUERFORMAT: die Formel oben rechnet nur in vw.
+   Bei 932x430 ergab das 121 px Schrift auf 430 px Bildschirm, und die
+   letzte Titelzeile lag unter der Kante („Tactical Strike Gro…").
+   Ueber 560 px Fensterhoehe aendert diese Regel nichts. */
+@media(max-height:560px){.hero h1{font-size:12vh}}
 .hero{background:radial-gradient(120% 90% at 78% 12%,rgba(31,184,166,.18),transparent 60%),radial-gradient(90% 80% at 12% 90%,rgba(232,163,61,.12),transparent 55%),var(--bg)}
 .banu-tag{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-14);text-transform:uppercase;font-size:var(--fs-4);color:var(--accent-2)}
 .wk-lede{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-6)}

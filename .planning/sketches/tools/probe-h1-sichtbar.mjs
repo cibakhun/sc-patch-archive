@@ -39,14 +39,36 @@ for (const vp of (process.env.VP_LIST || '844x390').split(',')) {
         if (!h1) return null;
         if (h1.checkVisibility && !h1.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return null;
         const r = h1.getBoundingClientRect();
-        return { oben: Math.round(r.top), unten: Math.round(r.bottom), vh: window.innerHeight, txt: h1.textContent.trim().slice(0, 30) };
+        /* ⚠ Gemessen wird in ZEILEN, nicht in Pixeln. Die erste Fassung
+           meldete jede Ueberschrift, deren Unterlaenge 3 px ueber die
+           Fensterkante ragt — 43 von 44 Seiten, davon 41 voellig lesbar.
+           Ein Befund ist erst einer, wenn eine ganze TEXTZEILE fehlt. */
+        /* ⚠⚠ NICHT h1.getClientRects(): enthaelt die h1 Block-Kinder (die
+           Augenbraue ist ein eigenes display:block-span), liefert das
+           genau EIN Rect — den ganzen Kasten. Die zweite Fassung meldete
+           daraufhin „KEINE Zeile lesbar" fuer 44 von 44 Seiten, deren
+           Titel im Bild vollstaendig zu lesen waren.
+           Echte Zeilenkaesten gibt nur eine Range ueber die TEXTKNOTEN. */
+        const zeilen = [];
+        const geh = document.createTreeWalker(h1, NodeFilter.SHOW_TEXT);
+        for (let t = geh.nextNode(); t; t = geh.nextNode()) {
+          if (!t.textContent.trim()) continue;
+          const rg = document.createRange();
+          rg.selectNodeContents(t);
+          for (const z of rg.getClientRects()) if (z.height > 2) zeilen.push(z);
+        }
+        const vh = window.innerHeight;
+        const ganz = zeilen.filter((z) => z.bottom <= vh + 2).length;
+        return { oben: Math.round(r.top), unten: Math.round(r.bottom), vh,
+                 zeilen: zeilen.length, sichtbar: ganz,
+                 txt: h1.textContent.trim().slice(0, 30) };
       });
       gemessen++;
       if (!r) continue;
       /* Ganz sichtbar heisst: Unterkante ueber der Fensterkante. */
-      if (r.unten <= r.vh) continue;
+      if (r.sichtbar >= r.zeilen) continue;
       schlecht++;
-      const wie = r.oben >= r.vh ? 'GAR NICHT' : 'angeschnitten (' + Math.round(((r.vh - r.oben) / (r.unten - r.oben)) * 100) + ' % zu sehen)';
+      const wie = r.sichtbar === 0 ? 'KEINE Zeile lesbar' : (r.zeilen - r.sichtbar) + ' von ' + r.zeilen + ' Zeilen fehlen';
       console.log('[' + vp + '] ' + u + '\n        h1 „' + r.txt + '"  ' + r.oben + '–' + r.unten + ' bei vh ' + r.vh + '  → ' + wie);
     } catch { /* uebersprungen */ }
   }

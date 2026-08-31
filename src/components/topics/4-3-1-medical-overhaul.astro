@@ -26,7 +26,12 @@ const de = lang === 'de';
 
 
 /* page-local accents */
-.hero h1{font-size:clamp(3.2rem,13vw,10rem)}
+.hero h1{font-size:clamp(2.1rem,13vw,10rem)}
+/* ⚠ GEMESSEN 31.08.2026 — QUERFORMAT: die Formel oben rechnet nur in vw.
+   Bei 932x430 ergab das 121 px Schrift auf 430 px Bildschirm, und die
+   letzte Titelzeile lag unter der Kante („Tactical Strike Gro…").
+   Ueber 560 px Fensterhoehe aendert diese Regel nichts. */
+@media(max-height:560px){.hero h1{font-size:12vh}}
 .vitals{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-17);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-5)}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
