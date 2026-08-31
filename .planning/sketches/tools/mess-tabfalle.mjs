@@ -25,7 +25,11 @@ const srv = createServer(async (req, res) => {
   res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' });
   res.end(b);
 });
-await new Promise((r) => srv.listen(4288, '127.0.0.1', r));
+/* ⚠ Port aus der Umgebung: mit fester Zahl scheitert jeder zweite Lauf an
+   EADDRINUSE, solange ein frueherer Server noch haengt — und der Fehler
+   sieht aus wie ein Messergebnis von null. */
+const PORT = Number(process.env.PORT_NR || 4288);
+await new Promise((r) => srv.listen(PORT, '127.0.0.1', r));
 const b = await chromium.launch({ executablePath: CHROME });
 const ZIELE = (process.env.PANELS || '.mx__bar,[data-offcanvas]').split(',');
 for (const u of process.argv.slice(2)) {
@@ -33,7 +37,7 @@ for (const u of process.argv.slice(2)) {
     const [w, h] = vp.split('x').map(Number);
     const ctx = await b.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: true, isMobile: true });
     const pg = await ctx.newPage();
-    await pg.goto('http://127.0.0.1:4288' + u, { waitUntil: 'domcontentloaded' });
+    await pg.goto('http://127.0.0.1:'+PORT + u, { waitUntil: 'domcontentloaded' });
     await pg.waitForTimeout(1300);
     let drin = 0, ausserhalb = 0, erste = null;
     for (let i = 0; i < 45; i++) {

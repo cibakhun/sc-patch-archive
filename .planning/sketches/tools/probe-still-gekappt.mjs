@@ -72,6 +72,19 @@ const PROBE = () => {
       if ((ox === 'hidden' || ox === 'clip') && !schneidet) schneidet = nm(p);
     }
     if (scrollbar) continue;
+    /* ⚠ LAUFSCHRIFTEN sind kein Befund, sondern eine Bauform: dort IST der
+       Ueberstand die Funktion — der Text wandert durch das Fenster. Die
+       Patch-Seiten tragen unten so ein Band, und die erste Fassung meldete
+       daraus 300 px „still gekappt" („DYNAMISCHER REGEN" auf /de/patches/
+       sc-4-2-0), was nachgesehen genau richtig aussah.
+       Erkannt an einer laufenden Animation auf dem kappenden Vorfahren. */
+    let laeuft = false;
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const st = getComputedStyle(p);
+      if (st.animationName && st.animationName !== 'none') { laeuft = true; break; }
+      if (/marquee|ticker|laufband/i.test(p.className || '')) { laeuft = true; break; }
+    }
+    if (laeuft) continue;
     const stH = getComputedStyle(document.documentElement).overflowX;
     if (!schneidet && (stH === 'hidden' || stH === 'clip')) schneidet = 'html';
     if (!schneidet) continue;                      /* echter Ueberlauf — anderes Tor */

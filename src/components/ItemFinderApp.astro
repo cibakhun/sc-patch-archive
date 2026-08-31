@@ -461,6 +461,34 @@ const JS_T = ITEM_UI[lang];
     text-overflow: ellipsis;
   }
 
+  /* ⚠ GEMESSEN 31.08.2026 bei 320 px: von „Vehiclegear / Weapons / Missiles"
+     blieb „VEHICLEGEAR / W…" — 117 bis 125 px gekappt, also alles ausser der
+     ERSTEN Stufe. Ausgerechnet die letzte waere die informative gewesen; die
+     Ellipse schneidet aber immer rechts. Auf der Karte ist Platz nach unten:
+     eine zweite Zeile kostet 14 px, der halbe Pfad kostet die Aussage.
+
+     ⚠⚠ Diese Regel MUSS hinter .uif-card-cat-wrapper span stehen (weiter
+     oben) — eine Medienabfrage erhoeht die Spezifitaet NICHT, und bei
+     gleicher gewinnt die spaetere. Ein erster Anlauf stand davor und war
+     wirkungslos; die Messung zeigte den Schnitt unveraendert.
+
+     ⚠ NUR der Kategoriepfad. .uif-loc-name stand hier auch und wurde
+     dreizeilig und rechtsbuendig — im Bild deutlich schlechter als die
+     Ellipse. Dort ist der Schnitt vertretbar: das „+2" daneben sagt, dass es
+     mehr Fundorte gibt, und der Klick fuehrt zur vollen Liste. */
+  @media (max-width: 429px) {
+    .uif-card-cat-wrapper {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .uif-card-cat-wrapper span {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: break-word;
+    }
+  }
+
   .uif-loc-more {
     color: var(--accent-2, var(--accent, #ff5e1a));
     font-weight: 700;
