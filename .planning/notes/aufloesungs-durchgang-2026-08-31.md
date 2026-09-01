@@ -284,6 +284,64 @@ Formel. Auf dem Zielzweig neu gemessen.
 im Code: live trägt weniger Dateien (88 statt 95 Spaltenrezepte), weil die
 Phasen 14/16/17 dort nicht ausgerollt sind.
 
+## Nachtrag: Maschinenbezeichner im Lesetext
+
+Kein Auflösungsproblem, aber im selben Hinsehen aufgefallen und auf
+Wunsch gleich mitrepariert. Auf einer deutschen Item-Seite stand im
+Fließtext **und** in der Meta-Description:
+
+> „Aegis Hammerhead: Störsignalwerfer — CountermeasureLauncher
+> WeaponDefensive von Aegis Dynamics"
+
+Eine neue Sonde (`mess-camelcase-text.mjs`) über alle 17.448 Seiten zeigte
+das Ausmaß:
+
+| Bezeichner | Vorkommen |
+|---|---|
+| `WeaponPersonal` | 718 Seiten, davon **492 in der Meta-Description** |
+| `WeaponGun` | 306 Seiten |
+| `FactionReputationScope` | 205 Missionsseiten, in einer Tabellenzelle |
+| `CountermeasureLauncher` | 26 Items |
+
+Insgesamt 22 `gameType`- und 20 `subType`-Werte mit Binnenversalie auf
+rund 1.000 Items. Die Meta-Description ist der Text, den Suchmaschinen
+zitieren.
+
+Neues Modul `src/lib/lesbar.ts`, von Item-SEO und Missionsseite gemeinsam
+benutzt. Es **trennt, übersetzt aber nicht**: das Vokabular von Star
+Citizen ist auch im deutschen Sprachgebrauch englisch, und eine
+Übersetzung wäre geraten, wo die Daten keine hergeben. Sechs Sonderfälle
+stehen namentlich mit Grund darin — die `Weapon*`-Familie steht in den
+Daten **verkehrt** („WeaponPersonal" ist eine persönliche Waffe), und
+`MobiGlas` ist ein Eigenname.
+
+Bei den Ruf-Bereichen der Missionen fällt zusätzlich der Struktur-Ballast
+weg: die Tabellenspalte heißt bereits „Bereich", also bleibt von
+`FactionReputationScope` das stehen, was den Fall unterscheidet —
+„Faction". Eine Kürzung, keine Erfindung.
+
+Alle 56 echten Werte wurden vor der Änderung einzeln durchgesehen, keine
+Umsetzung blind übernommen. Nachgemessen sind alle vier Muster weg; was
+die Sonde noch meldet, sind ausschließlich echte Eigennamen (mobiGlas,
+ArcCorp, CenterMass, XenoThreat …) und die Quellenangabe „FleetYards.net",
+die als Attribution mit Link so gewollt ist.
+
+### Das Muster dahinter — zum zweiten Mal an diesem Tag
+
+Die Ursache stand beide Male als **Kommentar** im Code, und beide Male
+las er sich wie das Ergebnis einer Prüfung:
+
+> „Kurze DE-Strings umbrechen nie → DE unverändert." (`Layout.astro`)
+>
+> „die übrigen Typen (WeaponGun, Shield, …) sind bereits lesbar."
+> (`itemSeo.ts`)
+
+Beides waren Annahmen aus dem Moment des Schreibens. Sie wirken stärker
+als gar kein Kommentar, weil sie die Frage schon beantwortet zu haben
+scheinen — und niemand misst nach, was geklärt aussieht. Wer so einen Satz
+schreibt, sollte die Zahl dazuschreiben, mit der er es geprüft hat; ohne
+Zahl gehört er nicht dorthin.
+
 ## Nicht abgedeckt
 
 - **Angemeldete Ansichten.** Alles wurde als Gast geprüft;
