@@ -13,6 +13,7 @@ import {
   num, rootCategory, sortedObtain, type Item,
 } from './items';
 import { primaryStat } from './itemStats';
+import { lesbarerBezeichner } from './lesbar';
 import type { BlueprintEntry } from './crafting';
 import { craftTime, resourceNames } from './crafting';
 
@@ -40,10 +41,15 @@ export function acquisition(i: Item): 'buy' | 'loot' | 'exclusive' | 'none' {
 function kindOf(i: Item): string {
   const g = i.game;
   // `Char_Armor_Torso` & Co. sind INTERNE Typnamen und gehoeren nicht in eine
-  // Meta-Description. Fuer sie steht die lesbare Blatt-Kategorie ("Core") da;
-  // die uebrigen Typen (WeaponGun, Shield, …) sind bereits lesbar.
+  // Meta-Description. Fuer sie steht die lesbare Blatt-Kategorie ("Core") da.
   if (g?.gameType && !/^Char_/.test(g.gameType)) {
-    return g.subType && g.subType !== g.gameType ? `${g.subType} ${g.gameType}` : g.gameType;
+    const typ = lesbarerBezeichner(g.gameType);
+    const unter = g.subType && g.subType !== g.gameType ? lesbarerBezeichner(g.subType) : '';
+    /* Doppelung vermeiden: „Missile Rack Missile Launcher" liest sich
+       schlechter als „Missile Rack". Traegt der Untertyp das Hauptwort des
+       Typs schon, steht er allein. */
+    if (unter && typ.split(' ').every((w) => unter.includes(w))) return unter;
+    return unter ? `${unter} ${typ}` : typ;
   }
   return leafCategory(i.category);
 }
