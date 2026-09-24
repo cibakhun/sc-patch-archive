@@ -154,16 +154,11 @@ const TEXTBESTAND_KLINKE = {
    aendert sich nicht mehr durch spaetere Wellen, nur durch eine neue
    P-3-Entscheidung. */
 /* 4.10-Datenlauf 27.08.2026: 4=179 -> 4=178, dazu erstmals ein Schiff mit 0
-   Portgruppen. Beides ist DASSELBE Schiff und dieselbe Ursache wie bei der
-   Klinke fahrzeugeMitHardpoints (227 -> 226): der RSI Hermes fehlt in 4.10 die
-   Rumpf-Geometrie (extract-hardpoints: "no-cga, flight-ready"), also gibt es
-   keine Ports, also keine Markergruppen. In der 4.10-p4k liegen 98 .cga-Dateien
-   mit "hermes" im Namen, aber ausschliesslich Bauteile — eine RSI_Hermes.cga
-   existiert nicht, waehrend RSI_Polaris.cga und RSI_Perseus.cga vorhanden sind.
-   Keine P-3-Entscheidung, keine Regression der Konsole: eine Fremdquelle liefert
-   weniger. Summe bleibt 227 (6+22+20+178+1). Kommt die Geometrie zurueck, meldet
-   diese Verteilung es beim naechsten Lauf. */
-const WELLE1_RAIL_VERTEILUNG = { 0: 1, 1: 6, 2: 22, 3: 20, 4: 178 };
+   Portgruppen, da der RSI Hermes in 4.10 die Rumpf-Geometrie fehlte.
+   24.09.2026: rsi-hermes erhaelt Hardpoints ueber extract:hardpoints:assembled
+   (StarBreaker-Assembly-Export), womit wieder alle 227 Schiffe Portgruppen
+   fuehren: 4=179, 0=0. */
+const WELLE1_RAIL_VERTEILUNG = { 0: 0, 1: 6, 2: 22, 3: 20, 4: 179 };
 
 if (!existsSync('dist')) {
   console.error(
