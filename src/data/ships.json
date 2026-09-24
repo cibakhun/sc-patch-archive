@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-27",
+  "fetchedAt": "2026-09-24",
   "source": "FleetYards.net (api.fleetyards.net/v1) — fan-made, based on the official Ship Matrix",
   "misses": [
     "Drake Command Module"
@@ -187,7 +187,7 @@
       "cargoSCU": 2200,
       "crewMin": 1,
       "crewMax": 7,
-      "lengthM": 120,
+      "lengthM": 119.02,
       "sizeLabel": "Large",
       "priceUSD": 600,
       "fleetyardsUrl": "https://fleetyards.net/ships/drak-ironclad",
@@ -364,6 +364,25 @@
       "fleetyardsUrl": "https://fleetyards.net/ships/gama-railen",
       "patches": [
         "4.8.2"
+      ]
+    },
+    {
+      "id": "krig-s-65-stingray",
+      "name": "S-65 Stingray",
+      "matchedFrom": "S-65 Stingray",
+      "manufacturer": "Kruger Intergalactic",
+      "classification": "Combat",
+      "focus": "Medium Fighter",
+      "productionStatus": "flight-ready",
+      "cargoSCU": 0,
+      "crewMin": 1,
+      "crewMax": 1,
+      "lengthM": 24.5,
+      "sizeLabel": "Small",
+      "priceUSD": 175,
+      "fleetyardsUrl": "https://fleetyards.net/ships/krig-s-65-stingray",
+      "patches": [
+        "4.10.0"
       ]
     },
     {

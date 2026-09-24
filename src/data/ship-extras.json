@@ -1,5 +1,5 @@
 {
- "fetchedAt": "2026-08-27",
+ "fetchedAt": "2026-09-24",
  "source": "FleetYards.net",
  "matched": 225,
  "holoCount": 225,
@@ -741,7 +741,16 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjE2MTYyNTA2LTMyOTgtNDIwYy04N2U3LWUzM2QxMGJiNTcyMCIsInB1ciI6ImJsb2JfaWQifX0=--812899e85ea6e42e83ebe0fa0b9bc05e053f51d1/Star_Citizen_CRUS_A1_Spirit_Valor_SKU-1316a9f7-4662-4b49-8e74-ed574184fa2a.jpg/"
     }
    ],
-   "variants": [],
+   "variants": [
+    {
+     "name": "C1 Spirit",
+     "id": "crus-spirit-c1"
+    },
+    {
+     "name": "E1 Spirit",
+     "id": null
+    }
+   ],
    "loaners": []
   },
   "crus-starlifter-a2": {
@@ -1186,6 +1195,10 @@
     {
      "name": "ATLS GEO",
      "id": "argo-atls-geo"
+    },
+    {
+     "name": "ATLS IKTI Akuma",
+     "id": null
     }
    ],
    "loaners": []
@@ -1236,6 +1249,10 @@
     {
      "name": "ATLS",
      "id": "argo-atls"
+    },
+    {
+     "name": "ATLS IKTI Akuma",
+     "id": null
     }
    ],
    "loaners": []
@@ -1520,6 +1537,10 @@
     {
      "name": "Shimmerscale",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImJkZmQzZDJiLTgwNjEtNDAzMC1iOGU3LWEyMDIyMGFmZTI3NSIsInB1ciI6ImJsb2JfaWQifX0=--76aa7ab4a7a533326a633a12c86458658b21dd1d/RSI_Aurora_MK2_Paint_aurora_mk2_pink_green_purple_SKU_4K-e95eedfc-4adf-47a1-befa-23d9a70aaf9a.jpg/"
+    },
+    {
+     "name": "Streamline",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjdjNzZjZjVhLTZjMGItNDFjNC05ODZiLThiMTg4ZDA4OGU2MSIsInB1ciI6ImJsb2JfaWQifX0=--ce4d51d0e81683aed00f027467d71bdff6176e83/source.jpg/"
     }
    ],
    "variants": [],
@@ -2867,6 +2888,10 @@
     {
      "name": "Regatta",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY4MDI0OTllLTY2YzctNDJiMy05ODAwLWNmMDc1NmIzOGFmOSIsInB1ciI6ImJsb2JfaWQifX0=--6a30d8179624550ef5b33ffc79669ac548f277dd/Star_Citizen_Drake_Clipper_SKU_Regatta_Livery_4K-6e7bd3c2-0c11-4b36-b7c8-00b67eaf98d8.jpg/"
+    },
+    {
+     "name": "Skull and Crossbones",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY1ZDMxZWYxLTgzODgtNDE5MS04ZTQ0LTY3N2JmZjY5MTRhZSIsInB1ciI6ImJsb2JfaWQifX0=--eaf924526a4c5a92332ede1bc09777f52adf83ac/source.jpg/"
     }
    ],
    "variants": [],
@@ -3055,6 +3080,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImI5OWJlMTQ0LTZkMjAtNGIyZS05ZTdlLTE2YWZjZGZkNTMxZSIsInB1ciI6ImJsb2JfaWQifX0=--f3e222e1cb8269d422ef72c6fdfd8d5ed1cf40bf/ScreenShot-2021-09-01_20-10-20-F47-a0cdff12-b953-4324-a829-027806096b7a.jpg/"
     },
     {
+     "name": "2950 Invictus Dark Green",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImE2NmUzMTZmLTAwMWEtNDhhMi1hZDcyLWEyMmFlYjAxZGUyOCIsInB1ciI6ImJsb2JfaWQifX0=--1e465ab98bdaf24725217d81aa15528c40dd9798/source.jpg/"
+    },
+    {
      "name": "2950 Invictus Dark Green v",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgyMjdkNGU5LTIwYzktNDNmNy1hZTMzLTY2YjgxZWJkMGQ1YyIsInB1ciI6ImJsb2JfaWQifX0=--d75db2b43953dfd4107080ab551116b88ad8b062/SKU_Constellation_GreenAndGold_052020-d16f8c91-57b5-40e8-8dfa-be8ebb3e0c1d.jpg/"
     },
@@ -3212,7 +3241,7 @@
   },
   "drak-corsair": {
    "fySlug": "drak-corsair",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjA0YzA5M2U5LTAxYmYtNDAzMC05OWNkLWM4MmYzZDU5Mzk5NiIsInB1ciI6ImJsb2JfaWQifX0=--2b2cf8d24ae7b4793cd561bfa6ccd338fedb9004/holo-b45cbe57-5e4b-4bc8-ac0b-5828cff4b740.gltf/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjllZDAzMDI2LWUzYTItNGI3Mi04MjZhLWM0MjIzY2IzY2U3ZSIsInB1ciI6ImJsb2JfaWQifX0=--5231b709e54e6c04416f844f99171b98e3862019/flight_holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImM5NmUyMjkyLTQ1MjQtNDhlZS05OTlmLTBkYjgzNThiMmFjOCIsInB1ciI6ImJsb2JfaWQifX0=--ea102d8440efef8f61a393825ef7f3009c32d340/Star_Citizen_Drake_Corsair_Shipwall_16-9_4k-f708fd0f-0c1c-47ba-9803-1d88e687e873-4f866857-c022-462d-9fe3-18572f518ba4.jpg/",
    "paints": [
     {
@@ -3295,6 +3324,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijc4ZGJmOGY3LTY4Y2QtNGNmZC1hMjgxLWRmYzMwN2NjMjU3OSIsInB1ciI6ImJsb2JfaWQifX0=--caaae08bd0c87a9f65ac9117eefccad8aa93be34/Cutlass_MAIN_PAGE-Min-840ad4e6-e32f-4730-b65d-0be2b747fdbc.jpg/"
     },
     {
+     "name": "Akuma",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijc5YTIzNjdiLWZmOTUtNGM5YS04Mjk0LTZmOGQ2ZjRmODUyZSIsInB1ciI6ImJsb2JfaWQifX0=--16a7b41ca1d3bbb09b21a6b9fbd78ca29e1c46e4/source.jpg/"
+    },
+    {
      "name": "Best in Show 2950",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImFkNzVkNTc3LWUwZmMtNDdmZS04ZTI4LTQ2MjllZTdlY2E5NyIsInB1ciI6ImJsb2JfaWQifX0=--b1235e02bfe18807494032948b112596a435c272/Cutlass_MAIN_PAGE-Min-0edf85eb-262f-4029-8443-77f5f3f22944.jpg/"
     },
@@ -3343,6 +3376,10 @@
     {
      "name": "Cutlass Red",
      "id": "drak-cutlass-red"
+    },
+    {
+     "name": "Cutlass Steel",
+     "id": "drak-cutlass-steel"
     }
    ],
    "loaners": []
@@ -3359,6 +3396,10 @@
     {
      "name": "2950 Best in Show",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijc2NWEzODA3LWFhOGItNDExMy1hNDI4LWE1NTQ2MGY3NzRhOSIsInB1ciI6ImJsb2JfaWQifX0=--576ab9312bc57a43651f9b58a0452244d41dcd59/Cutlass_MAIN_PAGE-Min-c0e08c9b-c642-489b-8243-1dbc22b9b8e2.jpg/"
+    },
+    {
+     "name": "Akuma",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg0Yjg0MjYwLWQ1MWItNDM3Yy05MzU3LWRjZGU1NGZlYTAyNCIsInB1ciI6ImJsb2JfaWQifX0=--d9851c0ff97a1907f87794179ce4cc85c8f048d0/source.jpg/"
     },
     {
      "name": "Destiny",
@@ -3385,6 +3426,10 @@
     {
      "name": "Cutlass Red",
      "id": "drak-cutlass-red"
+    },
+    {
+     "name": "Cutlass Steel",
+     "id": "drak-cutlass-steel"
     }
    ],
    "loaners": []
@@ -3401,6 +3446,10 @@
     {
      "name": "2950 Best in Show",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjZhNTlmNTc2LWFlNmUtNDdkNS1iNTlmLTkwYjUyOTYyZTczYiIsInB1ciI6ImJsb2JfaWQifX0=--e7c37ad967b5868ac7d7edb0a5bfa87e252a260c/Cutlass_MAIN_PAGE-Min-25549c4a-e614-439d-9a73-123d1933d891.jpg/"
+    },
+    {
+     "name": "Akuma",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk5YjRkM2M5LWRlMmUtNDAyZS04ZTk5LTQ5NzdjMzVkZDIzYSIsInB1ciI6ImJsb2JfaWQifX0=--4f4f3b3acb353220da988a02a569ea0f182fbdd8/source.jpg/"
     },
     {
      "name": "Coalfire",
@@ -3439,6 +3488,10 @@
     {
      "name": "Cutlass Blue",
      "id": "drak-cutlass-blue"
+    },
+    {
+     "name": "Cutlass Steel",
+     "id": "drak-cutlass-steel"
     }
    ],
    "loaners": []
@@ -3455,6 +3508,10 @@
     {
      "name": "2950 Best in Show",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImMzYWJjNmU5LWVkYzEtNDhkMC1hOTAzLTFkNTcwMzI0ZjE4ZSIsInB1ciI6ImJsb2JfaWQifX0=--7db3536a7673699fa4dc5c2f437aecb0d84a163a/Cutlass_MAIN_PAGE-Min-2abe2dc3-5d45-4745-812a-fc8d15e38847.jpg/"
+    },
+    {
+     "name": "Akuma",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjQzMTgwYmY0LTk5ZDUtNDMwMC1iMjg1LTFiNzIzOGIwODcyMyIsInB1ciI6ImJsb2JfaWQifX0=--66d25e60e446b42a981ddc85b55947ac601b0792/source.jpg/"
     },
     {
      "name": "Cypress",
@@ -3809,7 +3866,7 @@
   },
   "tmbl-cyclone": {
    "fySlug": "tmbl-cyclone",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImIwNmEwM2FhLTYyMjQtNGQ4Ny1iMGQ3LWRkMWY1MDc3Zjg5YyIsInB1ciI6ImJsb2JfaWQifX0=--357d243a1202b4ec0d0870976f0f261c6d0bfdd2/holo-f6a708fc-57ce-4c10-849e-277d8b2e8846.gltf/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjA0MDM4ZWJiLWJhMmEtNDBiNC1iY2UyLTZkYmE1MjBjMDU5ZiIsInB1ciI6ImJsb2JfaWQifX0=--eb3e7e049f0c28b8e4b67c7273e88a6439c9197a/holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImJjZTY5ZWJkLTgwYTAtNDE3ZS04NzNhLTE1OWFmYWMzOTU2OCIsInB1ciI6ImJsb2JfaWQifX0=--b967f3fb1b08d1e08c326c285714d88c6a2fda9e/TUMBRIL_Cyclone-054d1934-7d19-46ab-8fdb-88815de24913-76f75e13-cfc8-4dce-a871-b2238901a2da.jpg/",
    "paints": [
     {
@@ -3863,6 +3920,10 @@
      "id": "tmbl-cyclone-rc"
     },
     {
+     "name": "Cyclone RN",
+     "id": "tmbl-cyclone-rn"
+    },
+    {
      "name": "Cyclone TR",
      "id": "tmbl-cyclone-tr"
     }
@@ -3906,6 +3967,10 @@
      "id": "tmbl-cyclone-rc"
     },
     {
+     "name": "Cyclone RN",
+     "id": "tmbl-cyclone-rn"
+    },
+    {
      "name": "Cyclone TR",
      "id": "tmbl-cyclone-tr"
     }
@@ -3944,6 +4009,10 @@
      "id": "tmbl-cyclone-rc"
     },
     {
+     "name": "Cyclone RN",
+     "id": "tmbl-cyclone-rn"
+    },
+    {
      "name": "Cyclone TR",
      "id": "tmbl-cyclone-tr"
     }
@@ -3980,6 +4049,10 @@
     {
      "name": "Cyclone MT",
      "id": "tmbl-cyclone-mt"
+    },
+    {
+     "name": "Cyclone RN",
+     "id": "tmbl-cyclone-rn"
     },
     {
      "name": "Cyclone TR",
@@ -4064,6 +4137,10 @@
     {
      "name": "Cyclone RC",
      "id": "tmbl-cyclone-rc"
+    },
+    {
+     "name": "Cyclone RN",
+     "id": "tmbl-cyclone-rn"
     }
    ],
    "loaners": []
@@ -4552,7 +4629,32 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjJmYmUxOGFjLWEwZjItNDg5NS1iMTFhLTJlMGQwOTU0MDk1MyIsInB1ciI6ImJsb2JfaWQifX0=--284816dfc1995f4df854417c73a7a5cfada1f1ad/Hornet_Timberline_2021-Min-4b0df5f6-865f-44cf-b6d0-00d9b76d31f2.jpg/"
     }
    ],
-   "variants": [],
+   "variants": [
+    {
+     "name": "F7A Hornet Mk I",
+     "id": "anvl-hornet-f7a-mk1"
+    },
+    {
+     "name": "F7C Hornet Mk I",
+     "id": "anvl-hornet-f7c"
+    },
+    {
+     "name": "F7C Hornet Wildfire Mk I",
+     "id": "anvl-hornet-f7c-wildfire"
+    },
+    {
+     "name": "F7C-M Super Hornet Mk I",
+     "id": "anvl-hornet-f7cm"
+    },
+    {
+     "name": "F7C-R Hornet Tracker Mk I",
+     "id": "anvl-hornet-f7cr"
+    },
+    {
+     "name": "F7C-S Hornet Ghost Mk I",
+     "id": "anvl-hornet-f7cs"
+    }
+   ],
    "loaners": []
   },
   "anvl-hornet-f7cm": {
@@ -5218,8 +5320,8 @@
   },
   "misc-freelancer-max": {
    "fySlug": "misc-freelancer-max",
-   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU2NDBkZjIxLWY3ZWItNGE0My1hODU4LWIzZTcwMDE3NGFhNiIsInB1ciI6ImJsb2JfaWQifX0=--275483944a207d38ba9ad2294762c580827b0069/holo-2deafe0f-640f-4867-b6bb-3fc9f2afaa83.gltf/",
-   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxMmMwZjU4LWMwYTAtNGNlNi04OGM2LTg2NTYzMDNmZThkOSIsInB1ciI6ImJsb2JfaWQifX0=--6b80d08344bcff12040e7648bf06f361afa36f7c/MISC_Freelancer_Max-31b13314-4445-4ebb-ab66-03638b6dd902-11f10f4c-9d17-4a7a-a906-54e60ea9b352.jpg/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU2NDBkZjIxLWY3ZWItNGE0My1hODU4LWIzZTcwMDE3NGFhNiIsInB1ciI6ImJsb2JfaWQifX0=--275483944a207d38ba9ad2294762c580827b0069/holo-2deafe0f-640f-4867-b6bb-3fc9f2afaa83.gltf/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxMmMwZjU4LWMwYTAtNGNlNi04OGM2LTg2NTYzMDNmZThkOSIsInB1ciI6ImJsb2JfaWQifX0=--6b80d08344bcff12040e7648bf06f361afa36f7c/MISC_Freelancer_Max-31b13314-4445-4ebb-ab66-03638b6dd902-11f10f4c-9d17-4a7a-a906-54e60ea9b352.jpg/",
    "paints": [
     {
      "name": "2950 Invictus Storm Surge",
@@ -5821,8 +5923,20 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk5YTIyNDM4LThiYzQtNGRiYi1iMzIyLTBhYTBjOTkzMDYyZCIsInB1ciI6ImJsb2JfaWQifX0=--0c26f6aa038860db566964d9c28ee26068f9fb69/new-golem-solo5-7811b991-8ddd-4e96-86ac-2a8aa15dc776.webp/"
     },
     {
+     "name": "Deck the Hull",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjkzYzgyYzFiLThkZGUtNDZmZC04MGUyLWViNjFkMDVlMjAwNyIsInB1ciI6ImJsb2JfaWQifX0=--8f2a030b3f991863acfd64011f6a623fcc7745c2/Star_Citizen_Luminalia_2025_Golem_OX_Deck_The_Hull_SKU_4K-4a0a750c-c683-41fb-9dca-928a4a7f33e3.jpg/"
+    },
+    {
+     "name": "Foundation Festival",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImIzMDkzZTdmLWJiMGYtNGNmZC1hZDY4LTI0ZmVlZjI5MTA3ZCIsInB1ciI6ImJsb2JfaWQifX0=--3aea8833f052e3d8a31b7cd68199a9c8ed626444/source.jpg/"
+    },
+    {
      "name": "Greysteel",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImIxMDVhZTQ2LThmYjctNDcyOS1iMDdmLTQyMGU0OTk4MzA5MCIsInB1ciI6ImJsb2JfaWQifX0=--8230a2b77b7f364f2589b31029beb5123822753b/new-golem-solo3-512c6390-c135-4dbe-b949-3f0c396a6e76.webp/"
+    },
+    {
+     "name": "IceBreak",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImNmMzEyOGEyLTk4N2QtNGYxZi05MTNjLWM0MzEwMGYxOWQzYyIsInB1ciI6ImJsb2JfaWQifX0=--9de8f3b47f2333b1e160517fab446559dae05cdb/Star_Citizen_Luminalia_2025_Golem_OX_Icebreaker_SKU_4K-b1fe51de-049b-469a-b110-b7b85aa8b16f.jpg/"
     },
     {
      "name": "Strongheart",
@@ -6202,6 +6316,10 @@
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImM1OTJjZWY5LTNjNGMtNDNkMy04ZTYzLThhZjg4ZDgyMTM3YyIsInB1ciI6ImJsb2JfaWQifX0=--b3d409e72724406dfa79e6fbd59a288f90e28542/Starcitizen_Hull-A_StartCargoCareer-5-fc545338-75b0-472f-b316-a13921136d7d-e72c3c8a-7a0c-4ef4-aa2c-4c12bc4e09e9.jpg/",
    "paints": [
     {
+     "name": "Bombora",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjQxNDRkYTIwLWU4MmUtNGE4ZS05OGY4LTdjZmI4MGJjYjY3YyIsInB1ciI6ImJsb2JfaWQifX0=--818b91a906043b69c178cc7846bdccc3eed6d2e7/source.jpg/"
+    },
+    {
      "name": "Dusk",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg1MTc1NGRjLWQzNjUtNGYyOS1iOWUzLWM4MTE0MzM5ZGFiYiIsInB1ciI6ImJsb2JfaWQifX0=--34ecd9e19a83f8a1deaca5b51e457426cdfd2fa7/Sc_MISC_hull_a_sku_DUSK-FINAL-6ab2b42c-da2e-4afd-8486-f846a4cae018.jpg/"
     },
@@ -6236,8 +6354,8 @@
   },
   "misc-hull-b": {
    "fySlug": "misc-hull-b",
-   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVlYzNlZTkwLThmNTMtNDIzZC04N2VhLTc5M2Q3MDRiYTZiMSIsInB1ciI6ImJsb2JfaWQifX0=--76e4b512120e6efe595c282795358c6bc1c0b2d4/holo.gltf/",
-   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY0NjM5MDI5LWI1NzYtNDIzYy1iZWZiLWE3YThhYjEwMmEzZCIsInB1ciI6ImJsb2JfaWQifX0=--2b1b406dd4c4bde1b983f7ce40f58f88d7265a91/_re_.webp/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVlYzNlZTkwLThmNTMtNDIzZC04N2VhLTc5M2Q3MDRiYTZiMSIsInB1ciI6ImJsb2JfaWQifX0=--76e4b512120e6efe595c282795358c6bc1c0b2d4/holo.gltf/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY0NjM5MDI5LWI1NzYtNDIzYy1iZWZiLWE3YThhYjEwMmEzZCIsInB1ciI6ImJsb2JfaWQifX0=--2b1b406dd4c4bde1b983f7ce40f58f88d7265a91/_re_.webp/",
    "paints": [
     {
      "name": "Dusk",
@@ -6492,7 +6610,7 @@
   },
   "drak-ironclad": {
    "fySlug": "drak-ironclad",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk4MGRmOWIyLTIwYmMtNGE1Yi1hM2MxLTM0ZDQ2N2FjYTdkOCIsInB1ciI6ImJsb2JfaWQifX0=--4f49b74fa7c8345c5c12d2655de56be647d2c083/holo2.glb/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjNjMjhiNGI3LWY3MTctNDU2Mi1hNTU3LWE5MTFkNDU5YzRiMSIsInB1ciI6ImJsb2JfaWQifX0=--ec117ebb26715bbd08ea8cefda6c2cbf400be28a/flight_holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU5ODYyMjc3LTU4OWItNGM0NC1iMDJiLTIwNGE4Zjg2NmNkZCIsInB1ciI6ImJsb2JfaWQifX0=--f3d82f17a6126b422d3ca4c537aaf052687004e9/source.jpg/",
    "paints": [
     {
@@ -6510,6 +6628,10 @@
     {
      "name": "Sediment",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFkNDMyODFjLTg4NjUtNDM2MS05YTY0LTcxNzJmZDY0NzBhNyIsInB1ciI6ImJsb2JfaWQifX0=--230326e8d6ce46ee201cfb6fb54b7f5bf33e4603/source.jpg/"
+    },
+    {
+     "name": "Skull and Crossbones",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijc3ZmY1ODhjLTIzYTEtNDA0MC1iNTYzLTExZjJhMGYxYWI5MCIsInB1ciI6ImJsb2JfaWQifX0=--0279c6803166208eb139174398f008992a9499b2/source.jpg/"
     },
     {
      "name": "Wind Chill",
@@ -6648,8 +6770,8 @@
   },
   "krig-l22-alphawolf": {
    "fySlug": "krig-l-22-alpha-wolf",
-   "holo": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk4YzY1Y2MwLTcwNjEtNGRiMS04MjRkLWNjZmNjN2IwNzIxYSIsInB1ciI6ImJsb2JfaWQifX0=--90bca7d38f2b36cf103112c9672ddc64cbe98fd8/holo-577ff125-bdf4-43e4-b40c-1a790bbfa217.gltf/",
-   "storeImage": "https://fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxZWMxMGJmLTVmMGQtNDljNC1hYzYxLTBkZTNkMTVmYzE4NyIsInB1ciI6ImJsb2JfaWQifX0=--e1f8bb9a60b6c57b03d94f24073d0c370ecd4352/Star_Citizen_Krug_Alpha_Wolf_Flying-c285d557-d461-42aa-97bd-ab505058a891.jpg/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk4YzY1Y2MwLTcwNjEtNGRiMS04MjRkLWNjZmNjN2IwNzIxYSIsInB1ciI6ImJsb2JfaWQifX0=--90bca7d38f2b36cf103112c9672ddc64cbe98fd8/holo-577ff125-bdf4-43e4-b40c-1a790bbfa217.gltf/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxZWMxMGJmLTVmMGQtNDljNC1hYzYxLTBkZTNkMTVmYzE4NyIsInB1ciI6ImJsb2JfaWQifX0=--e1f8bb9a60b6c57b03d94f24073d0c370ecd4352/Star_Citizen_Krug_Alpha_Wolf_Flying-c285d557-d461-42aa-97bd-ab505058a891.jpg/",
    "paints": [
     {
      "name": "Allegro",
@@ -6943,12 +7065,28 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU0Y2ZmMzU4LWI1YmItNDQwMi1iZjcxLTRkNTNjYTY4NjkzZSIsInB1ciI6ImJsb2JfaWQifX0=--10b680ed2760e2de7ae0da6e2d6ed7778f3d24ce/source.jpg/"
     },
     {
+     "name": "Brushwood",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk4NTEyZWJiLTFmYjgtNDYzZC05NTBkLWIyYjFjNWNlNTBmNCIsInB1ciI6ImJsb2JfaWQifX0=--1811266fef58477b07a70e684658fa270e146f45/source.jpg/"
+    },
+    {
      "name": "Cadet",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImIxZjRlMzUzLWRjNjMtNDA3My1iNjYyLTg5NDhiNjk2M2NkNCIsInB1ciI6ImJsb2JfaWQifX0=--169ae2b43d87c1060cb040808ddac5a591be4b3a/source.jpg/"
     },
     {
+     "name": "Citizens for Prosperity Liberation",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjkzODA1YzhiLWIyZTktNDU3ZS1iMWU1LTI1ZWFhZGM5ZmY3ZiIsInB1ciI6ImJsb2JfaWQifX0=--c4e23a9f8ac543f1a4f1d7205862374570064840/source.jpg/"
+    },
+    {
+     "name": "Headhunters Reaper",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImNjM2U1Yzc4LTQxOGMtNDYzOS04YTliLTc5YmIzY2Q1OWRiZSIsInB1ciI6ImJsb2JfaWQifX0=--ac6eba2c012afdc6f833bdef5941b9a60312df79/source.jpg/"
+    },
+    {
      "name": "Icefront Camo",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImVmNzVlZTMwLWRkMDUtNDhjNC04N2JhLThlZGE5YmZjODBmNSIsInB1ciI6ImJsb2JfaWQifX0=--f863931efb54cb0e9619c07688454e02f1e0bf5a/source.jpg/"
+    },
+    {
+     "name": "Moonstone",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjQzY2ZmZjFiLTQzNjEtNDJjZS05ZDkxLWI2M2ZiZmVlNjliOSIsInB1ciI6ImJsb2JfaWQifX0=--628426ec80ab5137345850ff531a0ca06fab1f37/source.jpg/"
     },
     {
      "name": "Perdition",
@@ -8784,8 +8922,20 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImY0NWE1MzdlLWQ3ZDEtNGE5OC05OGY2LWRjM2QwNWE1YjNkOSIsInB1ciI6ImJsb2JfaWQifX0=--08a9630e0f7085c94337692817215f966e8ff1c8/Star_Citizen_LunarNewYear_2023_Sabre_SKU_auspicious-faabb15c-cda1-4520-ab5f-568fb9a738b8.jpg/"
     },
     {
+     "name": "Beyond",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU3YjkwODQ2LWRmMGYtNDMwMS1hZDg4LTY0OTRiNWI1Y2U4YiIsInB1ciI6ImJsb2JfaWQifX0=--93ebc83aea359b73e91e641781903423f75611ca/source.jpg/"
+    },
+    {
      "name": "Black Magic",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVmMTczNzQ5LTI5MDctNDNiNS1iODZmLTJhMTQwOWYzM2E3YSIsInB1ciI6ImJsb2JfaWQifX0=--e22b47c3959e675a392075c3a6c59f09008e1630/Aegis_Sabre_Halloween_Orange_Black_SKU_4K-47a07f9b-e167-41dc-8b4b-28e6bb1c1fcb.jpg/"
+    },
+    {
+     "name": "Blue Steel",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjJmNmM0Y2M2LWMwYjQtNDExNy1hMmUxLTY2MmEyODdhOTNmYyIsInB1ciI6ImJsb2JfaWQifX0=--c34975ebc45e4284746548abf88becf82cb6434e/source.jpg/"
+    },
+    {
+     "name": "Darkshade",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjhhZGYyMjBiLTRmYWUtNGZjMC04MzA3LTljNWVlYmM1MzlkOSIsInB1ciI6ImJsb2JfaWQifX0=--df6d0e8565b52492245c697ca20c7a06d1eb679f/source.jpg/"
     },
     {
      "name": "Firebreak",
@@ -8816,6 +8966,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjcyNGNiOGVmLWM0MmYtNDgxOS1hYWNkLTc5MjI4N2QyYWFkZiIsInB1ciI6ImJsb2JfaWQifX0=--09699728a03818fc0f4bdf24c5aaf9f313f0279d/Sabre_TintLevel01_01-Min-480419ce-7bf5-4c64-acb6-268967867a0c.jpg/"
     },
     {
+     "name": "Tribunal",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjUxYmIzMGQ5LWFkMjctNDdmYi05MzBhLWE5NWNjZTE0YjFlZCIsInB1ciI6ImJsb2JfaWQifX0=--ca12407eddbb4efe29556b174c7e8e76d7f4766b/source.jpg/"
+    },
+    {
      "name": "Windbreak",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjAzYjQ3OWQxLTBmY2MtNDMwYy1hZDZjLTk2ZGYyMjAyYjBlZCIsInB1ciI6ImJsb2JfaWQifX0=--055bb028537b8d67b109e4cdc92e2baed49151ae/ScreenShot-2024-05-22_19-18-14-66B-4d335bde-4492-43c6-be15-f59e442aa3da.jpg/"
     }
@@ -8836,6 +8990,10 @@
     {
      "name": "Sabre Raven",
      "id": "aegs-sabre-raven"
+    },
+    {
+     "name": "Sabre Raven EX",
+     "id": null
     }
    ],
    "loaners": []
@@ -8858,8 +9016,20 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg0NGFmNjFjLWUwOTEtNDRlNy04NjEzLWI3ODAyMDUxYWViNyIsInB1ciI6ImJsb2JfaWQifX0=--7bf0a42c716d056d91928d8787c9a00a914c7eb6/Star_Citizen_LunarNewYear_2023_Sabre_SKU_auspicious-83c067c1-c966-4390-ac7f-3a07e9a00d27.jpg/"
     },
     {
+     "name": "Beyond",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg4YzRmZTcxLWJlNTgtNDVmZC1iMTZmLWQ1OGZhOWM0YTJkZCIsInB1ciI6ImJsb2JfaWQifX0=--5a0b3ab7a6d0dbcd15265c04afb4c91aa85e218c/source.jpg/"
+    },
+    {
      "name": "Black Magic",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjZjMjk3YjFlLWQyZTQtNDhiOS04NGYyLTAyMmNkN2JkN2JjZCIsInB1ciI6ImJsb2JfaWQifX0=--e5ecbfcfdf755d38f19953cf4d50fa9ab5cb08cd/Aegis_Sabre_Halloween_Orange_Black_SKU_4K-b57cb5e6-99e8-4170-a09c-65c0af7d1269.jpg/"
+    },
+    {
+     "name": "Blue Steel",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU1NWY4NTNjLWI3ZGQtNDhlNy04MmNmLTI1OWUyYWIxOWMzZiIsInB1ciI6ImJsb2JfaWQifX0=--e16b2575a873bc985d67aa2c2bd4cdd7bea3d1d2/source.jpg/"
+    },
+    {
+     "name": "Darkshade",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImM2ZDkyNjI5LTlhMWUtNDg2Ni04NjNlLTIwM2M5Y2YxZTA0ZSIsInB1ciI6ImJsb2JfaWQifX0=--da23f06beaf61b2a1c0bbf7981904c5ed79c1017/source.jpg/"
     },
     {
      "name": "Firebreak",
@@ -8890,6 +9060,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk0NmYwNGQxLTNhOTItNGU2Zi1iMTAxLTk5Y2ZiY2M3OGZhMSIsInB1ciI6ImJsb2JfaWQifX0=--a0c08ce6aba6a90b900d03dbdc9bc1b870ea2f32/Sabre_TintLevel01_01-Min-d87ee851-f60d-4a82-a6ad-d2b9b544fa0e.jpg/"
     },
     {
+     "name": "Tribunal",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImJjMGU2MGZiLTU4OTYtNGVhMy1hZmQ3LTg0MmQ2ZjA5MGE2OCIsInB1ciI6ImJsb2JfaWQifX0=--98151e9de6967763b291ece7f265fc15bf60a7d8/source.jpg/"
+    },
+    {
      "name": "Windbreak",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjUzYzE2ZTIzLWEyZjMtNDA2Ni1iMDFjLTFhZTUyMDQ3MzAwYiIsInB1ciI6ImJsb2JfaWQifX0=--a94d99db20bd3fff0da14b4caa6a920ceb5ab5e1/ScreenShot-2024-05-22_19-08-33-6A1-54e1f552-e3f6-4c62-b9d3-12aad2028da2.jpg/"
     }
@@ -8910,6 +9084,10 @@
     {
      "name": "Sabre Raven",
      "id": "aegs-sabre-raven"
+    },
+    {
+     "name": "Sabre Raven EX",
+     "id": null
     }
    ],
    "loaners": []
@@ -8932,8 +9110,20 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFiOGUxZmM3LTZkNWYtNDJiYS1iZDQ3LTMyNTA2OTMyY2I1YyIsInB1ciI6ImJsb2JfaWQifX0=--d5cf983ad6209f5563001a0fc6bf4deadc38d621/Star_Citizen_LunarNewYear_2023_Sabre_SKU_auspicious-abd2099b-5ce5-4db4-87f0-de538d793c1a.jpg/"
     },
     {
+     "name": "Beyond",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijk0YTRiYTI4LTk5MTUtNDIyOS05OGQzLTdmNzRkZjM5NDExYSIsInB1ciI6ImJsb2JfaWQifX0=--21acde7b1a63efd807c5bb8da57c2ca35ad2dc2e/source.jpg/"
+    },
+    {
      "name": "Black Magic",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjU3NzgyYjIwLWYyNzctNDQ1ZS05NWQyLTQyMmVjYmNmMjM2MSIsInB1ciI6ImJsb2JfaWQifX0=--551a1e44de1ff331773c9cade53bb532f6d3ab67/Aegis_Sabre_Halloween_Orange_Black_SKU_4K-44d1cd01-6cbf-426c-85c3-98573cbf69d6.jpg/"
+    },
+    {
+     "name": "Blue Steel",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjlhZGY3ODEzLWMwYzMtNGViOC1iMzdmLWIyYjcxN2IyMTRlMyIsInB1ciI6ImJsb2JfaWQifX0=--012621ab96464e6d409e4fb3a280ce1507f4fcec/source.jpg/"
+    },
+    {
+     "name": "Darkshade",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjhkZDNhYjM3LWYzNjItNGUwYS1iMGZiLWQwYWYyNDNkNmI1NSIsInB1ciI6ImJsb2JfaWQifX0=--f21e0bedd01ae07fb33ba7e67000204a7bd62aa6/source.jpg/"
     },
     {
      "name": "Firebreak",
@@ -8956,6 +9146,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjU3MGRkZDg2LWI2ZTYtNGY2Yi05ZGNlLTBkOTBmMzZhMjZhYiIsInB1ciI6ImJsb2JfaWQifX0=--25acec6922b82ac3962b713bc7dd2c503f2599e2/Star_Citizen_AEGS_Peregrine_SKU_VIP_STARLIGHT-3a931a1e-ab1d-4fa0-a829-fa19530988aa.jpg/"
     },
     {
+     "name": "Tribunal",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImRhZGFjMjZjLWQ1ZWEtNGE0ZS05NWIxLThlNjNmMmFhNjVhMSIsInB1ciI6ImJsb2JfaWQifX0=--8c7031f4d2eab366a5d1f861748646dcf7b853c4/source.jpg/"
+    },
+    {
      "name": "Windbreak",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjRhNzAzNzRhLTJmN2MtNDQ1MS1hNWMxLTc2MWE2YjI3ZGRlZSIsInB1ciI6ImJsb2JfaWQifX0=--4c45000e1de833a2a6c7229d20295b459cc6b56e/STARCITIZEN_AEGS_Firebird_Sku_Green_Orange-7ebd6523-920e-495a-93c1-4cae68d3a23a.jpg/"
     }
@@ -8976,6 +9170,10 @@
     {
      "name": "Sabre Raven",
      "id": "aegs-sabre-raven"
+    },
+    {
+     "name": "Sabre Raven EX",
+     "id": null
     }
    ],
    "loaners": []
@@ -8998,8 +9196,20 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjJmNTQ4NDNjLThkZGEtNGIxZS04MGU3LTYxYmRhMjg5ZTI4ZiIsInB1ciI6ImJsb2JfaWQifX0=--94b3cc3f3499ba410c6c6a6391b852bc17a01914/Star_Citizen_LunarNewYear_2023_Sabre_SKU_auspicious-36b6fc5e-5aaa-4af3-bfe5-1bfad3e7ab38.jpg/"
     },
     {
+     "name": "Beyond",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijc3MGRlMDhiLWVjNWYtNGZkNi1hZjc1LWJjNjZmYzZiMWNmOCIsInB1ciI6ImJsb2JfaWQifX0=--e6862129068d3c2a26457551389dae022403d0a4/source.jpg/"
+    },
+    {
      "name": "Black Magic",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjUzMDdkMGEyLWY4ZWMtNDgzMC04YjFiLTAwYzE0NDRjMjBmMyIsInB1ciI6ImJsb2JfaWQifX0=--e2cc3ad60d1b98684a8f41e0a60651366555aac0/Aegis_Sabre_Halloween_Orange_Black_SKU_4K-b2440f69-7201-4157-84a2-1803c634777e.jpg/"
+    },
+    {
+     "name": "Blue Steel",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImNlODc0YjkwLTU5YmItNGY2ZC1iZjMwLWE1Y2E4MjdiZjliZiIsInB1ciI6ImJsb2JfaWQifX0=--6a17b983b5b5753def07abcf7fc8a2861a11f98a/source.jpg/"
+    },
+    {
+     "name": "Darkshade",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY1NGJkMTllLThlZGYtNDgyMi1hZjNkLTkwNTNjNTliMjAxMyIsInB1ciI6ImJsb2JfaWQifX0=--81a060411c834600067b432263d2ee7895aa4c04/source.jpg/"
     },
     {
      "name": "Firebreak",
@@ -9030,6 +9240,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjI0OTViODc2LTkzODQtNDc2OC1iY2EwLTEwNjRjY2RjYmZiNyIsInB1ciI6ImJsb2JfaWQifX0=--6a24907b9d858fbef09139c254eb972449412731/Sabre_TintLevel01_01-Min-fe48e7dc-eefa-43e1-b369-17f43a4b11ca.jpg/"
     },
     {
+     "name": "Tribunal",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjRmYzU0ZjExLTUwYTMtNDhhYi05ZTkxLTg0Y2M0ZmExNmM5NiIsInB1ciI6ImJsb2JfaWQifX0=--a9b1643ca7747e050720018d0deddb2f951f0b89/source.jpg/"
+    },
+    {
      "name": "Windbreak",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjIxODc1NGU4LWU4MTYtNGM4MS1hNmQwLTgzYjFhMGJlZmUzNCIsInB1ciI6ImJsb2JfaWQifX0=--1f2b04465bc70370948ebbf468b7619e122f0f86/STARCITIZEN_AEGS_Firebird_Sku_Green_Orange-e1bb7250-1edf-48d8-abad-a784285a225c.jpg/"
     }
@@ -9050,6 +9264,10 @@
     {
      "name": "Sabre Raven",
      "id": "aegs-sabre-raven"
+    },
+    {
+     "name": "Sabre Raven EX",
+     "id": null
     }
    ],
    "loaners": []
@@ -9072,8 +9290,20 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY2OTRkZDA5LTQwNzgtNDhhYi1iNmY1LTdiMzAyYWI2ZGI2YyIsInB1ciI6ImJsb2JfaWQifX0=--8f09dfe20ae47acda87f1cbe1e86c927a0693235/Star_Citizen_LunarNewYear_2023_Sabre_SKU_auspicious-435c5252-7f5a-4a2a-b06a-1086fe06a16c.jpg/"
     },
     {
+     "name": "Beyond",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVmYjI1MDZjLWQ5ZWYtNGFiNS1iMjY5LWI1YTZlN2RkMmJmMCIsInB1ciI6ImJsb2JfaWQifX0=--3a0579871aaa38d2af9521a3d043e15be45fdb66/source.jpg/"
+    },
+    {
      "name": "Black Magic",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImM5NTdmOGYzLTRiMTgtNDczZC04Yzk5LTE2YjExZGVmYmQ2MiIsInB1ciI6ImJsb2JfaWQifX0=--f8b37adb009dd5372f9cb673690b86f420910044/Aegis_Sabre_Halloween_Orange_Black_SKU_4K-291fe0c5-ddf2-4994-86a0-040c9b9f17fa.jpg/"
+    },
+    {
+     "name": "Blue Steel",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImE1NmZkMTJiLTM2NDQtNDUyNC1iMTBiLTdhOTZkNTFlZmY0ZCIsInB1ciI6ImJsb2JfaWQifX0=--0d5258354b0b3e2666ba3bbb1d29122016afeacc/source.jpg/"
+    },
+    {
+     "name": "Darkshade",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVjMmE3NzJlLTQ3ZDUtNGExYS1iNDRiLTY5NWFjNDQxNjE4NCIsInB1ciI6ImJsb2JfaWQifX0=--6445cdddcb97883bbbd604591d4a9e1e4548fc0a/source.jpg/"
     },
     {
      "name": "Firebreak",
@@ -9096,6 +9326,10 @@
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImY5NWM3Zjk5LThlOWUtNDdhNi04NDRhLTBhMmNiOGU4OGRlZCIsInB1ciI6ImJsb2JfaWQifX0=--890ea9a4b0763411a063e5015690b7e1b79fc234/Bildschirmfoto_20240829_183439-5120f0ef-ec03-4a44-b4d9-229e2916fc45.png/"
     },
     {
+     "name": "Tribunal",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjZiMTdjYzg4LTJjNDgtNDE0NS1hZTU2LWEwMmQ2YmNkYjRhOCIsInB1ciI6ImJsb2JfaWQifX0=--d4f047611e96903eb4522c59075fd7d2836c9d6a/source.jpg/"
+    },
+    {
      "name": "Windbreak",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjM4MDE4YWFhLWE2YmEtNDA3Yi04OTdkLWZkOTdiOGM2MzRjOCIsInB1ciI6ImJsb2JfaWQifX0=--afe19c825e06c25f7b92fc4d2ab5efd5cb1c8cdc/ScreenShot-2024-05-22_18-58-46-1E4-731959d7-30e6-4b3b-90e6-b86f66db30a3.jpg/"
     }
@@ -9116,6 +9350,10 @@
     {
      "name": "Sabre Peregrine",
      "id": "aegs-sabre-peregrine"
+    },
+    {
+     "name": "Sabre Raven EX",
+     "id": null
     }
    ],
    "loaners": []
@@ -9350,6 +9588,10 @@
     {
      "name": "Nightmare",
      "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImI5ZDBlZmI1LTZhNDctNDJhYi1iODU2LTYyZGQ1MjdiNmJlYSIsInB1ciI6ImJsb2JfaWQifX0=--6201342ff76d0ac1af03a044b3fbb2cc494509c4/Greys_Shiv_Brown_White_Brown_SKU_8K-3264a9e1-1d4b-46b4-b2f6-4e93764a924b.jpg/"
+    },
+    {
+     "name": "Skull and Crossbones",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjNhMTk0MGM5LTA3NGEtNGRiNC05NjRhLTYyZjdjOTc4ZTA3MCIsInB1ciI6ImJsb2JfaWQifX0=--5c034e6c8876327bcfdf2965b63aabf924ef0e91/source.jpg/"
     },
     {
      "name": "Spectre",

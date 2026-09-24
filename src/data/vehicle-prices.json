@@ -1,8 +1,8 @@
 {
- "fetchedAt": "2026-08-27",
+ "fetchedAt": "2026-09-24",
  "source": "UEX Corp (uexcorp.space)",
- "matched": 179,
- "buyable": 179,
+ "matched": 174,
+ "buyable": 174,
  "prices": {
   "anvl-hawk": {
    "buy": [
@@ -36,39 +36,6 @@
    "buy": [
     {
      "price": 4365900,
-     "shop": "Astro Armada",
-     "where": "Area 18",
-     "system": "Stanton"
-    }
-   ],
-   "rent": []
-  },
-  "anvl-hornet-f7cm": {
-   "buy": [
-    {
-     "price": 4762800,
-     "shop": "Astro Armada",
-     "where": "Area 18",
-     "system": "Stanton"
-    }
-   ],
-   "rent": []
-  },
-  "anvl-hornet-f7cr": {
-   "buy": [
-    {
-     "price": 3210480,
-     "shop": "Astro Armada",
-     "where": "Area 18",
-     "system": "Stanton"
-    }
-   ],
-   "rent": []
-  },
-  "anvl-hornet-f7cs": {
-   "buy": [
-    {
-     "price": 3307500,
      "shop": "Astro Armada",
      "where": "Area 18",
      "system": "Stanton"
@@ -199,29 +166,18 @@
    ],
    "rent": [
     {
-     "price": 18632,
+     "price": 18633,
      "shop": "Traveler Area 18",
      "where": "Area 18",
      "system": "Stanton"
     },
     {
-     "price": 18632,
+     "price": 18633,
      "shop": "Traveler Orison",
      "where": "Orison",
      "system": "Stanton"
     }
    ]
-  },
-  "anvl-hornet-f7c-wildfire": {
-   "buy": [
-    {
-     "price": 4630500,
-     "shop": "Astro Armada",
-     "where": "Area 18",
-     "system": "Stanton"
-    }
-   ],
-   "rent": []
   },
   "anvl-c8r-pisces": {
    "buy": [
@@ -234,13 +190,13 @@
    ],
    "rent": [
     {
-     "price": 13891,
+     "price": 13892,
      "shop": "Traveler Area 18",
      "where": "Area 18",
      "system": "Stanton"
     },
     {
-     "price": 13891,
+     "price": 13892,
      "shop": "Traveler Orison",
      "where": "Orison",
      "system": "Stanton"
@@ -309,7 +265,7 @@
    ],
    "rent": [
     {
-     "price": 29452,
+     "price": 29453,
      "shop": "Regal NBIS",
      "where": "New Babbage",
      "system": "Stanton"
@@ -636,7 +592,7 @@
    ],
    "rent": [
     {
-     "price": 680793,
+     "price": 680794,
      "shop": "Regal NBIS",
      "where": "New Babbage",
      "system": "Stanton"
@@ -829,19 +785,19 @@
    ],
    "rent": [
     {
-     "price": 27165,
+     "price": 27166,
      "shop": "Traveler Area 18",
      "where": "Area 18",
      "system": "Stanton"
     },
     {
-     "price": 27165,
+     "price": 27166,
      "shop": "Traveler Orison",
      "where": "Orison",
      "system": "Stanton"
     },
     {
-     "price": 27165,
+     "price": 27166,
      "shop": "Teach's Levski",
      "where": "Levski",
      "system": "Nyx"
@@ -1023,6 +979,24 @@
      "system": "Stanton"
     },
     {
+     "price": 8483740,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 8483740,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 8483740,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    },
+    {
      "price": 9376760,
      "shop": "Teach's Levski",
      "where": "Levski",
@@ -1031,33 +1005,9 @@
    ],
    "rent": [
     {
-     "price": 212093,
-     "shop": "Traveler Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
      "price": 223256,
-     "shop": "Traveler Seraphim",
-     "where": "Seraphim Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage MIC-L1",
-     "where": "MIC-L1 Shallow Frontier Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Traveler Terra Gateway (Stanton)",
-     "where": "Terra Gateway",
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
      "system": "Stanton"
     },
     {
@@ -1068,51 +1018,21 @@
     },
     {
      "price": 223256,
-     "shop": "Traveler Everus",
-     "where": "Everus Harbor",
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
      "system": "Stanton"
     },
     {
      "price": 223256,
-     "shop": "Vantage MIC-L5",
-     "where": "MIC-L5 Modern Icarus Station",
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
      "system": "Stanton"
     },
     {
      "price": 223256,
-     "shop": "Vantage Terra Gateway (Stanton)",
-     "where": "Terra Gateway",
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
      "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Traveler Stanton Gateway (Nyx)",
-     "where": "Stanton Gateway",
-     "system": "Nyx"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage Stanton Gateway (Nyx)",
-     "where": "Stanton Gateway",
-     "system": "Nyx"
-    },
-    {
-     "price": 223256,
-     "shop": "Traveler Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
     },
     {
      "price": 223257,
@@ -1140,8 +1060,20 @@
     },
     {
      "price": 223257,
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
      "shop": "Vantage ARC-L4",
      "where": "ARC-L4 Faint Glen Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
      "system": "Stanton"
     },
     {
@@ -1152,8 +1084,20 @@
     },
     {
      "price": 223257,
-     "shop": "Traveler Tressler",
-     "where": "Port Tressler",
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
      "system": "Stanton"
     },
     {
@@ -1164,26 +1108,32 @@
     },
     {
      "price": 223257,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
+     "shop": "Traveler Everus",
+     "where": "Everus Harbor",
      "system": "Stanton"
     },
     {
      "price": 223257,
-     "shop": "Vantage ARC-L1",
-     "where": "ARC-L1 Wide Forest Station",
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
      "price": 223257,
      "shop": "Traveler Nyx Gateway (Stanton)",
      "where": "Nyx Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 223257,
-     "shop": "Vantage ARC-L2",
-     "where": "ARC-L2 Lively Pathway Station",
      "system": "Stanton"
     },
     {
@@ -1199,7 +1149,31 @@
      "system": "Nyx"
     },
     {
-     "price": 234419,
+     "price": 223257,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223257,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 234420,
      "shop": "Teach's Levski",
      "where": "Levski",
      "system": "Nyx"
@@ -1773,52 +1747,22 @@
    ],
    "rent": [
     {
-     "price": 9049,
+     "price": 9050,
      "shop": "Traveler Pyro Gateway (Stanton)",
      "where": "Pyro Gateway",
      "system": "Stanton"
     },
     {
-     "price": 9049,
+     "price": 9050,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
     },
     {
      "price": 9525,
-     "shop": "Traveler Seraphim",
-     "where": "Seraphim Station",
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
      "system": "Stanton"
-    },
-    {
-     "price": 9525,
-     "shop": "Traveler Terra Gateway (Stanton)",
-     "where": "Terra Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 9525,
-     "shop": "Traveler Area 18",
-     "where": "Area 18",
-     "system": "Stanton"
-    },
-    {
-     "price": 9525,
-     "shop": "Traveler Orison",
-     "where": "Orison",
-     "system": "Stanton"
-    },
-    {
-     "price": 9525,
-     "shop": "Teach's Levski",
-     "where": "Levski",
-     "system": "Nyx"
-    },
-    {
-     "price": 9525,
-     "shop": "Traveler Stanton Gateway (Nyx)",
-     "where": "Stanton Gateway",
-     "system": "Nyx"
     },
     {
      "price": 9526,
@@ -1834,8 +1778,20 @@
     },
     {
      "price": 9526,
-     "shop": "Traveler Tressler",
-     "where": "Port Tressler",
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
      "system": "Stanton"
     },
     {
@@ -1846,8 +1802,26 @@
     },
     {
      "price": 9526,
+     "shop": "Traveler Orison",
+     "where": "Orison",
+     "system": "Stanton"
+    },
+    {
+     "price": 9526,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 9526,
      "shop": "Traveler Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 9526,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
      "system": "Nyx"
     },
     {
@@ -1900,60 +1874,18 @@
    "rent": [
     {
      "price": 2468,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 2468,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 2598,
-     "shop": "Vantage MIC-L5",
-     "where": "MIC-L5 Modern Icarus Station",
+     "price": 2469,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
      "system": "Stanton"
     },
     {
      "price": 2598,
-     "shop": "Vantage Terra Gateway (Stanton)",
-     "where": "Terra Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage MIC-L1",
-     "where": "MIC-L1 Shallow Frontier Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 2598,
-     "shop": "Teach's Levski",
-     "where": "Levski",
-     "system": "Nyx"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage Stanton Gateway (Nyx)",
-     "where": "Stanton Gateway",
-     "system": "Nyx"
-    },
-    {
-     "price": 2598,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
-    },
-    {
-     "price": 2599,
      "shop": "Vantage ARC-L1",
      "where": "ARC-L1 Wide Forest Station",
      "system": "Stanton"
@@ -1972,8 +1904,14 @@
     },
     {
      "price": 2599,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
      "system": "Stanton"
     },
     {
@@ -1990,8 +1928,20 @@
     },
     {
      "price": 2599,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
      "shop": "Vantage CRU-L1",
      "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
@@ -2002,9 +1952,33 @@
     },
     {
      "price": 2599,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    },
+    {
+     "price": 2599,
      "shop": "Vantage Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
      "system": "Nyx"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 2599,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 2600,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
     }
    ]
   },
@@ -2036,7 +2010,7 @@
    ],
    "rent": [
     {
-     "price": 46588,
+     "price": 46589,
      "shop": "Regal NBIS",
      "where": "New Babbage",
      "system": "Stanton"
@@ -2083,18 +2057,18 @@
    "rent": [
     {
      "price": 80797,
-     "shop": "Traveler Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 80797,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 80797,
+     "price": 80798,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 80798,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
@@ -2248,92 +2222,44 @@
    "rent": [
     {
      "price": 69575,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 69575,
-     "shop": "Traveler Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 69575,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 69575,
+     "price": 69576,
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 69576,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 69576,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
     },
     {
      "price": 73237,
-     "shop": "Vantage MIC-L5",
-     "where": "MIC-L5 Modern Icarus Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage Terra Gateway (Stanton)",
-     "where": "Terra Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage MIC-L1",
-     "where": "MIC-L1 Shallow Frontier Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Traveler Seraphim",
-     "where": "Seraphim Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Traveler Terra Gateway (Stanton)",
-     "where": "Terra Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 73237,
-     "shop": "Traveler Stanton Gateway (Nyx)",
-     "where": "Stanton Gateway",
-     "system": "Nyx"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage Stanton Gateway (Nyx)",
-     "where": "Stanton Gateway",
-     "system": "Nyx"
-    },
-    {
-     "price": 73237,
-     "shop": "Traveler Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
-    },
-    {
-     "price": 73237,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
-    },
-    {
-     "price": 73238,
      "shop": "Vantage ARC-L1",
      "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73237,
+     "shop": "Traveler Tressler",
+     "where": "Port Tressler",
      "system": "Stanton"
     },
     {
@@ -2350,8 +2276,14 @@
     },
     {
      "price": 73238,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
+     "shop": "Vantage MIC-L5",
+     "where": "MIC-L5 Modern Icarus Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
      "system": "Stanton"
     },
     {
@@ -2368,8 +2300,20 @@
     },
     {
      "price": 73238,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
      "shop": "Vantage CRU-L1",
      "where": "CRU-L1 Ambitious Dream Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
      "system": "Stanton"
     },
     {
@@ -2386,8 +2330,14 @@
     },
     {
      "price": 73238,
-     "shop": "Traveler Tressler",
-     "where": "Port Tressler",
+     "shop": "Traveler Seraphim",
+     "where": "Seraphim Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
      "system": "Stanton"
     },
     {
@@ -2413,6 +2363,30 @@
      "shop": "Vantage Pyro Gateway (Nyx)",
      "where": "Pyro Gateway",
      "system": "Nyx"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 73238,
+     "shop": "Traveler Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 73238,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
     }
    ]
   },
@@ -2591,7 +2565,7 @@
    ],
    "rent": [
     {
-     "price": 69457,
+     "price": 69458,
      "shop": "Teach's Levski",
      "where": "Levski",
      "system": "Nyx"
@@ -2630,72 +2604,6 @@
     }
    ],
    "rent": []
-  },
-  "rsi-aurora-gs-es": {
-   "buy": [
-    {
-     "price": 402192,
-     "shop": "New Deal Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 402192,
-     "shop": "Teach's Levski",
-     "where": "Levski",
-     "system": "Nyx"
-    }
-   ],
-   "rent": [
-    {
-     "price": 6350,
-     "shop": "Traveler Area 18",
-     "where": "Area 18",
-     "system": "Stanton"
-    },
-    {
-     "price": 6350,
-     "shop": "Traveler Orison",
-     "where": "Orison",
-     "system": "Stanton"
-    },
-    {
-     "price": 10054,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    }
-   ]
-  },
-  "rsi-aurora-gs-mr": {
-   "buy": [
-    {
-     "price": 646380,
-     "shop": "New Deal Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    }
-   ],
-   "rent": [
-    {
-     "price": 16159,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 17010,
-     "shop": "Traveler Orison",
-     "where": "Orison",
-     "system": "Stanton"
-    },
-    {
-     "price": 17010,
-     "shop": "Traveler Area 18",
-     "where": "Area 18",
-     "system": "Stanton"
-    }
-   ]
   },
   "rsi-constellation-andromeda": {
    "buy": [
@@ -2756,17 +2664,6 @@
     }
    ]
   },
-  "rsi-aurora-gs-lx": {
-   "buy": [
-    {
-     "price": 653562,
-     "shop": "New Deal Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    }
-   ],
-   "rent": []
-  },
   "rsi-mantis": {
    "buy": [
     {
@@ -2777,72 +2674,6 @@
     }
    ],
    "rent": []
-  },
-  "rsi-aurora-gs-cl": {
-   "buy": [
-    {
-     "price": 969570,
-     "shop": "New Deal Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 969570,
-     "shop": "Teach's Levski",
-     "where": "Levski",
-     "system": "Nyx"
-    }
-   ],
-   "rent": [
-    {
-     "price": 19391,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 20412,
-     "shop": "Traveler Area 18",
-     "where": "Area 18",
-     "system": "Stanton"
-    },
-    {
-     "price": 20412,
-     "shop": "Traveler Orison",
-     "where": "Orison",
-     "system": "Stanton"
-    }
-   ]
-  },
-  "rsi-aurora-gs-ln": {
-   "buy": [
-    {
-     "price": 861840,
-     "shop": "New Deal Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    }
-   ],
-   "rent": [
-    {
-     "price": 21546,
-     "shop": "Vantage Lorville",
-     "where": "Lorville",
-     "system": "Stanton"
-    },
-    {
-     "price": 22680,
-     "shop": "Traveler Area 18",
-     "where": "Area 18",
-     "system": "Stanton"
-    },
-    {
-     "price": 22680,
-     "shop": "Traveler Orison",
-     "where": "Orison",
-     "system": "Stanton"
-    }
-   ]
   },
   "rsi-constellation-taurus": {
    "buy": [
@@ -2861,7 +2692,7 @@
    ],
    "rent": [
     {
-     "price": 160876,
+     "price": 160877,
      "shop": "Regal NBIS",
      "where": "New Babbage",
      "system": "Stanton"
@@ -2936,13 +2767,13 @@
      "system": "Stanton"
     },
     {
-     "price": 2598,
+     "price": 2599,
      "shop": "Traveler Area 18",
      "where": "Area 18",
      "system": "Stanton"
     },
     {
-     "price": 2598,
+     "price": 2599,
      "shop": "Traveler Orison",
      "where": "Orison",
      "system": "Stanton"
@@ -3017,17 +2848,6 @@
      "price": 134663,
      "shop": "New Deal Lorville",
      "where": "Lorville",
-     "system": "Stanton"
-    }
-   ],
-   "rent": []
-  },
-  "anvl-hornet-f7c": {
-   "buy": [
-    {
-     "price": 2910600,
-     "shop": "Astro Armada",
-     "where": "Area 18",
      "system": "Stanton"
     }
    ],
@@ -3288,7 +3108,7 @@
    ],
    "rent": [
     {
-     "price": 3118,
+     "price": 3119,
      "shop": "Teach's Levski",
      "where": "Levski",
      "system": "Nyx"
@@ -3313,18 +3133,18 @@
    "rent": [
     {
      "price": 9875,
-     "shop": "Traveler Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
-     "system": "Stanton"
-    },
-    {
-     "price": 9875,
      "shop": "Vantage Lorville",
      "where": "Lorville",
      "system": "Stanton"
     },
     {
-     "price": 9875,
+     "price": 9876,
+     "shop": "Traveler Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 9876,
      "shop": "Traveler Everus",
      "where": "Everus Harbor",
      "system": "Stanton"
@@ -3793,16 +3613,10 @@
      "system": "Stanton"
     },
     {
-     "price": 15082,
+     "price": 15083,
      "shop": "Vantage Pyro Gateway (Stanton)",
      "where": "Pyro Gateway",
      "system": "Stanton"
-    },
-    {
-     "price": 15876,
-     "shop": "Teach's Levski",
-     "where": "Levski",
-     "system": "Nyx"
     },
     {
      "price": 15876,
@@ -3905,6 +3719,12 @@
      "shop": "Vantage Stanton Gateway (Pyro)",
      "where": "Stanton Gateway",
      "system": "Pyro"
+    },
+    {
+     "price": 27783,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
     }
    ]
   },
@@ -4260,7 +4080,7 @@
      "system": "Stanton"
     },
     {
-     "price": 90493,
+     "price": 90494,
      "shop": "Vantage Pyro Gateway (Stanton)",
      "where": "Pyro Gateway",
      "system": "Stanton"
@@ -4651,26 +4471,32 @@
      "shop": "Teach's Levski",
      "where": "Levski",
      "system": "Nyx"
+    },
+    {
+     "price": 8930250,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 8930250,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 8930250,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
     }
    ],
    "rent": [
     {
      "price": 223256,
-     "shop": "Vantage Pyro Gateway (Stanton)",
-     "where": "Pyro Gateway",
+     "shop": "Vantage MIC-L2",
+     "where": "MIC-L2 Long Forest Station",
      "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage MIC-L1",
-     "where": "MIC-L1 Shallow Frontier Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223256,
-     "shop": "Vantage Nyx Gateway (Pyro)",
-     "where": "Nyx Gateway",
-     "system": "Pyro"
     },
     {
      "price": 223256,
@@ -4680,15 +4506,33 @@
     },
     {
      "price": 223256,
-     "shop": "Vantage Nyx Gateway (Stanton)",
-     "where": "Nyx Gateway",
+     "shop": "Vantage ARC-L1",
+     "where": "ARC-L1 Wide Forest Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223256,
+     "shop": "Vantage ARC-L2",
+     "where": "ARC-L2 Lively Pathway Station",
      "system": "Stanton"
     },
     {
      "price": 223257,
-     "shop": "Vantage MIC-L2",
-     "where": "MIC-L2 Long Forest Station",
+     "shop": "Vantage Pyro Gateway (Stanton)",
+     "where": "Pyro Gateway",
      "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage MIC-L1",
+     "where": "MIC-L1 Shallow Frontier Station",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Nyx Gateway (Pyro)",
+     "where": "Nyx Gateway",
+     "system": "Pyro"
     },
     {
      "price": 223257,
@@ -4710,12 +4554,6 @@
     },
     {
      "price": 223257,
-     "shop": "Vantage ARC-L1",
-     "where": "ARC-L1 Wide Forest Station",
-     "system": "Stanton"
-    },
-    {
-     "price": 223257,
      "shop": "Vantage ARC-L4",
      "where": "ARC-L4 Faint Glen Station",
      "system": "Stanton"
@@ -4733,12 +4571,152 @@
      "system": "Nyx"
     },
     {
-     "price": 233257,
-     "shop": "Vantage ARC-L2",
-     "where": "ARC-L2 Lively Pathway Station",
+     "price": 223257,
+     "shop": "Vantage Nyx Gateway (Stanton)",
+     "where": "Nyx Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Stanton Gateway (Nyx)",
+     "where": "Stanton Gateway",
+     "system": "Nyx"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Terra Gateway (Stanton)",
+     "where": "Terra Gateway",
+     "system": "Stanton"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Stanton Gateway (Pyro)",
+     "where": "Stanton Gateway",
+     "system": "Pyro"
+    },
+    {
+     "price": 223257,
+     "shop": "Vantage Pyro Gateway (Nyx)",
+     "where": "Pyro Gateway",
+     "system": "Nyx"
+    }
+   ]
+  },
+  "krig-l22-alphawolf": {
+   "buy": [
+    {
+     "price": 4536000,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    }
+   ],
+   "rent": []
+  },
+  "grin-utv": {
+   "buy": [
+    {
+     "price": 75600,
+     "shop": "Astro Armada",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 75600,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    }
+   ],
+   "rent": []
+  },
+  "misc-hull-b": {
+   "buy": [
+    {
+     "price": 7541100,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 7938000,
+     "shop": "Teach's Levski",
+     "where": "Levski",
+     "system": "Nyx"
+    }
+   ],
+   "rent": []
+  },
+  "rsi-aurora-mk2": {
+   "buy": [
+    {
+     "price": 904932,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    }
+   ],
+   "rent": [
+    {
+     "price": 22623,
+     "shop": "Vantage Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 23814,
+     "shop": "Traveler Area 18",
+     "where": "Area 18",
+     "system": "Stanton"
+    },
+    {
+     "price": 23814,
+     "shop": "Traveler Orison",
+     "where": "Orison",
      "system": "Stanton"
     }
    ]
+  },
+  "drak-golem-ox": {
+   "buy": [
+    {
+     "price": 1149120,
+     "shop": "New Deal Lorville",
+     "where": "Lorville",
+     "system": "Stanton"
+    },
+    {
+     "price": 1209600,
+     "shop": "Buy and Fly Checkmate",
+     "where": "Checkmate Station",
+     "system": "Pyro"
+    },
+    {
+     "price": 1209600,
+     "shop": "Buy and Fly Orbituary",
+     "where": "Orbituary",
+     "system": "Pyro"
+    },
+    {
+     "price": 1209600,
+     "shop": "Buy and Fly Ruin Station",
+     "where": "Ruin Station",
+     "system": "Pyro"
+    }
+   ],
+   "rent": []
   }
  }
 }

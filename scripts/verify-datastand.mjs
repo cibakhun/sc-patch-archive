@@ -98,18 +98,18 @@ const HANDPFLEGE = [];
 // gelaufen — die Handlungsanweisung ("neu erzeugen") ist dann immer richtig.
 // Nach unten nur per Commit, dessen Botschaft die Ursache nennt.
 // 27.08.2026, Datenlauf auf sc-alpha-4.10.0 (Client CL 12519617): alle sechs
-// Staende gemeinsam von CL 12344265 auf 12519617 gehoben — nach OBEN, wie es
+// Staende gemeinsam von CL 12344265 auf 12519617 gehoben.
+// 24.09.2026, Datenlauf auf sc-alpha-4.10.0 (Client CL 12660092): alle sieben
+// Staende gemeinsam von CL 12519617 auf 12660092 gehoben — nach OBEN, wie es
 // Grundsatz 5 verlangt.
 const KLINKEN = {
-  Missionen: 12519617,
-  Mining: 12519617,
-  Crafting: 12519617,
-  'Item-Katalog': 12519617,
-  Refinery: 12519617,
-  Zerlegung: 12519617,
-  // Phase 20 (D-04): Wikelo wandert aus HANDPFLEGE hierher, ihre Kennung
-  // stammt jetzt aus demselben 4.10-Datenlauf wie die anderen sechs.
-  Wikelo: 12519617,
+  Missionen: 12660092,
+  Mining: 12660092,
+  Crafting: 12660092,
+  'Item-Katalog': 12660092,
+  Refinery: 12660092,
+  Zerlegung: 12660092,
+  Wikelo: 12660092,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine
