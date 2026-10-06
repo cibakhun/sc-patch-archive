@@ -1063,11 +1063,13 @@ span.sd__ref{color:var(--muted)}
               <img
                 src={i === 0 ? g.src : undefined}
                 data-src={i === 0 ? undefined : g.src}
+                srcset={i === 0 ? g.srcset : undefined}
+                sizes={i === 0 && g.srcset ? '100vw' : undefined}
                 data-fb={g.fb}
                 class={i === 0 ? 'is-active' : undefined}
                 alt={g.paint ? altPaint(g.paint) : altView}
                 referrerpolicy="no-referrer"
-                onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb')}else{this.dataset.bad='1';this.style.display='none'}"
+                onerror="if(this.srcset){this.removeAttribute('srcset');return}if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb')}else{this.dataset.bad='1';this.style.display='none'}"
               />
             ))
           ) : (
@@ -1763,7 +1765,9 @@ span.sd__ref{color:var(--muted)}
 
   // ---------- Kaputte Bilder: Kette Ersatz-Thumb -> nächstes Bild -> Holo -> Hinweis ----------
   // Externe Bild-URLs (Wiki/FleetYards) können jederzeit sterben. Der inline-
-  // onerror am <img> probiert erst data-fb (kleineres Wiki-Thumb) und markiert
+  // onerror am <img> wirft zuerst ein srcset ab (die 1920/2560-px-Fassungen
+  // aus ship-hero-widths.json — fehlt eine doch, laedt der Browser das 1280er
+  // aus src nach), probiert dann data-fb (kleineres Wiki-Thumb) und markiert
   // das Bild sonst als bad+unsichtbar. Hier die Stufen danach — eine dauerhaft
   // schwarze Bühne darf es nicht geben.
   var autoHolo = null; // wird im Holo-Block auf start() gesetzt, wenn 3D verfügbar

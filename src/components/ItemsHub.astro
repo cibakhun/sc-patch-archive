@@ -29,6 +29,7 @@ const total = db.counts.items;
   modified={db.generatedAt}
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
+  breit
 >
   <h1 slot="hero">{t('hubTitle')}</h1>
   <p class="dp-lead" slot="hero">{fill(t('hubLead'), { total: num(total, lang), patch: ITEM_PATCH })}</p>

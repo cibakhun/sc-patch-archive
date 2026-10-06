@@ -50,11 +50,18 @@ interface Props {
   /** Quellenzeile im Fuss */
   sources?: string[];
   updated?: string;
+  /**
+   * Uebersicht mit Kachel-/Chip-Raster: die Spalte darf auf breiten Schirmen
+   * mitwachsen (theme.css § 5, --vb-breit). Nur fuer Seiten, deren Breite in
+   * RASTERN steckt — Fliesstext haelt hier ohnehin 68–72ch, Tabellen aber
+   * nicht. Detail- und Listenseiten bleiben deshalb bei 1080 px.
+   */
+  breit?: boolean;
 }
 
 const {
   lang, title, description, crumbs, eyebrow, tone = 'items',
-  ogImage, modified, ldName, jsonLd = [], sources = [], updated,
+  ogImage, modified, ldName, jsonLd = [], sources = [], updated, breit = false,
 } = Astro.props;
 
 const t = useTranslations(lang);
@@ -121,7 +128,7 @@ const crumbLd = {
 
   <a class="dp-skip" href="#main">{t('skip.toContent')}</a>
 
-  <div class="dp" data-tone={tone}>
+  <div class="dp" data-tone={tone} data-breit={breit ? '' : undefined}>
     <header class="dp-bar">
       <a class="dp-home" href={href('/index.html', lang)} aria-label={t('nav.home.aria')}>VerseBase</a>
       <nav class="dp-crumbs" aria-label={t('nav.path')} data-back-self={crumbs[crumbs.length - 1]?.label}>
