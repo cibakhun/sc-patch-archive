@@ -352,6 +352,11 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
       JS die Leiste und der Verlauf aus mobile-ux.css stehen bleiben. Auf
       Seiten ohne solchen Kasten kostet es ein querySelectorAll. */}
   <script is:inline defer src={versioned('assets/scroll-affordance.js', '/assets/scroll-affordance.js')}></script>
+  {/* Sprachhinweis: wer mit deutschem Browser auf einer englischen Seite
+      einsteigt, bekommt die deutsche Fassung angeboten (und umgekehrt).
+      Begruendung und Bedingungen im Kopf der Datei. Ohne Gegenstueck,
+      bei internem Seitenwechsel oder nach dem Schliessen tut sie nichts. */}
+  <script is:inline defer src={versioned('assets/sprachhinweis.js', '/assets/sprachhinweis.js')}></script>
   {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
       Umschalter steht zweimal auf der Seite (Leiste + Menü), das Verhalten
       soll aber nur einmal existieren. Delegierter Klick -> beliebig viele
