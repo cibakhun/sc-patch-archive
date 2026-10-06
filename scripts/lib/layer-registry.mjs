@@ -724,6 +724,11 @@ export const EXCLUSIONS = [
     reason: 'body::after (die Vignette) wird bereits EXKLUSIV durch Zusicherung 1 (Begrenzung/Maske) und Zusicherung 2 (die einzige erlaubte bildschirmfuellende Verlaufs-Ebene) geprueft -- ein zweiter Registry-Eintrag waere doppelte Zustaendigkeit fuer dieselbe Regel.',
   },
   {
+    id: 'X-hangar-vignette',
+    selectorFamilies: ['.hg-canvas::after'],
+    reason: 'src/components/hangar/HangarApp.astro: .hg-canvas::after ist eine Randabdunklung (radial-gradient, Mitte durchsichtig, Rand var(--bg) 55 %) ueber der 3D-Leinwand des Hangars, kein Scrim unter Text. Titel, Werte-Panel und Bedienknoepfe sind Geschwister ueber der Leinwand mit eigener Flaeche bzw. Textschatten; die Abdunklung kann ihren Kontrast nur heben. Die Leinwand selbst ist ein laufendes WebGL-Bild -- ein statischer Kontrastwert koennte sie ohnehin nicht zertifizieren.',
+  },
+  {
     id: 'X-rec-banner-dead',
     selectorFamilies: ['.rec-banner::after'],
     reason: 'assets/account-dossier.css: .rec-banner (samt .bmeta/.bchip/.barcode) ist TOTES CSS -- 0 Fundstellen in src/ (grep bestaetigt), die Klasse wird auf keiner Seite verwendet. Keine tatsaechliche Rendering-Instanz zu messen.',
