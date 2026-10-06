@@ -9,13 +9,22 @@
 // HALLE wächst mit dem Schiff (Faktor S), damit eine Idris nicht in einer
 // Jägergarage steht — ein Arbeiter neben ihr ist dann so klein, wie er wäre.
 //
-// LACK: die Modelle tragen nur Geometrie, keine Materialien, keine UVs. Der
-// Lack entsteht deshalb im Shader aus der Lage im Modell (Objektraum, Meter):
-// Herstellerfarben zweifarbig nach Höhe, Plattenfugen triplanar, Schmutz und
-// blanke Stellen aus Rauschen. Wählbare Lackierungen tauschen nur Uniforms.
+// LACK: Schiffe mit eigener Web-Fassung (/hangar/ships/*.glb, gebaut von
+// scripts/build-hangar-assets.mjs) tragen den echten Werkslack samt Decals.
+// Alle übrigen kommen als reine Geometrie (/holo/*.glb); ihr Lack entsteht
+// im Shader aus der Lage im Modell (Objektraum, Meter): Herstellerfarben
+// zweifarbig nach Höhe, Plattenfugen triplanar, Schmutz und blanke Stellen
+// aus Rauschen. Wählbare Lackierungen tauschen nur Uniforms — beim echten
+// Lack legt sich der Shader-Lack über den Rumpf, Glas und Decals bleiben.
 //
-// API:  initHangar(container, { reduceMotion }) -> Promise<{
-//         show(url, { maker }) -> Promise<void>, setLivery(key),
+// HALLE: liegt eine echte Halle vor (opts.hall), ersetzt sie nach dem Laden
+// die gebaute Halle; bis dahin (und wenn sie scheitert) steht die gebaute.
+//
+// CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
+// der gebauten Arbeiter an den Arbeitsplätzen.
+//
+// API:  initHangar(container, { reduceMotion, hall?: { url, room }, crew?: { url } }) -> Promise<{
+//         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose() }>
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
 import * as THREE from 'three';
@@ -763,6 +772,43 @@ function buildLife(scene, reduceMotion) {
     // Kran über die ganze Halle
     beam.scale.set(HALL_R * S * 1.8, 1, 1);
     crane.position.y = HALL_H * S - 3;
+    // Standplätze der echten Crew: [Ort, Blickziel]
+    props.crates.updateMatrixWorld();
+    const cratesFront = props.crates.localToWorld(new THREE.Vector3(0.6, 0, -1.4));
+    L.spots = [
+      [L.weldAt, props.bench.position],
+      [L.weldAt2, props.bench2.position],
+      [cratesFront, props.crates.position],
+      // am Schiff (Bug zeigt nach +Z, zur Startansicht): vor dem Bug, an der
+      // rechten Flanke, an der linken Flügelspitze — alle schauen aufs Schiff
+      [new THREE.Vector3(1.4, 0, L.shipLen / 2 + 1.8), new THREE.Vector3(0, 0, L.shipLen * 0.3)],
+      [new THREE.Vector3(L.shipHalfW - 0.3, 0, L.shipLen * 0.12), new THREE.Vector3(0, 0, L.shipLen * 0.1)],
+      [new THREE.Vector3(-L.shipHalfW, 0, -L.shipLen * 0.2), new THREE.Vector3(0, 0, -L.shipLen * 0.1)],
+    ];
+    placeCrew();
+  }
+
+  // Echte Hangar-Crew (statisch, Modell aus scripts/build-hangar-assets.mjs):
+  // ersetzt die gebauten Arbeiter. Die Figur blickt in -Z.
+  const figs = [];
+  function placeCrew() {
+    if (!L || !figs.length) return;
+    figs.forEach((f, i) => {
+      const [p, look] = L.spots[i % L.spots.length];
+      f.position.set(p.x, 0, p.z);
+      f.rotation.y = Math.atan2(look.x - p.x, look.z - p.z) + Math.PI;
+    });
+  }
+  function setCrew(model) {
+    for (let i = 0; i < 6; i++) {
+      const f = model.clone();
+      f.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+      // leicht unterschiedliche Statur, damit es keine Klonarmee wird
+      f.scale.setScalar(0.96 + ((i * 37) % 9) / 100);
+      root.add(f); figs.push(f);
+    }
+    for (const w of crew) w.root.visible = false;
+    placeCrew();
   }
 
   // Rollen der acht Arbeiter
@@ -782,7 +828,7 @@ function buildLife(scene, reduceMotion) {
         const yaw = p.at(d, tmp);
         w.root.position.copy(tmp); w.root.rotation.y = yaw;
         if (reduceMotion) poseStand(w); else poseWalk(w, d * 3.2, role === 'push' ? 0.7 : 1);
-        if (role === 'push') {
+        if (role === 'push' && !figs.length) {   // ohne Schieber bleibt der Wagen stehen
           w.shL.rotation.x = w.shR.rotation.x = -1.2; w.elL.rotation.x = w.elR.rotation.x = -0.3;
           props.cart.position.copy(tmp).add(v.set(Math.sin(yaw), 0, Math.cos(yaw)).multiplyScalar(0.9));
           props.cart.rotation.y = yaw + Math.PI / 2;
@@ -847,7 +893,7 @@ function buildLife(scene, reduceMotion) {
     hook.position.set(tx + (reduceMotion ? 0 : Math.sin(t * 0.7) * 0.15), -1.4 - ropeLen, cz);
   }
 
-  return { layout, update, root };
+  return { layout, update, root, crane, props, setCrew };
 }
 
 // Hüllquader ohne Ausreißer: manche Modelle tragen einzelne Splitter weit
@@ -915,7 +961,8 @@ export async function initHangar(container, opts = {}) {
 
   // Licht: Himmel, Hauptstrahler mit Schatten, warmes Gegenlicht, Fülllicht.
   // decay 0: die Halle wächst mit dem Schiff, die Helligkeit soll es nicht.
-  scene.add(new THREE.HemisphereLight(0xc8d6ff, 0x1a1c22, 0.6));
+  const hemi = new THREE.HemisphereLight(0xc8d6ff, 0x1a1c22, 0.6);
+  scene.add(hemi);
   const key = new THREE.SpotLight(0xffffff, 3.2, 0, Math.PI / 4.2, 0.5, 0);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -953,14 +1000,29 @@ export async function initHangar(container, opts = {}) {
     if (!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
   });
 
+  // Echte Halle: wird geladen, sobald die Bühne steht. room = Innenraum im
+  // Modellraum (Bodenmitte, halbe Breite/Länge, Höhe).
+  let realHall = null;     // { group, room }
+  let lastInfo = null;
+  // Maßstab der echten Halle: Originalgröße, solange Schiff samt Gerät
+  // hineinpasst; das Gerät steht bis PAD_R*S + 9 m von der Mitte.
+  const realHallScale = (room) => Math.max(1, (PAD_R * S + 9) / room.halfW, (span * 1.15) / (2 * room.halfL));
+
   // Halle, Licht, Nebel und Kamera auf die Schiffsgröße einstellen.
   function scaleWorld(shipInfo) {
+    lastInfo = shipInfo;
     span = Math.max(shipInfo.len, shipInfo.halfW * 2, 6);
     S = Math.max(1, span / 16);
     hall.scale.setScalar(S);
     floor.scale.setScalar(HALL_R * S * 1.02);
     floorTex.repeat.set((HALL_R * S * 2) / 8, (HALL_R * S * 2) / 8); // Kachel 4 m (Textur = 2x2 Platten)
     scene.fog.near = HALL_R * S * 1.1; scene.fog.far = HALL_R * S * 3.2;
+    if (realHall) {
+      const k = realHallScale(realHall.room);
+      realHall.group.scale.setScalar(k);
+      // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
+      scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
+    }
     key.position.set(9 * S, HALL_H * S * 0.92, 12 * S);
     key.target.position.set(0, shipInfo.height * 0.4, 0);
     key.shadow.camera.near = 4 * S; key.shadow.camera.far = 60 * S;
@@ -976,9 +1038,44 @@ export async function initHangar(container, opts = {}) {
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   const loader = new GLTFLoader().setDRACOLoader(draco);
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+  function loadRealHall(h) {
+    loader.load(h.url, (gltf) => {
+      const model = gltf.scene;
+      const c = h.room.center;
+      model.position.set(-c[0], -c[1], -c[2]);
+      model.traverse((n) => {
+        if (!n.isMesh) return;
+        n.receiveShadow = true;
+        n.castShadow = false;
+        for (const m of [].concat(n.material)) {
+          // weißer Innenraum: Reflexe der Ersatzhalle dämpfen, sonst glänzt alles
+          m.envMapIntensity = 0.45;
+          for (const t of [m.map, m.normalMap]) if (t) t.anisotropy = maxAniso;
+        }
+      });
+      const group = new THREE.Group();
+      group.add(model);
+      scene.add(group);
+      realHall = { group, room: h.room };
+      // die gebaute Halle weicht; Gerät, Crew, Schlepper und Drohne bleiben
+      hall.visible = false;
+      floor.visible = false;
+      life.crane.visible = false;
+      // gemalte Behälter wirken vor echten Wänden wie Spielzeug
+      for (const k of ['tanks', 'barrels', 'barrels2', 'spool']) life.props[k].visible = false;
+      scene.background = new THREE.Color(0x9aa0a8);
+      scene.fog.color.set(0x9aa0a8);
+      hemi.intensity = 0.55;
+      renderer.toneMappingExposure = 0.82;
+      if (current) { current.group.userData.baseY = 0.02; }
+      if (lastInfo) scaleWorld(lastInfo);
+    }, undefined, () => { /* gebaute Halle bleibt stehen */ });
+  }
 
   let current = null;      // { group, born, mat, info }
-  let leaving = null;      // { group, t0 }
+  let leaving = null;      // { group, t0, c }
   let token = 0;
   let progressFn = null;
   let liveryKey = 'werk';
@@ -996,37 +1093,58 @@ export async function initHangar(container, opts = {}) {
     u.uPattern.value = p.pattern;
   }
 
+  const fetchGltf = (url) => new Promise((resolve, reject) => {
+    loader.load(url, resolve, (e) => {
+      if (!progressFn) return;
+      progressFn(e.total ? Math.round((e.loaded / e.total) * 100) : Math.min(99, Math.round(e.loaded / 4000)));
+    }, reject);
+  });
+
   async function show(url, o = {}) {
     const my = ++token;
     makerCode = o.maker || '';
-    const gltf = await new Promise((resolve, reject) => {
-      loader.load(url, resolve, (e) => {
-        if (!progressFn) return;
-        progressFn(e.total ? Math.round((e.loaded / e.total) * 100) : Math.min(99, Math.round(e.loaded / 4000)));
-      }, reject);
-    });
+    // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
+    let gltf = null, textured = false;
+    if (o.tex) {
+      try { gltf = await fetchGltf(o.tex); textured = true; } catch { gltf = null; }
+      if (my !== token) { if (gltf) disposeObject(gltf.scene); return; }
+    }
+    if (!gltf) gltf = await fetchGltf(url);
     if (my !== token) { disposeObject(gltf.scene); return; }   // überholt
 
     const model = gltf.scene;
     const mat = paintMaterial();
+    const hull = [];       // [mesh, Originalmaterial] — Rumpfteile, die der Shader-Lack übermalen darf
     model.traverse((n) => {
       if (!n.isMesh) return;
+      n.castShadow = true;
+      n.receiveShadow = true;
+      if (textured) {
+        const m = n.material;
+        m.envMapIntensity = 0.9;
+        for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
+        if (!m.transparent) hull.push([n, m]);
+        return;
+      }
       n.material.dispose();
       n.material = mat;
       // Neu gerechnete Normalen: die mitgelieferten sind nach der Dezimierung
       // bei Großschiffen (Polaris, Idris) fleckig.
       n.geometry.computeVertexNormals();
-      n.castShadow = true;
-      n.receiveShadow = true;
     });
     // Die Achsdrehung Z-oben -> Y-oben steckt schon im Knoten der .glb.
+    // Bug in -Z, die Startansicht kommt von +Z: einmal umdrehen, damit der
+    // Besucher dem Schiff ins Gesicht schaut und das Tor dahinter liegt.
+    const turn = new THREE.Group();
+    turn.rotation.y = Math.PI;
+    turn.add(model);
     const wrap = new THREE.Group();
-    wrap.add(model);
+    wrap.add(turn);
     wrap.updateMatrixWorld(true);
     const box = robustBox(wrap);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    model.position.set(-center.x, -box.min.y, -center.z);
+    wrap.position.set(-center.x, -box.min.y, -center.z);
     // Lack-Uniforms im Objektraum des Modells (Z oben, Meter)
     const u = mat.userData.u;
     u.uZ.value.set(box.min.y, box.max.y);
@@ -1038,23 +1156,43 @@ export async function initHangar(container, opts = {}) {
     ship.add(wrap);
     const info = { len: size.z, halfW: size.x / 2, height: size.y };
     scaleWorld(info);
-    ship.userData.baseY = 0.3 * S + 0.25;
+    // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
+    ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
     controls.target.set(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
     if (!touched) camera.position.copy(homePos());
     else camera.position.sub(controls.target).setLength(THREE.MathUtils.clamp(camera.position.distanceTo(controls.target), controls.minDistance, controls.maxDistance)).add(controls.target);
 
-    if (leaving) { scene.remove(leaving.group); disposeObject(leaving.group); leaving = null; }
-    if (current) { leaving = { group: current.group, t0: performance.now() }; }
+    if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
+    if (current) { leaving = { group: current.group, t0: performance.now(), c: current }; }
     scene.add(ship);
-    current = { group: ship, born: performance.now(), mat, info };
+    current = { group: ship, born: performance.now(), mat, info, hull: textured ? hull : null };
+    if (textured) wearPaint(current, liveryKey !== 'werk');
     if (progressFn) progressFn(100);
+  }
+
+  // Echter Lack <-> Shader-Lack auf dem Rumpf eines texturierten Schiffs.
+  function wearPaint(c, on) {
+    for (const [n, orig] of c.hull) n.material = on ? c.mat : orig;
+  }
+  // Ein Schiff freigeben — samt der Materialien, die gerade nicht hängen.
+  function release(c) {
+    if (c.hull) {
+      wearPaint(c, false);
+      // texturierte Fassung: ~200 Bilder je Schiff, die sonst im Grafikspeicher blieben
+      c.group.traverse((n) => {
+        if (n.material) for (const m of [].concat(n.material)) for (const t of [m.map, m.normalMap, m.emissiveMap, m.aoMap, m.roughnessMap, m.metalnessMap]) t?.dispose();
+      });
+    }
+    c.mat.dispose();
+    disposeObject(c.group);
   }
 
   function setLivery(k) {
     if (!LIVERIES[k]) return;
     liveryKey = k;
     if (!current) return;
+    if (current.hull) wearPaint(current, k !== 'werk');
     const p = paintFor(makerCode, k);
     const u = current.mat.userData.u;
     fade.from = [u.uPrim.value.clone(), u.uSec.value.clone(), u.uAcc.value.clone()];
@@ -1083,7 +1221,7 @@ export async function initHangar(container, opts = {}) {
       const g = current.group;
       const k = reduceMotion ? 1 : Math.min(1, (now - current.born) / 650);
       const e = 1 - Math.pow(1 - k, 3);
-      g.position.y = g.userData.baseY + (reduceMotion ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.25;
+      g.position.y = g.userData.baseY + (reduceMotion || realHall ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.25;
       g.rotation.y = (1 - e) * -0.6;
       if (fade.to) {
         const f = Math.min(1, (now - fade.t0) / 450);
@@ -1098,13 +1236,15 @@ export async function initHangar(container, opts = {}) {
       const k = reduceMotion ? 1 : Math.min(1, (now - leaving.t0) / 400);
       leaving.group.position.y += 0.02 * span * k;
       leaving.group.scale.multiplyScalar(1 - 0.08 * k);
-      if (k >= 1) { scene.remove(leaving.group); disposeObject(leaving.group); leaving = null; }
+      if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
     controls.update();
     renderer.render(scene, camera);
   }
 
   scaleWorld({ len: 14, halfW: 6, height: 4 });
+  if (opts.hall?.url && opts.hall.room) loadRealHall(opts.hall);
+  if (opts.crew?.url) loader.load(opts.crew.url, (g) => life.setCrew(g.scene), undefined, () => { /* gebaute Arbeiter bleiben */ });
   frame();
 
   const ro = new ResizeObserver(() => {
