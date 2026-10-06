@@ -294,7 +294,34 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
       aus und das Skript laedt gar nicht erst (map in nginx/default.conf). Ein
       Tag, der bei Widerspruch verschwinden muesste, waere in 17.000 statischen
       Seiten nicht zu haben — die Kopfzeile kann das pro Aufruf. */}
-  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920"></script>
+  {/* Zaehl-Hygiene (06.10.2026). Zwei Sorten Aufrufe verbogen jede Kennzahl:
+      1. Eigene Messlaeufe — localhost 662 und 127.0.0.1 996 Aufrufe in 90
+         Tagen (Playwright-Werkzeuge gegen dist/). `data-domains` laesst den
+         Zaehler nur noch auf verse-base.com laufen.
+      2. Crawler in echten Browsern. Sie fuehren JavaScript aus und zaehlen
+         deshalb als Besucher — am 23.09. allein 1.196 „Besucher" aus
+         Singapur, alle 1280x1200, alle 0 s. Erkennbar an Fenstergroessen, die
+         kein Bildschirm hat. Jede Signatur unten ist in Umami gemessen
+         (90 Tage, Absprung 97–100 %, Verweildauer 0–1 s); keine echte
+         Bildschirmgroesse steht darunter. 390x844 ist ein echtes iPhone —
+         dort zaehlt nur die Kombination „Chrome iOS ohne Herkunft" (201 von
+         203 Chrome-iOS-Besuchern, alle auf Uebersichtsseiten, alle 0 s).
+      Liefert vbZaehlen null, schickt das Umami-Skript nichts ab. */}
+  <script is:inline>
+    (function () {
+      var BOT = ['1280x1200', '800x600', '1024x1024', '1200x3000', '1280x1280'];
+      window.vbZaehlen = function (typ, daten) {
+        try {
+          if (navigator.webdriver) return null;
+          var s = screen.width + 'x' + screen.height;
+          if (BOT.indexOf(s) !== -1) return null;
+          if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
+        } catch (e) {}
+        return daten;
+      };
+    })();
+  </script>
+  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-before-send="vbZaehlen"></script>
   <slot name="head" />
 </head>
 <body>
