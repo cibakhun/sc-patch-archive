@@ -841,7 +841,9 @@ function buildLife(scene, reduceMotion) {
     const halfW = ship ? Math.min(ship.halfW + 1.5, R - 1.5) : R * 0.5;
     props.stair.position.set(-halfW, 0.3, ship ? ship.len * 0.1 : 0);
     props.stair.rotation.y = -Math.PI / 2;
-    props.stair.visible = !!ship && ship.height > 2.5;
+    // Die Bordtreppe stand neben jedem Schiff, ohne zu dessen Einstieg zu
+    // passen — eher störend als belebend.
+    props.stair.visible = false;
 
     const benchPos = (b, side) => b.localToWorld(new THREE.Vector3(side, 0, 0.9));
     props.bench.updateMatrixWorld(); props.bench2.updateMatrixWorld();
@@ -911,7 +913,7 @@ function buildLife(scene, reduceMotion) {
         const yaw = p.at(d, tmp);
         w.root.position.copy(tmp); w.root.rotation.y = yaw;
         if (reduceMotion) poseStand(w); else poseWalk(w, d * 3.2, role === 'push' ? 0.7 : 1);
-        if (role === 'push') {
+        if (role === 'push' && props.cart.visible) {
           w.shL.rotation.x = w.shR.rotation.x = -1.2; w.elL.rotation.x = w.elR.rotation.x = -0.3;
           props.cart.position.copy(tmp).add(v.set(Math.sin(yaw), 0, Math.cos(yaw)).multiplyScalar(0.9));
           props.cart.rotation.y = yaw + Math.PI / 2;
@@ -976,7 +978,7 @@ function buildLife(scene, reduceMotion) {
     hook.position.set(tx + (reduceMotion ? 0 : Math.sin(t * 0.7) * 0.15), -1.4 - ropeLen, cz);
   }
 
-  return { layout, update, root, crane, props, setCrew, isRigged: () => rigged };
+  return { layout, update, root, crane, props, tug: tugV, setCrew, isRigged: () => rigged };
 }
 
 // Hüllquader ohne Ausreißer: manche Modelle tragen einzelne Splitter weit
@@ -1181,7 +1183,8 @@ export async function initHangar(container, opts = {}) {
       floor.visible = false;
       life.crane.visible = false;
       // gemalte Behälter wirken vor echten Wänden wie Spielzeug
-      for (const k of ['tanks', 'barrels', 'barrels2', 'spool']) life.props[k].visible = false;
+      for (const k of ['tanks', 'barrels', 'barrels2', 'spool', 'cart']) life.props[k].visible = false;
+      life.tug.visible = false;
       scene.background = new THREE.Color(0x9aa0a8);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
@@ -1246,6 +1249,16 @@ export async function initHangar(container, opts = {}) {
       n.receiveShadow = true;
       if (textured) {
         const m = n.material;
+        // POM-Decals sind im Spiel reine Relief-Schichten über dem Rumpf
+        // (Nieten, Plattenkanten), deren Farbbild nie sichtbar ist. Als
+        // eigene Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
+        if (/(^|_)pom(_|$)|pom_?decal/i.test(m.name || '')) { n.visible = false; return; }
+        // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
+        // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
+        // ist im Spiel fast immer, was dort sitzt.
+        if (!m.map && m.color.r + m.color.g + m.color.b < 0.06) {
+          m.color.setHex(0x3a3d42); m.metalness = 0.6; m.roughness = 0.45;
+        }
         m.envMapIntensity = 0.9;
         for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
         if (!m.transparent) hull.push([n, m]);

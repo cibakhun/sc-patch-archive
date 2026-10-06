@@ -28,6 +28,13 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 type Asset = { url: string; v?: string; room?: unknown };
 const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
+// Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
+// Schiff zeigt solange die Geometrie-Fassung.
+const HOLD: Record<string, string> = {
+  'crus-starlifter-c2': 'Rumpf nach der Dezimierung zersplittert (weiße Platten, Löcher); erst nach Neuexport mit weniger Reduktion',
+  'misc-freelancer': 'Rumpf als schwarz glänzende, verlaufene Flächen; die Lackschichten löst der Export nicht auf',
+  'rsi-constellation-andromeda': 'Rumpf fleckig und fast schwarz, Lackschichten unaufgelöst; Geometrie-Fassung wirkt sauberer',
+};
 const hallAsset = Object.values(real.hall ?? {})[0];
 const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
@@ -75,7 +82,7 @@ const ships = vehicles.map((v) => {
     r: vRoleCig(v.id, d, lang) ?? '',
     img: thumb?.src ?? null,
     glb: m.v ? `${m.url}?v=${m.v}` : m.url,
-    tex: real.ships?.[v.id] ? withV(real.ships[v.id]) : null,
+    tex: real.ships?.[v.id] && !HOLD[v.id] ? withV(real.ships[v.id]) : null,
     sheet: L(`/schiffe/${v.id}.html`),
     s: STATS.map((s) => {
       const x = s.get(d);
