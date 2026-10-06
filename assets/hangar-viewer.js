@@ -706,6 +706,95 @@ function pathOf(points) {
 }
 const polar = (r, a, y = 0) => new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a) * r);
 
+// Zerlegt die echte Crew-Figur in Glieder für das Arbeitergerüst.
+// Die Figur steht in Metern, Y oben, blickt in -Z, Arme nach vorn unten
+// zusammengeführt (so kommt sie aus dem Build). Ergebnis: Gelenkname ->
+// [[Geometrie im Gelenkraum, Material]].
+function rigCrew(model) {
+  model.updateMatrixWorld(true);
+  // Gelenke des Gerüsts in Weltlage (siehe worker()): Körper 0,95, Hals 1,55,
+  // Schulter ±0,23/1,45, Ellbogen 0,30 tiefer, Hüfte ±0,1/0,93, Knie 0,45 tiefer.
+  const BODY = new THREE.Vector3(0, 0.95, 0), NECK = new THREE.Vector3(0, 1.55, 0);
+  const tri = { body: [], neck: [], shL: [], elL: [], shR: [], elR: [], hipL: [], knL: [], hipR: [], knR: [] };
+  const sh = (sx) => new THREE.Vector3(0.22 * sx, 1.47, 0.02);     // Schulter der Figur (nach der Wende)
+  const hd = (sx) => new THREE.Vector3(0.04 * sx, 0.88, 0.33);     // Hände vorn zusammen
+  const rot = { L: null, R: null };
+  for (const k of ['L', 'R']) {
+    const sx = k === 'L' ? -1 : 1;
+    rot[k] = new THREE.Quaternion().setFromUnitVectors(hd(sx).sub(sh(sx)).normalize(), new THREE.Vector3(0, -1, 0));
+  }
+  const c = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), q = new THREE.Vector3();
+  const distSeg = (p, s0, s1) => {
+    b.subVectors(s1, s0); const t = THREE.MathUtils.clamp(a.subVectors(p, s0).dot(b) / b.lengthSq(), 0, 1);
+    return q.copy(s0).addScaledVector(b, t).distanceTo(p);
+  };
+  model.traverse((n) => {
+    if (!n.isMesh) return;
+    const g = (n.geometry.index ? n.geometry.toNonIndexed() : n.geometry.clone());
+    g.applyMatrix4(n.matrixWorld);
+    g.rotateY(Math.PI);                       // Blick nach +Z wie das Gerüst
+    const P = g.attributes.position;
+    const isArm = /arm/i.test(n.material.name || '');
+    for (let t = 0; t < P.count; t += 3) {
+      c.set(0, 0, 0);
+      for (let k = 0; k < 3; k++) c.x += P.getX(t + k) / 3, c.y += P.getY(t + k) / 3, c.z += P.getZ(t + k) / 3;
+      const side = c.x < 0 ? 'L' : 'R', sx = c.x < 0 ? -1 : 1;
+      let key;
+      const nearArm = distSeg(c, sh(sx), hd(sx)) < 0.085 && (c.z > 0.12 || Math.abs(c.x) > 0.2);
+      if (isArm || (nearArm && c.y > 0.75)) {
+        // Ober- oder Unterarm: Abstand von der Schulter nach dem Geradebiegen
+        a.subVectors(c, sh(sx)).applyQuaternion(rot[side]);
+        key = (-a.y > 0.3 ? 'el' : 'sh') + side;
+      } else if (c.y > 1.56 && Math.abs(c.x) < 0.14) key = 'neck';
+      else if (c.y < 0.92) key = (c.y < 0.48 ? 'kn' : 'hip') + side;
+      else key = 'body';
+      tri[key].push(g, t, n.material);
+    }
+  });
+  const out = {};
+  for (const [key, list] of Object.entries(tri)) {
+    // nach Material bündeln
+    const byMat = new Map();
+    for (let i = 0; i < list.length; i += 3) {
+      const g = list[i], t = list[i + 1], m = list[i + 2];
+      if (!byMat.has(m)) byMat.set(m, []);
+      byMat.get(m).push(g, t);
+    }
+    out[key] = [];
+    for (const [mat, refs] of byMat) {
+      const nTri = refs.length / 2;
+      const pos = new Float32Array(nTri * 9), nor = new Float32Array(nTri * 9);
+      for (let i = 0; i < refs.length; i += 2) {
+        const g = refs[i], t = refs[i + 1], o = (i / 2) * 9;
+        const gp = g.attributes.position, gn = g.attributes.normal;
+        for (let k = 0; k < 3; k++) {
+          pos[o + k * 3] = gp.getX(t + k); pos[o + k * 3 + 1] = gp.getY(t + k); pos[o + k * 3 + 2] = gp.getZ(t + k);
+          if (gn) { nor[o + k * 3] = gn.getX(t + k); nor[o + k * 3 + 1] = gn.getY(t + k); nor[o + k * 3 + 2] = gn.getZ(t + k); }
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+      const side = key.endsWith('L') ? 'L' : 'R', sx = side === 'L' ? -1 : 1;
+      if (key.startsWith('sh') || key.startsWith('el')) {
+        const s0 = sh(sx);
+        geo.translate(-s0.x, -s0.y, -s0.z);
+        geo.applyQuaternion(rot[side]);
+        // Gerüstschulter sitzt bei ±0,23 — leicht nach außen, damit die Arme frei hängen
+        geo.translate(sx * 0.02, 0, 0);
+        if (key.startsWith('el')) geo.translate(0, 0.3, 0);
+      } else if (key.startsWith('hip')) geo.translate(-0.1 * sx, -0.93, 0);
+      else if (key.startsWith('kn')) geo.translate(-0.1 * sx, -0.48, 0);
+      else if (key === 'neck') geo.translate(-NECK.x, -NECK.y, -NECK.z);
+      else geo.translate(-BODY.x, -BODY.y, -BODY.z);
+      if (!gnHas(refs)) geo.computeVertexNormals();
+      out[key].push([geo, mat]);
+    }
+  }
+  return out;
+}
+const gnHas = (refs) => !!refs[0]?.attributes.normal;
+
 // Die belebte Halle: Gerät, Arbeiter, Drohne, Kran. layout(S, ship) rückt
 // alles an die aktuelle Plattform, update(dt, t) bewegt es.
 function buildLife(scene, reduceMotion) {
@@ -772,43 +861,37 @@ function buildLife(scene, reduceMotion) {
     // Kran über die ganze Halle
     beam.scale.set(HALL_R * S * 1.8, 1, 1);
     crane.position.y = HALL_H * S - 3;
-    // Standplätze der echten Crew: [Ort, Blickziel]
-    props.crates.updateMatrixWorld();
-    const cratesFront = props.crates.localToWorld(new THREE.Vector3(0.6, 0, -1.4));
-    L.spots = [
-      [L.weldAt, props.bench.position],
-      [L.weldAt2, props.bench2.position],
-      [cratesFront, props.crates.position],
-      // am Schiff (Bug zeigt nach +Z, zur Startansicht): vor dem Bug, an der
-      // rechten Flanke, an der linken Flügelspitze — alle schauen aufs Schiff
-      [new THREE.Vector3(1.4, 0, L.shipLen / 2 + 1.8), new THREE.Vector3(0, 0, L.shipLen * 0.3)],
-      [new THREE.Vector3(L.shipHalfW - 0.3, 0, L.shipLen * 0.12), new THREE.Vector3(0, 0, L.shipLen * 0.1)],
-      [new THREE.Vector3(-L.shipHalfW, 0, -L.shipLen * 0.2), new THREE.Vector3(0, 0, -L.shipLen * 0.1)],
-    ];
-    placeCrew();
   }
 
-  // Echte Hangar-Crew (statisch, Modell aus scripts/build-hangar-assets.mjs):
-  // ersetzt die gebauten Arbeiter. Die Figur blickt in -Z.
-  const figs = [];
-  function placeCrew() {
-    if (!L || !figs.length) return;
-    figs.forEach((f, i) => {
-      const [p, look] = L.spots[i % L.spots.length];
-      f.position.set(p.x, 0, p.z);
-      f.rotation.y = Math.atan2(look.x - p.x, look.z - p.z) + Math.PI;
-    });
-  }
+  // Echte Hangar-Crew (Modell aus scripts/build-hangar-assets.mjs): die Figur
+  // kommt als starre Teile ohne Skelett. Sie wird hier einmal in Glieder
+  // zerlegt (Rumpf, Kopf, Ober-/Unterarm, Ober-/Unterschenkel) und auf das
+  // Gelenkgerüst der gebauten Arbeiter gehängt — so laufen, schweißen und
+  // hämmern echte Figuren mit denselben Bewegungen.
+  let rigged = false;
   function setCrew(model) {
-    for (let i = 0; i < 6; i++) {
-      const f = model.clone();
-      f.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+    const segs = rigCrew(model);
+    crew.forEach((w, i) => {
+      w.root.updateMatrixWorld(true);
+      // die eigenen Grundkörper weichen, Werkzeug in der Hand bleibt
+      const own = [];
+      w.root.traverse((n) => { if (n.isMesh) own.push(n); });
+      for (const n of own) {
+        let p = n.parent, inHand = false;
+        while (p) { if (p === w.hand) { inHand = true; break; } p = p.parent; }
+        if (!inHand) n.visible = false;
+      }
+      for (const [joint, parts] of Object.entries(segs)) {
+        for (const [geo, mat] of parts) {
+          const m = new THREE.Mesh(geo, mat);
+          m.castShadow = true; m.receiveShadow = true;
+          w[joint].add(m);
+        }
+      }
       // leicht unterschiedliche Statur, damit es keine Klonarmee wird
-      f.scale.setScalar(0.96 + ((i * 37) % 9) / 100);
-      root.add(f); figs.push(f);
-    }
-    for (const w of crew) w.root.visible = false;
-    placeCrew();
+      w.root.scale.setScalar(0.95 + ((i * 37) % 9) / 100);
+    });
+    rigged = true;
   }
 
   // Rollen der acht Arbeiter
@@ -828,7 +911,7 @@ function buildLife(scene, reduceMotion) {
         const yaw = p.at(d, tmp);
         w.root.position.copy(tmp); w.root.rotation.y = yaw;
         if (reduceMotion) poseStand(w); else poseWalk(w, d * 3.2, role === 'push' ? 0.7 : 1);
-        if (role === 'push' && !figs.length) {   // ohne Schieber bleibt der Wagen stehen
+        if (role === 'push') {
           w.shL.rotation.x = w.shR.rotation.x = -1.2; w.elL.rotation.x = w.elR.rotation.x = -0.3;
           props.cart.position.copy(tmp).add(v.set(Math.sin(yaw), 0, Math.cos(yaw)).multiplyScalar(0.9));
           props.cart.rotation.y = yaw + Math.PI / 2;
@@ -893,7 +976,7 @@ function buildLife(scene, reduceMotion) {
     hook.position.set(tx + (reduceMotion ? 0 : Math.sin(t * 0.7) * 0.15), -1.4 - ropeLen, cz);
   }
 
-  return { layout, update, root, crane, props, setCrew };
+  return { layout, update, root, crane, props, setCrew, isRigged: () => rigged };
 }
 
 // Hüllquader ohne Ausreißer: manche Modelle tragen einzelne Splitter weit
@@ -1059,13 +1142,33 @@ export async function initHangar(container, opts = {}) {
       const model = gltf.scene;
       const c = h.room.center;
       model.position.set(-c[0], -c[1], -c[2]);
+      // Der begehbare Boden liegt im Modell nicht auf 0 (beim Deluxe-Hangar
+      // knapp 1 m darüber) — sonst versinken Schiff, Gerät und Crew darin.
+      // Senkrecht nach unten loten und den Boden auf 0 legen.
+      model.updateMatrixWorld(true);
+      const rc = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0), ys = [];
+      for (const [x, z] of [[0, 0], [6, 4], [-6, -4], [4, -8], [-8, 6], [10, 10], [-10, -10]]) {
+        rc.set(new THREE.Vector3(x, 3, z), down);
+        const hit = rc.intersectObject(model, true)[0];
+        if (hit) ys.push(hit.point.y);
+      }
+      if (ys.length >= 3) {
+        ys.sort((a, b) => a - b);
+        model.position.y -= ys[Math.floor(ys.length / 2)];
+      }
       model.traverse((n) => {
         if (!n.isMesh) return;
         n.receiveShadow = true;
         n.castShadow = false;
         for (const m of [].concat(n.material)) {
-          // weißer Innenraum: Reflexe der Ersatzhalle dämpfen, sonst glänzt alles
-          m.envMapIntensity = 0.45;
+          // Weißer Innenraum: die Reflexe der Ersatzhalle dämpfen. Spiegelndes
+          // Metall (Bodenplatten, Verkleidung) spiegelte sie sonst als flache
+          // blaue Flächen, glatter Kunststoff als Gleißen.
+          m.envMapIntensity = 0.2;
+          if (m.metalness > 0.4) { m.metalness = 0.4; m.roughness = Math.max(m.roughness, 0.45); }
+          else m.roughness = Math.max(m.roughness, 0.65);
+          // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein
+          if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap]) if (t) t.anisotropy = maxAniso;
         }
       });
@@ -1081,8 +1184,13 @@ export async function initHangar(container, opts = {}) {
       for (const k of ['tanks', 'barrels', 'barrels2', 'spool']) life.props[k].visible = false;
       scene.background = new THREE.Color(0x9aa0a8);
       scene.fog.color.set(0x9aa0a8);
-      hemi.intensity = 0.55;
-      renderer.toneMappingExposure = 0.82;
+      // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
+      // tritt zurück — sonst ist das helle Innere eine einzige weiße Fläche.
+      hemi.intensity = 0.22;
+      key.intensity = 9; key.angle = 0.5;
+      rim.intensity = 3;
+      doorLight.intensity = 0.3;
+      renderer.toneMappingExposure = 0.68;
       if (current) { current.group.userData.baseY = 0.02; }
       if (lastInfo) scaleWorld(lastInfo);
       // die Kamera stand womöglich für die gebaute (größere) Halle
