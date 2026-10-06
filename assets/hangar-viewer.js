@@ -980,7 +980,9 @@ export async function initHangar(container, opts = {}) {
 
   const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.1, 4000);
   let S = 1, span = 14;
-  const homeDist = () => span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
+  // camLimit: in der echten Halle darf die Kamera nicht durch die Wand
+  let camLimit = Infinity;
+  const homeDist = () => Math.min(camLimit, span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6);
   const homePos = () => HOME_DIR.clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 2.2, 0);
@@ -1006,7 +1008,12 @@ export async function initHangar(container, opts = {}) {
   let lastInfo = null;
   // Maßstab der echten Halle: Originalgröße, solange Schiff samt Gerät
   // hineinpasst; das Gerät steht bis PAD_R*S + 9 m von der Mitte.
-  const realHallScale = (room) => Math.max(1, (PAD_R * S + 9) / room.halfW, (span * 1.15) / (2 * room.halfL));
+  // Dazu muss die Kamera im Umlauf drinbleiben: ihr waagrechter Abstand
+  // (0,94 x Entfernung) bleibt unter 90 % der halben Breite, und der
+  // Mindestabstand fürs ganze Schiff (span * 1.1 + 4) soll darin Platz haben.
+  const camRoom = (room, k) => (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94;
+  const realHallScale = (room) => Math.max(1, (PAD_R * S + 9) / room.halfW, (span * 1.15) / (2 * room.halfL),
+    (span * 1.1 + 4) / camRoom(room, 1));
 
   // Halle, Licht, Nebel und Kamera auf die Schiffsgröße einstellen.
   function scaleWorld(shipInfo) {
@@ -1033,6 +1040,13 @@ export async function initHangar(container, opts = {}) {
     camera.far = HALL_R * S * 6; camera.updateProjectionMatrix();
     controls.minDistance = Math.max(4, span * 0.45);
     controls.maxDistance = HALL_R * S * 0.95;
+    camLimit = Infinity;
+    if (realHall) {
+      camLimit = camRoom(realHall.room, realHallScale(realHall.room));
+      controls.maxDistance = Math.max(controls.minDistance, camLimit);
+      camera.far = Math.max(realHall.room.halfL, realHall.room.height) * realHallScale(realHall.room) * 4;
+      camera.updateProjectionMatrix();
+    }
     life.layout(S, shipInfo);
   }
 
@@ -1071,6 +1085,9 @@ export async function initHangar(container, opts = {}) {
       renderer.toneMappingExposure = 0.82;
       if (current) { current.group.userData.baseY = 0.02; }
       if (lastInfo) scaleWorld(lastInfo);
+      // die Kamera stand womöglich für die gebaute (größere) Halle
+      if (!touched) camera.position.copy(homePos());
+      else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
     }, undefined, () => { /* gebaute Halle bleibt stehen */ });
   }
 
