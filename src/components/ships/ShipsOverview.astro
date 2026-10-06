@@ -163,6 +163,8 @@ a{color:inherit;text-decoration:none}
 .sdb__eyebrow{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-19);text-transform:uppercase;
   color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;text-shadow:0 2px 10px var(--shadow-color)}
 .sdb__eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
+.sdb__hangar{display:inline-flex;align-items:center;gap:.4rem;margin-top:.7rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:4px;padding:.4rem .8rem}
+.sdb__hangar:hover,.sdb__hangar:focus-visible{border-color:var(--accent)}
 /* Titelgrad auf Werkzeug-Mass: 4,6rem war ein Plakat, nicht eine Kopfzeile. */
 .sdb__hero h1{font-family:var(--font-display);font-weight:900;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.05;background:linear-gradient(180deg,var(--title-hi),var(--accent-2) 66%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 24px var(--shadow-color))}
 /* Rule 1 (Plan 03-05): color war eine fixe Farbe (#dbe6ff), fuer die
@@ -356,6 +358,7 @@ a{color:inherit;text-decoration:none}
     <div class="sdb__heroin">
       <div class="sdb__eyebrow">{de ? 'Registratur // Flottenkatalog' : 'Registry // Fleet Catalog'}</div>
       <h1>{de ? 'Schiffe & Fahrzeuge' : 'Ships & Vehicles'}</h1>
+      <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de ? 'Alle Schiffe im 3D-Hangar ansehen →' : 'See every ship in the 3D hangar →'}</a>
     </div>
   </section>
 

@@ -1,0 +1,16 @@
+---
+// Hülle (EN). Körper: components/hangar/HangarApp.astro — geteilt mit der
+// anderen Sprache, damit die beiden nicht auseinanderlaufen können (D-12).
+import Layout from '../layouts/Layout.astro';
+import Body from '../components/hangar/HangarApp.astro';
+---
+<Layout
+  title="Star Citizen Ship Hangar — every ship in 3D | VerseBase"
+  description="Walk through the Star Citizen fleet in a 3D hangar: every ship on the pad, freely rotatable, with its key figures compared against the whole fleet and a direct link to the full data sheet."
+  themeColor="#07080b"
+  footer={true}
+  translated={true}
+  ogImage="/assets/img-hammerhead.jpg"
+>
+<Body />
+</Layout>
