@@ -1081,7 +1081,30 @@ export async function initHangar(container, opts = {}) {
   camera.position.copy(homePos());
   controls.update();
   let idleTimer = 0, touched = false;
-  controls.addEventListener('start', () => { touched = true; controls.autoRotate = false; clearTimeout(idleTimer); });
+  controls.addEventListener('start', () => { touched = true; fly = null; controls.autoRotate = false; clearTimeout(idleTimer); });
+  // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
+  // auf der Kugel um das Schiff herum (nicht quer hindurch).
+  let fly = null;          // { a: Spherical, b: Spherical, ta, tb, t0, dur }
+  const sph = (pos, tgt) => new THREE.Spherical().setFromVector3(pos.clone().sub(tgt));
+  function flyTo(tgt, pos, dur = 900) {
+    if (reduceMotion) { controls.target.copy(tgt); camera.position.copy(pos); fly = null; return; }
+    const a = sph(camera.position, controls.target), b = sph(pos, tgt);
+    // kürzester Weg um die Hochachse
+    const d = ((b.theta - a.theta + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+    b.theta = a.theta + d;
+    fly = { a, b, ta: controls.target.clone(), tb: tgt.clone(), t0: performance.now(), dur };
+  }
+  const flyStep = (now) => {
+    const k = Math.min(1, (now - fly.t0) / fly.dur);
+    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    controls.target.lerpVectors(fly.ta, fly.tb, e);
+    const s = new THREE.Spherical(
+      THREE.MathUtils.lerp(fly.a.radius, fly.b.radius, e),
+      THREE.MathUtils.lerp(fly.a.phi, fly.b.phi, e),
+      THREE.MathUtils.lerp(fly.a.theta, fly.b.theta, e));
+    camera.position.setFromSpherical(s).add(controls.target);
+    if (k >= 1) fly = null;
+  };
   controls.addEventListener('end', () => {
     clearTimeout(idleTimer);
     if (!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
@@ -1197,7 +1220,8 @@ export async function initHangar(container, opts = {}) {
       if (current) { current.group.userData.baseY = 0.02; }
       if (lastInfo) scaleWorld(lastInfo);
       // die Kamera stand womöglich für die gebaute (größere) Halle
-      if (!touched) camera.position.copy(homePos());
+      if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
+      else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
     }, undefined, () => { /* gebaute Halle bleibt stehen */ });
   }
@@ -1297,12 +1321,19 @@ export async function initHangar(container, opts = {}) {
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
-    controls.target.set(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
-    if (!touched) camera.position.copy(homePos());
-    else camera.position.sub(controls.target).setLength(THREE.MathUtils.clamp(camera.position.distanceTo(controls.target), controls.minDistance, controls.maxDistance)).add(controls.target);
+    const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
+    if (!touched) {
+      const pos = HOME_DIR.clone().multiplyScalar(homeDist()).add(tgt);
+      if (current) flyTo(tgt, pos); else { controls.target.copy(tgt); camera.position.copy(pos); }
+    } else {
+      // vom Nutzer gewählter Blick bleibt, nur der Abstand passt sich an
+      const off = camera.position.clone().sub(controls.target);
+      const r = THREE.MathUtils.clamp(off.length() * Math.max(0.6, Math.min(1.6, span / Math.max(1, current?.info.len ?? span))), controls.minDistance, controls.maxDistance);
+      flyTo(tgt, off.setLength(r).add(tgt), 700);
+    }
 
     if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
-    if (current) { leaving = { group: current.group, t0: performance.now(), c: current }; }
+    if (current) { leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y }; }
     scene.add(ship);
     current = { group: ship, born: performance.now(), mat, info, hull: textured ? hull : null };
     if (textured) wearPaint(current, liveryKey !== 'werk');
@@ -1341,8 +1372,8 @@ export async function initHangar(container, opts = {}) {
 
   function resetView() {
     touched = false;
-    camera.position.copy(homePos());
-    controls.update();
+    flyTo(controls.target.clone(), homePos());
+    if (!reduceMotion) controls.autoRotate = true;
   }
 
   const clock = new THREE.Clock();
@@ -1357,10 +1388,13 @@ export async function initHangar(container, opts = {}) {
     life.update(dt, t);
     if (current) {
       const g = current.group;
-      const k = reduceMotion ? 1 : Math.min(1, (now - current.born) / 650);
-      const e = 1 - Math.pow(1 - k, 3);
-      g.position.y = g.userData.baseY + (reduceMotion || realHall ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.25;
-      g.rotation.y = (1 - e) * -0.6;
+      // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,
+      // setzt weich auf (ease-out quint), solange das alte noch abhebt
+      const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
+      const e = 1 - Math.pow(1 - k, 5);
+      g.position.y = g.userData.baseY + (reduceMotion || realHall ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.18;
+      g.rotation.y = (1 - e) * -0.45;
+      g.visible = reduceMotion || now - current.born > 60;
       if (fade.to) {
         const f = Math.min(1, (now - fade.t0) / 450);
         const u = current.mat.userData.u;
@@ -1371,11 +1405,14 @@ export async function initHangar(container, opts = {}) {
       }
     }
     if (leaving) {
-      const k = reduceMotion ? 1 : Math.min(1, (now - leaving.t0) / 400);
-      leaving.group.position.y += 0.02 * span * k;
-      leaving.group.scale.multiplyScalar(1 - 0.08 * k);
+      // Ausfahrt: hebt ab (ease-in) und dreht weg, ohne zu schrumpfen
+      const k = reduceMotion ? 1 : Math.min(1, (now - leaving.t0) / 520);
+      const e = k * k * k;
+      leaving.group.position.y = leaving.y0 + e * (leaving.c.info.height + span * 0.9);
+      leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
+    if (fly) flyStep(now);
     controls.update();
     renderer.render(scene, camera);
   }

@@ -141,6 +141,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-7);color:var(--hg-dim)}
 .hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
+/* über heller Halle lesbar bleiben: Schatten statt Fläche */
+.hg-maker,.hg-role,.hg-paint__lbl{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
+.hg-title.is-swap{animation:hg-swap var(--dur-slow,.42s) var(--ease-ui,ease-out)}
+@keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .hg-stats{position:absolute;right:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);width:min(320px,34vw);background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:1rem 1.1rem 1.1rem;backdrop-filter:blur(8px)}
 .hg-stats dl{margin:0;display:grid;gap:.55rem}
 .hg-row{display:grid;grid-template-columns:1fr auto;gap:.15rem .6rem;font-size:var(--fs-7)}
@@ -160,7 +164,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-chip{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.35rem .7rem;border-radius:999px;cursor:pointer}
 .hg-chip:hover,.hg-chip:focus-visible{border-color:var(--hg-amber)}
 .hg-chip[aria-pressed="true"]{background:var(--hg-amber);border-color:var(--hg-amber);color:var(--ink)}
-.hg-hint{font-size:var(--fs-5);color:var(--hg-dim)}
+.hg-hint{font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 80%,transparent);background:var(--hg-panel);border-radius:4px;padding:.3rem .55rem;backdrop-filter:blur(6px)}
 .hg-load{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(260px,60%);text-align:center;font-size:var(--fs-6);color:var(--hg-dim);pointer-events:none}
 .hg-load[hidden]{display:none}
 .hg-load b{display:block;height:3px;margin-top:.5rem;background:var(--line-soft);border-radius:2px;overflow:hidden}
@@ -199,7 +203,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .hg-arrow{display:none}
   .hg-count{margin-left:0;width:100%}
 }
-@media (prefers-reduced-motion:reduce){.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}}</style>
 
 <SiteNav crumbs={de ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
@@ -292,6 +296,8 @@ let cur = byId.has(location.hash.slice(1)) ? location.hash.slice(1) : data.first
 let viewer = null;
 
 function render(s) {
+  const head = $('hg-name').parentElement;
+  head.classList.remove('is-swap'); void head.offsetWidth; head.classList.add('is-swap');
   $('hg-maker').textContent = s.mk;
   $('hg-name').textContent = s.n;
   $('hg-role').textContent = [s.t, s.r].filter(Boolean).join(' · ');
