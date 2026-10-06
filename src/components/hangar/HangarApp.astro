@@ -11,6 +11,7 @@
 import SiteNav from '../SiteNav.astro';
 import { getCollection } from 'astro:content';
 import holoMeshes from '../../data/holo-meshes.json';
+import hangarAssets from '../../data/hangar-assets.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { vType, vRoleCig } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
@@ -22,6 +23,15 @@ const loc = de ? 'de-DE' : 'en-US';
 const L = (p: string) => (de ? `/de${p}` : p);
 
 const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
+// Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
+// Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
+type Asset = { url: string; v?: string; room?: unknown };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset> };
+const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
+const hallAsset = Object.values(real.hall ?? {})[0];
+const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room } : null;
+const crewAsset = Object.values(real.npc ?? {})[0];
+const crew = crewAsset ? { url: withV(crewAsset) } : null;
 const vehicles = (await getCollection('vehicles'))
   .filter((v) => meshes[v.id])
   .sort((a, b) => a.data.name.localeCompare(b.data.name, loc));
@@ -65,6 +75,7 @@ const ships = vehicles.map((v) => {
     r: vRoleCig(v.id, d, lang) ?? '',
     img: thumb?.src ?? null,
     glb: m.v ? `${m.url}?v=${m.v}` : m.url,
+    tex: real.ships?.[v.id] ? withV(real.ships[v.id]) : null,
     sheet: L(`/schiffe/${v.id}.html`),
     s: STATS.map((s) => {
       const x = s.get(d);
@@ -93,7 +104,7 @@ const statLabels = STATS.map((s) => ({ k: s.k, label: de ? s.de : s.en, unit: s.
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
 // `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
 // "</script>" darf ihn nicht beenden.
-const payload = JSON.stringify({ ships, stats: statLabels, loc, first: first.id, viewer: viewerSrc }).replace(/</g, '\\u003c');
+const payload = JSON.stringify({ ships, stats: statLabels, loc, first: first.id, viewer: viewerSrc, hall, crew }).replace(/</g, '\\u003c');
 const fmt = (x: number) => x.toLocaleString(loc);
 ---
 <style is:inline>
@@ -300,7 +311,7 @@ function select(id, { scroll = true } = {}) {
   if (viewer) {
     const load = $('hg-load');
     const t = setTimeout(() => { load.hidden = false; }, 180);
-    viewer.show(s.glb, { maker: s.mc }).catch(() => {}).finally(() => { clearTimeout(t); load.hidden = true; });
+    viewer.show(s.glb, { maker: s.mc, tex: s.tex }).catch(() => {}).finally(() => { clearTimeout(t); load.hidden = true; });
   }
 }
 
@@ -346,7 +357,7 @@ const load = $('hg-load');
 load.hidden = false;
 const bar = load.querySelector('i');
 import(data.viewer)
-  .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce }))
+  .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, hall: data.hall, crew: data.crew }))
   .then((v) => {
     viewer = v;
     v.onProgress((p) => bar.style.setProperty('--p', p + '%'));
