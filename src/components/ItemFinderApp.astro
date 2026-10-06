@@ -146,7 +146,10 @@ const JS_T = ITEM_UI[lang];
      definiert bewusst KEINE :root-Variablen. */
   .uif-container {
     display: flex;
-    max-width: var(--maxw, 1240px);
+    /* Breitbild-Zuschlag (theme.css § 5): bis 1920 px 0, auf 3440 px +800.
+       Vorher standen dort ZWEI Karten je Zeile, jetzt fünf — die Seitenspalte
+       bleibt 300 px, der Zuschlag geht ganz an die Trefferliste. */
+    max-width: calc(var(--maxw, 1240px) + var(--vb-breit, 0px));
     margin: 0 auto;
     padding: 2rem 1rem;
     gap: 2rem;
@@ -403,10 +406,14 @@ const JS_T = ITEM_UI[lang];
     min-width: 0;
   }
 
+  /* Umbrechen statt kappen — bei JEDER Fensterbreite, nicht nur unter 430 px
+     (Regel weiter unten). Massgeblich ist die KARTENbreite, und schmale Karten
+     gibt es auch am Desktop: bei 1024 px (312 px je Karte) und seit dem
+     Breitbild-Zuschlag auf 2048–5120 px (300–314 px). Gemessen 06.10.2026 auf
+     3440 px: „VEHICLEGEAR / WEAP…" — die entscheidende letzte Stufe fehlte
+     wieder. Wo der Pfad passt (416-px-Karten bei 1920 px), bleibt er einzeilig. */
   .uif-card-cat-wrapper span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: break-word;
   }
 
   .uif-card-title {

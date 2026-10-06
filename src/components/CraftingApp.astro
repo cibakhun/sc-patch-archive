@@ -552,7 +552,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 
 <style is:inline>
   /* ===== Crafting-DB — funktionale App ===== */
-  .cdb{max-width:var(--maxw,1180px);margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
+  /* Breitbild-Zuschlag (theme.css § 5): bis 1920 px 0. Auf 3440 px stehen
+     damit sechs Karten je Zeile statt drei. .cr-about darunter behaelt
+     --maxw — dort steht Lesetext. */
+  .cdb{max-width:calc(var(--maxw,1180px) + var(--vb-breit,0px));margin:0 auto;padding:0 clamp(1rem,4vw,2rem)}
   .cdb *{box-sizing:border-box}
   /* Toolbar — klebt UNTER der fixen Site-Nav (~56px), sonst verschwindet sie dahinter */
   /* Hoehe kommt aus SiteNav (--nav-h) — mit Zurueck-Zeile ist die Leiste
