@@ -3,104 +3,125 @@
   "ships": {
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "b23bf4e6",
-      "tris": 166351,
+      "v": "0fa96763",
+      "tris": 216566,
       "trisRaw": 289558,
-      "textures": 215,
+      "textures": 218,
       "attached": 0,
-      "bytes": 7267064
+      "bytes": 11841024
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "dc46c907",
-      "tris": 225328,
+      "v": "692856d5",
+      "tris": 255643,
       "trisRaw": 417041,
       "textures": 185,
       "attached": 0,
-      "bytes": 6078328
+      "bytes": 9388528
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
-      "v": "dd2d2447",
-      "tris": 163370,
+      "v": "a602beea",
+      "tris": 205630,
       "trisRaw": 189516,
-      "textures": 106,
+      "textures": 107,
       "attached": 0,
-      "bytes": 4079484
+      "bytes": 6523320
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "64f7d864",
-      "tris": 167435,
+      "v": "aca12a19",
+      "tris": 210871,
       "trisRaw": 219205,
-      "textures": 96,
+      "textures": 97,
       "attached": 0,
-      "bytes": 4270948
+      "bytes": 7455336
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "e49f4f1f",
-      "tris": 313914,
+      "v": "42bef11c",
+      "tris": 526992,
       "trisRaw": 700759,
       "textures": 131,
       "attached": 0,
-      "bytes": 5233040
+      "bytes": 9600596
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "040479e5",
-      "tris": 262629,
+      "v": "5d92ca86",
+      "tris": 403608,
       "trisRaw": 522351,
       "textures": 161,
       "attached": 0,
-      "bytes": 6295300
+      "bytes": 10571664
     },
     "misc-freelancer": {
       "url": "/hangar/ships/misc-freelancer.glb",
-      "v": "ea5627b6",
-      "tris": 181099,
+      "v": "677030b1",
+      "tris": 289125,
       "trisRaw": 377329,
-      "textures": 168,
+      "textures": 169,
       "attached": 0,
-      "bytes": 5759204
+      "bytes": 10091448
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "400a2521",
-      "tris": 161224,
+      "v": "71f2d7c9",
+      "tris": 211433,
       "trisRaw": 179288,
-      "textures": 92,
+      "textures": 93,
       "attached": 0,
-      "bytes": 2897512
+      "bytes": 5187904
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
-      "v": "17697cf8",
-      "tris": 345063,
+      "v": "70544d41",
+      "tris": 529735,
       "trisRaw": 756891,
-      "textures": 185,
+      "textures": 188,
       "attached": 0,
-      "bytes": 6845072
+      "bytes": 12482960
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "c57b47bd",
-      "tris": 498662,
+      "v": "29926c49",
+      "tris": 795922,
       "trisRaw": 968432,
-      "textures": 116,
+      "textures": 118,
       "attached": 0,
-      "bytes": 6442228
+      "bytes": 11100804
     }
   },
   "hall": {
     "revelyork-single": {
       "url": "/hangar/hall/revelyork-single.glb",
-      "v": "b36accbe",
-      "tris": 532830,
+      "v": "edb6fc1d",
+      "tris": 533113,
       "trisRaw": 612862,
-      "textures": 57,
-      "attached": 192,
-      "bytes": 3838084,
+      "textures": 65,
+      "attached": 193,
+      "matfix": {
+        "fixed": 159,
+        "dropped": 0,
+        "created": 2
+      },
+      "cover": {
+        "before": {
+          "materials": 106,
+          "diffuse": 88,
+          "normal": 88,
+          "trisOhneMaterial": 156136,
+          "tris": 612862
+        },
+        "after": {
+          "materials": 111,
+          "diffuse": 92,
+          "normal": 93,
+          "trisOhneMaterial": 0,
+          "tris": 612862
+        }
+      },
+      "bytes": 6511496,
       "room": {
         "center": [
           36,
