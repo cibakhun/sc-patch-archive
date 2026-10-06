@@ -72,7 +72,7 @@ export function shipLocalVideo(id: string): string | null {
 /** Ein Bild der Kopf-Slideshow; `paint` = Lack-Name für den Alt-Text
  *  (null bei Hero-Render/Store-Bild). `fb` = kleinere Ersatz-URL (Wiki-Thumb),
  *  die der Client bei einem Ladefehler von `src` probiert. */
-export type GalleryImage = { src: string; paint: string | null; fb?: string };
+export type GalleryImage = { src: string; paint: string | null; fb?: string; srcset?: string };
 
 /** Kopf-Bild(er) pro Schiff. BEWUSST nur EIN Bild: das zuverlässige Hero
  *  (lokaler Render / Wiki-Thumb, klein & schnell dekodiert). Die FleetYards-
@@ -85,7 +85,7 @@ export type GalleryImage = { src: string; paint: string | null; fb?: string };
  *  die Bühne bildlos); als Einzelbild flasht auch das nicht (kein Crossfade). */
 export function shipGallery(id: string, d: VehicleData): GalleryImage[] {
   const hero = pickHero(d);
-  if (hero) return [{ src: hero.src, paint: null, ...(hero.fallback && hero.fallback !== hero.src ? { fb: hero.fallback } : {}) }];
+  if (hero) return [{ src: hero.src, paint: null, ...(hero.fallback && hero.fallback !== hero.src ? { fb: hero.fallback } : {}), ...(hero.srcset ? { srcset: hero.srcset } : {}) }];
   const store = extrasInfo(id)?.storeImage;
   return store ? [{ src: store, paint: null }] : [];
 }

@@ -3,6 +3,7 @@
 // (starcitizen.tools media, attributed on the page). Plain TS module so page
 // frontmatter stays thin (see the compiler note in shipFacts.ts).
 import type { CollectionEntry } from 'astro:content';
+import heroWidths from '../data/ship-hero-widths.json';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 
@@ -42,14 +43,30 @@ export function stripName(name: string): string {
   return n;
 }
 
-export type ShipImage = { src: string; fallback?: string; api: boolean };
+export type ShipImage = { src: string; fallback?: string; api: boolean; srcset?: string };
+
+/** Größere Fassungen des Wiki-Bühnenbilds — nur die, die es WIRKLICH gibt.
+ *  Die Bühne ist randlos breit, das Bild ein 1280-px-Vorschaubild: bei
+ *  1920 px 1,5-fach, bei 2560 px 2-fach hochgezogen. MediaWiki liefert jede
+ *  Breite bis zum Original und darüber 404 — welche das ist, steht gemessen
+ *  in src/data/ship-hero-widths.json (scripts/sync-ship-hero-widths.mjs).
+ *  Unbekannte URL → kein srcset, also genau der alte Zustand. */
+const HERO_MAX: Record<string, number> = heroWidths.breiten;
+export function heroSrcset(src: string): string | undefined {
+  const max = HERO_MAX[src];
+  if (!max || !src.includes('/1280px-')) return undefined;
+  return [1280, 1920, 2560]
+    .filter((w) => w <= max)
+    .map((w) => `${src.replace('/1280px-', `/${w}px-`)} ${w}w`)
+    .join(', ');
+}
 
 /** hero image for the data sheet: local render > API hero (1280px thumb) */
 export function pickHero(d: VehicleData): ShipImage | null {
   const local = RENDERS[stripName(d.name)];
   if (local) return { src: `/assets/${local}`, api: false };
   if (d.image?.hero)
-    return { src: d.image.hero, fallback: d.image.thumb ?? undefined, api: true };
+    return { src: d.image.hero, fallback: d.image.thumb ?? undefined, api: true, srcset: heroSrcset(d.image.hero) };
   return null;
 }
 
