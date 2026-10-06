@@ -416,3 +416,36 @@ body::-webkit-scrollbar,
   --dur-slow: 300ms; /* fängt 240–350ms ein */
   --ease-ui: cubic-bezier(0.2, 0.7, 0.3, 1); /* Fusion der drei Fast-Duplikate, D-04/D-07 */
 }
+
+/* ============================================================
+   5 — BREITBILD (06.10.2026)
+
+   Gemessen, nicht vermutet: Umami, 90 Tage bis 06.10.2026, ohne
+   die Bot-Signaturen (Singapur-Crawler 1280×1200, 800×600 u. a.).
+   Rund ein Drittel der echten Besucher sitzt an einem Schirm von
+   2560 px Breite oder mehr — 2560×1440 ~20 %, 3440×1440 ~6 %,
+   3840×2160 ~3 %, 5120×1440 ~2 %. Gemessen war bis dahin nur bis
+   1920 px. Jede Werkzeugseite endete an ihrer festen --maxw: der
+   Item-Finder zeigte auf 3440 px genau ZWEI Ergebniskarten je
+   Zeile, links und rechts davon je ~1100 px leeres Schwarz.
+
+   --vb-breit ist der Zuschlag, den eine Werkzeugfläche (Raster,
+   Trefferliste) über ihre --maxw hinaus nehmen darf:
+     · bis 1920 px exakt 0 — dort ändert sich kein Pixel,
+     · darüber 75 % des zusätzlichen Platzes,
+     · ab ~2990 px fest 800 px.
+   Lesetext bekommt ihn NICHT: Zeilenlänge ist keine Frage der
+   Bildschirmbreite.
+
+   --vb-leiste ist die größte Breite, über die eine Kopfleiste ihre
+   Bedienelemente verteilt (breitestes Werkzeug: 1440 + 800). Vorher
+   standen sie auf 3440 px bei x=36 und x=3404, gut 1100 px neben dem
+   Inhalt. Unter 2240 px Fensterbreite greift der Wert nie.
+
+   Auf blankem :root{} wie Schicht 4: keine Farben, für die drei
+   `npm run theme`-Generatoren unsichtbar.
+   ============================================================ */
+:root {
+  --vb-breit: clamp(0px, calc((100vw - 1920px) * 0.75), 800px);
+  --vb-leiste: 2240px;
+}

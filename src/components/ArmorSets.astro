@@ -44,6 +44,7 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   modified={db.generatedAt}
   sources={['UEX Corp']}
   updated={db.pricesAsOf}
+  breit
 >
   <h1 slot="hero">{t('setsTitle')}</h1>
   <p class="dp-lead" slot="hero">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>

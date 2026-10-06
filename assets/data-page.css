@@ -101,6 +101,15 @@ body {
   flex-direction: column;
 }
 
+/* Uebersichten (DataShell `breit`): Spalte waechst auf breiten Schirmen mit,
+   bis 1920 px exakt 1080 px wie alle anderen (theme.css § 5). Gilt nur fuer
+   Kachel-/Chip-Raster — Fliesstext haelt seine 68–72ch (.dp-lead, .dp-desc,
+   .dp-callout), Tabellenseiten setzen den Schalter nicht. Kopf und Fuss
+   richten sich ueber --dp-w automatisch mit aus. */
+.dp[data-breit] {
+  --dp-w: calc(var(--maxw, 1080px) + var(--vb-breit, 0px));
+}
+
 /* Crafting-Zweig: bernsteiner Leitton, violett als Zweitfarbe. Beide
    Paletteneintraege gibt es in Hell UND Dunkel — der Tausch funktioniert
    deshalb in beiden Modi.
@@ -174,7 +183,10 @@ body {
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 0.7rem clamp(0.8rem, 4vw, 2rem);
+  /* Breitbild-Deckel wie an der SiteNav (theme.css § 5, --vb-leiste): auf
+     3440 px stand der Brotkrumen bei x=36, die Inhaltsspalte bei 1180. Unter
+     2240 px Fensterbreite gilt unveraendert das alte Polster. */
+  padding: 0.7rem max(clamp(0.8rem, 4vw, 2rem), calc((100% - var(--vb-leiste, 100%)) / 2));
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);

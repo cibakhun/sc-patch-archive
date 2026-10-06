@@ -308,7 +308,10 @@ const cards = missions.map((m: Mission) => {
   }
   @keyframes mxKb { from { transform: scale(1); } to { transform: scale(1.07); } }
   @media (prefers-reduced-motion: reduce) { .mx__hero::before { animation: none; } }
-  .mx__heroIn { position: relative; z-index: 2; width: min(var(--maxw), 100%); margin: 0 auto; }
+  /* Breitbild-Zuschlag (theme.css § 5) an Kopf UND Raster, damit der Titel
+     auf der Kante der Karten stehen bleibt. Bis 1920 px 0; auf 3440 px sechs
+     Karten je Zeile statt vier. .mx__lead haelt seine 62ch. */
+  .mx__heroIn { position: relative; z-index: 2; width: min(calc(var(--maxw) + var(--vb-breit, 0px)), 100%); margin: 0 auto; }
   .mx__eyebrow {
     font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-19); font-size: var(--fs-4);
     color: var(--accent); margin-bottom: .7rem;
@@ -345,7 +348,7 @@ const cards = missions.map((m: Mission) => {
   /* --vb-top hoeher als bei Crafting/Mining: .mx__bar ist zweizeilig gebaut
      (Beschriftung ueber Feld) und traegt zusaetzlich margin-bottom: 1.6rem.
      Startwert, wird spaeter nachgemessen. */
-  .mx__wrap { width: min(var(--maxw), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; --vb-top: calc(var(--nav-h, 68px) + 7.5rem); }
+  .mx__wrap { width: min(calc(var(--maxw) + var(--vb-breit, 0px)), 100%); margin: 0 auto; padding: 2.2rem clamp(1rem, 4vw, 3rem) 4rem; --vb-top: calc(var(--nav-h, 68px) + 7.5rem); }
 
   /* ---------- Filterleiste ---------- */
   /* Hoehe der fixen SiteNav (z-index 9100). Bei top:0 klebt die Leiste hinter
@@ -432,7 +435,9 @@ const cards = missions.map((m: Mission) => {
     font-family: var(--font-ui); text-transform: uppercase; letter-spacing: var(--ls-14); font-size: var(--fs-4);
     color: var(--accent); margin-bottom: .5rem;
   }
-  .mx__src ul { margin: .5rem 0 0; padding-left: 1.1rem; display: grid; gap: .3rem; }
+  /* 90ch: auf /de/missionen standen hier 114 Zeichen je Zeile, schon bei
+     1920 px (gemessen 06.10.2026) — und das Feld wird auf Breitbild breiter. */
+  .mx__src ul { margin: .5rem 0 0; padding-left: 1.1rem; display: grid; gap: .3rem; max-width: 90ch; }
   .mx__src code {
     font-family: ui-monospace, monospace; font-size: .82em; padding: .05em .3em; border-radius: 4px; background: var(--surface);
   }
