@@ -93,7 +93,7 @@ const ribbonBands = a.eras.slice().reverse();
       <span class="mast__title-kicker">{t('arch.titleThin')}</span>
       <span class="mast__title-main">{t('arch.title')}</span>
     </h1>
-    <p class="mast__lead">{t('arch.lead')}</p>
+    <p class="mast__lead">{tf('arch.lead', { latest: a.latest.codename })}</p>
 
     {/* Telemetry — the ledger's own bookkeeping as a HUD readout row. */}
     <dl class="tele">

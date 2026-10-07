@@ -416,7 +416,7 @@ const UI = {
     'arch.title': 'Patch-Archiv',
     'arch.titleThin': 'Alpha 4',
     'arch.lead':
-      'Jede Version der Alpha-4-Ära — von Destination Pyro bis Frontier Tensions, nachgeschlagen statt nacherzählt.',
+      'Jede Version der Alpha-4-Ära — von Destination Pyro bis %latest%, nachgeschlagen statt nacherzählt.',
     'arch.stat.patches': 'Versionen',
     'arch.stat.majors': 'Major-Releases',
     'arch.stat.topics': 'Deep-Dives',
@@ -818,7 +818,7 @@ const UI = {
     'arch.title': 'Patch archive',
     'arch.titleThin': 'Alpha 4',
     'arch.lead':
-      'Every release of the Alpha 4 era — from Destination Pyro to Frontier Tensions, looked up rather than retold.',
+      'Every release of the Alpha 4 era — from Destination Pyro to %latest%, looked up rather than retold.',
     'arch.stat.patches': 'Releases',
     'arch.stat.majors': 'Major releases',
     'arch.stat.topics': 'Deep dives',
