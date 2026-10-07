@@ -1242,6 +1242,8 @@ export async function initHangar(container, opts = {}) {
       realHall.group.scale.setScalar(k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
+      scaleLamps();
+      if (realHall.envOn) captureHallEnv();
     }
     key.position.set(9 * S, HALL_H * S * 0.92, 12 * S);
     key.target.position.set(0, shipInfo.height * 0.4, 0);
@@ -1274,40 +1276,172 @@ export async function initHangar(container, opts = {}) {
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   // Lampen der Halle aus dem Spiel (Licht-Entities des socpak, vom Build als
-  // <halle>.lights.json neben das GLB gelegt). Fehlt die Datei, bleibt es beim
-  // Bühnenlicht. Die stärksten MAX_LIGHTS kommen in die Szene, ohne Schatten:
-  // jede Lampe kostet im Fragment-Shader, Schatten wirft weiter das Hauptlicht.
-  const MAX_LIGHTS = 24;
-  // Spielstärke -> three.js (physikalisch, Candela). Vorläufig; wird an der
-  // ersten echten Lampenliste per Render abgeglichen.
-  const HALL_LIGHT_SCALE = 40;
+  // <halle>.lights.json neben das GLB gelegt; Richtungen dort schon nach glTF
+  // gedreht, Flächenlichter an ihrer Fläche ausgerichtet). Fehlt die Datei,
+  // bleibt es beim Bühnenlicht. Ohne Schatten: den wirft weiter das Hauptlicht.
+  // Jede Lampe kostet im Fragment-Shader jedes Hallenpixels. Deshalb werden
+  // benachbarte Flächenlichter zu einer Gruppe zusammengelegt, und es brennen
+  // nur die, die im Blickfeld (Boden um die Plattform, Schiff, Wände) am
+  // meisten beitragen.
+  const MAX_LIGHTS = matchMedia('(max-width: 760px), (pointer: coarse)').matches ? 8 : 16;
+  // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
+  // bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
+  const HALL_LIGHT_SCALE = 2;
+  const DEG = Math.PI / 180;
+  // Flächenlicht ≈ Halbraum vor der Fläche, weich auslaufend; ein Stück vor
+  // die Fläche gesetzt, damit direkt davor kein gleißender Fleck entsteht.
+  const AREA_HALF = 80 * DEG, AREA_OFFSET = 0.6;
+  const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  // Gerichtet strahlen Spots und ausgerichtete Flächenlichter; Punktlichter rundum
+  const aimed = (l) => !!l.dir && (l.type === 'spot' || l.type === 'area');
+
+  function clusterAreaLights(list, reach = 5) {
+    const cl = [];
+    for (const l of [...list].sort((a, b) => b.intensity - a.intensity)) {
+      const c = cl.find((q) => Math.hypot(q.pos[0] - l.pos[0], q.pos[1] - l.pos[1], q.pos[2] - l.pos[2]) < reach
+        && (q.seed && l.dir ? dot3(q.seed, l.dir) > 0.7 : !q.seed && !l.dir));
+      const w = l.intensity, col = l.color || [1, 1, 1];
+      if (!c) {
+        cl.push({ type: 'area', pos: [...l.pos], seed: l.dir, dsum: l.dir ? l.dir.map((v) => v * w) : null, color: [...col], intensity: w, m: [l] });
+        continue;
+      }
+      const sum = c.intensity + w;
+      for (let i = 0; i < 3; i++) {
+        c.pos[i] = (c.pos[i] * c.intensity + l.pos[i] * w) / sum;
+        c.color[i] = (c.color[i] * c.intensity + col[i] * w) / sum;
+        if (c.dsum) c.dsum[i] += l.dir[i] * w;
+      }
+      c.intensity = sum;
+      c.m.push(l);
+    }
+    for (const c of cl) {
+      c.dir = c.dsum ? (() => { const n = Math.hypot(...c.dsum) || 1; return c.dsum.map((v) => v / n); })() : null;
+      c.radius = Math.max(...c.m.map((l) => (l.radius || 0) + Math.hypot(l.pos[0] - c.pos[0], l.pos[1] - c.pos[1], l.pos[2] - c.pos[2])));
+    }
+    return cl;
+  }
+
+  // Beitrag einer Lampe an Messpunkten (Modellraum), wie three.js ihn rechnet
+  function lampScore(l, pts) {
+    const R = l.radius || 30;
+    const cosO = Math.cos(l.type === 'spot' ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF);
+    let s = 0;
+    for (const [x, y, z, w] of pts) {
+      const dx = x - l.pos[0], dy = y - l.pos[1], dz = z - l.pos[2], d = Math.hypot(dx, dy, dz);
+      if (d >= R) continue;
+      let cone = 1;
+      if (aimed(l)) {
+        const c = (l.dir[0] * dx + l.dir[1] * dy + l.dir[2] * dz) / (d || 1);
+        if (c <= cosO) continue;
+        cone = l.type === 'spot' ? Math.min(1, (c - cosO) / 0.15) : c;
+      }
+      s += w * l.intensity * cone * (1 - (d / R) ** 4) ** 2 / Math.max(1, d * d);
+    }
+    return s;
+  }
+
   function loadHallLights(h, model) {
     fetch(h.url.replace(/\.glb(\?.*)?$/, '.lights.json$1')).then((r) => (r.ok ? r.json() : null)).then((d) => {
-      const all = (d?.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0);
-      if (!all.length) return;
-      all.sort((a, b) => b.intensity * (b.radius || 1) - a.intensity * (a.radius || 1));
+      // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels
+      if ((d?.v || 1) < 2) return;
+      // Umgebungslichter des Spiels hellen nur flächig auf: das übernimmt die
+      // Umgebungskugel aus der Halle.
+      const all = (d?.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient');
+      if (!all.length || !realHall) return;
+      const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
+      // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
+      const { center: c, halfW, halfL, height } = h.room, f = realHall.floorY;
+      const pts = [];
+      for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) pts.push([c[0] + i * halfW * 0.22, f + 0.2, c[2] + j * halfL * 0.18, 2]);
+      for (const y of [1.5, 4]) pts.push([c[0], f + y, c[2], 4]);
+      for (const y of [3, height * 0.3, height * 0.6]) for (const t of [-0.6, 0, 0.6]) {
+        pts.push([c[0] - halfW + 1, f + y, c[2] + t * halfL, 1], [c[0] + halfW - 1, f + y, c[2] + t * halfL, 1]);
+        pts.push([c[0] + t * halfW, f + y, c[2] - halfL + 1, 1], [c[0] + t * halfW, f + y, c[2] + halfL - 1, 1]);
+      }
+      for (const l of cand) l.score = lampScore(l, pts);
+      cand.sort((a, b) => b.score - a.score);
       const lamps = new THREE.Group();
-      for (const l of all.slice(0, MAX_LIGHTS)) {
+      for (const l of cand.slice(0, MAX_LIGHTS)) {
         const col = new THREE.Color().setRGB(...(l.color || [1, 1, 1]));
-        const dist = l.radius || 0;
-        const light = l.type === 'spot'
-          ? new THREE.SpotLight(col, l.intensity * HALL_LIGHT_SCALE, dist, THREE.MathUtils.degToRad(Math.min(89, (l.angle || 60) / 2)), 0.5, 2)
-          : new THREE.PointLight(col, l.intensity * HALL_LIGHT_SCALE, dist, 2);
-        light.position.set(...l.pos);
-        if (light.isSpotLight) {
-          const dir = l.dir || [0, -1, 0];
-          light.target.position.set(l.pos[0] + dir[0], l.pos[1] + dir[1], l.pos[2] + dir[2]);
+        const I = l.intensity * HALL_LIGHT_SCALE, dist = l.radius || 0;
+        let light;
+        if (aimed(l)) {
+          const spot = l.type === 'spot';
+          light = new THREE.SpotLight(col, I, dist, spot ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF, spot ? 0.5 : 1, 2);
+          const p = spot ? l.pos : l.pos.map((v, i) => v + l.dir[i] * AREA_OFFSET);
+          light.position.set(...p);
+          light.target.position.set(p[0] + l.dir[0], p[1] + l.dir[1], p[2] + l.dir[2]);
           lamps.add(light.target);
+        } else {
+          light = new THREE.PointLight(col, I, dist, 2);
+          light.position.set(...l.pos);
         }
+        light.userData.base = { I, dist };
         lamps.add(light);
       }
       model.add(lamps);
       realHall.lamps = lamps;
-      // Mit echten Lampen tritt das Bühnenlicht zurück, das Hauptlicht bleibt
-      // für den Schatten unter dem Schiff.
-      hemi.intensity *= 0.5; fill.intensity = 0; doorLight.intensity = 0;
-      console.info(`[hangar] ${lamps.children.filter((c) => c.isLight).length} von ${all.length} Spiellampen gesetzt`);
+      scaleLamps();
+      hallStage();
+      const n = lamps.children.filter((q) => q.isLight).length;
+      console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt`);
+      captureHallEnv(true);
     }).catch(() => { /* ohne Lampen weiter mit Bühnenlicht */ });
+  }
+
+  // Lampen wachsen mit der Halle: Reichweite mal k, Stärke mal k², damit die
+  // Beleuchtungsstärke (I/d²) bei jedem Maßstab gleich bleibt.
+  function scaleLamps() {
+    if (!realHall?.lamps) return;
+    const k = realHall.group.scale.x;
+    for (const q of realHall.lamps.children) if (q.isLight) { q.intensity = q.userData.base.I * k * k; q.distance = q.userData.base.dist * k; }
+  }
+
+  // Bühnenlicht in der echten Halle, je nachdem, was schon da ist: Spiellampen
+  // übernehmen das Raumlicht, die Umgebungskugel das Streulicht. Das Hauptlicht
+  // bleibt für den Schatten unter dem Schiff; das warme Gegenlicht nur als
+  // Kante, sonst legt es eine orange Pfütze vor den Bug.
+  const HALL_KEY = 8, HALL_KEY_WITH_LAMPS = 3, HALL_HEMI = 0.35, HALL_HEMI_WITH_ENV = 0.12;
+  function hallStage() {
+    if (!realHall) return;
+    const lamps = !!realHall.lamps, env = !!realHall.envOn;
+    hemi.intensity = env ? HALL_HEMI_WITH_ENV : lamps ? HALL_HEMI * 0.5 : HALL_HEMI;
+    key.intensity = lamps ? HALL_KEY_WITH_LAMPS : HALL_KEY;
+    rim.intensity = lamps ? 1 : 3;
+    fill.intensity = lamps ? 0 : 0.2;
+    doorLight.intensity = lamps ? 0 : 0.3;
+  }
+
+  // Spiegelungen und Umgebungslicht aus der echten Halle: eine Umgebungskugel
+  // in Schiffsmitte aus der leeren Halle gerendert, wie die Reflexionssonden
+  // im Spiel. Ersetzt die Ersatzhalle als Umgebung; neu nach jeder spürbaren
+  // Maßstabsänderung und sobald die Spiellampen brennen. Beim Aufnehmen ohne
+  // alte Kugel, sonst schaukelt sich das Licht mit jeder Aufnahme auf.
+  const HALL_ENV = 0.8;    // envMapIntensity der Hallenmaterialien mit Sonde
+  let hallEnv = null, hallEnvK = 0;
+  function captureHallEnv(force = false) {
+    if (!realHall) return;
+    const k = realHall.group.scale.x;
+    if (!force && hallEnv && Math.abs(k - hallEnvK) / hallEnvK < 0.1) return;
+    const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
+    for (const o of hide) o.visible = false;
+    const fog = scene.fog;
+    scene.fog = null;
+    scene.environment = null;
+    const pm = new THREE.PMREMGenerator(renderer);
+    const y = Math.max(2, (lastInfo?.height || 4) * 0.5);
+    const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, y, 0) });
+    pm.dispose();
+    scene.fog = fog;
+    for (const o of hide) o.visible = true;
+    hallEnv?.dispose();
+    hallEnv = rt; hallEnvK = k;
+    scene.environment = rt.texture;
+    if (!realHall.envOn) {
+      realHall.envOn = true;
+      for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
+      hallStage();
+    }
   }
 
   function loadRealHall(h) {
@@ -1325,9 +1459,11 @@ export async function initHangar(container, opts = {}) {
         const hit = rc.intersectObject(model, true)[0];
         if (hit) ys.push(hit.point.y);
       }
+      let floorY = c[1];
       if (ys.length >= 3) {
         ys.sort((a, b) => a - b);
         model.position.y -= ys[Math.floor(ys.length / 2)];
+        floorY += ys[Math.floor(ys.length / 2)];
       }
       const uvStats = hallUvStats(model);
       const boxed = new Set();
@@ -1353,6 +1489,9 @@ export async function initHangar(container, opts = {}) {
             // Bodenplatten: gebürstetes Stahlgrau statt der hellen Glanzkarte,
             // die der Export als Farbe liefert; spiegelt ein wenig die Halle.
             m.color.multiplyScalar(0.5); m.metalness = 0.7; m.roughness = m.roughnessMap ? 1 : 0.42; m.envMapIntensity = 0.45;
+            // mit der Umgebungskugel der Halle: etwas weniger, sonst spiegelt
+            // der Boden die helle Decke als weißen Schleier
+            m.userData.envGain = 0.75;
           } else if (m.metalness > 0.4) { m.metalness = 0.4; if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.45); }
           else if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.65);
           // Rauheit aus der Glätte des Spiels: die Karte entscheidet, der
@@ -1380,7 +1519,9 @@ export async function initHangar(container, opts = {}) {
       const group = new THREE.Group();
       group.add(model);
       scene.add(group);
-      realHall = { group, room: h.room };
+      const mats = new Set();
+      model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
+      realHall = { group, room: h.room, mats, floorY };
       loadHallLights(h, model);
       // die gebaute Halle weicht; Gerät, Crew, Schlepper und Drohne bleiben
       hall.visible = false;
@@ -1401,15 +1542,13 @@ export async function initHangar(container, opts = {}) {
       // Bodenfarbe der Halbkugel = Rücklicht vom hellen Boden: Ohne sie
       // bleibt die nach unten gewandte Decke ein schwarzes Loch.
       hemi.color.set(0xffefdc); hemi.groundColor.set(0x8a8178);
-      hemi.intensity = 0.35;
-      key.intensity = 8; key.angle = 0.5; key.penumbra = 0.75;
-      rim.intensity = 3;
-      doorLight.intensity = 0.3;
-      fill.intensity = 0.2;
+      key.angle = 0.5; key.penumbra = 0.75;
+      hallStage();
       renderer.toneMappingExposure = 0.9;
       enableAO();
       if (current) { current.group.userData.baseY = 0.02; }
       if (lastInfo) scaleWorld(lastInfo);
+      captureHallEnv(true);
       // die Kamera stand womöglich für die gebaute (größere) Halle
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());

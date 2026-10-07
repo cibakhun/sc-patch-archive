@@ -21,6 +21,7 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
+import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -368,7 +369,9 @@ function stripAttributes(doc) {
 // Spieltyp, Spiel-Intensität und Radius aus <halle>.lights-src.txt (das
 // Protokoll des Exports, siehe scripts/extract-hangar-sources.mjs), über den
 // Namen verbunden. angle = voller Kegelwinkel in Grad. Schatten nennt der
-// Export nicht: shadow bleibt false.
+// Export nicht: shadow bleibt false. Danach richtet orientHallLights die
+// Richtungen aus (Spots aus dem Z-oben-Raum nach glTF, Flächenlichter von
+// ihrer Fläche weg, siehe scripts/lib/hall-lights.mjs); v: 2 kennzeichnet das.
 const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
 function hallLights(doc, name) {
   const srcFile = fileURLToPath(new URL(`hall/${name}.lights-src.txt`, SRC));
@@ -402,12 +405,13 @@ function hallLights(doc, name) {
       name: node.getName(),
     });
   }
+  const orient = orientHallLights(lights, hallRaycaster(doc));
   const outFile = fileURLToPath(new URL(`hall/${name}.lights.json`, OUT));
   mkdirSync(dirname(outFile), { recursive: true });
-  writeFileSync(outFile, JSON.stringify({ lights }) + '\n');
+  writeFileSync(outFile, JSON.stringify({ v: 2, lights }) + '\n');
   const byType = {};
   for (const l of lights) byType[l.type] = (byType[l.type] || 0) + 1;
-  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0) };
+  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient };
 }
 
 // Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
@@ -569,7 +573,11 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
-  const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
+  // Version deckt die Lampenliste mit ab: der Viewer lädt sie mit demselben ?v=
+  const hash = createHash('sha1').update(readFileSync(outPath));
+  const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
+  if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
+  const v = hash.digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
@@ -610,6 +618,8 @@ for (const kind of Object.keys(BUDGET)) {
       if (r.lights) {
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
         console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture} Einrichtungsobjekte, ${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp), ${(r.bytes / 1048576).toFixed(2)} MB`);
+        const o = r.lights.orient;
+        if (o) console.log(`    Lampen: ${o.spots} Spots umgerechnet (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);

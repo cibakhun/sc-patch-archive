@@ -155,7 +155,7 @@
   "hall": {
     "revelyork-single": {
       "url": "/hangar/hall/revelyork-single.glb",
-      "v": "5463b51a",
+      "v": "36b80d4f",
       "tris": 1076457,
       "trisRaw": 1236093,
       "textures": 149,
@@ -199,7 +199,14 @@
           "spot": 47,
           "ambient": 19
         },
-        "matched": 469
+        "matched": 469,
+        "orient": {
+          "spots": 47,
+          "area": 385,
+          "areaMounted": 220,
+          "spotsAway": 24,
+          "spotsMounted": 26
+        }
       },
       "furniture": 137,
       "crease": {
