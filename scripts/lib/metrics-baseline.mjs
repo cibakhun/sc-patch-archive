@@ -213,6 +213,13 @@ export const BASELINE = [
     anlass: 'Messlauf 09.08.2026 — je Fahrzeug ein Datenblatt; deckt sich mit `fahrzeuge`.',
   },
   {
+    id: 'seitenHangarBuchten',
+    wert: 227,
+    regel: 'min',
+    anlass:
+      'Messlauf 07.10.2026 (Build mit 17.962 Seiten): je Fahrzeug mit Hangar-Modell ein EN-Buchtdokument unter dist/hangar-bay/, das die Hangarseite beim Schiffswechsel holt. Liefert getStaticPaths bei kaputter Quelle weniger, faellt die Bucht fuer genau die fehlenden Schiffe still aus; verify:hangar prueft dieselbe Id-Menge gegen Dock und Modellliste.',
+  },
+  {
     id: 'seitenPatches',
     wert: 19,
     regel: 'min',

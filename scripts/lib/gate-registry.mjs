@@ -189,6 +189,18 @@ export const CHECKS = [
     // verify:shipcard (14-01 -> 14-04): erst beheben/gruen, dann scharf.
   },
   {
+    // Direkt nach den beiden Schiffstoren: dieselbe Datenfamilie, und unter
+    // einer Sekunde schnell genug, dass ein gebrochener Hangar-Join vor dem
+    // langen audit:site auffaellt. Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess — liest nur dist/.
+    id: 'verify:hangar',
+    npm: 'verify:hangar',
+    script: 'scripts/verify-hangar.mjs',
+    rail: 'A',
+    checks:
+      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript',
+  },
+  {
     id: 'verify:theme',
     npm: 'verify:theme',
     script: 'scripts/verify-theme-gen.mjs',

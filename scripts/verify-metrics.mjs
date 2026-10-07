@@ -129,6 +129,7 @@ const ABLESER = {
   seitenMissionen: () => zaehleHtml(join(DIST, 'missionen')),
   seitenCrafting: () => zaehleHtml(join(DIST, 'crafting')),
   seitenSchiffe: () => zaehleHtml(join(DIST, 'schiffe')),
+  seitenHangarBuchten: () => zaehleHtml(join(DIST, 'hangar-bay')),
   seitenPatches: () => zaehleHtml(join(DIST, 'patches')),
   seitenThemen: () => zaehleHtml(join(DIST, 'topics')),
   sitemaps: () =>
