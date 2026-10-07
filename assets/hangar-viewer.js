@@ -1,6 +1,6 @@
 // Hangar-Bühne: EIN Schiff steht auf einer Landeplattform in einer belebten
 // Halle, der Besucher dreht es frei und wechselt über das Karussell der
-// Seite (components/hangar/HangarApp.astro). Gegenstück zu holo-viewer.js:
+// Seite (components/hangar/HangarPage.astro, Szene in HangarApp.astro). Gegenstück zu holo-viewer.js:
 // dieselben Modelle (/holo/*.glb, Draco), hier aber lackiert, unter
 // Hallenlicht, umgeben von Arbeitern, Gerät und einem Tor zum All.
 //
