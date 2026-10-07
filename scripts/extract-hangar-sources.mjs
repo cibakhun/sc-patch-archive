@@ -100,16 +100,24 @@ if (want('hall')) {
     const add = (p) => { if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/')); };
     for (const m of doc.getRoot().listMaterials()) { const x = m.getExtras() || {}; add(x.diffuse_tex); add(x.normal_tex); }
     for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); }
-    let ok = 0, skip = 0, bad = 0;
+    // _ddna trägt neben den Normalen im Alpha die Glätte: als eigene Karte
+    // (.gloss.png), daraus macht der Build die Rauheit. Viele _ddna der Halle
+    // sind im Spiel selbst flach (jeder BC5-Block kodiert 0/0/1) — dort ist
+    // die Glätte die einzige Information.
+    let ok = 0, skip = 0, bad = 0, gloss = 0;
     for (const p of paths) {
       const rel = p.replace(/^data\//i, '').replace(/\.(tif|dds)$/i, '');
-      const out = `${SRC}tex-m1/${rel.toLowerCase()}.png`;
-      if (!FORCE && existsSync(out)) { skip++; continue; }
-      mkdirSync(dirname(out), { recursive: true });
-      try { sb(['dds', 'decode', `Data/${rel}.dds`, out, '--mip', '1']); ok++; }
+      const base = `${SRC}tex-m1/${rel.toLowerCase()}`;
+      const ddna = /_ddna$/i.test(rel);
+      mkdirSync(dirname(base), { recursive: true });
+      if (ddna && (FORCE || !existsSync(`${base}.gloss.png`))) {
+        try { sb(['dds', 'decode', `Data/${rel}.dds`, `${base}.gloss.png`, '--mip', '1', '--alpha']); gloss++; } catch { /* ohne Glätte */ }
+      }
+      if (!FORCE && existsSync(`${base}.png`)) { skip++; continue; }
+      try { sb(['dds', 'decode', `Data/${rel}.dds`, `${base}.png`, '--mip', '1']); ok++; }
       catch { bad++; }
     }
-    console.log(`  Texturen: ${ok} dekodiert, ${skip} vorhanden, ${bad} nicht gefunden (von ${paths.size})`);
+    console.log(`  Texturen: ${ok} dekodiert, ${skip} vorhanden, ${bad} nicht gefunden (von ${paths.size}); ${gloss} Glättekarten`);
   }
 }
 
@@ -117,7 +125,7 @@ if (want('hall')) {
 // Ein Teil der Bausatz-Meshes (Wände, Türrahmen, Geländer, Plattformen)
 // nennt sein Material als „Data/Objects/…/hangar_deluxe_kit_master“ — mit
 // Data/-Präfix. Diese Schreibweise löst StarBreaker nicht auf; die
-// Primitive kommen ohne Material (Grau #e7e7e7, ~40 % der Hallenfläche).
+// Primitive kommen ohne Material (Grau #e7e7e7, ~25 % der Hallendreiecke).
 // Hier holen wir das nach: Material-Pfad aus der .cgf, Untermaterial-ID je
 // Submesh aus der .cgfm (32-Bit-Wort vor first_index: untere 16 Bit =
 // Material, obere = Knoten), Untermaterialien samt Texturen aus der .mtl.
@@ -209,10 +217,16 @@ function parseSubMaterials(xml) {
     const head = block.slice(0, block.indexOf('>'));
     const attr = (k) => (head.match(new RegExp(`\\b${k}="([^"]*)"`, 'i')) || [])[1];
     const tex = (slot) => (block.match(new RegExp(`Map="${slot}"[^>]*File="([^"]*)"|File="([^"]*)"[^>]*Map="${slot}"`, 'i')) || []).slice(1).find(Boolean);
+    // Kachelung einer Textur: <TexMod TileU=… TileV=…> direkt im <Texture>
+    const tile = (slot) => {
+      const t = block.match(new RegExp(`<Texture[^>]*Map="${slot}"[^>]*>([\\s\\S]*?)</Texture>`, 'i'))?.[1] || '';
+      const u = Number(t.match(/TileU="([^"]*)"/)?.[1] || 1), v = Number(t.match(/TileV="([^"]*)"/)?.[1] || 1);
+      return u !== 1 || v !== 1 ? [u, v] : undefined;
+    };
     out.push({
       name: attr('Name'), shader: attr('Shader'), diffuse: attr('Diffuse'), specular: attr('Specular'),
       shininess: attr('Shininess'), opacity: attr('Opacity'),
-      d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'),
+      d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'), td: tile('TexSlot1'), tn: tile('TexSlot2'),
     });
   }
   return out;

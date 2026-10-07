@@ -15,7 +15,7 @@
 //
 // Usage:  node scripts/build-hangar-assets.mjs [--only <name>] [--force]
 import { NodeIO } from '@gltf-transform/core';
-import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP } from '@gltf-transform/extensions';
+import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP, KHRTextureTransform } from '@gltf-transform/extensions';
 import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
@@ -100,7 +100,7 @@ function applyMatFix(doc, fix) {
       made.set(key, doc.createMaterial(`${key}${String(id).padStart(2, '0')}`)
         .setBaseColorFactor([...dif.slice(0, 3), 1]).setRoughnessFactor(Math.max(0.2, 1 - Number(sub.shininess || 128) / 255))
         .setExtras({
-          diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, is_glass: /glass/i.test(sub.shader || ''),
+          diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, is_glass: /glass/i.test(sub.shader || ''),
           semantic: { authored_attributes: [{ name: 'Shader', value: sub.shader }, { name: 'Specular', value: sub.specular }, { name: 'Shininess', value: sub.shininess }] },
         }));
     }
@@ -117,11 +117,12 @@ function applyMatFix(doc, fix) {
       else if (m) { p.setMaterial(m); fixed++; }
     });
   }
-  // Specular-Maps auch für die schon aufgelösten Materialien nachtragen
+  // Specular-Maps und Kachelung (TexMod) auch für die schon aufgelösten
+  // Materialien nachtragen — die nennt der Export nicht
   for (const m of mats) {
     const [base, rest] = m.getName().split('_mtl_');
     const sub = rest && fix.mtls[base]?.find((s, i) => s.name && rest.startsWith(s.name + '_') && Number(rest.slice(s.name.length + 1)) === i);
-    if (sub?.s) m.setExtras({ ...m.getExtras(), spec_tex: sub.s });
+    if (sub) m.setExtras({ ...m.getExtras(), spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn });
   }
   return { fixed, dropped, created: made.size };
 }
@@ -148,27 +149,68 @@ function coverage(doc) {
 }
 
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
-// CryEngine-Metall (Diffuse „conductor“, fast schwarz) bekommt statt dessen
-// seine Specular-Map: bei Metall ist das die Farbe.
-function attachHallTextures(doc) {
+// - CryEngine-Metall (Diffuse „conductor“, fast schwarz) bekommt statt
+//   dessen seine Specular-Map: bei Metall ist das die Farbe.
+// - Normalen: viele _ddna der Halle sind im Spiel selbst flach (jeder
+//   BC5-Block kodiert 0/0/1). Die bringen nichts und fallen weg.
+// - Rauheit: aus der Glätte im Alpha der _ddna (Extraktor: .gloss.png),
+//   roughness = 1 − gloss, als metallicRoughness-Karte (G-Kanal; B voll,
+//   der Metallfaktor des Materials bleibt maßgeblich).
+// - Kachelung: TexMod TileU/TileV der .mtl über KHR_texture_transform.
+async function attachHallTextures(doc) {
   const root = doc.getRoot();
   const cache = new Map();
-  const tex = (file, name) => {
+  const tex = (file, name, image) => {
     if (!cache.has(file)) {
-      cache.set(file, doc.createTexture(name).setImage(readFileSync(file)).setMimeType('image/png').setURI(name + '.png'));
+      cache.set(file, doc.createTexture(name).setImage(image ?? readFileSync(file)).setMimeType('image/png').setURI(name + '.png'));
     }
     return cache.get(file);
   };
-  let n = 0;
-  for (const m of root.listMaterials()) {
+  const flatCache = new Map();
+  const isFlat = async (f) => {
+    if (!flatCache.has(f)) {
+      const [r, g] = (await sharp(f).stats()).channels;
+      flatCache.set(f, r.max - r.min <= 3 && g.max - g.min <= 3);
+    }
+    return flatCache.get(f);
+  };
+  const roughImg = async (gloss) => {
+    const { data, info } = await sharp(gloss).greyscale().raw().toBuffer({ resolveWithObject: true });
+    const px = Buffer.alloc(info.width * info.height * 3);
+    for (let i = 0; i < info.width * info.height; i++) { px[i * 3] = 255; px[i * 3 + 1] = 255 - data[i * info.channels]; px[i * 3 + 2] = 255; }
+    return sharp(px, { raw: { width: info.width, height: info.height, channels: 3 } }).png().toBuffer();
+  };
+  const tt = doc.createExtension(KHRTextureTransform);
+  const tile = (ti, t) => { if (ti && t) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale(t)); };
+  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0 };
+  // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
+  const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
+  for (const m of [...used].filter(Boolean)) {
     const x = m.getExtras() || {};
     const metal = /conductor/i.test(x.diffuse_tex || '');
     const d = texFile(metal ? x.spec_tex : x.diffuse_tex);
-    if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); n++; if (metal) m.setExtras({ ...x, spec_used: true }); }
+    if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); s.attached++; if (metal) m.setExtras({ ...x, spec_used: true }); }
     const nm = texFile(x.normal_tex);
-    if (nm && !m.getNormalTexture()) { m.setNormalTexture(tex(nm, 'n' + cache.size)); n++; }
+    if (nm && !m.getNormalTexture()) {
+      if (await isFlat(nm)) s.flatNormals++;
+      else { m.setNormalTexture(tex(nm, 'n' + cache.size)); s.attached++; }
+    }
+    const gloss = nm && nm.replace(/\.png$/, '.gloss.png');
+    const glass = x.is_glass || /glass|canopy|window/i.test(m.getName());
+    if (gloss && existsSync(gloss) && !glass && !m.getMetallicRoughnessTexture()) {
+      if (!cache.has(gloss)) tex(gloss, 'r' + cache.size, await roughImg(gloss));
+      m.setMetallicRoughnessTexture(cache.get(gloss)).setRoughnessFactor(1);
+      s.rough++;
+    }
+    const td = x.tile_d, tn = x.tile_n;   // Normalen/Glätte haben ihr eigenes TexMod
+    tile(m.getBaseColorTextureInfo(), td);
+    tile(m.getNormalTextureInfo(), tn);
+    tile(m.getMetallicRoughnessTextureInfo(), tn);
+    if (td || x.tile_n) s.tiled++;
+    if (m.getBaseColorTexture()) s.color++;
+    if (m.getNormalTexture()) s.normal++;
   }
-  return n;
+  return s;
 }
 
 // Materialien webtauglich machen: Glas ohne Transmission (teuer, im Viewer
@@ -192,7 +234,8 @@ function cleanMaterials(doc) {
       const shin = Number(a.Shininess || 150);
       if (x.spec_used) m.setBaseColorFactor([...spec.map((v) => Math.min(1, v)), 1]);
       else m.setBaseColorTexture(null).setBaseColorFactor([...spec.map((v) => Math.min(1, v * 0.72)), 1]);
-      m.setMetallicFactor(1).setRoughnessFactor(Math.max(0.35, 1 - shin / 255));
+      m.setMetallicFactor(1);
+      if (!m.getMetallicRoughnessTexture()) m.setRoughnessFactor(Math.max(0.35, 1 - shin / 255));
     }
     // Spiel-Emissive als leichtes Glimmen statt Weißblech
     if (x.glow && !m.getEmissiveTexture() && m.getBaseColorTexture()) {
@@ -317,7 +360,7 @@ async function buildOne(kind, name, inPath) {
     cover = { before: coverage(doc) };
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
-  const attached = kind === 'hall' ? attachHallTextures(doc) : 0;
+  const attached = kind === 'hall' ? await attachHallTextures(doc) : 0;
   if (cover) cover.after = coverage(doc);
   cleanMaterials(doc);
   stripAttributes(doc);
@@ -380,6 +423,10 @@ for (const kind of Object.keys(BUDGET)) {
       if (kind === 'hall') r.room = HALL_ROOM[name] ?? null;
       manifest[kind][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
+      if (r.attached?.color !== undefined) {
+        const a = r.attached;
+        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+      }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
     }

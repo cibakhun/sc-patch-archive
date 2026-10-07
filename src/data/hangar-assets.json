@@ -95,11 +95,18 @@
   "hall": {
     "revelyork-single": {
       "url": "/hangar/hall/revelyork-single.glb",
-      "v": "edb6fc1d",
-      "tris": 533113,
+      "v": "3c4f4ece",
+      "tris": 532422,
       "trisRaw": 612862,
-      "textures": 65,
-      "attached": 193,
+      "textures": 99,
+      "attached": {
+        "attached": 143,
+        "color": 89,
+        "normal": 54,
+        "flatNormals": 33,
+        "rough": 80,
+        "tiled": 15
+      },
       "matfix": {
         "fixed": 159,
         "dropped": 0,
@@ -121,7 +128,7 @@
           "tris": 612862
         }
       },
-      "bytes": 6511496,
+      "bytes": 7212332,
       "room": {
         "center": [
           36,
