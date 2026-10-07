@@ -1,0 +1,44 @@
+---
+// Das Dokument je Schiff, das der Hangar holt: /hangar-bay/<id>.html und
+// /de/hangar-bay/<id>.html. Ein vollstaendiges, schlankes HTML-Dokument statt
+// eines nackten Fragments, weil audit:site jede gebaute .html als Seite
+// behandelt:
+//   - <meta name="robots" content="noindex"> nimmt es aus der Sitemap-Regel
+//     (audit-site.mjs ueberspringt noindex-Seiten; ohne sie 454 FEHLER)
+//   - lang, <title>, eine Beschreibung ab 50 Zeichen und genau ein <h1>
+//     halten die vier WARN-Pruefungen still
+//   - der sichtbare Text laeuft wie jede andere Seite durch die Herkunfts-
+//     und Platzhalter-Pruefung
+// Kein Layout, keine Navigation, kein CSS, kein JS. Astro stellt nur
+// <!DOCTYPE html> voran, weil in diesem Baum kein <style> und kein
+// gebuendeltes <script> steckt.
+import ShipBay from './ShipBay.astro';
+import type { Bay } from '../../lib/hangar/bay';
+import { href } from '../../i18n/ui';
+import { hangarT } from '../../i18n/hangarText';
+
+interface Props {
+  bay: Bay;
+}
+const { bay } = Astro.props;
+const t = hangarT(bay.lang);
+const open = `${href('/hangar.html', bay.lang)}?ship=${bay.id}`;
+---
+<html lang={bay.lang}>
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>{bay.doc.title}</title>
+<meta name="description" content={bay.doc.description}>
+</head>
+<body>
+<main class="hgx-baydoc" data-bay-id={bay.id}>
+<h1>{bay.doc.h1}</h1>
+<ShipBay bay={bay} region="head" />
+<ShipBay bay={bay} region="panel" />
+<ShipBay bay={bay} region="marks" />
+<ShipBay bay={bay} region="cmp" />
+<p><a href={open}>{t('doc.open')}</a></p>
+</main>
+</body>
+</html>

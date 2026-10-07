@@ -1,0 +1,18 @@
+---
+// EN-Huelle, 227 Buchtdokumente (Koerper: components/hangar/BayDocument.astro,
+// geteilt mit der DE-Huelle). Eine [param]-Route: src/lib/sitemap.ts
+// ueberspringt sie, und das noindex-Meta haelt die Abdeckungsregel von
+// audit:site still. Bewusst NICHT unter src/pages/schiffe/: verify:shipcard und
+// verify:shipconsole laufen rekursiv durch diesen Baum und hielten jede Datei
+// dort fuer ein Datenblatt.
+import BayDocument from '../../components/hangar/BayDocument.astro';
+import { HANGAR_IDS, parseShipId } from '../../lib/hangar/catalog';
+import { buildBay } from '../../lib/hangar/bay';
+
+export function getStaticPaths() {
+  return HANGAR_IDS.map((id) => ({ params: { id } }));
+}
+const id = parseShipId(Astro.params.id);
+if (!id) throw new Error(`hangar-bay: unbekanntes Schiff ${Astro.params.id}`);
+---
+<BayDocument bay={buildBay(id, 'en')} />
