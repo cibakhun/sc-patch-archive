@@ -22,6 +22,7 @@ import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
+import { hullLeaks } from './lib/hall-hull.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -42,9 +43,11 @@ const FORCE = argv.includes('--force');
 // Budget je Art: Dreiecke nach der Dezimierung, Kantenlänge der Texturen.
 const BUDGET = {
   ships: { tris: 200000, tex: 1024, ntex: 512 },
-  // Halle nicht dezimieren: 613k Rohdreiecke sind tragbar, und die
-  // gelockerte Schwelle (bis 4 % der Hallengröße ≈ 7 m) riss Kanten auf.
-  hall: { tris: 700000, tex: 1024, ntex: 512 },
+  // Halle wird nie dezimiert (siehe buildOne); die Zahl ist nur die
+  // Warnschwelle. Die gelockerte Schwelle (bis 4 % der Hallengröße ≈ 7 m)
+  // riss Kanten auf, und als die volle Stufe (1,24 Mio. Rohdreiecke) über
+  // dem alten Budget von 700k lag, riss sie die Längswände auf (7748b0a).
+  hall: { tris: 1600000, tex: 1024, ntex: 512 },
   npc: { tris: 30000, tex: 512, ntex: 512 },
 };
 
@@ -419,6 +422,37 @@ function hallLights(doc, name) {
 // Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
 // gezählt für die Selbstauskunft.
 const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|table|locker/i;
+
+// Einrichtung bleibt eigener Knoten mit Bezugspunkt: Für große Schiffe wächst
+// die Halle mit (Faktor bis ≈ 3), und eingeschmolzen in die Hülle wüchsen
+// Kisten und Spinde mit. So hält der Viewer jedes Möbel an seinem Platz in
+// Originalgröße (extras.anchor = Weltposition seiner Wurzel). Alles andere
+// verliert seinen Namen, damit join({ keepNamed: true }) es weiter
+// zusammenlegt. Vor flatten() aufrufen: danach fehlt die Hierarchie.
+function markFurniture(doc) {
+  const root = doc.getRoot();
+  const isF = (n) => FURNITURE.test(`${n.getName()} ${n.getMesh()?.getName() || ''}`);
+  const parentOf = new Map();
+  for (const n of root.listNodes()) for (const c of n.listChildren()) parentOf.set(c, n);
+  const rootOf = (n) => { let r = null; for (let q = n; q; q = parentOf.get(q)) if (isF(q)) r = q; return r; };
+  const ids = new Map();
+  let nodes = 0;
+  const named = new Set();
+  for (const n of root.listNodes()) {
+    const r = rootOf(n);
+    if (!r) { n.setName(''); continue; }
+    if (!n.getMesh()) continue;
+    if (!ids.has(r)) ids.set(r, ids.size);
+    const id = ids.get(r);
+    n.setExtras({ ...n.getExtras(), furniture: id, anchor: r.getWorldTranslation().map((v) => Math.round(v * 1000) / 1000) });
+    n.setName(`furniture_${id}_${nodes}`);
+    named.add(n.getMesh());
+    nodes++;
+  }
+  for (const m of root.listMeshes()) if (!named.has(m)) m.setName('');
+  return { roots: ids.size, nodes };
+}
+const drawCalls = (root) => root.listNodes().reduce((n, x) => n + (x.getMesh()?.listPrimitives().length || 0), 0);
 // Materialien, die ohne die Spiel-Laufzeit falsch aussehen: Lichtkegel- und
 // Blendenkarten (schweben als Splitter neben dem Rumpf), zur Laufzeit
 // gerenderte Schriftzüge und Schablonen (ohne Bild: weiße Flächen).
@@ -522,7 +556,9 @@ async function buildOne(kind, name, inPath) {
   if (cover) cover.after = coverage(doc);
   cleanMaterials(doc);
   stripAttributes(doc);
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: false }), weld());
+  const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' }), weld());
+  if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
   // schwelle klein, damit Silhouette und UV-Nähte halten.
@@ -531,8 +567,11 @@ async function buildOne(kind, name, inPath) {
   // Schiffe: Ränder bleiben fest und die Schwelle steigt nur bis 1 % —
   // stärker gelockert zersplitterte der C2-Rumpf (Löcher, abstehende Platten).
   // Ein großes Schiff behält dann eben mehr Dreiecke.
+  // Die Halle nie: Ihre Bausatzteile sind große ebene Flächen mit Öffnungen;
+  // in der Ebene kostet ein Kantenkollaps keinen Fehler, und der Vereinfacher
+  // zieht Ränder über Öffnungen und reißt Wände auf (scripts/lib/hall-hull.mjs).
   const b = BUDGET[kind];
-  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : [0.004, 0.01, 0.02, 0.04];
+  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' ? [] : [0.004, 0.01, 0.02, 0.04];
   for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
@@ -575,6 +614,7 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
+  const hull = kind === 'hall' && HALL_ROOM[name] ? hullLeaks(written, HALL_ROOM[name]) : null;
   // Version deckt die Lampenliste mit ab: der Viewer lädt sie mit demselben ?v=
   const hash = createHash('sha1').update(readFileSync(outPath));
   const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
@@ -585,8 +625,10 @@ async function buildOne(kind, name, inPath) {
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
+    ...(furnitureNodes ? { furnitureNodes } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
+    ...(hull ? { hull } : {}),
     bytes: statSync(outPath).size,
   };
 }
@@ -619,6 +661,13 @@ for (const kind of Object.keys(BUDGET)) {
       manifest[kind][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
+      if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
+      if (r.hull) {
+        // heile Halle: 0,04 %; aufgerissene Längswände: 1,1 bis 2,3 %
+        const where = Object.entries(r.hull.walls).filter(([, n]) => n).sort((p, q) => q[1] - p[1]).map(([k, n]) => `${k} ${n}`).join(', ');
+        console.log(`    Hülle: ${r.hull.pct} % von ${r.hull.rays.toLocaleString()} Blickstrahlen aus dem Raum treffen nichts${r.hull.pct > 0.5 ? ` — WARNUNG: Löcher in der Hülle (${where}; x = Längswände, z = Stirnwände, y = Decke/Boden)` : ''}`);
+      }
+      if (kind === 'hall' && r.tris > BUDGET.hall.tris) console.log(`    WARNUNG Halle: ${r.tris.toLocaleString()} Dreiecke über der Warnschwelle von ${BUDGET.hall.tris.toLocaleString()} (nicht dezimiert)`);
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;

@@ -1240,6 +1240,7 @@ export async function initHangar(container, opts = {}) {
     if (realHall) {
       const k = realHallScale(realHall.room);
       realHall.group.scale.setScalar(k);
+      for (const pv of realHall.furniture) pv.scale.setScalar(1 / k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
       scaleLamps();
@@ -1284,6 +1285,11 @@ export async function initHangar(container, opts = {}) {
   // nur die, die im Blickfeld (Boden um die Plattform, Schiff, Wände) am
   // meisten beitragen.
   const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+  // Vorerst aus: Mit Spiellampen und Umgebungskugel fror die Seite beim Laden
+  // ein (Krisz, 2026-10-07). Jede Lampe vergrößert den Shader jedes
+  // Materials, mit dem Eintreffen der Lampen wird alles neu übersetzt, und die
+  // Kugel rendert die volle Halle sechsmal. Kommt mit Lampenbudget zurück.
+  const GAME_LAMPS = false, HALL_PROBE = false;
   const MAX_LIGHTS = SMALL ? 8 : 16;
   // So viele Spots über der Plattform werfen den Schatten des Schiffs
   const SHADOW_LAMPS = SMALL ? 1 : 2;
@@ -1344,6 +1350,7 @@ export async function initHangar(container, opts = {}) {
   }
 
   function loadHallLights(h, model) {
+    if (!GAME_LAMPS) return;
     fetch(h.url.replace(/\.glb(\?.*)?$/, '.lights.json$1')).then((r) => (r.ok ? r.json() : null)).then((d) => {
       // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels
       if ((d?.v || 1) < 2) return;
@@ -1455,7 +1462,7 @@ export async function initHangar(container, opts = {}) {
   const HALL_ENV = 0.8;    // envMapIntensity der Hallenmaterialien mit Sonde
   let hallEnv = null, hallEnvK = 0;
   function captureHallEnv(force = false) {
-    if (!realHall) return;
+    if (!realHall || !HALL_PROBE) return;
     const k = realHall.group.scale.x;
     if (!force && hallEnv && Math.abs(k - hallEnvK) / hallEnvK < 0.1) return;
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
@@ -1499,6 +1506,25 @@ export async function initHangar(container, opts = {}) {
         ys.sort((a, b) => a - b);
         model.position.y -= ys[Math.floor(ys.length / 2)];
         floorY += ys[Math.floor(ys.length / 2)];
+      }
+      // Einrichtung in Originalgröße: Für große Schiffe wächst die Halle mit,
+      // Kisten und Spinde sollen es nicht. Der Build lässt jedes Möbel als
+      // eigenen Knoten mit Bezugspunkt (extras.anchor); es hängt hier an
+      // einem Drehpunkt dort, den scaleWorld mit 1/k gegenskaliert.
+      model.updateMatrixWorld(true);
+      const furn = [], pivots = new Map();
+      model.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
+      for (const n of furn) {
+        const id = n.userData.furniture ?? n.uuid;
+        let pv = pivots.get(id);
+        if (!pv) {
+          pv = new THREE.Group();
+          pv.position.fromArray(n.userData.anchor);
+          model.add(pv);
+          pv.updateMatrixWorld(true);
+          pivots.set(id, pv);
+        }
+        pv.attach(n);
       }
       const uvStats = hallUvStats(model);
       const boxed = new Set();
@@ -1556,7 +1582,7 @@ export async function initHangar(container, opts = {}) {
       scene.add(group);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group, room: h.room, mats, floorY };
+      realHall = { group, room: h.room, mats, floorY, furniture: [...pivots.values()] };
       loadHallLights(h, model);
       // die gebaute Halle weicht; Gerät, Crew, Schlepper und Drohne bleiben
       hall.visible = false;
