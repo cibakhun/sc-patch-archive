@@ -28,7 +28,8 @@ import { fileURLToPath } from 'node:url';
 const SRC = new URL('../.cache/hangar-src/', import.meta.url);
 const OUT = new URL('../public/hangar/', import.meta.url);
 const MANIFEST = new URL('../src/data/hangar-assets.json', import.meta.url);
-const TEX_DIR = new URL('tex/', SRC);
+// Hallentexturen in mip 1 (halbe Kantenlänge), dekodiert vom Extraktor
+const TEX_DIR = new URL('tex-m1/', SRC);
 
 const argv = process.argv.slice(2);
 const ONLY = argv.includes('--only') ? argv[argv.indexOf('--only') + 1] : null;
@@ -36,9 +37,9 @@ const FORCE = argv.includes('--force');
 
 // Budget je Art: Dreiecke nach der Dezimierung, Kantenlänge der Texturen.
 const BUDGET = {
-  ships: { tris: 160000, tex: 512 },
-  hall: { tris: 320000, tex: 512 },
-  npc: { tris: 30000, tex: 512 },
+  ships: { tris: 200000, tex: 1024, ntex: 512 },
+  hall: { tris: 320000, tex: 1024, ntex: 512 },
+  npc: { tris: 30000, tex: 512, ntex: 512 },
 };
 
 // Innenraum je Halle (Meter, glTF-Raum Y oben): Bodenmitte, halbe Breite (x),
@@ -77,7 +78,78 @@ function texFile(p) {
   return existsSync(f) ? f : null;
 }
 
+// Hallen-Materialien, die der socpak-Export nicht auflöst (Material als
+// „Data/…“-Pfad in der .cgf): Zuordnung aus <halle>.matfix.json, geschrieben
+// von scripts/extract-hangar-sources.mjs — je Mesh die .mtl und die
+// Untermaterial-ID jedes Submeshes, je .mtl die Untermaterialien samt
+// Texturen. Bestehende Materialien desselben Untermaterials werden
+// wiederverwendet (Name „<mtl>_mtl_<name>_<index>“), sonst neu angelegt.
+function applyMatFix(doc, fix) {
+  const root = doc.getRoot();
+  const mats = root.listMaterials();
+  const made = new Map();
+  const matFor = (base, id) => {
+    const sub = fix.mtls[base]?.[id];
+    if (!sub?.name) return null;
+    if (/nodraw/i.test(sub.shader || '')) return 'drop';
+    const key = `${base}_mtl_${sub.name}_`;
+    const hit = mats.find((m) => m.getName().startsWith(key) && Number(m.getName().slice(key.length)) === id);
+    if (hit) return hit;
+    if (!made.has(key)) {
+      const dif = String(sub.diffuse || '1,1,1').split(',').map(Number);
+      made.set(key, doc.createMaterial(`${key}${String(id).padStart(2, '0')}`)
+        .setBaseColorFactor([...dif.slice(0, 3), 1]).setRoughnessFactor(Math.max(0.2, 1 - Number(sub.shininess || 128) / 255))
+        .setExtras({
+          diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, is_glass: /glass/i.test(sub.shader || ''),
+          semantic: { authored_attributes: [{ name: 'Shader', value: sub.shader }, { name: 'Specular', value: sub.specular }, { name: 'Shininess', value: sub.shininess }] },
+        }));
+    }
+    return made.get(key);
+  };
+  let fixed = 0, dropped = 0;
+  for (const mesh of root.listMeshes()) {
+    const f = fix.meshes[mesh.getName().replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '')];
+    if (!f) continue;
+    mesh.listPrimitives().forEach((p, i) => {
+      if (p.getMaterial()?.getName()) return;
+      const m = matFor(f.mtl, f.ids[i]);
+      if (m === 'drop') { mesh.removePrimitive(p); p.dispose(); dropped++; }
+      else if (m) { p.setMaterial(m); fixed++; }
+    });
+  }
+  // Specular-Maps auch für die schon aufgelösten Materialien nachtragen
+  for (const m of mats) {
+    const [base, rest] = m.getName().split('_mtl_');
+    const sub = rest && fix.mtls[base]?.find((s, i) => s.name && rest.startsWith(s.name + '_') && Number(rest.slice(s.name.length + 1)) === i);
+    if (sub?.s) m.setExtras({ ...m.getExtras(), spec_tex: sub.s });
+  }
+  return { fixed, dropped, created: made.size };
+}
+
+// Abdeckung für den Bericht: benutzte Materialien gesamt / mit Farb- bzw.
+// Normal-Quelle (Textur oder Pfad dazu) und der Dreiecksanteil ohne Material.
+function coverage(doc) {
+  const used = new Map();
+  let tris = 0, bare = 0;
+  for (const m of doc.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
+    const t = (p.getIndices()?.getCount() ?? 0) / 3;
+    tris += t;
+    const mat = p.getMaterial();
+    if (!mat?.getName()) { bare += t; continue; }
+    used.set(mat, true);
+  }
+  let d = 0, n = 0;
+  for (const m of used.keys()) {
+    const x = m.getExtras() || {};
+    if (m.getBaseColorTexture() || x.diffuse_tex || x.spec_tex) d++;
+    if (m.getNormalTexture() || x.normal_tex) n++;
+  }
+  return { materials: used.size, diffuse: d, normal: n, trisOhneMaterial: Math.round(bare), tris: Math.round(tris) };
+}
+
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
+// CryEngine-Metall (Diffuse „conductor“, fast schwarz) bekommt statt dessen
+// seine Specular-Map: bei Metall ist das die Farbe.
 function attachHallTextures(doc) {
   const root = doc.getRoot();
   const cache = new Map();
@@ -90,8 +162,9 @@ function attachHallTextures(doc) {
   let n = 0;
   for (const m of root.listMaterials()) {
     const x = m.getExtras() || {};
-    const d = texFile(x.diffuse_tex);
-    if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); n++; }
+    const metal = /conductor/i.test(x.diffuse_tex || '');
+    const d = texFile(metal ? x.spec_tex : x.diffuse_tex);
+    if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); n++; if (metal) m.setExtras({ ...x, spec_used: true }); }
     const nm = texFile(x.normal_tex);
     if (nm && !m.getNormalTexture()) { m.setNormalTexture(tex(nm, 'n' + cache.size)); n++; }
   }
@@ -117,8 +190,9 @@ function cleanMaterials(doc) {
       const a = Object.fromEntries((x.semantic?.authored_attributes || []).map((t) => [t.name, t.value]));
       const spec = String(a.Specular || '0.7,0.7,0.7').split(',').map(Number);
       const shin = Number(a.Shininess || 150);
-      m.setBaseColorTexture(null).setBaseColorFactor([...spec.map((v) => Math.min(1, v * 0.72)), 1])
-        .setMetallicFactor(1).setRoughnessFactor(Math.max(0.35, 1 - shin / 255));
+      if (x.spec_used) m.setBaseColorFactor([...spec.map((v) => Math.min(1, v)), 1]);
+      else m.setBaseColorTexture(null).setBaseColorFactor([...spec.map((v) => Math.min(1, v * 0.72)), 1]);
+      m.setMetallicFactor(1).setRoughnessFactor(Math.max(0.35, 1 - shin / 255));
     }
     // Spiel-Emissive als leichtes Glimmen statt Weißblech
     if (x.glow && !m.getEmissiveTexture() && m.getBaseColorTexture()) {
@@ -237,7 +311,14 @@ async function buildOne(kind, name, inPath) {
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
   dropJunk(doc, kind);
+  let matfix = null, cover = null;
+  if (kind === 'hall') {
+    const fixFile = fileURLToPath(new URL(`hall/${name}.matfix.json`, SRC));
+    cover = { before: coverage(doc) };
+    if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
+  }
   const attached = kind === 'hall' ? attachHallTextures(doc) : 0;
+  if (cover) cover.after = coverage(doc);
   cleanMaterials(doc);
   stripAttributes(doc);
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: false }), weld());
@@ -246,15 +327,21 @@ async function buildOne(kind, name, inPath) {
   // schwelle klein, damit Silhouette und UV-Nähte halten.
   // Reicht die kleine Schwelle nicht (Halle: viele flache Kitbash-Teile),
   // wird sie stufenweise gelockert.
+  // Schiffe: Ränder bleiben fest und die Schwelle steigt nur bis 1 % —
+  // stärker gelockert zersplitterte der C2-Rumpf (Löcher, abstehende Platten).
+  // Ein großes Schiff behält dann eben mehr Dreiecke.
   const b = BUDGET[kind];
-  for (const error of [0.004, 0.01, 0.02, 0.04]) {
+  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : [0.004, 0.01, 0.02, 0.04];
+  for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
-    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: false }));
+    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: kind === 'ships' }));
   }
+  // Farbe/Leuchten bis b.tex, alles übrige (Normalen, Masken) bis b.ntex
   await doc.transform(
     prune(),
-    textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [b.tex, b.tex], quality: 82 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: 82 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: 80 }),
     draco({ method: 'edgebreaker', quantizePosition: 14, quantizeNormal: 10, quantizeTexcoord: 12 }),
   );
   // Nur noch das Nötige ankündigen
@@ -268,7 +355,7 @@ async function buildOne(kind, name, inPath) {
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
-    textures: root.listTextures().length, attached,
+    textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     bytes: statSync(outPath).size,
   };
 }

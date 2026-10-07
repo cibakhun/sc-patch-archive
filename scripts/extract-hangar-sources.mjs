@@ -9,7 +9,7 @@
 //   SC_P4K=<pfad zur Data.p4k>
 //
 // Usage:  node scripts/extract-hangar-sources.mjs [ships|hall|npc ...] [--ships slug,slug] [--force]
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,7 +59,8 @@ function sb(args) {
   if (r.status !== 0) throw new Error((r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' | '));
   return r.stdout;
 }
-const COMMON = ['--materials', 'textures', '--mip', '2', '--lod', '1'];
+// mip 1 = halbe Kantenlänge (bis 2048 px); der Build deckelt Farbe auf 1024, Normalen auf 512
+const COMMON = ['--materials', 'textures', '--mip', '1', '--lod', '1'];
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
 const sbSkin = (part, file) => sb(['skin', 'export', part, file]);
 
@@ -88,25 +89,133 @@ if (want('hall')) {
     const file = `${SRC}hall/${h.key}.glb`;
     try { exportTo(file, ['socpak', 'export', h.socpak]); }
     catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
-    // socpak export bettet keine Bilder ein, nennt aber die Pfade: einzeln
-    // dekodieren (mip 2 = 1/4 Kantenlänge, reicht für die Web-Fassung).
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(file);
+    const fix = hallMaterialFix(doc);
+    writeFileSync(`${SRC}hall/${h.key}.matfix.json`, JSON.stringify(fix, null, 1));
+    console.log(`  Materialien nachgetragen: ${Object.keys(fix.meshes).length} Meshes, ${Object.keys(fix.mtls).length} .mtl`);
+
+    // socpak export bettet keine Bilder ein, nennt aber die Pfade: einzeln
+    // dekodieren (mip 1 = halbe Kantenlänge; der Build deckelt auf 1024 px).
     const paths = new Set();
-    for (const m of doc.getRoot().listMaterials()) {
-      const x = m.getExtras() || {};
-      for (const p of [x.diffuse_tex, x.normal_tex]) if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/'));
-    }
+    const add = (p) => { if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/')); };
+    for (const m of doc.getRoot().listMaterials()) { const x = m.getExtras() || {}; add(x.diffuse_tex); add(x.normal_tex); }
+    for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); }
     let ok = 0, skip = 0, bad = 0;
     for (const p of paths) {
       const rel = p.replace(/^data\//i, '').replace(/\.(tif|dds)$/i, '');
-      const out = `${SRC}tex/${rel.toLowerCase()}.png`;
+      const out = `${SRC}tex-m1/${rel.toLowerCase()}.png`;
       if (!FORCE && existsSync(out)) { skip++; continue; }
       mkdirSync(dirname(out), { recursive: true });
-      try { sb(['dds', 'decode', `Data/${rel}.dds`, out, '--mip', '2']); ok++; }
+      try { sb(['dds', 'decode', `Data/${rel}.dds`, out, '--mip', '1']); ok++; }
       catch { bad++; }
     }
     console.log(`  Texturen: ${ok} dekodiert, ${skip} vorhanden, ${bad} nicht gefunden (von ${paths.size})`);
   }
+}
+
+// ─── Hallen-Materialien, die der socpak-Export nicht auflöst ─────────────
+// Ein Teil der Bausatz-Meshes (Wände, Türrahmen, Geländer, Plattformen)
+// nennt sein Material als „Data/Objects/…/hangar_deluxe_kit_master“ — mit
+// Data/-Präfix. Diese Schreibweise löst StarBreaker nicht auf; die
+// Primitive kommen ohne Material (Grau #e7e7e7, ~40 % der Hallenfläche).
+// Hier holen wir das nach: Material-Pfad aus der .cgf, Untermaterial-ID je
+// Submesh aus der .cgfm (32-Bit-Wort vor first_index: untere 16 Bit =
+// Material, obere = Knoten), Untermaterialien samt Texturen aus der .mtl.
+// Für alle .mtl der Halle gehen außerdem die Specular-Maps (TexSlot4) mit:
+// bei CryEngine-Metall steckt dort die Farbe.
+function hallMaterialFix(doc) {
+  const RAW = `${SRC}hall-raw/`;
+  const unresolved = new Map();   // Meshname -> Primitiv-Indexzahlen
+  const bases = new Set();
+  for (const m of doc.getRoot().listMeshes()) {
+    const prims = m.listPrimitives();
+    if (prims.some((p) => !p.getMaterial()?.getName())) {
+      unresolved.set(m.getName().replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, ''), prims.map((p) => p.getIndices()?.getCount() ?? 0));
+    }
+    for (const p of prims) {
+      const n = p.getMaterial()?.getName() || '';
+      if (n.includes('_mtl_')) bases.add(n.split('_mtl_')[0]);
+    }
+  }
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Meshes: .cgf (Materialpfad) und .cgfm (Submeshes), Grund- und LOD1-Stufe
+  if (unresolved.size) {
+    sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${[...unresolved.keys()].map(esc).join('|')})(_lod1)?\\.cgfm?$`]);
+  }
+  const files = listFiles(RAW);
+  const meshes = {};
+  for (const [name, counts] of unresolved) {
+    const cgf = files.find((f) => f.toLowerCase().endsWith(`/${name.toLowerCase()}.cgf`));
+    if (!cgf) continue;
+    const mtl = (readFileSync(cgf, 'latin1').match(/(?:Data\/)?(?:Objects\/[\w/]+\/)?([\w]+)(?=\0)/g) || [])
+      .map((s) => s.replace(/^Data\//i, '').split('/').pop())
+      .find((s) => bases.has(s) || /master|_mtl|kit/i.test(s));
+    if (!mtl) continue;
+    // die Stufe nehmen, deren Submeshes zu den exportierten Primitiven passen
+    for (const lod of [`${name}_lod1.cgfm`, `${name}.cgfm`]) {
+      const f = files.find((x) => x.toLowerCase().endsWith(`/${lod.toLowerCase()}`));
+      const subs = f && readSubsets(readFileSync(f));
+      if (subs && subs.length === counts.length && subs.every((s, i) => s.num === counts[i])) {
+        meshes[name] = { mtl, ids: subs.map((s) => s.mat) };
+        bases.add(mtl);
+        break;
+      }
+    }
+  }
+  // .mtl lesen (CryXmlB -> XML) und Untermaterialien festhalten
+  sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${[...bases].map(esc).join('|')})\\.mtl$`]);
+  const mtls = {};
+  for (const f of listFiles(RAW).filter((x) => x.toLowerCase().endsWith('.mtl'))) {
+    const base = f.split('/').pop().replace(/\.mtl$/i, '');
+    if (!bases.has(base) || mtls[base]) continue;
+    const xml = `${f}.xml`;
+    if (!existsSync(xml)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, xml]);
+    if (!existsSync(xml)) continue;
+    mtls[base] = parseSubMaterials(readFileSync(xml, 'utf8'));
+  }
+  return { meshes, mtls };
+}
+
+function listFiles(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { recursive: true }).map((f) => `${dir}${String(f).replace(/\\/g, '/')}`);
+}
+
+// Submesh-Tabelle einer IVO-.cgfm: Zeilen zu 48 Byte, je Zeile
+// [Material|Knoten, first_index, num_indices, first_vertex, 0, num_vertices,
+// radius, center x/y/z, 2 x unbekannt]. Gesucht wird die längste Kette, in
+// der first_index jeweils an die vorige Zeile anschließt.
+function readSubsets(buf) {
+  const i32 = (o) => buf.readInt32LE(o);
+  let best = null;
+  for (let o = 0; o + 48 <= buf.length; o += 4) {
+    if (i32(o + 4) !== 0 || i32(o + 12) !== 0 || i32(o + 16) !== 0) continue;
+    const rows = [];
+    let at = o, next = 0;
+    while (at + 48 <= buf.length && i32(at + 4) === next && i32(at + 8) > 0 && i32(at + 8) % 3 === 0 && i32(at + 16) === 0) {
+      rows.push({ mat: buf.readUInt16LE(at), num: i32(at + 8) });
+      next += i32(at + 8);
+      at += 48;
+    }
+    if (rows.length && (!best || rows.length > best.length)) best = rows;
+  }
+  return best;
+}
+
+function parseSubMaterials(xml) {
+  const out = [];
+  const body = xml.split(/<SubMaterials>/i)[1] || '';
+  for (const block of body.split(/<Material\b/i).slice(1)) {
+    const head = block.slice(0, block.indexOf('>'));
+    const attr = (k) => (head.match(new RegExp(`\\b${k}="([^"]*)"`, 'i')) || [])[1];
+    const tex = (slot) => (block.match(new RegExp(`Map="${slot}"[^>]*File="([^"]*)"|File="([^"]*)"[^>]*Map="${slot}"`, 'i')) || []).slice(1).find(Boolean);
+    out.push({
+      name: attr('Name'), shader: attr('Shader'), diffuse: attr('Diffuse'), specular: attr('Specular'),
+      shininess: attr('Shininess'), opacity: attr('Opacity'),
+      d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'),
+    });
+  }
+  return out;
 }
 
 if (want('npc')) {

@@ -31,9 +31,8 @@ const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
 const HOLD: Record<string, string> = {
-  'crus-starlifter-c2': 'Rumpf nach der Dezimierung zersplittert (weiße Platten, Löcher); erst nach Neuexport mit weniger Reduktion',
   'misc-freelancer': 'Rumpf als schwarz glänzende, verlaufene Flächen; die Lackschichten löst der Export nicht auf',
-  'rsi-constellation-andromeda': 'Rumpf fleckig und fast schwarz, Lackschichten unaufgelöst; Geometrie-Fassung wirkt sauberer',
+  'rsi-constellation-andromeda': 'Rumpf nach Neuexport sauber, aber fast schwarzbraun; Freigabe ist Sichturteil des Betreibers',
 };
 const hallAsset = Object.values(real.hall ?? {})[0];
 const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room } : null;
