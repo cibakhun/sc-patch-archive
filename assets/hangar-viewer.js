@@ -1296,6 +1296,9 @@ export async function initHangar(container, opts = {}) {
       const boxed = new Set();
       model.traverse((n) => {
         if (!n.isMesh) return;
+        // Editor-Raster (grau-gelbes Platzhaltergitter) liegt als Deckel
+        // unter der echten Decke und verdeckt sie; im Spiel unsichtbar.
+        if ([].concat(n.material).every((m) => /grid_grayyellow/i.test(m.name))) { n.visible = false; return; }
         n.receiveShadow = true;
         n.castShadow = false;
         for (const m of [].concat(n.material)) {
@@ -1350,11 +1353,16 @@ export async function initHangar(container, opts = {}) {
       for (const p of Object.values(life.props)) p.visible = false;
       life.tug.visible = false;
       life.drone.visible = false;
+      // Schwebender Staub ist selbst gebaut und liest sich vor den hellen
+      // Wänden als weiße Pixelfehler
+      dust.pts.visible = false;
       scene.background = new THREE.Color(0x9aa0a8);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
       // tritt zurück — sonst ist das helle Innere eine einzige weiße Fläche.
-      hemi.color.set(0xffefdc); hemi.groundColor.set(0x2b2723);
+      // Bodenfarbe der Halbkugel = Rücklicht vom hellen Boden: Ohne sie
+      // bleibt die nach unten gewandte Decke ein schwarzes Loch.
+      hemi.color.set(0xffefdc); hemi.groundColor.set(0x8a8178);
       hemi.intensity = 0.35;
       key.intensity = 8; key.angle = 0.5; key.penumbra = 0.75;
       rim.intensity = 3;
