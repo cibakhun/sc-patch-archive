@@ -90,3 +90,16 @@ Auftrag für die PC-Sitzung (StarBreaker + Data.p4k, Schiene C). Gemessen an
    (die UV-Korrektur hilft allen). Größe der Halle möglichst ≤ 12 MB.
 5. Build + Gate (normal und STAGING=1), committen, pushen. Kein PR: die
    Sichtprüfung und den Merge macht die Cloud.
+
+## Nachtrag 2026-10-07 abends (Cloud)
+
+- Erledigt: Splitter am Boden waren keine Geometrie, sondern Normalen, die
+  über harte Kanten geglättet sind (27 % der Boden- und Wanddreiecke).
+  `scripts/lib/crease-normals.mjs` berechnet sie mit 30° Kantenwinkel neu.
+  Im Build für die Halle verdrahtet, und auf die Halle aus d9a2038 einmal
+  in der Cloud angewandt (gleiche Texturen, Draco neu, UV 3,2 %).
+- Offen für den nächsten PC-Lauf (Auslöser: „Hallenschicht Metall“):
+  1. Fünfte Blendschicht auf der Metallfläche: Schicht 2 dort als Lack über
+     Metall backen, mit Metallmaske (1 − f) statt der Farbkarte allein.
+  2. Rauheit der zweiten Schicht (TexSlot10/11 bzw. deren Glätte) über
+     dieselbe Maske in die Rauheitskarte mischen.

@@ -19,6 +19,7 @@ import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP, KHRTextureTran
 import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
+import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync } from 'node:fs';
@@ -442,6 +443,16 @@ async function buildOne(kind, name, inPath) {
     if (now <= b.tris * 1.1) break;
     await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: kind === 'ships' }));
   }
+  // Halle: Normalen mit Kantenwinkel neu, sonst helle Keile an jeder Fuge
+  // (siehe scripts/lib/crease-normals.mjs).
+  let crease = null;
+  if (kind === 'hall') {
+    crease = { corners: 0, changed: 0 };
+    for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) {
+      const r = creaseNormals(p);
+      if (r) { crease.corners += r.corners; crease.changed += r.changed; }
+    }
+  }
   // UV-Inseln an den Ursprung holen, sonst zerquantisiert Draco die
   // gekachelten Spiel-UVs (siehe scripts/lib/uv-islands.mjs).
   const uvRange = { before: 0, after: 0 };
@@ -474,6 +485,7 @@ async function buildOne(kind, name, inPath) {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
+    ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     bytes: statSync(outPath).size,
   };
@@ -499,6 +511,7 @@ for (const kind of Object.keys(BUDGET)) {
       if (kind === 'hall') r.room = HALL_ROOM[name] ?? null;
       manifest[kind][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
+      if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
