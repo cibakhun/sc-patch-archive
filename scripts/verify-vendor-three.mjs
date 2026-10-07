@@ -25,6 +25,11 @@ const REQUIRED_FILES = [
   'public/vendor/three/addons/loaders/DRACOLoader.js',
   'public/vendor/three/addons/utils/BufferGeometryUtils.js',
   'public/vendor/three/addons/utils/SkeletonUtils.js',
+  // Hangar: Umgebungsverdeckung in der echten Halle (nachgeladen)
+  'public/vendor/three/addons/postprocessing/EffectComposer.js',
+  'public/vendor/three/addons/postprocessing/RenderPass.js',
+  'public/vendor/three/addons/postprocessing/GTAOPass.js',
+  'public/vendor/three/addons/postprocessing/OutputPass.js',
 ];
 
 const problems = [];
