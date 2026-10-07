@@ -21,8 +21,10 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
+import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import sharp from 'sharp';
-import { readdirSync, existsSync, mkdirSync, statSync, readFileSync } from 'node:fs';
+import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -361,21 +363,72 @@ function stripAttributes(doc) {
   }
 }
 
-// Halle: Einrichtung der Galerien (aus der Schiffsperspektive kaum zu sehen,
-// zusammen aber ein Viertel der Dreiecke) und die Planenkisten am Boden
-// (stehen genau im Blickfeld der Startansicht).
-const DROP_HALL = /props_(plant|couch|chair|occasional_table|crate_tarp)|flower_|footlocker/i;
+// Spiellampen der Halle -> public/hangar/hall/<halle>.lights.json (liest der
+// Viewer neben dem GLB). Position und Richtung aus den KHR_lights_punctual-
+// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt in −Z),
+// Spieltyp, Spiel-Intensität und Radius aus <halle>.lights-src.txt (das
+// Protokoll des Exports, siehe scripts/extract-hangar-sources.mjs), über den
+// Namen verbunden. angle = voller Kegelwinkel in Grad. Schatten nennt der
+// Export nicht: shadow bleibt false. Danach richtet orientHallLights die
+// Richtungen aus (Spots aus dem Z-oben-Raum nach glTF, Flächenlichter von
+// ihrer Fläche weg, siehe scripts/lib/hall-lights.mjs); v: 2 kennzeichnet das.
+const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
+function hallLights(doc, name) {
+  const srcFile = fileURLToPath(new URL(`hall/${name}.lights-src.txt`, SRC));
+  // Ohne Exportprotokoll kennt der Build weder Spieltyp noch Spielstärke: Die
+  // Werte der Lichtknoten allein ergäben eine falsche Beleuchtung. Dann bleibt
+  // die bisherige Lampenliste stehen, und der Hinweis sagt, was zu tun ist.
+  if (!existsSync(srcFile)) return { missing: `hall/${name}.lights-src.txt` };
+  const src = new Map();
+  for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
+    const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+    if (!m) continue;
+    if (!src.has(m[1])) src.set(m[1], []);
+    src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
+  }
+  const lights = [];
+  for (const node of doc.getRoot().listNodes()) {
+    const l = node.getExtension('KHR_lights_punctual');
+    if (!l) continue;
+    const w = node.getWorldMatrix();
+    const len = Math.hypot(w[8], w[9], w[10]) || 1;
+    const s = src.get(node.getName())?.shift();
+    const type = s ? (LIGHT_TYPE[s.type] || 'point') : l.getType();
+    const r3 = (v) => Math.round(v * 1000) / 1000;
+    lights.push({
+      type,
+      pos: [w[12], w[13], w[14]].map(r3),
+      dir: [-w[8] / len, -w[9] / len, -w[10] / len].map(r3),
+      color: l.getColor().map(r3),
+      intensity: s ? s.intensity : l.getIntensity(),
+      radius: s ? s.radius : l.getRange() ?? 0,
+      angle: l.getType() === 'spot' ? r3((l.getOuterConeAngle() * 2 * 180) / Math.PI) : null,
+      shadow: false,
+      name: node.getName(),
+    });
+  }
+  const orient = orientHallLights(lights, hallRaycaster(doc));
+  const outFile = fileURLToPath(new URL(`hall/${name}.lights.json`, OUT));
+  mkdirSync(dirname(outFile), { recursive: true });
+  writeFileSync(outFile, JSON.stringify({ v: 2, lights }) + '\n');
+  const byType = {};
+  for (const l of lights) byType[l.type] = (byType[l.type] || 0) + 1;
+  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient };
+}
+
+// Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
+// gezählt für die Selbstauskunft.
+const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|table|locker/i;
 // Materialien, die ohne die Spiel-Laufzeit falsch aussehen: Lichtkegel- und
 // Blendenkarten (schweben als Splitter neben dem Rumpf), zur Laufzeit
 // gerenderte Schriftzüge und Schablonen (ohne Bild: weiße Flächen).
 const DROP_MAT = /headlight_glow|_flare|lens_?flare|light_?(beam|cone|shaft)|RTT_|stencil/i;
 
-function dropJunk(doc, kind) {
+function dropJunk(doc) {
   const root = doc.getRoot();
-  const re = kind === 'hall' ? new RegExp(`${DROP.source}|${DROP_HALL.source}`, 'i') : DROP;
   let dropped = 0;
   for (const node of root.listNodes()) {
-    if (re.test(node.getName() || '') || (node.getMesh() && re.test(node.getMesh().getName() || ''))) {
+    if (DROP.test(node.getName() || '') || (node.getMesh() && DROP.test(node.getMesh().getName() || ''))) {
       node.setMesh(null); dropped++;
     }
   }
@@ -454,7 +507,11 @@ async function buildOne(kind, name, inPath) {
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
-  dropJunk(doc, kind);
+  // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
+  // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
+  const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
+  const lights = kind === 'hall' ? hallLights(doc, name) : null;
+  dropJunk(doc);
   let matfix = null, cover = null;
   if (kind === 'hall') {
     const fixFile = fileURLToPath(new URL(`hall/${name}.matfix.json`, SRC));
@@ -518,11 +575,16 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
-  const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
+  // Version deckt die Lampenliste mit ab: der Viewer lädt sie mit demselben ?v=
+  const hash = createHash('sha1').update(readFileSync(outPath));
+  const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
+  if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
+  const v = hash.digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
+    ...(lights ? { lights, furniture } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     bytes: statSync(outPath).size,
@@ -541,7 +603,14 @@ for (const kind of Object.keys(BUDGET)) {
     if (ONLY && name !== ONLY) { if (prev[kind]?.[name]) manifest[kind][name] = prev[kind][name]; continue; }
     const inPath = fileURLToPath(new URL(f, dir));
     const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
-    if (!FORCE && prev[kind]?.[name] && existsSync(outPath) && statSync(outPath).mtimeMs > statSync(inPath).mtimeMs) {
+    // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
+    // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
+    // Lampenliste muss schon da sein.
+    const side = kind === 'hall' ? ['lights-src.txt', 'matfix.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
+      && (kind !== 'hall' || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)));
+    if (!FORCE && prev[kind]?.[name] && fresh) {
       manifest[kind][name] = prev[kind][name]; reused++; continue;
     }
     try {
@@ -554,6 +623,14 @@ for (const kind of Object.keys(BUDGET)) {
       if (r.attached?.color !== undefined) {
         const a = r.attached;
         console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+      }
+      if (r.lights?.missing) {
+        console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
+      } else if (r.lights) {
+        const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
+        console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture} Einrichtungsobjekte, ${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp), ${(r.bytes / 1048576).toFixed(2)} MB`);
+        const o = r.lights.orient;
+        if (o) console.log(`    Lampen: ${o.spots} Spots umgerechnet (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);

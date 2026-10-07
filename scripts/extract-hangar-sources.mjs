@@ -54,23 +54,24 @@ const want = (p) => !parts.length || parts.includes(p);
 if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER} (SC_STARBREAKER setzen)`); process.exit(1); }
 if (!existsSync(P4K)) { console.error(`Data.p4k fehlt: ${P4K} (SC_P4K setzen)`); process.exit(1); }
 
-function sb(args) {
-  const r = spawnSync(STARBREAKER, [...args, '--p4k', P4K], { encoding: 'utf8', maxBuffer: 64 << 20 });
+// log: StarBreaker mit -v aufrufen und dessen Protokoll (stderr) mit zurückgeben
+function sb(args, { log = false } = {}) {
+  const r = spawnSync(STARBREAKER, [...(log ? ['-v'] : []), ...args, '--p4k', P4K], { encoding: 'utf8', maxBuffer: 256 << 20 });
   if (r.status !== 0) throw new Error((r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' | '));
-  return r.stdout;
+  return log ? { stdout: r.stdout, log: r.stderr } : r.stdout;
 }
 // mip 1 = halbe Kantenlänge (bis 2048 px); der Build deckelt Farbe auf 1024, Normalen auf 512
 const COMMON = ['--materials', 'textures', '--mip', '1', '--lod', '1'];
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
 const sbSkin = (part, file) => sb(['skin', 'export', part, file]);
 
-function exportTo(file, args) {
+function exportTo(file, args, common = COMMON, { log = false } = {}) {
   if (!FORCE && existsSync(file)) { console.log(`  = ${file.slice(SRC.length)}`); return false; }
   mkdirSync(dirname(file), { recursive: true });
   const t = Date.now();
-  sb([...args, file, ...COMMON]);
+  const r = sb([...args, file, ...common], { log });
   console.log(`  + ${file.slice(SRC.length)}  (${((Date.now() - t) / 1000).toFixed(0)} s)`);
-  return true;
+  return log ? r.log : true;
 }
 
 if (want('ships')) {
@@ -87,8 +88,22 @@ if (want('hall')) {
   console.log('Halle');
   for (const h of HALLS) {
     const file = `${SRC}hall/${h.key}.glb`;
-    try { exportTo(file, ['socpak', 'export', h.socpak]); }
-    catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
+    // Halle in voller Stufe (LOD 0): Fasen, Schrauben und Kantenprofile fehlen
+    // in LOD 1. Schiffe bleiben bei COMMON.
+    // Lichter: das GLB trägt sie als KHR_lights_punctual, kennt aber nur
+    // Punkt und Spot. Den Spieltyp (Planar = Flächenlicht, Projector, Omni,
+    // Ambient) und die Spiel-Intensität nennt nur das Protokoll des Exports
+    // (-v): "Light '<name>' type=… intensity=… radius=… color=[…]". Diese
+    // Zeilen gehen nach <halle>.lights-src.txt, der Build verbindet sie über
+    // den Namen mit den Lichtknoten.
+    try {
+      const log = exportTo(file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? '0' : a)), { log: true });
+      if (typeof log === 'string') {
+        const lines = log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
+        writeFileSync(`${SRC}hall/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
+        console.log(`  Lichtangaben: ${lines.length}`);
+      }
+    } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(file);
     const fix = hallMaterialFix(doc);
     writeFileSync(`${SRC}hall/${h.key}.matfix.json`, JSON.stringify(fix, null, 1));
@@ -200,7 +215,9 @@ function readSubsets(buf) {
     if (i32(o + 4) !== 0 || i32(o + 12) !== 0 || i32(o + 16) !== 0) continue;
     const rows = [];
     let at = o, next = 0;
-    while (at + 48 <= buf.length && i32(at + 4) === next && i32(at + 8) > 0 && i32(at + 8) % 3 === 0 && i32(at + 16) === 0) {
+    // Folgezeilen: nur first_index-Anschluss prüfen (Spalte 5 ist bei großen
+    // Submeshes nicht 0)
+    while (at + 48 <= buf.length && i32(at + 4) === next && i32(at + 8) > 0 && i32(at + 8) % 3 === 0) {
       rows.push({ mat: buf.readUInt16LE(at), num: i32(at + 8) });
       next += i32(at + 8);
       at += 48;
