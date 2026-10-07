@@ -375,14 +375,16 @@ function stripAttributes(doc) {
 const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
 function hallLights(doc, name) {
   const srcFile = fileURLToPath(new URL(`hall/${name}.lights-src.txt`, SRC));
+  // Ohne Exportprotokoll kennt der Build weder Spieltyp noch Spielstärke: Die
+  // Werte der Lichtknoten allein ergäben eine falsche Beleuchtung. Dann bleibt
+  // die bisherige Lampenliste stehen, und der Hinweis sagt, was zu tun ist.
+  if (!existsSync(srcFile)) return { missing: `hall/${name}.lights-src.txt` };
   const src = new Map();
-  if (existsSync(srcFile)) {
-    for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
-      const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
-      if (!m) continue;
-      if (!src.has(m[1])) src.set(m[1], []);
-      src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
-    }
+  for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
+    const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+    if (!m) continue;
+    if (!src.has(m[1])) src.set(m[1], []);
+    src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
   }
   const lights = [];
   for (const node of doc.getRoot().listNodes()) {
@@ -601,7 +603,14 @@ for (const kind of Object.keys(BUDGET)) {
     if (ONLY && name !== ONLY) { if (prev[kind]?.[name]) manifest[kind][name] = prev[kind][name]; continue; }
     const inPath = fileURLToPath(new URL(f, dir));
     const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
-    if (!FORCE && prev[kind]?.[name] && existsSync(outPath) && statSync(outPath).mtimeMs > statSync(inPath).mtimeMs) {
+    // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
+    // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
+    // Lampenliste muss schon da sein.
+    const side = kind === 'hall' ? ['lights-src.txt', 'matfix.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
+      && (kind !== 'hall' || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)));
+    if (!FORCE && prev[kind]?.[name] && fresh) {
       manifest[kind][name] = prev[kind][name]; reused++; continue;
     }
     try {
@@ -615,7 +624,9 @@ for (const kind of Object.keys(BUDGET)) {
         const a = r.attached;
         console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
       }
-      if (r.lights) {
+      if (r.lights?.missing) {
+        console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
+      } else if (r.lights) {
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
         console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture} Einrichtungsobjekte, ${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp), ${(r.bytes / 1048576).toFixed(2)} MB`);
         const o = r.lights.orient;

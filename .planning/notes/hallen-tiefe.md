@@ -37,6 +37,14 @@ dem Spiel kommen, nichts selbst gebaut.
    Format: `{ "lights": [{ "type": "point|spot|area", "pos": [x,y,z],
    "dir": [x,y,z], "color": [r,g,b], "intensity": n, "radius": n,
    "angle": n, "shadow": bool, "name": "…" }] }`. Selbstauskunft: Anzahl je Typ.
+
+   Nachtrag (Cloud, wie geliefert und ausgerichtet): Die Datei trägt `"v": 2`
+   (Richtungen in glTF). `type` kann auch `ambient` sein (Umgebungslicht des
+   Spiels, ohne Richtung; der Viewer lässt es aus). `dir` ist bei Punkt- und
+   Umgebungslichtern ohne Bedeutung und bei Flächenlichtern, die an keiner
+   Fläche sitzen, `null` (dann strahlen sie rundum). Ausgerichtete
+   Flächenlichter tragen zusätzlich `gap` (Abstand zur Fläche in m), `angle`
+   ist nur bei Spots gesetzt.
 6. Selbstauskunft im Build: Dreiecke Halle, Anzahl Einrichtungsobjekte,
    Anzahl Lichter, Größe.
 7. Build + Gate (normal und STAGING=1), committen, pushen. Kein PR.

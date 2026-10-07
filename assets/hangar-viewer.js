@@ -1814,6 +1814,7 @@ export async function initHangar(container, opts = {}) {
       controls.dispose();
       disposeObject(scene);
       envRT.dispose();
+      hallEnv?.dispose();
       composer?.dispose();
       draco.dispose();
       renderer.dispose();
