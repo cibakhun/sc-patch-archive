@@ -99,7 +99,7 @@ if (want('hall')) {
     const paths = new Set();
     const add = (p) => { if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/')); };
     for (const m of doc.getRoot().listMaterials()) { const x = m.getExtras() || {}; add(x.diffuse_tex); add(x.normal_tex); }
-    for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); }
+    for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); add(s.blend?.d); add(s.blend?.mask); }
     // _ddna trägt neben den Normalen im Alpha die Glätte: als eigene Karte
     // (.gloss.png), daraus macht der Build die Rauheit. Viele _ddna der Halle
     // sind im Spiel selbst flach (jeder BC5-Block kodiert 0/0/1) — dort ist
@@ -217,16 +217,29 @@ function parseSubMaterials(xml) {
     const head = block.slice(0, block.indexOf('>'));
     const attr = (k) => (head.match(new RegExp(`\\b${k}="([^"]*)"`, 'i')) || [])[1];
     const tex = (slot) => (block.match(new RegExp(`Map="${slot}"[^>]*File="([^"]*)"|File="([^"]*)"[^>]*Map="${slot}"`, 'i')) || []).slice(1).find(Boolean);
-    // Kachelung einer Textur: <TexMod TileU=… TileV=…> direkt im <Texture>
+    // Kachelung einer Textur: <TexMod TileU=… TileV=…> direkt im <Texture>.
+    // Nur ein nicht selbstschließendes <Texture> hat ein TexMod — sonst
+    // griffe der Ausdruck das TexMod der nächsten Textur.
     const tile = (slot) => {
-      const t = block.match(new RegExp(`<Texture[^>]*Map="${slot}"[^>]*>([\\s\\S]*?)</Texture>`, 'i'))?.[1] || '';
+      const t = block.match(new RegExp(`<Texture\\b[^>]*Map="${slot}"[^>]*?(?<!/)>([\\s\\S]*?)</Texture>`, 'i'))?.[1] || '';
       const u = Number(t.match(/TileU="([^"]*)"/)?.[1] || 1), v = Number(t.match(/TileV="([^"]*)"/)?.[1] || 1);
       return u !== 1 || v !== 1 ? [u, v] : undefined;
     };
+    // Zweite Blendschicht (StringGenMask %BLENDLAYER): Farbe TexSlot9, Maske
+    // TexSlot12, Mischung über die PublicParams der .mtl
+    const pp = (block.match(/<PublicParams\b([^>]*)\/>/i) || [])[1] || '';
+    const param = (k) => (pp.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
+    const blend = /BLENDLAYER/i.test(attr('StringGenMask') || '') && tex('TexSlot9') ? {
+      d: tex('TexSlot9'), mask: tex('TexSlot12'), td: tile('TexSlot9'), tm: tile('TexSlot12'),
+      factor: Number(param('BlendFactor') ?? 0), falloff: Number(param('BlendFalloff') ?? 1),
+      tiling: Number(param('BlendLayer2Tiling') ?? 1), maskTiling: Number(param('BlendMaskTiling') ?? 1),
+      color: param('BlendLayer2DiffuseColor'), gloss: Number(param('BlendLayer2Glossiness') ?? 255),
+    } : undefined;
     out.push({
       name: attr('Name'), shader: attr('Shader'), diffuse: attr('Diffuse'), specular: attr('Specular'),
       shininess: attr('Shininess'), opacity: attr('Opacity'),
       d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'), td: tile('TexSlot1'), tn: tile('TexSlot2'),
+      blend,
     });
   }
   return out;

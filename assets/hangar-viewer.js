@@ -100,6 +100,72 @@ float pLine(vec2 q, float sz) {
 }
 `;
 
+// Hallen-UVs prüfen: Ist bei einem Material der Großteil der Dreiecke ohne
+// UV-Fläche (zerquantisierte Spiel-UVs, scripts/lib/uv-islands.mjs), erscheint
+// die Textur als Schmiere und Streifen. Dann wird sie im Shader würfelförmig
+// aus der Objektlage projiziert, im Maßstab der heilen Dreiecke desselben
+// Materials. Ein sauberer Export schaltet das von selbst ab.
+function hallUvStats(model) {
+  const st = new Map();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  model.traverse((n) => {
+    if (!n.isMesh) return;
+    const g = n.geometry, P = g.attributes.position, U = g.attributes.uv, I = g.index;
+    if (!U || !I) return;
+    for (const grp of (g.groups.length ? g.groups : [{ start: 0, count: I.count, materialIndex: 0 }])) {
+      const m = [].concat(n.material)[grp.materialIndex || 0];
+      const e = st.get(m) || { tris: 0, deg: 0, r: [] };
+      const tris = grp.count / 3, step = Math.max(1, Math.floor(tris / 4000));
+      for (let t = 0; t < tris; t += step) {
+        const k = grp.start + t * 3, i0 = I.getX(k), i1 = I.getX(k + 1), i2 = I.getX(k + 2);
+        const ua = Math.abs((U.getX(i1) - U.getX(i0)) * (U.getY(i2) - U.getY(i0)) - (U.getX(i2) - U.getX(i0)) * (U.getY(i1) - U.getY(i0))) / 2;
+        e.tris++;
+        if (ua < 1e-9) { e.deg++; continue; }
+        a.fromBufferAttribute(P, i0); b.fromBufferAttribute(P, i1); c.fromBufferAttribute(P, i2);
+        const wa = b.sub(a).cross(c.sub(a)).length() / 2;
+        if (wa > 1e-4 && ua > 1e-6) e.r.push(Math.sqrt(wa / ua));
+      }
+      st.set(m, e);
+    }
+  });
+  for (const e of st.values()) { e.r.sort((x, y) => x - y); e.share = e.tris ? e.deg / e.tris : 0; e.mPerUv = e.r[e.r.length >> 1] || 2; }
+  return st;
+}
+
+function boxProject(m, mPerUv) {
+  const prev = m.onBeforeCompile, prevKey = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => {
+    prev?.call(m, sh, r);
+    sh.uniforms.uBoxScale = { value: 1 / mPerUv };
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform float uBoxScale;')
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+  {
+    vec3 bn = abs(normal);
+    vec2 bu = (bn.x > bn.y && bn.x > bn.z ? position.zy : (bn.y > bn.z ? position.xz : position.xy)) * uBoxScale;
+    #ifdef USE_MAP
+      vMapUv = (mapTransform * vec3(bu, 1.0)).xy;
+    #endif
+    #ifdef USE_NORMALMAP
+      vNormalMapUv = (normalMapTransform * vec3(bu, 1.0)).xy;
+    #endif
+    #ifdef USE_ROUGHNESSMAP
+      vRoughnessMapUv = (roughnessMapTransform * vec3(bu, 1.0)).xy;
+    #endif
+    #ifdef USE_METALNESSMAP
+      vMetalnessMapUv = (metalnessMapTransform * vec3(bu, 1.0)).xy;
+    #endif
+    #ifdef USE_EMISSIVEMAP
+      vEmissiveMapUv = (emissiveMapTransform * vec3(bu, 1.0)).xy;
+    #endif
+    #ifdef USE_AOMAP
+      vAoMapUv = (aoMapTransform * vec3(bu, 1.0)).xy;
+    #endif
+  }`);
+  };
+  m.customProgramCacheKey = () => (prevKey ? prevKey.call(m) : '') + '|box';
+}
+
 function paintMaterial() {
   const u = {
     uPrim: { value: new THREE.Color() }, uSec: { value: new THREE.Color() }, uAcc: { value: new THREE.Color() },
@@ -1226,6 +1292,8 @@ export async function initHangar(container, opts = {}) {
         ys.sort((a, b) => a - b);
         model.position.y -= ys[Math.floor(ys.length / 2)];
       }
+      const uvStats = hallUvStats(model);
+      const boxed = new Set();
       model.traverse((n) => {
         if (!n.isMesh) return;
         n.receiveShadow = true;
@@ -1264,8 +1332,11 @@ export async function initHangar(container, opts = {}) {
             m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
           } else if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
+          const us = uvStats.get(m);
+          if (us && us.share > 0.4 && !boxed.has(m) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); }
         }
       });
+      if (boxed.size) console.info(`[hangar] ${boxed.size} Hallenmaterialien projiziert (UVs zerfallen)`);
       const group = new THREE.Group();
       group.add(model);
       scene.add(group);
