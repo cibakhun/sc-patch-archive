@@ -295,10 +295,11 @@ const UI = {
     'ship.rail.rank': 'Leistung',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
-    // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
-    'fav.save': 'Merken',
-    'fav.saved': 'Gemerkt',
-    'fav.aria': 'Als Favorit merken (Konto nötig)',
+    // -- Flotte (assets/fleet.js setzt den Zustand; ohne Konto im Browser, mit Konto als Favoriten) --
+    'fleet.add': 'Zur Flotte',
+    'fleet.in': 'In der Flotte',
+    'fleet.aria': 'Zur Flotte hinzufügen (ohne Konto in diesem Browser gespeichert)',
+    'fleet.retry': 'Nicht gespeichert · erneut versuchen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
@@ -697,10 +698,11 @@ const UI = {
     'ship.rail.rank': 'Profile',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
-    // -- Favorites (account feature; account-lite.js toggles the state) --
-    'fav.save': 'Save',
-    'fav.saved': 'Saved',
-    'fav.aria': 'Save as favorite (account required)',
+    // -- Fleet (assets/fleet.js sets the state; in this browser without an account, as favorites with one) --
+    'fleet.add': 'Add to fleet',
+    'fleet.in': 'In fleet',
+    'fleet.aria': 'Add to fleet (kept in this browser without an account)',
+    'fleet.retry': 'Not saved · try again',
     // stylized mono codes (in-universe “register” tags)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',

@@ -323,8 +323,8 @@ const deckGroups: DeckGroup[] = [
 // Cache-Busting für /assets/account-lite.js: die Datei hat eine FESTE URL und
 // wird von Cloudflare 1 Tag gecacht (nginx-Map: application/javascript → 1d).
 // Ohne Content-Hash im Query lieferte das CDN nach einem Deploy bis zu 24 h die
-// ALTE Datei — kritisch, weil dieses Skript die Auth-Session refresht und die
-// Favoriten bedient. Gleiche Technik wie /assets/holo-viewer.js (?v=hash).
+// ALTE Datei — kritisch, weil dieses Skript die Auth-Session refresht und sie
+// an die Seiten-Skripte weiterreicht. Gleiche Technik wie /assets/holo-viewer.js (?v=hash).
 let acctLiteVer = 'x';
 try {
   acctLiteVer = createHash('sha1').update(readFileSync('assets/account-lite.js')).digest('hex').slice(0, 8);
@@ -566,7 +566,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     bekommen kein zusätzliches Skript. Gleiche Herkunft, CSP bleibt grün. */}
 {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 <SearchOverlay lang={lang} />
-{/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js).
+{/* Konto-Status (leichtgewichtig, ohne supabase-js); die Flotte lädt
+    /assets/fleet.js nur dort, wo es Flotten-Knöpfe gibt.
     ?v=<contenthash> bricht den 1-Tag-CDN-Cache bei jeder Änderung. */}
 <script is:inline src={acctLiteSrc} defer></script>
 
