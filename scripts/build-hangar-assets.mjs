@@ -160,7 +160,11 @@ function coverage(doc) {
 // wir (COLOR_0, siehe stripAttributes), hier gilt es als 1. Schicht und
 // Maske kacheln relativ zur Grundkarte (BlendLayer2Tiling, BlendMaskTiling,
 // jeweils mal ihrem TexMod, geteilt durch das TexMod der Grundkarte).
-async function bakeBlend(baseFile, x, factor) {
+// Metall-Grund (metal = { glossFile, roughBase, roughL2 }): die zweite
+// Schicht ist Lack, also nicht metallisch. Dazu entsteht eine eigene
+// metallicRoughness-Karte im selben UV-Raum: B (Metall) = 1 − f,
+// G (Rauheit) = mix(Grund-Rauheit aus der Glätte, 1 − BlendLayer2Glossiness, f).
+async function bakeBlend(baseFile, x, factor, metal = null) {
   const b = x.blend;
   const load = async (f, size) => {
     let img = sharp(f).removeAlpha();
@@ -185,7 +189,10 @@ async function bakeBlend(baseFile, x, factor) {
     const xx = Math.floor((((u % 1) + 1) % 1) * img.w), yy = Math.floor((((v % 1) + 1) % 1) * img.h);
     return img.data[(yy * img.w + xx) * img.c + Math.min(ch, img.c - 1)];
   };
+  const gl = metal?.glossFile ? await load(metal.glossFile) : null;
+  const tg = (x.tile_n?.[0] || 1) / bt;   // Glätte kachelt mit dem TexMod der Normalen
   const out = Buffer.alloc(W * H * 3);
+  const mr = metal ? Buffer.alloc(W * H * 3) : null;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const u = (i + 0.5) / W, v = (j + 0.5) / H;
     const m = sample(mk, u * tm, v * tm, 0) / 255;
@@ -196,8 +203,15 @@ async function bakeBlend(baseFile, x, factor) {
       const s2 = sample(l2, u * t2, v * t2, ch) * col[ch];
       out[p + ch] = Math.round(g * (1 - f) + s2 * f);
     }
+    if (mr) {
+      const rb = gl ? 1 - sample(gl, u * tg, v * tg, 0) / 255 : metal.roughBase;
+      mr[p] = 255;
+      mr[p + 1] = Math.round((rb * (1 - f) + metal.roughL2 * f) * 255);
+      mr[p + 2] = Math.round((1 - f) * 255);
+    }
   }
-  return sharp(out, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
+  const png = (buf) => sharp(buf, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
+  return { color: await png(out), mr: mr ? await png(mr) : null };
 }
 
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
@@ -234,23 +248,45 @@ async function attachHallTextures(doc) {
   };
   const tt = doc.createExtension(KHRTextureTransform);
   const tile = (ti, t) => { if (ti && t) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale(t)); };
-  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendSkipped: 0 };
+  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0 };
   // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
   const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
   for (const m of [...used].filter(Boolean)) {
     const x = m.getExtras() || {};
     const metal = /conductor/i.test(x.diffuse_tex || '');
     const d = texFile(metal ? x.spec_tex : x.diffuse_tex);
-    // zweite Blendschicht einbacken (nicht bei Metall: dort ist die Farbkarte
-    // die Specular-Map, eine Lackschicht darüber würde metallisch)
-    const b2 = !metal && x.blend && texFile(x.blend.d) && texFile(x.blend.mask);
+    // zweite Blendschicht einbacken. Auf Metall bekommt sie eine eigene
+    // Metall/Rauheit-Karte, sonst würde der Lack darüber metallisch.
+    const b2 = x.blend && texFile(x.blend.d) && texFile(x.blend.mask);
     if (b2 && !m.getBaseColorTexture()) {
       const key = `blend:${m.getName()}`;
-      if (!cache.has(key)) tex(key, 'b' + cache.size, await bakeBlend(d, x, m.getBaseColorFactor()));
+      let factor = m.getBaseColorFactor(), metalOpt = null;
+      if (metal) {
+        // dieselbe Metallfarbe wie in cleanMaterials: Specular, ohne Specular-Map gedämpft
+        const a = Object.fromEntries((x.semantic?.authored_attributes || []).map((t) => [t.name, t.value]));
+        const spec = String(a.Specular || '0.7,0.7,0.7').split(',').map(Number);
+        factor = spec.map((v) => Math.min(1, d ? v : v * 0.72));
+        const nmf = texFile(x.normal_tex), glossFile = nmf && nmf.replace(/\.png$/, '.gloss.png');
+        metalOpt = {
+          glossFile: glossFile && existsSync(glossFile) ? glossFile : null,
+          roughBase: Math.max(0.35, 1 - Number(a.Shininess || 150) / 255),
+          roughL2: Math.max(0.15, 1 - (x.blend.gloss ?? 255) / 255),
+        };
+      }
+      if (!cache.has(key)) {
+        const r = await bakeBlend(d, x, factor, metalOpt);
+        tex(key, 'b' + cache.size, r.color);
+        if (r.mr) tex(`${key}:mr`, 'bm' + cache.size, r.mr);
+      }
       // die Grundfarbe (Diffuse-Faktor) steckt jetzt in der Karte — sonst
       // färbte sie auch die zweite Schicht
-      const a = m.getBaseColorFactor()[3];
-      m.setBaseColorTexture(cache.get(key)).setBaseColorFactor([1, 1, 1, a]); s.attached++; s.blended++;
+      const alpha = m.getBaseColorFactor()[3];
+      m.setBaseColorTexture(cache.get(key)).setBaseColorFactor([1, 1, 1, alpha]); s.attached++; s.blended++;
+      if (metal) {
+        m.setMetallicRoughnessTexture(cache.get(`${key}:mr`)).setMetallicFactor(1).setRoughnessFactor(1);
+        m.setExtras({ ...m.getExtras(), blend_baked: true });
+        s.blendMetal++;
+      }
     } else if (x.blend) s.blendSkipped++;
     if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); s.attached++; if (metal) m.setExtras({ ...x, spec_used: true }); }
     const nm = texFile(x.normal_tex);
@@ -268,7 +304,8 @@ async function attachHallTextures(doc) {
     const td = x.tile_d, tn = x.tile_n;   // Normalen/Glätte haben ihr eigenes TexMod
     tile(m.getBaseColorTextureInfo(), td);
     tile(m.getNormalTextureInfo(), tn);
-    tile(m.getMetallicRoughnessTextureInfo(), tn);
+    // gebackene Metall/Rauheit-Karte liegt im UV-Raum der Farbkarte
+    tile(m.getMetallicRoughnessTextureInfo(), m.getExtras()?.blend_baked ? td : tn);
     if (td || x.tile_n) s.tiled++;
     if (m.getBaseColorTexture()) s.color++;
     if (m.getNormalTexture()) s.normal++;
@@ -295,9 +332,10 @@ function cleanMaterials(doc) {
       const a = Object.fromEntries((x.semantic?.authored_attributes || []).map((t) => [t.name, t.value]));
       const spec = String(a.Specular || '0.7,0.7,0.7').split(',').map(Number);
       const shin = Number(a.Shininess || 150);
-      if (x.spec_used) m.setBaseColorFactor([...spec.map((v) => Math.min(1, v)), 1]);
+      if (x.blend_baked) { /* Farbe, Metall und Rauheit stecken in den gebackenen Karten */ }
+      else if (x.spec_used) m.setBaseColorFactor([...spec.map((v) => Math.min(1, v)), 1]);
       else m.setBaseColorTexture(null).setBaseColorFactor([...spec.map((v) => Math.min(1, v * 0.72)), 1]);
-      m.setMetallicFactor(1);
+      if (!x.blend_baked) m.setMetallicFactor(1);
       if (!m.getMetallicRoughnessTexture()) m.setRoughnessFactor(Math.max(0.35, 1 - shin / 255));
     }
     // Spiel-Emissive als leichtes Glimmen statt Weißblech
@@ -515,7 +553,7 @@ for (const kind of Object.keys(BUDGET)) {
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
-        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
