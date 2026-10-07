@@ -142,7 +142,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
 /* über heller Halle lesbar bleiben: Schatten statt Fläche */
 .hg-maker,.hg-role,.hg-paint__lbl{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
-.hg-title.is-swap{animation:hg-swap var(--dur-slow,.42s) var(--ease-ui,ease-out)}
+.hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
 @keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .hg-stats{position:absolute;right:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);width:min(320px,34vw);background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:1rem 1.1rem 1.1rem;backdrop-filter:blur(8px)}
 .hg-stats dl{margin:0;display:grid;gap:.55rem}
@@ -171,21 +171,24 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
 .hg-fallback[hidden]{display:none}
 
-.hg-dock{background:var(--bg-2);border-top:1px solid var(--line);padding:.9rem clamp(16px,3vw,40px) 1.2rem}
+.hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
 .hg-filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
 .hg-filter input,.hg-filter select{font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:.45rem .6rem;min-width:0}
 .hg-filter input{flex:1 1 200px;max-width:320px}
 .hg-count{margin-left:auto;font-size:var(--fs-6);color:var(--muted);font-variant-numeric:tabular-nums}
 .hg-rail{position:relative;display:flex;align-items:stretch;gap:.5rem}
-.hg-strip{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x proximity;scroll-behavior:smooth;padding:.2rem .1rem .6rem;margin:0;list-style:none;flex:1;min-width:0;overscroll-behavior-x:contain}
+.hg-strip{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x proximity;scroll-behavior:smooth;padding:.45rem .3rem .7rem;margin:0;list-style:none;flex:1;min-width:0;overscroll-behavior-x:contain}
 .hg-strip li{flex:0 0 auto;scroll-snap-align:start}
 .hg-strip li[hidden]{display:none}
-.hg-card{display:flex;flex-direction:column;width:156px;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left}
-.hg-card:hover,.hg-card:focus-visible{border-color:var(--accent)}
-.hg-card[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-.hg-card img,.hg-card .hg-noimg{display:block;width:156px;height:88px;object-fit:cover;background:var(--surface-2)}
-.hg-card span{display:block;padding:.4rem .55rem 0;font-size:var(--fs-6);font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hg-card small{display:block;padding:.1rem .55rem .5rem;font-size:var(--fs-5);color:var(--muted)}
+/* Kacheln wie im Hangar-Menü eines Spiels: Bild füllt die Kachel, Name
+   auf einem Verlauf am unteren Rand, gewählte Kachel leuchtet. */
+.hg-card{position:relative;display:block;width:176px;height:100px;padding:0;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left;transition:transform var(--dur-fast) var(--ease-ui),border-color var(--dur-fast),box-shadow var(--dur-fast)}
+.hg-card:hover,.hg-card:focus-visible{border-color:color-mix(in srgb,var(--accent) 70%,transparent);transform:translateY(-2px)}
+.hg-card[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px color-mix(in srgb,var(--accent) 40%,transparent);transform:translateY(-3px)}
+.hg-card img,.hg-card .hg-noimg{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:var(--surface-2);filter:saturate(.8) brightness(.72);transition:filter var(--dur-fast)}
+.hg-card:hover img,.hg-card[aria-current="true"] img{filter:none}
+.hg-card span{position:absolute;left:0;right:0;bottom:0;padding:1.3rem .55rem .35rem;background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 94%,transparent) 70%);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hg-card small{position:absolute;top:.35rem;left:.4rem;max-width:calc(100% - .8rem);padding:.05rem .35rem;background:color-mix(in srgb,var(--bg) 78%,transparent);border-radius:2px;font-size:var(--fs-5);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hg-arrow{flex:0 0 auto;width:2.4rem;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:6px;font-size:var(--fs-12);cursor:pointer}
 .hg-arrow:hover,.hg-arrow:focus-visible{border-color:var(--accent)}
 .hg-empty{color:var(--muted);font-size:var(--fs-7);padding:1rem 0}
@@ -202,7 +205,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .hg-arrow{display:none}
   .hg-count{margin-left:0;width:100%}
 }
-@media (prefers-reduced-motion:reduce){.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}}</style>
 
 <SiteNav crumbs={de ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
@@ -245,7 +248,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
     </aside>
   </div>
 
-  <section class="hg-dock" aria-label={de ? 'Schiffsauswahl' : 'Ship selection'}>
+  <section class="hg-dock" data-media-surface aria-label={de ? 'Schiffsauswahl' : 'Ship selection'}>
     <div class="hg-filter">
       <input id="hg-q" type="search" placeholder={de ? 'Schiff oder Hersteller…' : 'Ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" />
       <select id="hg-type" aria-label={de ? 'Rolle' : 'Role'}>

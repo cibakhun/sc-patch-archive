@@ -634,6 +634,36 @@ function poseKneel(w) {
   w.body.rotation.x = 0.25;
 }
 
+// Schwebstaub im Licht um das Schiff: weiche Punkte, die langsam treiben.
+// Lebt im Einheitswürfel und wird mit der Schiffsgröße gestreckt.
+function dustCloud(count = 700) {
+  const geo = new THREE.BufferGeometry();
+  const base = new Float32Array(count * 3), pos = new Float32Array(count * 3), seed = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    base[i * 3] = Math.random() - 0.5; base[i * 3 + 1] = Math.random(); base[i * 3 + 2] = Math.random() - 0.5;
+    seed[i] = Math.random() * 100;
+  }
+  pos.set(base);
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const g = c.getContext('2d'), grd = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 32, 32);
+  const mat = new THREE.PointsMaterial({ color: 0xfff1dc, size: 0.06, map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  const update = (t) => {
+    for (let i = 0; i < count; i++) {
+      const k = seed[i];
+      pos[i * 3] = base[i * 3] + 0.02 * Math.sin(t * 0.13 + k);
+      pos[i * 3 + 1] = (base[i * 3 + 1] + t * 0.004 * (0.5 + (k % 1))) % 1;
+      pos[i * 3 + 2] = base[i * 3 + 2] + 0.02 * Math.cos(t * 0.11 + k * 1.3);
+    }
+    geo.attributes.position.needsUpdate = true;
+  };
+  return { pts, update };
+}
+
 // Schweißfunken: kleine Partikelwolke, die aus einem Punkt sprüht.
 function sparks(count = 60) {
   const geo = new THREE.BufferGeometry();
@@ -1062,6 +1092,8 @@ export async function initHangar(container, opts = {}) {
   scene.add(fill);
 
   const life = buildLife(scene, reduceMotion);
+  const dust = dustCloud();
+  scene.add(dust.pts);
 
   const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.1, 4000);
   let S = 1, span = 14;
@@ -1164,6 +1196,11 @@ export async function initHangar(container, opts = {}) {
       camera.updateProjectionMatrix();
     }
     fitFov();
+    // Staub füllt den Raum um das Schiff bis über den Rumpf; Punktgröße in
+    // Welteinheiten mitstrecken, sonst wird er bei großen Schiffen zu Sand.
+    const dw = span * 1.3;
+    dust.pts.scale.set(dw, shipInfo.height * 1.8 + 4, dw);
+    dust.pts.material.size = 0.035 * Math.max(1, span / 14);
     life.layout(S, shipInfo);
   }
 
@@ -1211,8 +1248,11 @@ export async function initHangar(container, opts = {}) {
             m.color.multiplyScalar(0.5); m.metalness = 0.7; m.roughness = 0.42; m.envMapIntensity = 0.45;
           } else if (m.metalness > 0.4) { m.metalness = 0.4; m.roughness = Math.max(m.roughness, 0.45); }
           else m.roughness = Math.max(m.roughness, 0.65);
-          // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein
-          if (m.emissiveMap) m.emissiveIntensity = 4;
+          // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
+          // Nicht alle bringen ihre Leuchtkarte mit: dann leuchtet die Farbkarte.
+          if (/light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
+            m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
+          } else if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap]) if (t) t.anisotropy = maxAniso;
         }
       });
@@ -1255,10 +1295,11 @@ export async function initHangar(container, opts = {}) {
   async function enableAO() {
     if (composer || !renderer.capabilities.isWebGL2) return;
     try {
-      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { OutputPass }] = await Promise.all([
+      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([
         import('three/addons/postprocessing/EffectComposer.js'),
         import('three/addons/postprocessing/RenderPass.js'),
         import('three/addons/postprocessing/GTAOPass.js'),
+        import('three/addons/postprocessing/UnrealBloomPass.js'),
         import('three/addons/postprocessing/OutputPass.js'),
       ]);
       const c = new EffectComposer(renderer);
@@ -1271,6 +1312,9 @@ export async function initHangar(container, opts = {}) {
       ao.updateGtaoMaterial({ radius: 2.5, distanceExponent: 1.4, thickness: 2, scale: 1.2, samples: 16 });
       ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
       c.addPass(ao);
+      // Lichtschein um Lampen, Leuchtleisten und Triebwerke: nur was
+      // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
+      c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.3, 0.4, 2.6));
       c.addPass(new OutputPass());
       composer = c;
     } catch { /* ohne Verdeckung weiter */ }
@@ -1436,6 +1480,7 @@ export async function initHangar(container, opts = {}) {
     const now = performance.now();
     for (const f of anim) f(t);
     life.update(dt, t);
+    if (!reduceMotion) dust.update(t);
     if (current) {
       const g = current.group;
       // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,

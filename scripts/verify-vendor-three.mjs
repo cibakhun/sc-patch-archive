@@ -30,6 +30,7 @@ const REQUIRED_FILES = [
   'public/vendor/three/addons/postprocessing/RenderPass.js',
   'public/vendor/three/addons/postprocessing/GTAOPass.js',
   'public/vendor/three/addons/postprocessing/OutputPass.js',
+  'public/vendor/three/addons/postprocessing/UnrealBloomPass.js',
 ];
 
 const problems = [];
