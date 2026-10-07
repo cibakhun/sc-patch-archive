@@ -1273,6 +1273,43 @@ export async function initHangar(container, opts = {}) {
   const loader = new GLTFLoader().setDRACOLoader(draco);
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
+  // Lampen der Halle aus dem Spiel (Licht-Entities des socpak, vom Build als
+  // <halle>.lights.json neben das GLB gelegt). Fehlt die Datei, bleibt es beim
+  // Bühnenlicht. Die stärksten MAX_LIGHTS kommen in die Szene, ohne Schatten:
+  // jede Lampe kostet im Fragment-Shader, Schatten wirft weiter das Hauptlicht.
+  const MAX_LIGHTS = 24;
+  // Spielstärke -> three.js (physikalisch, Candela). Vorläufig; wird an der
+  // ersten echten Lampenliste per Render abgeglichen.
+  const HALL_LIGHT_SCALE = 40;
+  function loadHallLights(h, model) {
+    fetch(h.url.replace(/\.glb(\?.*)?$/, '.lights.json$1')).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      const all = (d?.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0);
+      if (!all.length) return;
+      all.sort((a, b) => b.intensity * (b.radius || 1) - a.intensity * (a.radius || 1));
+      const lamps = new THREE.Group();
+      for (const l of all.slice(0, MAX_LIGHTS)) {
+        const col = new THREE.Color().setRGB(...(l.color || [1, 1, 1]));
+        const dist = l.radius || 0;
+        const light = l.type === 'spot'
+          ? new THREE.SpotLight(col, l.intensity * HALL_LIGHT_SCALE, dist, THREE.MathUtils.degToRad(Math.min(89, (l.angle || 60) / 2)), 0.5, 2)
+          : new THREE.PointLight(col, l.intensity * HALL_LIGHT_SCALE, dist, 2);
+        light.position.set(...l.pos);
+        if (light.isSpotLight) {
+          const dir = l.dir || [0, -1, 0];
+          light.target.position.set(l.pos[0] + dir[0], l.pos[1] + dir[1], l.pos[2] + dir[2]);
+          lamps.add(light.target);
+        }
+        lamps.add(light);
+      }
+      model.add(lamps);
+      realHall.lamps = lamps;
+      // Mit echten Lampen tritt das Bühnenlicht zurück, das Hauptlicht bleibt
+      // für den Schatten unter dem Schiff.
+      hemi.intensity *= 0.5; fill.intensity = 0; doorLight.intensity = 0;
+      console.info(`[hangar] ${lamps.children.filter((c) => c.isLight).length} von ${all.length} Spiellampen gesetzt`);
+    }).catch(() => { /* ohne Lampen weiter mit Bühnenlicht */ });
+  }
+
   function loadRealHall(h) {
     loader.load(h.url, (gltf) => {
       const model = gltf.scene;
@@ -1344,6 +1381,7 @@ export async function initHangar(container, opts = {}) {
       group.add(model);
       scene.add(group);
       realHall = { group, room: h.room };
+      loadHallLights(h, model);
       // die gebaute Halle weicht; Gerät, Crew, Schlepper und Drohne bleiben
       hall.visible = false;
       floor.visible = false;
