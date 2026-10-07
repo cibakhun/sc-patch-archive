@@ -17,7 +17,7 @@ import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../../data/vehicles.json';
 import holoMeshes from '../../data/holo-meshes.json';
 import vehiclePrices from '../../data/vehicle-prices.json';
-import { vType, vRoleCig } from '../../i18n/vehicleText';
+import { vType, vRoleCig, vRoleFamilies } from '../../i18n/vehicleText';
 import type { Locale } from '../../i18n/ui';
 import { num } from '../items';
 import { pickThumb } from '../shipRenders';
@@ -120,6 +120,8 @@ export interface ShipFacts {
   readonly typeKey: string;
   readonly typeLabel: string;
   readonly role: string | null;
+  /** Rollenfamilien (vehicle-roles.json), z. B. ['einsteiger', 'frachttransport']; die Flottenzeile zaehlt sie. */
+  readonly families: readonly string[];
   readonly thumb: string | null;
   /** EN-Grundform; Aufrufer lokalisieren mit href(). */
   readonly sheetPath: string;
@@ -141,6 +143,7 @@ export function shipFacts(id: ShipId, lang: Locale): ShipFacts {
     typeKey: v.typeDe === 'Gelände' ? 'Boden' : (v.typeDe ?? v.typeEn ?? ''),
     typeLabel: vType(v, lang) ?? '',
     role: vRoleCig(id, v, lang),
+    families: vRoleFamilies(id, lang).map((f) => f.slug),
     thumb: pickThumb(v)?.src ?? null,
     sheetPath: `/schiffe/${id}.html`,
     stat: Object.fromEntries(STATS.map((s) => [s.key, s.read(v, id)])) as Record<StatKey, number | null>,
@@ -154,6 +157,17 @@ const roundTo = (x: number, digits: 0 | 1) => (digits ? Math.round(x * 10) / 10 
 /** Wert in der Genauigkeit des Verzeichnisses; Vergleich und Anzeige rechnen mit derselben Zahl. */
 export function statValue(key: StatKey, x: number | null): number | null {
   return x == null ? null : roundTo(x, STAT[key].digits);
+}
+
+/**
+ * Die Kennwerte einer Dock-Karte (data-v), in STATS-Folge und Verzeichnis-
+ * Genauigkeit, '-' fuer unbekannt. Der Client liest die Schluesselfolge aus
+ * data-stats des Docks; Sortierung, Vergleich und Flottenzeile rechnen damit,
+ * ohne eine Bucht zu holen.
+ *   dockFigures(gladius) === '226 1193 6110 6336 1944.5 0 1 21 6 161 32 1.6 2262330'
+ */
+export function dockFigures(f: ShipFacts): string {
+  return STATS.map((s) => statValue(s.key, f.stat[s.key]) ?? '-').join(' ');
 }
 
 /** "1,944.5 DPS", "21 m", "1"; null bleibt null (die Anzeige druckt den Strich). */

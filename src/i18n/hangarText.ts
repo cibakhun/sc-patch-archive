@@ -110,6 +110,24 @@ const DE = {
   'msg.count.other': '{n} Schiffe',
   'msg.copy.ok': 'Link kopiert.',
   'msg.copy.fallback': 'Link markiert: mit Strg+C kopieren.',
+  // Flotte: Knopf und Stern sprechen die Woerter aus ui.ts (fleet.*), hier die Zeile am Buehnenfuss
+  'dock.fleet': 'Meine Flotte',
+  'fleet.empty': 'Noch kein Schiff in der Flotte.',
+  'fleet.filter': 'Zeigt im Dock nur die Schiffe der Flotte.',
+  'fleet.local': 'In diesem Browser gespeichert.',
+  'fleet.signin': 'Anmelden',
+  'fleet.syncing': 'Wird mit dem Konto abgeglichen …',
+  'fleet.synced': 'Im Konto gespeichert.',
+  'fleet.dismiss': 'Hinweis schließen',
+  'msg.fleet.ships.one': '{n} Schiff',
+  'msg.fleet.ships.other': '{n} Schiffe',
+  'msg.fleet.scu': '{n} SCU',
+  'msg.fleet.crew.one': '{n} Crewplatz',
+  'msg.fleet.crew.other': '{n} Crewplätze',
+  'msg.fleet.roles.one': '{n} Rolle',
+  'msg.fleet.roles.other': '{n} Rollen',
+  'msg.fleet.merged.one': '{n} Schiff aus diesem Browser ist jetzt in der Flotte.',
+  'msg.fleet.merged.other': '{n} Schiffe aus diesem Browser sind jetzt in der Flotte.',
 } as const;
 
 export type HangarKey = keyof typeof DE;
@@ -204,13 +222,30 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'msg.count.other': '{n} ships',
   'msg.copy.ok': 'Link copied.',
   'msg.copy.fallback': 'Link selected: press Ctrl+C to copy.',
+  'dock.fleet': 'My fleet',
+  'fleet.empty': 'No ships in the fleet yet.',
+  'fleet.filter': 'Shows only the fleet’s ships in the dock.',
+  'fleet.local': 'Kept in this browser.',
+  'fleet.signin': 'Sign in',
+  'fleet.syncing': 'Syncing with your account …',
+  'fleet.synced': 'Saved to your account.',
+  'fleet.dismiss': 'Dismiss notice',
+  'msg.fleet.ships.one': '{n} ship',
+  'msg.fleet.ships.other': '{n} ships',
+  'msg.fleet.scu': '{n} SCU',
+  'msg.fleet.crew.one': '{n} crew seat',
+  'msg.fleet.crew.other': '{n} crew seats',
+  'msg.fleet.roles.one': '{n} role',
+  'msg.fleet.roles.other': '{n} roles',
+  'msg.fleet.merged.one': '{n} ship from this browser joined your fleet.',
+  'msg.fleet.merged.other': '{n} ships from this browser joined your fleet.',
 };
 
 const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> = { de: DE, en: EN };
 
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname oder ein
 // Fachkürzel ist; jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];

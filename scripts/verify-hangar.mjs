@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   NEUN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   ZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -47,14 +47,20 @@
         Aufruf in dist/assets/hangar-overview.js), nicht aus einer Liste
         hier: eine aus HangarPage.astro entfernte Vorlage hinterlaesst sonst
         still eine leere Stelle.
+    10  Dock-Daten: jede Karte traegt data-v mit genau so vielen Werten,
+        wie data-stats Schluessel nennt, jeder eine endliche Zahl oder '-',
+        und data-stats nennt jeden Vergleichsschluessel der Buchten.
+        Sortierung, Vergleich und Flottenzeile rechnen nur damit; eine
+        verrutschte Folge vertauscht still Fracht und Besatzung.
 
-   VORGEFUEHRT ROT (die drei Meldungen stehen in der Commit-Botschaft):
+   VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
      b  toGltf() in src/lib/hangar/ports.ts auf (x, y, z), bauen    -> [3b]
         ([3a] und [5] bleiben gruen: Punkte, Box und Zahlen wandern
         gemeinsam — genau dafuer gibt es 3b)
      c  joinItem() in src/lib/hangar/bay.ts ohne Namensnormalisierung,
         bauen                                                       -> [5]
+     d  in dist/hangar.html einer Karte einen Wert aus data-v nehmen  -> [10]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -352,6 +358,23 @@ for (const page of PAGES) {
   for (const id of missing) fail(`[9] ${page.file}: Vorlage data-msg="${id}" fehlt, der Controller verlangt sie`);
 }
 if (ctrl && !msgIds.length) fail('[9] keine msg(…)-Aufrufe im Controller gefunden — der Leser ist kaputt, nicht der Controller leer');
+
+/* ---------- [10] Dock-Daten ---------- */
+say('\n[10] Dock-Daten: data-v je Karte in der Folge von data-stats (beide Hangarseiten)');
+for (const page of PAGES) {
+  const keys = (/id="hg-strip"[^>]*\sdata-stats="([^"]*)"/.exec(page.html)?.[1] ?? '').split(' ').filter(Boolean);
+  const cards = [...page.html.matchAll(/<li data-id="([^"]+)"[^>]*\sdata-v="([^"]*)"/g)].map((m) => ({ id: m[1], v: m[2].split(' ') }));
+  const bad = cards.filter((c) => c.v.length !== keys.length || c.v.some((x) => x !== '-' && !Number.isFinite(Number(x))));
+  const missing = refCmp.split(' ').filter((k) => k && !keys.includes(k));
+  const total = dockIds(page.html).length;
+  say(`    ${page.file}: ${keys.length} Schluessel, ${cards.length} von ${total} Karten mit data-v`);
+  sollIst(`0 abweichende Karten, alle ${total} mit data-v, jeder Vergleichsschluessel im Dock`, `${bad.length} abweichend, ${total - cards.length} ohne, ${missing.length} fehlend`);
+  for (const c of bad.slice(0, 10)) say(`      ${c.id}: ${c.v.length} Werte "${c.v.join(' ')}"`);
+  for (const c of bad) fail(`[10] ${page.file}: Karte ${c.id} traegt ${c.v.length} Werte statt ${keys.length} oder einen, der keine Zahl ist — catalog.ts dockFigures`);
+  if (cards.length !== total) fail(`[10] ${page.file}: ${total - cards.length} Karten ohne data-v`);
+  if (!keys.length) fail(`[10] ${page.file}: das Dock nennt keine Schluessel (data-stats)`);
+  for (const k of missing) fail(`[10] ${page.file}: Vergleichsschluessel ${k} fehlt in data-stats`);
+}
 
 say('\n[Selbstauskunft]');
 say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}`);

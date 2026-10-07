@@ -4,9 +4,11 @@
 // Regionen ein, und er steuert den Viewer der Szene ueber die Naht in
 // #hg-stage (src/lib/hangar/stage.ts, .planning/notes/hangar-naht.md).
 //
-// Er uebersetzt nichts und formatiert keine Schiffsdaten: jedes Wort kommt als
-// gebautes Markup oder als Vorlage aus #hgx-msg. Die einzige Zahl, die er
-// formatiert, ist die Trefferzahl des Docks (fillMessage).
+// Er uebersetzt nichts: jedes Wort kommt als gebautes Markup oder als Vorlage
+// aus #hgx-msg. Zahlen formatiert er nur dort, wo sie von der Auswahl des
+// Besuchers abhaengen: Trefferzahl des Docks und Flottenzeile (fillMessage).
+// Die Flotte gehoert assets/fleet.js (window.VBFleet); hier wird sie gelesen
+// und gezeichnet.
 //
 // Eine Datei mit Absicht: ein statischer Import eines Geschwistermoduls
 // truege kein ?v= und koennte einen Tag lang eine alte Fassung ausfuehren
@@ -125,6 +127,43 @@ export function fillMessage(forms, values, loc) {
   return tpl.replace(/\{(\w+)\}/g, (m, k) => (k in values ? (typeof values[k] === 'number' ? nf.format(values[k]) : String(values[k])) : m));
 }
 
+/**
+ * Grenze: data-v einer Dock-Karte in der Schluesselfolge von data-stats
+ * (src/lib/hangar/catalog.ts dockFigures). '-' und fehlende Stellen sind
+ * unbekannt, eine echte 0 bleibt 0.
+ *   figuresOf(['cargo', 'crew', 'price'], '46 2 -') -> { cargo: 46, crew: 2, price: null }
+ * @param {readonly string[]} keys @param {string} raw @returns {Record<string, number|null>}
+ */
+export function figuresOf(keys, raw) {
+  const v = String(raw ?? '').split(' ');
+  return Object.fromEntries(keys.map((k, i) => {
+    const x = v[i] === undefined || v[i] === '-' || v[i] === '' ? NaN : Number(v[i]);
+    return [k, Number.isFinite(x) ? x : null];
+  }));
+}
+
+/**
+ * Summen der Flottenzeile aus den Dock-Daten. Ids ohne Karte zaehlen nicht;
+ * ein unbekannter Frachtraum oder eine unbekannte Besatzung zaehlt 0, Rollen
+ * sind die verschiedenen Rollenfamilien.
+ * @param {Iterable<string>} ids
+ * @param {ReadonlyMap<string, { stat: Record<string, number|null>, fam: readonly string[] }>} ships
+ * @returns {{ n: number, scu: number, crew: number, roles: number }}
+ */
+export function fleetSummary(ids, ships) {
+  let n = 0, scu = 0, crew = 0;
+  const fams = new Set();
+  for (const id of ids) {
+    const s = ships.get(id);
+    if (!s) continue;
+    n++;
+    scu += s.stat.cargo ?? 0;
+    crew += s.stat.crew ?? 0;
+    for (const f of s.fam) fams.add(f);
+  }
+  return { n, scu, crew, roles: fams.size };
+}
+
 // ---------------------------------------------------------------- die Seite
 
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
@@ -155,6 +194,16 @@ export function boot(doc) {
     makers: new Set([...$('hg-maker-f').options].map((o) => o.value).filter(Boolean)),
   };
 
+  // Die Dock-Karten tragen die Zahlen fuer Flotte, Vergleich und Sortierung;
+  // einmal gelesen, danach nur noch diese Abbildung.
+  const statKeys = strip.dataset.stats.split(' ');
+  const dock = new Map(items.map((li) => [li.dataset.id, {
+    li,
+    name: li.querySelector('.hg-card span').textContent,
+    fam: li.dataset.fam ? li.dataset.fam.split(' ') : [],
+    stat: figuresOf(statKeys, li.dataset.v),
+  }]));
+
   let state = parseState(location.search, location.hash, ctx);
 
   function writeUrl() {
@@ -171,12 +220,15 @@ export function boot(doc) {
   }
 
   function render(prev) {
-    if (prev.ship !== state.ship) showShip(state.ship);
-    else {
+    if (prev.ship !== state.ship) {
+      syncFleetBtn();
+      showShip(state.ship);
+    } else {
       if (prev.tab !== state.tab) applyTab();
       if (prev.tab !== state.tab || prev.hp !== state.hp) applyHp();
     }
-    if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker) applyDock();
+    if (prev.fleetOnly !== state.fleetOnly) paintFleetFilter();
+    if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) applyDock();
   }
 
   // -------------------------------------------------------------- Buchten
@@ -444,12 +496,16 @@ export function boot(doc) {
     const q = state.q.toLowerCase();
     let n = 0;
     for (const li of items) {
-      const ok = (!q || li.dataset.q.includes(q)) && (!state.type || li.dataset.t === state.type) && (!state.maker || li.dataset.mk === state.maker);
+      const ok = (!q || li.dataset.q.includes(q)) && (!state.type || li.dataset.t === state.type)
+        && (!state.maker || li.dataset.mk === state.maker) && (!state.fleetOnly || fleetIds.has(li.dataset.id));
       li.hidden = !ok;
       if (ok) n++;
     }
     $('hg-count').textContent = fillMessage(msg('count'), { n }, loc);
-    $('hg-empty').hidden = n > 0;
+    // Leer, weil die Flotte leer ist, sagt etwas anderes als ein zu enger Filter.
+    const noFleet = state.fleetOnly && fleetSummary(fleetIds, dock).n === 0;
+    $('hgx-empty-fleet').hidden = !noFleet;
+    $('hg-empty').hidden = n > 0 || noFleet;
   }
   function syncControls() {
     $('hg-q').value = state.q;
@@ -488,6 +544,78 @@ export function boot(doc) {
     if (prev.ship !== state.ship) scrollToCard(state.ship);
     render(prev);
   });
+
+  // -------------------------------------------------------------- Flotte
+  // Klicks auf [data-fleet-ship] und [data-fleet-retry] bindet fleet.js
+  // selbst; hier wird nur der Schnappschuss gezeichnet.
+  const fleetBtn = $('hgx-fleet');
+  const fleetChip = $('hgx-fleetonly');
+  const fleetSum = $('hgx-fleetsum');
+  const fleetSync = $('hgx-fleetsync');
+  const mergedNote = $('hgx-merged');
+  let fleet = { ids: [], mode: 'guest', sync: 'local', error: null, merged: 0 };
+  let fleetIds = new Set();
+  let mergedSeen = 0;
+
+  // Der Knopf folgt dem gewaehlten Schiff; fleet.js liest Schiff und Name erst
+  // beim Klick. aria-pressed sofort, nicht erst nach dem naechsten Bild.
+  function syncFleetBtn() {
+    fleetBtn.dataset.fleetShip = state.ship;
+    fleetBtn.dataset.fleetLabel = dock.get(state.ship).name;
+    const on = !!window.VBFleet?.has(state.ship);
+    fleetBtn.setAttribute('aria-pressed', String(on));
+    fleetBtn.querySelector('.js-fleet-txt').textContent = on ? fleetBtn.dataset.fleetOn : fleetBtn.dataset.fleetOff;
+  }
+
+  function paintFleet() {
+    const sum = fleetSummary(fleetIds, dock);
+    for (const [id, s] of dock) {
+      const on = fleetIds.has(id);
+      s.li.classList.toggle('is-fleet', on);
+      if (on) s.li.firstElementChild.setAttribute('aria-describedby', 'hgx-fleet-mark');
+      else s.li.firstElementChild.removeAttribute('aria-describedby');
+    }
+    $('hgx-fleetn').textContent = new Intl.NumberFormat(loc).format(sum.n);
+    $('hgx-fleetempty').hidden = sum.n > 0;
+    fleetSum.hidden = sum.n === 0;
+    $('hgx-fleetsum-txt').textContent = [
+      fillMessage(msg('fleet-ships'), { n: sum.n }, loc),
+      fillMessage(msg('fleet-scu'), { n: sum.scu }, loc),
+      fillMessage(msg('fleet-crew'), { n: sum.crew }, loc),
+      fillMessage(msg('fleet-roles'), { n: sum.roles }, loc),
+    ].join(' · ');
+    // Wo die Flotte liegt, sagt die Zeile erst, wenn dort etwas liegt oder ein Konto abgleicht.
+    fleetSync.hidden = fleet.mode !== 'account' && sum.n === 0;
+    for (const el of fleetSync.querySelectorAll('[data-when]')) el.hidden = el.dataset.when !== fleet.sync;
+    // Der Hinweis zur Uebernahme steht, bis er weggeklickt ist; ein neuer Seitenaufruf kennt ihn nicht mehr.
+    mergedNote.hidden = !(fleet.merged > 0 && fleet.merged !== mergedSeen);
+    if (!mergedNote.hidden) $('hgx-merged-txt').textContent = fillMessage(msg('fleet-merged'), { n: fleet.merged }, loc);
+  }
+
+  function paintFleetFilter() {
+    fleetChip.setAttribute('aria-pressed', String(state.fleetOnly));
+    fleetSum.setAttribute('aria-pressed', String(state.fleetOnly));
+  }
+  fleetChip.addEventListener('click', () => setState({ fleetOnly: !state.fleetOnly }));
+  fleetSum.addEventListener('click', () => setState({ fleetOnly: !state.fleetOnly }));
+  $('hgx-merged-x').addEventListener('click', () => {
+    mergedSeen = fleet.merged;
+    mergedNote.hidden = true;
+  });
+
+  // Der Anmelde-Link nimmt den Zustand der Seite mit; loginHref() liest die
+  // Adresse erst beim Aufruf, deshalb kurz vor dem Folgen.
+  const login = $('hgx-login');
+  const freshLogin = () => { if (window.VBAccount) login.href = window.VBAccount.loginHref(); };
+  for (const ev of ['pointerdown', 'focus', 'click']) login.addEventListener(ev, freshLogin);
+
+  function onFleet(snap) {
+    fleet = snap;
+    fleetIds = new Set(snap.ids);
+    paintFleet();
+    syncFleetBtn();
+    if (state.fleetOnly) applyDock();
+  }
 
   // -------------------------------------------------------------- Link kopieren
   const copyBtn = $('hgx-copy');
@@ -571,6 +699,12 @@ export function boot(doc) {
   // -------------------------------------------------------------- Start
   writeUrl();
   syncControls();
+  syncFleetBtn();
+  paintFleetFilter();
+  // fleet.js laeuft vor diesem Modul (beide verzoegert, in Dokumentfolge);
+  // das Ereignis faengt nur den Fall, dass es spaeter kommt.
+  if (window.VBFleet) window.VBFleet.subscribe(onFleet);
+  else window.addEventListener('vb-fleet-ready', () => window.VBFleet.subscribe(onFleet), { once: true });
   applyDock();
   scrollToCard(state.ship, 'auto');
   if (state.ship !== ctx.defaultShip) showShip(state.ship);

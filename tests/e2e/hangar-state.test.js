@@ -5,7 +5,7 @@
 // Import keine Seiteneffekte, die reinen Funktionen laufen direkt in node.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseState, serializeState, fillMessage } from '../../assets/hangar-overview.js';
+import { parseState, serializeState, fillMessage, figuresOf, fleetSummary } from '../../assets/hangar-overview.js';
 
 const ctx = {
   ids: new Set(['aegs-gladius', 'anvl-arrow', 'drak-cutlass-black', 'rsi-aurora-mk2']),
@@ -58,6 +58,26 @@ describe('Hangar: URL-Zustand', () => {
       url('?ship=drak-cutlass-black&tab=systems&cmp=anvl-arrow&fleet=1&sort=cargo&q=cut&type=Mehrzweck&maker=Drake%20Interplanetary', '', 'share'),
       '?ship=drak-cutlass-black&tab=systems&cmp=anvl-arrow',
     );
+  });
+});
+
+describe('Hangar: Dock-Daten und Flottenzeile', () => {
+  test('data-v liest sich in der Folge von data-stats; "-" ist unbekannt, 0 bleibt 0', () => {
+    assert.deepEqual(figuresOf(['scm', 'cargo', 'crew', 'price'], '1193 0 1 -'), { scm: 1193, cargo: 0, crew: 1, price: null });
+    assert.deepEqual(figuresOf(['dps', 'len'], '1944.5'), { dps: 1944.5, len: null });
+  });
+
+  test('die Flottenzeile summiert Fracht und Crew und zaehlt Rollenfamilien, fremde Ids nicht', () => {
+    const ships = new Map([
+      ['aegs-gladius', { stat: { cargo: 0, crew: 1 }, fam: ['jaeger'] }],
+      ['drak-cutlass-black', { stat: { cargo: 46, crew: 2 }, fam: ['frachttransport', 'jaeger'] }],
+      ['argo-atls', { stat: { cargo: null, crew: null }, fam: [] }],
+    ]);
+    assert.deepEqual(
+      fleetSummary(['aegs-gladius', 'drak-cutlass-black', 'argo-atls', 'nope'], ships),
+      { n: 3, scu: 46, crew: 3, roles: 2 },
+    );
+    assert.deepEqual(fleetSummary([], ships), { n: 0, scu: 0, crew: 0, roles: 0 });
   });
 });
 
