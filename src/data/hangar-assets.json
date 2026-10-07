@@ -201,6 +201,7 @@
         "bits": 23,
         "degenerate": 3.3
       },
+      "floor": 1,
       "bytes": 10703992,
       "room": {
         "center": [

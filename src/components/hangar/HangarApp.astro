@@ -25,7 +25,7 @@ const L = (p: string) => (de ? `/de${p}` : p);
 const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
-type Asset = { url: string; v?: string; room?: unknown };
+type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number };
 const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
@@ -35,7 +35,8 @@ const HOLD: Record<string, string> = {
   'rsi-constellation-andromeda': 'Rumpf nach Neuexport sauber, aber fast schwarzbraun; Freigabe ist Sichturteil des Betreibers',
 };
 const hallAsset = Object.values(real.hall ?? {})[0];
-const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room } : null;
+// floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
+const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 const vehicles = (await getCollection('vehicles'))
