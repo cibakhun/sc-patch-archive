@@ -95,8 +95,8 @@ const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overvi
 .hgx-v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;line-height:1.2}
 .hgx-v small{display:block;color:var(--hg-dim);font-size:var(--fs-5);font-weight:400}
 .hgx-d{padding:.25rem .35rem .65rem 2.9rem;font-size:var(--fs-6)}
-.hgx-d dl{display:grid;grid-template-columns:1fr auto;gap:.15rem .8rem;margin:0}
-.hgx-d dt{color:var(--hg-dim)}
+.hgx-d dl{display:grid;grid-template-columns:auto 1fr;gap:.15rem .8rem;margin:0}
+.hgx-d dt{color:var(--hg-dim);white-space:nowrap}
 .hgx-d dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
 .hgx-links{display:flex;flex-wrap:wrap;gap:.25rem 1rem;margin:.5rem 0 0}
 .hgx-links a{color:var(--hg-amber)}
@@ -109,6 +109,18 @@ const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overvi
 .hgx-err p{margin:.3rem 0 .7rem}
 .hgx-modelerr{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(360px,80%);margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center;backdrop-filter:blur(6px)}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
+   transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab
+   zeigt seine Marker; hinter der Rumpfmitte dimmen sie. */
+.hgx-marks{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.hgx-marks:not([data-live]) .hgx-mk{visibility:hidden}
+.hgx-mk{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border:2px solid var(--hg-amber);border-radius:50%;background:color-mix(in srgb,var(--hg-amber) 30%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--bg) 55%,transparent);pointer-events:auto;cursor:pointer;transition:opacity var(--dur-fast) var(--ease-ui)}
+.hgx-mk[data-tab="systems"]{border-color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 30%,transparent)}
+.hgx-mk.is-far{opacity:.35}
+.hgx-mk.is-hot,.hgx-mk.is-sel{z-index:1;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:color-mix(in srgb,var(--hg-amber) 55%,transparent)}
+.hgx-mk b{display:none;position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .45rem;border-radius:3px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-5);font-weight:600;white-space:nowrap;pointer-events:none;backdrop-filter:blur(6px)}
+.hgx-mk.is-hot b,.hgx-mk.is-sel b,.hgx-mk:hover b{display:block}
+.hg:not([data-tab-active="weapons"]) .hgx-mk[data-tab="weapons"],.hg:not([data-tab-active="systems"]) .hgx-mk[data-tab="systems"],.hg:not([data-tab-active="cargo"]) .hgx-mk[data-tab="cargo"]{display:none}
 
 .hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
 .hg-filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
@@ -147,17 +159,19 @@ const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overvi
   .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
   .hgx-foot{position:static}
+  .hgx-mk{width:12px;height:12px;margin:-6px 0 0 -6px}
   .hg-hint{display:none}
   .hg-arrow{display:none}
   .hg-count{margin-left:0;width:100%}
 }
-@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-tabs button,.hgx-slot__btn{transition:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk{transition:none}}</style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
 <main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-tab-active="overview">
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
+      <ShipBay bay={bay} region="marks" />
       <header class="hg-title">
         <h1>Hangar</h1>
         <ShipBay bay={bay} region="head" />

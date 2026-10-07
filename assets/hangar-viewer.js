@@ -1595,12 +1595,27 @@ export async function initHangar(container, opts = {}) {
   function focus(p) {
     if (!current) return;
     if (!p) { resetView(); return; }
-    current.model.updateMatrixWorld(true);
+    // Ziel aus der Ruhelage: waehrend der Einfahrt schwebt und dreht die
+    // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
+    // baseY gilt zur Zeit des Aufrufs; eine beim Platzieren gemerkte Matrix
+    // waere nach einem Hallenwechsel falsch. Wechselt die Halle erst danach,
+    // sinkt das Schiff unter die Kamera (.planning/notes/hangar-naht.md).
+    const g = current.group, y = g.position.y, ry = g.rotation.y;
+    g.position.y = g.userData.baseY; g.rotation.y = 0; g.updateMatrixWorld(true);
     const tgt = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(current.model.matrixWorld);
-    const dir = camera.position.clone().sub(controls.target).normalize();
+    g.position.y = y; g.rotation.y = ry; g.updateMatrixWorld(true);
+    // Von aussen durch den Hardpoint schauen, nicht durch den Rumpf: Richtung
+    // von der Schiffsmitte durch den Punkt, mit der aktuellen Ansicht
+    // gemischt. Bauchtuerme duerfen flach von der Seite gesehen werden, aber
+    // mindestens ~10 Grad ueber dem Boden.
+    const view = camera.position.clone().sub(controls.target).normalize();
+    const out = tgt.clone().sub(homeTgt ?? controls.target);
+    out.y = Math.max(out.y, 0);
+    const dir = out.lengthSq() > 1e-4 ? out.normalize().multiplyScalar(0.7).add(view.multiplyScalar(0.3)) : view;
+    dir.y = Math.max(dir.normalize().y, 0.17);
     const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
     touched = true; controls.autoRotate = false; clearTimeout(idleTimer);
-    flyTo(tgt, dir.multiplyScalar(r).add(tgt), 700);
+    flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
   }
 
   const clock = new THREE.Clock();

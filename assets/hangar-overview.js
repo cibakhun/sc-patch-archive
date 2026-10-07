@@ -182,7 +182,7 @@ export function boot(doc) {
   // -------------------------------------------------------------- Buchten
   // Die Bucht ist eine Momentaufnahme; eingesetzt wird immer eine Kopie,
   // weil die eingesetzte Region danach Zustand traegt (offene Zeilen).
-  const REGIONS = ['head', 'panel'];
+  const REGIONS = ['head', 'panel', 'marks'];
   const regionNow = (name) => doc.querySelector(`[data-bay="${name}"]`);
   const cache = new Map();
   const CACHE_MAX = 16;
@@ -250,6 +250,7 @@ export function boot(doc) {
       if (my !== selTok) return;
       for (const name of REGIONS) regionNow(name).replaceWith(doc.importNode(regions[name], true));
       applyTab();
+      syncMarks();
       applyHp();
       title.classList.remove('is-swap');
       void title.offsetWidth;
@@ -326,12 +327,95 @@ export function boot(doc) {
       state = { ...state, hp: null };
       writeUrl();
     }
+    for (const el of regionNow('marks').querySelectorAll('.hgx-mk')) {
+      el.classList.toggle('is-sel', !!state.hp && el.dataset.port === state.hp && el.dataset.tab === state.tab);
+    }
+    if (found) revealOpenRow();
+    applyFocus();
+  }
+  // Ein Link oder ein Markerklick oeffnet eine Zeile, die womoeglich weit
+  // unten in der Tafel steht: nur die Tafel rollt, nie die Seite.
+  function revealOpenRow() {
+    const li = host.querySelector('.hgx-slot__btn[aria-expanded="true"]')?.closest('.hgx-slot');
+    if (!li || host.scrollHeight <= host.clientHeight) return;
+    const r = li.getBoundingClientRect(), h = host.getBoundingClientRect();
+    if (r.top < h.top || r.bottom > h.bottom) host.scrollTop += r.top - h.top - 8;
+  }
+  // Das Fokusziel einer Zeile ist ihr erster Port mit Punkt in diesem Tab.
+  function portFor(li) {
+    const ports = li.dataset.ports.split(' ');
+    const marked = new Set([...regionNow('marks').querySelectorAll(`.hgx-mk[data-tab="${state.tab}"]`)].map((el) => el.dataset.port));
+    return ports.find((p) => marked.has(p)) ?? ports[0];
   }
   host.addEventListener('click', (e) => {
     const btn = e.target.closest('.hgx-slot__btn');
     if (!btn) return;
-    const port = btn.closest('.hgx-slot').dataset.ports.split(' ')[0];
-    setState({ hp: btn.getAttribute('aria-expanded') === 'true' ? null : port });
+    setState({ hp: btn.getAttribute('aria-expanded') === 'true' ? null : portFor(btn.closest('.hgx-slot')) });
+  });
+
+  // -------------------------------------------------------------- Marker
+  // HTML ueber der Leinwand, im Slot der Buehne (Region marks). Sie leben erst,
+  // wenn BEIDES zum gewaehlten Schiff gehoert: das Modell steht (show() genau
+  // dieser Auswahl ist fertig) und die Region ist eingesetzt. Sonst saessen
+  // Punkte des alten Schiffs auf dem neuen.
+  let placed = null;
+  let pins = null;
+  let focused = null;
+  const buf = [];
+
+  function syncMarks() {
+    const region = regionNow('marks');
+    const live = !!viewer && placed === state.ship && region.dataset.id === state.ship;
+    region.toggleAttribute('data-live', live);
+    if (!live) { pins = null; return; }
+    const els = [...region.querySelectorAll('.hgx-mk')];
+    const pts = els.map((el) => el.dataset.p.split(' ').map(Number));
+    // Die Rumpfmitte reist als letzter Punkt mit: was hinter ihr liegt, dimmt.
+    const c = region.dataset.c ? region.dataset.c.split(' ').map(Number) : null;
+    pins = { els, pts: c ? [...pts, c] : pts, center: !!c };
+  }
+
+  function placeMarks() {
+    if (!pins) return;
+    const out = viewer.project(pins.pts, buf);
+    const c = pins.center ? out[out.length - 1] : null;
+    pins.els.forEach((el, i) => {
+      const o = out[i];
+      if (!o) { el.style.visibility = 'hidden'; return; }
+      el.style.visibility = '';
+      el.style.transform = `translate(${o.x.toFixed(1)}px,${o.y.toFixed(1)}px)`;
+      el.classList.toggle('is-far', !!c && o.d > c.d);
+    });
+  }
+
+  const pointOf = (port) => regionNow('marks').querySelector(`.hgx-mk[data-tab="${state.tab}"][data-port="${CSS.escape(port)}"]`)?.dataset.p.split(' ').map(Number) ?? null;
+
+  // Kamera auf den Hardpoint aus hp, sobald Modell und Bucht stehen; ohne hp
+  // zurueck in die Startansicht. Ein Port ohne Punkt oeffnet nur die Zeile.
+  function applyFocus() {
+    if (!pins) return;
+    const want = state.hp && pointOf(state.hp) ? state.hp : null;
+    if (want === focused) return;
+    focused = want;
+    viewer.focus(want ? pointOf(want) : null);
+  }
+
+  function setHot(row) {
+    for (const el of regionNow('marks').querySelectorAll('.hgx-mk')) el.classList.toggle('is-hot', !!row && el.dataset.rows.split(' ').includes(row));
+  }
+  host.addEventListener('pointerover', (e) => setHot(e.target.closest('.hgx-slot')?.dataset.row ?? null));
+  host.addEventListener('pointerleave', () => setHot(null));
+  host.addEventListener('focusin', (e) => setHot(e.target.closest('.hgx-slot')?.dataset.row ?? null));
+  host.addEventListener('focusout', () => setHot(null));
+
+  doc.querySelector('[data-hg-stage]').addEventListener('click', (e) => {
+    const mk = e.target.closest('.hgx-mk');
+    if (mk) setState({ tab: mk.dataset.tab, hp: mk.dataset.port });
+  });
+  // Am Fenster, nicht am Dokument: das Menue der Leiste schliesst dort mit
+  // Escape und preventDefault, und sein Escape soll den Hardpoint halten.
+  doc.defaultView.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.hp && !e.defaultPrevented) setState({ hp: null });
   });
 
   // -------------------------------------------------------------- Dock
@@ -433,13 +517,33 @@ export function boot(doc) {
   const loadEl = $('hg-load');
   const bar = loadEl.querySelector('i');
 
+  // show() loest auch auf, wenn ein neueres show() es ueberholt hat: nur der
+  // eigene Zaehler sagt, ob das Modell dieser Auswahl wirklich steht.
+  let showTok = 0;
   function viewerShow(id) {
     if (!viewer) return;
+    const my = ++showTok;
+    placed = null;
+    syncMarks();
+    // Die Nahansicht eines Hardpoints nicht auf das naechste Schiff tragen.
+    if (focused) {
+      focused = null;
+      viewer.focus(null);
+    }
     const [glb, tex, maker] = stageCfg.models[id];
     const t = setTimeout(() => { loadEl.hidden = false; }, 180);
     viewer.show(glb, { maker, tex })
-      .catch(() => { if (id === state.ship) modelErr.hidden = false; })
-      .finally(() => { clearTimeout(t); loadEl.hidden = true; });
+      .then(() => {
+        if (my !== showTok) return;
+        placed = id;
+        syncMarks();
+        applyFocus();
+      })
+      .catch(() => { if (my === showTok) modelErr.hidden = false; })
+      .finally(() => {
+        clearTimeout(t);
+        if (my === showTok) loadEl.hidden = true;
+      });
   }
 
   loadEl.hidden = false;
@@ -448,7 +552,11 @@ export function boot(doc) {
     .then((v) => {
       viewer = v;
       v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
-      $('hg-reset').addEventListener('click', () => v.resetView());
+      v.onFrame(placeMarks);
+      $('hg-reset').addEventListener('click', () => {
+        if (state.hp) setState({ hp: null });
+        else v.resetView();
+      });
       // Szenenseitige Skripte hoeren hierauf, statt den Viewer ein zweites Mal zu laden.
       const sec = doc.querySelector('[data-hg-stage]');
       sec.hangarViewer = v;

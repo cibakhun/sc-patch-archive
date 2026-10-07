@@ -75,6 +75,49 @@ Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 einem Fehler `#hg-fallback` und lädt Schiffe mit
 `show(models[id][0], { maker: models[id][2], tex: models[id][1] })`.
 
+Sobald `initHangar` aufgelöst hat, hängt die Oberfläche die Viewer-API als
+`hangarViewer` an `section.hg-stage` und sendet dort das Ereignis
+`hangar:viewer` (`detail` = die API). Ein szenenseitiges Skript, etwa ein
+künftiger Hallenschalter, hört darauf, statt den Viewer ein zweites Mal zu
+importieren. `show`, `focus`, `project` und `onFrame` gehören der Oberfläche.
+
+### Marker und project()
+
+Die Marker sind HTML-Elemente der Bucht-Region `marks` im Slot der Bühne.
+Die Oberfläche setzt sie nur, wenn beides zum gewählten Schiff gehört: das
+`show()` genau dieser Auswahl ist fertig (ein eigener Zähler, weil ein
+überholtes `show()` ebenfalls auflöst) und die eingesetzte Region trägt die
+Id dieses Schiffs. `project()` bleibt dafür an kein Schiff gebunden. Bitte
+`current` weiter innerhalb von `show()` umschalten, oder der Oberfläche
+Bescheid geben.
+
+### focus() seit dem Fokus-Umbau
+
+- Das Ziel entsteht in der Ruhelage: `focus()` setzt die Gruppe kurz auf
+  `userData.baseY` und Drehung 0, rechnet den Punkt um und stellt die Lage
+  zurück. Während der Einfahrt lag es vorher bis zu 18 % der Spannweite
+  daneben (kalter Link auf die Bugkanone des Gladius: 247 px neben der
+  Bildmitte).
+- Die Blickrichtung läuft von der Schiffsmitte (`homeTgt`) durch den
+  Hardpoint, zu 70 % gemischt mit der aktuellen Ansicht, mindestens rund
+  10 Grad über dem Boden. Bauchtürme sieht man so von der Seite statt durch
+  den Rumpf (C2, `hardpoint_remote_turret_bottom`: vorher hinter der
+  Rumpfmitte, jetzt 4 m davor und mittig).
+- Vor dem Wechsel auf ein anderes Schiff ruft die Oberfläche `focus(null)`,
+  damit die Nahansicht nicht auf das nächste Schiff übergeht.
+
+### Bitte an die Szene: Halle nach dem Schiff
+
+`loadRealHall` setzt `current.group.userData.baseY` auf 0,02, wenn die Halle
+nach dem Schiff fertig wird. Ein Schiff, das in der gebauten Halle auf
+`0.3 * S + 0.25` stand, sinkt dann unter eine bereits gezielte Kamera.
+Gemessen mit verzögertem Hallenabruf: Gladius-Bugkanone 49 px, C2-Bauchturm
+27 px neben der Bildmitte; kommt die Halle zuerst, 0 px. Vorschlag: in
+`loadRealHall` beim Ändern von `baseY` Kameraziel, Kamera und einen
+laufenden Flug um dieselbe Differenz mitverschieben, wenn die Kamera
+gezielt steht (`touched`). `focus()` allein kann das nicht, es läuft vor
+dem Hallenwechsel.
+
 ### Was verify:hangar für die Szene prüft
 
 Zusicherung 1 vergleicht Dock, `#hg-stage.models` und beide Buchtordner und
