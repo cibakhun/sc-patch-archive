@@ -196,6 +196,16 @@ const deckGroups: DeckGroup[] = [
         icon: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
       },
       {
+        href: L('/hangar.html'),
+        label: 'Hangar',
+        // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
+        media: THUMB('img-hammerhead'),
+        sub: t('nav.deck.sub.hangar'),
+        current: current === L('/hangar.html'),
+        // Hallentor: Bogen, Boden, Einfahrt.
+        icon: '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M2 20h20"/><path d="M8 20v-5h8v5"/>',
+      },
+      {
         href: L('/missionen.html'),
         label: t('nav.missions'),
         media: THUMB('t-tsg-4'),

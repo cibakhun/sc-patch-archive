@@ -88,6 +88,7 @@ const UI = {
     'nav.deck.sub.wikelo': 'Banu-Handel',
     'nav.deck.sub.items': 'Preise & Fundorte',
     'nav.deck.sub.ships': 'Datenblätter & Specs',
+    'nav.deck.sub.hangar': 'Jedes Schiff in 3D',
     'nav.deck.sub.missions': 'Belohnungen & Ruf',
     'nav.deck.sub.archive': 'Alle Versionen',
     'nav.deck.sub.topics': 'Themen-Verzeichnis',
@@ -300,6 +301,7 @@ const UI = {
     'fleet.in': 'In der Flotte',
     'fleet.aria': 'Zur Flotte hinzufügen (ohne Konto in diesem Browser gespeichert)',
     'fleet.retry': 'Nicht gespeichert · erneut versuchen',
+    'ship.hangar3d': 'Im 3D-Hangar ansehen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
@@ -503,6 +505,7 @@ const UI = {
     'nav.deck.sub.wikelo': 'Banu trades',
     'nav.deck.sub.items': 'Prices & locations',
     'nav.deck.sub.ships': 'Data sheets & specs',
+    'nav.deck.sub.hangar': 'Every ship in 3D',
     'nav.deck.sub.missions': 'Rewards & reputation',
     'nav.deck.sub.archive': 'All versions',
     'nav.deck.sub.topics': 'Topic directory',
@@ -703,6 +706,7 @@ const UI = {
     'fleet.in': 'In fleet',
     'fleet.aria': 'Add to fleet (kept in this browser without an account)',
     'fleet.retry': 'Not saved · try again',
+    'ship.hangar3d': 'View in the 3D hangar',
     // stylized mono codes (in-universe “register” tags)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',
