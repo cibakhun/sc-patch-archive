@@ -174,6 +174,14 @@ export const CHECKS = [
       'die Schiffs-Detailseite traegt genau ein Kapitelgeruest mit Sprungleiste, keinen Einheitsrahmen mehr, Balken nur beim Leistungsprofil, und jeder Wert steht an genau einer Stelle (D-01/D-02/D-03)',
   },
   {
+    id: 'verify:patch-ships',
+    npm: 'verify:patch-ships',
+    script: 'scripts/verify-patch-ships.mjs',
+    rail: 'A',
+    checks:
+      'jedes Schiff einer Patch-Seite trifft einen Katalogeintrag oder eine benannte Ausnahme (sonst WARNUNG), und jede verknuepfte Schiffsseite in dist/ (EN+DE) traegt den Verweis auf ihre Patch-Seiten (sonst FEHLER) — das Patch-Rueckgrat rechnet seit 08.10.2026 der Build, nicht mehr der Datenlauf',
+  },
+  {
     id: 'verify:shipconsole',
     npm: 'verify:shipconsole',
     script: 'scripts/verify-shipconsole.mjs',

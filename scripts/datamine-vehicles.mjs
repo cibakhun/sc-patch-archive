@@ -44,12 +44,13 @@
 // dem Übernehmen), nur ist der Bezugspunkt nicht mehr die Wiki, sondern der
 // eigene letzte Stand. Das frühere Wiki-Sync-Skript ist gelöscht (D-16).
 //
-// Patch-Rückgrat (patches[], D-19): diese Rechnung stand bis 01.4-05 im
-// frueheren Wiki-Sync-Skript und ist mit dessen Löschung hierher umgezogen
-// (samt SPINE_ALIAS, unverändert) — s. Abschnitt PATCH-RÜCKGRAT unten.
+// Patch-Rückgrat (patches[], D-19): stand bis 08.10.2026 hier und ist in den
+// Build umgezogen (scripts/lib/patch-spine.mjs, src/lib/patchSpine.ts). Dieser
+// Lauf braucht Data.p4k, Patch-Seiten landen oft nach ihm — der Verweis
+// Schiffsseite -> Patch-Seite fehlte dann still bis zum nächsten Lauf.
 //
 // Aufruf: node scripts/datamine-vehicles.mjs [--p4k <Data.p4k>] [--ship <id>]
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
@@ -60,7 +61,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_GAMEFILES = resolve(__dirname, '..', 'src', 'data', 'vehicles-gamefiles.json');
 const OUT_FINAL = resolve(__dirname, '..', 'src', 'data', 'vehicles.json');
 const EXTERNAL = resolve(__dirname, '..', 'src', 'data', 'vehicle-external.json');
-const PATCHES_DIR = resolve(__dirname, '..', 'src', 'data', 'patches');
 const argv = process.argv.slice(2);
 const argOf = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null; };
 const ONLY = argOf('--ship');
@@ -77,50 +77,6 @@ const round = (n, d = 1) => (n == null ? null : Math.round(n * 10 ** d) / 10 ** 
 const attrCI = (attrs, key) => {
   const k = Object.keys(attrs).find((x) => x.toLowerCase() === key.toLowerCase());
   return k ? attrs[k] : undefined;
-};
-
-/* ---------------------------------------------------------------- */
-/* PATCH-RÜCKGRAT (01.4-05, D-19): umgezogen aus dem frueheren           */
-/* Wiki-Sync-Skript, UNVERÄNDERT (strip() + SPINE_ALIAS + Join-Regel).   */
-/* `patches[]` ist KEINE Spieldaten-Angabe — sie verknüpft einen         */
-/* Katalog-Eintrag mit jeder Patch-Seite, die ihn nennt                  */
-/* (src/data/patches/*.json). Zieht dieser Block mit dem Skript, das ihn */
-/* berechnet hatte (D-16, gelöscht), verlieren alle heute verknüpften    */
-/* Fahrzeuge ihre Archiv-Verweise — ein leeres patches:[] ist syntaktisch*/
-/* gültig, KEIN Fehler, der beim Bauen auffiele. Deshalb: Rechnung       */
-/* zuerst umziehen, dann erst (Task 3) das alte Skript löschen.          */
-/* ---------------------------------------------------------------- */
-const SPINE_MAKERS = ['rsi', 'drake', 'aegis', 'anvil', 'mirai', 'gatac', 'argo', 'misc', 'origin', 'crusader', 'esperia', 'kruger', 'banu', 'aopoa', 'vanduul'];
-function stripSpine(name) {
-  let n = (name || '').toLowerCase().replace(/["„“”‚‘’']/g, '').replace(/\s+/g, ' ').trim();
-  for (const m of SPINE_MAKERS) if (n.startsWith(m + ' ')) n = n.slice(m.length + 1);
-  return n;
-}
-const spine = new Map();
-if (existsSync(PATCHES_DIR)) {
-  for (const f of readdirSync(PATCHES_DIR).filter((x) => x.endsWith('.json'))) {
-    const j = JSON.parse(readFileSync(resolve(PATCHES_DIR, f), 'utf8'));
-    for (const s of j.ships ?? []) {
-      const k = stripSpine(s.name);
-      if (!spine.has(k)) spine.set(k, new Set());
-      spine.get(k).add(j.version);
-    }
-  }
-}
-// variant → base aliases: patch-data ships whose exact variant the catalog
-// drops as unclassified — the base entry carries the spine link instead.
-const SPINE_ALIAS = { 'atls ikti': 'atls' };
-for (const [from, to] of Object.entries(SPINE_ALIAS)) {
-  if (!spine.has(from)) continue;
-  if (!spine.has(to)) spine.set(to, new Set());
-  for (const p of spine.get(from)) spine.get(to).add(p);
-}
-/** Patch-Verknüpfung für ein gebautes Fahrzeug (Join-Schlüssel: der bereits
- *  manufacturer-gestrippte Anzeigename, s. D-19 — der Spieldaten-Katalog
- *  liefert denselben Namen wie der bisherige Wiki-Katalog). */
-const spineFor = (name) => {
-  const k = stripSpine(name);
-  return spine.has(k) ? [...spine.get(k)].sort() : [];
 };
 
 // gameVersion (01.4-02, Gruppe C, 0 Proben): build_manifest.id neben der p4k,
@@ -793,8 +749,6 @@ function buildVehicle(id) {
     cmLaunchers,
     components: comp,
     gameVersion: GAME_VERSION,
-    // Patch-Rückgrat (D-19): umgezogen aus dem frueheren Wiki-Sync-Skript, s. o.
-    patches: spineFor(finalName),
   };
 }
 
@@ -846,7 +800,10 @@ for (const id of ids) {
   if (builtIds.has(id)) continue;
   const ov = external.overrides?.[id];
   if (!ov) continue;
-  out.push(ov);
+  // patches[] aus dem eingefrorenen Wiki-Satz NICHT übernehmen — das Rückgrat
+  // rechnet seit 08.10.2026 der Build (scripts/lib/patch-spine.mjs).
+  const { patches: _frozenSpine, ...rest } = ov;
+  out.push(rest);
   overridesAdded++;
 }
 p4k.close();
@@ -862,8 +819,6 @@ if (overridesAdded) console.log(`  aus vehicle-external.json übernommen (ATLS):
 // DPS übersprungen hat — billige Sichtbarkeit, s. Kommentar bei sumDps().
 console.log(`  Waffen-DPS: pilotDps ${stats.dpsPilot}/${out.length}   turretDps ${stats.dpsTurret}/${out.length}`);
 if (stats.dpsPartialShips) console.log(`  davon Teilsumme (Waffe ohne bekannte DPS übersprungen): ${stats.dpsPartialShips} Fahrzeuge, ${stats.dpsSkippedWeapons} Waffeneinträge`);
-const patchLinked = out.filter((v) => Array.isArray(v.patches) && v.patches.length).length;
-console.log(`  Patch-Rückgrat (patches[]): ${patchLinked} Fahrzeuge verknüpft`);
 
 if (!ONLY) {
   const snapshot = {

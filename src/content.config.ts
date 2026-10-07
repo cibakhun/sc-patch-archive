@@ -243,10 +243,9 @@ const vehicles = defineCollection({
     isSpaceship: z.boolean().nullable(),
     isGravlev: z.boolean().nullable(),
     pledgeUrl: z.string().nullable().default(null),
-    /** patch-spine: versions in OUR archive that introduced/touched it —
-     *  computed in scripts/datamine-vehicles.mjs since 01.4-05 (D-19; moved
-     *  out of the now-deleted Wiki vehicle-sync script). */
-    patches: z.array(z.string()),
+    // patch-spine (patches[]) is NOT stored here since 08.10.2026 — the build
+    // computes it from src/data/patches/*.json (src/lib/patchSpine.ts), so a
+    // patch page that lands after the data run links without a rerun.
     gameVersion: z.string().nullable(),
     /** ship image — frozen from the Wiki media snapshot (src/data/vehicle-
      *  external.json), no in-game photographic material exists (01.4-02) */

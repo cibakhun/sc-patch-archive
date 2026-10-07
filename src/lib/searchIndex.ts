@@ -20,6 +20,7 @@ import { href, useTranslations, type Locale } from '../i18n/ui';
 import { mergePatchEn, eraLabel } from '../i18n/patchText';
 import { vType, vSize, vFoci } from '../i18n/vehicleText';
 import { missions, repSummary, uec } from './missions';
+import { patchesFor } from './patchSpine';
 
 export type SearchEntry = { k: string; b: string; t: string; s: string; u: string; x: string };
 
@@ -83,7 +84,7 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
         .filter(Boolean)
         .join(' · '),
       u: href(`/schiffe/${v.id}.html`, lang),
-      x: [...vFoci(v.data, lang), ...v.data.patches.map((p) => `alpha ${p}`)].join(' '),
+      x: [...vFoci(v.data, lang), ...patchesFor(v.data.name).map((p) => `alpha ${p}`)].join(' '),
     });
 
   // mission families (DataCore snapshot) — one entry per mission, not per offer.

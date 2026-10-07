@@ -2668,7 +2668,7 @@
         },
         {
           "label": "New ship",
-          "value": "None flyable — the Kruger S-65 Stingray sits prepared in the build"
+          "value": "Kruger S-65 Stingray — medium fighter, flyable"
         },
         {
           "label": "Wipe",
@@ -2787,17 +2787,17 @@
           "desc": "New graded calls for help: ships in trouble and under fire are posted as yellow, orange and red level contracts — the grade tells you how bad it is at the far end."
         },
         {
-          "name": "Kruger S-65 Stingray — prepared, not flyable",
+          "name": "Kruger S-65 Stingray — new medium fighter",
           "system": "Ship systems",
-          "desc": "The fighter is announced and already partly in the build: two S4 missile racks, a gimbal mount, the Whiptail repeater and four liveries. The catalogue does not carry it as a flyable vehicle — the fleet stays at 227.",
+          "desc": "Kruger's first medium fighter: two S4 and four S2 repeaters in bespoke mounts, eight S2 missiles, plus four liveries. The fleet grows from 227 to 228. Until 8 Oct 2026 this page listed the Stingray as not flyable — our catalogue did not pick up new ships.",
           "facts": [
             {
-              "label": "In the build",
-              "value": "S4 missile racks · STR-E2 gimbal mount · Whiptail · 4 liveries"
+              "label": "Armament",
+              "value": "2× S4 · 4× S2 · 8 S2 missiles"
             },
             {
               "label": "Flyable",
-              "value": "No — fleet count unchanged at 227"
+              "value": "Yes — fleet count 227 → 228"
             }
           ]
         },
@@ -2820,9 +2820,9 @@
       ],
       "ships": [
         {
-          "role": "Fighter",
-          "status": "announced",
-          "notes": "Weapon mounts, gimbal mount and four liveries sit in the build — not yet included as a flyable vehicle"
+          "role": "Medium fighter",
+          "status": "flyable",
+          "notes": "New medium fighter from Kruger Intergalactic; four liveries"
         }
       ],
       "events": [],
