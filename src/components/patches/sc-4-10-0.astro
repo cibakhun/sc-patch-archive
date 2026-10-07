@@ -217,6 +217,9 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .srnote{background:var(--surface);border:1px solid var(--line-soft);border-top:2px solid var(--accent);padding:1.15rem 1.3rem}
 .srnote h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text);margin-bottom:.5rem}
 .srnote p{color:var(--muted);font-size:var(--fs-8);line-height:1.55}
+.srnote p a{color:var(--accent)}
+.srnote .readout{margin-top:.85rem}
+.srnote p.after{margin:.85rem 0 0;font-size:var(--fs-6)}
 .srflag{display:inline-block;margin-top:.85rem;font-family:var(--font-mono);font-size:var(--fs-6);letter-spacing:var(--ls-9);color:#f3b489;border:1px dashed rgba(232,149,95,.5);padding:.45rem .7rem}
 
 /* Footer */
@@ -302,7 +305,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         <div class="tile img w2" data-lb="img:/assets/t-orison-1.jpg"><div class="tbg" style="background-image:url('/assets/t-orison-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">{de ? 'Die Plattformen' : 'The platforms'}</div><div class="sub">{de ? 'Nine Tails halten die Stadt' : 'Nine Tails hold the city'}</div></div>
         <div class="tile stat" data-info data-title={de ? '13 neue Baupläne' : '13 new blueprints'} data-text={de ? 'Die Werkbank wächst von 1.594 auf 1.607 Baupläne. Der Schwerpunkt liegt beim Abbau: fünf Erz-Pods (Argo, Drake, MISC, MISC verstärkt, GOLEM MC-4) und sieben Module — Clearcut, Deluge, Overrun, Stampede und Torrent III für den Abbau, Comer und Hart als Schaber für die Bergung. Dazu kommen Panzerungs-Ausführungen in Schneetarn und SecondWind.' : 'The workbench grows from 1,594 to 1,607 blueprints. The focus is on mining: five ore pods (Argo, Drake, MISC, MISC reinforced, GOLEM MC-4) and seven modules — Clearcut, Deluge, Overrun, Stampede and Torrent III for mining, Comer and Hart as scrapers for salvage. Plus armour finishes in snow camo and SecondWind.'}><span class="zoomic">+</span><div class="num">+13</div><div class="cap">{de ? 'Baupläne' : 'Blueprints'}</div></div>
         <div class="tile word" data-info data-title="Arlington" data-text={de ? 'Neues Gewehr mit Unterhebel-Repetierung, im Bestand in vier Ausführungen: Grundmodell sowie „Gamekeeper", „Watchpoint" und „Widowmaker". Das Magazin fasst 20 Schuss — die zuvor geführte 25-Schuss-Variante ist verschwunden.' : 'A new lever-action rifle, carried in four variants: the base model plus "Gamekeeper", "Watchpoint" and "Widowmaker". The magazine holds 20 rounds — the 25-round variant listed before has disappeared.'}><span class="zoomic">+</span><b>ARLINGTON</b><small>{de ? 'Unterhebelgewehr · 4 Ausführungen' : 'Lever action · 4 variants'}</small></div>
-        <div class="tile img w2" data-lb="img:/assets/t-stingray-1.jpg"><div class="tbg" style="background-image:url('/assets/t-stingray-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger S-65 Stingray</div><div class="sub">{de ? 'Angekündigt · noch nicht fliegbar' : 'Announced · not yet flyable'}</div></div>
+        <div class="tile img w2" data-lb="img:/assets/t-stingray-1.jpg"><div class="tbg" style="background-image:url('/assets/t-stingray-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Kruger S-65 Stingray</div><div class="sub">{de ? 'Neuer mittlerer Jäger · fliegbar' : 'New medium fighter · flyable'}</div></div>
       </div>
     </div>
   </section>
@@ -363,7 +366,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
             <div class="row"><dt>{de ? 'Spulzeit' : 'Spool-up'}</dt><span class="lead2"></span><dd>{de ? '4 s → 4,4–5,3 s' : '4 s → 4.4–5.3 s'}</dd></div>
             <div class="row"><dt>{de ? 'Spulzeit geändert' : 'spool-up changed'}</dt><span class="lead2"></span><dd>171</dd></div>
             <div class="row"><dt>{de ? 'ohne QT-Antrieb' : 'without a QT drive'}</dt><span class="lead2"></span><dd>51</dd></div>
-            <div class="row"><dt>{de ? 'Flottenstand' : 'Fleet count'}</dt><span class="lead2"></span><dd>227 {de ? 'unverändert' : 'unchanged'}</dd></div>
+            <div class="row"><dt>{de ? 'Flottenstand' : 'Fleet count'}</dt><span class="lead2"></span><dd>227 → <em>228</em></dd></div>
           </dl>
         </div>
       </div>
@@ -418,9 +421,17 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="sr reveal">
         <div class="tile img srshot" data-lb="img:/assets/t-stingray-1.jpg"><div class="tbg" style="background-image:url('/assets/t-stingray-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">S-65 Stingray</div><div class="sub">Kruger Intergalactic</div></div>
         <div class="srnote">
-          <h3>{de ? 'Vorbereitet, nicht fliegbar' : 'Prepared, not flyable'}</h3>
-          <p>{de ? 'Der Jäger ist angekündigt und liegt teilweise schon im Build: zwei S4-Raketenhalterungen, die STR-E2-Lafette, der Whiptail-Repetierer und vier Lackierungen. Als fliegbares Fahrzeug führt der Bestand ihn nicht.' : 'The fighter is announced and already partly in the build: two S4 missile racks, the STR-E2 gimbal mount, the Whiptail repeater and four liveries. The catalogue does not carry it as a flyable vehicle.'}</p>
-          <span class="srflag">{de ? 'Flottenstand unverändert · 227' : 'Fleet count unchanged · 227'}</span>
+          <h3>{de ? 'Krugers mittlerer Jäger' : 'Kruger’s medium fighter'}</h3>
+          <p>{de ? 'Nach P-52, P-72 und den leichten Jägern L-21 und L-22 bringt Kruger Intergalactic seinen ersten mittleren Jäger. Die Bewaffnung sitzt in eigens gebauten Halterungen: zwei S4-Repetierer und vier S2-Repetierer, dazu acht Raketen.' : 'After the P-52, the P-72 and the L-21 and L-22 light fighters, Kruger Intergalactic delivers its first medium fighter. Its weapons sit in bespoke mounts: two S4 repeaters and four S2 repeaters, plus eight missiles.'}</p>
+          <dl class="readout">
+            <div class="row"><dt>{de ? 'Rolle' : 'Role'}</dt><span class="lead2"></span><dd>{de ? 'Mittlerer Jäger' : 'Medium fighter'}</dd></div>
+            <div class="row"><dt>{de ? 'Waffen' : 'Guns'}</dt><span class="lead2"></span><dd>2× S4 · 4× S2</dd></div>
+            <div class="row"><dt>{de ? 'Raketen' : 'Missiles'}</dt><span class="lead2"></span><dd>8× S2</dd></div>
+            <div class="row"><dt>{de ? 'Hüllen-HP' : 'Hull HP'}</dt><span class="lead2"></span><dd>{de ? '10.859' : '10,859'}</dd></div>
+            <div class="row"><dt>SCM</dt><span class="lead2"></span><dd>218 m/s</dd></div>
+          </dl>
+          <p class="after">{de ? 'Werte aus dem 4.10.1-Bestand. Bis zum 08.10.2026 stand die Stingray hier als nicht fliegbar — unser Katalog nahm neue Schiffe nicht auf.' : 'Values from the 4.10.1 data. Until 8 Oct 2026 this page listed the Stingray as not flyable — our catalogue did not pick up new ships.'} <a href={de ? '/de/schiffe/krig-s65-stingray.html' : '/schiffe/krig-s65-stingray.html'}>{de ? 'Zum Datenblatt →' : 'Full data sheet →'}</a></p>
+          <span class="srflag">{de ? 'Flottenstand 227 → 228' : 'Fleet count 227 → 228'}</span>
         </div>
       </div>
     </div>
