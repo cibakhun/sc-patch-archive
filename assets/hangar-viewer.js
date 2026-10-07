@@ -674,7 +674,7 @@ function sparks(count = 60) {
   for (let i = 0; i < count; i++) { vel.push(new THREE.Vector3()); life[i] = Math.random(); }
   const flash = new THREE.PointLight(0x9fd0ff, 0, 6, 2);
   const update = (dt, on) => {
-    flash.intensity = on ? 2 + Math.random() * 6 : 0;
+    flash.intensity = on ? 0.4 + Math.random() * 0.8 : 0;
     for (let i = 0; i < count; i++) {
       life[i] -= dt * 1.6;
       if (life[i] <= 0 && on) {
@@ -1244,15 +1244,26 @@ export async function initHangar(container, opts = {}) {
           if (/metal_grey/i.test(m.name)) {
             // Bodenplatten: gebürstetes Stahlgrau statt der hellen Glanzkarte,
             // die der Export als Farbe liefert; spiegelt ein wenig die Halle.
-            m.color.multiplyScalar(0.5); m.metalness = 0.7; m.roughness = 0.42; m.envMapIntensity = 0.45;
-          } else if (m.metalness > 0.4) { m.metalness = 0.4; m.roughness = Math.max(m.roughness, 0.45); }
-          else m.roughness = Math.max(m.roughness, 0.65);
+            m.color.multiplyScalar(0.5); m.metalness = 0.7; m.roughness = m.roughnessMap ? 1 : 0.42; m.envMapIntensity = 0.45;
+          } else if (m.metalness > 0.4) { m.metalness = 0.4; if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.45); }
+          else if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.65);
+          // Rauheit aus der Glätte des Spiels: die Karte entscheidet, der
+          // Faktor darf sie nicht pauschal stumpf machen.
+          if (m.roughnessMap) {
+            m.roughness = Math.max(m.roughness, 1);
+            // Nur nach unten begrenzen: spiegelglatte Stellen bündeln das
+            // Hauptlicht sonst zu einem gleißenden Fleck vor dem Schiff.
+            m.onBeforeCompile = (sh) => {
+              sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);');
+            };
+            m.customProgramCacheKey = () => 'hall-rough-min';
+          }
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
           // Nicht alle bringen ihre Leuchtkarte mit: dann leuchtet die Farbkarte.
           if (/light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
             m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
           } else if (m.emissiveMap) m.emissiveIntensity = 4;
-          for (const t of [m.map, m.normalMap]) if (t) t.anisotropy = maxAniso;
+          for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
         }
       });
       const group = new THREE.Group();
@@ -1318,7 +1329,7 @@ export async function initHangar(container, opts = {}) {
       c.addPass(ao);
       // Lichtschein um Lampen, Leuchtleisten und Triebwerke: nur was
       // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
-      c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.3, 0.4, 2.6));
+      c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.25, 0.35, 6));
       c.addPass(new OutputPass());
       composer = c;
     } catch { /* ohne Verdeckung weiter */ }
