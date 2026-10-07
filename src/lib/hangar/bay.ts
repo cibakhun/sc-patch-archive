@@ -286,7 +286,8 @@ const GROUP_TOTAL: Readonly<Record<GroupKey, (v: Vehicle, lang: Locale) => strin
     const parts = [fuel('H2', v.h2Fuel, lang), fuel('QT', v.qtFuel, lang)].filter(Boolean);
     return parts.length ? parts.join(' · ') : null;
   },
-  ore: (v, lang) => formatStat('cargo', pos(v.oreSCU), lang),
+  // Die Erzkapazitaet steht schon als Kennwert ueber den Behaeltern.
+  ore: () => null,
 };
 
 // ---------------------------------------------------------------- Zeilen
@@ -440,7 +441,8 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
     head: {
       maker: facts.maker,
       name: facts.name,
-      roleLine: [facts.typeLabel, facts.role].filter(Boolean).join(' · '),
+      // Ohne eigene Rolle faellt vRoleCig auf den Typ zurueck: nicht "Ground · Ground".
+      roleLine: [...new Set([facts.typeLabel, facts.role].filter(Boolean))].join(' · '),
       sheetHref: href(facts.sheetPath, lang),
       announce: [facts.name, facts.maker].filter(Boolean).join(', '),
     },

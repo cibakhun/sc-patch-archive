@@ -1,86 +1,42 @@
 ---
 // Die Oberflaeche um die Szene, EIN Koerper fuer DE und EN (D-12): Titel,
-// Kennwerte, Werkzeuge, Dock und Controller. Die Szene ist HangarApp.astro
-// (Sache der Szenen-Sitzung); sie stellt in ihrer Buehne einen <slot />
-// bereit, darin stehen Titel und Werkzeuge im selben Kasten wie #hg-canvas.
-// Modell-URLs, Viewer und Szenen-Optionen liest der Controller aus #hg-stage
-// (src/lib/hangar/stage.ts), nie aus diesem Block.
+// Kennwerte und Ausstattung in Tabs, Werkzeuge, Dock und der Controller
+// (assets/hangar-overview.js). Die Szene ist HangarApp.astro (Sache der
+// Szenen-Sitzung); sie stellt in ihrer Buehne einen <slot /> bereit, darin
+// stehen Titel und Werkzeuge im selben Kasten wie #hg-canvas. Modell-URLs,
+// Viewer und Szenen-Optionen liest der Controller aus #hg-stage
+// (src/lib/hangar/stage.ts), nie aus dieser Datei.
+//
+// Ohne Abruf bekommt der Besucher das Dock mit allen 227 Schiffen und die
+// ganze Bucht des Startschiffs (Kopf und vier Tabs), gerendert von derselben
+// ShipBay-Komponente wie /hangar-bay/<id>.html. Jedes andere Schiff kostet
+// einen Abruf seines Buchtdokuments; die Seite waechst nicht mit den Loadouts.
 import SiteNav from '../SiteNav.astro';
 import HangarApp from './HangarApp.astro';
-import { getCollection } from 'astro:content';
-import holoMeshes from '../../data/holo-meshes.json';
-import { pickThumb } from '../../lib/shipRenders';
-import { vType, vRoleCig } from '../../i18n/vehicleText';
-import { localeFromPath } from '../../i18n/ui';
+import ShipBay from './ShipBay.astro';
+import { localeFromPath, href } from '../../i18n/ui';
+import { hangarT } from '../../i18n/hangarText';
+import { versioned } from '../../lib/assetVersion';
+import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STATS, shipFacts } from '../../lib/hangar/catalog';
+import { buildBay, TABS } from '../../lib/hangar/bay';
 
 const lang = localeFromPath(Astro.url.pathname);
-const de = lang === 'de';
-const loc = de ? 'de-DE' : 'en-US';
-const L = (p: string) => (de ? `/de${p}` : p);
+const loc = lang === 'de' ? 'de-DE' : 'en-US';
+const t = hangarT(lang);
 
-const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
-const vehicles = (await getCollection('vehicles'))
-  .filter((v) => meshes[v.id])
-  .sort((a, b) => a.data.name.localeCompare(b.data.name, loc));
-
-// Kennwerte im Flottenvergleich: der Balken zeigt den Rang unter allen
-// Schiffen mit diesem Wert (Perzentil), nicht den Anteil am Maximum — sonst
-// wäre bei Rumpfpunkten jedes Schiff außer den Großkampfschiffen ein Strich.
-const STATS = [
-  { k: 'scm', de: 'SCM-Geschwindigkeit', en: 'SCM speed', unit: 'm/s', get: (d: any) => d.scmSpeed },
-  { k: 'max', de: 'Höchstgeschwindigkeit', en: 'Max speed', unit: 'm/s', get: (d: any) => d.maxSpeed },
-  { k: 'hull', de: 'Rumpf', en: 'Hull', unit: 'HP', get: (d: any) => d.hullHp },
-  { k: 'shield', de: 'Schild', en: 'Shield', unit: 'HP', get: (d: any) => d.shieldHp },
-  { k: 'dps', de: 'Feuerkraft Pilot', en: 'Pilot firepower', unit: 'DPS', get: (d: any) => d.pilotDps },
-  { k: 'cargo', de: 'Fracht', en: 'Cargo', unit: 'SCU', get: (d: any) => d.cargoSCU },
-  { k: 'crew', de: 'Besatzung', en: 'Crew', unit: '', get: (d: any) => d.crewMax ?? d.crewMin },
-  { k: 'len', de: 'Länge', en: 'Length', unit: 'm', get: (d: any) => d.lengthM },
-];
-const pct: Record<string, (x: number) => number> = {};
-for (const s of STATS) {
-  const vals = vehicles.map((v) => s.get(v.data)).filter((x) => typeof x === 'number' && x > 0).sort((a, b) => a - b);
-  pct[s.k] = (x: number) => {
-    if (!vals.length) return 0;
-    let lo = 0, hi = vals.length;
-    while (lo < hi) { const m = (lo + hi) >> 1; if (vals[m] <= x) lo = m + 1; else hi = m; }
-    return Math.max(4, Math.round((lo / vals.length) * 100));
-  };
-}
-
-const ships = vehicles.map((v) => {
-  const d = v.data as any;
-  const thumb = pickThumb(d);
-  return {
-    id: v.id,
-    n: d.name,
-    mk: d.manufacturer ?? '',
-    mc: d.makerCode ?? '',
-    t: vType(d, lang) ?? '',
-    // „Gelände“ und „Boden“ heißen englisch beide „Ground“ -> ein Filter.
-    tk: d.typeDe === 'Gelände' ? 'Boden' : (d.typeDe ?? d.typeEn ?? ''),
-    r: vRoleCig(v.id, d, lang) ?? '',
-    img: thumb?.src ?? null,
-    sheet: L(`/schiffe/${v.id}.html`),
-    s: STATS.map((s) => {
-      const x = s.get(d);
-      return typeof x === 'number' && x > 0 ? [Math.round(x * 10) / 10, pct[s.k](x)] : null;
-    }),
-  };
-});
+const ships = HANGAR_IDS.map((id) => shipFacts(id, lang)).sort((a, b) => a.name.localeCompare(b.name, loc));
 // Filterschlüssel ist der deutsche Typ (in beiden Sprachen derselbe), damit
 // beide Seiten dieselbe Zahl Optionen tragen (verify:sync, Strukturgleichheit):
 // die englischen Beschriftungen fassen teils zwei deutsche Typen zusammen.
-const types = [...new Map(ships.filter((s) => s.tk).map((s) => [s.tk, s.t || s.tk])).entries()]
+const types = [...new Map(ships.filter((s) => s.typeKey).map((s) => [s.typeKey, s.typeLabel || s.typeKey])).entries()]
   .map(([key, label]) => ({ key, label }))
   .sort((a, b) => a.label.localeCompare(b.label, loc));
-const makers = [...new Set(ships.map((s) => s.mk).filter(Boolean))].sort((a, b) => a.localeCompare(b, loc));
-const first = ships.find((s) => s.id === 'aegs-gladius') ?? ships[0];
-
-const statLabels = STATS.map((s) => ({ k: s.k, label: de ? s.de : s.en, unit: s.unit }));
-// `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
-// "</script>" darf ihn nicht beenden.
-const payload = JSON.stringify({ ships, stats: statLabels, loc, first: first.id }).replace(/</g, '\\u003c');
-const fmt = (x: number) => x.toLocaleString(loc);
+const makers = [...new Set(ships.map((s) => s.maker).filter(Boolean))].sort((a, b) => a.localeCompare(b, loc));
+const bay = buildBay(HANGAR_DEFAULT_SHIP, lang);
+// Gueltige Sortierschluessel fuer den URL-Zustand, aus dem Kennwert-Verzeichnis.
+const sorts = ['name', ...STATS.filter((s) => s.sortable).map((s) => s.key)].join(' ');
+const count = t(new Intl.PluralRules(loc).select(ships.length) === 'one' ? 'msg.count.one' : 'msg.count.other', { n: ships.length.toLocaleString(loc) });
+const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overview.js');
 ---
 <style is:inline>
 /* Die Bühne ist eine dunkle Insel (data-media-surface, theme.css): im
@@ -100,8 +56,8 @@ const fmt = (x: number) => x.toLocaleString(loc);
 .hg-maker,.hg-role{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
 .hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
 @keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.hg-stats{position:absolute;right:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);width:min(320px,34vw);background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:1rem 1.1rem 1.1rem;backdrop-filter:blur(8px)}
-.hg-stats dl{margin:0;display:grid;gap:.55rem}
+.hg-stats{position:absolute;right:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);width:min(360px,34vw);max-height:calc(100% - var(--hg-top) - 28px);display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:.3rem 1.1rem 1rem;backdrop-filter:blur(8px)}
+.hgx-stats{margin:0;display:grid;gap:.55rem}
 .hg-row{display:grid;grid-template-columns:1fr auto;gap:.15rem .6rem;font-size:var(--fs-7)}
 .hg-row dt{color:var(--hg-dim)}
 .hg-row dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;color:var(--hg-on);font-weight:600}
@@ -115,6 +71,44 @@ const fmt = (x: number) => x.toLocaleString(loc);
 .hg-btn{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.45rem .8rem;border-radius:4px;cursor:pointer}
 .hg-btn:hover,.hg-btn:focus-visible{border-color:var(--hg-amber)}
 .hg-hint{font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 80%,transparent);background:var(--hg-panel);border-radius:4px;padding:.3rem .55rem;backdrop-filter:blur(6px)}
+/* Aktionen unter dem Titel; der Titel selbst laesst Klicks zur Leinwand durch. */
+.hgx-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.85rem;pointer-events:auto}
+.hgx-act.is-done{border-color:var(--hg-amber);color:var(--hg-amber)}
+.hgx-copyfield{width:min(320px,100%);min-width:0;font:inherit;font-size:var(--fs-6);background:var(--hg-panel);color:var(--hg-on);border:1px solid var(--hg-hair);border-radius:4px;padding:.4rem .55rem}
+.hg-title.is-busy .hgx-head,.hgx-scroll[aria-busy="true"] .hgx-tps{opacity:.45;transition:opacity var(--dur-fast) var(--ease-ui)}
+/* Tabs nach dem WAI-ARIA-Muster; der aktive traegt die Akzentkante. */
+.hgx-tabs{display:flex;margin:0 -.5rem .75rem;border-bottom:1px solid var(--hg-hair)}
+.hgx-tabs button{flex:1 1 0;min-width:0;appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:.6rem .2rem .45rem;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.hgx-tabs button:hover,.hgx-tabs button:focus-visible{color:var(--hg-on)}
+.hgx-tabs button[aria-selected="true"]{color:var(--hg-on);border-bottom-color:var(--hg-amber)}
+.hgx-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-right:-.6rem;padding-right:.6rem}
+.hgx-grp{margin:0 0 .9rem}
+.hgx-grp h3{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:0 0 .3rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-amber)}
+.hgx-grp h3 b{color:var(--hg-on);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hgx-grp ul{margin:0;padding:0;list-style:none}
+.hgx-slot__btn{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:.55rem;align-items:center;width:100%;margin:0;padding:.3rem .35rem;appearance:none;background:none;border:1px solid transparent;border-radius:4px;color:var(--hg-on);font:inherit;font-size:var(--fs-7);text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui)}
+.hgx-slot__btn:hover,.hgx-slot__btn:focus-visible{border-color:var(--hg-hair)}
+.hgx-slot__btn[aria-expanded="true"]{border-color:var(--hg-amber)}
+.hgx-sz{font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-dim)}
+.hgx-nm{line-height:1.3}
+.hgx-nm small{display:block;color:var(--hg-dim);font-size:var(--fs-5)}
+.hgx-v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;line-height:1.2}
+.hgx-v small{display:block;color:var(--hg-dim);font-size:var(--fs-5);font-weight:400}
+.hgx-d{padding:.25rem .35rem .65rem 2.9rem;font-size:var(--fs-6)}
+.hgx-d dl{display:grid;grid-template-columns:1fr auto;gap:.15rem .8rem;margin:0}
+.hgx-d dt{color:var(--hg-dim)}
+.hgx-d dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.hgx-links{display:flex;flex-wrap:wrap;gap:.25rem 1rem;margin:.5rem 0 0}
+.hgx-links a{color:var(--hg-amber)}
+.hgx-empty{margin:.3rem 0;color:var(--hg-dim);font-size:var(--fs-7)}
+/* Der Weg zum Datenblatt bleibt am Fuss der Tafel stehen, auch wenn eine
+   lange Ausstattung darueber scrollt. */
+.hgx-foot{position:sticky;bottom:0;margin:0}
+.hgx-stats+.hgx-grp{margin-top:.9rem}
+.hgx-err{font-size:var(--fs-7);color:var(--hg-on)}
+.hgx-err p{margin:.3rem 0 .7rem}
+.hgx-modelerr{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(360px,80%);margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center;backdrop-filter:blur(6px)}
+.hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 .hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
 .hg-filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
@@ -139,180 +133,101 @@ const fmt = (x: number) => x.toLocaleString(loc);
 .hg-empty{color:var(--muted);font-size:var(--fs-7);padding:1rem 0}
 .hg-empty[hidden]{display:none}
 
+/* Flache Fenster (1280x720): Ueberblick und Datenblatt-Knopf passen ohne
+   Bildlauf in die Buehne. */
+@media (min-width:761px) and (max-height:820px){
+  .hgx-tabs{margin-bottom:.45rem}
+  .hgx-tabs button{padding:.45rem .2rem .35rem}
+  .hgx-stats{gap:.25rem}
+  .hg-note{margin-top:.35rem}
+  .hg-sheet{margin-top:.45rem;padding:.5rem 1rem}
+}
 @media (max-width:760px){
   .hg-title{max-width:calc(100% - 32px)}
-  .hg-stats{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
+  .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
+  .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
+  .hgx-foot{position:static}
   .hg-hint{display:none}
   .hg-arrow{display:none}
   .hg-count{margin-left:0;width:100%}
 }
-@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-tabs button,.hgx-slot__btn{transition:none}}</style>
 
-<SiteNav crumbs={de ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
+<SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
-<main class="hg" id="main">
+<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-tab-active="overview">
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <header class="hg-title">
         <h1>Hangar</h1>
-        <p class="hg-maker" id="hg-maker">{first.mk}</p>
-        <p class="hg-name" id="hg-name">{first.n}</p>
-        <p class="hg-role" id="hg-role">{[first.t, first.r].filter(Boolean).join(' · ')}</p>
+        <ShipBay bay={bay} region="head" />
+        <div class="hgx-actions" role="group" aria-label={t('act.group')}>
+          <span data-slot="fleet-action" hidden></span>
+          <button type="button" class="hg-btn hgx-act" id="hgx-copy">{t('act.copy')}</button>
+          <input class="hgx-copyfield" id="hgx-copyfield" type="text" readonly hidden aria-label={t('act.copyField')} />
+        </div>
       </header>
+      <p class="hgx-modelerr" id="hgx-modelerr" role="status" hidden>{t('model.failed')}</p>
       <div class="hg-tools">
-        <button type="button" class="hg-btn" id="hg-reset">{de ? 'Ansicht zurücksetzen' : 'Reset view'}</button>
-        <span class="hg-hint">{de ? 'Ziehen zum Drehen, Mausrad zum Zoomen, Pfeiltasten wechseln das Schiff' : 'Drag to rotate, scroll to zoom, arrow keys switch ships'}</span>
+        <button type="button" class="hg-btn" id="hg-reset">{t('act.reset')}</button>
+        <span class="hg-hint">{t('act.hint')}</span>
       </div>
     </HangarApp>
-    <aside class="hg-stats" aria-label={de ? 'Kennwerte' : 'Key figures'}>
-      <dl id="hg-dl">
-        {statLabels.map((s, i) => {
-          const v = first.s[i];
-          return (
-            <div class={v ? 'hg-row' : 'hg-row is-na'} data-k={s.k}>
-              <dt>{s.label}</dt>
-              <dd>{v ? `${fmt(v[0])}${s.unit ? ' ' + s.unit : ''}` : '–'}</dd>
-              <span class="hg-bar" aria-hidden="true"><i style={`--w:${v ? v[1] : 0}%`}></i></span>
-            </div>
-          );
-        })}
-      </dl>
-      <p class="hg-note">{de ? 'Balken: Rang unter allen Schiffen mit diesem Wert.' : 'Bars: rank among all ships with this figure.'}</p>
-      <a class="hg-sheet" id="hg-sheet" href={first.sheet}>{de ? 'Zum Datenblatt' : 'Open data sheet'}</a>
+    <div data-slot="stagebar" hidden></div>
+    <aside class="hg-stats" aria-label={t('panel.label')}>
+      <div class="hgx-tabs" role="tablist" aria-label={t('panel.tabs')}>
+        {TABS.map((k) => (
+          <button type="button" role="tab" id={`hgx-tab-${k}`} data-tab={k} aria-controls={`hgx-tp-${k}`} aria-selected={k === 'overview' ? 'true' : 'false'} tabindex={k === 'overview' ? '0' : '-1'}>{t(`tab.${k}`)}</button>
+        ))}
+      </div>
+      <div class="hgx-scroll" id="hgx-panelhost" aria-busy="false">
+        <ShipBay bay={bay} region="panel" />
+        <div class="hgx-err" id="hgx-bayerr" role="alert" hidden>
+          <p>{t('bay.failed')}</p>
+          <button type="button" class="hg-btn" id="hgx-bayretry">{t('bay.retry')}</button>
+        </div>
+      </div>
     </aside>
   </div>
 
-  <section class="hg-dock" data-media-surface aria-label={de ? 'Schiffsauswahl' : 'Ship selection'}>
+  <section class="hg-dock" data-media-surface aria-label={t('dock.label')}>
     <div class="hg-filter">
-      <input id="hg-q" type="search" placeholder={de ? 'Schiff oder Hersteller…' : 'Ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" />
-      <select id="hg-type" aria-label={de ? 'Rolle' : 'Role'}>
-        <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
-        {types.map((t) => <option value={t.key}>{t.label}</option>)}
+      <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" />
+      <select id="hg-type" aria-label={t('dock.type')}>
+        <option value="">{t('dock.typeAll')}</option>
+        {types.map((ty) => <option value={ty.key}>{ty.label}</option>)}
       </select>
-      <select id="hg-maker-f" aria-label={de ? 'Hersteller' : 'Manufacturer'}>
-        <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
+      <select id="hg-maker-f" aria-label={t('dock.maker')}>
+        <option value="">{t('dock.makerAll')}</option>
         {makers.map((m) => <option value={m}>{m}</option>)}
       </select>
-      <span class="hg-count" id="hg-count" aria-live="polite">{de ? `${ships.length} Schiffe` : `${ships.length} ships`}</span>
+      <span class="hg-count" id="hg-count" aria-live="polite">{count}</span>
     </div>
     <div class="hg-rail">
-      <button type="button" class="hg-arrow" id="hg-prev" aria-label={de ? 'Vorheriges Schiff' : 'Previous ship'}>‹</button>
-      <ul class="hg-strip" id="hg-strip">
+      <button type="button" class="hg-arrow" id="hg-prev" aria-label={t('dock.prev')}>‹</button>
+      <ul class="hg-strip" id="hg-strip" data-sorts={sorts}>
         {ships.map((s) => (
-          <li data-id={s.id} data-t={s.tk} data-mk={s.mk} data-q={`${s.n} ${s.mk} ${s.mc}`.toLowerCase()}>
+          <li data-id={s.id} data-t={s.typeKey} data-mk={s.maker} data-q={`${s.name} ${s.maker} ${s.makerCode}`.toLowerCase()}>
             {/* href = Datenblatt: ohne Skript (oder per Mittelklick) führt die Karte
                 dorthin; mit Skript fängt der Klick ab und stellt das Schiff in die Halle. */}
-            <a class="hg-card" href={s.sheet} data-id={s.id} aria-current={s.id === first.id ? 'true' : 'false'}>
-              {s.img ? <img src={s.img} alt="" loading="lazy" decoding="async" width="156" height="88" /> : <i class="hg-noimg"></i>}
-              <span>{s.n}</span>
-              <small>{s.mk}</small>
+            <a class="hg-card" href={href(s.sheetPath, lang)} data-id={s.id} aria-current={s.id === bay.id ? 'true' : 'false'}>
+              {s.thumb ? <img src={s.thumb} alt="" loading="lazy" decoding="async" width="156" height="88" /> : <i class="hg-noimg"></i>}
+              <span>{s.name}</span>
+              <small>{s.maker}</small>
             </a>
           </li>
         ))}
       </ul>
-      <button type="button" class="hg-arrow" id="hg-next" aria-label={de ? 'Nächstes Schiff' : 'Next ship'}>›</button>
+      <button type="button" class="hg-arrow" id="hg-next" aria-label={t('dock.next')}>›</button>
     </div>
-    <p class="hg-empty" id="hg-empty" hidden>{de ? 'Kein Schiff passt zu diesem Filter.' : 'No ship matches this filter.'}</p>
+    <p class="hg-empty" id="hg-empty" hidden>{t('dock.empty')}</p>
   </section>
+
+  <p class="hgx-sr" id="hgx-live" aria-live="polite"></p>
+  <div id="hgx-msg" hidden>
+    <span data-msg="count" data-one={t('msg.count.one')} data-other={t('msg.count.other')}></span>
+    <span data-msg="copy" data-ok={t('msg.copy.ok')} data-fallback={t('msg.copy.fallback')}></span>
+  </div>
 </main>
 
-<script type="application/json" id="hg-data" set:html={payload}></script>
-<script is:inline type="module">
-const data = JSON.parse(document.getElementById('hg-data').textContent);
-const stage = JSON.parse(document.getElementById('hg-stage').textContent);
-const byId = new Map(data.ships.map((s) => [s.id, s]));
-const nf = new Intl.NumberFormat(data.loc);
-const $ = (id) => document.getElementById(id);
-const strip = $('hg-strip');
-const items = [...strip.children];
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let cur = byId.has(location.hash.slice(1)) ? location.hash.slice(1) : data.first;
-let viewer = null;
-
-function render(s) {
-  const head = $('hg-name').parentElement;
-  head.classList.remove('is-swap'); void head.offsetWidth; head.classList.add('is-swap');
-  $('hg-maker').textContent = s.mk;
-  $('hg-name').textContent = s.n;
-  $('hg-role').textContent = [s.t, s.r].filter(Boolean).join(' · ');
-  $('hg-sheet').href = s.sheet;
-  const rows = $('hg-dl').children;
-  data.stats.forEach((st, i) => {
-    const row = rows[i], v = s.s[i];
-    row.classList.toggle('is-na', !v);
-    row.querySelector('dd').textContent = v ? nf.format(v[0]) + (st.unit ? ' ' + st.unit : '') : '–';
-    row.querySelector('.hg-bar i').style.setProperty('--w', (v ? v[1] : 0) + '%');
-  });
-  for (const a of strip.querySelectorAll('.hg-card')) a.setAttribute('aria-current', a.dataset.id === s.id ? 'true' : 'false');
-}
-
-function select(id, { scroll = true } = {}) {
-  const s = byId.get(id);
-  if (!s) return;
-  cur = id;
-  render(s);
-  history.replaceState(null, '', '#' + id);
-  if (scroll) {
-    const li = strip.querySelector(`li[data-id="${CSS.escape(id)}"]`);
-    if (li) strip.scrollTo({ left: li.offsetLeft - strip.clientWidth / 2 + li.clientWidth / 2, behavior: reduce ? 'auto' : 'smooth' });
-  }
-  if (viewer) {
-    const load = $('hg-load');
-    const t = setTimeout(() => { load.hidden = false; }, 180);
-    const [glb, tex, maker] = stage.models[s.id];
-    viewer.show(glb, { maker, tex }).catch(() => {}).finally(() => { clearTimeout(t); load.hidden = true; });
-  }
-}
-
-strip.addEventListener('click', (e) => {
-  const a = e.target.closest('.hg-card');
-  if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-  e.preventDefault();
-  select(a.dataset.id, { scroll: false });
-});
-
-function visibleIds() { return items.filter((li) => !li.hidden).map((li) => li.dataset.id); }
-function step(d) {
-  const ids = visibleIds();
-  if (!ids.length) return;
-  const i = ids.indexOf(cur);
-  select(ids[(i < 0 ? 0 : i + d + ids.length) % ids.length]);
-}
-$('hg-prev').addEventListener('click', () => step(-1));
-$('hg-next').addEventListener('click', () => step(1));
-document.addEventListener('keydown', (e) => {
-  if (e.target.closest('input,select,textarea')) return;
-  if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-});
-
-function filter() {
-  const q = $('hg-q').value.trim().toLowerCase();
-  const t = $('hg-type').value, mk = $('hg-maker-f').value;
-  let n = 0;
-  for (const li of items) {
-    const ok = (!q || li.dataset.q.includes(q)) && (!t || li.dataset.t === t) && (!mk || li.dataset.mk === mk);
-    li.hidden = !ok;
-    if (ok) n++;
-  }
-  $('hg-count').textContent = data.loc.startsWith('de') ? `${n} Schiffe` : `${n} ships`;
-  $('hg-empty').hidden = n > 0;
-}
-$('hg-q').addEventListener('input', filter);
-$('hg-type').addEventListener('change', filter);
-$('hg-maker-f').addEventListener('change', filter);
-
-const load = $('hg-load');
-load.hidden = false;
-const bar = load.querySelector('i');
-import(stage.viewer)
-  .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stage.opts }))
-  .then((v) => {
-    viewer = v;
-    v.onProgress((p) => bar.style.setProperty('--p', p + '%'));
-    $('hg-reset').addEventListener('click', () => v.resetView());
-    select(cur);
-  })
-  .catch(() => { load.hidden = true; $('hg-fallback').hidden = false; });
-if (cur !== data.first) render(byId.get(cur));
-</script>
+<script type="module" is:inline set:html={`import { boot } from '${controller}'; boot(document);`}></script>

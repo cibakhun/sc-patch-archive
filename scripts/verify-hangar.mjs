@@ -12,17 +12,18 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   ACHT ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   NEUN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
         DE-Buchten. Die Zahl selbst hat ihre Klinke in verify:metrics
         (seitenHangarBuchten), neben allen anderen Seitenzahlen.
      2  Buchtgestalt: main[data-bay-id] gleich Dateiname, vier Regionen
-        (head, panel, marks, cmp), in jeder Bucht dieselbe Tab-Folge und
-        dieselbe Vergleichs-Schluesselfolge (mindestens 13), kein <style>,
-        kein <script>, style= nur als Balkenbreite (die Kostenbremse:
-        Buchten bleiben reines HTML).
+        (head, panel, marks, cmp), je Bucht ein Tab-Panel fuer genau die
+        Tabs, die die Tab-Leiste der Hangarseite nennt (aus dist/hangar.html
+        gelesen, keine eigene Liste), dieselbe Vergleichs-Schluesselfolge in
+        jeder Bucht (mindestens 13), kein <style>, kein <script>, style= nur
+        als Balkenbreite (die Kostenbremse: Buchten bleiben reines HTML).
      3  Marker am Rumpf, in zwei Haelften.
         3a Jedes data-p: drei endliche Zahlen in der data-box, je Achse um
            15 % (mindestens 1 m) erweitert; jede Zeile aus data-rows fuehrt
@@ -41,6 +42,11 @@
      8  Import-Map vor dem ersten Modul-Skript auf beiden Hangarseiten
         (Synthese, Graft 9): ein Modul-Skript davor laesst Chrome die Map
         verwerfen, und three.js laedt nicht mehr.
+     9  Jede Vorlage, die der Controller verlangt, steht auf beiden Seiten.
+        Die Ids kommen aus dem ausgelieferten Code selbst (jeder msg('…')-
+        Aufruf in dist/assets/hangar-overview.js), nicht aus einer Liste
+        hier: eine aus HangarPage.astro entfernte Vorlage hinterlaesst sonst
+        still eine leere Stelle.
 
    VORGEFUEHRT ROT (die drei Meldungen stehen in der Commit-Botschaft):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -204,8 +210,11 @@ for (const page of PAGES) {
 }
 
 /* ---------- [2] Buchtgestalt ---------- */
-say('\n[2] Buchtgestalt: Id = Datei, vier Regionen, gleiche Tab- und Vergleichsfolge, reines HTML');
-const refTabs = BAYS.en[0]?.tabs.join(' ') ?? '';
+say('\n[2] Buchtgestalt: Id = Datei, vier Regionen, Tabs der Seite, gleiche Vergleichsfolge, reines HTML');
+const pageTabs = (html) => [...html.matchAll(/role="tab" id="hgx-tab-([a-z]+)"/g)].map((m) => m[1]).join(' ');
+const refTabs = pageTabs(PAGES[0].html);
+if (!refTabs) fail('[2] hangar.html traegt keine Tab-Leiste (role="tab" id="hgx-tab-…")');
+if (pageTabs(PAGES[1].html) !== refTabs) fail(`[2] de/hangar.html nennt die Tabs "${pageTabs(PAGES[1].html)}" statt "${refTabs}"`);
 const refCmp = BAYS.en[0]?.cmp.map((c) => c.k).join(' ') ?? '';
 let shapeBad = 0, shapeChecked = 0;
 for (const lang of ['en', 'de']) {
@@ -330,6 +339,19 @@ for (const page of PAGES) {
   say(`    ${page.file}: Import-Map bei ${map}, erstes Modul-Skript bei ${mod}${ok ? '' : '   GERISSEN'}`);
   if (!ok) fail(`[8] ${page.file}: ${map < 0 ? 'keine Import-Map' : 'ein Modul-Skript steht vor der Import-Map'} — three.js laedt dann nicht`);
 }
+
+/* ---------- [9] Vorlagen des Controllers ---------- */
+say('\n[9] Jede Vorlage aus msg(…) im Controller steht auf beiden Hangarseiten');
+const ctrlFile = join(DIST, 'assets', 'hangar-overview.js');
+const ctrl = existsSync(ctrlFile) ? readFileSync(ctrlFile, 'utf8') : '';
+if (!ctrl) fail('[9] dist/assets/hangar-overview.js fehlt');
+const msgIds = [...new Set([...ctrl.matchAll(/\bmsg\('([a-z-]+)'\)/g)].map((m) => m[1]))];
+for (const page of PAGES) {
+  const missing = msgIds.filter((id) => !page.html.includes(`data-msg="${id}"`));
+  say(`    ${page.file}: ${msgIds.length - missing.length} von ${msgIds.length} (${msgIds.join(', ') || '—'})`);
+  for (const id of missing) fail(`[9] ${page.file}: Vorlage data-msg="${id}" fehlt, der Controller verlangt sie`);
+}
+if (ctrl && !msgIds.length) fail('[9] keine msg(…)-Aufrufe im Controller gefunden — der Leser ist kaputt, nicht der Controller leer');
 
 say('\n[Selbstauskunft]');
 say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}`);
