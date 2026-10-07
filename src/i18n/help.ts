@@ -189,6 +189,26 @@ export const HELP = {
     'ships.ctl.select': 'Schränkt die Flotte auf einen Wert dieser Auswahlliste ein.',
     'ships.ctl.sort': 'Legt die Sortierung der Ergebnisse fest.',
 
+    // -- Hangar --
+    'hangar.title': 'Wie funktioniert der Hangar?',
+    'hangar.purpose':
+      'Zeigt jedes Schiff in einer 3D-Halle, mit Kennwerten und mit Waffen, Systemen und Fracht je Hardpoint — dazu ein Vergleich von bis zu drei Schiffen und die eigene Flotte.',
+    'hangar.step1': 'Im Dock unten ein Schiff wählen: per Suche, Filter, Sortierung oder Zufall.',
+    'hangar.step2': 'In der Tafel zwischen Überblick, Waffen, Systemen und Fracht wechseln; eine Zeile zeigt ihren Hardpoint am Schiff.',
+    'hangar.step3': '„Vergleichen" sammelt bis zu drei Schiffe im Korb, der sie nebeneinander öffnet.',
+    'hangar.step4': '„Zur Flotte" merkt sich ein Schiff, ohne Konto in diesem Browser, mit Konto überall.',
+    'hangar.ctl.search': 'Freitextsuche über Schiffs- und Herstellernamen.',
+    'hangar.ctl.select': 'Schränkt das Dock auf einen Wert dieser Auswahlliste ein.',
+    'hangar.ctl.sort': 'Sortiert das Dock nach Name oder nach einem Kennwert, größter Wert zuerst.',
+    'hangar.ctl.fleetFilter': 'Zeigt im Dock nur die Schiffe der Flotte.',
+    'hangar.ctl.random': 'Holt ein zufälliges Schiff aus den sichtbaren Karten in die Halle.',
+    'hangar.ctl.tabs': 'Wechselt zwischen Überblick, Waffen, Systemen und Fracht des gezeigten Schiffs.',
+    'hangar.ctl.fleet': 'Nimmt das gezeigte Schiff in die Flotte auf oder wieder heraus.',
+    'hangar.ctl.compare': 'Legt das gezeigte Schiff in den Vergleich, höchstens drei.',
+    'hangar.ctl.copy': 'Kopiert einen Link auf dieses Schiff, diesen Tab und den Vergleich, ohne die Filter des Docks.',
+    'hangar.ctl.tray': 'Die Schiffe im Vergleich; ab zwei öffnet der Knopf sie nebeneinander.',
+    'hangar.ctl.fleetLine': 'Summen der Flotte; ein Klick zeigt im Dock nur ihre Schiffe.',
+
     // -- Precision Jump --
     'precisionjump.title': 'Wie funktioniert der Precision-Jump-Rechner?',
     'precisionjump.purpose':
@@ -221,7 +241,7 @@ export const HELP = {
     'refinerytracker.ctl.history': 'Abgeschlossene Aufträge mit Gewinn und eintragbarem Verkaufserlös.',
   },
   en: {
-    // -- Shared control copy (all eleven tools) --
+    // -- Shared control copy (all twelve tools) --
     'ui.elements': 'Explain elements',
     'ui.elementsOff': 'Stop explaining',
     'ui.bubbleLabel': 'Explanation',
@@ -372,6 +392,26 @@ export const HELP = {
     'ships.ctl.search': 'Free-text search across ship and manufacturer names.',
     'ships.ctl.select': 'Narrows the fleet down to a value from this dropdown.',
     'ships.ctl.sort': 'Sets the sort order of the results.',
+
+    // -- Hangar --
+    'hangar.title': 'How does the hangar work?',
+    'hangar.purpose':
+      'Shows every ship in a 3D hall with its key figures and its weapons, systems and cargo per hardpoint — plus a side-by-side comparison of up to three ships and a personal fleet.',
+    'hangar.step1': 'Pick a ship in the dock below: by search, filter, sort order or chance.',
+    'hangar.step2': 'Switch the panel between overview, weapons, systems and cargo; a row points at its hardpoint on the ship.',
+    'hangar.step3': '“Compare” collects up to three ships in the tray, which opens them side by side.',
+    'hangar.step4': '“Add to fleet” keeps a ship, in this browser without an account and everywhere with one.',
+    'hangar.ctl.search': 'Free-text search across ship and manufacturer names.',
+    'hangar.ctl.select': 'Narrows the dock down to a value from this dropdown.',
+    'hangar.ctl.sort': 'Sorts the dock by name or by a key figure, highest first.',
+    'hangar.ctl.fleetFilter': 'Shows only the fleet’s ships in the dock.',
+    'hangar.ctl.random': 'Brings a random ship from the visible cards into the hall.',
+    'hangar.ctl.tabs': 'Switches between overview, weapons, systems and cargo of the ship shown.',
+    'hangar.ctl.fleet': 'Adds the ship shown to the fleet or takes it out again.',
+    'hangar.ctl.compare': 'Puts the ship shown into the comparison, three at most.',
+    'hangar.ctl.copy': 'Copies a link to this ship, tab and comparison, without the dock filters.',
+    'hangar.ctl.tray': 'The ships in the comparison; from two on, the button opens them side by side.',
+    'hangar.ctl.fleetLine': 'Fleet totals; a click shows only its ships in the dock.',
 
     // -- Precision Jump --
     'precisionjump.title': 'How does the Precision Jump calculator work?',

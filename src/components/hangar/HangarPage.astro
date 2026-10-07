@@ -12,9 +12,11 @@
 // ShipBay-Komponente wie /hangar-bay/<id>.html. Jedes andere Schiff kostet
 // einen Abruf seines Buchtdokuments; die Seite waechst nicht mit den Loadouts.
 import SiteNav from '../SiteNav.astro';
+import ToolHelp from '../ToolHelp.astro';
 import HangarApp from './HangarApp.astro';
 import ShipBay from './ShipBay.astro';
 import { localeFromPath, href, useTranslations } from '../../i18n/ui';
+import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
 import { versioned } from '../../lib/assetVersion';
 import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
@@ -25,6 +27,7 @@ const loc = lang === 'de' ? 'de-DE' : 'en-US';
 const t = hangarT(lang);
 // Die Flotte spricht ueberall dieselben Woerter wie der Datenblatt-Stern.
 const ui = useTranslations(lang);
+const h = useHelp(lang);
 
 const ships = HANGAR_IDS.map((id) => shipFacts(id, lang)).sort((a, b) => a.name.localeCompare(b.name, loc));
 // Filterschlüssel ist der deutsche Typ (in beiden Sprachen derselbe), damit
@@ -213,7 +216,19 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hgx-chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .hg-strip li.is-fleet .hg-card::after{content:"★";position:absolute;top:.3rem;right:.45rem;color:var(--accent);font-size:var(--fs-8);line-height:1;text-shadow:0 1px 3px var(--bg)}
 .hg-strip li.is-fleet .hg-card small{max-width:calc(100% - 2.2rem)}
-.hgx-chip:disabled{opacity:.5;cursor:default;border-color:var(--line)}
+.hg-btn:disabled{opacity:.5;cursor:default;border-color:var(--hg-hair)}
+/* Die Filterzeile bleibt ab 1280 px einzeilig, sonst rutschen die Karten
+   unter die Falz: die Herstellerliste ist sonst so breit wie ihr laengster Name. */
+.hg-filter select{max-width:10rem}
+/* Der Umbruch rechnet mit der Basis, nicht mit der Mindestbreite: eine kleine
+   Basis laesst die Suche erst wachsen, wenn die Zeile Platz hat. */
+.hg-filter input{flex-basis:7rem}
+/* Werkzeug-Hilfe als erstes Element im Filter: zu ein Knopf in der Zeile,
+   offen eine eigene Zeile. Eine volle Zeile auch im Ruhezustand schoebe die
+   Karten bei 1440x900 unter die Falz. */
+.hg-filter .tool-help{flex:0 1 auto;margin:0;border-radius:4px}
+.hg-filter .tool-help[open]{flex-basis:100%}
+.hg-filter .tool-help__summary{padding:.42rem .8rem;font-size:var(--fs-7)}
 /* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert ueber dem Namen. */
 .hg-card[data-sv]::before{content:attr(data-sv);position:absolute;right:.45rem;bottom:1.85rem;z-index:1;padding:.05rem .35rem;border-radius:2px;background:color-mix(in srgb,var(--bg) 80%,transparent);color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 
@@ -259,15 +274,15 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         <div class="hgx-actions" role="group" aria-label={t('act.group')}>
           {/* Folgt dem gewaehlten Schiff: der Controller tauscht data-fleet-ship
               und data-fleet-label, aria-pressed setzt assets/fleet.js. */}
-          <button type="button" class="hg-btn hgx-act" id="hgx-fleet" data-fleet-ship={bay.id} data-fleet-label={bay.head.name} data-fleet-on={ui('fleet.in')} data-fleet-off={ui('fleet.add')} aria-pressed="false">
+          <button type="button" class="hg-btn hgx-act" id="hgx-fleet" data-help={h('hangar.ctl.fleet')} data-fleet-ship={bay.id} data-fleet-label={bay.head.name} data-fleet-on={ui('fleet.in')} data-fleet-off={ui('fleet.add')} aria-pressed="false">
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
             <span class="js-fleet-txt">{ui('fleet.add')}</span>
           </button>
-          <button type="button" class="hg-btn hgx-act" id="hgx-cmp-toggle" aria-pressed="false">
+          <button type="button" class="hg-btn hgx-act" id="hgx-cmp-toggle" aria-pressed="false" data-help={h('hangar.ctl.compare')}>
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
             <span>{t('act.compare')}</span>
           </button>
-          <button type="button" class="hg-btn hgx-act" id="hgx-copy">{t('act.copy')}</button>
+          <button type="button" class="hg-btn hgx-act" id="hgx-copy" data-help={h('hangar.ctl.copy')}>{t('act.copy')}</button>
           <input class="hgx-copyfield" id="hgx-copyfield" type="text" readonly hidden aria-label={t('act.copyField')} />
         </div>
       </header>
@@ -277,9 +292,13 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
       <div class="hgx-barleft">
         <div class="hg-tools">
           <button type="button" class="hg-btn" id="hg-reset">{t('act.reset')}</button>
+          <button type="button" class="hg-btn hgx-act" id="hgx-random" data-help={h('hangar.ctl.random')}>
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" /></svg>
+            <span>{t('dock.random')}</span>
+          </button>
           <span class="hg-hint">{t('act.hint')}</span>
         </div>
-        <div class="hgx-fleetline" id="hgx-fleetline">
+        <div class="hgx-fleetline" id="hgx-fleetline" data-help={h('hangar.ctl.fleetLine')}>
           <p class="hgx-fleetempty" id="hgx-fleetempty">{t('fleet.empty')}</p>
           <button type="button" class="hgx-fleetsum" id="hgx-fleetsum" aria-pressed="false" aria-describedby="hgx-fleetsum-desc" hidden>
             <b>{t('dock.fleet')}</b> <span id="hgx-fleetsum-txt"></span>
@@ -298,7 +317,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         </div>
       </div>
       {/* Der Korb des Vergleichs; das erste Schiff ist die Basis. */}
-      <div class="hgx-tray" id="hgx-tray" role="group" aria-labelledby="hgx-tray-title" hidden>
+      <div class="hgx-tray" id="hgx-tray" role="group" aria-labelledby="hgx-tray-title" data-help={h('hangar.ctl.tray')} hidden>
         <b class="hgx-tray__title" id="hgx-tray-title">{t('cmp.tray')}</b>
         <ul class="hgx-tray__list" id="hgx-tray-list"></ul>
         <span class="hgx-tray__hint" id="hgx-tray-hint" hidden>{t('cmp.hint')}</span>
@@ -307,7 +326,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
       </div>
     </div>
     <aside class="hg-stats" aria-label={t('panel.label')}>
-      <div class="hgx-tabs" role="tablist" aria-label={t('panel.tabs')}>
+      <div class="hgx-tabs" role="tablist" aria-label={t('panel.tabs')} data-help={h('hangar.ctl.tabs')}>
         {TABS.map((k) => (
           <button type="button" role="tab" id={`hgx-tab-${k}`} data-tab={k} aria-controls={`hgx-tp-${k}`} aria-selected={k === 'overview' ? 'true' : 'false'} tabindex={k === 'overview' ? '0' : '-1'}>{t(`tab.${k}`)}</button>
         ))}
@@ -346,27 +365,24 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 
   <section class="hg-dock" data-media-surface aria-label={t('dock.label')}>
     <div class="hg-filter">
-      <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" />
-      <select id="hg-type" aria-label={t('dock.type')}>
+      <ToolHelp tool="hangar" lang={lang} steps={4} />
+      <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" data-help={h('hangar.ctl.search')} />
+      <select id="hg-type" aria-label={t('dock.type')} data-help={h('hangar.ctl.select')}>
         <option value="">{t('dock.typeAll')}</option>
         {types.map((ty) => <option value={ty.key}>{ty.label}</option>)}
       </select>
-      <select id="hg-maker-f" aria-label={t('dock.maker')}>
+      <select id="hg-maker-f" aria-label={t('dock.maker')} data-help={h('hangar.ctl.select')}>
         <option value="">{t('dock.makerAll')}</option>
         {makers.map((m) => <option value={m}>{m}</option>)}
       </select>
       {/* Aus dem Kennwert-Verzeichnis; die Optionen sind zugleich die gueltigen Werte von ?sort=. */}
-      <select id="hgx-sort" aria-label={t('dock.sort')}>
+      <select id="hgx-sort" aria-label={t('dock.sort')} data-help={h('hangar.ctl.sort')}>
         <option value="name">{t('dock.sortName')}</option>
         {STATS.filter((s) => s.sortable).map((s) => <option value={s.key}>{t(`stat.${s.key}`)}</option>)}
       </select>
-      <button type="button" class="hgx-chip" id="hgx-fleetonly" aria-pressed="false">
+      <button type="button" class="hgx-chip" id="hgx-fleetonly" aria-pressed="false" data-help={h('hangar.ctl.fleetFilter')}>
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         <span>{t('dock.fleet')}</span> <span>(<span id="hgx-fleetn">0</span>)</span>
-      </button>
-      <button type="button" class="hgx-chip" id="hgx-random">
-        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" /></svg>
-        <span>{t('dock.random')}</span>
       </button>
       <span class="hg-count" id="hg-count" aria-live="polite">{count}</span>
     </div>
