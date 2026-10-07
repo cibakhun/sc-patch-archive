@@ -155,10 +155,10 @@
   "hall": {
     "revelyork-single": {
       "url": "/hangar/hall/revelyork-single.glb",
-      "v": "46c7518e",
-      "tris": 720879,
-      "trisRaw": 612862,
-      "textures": 100,
+      "v": "5463b51a",
+      "tris": 1076457,
+      "trisRaw": 1236093,
+      "textures": 149,
       "attached": {
         "attached": 144,
         "color": 90,
@@ -171,37 +171,48 @@
         "blendSkipped": 0
       },
       "matfix": {
-        "fixed": 159,
+        "fixed": 171,
         "dropped": 0,
         "created": 2
       },
       "cover": {
         "before": {
-          "materials": 106,
+          "materials": 108,
           "diffuse": 88,
           "normal": 88,
-          "trisOhneMaterial": 156136,
-          "tris": 612862
+          "trisOhneMaterial": 274949,
+          "tris": 1236093
         },
         "after": {
-          "materials": 111,
+          "materials": 113,
           "diffuse": 92,
           "normal": 93,
           "trisOhneMaterial": 0,
-          "tris": 612862
+          "tris": 1236093
         }
       },
+      "lights": {
+        "total": 469,
+        "byType": {
+          "area": 385,
+          "point": 18,
+          "spot": 47,
+          "ambient": 19
+        },
+        "matched": 469
+      },
+      "furniture": 137,
       "crease": {
-        "corners": 2162637,
-        "changedPct": 40.1
+        "corners": 3229371,
+        "changedPct": 34.7
       },
       "uv": {
         "rangeBefore": 1664,
         "rangeAfter": 1262.25,
         "bits": 23,
-        "degenerate": 3.3
+        "degenerate": 5.8
       },
-      "bytes": 10703992,
+      "bytes": 14249856,
       "room": {
         "center": [
           36,

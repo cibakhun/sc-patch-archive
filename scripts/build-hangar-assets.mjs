@@ -22,7 +22,8 @@ import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import sharp from 'sharp';
-import { readdirSync, existsSync, mkdirSync, statSync, readFileSync } from 'node:fs';
+import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -361,21 +362,67 @@ function stripAttributes(doc) {
   }
 }
 
-// Halle: Einrichtung der Galerien (aus der Schiffsperspektive kaum zu sehen,
-// zusammen aber ein Viertel der Dreiecke) und die Planenkisten am Boden
-// (stehen genau im Blickfeld der Startansicht).
-const DROP_HALL = /props_(plant|couch|chair|occasional_table|crate_tarp)|flower_|footlocker/i;
+// Spiellampen der Halle -> public/hangar/hall/<halle>.lights.json (liest der
+// Viewer neben dem GLB). Position und Richtung aus den KHR_lights_punctual-
+// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt in −Z),
+// Spieltyp, Spiel-Intensität und Radius aus <halle>.lights-src.txt (das
+// Protokoll des Exports, siehe scripts/extract-hangar-sources.mjs), über den
+// Namen verbunden. angle = voller Kegelwinkel in Grad. Schatten nennt der
+// Export nicht: shadow bleibt false.
+const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
+function hallLights(doc, name) {
+  const srcFile = fileURLToPath(new URL(`hall/${name}.lights-src.txt`, SRC));
+  const src = new Map();
+  if (existsSync(srcFile)) {
+    for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
+      const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+      if (!m) continue;
+      if (!src.has(m[1])) src.set(m[1], []);
+      src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
+    }
+  }
+  const lights = [];
+  for (const node of doc.getRoot().listNodes()) {
+    const l = node.getExtension('KHR_lights_punctual');
+    if (!l) continue;
+    const w = node.getWorldMatrix();
+    const len = Math.hypot(w[8], w[9], w[10]) || 1;
+    const s = src.get(node.getName())?.shift();
+    const type = s ? (LIGHT_TYPE[s.type] || 'point') : l.getType();
+    const r3 = (v) => Math.round(v * 1000) / 1000;
+    lights.push({
+      type,
+      pos: [w[12], w[13], w[14]].map(r3),
+      dir: [-w[8] / len, -w[9] / len, -w[10] / len].map(r3),
+      color: l.getColor().map(r3),
+      intensity: s ? s.intensity : l.getIntensity(),
+      radius: s ? s.radius : l.getRange() ?? 0,
+      angle: l.getType() === 'spot' ? r3((l.getOuterConeAngle() * 2 * 180) / Math.PI) : null,
+      shadow: false,
+      name: node.getName(),
+    });
+  }
+  const outFile = fileURLToPath(new URL(`hall/${name}.lights.json`, OUT));
+  mkdirSync(dirname(outFile), { recursive: true });
+  writeFileSync(outFile, JSON.stringify({ lights }) + '\n');
+  const byType = {};
+  for (const l of lights) byType[l.type] = (byType[l.type] || 0) + 1;
+  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0) };
+}
+
+// Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
+// gezählt für die Selbstauskunft.
+const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|table|locker/i;
 // Materialien, die ohne die Spiel-Laufzeit falsch aussehen: Lichtkegel- und
 // Blendenkarten (schweben als Splitter neben dem Rumpf), zur Laufzeit
 // gerenderte Schriftzüge und Schablonen (ohne Bild: weiße Flächen).
 const DROP_MAT = /headlight_glow|_flare|lens_?flare|light_?(beam|cone|shaft)|RTT_|stencil/i;
 
-function dropJunk(doc, kind) {
+function dropJunk(doc) {
   const root = doc.getRoot();
-  const re = kind === 'hall' ? new RegExp(`${DROP.source}|${DROP_HALL.source}`, 'i') : DROP;
   let dropped = 0;
   for (const node of root.listNodes()) {
-    if (re.test(node.getName() || '') || (node.getMesh() && re.test(node.getMesh().getName() || ''))) {
+    if (DROP.test(node.getName() || '') || (node.getMesh() && DROP.test(node.getMesh().getName() || ''))) {
       node.setMesh(null); dropped++;
     }
   }
@@ -454,7 +501,11 @@ async function buildOne(kind, name, inPath) {
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
-  dropJunk(doc, kind);
+  // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
+  // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
+  const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
+  const lights = kind === 'hall' ? hallLights(doc, name) : null;
+  dropJunk(doc);
   let matfix = null, cover = null;
   if (kind === 'hall') {
     const fixFile = fileURLToPath(new URL(`hall/${name}.matfix.json`, SRC));
@@ -523,6 +574,7 @@ async function buildOne(kind, name, inPath) {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
+    ...(lights ? { lights, furniture } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     bytes: statSync(outPath).size,
@@ -554,6 +606,10 @@ for (const kind of Object.keys(BUDGET)) {
       if (r.attached?.color !== undefined) {
         const a = r.attached;
         console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+      }
+      if (r.lights) {
+        const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
+        console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture} Einrichtungsobjekte, ${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp), ${(r.bytes / 1048576).toFixed(2)} MB`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
