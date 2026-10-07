@@ -649,6 +649,19 @@ html:not([data-fx="on"]) .space__stars { display: none; }
 .ribbon__tick:focus-visible {
   z-index: 6; /* the raised stem and its tooltip clear the neighbours */
 }
+/* The newest release sits at x = 100 %. A centred label hangs half its width
+   past the plot — invisible at rest, but it still widens the page: with
+   "4.10.1 · Orison Relief Support" the archive scrolled 21 px sideways at
+   1280 px (browser smoke, 07.10.2026). Its label grows leftwards instead. */
+.ribbon__tick.is-latest::after {
+  left: auto;
+  right: 50%;
+  transform: translate(0, 4px);
+}
+.ribbon__tick.is-latest:hover::after,
+.ribbon__tick.is-latest:focus-visible::after {
+  transform: translate(0, 0);
+}
 
 /* — Axis labels + legend — */
 .ribbon__axis {
