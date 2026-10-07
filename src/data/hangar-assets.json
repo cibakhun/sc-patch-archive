@@ -3,109 +3,171 @@
   "ships": {
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "0fa96763",
+      "v": "086d75c6",
       "tris": 216566,
       "trisRaw": 289558,
       "textures": 218,
       "attached": 0,
-      "bytes": 11841024
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 1.8
+      },
+      "bytes": 12072584
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "692856d5",
+      "v": "4b35ed60",
       "tris": 255643,
       "trisRaw": 417041,
       "textures": 185,
       "attached": 0,
-      "bytes": 9388528
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2.1
+      },
+      "bytes": 9967004
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
-      "v": "a602beea",
+      "v": "212e5163",
       "tris": 205630,
       "trisRaw": 189516,
       "textures": 107,
       "attached": 0,
-      "bytes": 6523320
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.3
+      },
+      "bytes": 6953644
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "aca12a19",
+      "v": "f4167c69",
       "tris": 210871,
       "trisRaw": 219205,
       "textures": 97,
       "attached": 0,
-      "bytes": 7455336
+      "uv": {
+        "rangeBefore": 59,
+        "rangeAfter": 58.51,
+        "bits": 18,
+        "degenerate": 1.1
+      },
+      "bytes": 7695132
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "42bef11c",
+      "v": "950080b6",
       "tris": 526992,
       "trisRaw": 700759,
       "textures": 131,
       "attached": 0,
-      "bytes": 9600596
+      "uv": {
+        "rangeBefore": 733,
+        "rangeAfter": 605.15,
+        "bits": 22,
+        "degenerate": 3.3
+      },
+      "bytes": 10917532
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "5d92ca86",
+      "v": "81e15bc0",
       "tris": 403608,
       "trisRaw": 522351,
       "textures": 161,
       "attached": 0,
-      "bytes": 10571664
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.4
+      },
+      "bytes": 11592840
     },
     "misc-freelancer": {
       "url": "/hangar/ships/misc-freelancer.glb",
-      "v": "677030b1",
+      "v": "b264dfb2",
       "tris": 289125,
       "trisRaw": 377329,
       "textures": 169,
       "attached": 0,
-      "bytes": 10091448
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.1
+      },
+      "bytes": 10698848
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "71f2d7c9",
+      "v": "b45376cb",
       "tris": 211433,
       "trisRaw": 179288,
       "textures": 93,
       "attached": 0,
-      "bytes": 5187904
+      "uv": {
+        "rangeBefore": 97,
+        "rangeAfter": 95.88,
+        "bits": 19,
+        "degenerate": 3.1
+      },
+      "bytes": 5396348
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
-      "v": "70544d41",
+      "v": "209c3ffe",
       "tris": 529735,
       "trisRaw": 756891,
       "textures": 188,
       "attached": 0,
-      "bytes": 12482960
+      "uv": {
+        "rangeBefore": 1084,
+        "rangeAfter": 681.13,
+        "bits": 22,
+        "degenerate": 2.4
+      },
+      "bytes": 14163072
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "29926c49",
+      "v": "e29869d7",
       "tris": 795922,
       "trisRaw": 968432,
       "textures": 118,
       "attached": 0,
-      "bytes": 11100804
+      "uv": {
+        "rangeBefore": 1633,
+        "rangeAfter": 1554,
+        "bits": 23,
+        "degenerate": 2.2
+      },
+      "bytes": 13851808
     }
   },
   "hall": {
     "revelyork-single": {
       "url": "/hangar/hall/revelyork-single.glb",
-      "v": "3c4f4ece",
-      "tris": 532422,
+      "v": "8d7c7120",
+      "tris": 720879,
       "trisRaw": 612862,
-      "textures": 99,
+      "textures": 100,
       "attached": {
         "attached": 143,
         "color": 89,
         "normal": 54,
         "flatNormals": 33,
         "rough": 80,
-        "tiled": 15
+        "tiled": 13,
+        "blended": 4,
+        "blendSkipped": 1
       },
       "matfix": {
         "fixed": 159,
@@ -128,7 +190,13 @@
           "tris": 612862
         }
       },
-      "bytes": 7212332,
+      "uv": {
+        "rangeBefore": 1664,
+        "rangeAfter": 1262.25,
+        "bits": 23,
+        "degenerate": 3.3
+      },
+      "bytes": 10357984,
       "room": {
         "center": [
           36,
@@ -149,6 +217,12 @@
       "trisRaw": 110914,
       "textures": 0,
       "attached": 0,
+      "uv": {
+        "rangeBefore": 0,
+        "rangeAfter": 0,
+        "bits": 12,
+        "degenerate": 0
+      },
       "bytes": 142264
     }
   }

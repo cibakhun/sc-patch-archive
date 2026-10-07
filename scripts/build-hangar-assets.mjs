@@ -103,7 +103,7 @@ function applyMatFix(doc, fix) {
       made.set(key, doc.createMaterial(`${key}${String(id).padStart(2, '0')}`)
         .setBaseColorFactor([...dif.slice(0, 3), 1]).setRoughnessFactor(Math.max(0.2, 1 - Number(sub.shininess || 128) / 255))
         .setExtras({
-          diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, is_glass: /glass/i.test(sub.shader || ''),
+          diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend, is_glass: /glass/i.test(sub.shader || ''),
           semantic: { authored_attributes: [{ name: 'Shader', value: sub.shader }, { name: 'Specular', value: sub.specular }, { name: 'Shininess', value: sub.shininess }] },
         }));
     }
@@ -125,7 +125,7 @@ function applyMatFix(doc, fix) {
   for (const m of mats) {
     const [base, rest] = m.getName().split('_mtl_');
     const sub = rest && fix.mtls[base]?.find((s, i) => s.name && rest.startsWith(s.name + '_') && Number(rest.slice(s.name.length + 1)) === i);
-    if (sub) m.setExtras({ ...m.getExtras(), spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn });
+    if (sub) m.setExtras({ ...m.getExtras(), spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend });
   }
   return { fixed, dropped, created: made.size };
 }
@@ -149,6 +149,54 @@ function coverage(doc) {
     if (m.getNormalTexture() || x.normal_tex) n++;
   }
   return { materials: used.size, diffuse: d, normal: n, trisOhneMaterial: Math.round(bare), tris: Math.round(tris) };
+}
+
+// Zweite Blendschicht (CryEngine Illum %BLENDLAYER) in eine Farbkarte backen,
+// in der Auflösung der Grundkarte (max. 1024, ohne Grundkarte 1024):
+//   f   = saturate(pow(maske * (1 + BlendFactor), BlendFalloff))
+//   out = mix(grund * Diffuse, schicht2 * BlendLayer2DiffuseColor, f)
+// Im Spiel geht noch das Vertex-Alpha in f ein; die Vertexfarben verwerfen
+// wir (COLOR_0, siehe stripAttributes), hier gilt es als 1. Schicht und
+// Maske kacheln relativ zur Grundkarte (BlendLayer2Tiling, BlendMaskTiling,
+// jeweils mal ihrem TexMod, geteilt durch das TexMod der Grundkarte).
+async function bakeBlend(baseFile, x, factor) {
+  const b = x.blend;
+  const load = async (f, size) => {
+    let img = sharp(f).removeAlpha();
+    if (size) img = img.resize(size, size, { fit: 'fill' });
+    const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
+    return { data, w: info.width, h: info.height, c: info.channels };
+  };
+  let base = null, W = 1024, H = 1024;
+  if (baseFile) {
+    const meta = await sharp(baseFile).metadata();
+    const scale = Math.min(1, 1024 / Math.max(meta.width, meta.height));
+    W = Math.max(4, Math.round(meta.width * scale)); H = Math.max(4, Math.round(meta.height * scale));
+    base = await load(baseFile); if (base.w !== W) base = await load(baseFile, W);
+  }
+  const l2 = await load(texFile(b.d));
+  const mk = await load(texFile(b.mask));
+  const col = String(b.color || '1,1,1').split(',').map(Number);
+  const black = /black/i.test(x.diffuse_tex || '');
+  const bt = x.tile_d?.[0] || 1;
+  const t2 = (b.tiling || 1) * (b.td?.[0] || 1) / bt, tm = (b.maskTiling || 1) * (b.tm?.[0] || 1) / bt;
+  const sample = (img, u, v, ch) => {
+    const xx = Math.floor((((u % 1) + 1) % 1) * img.w), yy = Math.floor((((v % 1) + 1) % 1) * img.h);
+    return img.data[(yy * img.w + xx) * img.c + Math.min(ch, img.c - 1)];
+  };
+  const out = Buffer.alloc(W * H * 3);
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const u = (i + 0.5) / W, v = (j + 0.5) / H;
+    const m = sample(mk, u * tm, v * tm, 0) / 255;
+    const f = Math.min(1, Math.max(0, Math.pow(m * (1 + b.factor), b.falloff || 1)));
+    const p = (j * W + i) * 3;
+    for (let ch = 0; ch < 3; ch++) {
+      const g = black ? 0 : (base ? base.data[(j * W + i) * base.c + ch] : 255) * factor[ch];
+      const s2 = sample(l2, u * t2, v * t2, ch) * col[ch];
+      out[p + ch] = Math.round(g * (1 - f) + s2 * f);
+    }
+  }
+  return sharp(out, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
 }
 
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
@@ -185,13 +233,24 @@ async function attachHallTextures(doc) {
   };
   const tt = doc.createExtension(KHRTextureTransform);
   const tile = (ti, t) => { if (ti && t) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale(t)); };
-  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0 };
+  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendSkipped: 0 };
   // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
   const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
   for (const m of [...used].filter(Boolean)) {
     const x = m.getExtras() || {};
     const metal = /conductor/i.test(x.diffuse_tex || '');
     const d = texFile(metal ? x.spec_tex : x.diffuse_tex);
+    // zweite Blendschicht einbacken (nicht bei Metall: dort ist die Farbkarte
+    // die Specular-Map, eine Lackschicht darüber würde metallisch)
+    const b2 = !metal && x.blend && texFile(x.blend.d) && texFile(x.blend.mask);
+    if (b2 && !m.getBaseColorTexture()) {
+      const key = `blend:${m.getName()}`;
+      if (!cache.has(key)) tex(key, 'b' + cache.size, await bakeBlend(d, x, m.getBaseColorFactor()));
+      // die Grundfarbe (Diffuse-Faktor) steckt jetzt in der Karte — sonst
+      // färbte sie auch die zweite Schicht
+      const a = m.getBaseColorFactor()[3];
+      m.setBaseColorTexture(cache.get(key)).setBaseColorFactor([1, 1, 1, a]); s.attached++; s.blended++;
+    } else if (x.blend) s.blendSkipped++;
     if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); s.attached++; if (metal) m.setExtras({ ...x, spec_used: true }); }
     const nm = texFile(x.normal_tex);
     if (nm && !m.getNormalTexture()) {
@@ -443,7 +502,7 @@ for (const kind of Object.keys(BUDGET)) {
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
-        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
