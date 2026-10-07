@@ -155,7 +155,7 @@
   "hall": {
     "revelyork-single": {
       "url": "/hangar/hall/revelyork-single.glb",
-      "v": "8d7c7120",
+      "v": "317507cd",
       "tris": 720879,
       "trisRaw": 612862,
       "textures": 100,
@@ -196,7 +196,7 @@
         "bits": 23,
         "degenerate": 3.3
       },
-      "bytes": 10357984,
+      "bytes": 10532224,
       "room": {
         "center": [
           36,
@@ -206,6 +206,10 @@
         "halfW": 36,
         "halfL": 68,
         "height": 44
+      },
+      "crease": {
+        "corners": 2162637,
+        "changedPct": 43.5
       }
     }
   },
