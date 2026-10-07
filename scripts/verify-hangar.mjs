@@ -14,7 +14,8 @@
 
    ACHT ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
-        (li[data-id]), die Modellliste der Seite, die EN-Buchten, die
+        (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
+        StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
         DE-Buchten. Die Zahl selbst hat ihre Klinke in verify:metrics
         (seitenHangarBuchten), neben allen anderen Seitenzahlen.
      2  Buchtgestalt: main[data-bay-id] gleich Dateiname, vier Regionen
@@ -115,11 +116,23 @@ const PAGES = [
 
 const dockIds = (html) => [...html.matchAll(/<li data-id="([^"]+)"/g)].map((m) => m[1]);
 
-// Die Modellliste der Seite: heute je Schiff ein glb im Inline-Block #hg-data.
-function modelIds(html) {
-  const m = /<script type="application\/json" id="hg-data">([\s\S]*?)<\/script>/.exec(html);
-  if (!m) return null;
-  return JSON.parse(m[1]).ships.filter((s) => typeof s.glb === 'string' && s.glb).map((s) => s.id);
+// Die Modellliste der Seite: die StageConfig der Szene in #hg-stage
+// (src/lib/hangar/stage.ts). Liefert die Ids, deren Eintrag die Form
+// [glb, Werkslack oder null, Herstellerkuerzel] hat, und die Formfehler.
+function stageModels(html) {
+  const m = /<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(html);
+  if (!m) return { ids: null, bad: ['kein #hg-stage'] };
+  let cfg;
+  try { cfg = JSON.parse(m[1]); } catch (e) { return { ids: null, bad: [`#hg-stage ist kein JSON (${e.message})`] }; }
+  const bad = [];
+  if (typeof cfg.viewer !== 'string' || !cfg.viewer.includes('hangar-viewer.js')) bad.push('viewer ist keine URL von hangar-viewer.js');
+  if (!cfg.opts || typeof cfg.opts !== 'object') bad.push('opts fehlt');
+  const ids = [];
+  for (const [id, e] of Object.entries(cfg.models ?? {})) {
+    const ok = Array.isArray(e) && e.length === 3 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string';
+    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker]`);
+  }
+  return { ids, bad };
 }
 
 /* ---------- Buchten lesen (Regex, keine HTML-Bibliothek, wie audit-site) ---------- */
@@ -168,13 +181,14 @@ const bayIds = (lang) => new Set(BAYS[lang].map((b) => b.name));
 /* ---------- [1] Eine Id-Menge an vier Stellen ---------- */
 say('\n[1] Eine Id-Menge: Dock, Modellliste, EN-Buchten, DE-Buchten (je Hangarseite)');
 for (const page of PAGES) {
+  const stage = stageModels(page.html);
   const places = {
     Dock: new Set(dockIds(page.html)),
-    Modelle: new Set(modelIds(page.html) ?? []),
+    Modelle: new Set(stage.ids ?? []),
     'EN-Bucht': bayIds('en'),
     'DE-Bucht': bayIds('de'),
   };
-  if (modelIds(page.html) === null) fail(`${page.file}: keine Modellliste (#hg-data) gefunden`);
+  for (const b of stage.bad) fail(`[1] ${page.file}: ${b} — Vertrag: src/lib/hangar/stage.ts, .planning/notes/hangar-naht.md`);
   const all = new Set(Object.values(places).flatMap((s) => [...s]));
   const diffs = [];
   for (const id of [...all].sort()) {

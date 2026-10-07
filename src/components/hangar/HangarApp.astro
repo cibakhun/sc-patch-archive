@@ -8,19 +8,21 @@
 // Die Modelle sind dieselben wie im Holo-Viewer der Datenblätter
 // (src/data/holo-meshes.json -> /holo/*.glb), hier aber als massiver
 // Metallrumpf unter Hallenlicht.
-import SiteNav from '../SiteNav.astro';
-import { getCollection } from 'astro:content';
+//
+// Seit dem Schnitt ist diese Datei nur die SZENE: Leinwand, Laden, Rueckfall,
+// Modellpolitik (HOLD, Halle, Crew), Seitenpalette und Import-Map. Titel,
+// Kennwerte, Werkzeuge, Dock und Controller stehen in HangarPage.astro und
+// liegen ueber den <slot /> im selben Kasten wie #hg-canvas. Vertrag:
+// src/lib/hangar/stage.ts und .planning/notes/hangar-naht.md.
 import holoMeshes from '../../data/holo-meshes.json';
 import hangarAssets from '../../data/hangar-assets.json';
-import { pickThumb } from '../../lib/shipRenders';
-import { vType, vRoleCig } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
+import { HANGAR_IDS, shipFacts } from '../../lib/hangar/catalog';
+import type { StageConfig } from '../../lib/hangar/stage';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
-const loc = de ? 'de-DE' : 'en-US';
-const L = (p: string) => (de ? `/de${p}` : p);
 
 const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
@@ -38,72 +40,20 @@ const hallAsset = Object.values(real.hall ?? {})[0];
 const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
-const vehicles = (await getCollection('vehicles'))
-  .filter((v) => meshes[v.id])
-  .sort((a, b) => a.data.name.localeCompare(b.data.name, loc));
 
-// Kennwerte im Flottenvergleich: der Balken zeigt den Rang unter allen
-// Schiffen mit diesem Wert (Perzentil), nicht den Anteil am Maximum — sonst
-// wäre bei Rumpfpunkten jedes Schiff außer den Großkampfschiffen ein Strich.
-const STATS = [
-  { k: 'scm', de: 'SCM-Geschwindigkeit', en: 'SCM speed', unit: 'm/s', get: (d: any) => d.scmSpeed },
-  { k: 'max', de: 'Höchstgeschwindigkeit', en: 'Max speed', unit: 'm/s', get: (d: any) => d.maxSpeed },
-  { k: 'hull', de: 'Rumpf', en: 'Hull', unit: 'HP', get: (d: any) => d.hullHp },
-  { k: 'shield', de: 'Schild', en: 'Shield', unit: 'HP', get: (d: any) => d.shieldHp },
-  { k: 'dps', de: 'Feuerkraft Pilot', en: 'Pilot firepower', unit: 'DPS', get: (d: any) => d.pilotDps },
-  { k: 'cargo', de: 'Fracht', en: 'Cargo', unit: 'SCU', get: (d: any) => d.cargoSCU },
-  { k: 'crew', de: 'Besatzung', en: 'Crew', unit: '', get: (d: any) => d.crewMax ?? d.crewMin },
-  { k: 'len', de: 'Länge', en: 'Length', unit: 'm', get: (d: any) => d.lengthM },
-];
-const pct: Record<string, (x: number) => number> = {};
-for (const s of STATS) {
-  const vals = vehicles.map((v) => s.get(v.data)).filter((x) => typeof x === 'number' && x > 0).sort((a, b) => a - b);
-  pct[s.k] = (x: number) => {
-    if (!vals.length) return 0;
-    let lo = 0, hi = vals.length;
-    while (lo < hi) { const m = (lo + hi) >> 1; if (vals[m] <= x) lo = m + 1; else hi = m; }
-    return Math.max(4, Math.round((lo / vals.length) * 100));
-  };
-}
-
-const ships = vehicles.map((v) => {
-  const d = v.data as any;
-  const m = meshes[v.id];
-  const thumb = pickThumb(d);
-  return {
-    id: v.id,
-    n: d.name,
-    mk: d.manufacturer ?? '',
-    mc: d.makerCode ?? '',
-    t: vType(d, lang) ?? '',
-    // „Gelände“ und „Boden“ heißen englisch beide „Ground“ -> ein Filter.
-    tk: d.typeDe === 'Gelände' ? 'Boden' : (d.typeDe ?? d.typeEn ?? ''),
-    r: vRoleCig(v.id, d, lang) ?? '',
-    img: thumb?.src ?? null,
-    glb: m.v ? `${m.url}?v=${m.v}` : m.url,
-    tex: real.ships?.[v.id] && !HOLD[v.id] ? withV(real.ships[v.id]) : null,
-    sheet: L(`/schiffe/${v.id}.html`),
-    s: STATS.map((s) => {
-      const x = s.get(d);
-      return typeof x === 'number' && x > 0 ? [Math.round(x * 10) / 10, pct[s.k](x)] : null;
-    }),
-  };
-});
-// Filterschlüssel ist der deutsche Typ (in beiden Sprachen derselbe), damit
-// beide Seiten dieselbe Zahl Optionen tragen (verify:sync, Strukturgleichheit):
-// die englischen Beschriftungen fassen teils zwei deutsche Typen zusammen.
-const types = [...new Map(ships.filter((s) => s.tk).map((s) => [s.tk, s.t || s.tk])).entries()]
-  .map(([key, label]) => ({ key, label }))
-  .sort((a, b) => a.label.localeCompare(b.label, loc));
-const makers = [...new Set(ships.map((s) => s.mk).filter(Boolean))].sort((a, b) => a.localeCompare(b, loc));
-const first = ships.find((s) => s.id === 'aegs-gladius') ?? ships[0];
-
-const statLabels = STATS.map((s) => ({ k: s.k, label: de ? s.de : s.en, unit: s.unit }));
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
 // `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
 // "</script>" darf ihn nicht beenden.
-const payload = JSON.stringify({ ships, stats: statLabels, loc, first: first.id, viewer: viewerSrc, hall, crew }).replace(/</g, '\\u003c');
-const fmt = (x: number) => x.toLocaleString(loc);
+const stage = {
+  viewer: viewerSrc,
+  opts: { hall, crew },
+  models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
+    withV(meshes[id]),
+    real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
+    shipFacts(id, lang).makerCode,
+  ] as const])),
+} satisfies StageConfig;
+const payload = JSON.stringify(stage).replace(/</g, '\\u003c');
 ---
 <style is:inline>
 /* theme.css bringt die --font-*-Tokens nicht mit (jede Seite ihren Stapel,
@@ -114,252 +64,32 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 :root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef8;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1c1f25;--muted:#4e586c;--accent:#7c5104;--accent-2:#49556d;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#9aa6bd;--line:rgba(148,104,38,.3);--line-soft:rgba(43,46,52,.12)}
-/* Die Bühne ist eine dunkle Insel (data-media-surface, theme.css): im
-   Hellmodus bleibt sie Halle, nur das Karussell darunter wird Papier. */
-.hg{display:block}
-/* Auf der Insel selbst deklariert, nicht an .hg: eine Variable, die auf
-   var(--text) verweist, loest dort auf, wo sie steht — an .hg waere das
-   noch der Papierwert, nicht der Inselwert. */
-.hg-stagewrap{--hg-top:76px;--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 74%,transparent);--hg-hair:var(--line)}
-.hg-stagewrap{position:relative}
 .hg-stage{position:relative;height:clamp(520px,calc(100svh - 190px),940px);background:var(--bg);overflow:hidden;color:var(--hg-on);isolation:isolate}
 .hg-canvas{position:absolute;inset:0}
 .hg-canvas::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,transparent 50%,color-mix(in srgb,var(--bg) 55%,transparent) 100%)}
 .hg-canvas canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 .hg-canvas canvas:active{cursor:grabbing}
-.hg-title{position:absolute;left:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);max-width:min(520px,60%);pointer-events:none}
-.hg-title h1{margin:0 0 .4rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-amber)}
-.hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-7);color:var(--hg-dim)}
-.hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
-.hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
-/* über heller Halle lesbar bleiben: Schatten statt Fläche */
-.hg-maker,.hg-role{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
-.hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
-@keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.hg-stats{position:absolute;right:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);width:min(320px,34vw);background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:1rem 1.1rem 1.1rem;backdrop-filter:blur(8px)}
-.hg-stats dl{margin:0;display:grid;gap:.55rem}
-.hg-row{display:grid;grid-template-columns:1fr auto;gap:.15rem .6rem;font-size:var(--fs-7)}
-.hg-row dt{color:var(--hg-dim)}
-.hg-row dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;color:var(--hg-on);font-weight:600}
-.hg-bar{grid-column:1/-1;height:4px;background:var(--line-soft);border-radius:2px;overflow:hidden}
-.hg-bar i{display:block;height:100%;width:var(--w,0%);background:var(--hg-amber);transition:width var(--dur-slow) var(--ease-ui)}
-.hg-row.is-na dd{color:var(--hg-dim);font-weight:400}
-.hg-note{margin:.8rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
-.hg-sheet{display:flex;justify-content:center;margin-top:.9rem;padding:.65rem 1rem;background:var(--hg-amber);color:var(--ink);font-family:var(--font-ui);font-weight:700;border-radius:4px;text-decoration:none}
-.hg-sheet:hover,.hg-sheet:focus-visible{background:color-mix(in srgb,var(--hg-amber) 82%,var(--text))}
-.hg-tools{position:absolute;left:clamp(16px,3vw,40px);bottom:16px;display:flex;gap:.6rem;align-items:center}
-.hg-btn{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.45rem .8rem;border-radius:4px;cursor:pointer}
-.hg-btn:hover,.hg-btn:focus-visible{border-color:var(--hg-amber)}
-.hg-hint{font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 80%,transparent);background:var(--hg-panel);border-radius:4px;padding:.3rem .55rem;backdrop-filter:blur(6px)}
 .hg-load{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(260px,60%);text-align:center;font-size:var(--fs-6);color:var(--hg-dim);pointer-events:none}
 .hg-load[hidden]{display:none}
 .hg-load b{display:block;height:3px;margin-top:.5rem;background:var(--line-soft);border-radius:2px;overflow:hidden}
 .hg-load b i{display:block;height:100%;width:var(--p,0%);background:var(--hg-amber)}
 .hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
 .hg-fallback[hidden]{display:none}
-
-.hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
-.hg-filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
-.hg-filter input,.hg-filter select{font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:.45rem .6rem;min-width:0}
-.hg-filter input{flex:1 1 200px;max-width:320px}
-.hg-count{margin-left:auto;font-size:var(--fs-6);color:var(--muted);font-variant-numeric:tabular-nums}
-.hg-rail{position:relative;display:flex;align-items:stretch;gap:.5rem}
-.hg-strip{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x proximity;scroll-behavior:smooth;padding:.45rem .3rem .7rem;margin:0;list-style:none;flex:1;min-width:0;overscroll-behavior-x:contain}
-.hg-strip li{flex:0 0 auto;scroll-snap-align:start}
-.hg-strip li[hidden]{display:none}
-/* Kacheln wie im Hangar-Menü eines Spiels: Bild füllt die Kachel, Name
-   auf einem Verlauf am unteren Rand, gewählte Kachel leuchtet. */
-.hg-card{position:relative;display:block;width:176px;height:100px;padding:0;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left;transition:transform var(--dur-fast) var(--ease-ui),border-color var(--dur-fast),box-shadow var(--dur-fast)}
-.hg-card:hover,.hg-card:focus-visible{border-color:color-mix(in srgb,var(--accent) 70%,transparent);transform:translateY(-2px)}
-.hg-card[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px color-mix(in srgb,var(--accent) 40%,transparent);transform:translateY(-3px)}
-.hg-card img,.hg-card .hg-noimg{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:var(--surface-2);filter:saturate(.8) brightness(.72);transition:filter var(--dur-fast)}
-.hg-card:hover img,.hg-card[aria-current="true"] img{filter:none}
-.hg-card span{position:absolute;left:0;right:0;bottom:0;padding:1.3rem .55rem .35rem;background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 94%,transparent) 70%);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hg-card small{position:absolute;top:.35rem;left:.4rem;max-width:calc(100% - .8rem);padding:.05rem .35rem;background:color-mix(in srgb,var(--bg) 78%,transparent);border-radius:2px;font-size:var(--fs-5);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hg-arrow{flex:0 0 auto;width:2.4rem;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:6px;font-size:var(--fs-12);cursor:pointer}
-.hg-arrow:hover,.hg-arrow:focus-visible{border-color:var(--accent)}
-.hg-empty{color:var(--muted);font-size:var(--fs-7);padding:1rem 0}
-.hg-empty[hidden]{display:none}
-
 @media (max-width:760px){
   .hg-stage{height:clamp(360px,62svh,560px)}
-  .hg-title{max-width:calc(100% - 32px)}
-  .hg-stats{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
-  .hg-hint{display:none}
-  .hg-arrow{display:none}
-  .hg-count{margin-left:0;width:100%}
-}
-@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}}</style>
+  /* Senkrecht wischen scrollt die Seite, waagerecht ziehen dreht das Schiff.
+     OrbitControls setzt touch-action:none als Inline-Stil, nur !important
+     schlaegt ihn. */
+  .hg-canvas canvas{touch-action:pan-y!important}
+}</style>
 
-<SiteNav crumbs={de ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
-
-<main class="hg" id="main">
-  <div class="hg-stagewrap" data-media-surface>
-    <section class="hg-stage" aria-label={de ? '3D-Hangar' : '3D hangar'}>
+    <section class="hg-stage" data-hg-stage aria-label={de ? '3D-Hangar' : '3D hangar'}>
       <div class="hg-canvas" id="hg-canvas"></div>
       <div class="hg-load" id="hg-load" hidden>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}<b><i></i></b></div>
       <div class="hg-fallback" id="hg-fallback" hidden>{de ? 'Dein Browser kann die 3D-Ansicht nicht darstellen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser cannot show the 3D view. The figures and the data sheet are still available.'}</div>
-      <header class="hg-title">
-        <h1>Hangar</h1>
-        <p class="hg-maker" id="hg-maker">{first.mk}</p>
-        <p class="hg-name" id="hg-name">{first.n}</p>
-        <p class="hg-role" id="hg-role">{[first.t, first.r].filter(Boolean).join(' · ')}</p>
-      </header>
-      <div class="hg-tools">
-        <button type="button" class="hg-btn" id="hg-reset">{de ? 'Ansicht zurücksetzen' : 'Reset view'}</button>
-        <span class="hg-hint">{de ? 'Ziehen zum Drehen, Mausrad zum Zoomen, Pfeiltasten wechseln das Schiff' : 'Drag to rotate, scroll to zoom, arrow keys switch ships'}</span>
-      </div>
+      <slot />
     </section>
-    <aside class="hg-stats" aria-label={de ? 'Kennwerte' : 'Key figures'}>
-      <dl id="hg-dl">
-        {statLabels.map((s, i) => {
-          const v = first.s[i];
-          return (
-            <div class={v ? 'hg-row' : 'hg-row is-na'} data-k={s.k}>
-              <dt>{s.label}</dt>
-              <dd>{v ? `${fmt(v[0])}${s.unit ? ' ' + s.unit : ''}` : '–'}</dd>
-              <span class="hg-bar" aria-hidden="true"><i style={`--w:${v ? v[1] : 0}%`}></i></span>
-            </div>
-          );
-        })}
-      </dl>
-      <p class="hg-note">{de ? 'Balken: Rang unter allen Schiffen mit diesem Wert.' : 'Bars: rank among all ships with this figure.'}</p>
-      <a class="hg-sheet" id="hg-sheet" href={first.sheet}>{de ? 'Zum Datenblatt' : 'Open data sheet'}</a>
-    </aside>
-  </div>
-
-  <section class="hg-dock" data-media-surface aria-label={de ? 'Schiffsauswahl' : 'Ship selection'}>
-    <div class="hg-filter">
-      <input id="hg-q" type="search" placeholder={de ? 'Schiff oder Hersteller…' : 'Ship or manufacturer…'} aria-label={de ? 'Suche' : 'Search'} autocomplete="off" />
-      <select id="hg-type" aria-label={de ? 'Rolle' : 'Role'}>
-        <option value="">{de ? 'Alle Rollen' : 'All roles'}</option>
-        {types.map((t) => <option value={t.key}>{t.label}</option>)}
-      </select>
-      <select id="hg-maker-f" aria-label={de ? 'Hersteller' : 'Manufacturer'}>
-        <option value="">{de ? 'Alle Hersteller' : 'All manufacturers'}</option>
-        {makers.map((m) => <option value={m}>{m}</option>)}
-      </select>
-      <span class="hg-count" id="hg-count" aria-live="polite">{de ? `${ships.length} Schiffe` : `${ships.length} ships`}</span>
-    </div>
-    <div class="hg-rail">
-      <button type="button" class="hg-arrow" id="hg-prev" aria-label={de ? 'Vorheriges Schiff' : 'Previous ship'}>‹</button>
-      <ul class="hg-strip" id="hg-strip">
-        {ships.map((s) => (
-          <li data-id={s.id} data-t={s.tk} data-mk={s.mk} data-q={`${s.n} ${s.mk} ${s.mc}`.toLowerCase()}>
-            {/* href = Datenblatt: ohne Skript (oder per Mittelklick) führt die Karte
-                dorthin; mit Skript fängt der Klick ab und stellt das Schiff in die Halle. */}
-            <a class="hg-card" href={s.sheet} data-id={s.id} aria-current={s.id === first.id ? 'true' : 'false'}>
-              {s.img ? <img src={s.img} alt="" loading="lazy" decoding="async" width="156" height="88" /> : <i class="hg-noimg"></i>}
-              <span>{s.n}</span>
-              <small>{s.mk}</small>
-            </a>
-          </li>
-        ))}
-      </ul>
-      <button type="button" class="hg-arrow" id="hg-next" aria-label={de ? 'Nächstes Schiff' : 'Next ship'}>›</button>
-    </div>
-    <p class="hg-empty" id="hg-empty" hidden>{de ? 'Kein Schiff passt zu diesem Filter.' : 'No ship matches this filter.'}</p>
-  </section>
-</main>
-
-<script type="application/json" id="hg-data" set:html={payload}></script>
+<script type="application/json" id="hg-stage" set:html={payload}></script>
 <script type="importmap" is:inline>
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
-</script>
-<script is:inline type="module">
-const data = JSON.parse(document.getElementById('hg-data').textContent);
-const byId = new Map(data.ships.map((s) => [s.id, s]));
-const nf = new Intl.NumberFormat(data.loc);
-const $ = (id) => document.getElementById(id);
-const strip = $('hg-strip');
-const items = [...strip.children];
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let cur = byId.has(location.hash.slice(1)) ? location.hash.slice(1) : data.first;
-let viewer = null;
-
-function render(s) {
-  const head = $('hg-name').parentElement;
-  head.classList.remove('is-swap'); void head.offsetWidth; head.classList.add('is-swap');
-  $('hg-maker').textContent = s.mk;
-  $('hg-name').textContent = s.n;
-  $('hg-role').textContent = [s.t, s.r].filter(Boolean).join(' · ');
-  $('hg-sheet').href = s.sheet;
-  const rows = $('hg-dl').children;
-  data.stats.forEach((st, i) => {
-    const row = rows[i], v = s.s[i];
-    row.classList.toggle('is-na', !v);
-    row.querySelector('dd').textContent = v ? nf.format(v[0]) + (st.unit ? ' ' + st.unit : '') : '–';
-    row.querySelector('.hg-bar i').style.setProperty('--w', (v ? v[1] : 0) + '%');
-  });
-  for (const a of strip.querySelectorAll('.hg-card')) a.setAttribute('aria-current', a.dataset.id === s.id ? 'true' : 'false');
-}
-
-function select(id, { scroll = true } = {}) {
-  const s = byId.get(id);
-  if (!s) return;
-  cur = id;
-  render(s);
-  history.replaceState(null, '', '#' + id);
-  if (scroll) {
-    const li = strip.querySelector(`li[data-id="${CSS.escape(id)}"]`);
-    if (li) strip.scrollTo({ left: li.offsetLeft - strip.clientWidth / 2 + li.clientWidth / 2, behavior: reduce ? 'auto' : 'smooth' });
-  }
-  if (viewer) {
-    const load = $('hg-load');
-    const t = setTimeout(() => { load.hidden = false; }, 180);
-    viewer.show(s.glb, { maker: s.mc, tex: s.tex }).catch(() => {}).finally(() => { clearTimeout(t); load.hidden = true; });
-  }
-}
-
-strip.addEventListener('click', (e) => {
-  const a = e.target.closest('.hg-card');
-  if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-  e.preventDefault();
-  select(a.dataset.id, { scroll: false });
-});
-
-function visibleIds() { return items.filter((li) => !li.hidden).map((li) => li.dataset.id); }
-function step(d) {
-  const ids = visibleIds();
-  if (!ids.length) return;
-  const i = ids.indexOf(cur);
-  select(ids[(i < 0 ? 0 : i + d + ids.length) % ids.length]);
-}
-$('hg-prev').addEventListener('click', () => step(-1));
-$('hg-next').addEventListener('click', () => step(1));
-document.addEventListener('keydown', (e) => {
-  if (e.target.closest('input,select,textarea')) return;
-  if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-});
-
-function filter() {
-  const q = $('hg-q').value.trim().toLowerCase();
-  const t = $('hg-type').value, mk = $('hg-maker-f').value;
-  let n = 0;
-  for (const li of items) {
-    const ok = (!q || li.dataset.q.includes(q)) && (!t || li.dataset.t === t) && (!mk || li.dataset.mk === mk);
-    li.hidden = !ok;
-    if (ok) n++;
-  }
-  $('hg-count').textContent = data.loc.startsWith('de') ? `${n} Schiffe` : `${n} ships`;
-  $('hg-empty').hidden = n > 0;
-}
-$('hg-q').addEventListener('input', filter);
-$('hg-type').addEventListener('change', filter);
-$('hg-maker-f').addEventListener('change', filter);
-
-const load = $('hg-load');
-load.hidden = false;
-const bar = load.querySelector('i');
-import(data.viewer)
-  .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, hall: data.hall, crew: data.crew }))
-  .then((v) => {
-    viewer = v;
-    v.onProgress((p) => bar.style.setProperty('--p', p + '%'));
-    $('hg-reset').addEventListener('click', () => v.resetView());
-    select(cur);
-  })
-  .catch(() => { load.hidden = true; $('hg-fallback').hidden = false; });
-if (cur !== data.first) render(byId.get(cur));
 </script>
