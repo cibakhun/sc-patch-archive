@@ -77,7 +77,10 @@ let hardpointChecked = 0, hardpointSkipped = 0;
 // übersprungen von 175 Schiffen mit festen Bugwaffen. Diese Schranke ist
 // bewusst der GEMESSENE Ist-Stand, nicht eine Wunschzahl — wächst sie, ist das
 // ein neuer, unbenannter Rückschritt wie der, den diese Lücke schließt.
-const MAX_HARDPOINT_SKIP = 81;
+// 07.10.2026: 81 -> 82 — die neu aufgenommene Sabre Raven EX liegt in derselben
+// Lücke wie die Sabre Raven selbst (Implementierungs-XML nennt 2 WeaponGun-
+// Ports S3, das Loadout trägt 4 Waffen). Die S-65 Stingray wird geprüft (95).
+const MAX_HARDPOINT_SKIP = 82;
 
 for (const v of snapshot.vehicles) {
   const pilotGuns = v.fixedWeapons ?? [];

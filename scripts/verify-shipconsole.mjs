@@ -157,8 +157,11 @@ const TEXTBESTAND_KLINKE = {
    Portgruppen, da der RSI Hermes in 4.10 die Rumpf-Geometrie fehlte.
    24.09.2026: rsi-hermes erhaelt Hardpoints ueber extract:hardpoints:assembled
    (StarBreaker-Assembly-Export), womit wieder alle 227 Schiffe Portgruppen
-   fuehren: 4=179, 0=0. */
-const WELLE1_RAIL_VERTEILUNG = { 0: 0, 1: 6, 2: 22, 3: 20, 4: 179 };
+   fuehren: 4=179, 0=0.
+   07.10.2026: 4=179 -> 4=181 — Sabre Raven EX und S-65 Stingray neu im
+   Katalog (extract-hardpoints.mjs --add + Holo-Mesh), beide mit allen vier
+   Portgruppen; 229 Schiffe. */
+const WELLE1_RAIL_VERTEILUNG = { 0: 0, 1: 6, 2: 22, 3: 20, 4: 181 };
 
 if (!existsSync('dist')) {
   console.error(

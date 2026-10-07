@@ -61,6 +61,7 @@
     "verify:items": "node scripts/verify-item-prices.mjs",
     "verify:crafting": "node scripts/verify-crafting-specs.mjs",
     "verify:vehicles": "node scripts/verify-vehicles.mjs",
+    "verify:vehicle-gap": "node scripts/verify-vehicle-gap.mjs",
     "verify:weapons": "node scripts/verify-weapon-sizes.mjs",
     "verify:vehicle-roles": "node scripts/verify-vehicle-roles.mjs",
     "sync:refinery": "node scripts/fetch-uex-commodities.mjs && node scripts/build-refinery-data.mjs",

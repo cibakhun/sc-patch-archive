@@ -304,6 +304,15 @@ export const CHECKS = [
     checks: 'Feld fuer Feld: was ein frischer Extraktionslauf gegenueber dem committeten Katalog aendert',
     env: 'liest src/data/vehicles-gamefiles.json — die Zwischenstufe ist unversioniert und entsteht erst durch npm run datamine:vehicles',
   },
+  {
+    id: 'verify:vehicle-gap',
+    npm: 'verify:vehicle-gap',
+    script: 'scripts/verify-vehicle-gap.mjs',
+    rail: 'B',
+    checks:
+      'flugfaehige /spaceships/- und /groundvehicles/-Records im DataCore (nach dem isVariantJunk-Filter aus datamine-vehicles.mjs) ohne Katalog-Eintrag und ohne benannte Ausnahme — WARNUNG; FEHLER nur bei Zombie-Ausnahmen oder Leser unter der Klinke',
+    env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B. Anlass: Sabre Raven EX und S-65 Stingray fehlten still im zirkulaer geschlossenen Katalog (07.10.2026)',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.

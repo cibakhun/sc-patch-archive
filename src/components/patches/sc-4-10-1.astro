@@ -182,6 +182,7 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .srnote h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text);margin-bottom:.5rem}
 .srnote p{color:var(--muted);font-size:var(--fs-8);line-height:1.55;margin-bottom:.9rem}
 .qpanel p.after,.srnote p.after{margin:.85rem 0 0}
+.srnote p.after a{color:var(--accent)}
 
 /* BEUTE — Ausrüstungsraster */
 .gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:.8rem}
@@ -354,7 +355,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
             <div class="row"><dt>{de ? 'Dämpfer' : 'Dampener'}</dt><span class="lead2"></span><dd>Vertine QD · Wei-Tek</dd></div>
             <div class="row"><dt>{de ? 'Reichweite' : 'Range'}</dt><span class="lead2"></span><dd>{de ? '4.750 m' : '4,750 m'}</dd></div>
           </dl>
-          <p class="after">{de ? 'Linker Wert: Sabre Raven zum Vergleich.' : 'Left value: Sabre Raven for comparison.'}</p>
+          <p class="after">{de ? 'Linker Wert: Sabre Raven zum Vergleich.' : 'Left value: Sabre Raven for comparison.'} <a href={de ? '/de/schiffe/aegs-sabre-raven-ex.html' : '/schiffe/aegs-sabre-raven-ex.html'}>{de ? 'Zum Datenblatt →' : 'Full data sheet →'}</a></p>
         </div>
       </div>
     </div>

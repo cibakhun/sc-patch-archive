@@ -8,6 +8,7 @@ import videosSnapshot from '../data/ship-videos.json';
 import { pickThumb, pickHero } from './shipRenders';
 import { useTranslations, type Locale, type UIKey, DEFAULT_LOCALE } from '../i18n/ui';
 import { vType } from '../i18n/vehicleText';
+import hardpointsSnapshot from '../data/ship-hardpoints.json';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 const numLoc = (lang: Locale) => (lang === 'en' ? 'en-US' : 'de-DE');
@@ -182,6 +183,15 @@ export type SimilarShip = {
   thumb: string | null;
 };
 
+/** Rumpflaenge aus der Spielgeometrie (Hull-AABB, +Y = Bug) — NUR als Rangwert,
+ *  wenn die publizierte Laenge fehlt (nach dem Einfrieren von vehicle-external.json
+ *  aufgenommene Schiffe, z. B. Raven EX/Stingray). Angezeigt wird sie nie. Gemessen
+ *  07.10.2026 an 225 Schiffen: Hull/publiziert Median 0,96, p10 0,68. */
+const hullLen = (id: string): number | null => {
+  const h = (hardpointsSnapshot as { ships: Record<string, { hull: number[][] | null }> }).ships[id]?.hull;
+  return h ? h[1][1] - h[0][1] : null;
+};
+
 /** rank the catalog against one ship: same type first, closest length wins */
 export function similarShips(
   all: { id: string; data: VehicleData }[],
@@ -190,7 +200,7 @@ export function similarShips(
   n = 4
 ): SimilarShip[] {
   const loc = numLoc(lang);
-  const L = self.data.lengthM ?? 0;
+  const L = self.data.lengthM ?? hullLen(self.id) ?? 0;
   const scored = all
     .filter((v) => v.id !== self.id)
     .map((v) => {
@@ -199,7 +209,8 @@ export function similarShips(
       // Scoring bleibt sprachunabhängig (Vergleich der Rohwerte)
       if (d.typeDe !== self.data.typeDe) score += 2.2;
       if (d.sizeDe !== self.data.sizeDe) score += 0.9;
-      if (L > 0 && d.lengthM) score += Math.abs(Math.log(d.lengthM / L));
+      const dl = d.lengthM ?? hullLen(v.id);
+      if (L > 0 && dl) score += Math.abs(Math.log(dl / L));
       else score += 1;
       return { v, score };
     })
