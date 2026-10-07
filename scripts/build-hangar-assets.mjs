@@ -419,6 +419,37 @@ function hallLights(doc, name) {
 // Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
 // gezählt für die Selbstauskunft.
 const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|table|locker/i;
+
+// Einrichtung bleibt eigener Knoten mit Bezugspunkt: Für große Schiffe wächst
+// die Halle mit (Faktor bis ≈ 3), und eingeschmolzen in die Hülle wüchsen
+// Kisten und Spinde mit. So hält der Viewer jedes Möbel an seinem Platz in
+// Originalgröße (extras.anchor = Weltposition seiner Wurzel). Alles andere
+// verliert seinen Namen, damit join({ keepNamed: true }) es weiter
+// zusammenlegt. Vor flatten() aufrufen: danach fehlt die Hierarchie.
+function markFurniture(doc) {
+  const root = doc.getRoot();
+  const isF = (n) => FURNITURE.test(`${n.getName()} ${n.getMesh()?.getName() || ''}`);
+  const parentOf = new Map();
+  for (const n of root.listNodes()) for (const c of n.listChildren()) parentOf.set(c, n);
+  const rootOf = (n) => { let r = null; for (let q = n; q; q = parentOf.get(q)) if (isF(q)) r = q; return r; };
+  const ids = new Map();
+  let nodes = 0;
+  const named = new Set();
+  for (const n of root.listNodes()) {
+    const r = rootOf(n);
+    if (!r) { n.setName(''); continue; }
+    if (!n.getMesh()) continue;
+    if (!ids.has(r)) ids.set(r, ids.size);
+    const id = ids.get(r);
+    n.setExtras({ ...n.getExtras(), furniture: id, anchor: r.getWorldTranslation().map((v) => Math.round(v * 1000) / 1000) });
+    n.setName(`furniture_${id}_${nodes}`);
+    named.add(n.getMesh());
+    nodes++;
+  }
+  for (const m of root.listMeshes()) if (!named.has(m)) m.setName('');
+  return { roots: ids.size, nodes };
+}
+const drawCalls = (root) => root.listNodes().reduce((n, x) => n + (x.getMesh()?.listPrimitives().length || 0), 0);
 // Materialien, die ohne die Spiel-Laufzeit falsch aussehen: Lichtkegel- und
 // Blendenkarten (schweben als Splitter neben dem Rumpf), zur Laufzeit
 // gerenderte Schriftzüge und Schablonen (ohne Bild: weiße Flächen).
@@ -522,7 +553,9 @@ async function buildOne(kind, name, inPath) {
   if (cover) cover.after = coverage(doc);
   cleanMaterials(doc);
   stripAttributes(doc);
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: false }), weld());
+  const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' }), weld());
+  if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
   // schwelle klein, damit Silhouette und UV-Nähte halten.
@@ -585,6 +618,7 @@ async function buildOne(kind, name, inPath) {
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
+    ...(furnitureNodes ? { furnitureNodes } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     bytes: statSync(outPath).size,
@@ -619,6 +653,7 @@ for (const kind of Object.keys(BUDGET)) {
       manifest[kind][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
+      if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;

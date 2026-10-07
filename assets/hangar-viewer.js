@@ -1240,6 +1240,7 @@ export async function initHangar(container, opts = {}) {
     if (realHall) {
       const k = realHallScale(realHall.room);
       realHall.group.scale.setScalar(k);
+      for (const pv of realHall.furniture) pv.scale.setScalar(1 / k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
       scaleLamps();
@@ -1500,6 +1501,25 @@ export async function initHangar(container, opts = {}) {
         model.position.y -= ys[Math.floor(ys.length / 2)];
         floorY += ys[Math.floor(ys.length / 2)];
       }
+      // Einrichtung in Originalgröße: Für große Schiffe wächst die Halle mit,
+      // Kisten und Spinde sollen es nicht. Der Build lässt jedes Möbel als
+      // eigenen Knoten mit Bezugspunkt (extras.anchor); es hängt hier an
+      // einem Drehpunkt dort, den scaleWorld mit 1/k gegenskaliert.
+      model.updateMatrixWorld(true);
+      const furn = [], pivots = new Map();
+      model.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
+      for (const n of furn) {
+        const id = n.userData.furniture ?? n.uuid;
+        let pv = pivots.get(id);
+        if (!pv) {
+          pv = new THREE.Group();
+          pv.position.fromArray(n.userData.anchor);
+          model.add(pv);
+          pv.updateMatrixWorld(true);
+          pivots.set(id, pv);
+        }
+        pv.attach(n);
+      }
       const uvStats = hallUvStats(model);
       const boxed = new Set();
       model.traverse((n) => {
@@ -1556,7 +1576,7 @@ export async function initHangar(container, opts = {}) {
       scene.add(group);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group, room: h.room, mats, floorY };
+      realHall = { group, room: h.room, mats, floorY, furniture: [...pivots.values()] };
       loadHallLights(h, model);
       // die gebaute Halle weicht; Gerät, Crew, Schlepper und Drohne bleiben
       hall.visible = false;

@@ -40,3 +40,25 @@ Auslöser für die PC-Sitzung: **„Hallensonden“**. Folgt auf „Halle Tiefe�
 7. Build + Gate (normal und STAGING=1), committen, pushen. Kein PR: Den
    Viewer (Sonde statt selbst gerenderter Umgebungskugel) und die
    Sichtprüfung macht die Cloud.
+
+## Zweiter Punkt im selben Lauf: Einrichtung in Originalgröße
+
+Befund (Cloud, Render mit der C2): Für große Schiffe wächst die ganze Halle
+mit (Faktor bis ≈ 3). Die Einrichtung wächst mit, weil der Build sie in die
+Hallenhülle einschmilzt (`join`): Kisten und Spinde stehen dann dreimal so
+groß neben der Crew. Der Viewer kann jedes Möbel an seinem Platz in
+Originalgröße halten, wenn es ein eigener Knoten bleibt und seinen
+Bezugspunkt kennt.
+
+8. Schon im Build (Cloud, `markFurniture` in `scripts/build-hangar-assets.mjs`):
+   Einrichtungs-Wurzeln (Knoten, auf die `FURNITURE` passt, ohne passenden
+   Vorfahren) behalten ihre Mesh-Knoten als eigene Knoten mit
+   `extras: { furniture: <Nr.>, anchor: [x,y,z] }`; alles andere verliert
+   seinen Namen und wird wie bisher zusammengelegt
+   (`join({ keepNamed: true })`). Synthetisch geprüft.
+9. PC: Halle neu bauen (`node scripts/build-hangar-assets.mjs --force` oder
+   nur die Halle) und die Selbstauskunft melden:
+   `Einrichtung: N Möbel in M eigenen Knoten …, Halle D Draw-Calls`.
+   Heute (7748b0a) sind es 88 Draw-Calls; werden es mehr als 500, die Zahl nennen.
+10. Den Viewer (Möbel um ihren `anchor` mit 1/k gegenskalieren) macht die
+    Cloud.
