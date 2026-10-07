@@ -120,8 +120,8 @@ const COPY = {
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
-    favsEmpty: 'Noch keine Favoriten. Markiere Schiffe in der Datenbank mit dem Stern ☆ — sie erscheinen dann hier.',
-    favsShips: 'Zur Schiffs-Datenbank →',
+    favsEmpty: 'Noch keine Favoriten. Nimm Schiffe im 3D-Hangar oder auf ihrem Datenblatt in deine Flotte auf — sie erscheinen dann hier.',
+    favsHangar: 'Zum 3D-Hangar →',
     favRemove: 'Entfernen',
     kind: { ship: 'Schiff', mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Thema' } as Record<string, string>,
     email: 'E-Mail-Adresse ändern', emailPh: 'neue@beispiel.de',
@@ -275,8 +275,8 @@ const COPY = {
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
-    favsEmpty: 'No favorites yet. Star ☆ ships in the database and they will show up here.',
-    favsShips: 'Browse the ship database →',
+    favsEmpty: 'No favorites yet. Add ships to your fleet in the 3D hangar or on their data sheet and they will show up here.',
+    favsHangar: 'Open the 3D hangar →',
     favRemove: 'Remove',
     kind: { ship: 'Ship', mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Topic' } as Record<string, string>,
     email: 'Change e-mail address', emailPh: 'new@example.com',
@@ -325,7 +325,7 @@ const COPY = {
 
 const loginHref = href('/account/login.html', lang);
 const homeHref = lang === 'de' ? '/de.html' : '/';
-const shipsHref = href('/schiffe.html', lang);
+const hangarHref = href('/hangar.html', lang);
 const refineryHref = href('/refinery.html', lang);
 const confirmRedirect = loginHref + '?confirmed=1';
 ---
@@ -669,7 +669,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         <ul class="acx-favs favgrid" id="favList"></ul>
         <div id="favEmpty" hidden>
           <p class="acx-hint">{COPY.favsEmpty}</p>
-          <div class="acx-links"><a href={shipsHref}>{COPY.favsShips}</a></div>
+          <div class="acx-links"><a href={hangarHref}>{COPY.favsHangar}</a></div>
         </div>
       </section>
 

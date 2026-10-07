@@ -1,9 +1,10 @@
-// VerseBase account-lite — Session-Anzeige + Favoriten für ALLE Seiten
-// außerhalb von /account/ (dort läuft das volle supabase-js).
+// VerseBase account-lite — Session-Anzeige für ALLE Seiten außerhalb von
+// /account/ (dort läuft das volle supabase-js).
 // Bewusst SDK-frei (~4 KB): liest die supabase-js-Session aus localStorage,
 // refresht sie bei Bedarf über die Auth-REST-API im selben Speicherformat und
-// spricht Favoriten direkt über PostgREST an. RLS schützt die Daten; der
-// Publishable Key ist öffentlich.
+// reicht Session + PostgREST-Aufruf an Seiten-Skripte weiter (VBAccount). Die
+// Schiffs-Favoriten (die Flotte) bedient assets/fleet.js. RLS schützt die
+// Daten; der Publishable Key ist öffentlich.
 (function () {
   'use strict';
   var SB_URL = 'https://trgjhmbnodoarnfmlcqx.supabase.co';
@@ -132,79 +133,6 @@
       .catch(function () { return null; });
   }
 
-  // ---- Favoriten-Buttons ([data-fav]) --------------------------------------
-  function initFavs(sess) {
-    var btns = document.querySelectorAll('[data-fav]');
-    if (!btns.length) return;
-
-    function paint(btn, on) {
-      btn.classList.toggle('is-fav', on);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      var lbl = btn.getAttribute(on ? 'data-fav-on' : 'data-fav-off');
-      var txt = btn.querySelector('.js-fav-txt');
-      if (txt && lbl) txt.textContent = lbl;
-    }
-
-    if (!sess) {
-      for (var i = 0; i < btns.length; i++) {
-        (function (btn) {
-          paint(btn, false);
-          btn.addEventListener('click', function () {
-            location.href = window.VBAccount.loginHref();
-          });
-        })(btns[i]);
-      }
-      return;
-    }
-
-    for (var j = 0; j < btns.length; j++) {
-      (function (btn) {
-        var kind = btn.getAttribute('data-fav-kind');
-        var slug = btn.getAttribute('data-fav-slug');
-        var label = btn.getAttribute('data-fav-label') || slug;
-        var q = 'favorites?select=id&kind=eq.' + encodeURIComponent(kind) + '&slug=eq.' + encodeURIComponent(slug);
-        var favId = null;
-        var busy = false;
-        // Hat der User schon geklickt? Dann darf das (evtl. langsamere) initiale
-        // GET den vom Klick gesetzten Zustand NICHT mehr überschreiben — sonst
-        // zeigte der Stern nach einem schnellen Klick den falschen Zustand.
-        var touched = false;
-
-        rest(sess, 'GET', q)
-          .then(function (r) { return r.ok ? r.json() : []; })
-          .then(function (rows) {
-            if (touched) return;
-            favId = rows && rows.length ? rows[0].id : null;
-            paint(btn, !!favId);
-          })
-          .catch(function () { if (!touched) paint(btn, false); });
-
-        btn.addEventListener('click', function () {
-          if (busy) return;
-          touched = true;
-          busy = true;
-          ensureSession().then(function (s) {
-            if (!s) { busy = false; return; }
-            if (favId) {
-              rest(s, 'DELETE', 'favorites?id=eq.' + favId)
-                .then(function (r) { if (r.ok) { favId = null; paint(btn, false); } })
-                .finally(function () { busy = false; });
-            } else {
-              rest(s, 'POST', 'favorites', { kind: kind, slug: slug, label: label })
-                .then(function (r) {
-                  if (r.ok || r.status === 409) {
-                    return rest(s, 'GET', q).then(function (r2) { return r2.ok ? r2.json() : []; })
-                      .then(function (rows) { favId = rows && rows.length ? rows[0].id : null; paint(btn, !!favId); });
-                  }
-                })
-                .finally(function () { busy = false; });
-            }
-          });
-        });
-      })(btns[j]);
-    }
-  }
-
   // ---- Rollen-basierter Zugriffs-Guard (user_roles Tabelle) ----------------
   // Fragt die user_roles Tabelle via PostgREST ab und cached das Ergebnis
   // fuer die Dauer der Session im sessionStorage.
@@ -312,7 +240,6 @@
   function boot() {
     ensureSession().then(function (sess) {
       paintNav(sess);
-      initFavs(sess);
 
       if (sess) {
         startHeartbeat();
