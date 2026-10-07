@@ -10,6 +10,10 @@ import { createHash } from 'node:crypto';
 const patches = await getCollection('patches');
 const patchCount = patches.length;
 const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
+// Spanne aus dem Bestand statt von Hand: Titel und Beschreibung standen bis
+// 07.10.2026 noch auf "4.0 bis 4.9", zwei Patches nach 4.9.
+const latest = [...patches].sort((a, b) => a.data.date.localeCompare(b.data.date)).at(-1)!.data;
+const latestMinor = latest.version.split('.').slice(0, 2).join('.');
 
 // Cache-Bust für /assets/archive.css: feste URL, sonst liefert das CDN nach
 // einem Deploy bis zu 1 Tag die ALTE Datei aus (siehe SiteNav/account-lite.js).
@@ -20,8 +24,8 @@ try {
 ---
 
 <Layout
-  title="Star Citizen Patch Archive — Alpha 4.0 to 4.9 | VerseBase"
-  description={`The complete Star Citizen patch archive of the Alpha 4 era: ${patchCount} patches from Destination Pyro (4.0.0) to Frontier Tensions (4.9.0), with ${topicCount} topic deep dives.`}
+  title={`Star Citizen Patch Archive — Alpha 4.0 to ${latestMinor} | VerseBase`}
+  description={`The complete Star Citizen patch archive of the Alpha 4 era: ${patchCount} patches from Destination Pyro (4.0.0) to ${latest.codename} (${latest.version}), with ${topicCount} topic deep dives.`}
   themeColor="#04060e"
   footer={true}
   translated={true}

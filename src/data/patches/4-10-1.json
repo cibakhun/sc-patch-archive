@@ -1,0 +1,259 @@
+{
+  "version": "4.10.1",
+  "codename": "Orison Relief Support",
+  "date": "2026-09-16",
+  "dateDisplay": "16. September 2026",
+  "notesUrl": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21330-Star-Citizen-Alpha-4101",
+  "era": "Frontier",
+  "type": "point",
+  "tagline": "Crusader zahlt für den Wiederaufbau von Orison, Bodenfahrzeuge bekommen den Soft Death, und die Sabre Raven EX hebt ab.",
+  "heroImage": "/assets/trailer-4-10-1.jpg",
+  "summary": "Alpha 4.10.1 räumt nach dem Angriff der Nine Tails auf: Mit „Orison Relief Support\" bezahlt Crusader Industries jeden, der beim Wiederaufbau hilft — vier Auftraggeber, Rohstoffe, Sanitätsmaterial, ein gefertigtes Triebwerksteil und Gegenschläge gegen die Nine Tails. Jeder erledigte Auftrag füllt eine persönliche Fortschrittsleiste mit sechs Belohnungen in der Ausführung „SecondWind\", die als fertige Gegenstände aufs Konto gehen. Bodenfahrzeuge können jetzt wie Schiffe außer Gefecht gesetzt werden, statt sofort zu explodieren; Beute von Kreaturen und Pflanzen kommt in Qualitätsstufen, und Mündungsaufsätze tauchen im allgemeinen Beutepool auf. Neu fliegbar ist die Aegis Sabre Raven EX mit eingebautem Quantum-Dämpfer. Der Rest ist Reparatur: 37 geschlossene Fehler, darunter graue ASOP-Knöpfe, hängende Lastenaufzüge und eine Drake Clipper, deren Hülle kaum Schaden nahm. Spielwerte bestehender Waffen, Rüstungen und Komponenten bleiben unverändert.",
+  "palette": {
+    "bg": "#0f171d",
+    "accent": "#5fb6e0",
+    "accent2": "#f0c44c",
+    "warm": false
+  },
+  "keyFacts": [
+    {
+      "label": "Orison Relief Support",
+      "value": "Zeitlich begrenzt bis 4.10.2 — vier Auftraggeber, eine persönliche Fortschrittsleiste"
+    },
+    {
+      "label": "Belohnungen",
+      "value": "Sechs Teile „SecondWind\" — drei Waffen, drei Panzerungen, als fertige Gegenstände"
+    },
+    {
+      "label": "Neues Schiff",
+      "value": "Aegis Sabre Raven EX — mittlerer Jäger mit eingebautem Quantum-Dämpfer"
+    },
+    {
+      "label": "Bodenfahrzeuge",
+      "value": "Soft Death: außer Gefecht statt sofort zerstört"
+    },
+    {
+      "label": "Drake Clipper",
+      "value": "Hülle nimmt wieder Schaden — Hüllen-HP 26.350 → 31.551"
+    },
+    {
+      "label": "Fehlerbehebungen",
+      "value": "37 geschlossen (16 aus dem Issue Council), dazu 26 Hotfixes seit 4.10.0"
+    },
+    {
+      "label": "Persistenz",
+      "value": "Long Term Persistence erhalten · Startkapital 20.000 aUEC"
+    }
+  ],
+  "features": [
+    {
+      "name": "Orison Relief Support",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Crusader Industries finanziert den Wiederaufbau der Wolkenstadt nach dem Angriff der Nine Tails. Die Aufträge kommen von vier Anbietern: Cornerstone Developments für den Wiederaufbau, Covalex und Ling für die Sanitätsversorgung, Foxwell für die Sicherheit. Jeder erledigte Auftrag zählt auf eine persönliche Fortschrittsleiste; wer eine Schwelle überschreitet, bekommt die nächste Belohnung direkt aufs Konto. Punkte aus einem Gruppenauftrag werden unter den Mitgliedern aufgeteilt.",
+      "facts": [
+        {
+          "label": "Laufzeit",
+          "value": "Ab 16. September 2026 bis zur Veröffentlichung von 4.10.2"
+        },
+        {
+          "label": "Auftraggeber",
+          "value": "Cornerstone Developments · Covalex · Ling · Foxwell"
+        },
+        {
+          "label": "Belohnungen",
+          "value": "Sechs Stufen, als fertige Gegenstände — keine Baupläne"
+        }
+      ]
+    },
+    {
+      "name": "Wiederaufbau, Sanität, Sicherheit",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Cornerstone lässt Rohstoffe nach Orison und Seraphim bringen und vergibt eine Fertigungslinie rund um das TH-01-Triebwerk. Covalex und Ling holen Sanitätsmaterial und Iod aus New Babbage, von den Dächern New Babbages und von Port Tressler und liefern es nach Orison, auf Orisons Dächer und nach Seraphim. Foxwell schickt in den Raum — Hinterhalte auf Schiffe und Wellenangriffe — und zu Fuß gegen besetzte Nine-Tails-Außenposten.",
+      "facts": [
+        {
+          "label": "Wiederaufbau",
+          "value": "Cornerstone Developments — Rohstoffe, TH-01-Fertigung"
+        },
+        {
+          "label": "Sanität",
+          "value": "Covalex · Ling — New Babbage, Port Tressler → Orison, Seraphim"
+        },
+        {
+          "label": "Sicherheit",
+          "value": "Foxwell — Hinterhalt, Wellenangriff, Außenposten räumen"
+        }
+      ]
+    },
+    {
+      "name": "TH-01-Triebwerk aus der Werkbank",
+      "system": "Crafting",
+      "kind": "gameplay",
+      "desc": "Die Fertigungsaufträge verlangen einen Gegenstandsfabrikator. Der Bauplan für das TH-01-Triebwerk hängt am Auftrag und steht am Terminal des Fabrikators samt Materialliste. Wer noch keinen besitzt, kauft ihn im Laden, holt ihn am Lastenaufzug ab und stellt ihn im Hangar oder im Frachtraum eines Schiffs auf.",
+      "facts": [
+        {
+          "label": "Material",
+          "value": "Aluminium, 0,05 SCU"
+        },
+        {
+          "label": "Mindestqualität",
+          "value": "600"
+        }
+      ]
+    },
+    {
+      "name": "„SecondWind\"-Belohnungen",
+      "system": "Waffen & Ausrüstung",
+      "kind": "gameplay",
+      "desc": "Die Fortschrittsleiste schaltet sechs Belohnungen in fester Reihenfolge frei, abwechselnd Waffe und Panzerung, von leicht nach schwer. Sie werden als fertige Gegenstände gutgeschrieben, nicht als Baupläne.",
+      "facts": [
+        {
+          "label": "Waffen",
+          "value": "S-38-Pistole · P4-AR-Gewehr · Lumin-V-Maschinenpistole"
+        },
+        {
+          "label": "Panzerung",
+          "value": "FBL-8a leicht · ORC-mkX mittel · ADP-mk4 schwer"
+        }
+      ]
+    },
+    {
+      "name": "Soft Death für Bodenfahrzeuge",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Bodenfahrzeuge hatten bisher keinen Zwischenzustand — sie gingen direkt von einsatzbereit zu zerstört. Jetzt bleibt ein außer Gefecht gesetztes Fahrzeug wie ein Schiff funktionsunfähig stehen, statt sofort zerstört zu werden."
+    },
+    {
+      "name": "Aegis Sabre Raven EX",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Eine Sondervariante der Sabre Raven: etwas mehr Hülle, etwas weniger Tempo, dazu ein Quantum-Dämpfer auf dem Rücken, der Gegner am Quantum-Sprung hindert. Der Dämpfer heißt „Vertine QD\", stammt von Wei-Tek und ist eigens für dieses Schiff gebaut. Dazu kommen vier neue Sabre-Lackierungen.",
+      "facts": [
+        {
+          "label": "Rolle",
+          "value": "Mittlerer Jäger · Größe 2 · eine Person"
+        },
+        {
+          "label": "Hüllen-HP",
+          "value": "13.116 (Sabre Raven: 12.516)"
+        },
+        {
+          "label": "SCM / Höchstgeschwindigkeit",
+          "value": "233 / 1.320 m/s (Sabre Raven: 240 / 1.400 m/s)"
+        },
+        {
+          "label": "Quantum-Dämpfer",
+          "value": "Vertine QD · Wei-Tek · Größe 2 · Reichweite 4.750 m"
+        },
+        {
+          "label": "Lackierungen",
+          "value": "Beyond · Blue Steel · Darkshade · Tribunal"
+        }
+      ]
+    },
+    {
+      "name": "Beute in Qualitätsstufen",
+      "system": "KI & Kreaturen",
+      "kind": "gameplay",
+      "desc": "Was Kreaturen und Pflanzen hergeben, kommt jetzt in abgestuften Qualitätsklassen. Abgedeckt sind Kopion-Hörner, Marok-Perlen, Valakkar-Zähne und -Perlen, Yormandi-Augen, Quasigrazer-Eier und -Zungen, Eier des Gasping Weevil und Ranta-Dung, dazu Pflanzen wie Spiral Fruit, Sunset Berries, Jumping Limes, Degnous Root und Heart of the Woods."
+    },
+    {
+      "name": "Mündungsaufsätze im Beutepool",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Kompensatoren und Stabilisatoren in allen drei Größen liegen jetzt im allgemeinen Beutepool statt nur an wenigen Quellen. Dazu kommt die Korrektur, dass Waffenaufsätze an den Distribution-Center-Fundorten ganz fehlten."
+    },
+    {
+      "name": "Fracht auf mehrere Abholorte verteilt",
+      "system": "Cargo & Logistik",
+      "kind": "balance",
+      "desc": "Aufträge mit mehreren Abholpunkten verteilen die Ladung jetzt nach der SCU-Menge je Abholort. Vorher konnte die ganze Fracht in einem einzigen Lager liegen, obwohl der Auftrag mehrere Markierungen zeigte. Prozentwerte rechnen wieder richtig, ein Zählfehler um eins ist behoben, und eine ungleiche Zahl von Abhol- und Abgabeorten erzeugt keinen unlösbaren Auftrag mehr."
+    },
+    {
+      "name": "Drake Clipper nicht mehr fast unverwundbar",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Mehrere übereinanderliegende Kollisionsformen fingen den Beschuss ab, bevor er die Hülle erreichte — die Clipper war auf dem größten Teil ihrer Oberfläche praktisch unverwundbar. Die Dopplungen sind entfernt, die Türen an der Unterseite sind jetzt eigene beschädigbare Teile. Im Bestand steigen die Hüllen-HP von 26.350 auf 31.551.",
+      "facts": [
+        {
+          "label": "Hüllen-HP",
+          "value": "26.350 → 31.551"
+        }
+      ]
+    },
+    {
+      "name": "Quantum-Tank: Corsair und Lightning",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Nicht in den Notes, aber im Bestand: Die Drake Corsair fasst nur noch halb so viel Quantum-Treibstoff, ihre Reichweite halbiert sich mit. Die Anvil Lightning F8 bekommt etwas mehr, und für F8C sowie F8C Executive Edition steht jetzt derselbe Wert im Bestand.",
+      "facts": [
+        {
+          "label": "Corsair",
+          "value": "16,2 → 8,1 SCU Quantum-Treibstoff"
+        },
+        {
+          "label": "Lightning F8",
+          "value": "0,7 → 0,9 SCU"
+        },
+        {
+          "label": "F8C · F8C Executive",
+          "value": "0,9 SCU (vorher ohne Wert)"
+        }
+      ]
+    },
+    {
+      "name": "Neue Ausführungen im Katalog",
+      "system": "Items",
+      "kind": "qol",
+      "desc": "21 neue Gegenstände mit Spielwerten, überwiegend Ausführungen bekannter Modelle. Die „Akuma\"-Reihe: A03-Scharfschützengewehr, LH86-Pistole, P8-AR-Gewehr, Artimex-Arme und -Beine, Shogun-Kiba-Helm, eine Cutlass-Lackierung und der CF-999-Repetierer, gebaut für den ATLS GEO IKTI Akuma. Die „Streamline\"-Reihe: Demeco-MG, Monde-Panzerung, Warden-Rucksack und eine Aurora-Mk-II-Lackierung. Dazu die „Skullcap\"-Ausführung des CQ7. Die neuen Ausführungen von A03, LH86, P8-AR und Demeco tragen exakt die Werte ihrer Grundmodelle.",
+      "facts": [
+        {
+          "label": "Bestand",
+          "value": "9.222 Einträge (vorher 9.201)"
+        },
+        {
+          "label": "Geänderte Spielwerte",
+          "value": "Keine — weder Waffen noch Panzerung noch Komponenten"
+        }
+      ]
+    },
+    {
+      "name": "Hangar, ASOP und Lastenaufzug",
+      "system": "Hangars & Persistenz",
+      "kind": "qol",
+      "desc": "Ein im Hangar gelandetes Fahrzeug wurde nicht zuverlässig verstaut, wenn der Hangar weggeräumt oder entladen wurde — der Grund für graue Abruf-Knöpfe am ASOP-Terminal und Schiffe, die auf „wird eingelagert\" hängen blieben. Lastenaufzüge bleiben bei voller Auslastung nicht mehr im Transfer stecken."
+    },
+    {
+      "name": "Sternkarte und Flugsicherung",
+      "system": "UI & Komfort",
+      "kind": "qol",
+      "desc": "Die Sternkarte plant wieder Routen um Hindernisse herum, auch um Stantons Stern und um die Station, in der man gerade steht. Die Taste für Lande- und Startfreigabe erreicht die Flugsicherung wieder in denselben Fällen wie der Funkruf."
+    },
+    {
+      "name": "Orison und Pyro",
+      "system": "Sternsysteme",
+      "kind": "location",
+      "desc": "In ganz Orison fehlten die Waffenstillstandszonen — die Stadt hatte keine Waffenbeschränkung. Sie greifen wieder. Im Lazarus-Komplex in Pyro setzt das Nest des verstrahlten Valakkar-Eis jetzt in einem deutlich kürzeren Takt zurück, sodass das Ei beim Eintreffen meist da ist."
+    }
+  ],
+  "ships": [
+    {
+      "name": "Sabre Raven EX",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Mittlerer Jäger",
+      "status": "fliegbar",
+      "notes": "Sondervariante der Sabre Raven mit eingebautem Quantum-Dämpfer (Vertine QD)"
+    }
+  ],
+  "events": [
+    {
+      "name": "Orison Relief Support",
+      "desc": "Wiederaufbau-Kampagne von Crusader Industries mit vier Auftraggebern und sechs „SecondWind\"-Belohnungen auf einer persönlichen Fortschrittsleiste.",
+      "period": "16.09.2026 bis 4.10.2"
+    }
+  ],
+  "fixesNote": "37 geschlossene Fehler (16 aus dem Issue Council, 3 Client- und 2 Server-Abstürze), dazu 26 Hotfixes, die seit dem Start von 4.10.0 nachgeliefert wurden.",
+  "wipe": "Kein Wipe — Long Term Persistence bleibt erhalten, Startkapital 20.000 aUEC.",
+  "topics": []
+}

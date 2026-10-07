@@ -32,7 +32,7 @@
         dist/de.html) muessen die Zaehlungen von Umschalter-Klasse,
         Effekt-Attribut (data-fx) und Ereignisname (vbfxchange)
         paarweise UEBEREINSTIMMEN.
-     7  Genau 40 gebaute Patch-Seiten (20 je Sprache, unter einem
+     7  Genau 42 gebaute Patch-Seiten (21 je Sprache, unter einem
         patches/-Ordner mit Dateinamen sc-*.html) enthalten den
         Ereignisnamen.
 
@@ -173,16 +173,17 @@ console.log('\n[6] Sprachparitaet EN<->DE (Umschalter-Klasse, data-fx, Ereignisn
   }
 }
 
-/* ---- Zusicherung 7: exakt 40 Patch-Seiten mit dem Ereignisnamen ----
-   27.08.2026: 4.10.0 „Siege of Orison“ kam als 20. Patch dazu (DE+EN). */
-console.log('\n[7] Genau 40 gebaute Patch-Seiten (20 je Sprache) enthalten den Ereignisnamen');
+/* ---- Zusicherung 7: exakt 42 Patch-Seiten mit dem Ereignisnamen ----
+   27.08.2026: 4.10.0 „Siege of Orison“ kam als 20. Patch dazu (DE+EN).
+   07.10.2026: 4.10.1 „Orison Relief Support“ kam als 21. Patch dazu (DE+EN). */
+console.log('\n[7] Genau 42 gebaute Patch-Seiten (21 je Sprache) enthalten den Ereignisnamen');
 {
   const patchFiles = htmlFiles.filter((f) => /\/patches\/sc-[^/]+\.html$/.test(f));
   const withEvent = patchFiles.filter((f) => htmlCache.get(f).includes(EVENT));
   console.log(
-    `    Patch-Seiten gesamt: ${patchFiles.length}   mit ${EVENT}: ${withEvent.length}   Soll: 40   Ist: ${withEvent.length}`
+    `    Patch-Seiten gesamt: ${patchFiles.length}   mit ${EVENT}: ${withEvent.length}   Soll: 42   Ist: ${withEvent.length}`
   );
-  if (withEvent.length !== 40) fail(`Erwartet genau 40 Patch-Seiten mit ${EVENT}, gefunden ${withEvent.length}`);
+  if (withEvent.length !== 42) fail(`Erwartet genau 42 Patch-Seiten mit ${EVENT}, gefunden ${withEvent.length}`);
 }
 
 console.log(`\nverify-fx: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);
