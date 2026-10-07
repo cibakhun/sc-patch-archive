@@ -22,7 +22,7 @@ import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
-import { hullLeaks } from './lib/hall-hull.mjs';
+import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -614,7 +614,12 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
-  const hull = kind === 'hall' && HALL_ROOM[name] ? hullLeaks(written, HALL_ROOM[name]) : null;
+  // Halle: Dichtheit der Hülle und Bodenhöhe (der Viewer lotet sie sonst
+  // beim Laden selbst nach), beides gegen das geschriebene GLB
+  const room = kind === 'hall' ? HALL_ROOM[name] : null;
+  const rc = room ? hallRaycaster(written) : null;
+  const hull = room ? hullLeaks(written, room, { rc }) : null;
+  const floor = room ? floorLevel(written, room, { rc }) : null;
   // Version deckt die Lampenliste mit ab: der Viewer lädt sie mit demselben ?v=
   const hash = createHash('sha1').update(readFileSync(outPath));
   const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
@@ -629,6 +634,7 @@ async function buildOne(kind, name, inPath) {
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     ...(hull ? { hull } : {}),
+    ...(floor != null ? { floor } : {}),
     bytes: statSync(outPath).size,
   };
 }

@@ -51,3 +51,23 @@ export function hullLeaks(doc, room, { dirs = 1500, reach = 400, rc = hallRaycas
   }
   return { rays, escaped, pct: Math.round((escaped / rays) * 10000) / 100, walls };
 }
+
+/**
+ * Höhe des begehbaren Bodens im glTF-Raum der Halle: Median der Treffer
+ * senkrecht nach unten aus 3 m über der Raummitte an sieben Punkten, wie der
+ * Viewer es sonst beim Laden selbst lotet (dort kostete das bei 700 000
+ * Dreiecken spürbar Zeit, darum steht die Höhe jetzt im Manifest).
+ * null, wenn weniger als drei Punkte Boden finden.
+ */
+export function floorLevel(doc, room, { rc = hallRaycaster(doc) } = {}) {
+  const [cx, cy, cz] = room.center, ys = [];
+  // fast senkrecht: eine Komponente von genau 0 ergäbe im Quadertest 0 · ∞
+  const n = Math.hypot(1e-6, 1, 1e-6), d = [1e-6 / n, -1 / n, 1e-6 / n];
+  for (const [x, z] of [[0, 0], [6, 4], [-6, -4], [4, -8], [-8, 6], [10, 10], [-10, -10]]) {
+    const hit = rc.ray([cx + x, cy + 3, cz + z], d, 60);
+    if (hit) ys.push(cy + 3 + hit.t * d[1]);
+  }
+  if (ys.length < 3) return null;
+  ys.sort((a, b) => a - b);
+  return Math.round(ys[Math.floor(ys.length / 2)] * 1000) / 1000;
+}
