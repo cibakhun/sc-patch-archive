@@ -23,6 +23,7 @@ import {
   shipVideo, shipLocalVideo, shipGallery,
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
+import { patchesFor } from '../lib/patchSpine';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
@@ -87,9 +88,9 @@ const paints = extras?.paints ?? [];
 const variants = (extras?.variants ?? []).filter((v) => v.id !== id);
 const loaners = (extras?.loaners ?? []).filter((v) => v.id !== id);
 
-// patch-spine: version -> codename/page
+// patch-spine: version -> codename/page (zur Bauzeit aus src/data/patches/, src/lib/patchSpine.ts)
 const patches = await getCollection('patches');
-const spine = d.patches
+const spine = patchesFor(d.name)
   .map((v) => patches.find((p) => p.data.version === v))
   .filter(Boolean);
 
