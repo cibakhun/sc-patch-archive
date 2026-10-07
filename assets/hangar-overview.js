@@ -178,16 +178,52 @@ export function fleetSummary(ids, ships) {
  * @returns {{ value: string, delta: string|null, tone: 'up'|'down'|'flat'|null }}
  */
 export function compareCell(value, base, row, loc) {
-  const p = 10 ** row.digits;
-  const round = (x) => Math.round(x * p) / p;
-  const withUnit = (s) => (row.unit ? `${s} ${row.unit}` : s);
-  const out = { value: value == null ? '–' : withUnit(new Intl.NumberFormat(loc).format(round(value))), delta: null, tone: null };
+  const out = { value: figureText(value, row, loc), delta: null, tone: null };
   if (value == null || base == null) return out;
-  const d = round(value - base);
+  const d = roundTo(value - base, row.digits);
   if (d === 0) return out;
-  out.delta = withUnit(new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d));
+  out.delta = withUnit(new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d), row.unit);
   out.tone = row.better === 0 ? 'flat' : Math.sign(d) === row.better ? 'up' : 'down';
   return out;
+}
+
+const roundTo = (x, digits) => Math.round(x * 10 ** digits) / 10 ** digits;
+const withUnit = (s, unit) => (unit ? `${s} ${unit}` : s);
+
+/**
+ * Ein Kennwert in Genauigkeit und Einheit des Verzeichnisses, wie die Tafel
+ * ihn druckt (src/lib/hangar/catalog.ts formatStat); unbekannt ist der Strich.
+ *   figureText(29760, { digits: 0, unit: 'HP' }, 'de-DE') === '29.760 HP'
+ * @param {number|null} x @param {{ digits: number, unit: string }} row @param {string} loc
+ */
+export function figureText(x, row, loc) {
+  return x == null ? '–' : withUnit(new Intl.NumberFormat(loc).format(roundTo(x, row.digits)), row.unit);
+}
+
+/**
+ * Reihenfolge des Docks. 'name' ist die gebaute Namensfolge; ein Kennwert
+ * sortiert absteigend, Schiffe ohne den Wert ans Ende, Gleichstand in
+ * Namensfolge.
+ *   dockOrder([{ id: 'a', stat: { cargo: 46 } }, { id: 'b', stat: { cargo: null } }, { id: 'c', stat: { cargo: 96 } }], 'cargo')
+ *   -> ['c', 'a', 'b']
+ * @param {ReadonlyArray<{ id: string, stat: Record<string, number|null> }>} ships  in Namensfolge
+ * @param {string} key @returns {string[]}
+ */
+export function dockOrder(ships, key) {
+  const rows = ships.map((s, i) => ({ id: s.id, i, v: key === 'name' ? null : s.stat[key] ?? null }));
+  if (key !== 'name') rows.sort((a, b) => (a.v === null) - (b.v === null) || (b.v ?? 0) - (a.v ?? 0) || a.i - b.i);
+  return rows.map((r) => r.id);
+}
+
+/**
+ * Zufallsschiff unter den sichtbaren Karten, nie das gezeigte; null, wenn
+ * kein anderes sichtbar ist. rnd liefert [0, 1), wie Math.random.
+ * @param {readonly string[]} ids @param {string} current @param {() => number} [rnd]
+ * @returns {string|null}
+ */
+export function pickRandom(ids, current, rnd = Math.random) {
+  const pool = ids.filter((id) => id !== current);
+  return pool.length ? pool[Math.floor(rnd() * pool.length)] : null;
 }
 
 // ---------------------------------------------------------------- die Seite
@@ -215,7 +251,7 @@ export function boot(doc) {
     ids: new Set(items.map((li) => li.dataset.id)),
     defaultShip: main.dataset.defaultShip,
     tabs: tabs.map((b) => b.dataset.tab),
-    sorts: strip.dataset.sorts.split(' '),
+    sorts: [...$('hgx-sort').options].map((o) => o.value),
     types: new Set([...$('hg-type').options].map((o) => o.value).filter(Boolean)),
     makers: new Set([...$('hg-maker-f').options].map((o) => o.value).filter(Boolean)),
   };
@@ -224,6 +260,7 @@ export function boot(doc) {
   // einmal gelesen, danach nur noch diese Abbildung.
   const statKeys = strip.dataset.stats.split(' ');
   const dock = new Map(items.map((li) => [li.dataset.id, {
+    id: li.dataset.id,
     li,
     name: li.querySelector('.hg-card span').textContent,
     fam: li.dataset.fam ? li.dataset.fam.split(' ') : [],
@@ -270,7 +307,9 @@ export function boot(doc) {
       if (prev.tab !== state.tab || prev.hp !== state.hp) applyHp();
     }
     if (prev.fleetOnly !== state.fleetOnly) paintFleetFilter();
+    if (prev.sort !== state.sort) applySort();
     if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) applyDock();
+    else if (prev.ship !== state.ship) paintRandom();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
@@ -518,7 +557,8 @@ export function boot(doc) {
 
   // -------------------------------------------------------------- Dock
   const cardOf = (id) => strip.querySelector(`.hg-card[data-id="${CSS.escape(id)}"]`);
-  const visibleIds = () => items.filter((li) => !li.hidden).map((li) => li.dataset.id);
+  // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
+  const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);
 
   function markCards(id) {
     for (const a of strip.querySelectorAll('.hg-card')) a.setAttribute('aria-current', a.dataset.id === id ? 'true' : 'false');
@@ -552,11 +592,36 @@ export function boot(doc) {
     const noFleet = state.fleetOnly && fleetSummary(fleetIds, dock).n === 0;
     $('hgx-empty-fleet').hidden = !noFleet;
     $('hg-empty').hidden = n > 0 || noFleet;
+    paintRandom();
   }
+
+  // Die Karten wandern im DOM; nach einem Kennwert sortiert, traegt jede
+  // ihren Wert (data-sv), damit die Folge sich selbst erklaert.
+  function applySort() {
+    const key = state.sort;
+    const row = key === 'name' ? null : rowOf.get(key);
+    strip.append(...dockOrder(items.map((li) => dock.get(li.dataset.id)), key).map((id) => dock.get(id).li));
+    for (const s of dock.values()) {
+      const v = row ? s.stat[key] : null;
+      if (v == null) delete s.li.firstElementChild.dataset.sv;
+      else s.li.firstElementChild.dataset.sv = figureText(v, row, loc);
+    }
+    scrollToCard(state.ship, 'auto');
+  }
+
+  function paintRandom() {
+    $('hgx-random').disabled = !visibleIds().some((id) => id !== state.ship);
+  }
+  $('hgx-random').addEventListener('click', () => {
+    const id = pickRandom(visibleIds(), state.ship);
+    if (id) select(id);
+  });
+
   function syncControls() {
     $('hg-q').value = state.q;
     $('hg-type').value = state.type;
     $('hg-maker-f').value = state.maker;
+    $('hgx-sort').value = state.sort;
   }
 
   strip.addEventListener('click', (e) => {
@@ -570,6 +635,7 @@ export function boot(doc) {
   $('hg-q').addEventListener('input', () => setState({ q: $('hg-q').value }));
   $('hg-type').addEventListener('change', () => setState({ type: $('hg-type').value }));
   $('hg-maker-f').addEventListener('change', () => setState({ maker: $('hg-maker-f').value }));
+  $('hgx-sort').addEventListener('change', () => setState({ sort: $('hgx-sort').value }));
 
   // Pfeiltasten wechseln das Schiff nur, wenn der Fokus auf der Seite, der
   // Buehne oder einer Dock-Karte liegt (Graft 7): jedes Bedienelement, das
@@ -682,6 +748,9 @@ export function boot(doc) {
   const trayMsg = $('hgx-tray-msg');
   const dlg = $('hgx-cmp');
   const cmpTable = $('hgx-cmp-table');
+  // Einheit, Stellen und Richtung je Kennwert, gebaut an den Zeilen der Tabelle;
+  // die Werte auf den sortierten Dock-Karten lesen dieselben.
+  const rowOf = new Map([...cmpTable.tBodies[0].rows].map((tr) => [tr.dataset.k, { digits: Number(tr.dataset.d), unit: tr.dataset.u, better: Number(tr.dataset.better) }]));
   let carry = null;
   let opener = null;
 
@@ -725,7 +794,7 @@ export function boot(doc) {
     }
     for (const tr of cmpTable.tBodies[0].rows) {
       while (tr.cells.length > 1) tr.deleteCell(-1);
-      const row = { digits: Number(tr.dataset.d), unit: tr.dataset.u, better: Number(tr.dataset.better) };
+      const row = rowOf.get(tr.dataset.k);
       const b = dock.get(base).stat[tr.dataset.k];
       for (const id of state.cmp) {
         const c = compareCell(dock.get(id).stat[tr.dataset.k], id === base ? null : b, row, loc);
@@ -885,6 +954,7 @@ export function boot(doc) {
   else window.addEventListener('vb-fleet-ready', () => window.VBFleet.subscribe(onFleet), { once: true });
   paintTray();
   if (state.view === 'compare') paintView();
+  if (state.sort !== ctx.sorts[0]) applySort();
   applyDock();
   scrollToCard(state.ship, 'auto');
   if (state.ship !== ctx.defaultShip) showShip(state.ship);

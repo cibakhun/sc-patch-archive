@@ -35,8 +35,6 @@ const types = [...new Map(ships.filter((s) => s.typeKey).map((s) => [s.typeKey, 
   .sort((a, b) => a.label.localeCompare(b.label, loc));
 const makers = [...new Set(ships.map((s) => s.maker).filter(Boolean))].sort((a, b) => a.localeCompare(b, loc));
 const bay = buildBay(HANGAR_DEFAULT_SHIP, lang);
-// Gueltige Sortierschluessel fuer den URL-Zustand, aus dem Kennwert-Verzeichnis.
-const sorts = ['name', ...STATS.filter((s) => s.sortable).map((s) => s.key)].join(' ');
 const count = t(new Intl.PluralRules(loc).select(ships.length) === 'one' ? 'msg.count.one' : 'msg.count.other', { n: ships.length.toLocaleString(loc) });
 const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overview.js');
 // defer wie account-lite.js in SiteNav: verzoegerte Skripte laufen in
@@ -215,6 +213,9 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hgx-chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .hg-strip li.is-fleet .hg-card::after{content:"★";position:absolute;top:.3rem;right:.45rem;color:var(--accent);font-size:var(--fs-8);line-height:1;text-shadow:0 1px 3px var(--bg)}
 .hg-strip li.is-fleet .hg-card small{max-width:calc(100% - 2.2rem)}
+.hgx-chip:disabled{opacity:.5;cursor:default;border-color:var(--line)}
+/* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert ueber dem Namen. */
+.hg-card[data-sv]::before{content:attr(data-sv);position:absolute;right:.45rem;bottom:1.85rem;z-index:1;padding:.05rem .35rem;border-radius:2px;background:color-mix(in srgb,var(--bg) 80%,transparent);color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* Flache Fenster (1280x720): Ueberblick und Datenblatt-Knopf passen ohne
    Bildlauf in die Buehne. */
@@ -354,16 +355,25 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         <option value="">{t('dock.makerAll')}</option>
         {makers.map((m) => <option value={m}>{m}</option>)}
       </select>
+      {/* Aus dem Kennwert-Verzeichnis; die Optionen sind zugleich die gueltigen Werte von ?sort=. */}
+      <select id="hgx-sort" aria-label={t('dock.sort')}>
+        <option value="name">{t('dock.sortName')}</option>
+        {STATS.filter((s) => s.sortable).map((s) => <option value={s.key}>{t(`stat.${s.key}`)}</option>)}
+      </select>
       <button type="button" class="hgx-chip" id="hgx-fleetonly" aria-pressed="false">
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         <span>{t('dock.fleet')}</span> <span>(<span id="hgx-fleetn">0</span>)</span>
+      </button>
+      <button type="button" class="hgx-chip" id="hgx-random">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /><circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" /></svg>
+        <span>{t('dock.random')}</span>
       </button>
       <span class="hg-count" id="hg-count" aria-live="polite">{count}</span>
     </div>
     <div class="hg-rail">
       <button type="button" class="hg-arrow" id="hg-prev" aria-label={t('dock.prev')}>‹</button>
       {/* data-v: Kennwerte je Karte in der Folge von data-stats (catalog.ts dockFigures). */}
-      <ul class="hg-strip" id="hg-strip" data-sorts={sorts} data-stats={STATS.map((s) => s.key).join(' ')}>
+      <ul class="hg-strip" id="hg-strip" data-stats={STATS.map((s) => s.key).join(' ')}>
         {ships.map((s) => (
           <li data-id={s.id} data-t={s.typeKey} data-mk={s.maker} data-q={`${s.name} ${s.maker} ${s.makerCode}`.toLowerCase()} data-fam={s.families.join(' ')} data-v={dockFigures(s)}>
             {/* href = Datenblatt: ohne Skript (oder per Mittelklick) führt die Karte

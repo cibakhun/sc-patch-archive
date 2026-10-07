@@ -5,7 +5,7 @@
 // Import keine Seiteneffekte, die reinen Funktionen laufen direkt in node.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseState, serializeState, fillMessage, figuresOf, fleetSummary, compareCell } from '../../assets/hangar-overview.js';
+import { parseState, serializeState, fillMessage, figuresOf, fleetSummary, compareCell, figureText, dockOrder, pickRandom } from '../../assets/hangar-overview.js';
 
 const ctx = {
   ids: new Set(['aegs-gladius', 'anvl-arrow', 'drak-cutlass-black', 'rsi-aurora-mk2']),
@@ -97,6 +97,34 @@ describe('Hangar: Vergleichszellen', () => {
     assert.deepEqual(compareCell(1193, null, speed, 'en-US'), { value: '1,193 m/s', delta: null, tone: null });
     assert.deepEqual(compareCell(null, 1193, speed, 'en-US'), { value: '–', delta: null, tone: null });
     assert.deepEqual(compareCell(3, 3, { digits: 0, unit: '', better: 0 }, 'en-US'), { value: '3', delta: null, tone: null });
+  });
+});
+
+describe('Hangar: Sortierung und Zufallsschiff', () => {
+  const ships = [
+    { id: 'aegs-gladius', stat: { cargo: 0, scm: 226 } },
+    { id: 'anvl-arrow', stat: { cargo: null, scm: 229 } },
+    { id: 'drak-caterpillar', stat: { cargo: 576, scm: 155 } },
+    { id: 'drak-cutlass-black', stat: { cargo: 46, scm: 217 } },
+    { id: 'rsi-aurora-mk2', stat: { cargo: 46, scm: null } },
+  ];
+  test('Kennwerte absteigend, ohne Wert ans Ende, Gleichstand in Namensfolge; Name ist die gebaute Folge', () => {
+    assert.deepEqual(dockOrder(ships, 'cargo'), ['drak-caterpillar', 'drak-cutlass-black', 'rsi-aurora-mk2', 'aegs-gladius', 'anvl-arrow']);
+    assert.deepEqual(dockOrder(ships, 'scm'), ['anvl-arrow', 'aegs-gladius', 'drak-cutlass-black', 'drak-caterpillar', 'rsi-aurora-mk2']);
+    assert.deepEqual(dockOrder(ships, 'name'), ['aegs-gladius', 'anvl-arrow', 'drak-caterpillar', 'drak-cutlass-black', 'rsi-aurora-mk2']);
+  });
+
+  test('der Wert auf der Karte liest sich wie in der Tafel', () => {
+    assert.equal(figureText(576, { digits: 0, unit: 'SCU' }, 'de-DE'), '576 SCU');
+    assert.equal(figureText(1944.5, { digits: 1, unit: 'DPS' }, 'de-DE'), '1.944,5 DPS');
+    assert.equal(figureText(null, { digits: 0, unit: 'SCU' }, 'en-US'), '–');
+  });
+
+  test('das Zufallsschiff kommt aus den sichtbaren und ist nie das gezeigte', () => {
+    assert.equal(pickRandom(['a', 'b', 'c'], 'b', () => 0), 'a');
+    assert.equal(pickRandom(['a', 'b', 'c'], 'b', () => 0.99), 'c');
+    assert.equal(pickRandom(['b'], 'b', () => 0.5), null);
+    assert.equal(pickRandom([], 'b', () => 0.5), null);
   });
 });
 

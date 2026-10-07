@@ -144,6 +144,10 @@ const DE = {
   'cmp.worse': 'schlechter',
   'msg.cmp.open': '{n} Schiffe vergleichen',
   'msg.cmp.remove': '{name} aus dem Vergleich nehmen',
+  // Dock: Sortierung und Zufallsschiff
+  'dock.sort': 'Sortierung',
+  'dock.sortName': 'Name',
+  'dock.random': 'Zufallsschiff',
 } as const;
 
 export type HangarKey = keyof typeof DE;
@@ -270,13 +274,16 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'cmp.worse': 'worse',
   'msg.cmp.open': 'Compare {n} ships',
   'msg.cmp.remove': 'Remove {name} from the comparison',
+  'dock.sort': 'Sort order',
+  'dock.sortName': 'Name',
+  'dock.random': 'Random ship',
 };
 
 const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> = { de: DE, en: EN };
 
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname oder ein
 // Fachkürzel ist; jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];
