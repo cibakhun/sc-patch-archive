@@ -48,3 +48,45 @@ Auftrag für die PC-Sitzung (StarBreaker + Data.p4k, Schiene C). Gemessen an
   behandelt metal_grey als Stahl. Das passe ich an, wenn die echte Tönung kommt.
 - Build + Gate (normal und STAGING=1), committen und auf `claude/wot-hangar-hzs46w`
   pushen. Kein PR, kein Merge: die Sichtprüfung macht die Cloud.
+
+## Neubau 2026-10-07 nachmittags (Auslöser: „Halle neu bauen")
+
+### Befund aus der Cloud, gemessen am Artefakt `revelyork-single.glb` (#71)
+
+1. **Die UVs zerfallen beim Packen.** 80 % der Hallendreiecke haben keine
+   UV-Fläche mehr, 53 % sind sogar auf einen Punkt gefallen. Ursache: Draco
+   quantisiert TEXCOORD mit 12 Bit über den Bereich der ganzen Primitive, und
+   der liegt bei den Spiel-UVs bei −914…750. Ein Schritt ist damit ≈0,4 UV
+   breit. Deshalb zeigen Wände und Boden Schmiere und Streifen statt Textur.
+   Die Schiffe trifft es auch: Constellation 23 %, Aurora 28 %.
+   Synthetisch nachgestellt: 98,8 % kaputt vorher, 0 % nachher.
+2. **Die Dezimierung zerreißt die Halle.** Das Budget lag bei 320k Dreiecken
+   gegen 613k roh, und die Fehlerschwelle stieg bis 4 % (≈7 m). Daher die
+   Splitter und Zacken an Boden und Kanten (Normalen-Render zeigt sie in der
+   Geometrie).
+
+### Schon im Bauskript behoben (Cloud, dieser Branch)
+
+- `scripts/lib/uv-islands.mjs`: Jede UV-Insel wird um ganze Kacheln an den
+  Ursprung geschoben. Die Quantisierungsbits passen sich dem Rest-Bereich an
+  (12–24 Bit).
+- Halle: Budget 700k, also keine Dezimierung. Position mit 16 Bit.
+- Selbstauskunft je Modell: `UV: Bereich … -> …, N Bit, X % Dreiecke ohne
+  UV-Fläche`. Soll für die Halle unter 5 % liegen.
+
+### Auftrag PC
+
+1. `git pull` auf `claude/wot-hangar-hzs46w`.
+2. **Zweite Blendschicht mitnehmen**: Im Extraktor die Slots TexSlot9 (zweite
+   Farbe), TexSlot10/11 (zweite Normale/Glanz, falls vorhanden) und TexSlot12
+   (Blendmaske) der Hallen-`.mtl` dekodieren (mip 1), dazu deren `TexMod`
+   Kachelung und die PublicParams zur Mischung (BlendFactor, BlendFalloff,
+   Layer-2-Tiling o. ä., genau so wie in der .mtl benannt).
+3. Im Build die Schicht **in die Farbkarte (und Rauheit) einbacken**:
+   `mix(grund, schicht2 gekachelt, smoothstep(maske, Faktor, Falloff))`, in der
+   Auflösung der Grundkarte. Dann braucht der Viewer keinen Sondershader.
+   Selbstauskunft: wie viele Materialien eine zweite Schicht bekamen.
+4. `node scripts/build-hangar-assets.mjs --force` für Halle **und Schiffe**
+   (die UV-Korrektur hilft allen). Größe der Halle möglichst ≤ 12 MB.
+5. Build + Gate (normal und STAGING=1), committen, pushen. Kein PR: die
+   Sichtprüfung und den Merge macht die Cloud.

@@ -19,6 +19,7 @@ import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP, KHRTextureTran
 import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
+import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
@@ -38,7 +39,9 @@ const FORCE = argv.includes('--force');
 // Budget je Art: Dreiecke nach der Dezimierung, Kantenlänge der Texturen.
 const BUDGET = {
   ships: { tris: 200000, tex: 1024, ntex: 512 },
-  hall: { tris: 320000, tex: 1024, ntex: 512 },
+  // Halle nicht dezimieren: 613k Rohdreiecke sind tragbar, und die
+  // gelockerte Schwelle (bis 4 % der Hallengröße ≈ 7 m) riss Kanten auf.
+  hall: { tris: 700000, tex: 1024, ntex: 512 },
   npc: { tris: 30000, tex: 512, ntex: 512 },
 };
 
@@ -380,12 +383,22 @@ async function buildOne(kind, name, inPath) {
     if (now <= b.tris * 1.1) break;
     await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: kind === 'ships' }));
   }
+  // UV-Inseln an den Ursprung holen, sonst zerquantisiert Draco die
+  // gekachelten Spiel-UVs (siehe scripts/lib/uv-islands.mjs).
+  const uvRange = { before: 0, after: 0 };
+  for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) {
+    for (const sem of ['TEXCOORD_0', 'TEXCOORD_1']) {
+      const r = normalizeUvIslands(p, sem);
+      if (r) { uvRange.before = Math.max(uvRange.before, r.before); uvRange.after = Math.max(uvRange.after, r.after); }
+    }
+  }
+  const uvBits = Math.max(texcoordBits(root, 'TEXCOORD_0'), texcoordBits(root, 'TEXCOORD_1'));
   // Farbe/Leuchten bis b.tex, alles übrige (Normalen, Masken) bis b.ntex
   await doc.transform(
     prune(),
     textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: 82 }),
     textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: 80 }),
-    draco({ method: 'edgebreaker', quantizePosition: 14, quantizeNormal: 10, quantizeTexcoord: 12 }),
+    draco({ method: 'edgebreaker', quantizePosition: kind === 'hall' ? 16 : 14, quantizeNormal: 10, quantizeTexcoord: uvBits }),
   );
   // Nur noch das Nötige ankündigen
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
@@ -394,11 +407,15 @@ async function buildOne(kind, name, inPath) {
   mkdirSync(new URL(`${kind}/`, OUT), { recursive: true });
   const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
   await io.write(outPath, doc);
+  // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
+  const written = await io.read(outPath);
+  const uvDeg = degenerateUvShare(written.getRoot());
   const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
+    uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     bytes: statSync(outPath).size,
   };
 }
@@ -423,6 +440,7 @@ for (const kind of Object.keys(BUDGET)) {
       if (kind === 'hall') r.room = HALL_ROOM[name] ?? null;
       manifest[kind][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
+      console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
         console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
