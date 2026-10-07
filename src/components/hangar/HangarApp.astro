@@ -98,14 +98,6 @@ const types = [...new Map(ships.filter((s) => s.tk).map((s) => [s.tk, s.t || s.t
 const makers = [...new Set(ships.map((s) => s.mk).filter(Boolean))].sort((a, b) => a.localeCompare(b, loc));
 const first = ships.find((s) => s.id === 'aegs-gladius') ?? ships[0];
 
-// Lackierungen: Schlüssel wie LIVERIES in assets/hangar-viewer.js.
-const liveries = [
-  { k: 'werk', label: de ? 'Werkslack' : 'Factory' },
-  { k: 'nacht', label: de ? 'Nachtschwarz' : 'Night black' },
-  { k: 'arktis', label: de ? 'Arktis' : 'Arctic' },
-  { k: 'wueste', label: de ? 'Wüste' : 'Desert' },
-  { k: 'renn', label: de ? 'Rennstreifen' : 'Racing' },
-];
 const statLabels = STATS.map((s) => ({ k: s.k, label: de ? s.de : s.en, unit: s.unit }));
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
 // `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
@@ -141,7 +133,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
 /* über heller Halle lesbar bleiben: Schatten statt Fläche */
-.hg-maker,.hg-role,.hg-paint__lbl{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
+.hg-maker,.hg-role{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
 .hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
 @keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .hg-stats{position:absolute;right:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);width:min(320px,34vw);background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:1rem 1.1rem 1.1rem;backdrop-filter:blur(8px)}
@@ -158,11 +150,6 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-tools{position:absolute;left:clamp(16px,3vw,40px);bottom:16px;display:flex;gap:.6rem;align-items:center}
 .hg-btn{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.45rem .8rem;border-radius:4px;cursor:pointer}
 .hg-btn:hover,.hg-btn:focus-visible{border-color:var(--hg-amber)}
-.hg-paint{position:absolute;left:clamp(16px,3vw,40px);bottom:64px;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;max-width:calc(100% - 32px)}
-.hg-paint__lbl{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--hg-dim);margin-right:.2rem}
-.hg-chip{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.35rem .7rem;border-radius:999px;cursor:pointer}
-.hg-chip:hover,.hg-chip:focus-visible{border-color:var(--hg-amber)}
-.hg-chip[aria-pressed="true"]{background:var(--hg-amber);border-color:var(--hg-amber);color:var(--ink)}
 .hg-hint{font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 80%,transparent);background:var(--hg-panel);border-radius:4px;padding:.3rem .55rem;backdrop-filter:blur(6px)}
 .hg-load{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(260px,60%);text-align:center;font-size:var(--fs-6);color:var(--hg-dim);pointer-events:none}
 .hg-load[hidden]{display:none}
@@ -199,9 +186,6 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .hg-title{max-width:calc(100% - 32px)}
   .hg-stats{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
   .hg-hint{display:none}
-  .hg-paint{bottom:60px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;left:0;right:0;max-width:none;padding:0 16px}
-  .hg-paint__lbl{display:none}
-  .hg-chip{flex:0 0 auto}
   .hg-arrow{display:none}
   .hg-count{margin-left:0;width:100%}
 }
@@ -221,10 +205,6 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
         <p class="hg-name" id="hg-name">{first.n}</p>
         <p class="hg-role" id="hg-role">{[first.t, first.r].filter(Boolean).join(' · ')}</p>
       </header>
-      <div class="hg-paint" role="group" aria-label={de ? 'Lackierung' : 'Paint'}>
-        <span class="hg-paint__lbl">{de ? 'Lackierung' : 'Paint'}</span>
-        {liveries.map((l, i) => <button type="button" class="hg-chip" data-livery={l.k} aria-pressed={i === 0 ? 'true' : 'false'}>{l.label}</button>)}
-      </div>
       <div class="hg-tools">
         <button type="button" class="hg-btn" id="hg-reset">{de ? 'Ansicht zurücksetzen' : 'Reset view'}</button>
         <span class="hg-hint">{de ? 'Ziehen zum Drehen, Mausrad zum Zoomen, Pfeiltasten wechseln das Schiff' : 'Drag to rotate, scroll to zoom, arrow keys switch ships'}</span>
@@ -378,10 +358,6 @@ import(data.viewer)
     viewer = v;
     v.onProgress((p) => bar.style.setProperty('--p', p + '%'));
     $('hg-reset').addEventListener('click', () => v.resetView());
-    for (const b of document.querySelectorAll('.hg-chip')) b.addEventListener('click', () => {
-      for (const o of document.querySelectorAll('.hg-chip')) o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
-      v.setLivery(b.dataset.livery);
-    });
     select(cur);
   })
   .catch(() => { load.hidden = true; $('hg-fallback').hidden = false; });
