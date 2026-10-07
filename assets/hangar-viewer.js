@@ -1283,7 +1283,10 @@ export async function initHangar(container, opts = {}) {
   // benachbarte Flächenlichter zu einer Gruppe zusammengelegt, und es brennen
   // nur die, die im Blickfeld (Boden um die Plattform, Schiff, Wände) am
   // meisten beitragen.
-  const MAX_LIGHTS = matchMedia('(max-width: 760px), (pointer: coarse)').matches ? 8 : 16;
+  const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+  const MAX_LIGHTS = SMALL ? 8 : 16;
+  // So viele Spots über der Plattform werfen den Schatten des Schiffs
+  const SHADOW_LAMPS = SMALL ? 1 : 2;
   // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
   // bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
   const HALL_LIGHT_SCALE = 2;
@@ -1377,7 +1380,23 @@ export async function initHangar(container, opts = {}) {
           light.position.set(...l.pos);
         }
         light.userData.base = { I, dist };
+        light.userData.src = l;
         lamps.add(light);
+      }
+      // Den Schatten unter dem Schiff werfen die Spots, die die Plattform am
+      // stärksten treffen, nicht mehr das Bühnenlicht: Er fällt wie im Spiel
+      // von der Decke. Einer allein reicht nicht, die übrigen Lampen und das
+      // Streulicht der hellen Halle hellen ihn sonst fast ganz auf.
+      const pad = [[c[0], f + 0.2, c[2], 1]];
+      realHall.shadowLamps = lamps.children
+        .filter((q) => q.isSpotLight && q.userData.src.type === 'spot')
+        .map((q) => [q, lampScore(q.userData.src, pad)]).filter(([, sc]) => sc > 0)
+        .sort((a, b) => b[1] - a[1]).slice(0, SHADOW_LAMPS).map(([q]) => q);
+      for (const L of realHall.shadowLamps) {
+        L.castShadow = true;
+        L.shadow.mapSize.setScalar(SMALL ? 1024 : 2048);
+        L.shadow.bias = -0.0004;
+        L.shadow.normalBias = 0.04;
       }
       model.add(lamps);
       realHall.lamps = lamps;
@@ -1395,19 +1414,35 @@ export async function initHangar(container, opts = {}) {
     if (!realHall?.lamps) return;
     const k = realHall.group.scale.x;
     for (const q of realHall.lamps.children) if (q.isLight) { q.intensity = q.userData.base.I * k * k; q.distance = q.userData.base.dist * k; }
+    // Schattenkegel nur so weit, dass er das Schiff deckt: Der volle Kegel
+    // des Spiels (bis 150°) gäbe einen groben, verwaschenen Schatten.
+    realHall.group.updateMatrixWorld(true);
+    for (const L of realHall.shadowLamps || []) {
+      const p = L.getWorldPosition(new THREE.Vector3());
+      const axis = L.target.getWorldPosition(new THREE.Vector3()).sub(p).normalize();
+      const toPad = p.clone().negate(), d = toPad.length();
+      const off = Math.acos(THREE.MathUtils.clamp(axis.dot(toPad.normalize()), -1, 1));
+      L.shadow.focus = THREE.MathUtils.clamp((off + Math.atan((span * 0.6 + 2) / d)) / L.angle, 0.05, 1);
+      L.shadow.camera.near = Math.max(0.5, d * 0.5);
+      L.shadow.camera.updateProjectionMatrix();
+    }
   }
 
   // Bühnenlicht in der echten Halle, je nachdem, was schon da ist: Spiellampen
-  // übernehmen das Raumlicht, die Umgebungskugel das Streulicht. Das Hauptlicht
-  // bleibt für den Schatten unter dem Schiff; das warme Gegenlicht nur als
-  // Kante, sonst legt es eine orange Pfütze vor den Bug.
-  const HALL_KEY = 8, HALL_KEY_WITH_LAMPS = 3, HALL_HEMI = 0.35, HALL_HEMI_WITH_ENV = 0.12;
+  // übernehmen das Raum- und Schattenlicht, die Umgebungskugel das Streulicht.
+  // Das warme Gegenlicht bleibt nur als Kante, sonst legt es eine orange
+  // Pfütze vor den Bug.
+  const HALL_KEY = 8, HALL_KEY_WITH_LAMPS = 3, HALL_KEY_FRONT = 1.2, HALL_HEMI = 0.35, HALL_HEMI_WITH_ENV = 0.12;
   function hallStage() {
     if (!realHall) return;
     const lamps = !!realHall.lamps, env = !!realHall.envOn;
     hemi.intensity = env ? HALL_HEMI_WITH_ENV : lamps ? HALL_HEMI * 0.5 : HALL_HEMI;
-    key.intensity = lamps ? HALL_KEY_WITH_LAMPS : HALL_KEY;
-    rim.intensity = lamps ? 1 : 3;
+    // Werfen Spiellampen den Schatten, bleibt das Hauptlicht schwaches
+    // Vorderlicht ohne Schatten, sonst hellt es den Schatten wieder auf.
+    const gameShadow = !!realHall.shadowLamps?.length;
+    key.intensity = gameShadow ? HALL_KEY_FRONT : lamps ? HALL_KEY_WITH_LAMPS : HALL_KEY;
+    key.castShadow = !gameShadow;
+    rim.intensity = gameShadow ? 0.6 : lamps ? 1 : 3;
     fill.intensity = lamps ? 0 : 0.2;
     doorLight.intensity = lamps ? 0 : 0.3;
   }
