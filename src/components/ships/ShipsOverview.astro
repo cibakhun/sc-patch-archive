@@ -27,6 +27,7 @@ import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
 import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
 import { compAttr } from '../../lib/shipComponents';
+import { patchesFor } from '../../lib/patchSpine';
 import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
@@ -99,6 +100,8 @@ const cards = vehicles.map((v) => ({
   sig: vSignature(v.id),
   feat: (roleSnapshot[v.id]?.feat ?? []).join(' '),
   size: vSizeClass(v.id),
+  // älteste Patch-Seite, die das Schiff nennt (Abzeichen zurück ins Archiv)
+  debut: patchesFor(v.data.name)[0] ?? null,
 }));
 
 const crewFmt = (v: (typeof vehicles)[number]['data']) =>
@@ -432,7 +435,7 @@ a{color:inherit;text-decoration:none}
   <div class="sdb__fleet" id="sf-fleet" data-results-label={de ? 'Treffer' : 'results'}
     data-nodata-label={de ? 'ohne Steckplatz-Daten' : 'without slot data'}
     data-andup-label={de ? 'ab S{n}' : 'S{n} and up'}>
-    {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size }) => (
+    {cards.map(({ d, id, thumb, buy, career, roleFam, sig, feat, size, debut }) => (
       <article
         class="fcard"
         data-q={`${d.name} ${d.manufacturer ?? ''}`.toLowerCase()}
@@ -461,9 +464,9 @@ a{color:inherit;text-decoration:none}
           <span class={`fcard__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>
             <span class="fcard__dot"></span>{vStatus(d, lang) ?? '—'}
           </span>
-          {d.patches.length > 0 && (
-            <a class="fcard__patch" href={de ? `/de/patches/sc-${d.patches[0].replaceAll('.', '-')}.html` : `/patches/sc-${d.patches[0].replaceAll('.', '-')}.html`}>
-              {d.patches[0]}
+          {debut && (
+            <a class="fcard__patch" href={de ? `/de/patches/sc-${debut.replaceAll('.', '-')}.html` : `/patches/sc-${debut.replaceAll('.', '-')}.html`}>
+              {debut}
             </a>
           )}
           <div class="fcard__id">
