@@ -25,7 +25,11 @@
 //
 // API:  initHangar(container, { reduceMotion, hall?: { url, room }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
-//         resetView(), onProgress(fn), dispose() }>
+//         resetView(), onProgress(fn), dispose(),
+//         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
+// project/focus/onFrame sind die Naht zur Oberfläche um die Szene
+// (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
+// Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -1414,8 +1418,10 @@ export async function initHangar(container, opts = {}) {
     } catch { /* ohne Verdeckung weiter */ }
   }
 
-  let current = null;      // { group, born, mat, info }
+  let current = null;      // { group, model, born, mat, info }
   let leaving = null;      // { group, t0, c }
+  let homeTgt = null;      // Blickziel der Startansicht des aktuellen Schiffs
+  let frameFn = null;
   let token = 0;
   let progressFn = null;
   let liveryKey = 'werk';
@@ -1523,7 +1529,8 @@ export async function initHangar(container, opts = {}) {
     if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     if (current) { leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y }; }
     scene.add(ship);
-    current = { group: ship, born: performance.now(), mat, info, hull: textured ? hull : null };
+    homeTgt = tgt;
+    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     if (progressFn) progressFn(100);
   }
@@ -1560,8 +1567,40 @@ export async function initHangar(container, opts = {}) {
 
   function resetView() {
     touched = false;
-    flyTo(controls.target.clone(), homePos());
+    // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
+    const t = homeTgt ? homeTgt.clone() : controls.target.clone();
+    flyTo(t, HOME_DIR.clone().multiplyScalar(homeDist()).add(t));
     if (!reduceMotion) controls.autoRotate = true;
+  }
+
+  // Schnittstelle für die Oberfläche um die Szene (Hardpoint-Marker, Fokus).
+  // Punkte liegen im Modellraum der .glb: glTF-Achsen, Meter — derselbe Raum
+  // wie ship-hardpoints.json nach (x, z, -y). Nur der Viewer kennt die
+  // Drehung, Zentrierung und Ein-/Ausfahrt, darum rechnet er hier um.
+  const projV = new THREE.Vector3();
+  function project(points, out = []) {
+    out.length = points.length;
+    const m = current && current.group.visible ? current.model.matrixWorld : null;
+    const w = W(), h = H();
+    for (let i = 0; i < points.length; i++) {
+      if (!m) { out[i] = null; continue; }
+      const p = points[i];
+      projV.set(p[0], p[1], p[2]).applyMatrix4(m);
+      const d = projV.distanceTo(camera.position);
+      projV.project(camera);
+      out[i] = projV.z > 1 ? null : { x: (projV.x + 1) * 0.5 * w, y: (1 - projV.y) * 0.5 * h, d };
+    }
+    return out;
+  }
+  function focus(p) {
+    if (!current) return;
+    if (!p) { resetView(); return; }
+    current.model.updateMatrixWorld(true);
+    const tgt = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(current.model.matrixWorld);
+    const dir = camera.position.clone().sub(controls.target).normalize();
+    const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
+    touched = true; controls.autoRotate = false; clearTimeout(idleTimer);
+    flyTo(tgt, dir.multiplyScalar(r).add(tgt), 700);
   }
 
   const clock = new THREE.Clock();
@@ -1604,6 +1643,7 @@ export async function initHangar(container, opts = {}) {
     if (fly) flyStep(now);
     controls.update();
     if (composer) composer.render(); else renderer.render(scene, camera);
+    if (frameFn) frameFn();
   }
 
   scaleWorld({ len: 14, halfW: 6, height: 4 });
@@ -1629,6 +1669,9 @@ export async function initHangar(container, opts = {}) {
     show,
     setLivery,
     resetView,
+    project,
+    focus,
+    onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
     dispose() {
       cancelAnimationFrame(raf);
