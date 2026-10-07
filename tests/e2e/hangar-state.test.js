@@ -5,7 +5,7 @@
 // Import keine Seiteneffekte, die reinen Funktionen laufen direkt in node.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseState, serializeState, fillMessage, figuresOf, fleetSummary } from '../../assets/hangar-overview.js';
+import { parseState, serializeState, fillMessage, figuresOf, fleetSummary, compareCell } from '../../assets/hangar-overview.js';
 
 const ctx = {
   ids: new Set(['aegs-gladius', 'anvl-arrow', 'drak-cutlass-black', 'rsi-aurora-mk2']),
@@ -40,6 +40,8 @@ describe('Hangar: URL-Zustand', () => {
   test('Vergleichs-Ids sind bekannt, einmalig und hoechstens drei', () => {
     assert.equal(url('?cmp=anvl-arrow,nope,anvl-arrow,aegs-gladius,rsi-aurora-mk2,drak-cutlass-black'), '?cmp=anvl-arrow,aegs-gladius,rsi-aurora-mk2');
     assert.equal(url('?view=compare'), '');
+    assert.equal(url('?cmp=anvl-arrow&view=compare'), '?cmp=anvl-arrow');
+    assert.equal(url('?cmp=anvl-arrow,aegs-gladius&view=compare'), '?cmp=anvl-arrow,aegs-gladius&view=compare');
   });
 
   test('einen Hardpoint gibt es nur auf einem Ausstattungs-Tab', () => {
@@ -78,6 +80,23 @@ describe('Hangar: Dock-Daten und Flottenzeile', () => {
       { n: 3, scu: 46, crew: 3, roles: 2 },
     );
     assert.deepEqual(fleetSummary([], ships), { n: 0, scu: 0, crew: 0, roles: 0 });
+  });
+});
+
+describe('Hangar: Vergleichszellen', () => {
+  const speed = { digits: 0, unit: 'm/s', better: 1 };
+  test('Abweichung mit Vorzeichen und Einheit, Ton nach der Richtung von "besser"', () => {
+    assert.deepEqual(compareCell(1150, 1193, speed, 'en-US'), { value: '1,150 m/s', delta: '-43 m/s', tone: 'down' });
+    assert.deepEqual(compareCell(29760, 6110, { digits: 0, unit: 'HP', better: 1 }, 'de-DE'), { value: '29.760 HP', delta: '+23.650 HP', tone: 'up' });
+    assert.deepEqual(compareCell(2010960, 2262330, { digits: 0, unit: 'aUEC', better: -1 }, 'en-US'), { value: '2,010,960 aUEC', delta: '-251,370 aUEC', tone: 'up' });
+    assert.deepEqual(compareCell(37.5, 21, { digits: 1, unit: 'm', better: 0 }, 'de-DE'), { value: '37,5 m', delta: '+16,5 m', tone: 'flat' });
+  });
+
+  test('Rundung auf die Stellen des Kennwerts, keine Abweichung ohne Basis, Wert oder Unterschied', () => {
+    assert.deepEqual(compareCell(2797.8, 1944.5, { digits: 1, unit: 'DPS', better: 1 }, 'en-US'), { value: '2,797.8 DPS', delta: '+853.3 DPS', tone: 'up' });
+    assert.deepEqual(compareCell(1193, null, speed, 'en-US'), { value: '1,193 m/s', delta: null, tone: null });
+    assert.deepEqual(compareCell(null, 1193, speed, 'en-US'), { value: '–', delta: null, tone: null });
+    assert.deepEqual(compareCell(3, 3, { digits: 0, unit: '', better: 0 }, 'en-US'), { value: '3', delta: null, tone: null });
   });
 });
 

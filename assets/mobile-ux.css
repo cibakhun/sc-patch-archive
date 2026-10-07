@@ -803,7 +803,9 @@ summary:active {
 .holo__readout,
 /* Hangar, Kennwerte und Ausstattung in der Tafel ueber der Buehne. Aus
    demselben Grund NICHT .vb-scrollbox: die Hoehe kommt von der Buehne. */
-.hgx-scroll {
+.hgx-scroll,
+/* Hangar, Vergleichstabelle im Dialog: die Hoehe kommt vom Dialog. */
+.hgx-cmp__scroll {
   scrollbar-width: thin !important;
   /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
      Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
@@ -821,7 +823,8 @@ summary:active {
 .fc__scroll::-webkit-scrollbar,
 .fc__filters .tool-help__body::-webkit-scrollbar,
 .holo__readout::-webkit-scrollbar,
-.hgx-scroll::-webkit-scrollbar {
+.hgx-scroll::-webkit-scrollbar,
+.hgx-cmp__scroll::-webkit-scrollbar {
   display: block !important;
   /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
      ebenfalls .vb-scrollbox. */
@@ -840,7 +843,8 @@ summary:active {
 .fc__scroll::-webkit-scrollbar-thumb,
 .fc__filters .tool-help__body::-webkit-scrollbar-thumb,
 .holo__readout::-webkit-scrollbar-thumb,
-.hgx-scroll::-webkit-scrollbar-thumb {
+.hgx-scroll::-webkit-scrollbar-thumb,
+.hgx-cmp__scroll::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
   border-radius: 999px;
 }

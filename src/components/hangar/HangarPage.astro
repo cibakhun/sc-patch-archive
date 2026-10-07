@@ -103,8 +103,41 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hgx-merged{flex-basis:100%;display:flex;align-items:center;gap:.6rem;margin:0;color:var(--hg-on)}
 .hgx-x{appearance:none;border:1px solid var(--hg-hair);border-radius:3px;background:none;color:var(--hg-on);font:inherit;line-height:1;padding:.15rem .45rem;cursor:pointer}
 .hgx-x:hover,.hgx-x:focus-visible{border-color:var(--hg-amber)}
+/* Korb des Vergleichs, rechts in der Leiste. */
+.hgx-tray{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;max-width:100%;margin-left:auto;padding:.35rem .5rem .35rem .65rem;border:1px solid var(--hg-hair);border-radius:4px;background:var(--hg-panel);backdrop-filter:blur(6px);font-size:var(--fs-6);color:var(--hg-on);pointer-events:auto}
+.hgx-tray__title{font-family:var(--font-ui);font-weight:700;color:var(--hg-amber)}
+.hgx-tray__list{display:flex;flex-wrap:wrap;gap:.35rem;margin:0;padding:0;list-style:none}
+.hgx-tray__list li{display:inline-flex;align-items:center;gap:.35rem;padding:.1rem .15rem .1rem .55rem;border:1px solid var(--hg-hair);border-radius:999px;white-space:nowrap}
+.hgx-tray__list .hgx-x{border-radius:999px;padding:.1rem .4rem}
+.hgx-tray__hint{color:var(--hg-dim)}
+.hgx-tray__msg{flex-basis:100%;margin:0;color:color-mix(in srgb,var(--hot) 55%,var(--hg-on))}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
-.hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden]{display:none}
+.hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden],.hgx-tray[hidden],.hgx-tray__open[hidden]{display:none}
+/* Vergleich: eine Spalte je Schiff, Zeilen aus dem Kennwert-Verzeichnis. Die
+   Abweichung zur Basis traegt den Ton nach der Richtung von "besser". */
+.hgx-cmp{width:min(1000px,calc(100% - 2 * var(--hg-gut)));max-width:none;max-height:calc(100dvh - var(--hg-top) - 24px);margin:calc(var(--hg-top) + 8px) auto 16px;padding:0;overflow:hidden;border:1px solid var(--hg-hair);border-radius:6px;background:var(--bg-2);color:var(--hg-on)}
+.hgx-cmp[open]{display:flex;flex-direction:column}
+.hgx-cmp::backdrop{background:var(--overlay-backdrop)}
+.hgx-cmp__head{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;padding:.9rem 1.1rem .7rem;border-bottom:1px solid var(--hg-hair)}
+.hgx-cmp__head h2{margin:0;font-family:var(--font-ui);font-size:var(--fs-11);font-weight:700;color:var(--hg-amber)}
+.hgx-cmp__note{flex:1 1 18rem;margin:0;font-size:var(--fs-6);color:var(--hg-dim)}
+.hgx-cmp__scroll{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.hgx-cmp__table{width:100%;border-collapse:collapse;font-size:var(--fs-7);font-variant-numeric:tabular-nums}
+.hgx-cmp__table th,.hgx-cmp__table td{padding:.5rem .8rem;border-bottom:1px solid var(--line-soft);text-align:right;vertical-align:top}
+.hgx-cmp__table tbody th{text-align:left;font-weight:400;color:var(--hg-dim);white-space:nowrap}
+.hgx-cmp__table thead th{position:sticky;top:0;z-index:1;background:var(--bg-2);vertical-align:bottom;font-weight:400}
+.hgx-cmp__table .is-base{background:color-mix(in srgb,var(--hg-amber) 8%,var(--bg-2))}
+.hgx-cmp__name{appearance:none;border:0;background:none;padding:0;color:var(--hg-on);font:inherit;font-family:var(--font-ui);font-size:var(--fs-9);font-weight:700;text-align:right;cursor:pointer}
+.hgx-cmp__name:hover,.hgx-cmp__name:focus-visible,.hgx-cmp__name[aria-pressed="true"]{color:var(--hg-amber)}
+.hgx-cmp__maker{display:block;color:var(--hg-dim);font-size:var(--fs-5)}
+.hgx-cmp__badge{display:inline-block;margin-top:.25rem;padding:0 .45rem;border:1px solid var(--hg-amber);border-radius:999px;color:var(--hg-amber);font-size:var(--fs-5)}
+.hgx-cmp__acts{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.3rem .6rem;margin-top:.4rem}
+.hgx-linkbtn{appearance:none;border:0;background:none;padding:0;color:var(--hg-amber);font:inherit;font-size:var(--fs-6);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.hgx-cmp__v{display:block;font-weight:600;white-space:nowrap}
+.hgx-delta{display:block;font-size:var(--fs-5);white-space:nowrap}
+.hgx-delta.is-up{color:var(--hg-amber)}
+.hgx-delta.is-down{color:color-mix(in srgb,var(--hot) 55%,var(--hg-on))}
+.hgx-delta.is-flat{color:var(--hg-dim)}
 .hgx-copyfield{width:min(320px,100%);min-width:0;font:inherit;font-size:var(--fs-6);background:var(--hg-panel);color:var(--hg-on);border:1px solid var(--hg-hair);border-radius:4px;padding:.4rem .55rem}
 .hg-title.is-busy .hgx-head,.hgx-scroll[aria-busy="true"] .hgx-tps{opacity:.45;transition:opacity var(--dur-fast) var(--ease-ui)}
 /* Tabs nach dem WAI-ARIA-Muster; der aktive traegt die Akzentkante. */
@@ -200,6 +233,13 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
   .hgx-mk{width:12px;height:12px;margin:-6px 0 0 -6px}
   .hgx-stagebar{position:static;padding:.8rem 16px;background:var(--bg-2);border-top:1px solid var(--hg-hair)}
   .hgx-fleetline{padding:0;border:0;background:none;backdrop-filter:none}
+  .hgx-tray{margin-left:0}
+  .hgx-cmp{width:100%;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}
+  /* Drei Spalten muessen auf 390 px passen: Beschriftung und Werte duerfen umbrechen. */
+  .hgx-cmp__table{font-size:var(--fs-6)}
+  .hgx-cmp__table th,.hgx-cmp__table td{padding:.45rem .3rem}
+  .hgx-cmp__table tbody th,.hgx-cmp__v,.hgx-delta{white-space:normal}
+  .hgx-cmp__name{font-size:var(--fs-7)}
   .hg-hint{display:none}
   .hg-arrow{display:none}
   .hg-count{margin-left:0;width:100%}
@@ -221,6 +261,10 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
           <button type="button" class="hg-btn hgx-act" id="hgx-fleet" data-fleet-ship={bay.id} data-fleet-label={bay.head.name} data-fleet-on={ui('fleet.in')} data-fleet-off={ui('fleet.add')} aria-pressed="false">
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
             <span class="js-fleet-txt">{ui('fleet.add')}</span>
+          </button>
+          <button type="button" class="hg-btn hgx-act" id="hgx-cmp-toggle" aria-pressed="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            <span>{t('act.compare')}</span>
           </button>
           <button type="button" class="hg-btn hgx-act" id="hgx-copy">{t('act.copy')}</button>
           <input class="hgx-copyfield" id="hgx-copyfield" type="text" readonly hidden aria-label={t('act.copyField')} />
@@ -252,6 +296,14 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
           </p>
         </div>
       </div>
+      {/* Der Korb des Vergleichs; das erste Schiff ist die Basis. */}
+      <div class="hgx-tray" id="hgx-tray" role="group" aria-labelledby="hgx-tray-title" hidden>
+        <b class="hgx-tray__title" id="hgx-tray-title">{t('cmp.tray')}</b>
+        <ul class="hgx-tray__list" id="hgx-tray-list"></ul>
+        <span class="hgx-tray__hint" id="hgx-tray-hint" hidden>{t('cmp.hint')}</span>
+        <button type="button" class="hg-btn hgx-tray__open" id="hgx-cmp-open" hidden>{t('msg.cmp.open', { n: '2' })}</button>
+        <p class="hgx-tray__msg" id="hgx-tray-msg" hidden>{t('cmp.full')}</p>
+      </div>
     </div>
     <aside class="hg-stats" aria-label={t('panel.label')}>
       <div class="hgx-tabs" role="tablist" aria-label={t('panel.tabs')}>
@@ -267,6 +319,28 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         </div>
       </div>
     </aside>
+    {/* Modal ueber der Buehne (showModal: Fokus bleibt drin, Escape ist "cancel").
+        Zeilen aus dem Kennwert-Verzeichnis, Spalten setzt der Controller aus
+        den Dock-Daten, ohne eine Bucht zu holen. In der Insel, damit er auch
+        im Hellmodus dunkel bleibt wie die Halle darunter. */}
+    <dialog class="hgx-cmp" id="hgx-cmp" aria-labelledby="hgx-cmp-title">
+      <div class="hgx-cmp__head">
+        <h2 id="hgx-cmp-title">{t('cmp.title')}</h2>
+        <p class="hgx-cmp__note">{t('cmp.note')}</p>
+        <button type="button" class="hg-btn" id="hgx-cmp-close">{t('cmp.close')}</button>
+      </div>
+      <div class="hgx-cmp__scroll">
+        <table class="hgx-cmp__table" id="hgx-cmp-table">
+          <thead><tr><th scope="col"><span class="hgx-sr">{t('cmp.stat')}</span></th></tr></thead>
+          <tbody>
+            {STATS.filter((s) => s.comparable).map((s) => (
+              <tr data-k={s.key} data-u={s.unit} data-d={s.digits} data-better={s.better}><th scope="row">{t(`stat.${s.key}`)}</th></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <span id="hgx-cmp-basedesc" hidden>{t('cmp.makeBase')}</span>
+    </dialog>
   </div>
 
   <section class="hg-dock" data-media-surface aria-label={t('dock.label')}>
@@ -318,6 +392,8 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
     <span data-msg="fleet-crew" data-one={t('msg.fleet.crew.one')} data-other={t('msg.fleet.crew.other')}></span>
     <span data-msg="fleet-roles" data-one={t('msg.fleet.roles.one')} data-other={t('msg.fleet.roles.other')}></span>
     <span data-msg="fleet-merged" data-one={t('msg.fleet.merged.one')} data-other={t('msg.fleet.merged.other')}></span>
+    <span data-msg="cmp-open" data-other={t('msg.cmp.open')}></span>
+    <span data-msg="cmp" data-show={t('cmp.show')} data-base={t('cmp.base')} data-better={t('cmp.better')} data-worse={t('cmp.worse')} data-remove={t('msg.cmp.remove')}></span>
   </div>
 </main>
 

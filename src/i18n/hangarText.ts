@@ -128,6 +128,22 @@ const DE = {
   'msg.fleet.roles.other': '{n} Rollen',
   'msg.fleet.merged.one': '{n} Schiff aus diesem Browser ist jetzt in der Flotte.',
   'msg.fleet.merged.other': '{n} Schiffe aus diesem Browser sind jetzt in der Flotte.',
+  // Vergleich: Schalter, Korb und Dialog
+  'act.compare': 'Vergleichen',
+  'cmp.tray': 'Vergleich',
+  'cmp.hint': 'Ein zweites Schiff wählen.',
+  'cmp.full': 'Höchstens drei Schiffe. Erst eines entfernen.',
+  'cmp.title': 'Schiffe im Vergleich',
+  'cmp.note': 'Unter jedem Wert die Abweichung zur Basis, eingefärbt nach besser oder schlechter. Ein Klick auf einen Namen macht das Schiff zur Basis.',
+  'cmp.close': 'Schließen',
+  'cmp.stat': 'Kennwert',
+  'cmp.base': 'Basis',
+  'cmp.makeBase': 'Als Basis setzen',
+  'cmp.show': 'In der Halle zeigen',
+  'cmp.better': 'besser',
+  'cmp.worse': 'schlechter',
+  'msg.cmp.open': '{n} Schiffe vergleichen',
+  'msg.cmp.remove': '{name} aus dem Vergleich nehmen',
 } as const;
 
 export type HangarKey = keyof typeof DE;
@@ -239,6 +255,21 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'msg.fleet.roles.other': '{n} roles',
   'msg.fleet.merged.one': '{n} ship from this browser joined your fleet.',
   'msg.fleet.merged.other': '{n} ships from this browser joined your fleet.',
+  'act.compare': 'Compare',
+  'cmp.tray': 'Comparison',
+  'cmp.hint': 'Pick a second ship.',
+  'cmp.full': 'Three ships at most. Remove one first.',
+  'cmp.title': 'Ships compared',
+  'cmp.note': 'Under each figure, the difference to the base, coloured by better or worse. Click a name to make that ship the base.',
+  'cmp.close': 'Close',
+  'cmp.stat': 'Figure',
+  'cmp.base': 'Base',
+  'cmp.makeBase': 'Make this ship the base',
+  'cmp.show': 'Show in the hangar',
+  'cmp.better': 'better',
+  'cmp.worse': 'worse',
+  'msg.cmp.open': 'Compare {n} ships',
+  'msg.cmp.remove': 'Remove {name} from the comparison',
 };
 
 const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> = { de: DE, en: EN };

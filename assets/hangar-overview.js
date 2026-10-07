@@ -41,7 +41,8 @@ const PORT_RE = /^[a-z0-9_]{1,100}$/;
  * Bringt einen beliebigen Zustandsentwurf in die gueltige Form. Unbekannte Ids
  * fallen weg, cmp wird entdoppelt und auf drei gekappt, unbekannte Tabs und
  * Sortierungen fallen auf die Vorgabe. Ein Hardpoint gibt es nur auf einem
- * Ausstattungs-Tab; ob die Bucht ihn kennt, entscheidet erst die Bucht.
+ * Ausstattungs-Tab; ob die Bucht ihn kennt, entscheidet erst die Bucht. Der
+ * Vergleich steht offen erst ab zwei Schiffen; cmp[0] ist seine Basis.
  * @param {Partial<HangarState>} s @param {StateContext} ctx @returns {HangarState}
  */
 export function normalize(s, ctx) {
@@ -52,7 +53,7 @@ export function normalize(s, ctx) {
     tab,
     hp: tab !== ctx.tabs[0] && typeof s.hp === 'string' && PORT_RE.test(s.hp) ? s.hp : null,
     cmp,
-    view: s.view === 'compare' && cmp.length ? 'compare' : 'stage',
+    view: s.view === 'compare' && cmp.length >= 2 ? 'compare' : 'stage',
     fleetOnly: s.fleetOnly === true,
     sort: ctx.sorts.includes(s.sort) ? s.sort : ctx.sorts[0],
     q: String(s.q ?? '').trim().slice(0, 80),
@@ -164,6 +165,31 @@ export function fleetSummary(ids, ships) {
   return { n, scu, crew, roles: fams.size };
 }
 
+/**
+ * Eine Zelle des Vergleichs: der Wert in der Genauigkeit und Einheit des
+ * Kennwert-Verzeichnisses, darunter die vorzeichenbehaftete Abweichung zur
+ * Basis und ihr Ton nach der Richtung von "besser" (better: 1 mehr, -1 weniger,
+ * 0 keine). Ohne Basis, ohne einen der Werte oder bei 0 gibt es keine
+ * Abweichung. Die Spalte der Basis selbst ruft mit base = null.
+ *   compareCell(1150, 1193, { digits: 0, unit: 'm/s', better: 1 }, 'en-US')
+ *   -> { value: '1,150 m/s', delta: '-43 m/s', tone: 'down' }
+ * @param {number|null} value @param {number|null} base
+ * @param {{ digits: number, unit: string, better: number }} row @param {string} loc
+ * @returns {{ value: string, delta: string|null, tone: 'up'|'down'|'flat'|null }}
+ */
+export function compareCell(value, base, row, loc) {
+  const p = 10 ** row.digits;
+  const round = (x) => Math.round(x * p) / p;
+  const withUnit = (s) => (row.unit ? `${s} ${row.unit}` : s);
+  const out = { value: value == null ? '–' : withUnit(new Intl.NumberFormat(loc).format(round(value))), delta: null, tone: null };
+  if (value == null || base == null) return out;
+  const d = round(value - base);
+  if (d === 0) return out;
+  out.delta = withUnit(new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d));
+  out.tone = row.better === 0 ? 'flat' : Math.sign(d) === row.better ? 'up' : 'down';
+  return out;
+}
+
 // ---------------------------------------------------------------- die Seite
 
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
@@ -206,16 +232,32 @@ export function boot(doc) {
 
   let state = parseState(location.search, location.hash, ctx);
 
+  // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
+  // Schliessen geht dorthin zurueck, statt einen zweiten Eintrag zu stapeln.
+  const CMP_ENTRY = 'hgx-cmp';
+  // Nur ein Eintrag, den DIESES Dokument anlegte, wird per back() verlassen:
+  // nach einem Neuladen gehoert der Eintrag davor zum alten Dokument, back()
+  // laedt dann neu und verwirft, was im Dialog geaendert wurde.
+  let pushedHere = false;
+  const urlOf = (s) => `${location.pathname}${serializeState(s, ctx)}`;
+
   function writeUrl() {
-    const url = `${location.pathname}${serializeState(state, ctx)}`;
-    if (url !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(null, '', url);
+    const url = urlOf(state);
+    if (url !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(history.state, '', url);
   }
 
-  /** Der einzige Weg, den Zustand zu aendern. @param {Partial<HangarState>} patch */
-  function setState(patch) {
+  /**
+   * Der einzige Weg, den Zustand zu aendern. push legt einen Verlaufseintrag
+   * an; das tut nur das Oeffnen des Vergleichs, damit Zurueck ihn schliesst.
+   * @param {Partial<HangarState>} patch @param {boolean} [push]
+   */
+  function setState(patch, push = false) {
     const prev = state;
     state = normalize({ ...state, ...patch }, ctx);
-    writeUrl();
+    if (push) {
+      history.pushState(CMP_ENTRY, '', urlOf(state));
+      pushedHere = true;
+    } else writeUrl();
     render(prev);
   }
 
@@ -229,6 +271,9 @@ export function boot(doc) {
     }
     if (prev.fleetOnly !== state.fleetOnly) paintFleetFilter();
     if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) applyDock();
+    const cmpChanged = prev.cmp.join() !== state.cmp.join();
+    if (cmpChanged || prev.ship !== state.ship) paintTray();
+    if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
   }
 
   // -------------------------------------------------------------- Buchten
@@ -466,8 +511,9 @@ export function boot(doc) {
   });
   // Am Fenster, nicht am Dokument: das Menue der Leiste schliesst dort mit
   // Escape und preventDefault, und sein Escape soll den Hardpoint halten.
+  // Bei offenem Vergleich gehoert Escape dem Dialog (cancel), nicht dem Hardpoint.
   doc.defaultView.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && state.hp && !e.defaultPrevented) setState({ hp: null });
+    if (e.key === 'Escape' && state.hp && !e.defaultPrevented && !dlg.open) setState({ hp: null });
   });
 
   // -------------------------------------------------------------- Dock
@@ -529,7 +575,9 @@ export function boot(doc) {
   // Buehne oder einer Dock-Karte liegt (Graft 7): jedes Bedienelement, das
   // Pfeile selbst braucht, behaelt sie, ohne sich hier abmelden zu muessen.
   doc.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    // Ein Klick auf Text im offenen Vergleich legt den Fokus auf den Body; das
+    // Schiff hinter dem Dialog wechselt trotzdem nicht.
+    if (dlg.open || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     const t = e.target;
     if (t !== doc.body && t !== doc.documentElement && !t.closest?.('.hg-card, [data-hg-stage]')) return;
@@ -540,6 +588,13 @@ export function boot(doc) {
   window.addEventListener('popstate', () => {
     const prev = state;
     state = parseState(location.search, location.hash, ctx);
+    // Ein Schliessen aus dem Vergleich ging einen Eintrag zurueck; was im
+    // Dialog geaendert wurde (Basis, entfernte Schiffe, gewaehltes Schiff), kommt mit.
+    if (carry) {
+      state = normalize({ ...state, ...carry, view: 'stage' }, ctx);
+      carry = null;
+      writeUrl();
+    }
     syncControls();
     if (prev.ship !== state.ship) scrollToCard(state.ship);
     render(prev);
@@ -616,6 +671,129 @@ export function boot(doc) {
     syncFleetBtn();
     if (state.fleetOnly) applyDock();
   }
+
+  // -------------------------------------------------------------- Vergleich
+  // Spalten aus den Dock-Daten, keine Bucht; cmp[0] ist die Basis. Jedes
+  // Schliessen aus dem Dialog geht ueber closeCompare(), damit der Eintrag,
+  // den das Oeffnen anlegte, wieder verschwindet und Zurueck nichts doppelt.
+  const cmpToggle = $('hgx-cmp-toggle');
+  const cmpOpen = $('hgx-cmp-open');
+  const tray = $('hgx-tray');
+  const trayMsg = $('hgx-tray-msg');
+  const dlg = $('hgx-cmp');
+  const cmpTable = $('hgx-cmp-table');
+  let carry = null;
+  let opener = null;
+
+  /** Element mit Attributen; Kinder als Knoten oder Text, nie als Markup. */
+  function el(tag, attrs, ...kids) {
+    const e = doc.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    e.append(...kids);
+    return e;
+  }
+  const removeBtn = (id, m) => el('button', { type: 'button', class: 'hgx-x', 'data-cmp-remove': id, 'aria-label': fillMessage({ other: m.remove }, { name: dock.get(id).name }, loc) }, '×');
+
+  function paintTray() {
+    const m = msg('cmp');
+    tray.hidden = !state.cmp.length;
+    trayMsg.hidden = true;
+    $('hgx-tray-list').replaceChildren(...state.cmp.map((id) => el('li', {}, el('span', {}, dock.get(id).name), removeBtn(id, m))));
+    $('hgx-tray-hint').hidden = state.cmp.length !== 1;
+    cmpOpen.hidden = state.cmp.length < 2;
+    cmpOpen.textContent = fillMessage(msg('cmp-open'), { n: state.cmp.length }, loc);
+    cmpToggle.setAttribute('aria-pressed', String(state.cmp.includes(state.ship)));
+  }
+
+  function paintCompare() {
+    const m = msg('cmp');
+    const [base] = state.cmp;
+    // Der Neuaufbau nimmt den fokussierten Knopf mit; danach steht der Fokus
+    // wieder auf demselben Knopf derselben Spalte, sonst auf der ersten.
+    const f = dlg.contains(doc.activeElement) ? doc.activeElement : null;
+    const again = f?.dataset.cmpBase ? `[data-cmp-base="${f.dataset.cmpBase}"]` : f?.dataset.cmpShow ? `[data-cmp-show="${f.dataset.cmpShow}"]` : null;
+    const head = cmpTable.tHead.rows[0];
+    while (head.cells.length > 1) head.deleteCell(-1);
+    for (const id of state.cmp) {
+      const s = dock.get(id);
+      head.append(el('th', { scope: 'col', class: id === base ? 'is-base' : '' },
+        el('button', { type: 'button', class: 'hgx-cmp__name', 'data-cmp-base': id, 'aria-pressed': String(id === base), 'aria-describedby': 'hgx-cmp-basedesc' }, s.name),
+        el('small', { class: 'hgx-cmp__maker' }, s.li.dataset.mk),
+        ...(id === base ? [el('span', { class: 'hgx-cmp__badge' }, m.base)] : []),
+        el('span', { class: 'hgx-cmp__acts' }, el('button', { type: 'button', class: 'hgx-linkbtn', 'data-cmp-show': id }, m.show), removeBtn(id, m)),
+      ));
+    }
+    for (const tr of cmpTable.tBodies[0].rows) {
+      while (tr.cells.length > 1) tr.deleteCell(-1);
+      const row = { digits: Number(tr.dataset.d), unit: tr.dataset.u, better: Number(tr.dataset.better) };
+      const b = dock.get(base).stat[tr.dataset.k];
+      for (const id of state.cmp) {
+        const c = compareCell(dock.get(id).stat[tr.dataset.k], id === base ? null : b, row, loc);
+        const td = el('td', { class: id === base ? 'is-base' : '' }, el('span', { class: 'hgx-cmp__v' }, c.value));
+        if (c.delta) {
+          const word = c.tone === 'up' ? m.better : c.tone === 'down' ? m.worse : null;
+          td.append(el('span', { class: `hgx-delta is-${c.tone}` }, c.delta, ...(word ? [el('span', { class: 'hgx-sr' }, ` ${word}`)] : [])));
+        }
+        tr.append(td);
+      }
+    }
+    if (f && !f.isConnected) ((again && cmpTable.querySelector(again)) || dlg.querySelector('.hgx-cmp__name') || $('hgx-cmp-close')).focus();
+  }
+
+  function paintView() {
+    if (state.view === 'compare') {
+      paintCompare();
+      if (!dlg.open) {
+        opener = doc.activeElement;
+        dlg.showModal();
+      }
+    } else if (dlg.open) {
+      dlg.close();
+      // Zurueck auf den Oeffner; der kann mit dem Korb verschwunden sein.
+      [opener, cmpOpen, cmpToggle].find((b) => b && b !== doc.body && b.isConnected && b.getClientRects().length > 0)?.focus();
+      opener = null;
+    }
+  }
+
+  function closeCompare(patch = {}) {
+    if (history.state === CMP_ENTRY && pushedHere) {
+      carry = { cmp: state.cmp, ...patch };
+      history.back();
+    } else setState({ ...patch, view: 'stage' });
+  }
+
+  cmpToggle.addEventListener('click', () => {
+    if (state.cmp.includes(state.ship)) setState({ cmp: state.cmp.filter((id) => id !== state.ship) });
+    else if (state.cmp.length < MAX_COMPARE) setState({ cmp: [...state.cmp, state.ship] });
+    else {
+      trayMsg.hidden = false;
+      live.textContent = trayMsg.textContent;
+    }
+  });
+  tray.addEventListener('click', (e) => {
+    const x = e.target.closest('[data-cmp-remove]');
+    if (!x) return;
+    setState({ cmp: state.cmp.filter((id) => id !== x.dataset.cmpRemove) });
+    // Der Knopf ist mit seinem Chip weg: weiter zum naechsten, sonst zum Schalter.
+    (tray.querySelector('[data-cmp-remove]') ?? cmpToggle).focus();
+  });
+  cmpOpen.addEventListener('click', () => setState({ view: 'compare' }, true));
+  dlg.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    closeCompare();
+  });
+  dlg.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.id === 'hgx-cmp-close') closeCompare();
+    else if (b.dataset.cmpShow) closeCompare({ ship: b.dataset.cmpShow, hp: null });
+    else if (b.dataset.cmpBase && b.dataset.cmpBase !== state.cmp[0]) setState({ cmp: [b.dataset.cmpBase, ...state.cmp.filter((id) => id !== b.dataset.cmpBase)] });
+    else if (b.dataset.cmpRemove) {
+      const cmp = state.cmp.filter((id) => id !== b.dataset.cmpRemove);
+      if (cmp.length < 2) closeCompare({ cmp });
+      else setState({ cmp });
+    }
+  });
 
   // -------------------------------------------------------------- Link kopieren
   const copyBtn = $('hgx-copy');
@@ -705,6 +883,8 @@ export function boot(doc) {
   // das Ereignis faengt nur den Fall, dass es spaeter kommt.
   if (window.VBFleet) window.VBFleet.subscribe(onFleet);
   else window.addEventListener('vb-fleet-ready', () => window.VBFleet.subscribe(onFleet), { once: true });
+  paintTray();
+  if (state.view === 'compare') paintView();
   applyDock();
   scrollToCard(state.ship, 'auto');
   if (state.ship !== ctx.defaultShip) showShip(state.ship);
