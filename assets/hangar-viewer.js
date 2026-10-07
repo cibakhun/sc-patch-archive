@@ -69,12 +69,11 @@ const MAKER_PAINT = {
 };
 const DEFAULT_PAINT = ['#8d939c', '#3a3f46', '#f5a623'];
 // pattern: 0 zweifarbig mit Zierlinie, 1 Tarnfleck, 2 Rennstreifen
+// Nur was aus dem Spiel kommt: Schiffe mit exportiertem Werkslack tragen
+// ihn, alle anderen eine schlichte, einheitliche Grundierung statt erfundener
+// Hersteller- oder Sonderlackierungen.
 export const LIVERIES = {
-  werk: { pattern: 0 },
-  nacht: { colors: ['#202227', '#0d0e10', '#c0182a'], pattern: 0 },
-  arktis: { colors: ['#e8ebee', '#9ea7af', '#5d6670'], pattern: 1 },
-  wueste: { colors: ['#c4aa7a', '#8a7350', '#5a4a35'], pattern: 1 },
-  renn: { colors: ['#f2f2f2', '#1b2a6b', '#e01b24'], pattern: 2 },
+  werk: { colors: ['#8b9097', '#6c7178', '#6c7178'], pattern: 0 },
 };
 
 const PAINT_GLSL = /* glsl */ `
@@ -1008,7 +1007,7 @@ function buildLife(scene, reduceMotion) {
     hook.position.set(tx + (reduceMotion ? 0 : Math.sin(t * 0.7) * 0.15), -1.4 - ropeLen, cz);
   }
 
-  return { layout, update, root, crane, props, tug: tugV, setCrew, isRigged: () => rigged };
+  return { layout, update, root, crane, props, tug: tugV, drone: dr.g, setCrew, isRigged: () => rigged };
 }
 
 // Hüllquader ohne Ausreißer: manche Modelle tragen einzelne Splitter weit
@@ -1080,7 +1079,7 @@ export async function initHangar(container, opts = {}) {
   scene.add(hemi);
   const key = new THREE.SpotLight(0xffffff, 3.2, 0, Math.PI / 4.2, 0.5, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(4096, 4096);
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.03;
   scene.add(key, key.target);
@@ -1265,8 +1264,10 @@ export async function initHangar(container, opts = {}) {
       floor.visible = false;
       life.crane.visible = false;
       // gemalte Behälter wirken vor echten Wänden wie Spielzeug
-      for (const k of ['tanks', 'barrels', 'barrels2', 'spool', 'cart']) life.props[k].visible = false;
+      // Nur Spielinhalte in der echten Halle: alles selbst Gebaute weicht
+      for (const p of Object.values(life.props)) p.visible = false;
       life.tug.visible = false;
+      life.drone.visible = false;
       scene.background = new THREE.Color(0x9aa0a8);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
@@ -1302,8 +1303,11 @@ export async function initHangar(container, opts = {}) {
         import('three/addons/postprocessing/UnrealBloomPass.js'),
         import('three/addons/postprocessing/OutputPass.js'),
       ]);
-      const c = new EffectComposer(renderer);
-      c.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      // Eigenes Ziel mit 4-fach-MSAA: der Composer umgeht sonst die
+      // Kantenglättung des Renderers, und jede Kante treppt.
+      const rt = new THREE.WebGLRenderTarget(W(), H(), { type: THREE.HalfFloatType, samples: 4 });
+      const c = new EffectComposer(renderer, rt);
+      c.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       c.setSize(W(), H());
       c.addPass(new RenderPass(scene, camera));
       const ao = new GTAOPass(scene, camera, W(), H());
