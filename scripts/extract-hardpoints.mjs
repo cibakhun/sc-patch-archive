@@ -161,6 +161,9 @@ const SLUG_ALIAS = {
   'anvl-hornet-f7cr-mk2': 'anvl-hornet-f7a',
   'anvl-hornet-f7cs-mk2': 'anvl-hornet-f7a',
   'anvl-hornet-f7cm-mk2-heartseeker': 'anvl-hornet-f7cm-mk2',
+  // Raven EX (4.10.1): der DataCore-Record nennt AEGS_Sabre_Raven.cga als
+  // Geometrie; der Token-Drop wählte sonst die Sabre-Basis (mehr Kern-Ports)
+  'aegs-sabre-raven-ex': 'aegs-sabre-raven',
 };
 
 // Kandidaten-Schlüssel für einen Slug: exakt -> Token-Drop (Varianten-Basis)
@@ -317,7 +320,18 @@ function kindOf(name) {
 }
 
 /* ---------- Hauptlauf ---------- */
-const catalog = JSON.parse(readFileSync(VEHICLES, 'utf8'));
+// --add <id> (mehrfach): nimmt ein Fahrzeug NEU in den Katalog auf. Ohne diesen
+// Schalter ist der Katalog zirkulär geschlossen — dieses Skript iteriert
+// vehicles.json, datamine-vehicles/-ship-loadouts/-ship-components iterieren
+// ship-hardpoints.json —, und ein neues Schiff kommt nie hinein (Sabre Raven EX
+// und S-65 Stingray fehlten so bis 07.10.2026). Mit --add werden NUR diese Ids
+// extrahiert und in den bestehenden Snapshot eingefügt; die übrigen Einträge
+// (auch die von extract-hardpoints-assembled.mjs) bleiben unberührt. Welche Ids
+// fehlen, meldet scripts/verify-vehicle-gap.mjs.
+const ADD = process.argv.slice(2).flatMap((a, i, all) => (all[i - 1] === '--add' ? [a] : []));
+const catalog = ADD.length
+  ? { vehicles: ADD.map((id) => ({ id, name: id })) }
+  : JSON.parse(readFileSync(VEHICLES, 'utf8'));
 const ships = {};
 const failed = [];
 let extracted = 0;
@@ -412,9 +426,23 @@ if (failed.length) {
   console.log(`fehlgeschlagen/ohne Spieldateien: ${failed.length}`);
   for (const f of failed) console.log(`  - ${f.id} (${f.reason}${f.status ? `, ${f.status}` : ''})`);
 }
-if (extracted < 50) {
+if (ADD.length && extracted < ADD.length) {
+  console.error(`--add: ${ADD.length - extracted} von ${ADD.length} Ids ohne brauchbare .cga — Snapshot wird NICHT geändert.`);
+  process.exit(1);
+}
+if (!ADD.length && extracted < 50) {
   console.error('unter 50 Schiffen — Snapshot wird NICHT überschrieben (Fail-safe).');
   process.exit(1);
+}
+if (ADD.length) {
+  const prev = JSON.parse(readFileSync(OUT, 'utf8'));
+  const dup = ADD.filter((id) => prev.ships[id]);
+  if (dup.length) console.log(`--add: bereits im Snapshot, wird ersetzt: ${dup.join(', ')}`);
+  Object.assign(prev.ships, ships);
+  prev.count = Object.keys(prev.ships).length;
+  await writeFile(OUT, JSON.stringify(prev) + '\n', 'utf8');
+  console.log(`\n--add: ${extracted} Schiff(e) eingefügt, src/data/ship-hardpoints.json führt jetzt ${prev.count}`);
+  process.exit(0);
 }
 
 // Build-Kennung aus dem LIVE-Ordner, wenn greifbar

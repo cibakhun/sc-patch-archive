@@ -24,7 +24,9 @@ const need = (cond, msg) => { if (!cond) fail.push(msg); };
 // erhobenen Stand fest (RESEARCH.md/05-CONTEXT.md, D-03). Darf nur nach OBEN
 // wandern, sobald ein spaeterer Datamine-Lauf mehr Schiffe joint (ROLE-10) —
 // NIE nach unten, ohne die Ursache zu klaeren.
-const MIN_MATCHED = 223;
+// 07.10.2026: 223 -> 225 — Sabre Raven EX und S-65 Stingray neu aufgenommen
+// (extract-hardpoints.mjs --add; beide fehlten wegen des zirkulaeren Katalogs).
+const MIN_MATCHED = 225;
 
 console.log(`\n=== A) Join-Rate gegen src/data/vehicles.json ===`);
 const vehIds = new Set(veh.vehicles.map((v) => v.id));
@@ -68,8 +70,9 @@ console.log(`\n=== F) 18 Rollenfamilien tragen genau den erhobenen Stand (D-05, 
 // Untergrenze/Sollwert je Familie. Bei Abweichung: hier nachziehen und im
 // SUMMARY dokumentieren (05-02-PLAN.md "Wenn eine nachgerechnete Zahl von der
 // Tabelle abweicht") — eine Familie darf dabei NIE stillschweigend wegfallen.
+// 07.10.2026: jaeger 63 -> 65 (Raven EX + Stingray, beide mediumfighter).
 const FAMILY_WANT = {
-  jaeger: 63, frachttransport: 35, erkundung: 27, passagiere: 17, rennen: 17,
+  jaeger: 65, frachttransport: 35, erkundung: 27, passagiere: 17, rennen: 17,
   einsteiger: 12, bodenkampf: 11, kanonenschiff: 9, medizin: 7, bomber: 6,
   truppentransport: 6, bergung: 6, abriegelung: 5, bergbau: 5, grosskampfschiff: 5,
   'daten-wissenschaft': 3, betankung: 3, mehrzweck: 2,
@@ -104,14 +107,15 @@ for (const rk of ROLE_COMPOUND_KEYS) {
   need(ok, `Verbundrolle ${rk} ist bei mindestens einem Fahrzeug nicht in >=2 Familien zerlegt`);
 }
 
-console.log(`\n=== I) Signatur (D-07): genau 16 Fahrzeuge, 11 davon unter 0,80 ===`);
+console.log(`\n=== I) Signatur (D-07): genau 17 Fahrzeuge, 11 davon unter 0,80 ===`);
 const withSig = roleIds.filter((id) => roles.vehicles[id].sig);
 const lowSig = withSig.filter((id) => {
   const s = roles.vehicles[id].sig;
   return Math.min(s.ir ?? 1, s.em ?? 1) < 0.8;
 });
 console.log(`  sig-Objekt: ${withSig.length}, davon unter 0,80: ${lowSig.length}`);
-need(withSig.length === 16, `Fahrzeuge mit sig-Objekt: ${withSig.length} statt 16`);
+// 07.10.2026: 16 -> 17 — die Raven EX traegt die Raven-Signatur (0,83, also nicht unter 0,80).
+need(withSig.length === 17, `Fahrzeuge mit sig-Objekt: ${withSig.length} statt 17`);
 need(lowSig.length === 11, `Fahrzeuge mit sig unter 0,80: ${lowSig.length} statt 11`);
 const zeroAsNumber = roleIds.filter((id) => {
   const s = roles.vehicles[id].sig;
@@ -154,7 +158,8 @@ console.log(`\n=== M) Größenklasse (AttachDef.Size, Quick-Task 260802-ose): se
 // Erhebungsstand 02.08.2026 (PLAN.md der Quick-Task, gegen das echte Archiv
 // gemessen). Darf sich nur aendern, wenn ein spaeterer Datamine-Lauf die
 // Ursache klaert — nicht stillschweigend nachziehen.
-const SIZE_WANT = { 1: 48, 2: 82, 3: 38, 4: 22, 5: 26, 6: 7 };
+// 07.10.2026: Groesse 2 82 -> 84 (Raven EX + Stingray).
+const SIZE_WANT = { 1: 48, 2: 84, 3: 38, 4: 22, 5: 26, 6: 7 };
 const sizeCount = {};
 for (const v of Object.values(roles.vehicles)) if (v.size != null) sizeCount[v.size] = (sizeCount[v.size] || 0) + 1;
 for (const [n, want] of Object.entries(SIZE_WANT)) {
@@ -165,14 +170,14 @@ for (const [n, want] of Object.entries(SIZE_WANT)) {
 const withoutSize = roleIds.filter((id) => roles.vehicles[id].size == null);
 need(withoutSize.length === 0, `${withoutSize.length} Fahrzeuge ohne Größenklasse: ${withoutSize.join(', ')}`);
 
-console.log(`\n=== N) SubType (AttachDef.SubType, informativ, Quick-Task 260802-ose): Katalogstand 196/27 ===`);
+console.log(`\n=== N) SubType (AttachDef.SubType, informativ, Quick-Task 260802-ose): Katalogstand 198/27 ===`);
 // SubType ist NICHT das Bodenfahrzeug-Merkmal (siehe feat.ground in Abschnitt
 // K) — geprueft und bewusst nicht umgestellt, siehe SUMMARY der Quick-Task
 // (Nox/Dragonfly/Pulse/X1/Hoverquad laufen bei CIG als Vehicle_Spaceship).
 const subTypeCount = {};
 for (const v of Object.values(roles.vehicles)) if (v.subType) subTypeCount[v.subType] = (subTypeCount[v.subType] || 0) + 1;
 console.log(`  Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0}, Vehicle_GroundVehicle: ${subTypeCount.Vehicle_GroundVehicle || 0}`);
-need((subTypeCount.Vehicle_Spaceship || 0) === 196, `SubType Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0} statt 196`);
+need((subTypeCount.Vehicle_Spaceship || 0) === 198, `SubType Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0} statt 198`);
 need((subTypeCount.Vehicle_GroundVehicle || 0) === 27, `SubType Vehicle_GroundVehicle: ${subTypeCount.Vehicle_GroundVehicle || 0} statt 27`);
 
 console.log(`\n--- Zusammenfassung: ${roleIds.length}/${veh.vehicles.length} gejointe Fahrzeuge geprüft, ${roles.unmatched.length} benannte Fehlstellen, ${fail.length} Fehlschläge ---`);

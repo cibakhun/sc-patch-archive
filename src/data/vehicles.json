@@ -1,9 +1,9 @@
 {
-  "fetchedAt": "2026-09-24",
+  "fetchedAt": "2026-10-07",
   "gameVersion": "sc-alpha-4.10.0@12660092",
   "source": "Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer",
   "external": "src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen, image, crewMax, statusEn/De, fociDe — nicht in den Spieldateien; plus vier komplett übernommene ATLS-Datensätze, D-13)",
-  "count": 227,
+  "count": 229,
   "vehicles": [
     {
       "id": "orig-100i",
@@ -30560,6 +30560,248 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Medium Freighter"
+      ]
+    },
+    {
+      "id": "aegs-sabre-raven-ex",
+      "name": "Sabre Raven EX",
+      "manufacturer": "Aegis Dynamics",
+      "makerCode": "AEGS",
+      "typeEn": "Combat",
+      "typeDe": "Kampf",
+      "roleEn": "Medium Fighter",
+      "roleDe": "Mittlerer Jäger",
+      "sizeClass": 2,
+      "sizeDe": "Klein",
+      "descriptionEn": "Aegis Dynamics have raised the bar yet again with their Raven variant. Nearing the speed and maneuverability of its Sabre forebearer but with a lower ship signature, the Raven is a fast, stealthy infiltrator. This special EX model reincorporates some of the offensive capabilities of the original Sabre while introducing a Quantum Dampener on the spine of the ship to help ensure enemies won't escape.",
+      "descriptionDe": "Aegis Dynamics have raised the bar yet again with their Raven variant. Nearing the speed and maneuverability of its Sabre forebearer but with a lower ship signature, the Raven is a fast, stealthy infiltrator. This special EX model reincorporates some of the offensive capabilities of the original Sabre while introducing a Quantum Dampener on the spine of the ship to help ensure enemies won't escape.",
+      "crewMin": 1,
+      "isGravlev": false,
+      "isSpaceship": true,
+      "scmSpeed": 233,
+      "maxSpeed": 1320,
+      "boostForward": 560,
+      "pitch": 56,
+      "yaw": 45,
+      "roll": 160,
+      "hullHp": 13116,
+      "shieldHp": 6336,
+      "qtSpeedMs": 161410896,
+      "qtSpoolS": 4.400000095367432,
+      "qtRangeM": 48335125367,
+      "qtFuel": 0.9,
+      "h2Fuel": 2.6,
+      "oreSCU": null,
+      "cargoSCU": 0,
+      "insClaimMin": 7.6,
+      "insExpediteMin": 2.5,
+      "insExpediteCost": 3934,
+      "pilotDps": 2184.6,
+      "turretDps": null,
+      "fixedWeapons": [
+        {
+          "name": "Omnisky IX Cannon",
+          "size": 3,
+          "count": 2,
+          "cls": "AMRS_LaserCannon_S3",
+          "dps": 546.7
+        },
+        {
+          "name": "CF-337 Panther Repeater",
+          "size": 3,
+          "count": 2,
+          "cls": "KLWE_LaserRepeater_S3",
+          "dps": 545.6
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "turretWeapons": [],
+      "turrets": [],
+      "missileCount": 4,
+      "missileRacks": [
+        {
+          "name": "Arrester III Missile",
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "cmLaunchers": 2,
+      "components": {
+        "powerPlants": [
+          {
+            "name": "Regulus",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "shields": [
+          {
+            "name": "AllStop",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "coolers": [
+          {
+            "name": "Bracer",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "quantumDrives": [
+          {
+            "name": "Beacon",
+            "size": 1,
+            "count": 1
+          }
+        ],
+        "radars": [
+          {
+            "name": "Ecouter",
+            "size": 1,
+            "count": 1
+          }
+        ]
+      },
+      "gameVersion": "sc-alpha-4.10.0@12660092",
+      "patches": [
+        "4.10.1"
+      ]
+    },
+    {
+      "id": "krig-s65-stingray",
+      "name": "S-65 Stingray",
+      "manufacturer": "Kruger Intergalactic",
+      "makerCode": "KRIG",
+      "typeEn": "Combat",
+      "typeDe": "Kampf",
+      "roleEn": "Medium Fighter",
+      "roleDe": "Mittlerer Jäger",
+      "sizeClass": 2,
+      "sizeDe": "Klein",
+      "descriptionEn": "Sleek, balanced, and uncompromising in its vision, the S-65 Stingray is a medium fighter that balances great maneuverability whilst still packing a punch. Taking after its namesake, the Stingray is no stranger to combat, able to swoop in, deliver sustained damage, and swoop out, unafraid to take a few hits in the process.",
+      "descriptionDe": "Sleek, balanced, and uncompromising in its vision, the S-65 Stingray is a medium fighter that balances great maneuverability whilst still packing a punch. Taking after its namesake, the Stingray is no stranger to combat, able to swoop in, deliver sustained damage, and swoop out, unafraid to take a few hits in the process.",
+      "crewMin": 1,
+      "isGravlev": false,
+      "isSpaceship": true,
+      "scmSpeed": 218,
+      "maxSpeed": 1200,
+      "boostForward": 485,
+      "pitch": 55,
+      "yaw": 42,
+      "roll": 185,
+      "hullHp": 10859,
+      "shieldHp": 4320,
+      "qtSpeedMs": 209236400,
+      "qtSpoolS": 4.900000095367432,
+      "qtRangeM": 84253886245,
+      "qtFuel": 0.9,
+      "h2Fuel": 3.6,
+      "oreSCU": null,
+      "cargoSCU": 0,
+      "insClaimMin": 2,
+      "insExpediteMin": 1,
+      "insExpediteCost": 333,
+      "pilotDps": 2485,
+      "turretDps": null,
+      "fixedWeapons": [
+        {
+          "name": "Whiptail STR-E2 Repeater",
+          "size": 2,
+          "count": 4,
+          "cls": "KRIG_LaserRepeater_Bespoke_S2",
+          "dps": 90
+        },
+        {
+          "name": "Axiom L-22 Repeater",
+          "size": 4,
+          "count": 2,
+          "cls": "Krig_LaserRepeater_Bespoke_S4",
+          "dps": 1062.5
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "turretWeapons": [],
+      "turrets": [],
+      "missileCount": 8,
+      "missileRacks": [
+        {
+          "name": "Tempest II Missile",
+          "size": 2,
+          "count": 8
+        }
+      ],
+      "cmLaunchers": 2,
+      "components": {
+        "powerPlants": [
+          {
+            "name": "LightBlossom",
+            "size": 1,
+            "count": 1
+          }
+        ],
+        "shields": [
+          {
+            "name": "WEB",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "coolers": [
+          {
+            "name": "Frost-Star",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "quantumDrives": [
+          {
+            "name": "Rush",
+            "size": 1,
+            "count": 1
+          }
+        ],
+        "radars": [
+          {
+            "name": "Capston",
+            "size": 1,
+            "count": 1
+          }
+        ]
+      },
+      "gameVersion": "sc-alpha-4.10.0@12660092",
+      "patches": [
+        "4.10.0"
       ]
     },
     {

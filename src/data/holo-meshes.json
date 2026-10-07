@@ -1,7 +1,7 @@
 {
-  "fetchedAt": "2026-07-19",
+  "fetchedAt": "2026-10-07",
   "source": "StarBreaker entity export (Data.p4k) -> gltf-transform/meshopt Dezimierung",
-  "count": 227,
+  "count": 229,
   "meshes": {
     "aegs-avenger-stalker": {
       "url": "/holo/aegs-avenger-stalker.glb",
@@ -1137,6 +1137,16 @@
       "url": "/holo/xnaa-santokyai.glb",
       "tris": 142348,
       "v": "8f84c919"
+    },
+    "aegs-sabre-raven-ex": {
+      "url": "/holo/aegs-sabre-raven-ex.glb",
+      "tris": 88968,
+      "v": "cbeee7ad"
+    },
+    "krig-s65-stingray": {
+      "url": "/holo/krig-s65-stingray.glb",
+      "tris": 128191,
+      "v": "795c2e4e"
     }
   }
 }
