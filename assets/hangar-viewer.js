@@ -40,7 +40,7 @@ const HALL_R = 34;
 const HALL_H = 24;
 // Richtung, aus der die Kamera anfangs schaut (vorn rechts oben). Das
 // Hallentor liegt genau gegenüber, damit es hinter dem Schiff im Bild ist.
-const HOME_DIR = new THREE.Vector3(0.62, 0.34, 0.71).normalize();
+const HOME_DIR = new THREE.Vector3(0.64, 0.22, 0.74).normalize();   // flach wie im Hangar-Menü des Spiels
 const DOOR_ANGLE = Math.atan2(-HOME_DIR.x, -HOME_DIR.z); // Winkel um Y, 0 = +Z
 const DOOR_WIDTH = 1.15; // Bogenmaß der Toröffnung
 
@@ -966,7 +966,7 @@ function buildLife(scene, reduceMotion) {
     const sh = L.shipTop + 1.5;
     dr.scan.scale.set(sh * 0.35, sh, sh * 0.35);
     dr.scan.position.y = -sh / 2;
-    dr.scan.material.opacity = reduceMotion ? 0.05 : 0.04 + 0.04 * (0.5 + 0.5 * Math.sin(t * 2));
+    dr.scan.material.opacity = reduceMotion ? 0.02 : 0.012 + 0.014 * (0.5 + 0.5 * Math.sin(t * 2));
     // Kran fährt langsam hin und her, Haken pendelt sanft
     const cz = reduceMotion ? 0 : Math.sin(t * 0.05) * HALL_R * L.S * 0.6;
     crane.children[0].position.set(0, 0, cz);
@@ -1067,7 +1067,15 @@ export async function initHangar(container, opts = {}) {
   let S = 1, span = 14;
   // camLimit: in der echten Halle darf die Kamera nicht durch die Wand
   let camLimit = Infinity;
-  const homeDist = () => Math.min(camLimit, span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6);
+  const wantDist = () => span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
+  const homeDist = () => Math.min(camLimit, wantDist());
+  // Passt ein großes Schiff (C2, Carrack) nicht mit Abstand in die Halle,
+  // weitet sich der Blickwinkel, statt das Schiff anzuschneiden.
+  const fitFov = () => {
+    const d = wantDist();
+    const fov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
+    if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  };
   const homePos = () => HOME_DIR.clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 2.2, 0);
@@ -1155,6 +1163,7 @@ export async function initHangar(container, opts = {}) {
       camera.far = Math.max(realHall.room.halfL, realHall.room.height) * realHallScale(realHall.room) * 4;
       camera.updateProjectionMatrix();
     }
+    fitFov();
     life.layout(S, shipInfo);
   }
 
@@ -1189,8 +1198,18 @@ export async function initHangar(container, opts = {}) {
           // Weißer Innenraum: die Reflexe der Ersatzhalle dämpfen. Spiegelndes
           // Metall (Bodenplatten, Verkleidung) spiegelte sie sonst als flache
           // blaue Flächen, glatter Kunststoff als Gleißen.
-          m.envMapIntensity = 0.2;
-          if (m.metalness > 0.4) { m.metalness = 0.4; m.roughness = Math.max(m.roughness, 0.45); }
+          // Die Ersatzhalle als Umgebung macht den Raum gleichmäßig hell:
+          // in der echten Halle fast ganz zurücknehmen, Licht kommt von den Lampen.
+          m.envMapIntensity = 0.05;
+          // Die Lackschichten der Halle liefern reinweiße Grundfarben, die
+          // im Spiel erst Tönung und Schmutz abdunkeln: ohne das ist jede
+          // Wand ein Leuchtkasten.
+          if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
+          if (/metal_grey/i.test(m.name)) {
+            // Bodenplatten: gebürstetes Stahlgrau statt der hellen Glanzkarte,
+            // die der Export als Farbe liefert; spiegelt ein wenig die Halle.
+            m.color.multiplyScalar(0.5); m.metalness = 0.7; m.roughness = 0.42; m.envMapIntensity = 0.45;
+          } else if (m.metalness > 0.4) { m.metalness = 0.4; m.roughness = Math.max(m.roughness, 0.45); }
           else m.roughness = Math.max(m.roughness, 0.65);
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein
           if (m.emissiveMap) m.emissiveIntensity = 4;
@@ -1212,11 +1231,14 @@ export async function initHangar(container, opts = {}) {
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
       // tritt zurück — sonst ist das helle Innere eine einzige weiße Fläche.
-      hemi.intensity = 0.22;
-      key.intensity = 9; key.angle = 0.5;
+      hemi.color.set(0xffefdc); hemi.groundColor.set(0x2b2723);
+      hemi.intensity = 0.35;
+      key.intensity = 8; key.angle = 0.5; key.penumbra = 0.75;
       rim.intensity = 3;
       doorLight.intensity = 0.3;
-      renderer.toneMappingExposure = 0.68;
+      fill.intensity = 0.2;
+      renderer.toneMappingExposure = 0.9;
+      enableAO();
       if (current) { current.group.userData.baseY = 0.02; }
       if (lastInfo) scaleWorld(lastInfo);
       // die Kamera stand womöglich für die gebaute (größere) Halle
@@ -1224,6 +1246,34 @@ export async function initHangar(container, opts = {}) {
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
     }, undefined, () => { /* gebaute Halle bleibt stehen */ });
+  }
+
+  // Umgebungsverdeckung (GTAO) nur in der echten Halle: erst sie setzt
+  // Ecken, Fugen und den Boden unter dem Schiff ab. Nachgeladen, damit die
+  // gebaute Halle ohne die Zusatzpässe auskommt.
+  let composer = null;
+  async function enableAO() {
+    if (composer || !renderer.capabilities.isWebGL2) return;
+    try {
+      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { OutputPass }] = await Promise.all([
+        import('three/addons/postprocessing/EffectComposer.js'),
+        import('three/addons/postprocessing/RenderPass.js'),
+        import('three/addons/postprocessing/GTAOPass.js'),
+        import('three/addons/postprocessing/OutputPass.js'),
+      ]);
+      const c = new EffectComposer(renderer);
+      c.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      c.setSize(W(), H());
+      c.addPass(new RenderPass(scene, camera));
+      const ao = new GTAOPass(scene, camera, W(), H());
+      ao.output = GTAOPass.OUTPUT.Default;
+      ao.blendIntensity = 1;
+      ao.updateGtaoMaterial({ radius: 2.5, distanceExponent: 1.4, thickness: 2, scale: 1.2, samples: 16 });
+      ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+      c.addPass(ao);
+      c.addPass(new OutputPass());
+      composer = c;
+    } catch { /* ohne Verdeckung weiter */ }
   }
 
   let current = null;      // { group, born, mat, info }
@@ -1414,7 +1464,7 @@ export async function initHangar(container, opts = {}) {
     }
     if (fly) flyStep(now);
     controls.update();
-    renderer.render(scene, camera);
+    if (composer) composer.render(); else renderer.render(scene, camera);
   }
 
   scaleWorld({ len: 14, halfW: 6, height: 4 });
@@ -1424,8 +1474,10 @@ export async function initHangar(container, opts = {}) {
 
   const ro = new ResizeObserver(() => {
     renderer.setSize(W(), H());
+    composer?.setSize(W(), H());
     camera.aspect = W() / H();
     camera.updateProjectionMatrix();
+    fitFov();
     if (!touched) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
   ro.observe(container);
@@ -1446,6 +1498,7 @@ export async function initHangar(container, opts = {}) {
       controls.dispose();
       disposeObject(scene);
       envRT.dispose();
+      composer?.dispose();
       draco.dispose();
       renderer.dispose();
       renderer.domElement.remove();
