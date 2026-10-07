@@ -38,7 +38,7 @@
     },
     {
       "label": "Neues Schiff",
-      "value": "Keins fliegbar — die Kruger S-65 Stingray liegt vorbereitet im Build"
+      "value": "Kruger S-65 Stingray — mittlerer Jäger, fliegbar"
     },
     {
       "label": "Wipe",
@@ -173,18 +173,18 @@
       "desc": "Neue gestufte Hilferufe: Schiffe in Not und unter Beschuss werden als Kontrakt in Gelb, Orange und Rot ausgeschrieben — die Stufe sagt, wie ernst die Lage am Zielort ist."
     },
     {
-      "name": "Kruger S-65 Stingray — vorbereitet, nicht fliegbar",
+      "name": "Kruger S-65 Stingray — neuer mittlerer Jäger",
       "system": "Schiffs-Systeme",
       "kind": "ship-system",
-      "desc": "Der Jäger ist angekündigt und liegt teilweise schon im Build: zwei S4-Raketenhalterungen, eine Lafette, der Whiptail-Repetierer und vier Lackierungen. Als fliegbares Fahrzeug führt der Bestand ihn nicht — die Flotte bleibt bei 227.",
+      "desc": "Krugers erster mittlerer Jäger: zwei S4- und vier S2-Repetierer in eigens gebauten Halterungen, acht S2-Raketen, dazu vier Lackierungen. Die Flotte wächst von 227 auf 228. Bis zum 08.10.2026 stand die Stingray hier als nicht fliegbar — unser Katalog nahm neue Schiffe nicht auf.",
       "facts": [
         {
-          "label": "Im Build",
-          "value": "S4-Raketenhalterungen · STR-E2-Lafette · Whiptail · 4 Lackierungen"
+          "label": "Bewaffnung",
+          "value": "2× S4 · 4× S2 · 8 Raketen S2"
         },
         {
           "label": "Fliegbar",
-          "value": "Nein — Flottenstand unverändert 227"
+          "value": "Ja — Flottenstand 227 → 228"
         }
       ]
     },
@@ -211,9 +211,9 @@
     {
       "name": "S-65 Stingray",
       "manufacturer": "Kruger Intergalactic",
-      "role": "Jäger",
-      "status": "angekündigt",
-      "notes": "Waffenhalterungen, Lafette und vier Lackierungen liegen im Build — als fliegbares Fahrzeug noch nicht enthalten"
+      "role": "Mittlerer Jäger",
+      "status": "fliegbar",
+      "notes": "Neuer mittlerer Jäger von Kruger Intergalactic; vier Lackierungen"
     }
   ],
   "events": [],
