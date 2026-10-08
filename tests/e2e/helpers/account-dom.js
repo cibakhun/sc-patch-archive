@@ -4,8 +4,10 @@
 // Kontext. Die Tabs teilen localStorage (ein Schreiben meldet `storage` an die
 // jeweils ANDEREN Tabs, wie im Browser) und den Auth-Server. Jede
 // Refresh-Anfrage bleibt angehalten, bis der Test sie beantwortet: mit einem
-// Status, ohne Netz oder gar nicht. Profil, Rolle und Heartbeat antworten leer;
-// geprüft wird die Sitzung, die Seitenskripte über VBAccount.session() sehen.
+// Status, ohne Netz oder gar nicht. Das Profil heißt Nova, die Rolle ist
+// admin, der Heartbeat (PATCH) bekommt 204. Jeder Tab trägt das Konto-Element
+// aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument (admin()) und führt
+// Buch über seine Anfragen (requests).
 //
 // Zeit ist eine Attrappe (Date.now, setTimeout, setInterval): ein Zeitgeber
 // läuft erst, wenn der Test die Uhr mit advance() vorstellt.
@@ -49,7 +51,10 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
 
   function authServer(url, init) {
     if (!url.includes('/auth/v1/token')) {
-      return Promise.resolve(respond(init && init.method === 'PATCH' ? 204 : 200, init && init.method === 'PATCH' ? undefined : []));
+      if (init.method === 'PATCH') return Promise.resolve(respond(204));
+      if (url.includes('/rest/v1/profiles?')) return Promise.resolve(respond(200, [{ display_name: 'Nova', handle: 'nova' }]));
+      if (url.includes('/rest/v1/user_roles?')) return Promise.resolve(respond(200, [{ role: 'admin' }]));
+      return Promise.resolve(respond(200, []));
     }
     const entry = { body: JSON.parse(init.body) };
     const p = new Promise((resolve, reject) => {
@@ -94,10 +99,26 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
       await browser.drain();
     },
     open() {
-      const tab = { events: [] };
+      const tab = { events: [], requests: [] };
       tabs.push(tab);
       const listeners = {};
       const session = new Map();
+      const classes = () => {
+        const set = new Set();
+        return { set, classList: { toggle: (c, on = !set.has(c)) => { if (on) set.add(c); else set.delete(c); return on; } } };
+      };
+      const root = classes();
+      // Wie das Konto-Element in SiteNav.astro, Seite auf Englisch.
+      const attrs = { 'data-login': '/account/login.html', 'data-dash': '/account.html', 'data-l-login': 'Sign in', 'data-l-acct': 'Account' };
+      const label = { textContent: attrs['data-l-login'] };
+      const acct = classes();
+      const nav = {
+        href: attrs['data-login'],
+        title: '',
+        classList: acct.classList,
+        getAttribute: (name) => (name in attrs ? attrs[name] : null),
+        querySelector: (sel) => (sel === '.js-nav-acct-txt' ? label : null),
+      };
       const later = (every) => (fn, ms) => {
         const id = ++clock.seq;
         const wait = Math.max(0, Number(ms) || 0);
@@ -133,11 +154,14 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
           readyState: 'complete',
           visibilityState: 'visible',
           cookie: '',
-          documentElement: { classList: { toggle() {} } },
-          querySelectorAll: () => [],
+          documentElement: { classList: root.classList },
+          querySelectorAll: (sel) => (sel === '.js-nav-acct' ? [nav] : []),
           addEventListener() {},
         },
-        fetch: authServer,
+        fetch: (url, init) => {
+          tab.requests.push({ method: init.method, url });
+          return authServer(url, init);
+        },
         Event: class Event { constructor(type) { this.type = type; } },
         Date: FakeDate,
         setTimeout: later(false),
@@ -157,6 +181,8 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
       tab.fire = (type, init) => { for (const fn of (listeners[type] || []).slice()) fn({ type, ...init }); };
       vm.runInContext(CODE, vm.createContext(sandbox));
       tab.session = () => sandbox.VBAccount.session();
+      tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed') });
+      tab.admin = () => root.set.has('is-admin');
       return tab;
     },
   };

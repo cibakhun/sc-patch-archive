@@ -10,6 +10,11 @@ import { makeAccountBrowser, STORE } from './helpers/account-dom.js';
 const tokenOf = (s) => (s ? s.access_token : null);
 const storedToken = (b) => tokenOf(JSON.parse(b.storage.get(STORE) ?? 'null'));
 const sessionEvents = (tab) => tab.events.filter((e) => e === 'vb-account-session').length;
+const calls = (tab, method, part) => tab.requests.filter((r) => r.method === method && r.url.includes(part)).length;
+const heartbeats = (tab) => calls(tab, 'PATCH', '/rest/v1/profiles?');
+const nameAndRoleFetches = (tab) => [calls(tab, 'GET', '/rest/v1/profiles?'), calls(tab, 'GET', '/rest/v1/user_roles?')];
+const SIGNED_OUT = { href: '/account/login.html', text: 'Sign in', authed: false };
+const SIGNED_IN = { href: '/account.html', text: 'Nova', authed: true };
 
 test('zwei Aufrufe während eines Refreshs bekommen beide die neue Sitzung, ein Refresh genügt', async () => {
   const b = makeAccountBrowser({ expiresIn: -10 });
@@ -75,6 +80,74 @@ test('ein Refresh ohne Antwort gibt seine Aufrufer nach 15 Sekunden frei, eine s
   assert.equal(storedToken(b), 'token-2');
   assert.equal(sessionEvents(tab), 1, 'die späte Sitzung wird gemeldet');
   assert.equal(tokenOf(await tab.session()), 'token-2');
+});
+
+test('landet der Refresh beim Laden erst nach der Frist, zieht der Tab Nav, Rolle und Heartbeat nach', async () => {
+  const b = makeAccountBrowser({ expiresIn: -10 });
+  const tab = b.open();
+  await b.advance(15000);
+  assert.deepEqual(tab.nav(), SIGNED_OUT, 'nach der Frist zeigt die Nav abgemeldet');
+  assert.equal(heartbeats(tab), 0);
+
+  b.refreshes[0].answer(200, b.fresh(2));
+  await b.drain();
+  assert.equal(storedToken(b), 'token-2');
+  assert.deepEqual(tab.nav(), SIGNED_IN, 'die Nav zeigt das Konto mit Namen');
+  assert.equal(tab.admin(), true, 'die Rolle ist angewandt');
+  assert.equal(heartbeats(tab), 1, 'der Heartbeat pingt sofort');
+  await b.advance(30000);
+  assert.equal(heartbeats(tab), 2, 'und danach alle 30 Sekunden');
+});
+
+test('lehnt GoTrue den Refresh beim Laden erst nach der Frist ab, zeigt der Tab danach abgemeldet', async () => {
+  const b = makeAccountBrowser({ expiresIn: 30 });
+  const tab = b.open();
+  await b.advance(15000);
+  assert.deepEqual(tab.nav(), SIGNED_IN, 'nach der Frist gilt das noch gültige Token');
+  assert.equal(tab.admin(), true);
+
+  b.refreshes[0].answer(401, { error: 'invalid_grant' });
+  await b.drain();
+  assert.equal(b.storage.get(STORE), null);
+  assert.deepEqual(tab.nav(), SIGNED_OUT, 'die Nav zeigt abgemeldet');
+  assert.equal(tab.admin(), false, 'die Rolle ist zurückgenommen');
+});
+
+test('landet der Refresh beim Laden rechtzeitig, holt der Tab Name und Rolle genau einmal', async () => {
+  const b = makeAccountBrowser({ expiresIn: -10 });
+  const tab = b.open();
+  b.refreshes[0].answer(200, b.fresh(2));
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(heartbeats(tab), 1);
+  assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
+});
+
+test('erneuert der Tab sein Token später rechtzeitig, holt er Name und Rolle nicht noch einmal', async () => {
+  const b = makeAccountBrowser({ expiresIn: 90 });
+  const tab = b.open();
+  await b.advance(30000);
+  assert.equal(b.refreshes.length, 1, 'der Heartbeat nach 30 Sekunden erneuert das Token');
+  b.refreshes[0].answer(200, b.fresh(2));
+  await b.drain();
+  assert.equal(storedToken(b), 'token-2');
+  assert.equal(sessionEvents(tab), 1);
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
+});
+
+test('meldet sich ein anderer Tab an, zeigt dieser Tab das Konto und holt Name und Rolle genau einmal', async () => {
+  const b = makeAccountBrowser();
+  b.signOut();
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_OUT);
+
+  b.signIn(9);
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(heartbeats(tab), 1);
+  assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
 });
 
 test('hängt der Refresh, fragt der nächste Versuch nach der Frist mit demselben Token, und die späte erste Antwort meldet nicht ab', async () => {
