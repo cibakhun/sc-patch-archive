@@ -26,7 +26,7 @@
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
@@ -1812,7 +1812,7 @@ export async function initHangar(container, opts = {}) {
   const VOL_GAIN = 1;   // Stärke gegen die echten Lampen, am Render abgeglichen
   const hallVol = {
     a: { value: null }, b: { value: null }, on: { value: 0 },
-    min: { value: new THREE.Vector3() }, inv: { value: 1 / VOL_STEP }, res: { value: new THREE.Vector3(1, 1, 1) },
+    min: { value: new THREE.Vector3() }, at: null, inv: { value: 1 / VOL_STEP }, res: { value: new THREE.Vector3(1, 1, 1) },
   };
   function buildHallVolume(list, room, f) {
     const { center: c, halfW, halfL, height } = room;
@@ -1950,7 +1950,10 @@ export async function initHangar(container, opts = {}) {
     const t0 = performance.now();
     const vol = buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f);
     hallVol.a.value = vol.a; hallVol.b.value = vol.b;
-    hallVol.min.value.set(vol.min[0] - c[0], vol.min[1] - f, vol.min[2] - c[2]);
+    // Ecke im Modellraum merken: Die Halle verschiebt Lampen und Gitter beim
+    // Einhängen um ihre eigene Lage (ohne floor im Manifest gelotet)
+    hallVol.at = vol.min;
+    hallVol.min.value.fromArray(vol.min).add(lamps.position);
     hallVol.res.value.set(...vol.res);
     hallVol.on.value = 1;
     console.info(`[hangar] Lichtgitter ${vol.res.join('x')} aus ${vol.used} Spiellampen, ${Math.round(performance.now() - t0)} ms`);
@@ -2340,7 +2343,10 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
       await prepare(model);
-      hallLamps?.position.copy(model.position);
+      if (hallLamps) {
+        hallLamps.position.copy(model.position);
+        hallVol.min.value.fromArray(hallVol.at).add(model.position);
+      }
       hallRoot.add(model);
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
