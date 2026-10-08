@@ -276,6 +276,15 @@
   var lastPull = 0;
   var syncState = 'local';   // local | syncing | synced | error
   var VB = null;
+  // Die Gast-Ablage wandert einmal je Anmelden ins Konto, und zwar mit dem
+  // ersten Zug, der den Server erreicht, nicht unbedingt mit dem ersten Versuch.
+  var mergeOwed = false;
+  // Wiederholung ohne nutzbare Sitzung (noSession): nach 2 s, dann doppelt so
+  // lange, höchstens einmal je Minute, wie die Flotte (assets/fleet.js).
+  var BACKOFF_MS = 2000;
+  var BACKOFF_MAX_MS = 60000;
+  var backoff = 0;
+  var backoffTimer = null;
 
   function markDirty(slug) {
     // Erst vormerken, dann speichern — persist() schreibt die offene Liste mit.
@@ -291,9 +300,18 @@
     clearTimeout(flushTimer);
     var slugs = Object.keys(dirty);
     if (!acctUid || !VB || !slugs.length) return null;
+    var me = acctUid;
     dirty = {};
     return VB.session().then(function (sess) {
-      if (!sess) { goGuest(); return; }
+      // Kam die Antwort erst nach einem Kontowechsel, gehören diese Slugs dem
+      // vorigen Konto: zurückgelegt landeten sie in den Änderungen des neuen.
+      if (acctUid !== me) return;
+      if (!sess) {
+        slugs.forEach(function (s) { dirty[s] = true; });
+        persist();
+        noSession();
+        return;
+      }
       var up = [], del = [];
       slugs.forEach(function (s) {
         var o = !!owned[s], q = plan[s] || 0;
@@ -331,16 +349,20 @@
   // laufenden POST eintrifft, brächte den gerade geklickten Zustand wieder weg.
   function flushThenPull() {
     var p = flush();
-    if (p && p.then) p.then(function () { pull(false); }, function () { /* Fehler steht schon */ });
-    else pull(false);
+    if (p && p.then) p.then(function () { pull(); }, function () { /* Fehler steht schon */ });
+    else pull();
   }
 
-  // Server -> Client. `withMerge` nur beim ersten Zug nach dem Anmelden.
-  function pull(withMerge) {
+  // Server -> Client. Steht die Übernahme noch aus (mergeOwed), wandert die
+  // Gast-Ablage mit.
+  function pull() {
     if (!acctUid || !VB) return Promise.resolve();
     setSync('syncing');
     return VB.session().then(function (sess) {
-      if (!sess) { goGuest(); return; }
+      if (!sess) { noSession(); return; }
+      // Die Sitzung trägt: dieser Zug ist der Abgleich, den later() plante.
+      clearTimeout(backoffTimer);
+      backoff = 0;
       return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
         .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
         .then(function (rows) {
@@ -365,12 +387,14 @@
             if (plan[s] > 0) sp[s] = plan[s]; else delete sp[s];
           });
 
-          // Übernahme braucht KEINEN „schon erledigt"-Merker: eine erfolgreiche
-          // Übernahme leert die Gast-Ablage, es kann also nichts doppelt oder
-          // veraltet wandern. Ein Merker hätte im Gegenteil geschadet — was man
-          // abgemeldet anklickt, wäre beim nächsten Anmelden liegengeblieben.
+          // Übernahme braucht KEINEN dauerhaften „schon erledigt"-Merker: eine
+          // erfolgreiche Übernahme leert die Gast-Ablage, es kann also nichts
+          // doppelt oder veraltet wandern. Ein Merker hätte im Gegenteil
+          // geschadet — was man abgemeldet anklickt, wäre beim nächsten
+          // Anmelden liegengeblieben.
           var merged = 0;
-          if (withMerge) {
+          if (mergeOwed) {
+            mergeOwed = false;
             var guest = loadState(null);
             // Gezählt werden BLUEPRINTS, nicht Felder: ein Blueprint, der lokal
             // „im Besitz" UND im Planer stand, ist ein Eintrag, nicht zwei.
@@ -412,22 +436,46 @@
     setSync('local');
   }
 
+  // session() liefert null auch, wenn die Sitzung nur gerade nicht nutzbar
+  // ist: der Refresh eines abgelaufenen Tokens scheiterte an 5xx, 429 oder am
+  // Netz oder antwortete nicht binnen 15 s. peek() hält sie dann noch. Gehört
+  // sie diesem Konto, bleiben Spiegel und offene Änderungen stehen, und der
+  // Abgleich fragt selbst wieder, denn ein gescheiterter Refresh sendet kein
+  // Ereignis. Sonst klärt onSession(), wer jetzt gilt: abgemeldet ist nur,
+  // wer keine gespeicherte Sitzung mehr hat.
+  function noSession() {
+    if (acctUid && storedUid() === acctUid) later();
+    else onSession();
+  }
+  function storedUid() {
+    var kept = VB.peek();
+    return (kept && kept.user && kept.user.id) || null;
+  }
+  function later() {
+    setSync('syncing');
+    clearTimeout(backoffTimer);
+    var wait = Math.min(BACKOFF_MAX_MS, BACKOFF_MS * Math.pow(2, backoff++));
+    backoffTimer = setTimeout(function () { backoffTimer = null; pull(); }, wait);
+  }
+
   function onSession() {
     if (!VB) return;
     VB.session().then(function (sess) {
-      var uid = sess && sess.user && sess.user.id;
+      var uid = sess ? sess.user && sess.user.id : storedUid();
       if (!uid) { goGuest(); return; }
-      if (uid === acctUid) { pull(false); return; }
-      acctUid = uid;
-      // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
-      // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
-      // stehen im Spiegel und gehen jetzt mit raus.
-      var m = loadState(uid);
-      owned = m.owned; plan = m.plan;
-      dirty = {};
-      m.pending.forEach(function (s) { dirty[s] = true; });
-      repaintAll();
-      pull(true);
+      if (uid !== acctUid) {
+        acctUid = uid;
+        mergeOwed = true;
+        // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
+        // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
+        // stehen im Spiegel und gehen jetzt mit raus.
+        var m = loadState(uid);
+        owned = m.owned; plan = m.plan;
+        dirty = {};
+        m.pending.forEach(function (s) { dirty[s] = true; });
+        repaintAll();
+      }
+      if (sess) pull(); else later();
     });
   }
 
@@ -443,7 +491,7 @@
       if (document.visibilityState !== 'visible' || !acctUid) return;
       var stale = Date.now() - lastPull > 60000;
       if (Object.keys(dirty).length) { if (stale) flushThenPull(); else flush(); }
-      else if (stale) pull(false);
+      else if (stale) pull();
     });
     // Seite wird verlassen: letzten Stand noch rausschicken (best effort).
     addEventListener('pagehide', function () { if (Object.keys(dirty).length) flush(); });
