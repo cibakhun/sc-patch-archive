@@ -12,6 +12,10 @@
 // eine neue Seite im selben Tab: gleicher sessionStorage, die alte Seite
 // bekommt keine Antwort, kein Ereignis und keinen Zeitgeber mehr.
 //
+// Vor account-lite läuft wie im Seitenkopf das Kopfskript aus Layout.astro,
+// das die Admin-Klasse aus dem Rollen-Cache vor dem ersten Bild setzt;
+// headAdmin() ist die Klasse danach, also das erste Bild.
+//
 // Zeit ist eine Attrappe (Date.now, setTimeout, setInterval): ein Zeitgeber
 // läuft erst, wenn der Test die Uhr mit advance() vorstellt.
 import fs from 'node:fs';
@@ -20,6 +24,12 @@ import vm from 'node:vm';
 
 const CODE = fs.readFileSync(path.resolve('assets/account-lite.js'), 'utf8');
 export const STORE = 'sb-trgjhmbnodoarnfmlcqx-auth-token';
+const HEAD_LITERAL = (fs.readFileSync(path.resolve('src/layouts/Layout.astro'), 'utf8').match(/set:html=\{(`[^`]*vb_user_role[^`]*`)\}/) || [])[1];
+if (!HEAD_LITERAL) throw new Error('Kopfskript mit vb_user_role in src/layouts/Layout.astro nicht gefunden');
+/** Das Kopfskript, wie Astro es beim Bauen mit diesen Leistenfarben einsetzt; ein unbekannter Name im ${…} reißt. */
+export const headScript = (themeColorLight, themeColorSafe) =>
+  new Function('themeColorLight', 'themeColorSafe', 'SUPABASE', `return ${HEAD_LITERAL};`)(themeColorLight, themeColorSafe, { storageKey: STORE });
+const HEAD = headScript('#eef1f6', '#05070d');
 const PEOPLE = { 'user-1': { name: 'Nova', role: 'admin' }, 'user-2': { name: 'Vega', role: 'user' } };
 
 const tick = () => new Promise((r) => setImmediate(r));
@@ -122,7 +132,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       const listeners = {};
       const classes = () => {
         const set = new Set();
-        return { set, classList: { toggle: (c, on = !set.has(c)) => { if (on) set.add(c); else set.delete(c); return on; } } };
+        return { set, classList: { add: (c) => { set.add(c); }, toggle: (c, on = !set.has(c)) => { if (on) set.add(c); else set.delete(c); return on; } } };
       };
       const root = classes();
       // Wie das Konto-Element in SiteNav.astro, Seite auf Englisch.
@@ -171,7 +181,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
           readyState: 'complete',
           visibilityState: 'visible',
           cookie: '',
-          documentElement: { classList: root.classList },
+          documentElement: { classList: root.classList, setAttribute() {} },
+          querySelector: () => null,
           querySelectorAll: (sel) => (sel === '.js-nav-acct' ? [nav] : []),
           addEventListener() {},
         },
@@ -197,7 +208,13 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       };
       sandbox.window = sandbox;
       tab.fire = (type, init) => { for (const fn of (listeners[type] || []).slice()) fn({ type, ...init }); };
-      vm.runInContext(CODE, vm.createContext(sandbox));
+      const ctx = vm.createContext(sandbox);
+      vm.runInContext(HEAD, ctx);
+      const headAdmin = root.set.has('is-admin');
+      vm.runInContext(CODE, ctx);
+      tab.headAdmin = () => headAdmin;
+      /** Abmelden auf /account/ in DIESEM Tab: supabase-js löscht die Sitzung, storage hören nur die anderen Tabs. */
+      tab.signOut = () => sandbox.localStorage.removeItem(STORE);
       tab.session = () => sandbox.VBAccount.session();
       tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
       tab.admin = () => root.set.has('is-admin');

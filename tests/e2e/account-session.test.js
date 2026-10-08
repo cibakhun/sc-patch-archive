@@ -5,7 +5,9 @@
 // und welche Ereignisse der Tab sendet.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeAccountBrowser, STORE } from './helpers/account-dom.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { makeAccountBrowser, headScript, STORE } from './helpers/account-dom.js';
 
 const tokenOf = (s) => (s ? s.access_token : null);
 const storedToken = (b) => tokenOf(JSON.parse(b.storage.get(STORE) ?? 'null'));
@@ -13,6 +15,9 @@ const sessionEvents = (tab) => tab.events.filter((e) => e === 'vb-account-sessio
 const calls = (tab, method, part) => tab.requests.filter((r) => r.method === method && r.url.includes(part)).length;
 const heartbeats = (tab) => calls(tab, 'PATCH', '/rest/v1/profiles?');
 const nameAndRoleFetches = (tab) => [calls(tab, 'GET', '/rest/v1/profiles?'), calls(tab, 'GET', '/rest/v1/user_roles?')];
+const roleFetches = (tab) => calls(tab, 'GET', '/rest/v1/user_roles?');
+/** sessionStorage eines Tabs, in dem account-lite vor `minutes` Minuten diese Rolle gemerkt hat. */
+const remembered = (b, uid, role, minutes) => new Map([['vb_user_role', JSON.stringify({ uid, role, ts: b.clock.now - minutes * 60000 })]]);
 const SIGNED_OUT = { href: '/account/login.html', text: 'Sign in', authed: false, title: '' };
 const SIGNED_IN = { href: '/account.html', text: 'Nova', authed: true, title: 'Nova' };
 const VEGA = { href: '/account.html', text: 'Vega', authed: true, title: 'Vega' };
@@ -305,7 +310,7 @@ test('eine beantwortete Rollenabfrage gilt für den nächsten Seitenaufruf im se
 
   const next = tab.reload();
   await b.drain();
-  assert.equal(next.admin(), true, 'ohne neue Antwort vom Server: die Rolle kommt aus dem Tab');
+  assert.deepEqual([next.headAdmin(), next.admin(), roleFetches(next)], [true, true, 0], 'erstes Bild, Endstand, Rollenabfragen: die Rolle kommt aus dem Tab');
 });
 
 test('scheitert die Rollenabfrage (401, 503), fragt der nächste Seitenaufruf im selben Tab neu', async () => {
@@ -323,6 +328,149 @@ test('scheitert die Rollenabfrage (401, 503), fragt der nächste Seitenaufruf im
     await b.drain();
     assert.equal(next.admin(), true, `${status}: der Admin ist wieder Admin`);
   }
+});
+
+test('der Prüfstand fährt das Kopfskript, das in dist/ ausgeliefert wird', () => {
+  for (const page of ['dist/support.html', 'dist/de/support.html']) {
+    const html = fs.readFileSync(path.resolve(page), 'utf8');
+    const [, dark, light] = html.match(/<meta name="theme-color" content="[^"]*" data-dark="([^"]+)" data-light="([^"]+)"/);
+    assert.ok(html.includes(headScript(light, dark)), `${page}: das Kopfskript aus Layout.astro steht dort nicht wortgleich`);
+  }
+});
+
+test('ein frischer Admin-Eintrag des angemeldeten Kontos malt schon das erste Bild als Admin und fragt nicht nach der Rolle', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open(remembered(b, 'user-1', 'admin', 1));
+  await b.drain();
+  assert.deepEqual([tab.headAdmin(), tab.admin(), roleFetches(tab)], [true, true, 0]);
+});
+
+test('ein älterer Admin-Eintrag desselben Kontos malt das erste Bild als Admin, die neue Antwort bestätigt ihn ohne Wechsel', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open(remembered(b, 'user-1', 'admin', 6));
+  await b.drain();
+  const first = tab.headAdmin();
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual([first, tab.admin(), roleFetches(tab)], [true, true, 1]);
+});
+
+test('antwortet der Server für ein Konto mit älterem Admin-Eintrag mit einer anderen Rolle, gilt die Antwort, auch auf der nächsten Seite', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  b.signIn(9, 'user-2');
+  const tab = b.open(remembered(b, 'user-2', 'admin', 6));
+  await b.drain();
+  assert.equal(tab.admin(), false);
+  const next = tab.reload();
+  await b.drain();
+  assert.deepEqual([next.headAdmin(), next.admin()], [false, false]);
+});
+
+test('scheitert die Rollenabfrage eines Admins mit älterem Eintrag auf drei Seiten, bleibt jede Seite vom ersten Bild an Admin', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  let tab = b.open(remembered(b, 'user-1', 'admin', 10));
+  const pages = [];
+  for (let i = 0; i < 3; i++) {
+    await b.drain();
+    for (const r of b.reads.splice(0)) r.answer(r.kind === 'role' ? 503 : 200);
+    await b.drain();
+    pages.push([tab.headAdmin(), tab.admin(), roleFetches(tab)]);
+    await b.advance(60000);
+    tab = tab.reload();
+  }
+  assert.deepEqual(pages, [[true, true, 1], [true, true, 1], [true, true, 1]], 'je Seite: erstes Bild, Endstand, Rollenabfragen');
+});
+
+test('kommt die Rolle der alten Sitzung desselben Kontos an und scheitert danach die der neuen (503), bleibt die Seite Admin', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signIn(2);
+  await b.drain();
+  const [old, fresh] = [b.reads.slice(0, 2), b.reads.slice(2)];
+  for (const r of old) r.answer();
+  await b.drain();
+  assert.equal(tab.admin(), true);
+  for (const r of fresh) r.answer(503);
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true, 'die gescheiterte Abfrage nimmt die echte Antwort nicht zurück');
+});
+
+test('meldet sich ein anderer Tab ab, während die Rolle unterwegs ist, beginnt die nächste Seite im selben Tab nicht als Admin', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signOut();
+  await b.drain();
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  const next = tab.reload();
+  await b.drain();
+  assert.deepEqual([next.headAdmin(), next.admin()], [false, false]);
+});
+
+test('nach dem Abmelden eines Admins beginnt keine spätere Seite im selben Tab als Admin, auch nicht je zehn Minuten später', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  let tab = b.open();
+  await b.drain();
+  b.signOut();
+  await b.drain();
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  const pages = [];
+  for (let i = 0; i < 4; i++) {
+    await b.advance(10 * 60000);
+    tab = tab.reload();
+    await b.drain();
+    pages.push([tab.headAdmin(), tab.admin()]);
+  }
+  assert.deepEqual(pages, [[false, false], [false, false], [false, false], [false, false]]);
+});
+
+test('meldet sich ein Admin auf /account/ im selben Tab ab, beginnt die nächste Seite nicht als Admin', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(tab.admin(), true);
+  tab.signOut();
+  const next = tab.reload();
+  await b.drain();
+  assert.deepEqual([next.headAdmin(), next.admin()], [false, false]);
+});
+
+test('meldet sich in einem anderen Tab ein anderes Konto an und landet die Admin-Rolle des alten danach, beginnt die nächste Seite nicht als Admin', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signIn(9, 'user-2');
+  await b.drain();
+  const of = (uid) => b.reads.filter((r) => r.uid === uid);
+  for (const r of of('user-2')) r.answer();
+  await b.drain();
+  for (const r of of('user-1')) r.answer();
+  await b.drain();
+  const seen = b.reads.length;
+  const next = tab.reload();
+  await b.drain();
+  const first = next.headAdmin();
+  for (const r of b.reads.slice(seen)) r.answer();
+  await b.drain();
+  assert.deepEqual([first, next.admin()], [false, false]);
+  assert.deepEqual(next.nav(), VEGA);
+});
+
+test('meldet ein abgelehnter Refresh im selben Tab ab, beginnt die nächste Seite nicht als Admin', async () => {
+  const b = makeAccountBrowser({ expiresIn: 30 });
+  const tab = b.open();
+  await b.advance(15000);
+  assert.equal(tab.admin(), true, 'mit dem noch gültigen Token ist die Rolle angewandt und gemerkt');
+  b.refreshes[0].answer(401, { error: 'invalid_grant' });
+  await b.drain();
+  assert.equal(tab.admin(), false);
+  const next = tab.reload();
+  await b.drain();
+  assert.deepEqual([next.headAdmin(), next.admin()], [false, false]);
 });
 
 test('hängt der Refresh, fragt der nächste Versuch nach der Frist mit demselben Token, und die späte erste Antwort meldet nicht ab', async () => {
