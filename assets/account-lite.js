@@ -199,24 +199,25 @@
 
   // ---- Rollen-basierter Zugriffs-Guard (user_roles Tabelle) ----------------
   // Fragt die user_roles Tabelle via PostgREST ab und merkt sich die Antwort
-  // fuenf Minuten im sessionStorage. Eine gescheiterte Abfrage (401 bei
-  // abgelaufenem Token, 5xx) gilt als "user", wird aber nicht gemerkt: sie
-  // sagt nichts ueber die Rolle.
+  // im sessionStorage; nach fuenf Minuten fragt sie neu. Eine gescheiterte
+  // Abfrage (401 bei abgelaufenem Token, 5xx) sagt nichts ueber die Rolle und
+  // wird nicht gemerkt: es gilt die letzte echte Antwort fuer dieses Konto,
+  // ohne eine "user". Das Kopfskript in Layout.astro malt das erste Bild aus
+  // demselben Eintrag, ebenfalls nur fuer das Konto der gespeicherten Sitzung.
   var ROLE_CACHE_KEY = 'vb_user_role';
+
+  function knownRole(sess) {
+    try {
+      var known = JSON.parse(sessionStorage.getItem(ROLE_CACHE_KEY));
+      return known.uid === sess.user.id ? known : null;
+    } catch (e) { return null; }
+  }
 
   function fetchUserRole(sess) {
     if (!sess || !sess.user || !sess.user.id) return Promise.resolve(null);
 
-    // Cache-Hit aus sessionStorage (vermeidet wiederholte DB-Abfragen pro Tab)
-    try {
-      var cached = sessionStorage.getItem(ROLE_CACHE_KEY);
-      if (cached) {
-        var parsed = JSON.parse(cached);
-        if (parsed.uid === sess.user.id && parsed.ts > Date.now() - 300000) {
-          return Promise.resolve(parsed.role);
-        }
-      }
-    } catch (e) { /* noop */ }
+    var known = knownRole(sess);
+    if (known && known.ts > Date.now() - 300000) return Promise.resolve(known.role);
 
     return rest(sess, 'GET', 'user_roles?select=role&user_id=eq.' + sess.user.id)
       .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
@@ -229,7 +230,10 @@
         } catch (e) { /* noop */ }
         return role;
       })
-      .catch(function () { return 'user'; });
+      .catch(function () {
+        var last = knownRole(sess);
+        return last ? last.role : 'user';
+      });
   }
 
   // ---- Rolle anwenden ------------------------------------------------------

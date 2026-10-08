@@ -4,7 +4,7 @@
 // Page-specific CSS/JS still lives in the page (as <style is:global> /
 // <script is:inline>) so the bespoke design ports over verbatim.
 import Attribution from '../components/Attribution.astro';
-import { SITE } from '../consts';
+import { SITE, SUPABASE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
 import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
@@ -113,13 +113,16 @@ const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
       fest das dunkle Standard-Design. Der Rollen-Cache (vb_user_role) wird von
       account-lite.js gefüllt; steht er noch nicht (kalter Erstaufruf), gilt
       man als Nicht-Admin und account-lite gleicht das Theme nach dem Laden der
-      echten Rolle an. Ohne gültigen localStorage-Wert bleibt data-theme-auto
+      echten Rolle an. Er zählt nur für das Konto der gespeicherten Sitzung,
+      wie in account-lite.js: nach dem Abmelden oder einem Kontowechsel bleibt
+      er im Tab liegen (ohne Sitzung wirft der Vergleich, admin bleibt aus).
+      Ohne gültigen localStorage-Wert bleibt data-theme-auto
       gesetzt — daran erkennt der Umschalter, dass er (für Admins) weiter dem
       System folgen darf. */}
   <script
     is:inline
     set:html={`(function(){var d=document.documentElement;
-var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin')admin=true}}catch(e){}
+var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin'&&pr.uid===JSON.parse(localStorage.getItem('${SUPABASE.storageKey}')).user.id)admin=true}}catch(e){}
 if(admin)d.classList.add('is-admin');
 var t=null;if(admin){try{t=localStorage.getItem('vb.theme')}catch(e){}}
 var auto=admin&&(t!=='light'&&t!=='dark');
