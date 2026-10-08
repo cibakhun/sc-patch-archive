@@ -143,6 +143,35 @@ test('erneuert der Tab sein Token später rechtzeitig, holt er Name und Rolle ni
   assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
 });
 
+// Bei mehreren offenen Tabs erneuert nur einer das Token (Sperre im
+// localStorage), die anderen hören davon über storage. Das ist dieselbe
+// Sitzung desselben Kontos: Name und Rolle bleiben, wie nach einem Refresh im
+// eigenen Tab, auch wenn eine neue Abfrage jetzt scheitern würde.
+test('erneuert ein anderer Tab das Token, behält dieser Tab Namen und Admin-Rolle und fragt nicht noch einmal, meldet die neue Sitzung aber den Seitenskripten', async () => {
+  const b = makeAccountBrowser({ expiresIn: 90, holdReads: true });
+  const one = b.open();
+  const two = b.open();
+  await b.drain();
+  for (const r of b.reads.splice(0)) r.answer();
+  await b.drain();
+  await b.advance(30000);
+  assert.equal(b.refreshes.length, 1, 'der Heartbeat eines Tabs erneuert, der andere wartet auf die Sperre');
+  b.refreshes[0].answer(200, b.fresh(2));
+  await b.drain();
+  for (const tab of [one, two]) {
+    assert.deepEqual(tab.nav(), SIGNED_IN, 'kein Zwischenbild ohne Namen');
+    assert.equal(tab.admin(), true);
+  }
+  for (const r of b.reads.splice(0)) r.answer(503);
+  await b.drain();
+  for (const tab of [one, two]) {
+    assert.deepEqual(tab.nav(), SIGNED_IN);
+    assert.equal(tab.admin(), true, 'eine gescheiterte Abfrage nimmt die Admin-Rolle nicht zurück');
+    assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
+    assert.equal(sessionEvents(tab), 1, 'crafting-app.js und fleet.js erfahren das neue Token');
+  }
+});
+
 test('meldet sich ein anderer Tab an, zeigt dieser Tab das Konto und holt Name und Rolle genau einmal', async () => {
   const b = makeAccountBrowser();
   b.signOut();
