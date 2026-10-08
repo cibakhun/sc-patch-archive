@@ -89,7 +89,7 @@ if (!BROWSER) {
    Nicht alle 17.361 Seiten, sondern je einmal jede BAUART: Startseite,
    die vier JS-schweren Werkzeuge, ein Themen-Koerper mit zwei
    Hilfe-Instanzen, eine Patch-Seite mit Ambiente, eine erzeugte
-   Detailseite und der 404-Fall. Was hier laeuft, laeuft auf den
+   Detailseite, der 3D-Hangar und der 404-Fall. Was hier laeuft, laeuft auf den
    Geschwisterseiten mit — sie entstehen aus demselben Koerper.
    `leit` ist bewusst ein Bedienelement oder ein Inhaltstraeger, KEIN
    Kopfleisten-Element: die Kopfleiste steht auch auf einer Seite, deren
@@ -117,6 +117,14 @@ const SEITEN = [
   { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true },
   // Erzeugte Detailseite (eine von ~17.000) — stellvertretend fuer die Masse.
   { id: 'item-detail', en: '/items/hardy-boots.html', de: '/de/items/hardy-boots.html', leit: 'main' },
+  // Der 3D-Hangar, als tiefer Link auf ein Schiff, das nicht das Startschiff
+  // ist: die Ausstattung kommt dann als Buchtdokument per Abruf.
+  {
+    id: 'hangar',
+    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
+    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
+    leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
+  },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -212,6 +220,68 @@ async function probeSchiffe(page) {
     return `Ergebniszaehler #sf-count ist keine Zahl (vorher "${vorher}", nachher "${nachher}")`;
   if (nachher >= vorher) return `Rollenfilter "${wahl}" senkte die Trefferzahl nicht (${vorher} -> ${nachher})`;
   if (nachher === 0) return `Rollenfilter "${wahl}" liess 0 Schiffe uebrig`;
+  return null;
+}
+
+/* Der Hangar: der tiefe Link landet im Waffen-Tab mit offener Zeile und
+   Markern aus der Bucht, Pfeil rechts wechselt das Schiff, der Vergleich
+   oeffnet und Zurueck schliesst ihn, und "Zur Flotte" schreibt ohne Konto in
+   diesen Browser. Lebende Marker brauchen WebGL; ohne (ein Browser ohne
+   GPU) zeigt die Seite ihren Rueckfall, und genau dieser eine Teil entfaellt
+   — ein fehlendes WebGL ist kein Fehler dieser Seite.
+   Klicks und Wartezeiten mit langer Frist: das Laden von Halle und Modell
+   blockiert den Hauptfaden (beim ersten Aufruf mit kaltem Cache laenger als
+   5 s), eine Taste wartet so lange in der Schlange, und Playwright klickt
+   erst auf ein ruhiges Bild. */
+async function probeHangar(page) {
+  const KLICK = { timeout: 30000 };
+  const warte = (fn, ms = 20000) => page.waitForFunction(fn, null, { timeout: ms }).then(() => true, () => false);
+
+  if (!(await warte(() => document.querySelector('[data-bay="panel"]')?.dataset.id === 'drak-cutlass-black')))
+    return 'tiefer Link: die Bucht der Cutlass Black wurde nicht eingesetzt';
+  const tief = await page.evaluate(() => ({
+    tab: document.getElementById('hgx-tab-weapons')?.getAttribute('aria-selected'),
+    zeilen: document.querySelectorAll('#hgx-tp-weapons .hgx-slot').length,
+    offen: [...document.querySelectorAll('#hgx-tp-weapons .hgx-slot__btn[aria-expanded="true"]')].map((b) => b.closest('.hgx-slot').dataset.ports),
+    marker: document.querySelectorAll('.hgx-marks[data-id="drak-cutlass-black"] .hgx-mk[data-tab="weapons"]').length,
+  }));
+  if (tief.tab !== 'true' || tief.zeilen < 1 || !tief.offen.some((p) => p.split(' ').includes('hardpoint_turret')))
+    return `tiefer Link: Waffen-Tab ${tief.tab}, ${tief.zeilen} Zeilen, offen ${JSON.stringify(tief.offen)} statt hardpoint_turret`;
+  if (tief.marker < 1) return 'tiefer Link: die Bucht bringt keine Waffen-Marker mit';
+
+  if (!(await warte(() => document.querySelector('.hgx-marks')?.hasAttribute('data-live') || !document.getElementById('hg-fallback').hidden, 45000)))
+    return 'Halle: nach 45 s weder lebende Marker noch der Rueckfall';
+  // Erst nach der Einfahrt: in den ersten Bildern nach dem Aufsetzen ist das
+  // Schiff noch unsichtbar, project() liefert null, und die Marker warten zu
+  // Recht (gemessen: alle acht nach weniger als 700 ms sichtbar).
+  if (await page.evaluate(() => document.getElementById('hg-fallback').hidden)) {
+    const sichtbar = () => [...document.querySelectorAll('.hgx-mk[data-tab="weapons"]')]
+      .some((el) => getComputedStyle(el).display !== 'none' && el.style.visibility !== 'hidden');
+    if (!(await warte(sichtbar, 15000))) return 'Halle laeuft, aber nach 15 s ist kein Waffen-Marker sichtbar';
+  }
+
+  const vorher = await page.evaluate(() => document.querySelector('.hg-card[aria-current="true"]')?.dataset.id);
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press('ArrowRight');
+  if (!(await warte(() => document.querySelector('.hg-card[aria-current="true"]')?.dataset.id !== 'drak-cutlass-black', 30000)))
+    return `Pfeil rechts wechselte das Schiff nicht (${vorher})`;
+
+  await page.goto(page.url().replace(/\?.*$/, '') + '?cmp=aegs-gladius,drak-cutlass-black', { waitUntil: 'domcontentloaded' });
+  await page.locator('#hgx-cmp-open').click(KLICK);
+  if (!(await warte(() => document.getElementById('hgx-cmp').open && location.search.includes('view=compare'), 30000)))
+    return 'Vergleich: der Dialog oeffnete nicht';
+  await page.goBack();
+  if (!(await warte(() => !document.getElementById('hgx-cmp').open && !location.search.includes('view=compare'), 30000)))
+    return 'Vergleich: Zurueck schloss den Dialog nicht';
+
+  await page.evaluate(() => localStorage.removeItem('vb.fleet.v1'));
+  const schiff = await page.evaluate(() => document.getElementById('hgx-fleet').dataset.fleetShip);
+  await page.locator('#hgx-fleet').click(KLICK);
+  const an = await page.evaluate(() => ({ p: document.getElementById('hgx-fleet').getAttribute('aria-pressed'), s: localStorage.getItem('vb.fleet.v1') }));
+  if (an.p !== 'true' || !String(an.s).includes(`"${schiff}"`)) return `Flotte: Klick ergab aria-pressed ${an.p}, Ablage ${an.s}`;
+  await page.locator('#hgx-fleet').click(KLICK);
+  const aus = await page.evaluate(() => ({ p: document.getElementById('hgx-fleet').getAttribute('aria-pressed'), s: localStorage.getItem('vb.fleet.v1') }));
+  if (aus.p !== 'false' || aus.s !== null) return `Flotte: zweiter Klick ergab aria-pressed ${aus.p}, Ablage ${aus.s}`;
   return null;
 }
 

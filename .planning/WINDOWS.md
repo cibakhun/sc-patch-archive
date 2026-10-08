@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 36
+open_count: 40
 waived_count: 1
 fixed_count: 28
-total_count: 65
-last_updated: 2026-10-06T13:30:00.000Z
+total_count: 69
+last_updated: 2026-10-08T00:15:32.668Z
 ---
 
 # Broken Windows Ledger
@@ -80,6 +80,10 @@ last_updated: 2026-10-06T13:30:00.000Z
 | 64 | aufloesung | unrun-verify | src/components/ships/ShipsOverview.astro |  | Sichturteil offen (Auflösungs-Durchgang 31.08.2026): zwei Textstellen werden auf schmalen Geraeten weiterhin mit Ellipse gekappt, und zwar bewusst -- gemessen mit .planning/sketches/tools/mess-ellipse.mjs, das nur meldet, wo die Ellipse WIRKLICH greift. (a) .fcard__sig auf drei Schiffskarten bei 360px: "IR Signature 0.75 - EM Sig..." fehlen 18-19px, eine technische Zusatzzeile. (b) .wb__ghd__g in der Mining-Werkbank bei 360px: "ROC - ROC-DS - no tier" fehlen 40px, die Geraeteliste in Kurzform. Beide sind Aufzaehlungen ohne feste Laenge; ein Umbruch wuerde die Karte bzw. die Kopfzeile hoeher machen. Die vergleichbaren Faelle mit fester, kurzer Beschriftung (.dp-key b auf 13.872 Seiten, .wb__lbl im Fracturing-Verweis) sind in diesem Durchgang auf Umbruch umgestellt worden. Ob diese beiden nachziehen sollen, haengt davon ab, wie wichtig die vollstaendige Angabe ist -- eine Produktentscheidung. | open |  | 2026-08-31T15:10:00.000Z |  |
 | 65 | breitbild | unrun-verify | assets/theme.css |  | Sichturteil offen (Breitbild-Durchgang 06.10.2026, beauftragt): vier sichtbare Aenderungen, alle aus den Umami-Daten abgeleitet und gemessen, aber nicht vom Betreiber angesehen. (a) Werkzeuge wachsen ab 1920 px mit (id 63) — auf 3440 px zeigt der Item-Finder 20 statt 6 Karten im ersten Bild; die Karten sind dort 310 statt 416 px breit, der Kategoriepfad bricht deshalb jetzt um statt gekappt zu werden (bei JEDER Fensterbreite, vorher nur unter 430 px). (b) Die Kopfleisten (SiteNav, DataShell .dp-bar, Zurueck-Marke) verteilen ihre Bedienelemente hoechstens ueber 2240 px (--vb-leiste) — auf 3440 px stehen Anmelden/Menue bei x=600 und x=2840 statt 45 und 3395; unter 2240 px Fensterbreite unveraendert. (c) Neuer Sprachhinweis (assets/sprachhinweis.js): wer mit deutschem Browser auf einer englischen Seite EINSTEIGT, bekommt unten links die deutsche Fassung angeboten, und umgekehrt (Anlass: 429 von 554 Einstiegen aus Deutschland lagen auf englischen Seiten). Nur beim Einstieg, nicht fuer Automaten, nach dem Schliessen ein Jahr lang nicht. Bei 1920 px liegt er auf den Datenseiten im freien Rand, auf /de/missionen deckt er ~40 px der Ecke des Hilfekastens ab. Aufnahmen: out/sprache/ via probe-sprachhinweis.mjs. (d) Schiffsbuehne mit srcset (153 von 227 Schiffsseiten): bei 1920/2560 px kein Hochziehen mehr (vorher 1,5x/2x), bei 4K 1,5x statt 3x — dafuer laedt ein Desktop-Aufruf 113–167 KB statt 65 KB vom Wiki (Fremdlast). Werkzeuge: breitbild.mjs, probe-buehnenbild.mjs. | open |  | 2026-10-06T13:30:00.000Z |  |
 | 66 | breitbild | deviation | src/layouts/Layout.astro |  | Zaehlweise geaendert (06.10.2026) — Umami-Zahlen vor und nach der Auslieferung sind NICHT direkt vergleichbar. Nicht mehr gezaehlt: (1) alles ausserhalb von verse-base.com (data-domains; vorher in 90 Tagen localhost 662 und 127.0.0.1 996 Aufrufe aus den eigenen Messwerkzeugen), (2) navigator.webdriver, (3) die Fenstergroessen 1280x1200 (Singapur-Crawler, 2.608 „Besucher", allein 1.196 am 23.09.), 800x600 (241), 1024x1024 (63), 1200x3000 (7), 1280x1280 (5) — alle mit 97–100 % Absprung und 0–1 s, (4) Chrome iOS 390x844 OHNE Herkunft (201 von 203 Chrome-iOS-Besuchern, alle 0 s auf Uebersichtsseiten). Das verbleibende Risiko ist (4): ein echter iPhone-Nutzer, der die Adresse in Chrome TIPPT, wird beim ersten Aufruf nicht gezaehlt. Wer das nicht will, streicht die eine Zeile in vbZaehlen. | open |  | 2026-10-06T13:30:00.000Z |  |
+| 67 | hangar | unrun-verify | src/pages/index.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): der 3D-Hangar hat keinen Eingang auf der Startseite; hinein fuehren heute das Menue und jedes Datenblatt („Im 3D-Hangar ansehen“). Die Werkzeug-Kacheln in src/pages/index.astro und src/pages/de/index.astro sind ein Raster fuer genau neun (sechs Spalten: Patch-Archiv gross, Schiffe und Missionen breit, sechs kleine in zwei Dreierreihen). Eine zehnte Kachel reisst Loecher, belegt im Prototyp von Spur B: .claude/worktrees/hangar-flotte/.audit/shots/track-b/homeproto-en-1440x900-after-ships.png (Hangar und Mining je vier von sechs Spalten mit Luecke rechts, letzte Reihe zwei von drei) gegen home-en-1440x900-before.png. Zu entscheiden: das Raster fuer zehn Kacheln neu schneiden, in EN und DE, oder ein Textverweis „3D-Hangar“ in der Zeile „Full database“ unter den Kacheln. | open |  | 2026-10-08T00:15:31.481Z |  |
+| 68 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): die Tafel rechts ueber der Buehne ist min(360px, 34vw) breit (--hg-panelw in HangarPage.astro). Mit Rand deckt sie bei 1440x900 und bei 1280x720 je 400 px der Halle; grosse Schiffe ragen mit Fluegel oder Heck unter die Tafel (.audit/shots/track-a2/u7-two-ships-1440.png, u11-long-name-1440.png). Die Leiste am Buehnenfuss spart dieselbe Spalte aus. Zu entscheiden: 360 px behalten, schmaler (etwa 320 px; lange Zeilennamen brechen dann haeufiger um) oder die Startansicht der Szene um die halbe Tafelbreite nach links ruecken (Sache der Szenen-Sitzung). | open |  | 2026-10-08T00:15:31.881Z |  |
+| 69 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): die Hardpoint-Marker sind klickbar (pointer-events:auto, 16 px, aktiv 22 px). Ein Klick oeffnet ihre Zeile in der Tafel und faehrt die Kamera an den Hardpoint; ein Ziehen, das auf einem Marker beginnt, dreht deshalb das Schiff nicht. Screenreader nutzen die Zeilen, die Marker sind aria-hidden. Zu entscheiden: klickbar lassen oder nur anzeigen (pointer-events:none; dann fuehrt nur die Zeile zum Hardpoint). Belege: .audit/shots/track-a/u5-gladius-focus-w4.png, .audit/shots/track-a2/u11-systems-markers-ring-1440.png. | open |  | 2026-10-08T00:15:32.275Z |  |
+| 70 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): Toene der Marker. Waffen amber (--accent #f5a623), Systeme blasses Blaugrau (--accent-2 #9aa6bd); seit Einheit 11 tragen beide einen dunklen 2-px-Ring, damit der blasse Systemton auch auf weissem Rumpf haelt. Zu beurteilen in der echten Halle: unterscheiden sich die beiden Toene genug, und traegt der Systemton auf hellen wie dunklen Flaechen? Belege: .audit/shots/track-a2/u11-systems-markers-ring-1440.png (Cutlass, Systeme, mit Ring), .audit/shots/track-a/u5-gladius-systems-markers.png (vor dem Ring). | open |  | 2026-10-08T00:15:32.668Z |  |
 
 ````json
 [
@@ -861,6 +865,54 @@ last_updated: 2026-10-06T13:30:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-06T13:30:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 67,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "src/pages/index.astro",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Spur A2, 08.10.2026): der 3D-Hangar hat keinen Eingang auf der Startseite; hinein fuehren heute das Menue und jedes Datenblatt („Im 3D-Hangar ansehen“). Die Werkzeug-Kacheln in src/pages/index.astro und src/pages/de/index.astro sind ein Raster fuer genau neun (sechs Spalten: Patch-Archiv gross, Schiffe und Missionen breit, sechs kleine in zwei Dreierreihen). Eine zehnte Kachel reisst Loecher, belegt im Prototyp von Spur B: .claude/worktrees/hangar-flotte/.audit/shots/track-b/homeproto-en-1440x900-after-ships.png (Hangar und Mining je vier von sechs Spalten mit Luecke rechts, letzte Reihe zwei von drei) gegen home-en-1440x900-before.png. Zu entscheiden: das Raster fuer zehn Kacheln neu schneiden, in EN und DE, oder ein Textverweis „3D-Hangar“ in der Zeile „Full database“ unter den Kacheln.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-08T00:15:31.481Z",
+    "resolved_at": null
+  },
+  {
+    "id": 68,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "src/components/hangar/HangarPage.astro",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Spur A2, 08.10.2026): die Tafel rechts ueber der Buehne ist min(360px, 34vw) breit (--hg-panelw in HangarPage.astro). Mit Rand deckt sie bei 1440x900 und bei 1280x720 je 400 px der Halle; grosse Schiffe ragen mit Fluegel oder Heck unter die Tafel (.audit/shots/track-a2/u7-two-ships-1440.png, u11-long-name-1440.png). Die Leiste am Buehnenfuss spart dieselbe Spalte aus. Zu entscheiden: 360 px behalten, schmaler (etwa 320 px; lange Zeilennamen brechen dann haeufiger um) oder die Startansicht der Szene um die halbe Tafelbreite nach links ruecken (Sache der Szenen-Sitzung).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-08T00:15:31.881Z",
+    "resolved_at": null
+  },
+  {
+    "id": 69,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "src/components/hangar/HangarPage.astro",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Spur A2, 08.10.2026): die Hardpoint-Marker sind klickbar (pointer-events:auto, 16 px, aktiv 22 px). Ein Klick oeffnet ihre Zeile in der Tafel und faehrt die Kamera an den Hardpoint; ein Ziehen, das auf einem Marker beginnt, dreht deshalb das Schiff nicht. Screenreader nutzen die Zeilen, die Marker sind aria-hidden. Zu entscheiden: klickbar lassen oder nur anzeigen (pointer-events:none; dann fuehrt nur die Zeile zum Hardpoint). Belege: .audit/shots/track-a/u5-gladius-focus-w4.png, .audit/shots/track-a2/u11-systems-markers-ring-1440.png.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-08T00:15:32.275Z",
+    "resolved_at": null
+  },
+  {
+    "id": 70,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "src/components/hangar/HangarPage.astro",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Spur A2, 08.10.2026): Toene der Marker. Waffen amber (--accent #f5a623), Systeme blasses Blaugrau (--accent-2 #9aa6bd); seit Einheit 11 tragen beide einen dunklen 2-px-Ring, damit der blasse Systemton auch auf weissem Rumpf haelt. Zu beurteilen in der echten Halle: unterscheiden sich die beiden Toene genug, und traegt der Systemton auf hellen wie dunklen Flaechen? Belege: .audit/shots/track-a2/u11-systems-markers-ring-1440.png (Cutlass, Systeme, mit Ring), .audit/shots/track-a/u5-gladius-systems-markers.png (vor dem Ring).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-08T00:15:32.668Z",
     "resolved_at": null
   }
 ]
