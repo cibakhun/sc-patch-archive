@@ -500,24 +500,27 @@
     backoffTimer = setTimeout(function () { backoffTimer = null; pull(); }, wait);
   }
 
+  // Der Modus folgt der gespeicherten Sitzung sofort, nicht erst der Antwort
+  // von session(): ein hängender Refresh dauert bis zu 15 s, und so lange
+  // zeigte der Planer sonst die Gast-Ablage mit Anmelde-Link, und Klicks
+  // landeten dort statt im Konto (wie die Flotte, assets/fleet.js). Ob die
+  // Sitzung trägt, klärt der Abgleich gleich danach.
   function onSession() {
-    if (!VB) return;
-    VB.session().then(function (sess) {
-      var uid = sess ? sess.user && sess.user.id : storedUid();
-      if (!uid) { goGuest(); return; }
-      if (uid !== acctUid) {
-        dropMirrors(lsKey(uid));
-        acctUid = uid;
-        mergeOwed = true;
-        // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
-        // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
-        // stehen im Spiegel und gehen jetzt mit raus.
-        var m = loadState(uid);
-        owned = m.owned; plan = m.plan;
-        repaintAll();
-      }
-      if (sess) pull(); else later();
-    });
+    var uid = storedUid();
+    if (!uid) goGuest();
+    else if (uid !== acctUid) enter(uid);
+    pull();
+  }
+  function enter(uid) {
+    dropMirrors(lsKey(uid));
+    acctUid = uid;
+    mergeOwed = true;
+    // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
+    // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
+    // stehen im Spiegel und gehen jetzt mit raus.
+    var m = loadState(uid);
+    owned = m.owned; plan = m.plan;
+    repaintAll();
   }
 
   function bootSync() {
@@ -537,9 +540,6 @@
     // Seite wird verlassen: letzten Stand noch rausschicken (best effort).
     addEventListener('pagehide', function () { flush(); });
   }
-
-  if (window.VBAccount) bootSync();
-  else addEventListener('vb-account-ready', bootSync, { once: true });
 
   // ---- Sync-Statusanzeige ----
   function setSync(s) {
@@ -1577,4 +1577,9 @@
 
   // initial paint
   apply();
+
+  // Zuletzt: bootSync() zeichnet den Konto-Spiegel sofort neu, und dafür muss
+  // alles darüber schon stehen (state, Planer).
+  if (window.VBAccount) bootSync();
+  else addEventListener('vb-account-ready', bootSync, { once: true });
 })();

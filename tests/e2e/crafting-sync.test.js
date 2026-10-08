@@ -135,6 +135,8 @@ test('meldet sich ein anderes Konto an, während die Sitzung noch geprüft wird,
   await b.settle();
 
   b.releaseSession(null);
+  await b.drain();
+  assert.equal(tab.sync().state, 'synced', 'der Zug des vorigen Kontos plant für user-2 keine Wiederholung');
   await b.settle({ horizon: 60000 });
   assert.deepEqual(b.server.requests.filter((r) => r.method !== 'GET'), [], 'nichts wird für user-2 geschrieben');
   assert.deepEqual(JSON.parse(b.storage.get('craft.state.v2.user-2')), { owned: {}, plan: {}, pending: [] });
@@ -142,23 +144,27 @@ test('meldet sich ein anderes Konto an, während die Sitzung noch geprüft wird,
   assert.equal(tab.sync().state, 'synced');
 });
 
-test('die Gast-Ablage wandert einmal je Anmelden: was das Konto danach auf einem anderen Gerät entfernt, holt sie nicht zurück', async () => {
-  const b = makeBrowser({
-    session: 'user-1',
-    rows: [{ user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 0 }],
-    seed: { [GUEST]: JSON.stringify({ owned: { 'karna-rifle': true }, plan: {} }) },
-  });
-  const tab = b.open();
-  await b.settle();
-  assert.ok(b.storage.get(GUEST), 'Voraussetzung: nichts Neues übernommen, die Gast-Ablage liegt noch');
+test('die Gast-Ablage wandert einmal je Anmelden: was das Konto danach auf einem anderen Gerät entfernt, holt sie nicht zurück, auch nicht nach einem Refresh', async () => {
+  const cases = [
+    { at: 'Abgleich bei Tab-Rückkehr', act: (b, tab) => { b.advance(61000); tab.hide(); tab.show(); } },
+    { at: 'Refresh gemeldet', act: (b) => b.landRefresh() },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({
+      session: 'user-1',
+      rows: [{ user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 0 }],
+      seed: { [GUEST]: JSON.stringify({ owned: { 'karna-rifle': true }, plan: {} }) },
+    });
+    const tab = b.open();
+    await b.settle();
+    assert.ok(b.storage.get(GUEST), 'Voraussetzung: nichts Neues übernommen, die Gast-Ablage liegt noch');
 
-  b.server.rows = [];
-  b.advance(61000);
-  tab.hide();
-  tab.show();
-  await b.settle({ horizon: 60000 });
-  assert.deepEqual(b.server.rows, []);
-  assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'false');
+    b.server.rows = [];
+    c.act(b, tab);
+    await b.settle({ horizon: 60000 });
+    assert.deepEqual(b.server.rows, [], c.at);
+    assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'false', c.at);
+  }
 });
 
 test('meldet account-lite einen gelungenen Refresh, gleicht der Planer sofort ab und fragt danach nicht noch einmal', async () => {
@@ -415,4 +421,26 @@ test('kein Konto-Spiegel überlebt seine Sitzung, auch wenn beim Abmelden oder K
     assert.equal(b.storage.get(MIRROR), null, c.at);
   }
 });
-
+
+test('wer mit gespeicherter Sitzung lädt, während deren Refresh noch hängt, sieht sofort die Konto-Kopie, und ein Klick geht ins Konto statt in die Gast-Ablage', async () => {
+  const b = makeBrowser({
+    session: 'user-1', refreshing: true, rows: [KARNA_1],
+    seed: { [MIRROR]: JSON.stringify({ owned: { 'karna-rifle': true }, plan: {}, pending: [] }) },
+  });
+  b.holdSession(1);
+  const tab = b.open();
+  await b.drain();
+  assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(tab.sync(), SYNCING);
+
+  tab.clickOwn('p4-ar-rifle');
+  await b.drain();
+  assert.equal(b.storage.get(GUEST), null);
+  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true, 'p4-ar-rifle': true }, plan: {}, pending: ['p4-ar-rifle'] });
+
+  b.releaseSession(null);
+  b.landRefresh();
+  await b.settle({ horizon: 60000 });
+  assert.deepEqual(b.server.rows.map((r) => r.slug), ['karna-rifle', 'p4-ar-rifle']);
+  assert.equal(tab.sync().state, 'synced');
+});
