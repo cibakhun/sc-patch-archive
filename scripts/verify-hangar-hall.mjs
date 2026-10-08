@@ -20,7 +20,7 @@
    mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   VIER ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   FUENF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -31,8 +31,17 @@
         (Klinke je Eintrag; sie waechst nur, siehe Grundsatz 5).
      4  Kein Eintrag nimmt mehr als 2 % der Dreiecke einer Stufe: Gedacht
         ist die Regel fuer einzelne Teile, nicht fuer Waende.
+     5  Die Moebel kommen mit (seit 08.10.2026): Am Rechner laedt die Seite
+        die leichtere Stufe und die Moebel als eigene Datei, die
+        scripts/build-hall-furniture.mjs beim Build aus der vollen Stufe
+        schneidet. Zusammen tragen Halle und Moebeldatei mindestens so viele
+        Moebel wie die Klinke (KLINKE_MOEBEL), nie doppelt, und die
+        Moebeldatei stammt aus genau der vollen Stufe, die in dist/ liegt
+        (sha1). Sonst fehlen die Moebel still, oder sie zeigen einen alten
+        Stand, nachdem der PC die Halle neu gebaut hat.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { NodeIO } from '@gltf-transform/core';
@@ -47,6 +56,10 @@ const MAX_SHARE = 0.02;
 // Nach oben mit jedem neuen Eintrag, nach unten nur per Commit, dessen
 // Botschaft die Ursache nennt (Grundsatz 5).
 const KLINKE_EINTRAEGE = { 'revelyork-single': 1 };
+// Klinke je Halle: so viele Moebel (Knoten mit extras.furniture und
+// extras.anchor) laedt die Seite am Rechner mindestens. Stand 08.10.2026:
+// 137 in der vollen Stufe. Gleiche Regel wie oben.
+const KLINKE_MOEBEL = { 'revelyork-single': 137 };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -200,8 +213,40 @@ for (const u of files) {
 sollIst(`${files.length} Hallenstufen gemessen, jeder Eintrag ueber seiner Klinke, unter 2 %`, `${measured} gemessen, ${findings.filter((f) => /^\[[34]\]/.test(f)).length} Befunde`);
 if (entries.length && !measured) fail('[3] Eintraege, aber keine Hallenstufe gemessen — die Seite laedt keine Halle?');
 
+say('\n[5] Die Moebel kommen mit, einmal, aus der ausgelieferten vollen Stufe');
+// Nur der JSON-Block eines GLB (Knoten und extras), ohne zu dekodieren
+const glbJson = (file) => {
+  const b = readFileSync(file);
+  return b.readUInt32LE(0) === 0x46546c67 ? JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString('utf8')) : null;
+};
+const furnNodes = (json) => (json?.nodes ?? []).filter((n) => n.extras?.furniture != null && Array.isArray(n.extras?.anchor) && n.extras.anchor.length === 3 && n.extras.anchor.every(Number.isFinite)).length;
+const klinkeMoebel = hall?.id ? KLINKE_MOEBEL[hall.id] ?? 0 : 0;
+let inHall = 0, inFile = 0, furnSrc = '';
+if (hall?.url && existsSync(fromUrl(hall.url))) inHall = furnNodes(glbJson(fromUrl(hall.url)));
+if (hall?.furniture?.url) {
+  const ff = fromUrl(hall.furniture.url);
+  if (!existsSync(ff)) fail(`[5] die Moebeldatei ${hall.furniture.url} liegt nicht in dist/`);
+  else {
+    const json = glbJson(ff);
+    const of = json?.extras?.furnitureOf;
+    inFile = furnNodes(json);
+    const src = of?.file ? join(DIST, 'hangar/hall', of.file) : null;
+    const now = src && existsSync(src) ? createHash('sha1').update(readFileSync(src)).digest('hex') : null;
+    furnSrc = of?.file ? `${of.file} sha1 ${String(of.sha1).slice(0, 8)}` : '(ohne Herkunft)';
+    if (!of?.file || !of?.sha1) fail(`[5] ${hall.furniture.url.split('?')[0]} nennt keine Quelle (extras.furnitureOf): nicht von scripts/build-hall-furniture.mjs gebaut?`);
+    else if (!now) fail(`[5] die Quelle der Moebel (${of.file}) liegt nicht in dist/hangar/hall/`);
+    else if (now !== of.sha1) fail(`[5] die Moebel stammen aus einer aelteren ${of.file} (sha1 ${of.sha1.slice(0, 8)}, ausgeliefert ${now.slice(0, 8)}): npm run build neu laufen lassen (scripts/build-hall-furniture.mjs schneidet sie neu)`);
+    if (of?.nodes != null && of.nodes !== inFile) fail(`[5] die Moebeldatei traegt ${inFile} Moebel, ihre Herkunft nennt ${of.nodes}`);
+  }
+}
+say(`    in der Halle ${inHall}, in der Moebeldatei ${inFile}${furnSrc ? ` (aus ${furnSrc})` : ''}   Klinke: ${klinkeMoebel}`);
+sollIst(`mindestens ${klinkeMoebel} Moebel, nur an einer Stelle`, `${inHall + inFile}${inHall && inFile ? ' (doppelt)' : ''}`);
+if (inHall && inFile) fail(`[5] Moebel doppelt: die Halle der Seite (${hall.url.split('?')[0]}) stellt ${inHall} selbst, und die Moebeldatei kommt dazu — HangarApp.astro gibt die Moebeldatei nur zur leichteren Stufe`);
+if (inHall + inFile < klinkeMoebel) fail(`[5] die Seite laedt ${inHall + inFile} Moebel, die Klinke verlangt ${klinkeMoebel}: Moebeldatei fehlt (scripts/build-hall-furniture.mjs im Build?) oder die volle Stufe kam mit weniger Moebeln; KLINKE_MOEBEL nur per Commit mit Ursache senken`);
+for (const k of Object.keys(KLINKE_MOEBEL).filter((k) => k !== hall?.id)) fail(`[5] KLINKE_MOEBEL["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

@@ -24,6 +24,8 @@ pinggy.log
 
 # Selbst-enthaltene Onepager-Downloads, generiert aus public/onepager (scripts/build-downloads.mjs)
 /public/downloads/
+# Einrichtung der Halle, beim Build aus der vollen Stufe geschnitten (scripts/build-hall-furniture.mjs)
+/public/hangar/hall/*.furniture.glb
 
 build.log
 

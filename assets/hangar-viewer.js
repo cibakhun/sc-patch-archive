@@ -20,12 +20,13 @@
 // HALLE: liegt eine echte Halle vor (opts.hall), ersetzt sie nach dem Laden
 // die gebaute Halle; bis dahin (und wenn sie scheitert) steht die gebaute.
 // hall.id wählt in HALL_DROP die Spielteile, die der Viewer beim Laden aus
-// der Halle schneidet (ohne id: keine).
+// der Halle schneidet (ohne id: keine). hall.furniture sind die Möbel als
+// eigene Datei im selben Modellraum; das Telefon lädt sie nicht.
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
@@ -212,6 +213,127 @@ function dropHallParts(model, list) {
     out.push({ why: d.why, tris, parts: gone.size });
   }
   return out;
+}
+
+// Einrichtung zusammenlegen (2026-10-08). Der Build stellt jedes Möbel als
+// eigenen Knoten mit Bezugspunkt (extras.anchor, Modellraum der Halle): 137
+// Möbel mit 585 Primitiven, also so viele Draw-Calls, im AO-Pass noch einmal
+// so viele. Hier wird je Material ein Mesh daraus, im Modellraum der Halle.
+// Jedes Möbel behält seinen Eckenbereich und Bezugspunkt; scaleFurniture
+// hält es damit in Originalgröße, wenn die Halle mit großen Schiffen wächst.
+// Liefert [{ mesh, pieces: [[von, bis, ax, ay, az], …], s, base }] und
+// nimmt die zusammengelegten Meshes aus ihren Knoten.
+function mergeFurniture(model, nodes) {
+  if (!nodes.length) return [];
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const groups = new Map();
+  for (const n of nodes) {
+    const A = n.userData.anchor;
+    n.traverse((o) => {
+      if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh || Array.isArray(o.material) || o.geometry.groups.length || o.morphTargetInfluences || !o.geometry.attributes.position) return;
+      const g = o.geometry, names = Object.keys(g.attributes).sort();
+      const key = `${o.material.uuid}|${names}`;
+      let e = groups.get(key);
+      if (!e) groups.set(key, (e = { material: o.material, names, parts: [], verts: 0, idx: 0 }));
+      e.parts.push({ o, g, A });
+      e.verts += g.attributes.position.count;
+      e.idx += g.index ? g.index.count : g.attributes.position.count;
+    });
+  }
+  const M = new THREE.Matrix4(), N = new THREE.Matrix3(), v = new THREE.Vector3();
+  const out = [];
+  for (const e of groups.values()) {
+    const index = e.verts > 65535 ? new Uint32Array(e.idx) : new Uint16Array(e.idx);
+    // Lage, Normale und Tangente werden gedreht (Float32), der Rest
+    // (UV, später Vertexfarben) kommt unverändert in seinem Typ mit
+    const arrays = {};
+    for (const name of e.names) {
+      const a0 = e.parts[0].g.attributes[name];
+      const raw = !/^(position|normal|tangent)$/.test(name) && e.parts.every(({ g }) => {
+        const a = g.attributes[name];
+        return !a.isInterleavedBufferAttribute && a.itemSize === a0.itemSize && a.normalized === a0.normalized && a.array.constructor === a0.array.constructor;
+      });
+      arrays[name] = { size: a0.itemSize, raw, normalized: raw && a0.normalized, arr: raw ? new a0.array.constructor(e.verts * a0.itemSize) : new Float32Array(e.verts * a0.itemSize) };
+    }
+    const pieces = [];
+    let vo = 0, io = 0;
+    for (const { o, g, A } of e.parts) {
+      M.multiplyMatrices(toModel, o.matrixWorld);
+      N.getNormalMatrix(M);
+      const count = g.attributes.position.count;
+      for (const name of e.names) {
+        const src = g.attributes[name], { arr, size, raw } = arrays[name];
+        if (name === 'position' || name === 'normal') {
+          // direkt gerechnet (0,8 Mio. Ecken), Matrizen spaltenweise
+          const pos = name === 'position', m = pos ? M.elements : N.elements;
+          const sa = !src.isInterleavedBufferAttribute && !src.normalized && src.itemSize === 3 ? src.array : null;
+          for (let i = 0, j = vo * 3; i < count; i++, j += 3) {
+            let x, y, z;
+            if (sa) { x = sa[i * 3]; y = sa[i * 3 + 1]; z = sa[i * 3 + 2]; } else { v.fromBufferAttribute(src, i); x = v.x; y = v.y; z = v.z; }
+            if (pos) {
+              arr[j] = m[0] * x + m[4] * y + m[8] * z + m[12];
+              arr[j + 1] = m[1] * x + m[5] * y + m[9] * z + m[13];
+              arr[j + 2] = m[2] * x + m[6] * y + m[10] * z + m[14];
+            } else {
+              const nx = m[0] * x + m[3] * y + m[6] * z, ny = m[1] * x + m[4] * y + m[7] * z, nz = m[2] * x + m[5] * y + m[8] * z;
+              const l = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+              arr[j] = nx / l; arr[j + 1] = ny / l; arr[j + 2] = nz / l;
+            }
+          }
+        } else if (name === 'tangent') {
+          for (let i = 0, j = vo * 4; i < count; i++, j += 4) {
+            v.fromBufferAttribute(src, i).transformDirection(M);
+            arr[j] = v.x; arr[j + 1] = v.y; arr[j + 2] = v.z; arr[j + 3] = src.getW(i);
+          }
+        } else if (raw) arr.set(src.array.subarray(0, count * size), vo * size);
+        else for (let i = 0; i < count; i++) for (let c = 0; c < size; c++) arr[(vo + i) * size + c] = src.getComponent(i, c);
+      }
+      if (g.index) {
+        const I = g.index.array;
+        for (let t = 0; t < g.index.count; t++) index[io + t] = I[t] + vo;
+        io += g.index.count;
+      } else {
+        for (let t = 0; t < count; t++) index[io + t] = vo + t;
+        io += count;
+      }
+      pieces.push([vo, vo + count, A[0], A[1], A[2]]);
+      vo += count;
+      o.removeFromParent();
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setIndex(new THREE.BufferAttribute(index, 1));
+    for (const name of e.names) geo.setAttribute(name, new THREE.BufferAttribute(arrays[name].arr, arrays[name].size, arrays[name].normalized));
+    // Hülle für jedes s ≤ 1: Jede Ecke wandert auf ihren Bezugspunkt zu,
+    // bleibt also im Quader aus Ecken und Bezugspunkten
+    geo.computeBoundingBox();
+    for (const p of pieces) geo.boundingBox.expandByPoint(v.set(p[2], p[3], p[4]));
+    geo.boundingSphere = geo.boundingBox.getBoundingSphere(new THREE.Sphere());
+    const mesh = new THREE.Mesh(geo, e.material);
+    mesh.name = `furniture:${e.material.name}`;
+    model.add(mesh);
+    out.push({ mesh, pieces, s: 1, base: null });
+  }
+  return out;
+}
+
+// Möbel in Originalgröße: s = 1/k (k = Maßstab der Halle), jedes um seinen
+// Bezugspunkt; gerechnet und hochgeladen wird nur, wenn sich s ändert.
+function scaleFurniture(list, s) {
+  for (const f of list) {
+    if (f.s === s) continue;
+    const P = f.mesh.geometry.attributes.position, pos = P.array;
+    const base = f.base || (f.base = pos.slice());
+    for (const [i0, i1, ax, ay, az] of f.pieces) {
+      for (let i = i0 * 3; i < i1 * 3; i += 3) {
+        pos[i] = ax + (base[i] - ax) * s;
+        pos[i + 1] = ay + (base[i + 1] - ay) * s;
+        pos[i + 2] = az + (base[i + 2] - az) * s;
+      }
+    }
+    P.needsUpdate = true;
+    f.s = s;
+  }
 }
 
 // Hallen-UVs prüfen: Ist bei einem Material der Großteil der Dreiecke ohne
@@ -1271,7 +1393,15 @@ export async function initHangar(container, opts = {}) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // PCF ausdrücklich: three r185 stellt PCFSoft beim ersten Zeichnen der
+  // Schatten von selbst auf PCF um. Was vorher übersetzt wurde (prepare),
+  // gälte dann der alten Art und würde neu übersetzt.
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  // Schattenkarten einmal je Bild (frame setzt needsUpdate). Von selbst
+  // zeichnete three.js sie bei jedem Zeichnen der Szene neu, auch im
+  // Normalen-Pass der Umgebungsverdeckung: 1100 der 2600 Draw-Calls eines
+  // Bildes (2026-10-08).
+  renderer.shadowMap.autoUpdate = false;
   container.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -1424,7 +1554,7 @@ export async function initHangar(container, opts = {}) {
       const k = realHallScale(realHall.room);
       hallRoot.scale.setScalar(k);
       hallNoTileInvK.value = 1 / k;
-      for (const pv of realHall.furniture) pv.scale.setScalar(1 / k);
+      scaleFurniture(realHall.furniture, 1 / k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
       scaleLamps();
@@ -1920,6 +2050,8 @@ export async function initHangar(container, opts = {}) {
     scene.environment = envRT.texture;
     setHallEnv(envRT.texture);
     const pm = new THREE.PMREMGenerator(renderer);
+    // Schatten ohne Schiff und Crew, wie die Aufnahme sie sieht
+    renderer.shadowMap.needsUpdate = true;
     const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     pm.dispose();
     fog.near = near; fog.far = far;
@@ -2042,14 +2174,16 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   const hallNoTileInvK = { value: 1 };
   const hallShader = (m) => (sh) => {
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
+    sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
     sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;');
+      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying float vHgShade;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + HALL_NO_TILE_GLSL)
+      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\n' + HALL_NO_TILE_GLSL)
+      .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb *= vHgShade;')
       .replace('#include <map_fragment>', `#ifdef USE_MAP
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
 	diffuseColor *= sampledDiffuseColor;
@@ -2062,6 +2196,15 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
   function loadRealHall(h) {
+    // Möbel als eigene Datei (am Rechner neben der leichteren Stufe), parallel
+    // zur Halle; scheitert sie, steht die Halle ohne
+    const furnReady = h.furniture?.url
+      ? fetchGltf(h.furniture.url, 'furniture', h.furniture.bytes || 4e6).then((g) => g.scene, (e) => {
+        console.warn('[hangar] Einrichtung nicht geladen', e);
+        prog.delete('furniture');
+        return null;
+      })
+      : Promise.resolve(null);
     hallSettled = fetchGltf(h.url, 'hall', h.bytes || 1.1e7).then(async (gltf) => {
       const model = gltf.scene;
       const c = h.room.center;
@@ -2089,30 +2232,51 @@ vec3 hgVolume( vec3 p, vec3 n ) {
         }
       }
       // Einrichtung in Originalgröße: Für große Schiffe wächst die Halle mit,
-      // Kisten und Spinde sollen es nicht. Der Build lässt jedes Möbel als
-      // eigenen Knoten mit Bezugspunkt (extras.anchor); es hängt hier an
-      // einem Drehpunkt dort, den scaleWorld mit 1/k gegenskaliert.
-      model.updateMatrixWorld(true);
-      const furn = [], pivots = new Map();
+      // Kisten und Spinde sollen es nicht. Der Build stellt jedes Möbel als
+      // eigenen Knoten mit Bezugspunkt (extras.anchor), in der vollen Stufe
+      // oder als eigene Datei (h.furniture). Nach dem Schnitt legt
+      // mergeFurniture sie je Material zusammen; scaleWorld hält sie mit
+      // scaleFurniture bei 1/k.
+      const furn = [];
       model.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
-      for (const n of furn) {
-        const id = n.userData.furniture ?? n.uuid;
-        let pv = pivots.get(id);
-        if (!pv) {
-          pv = new THREE.Group();
-          pv.position.fromArray(n.userData.anchor);
-          model.add(pv);
-          pv.updateMatrixWorld(true);
-          pivots.set(id, pv);
-        }
-        pv.attach(n);
-      }
       const t0 = performance.now();
       for (const r of dropHallParts(model, HALL_DROP[h.id])) {
         const ms = Math.round(performance.now() - t0);
         if (r.tris) console.info(`[hangar] Halle: ${r.tris} Dreiecke in ${r.parts} Teilen entfernt (${r.why.split(' (')[0]}), ${ms} ms`);
         else console.warn(`[hangar] Halle: Ausnahme trifft nichts mehr: ${r.why}`);
       }
+      // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
+      const extra = await furnReady;
+      if (extra) {
+        model.add(extra);
+        extra.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
+      }
+      const t1 = performance.now();
+      const furniture = mergeFurniture(model, furn);
+      for (const n of furn) {
+        let left = false;
+        n.traverse((o) => { if (o.isMesh) left = true; });
+        if (!left) n.removeFromParent();
+      }
+      if (extra && !extra.children.length) extra.removeFromParent();
+      if (furniture.length) {
+        const tris = furniture.reduce((sum, f) => sum + f.mesh.geometry.index.count / 3, 0);
+        console.info(`[hangar] Einrichtung: ${furn.length} Möbel in ${furniture.length} Meshes, ${tris} Dreiecke, ${Math.round(performance.now() - t1)} ms`);
+      }
+      // Abdunkelung aus dem Spiel: Im Spiel tragen die Wandmaterialien
+      // %VERTCOLORS, ihr COLOR_0 ist Grau (R = G = B) und dunkelt die
+      // Paneele verschieden ab. Als eigenes Attribut (hgShade, der Hallen-
+      // shader nimmt den Rotkanal): Vertexfarben wären je Material ein
+      // eigenes Shaderprogramm.
+      let shaded = 0;
+      model.traverse((n) => {
+        if (!n.isMesh || !n.geometry.attributes.color) return;
+        n.geometry.setAttribute('hgShade', n.geometry.attributes.color);
+        n.geometry.deleteAttribute('color');
+        for (const m of [].concat(n.material)) { m.vertexColors = false; m.userData.hgShade = true; }
+        shaded++;
+      });
+      if (shaded) console.info(`[hangar] Halle: ${shaded} Meshes mit Abdunkelung aus dem Spiel`);
       const uvStats = hallUvStats(model);
       const boxed = new Set(), seen = new Set();
       model.traverse((n) => {
@@ -2173,7 +2337,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, room: h.room, mats, floorY, furniture: [...pivots.values()] };
+      realHall = { group: hallRoot, room: h.room, mats, floorY, furniture };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -2195,12 +2359,12 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
-      prog.delete('hall');
+      prog.delete('hall'); prog.delete('furniture');
       return true;
     }).catch((e) => {
       // ohne echte Halle die gebaute
       console.warn('[hangar] Halle nicht geladen', e);
-      prog.delete('hall');
+      prog.delete('hall'); prog.delete('furniture');
       hallFailed = true;
       dropHallLamps();
       buildStage();
@@ -2540,6 +2704,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     if (fly) flyStep(now);
     controls.update();
     adaptPixels(now);
+    renderer.shadowMap.needsUpdate = true;
     if (composer) composer.render(); else renderer.render(scene, camera);
     if (frameFn) frameFn();
   }
@@ -2552,8 +2717,8 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     probeReady = loadHallProbe(opts.hall);
     composerReady = lampsReady.then(() => enableAO());
     // Am Telefon die leichtere Stufe, wenn die Seite eine mitgibt (gleicher
-    // Modellraum, also dieselben Lampen und Sonden).
-    loadRealHall(SMALL && opts.hall.lite?.url ? { ...opts.hall, ...opts.hall.lite } : opts.hall);
+    // Modellraum, also dieselben Lampen und Sonden), und keine Möbel.
+    loadRealHall(SMALL ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: null } : opts.hall);
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand
   // (die gebauten Figuren wären Selbstgebautes)
