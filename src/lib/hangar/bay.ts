@@ -16,7 +16,7 @@ import { href, type Locale } from '../../i18n/ui';
 import { hangarT, type HangarKey } from '../../i18n/hangarText';
 import { displayName, hasMeaningfulGrade, itemPath, items, num, pageItemIds, type Item, type ItemStats } from '../items';
 import { statRows } from '../itemStats';
-import { STATS, formatStat, percentile, shipData, shipFacts, statValue, type ShipId, type StatDef, type StatKey } from './catalog';
+import { STATS, formatStat, percentile, shipData, shipFacts, type ShipId } from './catalog';
 import { shipGeometry, type PortName, type StockItem, type Vec3 } from './ports';
 
 /** Die eine Tab-Liste. Die Seite rendert daraus die Tab-Knoepfe, ShipBay je Tab ein Panel. */
@@ -108,7 +108,6 @@ export interface Bay {
   readonly head: BayHead;
   readonly overview: { readonly rows: readonly StatRow[]; readonly note: string };
   readonly slots: Readonly<Record<SlotTabKey, SlotPanel>>;
-  readonly compare: { readonly name: string; readonly rows: readonly CompareRow[] };
   readonly marks: Marks;
 }
 
@@ -164,16 +163,6 @@ export interface SlotRow {
   /** itemStats.statRows(): Woerter und Reihenfolge des Item Finders. */
   readonly details: ReadonlyArray<readonly [label: string, value: string]>;
   readonly links: { readonly finder: string; readonly page: string | null } | null;
-}
-
-export interface CompareRow {
-  readonly key: StatKey;
-  readonly label: string;
-  readonly value: string | null;
-  /** Zahl in Anzeigeeinheit und -genauigkeit fuer das Delta im Browser; null = unbekannt. */
-  readonly raw: number | null;
-  readonly unit: StatDef['unit'];
-  readonly better: StatDef['better'];
 }
 
 export interface Marks {
@@ -471,17 +460,6 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
       note: t('overview.note'),
     },
     slots,
-    compare: {
-      name: facts.name,
-      rows: STATS.filter((s) => s.comparable).map((s) => ({
-        key: s.key,
-        label: t(`stat.${s.key}`),
-        value: formatStat(s.key, facts.stat[s.key], lang),
-        raw: statValue(s.key, facts.stat[s.key]),
-        unit: s.unit,
-        better: s.better,
-      })),
-    },
     marks: { center: geo.center, box: geo.box, points },
   };
   bayMemo.set(memoKey, bay);

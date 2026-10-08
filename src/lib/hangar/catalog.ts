@@ -1,8 +1,8 @@
 // Der Schiffsbestand des Hangars und seine schiffsweiten Kennwerte. EIN Modul
 // beantwortet "welche Schiffe" und "welche Zahlen" fuer jede Hangar-Flaeche:
-// das Dock (Filter-, Sortier- und Vergleichswerte als data-*), Ueberblick und
-// Vergleichsspalte jedes Buchtdokuments, die Routen der Buchtdokumente und die
-// Modellliste der Szene (HANGAR_IDS).
+// das Dock (Filter-, Sortier- und Vergleichswerte als data-*), den Ueberblick
+// jedes Buchtdokuments, die Routen der Buchtdokumente und die Modellliste der
+// Szene (HANGAR_IDS).
 //
 // STATS ist das EINE Kennwert-Verzeichnis (Graft 4 der Synthese): wer einen
 // Kennwert ergaenzt, ergaenzt eine Zeile, und Balken, Sortierung, Vergleich und

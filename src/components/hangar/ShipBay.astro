@@ -1,7 +1,9 @@
 ---
-// Druckt EINE Region einer Bucht. Vier Regionen ergeben ein Schiff: head,
-// panel, marks, cmp. Die Hangarseite setzt jede Region fuer das Startschiff an
-// ihren Platz; BayDocument.astro druckt alle vier fuer /hangar-bay/<id>.html.
+// Druckt EINE Region einer Bucht. Drei Regionen ergeben ein Schiff: head,
+// panel, marks. Die Hangarseite setzt jede Region fuer das Startschiff an
+// ihren Platz; BayDocument.astro druckt alle drei fuer /hangar-bay/<id>.html.
+// Die Zahlen des Vergleichs liest der Controller aus dem Dock (data-v), nicht
+// aus einer Bucht.
 // Der Controller tauscht eine Region aus, indem er das Element mit demselben
 // data-bay ersetzt, deshalb haengen Wurzelelement und Klasse einer Region nie
 // von Daten ab.
@@ -18,14 +20,14 @@ import { hangarT } from '../../i18n/hangarText';
 
 interface Props {
   bay: Bay;
-  region: 'head' | 'panel' | 'marks' | 'cmp';
+  region: 'head' | 'panel' | 'marks';
 }
 const { bay, region } = Astro.props;
 const t = hangarT(bay.lang);
 const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ') : '';
 ---
 {region === 'head' && (
-  <div class="hgx-head" data-bay="head" data-id={bay.id} data-name={bay.head.name} data-sheet={bay.head.sheetHref} data-announce={bay.head.announce}>
+  <div class="hgx-head" data-bay="head" data-id={bay.id} data-announce={bay.head.announce}>
     <p class="hg-maker">{bay.head.maker}</p>
     <p class:list={['hg-name', { 'is-long': bay.head.nameStep === 1, 'is-longer': bay.head.nameStep === 2 }]}>{bay.head.name}</p>
     <p class="hg-role">{bay.head.roleLine}</p>
@@ -105,15 +107,4 @@ const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ')
       <i class="hgx-mk" data-tab={m.tab} data-port={m.port} data-rows={m.rows.join(' ')} data-p={m.p.join(' ')}><b>{m.label}</b></i>
     ))}
   </div>
-)}
-
-{region === 'cmp' && (
-  <dl class="hgx-cmp" data-bay="cmp" data-id={bay.id} data-name={bay.compare.name}>
-    {bay.compare.rows.map((r) => (
-      <div data-k={r.key} data-v={r.raw ?? ''} data-u={r.unit} data-better={r.better}>
-        <dt>{r.label}</dt>
-        <dd>{r.value ?? '–'}</dd>
-      </div>
-    ))}
-  </dl>
 )}

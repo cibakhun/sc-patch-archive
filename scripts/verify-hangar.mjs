@@ -12,17 +12,17 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   ZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   ELF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
         DE-Buchten. Die Zahl selbst hat ihre Klinke in verify:metrics
         (seitenHangarBuchten), neben allen anderen Seitenzahlen.
-     2  Buchtgestalt: main[data-bay-id] gleich Dateiname, vier Regionen
-        (head, panel, marks, cmp), je Bucht ein Tab-Panel fuer genau die
-        Tabs, die die Tab-Leiste der Hangarseite nennt (aus dist/hangar.html
-        gelesen, keine eigene Liste), dieselbe Vergleichs-Schluesselfolge in
-        jeder Bucht (mindestens 13), kein <style>, kein <script>, style= nur
+     2  Buchtgestalt: main[data-bay-id] gleich Dateiname, genau die drei
+        Regionen head, panel, marks und keine weitere (der Controller setzt
+        nur diese ein), je Bucht ein Tab-Panel fuer genau die Tabs,
+        die die Tab-Leiste der Hangarseite nennt (aus dist/hangar.html
+        gelesen, keine eigene Liste), kein <style>, kein <script>, style= nur
         als Balkenbreite (die Kostenbremse: Buchten bleiben reines HTML).
      3  Marker am Rumpf, in zwei Haelften.
         3a Jedes data-p: drei endliche Zahlen in der data-box, je Achse um
@@ -30,11 +30,11 @@
            den Port des Markers in data-ports und steht in seinem Tab. Faengt
            Punkte und Box, die verschieden umgerechnet wurden.
         3b Die Z-Ausdehnung der Box (glTF-Bugachse) liegt innerhalb 30 % der
-           Schiffslaenge aus der Vergleichsregion (data-k="len", aus
-           vehicles.json, nicht aus der Hardpoint-Datei). Faengt eine falsche
-           Achsregel, die Punkte UND Box verschiebt; die sieht 3a nicht.
-     4  EN gleich DE je Schiff: Zeilen, Marker, Vergleichszeilen. verify:sync
-        beweist schon die Elementfolge; diese Zeile nennt das Schiff.
+           Schiffslaenge aus dem Dock (data-v unter len, aus vehicles.json,
+           nicht aus der Hardpoint-Datei). Faengt eine falsche Achsregel,
+           die Punkte UND Box verschiebt; die sieht 3a nicht.
+     4  EN gleich DE je Schiff: Zeilen und Marker. verify:sync beweist schon
+        die Elementfolge; diese Zeile nennt das Schiff.
      5  Zaehlungen gegen die Klinken (KLINKEN unten).
      6  Groessendeckel: groesste Bucht, Summe je Sprache.
      7  Viewer-Naht: dist/assets/hangar-viewer.js liefert project, focus und
@@ -47,11 +47,19 @@
         Aufruf in dist/assets/hangar-overview.js), nicht aus einer Liste
         hier: eine aus HangarPage.astro entfernte Vorlage hinterlaesst sonst
         still eine leere Stelle.
-    10  Dock-Daten: jede Karte traegt data-v mit genau so vielen Werten,
-        wie data-stats Schluessel nennt, jeder eine endliche Zahl oder '-',
-        und data-stats nennt jeden Vergleichsschluessel der Buchten.
-        Sortierung, Vergleich und Flottenzeile rechnen nur damit; eine
-        verrutschte Folge vertauscht still Fracht und Besatzung.
+    10  Dock-Daten, so wie der Client sie liest. Jede Karte traegt data-v
+        mit genau so vielen Werten, wie data-stats Schluessel nennt, jeder
+        eine endliche Zahl oder '-'. data-stats nennt jede Zeile der
+        Vergleichstabelle (#hgx-cmp-table tr[data-k], mindestens 13) und
+        jede Sortieroption ausser dem Namen. Die Werte jeder Karte stimmen
+        mit dem Ueberblick der EN-Bucht desselben Schiffs ueberein, fuer die
+        Kennwerte, die er druckt. Sortierung, Vergleich und Flottenzeile
+        rechnen nur mit data-v; eine verrutschte Folge vertauscht still
+        Fracht und Besatzung, und Anzahl und Zahlform allein sehen das nicht.
+    11  Jeder Port in data-ports und data-port der Buchten passt auf die
+        Portregel des Controllers (PORT_RE, gelesen aus
+        dist/assets/hangar-overview.js). Sonst verwirft parseState den
+        tiefen Link ?hp= auf genau diesen Hardpoint still.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -61,6 +69,8 @@
      c  joinItem() in src/lib/hangar/bay.ts ohne Namensnormalisierung,
         bauen                                                       -> [5]
      d  in dist/hangar.html einer Karte einen Wert aus data-v nehmen  -> [10]
+     e  in dist/hangar.html zwei Werte einer Karte tauschen          -> [10]
+     f  in einer gebauten Bucht einen Port gross schreiben           -> [11]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -147,10 +157,19 @@ function stageModels(html) {
   return { ids, bad };
 }
 
+/* ---------- Dock lesen: data-stats und data-v je Karte, wie der Client ---------- */
+function readDock(html) {
+  const keys = (/id="hg-strip"[^>]*\sdata-stats="([^"]*)"/.exec(html)?.[1] ?? '').split(' ').filter(Boolean);
+  const cards = [...html.matchAll(/<li data-id="([^"]+)"[^>]*\sdata-v="([^"]*)"/g)].map((m) => ({ id: m[1], v: m[2].split(' ') }));
+  const figures = new Map(cards.map((c) => [c.id, Object.fromEntries(keys.map((k, i) => [k, c.v[i] === undefined || c.v[i] === '-' ? null : Number(c.v[i])]))]));
+  return { keys, cards, figures };
+}
+const DOCK = { en: readDock(PAGES[0].html), de: readDock(PAGES[1].html) };
+
 /* ---------- Buchten lesen (Regex, keine HTML-Bibliothek, wie audit-site) ---------- */
+const REGIONS = ['head', 'panel', 'marks'];
 function parseBay(file, html) {
   const id = /<main class="hgx-baydoc" data-bay-id="([^"]+)"/.exec(html)?.[1] ?? null;
-  const region = (name) => (html.match(new RegExp(`data-bay="${name}"`, 'g')) || []).length;
   const tabs = [...html.matchAll(/role="tabpanel" id="hgx-tp-([a-z]+)"/g)].map((m) => ({ tab: m[1], at: m.index }));
   const tabAt = (at) => {
     let t = null;
@@ -164,15 +183,17 @@ function parseBay(file, html) {
   const marks = [...html.matchAll(/<i class="hgx-mk" data-tab="([^"]+)" data-port="([^"]+)" data-rows="([^"]*)" data-p="([^"]*)">/g)].map((m) => ({
     tab: m[1], port: m[2], rows: m[3].split(' ').filter(Boolean), p: m[4].split(' ').map(Number),
   }));
-  const cmpAt = html.indexOf('data-bay="cmp"');
-  const cmp = cmpAt < 0 ? [] : [...html.slice(cmpAt).matchAll(/<div data-k="([^"]+)" data-v(?:="([^"]*)")?/g)].map((m) => ({ k: m[1], v: m[2] ?? '' }));
+  // Nur das Ueberblick-Panel: der Fracht-Tab traegt eigene hg-row-Zeilen (cargo, ore).
+  const ovAt = html.indexOf('id="hgx-tp-overview"');
+  const ovEnd = ovAt < 0 ? -1 : html.indexOf('role="tabpanel"', ovAt);
+  const ovHtml = ovAt < 0 ? '' : html.slice(ovAt, ovEnd < 0 ? undefined : ovEnd);
+  const overview = [...ovHtml.matchAll(/<div class="hg-row(?: is-na)?" data-k="([a-zA-Z0-9]+)"><dt>[^<]*<\/dt><dd>([^<]*)<\/dd>/g)].map((m) => ({ k: m[1], text: m[2] }));
   const box = (/data-box="([^"]*)"/.exec(html)?.[1] ?? '').split(' ').filter(Boolean).map(Number);
   const styleAttrs = [...html.matchAll(/\sstyle="([^"]*)"/g)].map((m) => m[1]);
   return {
     file, id, bytes: Buffer.byteLength(html),
-    regions: ['head', 'panel', 'marks', 'cmp'].map(region),
-    tabs: tabs.map((x) => x.tab), rows, marks, cmp,
-    len: Number(cmp.find((c) => c.k === 'len')?.v || NaN),
+    regions: [...html.matchAll(/\sdata-bay="([a-z]+)"/g)].map((m) => m[1]),
+    tabs: tabs.map((x) => x.tab), rows, marks, overview,
     box: box.length === 6 ? box : null,
     styleTags: (html.match(/<style\b/g) || []).length,
     scriptTags: (html.match(/<script\b/g) || []).length,
@@ -216,30 +237,28 @@ for (const page of PAGES) {
 }
 
 /* ---------- [2] Buchtgestalt ---------- */
-say('\n[2] Buchtgestalt: Id = Datei, vier Regionen, Tabs der Seite, gleiche Vergleichsfolge, reines HTML');
+say('\n[2] Buchtgestalt: Id = Datei, drei Regionen, Tabs der Seite, reines HTML');
 const pageTabs = (html) => [...html.matchAll(/role="tab" id="hgx-tab-([a-z]+)"/g)].map((m) => m[1]).join(' ');
 const refTabs = pageTabs(PAGES[0].html);
 if (!refTabs) fail('[2] hangar.html traegt keine Tab-Leiste (role="tab" id="hgx-tab-…")');
 if (pageTabs(PAGES[1].html) !== refTabs) fail(`[2] de/hangar.html nennt die Tabs "${pageTabs(PAGES[1].html)}" statt "${refTabs}"`);
-const refCmp = BAYS.en[0]?.cmp.map((c) => c.k).join(' ') ?? '';
 let shapeBad = 0, shapeChecked = 0;
 for (const lang of ['en', 'de']) {
   for (const b of BAYS[lang]) {
     shapeChecked++;
     const bad = [];
     if (b.id !== b.name) bad.push(`main[data-bay-id]="${b.id}" statt "${b.name}"`);
-    if (b.regions.some((n) => n !== 1)) bad.push(`Regionen head/panel/marks/cmp = ${b.regions.join('/')} statt 1/1/1/1`);
+    // Jede Region genau einmal und keine weitere: eine Region, die der Controller nicht einsetzt, ist totes Gewicht je Abruf.
+    if (b.regions.join(' ') !== REGIONS.join(' ')) bad.push(`Regionen "${b.regions.join(' ')}" statt "${REGIONS.join(' ')}"`);
     if (b.tabs.join(' ') !== refTabs) bad.push(`Tabs "${b.tabs.join(' ')}" statt "${refTabs}"`);
-    if (b.cmp.map((c) => c.k).join(' ') !== refCmp) bad.push(`Vergleichsfolge weicht ab`);
     if (b.styleTags || b.scriptTags) bad.push(`${b.styleTags}× <style>, ${b.scriptTags}× <script>`);
     const foreign = b.styleAttrs.filter((s) => !/^--w:\d+%$/.test(s));
     if (foreign.length) bad.push(`style= ausser Balkenbreite: "${foreign[0]}"`);
     if (bad.length) { shapeBad++; fail(`[2] ${b.file}: ${bad.join('; ')}`); }
   }
 }
-say(`    Tab-Folge: ${refTabs}   Vergleichsschluessel: ${refCmp.split(' ').filter(Boolean).length}`);
+say(`    Tab-Folge: ${refTabs}`);
 sollIst(`0 abweichende von ${shapeChecked} Buchten`, shapeBad);
-if (refCmp.split(' ').filter(Boolean).length < 13) fail(`[2] nur ${refCmp.split(' ').filter(Boolean).length} Vergleichsschluessel, mindestens 13`);
 if (!refTabs.includes('overview')) fail('[2] keine Bucht traegt ein Ueberblick-Panel');
 
 /* ---------- [3] Marker am Rumpf ---------- */
@@ -272,13 +291,14 @@ sollIst('0 ausserhalb oder ohne Zeile', outside.length);
 for (const o of outside.slice(0, 10)) say(`      ${o}`);
 for (const o of outside) fail(`[3a] ${o}`);
 
-say('\n[3b] Z-Ausdehnung der Rumpfbox gegen die Schiffslaenge aus vehicles.json (EN)');
+say('\n[3b] Z-Ausdehnung der Rumpfbox gegen die Schiffslaenge aus dem Dock (data-v len, EN)');
 let withLen = 0, alongZ = 0;
 for (const b of BAYS.en) {
-  if (!(b.len > 0) || !b.box) continue;
+  const len = DOCK.en.figures.get(b.name)?.len ?? null;
+  if (!(len > 0) || !b.box) continue;
   withLen++;
   const ez = b.box[5] - b.box[2];
-  if (Math.abs(ez - b.len) / b.len <= 0.3) alongZ++;
+  if (Math.abs(ez - len) / len <= 0.3) alongZ++;
 }
 say(`    Schiffe mit Laenge und Box: ${withLen}   davon Laenge entlang Z (±30 %): ${alongZ}`);
 const ist = {
@@ -290,14 +310,14 @@ const ist = {
 };
 
 /* ---------- [4] EN gleich DE je Schiff ---------- */
-say('\n[4] EN gleich DE je Schiff: Zeilen, Marker, Vergleichszeilen');
+say('\n[4] EN gleich DE je Schiff: Zeilen und Marker');
 const deBy = new Map(BAYS.de.map((b) => [b.name, b]));
 const parity = [];
 for (const en of BAYS.en) {
   const de = deBy.get(en.name);
   if (!de) continue; // fehlt die DE-Bucht, meldet [1] das Schiff
-  const sig = (b) => `${b.rows.map((r) => r.key).join(',')}|${b.marks.length}|${b.cmp.length}`;
-  if (sig(en) !== sig(de)) parity.push(`${en.name}: EN ${en.rows.length} Zeilen/${en.marks.length} Marker/${en.cmp.length} Vergleich, DE ${de.rows.length}/${de.marks.length}/${de.cmp.length}`);
+  const sig = (b) => `${b.rows.map((r) => r.key).join(',')}|${b.marks.length}`;
+  if (sig(en) !== sig(de)) parity.push(`${en.name}: EN ${en.rows.length} Zeilen/${en.marks.length} Marker, DE ${de.rows.length}/${de.marks.length}`);
 }
 say(`    Paare geprueft: ${BAYS.en.filter((b) => deBy.has(b.name)).length}`);
 sollIst('0 Abweichungen', parity.length);
@@ -359,21 +379,67 @@ for (const page of PAGES) {
 }
 if (ctrl && !msgIds.length) fail('[9] keine msg(…)-Aufrufe im Controller gefunden — der Leser ist kaputt, nicht der Controller leer');
 
-/* ---------- [10] Dock-Daten ---------- */
-say('\n[10] Dock-Daten: data-v je Karte in der Folge von data-stats (beide Hangarseiten)');
+/* ---------- [10] Dock-Daten, wie der Client sie liest ---------- */
+say('\n[10] Dock-Daten: data-v in der Folge von data-stats, gegen Vergleichstabelle, Sortierung und Ueberblick (beide Hangarseiten)');
+// Zahl einer Zeile des EN-Ueberblicks ("1,944.5 DPS", "21 m", "1"); der Strich ist unbekannt.
+const enNumber = (text) => (text.trim() === '–' ? null : Number(text.replace(/,/g, '').trim().split(' ')[0]));
+const overviewBy = new Map(BAYS.en.map((b) => [b.name, b.overview]));
 for (const page of PAGES) {
-  const keys = (/id="hg-strip"[^>]*\sdata-stats="([^"]*)"/.exec(page.html)?.[1] ?? '').split(' ').filter(Boolean);
-  const cards = [...page.html.matchAll(/<li data-id="([^"]+)"[^>]*\sdata-v="([^"]*)"/g)].map((m) => ({ id: m[1], v: m[2].split(' ') }));
+  const { keys, cards, figures } = DOCK[page.lang];
   const bad = cards.filter((c) => c.v.length !== keys.length || c.v.some((x) => x !== '-' && !Number.isFinite(Number(x))));
-  const missing = refCmp.split(' ').filter((k) => k && !keys.includes(k));
   const total = dockIds(page.html).length;
-  say(`    ${page.file}: ${keys.length} Schluessel, ${cards.length} von ${total} Karten mit data-v`);
-  sollIst(`0 abweichende Karten, alle ${total} mit data-v, jeder Vergleichsschluessel im Dock`, `${bad.length} abweichend, ${total - cards.length} ohne, ${missing.length} fehlend`);
+  const cmpHtml = /id="hgx-cmp-table">([\s\S]*?)<\/table>/.exec(page.html)?.[1] ?? '';
+  const cmpKeys = [...cmpHtml.matchAll(/<tr data-k="([a-zA-Z0-9]+)"/g)].map((m) => m[1]);
+  const sortHtml = /<select id="hgx-sort"[^>]*>([\s\S]*?)<\/select>/.exec(page.html)?.[1] ?? '';
+  const sortKeys = [...sortHtml.matchAll(/<option value="([a-zA-Z0-9]+)"/g)].map((m) => m[1]).filter((k) => k !== 'name');
+  const missing = [...new Set([...cmpKeys, ...sortKeys])].filter((k) => !keys.includes(k));
+  // Anzahl und Zahlform sehen eine verrutschte Folge nicht; der Ueberblick
+  // derselben Bucht nennt die Werte mit Namen.
+  let compared = 0;
+  const off = [];
+  for (const c of cards) {
+    for (const row of overviewBy.get(c.id) ?? []) {
+      if (!keys.includes(row.k)) continue;
+      compared++;
+      const v = figures.get(c.id)[row.k];
+      const want = v === null || v <= 0 ? null : v; // fuer 0 druckt der Ueberblick den Strich
+      if (enNumber(row.text) !== want) off.push(`${c.id} ${row.k}: data-v ${v ?? '-'}, Ueberblick "${row.text}"`);
+    }
+  }
+  say(`    ${page.file}: ${keys.length} Schluessel, ${cards.length} von ${total} Karten mit data-v, Vergleichstabelle ${cmpKeys.length} Zeilen, Sortierung ${sortKeys.length} Kennwerte, ${compared} Werte gegen den Ueberblick`);
+  sollIst(`0 abweichende Karten, alle ${total} mit data-v, 0 fehlende Schluessel, 0 Werte neben dem Ueberblick`, `${bad.length} abweichend, ${total - cards.length} ohne, ${missing.length} fehlend, ${off.length} daneben`);
   for (const c of bad.slice(0, 10)) say(`      ${c.id}: ${c.v.length} Werte "${c.v.join(' ')}"`);
+  for (const o of off.slice(0, 10)) say(`      ${o}`);
   for (const c of bad) fail(`[10] ${page.file}: Karte ${c.id} traegt ${c.v.length} Werte statt ${keys.length} oder einen, der keine Zahl ist — catalog.ts dockFigures`);
   if (cards.length !== total) fail(`[10] ${page.file}: ${total - cards.length} Karten ohne data-v`);
   if (!keys.length) fail(`[10] ${page.file}: das Dock nennt keine Schluessel (data-stats)`);
-  for (const k of missing) fail(`[10] ${page.file}: Vergleichsschluessel ${k} fehlt in data-stats`);
+  if (cmpKeys.length < 13) fail(`[10] ${page.file}: die Vergleichstabelle hat ${cmpKeys.length} Zeilen, mindestens 13`);
+  if (!compared) fail(`[10] ${page.file}: kein Wert gegen den Ueberblick geprueft — der Leser ist kaputt, nicht das Dock leer`);
+  for (const k of missing) fail(`[10] ${page.file}: ${k} steht in der Vergleichstabelle oder der Sortierung, aber nicht in data-stats`);
+  for (const o of off) fail(`[10] ${page.file}: ${o} — data-v und data-stats laufen auseinander (catalog.ts dockFigures)`);
+}
+
+/* ---------- [11] Ports gegen die Portregel des Controllers ---------- */
+say('\n[11] Jeder Port der Buchten passt auf PORT_RE des Controllers (EN und DE)');
+const portRule = /const PORT_RE = \/(.+)\/([a-z]*);/.exec(ctrl);
+if (!portRule) fail('[11] dist/assets/hangar-overview.js nennt keine PORT_RE mehr — der Leser ist kaputt oder die Regel ist umgezogen');
+else {
+  const rule = new RegExp(portRule[1], portRule[2]);
+  let ports = 0;
+  const wrong = [];
+  for (const lang of ['en', 'de']) {
+    for (const b of BAYS[lang]) {
+      for (const p of new Set([...b.rows.flatMap((r) => r.ports), ...b.marks.map((m) => m.port)])) {
+        ports++;
+        if (!rule.test(p)) wrong.push(`${b.file}: "${p}"`);
+      }
+    }
+  }
+  say(`    Regel /${portRule[1]}/${portRule[2]}   Ports geprueft: ${ports}`);
+  sollIst('0 Ports neben der Regel', wrong.length);
+  for (const w of wrong.slice(0, 10)) say(`      ${w}`);
+  for (const w of wrong) fail(`[11] ${w} passt nicht auf PORT_RE; parseState verwirft ?hp= mit diesem Port`);
+  if (!ports) fail('[11] keine Ports gelesen');
 }
 
 say('\n[Selbstauskunft]');
