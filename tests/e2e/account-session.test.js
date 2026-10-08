@@ -150,6 +150,29 @@ test('meldet sich ein anderer Tab an, zeigt dieser Tab das Konto und holt Name u
   assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
 });
 
+test('meldet sich ein anderer Tab an, während der Refresh beim Laden hängt, zeigt dieser Tab das Konto sofort', async () => {
+  const b = makeAccountBrowser({ expiresIn: -10 });
+  const tab = b.open();
+  await b.advance(5000);
+  b.signIn(9);
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN, 'nicht erst nach der 15-s-Frist');
+  assert.equal(heartbeats(tab), 1);
+});
+
+test('meldet sich in einem anderen Tab ein anderes Konto an, zeigt dieser Tab dessen Namen und Rolle', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true);
+
+  b.signIn(9, 'user-2');
+  await b.drain();
+  assert.deepEqual(tab.nav(), { href: '/account.html', text: 'Vega', authed: true });
+  assert.equal(tab.admin(), false, 'die Rolle des neuen Kontos gilt');
+});
+
 test('hängt der Refresh, fragt der nächste Versuch nach der Frist mit demselben Token, und die späte erste Antwort meldet nicht ab', async () => {
   const b = makeAccountBrowser({ expiresIn: -10 });
   const tab = b.open();

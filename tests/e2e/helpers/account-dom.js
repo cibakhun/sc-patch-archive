@@ -4,10 +4,10 @@
 // Kontext. Die Tabs teilen localStorage (ein Schreiben meldet `storage` an die
 // jeweils ANDEREN Tabs, wie im Browser) und den Auth-Server. Jede
 // Refresh-Anfrage bleibt angehalten, bis der Test sie beantwortet: mit einem
-// Status, ohne Netz oder gar nicht. Das Profil heißt Nova, die Rolle ist
-// admin, der Heartbeat (PATCH) bekommt 204. Jeder Tab trägt das Konto-Element
-// aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument (admin()) und führt
-// Buch über seine Anfragen (requests).
+// Status, ohne Netz oder gar nicht. user-1 heißt Nova und ist admin, user-2
+// heißt Vega und ist user; der Heartbeat (PATCH) bekommt 204. Jeder Tab trägt
+// das Konto-Element aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument
+// (admin()) und führt Buch über seine Anfragen (requests).
 //
 // Zeit ist eine Attrappe (Date.now, setTimeout, setInterval): ein Zeitgeber
 // läuft erst, wenn der Test die Uhr mit advance() vorstellt.
@@ -17,6 +17,7 @@ import vm from 'node:vm';
 
 const CODE = fs.readFileSync(path.resolve('assets/account-lite.js'), 'utf8');
 export const STORE = 'sb-trgjhmbnodoarnfmlcqx-auth-token';
+const PEOPLE = { 'user-1': { name: 'Nova', role: 'admin' }, 'user-2': { name: 'Vega', role: 'user' } };
 
 const tick = () => new Promise((r) => setImmediate(r));
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
@@ -52,8 +53,9 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
   function authServer(url, init) {
     if (!url.includes('/auth/v1/token')) {
       if (init.method === 'PATCH') return Promise.resolve(respond(204));
-      if (url.includes('/rest/v1/profiles?')) return Promise.resolve(respond(200, [{ display_name: 'Nova', handle: 'nova' }]));
-      if (url.includes('/rest/v1/user_roles?')) return Promise.resolve(respond(200, [{ role: 'admin' }]));
+      const who = PEOPLE[(url.match(/id=eq\.([^&]+)/) || [])[1]];
+      if (url.includes('/rest/v1/profiles?')) return Promise.resolve(respond(200, who ? [{ display_name: who.name, handle: null }] : []));
+      if (url.includes('/rest/v1/user_roles?')) return Promise.resolve(respond(200, who ? [{ role: who.role }] : []));
       return Promise.resolve(respond(200, []));
     }
     const entry = { body: JSON.parse(init.body) };
@@ -78,11 +80,11 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
     refreshes,
     storage: { get: (k) => (data.has(k) ? data.get(k) : null) },
     /** Antwort von GoTrue auf einen Refresh: neues Token, ohne expires_at. */
-    fresh: (n) => ({ access_token: `token-${n}`, refresh_token: `refresh-${n}`, token_type: 'bearer', expires_in: 3600, user: { id: 'user-1' } }),
+    fresh: (n, uid = 'user-1') => ({ access_token: `token-${n}`, refresh_token: `refresh-${n}`, token_type: 'bearer', expires_in: 3600, user: { id: uid } }),
     /** Abmelden auf /account/: GoTrue löscht die Sitzung samt ihren Refresh-Tokens. */
     signOut: () => fromAccountPage(null),
-    /** Neu anmelden auf /account/: eine neue Sitzung token-n/refresh-n. */
-    signIn: (n) => fromAccountPage(JSON.stringify({ ...browser.fresh(n), expires_at: Math.floor(clock.now / 1000) + 3600 })),
+    /** Neu anmelden auf /account/: eine neue Sitzung token-n/refresh-n, als user-1 oder uid. */
+    signIn: (n, uid) => fromAccountPage(JSON.stringify({ ...browser.fresh(n, uid), expires_at: Math.floor(clock.now / 1000) + 3600 })),
     async drain() { for (let i = 0; i < 8; i++) await tick(); },
     async advance(ms) {
       const until = clock.now + ms;
