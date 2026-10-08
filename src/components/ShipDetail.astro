@@ -2107,7 +2107,7 @@ span.sd__ref{color:var(--muted)}
             <svg class="favbtn__star" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
             <span class="js-fleet-txt">{t('fleet.add')}</span>
           </button>
-          <button type="button" class="favretry" data-fleet-retry hidden>{t('fleet.retry')}</button>
+          <button type="button" class="favretry" data-fleet-retry data-fleet-unsaved={t('fleet.retry')} data-fleet-unsynced={t('fleet.resync')} hidden>{t('fleet.retry')}</button>
           <a class="favhangar" href={L(`/hangar.html?ship=${id}`)}>
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 20V11a9 9 0 0 1 18 0v9M2 20h20M8 20v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span>{t('ship.hangar3d')}</span>

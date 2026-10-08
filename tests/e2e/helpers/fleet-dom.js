@@ -12,8 +12,8 @@
 // verlässt: RLS auf die eigenen Zeilen, POST 201 bzw. 409 bei vorhandener
 // Zeile (nur mit `unique`), DELETE per Filter mit 204 auch ohne Treffer, GET
 // mit select und Reihenfolge der Anlage. Steuerbar: erzwungene Status, offline,
-// angehaltene Anfragen (Schreiben vor oder nach dem Anhalten) und verlorene
-// Antworten.
+// angehaltene Anfragen (Schreiben vor oder nach dem Anhalten), verlorene
+// Antworten und Antwortkörper, die nie ankommen.
 //
 // Zeit ist eine Attrappe (Date.now und setTimeout): settle() spielt die
 // Zeitgeber der nächsten fünf Sekunden ab (die Sammelpause vor dem Senden),
@@ -130,6 +130,8 @@ function makeServer({ rows = [], unique = true, owner }) {
     fail: (method, status) => server.forced.push({ method, status }),
     /** Nächste Anfrage dieser Methode scheitert wie fetch ohne Netz. */
     offline: (method) => server.forced.push({ method, offline: true }),
+    /** Nächste Anfrage dieser Methode bekommt 200, ihr Körper kommt aber nie an. */
+    hangBody: (method) => server.forced.push({ method, hangBody: true }),
     /**
      * Hält die nächste Anfrage dieser Methode an. commit 'before': der Server
      * schreibt sofort, nur die Antwort wartet (späte Antwort). commit 'after':
@@ -168,6 +170,7 @@ function makeServer({ rows = [], unique = true, owner }) {
       if (f !== -1) {
         const forced = server.forced.splice(f, 1)[0];
         if (forced.offline) return Promise.reject(new TypeError('Failed to fetch'));
+        if (forced.hangBody) return Promise.resolve({ ok: true, status: 200, json: () => new Promise(() => {}) });
         return Promise.resolve(respond(forced.status, null));
       }
       const h = server.holds.findIndex((x) => x.method === method);
@@ -196,6 +199,9 @@ function makeServer({ rows = [], unique = true, owner }) {
  *   locks    false = Browser ohne Web Locks
  *   seed     { schlüssel: rohwert } — beliebiger Vorbestand im localStorage
  *   storageBroken  true = jeder Zugriff auf localStorage wirft (gesperrte Cookies)
+ *   refreshing     true = das Token von `session` ist abgelaufen, und account-lite
+ *                  refresht es im selben Tab: session() liefert null, peek() hat
+ *                  die Sitzung noch. landRefresh() lässt den Refresh landen.
  */
 export function makeBrowser(opts = {}) {
   const owner = opts.session || 'user-1';
@@ -205,8 +211,9 @@ export function makeBrowser(opts = {}) {
   const locks = makeLocks();
   const server = makeServer({ rows: opts.rows, unique: opts.unique !== false, owner });
   const account = { session: null, stored: null };
-  const sessionFor = (uid) => ({ access_token: 'token-' + uid, refresh_token: 'refresh-' + uid, user: { id: uid } });
+  const sessionFor = (uid, n = 1) => ({ access_token: `token-${uid}-${n}`, refresh_token: `refresh-${uid}-${n}`, user: { id: uid } });
   if (opts.session) account.session = account.stored = sessionFor(opts.session);
+  if (opts.session && opts.refreshing) account.session = null;
   if (opts.guest) data.set('vb.fleet.v1', JSON.stringify({ ships: opts.guest }));
   for (const [k, v] of Object.entries(opts.seed || {})) data.set(k, v);
 
@@ -231,6 +238,11 @@ export function makeBrowser(opts = {}) {
     /** Sitzung liegt noch im Speicher, ist aber nicht nutzbar (offline, abgelaufen). */
     breakSession() { account.session = null; },
     healSession() { account.session = account.stored; },
+    /**
+     * Der Refresh aus `refreshing` landet im selben Tab: ein neues Token im
+     * Speicher, aber kein Ereignis. storage meldet der Browser nur anderen Tabs.
+     */
+    landRefresh() { account.session = account.stored = sessionFor(account.stored.user.id, 2); },
     async settle({ horizon = 5000, limit = 400 } = {}) {
       const until = clock.now + horizon;
       for (let n = 0; n < limit; n++) {
@@ -293,7 +305,12 @@ export function makeBrowser(opts = {}) {
         btn.appendChild(new El('svg', { 'aria-hidden': 'true' }));
         btn.appendChild(new El('span', { class: 'js-fleet-txt' }, b.off || ''));
       }
-      if (page.retry) body.appendChild(new El('button', { type: 'button', 'data-fleet-retry': '', hidden: '' }, 'Retry'));
+      if (page.retry) {
+        body.appendChild(new El('button', {
+          type: 'button', 'data-fleet-retry': '', hidden: '',
+          'data-fleet-unsaved': 'Not saved · try again', 'data-fleet-unsynced': 'Not synced · try again',
+        }, 'Not saved · try again'));
+      }
 
       const winL = {};
       const docL = {};
@@ -374,6 +391,8 @@ export function makeBrowser(opts = {}) {
           document.visibilityState = 'visible';
           fire(winL, 'pageshow', { type: 'pageshow', persisted: true });
         },
+        /** Der Refresh dieses Tabs hängt: session() kehrt nie zurück. */
+        hangSession() { sandbox.VBAccount.session = () => new Promise(() => {}); },
         /** Absturz oder Schliessen: nichts aus diesem Tab läuft danach noch weiter. */
         close() {
           tab.closed = true;

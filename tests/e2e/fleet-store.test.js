@@ -48,14 +48,15 @@ test('beim Anmelden wandern nur fehlende Gast-Schiffe ins Konto, danach ist die 
   assert.deepEqual(b.server.slugs(), ['anvl-arrow', 'aegs-gladius']);
   assert.equal(b.storage.get('vb.fleet.v1'), null);
   assert.equal(b.storage.get('vb.fleet.v1.user-1'),
-    '{"ships":[{"id":"anvl-arrow","label":"Arrow"},{"id":"aegs-gladius","label":"Gladius"}],"pending":{}}');
+    '{"ships":[{"id":"anvl-arrow","label":"Arrow"},{"id":"aegs-gladius","label":"Gladius"}],"pending":{},"merged":1}');
   assert.deepEqual(tab.snapshot(), { ids: ['anvl-arrow', 'aegs-gladius'], mode: 'account', sync: 'synced', error: null, merged: 1 });
 
   tab.close();
   const reloaded = b.open();
   await b.settle();
   assert.equal(postsOf(b), 1, 'ein zweiter Lauf schickt nichts mehr');
-  assert.deepEqual(reloaded.snapshot(), { ids: ['anvl-arrow', 'aegs-gladius'], mode: 'account', sync: 'synced', error: null, merged: 0 });
+  assert.deepEqual(reloaded.snapshot(), { ids: ['anvl-arrow', 'aegs-gladius'], mode: 'account', sync: 'synced', error: null, merged: 1 },
+    'der Hinweis steht, bis ihn jemand schliesst');
 });
 
 test('eine an jeder Stelle abgebrochene Übernahme endet nach dem Neuladen im selben Stand, ohne doppelte Zeile', async () => {
@@ -78,7 +79,8 @@ test('eine an jeder Stelle abgebrochene Übernahme endet nach dem Neuladen im se
     await b.settle();
     assert.deepEqual(b.server.slugs(), ['aegs-gladius'], c.at);
     assert.equal(b.storage.get('vb.fleet.v1'), null, c.at);
-    assert.equal(b.storage.get('vb.fleet.v1.user-1'), '{"ships":[{"id":"aegs-gladius","label":"Gladius"}],"pending":{}}', c.at);
+    assert.equal(b.storage.get('vb.fleet.v1.user-1'),
+      `{"ships":[{"id":"aegs-gladius","label":"Gladius"}],"pending":{}${c.merged ? ',"merged":1' : ''}}`, c.at);
     assert.deepEqual(second.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'synced', error: null, merged: c.merged }, c.at);
   }
 });
@@ -263,15 +265,16 @@ test('Abmelden räumt jeden Konto-Spiegel weg und zeigt wieder die Gast-Flotte',
   assert.deepEqual(guest.snapshot(), { ids: [], mode: 'guest', sync: 'local', error: null, merged: 0 });
 });
 
-test('eine gerade unbrauchbare Sitzung behält den offenen Klick und liefert ihn bei der Rückkehr auf den Tab', async () => {
+test('eine gerade unbrauchbare Sitzung behält den offenen Klick, gilt als Abgleich und liefert ihn bei der Rückkehr auf den Tab', async () => {
   const b = makeBrowser({ session: 'user-1' });
-  const tab = b.open({ buttons: [GLADIUS] });
+  const tab = b.open({ buttons: [GLADIUS], retry: true });
   await b.settle();
   b.breakSession();
 
   tab.click(tab.button());
   await b.settle();
-  assert.deepEqual(tab.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'error', error: 'auth', merged: 0 });
+  assert.deepEqual(tab.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'syncing', error: null, merged: 0 });
+  assert.equal(tab.retryButton().hidden, true, 'kein Fehler: die Sitzung gehört noch diesem Konto');
   assert.equal(JSON.parse(b.storage.get('vb.fleet.v1.user-1')).pending['aegs-gladius'].op, 'add');
 
   b.healSession();
@@ -423,7 +426,7 @@ test('ein Klick während des Sendens ersetzt die ältere Absicht, bevor sie hina
   assert.deepEqual(tab.snapshot(), { ids: ['drak-cutlass-black'], mode: 'account', sync: 'synced', error: null, merged: 0 });
 });
 
-test('nur der sichtbare Tab übernimmt die Gast-Flotte und meldet sie', async () => {
+test('nur der sichtbare Tab übernimmt die Gast-Flotte, der Hinweis gilt für jeden Tab des Kontos', async () => {
   const b = makeBrowser({ guest: [{ id: 'aegs-gladius', label: 'Gladius' }] });
   const background = b.open();
   background.hide();
@@ -433,8 +436,9 @@ test('nur der sichtbare Tab übernimmt die Gast-Flotte und meldet sie', async ()
   b.signIn('user-1');
   await b.settle();
   assert.deepEqual(b.server.slugs(), ['aegs-gladius']);
+  assert.equal(postsOf(b), 1);
   assert.equal(front.snapshot().merged, 1);
-  assert.equal(background.snapshot().merged, 0);
+  assert.equal(background.snapshot().merged, 1);
   assert.deepEqual(background.ids(), ['aegs-gladius']);
 });
 
@@ -567,4 +571,104 @@ test('entfernt ein Tab, der vom Anmelden noch nichts weiss, ein Gast-Schiff, geh
   assert.deepEqual(b.server.slugs(), ['aegs-gladius']);
   assert.deepEqual(first.ids(), ['aegs-gladius']);
   assert.deepEqual(late.ids(), ['aegs-gladius']);
+});
+
+test('läuft ein Refresh im selben Tab, wartet die Flotte als Abgleich und gleicht ab, sobald er gelandet ist, ohne jedes Ereignis', async () => {
+  const b = makeBrowser({
+    session: 'user-1', refreshing: true,
+    rows: [{ slug: 'anvl-arrow', label: 'Arrow' }], guest: [{ id: 'aegs-gladius', label: 'Gladius' }],
+  });
+  const tab = b.open({ buttons: [GLADIUS], retry: true });
+  await b.settle();
+  assert.deepEqual(tab.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'syncing', error: null, merged: 0 });
+  assert.equal(tab.retryButton().hidden, true, 'kein "nicht gespeichert", solange der Refresh läuft');
+
+  b.landRefresh();
+  await b.settle({ horizon: 60000 });
+  assert.deepEqual(b.server.slugs(), ['anvl-arrow', 'aegs-gladius']);
+  assert.equal(b.storage.get('vb.fleet.v1'), null);
+  assert.deepEqual(tab.snapshot(), { ids: ['anvl-arrow', 'aegs-gladius'], mode: 'account', sync: 'synced', error: null, merged: 1 });
+  assert.equal(tab.button().getAttribute('aria-pressed'), 'true');
+});
+
+test('hängt session() in einem Tab, endet sein Lauf nach 20 Sekunden offline, und der Klick eines anderen Tabs geht hinaus', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const stuck = b.open();
+  await b.settle();
+  stuck.hangSession();
+  stuck.fleet.retry();
+  await b.drain();
+  const other = b.open({ buttons: [GLADIUS] });
+  await b.settle();
+  other.click(other.button());
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), [], 'solange der Lauf die Sperre hält, geht nichts hinaus');
+
+  b.advance(20000);
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), ['aegs-gladius'], 'nach der Frist ist die Sperre frei');
+  assert.deepEqual(other.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'synced', error: null, merged: 0 });
+  assert.deepEqual(stuck.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'error', error: 'offline', merged: 0 });
+});
+
+test('kommt der Körper einer Antwort nie an, endet der Lauf ebenso nach 20 Sekunden offline', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  b.server.hangBody('GET');
+  const stuck = b.open();
+  await b.settle();
+  const other = b.open({ buttons: [GLADIUS] });
+  await b.settle();
+  other.click(other.button());
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), []);
+
+  b.advance(20000);
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), ['aegs-gladius'], 'nach der Frist ist die Sperre frei');
+  assert.deepEqual(stuck.snapshot(), { ids: ['aegs-gladius'], mode: 'account', sync: 'error', error: 'offline', merged: 0 });
+});
+
+test('der Wiederholen-Knopf sagt "nicht gespeichert" nur, solange ein Klick das Konto nicht erreicht hat', async () => {
+  const unsaved = 'Not saved · try again';
+  const unsynced = 'Not synced · try again';
+  const cases = [
+    { at: 'abgelehntes Schreiben', click: true, setup: (b) => b.server.fail('POST', 500), error: 'write', text: unsaved },
+    { at: 'Schreiben ohne Netz', click: true, setup: (b) => b.server.offline('POST'), error: 'offline', text: unsaved },
+    { at: 'abgelehntes Lesen', click: false, setup: (b) => b.server.fail('GET', 500), error: 'read', text: unsynced },
+    { at: 'Lesen ohne Netz', click: false, setup: (b) => b.server.offline('GET'), error: 'offline', text: unsynced },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    if (!c.click) c.setup(b);
+    const tab = b.open({ buttons: [GLADIUS], retry: true });
+    await b.settle();
+    if (c.click) {
+      c.setup(b);
+      tab.click(tab.button());
+      await b.settle();
+    }
+    assert.equal(tab.snapshot().error, c.error, c.at);
+    assert.equal(tab.retryButton().hidden, false, c.at);
+    assert.equal(tab.retryButton().textContent, c.text, c.at);
+  }
+});
+
+test('der Hinweis zur Übernahme übersteht den Weg vom Datenblatt in den Hangar, bis er geschlossen wird', async () => {
+  const b = makeBrowser({ guest: [{ id: 'aegs-gladius', label: 'Gladius' }] });
+  const sheet = b.open({ buttons: [GLADIUS] });
+  await b.settle();
+  b.signIn('user-1');
+  await b.settle();
+  assert.equal(sheet.snapshot().merged, 1);
+  sheet.close();
+
+  const hangar = b.open();
+  const other = b.open();
+  await b.settle();
+  assert.equal(hangar.snapshot().merged, 1, 'der Hangar kennt die Übernahme vom Datenblatt');
+  hangar.fleet.dismissMerged();
+  await b.settle();
+  assert.equal(hangar.snapshot().merged, 0);
+  assert.equal(other.snapshot().merged, 0, 'geschlossen in einem Tab heisst geschlossen in allen');
+  assert.equal(b.storage.get('vb.fleet.v1.user-1'), '{"ships":[{"id":"aegs-gladius","label":"Gladius"}],"pending":{}}');
 });

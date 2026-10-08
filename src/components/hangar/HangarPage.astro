@@ -321,7 +321,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
             <span data-when="local">{t('fleet.local')} <a id="hgx-login" href={href('/account/login.html', lang)}>{t('fleet.signin')}</a></span>
             <span data-when="syncing" hidden>{t('fleet.syncing')}</span>
             <span data-when="synced" hidden>{t('fleet.synced')}</span>
-            <button type="button" class="hgx-retry" data-fleet-retry hidden>{ui('fleet.retry')}</button>
+            <button type="button" class="hgx-retry" data-fleet-retry data-fleet-unsaved={ui('fleet.retry')} data-fleet-unsynced={ui('fleet.resync')} hidden>{ui('fleet.retry')}</button>
           </span>
           <p class="hgx-merged" id="hgx-merged" hidden>
             <span id="hgx-merged-txt"></span>

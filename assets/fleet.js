@@ -7,18 +7,23 @@
 // Schreiber mit je eigenem Zustand laufen auseinander.
 //
 // API (für Hangar und Datenblatt festgelegt, .audit/arena/SYNTHESIS.md):
-//   VBFleet.ids() / has(id) / toggle(id, label) / subscribe(fn) / retry()
+//   VBFleet.ids() / has(id) / toggle(id, label) / subscribe(fn) / retry() / dismissMerged()
 //   snapshot = { ids, mode: 'guest'|'account', sync: 'local'|'syncing'|'synced'|'error',
 //                error: null|'offline'|'auth'|'write'|'read', merged }
 //   <button data-fleet-ship="<id>" data-fleet-label="<Name>">: aria-pressed setzt
 //   dieses Skript. Optional data-fleet-on/-off mit .js-fleet-txt (Beschriftung)
-//   und [data-fleet-retry] (nur bei sync 'error' sichtbar, Klick = retry()).
+//   und [data-fleet-retry] (nur bei sync 'error' sichtbar, Klick = retry()). Sein
+//   Text kommt aus data-fleet-unsaved, solange ein Klick oder ein Gast-Schiff das
+//   Konto nicht erreicht hat, sonst aus data-fleet-unsynced.
+//   merged zählt die Gast-Schiffe der letzten Übernahme. Es steht im Spiegel des
+//   Kontos, bis dismissMerged() es quittiert: wer sich auf einem Datenblatt
+//   anmeldet, liest den Hinweis erst im Hangar.
 //
 // Ablage:
 //   Gast    'vb.fleet.v1'        {ships:[{id,label}]}   — zugleich die Warteschlange
 //                                                        der Übernahme beim Anmelden
-//   Konto   'vb.fleet.v1.<uid>'  {ships:[…], pending:{id:{op,t}}}  (Spiegel, überlebt
-//                                                        einen geschlossenen Tab)
+//   Konto   'vb.fleet.v1.<uid>'  {ships:[…], pending:{id:{op,t}}, merged?}  (Spiegel,
+//                                                        überlebt einen geschlossenen Tab)
 //   Server  favorites über VBAccount.rest; POST 409 (23505) und DELETE ohne Treffer
 //           gelten als erledigt, deshalb darf jeder Schritt beliebig oft laufen.
 //
@@ -37,8 +42,15 @@
   var ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
   var FLUSH_MS = 300;
   var STALE_MS = 60000;
-  // Ein hängender fetch hielte sonst die Sperre aller Tabs fest.
+  // Jeder Schritt eines Laufs (Sitzung, Anfrage samt Antwortkörper) endet
+  // spätestens hier: ein hängender Refresh oder fetch hielte sonst die Sperre
+  // aller Tabs fest.
   var TIMEOUT_MS = 20000;
+  // Gehört die gespeicherte Sitzung noch diesem Konto, ist aber gerade nicht
+  // nutzbar (Refresh in einem anderen Tab, kein Netz), versucht es der Abgleich
+  // wieder: nach 2 s, dann doppelt so lange, höchstens einmal je Minute.
+  var BACKOFF_MS = 2000;
+  var BACKOFF_MAX_MS = 60000;
 
   var VB = null;
   var started = false;
@@ -46,8 +58,9 @@
   var ships = [];
   var sync = 'local';
   var error = null;
-  var merged = 0;
   var created = 0;
+  var backoff = 0;
+  var backoffTimer = null;
   var lastPull = 0;
   var storageBroken = false;
   var subs = [];
@@ -112,9 +125,14 @@
         pending[k] = { op: it.op, t: it.t };
       }
     });
-    return { ships: cleanShips(m.ships), pending: pending };
+    var n = typeof m.merged === 'number' && isFinite(m.merged) ? Math.floor(m.merged) : 0;
+    return { ships: cleanShips(m.ships), pending: pending, merged: n > 0 ? n : 0 };
   }
-  function writeMirror(id, m) { writeJson(mirrorKey(id), { ships: m.ships, pending: m.pending }); }
+  function writeMirror(id, m) {
+    var out = { ships: m.ships, pending: m.pending };
+    if (m.merged > 0) out.merged = m.merged;
+    writeJson(mirrorKey(id), out);
+  }
   function hasPending(id) { return Object.keys(readMirror(id).pending).length > 0; }
   // Geteilter Rechner: ohne Sitzung bleibt kein Konto-Spiegel im Browser liegen,
   // und ein anderes Konto sieht den Spiegel seines Vorgängers nie.
@@ -156,11 +174,16 @@
       mode: uid ? 'account' : 'guest',
       sync: sync,
       error: error,
-      merged: merged,
+      merged: uid ? readMirror(uid).merged : 0,
     };
   }
+  // Ein Klick oder ein Gast-Schiff hat das Konto noch nicht erreicht.
+  function unsaved() {
+    return !!uid && (hasPending(uid) || readGuest().length > 0);
+  }
   function notify() {
-    var key = JSON.stringify(snapshot());
+    // Der Text des Wiederholen-Knopfs hängt an unsaved(), das nicht im Schnappschuss steht.
+    var key = JSON.stringify(snapshot()) + (sync === 'error' && unsaved() ? '|unsaved' : '');
     if (key === lastKey) return;
     lastKey = key;
     paint();
@@ -187,17 +210,17 @@
   function enter(id) {
     dropMirrors(mirrorKey(id));
     uid = id;
-    merged = 0;
     created = 0;
     lastPull = 0;
+    calm();
     ships = computeView();
     setSync('syncing', null);
   }
   function leave() {
     dropMirrors(null);
     uid = null;
-    merged = 0;
     created = 0;
+    calm();
     ships = readGuest();
     setSync('local', null);
     var mine = waiters;
@@ -220,8 +243,15 @@
       if (txt && lbl && txt.textContent !== lbl) txt.textContent = lbl;
     }
     var off = sync !== 'error';
+    // "Nicht gespeichert" nur, solange ein Klick fehlt; ein gescheitertes Lesen
+    // oder eine gerade unbrauchbare Sitzung lassen nur die Anzeige veralten.
+    var label = off ? null : unsaved() ? 'data-fleet-unsaved' : 'data-fleet-unsynced';
     var rs = document.querySelectorAll('[data-fleet-retry]');
-    for (var j = 0; j < rs.length; j++) if (rs[j].hidden !== off) rs[j].hidden = off;
+    for (var j = 0; j < rs.length; j++) {
+      if (rs[j].hidden !== off) rs[j].hidden = off;
+      var t = label && rs[j].getAttribute(label);
+      if (t && rs[j].textContent !== t) rs[j].textContent = t;
+    }
   }
   function paintSoon() {
     if (paintQueued) return;
@@ -327,22 +357,35 @@
   // Prüft die Sitzung fürs Netz. Liegt sie noch im Speicher, ist aber gerade
   // nicht nutzbar (offline, abgelaufen, Refresh-Sperre eines anderen Tabs),
   // bleibt der Spiegel mit seinen offenen Klicks stehen: Wegwerfen hiesse, sie
-  // zu verlieren. Nur eine wirklich fehlende Sitzung ist Abmelden.
+  // zu verlieren. Nur eine wirklich fehlende Sitzung ist Abmelden. Und es ist
+  // kein Fehler des Besuchers: ein Refresh landet ohne Ereignis, wenn er im
+  // selben Tab lief, deshalb fragt der Abgleich später selbst wieder.
   function resolveMode() {
     syncMode();
     if (!uid) return Promise.resolve(null);
     var me = uid;
-    return Promise.resolve(VB.session()).then(function (sess) {
+    return deadline(function () { return VB.session(); }).then(function (sess) {
       var id = sess && sess.user && sess.user.id;
-      if (id === me) return sess;
+      if (id === me) { calm(); return sess; }
       syncMode();
       if (uid && uid !== me) request(true);
-      else if (uid === me) setSync('error', 'auth');
+      else if (uid === me) later();
       return null;
     }, function () {
       setSync('error', 'offline');
       return null;
     });
+  }
+  function later() {
+    setSync('syncing', null);
+    clearTimeout(backoffTimer);
+    var wait = Math.min(BACKOFF_MAX_MS, BACKOFF_MS * Math.pow(2, backoff++));
+    backoffTimer = setTimeout(function () { backoffTimer = null; request(true); }, wait);
+  }
+  function calm() {
+    clearTimeout(backoffTimer);
+    backoffTimer = null;
+    backoff = 0;
   }
   function finish(run) {
     if (uid !== run.me) return;
@@ -370,14 +413,24 @@
     return false;
   }
 
-  function call(sess, method, path, body) {
+  function deadline(start) {
     return new Promise(function (resolve, reject) {
       var timer = setTimeout(function () { reject(new Error('timeout')); }, TIMEOUT_MS);
-      var p;
-      try { p = VB.rest(sess, method, path, body); } catch (e) { clearTimeout(timer); reject(e); return; }
-      Promise.resolve(p).then(
-        function (r) { clearTimeout(timer); resolve(r); },
+      Promise.resolve().then(start).then(
+        function (v) { clearTimeout(timer); resolve(v); },
         function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+  // Der Körper gehört zum Schritt: erst mit ihm ist die Antwort da. Gelesen
+  // wird er nur, wo er zählt (GET, 409); body bleibt sonst undefined, ebenso,
+  // wenn er kein JSON ist.
+  function call(sess, method, path, body) {
+    return deadline(function () {
+      return Promise.resolve(VB.rest(sess, method, path, body)).then(function (r) {
+        var res = { ok: r.ok, status: r.status, body: undefined };
+        if (!(method === 'GET' && r.ok) && r.status !== 409) return res;
+        return Promise.resolve(r.json()).then(function (b) { res.body = b; return res; }, function () { return res; });
+      });
     });
   }
   function send(run, id, op, label) {
@@ -386,12 +439,8 @@
       : call(run.sess, 'DELETE', 'favorites?kind=eq.ship&slug=eq.' + encodeURIComponent(id) +
           '&user_id=eq.' + encodeURIComponent(run.me));
     return req.then(function (r) {
-      if (op === 'add' && r.status === 409) {
-        // 409 meldet PostgREST auch für Fremdschlüssel; erledigt ist nur 23505 (die Zeile gibt es schon).
-        return Promise.resolve(r.json()).then(function (b) {
-          return b && b.code === '23505' ? 'kept' : 'write';
-        }, function () { return 'write'; });
-      }
+      // 409 meldet PostgREST auch für Fremdschlüssel; erledigt ist nur 23505 (die Zeile gibt es schon).
+      if (op === 'add' && r.status === 409) return r.body && r.body.code === '23505' ? 'kept' : 'write';
       if (r.ok) return op === 'add' ? 'created' : 'kept';
       return r.status === 401 || r.status === 403 ? 'auth' : 'write';
     }, function () { return 'offline'; });
@@ -431,11 +480,10 @@
         encodeURIComponent(run.me) + '&order=created_at.asc')
       .then(function (r) {
         if (!r.ok) return r.status === 401 || r.status === 403 ? 'auth' : 'read';
-        return Promise.resolve(r.json()).then(function (rows) {
-          return cleanShips((Array.isArray(rows) ? rows : []).map(function (row) {
-            return { id: row && row.slug, label: row && row.label };
-          }));
-        }, function () { return 'read'; });
+        if (r.body === undefined) return 'read';
+        return cleanShips((Array.isArray(r.body) ? r.body : []).map(function (row) {
+          return { id: row && row.slug, label: row && row.label };
+        }));
       }, function () { return 'offline'; })
       .then(function (server) {
         if (uid !== run.me) return;
@@ -485,7 +533,12 @@
         return true;
       });
     }).then(function () {
-      if (uid === run.me && queue.length && !readGuest().length && created && !merged) merged = created;
+      // Der Hinweis zählt erst, wenn die ganze Gast-Kopie im Konto steht.
+      if (uid !== run.me || !queue.length || readGuest().length || !created) return;
+      var m = readMirror(run.me);
+      m.merged += created;
+      created = 0;
+      writeMirror(run.me, m);
     });
   }
   function handOver(me, g, rowCreated) {
@@ -515,6 +568,20 @@
     var stale = Date.now() - lastPull > STALE_MS;
     if (stale || hasPending(uid) || readGuest().length) request(stale);
   }
+  // Ein Datenblatt baut sein Hologramm in Tausenden DOM-Änderungen auf. Neu
+  // gezeichnet wird nur, wenn ein Flotten-Knopf dazukommt oder sein Schiff wechselt.
+  var FLEET_NODES = '[data-fleet-ship],[data-fleet-retry]';
+  function touchesFleet(records) {
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].type === 'attributes') return true;
+      var added = records[i].addedNodes;
+      for (var j = 0; j < added.length; j++) {
+        var n = added[j];
+        if (n.nodeType === 1 && (n.matches(FLEET_NODES) || n.querySelector(FLEET_NODES))) return true;
+      }
+    }
+    return false;
+  }
   function start() {
     if (started) return;
     started = true;
@@ -523,7 +590,7 @@
     refresh();
     document.addEventListener('click', onClick);
     if (typeof MutationObserver === 'function' && document.documentElement) {
-      new MutationObserver(paintSoon).observe(document.documentElement, {
+      new MutationObserver(function (records) { if (touchesFleet(records)) paintSoon(); }).observe(document.documentElement, {
         subtree: true, childList: true, attributes: true, attributeFilter: ['data-fleet-ship'],
       });
     }
@@ -551,6 +618,14 @@
       };
     },
     retry: function () { return request(true); },
+    dismissMerged: function () {
+      if (!uid) return;
+      var m = readMirror(uid);
+      if (!m.merged) return;
+      m.merged = 0;
+      writeMirror(uid, m);
+      notify();
+    },
   };
   try { window.dispatchEvent(new Event('vb-fleet-ready')); } catch (e) { /* noop */ }
 

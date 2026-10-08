@@ -682,7 +682,6 @@ export function boot(doc) {
   const mergedNote = $('hgx-merged');
   let fleet = { ids: [], mode: 'guest', sync: 'local', error: null, merged: 0 };
   let fleetIds = new Set();
-  let mergedSeen = 0;
 
   // Der Knopf folgt dem gewaehlten Schiff; fleet.js liest Schiff und Name erst
   // beim Klick. aria-pressed sofort, nicht erst nach dem naechsten Bild.
@@ -714,9 +713,10 @@ export function boot(doc) {
     // Wo die Flotte liegt, sagt die Zeile erst, wenn dort etwas liegt oder ein Konto abgleicht.
     fleetSync.hidden = fleet.mode !== 'account' && sum.n === 0;
     for (const el of fleetSync.querySelectorAll('[data-when]')) el.hidden = el.dataset.when !== fleet.sync;
-    // Der Hinweis zur Uebernahme steht, bis er weggeklickt ist; ein neuer Seitenaufruf kennt ihn nicht mehr.
+    // Der Hinweis zur Uebernahme steht, bis er weggeklickt ist, auch nach einer
+    // Anmeldung auf einem Datenblatt: fleet.js haelt die Zahl im Spiegel des Kontos.
     const wasHidden = mergedNote.hidden;
-    mergedNote.hidden = !(fleet.merged > 0 && fleet.merged !== mergedSeen);
+    mergedNote.hidden = !(fleet.merged > 0);
     if (!mergedNote.hidden) {
       const text = fillMessage(msg('fleet-merged'), { n: fleet.merged }, loc);
       $('hgx-merged-txt').textContent = text;
@@ -741,8 +741,8 @@ export function boot(doc) {
   fleetChip.addEventListener('click', () => setState({ fleetOnly: !state.fleetOnly }));
   fleetSum.addEventListener('click', () => setState({ fleetOnly: !state.fleetOnly }));
   $('hgx-merged-x').addEventListener('click', () => {
-    mergedSeen = fleet.merged;
     mergedNote.hidden = true;
+    window.VBFleet?.dismissMerged();
   });
 
   // Der Anmelde-Link nimmt den Zustand der Seite mit; loginHref() liest die
