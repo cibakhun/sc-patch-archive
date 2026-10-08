@@ -103,12 +103,15 @@ for (const k of staleKlinke) fail(`[2] KLINKE_EINTRAEGE["${k}"]: die Seite laedt
 async function measure(file, list) {
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
   const doc = await io.read(file);
-  // Dieselben Geometrien wie dropHallParts: Ein Mesh, das mehrere Knoten
-  // stellen, teilt im Viewer seine Geometrie (GLTFLoader klont den Knoten,
-  // nicht die Geometrie) und bleibt dort unberuehrt, ebenso Primitive ohne
-  // Index. Geometriegruppen legt GLTFLoader nicht an.
-  const refs = new Map();
-  for (const node of doc.getRoot().listNodes()) if (node.getMesh()) refs.set(node.getMesh(), (refs.get(node.getMesh()) || 0) + 1);
+  // Dieselben Geometrien wie dropHallParts: Eine Geometrie, die mehrere
+  // Meshes tragen, bleibt im Viewer unberuehrt, ebenso Primitive ohne Index.
+  // GLTFLoader teilt sie, wenn mehrere Knoten dasselbe Mesh stellen (er
+  // klont den Knoten, nicht die Geometrie) und wenn Primitive dieselben
+  // Accessoren nennen; gezaehlt wird darum je Knoten das Paar aus Index und
+  // POSITION. Geometriegruppen legt GLTFLoader nicht an.
+  const acc = new Map(), refs = new Map();
+  const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
+  for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
   const tris = [];
   let skipped = 0;
   for (const node of doc.getRoot().listNodes()) {
@@ -118,7 +121,7 @@ async function measure(file, list) {
     for (const p of mesh.listPrimitives()) {
       const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
       if (!P) continue;
-      if (!I || refs.get(mesh) > 1) { skipped++; continue; }
+      if (!I || refs.get(geo(p)) > 1) { skipped++; continue; }
       const pos = new Float64Array(P.length);
       for (let i = 0; i < P.length; i += 3) {
         const x = P[i], y = P[i + 1], z = P[i + 2];

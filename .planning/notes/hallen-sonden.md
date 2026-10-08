@@ -144,7 +144,13 @@ Bitte nur melden, nichts ändern oder pushen:
 2. Aus den `.mtl` unter `.cache/hangar-src/hall-raw/` für dieselben
    Materialien je eine Zeile: `Shader`, `StringGenMask`, jede
    `<Texture Map=… File=…>` mit ihrem `TexMod` (TileU, TileV, TexGenType)
-   und die `PublicParams`.
+   und die `PublicParams`, dazu die `MatLayers` (je `Layer`: `Path`,
+   `TintColor`, `UVTiling`) mit den Reliefkarten der Schicht-`.mtl`, und je
+   Reliefkarte, ob sie im Spiel flach ist (wie im Build: jeder BC5-Block
+   0/0/1). Hintergrund (08.10.): Die größte Wandfläche `plastic_white01_06`
+   und `metal_white_02/03` tragen im GLB gar keine Reliefkarte, darum wirkt
+   die Wand glatt („die wand fühlt sich immer noch nicht echt an“). Die
+   Cloud will wissen, ob das Spiel dort Relief hat und aus welcher Karte.
 3. Die Entity-Typen im socpak der Halle mit Anzahl (etwa Decal, Light,
    EnvironmentProbe): Gibt es Abziehbilder (Schmutz, Schlieren, Schilder) als
    eigene Objekte, die der Export nicht mitnimmt?
