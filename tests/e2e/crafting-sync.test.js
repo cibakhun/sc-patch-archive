@@ -659,6 +659,62 @@ test('ein Abgleich nimmt einem offenen Klick nicht die Kennung: ändern danach e
   assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true }, plan: {}, pending: [] });
 });
 
+// Ein zweiter Tab schreibt den Blueprint, während die Antwort des ersten
+// aussteht, und schließt sich, bevor seine eigene Antwort ankommt. Nach der
+// Antwort des ersten bleibt der Blueprint offen. Plant dann niemand den
+// nächsten Zug, liegt er bis zur nächsten Rückkehr herum und überschreibt
+// dann, was ein anderes Gerät inzwischen geändert hat.
+test('bleibt nach einer Antwort ein Blueprint offen, den ein inzwischen geschlossener Tab schrieb, geht er gleich wieder hinaus: eine spätere Änderung auf einem anderen Gerät bleibt stehen', async () => {
+  const cases = [
+    {
+      at: 'zweiter Tab stellt zurück', hold: 'POST',
+      write: (tab) => { tab.clickOwn('karna-rifle'); tab.clickOwn('karna-rifle'); },
+      device: [], mirror: { owned: {}, plan: {}, pending: [] },
+    },
+    {
+      at: 'zweiter Tab ändert', hold: 'DELETE',
+      write: (tab) => tab.clickOwn('karna-rifle'),
+      device: [KARNA_1], mirror: { owned: { 'karna-rifle': true }, plan: {}, pending: [] },
+    },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const one = b.open();
+    const two = b.open();
+    await b.settle();
+    b.server.hold('POST', 'before');
+    one.clickOwn('karna-rifle');
+    await b.settle();
+    b.server.hold(c.hold, 'before');
+    c.write(two);
+    two.fireWindow('pagehide');
+    two.close();
+    await b.settle();
+    b.server.release();
+    await b.settle();
+
+    b.server.rows = c.device.map((r) => ({ ...r }));
+    await staleReturn(b, one);
+    assert.deepEqual(b.server.rows, c.device, c.at);
+    assert.deepEqual(mirror(b), c.mirror, c.at);
+  }
+});
+
+test('steht in der Ablage ein rev, das kein Objekt ist (ein anderes Format), scheitert ein Klick nicht daran', async () => {
+  const b = makeBrowser({
+    session: 'user-1',
+    seed: { [MIRROR]: JSON.stringify({ owned: {}, plan: {}, pending: [], rev: 'x' }) },
+  });
+  b.server.hold('GET');
+  const tab = b.open();
+  await b.drain();
+  tab.clickOwn('karna-rifle');
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(b.server.rows, [KARNA_1]);
+  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true }, plan: {}, pending: [] });
+});
+
 test('Tab-Rückkehr und Verlassen der Seite schicken eine offene Änderung sofort, ohne offene fragen sie nicht nach der Sitzung', async () => {
   const cases = [
     { at: 'Tab-Rückkehr', act: (tab) => { tab.hide(); tab.show(); } },
