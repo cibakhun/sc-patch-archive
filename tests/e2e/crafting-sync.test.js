@@ -365,6 +365,91 @@ test('ändert ein Klick einen Blueprint, dessen vorige Änderung noch unterwegs 
   }
 });
 
+// Der zweite Zug geht erst hinaus, wenn der erste beantwortet ist. Sonst kann
+// er vor ihm beim Server ankommen: der Server behält den ersten Klick, und die
+// Bestätigung des zweiten nimmt den Blueprint trotzdem aus `pending`.
+const SECOND_CLICK = [
+  { at: 'Stern', click: (tab) => tab.clickOwn('karna-rifle'), rows: [], mirror: { owned: {}, plan: {}, pending: [] } },
+  {
+    at: 'Planmenge', click: (tab) => tab.clickAdd('karna-rifle'),
+    rows: [{ user_id: 'user-1', slug: 'karna-rifle', owned: false, plan_qty: 2 }],
+    mirror: { owned: {}, plan: { 'karna-rifle': 2 }, pending: [] },
+  },
+];
+async function clickTwiceWhileFirstHangs(b, c, first, second) {
+  await b.settle();
+  b.server.hold('POST', 'after');
+  c.click(first);
+  await b.settle();
+  c.click(second);
+  await b.settle();
+  b.server.release();
+  await b.settle();
+}
+
+test('ein zweiter Klick auf einen Blueprint, dessen erster Zug noch nicht beim Server ist, kommt nach ihm an, und der nächste Abgleich holt den ersten nicht zurück', async () => {
+  for (const c of SECOND_CLICK) {
+    const b = makeBrowser({ session: 'user-1' });
+    const tab = b.open();
+    await clickTwiceWhileFirstHangs(b, c, tab, tab);
+    assert.deepEqual(b.server.rows, c.rows, c.at);
+    assert.deepEqual(mirror(b), c.mirror, c.at);
+
+    b.advance(61000);
+    tab.hide();
+    tab.show();
+    await b.settle();
+    assert.deepEqual(mirror(b), c.mirror, c.at);
+  }
+});
+
+test('ein Abgleich, der beginnt, während ein Zug unterwegs ist, liest erst nach dessen Antwort: der Klick verschwindet nicht aus der Anzeige', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.server.hold('POST', 'after');
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  b.server.hold('GET', 'before');
+  b.landRefresh();
+  await b.settle();
+  b.server.releaseOne();
+  await b.settle();
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(b.server.rows, [KARNA_1]);
+  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true }, plan: {}, pending: [] });
+  assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'true');
+});
+
+test('„Erneut versuchen" schickt die offene Änderung und holt danach den Stand: sie kommt an, auch wenn das Lesen scheitert, und was ein anderes Gerät geändert hat, erscheint', async () => {
+  const P4_1 = { user_id: 'user-1', slug: 'p4-ar-rifle', owned: true, plan_qty: 0 };
+  const cases = [
+    { at: 'Lesen scheitert', before: (b) => b.server.hold('GET'), answer: 503, rows: [KARNA_1], state: 'error', p4: 'false' },
+    { at: 'anderes Gerät', before: (b) => b.server.rows.push({ ...P4_1 }), rows: [P4_1, KARNA_1], state: 'synced', p4: 'true' },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const tab = b.open();
+    await b.settle();
+    b.server.hold('POST');
+    tab.clickOwn('karna-rifle');
+    await b.settle();
+    b.server.release(503);
+    await b.settle();
+    assert.equal(tab.sync().retry, true, c.at);
+
+    c.before(b);
+    tab.clickRetry();
+    await b.settle();
+    b.server.release(c.answer);
+    await b.settle();
+    assert.deepEqual(b.server.rows, c.rows, c.at);
+    assert.equal(tab.sync().state, c.state, c.at);
+    assert.equal(tab.ownButton('p4-ar-rifle').getAttribute('aria-pressed'), c.p4, c.at);
+  }
+});
+
 test('Tab-Rückkehr und Verlassen der Seite schicken eine offene Änderung sofort, ohne offene fragen sie nicht nach der Sitzung', async () => {
   const cases = [
     { at: 'Tab-Rückkehr', act: (tab) => { tab.hide(); tab.show(); } },

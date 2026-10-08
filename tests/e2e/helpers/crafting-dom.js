@@ -19,10 +19,12 @@
 // bis releaseSession() sie beantwortet (ein hängender Refresh).
 //
 // Mehrere Tabs teilen localStorage, Sitzung und Server; ein Schreiben meldet
-// `storage` an die jeweils ANDEREN Tabs, wie im Browser. server.hold(method)
-// hält die nächste Anfrage dieser Methode an, bis server.release() sie
-// beantwortet: wie sonst auch, mit einem Status ohne Wirkung oder wie fetch
-// ohne Netz ('offline').
+// `storage` an die jeweils ANDEREN Tabs, wie im Browser.
+// server.hold(method, commit) hält die nächste Anfrage dieser Methode an, bis
+// server.release() sie beantwortet: wie sonst auch, mit einem Status oder wie
+// fetch ohne Netz ('offline'). commit 'after' (Vorgabe): die Anfrage kommt
+// erst bei release() beim Server an, ein Status bleibt ohne Wirkung; 'before':
+// der Server liest oder schreibt sofort, nur die Antwort kommt spät.
 //
 // Zeit ist eine Attrappe (Date.now, setTimeout, requestAnimationFrame):
 // settle() spielt die Zeitgeber bis zum Horizont ab, Vorgabe 5 s.
@@ -203,9 +205,11 @@ function makeServer(rows) {
     requests: [],
     holds: [],
     held: [],
-    hold: (method) => server.holds.push(method),
-    /** answer: Status ohne Wirkung oder 'offline'. Ein geschlossener Tab erfährt nichts mehr. */
+    hold: (method, commit = 'after') => server.holds.push({ method, commit }),
+    /** answer: Status oder 'offline' (siehe hold). Ein geschlossener Tab erfährt nichts mehr. */
     release: (answer) => server.held.splice(0).forEach((go) => go(answer)),
+    /** Nur die älteste angehaltene Anfrage beantworten. */
+    releaseOne: (answer) => { const go = server.held.shift(); if (go) go(answer); },
     apply(sess, method, reqPath, body, prefer) {
       const user = sess && sess.user && sess.user.id;
       if (!user) return respond(401, { message: 'JWT expired' });
@@ -244,13 +248,13 @@ function makeServer(rows) {
       server.requests.push({ method, path: reqPath, body: clone(body ?? null) });
       const sent = clone(body);
       const answer = () => server.apply(sess, method, reqPath, sent, prefer);
-      const h = server.holds.indexOf(method);
+      const h = server.holds.findIndex((x) => x.method === method);
       if (h === -1) return Promise.resolve(answer());
-      server.holds.splice(h, 1);
+      const early = server.holds.splice(h, 1)[0].commit === 'before' ? answer() : null;
       return new Promise((resolve, reject) => server.held.push((late) => {
         if (tab.closed) return;
         if (late === 'offline') reject(new TypeError('Failed to fetch'));
-        else resolve(late ? respond(late, null) : answer());
+        else resolve(late ? respond(late, null) : early || answer());
       }));
     },
   };
@@ -459,6 +463,8 @@ export function makeBrowser(opts = {}) {
         clickAdd: (slug) => press(tab.addButton(slug)),
         /** „Planer leeren". */
         clickClear: () => press(body.querySelector('#cdb-plan-clear')),
+        /** „Erneut versuchen" der Sync-Anzeige. */
+        clickRetry: () => press(sync.querySelector('.cdb-sync__retry')),
         /** Was die Sync-Anzeige zeigt. */
         sync: () => ({
           state: sync.getAttribute('data-state'),
