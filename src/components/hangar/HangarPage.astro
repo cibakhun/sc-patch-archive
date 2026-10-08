@@ -1,10 +1,13 @@
 ---
-// Die Oberflaeche um die Szene, EIN Koerper fuer DE und EN (D-12): Titel,
-// Kennwerte und Ausstattung in Tabs, Werkzeuge, Dock und der Controller
+// Die Oberflaeche um die Szene, EIN Koerper fuer DE und EN (D-12): Titel mit
+// Aktionen (Flotte, Vergleichen, Link), Kennwerte und Ausstattung in Tabs,
+// die Leiste am Buehnenfuss (Werkzeuge, Flottenzeile, Korb des Vergleichs),
+// der Vergleichsdialog, das Dock mit Werkzeug-Hilfe und der Controller
 // (assets/hangar-overview.js). Die Szene ist HangarApp.astro (Sache der
 // Szenen-Sitzung); sie stellt in ihrer Buehne einen <slot /> bereit, darin
-// stehen Titel und Werkzeuge im selben Kasten wie #hg-canvas. Modell-URLs,
-// Viewer und Szenen-Optionen liest der Controller aus #hg-stage
+// stehen Titel und Marker im selben Kasten wie #hg-canvas. Die Leiste steht
+// dahinter, damit sie unter 760 px zwischen Buehne und Tafel fliessen kann.
+// Modell-URLs, Viewer und Szenen-Optionen liest der Controller aus #hg-stage
 // (src/lib/hangar/stage.ts), nie aus dieser Datei.
 //
 // Ohne Abruf bekommt der Besucher das Dock mit allen 227 Schiffen und die

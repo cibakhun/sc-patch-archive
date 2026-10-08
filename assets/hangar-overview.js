@@ -6,7 +6,9 @@
 //
 // Er uebersetzt nichts: jedes Wort kommt als gebautes Markup oder als Vorlage
 // aus #hgx-msg. Zahlen formatiert er nur dort, wo sie von der Auswahl des
-// Besuchers abhaengen: Trefferzahl des Docks und Flottenzeile (fillMessage).
+// Besuchers abhaengen: Trefferzahl des Docks, Flottenzeile (fillMessage),
+// Vergleichszellen und Werte der sortierten Karten (compareCell, figureText;
+// Einheit und Stellen stehen gebaut an den Zeilen der Vergleichstabelle).
 // Die Flotte gehoert assets/fleet.js (window.VBFleet); hier wird sie gelesen
 // und gezeichnet.
 //
