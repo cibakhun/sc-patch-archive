@@ -13,8 +13,10 @@ const sessionEvents = (tab) => tab.events.filter((e) => e === 'vb-account-sessio
 const calls = (tab, method, part) => tab.requests.filter((r) => r.method === method && r.url.includes(part)).length;
 const heartbeats = (tab) => calls(tab, 'PATCH', '/rest/v1/profiles?');
 const nameAndRoleFetches = (tab) => [calls(tab, 'GET', '/rest/v1/profiles?'), calls(tab, 'GET', '/rest/v1/user_roles?')];
-const SIGNED_OUT = { href: '/account/login.html', text: 'Sign in', authed: false };
-const SIGNED_IN = { href: '/account.html', text: 'Nova', authed: true };
+const SIGNED_OUT = { href: '/account/login.html', text: 'Sign in', authed: false, title: '' };
+const SIGNED_IN = { href: '/account.html', text: 'Nova', authed: true, title: 'Nova' };
+const VEGA = { href: '/account.html', text: 'Vega', authed: true, title: 'Vega' };
+const NO_NAME = { href: '/account.html', text: 'Account', authed: true, title: '' };
 
 test('zwei Aufrufe während eines Refreshs bekommen beide die neue Sitzung, ein Refresh genügt', async () => {
   const b = makeAccountBrowser({ expiresIn: -10 });
@@ -169,8 +171,138 @@ test('meldet sich in einem anderen Tab ein anderes Konto an, zeigt dieser Tab de
 
   b.signIn(9, 'user-2');
   await b.drain();
-  assert.deepEqual(tab.nav(), { href: '/account.html', text: 'Vega', authed: true });
+  assert.deepEqual(tab.nav(), VEGA);
   assert.equal(tab.admin(), false, 'die Rolle des neuen Kontos gilt');
+});
+
+test('kommen Name und Rolle erst nach dem Zeichnen, zeigt die Nav sie dann', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.nav(), NO_NAME);
+  assert.equal(tab.admin(), false);
+
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true);
+});
+
+test('schreibt ein anderer Tab eine neue Sitzung desselben Kontos, während Name und Rolle unterwegs sind, zeigt die Nav sie trotzdem', async () => {
+  for (const order of ['alte Antworten zuerst', 'neue Antworten zuerst']) {
+    const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+    const tab = b.open();
+    await b.drain();
+    b.signIn(2);
+    await b.drain();
+    const [old, fresh] = [b.reads.slice(0, 2), b.reads.slice(2)];
+    assert.equal(fresh.length, 2, `${order}: die neue Sitzung fragt selbst nach Name und Rolle`);
+    for (const r of order === 'alte Antworten zuerst' ? [...old, ...fresh] : [...fresh, ...old]) r.answer();
+    await b.drain();
+    assert.deepEqual(tab.nav(), SIGNED_IN, order);
+    assert.equal(tab.admin(), true, order);
+  }
+});
+
+test('lehnt GoTrue den Refresh ab, während Name und Rolle noch unterwegs sind, bleibt die Nav abgemeldet', async () => {
+  const b = makeAccountBrowser({ expiresIn: 30, holdReads: true });
+  const tab = b.open();
+  await b.advance(15000);
+  assert.deepEqual(b.reads.map((r) => r.kind), ['name', 'role'], 'nach der Frist fragt der Tab mit dem alten Token nach Name und Rolle');
+  b.refreshes[0].answer(401, { error: 'invalid_grant' });
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_OUT);
+
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_OUT, 'der späte Name zeichnet nicht wieder angemeldet');
+  assert.equal(tab.admin(), false, 'die späte Rolle macht nicht wieder zum Admin');
+});
+
+test('meldet sich ein anderer Tab ab, während Name und Rolle noch unterwegs sind, bleibt die Nav abgemeldet', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signOut();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_OUT);
+
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_OUT, 'der späte Name zeichnet nicht wieder angemeldet');
+  assert.equal(tab.admin(), false, 'die späte Rolle macht nicht wieder zum Admin');
+});
+
+test('meldet sich in einem anderen Tab ein anderes Konto an, überschreiben späte Antworten des alten Kontos Namen und Rolle nicht', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signIn(9, 'user-2');
+  await b.drain();
+  const of = (uid) => b.reads.filter((r) => r.uid === uid);
+  for (const r of of('user-2')) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), VEGA);
+
+  for (const r of of('user-1')) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), VEGA, 'Novas später Name bleibt draußen');
+  assert.equal(tab.admin(), false, 'Novas späte Admin-Rolle bleibt draußen');
+});
+
+test('meldet sich ein anderer Tab ab, nennt auch der Tooltip der Nav keinen Namen mehr', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+
+  b.signOut();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_OUT);
+});
+
+test('meldet sich ein anderes Konto an und scheitert dessen Name, nennt der Tooltip nicht den alten Namen', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+
+  b.signIn(9, 'user-2');
+  await b.drain();
+  b.reads.find((r) => r.uid === 'user-2' && r.kind === 'name').answer(503);
+  await b.drain();
+  assert.deepEqual(tab.nav(), NO_NAME);
+});
+
+test('eine beantwortete Rollenabfrage gilt für den nächsten Seitenaufruf im selben Tab', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  for (const r of b.reads) r.answer();
+  await b.drain();
+
+  const next = tab.reload();
+  await b.drain();
+  assert.equal(next.admin(), true, 'ohne neue Antwort vom Server: die Rolle kommt aus dem Tab');
+});
+
+test('scheitert die Rollenabfrage (401, 503), fragt der nächste Seitenaufruf im selben Tab neu', async () => {
+  for (const status of [401, 503]) {
+    const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+    const tab = b.open();
+    await b.drain();
+    for (const r of b.reads) r.answer(status);
+    await b.drain();
+    assert.equal(tab.admin(), false, `${status}`);
+
+    const next = tab.reload();
+    await b.drain();
+    for (const r of b.reads.slice(2)) r.answer();
+    await b.drain();
+    assert.equal(next.admin(), true, `${status}: der Admin ist wieder Admin`);
+  }
 });
 
 test('hängt der Refresh, fragt der nächste Versuch nach der Frist mit demselben Token, und die späte erste Antwort meldet nicht ab', async () => {

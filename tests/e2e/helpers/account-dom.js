@@ -5,9 +5,11 @@
 // jeweils ANDEREN Tabs, wie im Browser) und den Auth-Server. Jede
 // Refresh-Anfrage bleibt angehalten, bis der Test sie beantwortet: mit einem
 // Status, ohne Netz oder gar nicht. user-1 heißt Nova und ist admin, user-2
-// heißt Vega und ist user; der Heartbeat (PATCH) bekommt 204. Jeder Tab trägt
-// das Konto-Element aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument
-// (admin()) und führt Buch über seine Anfragen (requests).
+// heißt Vega und ist user; der Heartbeat (PATCH) bekommt 204. Name und Rolle
+// antworten sofort, mit holdReads erst auf answer(). Jeder Tab trägt das
+// Konto-Element aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument
+// (admin()), führt Buch über seine Anfragen (requests) und lädt mit reload()
+// eine neue Seite im selben Tab: gleicher sessionStorage, die alte Seite ist weg.
 //
 // Zeit ist eine Attrappe (Date.now, setTimeout, setInterval): ein Zeitgeber
 // läuft erst, wenn der Test die Uhr mit advance() vorstellt.
@@ -31,15 +33,19 @@ function respond(status, body) {
 }
 
 /**
- * makeAccountBrowser({ expiresIn }) — ein Browser, in dem user-1 angemeldet
- * ist; sein Token läuft in `expiresIn` Sekunden ab (negativ: schon abgelaufen).
+ * makeAccountBrowser({ expiresIn, holdReads }) — ein Browser, in dem user-1
+ * angemeldet ist; sein Token läuft in `expiresIn` Sekunden ab (negativ: schon
+ * abgelaufen).
  * refreshes: je Refresh-Anfrage { answer(status, body), offline() }.
+ * reads (nur mit holdReads): je Name- oder Rollenabfrage
+ * { uid, kind: 'name' | 'role', answer(status = 200) }.
  */
-export function makeAccountBrowser({ expiresIn = -10 } = {}) {
+export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 12, 0, 0), timers: [], seq: 0 };
   const data = new Map();
   const tabs = [];
   const refreshes = [];
+  const reads = [];
   data.set(STORE, JSON.stringify({
     access_token: 'token-1', refresh_token: 'refresh-1', token_type: 'bearer',
     expires_at: Math.floor(clock.now / 1000) + expiresIn, user: { id: 'user-1' },
@@ -50,12 +56,20 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
     static now() { return clock.now; }
   }
 
+  function read(uid, kind, rows) {
+    if (!holdReads) return Promise.resolve(respond(200, rows));
+    return new Promise((resolve) => {
+      reads.push({ uid, kind, answer: (status = 200) => resolve(respond(status, status === 200 ? rows : { message: `HTTP ${status}` })) });
+    });
+  }
+
   function authServer(url, init) {
     if (!url.includes('/auth/v1/token')) {
       if (init.method === 'PATCH') return Promise.resolve(respond(204));
-      const who = PEOPLE[(url.match(/id=eq\.([^&]+)/) || [])[1]];
-      if (url.includes('/rest/v1/profiles?')) return Promise.resolve(respond(200, who ? [{ display_name: who.name, handle: null }] : []));
-      if (url.includes('/rest/v1/user_roles?')) return Promise.resolve(respond(200, who ? [{ role: who.role }] : []));
+      const uid = (url.match(/id=eq\.([^&]+)/) || [])[1];
+      const who = PEOPLE[uid];
+      if (url.includes('/rest/v1/profiles?')) return read(uid, 'name', who ? [{ display_name: who.name, handle: null }] : []);
+      if (url.includes('/rest/v1/user_roles?')) return read(uid, 'role', who ? [{ role: who.role }] : []);
       return Promise.resolve(respond(200, []));
     }
     const entry = { body: JSON.parse(init.body) };
@@ -78,6 +92,7 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
   const browser = {
     clock,
     refreshes,
+    reads,
     storage: { get: (k) => (data.has(k) ? data.get(k) : null) },
     /** Antwort von GoTrue auf einen Refresh: neues Token, ohne expires_at. */
     fresh: (n, uid = 'user-1') => ({ access_token: `token-${n}`, refresh_token: `refresh-${n}`, token_type: 'bearer', expires_in: 3600, user: { id: uid } }),
@@ -100,11 +115,10 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
       clock.now = until;
       await browser.drain();
     },
-    open() {
+    open(session = new Map()) {
       const tab = { events: [], requests: [] };
       tabs.push(tab);
       const listeners = {};
-      const session = new Map();
       const classes = () => {
         const set = new Set();
         return { set, classList: { toggle: (c, on = !set.has(c)) => { if (on) set.add(c); else set.delete(c); return on; } } };
@@ -124,7 +138,7 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
       const later = (every) => (fn, ms) => {
         const id = ++clock.seq;
         const wait = Math.max(0, Number(ms) || 0);
-        clock.timers.push({ id, at: clock.now + wait, fn, every: every ? Math.max(1, wait) : 0 });
+        clock.timers.push({ id, at: clock.now + wait, fn, every: every ? Math.max(1, wait) : 0, tab });
         return id;
       };
       const cancel = (id) => { clock.timers = clock.timers.filter((t) => t.id !== id); };
@@ -183,8 +197,13 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
       tab.fire = (type, init) => { for (const fn of (listeners[type] || []).slice()) fn({ type, ...init }); };
       vm.runInContext(CODE, vm.createContext(sandbox));
       tab.session = () => sandbox.VBAccount.session();
-      tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed') });
+      tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
       tab.admin = () => root.set.has('is-admin');
+      tab.reload = () => {
+        tabs.splice(tabs.indexOf(tab), 1);
+        clock.timers = clock.timers.filter((t) => t.tab !== tab);
+        return browser.open(session);
+      };
       return tab;
     },
   };
