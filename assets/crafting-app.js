@@ -225,7 +225,8 @@
   function drop(key) { try { localStorage.removeItem(key); } catch (e) {} }
 
   var LS_GUEST = 'craft.state.v2';
-  function lsKey(uid) { return uid ? LS_GUEST + '.' + uid : LS_GUEST; }
+  var LS_MIRROR = LS_GUEST + '.';
+  function lsKey(uid) { return uid ? LS_MIRROR + uid : LS_GUEST; }
   function loadState(uid) {
     var s = load(lsKey(uid), null);
     return { owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [] };
@@ -455,12 +456,23 @@
     }).catch(function () { if (acctUid === me) setSync('error'); });
   }
 
+  // Abgemeldet: kein Konto-Spiegel bleibt in diesem Browser. Die Daten stehen
+  // im Konto — auf einem geteilten Rechner soll nach dem Abmelden niemand mehr
+  // sehen, was der Vorgänger besitzt oder plant, und ein anderes Konto sieht
+  // den Spiegel seines Vorgängers nie. Das gilt auch, wenn beim Abmelden oder
+  // Wechsel kein Planer offen war: dann räumt ihn der nächste Aufruf weg.
+  function dropMirrors(keep) {
+    var doomed = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k.indexOf(LS_MIRROR) === 0 && k !== keep) doomed.push(k);
+    }
+    doomed.forEach(drop);
+  }
+
   function goGuest() {
+    dropMirrors(null);
     if (acctUid === null) { setSync('local'); return; }
-    // Abgemeldet: den Konto-Spiegel aus diesem Browser entfernen. Die Daten
-    // stehen im Konto — auf einem geteilten Rechner soll nach dem Abmelden
-    // niemand mehr sehen, was der Vorgänger besitzt oder plant.
-    drop(lsKey(acctUid));
     acctUid = null;
     var g = loadState(null);
     owned = g.owned; plan = g.plan;
@@ -494,6 +506,7 @@
       var uid = sess ? sess.user && sess.user.id : storedUid();
       if (!uid) { goGuest(); return; }
       if (uid !== acctUid) {
+        dropMirrors(lsKey(uid));
         acctUid = uid;
         mergeOwed = true;
         // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.

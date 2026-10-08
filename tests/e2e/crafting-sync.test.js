@@ -398,4 +398,21 @@ test('„Planer leeren" nimmt jeden Eintrag aus der Ablage und aus dem Konto', a
     assert.deepEqual(b.server.rows, [], at);
   }
 });
+
+test('kein Konto-Spiegel überlebt seine Sitzung, auch wenn beim Abmelden oder Kontowechsel kein Planer offen war', async () => {
+  const seed = { [MIRROR]: JSON.stringify({ owned: { 'karna-rifle': true }, plan: {}, pending: ['karna-rifle'] }) };
+  const cases = [
+    { at: 'abgemeldet, ohne offenen Planer', opts: { seed } },
+    { at: 'anderes Konto, ohne offenen Planer', opts: { seed, session: 'user-2' } },
+    { at: 'anderes Konto, bei offenem Planer', opts: { session: 'user-1' }, act: (b) => b.signIn('user-2') },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser(c.opts);
+    b.open();
+    await b.settle();
+    if (c.act) c.act(b);
+    await b.settle();
+    assert.equal(b.storage.get(MIRROR), null, c.at);
+  }
+});
 
