@@ -207,7 +207,9 @@
   // =========================================================
   //  PERSISTENZ: „im Besitz" + Planer — lokal UND kontogebunden
   // =========================================================
-  // Wahrheit im Speicher: owned = {slug:true}, plan = {slug:qty}.
+  // Im Speicher steht, was die Seite zeigt: owned = {slug:true}, plan =
+  // {slug:qty}. Die Ablage im localStorage teilen sich alle Tabs dieses
+  // Browsers; jeder schreibt dort nur den Blueprint, den er gerade ändert.
   //
   // Nicht angemeldet -> localStorage (Gast-Ablage, wie bisher, nur slug-keyed).
   // Angemeldet       -> Supabase-Tabelle crafting_entries (eine Zeile je
@@ -251,13 +253,34 @@
   var owned = initial.owned;             // {slug:true}
   var plan = initial.plan;               // {slug:qty}
 
-  // `pending` = Slugs, die noch nicht beim Server angekommen sind. Sie MÜSSEN
-  // mit im Spiegel stehen: wer klickt und sofort den Tab schließt (oder gerade
-  // offline ist), fände sonst beim nächsten Laden den Server-Stand vor und die
-  // Änderung wäre still weg. Beim nächsten Besuch werden sie erneut geschickt.
-  function persist() {
-    save(lsKey(acctUid), { owned: owned, plan: plan, pending: acctUid ? Object.keys(dirty) : [] });
+  // Ein Klick ändert einen Blueprint, und nur der wird geschrieben, auf den
+  // Stand, der gerade in der Ablage steht. Schriebe jeder Tab seinen ganzen
+  // Stand, überschriebe er die Klicks des anderen.
+  //
+  // `pending` = Slugs, die noch nicht beim Server angekommen sind. Sie stehen
+  // im Spiegel, bis der Server sie bestätigt, nicht nur, bis ein Zug sie
+  // mitnimmt: wer klickt und den Tab schließt (oder gerade offline ist),
+  // fände sonst beim nächsten Laden den Server-Stand vor und die Änderung wäre
+  // still weg. Jeder Tab schickt alles, was dort offen ist, auch das eines
+  // anderen, der inzwischen geschlossen ist.
+  function writeSlug(s) {
+    var m = loadState(acctUid);
+    if (owned[s]) m.owned[s] = true; else delete m.owned[s];
+    if (plan[s] > 0) m.plan[s] = plan[s]; else delete m.plan[s];
+    if (acctUid && m.pending.indexOf(s) < 0) m.pending.push(s);
+    save(lsKey(acctUid), m);
   }
+  // Was der Server für einen Blueprint bekommt.
+  function rowOf(m, s) { return !!m.owned[s] + ':' + (m.plan[s] || 0); }
+
+  // Ein anderer Tab hat in dieselbe Ablage geschrieben: seinen Stand
+  // übernehmen, sonst zählte dieser beim nächsten Klick auf seinem alten weiter.
+  addEventListener('storage', function (e) {
+    if (e.key !== lsKey(acctUid)) return;
+    var m = loadState(acctUid);
+    owned = m.owned; plan = m.plan;
+    repaintAll();
+  });
 
   // Slug <-> Karte/DB-Index. Alles, was noch mit Indizes hantiert (Modal,
   // Planer-Liste), geht durch diese beiden Funktionen.
@@ -271,7 +294,6 @@
   // nur die Crafting-Logik. Ohne Konto passiert nichts — die App bleibt exakt so
   // benutzbar wie vorher, nur eben lokal.
   var TABLE = 'crafting_entries';
-  var dirty = {};            // slug -> wartet auf Server
   var flushTimer = null;
   var lastPull = 0;
   var syncState = 'local';   // local | syncing | synced | error
@@ -287,10 +309,8 @@
   var backoffTimer = null;
 
   function markDirty(slug) {
-    // Erst vormerken, dann speichern — persist() schreibt die offene Liste mit.
-    if (acctUid && slug) dirty[slug] = true;
-    persist();
-    if (!acctUid || !slug) return;
+    writeSlug(slug);
+    if (!acctUid) return;
     setSync('syncing');
     clearTimeout(flushTimer);
     flushTimer = setTimeout(flush, 700);
@@ -304,26 +324,21 @@
   // unterwegs), zählt wie keine: mit ihr käme dessen Stand in diese Kopie.
   function flush() {
     clearTimeout(flushTimer);
-    var slugs = Object.keys(dirty);
-    if (!acctUid || !VB || !slugs.length) return null;
+    if (!acctUid || !VB || !loadState(acctUid).pending.length) return null;
     var me = acctUid;
-    dirty = {};
     return VB.session().then(function (sess) {
-      // Kam die Antwort erst nach einem Kontowechsel, gehören diese Slugs dem
-      // vorigen Konto: zurückgelegt landeten sie in den Änderungen des neuen.
       if (acctUid !== me) return;
-      if (ownerOf(sess) !== me) {
-        slugs.forEach(function (s) { dirty[s] = true; });
-        persist();
-        noSession();
-        return;
-      }
+      if (ownerOf(sess) !== me) { noSession(); return; }
+      // Erst jetzt gelesen: Klicks aus der Wartezeit gehen gleich mit.
+      var m = loadState(me);
+      var sent = {};
       var up = [], del = [];
-      slugs.forEach(function (s) {
-        var o = !!owned[s], q = plan[s] || 0;
+      m.pending.forEach(function (s) {
+        var o = !!m.owned[s], q = m.plan[s] || 0;
+        sent[s] = rowOf(m, s);
         // Leere Zeile (weder Besitz noch Planmenge) wird gelöscht statt mit
         // Nullen gespeichert — die Tabelle bleibt so klein wie der echte Bestand.
-        if (o || q > 0) up.push({ user_id: acctUid, slug: s, owned: o, plan_qty: q });
+        if (o || q > 0) up.push({ user_id: me, slug: s, owned: o, plan_qty: q });
         else del.push(s);
       });
       var jobs = [];
@@ -332,23 +347,26 @@
           'resolution=merge-duplicates,return=minimal'));
       }
       if (del.length) {
-        jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + acctUid +
+        jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
           '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
       }
       return Promise.all(jobs).then(function (rs) {
         if (acctUid !== me) return;
         var ok = rs.every(function (r) { return r && r.ok; });
         if (!ok) throw new Error('rest');
-        persist();          // offene Liste im Spiegel leeren
+        // Erledigt ist ein Blueprint nur, wenn er noch so dasteht, wie er
+        // hinausging: ein Klick während der Anfrage, auch in einem anderen
+        // Tab, bleibt offen.
+        var now = loadState(me);
+        now.pending = now.pending.filter(function (s) { return sent[s] !== rowOf(now, s); });
+        save(lsKey(me), now);
         setSync('synced');
       });
     }).catch(function () {
       if (acctUid !== me) return;
-      // Fehlgeschlagene Slugs bleiben schmutzig -> nächster Versuch (Klick auf
-      // „Erneut versuchen", nächste Änderung, Tab-Rückkehr oder der nächste
-      // Seitenaufruf über den Spiegel) nimmt sie mit.
-      slugs.forEach(function (s) { dirty[s] = true; });
-      persist();
+      // Was nicht ankam, bleibt im Spiegel offen -> nächster Versuch (Klick
+      // auf „Erneut versuchen", nächste Änderung, Tab-Rückkehr oder der
+      // nächste Seitenaufruf) nimmt es mit.
       setSync('error');
     });
   }
@@ -392,10 +410,14 @@
           // langsamer GET den frischen Klick), DANN die einmalige Übernahme der
           // Gast-Ablage. Andersherum würde der Abgleich die eben übernommenen
           // Einträge wieder wegwerfen — sie stehen ja noch in keiner der beiden
-          // Listen, gegen die er prüft.
-          Object.keys(dirty).forEach(function (s) {
-            if (owned[s]) so[s] = true; else delete so[s];
-            if (plan[s] > 0) sp[s] = plan[s]; else delete sp[s];
+          // Listen, gegen die er prüft. Der Spiegel wird erst jetzt gelesen:
+          // Klicks während des GET, auch aus einem anderen Tab, stehen schon drin.
+          var m = loadState(me);
+          var pending = {};
+          m.pending.forEach(function (s) {
+            pending[s] = true;
+            if (m.owned[s]) so[s] = true; else delete so[s];
+            if (m.plan[s] > 0) sp[s] = m.plan[s]; else delete sp[s];
           });
 
           // Übernahme braucht KEINEN dauerhaften „schon erledigt"-Merker: eine
@@ -412,11 +434,11 @@
             var touched = {};
             Object.keys(guest.owned).forEach(function (s) {
               if (indexOfSlug(s) == null || so[s]) return;
-              so[s] = true; dirty[s] = true; touched[s] = 1;
+              so[s] = true; pending[s] = true; touched[s] = 1;
             });
             Object.keys(guest.plan).forEach(function (s) {
               if (indexOfSlug(s) == null || (sp[s] || 0) >= guest.plan[s]) return;
-              sp[s] = guest.plan[s]; dirty[s] = true; touched[s] = 1;
+              sp[s] = guest.plan[s]; pending[s] = true; touched[s] = 1;
             });
             merged = Object.keys(touched).length;
             // Gast-Ablage nach der Übernahme leeren: ab jetzt lebt der Bestand
@@ -426,9 +448,9 @@
 
           owned = so; plan = sp;
           lastPull = Date.now();
-          persist();
+          save(lsKey(me), { owned: so, plan: sp, pending: Object.keys(pending) });
           repaintAll();
-          if (Object.keys(dirty).length) flush(); else setSync('synced');
+          if (Object.keys(pending).length) flush(); else setSync('synced');
         });
     }).catch(function () { if (acctUid === me) setSync('error'); });
   }
@@ -440,7 +462,6 @@
     // niemand mehr sehen, was der Vorgänger besitzt oder plant.
     drop(lsKey(acctUid));
     acctUid = null;
-    dirty = {};
     var g = loadState(null);
     owned = g.owned; plan = g.plan;
     repaintAll();
@@ -480,8 +501,6 @@
         // stehen im Spiegel und gehen jetzt mit raus.
         var m = loadState(uid);
         owned = m.owned; plan = m.plan;
-        dirty = {};
-        m.pending.forEach(function (s) { dirty[s] = true; });
         repaintAll();
       }
       if (sess) pull(); else later();
@@ -499,11 +518,11 @@
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState !== 'visible' || !acctUid) return;
       var stale = Date.now() - lastPull > 60000;
-      if (Object.keys(dirty).length) { if (stale) flushThenPull(); else flush(); }
+      if (loadState(acctUid).pending.length) { if (stale) flushThenPull(); else flush(); }
       else if (stale) pull();
     });
     // Seite wird verlassen: letzten Stand noch rausschicken (best effort).
-    addEventListener('pagehide', function () { if (Object.keys(dirty).length) flush(); });
+    addEventListener('pagehide', function () { flush(); });
   }
 
   if (window.VBAccount) bootSync();
@@ -1142,7 +1161,6 @@
     // die Slugs also VOR dem Leeren einsammeln.
     var wiped = Object.keys(plan);
     plan = {};
-    persist();
     wiped.forEach(markDirty);
     renderPlanner(); syncCards();
   });

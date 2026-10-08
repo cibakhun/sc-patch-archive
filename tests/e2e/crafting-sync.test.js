@@ -279,4 +279,123 @@ test('gehört die Sitzung schon einem anderen Konto, bevor dessen Ereignis den P
     assert.equal(tab.sync().state, 'synced', c.at);
   }
 });
+
+test('zwei Tabs ändern während eines Sitzungsausfalls je einen Blueprint, der zweite weiss noch nichts vom ersten: wird der erste geschlossen, kommen trotzdem beide im Konto an', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const one = b.open();
+  const two = b.open();
+  await b.settle();
+  b.breakSession();
+  two.lag();
+  one.clickOwn('karna-rifle');
+  await b.settle();
+  two.clickOwn('p4-ar-rifle');
+  await b.settle();
+  assert.deepEqual(mirror(b).pending, ['karna-rifle', 'p4-ar-rifle']);
+  one.close();
+
+  b.healSession();
+  await b.settle({ horizon: 60000 });
+  assert.deepEqual(b.server.rows.map((r) => r.slug), ['karna-rifle', 'p4-ar-rifle']);
+});
+
+test('ein Tab zeigt, was der andere im Planer ändert, und zählt auf diesem Stand weiter, angemeldet wie als Gast', async () => {
+  for (const session of [undefined, 'user-1']) {
+    const at = session ? 'angemeldet' : 'Gast';
+    const b = makeBrowser({ session });
+    const one = b.open();
+    const two = b.open();
+    await b.settle();
+    one.clickAdd('karna-rifle');
+    one.clickAdd('karna-rifle');
+    await b.settle();
+    assert.ok(two.addButton('karna-rifle').classList.contains('in-plan'), at);
+    if (!session) assert.deepEqual(one.sync(), LOCAL, at);
+    two.clickAdd('karna-rifle');
+    await b.settle();
+    assert.deepEqual(JSON.parse(b.storage.get(session ? MIRROR : GUEST)).plan, { 'karna-rifle': 3 }, at);
+    if (session) assert.deepEqual(b.server.rows, [{ user_id: 'user-1', slug: 'karna-rifle', owned: false, plan_qty: 3 }], at);
+  }
+});
+
+test('zwei Klicks, während die Sitzung noch geprüft wird: wird der Tab davor geschlossen, stehen trotzdem beide in der Konto-Kopie und kommen beim nächsten Besuch an', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.holdSession();
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  tab.clickOwn('p4-ar-rifle');
+  await b.settle();
+  assert.deepEqual(mirror(b).pending, ['karna-rifle', 'p4-ar-rifle']);
+  tab.close();
+
+  b.releaseSession();
+  b.open();
+  await b.settle();
+  assert.deepEqual(b.server.rows.map((r) => r.slug), ['karna-rifle', 'p4-ar-rifle']);
+});
+
+test('ändert ein Klick einen Blueprint, dessen vorige Änderung noch unterwegs ist, bleibt er offen, bis auch er angekommen ist', async () => {
+  const cases = [
+    { at: 'Stern', click: (tab) => tab.clickOwn('karna-rifle'), rows: [] },
+    { at: 'Planmenge', click: (tab) => tab.clickAdd('karna-rifle'), rows: [{ user_id: 'user-1', slug: 'karna-rifle', owned: false, plan_qty: 2 }] },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const tab = b.open();
+    await b.settle();
+    b.server.hold('POST');
+    c.click(tab);
+    await b.settle();
+    c.click(tab);
+    b.server.release();
+    await b.drain();
+    assert.deepEqual(mirror(b).pending, ['karna-rifle'], c.at);
+
+    await b.settle();
+    assert.deepEqual(b.server.rows, c.rows, c.at);
+    assert.deepEqual(mirror(b).pending, [], c.at);
+  }
+});
+
+test('Tab-Rückkehr und Verlassen der Seite schicken eine offene Änderung sofort, ohne offene fragen sie nicht nach der Sitzung', async () => {
+  const cases = [
+    { at: 'Tab-Rückkehr', act: (tab) => { tab.hide(); tab.show(); } },
+    { at: 'Seite verlassen', act: (tab) => tab.fireWindow('pagehide') },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const tab = b.open();
+    await b.settle();
+    const calls = b.sessionCalls.length;
+    c.act(tab);
+    await b.drain();
+    assert.equal(b.sessionCalls.length, calls, c.at);
+
+    b.breakSession();
+    tab.clickOwn('karna-rifle');
+    await b.settle({ horizon: 1000 });
+    b.healSession();
+    c.act(tab);
+    await b.drain();
+    assert.deepEqual(b.server.rows, [KARNA_1], c.at);
+  }
+});
+
+test('„Planer leeren" nimmt jeden Eintrag aus der Ablage und aus dem Konto', async () => {
+  for (const session of [undefined, 'user-1']) {
+    const at = session ? 'angemeldet' : 'Gast';
+    const b = makeBrowser({ session });
+    const tab = b.open();
+    await b.settle();
+    tab.clickAdd('karna-rifle');
+    tab.clickAdd('p4-ar-rifle');
+    await b.settle();
+    tab.clickClear();
+    await b.settle();
+    assert.deepEqual(JSON.parse(b.storage.get(session ? MIRROR : GUEST)).plan, {}, at);
+    assert.deepEqual(b.server.rows, [], at);
+  }
+});
 

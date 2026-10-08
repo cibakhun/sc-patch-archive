@@ -219,6 +219,8 @@ function makeServer(rows) {
       if (method === 'POST') {
         if (q.on_conflict !== 'user_id,slug') return respond(400, null);
         if (!body.every(mine)) return respond(403, { code: '42501' });
+        // Postgres: ON CONFLICT DO UPDATE trifft dieselbe Zeile nicht zweimal in einer Anweisung.
+        if (new Set(body.map((r) => r.slug)).size !== body.length) return respond(500, { code: '21000' });
         const at = (r) => server.rows.findIndex((x) => x.user_id === r.user_id && x.slug === r.slug);
         // Ohne merge-duplicates ist eine vorhandene Zeile ein Konflikt, kein Upsert.
         if (!/resolution=merge-duplicates/.test(prefer || '') && body.some((r) => at(r) !== -1)) return respond(409, { code: '23505' });
@@ -345,6 +347,7 @@ export function makeBrowser(opts = {}) {
         new El('b', { id: 'cdb-count' }, [String(BLUEPRINTS.length)]),
         grid,
         new El('p', { class: 'cdb-empty', id: 'cdb-empty', hidden: '' }),
+        new El('button', { type: 'button', id: 'cdb-plan-clear' }, ['Clear']),
       ]));
 
       const winL = {};
@@ -451,8 +454,11 @@ export function makeBrowser(opts = {}) {
         /** Der ★ einer Karte (setzt das Skript selbst). */
         ownButton: (slug) => cardOf(slug).querySelector('.cbp__own'),
         clickOwn: (slug) => press(tab.ownButton(slug)),
-        /** Das ＋ einer Karte: eins mehr im Planer. */
-        clickAdd: (slug) => press(cardOf(slug).querySelector('.cbp__add')),
+        /** Das ＋ einer Karte: eins mehr im Planer, die Klasse in-plan zeigt es an. */
+        addButton: (slug) => cardOf(slug).querySelector('.cbp__add'),
+        clickAdd: (slug) => press(tab.addButton(slug)),
+        /** „Planer leeren". */
+        clickClear: () => press(body.querySelector('#cdb-plan-clear')),
         /** Was die Sync-Anzeige zeigt. */
         sync: () => ({
           state: sync.getAttribute('data-state'),
