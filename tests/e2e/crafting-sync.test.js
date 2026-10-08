@@ -453,6 +453,65 @@ test('„Erneut versuchen" schickt die offene Änderung und holt danach den Stan
   }
 });
 
+test('scheitert eine Anfrage eines Zugs sofort, endet er erst, wenn auch seine übrigen beantwortet sind: der nächste Zug überholt sie nicht', async () => {
+  const b = makeBrowser({ session: 'user-1', rows: [KARNA_1] });
+  const tab = b.open();
+  await b.settle();
+  b.server.hold('POST', 'after');
+  b.server.hold('DELETE', 'after');
+  tab.clickOwn('karna-rifle');
+  tab.clickOwn('p4-ar-rifle');
+  await b.settle();
+  b.server.releaseOne('offline');
+  await b.settle();
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle']);
+  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true, 'p4-ar-rifle': true }, plan: {}, pending: [] });
+});
+
+test('ein angemeldeter Tab, der auf den Zug eines anderen wartet, zeigt keinen Anmelde-Link', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const one = b.open();
+  await b.settle();
+  b.server.hold('POST', 'after');
+  one.clickOwn('karna-rifle');
+  await b.settle();
+  const two = b.open();
+  await b.settle();
+  assert.notEqual(two.sync().state, 'local');
+  assert.equal(two.sync().login, false);
+
+  b.server.release();
+  await b.settle();
+  assert.equal(two.sync().state, 'synced');
+});
+
+test('hat ein anderer Tab die Änderung dieses Tabs mitgeschickt, meldet auch dieser danach „synchronisiert"', async () => {
+  const cases = [
+    { at: 'erster Zug wartet auf die Sitzung', hold: (b) => b.holdSession(1), go: (b) => b.releaseSession(), gap: 5000 },
+    { at: 'Klicks 100 ms auseinander', hold: () => {}, go: () => {}, gap: 100 },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const one = b.open();
+    const two = b.open();
+    await b.settle();
+    c.hold(b);
+    one.clickOwn('karna-rifle');
+    await b.settle({ horizon: c.gap });
+    two.clickOwn('p4-ar-rifle');
+    await b.settle();
+    c.go(b);
+    await b.settle();
+    assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle'], c.at);
+    assert.equal(one.sync().state, 'synced', c.at);
+    assert.equal(two.sync().state, 'synced', c.at);
+  }
+});
+
 test('ändert ein zweiter Tab denselben Blueprint, während der Zug des ersten noch nicht beim Server ist, kommt seine Änderung nach dem ersten an', async () => {
   for (const c of SECOND_CLICK) {
     const b = makeBrowser({ session: 'user-1' });
