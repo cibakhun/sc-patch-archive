@@ -63,8 +63,19 @@ const liteFile = hallKey ? `${hallDir}/${hallKey}-lod1.glb` : '';
 const lite = liteFile && existsSync(liteFile) && hallAsset?.url !== `/hangar/hall/${hallKey}-lod1.glb`
   ? { url: `/hangar/hall/${hallKey}-lod1.glb?v=${contentV([liteFile])}`, bytes: statSync(liteFile).size }
   : null;
+// Einrichtung als eigene Datei (scripts/build-hall-furniture.mjs schneidet
+// sie beim Build aus der vollen Stufe): Dann ist die leichtere Stufe die
+// Halle für alle, und der Rechner lädt nur die Möbel dazu. Die Wände der
+// vollen Stufe sehen im Bild gleich aus und kosten das Vierfache an
+// Dreiecken (Vergleich 2026-10-08).
+const furnFile = hallKey ? `${hallDir}/${hallKey}.furniture.glb` : '';
+const furniture = lite && existsSync(furnFile)
+  ? { url: `/hangar/hall/${hallKey}.furniture.glb?v=${contentV([furnFile])}`, bytes: statSync(furnFile).size }
+  : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
-const hall = hallAsset?.room ? { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite } : null;
+const hall = !hallAsset?.room ? null : furniture && lite
+  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture }
+  : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite };
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 

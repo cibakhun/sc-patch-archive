@@ -154,11 +154,420 @@
   },
   "hall": {
     "revelyork-single": {
+      "url": "/hangar/hall/revelyork-single.glb",
+      "v": "fbd0e9c9",
+      "tris": 2666844,
+      "trisRaw": 1236093,
+      "textures": 149,
+      "attached": {
+        "attached": 144,
+        "color": 90,
+        "normal": 54,
+        "flatNormals": 33,
+        "rough": 79,
+        "tiled": 13,
+        "blended": 5,
+        "blendMetal": 1,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 171,
+        "dropped": 0,
+        "created": 2
+      },
+      "cover": {
+        "before": {
+          "materials": 108,
+          "diffuse": 88,
+          "normal": 88,
+          "trisOhneMaterial": 274949,
+          "tris": 1236093
+        },
+        "after": {
+          "materials": 113,
+          "diffuse": 92,
+          "normal": 93,
+          "trisOhneMaterial": 0,
+          "tris": 1236093
+        }
+      },
+      "lights": {
+        "total": 469,
+        "byType": {
+          "area": 385,
+          "point": 18,
+          "spot": 47,
+          "ambient": 19
+        },
+        "matched": 469,
+        "orient": {
+          "spots": 47,
+          "area": 385,
+          "areaMounted": 218,
+          "spotsAway": 23,
+          "spotsMounted": 24
+        }
+      },
+      "furniture": 137,
+      "vertexColors": [
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white01_06",
+          "origin": "eigen",
+          "tris": 394053,
+          "meanR": 0.944,
+          "below098": 6.9
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white01_06",
+          "origin": "matfix",
+          "tris": 184406,
+          "meanR": 0.715,
+          "below098": 34.2
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_02_07",
+          "origin": "eigen",
+          "tris": 59068,
+          "meanR": 0.971,
+          "below098": 3.5
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_03",
+          "origin": "eigen",
+          "tris": 58966,
+          "meanR": 0.986,
+          "below098": 1.7
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_marble_01_019",
+          "origin": "eigen",
+          "tris": 24479,
+          "meanR": 0.996,
+          "below098": 1.3
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_white_leather_a_016",
+          "origin": "eigen",
+          "tris": 20690,
+          "meanR": 0.985,
+          "below098": 4.3
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_02_07",
+          "origin": "matfix",
+          "tris": 18529,
+          "meanR": 0.93,
+          "below098": 8.6
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_plastic_white01_06",
+          "origin": "eigen",
+          "tris": 14936,
+          "meanR": 0.986,
+          "below098": 3.1
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_wood_dark_00",
+          "origin": "eigen",
+          "tris": 10022,
+          "meanR": 0.987,
+          "below098": 2.8
+        },
+        {
+          "material": "hangar_deluxe_kit_starfarer_mtl_plastic_white01_06",
+          "origin": "eigen",
+          "tris": 7800,
+          "meanR": 0.867,
+          "below098": 13.3
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_lights01_08",
+          "origin": "eigen",
+          "tris": 6638,
+          "meanR": 0.96,
+          "below098": 5
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_nernies_deluxe_010",
+          "origin": "matfix",
+          "tris": 4578,
+          "meanR": 0.602,
+          "below098": 47.6
+        },
+        {
+          "material": "uee_vegetation_mtl_leaf_tree_ash_01_09",
+          "origin": "eigen",
+          "tris": 4189,
+          "meanR": 0.832,
+          "below098": 16.8
+        },
+        {
+          "material": "hangar_deluxe_kit_starfarer_mtl_lights01_08",
+          "origin": "eigen",
+          "tris": 3584,
+          "meanR": 0.867,
+          "below098": 13.3
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_dotty_01_016",
+          "origin": "eigen",
+          "tris": 3227,
+          "meanR": 0.951,
+          "below098": 6.6
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_wall_whitepaint_tint_01_01",
+          "origin": "eigen",
+          "tris": 3172,
+          "meanR": 0.998,
+          "below098": 0.6
+        },
+        {
+          "material": "hangar_deluxe_crates_master_mtl_deluxe_strap_07",
+          "origin": "eigen",
+          "tris": 2592,
+          "meanR": 0.991,
+          "below098": 3
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_03_13",
+          "origin": "matfix",
+          "tris": 2285,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_wall_blue_tint_01_04",
+          "origin": "eigen",
+          "tris": 2212,
+          "meanR": 0.995,
+          "below098": 1.9
+        },
+        {
+          "material": "hangar_deluxe_carpets_mtl_carpet_binding_06",
+          "origin": "eigen",
+          "tris": 2188,
+          "meanR": 0.852,
+          "below098": 50.4
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_lights01_08",
+          "origin": "matfix",
+          "tris": 2168,
+          "meanR": 0.57,
+          "below098": 51.3
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white_pattern_01_025",
+          "origin": "eigen",
+          "tris": 2090,
+          "meanR": 0.914,
+          "below098": 12
+        },
+        {
+          "material": "hangar_deluxe_carpets_mtl_tile_blue_grey_02",
+          "origin": "eigen",
+          "tris": 1920,
+          "meanR": 0.852,
+          "below098": 50.4
+        },
+        {
+          "material": "uee_lawless_arch_tdd_kit_01_mtl_plastic_white_08",
+          "origin": "eigen",
+          "tris": 1654,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_wall_orange_tint_01_03",
+          "origin": "eigen",
+          "tris": 1574,
+          "meanR": 0.995,
+          "below098": 1.9
+        },
+        {
+          "material": "hangar_deluxe_crates_master_mtl_deluxe_tarp_fabric_a_05",
+          "origin": "eigen",
+          "tris": 1434,
+          "meanR": 0.991,
+          "below098": 3
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_foliage_flower_orchid_023",
+          "origin": "eigen",
+          "tris": 1296,
+          "meanR": 0.891,
+          "below098": 17.6
+        },
+        {
+          "material": "uee_vegetation_mtl_petal_flower_02_023",
+          "origin": "eigen",
+          "tris": 1287,
+          "meanR": 0.922,
+          "below098": 14
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_rubber_rough_014",
+          "origin": "eigen",
+          "tris": 915,
+          "meanR": 0.996,
+          "below098": 1.3
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_metal_white_03",
+          "origin": "eigen",
+          "tris": 746,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_plastic_white_pattern_02_022",
+          "origin": "eigen",
+          "tris": 412,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_kit_starfarer_mtl_wood_dark_00",
+          "origin": "eigen",
+          "tris": 396,
+          "meanR": 0.867,
+          "below098": 13.3
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_rocks_01_018",
+          "origin": "eigen",
+          "tris": 386,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_lights01_08",
+          "origin": "eigen",
+          "tris": 310,
+          "meanR": 0.891,
+          "below098": 17.6
+        },
+        {
+          "material": "levski_prop_elevator_button_idle_mtl_button_01",
+          "origin": "eigen",
+          "tris": 288,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_metal_grey_04",
+          "origin": "eigen",
+          "tris": 284,
+          "meanR": 0.976,
+          "below098": 3.6
+        },
+        {
+          "material": "uee_lawless_arch_tdd_kit_01_mtl_metal_alum_shiny_00",
+          "origin": "eigen",
+          "tris": 240,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_generic_wall_mastermat_mtl_metal_mid_01",
+          "origin": "eigen",
+          "tris": 226,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_lights_gl_017",
+          "origin": "eigen",
+          "tris": 198,
+          "meanR": 0.996,
+          "below098": 1.1
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white_pattern_01_025",
+          "origin": "matfix",
+          "tris": 176,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_decals_landing_door_015",
+          "origin": "matfix",
+          "tris": 64,
+          "meanR": 0.925,
+          "below098": 9.3
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_decals_small_symbols_05",
+          "origin": "matfix",
+          "tris": 52,
+          "meanR": 0.648,
+          "below098": 42.2
+        },
+        {
+          "material": "hangar_generic_wall_mastermat_mtl_glow_multi_36_015",
+          "origin": "eigen",
+          "tris": 16,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "uee_lawless_arch_tdd_kit_01_mtl_glowlights_012",
+          "origin": "eigen",
+          "tris": 12,
+          "meanR": 1,
+          "below098": 0
+        }
+      ],
+      "furnitureNodes": {
+        "roots": 137,
+        "nodes": 137,
+        "drawCalls": 644
+      },
+      "crease": {
+        "corners": 8000532,
+        "changedPct": 23.8
+      },
+      "uv": {
+        "rangeBefore": 1664,
+        "rangeAfter": 1262.25,
+        "bits": 23,
+        "degenerate": 4.8
+      },
+      "hull": {
+        "rays": 67500,
+        "escaped": 1,
+        "pct": 0,
+        "walls": {
+          "x-": 0,
+          "x+": 0,
+          "z-": 1,
+          "z+": 0,
+          "y+": 0,
+          "y-": 0
+        }
+      },
+      "floor": 1,
+      "bytes": 21013116,
+      "room": {
+        "center": [
+          36,
+          0,
+          -68
+        ],
+        "halfW": 36,
+        "halfL": 68,
+        "height": 44
+      }
+    }
+  },
+  "hallLite": {
+    "revelyork-single-lod1": {
       "url": "/hangar/hall/revelyork-single-lod1.glb",
-      "v": "46c7518e",
-      "tris": 720879,
+      "v": "41f0388d",
+      "tris": 1197783,
       "trisRaw": 612862,
-      "textures": 100,
+      "textures": 81,
       "attached": {
         "attached": 144,
         "color": 90,
@@ -191,18 +600,346 @@
           "tris": 612862
         }
       },
+      "vertexColors": [
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white01_06",
+          "origin": "eigen",
+          "tris": 179030,
+          "meanR": 0.957,
+          "below098": 5.7
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white01_06",
+          "origin": "matfix",
+          "tris": 103077,
+          "meanR": 0.748,
+          "below098": 30.9
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_02_07",
+          "origin": "eigen",
+          "tris": 35715,
+          "meanR": 0.981,
+          "below098": 2.6
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_03",
+          "origin": "eigen",
+          "tris": 21988,
+          "meanR": 0.994,
+          "below098": 0.9
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_02_07",
+          "origin": "matfix",
+          "tris": 13544,
+          "meanR": 0.928,
+          "below098": 9.2
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_white_leather_a_016",
+          "origin": "eigen",
+          "tris": 10499,
+          "meanR": 0.992,
+          "below098": 2.2
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_plastic_white01_06",
+          "origin": "eigen",
+          "tris": 7059,
+          "meanR": 0.988,
+          "below098": 2.4
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_marble_01_019",
+          "origin": "eigen",
+          "tris": 6494,
+          "meanR": 0.997,
+          "below098": 0.8
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_wood_dark_00",
+          "origin": "eigen",
+          "tris": 5385,
+          "meanR": 0.989,
+          "below098": 2.2
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_nernies_deluxe_010",
+          "origin": "matfix",
+          "tris": 3723,
+          "meanR": 0.621,
+          "below098": 46.1
+        },
+        {
+          "material": "hangar_deluxe_kit_starfarer_mtl_plastic_white01_06",
+          "origin": "eigen",
+          "tris": 3682,
+          "meanR": 0.944,
+          "below098": 5.6
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_lights01_08",
+          "origin": "eigen",
+          "tris": 3518,
+          "meanR": 0.95,
+          "below098": 6.3
+        },
+        {
+          "material": "uee_vegetation_mtl_leaf_tree_ash_01_09",
+          "origin": "eigen",
+          "tris": 2562,
+          "meanR": 0.824,
+          "below098": 17.6
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_wall_whitepaint_tint_01_01",
+          "origin": "eigen",
+          "tris": 2238,
+          "meanR": 0.998,
+          "below098": 0.6
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_white_03_13",
+          "origin": "matfix",
+          "tris": 2209,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_metal_dotty_01_016",
+          "origin": "eigen",
+          "tris": 1900,
+          "meanR": 0.92,
+          "below098": 10.4
+        },
+        {
+          "material": "hangar_deluxe_kit_starfarer_mtl_lights01_08",
+          "origin": "eigen",
+          "tris": 1732,
+          "meanR": 0.944,
+          "below098": 5.6
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white_pattern_01_025",
+          "origin": "eigen",
+          "tris": 1459,
+          "meanR": 0.881,
+          "below098": 15.8
+        },
+        {
+          "material": "hangar_deluxe_crates_master_mtl_deluxe_strap_07",
+          "origin": "eigen",
+          "tris": 1404,
+          "meanR": 0.987,
+          "below098": 3.5
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_lights01_08",
+          "origin": "matfix",
+          "tris": 1392,
+          "meanR": 0.626,
+          "below098": 45.5
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_wall_blue_tint_01_04",
+          "origin": "eigen",
+          "tris": 1381,
+          "meanR": 0.995,
+          "below098": 1.9
+        },
+        {
+          "material": "hangar_deluxe_crates_master_mtl_deluxe_tarp_fabric_a_05",
+          "origin": "eigen",
+          "tris": 1270,
+          "meanR": 0.987,
+          "below098": 3.5
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_wall_orange_tint_01_03",
+          "origin": "eigen",
+          "tris": 1096,
+          "meanR": 0.993,
+          "below098": 2.2
+        },
+        {
+          "material": "uee_lawless_arch_tdd_kit_01_mtl_plastic_white_08",
+          "origin": "eigen",
+          "tris": 797,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_foliage_flower_orchid_023",
+          "origin": "eigen",
+          "tris": 691,
+          "meanR": 0.883,
+          "below098": 19.6
+        },
+        {
+          "material": "uee_vegetation_mtl_petal_flower_02_023",
+          "origin": "eigen",
+          "tris": 643,
+          "meanR": 0.952,
+          "below098": 8.7
+        },
+        {
+          "material": "hangar_deluxe_carpets_mtl_tile_blue_grey_02",
+          "origin": "eigen",
+          "tris": 628,
+          "meanR": 0.837,
+          "below098": 59.9
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_rubber_rough_014",
+          "origin": "eigen",
+          "tris": 490,
+          "meanR": 0.995,
+          "below098": 1.5
+        },
+        {
+          "material": "hangar_deluxe_carpets_mtl_carpet_binding_06",
+          "origin": "eigen",
+          "tris": 477,
+          "meanR": 0.809,
+          "below098": 71.5
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_rocks_01_018",
+          "origin": "eigen",
+          "tris": 369,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_plastic_white_pattern_02_022",
+          "origin": "eigen",
+          "tris": 305,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_kit_starfarer_mtl_wood_dark_00",
+          "origin": "eigen",
+          "tris": 248,
+          "meanR": 0.944,
+          "below098": 5.6
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_plastic_white_pattern_01_025",
+          "origin": "matfix",
+          "tris": 176,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "uee_lawless_arch_tdd_kit_01_mtl_metal_alum_shiny_00",
+          "origin": "eigen",
+          "tris": 154,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_metal_white_03",
+          "origin": "eigen",
+          "tris": 150,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_metal_grey_04",
+          "origin": "eigen",
+          "tris": 133,
+          "meanR": 0.913,
+          "below098": 13.7
+        },
+        {
+          "material": "hangar_elevator_generic_mtl_lights_gl_017",
+          "origin": "eigen",
+          "tris": 129,
+          "meanR": 0.992,
+          "below098": 1.8
+        },
+        {
+          "material": "hangar_deluxe_props_master_mtl_lights01_08",
+          "origin": "eigen",
+          "tris": 128,
+          "meanR": 0.883,
+          "below098": 19.6
+        },
+        {
+          "material": "levski_prop_elevator_button_idle_mtl_button_01",
+          "origin": "eigen",
+          "tris": 126,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_generic_wall_mastermat_mtl_metal_mid_01",
+          "origin": "eigen",
+          "tris": 108,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_decals_landing_door_015",
+          "origin": "matfix",
+          "tris": 64,
+          "meanR": 0.921,
+          "below098": 10.2
+        },
+        {
+          "material": "hangar_deluxe_kit_master_mtl_decals_small_symbols_05",
+          "origin": "matfix",
+          "tris": 52,
+          "meanR": 0.705,
+          "below098": 36.9
+        },
+        {
+          "material": "hangar_generic_wall_mastermat_mtl_glow_multi_36_015",
+          "origin": "eigen",
+          "tris": 12,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "uee_lawless_arch_tdd_kit_01_mtl_glowlights_012",
+          "origin": "eigen",
+          "tris": 10,
+          "meanR": 1,
+          "below098": 0
+        }
+      ],
+      "furnitureNodes": {
+        "roots": 0,
+        "nodes": 0,
+        "drawCalls": 59
+      },
       "crease": {
-        "corners": 2162637,
-        "changedPct": 40.1
+        "corners": 3593349,
+        "changedPct": 34.2
       },
       "uv": {
         "rangeBefore": 1664,
         "rangeAfter": 1262.25,
         "bits": 23,
-        "degenerate": 3.3
+        "degenerate": 3.1
+      },
+      "hull": {
+        "rays": 67500,
+        "escaped": 22,
+        "pct": 0.03,
+        "walls": {
+          "x-": 11,
+          "x+": 9,
+          "z-": 2,
+          "z+": 0,
+          "y+": 0,
+          "y-": 0
+        }
       },
       "floor": 1,
-      "bytes": 10703992,
+      "bytes": 12213104,
       "room": {
         "center": [
           36,

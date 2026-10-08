@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 40
+open_count: 41
 waived_count: 1
 fixed_count: 28
-total_count: 69
-last_updated: 2026-10-08T00:15:32.668Z
+total_count: 70
+last_updated: 2026-10-08T16:32:47.000Z
 ---
 
 # Broken Windows Ledger
@@ -84,6 +84,7 @@ last_updated: 2026-10-08T00:15:32.668Z
 | 68 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): die Tafel rechts ueber der Buehne ist min(360px, 34vw) breit (--hg-panelw in HangarPage.astro). Mit Rand deckt sie bei 1440x900 und bei 1280x720 je 400 px der Halle; grosse Schiffe ragen mit Fluegel oder Heck unter die Tafel (.audit/shots/track-a2/u7-two-ships-1440.png, u11-long-name-1440.png). Die Leiste am Buehnenfuss spart dieselbe Spalte aus. Zu entscheiden: 360 px behalten, schmaler (etwa 320 px; lange Zeilennamen brechen dann haeufiger um) oder die Startansicht der Szene um die halbe Tafelbreite nach links ruecken (Sache der Szenen-Sitzung). | open |  | 2026-10-08T00:15:31.881Z |  |
 | 69 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): die Hardpoint-Marker sind klickbar (pointer-events:auto, 16 px, aktiv 22 px). Ein Klick oeffnet ihre Zeile in der Tafel und faehrt die Kamera an den Hardpoint; ein Ziehen, das auf einem Marker beginnt, dreht deshalb das Schiff nicht. Screenreader nutzen die Zeilen, die Marker sind aria-hidden. Zu entscheiden: klickbar lassen oder nur anzeigen (pointer-events:none; dann fuehrt nur die Zeile zum Hardpoint). Belege: .audit/shots/track-a/u5-gladius-focus-w4.png, .audit/shots/track-a2/u11-systems-markers-ring-1440.png. | open |  | 2026-10-08T00:15:32.275Z |  |
 | 70 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): Toene der Marker. Waffen amber (--accent #f5a623), Systeme blasses Blaugrau (--accent-2 #9aa6bd); seit Einheit 11 tragen beide einen dunklen 2-px-Ring, damit der blasse Systemton auch auf weissem Rumpf haelt. Zu beurteilen in der echten Halle: unterscheiden sich die beiden Toene genug, und traegt der Systemton auf hellen wie dunklen Flaechen? Belege: .audit/shots/track-a2/u11-systems-markers-ring-1440.png (Cutlass, Systeme, mit Ring), .audit/shots/track-a/u5-gladius-systems-markers.png (vor dem Ring). | open |  | 2026-10-08T00:15:32.668Z |  |
+| 71 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Halle, 08.10.2026): Die Halle uebernimmt jetzt die Abdunkelung aus dem Spiel (Vertexfarben der Wandmaterialien mit %VERTCOLORS, PC-Lauf „Hallen-Vertexfarben“, 5195a87; der Viewer nimmt den Rotkanal, ohne neue Shaderprogramme). Am deutlichsten: die zurueckgesetzten Felder unten an den Seitenwaenden werden dunkel (Faktor 0,153 auf plastic_white01), vorher hell mit blauem Schimmer; sonst sind die Unterschiede klein (mittlere Helligkeit je Blick 0,5 bis 1,4 von 255). Ob diese Felder ihr Material aus dem Export oder ueber die matfix-Zuordnung des Builds haben, ist im GLB nicht mehr vermerkt (laut Selbstauskunft des PC-Laufs sind matfix-Flaechen im Mittel dunkler: R 0,715 gegen 0,944), und ob das Spiel sie so dunkel zeigt, entscheidet kein Skript. Zu beurteilen: wirken die dunklen Felder wie im Spiel? Wenn nicht: Abdunkelung fuer dieses Material im Viewer abschalten, oder matfix-Flaechen im Build ohne sie (PC). Beleg: /mnt/project-files/hangar/v15-wand-abdunkelung-vorher-nachher.png im Projektordner (oben ohne, unten mit). Nachstellen aus dem Repo: Hangarseite am Rechner, Kamera in Weltkoordinaten auf (-20, 3, 0), Blick auf (35, 6, 0), Sichtwinkel 60 Grad; die Felder liegen links und rechts unten an der Seitenwand, ohne Abdunkelung zum Vergleich mit hgShadeU.value = 0 an den Hallenmaterialien. | open |  | 2026-10-08T16:32:47.000Z |  |
 
 ````json
 [
@@ -913,6 +914,18 @@ last_updated: 2026-10-08T00:15:32.668Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-08T00:15:32.668Z",
+    "resolved_at": null
+  },
+  {
+    "id": 71,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Halle, 08.10.2026): Die Halle uebernimmt jetzt die Abdunkelung aus dem Spiel (Vertexfarben der Wandmaterialien mit %VERTCOLORS, PC-Lauf „Hallen-Vertexfarben“, 5195a87; der Viewer nimmt den Rotkanal, ohne neue Shaderprogramme). Am deutlichsten: die zurueckgesetzten Felder unten an den Seitenwaenden werden dunkel (Faktor 0,153 auf plastic_white01), vorher hell mit blauem Schimmer; sonst sind die Unterschiede klein (mittlere Helligkeit je Blick 0,5 bis 1,4 von 255). Ob diese Felder ihr Material aus dem Export oder ueber die matfix-Zuordnung des Builds haben, ist im GLB nicht mehr vermerkt (laut Selbstauskunft des PC-Laufs sind matfix-Flaechen im Mittel dunkler: R 0,715 gegen 0,944), und ob das Spiel sie so dunkel zeigt, entscheidet kein Skript. Zu beurteilen: wirken die dunklen Felder wie im Spiel? Wenn nicht: Abdunkelung fuer dieses Material im Viewer abschalten, oder matfix-Flaechen im Build ohne sie (PC). Beleg: /mnt/project-files/hangar/v15-wand-abdunkelung-vorher-nachher.png im Projektordner (oben ohne, unten mit). Nachstellen aus dem Repo: Hangarseite am Rechner, Kamera in Weltkoordinaten auf (-20, 3, 0), Blick auf (35, 6, 0), Sichtwinkel 60 Grad; die Felder liegen links und rechts unten an der Seitenwand, ohne Abdunkelung zum Vergleich mit hgShadeU.value = 0 an den Hallenmaterialien.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-08T16:32:47.000Z",
     "resolved_at": null
   }
 ]
