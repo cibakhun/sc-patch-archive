@@ -18,8 +18,8 @@
 // gelungenen Refresh. holdSession(n) hält die nächsten n Sitzungsprüfungen an,
 // bis releaseSession() sie beantwortet (ein hängender Refresh).
 //
-// Mehrere Tabs teilen localStorage, Sitzung und Server; ein Schreiben meldet
-// `storage` an die jeweils ANDEREN Tabs, wie im Browser.
+// Mehrere Tabs teilen localStorage, Sitzung, Web Locks und Server; ein
+// Schreiben meldet `storage` an die jeweils ANDEREN Tabs, wie im Browser.
 // server.hold(method, commit) hält die nächste Anfrage dieser Methode an, bis
 // server.release() sie beantwortet: wie sonst auch, mit einem Status oder wie
 // fetch ohne Netz ('offline'). commit 'after' (Vorgabe): die Anfrage kommt
@@ -31,6 +31,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { makeLocks } from './web-locks.js';
 
 const CODE = fs.readFileSync(path.resolve('assets/crafting-app.js'), 'utf8');
 const DB_URL = '/assets/crafting-db.json?v=test';
@@ -268,11 +269,13 @@ function makeServer(rows) {
  *               nicht: session() liefert null, peek() hat die Sitzung
  *   rows        Server-Zeilen [{user_id, slug, owned, plan_qty}]
  *   seed        { schlüssel: rohwert } — Vorbestand im localStorage
+ *   locks       false = Browser ohne Web Locks
  */
 export function makeBrowser(opts = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 20, 0, 0), timers: [], seq: 0 };
   const data = new Map(Object.entries(opts.seed || {}));
   const tabs = [];
+  const locks = makeLocks();
   const server = makeServer(opts.rows || []);
   const account = { session: null, stored: null, reject: false, holds: 0, held: [] };
   const sessionFor = (uid) => ({ access_token: `token-${uid}`, refresh_token: `refresh-${uid}`, user: { id: uid } });
@@ -402,6 +405,7 @@ export function makeBrowser(opts = {}) {
           get length() { return data.size; },
         },
         location: { pathname: '/topics/crafting.html', search: '' },
+        navigator: opts.locks === false ? {} : { locks: locks.forTab(tab) },
         URLSearchParams,
         __CRAFT: {
           lang: 'en', dbUrl: DB_URL, dismantleUrl: DISMANTLE_URL, dismantleEfficiency: 0.5,
@@ -486,10 +490,11 @@ export function makeBrowser(opts = {}) {
           tab.lagged = null;
           queued.forEach(([type, init]) => fire(winL, type, { type, ...init }));
         },
-        /** Schliessen: seine Zeitgeber laufen nicht weiter. */
+        /** Schliessen: seine Zeitgeber laufen nicht weiter, seine Sperren sind frei. */
         close() {
           tab.closed = true;
           clock.timers = clock.timers.filter((t) => t.tab !== tab);
+          locks.closeTab(tab);
         },
       });
 

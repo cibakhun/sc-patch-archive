@@ -387,19 +387,22 @@ async function clickTwiceWhileFirstHangs(b, c, first, second) {
   await b.settle();
 }
 
-test('ein zweiter Klick auf einen Blueprint, dessen erster Zug noch nicht beim Server ist, kommt nach ihm an, und der nächste Abgleich holt den ersten nicht zurück', async () => {
-  for (const c of SECOND_CLICK) {
-    const b = makeBrowser({ session: 'user-1' });
-    const tab = b.open();
-    await clickTwiceWhileFirstHangs(b, c, tab, tab);
-    assert.deepEqual(b.server.rows, c.rows, c.at);
-    assert.deepEqual(mirror(b), c.mirror, c.at);
+test('ein zweiter Klick auf einen Blueprint, dessen erster Zug noch nicht beim Server ist, kommt nach ihm an, und der nächste Abgleich holt den ersten nicht zurück, mit und ohne Web Locks', async () => {
+  for (const locks of [true, false]) {
+    for (const c of SECOND_CLICK) {
+      const at = `${c.at}, ${locks ? 'mit' : 'ohne'} Web Locks`;
+      const b = makeBrowser({ session: 'user-1', locks });
+      const tab = b.open();
+      await clickTwiceWhileFirstHangs(b, c, tab, tab);
+      assert.deepEqual(b.server.rows, c.rows, at);
+      assert.deepEqual(mirror(b), c.mirror, at);
 
-    b.advance(61000);
-    tab.hide();
-    tab.show();
-    await b.settle();
-    assert.deepEqual(mirror(b), c.mirror, c.at);
+      b.advance(61000);
+      tab.hide();
+      tab.show();
+      await b.settle();
+      assert.deepEqual(mirror(b), c.mirror, at);
+    }
   }
 });
 
@@ -450,6 +453,17 @@ test('„Erneut versuchen" schickt die offene Änderung und holt danach den Stan
   }
 });
 
+test('ändert ein zweiter Tab denselben Blueprint, während der Zug des ersten noch nicht beim Server ist, kommt seine Änderung nach dem ersten an', async () => {
+  for (const c of SECOND_CLICK) {
+    const b = makeBrowser({ session: 'user-1' });
+    const one = b.open();
+    const two = b.open();
+    await clickTwiceWhileFirstHangs(b, c, one, two);
+    assert.deepEqual(b.server.rows, c.rows, c.at);
+    assert.deepEqual(mirror(b), c.mirror, c.at);
+  }
+});
+
 test('Tab-Rückkehr und Verlassen der Seite schicken eine offene Änderung sofort, ohne offene fragen sie nicht nach der Sitzung', async () => {
   const cases = [
     { at: 'Tab-Rückkehr', act: (tab) => { tab.hide(); tab.show(); } },
@@ -472,6 +486,17 @@ test('Tab-Rückkehr und Verlassen der Seite schicken eine offene Änderung sofor
     await b.drain();
     assert.deepEqual(b.server.rows, [KARNA_1], c.at);
   }
+});
+
+test('wer die Seite verlässt, solange eine Änderung offen ist, schickt sie beim Verlassen noch hinaus, obwohl der Browser danach keine Sperre mehr zuteilt', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  tab.clickOwn('karna-rifle');
+  tab.fireWindow('pagehide');
+  tab.close();
+  await b.settle();
+  assert.deepEqual(b.server.rows, [KARNA_1]);
 });
 
 test('„Planer leeren" nimmt jeden Eintrag aus der Ablage und aus dem Konto', async () => {
