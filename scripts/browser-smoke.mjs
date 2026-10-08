@@ -89,7 +89,7 @@ if (!BROWSER) {
    Nicht alle 17.361 Seiten, sondern je einmal jede BAUART: Startseite,
    die vier JS-schweren Werkzeuge, ein Themen-Koerper mit zwei
    Hilfe-Instanzen, eine Patch-Seite mit Ambiente, eine erzeugte
-   Detailseite und der 404-Fall. Was hier laeuft, laeuft auf den
+   Detailseite, der 3D-Hangar und der 404-Fall. Was hier laeuft, laeuft auf den
    Geschwisterseiten mit — sie entstehen aus demselben Koerper.
    `leit` ist bewusst ein Bedienelement oder ein Inhaltstraeger, KEIN
    Kopfleisten-Element: die Kopfleiste steht auch auf einer Seite, deren
@@ -117,6 +117,14 @@ const SEITEN = [
   { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true },
   // Erzeugte Detailseite (eine von ~17.000) — stellvertretend fuer die Masse.
   { id: 'item-detail', en: '/items/hardy-boots.html', de: '/de/items/hardy-boots.html', leit: 'main' },
+  // Der 3D-Hangar, als tiefer Link auf ein Schiff, das nicht das Startschiff
+  // ist: die Ausstattung kommt dann als Buchtdokument per Abruf.
+  {
+    id: 'hangar',
+    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
+    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
+    leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
+  },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -213,6 +221,257 @@ async function probeSchiffe(page) {
   if (nachher >= vorher) return `Rollenfilter "${wahl}" senkte die Trefferzahl nicht (${vorher} -> ${nachher})`;
   if (nachher === 0) return `Rollenfilter "${wahl}" liess 0 Schiffe uebrig`;
   return null;
+}
+
+/* Der Hangar: der tiefe Link landet im Waffen-Tab mit offener Zeile und
+   Markern aus der Bucht, Pfeil rechts wechselt das Schiff, der Vergleich
+   oeffnet und Zurueck schliesst ihn, und "Zur Flotte" schreibt ohne Konto in
+   diesen Browser. Lebende Marker brauchen WebGL; ohne (ein Browser ohne
+   GPU) zeigt die Seite ihren Rueckfall, und genau dieser eine Teil entfaellt
+   — ein fehlendes WebGL ist kein Fehler dieser Seite.
+   Klicks und Wartezeiten mit langer Frist: das Laden von Halle und Modell
+   blockiert den Hauptfaden (beim ersten Aufruf mit kaltem Cache laenger als
+   5 s), eine Taste wartet so lange in der Schlange, und Playwright klickt
+   erst auf ein ruhiges Bild.
+   Danach die Wettlaeufe des Controllers, je auf einer frischen Seite:
+   gehaltene Pfeiltaste, Pfeile im Feld fuer den Link, ein werfendes
+   replaceState, die Adresse beim Tippen, ein Wechsel waehrend eines
+   haengenden Abrufs, Wiederholen nach einer gescheiterten Bucht, zweimal
+   Schliessen des Vergleichs und ein tiefer Link mit langsamer Bucht. Was
+   haengen oder scheitern soll, haelt eine Route. */
+async function probeHangar(page) {
+  const KLICK = { timeout: 30000 };
+  const warte = (fn, ms = 20000, arg = null) => page.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+
+  if (!(await warte(() => document.querySelector('[data-bay="panel"]')?.dataset.id === 'drak-cutlass-black')))
+    return 'tiefer Link: die Bucht der Cutlass Black wurde nicht eingesetzt';
+  const tief = await page.evaluate(() => ({
+    tab: document.getElementById('hgx-tab-weapons')?.getAttribute('aria-selected'),
+    zeilen: document.querySelectorAll('#hgx-tp-weapons .hgx-slot').length,
+    offen: [...document.querySelectorAll('#hgx-tp-weapons .hgx-slot__btn[aria-expanded="true"]')].map((b) => b.closest('.hgx-slot').dataset.ports),
+    marker: document.querySelectorAll('.hgx-marks[data-id="drak-cutlass-black"] .hgx-mk[data-tab="weapons"]').length,
+  }));
+  if (tief.tab !== 'true' || tief.zeilen < 1 || !tief.offen.some((p) => p.split(' ').includes('hardpoint_turret')))
+    return `tiefer Link: Waffen-Tab ${tief.tab}, ${tief.zeilen} Zeilen, offen ${JSON.stringify(tief.offen)} statt hardpoint_turret`;
+  if (tief.marker < 1) return 'tiefer Link: die Bucht bringt keine Waffen-Marker mit';
+
+  if (!(await warte(() => document.querySelector('.hgx-marks')?.hasAttribute('data-live') || !document.getElementById('hg-fallback').hidden, 45000)))
+    return 'Halle: nach 45 s weder lebende Marker noch der Rueckfall';
+  // Erst nach der Einfahrt: in den ersten Bildern nach dem Aufsetzen ist das
+  // Schiff noch unsichtbar, project() liefert null, und die Marker warten zu
+  // Recht (gemessen: alle acht nach weniger als 700 ms sichtbar).
+  if (await page.evaluate(() => document.getElementById('hg-fallback').hidden)) {
+    const sichtbar = () => [...document.querySelectorAll('.hgx-mk[data-tab="weapons"]')]
+      .some((el) => getComputedStyle(el).display !== 'none' && el.style.visibility !== 'hidden');
+    if (!(await warte(sichtbar, 15000))) return 'Halle laeuft, aber nach 15 s ist kein Waffen-Marker sichtbar';
+  }
+
+  const vorher = await page.evaluate(() => document.querySelector('.hg-card[aria-current="true"]')?.dataset.id);
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press('ArrowRight');
+  if (!(await warte(() => document.querySelector('.hg-card[aria-current="true"]')?.dataset.id !== 'drak-cutlass-black', 30000)))
+    return `Pfeil rechts wechselte das Schiff nicht (${vorher})`;
+
+  await page.goto(page.url().replace(/\?.*$/, '') + '?cmp=aegs-gladius,drak-cutlass-black', { waitUntil: 'domcontentloaded' });
+  await page.locator('#hgx-cmp-open').click(KLICK);
+  if (!(await warte(() => document.getElementById('hgx-cmp').open && location.search.includes('view=compare'), 30000)))
+    return 'Vergleich: der Dialog oeffnete nicht';
+  await page.goBack();
+  if (!(await warte(() => !document.getElementById('hgx-cmp').open && !location.search.includes('view=compare'), 30000)))
+    return 'Vergleich: Zurueck schloss den Dialog nicht';
+
+  await page.evaluate(() => localStorage.removeItem('vb.fleet.v1'));
+  const schiff = await page.evaluate(() => document.getElementById('hgx-fleet').dataset.fleetShip);
+  await page.locator('#hgx-fleet').click(KLICK);
+  const an = await page.evaluate(() => ({ p: document.getElementById('hgx-fleet').getAttribute('aria-pressed'), s: localStorage.getItem('vb.fleet.v1') }));
+  if (an.p !== 'true' || !String(an.s).includes(`"${schiff}"`)) return `Flotte: Klick ergab aria-pressed ${an.p}, Ablage ${an.s}`;
+  await page.locator('#hgx-fleet').click(KLICK);
+  const aus = await page.evaluate(() => ({ p: document.getElementById('hgx-fleet').getAttribute('aria-pressed'), s: localStorage.getItem('vb.fleet.v1') }));
+  if (aus.p !== 'false' || aus.s !== null) return `Flotte: zweiter Klick ergab aria-pressed ${aus.p}, Ablage ${aus.s}`;
+
+  return probeHangarRennen(page, page.url().replace(/\?.*$/, ''), KLICK, warte);
+}
+
+async function probeHangarRennen(page, hangar, KLICK, warte) {
+  const START = 'aegs-gladius';
+  const jetzt = () => page.evaluate(() => document.querySelector('.hg-card[aria-current="true"]')?.dataset.id);
+  const waehle = (id) => page.evaluate((id) => document.querySelector(`.hg-card[data-id="${id}"]`).click(), id);
+  // Frisch auf dem Startschiff; liefert, ob der Viewer laeuft (sonst Rueckfall
+  // ohne WebGL). Danach zweimal Leerlauf: die Halle laedt noch nach und blockiert
+  // den Hauptfaden sekundenlang, und jeder Fall misst Zeitgeber von 150 ms.
+  const frisch = async (q = '') => {
+    await page.goto(hangar + q, { waitUntil: 'domcontentloaded' });
+    await warte(() => document.querySelector('.hgx-marks')?.hasAttribute('data-live') || !document.getElementById('hg-fallback').hidden, 45000);
+    await page.evaluate(() => new Promise((ok) => requestIdleCallback(() => requestIdleCallback(ok, { timeout: 5000 }), { timeout: 5000 })));
+    return page.evaluate(() => document.getElementById('hg-fallback').hidden);
+  };
+  const buchtPfad = (id) => new RegExp(`/hangar-bay/${id}\\.html$`);
+  const gehalten = [];
+  const halte = async (match, handler = () => {}) => { await page.route(match, handler); gehalten.push(match); };
+  const gibFrei = async () => { for (const m of gehalten.splice(0)) await page.unroute(m); };
+
+  let mitGl = await frisch();
+  const reihe = await page.evaluate(() => [...document.getElementById('hg-strip').children].map((li) => li.dataset.id));
+  const modelle = await page.evaluate(() => JSON.parse(document.getElementById('hg-stage').textContent).models);
+  const modellPfade = (id) => new Set(modelle[id].slice(0, 2).filter(Boolean).map((u) => new URL(u, hangar).pathname));
+
+  // Jeder Fall prueft fuer sich und meldet; die ersten vier teilen sich die erste Seite.
+  const faelle = [
+    ['gehaltene Pfeiltaste', async () => {
+      await page.evaluate(() => document.activeElement?.blur());
+      for (let i = 0; i < 3; i++) await page.keyboard.down('ArrowRight');
+      await page.keyboard.up('ArrowRight');
+      const naechstes = reihe[(reihe.indexOf(START) + 1) % reihe.length];
+      if (!(await warte((s) => document.querySelector('.hg-card[aria-current="true"]')?.dataset.id !== s, 30000, START))) return 'kein Wechsel';
+      await page.waitForTimeout(400);
+      const ist = await jetzt();
+      return ist === naechstes ? null : `${ist} statt ${naechstes}, eine Wiederholung wechselte weiter`;
+    }],
+    ['Pfeil im Feld fuer den Link', async () => {
+      await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
+        configurable: true, value: { writeText: () => Promise.reject(new Error('verweigert')) },
+      }));
+      await page.locator('#hgx-copy').click(KLICK);
+      if (!(await warte(() => document.activeElement?.id === 'hgx-copyfield', 10000))) return 'ohne Zwischenablage kein Feld mit Fokus';
+      const vor = await jetzt();
+      await page.keyboard.press('ArrowLeft');
+      await page.waitForTimeout(400);
+      const nach = await jetzt();
+      return nach === vor ? null : `das Schiff wechselte (${vor} -> ${nach}) statt des Cursors`;
+    }],
+    ['replaceState wirft', async () => {
+      // WebKit wirft nach 100 replaceState in 10 s; die Seite folgt dem Klick trotzdem.
+      await page.evaluate(() => {
+        window.__rs = history.replaceState;
+        history.replaceState = () => { throw new DOMException('Attempt to use history.replaceState() more than 100 times per 10 seconds', 'SecurityError'); };
+      });
+      await page.locator('#hgx-tab-systems').click(KLICK);
+      const ist = await page.evaluate(() => ({
+        tab: document.getElementById('hgx-tab-systems').getAttribute('aria-selected'),
+        panel: document.getElementById('hgx-tp-systems')?.hidden === false,
+      }));
+      await page.evaluate(() => { history.replaceState = window.__rs; });
+      return ist.tab === 'true' && ist.panel ? null : `Tab Systeme aria-selected ${ist.tab}, Panel sichtbar ${ist.panel}`;
+    }],
+    ['Adresse beim Tippen', async () => {
+      await page.evaluate(() => {
+        window.__rsN = 0;
+        const echt = history.replaceState.bind(history);
+        history.replaceState = (...a) => { window.__rsN++; return echt(...a); };
+      });
+      await page.locator('#hg-q').focus();
+      await page.keyboard.type('cut', { delay: 60 });
+      const beimTippen = await page.evaluate(() => window.__rsN);
+      await page.waitForTimeout(900);
+      const nach = await page.evaluate(() => ({ n: window.__rsN, q: new URLSearchParams(location.search).get('q') }));
+      return beimTippen === 0 && nach.n === 1 && nach.q === 'cut' ? null
+        : `${beimTippen} Adresswechsel beim Tippen, ${nach.n} nach der Pause, q=${nach.q} (erwartet 0, 1, cut)`;
+    }],
+    ['Wechsel waehrend eines haengenden Abrufs', async () => {
+      // Beide Wahlen in einer Aufgabe: die Bucht des Startschiffs steht im Cache
+      // und ist in Mikroaufgaben fertig, also immer vor dem 150-ms-Zeitgeber des
+      // ueberholten Schiffs. Sein Modell scheitert sofort, meist vor den 180 ms.
+      mitGl = await frisch();
+      const fern = reihe[Math.floor(reihe.length / 2)];
+      const fernModell = modellPfade(fern);
+      const startModell = modellPfade(START);
+      await halte(buchtPfad(fern));
+      await halte((url) => fernModell.has(url.pathname));
+      await halte((url) => startModell.has(url.pathname), (r) => r.abort());
+      await page.evaluate(([f, s]) => {
+        document.querySelector(`.hg-card[data-id="${f}"]`).click();
+        document.querySelector(`.hg-card[data-id="${s}"]`).click();
+      }, [fern, START]);
+      await page.waitForTimeout(1200);
+      const ist = await page.evaluate(() => ({
+        busy: document.getElementById('hgx-panelhost').getAttribute('aria-busy'),
+        gedimmt: document.querySelector('.hg-title').classList.contains('is-busy'),
+        laden: !document.getElementById('hg-load').hidden,
+        bucht: document.querySelector('[data-bay="panel"]').dataset.id,
+      }));
+      await gibFrei();
+      const funde = [];
+      if (ist.busy !== 'false' || ist.gedimmt || ist.bucht !== START) funde.push(`aria-busy ${ist.busy}, gedimmt ${ist.gedimmt}, Bucht ${ist.bucht}`);
+      if (mitGl && ist.laden) funde.push('die Ladeanzeige des ueberholten Schiffs bleibt stehen');
+      return funde.length ? `${fern} -> ${START}: ${funde.join('; ')}` : null;
+    }],
+    ['Wiederholen nach gescheiterter Bucht', async () => {
+      // Nur show() bewegt den Balken: bleibt er stehen, lud das Modell nicht neu.
+      mitGl = await frisch();
+      const kaputt = reihe[Math.floor(reihe.length / 3)];
+      await halte(buchtPfad(kaputt), (r) => r.fulfill({ status: 500, body: 'kaputt' }));
+      await waehle(kaputt);
+      if (!(await warte(() => !document.getElementById('hgx-bayerr').hidden, 15000))) return `Bucht ${kaputt} mit 500: keine Fehlermeldung`;
+      await gibFrei();
+      if (mitGl) await warte(() => document.getElementById('hg-load').hidden, 30000);
+      await page.waitForTimeout(1500);
+      await page.evaluate(() => document.querySelector('#hg-load i').style.setProperty('--p', '7%'));
+      await page.locator('#hgx-bayretry').click(KLICK);
+      if (!(await warte((k) => document.querySelector('[data-bay="panel"]')?.dataset.id === k && document.getElementById('hgx-bayerr').hidden, 15000, kaputt)))
+        return `die Bucht von ${kaputt} kam nicht`;
+      await page.waitForTimeout(1500);
+      const balken = await page.evaluate(() => document.querySelector('#hg-load i').style.getPropertyValue('--p'));
+      return !mitGl || balken === '7%' ? null : `das Modell von ${kaputt} lud neu (Balken ${balken}), es soll nur die Bucht kommen`;
+    }],
+    ['zweimal Schliessen des Vergleichs', async () => {
+      const korb = '?cmp=aegs-gladius,drak-cutlass-black';
+      await page.goto(hangar + korb, { waitUntil: 'domcontentloaded' });
+      await page.locator('#hgx-cmp-open').click(KLICK);
+      if (!(await warte(() => document.getElementById('hgx-cmp').open, 30000))) return 'der Vergleich oeffnete nicht';
+      await page.evaluate(() => { const b = document.getElementById('hgx-cmp-close'); b.click(); b.click(); });
+      await page.waitForTimeout(1500);
+      const zu = await page.evaluate(() => ({ href: location.href, offen: document.getElementById('hgx-cmp')?.open ?? null }))
+        .catch((e) => ({ href: `(Navigation: ${e.message.split('\n')[0]})`, offen: null }));
+      return zu.href.endsWith(korb) && zu.offen === false ? null : `${zu.href} (Dialog offen ${zu.offen}) statt ${korb}`;
+    }],
+    ['Ansage nur nach eigenem Klick', async () => {
+      // Ein anderer Tab nimmt ein Schiff in die Flotte: die Live-Region schweigt.
+      await frisch();
+      const vorher = await page.evaluate(() => document.getElementById('hgx-live').textContent);
+      const anderer = await page.context().newPage();
+      try {
+        await anderer.goto(new URL(hangar).origin + '/robots.txt');
+        await anderer.evaluate(() => localStorage.setItem('vb.fleet.v1', '{"ships":[{"id":"anvl-arrow","label":"Arrow"}]}'));
+      } finally {
+        await anderer.close();
+      }
+      if (!(await warte(() => document.querySelector('.hg-card[data-id="anvl-arrow"]')?.parentElement.classList.contains('is-fleet'), 10000)))
+        return 'die Flotte aus dem anderen Tab kam nicht an';
+      const still = await page.evaluate(() => document.getElementById('hgx-live').textContent);
+      await page.locator('#hgx-fleet').click(KLICK);
+      const nachKlick = await page.evaluate(() => ({
+        live: document.getElementById('hgx-live').textContent,
+        name: document.getElementById('hgx-fleet').dataset.fleetLabel,
+      }));
+      await page.evaluate(() => localStorage.removeItem('vb.fleet.v1'));
+      if (still !== vorher) return `der Abgleich wurde angesagt: "${still}"`;
+      return nachKlick.live.includes(nachKlick.name) ? null : `der eigene Klick wurde nicht angesagt: "${nachKlick.live}"`;
+    }],
+    ['tiefer Link mit langsamer Bucht', async () => {
+      // Die Bucht kommt nach dem Modell; hp haelt, bis sie da ist.
+      await halte(buchtPfad('anvl-arrow'), async (r) => { await new Promise((ok) => setTimeout(ok, 2500)); await r.continue(); });
+      await page.goto(hangar + '?ship=anvl-arrow&tab=weapons&hp=hardpoint_weapon_wing_left', { waitUntil: 'domcontentloaded' });
+      const kam = await warte(() => document.querySelector('[data-bay="panel"]')?.dataset.id === 'anvl-arrow', 30000);
+      await gibFrei();
+      if (!kam) return 'die Bucht der Arrow kam nicht';
+      const ist = await page.evaluate(() => ({
+        hp: new URLSearchParams(location.search).get('hp'),
+        offen: [...document.querySelectorAll('#hgx-tp-weapons .hgx-slot__btn[aria-expanded="true"]')].map((b) => b.closest('.hgx-slot').dataset.ports),
+      }));
+      if (ist.hp !== 'hardpoint_weapon_wing_left' || !ist.offen.some((p) => p.split(' ').includes('hardpoint_weapon_wing_left')))
+        return `hp=${ist.hp}, offen ${JSON.stringify(ist.offen)}`;
+      if (mitGl && !(await warte(() => document.querySelector('.hgx-mk.is-sel[data-port="hardpoint_weapon_wing_left"]'), 15000)))
+        return 'der Marker des Hardpoints ist nicht gewaehlt';
+      return null;
+    }],
+  ];
+  const funde = [];
+  for (const [name, fall] of faelle) {
+    const fund = await fall().catch((e) => e.message.split('\n')[0]);
+    if (fund) funde.push(`${name}: ${fund}`);
+    await gibFrei();
+  }
+  return funde.length ? funde.join(' | ') : null;
 }
 
 /* ---------- Ein Seitenaufruf ---------- */

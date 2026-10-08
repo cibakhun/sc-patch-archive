@@ -88,6 +88,7 @@ const UI = {
     'nav.deck.sub.wikelo': 'Banu-Handel',
     'nav.deck.sub.items': 'Preise & Fundorte',
     'nav.deck.sub.ships': 'Datenblätter & Specs',
+    'nav.deck.sub.hangar': 'Jedes Schiff in 3D',
     'nav.deck.sub.missions': 'Belohnungen & Ruf',
     'nav.deck.sub.archive': 'Alle Versionen',
     'nav.deck.sub.topics': 'Themen-Verzeichnis',
@@ -295,10 +296,13 @@ const UI = {
     'ship.rail.rank': 'Leistung',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
-    // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
-    'fav.save': 'Merken',
-    'fav.saved': 'Gemerkt',
-    'fav.aria': 'Als Favorit merken (Konto nötig)',
+    // -- Flotte (assets/fleet.js setzt den Zustand; ohne Konto im Browser, mit Konto als Favoriten) --
+    'fleet.add': 'Zur Flotte',
+    'fleet.in': 'In der Flotte',
+    'fleet.aria': 'Zur Flotte hinzufügen (ohne Konto in diesem Browser gespeichert)',
+    'fleet.retry': 'Nicht gespeichert · erneut versuchen',
+    'fleet.resync': 'Nicht abgeglichen · erneut versuchen',
+    'ship.hangar3d': 'Im 3D-Hangar ansehen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
@@ -502,6 +506,7 @@ const UI = {
     'nav.deck.sub.wikelo': 'Banu trades',
     'nav.deck.sub.items': 'Prices & locations',
     'nav.deck.sub.ships': 'Data sheets & specs',
+    'nav.deck.sub.hangar': 'Every ship in 3D',
     'nav.deck.sub.missions': 'Rewards & reputation',
     'nav.deck.sub.archive': 'All versions',
     'nav.deck.sub.topics': 'Topic directory',
@@ -697,10 +702,13 @@ const UI = {
     'ship.rail.rank': 'Profile',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
-    // -- Favorites (account feature; account-lite.js toggles the state) --
-    'fav.save': 'Save',
-    'fav.saved': 'Saved',
-    'fav.aria': 'Save as favorite (account required)',
+    // -- Fleet (assets/fleet.js sets the state; in this browser without an account, as favorites with one) --
+    'fleet.add': 'Add to fleet',
+    'fleet.in': 'In fleet',
+    'fleet.aria': 'Add to fleet (kept in this browser without an account)',
+    'fleet.retry': 'Not saved · try again',
+    'fleet.resync': 'Not synced · try again',
+    'ship.hangar3d': 'View in the 3D hangar',
     // stylized mono codes (in-universe “register” tags)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',

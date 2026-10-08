@@ -1,0 +1,110 @@
+---
+// Druckt EINE Region einer Bucht. Drei Regionen ergeben ein Schiff: head,
+// panel, marks. Die Hangarseite setzt jede Region fuer das Startschiff an
+// ihren Platz; BayDocument.astro druckt alle drei fuer /hangar-bay/<id>.html.
+// Die Zahlen des Vergleichs liest der Controller aus dem Dock (data-v), nicht
+// aus einer Bucht.
+// Der Controller tauscht eine Region aus, indem er das Element mit demselben
+// data-bay ersetzt, deshalb haengen Wurzelelement und Klasse einer Region nie
+// von Daten ab.
+//
+// Entscheidungen fallen in buildBay(); hier stehen nur Schleifen und die
+// Unterscheidung der Leerzustaende. Kein <style>, kein <script>: die
+// Buchtdokumente bleiben frei von CSS und JS (verify:hangar prueft es), das
+// Stylesheet der Seite gestaltet die eingesetzten Regionen.
+// Text steht nie direkt als {ausdruck} in einem Element der obersten Ebene:
+// Astro 5.18 verschluckt sonst dessen schliessendes Tag.
+import type { Bay } from '../../lib/hangar/bay';
+import { SLOT_TABS } from '../../lib/hangar/bay';
+import { hangarT } from '../../i18n/hangarText';
+
+interface Props {
+  bay: Bay;
+  region: 'head' | 'panel' | 'marks';
+}
+const { bay, region } = Astro.props;
+const t = hangarT(bay.lang);
+const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ') : '';
+---
+{region === 'head' && (
+  <div class="hgx-head" data-bay="head" data-id={bay.id} data-announce={bay.head.announce}>
+    <p class="hg-maker">{bay.head.maker}</p>
+    <p class:list={['hg-name', { 'is-long': bay.head.nameStep === 1, 'is-longer': bay.head.nameStep === 2 }]}>{bay.head.name}</p>
+    <p class="hg-role">{bay.head.roleLine}</p>
+  </div>
+)}
+
+{region === 'panel' && (
+  <div class="hgx-tps" data-bay="panel" data-id={bay.id}>
+    <section class="hgx-tp" role="tabpanel" id="hgx-tp-overview" aria-labelledby="hgx-tab-overview" tabindex="0">
+      <dl class="hgx-stats">
+        {bay.overview.rows.map((r) => (
+          <div class={r.value === null ? 'hg-row is-na' : 'hg-row'} data-k={r.key}>
+            <dt>{r.label}</dt>
+            <dd>{r.value ?? '–'}</dd>
+            <span class="hg-bar" aria-hidden="true"><i style={`--w:${r.pct ?? 0}%`}></i></span>
+          </div>
+        ))}
+      </dl>
+      <p class="hg-note">{bay.overview.note}</p>
+    </section>
+    {SLOT_TABS.map((tab) => {
+      const panel = bay.slots[tab];
+      return (
+        <section class="hgx-tp" role="tabpanel" id={`hgx-tp-${tab}`} aria-labelledby={`hgx-tab-${tab}`} tabindex="0" hidden>
+          {panel.kind === 'empty' ? (
+            <p class="hgx-empty">{panel.message}</p>
+          ) : (
+            <>
+              {panel.facts.length > 0 && (
+                <dl class="hgx-stats">
+                  {panel.facts.map((r) => (
+                    <div class={r.value === null ? 'hg-row is-na' : 'hg-row'} data-k={r.key}>
+                      <dt>{r.label}</dt>
+                      <dd>{r.value ?? '–'}</dd>
+                      {r.pct !== null && <span class="hg-bar" aria-hidden="true"><i style={`--w:${r.pct}%`}></i></span>}
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {panel.groups.map((g) => (
+                <section class="hgx-grp" data-g={g.key}>
+                  <h3><span>{g.title}</span>{g.total && <b>{g.total}</b>}</h3>
+                  <ul>
+                    {g.rows.map((row) => (
+                      <li class="hgx-slot" data-row={row.key} data-kind={row.kind} data-ports={row.ports.join(' ')}>
+                        <button type="button" class="hgx-slot__btn" aria-expanded="false" aria-controls={`hgx-d-${row.key}`}>
+                          <span class="hgx-sz">{row.size ?? '·'}</span>
+                          <span class="hgx-nm">{row.count > 1 ? `${row.count}× ${row.name}` : row.name}{row.sub && <small>{row.sub}</small>}</span>
+                          <span class="hgx-v">{row.figure && <>{row.figure.value}<small>{row.figure.unit}</small></>}</span>
+                        </button>
+                        <div class="hgx-d" id={`hgx-d-${row.key}`} hidden>
+                          {row.details.length > 0 && <dl>{row.details.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}</dl>}
+                          {row.links && (
+                            <p class="hgx-links">
+                              <a href={row.links.finder}>{t('slot.finder')}</a>
+                              {row.links.page && <a href={row.links.page}>{t('slot.page')}</a>}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </>
+          )}
+        </section>
+      );
+    })}
+    <p class="hgx-foot"><a class="hg-sheet" href={bay.head.sheetHref}>{t('panel.sheet')}</a></p>
+  </div>
+)}
+
+{region === 'marks' && (
+  <div class="hgx-marks" data-bay="marks" data-id={bay.id} aria-hidden="true" data-c={bay.marks.center?.join(' ') ?? ''} data-box={box}>
+    {bay.marks.points.map((m) => (
+      <i class="hgx-mk" data-tab={m.tab} data-port={m.port} data-rows={m.rows.join(' ')} data-p={m.p.join(' ')}><b>{m.label}</b></i>
+    ))}
+  </div>
+)}

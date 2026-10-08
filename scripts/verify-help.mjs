@@ -74,7 +74,7 @@ if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } 
 const TOOL_IDS = [
   'itemfinder', 'crafting', 'mining', 'fracturing',
   'refinerytracker', 'missions', 'ships', 'precisionjump', 'archive',
-  'wikelo', 'armorsets',
+  'wikelo', 'armorsets', 'hangar',
 ];
 
 const COMPLETE = process.argv.includes('--complete');

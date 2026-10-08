@@ -158,7 +158,10 @@ body{font-family:var(--font-body)}
       leaves your device and can be deleted at any time via your browser settings. When you are
       signed in, the contents of account-bound tools (crafting planner and “owned” marks, refinery
       jobs) are additionally stored in your <a href="#accounts">user account</a> so they are
-      available across devices.
+      available across devices. Your ship fleet (on the ship data sheets and in the 3D hangar)
+      stays in this browser while you are signed out; when you sign in, it moves into your account
+      as favorites. While you are signed in, this browser also keeps a copy of the fleet. If you have
+      set a handle, the fleet appears on your public pilot profile.
     </p>
 
     <h2>Externally embedded images</h2>
@@ -223,7 +226,8 @@ body{font-family:var(--font-body)}
       <li><strong>e-mail address</strong> and <strong>password</strong> (the password is stored
         exclusively as a cryptographic hash, never in plain text)</li>
       <li><strong>profile data</strong> you enter yourself (display name, handle — both optional)</li>
-      <li><strong>favorites</strong> you actively save</li>
+      <li><strong>favorites</strong> you actively save, including your ship fleet; once you have set a
+        handle, they are visible on your public pilot profile</li>
       <li><strong>tool data</strong> you actively create (crafting planner and “owned” marks,
         refinery jobs)</li>
       <li>technically, session and security data of the provider (e.g. sign-in timestamps,

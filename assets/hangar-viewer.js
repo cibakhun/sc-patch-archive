@@ -1,6 +1,6 @@
 // Hangar-Bühne: EIN Schiff steht auf einer Landeplattform in einer belebten
 // Halle, der Besucher dreht es frei und wechselt über das Karussell der
-// Seite (components/hangar/HangarApp.astro). Gegenstück zu holo-viewer.js:
+// Seite (components/hangar/HangarPage.astro, Szene in HangarApp.astro). Gegenstück zu holo-viewer.js:
 // dieselben Modelle (/holo/*.glb, Draco), hier aber lackiert, unter
 // Hallenlicht, umgeben von Arbeitern, Gerät und einem Tor zum All.
 //
@@ -25,7 +25,11 @@
 //
 // API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
-//         resetView(), onProgress(fn), dispose() }>
+//         resetView(), onProgress(fn), dispose(),
+//         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
+// project/focus/onFrame sind die Naht zur Oberfläche um die Szene
+// (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
+// Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -1352,8 +1356,11 @@ export async function initHangar(container, opts = {}) {
     for (const [l, t] of prog.values()) { a += l; b += t; }
     progressFn(b ? Math.min(90, Math.round((a / b) * 90)) : 0);
   }
-  const fetchGltf = (url, key = 'ship', guess = 8e6) => new Promise((resolve, reject) => {
+  // my: Marke des show(), das lädt. Ein überholtes show() lädt zu Ende,
+  // meldet aber keinen Fortschritt mehr: der Balken gehört dem gewählten Schiff.
+  const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => new Promise((resolve, reject) => {
     loader.load(url, resolve, (e) => {
+      if (my !== null && my !== token) return;
       prog.set(key, [e.loaded, e.total || Math.max(guess, e.loaded)]);
       report();
     }, reject);
@@ -1974,8 +1981,10 @@ export async function initHangar(container, opts = {}) {
     } catch { /* ohne Verdeckung weiter */ }
   }
 
-  let current = null;      // { group, born, mat, info }
+  let current = null;      // { group, model, born, mat, info }
   let leaving = null;      // { group, t0, c }
+  let homeTgt = null;      // Blickziel der Startansicht des aktuellen Schiffs
+  let frameFn = null;
   let token = 0;
   let liveryKey = 'werk';
   let makerCode = '';
@@ -2012,10 +2021,10 @@ export async function initHangar(container, opts = {}) {
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
     let gltf = null, textured = false;
     if (o.tex) {
-      try { gltf = await fetchGltf(o.tex, 'ship', 9e6); textured = true; } catch { gltf = null; }
+      try { gltf = await fetchGltf(o.tex, 'ship', 9e6, my); textured = true; } catch { gltf = null; }
       if (my !== token) { if (gltf) disposeObject(gltf.scene); return; }
     }
-    if (!gltf) gltf = await fetchGltf(url, 'ship', 3e6);
+    if (!gltf) gltf = await fetchGltf(url, 'ship', 3e6, my);
     if (my !== token) { disposeObject(gltf.scene); return; }   // überholt
 
     const model = gltf.scene;
@@ -2097,7 +2106,8 @@ export async function initHangar(container, opts = {}) {
     if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     if (current) { leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y }; }
     scene.add(ship);
-    current = { group: ship, born: performance.now(), mat, info, hull: textured ? hull : null };
+    homeTgt = tgt;
+    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship');
     reveal();
@@ -2136,8 +2146,55 @@ export async function initHangar(container, opts = {}) {
 
   function resetView() {
     touched = false;
-    flyTo(controls.target.clone(), homePos());
+    // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
+    const t = homeTgt ? homeTgt.clone() : controls.target.clone();
+    flyTo(t, HOME_DIR.clone().multiplyScalar(homeDist()).add(t));
     if (!reduceMotion) controls.autoRotate = true;
+  }
+
+  // Schnittstelle für die Oberfläche um die Szene (Hardpoint-Marker, Fokus).
+  // Punkte liegen im Modellraum der .glb (glTF-Achsen, Meter), demselben Raum
+  // wie ship-hardpoints.json nach (x, z, -y). Nur der Viewer kennt die
+  // Drehung, Zentrierung und Ein-/Ausfahrt, darum rechnet er hier um.
+  const projV = new THREE.Vector3();
+  function project(points, out = []) {
+    out.length = points.length;
+    const m = current && current.group.visible ? current.model.matrixWorld : null;
+    const w = W(), h = H();
+    for (let i = 0; i < points.length; i++) {
+      if (!m) { out[i] = null; continue; }
+      const p = points[i];
+      projV.set(p[0], p[1], p[2]).applyMatrix4(m);
+      const d = projV.distanceTo(camera.position);
+      projV.project(camera);
+      out[i] = projV.z > 1 ? null : { x: (projV.x + 1) * 0.5 * w, y: (1 - projV.y) * 0.5 * h, d };
+    }
+    return out;
+  }
+  function focus(p) {
+    if (!current) return;
+    if (!p) { resetView(); return; }
+    // Ziel aus der Ruhelage: waehrend der Einfahrt schwebt und dreht die
+    // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
+    // baseY gilt zur Zeit des Aufrufs; eine beim Platzieren gemerkte Matrix
+    // waere nach einem Hallenwechsel falsch. Wechselt die Halle erst danach,
+    // sinkt das Schiff unter die Kamera (.planning/notes/hangar-naht.md).
+    const g = current.group, y = g.position.y, ry = g.rotation.y;
+    g.position.y = g.userData.baseY; g.rotation.y = 0; g.updateMatrixWorld(true);
+    const tgt = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(current.model.matrixWorld);
+    g.position.y = y; g.rotation.y = ry; g.updateMatrixWorld(true);
+    // Von aussen durch den Hardpoint schauen, nicht durch den Rumpf: Richtung
+    // von der Schiffsmitte durch den Punkt, mit der aktuellen Ansicht
+    // gemischt. Bauchtuerme duerfen flach von der Seite gesehen werden, aber
+    // mindestens ~10 Grad ueber dem Boden.
+    const view = camera.position.clone().sub(controls.target).normalize();
+    const out = tgt.clone().sub(homeTgt ?? controls.target);
+    out.y = Math.max(out.y, 0);
+    const dir = out.lengthSq() > 1e-4 ? out.normalize().multiplyScalar(0.7).add(view.multiplyScalar(0.3)) : view;
+    dir.y = Math.max(dir.normalize().y, 0.17);
+    const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
+    touched = true; controls.autoRotate = false; clearTimeout(idleTimer);
+    flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
   }
 
   // Ruckelt das Bild, gibt die Bildschärfe in Stufen nach (bis Pixeldichte
@@ -2201,6 +2258,7 @@ export async function initHangar(container, opts = {}) {
     controls.update();
     adaptPixels(now);
     if (composer) composer.render(); else renderer.render(scene, camera);
+    if (frameFn) frameFn();
   }
 
   scaleWorld({ len: 14, halfW: 6, height: 4 });
@@ -2244,6 +2302,9 @@ export async function initHangar(container, opts = {}) {
     show,
     setLivery,
     resetView,
+    project,
+    focus,
+    onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
     dispose() {
       cancelAnimationFrame(raf);

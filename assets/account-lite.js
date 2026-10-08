@@ -1,9 +1,10 @@
-// VerseBase account-lite — Session-Anzeige + Favoriten für ALLE Seiten
-// außerhalb von /account/ (dort läuft das volle supabase-js).
+// VerseBase account-lite — Session-Anzeige für ALLE Seiten außerhalb von
+// /account/ (dort läuft das volle supabase-js).
 // Bewusst SDK-frei (~4 KB): liest die supabase-js-Session aus localStorage,
 // refresht sie bei Bedarf über die Auth-REST-API im selben Speicherformat und
-// spricht Favoriten direkt über PostgREST an. RLS schützt die Daten; der
-// Publishable Key ist öffentlich.
+// reicht Session + PostgREST-Aufruf an Seiten-Skripte weiter (VBAccount). Die
+// Schiffs-Favoriten (die Flotte) bedient assets/fleet.js. RLS schützt die
+// Daten; der Publishable Key ist öffentlich.
 (function () {
   'use strict';
   var SB_URL = 'https://trgjhmbnodoarnfmlcqx.supabase.co';
@@ -36,32 +37,71 @@
     try { localStorage.removeItem(STORE); } catch (e) { /* noop */ }
   }
 
+  function usable(sess) {
+    return expiresIn(sess) > 0 ? sess : null;
+  }
+
+  // Ein Refresh je Tab. Wer fragt, waehrend er laeuft, bekommt sein Ergebnis:
+  // null hiesse fuer ein Seitenskript "abgemeldet", und das storage-Ereignis,
+  // das den Irrtum aufloesen koennte, meldet der Browser nur ANDEREN Tabs.
+  var refreshing = null;
+  // Ein haengender Refresh hielte sonst jeden Aufrufer dieses Tabs fest
+  // (Navigation, Heartbeat, Seitenskripte ohne eigene Frist). Landet er
+  // spaeter doch, meldet vb-account-session die neue Sitzung.
+  var REFRESH_MS = 15000;
+
+  function announce() {
+    try { dispatchEvent(new Event('vb-account-session')); } catch (e) { /* noop */ }
+  }
+
+  // Nur eine Ablehnung des Tokens (400/401/403) meldet ab. 5xx, 429 oder ein
+  // fehlendes Netz lassen die Sitzung liegen, der naechste Versuch kann gelingen.
+  function refresh(sess) {
+    return fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: sess.refresh_token }),
+    })
+      .then(function (r) {
+        if (r.status === 400 || r.status === 401 || r.status === 403) {
+          clearSession();
+          return { sess: null, changed: true };
+        }
+        if (!r.ok) return { sess: usable(sess), changed: false };
+        return r.json().then(function (fresh) {
+          if (!fresh || !fresh.access_token) return { sess: usable(sess), changed: false };
+          if (!fresh.expires_at) fresh.expires_at = Math.floor(Date.now() / 1000) + (fresh.expires_in || 3600);
+          try { localStorage.setItem(STORE, JSON.stringify(fresh)); } catch (e) { /* noop */ }
+          return { sess: fresh, changed: true };
+        });
+      })
+      .catch(function () { return { sess: usable(sess), changed: false }; });
+  }
+
   // Refresht die Session, wenn sie (fast) abgelaufen ist. Lock verhindert
   // parallele Refreshes aus mehreren Tabs (GoTrue erlaubt Reuse ~10 s).
   function ensureSession() {
     var sess = readRaw();
     if (!sess || !sess.refresh_token) return Promise.resolve(null);
     if (expiresIn(sess) > 60) return Promise.resolve(sess);
+    if (refreshing) return refreshing;
 
     var now = Date.now();
     var lock = 0;
     try { lock = +localStorage.getItem(LOCK) || 0; } catch (e) { /* noop */ }
-    if (now - lock < 10000) return Promise.resolve(expiresIn(sess) > 0 ? sess : null);
+    if (now - lock < 10000) return Promise.resolve(usable(sess));
     try { localStorage.setItem(LOCK, String(now)); } catch (e) { /* noop */ }
 
-    return fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: sess.refresh_token }),
-    })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (fresh) {
-        if (!fresh || !fresh.access_token) { clearSession(); return null; }
-        if (!fresh.expires_at) fresh.expires_at = Math.floor(Date.now() / 1000) + (fresh.expires_in || 3600);
-        try { localStorage.setItem(STORE, JSON.stringify(fresh)); } catch (e) { /* noop */ }
-        return fresh;
-      })
-      .catch(function () { return expiresIn(sess) > 0 ? sess : null; });
+    var mine = refreshing = new Promise(function (resolve) {
+      var timer = setTimeout(function () { resolve(usable(sess)); }, REFRESH_MS);
+      refresh(sess).then(function (out) {
+        clearTimeout(timer);
+        resolve(out.sess);
+        if (out.changed) announce();
+      });
+    });
+    mine.then(function () { if (refreshing === mine) refreshing = null; });
+    return mine;
   }
 
   function rest(sess, method, path, body, prefer) {
@@ -88,7 +128,11 @@
   window.VBAccount = {
     /** Gespeicherte Session ohne Netz-Zugriff (evtl. abgelaufen) — nur für UI-Vorentscheidungen. */
     peek: readRaw,
-    /** Gültige Session (refresht bei Bedarf) oder null. */
+    /**
+     * Gültige Session oder null. Refresht bei Bedarf; wer während eines Refreshs
+     * fragt, wartet auf dessen Ergebnis. Nach einem Refresh in diesem Tab kommt
+     * vb-account-session wie nach einem Wechsel in einem anderen Tab.
+     */
     session: ensureSession,
     /** Authentifizierter PostgREST-Aufruf: rest(sess, 'GET', 'tabelle?select=*'). */
     rest: rest,
@@ -130,79 +174,6 @@
         return p.display_name || (p.handle ? '@' + p.handle : null);
       })
       .catch(function () { return null; });
-  }
-
-  // ---- Favoriten-Buttons ([data-fav]) --------------------------------------
-  function initFavs(sess) {
-    var btns = document.querySelectorAll('[data-fav]');
-    if (!btns.length) return;
-
-    function paint(btn, on) {
-      btn.classList.toggle('is-fav', on);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      var lbl = btn.getAttribute(on ? 'data-fav-on' : 'data-fav-off');
-      var txt = btn.querySelector('.js-fav-txt');
-      if (txt && lbl) txt.textContent = lbl;
-    }
-
-    if (!sess) {
-      for (var i = 0; i < btns.length; i++) {
-        (function (btn) {
-          paint(btn, false);
-          btn.addEventListener('click', function () {
-            location.href = window.VBAccount.loginHref();
-          });
-        })(btns[i]);
-      }
-      return;
-    }
-
-    for (var j = 0; j < btns.length; j++) {
-      (function (btn) {
-        var kind = btn.getAttribute('data-fav-kind');
-        var slug = btn.getAttribute('data-fav-slug');
-        var label = btn.getAttribute('data-fav-label') || slug;
-        var q = 'favorites?select=id&kind=eq.' + encodeURIComponent(kind) + '&slug=eq.' + encodeURIComponent(slug);
-        var favId = null;
-        var busy = false;
-        // Hat der User schon geklickt? Dann darf das (evtl. langsamere) initiale
-        // GET den vom Klick gesetzten Zustand NICHT mehr überschreiben — sonst
-        // zeigte der Stern nach einem schnellen Klick den falschen Zustand.
-        var touched = false;
-
-        rest(sess, 'GET', q)
-          .then(function (r) { return r.ok ? r.json() : []; })
-          .then(function (rows) {
-            if (touched) return;
-            favId = rows && rows.length ? rows[0].id : null;
-            paint(btn, !!favId);
-          })
-          .catch(function () { if (!touched) paint(btn, false); });
-
-        btn.addEventListener('click', function () {
-          if (busy) return;
-          touched = true;
-          busy = true;
-          ensureSession().then(function (s) {
-            if (!s) { busy = false; return; }
-            if (favId) {
-              rest(s, 'DELETE', 'favorites?id=eq.' + favId)
-                .then(function (r) { if (r.ok) { favId = null; paint(btn, false); } })
-                .finally(function () { busy = false; });
-            } else {
-              rest(s, 'POST', 'favorites', { kind: kind, slug: slug, label: label })
-                .then(function (r) {
-                  if (r.ok || r.status === 409) {
-                    return rest(s, 'GET', q).then(function (r2) { return r2.ok ? r2.json() : []; })
-                      .then(function (rows) { favId = rows && rows.length ? rows[0].id : null; paint(btn, !!favId); });
-                  }
-                })
-                .finally(function () { busy = false; });
-            }
-          });
-        });
-      })(btns[j]);
-    }
   }
 
   // ---- Rollen-basierter Zugriffs-Guard (user_roles Tabelle) ----------------
@@ -312,7 +283,6 @@
   function boot() {
     ensureSession().then(function (sess) {
       paintNav(sess);
-      initFavs(sess);
 
       if (sess) {
         startHeartbeat();
@@ -341,7 +311,7 @@
       var sess = readRaw();
       paintNav(sess);
       // Seiten-Apps (crafting-app.js …) ziehen ihren Konto-Zustand nach.
-      try { dispatchEvent(new Event('vb-account-session')); } catch (ex) { /* noop */ }
+      announce();
       if (sess) {
         startHeartbeat();
         fetchUsername(sess).then(function (uname) {
