@@ -2,11 +2,10 @@
 //
 // Die Flotte sind die Favoriten-Zeilen mit kind='ship' (slug = Fahrzeug-id);
 // dieselben Zeilen zeigt das Pilotenprofil unter „Fleet". Datenblatt-Stern und
-// Hangar schreiben sie nur hierüber. Vorher hatte jeder Knopf seinen eigenen
-// Zustand (account-lite.js initFavs, ein GET pro Knopf, ohne Gast-Weg) — zwei
-// Schreiber mit je eigenem Zustand laufen auseinander.
+// Hangar schreiben sie nur hierüber: zwei Schreiber mit je eigenem Zustand
+// laufen auseinander.
 //
-// API (für Hangar und Datenblatt festgelegt, .audit/arena/SYNTHESIS.md):
+// API (Hangar und Datenblatt verlassen sich darauf):
 //   VBFleet.ids() / has(id) / toggle(id, label) / subscribe(fn) / retry() / dismissMerged()
 //   snapshot = { ids, mode: 'guest'|'account', sync: 'local'|'syncing'|'synced'|'error',
 //                error: null|'offline'|'auth'|'write'|'read', merged }
@@ -72,7 +71,7 @@
   var wantPull = false;
   var paintQueued = false;
 
-  // ---- Ablage: was aus dem Speicher kommt, wird hier geprüft, nirgends sonst ----
+  // Was aus dem Speicher kommt, wird hier geprüft, nirgends sonst.
   function readJson(key) {
     var raw;
     try { raw = localStorage.getItem(key); } catch (e) { storageBroken = true; return null; }
@@ -155,7 +154,6 @@
     return typeof id === 'string' && id ? id : null;
   }
 
-  // ---- Sicht und Benachrichtigung ----
   // Im Kontomodus stehen Gast-Schiffe, deren Übernahme noch läuft, schon mit in
   // der Flotte — sonst verschwänden sie nach dem Anmelden bis zur Server-Antwort.
   function computeView() {
@@ -201,7 +199,6 @@
     notify();
   }
 
-  // ---- Modus ----
   function syncMode() {
     var id = peekId();
     if (!id) leave();
@@ -228,15 +225,14 @@
     mine.forEach(function (w) { w.resolve(has(w.id)); });
   }
 
-  // ---- Deklarative Knöpfe ----
   function paint() {
     var btns = document.querySelectorAll('[data-fleet-ship]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
       var on = has(b.getAttribute('data-fleet-ship'));
       var pressed = on ? 'true' : 'false';
-      // Nur bei Abweichung schreiben: der MutationObserver meldet jede Änderung
-      // zurück, und erst ein Durchlauf ohne Abweichung beendet die Runde.
+      // Nur bei Abweichung schreiben: auch ein Schreiben ohne Änderung meldet
+      // jeder MutationObserver der Seite.
       if (b.getAttribute('aria-pressed') !== pressed) b.setAttribute('aria-pressed', pressed);
       var lbl = b.getAttribute(on ? 'data-fleet-on' : 'data-fleet-off');
       var txt = b.querySelector('.js-fleet-txt');
@@ -272,7 +268,6 @@
     if (el.closest('[data-fleet-retry]')) request(true);
   }
 
-  // ---- Schreiben ----
   function toggle(id, label) {
     if (typeof id !== 'string' || !ID_RE.test(id)) return Promise.resolve(false);
     label = cleanLabel(label, id);
@@ -306,7 +301,6 @@
     return new Promise(function (resolve) { waiters.push({ id: id, resolve: resolve }); });
   }
 
-  // ---- Abgleich: ein Lauf nach dem anderen, auch über Tabs hinweg ----
   // Web Locks reihen die Läufe aller Tabs: ein zweiter Tab liest offene
   // Absichten erst, wenn der erste sie bestätigt hat, und schickt sie nicht
   // ein zweites Mal. Ohne Web Locks (ältere Browser) bleibt der Server-Stand
@@ -554,7 +548,6 @@
     if (rowCreated) created++;
   }
 
-  // ---- Start ----
   function onStorage(e) {
     var k = e ? e.key : null;
     if (k === null || k === GUEST_KEY || (uid && k === mirrorKey(uid))) refresh();

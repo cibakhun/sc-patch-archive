@@ -1,7 +1,7 @@
 // Der URL-Zustand des Hangars (assets/hangar-overview.js), mit woertlichen
 // URLs: jeder Zustand der Seite ist ein Link, alte '#<id>'-Links landen beim
 // richtigen Schiff, und "Link kopieren" nennt immer das Schiff, aber nie die
-// persoenlichen Dock-Filter (Graft 6 der Synthese). Der Controller hat beim
+// persoenlichen Dock-Filter. Der Controller hat beim
 // Import keine Seiteneffekte, die reinen Funktionen laufen direkt in node.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';

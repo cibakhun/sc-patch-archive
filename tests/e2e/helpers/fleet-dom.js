@@ -29,7 +29,7 @@ const CODE = fs.readFileSync(path.resolve('assets/fleet.js'), 'utf8');
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
 const tick = () => new Promise((r) => setImmediate(r));
 
-// ---- Mini-DOM: nur, was fleet.js anfasst --------------------------------
+// Mini-DOM: nur, was fleet.js anfasst.
 class El {
   constructor(tag, attrs = {}, text = '') {
     this.tagName = tag.toUpperCase();
@@ -66,7 +66,7 @@ class El {
   querySelector(sel) { return this.querySelectorAll(sel)[0] || null; }
 }
 
-// ---- Web Locks: eine Warteschlange je Name, über alle Tabs ---------------
+// Web Locks: eine Warteschlange je Name, über alle Tabs.
 function makeLocks() {
   const queues = new Map();
   const held = new Map();
@@ -100,7 +100,7 @@ function makeLocks() {
   };
 }
 
-// ---- Server: favorites mit RLS --------------------------------------------
+// Server: favorites mit RLS.
 function respond(status, body) {
   return { ok: status >= 200 && status < 300, status, json: () => Promise.resolve(clone(body ?? null)) };
 }

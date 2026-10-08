@@ -335,8 +335,6 @@ test('kaputte oder fremde Einträge im Speicher und ungültige ids werden überg
   assert.equal(broken.storage.get('vb.fleet.v1'), '{"ships":[{"id":"anvl-arrow","label":"Arrow"}]}');
 });
 
-// ---- Befunde der unabhängigen Prüfung (je ein Fall, der am alten Stand rot war) ----
-
 test('Abmelden, während ein Abgleich hängt: der Klick eines neuen Gasts landet nicht im alten Konto', async () => {
   const b = makeBrowser({ session: 'user-1' });
   b.server.hold('GET', 'after');

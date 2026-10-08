@@ -4,10 +4,9 @@
 // jedes Buchtdokuments, die Routen der Buchtdokumente und die Modellliste der
 // Szene (HANGAR_IDS).
 //
-// STATS ist das EINE Kennwert-Verzeichnis (Graft 4 der Synthese): wer einen
-// Kennwert ergaenzt, ergaenzt eine Zeile, und Balken, Sortierung, Vergleich und
-// Dock-Attribute folgen daraus. Der Richter fand im Entwurf die data-scm …
-// data-len des Docks von Hand neben der Liste gefuehrt.
+// STATS ist das EINE Kennwert-Verzeichnis: wer einen Kennwert ergaenzt,
+// ergaenzt eine Zeile, und Balken, Sortierung, Vergleich und Dock-Attribute
+// folgen daraus. Keine zweite Liste der Kennwerte daneben.
 //
 // Liest die rohe JSON statt getCollection('vehicles'), damit alles synchron
 // und rein bleibt; die Schema-Vorgaben des Inhaltsschemas werden dafuer an der
@@ -178,10 +177,10 @@ export function formatStat(key: StatKey, x: number | null, lang: Locale): string
   return unit ? `${num(r, lang)} ${unit}` : num(r, lang);
 }
 
-// Rang unter den Hangar-Schiffen mit positivem Wert, mindestens 4 % (die Regel
-// aus HangarApp.astro, unveraendert). Die sortierten Wertelisten entstehen
-// einmal beim Laden ueber HANGAR_IDS, nie pro Aufruf: kein Erstaufruf-Cache wie
-// bei buildVisuals/buildProfile, der spaetere Aufrufer still falsch bedient.
+// Rang unter den Hangar-Schiffen mit positivem Wert, mindestens 4 %. Die
+// sortierten Wertelisten entstehen einmal beim Laden ueber HANGAR_IDS, nie pro
+// Aufruf: kein Erstaufruf-Cache wie bei buildVisuals/buildProfile, der
+// spaetere Aufrufer still falsch bedient.
 const SORTED: Readonly<Partial<Record<StatKey, readonly number[]>>> = Object.fromEntries(
   STATS.filter((s) => s.sortable).map((s) => [
     s.key,

@@ -1981,7 +1981,7 @@ span.sd__ref{color:var(--muted)}
 .favbtn:hover{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .favbtn[aria-pressed="true"]{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 60%,transparent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
 .favbtn[aria-pressed="true"] .favbtn__star path{fill:currentColor}
-/* Sichtbar nur, solange das Konto einen Klick nicht angenommen hat — fleet.js nimmt hidden weg. */
+/* Sichtbar nur, wenn der Abgleich mit dem Konto scheiterte: fleet.js nimmt hidden weg und waehlt den Text. */
 .favretry{background:none;border:0;padding:.2rem 0;color:var(--text);cursor:pointer;
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-11);text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
 .favretry:hover{color:var(--accent)}

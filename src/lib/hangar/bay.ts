@@ -98,8 +98,6 @@ function kindOf(it: StockItem): SlotKind {
   }
 }
 
-// ---------------------------------------------------------------- Modell
-
 export interface Bay {
   readonly id: ShipId;
   readonly lang: Locale;
@@ -116,7 +114,6 @@ export interface BayHead {
   readonly name: string;
   /** Stufen kleiner fuer lange Namen im Titel ueber der Halle (nameStep). */
   readonly nameStep: 0 | 1 | 2;
-  /** 'Combat · Light Fighter' */
   readonly roleLine: string;
   readonly sheetHref: string;
   /** Text fuer die hoefliche Live-Region nach einem Wechsel: 'Gladius, Aegis Dynamics'. */
@@ -181,8 +178,6 @@ export interface Mark {
   readonly rows: readonly string[];
 }
 
-// ---------------------------------------------------------------- Item-Join
-
 // Dieselbe Normalisierung und dieselbe "erster gewinnt"-Regel wie
 // holoItems.ts, aber ohne dessen Praefix-Rueckfall: der kann falsch treffen,
 // und die Waffen joinen ohne ihn zu 505 von 508.
@@ -215,8 +210,6 @@ function joinItem(name: string, size: number | null): Joined | null {
 
 // FleetYards-Platzhalter wie in ShipDetail.astro realName(): gilt als unbenannt.
 const PLACEHOLDER = /placeholder|<=|=>|\bTBD\b/i;
-
-// ---------------------------------------------------------------- Kennwerte
 
 type T = ReturnType<typeof hangarT>;
 
@@ -280,8 +273,6 @@ const GROUP_TOTAL: Readonly<Record<GroupKey, (v: Vehicle, lang: Locale) => strin
   ore: () => null,
 };
 
-// ---------------------------------------------------------------- Zeilen
-
 /** Zwischenstand einer Zeile vor der Schluesselvergabe. */
 interface Draft {
   readonly kind: SlotKind;
@@ -333,8 +324,6 @@ function subLine(sub: Sub | null, j: Joined, t: T): string | null {
   }
   return null;
 }
-
-// ---------------------------------------------------------------- Bucht
 
 // Gemessen im Hangar-Titel (Orbitron 900, Zeilenbreite 520 px bei 1440 und
 // 1280, 358 px bei 390), breitester Name je Laenge: bis 11 Zeichen passt die

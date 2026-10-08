@@ -1,9 +1,9 @@
 // Serienausstattung je Port, verbunden mit den 3D-Hardpoints UEBER DEN
 // PORTNAMEN, im glTF-Modellraum, den /holo/<id>.glb und /hangar/ships/<id>.glb
-// teilen (vom Lead nachgemessen, .planning/notes/hangar-naht.md). Derselbe Join
-// laeuft heute inline in ShipDetail.astro; der Umzug dorthin ist vertagt
-// (Synthese, "Rejected"). Achsregel (toGltf, hullBox) und Auffaechern (fanOut)
-// liest das Hologramm des Datenblatts von hier.
+// teilen (Messung in .planning/notes/hangar-naht.md). Derselbe Join laeuft
+// inline in ShipDetail.astro; ihn hierher zu ziehen ist bewusst vertagt.
+// Achsregel (toGltf, hullBox) und Auffaechern (fanOut) liest das Hologramm des
+// Datenblatts von hier.
 //
 // Bestand am 07.10.2026: 3.621 Ports auf 223 Schiffen tragen 3.642 Eintraege,
 // 3.389 Ports haben einen Bone. 13 Ports tragen 2 bis 4 Items; sie bleiben ein

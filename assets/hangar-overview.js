@@ -228,8 +228,6 @@ export function pickRandom(ids, current, rnd = Math.random) {
   return pool.length ? pool[Math.floor(rnd() * pool.length)] : null;
 }
 
-// ---------------------------------------------------------------- die Seite
-
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
 export function boot(doc) {
   const $ = (id) => doc.getElementById(id);
@@ -342,7 +340,6 @@ export function boot(doc) {
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
   }
 
-  // -------------------------------------------------------------- Buchten
   // Die Bucht ist eine Momentaufnahme; eingesetzt wird immer eine Kopie,
   // weil die eingesetzte Region danach Zustand traegt (offene Zeilen).
   const REGIONS = ['head', 'panel', 'marks'];
@@ -455,7 +452,8 @@ export function boot(doc) {
   // Nur die Bucht: das Modell steht, seine Einfahrt soll nicht noch einmal laufen.
   $('hgx-bayretry').addEventListener('click', () => showBay(state.ship));
 
-  // -------------------------------------------------------------- Tabs (WAI-ARIA)
+  // Tabs nach dem WAI-ARIA-Muster: Pfeile, Pos1 und Ende wechseln, nur der
+  // gewaehlte Tab steht in der Tab-Folge.
   function applyTab() {
     for (const b of tabs) {
       const on = b.dataset.tab === state.tab;
@@ -481,7 +479,6 @@ export function boot(doc) {
     tabs[to].focus();
   });
 
-  // -------------------------------------------------------------- Zeilen und Hardpoint
   // hp ist der Port, den die geoeffnete Zeile meint. Traegt ein Port mehrere
   // Items, oeffnen alle Zeilen, die ihn fuehren: der Hardpoint traegt sie alle.
   function applyHp() {
@@ -525,7 +522,6 @@ export function boot(doc) {
     setState({ hp: btn.getAttribute('aria-expanded') === 'true' ? null : portFor(btn.closest('.hgx-slot')) });
   });
 
-  // -------------------------------------------------------------- Marker
   // HTML ueber der Leinwand, im Slot der Buehne (Region marks). Sie leben erst,
   // wenn BEIDES zum gewaehlten Schiff gehoert: das Modell steht (show() genau
   // dieser Auswahl ist fertig) und die Region ist eingesetzt. Sonst saessen
@@ -591,7 +587,6 @@ export function boot(doc) {
     if (e.key === 'Escape' && state.hp && !e.defaultPrevented && !dlg.open) setState({ hp: null });
   });
 
-  // -------------------------------------------------------------- Dock
   const cardOf = (id) => strip.querySelector(`.hg-card[data-id="${CSS.escape(id)}"]`);
   // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
   const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);
@@ -674,8 +669,8 @@ export function boot(doc) {
   $('hgx-sort').addEventListener('change', () => setState({ sort: $('hgx-sort').value }));
 
   // Pfeiltasten wechseln das Schiff nur, wenn der Fokus auf der Seite, der
-  // Buehne oder einer Dock-Karte liegt (Graft 7): jedes Bedienelement, das
-  // Pfeile selbst braucht, behaelt sie, ohne sich hier abmelden zu muessen.
+  // Buehne oder einer Dock-Karte liegt: jedes Bedienelement, das Pfeile selbst
+  // braucht, behaelt sie, ohne sich hier abmelden zu muessen.
   doc.addEventListener('keydown', (e) => {
     // Ein Klick auf Text im offenen Vergleich legt den Fokus auf den Body; das
     // Schiff hinter dem Dialog wechselt trotzdem nicht.
@@ -705,7 +700,6 @@ export function boot(doc) {
     if (prevShip !== state.ship) scrollToCard(state.ship);
   });
 
-  // -------------------------------------------------------------- Flotte
   // Klicks auf [data-fleet-ship] und [data-fleet-retry] bindet fleet.js
   // selbst; hier wird nur der Schnappschuss gezeichnet.
   const fleetBtn = $('hgx-fleet');
@@ -800,7 +794,6 @@ export function boot(doc) {
     announceFleet(before, fleetIds);
   }
 
-  // -------------------------------------------------------------- Vergleich
   // Spalten aus den Dock-Daten, keine Bucht; cmp[0] ist die Basis. Jedes
   // Schliessen aus dem Dialog geht ueber closeCompare(), damit der Eintrag,
   // den das Oeffnen anlegte, wieder verschwindet und Zurueck nichts doppelt.
@@ -932,7 +925,6 @@ export function boot(doc) {
     }
   });
 
-  // -------------------------------------------------------------- Link kopieren
   const copyBtn = $('hgx-copy');
   const copyField = $('hgx-copyfield');
   let copyTimer = 0;
@@ -955,7 +947,6 @@ export function boot(doc) {
     }
   });
 
-  // -------------------------------------------------------------- Viewer
   let viewer = null;
   const loadEl = $('hg-load');
   const bar = loadEl.querySelector('i');
@@ -1011,7 +1002,6 @@ export function boot(doc) {
       $('hg-fallback').hidden = false;
     });
 
-  // -------------------------------------------------------------- Start
   writeUrl();
   syncControls();
   syncFleetBtn();

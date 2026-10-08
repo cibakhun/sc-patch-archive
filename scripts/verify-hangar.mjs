@@ -39,9 +39,9 @@
      6  Groessendeckel: groesste Bucht, Summe je Sprache.
      7  Viewer-Naht: dist/assets/hangar-viewer.js liefert project, focus und
         onFrame. Reisst sie, nennt die Meldung .planning/notes/hangar-naht.md.
-     8  Import-Map vor dem ersten Modul-Skript auf beiden Hangarseiten
-        (Synthese, Graft 9): ein Modul-Skript davor laesst Chrome die Map
-        verwerfen, und three.js laedt nicht mehr.
+     8  Import-Map vor dem ersten Modul-Skript auf beiden Hangarseiten: ein
+        Modul-Skript davor laesst Chrome die Map verwerfen, und three.js
+        laedt nicht mehr.
      9  Jede Vorlage, die der Controller verlangt, steht auf beiden Seiten.
         Die Ids kommen aus dem ausgelieferten Code selbst (jeder msg('…')-
         Aufruf in dist/assets/hangar-overview.js), nicht aus einer Liste
@@ -130,7 +130,6 @@ if (!existsSync(join(DIST, 'hangar.html'))) {
   process.exit(2);
 }
 
-/* ---------- Hangarseiten lesen ---------- */
 const PAGES = [
   { lang: 'en', file: 'hangar.html' },
   { lang: 'de', file: 'de/hangar.html' },
@@ -157,7 +156,7 @@ function stageModels(html) {
   return { ids, bad };
 }
 
-/* ---------- Dock lesen: data-stats und data-v je Karte, wie der Client ---------- */
+// Das Dock so gelesen, wie der Client es liest: data-stats und data-v je Karte.
 function readDock(html) {
   const keys = (/id="hg-strip"[^>]*\sdata-stats="([^"]*)"/.exec(html)?.[1] ?? '').split(' ').filter(Boolean);
   const cards = [...html.matchAll(/<li data-id="([^"]+)"[^>]*\sdata-v="([^"]*)"/g)].map((m) => ({ id: m[1], v: m[2].split(' ') }));
@@ -166,7 +165,7 @@ function readDock(html) {
 }
 const DOCK = { en: readDock(PAGES[0].html), de: readDock(PAGES[1].html) };
 
-/* ---------- Buchten lesen (Regex, keine HTML-Bibliothek, wie audit-site) ---------- */
+// Buchten per Regex gelesen, keine HTML-Bibliothek: wie audit-site.
 const REGIONS = ['head', 'panel', 'marks'];
 function parseBay(file, html) {
   const id = /<main class="hgx-baydoc" data-bay-id="([^"]+)"/.exec(html)?.[1] ?? null;
@@ -211,7 +210,6 @@ function readBays(dir) {
 const BAYS = { en: readBays('hangar-bay'), de: readBays('de/hangar-bay') };
 const bayIds = (lang) => new Set(BAYS[lang].map((b) => b.name));
 
-/* ---------- [1] Eine Id-Menge an vier Stellen ---------- */
 say('\n[1] Eine Id-Menge: Dock, Modellliste, EN-Buchten, DE-Buchten (je Hangarseite)');
 for (const page of PAGES) {
   const stage = stageModels(page.html);
@@ -236,7 +234,6 @@ for (const page of PAGES) {
   for (const d of diffs) fail(`[1] ${page.file}: ${d}`);
 }
 
-/* ---------- [2] Buchtgestalt ---------- */
 say('\n[2] Buchtgestalt: Id = Datei, drei Regionen, Tabs der Seite, reines HTML');
 const pageTabs = (html) => [...html.matchAll(/role="tab" id="hgx-tab-([a-z]+)"/g)].map((m) => m[1]).join(' ');
 const refTabs = pageTabs(PAGES[0].html);
@@ -261,7 +258,6 @@ say(`    Tab-Folge: ${refTabs}`);
 sollIst(`0 abweichende von ${shapeChecked} Buchten`, shapeBad);
 if (!refTabs.includes('overview')) fail('[2] keine Bucht traegt ein Ueberblick-Panel');
 
-/* ---------- [3] Marker am Rumpf ---------- */
 say('\n[3a] Marker in der Rumpfbox und an einer Zeile, die ihren Port fuehrt (EN)');
 let markTotal = 0;
 const outside = [];
@@ -309,7 +305,6 @@ const ist = {
   schiffeMitWaffen: BAYS.en.filter((b) => b.rows.some((r) => r.tab === 'weapons')).length,
 };
 
-/* ---------- [4] EN gleich DE je Schiff ---------- */
 say('\n[4] EN gleich DE je Schiff: Zeilen und Marker');
 const deBy = new Map(BAYS.de.map((b) => [b.name, b]));
 const parity = [];
@@ -324,7 +319,6 @@ sollIst('0 Abweichungen', parity.length);
 for (const p of parity.slice(0, 10)) say(`      ${p}`);
 for (const p of parity) fail(`[4] ${p}`);
 
-/* ---------- [5] + [6] Klinken und Deckel ---------- */
 for (const lang of ['en', 'de']) {
   const sizes = BAYS[lang].map((b) => b.bytes);
   ist[`buchtMaxKB:${lang}`] = sizes.length ? Math.max(...sizes) / 1024 : 0;
@@ -347,7 +341,6 @@ for (const k of KLINKEN) {
   }
 }
 
-/* ---------- [7] Viewer-Naht ---------- */
 say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, onFrame');
 const viewerFile = join(DIST, 'assets', 'hangar-viewer.js');
 const viewer = existsSync(viewerFile) ? readFileSync(viewerFile, 'utf8') : '';
@@ -356,7 +349,6 @@ const seam = ['project', 'focus', 'onFrame'].filter((n) => new RegExp(`\\b${n}\\
 sollIst('project, focus, onFrame', seam.join(', ') || '—');
 if (seam.length !== 3) fail(`[7] dist/assets/hangar-viewer.js liefert nicht mehr ${['project', 'focus', 'onFrame'].filter((n) => !seam.includes(n)).join(', ')} — Absprache: .planning/notes/hangar-naht.md`);
 
-/* ---------- [8] Import-Map vor dem ersten Modul-Skript ---------- */
 say('\n[8] Import-Map vor dem ersten Modul-Skript (beide Hangarseiten)');
 for (const page of PAGES) {
   const map = page.html.search(/<script\b[^>]*type="importmap"/);
@@ -366,7 +358,6 @@ for (const page of PAGES) {
   if (!ok) fail(`[8] ${page.file}: ${map < 0 ? 'keine Import-Map' : 'ein Modul-Skript steht vor der Import-Map'} — three.js laedt dann nicht`);
 }
 
-/* ---------- [9] Vorlagen des Controllers ---------- */
 say('\n[9] Jede Vorlage aus msg(…) im Controller steht auf beiden Hangarseiten');
 const ctrlFile = join(DIST, 'assets', 'hangar-overview.js');
 const ctrl = existsSync(ctrlFile) ? readFileSync(ctrlFile, 'utf8') : '';
@@ -379,7 +370,6 @@ for (const page of PAGES) {
 }
 if (ctrl && !msgIds.length) fail('[9] keine msg(…)-Aufrufe im Controller gefunden — der Leser ist kaputt, nicht der Controller leer');
 
-/* ---------- [10] Dock-Daten, wie der Client sie liest ---------- */
 say('\n[10] Dock-Daten: data-v in der Folge von data-stats, gegen Vergleichstabelle, Sortierung und Ueberblick (beide Hangarseiten)');
 // Zahl einer Zeile des EN-Ueberblicks ("1,944.5 DPS", "21 m", "1"); der Strich ist unbekannt.
 const enNumber = (text) => (text.trim() === '–' ? null : Number(text.replace(/,/g, '').trim().split(' ')[0]));
@@ -419,7 +409,6 @@ for (const page of PAGES) {
   for (const o of off) fail(`[10] ${page.file}: ${o} — data-v und data-stats laufen auseinander (catalog.ts dockFigures)`);
 }
 
-/* ---------- [11] Ports gegen die Portregel des Controllers ---------- */
 say('\n[11] Jeder Port der Buchten passt auf PORT_RE des Controllers (EN und DE)');
 const portRule = /const PORT_RE = \/(.+)\/([a-z]*);/.exec(ctrl);
 if (!portRule) fail('[11] dist/assets/hangar-overview.js nennt keine PORT_RE mehr — der Leser ist kaputt oder die Regel ist umgezogen');
