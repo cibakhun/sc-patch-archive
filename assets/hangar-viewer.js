@@ -1295,6 +1295,7 @@ export async function initHangar(container, opts = {}) {
     if (realHall) {
       const k = realHallScale(realHall.room);
       hallRoot.scale.setScalar(k);
+      hallNoTileInvK.value = 1 / k;
       for (const pv of realHall.furniture) pv.scale.setScalar(1 / k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
@@ -1803,11 +1804,16 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
 	vec4 a = textureGrad( s, uv + oa, dx, dy ), b = textureGrad( s, uv + ob, dx, dy );
 	return mix( a, b, smoothstep( 0.2, 0.8, f - 0.1 * dot( a.rgb - b.rgb, vec3( 1.0 ) ) ) );
 }`;
+  // Lage im Hallenmodell: Welt durch k. Die Knoten der Halle haben je eigene
+  // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
+  // Rauschen. Ein Wert für alle Hallenmaterialien, scaleWorld setzt ihn.
+  const hallNoTileInvK = { value: 1 };
   const hallShader = (m) => (sh) => {
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
+    sh.uniforms.hgInvK = hallNoTileInvK;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vHgP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = position;');
+      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\n' + HALL_NO_TILE_GLSL)
       .replace('#include <map_fragment>', `#ifdef USE_MAP

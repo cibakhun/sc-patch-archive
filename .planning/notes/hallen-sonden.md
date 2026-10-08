@@ -127,7 +127,8 @@ Bitte nur melden, nichts ändern oder pushen:
 1. `COLOR_0` im Rohexport `.cache/hangar-src/hall/revelyork-single.glb`:
    für die zehn größten Materialien (nach Dreiecken) je Kanal R, G, B, A
    Minimum, Maximum und Mittel, dazu der Anteil der Vertices mit A < 0,98
-   und mit RGB < 0,98. Als Tabelle in die Rückmeldung.
+   und der Anteil mit min(R, G, B) < 0,98 (mindestens ein Farbkanal
+   darunter). Als Tabelle in die Rückmeldung.
 2. Aus den `.mtl` unter `.cache/hangar-src/hall-raw/` für dieselben
    Materialien je eine Zeile: `Shader`, `StringGenMask`, jede
    `<Texture Map=… File=…>` mit ihrem `TexMod` (TileU, TileV, TexGenType)
