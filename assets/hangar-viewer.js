@@ -23,7 +23,7 @@
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights? }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights?, probes? }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose() }>
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
@@ -1399,6 +1399,8 @@ export async function initHangar(container, opts = {}) {
   let composerReady = Promise.resolve();
   // Spiellampen stehen (true) oder kommen nicht (false); vorher wird nichts übersetzt
   let lampsReady = Promise.resolve(false);
+  // Spiegelungssonde aus dem Spiel ({ tex, name }) oder null
+  let probeReady = Promise.resolve(null);
   // Übersetzen, ohne die Seite anzuhalten. Mit KHR_parallel_shader_compile
   // (Chrome/Edge unter Windows) läuft es in Hintergrundfäden, und
   // compileAsync wartet ohne zu blockieren. Ohne die Erweiterung blockiert
@@ -1672,8 +1674,18 @@ export async function initHangar(container, opts = {}) {
   // die Aufnahme für jedes Hallenmaterial ein eigenes Shaderprogramm, das
   // mitten im Laden übersetzt wird; die Hallenmaterialien spiegeln dabei
   // kaum (0,05), es schaukelt sich nichts auf.
-  const HALL_ENV = 0.8;    // envMapIntensity der Hallenmaterialien mit Sonde
+  // Die Kugel trägt damit nur das direkte Licht der sechs Lampen; dass die
+  // weiße Halle es mehrfach zurückwirft und im Spiel 350 weitere Lampen
+  // brennen, gleicht die volle Stärke aus (am Render: 0,8 ließ Wände und
+  // Decke grau, darüber verflacht das Bild wieder).
+  const HALL_ENV = 1;      // envMapIntensity der Hallenmaterialien mit Sonde
   let hallEnv = null;
+  // Die Umgebung hängt an jedem Hallenmaterial selbst, nicht nur an der
+  // Szene: three nimmt für Materialien ohne eigene envMap die Stärke aus
+  // scene.environmentIntensity und übergeht envMapIntensity (r185,
+  // WebGLRenderer.setProgram). Dieselbe Kugel wie scene.environment, also
+  // dasselbe Shaderprogramm.
+  const setHallEnv = (tex) => { for (const m of realHall.mats) if (m.isMeshStandardMaterial) m.envMap = tex; };
   function captureHallEnv(force = false) {
     if (!realHall || !HALL_PROBE) return;
     if (hallEnv && !force) return;
@@ -1685,6 +1697,7 @@ export async function initHangar(container, opts = {}) {
     const gain = new Map();
     for (const m of realHall.mats) { gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05); }
     scene.environment = envRT.texture;
+    setHallEnv(envRT.texture);
     const pm = new THREE.PMREMGenerator(renderer);
     const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     pm.dispose();
@@ -1694,11 +1707,64 @@ export async function initHangar(container, opts = {}) {
     hallEnv?.dispose();
     hallEnv = rt;
     scene.environment = rt.texture;
+    setHallEnv(rt.texture);
     if (!realHall.envOn) {
       realHall.envOn = true;
       for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
       hallStage();
     }
+  }
+
+  // Spiegelungssonde aus dem Spiel (<halle>.probes.json und Equirect-HDR,
+  // PC-Lauf „Hallensonden“): im Spiel mit allen Lampen der Halle aufgenommen,
+  // nicht nur mit den sechs, die hier brennen. Genommen wird die Sonde, deren
+  // Box die Plattform enthält (sonst die nächste); sie ersetzt die selbst
+  // aufgenommene Kugel. Fehlt sie, bleibt es bei der Aufnahme.
+  // PROBE_GAIN: Helligkeit der Sonde gegen die Lampen, die mit
+  // HALL_LIGHT_SCALE laufen; am Render abzugleichen, sobald es sie gibt.
+  const PROBE_GAIN = 1;
+  async function loadHallProbe(h) {
+    if (!HALL_PROBE || !h?.probes) return null;
+    try {
+      const r = await fetch(h.probes);
+      if (!r.ok) return null;
+      const list = ((await r.json()).probes || []).filter((p) => p.spec && Array.isArray(p.pos));
+      if (!list.length) return null;
+      const c = h.room.center, f = Number.isFinite(h.floor) ? h.floor : c[1];
+      const pad = [c[0], f + 2.5, c[2]];
+      const d2 = (p) => p.pos.reduce((q, v, i) => q + (v - pad[i]) ** 2, 0);
+      const holds = (p) => Array.isArray(p.box) && p.pos.every((v, i) => Math.abs(pad[i] - v) <= p.box[i]);
+      const pick = [...list].sort((a, b) => (holds(b) - holds(a)) || ((b.priority ?? 0) - (a.priority ?? 0)) || (d2(a) - d2(b)))[0];
+      const u = new URL(h.probes, location.href);
+      const { HDRLoader } = await import('three/addons/loaders/HDRLoader.js');
+      const tex = await new HDRLoader().loadAsync(u.pathname.replace(/\.json$/, '/') + pick.spec + u.search);
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      return { tex, name: pick.name };
+    } catch (e) {
+      console.warn('[hangar] Sonde nicht geladen', e);
+      return null;
+    }
+  }
+  // Über eine Hilfsszene mit der Sonde als Hintergrund, nicht über
+  // fromEquirectangular: Dort hinge die Größe der Kugel an der Bildbreite,
+  // eine andere als 256 übersetzte jedes Material neu.
+  function useHallProbe({ tex, name }) {
+    const sky = new THREE.Scene();
+    sky.background = tex;
+    sky.backgroundIntensity = PROBE_GAIN;
+    const pm = new THREE.PMREMGenerator(renderer);
+    const rt = pm.fromScene(sky, 0, 0.1, 10, { size: 256 });
+    pm.dispose();
+    tex.dispose();
+    hallEnv?.dispose();
+    hallEnv = rt;
+    scene.environment = rt.texture;
+    setHallEnv(rt.texture);
+    realHall.envOn = true;
+    realHall.probe = name;
+    for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
+    hallStage();
+    console.info(`[hangar] Spiegelungssonde ${name} aus dem Spiel`);
   }
 
   // Rauheit nur nach unten begrenzen: spiegelglatte Stellen bündeln das
@@ -1776,7 +1842,9 @@ export async function initHangar(container, opts = {}) {
           // blaue Flächen, glatter Kunststoff als Gleißen.
           // Die Ersatzhalle als Umgebung macht den Raum gleichmäßig hell:
           // in der echten Halle fast ganz zurücknehmen, Licht kommt von den Lampen.
+          // (Greift nur mit eigener envMap, siehe setHallEnv.)
           m.envMapIntensity = 0.05;
+          if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
           // Die Lackschichten der Halle liefern reinweiße Grundfarben, die
           // im Spiel erst Tönung und Schmutz abdunkeln: ohne das ist jede
           // Wand ein Leuchtkasten.
@@ -1832,7 +1900,8 @@ export async function initHangar(container, opts = {}) {
       renderer.toneMappingExposure = 0.9;
       if (current) { current.group.userData.baseY = 0.02; }
       if (lastInfo) scaleWorld(lastInfo);
-      captureHallEnv(true);
+      const probe = await probeReady;
+      if (probe) useHallProbe(probe); else captureHallEnv(true);
       // die Kamera stand womöglich für die gebaute (größere) Halle
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
@@ -2139,6 +2208,7 @@ export async function initHangar(container, opts = {}) {
     // unsichtbar, bis Halle und Schiff fertig sind (reveal)
     renderer.domElement.style.opacity = '0';
     lampsReady = loadHallLights(opts.hall);
+    probeReady = loadHallProbe(opts.hall);
     composerReady = lampsReady.then(() => enableAO());
     loadRealHall(opts.hall);
   }
