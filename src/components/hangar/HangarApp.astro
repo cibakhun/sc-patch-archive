@@ -64,7 +64,7 @@ const lite = liteFile && existsSync(liteFile) && hallAsset?.url !== `/hangar/hal
   ? { url: `/hangar/hall/${hallKey}-lod1.glb?v=${contentV([liteFile])}`, bytes: statSync(liteFile).size }
   : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
-const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite } : null;
+const hall = hallAsset?.room ? { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 

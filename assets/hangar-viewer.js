@@ -19,11 +19,13 @@
 //
 // HALLE: liegt eine echte Halle vor (opts.hall), ersetzt sie nach dem Laden
 // die gebaute Halle; bis dahin (und wenn sie scheitert) steht die gebaute.
+// hall.id wählt in HALL_DROP die Spielteile, die der Viewer beim Laden aus
+// der Halle schneidet (ohne id: keine).
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
@@ -103,6 +105,114 @@ float pLine(vec2 q, float sz) {
   return (1.0 - smoothstep(0.007 * sz, 0.007 * sz + aa, d)) * (1.0 - smoothstep(sz * 0.05, sz * 0.16, aa));
 }
 `;
+
+// Spielteile, die in der Halle nicht stehen sollen, je Halle (Schlüssel wie
+// in hangar-assets.json) und je Teil mit Anlass. Die Halle kommt nach
+// Material zusammengelegt, ein Knoten je Material: Ein einzelnes Teil lässt
+// sich nicht ausblenden, nur aus den Dreiecken schneiden. Es fällt nur, was
+// als ganzes Teil (gemeinsame Ecken auf 5 mm) in `reach` liegt und mit
+// mindestens einer Ecke in `seen` (im Raum, nicht hinter der Wand). Reicht
+// ein Teil über `reach` hinaus (Boden, Wand, Galerie), bleibt es ganz;
+// so entsteht kein Loch, und jede Baustufe der Halle trifft dieselbe Regel.
+// Modellraum der Halle (glTF-Achsen, Meter). Der Block ist JSON:
+// verify:hangar-hall liest ihn aus dem ausgelieferten Viewer und prüft am
+// ausgelieferten GLB, dass jeder Eintrag noch mindestens `min` Dreiecke
+// trifft, sonst ist er ein Zombie.
+const HALL_DROP = /* hall-drop */ {
+  "revelyork-single": [
+    {
+      "why": "Ausgangs-Wandstück (Trennwand mit Türrahmen, Leitungen und zwei Stangen bis unter die Galerie) stand frei vor der Stirnwand; Betreiber am 08.10.2026: „random zeug, kann weg“",
+      "reach": [[27.9, 0.9, -20.1], [29.5, 17.2, 4.1]],
+      "seen": [[27.9, 0.9, -20.1], [29.5, 17.2, -1.5]],
+      "min": 5000
+    }
+  ]
+} /* /hall-drop */;
+
+// Schneidet die Teile eines HALL_DROP-Eintrags aus den Indexpuffern der
+// Halle, vor dem Hochladen. Liefert je Eintrag { why, tris, parts }.
+function dropHallParts(model, list) {
+  const out = [];
+  if (!list?.length) return out;
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const meshes = [], uses = new Map();
+  model.traverse((n) => {
+    if (!n.isMesh || !n.geometry.index) return;
+    meshes.push(n);
+    uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1);
+  });
+  const M = new THREE.Matrix4(), Mi = new THREE.Matrix4(), v = new THREE.Vector3();
+  const bb = new THREE.Box3(), rb = new THREE.Box3(), lb = new THREE.Box3();
+  for (const d of list) {
+    const [r0, r1] = d.reach, [s0, s1] = d.seen;
+    rb.min.fromArray(r0); rb.max.fromArray(r1);
+    // Ecke -> Nummer über die Lage (5 mm), damit Teile über Material- und
+    // Knotengrenzen zusammenhängen; Union-Find über diese Nummern
+    const ids = new Map(), par = [], seen = [];
+    const find = (i) => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
+    const work = [];
+    for (const mesh of meshes) {
+      const g = mesh.geometry;
+      // geteilte Geometrie (Einrichtung, mehrfach gestellt) und Gruppen bleiben unberührt
+      if (uses.get(g) > 1 || g.groups.length) continue;
+      M.multiplyMatrices(toModel, mesh.matrixWorld);
+      if (!g.boundingBox) g.computeBoundingBox();
+      if (!bb.copy(g.boundingBox).applyMatrix4(M).intersectsBox(rb)) continue;
+      const P = g.attributes.position, kid = new Int32Array(P.count).fill(-1);
+      // erst grob im Knotenraum gegen reach, dorthin gedreht, dann genau
+      lb.copy(rb).applyMatrix4(Mi.copy(M).invert());
+      const raw = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize === 3 ? P.array : null;
+      const { min: a, max: b } = lb;
+      let any = false;
+      for (let i = 0; i < P.count; i++) {
+        if (raw) {
+          const x = raw[i * 3], y = raw[i * 3 + 1], z = raw[i * 3 + 2];
+          if (x < a.x || x > b.x || y < a.y || y > b.y || z < a.z || z > b.z) continue;
+        }
+        v.fromBufferAttribute(P, i).applyMatrix4(M);
+        if (v.x < r0[0] || v.x > r1[0] || v.y < r0[1] || v.y > r1[1] || v.z < r0[2] || v.z > r1[2]) continue;
+        const k = (Math.round(v.x * 200) + 65536) * 17179869184 + (Math.round(v.y * 200) + 65536) * 131072 + (Math.round(v.z * 200) + 65536);
+        let id = ids.get(k);
+        if (id === undefined) { id = par.length; par.push(id); seen.push(0); ids.set(k, id); }
+        if (v.x >= s0[0] && v.x <= s1[0] && v.y >= s0[1] && v.y <= s1[1] && v.z >= s0[2] && v.z <= s1[2]) seen[id] = 1;
+        kid[i] = id;
+        any = true;
+      }
+      if (any) work.push({ g, kid });
+    }
+    // Dreiecke ganz in reach verbinden; ragt eines hinaus, hält es seine
+    // Ecken in reach fest (das Teil reicht weiter und bleibt)
+    const anchors = [];
+    for (const { g, kid } of work) {
+      const I = g.index.array;
+      for (let t = 0; t + 2 < I.length; t += 3) {
+        const a = kid[I[t]], b = kid[I[t + 1]], c = kid[I[t + 2]];
+        if (a >= 0 && b >= 0 && c >= 0) { const r = find(a); par[find(b)] = r; par[find(c)] = r; }
+        else { if (a >= 0) anchors.push(a); if (b >= 0) anchors.push(b); if (c >= 0) anchors.push(c); }
+      }
+    }
+    const held = new Set(anchors.map(find)), shown = new Set();
+    for (let i = 0; i < seen.length; i++) if (seen[i]) shown.add(find(i));
+    const gone = new Set();
+    let tris = 0;
+    for (const { g, kid } of work) {
+      const I = g.index.array, keep = new I.constructor(I.length);
+      let n = 0;
+      for (let t = 0; t + 2 < I.length; t += 3) {
+        const a = kid[I[t]];
+        if (a >= 0 && kid[I[t + 1]] >= 0 && kid[I[t + 2]] >= 0) {
+          const r = find(a);
+          if (!held.has(r) && shown.has(r)) { gone.add(r); tris++; continue; }
+        }
+        keep[n++] = I[t]; keep[n++] = I[t + 1]; keep[n++] = I[t + 2];
+      }
+      if (n < I.length) g.setIndex(new THREE.BufferAttribute(keep.slice(0, n), 1));
+    }
+    out.push({ why: d.why, tris, parts: gone.size });
+  }
+  return out;
+}
 
 // Hallen-UVs prüfen: Ist bei einem Material der Großteil der Dreiecke ohne
 // UV-Fläche (zerquantisierte Spiel-UVs, scripts/lib/uv-islands.mjs), erscheint
@@ -1555,6 +1665,86 @@ export async function initHangar(container, opts = {}) {
     return s;
   }
 
+  // Licht der übrigen Spiellampen als Lichtgitter. Echt brennen nur die
+  // sechs oben; die übrigen gut 300 im Raum (Wandleuchten, Eck-Lichtsäulen,
+  // Spots über der Stirnwand, Galerie) trugen nichts bei, und jede Wand
+  // stand im selben flachen Grau aus Halbkugel und Umgebungskugel. Hier
+  // wird ihr Licht einmal beim Laden auf ein Gitter im Modellraum gerechnet,
+  // je Zelle als Würfel aus sechs Richtungen (Helligkeit je ±x, ±y, ±z und
+  // eine Lichtfarbe), so wie three.js die echten Lampen rechnet (Stärke mal
+  // HALL_LIGHT_SCALE, 1/d² bis zur Reichweite, Kegel), nur ohne Schatten.
+  // Der Hallenshader liest es als Streulicht: zwei Abrufe je Bildpunkt statt
+  // einer Lampe je Spiellampe. Wände, Boden und Decke liegen achsparallel,
+  // für sie ist der Würfel genau. Lampen außerhalb des Raums bleiben
+  // draußen, ohne Schatten schienen sie sonst durch die Wand.
+  const VOL_STEP = 2;   // Gitterweite in Modellmetern
+  const VOL_SOFT = 1;   // m: näher wird keine Lampe heller (Leuchte statt Punkt)
+  const VOL_GAIN = 1;   // Stärke gegen die echten Lampen, am Render abgeglichen
+  const hallVol = {
+    a: { value: null }, b: { value: null }, on: { value: 0 },
+    min: { value: new THREE.Vector3() }, inv: { value: 1 / VOL_STEP }, res: { value: new THREE.Vector3(1, 1, 1) },
+  };
+  function buildHallVolume(list, room, f) {
+    const { center: c, halfW, halfL, height } = room;
+    const x0 = c[0] - halfW, y0 = f - 1, z0 = c[2] - halfL;
+    const nx = Math.round((2 * halfW) / VOL_STEP) + 1, ny = Math.ceil((height + 1) / VOL_STEP) + 1, nz = Math.round((2 * halfL) / VOL_STEP) + 1;
+    const N = nx * ny * nz, face = new Float32Array(N * 6), rgb = new Float32Array(N * 3);
+    const lo = [x0 - 0.5, y0 - 0.5, z0 - 0.5], hi = [x0 + 2 * halfW + 0.5, f + height + 0.5, z0 + 2 * halfL + 0.5];
+    const soft = VOL_SOFT * VOL_SOFT;
+    let used = 0;
+    for (const l of list) {
+      if (!l.pos.every((v, i) => v >= lo[i] && v <= hi[i])) continue;
+      const R = l.radius || 30, R4 = R ** 4, I = l.intensity * HALL_LIGHT_SCALE * VOL_GAIN;
+      const col = l.color || [1, 1, 1], lum = 0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2];
+      // Kegel wie bei den echten Lampen: Spot mit Halbschatten 0,5, Flächenlicht weich bis zur Achse
+      const spot = l.type === 'spot', dir = aimed(l) ? l.dir : null;
+      const half = spot ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF;
+      const cosO = Math.cos(half), cosI = Math.cos(spot ? half * 0.5 : 0);
+      const [px, py, pz] = l.pos;
+      const i0 = Math.max(0, Math.floor((px - R - x0) / VOL_STEP)), i1 = Math.min(nx - 1, Math.ceil((px + R - x0) / VOL_STEP));
+      const j0 = Math.max(0, Math.floor((py - R - y0) / VOL_STEP)), j1 = Math.min(ny - 1, Math.ceil((py + R - y0) / VOL_STEP));
+      const k0 = Math.max(0, Math.floor((pz - R - z0) / VOL_STEP)), k1 = Math.min(nz - 1, Math.ceil((pz + R - z0) / VOL_STEP));
+      used++;
+      for (let k = k0; k <= k1; k++) for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const dx = px - (x0 + i * VOL_STEP), dy = py - (y0 + j * VOL_STEP), dz = pz - (z0 + k * VOL_STEP);
+        const d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 >= R * R) continue;
+        const d = Math.sqrt(d2) || 1, w = 1 - (d2 * d2) / R4;
+        let E = (I / (d2 + soft)) * w * w;
+        if (dir) {
+          const cs = -(dir[0] * dx + dir[1] * dy + dir[2] * dz) / d;
+          if (cs <= cosO) continue;
+          const t = Math.min(1, (cs - cosO) / (cosI - cosO));
+          E *= t * t * (3 - 2 * t);
+        }
+        if (E < 1e-4) continue;
+        // Richtung zur Lampe: Eine Fläche mit Normale +x empfängt, was von +x kommt
+        const n = (k * ny + j) * nx + i, e = (E * lum) / d, lx = dx * e, ly = dy * e, lz = dz * e;
+        if (lx > 0) face[n * 6] += lx; else face[n * 6 + 1] -= lx;
+        if (ly > 0) face[n * 6 + 2] += ly; else face[n * 6 + 3] -= ly;
+        if (lz > 0) face[n * 6 + 4] += lz; else face[n * 6 + 5] -= lz;
+        rgb[n * 3] += E * col[0]; rgb[n * 3 + 1] += E * col[1]; rgb[n * 3 + 2] += E * col[2];
+      }
+    }
+    // zwei RGBA-Halbfloat-Texturen: A = +x −x +y −y, B = +z −z und die
+    // Lichtfarbe als Rot und Blau je Helligkeit (Grün folgt daraus)
+    const A = new Uint16Array(N * 4), B = new Uint16Array(N * 4), h = THREE.DataUtils.toHalfFloat;
+    for (let n = 0; n < N; n++) {
+      for (let s = 0; s < 4; s++) A[n * 4 + s] = h(face[n * 6 + s]);
+      B[n * 4] = h(face[n * 6 + 4]); B[n * 4 + 1] = h(face[n * 6 + 5]);
+      const r = rgb[n * 3], g = rgb[n * 3 + 1], b = rgb[n * 3 + 2], L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      B[n * 4 + 2] = h(L > 1e-6 ? r / L : 1); B[n * 4 + 3] = h(L > 1e-6 ? b / L : 1);
+    }
+    const tex = (arr) => {
+      const t = new THREE.Data3DTexture(arr, nx, ny, nz);
+      t.type = THREE.HalfFloatType; t.format = THREE.RGBAFormat;
+      t.minFilter = t.magFilter = THREE.LinearFilter;
+      t.unpackAlignment = 1; t.needsUpdate = true;
+      return t;
+    };
+    return { a: tex(A), b: tex(B), min: [x0, y0, z0], res: [nx, ny, nz], used };
+  }
+
   // Halle samt Lampen: hallRoot steht ab dem Start in der Szene (die Leinwand
   // ist bis zum ersten Bild verborgen) und trägt erst die Lampen, dann das
   // Modell, beide im Modellraum der Halle verschoben (Bodenmitte = Ursprung).
@@ -1625,6 +1815,15 @@ export async function initHangar(container, opts = {}) {
     hallRoot.add(lamps);
     if (!hallRoot.parent) scene.add(hallRoot);
     hallLamps = lamps;
+    // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
+    const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
+    const t0 = performance.now();
+    const vol = buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f);
+    hallVol.a.value = vol.a; hallVol.b.value = vol.b;
+    hallVol.min.value.set(vol.min[0] - c[0], vol.min[1] - f, vol.min[2] - c[2]);
+    hallVol.res.value.set(...vol.res);
+    hallVol.on.value = 1;
+    console.info(`[hangar] Lichtgitter ${vol.res.join('x')} aus ${vol.used} Spiellampen, ${Math.round(performance.now() - t0)} ms`);
     // Das Bühnenlicht geht ganz: Auf null gedreht stünde es weiter in jedem
     // Shader und kostete jedes Pixel.
     scene.remove(key, rim, fill, doorLight);
@@ -1824,6 +2023,18 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
 	vec2 dx = dFdx( uv ), dy = dFdy( uv );
 	vec4 a = textureGrad( s, uv + oa, dx, dy ), b = textureGrad( s, uv + ob, dx, dy );
 	return mix( a, b, smoothstep( 0.2, 0.8, f - 0.1 * dot( a.rgb - b.rgb, vec3( 1.0 ) ) ) );
+}
+uniform highp sampler3D hgVolA, hgVolB;
+uniform vec3 hgVolMin, hgVolRes;
+uniform float hgVolInv, hgVolOn;
+// Lichtgitter (buildHallVolume): eine halbe Zelle vor der Fläche gelesen,
+// je Achse die Seite, in die die Normale zeigt, gewichtet mit n².
+vec3 hgVolume( vec3 p, vec3 n ) {
+	vec3 uvw = ( ( p + n * ( 0.5 / hgVolInv ) - hgVolMin ) * hgVolInv + 0.5 ) / hgVolRes;
+	vec4 a = texture( hgVolA, uvw ), b = texture( hgVolB, uvw );
+	vec3 q = n * n;
+	float l = q.x * ( n.x > 0.0 ? a.x : a.y ) + q.y * ( n.y > 0.0 ? a.z : a.w ) + q.z * ( n.z > 0.0 ? b.x : b.y );
+	return l * vec3( b.z, ( 1.0 - 0.2126 * b.z - 0.0722 * b.w ) / 0.7152, b.w );
 }`;
   // Lage im Hallenmodell: Welt durch k. Die Knoten der Halle haben je eigene
   // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
@@ -1832,6 +2043,8 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
   const hallShader = (m) => (sh) => {
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
+    sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
+    sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;');
@@ -1841,7 +2054,8 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
 	diffuseColor *= sampledDiffuseColor;
 #endif`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);');
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);')
+      .replace('#include <lights_fragment_begin>', '#include <lights_fragment_begin>\n\tif ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );');
   };
   const hallKey = () => 'hall-v2';
 
@@ -1892,6 +2106,12 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
           pivots.set(id, pv);
         }
         pv.attach(n);
+      }
+      const t0 = performance.now();
+      for (const r of dropHallParts(model, HALL_DROP[h.id])) {
+        const ms = Math.round(performance.now() - t0);
+        if (r.tris) console.info(`[hangar] Halle: ${r.tris} Dreiecke in ${r.parts} Teilen entfernt (${r.why.split(' (')[0]}), ${ms} ms`);
+        else console.warn(`[hangar] Halle: Ausnahme trifft nichts mehr: ${r.why}`);
       }
       const uvStats = hallUvStats(model);
       const boxed = new Set(), seen = new Set();
@@ -2377,6 +2597,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
       disposeObject(scene);
       envRT.dispose();
       hallEnv?.dispose();
+      hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
       composer?.dispose();
       draco.dispose();
       renderer.dispose();
