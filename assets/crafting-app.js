@@ -351,6 +351,21 @@
   // den ersten zurück. Was offen ist, liest jeder Zug erst beim Start. Ohne
   // Web Locks (ältere Browser) reiht nur die Kette dieses Tabs.
   var chain = Promise.resolve();
+  // Jeder Schritt eines Zugs endet spätestens nach 20 s, wie in assets/fleet.js:
+  // die Sitzungsprüfung und jede Anfrage samt Antwortkörper. fetch hat keine
+  // Frist; käme eine Antwort nie (Funkloch, halb offene Verbindung), endete
+  // der Zug nie, und die Sperre hielte jeden Zug jedes Tabs fest, auch
+  // „Erneut versuchen". Nach der Frist endet der Zug wie ohne Netz.
+  var STEP_MS = 20000;
+  function deadline(start) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { reject(new Error('timeout')); }, STEP_MS);
+      Promise.resolve().then(start).then(
+        function (v) { clearTimeout(timer); resolve(v); },
+        function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+  function session() { return deadline(function () { return VB.session(); }); }
   function serial(run) {
     var go = function () {
       return navigator.locks ? navigator.locks.request('vb.crafting.sync', run) : run();
@@ -376,7 +391,7 @@
     // schon mitgenommen.
     if (!loadState(acctUid).pending.length) { setSync('synced'); return null; }
     var me = acctUid;
-    return VB.session().then(function (sess) {
+    return session().then(function (sess) {
       if (acctUid !== me) return;
       if (ownerOf(sess) !== me) { noSession(); return; }
       // Erst jetzt gelesen: Klicks aus der Wartezeit gehen gleich mit.
@@ -393,12 +408,16 @@
       });
       var jobs = [];
       if (up.length) {
-        jobs.push(VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
-          'resolution=merge-duplicates,return=minimal'));
+        jobs.push(deadline(function () {
+          return VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
+            'resolution=merge-duplicates,return=minimal');
+        }));
       }
       if (del.length) {
-        jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
-          '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
+        jobs.push(deadline(function () {
+          return VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
+            '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')');
+        }));
       }
       // Der Zug endet erst, wenn jede seiner Anfragen beantwortet ist, auch
       // wenn eine schon scheiterte: sonst begänne der nächste, während sie
@@ -439,14 +458,16 @@
     if (!acctUid || !VB) return Promise.resolve();
     var me = acctUid;
     setSync('syncing');
-    return VB.session().then(function (sess) {
+    return session().then(function (sess) {
       if (acctUid !== me) return;
       if (ownerOf(sess) !== me) { noSession(); return; }
       // Die Sitzung trägt: dieser Zug ist der Abgleich, den later() plante.
       clearTimeout(backoffTimer);
       backoff = 0;
-      return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
-        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      return deadline(function () {
+        return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
+          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+      })
         .then(function (rows) {
           if (acctUid !== me) return;
           var so = {}, sp = {};
