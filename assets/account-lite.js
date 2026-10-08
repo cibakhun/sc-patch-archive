@@ -303,10 +303,13 @@
     setInterval(hbWrite, HB_MS);                               // Ping alle 30s, solange Tab offen
   }
 
-  // Die Sitzung, die die Nav gerade zeigt. Antworten zu Name und Rolle gelten
-  // nur fuer sie: nach dem Abmelden oder einem Kontowechsel zeichnet eine
-  // spaete Antwort nichts mehr.
+  // Die Sitzung, die die Nav gerade zeigt. Name und Rolle gehoeren dem Konto,
+  // nicht dem Token: eine spaete Antwort zeichnet nur, solange die Nav noch
+  // dasselbe Konto zeigt. Nach dem Abmelden oder einem Kontowechsel zeichnet
+  // sie nichts mehr, nach einem neuen Token desselben Kontos weiter.
   var shown = null;
+
+  function userOf(sess) { return sess && sess.user && sess.user.id; }
 
   function show(sess) {
     shown = sess;
@@ -314,10 +317,10 @@
     if (sess) {
       startHeartbeat();
       fetchUsername(sess).then(function (uname) {
-        if (uname && shown === sess) paintNav(sess, uname);
+        if (uname && userOf(shown) === userOf(sess)) paintNav(sess, uname);
       });
       fetchUserRole(sess).then(function (role) {
-        if (shown === sess) applyRole(role);
+        if (userOf(shown) === userOf(sess)) applyRole(role);
       });
     } else {
       applyRole(null);
