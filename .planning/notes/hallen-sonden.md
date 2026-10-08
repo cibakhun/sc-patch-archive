@@ -111,3 +111,27 @@ Originalgröße; das kommt mit demselben Neubau.
 7. Findet sich keine Sonde, oder lässt sich die Würfelkarte nicht dekodieren:
    genau sagen, was gefunden wurde (Entity-Typen, Dateipfade, Format), und
    nichts nachbauen. Teil A bleibt davon unberührt gepusht.
+
+## Teil C: nur Auskunft (nach Teil B, dieselbe Sitzung, nichts bauen)
+
+Hintergrund (2026-10-08): Krisz fand die Wandtexturen „sehr repetitiv“.
+Ursache: Die Schmutzkarte von `plastic_white01_06` (größte Fläche) kachelt
+alle 4 m, zweimal je 8-m-Wandpaneel, also stehen auf jedem Paneel dieselben
+Flecken. Der Viewer tastet sie jetzt je Stelle anders versetzt ab (Cloud,
+erledigt). Ob das Spiel die Paneele selbst noch unterscheidet, sieht die
+Cloud nicht: Der Build verwirft die Vertexfarben (`COLOR_0`), und die `.mtl`
+liegen nur im Cache des PCs.
+
+Bitte nur melden, nichts ändern oder pushen:
+
+1. `COLOR_0` im Rohexport `.cache/hangar-src/hall/revelyork-single.glb`:
+   für die zehn größten Materialien (nach Dreiecken) je Kanal R, G, B, A
+   Minimum, Maximum und Mittel, dazu der Anteil der Vertices mit A < 0,98
+   und mit RGB < 0,98. Als Tabelle in die Rückmeldung.
+2. Aus den `.mtl` unter `.cache/hangar-src/hall-raw/` für dieselben
+   Materialien je eine Zeile: `Shader`, `StringGenMask`, jede
+   `<Texture Map=… File=…>` mit ihrem `TexMod` (TileU, TileV, TexGenType)
+   und die `PublicParams`.
+3. Die Entity-Typen im socpak der Halle mit Anzahl (etwa Decal, Light,
+   EnvironmentProbe): Gibt es Abziehbilder (Schmutz, Schlieren, Schilder) als
+   eigene Objekte, die der Export nicht mitnimmt?
