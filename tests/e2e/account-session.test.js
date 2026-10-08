@@ -77,6 +77,92 @@ test('ein Refresh ohne Antwort gibt seine Aufrufer nach 15 Sekunden frei, eine s
   assert.equal(tokenOf(await tab.session()), 'token-2');
 });
 
+test('hängt der Refresh, fragt der nächste Versuch nach der Frist mit demselben Token, und die späte erste Antwort meldet nicht ab', async () => {
+  const b = makeAccountBrowser({ expiresIn: -10 });
+  const tab = b.open();
+  let first = 'wartet';
+  tab.session().then((s) => { first = tokenOf(s); });
+  await b.advance(15000);
+  assert.equal(first, null);
+
+  await b.advance(2000);
+  const retry = tab.session();
+  assert.deepEqual(b.refreshes.map((r) => r.body.refresh_token), ['refresh-1', 'refresh-1'], 'der Versuch nach 17 s fragt erneut, mit demselben Token');
+  // GoTrue v2.197.0 (internal/tokens/service.go): wer das Eltern-Token des
+  // aktiven Tokens schickt, bekommt das aktive zurück, auch nach den 10 s,
+  // mit neu ausgestelltem Zugangstoken.
+  b.refreshes[1].answer(200, b.fresh(2));
+  assert.equal(tokenOf(await retry), 'token-2');
+  b.refreshes[0].answer(200, { ...b.fresh(2), access_token: 'token-2a' });
+  await b.drain();
+  const stored = JSON.parse(b.storage.get(STORE) ?? 'null');
+  assert.equal(stored && stored.refresh_token, 'refresh-2');
+  const now = await tab.session();
+  assert.equal(now && now.refresh_token, 'refresh-2');
+});
+
+test('eine späte Antwort für die abgemeldete Sitzung lässt die neue Anmeldung stehen', async () => {
+  const late = [
+    ['GoTrue hat die Sitzung beim Abmelden gelöscht', 400, { error_code: 'refresh_token_not_found' }],
+    ['GoTrue hatte vor dem Abmelden erneuert', 200, 'fresh'],
+  ];
+  for (const [why, status, body] of late) {
+    const b = makeAccountBrowser({ expiresIn: -10 });
+    const tab = b.open();
+    const waiting = tab.session();
+    b.signOut();
+    b.signIn(9);
+    await b.drain();
+    b.refreshes[0].answer(status, body === 'fresh' ? b.fresh(2) : body);
+    const got = await waiting;
+    assert.equal(storedToken(b), 'token-9', `${why}: die neue Anmeldung bleibt gespeichert`);
+    assert.equal(tokenOf(got), 'token-9', `${why}: wer auf den Refresh wartet, bekommt die neue Anmeldung`);
+  }
+});
+
+test('eine späte neue Sitzung nach dem Abmelden meldet nicht wieder an', async () => {
+  const b = makeAccountBrowser({ expiresIn: 30 });
+  const tab = b.open();
+  const waiting = tab.session();
+  b.signOut();
+  await b.drain();
+  b.refreshes[0].answer(200, b.fresh(2));
+  assert.equal(await waiting, null, 'wer auf den Refresh wartet, ist abgemeldet');
+  assert.equal(b.storage.get(STORE), null);
+  assert.equal(sessionEvents(tab), 1, 'Seitenskripte erfahren nur vom Abmelden');
+});
+
+test('erneuert ein anderer Tab, während der Refresh hier hängt, bekommt der Wartende nach der Frist dessen Sitzung', async () => {
+  const b = makeAccountBrowser({ expiresIn: -10 });
+  const tab = b.open();
+  const other = b.open();
+  const waiting = tab.session();
+  await b.advance(11000);
+  const elsewhere = other.session();
+  b.refreshes[1].answer(200, b.fresh(2));
+  assert.equal(tokenOf(await elsewhere), 'token-2');
+  await b.advance(4000);
+  assert.equal(tokenOf(await waiting), 'token-2');
+});
+
+test('scheitert der Refresh hier, nachdem ein anderer Tab erneuert hat, bekommt der Wartende dessen Sitzung', async () => {
+  for (const outcome of [503, 'offline', 'ohne access_token']) {
+    const b = makeAccountBrowser({ expiresIn: -10 });
+    const tab = b.open();
+    const other = b.open();
+    const waiting = tab.session();
+    await b.advance(11000);
+    const elsewhere = other.session();
+    b.refreshes[1].answer(200, b.fresh(2));
+    await elsewhere;
+    if (outcome === 'offline') b.refreshes[0].offline();
+    else if (outcome === 503) b.refreshes[0].answer(503, { message: 'try later' });
+    else b.refreshes[0].answer(200, {});
+    assert.equal(tokenOf(await waiting), 'token-2', `${outcome}`);
+    assert.equal(storedToken(b), 'token-2', `${outcome}`);
+  }
+});
+
 test('ein zweiter Tab refresht nicht parallel und erfährt den Refresh des ersten über storage', async () => {
   const b = makeAccountBrowser({ expiresIn: -10 });
   b.open();

@@ -60,12 +60,24 @@ export function makeAccountBrowser({ expiresIn = -10 } = {}) {
     return p;
   }
 
+  /** Schreibt wie /account/ (supabase-js, dort läuft account-lite nicht): jeder account-lite-Tab hört storage. */
+  const fromAccountPage = (value) => {
+    const old = data.has(STORE) ? data.get(STORE) : null;
+    if (value === null) data.delete(STORE);
+    else data.set(STORE, value);
+    for (const t of tabs) setImmediate(() => t.fire('storage', { key: STORE, oldValue: old, newValue: value }));
+  };
+
   const browser = {
     clock,
     refreshes,
     storage: { get: (k) => (data.has(k) ? data.get(k) : null) },
     /** Antwort von GoTrue auf einen Refresh: neues Token, ohne expires_at. */
     fresh: (n) => ({ access_token: `token-${n}`, refresh_token: `refresh-${n}`, token_type: 'bearer', expires_in: 3600, user: { id: 'user-1' } }),
+    /** Abmelden auf /account/: GoTrue löscht die Sitzung samt ihren Refresh-Tokens. */
+    signOut: () => fromAccountPage(null),
+    /** Neu anmelden auf /account/: eine neue Sitzung token-n/refresh-n. */
+    signIn: (n) => fromAccountPage(JSON.stringify({ ...browser.fresh(n), expires_at: Math.floor(clock.now / 1000) + 3600 })),
     async drain() { for (let i = 0; i < 8; i++) await tick(); },
     async advance(ms) {
       const until = clock.now + ms;
