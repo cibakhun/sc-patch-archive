@@ -129,6 +129,16 @@ laufenden Flug um dieselbe Differenz mitverschieben, wenn die Kamera
 gezielt steht (`touched`). `focus()` allein kann das nicht, es läuft vor
 dem Hallenwechsel.
 
+Erledigt (Szene, 2026-10-08): `settleShip()` in `loadRealHall` setzt die
+Standhöhe und verschiebt Ziel, Kamera und einen laufenden Flug um die
+Differenz, aber nur, wenn das Ziel aus `focus(p)` kommt (`onPoint`), nicht
+bei jedem `touched`. Startansicht und ein nur gedrehter Blick zielen auf
+eine feste Höhe über dem Boden (`homeTgt`), die für die echte Halle gilt;
+sie stimmen nach dem Absenken und bleiben stehen. Gemessen mit
+zurückgehaltenem Hallenabruf, Gladius-Bugkanone: vorher 36 px unter der
+Bildmitte, jetzt 0 px, auch bei laufendem Flug; das Ziel der Startansicht
+bleibt auf 2,02 m.
+
 ### Was verify:hangar für die Szene prüft
 
 Zusicherung 1 vergleicht Dock, `#hg-stage.models` und beide Buchtordner und
