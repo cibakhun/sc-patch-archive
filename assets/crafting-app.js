@@ -317,13 +317,20 @@
     flushTimer = setTimeout(flush, 700);
   }
 
-  // Ein Zug nach dem anderen. Ein zweiter Klick auf denselben Blueprint ginge
-  // sonst hinaus, während der erste noch unterwegs ist, und käme womöglich vor
-  // ihm beim Server an: der Server behielte den ersten Klick, die Bestätigung
-  // des zweiten nähme den Blueprint aus `pending`, und der nächste Abgleich
-  // holte den ersten zurück. Was offen ist, liest jeder Zug erst beim Start.
+  // Ein Zug nach dem anderen, in diesem Tab und über alle Tabs (Web Locks, wie
+  // assets/fleet.js). Ein zweiter Klick auf denselben Blueprint ginge sonst
+  // hinaus, während der erste noch unterwegs ist, und käme womöglich vor ihm
+  // beim Server an: der Server behielte den ersten Klick, die Bestätigung des
+  // zweiten nähme den Blueprint aus `pending`, und der nächste Abgleich holte
+  // den ersten zurück. Was offen ist, liest jeder Zug erst beim Start. Ohne
+  // Web Locks (ältere Browser) reiht nur die Kette dieses Tabs.
   var chain = Promise.resolve();
-  function serial(run) { return (chain = chain.then(run)); }
+  function serial(run) {
+    var go = function () {
+      return navigator.locks ? navigator.locks.request('vb.crafting.sync', run) : run();
+    };
+    return (chain = chain.then(go));
+  }
   function flush() { return serial(sendPending); }
   function pull() { return serial(readServer); }
 
@@ -542,8 +549,13 @@
       if (loadState(acctUid).pending.length) { if (stale) flushThenPull(); else flush(); }
       else if (stale) pull();
     });
-    // Seite wird verlassen: letzten Stand noch rausschicken (best effort).
-    addEventListener('pagehide', function () { flush(); });
+    // Seite wird verlassen: letzten Stand noch rausschicken (best effort), ohne
+    // auf die Reihe zu warten. Die Sperre teilt der Browser erst in einer
+    // späteren Aufgabe zu, und die läuft nach pagehide nicht mehr: in Chrome
+    // 154 kamen über die Sperre 0 von 20 solcher Züge beim Server an, direkt
+    // 20 von 20. Läuft dabei noch ein früherer Zug, kann dieser letzte ihn
+    // überholen.
+    addEventListener('pagehide', function () { sendPending(); });
   }
 
   // ---- Sync-Statusanzeige ----
