@@ -189,19 +189,39 @@ test('kommen Name und Rolle erst nach dem Zeichnen, zeigt die Nav sie dann', asy
 });
 
 test('schreibt ein anderer Tab eine neue Sitzung desselben Kontos, während Name und Rolle unterwegs sind, zeigt die Nav sie trotzdem', async () => {
-  for (const order of ['alte Antworten zuerst', 'neue Antworten zuerst']) {
+  const answers = {
+    'alte Antworten zuerst': (old, fresh) => { for (const r of [...old, ...fresh]) r.answer(); },
+    'neue Antworten zuerst': (old, fresh) => { for (const r of [...fresh, ...old]) r.answer(); },
+    'die neuen scheitern (503), dann kommen die alten': (old, fresh) => { for (const r of fresh) r.answer(503); for (const r of old) r.answer(); },
+    'die neuen hängen, die alten kommen': (old) => { for (const r of old) r.answer(); },
+  };
+  for (const [how, answer] of Object.entries(answers)) {
     const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
     const tab = b.open();
     await b.drain();
     b.signIn(2);
     await b.drain();
     const [old, fresh] = [b.reads.slice(0, 2), b.reads.slice(2)];
-    assert.equal(fresh.length, 2, `${order}: die neue Sitzung fragt selbst nach Name und Rolle`);
-    for (const r of order === 'alte Antworten zuerst' ? [...old, ...fresh] : [...fresh, ...old]) r.answer();
+    assert.equal(fresh.length, 2, `${how}: die neue Sitzung fragt selbst nach Name und Rolle`);
+    answer(old, fresh);
     await b.drain();
-    assert.deepEqual(tab.nav(), SIGNED_IN, order);
-    assert.equal(tab.admin(), true, order);
+    assert.deepEqual(tab.nav(), SIGNED_IN, how);
+    assert.equal(tab.admin(), true, how);
   }
+});
+
+test('meldet sich dasselbe Konto ab und wieder an, während Name und Rolle noch unterwegs sind, gelten deren späte Antworten', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signOut();
+  await b.drain();
+  b.signIn(5);
+  await b.drain();
+  for (const r of b.reads.slice(0, 2)) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN, 'die Antworten der ersten Anmeldung gehören demselben Konto');
+  assert.equal(tab.admin(), true);
 });
 
 test('lehnt GoTrue den Refresh ab, während Name und Rolle noch unterwegs sind, bleibt die Nav abgemeldet', async () => {
