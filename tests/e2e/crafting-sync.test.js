@@ -523,6 +523,116 @@ test('ändert ein zweiter Tab denselben Blueprint, während der Zug des ersten n
   }
 });
 
+// Ein zweiter Schreiber ändert die Zeile, während die Antwort eines Zugs
+// aussteht, und der Besucher stellt den Blueprint danach auf den Wert zurück,
+// der hinausging. Der Wert ist derselbe, der Schreibvorgang nicht: die späte
+// Antwort bestätigt den ersten Klick, nicht den letzten. Sie kommt noch in
+// der Wartezeit des nächsten Zugs an oder erst danach: ohne die Reihe ging der
+// nächste Zug nach 700 ms hinaus, mit ihr wartet er auf die Antwort.
+const BACK_TO_SENT = [
+  {
+    at: 'Stern', click: (tab) => tab.clickOwn('karna-rifle'),
+    rows: [KARNA_1], mirror: { owned: { 'karna-rifle': true }, plan: {}, pending: [] },
+  },
+  {
+    at: 'Planmenge', click: (tab) => tab.clickAdd('karna-rifle'),
+    rows: [{ user_id: 'user-1', slug: 'karna-rifle', owned: false, plan_qty: 1 }],
+    mirror: { owned: {}, plan: { 'karna-rifle': 1 }, pending: [] },
+  },
+];
+const LATE_ANSWER = [{ at: 'Antwort in der Wartezeit', horizon: 300 }, { at: 'Antwort danach', horizon: 5000 }];
+async function staleReturn(b, tab) {
+  b.advance(61000);
+  tab.hide();
+  tab.show();
+  await b.settle();
+}
+
+test('ändert ein anderes Gerät einen Blueprint, während die Antwort seines Zugs aussteht, und stellt der Besucher ihn danach auf den gesendeten Wert zurück, kommt dieser letzte Klick im Konto an', async () => {
+  const device = {
+    Stern: (rows) => rows.filter((r) => r.slug !== 'karna-rifle'),
+    Planmenge: (rows) => rows.map((r) => ({ ...r, plan_qty: 2 })),
+  };
+  const away = { Stern: (tab) => tab.clickOwn('karna-rifle'), Planmenge: (tab) => tab.clickClear() };
+  for (const c of BACK_TO_SENT) {
+    for (const late of LATE_ANSWER) {
+      const at = `${c.at}, ${late.at}`;
+      const b = makeBrowser({ session: 'user-1' });
+      const tab = b.open();
+      await b.settle();
+      b.server.hold('POST', 'before');
+      c.click(tab);
+      await b.settle();
+      b.server.rows = device[c.at](b.server.rows);
+      away[c.at](tab);
+      await b.settle({ horizon: 300 });
+      c.click(tab);
+      await b.settle({ horizon: late.horizon });
+      b.server.release();
+      await b.settle();
+
+      await staleReturn(b, tab);
+      assert.deepEqual(b.server.rows, c.rows, at);
+      assert.deepEqual(mirror(b), c.mirror, at);
+    }
+  }
+});
+
+test('ändert ein zweiter Tab einen Blueprint und schickt ihn beim Verlassen an der Reihe vorbei, während die Antwort des ersten Zugs aussteht, und stellt der erste ihn danach auf den gesendeten Wert zurück, kommt dessen letzter Klick im Konto an', async () => {
+  const back = {
+    Stern: (tab) => tab.clickOwn('karna-rifle'),
+    Planmenge: (tab) => { tab.clickClear(); tab.clickAdd('karna-rifle'); },
+  };
+  for (const c of BACK_TO_SENT) {
+    for (const late of LATE_ANSWER) {
+      const at = `${c.at}, ${late.at}`;
+      const b = makeBrowser({ session: 'user-1' });
+      const one = b.open();
+      const two = b.open();
+      await b.settle();
+      b.server.hold('POST', 'before');
+      c.click(one);
+      await b.settle();
+      c.click(two);
+      two.fireWindow('pagehide');
+      two.close();
+      await b.settle();
+      back[c.at](one);
+      await b.settle({ horizon: late.horizon });
+      b.server.release();
+      await b.settle();
+
+      await staleReturn(b, one);
+      assert.deepEqual(b.server.rows, c.rows, at);
+      assert.deepEqual(mirror(b), c.mirror, at);
+    }
+  }
+});
+
+// Ein Abgleich schreibt keinen Blueprint neu, die Kennung eines offenen Klicks
+// bleibt also stehen. Ohne sie zählte für die späte Antwort allein der Wert,
+// und ein Tab mit älterem Skript schreibt keine Kennung.
+test('ein Abgleich nimmt einem offenen Klick nicht die Kennung: ändern danach ein anderes Gerät und ein Tab mit älterem Skript den Blueprint, während die Antwort aussteht, kommt der letzte Klick an', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.breakSession();
+  tab.clickOwn('karna-rifle');
+  await b.settle({ horizon: 1000 });
+  b.healSession();
+  b.server.hold('POST', 'before');
+  await b.settle();
+  b.server.rows = [];
+  b.storage.set(MIRROR, JSON.stringify({ owned: { 'karna-rifle': true }, plan: {}, pending: ['karna-rifle'] }));
+  await b.settle();
+  b.server.release();
+  await b.settle();
+
+  await staleReturn(b, tab);
+  assert.deepEqual(b.server.rows, [KARNA_1]);
+  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true }, plan: {}, pending: [] });
+});
+
 test('Tab-Rückkehr und Verlassen der Seite schicken eine offene Änderung sofort, ohne offene fragen sie nicht nach der Sitzung', async () => {
   const cases = [
     { at: 'Tab-Rückkehr', act: (tab) => { tab.hide(); tab.show(); } },

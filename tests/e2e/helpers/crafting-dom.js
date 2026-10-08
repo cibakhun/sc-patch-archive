@@ -301,6 +301,12 @@ export function makeBrowser(opts = {}) {
     storage: {
       get: (k) => (data.has(k) ? data.get(k) : null),
       keys: () => [...data.keys()].sort(),
+      /** Schreibt wie ein Tab, den der Prüfstand nicht fährt (etwa einer mit älterem Skript): alle Tabs hören `storage`. */
+      set: (k, v) => {
+        const old = data.has(k) ? data.get(k) : null;
+        data.set(k, v);
+        tabs.forEach((t) => setImmediate(() => t.fireWindow('storage', { key: k, oldValue: old, newValue: v })));
+      },
     },
     /** Anmelden oder Abmelden in einem anderen Tab: account-lite meldet vb-account-session überall. */
     signIn(uid) { account.session = account.stored = sessionFor(uid); accountEvent(); },
