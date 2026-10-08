@@ -178,7 +178,7 @@
       el.href = loggedIn ? el.getAttribute('data-dash') : el.getAttribute('data-login');
       var txt = el.querySelector('.js-nav-acct-txt');
       if (txt) txt.textContent = loggedIn ? (uname || el.getAttribute('data-l-acct')) : el.getAttribute('data-l-login');
-      if (loggedIn && uname) el.title = uname;
+      el.title = uname || '';
       el.classList.toggle('is-authed', loggedIn);
     }
   }
@@ -198,8 +198,10 @@
   }
 
   // ---- Rollen-basierter Zugriffs-Guard (user_roles Tabelle) ----------------
-  // Fragt die user_roles Tabelle via PostgREST ab und cached das Ergebnis
-  // fuer die Dauer der Session im sessionStorage.
+  // Fragt die user_roles Tabelle via PostgREST ab und merkt sich die Antwort
+  // fuenf Minuten im sessionStorage. Eine gescheiterte Abfrage (401 bei
+  // abgelaufenem Token, 5xx) gilt als "user", wird aber nicht gemerkt: sie
+  // sagt nichts ueber die Rolle.
   var ROLE_CACHE_KEY = 'vb_user_role';
 
   function fetchUserRole(sess) {
@@ -217,7 +219,7 @@
     } catch (e) { /* noop */ }
 
     return rest(sess, 'GET', 'user_roles?select=role&user_id=eq.' + sess.user.id)
-      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (rows) {
         var role = rows && rows[0] ? rows[0].role : 'user';
         try {
@@ -301,19 +303,21 @@
     setInterval(hbWrite, HB_MS);                               // Ping alle 30s, solange Tab offen
   }
 
-  // Ob die Nav gerade eine Sitzung zeigt.
-  var showing = false;
+  // Die Sitzung, die die Nav gerade zeigt. Antworten zu Name und Rolle gelten
+  // nur fuer sie: nach dem Abmelden oder einem Kontowechsel zeichnet eine
+  // spaete Antwort nichts mehr.
+  var shown = null;
 
   function show(sess) {
-    showing = !!sess;
+    shown = sess;
     paintNav(sess);
     if (sess) {
       startHeartbeat();
       fetchUsername(sess).then(function (uname) {
-        if (uname) paintNav(sess, uname);
+        if (uname && shown === sess) paintNav(sess, uname);
       });
       fetchUserRole(sess).then(function (role) {
-        applyRole(role);
+        if (shown === sess) applyRole(role);
       });
     } else {
       applyRole(null);
@@ -330,7 +334,7 @@
       // und Wechsel aus anderen Tabs zeigt schon der storage-Hoerer.
       addEventListener('vb-account-session', function () {
         var now = readRaw();
-        if (!!now !== showing) show(now);
+        if (!!now !== !!shown) show(now);
       });
     });
 
