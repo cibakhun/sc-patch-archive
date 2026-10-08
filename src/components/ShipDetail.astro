@@ -34,6 +34,7 @@ import manufacturerLogos from '../data/manufacturer-logos.json';
 import { itemInfo } from '../lib/holoItems';
 import { HOLO_GRP_ICON, HOLO_ICON } from '../lib/holoIcons';
 import { versioned } from '../lib/assetVersion';
+import { fanOut, hullBox, toGltf, type Cry, type Vec3 } from '../lib/hangar/ports';
 
 interface Props {
   d: CollectionEntry<'vehicles'>['data'];
@@ -268,20 +269,22 @@ if (hasHolo) {
   // Positionsquelle: das Spielmesh, die einzige verbliebene Quelle.
   let meshUrl: string | null = null;
   let meshBox: { c: number[]; s: number[] } | null = null;
+  let hull: readonly [Vec3, Vec3] | null = null;
   let srcPorts: { k: string; p: number[]; n?: string }[] = [];
   if (gameMesh && gameHp) {
     // ?v=<Content-Hash> aus dem Manifest: nginx cached /holo/ 1 Jahr — der
     // Buster laesst Patch-Re-Exporte sofort durchschlagen (vgl. holoViewerSrc)
     meshUrl = gameMesh.v ? `${gameMesh.url}?v=${gameMesh.v}` : gameMesh.url;
-    const hull = gameHp.hull ?? gameHp.bbox; // cry-AABB
-    // cry -> glTF: (x, z, -y) — feste Achsvertauschung, keine Kalibrierung
+    // cry -> glTF, feste Achsvertauschung ohne Kalibrierung: dieselbe Regel wie der Hangar.
+    hull = hullBox((gameHp.hull ?? gameHp.bbox) as [Cry, Cry]);
+    const [lo, hi] = hull;
     meshBox = {
-      c: [(hull[0][0] + hull[1][0]) / 2, (hull[0][2] + hull[1][2]) / 2, -((hull[0][1] + hull[1][1]) / 2)],
-      s: [Math.abs(hull[1][0] - hull[0][0]), Math.abs(hull[1][2] - hull[0][2]), Math.abs(hull[1][1] - hull[0][1])],
+      c: [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2],
+      s: [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]],
     };
-    srcPorts = (gameHp.hp as { k: string; p: number[]; n: string }[])
+    srcPorts = (gameHp.hp as { k: string; p: Cry; n: string }[])
       .filter((h) => HOLO_GRP[h.k])
-      .map((h) => ({ k: h.k, n: h.n, p: [h.p[0], h.p[2], -h.p[1]] }));
+      .map((h) => ({ k: h.k, n: h.n, p: [...toGltf(h.p)] }));
   }
 
   // Item-Finder-Anreicherung: Kategorie/Preis/Kauforte für einen Item-Namen
@@ -372,28 +375,14 @@ if (hasHolo) {
   }
   // Ko-lozierte Marker leicht auffächern: einige Schiffe legen mehrere echte
   // Komponenten auf EINEN Maschinenraum-Bone-Punkt (Spielgeometrie, z.B.
-  // Hammerhead 7×). Ohne Versatz lägen Sprites + Leader exakt übereinander ->
-  // kleiner Ring (leichte Helix) um den Originalpunkt, Radius an die Hülle
-  // gekoppelt. Betrifft real nur ~5 Schiffe.
-  if (meshBox) {
-    const groups = new Map<string, HoloPort[]>();
-    for (const p of holoPorts) {
-      const key = p.p.map((x) => Math.round(x * 100) / 100).join(',');
-      const arr = groups.get(key); if (arr) arr.push(p); else groups.set(key, [p]);
-    }
-    const r = Math.min(2.2, Math.max(0.35, Math.max(...meshBox.s) * 0.02));
-    for (const grp of groups.values()) {
-      if (grp.length < 2) continue;
-      const c = [...grp[0].p];
-      grp.forEach((p, i) => {
-        const a = (i / grp.length) * Math.PI * 2;
-        p.p = [
-          c[0] + Math.cos(a) * r,
-          c[1] + (i - (grp.length - 1) / 2) * r * 0.3,
-          c[2] + Math.sin(a) * r,
-        ].map((x) => Math.round(x * 1000) / 1000);
-      });
-    }
+  // Hammerhead 7×). Ohne Versatz lägen Sprites + Leader exakt übereinander.
+  // Betrifft real nur ~5 Schiffe.
+  if (hull) {
+    const pts = holoPorts.map((p) => p.p as unknown as Vec3);
+    fanOut(pts, hull);
+    holoPorts.forEach((p, i) => {
+      if (pts[i] !== (p.p as unknown)) p.p = (pts[i] as Vec3).map((x) => Math.round(x * 1000) / 1000);
+    });
   }
 
   if (holoPorts.length) {
