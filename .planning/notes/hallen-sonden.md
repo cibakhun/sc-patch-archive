@@ -3,8 +3,23 @@
 Auslöser für die PC-Sitzung: **„Hallensonden“**. Folgt auf „Halle Tiefe“
 (7748b0a): volle Stufe, Einrichtung und Lampen sind drin.
 
-Zwei Teile, in dieser Reihenfolge. Teil A ist der wichtigere und schnell
-gemacht: bitte als eigenen Commit pushen, bevor Teil B beginnt.
+Das ist der einzige PC-Lauf, den die Halle noch braucht (Stand 2026-10-08
+nachts). Zwei Teile, in dieser Reihenfolge. Teil A ist der wichtigere und
+schnell gemacht: bitte als eigenen Commit pushen, bevor Teil B beginnt.
+
+### Stand der Cloud vor dem Lauf (2026-10-08)
+
+- Der Viewer lädt ohne Einfrieren (Shader einmal, im Hintergrund) und
+  beleuchtet die Halle mit den Spiellampen aus `revelyork-single.lights.json`
+  (feste Auswahl: 6 Lampen am Rechner, 3 am Telefon). Die Spiegelungen nimmt
+  er vorerst selbst auf (eine Umgebungskugel aus der geladenen Halle); die
+  Sonden aus Teil B ersetzen sie.
+- Im Manifest (`src/data/hangar-assets.json`) zeigt der Eintrag
+  `revelyork-single` vorübergehend auf die dichte Kopie
+  `revelyork-single-lod1.glb`. Der Neubau aus Teil A schreibt den Eintrag neu
+  (`url` wieder `revelyork-single.glb`, `floor` misst der Build jetzt selbst):
+  genau so gewollt. `revelyork-single-lod1.glb` bitte **liegen lassen**, die
+  Cloud gibt sie danach den Telefonen (kleiner, gleiche Lampen).
 
 ## Teil A: Halle neu bauen (ohne Dezimierung, Möbel als eigene Knoten)
 
@@ -45,6 +60,7 @@ geschriebene GLB (Zeile „Hülle: …“, `hull` im Manifest).
      `WARNUNG Halle`.
 4. `npm run build && npm run gate`, dann `STAGING=1` ebenso, committen,
    pushen. Kein PR: Sichtprüfung, PR und Merge macht die Cloud.
+5. Gleich danach Teil B, in derselben Sitzung (kein zweites Stichwort nötig).
 
 Zum Hintergrund der Möbel: Für große Schiffe wächst die ganze Halle mit
 (Faktor bis ≈ 3). Der Build lässt jetzt jedes Möbel als eigenen Knoten mit
@@ -61,9 +77,13 @@ Originalgröße; das kommt mit demselben Neubau.
   ausgerichtet. Der Build macht das selbst (`scripts/lib/hall-lights.mjs`,
   aufgerufen in `hallLights`).
 - Der Viewer rendert die Spiegelungen bisher selbst: eine Umgebungskugel aus
-  der geladenen Halle in Schiffsmitte. Das ist eine Annäherung. Im Spiel
-  kommen Spiegelungen und Streulicht aus den Umgebungssonden der Halle, mit
-  dem echten Licht des Spiels aufgenommen.
+  der geladenen Halle, 2,5 m über der Plattform, beleuchtet von nur 6 der
+  469 Spiellampen. Das ist eine Annäherung. Im Spiel kommen Spiegelungen und
+  Streulicht aus den Umgebungssonden der Halle, mit allen Lampen des Spiels
+  aufgenommen; deshalb sind sie das Wichtigste, was die Halle noch vom Spiel
+  trennt.
+- Versionieren muss der PC nichts: Die Seite hängt an Lampen- und
+  Sondendateien selbst einen Inhalts-Hash an.
 
 ### Auftrag PC
 
@@ -88,3 +108,6 @@ Originalgröße; das kommt mit demselben Neubau.
 6. Build + Gate (normal und STAGING=1), committen, pushen. Kein PR: Den
    Viewer (Sonde statt selbst gerenderter Umgebungskugel) und die
    Sichtprüfung macht die Cloud.
+7. Findet sich keine Sonde, oder lässt sich die Würfelkarte nicht dekodieren:
+   genau sagen, was gefunden wurde (Entity-Typen, Dateipfade, Format), und
+   nichts nachbauen. Teil A bleibt davon unberührt gepusht.

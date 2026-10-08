@@ -23,7 +23,7 @@
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { url, room }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights? }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose() }>
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
@@ -1294,12 +1294,11 @@ export async function initHangar(container, opts = {}) {
     scene.fog.near = HALL_R * S * 1.1; scene.fog.far = HALL_R * S * 3.2;
     if (realHall) {
       const k = realHallScale(realHall.room);
-      realHall.group.scale.setScalar(k);
+      hallRoot.scale.setScalar(k);
       for (const pv of realHall.furniture) pv.scale.setScalar(1 / k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
       scaleLamps();
-      if (realHall.envOn) captureHallEnv();
     }
     key.position.set(9 * S, HALL_H * S * 0.92, 12 * S);
     key.target.position.set(0, shipInfo.height * 0.4, 0);
@@ -1398,6 +1397,8 @@ export async function initHangar(container, opts = {}) {
   const TEX_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap', 'alphaMap'];
   const yieldToBrowser = () => new Promise((r) => setTimeout(r, 0));
   let composerReady = Promise.resolve();
+  // Spiellampen stehen (true) oder kommen nicht (false); vorher wird nichts übersetzt
+  let lampsReady = Promise.resolve(false);
   // Übersetzen, ohne die Seite anzuhalten. Mit KHR_parallel_shader_compile
   // (Chrome/Edge unter Windows) läuft es in Hintergrundfäden, und
   // compileAsync wartet ohne zu blockieren. Ohne die Erweiterung blockiert
@@ -1452,20 +1453,28 @@ export async function initHangar(container, opts = {}) {
   // Lampen der Halle aus dem Spiel (Licht-Entities des socpak, vom Build als
   // <halle>.lights.json neben das GLB gelegt; Richtungen dort schon nach glTF
   // gedreht, Flächenlichter an ihrer Fläche ausgerichtet). Fehlt die Datei,
-  // bleibt es beim Bühnenlicht. Ohne Schatten: den wirft weiter das Hauptlicht.
+  // bleibt es beim Bühnenlicht.
   // Jede Lampe kostet im Fragment-Shader jedes Hallenpixels. Deshalb werden
   // benachbarte Flächenlichter zu einer Gruppe zusammengelegt, und es brennen
   // nur die, die im Blickfeld (Boden um die Plattform, Schiff, Wände) am
   // meisten beitragen.
+  // Gegen das Einfrieren beim Laden (Krisz, 2026-10-07): Die Lampen kommen
+  // parallel zur Halle und stehen, bevor irgendetwas übersetzt wird. Jede
+  // Lampe ist Teil jedes Shaderprogramms; kämen sie danach, würde alles neu
+  // übersetzt. Dafür ersetzen sie das Bühnenlicht ganz, statt dazuzukommen.
   const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
-  // Vorerst aus: Mit Spiellampen und Umgebungskugel fror die Seite beim Laden
-  // ein (Krisz, 2026-10-07). Jede Lampe vergrößert den Shader jedes
-  // Materials, mit dem Eintreffen der Lampen wird alles neu übersetzt, und die
-  // Kugel rendert die volle Halle sechsmal. Kommt mit Lampenbudget zurück.
-  const GAME_LAMPS = false, HALL_PROBE = false;
-  const MAX_LIGHTS = SMALL ? 8 : 16;
+  const GAME_LAMPS = true, HALL_PROBE = true;
+  // Festes Budget: Die beiden Hauptstrahler unter der Decke tragen am
+  // Boden um das Schiff 98 % des Lichts (Bewertung wie lampScore, mit den
+  // Wänden 94 %), die nächsten vier sind Spots an der Rückwand; alle sechs
+  // zusammen 97 %. Mehr Lampen kosten jedes Bild, ohne dass man es sieht.
+  const MAX_LIGHTS = SMALL ? 3 : 6;
   // So viele Spots über der Plattform werfen den Schatten des Schiffs
   const SHADOW_LAMPS = SMALL ? 1 : 2;
+  // Unter dieser Reichweite (m) ist ein Flächenlicht nur Glimmen an seiner
+  // Leuchte (Bodenleuchten: 0,1 m). Zusammengelegt würde daraus eine Lampe
+  // mit Metern Reichweite, die es im Spiel nicht gibt.
+  const LAMP_MIN_RADIUS = 1;
   // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
   // bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
   const HALL_LIGHT_SCALE = 2;
@@ -1522,82 +1531,104 @@ export async function initHangar(container, opts = {}) {
     return s;
   }
 
-  function loadHallLights(h, model) {
-    if (!GAME_LAMPS) return;
-    fetch(h.url.replace(/\.glb(\?.*)?$/, '.lights.json$1')).then((r) => (r.ok ? r.json() : null)).then((d) => {
-      // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels
-      if ((d?.v || 1) < 2) return;
-      // Umgebungslichter des Spiels hellen nur flächig auf: das übernimmt die
-      // Umgebungskugel aus der Halle.
-      const all = (d?.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient');
-      if (!all.length || !realHall) return;
-      const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
-      // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
-      const { center: c, halfW, halfL, height } = h.room, f = realHall.floorY;
-      const pts = [];
-      for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) pts.push([c[0] + i * halfW * 0.22, f + 0.2, c[2] + j * halfL * 0.18, 2]);
-      for (const y of [1.5, 4]) pts.push([c[0], f + y, c[2], 4]);
-      for (const y of [3, height * 0.3, height * 0.6]) for (const t of [-0.6, 0, 0.6]) {
-        pts.push([c[0] - halfW + 1, f + y, c[2] + t * halfL, 1], [c[0] + halfW - 1, f + y, c[2] + t * halfL, 1]);
-        pts.push([c[0] + t * halfW, f + y, c[2] - halfL + 1, 1], [c[0] + t * halfW, f + y, c[2] + halfL - 1, 1]);
+  // Halle samt Lampen: hallRoot steht ab dem Start in der Szene (die Leinwand
+  // ist bis zum ersten Bild verborgen) und trägt erst die Lampen, dann das
+  // Modell, beide im Modellraum der Halle verschoben (Bodenmitte = Ursprung).
+  const hallRoot = new THREE.Group();
+  let hallLamps = null, shadowLamps = [], hallFailed = false;
+  // Lampen aus <halle>.lights.json setzen; true, sobald sie stehen (dann ohne
+  // Bühnenlicht), false ohne Datei oder bei einem Fehler.
+  async function loadHallLights(h) {
+    if (!GAME_LAMPS || !h?.lights) return false;
+    let d = null;
+    try { const r = await fetch(h.lights); d = r.ok ? await r.json() : null; } catch { return false; }
+    // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels. Ist die
+    // Halle schon gescheitert, steht die gebaute mit ihrem Bühnenlicht.
+    if ((d?.v || 1) < 2 || hallFailed) return false;
+    // Umgebungslichter des Spiels hellen nur flächig auf: das übernimmt die
+    // Umgebungskugel aus der Halle.
+    const all = (d.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient'
+      && !(l.type === 'area' && (l.radius || 0) < LAMP_MIN_RADIUS));
+    if (!all.length) return false;
+    const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
+    // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
+    const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1];
+    const pts = [];
+    for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) pts.push([c[0] + i * halfW * 0.22, f + 0.2, c[2] + j * halfL * 0.18, 2]);
+    for (const y of [1.5, 4]) pts.push([c[0], f + y, c[2], 4]);
+    for (const y of [3, height * 0.3, height * 0.6]) for (const t of [-0.6, 0, 0.6]) {
+      pts.push([c[0] - halfW + 1, f + y, c[2] + t * halfL, 1], [c[0] + halfW - 1, f + y, c[2] + t * halfL, 1]);
+      pts.push([c[0] + t * halfW, f + y, c[2] - halfL + 1, 1], [c[0] + t * halfW, f + y, c[2] + halfL - 1, 1]);
+    }
+    for (const l of cand) l.score = lampScore(l, pts);
+    cand.sort((a, b) => b.score - a.score);
+    const lamps = new THREE.Group();
+    lamps.position.set(-c[0], -f, -c[2]);
+    for (const l of cand.slice(0, MAX_LIGHTS)) {
+      const col = new THREE.Color().setRGB(...(l.color || [1, 1, 1]));
+      const I = l.intensity * HALL_LIGHT_SCALE, dist = l.radius || 0;
+      let light;
+      if (aimed(l)) {
+        const spot = l.type === 'spot';
+        light = new THREE.SpotLight(col, I, dist, spot ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF, spot ? 0.5 : 1, 2);
+        const p = spot ? l.pos : l.pos.map((v, i) => v + l.dir[i] * AREA_OFFSET);
+        light.position.set(...p);
+        light.target.position.set(p[0] + l.dir[0], p[1] + l.dir[1], p[2] + l.dir[2]);
+        lamps.add(light.target);
+      } else {
+        light = new THREE.PointLight(col, I, dist, 2);
+        light.position.set(...l.pos);
       }
-      for (const l of cand) l.score = lampScore(l, pts);
-      cand.sort((a, b) => b.score - a.score);
-      const lamps = new THREE.Group();
-      for (const l of cand.slice(0, MAX_LIGHTS)) {
-        const col = new THREE.Color().setRGB(...(l.color || [1, 1, 1]));
-        const I = l.intensity * HALL_LIGHT_SCALE, dist = l.radius || 0;
-        let light;
-        if (aimed(l)) {
-          const spot = l.type === 'spot';
-          light = new THREE.SpotLight(col, I, dist, spot ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF, spot ? 0.5 : 1, 2);
-          const p = spot ? l.pos : l.pos.map((v, i) => v + l.dir[i] * AREA_OFFSET);
-          light.position.set(...p);
-          light.target.position.set(p[0] + l.dir[0], p[1] + l.dir[1], p[2] + l.dir[2]);
-          lamps.add(light.target);
-        } else {
-          light = new THREE.PointLight(col, I, dist, 2);
-          light.position.set(...l.pos);
-        }
-        light.userData.base = { I, dist };
-        light.userData.src = l;
-        lamps.add(light);
-      }
-      // Den Schatten unter dem Schiff werfen die Spots, die die Plattform am
-      // stärksten treffen, nicht mehr das Bühnenlicht: Er fällt wie im Spiel
-      // von der Decke. Einer allein reicht nicht, die übrigen Lampen und das
-      // Streulicht der hellen Halle hellen ihn sonst fast ganz auf.
-      const pad = [[c[0], f + 0.2, c[2], 1]];
-      realHall.shadowLamps = lamps.children
-        .filter((q) => q.isSpotLight && q.userData.src.type === 'spot')
-        .map((q) => [q, lampScore(q.userData.src, pad)]).filter(([, sc]) => sc > 0)
-        .sort((a, b) => b[1] - a[1]).slice(0, SHADOW_LAMPS).map(([q]) => q);
-      for (const L of realHall.shadowLamps) {
-        L.castShadow = true;
-        L.shadow.mapSize.setScalar(SMALL ? 1024 : 2048);
-        L.shadow.bias = -0.0004;
-        L.shadow.normalBias = 0.04;
-      }
-      model.add(lamps);
-      realHall.lamps = lamps;
-      scaleLamps();
-      hallStage();
-      const n = lamps.children.filter((q) => q.isLight).length;
-      console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt`);
-      captureHallEnv(true);
-    }).catch(() => { /* ohne Lampen weiter mit Bühnenlicht */ });
+      light.userData.base = { I, dist };
+      light.userData.src = l;
+      lamps.add(light);
+    }
+    // Den Schatten unter dem Schiff werfen die Spots, die die Plattform am
+    // stärksten treffen, nicht mehr das Bühnenlicht: Er fällt wie im Spiel
+    // von der Decke. Einer allein reicht nicht, die übrigen Lampen und das
+    // Streulicht der hellen Halle hellen ihn sonst fast ganz auf.
+    const pad = [[c[0], f + 0.2, c[2], 1]];
+    shadowLamps = lamps.children
+      .filter((q) => q.isSpotLight && q.userData.src.type === 'spot')
+      .map((q) => [q, lampScore(q.userData.src, pad)]).filter(([, sc]) => sc > 0)
+      .sort((a, b) => b[1] - a[1]).slice(0, SHADOW_LAMPS).map(([q]) => q);
+    for (const L of shadowLamps) {
+      L.castShadow = true;
+      L.shadow.mapSize.setScalar(SMALL ? 1024 : 2048);
+      L.shadow.bias = -0.0004;
+      L.shadow.normalBias = 0.04;
+    }
+    hallRoot.add(lamps);
+    if (!hallRoot.parent) scene.add(hallRoot);
+    hallLamps = lamps;
+    // Das Bühnenlicht geht ganz: Auf null gedreht stünde es weiter in jedem
+    // Shader und kostete jedes Pixel.
+    scene.remove(key, rim, fill, doorLight);
+    scaleLamps();
+    hallStage();
+    const n = lamps.children.filter((q) => q.isLight).length;
+    console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt`);
+    return true;
+  }
+
+  // Ohne Halle keine Hallenlampen: Das Bühnenlicht der gebauten Halle kehrt zurück.
+  function dropHallLamps() {
+    if (!hallLamps) return;
+    hallLamps.removeFromParent();
+    hallLamps = null; shadowLamps = [];
+    scene.add(key, rim, fill, doorLight);
   }
 
   // Lampen wachsen mit der Halle: Reichweite mal k, Stärke mal k², damit die
   // Beleuchtungsstärke (I/d²) bei jedem Maßstab gleich bleibt.
   function scaleLamps() {
-    if (!realHall?.lamps) return;
-    const k = realHall.group.scale.x;
-    for (const q of realHall.lamps.children) if (q.isLight) { q.intensity = q.userData.base.I * k * k; q.distance = q.userData.base.dist * k; }
+    if (!hallLamps) return;
+    const k = hallRoot.scale.x;
+    for (const q of hallLamps.children) if (q.isLight) { q.intensity = q.userData.base.I * k * k; q.distance = q.userData.base.dist * k; }
     // Schattenkegel nur so weit, dass er das Schiff deckt: Der volle Kegel
     // des Spiels (bis 150°) gäbe einen groben, verwaschenen Schatten.
-    realHall.group.updateMatrixWorld(true);
-    for (const L of realHall.shadowLamps || []) {
+    hallRoot.updateMatrixWorld(true);
+    for (const L of shadowLamps) {
       const p = L.getWorldPosition(new THREE.Vector3());
       const axis = L.target.getWorldPosition(new THREE.Vector3()).sub(p).normalize();
       const toPad = p.clone().negate(), d = toPad.length();
@@ -1608,49 +1639,60 @@ export async function initHangar(container, opts = {}) {
     }
   }
 
-  // Bühnenlicht in der echten Halle, je nachdem, was schon da ist: Spiellampen
-  // übernehmen das Raum- und Schattenlicht, die Umgebungskugel das Streulicht.
-  // Das warme Gegenlicht bleibt nur als Kante, sonst legt es eine orange
-  // Pfütze vor den Bug.
-  const HALL_KEY = 8, HALL_KEY_WITH_LAMPS = 3, HALL_KEY_FRONT = 1.2, HALL_HEMI = 0.35, HALL_HEMI_WITH_ENV = 0.12;
+  // Licht in der echten Halle. Mit Spiellampen gibt es kein Bühnenlicht
+  // mehr (loadHallLights nimmt es aus der Szene): Raum- und Schattenlicht
+  // kommen von den Lampen, das Streulicht aus der Umgebungskugel, die
+  // Halbkugel hellt nur noch neutral auf. Ohne Lampen bleibt das
+  // Bühnenlicht; das warme Gegenlicht dann nur als Kante, sonst legt es eine
+  // orange Pfütze vor den Bug.
+  const HALL_KEY = 8, HALL_HEMI = 0.35, HALL_HEMI_WITH_ENV = 0.12;
   function hallStage() {
     if (!realHall) return;
-    const lamps = !!realHall.lamps, env = !!realHall.envOn;
-    hemi.intensity = env ? HALL_HEMI_WITH_ENV : lamps ? HALL_HEMI * 0.5 : HALL_HEMI;
-    // Werfen Spiellampen den Schatten, bleibt das Hauptlicht schwaches
-    // Vorderlicht ohne Schatten, sonst hellt es den Schatten wieder auf.
-    const gameShadow = !!realHall.shadowLamps?.length;
-    key.intensity = gameShadow ? HALL_KEY_FRONT : lamps ? HALL_KEY_WITH_LAMPS : HALL_KEY;
-    key.castShadow = !gameShadow;
-    rim.intensity = gameShadow ? 0.6 : lamps ? 1 : 3;
-    fill.intensity = lamps ? 0 : 0.2;
-    doorLight.intensity = lamps ? 0 : 0.3;
+    const env = !!realHall.envOn;
+    if (hallLamps) {
+      hemi.color.set(0xffffff); hemi.groundColor.set(0x9a9a9a);
+      hemi.intensity = env ? HALL_HEMI_WITH_ENV : HALL_HEMI * 0.5;
+      return;
+    }
+    hemi.intensity = env ? HALL_HEMI_WITH_ENV : HALL_HEMI;
+    key.intensity = HALL_KEY;
+    key.castShadow = true;
+    rim.intensity = 3;
+    fill.intensity = 0.2;
+    doorLight.intensity = 0.3;
   }
 
   // Spiegelungen und Umgebungslicht aus der echten Halle: eine Umgebungskugel
-  // in Schiffsmitte aus der leeren Halle gerendert, wie die Reflexionssonden
-  // im Spiel. Ersetzt die Ersatzhalle als Umgebung; neu nach jeder spürbaren
-  // Maßstabsänderung und sobald die Spiellampen brennen. Beim Aufnehmen ohne
-  // alte Kugel, sonst schaukelt sich das Licht mit jeder Aufnahme auf.
+  // über der Plattform aus der leeren Halle gerendert, wie die
+  // Reflexionssonden im Spiel. Ersetzt die Ersatzhalle als Umgebung.
+  // Einmal genügt: Halle und Lampen wachsen mit demselben Faktor (Stärke mal
+  // k², siehe scaleLamps), die Kugel von 2,5 m · k aus bleibt dieselbe.
+  // Beim Aufnehmen bleiben Nebel und Umgebung eingeschaltet (der Nebel weit
+  // weg, als Umgebung die feste Ersatzkugel gleicher Größe), sonst bräuchte
+  // die Aufnahme für jedes Hallenmaterial ein eigenes Shaderprogramm, das
+  // mitten im Laden übersetzt wird; die Hallenmaterialien spiegeln dabei
+  // kaum (0,05), es schaukelt sich nichts auf.
   const HALL_ENV = 0.8;    // envMapIntensity der Hallenmaterialien mit Sonde
-  let hallEnv = null, hallEnvK = 0;
+  let hallEnv = null;
   function captureHallEnv(force = false) {
     if (!realHall || !HALL_PROBE) return;
-    const k = realHall.group.scale.x;
-    if (!force && hallEnv && Math.abs(k - hallEnvK) / hallEnvK < 0.1) return;
+    if (hallEnv && !force) return;
+    const k = hallRoot.scale.x;
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
     for (const o of hide) o.visible = false;
-    const fog = scene.fog;
-    scene.fog = null;
-    scene.environment = null;
+    const fog = scene.fog, { near, far } = fog;
+    fog.near = 1e7; fog.far = 2e7;
+    const gain = new Map();
+    for (const m of realHall.mats) { gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05); }
+    scene.environment = envRT.texture;
     const pm = new THREE.PMREMGenerator(renderer);
-    const y = Math.max(2, (lastInfo?.height || 4) * 0.5);
-    const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, y, 0) });
+    const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     pm.dispose();
-    scene.fog = fog;
+    fog.near = near; fog.far = far;
+    for (const [m, g] of gain) m.envMapIntensity = g;
     for (const o of hide) o.visible = true;
     hallEnv?.dispose();
-    hallEnv = rt; hallEnvK = k;
+    hallEnv = rt;
     scene.environment = rt.texture;
     if (!realHall.envOn) {
       realHall.envOn = true;
@@ -1765,14 +1807,16 @@ export async function initHangar(container, opts = {}) {
         }
       });
       if (boxed.size) console.info(`[hangar] ${boxed.size} Hallenmaterialien projiziert (UVs zerfallen)`);
-      const group = new THREE.Group();
-      group.add(model);
-      await prepare(group);
-      scene.add(group);
+      // Die Lampen stehen schon (oder kommen nie): erst übersetzen und
+      // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
+      await lampsReady;
+      await prepare(model);
+      hallLamps?.position.copy(model.position);
+      hallRoot.add(model);
+      if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group, room: h.room, mats, floorY, furniture: [...pivots.values()] };
-      loadHallLights(h, model);
+      realHall = { group: hallRoot, room: h.room, mats, floorY, furniture: [...pivots.values()] };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -1799,6 +1843,8 @@ export async function initHangar(container, opts = {}) {
       // ohne echte Halle die gebaute
       console.warn('[hangar] Halle nicht geladen', e);
       prog.delete('hall');
+      hallFailed = true;
+      dropHallLamps();
       buildStage();
       return false;
     });
@@ -2092,7 +2138,8 @@ export async function initHangar(container, opts = {}) {
   if (REAL) {
     // unsichtbar, bis Halle und Schiff fertig sind (reveal)
     renderer.domElement.style.opacity = '0';
-    composerReady = enableAO();
+    lampsReady = loadHallLights(opts.hall);
+    composerReady = lampsReady.then(() => enableAO());
     loadRealHall(opts.hall);
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand

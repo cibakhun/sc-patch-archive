@@ -16,6 +16,8 @@ import { pickThumb } from '../../lib/shipRenders';
 import { vType, vRoleCig } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
+import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -34,9 +36,16 @@ const HOLD: Record<string, string> = {
   'misc-freelancer': 'Rumpf als schwarz glänzende, verlaufene Flächen; die Lackschichten löst der Export nicht auf',
   'rsi-constellation-andromeda': 'Rumpf nach Neuexport sauber, aber fast schwarzbraun; Freigabe ist Sichturteil des Betreibers',
 };
-const hallAsset = Object.values(real.hall ?? {})[0];
+const [hallKey, hallAsset] = Object.entries(real.hall ?? {})[0] ?? [];
+// Lampen der Halle aus dem Spiel (vom Build neben das GLB gelegt, Name nach
+// der Halle, nicht nach der Datei: die LOD-Fassung teilt sie); Version aus
+// dem Inhalt, sonst hielte der Jahres-Cache die alte Liste.
+const lightsFile = hallKey ? `public/hangar/hall/${hallKey}.lights.json` : '';
+const lights = lightsFile && existsSync(lightsFile)
+  ? `/hangar/hall/${hallKey}.lights.json?v=${createHash('sha1').update(readFileSync(lightsFile)).digest('hex').slice(0, 8)}`
+  : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
-const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes } : null;
+const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 const vehicles = (await getCollection('vehicles'))
