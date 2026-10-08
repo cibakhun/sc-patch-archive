@@ -63,23 +63,44 @@
       body: JSON.stringify({ refresh_token: sess.refresh_token }),
     })
       .then(function (r) {
-        if (r.status === 400 || r.status === 401 || r.status === 403) {
-          clearSession();
-          return { sess: null, changed: true };
-        }
-        if (!r.ok) return { sess: usable(sess), changed: false };
+        if (r.status === 400 || r.status === 401 || r.status === 403) return swap(sess, null);
+        if (!r.ok) return unchanged();
         return r.json().then(function (fresh) {
-          if (!fresh || !fresh.access_token) return { sess: usable(sess), changed: false };
+          if (!fresh || !fresh.access_token) return unchanged();
           if (!fresh.expires_at) fresh.expires_at = Math.floor(Date.now() / 1000) + (fresh.expires_in || 3600);
-          try { localStorage.setItem(STORE, JSON.stringify(fresh)); } catch (e) { /* noop */ }
-          return { sess: fresh, changed: true };
+          return swap(sess, fresh);
         });
       })
-      .catch(function () { return { sess: usable(sess), changed: false }; });
+      .catch(unchanged);
   }
 
-  // Refresht die Session, wenn sie (fast) abgelaufen ist. Lock verhindert
-  // parallele Refreshes aus mehreren Tabs (GoTrue erlaubt Reuse ~10 s).
+  // Schreibt dieser Refresh nichts, bekommen seine Aufrufer, was jetzt
+  // gespeichert ist: ein anderer Tab kann waehrenddessen erneuert haben.
+  function unchanged() {
+    return { sess: usable(readRaw()), changed: false };
+  }
+
+  // Eine Antwort gilt nur, solange noch die Sitzung gespeichert ist, fuer die
+  // gefragt wurde. Wer inzwischen geschrieben hat, schrieb einen neueren Stand:
+  // ein anderer Tab oder /account/ hat dieselbe Sitzung erneuert, oder der
+  // Besucher hat sich ab- oder neu angemeldet (beim Abmelden loescht GoTrue die
+  // Sitzung, die spaete Antwort ist dann 400 oder eine Sitzung von vorher).
+  function swap(sent, next) {
+    var stored = readRaw();
+    if (!stored || stored.refresh_token !== sent.refresh_token) return unchanged();
+    if (next) { try { localStorage.setItem(STORE, JSON.stringify(next)); } catch (e) { /* noop */ } }
+    else clearSession();
+    return { sess: next, changed: true };
+  }
+
+  // Refresht die Session, wenn sie (fast) abgelaufen ist. Die Sperre haelt 10 s
+  // lang jeden weiteren Refresh zurueck, auch in diesem Tab; die Frist gibt die
+  // Aufrufer nach 15 s frei. Danach darf dasselbe Token noch einmal gehen: das
+  // ist der Weg aus einem verlorenen Refresh. GoTrue v2.197.0 gibt fuer das
+  // Eltern-Token des aktiven Tokens das aktive zurueck, ohne Zeitgrenze
+  // (internal/tokens/service.go; gilt fuer v1-Tokens, die diese Anlage am
+  // 08.10.2026 ausschliesslich hatte). Abgelehnt wird erst ein aelteres Token
+  // nach Ablauf der Wiederverwendungsfrist.
   function ensureSession() {
     var sess = readRaw();
     if (!sess || !sess.refresh_token) return Promise.resolve(null);
@@ -93,7 +114,7 @@
     try { localStorage.setItem(LOCK, String(now)); } catch (e) { /* noop */ }
 
     var mine = refreshing = new Promise(function (resolve) {
-      var timer = setTimeout(function () { resolve(usable(sess)); }, REFRESH_MS);
+      var timer = setTimeout(function () { resolve(usable(readRaw())); }, REFRESH_MS);
       refresh(sess).then(function (out) {
         clearTimeout(timer);
         resolve(out.sess);
