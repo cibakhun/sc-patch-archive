@@ -317,13 +317,23 @@
     flushTimer = setTimeout(flush, 700);
   }
 
+  // Ein Zug nach dem anderen. Ein zweiter Klick auf denselben Blueprint ginge
+  // sonst hinaus, während der erste noch unterwegs ist, und käme womöglich vor
+  // ihm beim Server an: der Server behielte den ersten Klick, die Bestätigung
+  // des zweiten nähme den Blueprint aus `pending`, und der nächste Abgleich
+  // holte den ersten zurück. Was offen ist, liest jeder Zug erst beim Start.
+  var chain = Promise.resolve();
+  function serial(run) { return (chain = chain.then(run)); }
+  function flush() { return serial(sendPending); }
+  function pull() { return serial(readServer); }
+
   // Jede Fortsetzung eines Zugs prüft zuerst, ob das Konto noch dasselbe ist.
   // Nach Abmelden oder Kontowechsel gehört ihr Ergebnis niemandem mehr hier:
   // Zeilen landeten sonst in der Gast-Ablage (und beim nächsten Anmelden im
   // nächsten Konto), die Anzeige meldete ein Konto, das nicht mehr angemeldet ist.
   // Eine Sitzung, die schon einem anderen Konto gehört (sein Ereignis ist noch
   // unterwegs), zählt wie keine: mit ihr käme dessen Stand in diese Kopie.
-  function flush() {
+  function sendPending() {
     clearTimeout(flushTimer);
     if (!acctUid || !VB || !loadState(acctUid).pending.length) return null;
     var me = acctUid;
@@ -372,17 +382,12 @@
     });
   }
 
-  // Erst schreiben, dann lesen — nie gleichzeitig: ein GET, der neben einem
-  // laufenden POST eintrifft, brächte den gerade geklickten Zustand wieder weg.
-  function flushThenPull() {
-    var p = flush();
-    if (p && p.then) p.then(function () { pull(); }, function () { /* Fehler steht schon */ });
-    else pull();
-  }
+  // Erst schreiben, dann lesen.
+  function flushThenPull() { flush(); pull(); }
 
   // Server -> Client. Steht die Übernahme noch aus (mergeOwed), wandert die
   // Gast-Ablage mit.
-  function pull() {
+  function readServer() {
     if (!acctUid || !VB) return Promise.resolve();
     var me = acctUid;
     setSync('syncing');
