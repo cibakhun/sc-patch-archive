@@ -1,0 +1,448 @@
+---
+// „sc-4-10-1" — EIN Körper für DE und EN.
+// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
+// Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
+// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+import SiteNav from '../../components/SiteNav.astro';
+import QuickFacts from '../../components/dossier/QuickFacts.astro';
+import PatchDossier from '../../components/dossier/PatchDossier.astro';
+import PatchSeo from '../../components/dossier/PatchSeo.astro';
+import { getEntry } from 'astro:content';
+import { mergePatchEn } from '../../i18n/patchText';
+import { versioned } from '../../lib/assetVersion';
+import { localeFromPath } from '../../i18n/ui';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+const entry = await getEntry('patches', '4-10-1');
+if (!entry) throw new Error('Patch-Daten 4-10-1 fehlen in src/data/patches/');
+const patch = mergePatchEn('4-10-1', entry.data, lang);
+
+/* Die sechs Belohnungen in der Reihenfolge, in der die Fortschrittsleiste sie
+   freischaltet — Wortlaut und Reihenfolge aus den offiziellen 4.10.1-Notes.
+   Alle sechs Gegenstaende stehen im Item-Katalog (universal-items.json). */
+const REWARDS = [
+  { k: 'w', name: 'S-38 „SecondWind"', de: 'Pistole', en: 'Pistol' },
+  { k: 'a', name: 'FBL-8a SecondWind', de: 'Leichte Panzerung', en: 'Light armour' },
+  { k: 'w', name: 'P4-AR „SecondWind"', de: 'Gewehr', en: 'Rifle' },
+  { k: 'a', name: 'ORC-mkX SecondWind', de: 'Mittlere Panzerung', en: 'Medium armour' },
+  { k: 'w', name: 'Lumin V „SecondWind"', de: 'Maschinenpistole', en: 'SMG' },
+  { k: 'a', name: 'ADP-mk4 SecondWind', de: 'Schwere Panzerung', en: 'Heavy armour' },
+];
+---
+<PatchSeo patch={patch} image="/assets/trailer-4-10-1.jpg" />
+<style is:inline>
+
+/* 4.10.1 "Orison Relief Support" — die Stadt nach dem Angriff.
+   Design-Welt: Crusader-Himmelblau der Hilfsflotte, Signalgelb der
+   Bergungs- und Sanitätskisten. Signatur ist die Fortschrittsleiste:
+   sechs Stufen, abwechselnd Waffe und Panzerung. */
+:root{
+  --bg:#0f171d;--bg-2:#13202a;--surface:#182833;--surface-2:#1f3340;
+  --accent:#5fb6e0;--accent-2:#f0c44c;--hot:#f0c44c;
+  --text:#edf3f6;--muted:#9db1bc;
+  --line:rgba(95,182,224,.24);--line-soft:rgba(237,243,246,.10);
+  --glow:0 0 44px rgba(95,182,224,.28);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;
+  --maxw:1280px;
+}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f1f9ff;--bg-2:#e5eff8;--surface:#fcfeff;--surface-2:#eaf4fb;--text:#1c2022;--muted:#495b65;--accent:#016386;--accent-2:#6a5203;--hot:#674f03;--ink:#ffffff;--accent-media:#5fb6e0;--accent-2-media:#f0c44c;--line:rgba(41,123,159,.3);--line-soft:rgba(42,47,49,.12);--glow:0 6px 22px rgba(41,123,159,.18)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
+
+/* Effekt-Overlays: Vignette + feine Scanlines */
+body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 38%,transparent 54%,var(--vignette) 100%);opacity:var(--ambient-opacity);-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%)}
+
+/* HERO */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
+.hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/trailer-4-10-1.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
+.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--scrim-4) 90%,var(--bg)),radial-gradient(120% 90% at 78% 22%,transparent,var(--bg) 88%)}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+#haze{position:absolute;inset:0;z-index:1;opacity:.55}html:not([data-fx="on"]) #haze{display:none}
+.hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
+.eyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent-2)}
+.hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.82;letter-spacing:var(--ls-1);margin:.6rem 0 .1rem;font-size:clamp(3.4rem,17vw,14rem);background:linear-gradient(180deg,var(--title-hi),var(--accent) 75%,#1d4a63);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 36px rgba(95,182,224,.45))}
+.hero h1::after{content:attr(data-text);position:absolute;left:3px;top:0;-webkit-text-fill-color:var(--accent-2);color:var(--accent-2);opacity:0;mix-blend-mode:screen;animation:rgbs 9s steps(1) infinite}
+@keyframes rgbs{0%,93%,100%{opacity:0;transform:translate(0,0)}94%{opacity:.5;transform:translate(-4px,2px)}96%{opacity:0}}
+.hero .codename{font-family:var(--font-display);font-weight:700;font-size:clamp(1.3rem,4vw,2.6rem);color:var(--on-media)}
+.hero .codename span{color:var(--accent-2)}
+.hero .tagline{font-family:var(--font-ui);font-weight:600;font-size:clamp(1rem,2vw,1.4rem);color:var(--accent);letter-spacing:var(--ls-5);margin-top:.7rem}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.tag{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-5);padding:.4rem .8rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
+.tag.hot{border-color:rgba(240,196,76,.55);color:#f7dc8f}
+.scrollcue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+/* Marquee */
+.marquee{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
+.mtrack{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 34s linear infinite;font-family:var(--font-display);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--accent)}
+.mtrack .dot{color:var(--accent-2)}
+@keyframes scrollx{to{transform:translateX(-50%)}}
+
+/* Section */
+section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)}
+.wrap{max-width:var(--maxw);margin:0 auto}
+.sec-head{display:flex;align-items:center;gap:1rem;margin-bottom:2rem}
+.sec-head .num{font-family:var(--font-display);font-weight:900;font-size:var(--fs-9);color:var(--accent);opacity:.8}
+.sec-head h2{font-family:var(--font-display);font-weight:700;font-size:clamp(1.4rem,3.5vw,2.3rem)}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+.lead{max-width:64ch;color:var(--muted);font-size:var(--fs-10);line-height:1.55;margin-bottom:1.4rem}
+.lead b{color:#a9dcf3}
+
+/* BENTO */
+.bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:185px;gap:.8rem}
+@media(max-width:820px){.bento{grid-template-columns:repeat(2,1fr)}}
+.tile{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:1.2rem}
+.tile .tbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:transform .9s ease}
+.tile:hover .tbg{transform:scale(1.09)}
+.tile.img::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+.tile.img::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,var(--scrim-6),var(--scrim-0) 65%)}
+.tile>*{position:relative;z-index:2}
+.tile .lbl{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-7);font-size:var(--fs-10);text-shadow:0 1px 8px var(--on-media-shadow)}
+.tile .sub{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-4);color:var(--accent-2);margin-top:.2rem}
+.tile.word{background:linear-gradient(140deg,var(--surface),var(--bg-2));justify-content:center}
+.tile.word b{font-family:var(--font-display);font-weight:900;font-size:clamp(1.35rem,2.4vw,2.1rem);line-height:.95;color:var(--accent)}
+.tile.word.hot b{color:#f7dc8f}
+.tile.word small{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-4);color:var(--muted);margin-top:.5rem}
+.tile.stat{background:linear-gradient(140deg,var(--surface-2),var(--bg-2));align-items:center;justify-content:center;text-align:center}
+.tile.stat .num{font-family:var(--font-display);font-weight:900;font-size:clamp(2.2rem,5vw,3.6rem);color:var(--accent);line-height:1}
+.tile.stat .cap{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-13);font-size:var(--fs-4);color:var(--muted);margin-top:.5rem}
+.w2{grid-column:span 2}.h2{grid-row:span 2}.b2{grid-column:span 2;grid-row:span 2}
+@media(max-width:820px){.b2{grid-column:span 2}.h2{grid-row:span 1}}
+
+/* SHOT */
+.shot{position:relative;min-height:90vh;display:flex;align-items:flex-end;padding:clamp(2.5rem,7vw,7rem) clamp(1.25rem,5vw,4.5rem);overflow:hidden}
+.shot .sbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;animation:kb2 26s ease-in-out infinite alternate}
+@keyframes kb2{from{transform:scale(1.08)}to{transform:scale(1.24) translate(-3%,-2%)}}
+.shot::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+.shot::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--scrim-0),var(--scrim-3) 60%,var(--scrim-3) 90%,var(--bg)),linear-gradient(90deg,var(--scrim-4),transparent 55%)}
+.shot__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
+.shot .kx{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-20);text-transform:uppercase;color:var(--accent-2);font-size:var(--fs-6)}
+.shot .big{font-family:var(--font-display);font-weight:900;font-size:clamp(2.6rem,13vw,10rem);line-height:.8;color:var(--on-media);text-shadow:0 6px 70px var(--on-media-shadow),0 0 50px rgba(95,182,224,.26);overflow-wrap:normal;text-wrap:balance}
+.shot p{max-width:48ch;color:var(--on-media-dim);font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.6rem;text-shadow:0 2px 14px var(--on-media-shadow)}
+
+/* AUFTRAGGEBER — vier Karten mit Kisten-Ecken */
+.prov{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}
+@media(max-width:1000px){.prov{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.prov{grid-template-columns:minmax(0,1fr)}}
+.icard{position:relative;background:var(--surface);border:1px solid var(--line-soft);padding:1.2rem 1.35rem 1.05rem}
+.icard::before,.icard::after{content:"";position:absolute;width:16px;height:16px;border:2px solid var(--accent-2);opacity:.75}
+.icard::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.icard::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.icard .ik{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
+.icard b{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.35rem 0 .3rem}
+.icard small{display:block;color:var(--muted);font-size:var(--fs-8);line-height:1.5}
+.icard .route{display:block;margin-top:.6rem;font-family:var(--font-mono);font-size:var(--fs-6);letter-spacing:var(--ls-7);color:var(--accent);overflow-wrap:anywhere}
+
+/* FORTSCHRITTSLEISTE — Signatur dieser Seite.
+   Sechs Stufen in der Freischalt-Reihenfolge; die Schiene darunter ist die
+   Leiste selbst, jede Stufe ein Zahn darauf. Waffe = Blau, Panzerung = Gelb. */
+.track{list-style:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.6rem;position:relative;margin-top:.4rem}
+@media(max-width:900px){.track{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){.track{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.step{position:relative;min-width:0;background:var(--surface);border:1px solid var(--line-soft);border-bottom:3px solid var(--accent);padding:.95rem 1rem .9rem}
+.step.a{border-bottom-color:var(--accent-2)}
+.step .sn{font-family:var(--font-display);font-weight:900;font-size:var(--fs-12);line-height:1;color:var(--accent)}
+.step.a .sn{color:var(--accent-2)}
+.step .sk{display:block;margin-top:.45rem;font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.step b{display:block;margin-top:.25rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-9);line-height:1.25;color:var(--text);overflow-wrap:anywhere}
+.tracknote{margin-top:1rem;color:var(--muted);font-size:var(--fs-7);line-height:1.5;max-width:70ch}
+.tracknote b{color:var(--text)}
+
+/* LESEWERTE — Panel mit Ablesezeilen */
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+@media(max-width:900px){.qgrid{grid-template-columns:1fr}}
+.qgrid>*{min-width:0}
+.qpanel{background:var(--surface);border:1px solid var(--line-soft);padding:1.15rem 1.3rem;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.qpanel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:.8rem;border-bottom:1px solid var(--line);padding-bottom:.5rem;margin-bottom:.85rem;min-width:0;overflow-wrap:anywhere}
+.qpanel .phead h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text)}
+.qpanel .phead .pc{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-12);color:var(--accent-2);text-transform:uppercase}
+.qpanel p{color:var(--muted);font-size:var(--fs-8);line-height:1.55;margin-bottom:.8rem}
+.readout{display:grid;gap:.4rem;font-family:var(--font-mono);font-size:var(--fs-8)}
+.readout .row{display:flex;align-items:baseline;gap:.6rem}
+.readout dt{color:var(--muted);font-size:var(--fs-5);letter-spacing:var(--ls-12);text-transform:uppercase;flex:none}
+.readout .lead2{flex:1;border-bottom:1px dotted rgba(237,243,246,.25);transform:translateY(-3px)}
+.readout dd{color:var(--text);text-align:right;min-width:0;overflow-wrap:anywhere}
+.readout dd em{color:var(--accent-2);font-style:normal}
+
+/* RAVEN EX — Bühne mit Datenblatt */
+.sr{display:grid;grid-template-columns:1.25fr .75fr;gap:.9rem}
+@media(max-width:900px){.sr{grid-template-columns:1fr}}
+.sr>*{min-width:0}
+.srshot{min-height:330px}
+.srnote{background:var(--surface);border:1px solid var(--line-soft);border-top:2px solid var(--accent);padding:1.15rem 1.3rem}
+.srnote h3{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--text);margin-bottom:.5rem}
+.srnote p{color:var(--muted);font-size:var(--fs-8);line-height:1.55;margin-bottom:.9rem}
+.qpanel p.after,.srnote p.after{margin:.85rem 0 0}
+.srnote p.after a{color:var(--accent)}
+
+/* BEUTE — Ausrüstungsraster */
+.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:.8rem}
+.gcard{background:var(--surface);border:1px solid var(--line-soft);border-left:2px solid var(--accent-2);padding:1.05rem 1.15rem .95rem}
+.gcard .gk{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
+.gcard b{display:block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:.35rem 0 .25rem}
+.gcard small{display:block;color:var(--muted);font-size:var(--fs-8);line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
+.chip{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--text);border:1px solid rgba(95,182,224,.4);padding:.28rem .6rem;border-radius:2px;background:var(--veil)}
+
+/* Footer */
+footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5rem,6vw,4rem) clamp(1.25rem,5vw,4.5rem) 3rem}
+.pager{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;max-width:var(--maxw);margin-inline:auto}
+.pager>a,.pager>span{flex:1;min-width:min(200px,100%);display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:1.1rem 1.3rem;background:var(--surface);transition:border-color var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
+.pager a:hover{border-color:var(--accent);transform:translateY(-2px)}
+.pager .dir{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-14);font-size:var(--fs-4);color:var(--muted)}
+.pager .ttl{font-family:var(--font-display);font-weight:700;font-size:var(--fs-10);margin-top:.3rem;overflow-wrap:break-word}
+.pager .next{text-align:right}
+.pager .disabled{opacity:.35}
+.foot-meta{max-width:var(--maxw);margin:0 auto;display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;font-size:var(--fs-7);color:var(--muted)}
+.foot-meta a{color:var(--accent)}
+.home-link{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-6)}
+.disclaimer{max-width:var(--maxw);margin:1.6rem auto 0;font-size:var(--fs-4);color:var(--muted);opacity:.65;border-top:1px solid var(--line-soft);padding-top:1.2rem}
+
+/* Klickbar-Affordance + Lightbox */
+.tile.img,.tile.word,.tile.stat{cursor:pointer}
+.zoomic{position:absolute;top:.7rem;right:.7rem;z-index:3;width:34px;height:34px;border-radius:50%;background:var(--scrim-4);border:1px solid var(--line);display:grid;place-items:center;font-size:var(--fs-8);color:var(--on-media);opacity:.55;transition:opacity var(--dur-base) var(--ease-ui),background var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
+.tile.img:hover .zoomic,.tile.word:hover .zoomic,.tile.stat:hover .zoomic{opacity:1;background:var(--accent);color:var(--ink-media);transform:scale(1.12)}
+.lb{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;background:var(--lb-backdrop);backdrop-filter:blur(5px);padding:3vh 3vw}
+.lb.open{display:flex}
+.lb__body{position:relative;max-width:1120px;width:100%}
+.lb__body img{display:block;width:100%;height:auto;max-height:88vh;object-fit:contain;border:1px solid var(--line);border-radius:8px}
+.lb__x{position:absolute;top:-3.4rem;right:0;background:none;border:1px solid var(--line);color:var(--on-media);width:46px;height:46px;border-radius:50%;font-size:var(--fs-12);cursor:pointer;transition:background var(--dur-base) var(--ease-ui),color var(--dur-base) var(--ease-ui)}
+.lb__x:hover{background:var(--accent);color:var(--ink-media)}
+.lb__info{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:88vh;overflow-y:auto}
+.lb__info img{display:block;width:100%;max-height:46vh;object-fit:cover}
+.lb__txt{padding:1.4rem 1.7rem}
+.lb__txt h3{font-family:var(--font-display);font-weight:800;font-size:var(--fs-14);color:var(--accent);margin-bottom:.5rem}
+.lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .tag.hot{border-color:rgba(147,114,4,.73);color:#6b5503}
+:root[data-theme="light"] .lead b{color:#216078}
+:root[data-theme="light"] .tile.word.hot b{color:#6b5503}
+</style>
+<a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
+
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.10.1' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.10.1' }]} />
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__photo" aria-hidden="true"></div>
+    <canvas id="haze" aria-hidden="true"></canvas>
+    <div class="hero__in">
+      <div class="eyebrow">{de ? '16. September 2026 · Point-Release' : 'September 16, 2026 · Point Release'}</div>
+      <h1 data-text="4.10.1">4.10.1</h1>
+      <div class="codename">Orison <span>Relief Support</span></div>
+      <div class="tagline">{de ? 'Nach dem Angriff — Crusader zahlt für den Wiederaufbau' : 'After the attack — Crusader pays for the rebuild'}</div>
+      <div class="tags">
+        <span class="tag hot">{de ? 'Event bis 4.10.2' : 'Event until 4.10.2'}</span><span class="tag">SecondWind</span><span class="tag">Sabre Raven EX</span><span class="tag">Soft Death</span><span class="tag">{de ? '37 Fehler behoben' : '37 issues fixed'}</span><span class="tag">{de ? 'Kein Wipe' : 'No Wipe'}</span>
+      </div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="mtrack">
+      <span>ORISON RELIEF</span><span class="dot">◆</span><span>CORNERSTONE</span><span class="dot">◆</span><span>COVALEX</span><span class="dot">◆</span><span>LING</span><span class="dot">◆</span><span>FOXWELL</span><span class="dot">◆</span><span>SECONDWIND</span><span class="dot">◆</span><span>SABRE RAVEN EX</span><span class="dot">◆</span><span>{de ? '37 FEHLER BEHOBEN' : '37 ISSUES CLOSED'}</span><span class="dot">◆</span>
+      <span>ORISON RELIEF</span><span class="dot">◆</span><span>CORNERSTONE</span><span class="dot">◆</span><span>COVALEX</span><span class="dot">◆</span><span>LING</span><span class="dot">◆</span><span>FOXWELL</span><span class="dot">◆</span><span>SECONDWIND</span><span class="dot">◆</span><span>SABRE RAVEN EX</span><span class="dot">◆</span><span>{de ? '37 FEHLER BEHOBEN' : '37 ISSUES CLOSED'}</span><span class="dot">◆</span>
+    </div>
+  </div>
+
+  <!-- AT A GLANCE (Daten-Register, uniform) -->
+  <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang={de ? 'de' : 'en'} />
+
+  <!-- BENTO HIGHLIGHTS -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
+      <div class="bento reveal">
+        <div class="tile img b2" data-lb="img:/assets/trailer-4-10-1.jpg"><div class="tbg" style="background-image:url('/assets/trailer-4-10-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Orison Relief Support</div><div class="sub">{de ? 'Sanitätsgüter für die Wolkenstadt' : 'Medical supplies for the cloud city'}</div></div>
+        <div class="tile stat" data-info data-title={de ? 'Sechs Belohnungen' : 'Six rewards'} data-text={de ? 'Jeder erledigte Relief-Auftrag zählt auf eine persönliche Fortschrittsleiste. Sechs Belohnungen in der Ausführung „SecondWind" werden nacheinander freigeschaltet — Pistole, leichte Panzerung, Gewehr, mittlere Panzerung, Maschinenpistole, schwere Panzerung — und als fertige Gegenstände aufs Konto gebucht, nicht als Baupläne.' : 'Every completed relief contract counts towards a personal progress track. Six rewards in the "SecondWind" finish unlock one after another — pistol, light armour, rifle, medium armour, SMG, heavy armour — and are granted to your account as finished items, not as blueprints.'}><span class="zoomic">+</span><div class="num">6</div><div class="cap">{de ? 'Belohnungen' : 'Rewards'}</div></div>
+        <div class="tile word hot" data-info data-title="Soft Death" data-text={de ? 'Bodenfahrzeuge hatten bisher keinen Zwischenzustand: einsatzbereit oder zerstört. Mit 4.10.1 können sie wie Schiffe außer Gefecht gesetzt werden und bleiben dann funktionsunfähig stehen, statt sofort zu explodieren.' : 'Ground vehicles used to have no in-between state: working or destroyed. With 4.10.1 they can be disabled like ships and are left inert instead of exploding outright.'}><span class="zoomic">+</span><b>SOFT<br>DEATH</b><small>{de ? 'jetzt auch am Boden' : 'now on the ground too'}</small></div>
+        <div class="tile img w2" data-lb="img:/assets/t-raven-ex-1.jpg"><div class="tbg" style="background-image:url('/assets/t-raven-ex-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aegis Sabre Raven EX</div><div class="sub">{de ? 'Neu fliegbar · Quantum-Dämpfer' : 'Newly flyable · quantum dampener'}</div></div>
+        <div class="tile stat" data-info data-title={de ? '37 geschlossene Fehler' : '37 closed issues'} data-text={de ? 'Der Patch schließt 37 Fehler, 16 davon aus dem Issue Council, darunter drei Client- und zwei Server-Abstürze. Dazu kommen 26 Korrekturen, die seit dem Start von 4.10.0 als Hotfix nachgeliefert wurden.' : 'The patch closes 37 issues, 16 of them from the Issue Council, including three client and two server crashes. On top come 26 fixes delivered as hotfixes since 4.10.0 launched.'}><span class="zoomic">+</span><div class="num">37</div><div class="cap">{de ? 'Fehler behoben' : 'Issues closed'}</div></div>
+        <div class="tile word" data-info data-title="Drake Clipper" data-text={de ? 'Mehrere übereinanderliegende Kollisionsformen fingen den Beschuss ab, bevor er die Hülle erreichte — die Clipper war auf dem größten Teil ihrer Oberfläche praktisch unverwundbar. Die Dopplungen sind entfernt, die Türen an der Unterseite lassen sich beschädigen. Die Hüllen-HP steigen von 26.350 auf 31.551.' : 'Several overlapping collision shapes caught incoming fire before it reached the hull — across most of its surface the Clipper was effectively invulnerable. The duplicates are gone and the underside doors can be damaged. Hull HP rises from 26,350 to 31,551.'}><span class="zoomic">+</span><b>CLIPPER</b><small>{de ? 'Hülle nimmt wieder Schaden' : 'Hull takes damage again'}</small></div>
+        <div class="tile word hot w2" data-info data-title={de ? 'Beute in Qualitätsstufen' : 'Loot in quality grades'} data-text={de ? 'Was Kreaturen und Pflanzen hergeben, kommt jetzt in abgestuften Qualitätsklassen — Kopion-Hörner, Marok-Perlen, Valakkar-Zähne und -Perlen, Yormandi-Augen, Quasigrazer-Eier und -Zungen, dazu Pflanzen wie Spiral Fruit oder Heart of the Woods. Vor dem Verkauf oder Fertigen lohnt der Blick.' : 'What creatures and plants yield now comes in graded quality brackets — Kopion horns, Marok pearls, Valakkar fangs and pearls, Yormandi eyes, Quasigrazer eggs and tongues, plus plants such as spiral fruit or heart of the woods. Worth checking before you sell or craft.'}><span class="zoomic">+</span><b set:html={de ? 'QUALITÄTS-<br>STUFEN' : 'QUALITY<br>GRADES'} /><small>{de ? 'Beute von Kreaturen und Pflanzen' : 'Creature and plant loot'}</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOT ORISON -->
+  <section class="shot">
+    <div class="sbg" style="background-image:url('/assets/t-orison-2.jpg')" aria-hidden="true"></div>
+    <div class="shot__in reveal">
+      <div class="kx">{de ? 'Crusader · Stanton' : 'Crusader · Stanton'}</div>
+      <div class="big">ORISON</div>
+      <p><Fragment set:html={de ? 'Nach dem Angriff der Nine Tails muss die Stadt wieder aufgebaut und ihre Verteidigung verstärkt werden. Crusader Industries bezahlt jeden, der mithilft: Rohstoffe heranschaffen, Sanitätsgüter liefern, die Nine Tails aus ihren Stellungen werfen.' : 'After the Nine Tails attack, the city needs rebuilding and its defences need upgrading. Crusader Industries pays anyone who helps: haul in materials, deliver medical supplies, drive the Nine Tails out of their positions.'} /></p>
+    </div>
+  </section>
+
+  <!-- AUFTRAGGEBER -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Die Auftraggeber' : 'The providers'}</h2><span class="rule"></span></div>
+      <p class="lead reveal">{de ? 'Vier Anbieter, drei Aufgaben. Das Ereignis läuft ' : 'Four providers, three jobs. The event runs '}<b>{de ? 'bis zur Veröffentlichung von 4.10.2' : 'until the release of 4.10.2'}</b>{de ? ' — wer mitmachen will, hat das Zeitfenster dieses Patches.' : ' — the window to take part is this patch.'}</p>
+      <div class="prov reveal">
+        <article class="icard"><span class="ik">{de ? 'Wiederaufbau' : 'Reconstruction'}</span><b>Cornerstone Developments</b><small>{de ? 'Rohstoffe sammeln und abliefern, dazu Fertigungsaufträge für das TH-01-Triebwerk.' : 'Gather and deliver raw materials, plus fabrication orders for the TH-01 Propulsor.'}</small><span class="route">→ Orison · Seraphim</span></article>
+        <article class="icard"><span class="ik">{de ? 'Sanität' : 'Medical'}</span><b>Covalex · Ling</b><small>{de ? 'Sanitätsmaterial und Iod abholen — auch von den Dächern New Babbages — und in die Stadt, auf ihre Dächer und nach Seraphim bringen.' : 'Collect medical supplies and iodine — the New Babbage rooftops included — and bring them into the city, onto its rooftops and to Seraphim.'}</small><span class="route">New Babbage · Port Tressler → Orison · Seraphim</span></article>
+        <article class="icard"><span class="ik">{de ? 'Gruppe' : 'Party'}</span><b>{de ? 'Gemeinsam fliegen' : 'Flying together'}</b><small>{de ? 'Aufträge lassen sich in der Gruppe erledigen; die Punkte werden dann unter den Mitgliedern aufgeteilt.' : 'Contracts can be done as a party; the points are then split between its members.'}</small><span class="route">{de ? 'Punkte geteilt' : 'Points split'}</span></article>
+        <article class="icard"><span class="ik">{de ? 'Sicherheit' : 'Security'}</span><b>Foxwell</b><small>{de ? 'Im Raum Hinterhalte und Wellenangriffe, am Boden das Räumen besetzter Nine-Tails-Außenposten.' : 'Ship ambushes and wave attacks in space, clearing occupied Nine Tails outposts on foot.'}</small><span class="route">{de ? 'Raum · Außenposten' : 'Space · outposts'}</span></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORTSCHRITTSLEISTE -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Die Fortschrittsleiste' : 'The progress track'}</h2><span class="rule"></span></div>
+      <p class="lead reveal">{de ? 'Jeder erledigte Auftrag zählt auf die eigene Leiste — ' : 'Every completed contract counts towards your own track — '}<b>{de ? 'persönlich, nicht geteilt' : 'personal, not shared'}</b>{de ? '. Die Belohnungen kommen in fester Reihenfolge.' : '. The rewards come in a fixed order.'}</p>
+      <ol class="track reveal">
+        {REWARDS.map((r, i) => (
+          <li class={r.k === 'a' ? 'step a' : 'step'}><span class="sn">{String(i + 1).padStart(2, '0')}</span><span class="sk">{r.k === 'a' ? (de ? 'Panzerung' : 'Armour') : (de ? 'Waffe' : 'Weapon')}</span><b>{r.name}</b><span class="sk">{de ? r.de : r.en}</span></li>
+        ))}
+      </ol>
+      <p class="tracknote reveal">{de ? 'Gutgeschrieben wird jede Stufe als ' : 'Each tier is granted as a '}<b>{de ? 'fertiger Gegenstand' : 'finished item'}</b>{de ? ' direkt aufs Konto, nicht als Bauplan. Punkte aus einem Gruppenauftrag werden unter den Mitgliedern aufgeteilt.' : ' straight to your account, not as a blueprint. Points from a party contract are split between its members.'}</p>
+    </div>
+  </section>
+
+  <!-- WERKBANK -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'TH-01 aus der Werkbank' : 'TH-01 from the workbench'}</h2><span class="rule"></span></div>
+      <div class="qgrid reveal">
+        <div class="qpanel">
+          <div class="phead"><h3>{de ? 'So kommt man dran' : 'How to get there'}</h3><span class="pc">Cornerstone</span></div>
+          <p>{de ? 'Die Fertigungsaufträge brauchen einen Gegenstandsfabrikator. Der Bauplan hängt am Auftrag und steht am Terminal des Fabrikators samt Materialliste. Wer keinen besitzt, kauft ihn im Laden, holt ihn am Lastenaufzug ab und stellt ihn im Hangar oder im Frachtraum eines Schiffs auf.' : 'The fabrication contracts need an Item Fabricator. The blueprint is attached to the contract and listed on the fabricator\'s terminal together with its materials. If you don\'t own one, buy it in a shop, collect it at a freight elevator and set it up in a hangar or a ship\'s cargo bay.'}</p>
+        </div>
+        <div class="qpanel">
+          <div class="phead"><h3>{de ? 'Bauplan' : 'Blueprint'}</h3><span class="pc">TH-01 Propulsor</span></div>
+          <dl class="readout">
+            <div class="row"><dt>{de ? 'Material' : 'Material'}</dt><span class="lead2"></span><dd>{de ? 'Aluminium' : 'Aluminium'}</dd></div>
+            <div class="row"><dt>{de ? 'Menge' : 'Amount'}</dt><span class="lead2"></span><dd>{de ? '0,05 SCU' : '0.05 SCU'}</dd></div>
+            <div class="row"><dt>{de ? 'Mindestqualität' : 'Min. quality'}</dt><span class="lead2"></span><dd><em>600</em></dd></div>
+            <div class="row"><dt>{de ? 'Auftragsgrößen' : 'Order sizes'}</dt><span class="lead2"></span><dd>{de ? 'klein · mittel · groß' : 'small · medium · large'}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAVEN EX -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">05</span><h2>Sabre Raven EX</h2><span class="rule"></span></div>
+      <div class="sr reveal">
+        <div class="tile img srshot" data-lb="img:/assets/t-raven-ex-1.jpg"><div class="tbg" style="background-image:url('/assets/t-raven-ex-1.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Sabre Raven EX</div><div class="sub">Aegis Dynamics</div></div>
+        <div class="srnote">
+          <h3>{de ? 'Die Raven, die festhält' : 'The Raven that holds on'}</h3>
+          <p>{de ? 'Eine Sondervariante der Sabre Raven mit einem Quantum-Dämpfer auf dem Rücken: Er verhindert, dass Ziele in den Quantum-Sprung entkommen. Dafür etwas mehr Hülle und etwas weniger Tempo als die Raven.' : 'A special variant of the Sabre Raven with a quantum dampener on its spine that stops targets escaping into quantum travel. In exchange, slightly more hull and slightly less speed than the Raven.'}</p>
+          <dl class="readout">
+            <div class="row"><dt>{de ? 'Rolle' : 'Role'}</dt><span class="lead2"></span><dd>{de ? 'Mittlerer Jäger' : 'Medium fighter'}</dd></div>
+            <div class="row"><dt>{de ? 'Hüllen-HP' : 'Hull HP'}</dt><span class="lead2"></span><dd>{de ? '12.516 → ' : '12,516 → '}<em>{de ? '13.116' : '13,116'}</em></dd></div>
+            <div class="row"><dt>SCM</dt><span class="lead2"></span><dd>240 → <em>233</em> m/s</dd></div>
+            <div class="row"><dt>{de ? 'Höchstgeschw.' : 'Top speed'}</dt><span class="lead2"></span><dd>{de ? '1.400 → ' : '1,400 → '}<em>{de ? '1.320' : '1,320'}</em> m/s</dd></div>
+            <div class="row"><dt>{de ? 'Dämpfer' : 'Dampener'}</dt><span class="lead2"></span><dd>Vertine QD · Wei-Tek</dd></div>
+            <div class="row"><dt>{de ? 'Reichweite' : 'Range'}</dt><span class="lead2"></span><dd>{de ? '4.750 m' : '4,750 m'}</dd></div>
+          </dl>
+          <p class="after">{de ? 'Linker Wert: Sabre Raven zum Vergleich.' : 'Left value: Sabre Raven for comparison.'} <a href={de ? '/de/schiffe/aegs-sabre-raven-ex.html' : '/schiffe/aegs-sabre-raven-ex.html'}>{de ? 'Zum Datenblatt →' : 'Full data sheet →'}</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUS DEM BESTAND -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">06</span><h2>{de ? 'Was sich an Werten bewegt hat' : 'What moved in the numbers'}</h2><span class="rule"></span></div>
+      <p class="lead reveal">{de ? 'Ein Point-Release mit wenig Zahlenarbeit: ' : 'A point release with little number work: '}<b>{de ? 'kein bestehender Waffen-, Panzerungs- oder Komponentenwert ist verändert.' : 'no existing weapon, armour or component value has changed.'}</b>{de ? ' Bewegt haben sich nur drei Schiffsreihen — Clipper, Corsair und Lightning; die letzten beiden stehen nicht in den Notes.' : ' Only three ship lines moved — Clipper, Corsair and Lightning; the last two are not in the notes.'}</p>
+      <div class="qgrid reveal">
+        <div class="qpanel">
+          <div class="phead"><h3>{de ? 'Schiffe' : 'Ships'}</h3><span class="pc">{de ? 'vorher → nachher' : 'before → after'}</span></div>
+          <dl class="readout">
+            <div class="row"><dt>{de ? 'Clipper Hülle' : 'Clipper hull'}</dt><span class="lead2"></span><dd>{de ? '26.350 → ' : '26,350 → '}<em>{de ? '31.551' : '31,551'}</em></dd></div>
+            <div class="row"><dt>{de ? 'Corsair QT-Tank' : 'Corsair QT tank'}</dt><span class="lead2"></span><dd>{de ? '16,2 → ' : '16.2 → '}<em>{de ? '8,1' : '8.1'}</em> SCU</dd></div>
+            <div class="row"><dt>{de ? 'Corsair Reichweite' : 'Corsair range'}</dt><span class="lead2"></span><dd><em>{de ? 'halbiert' : 'halved'}</em></dd></div>
+            <div class="row"><dt>{de ? 'Lightning F8 QT-Tank' : 'Lightning F8 QT tank'}</dt><span class="lead2"></span><dd>{de ? '0,7 → ' : '0.7 → '}<em>{de ? '0,9' : '0.9'}</em> SCU</dd></div>
+            <div class="row"><dt>{de ? 'F8C · F8C Exec' : 'F8C · F8C Exec'}</dt><span class="lead2"></span><dd>{de ? '— → ' : '— → '}<em>{de ? '0,9' : '0.9'}</em> SCU</dd></div>
+          </dl>
+        </div>
+        <div class="qpanel">
+          <div class="phead"><h3>{de ? 'Bestand' : 'Catalogue'}</h3><span class="pc">4.10.0 → 4.10.1</span></div>
+          <dl class="readout">
+            <div class="row"><dt>{de ? 'Gegenstände' : 'Items'}</dt><span class="lead2"></span><dd>{de ? '9.201 → ' : '9,201 → '}<em>{de ? '9.222' : '9,222'}</em></dd></div>
+            <div class="row"><dt>{de ? 'Baupläne' : 'Blueprints'}</dt><span class="lead2"></span><dd>{de ? '1.605 · unverändert' : '1,605 · unchanged'}</dd></div>
+            <div class="row"><dt>{de ? 'Missionsfamilien' : 'Mission families'}</dt><span class="lead2"></span><dd>{de ? '1.355 · unverändert' : '1,355 · unchanged'}</dd></div>
+            <div class="row"><dt>{de ? 'Mining, Raffinerie' : 'Mining, refinery'}</dt><span class="lead2"></span><dd>{de ? 'unverändert' : 'unchanged'}</dd></div>
+          </dl>
+          <p class="after">{de ? 'Die Relief-Aufträge selbst lagen schon im 4.10.0-Build bereit; 4.10.1 schaltet sie frei und schärft nur ihre Texte.' : 'The relief contracts themselves were already sitting in the 4.10.0 build; 4.10.1 switches them on and only sharpens their texts.'}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEUTE -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="num">07</span><h2>{de ? 'Beute & Ausrüstung' : 'Loot & gear'}</h2><span class="rule"></span></div>
+      <div class="gear reveal">
+        <article class="gcard"><span class="gk">{de ? 'Kreaturen' : 'Creatures'}</span><b>{de ? 'Qualitätsstufen' : 'Quality grades'}</b><small>{de ? 'Tierische Beute kommt jetzt in abgestuften Qualitätsklassen — vor dem Verkauf oder Fertigen lohnt der Blick.' : 'Creature loot now comes in graded quality brackets — worth checking before you sell or craft with it.'}</small><div class="chips"><span class="chip">Kopion</span><span class="chip">Marok</span><span class="chip">Valakkar</span><span class="chip">Yormandi</span><span class="chip">Quasigrazer</span><span class="chip">Gasping Weevil</span><span class="chip">Ranta</span></div></article>
+        <article class="gcard"><span class="gk">{de ? 'Pflanzen' : 'Plants'}</span><b>{de ? 'Auch die Ernte' : 'The harvest too'}</b><small>{de ? 'Dasselbe gilt für eine ganze Reihe sammelbarer Pflanzen.' : 'The same applies to a wide range of harvestable plants.'}</small><div class="chips"><span class="chip">Spiral Fruit</span><span class="chip">Sunset Berries</span><span class="chip">Jumping Limes</span><span class="chip">Degnous Root</span><span class="chip">Heart of the Woods</span></div></article>
+        <article class="gcard"><span class="gk">{de ? 'Waffenaufsätze' : 'Attachments'}</span><b>{de ? 'Kompensator & Stabilisator' : 'Compensator & stabiliser'}</b><small>{de ? 'In allen drei Größen jetzt im allgemeinen Beutepool statt nur an wenigen Quellen.' : 'In all three sizes, now in the general loot pool instead of a handful of sources.'}</small></article>
+        <article class="gcard"><span class="gk">{de ? 'Neue Ausführungen' : 'New finishes'}</span><b>Akuma · Streamline</b><small>{de ? 'Ausführungen bekannter Waffen und Panzerungen; die neuen Waffen-Ausführungen tragen exakt die Werte ihrer Grundmodelle.' : 'Finishes of known weapons and armour; the new weapon finishes carry exactly the stats of their base models.'}</small><div class="chips"><span class="chip">A03</span><span class="chip">LH86</span><span class="chip">P8-AR</span><span class="chip">Demeco</span><span class="chip">Monde</span><span class="chip">Artimex</span></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
+  <PatchDossier patch={patch} num="08" lang={de ? 'de' : 'en'} />
+
+</main>
+
+<footer>
+  <nav class="pager" aria-label={de ? 'Patch-Navigation' : 'Patch navigation'}>
+    <a href={de ? '/de/patches/sc-4-10-0.html' : '/patches/sc-4-10-0.html'}><span class="dir">{de ? '← Älter' : '← Older'}</span><span class="ttl">4.10.0 · Siege of Orison</span></a>
+    <span class="next disabled"><span class="dir">{de ? 'Neuer →' : 'Newer →'}</span><span class="ttl">{de ? 'Aktuellster Patch' : 'Latest patch'}</span></span>
+  </nav>
+  <div class="foot-meta">
+    <a class="home-link" href={de ? '/de/archiv.html' : '/archiv.html'}>{de ? '⌂ Alle Patches' : '⌂ All patches'}</a>
+    <span><Fragment set:html={de ? 'Quellen: RSI Patch Notes &amp; Comm-Links · starcitizen.tools' : 'Sources: RSI patch notes &amp; comm-links · starcitizen.tools'} /></span>
+  </div>
+  <p class="disclaimer"><Fragment set:html={de ? 'Inoffizielles Fan-Projekt. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. — keine Verbindung zu CIG. Standbilder &amp; Schiff-/System-Bilder aus offiziellen Quellen (© Cloud Imperium Games), Fan-Content-Nutzung.' : 'Unofficial fan project. Star Citizen® © Cloud Imperium Rights LLC &amp; Ltd. No affiliation with CIG. Stills &amp; ship/system imagery from official sources (© Cloud Imperium Games), fan-content usage.'} /></p>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true"><div class="lb__body"><button class="lb__x" aria-label={de ? 'Schließen' : 'Close'}>✕</button><div class="lb__content"></div></div></div>
+<script is:inline>
+
+const tb=document.getElementById('topbar');
+addEventListener('scroll',()=>tb.classList.toggle('scrolled',scrollY>40),{passive:true});
+const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px',threshold:0});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+/* Lightbox: Karten/Bilder klickbar */
+(function(){const lb=document.getElementById('lb'),lbc=lb.querySelector('.lb__content');
+function show(h){lbc.innerHTML=h;lb.classList.add('open');lb.setAttribute('aria-hidden','false');}
+function close(){lb.classList.remove('open');lbc.innerHTML='';lb.setAttribute('aria-hidden','true');}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+document.querySelectorAll('[data-lb]').forEach(el=>el.addEventListener('click',()=>{const v=el.getAttribute('data-lb');show('<img src="'+v.slice(4)+'" alt="">');}));
+document.querySelectorAll('[data-info]').forEach(el=>el.addEventListener('click',()=>{const img=el.getAttribute('data-img'),ti=esc(el.getAttribute('data-title')),tx=esc(el.getAttribute('data-text'));show('<div class="lb__info">'+(img?'<img src="'+img+'" alt="">':'')+'<div class="lb__txt"><h3>'+ti+'</h3><p>'+tx+'</p></div></div>');}));
+lb.addEventListener('click',e=>{if(e.target===lb||e.target.closest('.lb__x'))close();});
+addEventListener('keydown',e=>{if(e.key==='Escape')close();});})();
+/* Funkenflug: Glut und Asche, die über der beschädigten Stadt treiben */
+(function(){const c=document.getElementById('haze');if(!c)return;const x=c.getContext('2d');let running=false;const fxOn=()=>document.documentElement.getAttribute('data-fx')==='on';let w,h,st;const COL=['#5fb6e0','#f0c44c','#f6dfa8','#9db1bc'];
+function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,1);st=Array.from({length:Math.min(90,Math.floor(w/16))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2.2+.6,a:Math.random(),s:Math.random()*.009+.002,vx:Math.random()*.22+.05,vy:-(Math.random()*.05+.01),c:COL[Math.floor(Math.random()*COL.length)]}));}
+function tick(){if(!running)return;x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;s.x+=s.vx;s.y+=s.vy;if(s.x>w+6)s.x=-6;if(s.y<-6)s.y=h+6;const o=.12+Math.abs(Math.sin(s.a))*.45;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}
+size();addEventListener('resize',size);document.addEventListener('vbfxchange',(e)=>{if(e.detail.on&&!running){size();running=true;requestAnimationFrame(tick);}else if(!e.detail.on){running=false;}});if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&fxOn()){running=true;tick();}})();
+
+</script>
+<link rel="stylesheet" href={versioned('assets/a11y.css', '/assets/a11y.css')} />
+<script is:inline src={versioned('assets/a11y.js', '/assets/a11y.js')}></script>

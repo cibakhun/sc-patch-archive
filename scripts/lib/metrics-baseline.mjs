@@ -70,28 +70,29 @@ export const BASELINE = [
   // ---------------- Fahrzeuge ----------------
   {
     id: 'fahrzeuge',
-    wert: 227,
+    wert: 229,
     regel: 'exakt',
     anlass:
-      'Phase 01.4-03: 223 aus der Extraktion plus die vier ATLS-Varianten. Exakt statt Minimum, weil jede Aenderung an dieser Zahl einen Datamine-Beleg braucht — nach oben wie nach unten.',
+      'Phase 01.4-03: 223 aus der Extraktion plus die vier ATLS-Varianten. Exakt statt Minimum, weil jede Aenderung an dieser Zahl einen Datamine-Beleg braucht — nach oben wie nach unten. ' +
+      '07.10.2026: 227 -> 229 — Sabre Raven EX (4.10.1) und S-65 Stingray neu aufgenommen; beide standen flugfaehig im DataCore, kamen aber wegen des zirkulaeren Katalogs nie hinein (extract-hardpoints.mjs --add, Waechter verify:vehicle-gap).',
   },
   {
     id: 'fahrzeugeMitBauteilen',
-    wert: 223,
+    wert: 225,
     regel: 'min',
     anlass:
-      'Phase 07: Steckplatz-Groessen aus der Fahrzeug-Implementierungs-XML; 223 von 227 joinen (die vier ATLS haben keine). Faellt die Zahl, findet der Bauteil-Filter still weniger Schiffe.',
+      '07.10.2026: 223 -> 225 (Raven EX + Stingray). Phase 07: Steckplatz-Groessen aus der Fahrzeug-Implementierungs-XML; 223 von 227 joinen (die vier ATLS haben keine). Faellt die Zahl, findet der Bauteil-Filter still weniger Schiffe.',
   },
   {
     id: 'fahrzeugeMitRolle',
-    wert: 223,
+    wert: 225,
     regel: 'min',
     anlass:
-      'Phase 06 (ROLE-10), Stand 02.08.2026. Dieselbe Klinke prueft verify:vehicle-roles im eigenen Skript — hier gespiegelt, damit EIN Ort alle Bestaende der Seite zeigt.',
+      '07.10.2026: 223 -> 225 (Raven EX + Stingray). Phase 06 (ROLE-10), Stand 02.08.2026. Dieselbe Klinke prueft verify:vehicle-roles im eigenen Skript — hier gespiegelt, damit EIN Ort alle Bestaende der Seite zeigt.',
   },
   {
     id: 'fahrzeugeMitHardpoints',
-    wert: 226,
+    wert: 228,
     regel: 'min',
     anlass:
       'Grundlage der 3D-Hologramme. Faellt die Zahl, zeigen Schiffs-Datenblaetter still keine Marker mehr. ' +
@@ -102,7 +103,8 @@ export const BASELINE = [
       'RSI_Polaris.cga, RSI_Perseus.cga und DRAK_Corsair.cga vorhanden sind. Es ist also kein Namenswechsel, dem der ' +
       'Extraktor folgen koennte, und kein Fehler auf unserer Seite: CIG liefert die Geometrie in diesem Patch nicht mit, ' +
       'obwohl das Schiff im DataCore flugbereit steht. Die Klinke bleibt bei 226 stehen — kommt die Geometrie zurueck, ' +
-      'steigt der Ist-Wert von selbst auf 227 und die Klinke faengt jeden WEITEREN Verlust unveraendert ab.',
+      'steigt der Ist-Wert von selbst auf 227 und die Klinke faengt jeden WEITEREN Verlust unveraendert ab. ' +
+      '07.10.2026: 226 -> 228 — Raven EX und Stingray per extract-hardpoints.mjs --add aufgenommen; die Hermes-Luecke bleibt in der Klinke.',
   },
 
   // ---------------- Crafting / Bergbau ----------------

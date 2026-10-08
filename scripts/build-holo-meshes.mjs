@@ -101,13 +101,19 @@ async function buildOne(slug, inPath) {
   return { tris: countTris(root), bytes: statSync(outPath).size, v };
 }
 
-const inputs = readdirSync(IN_DIR).filter((f) => f.toLowerCase().endsWith('.glb'));
+// --only <slug> (mehrfach): baut NUR diese Meshes und uebernimmt alle anderen
+// Manifest-Eintraege unveraendert — fuer ein neu aufgenommenes Schiff, ohne den
+// 2,5-GB-Exportbestand aller Schiffe in .cache/ vorhalten zu muessen.
+const ONLY = process.argv.slice(2).flatMap((a, i, all) => (all[i - 1] === '--only' ? [a] : []));
+const inputs = readdirSync(IN_DIR).filter((f) => f.toLowerCase().endsWith('.glb'))
+  .filter((f) => !ONLY.length || ONLY.includes(f.replace(/\.glb$/i, '')));
 console.log(`${inputs.length} StarBreaker-GLB(s) gefunden`);
+if (ONLY.length && inputs.length !== ONLY.length) { console.error(`--only: ${ONLY.length - inputs.length} GLB(s) fehlen in .cache/starbreaker-glb/`); process.exit(1); }
 // Resume: Output juenger als Input UND schon im Manifest -> nicht neu dezimieren
 // (der Batch ueber alle ~226 dauert sonst bei jedem Neustart wieder Minuten).
 let prev = {};
 try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')).meshes ?? {}; } catch { /* erster Lauf */ }
-const meshes = {};
+const meshes = ONLY.length ? { ...prev } : {};
 let built = 0, reused = 0;
 for (const f of inputs) {
   const slug = f.replace(/\.glb$/i, '');

@@ -2668,7 +2668,7 @@
         },
         {
           "label": "New ship",
-          "value": "None flyable — the Kruger S-65 Stingray sits prepared in the build"
+          "value": "Kruger S-65 Stingray — medium fighter, flyable"
         },
         {
           "label": "Wipe",
@@ -2787,17 +2787,17 @@
           "desc": "New graded calls for help: ships in trouble and under fire are posted as yellow, orange and red level contracts — the grade tells you how bad it is at the far end."
         },
         {
-          "name": "Kruger S-65 Stingray — prepared, not flyable",
+          "name": "Kruger S-65 Stingray — new medium fighter",
           "system": "Ship systems",
-          "desc": "The fighter is announced and already partly in the build: two S4 missile racks, a gimbal mount, the Whiptail repeater and four liveries. The catalogue does not carry it as a flyable vehicle — the fleet stays at 227.",
+          "desc": "Kruger's first medium fighter: two S4 and four S2 repeaters in bespoke mounts, eight S2 missiles, plus four liveries. The fleet grows from 227 to 228. Until 8 Oct 2026 this page listed the Stingray as not flyable — our catalogue did not pick up new ships.",
           "facts": [
             {
-              "label": "In the build",
-              "value": "S4 missile racks · STR-E2 gimbal mount · Whiptail · 4 liveries"
+              "label": "Armament",
+              "value": "2× S4 · 4× S2 · 8 S2 missiles"
             },
             {
               "label": "Flyable",
-              "value": "No — fleet count unchanged at 227"
+              "value": "Yes — fleet count 227 → 228"
             }
           ]
         },
@@ -2820,15 +2820,242 @@
       ],
       "ships": [
         {
-          "role": "Fighter",
-          "status": "announced",
-          "notes": "Weapon mounts, gimbal mount and four liveries sit in the build — not yet included as a flyable vehicle"
+          "role": "Medium fighter",
+          "status": "flyable",
+          "notes": "New medium fighter from Kruger Intergalactic; four liveries"
         }
       ],
       "events": [],
       "fixesNote": "The LIVE notes put the emphasis on stability and bug fixing; the data itself mainly shows the quantum re-tiering and 41 new catalogue entries.",
       "wipe": "No full wipe — pending refinery and crafting jobs should be finished before the update.",
       "topics": []
+    },
+    "4-10-1": {
+      "dateDisplayEn": "September 16, 2026",
+      "tagline": "Crusader pays for the rebuilding of Orison, ground vehicles get soft death, and the Sabre Raven EX takes off.",
+      "summary": "Alpha 4.10.1 cleans up after the Nine Tails attack: with \"Orison Relief Support\", Crusader Industries pays anyone who helps rebuild — four contract providers, raw materials, medical supplies, a crafted thruster part and strikes back at the Nine Tails. Every completed contract fills a personal progress track with six rewards in the \"SecondWind\" finish, granted to your account as finished items. Ground vehicles can now be disabled like ships instead of exploding outright; loot from creatures and plants comes in quality grades, and barrel attachments turn up in the general loot pool. Newly flyable is the Aegis Sabre Raven EX with a built-in quantum dampener. The rest is repair work: 37 closed issues, including greyed-out ASOP buttons, stuck freight elevators and a Drake Clipper whose hull barely took damage. Stats of existing weapons, armour and components stay unchanged.",
+      "keyFacts": [
+        {
+          "label": "Orison Relief Support",
+          "value": "Time-limited until 4.10.2 — four providers, one personal progress track"
+        },
+        {
+          "label": "Rewards",
+          "value": "Six \"SecondWind\" pieces — three weapons, three armour sets, as finished items"
+        },
+        {
+          "label": "New ship",
+          "value": "Aegis Sabre Raven EX — medium fighter with a built-in quantum dampener"
+        },
+        {
+          "label": "Ground vehicles",
+          "value": "Soft death: disabled instead of destroyed outright"
+        },
+        {
+          "label": "Drake Clipper",
+          "value": "The hull takes damage again — hull HP 26,350 → 31,551"
+        },
+        {
+          "label": "Bug fixes",
+          "value": "37 closed (16 from the Issue Council), plus 26 hotfixes since 4.10.0"
+        },
+        {
+          "label": "Persistence",
+          "value": "Long Term Persistence preserved · starting funds 20,000 aUEC"
+        }
+      ],
+      "features": [
+        {
+          "name": "Orison Relief Support",
+          "system": "Events",
+          "desc": "Crusader Industries is funding the rebuilding of the cloud city after the Nine Tails attack. Contracts come from four providers: Cornerstone Developments for reconstruction, Covalex and Ling for medical relief, Foxwell for security. Every completed contract counts towards a personal progress track; pass a threshold and the next reward goes straight to your account. Points from a party contract are split between the members.",
+          "facts": [
+            {
+              "label": "Runs",
+              "value": "From September 16, 2026 until the release of 4.10.2"
+            },
+            {
+              "label": "Providers",
+              "value": "Cornerstone Developments · Covalex · Ling · Foxwell"
+            },
+            {
+              "label": "Rewards",
+              "value": "Six tiers, as finished items — not blueprints"
+            }
+          ]
+        },
+        {
+          "name": "Reconstruction, medical, security",
+          "system": "Missions & Activities",
+          "desc": "Cornerstone has raw materials hauled to Orison and Seraphim and runs a crafting line around the TH-01 Propulsor. Covalex and Ling collect medical supplies and iodine from New Babbage, the New Babbage rooftops and Port Tressler and deliver them to Orison, the Orison rooftops and Seraphim. Foxwell sends you into space — ship ambushes and wave attacks — and on foot against occupied Nine Tails outposts.",
+          "facts": [
+            {
+              "label": "Reconstruction",
+              "value": "Cornerstone Developments — raw materials, TH-01 fabrication"
+            },
+            {
+              "label": "Medical",
+              "value": "Covalex · Ling — New Babbage, Port Tressler → Orison, Seraphim"
+            },
+            {
+              "label": "Security",
+              "value": "Foxwell — ambush, wave attack, clearing outposts"
+            }
+          ]
+        },
+        {
+          "name": "TH-01 Propulsor from the workbench",
+          "system": "Crafting",
+          "desc": "The fabrication contracts need an Item Fabricator. The TH-01 Propulsor blueprint is attached to the contract and listed on the fabricator's own terminal together with its materials. If you don't own one yet, buy it in a shop, collect it at a freight elevator and set it up in a hangar or a ship's cargo bay.",
+          "facts": [
+            {
+              "label": "Material",
+              "value": "Aluminium, 0.05 SCU"
+            },
+            {
+              "label": "Minimum quality",
+              "value": "600"
+            }
+          ]
+        },
+        {
+          "name": "\"SecondWind\" rewards",
+          "system": "Weapons & Gear",
+          "desc": "The progress track unlocks six rewards in a fixed order, alternating weapon and armour, from light to heavy. They are granted as finished items, not as blueprints.",
+          "facts": [
+            {
+              "label": "Weapons",
+              "value": "S-38 pistol · P4-AR rifle · Lumin V SMG"
+            },
+            {
+              "label": "Armour",
+              "value": "FBL-8a light · ORC-mkX medium · ADP-mk4 heavy"
+            }
+          ]
+        },
+        {
+          "name": "Soft death for ground vehicles",
+          "system": "Ship systems",
+          "desc": "Ground vehicles used to have no in-between state — they went straight from working to destroyed. Now a disabled vehicle is left inert instead of being destroyed outright, the same way ships are."
+        },
+        {
+          "name": "Aegis Sabre Raven EX",
+          "system": "Ship systems",
+          "desc": "A special variant of the Sabre Raven: a little more hull, a little less speed, plus a quantum dampener on its spine that stops targets from jumping away. The dampener is the Wei-Tek \"Vertine QD\", built specifically for this ship. Four new Sabre liveries come along with it.",
+          "facts": [
+            {
+              "label": "Role",
+              "value": "Medium fighter · size 2 · one person"
+            },
+            {
+              "label": "Hull HP",
+              "value": "13,116 (Sabre Raven: 12,516)"
+            },
+            {
+              "label": "SCM / top speed",
+              "value": "233 / 1,320 m/s (Sabre Raven: 240 / 1,400 m/s)"
+            },
+            {
+              "label": "Quantum dampener",
+              "value": "Vertine QD · Wei-Tek · size 2 · range 4,750 m"
+            },
+            {
+              "label": "Liveries",
+              "value": "Beyond · Blue Steel · Darkshade · Tribunal"
+            }
+          ]
+        },
+        {
+          "name": "Loot in quality grades",
+          "system": "AI & Creatures",
+          "desc": "What creatures and plants yield now comes in graded quality brackets. Covered are Kopion horns, Marok pearls, Valakkar fangs and pearls, Yormandi eyes, Quasigrazer eggs and tongues, gasping weevil eggs and ranta dung, plus plants such as spiral fruit, sunset berries, jumping limes, degnous root and heart of the woods."
+        },
+        {
+          "name": "Barrel attachments in the loot pool",
+          "system": "Combat & Weapons",
+          "desc": "Compensators and stabilisers in all three sizes now sit in the general loot pool instead of a handful of sources. On top of that, weapon attachments had been missing entirely at Distribution Center sites — fixed."
+        },
+        {
+          "name": "Cargo split across pickup points",
+          "system": "Cargo & Logistics",
+          "desc": "Contracts with several pickup points now split the load by the SCU of each pickup. Before, all the cargo could sit in a single inventory while the contract showed several markers. Percentile amounts resolve correctly again, an off-by-one error is fixed, and a mismatch between pickup and drop-off counts no longer produces a contract you cannot finish."
+        },
+        {
+          "name": "Drake Clipper no longer near-invulnerable",
+          "system": "Ship systems",
+          "desc": "Several overlapping collision shapes caught incoming fire before it reached the hull — across most of its surface the Clipper was effectively invulnerable. The duplicates are gone and the underside doors are now damageable parts of their own. In the data, hull HP rises from 26,350 to 31,551.",
+          "facts": [
+            {
+              "label": "Hull HP",
+              "value": "26,350 → 31,551"
+            }
+          ]
+        },
+        {
+          "name": "Quantum tanks: Corsair and Lightning",
+          "system": "Ship systems",
+          "desc": "Not in the notes, but in the data: the Drake Corsair now holds only half as much quantum fuel, and its range halves with it. The Anvil Lightning F8 gets slightly more, and the F8C and F8C Executive Edition now carry the same value in the data.",
+          "facts": [
+            {
+              "label": "Corsair",
+              "value": "16.2 → 8.1 SCU quantum fuel"
+            },
+            {
+              "label": "Lightning F8",
+              "value": "0.7 → 0.9 SCU"
+            },
+            {
+              "label": "F8C · F8C Executive",
+              "value": "0.9 SCU (no value before)"
+            }
+          ]
+        },
+        {
+          "name": "New finishes in the catalogue",
+          "system": "Items",
+          "desc": "21 new items with game stats, mostly finishes of known models. The \"Akuma\" line: A03 sniper rifle, LH86 pistol, P8-AR rifle, Artimex arms and legs, Shogun Kiba helmet, a Cutlass livery and the CF-999 repeater, built for the ATLS GEO IKTI Akuma. The \"Streamline\" line: Demeco LMG, Monde armour, Warden backpack and an Aurora Mk II livery. Plus the \"Skullcap\" finish of the CQ7. The new finishes of the A03, LH86, P8-AR and Demeco carry exactly the stats of their base models.",
+          "facts": [
+            {
+              "label": "Catalogue",
+              "value": "9,222 entries (was 9,201)"
+            },
+            {
+              "label": "Changed game stats",
+              "value": "None — no weapons, no armour, no components"
+            }
+          ]
+        },
+        {
+          "name": "Hangar, ASOP and freight elevator",
+          "system": "Hangars & Persistence",
+          "desc": "A vehicle landed inside a hangar was not reliably stowed when the hangar was put away or streamed out — the cause of greyed-out retrieve buttons at ASOP terminals and ships stuck on \"moving to storage\". Freight elevators no longer get stuck mid-transfer at full capacity."
+        },
+        {
+          "name": "Starmap and air traffic control",
+          "system": "UI & Comfort",
+          "desc": "The starmap plots routes around obstacles again, including Stanton's star and the station you are standing in. The landing and takeoff request key reaches air traffic control again in the same cases as the comms call."
+        },
+        {
+          "name": "Orison and Pyro",
+          "system": "Star systems",
+          "desc": "Armistice zones were missing throughout Orison — the city had no weapon restrictions. They apply again. At the Lazarus Complex in Pyro, the nursery of the irradiated Valakkar egg now resets on a much shorter cycle, so the egg is usually there when you arrive."
+        }
+      ],
+      "ships": [
+        {
+          "role": "Medium fighter",
+          "status": "flyable",
+          "notes": "Special variant of the Sabre Raven with a built-in quantum dampener (Vertine QD)"
+        }
+      ],
+      "events": [
+        {
+          "name": "Orison Relief Support",
+          "desc": "Crusader Industries' rebuilding campaign with four contract providers and six \"SecondWind\" rewards on a personal progress track."
+        }
+      ],
+      "fixesNote": "37 closed issues (16 from the Issue Council, 3 client and 2 server crashes), plus 26 hotfixes delivered since 4.10.0 launched.",
+      "wipe": "No wipe — Long Term Persistence preserved, starting funds 20,000 aUEC."
     }
   }
 }

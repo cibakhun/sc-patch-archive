@@ -161,9 +161,12 @@ const vehicles = defineCollection({
     /** CIG's own hangar/landing-pad class (AttachDef.Size, 1–6) */
     sizeClass: z.number().nullable().default(null),
     sizeDe: z.string().nullable(),
-    statusDe: z.string().nullable(),
-    statusEn: z.string().nullable(),
-    fociDe: z.array(z.string()),
+    // .default(...) bei allen Feldern aus vehicle-external.json: ein nach dem
+    // Einfrieren aufgenommenes Fahrzeug (Raven EX, S-65 Stingray, 07.10.2026)
+    // fuehrt dort keinen Eintrag — fehlende Werte bleiben leer, nichts erfunden.
+    statusDe: z.string().nullable().default(null),
+    statusEn: z.string().nullable().default(null),
+    fociDe: z.array(z.string()).default([]),
     descriptionDe: z.string().nullable(),
     /** CIG's own English text (Data.p4k) — replaces the back-translation-
      *  from-German layer removed in 01.4-05 (D-07). Carries
@@ -177,9 +180,9 @@ const vehicles = defineCollection({
     cargoSCU: z.number().nullable(),
     oreSCU: z.number().nullable(),
     msrpUSD: z.number().nullable().default(null),
-    lengthM: z.number().nullable(),
-    widthM: z.number().nullable(),
-    heightM: z.number().nullable(),
+    lengthM: z.number().nullable().default(null),
+    widthM: z.number().nullable().default(null),
+    heightM: z.number().nullable().default(null),
     scmSpeed: z.number().nullable(),
     maxSpeed: z.number().nullable(),
     boostForward: z.number().nullable(),
@@ -240,10 +243,9 @@ const vehicles = defineCollection({
     isSpaceship: z.boolean().nullable(),
     isGravlev: z.boolean().nullable(),
     pledgeUrl: z.string().nullable().default(null),
-    /** patch-spine: versions in OUR archive that introduced/touched it —
-     *  computed in scripts/datamine-vehicles.mjs since 01.4-05 (D-19; moved
-     *  out of the now-deleted Wiki vehicle-sync script). */
-    patches: z.array(z.string()),
+    // patch-spine (patches[]) is NOT stored here since 08.10.2026 — the build
+    // computes it from src/data/patches/*.json (src/lib/patchSpine.ts), so a
+    // patch page that lands after the data run links without a rerun.
     gameVersion: z.string().nullable(),
     /** ship image — frozen from the Wiki media snapshot (src/data/vehicle-
      *  external.json), no in-game photographic material exists (01.4-02) */

@@ -18,6 +18,8 @@ import holoMeshes from '../../data/holo-meshes.json';
 import hangarAssets from '../../data/hangar-assets.json';
 import { localeFromPath } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { HANGAR_IDS, shipFacts } from '../../lib/hangar/catalog';
 import type { StageConfig } from '../../lib/hangar/stage';
 
@@ -27,7 +29,7 @@ const de = lang === 'de';
 const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
-type Asset = { url: string; v?: string; room?: unknown };
+type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number };
 const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
@@ -36,8 +38,33 @@ const HOLD: Record<string, string> = {
   'misc-freelancer': 'Rumpf als schwarz glänzende, verlaufene Flächen; die Lackschichten löst der Export nicht auf',
   'rsi-constellation-andromeda': 'Rumpf nach Neuexport sauber, aber fast schwarzbraun; Freigabe ist Sichturteil des Betreibers',
 };
-const hallAsset = Object.values(real.hall ?? {})[0];
-const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room } : null;
+const [hallKey, hallAsset] = Object.entries(real.hall ?? {})[0] ?? [];
+// Lampen der Halle aus dem Spiel (vom Build neben das GLB gelegt, Name nach
+// der Halle, nicht nach der Datei: die LOD-Fassung teilt sie); Version aus
+// dem Inhalt, sonst hielte der Jahres-Cache die alte Liste.
+const contentV = (files: string[]) => {
+  const h = createHash('sha1');
+  for (const f of files) h.update(readFileSync(f));
+  return h.digest('hex').slice(0, 8);
+};
+const hallDir = 'public/hangar/hall';
+const lightsFile = hallKey ? `${hallDir}/${hallKey}.lights.json` : '';
+const lights = lightsFile && existsSync(lightsFile) ? `/hangar/hall/${hallKey}.lights.json?v=${contentV([lightsFile])}` : null;
+// Spiegelungssonden aus dem Spiel (PC-Lauf „Hallensonden“): Liste und die
+// HDR-Karten daneben, alle im Hash.
+const probesFile = hallKey ? `${hallDir}/${hallKey}.probes.json` : '';
+const probeDir = `${hallDir}/${hallKey}.probes`;
+const probes = probesFile && existsSync(probesFile)
+  ? `/hangar/hall/${hallKey}.probes.json?v=${contentV([probesFile, ...(existsSync(probeDir) ? readdirSync(probeDir).sort().map((f) => `${probeDir}/${f}`) : [])])}`
+  : null;
+// Leichtere Stufe für Telefone (<halle>-lod1.glb, ohne Einrichtung), sobald
+// das Manifest auf die volle Stufe zeigt; Lampen und Sonden teilt sie.
+const liteFile = hallKey ? `${hallDir}/${hallKey}-lod1.glb` : '';
+const lite = liteFile && existsSync(liteFile) && hallAsset?.url !== `/hangar/hall/${hallKey}-lod1.glb`
+  ? { url: `/hangar/hall/${hallKey}-lod1.glb?v=${contentV([liteFile])}`, bytes: statSync(liteFile).size }
+  : null;
+// floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
+const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 

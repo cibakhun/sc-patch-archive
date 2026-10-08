@@ -1,9 +1,9 @@
 {
-  "fetchedAt": "2026-09-24",
+  "fetchedAt": "2026-10-07",
   "gameVersion": "sc-alpha-4.10.0@12660092",
   "source": "Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer",
   "external": "src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen, image, crewMax, statusEn/De, fociDe — nicht in den Spieldateien; plus vier komplett übernommene ATLS-Datensätze, D-13)",
-  "count": 227,
+  "count": 229,
   "vehicles": [
     {
       "id": "orig-100i",
@@ -115,7 +115,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-100/100i",
       "lengthM": 19,
@@ -244,7 +243,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-100/125a",
       "lengthM": 19,
@@ -373,7 +371,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-100/135c",
       "lengthM": 19,
@@ -505,7 +502,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/300i",
       "lengthM": 27,
@@ -659,7 +655,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/315p",
       "lengthM": 27,
@@ -803,7 +798,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 70,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/325a",
       "lengthM": 27.5,
@@ -935,7 +929,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 125,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-300/350r",
       "lengthM": 27,
@@ -1093,7 +1086,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 250,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/400i/400i",
       "lengthM": 56,
@@ -1228,7 +1220,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 475,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/600i/600i-Explorer",
       "lengthM": 91.5,
@@ -1363,7 +1354,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 475,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/600i/600i-Explorer",
       "lengthM": 91.5,
@@ -1493,7 +1483,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 435,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/600i/600i-Touring",
       "lengthM": 91.5,
@@ -1621,7 +1610,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/85x/85X",
       "lengthM": 14,
@@ -1782,7 +1770,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 950,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/890-jump/890-Jump",
       "lengthM": 210,
@@ -1944,7 +1931,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 200,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/spirit/A1-Spirit",
       "lengthM": 47.5,
@@ -2157,7 +2143,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 750,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-starlifter/A2-Hercules",
       "lengthM": 94,
@@ -2310,7 +2295,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 290,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-apollo/Apollo-Medivac",
       "lengthM": 73,
@@ -2458,7 +2442,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 260,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-apollo/Apollo-Triage",
       "lengthM": 73,
@@ -2587,7 +2570,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 250,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-ares/Ares-Inferno",
       "lengthM": 30,
@@ -2716,7 +2698,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 250,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-ares/Ares-Ion",
       "lengthM": 30,
@@ -2856,7 +2837,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 75,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-arrow/Arrow",
       "lengthM": 17.25,
@@ -3013,7 +2993,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 350,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-asgard/Asgard",
       "lengthM": 48,
@@ -3137,7 +3116,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-CL",
       "lengthM": 19,
@@ -3261,7 +3239,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 20,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-ES",
       "lengthM": 19,
@@ -3390,7 +3367,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-LN",
       "lengthM": 19,
@@ -3514,7 +3490,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 35,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-LX",
       "lengthM": 19,
@@ -3638,7 +3613,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 30,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-MR",
       "lengthM": 19,
@@ -3766,7 +3740,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-aurora/Aurora-Mk-I-SE",
       "lengthM": 19,
@@ -3890,9 +3863,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.7.0"
-      ],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aurora-mk-ii/Aurora-Mk-II",
       "lengthM": 27.7,
@@ -4036,7 +4006,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Stalker",
       "lengthM": 20,
@@ -4175,7 +4144,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Titan",
       "lengthM": 20,
@@ -4310,7 +4278,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 75,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Titan-Renegade",
       "lengthM": 20,
@@ -4461,7 +4428,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 85,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-avenger/Avenger-Warlock",
       "lengthM": 20,
@@ -4595,7 +4561,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 140,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-ballista/Ballista",
       "lengthM": 17,
@@ -4729,7 +4694,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 140,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-ballista/Anvil-Ballista-Dunestalker",
       "lengthM": 17,
@@ -4863,7 +4827,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 140,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-ballista/Anvil-Ballista-Snowblind",
       "lengthM": 17,
@@ -4994,9 +4957,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.9.0"
-      ],
       "lengthM": 13.7,
       "widthM": 11.3,
       "heightM": 4.5,
@@ -5128,7 +5088,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 275,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanduul-blade/Blade",
       "lengthM": 20.5,
@@ -5287,7 +5246,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 110,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-buccaneer/Buccaneer",
       "lengthM": 16.75,
@@ -5444,7 +5402,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 125,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/spirit/C1-Spirit",
       "lengthM": 47.5,
@@ -5608,7 +5565,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 400,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-starlifter/C2-Hercules",
       "lengthM": 94,
@@ -5732,7 +5688,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 16,
       "widthM": 12,
       "heightM": 8,
@@ -5854,7 +5809,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-pisces/C8R-Pisces",
       "lengthM": 16,
@@ -5985,7 +5939,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-pisces/C8X-Pisces-Expedition",
       "lengthM": 16,
@@ -6134,7 +6087,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 600,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/carrack/Carrack",
       "lengthM": 126,
@@ -6283,7 +6235,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 625,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/carrack/Carrack-Expedition",
       "lengthM": 126,
@@ -6439,7 +6390,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 330,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-caterpillar/Caterpillar",
       "lengthM": 111.5,
@@ -6595,7 +6545,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 330,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-caterpillar/Caterpillar-Pirate-Edition",
       "lengthM": 111.5,
@@ -6745,7 +6694,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 110,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/centurion/Centurion",
       "lengthM": 17,
@@ -6886,7 +6834,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 150,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/clipper/Clipper",
       "lengthM": 26.5,
@@ -7044,7 +6991,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 240,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Andromeda",
       "lengthM": 63.5,
@@ -7198,7 +7144,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 315,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Aquila",
       "lengthM": 63.5,
@@ -7359,7 +7304,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 350,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Phoenix",
       "lengthM": 63.5,
@@ -7520,7 +7464,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 350,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Phoenix-Emerald",
       "lengthM": 63.5,
@@ -7690,7 +7633,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 200,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Taurus",
       "lengthM": 70,
@@ -7869,7 +7811,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 250,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-corsair/Corsair",
       "lengthM": 53,
@@ -7957,7 +7898,6 @@
         "radars": []
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/csv/CSV-SM",
       "lengthM": 8.75,
@@ -8149,7 +8089,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 110,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Black",
       "lengthM": 37.5,
@@ -8309,7 +8248,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Blue",
       "lengthM": 37.5,
@@ -8434,7 +8372,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 135,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Red",
       "lengthM": 37.5,
@@ -8610,7 +8547,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 235,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-cutlass/Cutlass-Steel",
       "lengthM": 37.5,
@@ -8734,7 +8670,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cutter/Cutter",
       "lengthM": 20,
@@ -8859,7 +8794,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cutter/Cutter-Rambler",
       "lengthM": 20,
@@ -8984,7 +8918,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cutter/Cutter-Scout",
       "lengthM": 20,
@@ -9079,7 +9012,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone",
       "lengthM": 8.75,
@@ -9193,7 +9125,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 80,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-AA",
       "lengthM": 8.75,
@@ -9306,7 +9237,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 75,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-MT",
       "lengthM": 8.75,
@@ -9400,7 +9330,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-RC",
       "lengthM": 8.75,
@@ -9494,7 +9423,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-RN",
       "lengthM": 8.75,
@@ -9601,7 +9529,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/cyclone/Cyclone-TR",
       "lengthM": 8.75,
@@ -9725,7 +9652,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 220,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/defender/Defender",
       "lengthM": 24.5,
@@ -9831,7 +9757,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-dragonfly/Dragonfly-Black",
       "lengthM": 7,
@@ -9937,7 +9862,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-dragonfly/Dragonfly-Yellowjacket",
       "lengthM": 7,
@@ -10055,7 +9979,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 300,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/eclipse/Eclipse",
       "lengthM": 24.5,
@@ -10206,7 +10129,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 28.25,
       "widthM": 25.5,
       "heightM": 7.5,
@@ -10339,7 +10261,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 22.5,
       "widthM": 22,
       "heightM": 6.5,
@@ -10466,7 +10387,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 125,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-Hornet-Mk-I",
       "lengthM": 28.25,
@@ -10590,7 +10510,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-Hornet-Mk-II",
       "lengthM": 22.5,
@@ -10730,7 +10649,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-Hornet-Wildfire-Mk-I",
       "lengthM": 28.25,
@@ -10876,7 +10794,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 200,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-M-Super-Hornet-Heartseeker-Mk-I",
       "lengthM": 28.25,
@@ -11006,7 +10923,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 200,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-M-Super-Hornet-Heartseeker-Mk-I",
       "lengthM": 24,
@@ -11152,7 +11068,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 180,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-M-Super-Hornet-Mk-I",
       "lengthM": 28.25,
@@ -11292,9 +11207,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.0.1"
-      ],
       "msrpUSD": 240,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-M-Super-Hornet-Mk-II",
       "lengthM": 24,
@@ -11423,7 +11335,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 150,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-R-Hornet-Tracker-Mk-I",
       "lengthM": 28.25,
@@ -11547,7 +11458,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 185,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-R-Hornet-Tracker-Mk-II",
       "lengthM": 22.5,
@@ -11676,7 +11586,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 140,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet/F7C-S-Hornet-Ghost-Mk-I",
       "lengthM": 28.25,
@@ -11800,7 +11709,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 185,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-hornet-mkii/F7C-S-Hornet-Ghost-Mk-II",
       "lengthM": 22.5,
@@ -11950,7 +11858,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 26,
       "widthM": 25,
       "heightM": 8,
@@ -12101,7 +12008,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 26,
       "widthM": 25,
       "heightM": 8,
@@ -12252,7 +12158,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 26,
       "widthM": 25,
       "heightM": 8,
@@ -12368,7 +12273,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fury/Fury",
       "lengthM": 7,
@@ -12462,7 +12366,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fury/Fury-LX",
       "lengthM": 7,
@@ -12567,7 +12470,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fury/Fury-MX",
       "lengthM": 7,
@@ -12725,7 +12627,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 165,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-gladiator/Gladiator",
       "lengthM": 22.75,
@@ -12861,7 +12762,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 90,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/gladius/Gladius",
       "lengthM": 21,
@@ -12997,7 +12897,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 110,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/gladius/Gladius-Pirate-Edition",
       "lengthM": 21,
@@ -13133,7 +13032,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 110,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/gladius/Gladius-Valiant",
       "lengthM": 21,
@@ -13272,7 +13170,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 350,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/esperia-glaive/Glaive",
       "lengthM": 33,
@@ -13403,7 +13300,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/golem/Golem",
       "lengthM": 15.5,
@@ -13556,7 +13452,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 90,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/golem/Golem-OX",
       "lengthM": 15.5,
@@ -13680,9 +13575,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.0.0"
-      ],
       "msrpUSD": 250,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/guardian/Guardian",
       "lengthM": 24.3,
@@ -13811,7 +13703,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 290,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/guardian/Guardian-MX",
       "lengthM": 26,
@@ -13935,7 +13826,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 260,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/guardian/Guardian-QI",
       "lengthM": 24.3,
@@ -14075,9 +13965,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.8.0"
-      ],
       "msrpUSD": 725,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hammerhead/Hammerhead",
       "lengthM": 120,
@@ -14217,7 +14104,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 725,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hammerhead/Hammerhead-Best-In-Show-Edition-2949",
       "lengthM": 120,
@@ -14352,7 +14238,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 100,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hawk/Hawk",
       "lengthM": 23,
@@ -14491,7 +14376,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 85,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/herald/Herald",
       "lengthM": 24.75,
@@ -14579,7 +14463,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 30,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hoverquad/HoverQuad",
       "lengthM": 5.15,
@@ -14732,7 +14615,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 210,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hurricane/Hurricane",
       "lengthM": 24,
@@ -14937,7 +14819,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 1000,
       "lengthM": 243,
       "widthM": 127,
@@ -15117,7 +14998,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 1900,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-idris/Idris-P",
       "lengthM": 243,
@@ -15240,7 +15120,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/intrepid/Intrepid",
       "lengthM": 23.07,
@@ -15442,9 +15321,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.8.0"
-      ],
       "msrpUSD": 600,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ironclad/Ironclad",
       "lengthM": 117,
@@ -15632,9 +15508,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.8.0"
-      ],
       "msrpUSD": 650,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ironclad/Ironclad-Assault",
       "lengthM": 117,
@@ -15795,7 +15668,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 3000,
       "lengthM": 0,
       "widthM": 0,
@@ -15912,7 +15784,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/khartu/Khartu-Al",
       "lengthM": 32,
@@ -16036,9 +15907,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.3.0"
-      ],
       "msrpUSD": 100,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/wolf/L-21-Wolf",
       "lengthM": 21.5,
@@ -16162,7 +16030,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 120,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/wolf/L-22-Alpha-Wolf",
       "lengthM": 21.5,
@@ -16285,7 +16152,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Lynx",
       "lengthM": 7.75,
@@ -16450,7 +16316,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 520,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-starlifter/M2-Hercules",
       "lengthM": 94,
@@ -16574,7 +16439,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 100,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/origin-m50/M50",
       "lengthM": 11.5,
@@ -16718,7 +16582,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 300,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/m80/M80",
       "lengthM": 11.5,
@@ -16847,7 +16710,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 150,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-mantis/Mantis",
       "lengthM": 30,
@@ -16941,7 +16803,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mdc/MDC",
       "lengthM": 8.75,
@@ -17099,7 +16960,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 260,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/crusader-mercury-star-runner/Mercury",
       "lengthM": 55,
@@ -17244,9 +17104,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.2.1"
-      ],
       "msrpUSD": 260,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/rsi-meteor/Meteor",
       "lengthM": 30,
@@ -17364,7 +17221,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/fortune/Fortune",
       "lengthM": 26.5,
@@ -17517,7 +17373,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 110,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer",
       "lengthM": 38,
@@ -17675,7 +17530,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 135,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer-DUR",
       "lengthM": 38,
@@ -17833,7 +17687,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 150,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer-MAX",
       "lengthM": 38,
@@ -17991,7 +17844,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-freelancer/Freelancer-MIS",
       "lengthM": 38,
@@ -18104,7 +17956,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 100,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hull/Hull-A",
       "lengthM": 30,
@@ -18274,7 +18125,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 280,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hull/Hull-B",
       "lengthM": 71,
@@ -18433,7 +18283,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 500,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hull/Hull-C",
       "lengthM": 91.17,
@@ -18558,7 +18407,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 155,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-prospector/Prospector",
       "lengthM": 26.5,
@@ -18690,7 +18538,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Kore",
       "lengthM": 28.5,
@@ -18815,7 +18662,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 95,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Mako",
       "lengthM": 28.5,
@@ -18939,7 +18785,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 85,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Sen",
       "lengthM": 28.5,
@@ -19079,7 +18924,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 75,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reliant/Reliant-Tana",
       "lengthM": 28.5,
@@ -19243,7 +19087,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 300,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-starfarer/Starfarer",
       "lengthM": 102,
@@ -19407,7 +19250,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 340,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/misc-starfarer/Starfarer-Gemini",
       "lengthM": 102,
@@ -19555,7 +19397,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 250,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/starlancer/Starlancer-MAX",
       "lengthM": 90,
@@ -19735,7 +19576,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 375,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/starlancer/Starlancer-TAC",
       "lengthM": 90,
@@ -19887,7 +19727,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/starlite/Starlite",
       "lengthM": 32,
@@ -20034,7 +19873,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 315,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo-mole/MOLE",
       "lengthM": 45,
@@ -20175,9 +20013,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.6.0"
-      ],
       "msrpUSD": 315,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/moth/MOTH",
       "lengthM": 0,
@@ -20270,7 +20105,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 35,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo/MPUV-Cargo",
       "lengthM": 10.5,
@@ -20364,7 +20198,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo/MPUV-Personnel",
       "lengthM": 10.5,
@@ -20500,7 +20333,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo/MPUV-Tractor",
       "lengthM": 10.5,
@@ -20623,7 +20455,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mtc/MTC",
       "lengthM": 8.75,
@@ -20711,7 +20542,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mule/Mule",
       "lengthM": 8.75,
@@ -20833,7 +20663,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 30,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Alpha",
       "lengthM": 21.5,
@@ -20955,7 +20784,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Beta",
       "lengthM": 21.5,
@@ -21077,7 +20905,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 30,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Alpha-Vindicator",
       "lengthM": 21.5,
@@ -21206,7 +21033,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 65,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Delta",
       "lengthM": 21.5,
@@ -21328,7 +21154,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Gamma",
       "lengthM": 21.5,
@@ -21450,7 +21275,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mustang/Mustang-Omega",
       "lengthM": 21.5,
@@ -21603,7 +21427,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 80,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nomad/Nomad",
       "lengthM": 27,
@@ -21749,7 +21572,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 120,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nova-tank/Nova",
       "lengthM": 20,
@@ -21855,7 +21677,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nox/Nox",
       "lengthM": 5.15,
@@ -21948,7 +21769,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/nox/Nox-Kue",
       "lengthM": 5.15,
@@ -22071,7 +21891,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 25,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/p52-merlin/P-52-Merlin",
       "lengthM": 12,
@@ -22178,7 +21997,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 35,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/p72-archimedes/P-72-Archimedes",
       "lengthM": 12,
@@ -22285,7 +22103,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/p72-archimedes/P-72-Archimedes-Emerald",
       "lengthM": 12,
@@ -22442,9 +22259,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.3.2"
-      ],
       "msrpUSD": 350,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/paladin/Paladin",
       "lengthM": 53.5,
@@ -22625,9 +22439,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.4.0"
-      ],
       "msrpUSD": 800,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/perseus/Perseus",
       "lengthM": 100,
@@ -22760,7 +22571,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/pitbull/Pitbull",
       "lengthM": 6,
@@ -22984,9 +22794,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.0.0"
-      ],
       "msrpUSD": 975,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/polaris/Polaris",
       "lengthM": 181,
@@ -23115,7 +22922,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 440,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/prowler/Prowler",
       "lengthM": 34,
@@ -23277,9 +23083,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.2.0"
-      ],
       "msrpUSD": 300,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/prowler/Prowler-Utility",
       "lengthM": 34,
@@ -23361,7 +23164,6 @@
         "radars": []
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 3.5,
       "widthM": 2.5,
       "heightM": 2.2,
@@ -23460,7 +23262,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 30,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mirai-pulse/Pulse",
       "lengthM": 3.5,
@@ -23548,7 +23349,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 30,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/mirai-pulse/Pulse-LX",
       "lengthM": 3.5,
@@ -23699,7 +23499,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 190,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/raft/RAFT",
       "lengthM": 39.5,
@@ -23884,9 +23683,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.8.2"
-      ],
       "msrpUSD": 400,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/railen/Railen",
       "lengthM": 67,
@@ -24010,7 +23806,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 145,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/razor/Razor",
       "lengthM": 12.5,
@@ -24134,7 +23929,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 155,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/razor/Razor-EX",
       "lengthM": 12.5,
@@ -24258,7 +24052,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 150,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/razor/Razor-LX",
       "lengthM": 12.5,
@@ -24422,7 +24215,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 400,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reclaimer/Reclaimer",
       "lengthM": 160,
@@ -24586,7 +24378,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 400,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/reclaimer/Reclaimer-Best-In-Show-Edition-2949",
       "lengthM": 160,
@@ -24766,7 +24557,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 330,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/redeemer/Redeemer",
       "lengthM": 51,
@@ -24895,7 +24685,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 275,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aegis-retaliator/Retaliator-Bomber",
       "lengthM": 70.5,
@@ -24996,7 +24785,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/roc/ROC",
       "lengthM": 6,
@@ -25118,7 +24906,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 75,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/roc/ROC-DS",
       "lengthM": 6.6,
@@ -25246,7 +25033,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre",
       "lengthM": 24.5,
@@ -25382,7 +25168,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 185,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre-Comet",
       "lengthM": 24.5,
@@ -25511,7 +25296,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 185,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre-Firebird",
       "lengthM": 24.5,
@@ -25616,7 +25400,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 185,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/sabre/Sabre-Peregrine",
       "lengthM": 24.5,
@@ -25750,7 +25533,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "lengthM": 24.5,
       "widthM": 24.5,
       "heightM": 5,
@@ -25866,9 +25648,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.4.0"
-      ],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/salvation/Salvation",
       "lengthM": 14.5,
@@ -25992,7 +25771,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 240,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/aopoa-santokyai/Santoky-i",
       "lengthM": 24,
@@ -26129,7 +25907,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 240,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/scorpius/Scorpius",
       "lengthM": 32,
@@ -26277,7 +26054,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 230,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/scorpius/Scorpius-Antares",
       "lengthM": 32,
@@ -26435,7 +26211,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 150,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/shiv/Shiv",
       "lengthM": 37.5,
@@ -26563,7 +26338,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 80,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/spartan/Spartan",
       "lengthM": 17,
@@ -26692,7 +26466,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 165,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/argo-srv/SRV",
       "lengthM": 31.5,
@@ -26846,7 +26619,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 315,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/stinger/Stinger",
       "lengthM": 36,
@@ -26969,7 +26741,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 90,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/storm/Storm",
       "lengthM": 10.25,
@@ -27074,7 +26845,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 100,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/storm/Storm-AA",
       "lengthM": 10.25,
@@ -27162,7 +26932,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/stv/STV",
       "lengthM": 8.75,
@@ -27286,7 +27055,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 70,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/syulen/Syulen",
       "lengthM": 28,
@@ -27410,7 +27178,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 115,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/talon/Talon",
       "lengthM": 24,
@@ -27534,7 +27301,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 115,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/talon/Talon-Shrike",
       "lengthM": 24,
@@ -27656,7 +27422,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 220,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/terrapin/Terrapin",
       "lengthM": 20,
@@ -27769,7 +27534,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 220,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/terrapin/Terrapin-Medic",
       "lengthM": 20,
@@ -27954,7 +27718,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 775,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/tiburon/Tiburon",
       "lengthM": 121,
@@ -28150,9 +27913,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.8.2"
-      ],
       "msrpUSD": 425,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/tyilui/Tyilui",
       "lengthM": 67.25,
@@ -28275,7 +28035,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa",
       "lengthM": 8.75,
@@ -28398,7 +28157,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa-Fortuna",
       "lengthM": 8.75,
@@ -28521,7 +28279,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 60,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa-Medivac",
       "lengthM": 8.75,
@@ -28609,7 +28366,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 40,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/utv/UTV",
       "lengthM": 4,
@@ -28783,7 +28539,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 375,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/anvil-valkyrie/Valkyrie",
       "lengthM": 48,
@@ -28929,9 +28684,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.4.0"
-      ],
       "msrpUSD": 300,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/scythe/Scythe",
       "lengthM": 33,
@@ -29109,7 +28861,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 290,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Harbinger",
       "lengthM": 48,
@@ -29282,7 +29033,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 240,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Hoplite",
       "lengthM": 48,
@@ -29471,7 +29221,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 275,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Sentinel",
       "lengthM": 48,
@@ -29649,7 +29398,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 260,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/vanguard/Vanguard-Warden",
       "lengthM": 48,
@@ -29767,7 +29515,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/drake-vulture/Vulture",
       "lengthM": 34,
@@ -29873,7 +29620,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 45,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/x1/X1",
       "lengthM": 5.19,
@@ -29985,7 +29731,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 55,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/x1/X1-Force",
       "lengthM": 5.19,
@@ -30073,7 +29818,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 50,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/x1/X1-Velocity",
       "lengthM": 5.19,
@@ -30237,7 +29981,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/zeus-mk-ii/Zeus-Mk-II-CL",
       "lengthM": 46,
@@ -30372,7 +30115,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [],
       "msrpUSD": 175,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/zeus-mk-ii/Zeus-Mk-II-ES",
       "lengthM": 46,
@@ -30542,9 +30284,6 @@
         ]
       },
       "gameVersion": "sc-alpha-4.10.0@12660092",
-      "patches": [
-        "4.6.0"
-      ],
       "msrpUSD": 220,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/hermes/Hermes",
       "lengthM": 73,
@@ -30561,6 +30300,242 @@
       "fociDe": [
         "Medium Freighter"
       ]
+    },
+    {
+      "id": "aegs-sabre-raven-ex",
+      "name": "Sabre Raven EX",
+      "manufacturer": "Aegis Dynamics",
+      "makerCode": "AEGS",
+      "typeEn": "Combat",
+      "typeDe": "Kampf",
+      "roleEn": "Medium Fighter",
+      "roleDe": "Mittlerer Jäger",
+      "sizeClass": 2,
+      "sizeDe": "Klein",
+      "descriptionEn": "Aegis Dynamics have raised the bar yet again with their Raven variant. Nearing the speed and maneuverability of its Sabre forebearer but with a lower ship signature, the Raven is a fast, stealthy infiltrator. This special EX model reincorporates some of the offensive capabilities of the original Sabre while introducing a Quantum Dampener on the spine of the ship to help ensure enemies won't escape.",
+      "descriptionDe": "Aegis Dynamics have raised the bar yet again with their Raven variant. Nearing the speed and maneuverability of its Sabre forebearer but with a lower ship signature, the Raven is a fast, stealthy infiltrator. This special EX model reincorporates some of the offensive capabilities of the original Sabre while introducing a Quantum Dampener on the spine of the ship to help ensure enemies won't escape.",
+      "crewMin": 1,
+      "isGravlev": false,
+      "isSpaceship": true,
+      "scmSpeed": 233,
+      "maxSpeed": 1320,
+      "boostForward": 560,
+      "pitch": 56,
+      "yaw": 45,
+      "roll": 160,
+      "hullHp": 13116,
+      "shieldHp": 6336,
+      "qtSpeedMs": 161410896,
+      "qtSpoolS": 4.400000095367432,
+      "qtRangeM": 48335125367,
+      "qtFuel": 0.9,
+      "h2Fuel": 2.6,
+      "oreSCU": null,
+      "cargoSCU": 0,
+      "insClaimMin": 7.6,
+      "insExpediteMin": 2.5,
+      "insExpediteCost": 3934,
+      "pilotDps": 2184.6,
+      "turretDps": null,
+      "fixedWeapons": [
+        {
+          "name": "Omnisky IX Cannon",
+          "size": 3,
+          "count": 2,
+          "cls": "AMRS_LaserCannon_S3",
+          "dps": 546.7
+        },
+        {
+          "name": "CF-337 Panther Repeater",
+          "size": 3,
+          "count": 2,
+          "cls": "KLWE_LaserRepeater_S3",
+          "dps": 545.6
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 3,
+          "count": 2
+        }
+      ],
+      "fixedWeaponSizes": [
+        {
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "turretWeapons": [],
+      "turrets": [],
+      "missileCount": 4,
+      "missileRacks": [
+        {
+          "name": "Arrester III Missile",
+          "size": 3,
+          "count": 4
+        }
+      ],
+      "cmLaunchers": 2,
+      "components": {
+        "powerPlants": [
+          {
+            "name": "Regulus",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "shields": [
+          {
+            "name": "AllStop",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "coolers": [
+          {
+            "name": "Bracer",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "quantumDrives": [
+          {
+            "name": "Beacon",
+            "size": 1,
+            "count": 1
+          }
+        ],
+        "radars": [
+          {
+            "name": "Ecouter",
+            "size": 1,
+            "count": 1
+          }
+        ]
+      },
+      "gameVersion": "sc-alpha-4.10.0@12660092"
+    },
+    {
+      "id": "krig-s65-stingray",
+      "name": "S-65 Stingray",
+      "manufacturer": "Kruger Intergalactic",
+      "makerCode": "KRIG",
+      "typeEn": "Combat",
+      "typeDe": "Kampf",
+      "roleEn": "Medium Fighter",
+      "roleDe": "Mittlerer Jäger",
+      "sizeClass": 2,
+      "sizeDe": "Klein",
+      "descriptionEn": "Sleek, balanced, and uncompromising in its vision, the S-65 Stingray is a medium fighter that balances great maneuverability whilst still packing a punch. Taking after its namesake, the Stingray is no stranger to combat, able to swoop in, deliver sustained damage, and swoop out, unafraid to take a few hits in the process.",
+      "descriptionDe": "Sleek, balanced, and uncompromising in its vision, the S-65 Stingray is a medium fighter that balances great maneuverability whilst still packing a punch. Taking after its namesake, the Stingray is no stranger to combat, able to swoop in, deliver sustained damage, and swoop out, unafraid to take a few hits in the process.",
+      "crewMin": 1,
+      "isGravlev": false,
+      "isSpaceship": true,
+      "scmSpeed": 218,
+      "maxSpeed": 1200,
+      "boostForward": 485,
+      "pitch": 55,
+      "yaw": 42,
+      "roll": 185,
+      "hullHp": 10859,
+      "shieldHp": 4320,
+      "qtSpeedMs": 209236400,
+      "qtSpoolS": 4.900000095367432,
+      "qtRangeM": 84253886245,
+      "qtFuel": 0.9,
+      "h2Fuel": 3.6,
+      "oreSCU": null,
+      "cargoSCU": 0,
+      "insClaimMin": 2,
+      "insExpediteMin": 1,
+      "insExpediteCost": 333,
+      "pilotDps": 2485,
+      "turretDps": null,
+      "fixedWeapons": [
+        {
+          "name": "Whiptail STR-E2 Repeater",
+          "size": 2,
+          "count": 4,
+          "cls": "KRIG_LaserRepeater_Bespoke_S2",
+          "dps": 90
+        },
+        {
+          "name": "Axiom L-22 Repeater",
+          "size": 4,
+          "count": 2,
+          "cls": "Krig_LaserRepeater_Bespoke_S4",
+          "dps": 1062.5
+        }
+      ],
+      "fixedWeaponMounts": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "fixedWeaponSizes": [
+        {
+          "size": 2,
+          "count": 4
+        },
+        {
+          "size": 4,
+          "count": 2
+        }
+      ],
+      "turretWeapons": [],
+      "turrets": [],
+      "missileCount": 8,
+      "missileRacks": [
+        {
+          "name": "Tempest II Missile",
+          "size": 2,
+          "count": 8
+        }
+      ],
+      "cmLaunchers": 2,
+      "components": {
+        "powerPlants": [
+          {
+            "name": "LightBlossom",
+            "size": 1,
+            "count": 1
+          }
+        ],
+        "shields": [
+          {
+            "name": "WEB",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "coolers": [
+          {
+            "name": "Frost-Star",
+            "size": 1,
+            "count": 2
+          }
+        ],
+        "quantumDrives": [
+          {
+            "name": "Rush",
+            "size": 1,
+            "count": 1
+          }
+        ],
+        "radars": [
+          {
+            "name": "Capston",
+            "size": 1,
+            "count": 1
+          }
+        ]
+      },
+      "gameVersion": "sc-alpha-4.10.0@12660092"
     },
     {
       "id": "argo-atls",
@@ -30617,9 +30592,6 @@
       "isSpaceship": false,
       "isGravlev": false,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
-      "patches": [
-        "4.2.0"
-      ],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": {
         "hero": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/1280px-ATLS_in_cargo_elevator_-_cropped.jpg.webp",
@@ -30692,7 +30664,6 @@
       "isSpaceship": false,
       "isGravlev": false,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
-      "patches": [],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": null,
       "fixedWeaponMounts": [],
@@ -30761,7 +30732,6 @@
       "isSpaceship": false,
       "isGravlev": false,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS-GEO",
-      "patches": [],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": {
         "hero": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/1280px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp",
@@ -30834,7 +30804,6 @@
       "isSpaceship": false,
       "isGravlev": false,
       "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
-      "patches": [],
       "gameVersion": "4.9.0-LIVE.12232306",
       "image": null,
       "fixedWeaponMounts": [],

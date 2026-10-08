@@ -154,20 +154,21 @@
   },
   "hall": {
     "revelyork-single": {
-      "url": "/hangar/hall/revelyork-single.glb",
-      "v": "317507cd",
+      "url": "/hangar/hall/revelyork-single-lod1.glb",
+      "v": "46c7518e",
       "tris": 720879,
       "trisRaw": 612862,
       "textures": 100,
       "attached": {
-        "attached": 143,
-        "color": 89,
+        "attached": 144,
+        "color": 90,
         "normal": 54,
         "flatNormals": 33,
-        "rough": 80,
+        "rough": 79,
         "tiled": 13,
-        "blended": 4,
-        "blendSkipped": 1
+        "blended": 5,
+        "blendMetal": 1,
+        "blendSkipped": 0
       },
       "matfix": {
         "fixed": 159,
@@ -190,13 +191,18 @@
           "tris": 612862
         }
       },
+      "crease": {
+        "corners": 2162637,
+        "changedPct": 40.1
+      },
       "uv": {
         "rangeBefore": 1664,
         "rangeAfter": 1262.25,
         "bits": 23,
         "degenerate": 3.3
       },
-      "bytes": 10532224,
+      "floor": 1,
+      "bytes": 10703992,
       "room": {
         "center": [
           36,
@@ -206,10 +212,6 @@
         "halfW": 36,
         "halfL": 68,
         "height": 44
-      },
-      "crease": {
-        "corners": 2162637,
-        "changedPct": 43.5
       }
     }
   },

@@ -174,6 +174,14 @@ export const CHECKS = [
       'die Schiffs-Detailseite traegt genau ein Kapitelgeruest mit Sprungleiste, keinen Einheitsrahmen mehr, Balken nur beim Leistungsprofil, und jeder Wert steht an genau einer Stelle (D-01/D-02/D-03)',
   },
   {
+    id: 'verify:patch-ships',
+    npm: 'verify:patch-ships',
+    script: 'scripts/verify-patch-ships.mjs',
+    rail: 'A',
+    checks:
+      'jedes Schiff einer Patch-Seite trifft einen Katalogeintrag oder eine benannte Ausnahme (sonst WARNUNG), und jede verknuepfte Schiffsseite in dist/ (EN+DE) traegt den Verweis auf ihre Patch-Seiten (sonst FEHLER) — das Patch-Rueckgrat rechnet seit 08.10.2026 der Build, nicht mehr der Datenlauf',
+  },
+  {
     id: 'verify:shipconsole',
     npm: 'verify:shipconsole',
     script: 'scripts/verify-shipconsole.mjs',
@@ -315,6 +323,15 @@ export const CHECKS = [
     rail: 'B',
     checks: 'Feld fuer Feld: was ein frischer Extraktionslauf gegenueber dem committeten Katalog aendert',
     env: 'liest src/data/vehicles-gamefiles.json — die Zwischenstufe ist unversioniert und entsteht erst durch npm run datamine:vehicles',
+  },
+  {
+    id: 'verify:vehicle-gap',
+    npm: 'verify:vehicle-gap',
+    script: 'scripts/verify-vehicle-gap.mjs',
+    rail: 'B',
+    checks:
+      'flugfaehige /spaceships/- und /groundvehicles/-Records im DataCore (nach dem isVariantJunk-Filter aus datamine-vehicles.mjs) ohne Katalog-Eintrag und ohne benannte Ausnahme — WARNUNG; FEHLER nur bei Zombie-Ausnahmen oder Leser unter der Klinke',
+    env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B. Anlass: Sabre Raven EX und S-65 Stingray fehlten still im zirkulaer geschlossenen Katalog (07.10.2026)',
   },
 
   // ---------------------------------------------------------------

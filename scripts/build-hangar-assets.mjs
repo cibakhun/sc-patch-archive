@@ -21,8 +21,11 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
+import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
+import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import sharp from 'sharp';
-import { readdirSync, existsSync, mkdirSync, statSync, readFileSync } from 'node:fs';
+import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -40,9 +43,11 @@ const FORCE = argv.includes('--force');
 // Budget je Art: Dreiecke nach der Dezimierung, Kantenlänge der Texturen.
 const BUDGET = {
   ships: { tris: 200000, tex: 1024, ntex: 512 },
-  // Halle nicht dezimieren: 613k Rohdreiecke sind tragbar, und die
-  // gelockerte Schwelle (bis 4 % der Hallengröße ≈ 7 m) riss Kanten auf.
-  hall: { tris: 700000, tex: 1024, ntex: 512 },
+  // Halle wird nie dezimiert (siehe buildOne); die Zahl ist nur die
+  // Warnschwelle. Die gelockerte Schwelle (bis 4 % der Hallengröße ≈ 7 m)
+  // riss Kanten auf, und als die volle Stufe (1,24 Mio. Rohdreiecke) über
+  // dem alten Budget von 700k lag, riss sie die Längswände auf (7748b0a).
+  hall: { tris: 1600000, tex: 1024, ntex: 512 },
   npc: { tris: 30000, tex: 512, ntex: 512 },
 };
 
@@ -160,7 +165,11 @@ function coverage(doc) {
 // wir (COLOR_0, siehe stripAttributes), hier gilt es als 1. Schicht und
 // Maske kacheln relativ zur Grundkarte (BlendLayer2Tiling, BlendMaskTiling,
 // jeweils mal ihrem TexMod, geteilt durch das TexMod der Grundkarte).
-async function bakeBlend(baseFile, x, factor) {
+// Metall-Grund (metal = { glossFile, roughBase, roughL2 }): die zweite
+// Schicht ist Lack, also nicht metallisch. Dazu entsteht eine eigene
+// metallicRoughness-Karte im selben UV-Raum: B (Metall) = 1 − f,
+// G (Rauheit) = mix(Grund-Rauheit aus der Glätte, 1 − BlendLayer2Glossiness, f).
+async function bakeBlend(baseFile, x, factor, metal = null) {
   const b = x.blend;
   const load = async (f, size) => {
     let img = sharp(f).removeAlpha();
@@ -185,7 +194,10 @@ async function bakeBlend(baseFile, x, factor) {
     const xx = Math.floor((((u % 1) + 1) % 1) * img.w), yy = Math.floor((((v % 1) + 1) % 1) * img.h);
     return img.data[(yy * img.w + xx) * img.c + Math.min(ch, img.c - 1)];
   };
+  const gl = metal?.glossFile ? await load(metal.glossFile) : null;
+  const tg = (x.tile_n?.[0] || 1) / bt;   // Glätte kachelt mit dem TexMod der Normalen
   const out = Buffer.alloc(W * H * 3);
+  const mr = metal ? Buffer.alloc(W * H * 3) : null;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const u = (i + 0.5) / W, v = (j + 0.5) / H;
     const m = sample(mk, u * tm, v * tm, 0) / 255;
@@ -196,8 +208,15 @@ async function bakeBlend(baseFile, x, factor) {
       const s2 = sample(l2, u * t2, v * t2, ch) * col[ch];
       out[p + ch] = Math.round(g * (1 - f) + s2 * f);
     }
+    if (mr) {
+      const rb = gl ? 1 - sample(gl, u * tg, v * tg, 0) / 255 : metal.roughBase;
+      mr[p] = 255;
+      mr[p + 1] = Math.round((rb * (1 - f) + metal.roughL2 * f) * 255);
+      mr[p + 2] = Math.round((1 - f) * 255);
+    }
   }
-  return sharp(out, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
+  const png = (buf) => sharp(buf, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
+  return { color: await png(out), mr: mr ? await png(mr) : null };
 }
 
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
@@ -234,23 +253,45 @@ async function attachHallTextures(doc) {
   };
   const tt = doc.createExtension(KHRTextureTransform);
   const tile = (ti, t) => { if (ti && t) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale(t)); };
-  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendSkipped: 0 };
+  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0 };
   // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
   const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
   for (const m of [...used].filter(Boolean)) {
     const x = m.getExtras() || {};
     const metal = /conductor/i.test(x.diffuse_tex || '');
     const d = texFile(metal ? x.spec_tex : x.diffuse_tex);
-    // zweite Blendschicht einbacken (nicht bei Metall: dort ist die Farbkarte
-    // die Specular-Map, eine Lackschicht darüber würde metallisch)
-    const b2 = !metal && x.blend && texFile(x.blend.d) && texFile(x.blend.mask);
+    // zweite Blendschicht einbacken. Auf Metall bekommt sie eine eigene
+    // Metall/Rauheit-Karte, sonst würde der Lack darüber metallisch.
+    const b2 = x.blend && texFile(x.blend.d) && texFile(x.blend.mask);
     if (b2 && !m.getBaseColorTexture()) {
       const key = `blend:${m.getName()}`;
-      if (!cache.has(key)) tex(key, 'b' + cache.size, await bakeBlend(d, x, m.getBaseColorFactor()));
+      let factor = m.getBaseColorFactor(), metalOpt = null;
+      if (metal) {
+        // dieselbe Metallfarbe wie in cleanMaterials: Specular, ohne Specular-Map gedämpft
+        const a = Object.fromEntries((x.semantic?.authored_attributes || []).map((t) => [t.name, t.value]));
+        const spec = String(a.Specular || '0.7,0.7,0.7').split(',').map(Number);
+        factor = spec.map((v) => Math.min(1, d ? v : v * 0.72));
+        const nmf = texFile(x.normal_tex), glossFile = nmf && nmf.replace(/\.png$/, '.gloss.png');
+        metalOpt = {
+          glossFile: glossFile && existsSync(glossFile) ? glossFile : null,
+          roughBase: Math.max(0.35, 1 - Number(a.Shininess || 150) / 255),
+          roughL2: Math.max(0.15, 1 - (x.blend.gloss ?? 255) / 255),
+        };
+      }
+      if (!cache.has(key)) {
+        const r = await bakeBlend(d, x, factor, metalOpt);
+        tex(key, 'b' + cache.size, r.color);
+        if (r.mr) tex(`${key}:mr`, 'bm' + cache.size, r.mr);
+      }
       // die Grundfarbe (Diffuse-Faktor) steckt jetzt in der Karte — sonst
       // färbte sie auch die zweite Schicht
-      const a = m.getBaseColorFactor()[3];
-      m.setBaseColorTexture(cache.get(key)).setBaseColorFactor([1, 1, 1, a]); s.attached++; s.blended++;
+      const alpha = m.getBaseColorFactor()[3];
+      m.setBaseColorTexture(cache.get(key)).setBaseColorFactor([1, 1, 1, alpha]); s.attached++; s.blended++;
+      if (metal) {
+        m.setMetallicRoughnessTexture(cache.get(`${key}:mr`)).setMetallicFactor(1).setRoughnessFactor(1);
+        m.setExtras({ ...m.getExtras(), blend_baked: true });
+        s.blendMetal++;
+      }
     } else if (x.blend) s.blendSkipped++;
     if (d && !m.getBaseColorTexture()) { m.setBaseColorTexture(tex(d, 'd' + cache.size)); s.attached++; if (metal) m.setExtras({ ...x, spec_used: true }); }
     const nm = texFile(x.normal_tex);
@@ -268,7 +309,8 @@ async function attachHallTextures(doc) {
     const td = x.tile_d, tn = x.tile_n;   // Normalen/Glätte haben ihr eigenes TexMod
     tile(m.getBaseColorTextureInfo(), td);
     tile(m.getNormalTextureInfo(), tn);
-    tile(m.getMetallicRoughnessTextureInfo(), tn);
+    // gebackene Metall/Rauheit-Karte liegt im UV-Raum der Farbkarte
+    tile(m.getMetallicRoughnessTextureInfo(), m.getExtras()?.blend_baked ? td : tn);
     if (td || x.tile_n) s.tiled++;
     if (m.getBaseColorTexture()) s.color++;
     if (m.getNormalTexture()) s.normal++;
@@ -295,9 +337,10 @@ function cleanMaterials(doc) {
       const a = Object.fromEntries((x.semantic?.authored_attributes || []).map((t) => [t.name, t.value]));
       const spec = String(a.Specular || '0.7,0.7,0.7').split(',').map(Number);
       const shin = Number(a.Shininess || 150);
-      if (x.spec_used) m.setBaseColorFactor([...spec.map((v) => Math.min(1, v)), 1]);
+      if (x.blend_baked) { /* Farbe, Metall und Rauheit stecken in den gebackenen Karten */ }
+      else if (x.spec_used) m.setBaseColorFactor([...spec.map((v) => Math.min(1, v)), 1]);
       else m.setBaseColorTexture(null).setBaseColorFactor([...spec.map((v) => Math.min(1, v * 0.72)), 1]);
-      m.setMetallicFactor(1);
+      if (!x.blend_baked) m.setMetallicFactor(1);
       if (!m.getMetallicRoughnessTexture()) m.setRoughnessFactor(Math.max(0.35, 1 - shin / 255));
     }
     // Spiel-Emissive als leichtes Glimmen statt Weißblech
@@ -323,21 +366,103 @@ function stripAttributes(doc) {
   }
 }
 
-// Halle: Einrichtung der Galerien (aus der Schiffsperspektive kaum zu sehen,
-// zusammen aber ein Viertel der Dreiecke) und die Planenkisten am Boden
-// (stehen genau im Blickfeld der Startansicht).
-const DROP_HALL = /props_(plant|couch|chair|occasional_table|crate_tarp)|flower_|footlocker/i;
+// Spiellampen der Halle -> public/hangar/hall/<halle>.lights.json (liest der
+// Viewer neben dem GLB). Position und Richtung aus den KHR_lights_punctual-
+// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt in −Z),
+// Spieltyp, Spiel-Intensität und Radius aus <halle>.lights-src.txt (das
+// Protokoll des Exports, siehe scripts/extract-hangar-sources.mjs), über den
+// Namen verbunden. angle = voller Kegelwinkel in Grad. Schatten nennt der
+// Export nicht: shadow bleibt false. Danach richtet orientHallLights die
+// Richtungen aus (Spots aus dem Z-oben-Raum nach glTF, Flächenlichter von
+// ihrer Fläche weg, siehe scripts/lib/hall-lights.mjs); v: 2 kennzeichnet das.
+const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
+function hallLights(doc, name) {
+  const srcFile = fileURLToPath(new URL(`hall/${name}.lights-src.txt`, SRC));
+  // Ohne Exportprotokoll kennt der Build weder Spieltyp noch Spielstärke: Die
+  // Werte der Lichtknoten allein ergäben eine falsche Beleuchtung. Dann bleibt
+  // die bisherige Lampenliste stehen, und der Hinweis sagt, was zu tun ist.
+  if (!existsSync(srcFile)) return { missing: `hall/${name}.lights-src.txt` };
+  const src = new Map();
+  for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
+    const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+    if (!m) continue;
+    if (!src.has(m[1])) src.set(m[1], []);
+    src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
+  }
+  const lights = [];
+  for (const node of doc.getRoot().listNodes()) {
+    const l = node.getExtension('KHR_lights_punctual');
+    if (!l) continue;
+    const w = node.getWorldMatrix();
+    const len = Math.hypot(w[8], w[9], w[10]) || 1;
+    const s = src.get(node.getName())?.shift();
+    const type = s ? (LIGHT_TYPE[s.type] || 'point') : l.getType();
+    const r3 = (v) => Math.round(v * 1000) / 1000;
+    lights.push({
+      type,
+      pos: [w[12], w[13], w[14]].map(r3),
+      dir: [-w[8] / len, -w[9] / len, -w[10] / len].map(r3),
+      color: l.getColor().map(r3),
+      intensity: s ? s.intensity : l.getIntensity(),
+      radius: s ? s.radius : l.getRange() ?? 0,
+      angle: l.getType() === 'spot' ? r3((l.getOuterConeAngle() * 2 * 180) / Math.PI) : null,
+      shadow: false,
+      name: node.getName(),
+    });
+  }
+  const orient = orientHallLights(lights, hallRaycaster(doc));
+  const outFile = fileURLToPath(new URL(`hall/${name}.lights.json`, OUT));
+  mkdirSync(dirname(outFile), { recursive: true });
+  writeFileSync(outFile, JSON.stringify({ v: 2, lights }) + '\n');
+  const byType = {};
+  for (const l of lights) byType[l.type] = (byType[l.type] || 0) + 1;
+  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient };
+}
+
+// Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
+// gezählt für die Selbstauskunft.
+const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|table|locker/i;
+
+// Einrichtung bleibt eigener Knoten mit Bezugspunkt: Für große Schiffe wächst
+// die Halle mit (Faktor bis ≈ 3), und eingeschmolzen in die Hülle wüchsen
+// Kisten und Spinde mit. So hält der Viewer jedes Möbel an seinem Platz in
+// Originalgröße (extras.anchor = Weltposition seiner Wurzel). Alles andere
+// verliert seinen Namen, damit join({ keepNamed: true }) es weiter
+// zusammenlegt. Vor flatten() aufrufen: danach fehlt die Hierarchie.
+function markFurniture(doc) {
+  const root = doc.getRoot();
+  const isF = (n) => FURNITURE.test(`${n.getName()} ${n.getMesh()?.getName() || ''}`);
+  const parentOf = new Map();
+  for (const n of root.listNodes()) for (const c of n.listChildren()) parentOf.set(c, n);
+  const rootOf = (n) => { let r = null; for (let q = n; q; q = parentOf.get(q)) if (isF(q)) r = q; return r; };
+  const ids = new Map();
+  let nodes = 0;
+  const named = new Set();
+  for (const n of root.listNodes()) {
+    const r = rootOf(n);
+    if (!r) { n.setName(''); continue; }
+    if (!n.getMesh()) continue;
+    if (!ids.has(r)) ids.set(r, ids.size);
+    const id = ids.get(r);
+    n.setExtras({ ...n.getExtras(), furniture: id, anchor: r.getWorldTranslation().map((v) => Math.round(v * 1000) / 1000) });
+    n.setName(`furniture_${id}_${nodes}`);
+    named.add(n.getMesh());
+    nodes++;
+  }
+  for (const m of root.listMeshes()) if (!named.has(m)) m.setName('');
+  return { roots: ids.size, nodes };
+}
+const drawCalls = (root) => root.listNodes().reduce((n, x) => n + (x.getMesh()?.listPrimitives().length || 0), 0);
 // Materialien, die ohne die Spiel-Laufzeit falsch aussehen: Lichtkegel- und
 // Blendenkarten (schweben als Splitter neben dem Rumpf), zur Laufzeit
 // gerenderte Schriftzüge und Schablonen (ohne Bild: weiße Flächen).
 const DROP_MAT = /headlight_glow|_flare|lens_?flare|light_?(beam|cone|shaft)|RTT_|stencil/i;
 
-function dropJunk(doc, kind) {
+function dropJunk(doc) {
   const root = doc.getRoot();
-  const re = kind === 'hall' ? new RegExp(`${DROP.source}|${DROP_HALL.source}`, 'i') : DROP;
   let dropped = 0;
   for (const node of root.listNodes()) {
-    if (re.test(node.getName() || '') || (node.getMesh() && re.test(node.getMesh().getName() || ''))) {
+    if (DROP.test(node.getName() || '') || (node.getMesh() && DROP.test(node.getMesh().getName() || ''))) {
       node.setMesh(null); dropped++;
     }
   }
@@ -416,7 +541,11 @@ async function buildOne(kind, name, inPath) {
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
-  dropJunk(doc, kind);
+  // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
+  // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
+  const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
+  const lights = kind === 'hall' ? hallLights(doc, name) : null;
+  dropJunk(doc);
   let matfix = null, cover = null;
   if (kind === 'hall') {
     const fixFile = fileURLToPath(new URL(`hall/${name}.matfix.json`, SRC));
@@ -427,7 +556,9 @@ async function buildOne(kind, name, inPath) {
   if (cover) cover.after = coverage(doc);
   cleanMaterials(doc);
   stripAttributes(doc);
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: false }), weld());
+  const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' }), weld());
+  if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
   // schwelle klein, damit Silhouette und UV-Nähte halten.
@@ -436,8 +567,11 @@ async function buildOne(kind, name, inPath) {
   // Schiffe: Ränder bleiben fest und die Schwelle steigt nur bis 1 % —
   // stärker gelockert zersplitterte der C2-Rumpf (Löcher, abstehende Platten).
   // Ein großes Schiff behält dann eben mehr Dreiecke.
+  // Die Halle nie: Ihre Bausatzteile sind große ebene Flächen mit Öffnungen;
+  // in der Ebene kostet ein Kantenkollaps keinen Fehler, und der Vereinfacher
+  // zieht Ränder über Öffnungen und reißt Wände auf (scripts/lib/hall-hull.mjs).
   const b = BUDGET[kind];
-  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : [0.004, 0.01, 0.02, 0.04];
+  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' ? [] : [0.004, 0.01, 0.02, 0.04];
   for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
@@ -480,13 +614,27 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
-  const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
+  // Halle: Dichtheit der Hülle und Bodenhöhe (der Viewer lotet sie sonst
+  // beim Laden selbst nach), beides gegen das geschriebene GLB
+  const room = kind === 'hall' ? HALL_ROOM[name] : null;
+  const rc = room ? hallRaycaster(written) : null;
+  const hull = room ? hullLeaks(written, room, { rc }) : null;
+  const floor = room ? floorLevel(written, room, { rc }) : null;
+  // Version deckt die Lampenliste mit ab: der Viewer lädt sie mit demselben ?v=
+  const hash = createHash('sha1').update(readFileSync(outPath));
+  const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
+  if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
+  const v = hash.digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
+    ...(lights ? { lights, furniture } : {}),
+    ...(furnitureNodes ? { furnitureNodes } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
+    ...(hull ? { hull } : {}),
+    ...(floor != null ? { floor } : {}),
     bytes: statSync(outPath).size,
   };
 }
@@ -503,7 +651,14 @@ for (const kind of Object.keys(BUDGET)) {
     if (ONLY && name !== ONLY) { if (prev[kind]?.[name]) manifest[kind][name] = prev[kind][name]; continue; }
     const inPath = fileURLToPath(new URL(f, dir));
     const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
-    if (!FORCE && prev[kind]?.[name] && existsSync(outPath) && statSync(outPath).mtimeMs > statSync(inPath).mtimeMs) {
+    // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
+    // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
+    // Lampenliste muss schon da sein.
+    const side = kind === 'hall' ? ['lights-src.txt', 'matfix.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
+      && (kind !== 'hall' || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)));
+    if (!FORCE && prev[kind]?.[name] && fresh) {
       manifest[kind][name] = prev[kind][name]; reused++; continue;
     }
     try {
@@ -512,10 +667,25 @@ for (const kind of Object.keys(BUDGET)) {
       manifest[kind][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
+      if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
+      if (r.hull) {
+        // heile Halle: 0,04 %; aufgerissene Längswände: 1,1 bis 2,3 %
+        const where = Object.entries(r.hull.walls).filter(([, n]) => n).sort((p, q) => q[1] - p[1]).map(([k, n]) => `${k} ${n}`).join(', ');
+        console.log(`    Hülle: ${r.hull.pct} % von ${r.hull.rays.toLocaleString()} Blickstrahlen aus dem Raum treffen nichts${r.hull.pct > 0.5 ? ` — WARNUNG: Löcher in der Hülle (${where}; x = Längswände, z = Stirnwände, y = Decke/Boden)` : ''}`);
+      }
+      if (kind === 'hall' && r.tris > BUDGET.hall.tris) console.log(`    WARNUNG Halle: ${r.tris.toLocaleString()} Dreiecke über der Warnschwelle von ${BUDGET.hall.tris.toLocaleString()} (nicht dezimiert)`);
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
-        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+      }
+      if (r.lights?.missing) {
+        console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
+      } else if (r.lights) {
+        const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
+        console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture} Einrichtungsobjekte, ${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp), ${(r.bytes / 1048576).toFixed(2)} MB`);
+        const o = r.lights.orient;
+        if (o) console.log(`    Lampen: ${o.spots} Spots umgerechnet (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);

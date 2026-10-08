@@ -31,6 +31,8 @@ const REQUIRED_FILES = [
   'public/vendor/three/addons/postprocessing/GTAOPass.js',
   'public/vendor/three/addons/postprocessing/OutputPass.js',
   'public/vendor/three/addons/postprocessing/UnrealBloomPass.js',
+  // Hangar: Spiegelungssonden der Halle aus dem Spiel (nachgeladen, falls da)
+  'public/vendor/three/addons/loaders/HDRLoader.js',
 ];
 
 const problems = [];
