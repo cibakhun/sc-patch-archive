@@ -9,7 +9,8 @@
 // antworten sofort, mit holdReads erst auf answer(). Jeder Tab trägt das
 // Konto-Element aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument
 // (admin()), führt Buch über seine Anfragen (requests) und lädt mit reload()
-// eine neue Seite im selben Tab: gleicher sessionStorage, die alte Seite ist weg.
+// eine neue Seite im selben Tab: gleicher sessionStorage, die alte Seite
+// bekommt keine Antwort, kein Ereignis und keinen Zeitgeber mehr.
 //
 // Zeit ist eine Attrappe (Date.now, setTimeout, setInterval): ein Zeitgeber
 // läuft erst, wenn der Test die Uhr mit advance() vorstellt.
@@ -115,7 +116,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       clock.now = until;
       await browser.drain();
     },
-    open(session = new Map()) {
+    open(sessionStore = new Map()) {
       const tab = { events: [], requests: [] };
       tabs.push(tab);
       const listeners = {};
@@ -161,9 +162,9 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
           },
         },
         sessionStorage: {
-          getItem: (k) => (session.has(k) ? session.get(k) : null),
-          setItem: (k, v) => session.set(k, String(v)),
-          removeItem: (k) => session.delete(k),
+          getItem: (k) => (sessionStore.has(k) ? sessionStore.get(k) : null),
+          setItem: (k, v) => sessionStore.set(k, String(v)),
+          removeItem: (k) => sessionStore.delete(k),
         },
         location: { pathname: '/schiffe/aegs-gladius.html', search: '' },
         document: {
@@ -176,7 +177,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
         },
         fetch: (url, init) => {
           tab.requests.push({ method: init.method, url });
-          return authServer(url, init);
+          const never = () => new Promise(() => {});
+          return authServer(url, init).then((r) => (tab.gone ? never() : r), (e) => (tab.gone ? never() : Promise.reject(e)));
         },
         Event: class Event { constructor(type) { this.type = type; } },
         Date: FakeDate,
@@ -200,9 +202,10 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
       tab.admin = () => root.set.has('is-admin');
       tab.reload = () => {
+        tab.gone = true;
         tabs.splice(tabs.indexOf(tab), 1);
         clock.timers = clock.timers.filter((t) => t.tab !== tab);
-        return browser.open(session);
+        return browser.open(sessionStore);
       };
       return tab;
     },
