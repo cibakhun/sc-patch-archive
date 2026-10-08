@@ -807,3 +807,32 @@ test('wer mit gespeicherter Sitzung lädt, während deren Refresh noch hängt, s
   assert.deepEqual(b.server.rows.map((r) => r.slug), ['karna-rifle', 'p4-ar-rifle']);
   assert.equal(tab.sync().state, 'synced');
 });
+
+// Ein Zug hält die Sperre aller Tabs (vb.crafting.sync), bis er endet. fetch
+// hat keine Frist: eine Anfrage, deren Antwort nie kommt (Funkloch, halb
+// offene Verbindung), hielte sonst jeden Zug jedes Tabs fest, auch
+// „Erneut versuchen". Jeder Schritt endet spätestens nach 20 s wie in
+// assets/fleet.js: die Sitzungsprüfung und jede Anfrage samt Antwortkörper.
+test('hängt eine Anfrage eines Zugs, gibt er die Reihe nach 20 s frei, und die Klicks beider Tabs kommen an', async () => {
+  const cases = [
+    { at: 'Schreiben hängt', method: 'POST', go: (b, one) => one.clickOwn('karna-rifle') },
+    { at: 'Lesen hängt', method: 'GET', go: (b, one) => { one.clickOwn('karna-rifle'); b.landRefresh(); } },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const one = b.open();
+    const two = b.open();
+    await b.settle();
+    b.server.hold(c.method);
+    c.go(b, one);
+    await b.settle({ horizon: 1000 });
+    two.clickOwn('p4-ar-rifle');
+    await b.settle({ horizon: 18000 });
+    assert.deepEqual(b.server.rows, [], `${c.at}: vor der Frist wartet die Reihe noch`);
+
+    await b.settle({ horizon: 30000 });
+    assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle'], c.at);
+    assert.deepEqual(mirror(b).pending, [], c.at);
+    assert.equal(two.sync().state, 'synced', c.at);
+  }
+});
