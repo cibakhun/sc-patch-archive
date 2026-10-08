@@ -24,22 +24,47 @@ function worldPositions(prim, M) {
   const P = prim.getAttribute('POSITION'), n = P.getCount(), W = new Float64Array(n * 3), v = [0, 0, 0];
   for (let i = 0; i < n; i++) {
     P.getElement(i, v);
-    W[i * 3] = M[0] * v[0] + M[4] * v[1] + M[8] * v[2] + M[12];
-    W[i * 3 + 1] = M[1] * v[0] + M[5] * v[1] + M[9] * v[2] + M[13];
-    W[i * 3 + 2] = M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14];
+    // + 0 macht aus −0 eine 0: Gleichheit wird unten über die Bits geprüft
+    W[i * 3] = M[0] * v[0] + M[4] * v[1] + M[8] * v[2] + M[12] + 0;
+    W[i * 3 + 1] = M[1] * v[0] + M[5] * v[1] + M[9] * v[2] + M[13] + 0;
+    W[i * 3 + 2] = M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14] + 0;
   }
   return W;
 }
 
-/** Gitter über Punkten (Zellweite cell), Nachbarn in den 27 Zellen um einen Punkt */
+/** Nummer je Ecke: Ecken mit genau derselben Lage (etwa verschiedene Normalen oder UVs) teilen sie */
+function positionIds(W) {
+  const n = W.length / 3, bits = new Uint32Array(W.buffer, W.byteOffset, n * 6), lid = new Int32Array(n), first = new Map();
+  for (let i = 0; i < n; i++) {
+    let h = 0;
+    for (let c = 0; c < 6; c++) h = Math.imul(h ^ bits[i * 6 + c], 0x9e3779b1);
+    h >>>= 0;
+    const e = first.get(h);
+    if (e === undefined) { first.set(h, i); lid[i] = i; continue; }
+    const cand = typeof e === 'number' ? [e] : e;
+    const same = cand.find((j) => W[j * 3] === W[i * 3] && W[j * 3 + 1] === W[i * 3 + 1] && W[j * 3 + 2] === W[i * 3 + 2]);
+    if (same !== undefined) { lid[i] = same; continue; }
+    lid[i] = i;
+    if (typeof e === 'number') first.set(h, [e, i]); else e.push(i);
+  }
+  return lid;
+}
+
+/**
+ * Gitter über Punkten (Zellweite cell), Nachbarn in den 27 Zellen um einen
+ * Punkt. Zellen über einen Streuwert: Kollisionen bringen nur zusätzliche
+ * Kandidaten (fn kann einen Punkt mehrfach sehen), die Abstandsprüfung
+ * dahinter sortiert sie aus.
+ */
 function grid(cell) {
-  const m = new Map(), key = (x, y, z) => `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
+  const m = new Map(), h = (ix, iy, iz) => (Math.imul(ix, 73856093) ^ Math.imul(iy, 19349663) ^ Math.imul(iz, 83492791)) >>> 0;
   return {
-    add(x, y, z, i) { const k = key(x, y, z); const a = m.get(k); if (a) a.push(i); else m.set(k, [i]); },
+    add(x, y, z, i) { const k = h(Math.floor(x / cell), Math.floor(y / cell), Math.floor(z / cell)); const a = m.get(k); if (a) a.push(i); else m.set(k, [i]); },
+    addCell(ix, iy, iz, i) { const k = h(ix, iy, iz); const a = m.get(k); if (a) a.push(i); else m.set(k, [i]); },
     near(x, y, z, fn) {
       const cx = Math.floor(x / cell), cy = Math.floor(y / cell), cz = Math.floor(z / cell);
       for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
-        const a = m.get(`${cx + dx},${cy + dy},${cz + dz}`);
+        const a = m.get(h(cx + dx, cy + dy, cz + dz));
         if (a) for (const j of a) fn(j);
       }
     },
@@ -115,11 +140,12 @@ export function sealSeams(doc, { tol = 1e-4 } = {}) {
  * (eps < d <= tol), einsam (keine fremde Randecke in tol). Einsame Ecken,
  * die höchstens tol neben einer fremden Randkante liegen, aber weiter als
  * eps, sind klaffende T-Stöße. eps > 0 für die ungepackte Quelle, deren
- * Knotentransformationen Rundungsrauschen tragen.
+ * Knotentransformationen Rundungsrauschen tragen. tJunctions: false spart
+ * die T-Stöße (den größten Teil der Rechenzeit; tGap ist dann null).
  * Liefert { boundaryVerts, sealed, crack, crackMm, lone, tGap, tGapMm }
  * (…Mm: Anzahl je angefangenem Millimeter).
  */
-export function seamStats(doc, { tol = 0.005, eps = 0 } = {}) {
+export function seamStats(doc, { tol = 0.005, eps = 0, tJunctions = true } = {}) {
   const root = doc.getRoot();
   const bv = [], be = [];
   let pi = 0;
@@ -130,25 +156,19 @@ export function seamStats(doc, { tol = 0.005, eps = 0 } = {}) {
     for (const p of mesh.listPrimitives()) {
       const I = p.getIndices();
       if (p.getMode() !== 4 || !I) { pi++; continue; }
-      const W = worldPositions(p, M), n = W.length / 3, ia = I.getArray();
-      // gleiche Lage = gleiche Nummer (Ecken mit verschiedenen Normalen oder UVs)
-      const ids = new Map(), lid = new Int32Array(n);
-      for (let i = 0; i < n; i++) {
-        const k = `${W[i * 3]},${W[i * 3 + 1]},${W[i * 3 + 2]}`;
-        const id = ids.get(k);
-        if (id === undefined) { ids.set(k, i); lid[i] = i; } else lid[i] = id;
-      }
+      const W = worldPositions(p, M), ia = I.getArray(), lid = positionIds(W), n = W.length / 3;
+      // Kante als eine Zahl a·n + b (a < b), exakt bis n² < 2^53
       const uses = new Map();
       for (let t = 0; t + 2 < ia.length; t += 3) for (const [u, w] of [[ia[t], ia[t + 1]], [ia[t + 1], ia[t + 2]], [ia[t + 2], ia[t]]]) {
         const a = lid[u], b = lid[w];
         if (a === b) continue;
-        const k = a < b ? a * 4294967296 + b : b * 4294967296 + a;
+        const k = a < b ? a * n + b : b * n + a;
         uses.set(k, (uses.get(k) || 0) + 1);
       }
       const ends = new Set();
       for (const [k, c] of uses) {
         if (c !== 1) continue;
-        const a = Math.floor(k / 4294967296), b = k % 4294967296;
+        const a = Math.floor(k / n), b = k % n;
         ends.add(a); ends.add(b);
         be.push([W[a * 3], W[a * 3 + 1], W[a * 3 + 2], W[b * 3], W[b * 3 + 1], W[b * 3 + 2], pi]);
       }
@@ -172,18 +192,21 @@ export function seamStats(doc, { tol = 0.005, eps = 0 } = {}) {
     else if (best <= tol) { crack++; const mm = Math.ceil(best * 1000); crackMm[mm] = (crackMm[mm] || 0) + 1; }
     else lone.push(i);
   });
+  let tGap = 0;
+  const tGapMm = {};
+  if (!tJunctions) return { boundaryVerts: bv.length, sealed, crack, crackMm, lone: lone.length, tGap: null, tGapMm: null };
   // T-Stöße: Randkanten in ein grobes Gitter, in jede Zelle, die sie streifen
   const C = Math.max(tol * 10, 0.05), E = grid(C), step = C / 2;
   be.forEach((e, k) => {
-    const L = Math.hypot(e[3] - e[0], e[4] - e[1], e[5] - e[2]), s = Math.max(1, Math.ceil(L / step)), seen = new Set();
+    const L = Math.hypot(e[3] - e[0], e[4] - e[1], e[5] - e[2]), s = Math.max(1, Math.ceil(L / step));
+    let px = NaN, py = NaN, pz = NaN;
     for (let q = 0; q <= s; q++) {
-      const t = q / s, x = e[0] + (e[3] - e[0]) * t, y = e[1] + (e[4] - e[1]) * t, z = e[2] + (e[5] - e[2]) * t;
-      const key = `${Math.floor(x / C)},${Math.floor(y / C)},${Math.floor(z / C)}`;
-      if (!seen.has(key)) { seen.add(key); E.add(x, y, z, k); }
+      const t = q / s, ix = Math.floor((e[0] + (e[3] - e[0]) * t) / C), iy = Math.floor((e[1] + (e[4] - e[1]) * t) / C), iz = Math.floor((e[2] + (e[5] - e[2]) * t) / C);
+      if (ix === px && iy === py && iz === pz) continue;
+      px = ix; py = iy; pz = iz;
+      E.addCell(ix, iy, iz, k);
     }
   });
-  let tGap = 0;
-  const tGapMm = {};
   for (const i of lone) {
     const [x, y, z, p] = bv[i];
     let best = Infinity;
