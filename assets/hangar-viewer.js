@@ -1245,6 +1245,8 @@ export async function initHangar(container, opts = {}) {
   camera.position.copy(homePos());
   controls.update();
   let idleTimer = 0, touched = false;
+  // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
+  let onPoint = false;
   controls.addEventListener('start', () => { touched = true; fly = null; controls.autoRotate = false; clearTimeout(idleTimer); });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
@@ -1269,6 +1271,18 @@ export async function initHangar(container, opts = {}) {
     camera.position.setFromSpherical(s).add(controls.target);
     if (k >= 1) fly = null;
   };
+  // Das Schiff wechselt die Standhöhe (die Halle kam nach dem Schiff). Ein
+  // mit focus() gezielter Punkt sinkt mit, samt laufendem Flug. Startansicht
+  // und ein nur gedrehter Blick zielen auf eine feste Höhe über dem Boden,
+  // die für die echte Halle gilt; die bleiben stehen.
+  function settleShip(y) {
+    if (!current) return;
+    const dy = y - current.group.userData.baseY;
+    current.group.userData.baseY = y;
+    if (!onPoint || !dy) return;
+    if (fly) { fly.ta.y += dy; fly.tb.y += dy; }
+    else { controls.target.y += dy; camera.position.y += dy; }
+  }
   controls.addEventListener('end', () => {
     clearTimeout(idleTimer);
     if (!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
@@ -1953,7 +1967,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
       key.angle = 0.5; key.penumbra = 0.75;
       hallStage();
       renderer.toneMappingExposure = 0.9;
-      if (current) { current.group.userData.baseY = 0.02; }
+      settleShip(0.02);
       if (lastInfo) scaleWorld(lastInfo);
       const probe = await probeReady;
       if (probe) useHallProbe(probe); else captureHallEnv(true);
@@ -2141,6 +2155,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
     const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
+    onPoint = false;
     if (!touched) {
       const pos = HOME_DIR.clone().multiplyScalar(homeDist()).add(tgt);
       if (current) flyTo(tgt, pos); else { controls.target.copy(tgt); camera.position.copy(pos); }
@@ -2193,7 +2208,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
   }
 
   function resetView() {
-    touched = false;
+    touched = false; onPoint = false;
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
     const t = homeTgt ? homeTgt.clone() : controls.target.clone();
     flyTo(t, HOME_DIR.clone().multiplyScalar(homeDist()).add(t));
@@ -2226,7 +2241,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
     // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
     // baseY gilt zur Zeit des Aufrufs; eine beim Platzieren gemerkte Matrix
     // waere nach einem Hallenwechsel falsch. Wechselt die Halle erst danach,
-    // sinkt das Schiff unter die Kamera (.planning/notes/hangar-naht.md).
+    // nimmt settleShip() das Ziel mit (.planning/notes/hangar-naht.md).
     const g = current.group, y = g.position.y, ry = g.rotation.y;
     g.position.y = g.userData.baseY; g.rotation.y = 0; g.updateMatrixWorld(true);
     const tgt = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(current.model.matrixWorld);
@@ -2241,7 +2256,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
     const dir = out.lengthSq() > 1e-4 ? out.normalize().multiplyScalar(0.7).add(view.multiplyScalar(0.3)) : view;
     dir.y = Math.max(dir.normalize().y, 0.17);
     const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
-    touched = true; controls.autoRotate = false; clearTimeout(idleTimer);
+    touched = true; onPoint = true; controls.autoRotate = false; clearTimeout(idleTimer);
     flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
   }
 
