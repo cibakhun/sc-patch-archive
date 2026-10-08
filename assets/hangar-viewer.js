@@ -23,7 +23,7 @@
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights?, probes? }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose() }>
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
@@ -2210,7 +2210,9 @@ export async function initHangar(container, opts = {}) {
     lampsReady = loadHallLights(opts.hall);
     probeReady = loadHallProbe(opts.hall);
     composerReady = lampsReady.then(() => enableAO());
-    loadRealHall(opts.hall);
+    // Am Telefon die leichtere Stufe, wenn die Seite eine mitgibt (gleicher
+    // Modellraum, also dieselben Lampen und Sonden).
+    loadRealHall(SMALL && opts.hall.lite?.url ? { ...opts.hall, ...opts.hall.lite } : opts.hall);
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand
   // (die gebauten Figuren wären Selbstgebautes)
