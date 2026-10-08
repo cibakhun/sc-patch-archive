@@ -76,6 +76,16 @@ Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 einem Fehler `#hg-fallback` und lädt Schiffe mit
 `show(models[id][0], { maker: models[id][2], tex: models[id][1] })`.
 
+Ohne GPU startet sie den Viewer gar nicht und zeigt gleich `#hg-fallback`.
+Geprüft wird ein WebGL2-Kontext mit `failIfMajorPerformanceCaveat`, dazu der
+Renderername gegen SwiftShader, llvmpipe und andere Software-Renderer.
+Gemessen am 08.10. unter SwiftShader (1280×720): knapp 11 s je Bild, ein
+Klick 17,6 s, die ganze Seite stand; der Browser-Rauchtest der
+Staging-Pipeline lief daran 24 Minuten und riss. Eine Software-Stufe der
+Szene müsste diese Weiche in `assets/hangar-overview.js` (`hasGpu`) mitbewegen.
+Die Lage von `#hg-fallback` legt `HangarPage.astro` fest (zwischen Titel und
+Tafel, am Telefon am Bühnenfuß).
+
 `show`, `focus`, `project` und `onFrame` gehören der Oberfläche. Braucht ein
 szenenseitiges Skript den Viewer, etwa ein künftiger Hallenschalter, legen
 beide Seiten den Weg dann fest; heute hört niemand zu.

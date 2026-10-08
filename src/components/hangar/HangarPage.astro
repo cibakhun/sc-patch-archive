@@ -120,7 +120,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hgx-tray__hint{color:var(--hg-dim)}
 .hgx-tray__msg{flex-basis:100%;margin:0;color:color-mix(in srgb,var(--hot) 55%,var(--hg-on))}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
-.hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden],.hgx-tray[hidden],.hgx-tray__open[hidden]{display:none}
+.hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden],.hgx-tray[hidden],.hgx-tray__open[hidden],#hg-reset[hidden]{display:none}
 /* Vergleich: eine Spalte je Schiff, Zeilen aus dem Kennwert-Verzeichnis. Die
    Abweichung zur Basis traegt den Ton nach der Richtung von "besser". */
 .hgx-cmp{width:min(1000px,calc(100% - 2 * var(--hg-gut)));max-width:none;max-height:calc(100dvh - var(--hg-top) - 24px);margin:calc(var(--hg-top) + 8px) auto 16px;padding:0;overflow:hidden;border:1px solid var(--hg-hair);border-radius:6px;background:var(--bg-2);color:var(--hg-on)}
@@ -183,7 +183,9 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hgx-stats+.hgx-grp{margin-top:.9rem}
 .hgx-err{font-size:var(--fs-7);color:var(--hg-on)}
 .hgx-err p{margin:.3rem 0 .7rem}
-.hgx-modelerr{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(360px,80%);margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center;backdrop-filter:blur(6px)}
+/* Der Rueckfall der Szene (#hg-fallback, ohne 3D) steht wie die Modellmeldung
+   zwischen Titel und Tafel; ganzflaechig zentriert lief er unter beide. */
+.hgx-modelerr,.hg-stagewrap .hg-fallback{inset:auto;position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(360px,80%);margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center;backdrop-filter:blur(6px)}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
    transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab
@@ -255,6 +257,8 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 }
 @media (max-width:760px){
   .hg-title{max-width:calc(100% - 32px)}
+  /* Die Aktionen brechen hier in zwei Zeilen um: Meldungen an den Buehnenfuss. */
+  .hgx-modelerr,.hg-stagewrap .hg-fallback{top:auto;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px)}
   .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
   .hgx-foot{position:static;background:none}

@@ -984,23 +984,49 @@ export function boot(doc) {
       });
   }
 
-  loadEl.hidden = false;
-  import(stageCfg.viewer)
-    .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts }))
-    .then((v) => {
-      viewer = v;
-      v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
-      v.onFrame(placeMarks);
-      $('hg-reset').addEventListener('click', () => {
-        if (state.hp) setState({ hp: null });
-        else v.resetView();
-      });
-      viewerShow(state.ship);
-    })
-    .catch(() => {
-      loadEl.hidden = true;
-      $('hg-fallback').hidden = false;
-    });
+  // Ohne Buehne gibt es nichts zu drehen: Zuruecksetzen und Bedienhinweis gehen mit.
+  function noStage() {
+    loadEl.hidden = true;
+    $('hg-fallback').hidden = false;
+    $('hg-reset').hidden = true;
+    const hint = doc.querySelector('.hg-hint');
+    if (hint) hint.hidden = true;
+  }
+  // Ohne GPU zeichnet der Browser WebGL in Software: gemessen knapp 11 s je
+  // Bild (SwiftShader, 1280x720), und die ganze Seite steht, Panel und Dock
+  // mit. Dann gilt der Rueckfall, Werte, Dock und Flotte bleiben bedienbar.
+  // failIfMajorPerformanceCaveat lehnt den Software-Rueckfall ab; ein per
+  // Schalter erzwungener SwiftShader meldet sich nur ueber seinen Namen.
+  const SOFT_GL = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+  function hasGpu() {
+    try {
+      const gl = doc.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+      if (!gl) return false;
+      const info = gl.getExtension('WEBGL_debug_renderer_info');
+      const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      return !SOFT_GL.test(name);
+    } catch {
+      return false;
+    }
+  }
+  if (!hasGpu()) noStage();
+  else {
+    loadEl.hidden = false;
+    import(stageCfg.viewer)
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts }))
+      .then((v) => {
+        viewer = v;
+        v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
+        v.onFrame(placeMarks);
+        $('hg-reset').addEventListener('click', () => {
+          if (state.hp) setState({ hp: null });
+          else v.resetView();
+        });
+        viewerShow(state.ship);
+      })
+      .catch(noStage);
+  }
 
   writeUrl();
   syncControls();

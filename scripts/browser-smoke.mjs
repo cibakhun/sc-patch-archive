@@ -78,6 +78,10 @@ const KANDIDATEN = [
   '/usr/bin/chromium',
 ].filter(Boolean);
 const BROWSER = KANDIDATEN.find((p) => existsSync(p));
+// Zusatzschalter fuer den Browser, z. B. wie im CI-Container ohne GPU:
+// SMOKE_CHROME_ARGS="--disable-gpu" (Software-WebGL als Rueckfall) oder
+// "--use-angle=swiftshader --enable-unsafe-swiftshader" (erzwungen).
+const BROWSER_ARGS = (process.env.SMOKE_CHROME_ARGS || '').split(/\s+/).filter(Boolean);
 if (!BROWSER) {
   console.error('\nKein Browser gefunden. Gesucht wurde an diesen Stellen:\n');
   for (const k of KANDIDATEN) console.error(`  ${k}`);
@@ -621,9 +625,9 @@ console.log(`Artefakt: ${IST_VORSCHAU ? 'Vorschau-Build (site-weit noindex)' : '
 // 7) — und dieselbe Zeile macht sichtbar, wenn jemand lokal versehentlich
 // MIT Bypass misst.
 console.log(`Testpilot-Tor-Bypass: ${GATE_BYPASS ? 'MIT Bypass geprueft (SMOKE_GATE_BYPASS gesetzt)' : 'ohne Bypass'}`);
-console.log(`Browser: ${BROWSER}\n`);
+console.log(`Browser: ${BROWSER}${BROWSER_ARGS.length ? ` (${BROWSER_ARGS.join(' ')})` : ''}\n`);
 
-const browser = await chromium.launch({ executablePath: BROWSER, headless: !KOPF });
+const browser = await chromium.launch({ executablePath: BROWSER, headless: !KOPF, args: BROWSER_ARGS });
 const seiten = NUR ? SEITEN.filter((s) => s.id === NUR) : SEITEN;
 if (!seiten.length) {
   console.error(`Unbekannte Seite "${NUR}". Bekannt: ${SEITEN.map((s) => s.id).join(', ')}`);
