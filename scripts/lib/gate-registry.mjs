@@ -245,6 +245,17 @@ export const CHECKS = [
     checks: 'der Mauszeiger-Schein ist getilgt, der FX-Umschalter-Vertrag haelt, und beide Sprachfassungen tragen ihn gleich',
   },
   {
+    // Neuzugang, vor dem langen audit:site: dekodiert die ausgelieferte
+    // Halle (gut 10 MB, wenige Sekunden). Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — liest nur dist/.
+    id: 'verify:hangar-hall',
+    npm: 'verify:hangar-hall',
+    script: 'scripts/verify-hangar-hall.mjs',
+    rail: 'A',
+    checks:
+      'jede Ausnahme der echten Halle (HALL_DROP im ausgelieferten Viewer) gehoert zur Halle der Seite, trifft in jeder ausgelieferten Hallenstufe mindestens ihre Klinke an Dreiecken, nur ganze Teile, und nimmt hoechstens 2 % der Halle',
+  },
+  {
     id: 'audit:site',
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',

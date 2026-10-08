@@ -27,6 +27,7 @@
     "verify:shipcard": "node scripts/verify-shipcard.mjs",
     "verify:shipconsole": "node scripts/verify-shipconsole.mjs",
     "verify:hangar": "node scripts/verify-hangar.mjs",
+    "verify:hangar-hall": "node scripts/verify-hangar-hall.mjs",
     "verify:theme": "node scripts/verify-theme-gen.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",

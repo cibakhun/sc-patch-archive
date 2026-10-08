@@ -20,6 +20,18 @@ schnell gemacht: bitte als eigenen Commit pushen, bevor Teil B beginnt.
   (`url` wieder `revelyork-single.glb`, `floor` misst der Build jetzt selbst):
   genau so gewollt. `revelyork-single-lod1.glb` bitte **liegen lassen**, die
   Cloud gibt sie danach den Telefonen (kleiner, gleiche Lampen).
+- Seit 2026-10-08 mittags schneidet der Viewer beim Laden ein Spielteil aus
+  der Halle: das Ausgangs-Wandstück, das frei vor der Stirnwand stand
+  (`HALL_DROP` in `assets/hangar-viewer.js`, ein Quader im Modellraum, nur
+  ganze Teile). `npm run gate` misst das mit `verify:hangar-hall` an jeder
+  Hallenstufe, die die Seite lädt, nach (Klinke 5000 Dreiecke; die alte volle
+  Stufe trifft 6087, die dichte Kopie 6238). Reißt es nach dem Neubau aus
+  Teil A, bitte die Zeile wörtlich melden, `HALL_DROP` nicht ändern und
+  Teil A nicht pushen; den Quader misst die Cloud nach.
+- Ebenfalls seit dann leuchten alle Lampen aus `revelyork-single.lights.json`:
+  6 echt (3 am Telefon), die übrigen gut 300 im Raum als Lichtgitter, das der
+  Viewer beim Laden aus der Liste rechnet. Eine neue Liste wirkt von selbst.
+  Teil B ändert daran nichts; `PROBE_GAIN` stimmt die Cloud mit dem Gitter ab.
 
 ## Teil A: Halle neu bauen (ohne Dezimierung, Möbel als eigene Knoten)
 
