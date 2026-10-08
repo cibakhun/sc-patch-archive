@@ -13,7 +13,7 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `project(points, out?)` | `points` = `[[x, y, z], …]` im Modellraum der geladenen `.glb` (glTF-Achsen, Meter). Liefert je Punkt `{ x, y, d }` in CSS-Pixeln relativ zum Container, `d` = Abstand zur Kamera in Metern, oder `null`, solange kein Schiff sichtbar ist oder der Punkt hinter der Kamera liegt. |
 | `focus(point)` | Kamerafahrt auf den Punkt (gleicher Raum), Abstand ~0,6 × Spannweite. `focus(null)` = zurück in die Startansicht dieses Schiffs. |
 | `onFrame(fn)` | `fn()` läuft nach jedem gezeichneten Bild, nur solange die Bühne sichtbar ist. Ein Aufruf ersetzt den vorigen. |
-| `onProgress(fn)` | Meldet nur den Fortschritt des jüngsten `show()`. Ein überholtes `show()` lädt still zu Ende, damit der Balken nur das gewählte Schiff zeigt. |
+| `onProgress(fn)` | Meldet Schiff und Halle zusammen bis 90 %, dann 100, wenn das jüngste `show()` steht. Ein überholtes `show()` lädt still zu Ende (`fetchGltf(…, my)`), damit der Balken nur das gewählte Schiff zeigt. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
 `(x, z, -y)` (CryEngine → glTF), für `/holo/*.glb` UND `/hangar/ships/*.glb`.
@@ -111,7 +111,9 @@ Bescheid geben.
 nach dem Schiff fertig wird. Ein Schiff, das in der gebauten Halle auf
 `0.3 * S + 0.25` stand, sinkt dann unter eine bereits gezielte Kamera.
 Gemessen mit verzögertem Hallenabruf: Gladius-Bugkanone 49 px, C2-Bauchturm
-27 px neben der Bildmitte; kommt die Halle zuerst, 0 px. Vorschlag: in
+27 px neben der Bildmitte; kommt die Halle zuerst, 0 px. Seit das erste
+`show()` bis zu 6 s auf die Halle wartet (`hallSettled`), trifft es nur noch
+Hallen, die länger brauchen. Vorschlag: in
 `loadRealHall` beim Ändern von `baseY` Kameraziel, Kamera und einen
 laufenden Flug um dieselbe Differenz mitverschieben, wenn die Kamera
 gezielt steht (`touched`). `focus()` allein kann das nicht, es läuft vor
