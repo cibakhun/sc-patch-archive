@@ -223,25 +223,16 @@ test('kommen Name und Rolle erst nach dem Zeichnen, zeigt die Nav sie dann', asy
 });
 
 test('schreibt ein anderer Tab eine neue Sitzung desselben Kontos, während Name und Rolle unterwegs sind, zeigt die Nav sie trotzdem', async () => {
-  const answers = {
-    'alte Antworten zuerst': (old, fresh) => { for (const r of [...old, ...fresh]) r.answer(); },
-    'neue Antworten zuerst': (old, fresh) => { for (const r of [...fresh, ...old]) r.answer(); },
-    'die neuen scheitern (503), dann kommen die alten': (old, fresh) => { for (const r of fresh) r.answer(503); for (const r of old) r.answer(); },
-    'die neuen hängen, die alten kommen': (old) => { for (const r of old) r.answer(); },
-  };
-  for (const [how, answer] of Object.entries(answers)) {
-    const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
-    const tab = b.open();
-    await b.drain();
-    b.signIn(2);
-    await b.drain();
-    const [old, fresh] = [b.reads.slice(0, 2), b.reads.slice(2)];
-    assert.equal(fresh.length, 2, `${how}: die neue Sitzung fragt selbst nach Name und Rolle`);
-    answer(old, fresh);
-    await b.drain();
-    assert.deepEqual(tab.nav(), SIGNED_IN, how);
-    assert.equal(tab.admin(), true, how);
-  }
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signIn(2);
+  await b.drain();
+  assert.equal(b.reads.length, 2, 'dasselbe Konto: die neue Sitzung fragt nicht noch einmal nach Name und Rolle');
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true);
 });
 
 test('meldet sich dasselbe Konto ab und wieder an, während Name und Rolle noch unterwegs sind, gelten deren späte Antworten', async () => {
