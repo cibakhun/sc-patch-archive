@@ -16,7 +16,7 @@ import { pickThumb } from '../../lib/shipRenders';
 import { vType, vRoleCig } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -55,8 +55,14 @@ const probeDir = `${hallDir}/${hallKey}.probes`;
 const probes = probesFile && existsSync(probesFile)
   ? `/hangar/hall/${hallKey}.probes.json?v=${contentV([probesFile, ...(existsSync(probeDir) ? readdirSync(probeDir).sort().map((f) => `${probeDir}/${f}`) : [])])}`
   : null;
+// Leichtere Stufe für Telefone (<halle>-lod1.glb, ohne Einrichtung), sobald
+// das Manifest auf die volle Stufe zeigt; Lampen und Sonden teilt sie.
+const liteFile = hallKey ? `${hallDir}/${hallKey}-lod1.glb` : '';
+const lite = liteFile && existsSync(liteFile) && hallAsset?.url !== `/hangar/hall/${hallKey}-lod1.glb`
+  ? { url: `/hangar/hall/${hallKey}-lod1.glb?v=${contentV([liteFile])}`, bytes: statSync(liteFile).size }
+  : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
-const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes } : null;
+const hall = hallAsset?.room ? { url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite } : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 const vehicles = (await getCollection('vehicles'))
