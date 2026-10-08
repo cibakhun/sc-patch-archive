@@ -301,27 +301,37 @@
     setInterval(hbWrite, HB_MS);                               // Ping alle 30s, solange Tab offen
   }
 
+  // Ob die Nav gerade eine Sitzung zeigt.
+  var showing = false;
+
+  function show(sess) {
+    showing = !!sess;
+    paintNav(sess);
+    if (sess) {
+      startHeartbeat();
+      fetchUsername(sess).then(function (uname) {
+        if (uname) paintNav(sess, uname);
+      });
+      fetchUserRole(sess).then(function (role) {
+        applyRole(role);
+      });
+    } else {
+      applyRole(null);
+    }
+  }
+
   function boot() {
     ensureSession().then(function (sess) {
-      paintNav(sess);
-
-      if (sess) {
-        startHeartbeat();
-        // Parallel: Username + Rolle laden
-        var unameP = fetchUsername(sess);
-        var roleP = fetchUserRole(sess);
-
-        unameP.then(function (uname) {
-          if (uname) paintNav(sess, uname);
-        });
-
-        roleP.then(function (role) {
-          applyRole(role);
-        });
-      } else {
-        // Nicht eingeloggt — prüfen ob geschuetzte Seite
-        applyRole(null);
-      }
+      show(sess);
+      // Meldet ein Refresh DIESES Tabs danach an oder ab (etwa einer, der erst
+      // nach der Frist landet), kommt nur vb-account-session: storage meldet
+      // der Browser nur anderen Tabs. Gezeichnet wird nur der Wechsel zwischen
+      // an- und abgemeldet. Ein neues Token derselben Sitzung aendert nichts,
+      // und Wechsel aus anderen Tabs zeigt schon der storage-Hoerer.
+      addEventListener('vb-account-session', function () {
+        var now = readRaw();
+        if (!!now !== showing) show(now);
+      });
     });
 
     // Login/Logout in einem anderen Tab -> Nav nachziehen
@@ -329,21 +339,9 @@
       if (e.key !== STORE) return;
       // Role-Cache invalidieren bei Session-Wechsel
       try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
-      var sess = readRaw();
-      paintNav(sess);
+      show(readRaw());
       // Seiten-Apps (crafting-app.js …) ziehen ihren Konto-Zustand nach.
       announce();
-      if (sess) {
-        startHeartbeat();
-        fetchUsername(sess).then(function (uname) {
-          if (uname) paintNav(sess, uname);
-        });
-        fetchUserRole(sess).then(function (role) {
-          applyRole(role);
-        });
-      } else {
-        applyRole(null);
-      }
     });
   }
 
