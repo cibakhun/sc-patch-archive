@@ -33,7 +33,11 @@ const SHIPS = [
 const KEEP_INTERIOR = new Set(['aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk2', 'aegs-avenger-titan', 'orig-300i']);
 // Die Halle: Revel & York, Deluxe-Hangar (72 x 136 m Boden). Weitere Hallen
 // über denselben Weg (socpak-Name als Teilstring).
-const HALLS = [{ key: 'revelyork-single', socpak: 'hangar_revelyork_single.socpak' }];
+// lod 0 = volle Stufe (Rechner), lod 1 = dichte, leichtere Kopie (Telefone)
+const HALLS = [
+  { key: 'revelyork-single', socpak: 'hangar_revelyork_single.socpak', lod: 0 },
+  { key: 'revelyork-single-lod1', socpak: 'hangar_revelyork_single.socpak', lod: 1 },
+];
 // Hangar-Crew: die RSI-Deckcrew-Montur, Teil für Teil (.skin). Der Weg über
 // die NPC-Archetypen scheitert: deren Skelett (.chr) exportiert StarBreaker
 // nicht, und ihre Kleidungs-Loadouts liegen nicht in der Data.p4k. Der Helm
@@ -88,8 +92,8 @@ if (want('hall')) {
   console.log('Halle');
   for (const h of HALLS) {
     const file = `${SRC}hall/${h.key}.glb`;
-    // Halle in voller Stufe (LOD 0): Fasen, Schrauben und Kantenprofile fehlen
-    // in LOD 1. Schiffe bleiben bei COMMON.
+    // Stufe je Halle (h.lod): die volle Stufe hat Fasen, Schrauben und
+    // Kantenprofile, die LOD 1 fehlen. Schiffe bleiben bei COMMON.
     // Lichter: das GLB trägt sie als KHR_lights_punctual, kennt aber nur
     // Punkt und Spot. Den Spieltyp (Planar = Flächenlicht, Projector, Omni,
     // Ambient) und die Spiel-Intensität nennt nur das Protokoll des Exports
@@ -97,7 +101,7 @@ if (want('hall')) {
     // Zeilen gehen nach <halle>.lights-src.txt, der Build verbindet sie über
     // den Namen mit den Lichtknoten.
     try {
-      const log = exportTo(file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? '0' : a)), { log: true });
+      const log = exportTo(file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(h.lod) : a)), { log: true });
       if (typeof log === 'string') {
         const lines = log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
         writeFileSync(`${SRC}hall/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
@@ -257,6 +261,8 @@ function parseSubMaterials(xml) {
       shininess: attr('Shininess'), opacity: attr('Opacity'),
       d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'), td: tile('TexSlot1'), tn: tile('TexSlot2'),
       blend,
+      // %VERTCOLORS: das Spiel dunkelt die Fläche mit COLOR_0 ab (Build behält es)
+      vc: /VERTCOLORS/i.test(attr('StringGenMask') || ''),
     });
   }
   return out;
