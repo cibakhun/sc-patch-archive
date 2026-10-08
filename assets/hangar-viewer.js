@@ -1674,8 +1674,18 @@ export async function initHangar(container, opts = {}) {
   // die Aufnahme für jedes Hallenmaterial ein eigenes Shaderprogramm, das
   // mitten im Laden übersetzt wird; die Hallenmaterialien spiegeln dabei
   // kaum (0,05), es schaukelt sich nichts auf.
-  const HALL_ENV = 0.8;    // envMapIntensity der Hallenmaterialien mit Sonde
+  // Die Kugel trägt damit nur das direkte Licht der sechs Lampen; dass die
+  // weiße Halle es mehrfach zurückwirft und im Spiel 350 weitere Lampen
+  // brennen, gleicht die volle Stärke aus (am Render: 0,8 ließ Wände und
+  // Decke grau, darüber verflacht das Bild wieder).
+  const HALL_ENV = 1;      // envMapIntensity der Hallenmaterialien mit Sonde
   let hallEnv = null;
+  // Die Umgebung hängt an jedem Hallenmaterial selbst, nicht nur an der
+  // Szene: three nimmt für Materialien ohne eigene envMap die Stärke aus
+  // scene.environmentIntensity und übergeht envMapIntensity (r185,
+  // WebGLRenderer.setProgram). Dieselbe Kugel wie scene.environment, also
+  // dasselbe Shaderprogramm.
+  const setHallEnv = (tex) => { for (const m of realHall.mats) if (m.isMeshStandardMaterial) m.envMap = tex; };
   function captureHallEnv(force = false) {
     if (!realHall || !HALL_PROBE) return;
     if (hallEnv && !force) return;
@@ -1687,6 +1697,7 @@ export async function initHangar(container, opts = {}) {
     const gain = new Map();
     for (const m of realHall.mats) { gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05); }
     scene.environment = envRT.texture;
+    setHallEnv(envRT.texture);
     const pm = new THREE.PMREMGenerator(renderer);
     const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     pm.dispose();
@@ -1696,6 +1707,7 @@ export async function initHangar(container, opts = {}) {
     hallEnv?.dispose();
     hallEnv = rt;
     scene.environment = rt.texture;
+    setHallEnv(rt.texture);
     if (!realHall.envOn) {
       realHall.envOn = true;
       for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
@@ -1747,6 +1759,7 @@ export async function initHangar(container, opts = {}) {
     hallEnv?.dispose();
     hallEnv = rt;
     scene.environment = rt.texture;
+    setHallEnv(rt.texture);
     realHall.envOn = true;
     realHall.probe = name;
     for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
@@ -1829,7 +1842,9 @@ export async function initHangar(container, opts = {}) {
           // blaue Flächen, glatter Kunststoff als Gleißen.
           // Die Ersatzhalle als Umgebung macht den Raum gleichmäßig hell:
           // in der echten Halle fast ganz zurücknehmen, Licht kommt von den Lampen.
+          // (Greift nur mit eigener envMap, siehe setHallEnv.)
           m.envMapIntensity = 0.05;
+          if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
           // Die Lackschichten der Halle liefern reinweiße Grundfarben, die
           // im Spiel erst Tönung und Schmutz abdunkeln: ohne das ist jede
           // Wand ein Leuchtkasten.
