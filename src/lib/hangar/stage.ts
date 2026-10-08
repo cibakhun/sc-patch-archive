@@ -20,13 +20,3 @@ export interface StageConfig {
   /** Je Id aus HANGAR_IDS: [Geometrie-glb, Werkslack-glb oder null, Herstellerkuerzel fuer show()]. */
   readonly models: Readonly<Record<ShipId, readonly [glb: string, tex: string | null, maker: string]>>;
 }
-
-/** Ids, die der Controller liest; die Szene rendert alle in section.hg-stage. */
-export const STAGE_IDS = { canvas: 'hg-canvas', load: 'hg-load', fallback: 'hg-fallback', config: 'hg-stage' } as const;
-
-/**
- * Ereignis auf section.hg-stage, sobald initHangar aufgeloest hat, detail = die
- * Viewer-API. Szenenseitige Skripte (etwa ein kuenftiger Hallenschalter) hoeren
- * darauf, statt den Viewer ein zweites Mal zu importieren.
- */
-export const VIEWER_EVENT = 'hangar:viewer';

@@ -13,6 +13,7 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `project(points, out?)` | `points` = `[[x, y, z], …]` im Modellraum der geladenen `.glb` (glTF-Achsen, Meter). Liefert je Punkt `{ x, y, d }` in CSS-Pixeln relativ zum Container, `d` = Abstand zur Kamera in Metern, oder `null`, solange kein Schiff sichtbar ist oder der Punkt hinter der Kamera liegt. |
 | `focus(point)` | Kamerafahrt auf den Punkt (gleicher Raum), Abstand ~0,6 × Spannweite. `focus(null)` = zurück in die Startansicht dieses Schiffs. |
 | `onFrame(fn)` | `fn()` läuft nach jedem gezeichneten Bild, nur solange die Bühne sichtbar ist. Ein Aufruf ersetzt den vorigen. |
+| `onProgress(fn)` | Meldet nur den Fortschritt des jüngsten `show()`. Ein überholtes `show()` lädt still zu Ende, damit der Balken nur das gewählte Schiff zeigt. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
 `(x, z, -y)` (CryEngine → glTF), für `/holo/*.glb` UND `/hangar/ships/*.glb`.
@@ -75,11 +76,9 @@ Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 einem Fehler `#hg-fallback` und lädt Schiffe mit
 `show(models[id][0], { maker: models[id][2], tex: models[id][1] })`.
 
-Sobald `initHangar` aufgelöst hat, hängt die Oberfläche die Viewer-API als
-`hangarViewer` an `section.hg-stage` und sendet dort das Ereignis
-`hangar:viewer` (`detail` = die API). Ein szenenseitiges Skript, etwa ein
-künftiger Hallenschalter, hört darauf, statt den Viewer ein zweites Mal zu
-importieren. `show`, `focus`, `project` und `onFrame` gehören der Oberfläche.
+`show`, `focus`, `project` und `onFrame` gehören der Oberfläche. Braucht ein
+szenenseitiges Skript den Viewer, etwa ein künftiger Hallenschalter, legen
+beide Seiten den Weg dann fest; heute hört niemand zu.
 
 ### Marker und project()
 

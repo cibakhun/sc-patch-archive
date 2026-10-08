@@ -1439,9 +1439,11 @@ export async function initHangar(container, opts = {}) {
     u.uPattern.value = p.pattern;
   }
 
-  const fetchGltf = (url) => new Promise((resolve, reject) => {
+  // Ein ueberholtes show() laedt zu Ende, meldet aber keinen Fortschritt mehr:
+  // der Balken gehoert dem Schiff, das gerade gewaehlt ist.
+  const fetchGltf = (url, my) => new Promise((resolve, reject) => {
     loader.load(url, resolve, (e) => {
-      if (!progressFn) return;
+      if (!progressFn || my !== token) return;
       progressFn(e.total ? Math.round((e.loaded / e.total) * 100) : Math.min(99, Math.round(e.loaded / 4000)));
     }, reject);
   });
@@ -1452,10 +1454,10 @@ export async function initHangar(container, opts = {}) {
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
     let gltf = null, textured = false;
     if (o.tex) {
-      try { gltf = await fetchGltf(o.tex); textured = true; } catch { gltf = null; }
+      try { gltf = await fetchGltf(o.tex, my); textured = true; } catch { gltf = null; }
       if (my !== token) { if (gltf) disposeObject(gltf.scene); return; }
     }
-    if (!gltf) gltf = await fetchGltf(url);
+    if (!gltf) gltf = await fetchGltf(url, my);
     if (my !== token) { disposeObject(gltf.scene); return; }   // überholt
 
     const model = gltf.scene;

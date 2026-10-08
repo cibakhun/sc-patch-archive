@@ -284,24 +284,45 @@ export function boot(doc) {
   let pushedHere = false;
   const urlOf = (s) => `${location.pathname}${serializeState(s, ctx)}`;
 
-  function writeUrl() {
+  // Die Adresse folgt dem Zustand, so gut es geht: WebKit wirft nach 100
+  // replaceState-Aufrufen in 10 s. Die Seite steht dann trotzdem richtig, nur
+  // die Adresse hinkt nach. Tippen in der Suche schreibt sie erst nach einer Pause.
+  const URL_PAUSE_MS = 400;
+  let urlTimer = 0;
+  function writeUrl(push = false) {
+    clearTimeout(urlTimer);
     const url = urlOf(state);
-    if (url !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(history.state, '', url);
+    try {
+      if (push) {
+        history.pushState(CMP_ENTRY, '', url);
+        pushedHere = true;
+      } else if (url !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(history.state, '', url);
+    } catch { /* siehe oben */ }
   }
 
   /**
-   * Der einzige Weg, den Zustand zu aendern. push legt einen Verlaufseintrag
-   * an; das tut nur das Oeffnen des Vergleichs, damit Zurueck ihn schliesst.
+   * Zustand aendern. push legt einen Verlaufseintrag an; das tut nur das
+   * Oeffnen des Vergleichs, damit Zurueck ihn schliesst.
    * @param {Partial<HangarState>} patch @param {boolean} [push]
    */
   function setState(patch, push = false) {
+    commit(normalize({ ...state, ...patch }, ctx), push ? 'push' : 'replace');
+  }
+  /**
+   * Der einzige Schreiber des Zustands: erst zeichnen, dann die Adresse. Ein
+   * Wurf beim Schreiben der Adresse laesst so keinen Zustand ohne Bild zurueck.
+   * 'keep' laesst die Adresse, wie sie ist (popstate hat sie schon gesetzt).
+   * @param {HangarState} next @param {'push'|'replace'|'keep'} how
+   */
+  function commit(next, how) {
     const prev = state;
-    state = normalize({ ...state, ...patch }, ctx);
-    if (push) {
-      history.pushState(CMP_ENTRY, '', urlOf(state));
-      pushedHere = true;
-    } else writeUrl();
+    state = next;
     render(prev);
+    if (how === 'keep') return;
+    if (how === 'replace' && prev.q !== state.q) {
+      clearTimeout(urlTimer);
+      urlTimer = setTimeout(writeUrl, URL_PAUSE_MS);
+    } else writeUrl(how === 'push');
   }
 
   function render(prev) {
@@ -348,12 +369,12 @@ export function boot(doc) {
     }
     const p = fetch(`${main.dataset.bayBase}${encodeURIComponent(id)}.html`, { credentials: 'same-origin' })
       .then((r) => {
-        if (!r.ok) throw new Error(`Bucht ${id}: HTTP ${r.status}`);
+        // Auf staging leitet das Testpilot-Tor auf seine eigene Seite um.
+        if (!r.ok || r.redirected) throw new Error(`Bucht ${id}: HTTP ${r.status}${r.redirected ? ' nach Umleitung' : ''}`);
         return r.text();
       })
       .then((html) => {
         const d = new DOMParser().parseFromString(html, 'text/html');
-        // Auf staging liefert das Testpilot-Tor sonst seine eigene Seite aus.
         if (d.querySelector('main[data-bay-id]')?.dataset.bayId !== id) throw new Error(`Bucht ${id}: fremdes Dokument`);
         return regionsOf(d, id);
       });
@@ -378,15 +399,21 @@ export function boot(doc) {
     });
   }
 
-  let selTok = 0;
-  async function showShip(id) {
-    const my = ++selTok;
+  function showShip(id) {
     markCards(id);
-    bayErr.hidden = true;
     modelErr.hidden = true;
     viewerShow(id);
-    // Erst nach 150 ms dimmen: ein Treffer im Cache soll nicht flackern.
-    const busy = setTimeout(() => setBusy(true), 150);
+    showBay(id);
+  }
+
+  let selTok = 0;
+  async function showBay(id) {
+    const my = ++selTok;
+    bayErr.hidden = true;
+    // Erst nach 150 ms dimmen: ein Treffer im Cache soll nicht flackern. Der
+    // Zeitgeber eines ueberholten Abrufs dimmt nichts mehr; sein finally
+    // nimmt das Dimmen nicht zurueck, das gehoert dem neuen.
+    const busy = setTimeout(() => { if (my === selTok) setBusy(true); }, 150);
     try {
       const regions = await loadBay(id);
       if (my !== selTok) return;
@@ -425,7 +452,8 @@ export function boot(doc) {
     regionNow('panel').hidden = true;
     bayErr.hidden = false;
   }
-  $('hgx-bayretry').addEventListener('click', () => showShip(state.ship));
+  // Nur die Bucht: das Modell steht, seine Einfahrt soll nicht noch einmal laufen.
+  $('hgx-bayretry').addEventListener('click', () => showBay(state.ship));
 
   // -------------------------------------------------------------- Tabs (WAI-ARIA)
   function applyTab() {
@@ -457,22 +485,24 @@ export function boot(doc) {
   // hp ist der Port, den die geoeffnete Zeile meint. Traegt ein Port mehrere
   // Items, oeffnen alle Zeilen, die ihn fuehren: der Hardpoint traegt sie alle.
   function applyHp() {
+    // Ob die Bucht den Hardpoint kennt, sagt erst die Bucht dieses Schiffs; bis
+    // sie da ist, steht noch die des vorigen.
+    if (regionNow('panel').dataset.id !== state.ship) return;
     const panel = $(`hgx-tp-${state.tab}`);
-    let found = false;
-    for (const li of host.querySelectorAll('.hgx-slot')) {
-      const on = !!state.hp && li.closest('[role="tabpanel"]') === panel && li.dataset.ports.split(' ').includes(state.hp);
-      found ||= on;
-      li.querySelector('.hgx-slot__btn').setAttribute('aria-expanded', String(on));
-      li.querySelector('.hgx-d').hidden = !on;
+    const rows = [...host.querySelectorAll('.hgx-slot')];
+    const open = new Set(state.hp ? rows.filter((li) => li.closest('[role="tabpanel"]') === panel && li.dataset.ports.split(' ').includes(state.hp)) : []);
+    if (state.hp && !open.size) {
+      setState({ hp: null });
+      return;
     }
-    if (state.hp && !found) {
-      state = { ...state, hp: null };
-      writeUrl();
+    for (const li of rows) {
+      li.querySelector('.hgx-slot__btn').setAttribute('aria-expanded', String(open.has(li)));
+      li.querySelector('.hgx-d').hidden = !open.has(li);
     }
     for (const el of regionNow('marks').querySelectorAll('.hgx-mk')) {
       el.classList.toggle('is-sel', !!state.hp && el.dataset.port === state.hp && el.dataset.tab === state.tab);
     }
-    if (found) revealOpenRow();
+    if (open.size) revealOpenRow();
     applyFocus();
   }
   // Ein Link oder ein Markerklick oeffnet eine Zeile, die womoeglich weit
@@ -653,23 +683,26 @@ export function boot(doc) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     const t = e.target;
     if (t !== doc.body && t !== doc.documentElement && !t.closest?.('.hg-card, [data-hg-stage]')) return;
+    // Im Feld fuer den Link (ohne Zwischenablage) bewegen die Pfeile den Cursor.
+    if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
     e.preventDefault();
-    step(e.key === 'ArrowLeft' ? -1 : 1);
+    // Eine gehaltene Taste wechselt einmal, nicht dreissigmal je Sekunde mit je
+    // einem Abruf und einer neuen Adresse.
+    if (!e.repeat) step(e.key === 'ArrowLeft' ? -1 : 1);
   });
 
   window.addEventListener('popstate', () => {
-    const prev = state;
-    state = parseState(location.search, location.hash, ctx);
+    closing = false;
+    const prevShip = state.ship;
+    let next = parseState(location.search, location.hash, ctx);
     // Ein Schliessen aus dem Vergleich ging einen Eintrag zurueck; was im
     // Dialog geaendert wurde (Basis, entfernte Schiffe, gewaehltes Schiff), kommt mit.
-    if (carry) {
-      state = normalize({ ...state, ...carry, view: 'stage' }, ctx);
-      carry = null;
-      writeUrl();
-    }
+    const carried = carry;
+    carry = null;
+    if (carried) next = normalize({ ...next, ...carried, view: 'stage' }, ctx);
+    commit(next, carried ? 'replace' : 'keep');
     syncControls();
-    if (prev.ship !== state.ship) scrollToCard(state.ship);
-    render(prev);
+    if (prevShip !== state.ship) scrollToCard(state.ship);
   });
 
   // -------------------------------------------------------------- Flotte
@@ -724,14 +757,20 @@ export function boot(doc) {
     }
   }
 
-  // Ein einzelnes Schiff dazu oder weg sagt die Live-Region an; groessere
-  // Spruenge (erster Stand, Abgleich, Uebernahme) erklaert die Zeile selbst.
+  // Die Live-Region sagt nur an, was der Besucher hier geklickt hat. Ein
+  // Abgleich mit einem anderen Tab oder Geraet aendert die Flotte still; die
+  // Zeile am Buehnenfuss zeigt ihn. Dieser Hoerer am Knopf laeuft vor dem von
+  // fleet.js am Dokument, und fleet.js meldet den Klick noch im selben Ereignis.
+  let clicked = null;
+  fleetBtn.addEventListener('click', () => {
+    clicked = fleetBtn.dataset.fleetShip;
+    setTimeout(() => { clicked = null; }, 0);
+  });
   function announceFleet(before, after) {
-    const added = [...after].filter((id) => !before.has(id) && dock.has(id));
-    const gone = [...before].filter((id) => !after.has(id) && dock.has(id));
-    if (added.length + gone.length !== 1) return;
+    if (!clicked || before.has(clicked) === after.has(clicked)) return;
     const m = msg('fleet-note');
-    say(fillMessage({ other: added.length ? m.added : m.removed }, { name: dock.get(added[0] ?? gone[0]).name }, loc));
+    say(fillMessage({ other: after.has(clicked) ? m.added : m.removed }, { name: dock.get(clicked).name }, loc));
+    clicked = null;
   }
 
   function paintFleetFilter() {
@@ -751,7 +790,6 @@ export function boot(doc) {
   const freshLogin = () => { if (window.VBAccount) login.href = window.VBAccount.loginHref(); };
   for (const ev of ['pointerdown', 'focus', 'click']) login.addEventListener(ev, freshLogin);
 
-  let fleetKnown = false;
   function onFleet(snap) {
     const before = fleetIds;
     fleet = snap;
@@ -759,8 +797,7 @@ export function boot(doc) {
     paintFleet();
     syncFleetBtn();
     if (state.fleetOnly) applyDock();
-    if (fleetKnown) announceFleet(before, fleetIds);
-    fleetKnown = true;
+    announceFleet(before, fleetIds);
   }
 
   // -------------------------------------------------------------- Vergleich
@@ -849,8 +886,14 @@ export function boot(doc) {
     }
   }
 
+  // back() kommt erst mit popstate an. Ein zweites Schliessen davor (Escape
+  // und Knopf, ein Doppelklick) ginge einen Eintrag weiter zurueck und
+  // womoeglich aus der Seite hinaus.
+  let closing = false;
   function closeCompare(patch = {}) {
+    if (closing) return;
     if (history.state === CMP_ENTRY && pushedHere) {
+      closing = true;
       carry = { cmp: state.cmp, ...patch };
       history.back();
     } else setState({ ...patch, view: 'stage' });
@@ -931,7 +974,11 @@ export function boot(doc) {
       viewer.focus(null);
     }
     const [glb, tex, maker] = stageCfg.models[id];
-    const t = setTimeout(() => { loadEl.hidden = false; }, 180);
+    // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
+    // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
+    // blendet nur aus, was ihm gehoert.
+    bar.style.setProperty('--p', '0%');
+    const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 180);
     viewer.show(glb, { maker, tex })
       .then(() => {
         if (my !== showTok) return;
@@ -957,10 +1004,6 @@ export function boot(doc) {
         if (state.hp) setState({ hp: null });
         else v.resetView();
       });
-      // Szenenseitige Skripte hoeren hierauf, statt den Viewer ein zweites Mal zu laden.
-      const sec = doc.querySelector('[data-hg-stage]');
-      sec.hangarViewer = v;
-      sec.dispatchEvent(new CustomEvent('hangar:viewer', { detail: v }));
       viewerShow(state.ship);
     })
     .catch(() => {
