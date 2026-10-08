@@ -87,7 +87,7 @@ const VEHICLES = new Map(
 );
 const MESHES = (holoMeshes as { meshes: Record<string, unknown> }).meshes;
 
-/** Fahrzeuge mit Holo-Modell (227), in Katalogreihenfolge. Dock, Buchtrouten und Modellliste lesen genau diese Liste. */
+/** Fahrzeuge mit Holo-Modell, in Katalogreihenfolge. Dock, Buchtrouten und Modellliste lesen genau diese Liste. */
 export const HANGAR_IDS: readonly ShipId[] = [...VEHICLES.keys()].filter((id) => MESHES[id]).map((id) => id as ShipId);
 
 const IDS = new Set<string>(HANGAR_IDS);
