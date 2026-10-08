@@ -229,7 +229,19 @@
   function lsKey(uid) { return uid ? LS_MIRROR + uid : LS_GUEST; }
   function loadState(uid) {
     var s = load(lsKey(uid), null);
-    return { owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [] };
+    return {
+      owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [],
+      rev: (s && s.rev) || {},
+    };
+  }
+  // `rev` steht nur in der Ablage, solange etwas offen ist, und nur für offene
+  // Slugs: ohne offene Klicks sieht sie aus wie vor seiner Einführung.
+  function saveState(uid, m) {
+    var out = { owned: m.owned, plan: m.plan, pending: m.pending };
+    var rev = {};
+    Object.keys(m.rev).forEach(function (s) { if (m.pending.indexOf(s) >= 0) rev[s] = m.rev[s]; });
+    if (Object.keys(rev).length) out.rev = rev;
+    save(lsKey(uid), out);
   }
 
   // Einmalige Übernahme der alten, INDEX-basierten Ablage (craft.owned.v1 /
@@ -264,15 +276,28 @@
   // fände sonst beim nächsten Laden den Server-Stand vor und die Änderung wäre
   // still weg. Jeder Tab schickt alles, was dort offen ist, auch das eines
   // anderen, der inzwischen geschlossen ist.
+  //
+  // `rev` = je offenem Slug eine Kennung seines letzten Schreibvorgangs. Die
+  // Antwort auf einen Zug erledigt einen Slug nur, wenn er seitdem nicht neu
+  // geschrieben wurde: ändert ein anderes Gerät oder der Abschied eines
+  // anderen Tabs die Zeile, während die Antwort aussteht, und stellt der
+  // Besucher den Blueprint danach auf den gesendeten Wert zurück, ist der Wert
+  // derselbe, der Schreibvorgang nicht. Zufall statt Zähler, wie in
+  // assets/fleet.js: ein Zähler finge nach der Bestätigung von vorn an und
+  // träfe womöglich die Zahl einer Anfrage, die noch unterwegs ist.
   function writeSlug(s) {
     var m = loadState(acctUid);
     if (owned[s]) m.owned[s] = true; else delete m.owned[s];
     if (plan[s] > 0) m.plan[s] = plan[s]; else delete m.plan[s];
     if (acctUid && m.pending.indexOf(s) < 0) m.pending.push(s);
-    save(lsKey(acctUid), m);
+    m.rev[s] = token();
+    saveState(acctUid, m);
   }
-  // Was der Server für einen Blueprint bekommt.
-  function rowOf(m, s) { return !!m.owned[s] + ':' + (m.plan[s] || 0); }
+  function token() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  // Was der Server für einen Blueprint bekommt, und aus welchem Schreibvorgang.
+  // Ohne Kennung (Ablage von vor ihrer Einführung, oder zuletzt schrieb ein Tab
+  // mit älterem Skript) zählt wie bisher allein der Wert.
+  function rowOf(m, s) { return !!m.owned[s] + ':' + (m.plan[s] || 0) + ':' + (m.rev[s] || ''); }
 
   // Ein anderer Tab hat in dieselbe Ablage geschrieben: seinen Stand
   // übernehmen, sonst zählte dieser beim nächsten Klick auf seinem alten weiter.
@@ -383,11 +408,12 @@
         var ok = rs.every(function (r) { return r && r.ok; });
         if (!ok) throw new Error('rest');
         // Erledigt ist ein Blueprint nur, wenn er noch so dasteht, wie er
-        // hinausging: ein Klick während der Anfrage, auch in einem anderen
-        // Tab, bleibt offen.
+        // hinausging, aus demselben Schreibvorgang: ein Klick während der
+        // Anfrage, auch in einem anderen Tab, bleibt offen, auch einer, der
+        // den gesendeten Wert wiederherstellt.
         var now = loadState(me);
         now.pending = now.pending.filter(function (s) { return sent[s] !== rowOf(now, s); });
-        save(lsKey(me), now);
+        saveState(me, now);
         setSync('synced');
       });
     }).catch(function () {
@@ -471,7 +497,8 @@
 
           owned = so; plan = sp;
           lastPull = Date.now();
-          save(lsKey(me), { owned: so, plan: sp, pending: Object.keys(pending) });
+          // Was offen bleibt, behält die Kennung seines letzten Schreibvorgangs.
+          saveState(me, { owned: so, plan: sp, pending: Object.keys(pending), rev: m.rev });
           repaintAll();
           if (Object.keys(pending).length) flush(); else setSync('synced');
         });

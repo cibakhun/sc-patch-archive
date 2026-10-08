@@ -31,7 +31,9 @@ test('eine gerade unbrauchbare Sitzung behält Konto-Kopie und offene Änderung,
 
   tab.clickOwn('karna-rifle');
   await b.settle();
-  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true }, plan: {}, pending: ['karna-rifle'] });
+  const { rev, ...kept } = mirror(b);
+  assert.deepEqual(kept, { owned: { 'karna-rifle': true }, plan: {}, pending: ['karna-rifle'] });
+  assert.deepEqual(Object.keys(rev), ['karna-rifle'], 'der offene Klick trägt die Kennung seines Schreibvorgangs');
   assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'true');
   assert.deepEqual(tab.sync(), SYNCING, 'kein Abmelden, kein Fehler: die Sitzung gehört noch diesem Konto');
 
@@ -319,7 +321,7 @@ test('ein Tab zeigt, was der andere im Planer ändert, und zählt auf diesem Sta
     if (!session) assert.deepEqual(one.sync(), LOCAL, at);
     two.clickAdd('karna-rifle');
     await b.settle();
-    assert.deepEqual(JSON.parse(b.storage.get(session ? MIRROR : GUEST)).plan, { 'karna-rifle': 3 }, at);
+    assert.deepEqual(JSON.parse(b.storage.get(session ? MIRROR : GUEST)), { owned: {}, plan: { 'karna-rifle': 3 }, pending: [] }, at);
     if (session) assert.deepEqual(b.server.rows, [{ user_id: 'user-1', slug: 'karna-rifle', owned: false, plan_qty: 3 }], at);
   }
 });
@@ -609,6 +611,30 @@ test('ändert ein zweiter Tab einen Blueprint und schickt ihn beim Verlassen an 
   }
 });
 
+// Eine Ablage von vor der Kennung hat keine, und ein Tab, der die Seite davor
+// geladen hat, schreibt den Spiegel ohne sie. Dann zählt allein der Wert.
+test('ändert ein Tab mit älterem Skript einen offenen Blueprint ohne Kennung, während dessen Zug auf die Antwort wartet, bleibt die Änderung offen und kommt an', async () => {
+  const b = makeBrowser({
+    session: 'user-1',
+    seed: { [MIRROR]: JSON.stringify({ owned: { 'karna-rifle': true }, plan: {}, pending: ['karna-rifle'] }) },
+  });
+  b.server.hold('POST', 'before');
+  const tab = b.open();
+  await b.settle();
+  b.storage.set(MIRROR, JSON.stringify({ owned: {}, plan: {}, pending: ['karna-rifle'] }));
+  await b.settle();
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(mirror(b), { owned: {}, plan: {}, pending: ['karna-rifle'] });
+
+  tab.hide();
+  tab.show();
+  await b.settle();
+  assert.deepEqual(b.server.rows, []);
+  assert.deepEqual(mirror(b), { owned: {}, plan: {}, pending: [] });
+  assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'false');
+});
+
 // Ein Abgleich schreibt keinen Blueprint neu, die Kennung eines offenen Klicks
 // bleibt also stehen. Ohne sie zählte für die späte Antwort allein der Wert,
 // und ein Tab mit älterem Skript schreibt keine Kennung.
@@ -679,7 +705,7 @@ test('„Planer leeren" nimmt jeden Eintrag aus der Ablage und aus dem Konto', a
     await b.settle();
     tab.clickClear();
     await b.settle();
-    assert.deepEqual(JSON.parse(b.storage.get(session ? MIRROR : GUEST)).plan, {}, at);
+    assert.deepEqual(JSON.parse(b.storage.get(session ? MIRROR : GUEST)), { owned: {}, plan: {}, pending: [] }, at);
     assert.deepEqual(b.server.rows, [], at);
   }
 });
@@ -715,7 +741,9 @@ test('wer mit gespeicherter Sitzung lädt, während deren Refresh noch hängt, s
   tab.clickOwn('p4-ar-rifle');
   await b.drain();
   assert.equal(b.storage.get(GUEST), null);
-  assert.deepEqual(mirror(b), { owned: { 'karna-rifle': true, 'p4-ar-rifle': true }, plan: {}, pending: ['p4-ar-rifle'] });
+  const { rev, ...kept } = mirror(b);
+  assert.deepEqual(kept, { owned: { 'karna-rifle': true, 'p4-ar-rifle': true }, plan: {}, pending: ['p4-ar-rifle'] });
+  assert.deepEqual(Object.keys(rev), ['p4-ar-rifle']);
 
   b.releaseSession(null);
   b.landRefresh();
