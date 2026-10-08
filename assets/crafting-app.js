@@ -332,7 +332,10 @@
     return (chain = chain.then(go));
   }
   function flush() { return serial(sendPending); }
-  function pull() { return serial(readServer); }
+  // Die Anzeige wechselt schon jetzt, nicht erst, wenn der Zug an der Reihe
+  // ist: wer auf den Zug eines anderen Tabs wartet, sähe sonst „Nur auf
+  // diesem Gerät" samt Anmelde-Link.
+  function pull() { if (acctUid) setSync('syncing'); return serial(readServer); }
 
   // Jede Fortsetzung eines Zugs prüft zuerst, ob das Konto noch dasselbe ist.
   // Nach Abmelden oder Kontowechsel gehört ihr Ergebnis niemandem mehr hier:
@@ -342,7 +345,10 @@
   // unterwegs), zählt wie keine: mit ihr käme dessen Stand in diese Kopie.
   function sendPending() {
     clearTimeout(flushTimer);
-    if (!acctUid || !VB || !loadState(acctUid).pending.length) return null;
+    if (!acctUid || !VB) return null;
+    // Nichts mehr offen: ein anderer Zug, auch aus einem anderen Tab, hat es
+    // schon mitgenommen.
+    if (!loadState(acctUid).pending.length) { setSync('synced'); return null; }
     var me = acctUid;
     return VB.session().then(function (sess) {
       if (acctUid !== me) return;
@@ -368,7 +374,11 @@
         jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
           '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
       }
-      return Promise.all(jobs).then(function (rs) {
+      // Der Zug endet erst, wenn jede seiner Anfragen beantwortet ist, auch
+      // wenn eine schon scheiterte: sonst begänne der nächste, während sie
+      // noch unterwegs ist, und sie könnte ihn überholen.
+      var answered = jobs.map(function (p) { return p.then(null, function () { return null; }); });
+      return Promise.all(answered).then(function (rs) {
         if (acctUid !== me) return;
         var ok = rs.every(function (r) { return r && r.ok; });
         if (!ok) throw new Error('rest');
