@@ -19,11 +19,13 @@
 //
 // HALLE: liegt eine echte Halle vor (opts.hall), ersetzt sie nach dem Laden
 // die gebaute Halle; bis dahin (und wenn sie scheitert) steht die gebaute.
+// hall.id wählt in HALL_DROP die Spielteile, die der Viewer beim Laden aus
+// der Halle schneidet (ohne id: keine).
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
@@ -2053,7 +2055,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
 	diffuseColor *= sampledDiffuseColor;
 #endif`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);')
-      .replace('#include <lights_fragment_begin>', '#include <lights_fragment_begin>\n\tif ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, inverseTransformDirection( geometryNormal, viewMatrix ) );');
+      .replace('#include <lights_fragment_begin>', '#include <lights_fragment_begin>\n\tif ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );');
   };
   const hallKey = () => 'hall-v2';
 

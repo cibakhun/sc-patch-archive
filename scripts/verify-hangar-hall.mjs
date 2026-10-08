@@ -24,7 +24,9 @@
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
-        reach.
+        reach. Die Halle der Seite traegt mindestens so viele Eintraege wie
+        ihre Klinke (KLINKE_EINTRAEGE): ein geloeschter Eintrag liesse das
+        Teil sonst still zurueckkehren, und das Tor saehe nichts mehr.
      3  Jeder Eintrag trifft in jeder Hallenstufe mindestens `min` Dreiecke
         (Klinke je Eintrag; sie waechst nur, siehe Grundsatz 5).
      4  Kein Eintrag nimmt mehr als 2 % der Dreiecke einer Stufe: Gedacht
@@ -41,6 +43,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
 const PAGE = 'de/hangar.html';
 const MAX_SHARE = 0.02;
+// Klinke je Halle: so viele Ausnahmen traegt HALL_DROP fuer sie mindestens.
+// Nach oben mit jedem neuen Eintrag, nach unten nur per Commit, dessen
+// Botschaft die Ursache nennt (Grundsatz 5).
+const KLINKE_EINTRAEGE = { 'revelyork-single': 1 };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -85,15 +91,26 @@ for (const [i, d] of entries.entries()) {
   const inside = box(d.reach) && box(d.seen) && d.seen[0].every((v, a) => v >= d.reach[0][a]) && d.seen[1].every((v, a) => v <= d.reach[1][a]);
   if (!why || !inside || !(Number.isInteger(d.min) && d.min > 0)) malformed.push(`Eintrag ${i}${why ? '' : ' ohne Anlass'}${inside ? '' : ' mit kaputtem reach/seen'}${Number.isInteger(d.min) && d.min > 0 ? '' : ' ohne Klinke min'}`);
 }
-say(`    Eintraege: ${entries.length}`);
-sollIst('0 unvollstaendige Eintraege', malformed.length);
+const klinke = hall?.id ? KLINKE_EINTRAEGE[hall.id] ?? 0 : 0;
+const staleKlinke = Object.keys(KLINKE_EINTRAEGE).filter((k) => k !== hall?.id);
+say(`    Eintraege: ${entries.length}   Klinke: ${klinke}`);
+sollIst(`0 unvollstaendige Eintraege, mindestens ${klinke}`, `${malformed.length} unvollstaendig, ${entries.length} Eintraege`);
 for (const m of malformed) fail(`[2] ${m}`);
+if (entries.length < klinke) fail(`[2] HALL_DROP["${hall.id}"] traegt ${entries.length} Eintraege, die Klinke verlangt ${klinke}: ein Eintrag ist verschwunden, und sein Teil steht wieder in der Halle. Zurueckholen, oder KLINKE_EINTRAEGE in diesem Tor per Commit mit Ursache senken`);
+for (const k of staleKlinke) fail(`[2] KLINKE_EINTRAEGE["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 
 // Die Regel des Viewers (dropHallParts) gegen eine Hallenstufe
 async function measure(file, list) {
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
   const doc = await io.read(file);
+  // Dieselben Geometrien wie dropHallParts: Ein Mesh, das mehrere Knoten
+  // stellen, teilt im Viewer seine Geometrie (GLTFLoader klont den Knoten,
+  // nicht die Geometrie) und bleibt dort unberuehrt, ebenso Primitive ohne
+  // Index. Geometriegruppen legt GLTFLoader nicht an.
+  const refs = new Map();
+  for (const node of doc.getRoot().listNodes()) if (node.getMesh()) refs.set(node.getMesh(), (refs.get(node.getMesh()) || 0) + 1);
   const tris = [];
+  let skipped = 0;
   for (const node of doc.getRoot().listNodes()) {
     const mesh = node.getMesh();
     if (!mesh) continue;
@@ -101,6 +118,7 @@ async function measure(file, list) {
     for (const p of mesh.listPrimitives()) {
       const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
       if (!P) continue;
+      if (!I || refs.get(mesh) > 1) { skipped++; continue; }
       const pos = new Float64Array(P.length);
       for (let i = 0; i < P.length; i += 3) {
         const x = P[i], y = P[i + 1], z = P[i + 2];
@@ -108,10 +126,11 @@ async function measure(file, list) {
         pos[i + 1] = w[1] * x + w[5] * y + w[9] * z + w[13];
         pos[i + 2] = w[2] * x + w[6] * y + w[10] * z + w[14];
       }
-      tris.push({ pos, I: I ?? Uint32Array.from({ length: P.length / 3 }, (_, i) => i) });
+      tris.push({ pos, I });
     }
   }
   const total = tris.reduce((s, t) => s + t.I.length / 3, 0);
+  if (skipped) say(`    (${skipped} Primitive ohne Index oder mehrfach gestellt: der Viewer schneidet dort nicht, hier ebenso)`);
   const out = [];
   for (const d of list) {
     const [r0, r1] = d.reach, [s0, s1] = d.seen;
