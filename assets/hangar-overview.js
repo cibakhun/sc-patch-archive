@@ -245,6 +245,10 @@ export function boot(doc) {
   const stageCfg = JSON.parse($('hg-stage').textContent);
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const msg = (id) => doc.querySelector(`#hgx-msg [data-msg="${id}"]`).dataset;
+  // Die hoefliche Live-Region (#hgx-live). Derselbe Satz zweimal hintereinander
+  // aendert sonst nichts im DOM und bliebe stumm; das angehaengte geschuetzte
+  // Leerzeichen macht ihn zur Aenderung.
+  const say = (text) => { live.textContent = live.textContent === text ? `${text}\u00a0` : text; };
 
   /** @type {StateContext} */
   const ctx = {
@@ -391,7 +395,7 @@ export function boot(doc) {
       title.classList.remove('is-swap');
       void title.offsetWidth;
       title.classList.add('is-swap');
-      live.textContent = regionNow('head').dataset.announce;
+      say(regionNow('head').dataset.announce);
       prefetchNeighbours(id);
     } catch {
       if (my !== selTok) return;
@@ -709,8 +713,23 @@ export function boot(doc) {
     fleetSync.hidden = fleet.mode !== 'account' && sum.n === 0;
     for (const el of fleetSync.querySelectorAll('[data-when]')) el.hidden = el.dataset.when !== fleet.sync;
     // Der Hinweis zur Uebernahme steht, bis er weggeklickt ist; ein neuer Seitenaufruf kennt ihn nicht mehr.
+    const wasHidden = mergedNote.hidden;
     mergedNote.hidden = !(fleet.merged > 0 && fleet.merged !== mergedSeen);
-    if (!mergedNote.hidden) $('hgx-merged-txt').textContent = fillMessage(msg('fleet-merged'), { n: fleet.merged }, loc);
+    if (!mergedNote.hidden) {
+      const text = fillMessage(msg('fleet-merged'), { n: fleet.merged }, loc);
+      $('hgx-merged-txt').textContent = text;
+      if (wasHidden) say(text);
+    }
+  }
+
+  // Ein einzelnes Schiff dazu oder weg sagt die Live-Region an; groessere
+  // Spruenge (erster Stand, Abgleich, Uebernahme) erklaert die Zeile selbst.
+  function announceFleet(before, after) {
+    const added = [...after].filter((id) => !before.has(id) && dock.has(id));
+    const gone = [...before].filter((id) => !after.has(id) && dock.has(id));
+    if (added.length + gone.length !== 1) return;
+    const m = msg('fleet-note');
+    say(fillMessage({ other: added.length ? m.added : m.removed }, { name: dock.get(added[0] ?? gone[0]).name }, loc));
   }
 
   function paintFleetFilter() {
@@ -730,12 +749,16 @@ export function boot(doc) {
   const freshLogin = () => { if (window.VBAccount) login.href = window.VBAccount.loginHref(); };
   for (const ev of ['pointerdown', 'focus', 'click']) login.addEventListener(ev, freshLogin);
 
+  let fleetKnown = false;
   function onFleet(snap) {
+    const before = fleetIds;
     fleet = snap;
     fleetIds = new Set(snap.ids);
     paintFleet();
     syncFleetBtn();
     if (state.fleetOnly) applyDock();
+    if (fleetKnown) announceFleet(before, fleetIds);
+    fleetKnown = true;
   }
 
   // -------------------------------------------------------------- Vergleich
@@ -836,7 +859,7 @@ export function boot(doc) {
     else if (state.cmp.length < MAX_COMPARE) setState({ cmp: [...state.cmp, state.ship] });
     else {
       trayMsg.hidden = false;
-      live.textContent = trayMsg.textContent;
+      say(trayMsg.textContent);
     }
   });
   tray.addEventListener('click', (e) => {
@@ -874,7 +897,7 @@ export function boot(doc) {
     try {
       await navigator.clipboard.writeText(url);
       copyField.hidden = true;
-      live.textContent = m.ok;
+      say(m.ok);
       copyBtn.classList.add('is-done');
       clearTimeout(copyTimer);
       copyTimer = setTimeout(() => copyBtn.classList.remove('is-done'), 1600);
@@ -883,7 +906,7 @@ export function boot(doc) {
       copyField.hidden = false;
       copyField.focus();
       copyField.select();
-      live.textContent = m.fallback;
+      say(m.fallback);
     }
   });
 

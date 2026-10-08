@@ -27,7 +27,7 @@ const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ')
 {region === 'head' && (
   <div class="hgx-head" data-bay="head" data-id={bay.id} data-name={bay.head.name} data-sheet={bay.head.sheetHref} data-announce={bay.head.announce}>
     <p class="hg-maker">{bay.head.maker}</p>
-    <p class="hg-name">{bay.head.name}</p>
+    <p class:list={['hg-name', { 'is-long': bay.head.nameStep === 1, 'is-longer': bay.head.nameStep === 2 }]}>{bay.head.name}</p>
     <p class="hg-role">{bay.head.roleLine}</p>
   </div>
 )}

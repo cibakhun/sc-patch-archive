@@ -61,6 +61,10 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-7);color:var(--hg-dim)}
 .hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
+/* Lange Namen eine oder zwei Stufen kleiner (bay.ts nameStep), statt in zwei
+   grossen Zeilen ueber der Halle zu stehen. */
+.hg-name.is-long{font-size:clamp(1.7rem,3.6vw,2.6rem)}
+.hg-name.is-longer{font-size:clamp(1.45rem,2.8vw,2.1rem)}
 /* über heller Halle lesbar bleiben: Schatten statt Fläche */
 .hg-maker,.hg-role{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
 .hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
@@ -169,6 +173,10 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 /* Der Weg zum Datenblatt bleibt am Fuss der Tafel stehen, auch wenn eine
    lange Ausstattung darueber scrollt. */
 .hgx-foot{position:sticky;bottom:0;margin:0}
+/* Zeilen, die unter den Fuss rollen, blenden aus statt halb ueber dem Knopf
+   zu stehen; sein Abstand ist zugleich die Luft unter der letzten Zeile. */
+.hgx-foot{--hg-air:.9rem;padding-top:var(--hg-air);background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 90%,transparent) var(--hg-air))}
+.hgx-foot .hg-sheet{margin-top:0}
 .hgx-stats+.hgx-grp{margin-top:.9rem}
 .hgx-err{font-size:var(--fs-7);color:var(--hg-on)}
 .hgx-err p{margin:.3rem 0 .7rem}
@@ -176,10 +184,11 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
    transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab
-   zeigt seine Marker; hinter der Rumpfmitte dimmen sie. */
+   zeigt seine Marker; hinter der Rumpfmitte dimmen sie. Der dunkle Ring
+   haelt beide Toene auf hellem Rumpf lesbar, der blasse Systemton zuerst. */
 .hgx-marks{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .hgx-marks:not([data-live]) .hgx-mk{visibility:hidden}
-.hgx-mk{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border:2px solid var(--hg-amber);border-radius:50%;background:color-mix(in srgb,var(--hg-amber) 30%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--bg) 55%,transparent);pointer-events:auto;cursor:pointer;transition:opacity var(--dur-fast) var(--ease-ui)}
+.hgx-mk{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border:2px solid var(--hg-amber);border-radius:50%;background:color-mix(in srgb,var(--hg-amber) 30%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--bg) 88%,transparent);pointer-events:auto;cursor:pointer;transition:opacity var(--dur-fast) var(--ease-ui)}
 .hgx-mk[data-tab="systems"]{border-color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 30%,transparent)}
 .hgx-mk.is-far{opacity:.35}
 .hgx-mk.is-hot,.hgx-mk.is-sel{z-index:1;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:color-mix(in srgb,var(--hg-amber) 55%,transparent)}
@@ -240,12 +249,13 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
   .hgx-stats{gap:.25rem}
   .hg-note{margin-top:.35rem}
   .hg-sheet{margin-top:.45rem;padding:.5rem 1rem}
+  .hgx-foot{--hg-air:.45rem}
 }
 @media (max-width:760px){
   .hg-title{max-width:calc(100% - 32px)}
   .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
-  .hgx-foot{position:static}
+  .hgx-foot{position:static;background:none}
   .hgx-mk{width:12px;height:12px;margin:-6px 0 0 -6px}
   .hgx-stagebar{position:static;padding:.8rem 16px;background:var(--bg-2);border-top:1px solid var(--hg-hair)}
   .hgx-fleetline{padding:0;border:0;background:none;backdrop-filter:none}
@@ -418,6 +428,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
     <span data-msg="fleet-crew" data-one={t('msg.fleet.crew.one')} data-other={t('msg.fleet.crew.other')}></span>
     <span data-msg="fleet-roles" data-one={t('msg.fleet.roles.one')} data-other={t('msg.fleet.roles.other')}></span>
     <span data-msg="fleet-merged" data-one={t('msg.fleet.merged.one')} data-other={t('msg.fleet.merged.other')}></span>
+    <span data-msg="fleet-note" data-added={t('msg.fleet.added')} data-removed={t('msg.fleet.removed')}></span>
     <span data-msg="cmp-open" data-other={t('msg.cmp.open')}></span>
     <span data-msg="cmp" data-show={t('cmp.show')} data-base={t('cmp.base')} data-better={t('cmp.better')} data-worse={t('cmp.worse')} data-remove={t('msg.cmp.remove')}></span>
   </div>

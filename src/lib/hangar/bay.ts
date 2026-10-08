@@ -13,8 +13,7 @@
 // damit dieselbe Elementfolge, und verify:sync beweist es an 227 Paaren.
 
 import { href, type Locale } from '../../i18n/ui';
-import { hangarT } from '../../i18n/hangarText';
-import { itemT } from '../../i18n/itemText';
+import { hangarT, type HangarKey } from '../../i18n/hangarText';
 import { displayName, hasMeaningfulGrade, itemPath, items, num, pageItemIds, type Item, type ItemStats } from '../items';
 import { statRows } from '../itemStats';
 import { STATS, formatStat, percentile, shipData, shipFacts, statValue, type ShipId, type StatDef, type StatKey } from './catalog';
@@ -116,6 +115,8 @@ export interface Bay {
 export interface BayHead {
   readonly maker: string;
   readonly name: string;
+  /** Stufen kleiner fuer lange Namen im Titel ueber der Halle (nameStep). */
+  readonly nameStep: 0 | 1 | 2;
   /** 'Combat · Light Fighter' */
   readonly roleLine: string;
   readonly sheetHref: string;
@@ -315,7 +316,7 @@ function slotRow(d: Draft, key: string, lang: Locale, t: T): SlotRow {
     size: d.size != null ? `S${d.size}` : null,
     count: d.count,
     name: joined ? displayName(joined.item, lang) : (d.name ?? t(`kind.${d.kind}`)),
-    sub: rule.sub === 'kind' ? t(`kind.${d.kind}`) : numbers ? subLine(rule.sub, numbers, lang) : null,
+    sub: rule.sub === 'kind' ? t(`kind.${d.kind}`) : numbers ? subLine(rule.sub, numbers, t) : null,
     figure: fig == null ? null : { value: num(fig, lang), unit: d.count > 1 ? `${unit} ${t('unit.each')}` : unit },
     details: numbers?.stats ? statRows(numbers.stats, lang) : [],
     links: numbers
@@ -327,17 +328,32 @@ function slotRow(d: Draft, key: string, lang: Locale, t: T): SlotRow {
   };
 }
 
-function subLine(sub: Sub | null, j: Joined, lang: Locale): string | null {
+// Bauteilklassen aus den Itemdaten (game.class) in der Sprache der Seite.
+// Eine hier unbekannte Klasse bleibt, wie die Daten sie fuehren.
+const CLASS_KEY: Readonly<Record<string, HangarKey>> = {
+  Military: 'cls.military', Civilian: 'cls.civilian', Industrial: 'cls.industrial', Stealth: 'cls.stealth', Competition: 'cls.competition',
+};
+
+function subLine(sub: Sub | null, j: Joined, t: T): string | null {
   if (sub === 'maker') return j.maker ?? j.item.game?.manufacturer ?? null;
   if (sub === 'grade') {
-    const grade = j.grade && hasMeaningfulGrade(j.item) ? `${itemT(lang)('specGrade')} ${j.grade}` : null;
-    const parts = [j.item.game?.class ?? null, grade].filter(Boolean);
+    const cls = j.item.game?.class ?? null;
+    const grade = j.grade && hasMeaningfulGrade(j.item) ? t('grade', { g: j.grade }) : null;
+    const parts = [cls && CLASS_KEY[cls] ? t(CLASS_KEY[cls]) : cls, grade].filter(Boolean);
     return parts.length ? parts.join(' · ') : null;
   }
   return null;
 }
 
 // ---------------------------------------------------------------- Bucht
+
+// Gemessen im Hangar-Titel (Orbitron 900, Zeilenbreite 520 px bei 1440 und
+// 1280, 358 px bei 390), breitester Name je Laenge: bis 11 Zeichen passt die
+// volle Groesse in eine Zeile (476 px), Namen mit 22 Zeichen wie "C2 Hercules
+// Starlifter" brauchten bis 902 px, zwei grosse Zeilen. Eine Stufe kleiner passen 12 bis 17 Zeichen
+// (bis 519 px), zwei Stufen kleiner 18 bis 21 (bis 483 px); laengere Namen
+// brechen dann in zwei kleine Zeilen um.
+const nameStep = (name: string): 0 | 1 | 2 => (name.length >= 18 ? 2 : name.length >= 12 ? 1 : 0);
 
 const bayMemo = new Map<string, Bay>();
 
@@ -441,6 +457,7 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
     head: {
       maker: facts.maker,
       name: facts.name,
+      nameStep: nameStep(facts.name),
       // Ohne eigene Rolle faellt vRoleCig auf den Typ zurueck: nicht "Ground · Ground".
       roleLine: [...new Set([facts.typeLabel, facts.role].filter(Boolean))].join(' · '),
       sheetHref: href(facts.sheetPath, lang),
