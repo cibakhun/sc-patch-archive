@@ -1769,13 +1769,54 @@ export async function initHangar(container, opts = {}) {
 
   // Rauheit nur nach unten begrenzen: spiegelglatte Stellen bündeln das
   // Hauptlicht sonst zu einem gleißenden Fleck vor dem Schiff. Für alle
-  // Hallenmaterialien dieselbe Funktion und derselbe Schlüssel, damit sie
+  // Hallenmaterialien derselbe Shader und derselbe Schlüssel, damit sie
   // sich ihre Shaderprogramme teilen (ohne echte Karte greift die Grenze
   // nie: deren Rauheit liegt ohnehin darüber).
-  const hallRoughMin = (sh) => {
-    sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);');
+  //
+  // Dazu ohne sichtbare Wiederholung: Die Schmutzkarte der großen Flächen
+  // kachelt im Spiel alle 4 m, zweimal je 8-m-Wandpaneel, und jedes Paneel
+  // zeigte dieselben Flecken an denselben Stellen. Hier wird dieselbe
+  // Karte je Stelle der Halle anders versetzt abgetastet (Quilez, „texture
+  // repetition“, Variante 3): zwei Abtastungen, gewählt und überblendet nach
+  // einem weichen Rauschen über die Lage im Modell. Kein neues Bild, nur
+  // andere Versätze. Schalter je Material (hgNoTile), damit alle Materialien
+  // bei einem Programm bleiben.
+  const HALL_NO_TILE = /plastic_white01|metal_white_0[23]|wall_(white|blue)_tint|wall_whitepaint|metal_dotty/i;
+  // Rauschzelle in Modellmetern; über eine Zelle wechselt der Versatz einige
+  // Male, also mehrmals je 8-m-Paneel (am Render: mit 16 m standen auf
+  // Nachbarpaneelen oft noch dieselben Flecken).
+  const HALL_NO_TILE_CELL = 8;
+  const HALL_NO_TILE_GLSL = `uniform float hgNoTile;
+varying vec3 vHgP;
+float hgHash( vec3 p ) { p = fract( p * 0.1031 ); p += dot( p, p.zyx + 31.32 ); return fract( ( p.x + p.y ) * p.z ); }
+float hgNoise( vec3 x ) {
+	vec3 i = floor( x ), f = fract( x );
+	f = f * f * ( 3.0 - 2.0 * f );
+	return mix( mix( mix( hgHash( i ), hgHash( i + vec3( 1.0, 0.0, 0.0 ) ), f.x ), mix( hgHash( i + vec3( 0.0, 1.0, 0.0 ) ), hgHash( i + vec3( 1.0, 1.0, 0.0 ) ), f.x ), f.y ),
+		mix( mix( hgHash( i + vec3( 0.0, 0.0, 1.0 ) ), hgHash( i + vec3( 1.0, 0.0, 1.0 ) ), f.x ), mix( hgHash( i + vec3( 0.0, 1.0, 1.0 ) ), hgHash( i + vec3( 1.0, 1.0, 1.0 ) ), f.x ), f.y ), f.z );
+}
+vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
+	float l = hgNoise( vHgP / ${HALL_NO_TILE_CELL.toFixed(1)} ) * 8.0;
+	float ia = floor( l ), f = fract( l );
+	vec2 oa = sin( vec2( 3.0, 7.0 ) * ia ), ob = sin( vec2( 3.0, 7.0 ) * ( ia + 1.0 ) );
+	vec2 dx = dFdx( uv ), dy = dFdy( uv );
+	vec4 a = textureGrad( s, uv + oa, dx, dy ), b = textureGrad( s, uv + ob, dx, dy );
+	return mix( a, b, smoothstep( 0.2, 0.8, f - 0.1 * dot( a.rgb - b.rgb, vec3( 1.0 ) ) ) );
+}`;
+  const hallShader = (m) => (sh) => {
+    sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vHgP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = position;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\n' + HALL_NO_TILE_GLSL)
+      .replace('#include <map_fragment>', `#ifdef USE_MAP
+	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
+	diffuseColor *= sampledDiffuseColor;
+#endif`)
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);');
   };
-  const hallRoughKey = () => 'hall-rough-min';
+  const hallKey = () => 'hall-v2';
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
@@ -1861,8 +1902,9 @@ export async function initHangar(container, opts = {}) {
           // Rauheit aus der Glätte des Spiels: die Karte entscheidet, der
           // Faktor darf sie nicht pauschal stumpf machen.
           if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
-          m.onBeforeCompile = hallRoughMin;
-          m.customProgramCacheKey = hallRoughKey;
+          m.userData.noTile = !!m.map && HALL_NO_TILE.test(m.name);
+          m.onBeforeCompile = hallShader(m);
+          m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
           // Nicht alle bringen ihre Leuchtkarte mit: dann leuchtet die Farbkarte.
           if (/light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
