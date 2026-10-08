@@ -35,7 +35,7 @@
     "sync:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs",
     "datamine:gear": "node scripts/datamine-gear.mjs",
     "freeze:mining": "node scripts/freeze-mining-constants.mjs",
-    "refresh:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro build",
+    "refresh:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-thumbs.mjs && node scripts/build-downloads.mjs && astro build",
     "verify:mining": "node scripts/verify-mining.mjs",
     "verify:datastand": "node scripts/verify-datastand.mjs",
     "datamine:crafting": "node scripts/datamine-crafting.mjs && node scripts/verify-crafting-specs.mjs",

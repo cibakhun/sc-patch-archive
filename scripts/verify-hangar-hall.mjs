@@ -38,7 +38,10 @@
         Moebel wie die Klinke (KLINKE_MOEBEL), nie doppelt, und die
         Moebeldatei stammt aus genau der vollen Stufe, die in dist/ liegt
         (sha1). Sonst fehlen die Moebel still, oder sie zeigen einen alten
-        Stand, nachdem der PC die Halle neu gebaut hat.
+        Stand, nachdem der PC die Halle neu gebaut hat. Steht die volle
+        Stufe trotz leichterer als Halle der Seite, fehlte die Moebeldatei
+        beim Build: Die Seite zeigt dann alles, laedt aber das Vierfache an
+        Waenden, und das Tor reisst.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -241,6 +244,7 @@ if (hall?.furniture?.url) {
 }
 say(`    in der Halle ${inHall}, in der Moebeldatei ${inFile}${furnSrc ? ` (aus ${furnSrc})` : ''}   Klinke: ${klinkeMoebel}`);
 sollIst(`mindestens ${klinkeMoebel} Moebel, nur an einer Stelle`, `${inHall + inFile}${inHall && inFile ? ' (doppelt)' : ''}`);
+if (inHall && !inFile && hall?.lite?.url) fail(`[5] die Seite laedt am Rechner die volle Stufe ${hall.url.split('?')[0]} (${inHall} Moebel darin), obwohl es ${hall.lite.url.split('?')[0]} gibt: die Moebeldatei fehlte beim Build (scripts/build-hall-furniture.mjs vor astro build?)`);
 if (inHall && inFile) fail(`[5] Moebel doppelt: die Halle der Seite (${hall.url.split('?')[0]}) stellt ${inHall} selbst, und die Moebeldatei kommt dazu — HangarApp.astro gibt die Moebeldatei nur zur leichteren Stufe`);
 if (inHall + inFile < klinkeMoebel) fail(`[5] die Seite laedt ${inHall + inFile} Moebel, die Klinke verlangt ${klinkeMoebel}: Moebeldatei fehlt (scripts/build-hall-furniture.mjs im Build?) oder die volle Stufe kam mit weniger Moebeln; KLINKE_MOEBEL nur per Commit mit Ursache senken`);
 for (const k of Object.keys(KLINKE_MOEBEL).filter((k) => k !== hall?.id)) fail(`[5] KLINKE_MOEBEL["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);

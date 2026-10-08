@@ -2268,7 +2268,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // Paneele verschieden ab. Als eigenes Attribut (hgShade, der Hallen-
       // shader nimmt den Rotkanal): Vertexfarben wären je Material ein
       // eigenes Shaderprogramm.
-      let shaded = 0;
+      let shaded = 0, padded = 0;
       model.traverse((n) => {
         if (!n.isMesh || !n.geometry.attributes.color) return;
         n.geometry.setAttribute('hgShade', n.geometry.attributes.color);
@@ -2276,7 +2276,15 @@ vec3 hgVolume( vec3 p, vec3 n ) {
         for (const m of [].concat(n.material)) { m.vertexColors = false; m.userData.hgShade = true; }
         shaded++;
       });
-      if (shaded) console.info(`[hangar] Halle: ${shaded} Meshes mit Abdunkelung aus dem Spiel`);
+      // Der Schalter hängt am Material: Teilt eine Geometrie ohne Farben
+      // ein solches Material, bekommt sie eine helle Abdunkelung (1), sonst
+      // läse der Shader einen beliebigen Wert und färbte sie schwarz.
+      model.traverse((n) => {
+        if (!n.isMesh || n.geometry.attributes.hgShade || ![].concat(n.material).some((m) => m.userData.hgShade)) return;
+        n.geometry.setAttribute('hgShade', new THREE.BufferAttribute(new Uint8Array(n.geometry.attributes.position.count * 3).fill(255), 3, true));
+        padded++;
+      });
+      if (shaded) console.info(`[hangar] Halle: ${shaded} Meshes mit Abdunkelung aus dem Spiel${padded ? `, ${padded} ohne eigene auf hell gesetzt` : ''}`);
       const uvStats = hallUvStats(model);
       const boxed = new Set(), seen = new Set();
       model.traverse((n) => {
