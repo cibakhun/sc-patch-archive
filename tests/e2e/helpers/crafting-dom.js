@@ -18,6 +18,12 @@
 // gelungenen Refresh. holdSession(n) hält die nächsten n Sitzungsprüfungen an,
 // bis releaseSession() sie beantwortet (ein hängender Refresh).
 //
+// Mehrere Tabs teilen localStorage, Sitzung und Server; ein Schreiben meldet
+// `storage` an die jeweils ANDEREN Tabs, wie im Browser. server.hold(method)
+// hält die nächste Anfrage dieser Methode an, bis server.release() sie
+// beantwortet: wie sonst auch, mit einem Status ohne Wirkung oder wie fetch
+// ohne Netz ('offline').
+//
 // Zeit ist eine Attrappe (Date.now, setTimeout, requestAnimationFrame):
 // settle() spielt die Zeitgeber bis zum Horizont ab, Vorgabe 5 s.
 import fs from 'node:fs';
@@ -195,6 +201,11 @@ function makeServer(rows) {
   const server = {
     rows: rows.map((r) => ({ user_id: r.user_id, slug: r.slug, owned: !!r.owned, plan_qty: r.plan_qty || 0 })),
     requests: [],
+    holds: [],
+    held: [],
+    hold: (method) => server.holds.push(method),
+    /** answer: Status ohne Wirkung oder 'offline'. Ein geschlossener Tab erfährt nichts mehr. */
+    release: (answer) => server.held.splice(0).forEach((go) => go(answer)),
     apply(sess, method, reqPath, body, prefer) {
       const user = sess && sess.user && sess.user.id;
       if (!user) return respond(401, { message: 'JWT expired' });
@@ -227,9 +238,18 @@ function makeServer(rows) {
       }
       return respond(405, null);
     },
-    rest(sess, method, reqPath, body, prefer) {
+    rest(tab, sess, method, reqPath, body, prefer) {
       server.requests.push({ method, path: reqPath, body: clone(body ?? null) });
-      return Promise.resolve(server.apply(sess, method, reqPath, clone(body), prefer));
+      const sent = clone(body);
+      const answer = () => server.apply(sess, method, reqPath, sent, prefer);
+      const h = server.holds.indexOf(method);
+      if (h === -1) return Promise.resolve(answer());
+      server.holds.splice(h, 1);
+      return new Promise((resolve, reject) => server.held.push((late) => {
+        if (tab.closed) return;
+        if (late === 'offline') reject(new TypeError('Failed to fetch'));
+        else resolve(late ? respond(late, null) : answer());
+      }));
     },
   };
   return server;
@@ -353,12 +373,26 @@ export function makeBrowser(opts = {}) {
         addEventListener: add(docL),
         removeEventListener: remove(docL),
       };
+      const others = (key, oldValue, newValue) => tabs.forEach((t) => {
+        if (t !== tab) setImmediate(() => t.fireWindow('storage', { key, oldValue, newValue }));
+      });
       const sandbox = {
         document,
         localStorage: {
           getItem: (k) => (data.has(k) ? data.get(k) : null),
-          setItem: (k, v) => { data.set(k, String(v)); },
-          removeItem: (k) => { data.delete(k); },
+          setItem: (k, v) => {
+            const old = data.has(k) ? data.get(k) : null;
+            data.set(k, String(v));
+            if (old !== String(v)) others(k, old, String(v));
+          },
+          removeItem: (k) => {
+            if (!data.has(k)) return;
+            const old = data.get(k);
+            data.delete(k);
+            others(k, old, null);
+          },
+          key: (i) => [...data.keys()][i] ?? null,
+          get length() { return data.size; },
         },
         location: { pathname: '/topics/crafting.html', search: '' },
         URLSearchParams,
@@ -384,7 +418,7 @@ export function makeBrowser(opts = {}) {
             account.session = account.stored = null;
             return Promise.resolve().then(() => { tab.fireWindow('vb-account-session'); return null; });
           },
-          rest: (sess, method, p, b, prefer) => server.rest(sess, method, p, b, prefer),
+          rest: (sess, method, p, b, prefer) => server.rest(tab, sess, method, p, b, prefer),
           loginHref: () => '/account/login.html?next=%2Ftopics%2Fcrafting.html',
           isDE: false,
         },
@@ -401,22 +435,24 @@ export function makeBrowser(opts = {}) {
       sandbox.window = sandbox;
 
       const cardOf = (slug) => grid.querySelector(`.cbp a[href="/crafting/${slug}.html"]`).closest('.cbp');
+      // Klick wie im Browser: vom Knopf bis zum Dokument, der Handler hängt am Raster.
+      const press = (target) => {
+        const path = [];
+        for (let n = target; n && n.nodeType === 1; n = n.parentNode) path.push(n);
+        let stopped = false;
+        const ev = {
+          type: 'click', target, button: 0, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false,
+          preventDefault() {}, stopPropagation() { stopped = true; }, composedPath: () => path.slice(),
+        };
+        for (const n of path) { n.emit(ev); if (stopped) return; }
+        fire(docL, 'click', ev);
+      };
       Object.assign(tab, {
         /** Der ★ einer Karte (setzt das Skript selbst). */
         ownButton: (slug) => cardOf(slug).querySelector('.cbp__own'),
-        /** Klick wie im Browser: vom Knopf bis zum Dokument, der Handler hängt am Raster. */
-        clickOwn(slug) {
-          const target = tab.ownButton(slug);
-          const path = [];
-          for (let n = target; n && n.nodeType === 1; n = n.parentNode) path.push(n);
-          let stopped = false;
-          const ev = {
-            type: 'click', target, button: 0, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false,
-            preventDefault() {}, stopPropagation() { stopped = true; }, composedPath: () => path.slice(),
-          };
-          for (const n of path) { n.emit(ev); if (stopped) return; }
-          fire(docL, 'click', ev);
-        },
+        clickOwn: (slug) => press(tab.ownButton(slug)),
+        /** Das ＋ einer Karte: eins mehr im Planer. */
+        clickAdd: (slug) => press(cardOf(slug).querySelector('.cbp__add')),
         /** Was die Sync-Anzeige zeigt. */
         sync: () => ({
           state: sync.getAttribute('data-state'),
@@ -426,17 +462,17 @@ export function makeBrowser(opts = {}) {
         }),
         show() { document.visibilityState = 'visible'; fire(docL, 'visibilitychange', { type: 'visibilitychange' }); },
         hide() { document.visibilityState = 'hidden'; fire(docL, 'visibilitychange', { type: 'visibilitychange' }); },
-        fireWindow(type) {
+        fireWindow(type, init = {}) {
           if (tab.closed) return;
-          if (tab.lagged) tab.lagged.push(type);
-          else fire(winL, type, { type });
+          if (tab.lagged) tab.lagged.push([type, init]);
+          else fire(winL, type, { type, ...init });
         },
         /** Ereignisse kommen verspätet an: der Tab bleibt bedienbar, weiss aber noch nichts. */
         lag() { tab.lagged = []; },
         unlag() {
           const queued = tab.lagged || [];
           tab.lagged = null;
-          queued.forEach((type) => fire(winL, type, { type }));
+          queued.forEach(([type, init]) => fire(winL, type, { type, ...init }));
         },
         /** Schliessen: seine Zeitgeber laufen nicht weiter. */
         close() {

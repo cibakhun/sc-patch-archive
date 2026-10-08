@@ -296,6 +296,12 @@
     flushTimer = setTimeout(flush, 700);
   }
 
+  // Jede Fortsetzung eines Zugs prüft zuerst, ob das Konto noch dasselbe ist.
+  // Nach Abmelden oder Kontowechsel gehört ihr Ergebnis niemandem mehr hier:
+  // Zeilen landeten sonst in der Gast-Ablage (und beim nächsten Anmelden im
+  // nächsten Konto), die Anzeige meldete ein Konto, das nicht mehr angemeldet ist.
+  // Eine Sitzung, die schon einem anderen Konto gehört (sein Ereignis ist noch
+  // unterwegs), zählt wie keine: mit ihr käme dessen Stand in diese Kopie.
   function flush() {
     clearTimeout(flushTimer);
     var slugs = Object.keys(dirty);
@@ -306,7 +312,7 @@
       // Kam die Antwort erst nach einem Kontowechsel, gehören diese Slugs dem
       // vorigen Konto: zurückgelegt landeten sie in den Änderungen des neuen.
       if (acctUid !== me) return;
-      if (!sess) {
+      if (ownerOf(sess) !== me) {
         slugs.forEach(function (s) { dirty[s] = true; });
         persist();
         noSession();
@@ -330,12 +336,14 @@
           '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
       }
       return Promise.all(jobs).then(function (rs) {
+        if (acctUid !== me) return;
         var ok = rs.every(function (r) { return r && r.ok; });
         if (!ok) throw new Error('rest');
         persist();          // offene Liste im Spiegel leeren
         setSync('synced');
       });
     }).catch(function () {
+      if (acctUid !== me) return;
       // Fehlgeschlagene Slugs bleiben schmutzig -> nächster Versuch (Klick auf
       // „Erneut versuchen", nächste Änderung, Tab-Rückkehr oder der nächste
       // Seitenaufruf über den Spiegel) nimmt sie mit.
@@ -357,15 +365,18 @@
   // Gast-Ablage mit.
   function pull() {
     if (!acctUid || !VB) return Promise.resolve();
+    var me = acctUid;
     setSync('syncing');
     return VB.session().then(function (sess) {
-      if (!sess) { noSession(); return; }
+      if (acctUid !== me) return;
+      if (ownerOf(sess) !== me) { noSession(); return; }
       // Die Sitzung trägt: dieser Zug ist der Abgleich, den later() plante.
       clearTimeout(backoffTimer);
       backoff = 0;
       return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
         .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
         .then(function (rows) {
+          if (acctUid !== me) return;
           var so = {}, sp = {};
           (rows || []).forEach(function (row) {
             // Blueprints, die es im aktuellen Patch nicht mehr gibt, werden nur
@@ -419,7 +430,7 @@
           repaintAll();
           if (Object.keys(dirty).length) flush(); else setSync('synced');
         });
-    }).catch(function () { setSync('error'); });
+    }).catch(function () { if (acctUid === me) setSync('error'); });
   }
 
   function goGuest() {
@@ -447,10 +458,8 @@
     if (acctUid && storedUid() === acctUid) later();
     else onSession();
   }
-  function storedUid() {
-    var kept = VB.peek();
-    return (kept && kept.user && kept.user.id) || null;
-  }
+  function ownerOf(sess) { return (sess && sess.user && sess.user.id) || null; }
+  function storedUid() { return ownerOf(VB.peek()); }
   function later() {
     setSync('syncing');
     clearTimeout(backoffTimer);

@@ -17,6 +17,10 @@ const mirror = (b) => JSON.parse(b.storage.get(MIRROR));
 const methods = (b) => b.server.requests.map((r) => r.method);
 const gaps = (calls) => calls.slice(1).map((t, i) => t - calls[i]);
 const SYNCING = { state: 'syncing', text: 'Syncing…', login: false, retry: false };
+const LOCAL = { state: 'local', text: 'This device only', login: true, retry: false };
+const KARNA_1 = { user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 0 };
+// So liefert account-lite die Sitzung von user-1, wenn ihr Refresh erst nach dem Abmelden landet.
+const SESSION_1 = { access_token: 'token-user-1', refresh_token: 'refresh-user-1', user: { id: 'user-1' } };
 
 test('eine gerade unbrauchbare Sitzung behält Konto-Kopie und offene Änderung, und sie geht hinaus, sobald die Sitzung wieder trägt', async () => {
   const b = makeBrowser({ session: 'user-1' });
@@ -192,3 +196,87 @@ test('ohne gespeicherte Sitzung ist der Besucher abgemeldet: die Konto-Kopie ver
     assert.deepEqual(b.server.rows, [], c.at);
   }
 });
+
+test('meldet sich der Besucher ab, während der Abgleich die Zeilen holt, landen sie weder auf dem Gerät noch im nächsten Konto', async () => {
+  for (const answer of [undefined, 503]) {
+    const at = answer ? `GET mit ${answer}` : 'GET mit Zeilen';
+    const b = makeBrowser({ session: 'user-1', rows: [KARNA_1] });
+    b.server.hold('GET');
+    const tab = b.open();
+    await b.settle();
+    b.signOut();
+    await b.settle();
+    b.server.release(answer);
+    await b.settle();
+    assert.equal(b.storage.get(GUEST), null, at);
+    assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'false', at);
+    assert.deepEqual(tab.sync(), LOCAL, at);
+
+    b.signIn('user-2');
+    await b.settle();
+    assert.deepEqual(b.server.rows, [KARNA_1], at);
+  }
+});
+
+test('meldet sich der Besucher ab, während eine Änderung unterwegs ist, bleibt vom Konto nichts auf dem Gerät und die Anzeige bei „nur dieses Gerät"', async () => {
+  for (const answer of [undefined, 'offline']) {
+    const at = answer ? `POST ${answer}` : 'POST angekommen';
+    const b = makeBrowser({ session: 'user-1' });
+    const tab = b.open();
+    await b.settle();
+    b.server.hold('POST');
+    tab.clickOwn('karna-rifle');
+    await b.settle();
+    b.signOut();
+    await b.settle();
+    b.server.release(answer);
+    await b.settle();
+    assert.deepEqual(b.storage.keys().filter((k) => k.startsWith(GUEST)), [], at);
+    assert.deepEqual(tab.sync(), LOCAL, at);
+  }
+});
+
+test('meldet sich der Besucher ab, während der Abgleich noch die Sitzung prüft, fragt der Planer für das alte Konto nichts mehr ab', async () => {
+  const b = makeBrowser({ session: 'user-1', rows: [KARNA_1] });
+  const tab = b.open();
+  await b.settle();
+  b.holdSession(1);
+  b.advance(61000);
+  tab.hide();
+  tab.show();
+  await b.settle();
+  b.signOut();
+  await b.settle();
+  const before = b.server.requests.length;
+
+  b.releaseSession(SESSION_1);
+  await b.settle();
+  assert.equal(b.server.requests.length, before);
+  assert.equal(b.storage.get(GUEST), null);
+  assert.deepEqual(tab.sync(), LOCAL);
+});
+
+test('gehört die Sitzung schon einem anderen Konto, bevor dessen Ereignis den Planer erreicht, geht nichts mit ihr hinaus und nichts von ihm in die Kopie des vorigen', async () => {
+  const cases = [
+    { at: 'beim Abgleich', act: (b, tab) => { b.advance(61000); tab.hide(); tab.show(); } },
+    { at: 'beim Senden', act: (b, tab) => tab.clickOwn('karna-rifle') },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1', rows: [{ user_id: 'user-2', slug: 'p4-ar-rifle', owned: true, plan_qty: 0 }] });
+    const tab = b.open();
+    await b.settle();
+    tab.lag();
+    b.signIn('user-2');
+    c.act(b, tab);
+    await b.settle();
+    assert.deepEqual(methods(b).filter((m) => m !== 'GET'), [], c.at);
+    assert.ok(!String(b.storage.get(MIRROR)).includes('p4-ar-rifle'), c.at);
+    assert.notEqual(tab.sync().state, 'error', c.at);
+
+    tab.unlag();
+    await b.settle();
+    assert.equal(tab.ownButton('p4-ar-rifle').getAttribute('aria-pressed'), 'true', c.at);
+    assert.equal(tab.sync().state, 'synced', c.at);
+  }
+});
+
