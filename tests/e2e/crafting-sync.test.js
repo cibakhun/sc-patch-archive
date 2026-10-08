@@ -624,7 +624,7 @@ test('ändert ein Tab mit älterem Skript einen offenen Blueprint ohne Kennung, 
   b.storage.set(MIRROR, JSON.stringify({ owned: {}, plan: {}, pending: ['karna-rifle'] }));
   await b.settle();
   b.server.release();
-  await b.settle();
+  await b.drain();
   assert.deepEqual(mirror(b), { owned: {}, plan: {}, pending: ['karna-rifle'] });
 
   tab.hide();

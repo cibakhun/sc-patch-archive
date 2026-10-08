@@ -231,7 +231,8 @@
     var s = load(lsKey(uid), null);
     return {
       owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [],
-      rev: (s && s.rev) || {},
+      // Ein rev in anderem Format (kein Objekt) zählt wie keins.
+      rev: (s && typeof s.rev === 'object' && s.rev) || {},
     };
   }
   // `rev` steht nur in der Ablage, solange etwas offen ist, und nur für offene
@@ -414,6 +415,10 @@
         var now = loadState(me);
         now.pending = now.pending.filter(function (s) { return sent[s] !== rowOf(now, s); });
         saveState(me, now);
+        // Was offen bleibt, schrieb jemand während der Anfrage. Ein offener
+        // Tab plant seinen Zug selbst, einer, der inzwischen zu ist, nicht:
+        // ohne diesen läge der Blueprint bis zur nächsten Rückkehr herum.
+        if (now.pending.length) setTimeout(flush, 700);
         setSync('synced');
       });
     }).catch(function () {
