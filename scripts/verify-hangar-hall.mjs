@@ -20,7 +20,7 @@
    mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   SECHS ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   SIEBEN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -52,6 +52,19 @@
         (OBERGRENZE_KLAFFEND), sie sinkt mit jeder dichteren Halle; dazu
         eine Untergrenze dichter Randecken (KLINKE_DICHT), damit eine leere
         oder anders zerlegte Halle das Tor nicht still bestehen laesst.
+     7  Was der leichteren Stufe fehlt, kommt aus der vollen (seit
+        10.10.2026): Ihr fehlen zwei Drittel des Glases (Abdeckungen der
+        Kabelrinnen und Bodenkanaele, Scheiben der Glassaeulen, Kabine an
+        der Suedwand) und die Rohre in den Glassaeulen. Die Moebeldatei
+        bringt diese Materialien ganz aus der vollen Stufe (Knoten mit dem
+        Schluessel, den der Viewer hinter der Marke hall-detail nennt), der
+        Viewer laesst dafuer die Teile der leichteren Stufe mit denselben
+        Materialien fallen. Mindestens so viele Dreiecke wie die Klinke
+        (KLINKE_ERGAENZUNG), keines davon ein Moebel, jedes Material der
+        leichteren Stufe, das unter die Regel faellt, wird ersetzt (sonst
+        laege dort Glas doppelt oder das alte duenne), und nichts davon im
+        Bereich einer Ausnahme aus HALL_DROP (sonst kaeme ein entferntes
+        Teil ueber die Ergaenzung zurueck).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -85,6 +98,11 @@ const KLINKE_MOEBEL = { 'revelyork-single': 137 };
 // Fugen. Sie zu schliessen hiesse Spielgeometrie verschieben.
 const OBERGRENZE_KLAFFEND = { 'revelyork-single': 1753 };
 const KLINKE_DICHT = { 'revelyork-single': 121915 };
+// Klinke je Halle: so viele Dreiecke Ergaenzung (Glas, Rohre der
+// Glassaeulen) bringt die Moebeldatei aus der vollen Stufe mindestens.
+// Stand 10.10.2026, volle Stufe fbd0e9c9: 15 482 (Glas 15 398 in vier
+// Materialien, Rohre 84). Gleiche Regel wie oben.
+const KLINKE_ERGAENZUNG = { 'revelyork-single': 15482 };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -287,8 +305,67 @@ if (hall?.id && measured && (grenze === undefined || dicht === undefined)) fail(
 for (const k of new Set([...Object.keys(OBERGRENZE_KLAFFEND), ...Object.keys(KLINKE_DICHT)].filter((k) => k !== hall?.id))) fail(`[6] OBERGRENZE_KLAFFEND/KLINKE_DICHT["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 sollIst(`hoechstens ${grenze ?? '?'} klaffend, mindestens ${dicht ?? '?'} dicht, je Stufe`, seamRuns.map((r) => `${r.crack} klaffend, ${r.sealed} dicht`).join('; ') || '(keine Stufe gemessen)');
 
+say('\n[7] Was der leichteren Stufe fehlt, bringt die Moebeldatei ganz aus der vollen');
+// Der Schluessel steht im Viewer: const HALL_DETAIL = /* hall-detail */ '…'
+const km = /\/\* hall-detail \*\/\s*'([^']+)'/.exec(viewer);
+const detailKey = km?.[1] ?? null;
+const klinkeErg = hall?.id ? KLINKE_ERGAENZUNG[hall.id] ?? 0 : 0;
+let ergTris = 0, ergMats = new Set(), liteRule = [], inDrop = 0;
+if (viewer && !km) fail('[7] der Viewer traegt keinen Schluessel /* hall-detail */ \'…\' mehr: Die Ergaenzung aus der Moebeldatei kaeme dann zum duennen Glas der leichteren Stufe dazu, statt es zu ersetzen. Marke zurueck (assets/hangar-viewer.js, HALL_DETAIL), oder dieses Tor mitnehmen');
+if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey) {
+  const ff = fromUrl(hall.furniture.url), json = glbJson(ff), of = json?.extras?.furnitureOf;
+  const rule = of?.detail?.rule;
+  const det = (json?.nodes ?? []).filter((n) => n.extras?.[detailKey] === true && n.mesh != null);
+  for (const n of det) {
+    if (n.extras?.furniture != null || n.extras?.anchor) fail(`[7] Knoten ${n.name ?? '?'} ist Ergaenzung und Moebel zugleich: scripts/build-hall-furniture.mjs trennt beides`);
+    for (const p of json.meshes[n.mesh].primitives) {
+      ergTris += (json.accessors[p.indices ?? p.attributes?.POSITION]?.count ?? 0) / 3;
+      ergMats.add(json.materials?.[p.material]?.name ?? '?');
+    }
+  }
+  // Was die leichtere Stufe unter derselben Regel traegt, muss die Ergaenzung ersetzen
+  const lite = existsSync(fromUrl(hall.url)) ? glbJson(fromUrl(hall.url)) : null;
+  if (!rule) fail(`[7] ${hall.furniture.url.split('?')[0]} nennt keine Regel der Ergaenzung (extras.furnitureOf.detail.rule): nicht vom aktuellen scripts/build-hall-furniture.mjs gebaut?`);
+  else if (lite) {
+    const re = new RegExp(rule, 'i'), used = new Set();
+    for (const m of lite.meshes ?? []) for (const p of m.primitives) used.add(lite.materials?.[p.material]?.name ?? '?');
+    liteRule = [...used].filter((n) => re.test(n));
+    for (const n of liteRule.filter((n) => !ergMats.has(n))) fail(`[7] die leichtere Stufe traegt „${n}“ (Regel ${rule}), die Ergaenzung nicht: Dort bliebe das duenne Glas, und kam das Material in der vollen Stufe umbenannt, laege es doppelt. Regel DETAIL in scripts/build-hall-furniture.mjs pruefen`);
+  }
+  // Nichts davon im Bereich einer Ausnahme (Ecken in reach)
+  if (det.length && entries.length) {
+    const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
+    const doc = await io.read(ff);
+    for (const node of doc.getRoot().listNodes()) {
+      if (node.getExtras()?.[detailKey] !== true) continue;
+      const w = node.getWorldMatrix();
+      for (const p of node.getMesh()?.listPrimitives() ?? []) {
+        // ohne Indizes je drei Ecken ein Dreieck, wie Build und Viewer zaehlen
+        const P = p.getAttribute('POSITION').getArray(), I = p.getIndices()?.getArray() ?? null;
+        const m = I ? I.length : P.length / 3;
+        for (let t = 0; t + 2 < m; t += 3) {
+          const hit = (I ? [I[t], I[t + 1], I[t + 2]] : [t, t + 1, t + 2]).some((i) => {
+            const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+            const q = [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
+            return entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a]));
+          });
+          if (hit) inDrop++;
+        }
+      }
+    }
+    if (inDrop) fail(`[7] die Ergaenzung bringt ${inDrop} Dreiecke in den Bereich einer Ausnahme aus HALL_DROP zurueck: Das entfernte Teil stuende dort wieder (mit Glas oder Rohren). Regel DETAIL enger fassen oder die Ausnahme auch auf die Ergaenzung anwenden`);
+  }
+  if (ergTris < klinkeErg) fail(`[7] die Moebeldatei bringt ${ergTris} Dreiecke Ergaenzung, die Klinke verlangt ${klinkeErg}: Dann fehlt der Seite wieder das Glas auf Kabelrinnen, Bodenkanaelen und Glassaeulen (scripts/build-hall-furniture.mjs, DETAIL; Schluessel im Viewer „${detailKey}“). KLINKE_ERGAENZUNG nur per Commit mit Ursache senken`);
+} else if (hall?.furniture?.url) {
+  // ohne Schluessel ist oben schon ein Befund; fehlt die Datei, meldet es [5]
+} else say('    (die Seite laedt keine Moebeldatei: Telefon-Stufe oder volle Stufe, nichts zu ergaenzen)');
+for (const k of Object.keys(KLINKE_ERGAENZUNG).filter((k) => k !== hall?.id)) fail(`[7] KLINKE_ERGAENZUNG["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
+say(`    Schluessel im Viewer: ${detailKey ?? '(keiner)'}   Materialien: ${[...ergMats].map((n) => n.replace(/^.*_mtl_/, '')).join(', ') || '(keine)'}`);
+say(`    leichtere Stufe unter der Regel: ${liteRule.map((n) => n.replace(/^.*_mtl_/, '')).join(', ') || '(keine)'}`);
+sollIst(`mindestens ${klinkeErg} Dreiecke, jedes Material der leichteren Stufe ersetzt, 0 im Bereich einer Ausnahme`, `${ergTris} Dreiecke in ${ergMats.size} Materialien, ${liteRule.filter((n) => !ergMats.has(n)).length} nicht ersetzt, ${inDrop} im Bereich einer Ausnahme`);
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

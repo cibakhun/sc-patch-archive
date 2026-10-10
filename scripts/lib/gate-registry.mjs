@@ -253,7 +253,7 @@ export const CHECKS = [
     script: 'scripts/verify-hangar-hall.mjs',
     rail: 'A',
     checks:
-      'jede Ausnahme der echten Halle (HALL_DROP im ausgelieferten Viewer) gehoert zur Halle der Seite, trifft in jeder ausgelieferten Hallenstufe mindestens ihre Klinke an Dreiecken, nur ganze Teile, und nimmt hoechstens 2 % der Halle; die Moebel kommen mit (Klinke), nicht doppelt, und aus der ausgelieferten vollen Stufe; die Naehte jeder Hallenstufe halten (klaffende Randecken unter ihrer Obergrenze, dichte ueber ihrer Klinke)',
+      'jede Ausnahme der echten Halle (HALL_DROP im ausgelieferten Viewer) gehoert zur Halle der Seite, trifft in jeder ausgelieferten Hallenstufe mindestens ihre Klinke an Dreiecken, nur ganze Teile, und nimmt hoechstens 2 % der Halle; die Moebel kommen mit (Klinke), nicht doppelt, und aus der ausgelieferten vollen Stufe; die Naehte jeder Hallenstufe halten (klaffende Randecken unter ihrer Obergrenze, dichte ueber ihrer Klinke); was der leichteren Stufe an Glas und Rohren fehlt, bringt die Moebeldatei aus der vollen (Klinke), ersetzt jedes Material der leichteren Stufe unter der Regel und nichts im Bereich einer Ausnahme',
   },
   {
     id: 'audit:site',
