@@ -215,6 +215,37 @@ function dropHallParts(model, list) {
   return out;
 }
 
+// Ergänzung aus der vollen Stufe (10.10.2026). Der leichteren Stufe fehlen
+// zwei Drittel des Glases: die Abdeckungen der Kabelrinnen an den
+// Seitenwänden und der Bodenkanäle, die hinteren Scheiben der vier
+// Glassäulen, die Kabine an der Südwand, sechs Glaskörper hoch an den
+// Seitenwänden; dazu die Rohre in den Glassäulen. Ohne sie liegen Kabel und
+// Kanäle blank, und durch die Türsymbole der Glassäulen sieht man schwarz.
+// Die Möbeldatei bringt diese Materialien ganz aus der vollen Stufe mit, als
+// Knoten mit extras[HALL_DETAIL] (scripts/build-hall-furniture.mjs). Hier
+// fallen dafür die Teile der leichteren Stufe mit denselben Materialien, und
+// die Ergänzung nimmt deren Material (kein Shader doppelt).
+// verify:hangar-hall liest den Schlüssel aus dem ausgelieferten Viewer und
+// prüft die Möbeldatei dagegen.
+const HALL_DETAIL = /* hall-detail */ 'detail';
+function swapHallDetail(model, extra) {
+  const names = new Set();
+  const detail = [];
+  extra.traverse((n) => { if (n.userData?.[HALL_DETAIL]) n.traverse((o) => { if (o.isMesh) { detail.push(o); names.add(o.material.name); } }); });
+  if (!detail.length) return null;
+  const byName = new Map(), gone = [];
+  model.traverse((o) => {
+    if (!o.isMesh) return;
+    if (!byName.has(o.material.name)) byName.set(o.material.name, o.material);
+    if (names.has(o.material.name)) gone.push(o);
+  });
+  const tris = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3;
+  let cut = 0, added = 0;
+  for (const o of gone) { cut += tris(o.geometry); o.removeFromParent(); o.geometry.dispose(); }
+  for (const o of detail) { added += tris(o.geometry); o.material = byName.get(o.material.name) ?? o.material; }
+  return { materials: names.size, added, cut, parts: gone.length };
+}
+
 // Einrichtung zusammenlegen (2026-10-08). Der Build stellt jedes Möbel als
 // eigenen Knoten mit Bezugspunkt (extras.anchor, Modellraum der Halle): 137
 // Möbel mit 585 Primitiven, also so viele Draw-Calls, im AO-Pass noch einmal
@@ -2302,6 +2333,8 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
       if (extra) {
+        const det = swapHallDetail(model, extra);
+        if (det) console.info(`[hangar] Halle: ${det.added} Dreiecke Glas und Rohre aus der vollen Stufe statt ${det.cut} (${det.materials} Materialien)`);
         model.add(extra);
         extra.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
       }
