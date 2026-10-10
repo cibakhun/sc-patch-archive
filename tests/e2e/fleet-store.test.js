@@ -670,3 +670,26 @@ test('der Hinweis zur Übernahme übersteht den Weg vom Datenblatt in den Hangar
   assert.equal(other.snapshot().merged, 0, 'geschlossen in einem Tab heisst geschlossen in allen');
   assert.equal(b.storage.get('vb.fleet.v1.user-1'), '{"ships":[{"id":"aegs-gladius","label":"Gladius"}],"pending":{}}');
 });
+// Wie im Crafting-Planer: eine Anfrage, deren Frist abläuft, wird
+// abgebrochen. Sonst gäbe der Lauf die Sperre frei, während sie noch
+// unterwegs ist, und ein spätes Hinzufügen nach dem Entfernen holte das
+// Schiff zurück.
+test('endet ein Lauf nach 20 Sekunden, kommt seine Anfrage nicht mehr nach dem nächsten an', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open({ buttons: [GLADIUS] });
+  await b.settle();
+  b.server.hold('POST');
+  tab.click(tab.button());
+  await b.settle();
+  b.advance(20000);
+  await b.settle();
+  assert.equal(tab.snapshot().sync, 'error', 'Voraussetzung: der Lauf endete nach der Frist');
+
+  tab.click(tab.button());
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), []);
+
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(b.server.slugs(), [], 'entfernt bleibt entfernt');
+});

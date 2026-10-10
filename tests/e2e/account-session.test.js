@@ -634,3 +634,16 @@ test('kommt eine Seite aus dem bfcache zurück und gilt noch dieselbe Sitzung, z
   assert.equal(tab.admin(), true);
   assert.deepEqual(nameAndRoleFetches(tab), asked);
 });
+
+// crafting-app.js und fleet.js brechen eine Anfrage nach ihrer Frist ab; das
+// Signal muss dafür bis zu fetch durchgehen.
+test('VBAccount.rest reicht ein AbortSignal an fetch weiter', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  const ctl = new AbortController();
+  tab.rest({ access_token: 'token-1' }, 'GET', 'crafting_entries?select=slug', null, null, ctl.signal);
+  const last = tab.requests[tab.requests.length - 1];
+  assert.equal(last.url.includes('/rest/v1/crafting_entries?select=slug'), true);
+  assert.equal(last.signal, ctl.signal);
+});

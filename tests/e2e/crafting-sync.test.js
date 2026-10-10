@@ -912,3 +912,26 @@ test('steht ein Tab auf „Nicht gespeichert" und schickt ein anderer danach all
   assert.deepEqual(mirror(b).pending, []);
   assert.deepEqual(one.sync(), { state: 'synced', text: 'Synced to your account', login: false, retry: false });
 });
+
+// Eine Anfrage, deren Frist abläuft, wird abgebrochen, nicht nur nicht mehr
+// abgewartet: sonst gäbe der Zug die Reihe frei, während sie noch unterwegs
+// ist, und käme sie nach dem nächsten Zug beim Server an, überschriebe sie
+// dessen neueren Stand.
+test('bricht ein Zug nach 20 s ab, kommt seine Anfrage nicht mehr nach dem nächsten an', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.server.hold('POST');
+  tab.clickOwn('karna-rifle');
+  await b.settle({ horizon: 30000 });
+  assert.equal(tab.sync().state, 'error', 'Voraussetzung: der Zug endete nach der Frist');
+
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows, []);
+  assert.deepEqual(mirror(b).pending, []);
+
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(b.server.rows, [], 'der Stern ist aus, und so bleibt er beim Server');
+});

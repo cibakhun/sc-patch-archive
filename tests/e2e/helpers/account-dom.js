@@ -189,7 +189,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
           addEventListener() {},
         },
         fetch: (url, init) => {
-          tab.requests.push({ method: init.method, url });
+          tab.requests.push({ method: init.method, url, signal: init.signal });
           const never = () => new Promise(() => {});
           return authServer(url, init).then((r) => (tab.gone ? never() : r), (e) => (tab.gone ? never() : Promise.reject(e)));
         },
@@ -218,6 +218,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       /** Abmelden auf /account/ in DIESEM Tab: supabase-js löscht die Sitzung, storage hören nur die anderen Tabs. */
       tab.signOut = () => sandbox.localStorage.removeItem(STORE);
       tab.session = () => sandbox.VBAccount.session();
+      /** VBAccount.rest, wie ein Seitenskript es ruft. */
+      tab.rest = (...args) => sandbox.VBAccount.rest(...args);
       tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
       tab.admin = () => root.set.has('is-admin');
       tab.freeze = () => { tab.frozen = true; };
