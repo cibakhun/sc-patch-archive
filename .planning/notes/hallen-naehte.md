@@ -62,7 +62,8 @@ staging.
    `tol` nicht von selbst erhöhen, sondern melden, wie sie sich verteilen
    (`crackMm` der Quelle und der Datei). Dann ist die Quelle selbst nicht
    dicht, und die Cloud entscheidet.
-6. `npm run build && npm run gate`, dann `STAGING=1` ebenso, committen,
+6. `npm run build && npm run gate`, dann als Vorschau (PowerShell:
+   `$env:STAGING = '1'; npm run build; npm run gate`), committen,
    pushen. Kein PR: Sichtprüfung, das Tor für die Nähte
    (`verify:hangar-hall`, neue Zusicherung 6, vorgeführt rot an der alten
    Datei) und den Merge nach staging macht die Cloud.
