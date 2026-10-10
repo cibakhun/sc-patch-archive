@@ -72,9 +72,16 @@ const furnFile = hallKey ? `${hallDir}/${hallKey}.furniture.glb` : '';
 const furniture = lite && existsSync(furnFile)
   ? { url: `/hangar/hall/${hallKey}.furniture.glb?v=${contentV([furnFile])}`, bytes: statSync(furnFile).size }
   : null;
+// Telefone laden die Möbel nicht (641 000 Dreiecke). Was der leichteren
+// Stufe sonst fehlt, Glas, Rohre und die Füllung, bringt derselbe Build
+// als eigene kleine Datei ohne Möbel und Texturen (60 KB, 2026-10-10).
+const patchFile = hallKey ? `${hallDir}/${hallKey}.patch.glb` : '';
+const patch = furniture && existsSync(patchFile)
+  ? { url: `/hangar/hall/${hallKey}.patch.glb?v=${contentV([patchFile])}`, bytes: statSync(patchFile).size }
+  : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite
-  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture }
+  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch }
   : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite };
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;

@@ -52,12 +52,20 @@
    Eckfarben) bleiben, wie das Material der vollen Stufe sie braucht, bei
    der Fuellung genau die der gleichnamigen Primitive der dichten Kopie.
 
+   TELEFON (seit 10.10.2026): Am Telefon laedt die Seite die Moebeldatei
+   nicht (641 000 Dreiecke Moebel), nur die dichte Kopie. Ergaenzung und
+   Fuellung kommen dort aus <halle>.patch.glb: dieselben Knoten, gleich
+   gepackt, ohne Moebel und ohne Texturen (60 KB). extras.patchOf nennt die
+   sha1 der Moebeldatei, aus der sie stammt; verify:hangar-hall vergleicht
+   beide je Primitive.
+
    Gleiche Quelle, gleiche Datei: Die Ausgabe nennt in extras.furnitureOf
    Datei und sha1 ihrer Quelle, die Regel der Ergaenzung und die der
    Fuellung samt sha1 der dichten Kopie, gegen die sie gerechnet ist.
-   Stimmt alles,
-   bleibt sie liegen. Traegt die Quelle keine Moebel mehr, verschwindet eine
-   alte Ausgabe, damit die Seite keine veraltete Einrichtung laedt.
+   Stimmt alles (und stammt die Telefon-Datei aus genau dieser
+   Moebeldatei), bleiben beide liegen. Traegt die Quelle keine Moebel mehr,
+   verschwinden alte Ausgaben, damit die Seite keine veraltete Einrichtung
+   laedt.
    verify:hangar-hall prueft am Artefakt, dass die ausgelieferte
    Einrichtung zur ausgelieferten vollen Stufe passt und die Ergaenzung
    alles ersetzt, was die dichte Kopie davon traegt.
@@ -70,7 +78,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { NodeIO, PropertyType } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { prune, draco } from '@gltf-transform/functions';
+import { prune, draco, cloneDocument } from '@gltf-transform/functions';
 import draco3d from 'draco3d';
 import { texcoordBits } from './lib/uv-islands.mjs';
 import { FILL_TOL, touches, samples, clipToBox, worldTris, normalOf, withNormals, onLite } from './lib/hall-fill.mjs';
@@ -172,12 +180,13 @@ function glbJson(file) {
 const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
 let io = null;
 for (const [key, asset] of Object.entries(manifest.hall ?? {})) {
-  const out = join(HALL_DIR, `${key}.furniture.glb`);
+  const out = join(HALL_DIR, `${key}.furniture.glb`), patchOut = join(HALL_DIR, `${key}.patch.glb`);
   const srcName = String(asset?.url ?? '').split('?')[0].split('/').pop();
   const src = join(HALL_DIR, srcName);
   const drop = (why) => {
-    if (existsSync(out)) { rmSync(out); console.log(`Einrichtung ${key}: ${why}, alte Datei entfernt`); }
-    else console.log(`Einrichtung ${key}: ${why}, keine Datei`);
+    const old = [out, patchOut].filter((f) => existsSync(f));
+    for (const f of old) rmSync(f);
+    console.log(`Einrichtung ${key}: ${why}, ${old.length ? 'alte Datei entfernt' : 'keine Datei'}`);
   };
   if (!srcName || !existsSync(src)) { drop(`Quelle ${srcName || '(keine)'} fehlt`); continue; }
   const bytes = readFileSync(src), hash = sha1(bytes);
@@ -186,9 +195,11 @@ for (const [key, asset] of Object.entries(manifest.hall ?? {})) {
   const liteBytes = existsSync(liteFile) && liteName !== srcName ? readFileSync(liteFile) : null;
   const liteHash = liteBytes ? sha1(liteBytes) : null;
   const had = existsSync(out) ? glbJson(out)?.extras?.furnitureOf : null;
-  if (had?.file === srcName && had?.sha1 === hash && had?.detail?.rule === DETAIL.source && had?.fill?.rule === FILL_RULE && (had?.fill?.sha1 ?? null) === liteHash) {
+  // Die Telefon-Datei muss aus genau dieser Moebeldatei stammen
+  const patchOk = existsSync(out) && existsSync(patchOut) && glbJson(patchOut)?.extras?.patchOf?.sha1 === sha1(readFileSync(out));
+  if (patchOk && had?.file === srcName && had?.sha1 === hash && had?.detail?.rule === DETAIL.source && had?.fill?.rule === FILL_RULE && (had?.fill?.sha1 ?? null) === liteHash) {
     const filled = (had.fill.regions ?? []).reduce((sum, r) => sum + r.tris, 0);
-    console.log(`Einrichtung ${key}: aktuell (${had.nodes} Moebel, ${had.detail.tris} Dreiecke Ergaenzung und ${filled} Fuellung aus ${srcName}, sha1 ${hash.slice(0, 8)})`);
+    console.log(`Einrichtung ${key}: aktuell (${had.nodes} Moebel, ${had.detail.tris} Dreiecke Ergaenzung und ${filled} Fuellung aus ${srcName}, sha1 ${hash.slice(0, 8)}; Telefon-Datei dazu)`);
     continue;
   }
   // Ohne Moebelknoten (etwa die dichte Kopie als Hauptstufe) gar nicht erst dekodieren
@@ -276,11 +287,28 @@ for (const [key, asset] of Object.entries(manifest.hall ?? {})) {
     p.setMaterial(stubs.get(name));
   }
   // Wie der Build: Lage 16 Bit (Halle), Normalen 10, UV so fein wie noetig
-  await doc.transform(prune({ propertyTypes: [PropertyType.MATERIAL, PropertyType.TEXTURE] }), draco({ method: 'edgebreaker', quantizePosition: 16, quantizeNormal: 10, quantizeTexcoord: Math.max(texcoordBits(root, 'TEXCOORD_0'), texcoordBits(root, 'TEXCOORD_1')) }));
+  const pack = { method: 'edgebreaker', quantizePosition: 16, quantizeNormal: 10, quantizeTexcoord: Math.max(texcoordBits(root, 'TEXCOORD_0'), texcoordBits(root, 'TEXCOORD_1')) };
+  await doc.transform(prune({ propertyTypes: [PropertyType.MATERIAL, PropertyType.TEXTURE] }), draco(pack));
   const fill = { rule: FILL_RULE, file: liteBytes ? liteName : null, sha1: liteHash, regions: regions.map((r) => ({ name: r.name, material: r.material, tris: r.tris, skipped: r.skipped, partial: r.partial, ...(r.lost ? { lost: r.lost, why: r.why } : {}) })) };
   root.setExtras({ ...(root.getExtras() ?? {}), furnitureOf: { file: srcName, sha1: hash, nodes, tris, detail: { rule: DETAIL.source, tris: detailTris, materials: detail }, fill } });
   const glb = await io.writeBinary(doc);
   writeFileSync(out, glb);
+  // Telefon-Datei: Ergaenzung und Fuellung ohne Moebel. Am Telefon laedt die
+  // Seite nur die dichte Kopie (die Moebel kosten 641 000 Dreiecke), ihr
+  // fehlten sonst Glas, Rohre und alles aus FILL. Dieselben Knoten wie in
+  // der Moebeldatei, gleich gepackt; patchOf nennt deren sha1. prune ohne
+  // keepAttributes naehme den Teilen ihre Texturkoordinaten (ihre
+  // Materialien tragen keine Texturen mehr, siehe oben).
+  const patch = cloneDocument(doc);
+  for (const n of patch.getRoot().listNodes()) {
+    if (n.isDisposed()) continue;
+    const x = n.getExtras() ?? {};
+    if (x.furniture != null && Array.isArray(x.anchor)) { const sub = []; n.traverse((c) => sub.push(c)); for (const c of sub) c.dispose(); }
+  }
+  await patch.transform(prune({ keepAttributes: true }), draco(pack));
+  patch.getRoot().setExtras({ patchOf: { file: `${key}.furniture.glb`, sha1: sha1(glb), detail: { rule: DETAIL.source, tris: detailTris }, fill: { rule: FILL_RULE, sha1: liteHash } } });
+  const pglb = await io.writeBinary(patch);
+  writeFileSync(patchOut, pglb);
   const filled = fill.regions.map((r) => `${r.name} ${r.tris}, ${r.skipped} deckungsgleich ausgelassen, ${r.partial} teilweise aufliegend${r.lost ? `, ${r.lost} nicht mitgenommen (${r.why})` : ''}`).join('; ');
-  console.log(`Einrichtung ${key}: ${nodes} Moebel, ${tris} Dreiecke, Ergaenzung ${detailTris} Dreiecke in ${Object.keys(detail).length} Materialien, Fuellung ${liteBytes ? filled || 'keine' : `keine (${liteName} fehlt)`}, ${(glb.byteLength / 1e6).toFixed(1)} MB -> public/hangar/hall/${key}.furniture.glb (aus ${srcName}, sha1 ${hash.slice(0, 8)})`);
+  console.log(`Einrichtung ${key}: ${nodes} Moebel, ${tris} Dreiecke, Ergaenzung ${detailTris} Dreiecke in ${Object.keys(detail).length} Materialien, Fuellung ${liteBytes ? filled || 'keine' : `keine (${liteName} fehlt)`}, ${(glb.byteLength / 1e6).toFixed(1)} MB -> public/hangar/hall/${key}.furniture.glb (aus ${srcName}, sha1 ${hash.slice(0, 8)}); Telefon ${(pglb.byteLength / 1e3).toFixed(0)} KB -> ${key}.patch.glb`);
 }
