@@ -225,25 +225,41 @@ function dropHallParts(model, list) {
 // Knoten mit extras[HALL_DETAIL] (scripts/build-hall-furniture.mjs). Hier
 // fallen dafür die Teile der leichteren Stufe mit denselben Materialien, und
 // die Ergänzung nimmt deren Material (kein Shader doppelt).
-// verify:hangar-hall liest den Schlüssel aus dem ausgelieferten Viewer und
+// Dazu die Füllung (extras[HALL_FILL]): was die leichtere Stufe an einer
+// Stelle ganz weglässt, etwa eine Holzblende auf einem Deckenkasten. Sie
+// kommt nur dazu, mit dem Material der leichteren Stufe gleichen Namens.
+// Beide bringen aus der Möbeldatei nur Name und Faktoren ihres Materials
+// mit, keine Texturen.
+// verify:hangar-hall liest beide Schlüssel aus dem ausgelieferten Viewer und
 // prüft die Möbeldatei dagegen.
 const HALL_DETAIL = /* hall-detail */ 'detail';
+const HALL_FILL = /* hall-fill */ 'fill';
 function swapHallDetail(model, extra) {
   const names = new Set();
-  const detail = [];
-  extra.traverse((n) => { if (n.userData?.[HALL_DETAIL]) n.traverse((o) => { if (o.isMesh) { detail.push(o); names.add(o.material.name); } }); });
-  if (!detail.length) return null;
+  const detail = [], fill = [];
+  extra.traverse((n) => {
+    if (n.userData?.[HALL_DETAIL]) n.traverse((o) => { if (o.isMesh) { detail.push(o); names.add(o.material.name); } });
+    else if (n.userData?.[HALL_FILL]) n.traverse((o) => { if (o.isMesh) fill.push(o); });
+  });
+  if (!detail.length && !fill.length) return null;
+  // Ein Material gibt es doppelt, wenn es Teile mit und ohne Eckfarben
+  // tragen (der Loader klont es dann mit vertexColors): gesucht wird nach
+  // Name und Eckfarben, so bekommt jedes Teil das seines Gegenstücks, auch
+  // für die Abdunkelung aus dem Spiel weiter unten.
+  const key = (o) => `${o.material.name}|${o.geometry.attributes.color ? 1 : 0}`;
   const byName = new Map(), gone = [];
   model.traverse((o) => {
     if (!o.isMesh) return;
-    if (!byName.has(o.material.name)) byName.set(o.material.name, o.material);
+    if (!byName.has(key(o))) byName.set(key(o), o.material);
     if (names.has(o.material.name)) gone.push(o);
   });
   const tris = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3;
   let cut = 0, added = 0;
   for (const o of gone) { cut += tris(o.geometry); o.removeFromParent(); o.geometry.dispose(); }
-  for (const o of detail) { added += tris(o.geometry); o.material = byName.get(o.material.name) ?? o.material; }
-  return { materials: names.size, added, cut, parts: gone.length };
+  for (const o of detail) { added += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
+  let filled = 0;
+  for (const o of fill) { filled += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
+  return { materials: names.size, added, cut, parts: gone.length, filled };
 }
 
 // Einrichtung zusammenlegen (2026-10-08). Der Build stellt jedes Möbel als
@@ -2334,7 +2350,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       const extra = await furnReady;
       if (extra) {
         const det = swapHallDetail(model, extra);
-        if (det) console.info(`[hangar] Halle: ${det.added} Dreiecke Glas und Rohre aus der vollen Stufe statt ${det.cut} (${det.materials} Materialien)`);
+        if (det) console.info(`[hangar] Halle: ${det.added} Dreiecke Glas und Rohre aus der vollen Stufe statt ${det.cut} (${det.materials} Materialien), ${det.filled} Dreiecke Füllung`);
         model.add(extra);
         extra.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
       }
@@ -2437,10 +2453,12 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
       // Hinter den Wänden ist dunkel: Durch die feinen Spalte, die schon die
-      // Spielgeometrie hat (Nähte, Schlitze oben im Nordtor, Symbole der
+      // Spielgeometrie hat (Nähte, Schlitze im Nordtor, Symbole der
       // Glassäulen, deren Innenleben die dichte Stufe weglässt), leuchtete
-      // der hellgraue Hintergrund als weiße Punkte und Flecken. Der Dunst
-      // bleibt hellgrau.
+      // der hellgraue Hintergrund als weiße Punkte und Flecken. Am Rechner
+      // bringt die Möbeldatei das Innenleben der Glassäulen aus der vollen
+      // Stufe (swapHallDetail), am Telefon bleiben auch dort Spalte. Der
+      // Dunst bleibt hellgrau.
       scene.background = new THREE.Color(0x1e2024);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
