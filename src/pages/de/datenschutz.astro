@@ -244,6 +244,7 @@ body{font-family:var(--font-body)}
         du ein Handle gesetzt hast, sind sie auf deinem öffentlichen Piloten-Profil sichtbar</li>
       <li><strong>Werkzeug-Daten</strong>, die du aktiv anlegst (Crafting-Planer und
         „Im Besitz“-Markierungen, Refinery-Aufträge)</li>
+      <li>dein <a href="#presence"><strong>Online-Status</strong></a>, solange du angemeldet bist</li>
       <li>technisch bedingt Sitzungs- und Sicherheitsdaten des Anbieters (z. B. Zeitpunkt der
         Anmeldung, IP-Adresse in Sicherheits-Logs)</li>
     </ul>
@@ -258,9 +259,33 @@ body{font-family:var(--font-body)}
       Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
       Details zur Datenverarbeitung durch den Dienst:
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
-      Eine Verbindung zu Supabase wird nur hergestellt, wenn du Konto-Funktionen nutzt
-      (Registrierung, Anmeldung, Favoriten, kontogebundene Werkzeuge) — nicht beim bloßen
-      Betrachten der Seiten.
+      Ohne Anmeldung wird eine Verbindung zu Supabase nur hergestellt, wenn du Konto-Funktionen
+      nutzt (Registrierung, Anmeldung) — nicht beim bloßen Betrachten der Seiten. Bist du
+      angemeldet, verbindet sich jede Seite mit Supabase, um deine Sitzung bei Bedarf zu
+      erneuern, deinen Anzeigenamen im Menü zu zeigen und deinen
+      <a href="#presence">Online-Status</a> zu schreiben; Seiten mit kontogebundenen Werkzeugen
+      gleichen zusätzlich deren Inhalte ab.
+    </p>
+
+    <h2 id="presence">Online-Status (nur mit Konto)</h2>
+    <p>
+      Solange du angemeldet bist und eine Seite dieser Website geöffnet hast, schreibt dein
+      Browser zwei Zeitpunkte in dein Profil: wann die Seite zuletzt offen war und wann du
+      zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen, Berühren; das Laden der Seite
+      und die Rückkehr auf den Tab zählen mit). Das geschieht beim Laden, danach alle
+      30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder Rückkehr auf den Tab.
+      Welche Seite du ansiehst und was du dort tust, wird dabei nicht übermittelt. Ohne
+      Anmeldung wird nichts geschrieben.
+    </p>
+    <p>
+      Andere sehen nicht die Zeitpunkte, sondern nur einen daraus abgeleiteten Status:
+      <em>online</em> (Seite offen und in den letzten 3 Minuten benutzt), <em>abwesend</em>
+      (Seite offen, aber länger unbenutzt, oder vor weniger als 3 Minuten geschlossen) oder
+      <em>offline</em>. Sichtbar ist dieser Status nur, wenn du ein Handle gesetzt hast: für
+      jeden auf deinem öffentlichen Piloten-Profil und für angemeldete Nutzer im Freundes- und
+      Piloten-Verzeichnis. Meldest du dich im Konto-Dashboard ab, werden beide Zeitpunkte
+      sofort geleert; beim Löschen des Kontos verschwinden sie mit dem Profil.
+      Rechtsgrundlage ist wie beim übrigen Konto Art. 6 Abs. 1 lit. b DSGVO.
     </p>
 
     <h2 id="support">Freiwillige Unterstützung (Stripe, PayPal)</h2>
