@@ -10,7 +10,9 @@
 // Konto-Element aus SiteNav (nav()), zeigt die Admin-Klasse am Dokument
 // (admin()), führt Buch über seine Anfragen (requests) und lädt mit reload()
 // eine neue Seite im selben Tab: gleicher sessionStorage, die alte Seite
-// bekommt keine Antwort, kein Ereignis und keinen Zeitgeber mehr.
+// bekommt keine Antwort, kein Ereignis und keinen Zeitgeber mehr. freeze()
+// legt die Seite in den bfcache: sie hört kein Ereignis und keinen Zeitgeber,
+// bis restore() sie mit pageshow (persisted) zurückholt, wie der Zurück-Knopf.
 //
 // Vor account-lite läuft wie im Seitenkopf das Kopfskript aus Layout.astro,
 // das die Admin-Klasse aus dem Rollen-Cache vor dem ersten Bild setzt;
@@ -116,7 +118,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       const until = clock.now + ms;
       for (;;) {
         await browser.drain();
-        const due = clock.timers.filter((t) => t.at <= until).sort((a, b) => a.at - b.at || a.id - b.id)[0];
+        const due = clock.timers.filter((t) => t.at <= until && !t.tab.frozen).sort((a, b) => a.at - b.at || a.id - b.id)[0];
         if (!due) break;
         clock.now = Math.max(clock.now, due.at);
         if (due.every) due.at += due.every;
@@ -207,7 +209,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
         console,
       };
       sandbox.window = sandbox;
-      tab.fire = (type, init) => { for (const fn of (listeners[type] || []).slice()) fn({ type, ...init }); };
+      tab.fire = (type, init) => { if (tab.frozen) return; for (const fn of (listeners[type] || []).slice()) fn({ type, ...init }); };
       const ctx = vm.createContext(sandbox);
       vm.runInContext(HEAD, ctx);
       const headAdmin = root.set.has('is-admin');
@@ -218,6 +220,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
       tab.session = () => sandbox.VBAccount.session();
       tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
       tab.admin = () => root.set.has('is-admin');
+      tab.freeze = () => { tab.frozen = true; };
+      tab.restore = () => { tab.frozen = false; tab.fire('pageshow', { persisted: true }); };
       tab.reload = () => {
         tab.gone = true;
         tabs.splice(tabs.indexOf(tab), 1);

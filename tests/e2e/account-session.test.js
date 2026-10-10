@@ -591,3 +591,46 @@ test('ein zweiter Tab refresht nicht parallel und erfährt den Refresh des erste
   assert.equal(sessionEvents(second), 1);
   assert.equal(tokenOf(await second.session()), 'token-2');
 });
+
+// Eine Seite im bfcache hört kein storage-Ereignis: wer sich in einem anderen
+// Tab ab- oder ummeldet und dann per Zurück-Knopf auf sie zurückkehrt, sähe
+// sonst das alte Konto samt Admin-Klasse. pageshow (persisted) gleicht ab und
+// meldet den Seitenskripten (crafting-app.js, fleet.js) die Sitzung.
+test('kommt eine Seite aus dem bfcache zurück, nachdem sich der Besucher anderswo ab- oder umgemeldet hat, zeigt sie die Sitzung von jetzt', async () => {
+  const cases = [
+    { at: 'abgemeldet', act: (b) => b.signOut(), nav: SIGNED_OUT },
+    { at: 'anderes Konto', act: (b) => b.signIn(9, 'user-2'), nav: VEGA },
+  ];
+  for (const c of cases) {
+    const b = makeAccountBrowser({ expiresIn: 3600 });
+    const tab = b.open();
+    await b.drain();
+    assert.deepEqual(tab.nav(), SIGNED_IN);
+    assert.equal(tab.admin(), true);
+
+    tab.freeze();
+    c.act(b);
+    await b.drain();
+    assert.deepEqual(tab.nav(), SIGNED_IN, `${c.at}: Voraussetzung, im bfcache kommt nichts an`);
+
+    const before = tab.events.length;
+    tab.restore();
+    await b.drain();
+    assert.deepEqual(tab.nav(), c.nav, c.at);
+    assert.equal(tab.admin(), false, c.at);
+    assert.ok(tab.events.slice(before).includes('vb-account-session'), `${c.at}: die Seitenskripte erfahren es`);
+  }
+});
+
+test('kommt eine Seite aus dem bfcache zurück und gilt noch dieselbe Sitzung, zeichnet sie nichts neu und fragt nichts', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  const asked = nameAndRoleFetches(tab);
+  tab.freeze();
+  tab.restore();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true);
+  assert.deepEqual(nameAndRoleFetches(tab), asked);
+});
