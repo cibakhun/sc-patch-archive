@@ -155,8 +155,8 @@ function clipInto(r, node, prim) {
     for (let k = 1; k + 1 < poly.length; k++) {
       const tri = [poly[0], poly[k], poly[k + 1]], q = tri.map((v) => v.p);
       if (area2(q) < 1e-8) continue; // Splitter vom Schnitt durch eine Ecke
-      const nq = normalOf(q), on = samples(q).filter((s) => onLite(s, nq, r.near)).length;
-      if (on === 4) { r.skipped++; continue; }
+      const nq = normalOf(q), pr = samples(q), on = pr.filter((s) => onLite(s, nq, r.near)).length;
+      if (on === pr.length) { r.skipped++; continue; }
       if (on) r.partial++;
       out.push(...tri);
     }

@@ -18,14 +18,26 @@ export const touches = (b, t, pad = 0) => [0, 1, 2].every((a) => Math.min(t[0][a
 
 export const centroid = (t) => [0, 1, 2].map((a) => (t[0][a] + t[1][a] + t[2][a]) / 3);
 
-// Probepunkte eines Dreiecks: Schwerpunkt und drei innere Punkte, je auf
-// halbem Weg vom Schwerpunkt zu einer Ecke. Liegt nur ein Teil des
-// Dreiecks auf der dichten Stufe (ein langes Dreieck ueber eine Kante
-// hinaus), trifft das mindestens eine Probe, der Schwerpunkt allein oft
-// nicht.
-export const samples = (t) => [centroid(t), ...[0, 1, 2].map((k) => [0, 1, 2].map((a) => (4 * t[k][a] + t[(k + 1) % 3][a] + t[(k + 2) % 3][a]) / 6))];
-
+// Probepunkte eines Dreiecks: Es wird je Kante in n Teile zerlegt (n²
+// Teildreiecke, n so, dass ein Teil hoechstens SAMPLE_STEP lang ist,
+// mindestens 2, hoechstens 64), die Proben sind deren Schwerpunkte. Bei
+// n = 2 sind das der Schwerpunkt und drei Punkte je auf halbem Weg von
+// ihm zu einer Ecke. Liegt nur ein Teil des Dreiecks auf der dichten Stufe,
+// trifft das eine Probe, sobald der Teil groesser ist als ein
+// Teildreieck; der Schwerpunkt allein verfehlt ihn oft.
+export const SAMPLE_STEP = 0.05;
 const sub = (u, v) => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
+export function samples(t) {
+  const len = Math.max(...[0, 1, 2].map((k) => Math.hypot(...sub(t[(k + 1) % 3], t[k]))));
+  const n = Math.min(64, Math.max(2, Math.ceil(len / SAMPLE_STEP))), out = [];
+  const at = (u, v) => [0, 1, 2].map((a) => t[0][a] + u * (t[1][a] - t[0][a]) + v * (t[2][a] - t[0][a]));
+  for (let i = 0; i < n; i++) for (let j = 0; i + j < n; j++) {
+    out.push(at((i + 1 / 3) / n, (j + 1 / 3) / n));
+    if (i + j < n - 1) out.push(at((i + 2 / 3) / n, (j + 2 / 3) / n));
+  }
+  return out;
+}
+
 export function normalOf(t) {
   const u = sub(t[1], t[0]), v = sub(t[2], t[0]), n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
   const l = Math.hypot(...n) || 1;

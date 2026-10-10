@@ -80,12 +80,13 @@
         ohne Klinke oder ohne Dreiecke, gerechnet gegen genau die
         leichtere Stufe in dist/ (sha1). Kein Dreieck liegt ganz oder
         teilweise auf einer gleich ausgerichteten Flaeche der leichteren
-        Stufe (Schwerpunkt und drei innere Probepunkte, unter FILL_TOL;
-        beide flimmerten gegeneinander), keines im Bereich einer Ausnahme
-        aus HALL_DROP. Material und Attributsatz traegt die leichtere
-        Stufe genauso (die Moebeldatei bringt Ergaenzung und Fuellung ohne
-        Texturen, der Viewer gibt ihnen das gleichnamige Material der
-        leichteren Stufe; dasselbe gilt in [7] fuer die Ergaenzung).
+        Stufe (Probepunkte hoechstens SAMPLE_STEP auseinander, unter
+        FILL_TOL; beide flimmerten gegeneinander), keines mit einer Ecke
+        im Bereich einer Ausnahme aus HALL_DROP. Material und Attributsatz
+        traegt die leichtere Stufe genauso (die Moebeldatei bringt
+        Ergaenzung und Fuellung ohne Texturen, der Viewer gibt ihnen das
+        gleichnamige Material der leichteren Stufe; dasselbe gilt in [7]
+        fuer die Ergaenzung).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -387,7 +388,10 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey
     ergSigBad++;
     fail(`[7] die Ergaenzung traegt „${mn}“ mit ${s}, die leichtere Stufe nur mit ${[...liteSigs.get(mn)].join(' / ')}: Der Viewer gibt ihr das Material nach Name und Eckfarben (ohne Gegenstueck bliebe sie ohne Texturen), ein anderer Satz braucht ein eigenes Shaderprogramm, und fehlen Texturkoordinaten, liegt die Textur verschmiert. Moebeldatei neu bauen; bleibt es, in scripts/build-hall-furniture.mjs die Attribute der Ergaenzung (prune vor dem Tausch der Materialien) auf die der leichteren Stufe bringen`);
   }
-  // Nichts davon im Bereich einer Ausnahme (Ecken in reach)
+  // Nichts davon im Bereich einer Ausnahme (Ecken in reach). Die Ecken
+  // genuegen: HALL_DROP nimmt nur Teile, die ganz in reach liegen; ein
+  // Dreieck, das den Kasten nur schneidet, gehoert zu einem Teil, das auch
+  // die leichtere Stufe behaelt (so die Glasscheibe ueber der Trennwand).
   if (det.length && entries.length) {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
     const doc = await io.read(ff);
@@ -484,10 +488,10 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && fillKey) 
       fillNear += r.near.length;
       const near = withNormals(r.near);
       for (const t of r.tris) {
-        const n = normalOf(t), on = samples(t).filter((q) => onLite(q, n, near)).length;
-        if (on === 4) r.coinc++;
+        const n = normalOf(t), pr = samples(t), on = pr.filter((q) => onLite(q, n, near)).length;
+        if (on === pr.length) r.coinc++;
         else if (on) r.partial++;
-        if (t.some((q) => entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a])))) fillInDrop++;
+        if (t.some((q) => entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a])))) fillInDrop++; // Ecken genuegen, wie in [7]
       }
       fillCoinc += r.coinc;
       fillPartial += r.partial;
