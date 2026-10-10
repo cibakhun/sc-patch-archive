@@ -402,6 +402,60 @@ function boxProject(m, mPerUv) {
   m.customProgramCacheKey = () => (prevKey ? prevKey.call(m) : '') + '|box';
 }
 
+// Legt die Verdeckung des GTAO-Passes aufs Bild, vorher je Pixel den Median
+// der 3×3 Nachbarn (McGuire, „A fast, small-radius GPU median filter“). Die
+// Verdeckung sieht Normalen und Tiefe nur einmal je Pixel, ohne die
+// Kantenglättung des Bildes: Leisten und Rillen schmaler als ein Pixel trifft
+// sie mal und mal nicht, und jeder Treffer wurde ein dunkler Punkt (an den
+// runden Zierleisten der Halle eine gepunktete Körnung). Der Median nimmt
+// Punkte und ein Pixel breite Striche heraus und lässt Ecken, Fugen und den
+// Schatten unter dem Schiff stehen, die viele Pixel breit sind. Ersetzt
+// Kopie und Überblendung des Passes (dessen Ausgabe dafür aus) durch einen Zug.
+function aoMedianPass(ao, Pass, FullScreenQuad) {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null }, tAO: { value: null }, intensity: { value: 1 } },
+    vertexShader: 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }',
+    fragmentShader: `uniform sampler2D tDiffuse;
+uniform sampler2D tAO;
+uniform float intensity;
+varying vec2 vUv;
+#define s2(a, b) t = a; a = min(a, b); b = max(t, b);
+#define mn3(a, b, c) s2(a, b); s2(a, c);
+#define mx3(a, b, c) s2(b, c); s2(a, c);
+#define mnmx3(a, b, c) mx3(a, b, c); s2(a, b);
+#define mnmx4(a, b, c, d) s2(a, b); s2(c, d); s2(a, c); s2(b, d);
+#define mnmx5(a, b, c, d, e) s2(a, b); s2(c, d); mn3(a, c, e); mx3(b, d, e);
+#define mnmx6(a, b, c, d, e, f) s2(a, d); s2(b, e); s2(c, f); mn3(a, b, c); mx3(d, e, f);
+float aoAt( ivec2 p, ivec2 hi ) { return texelFetch( tAO, clamp( p, ivec2( 0 ), hi ), 0 ).r; }
+void main() {
+	ivec2 hi = textureSize( tAO, 0 ) - 1, p = ivec2( gl_FragCoord.xy );
+	float v0 = aoAt( p + ivec2( -1, -1 ), hi ), v1 = aoAt( p + ivec2( 0, -1 ), hi ), v2 = aoAt( p + ivec2( 1, -1 ), hi );
+	float v3 = aoAt( p + ivec2( -1, 0 ), hi ), v4 = aoAt( p, hi ), v5 = aoAt( p + ivec2( 1, 0 ), hi );
+	float v6 = aoAt( p + ivec2( -1, 1 ), hi ), v7 = aoAt( p + ivec2( 0, 1 ), hi ), v8 = aoAt( p + ivec2( 1, 1 ), hi );
+	float t;
+	mnmx6( v0, v1, v2, v3, v4, v5 );
+	mnmx5( v1, v2, v3, v4, v6 );
+	mnmx4( v2, v3, v4, v7 );
+	mnmx3( v3, v4, v8 );
+	vec4 c = texture2D( tDiffuse, vUv );
+	gl_FragColor = vec4( c.rgb * mix( 1.0, v4, intensity ), c.a );
+}`,
+    depthTest: false, depthWrite: false,
+  });
+  class AoMedianPass extends Pass {
+    constructor() { super(); this.material = mat; this.quad = new FullScreenQuad(mat); }
+    render(renderer, writeBuffer, readBuffer) {
+      mat.uniforms.tDiffuse.value = readBuffer.texture;
+      mat.uniforms.tAO.value = ao.pdRenderTarget.texture;
+      mat.uniforms.intensity.value = ao.blendIntensity;
+      renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+      this.quad.render(renderer);
+    }
+    dispose() { mat.dispose(); this.quad.dispose(); }
+  }
+  return new AoMedianPass();
+}
+
 function paintMaterial() {
   const u = {
     uPrim: { value: new THREE.Color() }, uSec: { value: new THREE.Color() }, uAcc: { value: new THREE.Color() },
@@ -2397,12 +2451,13 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   }
   async function buildComposer() {
     try {
-      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([
+      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }, { Pass, FullScreenQuad }] = await Promise.all([
         import('three/addons/postprocessing/EffectComposer.js'),
         import('three/addons/postprocessing/RenderPass.js'),
         import('three/addons/postprocessing/GTAOPass.js'),
         import('three/addons/postprocessing/UnrealBloomPass.js'),
         import('three/addons/postprocessing/OutputPass.js'),
+        import('three/addons/postprocessing/Pass.js'),
       ]);
       // Eigenes Ziel mit 4-fach-MSAA: der Composer umgeht sonst die
       // Kantenglättung des Renderers, und jede Kante treppt.
@@ -2412,11 +2467,16 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       c.setSize(W(), H());
       c.addPass(new RenderPass(scene, camera));
       const ao = new GTAOPass(scene, camera, W(), H());
-      ao.output = GTAOPass.OUTPUT.Default;
+      // Der Pass rechnet nur die Verdeckung; aufs Bild legt sie aoMedianPass
+      // (ohne Ausgabe schreibt er nichts ins Zielbild, also auch kein Tausch).
+      ao.output = GTAOPass.OUTPUT.Off;
+      ao.needsSwap = false;
       ao.blendIntensity = 1;
       ao.updateGtaoMaterial({ radius: 2.5, distanceExponent: 1.4, thickness: 2, scale: 1.2, samples: 16 });
       ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
       c.addPass(ao);
+      const aoMix = aoMedianPass(ao, Pass, FullScreenQuad);
+      c.addPass(aoMix);
       // Lichtschein um Lampen, Leuchtleisten und Triebwerke: nur was
       // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
       c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.25, 0.35, 6));
@@ -2427,7 +2487,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter, die
       // Normalen der Verdeckung dagegen mit denen der Szene.
       const quad = new THREE.Group(), plane = new THREE.PlaneGeometry(2, 2);
-      for (const m of [ao.gtaoMaterial, ao.pdMaterial, ao.copyMaterial, ao.blendMaterial,
+      for (const m of [ao.gtaoMaterial, ao.pdMaterial, aoMix.material,
         bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial]) {
         if (m) quad.add(new THREE.Mesh(plane, m));
       }
