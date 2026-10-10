@@ -564,7 +564,7 @@
   "hallLite": {
     "revelyork-single-lod1": {
       "url": "/hangar/hall/revelyork-single-lod1.glb",
-      "v": "41f0388d",
+      "v": "1a878120",
       "tris": 1197783,
       "trisRaw": 612862,
       "textures": 81,
@@ -910,6 +910,57 @@
           "below098": 0
         }
       ],
+      "seams": {
+        "source": {
+          "boundaryVerts": 281672,
+          "sealed": 125090,
+          "crack": 2718,
+          "crackMm": {
+            "1": 1203,
+            "2": 183,
+            "3": 441,
+            "4": 433,
+            "5": 458
+          },
+          "lone": 153864,
+          "tGap": 2520,
+          "tGapMm": {
+            "1": 1506,
+            "2": 234,
+            "3": 161,
+            "4": 322,
+            "5": 297
+          }
+        },
+        "seal": {
+          "nodes": 32,
+          "prims": 59,
+          "snapped": 198043,
+          "groups": 63068,
+          "maxShift": 0.00009616595352204252
+        },
+        "written": {
+          "boundaryVerts": 270825,
+          "sealed": 121915,
+          "crack": 1753,
+          "crackMm": {
+            "1": 411,
+            "2": 181,
+            "3": 503,
+            "4": 375,
+            "5": 283
+          },
+          "lone": 147157,
+          "tGap": 1690,
+          "tGapMm": {
+            "1": 725,
+            "2": 238,
+            "3": 187,
+            "4": 237,
+            "5": 303
+          }
+        }
+      },
       "furnitureNodes": {
         "roots": 0,
         "nodes": 0,
@@ -927,10 +978,10 @@
       },
       "hull": {
         "rays": 67500,
-        "escaped": 22,
+        "escaped": 21,
         "pct": 0.03,
         "walls": {
-          "x-": 11,
+          "x-": 10,
           "x+": 9,
           "z-": 2,
           "z+": 0,
@@ -939,7 +990,7 @@
         }
       },
       "floor": 1,
-      "bytes": 12213104,
+      "bytes": 12580432,
       "room": {
         "center": [
           36,
