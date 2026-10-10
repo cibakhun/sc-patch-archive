@@ -319,7 +319,7 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey
   for (const n of det) {
     if (n.extras?.furniture != null || n.extras?.anchor) fail(`[7] Knoten ${n.name ?? '?'} ist Ergaenzung und Moebel zugleich: scripts/build-hall-furniture.mjs trennt beides`);
     for (const p of json.meshes[n.mesh].primitives) {
-      ergTris += (json.accessors[p.indices]?.count ?? 0) / 3;
+      ergTris += (json.accessors[p.indices ?? p.attributes?.POSITION]?.count ?? 0) / 3;
       ergMats.add(json.materials?.[p.material]?.name ?? '?');
     }
   }
@@ -340,9 +340,11 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey
       if (node.getExtras()?.[detailKey] !== true) continue;
       const w = node.getWorldMatrix();
       for (const p of node.getMesh()?.listPrimitives() ?? []) {
-        const P = p.getAttribute('POSITION').getArray(), I = p.getIndices()?.getArray() ?? [];
-        for (let t = 0; t + 2 < I.length; t += 3) {
-          const hit = [I[t], I[t + 1], I[t + 2]].some((i) => {
+        // ohne Indizes je drei Ecken ein Dreieck, wie Build und Viewer zaehlen
+        const P = p.getAttribute('POSITION').getArray(), I = p.getIndices()?.getArray() ?? null;
+        const m = I ? I.length : P.length / 3;
+        for (let t = 0; t + 2 < m; t += 3) {
+          const hit = (I ? [I[t], I[t + 1], I[t + 2]] : [t, t + 1, t + 2]).some((i) => {
             const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
             const q = [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
             return entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a]));
