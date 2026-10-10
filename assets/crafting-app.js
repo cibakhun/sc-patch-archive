@@ -218,8 +218,9 @@
   //                     sofort den richtigen Zustand zeigt, statt auf die
   //                     Server-Antwort zu warten.
   // Beim ersten Anmelden auf einem Gerät wandert die Gast-Ablage EINMALIG ins
-  // Konto (Vereinigung) und wird danach geleert — sonst stünde dieselbe Liste
-  // an zwei Orten und liefe still auseinander.
+  // Konto (Vereinigung) und wird geleert, sobald der Server die übernommenen
+  // Einträge bestätigt hat — sonst stünde dieselbe Liste an zwei Orten und
+  // liefe still auseinander.
   function load(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch (e) { return def; } }
   function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
   function drop(key) { try { localStorage.removeItem(key); } catch (e) {} }
@@ -233,15 +234,20 @@
       owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [],
       // Ein rev in anderem Format (kein Objekt) zählt wie keins.
       rev: (s && typeof s.rev === 'object' && s.rev) || {},
+      merge: (s && Array.isArray(s.merge) && s.merge) || [],
     };
   }
   // `rev` steht nur in der Ablage, solange etwas offen ist, und nur für offene
   // Slugs: ohne offene Klicks sieht sie aus wie vor seiner Einführung.
+  // `merge` ebenso: die aus der Gast-Ablage übernommenen Slugs, deren
+  // Bestätigung noch aussteht (siehe readServer).
   function saveState(uid, m) {
     var out = { owned: m.owned, plan: m.plan, pending: m.pending };
     var rev = {};
     Object.keys(m.rev).forEach(function (s) { if (m.pending.indexOf(s) >= 0) rev[s] = m.rev[s]; });
     if (Object.keys(rev).length) out.rev = rev;
+    var merge = (m.merge || []).filter(function (s) { return m.pending.indexOf(s) >= 0; });
+    if (merge.length) out.merge = merge;
     save(lsKey(uid), out);
   }
 
@@ -446,7 +452,14 @@
         // den gesendeten Wert wiederherstellt.
         var now = loadState(me);
         now.pending = now.pending.filter(function (s) { return sent[s] !== rowOf(now, s); });
+        // Erst jetzt steht die übernommene Gast-Ablage im Konto: hat der
+        // Server jeden übernommenen Eintrag angenommen, wird sie geleert. Ein
+        // Eintrag, den der Besucher während der Anfrage änderte, bleibt
+        // offen, ist aber mit dem Wert aus der Gast-Ablage angekommen.
+        var merging = now.merge.length;
+        now.merge = now.merge.filter(function (s) { return !sent.hasOwnProperty(s); });
         saveState(me, now);
+        if (merging && !now.merge.length) drop(LS_GUEST);
         // Was offen bleibt, schrieb jemand während der Anfrage. Ein offener
         // Tab plant seinen Zug selbst, einer, der inzwischen zu ist, nicht:
         // ohne diesen läge der Blueprint bis zur nächsten Rückkehr herum.
@@ -509,11 +522,12 @@
           });
 
           // Übernahme braucht KEINEN dauerhaften „schon erledigt"-Merker: eine
-          // erfolgreiche Übernahme leert die Gast-Ablage, es kann also nichts
+          // bestätigte Übernahme leert die Gast-Ablage, es kann also nichts
           // doppelt oder veraltet wandern. Ein Merker hätte im Gegenteil
           // geschadet — was man abgemeldet anklickt, wäre beim nächsten
           // Anmelden liegengeblieben.
           var merged = 0;
+          var merge = m.merge.slice();
           if (mergeOwed) {
             mergeOwed = false;
             var guest = loadState(null);
@@ -529,15 +543,19 @@
               sp[s] = guest.plan[s]; pending[s] = true; touched[s] = 1;
             });
             merged = Object.keys(touched).length;
-            // Gast-Ablage nach der Übernahme leeren: ab jetzt lebt der Bestand
-            // im Konto, sonst gäbe es zwei Listen, die auseinanderlaufen.
-            if (merged) { drop(LS_GUEST); toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged)); }
+            // Die Gast-Ablage bleibt stehen, bis der Server die übernommenen
+            // Einträge bestätigt hat (sendPending leert sie dann), wie die
+            // Gast-Schiffe der Flotte (assets/fleet.js). Wer sich vorher
+            // abmeldet, verliert den Konto-Spiegel samt offener Übernahme;
+            // geleert, stünden die Einträge dann nirgends mehr.
+            Object.keys(touched).forEach(function (s) { if (merge.indexOf(s) < 0) merge.push(s); });
+            if (merged) toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged));
           }
 
           owned = so; plan = sp;
           lastPull = Date.now();
           // Was offen bleibt, behält die Kennung seines letzten Schreibvorgangs.
-          saveState(me, { owned: so, plan: sp, pending: Object.keys(pending), rev: m.rev });
+          saveState(me, { owned: so, plan: sp, pending: Object.keys(pending), rev: m.rev, merge: merge });
           repaintAll();
           if (Object.keys(pending).length) flush(); else setSync('synced');
         });
