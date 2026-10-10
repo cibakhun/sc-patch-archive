@@ -102,7 +102,8 @@ function makeServer({ rows = [], unique = true, owner }) {
     /**
      * Hält die nächste Anfrage dieser Methode an. commit 'before': der Server
      * schreibt sofort, nur die Antwort wartet (späte Antwort). commit 'after':
-     * die Anfrage kommt erst bei release() an.
+     * die Anfrage kommt erst bei release() an. Bricht das Skript sie vorher
+     * ab (AbortSignal, wie fetch), kommt sie bei 'after' nie an.
      */
     hold: (method, commit = 'after') => server.holds.push({ method, commit }),
     release: () => server.held.splice(0).forEach((h) => h.go()),
@@ -131,7 +132,7 @@ function makeServer({ rows = [], unique = true, owner }) {
       }
       return respond(405, null);
     },
-    rest(tab, sess, method, reqPath, body) {
+    rest(tab, sess, method, reqPath, body, signal) {
       server.requests.push({ method, path: reqPath, body: clone(body ?? null) });
       const f = server.forced.findIndex((x) => x.method === method);
       if (f !== -1) {
@@ -144,8 +145,13 @@ function makeServer({ rows = [], unique = true, owner }) {
       if (h !== -1) {
         const { commit } = server.holds.splice(h, 1)[0];
         const early = commit === 'before' ? server.apply(sess, method, reqPath, body) : null;
-        return new Promise((resolve) => {
-          server.held.push({ go: () => { if (!tab.closed) resolve(early || server.apply(sess, method, reqPath, body)); } });
+        return new Promise((resolve, reject) => {
+          const entry = { go: () => { if (!tab.closed) resolve(early || server.apply(sess, method, reqPath, body)); } };
+          server.held.push(entry);
+          if (signal) signal.addEventListener('abort', () => {
+            server.held = server.held.filter((h) => h !== entry);
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          });
         });
       }
       return Promise.resolve(server.apply(sess, method, reqPath, body));
@@ -306,11 +312,12 @@ export function makeBrowser(opts = {}) {
         VBAccount: {
           peek: () => clone(account.stored),
           session: () => Promise.resolve(clone(account.session)),
-          rest: (sess, method, p, b) => server.rest(tab, sess, method, p, b),
+          rest: (sess, method, p, b, prefer, signal) => server.rest(tab, sess, method, p, b, signal),
           loginHref: () => '/account/login.html?next=%2F',
           isDE: false,
         },
         Event: class Event { constructor(type) { this.type = type; } },
+        AbortController,
         Date: FakeDate,
         setTimeout: (cb, ms) => {
           const id = ++clock.seq;

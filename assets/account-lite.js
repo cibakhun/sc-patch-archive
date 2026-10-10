@@ -125,8 +125,9 @@
     return mine;
   }
 
-  function rest(sess, method, path, body, prefer) {
+  function rest(sess, method, path, body, prefer, signal) {
     return fetch(SB_URL + '/rest/v1/' + path, {
+      signal: signal || undefined,
       method: method,
       headers: {
         apikey: SB_KEY,
@@ -155,7 +156,10 @@
      * vb-account-session wie nach einem Wechsel in einem anderen Tab.
      */
     session: ensureSession,
-    /** Authentifizierter PostgREST-Aufruf: rest(sess, 'GET', 'tabelle?select=*'). */
+    /**
+     * Authentifizierter PostgREST-Aufruf: rest(sess, 'GET', 'tabelle?select=*').
+     * Optional: prefer (Prefer-Header) und signal (AbortSignal, bricht fetch ab).
+     */
     rest: rest,
     /** Login-Link inkl. Rücksprung auf die aktuelle Seite. */
     loginHref: function () {
@@ -313,7 +317,7 @@
   // sie nichts mehr, nach einem neuen Token desselben Kontos weiter.
   var shown = null;
 
-  function userOf(sess) { return sess && sess.user && sess.user.id; }
+  function userOf(sess) { return (sess && sess.user && sess.user.id) || null; }
 
   function show(sess) {
     shown = sess;
@@ -345,15 +349,34 @@
       });
     });
 
-    // Login/Logout in einem anderen Tab -> Nav nachziehen
+    // Login, Logout oder Kontowechsel in einem anderen Tab -> Nav nachziehen.
+    // Ein neues Token desselben Kontos (der Refresh eines anderen Tabs, alle
+    // rund 60 Minuten) aendert Name und Rolle nicht, wie im eigenen Tab: kein
+    // Zwischenbild ohne Namen, und der Rollen-Cache bleibt, sonst nahm eine
+    // gerade scheiternde Rollenabfrage einem Admin die Rolle.
     addEventListener('storage', function (e) {
-      if (e.key !== STORE) return;
-      // Role-Cache invalidieren bei Session-Wechsel
-      try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
-      show(readRaw());
-      // Seiten-Apps (crafting-app.js …) ziehen ihren Konto-Zustand nach.
-      announce();
+      if (e.key === STORE) follow();
     });
+    // Aus dem bfcache zurueck (Zurueck-Knopf): storage-Ereignisse, waehrend
+    // die Seite dort lag, kamen nie an. Hat sich der Besucher inzwischen
+    // anderswo ab- oder umgemeldet, zeigte die Nav sonst das alte Konto samt
+    // Admin-Klasse, bis zum naechsten Seitenaufruf.
+    addEventListener('pageshow', function (e) {
+      if (e && e.persisted) follow();
+    });
+  }
+
+  // Die gespeicherte Sitzung gilt: zeichnen, wenn sie einem anderen Konto
+  // gehoert als dem gezeigten (oder keinem mehr), und den Seiten-Apps
+  // (crafting-app.js, fleet.js …) melden, damit sie ihren Konto-Zustand
+  // nachziehen.
+  function follow() {
+    var now = readRaw();
+    if (userOf(now) !== userOf(shown)) {
+      try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
+      show(now);
+    }
+    announce();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
