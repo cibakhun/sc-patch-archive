@@ -861,3 +861,35 @@ test('lehnt der Browser die Sperre einmal ab, gehen dieser Zug und jeder später
   await b.settle();
   assert.equal(tab.addButton('karna-rifle').classList.contains('in-plan'), true, 'auch der Abgleich läuft noch');
 });
+
+// Die Übernahme der Gast-Ablage ist erst erledigt, wenn der Server sie
+// bestätigt hat, wie die Gast-Schiffe der Flotte (assets/fleet.js). Wer sich
+// vorher abmeldet, verliert den Konto-Spiegel samt offener Übernahme (kein
+// Konto-Spiegel überlebt seine Sitzung): die Gast-Einträge müssen dann noch
+// in der Gast-Ablage stehen, sonst wären sie überall weg.
+test('scheitert das Schreiben der übernommenen Gast-Einträge und meldet sich der Besucher danach ab, stehen sie noch in der Gast-Ablage und wandern beim nächsten Anmelden', async () => {
+  const guest = { owned: { 'karna-rifle': true }, plan: { 'p4-ar-rifle': 2 } };
+  const b = makeBrowser({ session: 'user-1', seed: { [GUEST]: JSON.stringify(guest) } });
+  b.server.hold('POST');
+  const tab = b.open();
+  await b.settle({ horizon: 1000 });
+  b.server.release(503);
+  await b.settle();
+  assert.equal(tab.sync().state, 'error', 'Voraussetzung: die Übernahme kam nicht an');
+  assert.deepEqual(b.server.rows, []);
+
+  b.signOut();
+  await b.settle();
+  assert.equal(b.storage.get(MIRROR), null, 'kein Konto-Spiegel überlebt seine Sitzung');
+  assert.deepEqual(JSON.parse(b.storage.get(GUEST)), guest);
+  assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'true');
+
+  b.signIn('user-1');
+  await b.settle();
+  assert.deepEqual(b.server.rows, [
+    { user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 0 },
+    { user_id: 'user-1', slug: 'p4-ar-rifle', owned: false, plan_qty: 2 },
+  ]);
+  assert.equal(b.storage.get(GUEST), null, 'bestätigt: erst jetzt ist die Gast-Ablage leer');
+  assert.equal(tab.sync().state, 'synced');
+});
