@@ -367,11 +367,18 @@
   // Frist; käme eine Antwort nie (Funkloch, halb offene Verbindung), endete
   // der Zug nie, und die Sperre hielte jeden Zug jedes Tabs fest, auch
   // „Erneut versuchen". Nach der Frist endet der Zug wie ohne Netz.
+  // Die Anfrage wird dabei abgebrochen (`start` bekommt das Signal), bevor
+  // der Zug die Reihe freigibt: liefe sie weiter, käme sie womöglich nach dem
+  // nächsten Zug beim Server an und überschriebe dessen neueren Stand.
   var STEP_MS = 20000;
   function deadline(start) {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
     return new Promise(function (resolve, reject) {
-      var timer = setTimeout(function () { reject(new Error('timeout')); }, STEP_MS);
-      Promise.resolve().then(start).then(
+      var timer = setTimeout(function () {
+        if (ctl) ctl.abort();
+        reject(new Error('timeout'));
+      }, STEP_MS);
+      Promise.resolve(ctl && ctl.signal).then(start).then(
         function (v) { clearTimeout(timer); resolve(v); },
         function (e) { clearTimeout(timer); reject(e); });
     });
@@ -432,15 +439,15 @@
       });
       var jobs = [];
       if (up.length) {
-        jobs.push(deadline(function () {
+        jobs.push(deadline(function (signal) {
           return VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
-            'resolution=merge-duplicates,return=minimal');
+            'resolution=merge-duplicates,return=minimal', signal);
         }));
       }
       if (del.length) {
-        jobs.push(deadline(function () {
+        jobs.push(deadline(function (signal) {
           return VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
-            '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')');
+            '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')', null, null, signal);
         }));
       }
       // Der Zug endet erst, wenn jede seiner Anfragen beantwortet ist, auch
@@ -495,8 +502,8 @@
       // Die Sitzung trägt: dieser Zug ist der Abgleich, den later() plante.
       clearTimeout(backoffTimer);
       backoff = 0;
-      return deadline(function () {
-        return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
+      return deadline(function (signal) {
+        return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty', null, null, signal)
           .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
       })
         .then(function (rows) {

@@ -125,8 +125,9 @@
     return mine;
   }
 
-  function rest(sess, method, path, body, prefer) {
+  function rest(sess, method, path, body, prefer, signal) {
     return fetch(SB_URL + '/rest/v1/' + path, {
+      signal: signal || undefined,
       method: method,
       headers: {
         apikey: SB_KEY,
@@ -155,7 +156,10 @@
      * vb-account-session wie nach einem Wechsel in einem anderen Tab.
      */
     session: ensureSession,
-    /** Authentifizierter PostgREST-Aufruf: rest(sess, 'GET', 'tabelle?select=*'). */
+    /**
+     * Authentifizierter PostgREST-Aufruf: rest(sess, 'GET', 'tabelle?select=*').
+     * Optional: prefer (Prefer-Header) und signal (AbortSignal, bricht fetch ab).
+     */
     rest: rest,
     /** Login-Link inkl. Rücksprung auf die aktuelle Seite. */
     loginHref: function () {

@@ -407,10 +407,18 @@
     return false;
   }
 
+  // Nach der Frist wird die Anfrage abgebrochen (`start` bekommt das Signal),
+  // bevor der Lauf die Sperre freigibt: liefe sie weiter, käme sie womöglich
+  // nach dem nächsten Lauf an, und ein spätes Hinzufügen holte ein eben
+  // entferntes Schiff zurück.
   function deadline(start) {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
     return new Promise(function (resolve, reject) {
-      var timer = setTimeout(function () { reject(new Error('timeout')); }, TIMEOUT_MS);
-      Promise.resolve().then(start).then(
+      var timer = setTimeout(function () {
+        if (ctl) ctl.abort();
+        reject(new Error('timeout'));
+      }, TIMEOUT_MS);
+      Promise.resolve(ctl && ctl.signal).then(start).then(
         function (v) { clearTimeout(timer); resolve(v); },
         function (e) { clearTimeout(timer); reject(e); });
     });
@@ -419,8 +427,8 @@
   // wird er nur, wo er zählt (GET, 409); body bleibt sonst undefined, ebenso,
   // wenn er kein JSON ist.
   function call(sess, method, path, body) {
-    return deadline(function () {
-      return Promise.resolve(VB.rest(sess, method, path, body)).then(function (r) {
+    return deadline(function (signal) {
+      return Promise.resolve(VB.rest(sess, method, path, body, undefined, signal)).then(function (r) {
         var res = { ok: r.ok, status: r.status, body: undefined };
         if (!(method === 'GET' && r.ok) && r.status !== 409) return res;
         return Promise.resolve(r.json()).then(function (b) { res.body = b; return res; }, function () { return res; });
