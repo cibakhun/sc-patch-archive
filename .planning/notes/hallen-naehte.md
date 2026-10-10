@@ -66,3 +66,37 @@ staging.
    pushen. Kein PR: Sichtprüfung, das Tor für die Nähte
    (`verify:hangar-hall`, neue Zusicherung 6, vorgeführt rot an der alten
    Datei) und den Merge nach staging macht die Cloud.
+
+## Ergebnis (10.10.2026)
+
+- PC-Lauf 4460e71: `revelyork-single-lod1.glb` 1a878120, 12 580 432 statt
+  12 213 104 Bytes, 1 197 783 Dreiecke, Hülle 0,03 %.
+- Quelle (ungerundet, dicht bis 0,1 mm): 281 672 Randecken, 125 090 dicht,
+  2 718 klaffend (0,1 bis 5 mm), 2 520 T-Stöße mit Spalt. Die Quelle ist
+  also selbst nicht ganz dicht; das sind Spielgeometrie und keine Rundung.
+- `sealSeams`: 32 Knoten, 59 Primitive, 198 043 Ecken in 63 068 Gruppen,
+  größte Verschiebung 0,096 mm.
+- Datei: 270 825 Randecken, **121 915 dicht, 1 753 klaffend** (vorher 0 und
+  123 373), 1 690 T-Stöße. Von den 1 753 liegen 626 im Hallenraum,
+  höchstens 16 in einer 2-m-Zelle; der Rest liegt außerhalb, die meisten
+  im Aufzugsbereich hinter der Südwand.
+- Im Bild (neun Blicke, je gegen staging und die Cloud-Probe mit 5 mm): die
+  gepunkteten Linien sind weg, sonst kein Unterschied über 1 Grauwert im
+  Mittel, 44 Shaderprogramme wie vorher.
+- Gegenprobe mit magenta Hintergrund (was durchscheint, wird magenta), neun
+  Blicke: durchscheinende Einzelpunkte 740 vorher, 145 nachher. Was bleibt,
+  sind die Restspalte der Quelle und zwei Lücken der dichten Stufe, die
+  die volle Stufe füllt: die Schlitze oben im Nordtor (dahinter in der
+  vollen Stufe `metal_grey_04`) und die Türsymbole der blauen Glassäulen
+  (dahinter Glas und `nernies_pipes_011`). Vor dem hellgrauen Hintergrund
+  (0x9aa0a8) leuchteten sie weiß; der Viewer setzt hinter die echte Halle
+  jetzt 0x1e2024, der Dunst bleibt hellgrau. Die Symbole wirken dadurch
+  dunkel statt hell.
+- Entscheidung Cloud: `tol` bleibt bei 0,1 mm. Die übrigen Spalte liegen
+  schon im Spiel so; sie mit bis zu 5 mm zu schließen hieße Spielgeometrie
+  verschieben, ohne dass sich im Bild etwas ändert. Beispiel: Die
+  Schmutzabziehbilder (`leakings_019`) liegen 2 bis 3 mm neben Teilen
+  aus `metal_grey_04` (144 von 169 ihrer klaffenden Ecken); ein Schließen
+  bis 5 mm zöge ihre Ecken auf diese Teile.
+- Tor `verify:hangar-hall` [6]: OBERGRENZE_KLAFFEND 1 753, KLINKE_DICHT
+  121 915.

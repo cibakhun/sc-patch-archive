@@ -76,12 +76,15 @@ const KLINKE_EINTRAEGE = { 'revelyork-single': 1 };
 const KLINKE_MOEBEL = { 'revelyork-single': 137 };
 // Naehte je Halle (seamStats, Randecken bis 5 mm neben einem anderen Teil).
 // OBERGRENZE_KLAFFEND sinkt nur; steigen nur per Commit, dessen Botschaft
-// die Ursache nennt. KLINKE_DICHT steigt nur. Stand 08.10.2026, 41f0388d,
-// je Primitive gerundet: 123 373 klaffend, 0 dicht. Der PC baut die Halle
-// mit einem Raster fuer alle Teile neu (.planning/notes/hallen-naehte.md),
-// danach fallen beide Werte auf die gemessenen.
-const OBERGRENZE_KLAFFEND = { 'revelyork-single': 123373 };
-const KLINKE_DICHT = { 'revelyork-single': 0 };
+// die Ursache nennt. KLINKE_DICHT steigt nur. Stand 10.10.2026, 1a878120
+// (PC-Lauf „Hallen-Naehte“: bis 0,1 mm verschweisst, ein Raster fuer alle
+// Teile): 1 753 klaffend, 121 915 dicht; vorher, je Primitive gerundet,
+// 123 373 klaffend, 0 dicht. Die uebrigen klaffen schon in der
+// ungerundeten Quelle (2 718 Ecken zwischen 0,1 und 5 mm); was durch sie
+// scheint, ist seit dem dunklen Hintergrund der Halle dunkel wie die
+// Fugen. Sie zu schliessen hiesse Spielgeometrie verschieben.
+const OBERGRENZE_KLAFFEND = { 'revelyork-single': 1753 };
+const KLINKE_DICHT = { 'revelyork-single': 121915 };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -277,7 +280,7 @@ const grenze = hall?.id ? OBERGRENZE_KLAFFEND[hall.id] : undefined, dicht = hall
 for (const r of seamRuns) {
   const mm = Object.entries(r.crackMm).map(([k, n]) => `bis ${k} mm ${n}`).join(', ');
   say(`    ${r.u}: ${r.boundaryVerts} Randecken, ${r.sealed} dicht, ${r.crack} klaffend${mm ? ` (${mm})` : ''}, ${r.lone} ohne Gegenstueck`);
-  if (grenze !== undefined && r.crack > grenze) fail(`[6] ${r.u}: ${r.crack} klaffende Randecken, die Obergrenze ist ${grenze}: Die Halle kam wieder je Primitive gerundet (Spalte an den Paneelkanten, gepunktete helle Linien). Im PC-Build (scripts/build-hangar-assets.mjs) vor dem Packen sealSeams, dann draco mit quantizationVolume 'scene' (.planning/notes/hallen-naehte.md); OBERGRENZE_KLAFFEND nur per Commit mit Ursache anheben`);
+  if (grenze !== undefined && r.crack > grenze) fail(`[6] ${r.u}: ${r.crack} klaffende Randecken, die Obergrenze ist ${grenze}: Die Halle kam wieder je Primitive gerundet (Spalte an den Paneelkanten, gepunktete Linien). Im PC-Build (scripts/build-hangar-assets.mjs) vor dem Packen sealSeams, dann draco mit quantizationVolume 'scene' (.planning/notes/hallen-naehte.md); OBERGRENZE_KLAFFEND nur per Commit mit Ursache anheben`);
   if (dicht !== undefined && r.sealed < dicht) fail(`[6] ${r.u}: ${r.sealed} dichte Randecken, die Klinke verlangt ${dicht}: Halle anders zerlegt oder ohne gemeinsames Raster gepackt? KLINKE_DICHT nur per Commit mit Ursache senken`);
 }
 if (hall?.id && measured && (grenze === undefined || dicht === undefined)) fail(`[6] die Halle ${hall.id} hat keine OBERGRENZE_KLAFFEND oder KLINKE_DICHT in diesem Tor: gemessene Werte eintragen`);
