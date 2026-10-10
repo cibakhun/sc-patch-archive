@@ -2349,7 +2349,12 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
-      scene.background = new THREE.Color(0x9aa0a8);
+      // Hinter den Wänden ist dunkel: Durch die feinen Spalte, die schon die
+      // Spielgeometrie hat (Nähte, Schlitze oben im Nordtor, Symbole der
+      // Glassäulen, deren Innenleben die dichte Stufe weglässt), leuchtete
+      // der hellgraue Hintergrund als weiße Punkte und Flecken. Der Dunst
+      // bleibt hellgrau.
+      scene.background = new THREE.Color(0x1e2024);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
       // tritt zurück — sonst ist das helle Innere eine einzige weiße Fläche.
