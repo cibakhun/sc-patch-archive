@@ -366,11 +366,24 @@
     });
   }
   function session() { return deadline(function () { return VB.session(); }); }
+  // Lehnt der Browser die Sperre ab, ohne `run` je zu rufen (in einem
+  // undurchsichtigen Ursprung, SecurityError), läuft der Zug ohne sie, wie
+  // locked() in assets/fleet.js. Und die Kette selbst lehnt nie ab: sonst
+  // übersprünge sie jeden späteren Zug dieses Tabs, bis er neu lädt.
+  function locked(run) {
+    var locks = navigator.locks;
+    if (!locks || typeof locks.request !== 'function') return Promise.resolve().then(run);
+    var ran = false;
+    var p;
+    try {
+      p = locks.request('vb.crafting.sync', function () { ran = true; return run(); });
+    } catch (e) {
+      return Promise.resolve().then(run);
+    }
+    return p.then(null, function (e) { if (ran) throw e; return run(); });
+  }
   function serial(run) {
-    var go = function () {
-      return navigator.locks ? navigator.locks.request('vb.crafting.sync', run) : run();
-    };
-    return (chain = chain.then(go));
+    return (chain = chain.then(function () { return locked(run); }).then(null, function () {}));
   }
   function flush() { return serial(sendPending); }
   // Die Anzeige wechselt schon jetzt, nicht erst, wenn der Zug an der Reihe
