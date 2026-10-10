@@ -308,11 +308,16 @@
 
   // Ein anderer Tab hat in dieselbe Ablage geschrieben: seinen Stand
   // übernehmen, sonst zählte dieser beim nächsten Klick auf seinem alten weiter.
+  // Steht dieser Tab auf „Nicht gespeichert" und ist nichts mehr offen, hat
+  // ein anderer Tab alles hinausgeschickt, auch was hier scheiterte: die
+  // Anzeige folgt dem gemeinsamen Stand, nicht erst bei der Rückkehr auf den
+  // Tab oder auf „Erneut versuchen".
   addEventListener('storage', function (e) {
     if (e.key !== lsKey(acctUid)) return;
     var m = loadState(acctUid);
     owned = m.owned; plan = m.plan;
     repaintAll();
+    if (acctUid && syncState === 'error' && !m.pending.length) setSync('synced');
   });
 
   // Slug <-> Karte/DB-Index. Alles, was noch mit Indizes hantiert (Modal,
