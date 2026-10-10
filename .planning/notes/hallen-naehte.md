@@ -63,10 +63,12 @@ staging.
    (`crackMm` der Quelle und der Datei). Dann ist die Quelle selbst nicht
    dicht, und die Cloud entscheidet.
 6. `npm run build && npm run gate`, dann als Vorschau (PowerShell:
-   `$env:STAGING = '1'; npm run build; npm run gate`), committen,
-   pushen. Kein PR: Sichtprüfung, das Tor für die Nähte
-   (`verify:hangar-hall`, neue Zusicherung 6, vorgeführt rot an der alten
-   Datei) und den Merge nach staging macht die Cloud.
+   `$env:STAGING = '1'; npm run build; if ($LASTEXITCODE -eq 0) { npm run gate }`;
+   `;` allein liefe auch nach einem gescheiterten Bau weiter, und das Tor
+   prüfte dann das alte `dist/`), committen, pushen. Kein PR: Sichtprüfung,
+   das Tor für die Nähte (`verify:hangar-hall`, neue Zusicherung 6,
+   vorgeführt rot an der alten Datei) und den Merge nach staging macht die
+   Cloud.
 
 ## Ergebnis (10.10.2026)
 
