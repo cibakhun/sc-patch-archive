@@ -316,6 +316,8 @@ export function makeBrowser(opts = {}) {
     healSession() { account.session = account.stored; },
     landRefresh() { account.session = account.stored; accountEvent(); },
     holdSession(n = Infinity) { account.holds = n; },
+    /** Die nächsten n Sperr-Anfragen lehnt der Browser ab, ohne sie je zuzuteilen (siehe web-locks.js). */
+    refuseLocks(n = 1) { locks.refuse(n); },
     /** Der Reihe nach: mit `value`, sonst mit der dann nutzbaren Sitzung. Ein geschlossener Tab erfährt nichts mehr. */
     releaseSession(value) {
       account.holds = 0;

@@ -3,9 +3,14 @@
 // Einem geschlossenen Tab teilt der Browser keine Sperre mehr zu, auch keine,
 // die er beim Verlassen noch anfragt: die Zuteilung kommt als spätere Aufgabe,
 // und die läuft nach pagehide nicht mehr (gemessen, assets/crafting-app.js).
+//
+// refuse(n): die nächsten n Anfragen lehnt request() ab, ohne den Rückruf je
+// zu rufen, wie in einem undurchsichtigen Ursprung (SecurityError) oder bei
+// einem abgebrochenen Signal (AbortError).
 export function makeLocks() {
   const queues = new Map();
   const held = new Map();
+  let refusals = 0;
   function pump(name) {
     if (held.has(name)) return;
     const next = (queues.get(name) || []).shift();
@@ -24,11 +29,13 @@ export function makeLocks() {
     forTab: (tab) => ({
       request: (name, cb) => new Promise((resolve, reject) => {
         if (tab.closed) return;
+        if (refusals > 0) { refusals--; reject(new DOMException('Access to the Locks API is denied in this context.', 'SecurityError')); return; }
         if (!queues.has(name)) queues.set(name, []);
         queues.get(name).push({ tab, cb, resolve, reject });
         pump(name);
       }),
     }),
+    refuse(n = 1) { refusals = n; },
     // Ein abgestürzter Tab gibt seine Sperren frei, wie im Browser.
     closeTab(tab) {
       for (const [name, entry] of [...held]) if (entry.tab === tab) { held.delete(name); pump(name); }

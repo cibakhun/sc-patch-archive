@@ -836,3 +836,28 @@ test('hängt eine Anfrage eines Zugs, gibt er die Reihe nach 20 s frei, und die 
     assert.equal(two.sync().state, 'synced', c.at);
   }
 });
+
+// Web Locks können ablehnen, ohne den Rückruf je zu rufen: in einem
+// undurchsichtigen Ursprung (SecurityError), mit abgebrochenem Signal. Dann
+// läuft der Zug ohne Sperre, wie in assets/fleet.js, und vor allem bleibt die
+// Kette dieses Tabs nicht für immer abgelehnt.
+test('lehnt der Browser die Sperre einmal ab, gehen dieser Zug und jeder spätere des Tabs trotzdem hinaus', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.refuseLocks(1);
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows, [KARNA_1], 'der Zug läuft ohne Sperre, statt bis zum nächsten Klick zu warten');
+  tab.clickOwn('p4-ar-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle']);
+  assert.deepEqual(mirror(b).pending, []);
+  assert.equal(tab.sync().state, 'synced');
+
+  b.server.rows.push({ user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 3 });
+  b.server.rows.shift();
+  b.landRefresh();
+  await b.settle();
+  assert.equal(tab.addButton('karna-rifle').classList.contains('in-plan'), true, 'auch der Abgleich läuft noch');
+});
