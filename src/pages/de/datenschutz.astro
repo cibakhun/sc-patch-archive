@@ -259,18 +259,23 @@ body{font-family:var(--font-body)}
       Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
       Details zur Datenverarbeitung durch den Dienst:
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
-      Ohne Anmeldung wird eine Verbindung zu Supabase nur hergestellt, wenn du Konto-Funktionen
-      nutzt (Registrierung, Anmeldung) — nicht beim bloßen Betrachten der Seiten. Bist du
-      angemeldet, verbindet sich jede Seite mit Supabase, um deine Sitzung bei Bedarf zu
-      erneuern, deinen Anzeigenamen im Menü zu zeigen und deinen
+      Ohne Anmeldung verbindet sich die Website mit Supabase nur, wenn du Konto-Funktionen nutzt
+      (Registrierung, Anmeldung), und auf drei Seiten, die öffentliche Daten lesen: ein
+      öffentliches Piloten-Profil (Profil und Favoriten dieses Piloten), die Seite Feedback (die
+      Liste der genannten Tester) und die Seite Unterstützen (die bisherige Summe; auch die
+      Stripe-Bezahlseite legt der Knopf dort über Supabase an). Über dich wird dabei nichts
+      gesendet; technisch bedingt erfährt Supabase wie bei jedem Abruf deine IP-Adresse. Bist du
+      angemeldet, verbinden sich die Seiten mit dem Menü der Website mit Supabase, um deine
+      Sitzung bei Bedarf zu erneuern, deinen Anzeigenamen im Menü zu zeigen und deinen
       <a href="#presence">Online-Status</a> zu schreiben; Seiten mit kontogebundenen Werkzeugen
       gleichen zusätzlich deren Inhalte ab.
     </p>
 
     <h2 id="presence">Online-Status (nur mit Konto)</h2>
     <p>
-      Solange du angemeldet bist und eine Seite dieser Website geöffnet hast, schreibt dein
-      Browser zwei Zeitpunkte in dein Profil: wann die Seite zuletzt offen war und wann du
+      Solange du angemeldet bist und eine Seite mit dem Menü der Website geöffnet hast (das sind
+      alle außer den Ausstattungsseiten einzelner Schiffe im Hangar und den Onepager-Leitfäden),
+      schreibt dein Browser zwei Zeitpunkte in dein Profil: wann die Seite zuletzt offen war und wann du
       zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen, Berühren; das Laden der Seite
       und die Rückkehr auf den Tab zählen mit). Das geschieht beim Laden, danach alle
       30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder Rückkehr auf den Tab.
@@ -283,8 +288,11 @@ body{font-family:var(--font-body)}
       (Seite offen, aber länger unbenutzt, oder vor weniger als 3 Minuten geschlossen) oder
       <em>offline</em>. Sichtbar ist dieser Status nur, wenn du ein Handle gesetzt hast: für
       jeden auf deinem öffentlichen Piloten-Profil und für angemeldete Nutzer im Freundes- und
-      Piloten-Verzeichnis. Meldest du dich im Konto-Dashboard ab, werden beide Zeitpunkte
-      sofort geleert; beim Löschen des Kontos verschwinden sie mit dem Profil.
+      Piloten-Verzeichnis. Meldest du dich im Konto-Dashboard ab, versucht die Seite zuerst,
+      beide Zeitpunkte zu leeren, und meldet dich danach in jedem Fall ab. Gelingt das Leeren
+      nicht (etwa ohne Netz), schreibt dieser Browser keine weiteren Zeitpunkte, und der Status
+      wechselt nach spätestens 3 Minuten auf offline, sofern du nicht auf einem anderen Gerät
+      noch angemeldet bist. Beim Löschen des Kontos verschwinden die Zeitpunkte mit dem Profil.
       Rechtsgrundlage ist wie beim übrigen Konto Art. 6 Abs. 1 lit. b DSGVO.
     </p>
 
