@@ -893,3 +893,22 @@ test('scheitert das Schreiben der übernommenen Gast-Einträge und meldet sich d
   assert.equal(b.storage.get(GUEST), null, 'bestätigt: erst jetzt ist die Gast-Ablage leer');
   assert.equal(tab.sync().state, 'synced');
 });
+
+test('steht ein Tab auf „Nicht gespeichert" und schickt ein anderer danach alles hinaus, zeigt auch dieser „synchronisiert"', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const one = b.open();
+  const two = b.open();
+  await b.settle();
+  b.server.hold('POST');
+  one.clickOwn('karna-rifle');
+  await b.settle({ horizon: 1000 });
+  b.server.release(503);
+  await b.settle();
+  assert.equal(one.sync().state, 'error', 'Voraussetzung');
+
+  two.clickOwn('p4-ar-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle']);
+  assert.deepEqual(mirror(b).pending, []);
+  assert.deepEqual(one.sync(), { state: 'synced', text: 'Synced to your account', login: false, retry: false });
+});
