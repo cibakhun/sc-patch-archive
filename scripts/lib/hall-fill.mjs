@@ -1,13 +1,14 @@
 /* ============================================================
    hall-fill.mjs — Geometrie der Fuellung (scripts/build-hall-furniture.mjs,
    FILL): Was die dichte Hallenstufe an einer Stelle ganz weglaesst, nimmt
-   die Moebeldatei aus der vollen Stufe mit, nur die Dreiecke, die die
-   dichte Stufe nicht deckungsgleich traegt. Build und verify:hangar-hall
-   rechnen mit denselben Funktionen und derselben Toleranz.
+   die Moebeldatei aus der vollen Stufe mit, auf den Kasten des Eintrags
+   zugeschnitten und ohne die Dreiecke, die die dichte Stufe ohnehin
+   traegt. Build und verify:hangar-hall rechnen mit denselben Funktionen,
+   denselben Probepunkten und derselben Toleranz.
    ============================================================ */
 
-// Naeher als das an einer Flaeche der dichten Stufe gilt ein Dreieck als
-// deckungsgleich (beide flimmerten gegeneinander)
+// Naeher als das an einer Flaeche der dichten Stufe gilt ein Punkt als
+// deckungsgleich (beide Flaechen flimmerten dort gegeneinander)
 export const FILL_TOL = 0.005;
 
 export const inBox = (b, p, pad = 0) => p.every((v, a) => v >= b[0][a] - pad && v <= b[1][a] + pad);
@@ -16,6 +17,49 @@ export const inBox = (b, p, pad = 0) => p.every((v, a) => v >= b[0][a] - pad && 
 export const touches = (b, t, pad = 0) => [0, 1, 2].every((a) => Math.min(t[0][a], t[1][a], t[2][a]) <= b[1][a] + pad && Math.max(t[0][a], t[1][a], t[2][a]) >= b[0][a] - pad);
 
 export const centroid = (t) => [0, 1, 2].map((a) => (t[0][a] + t[1][a] + t[2][a]) / 3);
+
+// Probepunkte eines Dreiecks: Schwerpunkt und drei innere Punkte, je auf
+// halbem Weg vom Schwerpunkt zu einer Ecke. Liegt nur ein Teil des
+// Dreiecks auf der dichten Stufe (ein langes Dreieck ueber eine Kante
+// hinaus), trifft das mindestens eine Probe, der Schwerpunkt allein oft
+// nicht.
+export const samples = (t) => [centroid(t), ...[0, 1, 2].map((k) => [0, 1, 2].map((a) => (4 * t[k][a] + t[(k + 1) % 3][a] + t[(k + 2) % 3][a]) / 6))];
+
+const sub = (u, v) => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
+export function normalOf(t) {
+  const u = sub(t[1], t[0]), v = sub(t[2], t[0]), n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+  const l = Math.hypot(...n) || 1;
+  return n.map((x) => x / l);
+}
+// Dreiecke der dichten Stufe als { t, n } fuer onLite
+export const withNormals = (list) => list.map((t) => ({ t, n: normalOf(t) }));
+// Liegt der Punkt q eines Dreiecks mit Normale n auf einer Flaeche der
+// dichten Stufe? Naeher als FILL_TOL und annaehernd gleich ausgerichtet
+// (bis 25°): Nur so flimmern zwei Flaechen gegeneinander. Kreuzt eine
+// Flaeche nur, etwa eine Ebene laengs durch ein Rohr, liegen die Proben an
+// der Schnittlinie auch nahe, flimmern aber nicht.
+export const onLite = (q, n, near) => near.some((l) => Math.abs(n[0] * l.n[0] + n[1] * l.n[1] + n[2] * l.n[2]) >= 0.9 && dist2(q, l.t) <= FILL_TOL * FILL_TOL);
+
+// Schneidet ein Vieleck auf den Kasten zu (Sutherland-Hodgman an seinen
+// sechs Ebenen). Ecken sind { p: [x, y, z], a: [Attribut, …] }; die
+// Attribute laufen linear mit. Liefert die Ecken des Rests, leer, wenn
+// nichts im Kasten liegt.
+const lerp = (u, v, s) => u.map((x, i) => x + (v[i] - x) * s);
+export function clipToBox(poly, box) {
+  for (let axis = 0; axis < 3 && poly.length; axis++) for (const side of [0, 1]) {
+    const lim = box[side][axis], inside = (v) => (side ? v.p[axis] <= lim : v.p[axis] >= lim), out = [];
+    poly.forEach((cur, i) => {
+      const prev = poly[(i + poly.length - 1) % poly.length];
+      if (inside(cur) !== inside(prev)) {
+        const s = (lim - prev.p[axis]) / (cur.p[axis] - prev.p[axis]);
+        out.push({ p: lerp(prev.p, cur.p, s), a: prev.a.map((x, k) => lerp(x, cur.a[k], s)) });
+      }
+      if (inside(cur)) out.push(cur);
+    });
+    poly = out;
+  }
+  return poly;
+}
 
 // Dreiecke einer Primitive (gltf-transform) im Raum ihres Knotens samt
 // Eltern; ohne Indizes je drei Ecken eins

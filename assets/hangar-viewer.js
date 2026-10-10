@@ -242,18 +242,23 @@ function swapHallDetail(model, extra) {
     else if (n.userData?.[HALL_FILL]) n.traverse((o) => { if (o.isMesh) fill.push(o); });
   });
   if (!detail.length && !fill.length) return null;
+  // Ein Material gibt es doppelt, wenn es Teile mit und ohne Eckfarben
+  // tragen (der Loader klont es dann mit vertexColors): gesucht wird nach
+  // Name und Eckfarben, so bekommt jedes Teil das seines Gegenstücks, auch
+  // für die Abdunkelung aus dem Spiel weiter unten.
+  const key = (o) => `${o.material.name}|${o.geometry.attributes.color ? 1 : 0}`;
   const byName = new Map(), gone = [];
   model.traverse((o) => {
     if (!o.isMesh) return;
-    if (!byName.has(o.material.name)) byName.set(o.material.name, o.material);
+    if (!byName.has(key(o))) byName.set(key(o), o.material);
     if (names.has(o.material.name)) gone.push(o);
   });
   const tris = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3;
   let cut = 0, added = 0;
   for (const o of gone) { cut += tris(o.geometry); o.removeFromParent(); o.geometry.dispose(); }
-  for (const o of detail) { added += tris(o.geometry); o.material = byName.get(o.material.name) ?? o.material; }
+  for (const o of detail) { added += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
   let filled = 0;
-  for (const o of fill) { filled += tris(o.geometry); o.material = byName.get(o.material.name) ?? o.material; }
+  for (const o of fill) { filled += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
   return { materials: names.size, added, cut, parts: gone.length, filled };
 }
 

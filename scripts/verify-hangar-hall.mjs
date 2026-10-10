@@ -66,18 +66,25 @@
         Bereich einer Ausnahme aus HALL_DROP (sonst kaeme ein entferntes
         Teil ueber die Ergaenzung zurueck). Jedes Material der Ergaenzung
         faellt unter die Regel: Der Viewer liesse fuer jedes andere alle
-        Teile der leichteren Stufe mit diesem Material fallen.
+        Teile der leichteren Stufe mit diesem Material fallen. Und jede
+        Primitive traegt einen Attributsatz (Semantik und Typ), den die
+        leichtere Stufe mit demselben Material auch traegt: Der Viewer
+        gibt ihr das Material nach Name und Eckfarben, ein anderer Satz
+        braeuchte ein eigenes Shaderprogramm, und fehlten
+        Texturkoordinaten, laege die Textur verschmiert.
      8  Was die leichtere Stufe an einer Stelle ganz weglaesst, setzt die
         Moebeldatei dazu (seit 10.10.2026, FILL in
         scripts/build-hall-furniture.mjs, Knoten mit dem Schluessel hinter
-        der Marke hall-fill): je Bereich mindestens seine Klinke
-        (KLINKE_FUELLUNG), kein Bereich ohne Klinke oder ohne Dreiecke,
-        gerechnet gegen genau die leichtere Stufe in dist/ (sha1), keines
-        der Dreiecke deckungsgleich mit einer Flaeche der leichteren Stufe
-        (unter FILL_TOL, beide flimmerten gegeneinander), keines im
-        Bereich einer Ausnahme aus HALL_DROP, und ihr Material traegt die
-        leichtere Stufe (die Moebeldatei bringt Ergaenzung und Fuellung
-        ohne Texturen, der Viewer gibt ihnen das gleichnamige Material der
+        der Marke hall-fill), auf den Kasten des Eintrags zugeschnitten:
+        je Bereich mindestens seine Klinke (KLINKE_FUELLUNG), kein Bereich
+        ohne Klinke oder ohne Dreiecke, gerechnet gegen genau die
+        leichtere Stufe in dist/ (sha1). Kein Dreieck liegt ganz oder
+        teilweise auf einer gleich ausgerichteten Flaeche der leichteren
+        Stufe (Schwerpunkt und drei innere Probepunkte, unter FILL_TOL;
+        beide flimmerten gegeneinander), keines im Bereich einer Ausnahme
+        aus HALL_DROP. Material und Attributsatz traegt die leichtere
+        Stufe genauso (die Moebeldatei bringt Ergaenzung und Fuellung ohne
+        Texturen, der Viewer gibt ihnen das gleichnamige Material der
         leichteren Stufe; dasselbe gilt in [7] fuer die Ergaenzung).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -88,7 +95,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { seamStats } from './lib/hall-seams.mjs';
-import { FILL_TOL, touches, centroid, worldTris, dist2 } from './lib/hall-fill.mjs';
+import { FILL_TOL, touches, samples, normalOf, withNormals, onLite, worldTris } from './lib/hall-fill.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -119,11 +126,14 @@ const KLINKE_DICHT = { 'revelyork-single': 121915 };
 // Materialien, Rohre 84). Gleiche Regel wie oben.
 const KLINKE_ERGAENZUNG = { 'revelyork-single': 15482 };
 // Klinke je Halle und Bereich der Fuellung: so viele Dreiecke setzt die
-// Moebeldatei dort mindestens dazu. Stand 10.10.2026, volle Stufe
-// fbd0e9c9 gegen die leichtere 1a878120: Holzblende auf dem Deckenkasten 6
-// (42 weitere im Kasten deckungsgleich mit der leichteren Stufe,
-// ausgelassen). Gleiche Regel wie oben.
-const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 6 } };
+// Moebeldatei dort mindestens dazu, auf den Kasten zugeschnitten. Stand
+// 10.10.2026, volle Stufe fbd0e9c9 gegen die leichtere 1a878120:
+// Holzblende auf dem Deckenkasten 14 (vorher 6 ganze Dreiecke, die bis
+// unter die Leiste der leichteren Stufe reichten), Rohrstueck mitten an
+// der Decke 142, Rueckwand der Schlitze unten im Nordtor 4 (24 weitere im
+// Kasten deckungsgleich mit der leichteren Stufe, ausgelassen). Gleiche
+// Regel wie oben.
+const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -289,6 +299,18 @@ const glbJson = (file) => {
   const b = readFileSync(file);
   return b.readUInt32LE(0) === 0x46546c67 ? JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString('utf8')) : null;
 };
+// Attributsatz einer Primitive (Semantik:Typ, sortiert) und je
+// Materialname die Saetze, die eine Datei traegt
+const attrSig = (json, p) => Object.keys(p.attributes ?? {}).sort().map((s) => `${s}:${json.accessors?.[p.attributes[s]]?.type ?? '?'}`).join(',');
+const sigsByMat = (json) => {
+  const m = new Map();
+  for (const mesh of json?.meshes ?? []) for (const p of mesh.primitives) {
+    const n = json.materials?.[p.material]?.name ?? '?';
+    if (!m.has(n)) m.set(n, new Set());
+    m.get(n).add(attrSig(json, p));
+  }
+  return m;
+};
 const furnNodes = (json) => (json?.nodes ?? []).filter((n) => n.extras?.furniture != null && Array.isArray(n.extras?.anchor) && n.extras.anchor.length === 3 && n.extras.anchor.every(Number.isFinite)).length;
 const klinkeMoebel = hall?.id ? KLINKE_MOEBEL[hall.id] ?? 0 : 0;
 let inHall = 0, inFile = 0, furnSrc = '';
@@ -333,7 +355,7 @@ say('\n[7] Was der leichteren Stufe fehlt, bringt die Moebeldatei ganz aus der v
 const km = /\/\* hall-detail \*\/\s*'([^']+)'/.exec(viewer);
 const detailKey = km?.[1] ?? null;
 const klinkeErg = hall?.id ? KLINKE_ERGAENZUNG[hall.id] ?? 0 : 0;
-let ergTris = 0, ergMats = new Set(), liteRule = [], inDrop = 0;
+let ergTris = 0, ergMats = new Set(), liteRule = [], inDrop = 0, ergSigBad = 0;
 if (viewer && !km) fail('[7] der Viewer traegt keinen Schluessel /* hall-detail */ \'…\' mehr: Die Ergaenzung aus der Moebeldatei kaeme dann zum duennen Glas der leichteren Stufe dazu, statt es zu ersetzen. Marke zurueck (assets/hangar-viewer.js, HALL_DETAIL), oder dieses Tor mitnehmen');
 if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey) {
   const ff = fromUrl(hall.furniture.url), json = glbJson(ff), of = json?.extras?.furnitureOf;
@@ -356,6 +378,14 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey
     for (const n of [...ergMats].filter((n) => !used.has(n))) fail(`[7] die Ergaenzung traegt „${n}“, die leichtere Stufe nicht: Die Moebeldatei bringt nur Namen und Faktoren mit, ohne das gleichnamige Material der leichteren Stufe bliebe das Teil ohne Texturen. Regel DETAIL in scripts/build-hall-furniture.mjs pruefen`);
     for (const n of [...ergMats].filter((n) => !re.test(n))) fail(`[7] die Ergaenzung traegt „${n}“, das nicht unter ihre Regel ${rule} faellt: Der Viewer liesse dafuer alle Teile der leichteren Stufe mit diesem Material fallen. Knoten mit extras.${detailKey} nur fuer die Regel (scripts/build-hall-furniture.mjs)`);
     for (const n of liteRule.filter((n) => !ergMats.has(n))) fail(`[7] die leichtere Stufe traegt „${n}“ (Regel ${rule}), die Ergaenzung nicht: Dort bliebe das duenne Glas, und kam das Material in der vollen Stufe umbenannt, laege es doppelt. Regel DETAIL in scripts/build-hall-furniture.mjs pruefen`);
+  }
+  // Dieselben Attribute wie die leichtere Stufe mit diesem Material
+  const liteSigs = sigsByMat(lite);
+  for (const n of det) for (const p of json.meshes[n.mesh].primitives) {
+    const mn = json.materials?.[p.material]?.name ?? '?', s = attrSig(json, p);
+    if (!liteSigs.has(mn) || liteSigs.get(mn).has(s)) continue;
+    ergSigBad++;
+    fail(`[7] die Ergaenzung traegt „${mn}“ mit ${s}, die leichtere Stufe nur mit ${[...liteSigs.get(mn)].join(' / ')}: Der Viewer gibt ihr das Material nach Name und Eckfarben (ohne Gegenstueck bliebe sie ohne Texturen), ein anderer Satz braucht ein eigenes Shaderprogramm, und fehlen Texturkoordinaten, liegt die Textur verschmiert. Moebeldatei neu bauen; bleibt es, in scripts/build-hall-furniture.mjs die Attribute der Ergaenzung (prune vor dem Tausch der Materialien) auf die der leichteren Stufe bringen`);
   }
   // Nichts davon im Bereich einer Ausnahme (Ecken in reach)
   if (det.length && entries.length) {
@@ -387,7 +417,7 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey
 for (const k of Object.keys(KLINKE_ERGAENZUNG).filter((k) => k !== hall?.id)) fail(`[7] KLINKE_ERGAENZUNG["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 say(`    Schluessel im Viewer: ${detailKey ?? '(keiner)'}   Materialien: ${[...ergMats].map((n) => n.replace(/^.*_mtl_/, '')).join(', ') || '(keine)'}`);
 say(`    leichtere Stufe unter der Regel: ${liteRule.map((n) => n.replace(/^.*_mtl_/, '')).join(', ') || '(keine)'}`);
-sollIst(`mindestens ${klinkeErg} Dreiecke, jedes Material der leichteren Stufe ersetzt, 0 im Bereich einer Ausnahme`, `${ergTris} Dreiecke in ${ergMats.size} Materialien, ${liteRule.filter((n) => !ergMats.has(n)).length} nicht ersetzt, ${inDrop} im Bereich einer Ausnahme`);
+sollIst(`mindestens ${klinkeErg} Dreiecke, jedes Material der leichteren Stufe ersetzt, 0 im Bereich einer Ausnahme, Attribute wie die leichtere Stufe`, `${ergTris} Dreiecke in ${ergMats.size} Materialien, ${liteRule.filter((n) => !ergMats.has(n)).length} nicht ersetzt, ${inDrop} im Bereich einer Ausnahme, ${ergSigBad} Primitiven mit anderen Attributen`);
 
 say('\n[8] Was die leichtere Stufe an einer Stelle ganz weglaesst, setzt die Moebeldatei dazu');
 // Der Schluessel steht im Viewer: const HALL_FILL = /* hall-fill */ '…'
@@ -395,7 +425,7 @@ const fk = /\/\* hall-fill \*\/\s*'([^']+)'/.exec(viewer);
 const fillKey = fk?.[1] ?? null;
 const klinkeFill = hall?.id ? KLINKE_FUELLUNG[hall.id] ?? {} : {};
 const fillBy = {};
-let fillTris = 0, fillNear = 0, fillCoinc = 0, fillInDrop = 0, fillRegions = [];
+let fillTris = 0, fillNear = 0, fillCoinc = 0, fillPartial = 0, fillInDrop = 0, fillSigBad = 0, fillRegions = [];
 if (viewer && !fk) fail('[8] der Viewer traegt keinen Schluessel /* hall-fill */ \'…\' mehr: Die Fuellung aus der Moebeldatei kaeme dann mit dem Material der vollen Stufe (eigenes Shaderprogramm, eigene Texturen). Marke zurueck (assets/hangar-viewer.js, HALL_FILL), oder dieses Tor mitnehmen');
 if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && fillKey) {
   const ff = fromUrl(hall.furniture.url), json = glbJson(ff), fill = json?.extras?.furnitureOf?.fill;
@@ -417,41 +447,59 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && fillKey) 
   fillTris = Object.values(fillBy).reduce((a, b) => a + b, 0);
   // Die Fuellung bringt nur Namen und Faktoren mit; das Material samt
   // Texturen gibt ihr der Viewer aus der leichteren Stufe
-  const liteJson = existsSync(fromUrl(hall.url)) ? glbJson(fromUrl(hall.url)) : null, liteMats = new Set();
-  for (const m of liteJson?.meshes ?? []) for (const p of m.primitives) liteMats.add(liteJson.materials?.[p.material]?.name ?? '?');
+  // Texturen gibt ihr der Viewer aus der leichteren Stufe, nach Name und
+  // Eckfarben; dafuer traegt sie deren Attributsatz
+  const liteSigs = sigsByMat(existsSync(fromUrl(hall.url)) ? glbJson(fromUrl(hall.url)) : null);
   for (const n of nodes) for (const p of json.meshes[n.mesh].primitives) {
-    const mn = json.materials?.[p.material]?.name ?? '?';
-    if (!liteMats.has(mn)) fail(`[8] die Fuellung „${n.extras[fillKey]}“ traegt „${mn}“, die leichtere Stufe nicht: Ohne das gleichnamige Material bliebe sie ohne Texturen. Material in FILL (scripts/build-hall-furniture.mjs) pruefen`);
+    const mn = json.materials?.[p.material]?.name ?? '?', s = attrSig(json, p);
+    if (!liteSigs.has(mn)) fail(`[8] die Fuellung „${n.extras[fillKey]}“ traegt „${mn}“, die leichtere Stufe nicht: Ohne das gleichnamige Material bliebe sie ohne Texturen. Material in FILL (scripts/build-hall-furniture.mjs) pruefen`);
+    else if (!liteSigs.get(mn).has(s)) {
+      fillSigBad++;
+      fail(`[8] die Fuellung „${n.extras[fillKey]}“ traegt „${mn}“ mit ${s}, die leichtere Stufe nur mit ${[...liteSigs.get(mn)].join(' / ')}: Der Viewer gibt ihr das Material nach Name und Eckfarben (ohne Gegenstueck bliebe sie ohne Texturen), ein anderer Satz braucht ein eigenes Shaderprogramm, und fehlen Texturkoordinaten, liegt die Textur verschmiert. Moebeldatei neu bauen; bleibt es, clipInto in scripts/build-hall-furniture.mjs pruefen (je Attributsatz der leichteren Stufe eine Primitive)`);
+    }
   }
   for (const [name, k] of Object.entries(klinkeFill)) if ((fillBy[name] ?? 0) < k) fail(`[8] „${name}“: ${fillBy[name] ?? 0} Dreiecke Fuellung, die Klinke verlangt ${k}: Dort sieht man wieder durch die leichtere Stufe ins Dunkle (FILL in scripts/build-hall-furniture.mjs). KLINKE_FUELLUNG nur per Commit mit Ursache senken`);
   for (const name of Object.keys(fillBy).filter((n) => !(n in klinkeFill))) fail(`[8] „${name}“ fuellt ${fillBy[name]} Dreiecke ohne Klinke: in KLINKE_FUELLUNG dieses Tors eintragen`);
-  // Deckungsgleich mit der leichteren Stufe, oder im Bereich einer Ausnahme?
+  // Liegt sie auf der leichteren Stufe, oder im Bereich einer Ausnahme?
+  // Je Bereich gegen die Dreiecke der leichteren Stufe an seinem Rand,
+  // mit denselben Probepunkten wie der Build
   if (nodes.length) {
     if (!liteDoc) fail(`[8] die leichtere Stufe ${liteUrl} ist nicht gemessen ([3]): ohne sie kein Abgleich der Fuellung`);
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
     const doc = await io.read(ff);
-    const tris = [];
+    const regs = new Map();
     for (const node of doc.getRoot().listNodes()) {
-      if (node.getExtras()?.[fillKey] == null) continue;
-      for (const p of node.getMesh()?.listPrimitives() ?? []) tris.push(...worldTris(node, p));
+      const name = node.getExtras()?.[fillKey];
+      if (name == null) continue;
+      const r = regs.get(String(name)) ?? { tris: [], near: [], coinc: 0, partial: 0 };
+      for (const p of node.getMesh()?.listPrimitives() ?? []) r.tris.push(...worldTris(node, p));
+      regs.set(String(name), r);
     }
-    const lo = [0, 1, 2].map((a) => Math.min(...tris.map((t) => Math.min(t[0][a], t[1][a], t[2][a]))));
-    const hi = [0, 1, 2].map((a) => Math.max(...tris.map((t) => Math.max(t[0][a], t[1][a], t[2][a]))));
-    const near = [];
-    for (const node of liteDoc?.getRoot().listNodes() ?? []) for (const p of node.getMesh()?.listPrimitives() ?? []) for (const t of worldTris(node, p)) if (touches([lo, hi], t, 0.05)) near.push(t);
-    fillNear = near.length;
-    for (const t of tris) {
-      const c = centroid(t);
-      if (near.some((l) => dist2(c, l) <= FILL_TOL * FILL_TOL)) fillCoinc++;
-      if (t.some((q) => entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a])))) fillInDrop++;
+    for (const r of regs.values()) {
+      r.box = [[Infinity, Infinity, Infinity], [-Infinity, -Infinity, -Infinity]];
+      for (const q of r.tris.flat()) for (let a = 0; a < 3; a++) { r.box[0][a] = Math.min(r.box[0][a], q[a]); r.box[1][a] = Math.max(r.box[1][a], q[a]); }
     }
-    if (fillCoinc) fail(`[8] ${fillCoinc} Dreiecke der Fuellung liegen auf einer Flaeche der leichteren Stufe (unter ${FILL_TOL * 1000} mm): Dort flimmern beide gegeneinander. Kasten in FILL enger fassen oder Moebeldatei neu bauen`);
+    for (const node of liteDoc?.getRoot().listNodes() ?? []) for (const p of node.getMesh()?.listPrimitives() ?? []) for (const t of worldTris(node, p)) for (const r of regs.values()) if (touches(r.box, t, 0.05)) r.near.push(t);
+    for (const [name, r] of regs) {
+      fillNear += r.near.length;
+      const near = withNormals(r.near);
+      for (const t of r.tris) {
+        const n = normalOf(t), on = samples(t).filter((q) => onLite(q, n, near)).length;
+        if (on === 4) r.coinc++;
+        else if (on) r.partial++;
+        if (t.some((q) => entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a])))) fillInDrop++;
+      }
+      fillCoinc += r.coinc;
+      fillPartial += r.partial;
+      if (r.coinc) fail(`[8] „${name}“: ${r.coinc} Dreiecke der Fuellung liegen ganz auf einer gleich ausgerichteten Flaeche der leichteren Stufe (unter ${FILL_TOL * 1000} mm): Dort flimmern beide gegeneinander, der Build laesst solche aus. Moebeldatei neu bauen (scripts/build-hall-furniture.mjs)`);
+      if (r.partial) fail(`[8] „${name}“: ${r.partial} Dreiecke der Fuellung liegen teilweise auf einer gleich ausgerichteten Flaeche der leichteren Stufe (unter ${FILL_TOL * 1000} mm): Dort flimmern beide gegeneinander. Kasten in FILL (scripts/build-hall-furniture.mjs) so enger fassen oder teilen, dass er die Flaeche nicht mehr schneidet`);
+    }
     if (fillInDrop) fail(`[8] die Fuellung bringt ${fillInDrop} Dreiecke in den Bereich einer Ausnahme aus HALL_DROP zurueck: Das entfernte Teil stuende dort wieder. Kasten in FILL enger fassen`);
   }
 } else if (!hall?.furniture?.url) say('    (die Seite laedt keine Moebeldatei: nichts zu fuellen)');
 for (const k of Object.keys(KLINKE_FUELLUNG).filter((k) => k !== hall?.id)) fail(`[8] KLINKE_FUELLUNG["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 say(`    Schluessel im Viewer: ${fillKey ?? '(keiner)'}   Bereiche: ${fillRegions.map((r) => `${r.name} ${fillBy[r.name] ?? 0} (Klinke ${klinkeFill[r.name] ?? '?'}, ${r.skipped ?? '?'} deckungsgleich ausgelassen)`).join('; ') || '(keine)'}   leichtere Stufe daneben: ${fillNear} Dreiecke`);
-sollIst(`je Bereich mindestens seine Klinke, 0 deckungsgleich, 0 im Bereich einer Ausnahme`, `${fillTris} Dreiecke in ${Object.keys(fillBy).length} Bereichen, ${fillCoinc} deckungsgleich, ${fillInDrop} im Bereich einer Ausnahme`);
+sollIst(`je Bereich mindestens seine Klinke, 0 ganz oder teilweise aufliegend, 0 im Bereich einer Ausnahme, Attribute wie die leichtere Stufe`, `${fillTris} Dreiecke in ${Object.keys(fillBy).length} Bereichen, ${fillCoinc} ganz und ${fillPartial} teilweise aufliegend, ${fillInDrop} im Bereich einer Ausnahme, ${fillSigBad} Primitiven mit anderen Attributen`);
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
