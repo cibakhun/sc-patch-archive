@@ -263,8 +263,8 @@ body{font-family:var(--font-body)}
       (Registrierung, Anmeldung), und auf drei Seiten, die öffentliche Daten lesen: ein
       öffentliches Piloten-Profil (Profil und Favoriten dieses Piloten), die Seite Feedback (die
       Liste der genannten Tester) und die Seite Unterstützen (die bisherige Summe; auch die
-      Stripe-Bezahlseite legt der Knopf dort über Supabase an). Über dich wird dabei nichts
-      gesendet; technisch bedingt erfährt Supabase wie bei jedem Abruf deine IP-Adresse. Bist du
+      Stripe-Bezahlseite legt der Knopf dort über Supabase an und schickt dafür nur den gewählten
+      Betrag und die Seitensprache). Nichts, was dich erkennbar macht, wird dabei gesendet; technisch bedingt erfährt Supabase wie bei jedem Abruf deine IP-Adresse. Bist du
       angemeldet, verbinden sich die Seiten mit dem Menü der Website mit Supabase, um deine
       Sitzung bei Bedarf zu erneuern, deinen Anzeigenamen im Menü zu zeigen und deinen
       <a href="#presence">Online-Status</a> zu schreiben; Seiten mit kontogebundenen Werkzeugen
@@ -291,8 +291,8 @@ body{font-family:var(--font-body)}
       Piloten-Verzeichnis. Meldest du dich im Konto-Dashboard ab, versucht die Seite zuerst,
       beide Zeitpunkte zu leeren, und meldet dich danach in jedem Fall ab. Gelingt das Leeren
       nicht (etwa ohne Netz), schreibt dieser Browser keine weiteren Zeitpunkte, und der Status
-      wechselt nach spätestens 3 Minuten auf offline, sofern du nicht auf einem anderen Gerät
-      noch angemeldet bist. Beim Löschen des Kontos verschwinden die Zeitpunkte mit dem Profil.
+      wechselt nach spätestens 3 Minuten auf offline, sofern nicht auf einem anderen Gerät, auf
+      dem du angemeldet bist, noch eine Seite dieser Website offen ist. Beim Löschen des Kontos verschwinden die Zeitpunkte mit dem Profil.
       Rechtsgrundlage ist wie beim übrigen Konto Art. 6 Abs. 1 lit. b DSGVO.
     </p>
 

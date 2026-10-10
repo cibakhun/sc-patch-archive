@@ -249,8 +249,8 @@ body{font-family:var(--font-body)}
       features (registration, sign-in) and on three pages that read public data: a public pilot
       profile (that pilot's profile and favorites), the Feedback page (the list of credited
       testers) and the Support page (the running total; the button there also creates the Stripe
-      payment page via Supabase). Nothing about you is sent; as with any request, Supabase
-      technically learns your IP address. While you are signed in, the pages with the site menu
+      payment page via Supabase, sending only the amount you chose and the page language). Nothing
+      that identifies you is sent; as with any request, Supabase technically learns your IP address. While you are signed in, the pages with the site menu
       connect to Supabase to renew your session when needed, show your display name in the menu
       and write your <a href="#presence">online status</a>; pages with account-bound tools also
       sync their contents.
@@ -274,7 +274,8 @@ body{font-family:var(--font-body)}
       friends and pilot directory. When you sign out in the account dashboard, the page first
       tries to clear both timestamps and then signs you out regardless. If clearing fails (for
       example without a network), this browser writes no further timestamps, and the status
-      switches to offline within 3 minutes unless you are still signed in on another device.
+      switches to offline within 3 minutes unless a page of this website is still open while you
+      are signed in on another device.
       Deleting your account removes the timestamps together with your profile. As for the rest
       of the account, the legal basis is Art. 6 (1) (b) GDPR.
     </p>
