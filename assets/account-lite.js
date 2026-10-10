@@ -351,15 +351,28 @@
     // Zwischenbild ohne Namen, und der Rollen-Cache bleibt, sonst nahm eine
     // gerade scheiternde Rollenabfrage einem Admin die Rolle.
     addEventListener('storage', function (e) {
-      if (e.key !== STORE) return;
-      var now = readRaw();
-      if (userOf(now) !== userOf(shown)) {
-        try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
-        show(now);
-      }
-      // Seiten-Apps (crafting-app.js …) ziehen ihren Konto-Zustand nach.
-      announce();
+      if (e.key === STORE) follow();
     });
+    // Aus dem bfcache zurueck (Zurueck-Knopf): storage-Ereignisse, waehrend
+    // die Seite dort lag, kamen nie an. Hat sich der Besucher inzwischen
+    // anderswo ab- oder umgemeldet, zeigte die Nav sonst das alte Konto samt
+    // Admin-Klasse, bis zum naechsten Seitenaufruf.
+    addEventListener('pageshow', function (e) {
+      if (e && e.persisted) follow();
+    });
+  }
+
+  // Die gespeicherte Sitzung gilt: zeichnen, wenn sie einem anderen Konto
+  // gehoert als dem gezeigten (oder keinem mehr), und den Seiten-Apps
+  // (crafting-app.js, fleet.js …) melden, damit sie ihren Konto-Zustand
+  // nachziehen.
+  function follow() {
+    var now = readRaw();
+    if (userOf(now) !== userOf(shown)) {
+      try { sessionStorage.removeItem(ROLE_CACHE_KEY); } catch (ex) { /* noop */ }
+      show(now);
+    }
+    announce();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
