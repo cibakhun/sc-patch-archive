@@ -20,7 +20,7 @@
    mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   FUENF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   SECHS ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -42,6 +42,16 @@
         Stufe trotz leichterer als Halle der Seite, fehlte die Moebeldatei
         beim Build: Die Seite zeigt dann alles, laedt aber das Vierfache an
         Waenden, und das Tor reisst.
+     6  Die Naehte jeder Hallenstufe halten (seit 08.10.2026): Draco rundete
+        die Lage jeder Primitive auf ihr eigenes Raster, Kanten zweier
+        Teile klafften danach bis 5 mm, und durch den Spalt schien der helle
+        Hintergrund (gepunktete Linien an den Paneelkanten). Gezaehlt werden
+        Randecken, die hoechstens 5 mm neben der Randecke eines anderen
+        Teils liegen, aber nicht genau darauf (seamStats in
+        scripts/lib/hall-seams.mjs). Obergrenze je Halle
+        (OBERGRENZE_KLAFFEND), sie sinkt mit jeder dichteren Halle; dazu
+        eine Untergrenze dichter Randecken (KLINKE_DICHT), damit eine leere
+        oder anders zerlegte Halle das Tor nicht still bestehen laesst.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -50,6 +60,7 @@ import { fileURLToPath } from 'node:url';
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
+import { seamStats } from './lib/hall-seams.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -63,6 +74,17 @@ const KLINKE_EINTRAEGE = { 'revelyork-single': 1 };
 // extras.anchor) laedt die Seite am Rechner mindestens. Stand 08.10.2026:
 // 137 in der vollen Stufe. Gleiche Regel wie oben.
 const KLINKE_MOEBEL = { 'revelyork-single': 137 };
+// Naehte je Halle (seamStats, Randecken bis 5 mm neben einem anderen Teil).
+// OBERGRENZE_KLAFFEND sinkt nur; steigen nur per Commit, dessen Botschaft
+// die Ursache nennt. KLINKE_DICHT steigt nur. Stand 10.10.2026, 1a878120
+// (PC-Lauf „Hallen-Naehte“: bis 0,1 mm verschweisst, ein Raster fuer alle
+// Teile): 1 753 klaffend, 121 915 dicht; vorher, je Primitive gerundet,
+// 123 373 klaffend, 0 dicht. Die uebrigen klaffen schon in der
+// ungerundeten Quelle (2 718 Ecken zwischen 0,1 und 5 mm); was durch sie
+// scheint, ist seit dem dunklen Hintergrund der Halle dunkel wie die
+// Fugen. Sie zu schliessen hiesse Spielgeometrie verschieben.
+const OBERGRENZE_KLAFFEND = { 'revelyork-single': 1753 };
+const KLINKE_DICHT = { 'revelyork-single': 121915 };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -193,18 +215,22 @@ async function measure(file, list) {
     });
     out.push({ tris: n, parts: gone.size });
   }
-  return { total, out };
+  // Naehte gegen dieselbe Stufe; die T-Stoesse kosten das Doppelte und
+  // bleiben der Selbstauskunft des PC-Builds
+  return { total, out, seams: seamStats(doc, { tJunctions: false }) };
 }
 
 say('\n[3] Jeder Eintrag trifft in jeder Hallenstufe mindestens seine Klinke');
 say('[4] Kein Eintrag nimmt mehr als 2 % einer Stufe');
 const files = hall ? [hall.url, hall.lite?.url].filter(Boolean) : [];
 let measured = 0;
+const seamRuns = [];
 for (const u of files) {
   const f = fromUrl(u);
   if (!existsSync(f)) { fail(`[3] Hallenstufe ${u} liegt nicht in dist/`); continue; }
-  const { total, out } = await measure(f, entries);
+  const { total, out, seams } = await measure(f, entries);
   measured++;
+  seamRuns.push({ u: u.split('?')[0], ...seams });
   say(`    ${u.split('?')[0]}: ${total} Dreiecke`);
   out.forEach((r, i) => {
     const d = entries[i], name = d.why.split(' (')[0], share = total ? r.tris / total : 0;
@@ -249,8 +275,20 @@ if (inHall && inFile) fail(`[5] Moebel doppelt: die Halle der Seite (${hall.url.
 if (inHall + inFile < klinkeMoebel) fail(`[5] die Seite laedt ${inHall + inFile} Moebel, die Klinke verlangt ${klinkeMoebel}: Moebeldatei fehlt (scripts/build-hall-furniture.mjs im Build?) oder die volle Stufe kam mit weniger Moebeln; KLINKE_MOEBEL nur per Commit mit Ursache senken`);
 for (const k of Object.keys(KLINKE_MOEBEL).filter((k) => k !== hall?.id)) fail(`[5] KLINKE_MOEBEL["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 
+say('\n[6] Die Naehte jeder Hallenstufe halten');
+const grenze = hall?.id ? OBERGRENZE_KLAFFEND[hall.id] : undefined, dicht = hall?.id ? KLINKE_DICHT[hall.id] : undefined;
+for (const r of seamRuns) {
+  const mm = Object.entries(r.crackMm).map(([k, n]) => `bis ${k} mm ${n}`).join(', ');
+  say(`    ${r.u}: ${r.boundaryVerts} Randecken, ${r.sealed} dicht, ${r.crack} klaffend${mm ? ` (${mm})` : ''}, ${r.lone} ohne Gegenstueck`);
+  if (grenze !== undefined && r.crack > grenze) fail(`[6] ${r.u}: ${r.crack} klaffende Randecken, die Obergrenze ist ${grenze}: Die Halle kam wieder je Primitive gerundet (Spalte an den Paneelkanten, gepunktete Linien). Im PC-Build (scripts/build-hangar-assets.mjs) vor dem Packen sealSeams, dann draco mit quantizationVolume 'scene' (.planning/notes/hallen-naehte.md); OBERGRENZE_KLAFFEND nur per Commit mit Ursache anheben`);
+  if (dicht !== undefined && r.sealed < dicht) fail(`[6] ${r.u}: ${r.sealed} dichte Randecken, die Klinke verlangt ${dicht}: Halle anders zerlegt oder ohne gemeinsames Raster gepackt? KLINKE_DICHT nur per Commit mit Ursache senken`);
+}
+if (hall?.id && measured && (grenze === undefined || dicht === undefined)) fail(`[6] die Halle ${hall.id} hat keine OBERGRENZE_KLAFFEND oder KLINKE_DICHT in diesem Tor: gemessene Werte eintragen`);
+for (const k of new Set([...Object.keys(OBERGRENZE_KLAFFEND), ...Object.keys(KLINKE_DICHT)].filter((k) => k !== hall?.id))) fail(`[6] OBERGRENZE_KLAFFEND/KLINKE_DICHT["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
+sollIst(`hoechstens ${grenze ?? '?'} klaffend, mindestens ${dicht ?? '?'} dicht, je Stufe`, seamRuns.map((r) => `${r.crack} klaffend, ${r.sealed} dicht`).join('; ') || '(keine Stufe gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

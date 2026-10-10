@@ -21,6 +21,7 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
+import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import sharp from 'sharp';
@@ -629,12 +630,24 @@ async function buildOne(kind, name, inPath) {
     }
   }
   const uvBits = Math.max(texcoordBits(root, 'TEXCOORD_0'), texcoordBits(root, 'TEXCOORD_1'));
+  // Dichte Hallenkopie: Nähte verschweißen und mit einem Raster für alle
+  // Teile packen, sonst klaffen Paneelkanten (siehe scripts/lib/hall-seams.mjs).
+  // Die Quelle zählt bis 0,1 mm als dicht, ihre Knoten tragen Rundungsrauschen.
+  let seams = null;
+  if (lite) {
+    seams = { source: seamStats(doc, { eps: 1e-4 }) };
+    seams.seal = sealSeams(doc, { tol: 1e-4 });
+  }
   // Farbe/Leuchten bis b.tex, alles übrige (Normalen, Masken) bis b.ntex
   await doc.transform(
     prune(),
     textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: 82 }),
     textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: 80 }),
-    draco({ method: 'edgebreaker', quantizePosition: kind === 'hall' ? 16 : 14, quantizeNormal: 10, quantizeTexcoord: uvBits }),
+    draco({
+      method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits,
+      // dichte Kopie: ein Raster für die ganze Halle, 18 Bit (≈ 0,7 mm)
+      ...(lite ? { quantizePosition: 18, quantizationVolume: 'scene' } : { quantizePosition: kind === 'hall' ? 16 : 14 }),
+    }),
   );
   // Nur noch das Nötige ankündigen
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
@@ -646,6 +659,7 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
+  if (seams) seams.written = seamStats(written);
   // Halle: Dichtheit der Hülle und Bodenhöhe (der Viewer lotet sie sonst
   // beim Laden selbst nach), beides gegen das geschriebene GLB
   const room = kind === 'hall' ? HALL_ROOM[name.replace(/-lod1$/, '')] : null;
@@ -663,6 +677,7 @@ async function buildOne(kind, name, inPath) {
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
+    ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
@@ -713,6 +728,8 @@ for (const kind of Object.keys(BUDGET)) {
       }
       if (kind === 'hall' && r.tris > BUDGET.hall.tris) console.log(`    WARNUNG Halle: ${r.tris.toLocaleString()} Dreiecke über der Warnschwelle von ${BUDGET.hall.tris.toLocaleString()} (nicht dezimiert)`);
       for (const c of r.vertexColors ?? []) console.log(`    Vertexfarben: ${c.material} (${c.origin}) ${c.tris.toLocaleString()} Dreiecke, R im Mittel ${c.meanR}, ${c.below098} % der Ecken R < 0,98`);
+      if (r.seams) for (const [k, s] of Object.entries({ Quelle: r.seams.source, Datei: r.seams.written })) console.log(`    Nähte (${k}): ${JSON.stringify(s)}`);
+      if (r.seams) console.log(`    sealSeams: ${JSON.stringify(r.seams.seal)}`);
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
