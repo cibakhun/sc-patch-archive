@@ -20,7 +20,7 @@
    mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   ACHT ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   NEUN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -87,6 +87,18 @@
         Ergaenzung und Fuellung ohne Texturen, der Viewer gibt ihnen das
         gleichnamige Material der leichteren Stufe; dasselbe gilt in [7]
         fuer die Ergaenzung).
+     9  Am Telefon kommt dasselbe (seit 10.10.2026): Dort laedt die Seite
+        nur die leichtere Stufe, ohne Moebeldatei (641 000 Dreiecke
+        Moebel). Ergaenzung und Fuellung bringt dort eine eigene kleine
+        Datei (opts.hall.patch, gebaut von scripts/build-hall-furniture.mjs
+        neben der Moebeldatei), die der Viewer am Telefon an deren Stelle
+        laedt (Marke hall-patch). Sie stammt aus genau der ausgelieferten
+        Moebeldatei (sha1) und traegt genau deren Knoten mit Ergaenzung und
+        Fuellung, je Primitive gleich in Schluessel, Material, Attributsatz
+        und Geometrie (Lage und jedes Attribut je Ecke), kein Moebel, keine
+        Textur. Sonst fehlten am Telefon Glas, Rohre und Fuellung still,
+        oder ihnen fehlten die Texturkoordinaten (so beim ersten Bau: prune
+        ohne keepAttributes).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -312,6 +324,13 @@ const sigsByMat = (json) => {
   }
   return m;
 };
+// Eine Datei dekodiert, einmal fuer [7] bis [9]
+const decoded = new Map();
+const decode = (file) => {
+  if (!decoded.has(file)) decoded.set(file, draco3d.createDecoderModule().then((dec) => new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': dec }).read(file)));
+  return decoded.get(file);
+};
+const sha1 = (file) => createHash('sha1').update(readFileSync(file)).digest('hex');
 const furnNodes = (json) => (json?.nodes ?? []).filter((n) => n.extras?.furniture != null && Array.isArray(n.extras?.anchor) && n.extras.anchor.length === 3 && n.extras.anchor.every(Number.isFinite)).length;
 const klinkeMoebel = hall?.id ? KLINKE_MOEBEL[hall.id] ?? 0 : 0;
 let inHall = 0, inFile = 0, furnSrc = '';
@@ -393,8 +412,7 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && detailKey
   // Dreieck, das den Kasten nur schneidet, gehoert zu einem Teil, das auch
   // die leichtere Stufe behaelt (so die Glasscheibe ueber der Trennwand).
   if (det.length && entries.length) {
-    const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
-    const doc = await io.read(ff);
+    const doc = await decode(ff);
     for (const node of doc.getRoot().listNodes()) {
       if (node.getExtras()?.[detailKey] !== true) continue;
       const w = node.getWorldMatrix();
@@ -450,7 +468,6 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && fillKey) 
   }
   fillTris = Object.values(fillBy).reduce((a, b) => a + b, 0);
   // Die Fuellung bringt nur Namen und Faktoren mit; das Material samt
-  // Texturen gibt ihr der Viewer aus der leichteren Stufe
   // Texturen gibt ihr der Viewer aus der leichteren Stufe, nach Name und
   // Eckfarben; dafuer traegt sie deren Attributsatz
   const liteSigs = sigsByMat(existsSync(fromUrl(hall.url)) ? glbJson(fromUrl(hall.url)) : null);
@@ -469,8 +486,7 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && fillKey) 
   // mit denselben Probepunkten wie der Build
   if (nodes.length) {
     if (!liteDoc) fail(`[8] die leichtere Stufe ${liteUrl} ist nicht gemessen ([3]): ohne sie kein Abgleich der Fuellung`);
-    const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
-    const doc = await io.read(ff);
+    const doc = await decode(ff);
     const regs = new Map();
     for (const node of doc.getRoot().listNodes()) {
       const name = node.getExtras()?.[fillKey];
@@ -505,8 +521,86 @@ for (const k of Object.keys(KLINKE_FUELLUNG).filter((k) => k !== hall?.id)) fail
 say(`    Schluessel im Viewer: ${fillKey ?? '(keiner)'}   Bereiche: ${fillRegions.map((r) => `${r.name} ${fillBy[r.name] ?? 0} (Klinke ${klinkeFill[r.name] ?? '?'}, ${r.skipped ?? '?'} deckungsgleich ausgelassen)`).join('; ') || '(keine)'}   leichtere Stufe daneben: ${fillNear} Dreiecke`);
 sollIst(`je Bereich mindestens seine Klinke, 0 ganz oder teilweise aufliegend, 0 im Bereich einer Ausnahme, Attribute wie die leichtere Stufe`, `${fillTris} Dreiecke in ${Object.keys(fillBy).length} Bereichen, ${fillCoinc} ganz und ${fillPartial} teilweise aufliegend, ${fillInDrop} im Bereich einer Ausnahme, ${fillSigBad} Primitiven mit anderen Attributen`);
 
+say('\n[9] Am Telefon bringt die Telefon-Datei Ergaenzung und Fuellung, dieselben Knoten');
+// Der Viewer laedt sie am Telefon an Stelle der Moebeldatei:
+// furniture: /* hall-patch */ opts.hall.patch
+const patchMark = /\/\* hall-patch \*\/\s*opts\.hall\.patch\b/.test(viewer);
+let patchNodes = 0, patchTris = 0, patchMissing = 0, patchExtra = 0, patchForeign = 0, patchTex = 0, patchBytes = 0, furnParts = 0;
+if (viewer && !patchMark) fail('[9] der Viewer laedt am Telefon die Telefon-Datei nicht mehr (furniture: /* hall-patch */ opts.hall.patch im Zweig fuer Telefone): Dort fehlten wieder Glas, Rohre und die Fuellung. Marke zurueck (assets/hangar-viewer.js, Aufruf von loadRealHall), oder dieses Tor mitnehmen');
+if (hall?.furniture?.url && !hall.patch?.url) fail('[9] die Seite gibt zur Moebeldatei keine Telefon-Datei mit (opts.hall.patch): Am Telefon fehlten Glas, Rohre und die Fuellung. scripts/build-hall-furniture.mjs baut sie neben die Moebeldatei, HangarApp.astro reicht sie weiter');
+if (hall?.patch?.url && !hall.furniture?.url) fail(`[9] die Seite gibt eine Telefon-Datei (${hall.patch.url.split('?')[0]}) ohne Moebeldatei mit: Sie ist aus einer Moebeldatei geschnitten, ohne diese ist sie ein Rest (HangarApp.astro)`);
+// Fingerabdruck einer Primitive: je Dreieck die Ecken (Lage im Modellraum
+// der Halle, dazu jedes Attribut), so gedreht, dass die kleinste vorn steht
+// (der Drehsinn bleibt), sortiert. Der Build packt beide Dateien aus
+// denselben Daten mit denselben Draco-Rastern; gleich heissen also
+// gleiche Zahlen, nur die Reihenfolge darf wechseln.
+const primPrint = (node, p) => {
+  const w = node.getWorldMatrix(), P = p.getAttribute('POSITION'), I = p.getIndices();
+  const accs = p.listSemantics().filter((x) => x !== 'POSITION').sort().map((x) => p.getAttribute(x));
+  const e = [], vk = (i) => {
+    const [x, y, z] = P.getElement(i, e);
+    const q = [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
+    return [q, ...accs.map((a) => a.getElement(i, []))].map((v) => v.map((c) => c.toFixed(4)).join(',')).join(';');
+  };
+  const n = I ? I.getCount() : P.getCount(), out = [];
+  for (let t = 0; t + 2 < n; t += 3) {
+    const k = (I ? [I.getScalar(t), I.getScalar(t + 1), I.getScalar(t + 2)] : [t, t + 1, t + 2]).map(vk);
+    const r = k.indexOf([...k].sort()[0]);
+    out.push(`${k[r]}|${k[(r + 1) % 3]}|${k[(r + 2) % 3]}`);
+  }
+  return { tris: out.length, print: createHash('sha1').update(out.sort().join('\n')).digest('hex').slice(0, 12) };
+};
+// Je Primitive mit Ergaenzung oder Fuellung: Schluessel, Material, Attributsatz, Fingerabdruck
+const partsOf = (doc) => {
+  const out = [];
+  for (const node of doc.getRoot().listNodes()) {
+    const x = node.getExtras() ?? {};
+    const kind = detailKey && x[detailKey] === true ? `${detailKey}` : fillKey && x[fillKey] != null ? `${fillKey}=${x[fillKey]}` : null;
+    if (!kind) continue;
+    for (const p of node.getMesh()?.listPrimitives() ?? []) {
+      const sig = p.listSemantics().sort().map((s) => `${s}:${p.getAttribute(s).getType()}`).join(',');
+      const { tris, print } = primPrint(node, p);
+      out.push({ key: `${kind} | ${p.getMaterial()?.getName() ?? '?'} | ${sig} | ${tris} Dreiecke | ${print}`, tris });
+    }
+  }
+  return out;
+};
+if (hall?.patch?.url && hall.furniture?.url) {
+  const pf = fromUrl(hall.patch.url), ff = fromUrl(hall.furniture.url);
+  if (!existsSync(pf)) fail(`[9] die Telefon-Datei ${hall.patch.url.split('?')[0]} liegt nicht in dist/`);
+  else if (existsSync(ff)) {
+    patchBytes = readFileSync(pf).length;
+    const pj = glbJson(pf), of = pj?.extras?.patchOf, furnSha = sha1(ff), ffName = ff.split(/[\\/]/).pop();
+    if (!of?.sha1) fail(`[9] ${hall.patch.url.split('?')[0]} nennt keine Herkunft (extras.patchOf): nicht von scripts/build-hall-furniture.mjs gebaut?`);
+    else if (of.file !== ffName || of.sha1 !== furnSha) fail(`[9] die Telefon-Datei stammt aus ${of.file} sha1 ${String(of.sha1).slice(0, 8)}, ausgeliefert ist ${ffName} sha1 ${furnSha.slice(0, 8)}: npm run build neu laufen lassen (scripts/build-hall-furniture.mjs baut beide zusammen)`);
+    const furnIn = furnNodes(pj);
+    patchTex = (pj?.images?.length ?? 0) + (pj?.textures?.length ?? 0);
+    if (furnIn) fail(`[9] die Telefon-Datei traegt ${furnIn} Moebel: Am Telefon sollen sie nicht laden (641 000 Dreiecke). scripts/build-hall-furniture.mjs nimmt sie heraus`);
+    if (patchTex) fail(`[9] die Telefon-Datei traegt ${pj.images?.length ?? 0} Bilder und ${pj.textures?.length ?? 0} Texturen: Ergaenzung und Fuellung bekommen ihre Texturen im Viewer aus der leichteren Stufe, in der Datei waeren sie nur Gewicht`);
+    for (const n of pj?.nodes ?? []) if (n.mesh != null && !(detailKey && n.extras?.[detailKey] === true) && !(fillKey && n.extras?.[fillKey] != null)) patchForeign++;
+    if (patchForeign) fail(`[9] die Telefon-Datei traegt ${patchForeign} Knoten, die weder Ergaenzung noch Fuellung sind: Der Viewer setzte sie am Telefon ungeprueft in die Halle (scripts/build-hall-furniture.mjs)`);
+    // Dieselben Teile wie die Moebeldatei, je Primitive
+    const [fdoc, pdoc] = await Promise.all([decode(ff), decode(pf)]);
+    const want = partsOf(fdoc), have = partsOf(pdoc);
+    furnParts = want.length;
+    patchNodes = new Set(pdoc.getRoot().listNodes().filter((n) => n.getMesh()).map((n) => n)).size;
+    patchTris = have.reduce((a, b) => a + b.tris, 0);
+    const left = new Map();
+    for (const { key } of have) left.set(key, (left.get(key) ?? 0) + 1);
+    const miss = [];
+    for (const { key } of want) { if (left.get(key)) left.set(key, left.get(key) - 1); else miss.push(key); }
+    const extra = [...left].flatMap(([k, n]) => Array(n).fill(k));
+    patchMissing = miss.length; patchExtra = extra.length;
+    if (miss.length || extra.length) fail(`[9] die Telefon-Datei weicht von der Moebeldatei ab: ${miss.length} Primitive fehlen oder sind anders (${miss.slice(0, 3).join('; ')}${miss.length > 3 ? '; …' : ''}), ${extra.length} sind zu viel oder anders (${extra.slice(0, 3).join('; ')}${extra.length > 3 ? '; …' : ''}). Am Telefon saehe die Halle dann anders aus als am Rechner. Moebeldatei und Telefon-Datei neu bauen (scripts/build-hall-furniture.mjs, prune mit keepAttributes)`);
+  }
+}
+const klinkePatch = klinkeErg + Object.values(klinkeFill).reduce((a, b) => a + b, 0);
+if (hall?.patch?.url && hall.furniture?.url && patchTris < klinkePatch) fail(`[9] die Telefon-Datei bringt ${patchTris} Dreiecke, Ergaenzung und Fuellung verlangen zusammen ${klinkePatch} (KLINKE_ERGAENZUNG und KLINKE_FUELLUNG)`);
+say(`    Viewer laedt sie am Telefon: ${patchMark ? 'ja' : 'nein'}   Datei: ${hall?.patch?.url?.split('?')[0] ?? '(keine)'} ${patchBytes ? `${(patchBytes / 1e3).toFixed(0)} KB` : ''}`);
+sollIst(`aus der ausgelieferten Moebeldatei, deren ${furnParts} Primitiven mit Ergaenzung und Fuellung gleich (mindestens ${klinkePatch} Dreiecke), 0 Moebel, 0 Texturen, 0 fremde Knoten`, `${patchTris} Dreiecke in ${patchNodes} Knoten, ${patchMissing} fehlen oder anders, ${patchExtra} zu viel, ${patchTex} Texturen und Bilder, ${patchForeign} fremde Knoten`);
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

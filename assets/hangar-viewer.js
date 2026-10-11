@@ -21,12 +21,13 @@
 // die gebaute Halle; bis dahin (und wenn sie scheitert) steht die gebaute.
 // hall.id wählt in HALL_DROP die Spielteile, die der Viewer beim Laden aus
 // der Halle schneidet (ohne id: keine). hall.furniture sind die Möbel als
-// eigene Datei im selben Modellraum; das Telefon lädt sie nicht.
+// eigene Datei im selben Modellraum; das Telefon lädt sie nicht, dort bringt
+// hall.patch nur Ergänzung und Füllung (siehe swapHallDetail).
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
@@ -229,9 +230,10 @@ function dropHallParts(model, list) {
 // Stelle ganz weglässt, etwa eine Holzblende auf einem Deckenkasten. Sie
 // kommt nur dazu, mit dem Material der leichteren Stufe gleichen Namens.
 // Beide bringen aus der Möbeldatei nur Name und Faktoren ihres Materials
-// mit, keine Texturen.
+// mit, keine Texturen. Am Telefon, ohne Möbel, kommen dieselben Knoten aus
+// einer eigenen kleinen Datei (hall.patch, Marke hall-patch unten).
 // verify:hangar-hall liest beide Schlüssel aus dem ausgelieferten Viewer und
-// prüft die Möbeldatei dagegen.
+// prüft Möbel- und Telefon-Datei dagegen.
 const HALL_DETAIL = /* hall-detail */ 'detail';
 const HALL_FILL = /* hall-fill */ 'fill';
 function swapHallDetail(model, extra) {
@@ -2298,7 +2300,8 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   let hallSettled = Promise.resolve(false);
   function loadRealHall(h) {
     // Möbel als eigene Datei (am Rechner neben der leichteren Stufe), parallel
-    // zur Halle; scheitert sie, steht die Halle ohne
+    // zur Halle; scheitert sie, steht die Halle ohne. Am Telefon steht hier
+    // die Telefon-Datei: nur Ergänzung und Füllung, dieselben Knoten.
     const furnReady = h.furniture?.url
       ? fetchGltf(h.furniture.url, 'furniture', h.furniture.bytes || 4e6).then((g) => g.scene, (e) => {
         console.warn('[hangar] Einrichtung nicht geladen', e);
@@ -2455,10 +2458,10 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // Hinter den Wänden ist dunkel: Durch die feinen Spalte, die schon die
       // Spielgeometrie hat (Nähte, Schlitze im Nordtor, Symbole der
       // Glassäulen, deren Innenleben die dichte Stufe weglässt), leuchtete
-      // der hellgraue Hintergrund als weiße Punkte und Flecken. Am Rechner
-      // bringt die Möbeldatei das Innenleben der Glassäulen aus der vollen
-      // Stufe (swapHallDetail), am Telefon bleiben auch dort Spalte. Der
-      // Dunst bleibt hellgrau.
+      // der hellgraue Hintergrund als weiße Punkte und Flecken. Das
+      // Innenleben der Glassäulen bringt die Möbeldatei aus der vollen Stufe
+      // (swapHallDetail), am Telefon die Telefon-Datei. Der Dunst bleibt
+      // hellgrau.
       scene.background = new THREE.Color(0x1e2024);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
@@ -2841,8 +2844,9 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     probeReady = loadHallProbe(opts.hall);
     composerReady = lampsReady.then(() => enableAO());
     // Am Telefon die leichtere Stufe, wenn die Seite eine mitgibt (gleicher
-    // Modellraum, also dieselben Lampen und Sonden), und keine Möbel.
-    loadRealHall(SMALL ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: null } : opts.hall);
+    // Modellraum, also dieselben Lampen und Sonden), und keine Möbel; Glas,
+    // Rohre und Füllung kommen dort aus der Telefon-Datei (60 KB statt 4 MB).
+    loadRealHall(SMALL ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: /* hall-patch */ opts.hall.patch ?? null } : opts.hall);
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand
   // (die gebauten Figuren wären Selbstgebautes)
