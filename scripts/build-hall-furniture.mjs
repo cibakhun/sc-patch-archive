@@ -81,7 +81,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { prune, draco, cloneDocument } from '@gltf-transform/functions';
 import draco3d from 'draco3d';
 import { texcoordBits } from './lib/uv-islands.mjs';
-import { FILL_TOL, touches, samples, clipToBox, worldTris, normalOf, withNormals, onLite } from './lib/hall-fill.mjs';
+import { FILL_TOL, touches, coverage, clipToBox, worldTris, withNormals } from './lib/hall-fill.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST = join(ROOT, 'src/data/hangar-assets.json');
@@ -163,8 +163,8 @@ function clipInto(r, node, prim) {
     for (let k = 1; k + 1 < poly.length; k++) {
       const tri = [poly[0], poly[k], poly[k + 1]], q = tri.map((v) => v.p);
       if (area2(q) < 1e-8) continue; // Splitter vom Schnitt durch eine Ecke
-      const nq = normalOf(q), pr = samples(q), on = pr.filter((s) => onLite(s, nq, r.near)).length;
-      if (on === pr.length) { r.skipped++; continue; }
+      const { on, of } = coverage(q, r.near);
+      if (on === of) { r.skipped++; continue; }
       if (on) r.partial++;
       out.push(...tri);
     }

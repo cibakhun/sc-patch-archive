@@ -108,7 +108,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { seamStats } from './lib/hall-seams.mjs';
-import { FILL_TOL, touches, samples, normalOf, withNormals, onLite, worldTris } from './lib/hall-fill.mjs';
+import { FILL_TOL, touches, coverage, withNormals, worldTris } from './lib/hall-fill.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -504,8 +504,8 @@ if (hall?.furniture?.url && existsSync(fromUrl(hall.furniture.url)) && fillKey) 
       fillNear += r.near.length;
       const near = withNormals(r.near);
       for (const t of r.tris) {
-        const n = normalOf(t), pr = samples(t), on = pr.filter((q) => onLite(q, n, near)).length;
-        if (on === pr.length) r.coinc++;
+        const { on, of } = coverage(t, near);
+        if (on === of) r.coinc++;
         else if (on) r.partial++;
         if (t.some((q) => entries.some((d) => q.every((v, a) => v >= d.reach[0][a] && v <= d.reach[1][a])))) fillInDrop++; // Ecken genuegen, wie in [7]
       }
