@@ -21,16 +21,17 @@
 // die gebaute Halle; bis dahin (und wenn sie scheitert) steht die gebaute.
 // hall.id wählt in HALL_DROP die Spielteile, die der Viewer beim Laden aus
 // der Halle schneidet (ohne id: keine). hall.furniture sind die Möbel als
-// eigene Datei im selben Modellraum; das Telefon lädt sie nicht.
+// eigene Datei im selben Modellraum; das Telefon lädt sie nicht, dort bringt
+// hall.patch nur Ergänzung und Füllung (siehe swapHallDetail).
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
-//         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
-// project/focus/onFrame sind die Naht zur Oberfläche um die Szene
+//         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
+// project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
 // (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
 // Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
@@ -213,6 +214,54 @@ function dropHallParts(model, list) {
     out.push({ why: d.why, tris, parts: gone.size });
   }
   return out;
+}
+
+// Ergänzung aus der vollen Stufe (10.10.2026). Der leichteren Stufe fehlen
+// zwei Drittel des Glases: die Abdeckungen der Kabelrinnen an den
+// Seitenwänden und der Bodenkanäle, die hinteren Scheiben der vier
+// Glassäulen, die Kabine an der Südwand, sechs Glaskörper hoch an den
+// Seitenwänden; dazu die Rohre in den Glassäulen. Ohne sie liegen Kabel und
+// Kanäle blank, und durch die Türsymbole der Glassäulen sieht man schwarz.
+// Die Möbeldatei bringt diese Materialien ganz aus der vollen Stufe mit, als
+// Knoten mit extras[HALL_DETAIL] (scripts/build-hall-furniture.mjs). Hier
+// fallen dafür die Teile der leichteren Stufe mit denselben Materialien, und
+// die Ergänzung nimmt deren Material (kein Shader doppelt).
+// Dazu die Füllung (extras[HALL_FILL]): was die leichtere Stufe an einer
+// Stelle ganz weglässt, etwa eine Holzblende auf einem Deckenkasten. Sie
+// kommt nur dazu, mit dem Material der leichteren Stufe gleichen Namens.
+// Beide bringen aus der Möbeldatei nur Name und Faktoren ihres Materials
+// mit, keine Texturen. Am Telefon, ohne Möbel, kommen dieselben Knoten aus
+// einer eigenen kleinen Datei (hall.patch, Marke hall-patch unten).
+// verify:hangar-hall liest beide Schlüssel aus dem ausgelieferten Viewer und
+// prüft Möbel- und Telefon-Datei dagegen.
+const HALL_DETAIL = /* hall-detail */ 'detail';
+const HALL_FILL = /* hall-fill */ 'fill';
+function swapHallDetail(model, extra) {
+  const names = new Set();
+  const detail = [], fill = [];
+  extra.traverse((n) => {
+    if (n.userData?.[HALL_DETAIL]) n.traverse((o) => { if (o.isMesh) { detail.push(o); names.add(o.material.name); } });
+    else if (n.userData?.[HALL_FILL]) n.traverse((o) => { if (o.isMesh) fill.push(o); });
+  });
+  if (!detail.length && !fill.length) return null;
+  // Ein Material gibt es doppelt, wenn es Teile mit und ohne Eckfarben
+  // tragen (der Loader klont es dann mit vertexColors): gesucht wird nach
+  // Name und Eckfarben, so bekommt jedes Teil das seines Gegenstücks, auch
+  // für die Abdunkelung aus dem Spiel weiter unten.
+  const key = (o) => `${o.material.name}|${o.geometry.attributes.color ? 1 : 0}`;
+  const byName = new Map(), gone = [];
+  model.traverse((o) => {
+    if (!o.isMesh) return;
+    if (!byName.has(key(o))) byName.set(key(o), o.material);
+    if (names.has(o.material.name)) gone.push(o);
+  });
+  const tris = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3;
+  let cut = 0, added = 0;
+  for (const o of gone) { cut += tris(o.geometry); o.removeFromParent(); o.geometry.dispose(); }
+  for (const o of detail) { added += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
+  let filled = 0;
+  for (const o of fill) { filled += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
+  return { materials: names.size, added, cut, parts: gone.length, filled };
 }
 
 // Einrichtung zusammenlegen (2026-10-08). Der Build stellt jedes Möbel als
@@ -400,6 +449,60 @@ function boxProject(m, mPerUv) {
   }`);
   };
   m.customProgramCacheKey = () => (prevKey ? prevKey.call(m) : '') + '|box';
+}
+
+// Legt die Verdeckung des GTAO-Passes aufs Bild, vorher je Pixel den Median
+// der 3×3 Nachbarn (McGuire, „A fast, small-radius GPU median filter“). Die
+// Verdeckung sieht Normalen und Tiefe nur einmal je Pixel, ohne die
+// Kantenglättung des Bildes: Leisten und Rillen schmaler als ein Pixel trifft
+// sie mal und mal nicht, und jeder Treffer wurde ein dunkler Punkt (an den
+// runden Zierleisten der Halle eine gepunktete Körnung). Der Median nimmt
+// Punkte und ein Pixel breite Striche heraus und lässt Ecken, Fugen und den
+// Schatten unter dem Schiff stehen, die viele Pixel breit sind. Ersetzt
+// Kopie und Überblendung des Passes (dessen Ausgabe dafür aus) durch einen Zug.
+function aoMedianPass(ao, Pass, FullScreenQuad) {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null }, tAO: { value: null }, intensity: { value: 1 } },
+    vertexShader: 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }',
+    fragmentShader: `uniform sampler2D tDiffuse;
+uniform sampler2D tAO;
+uniform float intensity;
+varying vec2 vUv;
+#define s2(a, b) t = a; a = min(a, b); b = max(t, b);
+#define mn3(a, b, c) s2(a, b); s2(a, c);
+#define mx3(a, b, c) s2(b, c); s2(a, c);
+#define mnmx3(a, b, c) mx3(a, b, c); s2(a, b);
+#define mnmx4(a, b, c, d) s2(a, b); s2(c, d); s2(a, c); s2(b, d);
+#define mnmx5(a, b, c, d, e) s2(a, b); s2(c, d); mn3(a, c, e); mx3(b, d, e);
+#define mnmx6(a, b, c, d, e, f) s2(a, d); s2(b, e); s2(c, f); mn3(a, b, c); mx3(d, e, f);
+float aoAt( ivec2 p, ivec2 hi ) { return texelFetch( tAO, clamp( p, ivec2( 0 ), hi ), 0 ).r; }
+void main() {
+	ivec2 hi = textureSize( tAO, 0 ) - 1, p = ivec2( gl_FragCoord.xy );
+	float v0 = aoAt( p + ivec2( -1, -1 ), hi ), v1 = aoAt( p + ivec2( 0, -1 ), hi ), v2 = aoAt( p + ivec2( 1, -1 ), hi );
+	float v3 = aoAt( p + ivec2( -1, 0 ), hi ), v4 = aoAt( p, hi ), v5 = aoAt( p + ivec2( 1, 0 ), hi );
+	float v6 = aoAt( p + ivec2( -1, 1 ), hi ), v7 = aoAt( p + ivec2( 0, 1 ), hi ), v8 = aoAt( p + ivec2( 1, 1 ), hi );
+	float t;
+	mnmx6( v0, v1, v2, v3, v4, v5 );
+	mnmx5( v1, v2, v3, v4, v6 );
+	mnmx4( v2, v3, v4, v7 );
+	mnmx3( v3, v4, v8 );
+	vec4 c = texture2D( tDiffuse, vUv );
+	gl_FragColor = vec4( c.rgb * mix( 1.0, v4, intensity ), c.a );
+}`,
+    depthTest: false, depthWrite: false,
+  });
+  class AoMedianPass extends Pass {
+    constructor() { super(); this.material = mat; this.quad = new FullScreenQuad(mat); }
+    render(renderer, writeBuffer, readBuffer) {
+      mat.uniforms.tDiffuse.value = readBuffer.texture;
+      mat.uniforms.tAO.value = ao.pdRenderTarget.texture;
+      mat.uniforms.intensity.value = ao.blendIntensity;
+      renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+      this.quad.render(renderer);
+    }
+    dispose() { mat.dispose(); this.quad.dispose(); }
+  }
+  return new AoMedianPass();
 }
 
 function paintMaterial() {
@@ -1414,6 +1517,8 @@ export async function initHangar(container, opts = {}) {
   // des aktuellen Schiffs
   let realHall = null;
   let lastInfo = null;
+  // Freiraum der Kamera in der echten Halle (measureFree, vor frame())
+  let camFree = null, freeDirty = false;
   // Gebaute Halle (Plattform, Wände, Boden, Staub): nur ohne echte Halle oder
   // wenn diese nicht lädt. Ihre Leinwandtexturen kosteten beim Laden sonst
   // Sekunden, obwohl die echte Halle sie sofort verdeckte.
@@ -1462,15 +1567,26 @@ export async function initHangar(container, opts = {}) {
   const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.1, 4000);
   let S = 1, span = 14;
   // camLimit: in der echten Halle darf die Kamera nicht durch die Wand
+  // (Kugel um das Ziel; was in die Halle ragt, hält keepFree() fern)
   let camLimit = Infinity;
   const wantDist = () => span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
   const homeDist = () => Math.min(camLimit, wantDist());
+  // Shift-Optik (setCover): Am Telefon liegt der Titelblock der Seite samt
+  // Knöpfen über dem oberen Teil der Bühne (390 x 844: 319 von 523 px). Das
+  // Bild rückt dann nach unten wie bei einem verschobenen Objektiv:
+  // gerechnet wird ein um lensS höheres Gesamtbild, gezeigt sein oberer
+  // Teil. Bildwinkel und Kamera bleiben, nur der Ausschnitt wandert.
+  let coverTop = 0, lensS = 0, lensLive = false, baseFov = 38, lensFit = null;
   // Passt ein großes Schiff (C2, Carrack) nicht mit Abstand in die Halle,
   // weitet sich der Blickwinkel, statt das Schiff anzuschneiden.
   const fitFov = () => {
-    const d = wantDist();
-    const fov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
-    if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    const d = wantDist(), k = 1 + lensS;
+    baseFov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
+    camera.fov = 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * k));
+    camera.aspect = W() / (H() * k);
+    // beide rechnen die Projektion neu
+    if (lensS > 0) camera.setViewOffset(W(), H() * k, 0, 0, W(), H());
+    else camera.clearViewOffset();
   };
   const homePos = () => HOME_DIR.clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -2197,7 +2313,8 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   let hallSettled = Promise.resolve(false);
   function loadRealHall(h) {
     // Möbel als eigene Datei (am Rechner neben der leichteren Stufe), parallel
-    // zur Halle; scheitert sie, steht die Halle ohne
+    // zur Halle; scheitert sie, steht die Halle ohne. Am Telefon steht hier
+    // die Telefon-Datei: nur Ergänzung und Füllung, dieselben Knoten.
     const furnReady = h.furniture?.url
       ? fetchGltf(h.furniture.url, 'furniture', h.furniture.bytes || 4e6).then((g) => g.scene, (e) => {
         console.warn('[hangar] Einrichtung nicht geladen', e);
@@ -2248,6 +2365,8 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
       if (extra) {
+        const det = swapHallDetail(model, extra);
+        if (det) console.info(`[hangar] Halle: ${det.added} Dreiecke Glas und Rohre aus der vollen Stufe statt ${det.cut} (${det.materials} Materialien), ${det.filled} Dreiecke Füllung`);
         model.add(extra);
         extra.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
       }
@@ -2297,6 +2416,13 @@ vec3 hgVolume( vec3 p, vec3 n ) {
         for (const m of [].concat(n.material)) {
           if (seen.has(m)) continue;
           seen.add(m);
+          // Aufkleber (Logos, Symbole, Torbeschriftung) liegen deckungsgleich
+          // auf Wand und Tor. Wächst die Halle für große Schiffe (Carrack
+          // 3,9-fach, Javelin 13-fach), reicht die Tiefe dafür nicht mehr:
+          // Logo und Wand flimmerten um dieselben Pixel, in der Ferne fehlten
+          // Logos ganz. Zwei Tiefenstufen zur Kamera hin; mehr ließe sie durch
+          // Leisten davor scheinen. Laufspuren (leakings) kämpfen nicht.
+          if (/decal/i.test(m.name)) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
           // Weißer Innenraum: die Reflexe der Ersatzhalle dämpfen. Spiegelndes
           // Metall (Bodenplatten, Verkleidung) spiegelte sie sonst als flache
           // blaue Flächen, glatter Kunststoff als Gleißen.
@@ -2349,7 +2475,14 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
-      scene.background = new THREE.Color(0x9aa0a8);
+      // Hinter den Wänden ist dunkel: Durch die feinen Spalte, die schon die
+      // Spielgeometrie hat (Nähte, Schlitze im Nordtor, Symbole der
+      // Glassäulen, deren Innenleben die dichte Stufe weglässt), leuchtete
+      // der hellgraue Hintergrund als weiße Punkte und Flecken. Das
+      // Innenleben der Glassäulen bringt die Möbeldatei aus der vollen Stufe
+      // (swapHallDetail), am Telefon die Telefon-Datei. Der Dunst bleibt
+      // hellgrau.
+      scene.background = new THREE.Color(0x1e2024);
       scene.fog.color.set(0x9aa0a8);
       // Bühnenlicht statt Raumlicht: das Schiff steht im Lichtkegel, die Halle
       // tritt zurück — sonst ist das helle Innere eine einzige weiße Fläche.
@@ -2361,6 +2494,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       renderer.toneMappingExposure = 0.9;
       settleShip(0.02);
       if (lastInfo) scaleWorld(lastInfo);
+      camFree = null; freeDirty = true;
       const probe = await probeReady;
       if (probe) useHallProbe(probe); else captureHallEnv(true);
       // die Kamera stand womöglich für die gebaute (größere) Halle
@@ -2392,12 +2526,13 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   }
   async function buildComposer() {
     try {
-      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([
+      const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }, { Pass, FullScreenQuad }] = await Promise.all([
         import('three/addons/postprocessing/EffectComposer.js'),
         import('three/addons/postprocessing/RenderPass.js'),
         import('three/addons/postprocessing/GTAOPass.js'),
         import('three/addons/postprocessing/UnrealBloomPass.js'),
         import('three/addons/postprocessing/OutputPass.js'),
+        import('three/addons/postprocessing/Pass.js'),
       ]);
       // Eigenes Ziel mit 4-fach-MSAA: der Composer umgeht sonst die
       // Kantenglättung des Renderers, und jede Kante treppt.
@@ -2407,11 +2542,16 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       c.setSize(W(), H());
       c.addPass(new RenderPass(scene, camera));
       const ao = new GTAOPass(scene, camera, W(), H());
-      ao.output = GTAOPass.OUTPUT.Default;
+      // Der Pass rechnet nur die Verdeckung; aufs Bild legt sie aoMedianPass
+      // (ohne Ausgabe schreibt er nichts ins Zielbild, also auch kein Tausch).
+      ao.output = GTAOPass.OUTPUT.Off;
+      ao.needsSwap = false;
       ao.blendIntensity = 1;
       ao.updateGtaoMaterial({ radius: 2.5, distanceExponent: 1.4, thickness: 2, scale: 1.2, samples: 16 });
       ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
       c.addPass(ao);
+      const aoMix = aoMedianPass(ao, Pass, FullScreenQuad);
+      c.addPass(aoMix);
       // Lichtschein um Lampen, Leuchtleisten und Triebwerke: nur was
       // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
       c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.25, 0.35, 6));
@@ -2422,7 +2562,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter, die
       // Normalen der Verdeckung dagegen mit denen der Szene.
       const quad = new THREE.Group(), plane = new THREE.PlaneGeometry(2, 2);
-      for (const m of [ao.gtaoMaterial, ao.pdMaterial, ao.copyMaterial, ao.blendMaterial,
+      for (const m of [ao.gtaoMaterial, ao.pdMaterial, aoMix.material,
         bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial]) {
         if (m) quad.add(new THREE.Mesh(plane, m));
       }
@@ -2562,6 +2702,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     if (current) { leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y }; }
     scene.add(ship);
     homeTgt = tgt;
+    camFree = null; freeDirty = true;
     current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship');
@@ -2672,6 +2813,359 @@ vec3 hgVolume( vec3 p, vec3 n ) {
 
   const clock = new THREE.Clock();
   let raf = 0, visible = true, last = 0;
+  // Freiraum der Kamera (2026-10-10). Ihre Grenze war eine Kugel um das
+  // Ziel (camRoom), die Halle ist keine: Ganz herausgezoomt fuhr die Kamera
+  // bei 16 bis 32 Grad Höhe in Balkone und Kabeltrassen der Seitenwände (das
+  // Bild war grau), bei hohen Schiffen in die Deckenkästen, und ganz tief
+  // stand sie auf 15 bis 17 m in einem Kistenstapel. Darum misst die
+  // Seite vom Ziel der Startansicht aus je Richtung den Abstand zur ersten
+  // Fläche der Halle: sechs kleine Bilder, eins je Würfelseite, ohne Möbel,
+  // Schiff und Crew. Die Kamera bleibt davor, mit Rand, wie der Federarm
+  // einer Spielkamera, und zwar über einen Kegel von 3 Grad um ihre
+  // Richtung, damit auch eine Kante knapp neben dem Strahl nicht ins Bild
+  // ragt. Möbel zählen als ihr Hüllquader: Hinter einer Kiste darf sie
+  // stehen (sonst spränge sie ganz tief im Umlauf 19 m nach vorn), in ihr
+  // nicht; dort geht sie zum näheren Ausgang. Was der Nutzer an Abstand will,
+  // bleibt gemerkt: Ist der Weg wieder frei, gleitet sie dorthin zurück.
+  const FREE_N = 128;
+  // Würfelseiten: Blickrichtung und Oben; rechts ist Blick × Oben
+  const FREE_FACES = [[1, 0, 0, 0, 1, 0], [-1, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 1], [0, -1, 0, 0, 0, 1], [0, 0, 1, 0, 1, 0], [0, 0, -1, 0, 1, 0]].map((a) => {
+    const f = new THREE.Vector3(a[0], a[1], a[2]), u = new THREE.Vector3(a[3], a[4], a[5]);
+    return { f, u, r: new THREE.Vector3().crossVectors(f, u) };
+  });
+  let freeBusy = false, camWant = 0, camRef = 0;
+  const camLast = new THREE.Vector3(), freeV = new THREE.Vector3();
+  const freeA = new THREE.Vector3(), freeB = new THREE.Vector3(), freeS = new THREE.Vector3();
+  // Sechs Bilder um o, eins je Würfelseite: je Pixel der Abstand zur ersten
+  // Fläche unter root (last: zur letzten, dafür wird die Tiefe auf 0
+  // gelöscht und die größere gewinnt), ohne skip und ohne Punkte, Linien und
+  // Sprites; nichts getroffen heißt far (last: 0). poses: Lagen, die
+  // nacheinander in dieselben Bilder gehen (je eine Funktion, die sie
+  // einnimmt). Rendertarget und Material bleiben je Art für die nächste
+  // Messung.
+  const cubeKit = {};
+  function cubeDist(kind, o, root, skip, last, near, far, poses = [null]) {
+    const N = FREE_N;
+    const kit = cubeKit[kind] || (cubeKit[kind] = {
+      rt: new THREE.WebGLRenderTarget(N, N * 6),
+      cam: new THREE.PerspectiveCamera(90, 1),
+      // Abstand zu o als 24 Bit, Alpha 0 heißt: nichts getroffen
+      mat: new THREE.ShaderMaterial({
+        uniforms: { uO: { value: new THREE.Vector3() }, uFar: { value: 1 } },
+        vertexShader: 'varying vec3 vW;\nvoid main() { vec4 w = modelMatrix * vec4( position, 1.0 ); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+        fragmentShader: 'uniform vec3 uO;\nuniform float uFar;\nvarying vec3 vW;\nvoid main() { float d = floor( clamp( distance( vW, uO ) / uFar, 0.0, 1.0 ) * 16777215.0 ); float r = floor( d / 65536.0 ); float g = floor( ( d - r * 65536.0 ) / 256.0 ); gl_FragColor = vec4( r, g, d - r * 65536.0 - g * 256.0, 255.0 ) / 255.0; }',
+        side: THREE.DoubleSide,
+        depthFunc: last ? THREE.GreaterDepth : THREE.LessEqualDepth,
+      }),
+    });
+    const { rt, mat, cam } = kit;
+    cam.near = near; cam.far = far; cam.updateProjectionMatrix();
+    cam.position.copy(o);
+    mat.uniforms.uO.value.copy(o); mat.uniforms.uFar.value = far;
+    const off = [];
+    const hide = (n) => { if (n?.visible) { n.visible = false; off.push(n); } };
+    for (const c of scene.children) if (c !== root) hide(c);
+    for (const n of skip) hide(n);
+    root.traverse((n) => { if (n.isPoints || n.isLine || n.isSprite) hide(n); });
+    const keep = { bg: scene.background, fog: scene.fog, om: scene.overrideMaterial, rt: renderer.getRenderTarget(), ac: renderer.autoClear, cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha() };
+    try {
+      scene.background = null; scene.fog = null; scene.overrideMaterial = mat;
+      renderer.autoClear = false;
+      renderer.setClearColor(0x000000, 0);
+      renderer.setRenderTarget(rt);
+      if (last) renderer.state.buffers.depth.setClear(0);
+      renderer.clear();
+      if (last) renderer.state.buffers.depth.setClear(1);
+      for (const pose of poses) {
+        pose?.();
+        FREE_FACES.forEach((s, i) => {
+          cam.up.copy(s.u);
+          cam.lookAt(o.x + s.f.x, o.y + s.f.y, o.z + s.f.z);
+          cam.updateMatrixWorld();
+          rt.viewport.set(0, i * N, N, N);
+          renderer.setRenderTarget(rt);
+          renderer.render(scene, cam);
+        });
+      }
+    } finally {
+      renderer.state.buffers.depth.setClear(1);
+      renderer.setRenderTarget(keep.rt);
+      renderer.autoClear = keep.ac;
+      renderer.setClearColor(keep.cc, keep.ca);
+      scene.background = keep.bg; scene.fog = keep.fog; scene.overrideMaterial = keep.om;
+      for (const n of off) n.visible = true;
+    }
+    const buf = new Uint8Array(N * N * 6 * 4);
+    return renderer.readRenderTargetPixelsAsync(rt, 0, 0, N, N * 6, buf).then(() => {
+      const dist = new Float32Array(N * N * 6);
+      for (let j = 0; j < dist.length; j++) dist[j] = buf[j * 4 + 3] ? (buf[j * 4] * 65536 + buf[j * 4 + 1] * 256 + buf[j * 4 + 2]) / 16777215 * far : last ? 0 : far;
+      return dist;
+    });
+  }
+  // Die Halle vom Ziel der Startansicht aus, ohne Möbel
+  function measureFree() {
+    freeDirty = false;
+    if (!realHall || !homeTgt || freeBusy) return;
+    const hall = realHall, k = hall.group.scale.x, o = homeTgt.clone(), t0 = performance.now();
+    freeBusy = true;
+    let p;
+    try { p = cubeDist('hall', o, hall.group, (hall.furniture ?? []).map((f) => f.mesh), false, 0.02 * k, Math.max(controls.maxDistance, 1) * 1.6 + 10 * k); } catch (e) { p = Promise.reject(e); }
+    p.then((dist) => {
+      // Inzwischen anderes Schiff oder andere Halle: neu messen
+      if (hall === realHall && homeTgt && homeTgt.equals(o) && hall.group.scale.x === k) {
+        const boxes = furnitureBoxes(hall.furniture ?? [], 0.6 * k);
+        camFree = { o, dist, m: 0.6 * k, boxes };
+        console.info(`[hangar] Freiraum der Kamera gemessen (6 × ${FREE_N}², ${Math.round(performance.now() - t0)} ms), ${boxes.length} Möbel als Quader`);
+      } else freeDirty = true;
+    }).catch((e) => console.warn('[hangar] Freiraum der Kamera nicht gemessen', e)).finally(() => { freeBusy = false; });
+  }
+  // Hülle des Schiffs (2026-10-11). Die Kamera darf bis auf span · 0,45 an
+  // ihr Ziel heran, und ganz hereingezoomt streifte sie Flügelspitzen,
+  // Leitwerk und Kanzel (die Nahebene schnitt sie an), um einen Hardpoint
+  // gedreht stand sie zwischen Rumpf und Fahrwerk. Darum misst die Seite vom
+  // Blickziel aus je Richtung den Abstand zur fernsten Fläche des Schiffs in
+  // Ruhelage, für ein neues Ziel gleich, wenn die Kamerafahrt dorthin
+  // beginnt. Die Kamera bleibt mit Rand dahinter: Ein Schiff ist kein Raum,
+  // um den fährt sie außen herum.
+  const SHIP_M = 0.35;
+  // Ohne echte Halle schwebt das Schiff um bis zu so viel über und unter
+  // seiner Ruhelage (Carrack 1,1 m); gemessen wird dann über fünf Höhen
+  const shipBob = () => (reduceMotion || realHall ? 0 : 0.009 * span);
+  let shipFree = null, shipBusy = false;
+  const aim = () => (fly ? fly.tb : controls.target);
+  // am Ziel einer Fahrt steht es nur bis auf Rundung (lerpVectors)
+  const sameAim = (a, b) => a.distanceToSquared(b) < 1e-8;
+  const shipStale = () => current && !shipBusy && (!shipFree || shipFree.c !== current || shipFree.y !== current.group.userData.baseY || shipFree.b !== shipBob() || !sameAim(shipFree.o, aim()));
+  function measureShip() {
+    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = aim().clone(), t0 = performance.now();
+    // Ruhelage wie in focus(): während der Einfahrt schwebt und dreht es noch.
+    // Schwebt es, die fernste Fläche über die ganze Höhe: Ein fester Rand
+    // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
+    // zum Ziel um ein Vielfaches der Höhe.
+    const pose = [g.position.y, g.rotation.y, g.visible];
+    g.rotation.y = 0; g.visible = true;
+    const at = (h) => () => { g.position.y = y + b * h; g.updateMatrixWorld(true); };
+    const poses = (b > 0 ? [-1, -0.5, 0, 0.5, 1] : [0]).map(at);
+    shipBusy = true;
+    let p;
+    try { p = cubeDist('ship', o, g, [], true, 0.01, Math.max(controls.maxDistance, span) * 2, poses); } catch (e) { p = Promise.reject(e); }
+    [g.position.y, g.rotation.y, g.visible] = pose; g.updateMatrixWorld(true);
+    p.then((dist) => {
+      if (current !== c || g.userData.baseY !== y) return;
+      shipFree = { o, dist, c, y, b };
+      // Läuft die Fahrt noch, endet sie gleich außerhalb statt danach zu springen
+      if (fly && sameAim(o, fly.tb)) {
+        const d = new THREE.Vector3().setFromSpherical(new THREE.Spherical(1, fly.b.phi, fly.b.theta));
+        fly.b.radius = Math.max(fly.b.radius, Math.min(shipNeed(fly.tb, d), controls.maxDistance));
+      }
+      console.info(`[hangar] Hülle des Schiffs gemessen (6 × ${FREE_N}²${b > 0 ? `, ${poses.length} Höhen` : ''}, ${Math.round(performance.now() - t0)} ms)`);
+    }).catch((e) => {
+      // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
+      shipFree = { o, dist: null, c, y, b };
+      console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
+    }).finally(() => { shipBusy = false; });
+  }
+  // Wo steht das Schiff in der Startansicht im Bild? Je Kamerahöhe (0 bis
+  // 80 Grad) über den ganzen Umlauf die oberste und unterste Stelle der
+  // Hülle, als Tangens zur Blickachse: Ruhelage, Abstand der Startansicht.
+  // 6000 Punkte x 36 Richtungen je Höhenstufe; mit 2500 Punkten und 24
+  // Richtungen lag die C2 bei 30 Grad 30 px tiefer als gerechnet. Eine Stufe
+  // rechnet erst, wenn die Kamera bei ihr steht: am Telefon dreht man nur
+  // waagerecht, gebraucht werden dort 10 und 20 Grad.
+  const LENS_EL = [0, 10, 20, 30, 40, 50, 60, 70, 80].map(THREE.MathUtils.degToRad);
+  const LENS_M = 8;   // Pixel Luft zum unteren Bühnenrand
+  const lensV = new THREE.Vector3();
+  function shipFit() {
+    const c = current, g = c.group, y = g.userData.baseY, d = homeDist(), o = homeTgt ?? controls.target;
+    if (lensFit && lensFit.c === c && lensFit.y === y && Math.abs(lensFit.d - d) < 1e-3 * d && lensFit.o.equals(o)) return lensFit;
+    const pose = [g.position.y, g.rotation.y], t0 = performance.now();
+    g.position.y = y; g.rotation.y = 0; g.updateMatrixWorld(true);
+    const meshes = [];
+    let n = 0;
+    g.traverse((m) => { if (m.isMesh && m.geometry?.attributes.position) { meshes.push(m); n += m.geometry.attributes.position.count; } });
+    const step = Math.max(1, Math.round(n / 6000)), P = [], v = new THREE.Vector3();
+    for (const m of meshes) {
+      const a = m.geometry.attributes.position;
+      for (let i = 0; i < a.count; i += step) { v.fromBufferAttribute(a, i).applyMatrix4(m.matrixWorld).sub(o); P.push(v.x, v.y, v.z); }
+    }
+    [g.position.y, g.rotation.y] = pose; g.updateMatrixWorld(true);
+    lensFit = { c, y, d, o: o.clone(), P, top: [], bot: [], ms: performance.now() - t0, told: false };
+    return lensFit;
+  }
+  function fitAt(f, i) {
+    if (f.top[i] !== undefined) return;
+    const t0 = performance.now(), P = f.P, d = f.d, ce = Math.cos(LENS_EL[i]), se = Math.sin(LENS_EL[i]);
+    let hi = -Infinity, lo = Infinity;
+    for (let k = 0; k < 36; k++) {
+      // Kamera bei o + d * (ce sa, se, ce ca), Blick f zum Ziel, oben u
+      const sa = Math.sin(k * Math.PI / 18), ca = Math.cos(k * Math.PI / 18);
+      const fx = -ce * sa, fy = -se, fz = -ce * ca, ux = -se * sa, uy = ce, uz = -se * ca;
+      for (let j = 0; j < P.length; j += 3) {
+        const z = d + P[j] * fx + P[j + 1] * fy + P[j + 2] * fz;
+        if (z < 0.1) continue;
+        const t = (P[j] * ux + P[j + 1] * uy + P[j + 2] * uz) / z;
+        if (t > hi) hi = t;
+        if (t < lo) lo = t;
+      }
+    }
+    // ohne Punkte vor der Kamera zählt das Ziel selbst
+    f.top[i] = Number.isFinite(hi) ? hi : 0; f.bot[i] = Number.isFinite(lo) ? lo : 0;
+    f.ms += performance.now() - t0;
+  }
+  // Verschiebung für den Augenblick: das Schiff mittig in den freien Teil
+  // unter dem Titel. Ist es höher als der freie Teil (von oben gesehen,
+  // kleine Telefone), rückt es nur so weit, dass unten LENS_M Luft bleibt,
+  // und reicht oben unter den Titel; reicht es schon ohne Verschiebung
+  // tiefer, bleibt sie 0.
+  function lensWant() {
+    if (!coverTop) return 0;
+    const h = H();
+    if (!current) return Math.min(0.5, coverTop / h);
+    const f = shipFit(), N = LENS_EL.length, off = lensV.subVectors(camera.position, controls.target);
+    const el = THREE.MathUtils.clamp(Math.asin(off.y / Math.max(1e-6, off.length())), 0, LENS_EL[N - 1]);
+    const i = Math.min(N - 2, Math.floor(el / LENS_EL[1])), a = (el - LENS_EL[i]) / LENS_EL[1];
+    fitAt(f, i); fitAt(f, i + 1);
+    if (!f.told) {
+      f.told = true;
+      console.info(`[hangar] Lage des Schiffs im Bild gerechnet (${f.P.length / 3} Punkte, 2 von ${N} Höhen, ${Math.round(f.ms)} ms)`);
+    }
+    const t = Math.tan(THREE.MathUtils.degToRad(baseFov / 2));
+    const y0 = (h / 2) * (1 - (f.top[i] + (f.top[i + 1] - f.top[i]) * a) / t);
+    const y1 = (h / 2) * (1 - (f.bot[i] + (f.bot[i + 1] - f.bot[i]) * a) / t);
+    return (Math.max(0, Math.min((coverTop + h) / 2 - (y0 + y1) / 2, h - LENS_M - y1)) * 2) / h;
+  }
+  // Abstand in Richtung d (Einheitsvektor) aus den sechs Bildern
+  function freeRay(d, dist = camFree.dist) {
+    const ax = Math.abs(d.x), ay = Math.abs(d.y), az = Math.abs(d.z);
+    const i = ax >= ay && ax >= az ? (d.x > 0 ? 0 : 1) : ay >= az ? (d.y > 0 ? 2 : 3) : (d.z > 0 ? 4 : 5);
+    const s = FREE_FACES[i], df = d.dot(s.f), N = FREE_N;
+    const px = Math.min(N - 1, Math.max(0, Math.floor((d.dot(s.r) / df + 1) * 0.5 * N)));
+    const py = Math.min(N - 1, Math.max(0, Math.floor((d.dot(s.u) / df + 1) * 0.5 * N)));
+    return dist[(i * N + py) * N + px];
+  }
+  // ... über einen Kegel von 3 Grad (Mitte, je sechs Strahlen bei 1,5 und 3
+  // Grad), der kleinste (pick = Math.max: der größte)
+  function freeCone(d, dist = camFree.dist, pick = Math.min) {
+    let best = freeRay(d, dist);
+    freeA.set(Math.abs(d.y) < 0.9 ? 0 : 1, Math.abs(d.y) < 0.9 ? 1 : 0, 0).cross(d).normalize();
+    freeB.crossVectors(d, freeA);
+    for (const t of [0.026, 0.052]) for (let j = 0; j < 6; j++) {
+      const a = (j + (t > 0.03 ? 0.5 : 0)) * Math.PI / 3;
+      freeS.copy(d).addScaledVector(freeA, Math.cos(a) * t).addScaledVector(freeB, Math.sin(a) * t).normalize();
+      best = pick(best, freeRay(freeS, dist));
+    }
+    return best;
+  }
+  // Hüllquader je Möbel in der Welt, um den Rand m größer. Die Ecken in
+  // Originalgröße merkt sich jedes Mesh einmal (box0), danach rechnet
+  // scaleFurniture-gleich: Bezugspunkt + (Ecke - Bezugspunkt) * s.
+  function furnitureBoxes(list, m) {
+    const out = [];
+    for (const f of list) {
+      if (!f.box0) {
+        const P = f.base || f.mesh.geometry.attributes.position.array;
+        f.box0 = f.pieces.map(([i0, i1]) => {
+          const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+          for (let i = i0 * 3; i < i1 * 3; i += 3) for (let a = 0; a < 3; a++) { b[a] = Math.min(b[a], P[i + a]); b[a + 3] = Math.max(b[a + 3], P[i + a]); }
+          return b;
+        });
+      }
+      f.mesh.updateWorldMatrix(true, false);
+      f.pieces.forEach(([, , ax, ay, az], j) => {
+        const b = f.box0[j], A = [ax, ay, az];
+        const box = new THREE.Box3(
+          new THREE.Vector3(...[0, 1, 2].map((a) => A[a] + (b[a] - A[a]) * f.s)),
+          new THREE.Vector3(...[0, 1, 2].map((a) => A[a] + (b[a + 3] - A[a]) * f.s)));
+        out.push(box.applyMatrix4(f.mesh.matrixWorld).expandByScalar(m));
+      });
+    }
+    return out;
+  }
+  const hallOk = (p) => {
+    freeV.subVectors(p, camFree.o);
+    const D = freeV.length();
+    return D < 1e-3 || D <= freeCone(freeV.divideScalar(D)) - camFree.m;
+  };
+  const inBox = (p) => camFree.boxes.find((b) => b.containsPoint(p));
+  const freeOk = (p) => hallOk(p) && !inBox(p);
+  // Ein- und Austritt der Linie t + s·d durch den Quader b (s ab t)
+  function boxSpan(t, d, b) {
+    let s0 = -Infinity, s1 = Infinity;
+    for (const a of ['x', 'y', 'z']) {
+      if (Math.abs(d[a]) < 1e-9) continue;
+      const u = (b.min[a] - t[a]) / d[a], v = (b.max[a] - t[a]) / d[a];
+      s0 = Math.max(s0, Math.min(u, v)); s1 = Math.min(s1, Math.max(u, v));
+    }
+    return [s0, s1];
+  }
+  // Das Blickziel selbst muss nur vor der ersten Fläche liegen, ohne Rand
+  // und Kegel: ein Hardpoint knapp über dem Boden wäre sonst nie frei, und
+  // die Grenze fiele im Fokus darauf ganz aus
+  const targetOk = (p) => {
+    freeV.subVectors(p, camFree.o);
+    const D = freeV.length();
+    return (D < 1e-3 || D <= freeRay(freeV.divideScalar(D))) && !inBox(p);
+  };
+  // Abstand, den die Kamera in Richtung d vom Ziel t mindestens braucht, um
+  // außerhalb des Schiffs zu stehen (0: kein Schiff in dieser Richtung).
+  // Innerhalb des 3-Grad-Kegels zählt die fernste Fläche voll, weiter außen
+  // (sieben Ringe bis 34 Grad) weniger: Eine Fläche im Winkel a verlangt nur
+  // L mit L + 1,2 · L · a = ihr Abstand, also um 1,2 · L je Bogenmaß weniger,
+  // geschlossen gelöst, damit nichts von Bild zu Bild nachpendelt. So gleitet
+  // die Kamera beim Drehen um einen Hardpoint vor dem Rumpf hinaus, statt bis
+  // zu 7 m zu springen.
+  const SHIP_RINGS = [5, 9, 13, 18, 23, 28, 34].map((g, i) => ({
+    a: g * Math.PI / 180, c: Math.cos(g * Math.PI / 180), s: Math.sin(g * Math.PI / 180),
+    j: Array.from({ length: 12 }, (_, j) => [Math.cos((j + (i % 2) * 0.5) * Math.PI / 6), Math.sin((j + (i % 2) * 0.5) * Math.PI / 6)]),
+  }));
+  function shipNeed(t, d) {
+    if (!shipFree?.dist || shipFree.c !== current || !sameAim(shipFree.o, t)) return 0;
+    const dist = shipFree.dist, f = freeCone(d, dist, Math.max);
+    let need = f > 0 ? f + SHIP_M : 0;
+    freeA.set(Math.abs(d.y) < 0.9 ? 0 : 1, Math.abs(d.y) < 0.9 ? 1 : 0, 0).cross(d).normalize();
+    freeB.crossVectors(d, freeA);
+    for (const r of SHIP_RINGS) for (const [cb, sb] of r.j) {
+      freeS.copy(d).multiplyScalar(r.c).addScaledVector(freeA, cb * r.s).addScaledVector(freeB, sb * r.s);
+      const g = freeRay(freeS, dist);
+      if (g > 0) need = Math.max(need, (g + SHIP_M) / (1 + 1.2 * r.a));
+    }
+    return need;
+  }
+  // Nach controls.update(): Steckt die Kamera im Schiff oder streift es, geht
+  // sie auf der Linie vom Blickziel nach außen hinter seine fernste Fläche.
+  // Steht sie dann nicht frei in der Halle, geht sie auf der Linie zum
+  // Blickziel zum ersten freien Punkt von ihr aus; steht sie bei freier
+  // Halle in einem Möbel, zum näheren Ausgang (nach außen nur, wenn es dort
+  // frei ist). Ist die Linie nirgends frei, bleibt sie.
+  const keepD = new THREE.Vector3(), keepQ = new THREE.Vector3();
+  const keepAt = (t, x) => keepQ.copy(t).addScaledVector(keepD, x);
+  function keepFree() {
+    const c = camera.position, t = controls.target;
+    let L = keepD.subVectors(c, t).length();
+    if (L < 1e-6) return;
+    keepD.divideScalar(L);
+    const need = shipNeed(t, keepD);
+    if (L < need) { L = Math.min(need, controls.maxDistance); c.copy(keepAt(t, L)); }
+    if (!camFree || freeOk(c) || !targetOk(t)) return;
+    const b = hallOk(c) && inBox(c);
+    if (b) {
+      const [s0, s1] = boxSpan(t, keepD, b), out = s1 + 1e-3;
+      if (out - L < L - s0 && out <= controls.maxDistance && freeOk(keepAt(t, out))) { c.copy(keepQ); return; }
+    }
+    let lo = -1, hi = L;
+    for (let i = 1; i <= 48; i++) {
+      const x = L * (1 - i / 48);
+      if (freeOk(keepAt(t, x))) { lo = x; break; }
+      hi = x;
+    }
+    if (lo < 0) return;
+    for (let i = 0; i < 12; i++) {
+      const x = (lo + hi) / 2;
+      if (freeOk(keepAt(t, x))) lo = x; else hi = x;
+    }
+    c.copy(keepAt(t, lo));
+  }
+
   function frame() {
     raf = requestAnimationFrame(frame);
     if (!visible) return;
@@ -2689,7 +3183,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // setzt weich auf (ease-out quint), solange das alte noch abhebt
       const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
       const e = 1 - Math.pow(1 - k, 5);
-      g.position.y = g.userData.baseY + (reduceMotion || realHall ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.18;
+      g.position.y = g.userData.baseY + shipBob() * Math.sin(t * 1.1) + (1 - e) * span * 0.18;
       g.rotation.y = (1 - e) * -0.45;
       g.visible = reduceMotion || now - current.born > 60;
       if (fade.to) {
@@ -2709,8 +3203,37 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
+    if (freeDirty) measureFree();
+    if (shipStale()) measureShip();
+    // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
+    // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
+    // Bildern: Drehen lässt ihn, Hineinzoomen setzt ihn auf den neuen
+    // Abstand, Herauszoomen mindestens darauf. Die Kamera gleitet zu ihm
+    // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
+    const flying = !!fly;
+    if (!flying) {
+      const r = camera.position.distanceTo(controls.target);
+      if (!camRef) camWant = r;
+      else if (!camera.position.equals(camLast)) {
+        const q = r / camRef;
+        if (q < 0.9999) camWant = r; else if (q > 1.0001) camWant = Math.max(camWant, r);
+      }
+      if (Math.abs(camWant - r) > 1e-3) camera.position.sub(controls.target).setLength(r + (camWant - r) * (reduceMotion ? 1 : Math.min(1, dt * 5))).add(controls.target);
+    }
     if (fly) flyStep(now);
     controls.update();
+    // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
+    camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
+    keepFree();
+    // Shift-Optik folgt Höhe, Schiff und Titel weich; im ersten Bild sitzt sie
+    const lw = lensWant();
+    if (Math.abs(lw - lensS) > 1e-4) {
+      lensS = reduceMotion || !lensLive ? lw : lensS + (lw - lensS) * Math.min(1, dt * 6);
+      fitFov();
+    }
+    lensLive = true;
+    camLast.copy(camera.position);
+    camRef = camera.position.distanceTo(controls.target);
     adaptPixels(now);
     renderer.shadowMap.needsUpdate = true;
     if (composer) composer.render(); else renderer.render(scene, camera);
@@ -2725,8 +3248,9 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     probeReady = loadHallProbe(opts.hall);
     composerReady = lampsReady.then(() => enableAO());
     // Am Telefon die leichtere Stufe, wenn die Seite eine mitgibt (gleicher
-    // Modellraum, also dieselben Lampen und Sonden), und keine Möbel.
-    loadRealHall(SMALL ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: null } : opts.hall);
+    // Modellraum, also dieselben Lampen und Sonden), und keine Möbel; Glas,
+    // Rohre und Füllung kommen dort aus der Telefon-Datei (60 KB statt 4 MB).
+    loadRealHall(SMALL ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: /* hall-patch */ opts.hall.patch ?? null } : opts.hall);
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand
   // (die gebauten Figuren wären Selbstgebautes)
@@ -2743,8 +3267,6 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   const ro = new ResizeObserver(() => {
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
-    camera.aspect = W() / H();
-    camera.updateProjectionMatrix();
     fitFov();
     if (!touched) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
@@ -2760,6 +3282,9 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     resetView,
     project,
     focus,
+    // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
+    // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
+    setCover(px) { coverTop = Math.max(0, Number(px) || 0); },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
     dispose() {
@@ -2772,6 +3297,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       hallEnv?.dispose();
       hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
       composer?.dispose();
+      for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
       draco.dispose();
       renderer.dispose();
       renderer.domElement.remove();

@@ -37,8 +37,9 @@
         die Elementfolge; diese Zeile nennt das Schiff.
      5  Zaehlungen gegen die Klinken (KLINKEN unten).
      6  Groessendeckel: groesste Bucht, Summe je Sprache.
-     7  Viewer-Naht: dist/assets/hangar-viewer.js liefert project, focus und
-        onFrame. Reisst sie, nennt die Meldung .planning/notes/hangar-naht.md.
+     7  Viewer-Naht: dist/assets/hangar-viewer.js liefert project, focus,
+        setCover und onFrame. Reisst sie, nennt die Meldung
+        .planning/notes/hangar-naht.md.
      8  Import-Map vor dem ersten Modul-Skript auf beiden Hangarseiten: ein
         Modul-Skript davor laesst Chrome die Map verwerfen, und three.js
         laedt nicht mehr.
@@ -341,13 +342,14 @@ for (const k of KLINKEN) {
   }
 }
 
-say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, onFrame');
+say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, setCover, onFrame');
 const viewerFile = join(DIST, 'assets', 'hangar-viewer.js');
 const viewer = existsSync(viewerFile) ? readFileSync(viewerFile, 'utf8') : '';
 const api = viewer.slice(viewer.lastIndexOf('return {'));
-const seam = ['project', 'focus', 'onFrame'].filter((n) => new RegExp(`\\b${n}\\b`).test(api));
-sollIst('project, focus, onFrame', seam.join(', ') || '—');
-if (seam.length !== 3) fail(`[7] dist/assets/hangar-viewer.js liefert nicht mehr ${['project', 'focus', 'onFrame'].filter((n) => !seam.includes(n)).join(', ')} — Absprache: .planning/notes/hangar-naht.md`);
+const SEAM = ['project', 'focus', 'setCover', 'onFrame'];
+const seam = SEAM.filter((n) => new RegExp(`\\b${n}\\b`).test(api));
+sollIst(SEAM.join(', '), seam.join(', ') || '—');
+if (seam.length !== SEAM.length) fail(`[7] dist/assets/hangar-viewer.js liefert nicht mehr ${SEAM.filter((n) => !seam.includes(n)).join(', ')} — Absprache: .planning/notes/hangar-naht.md`);
 
 say('\n[8] Import-Map vor dem ersten Modul-Skript (beide Hangarseiten)');
 for (const page of PAGES) {
