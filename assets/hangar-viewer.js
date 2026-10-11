@@ -2406,6 +2406,13 @@ vec3 hgVolume( vec3 p, vec3 n ) {
         for (const m of [].concat(n.material)) {
           if (seen.has(m)) continue;
           seen.add(m);
+          // Aufkleber (Logos, Symbole, Torbeschriftung) liegen deckungsgleich
+          // auf Wand und Tor. Wächst die Halle für große Schiffe (Carrack
+          // 3,9-fach, Javelin 13-fach), reicht die Tiefe dafür nicht mehr:
+          // Logo und Wand flimmerten um dieselben Pixel, in der Ferne fehlten
+          // Logos ganz. Zwei Tiefenstufen zur Kamera hin; mehr ließe sie durch
+          // Leisten davor scheinen. Laufspuren (leakings) kämpfen nicht.
+          if (/decal/i.test(m.name)) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
           // Weißer Innenraum: die Reflexe der Ersatzhalle dämpfen. Spiegelndes
           // Metall (Bodenplatten, Verkleidung) spiegelte sie sonst als flache
           // blaue Flächen, glatter Kunststoff als Gleißen.
