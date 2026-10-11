@@ -30,8 +30,8 @@
 // API:  initHangar(container, { reduceMotion, hall?: { id?, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
-//         project(points) -> [{ x, y, d } | null], focus(point | null), onFrame(fn) }>
-// project/focus/onFrame sind die Naht zur Oberfläche um die Szene
+//         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
+// project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
 // (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
 // Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
@@ -1571,12 +1571,22 @@ export async function initHangar(container, opts = {}) {
   let camLimit = Infinity;
   const wantDist = () => span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
   const homeDist = () => Math.min(camLimit, wantDist());
+  // Shift-Optik (setCover): Am Telefon liegt der Titelblock der Seite samt
+  // Knöpfen über dem oberen Teil der Bühne (390 x 844: 319 von 523 px). Das
+  // Bild rückt dann nach unten wie bei einem verschobenen Objektiv:
+  // gerechnet wird ein um lensS höheres Gesamtbild, gezeigt sein oberer
+  // Teil. Bildwinkel und Kamera bleiben, nur der Ausschnitt wandert.
+  let coverTop = 0, lensS = 0, lensLive = false, baseFov = 38, lensFit = null;
   // Passt ein großes Schiff (C2, Carrack) nicht mit Abstand in die Halle,
   // weitet sich der Blickwinkel, statt das Schiff anzuschneiden.
   const fitFov = () => {
-    const d = wantDist();
-    const fov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
-    if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    const d = wantDist(), k = 1 + lensS;
+    baseFov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
+    camera.fov = 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * k));
+    camera.aspect = W() / (H() * k);
+    // beide rechnen die Projektion neu
+    if (lensS > 0) camera.setViewOffset(W(), H() * k, 0, 0, W(), H());
+    else camera.clearViewOffset();
   };
   const homePos = () => HOME_DIR.clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -2955,6 +2965,73 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
     }).finally(() => { shipBusy = false; });
   }
+  // Wo steht das Schiff in der Startansicht im Bild? Je Kamerahöhe (0 bis
+  // 80 Grad) über den ganzen Umlauf die oberste und unterste Stelle der
+  // Hülle, als Tangens zur Blickachse: Ruhelage, Abstand der Startansicht.
+  // 6000 Punkte x 36 Richtungen je Höhenstufe; mit 2500 Punkten und 24
+  // Richtungen lag die C2 bei 30 Grad 30 px tiefer als gerechnet. Eine Stufe
+  // rechnet erst, wenn die Kamera bei ihr steht: am Telefon dreht man nur
+  // waagerecht, gebraucht werden dort 10 und 20 Grad.
+  const LENS_EL = [0, 10, 20, 30, 40, 50, 60, 70, 80].map(THREE.MathUtils.degToRad);
+  const LENS_M = 8;   // Pixel Luft zum unteren Bühnenrand
+  const lensV = new THREE.Vector3();
+  function shipFit() {
+    const c = current, g = c.group, y = g.userData.baseY, d = homeDist(), o = homeTgt ?? controls.target;
+    if (lensFit && lensFit.c === c && lensFit.y === y && Math.abs(lensFit.d - d) < 1e-3 * d && lensFit.o.equals(o)) return lensFit;
+    const pose = [g.position.y, g.rotation.y], t0 = performance.now();
+    g.position.y = y; g.rotation.y = 0; g.updateMatrixWorld(true);
+    const meshes = [];
+    let n = 0;
+    g.traverse((m) => { if (m.isMesh && m.geometry?.attributes.position) { meshes.push(m); n += m.geometry.attributes.position.count; } });
+    const step = Math.max(1, Math.round(n / 6000)), P = [], v = new THREE.Vector3();
+    for (const m of meshes) {
+      const a = m.geometry.attributes.position;
+      for (let i = 0; i < a.count; i += step) { v.fromBufferAttribute(a, i).applyMatrix4(m.matrixWorld).sub(o); P.push(v.x, v.y, v.z); }
+    }
+    [g.position.y, g.rotation.y] = pose; g.updateMatrixWorld(true);
+    lensFit = { c, y, d, o: o.clone(), P, top: [], bot: [], ms: performance.now() - t0, told: false };
+    return lensFit;
+  }
+  function fitAt(f, i) {
+    if (f.top[i] !== undefined) return;
+    const t0 = performance.now(), P = f.P, d = f.d, ce = Math.cos(LENS_EL[i]), se = Math.sin(LENS_EL[i]);
+    let hi = -Infinity, lo = Infinity;
+    for (let k = 0; k < 36; k++) {
+      // Kamera bei o + d * (ce sa, se, ce ca), Blick f zum Ziel, oben u
+      const sa = Math.sin(k * Math.PI / 18), ca = Math.cos(k * Math.PI / 18);
+      const fx = -ce * sa, fy = -se, fz = -ce * ca, ux = -se * sa, uy = ce, uz = -se * ca;
+      for (let j = 0; j < P.length; j += 3) {
+        const z = d + P[j] * fx + P[j + 1] * fy + P[j + 2] * fz;
+        if (z < 0.1) continue;
+        const t = (P[j] * ux + P[j + 1] * uy + P[j + 2] * uz) / z;
+        if (t > hi) hi = t;
+        if (t < lo) lo = t;
+      }
+    }
+    // ohne Punkte vor der Kamera zählt das Ziel selbst
+    f.top[i] = Number.isFinite(hi) ? hi : 0; f.bot[i] = Number.isFinite(lo) ? lo : 0;
+    f.ms += performance.now() - t0;
+  }
+  // Verschiebung für den Augenblick: das Schiff mittig in den freien Teil
+  // unter dem Titel, unten nie angeschnitten (von oben gesehen ist es höher
+  // als der freie Teil, dann rückt es nur so weit, wie unten Platz ist).
+  function lensWant() {
+    if (!coverTop) return 0;
+    const h = H();
+    if (!current) return Math.min(0.5, coverTop / h);
+    const f = shipFit(), N = LENS_EL.length, off = lensV.subVectors(camera.position, controls.target);
+    const el = THREE.MathUtils.clamp(Math.asin(off.y / Math.max(1e-6, off.length())), 0, LENS_EL[N - 1]);
+    const i = Math.min(N - 2, Math.floor(el / LENS_EL[1])), a = (el - LENS_EL[i]) / LENS_EL[1];
+    fitAt(f, i); fitAt(f, i + 1);
+    if (!f.told) {
+      f.told = true;
+      console.info(`[hangar] Lage des Schiffs im Bild gerechnet (${f.P.length / 3} Punkte, 2 von ${N} Höhen, ${Math.round(f.ms)} ms)`);
+    }
+    const t = Math.tan(THREE.MathUtils.degToRad(baseFov / 2));
+    const y0 = (h / 2) * (1 - (f.top[i] + (f.top[i + 1] - f.top[i]) * a) / t);
+    const y1 = (h / 2) * (1 - (f.bot[i] + (f.bot[i + 1] - f.bot[i]) * a) / t);
+    return (Math.max(0, Math.min((coverTop + h) / 2 - (y0 + y1) / 2, h - LENS_M - y1)) * 2) / h;
+  }
   // Abstand in Richtung d (Einheitsvektor) aus den sechs Bildern
   function freeRay(d, dist = camFree.dist) {
     const ax = Math.abs(d.x), ay = Math.abs(d.y), az = Math.abs(d.z);
@@ -3146,6 +3223,13 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
     camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
     keepFree();
+    // Shift-Optik folgt Höhe, Schiff und Titel weich; im ersten Bild sitzt sie
+    const lw = lensWant();
+    if (Math.abs(lw - lensS) > 1e-4) {
+      lensS = reduceMotion || !lensLive ? lw : lensS + (lw - lensS) * Math.min(1, dt * 6);
+      fitFov();
+    }
+    lensLive = true;
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
     adaptPixels(now);
@@ -3181,8 +3265,6 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   const ro = new ResizeObserver(() => {
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
-    camera.aspect = W() / H();
-    camera.updateProjectionMatrix();
     fitFov();
     if (!touched) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
@@ -3198,6 +3280,9 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     resetView,
     project,
     focus,
+    // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
+    // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
+    setCover(px) { coverTop = Math.max(0, Number(px) || 0); },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
     dispose() {
