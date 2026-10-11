@@ -46,6 +46,13 @@ const ALIAS = {
   '85x': '85x limited',
   'm50': 'm50 interceptor',
   'nova tank': 'nova',
+  // 4.10.2: das Spiel nennt die Gold-Standard-Constellations "Mk IV", UEX
+  // fuehrt sie (noch) unter dem alten Namen
+  'constellation andromeda': 'constellation mk iv andromeda',
+  'constellation aquila': 'constellation mk iv aquila',
+  'constellation phoenix': 'constellation mk iv phoenix',
+  'constellation phoenix emerald': 'constellation mk iv phoenix emerald',
+  'constellation taurus': 'constellation mk iv taurus',
 };
 
 const cat = JSON.parse(await readFile(new URL('../src/data/vehicles.json', import.meta.url), 'utf8'));

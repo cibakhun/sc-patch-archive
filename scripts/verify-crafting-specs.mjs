@@ -145,7 +145,12 @@ need(sizeNBad === 0, `SizeN-Gegenprobe: ${sizeNBad} Abweichungen`);
 // Messschwankung: die Sperre COLLIDING_NAMES leitet sich bei jedem Build aus
 // den Daten ab und hat die Gruppe deshalb von selbst freigegeben.
 console.log('3) Die 11 gleichnamigen Blueprints — Diskriminante item_stats …');
-const EXPECTED_COLLIDING = ['broadspec', 'main powerplant', 'serac', 'stellate'].sort();
+// 4.10.2-Datenlauf 11.10.2026: 4 -> 5 kollidierende Gruppen, `antium core jet` ist zurueck. CIG hat
+// zwei Antium-Bauplaene umbenannt (guid 2b425c1b… "Helmet Jet" -> "Core Jet",
+// guid 1143394c… "Arms Maroon" -> "Helmet Jet") — die Namen folgen jetzt dem
+// Item, das der Bauplan wirklich herstellt. Damit gibt es wieder zwei
+// "Antium Core Jet" mit verschiedener guid; die Sperre leitet das selbst ab.
+const EXPECTED_COLLIDING = ['antium core jet', 'broadspec', 'main powerplant', 'serac', 'stellate'].sort();
 
 const dupGroups = [...byName.entries()].filter(([, list]) => list.length > 1);
 let groupsCollidingMeasured = 0, groupsCollidingCards = 0, groupsUnauffaellig = 0;
@@ -194,16 +199,16 @@ console.log(`   Selbstprobe: ein Vergleich nur ueber overheat_temperature faende
 // gegangen — dann zeigt die Seite wieder weniger, als sie belegen koennte.
 // 10 -> 8 im 4.10-Lauf, weil die Gruppe `antium core jet` (2 Karten) nicht
 // mehr kollidiert; nameOnlyCards bleibt bei 0, es ist kein Schluessel verloren.
-need(guidResolvedCards === 8, `per guid bestimmte Kollisionskarten: erwartet 8, gemessen ${guidResolvedCards}`);
+need(guidResolvedCards === 10, `per guid bestimmte Kollisionskarten: erwartet 10, gemessen ${guidResolvedCards}`);
 need(nameOnlyCards === 0, `nur per Name auffindbare Kollisionskarten: erwartet 0, gemessen ${nameOnlyCards}`);
 
 // Alle vier Zahlen 4.10-Datenlauf 27.08.2026, gemessen an 1.605 Bauplaenen
 // (vorher 1.594). Die Gruppenzahl SINKT, obwohl der Bestand waechst — 4.10 hat
 // gleichnamige Doubletten aufgeloest, nicht neue erzeugt.
 need(dupGroups.length === 11, `Namensgruppen: erwartet 11, gemessen ${dupGroups.length}`);
-need(groupsCollidingMeasured === 4, `kollidierende Gruppen: erwartet 4, gemessen ${groupsCollidingMeasured}`);
-need(groupsCollidingCards === 8, `gesperrte Karten: erwartet 8, gemessen ${groupsCollidingCards}`);
-need(groupsUnauffaellig === 7, `unauffaellige Gruppen: erwartet 7, gemessen ${groupsUnauffaellig}`);
+need(groupsCollidingMeasured === 5, `kollidierende Gruppen: erwartet 5, gemessen ${groupsCollidingMeasured}`);
+need(groupsCollidingCards === 10, `gesperrte Karten: erwartet 10, gemessen ${groupsCollidingCards}`);
+need(groupsUnauffaellig === 6, `unauffaellige Gruppen: erwartet 6, gemessen ${groupsUnauffaellig}`);
 const measuredColliding = [...collidingNames].sort();
 need(
   JSON.stringify(measuredColliding) === JSON.stringify(EXPECTED_COLLIDING),
@@ -240,7 +245,9 @@ for (const b of armourBps) {
 }
 console.log(`   Armour-Blueprints geprueft: ${armourBps.length} | mit Ton: ${armourWithTone}`);
 // 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
-need(armourBps.length === 916, `Armour-Blueprints: erwartet 916, gemessen ${armourBps.length}`);
+// 916 -> 926 im 4.10.2-Datenlauf 11.10.2026: das Monolith-Set (Helm, Torso, Arme, Beine,
+// Rucksack, je normal und "Shadowflux") ist neu.
+need(armourBps.length === 926, `Armour-Blueprints: erwartet 926, gemessen ${armourBps.length}`);
 need(armourWithTone === 0, `${armourWithTone} Armour-Blueprints mit Ton`);
 
 /* ---------- 6) Abdeckung ---------- */
@@ -256,7 +263,8 @@ console.log('6) Abdeckung je Vehiclegear-Typ …');
 // Entdopplung in datamine-crafting.mjs genau dort je eine zeichengleiche
 // Doublette entfernt hat (FullForce = Powerplant, Glacis = Shield).
 const COVERAGE_EXPECTED = {
-  Powerplant: { n: 74, leer: 0, size: 74, grade: 74, tone: 72 },
+  // 4.10.2-Datenlauf 11.10.2026: +1 Kraftwerk, der neue Bauplan "DayBreak".
+  Powerplant: { n: 75, leer: 0, size: 75, grade: 75, tone: 73 },
   Cooler: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
   Shield: { n: 61, leer: 0, size: 61, grade: 61, tone: 60 },
   Radar: { n: 60, leer: 3, size: 57, grade: 57, tone: 57 },
@@ -337,20 +345,24 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // itemSizes() aus dem Item-Katalog abgeleitet. Ein Zwischenstand mitten im
 // Datenlauf mass 1534 — erst nach `sync:items` stand sie bei 1542, nach der Entdopplung bei 1540. Diese
 // Erwartungen also immer NACH dem vollstaendigen Lauf ablesen, nie zwischendrin.
-need(totalWithSpec === 1540, `Chip-Reihen: erwartet 1540, gemessen ${totalWithSpec}`);
+// 1540 -> 1550 im 4.10.2-Datenlauf 11.10.2026 (1.617 statt 1.605 Bauplaene, gemessen NACH
+// sync:items): neu mit Angabe sind DayBreak, Goliath, F55 "Shadowflux" LMG,
+// acht Monolith-Teile und die zwei umbenannten Antium-Bauplaene; die zwei
+// alten Antium-Namen entfallen.
+need(totalWithSpec === 1550, `Chip-Reihen: erwartet 1550, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1540, `Groesse: erwartet 1540, gemessen ${totalSize}`);
+need(totalSize === 1550, `Groesse: erwartet 1550, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
 // Karten ein "Grade A", das nur der Vorgabewert aus AttachDef.Grade war —
 // aufgefallen an einer Dominance-1 Scattergun. Siehe GRADE_BEARING_TYPES.
-need(totalGrade === 322, `Grade: erwartet 322, gemessen ${totalGrade}`);
+need(totalGrade === 323, `Grade: erwartet 323, gemessen ${totalGrade}`);
 need(
   ['PowerPlant', 'Cooler', 'Shield', 'Radar', 'QuantumDrive'].every((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes deckt die fuenf Bauteilarten nicht ab: [${[...gradeBearingTypes].sort().join(', ')}]`,
@@ -359,13 +371,14 @@ need(
   !['WeaponGun', 'WeaponPersonal', 'Char_Armor_Helmet', 'Paints'].some((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes laesst eine Art mit konstantem Grade durch: [${[...gradeBearingTypes].sort().join(', ')}]`,
 );
-need(totalTone === 504, `Ton: erwartet 504, gemessen ${totalTone}`);
-need(toneFromClass === 404, `Ton aus game.class: erwartet 404, gemessen ${toneFromClass}`);
+need(totalTone === 506, `Ton: erwartet 506, gemessen ${totalTone}`);
+need(toneFromClass === 406, `Ton aus game.class: erwartet 406, gemessen ${toneFromClass}`);
 need(toneFromPath === 100, `Ton aus dem Pfad: erwartet 100, gemessen ${toneFromPath}`);
 // 62 -> 65 im 4.10-Datenlauf 27.08.2026. Zusammen mit 1540 Chip-Reihen ergibt
 // das genau die 1.605 Bauplaene — die Selbstprobe eine Zeile tiefer haelt beide
 // Zahlen aneinander, eine allein koennte still auseinanderlaufen.
-need(totalNone === 65, `ohne jede Angabe: erwartet 65, gemessen ${totalNone}`);
+// 65 -> 67 im 4.10.2-Datenlauf 11.10.2026: die zwei neuen Monolith-Helme tragen keine Chip-Angabe.
+need(totalNone === 67, `ohne jede Angabe: erwartet 67, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 10) Zwei gleiche Chips nebeneinander ---------- */

@@ -20,6 +20,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll } from './lib/cryxml.mjs';
 
@@ -174,7 +175,15 @@ function subtreeItems(entry, acc = [], depth = 0, carrier = null) {
   const mount = carrierKind(info, r);
   if (mount) turretStationAcc.push({ port: entry.itemPortName || null, turretKind: mount.turretKind });
   const next = mount ?? carrier;
-  for (const n of entriesOf(entry)) subtreeItems(n, acc, depth + 1, next);
+  // Ein Port nimmt genau ein Item auf. 4.10.2 fuehrt am Gimbal der X1 Force
+  // denselben Port "hardpoint_class_2" zweimal mit derselben Waffe — ohne
+  // diese Sperre zaehlte das als zwei Kanonen (doppelte DPS).
+  const seenPorts = new Set();
+  for (const n of entriesOf(entry)) {
+    const p = n?.itemPortName;
+    if (p) { if (seenPorts.has(p)) continue; seenPorts.add(p); }
+    subtreeItems(n, acc, depth + 1, next);
+  }
   return acc;
 }
 
@@ -189,6 +198,8 @@ const shipRecs = db.records.filter((r) =>
 const recId = (r) => (r.name || '').replace(/^EntityClassDefinition\./, '').toLowerCase().replace(/_/g, '-');
 const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
+const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
+if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
 
 // Loadout eines Ship-Records extrahieren: { port -> {name,size,cat,cls,count} }
 // qtfueltank/h2fueltank/orepod (01.4-02, Gruppe B): nur cat+cls+count werden

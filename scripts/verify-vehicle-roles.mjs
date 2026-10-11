@@ -26,7 +26,8 @@ const need = (cond, msg) => { if (!cond) fail.push(msg); };
 // NIE nach unten, ohne die Ursache zu klaeren.
 // 07.10.2026: 223 -> 225 — Sabre Raven EX und S-65 Stingray neu aufgenommen
 // (extract-hardpoints.mjs --add; beide fehlten wegen des zirkulaeren Katalogs).
-const MIN_MATCHED = 225;
+// 11.10.2026 (4.10.2-Datenlauf): 225 -> 227 — Constellation Mk V Centaurus und Skylark neu aufgenommen (extract-hardpoints.mjs --add).
+const MIN_MATCHED = 227;
 
 console.log(`\n=== A) Join-Rate gegen src/data/vehicles.json ===`);
 const vehIds = new Set(veh.vehicles.map((v) => v.id));
@@ -71,9 +72,11 @@ console.log(`\n=== F) 18 Rollenfamilien tragen genau den erhobenen Stand (D-05, 
 // SUMMARY dokumentieren (05-02-PLAN.md "Wenn eine nachgerechnete Zahl von der
 // Tabelle abweicht") — eine Familie darf dabei NIE stillschweigend wegfallen.
 // 07.10.2026: jaeger 63 -> 65 (Raven EX + Stingray, beide mediumfighter).
+// 11.10.2026 (4.10.2-Datenlauf): jaeger 65 -> 66 (Skylark, snubfighter), frachttransport 35 -> 36 und
+// kanonenschiff 9 -> 10 (Mk V Centaurus, "Medium Freight / Gun Ship").
 const FAMILY_WANT = {
-  jaeger: 65, frachttransport: 35, erkundung: 27, passagiere: 17, rennen: 17,
-  einsteiger: 12, bodenkampf: 11, kanonenschiff: 9, medizin: 7, bomber: 6,
+  jaeger: 66, frachttransport: 36, erkundung: 27, passagiere: 17, rennen: 17,
+  einsteiger: 12, bodenkampf: 11, kanonenschiff: 10, medizin: 7, bomber: 6,
   truppentransport: 6, bergung: 6, abriegelung: 5, bergbau: 5, grosskampfschiff: 5,
   'daten-wissenschaft': 3, betankung: 3, mehrzweck: 2,
 };
@@ -143,7 +146,8 @@ console.log(`\n=== K) Merkmalsleiste (D-09): genau cargo (103) und ground (37), 
 const cargoIds = roleIds.filter((id) => (roles.vehicles[id].feat || []).includes('cargo'));
 const groundIds = roleIds.filter((id) => (roles.vehicles[id].feat || []).includes('ground'));
 console.log(`  cargo: ${cargoIds.length}, ground: ${groundIds.length}`);
-need(cargoIds.length === 103, `feat=cargo: ${cargoIds.length} statt 103`);
+// 11.10.2026 (4.10.2-Datenlauf): cargo 103 -> 104 — die Mk V Centaurus traegt ein Frachtgitter.
+need(cargoIds.length === 104, `feat=cargo: ${cargoIds.length} statt 104`);
 need(groundIds.length === 37, `feat=ground: ${groundIds.length} statt 37`);
 const badFeat = roleIds.filter((id) => (roles.vehicles[id].feat || []).some((f) => f !== 'cargo' && f !== 'ground'));
 need(badFeat.length === 0, `Fahrzeuge mit unerwarteter Merkmalskennung: ${badFeat.join(', ')}`);
@@ -159,7 +163,8 @@ console.log(`\n=== M) Größenklasse (AttachDef.Size, Quick-Task 260802-ose): se
 // gemessen). Darf sich nur aendern, wenn ein spaeterer Datamine-Lauf die
 // Ursache klaert — nicht stillschweigend nachziehen.
 // 07.10.2026: Groesse 2 82 -> 84 (Raven EX + Stingray).
-const SIZE_WANT = { 1: 48, 2: 84, 3: 38, 4: 22, 5: 26, 6: 7 };
+// 11.10.2026 (4.10.2-Datenlauf): Groesse 1 48 -> 49 (Skylark), Groesse 5 26 -> 27 (Mk V Centaurus).
+const SIZE_WANT = { 1: 49, 2: 84, 3: 38, 4: 22, 5: 27, 6: 7 };
 const sizeCount = {};
 for (const v of Object.values(roles.vehicles)) if (v.size != null) sizeCount[v.size] = (sizeCount[v.size] || 0) + 1;
 for (const [n, want] of Object.entries(SIZE_WANT)) {
@@ -177,7 +182,8 @@ console.log(`\n=== N) SubType (AttachDef.SubType, informativ, Quick-Task 260802-
 const subTypeCount = {};
 for (const v of Object.values(roles.vehicles)) if (v.subType) subTypeCount[v.subType] = (subTypeCount[v.subType] || 0) + 1;
 console.log(`  Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0}, Vehicle_GroundVehicle: ${subTypeCount.Vehicle_GroundVehicle || 0}`);
-need((subTypeCount.Vehicle_Spaceship || 0) === 198, `SubType Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0} statt 198`);
+// 11.10.2026 (4.10.2-Datenlauf): 198 -> 200 (Mk V Centaurus, Skylark).
+need((subTypeCount.Vehicle_Spaceship || 0) === 200, `SubType Vehicle_Spaceship: ${subTypeCount.Vehicle_Spaceship || 0} statt 200`);
 need((subTypeCount.Vehicle_GroundVehicle || 0) === 27, `SubType Vehicle_GroundVehicle: ${subTypeCount.Vehicle_GroundVehicle || 0} statt 27`);
 
 console.log(`\n--- Zusammenfassung: ${roleIds.length}/${veh.vehicles.length} gejointe Fahrzeuge geprüft, ${roles.unmatched.length} benannte Fehlstellen, ${fail.length} Fehlschläge ---`);

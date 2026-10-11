@@ -1,5 +1,5 @@
 {
- "fetchedAt": "2026-09-24",
+ "fetchedAt": "2026-10-11",
  "source": "UEX Corp (uexcorp.space)",
  "matched": 174,
  "buyable": 174,
@@ -2614,14 +2614,7 @@
      "system": "Stanton"
     }
    ],
-   "rent": [
-    {
-     "price": 254016,
-     "shop": "Regal NBIS",
-     "where": "New Babbage",
-     "system": "Stanton"
-    }
-   ]
+   "rent": []
   },
   "rsi-constellation-aquila": {
    "buy": [
@@ -2690,14 +2683,7 @@
      "system": "Nyx"
     }
    ],
-   "rent": [
-    {
-     "price": 160877,
-     "shop": "Regal NBIS",
-     "where": "New Babbage",
-     "system": "Stanton"
-    }
-   ]
+   "rent": []
   },
   "rsi-scorpius": {
    "buy": [

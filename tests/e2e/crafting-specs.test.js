@@ -32,8 +32,11 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // Abzug der zwei zeichengleichen Doubletten FullForce und Glacis). Dieselbe
 // Zahl steht in scripts/verify-crafting-specs.mjs — sie wird hier gegen das
 // gebaute HTML geprueft, dort gegen die Datenschicht.
-const TOTAL_SPEC_ROWS = 1540;
-const TOTAL_TONE_CHIPS = 504;
+// 4.10.2-Datenlauf 11.10.2026: 1540 -> 1550 (1.617 Bauplaene, Ursache in scripts/verify-crafting-specs.mjs).
+const TOTAL_SPEC_ROWS = 1550;
+// 4.10.2-Datenlauf 11.10.2026: 504 -> 506, beide aus game.class (404 -> 406,
+// s. scripts/verify-crafting-specs.mjs).
+const TOTAL_TONE_CHIPS = 506;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
@@ -193,7 +196,8 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
     test('keine Armour-Karte traegt einen Ton-Chip (Gegenprobe zu SC3, je Kartenausschnitt)', () => {
       const cards = cardsWithCategoryRoot(html, 'Armour');
       // 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
-      assert.strictEqual(cards.length, 916, `Armour-Karten: erwartet 916, gefunden ${cards.length}`);
+      // 916 -> 926 im 4.10.2-Datenlauf 11.10.2026: das Monolith-Set ist neu.
+      assert.strictEqual(cards.length, 926, `Armour-Karten: erwartet 926, gefunden ${cards.length}`);
       const withTone = cards.filter((c) => c.includes('class="tone"'));
       assert.strictEqual(withTone.length, 0, `${withTone.length} Armour-Karten tragen dennoch einen Ton-Chip`);
     });

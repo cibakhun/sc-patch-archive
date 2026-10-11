@@ -102,14 +102,16 @@ const HANDPFLEGE = [];
 // 24.09.2026, Datenlauf auf sc-alpha-4.10.0 (Client CL 12660092): alle sieben
 // Staende gemeinsam von CL 12519617 auf 12660092 gehoben — nach OBEN, wie es
 // Grundsatz 5 verlangt.
+// 11.10.2026, Datenlauf auf sc-alpha-4.10.2 (Client CL 12881860): alle sieben
+// Staende gemeinsam von CL 12660092 auf 12881860 gehoben.
 const KLINKEN = {
-  Missionen: 12660092,
-  Mining: 12660092,
-  Crafting: 12660092,
-  'Item-Katalog': 12660092,
-  Refinery: 12660092,
-  Zerlegung: 12660092,
-  Wikelo: 12660092,
+  Missionen: 12881860,
+  Mining: 12881860,
+  Crafting: 12881860,
+  'Item-Katalog': 12881860,
+  Refinery: 12881860,
+  Zerlegung: 12881860,
+  Wikelo: 12881860,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine

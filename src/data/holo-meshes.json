@@ -1,7 +1,7 @@
 {
-  "fetchedAt": "2026-10-07",
+  "fetchedAt": "2026-10-11",
   "source": "StarBreaker entity export (Data.p4k) -> gltf-transform/meshopt Dezimierung",
-  "count": 229,
+  "count": 231,
   "meshes": {
     "aegs-avenger-stalker": {
       "url": "/holo/aegs-avenger-stalker.glb",
@@ -50,8 +50,8 @@
     },
     "aegs-hammerhead": {
       "url": "/holo/aegs-hammerhead.glb",
-      "tris": 112339,
-      "v": "8d5ab2d9"
+      "tris": 106713,
+      "v": "5744f446"
     },
     "aegs-idris-m": {
       "url": "/holo/aegs-idris-m.glb",
@@ -960,13 +960,13 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/holo/rsi-constellation-andromeda.glb",
-      "tris": 147570,
-      "v": "4ee315ad"
+      "tris": 112483,
+      "v": "b35fb66b"
     },
     "rsi-constellation-aquila": {
       "url": "/holo/rsi-constellation-aquila.glb",
-      "tris": 126996,
-      "v": "56c79b45"
+      "tris": 149469,
+      "v": "f504e987"
     },
     "rsi-constellation-phoenix-emerald": {
       "url": "/holo/rsi-constellation-phoenix-emerald.glb",
@@ -975,13 +975,13 @@
     },
     "rsi-constellation-phoenix": {
       "url": "/holo/rsi-constellation-phoenix.glb",
-      "tris": 126360,
-      "v": "c1fe40d8"
+      "tris": 137134,
+      "v": "faa10559"
     },
     "rsi-constellation-taurus": {
       "url": "/holo/rsi-constellation-taurus.glb",
-      "tris": 142775,
-      "v": "9d51f023"
+      "tris": 122490,
+      "v": "a00fdde8"
     },
     "rsi-hermes": {
       "url": "/holo/rsi-hermes.glb",
@@ -1147,6 +1147,16 @@
       "url": "/holo/krig-s65-stingray.glb",
       "tris": 128191,
       "v": "795c2e4e"
+    },
+    "rsi-constellation-mk5-centaurus": {
+      "url": "/holo/rsi-constellation-mk5-centaurus.glb",
+      "tris": 122621,
+      "v": "4e7da4db"
+    },
+    "rsi-skylark": {
+      "url": "/holo/rsi-skylark.glb",
+      "tris": 128625,
+      "v": "a81e3dea"
     }
   }
 }
