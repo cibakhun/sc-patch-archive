@@ -160,8 +160,11 @@ const TEXTBESTAND_KLINKE = {
    fuehren: 4=179, 0=0.
    07.10.2026: 4=179 -> 4=181 — Sabre Raven EX und S-65 Stingray neu im
    Katalog (extract-hardpoints.mjs --add + Holo-Mesh), beide mit allen vier
-   Portgruppen; 229 Schiffe. */
-const WELLE1_RAIL_VERTEILUNG = { 0: 0, 1: 6, 2: 22, 3: 20, 4: 181 };
+   Portgruppen; 229 Schiffe.
+   11.10.2026 (4.10.2-Datenlauf): 4=181 -> 4=183 — Constellation Mk V
+   Centaurus und Skylark neu im Katalog, beide mit allen vier Portgruppen;
+   231 Schiffe. */
+const WELLE1_RAIL_VERTEILUNG = { 0: 0, 1: 6, 2: 22, 3: 20, 4: 183 };
 
 if (!existsSync('dist')) {
   console.error(

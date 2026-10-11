@@ -33,6 +33,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -196,6 +197,8 @@ const shipRecs = db.records.filter((r) =>
 const recId = (r) => (r.name || '').replace(/^EntityClassDefinition\./, '').toLowerCase().replace(/_/g, '-');
 const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
+const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
+if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
 
 // ---- Lauf ----
 const idsToDo = ONLY ? [ONLY] : ourIds;

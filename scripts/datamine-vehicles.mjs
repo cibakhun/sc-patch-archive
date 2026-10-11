@@ -54,6 +54,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
 
@@ -176,6 +177,8 @@ const shipRecs = ECD.filter((r) => /\/(spaceships|groundvehicles)\/[^/]+\.xml$/i
 const recId = (r) => (r.name || '').replace(/^EntityClassDefinition\./, '').toLowerCase().replace(/_/g, '-');
 const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
+const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
+if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
 
 // Flugcontroller einmal indizieren (Basename ohne .xml -> Record)
 const flightCtrlByCls = new Map();
@@ -475,9 +478,26 @@ function buildVehicle(id) {
   const baseCls = veh?.vehicleDefinition
     ? norm(veh.vehicleDefinition).split('/').pop().replace(/\.xml$/i, '').toLowerCase()
     : null;
+  // Vorrang hat der Controller, den das Standard-Loadout selbst einsetzt: die
+  // Hammerhead-GS (4.10.2) hat keinen controller_flight_aegs_hammerhead_gs,
+  // ihr Loadout setzt den der Altfassung ein — ohne diesen Blick blieben ihre
+  // Flugwerte leer.
+  const loadoutCtrl = (() => {
+    const walk = (o, d = 0) => {
+      if (!o || typeof o !== 'object' || d > 8) return null;
+      if (Array.isArray(o)) { for (const x of o) { const r = walk(x, d + 1); if (r) return r; } return null; }
+      if (o.itemPortName === 'hardpoint_controller_flight') {
+        const n = o.entityClassName || o.entityClassReference?.name || '';
+        return n.replace(/^EntityClassDefinition\./, '').toLowerCase() || null;
+      }
+      for (const v of Object.values(o)) { if (v && typeof v === 'object') { const r = walk(v, d + 1); if (r) return r; } }
+      return null;
+    };
+    return walk(db.readRecord(rec, { maxDepth: 8, typed: true }));
+  })();
   let ifcs = null;
-  for (const cls of [ownCls, baseCls].filter(Boolean)) {
-    const cr = flightCtrlByCls.get(`controller_flight_${cls}`);
+  for (const key of [loadoutCtrl, ownCls && `controller_flight_${ownCls}`, baseCls && `controller_flight_${baseCls}`].filter(Boolean)) {
+    const cr = flightCtrlByCls.get(key);
     if (!cr) continue;
     ifcs = findType(db.readRecord(cr, { maxDepth: 9, typed: true }), 'IFCSParams');
     if (ifcs) break;

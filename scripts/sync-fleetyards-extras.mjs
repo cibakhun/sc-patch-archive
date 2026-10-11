@@ -71,7 +71,14 @@ const catIds = new Set(cat.vehicles.map((v) => v.id));
 /** FY-Modell -> unsere vehicle-id, oder null wenn wir das Schiff nicht führen */
 const ourId = (m) => {
   const id = String(m?.scIdentifier ?? '').toLowerCase().replace(/_/g, '-');
-  return catIds.has(id) ? id : null;
+  if (catIds.has(id)) return id;
+  // FY fuehrt seit 4.10.2 den Spieler-Record: Gold-Standard-Neubauten als
+  // <klasse>_gs (Constellation Mk IV, Hammerhead), die Idris-M als
+  // aegs_idris_m_pu. Unser Katalog behaelt die alte Id (s.
+  // scripts/lib/vehicle-records.mjs) — sonst verlieren diese Schiffe still
+  // Holo, Lackierungen und Varianten.
+  const bare = id.replace(/-(gs|pu)$/, '');
+  return bare !== id && catIds.has(bare) ? bare : null;
 };
 
 // full model list (paginated)
@@ -181,6 +188,17 @@ if (ids.length < 40) {
   process.exit(1);
 }
 
+// FY liefert seit Oktober 2026 einen Teil der Datei-Links unter
+// https://fleetyards.net/files/… statt https://api.fleetyards.net/files/… —
+// derselbe Blob-Redirect auf storage.fltyrd.net, aber ein Host, den die CSP
+// (img-src, audit:csp) nicht kennt. Auf den bekannten Host zurueckgefuehrt.
+const FY_FILES = /^https:\/\/(?:www\.)?fleetyards\.net\/files\//;
+const fyHost = (v) =>
+  typeof v === 'string' ? v.replace(FY_FILES, 'https://api.fleetyards.net/files/')
+    : Array.isArray(v) ? v.map(fyHost)
+      : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fyHost(x)]))
+        : v;
+
 await writeFile(
   OUT,
   JSON.stringify(
@@ -190,7 +208,7 @@ await writeFile(
       matched,
       holoCount,
       holoInherited: inherited,
-      extras,
+      extras: fyHost(extras),
     },
     null,
     1

@@ -80,7 +80,11 @@ let hardpointChecked = 0, hardpointSkipped = 0;
 // 07.10.2026: 81 -> 82 — die neu aufgenommene Sabre Raven EX liegt in derselben
 // Lücke wie die Sabre Raven selbst (Implementierungs-XML nennt 2 WeaponGun-
 // Ports S3, das Loadout trägt 4 Waffen). Die S-65 Stingray wird geprüft (95).
-const MAX_HARDPOINT_SKIP = 82;
+// 11.10.2026 (4.10.2-Datenlauf): 82 -> 83 — die neue Constellation Mk V Centaurus. Ihre acht
+// S3-Kanonen sitzen in zwei Fernsteuer-Tuermen unter weapon_mounts/gimbal/ und
+// zaehlen deshalb (wie bei 600i, Corsair, Zeus …) als Pilotenwaffen; die
+// Implementierungs-XML nennt nur die vier S5-Ports.
+const MAX_HARDPOINT_SKIP = 83;
 
 for (const v of snapshot.vehicles) {
   const pilotGuns = v.fixedWeapons ?? [];

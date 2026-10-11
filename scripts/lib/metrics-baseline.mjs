@@ -70,29 +70,30 @@ export const BASELINE = [
   // ---------------- Fahrzeuge ----------------
   {
     id: 'fahrzeuge',
-    wert: 229,
+    wert: 231,
     regel: 'exakt',
     anlass:
       'Phase 01.4-03: 223 aus der Extraktion plus die vier ATLS-Varianten. Exakt statt Minimum, weil jede Aenderung an dieser Zahl einen Datamine-Beleg braucht — nach oben wie nach unten. ' +
-      '07.10.2026: 227 -> 229 — Sabre Raven EX (4.10.1) und S-65 Stingray neu aufgenommen; beide standen flugfaehig im DataCore, kamen aber wegen des zirkulaeren Katalogs nie hinein (extract-hardpoints.mjs --add, Waechter verify:vehicle-gap).',
+      '07.10.2026: 227 -> 229 — Sabre Raven EX (4.10.1) und S-65 Stingray neu aufgenommen; beide standen flugfaehig im DataCore, kamen aber wegen des zirkulaeren Katalogs nie hinein (extract-hardpoints.mjs --add, Waechter verify:vehicle-gap). ' +
+      '11.10.2026 (4.10.2-Datenlauf): 229 -> 231 — Constellation Mk V Centaurus und Skylark neu aufgenommen; beide flugfaehig im DataCore, gemeldet von verify:vehicle-gap (extract-hardpoints.mjs --add).',
   },
   {
     id: 'fahrzeugeMitBauteilen',
-    wert: 225,
+    wert: 227,
     regel: 'min',
     anlass:
-      '07.10.2026: 223 -> 225 (Raven EX + Stingray). Phase 07: Steckplatz-Groessen aus der Fahrzeug-Implementierungs-XML; 223 von 227 joinen (die vier ATLS haben keine). Faellt die Zahl, findet der Bauteil-Filter still weniger Schiffe.',
+      '11.10.2026 (4.10.2-Datenlauf): 225 -> 227 (Mk V Centaurus + Skylark). 07.10.2026: 223 -> 225 (Raven EX + Stingray). Phase 07: Steckplatz-Groessen aus der Fahrzeug-Implementierungs-XML; 223 von 227 joinen (die vier ATLS haben keine). Faellt die Zahl, findet der Bauteil-Filter still weniger Schiffe.',
   },
   {
     id: 'fahrzeugeMitRolle',
-    wert: 225,
+    wert: 227,
     regel: 'min',
     anlass:
-      '07.10.2026: 223 -> 225 (Raven EX + Stingray). Phase 06 (ROLE-10), Stand 02.08.2026. Dieselbe Klinke prueft verify:vehicle-roles im eigenen Skript — hier gespiegelt, damit EIN Ort alle Bestaende der Seite zeigt.',
+      '11.10.2026 (4.10.2-Datenlauf): 225 -> 227 (Mk V Centaurus + Skylark). 07.10.2026: 223 -> 225 (Raven EX + Stingray). Phase 06 (ROLE-10), Stand 02.08.2026. Dieselbe Klinke prueft verify:vehicle-roles im eigenen Skript — hier gespiegelt, damit EIN Ort alle Bestaende der Seite zeigt.',
   },
   {
     id: 'fahrzeugeMitHardpoints',
-    wert: 228,
+    wert: 230,
     regel: 'min',
     anlass:
       'Grundlage der 3D-Hologramme. Faellt die Zahl, zeigen Schiffs-Datenblaetter still keine Marker mehr. ' +
@@ -104,16 +105,17 @@ export const BASELINE = [
       'Extraktor folgen koennte, und kein Fehler auf unserer Seite: CIG liefert die Geometrie in diesem Patch nicht mit, ' +
       'obwohl das Schiff im DataCore flugbereit steht. Die Klinke bleibt bei 226 stehen — kommt die Geometrie zurueck, ' +
       'steigt der Ist-Wert von selbst auf 227 und die Klinke faengt jeden WEITEREN Verlust unveraendert ab. ' +
-      '07.10.2026: 226 -> 228 — Raven EX und Stingray per extract-hardpoints.mjs --add aufgenommen; die Hermes-Luecke bleibt in der Klinke.',
+      '07.10.2026: 226 -> 228 — Raven EX und Stingray per extract-hardpoints.mjs --add aufgenommen; die Hermes-Luecke bleibt in der Klinke. ' +
+      '11.10.2026 (4.10.2-Datenlauf): 228 -> 230 (Mk V Centaurus + Skylark); die Hermes kommt seit 4.10.1 ueber extract-hardpoints-assembled.mjs, die Klinke laesst sie weiter aussen vor.',
   },
 
   // ---------------- Crafting / Bergbau ----------------
   {
     id: 'blueprints',
-    wert: 1605,
+    wert: 1617,
     regel: 'min',
     anlass:
-      'Phase 08, Messlauf 09.08.2026. 1.514 der Karten tragen eine Chip-Reihe; verify:crafting prueft deren Inhalt, aber nicht, ob ueberhaupt noch alle Karten da sind. 4.10-Datenlauf 27.08.2026: 1594 -> 1605 — das sind 1607 aus der Extraktion minus 2 zeichengleiche Doubletten (FullForce, Glacis), die datamine-crafting.mjs seither entfernt.',
+      'Phase 08, Messlauf 09.08.2026. 1.514 der Karten tragen eine Chip-Reihe; verify:crafting prueft deren Inhalt, aber nicht, ob ueberhaupt noch alle Karten da sind. 4.10-Datenlauf 27.08.2026: 1594 -> 1605 — das sind 1607 aus der Extraktion minus 2 zeichengleiche Doubletten (FullForce, Glacis), die datamine-crafting.mjs seither entfernt. 11.10.2026 (4.10.2-Datenlauf): 1605 -> 1617 (Monolith-Set, DayBreak, Goliath, F55 "Shadowflux" LMG; Glacis weiter entdoppelt).',
   },
   {
     id: 'minerale',

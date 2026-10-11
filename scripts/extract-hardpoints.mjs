@@ -164,6 +164,21 @@ const SLUG_ALIAS = {
   // Raven EX (4.10.1): der DataCore-Record nennt AEGS_Sabre_Raven.cga als
   // Geometrie; der Token-Drop wählte sonst die Sabre-Basis (mehr Kern-Ports)
   'aegs-sabre-raven-ex': 'aegs-sabre-raven',
+  // Gold-Standard-Neubau (4.10.2): der Spieler-Record ist <Klasse>_GS mit
+  // eigener Rumpf-cga unter constellation_gs/ bzw. hammerhead_gs/ — die alte
+  // cga gehoert zur Altfassung (s. scripts/lib/vehicle-records.mjs). Die
+  // Aquila hat keine eigene GS-cga: ihr Record nutzt die Andromeda-
+  // Implementierung, die Aquila-Teile sind Anbauten (Radar-Addon).
+  // Lackierungen ohne GS-Record (Phoenix Emerald, Hammerhead Showdown)
+  // bleiben auf der alten cga.
+  'rsi-constellation-andromeda': 'rsi-constellation-gs-andromeda',
+  'rsi-constellation-aquila': 'rsi-constellation-gs-andromeda',
+  'rsi-constellation-phoenix': 'rsi-constellation-gs-phoenix',
+  'rsi-constellation-taurus': 'rsi-constellation-gs-taurus',
+  'aegs-hammerhead': 'aegs-hammerhead-gs',
+  // Constellation Mk V (4.10.2): eigene Rumpf-cga rsi_constellation_mk5.cga;
+  // der Token-Drop fiele sonst auf die Mk-IV-Altfassung "rsi-constellation"
+  'rsi-constellation-mk5-centaurus': 'rsi-constellation-mk5',
 };
 
 // Kandidaten-Schlüssel für einen Slug: exakt -> Token-Drop (Varianten-Basis)

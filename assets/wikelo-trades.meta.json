@@ -1,11 +1,11 @@
 {
   "generator": "scripts/build-wikelo-trades.mjs",
-  "generatedAt": "2026-09-24T04:12:29.404Z",
-  "gameVersion": "4.10.0-live.12660092",
-  "patch": "4.10.0",
-  "entryCount": 69,
-  "contractCount": 69,
-  "orderLineCount": 285,
+  "generatedAt": "2026-10-11T11:46:50.375Z",
+  "gameVersion": "4.10.2-live.12881860",
+  "patch": "4.10.2",
+  "entryCount": 71,
+  "contractCount": 71,
+  "orderLineCount": 295,
   "curatedCount": 59,
   "curatedReviewedAt": "2026-08-28"
 }

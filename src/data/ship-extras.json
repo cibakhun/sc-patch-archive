@@ -1,8 +1,8 @@
 {
- "fetchedAt": "2026-09-24",
+ "fetchedAt": "2026-10-11",
  "source": "FleetYards.net",
- "matched": 225,
- "holoCount": 225,
+ "matched": 229,
+ "holoCount": 229,
  "holoInherited": 14,
  "extras": {
   "orig-100i": {
@@ -1503,7 +1503,7 @@
   },
   "rsi-aurora-mk2": {
    "fySlug": "rsi-aurora-mk-ii",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImZlYjgwMjI4LTAzN2MtNGQyYy04OWQzLTU0NmQxMDYzOWE5ZiIsInB1ciI6ImJsb2JfaWQifX0=--18180187cb9430e4bd97c53fea48c6b2a0729bf4/holo.gltf/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImFjYzVkM2NmLTY1MDktNGEwMC05YjdjLTJlMDdjZDcxODhiMSIsInB1ciI6ImJsb2JfaWQifX0=--4b51218fa63e96a4b2d298b2325ae64da6a4c698/flight_holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjNkMTk3YjI0LTMyYWQtNDVhNy05ZGQzLTJmNDIwMWU2ZTRlMCIsInB1ciI6ImJsb2JfaWQifX0=--944dffb81866303aae9fc4d85e4194b68c0ffbda/Star_Citizen_RSI_Aurora_Mk2_ShipWall_4k-6acf671e-c685-4f42-adca-2355f7a48205.jpg/",
    "paints": [
     {
@@ -2295,6 +2295,35 @@
    ],
    "loaners": []
   },
+  "glsn-basher": {
+   "fySlug": "grey-basher",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjYyYTNkYzA5LWUwZjgtNDg3NC04Y2E1LWJmMTE5YzNkNjY0ZiIsInB1ciI6ImJsb2JfaWQifX0=--c6e579a05e3aa87535126656820aa8e2326dba61/holo.gltf/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg2NDA2YmVmLWEwZGItNDM3OC04ZjM0LWY5NTY1ZDNlYTA1ZCIsInB1ciI6ImJsb2JfaWQifX0=--35b522bca582efa3a13939e2fcbef7cadddd0c3a/source.jpg/",
+   "paints": [
+    {
+     "name": "Blue Blossom",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY5YmQ2NjlmLTgyMmMtNDkxMS1iYzVkLWMzODdjMmQ1Njc0ZiIsInB1ciI6ImJsb2JfaWQifX0=--3f319e6312b6c9da5863885ee1b72453b0c7ffd0/source.jpg/"
+    },
+    {
+     "name": "Corroded",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjJlNTFiMmI3LTkzYTYtNGZiNC1hNzMwLTkzYWI3MDAxYmVmZiIsInB1ciI6ImJsb2JfaWQifX0=--7f743cb83af97931a4646595b3e1236b09dc3f37/source.jpg/"
+    },
+    {
+     "name": "Nightmare",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjU0MzNjNzhkLTBmMmEtNDY5NC05ZjkxLWZmZGRiMmI3ZTVjMSIsInB1ciI6ImJsb2JfaWQifX0=--dc29e94d7afab2809f9d6b8e20b01538d2433e25/source.jpg/"
+    },
+    {
+     "name": "Razorburn",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjlmNWM4NWU5LTY5ZjUtNGVmMi1iMjIwLTVhYWE2MmJhNmIzOSIsInB1ciI6ImJsb2JfaWQifX0=--ad8a1701a88db216496e00c5b56ab22e2024ab76/source.jpg/"
+    },
+    {
+     "name": "Skull and Crossbones",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjJmN2E0OTY0LWYxMzQtNDQ4Mi04YjEwLTUxZGUwODgwYTczMyIsInB1ciI6ImJsb2JfaWQifX0=--ecbc4b68eaee87ac4f520826934af76b5629d32f/source.jpg/"
+    }
+   ],
+   "variants": [],
+   "loaners": []
+  },
   "vncl-blade": {
    "fySlug": "espr-blade",
    "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjA5YmVmODc0LTYxNGYtNDY2ZS05OTI0LTUzNGQ4NTM0OGFiOSIsInB1ciI6ImJsb2JfaWQifX0=--d30fc99220b4617f201847d8fc7cd47c73e5f8f9/holo-c4dc54cb-3e82-4c63-8c44-603dd9b30e7d.gltf/",
@@ -2898,8 +2927,8 @@
    "loaners": []
   },
   "rsi-constellation-andromeda": {
-   "fySlug": "rsi-constellation-andromeda",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImNkMmI5NDZkLTE0MmQtNDhmZi04MTkxLTBhOGVlMGRhZmFkMCIsInB1ciI6ImJsb2JfaWQifX0=--93c9b768be01da107f69172dada3b3939206aa3d/holo-v2-20179924-ee69-4a27-85ce-e491a1207045.gltf/",
+   "fySlug": "rsi-constellation-mk-iv-andromeda",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjhjMTc4MTI2LWM2MGQtNDQzYy05Mjk0LWMwMmI1OTkxOGU5OCIsInB1ciI6ImJsb2JfaWQifX0=--c0a169c8da7906e739cc9937833683c2205681f5/flight_holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFhYmI4YWViLTkxMmYtNGJjMS1iZTIyLWRjNGUwYjFiMTI1NiIsInB1ciI6ImJsb2JfaWQifX0=--07fd5fd8d881a69c6dd4d01536a6e180129b417b/37_Constellation-Andromeda-723e4c6a-33d0-42b9-8639-ab8dc295b7cd-657f77da-ae90-449d-a581-d363302ec115.jpg/",
    "paints": [
     {
@@ -2969,11 +2998,11 @@
    ],
    "variants": [
     {
-     "name": "Constellation Phoenix",
+     "name": "Constellation Mk IV Phoenix",
      "id": "rsi-constellation-phoenix"
     },
     {
-     "name": "Constellation Taurus",
+     "name": "Constellation Mk IV Taurus",
      "id": "rsi-constellation-taurus"
     }
    ],
@@ -2985,7 +3014,7 @@
    ]
   },
   "rsi-constellation-aquila": {
-   "fySlug": "rsi-constellation-aquila",
+   "fySlug": "rsi-constellation-mk-iv-aquila",
    "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFhNDIxZDgyLWVmMjgtNGNlNy1iNWU0LTNiZThiNGQ0Yzc5NiIsInB1ciI6ImJsb2JfaWQifX0=--8b8bf2c94ed3ac801e5e5de4712dfe8486d07fce/holo-9bdd6be7-d69f-4c3c-9847-c8a0f70c219c.gltf/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjMzZDVmMjYzLTkxY2EtNDU4ZS04OWY3LWI0MmIyNDI1OGU3YyIsInB1ciI6ImJsb2JfaWQifX0=--c72bfd44e32c8756ee7e7c6d79b08645645585bd/ILW__0002_38_Constellation-Aquila-75be1b03-90e9-46c8-9e09-a8a02da8c809-8e93a585-2d1c-4d93-9541-650b93c6f760.jpg/",
    "paints": [
@@ -3071,7 +3100,7 @@
    ]
   },
   "rsi-constellation-phoenix": {
-   "fySlug": "rsi-constellation-phoenix",
+   "fySlug": "rsi-constellation-mk-iv-phoenix",
    "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjQzMDkxMzM3LWNiMjktNDA1Ni05ODlmLTFlMDlmOWI3MWNiMiIsInB1ciI6ImJsb2JfaWQifX0=--c0d56e78ff18a5a15daef8e76b47eec5351d9f4b/holo-0f1794c2-0eec-4152-9ca0-a3769a612141.gltf/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjBmNTVjMjU0LTVhZjEtNGRmNy04ZTc5LTczZGY3YjM4ODlmOSIsInB1ciI6ImJsb2JfaWQifX0=--955dce59c9c3bd7f46f99838796a77ed2ab4bfb6/ILW__0001_39_Constellation-Phoenix-6ba32159-136f-4332-9540-a29df1a1229f-3a2e4b2d-0fab-41c8-a910-3bae7457aab5.jpg/",
    "paints": [
@@ -3138,11 +3167,11 @@
    ],
    "variants": [
     {
-     "name": "Constellation Andromeda",
+     "name": "Constellation Mk IV Andromeda",
      "id": "rsi-constellation-andromeda"
     },
     {
-     "name": "Constellation Taurus",
+     "name": "Constellation Mk IV Taurus",
      "id": "rsi-constellation-taurus"
     }
    ],
@@ -3158,7 +3187,7 @@
    ]
   },
   "rsi-constellation-taurus": {
-   "fySlug": "rsi-constellation-taurus",
+   "fySlug": "rsi-constellation-mk-iv-taurus",
    "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjhmOWU5YzE2LWUzNWMtNDA2OC1hYzA2LTlkYjBhZDBkNzdjMyIsInB1ciI6ImJsb2JfaWQifX0=--87b5f8bdd90a06efd057c16cf0a9cabd9a293096/holo-f77007c8-bfd0-47f7-a897-2006cd790cbf.gltf/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjIyMzgwNTgwLTZlNWItNDczNy1hZjk1LWY3YTI4N2Q1NjIyYSIsInB1ciI6ImJsb2JfaWQifX0=--59a7a022288f175d07185a9e409800e8d33aac5b/4-40dbcd13-4971-4a5f-b899-9e6acc1947bb-0df535ee-fd4e-4a44-8a8f-a720705ec735.jpg/",
    "paints": [
@@ -3229,14 +3258,22 @@
    ],
    "variants": [
     {
-     "name": "Constellation Andromeda",
+     "name": "Constellation Mk IV Andromeda",
      "id": "rsi-constellation-andromeda"
     },
     {
-     "name": "Constellation Phoenix",
+     "name": "Constellation Mk IV Phoenix",
      "id": "rsi-constellation-phoenix"
     }
    ],
+   "loaners": []
+  },
+  "rsi-constellation-mk5-centaurus": {
+   "fySlug": "rsi-constellation-mk-v-centaurus",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjgxYTRjNjc5LTNhN2UtNDkxMS04YWZiLWZjOGFjZmE4M2I1NSIsInB1ciI6ImJsb2JfaWQifX0=--9c997ea198749263f2bb3100ac675acac7567a59/flight_holo.glb/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImNhZjY2N2I1LTZlMDMtNGMxZC1hYzQ1LTUwN2I2MmQwNWRjNSIsInB1ciI6ImJsb2JfaWQifX0=--3fdeb7d066ed0ca4859c245ac833afe1cd3dd925/rsi-constellation-mk5-3a.webp/",
+   "paints": [],
+   "variants": [],
    "loaners": []
   },
   "drak-corsair": {
@@ -5156,7 +5193,7 @@
   },
   "misc-freelancer": {
    "fySlug": "misc-freelancer",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFmYzFkZWFhLTM5ZjQtNDA4Mi04NTZiLWU2M2MwNTU1NWY4MyIsInB1ciI6ImJsb2JfaWQifX0=--1988f31e0413d3aeec6fc812a782bc350171d214/holo-53326ae4-177c-4673-a991-bcc25aeb25ea.gltf/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjM0NWU3MjBhLTA1Y2EtNDg0Yi05M2UxLTZmYzQ4ZThjODE4NyIsInB1ciI6ImJsb2JfaWQifX0=--a491578fc9bb9854675030088ed35e32f2820cc9/flight_holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImVjYmE0MTliLWZmMmYtNGNkZi04NGEzLTQ4Y2U3NWRlZDE1MiIsInB1ciI6ImJsb2JfaWQifX0=--42af51962e9b03f9b9930d04a911dfa1e0e1c752/MISC_Freelancer_4k_16_9-af8fcc4d-d554-49fa-ac5a-3a42302eabd7-5e924510-0a67-4e35-a06d-ee6b4a29fddd.jpg/",
    "paints": [
     {
@@ -7107,7 +7144,7 @@
   },
   "crus-star-runner": {
    "fySlug": "crus-mercury-star-runner",
-   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImNkNjEyYzU0LWZlMDgtNGRhMS05YWRkLWE5MjhhYTk1NWE4OCIsInB1ciI6ImJsb2JfaWQifX0=--37d94ab35467f46a62bcd322e52dd42e86c7f95a/holo-a98794cc-9a35-4a8c-803e-66f99c5ea19b.gltf/",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjY1MTlhNzk0LWQ4Y2QtNDE1Yi1hZjg2LTIzYjcwZDJiMjViNCIsInB1ciI6ImJsb2JfaWQifX0=--e36a5a8b9479e993365f84595d7bc95353a64438/flight_holo.glb/",
    "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjE5ODIwZjJhLTBjNjMtNDNhNy1hZDYyLTgwMGE1ZDczM2YzZiIsInB1ciI6ImJsb2JfaWQifX0=--105b5ef0cd7f7e0d9959e35c9b1176294d208fd5/Crusader_StarRunner_4K_072021-Min-a2b4bdfa-6fb0-46e7-91c7-163a5f7dbb9b.jpg/",
    "paints": [
     {
@@ -8904,6 +8941,36 @@
    ],
    "loaners": []
   },
+  "krig-s65-stingray": {
+   "fySlug": "krig-s-65-stingray",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg2ZmRlODQ4LWZlZjgtNGE0Ni1hOGQzLTA5ODE1NzM0ZDQwNSIsInB1ciI6ImJsb2JfaWQifX0=--a3e7365aebe7e7cf69d7b25a87b13c4442bbb3ec/holo.gltf/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjkzYzM2NjllLTZkOGQtNGViYS04YTEwLTMxZDU4OTA2OWVkMCIsInB1ciI6ImJsb2JfaWQifX0=--ebb0bb851f3d8867159779d4e76f2508387370d2/source.jpg/",
+   "paints": [
+    {
+     "name": "Domain Camo",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6Ijg3MmI1ZDY0LTcwMmEtNGFjZi1hZmEyLWQ2NzMwMzU5ZWFhNiIsInB1ciI6ImJsb2JfaWQifX0=--d792522639a705ee50561599a278adc5ad7b590f/source.jpg/"
+    },
+    {
+     "name": "Manta",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImZlYmRhYzkxLWYzNzUtNGVlZS04NTgzLTJkZmM4NjRkM2Y0NyIsInB1ciI6ImJsb2JfaWQifX0=--8086c2c5b1b9718d2c3bf946e2f9361e2bccf39c/source.jpg/"
+    },
+    {
+     "name": "Marina",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVjNjAyYTM3LTE0NGMtNDFjMi1hYTZlLTE1Njg3OWJiNGMwMCIsInB1ciI6ImJsb2JfaWQifX0=--9056cbae81af1a7c2f3abf35661b92ff65ebd0b8/source.jpg/"
+    },
+    {
+     "name": "Protocol",
+     "image": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImQyYTAxMWI4LTAwNTktNGEzMy1iZmU0LTFhZDYyMGY0ZGQ3MyIsInB1ciI6ImJsb2JfaWQifX0=--82f7940963467a749c0f67885a522ff08ed792e9/source.jpg/"
+    }
+   ],
+   "variants": [],
+   "loaners": [
+    {
+     "name": "Starfarer",
+     "id": "misc-starfarer"
+    }
+   ]
+  },
   "aegs-sabre": {
    "fySlug": "aegs-sabre",
    "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImM0YTZlMDVhLWQwYWMtNGRmZS04YTY4LTUwMGY0YWJmZjdmZiIsInB1ciI6ImJsb2JfaWQifX0=--f91f9142d3926f504ffc302ce844772e72087856/holo-efa2e5fd-824c-4124-8a82-736366b1aaef.gltf/",
@@ -8993,7 +9060,7 @@
     },
     {
      "name": "Sabre Raven EX",
-     "id": null
+     "id": "aegs-sabre-raven-ex"
     }
    ],
    "loaners": []
@@ -9087,7 +9154,7 @@
     },
     {
      "name": "Sabre Raven EX",
-     "id": null
+     "id": "aegs-sabre-raven-ex"
     }
    ],
    "loaners": []
@@ -9173,7 +9240,7 @@
     },
     {
      "name": "Sabre Raven EX",
-     "id": null
+     "id": "aegs-sabre-raven-ex"
     }
    ],
    "loaners": []
@@ -9267,7 +9334,7 @@
     },
     {
      "name": "Sabre Raven EX",
-     "id": null
+     "id": "aegs-sabre-raven-ex"
     }
    ],
    "loaners": []
@@ -9353,7 +9420,36 @@
     },
     {
      "name": "Sabre Raven EX",
-     "id": null
+     "id": "aegs-sabre-raven-ex"
+    }
+   ],
+   "loaners": []
+  },
+  "aegs-sabre-raven-ex": {
+   "fySlug": "aegs-sabre-raven-ex",
+   "holo": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjJjODAxNWIzLTU2MTMtNDA1NS1iZjQ2LWQyNGE0MDBhMjZjYyIsInB1ciI6ImJsb2JfaWQifX0=--b5f36137ed7c33edc0720769875f4b7e1baf8090/flight_holo.glb/",
+   "storeImage": "https://api.fleetyards.net/files/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImQxYjg3OTVmLTNiZTgtNDViYi04ZDIxLWY4N2MzOGRhZmYyOSIsInB1ciI6ImJsb2JfaWQifX0=--555a73f28e36580fb7275f55611c495042ac22f1/source.jpg/",
+   "paints": [],
+   "variants": [
+    {
+     "name": "Sabre",
+     "id": "aegs-sabre"
+    },
+    {
+     "name": "Sabre Comet",
+     "id": "aegs-sabre-comet"
+    },
+    {
+     "name": "Sabre Firebird",
+     "id": "aegs-sabre-firebird"
+    },
+    {
+     "name": "Sabre Peregrine",
+     "id": "aegs-sabre-peregrine"
+    },
+    {
+     "name": "Sabre Raven",
+     "id": "aegs-sabre-raven"
     }
    ],
    "loaners": []
