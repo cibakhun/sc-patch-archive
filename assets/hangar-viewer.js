@@ -2822,10 +2822,12 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Sechs Bilder um o, eins je Würfelseite: je Pixel der Abstand zur ersten
   // Fläche unter root (last: zur letzten, dafür wird die Tiefe auf 0
   // gelöscht und die größere gewinnt), ohne skip und ohne Punkte, Linien und
-  // Sprites; nichts getroffen heißt far (last: 0). Rendertarget und Material
-  // bleiben je Art für die nächste Messung.
+  // Sprites; nichts getroffen heißt far (last: 0). poses: Lagen, die
+  // nacheinander in dieselben Bilder gehen (je eine Funktion, die sie
+  // einnimmt). Rendertarget und Material bleiben je Art für die nächste
+  // Messung.
   const cubeKit = {};
-  function cubeDist(kind, o, root, skip, last, near, far) {
+  function cubeDist(kind, o, root, skip, last, near, far, poses = [null]) {
     const N = FREE_N;
     const kit = cubeKit[kind] || (cubeKit[kind] = {
       rt: new THREE.WebGLRenderTarget(N, N * 6),
@@ -2857,14 +2859,17 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       if (last) renderer.state.buffers.depth.setClear(0);
       renderer.clear();
       if (last) renderer.state.buffers.depth.setClear(1);
-      FREE_FACES.forEach((s, i) => {
-        cam.up.copy(s.u);
-        cam.lookAt(o.x + s.f.x, o.y + s.f.y, o.z + s.f.z);
-        cam.updateMatrixWorld();
-        rt.viewport.set(0, i * N, N, N);
-        renderer.setRenderTarget(rt);
-        renderer.render(scene, cam);
-      });
+      for (const pose of poses) {
+        pose?.();
+        FREE_FACES.forEach((s, i) => {
+          cam.up.copy(s.u);
+          cam.lookAt(o.x + s.f.x, o.y + s.f.y, o.z + s.f.z);
+          cam.updateMatrixWorld();
+          rt.viewport.set(0, i * N, N, N);
+          renderer.setRenderTarget(rt);
+          renderer.render(scene, cam);
+        });
+      }
     } finally {
       renderer.state.buffers.depth.setClear(1);
       renderer.setRenderTarget(keep.rt);
@@ -2906,32 +2911,40 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // beginnt. Die Kamera bleibt mit Rand dahinter: Ein Schiff ist kein Raum,
   // um den fährt sie außen herum.
   const SHIP_M = 0.35;
+  // Ohne echte Halle schwebt das Schiff um bis zu so viel über und unter
+  // seiner Ruhelage (Carrack 1,1 m); gemessen wird dann über fünf Höhen
+  const shipBob = () => (reduceMotion || realHall ? 0 : 0.009 * span);
   let shipFree = null, shipBusy = false;
   const aim = () => (fly ? fly.tb : controls.target);
   // am Ziel einer Fahrt steht es nur bis auf Rundung (lerpVectors)
   const sameAim = (a, b) => a.distanceToSquared(b) < 1e-8;
-  const shipStale = () => current && !shipBusy && (!shipFree || shipFree.c !== current || shipFree.y !== current.group.userData.baseY || !sameAim(shipFree.o, aim()));
+  const shipStale = () => current && !shipBusy && (!shipFree || shipFree.c !== current || shipFree.y !== current.group.userData.baseY || shipFree.b !== shipBob() || !sameAim(shipFree.o, aim()));
   function measureShip() {
-    const c = current, g = c.group, y = g.userData.baseY, o = aim().clone(), t0 = performance.now();
-    // Ruhelage wie in focus(): während der Einfahrt schwebt und dreht es noch
+    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = aim().clone(), t0 = performance.now();
+    // Ruhelage wie in focus(): während der Einfahrt schwebt und dreht es noch.
+    // Schwebt es, die fernste Fläche über die ganze Höhe: Ein fester Rand
+    // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
+    // zum Ziel um ein Vielfaches der Höhe.
     const pose = [g.position.y, g.rotation.y, g.visible];
-    g.position.y = y; g.rotation.y = 0; g.visible = true; g.updateMatrixWorld(true);
+    g.rotation.y = 0; g.visible = true;
+    const at = (h) => () => { g.position.y = y + b * h; g.updateMatrixWorld(true); };
+    const poses = (b > 0 ? [-1, -0.5, 0, 0.5, 1] : [0]).map(at);
     shipBusy = true;
     let p;
-    try { p = cubeDist('ship', o, g, [], true, 0.01, Math.max(controls.maxDistance, span) * 2); } catch (e) { p = Promise.reject(e); }
+    try { p = cubeDist('ship', o, g, [], true, 0.01, Math.max(controls.maxDistance, span) * 2, poses); } catch (e) { p = Promise.reject(e); }
     [g.position.y, g.rotation.y, g.visible] = pose; g.updateMatrixWorld(true);
     p.then((dist) => {
       if (current !== c || g.userData.baseY !== y) return;
-      shipFree = { o, dist, c, y };
+      shipFree = { o, dist, c, y, b };
       // Läuft die Fahrt noch, endet sie gleich außerhalb statt danach zu springen
       if (fly && sameAim(o, fly.tb)) {
         const d = new THREE.Vector3().setFromSpherical(new THREE.Spherical(1, fly.b.phi, fly.b.theta));
         fly.b.radius = Math.max(fly.b.radius, Math.min(shipNeed(fly.tb, d), controls.maxDistance));
       }
-      console.info(`[hangar] Hülle des Schiffs gemessen (6 × ${FREE_N}², ${Math.round(performance.now() - t0)} ms)`);
+      console.info(`[hangar] Hülle des Schiffs gemessen (6 × ${FREE_N}²${b > 0 ? `, ${poses.length} Höhen` : ''}, ${Math.round(performance.now() - t0)} ms)`);
     }).catch((e) => {
       // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
-      shipFree = { o, dist: null, c, y };
+      shipFree = { o, dist: null, c, y, b };
       console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
     }).finally(() => { shipBusy = false; });
   }
@@ -3084,7 +3097,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // setzt weich auf (ease-out quint), solange das alte noch abhebt
       const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
       const e = 1 - Math.pow(1 - k, 5);
-      g.position.y = g.userData.baseY + (reduceMotion || realHall ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.18;
+      g.position.y = g.userData.baseY + shipBob() * Math.sin(t * 1.1) + (1 - e) * span * 0.18;
       g.rotation.y = (1 - e) * -0.45;
       g.visible = reduceMotion || now - current.born > 60;
       if (fade.to) {
