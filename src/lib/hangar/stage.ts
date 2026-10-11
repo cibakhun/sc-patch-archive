@@ -26,6 +26,8 @@ export interface HallConfig {
   readonly lite?: { url: string; bytes?: number } | null;
   /** Moebel als eigene Datei, nur neben der leichteren Stufe als Halle */
   readonly furniture?: { url: string; bytes?: number } | null;
+  /** Ergaenzung der leichteren Stufe aus der vollen (Glas, Rohre, Fuellung), nur neben der Moebeldatei */
+  readonly patch?: { url: string; bytes?: number } | null;
 }
 
 export interface StageConfig {

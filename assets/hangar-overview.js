@@ -1019,6 +1019,15 @@ export function boot(doc) {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
         v.onFrame(placeMarks);
+        // Schmal (Umbruch wie in HangarPage.astro) liegt der Titelblock samt
+        // Knoepfen ueber dem oberen Teil der Buehne: das Schiff rueckt darunter.
+        // offset* statt getBoundingClientRect: beim Wechsel faehrt der Titel
+        // mit translateY ein (hg-swap), gemessen wird in diesem Augenblick.
+        const title = doc.querySelector('.hg-title'), canvas = $('hg-canvas'), narrow = window.matchMedia('(max-width: 760px)');
+        const cover = () => v.setCover(narrow.matches && title ? title.offsetTop + title.offsetHeight - canvas.offsetTop : 0);
+        if (title) new ResizeObserver(cover).observe(title);
+        narrow.addEventListener('change', cover);
+        cover();
         $('hg-reset').addEventListener('click', () => {
           if (state.hp) setState({ hp: null });
           else v.resetView();
