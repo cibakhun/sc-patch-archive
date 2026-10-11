@@ -218,8 +218,9 @@
   //                     sofort den richtigen Zustand zeigt, statt auf die
   //                     Server-Antwort zu warten.
   // Beim ersten Anmelden auf einem Gerät wandert die Gast-Ablage EINMALIG ins
-  // Konto (Vereinigung) und wird danach geleert — sonst stünde dieselbe Liste
-  // an zwei Orten und liefe still auseinander.
+  // Konto (Vereinigung) und wird geleert, sobald der Server die übernommenen
+  // Einträge bestätigt hat — sonst stünde dieselbe Liste an zwei Orten und
+  // liefe still auseinander.
   function load(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch (e) { return def; } }
   function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
   function drop(key) { try { localStorage.removeItem(key); } catch (e) {} }
@@ -233,15 +234,20 @@
       owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [],
       // Ein rev in anderem Format (kein Objekt) zählt wie keins.
       rev: (s && typeof s.rev === 'object' && s.rev) || {},
+      merge: (s && Array.isArray(s.merge) && s.merge) || [],
     };
   }
   // `rev` steht nur in der Ablage, solange etwas offen ist, und nur für offene
   // Slugs: ohne offene Klicks sieht sie aus wie vor seiner Einführung.
+  // `merge` ebenso: die aus der Gast-Ablage übernommenen Slugs, deren
+  // Bestätigung noch aussteht (siehe readServer).
   function saveState(uid, m) {
     var out = { owned: m.owned, plan: m.plan, pending: m.pending };
     var rev = {};
     Object.keys(m.rev).forEach(function (s) { if (m.pending.indexOf(s) >= 0) rev[s] = m.rev[s]; });
     if (Object.keys(rev).length) out.rev = rev;
+    var merge = (m.merge || []).filter(function (s) { return m.pending.indexOf(s) >= 0; });
+    if (merge.length) out.merge = merge;
     save(lsKey(uid), out);
   }
 
@@ -302,11 +308,16 @@
 
   // Ein anderer Tab hat in dieselbe Ablage geschrieben: seinen Stand
   // übernehmen, sonst zählte dieser beim nächsten Klick auf seinem alten weiter.
+  // Steht dieser Tab auf „Nicht gespeichert" und ist nichts mehr offen, hat
+  // ein anderer Tab alles hinausgeschickt, auch was hier scheiterte: die
+  // Anzeige folgt dem gemeinsamen Stand, nicht erst bei der Rückkehr auf den
+  // Tab oder auf „Erneut versuchen".
   addEventListener('storage', function (e) {
     if (e.key !== lsKey(acctUid)) return;
     var m = loadState(acctUid);
     owned = m.owned; plan = m.plan;
     repaintAll();
+    if (acctUid && syncState === 'error' && !m.pending.length) setSync('synced');
   });
 
   // Slug <-> Karte/DB-Index. Alles, was noch mit Indizes hantiert (Modal,
@@ -351,11 +362,46 @@
   // den ersten zurück. Was offen ist, liest jeder Zug erst beim Start. Ohne
   // Web Locks (ältere Browser) reiht nur die Kette dieses Tabs.
   var chain = Promise.resolve();
+  // Jeder Schritt eines Zugs endet spätestens nach 20 s, wie in assets/fleet.js:
+  // die Sitzungsprüfung und jede Anfrage samt Antwortkörper. fetch hat keine
+  // Frist; käme eine Antwort nie (Funkloch, halb offene Verbindung), endete
+  // der Zug nie, und die Sperre hielte jeden Zug jedes Tabs fest, auch
+  // „Erneut versuchen". Nach der Frist endet der Zug wie ohne Netz.
+  // Die Anfrage wird dabei abgebrochen (`start` bekommt das Signal), bevor
+  // der Zug die Reihe freigibt: liefe sie weiter, käme sie womöglich nach dem
+  // nächsten Zug beim Server an und überschriebe dessen neueren Stand.
+  var STEP_MS = 20000;
+  function deadline(start) {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () {
+        if (ctl) ctl.abort();
+        reject(new Error('timeout'));
+      }, STEP_MS);
+      Promise.resolve(ctl && ctl.signal).then(start).then(
+        function (v) { clearTimeout(timer); resolve(v); },
+        function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+  function session() { return deadline(function () { return VB.session(); }); }
+  // Lehnt der Browser die Sperre ab, ohne `run` je zu rufen (in einem
+  // undurchsichtigen Ursprung, SecurityError), läuft der Zug ohne sie, wie
+  // locked() in assets/fleet.js. Und die Kette selbst lehnt nie ab: sonst
+  // übersprünge sie jeden späteren Zug dieses Tabs, bis er neu lädt.
+  function locked(run) {
+    var locks = navigator.locks;
+    if (!locks || typeof locks.request !== 'function') return Promise.resolve().then(run);
+    var ran = false;
+    var p;
+    try {
+      p = locks.request('vb.crafting.sync', function () { ran = true; return run(); });
+    } catch (e) {
+      return Promise.resolve().then(run);
+    }
+    return p.then(null, function (e) { if (ran) throw e; return run(); });
+  }
   function serial(run) {
-    var go = function () {
-      return navigator.locks ? navigator.locks.request('vb.crafting.sync', run) : run();
-    };
-    return (chain = chain.then(go));
+    return (chain = chain.then(function () { return locked(run); }).then(null, function () {}));
   }
   function flush() { return serial(sendPending); }
   // Die Anzeige wechselt schon jetzt, nicht erst, wenn der Zug an der Reihe
@@ -376,7 +422,7 @@
     // schon mitgenommen.
     if (!loadState(acctUid).pending.length) { setSync('synced'); return null; }
     var me = acctUid;
-    return VB.session().then(function (sess) {
+    return session().then(function (sess) {
       if (acctUid !== me) return;
       if (ownerOf(sess) !== me) { noSession(); return; }
       // Erst jetzt gelesen: Klicks aus der Wartezeit gehen gleich mit.
@@ -393,12 +439,16 @@
       });
       var jobs = [];
       if (up.length) {
-        jobs.push(VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
-          'resolution=merge-duplicates,return=minimal'));
+        jobs.push(deadline(function (signal) {
+          return VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
+            'resolution=merge-duplicates,return=minimal', signal);
+        }));
       }
       if (del.length) {
-        jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
-          '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
+        jobs.push(deadline(function (signal) {
+          return VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
+            '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')', null, null, signal);
+        }));
       }
       // Der Zug endet erst, wenn jede seiner Anfragen beantwortet ist, auch
       // wenn eine schon scheiterte: sonst begänne der nächste, während sie
@@ -414,7 +464,14 @@
         // den gesendeten Wert wiederherstellt.
         var now = loadState(me);
         now.pending = now.pending.filter(function (s) { return sent[s] !== rowOf(now, s); });
+        // Erst jetzt steht die übernommene Gast-Ablage im Konto: hat der
+        // Server jeden übernommenen Eintrag angenommen, wird sie geleert. Ein
+        // Eintrag, den der Besucher während der Anfrage änderte, bleibt
+        // offen, ist aber mit dem Wert aus der Gast-Ablage angekommen.
+        var merging = now.merge.length;
+        now.merge = now.merge.filter(function (s) { return !sent.hasOwnProperty(s); });
         saveState(me, now);
+        if (merging && !now.merge.length) drop(LS_GUEST);
         // Was offen bleibt, schrieb jemand während der Anfrage. Ein offener
         // Tab plant seinen Zug selbst, einer, der inzwischen zu ist, nicht:
         // ohne diesen läge der Blueprint bis zur nächsten Rückkehr herum.
@@ -439,14 +496,16 @@
     if (!acctUid || !VB) return Promise.resolve();
     var me = acctUid;
     setSync('syncing');
-    return VB.session().then(function (sess) {
+    return session().then(function (sess) {
       if (acctUid !== me) return;
       if (ownerOf(sess) !== me) { noSession(); return; }
       // Die Sitzung trägt: dieser Zug ist der Abgleich, den later() plante.
       clearTimeout(backoffTimer);
       backoff = 0;
-      return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
-        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      return deadline(function (signal) {
+        return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty', null, null, signal)
+          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+      })
         .then(function (rows) {
           if (acctUid !== me) return;
           var so = {}, sp = {};
@@ -475,11 +534,12 @@
           });
 
           // Übernahme braucht KEINEN dauerhaften „schon erledigt"-Merker: eine
-          // erfolgreiche Übernahme leert die Gast-Ablage, es kann also nichts
+          // bestätigte Übernahme leert die Gast-Ablage, es kann also nichts
           // doppelt oder veraltet wandern. Ein Merker hätte im Gegenteil
           // geschadet — was man abgemeldet anklickt, wäre beim nächsten
           // Anmelden liegengeblieben.
           var merged = 0;
+          var merge = m.merge.slice();
           if (mergeOwed) {
             mergeOwed = false;
             var guest = loadState(null);
@@ -495,15 +555,19 @@
               sp[s] = guest.plan[s]; pending[s] = true; touched[s] = 1;
             });
             merged = Object.keys(touched).length;
-            // Gast-Ablage nach der Übernahme leeren: ab jetzt lebt der Bestand
-            // im Konto, sonst gäbe es zwei Listen, die auseinanderlaufen.
-            if (merged) { drop(LS_GUEST); toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged)); }
+            // Die Gast-Ablage bleibt stehen, bis der Server die übernommenen
+            // Einträge bestätigt hat (sendPending leert sie dann), wie die
+            // Gast-Schiffe der Flotte (assets/fleet.js). Wer sich vorher
+            // abmeldet, verliert den Konto-Spiegel samt offener Übernahme;
+            // geleert, stünden die Einträge dann nirgends mehr.
+            Object.keys(touched).forEach(function (s) { if (merge.indexOf(s) < 0) merge.push(s); });
+            if (merged) toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged));
           }
 
           owned = so; plan = sp;
           lastPull = Date.now();
           // Was offen bleibt, behält die Kennung seines letzten Schreibvorgangs.
-          saveState(me, { owned: so, plan: sp, pending: Object.keys(pending), rev: m.rev });
+          saveState(me, { owned: so, plan: sp, pending: Object.keys(pending), rev: m.rev, merge: merge });
           repaintAll();
           if (Object.keys(pending).length) flush(); else setSync('synced');
         });

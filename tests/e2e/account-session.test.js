@@ -143,6 +143,35 @@ test('erneuert der Tab sein Token später rechtzeitig, holt er Name und Rolle ni
   assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
 });
 
+// Bei mehreren offenen Tabs erneuert nur einer das Token (Sperre im
+// localStorage), die anderen hören davon über storage. Das ist dieselbe
+// Sitzung desselben Kontos: Name und Rolle bleiben, wie nach einem Refresh im
+// eigenen Tab, auch wenn eine neue Abfrage jetzt scheitern würde.
+test('erneuert ein anderer Tab das Token, behält dieser Tab Namen und Admin-Rolle und fragt nicht noch einmal, meldet die neue Sitzung aber den Seitenskripten', async () => {
+  const b = makeAccountBrowser({ expiresIn: 90, holdReads: true });
+  const one = b.open();
+  const two = b.open();
+  await b.drain();
+  for (const r of b.reads.splice(0)) r.answer();
+  await b.drain();
+  await b.advance(30000);
+  assert.equal(b.refreshes.length, 1, 'der Heartbeat eines Tabs erneuert, der andere wartet auf die Sperre');
+  b.refreshes[0].answer(200, b.fresh(2));
+  await b.drain();
+  for (const tab of [one, two]) {
+    assert.deepEqual(tab.nav(), SIGNED_IN, 'kein Zwischenbild ohne Namen');
+    assert.equal(tab.admin(), true);
+  }
+  for (const r of b.reads.splice(0)) r.answer(503);
+  await b.drain();
+  for (const tab of [one, two]) {
+    assert.deepEqual(tab.nav(), SIGNED_IN);
+    assert.equal(tab.admin(), true, 'eine gescheiterte Abfrage nimmt die Admin-Rolle nicht zurück');
+    assert.deepEqual(nameAndRoleFetches(tab), [1, 1]);
+    assert.equal(sessionEvents(tab), 1, 'crafting-app.js und fleet.js erfahren das neue Token');
+  }
+});
+
 test('meldet sich ein anderer Tab an, zeigt dieser Tab das Konto und holt Name und Rolle genau einmal', async () => {
   const b = makeAccountBrowser();
   b.signOut();
@@ -194,25 +223,16 @@ test('kommen Name und Rolle erst nach dem Zeichnen, zeigt die Nav sie dann', asy
 });
 
 test('schreibt ein anderer Tab eine neue Sitzung desselben Kontos, während Name und Rolle unterwegs sind, zeigt die Nav sie trotzdem', async () => {
-  const answers = {
-    'alte Antworten zuerst': (old, fresh) => { for (const r of [...old, ...fresh]) r.answer(); },
-    'neue Antworten zuerst': (old, fresh) => { for (const r of [...fresh, ...old]) r.answer(); },
-    'die neuen scheitern (503), dann kommen die alten': (old, fresh) => { for (const r of fresh) r.answer(503); for (const r of old) r.answer(); },
-    'die neuen hängen, die alten kommen': (old) => { for (const r of old) r.answer(); },
-  };
-  for (const [how, answer] of Object.entries(answers)) {
-    const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
-    const tab = b.open();
-    await b.drain();
-    b.signIn(2);
-    await b.drain();
-    const [old, fresh] = [b.reads.slice(0, 2), b.reads.slice(2)];
-    assert.equal(fresh.length, 2, `${how}: die neue Sitzung fragt selbst nach Name und Rolle`);
-    answer(old, fresh);
-    await b.drain();
-    assert.deepEqual(tab.nav(), SIGNED_IN, how);
-    assert.equal(tab.admin(), true, how);
-  }
+  const b = makeAccountBrowser({ expiresIn: 3600, holdReads: true });
+  const tab = b.open();
+  await b.drain();
+  b.signIn(2);
+  await b.drain();
+  assert.equal(b.reads.length, 2, 'dasselbe Konto: die neue Sitzung fragt nicht noch einmal nach Name und Rolle');
+  for (const r of b.reads) r.answer();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true);
 });
 
 test('meldet sich dasselbe Konto ab und wieder an, während Name und Rolle noch unterwegs sind, gelten deren späte Antworten', async () => {
@@ -570,4 +590,60 @@ test('ein zweiter Tab refresht nicht parallel und erfährt den Refresh des erste
   await b.drain();
   assert.equal(sessionEvents(second), 1);
   assert.equal(tokenOf(await second.session()), 'token-2');
+});
+
+// Eine Seite im bfcache hört kein storage-Ereignis: wer sich in einem anderen
+// Tab ab- oder ummeldet und dann per Zurück-Knopf auf sie zurückkehrt, sähe
+// sonst das alte Konto samt Admin-Klasse. pageshow (persisted) gleicht ab und
+// meldet den Seitenskripten (crafting-app.js, fleet.js) die Sitzung.
+test('kommt eine Seite aus dem bfcache zurück, nachdem sich der Besucher anderswo ab- oder umgemeldet hat, zeigt sie die Sitzung von jetzt', async () => {
+  const cases = [
+    { at: 'abgemeldet', act: (b) => b.signOut(), nav: SIGNED_OUT },
+    { at: 'anderes Konto', act: (b) => b.signIn(9, 'user-2'), nav: VEGA },
+  ];
+  for (const c of cases) {
+    const b = makeAccountBrowser({ expiresIn: 3600 });
+    const tab = b.open();
+    await b.drain();
+    assert.deepEqual(tab.nav(), SIGNED_IN);
+    assert.equal(tab.admin(), true);
+
+    tab.freeze();
+    c.act(b);
+    await b.drain();
+    assert.deepEqual(tab.nav(), SIGNED_IN, `${c.at}: Voraussetzung, im bfcache kommt nichts an`);
+
+    const before = tab.events.length;
+    tab.restore();
+    await b.drain();
+    assert.deepEqual(tab.nav(), c.nav, c.at);
+    assert.equal(tab.admin(), false, c.at);
+    assert.ok(tab.events.slice(before).includes('vb-account-session'), `${c.at}: die Seitenskripte erfahren es`);
+  }
+});
+
+test('kommt eine Seite aus dem bfcache zurück und gilt noch dieselbe Sitzung, zeichnet sie nichts neu und fragt nichts', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  const asked = nameAndRoleFetches(tab);
+  tab.freeze();
+  tab.restore();
+  await b.drain();
+  assert.deepEqual(tab.nav(), SIGNED_IN);
+  assert.equal(tab.admin(), true);
+  assert.deepEqual(nameAndRoleFetches(tab), asked);
+});
+
+// crafting-app.js und fleet.js brechen eine Anfrage nach ihrer Frist ab; das
+// Signal muss dafür bis zu fetch durchgehen.
+test('VBAccount.rest reicht ein AbortSignal an fetch weiter', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  const tab = b.open();
+  await b.drain();
+  const ctl = new AbortController();
+  tab.rest({ access_token: 'token-1' }, 'GET', 'crafting_entries?select=slug', null, null, ctl.signal);
+  const last = tab.requests[tab.requests.length - 1];
+  assert.equal(last.url.includes('/rest/v1/crafting_entries?select=slug'), true);
+  assert.equal(last.signal, ctl.signal);
 });

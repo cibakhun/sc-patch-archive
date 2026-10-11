@@ -24,7 +24,9 @@
 // server.release() sie beantwortet: wie sonst auch, mit einem Status oder wie
 // fetch ohne Netz ('offline'). commit 'after' (Vorgabe): die Anfrage kommt
 // erst bei release() beim Server an, ein Status bleibt ohne Wirkung; 'before':
-// der Server liest oder schreibt sofort, nur die Antwort kommt spät.
+// der Server liest oder schreibt sofort, nur die Antwort kommt spät. Bricht
+// das Skript eine angehaltene Anfrage ab (AbortSignal, wie fetch), kommt sie
+// bei 'after' nie beim Server an, und release() übergeht sie.
 //
 // Zeit ist eine Attrappe (Date.now, setTimeout, requestAnimationFrame):
 // settle() spielt die Zeitgeber bis zum Horizont ab, Vorgabe 5 s.
@@ -245,18 +247,25 @@ function makeServer(rows) {
       }
       return respond(405, null);
     },
-    rest(tab, sess, method, reqPath, body, prefer) {
+    rest(tab, sess, method, reqPath, body, prefer, signal) {
       server.requests.push({ method, path: reqPath, body: clone(body ?? null) });
       const sent = clone(body);
       const answer = () => server.apply(sess, method, reqPath, sent, prefer);
       const h = server.holds.findIndex((x) => x.method === method);
       if (h === -1) return Promise.resolve(answer());
       const early = server.holds.splice(h, 1)[0].commit === 'before' ? answer() : null;
-      return new Promise((resolve, reject) => server.held.push((late) => {
-        if (tab.closed) return;
-        if (late === 'offline') reject(new TypeError('Failed to fetch'));
-        else resolve(late ? respond(late, null) : early || answer());
-      }));
+      return new Promise((resolve, reject) => {
+        const go = (late) => {
+          if (tab.closed) return;
+          if (late === 'offline') reject(new TypeError('Failed to fetch'));
+          else resolve(late ? respond(late, null) : early || answer());
+        };
+        server.held.push(go);
+        if (signal) signal.addEventListener('abort', () => {
+          server.held = server.held.filter((g) => g !== go);
+          reject(new DOMException('The operation was aborted.', 'AbortError'));
+        });
+      });
     },
   };
   return server;
@@ -316,6 +325,8 @@ export function makeBrowser(opts = {}) {
     healSession() { account.session = account.stored; },
     landRefresh() { account.session = account.stored; accountEvent(); },
     holdSession(n = Infinity) { account.holds = n; },
+    /** Die nächsten n Sperr-Anfragen lehnt der Browser ab, ohne sie je zuzuteilen (siehe web-locks.js). */
+    refuseLocks(n = 1) { locks.refuse(n); },
     /** Der Reihe nach: mit `value`, sonst mit der dann nutzbaren Sitzung. Ein geschlossener Tab erfährt nichts mehr. */
     releaseSession(value) {
       account.holds = 0;
@@ -435,11 +446,12 @@ export function makeBrowser(opts = {}) {
             account.session = account.stored = null;
             return Promise.resolve().then(() => { tab.fireWindow('vb-account-session'); return null; });
           },
-          rest: (sess, method, p, b, prefer) => server.rest(tab, sess, method, p, b, prefer),
+          rest: (sess, method, p, b, prefer, signal) => server.rest(tab, sess, method, p, b, prefer, signal),
           loginHref: () => '/account/login.html?next=%2Ftopics%2Fcrafting.html',
           isDE: false,
         },
         Event: class Event { constructor(type) { this.type = type; } },
+        AbortController,
         Date: FakeDate,
         setTimeout: later,
         clearTimeout: (id) => { clock.timers = clock.timers.filter((t) => t.id !== id); },

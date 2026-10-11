@@ -807,3 +807,131 @@ test('wer mit gespeicherter Sitzung lädt, während deren Refresh noch hängt, s
   assert.deepEqual(b.server.rows.map((r) => r.slug), ['karna-rifle', 'p4-ar-rifle']);
   assert.equal(tab.sync().state, 'synced');
 });
+
+// Ein Zug hält die Sperre aller Tabs (vb.crafting.sync), bis er endet. fetch
+// hat keine Frist: eine Anfrage, deren Antwort nie kommt (Funkloch, halb
+// offene Verbindung), hielte sonst jeden Zug jedes Tabs fest, auch
+// „Erneut versuchen". Jeder Schritt endet spätestens nach 20 s wie in
+// assets/fleet.js: die Sitzungsprüfung und jede Anfrage samt Antwortkörper.
+test('hängt eine Anfrage eines Zugs, gibt er die Reihe nach 20 s frei, und die Klicks beider Tabs kommen an', async () => {
+  const cases = [
+    { at: 'Schreiben hängt', method: 'POST', go: (b, one) => one.clickOwn('karna-rifle') },
+    { at: 'Lesen hängt', method: 'GET', go: (b, one) => { one.clickOwn('karna-rifle'); b.landRefresh(); } },
+  ];
+  for (const c of cases) {
+    const b = makeBrowser({ session: 'user-1' });
+    const one = b.open();
+    const two = b.open();
+    await b.settle();
+    b.server.hold(c.method);
+    c.go(b, one);
+    await b.settle({ horizon: 1000 });
+    two.clickOwn('p4-ar-rifle');
+    await b.settle({ horizon: 18000 });
+    assert.deepEqual(b.server.rows, [], `${c.at}: vor der Frist wartet die Reihe noch`);
+
+    await b.settle({ horizon: 30000 });
+    assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle'], c.at);
+    assert.deepEqual(mirror(b).pending, [], c.at);
+    assert.equal(two.sync().state, 'synced', c.at);
+  }
+});
+
+// Web Locks können ablehnen, ohne den Rückruf je zu rufen: in einem
+// undurchsichtigen Ursprung (SecurityError), mit abgebrochenem Signal. Dann
+// läuft der Zug ohne Sperre, wie in assets/fleet.js, und vor allem bleibt die
+// Kette dieses Tabs nicht für immer abgelehnt.
+test('lehnt der Browser die Sperre einmal ab, gehen dieser Zug und jeder spätere des Tabs trotzdem hinaus', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.refuseLocks(1);
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows, [KARNA_1], 'der Zug läuft ohne Sperre, statt bis zum nächsten Klick zu warten');
+  tab.clickOwn('p4-ar-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle']);
+  assert.deepEqual(mirror(b).pending, []);
+  assert.equal(tab.sync().state, 'synced');
+
+  b.server.rows.push({ user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 3 });
+  b.server.rows.shift();
+  b.landRefresh();
+  await b.settle();
+  assert.equal(tab.addButton('karna-rifle').classList.contains('in-plan'), true, 'auch der Abgleich läuft noch');
+});
+
+// Die Übernahme der Gast-Ablage ist erst erledigt, wenn der Server sie
+// bestätigt hat, wie die Gast-Schiffe der Flotte (assets/fleet.js). Wer sich
+// vorher abmeldet, verliert den Konto-Spiegel samt offener Übernahme (kein
+// Konto-Spiegel überlebt seine Sitzung): die Gast-Einträge müssen dann noch
+// in der Gast-Ablage stehen, sonst wären sie überall weg.
+test('scheitert das Schreiben der übernommenen Gast-Einträge und meldet sich der Besucher danach ab, stehen sie noch in der Gast-Ablage und wandern beim nächsten Anmelden', async () => {
+  const guest = { owned: { 'karna-rifle': true }, plan: { 'p4-ar-rifle': 2 } };
+  const b = makeBrowser({ session: 'user-1', seed: { [GUEST]: JSON.stringify(guest) } });
+  b.server.hold('POST');
+  const tab = b.open();
+  await b.settle({ horizon: 1000 });
+  b.server.release(503);
+  await b.settle();
+  assert.equal(tab.sync().state, 'error', 'Voraussetzung: die Übernahme kam nicht an');
+  assert.deepEqual(b.server.rows, []);
+
+  b.signOut();
+  await b.settle();
+  assert.equal(b.storage.get(MIRROR), null, 'kein Konto-Spiegel überlebt seine Sitzung');
+  assert.deepEqual(JSON.parse(b.storage.get(GUEST)), guest);
+  assert.equal(tab.ownButton('karna-rifle').getAttribute('aria-pressed'), 'true');
+
+  b.signIn('user-1');
+  await b.settle();
+  assert.deepEqual(b.server.rows, [
+    { user_id: 'user-1', slug: 'karna-rifle', owned: true, plan_qty: 0 },
+    { user_id: 'user-1', slug: 'p4-ar-rifle', owned: false, plan_qty: 2 },
+  ]);
+  assert.equal(b.storage.get(GUEST), null, 'bestätigt: erst jetzt ist die Gast-Ablage leer');
+  assert.equal(tab.sync().state, 'synced');
+});
+
+test('steht ein Tab auf „Nicht gespeichert" und schickt ein anderer danach alles hinaus, zeigt auch dieser „synchronisiert"', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const one = b.open();
+  const two = b.open();
+  await b.settle();
+  b.server.hold('POST');
+  one.clickOwn('karna-rifle');
+  await b.settle({ horizon: 1000 });
+  b.server.release(503);
+  await b.settle();
+  assert.equal(one.sync().state, 'error', 'Voraussetzung');
+
+  two.clickOwn('p4-ar-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows.map((r) => r.slug).sort(), ['karna-rifle', 'p4-ar-rifle']);
+  assert.deepEqual(mirror(b).pending, []);
+  assert.deepEqual(one.sync(), { state: 'synced', text: 'Synced to your account', login: false, retry: false });
+});
+
+// Eine Anfrage, deren Frist abläuft, wird abgebrochen, nicht nur nicht mehr
+// abgewartet: sonst gäbe der Zug die Reihe frei, während sie noch unterwegs
+// ist, und käme sie nach dem nächsten Zug beim Server an, überschriebe sie
+// dessen neueren Stand.
+test('bricht ein Zug nach 20 s ab, kommt seine Anfrage nicht mehr nach dem nächsten an', async () => {
+  const b = makeBrowser({ session: 'user-1' });
+  const tab = b.open();
+  await b.settle();
+  b.server.hold('POST');
+  tab.clickOwn('karna-rifle');
+  await b.settle({ horizon: 30000 });
+  assert.equal(tab.sync().state, 'error', 'Voraussetzung: der Zug endete nach der Frist');
+
+  tab.clickOwn('karna-rifle');
+  await b.settle();
+  assert.deepEqual(b.server.rows, []);
+  assert.deepEqual(mirror(b).pending, []);
+
+  b.server.release();
+  await b.settle();
+  assert.deepEqual(b.server.rows, [], 'der Stern ist aus, und so bleibt er beim Server');
+});

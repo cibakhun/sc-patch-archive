@@ -230,6 +230,7 @@ body{font-family:var(--font-body)}
         handle, they are visible on your public pilot profile</li>
       <li><strong>tool data</strong> you actively create (crafting planner and “owned” marks,
         refinery jobs)</li>
+      <li>your <a href="#presence"><strong>online status</strong></a> while you are signed in</li>
       <li>technically, session and security data of the provider (e.g. sign-in timestamps,
         IP address in security logs)</li>
     </ul>
@@ -244,8 +245,39 @@ body{font-family:var(--font-body)}
       Processor: Supabase, Inc.; data residency in the EU (AWS eu-central-1, Frankfurt). For details
       on how the service processes data, see
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
-      A connection to Supabase is only established when you use account features
-      (registration, sign-in, favorites, account-bound tools) — not when merely browsing the site.
+      When you are not signed in, the website only connects to Supabase when you use account
+      features (registration, sign-in) and on three pages that read public data: a public pilot
+      profile (that pilot's profile and favorites), the Feedback page (the list of credited
+      testers) and the Support page (the running total; the button there also creates the Stripe
+      payment page via Supabase, sending only the amount you chose and the page language). Nothing
+      that identifies you is sent; as with any request, Supabase technically learns your IP address. While you are signed in, the pages with the site menu
+      connect to Supabase to renew your session when needed, show your display name in the menu
+      and write your <a href="#presence">online status</a>; pages with account-bound tools also
+      sync their contents.
+    </p>
+
+    <h2 id="presence">Online status (account only)</h2>
+    <p>
+      While you are signed in and have a page with the site menu open (all pages except the
+      loadout pages of individual ships in the hangar and the one-pager guides), your browser
+      writes two timestamps to your profile: when the page was last open and when you last interacted with it
+      (mouse, keyboard, scrolling, touch; loading the page and returning to the tab count as
+      well). This happens on load, then every 30 seconds, even while the tab is in the background,
+      and whenever you return to the tab. Which page you are viewing and what you do there is not
+      transmitted. Nothing is written when you are not signed in.
+    </p>
+    <p>
+      Others do not see the timestamps, only a status derived from them: <em>online</em> (page
+      open and used within the last 3 minutes), <em>away</em> (page open but unused for longer, or
+      closed less than 3 minutes ago) or <em>offline</em>. This status is only visible once you
+      have set a handle: to anyone on your public pilot profile and to signed-in users in the
+      friends and pilot directory. When you sign out in the account dashboard, the page first
+      tries to clear both timestamps and then signs you out regardless. If clearing fails (for
+      example without a network), this browser writes no further timestamps, and the status
+      switches to offline within 3 minutes unless a page of this website is still open while you
+      are signed in on another device.
+      Deleting your account removes the timestamps together with your profile. As for the rest
+      of the account, the legal basis is Art. 6 (1) (b) GDPR.
     </p>
 
     <h2 id="support">Voluntary support (Stripe, PayPal)</h2>
