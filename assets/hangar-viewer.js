@@ -3013,8 +3013,10 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     f.ms += performance.now() - t0;
   }
   // Verschiebung für den Augenblick: das Schiff mittig in den freien Teil
-  // unter dem Titel, unten nie angeschnitten (von oben gesehen ist es höher
-  // als der freie Teil, dann rückt es nur so weit, wie unten Platz ist).
+  // unter dem Titel. Ist es höher als der freie Teil (von oben gesehen,
+  // kleine Telefone), rückt es nur so weit, dass unten LENS_M Luft bleibt,
+  // und reicht oben unter den Titel; reicht es schon ohne Verschiebung
+  // tiefer, bleibt sie 0.
   function lensWant() {
     if (!coverTop) return 0;
     const h = H();
