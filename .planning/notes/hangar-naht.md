@@ -12,6 +12,7 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | --- | --- |
 | `project(points, out?)` | `points` = `[[x, y, z], …]` im Modellraum der geladenen `.glb` (glTF-Achsen, Meter). Liefert je Punkt `{ x, y, d }` in CSS-Pixeln relativ zum Container, `d` = Abstand zur Kamera in Metern, oder `null`, solange kein Schiff sichtbar ist oder der Punkt hinter der Kamera liegt. |
 | `focus(point)` | Kamerafahrt auf den Punkt (gleicher Raum), Abstand ~0,6 × Spannweite. `focus(null)` = zurück in die Startansicht dieses Schiffs. |
+| `setCover(px)` | Die obersten `px` CSS-Pixel der Bühne verdeckt die Oberfläche. Die Szene rückt das Bild nach unten wie ein verschobenes Objektiv (`camera.setViewOffset`, gleicher Bildwinkel): im Abstand der Startansicht steht das Schiff über den ganzen Umlauf mittig im freien Teil. Ist es dafür zu hoch (von oben gesehen, kleine Telefone), rückt es nur so weit, dass unten 8 px Luft bleiben, und reicht oben unter den Titel; reicht es schon ohne Verschiebung näher als 8 px an den unteren Rand, bleibt das Bild mittig. `0` = mittig. `project()` rechnet die Verschiebung mit. |
 | `onFrame(fn)` | `fn()` läuft nach jedem gezeichneten Bild, nur solange die Bühne sichtbar ist. Ein Aufruf ersetzt den vorigen. |
 | `onProgress(fn)` | Meldet Schiff und Halle zusammen bis 90 %, dann 100, wenn das jüngste `show()` steht. Ein überholtes `show()` lädt still zu Ende (`fetchGltf(…, my)`), damit der Balken nur das gewählte Schiff zeigt. |
 
@@ -32,7 +33,7 @@ Gemessen am 07.10.: Gladius x ±8,69, Cutlass Black x ±13,06 und z −14,81…2
 ## Was die Oberfläche nicht tut
 
 Sie greift nicht in Szene, Licht, Modelle oder Kamera ein, außer über
-`focus()` und `resetView()`. Marker sind HTML-Elemente über der Leinwand,
+`focus()`, `resetView()` und `setCover()`. Marker sind HTML-Elemente über der Leinwand,
 nicht Teil der Szene.
 
 ## Seitenvertrag seit dem Schnitt
@@ -76,6 +77,12 @@ Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 einem Fehler `#hg-fallback` und lädt Schiffe mit
 `show(models[id][0], { maker: models[id][2], tex: models[id][1] })`.
 
+Unter 760 px liegt der Titelblock samt Knöpfen über dem oberen Teil der
+Bühne (390 × 844: 319 von 523 px). Dort meldet sie dessen Unterkante mit
+`setCover()`, neu bei jeder Größenänderung des Titels (ResizeObserver,
+etwa ein zweizeiliger Schiffsname); darüber 0, am Rechner bleibt das Bild
+mittig.
+
 Ohne GPU startet sie den Viewer gar nicht und zeigt gleich `#hg-fallback`.
 Geprüft wird ein WebGL2-Kontext mit `failIfMajorPerformanceCaveat`, dazu der
 Renderername gegen SwiftShader, llvmpipe und andere Software-Renderer.
@@ -86,7 +93,7 @@ Szene müsste diese Weiche in `assets/hangar-overview.js` (`hasGpu`) mitbewegen.
 Die Lage von `#hg-fallback` legt `HangarPage.astro` fest (zwischen Titel und
 Tafel, am Telefon am Bühnenfuß).
 
-`show`, `focus`, `project` und `onFrame` gehören der Oberfläche. Braucht ein
+`show`, `focus`, `project`, `setCover` und `onFrame` gehören der Oberfläche. Braucht ein
 szenenseitiges Skript den Viewer, etwa ein künftiger Hallenschalter, legen
 beide Seiten den Weg dann fest; heute hört niemand zu.
 
@@ -143,5 +150,5 @@ bleibt auf 2,02 m.
 
 Zusicherung 1 vergleicht Dock, `#hg-stage.models` und beide Buchtordner und
 prüft die Form der `StageConfig`. Zusicherung 7 prüft, dass der ausgelieferte
-Viewer `project`, `focus` und `onFrame` liefert. Zusicherung 8 prüft die
+Viewer `project`, `focus`, `setCover` und `onFrame` liefert. Zusicherung 8 prüft die
 Import-Map vor dem ersten Modul-Skript. Eine rote Zeile nennt diese Notiz.
