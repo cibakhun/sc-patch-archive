@@ -2816,82 +2816,157 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     const f = new THREE.Vector3(a[0], a[1], a[2]), u = new THREE.Vector3(a[3], a[4], a[5]);
     return { f, u, r: new THREE.Vector3().crossVectors(f, u) };
   });
-  let freeBusy = false, camWant = 0, camRef = 0, freeRT = null, freeMat = null;
+  let freeBusy = false, camWant = 0, camRef = 0;
   const camLast = new THREE.Vector3(), freeV = new THREE.Vector3();
   const freeA = new THREE.Vector3(), freeB = new THREE.Vector3(), freeS = new THREE.Vector3();
+  // Sechs Bilder um o, eins je Würfelseite: je Pixel der Abstand zur ersten
+  // Fläche unter root (last: zur letzten, dafür wird die Tiefe auf 0
+  // gelöscht und die größere gewinnt), ohne skip und ohne Punkte, Linien und
+  // Sprites; nichts getroffen heißt far (last: 0). poses: Lagen, die
+  // nacheinander in dieselben Bilder gehen (je eine Funktion, die sie
+  // einnimmt). Rendertarget und Material bleiben je Art für die nächste
+  // Messung.
+  const cubeKit = {};
+  function cubeDist(kind, o, root, skip, last, near, far, poses = [null]) {
+    const N = FREE_N;
+    const kit = cubeKit[kind] || (cubeKit[kind] = {
+      rt: new THREE.WebGLRenderTarget(N, N * 6),
+      cam: new THREE.PerspectiveCamera(90, 1),
+      // Abstand zu o als 24 Bit, Alpha 0 heißt: nichts getroffen
+      mat: new THREE.ShaderMaterial({
+        uniforms: { uO: { value: new THREE.Vector3() }, uFar: { value: 1 } },
+        vertexShader: 'varying vec3 vW;\nvoid main() { vec4 w = modelMatrix * vec4( position, 1.0 ); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+        fragmentShader: 'uniform vec3 uO;\nuniform float uFar;\nvarying vec3 vW;\nvoid main() { float d = floor( clamp( distance( vW, uO ) / uFar, 0.0, 1.0 ) * 16777215.0 ); float r = floor( d / 65536.0 ); float g = floor( ( d - r * 65536.0 ) / 256.0 ); gl_FragColor = vec4( r, g, d - r * 65536.0 - g * 256.0, 255.0 ) / 255.0; }',
+        side: THREE.DoubleSide,
+        depthFunc: last ? THREE.GreaterDepth : THREE.LessEqualDepth,
+      }),
+    });
+    const { rt, mat, cam } = kit;
+    cam.near = near; cam.far = far; cam.updateProjectionMatrix();
+    cam.position.copy(o);
+    mat.uniforms.uO.value.copy(o); mat.uniforms.uFar.value = far;
+    const off = [];
+    const hide = (n) => { if (n?.visible) { n.visible = false; off.push(n); } };
+    for (const c of scene.children) if (c !== root) hide(c);
+    for (const n of skip) hide(n);
+    root.traverse((n) => { if (n.isPoints || n.isLine || n.isSprite) hide(n); });
+    const keep = { bg: scene.background, fog: scene.fog, om: scene.overrideMaterial, rt: renderer.getRenderTarget(), ac: renderer.autoClear, cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha() };
+    try {
+      scene.background = null; scene.fog = null; scene.overrideMaterial = mat;
+      renderer.autoClear = false;
+      renderer.setClearColor(0x000000, 0);
+      renderer.setRenderTarget(rt);
+      if (last) renderer.state.buffers.depth.setClear(0);
+      renderer.clear();
+      if (last) renderer.state.buffers.depth.setClear(1);
+      for (const pose of poses) {
+        pose?.();
+        FREE_FACES.forEach((s, i) => {
+          cam.up.copy(s.u);
+          cam.lookAt(o.x + s.f.x, o.y + s.f.y, o.z + s.f.z);
+          cam.updateMatrixWorld();
+          rt.viewport.set(0, i * N, N, N);
+          renderer.setRenderTarget(rt);
+          renderer.render(scene, cam);
+        });
+      }
+    } finally {
+      renderer.state.buffers.depth.setClear(1);
+      renderer.setRenderTarget(keep.rt);
+      renderer.autoClear = keep.ac;
+      renderer.setClearColor(keep.cc, keep.ca);
+      scene.background = keep.bg; scene.fog = keep.fog; scene.overrideMaterial = keep.om;
+      for (const n of off) n.visible = true;
+    }
+    const buf = new Uint8Array(N * N * 6 * 4);
+    return renderer.readRenderTargetPixelsAsync(rt, 0, 0, N, N * 6, buf).then(() => {
+      const dist = new Float32Array(N * N * 6);
+      for (let j = 0; j < dist.length; j++) dist[j] = buf[j * 4 + 3] ? (buf[j * 4] * 65536 + buf[j * 4 + 1] * 256 + buf[j * 4 + 2]) / 16777215 * far : last ? 0 : far;
+      return dist;
+    });
+  }
+  // Die Halle vom Ziel der Startansicht aus, ohne Möbel
   function measureFree() {
     freeDirty = false;
     if (!realHall || !homeTgt || freeBusy) return;
-    const k = realHall.group.scale.x, o = homeTgt.clone(), N = FREE_N, t0 = performance.now();
-    const far = Math.max(controls.maxDistance, 1) * 1.6 + 10 * k;
-    const rt = freeRT || (freeRT = new THREE.WebGLRenderTarget(N, N * 6));
-    const cam = new THREE.PerspectiveCamera(90, 1, 0.02 * k, far);
-    cam.position.copy(o);
-    // Abstand zum Ziel als 24 Bit, Alpha 0 heißt: nichts getroffen
-    const mat = freeMat || (freeMat = new THREE.ShaderMaterial({
-      uniforms: { uO: { value: new THREE.Vector3() }, uFar: { value: 1 } },
-      vertexShader: 'varying vec3 vW;\nvoid main() { vec4 w = modelMatrix * vec4( position, 1.0 ); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
-      fragmentShader: 'uniform vec3 uO;\nuniform float uFar;\nvarying vec3 vW;\nvoid main() { float d = floor( clamp( distance( vW, uO ) / uFar, 0.0, 1.0 ) * 16777215.0 ); float r = floor( d / 65536.0 ); float g = floor( ( d - r * 65536.0 ) / 256.0 ); gl_FragColor = vec4( r, g, d - r * 65536.0 - g * 256.0, 255.0 ) / 255.0; }',
-      side: THREE.DoubleSide,
-    }));
-    mat.uniforms.uO.value.copy(o); mat.uniforms.uFar.value = far;
-    // Nur die Halle: alles andere, die Möbel und was keine Fläche ist, aus
-    const off = [];
-    const hide = (o) => { if (o?.visible) { o.visible = false; off.push(o); } };
-    for (const c of scene.children) if (c !== realHall.group) hide(c);
-    for (const f of realHall.furniture ?? []) hide(f.mesh);
-    realHall.group.traverse((n) => { if (n.isPoints || n.isLine || n.isSprite) hide(n); });
-    const keep = { bg: scene.background, fog: scene.fog, om: scene.overrideMaterial, rt: renderer.getRenderTarget(), ac: renderer.autoClear, cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha() };
-    scene.background = null; scene.fog = null; scene.overrideMaterial = mat;
-    renderer.autoClear = false;
-    renderer.setClearColor(0x000000, 0);
-    renderer.setRenderTarget(rt);
-    renderer.clear();
-    FREE_FACES.forEach((s, i) => {
-      cam.up.copy(s.u);
-      cam.lookAt(o.x + s.f.x, o.y + s.f.y, o.z + s.f.z);
-      cam.updateMatrixWorld();
-      rt.viewport.set(0, i * N, N, N);
-      renderer.setRenderTarget(rt);
-      renderer.render(scene, cam);
-    });
-    renderer.setRenderTarget(keep.rt);
-    renderer.autoClear = keep.ac;
-    renderer.setClearColor(keep.cc, keep.ca);
-    scene.background = keep.bg; scene.fog = keep.fog; scene.overrideMaterial = keep.om;
-    for (const o of off) o.visible = true;
-    const buf = new Uint8Array(N * N * 6 * 4);
+    const hall = realHall, k = hall.group.scale.x, o = homeTgt.clone(), t0 = performance.now();
     freeBusy = true;
-    const hall = realHall;
-    renderer.readRenderTargetPixelsAsync(rt, 0, 0, N, N * 6, buf).then(() => {
-      const dist = new Float32Array(N * N * 6);
-      for (let j = 0; j < dist.length; j++) dist[j] = buf[j * 4 + 3] ? (buf[j * 4] * 65536 + buf[j * 4 + 1] * 256 + buf[j * 4 + 2]) / 16777215 * far : far;
+    let p;
+    try { p = cubeDist('hall', o, hall.group, (hall.furniture ?? []).map((f) => f.mesh), false, 0.02 * k, Math.max(controls.maxDistance, 1) * 1.6 + 10 * k); } catch (e) { p = Promise.reject(e); }
+    p.then((dist) => {
       // Inzwischen anderes Schiff oder andere Halle: neu messen
-      if (hall === realHall && homeTgt && homeTgt.equals(o) && realHall.group.scale.x === k) {
-        const boxes = furnitureBoxes(realHall.furniture ?? [], 0.6 * k);
+      if (hall === realHall && homeTgt && homeTgt.equals(o) && hall.group.scale.x === k) {
+        const boxes = furnitureBoxes(hall.furniture ?? [], 0.6 * k);
         camFree = { o, dist, m: 0.6 * k, boxes };
-        console.info(`[hangar] Freiraum der Kamera gemessen (6 × ${N}², ${Math.round(performance.now() - t0)} ms), ${boxes.length} Möbel als Quader`);
+        console.info(`[hangar] Freiraum der Kamera gemessen (6 × ${FREE_N}², ${Math.round(performance.now() - t0)} ms), ${boxes.length} Möbel als Quader`);
       } else freeDirty = true;
-    }, (e) => console.warn('[hangar] Freiraum der Kamera nicht gemessen', e)).finally(() => { freeBusy = false; });
+    }).catch((e) => console.warn('[hangar] Freiraum der Kamera nicht gemessen', e)).finally(() => { freeBusy = false; });
   }
-  // Freier Abstand in Richtung d (Einheitsvektor) aus den sechs Bildern
-  function freeRay(d) {
+  // Hülle des Schiffs (2026-10-11). Die Kamera darf bis auf span · 0,45 an
+  // ihr Ziel heran, und ganz hereingezoomt streifte sie Flügelspitzen,
+  // Leitwerk und Kanzel (die Nahebene schnitt sie an), um einen Hardpoint
+  // gedreht stand sie zwischen Rumpf und Fahrwerk. Darum misst die Seite vom
+  // Blickziel aus je Richtung den Abstand zur fernsten Fläche des Schiffs in
+  // Ruhelage, für ein neues Ziel gleich, wenn die Kamerafahrt dorthin
+  // beginnt. Die Kamera bleibt mit Rand dahinter: Ein Schiff ist kein Raum,
+  // um den fährt sie außen herum.
+  const SHIP_M = 0.35;
+  // Ohne echte Halle schwebt das Schiff um bis zu so viel über und unter
+  // seiner Ruhelage (Carrack 1,1 m); gemessen wird dann über fünf Höhen
+  const shipBob = () => (reduceMotion || realHall ? 0 : 0.009 * span);
+  let shipFree = null, shipBusy = false;
+  const aim = () => (fly ? fly.tb : controls.target);
+  // am Ziel einer Fahrt steht es nur bis auf Rundung (lerpVectors)
+  const sameAim = (a, b) => a.distanceToSquared(b) < 1e-8;
+  const shipStale = () => current && !shipBusy && (!shipFree || shipFree.c !== current || shipFree.y !== current.group.userData.baseY || shipFree.b !== shipBob() || !sameAim(shipFree.o, aim()));
+  function measureShip() {
+    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = aim().clone(), t0 = performance.now();
+    // Ruhelage wie in focus(): während der Einfahrt schwebt und dreht es noch.
+    // Schwebt es, die fernste Fläche über die ganze Höhe: Ein fester Rand
+    // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
+    // zum Ziel um ein Vielfaches der Höhe.
+    const pose = [g.position.y, g.rotation.y, g.visible];
+    g.rotation.y = 0; g.visible = true;
+    const at = (h) => () => { g.position.y = y + b * h; g.updateMatrixWorld(true); };
+    const poses = (b > 0 ? [-1, -0.5, 0, 0.5, 1] : [0]).map(at);
+    shipBusy = true;
+    let p;
+    try { p = cubeDist('ship', o, g, [], true, 0.01, Math.max(controls.maxDistance, span) * 2, poses); } catch (e) { p = Promise.reject(e); }
+    [g.position.y, g.rotation.y, g.visible] = pose; g.updateMatrixWorld(true);
+    p.then((dist) => {
+      if (current !== c || g.userData.baseY !== y) return;
+      shipFree = { o, dist, c, y, b };
+      // Läuft die Fahrt noch, endet sie gleich außerhalb statt danach zu springen
+      if (fly && sameAim(o, fly.tb)) {
+        const d = new THREE.Vector3().setFromSpherical(new THREE.Spherical(1, fly.b.phi, fly.b.theta));
+        fly.b.radius = Math.max(fly.b.radius, Math.min(shipNeed(fly.tb, d), controls.maxDistance));
+      }
+      console.info(`[hangar] Hülle des Schiffs gemessen (6 × ${FREE_N}²${b > 0 ? `, ${poses.length} Höhen` : ''}, ${Math.round(performance.now() - t0)} ms)`);
+    }).catch((e) => {
+      // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
+      shipFree = { o, dist: null, c, y, b };
+      console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
+    }).finally(() => { shipBusy = false; });
+  }
+  // Abstand in Richtung d (Einheitsvektor) aus den sechs Bildern
+  function freeRay(d, dist = camFree.dist) {
     const ax = Math.abs(d.x), ay = Math.abs(d.y), az = Math.abs(d.z);
     const i = ax >= ay && ax >= az ? (d.x > 0 ? 0 : 1) : ay >= az ? (d.y > 0 ? 2 : 3) : (d.z > 0 ? 4 : 5);
     const s = FREE_FACES[i], df = d.dot(s.f), N = FREE_N;
     const px = Math.min(N - 1, Math.max(0, Math.floor((d.dot(s.r) / df + 1) * 0.5 * N)));
     const py = Math.min(N - 1, Math.max(0, Math.floor((d.dot(s.u) / df + 1) * 0.5 * N)));
-    return camFree.dist[(i * N + py) * N + px];
+    return dist[(i * N + py) * N + px];
   }
-  // ... über einen Kegel von 3 Grad (Mitte, je sechs Strahlen bei 1,5 und 3 Grad)
-  function freeCone(d) {
-    let best = freeRay(d);
+  // ... über einen Kegel von 3 Grad (Mitte, je sechs Strahlen bei 1,5 und 3
+  // Grad), der kleinste (pick = Math.max: der größte)
+  function freeCone(d, dist = camFree.dist, pick = Math.min) {
+    let best = freeRay(d, dist);
     freeA.set(Math.abs(d.y) < 0.9 ? 0 : 1, Math.abs(d.y) < 0.9 ? 1 : 0, 0).cross(d).normalize();
     freeB.crossVectors(d, freeA);
     for (const t of [0.026, 0.052]) for (let j = 0; j < 6; j++) {
       const a = (j + (t > 0.03 ? 0.5 : 0)) * Math.PI / 3;
       freeS.copy(d).addScaledVector(freeA, Math.cos(a) * t).addScaledVector(freeB, Math.sin(a) * t).normalize();
-      best = Math.min(best, freeRay(freeS));
+      best = pick(best, freeRay(freeS, dist));
     }
     return best;
   }
@@ -2945,18 +3020,47 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     const D = freeV.length();
     return (D < 1e-3 || D <= freeRay(freeV.divideScalar(D))) && !inBox(p);
   };
-  // Nach controls.update(): steht die Kamera nicht frei, geht sie auf der
-  // Linie zum Blickziel zum ersten freien Punkt von ihr aus. Steht sie bei
-  // freier Halle in einem Möbel, zum näheren Ausgang (nach außen nur, wenn
-  // es dort frei ist). Ist die Linie nirgends frei, bleibt sie.
+  // Abstand, den die Kamera in Richtung d vom Ziel t mindestens braucht, um
+  // außerhalb des Schiffs zu stehen (0: kein Schiff in dieser Richtung).
+  // Innerhalb des 3-Grad-Kegels zählt die fernste Fläche voll, weiter außen
+  // (sieben Ringe bis 34 Grad) weniger: Eine Fläche im Winkel a verlangt nur
+  // L mit L + 1,2 · L · a = ihr Abstand, also um 1,2 · L je Bogenmaß weniger,
+  // geschlossen gelöst, damit nichts von Bild zu Bild nachpendelt. So gleitet
+  // die Kamera beim Drehen um einen Hardpoint vor dem Rumpf hinaus, statt bis
+  // zu 7 m zu springen.
+  const SHIP_RINGS = [5, 9, 13, 18, 23, 28, 34].map((g, i) => ({
+    a: g * Math.PI / 180, c: Math.cos(g * Math.PI / 180), s: Math.sin(g * Math.PI / 180),
+    j: Array.from({ length: 12 }, (_, j) => [Math.cos((j + (i % 2) * 0.5) * Math.PI / 6), Math.sin((j + (i % 2) * 0.5) * Math.PI / 6)]),
+  }));
+  function shipNeed(t, d) {
+    if (!shipFree?.dist || shipFree.c !== current || !sameAim(shipFree.o, t)) return 0;
+    const dist = shipFree.dist, f = freeCone(d, dist, Math.max);
+    let need = f > 0 ? f + SHIP_M : 0;
+    freeA.set(Math.abs(d.y) < 0.9 ? 0 : 1, Math.abs(d.y) < 0.9 ? 1 : 0, 0).cross(d).normalize();
+    freeB.crossVectors(d, freeA);
+    for (const r of SHIP_RINGS) for (const [cb, sb] of r.j) {
+      freeS.copy(d).multiplyScalar(r.c).addScaledVector(freeA, cb * r.s).addScaledVector(freeB, sb * r.s);
+      const g = freeRay(freeS, dist);
+      if (g > 0) need = Math.max(need, (g + SHIP_M) / (1 + 1.2 * r.a));
+    }
+    return need;
+  }
+  // Nach controls.update(): Steckt die Kamera im Schiff oder streift es, geht
+  // sie auf der Linie vom Blickziel nach außen hinter seine fernste Fläche.
+  // Steht sie dann nicht frei in der Halle, geht sie auf der Linie zum
+  // Blickziel zum ersten freien Punkt von ihr aus; steht sie bei freier
+  // Halle in einem Möbel, zum näheren Ausgang (nach außen nur, wenn es dort
+  // frei ist). Ist die Linie nirgends frei, bleibt sie.
   const keepD = new THREE.Vector3(), keepQ = new THREE.Vector3();
   const keepAt = (t, x) => keepQ.copy(t).addScaledVector(keepD, x);
   function keepFree() {
-    if (!camFree) return;
     const c = camera.position, t = controls.target;
-    if (freeOk(c) || !targetOk(t)) return;
-    const L = keepD.subVectors(c, t).length();
+    let L = keepD.subVectors(c, t).length();
+    if (L < 1e-6) return;
     keepD.divideScalar(L);
+    const need = shipNeed(t, keepD);
+    if (L < need) { L = Math.min(need, controls.maxDistance); c.copy(keepAt(t, L)); }
+    if (!camFree || freeOk(c) || !targetOk(t)) return;
     const b = hallOk(c) && inBox(c);
     if (b) {
       const [s0, s1] = boxSpan(t, keepD, b), out = s1 + 1e-3;
@@ -2993,7 +3097,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       // setzt weich auf (ease-out quint), solange das alte noch abhebt
       const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
       const e = 1 - Math.pow(1 - k, 5);
-      g.position.y = g.userData.baseY + (reduceMotion || realHall ? 0 : 0.03 * span * Math.sin(t * 1.1) * 0.3) + (1 - e) * span * 0.18;
+      g.position.y = g.userData.baseY + shipBob() * Math.sin(t * 1.1) + (1 - e) * span * 0.18;
       g.rotation.y = (1 - e) * -0.45;
       g.visible = reduceMotion || now - current.born > 60;
       if (fade.to) {
@@ -3014,13 +3118,14 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
     if (freeDirty) measureFree();
+    if (shipStale()) measureShip();
     // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
     // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
     // Bildern: Drehen lässt ihn, Hineinzoomen setzt ihn auf den neuen
     // Abstand, Herauszoomen mindestens darauf. Die Kamera gleitet zu ihm
     // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
     const flying = !!fly;
-    if (camFree && !flying) {
+    if (!flying) {
       const r = camera.position.distanceTo(controls.target);
       if (!camRef) camWant = r;
       else if (!camera.position.equals(camLast)) {
@@ -3031,14 +3136,11 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     }
     if (fly) flyStep(now);
     controls.update();
-    camRef = 0;
-    if (camFree) {
-      // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
-      camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
-      keepFree();
-      camLast.copy(camera.position);
-      camRef = camera.position.distanceTo(controls.target);
-    }
+    // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
+    camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
+    keepFree();
+    camLast.copy(camera.position);
+    camRef = camera.position.distanceTo(controls.target);
     adaptPixels(now);
     renderer.shadowMap.needsUpdate = true;
     if (composer) composer.render(); else renderer.render(scene, camera);
@@ -3101,7 +3203,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       hallEnv?.dispose();
       hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
       composer?.dispose();
-      freeRT?.dispose(); freeMat?.dispose();
+      for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
       draco.dispose();
       renderer.dispose();
       renderer.domElement.remove();
