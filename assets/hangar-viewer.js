@@ -1517,6 +1517,8 @@ export async function initHangar(container, opts = {}) {
   // des aktuellen Schiffs
   let realHall = null;
   let lastInfo = null;
+  // Freiraum der Kamera in der echten Halle (measureFree, vor frame())
+  let camFree = null, freeDirty = false;
   // Gebaute Halle (Plattform, Wände, Boden, Staub): nur ohne echte Halle oder
   // wenn diese nicht lädt. Ihre Leinwandtexturen kosteten beim Laden sonst
   // Sekunden, obwohl die echte Halle sie sofort verdeckte.
@@ -1565,6 +1567,7 @@ export async function initHangar(container, opts = {}) {
   const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.1, 4000);
   let S = 1, span = 14;
   // camLimit: in der echten Halle darf die Kamera nicht durch die Wand
+  // (Kugel um das Ziel; was in die Halle ragt, hält keepFree() fern)
   let camLimit = Infinity;
   const wantDist = () => span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
   const homeDist = () => Math.min(camLimit, wantDist());
@@ -2474,6 +2477,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       renderer.toneMappingExposure = 0.9;
       settleShip(0.02);
       if (lastInfo) scaleWorld(lastInfo);
+      camFree = null; freeDirty = true;
       const probe = await probeReady;
       if (probe) useHallProbe(probe); else captureHallEnv(true);
       // die Kamera stand womöglich für die gebaute (größere) Halle
@@ -2681,6 +2685,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     if (current) { leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y }; }
     scene.add(ship);
     homeTgt = tgt;
+    camFree = null; freeDirty = true;
     current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship');
@@ -2791,6 +2796,186 @@ vec3 hgVolume( vec3 p, vec3 n ) {
 
   const clock = new THREE.Clock();
   let raf = 0, visible = true, last = 0;
+  // Freiraum der Kamera (2026-10-10). Ihre Grenze war eine Kugel um das
+  // Ziel (camRoom), die Halle ist keine: Ganz herausgezoomt fuhr die Kamera
+  // bei 16 bis 32 Grad Höhe in Balkone und Kabeltrassen der Seitenwände (das
+  // Bild war grau), bei hohen Schiffen in die Deckenkästen, und ganz tief
+  // stand sie auf 15 bis 17 m in einem Kistenstapel. Darum misst die
+  // Seite vom Ziel der Startansicht aus je Richtung den Abstand zur ersten
+  // Fläche der Halle: sechs kleine Bilder, eins je Würfelseite, ohne Möbel,
+  // Schiff und Crew. Die Kamera bleibt davor, mit Rand, wie der Federarm
+  // einer Spielkamera, und zwar über einen Kegel von 3 Grad um ihre
+  // Richtung, damit auch eine Kante knapp neben dem Strahl nicht ins Bild
+  // ragt. Möbel zählen als ihr Hüllquader: Hinter einer Kiste darf sie
+  // stehen (sonst spränge sie ganz tief im Umlauf 19 m nach vorn), in ihr
+  // nicht; dort geht sie zum näheren Ausgang. Was der Nutzer an Abstand will,
+  // bleibt gemerkt: Ist der Weg wieder frei, gleitet sie dorthin zurück.
+  const FREE_N = 128;
+  // Würfelseiten: Blickrichtung und Oben; rechts ist Blick × Oben
+  const FREE_FACES = [[1, 0, 0, 0, 1, 0], [-1, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 1], [0, -1, 0, 0, 0, 1], [0, 0, 1, 0, 1, 0], [0, 0, -1, 0, 1, 0]].map((a) => {
+    const f = new THREE.Vector3(a[0], a[1], a[2]), u = new THREE.Vector3(a[3], a[4], a[5]);
+    return { f, u, r: new THREE.Vector3().crossVectors(f, u) };
+  });
+  let freeBusy = false, camWant = 0, camRef = 0, freeRT = null, freeMat = null;
+  const camLast = new THREE.Vector3(), freeV = new THREE.Vector3();
+  const freeA = new THREE.Vector3(), freeB = new THREE.Vector3(), freeS = new THREE.Vector3();
+  function measureFree() {
+    freeDirty = false;
+    if (!realHall || !homeTgt || freeBusy) return;
+    const k = realHall.group.scale.x, o = homeTgt.clone(), N = FREE_N, t0 = performance.now();
+    const far = Math.max(controls.maxDistance, 1) * 1.6 + 10 * k;
+    const rt = freeRT || (freeRT = new THREE.WebGLRenderTarget(N, N * 6));
+    const cam = new THREE.PerspectiveCamera(90, 1, 0.02 * k, far);
+    cam.position.copy(o);
+    // Abstand zum Ziel als 24 Bit, Alpha 0 heißt: nichts getroffen
+    const mat = freeMat || (freeMat = new THREE.ShaderMaterial({
+      uniforms: { uO: { value: new THREE.Vector3() }, uFar: { value: 1 } },
+      vertexShader: 'varying vec3 vW;\nvoid main() { vec4 w = modelMatrix * vec4( position, 1.0 ); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+      fragmentShader: 'uniform vec3 uO;\nuniform float uFar;\nvarying vec3 vW;\nvoid main() { float d = floor( clamp( distance( vW, uO ) / uFar, 0.0, 1.0 ) * 16777215.0 ); float r = floor( d / 65536.0 ); float g = floor( ( d - r * 65536.0 ) / 256.0 ); gl_FragColor = vec4( r, g, d - r * 65536.0 - g * 256.0, 255.0 ) / 255.0; }',
+      side: THREE.DoubleSide,
+    }));
+    mat.uniforms.uO.value.copy(o); mat.uniforms.uFar.value = far;
+    // Nur die Halle: alles andere, die Möbel und was keine Fläche ist, aus
+    const off = [];
+    const hide = (o) => { if (o?.visible) { o.visible = false; off.push(o); } };
+    for (const c of scene.children) if (c !== realHall.group) hide(c);
+    for (const f of realHall.furniture ?? []) hide(f.mesh);
+    realHall.group.traverse((n) => { if (n.isPoints || n.isLine || n.isSprite) hide(n); });
+    const keep = { bg: scene.background, fog: scene.fog, om: scene.overrideMaterial, rt: renderer.getRenderTarget(), ac: renderer.autoClear, cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha() };
+    scene.background = null; scene.fog = null; scene.overrideMaterial = mat;
+    renderer.autoClear = false;
+    renderer.setClearColor(0x000000, 0);
+    renderer.setRenderTarget(rt);
+    renderer.clear();
+    FREE_FACES.forEach((s, i) => {
+      cam.up.copy(s.u);
+      cam.lookAt(o.x + s.f.x, o.y + s.f.y, o.z + s.f.z);
+      cam.updateMatrixWorld();
+      rt.viewport.set(0, i * N, N, N);
+      renderer.setRenderTarget(rt);
+      renderer.render(scene, cam);
+    });
+    renderer.setRenderTarget(keep.rt);
+    renderer.autoClear = keep.ac;
+    renderer.setClearColor(keep.cc, keep.ca);
+    scene.background = keep.bg; scene.fog = keep.fog; scene.overrideMaterial = keep.om;
+    for (const o of off) o.visible = true;
+    const buf = new Uint8Array(N * N * 6 * 4);
+    freeBusy = true;
+    const hall = realHall;
+    renderer.readRenderTargetPixelsAsync(rt, 0, 0, N, N * 6, buf).then(() => {
+      const dist = new Float32Array(N * N * 6);
+      for (let j = 0; j < dist.length; j++) dist[j] = buf[j * 4 + 3] ? (buf[j * 4] * 65536 + buf[j * 4 + 1] * 256 + buf[j * 4 + 2]) / 16777215 * far : far;
+      // Inzwischen anderes Schiff oder andere Halle: neu messen
+      if (hall === realHall && homeTgt && homeTgt.equals(o) && realHall.group.scale.x === k) {
+        const boxes = furnitureBoxes(realHall.furniture ?? [], 0.6 * k);
+        camFree = { o, dist, m: 0.6 * k, boxes };
+        console.info(`[hangar] Freiraum der Kamera gemessen (6 × ${N}², ${Math.round(performance.now() - t0)} ms), ${boxes.length} Möbel als Quader`);
+      } else freeDirty = true;
+    }, (e) => console.warn('[hangar] Freiraum der Kamera nicht gemessen', e)).finally(() => { freeBusy = false; });
+  }
+  // Freier Abstand in Richtung d (Einheitsvektor) aus den sechs Bildern
+  function freeRay(d) {
+    const ax = Math.abs(d.x), ay = Math.abs(d.y), az = Math.abs(d.z);
+    const i = ax >= ay && ax >= az ? (d.x > 0 ? 0 : 1) : ay >= az ? (d.y > 0 ? 2 : 3) : (d.z > 0 ? 4 : 5);
+    const s = FREE_FACES[i], df = d.dot(s.f), N = FREE_N;
+    const px = Math.min(N - 1, Math.max(0, Math.floor((d.dot(s.r) / df + 1) * 0.5 * N)));
+    const py = Math.min(N - 1, Math.max(0, Math.floor((d.dot(s.u) / df + 1) * 0.5 * N)));
+    return camFree.dist[(i * N + py) * N + px];
+  }
+  // ... über einen Kegel von 3 Grad (Mitte, je sechs Strahlen bei 1,5 und 3 Grad)
+  function freeCone(d) {
+    let best = freeRay(d);
+    freeA.set(Math.abs(d.y) < 0.9 ? 0 : 1, Math.abs(d.y) < 0.9 ? 1 : 0, 0).cross(d).normalize();
+    freeB.crossVectors(d, freeA);
+    for (const t of [0.026, 0.052]) for (let j = 0; j < 6; j++) {
+      const a = (j + (t > 0.03 ? 0.5 : 0)) * Math.PI / 3;
+      freeS.copy(d).addScaledVector(freeA, Math.cos(a) * t).addScaledVector(freeB, Math.sin(a) * t).normalize();
+      best = Math.min(best, freeRay(freeS));
+    }
+    return best;
+  }
+  // Hüllquader je Möbel in der Welt, um den Rand m größer. Die Ecken in
+  // Originalgröße merkt sich jedes Mesh einmal (box0), danach rechnet
+  // scaleFurniture-gleich: Bezugspunkt + (Ecke - Bezugspunkt) * s.
+  function furnitureBoxes(list, m) {
+    const out = [];
+    for (const f of list) {
+      if (!f.box0) {
+        const P = f.base || f.mesh.geometry.attributes.position.array;
+        f.box0 = f.pieces.map(([i0, i1]) => {
+          const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+          for (let i = i0 * 3; i < i1 * 3; i += 3) for (let a = 0; a < 3; a++) { b[a] = Math.min(b[a], P[i + a]); b[a + 3] = Math.max(b[a + 3], P[i + a]); }
+          return b;
+        });
+      }
+      f.mesh.updateWorldMatrix(true, false);
+      f.pieces.forEach(([, , ax, ay, az], j) => {
+        const b = f.box0[j], A = [ax, ay, az];
+        const box = new THREE.Box3(
+          new THREE.Vector3(...[0, 1, 2].map((a) => A[a] + (b[a] - A[a]) * f.s)),
+          new THREE.Vector3(...[0, 1, 2].map((a) => A[a] + (b[a + 3] - A[a]) * f.s)));
+        out.push(box.applyMatrix4(f.mesh.matrixWorld).expandByScalar(m));
+      });
+    }
+    return out;
+  }
+  const hallOk = (p) => {
+    freeV.subVectors(p, camFree.o);
+    const D = freeV.length();
+    return D < 1e-3 || D <= freeCone(freeV.divideScalar(D)) - camFree.m;
+  };
+  const inBox = (p) => camFree.boxes.find((b) => b.containsPoint(p));
+  const freeOk = (p) => hallOk(p) && !inBox(p);
+  // Ein- und Austritt der Linie t + s·d durch den Quader b (s ab t)
+  function boxSpan(t, d, b) {
+    let s0 = -Infinity, s1 = Infinity;
+    for (const a of ['x', 'y', 'z']) {
+      if (Math.abs(d[a]) < 1e-9) continue;
+      const u = (b.min[a] - t[a]) / d[a], v = (b.max[a] - t[a]) / d[a];
+      s0 = Math.max(s0, Math.min(u, v)); s1 = Math.min(s1, Math.max(u, v));
+    }
+    return [s0, s1];
+  }
+  // Das Blickziel selbst muss nur vor der ersten Fläche liegen, ohne Rand
+  // und Kegel: ein Hardpoint knapp über dem Boden wäre sonst nie frei, und
+  // die Grenze fiele im Fokus darauf ganz aus
+  const targetOk = (p) => {
+    freeV.subVectors(p, camFree.o);
+    const D = freeV.length();
+    return (D < 1e-3 || D <= freeRay(freeV.divideScalar(D))) && !inBox(p);
+  };
+  // Nach controls.update(): steht die Kamera nicht frei, geht sie auf der
+  // Linie zum Blickziel zum ersten freien Punkt von ihr aus. Steht sie bei
+  // freier Halle in einem Möbel, zum näheren Ausgang (nach außen nur, wenn
+  // es dort frei ist). Ist die Linie nirgends frei, bleibt sie.
+  const keepD = new THREE.Vector3(), keepQ = new THREE.Vector3();
+  const keepAt = (t, x) => keepQ.copy(t).addScaledVector(keepD, x);
+  function keepFree() {
+    if (!camFree) return;
+    const c = camera.position, t = controls.target;
+    if (freeOk(c) || !targetOk(t)) return;
+    const L = keepD.subVectors(c, t).length();
+    keepD.divideScalar(L);
+    const b = hallOk(c) && inBox(c);
+    if (b) {
+      const [s0, s1] = boxSpan(t, keepD, b), out = s1 + 1e-3;
+      if (out - L < L - s0 && out <= controls.maxDistance && freeOk(keepAt(t, out))) { c.copy(keepQ); return; }
+    }
+    let lo = -1, hi = L;
+    for (let i = 1; i <= 48; i++) {
+      const x = L * (1 - i / 48);
+      if (freeOk(keepAt(t, x))) { lo = x; break; }
+      hi = x;
+    }
+    if (lo < 0) return;
+    for (let i = 0; i < 12; i++) {
+      const x = (lo + hi) / 2;
+      if (freeOk(keepAt(t, x))) lo = x; else hi = x;
+    }
+    c.copy(keepAt(t, lo));
+  }
+
   function frame() {
     raf = requestAnimationFrame(frame);
     if (!visible) return;
@@ -2828,8 +3013,32 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
+    if (freeDirty) measureFree();
+    // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
+    // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
+    // Bildern: Drehen lässt ihn, Hineinzoomen setzt ihn auf den neuen
+    // Abstand, Herauszoomen mindestens darauf. Die Kamera gleitet zu ihm
+    // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
+    const flying = !!fly;
+    if (camFree && !flying) {
+      const r = camera.position.distanceTo(controls.target);
+      if (!camRef) camWant = r;
+      else if (!camera.position.equals(camLast)) {
+        const q = r / camRef;
+        if (q < 0.9999) camWant = r; else if (q > 1.0001) camWant = Math.max(camWant, r);
+      }
+      if (Math.abs(camWant - r) > 1e-3) camera.position.sub(controls.target).setLength(r + (camWant - r) * (reduceMotion ? 1 : Math.min(1, dt * 5))).add(controls.target);
+    }
     if (fly) flyStep(now);
     controls.update();
+    camRef = 0;
+    if (camFree) {
+      // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
+      camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
+      keepFree();
+      camLast.copy(camera.position);
+      camRef = camera.position.distanceTo(controls.target);
+    }
     adaptPixels(now);
     renderer.shadowMap.needsUpdate = true;
     if (composer) composer.render(); else renderer.render(scene, camera);
@@ -2892,6 +3101,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       hallEnv?.dispose();
       hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
       composer?.dispose();
+      freeRT?.dispose(); freeMat?.dispose();
       draco.dispose();
       renderer.dispose();
       renderer.domElement.remove();
