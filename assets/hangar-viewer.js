@@ -2125,7 +2125,11 @@ export async function initHangar(container, opts = {}) {
   const HALL_STAT_SIZE = SMALL ? 1024 : 2048, HALL_STAT_NEAR = 2, HALL_STAT_TOP = 0.7;
   const statRT = [], statCam = new THREE.PerspectiveCamera(90, 1, 1, 100);
   const statClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-  const statMat = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide, clippingPlanes: [statClip] });
+  // Versatz nach Neigung: Flächen, die das Licht streifend trifft (die großen
+  // oberen Wandpaneele, Planen der Kisten), schatteten sich sonst selbst in
+  // feinen Bogenmustern ab.
+  const statMat = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide, clippingPlanes: [statClip],
+    polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
   const statBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
   const statTarget = (size) => {
     const rt = new THREE.WebGLRenderTarget(size, size, { format: THREE.RedFormat });
