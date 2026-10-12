@@ -2109,6 +2109,77 @@ export async function initHangar(container, opts = {}) {
       L.shadow.camera.near = Math.max(0.5, d * 0.5);
       L.shadow.camera.updateProjectionMatrix();
     }
+    renderHallShadows();
+  }
+
+  // Tiefenkarten der stillstehenden Halle aus den Schattenstrahlern (hallStat).
+  // Ohne Schiff, Crew, Glas und alles Durchscheinende der Szene (auch das
+  // Glas der Möbeldatei: Die Scheiben hoch an den Seitenwänden warfen sonst
+  // Keile auf die Wand). Die ersten 2 m vor der Lampe fehlen, sonst läge
+  // alles im Schatten ihrer eigenen Leuchte. Der Kegel reicht nur so weit,
+  // wie der Strahler den Boden der Halle trifft (am Rand des Spielkegels von
+  // 150° wäre die Karte zu grob). Die Decke (oberhalb von 70 % der
+  // Hallenhöhe) wirft keinen Schatten: Ihr Rand schattete das obere Drittel
+  // der Seitenwände in harten Keilen ab, die ohne das Streulicht der weißen
+  // Halle viel zu dunkel blieben.
+  const HALL_STAT_SIZE = SMALL ? 1024 : 2048, HALL_STAT_NEAR = 2, HALL_STAT_TOP = 0.7;
+  const statRT = [], statCam = new THREE.PerspectiveCamera(90, 1, 1, 100);
+  const statClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  const statMat = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide, clippingPlanes: [statClip] });
+  const statBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+  const statTarget = (size) => {
+    const rt = new THREE.WebGLRenderTarget(size, size, { format: THREE.RedFormat });
+    rt.depthTexture = new THREE.DepthTexture(size, size);
+    rt.depthTexture.compareFunction = THREE.LessEqualCompare;
+    rt.depthTexture.minFilter = rt.depthTexture.magFilter = THREE.LinearFilter;
+    return rt;
+  };
+  let statK = 0;
+  function renderHallShadows() {
+    const k = hallRoot.scale.x;
+    if (!realHall?.model || !hallLamps || statK === k) return;
+    statK = k;
+    const t0 = performance.now();
+    const lamps = hallLamps.children.filter((q) => shadowLamps.includes(q)).slice(0, 2);
+    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY;
+    statClip.constant = (c[1] - f + HALL_STAT_TOP * height) * k;
+    const corners = [];
+    for (const x of [-halfW, halfW]) for (const z of [-halfL, halfL]) corners.push(new THREE.Vector3(x * k, (c[1] - f) * k, z * k));
+    const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
+    const clear = (m) => m.transparent || m.transmission > 0 || /glass/i.test(m.name);
+    scene.traverse((o) => {
+      if (o.visible && ((o.isMesh && [].concat(o.material).some(clear)) || o.isPoints || o.isLine || o.isSprite)) hide.push(o);
+    });
+    for (const o of hide) o.visible = false;
+    const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
+    scene.background = null; scene.overrideMaterial = statMat;
+    renderer.shadowMap.needsUpdate = false; renderer.localClippingEnabled = true;
+    const p = new THREE.Vector3(), t = new THREE.Vector3(), d = new THREE.Vector3(), K = new THREE.Matrix4().makeScale(k, k, k);
+    lamps.forEach((L, i) => {
+      L.getWorldPosition(p); L.target.getWorldPosition(t);
+      d.subVectors(t, p).normalize();
+      let half = 0;
+      for (const q of corners) half = Math.max(half, d.angleTo(q.clone().sub(p)));
+      half = Math.min(half + 2 * DEG, L.angle, 75 * DEG);
+      statCam.fov = 2 * half / DEG; statCam.near = HALL_STAT_NEAR * k; statCam.far = Math.max(L.distance || 0, 150 * k);
+      statCam.position.copy(p);
+      statCam.up.set(0, 1, 0);
+      if (Math.abs(d.y) > 0.99) statCam.up.set(0, 0, -1);
+      statCam.lookAt(t);
+      statCam.updateProjectionMatrix(); statCam.updateMatrixWorld();
+      const rt = statRT[i] ??= statTarget(HALL_STAT_SIZE);
+      renderer.setRenderTarget(rt);
+      renderer.clear();
+      renderer.render(scene, statCam);
+      hallStat.map[i].value = rt.depthTexture;
+      hallStat.mat[i].value.copy(statBias).multiply(statCam.projectionMatrix).multiply(statCam.matrixWorldInverse).multiply(K);
+    });
+    renderer.setRenderTarget(null);
+    scene.background = bg; scene.overrideMaterial = null;
+    renderer.shadowMap.needsUpdate = shadowUpd; renderer.localClippingEnabled = clip;
+    for (const o of hide) o.visible = true;
+    hallStat.n.value = lamps.length;
+    console.info(`[hangar] Hallenschatten aus ${lamps.length} Strahlern (${HALL_STAT_SIZE}², ${Math.round(performance.now() - t0)} ms)`);
   }
 
   // Licht in der echten Halle. Mit Spiellampen gibt es kein Bühnenlicht
@@ -2330,6 +2401,38 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Modellraum (vHgP) auf dieses Bild ab.
   const hallRefl = { tex: { value: null }, on: { value: 0 }, mat: { value: new THREE.Matrix4() } };
   const hallEnvMax = { value: HALL_ENV_MAX };
+  // Schatten von Halle und Einrichtung aus den Deckenstrahlern, die auch den
+  // Schatten des Schiffs werfen (renderHallShadows): je Strahler eine
+  // Tiefenkarte, einmal je Hallenmaßstab gezeichnet, weil Halle und Möbel
+  // stillstehen. Die Schattenkarten von three.js bleiben dem Schiff und der
+  // Crew, eng um das Schiff; der Hallenshader nimmt für dieselben Strahler
+  // zusätzlich diese Karten. hgStatMat bildet vHgP (Modellmeter) auf die
+  // Karte ab.
+  const hallStat = { n: { value: 0 }, map: [{ value: null }, { value: null }], mat: [{ value: new THREE.Matrix4() }, { value: new THREE.Matrix4() }] };
+  // Ein leerer sampler2DShadow bindet bei three.js keine Textur, und jeder
+  // Zeichenaufruf der Halle fällt aus (am Telefon, mit nur einem Strahler,
+  // blieb sie schwarz). Bis zur Karte steht deshalb ein geleertes 1×1 da.
+  const statEmpty = statTarget(1);
+  renderer.setRenderTarget(statEmpty); renderer.clear(); renderer.setRenderTarget(null);
+  hallStat.map[0].value = hallStat.map[1].value = statEmpty.depthTexture;
+  const HALL_STAT_GLSL = `uniform float hgStatN;
+uniform sampler2DShadow hgStat0, hgStat1;
+uniform mat4 hgStatMat0, hgStatMat1;
+float hgStatLook( sampler2DShadow m, mat4 M, vec3 p ) {
+	vec4 c = M * vec4( p, 1.0 );
+	if ( c.w <= 0.0 ) return 1.0;
+	vec3 q = c.xyz / c.w;
+	if ( any( lessThan( q, vec3( 0.0 ) ) ) || any( greaterThan( q, vec3( 1.0 ) ) ) ) return 1.0;
+	vec2 t = 0.75 / vec2( textureSize( m, 0 ) );
+	q.z -= 5e-5;
+	return 0.25 * ( texture( m, vec3( q.xy - t, q.z ) ) + texture( m, vec3( q.xy + vec2( t.x, - t.y ), q.z ) )
+		+ texture( m, vec3( q.xy + vec2( - t.x, t.y ), q.z ) ) + texture( m, vec3( q.xy + t, q.z ) ) );
+}
+float hgStatShadow( const in int i, const in vec3 wn ) {
+	vec3 p = vHgP + wn * 0.06;
+	if ( i == 0 ) return hgStatN > 0.5 ? hgStatLook( hgStat0, hgStatMat0, p ) : 1.0;
+	return hgStatN > 1.5 ? hgStatLook( hgStat1, hgStatMat1, p ) : 1.0;
+}`;
   const HALL_ENV_GLSL = `#ifdef USE_ENVMAP
 uniform float hgBoxOn, hgEnvMax, hgReflOn;
 uniform sampler2D hgRefl;
@@ -2374,6 +2477,16 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 	#endif
 }
 #endif`;
+  const HALL_LIGHTS_BEGIN = (() => {
+    const a = 'getSpotLightInfo( spotLight, geometryPosition, directLight );';
+    const src = THREE.ShaderChunk.lights_fragment_begin;
+    // Ohne die Stelle (andere three.js-Fassung) bleibt es bei three.js allein
+    if (!src.includes(a)) return '#include <lights_fragment_begin>';
+    return src.replace(a, `${a}
+		#if ( UNROLLED_LOOP_INDEX < 2 )
+		directLight.color *= hgStatShadow( UNROLLED_LOOP_INDEX, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );
+		#endif`);
+  })();
   const hallShader = (m) => (sh) => {
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
@@ -2382,13 +2495,15 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgRoughMin = { value: m.userData.gloss ? HALL_GLOSS_MIN : HALL_ROUGH_MIN };
     sh.uniforms.hgEnvMax = hallEnvMax;
     sh.uniforms.hgReflOn = hallRefl.on; sh.uniforms.hgRefl = hallRefl.tex; sh.uniforms.hgReflMat = hallRefl.mat;
+    sh.uniforms.hgStatN = hallStat.n; sh.uniforms.hgStat0 = hallStat.map[0]; sh.uniforms.hgStat1 = hallStat.map[1];
+    sh.uniforms.hgStatMat0 = hallStat.mat[0]; sh.uniforms.hgStatMat1 = hallStat.mat[1];
     sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying float vHgShade;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL)
+      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb *= vHgShade;')
       .replace('#include <map_fragment>', `#ifdef USE_MAP
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
@@ -2397,9 +2512,11 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
       .replace('#include <envmap_physical_pars_fragment>', HALL_ENV_GLSL)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, hgRoughMin);')
       // Lampenlicht mit der Grenze für alle, Spiegelung mit der des Materials
+      // Die Schattenstrahler sind die ersten Spots (three.js reiht Lampen mit
+      // Schatten vorn ein, in Szenenreihenfolge wie renderHallShadows).
       .replace('#include <lights_fragment_begin>', `float hgRoughRefl = material.roughness;
 	material.roughness = max( material.roughness, ${HALL_ROUGH_MIN.toFixed(2)} );
-#include <lights_fragment_begin>
+${HALL_LIGHTS_BEGIN}
 	material.roughness = hgRoughRefl;
 	if ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );`);
   };
@@ -3455,6 +3572,8 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
       envRT.dispose();
       hallEnv?.dispose();
       mirrorRT?.dispose();
+      for (const rt of [...statRT, statEmpty]) { rt.depthTexture.dispose(); rt.dispose(); }
+      statMat.dispose();
       hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
