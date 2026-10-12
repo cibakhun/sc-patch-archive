@@ -2177,6 +2177,11 @@ export async function initHangar(container, opts = {}) {
     hallEnv = rt;
     scene.environment = rt.texture;
     setHallEnv(rt.texture);
+    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY;
+    hallBox.min.value.set(-halfW, c[1] - f, -halfL);
+    hallBox.max.value.set(halfW, c[1] + height - f, halfL);
+    hallBox.pos.value.set(0, 2.5, 0);
+    hallBox.on.value = 1;
     if (!realHall.envOn) {
       realHall.envOn = true;
       for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
@@ -2229,6 +2234,7 @@ export async function initHangar(container, opts = {}) {
     hallEnv = rt;
     scene.environment = rt.texture;
     setHallEnv(rt.texture);
+    hallBox.on.value = 0;
     realHall.envOn = true;
     realHall.probe = name;
     for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
@@ -2288,10 +2294,49 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
   // Rauschen. Ein Wert für alle Hallenmaterialien, scaleWorld setzt ihn.
   const hallNoTileInvK = { value: 1 };
+  // Spiegelung auf den Raumkasten projiziert: Die Umgebungskugel ist an
+  // einer Stelle aufgenommen (2,5 m über der Plattform). Ohne Projektion
+  // spiegelt jede Platte dasselbe, als läge der Raum unendlich weit weg;
+  // mit ihr trifft der Spiegelstrahl die Wand, die von der Platte aus dort
+  // steht, und die Kugel wird in Richtung dieses Punkts gelesen. Kasten in
+  // Modellmetern ab der Bodenmitte (wie vHgP), gesetzt von captureHallEnv.
+  const hallBox = { on: { value: 0 }, min: { value: new THREE.Vector3() }, max: { value: new THREE.Vector3() }, pos: { value: new THREE.Vector3() } };
+  const HALL_ENV_GLSL = `#ifdef USE_ENVMAP
+uniform float hgBoxOn;
+uniform vec3 hgBoxMin, hgBoxMax, hgBoxPos;
+vec3 hgBoxDir( vec3 d ) {
+	vec3 q = vec3( abs( d.x ) < 1e-5 ? 1e-5 : d.x, abs( d.y ) < 1e-5 ? 1e-5 : d.y, abs( d.z ) < 1e-5 ? 1e-5 : d.z );
+	vec3 tF = max( ( hgBoxMax - vHgP ) / q, ( hgBoxMin - vHgP ) / q );
+	float t = min( min( tF.x, tF.y ), tF.z );
+	return t > 0.0 ? vHgP + d * t - hgBoxPos : d;
+}
+vec3 getIBLIrradiance( const in vec3 normal ) {
+	#ifdef ENVMAP_TYPE_CUBE_UV
+		vec3 worldNormal = transformNormalByInverseViewMatrix( normal, viewMatrix );
+		vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+		return PI * envMapColor.rgb * envMapIntensity;
+	#else
+		return vec3( 0.0 );
+	#endif
+}
+vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float roughness ) {
+	#ifdef ENVMAP_TYPE_CUBE_UV
+		vec3 reflectVec = reflect( - viewDir, normal );
+		reflectVec = normalize( mix( reflectVec, normal, pow4( roughness ) ) );
+		reflectVec = transformDirectionByInverseViewMatrix( reflectVec, viewMatrix );
+		if ( hgBoxOn > 0.5 ) reflectVec = hgBoxDir( reflectVec );
+		vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+		return envMapColor.rgb * envMapIntensity;
+	#else
+		return vec3( 0.0 );
+	#endif
+}
+#endif`;
   const hallShader = (m) => (sh) => {
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
+    sh.uniforms.hgBoxOn = hallBox.on; sh.uniforms.hgBoxMin = hallBox.min; sh.uniforms.hgBoxMax = hallBox.max; sh.uniforms.hgBoxPos = hallBox.pos;
     sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
@@ -2304,6 +2349,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
 	diffuseColor *= sampledDiffuseColor;
 #endif`)
+      .replace('#include <envmap_physical_pars_fragment>', HALL_ENV_GLSL)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);')
       .replace('#include <lights_fragment_begin>', '#include <lights_fragment_begin>\n\tif ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );');
   };
