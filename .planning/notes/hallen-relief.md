@@ -95,4 +95,60 @@ Stelle spiegeln. Die echte Glätte kommt dann aus Teil B.
 
 ## Befund PC
 
-(noch offen)
+PC-Lauf 2026-10-12. Quelle: `.mtl` aus der Data.p4k (Cache
+`.cache/hangar-src/hall-raw/`), Texturen mip 1 dekodiert, Rohblöcke der
+`_ddna` direkt aus der p4k gezählt (`dds merge`, BC5-Blöcke je Mip-Stufe).
+
+**Ergebnis vorweg: Keines der Materialien hat Schichten, Detail- oder
+Höhenkarten. Teil B entfällt.** Alle sind `Illum` mit direkten Texturen;
+`<MatLayers>` gibt es in keinem dieser Untermaterialien. Die flachen `_ddna`
+sind im Spiel flach (jede Mip-Stufe ein einziger, wiederholter BC5-Block),
+kein Dekodierfehler. Information tragen sie nur in der Glätte (Alpha).
+
+### Materialien (Slot: Datei, TexMod; Normalen σX/σY der dekodierten Karte)
+
+| glTF-Material | StringGenMask | Farbe (TexSlot1) | Normale (TexSlot2) | weitere Slots | Glätte (Alpha) | PublicParams |
+|---|---|---|---|---|---|---|
+| metal_white_03 (kit 3) | NORMAL_MAP, VERTCOLORS | metalpaintedfloor_worn_13_diff, Diffuse 0,644 | metalpaintedfloor_worn_13_ddna: **flach** (1 Block) | – | 225–249, Ø 247 | – |
+| metal_dotty_01_016 (kit 16) | NORMAL_MAP, VERTCOLORS | metalpainted_worn_14_diff, Diffuse 0,658 | metalpainted_worn_14_ddna: **Relief** σ 13,0/12,8 (3 653 Blöcke) | – | 88–247, Ø 223 | – |
+| wood_largeplank_020 (kit 20) | NORMAL_MAP | wood_clean_mahogany_06_diff | wood_clean_mahogany_06_ddna: fast flach σ 0,6/0,1 (84 Blöcke auf 2048 px) | – | 67–248, Ø 222 | – |
+| metal_grey_04 (kit 4) | NORMAL_MAP, SPECULAR_MAP | conductor_diff, TexMod TileU/V 2 | aluminum_scratched_01_ddna: fast flach σ 0,4 | TexSlot4 aluminum_scratched_01_spec (Metallfarbe) | 0–238, Ø 212 | – |
+| starfarer wood_dark_00 | NORMAL_MAP, VERTCOLORS | metalpainted_worn_14_diff, Diffuse 0,19/0,21/0,22 | metalpainted_worn_14_ddna: **Relief** | – | 88–247 | – |
+| metal_mid_01 (generic_wall 1) | NORMAL_MAP, BLENDLAYER, VERTCOLORS | conductor_diff | metal_wall_rustedpaint…_blend_ddna: schwach σ 1,2 | TexSlot3 metal_worn_paint_01_ddna, TexSlot9 metal_worn_paint_03_diff, TexSlot12 …_blend_mask | 0–241 | BlendFactor 6,07, BlendFalloff 26,6, BlendLayer2Tiling 4, Glossiness 255 (schon eingebacken) |
+| lights01_08 (kit 8) | NORMAL_MAP, VERTCOLORS | glow_pattern_grey_01_diff, TexMod 3×3 | glow_pattern_yellow_01_ddna: Relief σ 6,6/4,6 | – | 182–255 | – |
+| plastic_white01_06 (kit 6) | NORMAL_MAP, VERTCOLORS | plastic_white_01_diff | metalpaintedfloor_worn_13_ddna: **flach** | – | 225–249, Ø 247 | – |
+| metal_white_02_07 (kit 7) | NORMAL_MAP, BLENDLAYER, VERTCOLORS | plastic_white_03_diff, Diffuse 0,80 | plastic_white_03_ddna: **flach** | TexSlot3 dieselbe (flach), TexSlot9 plastic_white_03_diff, TexSlot12 metalpainted_worn_05_mask | 197–242 | BlendFactor 5,33, BlendFalloff 4,5, Glossiness 113 (schon eingebacken) |
+| metal_white_03_13 (kit 13) | NORMAL_MAP, VERTCOLORS | metalpainted_clean_01_diff | metalpainted_clean_01_ddna: **flach** (1 Block) | – | 238–246 | – |
+| plastic_white_pattern_01_025 (kit 25) | NORMAL_MAP, VERTCOLORS | metalpainted_clean_01_diff, TexMod 0,5×0,5, Diffuse 0,80, Specular 0,58 | plasticpattern_worn_01_ddna: **flach** | – | 176–250 | – |
+| wood_oak_01 (kit 1) | NORMAL_MAP | wood_clean_oak_02_diff | wood_clean_oak_02_ddna: **flach** (1 Block) | – | 178–248 | – |
+| cables_01_012 (kit 12) | NORMAL_MAP | cableelectric_worn_unique_uee_02_diff | …_ddna: **Relief** σ 14,9/20,3 | – | 0–211 | – |
+
+Alle: Shader `Illum`, keine `<MatLayers>`, keine Höhenkarte (`_displ`),
+keine Detailkarte. Schichtmaterialien gibt es damit nicht zu verfolgen.
+
+### Glätte statt Relief
+
+Wo die Normale flach ist, variiert die Glätte trotzdem leicht
+(z. B. `metal_white_03` 225–249 statt fest 255). Daraus entsteht heute
+schon die Rauheitskarte (1 − Glätte). Bei `metal_white_03` und
+`plastic_white01_06` liegt die Rauheit damit bei 0,02–0,12, im Mittel
+0,03: Das sind im Spiel sehr glatte, glänzende Lackflächen. Die Tiefe
+erzeugt das Spiel dort über Spiegelungen (Sonden zur Laufzeit) und
+Vertex-Abdunkelung, nicht über Relief.
+
+### Decals
+
+Keine eigenen Decal-Entities im socpak. Abziehbilder sind Untermaterialien
+mit `%DECAL` auf den Bausatz-Meshes; alle stecken in unserem Export
+(13 Materialien, u. a. `decals_landing_door_015`, `decals_buggy_parking_030`,
+`decals_small_symbols_05`, `nernies_deluxe_010`, `deluxe_revel_logos_08`,
+`markings_dc_018`, `Scratches_022`). POM tragen nur zwei kleine
+Requisiten-Decals (`prop_dumper_dolly_a … pom_01`,
+`levski_prop_elevator_button_idle … pom_decal_04`), Detail-Mapping nur der
+Aufzugsknopf (`levski_prop_elevator_button_idle button_01`, `rubber_03`).
+
+### Punkt 5 (Spielbilder, GPU-Ansicht)
+
+Nicht gemacht: Das Laden fremder Bilder aus dem Netz und die lokalen
+Renders brauchen Krisz' Freigabe (Downloads; Renders hat der Auto-Modus des
+PCs früher blockiert). Angefragt.
