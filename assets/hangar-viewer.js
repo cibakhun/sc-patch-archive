@@ -2318,12 +2318,12 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // steht, und die Kugel wird in Richtung dieses Punkts gelesen. Kasten in
   // Modellmetern ab der Bodenmitte (wie vHgP), gesetzt von captureHallEnv.
   const hallBox = { on: { value: 0 }, min: { value: new THREE.Vector3() }, max: { value: new THREE.Vector3() }, pos: { value: new THREE.Vector3() } };
-  // Spiegelbild von Schiff und Crew im Boden: Die Umgebungskugel ist ohne
-  // sie aufgenommen, ein glatter Boden spiegelte sonst unter dem Schiff die
+  // Spiegelbild des Schiffs im Boden: Die Umgebungskugel ist ohne es
+  // aufgenommen, ein glatter Boden spiegelte sonst unter dem Schiff die
   // Wand dahinter. Im Spiel leistet das die Bildschirmspiegelung. Hier
-  // zeichnet eine an der Bodenebene gespiegelte Kamera nur Schiff und Crew
-  // in ein halb so großes Bild (renderMirror); der Boden liest es dort, wo
-  // es etwas zeigt, statt der Kugel. hallRefl.mat bildet einen Bodenpunkt im
+  // zeichnet eine an der Bodenebene gespiegelte Kamera nur das Schiff in
+  // ein halb so großes Bild (renderMirror); der Boden liest es dort, wo es
+  // etwas zeigt, statt der Kugel. hallRefl.mat bildet einen Bodenpunkt im
   // Modellraum (vHgP) auf dieses Bild ab.
   const hallRefl = { tex: { value: null }, on: { value: 0 }, mat: { value: new THREE.Matrix4() } };
   const hallEnvMax = { value: HALL_ENV_MAX };
@@ -3262,10 +3262,13 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 
   // Spiegelbild für den Boden (hallRefl): die Kamera an der Bodenebene
   // gespiegelt, mit schräger Nahebene in der Ebene (three.js Reflector),
-  // dazu die Halle ausgeblendet, alle Lampen an, also dieselben
-  // Shaderprogramme wie im Bild. Erst mit dem Composer: Ohne ihn zeichnet
-  // das Bild direkt auf den Schirm, mit anderen Programmen. Am Telefon
-  // nicht, dort zählt jeder Zeichenaufruf.
+  // dazu Halle und Crew ausgeblendet, alle Lampen an, also dieselben
+  // Shaderprogramme wie im Bild. Die Crew sind 256 Teile, ihr Spiegelbild
+  // aber nur ein Fleck an den Füßen: Mit ihr kostete das Spiegelbild 425
+  // Zeichenaufrufe je Bild (Gladius, +25 %), ohne sie etwa so viele, wie
+  // das Schiff Teile hat. Erst mit dem Composer: Ohne ihn zeichnet das Bild
+  // direkt auf den Schirm, mit anderen Programmen. Am Telefon nicht, dort
+  // zählt jeder Zeichenaufruf.
   const MIRROR = !SMALL, MIRROR_SCALE = 0.5;
   let mirrorRT = null;
   const mirrorCam = new THREE.PerspectiveCamera();
@@ -3299,9 +3302,9 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     mirrorCam.projectionMatrixInverse.copy(mirrorCam.projectionMatrix).invert();
     const k = hallRoot.scale.x;
     hallRefl.mat.value.copy(mBias).multiply(mirrorCam.projectionMatrix).multiply(mirrorCam.matrixWorldInverse).multiply(mK.makeScale(k, k, k));
-    const model = realHall.model, bg = scene.background, alpha = renderer.getClearAlpha();
+    const model = realHall.model, crew = life.root, crewOn = crew.visible, bg = scene.background, alpha = renderer.getClearAlpha();
     renderer.getClearColor(mClear);
-    model.visible = false; scene.background = null;
+    model.visible = false; crew.visible = false; scene.background = null;
     // Schattenkarten bleiben die des letzten Bilds (gleich darauf neu)
     renderer.shadowMap.needsUpdate = false;
     renderer.setClearColor(0x000000, 0);
@@ -3310,7 +3313,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     renderer.render(scene, mirrorCam);
     renderer.setRenderTarget(null);
     renderer.setClearColor(mClear, alpha);
-    model.visible = true; scene.background = bg;
+    model.visible = true; crew.visible = crewOn; scene.background = bg;
     hallRefl.tex.value = mirrorRT.texture;
     hallRefl.on.value = 1;
   }
