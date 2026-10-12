@@ -1,0 +1,326 @@
+{
+  "version": "4.10.2",
+  "codename": "RSI Discovery Month",
+  "date": "2026-10-09",
+  "dateDisplay": "9. Oktober 2026",
+  "notesUrl": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102",
+  "era": "Frontier",
+  "type": "point",
+  "tagline": "RSI baut die Constellation neu, feiert die Mk V mit einem Monat voller Aufträge, und lose Kisten fliegen endlich dorthin, wo man sie hinwirft.",
+  "heroImage": "/assets/wk-taurus.jpg",
+  "summary": "Alpha 4.10.2 gehört Roberts Space Industries. Die Constellation Mk IV ist von Grund auf neu gebaut — freie Sicht von der Brücke, neuer Frachtlift, versetzte Luftschleuse, eigene Turmanzeigen, überarbeitetes Annexdock und ein komplett neuer Außenanstrich. Dazu startet in Stanton das Event „RSI Discovery Month\" mit drei Laufbahnen: Verteidigung rund um microTech, Transport zur Expo-Plattform und Sammeln für Shubin und Adagio. Neu im Bestand sind die Constellation Mk V Centaurus und ihr Beiboot, die RSI Skylark; auch die Hammerhead steht dort in einer neuen Fassung mit deutlich mehr Hülle und Schild, ohne dass die Notes sie erwähnen. Unter der Haube ist der Netzcode für lose Physikobjekte neu geschrieben, VR bekommt einen eigenen Zoom, und Schilde mit festem Resistenzwert schützen endlich. 71 Fehler sind geschlossen, darunter die Orison-Relief-Bergungsaufträge, die sich in wenigen Minuten abhaken ließen.",
+  "palette": {
+    "bg": "#0e121b",
+    "accent": "#d9b46a",
+    "accent2": "#7cc6e6",
+    "warm": true
+  },
+  "keyFacts": [
+    {
+      "label": "RSI Discovery Month",
+      "value": "Event in Stanton — drei Laufbahnen: Verteidigung, Transport, Sammeln"
+    },
+    {
+      "label": "Constellation Mk IV",
+      "value": "Die ganze Reihe neu gebaut — Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
+    },
+    {
+      "label": "Neu im Bestand",
+      "value": "Constellation Mk V Centaurus und ihr Beiboot, die RSI Skylark"
+    },
+    {
+      "label": "Physik-Netzcode",
+      "value": "Neu geschrieben für lose Objekte — Kisten, Granaten, Wurfgegenstände"
+    },
+    {
+      "label": "VR",
+      "value": "Eigener Zoom für Visiere, Präzisionszielen und F-Interaktion, abschaltbar"
+    },
+    {
+      "label": "Fehlerbehebungen",
+      "value": "71 geschlossen (13 aus dem Issue Council), dazu 20 Hotfixes seit 4.10.1"
+    },
+    {
+      "label": "Persistenz",
+      "value": "Long Term Persistence erhalten · Startkapital 20.000 aUEC"
+    }
+  ],
+  "features": [
+    {
+      "name": "RSI Discovery Month",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Roberts Space Industries feiert die neuesten Schiffe der Flotte mit einem Event in Stanton. Aufträge aus Schiffs- und Bodenkampf, Fracht, Bergung, Salvage und Rohstoffbeschaffung bringen Eventpunkte; damit steigt man in eigenen Laufbahnen auf und schaltet Belohnungen frei. Im Bestand stehen dafür 12 neue Missionsfamilien unter dem Kürzel „RSI Disc. Month\" — Betankungsrufe in drei Dringlichkeiten, Paketbergungen und der Ankauf von raffiniertem Beryl, Eisen und Quantainium.",
+      "facts": [
+        {
+          "label": "Verteidigung",
+          "value": "Bounty Hunters Guild · Foxwell · Northrock — rund um microTech, im Raum und am Boden"
+        },
+        {
+          "label": "Transport",
+          "value": "Ling Family Hauling · Covalex · FTL — Fracht zur Expo-Plattform"
+        },
+        {
+          "label": "Sammeln",
+          "value": "Shubin kauft Rohstoffe, Adagio recycelt Merlins, Archimedes und Constellations"
+        }
+      ]
+    },
+    {
+      "name": "Iasi-Aufträge",
+      "system": "Missionen & Aktivitäten",
+      "kind": "gameplay",
+      "desc": "Neben den Discovery-Month-Familien kommen 18 Missionsfamilien der „Iasi\"-Reihe in den Bestand: Kurierfahrten, Schiffsschutz, Patrouillen und Abschüsse in drei Schwierigkeitsstufen, Salvage in drei Größen und Frachtfahrten mit Party- und Sicherheitsvorräten. Insgesamt wächst der Bestand von 1.355 auf 1.387 Missionsfamilien.",
+      "facts": [
+        {
+          "label": "Missionsfamilien",
+          "value": "1.355 → 1.387 (+32)"
+        }
+      ]
+    },
+    {
+      "name": "Constellation Mk IV neu gebaut",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Die ganze Reihe — Andromeda, Aquila, Phoenix, Taurus — ist auf den aktuellen Stand gebracht. Die Brückenverglasung ist innen und außen neu, die großen Streben an der Nase sind weg. Der Frachtlift hat ein eigenes Bedienfeld, der Taurus-Frachtraum ist neu zugeschnitten, der vordere Crewlift neu animiert. Die Phoenix bekommt eine seitliche Luftschleuse; bei allen sitzen die Schleusenschalter jetzt in den Wänden des Frachtraums und außen neben der Tür. Obere und untere Türme haben eigene Anzeigen, Reichweiten und Schwenkgrenzen stimmen. Die Außenhülle ist komplett überarbeitet, mit neuen Schadensstufen und zwei neuen Lackierungen. Im Bestand tragen alle Varianten jetzt „Mk IV\" im Namen.",
+      "facts": [
+        {
+          "label": "Hüllen-HP Andromeda · Aquila",
+          "value": "180.644 → 103.004"
+        },
+        {
+          "label": "Hüllen-HP Phoenix · Taurus",
+          "value": "180.644 → 104.005"
+        },
+        {
+          "label": "Taurus Wasserstoff",
+          "value": "19 → 33 SCU"
+        },
+        {
+          "label": "KI und Missionen",
+          "value": "NPC-Constellations fliegen den neuen Rumpf; der Collector-Auftrag gibt die Gold-Standard-Taurus"
+        }
+      ]
+    },
+    {
+      "name": "Constellation Mk V Centaurus",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Die nächste Generation der Constellation steht vollständig im Bestand: größer, mit größerer Messe und größerem Frachtraum, stärkeren Türmen und Raketenwerfern und einem neuen Andockplatz für die Skylark. Das Discovery-Month-Event feiert genau diese Neuzugänge der RSI-Flotte.",
+      "facts": [
+        {
+          "label": "Rolle",
+          "value": "Mittlerer Frachter / Kanonenschiff · groß · ab vier Personen"
+        },
+        {
+          "label": "Hülle / Schild",
+          "value": "170.500 / 200.000 HP"
+        },
+        {
+          "label": "SCM / Höchstgeschwindigkeit",
+          "value": "170 / 1.075 m/s"
+        },
+        {
+          "label": "Fracht",
+          "value": "240 SCU (Mk IV Andromeda: 96)"
+        },
+        {
+          "label": "Raketen",
+          "value": "32 × StrikeForce II"
+        }
+      ]
+    },
+    {
+      "name": "RSI Skylark",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Das Beiboot der Mk V: ein wendiger Annexjäger, der im Andockplatz der Centaurus mitfliegt. Sechs Lackierungen gibt es passend zur Mk V.",
+      "facts": [
+        {
+          "label": "Rolle",
+          "value": "Annexjäger · Beiboot · eine Person"
+        },
+        {
+          "label": "Hülle / Schild",
+          "value": "6.230 / 6.000 HP"
+        },
+        {
+          "label": "SCM / Höchstgeschwindigkeit",
+          "value": "227 / 1.240 m/s"
+        },
+        {
+          "label": "Raketen",
+          "value": "10 × Marksman I"
+        }
+      ]
+    },
+    {
+      "name": "Hammerhead in neuer Fassung",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Nicht in den Notes, aber im Bestand: Die Aegis Hammerhead steht wie die Constellation in einer neu gebauten Fassung bereit. Hülle und Schild legen kräftig zu, der Frachtraum wächst, und sie kommt mit einer Person weniger aus. Die Quantum-Reichweite sinkt dagegen auf rund ein Drittel.",
+      "facts": [
+        {
+          "label": "Hüllen-HP",
+          "value": "295.600 → 403.400"
+        },
+        {
+          "label": "Schild-HP",
+          "value": "144.000 → 211.200"
+        },
+        {
+          "label": "Fracht",
+          "value": "40 → 64 SCU"
+        },
+        {
+          "label": "Mindestcrew",
+          "value": "9 → 8"
+        }
+      ]
+    },
+    {
+      "name": "Physik-Netzcode neu geschrieben",
+      "system": "Server-Technik",
+      "kind": "tech",
+      "desc": "Wie lose Physikobjekte übers Netz abgeglichen werden, ist neu. Bisher galt der Serverzustand eines Objekts als ganz richtig oder ganz falsch — ein einziger schlechter Zustand konnte zu Desync, Gummiband-Effekten und rutschenden Kisten führen. Jetzt bekommt jeder Serverzustand einen Vertrauenswert; Korrekturen kommen als sanfte Geschwindigkeitsschübe, ein Teleport nur noch als letzter Ausweg. Würfe starten am tatsächlichen Loslass-Moment, Traktorstrahlen ziehen Gegenstände beim Loslassen nicht mehr zum Aufhebeort zurück. Schiffe, Fahrzeuge und Charaktere bleiben beim alten System.",
+      "facts": [
+        {
+          "label": "Betrifft",
+          "value": "Frachtkisten, Granaten, Wurfgegenstände und andere lose Objekte"
+        },
+        {
+          "label": "Toleranzen",
+          "value": "Skalieren mit Latenz und Objektgröße"
+        },
+        {
+          "label": "Status",
+          "value": "Experimentell, auf LIVE zurücknehmbar"
+        }
+      ]
+    },
+    {
+      "name": "VR-Zoom",
+      "system": "UI & Komfort",
+      "kind": "qol",
+      "desc": "VR bekommt einen eigenen Zoom, der das Sichtfeld verengt — als Übergang, bis Zielfernrohre physikalisch umgesetzt sind. Er greift beim Heranzoomen per F-Interaktion, beim Präzisionszielen im Schiff und in den Visieren von FPS-Waffen. Die neue Option „Zoom Gameplay Strength\" regelt die Stärke; 0 schaltet ihn ab. Dazu: Grounded Look nutzt beim Handabbau die Zielrichtung, und im Freelook lässt sich der Traktorstrahl mit dem Kopf zielen.",
+      "facts": [
+        {
+          "label": "Gilt für",
+          "value": "F-Interaktion · Präzisionszielen im Schiff · FPS-Visiere"
+        },
+        {
+          "label": "Abschalten",
+          "value": "Zoom Gameplay Strength auf 0"
+        }
+      ]
+    },
+    {
+      "name": "Schilde mit festem Resistenzwert",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Ein Resistenzband galt nur, wenn sein Minimum echt unter dem Maximum lag. Schilde mit einem einzigen festen Wert fielen durch diese Prüfung und schützten gar nicht. Die Einschränkung ist weg — feste Resistenzen wirken jetzt."
+    },
+    {
+      "name": "Verlassene Schiffe verschwinden",
+      "system": "Hangars & Persistenz",
+      "kind": "qol",
+      "desc": "An Everus Harbor, Seraphim Station, Baijini Point und Port Tressler fehlte die Lebensdauer für abgestellte Fahrzeuge — die Landeplätze füllten sich mit Wracks, und andere kamen nicht mehr herunter. Jetzt laufen dort Fahrzeuge auf einem Timer ab wie überall sonst. Außerdem kommen Schiffe aus dem Hangar wieder in dem Zustand, in dem man sie abgestellt hat, statt mit laufenden Triebwerken, und die Prospector steht nicht mehr schief auf dem Pad."
+    },
+    {
+      "name": "Orison Relief Support nachgeschärft",
+      "system": "Missionen & Aktivitäten",
+      "kind": "balance",
+      "desc": "Die Salvage-Aufträge des Relief-Events verlangten so wenig Abgabemenge, dass sich die ganze Belohnungsleiste in einer Handvoll kurzer Läufe abhaken ließ. Die Mengen sind in allen drei Größen deutlich angehoben, die Schwierigkeitsangaben passen dazu. Mehrere Relief-Aufträge lassen sich jetzt am selben Lastenaufzug in einem Zug abgeben."
+    },
+    {
+      "name": "Aufträge und Fracht",
+      "system": "Cargo & Logistik",
+      "kind": "qol",
+      "desc": "Wer bei einer Fracht-Tour mit mehreren Stopps am ersten Ziel alles abgab, verlor den Rest — die Rückerstattung über den Lastenaufzug war unzuverlässig und gibt jetzt immer alles zurück, was nicht gebraucht wurde. Legale Lieferaufträge schicken nicht mehr zu Cry-Astro-Orten, an denen man als Eindringling gilt. Aufträge, die sich direkt nach dem Annehmen als nicht verfügbar meldeten, bleiben verfügbar. Kopfgeld-Titel nennen keinen Schiffstyp mehr, weil der oft nicht stimmte."
+    },
+    {
+      "name": "Siege of Orison",
+      "system": "Events",
+      "kind": "qol",
+      "desc": "Kommunikationstürme drehen sich nach dem Zurücksetzen ihrer Knoten wieder. Im Endkampf öffneten sich die Türen der Kommandozentrale, und der Kommandant hörte auf zu feuern, obwohl er noch lebte — die letzte Phase endet jetzt mit seinem Tod. Der fünfte Spieler einer Gruppe wird wieder zur Instanz der anderen verschoben."
+    },
+    {
+      "name": "Schiffe: Reparaturen",
+      "system": "Schiffs-Systeme",
+      "kind": "qol",
+      "desc": "Die Origin-X1-Reihe kann mit Gimbal wieder feuern und zielen. Schiffe bleiben nach dem Quantum-Sprung bei schlechter Verbindung nicht mehr steuerlos. Die Heckrampe der Cutlass hebt das Schiff nicht mehr an, Bodenfahrzeug-Ketten drehen sich wieder, das Radar der Mirai Pulse steht richtig herum, und die Caterpillar setzt die Manifest-Crew ins Kommandomodul."
+    },
+    {
+      "name": "Neue Ausrüstung",
+      "system": "Waffen & Ausrüstung",
+      "kind": "gameplay",
+      "desc": "Laut Notes kommt das Panzerset Heavy Combat Hunter 3 mit allen Farbvarianten, drei Tarnmuster für die RRS-Reihe und neun neue Augenbrauen für die Charaktererstellung. Wikelo tauscht jetzt Rezepte für das Gemini-LMG und die Grey Combat Armour, mit eigener Mission zum LMG. Im Katalog neu: die schwere Monolith-Panzerung in zehn Ausführungen, Venture- und Zeus-Exploration-Ausführungen, Waffen-Ausführungen wie „Starwalker\", „Infrared\", „Echo\" und „Runic\" sowie die Komponentenreihen BriskAir (Kühler), Delphi (Radar), Helios und Sovereign (Kraftwerke).",
+      "facts": [
+        {
+          "label": "Item-Katalog",
+          "value": "9.222 → 9.410 Einträge"
+        },
+        {
+          "label": "Constellation-Teile",
+          "value": "Lackierungen und Modelle laufen jetzt unter „Mk IV\""
+        }
+      ]
+    },
+    {
+      "name": "Monolith aus der Werkbank",
+      "system": "Crafting",
+      "kind": "gameplay",
+      "desc": "13 Baupläne kommen dazu, ein Antium-Bauplan fällt weg. Neu ist die schwere Monolith-Panzerung als Set — Helm, Torso, Arme, Beine, Rucksack — in der Grundfassung und in „Shadowflux\", dazu das F55-LMG „Shadowflux\", das Kraftwerk DayBreak und der Quantum-Antrieb Goliath. Die Baupläne für einen Juster-Quantum-Antrieb und ein Sasu-Kraftwerk zeigten auf die falschen Teile und sind korrigiert.",
+      "facts": [
+        {
+          "label": "Baupläne",
+          "value": "1.605 → 1.617"
+        },
+        {
+          "label": "Monolith-Set",
+          "value": "Fünf Teile, je Grundfassung und Shadowflux"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Constellation Mk V Centaurus",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Mittlerer Frachter / Kanonenschiff",
+      "status": "neu",
+      "notes": "Nächste Constellation-Generation mit Andockplatz für die Skylark"
+    },
+    {
+      "name": "Skylark",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Annexjäger",
+      "status": "neu",
+      "notes": "Beiboot der Constellation Mk V"
+    },
+    {
+      "name": "Constellation Mk IV (Andromeda, Aquila, Phoenix, Taurus)",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Mehrzweck",
+      "status": "Gold Standard",
+      "notes": "Ganze Reihe neu gebaut — Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
+    },
+    {
+      "name": "Hammerhead",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Schweres Kanonenschiff",
+      "status": "Gold Standard",
+      "notes": "Neue Fassung mit mehr Hülle, Schild und Fracht — nicht in den Notes"
+    }
+  ],
+  "events": [
+    {
+      "name": "RSI Discovery Month",
+      "desc": "Event in Stanton zu den neuen RSI-Schiffen: Verteidigung, Transport und Sammeln bringen Eventpunkte und Belohnungen in eigenen Laufbahnen.",
+      "period": "ab 09.10.2026"
+    }
+  ],
+  "fixesNote": "71 geschlossene Fehler (13 aus dem Issue Council, 5 Absturz- und Stabilitätsfehler), dazu 20 Hotfixes, die während 4.10.1 nachgeliefert wurden.",
+  "wipe": "Kein Wipe — Long Term Persistence bleibt erhalten, Startkapital 20.000 aUEC.",
+  "topics": []
+}
