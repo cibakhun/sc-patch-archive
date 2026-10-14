@@ -1,8 +1,6 @@
 ---
-// „sc-4-10-2" — EIN Körper für DE und EN.
-// Muster und Begründung: siehe components/topics/4-5-0-engineering.astro.
 // Ein Element auf OBERSTER Ebene darf keinen {ausdruck} als Kind haben —
-// Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe Sprungmarke).
+// Astro 5.18 verschluckt sonst dessen schließendes Tag.
 import SiteNav from '../../components/SiteNav.astro';
 import QuickFacts from '../../components/dossier/QuickFacts.astro';
 import PatchDossier from '../../components/dossier/PatchDossier.astro';
@@ -18,9 +16,6 @@ const entry = await getEntry('patches', '4-10-2');
 if (!entry) throw new Error('Patch-Daten 4-10-2 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-10-2', entry.data, lang);
 
-/* Der Rundgang durch die neu gebaute Constellation Mk IV, vom Bug zum Heck.
-   Inhalt und Reihenfolge aus den offiziellen 4.10.2-Notes (Abschnitt
-   "RSI Constellation Mk IV"), knapp zusammengefasst. */
 const DECK = [
   { kde: 'Bug', ken: 'Bow', de: 'Brücke', en: 'Bridge',
     tde: 'Verglasung neu, die großen Streben an der Nase sind weg. Selbstzerstörung, Port und Schild jetzt im Flug-HUD.',
@@ -51,10 +46,6 @@ const DECK = [
 <PatchSeo patch={patch} image="/assets/wk-taurus.jpg" />
 <style is:inline>
 
-/* 4.10.2 "RSI Discovery Month" — die Messe der Constellation.
-   Design-Welt: RSI-Gold auf Nachtblau, dazu das kühle Blau der Expo-
-   Beleuchtung. Signatur ist der Rundgang: acht Stationen durch die neu
-   gebaute Mk IV, vom Bug zum Heck. */
 :root{
   --bg:#0e121b;--bg-2:#131926;--surface:#182030;--surface-2:#1f2a3d;
   --accent:#d9b46a;--accent-2:#7cc6e6;--hot:#7cc6e6;
@@ -75,10 +66,8 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
 .skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
 
-/* Effekt-Overlays: Vignette + feine Scanlines */
 body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(130% 115% at 50% 38%,transparent 54%,var(--vignette) 100%);opacity:var(--ambient-opacity);-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - var(--maxw)/2 - 80px),transparent calc(50% - var(--maxw)/2),transparent calc(50% + var(--maxw)/2),#000 calc(50% + var(--maxw)/2 + 80px),#000 100%)}
 
-/* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
 .hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/wk-taurus.jpg') center/cover;animation:kb 30s ease-in-out infinite alternate}
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
@@ -99,13 +88,11 @@ body::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;b
 .scrollcue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);animation:bob 2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
 
-/* Marquee */
 .marquee{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:linear-gradient(90deg,var(--bg-2),var(--surface),var(--bg-2));padding:.8rem 0}
 .mtrack{display:flex;gap:2.4rem;white-space:nowrap;width:max-content;animation:scrollx 34s linear infinite;font-family:var(--font-display);font-weight:700;font-size:var(--fs-11);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--accent)}
 .mtrack .dot{color:var(--accent-2)}
 @keyframes scrollx{to{transform:translateX(-50%)}}
 
-/* Section */
 section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)}
 .wrap{max-width:var(--maxw);margin:0 auto}
 .sec-head{display:flex;align-items:center;gap:1rem;margin-bottom:2rem}
@@ -115,7 +102,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .lead{max-width:64ch;color:var(--muted);font-size:var(--fs-10);line-height:1.55;margin-bottom:1.4rem}
 .lead b{color:#ecd5a3}
 
-/* BENTO */
 .bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:185px;gap:.8rem}
 @media(max-width:820px){.bento{grid-template-columns:repeat(2,1fr)}}
 .tile{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:1.2rem}
@@ -136,7 +122,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .w2{grid-column:span 2}.h2{grid-row:span 2}.b2{grid-column:span 2;grid-row:span 2}
 @media(max-width:820px){.b2{grid-column:span 2}.h2{grid-row:span 1}}
 
-/* SHOT */
 .shot{position:relative;min-height:90vh;display:flex;align-items:flex-end;padding:clamp(2.5rem,7vw,7rem) clamp(1.25rem,5vw,4.5rem);overflow:hidden}
 .shot .sbg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;animation:kb2 26s ease-in-out infinite alternate}
 @keyframes kb2{from{transform:scale(1.08)}to{transform:scale(1.24) translate(-3%,-2%)}}
@@ -147,7 +132,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .shot .big{font-family:var(--font-display);font-weight:900;font-size:clamp(2.6rem,13vw,10rem);line-height:.8;color:var(--on-media);text-shadow:0 6px 70px var(--on-media-shadow),0 0 50px rgba(217,180,106,.26);overflow-wrap:normal;text-wrap:balance}
 .shot p{max-width:48ch;color:var(--on-media-dim);font-size:clamp(1rem,1.6vw,1.25rem);margin-top:.6rem;text-shadow:0 2px 14px var(--on-media-shadow)}
 
-/* LAUFBAHNEN — vier Karten mit Rahmen-Ecken */
 .prov{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}
 @media(max-width:1000px){.prov{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.prov{grid-template-columns:minmax(0,1fr)}}
@@ -160,9 +144,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .icard small{display:block;color:var(--muted);font-size:var(--fs-8);line-height:1.5}
 .icard .route{display:block;margin-top:.6rem;font-family:var(--font-mono);font-size:var(--fs-6);letter-spacing:var(--ls-7);color:var(--accent);overflow-wrap:anywhere}
 
-/* RUNDGANG — Signatur dieser Seite.
-   Acht Stationen durch die neue Mk IV; jede Karte steht auf ihrer Schiene.
-   Gold und Blau wechseln sich ab, damit die Reihe als Weg lesbar bleibt. */
 .track{list-style:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.6rem;position:relative;margin-top:.4rem}
 @media(max-width:900px){.track{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.track{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -180,7 +161,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .tracknote{margin-top:1rem;color:var(--muted);font-size:var(--fs-7);line-height:1.5;max-width:70ch}
 .tracknote b{color:var(--text)}
 
-/* LESEWERTE — Panel mit Ablesezeilen */
 .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
 @media(max-width:900px){.qgrid{grid-template-columns:1fr}}
 .qgrid>*{min-width:0}
@@ -196,7 +176,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .readout dd{color:var(--text);text-align:right;min-width:0;overflow-wrap:anywhere}
 .readout dd em{color:var(--accent-2);font-style:normal}
 
-/* SCHIFFS-DATENBLÄTTER */
 .sr{display:grid;grid-template-columns:1.25fr .75fr;gap:.9rem}
 @media(max-width:900px){.sr{grid-template-columns:1fr}}
 .sr>*{min-width:0}
@@ -207,7 +186,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .qpanel p.after,.srnote p.after{margin:.85rem 0 0}
 .srnote p.after a{color:var(--accent)}
 
-/* AUSRÜSTUNG — Raster */
 .gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:.8rem}
 .gcard{background:var(--surface);border:1px solid var(--line-soft);border-left:2px solid var(--accent-2);padding:1.05rem 1.15rem .95rem}
 .gcard .gk{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-13);color:var(--accent-2);text-transform:uppercase}
@@ -216,7 +194,6 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 .chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem}
 .chip{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-9);color:var(--text);border:1px solid rgba(217,180,106,.4);padding:.28rem .6rem;border-radius:2px;background:var(--veil)}
 
-/* Footer */
 footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5rem,6vw,4rem) clamp(1.25rem,5vw,4.5rem) 3rem}
 .pager{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;max-width:var(--maxw);margin-inline:auto}
 .pager>a,.pager>span{flex:1;min-width:min(200px,100%);display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:1.1rem 1.3rem;background:var(--surface);transition:border-color var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
@@ -230,7 +207,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .home-link{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-6)}
 .disclaimer{max-width:var(--maxw);margin:1.6rem auto 0;font-size:var(--fs-4);color:var(--muted);opacity:.65;border-top:1px solid var(--line-soft);padding-top:1.2rem}
 
-/* Klickbar-Affordance + Lightbox */
 .tile.img,.tile.word,.tile.stat{cursor:pointer}
 .zoomic{position:absolute;top:.7rem;right:.7rem;z-index:3;width:34px;height:34px;border-radius:50%;background:var(--scrim-4);border:1px solid var(--line);display:grid;place-items:center;font-size:var(--fs-8);color:var(--on-media);opacity:.55;transition:opacity var(--dur-base) var(--ease-ui),background var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
 .tile.img:hover .zoomic,.tile.word:hover .zoomic,.tile.stat:hover .zoomic{opacity:1;background:var(--accent);color:var(--ink-media);transform:scale(1.12)}
@@ -258,7 +234,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 
 <main id="main">
 
-  <!-- HERO -->
   <section class="hero">
     <div class="hero__photo" aria-hidden="true"></div>
     <canvas id="haze" aria-hidden="true"></canvas>
@@ -266,7 +241,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="eyebrow">{de ? '9. Oktober 2026 · Point-Release' : 'October 9, 2026 · Point Release'}</div>
       <h1 data-text="4.10.2">4.10.2</h1>
       <div class="codename">RSI <span>Discovery Month</span></div>
-      <div class="tagline">{de ? 'Die Constellation neu gebaut — und ein Monat für die RSI-Flotte' : 'The Constellation rebuilt — and a month for the RSI fleet'}</div>
+      <div class="tagline">{de ? 'Die Constellation neu gebaut, dazu ein Event für die RSI-Flotte' : 'The Constellation rebuilt, plus an event for the RSI fleet'}</div>
       <div class="tags">
         <span class="tag hot">{de ? 'Event in Stanton' : 'Event in Stanton'}</span><span class="tag">Constellation Mk IV</span><span class="tag">Mk V Centaurus</span><span class="tag">Skylark</span><span class="tag">{de ? 'VR-Zoom' : 'VR zoom'}</span><span class="tag">{de ? '71 Fehler behoben' : '71 issues fixed'}</span><span class="tag">{de ? 'Kein Wipe' : 'No Wipe'}</span>
       </div>
@@ -274,7 +249,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="scrollcue" aria-hidden="true">{de ? 'Scrollen ↓' : 'Scroll ↓'}</div>
   </section>
 
-  <!-- MARQUEE -->
   <div class="marquee" aria-hidden="true">
     <div class="mtrack">
       <span>RSI DISCOVERY MONTH</span><span class="dot">◆</span><span>CONSTELLATION MK IV</span><span class="dot">◆</span><span>MK V CENTAURUS</span><span class="dot">◆</span><span>SKYLARK</span><span class="dot">◆</span><span>MICROTECH</span><span class="dot">◆</span><span>HAMMERHEAD</span><span class="dot">◆</span><span>{de ? 'PHYSIK-NETZCODE' : 'PHYSICS NETCODE'}</span><span class="dot">◆</span><span>{de ? '71 FEHLER BEHOBEN' : '71 ISSUES CLOSED'}</span><span class="dot">◆</span>
@@ -282,26 +256,23 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </div>
 
-  <!-- AT A GLANCE (Daten-Register, uniform) -->
   <QuickFacts facts={patch.keyFacts} stand={`Alpha ${patch.version} · ${patch.dateDisplay}`} lang={de ? 'de' : 'en'} />
 
-  <!-- BENTO HIGHLIGHTS -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">01</span><h2>Highlights</h2><span class="rule"></span></div>
       <div class="bento reveal">
         <div class="tile img b2" data-lb="img:/assets/wk-taurus.jpg"><div class="tbg" style="background-image:url('/assets/wk-taurus.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Constellation Mk IV</div><div class="sub">{de ? 'Die ganze Reihe neu gebaut' : 'The whole series rebuilt'}</div></div>
-        <div class="tile stat" data-info data-title="RSI Discovery Month" data-text={de ? 'RSI feiert die Neuzugänge der Flotte mit einem Event in Stanton. Drei Laufbahnen: Verteidigung rund um microTech (Bounty Hunters Guild, Foxwell, Northrock), Transport zur Expo-Plattform (Ling Family Hauling, Covalex, FTL) und Sammeln (Shubin kauft Material, Adagio recycelt Rümpfe). Aufträge bringen Eventpunkte, die Laufbahnen schalten Belohnungen frei.' : 'RSI celebrates the newest additions to its fleet with an event in Stanton. Three tracks: defence around microTech (Bounty Hunters Guild, Foxwell, Northrock), transport to the expo platform (Ling Family Hauling, Covalex, FTL) and collection (Shubin buys materials, Adagio recycles hulls). Contracts earn event points, and the tracks unlock rewards.'}><span class="zoomic">+</span><div class="num">3</div><div class="cap">{de ? 'Laufbahnen' : 'Tracks'}</div></div>
-        <div class="tile word hot" data-info data-title="Constellation Mk V Centaurus" data-text={de ? 'Die nächste Constellation-Generation steht komplett im Bestand: größer, 240 SCU Fracht statt 96 bei der Mk IV Andromeda, 170.500 Hüllen- und 200.000 Schild-HP, 32 StrikeForce-II-Raketen und ein Andockplatz für das neue Beiboot, die RSI Skylark.' : 'The next Constellation generation is complete in the catalogue: bigger, 240 SCU of cargo instead of the Mk IV Andromeda\'s 96, 170,500 hull and 200,000 shield HP, 32 StrikeForce II missiles and a docking port for the new snub, the RSI Skylark.'}><span class="zoomic">+</span><b>MK V</b><small>{de ? 'Centaurus + Skylark' : 'Centaurus + Skylark'}</small></div>
+        <div class="tile stat" data-info data-title="RSI Discovery Month" data-text={de ? 'RSI feiert die Neuzugänge der Flotte mit einem Event in Stanton. Es gibt drei Laufbahnen, nämlich Verteidigung rund um microTech (Bounty Hunters Guild, Foxwell, Northrock), Transport zur Expo-Plattform (Ling Family Hauling, Covalex, FTL) und Sammeln (Shubin kauft Material, Adagio recycelt Rümpfe). Aufträge bringen Eventpunkte, und die Laufbahnen schalten Belohnungen frei.' : 'RSI celebrates the newest additions to its fleet with an event in Stanton. There are three tracks, which are defence around microTech (Bounty Hunters Guild, Foxwell, Northrock), transport to the expo platform (Ling Family Hauling, Covalex, FTL) and collection (Shubin buys materials, Adagio recycles hulls). Contracts earn event points, and the tracks unlock rewards.'}><span class="zoomic">+</span><div class="num">3</div><div class="cap">{de ? 'Laufbahnen' : 'Tracks'}</div></div>
+        <div class="tile word hot" data-info data-title="Constellation Mk V Centaurus" data-text={de ? 'Die nächste Constellation-Generation steht komplett im Bestand. Sie ist größer und hat 240 SCU Fracht statt 96 bei der Mk IV Andromeda, 170.500 Hüllen- und 200.000 Schild-HP, 32 StrikeForce-II-Raketen und einen Andockplatz für das neue Beiboot, die RSI Skylark.' : 'The next Constellation generation is complete in the catalogue. It is bigger and has 240 SCU of cargo instead of the Mk IV Andromeda\'s 96, 170,500 hull and 200,000 shield HP, 32 StrikeForce II missiles and a docking port for the new snub, the RSI Skylark.'}><span class="zoomic">+</span><b>MK V</b><small>{de ? 'Centaurus + Skylark' : 'Centaurus + Skylark'}</small></div>
         <div class="tile img w2" data-lb="img:/assets/img-hammerhead.jpg"><div class="tbg" style="background-image:url('/assets/img-hammerhead.jpg')"></div><span class="zoomic">⤢</span><div class="lbl">Aegis Hammerhead</div><div class="sub">{de ? 'Neue Fassung · nicht in den Notes' : 'New version · not in the notes'}</div></div>
-        <div class="tile stat" data-info data-title={de ? '71 geschlossene Fehler' : '71 closed issues'} data-text={de ? 'Der Patch schließt 71 Fehler seit 4.10.1, darunter mehrere Exploits; 13 kamen über das Issue Council. Fünf davon sind Absturz- und Stabilitätsfehler. Dazu kommen 20 Korrekturen, die schon während 4.10.1 als Hotfix nachgeliefert wurden — vor allem Serverstabilität.' : 'The patch closes 71 issues since 4.10.1, including several exploits; 13 came through the Issue Council. Five of them are crash and stability issues. On top come 20 fixes already shipped as hotfixes during 4.10.1 — mostly server stability.'}><span class="zoomic">+</span><div class="num">71</div><div class="cap">{de ? 'Fehler behoben' : 'Issues closed'}</div></div>
-        <div class="tile word" data-info data-title={de ? 'VR-Zoom' : 'VR zoom'} data-text={de ? 'VR bekommt einen eigenen Zoom, der das Sichtfeld verengt — für F-Interaktion, Präzisionszielen im Schiff und FPS-Visiere. Als Übergang, bis Zielfernrohre physikalisch umgesetzt sind. Die Option „Zoom Gameplay Strength“ regelt die Stärke; 0 schaltet ihn ab.' : 'VR gets its own zoom that narrows the field of view — for F interaction, precision targeting in ships and FPS scopes. A stopgap until scopes are physicalised. The "Zoom Gameplay Strength" option sets its strength; 0 turns it off.'}><span class="zoomic">+</span><b>VR<br>ZOOM</b><small>{de ? 'abschaltbar' : 'can be switched off'}</small></div>
-        <div class="tile word hot w2" data-info data-title={de ? 'Physik-Netzcode' : 'Physics netcode'} data-text={de ? 'Wie lose Objekte übers Netz abgeglichen werden, ist neu geschrieben. Statt den Serverzustand blind zu übernehmen, bekommt er einen Vertrauenswert; Korrekturen kommen als Geschwindigkeitsschub statt Teleport. Würfe starten am echten Loslass-Moment, Traktorstrahlen ziehen nichts mehr zurück. Gilt für Kisten, Granaten und Wurfgegenstände — nicht für Schiffe, Fahrzeuge oder Charaktere.' : 'How loose objects are reconciled across the network has been rewritten. Instead of applying the server state blindly, it gets a trust score; corrections arrive as velocity nudges instead of teleports. Throws start at the real release moment, and tractor beams no longer drag things back. Applies to crates, grenades and throwables — not to ships, vehicles or characters.'}><span class="zoomic">+</span><b set:html={de ? 'PHYSIK-<br>NETZCODE' : 'PHYSICS<br>NETCODE'} /><small>{de ? 'Kisten, Granaten, Würfe' : 'Crates, grenades, throws'}</small></div>
+        <div class="tile stat" data-info data-title={de ? '71 geschlossene Fehler' : '71 closed issues'} data-text={de ? 'Der Patch schließt 71 Fehler seit 4.10.1, darunter mehrere Exploits. 13 kamen über das Issue Council. Fünf davon sind Absturz- und Stabilitätsfehler. Dazu kommen 20 Korrekturen, die schon während 4.10.1 als Hotfix nachgeliefert wurden, vor allem für die Serverstabilität.' : 'The patch closes 71 issues since 4.10.1, including several exploits. 13 came through the Issue Council. Five of them are crash and stability issues. On top come 20 fixes already shipped as hotfixes during 4.10.1, mostly for server stability.'}><span class="zoomic">+</span><div class="num">71</div><div class="cap">{de ? 'Fehler behoben' : 'Issues closed'}</div></div>
+        <div class="tile word" data-info data-title={de ? 'VR-Zoom' : 'VR zoom'} data-text={de ? 'VR bekommt einen eigenen Zoom, der das Sichtfeld verengt. Er greift bei F-Interaktion, Präzisionszielen im Schiff und FPS-Visieren und ist als Übergang gedacht, bis Zielfernrohre physikalisch umgesetzt sind. Die Option „Zoom Gameplay Strength“ regelt die Stärke, und 0 schaltet ihn ab.' : 'VR gets its own zoom that narrows the field of view. It applies to F interaction, precision targeting in ships and FPS scopes, as a stopgap until scopes are physicalised. The "Zoom Gameplay Strength" option sets its strength, and 0 turns it off.'}><span class="zoomic">+</span><b>VR<br>ZOOM</b><small>{de ? 'abschaltbar' : 'can be switched off'}</small></div>
+        <div class="tile word hot w2" data-info data-title={de ? 'Physik-Netzcode' : 'Physics netcode'} data-text={de ? 'Wie lose Objekte übers Netz abgeglichen werden, ist neu geschrieben. Statt den Serverzustand blind zu übernehmen, bekommt er einen Vertrauenswert. Korrekturen kommen als Geschwindigkeitsschub statt Teleport. Würfe starten am echten Loslass-Moment, und Traktorstrahlen ziehen nichts mehr zurück. Das gilt für Kisten, Granaten und Wurfgegenstände, nicht für Schiffe, Fahrzeuge oder Charaktere.' : 'How loose objects are reconciled across the network has been rewritten. Instead of applying the server state blindly, it gets a trust score. Corrections arrive as velocity nudges instead of teleports. Throws start at the real release moment, and tractor beams no longer drag things back. This applies to crates, grenades and throwables, not to ships, vehicles or characters.'}><span class="zoomic">+</span><b set:html={de ? 'PHYSIK-<br>NETZCODE' : 'PHYSICS<br>NETCODE'} /><small>{de ? 'Kisten, Granaten, Würfe' : 'Crates, grenades, throws'}</small></div>
       </div>
     </div>
   </section>
 
-  <!-- LAUFBAHNEN -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">02</span><h2>{de ? 'Die drei Laufbahnen' : 'The three tracks'}</h2><span class="rule"></span></div>
@@ -309,17 +280,16 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="prov reveal">
         <article class="icard"><span class="ik">{de ? 'Verteidigung' : 'Defence'}</span><b>BHG · Foxwell · Northrock</b><small>{de ? 'Den Raum um microTech von Piraten freihalten, während die Besucher anreisen: Schiffskampf und Patrouillen, dazu Bodeneinsätze in Höhlen, Außenposten und Distributionszentren.' : 'Keep the space around microTech clear of pirates while visitors arrive: ship combat and patrols, plus ground work at caves, outposts and distribution centres.'}</small><span class="route">microTech · {de ? 'Raum · Boden' : 'space · ground'}</span></article>
         <article class="icard"><span class="ik">Transport</span><b>Ling · Covalex · FTL</b><small>{de ? 'Waren von Landezonen, Distributionszentren und Stationen im niedrigen Orbit zur Expo-Plattform bringen.' : 'Move goods from landing zones, distribution centres and low-orbit stations to the expo platform.'}</small><span class="route">→ {de ? 'Expo-Plattform' : 'expo platform'}</span></article>
-        <article class="icard"><span class="ik">{de ? 'Sammeln' : 'Collection'}</span><b>Shubin · Adagio</b><small>{de ? 'Shubin kauft Roh- und Fertigmaterial für den Schiffsbau, Adagio will Rümpfe zum Recycling zerlegt haben — Kruger Merlins, Archimedes und Constellations.' : 'Shubin buys raw and crafted materials for shipbuilding, Adagio wants hulls broken down for recycling — Kruger Merlins, Archimedes and Constellations.'}</small><span class="route">{de ? 'Rohstoffe · Salvage' : 'Materials · salvage'}</span></article>
+        <article class="icard"><span class="ik">{de ? 'Sammeln' : 'Collection'}</span><b>Shubin · Adagio</b><small>{de ? 'Shubin kauft Roh- und Fertigmaterial für den Schiffsbau, Adagio will Rümpfe zum Recycling zerlegt haben, darunter Kruger Merlins, Archimedes und Constellations.' : 'Shubin buys raw and crafted materials for shipbuilding, Adagio wants hulls broken down for recycling, including Kruger Merlins, Archimedes and Constellations.'}</small><span class="route">{de ? 'Rohstoffe · Salvage' : 'Materials · salvage'}</span></article>
         <article class="icard"><span class="ik">{de ? 'Im Bestand' : 'In the catalogue'}</span><b>{de ? '30 neue Familien' : '30 new families'}</b><small>{de ? '12 tragen das Kürzel „RSI Disc. Month“: Betankungsrufe in drei Dringlichkeiten, Paketbergung, raffiniertes Beryl, Eisen und Quantainium. 18 weitere laufen als „Iasi“-Reihe.' : '12 carry the "RSI Disc. Month" tag: refuel calls in three urgencies, package recovery, refined beryl, iron and quantainium. 18 more run as the "Iasi" line.'}</small><span class="route">{de ? '1.355 → 1.387 Familien' : '1,355 → 1,387 families'}</span></article>
       </div>
     </div>
   </section>
 
-  <!-- RUNDGANG CONSTELLATION -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Rundgang durch die neue Mk IV' : 'A walk through the new Mk IV'}</h2><span class="rule"></span></div>
-      <p class="lead reveal">{de ? 'Andromeda, Aquila, Phoenix, Taurus — ' : 'Andromeda, Aquila, Phoenix, Taurus — '}<b>{de ? 'die ganze Reihe ist neu gebaut' : 'the whole series has been rebuilt'}</b>{de ? '. Acht Stationen, vom Bug zum Heck.' : '. Eight stops, from bow to stern.'}</p>
+      <p class="lead reveal">{de ? 'Andromeda, Aquila, Phoenix und Taurus: ' : 'Andromeda, Aquila, Phoenix and Taurus: '}<b>{de ? 'die ganze Reihe ist neu gebaut' : 'the whole series has been rebuilt'}</b>{de ? '. Die acht Stationen gehen vom Bug zum Heck.' : '. The eight stops run from bow to stern.'}</p>
       <ol class="track deck reveal">
         {DECK.map((d, i) => (
           <li class={i % 2 ? 'step a' : 'step'}><span class="sn">{String(i + 1).padStart(2, '0')}</span><span class="sk">{de ? d.kde : d.ken}</span><b>{de ? d.de : d.en}</b><small>{de ? d.tde : d.ten}</small></li>
@@ -329,11 +299,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </section>
 
-  <!-- WERTE -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">04</span><h2>{de ? 'Was sich an Werten bewegt hat' : 'What moved in the numbers'}</h2><span class="rule"></span></div>
-      <p class="lead reveal">{de ? 'Der Balance-Durchgang zeigt sich vor allem an der Hülle. ' : 'The balance pass shows mostly in the hull. '}<b>{de ? 'Die Constellation verliert gut 40 Prozent ihrer Hüllen-HP' : 'The Constellation loses over 40 percent of its hull HP'}</b>{de ? ', die Hammerhead legt gut ein Drittel zu — obwohl die Notes sie gar nicht erwähnen.' : ', while the Hammerhead gains over a third — though the notes never mention it.'}</p>
+      <p class="lead reveal">{de ? 'Der Balance-Durchgang zeigt sich vor allem an der Hülle. ' : 'The balance pass shows mostly in the hull. '}<b>{de ? 'Die Constellation verliert gut 40 Prozent ihrer Hüllen-HP' : 'The Constellation loses over 40 percent of its hull HP'}</b>{de ? '. Die Hammerhead legt gut ein Drittel zu, obwohl die Notes sie nicht erwähnen.' : '. The Hammerhead gains over a third, though the notes never mention it.'}</p>
       <div class="qgrid reveal">
         <div class="qpanel">
           <div class="phead"><h3>Constellation Mk IV</h3><span class="pc">{de ? 'vorher → nachher' : 'before → after'}</span></div>
@@ -360,11 +329,10 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </section>
 
-  <!-- NEU IM BESTAND -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">05</span><h2>{de ? 'Neu im Bestand' : 'New in the catalogue'}</h2><span class="rule"></span></div>
-      <p class="lead reveal">{de ? 'Der Anlass des Events: ' : 'The reason for the event: '}<b>{de ? 'die Constellation Mk V Centaurus' : 'the Constellation Mk V Centaurus'}</b>{de ? ' — samt Beiboot. Beide stehen mit vollständigen Werten im Bestand.' : ' — snub included. Both are in the catalogue with full stats.'}</p>
+      <p class="lead reveal">{de ? 'Das Event feiert ' : 'The event celebrates '}<b>{de ? 'die Constellation Mk V Centaurus' : 'the Constellation Mk V Centaurus'}</b>{de ? ' und ihr Beiboot. Beide stehen mit vollständigen Werten im Bestand.' : ' and its snub. Both are in the catalogue with full stats.'}</p>
       <div class="qgrid reveal">
         <div class="srnote">
           <h3>Constellation Mk V Centaurus</h3>
@@ -382,7 +350,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         </div>
         <div class="srnote">
           <h3>RSI Skylark</h3>
-          <p>{de ? 'Das Beiboot der Mk V: ein wendiger Annexjäger, der im Andockplatz der Centaurus mitfliegt — mit denselben sechs Lackierungen.' : 'The Mk V\'s snub: a nimble snub fighter that rides along in the Centaurus\' docking port — with the same six liveries.'}</p>
+          <p>{de ? 'Die Skylark ist das Beiboot der Mk V, ein wendiger Annexjäger für den Andockplatz der Centaurus. Sie hat dieselben sechs Lackierungen.' : 'The Skylark is the Mk V\'s snub, a nimble snub fighter for the Centaurus\' docking port. It has the same six liveries.'}</p>
           <dl class="readout">
             <div class="row"><dt>{de ? 'Rolle' : 'Role'}</dt><span class="lead2"></span><dd>{de ? 'Annexjäger' : 'Snub fighter'}</dd></div>
             <div class="row"><dt>Crew</dt><span class="lead2"></span><dd>1</dd></div>
@@ -397,14 +365,13 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </section>
 
-  <!-- UNTER DER HAUBE -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">06</span><h2>{de ? 'Unter der Haube' : 'Under the hood'}</h2><span class="rule"></span></div>
       <div class="qgrid reveal">
         <div class="qpanel">
           <div class="phead"><h3>{de ? 'Physik-Netzcode' : 'Physics netcode'}</h3><span class="pc">{de ? 'experimentell' : 'experimental'}</span></div>
-          <p>{de ? 'Bisher war der Serverzustand eines losen Objekts ganz richtig oder ganz falsch — ein einziger schlechter Zustand konnte zu Desync, Gummiband-Effekten und hüpfenden Kisten führen. Dazu kam ein Kollisionsfehler, der Objekten zusätzlichen Schwung gab.' : 'Until now a loose object\'s server state was either fully right or fully wrong — a single bad state could cascade into desync, rubber banding and bouncing crates. On top came a collision bug that injected extra force into objects.'}</p>
+          <p>{de ? 'Bisher war der Serverzustand eines losen Objekts ganz richtig oder ganz falsch. Ein einziger schlechter Zustand konnte zu Desync, Gummiband-Effekten und hüpfenden Kisten führen. Dazu kam ein Kollisionsfehler, der Objekten zusätzlichen Schwung gab.' : 'Until now a loose object\'s server state was either fully right or fully wrong. A single bad state could cascade into desync, rubber banding and bouncing crates. On top came a collision bug that injected extra force into objects.'}</p>
           <dl class="readout">
             <div class="row"><dt>{de ? 'Serverzustand' : 'Server state'}</dt><span class="lead2"></span><dd>{de ? 'mit ' : 'weighed by '}<em>{de ? 'Vertrauenswert' : 'trust score'}</em></dd></div>
             <div class="row"><dt>{de ? 'Korrektur' : 'Correction'}</dt><span class="lead2"></span><dd>{de ? 'Schub statt Teleport' : 'nudge, not teleport'}</dd></div>
@@ -422,19 +389,18 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
             <div class="row"><dt>LockAngle</dt><span class="lead2"></span><dd>10°</dd></div>
             <div class="row"><dt>SmoothTime</dt><span class="lead2"></span><dd>0.2 s</dd></div>
           </dl>
-          <p class="after">{de ? 'Dazu: Schilde mit festem Resistenzwert wirken jetzt — vorher fielen sie durch eine Prüfung und schützten gar nicht.' : 'Also: shields with a flat resistance value now apply — before, they failed a check and gave no protection at all.'}</p>
+          <p class="after">{de ? 'Schilde mit festem Resistenzwert wirken jetzt. Vorher fielen sie durch eine Prüfung und schützten gar nicht.' : 'Shields with a flat resistance value now apply. Before, they failed a check and gave no protection at all.'}</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- AUSRÜSTUNG -->
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">07</span><h2>{de ? 'Ausrüstung & Baupläne' : 'Gear & blueprints'}</h2><span class="rule"></span></div>
       <div class="gear reveal">
         <article class="gcard"><span class="gk">Crafting</span><b>{de ? 'Monolith-Set' : 'Monolith set'}</b><small>{de ? 'Die schwere Monolith-Panzerung als Bauplan, in der Grundfassung und in „Shadowflux“. Dazu das F55-LMG „Shadowflux“, das Kraftwerk DayBreak und der Quantum-Antrieb Goliath.' : 'The heavy Monolith armour as a blueprint, in its base version and in "Shadowflux". Plus the F55 "Shadowflux" LMG, the DayBreak power plant and the Goliath quantum drive.'}</small><div class="chips"><span class="chip">{de ? 'Helm' : 'Helmet'}</span><span class="chip">{de ? 'Torso' : 'Core'}</span><span class="chip">{de ? 'Arme' : 'Arms'}</span><span class="chip">{de ? 'Beine' : 'Legs'}</span><span class="chip">{de ? 'Rucksack' : 'Backpack'}</span></div></article>
-        <article class="gcard"><span class="gk">Wikelo</span><b>Gemini LMG · Grey Combat Armour</b><small>{de ? 'Wikelo tauscht jetzt die Rezepte für beide — zum LMG gibt es eine eigene Mission.' : 'Wikelo now trades the recipes for both — the LMG comes with a mission of its own.'}</small></article>
+        <article class="gcard"><span class="gk">Wikelo</span><b>Gemini LMG · Grey Combat Armour</b><small>{de ? 'Wikelo tauscht jetzt die Rezepte für beide. Zum LMG gibt es eine eigene Mission.' : 'Wikelo now trades the recipes for both. The LMG comes with a mission of its own.'}</small></article>
         <article class="gcard"><span class="gk">{de ? 'Laut Notes' : 'Per the notes'}</span><b>Heavy Combat Hunter 3</b><small>{de ? 'Das Panzerset mit allen Farbvarianten, drei Tarnmuster für die RRS-Reihe und neun neue Augenbrauen in der Charaktererstellung.' : 'The armour set with all its tints, three camouflage patterns for the RRS line and nine new eyebrows in character creation.'}</small></article>
         <article class="gcard"><span class="gk">{de ? 'Komponenten' : 'Components'}</span><b>{de ? 'Vier neue Reihen' : 'Four new lines'}</b><small>{de ? 'Neu im Katalog, je in drei Größen.' : 'New in the catalogue, three sizes each.'}</small><div class="chips"><span class="chip">{de ? 'BriskAir · Kühler' : 'BriskAir · cooler'}</span><span class="chip">Delphi · Radar</span><span class="chip">{de ? 'Helios · Kraftwerk' : 'Helios · power plant'}</span><span class="chip">{de ? 'Sovereign · Kraftwerk' : 'Sovereign · power plant'}</span></div></article>
         <article class="gcard"><span class="gk">{de ? 'Bestand' : 'Catalogue'}</span><b>{de ? '4.10.1 → 4.10.2' : '4.10.1 → 4.10.2'}</b><small>{de ? 'Gegenstände 9.222 → 9.410 · Baupläne 1.605 → 1.617 · Missionsfamilien 1.355 → 1.387. Mining bleibt inhaltlich unverändert.' : 'Items 9,222 → 9,410 · blueprints 1,605 → 1,617 · mission families 1,355 → 1,387. Mining is unchanged in substance.'}</small></article>
@@ -442,7 +408,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </section>
 
-  <!-- DOSSIER (volles Manifest, uniform aus der Datenschicht) -->
   <PatchDossier patch={patch} num="08" lang={de ? 'de' : 'en'} />
 
 </main>
@@ -466,7 +431,6 @@ const tb=document.getElementById('topbar');
 addEventListener('scroll',()=>tb.classList.toggle('scrolled',scrollY>40),{passive:true});
 const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px',threshold:0});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-/* Lightbox: Karten/Bilder klickbar */
 (function(){const lb=document.getElementById('lb'),lbc=lb.querySelector('.lb__content');
 function show(h){lbc.innerHTML=h;lb.classList.add('open');lb.setAttribute('aria-hidden','false');}
 function close(){lb.classList.remove('open');lbc.innerHTML='';lb.setAttribute('aria-hidden','true');}
@@ -475,7 +439,6 @@ document.querySelectorAll('[data-lb]').forEach(el=>el.addEventListener('click',(
 document.querySelectorAll('[data-info]').forEach(el=>el.addEventListener('click',()=>{const img=el.getAttribute('data-img'),ti=esc(el.getAttribute('data-title')),tx=esc(el.getAttribute('data-text'));show('<div class="lb__info">'+(img?'<img src="'+img+'" alt="">':'')+'<div class="lb__txt"><h3>'+ti+'</h3><p>'+tx+'</p></div></div>');}));
 lb.addEventListener('click',e=>{if(e.target===lb||e.target.closest('.lb__x'))close();});
 addEventListener('keydown',e=>{if(e.key==='Escape')close();});})();
-/* Expo-Lichter: Gold und Blau, die langsam über der Messe treiben */
 (function(){const c=document.getElementById('haze');if(!c)return;const x=c.getContext('2d');let running=false;const fxOn=()=>document.documentElement.getAttribute('data-fx')==='on';let w,h,st;const COL=['#d9b46a','#7cc6e6','#f3e3bd','#a3abb8'];
 function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,1);st=Array.from({length:Math.min(90,Math.floor(w/16))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2.2+.6,a:Math.random(),s:Math.random()*.009+.002,vx:Math.random()*.22+.05,vy:-(Math.random()*.05+.01),c:COL[Math.floor(Math.random()*COL.length)]}));}
 function tick(){if(!running)return;x.clearRect(0,0,w,h);for(const s of st){s.a+=s.s;s.x+=s.vx;s.y+=s.vy;if(s.x>w+6)s.x=-6;if(s.y<-6)s.y=h+6;const o=.12+Math.abs(Math.sin(s.a))*.45;x.globalAlpha=o;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();}x.globalAlpha=1;requestAnimationFrame(tick);}

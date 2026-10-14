@@ -3059,16 +3059,16 @@
     },
     "4-10-2": {
       "dateDisplayEn": "October 9, 2026",
-      "tagline": "RSI rebuilds the Constellation, celebrates the Mk V with a month of contracts, and loose crates finally fly where you throw them.",
-      "summary": "Alpha 4.10.2 belongs to Roberts Space Industries. The Constellation Mk IV has been rebuilt from the ground up — a clear view from the bridge, a new cargo lift, a repositioned airlock, dedicated turret displays, a reworked snub bay and a full new exterior pass. On top of that, the \"RSI Discovery Month\" event starts in Stanton with three tracks: defence around microTech, transport to the expo platform and collection for Shubin and Adagio. New in the catalogue are the Constellation Mk V Centaurus and its snub, the RSI Skylark; the Hammerhead also appears in a new version with considerably more hull and shield, without the notes mentioning it. Under the hood the netcode for loose physics objects has been rewritten, VR gets its own zoom, and shields with a flat resistance value finally protect. 71 issues are closed, including the Orison Relief salvage contracts that could be ticked off in a few minutes.",
+      "tagline": "RSI rebuilds the Constellation Mk IV and starts the RSI Discovery Month event in Stanton. New netcode for loose physics objects comes with it.",
+      "summary": "Alpha 4.10.2 rebuilds the Constellation Mk IV from the ground up. The bridge has a clear view, the cargo lift is new, the airlock has moved, the turrets have their own displays, the snub bay is reworked, and the exterior has a new art pass. In Stanton the \"RSI Discovery Month\" event starts with three tracks, which are defence around microTech, transport to the expo platform and collection for Shubin and Adagio. New in the catalogue are the Constellation Mk V Centaurus and its snub, the RSI Skylark. The Hammerhead appears there in a new version with more hull and shield, though the notes do not mention it. The netcode for loose physics objects has been rewritten, VR has its own zoom, and shields with a flat resistance value now apply. The patch closes 71 issues. Among them are the Orison Relief Support salvage contracts, whose reward track could be finished in a few short runs.",
       "keyFacts": [
         {
           "label": "RSI Discovery Month",
-          "value": "Event in Stanton — three tracks: defence, transport, collection"
+          "value": "Event in Stanton with three tracks: defence, transport, collection"
         },
         {
           "label": "Constellation Mk IV",
-          "value": "The whole series rebuilt — bridge, lifts, airlock, turrets, exterior"
+          "value": "Whole series rebuilt: bridge, lifts, airlock, turrets, exterior"
         },
         {
           "label": "New in the catalogue",
@@ -3076,7 +3076,7 @@
         },
         {
           "label": "Physics netcode",
-          "value": "Rewritten for loose objects — crates, grenades, throwables"
+          "value": "Rewritten for crates, grenades and throwables"
         },
         {
           "label": "VR",
@@ -3095,15 +3095,15 @@
         {
           "name": "RSI Discovery Month",
           "system": "Events",
-          "desc": "Roberts Space Industries celebrates the newest ships in the fleet with an event in Stanton. Contracts in ship and ground combat, hauling, recovery, salvage and resource gathering earn event points; with them you climb dedicated career tracks and unlock rewards. The catalogue carries 12 new mission families under the \"RSI Disc. Month\" tag for it — refuel calls in three urgencies, package recoveries and purchase orders for refined beryl, iron and quantainium.",
+          "desc": "Roberts Space Industries celebrates the newest ships in its fleet with an event in Stanton. Contracts in ship and ground combat, hauling, recovery, salvage and resource gathering earn event points. With those points you climb dedicated career tracks and unlock rewards. The catalogue carries 12 new mission families for it under the \"RSI Disc. Month\" tag. They are refuel calls in three urgencies, package recoveries and purchase orders for refined beryl, iron and quantainium.",
           "facts": [
             {
               "label": "Defence",
-              "value": "Bounty Hunters Guild · Foxwell · Northrock — around microTech, in space and on the ground"
+              "value": "Bounty Hunters Guild · Foxwell · Northrock, around microTech, in space and on the ground"
             },
             {
               "label": "Transport",
-              "value": "Ling Family Hauling · Covalex · FTL — cargo to the expo platform"
+              "value": "Ling Family Hauling · Covalex · FTL, cargo to the expo platform"
             },
             {
               "label": "Collection",
@@ -3114,7 +3114,7 @@
         {
           "name": "Iasi contracts",
           "system": "Missions & Activities",
-          "desc": "Alongside the Discovery Month families, 18 mission families of the \"Iasi\" line enter the catalogue: courier runs, ship defence, patrols and kills in three difficulties, salvage in three sizes and hauls of party and security supplies. In total the catalogue grows from 1,355 to 1,387 mission families.",
+          "desc": "Alongside the Discovery Month families, 18 mission families of the \"Iasi\" line enter the catalogue. They cover courier runs, ship defence, patrols and kills in three difficulties, salvage in three sizes and hauls of party and security supplies. In total the catalogue grows from 1,355 to 1,387 mission families.",
           "facts": [
             {
               "label": "Mission families",
@@ -3125,7 +3125,7 @@
         {
           "name": "Constellation Mk IV rebuilt",
           "system": "Ship systems",
-          "desc": "The whole series — Andromeda, Aquila, Phoenix, Taurus — has been brought up to current standards. The bridge glass is new inside and out, and the large struts across the nose are gone. The cargo lift has its own control panel, the Taurus cargo bay has been refitted, the front crew lift newly animated. The Phoenix gains a side airlock; on all variants the airlock controls now sit in the cargo bay walls and outside next to the door. Top and bottom turrets have their own displays, and ranges and gimbal limits are correct. The exterior has had a full pass with new damage states and two new liveries. In the catalogue every variant now carries \"Mk IV\" in its name.",
+          "desc": "Andromeda, Aquila, Phoenix and Taurus have been brought up to current standards. The bridge glass is new inside and out, and the large struts across the nose are gone. The cargo lift has its own control panel, the Taurus cargo bay has been refitted, and the front crew lift has new animations. The Phoenix gains a side airlock. On every variant the airlock controls now sit in the cargo bay walls and outside next to the door. Top and bottom turrets have their own displays, and ranges and gimbal limits are correct. The exterior has had a full pass with new damage states and two new liveries. In the catalogue every variant now carries \"Mk IV\" in its name.",
           "facts": [
             {
               "label": "Hull HP Andromeda · Aquila",
@@ -3148,7 +3148,7 @@
         {
           "name": "Constellation Mk V Centaurus",
           "system": "Ship systems",
-          "desc": "The next Constellation generation is complete in the catalogue: bigger, with a larger mess and cargo bay, stronger turrets and missile racks and a new docking port for the Skylark. The Discovery Month event celebrates exactly these new additions to the RSI fleet.",
+          "desc": "The next Constellation generation is complete in the catalogue. It is bigger than the Mk IV and has a larger mess and cargo bay, stronger turrets and missile racks and a new docking port for the Skylark. The Discovery Month event celebrates these new additions to the RSI fleet.",
           "facts": [
             {
               "label": "Role",
@@ -3175,7 +3175,7 @@
         {
           "name": "RSI Skylark",
           "system": "Ship systems",
-          "desc": "The Mk V's snub: a nimble snub fighter that rides along in the Centaurus' docking port. Six liveries come to match the Mk V.",
+          "desc": "The Skylark is the Mk V's snub, a nimble snub fighter for the Centaurus' docking port. Six liveries come with it to match the Mk V.",
           "facts": [
             {
               "label": "Role",
@@ -3198,7 +3198,7 @@
         {
           "name": "Hammerhead in a new version",
           "system": "Ship systems",
-          "desc": "Not in the notes, but in the catalogue: like the Constellation, the Aegis Hammerhead is in place in a rebuilt version. Hull and shield gain heavily, the cargo hold grows, and it needs one person fewer. Its quantum range, on the other hand, drops to about a third.",
+          "desc": "The notes do not mention it, but the catalogue has the Aegis Hammerhead in a rebuilt version, like the Constellation. Hull and shield gain a lot, the cargo hold grows, and it needs one person fewer. Its quantum range drops to about a third.",
           "facts": [
             {
               "label": "Hull HP",
@@ -3221,7 +3221,7 @@
         {
           "name": "Physics netcode rewritten",
           "system": "Server technology",
-          "desc": "How loose physics objects are reconciled across the network is new. Until now the server's state of an object was treated as either fully right or fully wrong — a single bad state could cascade into desync, rubber banding and sliding crates. Now every server state gets a trust score; corrections arrive as gentle velocity nudges, with a teleport only as a last resort. Throws start from the actual release moment, and tractor beams no longer drag items back to where they were picked up when released. Ships, vehicles and characters stay on the old system.",
+          "desc": "The way loose physics objects are reconciled across the network has been rewritten. Until now the server's state of an object was treated as either fully right or fully wrong. A single bad state could cascade into desync, rubber banding and sliding crates. Now every server state gets a trust score. Corrections arrive as small velocity nudges, with a teleport only as a last resort. Throws start from the actual release moment, and tractor beams no longer drag items back to where they were picked up when released. Ships, vehicles and characters stay on the old system.",
           "facts": [
             {
               "label": "Applies to",
@@ -3240,7 +3240,7 @@
         {
           "name": "VR zoom",
           "system": "UI & Comfort",
-          "desc": "VR gets its own zoom that narrows the field of view — a stopgap until scopes are physicalised. It applies to F interaction zooming, precision targeting in ships and FPS weapon scopes. The new \"Zoom Gameplay Strength\" option controls its strength; 0 turns it off. Also: Grounded Look uses your aim direction for hand mining, and in Freelook you can aim the tractor beam with your head.",
+          "desc": "VR gets its own zoom that narrows the field of view. It is a stopgap until scopes are physicalised. It applies to F interaction zooming, precision targeting in ships and FPS weapon scopes. The new \"Zoom Gameplay Strength\" option controls its strength, and 0 turns it off. Grounded Look also uses your aim direction for hand mining, and in Freelook you can aim the tractor beam with your head.",
           "facts": [
             {
               "label": "Applies to",
@@ -3255,37 +3255,37 @@
         {
           "name": "Shields with a flat resistance",
           "system": "Combat & Weapons",
-          "desc": "A resistance band only counted if its minimum sat strictly below its maximum. Shields with a single flat value failed that check and gave no protection at all. The restriction is gone — flat resistances now apply."
+          "desc": "A resistance band only counted if its minimum sat strictly below its maximum. Shields with a single flat value failed that check and gave no protection at all. The restriction is gone, and flat resistances now apply."
         },
         {
           "name": "Abandoned ships expire",
           "system": "Hangars & Persistence",
-          "desc": "Everus Harbor, Seraphim Station, Baijini Point and Port Tressler lacked a lifetime for parked vehicles — the pads filled up with wrecks and others could not land. Vehicles there now expire on a timer like everywhere else. Ships also come out of the hangar in the state they were stored in instead of with engines running, and the Prospector no longer sits crooked on the pad."
+          "desc": "Everus Harbor, Seraphim Station, Baijini Point and Port Tressler lacked a lifetime for parked vehicles. The pads filled up with wrecks, and other players could not land. Parked vehicles there now expire on a timer like everywhere else. Ships also come out of the hangar in the state they were stored in instead of with engines running. The Prospector no longer sits crooked on the pad."
         },
         {
           "name": "Orison Relief Support tightened",
           "system": "Missions & Activities",
-          "desc": "The relief event's salvage contracts asked for so little hand-in that the whole reward track could be ticked off in a handful of short runs. The amounts have been raised substantially in all three sizes, with difficulty ratings to match. Several relief contracts can now be handed in at the same freight elevator in one go."
+          "desc": "The relief event's salvage contracts asked for so little hand-in that the whole reward track could be finished in a few short runs. The amounts have been raised substantially in all three sizes, with difficulty ratings to match. Several relief contracts can now be handed in at the same freight elevator in one go."
         },
         {
           "name": "Contracts and cargo",
           "system": "Cargo & Logistics",
-          "desc": "Handing everything in at the first stop of a multi-stop haul lost the rest — the freight elevator refund was unreliable and now always returns whatever the objective did not use. Legal delivery contracts no longer send you to Cry-Astro sites where you count as trespassing. Contracts that reported themselves unavailable right after accepting stay available. Bounty titles no longer name a ship type, because it was often wrong."
+          "desc": "Handing everything in at the first stop of a multi-stop haul lost the rest. The freight elevator refund was unreliable and now always returns whatever the objective did not use. Legal delivery contracts no longer send you to Cry-Astro sites where you count as trespassing. Contracts that reported themselves unavailable right after accepting stay available. Bounty titles no longer name a ship type, because it was often wrong."
         },
         {
           "name": "Siege of Orison",
           "system": "Events",
-          "desc": "Comms towers spin again after their nodes are reset. In the final fight the Command Center doors opened and the commander stopped firing while still alive — the last stage now ends on his death. The fifth player of a party is moved to the others' instance again."
+          "desc": "Comms towers spin again after their nodes are reset. In the final fight the Command Center doors opened and the commander stopped firing while still alive. The last stage now ends on his death. The fifth player of a party is moved to the others' instance again."
         },
         {
-          "name": "Ships: repairs",
+          "name": "Ship repairs",
           "system": "Ship systems",
           "desc": "The Origin X1 series can fire and aim with a gimbal again. Ships no longer go unresponsive after quantum travel on a poor connection. The Cutlass rear ramp no longer lifts the ship, ground vehicle treads turn again, the Mirai Pulse radar is the right way round, and the Caterpillar puts its manifest crew into the command module."
         },
         {
           "name": "New gear",
           "system": "Weapons & Gear",
-          "desc": "According to the notes, the Heavy Combat Hunter 3 armour set arrives with all its tints, the RRS line gets three camouflage patterns and character creation nine new eyebrows. Wikelo now trades recipes for the Gemini LMG and the Grey Combat Armour, with a mission of its own for the LMG. New in the catalogue: the heavy Monolith armour in ten finishes, Venture and Zeus Exploration finishes, weapon finishes such as \"Starwalker\", \"Infrared\", \"Echo\" and \"Runic\", plus the component lines BriskAir (coolers), Delphi (radar), Helios and Sovereign (power plants).",
+          "desc": "According to the notes, the Heavy Combat Hunter 3 armour set arrives with all its tints. The RRS line gets three camouflage patterns, and character creation gets nine new eyebrows. Wikelo now trades recipes for the Gemini LMG and the Grey Combat Armour, with a mission of its own for the LMG. New in the catalogue are the heavy Monolith armour in ten finishes, Venture and Zeus Exploration finishes and weapon finishes such as \"Starwalker\", \"Infrared\", \"Echo\" and \"Runic\". The component lines BriskAir (coolers), Delphi (radar), Helios and Sovereign (power plants) are new too.",
           "facts": [
             {
               "label": "Item catalogue",
@@ -3300,7 +3300,7 @@
         {
           "name": "Monolith from the workbench",
           "system": "Crafting",
-          "desc": "13 blueprints are added, one Antium blueprint drops out. New is the heavy Monolith armour as a set — helmet, core, arms, legs, backpack — in its base version and in \"Shadowflux\", plus the F55 \"Shadowflux\" LMG, the DayBreak power plant and the Goliath quantum drive. The blueprints for a Juster quantum drive and a Sasu power plant pointed at the wrong parts and are corrected.",
+          "desc": "13 blueprints are added, and one Antium blueprint drops out. New is the heavy Monolith armour as a set of helmet, core, arms, legs and backpack, each in its base version and in \"Shadowflux\". The F55 \"Shadowflux\" LMG, the DayBreak power plant and the Goliath quantum drive are new as well. The blueprints for a Juster quantum drive and a Sasu power plant pointed at the wrong parts and are corrected.",
           "facts": [
             {
               "label": "Blueprints",
@@ -3327,22 +3327,22 @@
         {
           "role": "Multi-role",
           "status": "Gold Standard",
-          "notes": "Whole series rebuilt — bridge, lifts, airlock, turrets, exterior"
+          "notes": "Whole series rebuilt: bridge, lifts, airlock, turrets, exterior"
         },
         {
           "role": "Heavy gunship",
           "status": "Gold Standard",
-          "notes": "New version with more hull, shield and cargo — not in the notes"
+          "notes": "New version with more hull, shield and cargo, not in the notes"
         }
       ],
       "events": [
         {
           "name": "RSI Discovery Month",
-          "desc": "Stanton event around the new RSI ships: defence, transport and collection earn event points and rewards on dedicated tracks."
+          "desc": "Stanton event around the new RSI ships. Defence, transport and collection earn event points and rewards on dedicated tracks."
         }
       ],
       "fixesNote": "71 closed issues (13 from the Issue Council, 5 crash and stability issues), plus 20 hotfixes delivered during 4.10.1.",
-      "wipe": "No wipe — Long Term Persistence preserved, starting funds 20,000 aUEC."
+      "wipe": "No wipe. Long Term Persistence preserved, starting funds 20,000 aUEC."
     }
   }
 }
