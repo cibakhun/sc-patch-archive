@@ -2109,6 +2109,81 @@ export async function initHangar(container, opts = {}) {
       L.shadow.camera.near = Math.max(0.5, d * 0.5);
       L.shadow.camera.updateProjectionMatrix();
     }
+    renderHallShadows();
+  }
+
+  // Tiefenkarten der stillstehenden Halle aus den Schattenstrahlern (hallStat).
+  // Ohne Schiff, Crew, Glas und alles Durchscheinende der Szene (auch das
+  // Glas der Möbeldatei: Die Scheiben hoch an den Seitenwänden warfen sonst
+  // Keile auf die Wand). Die ersten 2 m vor der Lampe fehlen, sonst läge
+  // alles im Schatten ihrer eigenen Leuchte. Der Kegel reicht nur so weit,
+  // wie der Strahler den Boden der Halle trifft (am Rand des Spielkegels von
+  // 150° wäre die Karte zu grob). Die Decke (oberhalb von 70 % der
+  // Hallenhöhe) wirft keinen Schatten: Ihr Rand schattete das obere Drittel
+  // der Seitenwände in harten Keilen ab, die ohne das Streulicht der weißen
+  // Halle viel zu dunkel blieben.
+  const HALL_STAT_SIZE = SMALL ? 1024 : 2048, HALL_STAT_NEAR = 2, HALL_STAT_TOP = 0.7;
+  const statRT = [], statCam = new THREE.PerspectiveCamera(90, 1, 1, 100);
+  const statClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  // Versatz nach Neigung: Flächen, die das Licht streifend trifft (die großen
+  // oberen Wandpaneele, Planen der Kisten), schatteten sich sonst selbst in
+  // feinen Bogenmustern ab.
+  const statMat = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide, clippingPlanes: [statClip],
+    polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
+  const statBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+  const statTarget = (size) => {
+    const rt = new THREE.WebGLRenderTarget(size, size, { format: THREE.RedFormat });
+    rt.depthTexture = new THREE.DepthTexture(size, size);
+    rt.depthTexture.compareFunction = THREE.LessEqualCompare;
+    rt.depthTexture.minFilter = rt.depthTexture.magFilter = THREE.LinearFilter;
+    return rt;
+  };
+  let statK = 0;
+  function renderHallShadows() {
+    const k = hallRoot.scale.x;
+    if (!realHall?.model || !hallLamps || statK === k) return;
+    statK = k;
+    const t0 = performance.now();
+    const lamps = hallLamps.children.filter((q) => shadowLamps.includes(q)).slice(0, 2);
+    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY;
+    statClip.constant = (c[1] - f + HALL_STAT_TOP * height) * k;
+    const corners = [];
+    for (const x of [-halfW, halfW]) for (const z of [-halfL, halfL]) corners.push(new THREE.Vector3(x * k, (c[1] - f) * k, z * k));
+    const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
+    const clear = (m) => m.transparent || m.transmission > 0 || /glass/i.test(m.name);
+    scene.traverse((o) => {
+      if (o.visible && ((o.isMesh && [].concat(o.material).some(clear)) || o.isPoints || o.isLine || o.isSprite)) hide.push(o);
+    });
+    for (const o of hide) o.visible = false;
+    const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
+    scene.background = null; scene.overrideMaterial = statMat;
+    renderer.shadowMap.needsUpdate = false; renderer.localClippingEnabled = true;
+    const p = new THREE.Vector3(), t = new THREE.Vector3(), d = new THREE.Vector3(), K = new THREE.Matrix4().makeScale(k, k, k);
+    lamps.forEach((L, i) => {
+      L.getWorldPosition(p); L.target.getWorldPosition(t);
+      d.subVectors(t, p).normalize();
+      let half = 0;
+      for (const q of corners) half = Math.max(half, d.angleTo(q.clone().sub(p)));
+      half = Math.min(half + 2 * DEG, L.angle, 75 * DEG);
+      statCam.fov = 2 * half / DEG; statCam.near = HALL_STAT_NEAR * k; statCam.far = Math.max(L.distance || 0, 150 * k);
+      statCam.position.copy(p);
+      statCam.up.set(0, 1, 0);
+      if (Math.abs(d.y) > 0.99) statCam.up.set(0, 0, -1);
+      statCam.lookAt(t);
+      statCam.updateProjectionMatrix(); statCam.updateMatrixWorld();
+      const rt = statRT[i] ??= statTarget(HALL_STAT_SIZE);
+      renderer.setRenderTarget(rt);
+      renderer.clear();
+      renderer.render(scene, statCam);
+      hallStat.map[i].value = rt.depthTexture;
+      hallStat.mat[i].value.copy(statBias).multiply(statCam.projectionMatrix).multiply(statCam.matrixWorldInverse).multiply(K);
+    });
+    renderer.setRenderTarget(null);
+    scene.background = bg; scene.overrideMaterial = null;
+    renderer.shadowMap.needsUpdate = shadowUpd; renderer.localClippingEnabled = clip;
+    for (const o of hide) o.visible = true;
+    hallStat.n.value = lamps.length;
+    console.info(`[hangar] Hallenschatten aus ${lamps.length} Strahlern (${HALL_STAT_SIZE}², ${Math.round(performance.now() - t0)} ms)`);
   }
 
   // Licht in der echten Halle. Mit Spiellampen gibt es kein Bühnenlicht
@@ -2164,6 +2239,9 @@ export async function initHangar(container, opts = {}) {
     for (const o of hide) o.visible = false;
     const fog = scene.fog, { near, far } = fog;
     fog.near = 1e7; fog.far = 2e7;
+    // die Kugel ohne Spiegelbild des Schiffs (es ist ausgeblendet, das Bild noch vom letzten Mal)
+    const reflOn = hallRefl.on.value;
+    hallRefl.on.value = 0;
     const gain = new Map();
     for (const m of realHall.mats) { gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05); }
     scene.environment = envRT.texture;
@@ -2175,11 +2253,17 @@ export async function initHangar(container, opts = {}) {
     pm.dispose();
     fog.near = near; fog.far = far;
     for (const [m, g] of gain) m.envMapIntensity = g;
+    hallRefl.on.value = reflOn;
     for (const o of hide) o.visible = true;
     hallEnv?.dispose();
     hallEnv = rt;
     scene.environment = rt.texture;
     setHallEnv(rt.texture);
+    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY;
+    hallBox.min.value.set(-halfW, c[1] - f, -halfL);
+    hallBox.max.value.set(halfW, c[1] + height - f, halfL);
+    hallBox.pos.value.set(0, 2.5, 0);
+    hallBox.on.value = 1;
     if (!realHall.envOn) {
       realHall.envOn = true;
       for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
@@ -2232,6 +2316,7 @@ export async function initHangar(container, opts = {}) {
     hallEnv = rt;
     scene.environment = rt.texture;
     setHallEnv(rt.texture);
+    hallBox.on.value = 0;
     realHall.envOn = true;
     realHall.probe = name;
     for (const m of realHall.mats) m.envMapIntensity = HALL_ENV * (m.userData.envGain ?? 1);
@@ -2240,10 +2325,23 @@ export async function initHangar(container, opts = {}) {
   }
 
   // Rauheit nur nach unten begrenzen: spiegelglatte Stellen bündeln das
-  // Hauptlicht sonst zu einem gleißenden Fleck vor dem Schiff. Für alle
-  // Hallenmaterialien derselbe Shader und derselbe Schlüssel, damit sie
-  // sich ihre Shaderprogramme teilen (ohne echte Karte greift die Grenze
+  // Hauptlicht sonst zu einem gleißenden Fleck vor dem Schiff (die Lampen
+  // sind Punkte, im Spiel haben sie eine Fläche). Für das Licht der Lampen
+  // gilt die Grenze überall. Die Spiegelung der Halle darf auf dem Boden so
+  // glatt werden, wie das Spiel ihn angibt: Bodenplatten, gepunktete Platten
+  // und Holzstege sind dort glatter Lack (Glätte 225 bis 249 von 255, also
+  // Rauheit 0,02 bis 0,12; PC-Befund 2026-10-12 in
+  // .planning/notes/hallen-relief.md). Ein Relief haben sie im Spiel nicht,
+  // ihre Tiefe kommt aus der Spiegelung. Die Spiegelgrenze von 0,1 hält die
+  // kleinen Deckenleuchten als weiche Lichtflecken statt als Funkeln. Für
+  // alle Hallenmaterialien derselbe Shader und derselbe Schlüssel, damit
+  // sie sich ihre Shaderprogramme teilen (ohne echte Karte greift die Grenze
   // nie: deren Rauheit liegt ohnehin darüber).
+  const HALL_ROUGH_MIN = 0.34, HALL_GLOSS_MIN = 0.1;
+  const HALL_GLOSS = /mtl_(metal_white_03|metal_dotty_01_016|wood_largeplank_020)$/i;
+  // Spiegelungen heller als das: Leuchten in der Umgebungskugel. Gekappt,
+  // sonst glüht jede einzelne auf glattem Boden als Stern auf.
+  const HALL_ENV_MAX = 2;
   //
   // Dazu ohne sichtbare Wiederholung: Die Schmutzkarte der großen Flächen
   // kachelt im Spiel alle 4 m, zweimal je 8-m-Wandpaneel, und jedes Paneel
@@ -2291,24 +2389,140 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
   // Rauschen. Ein Wert für alle Hallenmaterialien, scaleWorld setzt ihn.
   const hallNoTileInvK = { value: 1 };
+  // Spiegelung auf den Raumkasten projiziert: Die Umgebungskugel ist an
+  // einer Stelle aufgenommen (2,5 m über der Plattform). Ohne Projektion
+  // spiegelt jede Platte dasselbe, als läge der Raum unendlich weit weg;
+  // mit ihr trifft der Spiegelstrahl die Wand, die von der Platte aus dort
+  // steht, und die Kugel wird in Richtung dieses Punkts gelesen. Kasten in
+  // Modellmetern ab der Bodenmitte (wie vHgP), gesetzt von captureHallEnv.
+  const hallBox = { on: { value: 0 }, min: { value: new THREE.Vector3() }, max: { value: new THREE.Vector3() }, pos: { value: new THREE.Vector3() } };
+  // Spiegelbild des Schiffs im Boden: Die Umgebungskugel ist ohne es
+  // aufgenommen, ein glatter Boden spiegelte sonst unter dem Schiff die
+  // Wand dahinter. Im Spiel leistet das die Bildschirmspiegelung. Hier
+  // zeichnet eine an der Bodenebene gespiegelte Kamera nur das Schiff in
+  // ein halb so großes Bild (renderMirror); der Boden liest es dort, wo es
+  // etwas zeigt, statt der Kugel. hallRefl.mat bildet einen Bodenpunkt im
+  // Modellraum (vHgP) auf dieses Bild ab.
+  const hallRefl = { tex: { value: null }, on: { value: 0 }, mat: { value: new THREE.Matrix4() } };
+  const hallEnvMax = { value: HALL_ENV_MAX };
+  // Schatten von Halle und Einrichtung aus den Deckenstrahlern, die auch den
+  // Schatten des Schiffs werfen (renderHallShadows): je Strahler eine
+  // Tiefenkarte, einmal je Hallenmaßstab gezeichnet, weil Halle und Möbel
+  // stillstehen. Die Schattenkarten von three.js bleiben dem Schiff und der
+  // Crew, eng um das Schiff; der Hallenshader nimmt für dieselben Strahler
+  // zusätzlich diese Karten. hgStatMat bildet vHgP (Modellmeter) auf die
+  // Karte ab.
+  const hallStat = { n: { value: 0 }, map: [{ value: null }, { value: null }], mat: [{ value: new THREE.Matrix4() }, { value: new THREE.Matrix4() }] };
+  // Ein leerer sampler2DShadow bindet bei three.js keine Textur, und jeder
+  // Zeichenaufruf der Halle fällt aus (am Telefon, mit nur einem Strahler,
+  // blieb sie schwarz). Bis zur Karte steht deshalb ein geleertes 1×1 da.
+  const statEmpty = statTarget(1);
+  renderer.setRenderTarget(statEmpty); renderer.clear(); renderer.setRenderTarget(null);
+  hallStat.map[0].value = hallStat.map[1].value = statEmpty.depthTexture;
+  const HALL_STAT_GLSL = `uniform float hgStatN;
+uniform sampler2DShadow hgStat0, hgStat1;
+uniform mat4 hgStatMat0, hgStatMat1;
+float hgStatLook( sampler2DShadow m, mat4 M, vec3 p ) {
+	vec4 c = M * vec4( p, 1.0 );
+	if ( c.w <= 0.0 ) return 1.0;
+	vec3 q = c.xyz / c.w;
+	if ( any( lessThan( q, vec3( 0.0 ) ) ) || any( greaterThan( q, vec3( 1.0 ) ) ) ) return 1.0;
+	vec2 t = 0.75 / vec2( textureSize( m, 0 ) );
+	q.z -= 5e-5;
+	return 0.25 * ( texture( m, vec3( q.xy - t, q.z ) ) + texture( m, vec3( q.xy + vec2( t.x, - t.y ), q.z ) )
+		+ texture( m, vec3( q.xy + vec2( - t.x, t.y ), q.z ) ) + texture( m, vec3( q.xy + t, q.z ) ) );
+}
+float hgStatShadow( const in int i, const in vec3 wn ) {
+	vec3 p = vHgP + wn * 0.06;
+	if ( i == 0 ) return hgStatN > 0.5 ? hgStatLook( hgStat0, hgStatMat0, p ) : 1.0;
+	return hgStatN > 1.5 ? hgStatLook( hgStat1, hgStatMat1, p ) : 1.0;
+}`;
+  const HALL_ENV_GLSL = `#ifdef USE_ENVMAP
+uniform float hgBoxOn, hgEnvMax, hgReflOn;
+uniform sampler2D hgRefl;
+uniform mat4 hgReflMat;
+uniform vec3 hgBoxMin, hgBoxMax, hgBoxPos;
+vec3 hgBoxDir( vec3 d ) {
+	vec3 q = vec3( abs( d.x ) < 1e-5 ? 1e-5 : d.x, abs( d.y ) < 1e-5 ? 1e-5 : d.y, abs( d.z ) < 1e-5 ? 1e-5 : d.z );
+	vec3 tF = max( ( hgBoxMax - vHgP ) / q, ( hgBoxMin - vHgP ) / q );
+	float t = min( min( tF.x, tF.y ), tF.z );
+	return t > 0.0 ? vHgP + d * t - hgBoxPos : d;
+}
+vec3 getIBLIrradiance( const in vec3 normal ) {
+	#ifdef ENVMAP_TYPE_CUBE_UV
+		vec3 worldNormal = transformNormalByInverseViewMatrix( normal, viewMatrix );
+		vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );
+		return PI * envMapColor.rgb * envMapIntensity;
+	#else
+		return vec3( 0.0 );
+	#endif
+}
+vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float roughness ) {
+	#ifdef ENVMAP_TYPE_CUBE_UV
+		vec3 reflectVec = reflect( - viewDir, normal );
+		reflectVec = normalize( mix( reflectVec, normal, pow4( roughness ) ) );
+		reflectVec = transformDirectionByInverseViewMatrix( reflectVec, viewMatrix );
+		if ( hgBoxOn > 0.5 ) reflectVec = hgBoxDir( reflectVec );
+		vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
+		vec3 rad = envMapColor.rgb * min( 1.0, hgEnvMax / max( dot( envMapColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) ), 1e-4 ) );
+		if ( hgReflOn > 0.5 ) {
+			// nur auf glattem Boden (Ebene y = 0, nach oben gewandt)
+			vec3 wn = transformDirectionByInverseViewMatrix( normal, viewMatrix );
+			float onFloor = smoothstep( 0.8, 0.95, wn.y ) * ( 1.0 - smoothstep( 0.15, 0.4, abs( vHgP.y ) ) ) * ( 1.0 - smoothstep( 0.12, 0.35, roughness ) );
+			if ( onFloor > 0.0 ) {
+				vec4 c = hgReflMat * vec4( vHgP.x, 0.0, vHgP.z, 1.0 );
+				vec4 r = texture2D( hgRefl, c.xy / c.w + wn.xz * 0.04 );
+				rad = mix( rad, r.rgb, r.a * onFloor );
+			}
+		}
+		return rad * envMapIntensity;
+	#else
+		return vec3( 0.0 );
+	#endif
+}
+#endif`;
+  const HALL_LIGHTS_BEGIN = (() => {
+    const a = 'getSpotLightInfo( spotLight, geometryPosition, directLight );';
+    const src = THREE.ShaderChunk.lights_fragment_begin;
+    // Ohne die Stelle (andere three.js-Fassung) bleibt es bei three.js allein
+    if (!src.includes(a)) return '#include <lights_fragment_begin>';
+    return src.replace(a, `${a}
+		#if ( UNROLLED_LOOP_INDEX < 2 )
+		directLight.color *= hgStatShadow( UNROLLED_LOOP_INDEX, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );
+		#endif`);
+  })();
   const hallShader = (m) => (sh) => {
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
+    sh.uniforms.hgBoxOn = hallBox.on; sh.uniforms.hgBoxMin = hallBox.min; sh.uniforms.hgBoxMax = hallBox.max; sh.uniforms.hgBoxPos = hallBox.pos;
+    sh.uniforms.hgRoughMin = { value: m.userData.gloss ? HALL_GLOSS_MIN : HALL_ROUGH_MIN };
+    sh.uniforms.hgEnvMax = hallEnvMax;
+    sh.uniforms.hgReflOn = hallRefl.on; sh.uniforms.hgRefl = hallRefl.tex; sh.uniforms.hgReflMat = hallRefl.mat;
+    sh.uniforms.hgStatN = hallStat.n; sh.uniforms.hgStat0 = hallStat.map[0]; sh.uniforms.hgStat1 = hallStat.map[1];
+    sh.uniforms.hgStatMat0 = hallStat.mat[0]; sh.uniforms.hgStatMat1 = hallStat.mat[1];
     sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying float vHgShade;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\n' + HALL_NO_TILE_GLSL)
+      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb *= vHgShade;')
       .replace('#include <map_fragment>', `#ifdef USE_MAP
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
 	diffuseColor *= sampledDiffuseColor;
 #endif`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, 0.34);')
-      .replace('#include <lights_fragment_begin>', '#include <lights_fragment_begin>\n\tif ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );');
+      .replace('#include <envmap_physical_pars_fragment>', HALL_ENV_GLSL)
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = max(roughnessFactor, hgRoughMin);')
+      // Lampenlicht mit der Grenze für alle, Spiegelung mit der des Materials
+      // Die Schattenstrahler sind die ersten Spots (three.js reiht Lampen mit
+      // Schatten vorn ein, in Szenenreihenfolge wie renderHallShadows).
+      .replace('#include <lights_fragment_begin>', `float hgRoughRefl = material.roughness;
+	material.roughness = max( material.roughness, ${HALL_ROUGH_MIN.toFixed(2)} );
+${HALL_LIGHTS_BEGIN}
+	material.roughness = hgRoughRefl;
+	if ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );`);
   };
   const hallKey = () => 'hall-v2';
 
@@ -2451,6 +2665,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
           // Faktor darf sie nicht pauschal stumpf machen.
           if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
           m.userData.noTile = !!m.map && HALL_NO_TILE.test(m.name);
+          m.userData.gloss = !!m.roughnessMap && HALL_GLOSS.test(m.name);
           m.onBeforeCompile = hallShader(m);
           m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
@@ -2477,7 +2692,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, room: h.room, mats, floorY, furniture };
+      realHall = { group: hallRoot, model, room: h.room, mats, floorY, furniture };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -3172,6 +3387,64 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     c.copy(keepAt(t, lo));
   }
 
+  // Spiegelbild für den Boden (hallRefl): die Kamera an der Bodenebene
+  // gespiegelt, mit schräger Nahebene in der Ebene (three.js Reflector),
+  // dazu Halle und Crew ausgeblendet, alle Lampen an, also dieselben
+  // Shaderprogramme wie im Bild. Die Crew sind 256 Teile, ihr Spiegelbild
+  // aber nur ein Fleck an den Füßen: Mit ihr kostete das Spiegelbild 425
+  // Zeichenaufrufe je Bild (Gladius, +25 %), ohne sie etwa so viele, wie
+  // das Schiff Teile hat. Erst mit dem Composer: Ohne ihn zeichnet das Bild
+  // direkt auf den Schirm, mit anderen Programmen. Am Telefon nicht, dort
+  // zählt jeder Zeichenaufruf.
+  const MIRROR = !SMALL, MIRROR_SCALE = 0.5;
+  let mirrorRT = null;
+  const mirrorCam = new THREE.PerspectiveCamera();
+  const mN = new THREE.Vector3(0, 1, 0), mO = new THREE.Vector3(), mC = new THREE.Vector3(), mT = new THREE.Vector3();
+  const mR = new THREE.Matrix4(), mK = new THREE.Matrix4(), mPlane = new THREE.Plane(), mClip = new THREE.Vector4(), mQ = new THREE.Vector4();
+  const mSize = new THREE.Vector2(), mClear = new THREE.Color();
+  const mBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+  function renderMirror() {
+    hallRefl.on.value = 0;
+    if (!MIRROR || !composer || !realHall?.model || !realHall.envOn || !current) return;
+    camera.updateMatrixWorld();
+    mC.setFromMatrixPosition(camera.matrixWorld);
+    if (mC.y <= 0.01) return;
+    renderer.getDrawingBufferSize(mSize);
+    const w = Math.max(1, Math.round(mSize.x * MIRROR_SCALE)), h = Math.max(1, Math.round(mSize.y * MIRROR_SCALE));
+    if (!mirrorRT) mirrorRT = new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType });
+    else if (mirrorRT.width !== w || mirrorRT.height !== h) mirrorRT.setSize(w, h);
+    mR.extractRotation(camera.matrixWorld);
+    mirrorCam.position.copy(mC).reflect(mN);
+    mT.set(0, 0, -1).applyMatrix4(mR).add(mC).reflect(mN);
+    mirrorCam.up.set(0, 1, 0).applyMatrix4(mR).reflect(mN);
+    mirrorCam.lookAt(mT);
+    mirrorCam.updateMatrixWorld();
+    mirrorCam.projectionMatrix.copy(camera.projectionMatrix);
+    mPlane.setFromNormalAndCoplanarPoint(mN, mO).applyMatrix4(mirrorCam.matrixWorldInverse);
+    mClip.set(mPlane.normal.x, mPlane.normal.y, mPlane.normal.z, mPlane.constant);
+    const e = mirrorCam.projectionMatrix.elements;
+    mQ.set((Math.sign(mClip.x) + e[8]) / e[0], (Math.sign(mClip.y) + e[9]) / e[5], -1, (1 + e[10]) / e[14]);
+    mClip.multiplyScalar(2 / mClip.dot(mQ));
+    e[2] = mClip.x; e[6] = mClip.y; e[10] = mClip.z + 1; e[14] = mClip.w;
+    mirrorCam.projectionMatrixInverse.copy(mirrorCam.projectionMatrix).invert();
+    const k = hallRoot.scale.x;
+    hallRefl.mat.value.copy(mBias).multiply(mirrorCam.projectionMatrix).multiply(mirrorCam.matrixWorldInverse).multiply(mK.makeScale(k, k, k));
+    const model = realHall.model, crew = life.root, crewOn = crew.visible, bg = scene.background, alpha = renderer.getClearAlpha();
+    renderer.getClearColor(mClear);
+    model.visible = false; crew.visible = false; scene.background = null;
+    // Schattenkarten bleiben die des letzten Bilds (gleich darauf neu)
+    renderer.shadowMap.needsUpdate = false;
+    renderer.setClearColor(0x000000, 0);
+    renderer.setRenderTarget(mirrorRT);
+    renderer.clear();
+    renderer.render(scene, mirrorCam);
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(mClear, alpha);
+    model.visible = true; crew.visible = crewOn; scene.background = bg;
+    hallRefl.tex.value = mirrorRT.texture;
+    hallRefl.on.value = 1;
+  }
+
   function frame() {
     raf = requestAnimationFrame(frame);
     if (!visible) return;
@@ -3241,6 +3514,7 @@ vec3 hgVolume( vec3 p, vec3 n ) {
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
     adaptPixels(now);
+    renderMirror();
     renderer.shadowMap.needsUpdate = true;
     if (composer) composer.render(); else renderer.render(scene, camera);
     if (frameFn) frameFn();
@@ -3301,6 +3575,9 @@ vec3 hgVolume( vec3 p, vec3 n ) {
       disposeObject(scene);
       envRT.dispose();
       hallEnv?.dispose();
+      mirrorRT?.dispose();
+      for (const rt of [...statRT, statEmpty]) { rt.depthTexture.dispose(); rt.dispose(); }
+      statMat.dispose();
       hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
