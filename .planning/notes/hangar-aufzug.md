@@ -43,6 +43,32 @@ Die Cloud schneidet das Feld zur Laufzeit aus (kein Neubau der Halle
 nötig) und baut den ersten Schritt ohne PC-Teile; die Spielteile folgen
 mit diesem Auftrag.
 
+## Stand Cloud (14.10.2026, erster Schritt ohne PC-Teile)
+
+- `HALL_LIFT` in `assets/hangar-viewer.js` nennt das Feld (x 16…48,
+  z −120…−24, Boden y −0,3…1,2). `cutHallLift` nimmt beim Laden jedes
+  Dreieck, das ganz darin liegt, aus der Halle in eine eigene Gruppe
+  (82 939 Dreiecke in 8 Teilen, die Ecken bleiben geteilt); die Halle
+  steht mit der Feldmitte im Ursprung, das Schiff auf der Feldmitte.
+- Wechsel: Das Feld fährt mit dem alten Schiff in 1,9 s ab
+  (`LIFT_DOWN_MS`), 26 m plus Schiffshöhe tief (`LIFT_DEPTH`), das neue
+  lädt derweil; unten wird getauscht, dann fährt es in 2,8 s herauf
+  (`LIFT_UP_MS`), sanft an- und abbremsend. Im Schacht wird es mit der
+  Tiefe dunkel (`LIFT_DARK`, im Hallenshader und an Schiff und Crew);
+  Leuchtstreifen und Schiffslichter bleiben hell. Wer von der Crew auf
+  dem Feld steht, fährt mit; gegangen wird nur, solange der Aufzug oben
+  ist. Die Hardpoint-Marker fehlen, solange das Schiff im Schacht ist.
+- Ohne Bewegung (prefers-reduced-motion) bleibt der alte Wechsel.
+- Tor: `verify:hangar-hall` [10] prüft an jeder Hallenstufe, dass kein
+  bleibendes Dreieck ins Feld reicht, dass das Feld mindestens `min`
+  Dreiecke trägt, und an Möbel- und Telefon-Datei, dass nichts auf
+  Bodenhöhe im Feld liegt (die setzt der Viewer erst nach dem Schnitt
+  ein). Zwei Kisten (furniture_23, furniture_31) ragen 0,1 bis 0,4 m über
+  den Ostrand; ihr Bezugspunkt liegt daneben, sie stehen.
+- Offen für die PC-Teile: Schachtwände statt Schwarz, Rand, Warnlichter
+  mit ihrem Ablauf, die Fahrzeiten aus dem Spiel (ersetzen die Werte
+  oben).
+
 ## Auftrag PC
 
 1. `git pull` auf `claude/wot-hangar-hzs46w`.
@@ -98,3 +124,4 @@ mit diesem Auftrag.
    Dreiecke, Texturen, Bytes; die übliche Kopfzeile.
 8. Vor dem Push `npm run build && npm run gate`; auf den Branch, ohne PR.
    Den Merge nach staging macht die Cloud.
+

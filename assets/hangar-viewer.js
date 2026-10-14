@@ -51,6 +51,15 @@ const HALL_H = 24;
 const HOME_DIR = new THREE.Vector3(0.64, 0.22, 0.74).normalize();   // flach wie im Hangar-Menü des Spiels
 const DOOR_ANGLE = Math.atan2(-HOME_DIR.x, -HOME_DIR.z); // Winkel um Y, 0 = +Z
 const DOOR_WIDTH = 1.15; // Bogenmaß der Toröffnung
+// Aufzug (HALL_LIFT): Fahrzeiten ab und auf; Tiefe des Felds unten, in
+// Modellmetern der Halle unter dem Schiffsboden. Im Schacht wird es mit der
+// Tiefe dunkel, ab LIFT_DARK fast schwarz; die Leuchtstreifen des Felds und
+// die Lichter am Schiff leuchten weiter.
+const LIFT_DOWN_MS = 1900;
+const LIFT_UP_MS = 2800;
+const LIFT_DEPTH = 26;
+const LIFT_DARK = 22;
+const liftShade = (d) => 1 - 0.92 * THREE.MathUtils.smoothstep(d, 0.5, LIFT_DARK);
 
 // ─── Lackierungen ─────────────────────────────────────────────────────────
 // [Hauptfarbe oben, Zweitfarbe unten, Akzent]. Werkslack je Hersteller;
@@ -214,6 +223,81 @@ function dropHallParts(model, list) {
     out.push({ why: d.why, tris, parts: gone.size });
   }
   return out;
+}
+
+// Schiffsfeld als Aufzug (14.10.2026). Das Spiel bringt Schiffe heute über
+// einen Bodenaufzug in den Hangar herauf. Diese Halle stammt aus dem alten
+// Hangarmodul und hatte keinen; ihr Schiffsfeld mit den gepunkteten Platten
+// ist aber ein eigenes Bodenmodul: An seinem Rand (Modellraum, Meter, x/z)
+// endet jedes Bodendreieck. cutHallLift nimmt die Dreiecke darin aus der
+// Halle in eine eigene Gruppe, die beim Schiffswechsel ab- und auffährt, und
+// das Schiff steht auf der Mitte des Felds statt auf der Raummitte.
+// verify:hangar-hall liest den Eintrag aus dem ausgelieferten Viewer und
+// prüft am ausgelieferten GLB, dass kein Bodendreieck den Rand kreuzt und
+// das Feld mindestens `min` Dreiecke trägt.
+const HALL_LIFT = /* hall-lift */ {
+  "revelyork-single": { "from": [16, -120], "to": [48, -24], "y": [-0.3, 1.2], "min": 50000 }
+} /* /hall-lift */;
+
+// Mitte des Schiffsfelds (mit Aufzug) oder des Raums, im Modellraum
+function hallSpot(h) {
+  const c = h.room.center, L = HALL_LIFT[h.id];
+  return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
+}
+
+// Liefert { group, tris, parts } oder null. Teilt die Ecken mit der Halle
+// (ein Puffer auf der Grafikkarte), nur die Dreiecksliste ist geteilt.
+function cutHallLift(model, L, skip) {
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const e = 0.01, box = new THREE.Box3(new THREE.Vector3(L.from[0] - e, L.y[0], L.from[1] - e), new THREE.Vector3(L.to[0] + e, L.y[1], L.to[1] + e));
+  // wie dropHallParts: geteilte Geometrie und Gruppen bleiben unberührt
+  const meshes = [], uses = new Map();
+  model.traverse((n) => {
+    if (!n.isMesh) return;
+    uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1);
+    if (!n.geometry.index || n.geometry.groups.length) return;
+    for (let p = n; p; p = p.parent) if (skip.has(p)) return;
+    meshes.push(n);
+  });
+  const group = new THREE.Group(), M = new THREE.Matrix4(), Mi = new THREE.Matrix4(), v = new THREE.Vector3(), bb = new THREE.Box3(), lb = new THREE.Box3();
+  let tris = 0;
+  for (const mesh of meshes) {
+    const g = mesh.geometry;
+    if (uses.get(g) > 1) continue;
+    M.multiplyMatrices(toModel, mesh.matrixWorld);
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (!bb.copy(g.boundingBox).applyMatrix4(M).intersectsBox(box)) continue;
+    // erst grob im Knotenraum (dorthin gedrehter Kasten), dann genau
+    const P = g.attributes.position, inside = new Uint8Array(P.count);
+    const raw = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize === 3 ? P.array : null;
+    const { min: a, max: b } = lb.copy(box).applyMatrix4(Mi.copy(M).invert());
+    for (let i = 0; i < P.count; i++) {
+      if (raw) {
+        const x = raw[i * 3], y = raw[i * 3 + 1], z = raw[i * 3 + 2];
+        if (x < a.x || x > b.x || y < a.y || y > b.y || z < a.z || z > b.z) continue;
+      }
+      inside[i] = box.containsPoint(v.fromBufferAttribute(P, i).applyMatrix4(M)) ? 1 : 0;
+    }
+    const I = g.index.array, keep = new I.constructor(I.length), cut = new I.constructor(I.length);
+    let n = 0, m = 0;
+    for (let t = 0; t + 2 < I.length; t += 3) {
+      const a = I[t], b = I[t + 1], c = I[t + 2];
+      if (inside[a] && inside[b] && inside[c]) { cut[m++] = a; cut[m++] = b; cut[m++] = c; } else { keep[n++] = a; keep[n++] = b; keep[n++] = c; }
+    }
+    if (!m) continue;
+    const lg = new THREE.BufferGeometry();
+    for (const [k, a] of Object.entries(g.attributes)) lg.setAttribute(k, a);
+    lg.setIndex(new THREE.BufferAttribute(cut.slice(0, m), 1));
+    lg.boundingBox = g.boundingBox.clone(); lg.boundingSphere = g.boundingSphere?.clone() ?? null;
+    g.setIndex(new THREE.BufferAttribute(keep.slice(0, n), 1));
+    const part = new THREE.Mesh(lg, mesh.material);
+    part.matrixAutoUpdate = false;
+    part.matrix.copy(M);
+    group.add(part);
+    tris += m / 3;
+  }
+  return tris ? { group, tris, parts: group.children.length } : null;
 }
 
 // Ergänzung aus der vollen Stufe (10.10.2026). Der leichteren Stufe fehlen
@@ -550,7 +634,7 @@ function paintMaterial() {
     col *= mix(1.0, 0.72, grime);
     col = mix(col, vec3(0.55, 0.57, 0.6), bare * 0.85);
     col *= mix(1.0, 0.55, line);
-    diffuseColor.rgb = col;
+    diffuseColor.rgb = col * diffuse;
     pRough = mix(0.42, 0.62, grime) + line * 0.25;
     pRough = mix(pRough, 0.28, bare);
     pMetal = mix(0.22, 0.9, bare);
@@ -1334,13 +1418,18 @@ function buildLife(scene, reduceMotion, withStage = true) {
         while (p) { if (p === w.hand) { inHand = true; break; } p = p.parent; }
         if (!inHand) n.visible = false;
       }
+      // eigene Materialien je Arbeiter (gleiches Programm): Wer mit dem
+      // Aufzug in den Schacht fährt, dunkelt allein ab
+      const own2 = new Map();
       for (const [joint, parts] of Object.entries(segs)) {
         for (const [geo, mat] of parts) {
-          const m = new THREE.Mesh(geo, mat);
+          if (!own2.has(mat)) own2.set(mat, mat.clone());
+          const m = new THREE.Mesh(geo, own2.get(mat));
           m.castShadow = true; m.receiveShadow = true;
           w[joint].add(m);
         }
       }
+      w.root.userData.mats = [...own2.values()];
       // leicht unterschiedliche Statur, damit es keine Klonarmee wird
       w.root.scale.setScalar(0.95 + ((i * 37) % 9) / 100);
     });
@@ -1356,18 +1445,23 @@ function buildLife(scene, reduceMotion, withStage = true) {
   const offs = [0, 0.5, 0, 0, 0, 0, 0, 0.25];
   const tmp = new THREE.Vector3();
 
-  function update(dt, t) {
+  // hold: Der Aufzug fährt. Wer geht, bleibt stehen, bis er wieder oben
+  // ist: auf dem Feld fährt man still mit, daneben läuft niemand in den
+  // offenen Schacht. Die Wege laufen deshalb auf einer eigenen Uhr.
+  let walkT = 0;
+  function update(dt, t, hold = false) {
     if (!L) return;
+    if (!hold) walkT += dt;
     crew.forEach((w, i) => {
       const role = (props ? roles : bareRoles)[i];
       const speed = 1.35;
       if (role === 'loop' || role === 'door' || role === 'push') {
         const p = role === 'loop' ? L.loop : role === 'door' ? L.doorRun : L.cartRun;
         const sp = role === 'push' ? 0.9 : speed;
-        const d = reduceMotion ? p.total * (offs[i] + i * 0.13) : t * sp + p.total * (offs[i] + i * 0.13);
+        const d = reduceMotion ? p.total * (offs[i] + i * 0.13) : walkT * sp + p.total * (offs[i] + i * 0.13);
         const yaw = p.at(d, tmp);
         w.root.position.copy(tmp); w.root.rotation.y = yaw;
-        if (reduceMotion) poseStand(w); else poseWalk(w, d * 3.2, role === 'push' ? 0.7 : 1);
+        if (reduceMotion || hold) poseStand(w); else poseWalk(w, d * 3.2, role === 'push' ? 0.7 : 1);
         if (role === 'push' && props?.cart.visible) {
           w.shL.rotation.x = w.shR.rotation.x = -1.2; w.elL.rotation.x = w.elR.rotation.x = -0.3;
           props.cart.position.copy(tmp).add(v.set(Math.sin(yaw), 0, Math.cos(yaw)).multiplyScalar(0.9));
@@ -1652,8 +1746,13 @@ export async function initHangar(container, opts = {}) {
   // (0,94 x Entfernung) bleibt unter 90 % der halben Breite, und der
   // Mindestabstand fürs ganze Schiff (span * 1.1 + 4) soll darin Platz haben.
   const camRoom = (room, k) => (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94;
+  // Mit Aufzug steht das Schiff ganz auf dem Feld, mit 1 m Rand.
+  const liftScale = () => {
+    const L = realHall?.liftL;
+    return L && lastInfo ? Math.max((2 * lastInfo.halfW + 2) / (L.to[0] - L.from[0]), (lastInfo.len + 2) / (L.to[1] - L.from[1])) : 0;
+  };
   const realHallScale = (room) => Math.max(1, (PAD_R * S + 9) / room.halfW, (span * 1.15) / (2 * room.halfL),
-    (span * 1.1 + 4) / camRoom(room, 1));
+    (span * 1.1 + 4) / camRoom(room, 1), liftScale());
 
   // Halle, Licht, Nebel und Kamera auf die Schiffsgröße einstellen.
   function scaleWorld(shipInfo) {
@@ -2012,10 +2111,10 @@ export async function initHangar(container, opts = {}) {
     if (!all.length) return false;
     const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
     // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
-    const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1];
+    const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
     const pts = [];
-    for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) pts.push([c[0] + i * halfW * 0.22, f + 0.2, c[2] + j * halfL * 0.18, 2]);
-    for (const y of [1.5, 4]) pts.push([c[0], f + y, c[2], 4]);
+    for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) pts.push([o[0] + i * halfW * 0.22, f + 0.2, o[2] + j * halfL * 0.18, 2]);
+    for (const y of [1.5, 4]) pts.push([o[0], f + y, o[2], 4]);
     for (const y of [3, height * 0.3, height * 0.6]) for (const t of [-0.6, 0, 0.6]) {
       pts.push([c[0] - halfW + 1, f + y, c[2] + t * halfL, 1], [c[0] + halfW - 1, f + y, c[2] + t * halfL, 1]);
       pts.push([c[0] + t * halfW, f + y, c[2] - halfL + 1, 1], [c[0] + t * halfW, f + y, c[2] + halfL - 1, 1]);
@@ -2023,7 +2122,7 @@ export async function initHangar(container, opts = {}) {
     for (const l of cand) l.score = lampScore(l, pts);
     cand.sort((a, b) => b.score - a.score);
     const lamps = new THREE.Group();
-    lamps.position.set(-c[0], -f, -c[2]);
+    lamps.position.set(-o[0], -f, -o[2]);
     for (const l of cand.slice(0, MAX_LIGHTS)) {
       const col = new THREE.Color().setRGB(...(l.color || [1, 1, 1]));
       const I = l.intensity * HALL_LIGHT_SCALE, dist = l.radius || 0;
@@ -2047,7 +2146,7 @@ export async function initHangar(container, opts = {}) {
     // stärksten treffen, nicht mehr das Bühnenlicht: Er fällt wie im Spiel
     // von der Decke. Einer allein reicht nicht, die übrigen Lampen und das
     // Streulicht der hellen Halle hellen ihn sonst fast ganz auf.
-    const pad = [[c[0], f + 0.2, c[2], 1]];
+    const pad = [[o[0], f + 0.2, o[2], 1]];
     shadowLamps = lamps.children
       .filter((q) => q.isSpotLight && q.userData.src.type === 'spot')
       .map((q) => [q, lampScore(q.userData.src, pad)]).filter(([, sc]) => sc > 0)
@@ -2145,15 +2244,19 @@ export async function initHangar(container, opts = {}) {
     statK = k;
     const t0 = performance.now();
     const lamps = hallLamps.children.filter((q) => shadowLamps.includes(q)).slice(0, 2);
-    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY;
+    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY, o = realHall.spot;
     statClip.constant = (c[1] - f + HALL_STAT_TOP * height) * k;
     const corners = [];
-    for (const x of [-halfW, halfW]) for (const z of [-halfL, halfL]) corners.push(new THREE.Vector3(x * k, (c[1] - f) * k, z * k));
+    for (const x of [-halfW, halfW]) for (const z of [-halfL, halfL]) corners.push(new THREE.Vector3((c[0] - o[0] + x) * k, (c[1] - f) * k, (c[2] - o[2] + z) * k));
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
     const clear = (m) => m.transparent || m.transmission > 0 || /glass/i.test(m.name);
     scene.traverse((o) => {
       if (o.visible && ((o.isMesh && [].concat(o.material).some(clear)) || o.isPoints || o.isLine || o.isSprite)) hide.push(o);
     });
+    // Ohne das Schiffsfeld: Unter der offenen Luke, wenn es abgefahren ist,
+    // leuchten die Strahler darüber hinein. In Ruhelage fehlt ihm nur der
+    // Schatten seiner eigenen 2 cm hohen Leisten.
+    if (realHall.lift?.visible) hide.push(realHall.lift);
     for (const o of hide) o.visible = false;
     const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
     scene.background = null; scene.overrideMaterial = statMat;
@@ -2259,9 +2362,9 @@ export async function initHangar(container, opts = {}) {
     hallEnv = rt;
     scene.environment = rt.texture;
     setHallEnv(rt.texture);
-    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY;
-    hallBox.min.value.set(-halfW, c[1] - f, -halfL);
-    hallBox.max.value.set(halfW, c[1] + height - f, halfL);
+    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY, o = realHall.spot;
+    hallBox.min.value.set(c[0] - o[0] - halfW, c[1] - f, c[2] - o[2] - halfL);
+    hallBox.max.value.set(c[0] - o[0] + halfW, c[1] + height - f, c[2] - o[2] + halfL);
     hallBox.pos.value.set(0, 2.5, 0);
     hallBox.on.value = 1;
     if (!realHall.envOn) {
@@ -2286,8 +2389,8 @@ export async function initHangar(container, opts = {}) {
       if (!r.ok) return null;
       const list = ((await r.json()).probes || []).filter((p) => p.spec && Array.isArray(p.pos));
       if (!list.length) return null;
-      const c = h.room.center, f = Number.isFinite(h.floor) ? h.floor : c[1];
-      const pad = [c[0], f + 2.5, c[2]];
+      const c = h.room.center, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
+      const pad = [o[0], f + 2.5, o[2]];
       const d2 = (p) => p.pos.reduce((q, v, i) => q + (v - pad[i]) ** 2, 0);
       const holds = (p) => Array.isArray(p.box) && p.pos.every((v, i) => Math.abs(pad[i] - v) <= p.box[i]);
       const pick = [...list].sort((a, b) => (holds(b) - holds(a)) || ((b.priority ?? 0) - (a.priority ?? 0)) || (d2(a) - d2(b)))[0];
@@ -2365,8 +2468,9 @@ float hgNoise( vec3 x ) {
 	return mix( mix( mix( hgHash( i ), hgHash( i + vec3( 1.0, 0.0, 0.0 ) ), f.x ), mix( hgHash( i + vec3( 0.0, 1.0, 0.0 ) ), hgHash( i + vec3( 1.0, 1.0, 0.0 ) ), f.x ), f.y ),
 		mix( mix( hgHash( i + vec3( 0.0, 0.0, 1.0 ) ), hgHash( i + vec3( 1.0, 0.0, 1.0 ) ), f.x ), mix( hgHash( i + vec3( 0.0, 1.0, 1.0 ) ), hgHash( i + vec3( 1.0, 1.0, 1.0 ) ), f.x ), f.y ), f.z );
 }
+varying vec3 vHgN;
 vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
-	float l = hgNoise( vHgP / ${HALL_NO_TILE_CELL.toFixed(1)} ) * 8.0;
+	float l = hgNoise( vHgN / ${HALL_NO_TILE_CELL.toFixed(1)} ) * 8.0;
 	float ia = floor( l ), f = fract( l );
 	vec2 oa = sin( vec2( 3.0, 7.0 ) * ia ), ob = sin( vec2( 3.0, 7.0 ) * ( ia + 1.0 ) );
 	vec2 dx = dFdx( uv ), dy = dFdy( uv );
@@ -2389,6 +2493,10 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
   // Rauschen. Ein Wert für alle Hallenmaterialien, scaleWorld setzt ihn.
   const hallNoTileInvK = { value: 1 };
+  // Weg des Aufzugs (Modellmeter): Die Materialien des Schiffsfelds ziehen
+  // ihn für das Rauschen ab, damit das Plattenbild mitfährt statt unterwegs
+  // zu wechseln; alle übrigen lesen 0.
+  const hallLiftY = { value: 0 }, hallLiftNo = { value: 0 };
   // Spiegelung auf den Raumkasten projiziert: Die Umgebungskugel ist an
   // einer Stelle aufgenommen (2,5 m über der Plattform). Ohne Projektion
   // spiegelt jede Platte dasselbe, als läge der Raum unendlich weit weg;
@@ -2495,6 +2603,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
+    sh.uniforms.hgLiftY = m.userData.lift ? hallLiftY : hallLiftNo;
     sh.uniforms.hgBoxOn = hallBox.on; sh.uniforms.hgBoxMin = hallBox.min; sh.uniforms.hgBoxMax = hallBox.max; sh.uniforms.hgBoxPos = hallBox.pos;
     sh.uniforms.hgRoughMin = { value: m.userData.gloss ? HALL_GLOSS_MIN : HALL_ROUGH_MIN };
     sh.uniforms.hgEnvMax = hallEnvMax;
@@ -2504,8 +2613,14 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying float vHgShade;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
+      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgLiftY;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying vec3 vHgN;\nvarying float vHgShade;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgN = vHgP - vec3( 0.0, hgLiftY, 0.0 );\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
+    // Unter dem Boden (das abgefahrene Schiffsfeld) wird es mit der Tiefe
+    // dunkel wie in liftShade; was selbst leuchtet, bleibt hell.
+    if (sh.fragmentShader.includes('vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;')) {
+      sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `if ( vHgP.y < -0.05 ) outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * ( 1.0 - 0.92 * smoothstep( 0.5, ${LIFT_DARK.toFixed(1)}, -vHgP.y ) ) + totalEmissiveRadiance;
+	#include <opaque_fragment>`);
+    }
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb *= vHgShade;')
@@ -2541,8 +2656,8 @@ ${HALL_LIGHTS_BEGIN}
       : Promise.resolve(null);
     hallSettled = fetchGltf(h.url, 'hall', h.bytes || 1.1e7).then(async (gltf) => {
       const model = gltf.scene;
-      const c = h.room.center;
-      model.position.set(-c[0], -c[1], -c[2]);
+      const c = h.room.center, o = hallSpot(h);
+      model.position.set(-o[0], -c[1], -o[2]);
       // Der begehbare Boden liegt im Modell nicht auf 0 (beim Deluxe-Hangar
       // knapp 1 m darüber) — sonst versinken Schiff, Gerät und Crew darin.
       // Die Höhe misst der Build (floor im Manifest); fehlt sie, wird hier
@@ -2579,6 +2694,13 @@ ${HALL_LIGHTS_BEGIN}
         if (r.tris) console.info(`[hangar] Halle: ${r.tris} Dreiecke in ${r.parts} Teilen entfernt (${r.why.split(' (')[0]}), ${ms} ms`);
         else console.warn(`[hangar] Halle: Ausnahme trifft nichts mehr: ${r.why}`);
       }
+      // Schiffsfeld als Aufzug, vor der Einrichtung (die bleibt stehen)
+      const L = HALL_LIFT[h.id], t2 = performance.now();
+      const lift = L ? cutHallLift(model, L, new Set(furn)) : null;
+      if (lift) {
+        model.add(lift.group);
+        console.info(`[hangar] Aufzug: ${lift.tris} Dreiecke in ${lift.parts} Teilen aus dem Schiffsfeld, ${Math.round(performance.now() - t2)} ms`);
+      } else if (L) console.warn('[hangar] Aufzug: Schiffsfeld trifft keine Dreiecke');
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
       if (extra) {
@@ -2675,11 +2797,29 @@ ${HALL_LIGHTS_BEGIN}
           } else if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
           const us = uvStats.get(m);
-          if (us && us.share > 0.4 && !boxed.has(m) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); }
+          if (us && us.share > 0.4 && !boxed.has(m) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
           unifyMaps(m);
         }
       });
       if (boxed.size) console.info(`[hangar] ${boxed.size} Hallenmaterialien projiziert (UVs zerfallen)`);
+      // Das Schiffsfeld bekommt Abzüge seiner Materialien (gleiches Programm,
+      // gleiche Einstellung), die den Aufzugsweg kennen (hallLiftY)
+      if (lift) {
+        const own = new Map();
+        for (const part of lift.group.children) {
+          const m = part.material;
+          if (!seen.has(m)) continue;
+          if (!own.has(m)) {
+            const c = m.clone();
+            c.userData.lift = true;
+            c.onBeforeCompile = hallShader(c);
+            c.customProgramCacheKey = hallKey;
+            if (m.userData.boxUv) boxProject(c, m.userData.boxUv);
+            own.set(m, c);
+          }
+          part.material = own.get(m);
+        }
+      }
       // Die Lampen stehen schon (oder kommen nie): erst übersetzen und
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
@@ -2692,7 +2832,7 @@ ${HALL_LIGHTS_BEGIN}
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, model, room: h.room, mats, floorY, furniture };
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? L : null };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -2796,8 +2936,40 @@ ${HALL_LIGHTS_BEGIN}
     } catch { /* ohne Verdeckung weiter */ }
   }
 
-  let current = null;      // { group, model, born, mat, info }
+  let current = null;      // { group, model, born, mat, info, lift? }
   let leaving = null;      // { group, t0, c }
+  // Aufzug: y in Modellmetern (≤ 0 unter dem Boden); wer auf das Ende der
+  // Fahrt wartet, steht in wait (auch wenn die Fahrt unterwegs umkehrt)
+  const lift = { y: 0, from: 0, to: 0, t0: 0, dur: 0, wait: [] };
+  function liftTo(y, ms) {
+    return new Promise((done) => {
+      lift.wait.push(done);
+      if (Math.abs(y - lift.y) < 1e-4) { lift.dur = 0; lift.y = y; settleLift(); return; }
+      lift.from = lift.y; lift.to = y; lift.t0 = performance.now(); lift.dur = ms;
+    });
+  }
+  function settleLift() {
+    const w = lift.wait;
+    lift.wait = [];
+    for (const f of w) f();
+  }
+  // Tiefe für ein Schiff, in Modellmetern der Halle
+  const liftDepth = (info) => LIFT_DEPTH + info.height / hallRoot.scale.x;
+  // Abdunkeln im Schacht: Farbe und Spiegelung je Material, die Lichter
+  // (Leuchtkarten) bleiben. Die Materialien gehören dem Objekt allein.
+  function dimIn(dim, f) {
+    if (dim.f === f) return;
+    dim.f = f;
+    for (const [m, b] of dim.base) {
+      m.color.copy(b.c).multiplyScalar(f);
+      m.envMapIntensity = b.e * f;
+    }
+  }
+  function dimOf(mats) {
+    const base = new Map();
+    for (const m of mats) if (m?.color && !base.has(m)) base.set(m, { c: m.color.clone(), e: m.envMapIntensity ?? 1 });
+    return { f: 1, base };
+  }
   let homeTgt = null;      // Blickziel der Startansicht des aktuellen Schiffs
   let frameFn = null;
   let token = 0;
@@ -2833,13 +3005,19 @@ ${HALL_LIGHTS_BEGIN}
     const my = ++token;
     makerCode = o.maker || '';
     prog.delete('ship');
+    // Mit Aufzug fährt das alte Schiff gleich ab, das neue lädt derweil.
+    const lowered = realHall?.lift && current && !reduceMotion ? liftTo(-liftDepth(current.info), LIFT_DOWN_MS) : null;
+    if (lowered) current.lift = true;
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
     let gltf = null, textured = false;
     if (o.tex) {
       try { gltf = await fetchGltf(o.tex, 'ship', 9e6, my); textured = true; } catch { gltf = null; }
       if (my !== token) { if (gltf) disposeObject(gltf.scene); return; }
     }
-    if (!gltf) gltf = await fetchGltf(url, 'ship', 3e6, my);
+    // Kommt gar kein Modell, fährt das alte wieder herauf
+    if (!gltf) {
+      try { gltf = await fetchGltf(url, 'ship', 3e6, my); } catch (e) { if (lowered && my === token) liftTo(0, LIFT_UP_MS); throw e; }
+    }
     if (my !== token) { disposeObject(gltf.scene); return; }   // überholt
 
     const model = gltf.scene;
@@ -2902,6 +3080,10 @@ ${HALL_LIGHTS_BEGIN}
       await Promise.race([hallSettled, sleep(6000)]);
       if (my !== token) { drop(); return; }
     }
+    if (lowered) {
+      await lowered;
+      if (my !== token) { drop(); return; }
+    }
     const info = { len: size.z, halfW: size.x / 2, height: size.y };
     scaleWorld(info);
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
@@ -2920,11 +3102,22 @@ ${HALL_LIGHTS_BEGIN}
     }
 
     if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
-    if (current) { leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y }; }
+    // Auf dem Aufzug kommt es von unten herauf; das alte steht unten und geht.
+    const up = !!(realHall?.lift && !reduceMotion);
+    if (current) {
+      if (up) { scene.remove(current.group); release(current); }
+      else leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y };
+    }
+    if (up) {
+      lift.dur = 0; lift.y = -liftDepth(info); lift.regroup = true;
+      liftTo(0, LIFT_UP_MS);
+    }
     scene.add(ship);
     homeTgt = tgt;
     camFree = null; freeDirty = true;
-    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null };
+    const mats = [mat];
+    ship.traverse((n) => { if (n.material) mats.push(...[].concat(n.material)); });
+    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null, lift: up, dim: dimOf(mats) };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship');
     reveal();
@@ -2976,7 +3169,8 @@ ${HALL_LIGHTS_BEGIN}
   const projV = new THREE.Vector3();
   function project(points, out = []) {
     out.length = points.length;
-    const m = current && current.group.visible ? current.model.matrixWorld : null;
+    // Im Schacht (Aufzug nicht oben) zeigt die Oberfläche keine Marker
+    const m = current && current.group.visible && !(current.lift && lift.y < -0.05) ? current.model.matrixWorld : null;
     const w = W(), h = H();
     for (let i = 0; i < points.length; i++) {
       if (!m) { out[i] = null; continue; }
@@ -3130,7 +3324,11 @@ ${HALL_LIGHTS_BEGIN}
     const hall = realHall, k = hall.group.scale.x, o = homeTgt.clone(), t0 = performance.now();
     freeBusy = true;
     let p;
+    // Aufzug in Ruhelage: Der Schacht ist kein Platz für die Kamera
+    const ly = hall.lift?.position.y ?? 0;
+    if (hall.lift) hall.lift.position.y = 0;
     try { p = cubeDist('hall', o, hall.group, (hall.furniture ?? []).map((f) => f.mesh), false, 0.02 * k, Math.max(controls.maxDistance, 1) * 1.6 + 10 * k); } catch (e) { p = Promise.reject(e); }
+    if (hall.lift) hall.lift.position.y = ly;
     p.then((dist) => {
       // Inzwischen anderes Schiff oder andere Halle: neu messen
       if (hall === realHall && homeTgt && homeTgt.equals(o) && hall.group.scale.x === k) {
@@ -3454,17 +3652,53 @@ ${HALL_LIGHTS_BEGIN}
     const dt = Math.min(0.1, t - last); last = t;
     const now = performance.now();
     for (const f of anim) f(t);
-    life.update(dt, t);
+    life.update(dt, t, !!realHall?.lift && (lift.y !== 0 || lift.dur > 0));
     if (dust && !reduceMotion) dust.update(t);
+    if (lift.dur) {
+      // Aufzug: fährt sanft an und bremst sanft (ease-in-out kubisch)
+      const k = Math.min(1, (now - lift.t0) / lift.dur);
+      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      lift.y = lift.from + (lift.to - lift.from) * e;
+      if (k >= 1) { lift.dur = 0; lift.y = lift.to; settleLift(); }
+    }
+    if (realHall?.lift) {
+      realHall.lift.position.y = lift.y;
+      hallLiftY.value = lift.y;
+      // Wer auf dem Schiffsfeld steht, fährt mit; festgelegt in Ruhelage und
+      // unten beim Tausch, damit niemand unterwegs an den Rand springt
+      const L = realHall.liftL, k = hallRoot.scale.x, hx = (L.to[0] - L.from[0]) * k / 2, hz = (L.to[1] - L.from[1]) * k / 2;
+      const pick = lift.y === 0 || lift.regroup;
+      lift.regroup = false;
+      for (const w of life.root.children) {
+        const u = w.userData;
+        if (pick) u.ride = Math.abs(w.position.x) < hx && Math.abs(w.position.z) < hz;
+        if (!u.ride) {
+          // stand vorher auf dem Feld und jetzt daneben: zurück auf den Boden
+          if (u.dim && u.dim.f !== 1) { dimIn(u.dim, 1); w.position.y = 0; }
+          continue;
+        }
+        w.position.y = lift.y * k;
+        if (u.mats) dimIn(u.dim ??= dimOf(u.mats), liftShade(-lift.y - 0.9 / k));
+      }
+    }
     if (current) {
       const g = current.group;
-      // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,
-      // setzt weich auf (ease-out quint), solange das alte noch abhebt
-      const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
-      const e = 1 - Math.pow(1 - k, 5);
-      g.position.y = g.userData.baseY + shipBob() * Math.sin(t * 1.1) + (1 - e) * span * 0.18;
-      g.rotation.y = (1 - e) * -0.45;
-      g.visible = reduceMotion || now - current.born > 60;
+      if (current.lift) {
+        // steht auf dem Aufzug und fährt mit ihm, im Schacht abgedunkelt
+        const k = hallRoot.scale.x;
+        g.position.y = g.userData.baseY + lift.y * k;
+        g.rotation.y = 0;
+        g.visible = true;
+        dimIn(current.dim, liftShade(-lift.y - current.info.height / 2 / k));
+      } else {
+        // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,
+        // setzt weich auf (ease-out quint), solange das alte noch abhebt
+        const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
+        const e = 1 - Math.pow(1 - k, 5);
+        g.position.y = g.userData.baseY + shipBob() * Math.sin(t * 1.1) + (1 - e) * span * 0.18;
+        g.rotation.y = (1 - e) * -0.45;
+        g.visible = reduceMotion || now - current.born > 60;
+      }
       if (fade.to) {
         const f = Math.min(1, (now - fade.t0) / 450);
         const u = current.mat.userData.u;
