@@ -8,10 +8,12 @@ import PatchSeo from '../../components/dossier/PatchSeo.astro';
 import { getEntry } from 'astro:content';
 import { mergePatchEn } from '../../i18n/patchText';
 import { versioned } from '../../lib/assetVersion';
-import { localeFromPath } from '../../i18n/ui';
+import { localeFromPath, href } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
+const L = (path: string) => href(path, lang);
+const NOTES = 'https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102';
 const entry = await getEntry('patches', '4-10-2');
 if (!entry) throw new Error('Patch-Daten 4-10-2 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-10-2', entry.data, lang);
@@ -158,6 +160,9 @@ section{position:relative;padding:clamp(3rem,7vw,6rem) clamp(1.25rem,5vw,4.5rem)
 @media(max-width:520px){.track.deck{grid-template-columns:minmax(0,1fr)}}
 .step small{display:block;margin-top:.4rem;color:var(--muted);font-size:var(--fs-7);line-height:1.45}
 .srnote .chips{margin:.9rem 0 0}
+.icard a,.gcard a,.lead a,.qpanel p.after a{color:var(--accent);text-decoration:underline;text-decoration-color:rgba(217,180,106,.45);text-underline-offset:3px}
+a.chip{transition:border-color var(--dur-base) var(--ease-ui)}a.chip:hover{border-color:var(--accent)}
+.icard a.route{text-decoration:none}
 .tracknote{margin-top:1rem;color:var(--muted);font-size:var(--fs-7);line-height:1.5;max-width:70ch}
 .tracknote b{color:var(--text)}
 
@@ -227,6 +232,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 :root[data-theme="light"] .tag.hot{border-color:rgba(42,130,163,.73);color:#375e6e}
 :root[data-theme="light"] .lead b{color:#6d5416}
 :root[data-theme="light"] .tile.word.hot b{color:#375e6e}
+:root[data-theme="light"] .icard a,.gcard a,.lead a,.qpanel p.after a{text-decoration-color:rgba(151,112,16,.63)}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
@@ -281,7 +287,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         <article class="icard"><span class="ik">{de ? 'Verteidigung' : 'Defence'}</span><b>BHG · Foxwell · Northrock</b><small>{de ? 'Den Raum um microTech von Piraten freihalten, während die Besucher anreisen: Schiffskampf und Patrouillen, dazu Bodeneinsätze in Höhlen, Außenposten und Distributionszentren.' : 'Keep the space around microTech clear of pirates while visitors arrive: ship combat and patrols, plus ground work at caves, outposts and distribution centres.'}</small><span class="route">microTech · {de ? 'Raum · Boden' : 'space · ground'}</span></article>
         <article class="icard"><span class="ik">Transport</span><b>Ling · Covalex · FTL</b><small>{de ? 'Waren von Landezonen, Distributionszentren und Stationen im niedrigen Orbit zur Expo-Plattform bringen.' : 'Move goods from landing zones, distribution centres and low-orbit stations to the expo platform.'}</small><span class="route">→ {de ? 'Expo-Plattform' : 'expo platform'}</span></article>
         <article class="icard"><span class="ik">{de ? 'Sammeln' : 'Collection'}</span><b>Shubin · Adagio</b><small>{de ? 'Shubin kauft Roh- und Fertigmaterial für den Schiffsbau, Adagio will Rümpfe zum Recycling zerlegt haben, darunter Kruger Merlins, Archimedes und Constellations.' : 'Shubin buys raw and crafted materials for shipbuilding, Adagio wants hulls broken down for recycling, including Kruger Merlins, Archimedes and Constellations.'}</small><span class="route">{de ? 'Rohstoffe · Salvage' : 'Materials · salvage'}</span></article>
-        <article class="icard"><span class="ik">{de ? 'Im Bestand' : 'In the catalogue'}</span><b>{de ? '30 neue Familien' : '30 new families'}</b><small>{de ? '12 tragen das Kürzel „RSI Disc. Month“: Betankungsrufe in drei Dringlichkeiten, Paketbergung, raffiniertes Beryl, Eisen und Quantainium. 18 weitere laufen als „Iasi“-Reihe.' : '12 carry the "RSI Disc. Month" tag: refuel calls in three urgencies, package recovery, refined beryl, iron and quantainium. 18 more run as the "Iasi" line.'}</small><span class="route">{de ? '1.355 → 1.387 Familien' : '1,355 → 1,387 families'}</span></article>
+        <article class="icard"><span class="ik">{de ? 'Im Bestand' : 'In the catalogue'}</span><b>{de ? '30 neue Familien' : '30 new families'}</b><small>{de ? '12 tragen das Kürzel ' : '12 carry the '}<a href={L('/missionen/rsi-disc-month-refuel-request.html')}>RSI Disc. Month</a>{de ? ', darunter Betankungsrufe in drei Dringlichkeiten, Paketbergung und der Ankauf von raffiniertem Beryl, Eisen und Quantainium. 18 weitere laufen als ' : ' tag, among them refuel calls in three urgencies, package recovery and purchase orders for refined beryl, iron and quantainium. 18 more run as the '}<a href={L('/missionen/iasi-patrol-medium.html')}>{de ? '„Iasi“-Reihe' : '"Iasi" line'}</a>.</small><a class="route" href={L('/missionen.html')}>{de ? '1.355 → 1.387 Familien' : '1,355 → 1,387 families'} →</a></article>
       </div>
     </div>
   </section>
@@ -289,7 +295,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">03</span><h2>{de ? 'Rundgang durch die neue Mk IV' : 'A walk through the new Mk IV'}</h2><span class="rule"></span></div>
-      <p class="lead reveal">{de ? 'Andromeda, Aquila, Phoenix und Taurus: ' : 'Andromeda, Aquila, Phoenix and Taurus: '}<b>{de ? 'die ganze Reihe ist neu gebaut' : 'the whole series has been rebuilt'}</b>{de ? '. Die acht Stationen gehen vom Bug zum Heck.' : '. The eight stops run from bow to stern.'}</p>
+      <p class="lead reveal"><a href={L('/schiffe/rsi-constellation-andromeda.html')}>Andromeda</a>, <a href={L('/schiffe/rsi-constellation-aquila.html')}>Aquila</a>, <a href={L('/schiffe/rsi-constellation-phoenix.html')}>Phoenix</a>{de ? ' und ' : ' and '}<a href={L('/schiffe/rsi-constellation-taurus.html')}>Taurus</a>: <b>{de ? 'die ganze Reihe ist neu gebaut' : 'the whole series has been rebuilt'}</b>{de ? '. Die acht Stationen gehen vom Bug zum Heck.' : '. The eight stops run from bow to stern.'}</p>
       <ol class="track deck reveal">
         {DECK.map((d, i) => (
           <li class={i % 2 ? 'step a' : 'step'}><span class="sn">{String(i + 1).padStart(2, '0')}</span><span class="sk">{de ? d.kde : d.ken}</span><b>{de ? d.de : d.en}</b><small>{de ? d.tde : d.ten}</small></li>
@@ -332,7 +338,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
   <section>
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">05</span><h2>{de ? 'Neu im Bestand' : 'New in the catalogue'}</h2><span class="rule"></span></div>
-      <p class="lead reveal">{de ? 'Das Event feiert ' : 'The event celebrates '}<b>{de ? 'die Constellation Mk V Centaurus' : 'the Constellation Mk V Centaurus'}</b>{de ? ' und ihr Beiboot. Beide stehen mit vollständigen Werten im Bestand.' : ' and its snub. Both are in the catalogue with full stats.'}</p>
+      <p class="lead reveal">{de ? 'Das Event feiert ' : 'The event celebrates '}<b><a href={L('/schiffe/rsi-constellation-mk5-centaurus.html')}>{de ? 'die Constellation Mk V Centaurus' : 'the Constellation Mk V Centaurus'}</a></b>{de ? ' und ihr Beiboot, die ' : ' and its snub, the '}<a href={L('/schiffe/rsi-skylark.html')}>Skylark</a>{de ? '. Beide stehen mit vollständigen Werten im Bestand.' : '. Both are in the catalogue with full stats.'}</p>
       <div class="qgrid reveal">
         <div class="srnote">
           <h3>Constellation Mk V Centaurus</h3>
@@ -379,6 +385,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
             <div class="row"><dt>{de ? 'Würfe' : 'Throws'}</dt><span class="lead2"></span><dd>{de ? 'ab Loslass-Moment' : 'from release moment'}</dd></div>
             <div class="row"><dt>{de ? 'Ausgenommen' : 'Excluded'}</dt><span class="lead2"></span><dd>{de ? 'Schiffe, Fahrzeuge, Charaktere' : 'ships, vehicles, characters'}</dd></div>
           </dl>
+          <p class="after"><a href={NOTES} target="_blank" rel="noopener">{de ? 'Ausführlich in den Patch Notes ↗' : 'In full in the patch notes ↗'}</a></p>
         </div>
         <div class="qpanel">
           <div class="phead"><h3>{de ? 'VR-Zoom' : 'VR zoom'}</h3><span class="pc">{de ? 'Einstellungen' : 'Settings'}</span></div>
@@ -399,11 +406,11 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     <div class="wrap">
       <div class="sec-head reveal"><span class="num">07</span><h2>{de ? 'Ausrüstung & Baupläne' : 'Gear & blueprints'}</h2><span class="rule"></span></div>
       <div class="gear reveal">
-        <article class="gcard"><span class="gk">Crafting</span><b>{de ? 'Monolith-Set' : 'Monolith set'}</b><small>{de ? 'Die schwere Monolith-Panzerung als Bauplan, in der Grundfassung und in „Shadowflux“. Dazu das F55-LMG „Shadowflux“, das Kraftwerk DayBreak und der Quantum-Antrieb Goliath.' : 'The heavy Monolith armour as a blueprint, in its base version and in "Shadowflux". Plus the F55 "Shadowflux" LMG, the DayBreak power plant and the Goliath quantum drive.'}</small><div class="chips"><span class="chip">{de ? 'Helm' : 'Helmet'}</span><span class="chip">{de ? 'Torso' : 'Core'}</span><span class="chip">{de ? 'Arme' : 'Arms'}</span><span class="chip">{de ? 'Beine' : 'Legs'}</span><span class="chip">{de ? 'Rucksack' : 'Backpack'}</span></div></article>
-        <article class="gcard"><span class="gk">Wikelo</span><b>Gemini LMG · Grey Combat Armour</b><small>{de ? 'Wikelo tauscht jetzt die Rezepte für beide. Zum LMG gibt es eine eigene Mission.' : 'Wikelo now trades the recipes for both. The LMG comes with a mission of its own.'}</small></article>
-        <article class="gcard"><span class="gk">{de ? 'Laut Notes' : 'Per the notes'}</span><b>Heavy Combat Hunter 3</b><small>{de ? 'Das Panzerset mit allen Farbvarianten, drei Tarnmuster für die RRS-Reihe und neun neue Augenbrauen in der Charaktererstellung.' : 'The armour set with all its tints, three camouflage patterns for the RRS line and nine new eyebrows in character creation.'}</small></article>
-        <article class="gcard"><span class="gk">{de ? 'Komponenten' : 'Components'}</span><b>{de ? 'Vier neue Reihen' : 'Four new lines'}</b><small>{de ? 'Neu im Katalog, je in drei Größen.' : 'New in the catalogue, three sizes each.'}</small><div class="chips"><span class="chip">{de ? 'BriskAir · Kühler' : 'BriskAir · cooler'}</span><span class="chip">Delphi · Radar</span><span class="chip">{de ? 'Helios · Kraftwerk' : 'Helios · power plant'}</span><span class="chip">{de ? 'Sovereign · Kraftwerk' : 'Sovereign · power plant'}</span></div></article>
-        <article class="gcard"><span class="gk">{de ? 'Bestand' : 'Catalogue'}</span><b>{de ? '4.10.1 → 4.10.2' : '4.10.1 → 4.10.2'}</b><small>{de ? 'Gegenstände 9.222 → 9.410 · Baupläne 1.605 → 1.617 · Missionsfamilien 1.355 → 1.387. Mining bleibt inhaltlich unverändert.' : 'Items 9,222 → 9,410 · blueprints 1,605 → 1,617 · mission families 1,355 → 1,387. Mining is unchanged in substance.'}</small></article>
+        <article class="gcard"><span class="gk">Crafting</span><b><a href={L('/armor-sets.html#monolith')}>{de ? 'Monolith-Set' : 'Monolith set'}</a></b><small>{de ? 'Die schwere Monolith-Panzerung als Bauplan, in der Grundfassung und in „Shadowflux“. ' : 'The heavy Monolith armour as a blueprint, in its base version and in "Shadowflux".'} {de ? 'Dazu kommen ' : 'Plus '}<a href={L('/crafting/f55-shadowflux-lmg.html')}>{de ? 'das F55-LMG „Shadowflux“' : 'the F55 "Shadowflux" LMG'}</a>, <a href={L('/crafting/daybreak.html')}>{de ? 'das Kraftwerk DayBreak' : 'the DayBreak power plant'}</a>{de ? ' und ' : ' and '}<a href={L('/crafting/goliath.html')}>{de ? 'der Quantum-Antrieb Goliath' : 'the Goliath quantum drive'}</a>.</small><div class="chips"><a class="chip" href={L('/crafting/monolith-helmet.html')}>{de ? 'Helm' : 'Helmet'}</a><a class="chip" href={L('/crafting/monolith-armor-core.html')}>{de ? 'Torso' : 'Core'}</a><a class="chip" href={L('/crafting/monolith-armor-arms.html')}>{de ? 'Arme' : 'Arms'}</a><a class="chip" href={L('/crafting/monolith-armor-legs.html')}>{de ? 'Beine' : 'Legs'}</a><a class="chip" href={L('/crafting/monolith-backpack.html')}>{de ? 'Rucksack' : 'Backpack'}</a></div></article>
+        <article class="gcard"><span class="gk"><a href={L('/topics/wikelo-emporium.html')}>Wikelo</a></span><b>Gemini LMG · Grey Combat Armour</b><small>{de ? 'Wikelo tauscht jetzt die Rezepte für beide. Zum LMG gibt es eine eigene Mission, ' : 'Wikelo now trades the recipes for both. The LMG comes with a mission of its own, '}<a href={L('/missionen/big-style-lmg.html')}>Big Style LMG</a>.</small></article>
+        <article class="gcard"><span class="gk">{de ? 'Laut Notes' : 'Per the notes'}</span><b><a href={NOTES} target="_blank" rel="noopener">Heavy Combat Hunter 3 ↗</a></b><small>{de ? 'Das Panzerset mit allen Farbvarianten, drei Tarnmuster für die RRS-Reihe und neun neue Augenbrauen in der Charaktererstellung.' : 'The armour set with all its tints, three camouflage patterns for the RRS line and nine new eyebrows in character creation.'}</small></article>
+        <article class="gcard"><span class="gk">{de ? 'Komponenten' : 'Components'}</span><b>{de ? 'Vier neue Reihen' : 'Four new lines'}</b><small>{de ? 'Neu im Katalog, je in drei Größen.' : 'New in the catalogue, three sizes each.'}</small><div class="chips"><a class="chip" href={L('/items/briskair-ic-10.html')}>{de ? 'BriskAir · Kühler' : 'BriskAir · cooler'}</a><a class="chip" href={L('/items/delphi-rs-10.html')}>Delphi · Radar</a><a class="chip" href={L('/items/helios-ip-10.html')}>{de ? 'Helios · Kraftwerk' : 'Helios · power plant'}</a><a class="chip" href={L('/items/sovereign-ip-10.html')}>{de ? 'Sovereign · Kraftwerk' : 'Sovereign · power plant'}</a></div></article>
+        <article class="gcard"><span class="gk">{de ? 'Bestand' : 'Catalogue'}</span><b>{de ? '4.10.1 → 4.10.2' : '4.10.1 → 4.10.2'}</b><small><a href={L('/items.html')}>{de ? 'Gegenstände' : 'Items'}</a>{de ? ' 9.222 → 9.410 · ' : ' 9,222 → 9,410 · '}<a href={L('/crafting.html')}>{de ? 'Baupläne' : 'Blueprints'}</a>{de ? ' 1.605 → 1.617 · ' : ' 1,605 → 1,617 · '}<a href={L('/missionen.html')}>{de ? 'Missionsfamilien' : 'Mission families'}</a>{de ? ' 1.355 → 1.387. Mining bleibt inhaltlich unverändert.' : ' 1,355 → 1,387. Mining is unchanged in substance.'}</small></article>
       </div>
     </div>
   </section>

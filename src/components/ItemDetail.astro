@@ -16,12 +16,14 @@ import { specChips, statEntries, statRows, primaryStat, variantHead } from '../l
 import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
 import { patchPageHref } from '../lib/patchPages';
+import { patchesMentioning } from '../lib/patchMentions';
 
 interface Props { item: Item; lang: Locale }
 const { item, lang } = Astro.props;
 
 const t = itemT(lang);
 const patchHref = patchPageHref(ITEM_PATCH, lang);
+const mentions = patchesMentioning(itemPath(item));
 const seo = itemSeo(item, lang);
 const name = displayName(item, lang);
 const alt = altName(item, lang);
@@ -262,5 +264,6 @@ const crumbs = [
         aus wie ein Knopf und waere keiner. Die Patch-Kennung steht ohnehin im
         Seitentitel. */}
     {patchHref && <a class="dp-btn dp-btn--ghost" href={patchHref}>Alpha {ITEM_PATCH}</a>}
+    {mentions.map((p) => <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a>)}
   </div>
 </DataShell>

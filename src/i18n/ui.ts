@@ -401,6 +401,7 @@ const UI = {
     'do.events': 'Events',
     'do.sources': 'Quellen: starcitizen.tools, RSI Comm-Links, Patch Notes',
     'do.notesRsi': 'Offizielle Patch Notes (RSI)',
+    'do.fixesList': 'Alle Fehlerbehebungen in den offiziellen Notes',
     'do.unvNote': '* unbestätigt · ',
     // -- TopicFacts / RelatedTopics (Topic-Seiten, Stufe 3) --
     'tf.topic': 'Thema',
@@ -803,6 +804,7 @@ const UI = {
     'do.events': 'Events',
     'do.sources': 'Sources: starcitizen.tools, RSI Comm-Links, patch notes',
     'do.notesRsi': 'Official patch notes (RSI)',
+    'do.fixesList': 'All fixes in the official notes',
     'do.unvNote': '* unverified · ',
     // -- TopicFacts / RelatedTopics (topic pages, Stufe 3) --
     'tf.topic': 'Topic',

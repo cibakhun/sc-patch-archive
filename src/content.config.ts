@@ -62,6 +62,9 @@ const patches = defineCollection({
          *  Die Herkunfts-Zeile der Topic-Seite zeigt dann "Abgelegt unter" statt
          *  "Eingeführt in" — das Dossier ist hier nur archiviert, nicht debütiert. */
         evergreen: z.boolean().optional(),
+        /** Seiten zu dem, was das Feature nennt: "/…" = eigene Seite (sprachrichtig
+         *  aufgelöst), sonst externe Quelle. */
+        links: z.array(z.object({ label: z.string(), href: z.string() })).optional(),
       })
     ),
     ships: z

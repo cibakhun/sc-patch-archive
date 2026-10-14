@@ -16,9 +16,11 @@ import { mineralFor, miningLink } from '../lib/miningLinks';
 import { formatResist } from '../lib/itemStats';
 import { blueprintSeo } from '../lib/itemSeo';
 import { missionBySlug, seoTitle } from '../lib/missions';
+import { patchesMentioning } from '../lib/patchMentions';
 
 interface Props { bp: BlueprintEntry; lang: Locale }
 const { bp, lang } = Astro.props;
+const mentions = patchesMentioning(`/crafting/${bp.slug}.html`);
 
 const t = itemT(lang);
 const seo = blueprintSeo(bp, lang, craftPatch, craftDb.snapshot_date);
@@ -242,5 +244,6 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
     {linkedItem && <a class="dp-btn" href={href(itemPath(linkedItem), lang)}>{t('bpOpenItem')} →</a>}
     <a class="dp-btn dp-btn--ghost" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')}</a>
     <a class="dp-btn dp-btn--ghost" href={href(craftCategoryPath(slugify(bp.category)), lang)}>{craftLeaf(bp.category)}</a>
+    {mentions.map((p) => <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a>)}
   </div>
 </DataShell>
