@@ -20,7 +20,7 @@
    mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   NEUN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   ZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -99,6 +99,18 @@
         Textur. Sonst fehlten am Telefon Glas, Rohre und Fuellung still,
         oder ihnen fehlten die Texturkoordinaten (so beim ersten Bau: prune
         ohne keepAttributes).
+    10  Das Schiffsfeld faehrt als Aufzug (seit 14.10.2026): HALL_LIFT im
+        Viewer nennt je Halle ein Rechteck im Modellraum (x/z) und einen
+        Hoehenbereich des Bodens. Der Viewer nimmt beim Laden jedes Dreieck,
+        das ganz darin liegt, in eine eigene Gruppe, die beim
+        Schiffswechsel ab- und auffaehrt. Das traegt nur, solange der Rand
+        des Rechtecks genau zwischen den Dreiecken verlaeuft: Kein
+        Dreieck, das bleibt, hat eine Ecke tief im Feld (mehr als 1 cm
+        innerhalb, auf Bodenhoehe), sonst laege ein Splitter Boden ueber dem
+        offenen Schacht oder ein Stueck Feld bliebe oben stehen. Baut der PC
+        die Halle neu oder verschiebt sie, trifft das Rechteck daneben. Dazu
+        traegt das Feld in jeder Hallenstufe mindestens `min` Dreiecke, und
+        jeder Schluessel ist die Halle der Seite.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -599,8 +611,108 @@ if (hall?.patch?.url && hall.furniture?.url && patchTris < klinkePatch) fail(`[9
 say(`    Viewer laedt sie am Telefon: ${patchMark ? 'ja' : 'nein'}   Datei: ${hall?.patch?.url?.split('?')[0] ?? '(keine)'} ${patchBytes ? `${(patchBytes / 1e3).toFixed(0)} KB` : ''}`);
 sollIst(`aus der ausgelieferten Moebeldatei, deren ${furnParts} Primitiven mit Ergaenzung und Fuellung gleich (mindestens ${klinkePatch} Dreiecke), 0 Moebel, 0 Texturen, 0 fremde Knoten`, `${patchTris} Dreiecke in ${patchNodes} Knoten, ${patchMissing} fehlen oder anders, ${patchExtra} zu viel, ${patchTex} Texturen und Bilder, ${patchForeign} fremde Knoten`);
 
+say('\n[10] Das Schiffsfeld faehrt als Aufzug: kein bleibendes Dreieck reicht hinein');
+// Der Block steht im Viewer zwischen /* hall-lift */ und /* /hall-lift */ und ist JSON
+const lm = /\/\* hall-lift \*\/([\s\S]*?)\/\* \/hall-lift \*\//.exec(viewer);
+let liftAll = null;
+try { liftAll = lm ? JSON.parse(lm[1]) : null; } catch (e) { fail(`[10] HALL_LIFT im Viewer ist kein JSON mehr (${e.message})`); }
+if (viewer && !lm) fail('[10] der Viewer traegt keinen Block /* hall-lift */ … /* /hall-lift */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+liftAll ??= {};
+for (const k of Object.keys(liftAll).filter((k) => k !== hall?.id)) fail(`[10] HALL_LIFT["${k}"]: die Seite laedt diese Halle nicht; Eintrag entfernen oder die Halle zurueck`);
+const LIFT = hall?.id ? liftAll[hall.id] ?? null : null;
+const LIFT_E = 0.01;
+const liftRuns = [], liftExtra = [];
+if (LIFT) {
+  const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
+  if (!(pair(LIFT.from) && pair(LIFT.to) && pair(LIFT.y) && LIFT.from[0] < LIFT.to[0] && LIFT.from[1] < LIFT.to[1] && LIFT.y[0] < LIFT.y[1] && Number.isInteger(LIFT.min) && LIFT.min > 0)) {
+    fail(`[10] HALL_LIFT["${hall.id}"] braucht from [x, z], to [x, z], y [unten, oben] und eine Klinke min`);
+  } else {
+    const [x0, z0] = LIFT.from, [x1, z1] = LIFT.to, [y0, y1] = LIFT.y, e = LIFT_E;
+    // wie cutHallLift: im Kasten (x/z um 1 cm erweitert) faehrt es mit
+    const inBox = (x, y, z) => x >= x0 - e && x <= x1 + e && z >= z0 - e && z <= z1 + e && y >= y0 && y <= y1;
+    const deep = (x, y, z) => x > x0 + e && x < x1 - e && z > z0 + e && z < z1 - e && y >= y0 && y <= y1;
+    for (const [u, doc] of stageDocs) {
+      // Dieselben Geometrien wie der Viewer: mehrfach gestellte und solche
+      // ohne Index schneidet er nicht, dort zaehlt jede Ecke im Feld als Riss
+      const acc = new Map(), refs = new Map();
+      const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
+      for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
+      let moved = 0, torn = 0;
+      const ex = [];
+      for (const node of doc.getRoot().listNodes()) {
+        const mesh = node.getMesh();
+        // Moebel bleiben stehen (der Viewer nimmt sie aus, samt Kindern)
+        let furn = false;
+        for (let a = node; a && !furn; a = a.getParentNode()) furn = Array.isArray(a.getExtras()?.anchor);
+        if (!mesh || furn) continue;
+        const w = node.getWorldMatrix();
+        for (const p of mesh.listPrimitives()) {
+          const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
+          if (!P) continue;
+          const cuts = !!I && !(refs.get(geo(p)) > 1);
+          const at = (i) => {
+            const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+            return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
+          };
+          const n = I ? I.length : P.length / 3;
+          for (let t = 0; t + 2 < n; t += 3) {
+            const q = [at(I ? I[t] : t), at(I ? I[t + 1] : t + 1), at(I ? I[t + 2] : t + 2)];
+            if (cuts && q.every((v) => inBox(...v))) { moved++; continue; }
+            if (q.some((v) => deep(...v))) {
+              torn++;
+              if (ex.length < 2) ex.push(`${p.getMaterial()?.getName()?.split('_mtl_').pop() ?? '?'} ${q.map((v) => `(${v.map((c) => c.toFixed(2)).join(' ')})`).join(' ')}`);
+            }
+          }
+        }
+      }
+      liftRuns.push({ u, moved, torn });
+      say(`    ${u}: ${moved} Dreiecke fahren, ${torn} reichen hinein`);
+      if (torn) fail(`[10] ${u}: ${torn} Dreiecke bleiben stehen und reichen mehr als 1 cm ins Schiffsfeld (z. B. ${ex.join('; ')}): Halle neu gebaut oder verschoben? Rand in HALL_LIFT (assets/hangar-viewer.js) nachmessen, er muss genau zwischen den Dreiecken liegen`);
+      if (moved < LIFT.min) fail(`[10] ${u}: nur ${moved} Dreiecke im Schiffsfeld, die Klinke verlangt ${LIFT.min}: Liegt das Feld noch an dieser Stelle? HALL_LIFT nachmessen; min nur per Commit mit Ursache senken`);
+    }
+    if (!stageDocs.size) fail('[10] HALL_LIFT, aber keine Hallenstufe gemessen ([3])');
+    // Moebeldatei und Telefon-Datei setzt der Viewer erst nach dem Schnitt
+    // ein: Was davon auf Bodenhoehe im Feld liegt, bliebe ueber dem offenen
+    // Schacht stehen. Ein Moebel, das nur mit der Kante hineinragt, steht
+    // daneben fest (gezaehlt, kein Fehler); steht sein Bezugspunkt im Feld,
+    // schwebte es.
+    for (const u of [hall?.furniture?.url, hall?.patch?.url].filter(Boolean)) {
+      const f = fromUrl(u);
+      if (!existsSync(f)) continue;
+      const doc = await decode(f);
+      let stay = 0, over = 0, floating = 0;
+      const ex = [], fx = [];
+      for (const node of doc.getRoot().listNodes()) {
+        let anchor = null;
+        for (let a = node; a && !anchor; a = a.getParentNode()) anchor = Array.isArray(a.getExtras()?.anchor) ? a : null;
+        const x = anchor?.getExtras().anchor;
+        if (anchor === node && x && deep(...x)) { floating++; if (fx.length < 2) fx.push(`${node.getName()} (${x.map((c) => c.toFixed(2)).join(' ')})`); }
+        const mesh = node.getMesh();
+        if (!mesh) continue;
+        const w = node.getWorldMatrix();
+        let hit = false;
+        for (const p of mesh.listPrimitives()) {
+          const P = p.getAttribute('POSITION')?.getArray();
+          if (!P) continue;
+          for (let i = 0; i + 2 < P.length && !hit; i += 3) {
+            const vx = P[i], vy = P[i + 1], vz = P[i + 2];
+            hit = deep(w[0] * vx + w[4] * vy + w[8] * vz + w[12], w[1] * vx + w[5] * vy + w[9] * vz + w[13], w[2] * vx + w[6] * vy + w[10] * vz + w[14]);
+          }
+          if (hit && !anchor && ex.length < 2) ex.push(`${node.getName()} ${p.getMaterial()?.getName()?.split('_mtl_').pop() ?? '?'}`);
+        }
+        if (hit) { if (anchor) over++; else stay++; }
+      }
+      say(`    ${u.split('?')[0]}: ${stay} Teile auf Bodenhoehe im Feld, ${floating} Moebel mit Bezugspunkt im Feld, ${over} Moebelteile ragen mit der Kante hinein`);
+      if (stay) fail(`[10] ${u.split('?')[0]}: ${stay} Teile (Ergaenzung oder Fuellung) liegen auf Bodenhoehe im Schiffsfeld (z. B. ${ex.join('; ')}) und blieben ueber dem offenen Schacht stehen: Der Viewer setzt diese Datei nach dem Schnitt ein. Teil aus dem Feld nehmen (scripts/build-hall-furniture.mjs) oder HALL_LIFT nachmessen`);
+      if (floating) fail(`[10] ${u.split('?')[0]}: ${floating} Moebel stehen im Schiffsfeld (${fx.join('; ')}) und schwebten bei abgefahrenem Aufzug: HALL_LIFT nachmessen oder das Moebel per HALL_DROP herausnehmen`);
+      liftExtra.push({ u: u.split('?')[0], stay, floating, over });
+    }
+  }
+}
+sollIst(LIFT ? `je Hallenstufe 0 Dreiecke, die ins Feld reichen, mindestens ${LIFT.min} fahren; aus Moebel- und Telefon-Datei 0 Teile und 0 Moebel im Feld` : 'kein Aufzug fuer diese Halle', [...liftRuns.map((r) => `${r.u}: ${r.torn} reichen hinein, ${r.moved} fahren`), ...liftExtra.map((r) => `${r.u}: ${r.stay} Teile, ${r.floating} Moebel`)].join('; ') || '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

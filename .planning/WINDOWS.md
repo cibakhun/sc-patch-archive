@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 42
+open_count: 43
 waived_count: 1
 fixed_count: 28
-total_count: 71
-last_updated: 2026-10-11T02:10:00.000Z
+total_count: 72
+last_updated: 2026-10-14T18:10:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -86,6 +86,7 @@ last_updated: 2026-10-11T02:10:00.000Z
 | 70 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Spur A2, 08.10.2026): Toene der Marker. Waffen amber (--accent #f5a623), Systeme blasses Blaugrau (--accent-2 #9aa6bd); seit Einheit 11 tragen beide einen dunklen 2-px-Ring, damit der blasse Systemton auch auf weissem Rumpf haelt. Zu beurteilen in der echten Halle: unterscheiden sich die beiden Toene genug, und traegt der Systemton auf hellen wie dunklen Flaechen? Belege: .audit/shots/track-a2/u11-systems-markers-ring-1440.png (Cutlass, Systeme, mit Ring), .audit/shots/track-a/u5-gladius-systems-markers.png (vor dem Ring). | open |  | 2026-10-08T00:15:32.668Z |  |
 | 71 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Halle, 08.10.2026): Die Halle uebernimmt jetzt die Abdunkelung aus dem Spiel (Vertexfarben der Wandmaterialien mit %VERTCOLORS, PC-Lauf „Hallen-Vertexfarben“, 5195a87; der Viewer nimmt den Rotkanal, ohne neue Shaderprogramme). Am deutlichsten: die zurueckgesetzten Felder unten an den Seitenwaenden werden dunkel (Faktor 0,153 auf plastic_white01), vorher hell mit blauem Schimmer; sonst sind die Unterschiede klein (mittlere Helligkeit je Blick 0,5 bis 1,4 von 255). Ob diese Felder ihr Material aus dem Export oder ueber die matfix-Zuordnung des Builds haben, ist im GLB nicht mehr vermerkt (laut Selbstauskunft des PC-Laufs sind matfix-Flaechen im Mittel dunkler: R 0,715 gegen 0,944), und ob das Spiel sie so dunkel zeigt, entscheidet kein Skript. Zu beurteilen: wirken die dunklen Felder wie im Spiel? Wenn nicht: Abdunkelung fuer dieses Material im Viewer abschalten, oder matfix-Flaechen im Build ohne sie (PC). Beleg: /mnt/project-files/hangar/v15-wand-abdunkelung-vorher-nachher.png im Projektordner (oben ohne, unten mit). Nachstellen aus dem Repo: Hangarseite am Rechner, Kamera in Weltkoordinaten auf (-20, 3, 0), Blick auf (35, 6, 0), Sichtwinkel 60 Grad; die Felder liegen links und rechts unten an der Seitenwand, ohne Abdunkelung zum Vergleich mit hgShadeU.value = 0 an den Hallenmaterialien. | open |  | 2026-10-08T16:32:47.000Z |  |
 | 72 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Kamera, 11.10.2026): Die Kamera bleibt jetzt im freien Raum der Halle und außerhalb des Schiffs (PR #96 Halle, danach Schiffshülle). Ganz herausgezoomt hält sie vor Balkonen, Kabeltrassen, Deckenkästen und Kisten an und gleitet zurück, sobald der Weg frei ist; ganz hereingezoomt gleitet sie an Flügelspitzen, Leitwerk und Kanzel nach außen, um einen Hardpoint gedreht um den Rumpf herum (um einen Hardpoint am Flügel der Gladius bis zu 7 m, bis 2,6 m je 6 Grad Drehung). Gemessen ist nur die Lage (keine Lage im Rumpf oder in Hallenteilen); ob sich das Anhalten und Hinausgleiten beim Drehen und Zoomen natürlich anfühlt, kann die Cloud mit etwa einem Bild je Sekunde nicht beurteilen. Zu beurteilen am Rechner und am Telefon: ganz herausgezoomt an den Seitenwänden entlangdrehen; ganz hereingezoomt um die Gladius drehen, dann einen Hardpoint am Flügel antippen und ganz hereingezoomt um ihn drehen. Wenn es springt oder ruckelt: Stelle und Schiff nennen. Belege im Projektordner: /mnt/project-files/hangar/v22-kamera-vorher-nachher.png (Halle), /mnt/project-files/hangar/v23-schiff-kamera-vorher-nachher.png (Hardpoint am Flügel, ganz tief). | open |  | 2026-10-11T02:10:00.000Z |  |
+| 73 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schiffswechsel, 14.10.2026): Beim Schiffswechsel fährt jetzt das Schiffsfeld der Halle (32 × 96 m, die gepunkteten Platten) als Bodenaufzug wie in den heutigen Hangars des Spiels: Das alte Schiff sinkt in 1,9 s in einen dunklen Schacht (26 m plus Schiffshöhe), das neue lädt derweil und kommt in 2,8 s herauf, beides sanft an- und abbremsend; beim ersten Laden der Seite kommt das Schiff ebenso herauf. Wer von der Crew auf dem Feld steht, fährt mit, alle bleiben stehen, solange der Aufzug fährt. Der Schacht hat noch keine Wände und keine Warnlichter (die kommen mit dem PC-Lauf „Hangar-Aufzug“, .planning/notes/hangar-aufzug.md); bis dahin ist er schwarz. Gemessen sind nur Lagen (Bildfolge bei festen Höhen); ob Tempo, Dunkelheit und das Warten der Crew natürlich wirken, kann die Cloud mit etwa einem Bild je Sekunde nicht beurteilen. Zu beurteilen am Rechner und am Telefon: nacheinander ein kleines, ein mittleres und ein großes Schiff wählen (etwa Gladius, Cutlass Black, Carrack), dazwischen einmal schnell zweimal hintereinander. Wenn etwas springt, hakt, zu langsam oder zu schnell ist: Stelle und Schiff nennen; Fahrzeiten LIFT_DOWN_MS und LIFT_UP_MS, Tiefe LIFT_DEPTH, Dunkelheit LIFT_DARK in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v30-aufzug-bildfolge.png im Projektordner. | open |  | 2026-10-14T18:10:00.000Z |  |
 
 ````json
 [
@@ -939,6 +940,18 @@ last_updated: 2026-10-11T02:10:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-11T02:10:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 73,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schiffswechsel, 14.10.2026): Beim Schiffswechsel fährt jetzt das Schiffsfeld der Halle (32 × 96 m, die gepunkteten Platten) als Bodenaufzug wie in den heutigen Hangars des Spiels: Das alte Schiff sinkt in 1,9 s in einen dunklen Schacht (26 m plus Schiffshöhe), das neue lädt derweil und kommt in 2,8 s herauf, beides sanft an- und abbremsend; beim ersten Laden der Seite kommt das Schiff ebenso herauf. Wer von der Crew auf dem Feld steht, fährt mit, alle bleiben stehen, solange der Aufzug fährt. Der Schacht hat noch keine Wände und keine Warnlichter (die kommen mit dem PC-Lauf „Hangar-Aufzug“, .planning/notes/hangar-aufzug.md); bis dahin ist er schwarz. Gemessen sind nur Lagen (Bildfolge bei festen Höhen); ob Tempo, Dunkelheit und das Warten der Crew natürlich wirken, kann die Cloud mit etwa einem Bild je Sekunde nicht beurteilen. Zu beurteilen am Rechner und am Telefon: nacheinander ein kleines, ein mittleres und ein großes Schiff wählen (etwa Gladius, Cutlass Black, Carrack), dazwischen einmal schnell zweimal hintereinander. Wenn etwas springt, hakt, zu langsam oder zu schnell ist: Stelle und Schiff nennen; Fahrzeiten LIFT_DOWN_MS und LIFT_UP_MS, Tiefe LIFT_DEPTH, Dunkelheit LIFT_DARK in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v30-aufzug-bildfolge.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-14T18:10:00.000Z",
     "resolved_at": null
   }
 ]
