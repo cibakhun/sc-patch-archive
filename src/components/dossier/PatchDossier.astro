@@ -7,6 +7,8 @@
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import shipsSnapshot from '../../data/ships.json';
+import vehicles from '../../data/vehicles.json';
+import { stripSpine } from '../../../scripts/lib/patch-spine.mjs';
 import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../../i18n/ui';
 
 interface Props {
@@ -37,6 +39,13 @@ const scuFmt = (s?: (typeof fy)[number]['data']) =>
 const priceFmt = (s?: (typeof fy)[number]['data']) =>
   s?.priceUSD != null ? `$${s.priceUSD}` : '—';
 const anySpecs = patch.ships.some((s) => spec(s.name));
+// Gleiche Join-Regel wie das Patch-Rückgrat der Schiffsseiten: Patch -> Schiff und Schiff -> Patch treffen dieselben Paare.
+const vehicleIds = new Map(vehicles.vehicles.map((v) => [stripSpine(v.name), v.id]));
+const shipPage = (name: string) => {
+  const id = vehicleIds.get(stripSpine(name));
+  return id ? L(`/schiffe/${id}.html`) : null;
+};
+const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
 ---
 <section class="do" id="dossier" aria-label={t('do.aria').replace('%v%', patch.version)}>
   <div class="do__in">
@@ -76,6 +85,19 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
               ))}
             </dl>
           )}
+          {(f.links?.length ?? 0) > 0 && (
+            <ul class="do__links">
+              {f.links!.map((x) => (
+                <li>
+                  {x.href.startsWith('/') ? (
+                    <a href={linkHref(x.href)}>{x.label}</a>
+                  ) : (
+                    <a href={x.href} target="_blank" rel="noopener">{x.label}<span class="do__ext" aria-hidden="true"> ↗</span></a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
           {f.topicSlug && <a class="do__link" href={L(`/topics/${f.topicSlug}.html`)}>{t('do.deepdive')}</a>}
         </article>
       ))}
@@ -92,10 +114,16 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
             <tbody>
               {patch.ships.map((s) => {
                 const f = spec(s.name);
+                const own = shipPage(s.name);
                 return (
                   <tr>
                     <td>
-                      {f ? (
+                      {own ? (
+                        <>
+                          <a class="do__shiplink" href={own}>{s.name}</a>
+                          {f && <a class="do__fy" href={f.fleetyardsUrl} target="_blank" rel="noopener" aria-label={`${s.name} · FleetYards`}>↗</a>}
+                        </>
+                      ) : f ? (
                         <a class="do__shiplink" href={f.fleetyardsUrl} target="_blank" rel="noopener">
                           {s.name}<span class="do__ext" aria-hidden="true"> ↗</span>
                         </a>
@@ -139,7 +167,12 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
     {(patch.wipe || patch.fixesNote) && (
       <div class="do__foot">
         {patch.wipe && <span class="do__wipe">⚠ {patch.wipe}</span>}
-        {patch.fixesNote && <span>{patch.fixesNote}</span>}
+        {patch.fixesNote && (
+          <span>
+            {patch.fixesNote}
+            {patch.notesUrl && <> <a class="do__fixlist" href={patch.notesUrl} target="_blank" rel="noopener">{t('do.fixesList')}<span class="do__ext" aria-hidden="true"> ↗</span></a></>}
+          </span>
+        )}
       </div>
     )}
 
@@ -150,6 +183,35 @@ const anySpecs = patch.ships.some((s) => spec(s.name));
 </section>
 
 <style>
+  .do__links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.7rem 0 0;
+    padding: 0;
+  }
+  .do__links a,
+  .do__fy,
+  .do__fixlist {
+    color: var(--accent, #2dd4ff);
+  }
+  .do__links a {
+    display: inline-block;
+    font-family: var(--font-mono, monospace);
+    font-size: var(--fs-5, 0.8rem);
+    border: 1px solid var(--line, var(--line-soft));
+    padding: 0.22rem 0.55rem;
+    border-radius: 2px;
+    transition: border-color var(--dur-base) var(--ease-ui);
+  }
+  .do__links a:hover {
+    border-color: var(--accent, #2dd4ff);
+  }
+  .do__fy {
+    margin-left: 0.4rem;
+    font-size: 0.85em;
+  }
   .do {
     padding: clamp(3rem, 7vw, 6rem) clamp(1.25rem, 5vw, 4.5rem);
   }

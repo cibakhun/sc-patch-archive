@@ -3325,9 +3325,24 @@
           "notes": "Snub of the Constellation Mk V"
         },
         {
-          "role": "Multi-role",
+          "role": "Medium freight / gunship",
           "status": "Gold Standard",
-          "notes": "Whole series rebuilt: bridge, lifts, airlock, turrets, exterior"
+          "notes": "Rebuilt: bridge, lifts, airlock, turrets, exterior"
+        },
+        {
+          "role": "Medium freight / gunship",
+          "status": "Gold Standard",
+          "notes": "Rebuilt: bridge, lifts, airlock, turrets, exterior"
+        },
+        {
+          "role": "Medium freight / gunship",
+          "status": "Gold Standard",
+          "notes": "Rebuilt: bridge, lifts, airlock, turrets, exterior"
+        },
+        {
+          "role": "Medium freight",
+          "status": "Gold Standard",
+          "notes": "Rebuilt: bridge, lifts, airlock, turrets, exterior"
         },
         {
           "role": "Heavy gunship",
