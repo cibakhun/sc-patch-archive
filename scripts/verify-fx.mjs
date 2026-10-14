@@ -175,8 +175,7 @@ console.log('\n[6] Sprachparitaet EN<->DE (Umschalter-Klasse, data-fx, Ereignisn
 
 /* ---- Zusicherung 7: exakt 44 Patch-Seiten mit dem Ereignisnamen ----
    27.08.2026: 4.10.0 „Siege of Orison“ kam als 20. Patch dazu (DE+EN).
-   07.10.2026: 4.10.1 „Orison Relief Support“ kam als 21. Patch dazu (DE+EN).
-   12.10.2026: 4.10.2 „RSI Discovery Month“ kam als 22. Patch dazu (DE+EN). */
+   07.10.2026: 4.10.1 „Orison Relief Support“ kam als 21. Patch dazu (DE+EN). */
 console.log('\n[7] Genau 44 gebaute Patch-Seiten (22 je Sprache) enthalten den Ereignisnamen');
 {
   const patchFiles = htmlFiles.filter((f) => /\/patches\/sc-[^/]+\.html$/.test(f));
