@@ -7,7 +7,7 @@
   "era": "Frontier",
   "type": "point",
   "tagline": "RSI baut die Constellation Mk IV neu und startet mit RSI Discovery Month ein Event in Stanton. Dazu kommt neuer Netzcode für lose Physikobjekte.",
-  "heroImage": "/assets/wk-taurus.jpg",
+  "heroImage": "/assets/trailer-4-10-2.jpg",
   "summary": "Alpha 4.10.2 baut die Constellation Mk IV von Grund auf neu. Die Brücke hat freie Sicht, der Frachtlift ist neu, die Luftschleuse sitzt an anderer Stelle, die Türme haben eigene Anzeigen, das Annexdock ist überarbeitet, und die Außenhülle hat einen neuen Anstrich. In Stanton startet das Event „RSI Discovery Month\" mit drei Laufbahnen, nämlich Verteidigung rund um microTech, Transport zur Expo-Plattform und Sammeln für Shubin und Adagio. Neu im Bestand sind die Constellation Mk V Centaurus und ihr Beiboot, die RSI Skylark. Die Hammerhead steht dort in einer neuen Fassung mit mehr Hülle und Schild, obwohl die Notes sie nicht erwähnen. Der Netzcode für lose Physikobjekte ist neu geschrieben, VR hat einen eigenen Zoom, und Schilde mit festem Resistenzwert wirken jetzt. Der Patch schließt 71 Fehler. Darunter sind die Salvage-Aufträge von Orison Relief Support, deren Belohnungsleiste sich in wenigen kurzen Läufen abschließen ließ.",
   "palette": {
     "bg": "#0e121b",
