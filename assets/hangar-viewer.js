@@ -117,6 +117,57 @@ float pLine(vec2 q, float sz) {
 }
 `;
 
+// Rechnen in Häppchen (15.10.2026): Die Aufbereitung beim Laden (Halle,
+// Schiffsmaße, Crew, Lichtgitter) hielt den Hauptfaden am Stück an, allein
+// die Halle 1,4 s (Desktop), auf schwachen Geräten das Drei- bis Vierfache:
+// die Seite fror ein. Die langen Schleifen rufen dafür zwischen ihren Teilen
+// `await pause()`; pause gibt dem Browser das Wort, sobald seit dem letzten
+// Mal `ms` Rechenzeit vergangen sind. Ohne pause (Vorgabe) am Stück.
+const noPause = async () => {};
+function slicer(ms, yieldFn) {
+  let t = performance.now();
+  return async () => {
+    if (performance.now() - t < ms) return;
+    await yieldFn();
+    t = performance.now();
+  };
+}
+const nextTask = () => new Promise((r) => setTimeout(r, 0));
+
+// Eingebettete Bilder direkt und Bild für Bild (15.10.2026). GLTFLoader
+// macht aus jedem Bild einer GLB Blob, Objekt-URL und fetch, alle im selben
+// Zug, sobald die Datei da ist: beim Schiff 188 Bilder, bei vierfach
+// gedrosselter CPU ein Block von 1 s, in der Halle noch zwei. Hier geht der
+// Blob ohne URL und fetch an createImageBitmap (dekodiert wie zuvor außerhalb
+// des Hauptfadens, Optionen wie ImageBitmapLoader), eins nach dem anderen
+// über alle Dateien; nach `ms` Rechenzeit ist der Browser dran. Bilder mit
+// URI und Browser ohne ImageBitmap gehen den Weg des Loaders.
+function embeddedImages(ms) {
+  const pause = slicer(ms, nextTask);
+  let turn = Promise.resolve();
+  return (parser) => {
+    const load = parser.loadImageSource.bind(parser);
+    parser.loadImageSource = (i, loader) => {
+      const def = parser.json.images[i];
+      if (parser.sourceCache[i] !== undefined || def.bufferView === undefined || !loader.isImageBitmapLoader) return load(i, loader);
+      const go = (turn = turn.then(pause));
+      const p = go
+        .then(() => parser.getDependency('bufferView', def.bufferView))
+        .then((view) => createImageBitmap(new Blob([view], { type: def.mimeType }), { ...loader.options, colorSpaceConversion: 'none' }))
+        .then((bitmap) => {
+          const t = new THREE.Texture(bitmap);
+          t.needsUpdate = true;
+          if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
+          t.userData.mimeType = def.mimeType;
+          return t;
+        });
+      parser.sourceCache[i] = p;
+      return p;
+    };
+    return { name: 'hg_embedded_images' };
+  };
+}
+
 // Spielteile, die in der Halle nicht stehen sollen, je Halle (Schlüssel wie
 // in hangar-assets.json) und je Teil mit Anlass. Die Halle kommt nach
 // Material zusammengelegt, ein Knoten je Material: Ein einzelnes Teil lässt
@@ -142,7 +193,7 @@ const HALL_DROP = /* hall-drop */ {
 
 // Schneidet die Teile eines HALL_DROP-Eintrags aus den Indexpuffern der
 // Halle, vor dem Hochladen. Liefert je Eintrag { why, tris, parts }.
-function dropHallParts(model, list) {
+async function dropHallParts(model, list, pause = noPause) {
   const out = [];
   if (!list?.length) return out;
   model.updateMatrixWorld(true);
@@ -191,6 +242,7 @@ function dropHallParts(model, list) {
         any = true;
       }
       if (any) work.push({ g, kid });
+      await pause();
     }
     // Dreiecke ganz in reach verbinden; ragt eines hinaus, hält es seine
     // Ecken in reach fest (das Teil reicht weiter und bleibt)
@@ -202,6 +254,7 @@ function dropHallParts(model, list) {
         if (a >= 0 && b >= 0 && c >= 0) { const r = find(a); par[find(b)] = r; par[find(c)] = r; }
         else { if (a >= 0) anchors.push(a); if (b >= 0) anchors.push(b); if (c >= 0) anchors.push(c); }
       }
+      await pause();
     }
     const held = new Set(anchors.map(find)), shown = new Set();
     for (let i = 0; i < seen.length; i++) if (seen[i]) shown.add(find(i));
@@ -219,6 +272,7 @@ function dropHallParts(model, list) {
         keep[n++] = I[t]; keep[n++] = I[t + 1]; keep[n++] = I[t + 2];
       }
       if (n < I.length) g.setIndex(new THREE.BufferAttribute(keep.slice(0, n), 1));
+      await pause();
     }
     out.push({ why: d.why, tris, parts: gone.size });
   }
@@ -247,7 +301,7 @@ function hallSpot(h) {
 
 // Liefert { group, tris, parts } oder null. Teilt die Ecken mit der Halle
 // (ein Puffer auf der Grafikkarte), nur die Dreiecksliste ist geteilt.
-function cutHallLift(model, L, skip) {
+async function cutHallLift(model, L, skip, pause = noPause) {
   model.updateMatrixWorld(true);
   const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
   const e = 0.01, box = new THREE.Box3(new THREE.Vector3(L.from[0] - e, L.y[0], L.from[1] - e), new THREE.Vector3(L.to[0] + e, L.y[1], L.to[1] + e));
@@ -263,6 +317,7 @@ function cutHallLift(model, L, skip) {
   const group = new THREE.Group(), M = new THREE.Matrix4(), Mi = new THREE.Matrix4(), v = new THREE.Vector3(), bb = new THREE.Box3(), lb = new THREE.Box3();
   let tris = 0;
   for (const mesh of meshes) {
+    await pause();
     const g = mesh.geometry;
     if (uses.get(g) > 1) continue;
     M.multiplyMatrices(toModel, mesh.matrixWorld);
@@ -356,7 +411,7 @@ function swapHallDetail(model, extra) {
 // hält es damit in Originalgröße, wenn die Halle mit großen Schiffen wächst.
 // Liefert [{ mesh, pieces: [[von, bis, ax, ay, az], …], s, base }] und
 // nimmt die zusammengelegten Meshes aus ihren Knoten.
-function mergeFurniture(model, nodes) {
+async function mergeFurniture(model, nodes, pause = noPause) {
   if (!nodes.length) return [];
   model.updateMatrixWorld(true);
   const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
@@ -433,6 +488,7 @@ function mergeFurniture(model, nodes) {
       pieces.push([vo, vo + count, A[0], A[1], A[2]]);
       vo += count;
       o.removeFromParent();
+      await pause();
     }
     const geo = new THREE.BufferGeometry();
     geo.setIndex(new THREE.BufferAttribute(index, 1));
@@ -474,13 +530,15 @@ function scaleFurniture(list, s) {
 // die Textur als Schmiere und Streifen. Dann wird sie im Shader würfelförmig
 // aus der Objektlage projiziert, im Maßstab der heilen Dreiecke desselben
 // Materials. Ein sauberer Export schaltet das von selbst ab.
-function hallUvStats(model) {
+async function hallUvStats(model, pause = noPause) {
   const st = new Map();
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  model.traverse((n) => {
-    if (!n.isMesh) return;
+  const meshes = [];
+  model.traverse((n) => { if (n.isMesh) meshes.push(n); });
+  for (const n of meshes) {
+    await pause();
     const g = n.geometry, P = g.attributes.position, U = g.attributes.uv, I = g.index;
-    if (!U || !I) return;
+    if (!U || !I) continue;
     for (const grp of (g.groups.length ? g.groups : [{ start: 0, count: I.count, materialIndex: 0 }])) {
       const m = [].concat(n.material)[grp.materialIndex || 0];
       const e = st.get(m) || { tris: 0, deg: 0, r: [] };
@@ -496,8 +554,15 @@ function hallUvStats(model) {
       }
       st.set(m, e);
     }
-  });
-  for (const e of st.values()) { e.r.sort((x, y) => x - y); e.share = e.tris ? e.deg / e.tris : 0; e.mPerUv = e.r[e.r.length >> 1] || 2; }
+  }
+  // Median je Material über selectRank statt Sortieren mit Vergleichsfunktion
+  for (const e of st.values()) {
+    await pause();
+    const r = Float64Array.from(e.r), mid = r.length >> 1;
+    if (r.length) selectRank(r, mid, 0, r.length - 1);
+    e.share = e.tris ? e.deg / e.tris : 0;
+    e.mPerUv = r[mid] || 2;
+  }
   return st;
 }
 
@@ -1232,8 +1297,8 @@ const polar = (r, a, y = 0) => new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a)
 // Zerlegt die echte Crew-Figur in Glieder für das Arbeitergerüst.
 // Die Figur steht in Metern, Y oben, blickt in -Z, Arme nach vorn unten
 // zusammengeführt (so kommt sie aus dem Build). Ergebnis: Gelenkname ->
-// [[Geometrie im Gelenkraum, Material]].
-function rigCrew(model) {
+// [[Geometrie im Gelenkraum, Material]]. Mit pause in Häppchen (slicer).
+async function rigCrew(model, pause = noPause) {
   model.updateMatrixWorld(true);
   // Gelenke des Gerüsts in Weltlage (siehe worker()): Körper 0,95, Hals 1,55,
   // Schulter ±0,23/1,45, Ellbogen 0,30 tiefer, Hüfte ±0,1/0,93, Knie 0,45 tiefer.
@@ -1251,8 +1316,12 @@ function rigCrew(model) {
     b.subVectors(s1, s0); const t = THREE.MathUtils.clamp(a.subVectors(p, s0).dot(b) / b.lengthSq(), 0, 1);
     return q.copy(s0).addScaledVector(b, t).distanceTo(p);
   };
-  model.traverse((n) => {
-    if (!n.isMesh) return;
+  // Schulter und Hände je Seite einmal (je Dreieck neu angelegt: 0,1 Mio. Vektoren)
+  const SH = { [-1]: sh(-1), 1: sh(1) }, HD = { [-1]: hd(-1), 1: hd(1) };
+  const meshes = [];
+  model.traverse((n) => { if (n.isMesh) meshes.push(n); });
+  for (const n of meshes) {
+    await pause();
     const g = (n.geometry.index ? n.geometry.toNonIndexed() : n.geometry.clone());
     g.applyMatrix4(n.matrixWorld);
     g.rotateY(Math.PI);                       // Blick nach +Z wie das Gerüst
@@ -1263,19 +1332,20 @@ function rigCrew(model) {
       for (let k = 0; k < 3; k++) c.x += P.getX(t + k) / 3, c.y += P.getY(t + k) / 3, c.z += P.getZ(t + k) / 3;
       const side = c.x < 0 ? 'L' : 'R', sx = c.x < 0 ? -1 : 1;
       let key;
-      const nearArm = distSeg(c, sh(sx), hd(sx)) < 0.085 && (c.z > 0.12 || Math.abs(c.x) > 0.2);
+      const nearArm = distSeg(c, SH[sx], HD[sx]) < 0.085 && (c.z > 0.12 || Math.abs(c.x) > 0.2);
       if (isArm || (nearArm && c.y > 0.75)) {
         // Ober- oder Unterarm: Abstand von der Schulter nach dem Geradebiegen
-        a.subVectors(c, sh(sx)).applyQuaternion(rot[side]);
+        a.subVectors(c, SH[sx]).applyQuaternion(rot[side]);
         key = (-a.y > 0.3 ? 'el' : 'sh') + side;
       } else if (c.y > 1.56 && Math.abs(c.x) < 0.14) key = 'neck';
       else if (c.y < 0.92) key = (c.y < 0.48 ? 'kn' : 'hip') + side;
       else key = 'body';
       tri[key].push(g, t, n.material);
     }
-  });
+  }
   const out = {};
   for (const [key, list] of Object.entries(tri)) {
+    await pause();
     // nach Material bündeln
     const byMat = new Map();
     for (let i = 0; i < list.length; i += 3) {
@@ -1425,9 +1495,12 @@ function buildLife(scene, reduceMotion, withStage = true) {
   // Jetzt 8, bei gleichem Bild. setCrew baut verborgen, showCrew tauscht,
   // wenn die Programme übersetzt sind (prepare).
   let crewMeshes = [];
-  function setCrew(model) {
-    const segs = rigCrew(model);
+  // in drei Zügen (Gliedern, Zusammenlegen, Arbeiter), dazwischen der Browser
+  async function setCrew(model) {
+    const segs = await rigCrew(model, slicer(12, nextTask));
+    await nextTask();
     const geo = crewGeometry(segs);
+    await nextTask();
     const base = Object.values(segs).flat()[0]?.[1];
     if (!geo || !base) return;
     crewMeshes = crew.map((w, i) => {
@@ -1621,11 +1694,29 @@ function crewMaterial(base) {
   return m;
 }
 
+// Bringt den Wert vom Rang r (aufsteigend) in a[lo..hi] an die Stelle r,
+// kleinere davor, größere dahinter (Hoare-Teilung, Pivot Median aus drei)
+function selectRank(a, r, lo, hi) {
+  while (lo < hi) {
+    const m = (lo + hi) >> 1, x0 = a[lo], x1 = a[m], x2 = a[hi];
+    const x = x0 < x1 ? (x1 < x2 ? x1 : x0 < x2 ? x2 : x0) : (x0 < x2 ? x0 : x1 < x2 ? x2 : x1);
+    let i = lo, j = hi;
+    while (i <= j) {
+      while (a[i] < x) i++;
+      while (x < a[j]) j--;
+      if (i <= j) { const t = a[i]; a[i] = a[j]; a[j] = t; i++; j--; }
+    }
+    if (r <= j) hi = j;
+    else if (r >= i) lo = i;
+    else return;
+  }
+}
+
 // Hüllquader ohne Ausreißer: manche Modelle tragen einzelne Splitter weit
 // abseits des Rumpfs (Exportreste). Ein strenger Quader liesse das Schiff
 // darum über der Plattform schweben; gezählt wird deshalb vom 0,5. bis zum
-// 99,5. Perzentil je Achse.
-function robustBox(root) {
+// 99,5. Perzentil je Achse. Mit pause in Häppchen (slicer).
+async function robustBox(root, pause = noPause) {
   // Stichprobe je Teil wie gehabt; sortiert wird in typisierten Feldern ohne
   // Vergleichsfunktion (beim Gladius gut 0,4 s weniger beim Einfahren).
   const parts = [], v = new THREE.Vector3();
@@ -1641,16 +1732,26 @@ function robustBox(root) {
   const xs = new Float64Array(cap), ys = new Float64Array(cap), zs = new Float64Array(cap);
   let k = 0;
   for (const [n, pos, step] of parts) {
+    await pause();
     for (let i = 0; i < pos.count; i += step) {
       v.fromBufferAttribute(pos, i).applyMatrix4(n.matrixWorld);
       xs[k] = v.x; ys[k] = v.y; zs[k] = v.z; k++;
     }
   }
+  // Nur die beiden Ränge, nicht ganz sortiert (selectRank): dieselben Werte,
+  // beim Schiff 1,7 Mio. Ecken je Achse in einem Bruchteil der Zeit
   const q = (a) => {
-    a.sort();
-    return [a[Math.floor(k * 0.005)], a[Math.ceil(k * 0.995) - 1]];
+    const lo = Math.floor(k * 0.005), hi = Math.ceil(k * 0.995) - 1;
+    selectRank(a, lo, 0, k - 1);
+    selectRank(a, hi, lo, k - 1);
+    return [a[lo], a[hi]];
   };
-  const [x0, x1] = q(xs), [y0, y1] = q(ys), [z0, z1] = q(zs);
+  await pause();
+  const [x0, x1] = q(xs);
+  await pause();
+  const [y0, y1] = q(ys);
+  await pause();
+  const [z0, z1] = q(zs);
   return new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
 }
 
@@ -1748,13 +1849,22 @@ export async function initHangar(container, opts = {}) {
   // Normalen-Pass der Umgebungsverdeckung: 1100 der 2600 Draw-Calls eines
   // Bildes (2026-10-08).
   renderer.shadowMap.autoUpdate = false;
+  // unsichtbar, bis Halle und Schiff fertig sind (reveal)
+  if (REAL) renderer.domElement.style.opacity = '0';
   container.appendChild(renderer.domElement);
+  // Mit echter Halle bleibt die Leinwand ohnehin bis reveal() verborgen: Der
+  // Aufbau gibt dann zwischen seinen großen Schritten dem Browser das Wort
+  // (am Stück 0,5 s bei vierfach gedrosselter CPU, 15.10.2026). Nur vor den
+  // Steuerelementen: danach könnten Ereignisse auf Späteres zugreifen.
+  const breathe = () => (REAL ? nextTask() : undefined);
+  await breathe();
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07080b);
   scene.fog = new THREE.Fog(0x07080b, 40, 110);
   const envRT = buildEnvironment(renderer);
   scene.environment = envRT.texture;
+  await breathe();
 
   // Echte Halle: { group, room, mats, floorY, furniture }; lastInfo = Maße
   // des aktuellen Schiffs
@@ -1808,6 +1918,7 @@ export async function initHangar(container, opts = {}) {
   // müssten sonst jedes Bild neu), in der niedrigen Stufe gehen vier statt acht
   if (Q0 !== 'hoch') life.setShadows(false);
   if (Q0 === 'niedrig') life.setCount(4);
+  await breathe();
   // die Crew erscheint mit der Halle, nicht vorher im Leeren
   life.root.visible = !REAL;
   if (!REAL) buildStage();
@@ -1957,7 +2068,7 @@ export async function initHangar(container, opts = {}) {
   }
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
-  const loader = new GLTFLoader().setDRACOLoader(draco);
+  const loader = new GLTFLoader().setDRACOLoader(draco).register(embeddedImages(8));
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   // ─── Laden ohne Einfrieren ──────────────────────────────────────────────
@@ -2229,7 +2340,7 @@ export async function initHangar(container, opts = {}) {
     a: { value: null }, b: { value: null }, on: { value: 0 },
     min: { value: new THREE.Vector3() }, at: null, inv: { value: 1 / VOL_STEP }, res: { value: new THREE.Vector3(1, 1, 1) },
   };
-  function buildHallVolume(list, room, f) {
+  async function buildHallVolume(list, room, f, pause = noPause) {
     const { center: c, halfW, halfL, height } = room;
     const x0 = c[0] - halfW, y0 = f - 1, z0 = c[2] - halfL;
     const nx = Math.round((2 * halfW) / VOL_STEP) + 1, ny = Math.ceil((height + 1) / VOL_STEP) + 1, nz = Math.round((2 * halfL) / VOL_STEP) + 1;
@@ -2238,6 +2349,7 @@ export async function initHangar(container, opts = {}) {
     const soft = VOL_SOFT * VOL_SOFT;
     let used = 0;
     for (const l of list) {
+      await pause();
       if (!l.pos.every((v, i) => v >= lo[i] && v <= hi[i])) continue;
       const R = l.radius || 30, R4 = R ** 4, I = l.intensity * HALL_LIGHT_SCALE * VOL_GAIN;
       const col = l.color || [1, 1, 1], lum = 0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2];
@@ -2275,6 +2387,7 @@ export async function initHangar(container, opts = {}) {
     // Lichtfarbe als Rot und Blau je Helligkeit (Grün folgt daraus)
     const A = new Uint16Array(N * 4), B = new Uint16Array(N * 4), h = THREE.DataUtils.toHalfFloat;
     for (let n = 0; n < N; n++) {
+      if (!(n & 4095)) await pause();
       for (let s = 0; s < 4; s++) A[n * 4 + s] = h(face[n * 6 + s]);
       B[n * 4] = h(face[n * 6 + 4]); B[n * 4 + 1] = h(face[n * 6 + 5]);
       const r = rgb[n * 3], g = rgb[n * 3 + 1], b = rgb[n * 3 + 2], L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -2363,7 +2476,9 @@ export async function initHangar(container, opts = {}) {
     // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
     const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
     const t0 = performance.now();
-    const vol = buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f);
+    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, nextTask));
+    // in Häppchen gerechnet: scheiterte die Halle derweil, bleibt die gebaute samt Bühnenlicht
+    if (hallFailed) { vol.a.dispose(); vol.b.dispose(); return false; }
     hallVol.a.value = vol.a; hallVol.b.value = vol.b;
     // Ecke im Modellraum merken: Die Halle verschiebt Lampen und Gitter beim
     // Einhängen um ihre eigene Lage (ohne floor im Manifest gelotet)
@@ -2890,29 +3005,36 @@ ${HALL_LIGHTS_BEGIN}
       // scaleFurniture bei 1/k.
       const furn = [];
       model.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
+      // In Häppchen (siehe slicer): Die Halle hängt erst nach prepare() in
+      // der Szene, zwischendurch zeichnet also nichts eine halb fertige.
+      const pause = slicer(12, nextTask);
+      await nextTask();
       const t0 = performance.now();
-      for (const r of dropHallParts(model, HALL_DROP[h.id])) {
+      for (const r of await dropHallParts(model, HALL_DROP[h.id], pause)) {
         const ms = Math.round(performance.now() - t0);
         if (r.tris) console.info(`[hangar] Halle: ${r.tris} Dreiecke in ${r.parts} Teilen entfernt (${r.why.split(' (')[0]}), ${ms} ms`);
         else console.warn(`[hangar] Halle: Ausnahme trifft nichts mehr: ${r.why}`);
       }
+      await pause();
       // Schiffsfeld als Aufzug, vor der Einrichtung (die bleibt stehen)
       const L = HALL_LIFT[h.id], t2 = performance.now();
-      const lift = L ? cutHallLift(model, L, new Set(furn)) : null;
+      const lift = L ? await cutHallLift(model, L, new Set(furn), pause) : null;
       if (lift) {
         model.add(lift.group);
         console.info(`[hangar] Aufzug: ${lift.tris} Dreiecke in ${lift.parts} Teilen aus dem Schiffsfeld, ${Math.round(performance.now() - t2)} ms`);
       } else if (L) console.warn('[hangar] Aufzug: Schiffsfeld trifft keine Dreiecke');
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
+      await pause();
       if (extra) {
         const det = swapHallDetail(model, extra);
         if (det) console.info(`[hangar] Halle: ${det.added} Dreiecke Glas und Rohre aus der vollen Stufe statt ${det.cut} (${det.materials} Materialien), ${det.filled} Dreiecke Füllung`);
         model.add(extra);
         extra.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
+        await pause();
       }
       const t1 = performance.now();
-      const furniture = mergeFurniture(model, furn);
+      const furniture = await mergeFurniture(model, furn, pause);
       for (const n of furn) {
         let left = false;
         n.traverse((o) => { if (o.isMesh) left = true; });
@@ -2923,6 +3045,7 @@ ${HALL_LIGHTS_BEGIN}
         const tris = furniture.reduce((sum, f) => sum + f.mesh.geometry.index.count / 3, 0);
         console.info(`[hangar] Einrichtung: ${furn.length} Möbel in ${furniture.length} Meshes, ${tris} Dreiecke, ${Math.round(performance.now() - t1)} ms`);
       }
+      await pause();
       // Abdunkelung aus dem Spiel: Im Spiel tragen die Wandmaterialien
       // %VERTCOLORS, ihr COLOR_0 ist Grau (R = G = B) und dunkelt die
       // Paneele verschieden ab. Als eigenes Attribut (hgShade, der Hallen-
@@ -2945,7 +3068,9 @@ ${HALL_LIGHTS_BEGIN}
         padded++;
       });
       if (shaded) console.info(`[hangar] Halle: ${shaded} Meshes mit Abdunkelung aus dem Spiel${padded ? `, ${padded} ohne eigene auf hell gesetzt` : ''}`);
-      const uvStats = hallUvStats(model);
+      await pause();
+      const uvStats = await hallUvStats(model, pause);
+      await pause();
       const boxed = new Set(), seen = new Set();
       model.traverse((n) => {
         if (!n.isMesh) return;
@@ -3266,7 +3391,8 @@ ${HALL_LIGHTS_BEGIN}
     const wrap = new THREE.Group();
     wrap.add(turn);
     wrap.updateMatrixWorld(true);
-    const box = robustBox(wrap);
+    const box = await robustBox(wrap, slicer(12, nextTask));
+    if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     wrap.position.set(-center.x, -box.min.y, -center.z);
@@ -4026,8 +4152,6 @@ ${HALL_LIGHTS_BEGIN}
 
   scaleWorld({ len: 14, halfW: 6, height: 4 });
   if (REAL) {
-    // unsichtbar, bis Halle und Schiff fertig sind (reveal)
-    renderer.domElement.style.opacity = '0';
     lampsReady = loadHallLights(opts.hall);
     probeReady = loadHallProbe(opts.hall);
     // Nachbearbeitung nur in der hohen Stufe
@@ -4043,7 +4167,7 @@ ${HALL_LIGHTS_BEGIN}
   if (opts.crew?.url) {
     fetchGltf(opts.crew.url, 'crew', 2e5).then(async (g) => {
       g.scene.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) unifyMaps(m); });
-      life.setCrew(g.scene);
+      await life.setCrew(g.scene);
       // nur die neuen Figuren, nicht die gebauten Arbeiter, die gleich weichen
       const parts = life.crewMeshes();
       await prepare({ traverse: (f) => parts.forEach((o) => o.traverse(f)), traverseVisible: (f) => parts.forEach((o) => o.traverseVisible(f)) });
