@@ -615,14 +615,14 @@ function boxProject(m, mPerUv) {
 // Punkte und ein Pixel breite Striche heraus und lässt Ecken, Fugen und den
 // Schatten unter dem Schiff stehen, die viele Pixel breit sind. Ersetzt
 // Kopie und Überblendung des Passes (dessen Ausgabe dafür aus) durch einen Zug.
+// Seit 2026-10-15 rechnet der Pass in halber Auflösung (buildComposer): Der
+// Median läuft dort in ein eigenes Ziel, das Bild liest es weich vergrößert.
 function aoMedianPass(ao, Pass, FullScreenQuad) {
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { tDiffuse: { value: null }, tAO: { value: null }, intensity: { value: 1 } },
-    vertexShader: 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }',
-    fragmentShader: `uniform sampler2D tDiffuse;
-uniform sampler2D tAO;
-uniform float intensity;
-varying vec2 vUv;
+  const vertexShader = 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }';
+  const med = new THREE.ShaderMaterial({
+    uniforms: { tAO: { value: null } },
+    vertexShader,
+    fragmentShader: `uniform sampler2D tAO;
 #define s2(a, b) t = a; a = min(a, b); b = max(t, b);
 #define mn3(a, b, c) s2(a, b); s2(a, c);
 #define mx3(a, b, c) s2(b, c); s2(a, c);
@@ -641,21 +641,41 @@ void main() {
 	mnmx5( v1, v2, v3, v4, v6 );
 	mnmx4( v2, v3, v4, v7 );
 	mnmx3( v3, v4, v8 );
-	vec4 c = texture2D( tDiffuse, vUv );
-	gl_FragColor = vec4( c.rgb * mix( 1.0, v4, intensity ), c.a );
+	gl_FragColor = vec4( v4, 0.0, 0.0, 1.0 );
 }`,
     depthTest: false, depthWrite: false,
   });
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null }, tMed: { value: null }, intensity: { value: 1 } },
+    vertexShader,
+    fragmentShader: `uniform sampler2D tDiffuse;
+uniform sampler2D tMed;
+uniform float intensity;
+varying vec2 vUv;
+void main() {
+	vec4 c = texture2D( tDiffuse, vUv );
+	gl_FragColor = vec4( c.rgb * mix( 1.0, texture2D( tMed, vUv ).r, intensity ), c.a );
+}`,
+    depthTest: false, depthWrite: false,
+  });
+  const medRT = new THREE.WebGLRenderTarget(1, 1, { format: THREE.RedFormat, depthBuffer: false });
   class AoMedianPass extends Pass {
-    constructor() { super(); this.material = mat; this.quad = new FullScreenQuad(mat); }
+    constructor() { super(); this.material = mat; this.medMaterial = med; this.quad = new FullScreenQuad(med); }
     render(renderer, writeBuffer, readBuffer) {
+      const src = ao.pdRenderTarget;
+      if (medRT.width !== src.width || medRT.height !== src.height) medRT.setSize(src.width, src.height);
+      med.uniforms.tAO.value = src.texture;
+      this.quad.material = med;
+      renderer.setRenderTarget(medRT);
+      this.quad.render(renderer);
       mat.uniforms.tDiffuse.value = readBuffer.texture;
-      mat.uniforms.tAO.value = ao.pdRenderTarget.texture;
+      mat.uniforms.tMed.value = medRT.texture;
       mat.uniforms.intensity.value = ao.blendIntensity;
+      this.quad.material = mat;
       renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
       this.quad.render(renderer);
     }
-    dispose() { mat.dispose(); this.quad.dispose(); }
+    dispose() { mat.dispose(); med.dispose(); medRT.dispose(); this.quad.dispose(); }
   }
   return new AoMedianPass();
 }
@@ -1968,9 +1988,12 @@ export async function initHangar(container, opts = {}) {
   camera.position.copy(homePos());
   controls.update();
   let idleTimer = 0, touched = false;
+  // Bildtakt (frame): bis activeUntil die volle Rate, sonst die des Leerlaufs
+  let activeUntil = 0, dragging = false;
+  const wake = (ms) => { activeUntil = Math.max(activeUntil, performance.now() + ms); };
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
-  controls.addEventListener('start', () => { touched = true; fly = null; controls.autoRotate = false; clearTimeout(idleTimer); });
+  controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; controls.autoRotate = false; clearTimeout(idleTimer); });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
   let fly = null;          // { a: Spherical, b: Spherical, ta, tb, t0, dur }
@@ -2007,6 +2030,9 @@ export async function initHangar(container, opts = {}) {
     else { controls.target.y += dy; camera.position.y += dy; }
   }
   controls.addEventListener('end', () => {
+    // die Dämpfung läuft nach dem Loslassen noch etwa eine Sekunde
+    dragging = false;
+    wake(1500);
     clearTimeout(idleTimer);
     if (!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
   });
@@ -3237,14 +3263,22 @@ ${HALL_LIGHTS_BEGIN}
       c.setPixelRatio(pixelRatio);
       c.setSize(W(), H());
       c.addPass(new RenderPass(scene, camera));
-      const ao = new GTAOPass(scene, camera, W(), H());
+      // Verdeckung in halber Auflösung je Achse (2026-10-15): Normalen,
+      // Verdeckung und Entrauschen zeichnen ein Viertel der Pixel. Das waren
+      // je Pixel rund 90 Texturzugriffe (36 Tiefen für die Horizonte, 16 × 3
+      // fürs Entrauschen, 9 für den Median), gut doppelt so viele wie das
+      // Licht der Halle; die Verdeckung ist ohnehin weich.
+      const ao = new GTAOPass(scene, camera, Math.max(1, W() >> 1), Math.max(1, H() >> 1));
+      const aoSize = ao.setSize.bind(ao);
+      ao.setSize = (w, h) => aoSize(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(h / 2)));
       // Der Pass rechnet nur die Verdeckung; aufs Bild legt sie aoMedianPass
       // (ohne Ausgabe schreibt er nichts ins Zielbild, also auch kein Tausch).
       ao.output = GTAOPass.OUTPUT.Off;
       ao.needsSwap = false;
       ao.blendIntensity = 1;
       ao.updateGtaoMaterial({ radius: 2.5, distanceExponent: 1.4, thickness: 2, scale: 1.2, samples: 16 });
-      ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+      // Halbmesser in Pixeln des Passes: 3 in halber Auflösung = die 6 von vorher
+      ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 3, rings: 2, samples: 16 });
       c.addPass(ao);
       const aoMix = aoMedianPass(ao, Pass, FullScreenQuad);
       c.addPass(aoMix);
@@ -3258,7 +3292,7 @@ ${HALL_LIGHTS_BEGIN}
       // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter, die
       // Normalen der Verdeckung dagegen mit denen der Szene.
       const quad = new THREE.Group(), plane = new THREE.PlaneGeometry(2, 2);
-      for (const m of [ao.gtaoMaterial, ao.pdMaterial, aoMix.material,
+      for (const m of [ao.gtaoMaterial, ao.pdMaterial, aoMix.material, aoMix.medMaterial,
         bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial]) {
         if (m) quad.add(new THREE.Mesh(plane, m));
       }
@@ -3337,6 +3371,7 @@ ${HALL_LIGHTS_BEGIN}
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   async function show(url, o = {}) {
+    wake(1500);
     busyStart();
     try { return await showShip(url, o); } finally { busyEnd(); }
   }
@@ -3557,8 +3592,17 @@ ${HALL_LIGHTS_BEGIN}
   // zählten Bilder über 100 ms gar nicht: Unter 10 Bildern je Sekunde regelte
   // die Seite also nie nach. Nie wieder hoch: kein Pendeln.
   const PR_FLOOR = 1, PR_FLOOR_LOW = 0.6;
-  // Bilder je Sekunde höchstens (0 = so viele der Schirm zeigt)
-  let fpsCap = Q0 === 'niedrig' ? 30 : 0, lastDraw = 0;
+  // Bildtakt (2026-10-15). Bis dahin zeichnete die Seite so oft, wie der
+  // Schirm Bilder zeigt (an einem 144-Hz-Schirm 144 je Sekunde), auch wenn
+  // niemand hinsah; mit der Seite allein lief eine RTX 30x0 Ti bei 75 %.
+  // Jetzt höchstens 60 je Sekunde, solange jemand dreht, zoomt oder ein
+  // Schiff wechselt, im Leerlauf (Umlauf, Crew) 30. Ist das Fenster nicht
+  // vorn (Spiel, anderes Programm), zeichnet die Bühne nur, solange der
+  // Zeiger über ihr fährt; verborgen oder aus dem Bild gar nicht. fpsCap
+  // deckelt beides (niedrige Stufe: 30).
+  const FPS_ACTIVE = 60, FPS_IDLE = 30, BG_HOVER = 3000;
+  let fpsCap = Q0 === 'niedrig' ? 30 : 0, due = 0, capNow = 0;
+  let focused = document.hasFocus(), hoverUntil = 0;
   const frameD = [];
   let frameSum = 0, lastNow = 0;
   function setPixels(pr) {
@@ -3568,9 +3612,11 @@ ${HALL_LIGHTS_BEGIN}
     composer?.setPixelRatio(pixelRatio);
     qualityFn?.(quality());
   }
-  function adapt(now) {
+  function adapt(now, cap) {
     const d = now - lastNow;
     lastNow = now;
+    // anderer Takt (Leerlauf, Bedienen): die Abstände davor zählen nicht
+    if (cap !== capNow) { capNow = cap; frameD.length = 0; frameSum = 0; return; }
     if (!revealed || busy || now < quietAt || !visible) { frameD.length = 0; frameSum = 0; return; }
     if (d <= 0 || d > 1000) return;
     frameD.push(d); frameSum += d;
@@ -3578,8 +3624,8 @@ ${HALL_LIGHTS_BEGIN}
     frameD.sort((a, b) => a - b);
     const med = frameD[frameD.length >> 1];
     frameD.length = 0; frameSum = 0;
-    // 40 Bilder je Sekunde und mehr: bleibt; mit Deckel (30 je Sekunde) ab 40 ms
-    if (med < (fpsCap ? Math.max(25, 1200 / fpsCap) : 25)) return;
+    // 40 Bilder je Sekunde und mehr: bleibt; im 30er-Takt ab 40 ms
+    if (med < Math.max(25, 1200 / cap)) return;
     // Von Hand gewählt (?grafik=, Grafik-Schalter): die Stufe bleibt, nur die Bildschärfe gibt nach
     if (med < 50 && pixelRatio > PR_FLOOR) setPixels(Math.max(PR_FLOOR, pixelRatio - 0.25));
     else if (level !== 'niedrig') { if (!FORCED) stepDown(med); }
@@ -3601,6 +3647,9 @@ ${HALL_LIGHTS_BEGIN}
       // Programmen: die erst im Hintergrund übersetzen, dann umschalten
       if (composer && !dropping) {
         dropping = compileFor(scene, null).catch(() => {}).then(() => {
+          // samt den Zielen der Pässe (Verdeckung, Leuchten): die gibt
+          // composer.dispose() nicht frei
+          for (const ps of composer?.passes ?? []) ps.dispose?.();
           composer?.dispose();
           composer = null;
           mirrorRT?.dispose(); mirrorRT = null;
@@ -4050,9 +4099,15 @@ ${HALL_LIGHTS_BEGIN}
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
     const now = performance.now();
-    // Deckel (niedrige Stufe): gleichmäßig 30 statt schwankend 20 bis 40
-    if (fpsCap && now - lastDraw < 1000 / fpsCap - 4) return;
-    lastDraw = now;
+    if (!focused && now > hoverUntil) return;
+    // Bewegung, die jemand auslöst oder verfolgt: volle Rate
+    if (dragging || fly || lift.dur || leaving || fade.to || (current && now - current.born < 1600)) wake(300);
+    const cap = Math.min(fpsCap || FPS_ACTIVE, now < activeUntil ? FPS_ACTIVE : FPS_IDLE);
+    // gleichmäßig, auch am schnelleren Schirm (144 Hz: abwechselnd jedes
+    // zweite und dritte Bild, im Mittel 60)
+    const iv = 1000 / cap;
+    if (now < due - iv / 4) return;
+    due = Math.max(due + iv, now + iv / 2);
     const t = clock.getElapsedTime();
     const dt = Math.min(0.1, t - last); last = t;
     for (const f of anim) f(t);
@@ -4151,7 +4206,7 @@ ${HALL_LIGHTS_BEGIN}
     lensLive = true;
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
-    adapt(now);
+    adapt(now, cap);
     renderMirror();
     renderer.shadowMap.needsUpdate = shadowsDue();
     if (composer) composer.render(); else renderer.render(scene, camera);
@@ -4186,6 +4241,7 @@ ${HALL_LIGHTS_BEGIN}
   frame();
 
   const ro = new ResizeObserver(() => {
+    wake(500);
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
     fitFov();
@@ -4196,6 +4252,12 @@ ${HALL_LIGHTS_BEGIN}
   io.observe(container);
   const onVis = () => { visible = !document.hidden; };
   document.addEventListener('visibilitychange', onVis);
+  const onFocus = () => { focused = document.hasFocus(); if (focused) wake(500); };
+  const onBlur = () => { focused = false; hoverUntil = 0; };
+  const onHover = () => { if (!focused) hoverUntil = performance.now() + BG_HOVER; };
+  window.addEventListener('focus', onFocus);
+  window.addEventListener('blur', onBlur);
+  document.addEventListener('pointermove', onHover, { passive: true });
 
   return {
     show,
@@ -4216,6 +4278,9 @@ ${HALL_LIGHTS_BEGIN}
       cancelAnimationFrame(raf);
       ro.disconnect(); io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('pointermove', onHover);
       controls.dispose();
       disposeObject(scene);
       envRT.dispose();
@@ -4224,6 +4289,7 @@ ${HALL_LIGHTS_BEGIN}
       for (const rt of [...statRT, statEmpty]) { rt.depthTexture.dispose(); rt.dispose(); }
       statMat.dispose();
       hallVol.a.value?.dispose(); hallVol.b.value?.dispose();
+      for (const ps of composer?.passes ?? []) ps.dispose?.();
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
       draco.dispose();
