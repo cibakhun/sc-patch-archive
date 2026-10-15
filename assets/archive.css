@@ -102,10 +102,13 @@
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* The colour morph itself: registered props transition on the element whose
-   value changes (archive.js sets them on <html>). */
+/* The colour morph itself: archive.js sets --era/--era-2 on <html> in one
+   step, and each element that paints with them crossfades on its own
+   (--era-morph, 0 in lite mode). Until 15.10.2026 <html> itself transitioned
+   the two: an inherited registered property, so every frame of the 0.85 s
+   restyled every element on the page (Leistung, below). */
 html {
-  transition: --era 0.85s var(--ease), --era-2 0.85s var(--ease);
+  --era-morph: 0.85s;
   scroll-behavior: smooth;
 }
 
@@ -200,7 +203,8 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   filter: blur(28px) saturate(1.15);
   opacity: 0.55;
   mix-blend-mode: screen;
-  transition: opacity 0.85s var(--ease);
+  /* gradients don't interpolate: the cloud morphs its own --era instead */
+  transition: opacity 0.85s var(--ease), --era var(--era-morph) var(--ease), --era-2 var(--era-morph) var(--ease);
 }
 /* Holographic horizon: a perspective grid on the floor of the void. Static and
    faint — depth, not decoration. */
@@ -317,6 +321,7 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   text-shadow:
     0 0 34px color-mix(in srgb, var(--accent) 28%, transparent),
     0 6px 40px color-mix(in srgb, var(--era) 18%, transparent);
+  transition: --era var(--era-morph) var(--ease);
 }
 .mast__lead {
   margin-top: clamp(1.3rem, 2.6vw, 1.7rem);
@@ -701,7 +706,7 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   height: 7px;
   border: 1.5px solid var(--era);
   transform: rotate(45deg);
-  transition: border-color 0.85s var(--ease);
+  transition: border-color var(--era-morph) var(--ease), --era var(--era-morph) var(--ease);
 }
 .ribbon__k--point::before {
   width: 5px;
@@ -779,7 +784,7 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   border-radius: 50%;
   background: var(--era);
   box-shadow: 0 0 12px var(--era), 0 0 4px var(--era);
-  transition: background-color 0.85s var(--ease);
+  transition: background-color var(--era-morph) var(--ease), --era var(--era-morph) var(--ease);
 }
 .cbar__search {
   flex: 1 1 12rem;
@@ -964,7 +969,9 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   gap: clamp(0.9rem, 2.4vw, 1.6rem);
   padding-bottom: 1rem;
   margin: clamp(2.8rem, 5.5vw, 4.4rem) 0 1.6rem;
-  border-bottom: 1px solid var(--line-hot);
+  /* = --line-hot, but resolved here: from :root it arrives pre-mixed and won't morph */
+  border-bottom: 1px solid color-mix(in srgb, var(--era) 42%, transparent);
+  transition: --era var(--era-morph) var(--ease);
 }
 .era:first-child .era__head {
   margin-top: 0;
@@ -1445,6 +1452,10 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   opacity: 1;
   transform: none;
 }
+/* the chapter rule crossfades with the era (see html, --era-morph) */
+.js .era__head.reveal {
+  transition: opacity 0.7s var(--ease-out), transform 0.8s var(--ease-out), --era var(--era-morph) var(--ease);
+}
 
 /* ── Filtering ─────────────────────────────────────────────────────────────── */
 .node[hidden],
@@ -1790,7 +1801,12 @@ mark {
    fallen: gleicher Abstand, die Box beginnt nur frueher.
    overflow-clip-margin: der Schein der Kapitelziffer (text-shadow 40px)
    reichte ueber die Blockkante. Keine Box hier ist fixed oder sticky
-   (.cbar, .totop, .space liegen ausserhalb). */
+   (.cbar, .totop, .space liegen ausserhalb).
+   Seit dem Abend des 15.10.2026 blendet nicht mehr <html> ueber, sondern nur
+   die fuenf Stellen, die die Farbe zeigen (--era-morph oben): je
+   Kapitelgrenze ein Durchgang ueber die Seite statt eines je Bild. Mit dem
+   Mausrad einmal durch die Zeitleiste, 4-fach gedrosselt: Stilrechnung
+   4 128 -> 1 985 ms (Leichtgang 1 720 ms), Bild gleich. */
 .mast,
 .era,
 #intel,
@@ -1816,10 +1832,9 @@ mark {
     contain-intrinsic-size: auto 1250px;
   }
 }
-/* Leichtgang (assets/perf.js): harter Farbwechsel statt Ueberblendung —
-   ein Durchgang je Kapitelgrenze statt eines je Bild. */
+/* Leichtgang (assets/perf.js): harter Farbwechsel statt Ueberblendung. */
 html[data-perf='lite'] {
-  transition: none;
+  --era-morph: 0s;
 }
 
 /* ── Motion policy ───────────────────────────────────────────────────────────── */
