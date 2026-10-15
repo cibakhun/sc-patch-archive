@@ -1791,7 +1791,8 @@ export async function initHangar(container, opts = {}) {
   scene.add(hemi);
   const key = new THREE.SpotLight(0xffffff, 3.2, 0, Math.PI / 4.2, 0.5, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(4096, 4096);
+  // Ersatzbühne ohne Spielhalle: auf schwachen Geräten ein Viertel des Schattenspeichers.
+  key.shadow.mapSize.setScalar(SMALL || Q0 === 'niedrig' ? 2048 : 4096);
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.03;
   scene.add(key, key.target);

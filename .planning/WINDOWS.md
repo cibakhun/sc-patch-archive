@@ -954,6 +954,18 @@ last_updated: 2026-10-15T12:40:00.000Z
     "reason": "",
     "recorded_at": "2026-10-14T18:10:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 74,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Leistungsstufen, 15.10.2026): Die Halle hat drei Stufen. hoch ist das bisherige Bild (gleich geblieben, die Crew ist nur anders gebaut). mittel ohne Umgebungsverdeckung und Lichtschein, ohne Spiegelbild des Schiffs im Boden, Crew ohne Schatten, 4 statt 6 Lampen. niedrig dazu ohne Möbel, Texturen höchstens 512 px, ein Schattenstrahler, 4 statt 8 Arbeiter, höchstens 30 Bilder je Sekunde, ohne Kantenglättung. Gewählt wird nach Grafikchip, Speicher und Gerät; ruckelt es, sinken erst Bildschärfe, dann Stufe. Zu beurteilen am Rechner mit ?grafik=mittel und ?grafik=niedrig (oder dem Schalter „Grafik“ an der Bühne): Trägt die Halle in mittel und niedrig noch, oder fehlt etwas, das bleiben muss? Läuft niedrig auf einem schwachen Gerät flüssig? Maschinell gemessen (Cloud, nur Zählungen): Zeichenaufrufe je Bild hoch 976 (vorher 1 905), mittel 248, niedrig 222; Texturen niedrig 240 statt 625 MB; Download niedrig 25 statt 29 MB.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-15T12:40:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
