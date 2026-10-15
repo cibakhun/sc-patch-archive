@@ -783,6 +783,45 @@
     return chips;
   }
 
+  // Crafting-Rezept (aus crafting-db.json, siehe scripts/datamine-crafting.mjs).
+  // Eigene Funktion, weil der Abschnitt nachgereicht werden kann: die
+  // Rezeptdatei (2,1 MB roh) laedt erst, wenn das erste Modal aufgeht —
+  // vorher brauchte sie niemand, geparst wurde sie trotzdem beim Start.
+  function craftHtml(item) {
+    var bp = CRAFTING_MAP[item.name.toLowerCase()];
+    if (!bp) return '';
+    var timeSec = bp.craft_time_seconds || 0;
+    var timeText = timeSec + 's';
+    if (timeSec >= 60) {
+      var min = Math.floor(timeSec / 60), sec = timeSec % 60;
+      timeText = min + 'm' + (sec > 0 ? ' ' + sec + 's' : '');
+    }
+    var ingredients = '';
+    if (bp.ingredients && bp.ingredients.length) {
+      ingredients = '<ul>' + bp.ingredients.map(function (ing) {
+        var options = (ing.options || []).map(function (opt) {
+          var qty = opt.quantity_scu !== undefined ? opt.quantity_scu + ' SCU' : (opt.quantity !== undefined ? String(opt.quantity) : '');
+          return esc(opt.name) + (qty ? ' (' + esc(qty) + ')' : '');
+        }).join(' / ');
+        return '<li><strong>' + esc(ing.slot || 'Material') + ':</strong> ' + options + '</li>';
+      }).join('') + '</ul>';
+    }
+    return '<div class="uif-modal-section">' +
+      '<h4>' + esc(tr('sectionCrafting', 'Crafting-Rezept')) + '</h4>' +
+      '<div class="uif-crafting-header">' +
+        '<div><strong>' + esc(tr('craftTime', 'Dauer')) + ':</strong> ' + esc(timeText) + '</div>' +
+        (bp.tiers ? '<div><strong>' + esc(tr('craftTiers', 'Stufen')) + ':</strong> ' + esc(String(bp.tiers)) + '</div>' : '') +
+      '</div>' +
+      (ingredients ? '<div class="uif-crafting-ingredients"><h5>' + esc(tr('craftMaterials', 'Materialien')) + '</h5>' + ingredients + '</div>' : '') +
+      // Zwei Ziele: die statische Blueprint-Seite (verlinkbar, indexiert) und
+      // der interaktive Planer. DE liegt unter /de/, EN im Root.
+      (bp.__slug
+        ? '<a class="uif-xlink" href="' + (CFG.craftBase || '/crafting/') + esc(bp.__slug) + '.html">' + (XLINK_ICONS.bp || '') + esc(bp.name) + ' →</a> '
+        : '') +
+      '<a class="uif-xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
+    '</div>';
+  }
+
   function openModal(item) {
     var modal = document.getElementById('uif-item-modal');
     var content = document.getElementById('uif-modal-body-content');
@@ -906,42 +945,25 @@
       '</div>';
     }
 
-    // Crafting-Rezept (aus crafting-db.json, game-sourced, siehe scripts/datamine-crafting.mjs)
-    var bp = CRAFTING_MAP[item.name.toLowerCase()];
-    if (bp) {
-      var timeSec = bp.craft_time_seconds || 0;
-      var timeText = timeSec + 's';
-      if (timeSec >= 60) {
-        var min = Math.floor(timeSec / 60), sec = timeSec % 60;
-        timeText = min + 'm' + (sec > 0 ? ' ' + sec + 's' : '');
-      }
-      var ingredients = '';
-      if (bp.ingredients && bp.ingredients.length) {
-        ingredients = '<ul>' + bp.ingredients.map(function (ing) {
-          var options = (ing.options || []).map(function (opt) {
-            var qty = opt.quantity_scu !== undefined ? opt.quantity_scu + ' SCU' : (opt.quantity !== undefined ? String(opt.quantity) : '');
-            return esc(opt.name) + (qty ? ' (' + esc(qty) + ')' : '');
-          }).join(' / ');
-          return '<li><strong>' + esc(ing.slot || 'Material') + ':</strong> ' + options + '</li>';
-        }).join('') + '</ul>';
-      }
-      html += '<div class="uif-modal-section">' +
-        '<h4>' + esc(tr('sectionCrafting', 'Crafting-Rezept')) + '</h4>' +
-        '<div class="uif-crafting-header">' +
-          '<div><strong>' + esc(tr('craftTime', 'Dauer')) + ':</strong> ' + esc(timeText) + '</div>' +
-          (bp.tiers ? '<div><strong>' + esc(tr('craftTiers', 'Stufen')) + ':</strong> ' + esc(String(bp.tiers)) + '</div>' : '') +
-        '</div>' +
-        (ingredients ? '<div class="uif-crafting-ingredients"><h5>' + esc(tr('craftMaterials', 'Materialien')) + '</h5>' + ingredients + '</div>' : '') +
-        // Zwei Ziele: die statische Blueprint-Seite (verlinkbar, indexiert) und
-        // der interaktive Planer. DE liegt unter /de/, EN im Root.
-        (bp.__slug
-          ? '<a class="uif-xlink" href="' + (CFG.craftBase || '/crafting/') + esc(bp.__slug) + '.html">' + (XLINK_ICONS.bp || '') + esc(bp.name) + ' →</a> '
-          : '') +
-        '<a class="uif-xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/topics/crafting.html?bp=' + encodeURIComponent(item.name) + '">' + esc(tr('openInCrafting', 'Im Crafting-Planer öffnen')) + ' →</a>' +
-      '</div>';
-    }
+    // Crafting-Rezept: liegt die Rezeptdatei schon vor, gleich mit hinein;
+    // sonst nachladen und anhaengen, solange dasselbe Item offen ist. Der
+    // Abschnitt war schon immer der letzte, es verrutscht also nichts davor.
+    if (craftReady) html += craftHtml(item);
 
     content.innerHTML = html;
+    content.__vbItem = item;
+    if (!craftReady) {
+      loadCraft().then(function () {
+        if (content.__vbItem !== item || modal.style.display !== 'flex') return;
+        var extra = craftHtml(item);
+        if (!extra) return;
+        // Anhaengen statt neu schreiben: die Bezugsquellen-Tabelle darueber
+        // traegt schon Zieh-Griffe (scroll-affordance.js) und Scrollstand.
+        var box = document.createElement('div');
+        box.innerHTML = extra;
+        if (box.children[0]) content.appendChild(box.children[0]);
+      });
+    }
     // Die Bezugsquellen-Tabelle entsteht erst hier — Ziehen und die weiche
     // Kante muessen nachtraeglich angehaengt werden. assets/scroll-affordance.js.
     if (window.VBScrollAffordance) window.VBScrollAffordance();
@@ -989,44 +1011,53 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
   }
 
-  // ---- Init: DB + Crafting-DB laden ----
+  // ---- Rezeptdatei: einmal laden, bei Bedarf ----
+  var craftReady = false;
+  var craftPromise = null;
+  function loadCraft() {
+    if (craftPromise) return craftPromise;
+    var craftUrl = CFG.craftUrl || '/assets/crafting-db.json';
+    craftPromise = fetch(craftUrl)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (craft) {
+        if (craft && craft.blueprints) {
+          // Slugs exakt wie in src/lib/crafting.ts vergeben (gleiche Reihenfolge,
+          // gleiches "-2"-Suffix bei Namensdubletten) — sonst zeigt der Link aus
+          // dem Modal auf eine URL, die es nicht gibt.
+          var usedSlug = {};
+          craft.blueprints.forEach(function (bp) {
+            if (!bp.name) return;
+            var base = String(bp.name).toLowerCase()
+              .replace(/['’"]/g, '')
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '') || 'blueprint';
+            var n = (usedSlug[base] || 0) + 1;
+            usedSlug[base] = n;
+            bp.__slug = n > 1 ? base + '-' + n : base;
+            CRAFTING_MAP[bp.name.toLowerCase()] = bp;
+          });
+        }
+        craftReady = true;
+      });
+    return craftPromise;
+  }
+
+  // ---- Init: Item-DB laden (Rezepte erst mit dem ersten Modal) ----
   function init() {
     initEvents();
 
     var dbUrl = CFG.dbUrl || '/assets/universal-items.json';
-    var craftUrl = CFG.craftUrl || '/assets/crafting-db.json';
 
-    Promise.all([
-      fetch(dbUrl).then(function (r) {
-        if (!r.ok) throw new Error('items db http ' + r.status);
-        return r.json();
-      }),
-      fetch(craftUrl).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
-    ]).then(function (results) {
-      var db = results[0] || {};
+    fetch(dbUrl).then(function (r) {
+      if (!r.ok) throw new Error('items db http ' + r.status);
+      return r.json();
+    }).then(function (db) {
+      db = db || {};
       META = db.counts || null;
       ALL_ITEMS = db.items || [];
       SETS = {};
       (db.sets || []).forEach(function (s) { SETS[s.id] = s; });
-
-      var craft = results[1];
-      if (craft && craft.blueprints) {
-        // Slugs exakt wie in src/lib/crafting.ts vergeben (gleiche Reihenfolge,
-        // gleiches "-2"-Suffix bei Namensdubletten) — sonst zeigt der Link aus
-        // dem Modal auf eine URL, die es nicht gibt.
-        var usedSlug = {};
-        craft.blueprints.forEach(function (bp) {
-          if (!bp.name) return;
-          var base = String(bp.name).toLowerCase()
-            .replace(/['’"]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '') || 'blueprint';
-          var n = (usedSlug[base] || 0) + 1;
-          usedSlug[base] = n;
-          bp.__slug = n > 1 ? base + '-' + n : base;
-          CRAFTING_MAP[bp.name.toLowerCase()] = bp;
-        });
-      }
 
       var sub = document.getElementById('uif-subline');
       if (sub && META) {
