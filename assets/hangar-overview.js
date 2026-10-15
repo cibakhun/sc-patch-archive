@@ -271,6 +271,17 @@ export function boot(doc) {
     stat: figuresOf(statKeys, li.dataset.v),
   }]));
 
+  // Leistungsstufe von Hand: ?grafik=hoch|mittel|niedrig (auto = Automatik)
+  // oder die gemerkte Wahl aus dem Grafik-Schalter der Buehne
+  const GRAFIK_KEY = 'hg-grafik';
+  function grafikWahl() {
+    const q = new URLSearchParams(location.search).get('grafik');
+    if (q) return q === 'auto' ? null : q;
+    try { return localStorage.getItem(GRAFIK_KEY); } catch { return null; }
+  }
+  // Jetzt lesen: writeUrl() schreibt die Adresse aus dem Zustand neu,
+  // ohne ?grafik=
+  const GRAFIK = grafikWahl();
   let state = parseState(location.search, location.hash, ctx);
 
   // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
@@ -997,24 +1008,59 @@ export function boot(doc) {
   // mit. Dann gilt der Rueckfall, Werte, Dock und Flotte bleiben bedienbar.
   // failIfMajorPerformanceCaveat lehnt den Software-Rueckfall ab; ein per
   // Schalter erzwungener SwiftShader meldet sich nur ueber seinen Namen.
+  // Der Name des Chips geht an den Viewer: Er waehlt danach die
+  // Leistungsstufe (pickQuality in hangar-viewer.js).
   const SOFT_GL = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+  let gpuName = '';
   function hasGpu() {
     try {
       const gl = doc.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
       if (!gl) return false;
       const info = gl.getExtension('WEBGL_debug_renderer_info');
-      const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+      gpuName = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
       gl.getExtension('WEBGL_lose_context')?.loseContext();
-      return !SOFT_GL.test(name);
+      return !SOFT_GL.test(gpuName);
     } catch {
       return false;
     }
+  }
+  // Grafik-Schalter: Automatisch zeigt dahinter die Stufe, die gerade
+  // laeuft (sinkt sie beim Nachregeln, wandert die Anzeige mit). Eine Wahl
+  // gilt ab dem naechsten Laden, weil Lampen, Texturen und Moebel beim Laden
+  // entstehen; die Seite laedt deshalb gleich neu.
+  function grafikSchalter(v) {
+    const wrap = $('hgx-gfx-wrap'), sel = $('hgx-gfx');
+    if (!wrap || !sel || typeof v.quality !== 'function') return;
+    const auto = sel.querySelector('option[value="auto"]');
+    const autoText = auto.textContent;
+    const textOf = (l) => sel.querySelector(`option[value="${l}"]`)?.textContent ?? l;
+    const wahl = GRAFIK;
+    sel.value = v.quality().levels.includes(wahl) ? wahl : 'auto';
+    // Von Hand gewaehlt, steht hinter Automatisch nichts: welche Stufe es waere, weiss erst ein Laden ohne Wahl
+    const paint = (q) => { auto.textContent = q.forced ? autoText : `${autoText} · ${textOf(q.level)}`; };
+    paint(v.quality());
+    v.onQuality(paint);
+    wrap.hidden = false;
+    sel.addEventListener('change', () => {
+      try {
+        if (sel.value === 'auto') localStorage.removeItem(GRAFIK_KEY);
+        else localStorage.setItem(GRAFIK_KEY, sel.value);
+      } catch { /* ohne Speicher gilt die Wahl nur ueber die Adresse */ }
+      const u = new URL(location.href);
+      if (!canStore()) {
+        if (sel.value === 'auto') u.searchParams.delete('grafik'); else u.searchParams.set('grafik', sel.value);
+        location.replace(u.href);
+      } else location.reload();
+    });
+  }
+  function canStore() {
+    try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
   if (!hasGpu()) noStage();
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK }))
       .then((v) => {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
@@ -1032,6 +1078,7 @@ export function boot(doc) {
           if (state.hp) setState({ hp: null });
           else v.resetView();
         });
+        grafikSchalter(v);
         viewerShow(state.ship);
       })
       .catch(noStage);

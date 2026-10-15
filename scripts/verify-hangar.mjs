@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   ELF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   ZWOELF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -61,6 +61,15 @@
         Portregel des Controllers (PORT_RE, gelesen aus
         dist/assets/hangar-overview.js). Sonst verwirft parseState den
         tiefen Link ?hp= auf genau diesen Hardpoint still.
+    12  Leistungsstufen (hoch, mittel, niedrig; Krisz 2026-10-15: „auf
+        komplett potato fluessig“). Der ausgelieferte Viewer wird geladen
+        und pickQuality an einer festen Liste von Grafikchips geprueft
+        (schwache Laptops und Telefone niedrig, Mittelklasse mittel, starke
+        hoch, Wahl von Hand gewinnt); der Viewer liefert quality und
+        onQuality; der Controller gibt Chipname und Wahl an initHangar
+        weiter; beide Hangarseiten tragen den Grafik-Schalter mit genau
+        den Stufen des Viewers. Ohne das faellt ein schwaches Geraet still
+        in die volle Stufe zurueck, und nur ein Ruckeln verriete es.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -72,6 +81,7 @@
      d  in dist/hangar.html einer Karte einen Wert aus data-v nehmen  -> [10]
      e  in dist/hangar.html zwei Werte einer Karte tauschen          -> [10]
      f  in einer gebauten Bucht einen Port gross schreiben           -> [11]
+     g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -433,8 +443,81 @@ else {
   if (!ports) fail('[11] keine Ports gelesen');
 }
 
+say('\n[12] Leistungsstufen: pickQuality gegen eine Liste von Grafikchips, Naht zu Controller und Seite');
+// Erwartung je Chip, wie WEBGL_debug_renderer_info ihn meldet (Chrome/ANGLE,
+// Firefox, Safari, Telefone). Wer die Einteilung bewusst aendert, aendert sie hier mit.
+const CHIPS = [
+  ['ANGLE (Intel, Intel(R) UHD Graphics 620 (0x00005917) Direct3D11 vs_5_0 ps_5_0, D3D11)', {}, 'niedrig'],
+  ['ANGLE (Intel, Intel(R) HD Graphics 520 Direct3D11 vs_5_0 ps_5_0, D3D11)', {}, 'niedrig'],
+  ['Mesa Intel(R) UHD Graphics 620 (KBL GT2)', {}, 'niedrig'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce GT 1030 Direct3D11 vs_5_0 ps_5_0, D3D11)', {}, 'niedrig'],
+  ['ANGLE (AMD, AMD Radeon(TM) R7 Graphics Direct3D11 vs_5_0 ps_5_0, D3D11)', {}, 'niedrig'],
+  ['ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)', {}, 'niedrig'],
+  ['Mali-G52 MC2', { small: true }, 'niedrig'],
+  ['Adreno (TM) 506', { small: true }, 'niedrig'],
+  ['PowerVR Rogue GE8320', { small: true }, 'niedrig'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { memory: 2 }, 'niedrig'],
+  ['ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)', {}, 'mittel'],
+  ['ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001638) Direct3D11 vs_5_0 ps_5_0, D3D11)', { cores: 12 }, 'mittel'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce MX450 Direct3D11 vs_5_0 ps_5_0, D3D11)', {}, 'mittel'],
+  ['Adreno (TM) 640', { small: true, memory: 8, cores: 8 }, 'mittel'],
+  ['Mali-G78 MP20', { small: true, memory: 8, cores: 8 }, 'mittel'],
+  ['', { small: true, cores: 8 }, 'mittel'],
+  ['', { cores: 4 }, 'mittel'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { memory: 8, cores: 16 }, 'hoch'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 6GB Direct3D11 vs_5_0 ps_5_0, D3D11)', { memory: 8, cores: 8 }, 'hoch'],
+  ['ANGLE (AMD, AMD Radeon RX 6700 XT Direct3D11 vs_5_0 ps_5_0, D3D11)', { cores: 12 }, 'hoch'],
+  ['ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)', { cores: 8 }, 'hoch'],
+  ['Apple GPU', { small: true }, 'hoch'],
+  ['Adreno (TM) 730', { small: true, memory: 8, cores: 8 }, 'hoch'],
+  ['', { memory: 8, cores: 8 }, 'hoch'],
+  ['Mali-G52 MC2', { small: true, forced: 'hoch' }, 'hoch'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { forced: 'niedrig' }, 'niedrig'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { forced: 'ultra', memory: 8 }, 'hoch'],
+];
+const CHIPS_MIN = 25;
+const LEVELS = ['niedrig', 'mittel', 'hoch'];
+{
+  let mod = null;
+  try { mod = await import(new URL(`file://${viewerFile}`).href); } catch (e) { fail(`[12] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
+  let checked = 0;
+  const wrong = [];
+  if (mod) {
+    const lv = JSON.stringify(mod.QUALITY_LEVELS ?? null);
+    sollIst(`QUALITY_LEVELS ${JSON.stringify(LEVELS)}`, lv);
+    if (lv !== JSON.stringify(LEVELS)) fail(`[12] QUALITY_LEVELS ist ${lv} statt ${JSON.stringify(LEVELS)}: Schalter, Controller und dieses Tor nennen die drei Stufen`);
+    if (typeof mod.pickQuality !== 'function') fail('[12] der Viewer exportiert pickQuality nicht mehr');
+    else {
+      for (const [gpu, o, want] of CHIPS) {
+        checked++;
+        const got = mod.pickQuality({ gpu, ...o })?.level;
+        if (got !== want) wrong.push(`${gpu || '(kein Name)'} ${JSON.stringify(o)}: ${got} statt ${want}`);
+      }
+    }
+  }
+  sollIst(`${CHIPS.length} Chips in ihrer Stufe`, `${checked - wrong.length} von ${checked}`);
+  for (const w of wrong) { say(`      ${w}`); fail(`[12] pickQuality: ${w}`); }
+  if (checked < CHIPS_MIN) fail(`[12] nur ${checked} Grafikchips geprueft, Klinke ${CHIPS_MIN}`);
+  const apiQ = ['quality', 'onQuality'].filter((n) => !new RegExp(`\\b${n}\\b`).test(api));
+  sollIst('Viewer liefert quality, onQuality', apiQ.length ? `fehlt ${apiQ.join(', ')}` : 'ja');
+  for (const n of apiQ) fail(`[12] dist/assets/hangar-viewer.js liefert ${n} nicht mehr: der Grafik-Schalter zeigt dann keine Stufe`);
+  const ctrl = existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
+  const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
+  const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
+  sollIst('Controller gibt gpu und quality an initHangar', passes ? 'ja' : `nein (${call.trim().slice(0, 80) || 'kein Aufruf'})`);
+  if (!passes) fail('[12] dist/assets/hangar-overview.js gibt gpu und quality nicht mehr an initHangar: jedes Geraet bekaeme die Stufe ohne Chipnamen und ohne Wahl von Hand');
+  for (const page of PAGES) {
+    const sel = /<select id="hgx-gfx">([\s\S]*?)<\/select>/.exec(page.html)?.[1] ?? null;
+    const vals = sel === null ? null : [...sel.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);
+    const okSel = vals && JSON.stringify(vals) === JSON.stringify(['auto', ...LEVELS.slice().reverse()]);
+    say(`    ${page.file}: Grafik-Schalter ${vals ? vals.join(', ') : 'fehlt'}${okSel ? '' : '   GERISSEN'}`);
+    if (!okSel) fail(`[12] ${page.file}: Grafik-Schalter #hgx-gfx ${vals ? `nennt ${vals.join(', ')}` : 'fehlt'} statt auto, hoch, mittel, niedrig`);
+  }
+  ist.chips = checked;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

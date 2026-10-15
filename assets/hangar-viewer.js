@@ -1406,32 +1406,60 @@ function buildLife(scene, reduceMotion, withStage = true) {
   // Gelenkgerüst der gebauten Arbeiter gehängt — so laufen, schweißen und
   // hämmern echte Figuren mit denselben Bewegungen.
   let rigged = false;
+  // Leistungsstufe: Schatten der Crew (nur hoch) und wie viele gehen
+  let castOn = true, count = crew.length;
+  function setShadows(on) {
+    castOn = on;
+    root.traverse((n) => { if (n.userData.crewPart) n.castShadow = on; });
+  }
+  function setCount(n) {
+    count = Math.min(n, crew.length);
+    crew.forEach((w, i) => { w.root.visible = i < count; });
+  }
+  // Die echte Figur als EIN Mesh je Arbeiter: Die Gelenke des Gerüsts sind
+  // seine Knochen, jedes Dreieck hängt mit Gewicht 1 an seinem Glied, und
+  // Farbe, Rauheit, Metall und Leuchten der sieben Spielmaterialien stehen
+  // je Ecke (crewGeometry, crewShader). Bis 2026-10-15 war jedes Glied je
+  // Material ein eigenes Mesh: 256 Zeichenaufrufe je Durchgang (Bild,
+  // Umgebungsverdeckung, zwei Schattenkarten), gut die Hälfte des Bildes.
+  // Jetzt 8, bei gleichem Bild. setCrew baut verborgen, showCrew tauscht,
+  // wenn die Programme übersetzt sind (prepare).
+  let crewMeshes = [];
   function setCrew(model) {
     const segs = rigCrew(model);
+    const geo = crewGeometry(segs);
+    const base = Object.values(segs).flat()[0]?.[1];
+    if (!geo || !base) return;
+    crewMeshes = crew.map((w, i) => {
+      // eigenes Material je Arbeiter (gleiches Programm): Wer mit dem
+      // Aufzug in den Schacht fährt, dunkelt allein ab
+      const mat = crewMaterial(base);
+      const bones = CREW_JOINTS.map((k) => w[k]);
+      const m = new THREE.SkinnedMesh(geo, mat);
+      m.bind(new THREE.Skeleton(bones, bones.map(() => new THREE.Matrix4())), new THREE.Matrix4());
+      // feste Hülle um die stehende Figur samt ausgestreckter Arme
+      m.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.9, 0), 1.4);
+      m.castShadow = castOn; m.receiveShadow = true;
+      m.userData.crewPart = true;
+      m.visible = false;
+      w.root.add(m);
+      w.root.userData.mats = [mat];
+      // leicht unterschiedliche Statur, damit es keine Klonarmee wird
+      w.root.scale.setScalar(0.95 + ((i * 37) % 9) / 100);
+      return m;
+    });
+  }
+  function showCrew() {
+    if (!crewMeshes.length) return;
     crew.forEach((w, i) => {
-      w.root.updateMatrixWorld(true);
       // die eigenen Grundkörper weichen, Werkzeug in der Hand bleibt
-      const own = [];
-      w.root.traverse((n) => { if (n.isMesh) own.push(n); });
-      for (const n of own) {
+      w.root.traverse((n) => {
+        if (!n.isMesh || n === crewMeshes[i]) return;
         let p = n.parent, inHand = false;
         while (p) { if (p === w.hand) { inHand = true; break; } p = p.parent; }
         if (!inHand) n.visible = false;
-      }
-      // eigene Materialien je Arbeiter (gleiches Programm): Wer mit dem
-      // Aufzug in den Schacht fährt, dunkelt allein ab
-      const own2 = new Map();
-      for (const [joint, parts] of Object.entries(segs)) {
-        for (const [geo, mat] of parts) {
-          if (!own2.has(mat)) own2.set(mat, mat.clone());
-          const m = new THREE.Mesh(geo, own2.get(mat));
-          m.castShadow = true; m.receiveShadow = true;
-          w[joint].add(m);
-        }
-      }
-      w.root.userData.mats = [...own2.values()];
-      // leicht unterschiedliche Statur, damit es keine Klonarmee wird
-      w.root.scale.setScalar(0.95 + ((i * 37) % 9) / 100);
+      });
+      crewMeshes[i].visible = true;
     });
     rigged = true;
   }
@@ -1453,6 +1481,7 @@ function buildLife(scene, reduceMotion, withStage = true) {
     if (!L) return;
     if (!hold) walkT += dt;
     crew.forEach((w, i) => {
+      if (i >= count) return;
       const role = (props ? roles : bareRoles)[i];
       const speed = 1.35;
       if (role === 'loop' || role === 'door' || role === 'push') {
@@ -1528,7 +1557,68 @@ function buildLife(scene, reduceMotion, withStage = true) {
     hook.position.set(tx + (reduceMotion ? 0 : Math.sin(t * 0.7) * 0.15), -1.4 - ropeLen, cz);
   }
 
-  return { layout, update, root, setCrew, addStage, isRigged: () => rigged };
+  return { layout, update, root, setCrew, showCrew, crewMeshes: () => crewMeshes, addStage, setShadows, setCount, isRigged: () => rigged };
+}
+
+// Gelenke des Arbeitergerüsts in der Folge der Knochen (worker(), rigCrew())
+const CREW_JOINTS = ['body', 'neck', 'shL', 'elL', 'shR', 'elR', 'hipL', 'knL', 'hipR', 'knR'];
+// Alle Glieder in eine Geometrie (geteilt von allen Arbeitern): Lage und
+// Normale im Raum ihres Gelenks, Knochen = Gelenk, dazu je Ecke die Werte
+// ihres Materials aus dem Spiel (Farbe linear, Rauheit, Metall, Leuchten).
+function crewGeometry(segs) {
+  let n = 0;
+  for (const parts of Object.values(segs)) for (const [g] of parts) n += g.attributes.position.count;
+  if (!n) return null;
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3);
+  const pbr = new Float32Array(n * 2), emi = new Float32Array(n * 3);
+  const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+  let o = 0;
+  for (const [key, parts] of Object.entries(segs)) {
+    const j = CREW_JOINTS.indexOf(key);
+    if (j < 0) continue;
+    for (const [g, m] of parts) {
+      const P = g.attributes.position, N = g.attributes.normal;
+      const e = (m.emissive ?? new THREE.Color(0)).clone().multiplyScalar(m.emissiveIntensity ?? 1);
+      for (let v = 0; v < P.count; v++, o++) {
+        pos[o * 3] = P.getX(v); pos[o * 3 + 1] = P.getY(v); pos[o * 3 + 2] = P.getZ(v);
+        nor[o * 3] = N.getX(v); nor[o * 3 + 1] = N.getY(v); nor[o * 3 + 2] = N.getZ(v);
+        col[o * 3] = m.color.r; col[o * 3 + 1] = m.color.g; col[o * 3 + 2] = m.color.b;
+        pbr[o * 2] = m.roughness ?? 1; pbr[o * 2 + 1] = m.metalness ?? 0;
+        emi[o * 3] = e.r; emi[o * 3 + 1] = e.g; emi[o * 3 + 2] = e.b;
+        si[o * 4] = j; sw[o * 4] = 1;
+      }
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos.subarray(0, o * 3), 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(nor.subarray(0, o * 3), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col.subarray(0, o * 3), 3));
+  geo.setAttribute('crewPbr', new THREE.BufferAttribute(pbr.subarray(0, o * 2), 2));
+  geo.setAttribute('crewE', new THREE.BufferAttribute(emi.subarray(0, o * 3), 3));
+  geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si.subarray(0, o * 4), 4));
+  geo.setAttribute('skinWeight', new THREE.BufferAttribute(sw.subarray(0, o * 4), 4));
+  return geo;
+}
+const crewShader = (sh) => {
+  sh.vertexShader = sh.vertexShader
+    .replace('#include <common>', '#include <common>\nattribute vec2 crewPbr;\nattribute vec3 crewE;\nvarying vec2 vCrewPbr;\nvarying vec3 vCrewE;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvCrewPbr = crewPbr; vCrewE = crewE;');
+  sh.fragmentShader = sh.fragmentShader
+    .replace('#include <common>', '#include <common>\nvarying vec2 vCrewPbr;\nvarying vec3 vCrewE;')
+    .replace('vec3 totalEmissiveRadiance = emissive;', 'vec3 totalEmissiveRadiance = vCrewE;')
+    .replace('#include <roughnessmap_fragment>', THREE.ShaderChunk.roughnessmap_fragment.replace('= roughness;', '= vCrewPbr.x;'))
+    .replace('#include <metalnessmap_fragment>', THREE.ShaderChunk.metalnessmap_fragment.replace('= metalness;', '= vCrewPbr.y;'));
+};
+// Ein Material für die ganze Figur: Farbe aus den Ecken (mal Weiß, beim
+// Abdunkeln im Schacht mal f), Rauheit, Metall und Leuchten aus den Ecken
+function crewMaterial(base) {
+  const m = base.clone();
+  m.name = 'crew';
+  m.vertexColors = true;
+  m.color.set(0xffffff);
+  m.roughness = 1; m.metalness = 1;
+  m.onBeforeCompile = crewShader;
+  return m;
 }
 
 // Hüllquader ohne Ausreißer: manche Modelle tragen einzelne Splitter weit
@@ -1571,6 +1661,46 @@ function disposeObject(o) {
   });
 }
 
+// Leistungsstufen (Krisz, 2026-10-15: „auf komplett potato flüssig“). hoch
+// ist das volle Bild; mittel lässt Nachbearbeitung (Umgebungsverdeckung,
+// Lichtschein), Bodenspiegelung des Schiffs und Crew-Schatten weg, hat
+// weniger echte Lampen (die übrigen gehen ins Lichtgitter) und zeichnet die
+// Schatten nur neu, wenn sich das Schiff bewegt; niedrig dazu ohne Möbel,
+// Texturen höchstens 512 px, eine Schattenlampe, vier statt acht Arbeiter,
+// höchstens 30 Bilder je Sekunde und ohne Kantenglättung. Inhalt bleibt aus
+// dem Spiel, es fällt nur weg oder wird kleiner.
+export const QUALITY_LEVELS = ['niedrig', 'mittel', 'hoch'];
+// Grafikchips nach Name (WEBGL_debug_renderer_info). Schwach: Software,
+// Intel HD/UHD ohne Iris/Xe/Arc, ältere Mali, Adreno bis 5xx, PowerVR, alte
+// Radeon (HD, R5/R7) und GeForce der GT-Reihe bzw. vor der 900er. Mittel:
+// Iris/Xe, integrierte Radeon, GeForce MX und GTX 700, Mali-G6x/G7x, Adreno 6xx.
+const GPU_WEAK = /swiftshader|llvmpipe|softpipe|software|basic render|intel.*\b(u?hd)\b(?!.*(iris|xe|arc))|mali-(4\d\d|t\d+|g[1-5]\d)\b|adreno\D*[1-5]\d\d\b|powervr|radeon\s*(\(tm\)\s*)?(hd|r[5-7]\b)|geforce\s*(gt\s|gts\s|[89]\d{3}\b|gtx\s*[4-6]\d\d\b)/i;
+const GPU_MID = /iris|intel.*\b(xe|arc\(tm\) graphics)\b|radeon\s*(\(tm\)\s*)?(graphics|vega|\d{3}m\b)|geforce\s*(mx|gtx\s*7\d\d\b)|mali-g[67]\d\b|adreno\D*6\d\d\b/i;
+// Am Telefon reicht für hoch nur ein starker Chip
+const GPU_PHONE_STRONG = /apple|adreno\D*([7-9]\d\d)\b|immortalis|mali-g7\d\d|xclipse/i;
+// gpu: Name des Chips, small: Telefon (schmal oder Touch), forced: Stufe
+// aus ?grafik= oder der Einstellung, memory/cores: navigator.deviceMemory
+// und hardwareConcurrency (fehlen in Safari und Firefox).
+export function pickQuality({ gpu = '', small = false, forced = null, memory = null, cores = null } = {}) {
+  if (QUALITY_LEVELS.includes(forced)) return { level: forced, why: 'gewählt' };
+  const g = String(gpu || '');
+  const out = (level, why) => ({ level, why });
+  if (GPU_WEAK.test(g)) return out('niedrig', `Grafikchip ${g}`);
+  if (memory && memory <= 2) return out('niedrig', `${memory} GB Speicher`);
+  if (GPU_MID.test(g)) return out('mittel', `Grafikchip ${g}`);
+  if (memory && memory <= 4) return out('mittel', `${memory} GB Speicher`);
+  // Wenige Kerne zählen nur, wenn der Chip nichts verrät (ein starker Chip zeichnet die Aufrufe der hohen Stufe auch dann)
+  if (cores && cores <= 4 && !g) return out('mittel', `${cores} Kerne`);
+  if (small && !GPU_PHONE_STRONG.test(g)) return out('mittel', g ? `Telefon, Grafikchip ${g}` : 'Telefon');
+  return out('hoch', g ? `Grafikchip ${g}` : 'unbekannter Grafikchip');
+}
+const gpuName = (gl) => {
+  try {
+    const x = gl.getExtension('WEBGL_debug_renderer_info');
+    return String(gl.getParameter(x ? x.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+  } catch { return ''; }
+};
+
 export async function initHangar(container, opts = {}) {
   const reduceMotion = !!opts.reduceMotion;
   const W = () => container.clientWidth || 1;
@@ -1579,11 +1709,30 @@ export async function initHangar(container, opts = {}) {
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
   const REAL = !!(opts.hall?.url && opts.hall.room);
-  // Bildschärfe: startet bei der Pixeldichte des Geräts (höchstens 2) und
-  // gibt stufenweise nach, wenn das Bild ruckelt (adaptPixels in frame()).
-  let pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  // Telefon: schmal oder Touch
+  const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+  // Leistungsstufe beim Start (pickQuality). Q0 legt fest, was beim Laden
+  // entsteht (Lampen, Schattenkarten, Möbel, Texturgröße, Kantenglättung);
+  // level kann danach nur sinken (adapt in frame()).
+  const device = { small: SMALL, forced: opts.quality, memory: navigator.deviceMemory, cores: navigator.hardwareConcurrency };
+  let pick = pickQuality({ ...device, gpu: opts.gpu });
+  const rank = (l) => QUALITY_LEVELS.indexOf(l);
+  // Bildschärfe: startet bei der Pixeldichte des Geräts, gedeckelt je Stufe,
+  // und gibt stufenweise nach, wenn das Bild ruckelt (adapt in frame()).
+  const PR_CAP = { hoch: 2, mittel: 1.5, niedrig: 1 };
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({ antialias: pick.level !== 'niedrig', powerPreference: 'high-performance' });
+  // Ohne Namen von der Seite: aus dem eigenen Zeichenkontext, nur abwärts
+  if (opts.gpu == null && pick.why !== 'gewählt') {
+    const p2 = pickQuality({ ...device, gpu: gpuName(renderer.getContext()) });
+    if (rank(p2.level) <= rank(pick.level)) pick = p2;
+  }
+  const Q0 = pick.level, FORCED = pick.why === 'gewählt';
+  let level = Q0;
+  // Stand der Schattenkarten unter hoch (shadowsDue); leer = neu zeichnen
+  let shadowSig = '';
+  let pixelRatio = Math.min(window.devicePixelRatio || 1, PR_CAP[Q0]);
+  console.info(`[hangar] Leistungsstufe ${Q0} (${pick.why})`);
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(W(), H());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -1642,7 +1791,8 @@ export async function initHangar(container, opts = {}) {
   scene.add(hemi);
   const key = new THREE.SpotLight(0xffffff, 3.2, 0, Math.PI / 4.2, 0.5, 0);
   key.castShadow = true;
-  key.shadow.mapSize.set(4096, 4096);
+  // Ersatzbühne ohne Spielhalle: auf schwachen Geräten ein Viertel des Schattenspeichers.
+  key.shadow.mapSize.setScalar(SMALL || Q0 === 'niedrig' ? 2048 : 4096);
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.03;
   scene.add(key, key.target);
@@ -1654,6 +1804,10 @@ export async function initHangar(container, opts = {}) {
   scene.add(fill);
 
   const life = buildLife(scene, reduceMotion, !REAL);
+  // Unter hoch werfen die Arbeiter keinen Schatten (sie laufen: die Karten
+  // müssten sonst jedes Bild neu), in der niedrigen Stufe gehen vier statt acht
+  if (Q0 !== 'hoch') life.setShadows(false);
+  if (Q0 === 'niedrig') life.setCount(4);
   // die Crew erscheint mit der Halle, nicht vorher im Leeren
   life.root.visible = !REAL;
   if (!REAL) buildStage();
@@ -1914,19 +2068,62 @@ export async function initHangar(container, opts = {}) {
       if (fresh) await yieldToBrowser();
     }
   }
+  // Laden läuft (prepare, show): Nachregeln (adapt) misst dann nicht, und
+  // eine Sekunde danach auch nicht, weil Übersetzen und Hochladen nachhallen
+  let busy = 0, quietAt = 0;
+  const busyStart = () => { busy++; };
+  const busyEnd = () => { busy = Math.max(0, busy - 1); quietAt = performance.now() + 1000; };
   async function prepare(root) {
-    await composerReady;
-    const compiled = compileFor(root, composer ? composer.readBuffer : null);
-    const tex = new Set();
-    root.traverse((n) => {
-      if (n.isMesh) for (const m of [].concat(n.material)) for (const k of TEX_SLOTS) if (m[k]) tex.add(m[k]);
-    });
-    let t0 = performance.now();
+    busyStart();
+    try {
+      await composerReady;
+      const tex = new Set();
+      root.traverse((n) => {
+        if (n.isMesh) for (const m of [].concat(n.material)) for (const k of TEX_SLOTS) if (m[k]) tex.add(m[k]);
+      });
+      if (TEX_MAX) await shrinkTextures(tex);
+      const compiled = compileFor(root, composer ? composer.readBuffer : null);
+      let t0 = performance.now();
+      for (const t of tex) {
+        renderer.initTexture(t);
+        if (performance.now() - t0 > 6) { await yieldToBrowser(); t0 = performance.now(); }
+      }
+      await compiled;
+    } finally { busyEnd(); }
+  }
+  // Niedrige Stufe: Texturen höchstens TEX_MAX px an der längeren Kante,
+  // verkleinert vor dem Hochladen (ein Viertel des Grafikspeichers je
+  // halbierter Kante, kürzeres Hochladen). Dasselbe Bild aus dem Spiel, nur
+  // kleiner; je Bildquelle einmal, auch wenn mehrere Texturen sie teilen.
+  const TEX_MAX = Q0 === 'niedrig' ? 512 : 0;
+  const shrunk = new WeakMap();
+  async function shrinkTextures(tex) {
+    const jobs = [];
     for (const t of tex) {
-      renderer.initTexture(t);
-      if (performance.now() - t0 > 6) { await yieldToBrowser(); t0 = performance.now(); }
+      const src = t.source, im = src?.data, w = im?.width || 0, h = im?.height || 0;
+      if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture) continue;
+      if (!shrunk.has(src)) {
+        const k = TEX_MAX / Math.max(w, h), nw = Math.max(1, Math.round(w * k)), nh = Math.max(1, Math.round(h * k));
+        shrunk.set(src, (async () => {
+          let out = null;
+          try {
+            out = await createImageBitmap(im, { resizeWidth: nw, resizeHeight: nh, resizeQuality: 'high', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+            if (out.width !== nw) { out.close(); out = null; }   // Größe nicht unterstützt
+          } catch { out = null; }
+          if (!out) {
+            try {
+              out = document.createElement('canvas');
+              out.width = nw; out.height = nh;
+              out.getContext('2d').drawImage(im, 0, 0, nw, nh);
+            } catch { return; }
+          }
+          src.data = out;
+          if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
+        })());
+      }
+      jobs.push(shrunk.get(src).then(() => { t.needsUpdate = true; }));
     }
-    await compiled;
+    await Promise.all(jobs);
   }
 
   // Lampen der Halle aus dem Spiel (Licht-Entities des socpak, vom Build als
@@ -1941,15 +2138,18 @@ export async function initHangar(container, opts = {}) {
   // parallel zur Halle und stehen, bevor irgendetwas übersetzt wird. Jede
   // Lampe ist Teil jedes Shaderprogramms; kämen sie danach, würde alles neu
   // übersetzt. Dafür ersetzen sie das Bühnenlicht ganz, statt dazuzukommen.
-  const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   const GAME_LAMPS = true, HALL_PROBE = true;
   // Festes Budget: Die beiden Hauptstrahler unter der Decke tragen am
   // Boden um das Schiff 98 % des Lichts (Bewertung wie lampScore, mit den
   // Wänden 94 %), die nächsten vier sind Spots an der Rückwand; alle sechs
   // zusammen 97 %. Mehr Lampen kosten jedes Bild, ohne dass man es sieht.
-  const MAX_LIGHTS = SMALL ? 3 : 6;
-  // So viele Spots über der Plattform werfen den Schatten des Schiffs
-  const SHADOW_LAMPS = SMALL ? 1 : 2;
+  // Unter hoch weniger: Was nicht brennt, geht ins Lichtgitter (buildHallVolume).
+  const MAX_LIGHTS = Q0 === 'niedrig' ? 2 : SMALL ? 3 : Q0 === 'mittel' ? 4 : 6;
+  // So viele Spots über der Plattform werfen den Schatten des Schiffs (und
+  // der Halle, renderHallShadows: dieselben Strahler, in derselben Folge)
+  const SHADOW_LAMPS = SMALL || Q0 === 'niedrig' ? 1 : 2;
+  // Kantenlänge der Schattenkarten (Schiff und Halle)
+  const SHADOW_SIZE = SMALL || Q0 === 'niedrig' ? 1024 : 2048;
   // Unter dieser Reichweite (m) ist ein Flächenlicht nur Glimmen an seiner
   // Leuchte (Bodenleuchten: 0,1 m). Zusammengelegt würde daraus eine Lampe
   // mit Metern Reichweite, die es im Spiel nicht gibt.
@@ -2153,7 +2353,7 @@ export async function initHangar(container, opts = {}) {
       .sort((a, b) => b[1] - a[1]).slice(0, SHADOW_LAMPS).map(([q]) => q);
     for (const L of shadowLamps) {
       L.castShadow = true;
-      L.shadow.mapSize.setScalar(SMALL ? 1024 : 2048);
+      L.shadow.mapSize.setScalar(SHADOW_SIZE);
       L.shadow.bias = -0.0004;
       L.shadow.normalBias = 0.04;
     }
@@ -2221,7 +2421,7 @@ export async function initHangar(container, opts = {}) {
   // Hallenhöhe) wirft keinen Schatten: Ihr Rand schattete das obere Drittel
   // der Seitenwände in harten Keilen ab, die ohne das Streulicht der weißen
   // Halle viel zu dunkel blieben.
-  const HALL_STAT_SIZE = SMALL ? 1024 : 2048, HALL_STAT_NEAR = 2, HALL_STAT_TOP = 0.7;
+  const HALL_STAT_SIZE = SHADOW_SIZE, HALL_STAT_NEAR = 2, HALL_STAT_TOP = 0.7;
   const statRT = [], statCam = new THREE.PerspectiveCamera(90, 1, 1, 100);
   const statClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
   // Versatz nach Neigung: Flächen, die das Licht streifend trifft (die großen
@@ -2354,6 +2554,8 @@ export async function initHangar(container, opts = {}) {
     renderer.shadowMap.needsUpdate = true;
     const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     pm.dispose();
+    // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
+    shadowSig = '';
     fog.near = near; fog.far = far;
     for (const [m, g] of gain) m.envMapIntensity = g;
     hallRefl.on.value = reflOn;
@@ -3002,6 +3204,10 @@ ${HALL_LIGHTS_BEGIN}
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   async function show(url, o = {}) {
+    busyStart();
+    try { return await showShip(url, o); } finally { busyEnd(); }
+  }
+  async function showShip(url, o) {
     const my = ++token;
     makerCode = o.maker || '';
     prog.delete('ship');
@@ -3208,22 +3414,83 @@ ${HALL_LIGHTS_BEGIN}
     flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
   }
 
-  // Ruckelt das Bild, gibt die Bildschärfe in Stufen nach (bis Pixeldichte
-  // 1): gemessen über je zwei Sekunden, erst nach dem ersten Bild; Aussetzer
-  // über 100 ms (Laden, Tabwechsel) zählen nicht. Nie wieder hoch: kein Pendeln.
-  let fpsN = 0, fpsSum = 0, lastNow = 0;
-  function adaptPixels(now) {
-    const d = now - lastNow;
-    lastNow = now;
-    if (!revealed || pixelRatio <= 1 || d <= 0 || d > 100) return;
-    fpsN++; fpsSum += d;
-    if (fpsSum < 2000) return;
-    const avg = fpsSum / fpsN;
-    fpsN = 0; fpsSum = 0;
-    if (avg < 25) return;   // 40 Bilder je Sekunde und mehr: bleibt
-    pixelRatio = Math.max(1, pixelRatio - 0.25);
+  // Nachregeln: Ruckelt das Bild, gibt erst die Bildschärfe in Stufen nach
+  // (bis Pixeldichte 1), dann die Leistungsstufe (hoch -> mittel ->
+  // niedrig), zuletzt in der niedrigen Stufe die Bildschärfe bis 0,6.
+  // Gemessen wird der Median der Bildabstände über je zwei Sekunden, erst
+  // nach dem ersten Bild und nicht während des Ladens (busy); einzelne
+  // Aussetzer über einer Sekunde (Tabwechsel) zählen nicht. Bis 2026-10-15
+  // zählten Bilder über 100 ms gar nicht: Unter 10 Bildern je Sekunde regelte
+  // die Seite also nie nach. Nie wieder hoch: kein Pendeln.
+  const PR_FLOOR = 1, PR_FLOOR_LOW = 0.6;
+  // Bilder je Sekunde höchstens (0 = so viele der Schirm zeigt)
+  let fpsCap = Q0 === 'niedrig' ? 30 : 0, lastDraw = 0;
+  const frameD = [];
+  let frameSum = 0, lastNow = 0;
+  function setPixels(pr) {
+    if (Math.abs(pr - pixelRatio) < 1e-3) return;
+    pixelRatio = pr;
     renderer.setPixelRatio(pixelRatio);
     composer?.setPixelRatio(pixelRatio);
+    qualityFn?.(quality());
+  }
+  function adapt(now) {
+    const d = now - lastNow;
+    lastNow = now;
+    if (!revealed || busy || now < quietAt || !visible) { frameD.length = 0; frameSum = 0; return; }
+    if (d <= 0 || d > 1000) return;
+    frameD.push(d); frameSum += d;
+    if (frameSum < 2000) return;
+    frameD.sort((a, b) => a - b);
+    const med = frameD[frameD.length >> 1];
+    frameD.length = 0; frameSum = 0;
+    // 40 Bilder je Sekunde und mehr: bleibt; mit Deckel (30 je Sekunde) ab 40 ms
+    if (med < (fpsCap ? Math.max(25, 1200 / fpsCap) : 25)) return;
+    // Von Hand gewählt (?grafik=, Grafik-Schalter): die Stufe bleibt, nur die Bildschärfe gibt nach
+    if (med < 50 && pixelRatio > PR_FLOOR) setPixels(Math.max(PR_FLOOR, pixelRatio - 0.25));
+    else if (level !== 'niedrig') { if (!FORCED) stepDown(med); }
+    else if (pixelRatio > PR_FLOOR_LOW) setPixels(Math.max(PR_FLOOR_LOW, pixelRatio - 0.2));
+  }
+  // Eine Stufe tiefer, solange die Seite läuft. Was beim Laden entstand
+  // (Lampen, Schattenkarten, Texturgröße, Möbel), bleibt; es fällt weg, was
+  // jedes Bild kostet.
+  let qualityFn = null, dropping = null;
+  function stepDown(ms) {
+    const i = rank(level);
+    if (i <= 0) return;
+    const from = level;
+    level = QUALITY_LEVELS[i - 1];
+    console.info(`[hangar] Leistungsstufe ${from} → ${level} (Bildzeit ${Math.round(ms)} ms)`);
+    if (level !== 'hoch') {
+      life.setShadows(false);
+      // Ohne Nachbearbeitung zeichnet das Bild auf die Leinwand, mit anderen
+      // Programmen: die erst im Hintergrund übersetzen, dann umschalten
+      if (composer && !dropping) {
+        dropping = compileFor(scene, null).catch(() => {}).then(() => {
+          composer?.dispose();
+          composer = null;
+          mirrorRT?.dispose(); mirrorRT = null;
+          hallRefl.on.value = 0;
+        });
+      }
+    }
+    if (level === 'niedrig') { life.setCount(4); fpsCap = 30; }
+    shadowSig = '';
+    setPixels(Math.min(pixelRatio, PR_CAP[level]));
+    qualityFn?.(quality());
+  }
+  const quality = () => ({ level, start: Q0, why: pick.why, forced: FORCED, pixelRatio, levels: QUALITY_LEVELS.slice() });
+  // Schattenkarten unter hoch nur neu, wenn sich etwas bewegt, das Schatten
+  // wirft: das Schiff (Ein- und Ausfahrt, Aufzug), der Hallenmaßstab. Die
+  // Crew wirft dort keinen. Die gebaute Halle (ohne Spieldaten) hat
+  // laufende Teile mit Schatten: dort jedes Bild.
+  function shadowsDue() {
+    if (level === 'hoch' || !realHall) return true;
+    const g = current?.group, l = leaving?.group;
+    const sig = `${g ? `${g.id}:${g.visible}:${g.position.y.toFixed(3)}:${g.rotation.y.toFixed(3)}` : '-'}|${l ? `${l.id}:${l.position.y.toFixed(3)}:${l.rotation.y.toFixed(3)}` : '-'}|${hallRoot.scale.x}`;
+    if (sig === shadowSig) return false;
+    shadowSig = sig;
+    return true;
   }
 
   const clock = new THREE.Clock();
@@ -3593,7 +3860,7 @@ ${HALL_LIGHTS_BEGIN}
   // Zeichenaufrufe je Bild (Gladius, +25 %), ohne sie etwa so viele, wie
   // das Schiff Teile hat. Erst mit dem Composer: Ohne ihn zeichnet das Bild
   // direkt auf den Schirm, mit anderen Programmen. Am Telefon nicht, dort
-  // zählt jeder Zeichenaufruf.
+  // zählt jeder Zeichenaufruf, und unter der hohen Stufe auch nicht.
   const MIRROR = !SMALL, MIRROR_SCALE = 0.5;
   let mirrorRT = null;
   const mirrorCam = new THREE.PerspectiveCamera();
@@ -3603,7 +3870,7 @@ ${HALL_LIGHTS_BEGIN}
   const mBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
   function renderMirror() {
     hallRefl.on.value = 0;
-    if (!MIRROR || !composer || !realHall?.model || !realHall.envOn || !current) return;
+    if (!MIRROR || level !== 'hoch' || !composer || !realHall?.model || !realHall.envOn || !current) return;
     camera.updateMatrixWorld();
     mC.setFromMatrixPosition(camera.matrixWorld);
     if (mC.y <= 0.01) return;
@@ -3648,9 +3915,12 @@ ${HALL_LIGHTS_BEGIN}
     if (!visible) return;
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
+    const now = performance.now();
+    // Deckel (niedrige Stufe): gleichmäßig 30 statt schwankend 20 bis 40
+    if (fpsCap && now - lastDraw < 1000 / fpsCap - 4) return;
+    lastDraw = now;
     const t = clock.getElapsedTime();
     const dt = Math.min(0.1, t - last); last = t;
-    const now = performance.now();
     for (const f of anim) f(t);
     life.update(dt, t, !!realHall?.lift && (lift.y !== 0 || lift.dur > 0));
     if (dust && !reduceMotion) dust.update(t);
@@ -3747,9 +4017,9 @@ ${HALL_LIGHTS_BEGIN}
     lensLive = true;
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
-    adaptPixels(now);
+    adapt(now);
     renderMirror();
-    renderer.shadowMap.needsUpdate = true;
+    renderer.shadowMap.needsUpdate = shadowsDue();
     if (composer) composer.render(); else renderer.render(scene, camera);
     if (frameFn) frameFn();
   }
@@ -3760,19 +4030,24 @@ ${HALL_LIGHTS_BEGIN}
     renderer.domElement.style.opacity = '0';
     lampsReady = loadHallLights(opts.hall);
     probeReady = loadHallProbe(opts.hall);
-    composerReady = lampsReady.then(() => enableAO());
-    // Am Telefon die leichtere Stufe, wenn die Seite eine mitgibt (gleicher
-    // Modellraum, also dieselben Lampen und Sonden), und keine Möbel; Glas,
-    // Rohre und Füllung kommen dort aus der Telefon-Datei (60 KB statt 4 MB).
-    loadRealHall(SMALL ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: /* hall-patch */ opts.hall.patch ?? null } : opts.hall);
+    // Nachbearbeitung nur in der hohen Stufe
+    composerReady = Q0 === 'hoch' ? lampsReady.then(() => enableAO()) : lampsReady.then(() => {});
+    // Am Telefon und in der niedrigen Stufe die leichtere Halle, wenn die
+    // Seite eine mitgibt (gleicher Modellraum, also dieselben Lampen und
+    // Sonden), und keine Möbel; Glas, Rohre und Füllung kommen dort aus der
+    // Telefon-Datei (60 KB statt 4 MB).
+    loadRealHall(SMALL || Q0 === 'niedrig' ? { ...opts.hall, ...(opts.hall.lite?.url ? opts.hall.lite : {}), furniture: /* hall-patch */ opts.hall.patch ?? null } : opts.hall);
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand
   // (die gebauten Figuren wären Selbstgebautes)
   if (opts.crew?.url) {
     fetchGltf(opts.crew.url, 'crew', 2e5).then(async (g) => {
       g.scene.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) unifyMaps(m); });
-      await prepare(g.scene);
       life.setCrew(g.scene);
+      // nur die neuen Figuren, nicht die gebauten Arbeiter, die gleich weichen
+      const parts = life.crewMeshes();
+      await prepare({ traverse: (f) => parts.forEach((o) => o.traverse(f)), traverseVisible: (f) => parts.forEach((o) => o.traverseVisible(f)) });
+      life.showCrew();
       if (REAL) life.root.visible = revealed;
     }).catch(() => { /* gebaute Arbeiter bleiben */ }).finally(() => prog.delete('crew'));
   }
@@ -3799,6 +4074,10 @@ ${HALL_LIGHTS_BEGIN}
     // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
     // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
     setCover(px) { coverTop = Math.max(0, Number(px) || 0); },
+    // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
+    // meldet jede Änderung (Nachregeln)
+    quality,
+    onQuality(fn) { qualityFn = fn; },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
     dispose() {
