@@ -38,6 +38,12 @@ const KEEP = new Set(['latin', 'latin-ext']);
 let out = `/* Selbst gehostete Webfonts (generiert via scripts/fetch-fonts.mjs).\n   Quelle: Google Fonts (OFL/Apache-lizenziert) — lokal ausgeliefert, kein CDN. */\n`;
 let files = 0;
 const seen = new Set();
+// Variable Schnitte: Google liefert fuer jede Staerke DIESELBE Datei (gleiche
+// URL). Frueher lag sie dann bis zu dreimal unter verschiedenen Namen im
+// Ordner, und eine Seite mit 700 und 900 lud dieselben Bytes zweimal. Jetzt
+// behaelt jede Quell-URL den Namen ihres ersten Auftretens; die @font-face-
+// Regeln bleiben getrennt, weil ihr font-weight die gezeichnete Staerke setzt.
+const nameByUrl = new Map();
 for (const [, subset, block] of blocks) {
   if (!KEEP.has(subset)) continue;
   const family = /font-family:\s*'([^']+)'/.exec(block)?.[1];
@@ -48,7 +54,8 @@ for (const [, subset, block] of blocks) {
   const slug = family.toLowerCase().replace(/\s+/g, '-');
   // Stil im Dateinamen, sonst überschreiben Kursiv- und Normalschnitt
   // einander (gleiche Familie, gleiche Weight, gleiches Subset).
-  const fname = `${slug}-${weight}${style === 'normal' ? '' : `-${style}`}-${subset}.woff2`;
+  const fname = nameByUrl.get(url) ?? `${slug}-${weight}${style === 'normal' ? '' : `-${style}`}-${subset}.woff2`;
+  nameByUrl.set(url, fname);
   if (!seen.has(fname)) {
     seen.add(fname);
     const buf = Buffer.from(await fetch(url, { headers: { 'User-Agent': UA } }).then((r) => r.arrayBuffer()));
