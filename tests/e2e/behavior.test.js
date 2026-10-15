@@ -414,11 +414,29 @@ describe('Detail-Modal', () => {
     assert.ok(body().textContent.includes('Executive-Spinden'));
   });
 
-  test('38. Crafting-Rezept erscheint, wenn Blueprint existiert', () => {
+  // Die Rezeptdatei (2,1 MB) laedt erst mit dem ersten Modal; der Abschnitt
+  // kommt beim ersten Oeffnen also einen Takt spaeter, danach sofort.
+  test('38. Crafting-Rezept erscheint, wenn Blueprint existiert', async () => {
     openCard('alpha-rifle');
+    await dom.wait(10);
     assert.ok(body().textContent.includes('Crafting-Rezept'));
     assert.ok(body().textContent.includes('1m 30s'));
     assert.ok(body().textContent.includes('Iron'));
+    // Zweites Oeffnen: Datei liegt vor, Abschnitt steht ohne Warten da.
+    dom.elements['uif-modal-close-btn'].click();
+    openCard('alpha-rifle');
+    assert.ok(body().textContent.includes('Crafting-Rezept'));
+  });
+
+  test('38a. Rezeptdatei laedt erst mit dem ersten Modal, und nur einmal', async () => {
+    const craftCalls = () => dom.fetched.filter((u) => u === '/assets/crafting-db.json').length;
+    assert.strictEqual(craftCalls(), 0, 'Start der Seite darf die Rezeptdatei nicht laden');
+    openCard('alpha-rifle');
+    await dom.wait(10);
+    dom.elements['uif-modal-close-btn'].click();
+    openCard('beta-helmet');
+    await dom.wait(10);
+    assert.strictEqual(craftCalls(), 1);
   });
 
   test('39. Kein Crafting-Abschnitt ohne Blueprint', () => {

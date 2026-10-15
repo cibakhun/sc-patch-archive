@@ -31,6 +31,7 @@ const tools = [
 ];
 ---
 <Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#04060c" footer={true} translated={true}>
+<link slot="head" rel="preload" as="image" href={HERO_IMG} fetchpriority="high" />
 <style is:inline>
   :root{
     --bg:#04060c;--bg-2:#080d18;--surface:#0e1626;
@@ -295,7 +296,10 @@ const tools = [
     text-transform:uppercase;font-size:var(--fs-6);color:var(--ink);background:var(--accent);padding:.6rem 1.15rem;border-radius:7px;
     display:inline-flex;gap:.5rem;align-items:center;transition:filter var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
   .fresh__go:hover{filter:brightness(1.08);transform:translateX(2px)}
-  .fresh__media{position:relative;background:var(--media-void) center/cover no-repeat;min-height:180px}
+  .fresh__media{position:relative;background:var(--media-void) center/cover no-repeat;background-image:var(--img);min-height:180px}
+  /* Kachelbilder erst kurz vor dem Bild laden (Skript am Seitenende).
+     Ohne Skript fehlt data-lazy-bg, und alles laedt wie bisher sofort. */
+  html[data-lazy-bg] .tool:not(.bg-in)::before,html[data-lazy-bg] .fresh__media:not(.bg-in){background-image:none}
   .fresh__media::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--surface),transparent 42%)}
 
   .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
@@ -331,6 +335,7 @@ const tools = [
 <a class="skip" href="#tools">Zu den Werkzeugen springen</a>
 
 <SiteNav hasEn={true} heroMorph={true} />
+<script is:inline>if('IntersectionObserver' in window)document.documentElement.setAttribute('data-lazy-bg','')</script>
 
 {/* Bewusst AUSSERHALB von .hero: der Hero traegt isolation:isolate und damit
     einen eigenen Stacking-Kontext — darin koennte die Wortmarke die
@@ -392,7 +397,7 @@ const tools = [
         <span class="fresh__name">{latest.data.codename ?? latest.data.tagline}</span>
         <span class="fresh__go">Patch öffnen <span aria-hidden="true">→</span></span>
       </div>
-      <div class="fresh__media" style={`background-image:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
+      <div class="fresh__media" style={`--img:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
     </a>
   </section>
 
@@ -409,5 +414,11 @@ const tools = [
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), { threshold: .08 });
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+  // Kachelbilder: 600px vor dem Rand anfordern, damit sie stehen, bevor
+  // man hinsieht. Spart beim Aufruf rund 1,3 MB Bilder unterhalb des Hero.
+  const bgIo = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('bg-in'); bgIo.unobserve(e.target); }
+  }), { rootMargin: '600px 0px' });
+  document.querySelectorAll('.tool, .fresh__media').forEach((el) => bgIo.observe(el));
 </script>
 </Layout>

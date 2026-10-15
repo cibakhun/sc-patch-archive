@@ -126,8 +126,17 @@ export async function initHolo(container, cfg) {
   const H = () => container.clientHeight || 480;
   const reduceMotion = cfg.reduceMotion ?? matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  // Leichtgang (html[data-perf="lite"], Layout.astro / assets/perf.js):
+  // ohne Kantenglaettung, Pixeldichte 1, hoechstens 30 Bilder/s. Gemessen
+  // 15.10.2026 auf dem Telefonprofil (Software-GPU): Holo 2,6 -> 11 Bilder/s,
+  // Seitenscroll daneben 7 -> 23. Auf starken Geraeten bleibt alles wie es
+  // war. Schaltet die Seite erst im Lauf um (Bildtakt-Messung), folgen
+  // Pixeldichte und Takt sofort — die Kantenglaettung haengt am Kontext und
+  // bleibt bis zum naechsten Laden.
+  const perfLite = () => document.documentElement.getAttribute('data-perf') === 'lite';
+  const pixelRatio = () => (perfLite() ? 1 : Math.min(devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ antialias: !perfLite(), alpha: true });
+  renderer.setPixelRatio(pixelRatio());
   renderer.setSize(W(), H());
   renderer.localClippingEnabled = true;
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:none';
@@ -1428,20 +1437,46 @@ export async function initHolo(container, cfg) {
   });
 
   /* ---------- Render-Loop ---------- */
-  // Pausiert, wenn die Bühne aus dem Viewport gescrollt ist (Akku/GPU) —
-  // rAF drosselt nur bei verstecktem Tab, nicht bei unsichtbarem Element.
+  // Steht still, wenn die Bühne aus dem Viewport gescrollt ist oder der Tab
+  // im Hintergrund liegt (Akku/GPU). Bis 15.10.2026 lief die Schleife dabei
+  // leer weiter — sie zeichnete nichts, meldete sich aber 60-mal je Sekunde
+  // zurück und hielt den Hauptthread wach. Jetzt endet sie und wird vom
+  // Beobachter bzw. vom Sichtbarkeitswechsel neu angestoßen.
   let alive = true;
   let inView = true;
+  let running = false;
+  const wanted = () => alive && inView && !document.hidden;
+  const wake = () => {
+    if (running || !wanted()) return;
+    running = true;
+    requestAnimationFrame(tick);
+  };
   const vio = new IntersectionObserver((es) => {
     inView = es.some((e) => e.isIntersecting);
+    wake();
   }, { threshold: 0.02 });
   vio.observe(container);
+  document.addEventListener('visibilitychange', wake);
+  const onPerf = () => {
+    renderer.setPixelRatio(pixelRatio());
+    renderer.setSize(W(), H());
+    uScale.value = renderer.domElement.height * 0.5;
+  };
+  document.addEventListener('vbperfchange', onPerf);
+  // Schaltete der Leichtgang waehrend des Ladens um, kam das Ereignis vor
+  // dem Zuhoerer: einmal nachziehen.
+  onPerf();
   const clock = new THREE.Clock();
   let matDone = reduceMotion;
   let nextFlicker = 2.5;
-  (function tick() {
-    if (!alive) return;
-    if (!inView) { requestAnimationFrame(tick); return; }
+  // Takt-Deckel im Leichtgang: jedes zweite Bild bei 60 Hz. Die Uhr läuft
+  // über getDelta() weiter, ausgelassene Bilder verschieben also nichts —
+  // die Bewegung bleibt gleich schnell, sie wird nur gröber abgetastet.
+  let lastDraw = 0;
+  function tick(now) {
+    if (!wanted()) { running = false; return; }
+    if (perfLite() && now - lastDraw < 1000 / 30 - 4) { requestAnimationFrame(tick); return; }
+    lastDraw = now;
     const dt = clock.getDelta();
     const t = clock.elapsedTime;
     // reduced motion: statisches Hologramm — kein laufender Schimmer
@@ -1528,7 +1563,8 @@ export async function initHolo(container, cfg) {
     if (labelsOn && labels.length) layoutLabels();
     if (masseWerte) zeichneMasskette();
     requestAnimationFrame(tick);
-  })();
+  }
+  wake();
 
   // sobald der Nutzer selbst dreht/schiebt, seine Ansicht nicht mehr überschreiben
   let userMoved = false;
@@ -1656,6 +1692,8 @@ export async function initHolo(container, cfg) {
       alive = false;
       ro.disconnect();
       vio.disconnect();
+      document.removeEventListener('visibilitychange', wake);
+      document.removeEventListener('vbperfchange', onPerf);
       controls.dispose();
       renderer.dispose();
       renderer.domElement.remove();

@@ -12,6 +12,7 @@ import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
+import { versioned } from '../lib/assetVersion';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -104,6 +105,29 @@ const cards = missions.map((m: Mission) => {
     bps: bpCount(m),
   };
 });
+
+// Karten in Bloecken zu 60 (.mc-grp). Jeder Block traegt content-visibility:
+// auto — der Browser rechnet Stil und Layout nur fuer die Bloecke im Bild.
+// Gemessen 15.10.2026 (Telefon, 4x CPU-Drossel): Blockierzeit beim Laden
+// 6,2 s -> 1,2 s, Hauptthread je Scrollbild 74 -> 5 ms. Dieselbe Eigenschaft
+// auf jeder einzelnen Karte brachte das Laden fast genauso weit, kostete beim
+// Scrollen aber 18 ms je Bild: 1.355 Elemente, deren Sichtbarkeit der Browser
+// in jedem Bild einzeln nachrechnet.
+// 60, weil das Raster 1 bis 6 Spalten bildet (17rem Mindestbreite, Deckel
+// bei 2240 px, theme.css --vb-breit) und 60 durch jede dieser Zahlen teilbar
+// ist: jeder Block endet mit einer vollen Zeile, zwischen zwei Bloecken
+// entsteht nie eine Luecke. Die Blockgrenzen nach dem Filtern zieht
+// assets/missions-app.js neu.
+// Reihenfolge schon hier so, wie assets/missions-app.js sie als Vorgabe
+// sortiert (Angebote absteigend, dann Name): das Skript laeuft mit defer und
+// faende sonst eine andere Ordnung vor — es muesste beim Start alle Karten
+// umhaengen, und die Liste sprange einmal sichtbar um. Der Name ist derselbe
+// Text, den das Skript aus dem <h3> liest.
+const nameOf = (c: (typeof cards)[number]) => c.parts.map((p) => p.t).join('').trim().toLowerCase();
+cards.sort((a, b) => (b.m.count - a.m.count) || nameOf(a).localeCompare(nameOf(b), 'en'));
+const GRP = 60;
+const groups: (typeof cards)[] = [];
+for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP));
 ---
 <section class="mx" id="missions">
   <header class="mx__hero">
@@ -201,13 +225,15 @@ const cards = missions.map((m: Mission) => {
     </form>
 
     <!-- Karten -->
-    <div class="mx__grid vb-scrollbox" id="mx-grid">
+    <div class="mx__grid vb-scrollbox" id="mx-grid" data-grp={GRP}>
       {/* HTML-Diät: data-search (~500 unsichtbare Zeichen je Karte — Blueprint-
           Namen, Orte, Titel-Varianten) liegt jetzt als 1-Tag-cachebarer Index
           unter /missions-search.json (siehe pages/missions-search.json.ts);
           data-name liest missions-app.js aus dem sichtbaren <h3>. Zusammen
           ~0,75 MB weniger pro Sprachindex. */}
-      {cards.map(({ m, parts, descParts, reward, rep, repMore, legal, bps }) => (
+      {groups.map((grp) => (
+      <div class="mc-grp">
+      {grp.map(({ m, parts, descParts, reward, rep, repMore, legal, bps }) => (
         <article
           class="mc"
           data-type={m.types.join(' ')}
@@ -258,6 +284,8 @@ const cards = missions.map((m: Mission) => {
           </a>
         </article>
       ))}
+      </div>
+      ))}
     </div>
     <p class="mx__none" id="mx-none" hidden>{S.none}</p>
 
@@ -279,9 +307,14 @@ const cards = missions.map((m: Mission) => {
 {/* searchUrl versioniert mit dem DB-Stand: neuer Datamine-Lauf -> neue URL ->
     kein 1-Tag-alter Suchindex zu frischen Karten. */}
 <script is:inline set:html={`window.__MX=${JSON.stringify({ lang, searchUrl: `/missions-search.json?v=${db.meta.generated}`, t: { results: S.results } })};`} />
-{/* ?v=2: missions-app.js erwartet jetzt Karten ohne data-search/data-name —
-    altes gecachtes JS (1 Tag) fände auf neuem HTML nur leere Suchtexte. */}
-<script is:inline src="/assets/missions-app.js?v=2"></script>
+{/* Inhaltshash statt des frueheren festen ?v=2: das Skript muss zum Markup
+    passen (erst Karten ohne data-search/data-name, jetzt Karten in Bloecken
+    .mc-grp) — altes gecachtes JS (1 Tag) haelte die Bloecke fuer Karten.
+    defer: das Skript sortiert und filtert nur; die Karten stehen schon in
+    der Vorgabe-Ordnung im HTML (siehe oben), und als parser-blockierendes
+    Skript hinter 1.355 Karten hielt es das erste vollstaendige Bild auf.
+    window.__MX steht im Inline-Skript davor und ist damit laengst gesetzt. */}
+<script is:inline defer src={versioned('assets/missions-app.js', '/assets/missions-app.js')}></script>
 
 {/* KEIN is:inline: Astro buendelt diesen Block und verlinkt ihn im <head>.
     Inline stuende er hinter 800 KB Karten-Markup — der Browser malt dann erst
@@ -381,6 +414,36 @@ const cards = missions.map((m: Mission) => {
   /* 17rem, nicht 19: die Wurzel steht auf 112,5 %, 1rem sind also 18px — bei
      19rem passen auf 1280er-Viewports nur zwei Spalten. */
   .mx__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(17rem,100%), 1fr)); gap: 1rem; }
+  /* Block zu 60 Karten (siehe Kopf der Datei): spannt das ganze Raster und
+     uebernimmt dessen Spalten und Abstaende — dieselbe Breite ergibt dieselbe
+     Spaltenzahl, das Bild ist dasselbe wie ohne Block.
+     content-visibility:auto: Bloecke ausserhalb des Bildes werden nicht
+     gestylt, gelayoutet oder gemalt. Ihr Platzhalter misst --mc-grp-h (von
+     assets/missions-app.js an den echten Bloecken gemittelt), bis dahin die
+     Schaetzwerte darunter — Median je Spaltenzahl, an der Seite ohne Bloecke
+     gemessen (15.10.2026, 390-1920 px: 1/2/3/4 Spalten). `auto` merkt sich
+     danach die echte Hoehe.
+     overflow-clip-margin: content-visibility schneidet am Blockrand ab — der
+     Hover-Schatten der Karten (0 10px 34px) reichte sonst nicht mehr ueber
+     die Blockkante. Wo der Browser das nicht kennt, schaltet :has() den
+     Block mit Hover fuer die Dauer auf `visible` — nur dort, denn jeder
+     Wechsel kostet ein Layout des ganzen Blocks, und die Maus kreuzt beim
+     Ueberfahren der Karten bei jeder Fuge einmal den Leerraum. Der
+     Tastaturfokus schaltet ueberall (selten, und der Fokusring aus
+     detail.css mit 3px Abstand soll nie am Rand haengen). */
+  .mc-grp {
+    grid-column: 1 / -1;
+    display: grid; grid-template-columns: inherit; gap: inherit;
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--mc-grp-h, 17500px);
+    overflow-clip-margin: 48px;
+  }
+  .mc-grp[hidden] { display: none; }
+  .mc-grp:has(:focus-visible) { content-visibility: visible; }
+  @supports not (overflow-clip-margin: 48px) { .mc-grp:has(.mc:hover) { content-visibility: visible; } }
+  @media (min-width: 760px) { .mc-grp { contain-intrinsic-size: auto var(--mc-grp-h, 8900px); } }
+  @media (min-width: 1200px) { .mc-grp { contain-intrinsic-size: auto var(--mc-grp-h, 6050px); } }
+  @media (min-width: 1520px) { .mc-grp { contain-intrinsic-size: auto var(--mc-grp-h, 4800px); } }
   .mc {
     border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
     transition: border-color var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui), box-shadow var(--dur-base) var(--ease-ui);

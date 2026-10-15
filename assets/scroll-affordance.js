@@ -228,6 +228,28 @@
     el.addEventListener('wheel', stopGlide, { passive: true });
   }
 
+  // Messen (scrollWidth & Co.) erst im naechsten Bild. scan() laeuft beim
+  // Laden VOR dem ersten Zeichnen; jede Messung dort erzwang ein komplettes
+  // Layout der halbfertigen Seite, das der Browser fuers erste Bild gleich
+  // noch einmal machte. Im rAF-Rueckruf faellt die Messung mit dem ohnehin
+  // faelligen Layout zusammen. Im Item-Modal hilft es doppelt: scan() laeuft
+  // dort, waehrend das Modal noch display:none ist — gemessen wird jetzt erst,
+  // wenn es steht.
+  var pending = [];
+  var queued = false;
+  var nextFrame = window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); };
+  function queueSync() {
+    if (queued) return;
+    queued = true;
+    nextFrame(function () {
+      queued = false;
+      var list = pending;
+      pending = [];
+      for (var i = 0; i < list.length; i++) markDraggable(list[i]);
+      syncAll();
+    });
+  }
+
   function scan() {
     var drag = document.querySelectorAll(SEL_DRAG);
     for (var i = 0; i < drag.length; i++) {
@@ -236,7 +258,7 @@
       el.setAttribute('data-dragscroll', '');
       draggables.push(el);
       enableDrag(el);
-      markDraggable(el);
+      pending.push(el);
       if (ro) {
         ro.observe(el);
         if (el.firstElementChild) ro.observe(el.firstElementChild);
@@ -265,7 +287,7 @@
         return function () { syncVFade(n); };
       })(v), { passive: true });
     }
-    syncAll();
+    queueSync();
   }
 
   window.VBScrollAffordance = scan;
