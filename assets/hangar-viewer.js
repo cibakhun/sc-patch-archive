@@ -121,8 +121,9 @@ float pLine(vec2 q, float sz) {
 // Schiffsmaße, Crew, Lichtgitter) hielt den Hauptfaden am Stück an, allein
 // die Halle 1,4 s (Desktop), auf schwachen Geräten das Drei- bis Vierfache:
 // die Seite fror ein. Die langen Schleifen rufen dafür zwischen ihren Teilen
-// `await pause()`; pause gibt dem Browser das Wort, sobald seit dem letzten
-// Mal `ms` Rechenzeit vergangen sind. Ohne pause (Vorgabe) am Stück.
+// und alle 16 384 Ecken bzw. Dreiecke `await pause()`; pause gibt dem
+// Browser das Wort, sobald seit dem letzten Mal `ms` Rechenzeit vergangen
+// sind. Ohne pause (Vorgabe) am Stück.
 const noPause = async () => {};
 function slicer(ms, yieldFn) {
   let t = performance.now();
@@ -228,6 +229,7 @@ async function dropHallParts(model, list, pause = noPause) {
       const { min: a, max: b } = lb;
       let any = false;
       for (let i = 0; i < P.count; i++) {
+        if (!(i & 16383)) await pause();
         if (raw) {
           const x = raw[i * 3], y = raw[i * 3 + 1], z = raw[i * 3 + 2];
           if (x < a.x || x > b.x || y < a.y || y > b.y || z < a.z || z > b.z) continue;
@@ -250,6 +252,7 @@ async function dropHallParts(model, list, pause = noPause) {
     for (const { g, kid } of work) {
       const I = g.index.array;
       for (let t = 0; t + 2 < I.length; t += 3) {
+        if (!(t % 49152)) await pause();
         const a = kid[I[t]], b = kid[I[t + 1]], c = kid[I[t + 2]];
         if (a >= 0 && b >= 0 && c >= 0) { const r = find(a); par[find(b)] = r; par[find(c)] = r; }
         else { if (a >= 0) anchors.push(a); if (b >= 0) anchors.push(b); if (c >= 0) anchors.push(c); }
@@ -264,6 +267,7 @@ async function dropHallParts(model, list, pause = noPause) {
       const I = g.index.array, keep = new I.constructor(I.length);
       let n = 0;
       for (let t = 0; t + 2 < I.length; t += 3) {
+        if (!(t % 49152)) await pause();
         const a = kid[I[t]];
         if (a >= 0 && kid[I[t + 1]] >= 0 && kid[I[t + 2]] >= 0) {
           const r = find(a);
@@ -328,6 +332,7 @@ async function cutHallLift(model, L, skip, pause = noPause) {
     const raw = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize === 3 ? P.array : null;
     const { min: a, max: b } = lb.copy(box).applyMatrix4(Mi.copy(M).invert());
     for (let i = 0; i < P.count; i++) {
+      if (!(i & 16383)) await pause();
       if (raw) {
         const x = raw[i * 3], y = raw[i * 3 + 1], z = raw[i * 3 + 2];
         if (x < a.x || x > b.x || y < a.y || y > b.y || z < a.z || z > b.z) continue;
@@ -337,6 +342,7 @@ async function cutHallLift(model, L, skip, pause = noPause) {
     const I = g.index.array, keep = new I.constructor(I.length), cut = new I.constructor(I.length);
     let n = 0, m = 0;
     for (let t = 0; t + 2 < I.length; t += 3) {
+      if (!(t % 49152)) await pause();
       const a = I[t], b = I[t + 1], c = I[t + 2];
       if (inside[a] && inside[b] && inside[c]) { cut[m++] = a; cut[m++] = b; cut[m++] = c; } else { keep[n++] = a; keep[n++] = b; keep[n++] = c; }
     }
@@ -1328,6 +1334,7 @@ async function rigCrew(model, pause = noPause) {
     const P = g.attributes.position;
     const isArm = /arm/i.test(n.material.name || '');
     for (let t = 0; t < P.count; t += 3) {
+      if (!(t % 12288)) await pause();
       c.set(0, 0, 0);
       for (let k = 0; k < 3; k++) c.x += P.getX(t + k) / 3, c.y += P.getY(t + k) / 3, c.z += P.getZ(t + k) / 3;
       const side = c.x < 0 ? 'L' : 'R', sx = c.x < 0 ? -1 : 1;
@@ -1734,6 +1741,7 @@ async function robustBox(root, pause = noPause) {
   for (const [n, pos, step] of parts) {
     await pause();
     for (let i = 0; i < pos.count; i += step) {
+      if (!(k & 16383)) await pause();
       v.fromBufferAttribute(pos, i).applyMatrix4(n.matrixWorld);
       xs[k] = v.x; ys[k] = v.y; zs[k] = v.z; k++;
     }

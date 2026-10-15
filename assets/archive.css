@@ -706,7 +706,7 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   height: 7px;
   border: 1.5px solid var(--era);
   transform: rotate(45deg);
-  transition: border-color 0.85s var(--ease), --era var(--era-morph) var(--ease);
+  transition: border-color var(--era-morph) var(--ease), --era var(--era-morph) var(--ease);
 }
 .ribbon__k--point::before {
   width: 5px;
@@ -784,7 +784,7 @@ html:not([data-fx="on"]) .space__stars { display: none; }
   border-radius: 50%;
   background: var(--era);
   box-shadow: 0 0 12px var(--era), 0 0 4px var(--era);
-  transition: background-color 0.85s var(--ease), --era var(--era-morph) var(--ease);
+  transition: background-color var(--era-morph) var(--ease), --era var(--era-morph) var(--ease);
 }
 .cbar__search {
   flex: 1 1 12rem;
