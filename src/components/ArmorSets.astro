@@ -32,6 +32,13 @@ const slotLabel = (slot: string) => t(('slot' + slot) as never) || slot;
 // Panzerungsklasse: dieselben Schluessel wie im Finder (w<Wert> ohne Sonderzeichen)
 const weightLabel = (w: string | null) => (w ? t(('w' + w.replace(/[^A-Za-z]/g, '')) as never) || w : null);
 const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
+// Groessenangaben fuer die Hoehenschaetzung der Herstellerabschnitte
+// (content-visibility, siehe .as-mfr unten): Sets, Slot-Bloecke, Teile.
+const sizeOf = (sets: { id: string }[]) => {
+  let slots = 0, items = 0;
+  for (const s of sets) for (const [, list] of setItemsBySlot(s.id)) { slots++; items += list.length; }
+  return `--as-s:${sets.length};--as-l:${slots};--as-i:${items}`;
+};
 ---
 <DataShell
   lang={lang}
@@ -73,7 +80,7 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   </nav>
 
   {setsByManufacturer.map((g) => (
-    <section class="dp-sec" id={`mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+    <section class="dp-sec as-mfr" id={`mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} style={sizeOf(g.sets)}>
       <h2>{g.mfr} <span class="dp-muted">({num(g.sets.length, lang)})</span></h2>
 
       {g.sets.map((s) => (
@@ -201,6 +208,30 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   @media (min-width: 1181px) and (min-height: 801px) {
     .dp-sec[id] { scroll-margin-top: 16rem; }
   }
+
+  /* Herstellerabschnitt als Block: content-visibility:auto rechnet Stil,
+     Layout und Malen nur fuer die Abschnitte im Bild (8.127 Knoten auf der
+     Seite). Bewusst am Abschnitt, nicht an der Set-Karte: deren Eckklammer
+     (.as-set::after, top/right -1px, 2px Strich) ragt in den Rahmen, und
+     content-visibility beschneidet am Innenrand — die Klammer waere einen
+     Pixel duenner. Im Abschnitt liegt alles innerhalb.
+     Die Platzhalterhoehe schaetzt der Server-Zaehler (Sets --as-s, Slot-
+     Bloecke --as-l, Teile --as-i) mal je Breite angepasste Faktoren — an
+     der gerenderten Seite ohne content-visibility gemessen (15.10.2026,
+     DE+EN, elf Breiten 360-1440 px): Gesamthoehe der Liste je Breite auf
+     etwa +-10 % getroffen, der fruehere Pauschalwert lag am Telefon 69 %
+     zu niedrig. `auto` merkt sich danach die echte Hoehe. Sprungmarken
+     (.as-jump) funktionieren weiter: der Browser rendert das Ziel beim
+     Ansprung. */
+  .as-mfr {
+    --as-k0: 145px; --as-k1: 69px; --as-k2: 80px; --as-k3: 9px;
+    content-visibility: auto;
+    contain-intrinsic-size: auto calc(var(--as-k0) + var(--as-s, 6) * var(--as-k1) + var(--as-l, 30) * var(--as-k2) + var(--as-i, 60) * var(--as-k3));
+  }
+  @media (max-width: 1099px) { .as-mfr { --as-k0: 169px; --as-k1: 78px; --as-k2: 75px; --as-k3: 11px; } }
+  @media (max-width: 820px) { .as-mfr { --as-k0: 340px; --as-k1: 31px; --as-k2: 128px; --as-k3: 22px; } }
+  @media (max-width: 649px) { .as-mfr { --as-k0: 340px; --as-k1: 138px; --as-k2: 77px; --as-k3: 36px; } }
+  @media (max-width: 420px) { .as-mfr { --as-k0: 180px; --as-k1: 185px; --as-k2: 28px; --as-k3: 55px; } }
 
   /* Set-Karte: dieselbe Konsole wie die Kategorie-Karten, eine Stufe ruhiger. */
   .as-set {
