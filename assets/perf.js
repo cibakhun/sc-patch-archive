@@ -127,7 +127,13 @@
 
   function repaintAll() { for (var i = 0; i < tracked.length; i++) paint(tracked[i]); }
 
-  scan();
+  // Erst nach dem naechsten Bild: document.getAnimations() bringt vorher den
+  // Stil auf Stand und zog so das Layout der Seite in diese Aufgabe — auf
+  // der Patch-Seite wuchs sie mit der Rechnung dafuer von 260 auf 410 ms
+  // (Desktop, 4-fache CPU-Drossel). Nach dem Bild ist der Stil sauber, die
+  // Abfrage kostet nichts. Was bis dahin anlaeuft, meldet animationstart.
+  if (window.requestAnimationFrame) requestAnimationFrame(function () { setTimeout(scan, 0); });
+  else setTimeout(scan, 0);
 
   /* ---------- 2. Leichtgang zur Laufzeit ---------- */
   function store(v) { try { sessionStorage.setItem('vb.perf.auto', v); } catch (e) {} }
