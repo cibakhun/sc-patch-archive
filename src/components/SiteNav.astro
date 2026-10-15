@@ -462,6 +462,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         }
       }
     } catch (e) {}
+    // Sichtbare Marke -> html.vb-has-back (--nav-h, Holo-Abstand). Statt
+    // :root:has(): das kostete bei jeder DOM-Aenderung eine Stilrechnung
+    // des ganzen Dokuments. Die Marke wechselt danach nie mehr ihr hidden.
+    if (a && !a.hasAttribute('hidden')) document.documentElement.classList.add('vb-has-back');
   </script>
 )}
 
@@ -980,11 +984,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      unsichtbare 44-px-Fingerkuppe bis 113 px (die wuerde sonst Klicks auf der
      Filterleiste schlucken) -> 116. Trotzdem beide Male weniger als die
      107/132 px der frueheren zweiten Leistenzeile.
-     `:has()` haelt das rein strukturell — keine Seite muss etwas uebergeben. */
+     Schalter ist die Klasse html.vb-has-back, gesetzt vom Herkunfts-Leser
+     direkt hinter </nav> (vor dem ersten Bild). Bis 15.10.2026 stand hier
+     :root:has(.snav__back:not([hidden])): damit stellte JEDES Einfuegen und
+     jedes hidden-Umschalten irgendwo auf der Seite den Stil des ganzen
+     Dokuments neu auf (Crafting-Thema, 4-fache CPU-Drossel: Stilrechnung
+     1 959 -> 791 ms beim Laden). Keine Seite muss etwas uebergeben. */
   :global(:root) { --nav-h: 68px; }
-  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 104px; }
+  :global(:root.vb-has-back) { --nav-h: 104px; }
   @media (max-width: 860px) {
-    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 116px; }
+    :global(:root.vb-has-back) { --nav-h: 116px; }
   }
 
   .snav__back[hidden] { display: none; }

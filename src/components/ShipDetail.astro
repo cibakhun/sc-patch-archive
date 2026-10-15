@@ -605,9 +605,9 @@ a{color:inherit;text-decoration:none}
    inzwischen liegt dort ein klickbares Bedienelement. Zusatz exakt in Hoehe
    des --nav-h-Zuwachses (104-68=36px, 116-68=48px), nicht auf einen neuen
    Absolutwert geraten. */
-:root:has(.snav__back:not([hidden])) .holo{margin-top:92px}
+:root.vb-has-back .holo{margin-top:92px}
 @media(max-width:860px){
-  :root:has(.snav__back:not([hidden])) .holo{margin-top:104px}
+  :root.vb-has-back .holo{margin-top:104px}
 }
 /* 16-04-PLAN.md Task 1, SCHRITT 1 (16-UI-SPEC.md Detailvertrag Punkt 1):
    drei feste Grid-Spalten, Breiten UND Bruchkanten UNVERAENDERT aus dem
@@ -1269,7 +1269,7 @@ a{color:inherit;text-decoration:none}
 /* Die urspruengliche Begruendung hier ("die freie Zurueck-Marke haengt an
    .holo, HUD/Dims ruecken deshalb als Paar 26->58px nach unten") ist mit
    16-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
-   Zurueck-Marken-Zuschlag (siehe :root:has(...) .holo{margin-top:...} an
+   Zurueck-Marken-Zuschlag (siehe :root.vb-has-back .holo{margin-top:...} an
    der .holo-Basisregel oben) -- HUD und Dims sitzen als Kind von
    .holo__wrap bereits IN diesem verschobenen Block und muessten sich sonst
    ein zweites Mal nach unten schieben (26+32=58 zusaetzlich zu den bereits
