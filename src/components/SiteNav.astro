@@ -2006,12 +2006,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       measureScroll();
       if (scrollY > 0) queueScroll();
     }).observe(document.documentElement);
-    addEventListener('resize', function () { maxScroll = -1; }, { passive: true });
+    addEventListener('resize', function () { maxScroll = -1; queueScroll(); }, { passive: true });
     function onScrollFrame() {
       ticking = false;
       nav.classList.toggle('scrolled', scrollY > 40);
       if (prog) {
-        if (maxScroll < 0) measureScroll();
+        if (maxScroll < 0 || !window.ResizeObserver) measureScroll();
         var p = maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
         prog.style.transform = 'scaleX(' + p.toFixed(4) + ')';
         if (progHead) progHead.style.transform = 'translateX(' + ((p - 1) * 100).toFixed(2) + '%)';

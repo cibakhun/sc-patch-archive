@@ -210,9 +210,9 @@
     later(function () {
       if (isLite()) return;
       if (glCheck()) { goLite('webgl'); return; }
-      var done = null;
-      try { done = sessionStorage.getItem('vb.perf.auto'); } catch (e) {}
-      if (done !== 'full') probe();
+      // Jede Seite misst selbst: eine leichte Seite sagt nichts ueber die
+      // naechste, schwerere (Hangar, Holo). 40 Bilder kosten nichts.
+      probe();
     }, 800);
   }
 

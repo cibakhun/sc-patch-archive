@@ -951,10 +951,12 @@
     if (craftReady) html += craftHtml(item);
 
     content.innerHTML = html;
-    content.__vbItem = item;
+    // Je Oeffnen ein eigenes Zeichen: wird dasselbe Item waehrend des
+    // Nachladens erneut geoeffnet, haengt nur der letzte Rueckruf an.
+    var token = content.__vbOpen = {};
     if (!craftReady) {
       loadCraft().then(function () {
-        if (content.__vbItem !== item || modal.style.display !== 'flex') return;
+        if (content.__vbOpen !== token || modal.style.display !== 'flex') return;
         var extra = craftHtml(item);
         if (!extra) return;
         // Anhaengen statt neu schreiben: die Bezugsquellen-Tabelle darueber

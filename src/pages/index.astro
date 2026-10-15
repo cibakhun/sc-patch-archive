@@ -333,7 +333,7 @@ const tools = [
 <a class="skip" href="#tools">Skip to tools</a>
 
 <SiteNav heroMorph={true} />
-<script is:inline>document.documentElement.setAttribute('data-lazy-bg','')</script>
+<script is:inline>if('IntersectionObserver' in window)document.documentElement.setAttribute('data-lazy-bg','')</script>
 
 {/* Bewusst AUSSERHALB von .hero: der Hero traegt isolation:isolate und damit
     einen eigenen Stacking-Kontext — darin koennte die Wortmarke die

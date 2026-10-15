@@ -1463,6 +1463,9 @@ export async function initHolo(container, cfg) {
     uScale.value = renderer.domElement.height * 0.5;
   };
   document.addEventListener('vbperfchange', onPerf);
+  // Schaltete der Leichtgang waehrend des Ladens um, kam das Ereignis vor
+  // dem Zuhoerer: einmal nachziehen.
+  onPerf();
   const clock = new THREE.Clock();
   let matDone = reduceMotion;
   let nextFlicker = 2.5;

@@ -90,10 +90,13 @@
   function sort() {
     var mode = selSort.value;
     var vis = cards.filter(function (c) { return !c.el.hidden; });
+    // Feste Sortierregel 'en', wie beim Bauen (MissionsApp.astro): mit der
+    // Sprache des Browsers lagen gleichrangige Karten sonst anders.
+    var byName = function (a, b) { return a.name.localeCompare(b.name, 'en'); };
     vis.sort(function (a, b) {
-      if (mode === 'name') return a.name.localeCompare(b.name);
-      if (mode === 'reward') return (b.reward - a.reward) || a.name.localeCompare(b.name);
-      return (b.count - a.count) || a.name.localeCompare(b.name);
+      if (mode === 'name') return byName(a, b);
+      if (mode === 'reward') return (b.reward - a.reward) || byName(a, b);
+      return (b.count - a.count) || byName(a, b);
     });
     place(vis);
   }
@@ -158,10 +161,13 @@
   var PRIOR = [0, 17500, 8900, 6050, 4820, 3900, 3250];
   var PRIOR_N = 3;
   if (groups.length > 1 && window.ResizeObserver && grid.checkVisibility) {
-    var est = 0, seen = [], seenCols = 0;
+    var est = 0, seen = [], seenKey = '';
     var ro = new ResizeObserver(function (es) {
       var cols = (getComputedStyle(grid).gridTemplateColumns || '').split(' ').length || 1;
-      if (cols !== seenCols) { seen = []; seenCols = cols; }
+      // Spaltenzahl UND Breite: bei gleicher Spaltenzahl aendert eine andere
+      // Kartenbreite die Umbrueche und damit die Blockhoehe.
+      var key = cols + ':' + grid.clientWidth;
+      if (key !== seenKey) { seen = []; seenKey = key; }
       for (var i = 0; i < es.length; i++) {
         var t = es[i].target, first = t.firstElementChild;
         var at = seen.indexOf(t);
