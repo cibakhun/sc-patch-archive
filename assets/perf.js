@@ -22,7 +22,10 @@
         · Software-WebGL (SwiftShader, llvmpipe …) — ein Grafikkontext
           kostet Zeit, deshalb einmal je Sitzung und im Leerlauf;
         · eine kurze Bildtakt-Messung nach dem Laden: liegt der Median
-          ueber 28 ms, schaltet die Seite im Lauf um.
+          ueber 40 ms (unter 25 Bildern/s), schaltet die Seite im Lauf um.
+          Nicht 28 ms: Energiesparmodi (Chrome, iOS) deckeln auf 30 Bilder/s,
+          Median 33 ms — ein starkes Geraet im Sparmodus behielte sonst
+          nicht sein Bild.
       Beides nur, wenn der Besucher nichts erzwungen hat (data-perf-auto).
       Das Ergebnis haelt die Sitzung (sessionStorage), damit die naechste
       Seite schon VOR dem ersten Bild im richtigen Gang steht.
@@ -190,7 +193,7 @@
       if (gaps.length < 40) { requestAnimationFrame(step); return; }
       gaps.sort(function (a, b) { return a - b; });
       var med = gaps[gaps.length >> 1];
-      if (med > 28) goLite('frames');
+      if (med > 40) goLite('frames');
       else store('full');
     }
     requestAnimationFrame(step);

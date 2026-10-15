@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 44
+open_count: 45
 waived_count: 1
 fixed_count: 28
-total_count: 73
-last_updated: 2026-10-15T12:40:00.000Z
+total_count: 74
+last_updated: 2026-10-15T15:10:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -88,6 +88,7 @@ last_updated: 2026-10-15T12:40:00.000Z
 | 72 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Kamera, 11.10.2026): Die Kamera bleibt jetzt im freien Raum der Halle und außerhalb des Schiffs (PR #96 Halle, danach Schiffshülle). Ganz herausgezoomt hält sie vor Balkonen, Kabeltrassen, Deckenkästen und Kisten an und gleitet zurück, sobald der Weg frei ist; ganz hereingezoomt gleitet sie an Flügelspitzen, Leitwerk und Kanzel nach außen, um einen Hardpoint gedreht um den Rumpf herum (um einen Hardpoint am Flügel der Gladius bis zu 7 m, bis 2,6 m je 6 Grad Drehung). Gemessen ist nur die Lage (keine Lage im Rumpf oder in Hallenteilen); ob sich das Anhalten und Hinausgleiten beim Drehen und Zoomen natürlich anfühlt, kann die Cloud mit etwa einem Bild je Sekunde nicht beurteilen. Zu beurteilen am Rechner und am Telefon: ganz herausgezoomt an den Seitenwänden entlangdrehen; ganz hereingezoomt um die Gladius drehen, dann einen Hardpoint am Flügel antippen und ganz hereingezoomt um ihn drehen. Wenn es springt oder ruckelt: Stelle und Schiff nennen. Belege im Projektordner: /mnt/project-files/hangar/v22-kamera-vorher-nachher.png (Halle), /mnt/project-files/hangar/v23-schiff-kamera-vorher-nachher.png (Hardpoint am Flügel, ganz tief). | open |  | 2026-10-11T02:10:00.000Z |  |
 | 73 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schiffswechsel, 14.10.2026): Beim Schiffswechsel fährt jetzt das Schiffsfeld der Halle (32 × 96 m, die gepunkteten Platten) als Bodenaufzug wie in den heutigen Hangars des Spiels: Das alte Schiff sinkt in 1,9 s in einen dunklen Schacht (26 m plus Schiffshöhe), das neue lädt derweil und kommt in 2,8 s herauf, beides sanft an- und abbremsend; beim ersten Laden der Seite kommt das Schiff ebenso herauf. Wer von der Crew auf dem Feld steht, fährt mit, alle bleiben stehen, solange der Aufzug fährt. Der Schacht hat noch keine Wände und keine Warnlichter (die kommen mit dem PC-Lauf „Hangar-Aufzug“, .planning/notes/hangar-aufzug.md); bis dahin ist er schwarz. Gemessen sind nur Lagen (Bildfolge bei festen Höhen); ob Tempo, Dunkelheit und das Warten der Crew natürlich wirken, kann die Cloud mit etwa einem Bild je Sekunde nicht beurteilen. Zu beurteilen am Rechner und am Telefon: nacheinander ein kleines, ein mittleres und ein großes Schiff wählen (etwa Gladius, Cutlass Black, Carrack), dazwischen einmal schnell zweimal hintereinander. Wenn etwas springt, hakt, zu langsam oder zu schnell ist: Stelle und Schiff nennen; Fahrzeiten LIFT_DOWN_MS und LIFT_UP_MS, Tiefe LIFT_DEPTH, Dunkelheit LIFT_DARK in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v30-aufzug-bildfolge.png im Projektordner. | open |  | 2026-10-14T18:10:00.000Z |  |
 | 74 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Leistungsstufen, 15.10.2026): Die Halle hat drei Stufen. hoch ist das bisherige Bild (gleich geblieben, die Crew ist nur anders gebaut). mittel ohne Umgebungsverdeckung und Lichtschein, ohne Spiegelbild des Schiffs im Boden, Crew ohne Schatten, 4 statt 6 Lampen. niedrig dazu ohne Möbel, Texturen höchstens 512 px, ein Schattenstrahler, 4 statt 8 Arbeiter, höchstens 30 Bilder je Sekunde, ohne Kantenglättung. Gewählt wird nach Grafikchip, Speicher und Gerät; ruckelt es, sinken erst Bildschärfe, dann Stufe. Zu beurteilen am Rechner mit ?grafik=mittel und ?grafik=niedrig (oder dem Schalter „Grafik“ an der Bühne): Trägt die Halle in mittel und niedrig noch, oder fehlt etwas, das bleiben muss? Läuft niedrig auf einem schwachen Gerät flüssig? Maschinell gemessen (Cloud, nur Zählungen): Zeichenaufrufe je Bild hoch 976 (vorher 1 905), mittel 248, niedrig 222; Texturen niedrig 240 statt 625 MB; Download niedrig 25 statt 29 MB. | open |  | 2026-10-15T12:40:00.000Z |  |
+| 75 | site | unrun-verify | assets/perf.js |  | Sichturteil offen (ganze Website, Leichtgang, 15.10.2026): Schwache Geräte bekommen jetzt automatisch den Leichtgang (html data-perf="lite"): alle Endlos-Animationen stehen (Ken-Burns im Hero, V-Marken, Laufbänder, Pulse), Milchglas (backdrop-filter) weicht einer deckenden Fläche, der Holo-Viewer zeichnet mit Pixeldichte 1, ohne Kantenglättung und höchstens 30 Bildern je Sekunde. Auslöser: Datensparmodus, höchstens 4 Kerne und höchstens 4 GB Speicher, Software-Grafik oder ein Bildtakt-Median über 40 ms nach dem Laden. Starke Geräte sehen die Seite unverändert; auf allen Geräten ruhen Endlos-Animationen nur, solange sie nicht im Bild sind. Gemessen sind nur Zahlen und Pixelvergleiche im Normalgang (gleich bis auf Raster-Unterschiede in gescrollten Listen). Zu beurteilen am Rechner und am Telefon mit ?perf=lite (zurück mit ?perf=auto): Startseite, eine Schiffsseite mit Holo, Suche (Strg K) und das Item-Modal im Item-Finder. Wirkt die Seite ohne Bewegung und Milchglas noch richtig, oder fehlt etwas, das bleiben muss? Mechanik: assets/perf.js und das Kopf-Skript in src/layouts/Layout.astro. | open |  | 2026-10-15T15:10:00.000Z |  |
 
 ````json
 [
@@ -965,6 +966,18 @@ last_updated: 2026-10-15T12:40:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-15T12:40:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 75,
+    "kind": "unrun-verify",
+    "phase": "site",
+    "file": "assets/perf.js",
+    "line": null,
+    "description": "Sichturteil offen (ganze Website, Leichtgang, 15.10.2026): Schwache Geräte bekommen jetzt automatisch den Leichtgang (html data-perf=\"lite\"): alle Endlos-Animationen stehen (Ken-Burns im Hero, V-Marken, Laufbänder, Pulse), Milchglas (backdrop-filter) weicht einer deckenden Fläche, der Holo-Viewer zeichnet mit Pixeldichte 1, ohne Kantenglättung und höchstens 30 Bildern je Sekunde. Auslöser: Datensparmodus, höchstens 4 Kerne und höchstens 4 GB Speicher, Software-Grafik oder ein Bildtakt-Median über 40 ms nach dem Laden. Starke Geräte sehen die Seite unverändert; auf allen Geräten ruhen Endlos-Animationen nur, solange sie nicht im Bild sind. Gemessen sind nur Zahlen und Pixelvergleiche im Normalgang (gleich bis auf Raster-Unterschiede in gescrollten Listen). Zu beurteilen am Rechner und am Telefon mit ?perf=lite (zurück mit ?perf=auto): Startseite, eine Schiffsseite mit Holo, Suche (Strg K) und das Item-Modal im Item-Finder. Wirkt die Seite ohne Bewegung und Milchglas noch richtig, oder fehlt etwas, das bleiben muss? Mechanik: assets/perf.js und das Kopf-Skript in src/layouts/Layout.astro.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-15T15:10:00.000Z",
     "resolved_at": null
   }
 ]
