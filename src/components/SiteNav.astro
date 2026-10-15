@@ -102,6 +102,9 @@ const backTarget = backParent ? { href: backParent.href as string, label: backPa
 const renderBack = !isAccountArea;
 // Ohne statisches Ziel startet es versteckt; der Leser fuellt href und Text.
 const backHidden = !backTarget;
+// Sichtbar schon im Server-HTML: dann stellt ein <style> vor <nav> --nav-h,
+// nicht erst das Skript hinter </nav> (das bleibt fuer die Naben).
+const backStatic = renderBack && !backHidden;
 const backLinkSrc = renderBack || crumbs.length
   ? versioned('assets/back-link.js', '/assets/back-link.js')
   : null;
@@ -347,6 +350,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     Item-Finder -> Crafting zeigte deshalb den statischen Elternteil
     „← Alpha 4.9" statt „← Item Finder". Die Notiz kostet nichts und macht
     auch Naben zu einer gueltigen Herkunft. */}
+{/* Zurueck-Marke schon im Server-HTML sichtbar -> --nav-h sofort und ohne
+    JavaScript auf 104/116 px (Werte wie bei :root.vb-has-back unten). */}
+{backStatic && (
+  <style is:inline>:root{--nav-h:104px}@media (max-width:860px){:root{--nav-h:116px}}</style>
+)}
 <nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={crumbs.length ? crumbs[crumbs.length - 1]?.label : undefined}>
   <div class="snav__left">
     <a
@@ -462,6 +470,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         }
       }
     } catch (e) {}
+    // Sichtbare Marke -> html.vb-has-back (--nav-h, Holo-Abstand). Statt
+    // :root:has(): das kostete bei jeder DOM-Aenderung eine Stilrechnung
+    // des ganzen Dokuments. Die Marke wechselt danach nie mehr ihr hidden.
+    if (a && !a.hasAttribute('hidden')) document.documentElement.classList.add('vb-has-back');
   </script>
 )}
 
@@ -980,11 +992,19 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      unsichtbare 44-px-Fingerkuppe bis 113 px (die wuerde sonst Klicks auf der
      Filterleiste schlucken) -> 116. Trotzdem beide Male weniger als die
      107/132 px der frueheren zweiten Leistenzeile.
-     `:has()` haelt das rein strukturell — keine Seite muss etwas uebergeben. */
+     Schalter: steht die Marke schon im Server-HTML sichtbar, setzt der
+     <style> vor <nav> (backStatic, oben) die Werte, auch ohne JavaScript.
+     Macht erst der Herkunfts-Leser sie sichtbar (Naben), setzt er die
+     Klasse html.vb-has-back, direkt hinter </nav> und vor dem ersten Bild.
+     WERTE GEHOEREN ZUSAMMEN: 104/116 stehen hier und im <style> vor <nav>.
+     Bis 15.10.2026 stand hier :root:has(.snav__back:not([hidden])): damit
+     stellte JEDES Einfuegen und jedes hidden-Umschalten irgendwo auf der
+     Seite den Stil des ganzen Dokuments neu auf (Crafting-Thema, 4-fache
+     CPU-Drossel: Stilrechnung beim Laden 1 959 -> 1 053 ms). */
   :global(:root) { --nav-h: 68px; }
-  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 104px; }
+  :global(:root.vb-has-back) { --nav-h: 104px; }
   @media (max-width: 860px) {
-    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 116px; }
+    :global(:root.vb-has-back) { --nav-h: 116px; }
   }
 
   .snav__back[hidden] { display: none; }

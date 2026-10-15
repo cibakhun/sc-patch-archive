@@ -594,7 +594,7 @@ a{color:inherit;text-decoration:none}
    UND der Rail wachsen duerfen -- Hoehe und Beschnitt wandern deshalb auf
    .holo__wrap (die Buehne selbst, unten). Bleiben sie hier, schneidet
    .holo die neuen Abschnitte ab. */
-.holo{position:relative;margin-top:56px;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
+.holo{position:relative;margin-top:calc(var(--nav-h, 68px) - 12px);background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);
   border-bottom:1px solid var(--line);
   display:grid;grid-template-columns:1fr}
 /* 16-05-PLAN.md (Kollisionsbehebung, 1280px): margin-top:56px reicht nur,
@@ -604,11 +604,10 @@ a{color:inherit;text-decoration:none}
    das unbedenklich, weil an dieser Stelle nur Hintergrund/HUD-Text stand,
    inzwischen liegt dort ein klickbares Bedienelement. Zusatz exakt in Hoehe
    des --nav-h-Zuwachses (104-68=36px, 116-68=48px), nicht auf einen neuen
-   Absolutwert geraten. */
-:root:has(.snav__back:not([hidden])) .holo{margin-top:92px}
-@media(max-width:860px){
-  :root:has(.snav__back:not([hidden])) .holo{margin-top:104px}
-}
+   Absolutwert geraten. Seit 15.10.2026 direkt aus --nav-h abgeleitet
+   (68/104/116 - 12 = 56/92/104 px, dieselben Werte): so braucht es weder
+   :root:has() (Stilrechnung der ganzen Seite bei jeder DOM-Aenderung) noch
+   eine Klasse, die ohne JavaScript fehlen wuerde. */
 /* 16-04-PLAN.md Task 1, SCHRITT 1 (16-UI-SPEC.md Detailvertrag Punkt 1):
    drei feste Grid-Spalten, Breiten UND Bruchkanten UNVERAENDERT aus dem
    UI-SPEC uebernommen (220px/320px/1100px/760px). Explizite Platzierung
@@ -1269,7 +1268,7 @@ a{color:inherit;text-decoration:none}
 /* Die urspruengliche Begruendung hier ("die freie Zurueck-Marke haengt an
    .holo, HUD/Dims ruecken deshalb als Paar 26->58px nach unten") ist mit
    16-05-PLAN.md ueberholt: .holo selbst traegt jetzt den vollen
-   Zurueck-Marken-Zuschlag (siehe :root:has(...) .holo{margin-top:...} an
+   Zurueck-Marken-Zuschlag (siehe .holo{margin-top:calc(var(--nav-h)...)} an
    der .holo-Basisregel oben) -- HUD und Dims sitzen als Kind von
    .holo__wrap bereits IN diesem verschobenen Block und muessten sich sonst
    ein zweites Mal nach unten schieben (26+32=58 zusaetzlich zu den bereits

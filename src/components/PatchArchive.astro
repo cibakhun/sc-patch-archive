@@ -53,12 +53,19 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 // LEFT edge, so a reversed list puts a hairline at x=0 and drops the one
 // between the last two chapters.
 const ribbonBands = a.eras.slice().reverse();
+
+// Startfarbe der Kapitel-Ueberblendung = das Kapitel, das archive.js beim
+// Laden ohnehin waehlt (das oberste). Ohne sie blendete die Seite nach dem
+// Laden 0,85 s von der @property-Vorgabe hinueber, und jedes Bild davon war
+// eine Stilrechnung der ganzen Seite (siehe "Leistung" in archive.css).
+const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0].accent2}}` : '';
 ---
 
 {/* Runs while the document is still parsing, so the reveal styles are armed
     before the timeline exists — no flash, and no blank page if archive.js
     never arrives (see the .js gate in archive.css). */}
 <script is:inline>document.documentElement.classList.add('js');</script>
+{eraStart && <Fragment set:html={`<style>${eraStart}</style>`} />}
 
 <a class="skip" href="#main">{lang === 'de' ? 'Zum Inhalt springen' : 'Skip to content'}</a>
 
