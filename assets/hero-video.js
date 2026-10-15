@@ -8,6 +8,8 @@
   if (!hero) return;
   if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   if (navigator.connection && navigator.connection.saveData) return;
+  // Leichtgang (Layout.astro / assets/perf.js): Standbild statt Videoschleife.
+  if (document.documentElement.getAttribute('data-perf') === 'lite') return;
   if (innerWidth < 1000) return;
 
   var v = document.createElement('video');
@@ -48,4 +50,11 @@
       }
     }, { threshold: 0.05 }).observe(hero);
   }
+  // Schaltet die Seite erst im Lauf in den Leichtgang, bleibt das zuletzt
+  // gezeigte Bild stehen — angehalten, nicht entfernt.
+  var stopped = false;
+  document.addEventListener('vbperfchange', function (e) {
+    if (e.detail && e.detail.lite) { stopped = true; v.pause(); }
+  });
+  v.addEventListener('play', function () { if (stopped) v.pause(); });
 })();

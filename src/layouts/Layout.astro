@@ -143,6 +143,35 @@ var v=null;try{v=localStorage.getItem('vb.fx')}catch(e){}
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
   />
+  {/* Leichtgang (data-perf="lite") fuer schwache Geraete — wie data-fx VOR
+      dem ersten Bild, synchron. Im Leichtgang stehen Endlos-Animationen
+      still, Milchglas (backdrop-filter) weicht einer deckenden Flaeche und
+      der Holo-Viewer zeichnet mit Pixeldichte 1, ohne Kantenglaettung und
+      hoechstens 30 Bildern/s; starke Geraete sehen die Seite unveraendert.
+      Ausloeser, in dieser Reihenfolge:
+        1. ?perf=lite / ?perf=full erzwingt und merkt sich die Wahl
+           (localStorage `perf`); ?perf=auto vergisst sie wieder.
+        2. Save-Data (Datensparmodus des Browsers).
+        3. Hoechstens 4 Kerne UND hoechstens 4 GB Speicher (deviceMemory
+           kennt nur Chromium — anderswo greift diese Stufe nie).
+        4. Ergebnis der Laufzeitpruefung aus assets/perf.js (Software-WebGL,
+           Bildtakt-Median ueber 28 ms) — aus derselben Sitzung.
+      Nur bei 2.–4. bleibt data-perf-auto stehen: daran erkennt perf.js, dass
+      es noch selbst pruefen darf. Eine erzwungene Wahl uebersteuert nichts. */}
+  <script
+    is:inline
+    set:html={`(function(){var d=document.documentElement,m=null,why='',q=null;
+try{q=new URLSearchParams(location.search).get('perf')}catch(e){}
+if(q==='lite'||q==='full'){m=q;why='forced';try{localStorage.setItem('perf',q)}catch(e){}}
+else{if(q==='auto'){try{localStorage.removeItem('perf')}catch(e){}}
+try{var s=localStorage.getItem('perf');if(s==='lite'||s==='full'){m=s;why='forced'}}catch(e){}}
+if(!m){var n=navigator,c=n.connection;
+if(c&&c.saveData){m='lite';why='save-data'}
+else if(n.hardwareConcurrency&&n.hardwareConcurrency<=4&&n.deviceMemory&&n.deviceMemory<=4){m='lite';why='hardware'}
+else{try{if(sessionStorage.getItem('vb.perf.auto')==='lite'){m='lite';why='session'}}catch(e){}}
+d.setAttribute('data-perf-auto','')}
+d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why);})()`}
+  />
   {noindexEff && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonical} />
@@ -287,6 +316,29 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
        (Leiste + Menü). Das Verhalten ist zusätzlich in JS abgesichert. */
     html:not(.is-admin) .js-theme-toggle {
       display: none !important;
+    }
+    /* Endlos-Animationen ausserhalb des Bildes — und im Leichtgang alle —
+       ruhen. Das Merkmal setzt assets/perf.js; ohne JS laeuft alles wie
+       bisher. Angehalten, nicht entfernt: das Bild bleibt auf seinem
+       aktuellen Stand stehen statt zurueckzuspringen. */
+    [data-vb-anim-off], [data-vb-anim-off]::before, [data-vb-anim-off]::after {
+      animation-play-state: paused !important;
+    }
+    /* Leichtgang: Milchglas weicht. backdrop-filter rechnet bei jedem Bild
+       den ganzen Hintergrund unter der Flaeche weich — auf der Schiffsliste
+       259 Mal (48 zusaetzliche Ebenen). Die betroffenen Flaechen tragen fast
+       alle schon einen Grund von 55 % Deckung aufwaerts; wo nicht, setzen
+       die Regeln darunter einen deckenden. */
+    html[data-perf="lite"] *, html[data-perf="lite"] *::before, html[data-perf="lite"] *::after {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    /* Die beiden Verdunkler mit nur 55 % Deckung (Suche, Item-Modal): ohne
+       Weichzeichner stuende die Seite dahinter scharf durch — sie bekommen
+       den Grund der Lightbox (theme.css --lb-backdrop, 93 % bzw. 80 %). */
+    html[data-perf="lite"] .scs__back,
+    html[data-perf="lite"] .uif-modal-overlay {
+      background-color: var(--lb-backdrop, rgba(0, 0, 0, .93)) !important;
     }</style>
   {/* Reichweitenmessung: Umami, selbst gehostet auf stats.verse-base.com.
       Cookiefrei und ohne Kennung auf dem Geraet — deshalb ohne Einwilligung
@@ -349,6 +401,10 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
       Muss vor offcanvas.js stehen, das sie mitbenutzt. Reines Bereitstellen
       einer Funktion — laeuft beim Laden nichts an. */}
   <script is:inline defer src={versioned('assets/scroll-lock.js', '/assets/scroll-lock.js')}></script>
+  {/* Endlos-Animationen ausserhalb des Bildes anhalten + Laufzeitpruefung
+      fuer den Leichtgang (Kopf-Skript oben). `defer`: aendert am ersten
+      Bild nichts, haengt sich nur an bereits laufende Animationen. */}
+  <script is:inline defer src={versioned('assets/perf.js', '/assets/perf.js')}></script>
   <script is:inline defer src={versioned('assets/offcanvas.js', '/assets/offcanvas.js')}></script>
   {/* Breite Bildlauf-Tabellen: mit der Maus schiebbar machen und die weiche
       Kante rechts schalten, solange dort noch etwas steht. `defer`, weil ohne
