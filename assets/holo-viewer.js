@@ -122,8 +122,16 @@ function markerTexture(colorHex, style) {
 }
 
 export async function initHolo(container, cfg) {
-  const W = () => container.clientWidth || 800;
-  const H = () => container.clientHeight || 480;
+  // Buehnengroesse zwischengespeichert: W()/H() laufen pro Bild mehrfach
+  // (Masskette, Etiketten, Marker), und clientWidth nach einem DOM-Schreiben
+  // im selben Bild erzwingt ein Layout (Schiffsseite beim Laden, 4-fache
+  // CPU-Drossel: 190 ms erzwungene Stilrechnung). Der ResizeObserver unten
+  // haelt die Werte aktuell; er meldet sich auch einmal beim Beobachten.
+  let cw = 0, ch = 0;
+  const measure = () => { cw = container.clientWidth; ch = container.clientHeight; };
+  measure();
+  const W = () => cw || 800;
+  const H = () => ch || 480;
   const reduceMotion = cfg.reduceMotion ?? matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Leichtgang (html[data-perf="lite"], Layout.astro / assets/perf.js):
@@ -1570,6 +1578,7 @@ export async function initHolo(container, cfg) {
   let userMoved = false;
   controls.addEventListener('start', () => { userMoved = true; });
   const ro = new ResizeObserver(() => {
+    measure();
     camera.aspect = W() / H();
     camera.updateProjectionMatrix();
     renderer.setSize(W(), H());

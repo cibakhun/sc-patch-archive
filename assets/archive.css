@@ -1775,6 +1775,53 @@ mark {
   }
 }
 
+/* ── Leistung ────────────────────────────────────────────────────────────────────
+   Die Kapitel-Ueberblendung (html { transition: --era }) setzt eine geerbte,
+   registrierte Farbe auf <html>: jedes Bild der 0,85 s stellt den Stil JEDES
+   Elements darunter neu auf. Gemessen 15.10.2026 (Desktop, 4-fache
+   CPU-Drossel, einmal durch die Zeitleiste gescrollt): 6 976 ms Stilrechnung,
+   29 Durchgaenge ueber die ganze Seite (1 317 Elemente, je 64-245 ms).
+   content-visibility:auto laesst Bloecke ausserhalb des Bildes dabei aus:
+   6 976 -> 4 004 ms, Ueberhang langer Aufgaben 5 978 -> 2 050 ms. Ein Bild
+   ist dasselbe: Elementlagen alt/neu bei 320-1280 px auf 0,5 px gleich.
+   Platzhalter = Inhaltshoehe (ohne .sec-Polster), gemessen 320-1280 px;
+   `auto` merkt sich danach die echte Hoehe. Der Kopf-Abstand der Kapitel
+   (.era__head margin-top) liegt jetzt IN .era statt durch die Kante zu
+   fallen: gleicher Abstand, die Box beginnt nur frueher.
+   overflow-clip-margin: der Schein der Kapitelziffer (text-shadow 40px)
+   reichte ueber die Blockkante. Keine Box hier ist fixed oder sticky
+   (.cbar, .totop, .space liegen ausserhalb). */
+.mast,
+.era,
+#intel,
+#themen {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1350px;
+  overflow-clip-margin: 48px;
+}
+.mast {
+  contain-intrinsic-size: auto 640px;
+}
+#intel {
+  contain-intrinsic-size: auto 1250px;
+}
+#themen {
+  contain-intrinsic-size: auto 1770px;
+}
+@media (min-width: 760px) {
+  #intel {
+    contain-intrinsic-size: auto 640px;
+  }
+  #themen {
+    contain-intrinsic-size: auto 1250px;
+  }
+}
+/* Leichtgang (assets/perf.js): harter Farbwechsel statt Ueberblendung —
+   ein Durchgang je Kapitelgrenze statt eines je Bild. */
+html[data-perf='lite'] {
+  transition: none;
+}
+
 /* ── Motion policy ───────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   html {
