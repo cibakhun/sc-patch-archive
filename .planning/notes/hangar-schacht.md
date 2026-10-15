@@ -63,4 +63,82 @@ Lichter und ihre Texturen kommen aus dem Spiel, nichts Selbstgebautes.
 
 ## Befund PC
 
-(leer)
+PC-Lauf 2026-10-16 (Hangar `hangar_medtop_001`, StarBreaker socpak/p4k).
+
+**Gefundene Aufzüge** (persönliche Hangars, LandingArea x × y × z):
+
+| socpak | Landefläche | Plattform-Entity | Schacht innen |
+|---|---|---|---|
+| hangar_smltop_001 | 24 × 32 × 16 m | y −44 | – |
+| hangar_medtop_001 | 56 × 88 × 32 m | y −50 | **56 × 88 m, 36 m tief** |
+| hangar_lrgtop_001 | 72 × 128 × 48 m | y −72 | – |
+| hangar_xltop_001 | 160 × 272 × 64 m | y −112 | – |
+
+Gewählt: **medtop**. Seine Länge (88 m) liegt am nächsten an 96 m; small (32 m lang) ist zu kurz. Der Schacht ist im Spiel sichtbar und ein Bausatz, kein Stück. Darum `modules` statt `whole`.
+
+**Spielaufbau** (Exportraum, Hallenboden y −50, Schacht innen x ±28, z ±44, Wandunterkante y −86):
+- Längswand: Wand 40 m, Rippe 8 m über der Fuge (z −4…4), Wand 40 m, an den Enden Ecken 10 × 10 m.
+- Querwand: eine Wand 40 m (x −20…20) mit Rippen an beiden Enden (x ±16…24).
+- Jede Wand ist zweistöckig: oben `hangar_ship_elevator_wall_40x20_top_a` (y −74…−54), unten `…wall_40x12_bot_a` (y −86…−74). Darüber sitzen Randleisten 16 m, 8 m und Eckleiste (y −54…−50,12).
+- Einen Schachtboden gibt es nicht. Die Plattform (`ht_hangar_ship_elev_med_a.cga`, 55,5 × 87,6 m) füllt unten den Schacht. Ihre Oberkante liegt in Ruhe bei y −86. Darunter liegt nur ein 4-m-Laufsteg unter der Wand, unsichtbar. Darum `bottom: null`.
+
+**Export** `public/hangar/lift/medtop.glb` (0,30 MB, Draco, WebP ≤ 1024 px) + `medtop.json` (62 KB). Neun Knoten, je Rolle ein Spielexemplar der Westwand bzw. ihrer Nordecke:
+
+| Knoten | Größe (m) | Dreiecke | Mat. | aus |
+|---|---|---|---|---|
+| wall | 40 × 32 | 3 140 | 2 | wall_40x20_top_a + wall_40x12_bot_a |
+| wall_upper | 40 × 20 | 2 198 | 2 | wall_40x20_top_a (zum Stapeln über 32 m) |
+| rib | 8 × 32 | 1 130 | 2 | rib_top_a + rib_bot_b |
+| corner | 10 × 10 × 32 | 268 | 2 | corner_top_a + corner_bot_c |
+| rim | 16 × 3,88 | 12 | 1 | trim_04x016_b |
+| rim_8 | 8 × 3,88 | 12 | 1 | trim_04x08_b |
+| rim_corner | 5 × 5 × 3,88 | 36 | 1 | trim_corner_b |
+| light_0 | 0,45 × 0,46 | 132 | 2 | light_hazard_2_d (Wand-Warnlampe) |
+| light_1 | 0,33 × 0,32 | 132 | 2 | light_hazard_2_b (Ecklampe auf Bodenhöhe) |
+
+Zusammen 7 060 Dreiecke, 6 Materialien, 16 Texturen. Ein Spielschacht in medtop-Größe kostet etwa 6 Wände, 6 Rippen, 4 Ecken und 10 Leisten, also rund 27 000 Dreiecke. Das liegt unter 60 000.
+
+**Bezugssysteme** (stehen auch in `json.shaft.frames`):
+- Wandteile: Ursprung an der unteren linken Ecke der Innenfläche, von der Schachtmitte aus gesehen. x läuft nach rechts entlang der Wand, y nach oben, z zur Schachtmitte. Die Wand liegt bei z ≤ 0.
+- Ecken (`corner`, `rim_corner`, `light_1`): Ursprung in der inneren Schachtecke, das Innere liegt bei x > 0, z > 0.
+- `light_0`: Mitte der Montagefläche. Im Spiel sitzt sie 0,8 bis 1,3 m hinter der Bezugsebene der Wand, in der Nische der Rippe.
+- `rim` ist 3,88 m hoch. Seine Oberkante liegt im Spiel 0,12 m unter dem Hallenboden.
+- Einbauprobe am PC: Mit drei Drehungen um y (West +90°, Ost −90°, Nord 180°) schließen alle Teile zum Spielschacht. Die Bilder habe ich nicht committet.
+
+**Materialien:** Die Schachtteile tragen keine eigenen Karten. Ihr HardSurface-Material nennt Schichten (`Materials/PU/layer/…mtl`, je mit Tönung).
+- Der Extraktor liest jetzt die erste Schicht (`<lift>.layers.json`: TexSlot1/2, LayerTiling). Der Build hängt ihre Karten an, die Tönung wird Grundfarbe.
+- Lack: `metal_painted_a`, Tönung 0,051/0,056/0,063.
+- Trims: Trimsheets `trim_hightech_c`/`_d`.
+- `steel_base_a` ist Metall ohne Farbkarte, Farbe = Specular 0,55/0,57/0,57.
+- Das Lampenglas (`light_hazard_1_a_mtl_decal_glow_lod_06`, Illum) leuchtet über eine Emissive-Fläche. Der Viewer sollte es mit dem Lampenzustand schalten.
+- Nicht übernommen: Abnutzungsschicht (Wear, über Vertexfarbe gemischt), Detailkarten, POM. COLOR_0 bleibt drin (%VERTCOLORS wie in der Halle).
+
+**Lichter: 100 in `lights[]`**
+- 83 hängen am Schacht (`attach: "shaft"`). Ihre Lage ist in `pos` angegeben: Schachtmitte auf Hallenboden = 0, Achsen wie oben.
+  - 6 `omni`: orange Warnlicht an `light_0`, SoftOmni, Radius 8, Farbe 1/0,171/0, Intensität 3, lightStyle 5.
+  - 11 `flood_key`: weiß, Intensität 15 bzw. 1, Radius 80–100, Kegel 60°.
+  - 6 `flood_warm` (Intensität 6), 4 `flood_cool` (Intensität 3), 11 `floodfill`, 16 `base` (Bodenstrahler), 24 `elev` (kleine Leisten am Rand), 4 `side_proj`, 1 `fog`.
+- 17 hängen an der Plattform (`attach: "pad"`, Lage relativ zur Plattformoberkante): 6 `side_orange` (Emergency 10, lightStyle 2), 7 `middle_red`, 4 `lrgship`.
+- **Alle Schachtlampen sind im Default-Zustand aus** (Intensität 0) und leuchten nur in Emergency. Der Manager setzt `platformInTransitLightState = Emergency`, also nur während der Fahrt.
+- Die Kurve der lightStyle-Nummern steht nicht in den Spieldateien, sie ist Engine-Sache. Die Nummer steht wörtlich in `anim.style`.
+- Vorschlag für die zwei echten Lichter: zwei `flood_key` (Intensität 15). Die `omni` am besten als leuchtende Fläche plus Blinken.
+
+**Fahrablauf** (`motion`, wörtlich mit Quelle):
+- Fahrweg: **36 m**. Plattform-Entity bei y −50, die Plattform des .cga ruht mit Oberkante bei y −86. ParentOffsetPos z der Plattform-Lichtgruppe = 36,000.
+- Animation: `door_open`/`door_close` je 450 Bilder bei 30 Bildern/s = 15 s, `DoorAnimationSpeed` 1,2.
+- Abgeleitet: **12,5 s** Fahrt, im Mittel **2,88 m/s**. Annahme: Die Animation ist die ganze Fahrt.
+- Beschleunigung: steckt als Kurve in der .caf (Bone `anim_pad001`), nicht dekodiert. Die .animevents sind leer.
+- Sequenzen:
+  - `sq_hngr_medtop_doorclose_paddown`, 31,67 s: Lichtgruppen ab 0,83 s Emergency, ab 31,67 s Default. Hologramm blendet in 0,83 s ein und ab 30 s aus.
+  - `sq_hngr_medtop_dooropen_padup`, 33 s: Emergency ab 0 s, ab 32,97 s Default.
+  - Ton jeweils `Play_ENVP_FE_Light_Projector_MedTop_HT_Off`/`_On`.
+- Pausen: stehen nicht in den Daten.
+- Der Index der Lichtzustände (3 = Emergency) ist aus der Reihenfolge der LightStateParams abgeleitet.
+
+**Offen:**
+- Die Fahrkurve aus der .caf.
+- Die zehn Schiffe aus `hangar-aufzug.md`: wie angesagt geparkt. Sie liegen exportiert im Cache, gebaut sind sie nicht.
+
+Geänderte Skripte:
+- `scripts/extract-hangar-sources.mjs`: Teil `lift` mit Lichtern, Sequenzen, Animationen und Schichtmaterialien.
+- `scripts/build-hangar-assets.mjs`: Art `lift`, Manifest `lift.medtop` mit `url`, `json`, `bytes`, `v`, Teilen und Lampenzahl.
