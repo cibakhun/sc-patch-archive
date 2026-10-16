@@ -155,8 +155,9 @@ Geänderte Skripte:
   den vier Feldecken. 36 m tief; braucht ein Schiff mehr, kommen Lagen aus
   den Oberteilen (20 m) dazu. 28 264 Dreiecke, 6 Zeichenbefehle während
   der Fahrt, in Ruhe nur die vier Ecklampen (2 Zeichenbefehle).
-- **Sichtbar** nur, solange das Feld unterwegs oder unten ist; in Ruhe
-  deckt es den Schacht zu und er kostet nichts.
+- **Sichtbar** ist der Schacht nur, solange das Feld unterwegs oder unten
+  ist; in Ruhe deckt das Feld ihn zu, und nur die vier Ecklampen bleiben
+  stehen (die 2 Zeichenbefehle oben).
 - **Materialien:** Der Export hat **keine Texturkoordinaten**. Der Viewer
   nimmt darum von jeder Karte den Mittelwert (oberste Mip-Stufe) und lässt
   die flache Normalenkarte weg. Die Lacktönung und die Abdunkelung aus den
@@ -197,8 +198,12 @@ Geänderte Skripte:
   Schleife ohne feste Länge bei 12 400 ms.
 - **Tor:** `verify:hangar-hall` [11] liest `HALL_SHAFT` aus dem
   ausgelieferten Viewer und prüft Bausatz, Rahmen der Teile, Wände ohne
-  Lücke, Randleiste, Warnlampen auf Rippen, Dreiecke und Lampen gegen
+  Lücke, Randleiste, genau eine Warnlampe je Rippe, Dreiecke und Lampen gegen
   `KLINKE_SCHACHT`. Vorgeführt rot am 16.10.2026: Längswand ohne Rippe
   („Lücke von 44.00 bis 52.00 m“, „Warnlampe bei 48 m … auf keiner Rippe“,
   „nur 26004 Dreiecke“) und Lampenliste auf 40 gekürzt („35
-  Schachtlampen mit Licht, die Klinke verlangt 84“).
+  Schachtlampen mit Licht, die Klinke verlangt 84“). Nach der Code-Prüfung
+  von PR #110 verschärft und wieder rot vorgeführt: zwei Lampen auf einer
+  Querrippe („die Rippe ab 4 m … traegt 2 Warnlampen“, „ab 20 m … 0“) und
+  eine Rippe 2 m nach oben verrutscht bei gleicher Höhe („y 2.00..34.00
+  (Soll 0..32)“; vorher prüfte das Tor nur die Höhe).

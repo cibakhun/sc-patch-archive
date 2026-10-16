@@ -9,7 +9,7 @@
 //   SC_P4K=<pfad zur Data.p4k>
 //
 // Usage:  node scripts/extract-hangar-sources.mjs [ships|hall|npc ...] [--ships slug,slug] [--force]
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
 import { dirname } from 'node:path';
@@ -272,7 +272,8 @@ function liftEntities(h) {
   for (const g of [geo(platform), geo(gate)].filter(Boolean)) {
     const base = g.replace(/\.cga$/i, '').split('/').pop();
     sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](events[\\\\/])?${esc(base)}\\.(chrparams|animevents)$`]);
-    const conv = (f) => { const x2 = `${f}.xml`; if (!existsSync(x2)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, x2]); return existsSync(x2) ? readFileSync(x2, 'utf8') : readFileSync(f, 'utf8'); };
+    // ist die Quelle frisch ausgepackt, die alte Wandlung weg (sonst kaemen alte Angaben mit)
+    const conv = (f) => { const x2 = `${f}.xml`; if (existsSync(x2) && statSync(x2).mtimeMs < statSync(f).mtimeMs) rmSync(x2); if (!existsSync(x2)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, x2]); return existsSync(x2) ? readFileSync(x2, 'utf8') : readFileSync(f, 'utf8'); };
     const chr = listFiles(RAW).find((f) => f.toLowerCase().endsWith(`/${base}.chrparams`));
     const ev = listFiles(RAW).find((f) => f.toLowerCase().endsWith(`/${base}.animevents`));
     const list = chr ? [...conv(chr).matchAll(/<Animation name="([^"$#][^"]*)" path="([^"]+)"/g)].map((m) => ({ name: m[1], caf: m[2] })) : [];

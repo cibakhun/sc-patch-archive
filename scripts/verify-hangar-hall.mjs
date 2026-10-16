@@ -123,8 +123,8 @@
         seinem Rahmen und so lang wie in der Lampenliste; Laengs- und
         Querwand sind mit den Ecken ohne Luecke bedeckt (sonst saehe man
         hinter den Schacht), die Randleiste reicht genau bis ans Ende
-        (sonst klafft die Kante zum Hallenboden), jede Warnlampe sitzt auf
-        einer Rippe; die Dreiecke liegen zwischen Klinke und Obergrenze,
+        (sonst klafft die Kante zum Hallenboden), jede Rippe traegt
+        genau eine Warnlampe; die Dreiecke liegen zwischen Klinke und Obergrenze,
         die Lampen ueber ihrer Klinke (KLINKE_SCHACHT).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -779,13 +779,13 @@ if (SHAFT && LIFT) {
     const need = ['wall', 'wall_upper', 'rib', 'corner', 'rim', 'rim_corner', 'light_0', 'light_1'];
     const miss = need.filter((r) => !box.has(r));
     if (miss.length) fail(`[11] dem Schacht ${hall.lift.url.split('?')[0]} fehlen Teile: ${miss.join(', ')} (der Viewer baut ihn dann nicht)`);
-    // Laenge entlang der Wand (x) gegen die Lampenliste: verrutscht ein Teil
-    // beim Export, klafft die Wand
+    // Rahmen jedes Teils (x entlang der Wand, y nach oben, ab 0) gegen die
+    // Lampenliste: verrutscht ein Teil beim Export, klafft die Wand
     const E = 0.05;
     for (const r of ['wall', 'wall_upper', 'rib', 'rim', 'rim_8']) {
       const b = box.get(r), sz = info?.modules?.[r]?.size;
       if (!b || !sz) { if (r !== 'rim_8') fail(`[11] Teil ${r}: keine Groesse in ${hall.lift.json.split('?')[0]} (modules.${r}.size)`); continue; }
-      if (Math.abs(b.mn[0]) > E || Math.abs(b.mx[0] - sz[0]) > E || Math.abs(b.mx[1] - b.mn[1] - sz[1]) > E || b.mx[2] > E) fail(`[11] Teil ${r} liegt nicht in seinem Rahmen: x ${b.mn[0].toFixed(2)}..${b.mx[0].toFixed(2)} (Soll 0..${sz[0]}), Hoehe ${(b.mx[1] - b.mn[1]).toFixed(2)} (Soll ${sz[1]}), Wand bei z <= 0 (Ist bis ${b.mx[2].toFixed(2)}). Export pruefen (scripts/build-hangar-assets.mjs, LIFT_PARTS)`);
+      if (Math.abs(b.mn[0]) > E || Math.abs(b.mx[0] - sz[0]) > E || Math.abs(b.mn[1]) > E || Math.abs(b.mx[1] - sz[1]) > E || b.mx[2] > E) fail(`[11] Teil ${r} liegt nicht in seinem Rahmen: x ${b.mn[0].toFixed(2)}..${b.mx[0].toFixed(2)} (Soll 0..${sz[0]}), y ${b.mn[1].toFixed(2)}..${b.mx[1].toFixed(2)} (Soll 0..${sz[1]}), Wand bei z <= 0 (Ist bis ${b.mx[2].toFixed(2)}). Export pruefen (scripts/build-hangar-assets.mjs, LIFT_PARTS)`);
     }
     const corner = box.get('corner');
     const inset = corner ? Math.max(0, corner.mx[0]) : 0;   // so weit ragt die Ecke an beiden Waenden herein
@@ -807,7 +807,14 @@ if (SHAFT && LIFT) {
       for (; r16 > 0 && a + r16 <= L0 + 1e-3; a += r16) rims++;
       for (; r8 > 0 && a + r8 <= L0 + 1e-3; a += r8) rims++;
       if (Math.abs(a - L0) > 0.01) fail(`[11] die Randleiste der ${kind === 'long' ? 'Laengswand' : 'Querwand'} endet bei ${a} m statt ${L0} m: Dort klafft die Kante zwischen Hallenboden und Schacht`);
-      for (const c of SHAFT.lamps[kind]) if (!SHAFT[kind].some(([r, a0]) => r === 'rib' && c >= a0 && c <= a0 + sizeOf('rib'))) fail(`[11] Warnlampe bei ${c} m an der ${kind === 'long' ? 'Laengswand' : 'Querwand'} sitzt auf keiner Rippe`);
+      // genau eine Warnlampe je Rippe (wie im Spiel): eine doppelt gesetzte darf keine fehlende verdecken
+      const ribs = SHAFT[kind].filter(([r]) => r === 'rib').map(([, a0]) => a0), wand = kind === 'long' ? 'Laengswand' : 'Querwand';
+      const onRib = SHAFT.lamps[kind].map((c) => [c, ribs.find((a0) => c >= a0 && c <= a0 + sizeOf('rib'))]);
+      for (const [c, a0] of onRib) if (a0 == null) fail(`[11] Warnlampe bei ${c} m an der ${wand} sitzt auf keiner Rippe`);
+      for (const a0 of ribs) {
+        const n = onRib.filter(([, o]) => o === a0).length;
+        if (n !== 1) fail(`[11] die Rippe ab ${a0} m an der ${wand} traegt ${n} Warnlampen statt einer: HALL_SHAFT["${hall.id}"].lamps.${kind} nachrechnen (${SHAFT.lamps[kind].join(', ') || 'keine'})`);
+      }
       const tris = 2 * ((box.get('corner')?.tris ?? 0) + (box.get('rim_corner')?.tris ?? 0) + (box.get('light_1')?.tris ?? 0)
         + SHAFT[kind].reduce((n, [r]) => n + (box.get(r)?.tris ?? 0), 0) + SHAFT.lamps[kind].length * (box.get('light_0')?.tris ?? 0)) + 2 * rims * (box.get('rim')?.tris ?? 0);
       shaftRun.tris += tris; shaftRun.parts += 2 * (3 + SHAFT[kind].length + SHAFT.lamps[kind].length + rims); shaftRun.lamps += 2 * SHAFT.lamps[kind].length;
@@ -822,7 +829,7 @@ if (SHAFT && LIFT) {
     }
   }
 }
-sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, Warnlampen auf Rippen, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}` : '(nichts gemessen)');
+sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, je Rippe genau eine Warnlampe, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen`);

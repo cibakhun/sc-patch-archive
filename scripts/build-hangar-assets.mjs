@@ -904,8 +904,11 @@ for (const kind of Object.keys(BUDGET)) {
     // Lampenliste muss schon da sein.
     const side = kind === 'hall' || kind === 'lift' ? ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
     const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
+    const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
-      && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)));
+      && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
+      && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)));
     if (!FORCE && prev[slot]?.[name] && fresh) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
