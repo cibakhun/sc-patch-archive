@@ -22,12 +22,13 @@
 // hall.id wählt in HALL_DROP die Spielteile, die der Viewer beim Laden aus
 // der Halle schneidet (ohne id: keine). hall.furniture sind die Möbel als
 // eigene Datei im selben Modellraum; das Telefon lädt sie nicht, dort bringt
-// hall.patch nur Ergänzung und Füllung (siehe swapHallDetail).
+// hall.patch nur Ergänzung und Füllung (siehe swapHallDetail). hall.lift ist
+// der Schachtbausatz unter dem Schiffsfeld (HALL_SHAFT) samt Lampenliste.
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
@@ -60,6 +61,12 @@ const LIFT_UP_MS = 2800;
 const LIFT_DEPTH = 26;
 const LIFT_DARK = 22;
 const liftShade = (d) => 1 - 0.92 * THREE.MathUtils.smoothstep(d, 0.5, LIFT_DARK);
+// Schachtlampen aus dem Spiel (HALL_SHAFT): Stärke der Spiellampen auf
+// unsere Lichtskala, Einschalten bei Fahrtbeginn, Wirkung auf Schiff und
+// Crew (deren Abdunkelung nimmt das Licht an ihrer Stelle zurück)
+const PIT_GAIN = 30;
+const PIT_FADE_MS = 300;
+const PIT_SHIP = 1.5;
 
 // ─── Lackierungen ─────────────────────────────────────────────────────────
 // [Hauptfarbe oben, Zweitfarbe unten, Akzent]. Werkslack je Hersteller;
@@ -359,6 +366,295 @@ async function cutHallLift(model, L, skip, pause = noPause) {
     tris += m / 3;
   }
   return tris ? { group, tris, parts: group.children.length } : null;
+}
+
+// Aufzugsschacht aus dem Spiel (15.10.2026). Fährt das Feld ab, öffnet sich
+// darunter der Schacht des mittleren persönlichen Hangars: der Bausatz aus
+// hangar_medtop_001 (public/hangar/lift/<kit>.glb und .json, PC-Auftrag
+// .planning/notes/hangar-schacht.md) mit Wand 40 m, Rippe 8 m, Ecke,
+// Randleiste 16 m und zwei Warnlampen. Das Spiel reiht die Teile um seine
+// 56 × 88 m; hier stehen sie nach denselben Regeln um das Feld der Halle:
+// eine Ecke in jeder Schachtecke, die Längswand aus Wand, Rippe und Wand,
+// die Querwand aus Rippe, Wand und Rippe. Deren Wand steht mittig, ihre
+// Enden stecken hinter den Längswänden, wie im Spiel hinter den Ecken.
+// Randleisten laufen rundum. `long`/`cross`: [Teil, Anfang] entlang der Wand
+// in Metern ab ihrer linken Innenecke (von der Schachtmitte aus gesehen);
+// `lamps`: die Warnlampe light_0 auf jeder Rippenmitte. Ihre Höhe kommt aus
+// den Spiellampen. Tief ist der Schacht wie im Spiel (Rand 4 m, Wand 32 m,
+// also 36 m); höhere Schiffe bekommen darüber Lagen aus den Oberteilen
+// (20 m), so wie der Bausatz sie stapelt.
+// verify:hangar-hall [11] liest den Block aus dem ausgelieferten Viewer und
+// prüft ihn gegen die Schachtdatei und das Feld aus HALL_LIFT.
+const HALL_SHAFT = /* hall-shaft */ {
+  "revelyork-single": { "kit": "medtop", "long": [["wall", 4], ["rib", 44], ["wall", 52]], "cross": [["wall", -4], ["rib", 4], ["rib", 20]], "lamps": { "long": [48], "cross": [8, 24] } }
+} /* /hall-shaft */;
+// Lagen über der Wand: Oberteile von Wand, Rippe und Ecke (der Bausatz
+// trennt sie bei 12 m Höhe: Unterteil 12 m, Oberteil 20 m)
+const SHAFT_SPLIT = 12;
+
+// Teile eines Schachtbausatzes als einfache Geometrien je Material, im
+// Bezugssystem des Teils: Lage, Normale, Abdunkelung aus dem Spiel
+// (Rotkanal der Eckfarben, wie die Halle). `band`: nur das Oberteil, auf
+// 0 heruntergesetzt.
+function shaftPieces(node, band) {
+  node.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(node.matrixWorld).invert(), M = new THREE.Matrix4(), v = new THREE.Vector3();
+  const out = [];
+  node.traverse((m) => {
+    if (!m.isMesh) return;
+    const g = m.geometry, P = g.attributes.position, N = g.attributes.normal, C = g.attributes.color;
+    if (!P || !N) return;
+    M.multiplyMatrices(inv, m.matrixWorld);
+    const nm = new THREE.Matrix3().getNormalMatrix(M), n = new THREE.Vector3();
+    const pos = new Float32Array(P.count * 3), nor = new Float32Array(P.count * 3), sh = new Float32Array(P.count);
+    for (let i = 0; i < P.count; i++) {
+      v.fromBufferAttribute(P, i).applyMatrix4(M);
+      if (band) v.y -= SHAFT_SPLIT;
+      pos.set([v.x, v.y, v.z], i * 3);
+      n.fromBufferAttribute(N, i).applyMatrix3(nm).normalize();
+      nor.set([n.x, n.y, n.z], i * 3);
+      sh[i] = C ? C.getX(i) : 1;
+    }
+    const I = g.index ? g.index.array : Uint32Array.from({ length: P.count }, (_, i) => i);
+    let idx = I;
+    if (band) {
+      // nur Dreiecke, deren Mitte über der Trennung liegt
+      const keep = [];
+      for (let t = 0; t + 2 < I.length; t += 3) {
+        const y = (pos[I[t] * 3 + 1] + pos[I[t + 1] * 3 + 1] + pos[I[t + 2] * 3 + 1]) / 3;
+        if (y > 0) keep.push(I[t], I[t + 1], I[t + 2]);
+      }
+      idx = Uint32Array.from(keep);
+    }
+    if (idx.length) out.push({ mat: m.material, pos, nor, sh, idx, uv: !!g.attributes.uv });
+  });
+  return out;
+}
+
+// Baut den Schacht im Schachtraum: Ursprung in der Feldmitte auf
+// Bodenhöhe, x quer (Feldbreite), z längs, y oben. Liefert { group, pit,
+// tris, parts, depth, fit(tiefe) }: fit legt Lagen dazu oder nimmt sie weg,
+// bis der Schacht mindestens so tief ist (je Material ein Mesh, also ein
+// Zeichenbefehl).
+function buildShaft(kit, info, L, lay) {
+  const node = (r) => kit.getObjectByName(r);
+  const size = (r) => info.modules?.[r]?.size;
+  for (const r of ['wall', 'wall_upper', 'rib', 'corner', 'rim', 'rim_corner', 'light_0', 'light_1']) if (!node(r)) throw new Error(`Schacht ${lay.kit}: Teil ${r} fehlt`);
+  const hx = (L.to[0] - L.from[0]) / 2, hz = (L.to[1] - L.from[1]) / 2;
+  const wallH = size('wall')[1], bandH = size('wall_upper')[1], rimL = size('rim')[0], rim8 = size('rim_8')?.[0] ?? 0;
+  const depth0 = info.shaft?.depth ?? 36, rimY = -(depth0 - wallH);
+  const lampY = (() => {
+    const ys = (info.lights || []).filter((l) => l.node === 'light_0').map((l) => l.pos[1]);
+    return ys.length ? ys.reduce((a, b) => a + b, 0) / ys.length : rimY - 5.4;
+  })();
+  const cache = new Map();
+  const piece = (r, band = false) => {
+    const k = `${r}|${band}`;
+    if (!cache.has(k)) cache.set(k, shaftPieces(node(r), band));
+    return cache.get(k);
+  };
+  // die vier Wände, je mit linker Innenecke und Drehung um y
+  const sides = [
+    { len: 2 * hx, kind: 'cross', o: [-hx, -hz], rot: 0 },
+    { len: 2 * hz, kind: 'long', o: [hx, -hz], rot: -Math.PI / 2 },
+    { len: 2 * hx, kind: 'cross', o: [hx, hz], rot: Math.PI },
+    { len: 2 * hz, kind: 'long', o: [-hx, hz], rot: Math.PI / 2 },
+  ];
+  const place = (s, a, y) => {
+    const c = Math.cos(s.rot), sn = Math.sin(s.rot);
+    return new THREE.Matrix4().makeRotationY(s.rot).setPosition(s.o[0] + a * c, y, s.o[1] - a * sn);
+  };
+  const BAND = { wall: 'wall_upper', rib: 'rib', corner: 'corner' };
+  function layout(bands) {
+    const list = [];   // [Teile, Matrix]
+    const full = rimY - bands * bandH - wallH;
+    for (const s of sides) {
+      list.push([piece('corner'), place(s, 0, full)], [piece('rim_corner'), place(s, 0, rimY)]);
+      for (let b = 0; b < bands; b++) list.push([piece('corner', true), place(s, 0, rimY - (b + 1) * bandH)]);
+      for (const [r, a] of lay[s.kind]) {
+        list.push([piece(r), place(s, a, full)]);
+        for (let b = 0; b < bands; b++) list.push([r === 'wall' ? piece(BAND.wall) : piece(BAND[r], true), place(s, a, rimY - (b + 1) * bandH)]);
+      }
+      for (const a of lay.lamps[s.kind]) list.push([piece('light_0'), place(s, a, lampY)]);
+      let a = 0;
+      for (; a + rimL <= s.len + 1e-3; a += rimL) list.push([piece('rim'), place(s, a, rimY)]);
+      if (rim8) for (; a + rim8 <= s.len + 1e-3; a += rim8) list.push([piece('rim_8'), place(s, a, rimY)]);
+    }
+    return list;
+  }
+  // je Material ein Mesh, die Teile mit ihren Matrizen hineingeschrieben
+  function merge(list) {
+    const by = new Map();
+    for (const [parts, M] of list) for (const p of parts) {
+      if (!by.has(p.mat)) by.set(p.mat, []);
+      by.get(p.mat).push([p, M]);
+    }
+    const meshes = [], v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
+    let tris = 0;
+    for (const [mat, items] of by) {
+      let nv = 0, ni = 0;
+      for (const [p] of items) { nv += p.pos.length / 3; ni += p.idx.length; }
+      const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), sh = new Uint8Array(nv * 3), idx = new Uint32Array(ni);
+      let ov = 0, oi = 0;
+      for (const [p, M] of items) {
+        nm.getNormalMatrix(M);
+        const cnt = p.pos.length / 3;
+        for (let i = 0; i < cnt; i++) {
+          v.fromArray(p.pos, i * 3).applyMatrix4(M).toArray(pos, (ov + i) * 3);
+          n.fromArray(p.nor, i * 3).applyMatrix3(nm).normalize().toArray(nor, (ov + i) * 3);
+          sh.fill(Math.round(Math.min(1, Math.max(0, p.sh[i])) * 255), (ov + i) * 3, (ov + i) * 3 + 3);
+        }
+        for (let i = 0; i < p.idx.length; i++) idx[oi + i] = p.idx[i] + ov;
+        ov += cnt; oi += p.idx.length;
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+      g.setAttribute('hgShade', new THREE.BufferAttribute(sh, 3, true));
+      g.setIndex(new THREE.BufferAttribute(idx, 1));
+      g.computeBoundingBox(); g.computeBoundingSphere();
+      const mesh = new THREE.Mesh(g, mat);
+      mesh.name = `shaft:${mat.name}`;
+      mesh.userData.noUv = items.some(([p]) => !p.uv);
+      meshes.push(mesh);
+      tris += ni / 3;
+    }
+    return { meshes, tris, parts: list.length };
+  }
+  // group: hängt in der Halle; pit: der Schacht, sichtbar nur, solange das
+  // Feld abgefahren ist (in Ruhe deckt es ihn zu). Die Ecklampen light_1
+  // stehen auf dem Hallenboden an den Feldecken und bleiben stehen.
+  const group = new THREE.Group(), pit = new THREE.Group();
+  group.name = 'shaft'; pit.name = 'shaft:pit';
+  group.add(pit);
+  const rest = merge(sides.map((s) => [piece('light_1'), place(s, 0, 0)]));
+  for (const m of rest.meshes) group.add(m);
+  const sh = { group, pit, tris: 0, restTris: rest.tris, parts: 0, bands: -1, depth: depth0, depth0, hx, hz, rimY, lampY, materials: new Set(rest.meshes.map((m) => m.material)) };
+  sh.fit = (d) => {
+    const bands = Math.max(0, Math.ceil((d - depth0 - 0.05) / bandH));
+    if (bands === sh.bands) return false;
+    for (const m of [...pit.children]) { m.geometry.dispose(); pit.remove(m); }
+    const r = merge(layout(bands));
+    for (const m of r.meshes) { pit.add(m); sh.materials.add(m.material); }
+    Object.assign(sh, { tris: r.tris, parts: r.parts, bands, depth: depth0 + bands * bandH });
+    return true;
+  };
+  sh.fit(depth0);
+  return sh;
+}
+
+// Lampen des Spielschachts auf diesem Schacht: an derselben Wand im selben
+// Abstand zur Wand, entlang der Wand nach dem Bausatz (Rippe auf Rippe, Ecke
+// auf Ecke, dazwischen anteilig); Lampen an der Plattform anteilig auf dem
+// Feld. Liefert je Lampe { pos, dir, cosO, col, kind, r } im Schachtraum;
+// kind als Bits: 1 blinkt, 2 an der Plattform (fährt mit), 4 nur auf die
+// Wände (die Bodenstrahler hängen einen Meter über der Plattform unten; ohne
+// Verdeckung gleißten sie darauf als helle Bahnen).
+// Farbe aus Farbe mal Farbtemperatur, wie im Spiel (useTemperature).
+const kelvin = (t) => {
+  // Näherung nach Tanner Helland, 1000 bis 40 000 K
+  const k = Math.min(400, Math.max(10, t / 100));
+  const r = k <= 66 ? 255 : 329.698727446 * Math.pow(k - 60, -0.1332047592);
+  const g = k <= 66 ? 99.4708025861 * Math.log(k) - 161.1195681661 : 288.1221695283 * Math.pow(k - 60, -0.0755148492);
+  const b = k >= 66 ? 255 : k <= 19 ? 0 : 138.5177312231 * Math.log(k - 10) - 305.0447927307;
+  return [r, g, b].map((c) => Math.min(1, Math.max(0, c / 255)));
+};
+function shaftLights(info, sh, lay) {
+  const g = info.shaft?.inner ? [info.shaft.inner[0] / 2, info.shaft.inner[1] / 2] : [28, 44];
+  const { hx, hz } = sh;
+  // Stützstellen entlang der Wände (Spiel -> hier): Ecken, Eckkanten, Rippen
+  const ribs = (kind, half, gh) => (lay.lamps[kind] || []).map((a) => a - half).filter((c) => Math.abs(c) < half - 4);
+  const anchors = (gh, h, ours) => {
+    const game = { 28: [-20, 0, 20], 44: [0] }[gh] ?? [0];
+    const mine = ours.length === game.length ? ours : game.map((c) => c * h / gh);
+    return [[-gh, -h], [-(gh - 4), -(h - 4)], ...game.map((c, i) => [c, mine[i]]), [gh - 4, h - 4], [gh, h]].sort((p, q) => p[0] - q[0]);
+  };
+  const crossA = anchors(g[0], hx, [...ribs('cross', hx, g[0]), 0].sort((p, q) => p - q));
+  const longA = anchors(g[1], hz, ribs('long', hz, g[1]));
+  const along = (c, A) => {
+    if (c <= A[0][0]) return A[0][1] + (c - A[0][0]);
+    for (let i = 1; i < A.length; i++) if (c <= A[i][0]) {
+      const [x0, y0] = A[i - 1], [x1, y1] = A[i];
+      return y0 + (c - x0) * (y1 - y0) / (x1 - x0 || 1);
+    }
+    return A[A.length - 1][1] + (c - A[A.length - 1][0]);
+  };
+  const out = [];
+  for (const l of info.lights || []) {
+    const st = l.states?.emergency ?? l, I = st.intensity ?? l.intensity ?? 0;
+    if (!(I > 0.05) || !(l.radius > 0) || l.role === 'fog') continue;
+    const [x, y, z] = l.pos;
+    let p;
+    if (l.attach === 'pad') p = [x * hx / g[0], y, along(z, longA)];
+    else {
+      const dx = g[0] - Math.abs(x), dz = g[1] - Math.abs(z), sx = Math.sign(x) || 1, sz = Math.sign(z) || 1;
+      if (dx < 6 && dz < 6) p = [sx * (hx - dx), y, sz * (hz - dz)];
+      else if (dx <= dz) p = [sx * (hx - dx), y, along(z, longA)];
+      else p = [along(x, crossA), y, sz * (hz - dz)];
+    }
+    const t = l.useTemperature ? kelvin(st.temperature ?? l.temperature ?? 6500) : [1, 1, 1];
+    const c = (st.color ?? l.color ?? [1, 1, 1]).map((v, i) => v * t[i] * I);
+    const spot = l.type === 'Projector' && l.dir?.length === 3 && l.angle;
+    const style = st.lightStyle ?? l.anim?.style ?? 0;
+    out.push({
+      role: l.role, pos: p, dir: spot ? l.dir : [0, 0, 0], cosO: spot ? Math.cos((l.angle / 2) * Math.PI / 180) : -2,
+      col: c, r: l.radius, kind: (l.attach === 'pad' ? 2 : 0) + (style ? 1 : 0) + (l.role === 'base' ? 4 : 0),
+    });
+  }
+  return out;
+}
+// Licht einer Lampe auf einer Fläche (Lage p, Normale n), wie im Shader
+// (hgPit): mit dem Quadrat der Entfernung schwächer (3 m Kern, sonst
+// gleißt es, wo eine Lampe knapp über der Plattform hängt), am Radius weich
+// auf null; Kegel zur Mitte hin weich, ohne harten Rand
+function pitLight(L, p, n, out, k = 1) {
+  const dx = L.pos[0] - p[0], dy = L.pos[1] - p[1], dz = L.pos[2] - p[2], d2 = dx * dx + dy * dy + dz * dz;
+  const q = d2 / (L.r * L.r);
+  if (q >= 1 || d2 < 1e-6) return;
+  const d = Math.sqrt(d2), lx = dx / d, ly = dy / d, lz = dz / d;
+  const nl = Math.max(0, n[0] * lx + n[1] * ly + n[2] * lz);
+  let cone = 1;
+  if (L.cosO > -1) {
+    const cd = -(lx * L.dir[0] + ly * L.dir[1] + lz * L.dir[2]);
+    cone = THREE.MathUtils.smoothstep(cd, L.cosO, L.cosO + (1 - L.cosO) * 0.7);
+  }
+  const f = k * cone * (1 - q * q) ** 2 / (d2 + 9) * nl;
+  out[0] += L.col[0] * f; out[1] += L.col[1] * f; out[2] += L.col[2] * f;
+}
+// Höchstens n Lampen für den Shader. Gleiche Art und nah beieinander (unter
+// 6 m, Strahler in ähnlicher Richtung) wird eine: Farben addiert, Lage und
+// Richtung nach Stärke gemittelt, der weitere Kegel und der größere Radius.
+// So werden etwa die beiden Fluter, die das Spiel an jeder Stelle doppelt
+// setzt (eng und hell, weit und schwächer), ein Licht. Die Warnlichter
+// immer, dann nach Reichweite mal Helligkeit. Vorn stehen die Lampen, die
+// auch das Feld trifft (fest am Schacht, nicht nur für Wände): `field`
+// zählt sie, der Shader des Felds rechnet nur sie.
+const lum = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+function pitPack(list, n) {
+  const groups = [];
+  for (const L of list) {
+    const spot = L.cosO > -1;
+    const g = groups.find((q) => q.kind === L.kind && (q.cosO > -1) === spot
+      && Math.hypot(q.pos[0] - L.pos[0], q.pos[1] - L.pos[1], q.pos[2] - L.pos[2]) < 6
+      && (!spot || q.dir[0] * L.dir[0] + q.dir[1] * L.dir[1] + q.dir[2] * L.dir[2] > 0.8));
+    const w = lum(L.col);
+    if (!g) { groups.push({ ...L, pos: [...L.pos], dir: [...L.dir], col: [...L.col], w, n: 1 }); continue; }
+    const t = w / (g.w + w || 1);
+    g.pos = g.pos.map((v, i) => v + (L.pos[i] - v) * t);
+    if (spot) {
+      const d = g.dir.map((v, i) => v * g.w + L.dir[i] * w), m = Math.hypot(...d) || 1;
+      g.dir = d.map((v) => v / m);
+      g.cosO = Math.min(g.cosO, L.cosO);
+    }
+    g.col = g.col.map((v, i) => v + L.col[i]);
+    g.r = Math.max(g.r, L.r); g.w += w; g.n++;
+    if (!g.role.split('+').includes(L.role)) g.role += `+${L.role}`;
+  }
+  const score = (g) => (g.kind === 1 ? 1e9 : 0) + g.w * g.r * g.r;
+  const onField = (g) => g.kind === 0;
+  const lights = groups.sort((a, b) => score(b) - score(a)).slice(0, Math.max(0, n));
+  lights.sort((a, b) => onField(b) - onField(a));
+  return { lights, field: lights.filter(onField).length, groups: groups.length };
 }
 
 // Ergänzung aus der vollen Stufe (10.10.2026). Der leichteren Stufe fehlen
@@ -2606,6 +2902,7 @@ export async function initHangar(container, opts = {}) {
     // leuchten die Strahler darüber hinein. In Ruhelage fehlt ihm nur der
     // Schatten seiner eigenen 2 cm hohen Leisten.
     if (realHall.lift?.visible) hide.push(realHall.lift);
+    if (realHall.shaft?.pit.visible) hide.push(realHall.shaft.pit);
     for (const o of hide) o.visible = false;
     const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
     scene.background = null; scene.overrideMaterial = statMat;
@@ -2848,6 +3145,52 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // ihn für das Rauschen ab, damit das Plattenbild mitfährt statt unterwegs
   // zu wechseln; alle übrigen lesen 0.
   const hallLiftY = { value: 0 }, hallLiftNo = { value: 0 };
+  // Lampen des Aufzugsschachts (shaftLights, pitPack): je Lampe drei vec4
+  // im Shader von Schacht und Feld, gerechnet nur unter dem Boden und nur
+  // solange das Feld abgefahren ist (hgPitK.x > 0). Wie viele, gibt der Platz
+  // für Uniforms her: Das Hallenprogramm belegt 145 Vektoren (Ecken- und
+  // Pixelshader zusammen gezählt am übersetzten Programm, Stufe hoch,
+  // 16.10.2026); Telefone haben oft nur 256, dort bleiben so 22 Lampen und
+  // 45 Vektoren Luft. Je Bildpunkt im Schacht kostet jede Lampe; darum hoch
+  // 29 (alle Fluter, Warnlichter, die seitlichen der Plattform, die
+  // Bodenstrahler paarweise), mittel 20, niedrig 10.
+  const PIT_N = Math.max(0, Math.min(Q0 === 'niedrig' ? 10 : Q0 === 'mittel' ? 20 : 29, Math.floor((renderer.capabilities.maxFragmentUniforms - 190) / 3)));
+  const hallPit = {
+    a: { value: Array.from({ length: Math.max(1, PIT_N) }, () => new THREE.Vector4()) },   // Lage, 1/r²
+    b: { value: Array.from({ length: Math.max(1, PIT_N) }, () => new THREE.Vector4()) },   // Richtung, cos halber Kegel (-2: rundum)
+    c: { value: Array.from({ length: Math.max(1, PIT_N) }, () => new THREE.Vector4()) },   // Farbe mal Stärke, Art (shaftLights)
+    k: { value: new THREE.Vector3() },       // x an (0..1), y Weg der Plattform (Modellmeter)
+    blink: { value: new THREE.Vector2(1, 1) },   // Warnlicht am Schacht, an der Plattform
+    field: 0,   // so viele Lampen vorn treffen auch das Feld (pitPack); steht vor dem Übersetzen fest
+  };
+  // Wie pitLight; pads 0: ohne die Lampen der Plattform und die nur für
+  // Wände (das Feld selbst, das ohnehin nur die vorderen HG_PIT_C rechnet)
+  const HALL_PIT_GLSL = `uniform vec4 hgPitA[ HG_PIT_N ];
+uniform vec4 hgPitB[ HG_PIT_N ];
+uniform vec4 hgPitC[ HG_PIT_N ];
+uniform vec3 hgPitK;
+uniform vec2 hgPitBlink;
+vec3 hgPit( vec3 p, vec3 n, float pads ) {
+	vec3 sum = vec3( 0.0 );
+	for ( int i = 0; i < HG_PIT_C; i ++ ) {
+		vec4 c = hgPitC[ i ];
+		float walls = step( 3.5, c.w ), kd = c.w - 4.0 * walls, pad = step( 1.5, kd );
+		if ( max( pad, walls ) > pads ) continue;
+		vec4 a = hgPitA[ i ], b = hgPitB[ i ];
+		vec3 d = a.xyz + vec3( 0.0, pad * hgPitK.y, 0.0 ) - p;
+		float d2 = dot( d, d ), q = d2 * a.w;
+		if ( q >= 1.0 ) continue;
+		float w = 1.0 - q * q;
+		vec3 l = d * inversesqrt( max( d2, 1e-4 ) );
+		float cone = b.w < -1.0 ? 1.0 : smoothstep( b.w, b.w + ( 1.0 - b.w ) * 0.7, dot( -l, b.xyz ) );
+		float k = kd - 2.0 * pad < 0.5 ? 1.0 : ( pad > 0.5 ? hgPitBlink.y : hgPitBlink.x );
+		sum += c.rgb * ( k * cone * w * w / ( d2 + 9.0 ) * max( dot( n, l ), 0.0 ) );
+	}
+	return sum * hgPitK.x;
+}`;
+  // Der Schachtbausatz hat keine Texturkoordinaten: Seine Karten gelten mit
+  // ihrem Mittelwert (oberste Mip-Stufe), so wie sie aus der Ferne wirken.
+  const HG_MEAN = (t) => `textureLod( ${t}, vec2( 0.5 ), 16.0 )`;
   // Spiegelung auf den Raumkasten projiziert: Die Umgebungskugel ist an
   // einer Stelle aufgenommen (2,5 m über der Plattform). Ohne Projektion
   // spiegelt jede Platte dasselbe, als läge der Raum unendlich weit weg;
@@ -2968,9 +3311,19 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgN = vHgP - vec3( 0.0, hgLiftY, 0.0 );\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
     // Unter dem Boden (das abgefahrene Schiffsfeld) wird es mit der Tiefe
     // dunkel wie in liftShade; was selbst leuchtet, bleibt hell.
+    // Im Schacht und auf dem abgefahrenen Feld dazu die Schachtlampen.
+    const pit = PIT_N > 0 && (m.userData.shaft || m.userData.lift);
     if (sh.fragmentShader.includes('vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;')) {
-      sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `if ( vHgP.y < -0.05 ) outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * ( 1.0 - 0.92 * smoothstep( 0.5, ${LIFT_DARK.toFixed(1)}, -vHgP.y ) ) + totalEmissiveRadiance;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `if ( vHgP.y < -0.05 ) outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * ( 1.0 - 0.92 * smoothstep( 0.5, ${LIFT_DARK.toFixed(1)}, -vHgP.y ) ) + totalEmissiveRadiance;${pit ? `
+	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) outgoingLight += material.diffuseColor * hgPit( vHgP, inverseTransformDirection( normal, viewMatrix ), ${m.userData.shaft ? '1.0' : '0.0'} );` : ''}
 	#include <opaque_fragment>`);
+    }
+    if (pit) {
+      sh.uniforms.hgPitA = hallPit.a; sh.uniforms.hgPitB = hallPit.b; sh.uniforms.hgPitC = hallPit.c;
+      sh.uniforms.hgPitK = hallPit.k; sh.uniforms.hgPitBlink = hallPit.blink;
+      // feste Schleifenlänge je Programm (der Übersetzer rollt sie aus): der
+      // Schacht alle, das Feld nur die vorderen
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n#define HG_PIT_N ${PIT_N}\n#define HG_PIT_C ${m.userData.shaft ? PIT_N : hallPit.field}\n${HALL_PIT_GLSL}`);
     }
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL)
@@ -2989,8 +3342,16 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 ${HALL_LIGHTS_BEGIN}
 	material.roughness = hgRoughRefl;
 	if ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );`);
+    if (m.userData.shaft) {
+      sh.fragmentShader = sh.fragmentShader
+        .replace(/vec4 sampledDiffuseColor = [^;]*;/, `vec4 sampledDiffuseColor = ${HG_MEAN('map')};`)
+        .replace('#include <roughnessmap_fragment>', THREE.ShaderChunk.roughnessmap_fragment.replace('texture2D( roughnessMap, vRoughnessMapUv )', HG_MEAN('roughnessMap')))
+        .replace('#include <metalnessmap_fragment>', THREE.ShaderChunk.metalnessmap_fragment.replace('texture2D( metalnessMap, vMetalnessMapUv )', HG_MEAN('metalnessMap')));
+    }
   };
   const hallKey = () => 'hall-v2';
+  const pitKey = () => (PIT_N ? `hall-v2|pit${hallPit.field}` : 'hall-v2');
+  const shaftKey = () => 'hall-v2|shaft';
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
@@ -3002,6 +3363,18 @@ ${HALL_LIGHTS_BEGIN}
       ? fetchGltf(h.furniture.url, 'furniture', h.furniture.bytes || 4e6).then((g) => g.scene, (e) => {
         console.warn('[hangar] Einrichtung nicht geladen', e);
         prog.delete('furniture');
+        return null;
+      })
+      : Promise.resolve(null);
+    // Schachtbausatz (HALL_SHAFT) mit Lampenliste, parallel; ohne ihn fährt
+    // das Feld wie bisher ins Dunkle
+    const shaftReady = h.lift?.url && h.lift.json && HALL_SHAFT[h.id] && HALL_LIFT[h.id]
+      ? Promise.all([
+        fetchGltf(h.lift.url, 'lift', h.lift.bytes || 4e5),
+        fetch(h.lift.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.lift.json}: ${r.status}`)))),
+      ]).then(([g, info]) => ({ kit: g.scene, info }), (e) => {
+        console.warn('[hangar] Schacht nicht geladen', e);
+        prog.delete('lift');
         return null;
       })
       : Promise.resolve(null);
@@ -3174,11 +3547,55 @@ ${HALL_LIGHTS_BEGIN}
             const c = m.clone();
             c.userData.lift = true;
             c.onBeforeCompile = hallShader(c);
-            c.customProgramCacheKey = hallKey;
+            c.customProgramCacheKey = pitKey;
             if (m.userData.boxUv) boxProject(c, m.userData.boxUv);
             own.set(m, c);
           }
           part.material = own.get(m);
+        }
+      }
+      // Der Schacht darunter, im Schachtraum (Feldmitte auf dem Boden); seine
+      // Materialien wie die der Halle, ohne deren Abdunkelung der weißen
+      // Grundfarben (der Bausatz bringt seine Tönung mit)
+      let shaft = null;
+      const kit = lift ? await shaftReady : null;
+      if (kit) {
+        const t3 = performance.now(), lay = HALL_SHAFT[h.id];
+        try {
+          shaft = buildShaft(kit.kit, kit.info, L, lay);
+          shaft.group.position.set(o[0], floorY, o[2]);
+          shaft.group.traverse((n) => { if (n.isMesh) { n.receiveShadow = false; n.castShadow = false; } });
+          for (const m of shaft.materials) {
+            m.envMapIntensity = 0.05;
+            if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
+            if (m.metalness > 0.4) m.metalness = 0.4;
+            // flache Normalenkarte ohne Koordinaten: weg (unifyMaps gibt die neutrale)
+            m.normalMap = null;
+            m.userData.hgShade = true; m.userData.shaft = true;
+            if (/glow/i.test(m.name)) {
+              // Lampenglas leuchtet in der Farbe der Warnlichter, nur bei Fahrt
+              m.emissiveMap = null; m.emissive.setRGB(1, 0.17, 0); m.emissiveIntensity = 0;
+              shaft.glow = m;
+            }
+            m.onBeforeCompile = hallShader(m);
+            m.customProgramCacheKey = shaftKey;
+            unifyMaps(m);
+          }
+          const all = shaftLights(kit.info, shaft, lay), pk = pitPack(all, PIT_N);
+          shaft.lights = pk.lights; shaft.all = all; hallPit.field = pk.field;
+          pk.lights.forEach((q, i) => {
+            hallPit.a.value[i].set(q.pos[0], q.pos[1], q.pos[2], 1 / (q.r * q.r));
+            hallPit.b.value[i].set(q.dir[0], q.dir[1], q.dir[2], q.cosO);
+            hallPit.c.value[i].set(q.col[0] * PIT_GAIN, q.col[1] * PIT_GAIN, q.col[2] * PIT_GAIN, q.kind);
+          });
+          // unbenutzte Plätze: Radius 0 (1/r² groß), trifft nichts
+          for (let i = pk.lights.length; i < PIT_N; i++) { hallPit.a.value[i].set(0, 1e4, 0, 1e6); hallPit.c.value[i].set(0, 0, 0, 0); }
+          shaft.pit.visible = false;
+          model.add(shaft.group);
+          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}), ${Math.round(performance.now() - t3)} ms`);
+        } catch (e) {
+          console.warn('[hangar] Schacht nicht gebaut', e);
+          shaft = null;
         }
       }
       // Die Lampen stehen schon (oder kommen nie): erst übersetzen und
@@ -3193,7 +3610,7 @@ ${HALL_LIGHTS_BEGIN}
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? L : null };
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? L : null, shaft };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -3223,12 +3640,12 @@ ${HALL_LIGHTS_BEGIN}
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
-      prog.delete('hall'); prog.delete('furniture');
+      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift');
       return true;
     }).catch((e) => {
       // ohne echte Halle die gebaute
       console.warn('[hangar] Halle nicht geladen', e);
-      prog.delete('hall'); prog.delete('furniture');
+      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift');
       hallFailed = true;
       dropHallLamps();
       buildStage();
@@ -3323,7 +3740,31 @@ ${HALL_LIGHTS_BEGIN}
     for (const f of w) f();
   }
   // Tiefe für ein Schiff, in Modellmetern der Halle
-  const liftDepth = (info) => LIFT_DEPTH + info.height / hallRoot.scale.x;
+  // Mit Schacht fährt das Feld mindestens auf seinen Grund (36 m wie im
+  // Spiel); braucht ein Schiff mehr, wächst er mit (fit, nur nach unten).
+  const liftDepth = (info) => {
+    const d = LIFT_DEPTH + info.height / hallRoot.scale.x, sh = realHall?.shaft;
+    if (!sh) return d;
+    sh.fit(Math.max(d, sh.depth));
+    return Math.max(d, sh.depth0);
+  };
+  // Schachtlicht an einer Stelle der Schachtachse (Höhe y im Schachtraum),
+  // als Helligkeit gemittelt über oben und die vier Seiten: hebt dort die
+  // Abdunkelung von Schiff und Crew auf. Ohne die Lampen der Plattform.
+  const PIT_NORMALS = [[0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
+  const pitOut = [0, 0, 0], pitP = [0, 0, 0];
+  function pitAt(y) {
+    const sh = realHall?.shaft, on = hallPit.k.value.x;
+    if (!sh?.lights || !on) return 0;
+    pitOut.fill(0); pitP[1] = y;
+    const bx = hallPit.blink.value.x;
+    for (const q of sh.lights) {
+      if (q.kind & 2) continue;
+      for (const n of PIT_NORMALS) pitLight(q, pitP, n, pitOut, (q.kind & 1 ? bx : 1) / PIT_NORMALS.length);
+    }
+    return lum(pitOut) * PIT_GAIN * on;
+  }
+  const pitState = { t0: 0 };
   // Abdunkeln im Schacht: Farbe und Spiegelung je Material, die Lichter
   // (Leuchtkarten) bleiben. Die Materialien gehören dem Objekt allein.
   function dimIn(dim, f) {
@@ -4123,6 +4564,22 @@ ${HALL_LIGHTS_BEGIN}
     if (realHall?.lift) {
       realHall.lift.position.y = lift.y;
       hallLiftY.value = lift.y;
+      const sh = realHall.shaft;
+      if (sh) {
+        // Schacht nur, solange das Feld unterwegs oder unten ist; die Lampen
+        // gehen mit der Fahrt an. Warnlichter: am Schacht (Spielstil 5) weich
+        // an und aus im Sekundentakt, an der Plattform (Stil 2) ein Puls alle
+        // zwei Sekunden; beides nachempfunden, die Spielkurven fehlen im Export.
+        const active = lift.dur > 0 || lift.y < -1e-3;
+        sh.pit.visible = active;
+        if (!active) pitState.t0 = 0;
+        else if (!pitState.t0) pitState.t0 = now;
+        const on = active ? Math.min(1, (now - pitState.t0) / PIT_FADE_MS) : 0;
+        const bx = 0.5 + 0.5 * Math.cos(t * Math.PI * 2), by = Math.pow(0.5 + 0.5 * Math.cos(t * Math.PI), 4);
+        hallPit.k.value.set(on, lift.y, 0);
+        hallPit.blink.value.set(bx, by);
+        if (sh.glow) sh.glow.emissiveIntensity = on * (0.4 + 5.6 * bx);
+      }
       // Wer auf dem Schiffsfeld steht, fährt mit; festgelegt in Ruhelage und
       // unten beim Tausch, damit niemand unterwegs an den Rand springt
       const L = realHall.liftL, k = hallRoot.scale.x, hx = (L.to[0] - L.from[0]) * k / 2, hz = (L.to[1] - L.from[1]) * k / 2;
@@ -4137,7 +4594,7 @@ ${HALL_LIGHTS_BEGIN}
           continue;
         }
         w.position.y = lift.y * k;
-        if (u.mats) dimIn(u.dim ??= dimOf(u.mats), liftShade(-lift.y - 0.9 / k));
+        if (u.mats) dimIn(u.dim ??= dimOf(u.mats), Math.min(1, liftShade(-lift.y - 0.9 / k) + PIT_SHIP * pitAt(lift.y + 0.9 / k)));
       }
     }
     if (current) {
@@ -4148,7 +4605,8 @@ ${HALL_LIGHTS_BEGIN}
         g.position.y = g.userData.baseY + lift.y * k;
         g.rotation.y = 0;
         g.visible = true;
-        dimIn(current.dim, liftShade(-lift.y - current.info.height / 2 / k));
+        const yc = lift.y + current.info.height / 2 / k;
+        dimIn(current.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)));
       } else {
         // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,
         // setzt weich auf (ease-out quint), solange das alte noch abhebt

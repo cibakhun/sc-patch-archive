@@ -28,6 +28,8 @@ export interface HallConfig {
   readonly furniture?: { url: string; bytes?: number } | null;
   /** Ergaenzung der leichteren Stufe aus der vollen (Glas, Rohre, Fuellung), nur neben der Moebeldatei */
   readonly patch?: { url: string; bytes?: number } | null;
+  /** Aufzugsschacht unter dem Schiffsfeld: Bausatz (glb) und Lampenliste (json), HALL_SHAFT im Viewer */
+  readonly lift?: { url: string; json: string; bytes?: number } | null;
 }
 
 export interface StageConfig {

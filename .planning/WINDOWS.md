@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 45
+open_count: 46
 waived_count: 1
 fixed_count: 28
-total_count: 74
-last_updated: 2026-10-15T15:10:00.000Z
+total_count: 75
+last_updated: 2026-10-16T01:30:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -89,6 +89,7 @@ last_updated: 2026-10-15T15:10:00.000Z
 | 73 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schiffswechsel, 14.10.2026): Beim Schiffswechsel fährt jetzt das Schiffsfeld der Halle (32 × 96 m, die gepunkteten Platten) als Bodenaufzug wie in den heutigen Hangars des Spiels: Das alte Schiff sinkt in 1,9 s in einen dunklen Schacht (26 m plus Schiffshöhe), das neue lädt derweil und kommt in 2,8 s herauf, beides sanft an- und abbremsend; beim ersten Laden der Seite kommt das Schiff ebenso herauf. Wer von der Crew auf dem Feld steht, fährt mit, alle bleiben stehen, solange der Aufzug fährt. Der Schacht hat noch keine Wände und keine Warnlichter (die kommen mit dem PC-Lauf „Hangar-Aufzug“, .planning/notes/hangar-aufzug.md); bis dahin ist er schwarz. Gemessen sind nur Lagen (Bildfolge bei festen Höhen); ob Tempo, Dunkelheit und das Warten der Crew natürlich wirken, kann die Cloud mit etwa einem Bild je Sekunde nicht beurteilen. Zu beurteilen am Rechner und am Telefon: nacheinander ein kleines, ein mittleres und ein großes Schiff wählen (etwa Gladius, Cutlass Black, Carrack), dazwischen einmal schnell zweimal hintereinander. Wenn etwas springt, hakt, zu langsam oder zu schnell ist: Stelle und Schiff nennen; Fahrzeiten LIFT_DOWN_MS und LIFT_UP_MS, Tiefe LIFT_DEPTH, Dunkelheit LIFT_DARK in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v30-aufzug-bildfolge.png im Projektordner. | open |  | 2026-10-14T18:10:00.000Z |  |
 | 74 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Leistungsstufen, 15.10.2026): Die Halle hat drei Stufen. hoch ist das bisherige Bild (gleich geblieben, die Crew ist nur anders gebaut). mittel ohne Umgebungsverdeckung und Lichtschein, ohne Spiegelbild des Schiffs im Boden, Crew ohne Schatten, 4 statt 6 Lampen. niedrig dazu ohne Möbel, Texturen höchstens 512 px, ein Schattenstrahler, 4 statt 8 Arbeiter, höchstens 30 Bilder je Sekunde, ohne Kantenglättung. Gewählt wird nach Grafikchip, Speicher und Gerät; ruckelt es, sinken erst Bildschärfe, dann Stufe. Zu beurteilen am Rechner mit ?grafik=mittel und ?grafik=niedrig (oder dem Schalter „Grafik“ an der Bühne): Trägt die Halle in mittel und niedrig noch, oder fehlt etwas, das bleiben muss? Läuft niedrig auf einem schwachen Gerät flüssig? Maschinell gemessen (Cloud, nur Zählungen): Zeichenaufrufe je Bild hoch 976 (vorher 1 905), mittel 248, niedrig 222; Texturen niedrig 240 statt 625 MB; Download niedrig 25 statt 29 MB. | open |  | 2026-10-15T12:40:00.000Z |  |
 | 75 | site | unrun-verify | assets/perf.js |  | Sichturteil offen (ganze Website, Leichtgang, 15.10.2026): Schwache Geräte bekommen jetzt automatisch den Leichtgang (html data-perf="lite"): alle Endlos-Animationen stehen (Ken-Burns im Hero, V-Marken, Laufbänder, Pulse), Milchglas (backdrop-filter) weicht einer deckenden Fläche, der Holo-Viewer zeichnet mit Pixeldichte 1, ohne Kantenglättung und höchstens 30 Bildern je Sekunde. Auslöser: Datensparmodus, höchstens 4 Kerne und höchstens 4 GB Speicher, Software-Grafik oder ein Bildtakt-Median über 40 ms nach dem Laden. Starke Geräte sehen die Seite unverändert; auf allen Geräten ruhen Endlos-Animationen nur, solange sie nicht im Bild sind. Gemessen sind nur Zahlen und Pixelvergleiche im Normalgang (gleich bis auf Raster-Unterschiede in gescrollten Listen). Zu beurteilen am Rechner und am Telefon mit ?perf=lite (zurück mit ?perf=auto): Startseite, eine Schiffsseite mit Holo, Suche (Strg K) und das Item-Modal im Item-Finder. Wirkt die Seite ohne Bewegung und Milchglas noch richtig, oder fehlt etwas, das bleiben muss? Mechanik: assets/perf.js und das Kopf-Skript in src/layouts/Layout.astro. | open |  | 2026-10-15T15:10:00.000Z |  |
+| 76 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schiffswechsel, Schacht, 16.10.2026): Fährt das Schiffsfeld beim Wechsel ab, steht darunter jetzt der Aufzugsschacht des mittleren persönlichen Hangars aus dem Spiel statt eines schwarzen Lochs (Bericht 15.10.2026 22:28): Wände mit Rippen und Ecksäulen, 36 m tief, Randleiste unter der Bodenkante, sechs orange Warnlampen in den Rippen und vier Ecklampen am Feldrand, die mit der Fahrt angehen und blinken, dazu die Fluter des Spiels (warmes Orange, 1500 K) und die Lampen an der Plattform. Gemessen sind Lagen und Kosten (Bildfolge bei festen Höhen, Grafikzeit je Bild); nicht beurteilen kann die Cloud: ob Helligkeit und Farbe der Fluter wie im Spiel wirken (Stärke PIT_GAIN in assets/hangar-viewer.js aus zwei Bildrunden), ob das Blinken passt (die Kurven der Spiellichtstile fehlen im Export, nachempfunden: Schacht im Sekundentakt, Plattform alle zwei Sekunden), und ob die Wände ohne ihre Detailtexturen tragen (der Export hat keine Texturkoordinaten; Nachauftrag an den PC in .planning/notes/hangar-schacht.md). Zu beurteilen am Rechner und am Telefon: zwei- oder dreimal das Schiff wechseln (klein, mittel, groß), dabei einmal steil von oben in den Schacht schauen. Die Fahrzeit bleibt 1,9 s ab und 2,8 s auf; das Spiel braucht 12,5 s je Richtung, angleichen nur auf Ansage. Beleg: /mnt/project-files/hangar/v33-schacht-vorher-nachher.png im Projektordner. | open |  | 2026-10-16T01:30:00.000Z |  |
 
 ````json
 [
@@ -978,6 +979,18 @@ last_updated: 2026-10-15T15:10:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-15T15:10:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 76,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schiffswechsel, Schacht, 16.10.2026): Fährt das Schiffsfeld beim Wechsel ab, steht darunter jetzt der Aufzugsschacht des mittleren persönlichen Hangars aus dem Spiel statt eines schwarzen Lochs (Bericht 15.10.2026 22:28): Wände mit Rippen und Ecksäulen, 36 m tief, Randleiste unter der Bodenkante, sechs orange Warnlampen in den Rippen und vier Ecklampen am Feldrand, die mit der Fahrt angehen und blinken, dazu die Fluter des Spiels (warmes Orange, 1500 K) und die Lampen an der Plattform. Gemessen sind Lagen und Kosten (Bildfolge bei festen Höhen, Grafikzeit je Bild); nicht beurteilen kann die Cloud: ob Helligkeit und Farbe der Fluter wie im Spiel wirken (Stärke PIT_GAIN in assets/hangar-viewer.js aus zwei Bildrunden), ob das Blinken passt (die Kurven der Spiellichtstile fehlen im Export, nachempfunden: Schacht im Sekundentakt, Plattform alle zwei Sekunden), und ob die Wände ohne ihre Detailtexturen tragen (der Export hat keine Texturkoordinaten; Nachauftrag an den PC in .planning/notes/hangar-schacht.md). Zu beurteilen am Rechner und am Telefon: zwei- oder dreimal das Schiff wechseln (klein, mittel, groß), dabei einmal steil von oben in den Schacht schauen. Die Fahrzeit bleibt 1,9 s ab und 2,8 s auf; das Spiel braucht 12,5 s je Richtung, angleichen nur auf Ansage. Beleg: /mnt/project-files/hangar/v33-schacht-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-16T01:30:00.000Z",
     "resolved_at": null
   }
 ]

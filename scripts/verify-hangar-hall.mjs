@@ -20,7 +20,7 @@
    mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   ZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   ELF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -111,6 +111,21 @@
         die Halle neu oder verschiebt sie, trifft das Rechteck daneben. Dazu
         traegt das Feld in jeder Hallenstufe mindestens `min` Dreiecke, und
         jeder Schluessel ist die Halle der Seite.
+    11  Unter dem Feld steht der Schacht aus dem Spiel (seit 16.10.2026):
+        HALL_SHAFT im Viewer reiht je Halle die Teile eines Schachtbausatzes
+        (Wand, Rippe, Ecke, Randleiste, Warnlampen) um das Feld aus
+        HALL_LIFT, die Seite gibt Bausatz und Lampenliste mit
+        (opts.hall.lift). Vorher fuhr das Feld in ein schwarzes Loch, die
+        Bodenkanten der Halle schwebten (Bericht des Betreibers 15.10.2026).
+        Geprueft: jeder Schluessel ist die Halle der Seite und hat ein
+        Feld; die Seite gibt genau den genannten Bausatz mit, beide Dateien
+        liegen in dist/; der Bausatz traegt alle Teile, jedes Wandteil in
+        seinem Rahmen und so lang wie in der Lampenliste; Laengs- und
+        Querwand sind mit den Ecken ohne Luecke bedeckt (sonst saehe man
+        hinter den Schacht), die Randleiste reicht genau bis ans Ende
+        (sonst klafft die Kante zum Hallenboden), jede Warnlampe sitzt auf
+        einer Rippe; die Dreiecke liegen zwischen Klinke und Obergrenze,
+        die Lampen ueber ihrer Klinke (KLINKE_SCHACHT).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -158,6 +173,12 @@ const KLINKE_ERGAENZUNG = { 'revelyork-single': 15482 };
 // der Decke 142, Rueckwand der Schlitze unten im Nordtor 4 (24 weitere im
 // Kasten deckungsgleich mit der leichteren Stufe, ausgelassen). Gleiche
 // Regel wie oben.
+// Schacht je Halle (HALL_SHAFT): Dreiecke des gebauten Schachts bei 36 m
+// Tiefe zwischen Klinke und Obergrenze, Lampen der Lampenliste mit Licht
+// mindestens. Stand 16.10.2026, Bausatz medtop dd92c876: 28 264 Dreiecke
+// (der Viewer zaehlt dasselbe), 84 Lampen. Obergrenze 60 000: so viel wie
+// ein mittleres Schiff, fuer zwei Sekunden Fahrt. Gleiche Regel wie oben.
+const KLINKE_SCHACHT = { 'revelyork-single': { minTris: 28264, maxTris: 60000, lights: 84 } };
 const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
@@ -711,8 +732,100 @@ if (LIFT) {
 }
 sollIst(LIFT ? `je Hallenstufe 0 Dreiecke, die ins Feld reichen, mindestens ${LIFT.min} fahren; aus Moebel- und Telefon-Datei 0 Teile und 0 Moebel im Feld` : 'kein Aufzug fuer diese Halle', [...liftRuns.map((r) => `${r.u}: ${r.torn} reichen hinein, ${r.moved} fahren`), ...liftExtra.map((r) => `${r.u}: ${r.stay} Teile, ${r.floating} Moebel`)].join('; ') || '(nichts gemessen)');
 
+say('\n[11] Unter dem Feld steht der Schacht aus dem Spiel, ohne Luecke an Wand und Rand');
+// Der Block steht im Viewer zwischen /* hall-shaft */ und /* /hall-shaft */ und ist JSON
+const shm = /\/\* hall-shaft \*\/([\s\S]*?)\/\* \/hall-shaft \*\//.exec(viewer);
+let shaftAll = null;
+try { shaftAll = shm ? JSON.parse(shm[1]) : null; } catch (e) { fail(`[11] HALL_SHAFT im Viewer ist kein JSON mehr (${e.message})`); }
+if (viewer && !shm) fail('[11] der Viewer traegt keinen Block /* hall-shaft */ … /* /hall-shaft */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+shaftAll ??= {};
+for (const k of Object.keys(shaftAll).filter((k) => k !== hall?.id)) fail(`[11] HALL_SHAFT["${k}"]: die Seite laedt diese Halle nicht; Eintrag entfernen oder die Halle zurueck`);
+for (const k of Object.keys(KLINKE_SCHACHT).filter((k) => k !== hall?.id)) fail(`[11] KLINKE_SCHACHT["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
+const SHAFT = hall?.id ? shaftAll[hall.id] ?? null : null;
+const shaftRun = { parts: 0, tris: 0, lamps: 0, lights: 0, sides: [] };
+if (SHAFT && !LIFT) fail(`[11] HALL_SHAFT["${hall.id}"] ohne HALL_LIFT: Der Schacht steht unter dem Aufzug, ohne Feld gibt es keinen`);
+if (!SHAFT && hall?.lift) fail(`[11] die Seite gibt einen Schacht mit (${hall.lift.url?.split('?')[0]}), HALL_SHAFT im Viewer kennt fuer ${hall.id} keinen: Er wuerde geladen, aber nie gebaut. HALL_SHAFT eintragen oder HangarApp.astro ohne lift`);
+if (SHAFT && LIFT) {
+  const K = KLINKE_SCHACHT[hall.id];
+  if (!K) fail(`[11] die Halle ${hall.id} hat keine KLINKE_SCHACHT in diesem Tor: gemessene Werte eintragen`);
+  const pairs = (a) => Array.isArray(a) && a.every((q) => Array.isArray(q) && q.length === 2 && typeof q[0] === 'string' && Number.isFinite(q[1]));
+  if (!SHAFT.kit || !pairs(SHAFT.long) || !pairs(SHAFT.cross) || !Array.isArray(SHAFT.lamps?.long) || !Array.isArray(SHAFT.lamps?.cross)) fail(`[11] HALL_SHAFT["${hall.id}"] braucht kit, long und cross als [Teil, Anfang] und lamps { long, cross }`);
+  else if (!hall.lift?.url || !hall.lift?.json) fail(`[11] HALL_SHAFT["${hall.id}"] nennt den Bausatz ${SHAFT.kit}, die Seite gibt keinen Schacht mit (opts.hall.lift { url, json }): Der Viewer liesse das Feld wieder ins Schwarze fahren. hangar-assets.json (lift) und HangarApp.astro pruefen`);
+  else if (!existsSync(fromUrl(hall.lift.url)) || !existsSync(fromUrl(hall.lift.json))) fail(`[11] der Schacht ${hall.lift.url.split('?')[0]} oder seine Lampenliste ${hall.lift.json.split('?')[0]} liegt nicht in dist/`);
+  else if (!hall.lift.url.split('?')[0].endsWith(`/${SHAFT.kit}.glb`)) fail(`[11] HALL_SHAFT["${hall.id}"] nennt den Bausatz ${SHAFT.kit}, die Seite laedt ${hall.lift.url.split('?')[0]}`);
+  else {
+    let info = null;
+    try { info = JSON.parse(readFileSync(fromUrl(hall.lift.json), 'utf8')); } catch (e) { fail(`[11] ${hall.lift.json.split('?')[0]} ist kein JSON (${e.message})`); }
+    const doc = await decode(fromUrl(hall.lift.url));
+    // je Teil: Ausdehnung im Bezugssystem des Teils und Dreiecke
+    const box = new Map();
+    for (const node of doc.getRoot().listNodes()) {
+      const mesh = node.getMesh();
+      if (!mesh) continue;
+      const w = node.getWorldMatrix(), mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+      let tris = 0;
+      for (const p of mesh.listPrimitives()) {
+        const P = p.getAttribute('POSITION')?.getArray();
+        if (!P) continue;
+        tris += (p.getIndices()?.getCount() ?? P.length / 3) / 3;
+        for (let i = 0; i + 2 < P.length; i += 3) {
+          const x = P[i], y = P[i + 1], z = P[i + 2];
+          const q = [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
+          for (let a = 0; a < 3; a++) { mn[a] = Math.min(mn[a], q[a]); mx[a] = Math.max(mx[a], q[a]); }
+        }
+      }
+      box.set(node.getName(), { mn, mx, tris });
+    }
+    const need = ['wall', 'wall_upper', 'rib', 'corner', 'rim', 'rim_corner', 'light_0', 'light_1'];
+    const miss = need.filter((r) => !box.has(r));
+    if (miss.length) fail(`[11] dem Schacht ${hall.lift.url.split('?')[0]} fehlen Teile: ${miss.join(', ')} (der Viewer baut ihn dann nicht)`);
+    // Laenge entlang der Wand (x) gegen die Lampenliste: verrutscht ein Teil
+    // beim Export, klafft die Wand
+    const E = 0.05;
+    for (const r of ['wall', 'wall_upper', 'rib', 'rim', 'rim_8']) {
+      const b = box.get(r), sz = info?.modules?.[r]?.size;
+      if (!b || !sz) { if (r !== 'rim_8') fail(`[11] Teil ${r}: keine Groesse in ${hall.lift.json.split('?')[0]} (modules.${r}.size)`); continue; }
+      if (Math.abs(b.mn[0]) > E || Math.abs(b.mx[0] - sz[0]) > E || Math.abs(b.mx[1] - b.mn[1] - sz[1]) > E || b.mx[2] > E) fail(`[11] Teil ${r} liegt nicht in seinem Rahmen: x ${b.mn[0].toFixed(2)}..${b.mx[0].toFixed(2)} (Soll 0..${sz[0]}), Hoehe ${(b.mx[1] - b.mn[1]).toFixed(2)} (Soll ${sz[1]}), Wand bei z <= 0 (Ist bis ${b.mx[2].toFixed(2)}). Export pruefen (scripts/build-hangar-assets.mjs, LIFT_PARTS)`);
+    }
+    const corner = box.get('corner');
+    const inset = corner ? Math.max(0, corner.mx[0]) : 0;   // so weit ragt die Ecke an beiden Waenden herein
+    const len = { long: LIFT.to[1] - LIFT.from[1], cross: LIFT.to[0] - LIFT.from[0] };
+    const sizeOf = (r) => info?.modules?.[r]?.size?.[0] ?? (box.get(r) ? box.get(r).mx[0] - box.get(r).mn[0] : 0);
+    for (const kind of ['long', 'cross']) {
+      const L0 = len[kind];
+      // Innenflaeche bedeckt: Ecken an beiden Enden, dazu die Teile
+      const iv = [[0, inset], [L0 - inset, L0], ...SHAFT[kind].map(([r, a]) => [a, a + sizeOf(r)])].map(([a, b]) => [Math.max(0, a), Math.min(L0, b)]).filter(([a, b]) => b > a).sort((p, q) => p[0] - q[0]);
+      let reach = 0, gap = null;
+      for (const [a, b] of iv) { if (a > reach + 0.01 && !gap) gap = [reach, a]; reach = Math.max(reach, b); }
+      if (reach < L0 - 0.01 && !gap) gap = [reach, L0];
+      const bad = SHAFT[kind].filter(([r]) => !box.has(r) || !['wall', 'rib'].includes(r)).map(([r]) => r);
+      if (bad.length) fail(`[11] HALL_SHAFT["${hall.id}"].${kind}: ${bad.join(', ')} ist kein Wandteil (wall, rib)`);
+      if (gap) fail(`[11] die ${kind === 'long' ? 'Laengswand' : 'Querwand'} (${L0} m) hat eine Luecke von ${gap[0].toFixed(2)} bis ${gap[1].toFixed(2)} m: Dort saehe man hinter den Schacht ins Leere. HALL_SHAFT["${hall.id}"].${kind} nachrechnen (Ecke ${inset.toFixed(2)} m, ${SHAFT[kind].map(([r, a]) => `${r} ab ${a}`).join(', ')})`);
+      // Randleiste: 16er, dann 8er bis genau ans Ende (wie buildShaft)
+      const r16 = sizeOf('rim'), r8 = box.has('rim_8') ? sizeOf('rim_8') : 0;
+      let a = 0, rims = 0;
+      for (; r16 > 0 && a + r16 <= L0 + 1e-3; a += r16) rims++;
+      for (; r8 > 0 && a + r8 <= L0 + 1e-3; a += r8) rims++;
+      if (Math.abs(a - L0) > 0.01) fail(`[11] die Randleiste der ${kind === 'long' ? 'Laengswand' : 'Querwand'} endet bei ${a} m statt ${L0} m: Dort klafft die Kante zwischen Hallenboden und Schacht`);
+      for (const c of SHAFT.lamps[kind]) if (!SHAFT[kind].some(([r, a0]) => r === 'rib' && c >= a0 && c <= a0 + sizeOf('rib'))) fail(`[11] Warnlampe bei ${c} m an der ${kind === 'long' ? 'Laengswand' : 'Querwand'} sitzt auf keiner Rippe`);
+      const tris = 2 * ((box.get('corner')?.tris ?? 0) + (box.get('rim_corner')?.tris ?? 0) + (box.get('light_1')?.tris ?? 0)
+        + SHAFT[kind].reduce((n, [r]) => n + (box.get(r)?.tris ?? 0), 0) + SHAFT.lamps[kind].length * (box.get('light_0')?.tris ?? 0)) + 2 * rims * (box.get('rim')?.tris ?? 0);
+      shaftRun.tris += tris; shaftRun.parts += 2 * (3 + SHAFT[kind].length + SHAFT.lamps[kind].length + rims); shaftRun.lamps += 2 * SHAFT.lamps[kind].length;
+      shaftRun.sides.push(`${kind} ${L0} m: ${gap ? 'Luecke' : 'dicht'}, Rand ${a} m`);
+    }
+    // Lampen, die der Viewer rechnet (shaftLights): mit Stärke, Reichweite, nicht der Dunst
+    shaftRun.lights = (info?.lights ?? []).filter((l) => (l.states?.emergency?.intensity ?? l.intensity ?? 0) > 0.05 && l.radius > 0 && l.role !== 'fog').length;
+    if (K) {
+      if (shaftRun.tris > K.maxTris) fail(`[11] der Schacht kommt auf ${shaftRun.tris} Dreiecke, die Obergrenze ist ${K.maxTris}: zu teuer fuer einen Schiffswechsel. Bausatz pruefen (scripts/build-hangar-assets.mjs, Art lift); Obergrenze nur per Commit mit Ursache anheben`);
+      if (shaftRun.tris < K.minTris) fail(`[11] der Schacht kommt nur auf ${shaftRun.tris} Dreiecke, die Klinke verlangt ${K.minTris}: Teile verloren oder vereinfacht? KLINKE_SCHACHT nur per Commit mit Ursache senken`);
+      if (shaftRun.lights < K.lights) fail(`[11] ${hall.lift.json.split('?')[0]} bringt ${shaftRun.lights} Schachtlampen mit Licht, die Klinke verlangt ${K.lights}: Lampen beim Export verloren (Zustand emergency)? KLINKE_SCHACHT nur per Commit mit Ursache senken`);
+    }
+  }
+}
+sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, Warnlampen auf Rippen, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}` : '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

@@ -142,3 +142,63 @@ Zusammen 7 060 Dreiecke, 6 Materialien, 16 Texturen. Ein Spielschacht in medtop-
 Geänderte Skripte:
 - `scripts/extract-hangar-sources.mjs`: Teil `lift` mit Lichtern, Sequenzen, Animationen und Schichtmaterialien.
 - `scripts/build-hangar-assets.mjs`: Art `lift`, Manifest `lift.medtop` mit `url`, `json`, `bytes`, `v`, Teilen und Lampenzahl.
+
+## Einbau Cloud (2026-10-16)
+
+- **Aufbau** (`HALL_SHAFT` in `assets/hangar-viewer.js`, `buildShaft`): je
+  Schachtecke eine Ecke, Längswand (96 m) aus Wand 4…44, Rippe 44…52, Wand
+  52…92; Querwand (32 m) aus einer Wand −4…36 (die Enden stecken hinter den
+  Längswänden, wie im Spiel hinter den Ecken) mit Rippen 4…12 und 20…28.
+  Randleisten 16 m rundum (96 und 32 gehen glatt auf), Eckleiste in jeder
+  Ecke, Oberkante 0,12 m unter dem Boden. Warnlampe `light_0` auf jeder
+  Rippenmitte (sechs, wie im Spiel), Ecklampe `light_1` auf dem Boden an
+  den vier Feldecken. 36 m tief; braucht ein Schiff mehr, kommen Lagen aus
+  den Oberteilen (20 m) dazu. 28 264 Dreiecke, 6 Zeichenbefehle während
+  der Fahrt, in Ruhe nur die vier Ecklampen (2 Zeichenbefehle).
+- **Sichtbar** nur, solange das Feld unterwegs oder unten ist; in Ruhe
+  deckt es den Schacht zu und er kostet nichts.
+- **Materialien:** Der Export hat **keine Texturkoordinaten**. Der Viewer
+  nimmt darum von jeder Karte den Mittelwert (oberste Mip-Stufe) und lässt
+  die flache Normalenkarte weg. Die Lacktönung und die Abdunkelung aus den
+  Eckfarben tragen das Bild; die Trimsheet-Details fehlen. Nachauftrag für
+  einen späteren PC-Lauf: UVs (TEXCOORD_0) mit exportieren, dann zeigt der
+  Schacht die Trimsheets.
+- **Licht:** 84 Spiellampen haben im Zustand Emergency Licht (ohne Dunst,
+  Fülllicht unter 0,05). Gleiche Art und nah beieinander (unter 6 m,
+  Strahler in ähnlicher Richtung) wird eine, so auch die Fluterpaare, die
+  das Spiel an jeder Stelle doppelt setzt (62 Gruppen). Davon rechnet der
+  Shader der Wände hoch 29, mittel 20, niedrig 10 (die sechs Warnlichter
+  immer, dann nach Reichweite mal Helligkeit), der des Felds nur die 11
+  Fluter. Platz für Uniforms: Das Hallenprogramm belegt 145 Vektoren, die
+  Lampen je 3; bei 256 Vektoren (manche Telefone) bleiben 22 Lampen, darunter
+  weniger, unter 193 keine (dann nur Wände und leuchtende Warnlampen). Lage: an
+  derselben Wand im selben Abstand zur Wand, entlang der Wand Rippe auf
+  Rippe und Ecke auf Ecke. Farbe aus Farbtemperatur (1500 K der großen
+  Fluter ist warmes Orange). Abfall mit dem Quadrat der Entfernung (3 m
+  Kern), weich bis zum Radius, Kegel weich zur Mitte. Stärke `PIT_GAIN` 30
+  aus zwei Bildrunden. Die Lampen der Plattform fahren mit, beleuchten die
+  Wände, nicht die Plattform selbst (ihre Richtung fehlt im Export); die
+  Bodenstrahler (`base`) auch nur die Wände: Sie hängen unten einen Meter
+  über der Plattform und gleißten ohne Verdeckung als helle Bahnen darauf.
+- **Blinken nachempfunden:** Die Kurven der lightStyles stehen nicht in
+  den Spieldaten. Stil 5 (Warnlichter am Schacht) weich an und aus im
+  Sekundentakt, Stil 2 (Plattform) ein Puls alle zwei Sekunden.
+- **Schiff und Crew** im Schacht: Abdunkelung wie bisher, aufgehellt um das
+  Schachtlicht an ihrer Stelle (`pitAt`, `PIT_SHIP` 1,5).
+- **Fahrzeit** bleibt 1,9 s ab und 2,8 s auf; das Spiel braucht 12,5 s je
+  Richtung. Auf Wunsch angleichen (`LIFT_DOWN_MS`, `LIFT_UP_MS`).
+- **Kosten** (SwiftShader, 1920 × 1080, Stufe hoch, Grafikzeit je Bild):
+  in Ruhe wie vorher (10 134 gegen 9 967 ms, gleich im Rauschen; 3
+  Zeichenbefehle mehr für die Ecklampen). Während der Fahrt, steil von
+  oben in den halb abgefahrenen Schacht: vorher 5 998 ms (das schwarze Loch
+  kostete nichts), Wände ohne Lampen 7 662 ms, mit Lampen 9 110 ms. Ein Bild
+  in der Fahrt kostet damit so viel wie die Halle in Ruhe, nicht mehr. Ein
+  erster Stand mit 40 Lampen für Wand und Feld lag bei 9 600 ms, eine
+  Schleife ohne feste Länge bei 12 400 ms.
+- **Tor:** `verify:hangar-hall` [11] liest `HALL_SHAFT` aus dem
+  ausgelieferten Viewer und prüft Bausatz, Rahmen der Teile, Wände ohne
+  Lücke, Randleiste, Warnlampen auf Rippen, Dreiecke und Lampen gegen
+  `KLINKE_SCHACHT`. Vorgeführt rot am 16.10.2026: Längswand ohne Rippe
+  („Lücke von 44.00 bis 52.00 m“, „Warnlampe bei 48 m … auf keiner Rippe“,
+  „nur 26004 Dreiecke“) und Lampenliste auf 40 gekürzt („35
+  Schachtlampen mit Licht, die Klinke verlangt 84“).
