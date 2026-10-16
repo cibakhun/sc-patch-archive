@@ -24,11 +24,13 @@
 // eigene Datei im selben Modellraum; das Telefon lädt sie nicht, dort bringt
 // hall.patch nur Ergänzung und Füllung (siehe swapHallDetail). hall.lift ist
 // der Schachtbausatz unter dem Schiffsfeld (HALL_SHAFT) samt Lampenliste.
+// hall.workshop bringt Gerät und Boden-Decals aus anderen Spielhallen samt
+// deren Anordnung um das Landefeld (placeWorkshop).
 //
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
@@ -1026,6 +1028,244 @@ function scaleFurniture(list, s) {
     P.needsUpdate = true;
     f.s = s;
   }
+}
+
+// Werkstatt (16.10.2026). Krisz: „das ganzer hangar sieht iwi so steril aus,
+// es wirkt nicht wie ein flugzeughangar, es fehlt öl, cracks auf dem boden,
+// beton, werkzeuge, schläuche, fuel, diagnosegeräte“. Die Revel-&-York-
+// Deluxe ist im Spiel ein sauberer Ausstellungsraum: keine Abnutzung, keine
+// Boden-Decals, Möbel nur an den Wänden. Gerät und Abnutzung kommen aus
+// anderen Spielhallen (PC-Auftrag .planning/notes/hangar-werkstatt.md):
+// hall.workshop.url bringt die Requisiten (Knoten prop_*), hall.workshop.boden
+// die Boden-Decals (decal_*), die json dazu die Anordnung um das Landefeld
+// der Spielhalle (layout). placeWorkshop überträgt sie aufs Schiffsfeld: über
+// dem Feld anteilig, daneben mit demselben Abstand zum Feldrand in Metern.
+// Requisiten über dem Feld fallen weg (dort steht das Schiff, und das Feld
+// fährt); Decals dort fahren mit dem Aufzug. Wo die Halle schon etwas stehen
+// hat (floorGrid), rückt ein Requisit bis 3 m weiter oder fällt weg. Das
+// Budget je Stufe zählt Materialien, also Zeichenbefehle nach dem
+// Zusammenlegen (mergeFurniture).
+const WORK_BUDGET = { hoch: { props: 32, decals: 8 }, mittel: { props: 16, decals: 6 }, niedrig: { props: 0, decals: 4 } };
+const WORK_CELL = 0.5;          // Raster der Bodenbelegung, m
+const WORK_BAND = [0.12, 2.4];  // belegt ist, was so hoch über dem Boden liegt, m
+const WORK_EDGE = 1;            // Requisiten mindestens so weit vom Feldrand, m
+const WORK_LIFT = 0.004;        // Decals so hoch über dem Boden, m (dazu polygonOffset)
+const WORK_MOVE = 3;            // so weit darf ein Requisit ausweichen, m
+
+// Belegung des Hallenbodens im Modellraum: je Zelle (WORK_CELL) 1, wenn
+// Halle oder Einrichtung dort im Band WORK_BAND über dem Boden etwas hat.
+// Kanten werden abgeschritten (senkrechte Wände haben im Grundriss keine
+// Fläche), Flächen über die Zellmitten geprüft.
+async function floorGrid(model, room, floorY, skip, pause = noPause) {
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const C = WORK_CELL, x0 = room.center[0] - room.halfW, z0 = room.center[2] - room.halfL;
+  const nx = Math.ceil((2 * room.halfW) / C), nz = Math.ceil((2 * room.halfL) / C);
+  const cells = new Uint8Array(nx * nz);
+  const y0 = floorY + WORK_BAND[0], y1 = floorY + WORK_BAND[1];
+  const mark = (x, z) => {
+    const i = Math.floor((x - x0) / C), j = Math.floor((z - z0) / C);
+    if (i >= 0 && j >= 0 && i < nx && j < nz) cells[j * nx + i] = 1;
+  };
+  const edge = (ax, az, bx, bz) => {
+    const n = Math.ceil(Math.hypot(bx - ax, bz - az) / (C * 0.5)) || 1;
+    for (let s = 0; s <= n; s++) mark(ax + ((bx - ax) * s) / n, az + ((bz - az) * s) / n);
+  };
+  const meshes = [];
+  model.traverse((n) => {
+    if (!n.isMesh || !n.geometry.attributes.position) return;
+    for (let p = n; p; p = p.parent) if (skip.has(p)) return;
+    meshes.push(n);
+  });
+  const M = new THREE.Matrix4(), bb = new THREE.Box3();
+  const band = new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x0 + nx * C, y1, z0 + nz * C));
+  let tris = 0;
+  for (const mesh of meshes) {
+    await pause();
+    const g = mesh.geometry, P = g.attributes.position;
+    M.multiplyMatrices(toModel, mesh.matrixWorld);
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (!bb.copy(g.boundingBox).applyMatrix4(M).intersectsBox(band)) continue;
+    const m = M.elements, n = P.count, X = new Float32Array(n), Y = new Float32Array(n), Z = new Float32Array(n);
+    const raw = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize === 3 ? P.array : null;
+    for (let i = 0; i < n; i++) {
+      const x = raw ? raw[i * 3] : P.getX(i), y = raw ? raw[i * 3 + 1] : P.getY(i), z = raw ? raw[i * 3 + 2] : P.getZ(i);
+      X[i] = m[0] * x + m[4] * y + m[8] * z + m[12];
+      Y[i] = m[1] * x + m[5] * y + m[9] * z + m[13];
+      Z[i] = m[2] * x + m[6] * y + m[10] * z + m[14];
+    }
+    const I = g.index?.array, T = I ? I.length : n;
+    for (let t = 0; t + 2 < T; t += 3) {
+      if (!(t % 49152)) await pause();
+      const a = I ? I[t] : t, b = I ? I[t + 1] : t + 1, c = I ? I[t + 2] : t + 2;
+      if (Math.max(Y[a], Y[b], Y[c]) < y0 || Math.min(Y[a], Y[b], Y[c]) > y1) continue;
+      tris++;
+      edge(X[a], Z[a], X[b], Z[b]); edge(X[b], Z[b], X[c], Z[c]); edge(X[c], Z[c], X[a], Z[a]);
+      const d = (X[b] - X[a]) * (Z[c] - Z[a]) - (X[c] - X[a]) * (Z[b] - Z[a]);
+      if (Math.abs(d) < C * C) continue;
+      const i0 = Math.max(0, Math.floor((Math.min(X[a], X[b], X[c]) - x0) / C)), i1 = Math.min(nx - 1, Math.floor((Math.max(X[a], X[b], X[c]) - x0) / C));
+      const j0 = Math.max(0, Math.floor((Math.min(Z[a], Z[b], Z[c]) - z0) / C)), j1 = Math.min(nz - 1, Math.floor((Math.max(Z[a], Z[b], Z[c]) - z0) / C));
+      const sg = Math.sign(d);
+      for (let j = j0; j <= j1; j++) {
+        const pz = z0 + (j + 0.5) * C;
+        for (let i = i0; i <= i1; i++) {
+          const px = x0 + (i + 0.5) * C;
+          if (sg * ((X[b] - X[a]) * (pz - Z[a]) - (Z[b] - Z[a]) * (px - X[a])) >= 0
+            && sg * ((X[c] - X[b]) * (pz - Z[b]) - (Z[c] - Z[b]) * (px - X[b])) >= 0
+            && sg * ((X[a] - X[c]) * (pz - Z[c]) - (Z[a] - Z[c]) * (px - X[c])) >= 0) cells[j * nx + i] = 1;
+        }
+      }
+    }
+  }
+  // Rechteck [x ± hx] × [z ± hz]: ganz im Raum und frei / als belegt eintragen
+  const span = (x, z, hx, hz) => [Math.floor((x - hx - x0) / C), Math.floor((x + hx - x0) / C), Math.floor((z - hz - z0) / C), Math.floor((z + hz - z0) / C)];
+  const free = (x, z, hx, hz) => {
+    const [i0, i1, j0, j1] = span(x, z, hx, hz);
+    if (i0 < 0 || j0 < 0 || i1 >= nx || j1 >= nz) return false;
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) if (cells[j * nx + i]) return false;
+    return true;
+  };
+  const fill = (x, z, hx, hz) => {
+    const [i0, i1, j0, j1] = span(x, z, hx, hz);
+    for (let j = Math.max(0, j0); j <= Math.min(nz - 1, j1); j++) for (let i = Math.max(0, i0); i <= Math.min(nx - 1, i1); i++) cells[j * nx + i] = 1;
+  };
+  let used = 0;
+  for (const v of cells) used += v;
+  return { free, fill, tris, share: used / cells.length };
+}
+
+// Requisiten und Decals aus der Werkstattdatei an ihre Plätze (siehe oben).
+// scenes: die geladenen GLBs (Requisiten, Boden), info: die json, L: das
+// Schiffsfeld (HALL_LIFT), budget: WORK_BUDGET der Stufe, grid: floorGrid.
+// Liefert { nodes, field, stats }: nodes (Requisiten und Decals neben dem
+// Feld) hängen mit Bezugspunkt (userData.anchor) im Modell, für
+// mergeFurniture; field (Decals auf dem Feld) für die Aufzugsgruppe.
+function placeWorkshop(model, scenes, info, L, floorY, budget, grid) {
+  const R = THREE.MathUtils.DEG2RAD;
+  const kit = new Map();
+  for (const s of scenes) s?.traverse((n) => { if (/^(prop|decal)_/.test(n.name) && !kit.has(n.name)) kit.set(n.name, n); });
+  const cx = (L.from[0] + L.to[0]) / 2, cz = (L.from[1] + L.to[1]) / 2, hx = (L.to[0] - L.from[0]) / 2, hz = (L.to[1] - L.from[1]) / 2;
+  const decalInfo = new Map((info.decals || []).map((d) => [d.node, d]));
+  const stats = { source: info.layout?.source || null, props: 0, decals: 0, field: 0, inField: 0, blocked: 0, moved: 0, overBudget: 0, missing: 0 };
+  // Maße je Knoten im eigenen Raum (Ursprung unten mittig), Materialien
+  const box = new THREE.Box3(), meta = new Map();
+  const metaOf = (name) => {
+    if (meta.has(name)) return meta.get(name);
+    const c = kit.get(name).clone();
+    c.position.set(0, 0, 0); c.quaternion.identity(); c.scale.set(1, 1, 1);
+    c.updateMatrixWorld(true);
+    box.setFromObject(c);
+    const mats = new Set();
+    c.traverse((o) => { if (o.isMesh) for (const m of [].concat(o.material)) mats.add(m); });
+    const e = { size: box.getSize(new THREE.Vector3()), centre: box.getCenter(new THREE.Vector3()), low: box.min.y, mats };
+    meta.set(name, e);
+    return e;
+  };
+  // Anordnung: aus dem Spiel, sonst eine schlichte Aufstellung (Requisiten
+  // an den Längsseiten zum Feld gewandt, Decals verstreut auf und neben dem
+  // Feld); die Konsole sagt, welche es ist.
+  let items = (info.layout?.items || []).filter((it) => {
+    if (kit.has(it.node)) return true;
+    stats.missing++;
+    return false;
+  });
+  let pad = info.layout?.pad?.size;
+  if (!items.length) {
+    stats.source = null;
+    pad = [2 * hx, 2 * hz];
+    const names = [...kit.keys()];
+    let side = 1, along = [-0.5 * hz, -0.5 * hz];
+    for (const n of names.filter((n) => n.startsWith('prop_'))) {
+      const s = metaOf(n).size, k = side > 0 ? 0 : 1;
+      items.push({ node: n, at: [side * (hx + WORK_EDGE + 1.5 + s.z / 2), along[k] + s.x / 2, side > 0 ? -90 : 90, 1] });
+      along[k] += s.x + 1.5;
+      side = -side;
+    }
+    const spots = names.filter((n) => n.startsWith('decal_'));
+    for (let i = 0; i < spots.length * 3; i++) {
+      const u = ((i * 0.618034) % 1) * 2 - 1, v = ((i * 0.414214 + 0.27) % 1) * 2 - 1;
+      items.push({ node: spots[i % spots.length], at: [u * (hx + 6), v * (hz + 6), (i * 137) % 360, 1] });
+    }
+  }
+  if (!pad) pad = [2 * hx, 2 * hz];
+  let px = pad[0] / 2, pz = pad[1] / 2;
+  const turn = (px > pz) !== (hx > hz);
+  if (turn) [px, pz] = [pz, px];
+  const axis = (v, p, h) => (Math.abs(v) <= p ? (v * h) / p : Math.sign(v) * (h + Math.abs(v) - p));
+  // Budget: die häufigsten Knoten zuerst, solange ihre Materialien reinpassen
+  const allow = new Set();
+  for (const kind of ['prop_', 'decal_']) {
+    const limit = kind === 'prop_' ? budget.props : budget.decals, mats = new Set(), count = new Map();
+    if (!limit) continue;
+    for (const it of items) if (it.node.startsWith(kind)) count.set(it.node, (count.get(it.node) || 0) + 1);
+    for (const [n] of [...count].sort((a, b) => b[1] - a[1])) {
+      const add = [...metaOf(n).mats].filter((m) => !mats.has(m));
+      if (!metaOf(n).mats.size || mats.size + add.length > limit) continue;
+      for (const m of add) mats.add(m);
+      allow.add(n);
+    }
+  }
+  const nodes = [], field = [];
+  for (const it of items) {
+    if (!allow.has(it.node)) { stats.overBudget++; continue; }
+    let [x, z, r = 0, s = 1] = it.at;
+    if (turn) { [x, z] = [z, -x]; r += 90; }
+    x = axis(x, px, hx); z = axis(z, pz, hz);
+    const e = metaOf(it.node), decal = it.node.startsWith('decal_');
+    // Grundriss als achsparalleler Kasten um den gedrehten Fußabdruck
+    const di = decalInfo.get(it.node), unit = decal && di?.size && Math.abs(e.size.x - 1) < 0.05 && Math.abs(e.size.z - 1) < 0.05;
+    const sx = (unit ? di.size[0] : 1) * s, sz = (unit ? di.size[1] : 1) * s;
+    const c = Math.abs(Math.cos(r * R)), sn = Math.abs(Math.sin(r * R));
+    const fx = ((e.size.x * sx) * c + (e.size.z * sz) * sn) / 2, fz = ((e.size.x * sx) * sn + (e.size.z * sz) * c) / 2;
+    const onField = Math.abs(x) < hx && Math.abs(z) < hz;
+    if (decal) {
+      // ganz auf dem Feld (fährt mit) oder ganz daneben, nie über dem Rand
+      if (onField) {
+        x = fx < hx ? THREE.MathUtils.clamp(x, fx - hx, hx - fx) : 0;
+        z = fz < hz ? THREE.MathUtils.clamp(z, fz - hz, hz - fz) : 0;
+      } else if (Math.abs(x) < hx + fx && Math.abs(z) < hz + fz) {
+        if (hx - Math.abs(x) > hz - Math.abs(z)) z = (Math.sign(z) || 1) * (hz + fz); else x = (Math.sign(x) || 1) * (hx + fx);
+      }
+    } else {
+      if (onField) { stats.inField++; continue; }
+      // vom Feldrand weg (Normale der nächsten Kante), dann längs
+      const out = hx - Math.abs(x) > hz - Math.abs(z) ? [0, Math.sign(z) || 1] : [Math.sign(x) || 1, 0];
+      const ok = (qx, qz) => (Math.abs(qx) >= hx + WORK_EDGE + fx || Math.abs(qz) >= hz + WORK_EDGE + fz) && grid.free(cx + qx, cz + qz, fx + 0.1, fz + 0.1);
+      let at = null;
+      for (let d = 0; d <= WORK_MOVE && !at; d += 0.5) {
+        for (const t of d ? [d, -d] : [0]) {
+          for (const n of [0, 0.5, 1, 1.5, 2, 2.5, 3].filter((q) => q <= WORK_MOVE)) {
+            const qx = x + out[0] * n + out[1] * t, qz = z + out[1] * n + out[0] * t;
+            if (ok(qx, qz)) { at = [qx, qz]; break; }
+          }
+          if (at) break;
+        }
+      }
+      if (!at) { stats.blocked++; continue; }
+      if (at[0] !== x || at[1] !== z) stats.moved++;
+      [x, z] = at;
+      grid.fill(cx + x, cz + z, fx, fz);
+    }
+    // Ursprung unten mittig (so bestellt); liegt er anders, gleicht der Kasten es aus
+    const n = kit.get(it.node).clone(), ox = e.centre.x * sx, oz = e.centre.z * sz, cr = Math.cos(r * R), sr = Math.sin(r * R);
+    n.position.set(cx + x - (ox * cr + oz * sr), floorY - e.low * s + (decal ? WORK_LIFT : 0), cz + z + ox * sr - oz * cr);
+    n.rotation.set(0, r * R, 0);
+    n.scale.set(sx, s, sz);
+    n.userData.anchor = [cx + x, floorY, cz + z];
+    n.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = false; o.receiveShadow = true;
+      if (decal) for (const m of [].concat(o.material)) {
+        m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2;
+        if (m.transparent) m.depthWrite = false;
+        m.userData.workDecal = true;
+      }
+    });
+    model.add(n);
+    if (decal && onField) { field.push(n); stats.field++; } else nodes.push(n);
+    if (decal) stats.decals++; else stats.props++;
+  }
+  return { nodes, field, stats };
 }
 
 // Hallen-UVs prüfen: Ist bei einem Material der Großteil der Dreiecke ohne
@@ -3095,7 +3335,7 @@ export async function initHangar(container, opts = {}) {
     const corners = [];
     for (const x of [-halfW, halfW]) for (const z of [-halfL, halfL]) corners.push(new THREE.Vector3((c[0] - o[0] + x) * k, (c[1] - f) * k, (c[2] - o[2] + z) * k));
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
-    const clear = (m) => m.transparent || m.transmission > 0 || /glass/i.test(m.name);
+    const clear = (m) => m.transparent || m.transmission > 0 || /glass/i.test(m.name) || m.userData.workDecal;
     scene.traverse((o) => {
       if (o.visible && ((o.isMesh && [].concat(o.material).some(clear)) || o.isPoints || o.isLine || o.isSprite)) hide.push(o);
     });
@@ -3750,6 +3990,20 @@ ${HALL_LIGHTS_BEGIN}
         return null;
       })
       : Promise.resolve(null);
+    // Werkstatt (placeWorkshop), parallel; am Telefon und auf niedrig nur die
+    // Bodendatei, ohne sie steht die Halle wie bisher
+    const WB = WORK_BUDGET[SMALL ? 'niedrig' : Q0] ?? WORK_BUDGET.niedrig, W = h.workshop;
+    const workReady = W?.url && W.json
+      ? Promise.all([
+        WB.props > 0 ? fetchGltf(W.url, 'workshop', W.bytes || 6e6).then((g) => g.scene) : null,
+        W.boden?.url && WB.decals > 0 ? fetchGltf(W.boden.url, 'workshop-floor', W.boden.bytes || 2e6).then((g) => g.scene) : null,
+        fetch(W.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${W.json}: ${r.status}`)))),
+      ]).then(([props, boden, info]) => ({ scenes: [props, boden], info }), (e) => {
+        console.warn('[hangar] Werkstatt nicht geladen', e);
+        prog.delete('workshop'); prog.delete('workshop-floor');
+        return null;
+      })
+      : Promise.resolve(null);
     hallSettled = fetchGltf(h.url, 'hall', h.bytes || 1.1e7).then(async (gltf) => {
       const model = gltf.scene;
       const c = h.room.center, o = hallSpot(h);
@@ -3825,6 +4079,31 @@ ${HALL_LIGHTS_BEGIN}
         console.info(`[hangar] Einrichtung: ${furn.length} Möbel in ${furniture.length} Meshes, ${tris} Dreiecke, ${Math.round(performance.now() - t1)} ms`);
       }
       await pause();
+      // Werkstatt um das Feld, nach der Einrichtung (sie belegt den Boden mit)
+      const work = L ? await workReady : null;
+      if (work) {
+        const t6 = performance.now();
+        try {
+          const grid = WB.props > 0 ? await floorGrid(model, h.room, floorY, new Set([lift?.group].filter(Boolean)), pause) : null;
+          const w = placeWorkshop(model, work.scenes, work.info, L, floorY, WB, grid);
+          model.updateMatrixWorld(true);
+          const merged = await mergeFurniture(model, w.nodes, pause);
+          const ride = lift && w.field.length ? await mergeFurniture(lift.group, w.field, pause) : [];
+          for (const n of [...w.nodes, ...w.field]) {
+            let left = false;
+            n.traverse((o) => { if (o.isMesh) left = true; });
+            if (!left) n.removeFromParent();
+          }
+          // Decals bleiben in Originalgröße (scaleFurniture), sperren der Kamera aber keinen Raum
+          for (const f of merged) f.flat = !!f.mesh.material.userData.workDecal;
+          furniture.push(...merged);
+          const st = w.stats, tri = [...merged, ...ride].reduce((sum, f) => sum + f.mesh.geometry.index.count / 3, 0);
+          console.info(`[hangar] Werkstatt: ${st.props} Requisiten, ${st.decals} Decals (${st.field} auf dem Feld) in ${merged.length + ride.length} Meshes, ${tri} Dreiecke; Anordnung ${st.source ? `aus ${st.source}` : 'eigene (keine aus dem Spiel)'}; ${st.moved} ausgewichen, weggelassen: ${st.inField} im Feld, ${st.blocked} verstellt, ${st.overBudget} über dem Budget (${WB.props}/${WB.decals}), ${st.missing} ohne Knoten; ${grid ? `Boden ${Math.round(grid.share * 100)} % belegt (${grid.tris} Dreiecke); ` : ''}${Math.round(performance.now() - t6)} ms`);
+        } catch (e) {
+          console.warn('[hangar] Werkstatt nicht aufgestellt', e);
+        }
+        await pause();
+      }
       // Abdunkelung aus dem Spiel: Im Spiel tragen die Wandmaterialien
       // %VERTCOLORS, ihr COLOR_0 ist Grau (R = G = B) und dunkelt die
       // Paneele verschieden ab. Als eigenes Attribut (hgShade, der Hallen-
@@ -4046,12 +4325,12 @@ ${HALL_LIGHTS_BEGIN}
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
-      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift');
+      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor');
       return true;
     }).catch((e) => {
       // ohne echte Halle die gebaute
       console.warn('[hangar] Halle nicht geladen', e);
-      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift');
+      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor');
       hallFailed = true;
       dropHallLamps();
       buildStage();
@@ -4803,6 +5082,7 @@ ${HALL_LIGHTS_BEGIN}
   function furnitureBoxes(list, m) {
     const out = [];
     for (const f of list) {
+      if (f.flat) continue;
       if (!f.box0) {
         const P = f.base || f.mesh.geometry.attributes.position.array;
         f.box0 = f.pieces.map(([i0, i1]) => {
