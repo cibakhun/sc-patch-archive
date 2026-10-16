@@ -206,4 +206,6 @@ Geänderte Skripte:
   von PR #110 verschärft und wieder rot vorgeführt: zwei Lampen auf einer
   Querrippe („die Rippe ab 4 m … traegt 2 Warnlampen“, „ab 20 m … 0“) und
   eine Rippe 2 m nach oben verrutscht bei gleicher Höhe („y 2.00..34.00
-  (Soll 0..32)“; vorher prüfte das Tor nur die Höhe).
+  (Soll 0..32)“; vorher prüfte das Tor nur die Höhe). Dazu muss jede
+  Wand Rippen haben: Querwand nur aus einer Wand, ohne Lampen („die
+  Querwand hat keine Rippe“, die Dreiecksklinke reißt mit).

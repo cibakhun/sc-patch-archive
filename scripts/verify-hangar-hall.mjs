@@ -810,6 +810,7 @@ if (SHAFT && LIFT) {
       // genau eine Warnlampe je Rippe (wie im Spiel): eine doppelt gesetzte darf keine fehlende verdecken
       const ribs = SHAFT[kind].filter(([r]) => r === 'rib').map(([, a0]) => a0), wand = kind === 'long' ? 'Laengswand' : 'Querwand';
       const onRib = SHAFT.lamps[kind].map((c) => [c, ribs.find((a0) => c >= a0 && c <= a0 + sizeOf('rib'))]);
+      if (!ribs.length) fail(`[11] HALL_SHAFT["${hall.id}"].${kind}: die ${wand} hat keine Rippe, im Spiel traegt jede Schachtwand Rippen mit Warnlampen; ohne sie zaehlte diese Pruefung nichts`);
       for (const [c, a0] of onRib) if (a0 == null) fail(`[11] Warnlampe bei ${c} m an der ${wand} sitzt auf keiner Rippe`);
       for (const a0 of ribs) {
         const n = onRib.filter(([, o]) => o === a0).length;
