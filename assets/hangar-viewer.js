@@ -422,6 +422,16 @@ const HALL_SHAFT = /* hall-shaft */ {
 // Lagen über der Wand: Oberteile von Wand, Rippe und Ecke (der Bausatz
 // trennt sie bei 12 m Höhe: Unterteil 12 m, Oberteil 20 m)
 const SHAFT_SPLIT = 12;
+// Rand der Öffnung (16.10.2026, Krisz: „zu dünn, ... als wäre es aus
+// papier“). Die Randleiste des Spiels ist unter dem Hallenboden eine 3 m
+// tiefe Nische, und die Bodenplatte der Halle ist am Schnitt des Felds
+// offen (in der Halle schließt das Feld an). Von oben sah man durch die
+// Platte in die Nische, der Boden las sich wie ein Blatt über dem Leeren.
+// Darum rücken Decke und Rückwand der Nische nach vorn (die Lippen
+// bleiben), und die Platte bekommt an der Öffnung ihre Stirn (shaftEdge).
+const SHAFT_RIM_DEPTH = 0.5;   // Nische nur so tief (im Spiel 3 m)
+const SHAFT_EDGE_GAP = 0.02;   // Stirn so weit hinter der Wandebene: Die Plattform fährt davor vorbei
+const SHAFT_RIMS = { rim: ['z'], rim_8: ['z'], rim_corner: ['x', 'z'] };   // Tiefenachsen der Randleisten
 
 // Teile eines Schachtbausatzes als einfache Geometrien je Material, im
 // Bezugssystem des Teils: Lage, Normale, Abdunkelung aus dem Spiel
@@ -462,6 +472,25 @@ function shaftPieces(node, band) {
   return out;
 }
 
+// Randleiste mit flacher Nische (SHAFT_RIM_DEPTH): im Bezugssystem des Teils
+// (y ab 0 bis h, Wand bei <= 0 auf den Achsen `axes`) rückt, was hinter der
+// Wandebene liegt, auf die neue Tiefe vor, die Decke mit; die obere Lippe
+// tritt hinter die Stirn der Bodenplatte zurück. Unten der Sockel (y 0)
+// bleibt, wie er ist, und die untere Lippe vorn auch.
+function rimShallow(parts, axes, h) {
+  const lip = SHAFT_EDGE_GAP + 0.02;
+  for (const p of parts) for (let i = 0; i < p.pos.length; i += 3) {
+    const y = p.pos[i + 1], top = y > h - 0.3;
+    if (y < 0.05) continue;
+    for (const ax of axes) {
+      const j = i + (ax === 'x' ? 0 : 2), c = p.pos[j];
+      if (c < -0.01) p.pos[j] = Math.max(c, -SHAFT_RIM_DEPTH);
+      else if (c <= 0.01 && top) p.pos[j] = -lip;
+    }
+  }
+  return parts;
+}
+
 // Baut den Schacht im Schachtraum: Ursprung in der Feldmitte auf
 // Bodenhöhe, x quer (Feldbreite), z längs, y oben. Liefert { group, pit,
 // tris, parts, depth, fit(tiefe) }: fit legt Lagen dazu oder nimmt sie weg,
@@ -481,7 +510,7 @@ function buildShaft(kit, info, L, lay) {
   const cache = new Map();
   const piece = (r, band = false) => {
     const k = `${r}|${band}`;
-    if (!cache.has(k)) cache.set(k, shaftPieces(node(r), band));
+    if (!cache.has(k)) cache.set(k, SHAFT_RIMS[r] ? rimShallow(shaftPieces(node(r), band), SHAFT_RIMS[r], size(r).at(-1)) : shaftPieces(node(r), band));
     return cache.get(k);
   };
   // die vier Wände, je mit linker Innenecke und Drehung um y
@@ -572,6 +601,144 @@ function buildShaft(kit, info, L, lay) {
   };
   sh.fit(depth0);
   return sh;
+}
+
+// Die vier Ränder der Öffnung im Schachtraum: Anfang, Richtung entlang,
+// Richtung nach außen (vom Schacht weg), Länge
+const shaftSides = (hx, hz) => [
+  { o: [hx, -hz], t: [0, 1], n: [1, 0], len: 2 * hz },
+  { o: [-hx, hz], t: [0, -1], n: [-1, 0], len: 2 * hz },
+  { o: [hx, hz], t: [-1, 0], n: [0, 1], len: 2 * hx },
+  { o: [-hx, -hz], t: [1, 0], n: [0, -1], len: 2 * hx },
+];
+
+// Bodenplatte der Halle am Rand des Felds: die Unterseiten, die außen an
+// der Feldkante ansetzen (Schachtraum, `at` sein Ursprung im Modellraum).
+// Liefert die Höhe, an der die meiste Kantenlänge hängt, als Dicke `t`,
+// dazu ihr Material und ihr Texturmaß quer zur Kante und entlang (UV an
+// der Kante, je Meter entlang, je Meter nach außen), oder null.
+async function hallSlab(model, L, at, skip, pause = noPause) {
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert(), M = new THREE.Matrix4();
+  const hx = (L.to[0] - L.from[0]) / 2, hz = (L.to[1] - L.from[1]) / 2, E = 0.05, sides = shaftSides(hx, hz);
+  const Y0 = at[1] - 3, Y1 = at[1] - 0.35;   // Unterseite tiefer als die des Felds (0,3 m)
+  // je Rand ein schmaler Kasten um die Kante: nur Dreiecke mit einer Ecke darin
+  const strips = sides.map((s) => new THREE.Box3().setFromPoints([
+    new THREE.Vector3(at[0] + s.o[0] - E, Y0, at[2] + s.o[1] - E),
+    new THREE.Vector3(at[0] + s.o[0] + s.t[0] * s.len + E, Y1, at[2] + s.o[1] + s.t[1] * s.len + E),
+  ]).expandByVector(new THREE.Vector3(E, 0, E)));
+  const band = strips.reduce((b, k) => b.union(k), new THREE.Box3());
+  const bb = new THREE.Box3(), Mi = new THREE.Matrix4(), A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3(), W = new THREE.Vector3();
+  const meshes = [];
+  model.traverse((n) => {
+    if (!n.isMesh || !n.geometry.index || n.geometry.groups.length || !n.geometry.attributes.uv || Array.isArray(n.material)) return;
+    for (let p = n; p; p = p.parent) if (skip.has(p)) return;
+    meshes.push(n);
+  });
+  const by = new Map();
+  for (const mesh of meshes) {
+    await pause();
+    const g = mesh.geometry, P = g.attributes.position, U = g.attributes.uv, I = g.index.array;
+    M.multiplyMatrices(toModel, mesh.matrixWorld);
+    const flip = M.determinant() < 0 ? -1 : 1;   // gespiegelt: Umlaufsinn kehrt sich um
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (!bb.copy(g.boundingBox).applyMatrix4(M).intersectsBox(band)) continue;
+    // wie cutHallLift: erst die Ecken grob im Knotenraum (dorthin gedrehte
+    // Kästen), dann genau die Dreiecke, die mit einer Ecke an der Kante
+    // liegen (die Platten reichen 8 m nach außen)
+    const raw = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize === 3 ? P.array : null;
+    Mi.copy(M).invert();
+    const nb = strips.map((k) => k.clone().applyMatrix4(Mi)).filter((k) => !raw || k.intersectsBox(g.boundingBox)).map((k) => [k.min.x, k.min.y, k.min.z, k.max.x, k.max.y, k.max.z]);
+    if (!nb.length) continue;
+    // die Höhe zuerst: Boden und Wände fallen dort schon heraus
+    const ylo = Math.min(...nb.map((k) => k[1])), yhi = Math.max(...nb.map((k) => k[4])), nk = nb.length;
+    const near = new Uint8Array(P.count);
+    let found = 0;
+    for (let i = 0; i < P.count; i++) {
+      if (!(i & 16383)) await pause();
+      if (raw) {
+        const y = raw[i * 3 + 1];
+        if (y < ylo || y > yhi) continue;
+        const x = raw[i * 3], z = raw[i * 3 + 2];
+        for (let j = 0; j < nk; j++) {
+          const k = nb[j];
+          if (x >= k[0] && x <= k[3] && y >= k[1] && y <= k[4] && z >= k[2] && z <= k[5]) { near[i] = 1; found++; break; }
+        }
+      } else if (strips.some((k) => k.containsPoint(A.fromBufferAttribute(P, i).applyMatrix4(M)))) { near[i] = 1; found++; }
+    }
+    if (!found) continue;
+    for (let t = 0; t + 2 < I.length; t += 3) {
+      if (!(t % 49152)) await pause();
+      const ia = I[t], ib = I[t + 1], ic = I[t + 2];
+      if (!near[ia] && !near[ib] && !near[ic]) continue;
+      A.fromBufferAttribute(P, ia).applyMatrix4(M); B.fromBufferAttribute(P, ib).applyMatrix4(M); C.fromBufferAttribute(P, ic).applyMatrix4(M);
+      if (A.y > Y1 || A.y < Y0 || Math.abs(B.y - A.y) > 0.01 || Math.abs(C.y - A.y) > 0.01) continue;
+      // nach unten gewandt
+      N.subVectors(B, A).cross(W.subVectors(C, A)).multiplyScalar(flip);
+      if (N.y > -0.99 * N.length() || N.y > -1e-6) continue;
+      const q = [A, B, C].map((v) => [v.x - at[0], v.z - at[2]]);
+      for (const s of sides) {
+        const off = s.n[0] ? s.n[0] * s.o[0] : s.n[1] * s.o[1];   // Abstand der Kante von der Mitte
+        const pa = q.map(([x, z]) => (x - s.o[0]) * s.t[0] + (z - s.o[1]) * s.t[1]), pc = q.map(([x, z]) => x * s.n[0] + z * s.n[1] - off);
+        if ((pc[0] + pc[1] + pc[2]) / 3 < E) continue;   // außen am Feld
+        let len = 0;
+        for (const [i, j] of [[0, 1], [1, 2], [2, 0]]) {
+          if (Math.abs(pc[i]) < E && Math.abs(pc[j]) < E && Math.min(pa[i], pa[j]) > -E && Math.max(pa[i], pa[j]) < s.len + E) len += Math.abs(pa[j] - pa[i]);
+        }
+        if (len < 0.5) continue;
+        const k = Math.round((at[1] - A.y) * 100);
+        const e = by.get(k) ?? { len: 0, best: 0 };
+        e.len += len;
+        if (len > e.best) {
+          // UV(a, c) = U0 + Ga a + Gc c aus den drei Ecken
+          const da1 = pa[1] - pa[0], dc1 = pc[1] - pc[0], da2 = pa[2] - pa[0], dc2 = pc[2] - pc[0], det = da1 * dc2 - da2 * dc1;
+          if (Math.abs(det) > 1e-6) {
+            const uv = [ia, ib, ic].map((i) => [U.getX(i), U.getY(i)]);
+            const grad = [0, 1].map((c) => {
+              const d1 = uv[1][c] - uv[0][c], d2 = uv[2][c] - uv[0][c];
+              const ga = (d1 * dc2 - d2 * dc1) / det, gc = (da1 * d2 - da2 * d1) / det;
+              return [uv[0][c] - ga * pa[0] - gc * pc[0], ga, gc];
+            });
+            Object.assign(e, { best: len, mat: mesh.material, grad });
+          }
+        }
+        by.set(k, e);
+      }
+    }
+  }
+  let top = null;
+  for (const [k, e] of by) if (e.mat && (!top || e.len > top.len)) top = { t: k / 100, ...e };
+  return top;
+}
+
+// Stirn der Bodenplatte rund um die Öffnung, im Material der Platte: ihre
+// Unterseite an der Kante hochgeklappt (dasselbe Texturmaß, an der Kante
+// nahtlos), SHAFT_EDGE_GAP hinter der Wandebene, von der Oberkante bis zur
+// Unterseite. Je Rand 8-m-Stücke (Licht und Spiegelung je Bildpunkt).
+function shaftEdge(slab, hx, hz) {
+  const pos = [], nor = [], uv = [], g = SHAFT_EDGE_GAP, [Ua, Ub] = slab.grad, t = slab.t;
+  for (const s of shaftSides(hx, hz)) {
+    const n = Math.ceil((s.len + 2 * g) / 8);
+    for (let i = 0; i < n; i++) {
+      const a0 = -g + (s.len + 2 * g) * i / n, a1 = -g + (s.len + 2 * g) * (i + 1) / n;
+      const at = (a, y) => {
+        pos.push(s.o[0] + s.t[0] * a + s.n[0] * g, y, s.o[1] + s.t[1] * a + s.n[1] * g);
+        nor.push(-s.n[0], 0, -s.n[1]);
+        // hochgeklappt: Höhe y über der Unterseite entspricht y + t nach außen
+        uv.push(Ua[0] + Ua[1] * a + Ua[2] * (y + t), Ub[0] + Ub[1] * a + Ub[2] * (y + t));
+      };
+      // zur Schachtmitte gewandt
+      for (const [a, y] of [[a0, 0], [a1, -t], [a1, 0], [a0, 0], [a0, -t], [a1, -t]]) at(a, y);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.computeBoundingBox(); geo.computeBoundingSphere();
+  const mesh = new THREE.Mesh(geo, slab.mat);
+  mesh.name = 'shaft:edge';
+  return mesh;
 }
 
 // Lampen des Spielschachts auf diesem Schacht: an derselben Wand im selben
@@ -2934,6 +3101,7 @@ export async function initHangar(container, opts = {}) {
     // Schatten seiner eigenen 2 cm hohen Leisten.
     if (realHall.lift?.visible) hide.push(realHall.lift);
     if (realHall.shaft?.pit.visible) hide.push(realHall.shaft.pit);
+    if (realHall.shaft?.edge?.visible) hide.push(realHall.shaft.edge);
     for (const o of hide) o.visible = false;
     const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
     scene.background = null; scene.overrideMaterial = statMat;
@@ -3817,9 +3985,17 @@ ${HALL_LIGHTS_BEGIN}
           shaft.fx = new THREE.Group(); shaft.fx.name = 'shaft:fx'; shaft.fx.visible = false;
           for (const fx of shaftFx(shaft, all, Q0 !== 'niedrig')) shaft.fx.add(fx);
           shaft.group.add(shaft.fx);
+          // Stirn der Bodenplatte an der Öffnung, sichtbar mit dem Schacht
+          // (in Ruhe deckt das Feld sie zu), im Material der Halle
+          const t4 = performance.now(), slab = await hallSlab(model, L, [o[0], floorY, o[2]], new Set([lift.group]), pause), t5 = performance.now();
+          if (slab) {
+            shaft.edge = shaftEdge(slab, shaft.hx, shaft.hz);
+            shaft.edge.visible = false;
+            shaft.group.add(shaft.edge);
+          }
           shaft.pit.visible = false;
           model.add(shaft.group);
-          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}), ${Math.round(performance.now() - t3)} ms`);
+          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
         } catch (e) {
           console.warn('[hangar] Schacht nicht gebaut', e);
           shaft = null;
@@ -4831,6 +5007,7 @@ ${HALL_LIGHTS_BEGIN}
         hallPit.k.value.set(on, lift.y, 0);
         hallPit.blink.value.set(bx, by);
         if (sh.fx) sh.fx.visible = active;
+        if (sh.edge) sh.edge.visible = active;
         // Lichtregie nur unterwegs nachführen (in Ruhe rechnet sie nichts)
         if (active || hallShaft.beam.value.x) {
           hallShaft.c.value.w = bx;
