@@ -93,9 +93,11 @@ gearbeitet aussehen.
 8. **Böden.** Bis zu zwei Materialien aus Punkt 3 als Texturset (Farbe,
    Normale, Glätte, Schichten und Masken) mit Kachelung in m, jeweils als
    Material an einem kleinen Musterquadrat `floor_<name>` im GLB.
-9. **Dateien.** `public/hangar/hall/werkstatt.glb` (Draco, WebP; Farbe
-   ≤ 1024 px, Normalen und Masken ≤ 512 px) und
-   `public/hangar/hall/werkstatt.json`:
+9. **Dateien.** Zwei GLBs (Draco, WebP; Farbe ≤ 1024 px, Normalen und
+   Masken ≤ 512 px): `public/hangar/hall/werkstatt.glb` mit den
+   Requisiten, `public/hangar/hall/werkstatt-boden.glb` mit Decals und
+   Böden (≤ 2 MB; Telefone und die Stufe niedrig laden nur diese). Dazu
+   eine gemeinsame `public/hangar/hall/werkstatt.json`:
 
    ```
    { v: 1,
@@ -107,9 +109,10 @@ gearbeitet aussehen.
    ```
 
    Alles zusammen ≤ 8 MB. Manifest `src/data/hangar-assets.json`: neuer
-   Schlüssel `props` mit `werkstatt: { url, v, json, tris, bytes, props,
-   decals, floors }` (neue Art `props` in `scripts/build-hangar-assets.mjs`,
-   so wie `lift`).
+   Schlüssel `props` mit `werkstatt: { url, v, json, bytes, tris, boden:
+   { url, v, bytes }, props, decals, floors }` (neue Art `props` in
+   `scripts/build-hangar-assets.mjs`, so wie `lift`). `at` der Anordnung
+   in denselben Achsen wie die GLBs (Y oben), Drehung in Grad um Y.
 10. **Selbstauskunft** im Build: Requisiten mit Dreiecken, Decals, Böden,
     Einträge der Anordnung, Bytes je Datei. Steht im Spiel etwas davon
     nicht, das klar sagen (zum Beispiel: keine Boden-Risse als Decal);
