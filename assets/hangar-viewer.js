@@ -3248,7 +3248,8 @@ vec3 hgShLight( vec3 p, vec3 n, float walls ) {
 	vec3 fill = ( hgShG.rgb * ( up * top * top ) + hgShB.rgb * ( ( 1.0 - 0.7 * up ) * ( 0.3 + 0.7 * deep ) ) ) * hgShA.w;
 	float h = p.y - hgPitK.y, hb = h - 1.6;
 	float glow = exp( - max( h, 0.0 ) / 6.0 ) * step( -0.5, h );
-	float run = pow( 0.5 + 0.5 * cos( 6.2832 * ( hgShS( p.xz ) - hgShE.y ) * hgShE.x ), 6.0 );
+	// max: ein Kosinus knapp unter -1 machte pow sonst zu NaN
+	float run = pow( max( 0.5 + 0.5 * cos( 6.2832 * ( hgShS( p.xz ) - hgShE.y ) * hgShE.x ), 0.0 ), 6.0 );
 	return ( fill * mix( hgShG.w, 1.0, walls ) + walls * hgShC.rgb * ( 0.1 * glow + exp( - hb * hb * 0.5 ) * ( 0.15 + run ) ) ) * hgPitK.x;
 }
 // Kantenlicht: Flächen, die schräg zum Blick stehen, spiegeln den hellen
@@ -3310,6 +3311,9 @@ vec3 hgShHaze( vec3 col, vec3 p ) {
         geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
         geo.setAttribute('hgT', new THREE.Float32BufferAttribute(tt, 1));
         geo.setIndex(idx); geo.computeVertexNormals(); geo.computeBoundingSphere();
+        // vT begrenzt: Mit Kantenglättung wird der Wert am Rand des Dreiecks
+        // fortgeschrieben und liegt an der Spitze über 1; pow einer negativen
+        // Zahl ist NaN, und das schwärzte über den Schein das ganze Bild
         const mat = new THREE.ShaderMaterial({
           uniforms: u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
           vertexShader: `attribute vec3 color;
@@ -3327,8 +3331,8 @@ varying vec3 vCol, vN, vV;
 varying float vT, vY;
 void main() {
 	float f = abs( dot( normalize( vN ), normalize( vV ) ) );
-	float a = f * f * f * pow( 1.0 - vT, 1.6 ) * smoothstep( 0.0, 0.1, vT ) * smoothstep( 0.0, 5.0, vY - hgBm.y ) * hgBm.x * hgBm.z;
-	gl_FragColor = vec4( vCol * a, 1.0 );
+	float a = f * f * f * pow( clamp( 1.0 - vT, 0.0, 1.0 ), 1.6 ) * smoothstep( 0.0, 0.1, vT ) * smoothstep( 0.0, 5.0, vY - hgBm.y ) * hgBm.x * hgBm.z;
+	gl_FragColor = vec4( max( vCol * a, 0.0 ), 1.0 );
 }`,
         });
         const mesh = new THREE.Mesh(geo, mat);
@@ -3926,6 +3930,14 @@ ${HALL_LIGHTS_BEGIN}
       // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
       c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.25, 0.35, 6));
       const bloom = c.passes[c.passes.length - 1];
+      // Ein einziger ungültiger Bildpunkt (NaN, unendlich) verschmiert in der
+      // Unschärfe des Scheins über das ganze Bild, und es wird schwarz (so
+      // beim Schiffswechsel am 16.10.2026). Vor dem Schein darum begrenzen:
+      // min/max geben unter Direct3D den gültigen Wert zurück, ein solcher
+      // Punkt bleibt ein Punkt.
+      const hp = bloom.materialHighPassFilter, TEXEL = 'vec4 texel = texture2D( tDiffuse, vUv );';
+      if (hp.fragmentShader.includes(TEXEL)) hp.fragmentShader = hp.fragmentShader.replace(TEXEL, 'vec4 texel = min( max( texture2D( tDiffuse, vUv ), 0.0 ), 6e4 );');
+      else console.warn('[hangar] Schein: Eingang nicht begrenzt (three.js geändert?)');
       c.addPass(new OutputPass());
       // Die Shader der Pässe jetzt übersetzen, solange das Laden ohnehin läuft
       // (die Verdeckung ist darunter der schwerste), dann ein Probebild für
