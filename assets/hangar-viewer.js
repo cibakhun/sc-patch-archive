@@ -3932,11 +3932,23 @@ ${HALL_LIGHTS_BEGIN}
       const bloom = c.passes[c.passes.length - 1];
       // Ein einziger ungültiger Bildpunkt (NaN, unendlich) verschmiert in der
       // Unschärfe des Scheins über das ganze Bild, und es wird schwarz (so
-      // beim Schiffswechsel am 16.10.2026). Vor dem Schein darum begrenzen:
-      // min/max geben unter Direct3D den gültigen Wert zurück, ein solcher
-      // Punkt bleibt ein Punkt.
-      const hp = bloom.materialHighPassFilter, TEXEL = 'vec4 texel = texture2D( tDiffuse, vUv );';
-      if (hp.fragmentShader.includes(TEXEL)) hp.fragmentShader = hp.fragmentShader.replace(TEXEL, 'vec4 texel = min( max( texture2D( tDiffuse, vUv ), 0.0 ), 6e4 );');
+      // beim Schiffswechsel am 16.10.2026). Vor dem Schein darum aussortieren:
+      // per Bitprüfung (Exponent voll), denn isnan und min/max kürzen
+      // Übersetzer weg oder deuten sie je nach Gerät anders; und vor dem
+      // Filtern, denn der Schein liest das Bild in halber Größe, und ein
+      // gefilterter Wert aus einem NaN ist je nach Gerät NaN oder riesig.
+      // Darum die vier Nachbarn einzeln holen und selbst mischen (so wie die
+      // Filterung). Dazu oben begrenzt, weit über jeder Lampe (Leuchtflächen
+      // bis 6): Manche Geräte machen beim Glätten der Kanten aus NaN einen
+      // Riesenwert. Ein solcher Punkt bleibt ein Punkt und gibt keinen Schein.
+      const hp = bloom.materialHighPassFilter, TEXEL = 'vec4 texel = texture2D( tDiffuse, vUv );', MAIN = 'void main() {';
+      if (hp.fragmentShader.includes(TEXEL) && hp.fragmentShader.split(MAIN).length === 2) hp.fragmentShader = hp.fragmentShader.replace(MAIN, `vec4 hgOk( ivec2 q ) {
+			vec4 t = texelFetch( tDiffuse, clamp( q, ivec2( 0 ), textureSize( tDiffuse, 0 ) - 1 ), 0 );
+			return mix( clamp( t, 0.0, 512.0 ), vec4( 0.0 ), equal( floatBitsToUint( t ) & 0x7f800000u, uvec4( 0x7f800000u ) ) );
+		}
+		${MAIN}`).replace(TEXEL, `vec2 st = vUv * vec2( textureSize( tDiffuse, 0 ) ) - 0.5, w = fract( st );
+			ivec2 c = ivec2( floor( st ) );
+			vec4 texel = mix( mix( hgOk( c ), hgOk( c + ivec2( 1, 0 ) ), w.x ), mix( hgOk( c + ivec2( 0, 1 ) ), hgOk( c + 1 ), w.x ), w.y );`);
       else console.warn('[hangar] Schein: Eingang nicht begrenzt (three.js geändert?)');
       c.addPass(new OutputPass());
       // Die Shader der Pässe jetzt übersetzen, solange das Laden ohnehin läuft
