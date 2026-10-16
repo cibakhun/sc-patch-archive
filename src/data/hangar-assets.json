@@ -1019,5 +1019,205 @@
       },
       "bytes": 142264
     }
+  },
+  "lift": {
+    "medtop": {
+      "url": "/hangar/lift/medtop.glb",
+      "v": "dd92c876",
+      "json": "/hangar/lift/medtop.json",
+      "parts": [
+        {
+          "role": "wall",
+          "from": [
+            "hangar_ship_elevator_wall_40x20_top_a",
+            "hangar_ship_elevator_wall_40x12_bot_a"
+          ],
+          "size": [
+            40,
+            32
+          ],
+          "tris": 3140,
+          "materials": 2
+        },
+        {
+          "role": "wall_upper",
+          "from": [
+            "hangar_ship_elevator_wall_40x20_top_a"
+          ],
+          "size": [
+            40,
+            20
+          ],
+          "tris": 2198,
+          "materials": 2
+        },
+        {
+          "role": "rib",
+          "from": [
+            "hangar_ship_elevator_rib_top_a",
+            "hangar_ship_elevator_rib_bot_b"
+          ],
+          "size": [
+            8,
+            32
+          ],
+          "tris": 1130,
+          "materials": 2
+        },
+        {
+          "role": "corner",
+          "from": [
+            "hangar_ship_elevator_corner_top_a",
+            "hangar_ship_elevator_corner_bot_c"
+          ],
+          "size": [
+            10,
+            10,
+            32
+          ],
+          "tris": 268,
+          "materials": 2
+        },
+        {
+          "role": "rim",
+          "from": [
+            "hangar_ship_elevator_trim_04x016_b"
+          ],
+          "size": [
+            16,
+            3.88
+          ],
+          "tris": 12,
+          "materials": 1
+        },
+        {
+          "role": "rim_8",
+          "from": [
+            "hangar_ship_elevator_trim_04x08_b"
+          ],
+          "size": [
+            8,
+            3.88
+          ],
+          "tris": 12,
+          "materials": 1
+        },
+        {
+          "role": "rim_corner",
+          "from": [
+            "hangar_ship_elevator_trim_corner_b"
+          ],
+          "size": [
+            5,
+            5,
+            3.88
+          ],
+          "tris": 36,
+          "materials": 1
+        },
+        {
+          "role": "light_0",
+          "from": [
+            "light_hazard_2_d"
+          ],
+          "tris": 132,
+          "materials": 2
+        },
+        {
+          "role": "light_1",
+          "from": [
+            "light_hazard_2_b"
+          ],
+          "tris": 132,
+          "materials": 2
+        }
+      ],
+      "lightCount": 100,
+      "layered": {
+        "materials": 5,
+        "textured": 3,
+        "glow": 1,
+        "metal": 1
+      },
+      "tris": 7060,
+      "trisRaw": 744895,
+      "textures": 16,
+      "attached": {
+        "attached": 10,
+        "color": 4,
+        "normal": 6,
+        "flatNormals": 0,
+        "rough": 6,
+        "tiled": 1,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 6,
+          "diffuse": 1,
+          "normal": 1,
+          "trisOhneMaterial": 0,
+          "tris": 7060
+        },
+        "after": {
+          "materials": 6,
+          "diffuse": 4,
+          "normal": 6,
+          "trisOhneMaterial": 0,
+          "tris": 7060
+        }
+      },
+      "vertexColors": [
+        {
+          "material": "hightech_a_default_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 6636,
+          "meanR": 0.921,
+          "below098": 32.2
+        },
+        {
+          "material": "light_hazard_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 92,
+          "meanR": 0.47,
+          "below098": 75.2
+        },
+        {
+          "material": "hightech_a_default_mtl_trim_metal_a_030",
+          "origin": "eigen",
+          "tris": 60,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hightech_a_default_mtl_trim_greebles_a_031",
+          "origin": "eigen",
+          "tris": 52,
+          "meanR": 0.926,
+          "below098": 30.8
+        },
+        {
+          "material": "hightech_a_default_mtl_metal_a_046",
+          "origin": "eigen",
+          "tris": 48,
+          "meanR": 0.891,
+          "below098": 39.9
+        }
+      ],
+      "uv": {
+        "rangeBefore": 0,
+        "rangeAfter": 0,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 319268
+    }
   }
 }

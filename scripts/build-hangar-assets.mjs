@@ -16,7 +16,7 @@
 // Usage:  node scripts/build-hangar-assets.mjs [--only <name>] [--force]
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP, KHRTextureTransform } from '@gltf-transform/extensions';
-import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh } from '@gltf-transform/functions';
+import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh, transformPrimitive, getBounds } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
@@ -50,6 +50,8 @@ const BUDGET = {
   // dem alten Budget von 700k lag, riss sie die Längswände auf (7748b0a).
   hall: { tris: 1600000, tex: 1024, ntex: 512 },
   npc: { tris: 30000, tex: 512, ntex: 512 },
+  // Aufzugsschacht: Bausatzteile, nie dezimiert; Grenze = Warnschwelle
+  lift: { tris: 60000, tex: 1024, ntex: 512 },
 };
 
 // Innenraum je Halle (Meter, glTF-Raum Y oben): Bodenmitte, halbe Breite (x),
@@ -565,11 +567,200 @@ function prepareCrew(doc) {
   }
 }
 
+// ─── Aufzugsschacht (.planning/notes/hangar-schacht.md) ─────────────────
+// Der Schacht des Spiels ist ein Bausatz: Wandstücke 40 m breit (oben 20 m,
+// unten 12 m hoch), Rippen über den Fugen, Ecken, Randleisten an der
+// Bodenkante, Warnlampen. Aus dem socpak-Export des Hangars wird je Rolle
+// EIN Exemplar genommen (alle an der Westwand x = −28 bzw. ihrer Nordecke),
+// in sein eigenes Bezugssystem gelegt und als eigener Knoten geschrieben.
+//
+// Bezugssystem eines Wandteils: Ursprung an der unteren linken Ecke seiner
+// Innenfläche (von der Schachtmitte aus gesehen), x nach rechts entlang der
+// Wand, y nach oben, z zur Schachtmitte; die Wand selbst liegt bei z ≤ 0.
+// Ecken: Ursprung in der inneren Schachtecke, das Schachtinnere liegt im
+// Quadranten x > 0, z > 0 (die Wand rechts davon entlang +x, die
+// Querwand entlang +z). Lampen: Ursprung im Mittelpunkt ihrer Montagefläche.
+// Exportraum: glTF des socpak (x, z, −y), Hallenboden y −50, Schacht innen
+// x ±28, z ±44, Wandunterkante y −86.
+const LIFT_SHAFT = { inner: [56, 88], floorY: -50, bottomY: -86 };
+// Westwand-Rahmen: Welt -> Teil, zL = z der linken Kante, yb = Unterkante
+const wallFrame = (zL, yb, x0 = -28) => [
+  0, 0, 1, 0,
+  0, 1, 0, 0,
+  -1, 0, 0, 0,
+  zL, -yb, -x0, 1,
+];
+// gltf-transform: Spalten-Matrizen; wallFrame bildet (x, y, z) auf
+// (zL − z, y − yb, x − x0) ab
+const LIFT_PARTS = [
+  { role: 'wall', size: [40, 32], frame: wallFrame(0, -86), take: [['hangar_ship_elevator_wall_40x20_top_a', [-30, 0, -20]], ['hangar_ship_elevator_wall_40x12_bot_a', [-29.5, 0, -20]]] },
+  { role: 'wall_upper', size: [40, 20], frame: wallFrame(0, -74), take: [['hangar_ship_elevator_wall_40x20_top_a', [-30, 0, -20]]] },
+  { role: 'rib', size: [8, 32], frame: wallFrame(4, -86), take: [['hangar_ship_elevator_rib_top_a', [-30.5, 0, 0]], ['hangar_ship_elevator_rib_bot_b', [-30.5, 0, 0]]] },
+  { role: 'corner', size: [10, 10, 32], frame: wallFrame(44, -86), take: [['hangar_ship_elevator_corner_top_a', [-29, 0, 45]], ['hangar_ship_elevator_corner_bot_c', [-29, 0, 45]]] },
+  { role: 'rim', size: [16, 3.88], frame: wallFrame(-4, -54), take: [['hangar_ship_elevator_trim_04x016_b', [-30.5, 0, -12]]] },
+  { role: 'rim_8', size: [8, 3.88], frame: wallFrame(-36, -54), take: [['hangar_ship_elevator_trim_04x08_b', [-30.5, 0, -40]]] },
+  { role: 'rim_corner', size: [5, 5, 3.88], frame: wallFrame(44, -54), take: [['hangar_ship_elevator_trim_corner_b', [-30.5, 0, 46.5]]] },
+  // Warnlampe an der Wand (6× im Schacht, 9,4 m unter dem Boden) und an
+  // den Schachtecken auf Bodenhöhe (4×)
+  { role: 'light_0', game: 'light_hazard_2_d', frame: wallFrame(-0.045, -59.385), take: [['light_hazard_2_d', [-29, 0, 0]]] },
+  { role: 'light_1', game: 'light_hazard_2_b', frame: wallFrame(44, -50), take: [['light_hazard_2_b', [-28.5, 0, 44.5]]] },
+];
+
+// Schachtlampen und Plattformlampen -> lights[] (Schachtrahmen: Ursprung
+// Schachtmitte auf Hallenboden, Achsen wie der Export; die Spielwerte
+// stehen wörtlich daneben). Rolle aus dem Lampennamen.
+function liftLights(info) {
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const role = (n) => (n.match(/_ht_(?:pit|pad)_([a-z_]+?)(?:-\d+)?$/) || [])[1] || n;
+  const one = (l, attach, pos) => ({
+    name: l.name, role: role(l.name), attach, type: l.type,
+    pos: pos.map(r3), ...(l.dir ? { dir: l.dir } : {}),
+    color: l.emergency?.color, useTemperature: l.useTemperature, temperature: l.emergency?.temperature,
+    intensity: l.emergency?.intensity, radius: l.radius, ...(l.fov && l.type === 'Projector' ? { angle: l.fov } : {}),
+    states: { default: l.default, emergency: l.emergency, auxiliary: l.auxiliary },
+    anim: { kind: 'lightStyle', style: l.emergency?.lightStyle ?? 0, speed: l.style?.animationSpeed ?? 1, lightanimation: l.style?.lightanimation || null },
+  });
+  const pit = (info.shaftLights || []).map((l) => {
+    const n = one(l, 'shaft', [l.pos[0], l.pos[1] - LIFT_SHAFT.floorY, l.pos[2]]);
+    if (/pit_omni/.test(l.name)) n.node = 'light_0';
+    return n;
+  });
+  // Plattformlampen hängen am Plattform-Bone; Lage relativ zur Plattform-
+  // oberkante (Spiel: Z oben -> glTF (x, z, −y))
+  const pad = (info.padLights || []).map((l) => one(l, 'pad', [l.translation[0], l.translation[2], -l.translation[1]]));
+  return [...pit, ...pad];
+}
+
+// public/hangar/lift/<name>.json neben dem GLB: Teile, Lampen, Fahrablauf.
+// Alles aus <name>.entities.json (Extraktor); Abgeleitetes steht als solches da.
+function writeLiftJson(name, parts) {
+  const infoFile = fileURLToPath(new URL(`lift/${name}.entities.json`, SRC));
+  if (!existsSync(infoFile)) throw new Error(`Aufzug ${name}: ${infoFile} fehlt (Extraktor mit "lift" laufen lassen)`);
+  const info = JSON.parse(readFileSync(infoFile, 'utf8'));
+  const lights = liftLights(info);
+  const plat = Object.values(info.anims || {})[0];
+  const open = plat?.animations?.find((a) => a.name === 'door_open');
+  const speed = plat?.doorAnimationSpeed || 1;
+  const travel = LIFT_SHAFT.floorY - LIFT_SHAFT.bottomY;
+  const runS = open?.seconds ? Math.round((open.seconds / speed) * 100) / 100 : null;
+  const modules = Object.fromEntries(parts.map((p) => [p.role, { size: p.size ?? null, tris: p.tris, materials: p.materials, from: p.from }]));
+  const out = {
+    v: 1,
+    source: {
+      socpak: info.socpak, platform: info.platform?.geometry, gate: info.gate?.geometry,
+      landingArea: info.landingArea?.dimensions,
+      note: 'Spielbausatz des mittleren Hangars (hangar_medtop_001); Teile je ein Exemplar der Westwand bzw. ihrer Nordecke',
+    },
+    shaft: {
+      inner: LIFT_SHAFT.inner, depth: travel, floorY: 0,
+      frames: 'Wandteile: Ursprung untere linke Ecke der Innenfläche (von der Schachtmitte gesehen), x entlang der Wand nach rechts, y oben, z zur Schachtmitte, Wand bei z <= 0. Ecken (corner, rim_corner, light_1): Ursprung in der inneren Schachtecke, Schachtinneres bei x > 0, z > 0. light_0: Ursprung Mitte der Montagefläche. lights[].pos: Schachtmitte auf Hallenboden (y 0), x quer (56 m), z längs (88 m); attach "pad": relativ zur Plattformoberkante.',
+      layout: 'Spiel: Längswand = Wand (40) + Rippe über der Fuge + Wand (40), Ecken 10 x 10 an den Enden; Querwand = Wand (40) mit Rippen an beiden Enden; Wand = oben 20 m + unten 12 m; Randleisten 16/8 m und Eckleiste über der Wandoberkante, Oberkante 0,12 m unter dem Hallenboden.',
+    },
+    modules: { ...modules, bottom: null },
+    whole: null,
+    lights,
+    motion: {
+      travel: { m: travel, source: `Plattform-Entity Pos z ${LIFT_SHAFT.floorY} (Oberkante auf Hallenboden); Plattform im Ruhezustand des .cga mit Oberkante ${LIFT_SHAFT.bottomY}; Lichtgruppe der Plattform ParentOffsetPos z ${info.padLightGroup?.parentOffsetPos?.[2]?.toFixed(3)}` },
+      animations: info.anims,
+      duration: { s: runS, derived: true, source: `door_open/door_close je ${open?.frames} Bilder bei ${open?.fps} Bildern/s = ${open?.seconds} s, DoorAnimationSpeed ${speed} -> ${runS} s (Annahme: die Animation ist die ganze Fahrt)` },
+      speed: { avg: runS ? Math.round((travel / runS) * 100) / 100 : null, derived: true, unit: 'm/s' },
+      acceleration: { value: null, source: 'Kurve steckt in der .caf (Bone anim_pad001), nicht dekodiert; die Animationsereignisse sind leer' },
+      pauses: { value: null, source: 'keine Pausen in den Daten; die Trackview-Sequenzen steuern nur Licht, Hologramm und Ton' },
+      sequences: info.sequences,
+      lightStates: {
+        manager: info.manager,
+        index: { 0: 'Off', 1: 'Default', 2: 'Auxiliary', 3: 'Emergency', 4: 'Cinematic' },
+        indexSource: 'Reihenfolge der LightStateParams im Licht-Entity (off, default, auxiliary, emergency, cinematic); Zuordnung abgeleitet',
+        preWarning: 'Herunterfahren (sq_…_doorclose_paddown): Lichtgruppen ab 0,83 s Emergency, ab 31,67 s Default. Hochfahren (sq_…_dooropen_padup): Emergency ab 0 s, ab 32,97 s Default.',
+        pitLights: 'alle Schachtlampen sind im Default-Zustand aus (Intensität 0) und leuchten nur in Emergency, also während der Fahrt',
+        lightStyle: 'Nummer wörtlich aus den Lampendaten; die Helligkeitskurve je Stil steht nicht in den Spieldateien (Engine)',
+      },
+    },
+  };
+  const file = fileURLToPath(new URL(`lift/${name}.json`, OUT));
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, JSON.stringify(out) + '\n');
+  return { file, lights: lights.length };
+}
+
+// Schichtmaterialien (HardSurface/LayerBlend ohne eigene Karten): Karten der
+// ersten Schicht aus <name>.layers.json (Extraktor) als Farbe/Normalen, die
+// Tönung der Schicht als Grundfarbe, LayerTiling als Kachelung. attachHall-
+// Textures hängt sie danach wie eigene Karten an.
+function applyLayers(doc, name) {
+  const f = fileURLToPath(new URL(`lift/${name}.layers.json`, SRC));
+  if (!existsSync(f)) return { missing: true };
+  const layers = JSON.parse(readFileSync(f, 'utf8'));
+  const s = { materials: 0, textured: 0, glow: 0 };
+  for (const m of doc.getRoot().listMaterials()) {
+    const x = m.getExtras() || {};
+    // Leuchtglas der Warnlampen (Illum, „glow“): leuchtet als Fläche, der Viewer schaltet es mit dem Lampenzustand
+    if (x.shader === 'Illum' && /glow/i.test(m.getName())) { m.setExtras({ ...x, glow: true }); s.glow++; continue; }
+    const l0 = x.layers?.[0];
+    const L = !x.diffuse_tex && l0?.path && layers[l0.path.replace(/\\/g, '/')];
+    if (!L || L.missing) continue;
+    s.materials++;
+    const t = L.tiling && L.tiling !== 1 ? [L.tiling, L.tiling] : undefined;
+    m.setExtras({ ...x, diffuse_tex: L.d, normal_tex: L.n, tile_d: t, tile_n: t, layer: true });
+    if (L.d) s.textured++;
+    if (l0.tint_color) m.setBaseColorFactor([...l0.tint_color.slice(0, 3), m.getBaseColorFactor()[3]]);
+    // Metallschicht ohne Farbkarte (z. B. steel_base_a): die Farbe ist ihr Specular
+    const spec = String(L.specular || '0').split(',').map(Number);
+    if (!L.d && spec[0] > 0.3) {
+      const tint = l0.tint_color || [1, 1, 1];
+      m.setBaseColorFactor([...spec.map((v, i) => Math.min(1, v * tint[i])), 1]).setMetallicFactor(1).setRoughnessFactor(Math.max(0.2, 1 - (L.shininess || 200) / 255));
+      s.metal = (s.metal || 0) + 1;
+    }
+  }
+  return s;
+}
+
+function prepareLift(doc, name) {
+  const root = doc.getRoot();
+  const scene = root.listScenes()[0];
+  const base = (n) => (n.getMesh()?.getName() || '').replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '');
+  const nodes = root.listNodes().filter((n) => n.getMesh());
+  const center = (n) => { const b = getBounds(n); return [0, 1, 2].map((i) => (b.min[i] + b.max[i]) / 2); };
+  const parts = [];
+  for (const p of LIFT_PARTS) {
+    const mesh = doc.createMesh(p.role);
+    const from = [];
+    for (const [meshName, near] of p.take) {
+      // das Exemplar, dessen Mitte (ohne Höhe) am nächsten an near liegt
+      const cand = nodes.filter((n) => base(n) === meshName);
+      if (!cand.length) throw new Error(`Aufzug ${name}: ${meshName} fehlt im Export`);
+      const d = (n) => { const c = center(n); return Math.hypot(c[0] - near[0], c[2] - near[2]); };
+      const n = cand.sort((a, b) => d(a) - d(b))[0];
+      from.push(meshName);
+      // Weltmatrix, dann ins Bezugssystem des Teils (Spaltenmatrizen: frame · world)
+      const w = n.getWorldMatrix(), f = p.frame, m = new Array(16).fill(0);
+      for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) m[c * 4 + r] += f[k * 4 + r] * w[c * 4 + k];
+      // eigene Kopien: Exemplare teilen sich Mesh und Accessoren
+      for (const prim of n.getMesh().listPrimitives()) {
+        const q = prim.clone();
+        for (const sem of q.listSemantics()) q.setAttribute(sem, prim.getAttribute(sem).clone());
+        if (prim.getIndices()) q.setIndices(prim.getIndices().clone());
+        transformPrimitive(q, m);
+        mesh.addPrimitive(q);
+      }
+    }
+    parts.push({ p, mesh, from });
+  }
+  for (const n of root.listNodes()) n.dispose();
+  for (const { p, mesh } of parts) scene.addChild(doc.createNode(p.role).setMesh(mesh));
+  return parts.map(({ p, mesh, from }) => ({
+    role: p.role, from, size: p.size,
+    tris: Math.round(mesh.listPrimitives().reduce((t, q) => t + (q.getIndices()?.getCount() ?? 0) / 3, 0)),
+    materials: [...new Set(mesh.listPrimitives().map((q) => q.getMaterial()?.getName()))].length,
+  }));
+}
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
+  const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
+  if (liftParts) await doc.transform(prune());
   // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
   // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
   const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
@@ -580,17 +771,18 @@ async function buildOne(kind, name, inPath) {
   if (lite) for (const n of root.listNodes()) if (n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)) n.setMesh(null);
   dropJunk(doc);
   let matfix = null, cover = null;
-  if (kind === 'hall') {
-    const fixFile = fileURLToPath(new URL(`hall/${name}.matfix.json`, SRC));
+  if (kind === 'hall' || kind === 'lift') {
+    const fixFile = fileURLToPath(new URL(`${kind}/${name}.matfix.json`, SRC));
     cover = { before: coverage(doc) };
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
-  const attached = kind === 'hall' ? await attachHallTextures(doc) : 0;
+  const layered = kind === 'lift' ? applyLayers(doc, name) : null;
+  const attached = kind === 'hall' || kind === 'lift' ? await attachHallTextures(doc) : 0;
   if (cover) cover.after = coverage(doc);
-  const vertexColors = stripAttributes(doc, kind);
+  const vertexColors = stripAttributes(doc, kind === 'lift' ? 'hall' : kind);
   cleanMaterials(doc);
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' }), weld());
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
@@ -604,7 +796,7 @@ async function buildOne(kind, name, inPath) {
   // in der Ebene kostet ein Kantenkollaps keinen Fehler, und der Vereinfacher
   // zieht Ränder über Öffnungen und reißt Wände auf (scripts/lib/hall-hull.mjs).
   const b = BUDGET[kind];
-  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' ? [] : [0.004, 0.01, 0.02, 0.04];
+  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' || kind === 'lift' ? [] : [0.004, 0.01, 0.02, 0.04];
   for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
@@ -670,9 +862,12 @@ async function buildOne(kind, name, inPath) {
   const hash = createHash('sha1').update(readFileSync(outPath));
   const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
   if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
+  const liftJson = liftParts ? writeLiftJson(name, liftParts) : null;
+  if (liftJson) hash.update(readFileSync(liftJson.file));
   const v = hash.digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
+    ...(liftJson ? { json: `/hangar/lift/${name}.json`, parts: liftParts, lightCount: liftJson.lights, layered } : {}),
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
@@ -693,7 +888,7 @@ try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lau
 // den ersten Eintrag unter hall als Halle.
 const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
-const manifest = { ships: {}, hall: {}, hallLite: {}, npc: {} };
+const manifest = { ships: {}, hall: {}, hallLite: {}, npc: {}, lift: {} };
 let built = 0, reused = 0;
 for (const kind of Object.keys(BUDGET)) {
   const dir = new URL(`${kind}/`, SRC);
@@ -707,10 +902,13 @@ for (const kind of Object.keys(BUDGET)) {
     // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
     // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
     // Lampenliste muss schon da sein.
-    const side = kind === 'hall' ? ['lights-src.txt', 'matfix.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    const side = kind === 'hall' || kind === 'lift' ? ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
     const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
+    const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
-      && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)));
+      && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
+      && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)));
     if (!FORCE && prev[slot]?.[name] && fresh) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
@@ -734,6 +932,10 @@ for (const kind of Object.keys(BUDGET)) {
       if (r.attached?.color !== undefined) {
         const a = r.attached;
         console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+      }
+      if (r.parts) {
+        for (const t of r.parts) console.log(`    Teil ${t.role.padEnd(11)} ${String(t.tris).padStart(6)} Dreiecke  ${t.materials} Materialien  aus ${t.from.join(' + ')}`);
+        console.log(`    Aufzug: ${r.parts.length} Teile, ${r.tris.toLocaleString()} Dreiecke, ${r.lightCount} Lampen -> ${r.json}`);
       }
       if (r.lights?.missing) {
         console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
