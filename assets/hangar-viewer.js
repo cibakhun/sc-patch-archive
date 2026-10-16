@@ -3223,7 +3223,7 @@ vec3 hgPit( vec3 p, vec3 n, float pads ) {
   // Lichtregie (SHAFT_*): Grundlicht, Lauflicht und Dunst im Schacht, nur
   // während der Fahrt (hgPitK.x). Lage p im Schachtraum wie hgPit.
   const hallShaft = {
-    a: { value: new THREE.Vector4() },   // hx, hz, Tiefe, Grundlicht
+    a: { value: new THREE.Vector4() },   // hx, hz, Tiefe des Spielschachts (depth0), Grundlicht
     b: { value: new THREE.Vector4() },   // Dunstfarbe (linear), Dunst je m überall
     c: { value: new THREE.Vector4() },   // Lauflicht Farbe mal Stärke, Takt der Warnlichter
     d: { value: new THREE.Vector4() },   // Warnorange im Dunst, Dunst höchstens
@@ -3288,7 +3288,11 @@ vec3 hgShHaze( vec3 col, vec3 p ) {
         up.set(Math.abs(d.y) > 0.9 ? 1 : 0, Math.abs(d.y) > 0.9 ? 0 : 1, 0);
         a.crossVectors(d, up).normalize(); b.crossVectors(d, a).normalize();
         const half = Math.min(Math.acos(g.cosO), THREE.MathUtils.degToRad(13));
-        const len = Math.min(d.y < -0.05 ? (g.pos[1] + sh.depth) / -d.y : g.r * 0.4, g.r * 0.6, 48);
+        // bis zum Grund des Spielschachts (depth0), höchstens 48 m: Die
+        // steilen Fluter enden am Grund (34 bis 40 m), die flachen an der
+        // Grenze. Ein für hohe Schiffe vertiefter Schacht (fit) lässt die
+        // Kegel, wo sie sind; sie laufen zur Spitze ohnehin auf null aus
+        const len = Math.min(d.y < -0.05 ? (g.pos[1] + sh.depth0) / -d.y : g.r * 0.4, g.r * 0.6, 48);
         const c = g.col.map((v) => v / Math.max(...g.col, 1e-6) * Math.sqrt(lum(g.col) / wmax));
         const o = pos.length / 3;
         for (const [t, r] of [[0, 0.25], [1, Math.tan(half) * len]]) {
@@ -3793,7 +3797,10 @@ ${HALL_LIGHTS_BEGIN}
           const fog = (kit.info.lights || []).find((l) => l.role === 'fog');
           const haze = fog?.states?.emergency?.color ?? fog?.color ?? SHAFT_HAZE;
           const around = 4 * (shaft.hx + shaft.hz);
-          hallShaft.a.value.set(shaft.hx, shaft.hz, shaft.depth, SHAFT_FILL);
+          // Verlauf nach der Tiefe des Spielschachts: Wächst er für ein hohes
+          // Schiff (fit), bleiben die Lagen darunter im vollen Blau, und der
+          // Schacht sieht nicht je nach vorigem Schiff anders aus
+          hallShaft.a.value.set(shaft.hx, shaft.hz, shaft.depth0, SHAFT_FILL);
           hallShaft.b.value.set(haze[0], haze[1], haze[2], SHAFT_HAZE_K);
           hallShaft.f.value.set(SHAFT_FIELD, 0, SHAFT_HAZE_LAYER, SHAFT_HAZE_H);
           hallShaft.g.value.set(...SHAFT_SPILL, SHAFT_FILL_FIELD);

@@ -93,7 +93,8 @@ Folgeauftrag zu [`hangar-schacht.md`](hangar-schacht.md) (Bausatz
 - Grafikbudget wie bisher: die Fahrt nicht teurer als die Halle in Ruhe,
   Telefone mit eigener Stufe.
 - Nach der PC-Lieferung: Trims mit UVs, Abnutzung, Decals und Beiwerk
-  einbauen.
+  einbauen; bringt der PC Projektortexturen (`lights[].projector`), die
+  Lichtkegel in `shaftFx` damit mustern (heute ohne Muster gebaut).
 
 ### Stand Cloud 16.10.2026
 
