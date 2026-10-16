@@ -3248,7 +3248,8 @@ vec3 hgShLight( vec3 p, vec3 n, float walls ) {
 	vec3 fill = ( hgShG.rgb * ( up * top * top ) + hgShB.rgb * ( ( 1.0 - 0.7 * up ) * ( 0.3 + 0.7 * deep ) ) ) * hgShA.w;
 	float h = p.y - hgPitK.y, hb = h - 1.6;
 	float glow = exp( - max( h, 0.0 ) / 6.0 ) * step( -0.5, h );
-	float run = pow( 0.5 + 0.5 * cos( 6.2832 * ( hgShS( p.xz ) - hgShE.y ) * hgShE.x ), 6.0 );
+	// max: ein Kosinus knapp unter -1 machte pow sonst zu NaN
+	float run = pow( max( 0.5 + 0.5 * cos( 6.2832 * ( hgShS( p.xz ) - hgShE.y ) * hgShE.x ), 0.0 ), 6.0 );
 	return ( fill * mix( hgShG.w, 1.0, walls ) + walls * hgShC.rgb * ( 0.1 * glow + exp( - hb * hb * 0.5 ) * ( 0.15 + run ) ) ) * hgPitK.x;
 }
 // Kantenlicht: Flächen, die schräg zum Blick stehen, spiegeln den hellen
@@ -3310,6 +3311,9 @@ vec3 hgShHaze( vec3 col, vec3 p ) {
         geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
         geo.setAttribute('hgT', new THREE.Float32BufferAttribute(tt, 1));
         geo.setIndex(idx); geo.computeVertexNormals(); geo.computeBoundingSphere();
+        // vT begrenzt: Mit Kantenglättung wird der Wert am Rand des Dreiecks
+        // fortgeschrieben und liegt an der Spitze über 1; pow einer negativen
+        // Zahl ist NaN, und das schwärzte über den Schein das ganze Bild
         const mat = new THREE.ShaderMaterial({
           uniforms: u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
           vertexShader: `attribute vec3 color;
@@ -3327,8 +3331,8 @@ varying vec3 vCol, vN, vV;
 varying float vT, vY;
 void main() {
 	float f = abs( dot( normalize( vN ), normalize( vV ) ) );
-	float a = f * f * f * pow( 1.0 - vT, 1.6 ) * smoothstep( 0.0, 0.1, vT ) * smoothstep( 0.0, 5.0, vY - hgBm.y ) * hgBm.x * hgBm.z;
-	gl_FragColor = vec4( vCol * a, 1.0 );
+	float a = f * f * f * pow( clamp( 1.0 - vT, 0.0, 1.0 ), 1.6 ) * smoothstep( 0.0, 0.1, vT ) * smoothstep( 0.0, 5.0, vY - hgBm.y ) * hgBm.x * hgBm.z;
+	gl_FragColor = vec4( max( vCol * a, 0.0 ), 1.0 );
 }`,
         });
         const mesh = new THREE.Mesh(geo, mat);
@@ -3926,6 +3930,26 @@ ${HALL_LIGHTS_BEGIN}
       // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
       c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.25, 0.35, 6));
       const bloom = c.passes[c.passes.length - 1];
+      // Ein einziger ungültiger Bildpunkt (NaN, unendlich) verschmiert in der
+      // Unschärfe des Scheins über das ganze Bild, und es wird schwarz (so
+      // beim Schiffswechsel am 16.10.2026). Vor dem Schein darum aussortieren:
+      // per Bitprüfung (Exponent voll), denn isnan und min/max kürzen
+      // Übersetzer weg oder deuten sie je nach Gerät anders; und vor dem
+      // Filtern, denn der Schein liest das Bild in halber Größe, und ein
+      // gefilterter Wert aus einem NaN ist je nach Gerät NaN oder riesig.
+      // Darum die vier Nachbarn einzeln holen und selbst mischen (so wie die
+      // Filterung). Dazu oben begrenzt, weit über jeder Lampe (Leuchtflächen
+      // bis 6): Manche Geräte machen beim Glätten der Kanten aus NaN einen
+      // Riesenwert. Ein solcher Punkt bleibt ein Punkt und gibt keinen Schein.
+      const hp = bloom.materialHighPassFilter, TEXEL = 'vec4 texel = texture2D( tDiffuse, vUv );', MAIN = 'void main() {';
+      if (hp.fragmentShader.includes(TEXEL) && hp.fragmentShader.split(MAIN).length === 2) hp.fragmentShader = hp.fragmentShader.replace(MAIN, `vec4 hgOk( ivec2 q ) {
+			vec4 t = texelFetch( tDiffuse, clamp( q, ivec2( 0 ), textureSize( tDiffuse, 0 ) - 1 ), 0 );
+			return mix( clamp( t, 0.0, 512.0 ), vec4( 0.0 ), equal( floatBitsToUint( t ) & 0x7f800000u, uvec4( 0x7f800000u ) ) );
+		}
+		${MAIN}`).replace(TEXEL, `vec2 st = vUv * vec2( textureSize( tDiffuse, 0 ) ) - 0.5, w = fract( st );
+			ivec2 c = ivec2( floor( st ) );
+			vec4 texel = mix( mix( hgOk( c ), hgOk( c + ivec2( 1, 0 ) ), w.x ), mix( hgOk( c + ivec2( 0, 1 ) ), hgOk( c + 1 ), w.x ), w.y );`);
+      else console.warn('[hangar] Schein: Eingang nicht begrenzt (three.js geändert?)');
       c.addPass(new OutputPass());
       // Die Shader der Pässe jetzt übersetzen, solange das Laden ohnehin läuft
       // (die Verdeckung ist darunter der schwerste), dann ein Probebild für
