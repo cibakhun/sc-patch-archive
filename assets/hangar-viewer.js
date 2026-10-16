@@ -67,6 +67,37 @@ const liftShade = (d) => 1 - 0.92 * THREE.MathUtils.smoothstep(d, 0.5, LIFT_DARK
 const PIT_GAIN = 30;
 const PIT_FADE_MS = 300;
 const PIT_SHIP = 1.5;
+// Lichtregie im Schacht während der Fahrt (eigene Inszenierung auf den
+// Spielteilen, Farben aus den Spiellampen). Kalt gegen die warme Halle:
+// Dunst in der Farbe der Nebellampe des Spiels, der über der Plattform
+// dicht liegt und nach oben ausdünnt, so verlieren sich die Wände zur
+// Plattform hin; ein Grundlicht in zwei Farben (von oben ein Rest des
+// Hallenlichts, von unten das Blau), damit Rippen und Kanten der fast
+// schwarzen Wände ihre Form zeigen, dazu ein Kantenlicht; die Lampen des
+// Schachts auf dem hellen Feld schwächer als auf den Wänden, damit die
+// Plattform eine warme Bühne bleibt und nicht ausbrennt. Die orangen
+// Warnlichter färben den Dunst im Takt, ein Lauflicht in ihrem Orange
+// zieht knapp über der Plattform rundum die Wände entlang und fährt mit,
+// die Fluter stehen als Lichtkegel im Dunst. Abgestimmt an Bildern der
+// Fahrt (16.10.2026), steil von oben und schräg.
+const SHAFT_HAZE = [0.227, 0.584, 1];
+const SHAFT_SPILL = [0.5, 0.39, 0.28];   // Hallenlicht aus der Öffnung (warm)
+const SHAFT_FILL = 2;            // Grundlicht auf die Wände
+const SHAFT_FILL_FIELD = 0.08;   // davon auf das Feld
+const SHAFT_FIELD = 0.55;        // Schachtlampen auf dem Feld (auf den Wänden 1)
+const SHAFT_HAZE_K = 0.006;      // Dunst je Meter Blickweg, überall im Schacht
+const SHAFT_HAZE_LAYER = 0.07;   // dazu je Meter in der Schicht über der Plattform
+const SHAFT_HAZE_H = 8;          // Höhe dieser Schicht (auf 1/e)
+const SHAFT_HAZE_MAX = 0.6;      // höchstens so viel Dunst
+const SHAFT_HAZE_LUM = 0.08;     // Helligkeit des Dunsts (linear)
+const SHAFT_HAZE_WARN = 0.03;    // Orange der Warnlichter im Dunst, im Takt
+const SHAFT_RIM = 0.03;          // Kantenlicht der Wände (Dunst gespiegelt)
+const SHAFT_RUN = [1, 0.171, 0]; // Lauflicht: Farbe der Warnlampen
+const SHAFT_RUN_GAIN = 9;
+const SHAFT_RUN_SPEED = 16;      // m/s rundum
+const SHAFT_RUN_GAP = 12;        // m zwischen den Lichtpunkten
+const SHAFT_BEAM = 0.09;         // Lichtkegel der Fluter
+const SHAFT_TINT = [0.82, 0.92, 1.06];   // Schiff und Crew tief im Schacht: kühler
 
 // ─── Lackierungen ─────────────────────────────────────────────────────────
 // [Hauptfarbe oben, Zweitfarbe unten, Akzent]. Werkslack je Hersteller;
@@ -3150,10 +3181,11 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // solange das Feld abgefahren ist (hgPitK.x > 0). Wie viele, gibt der Platz
   // für Uniforms her: Das Hallenprogramm belegt 145 Vektoren (Ecken- und
   // Pixelshader zusammen gezählt am übersetzten Programm, Stufe hoch,
-  // 16.10.2026); Telefone haben oft nur 256, dort bleiben so 22 Lampen und
-  // 45 Vektoren Luft. Je Bildpunkt im Schacht kostet jede Lampe; darum hoch
-  // 29 (alle Fluter, Warnlichter, die seitlichen der Plattform, die
-  // Bodenstrahler paarweise), mittel 20, niedrig 10.
+  // 16.10.2026), die Lichtregie (hgSh*) nach ihren Deklarationen 8 dazu;
+  // Telefone haben oft nur 256, dort bleiben so 22 Lampen und 37 Vektoren
+  // Luft. Je Bildpunkt im Schacht kostet jede Lampe; darum hoch 29 (alle
+  // Fluter, Warnlichter, die seitlichen der Plattform, die Bodenstrahler
+  // paarweise), mittel 20, niedrig 10.
   const PIT_N = Math.max(0, Math.min(Q0 === 'niedrig' ? 10 : Q0 === 'mittel' ? 20 : 29, Math.floor((renderer.capabilities.maxFragmentUniforms - 190) / 3)));
   const hallPit = {
     a: { value: Array.from({ length: Math.max(1, PIT_N) }, () => new THREE.Vector4()) },   // Lage, 1/r²
@@ -3188,6 +3220,160 @@ vec3 hgPit( vec3 p, vec3 n, float pads ) {
 	}
 	return sum * hgPitK.x;
 }`;
+  // Lichtregie (SHAFT_*): Grundlicht, Lauflicht und Dunst im Schacht, nur
+  // während der Fahrt (hgPitK.x). Lage p im Schachtraum wie hgPit.
+  const hallShaft = {
+    a: { value: new THREE.Vector4() },   // hx, hz, Tiefe, Grundlicht
+    b: { value: new THREE.Vector4() },   // Dunstfarbe (linear), Dunst je m überall
+    c: { value: new THREE.Vector4() },   // Lauflicht Farbe mal Stärke, Takt der Warnlichter
+    d: { value: new THREE.Vector4() },   // Warnorange im Dunst, Dunst höchstens
+    e: { value: new THREE.Vector4(1, 0, 0, 0) },   // 1/Abstand der Lauflichter (geht rundum auf), Weg, Helligkeit des Dunsts, Kantenlicht
+    f: { value: new THREE.Vector4() },   // Schachtlampen auf dem Feld, frei; Dunstschicht: je m, Höhe
+    g: { value: new THREE.Vector4() },   // Hallenlicht aus der Öffnung (rgb), Grundlicht aufs Feld
+    beam: { value: new THREE.Vector4() },   // Kegel und Lichthöfe: an, Plattform (y), Stärke der Kegel, frei
+  };
+  const HALL_SHAFT_GLSL = `uniform vec4 hgShA, hgShB, hgShC, hgShD, hgShE, hgShF, hgShG;
+uniform float hgShInvK;
+// Lage entlang der Schachtwände, rundum (Ostwand, Nord, West, Süd)
+float hgShS( vec2 q ) {
+	float hx = hgShA.x, hz = hgShA.y;
+	if ( abs( q.x ) * hz > abs( q.y ) * hx ) return q.x > 0.0 ? q.y + hz : 3.0 * hz + 2.0 * hx - q.y;
+	return q.y > 0.0 ? 2.0 * hz + hx - q.x : 4.0 * hz + 3.0 * hx + q.x;
+}
+// Licht im Schacht ohne die Lampen: Grundlicht von oben warm (nimmt mit der
+// Tiefe ab), von unten blau (nimmt zu), je nach Normale n; über der
+// Plattform ihr Schein an den Wänden, darin das Lauflicht
+vec3 hgShLight( vec3 p, vec3 n, float walls ) {
+	float deep = clamp( -p.y / hgShA.z, 0.0, 1.0 ), up = 0.5 + 0.5 * n.y, top = 1.0 - deep;
+	vec3 fill = ( hgShG.rgb * ( up * top * top ) + hgShB.rgb * ( ( 1.0 - 0.7 * up ) * ( 0.3 + 0.7 * deep ) ) ) * hgShA.w;
+	float h = p.y - hgPitK.y, hb = h - 1.6;
+	float glow = exp( - max( h, 0.0 ) / 6.0 ) * step( -0.5, h );
+	float run = pow( 0.5 + 0.5 * cos( 6.2832 * ( hgShS( p.xz ) - hgShE.y ) * hgShE.x ), 6.0 );
+	return ( fill * mix( hgShG.w, 1.0, walls ) + walls * hgShC.rgb * ( 0.1 * glow + exp( - hb * hb * 0.5 ) * ( 0.15 + run ) ) ) * hgPitK.x;
+}
+// Kantenlicht: Flächen, die schräg zum Blick stehen, spiegeln den hellen
+// Dunst (Fresnel, ohne Lampen), so zeichnen sich Rippen und Kanten der
+// dunklen Wände ab; tiefer etwas stärker
+vec3 hgShRim( vec3 p, vec3 n ) {
+	float f = 1.0 - max( dot( n, normalize( cameraPosition * hgShInvK - p ) ), 0.0 );
+	return hgShB.rgb * ( f * f * f * hgShE.w * ( 0.5 + 0.5 * clamp( -p.y / hgShA.z, 0.0, 1.0 ) ) * hgPitK.x );
+}
+// Dunst auf dem Blickweg unter dem Hallenboden: dünn überall, dazu eine
+// Schicht über der Plattform, nach oben exp(-Höhe/H) (geschlossen
+// integriert, eine Rechnung je Bildpunkt)
+vec3 hgShHaze( vec3 col, vec3 p ) {
+	vec3 c = cameraPosition * hgShInvK;
+	float y0 = min( c.y, 0.0 ), len = length( p - c ) * ( c.y > 0.0 ? clamp( -p.y / max( c.y - p.y, 1e-3 ), 0.0, 1.0 ) : 1.0 );
+	float H = hgShF.w, yp = hgPitK.y, dy = abs( y0 - p.y );
+	float e0 = exp( - max( y0 - yp, 0.0 ) / H ), e1 = exp( - max( p.y - yp, 0.0 ) / H );
+	float layer = dy > 0.05 ? len * H * abs( e1 - e0 ) / dy : len * e1;
+	float a = ( 1.0 - exp( - len * hgShB.w - layer * hgShF.z ) ) * hgShD.w * hgPitK.x;
+	return mix( col, hgShB.rgb * hgShE.z + hgShD.rgb * hgShC.w, a );
+}`;
+  // Lichtkegel der Fluter im Dunst und Lichthöfe um die Warnlampen: je ein
+  // Mesh (zwei Zeichenbefehle), additiv, ohne Tiefe zu schreiben; im
+  // Schachtraum unter sh.pit, also nur während der Fahrt. Kegel aus den
+  // Flutern des Spiels (Lage und Richtung wie shaftLights, Paare vereint),
+  // schmaler als ihr Lichtkegel: Im Dunst sieht man den hellen Kern.
+  function shaftFx(sh, all, beams) {
+    const out = [];
+    const u = { hgBm: hallShaft.beam };
+    if (beams) {
+      const spots = pitPack(all.filter((q) => q.cosO > -1 && /^flood_(key|cool)/.test(q.role) && !(q.kind & 2)), 64).lights;
+      const SEG = 18, pos = [], col = [], tt = [], idx = [];
+      const d = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), up = new THREE.Vector3();
+      const wmax = Math.max(...spots.map((g) => lum(g.col)), 1e-6);
+      for (const g of spots) {
+        d.fromArray(g.dir).normalize();
+        up.set(Math.abs(d.y) > 0.9 ? 1 : 0, Math.abs(d.y) > 0.9 ? 0 : 1, 0);
+        a.crossVectors(d, up).normalize(); b.crossVectors(d, a).normalize();
+        const half = Math.min(Math.acos(g.cosO), THREE.MathUtils.degToRad(13));
+        const len = Math.min(d.y < -0.05 ? (g.pos[1] + sh.depth) / -d.y : g.r * 0.4, g.r * 0.6, 48);
+        const c = g.col.map((v) => v / Math.max(...g.col, 1e-6) * Math.sqrt(lum(g.col) / wmax));
+        const o = pos.length / 3;
+        for (const [t, r] of [[0, 0.25], [1, Math.tan(half) * len]]) {
+          for (let i = 0; i < SEG; i++) {
+            const w = (i / SEG) * Math.PI * 2, cs = Math.cos(w) * r, sn = Math.sin(w) * r;
+            pos.push(g.pos[0] + d.x * len * t + a.x * cs + b.x * sn, g.pos[1] + d.y * len * t + a.y * cs + b.y * sn, g.pos[2] + d.z * len * t + a.z * cs + b.z * sn);
+            col.push(...c); tt.push(t);
+          }
+        }
+        for (let i = 0; i < SEG; i++) { const j = (i + 1) % SEG; idx.push(o + i, o + SEG + i, o + j, o + j, o + SEG + i, o + SEG + j); }
+      }
+      if (spots.length) {
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+        geo.setAttribute('hgT', new THREE.Float32BufferAttribute(tt, 1));
+        geo.setIndex(idx); geo.computeVertexNormals(); geo.computeBoundingSphere();
+        const mat = new THREE.ShaderMaterial({
+          uniforms: u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+          vertexShader: `attribute vec3 color;
+attribute float hgT;
+varying vec3 vCol, vN, vV;
+varying float vT, vY;
+void main() {
+	vec4 wp = modelMatrix * vec4( position, 1.0 );
+	vCol = color; vT = hgT; vY = position.y;
+	vN = normalize( mat3( modelMatrix ) * normal ); vV = cameraPosition - wp.xyz;
+	gl_Position = projectionMatrix * viewMatrix * wp;
+}`,
+          fragmentShader: `uniform vec4 hgBm;
+varying vec3 vCol, vN, vV;
+varying float vT, vY;
+void main() {
+	float f = abs( dot( normalize( vN ), normalize( vV ) ) );
+	float a = f * f * f * pow( 1.0 - vT, 1.6 ) * smoothstep( 0.0, 0.1, vT ) * smoothstep( 0.0, 5.0, vY - hgBm.y ) * hgBm.x * hgBm.z;
+	gl_FragColor = vec4( vCol * a, 1.0 );
+}`,
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.name = 'shaft:beams'; mesh.frustumCulled = false; mesh.renderOrder = 2;
+        out.push(mesh);
+      }
+    }
+    // Lichthöfe um die Warnlampen am Schacht (ihre Gehäuse bringt der
+    // Bausatz mit); die orangen der Plattform nicht: Deren Gehäuse fehlen
+    // dem Feld, ein Lichthof stünde dort auf blankem Boden
+    const glow = all.filter((q) => (q.kind & 1) && !(q.kind & 2));
+    if (glow.length) {
+      const pos = [], off = [], idx = [];
+      for (const q of glow) {
+        const o = pos.length / 3;
+        for (const [x, y] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { pos.push(...q.pos); off.push(x, y); }
+        idx.push(o, o + 1, o + 2, o, o + 2, o + 3);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('hgO', new THREE.Float32BufferAttribute(off, 2));
+      geo.setIndex(idx); geo.computeBoundingSphere();
+      const mat = new THREE.ShaderMaterial({
+        uniforms: { ...u, hgBlink: hallPit.blink }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `attribute vec2 hgO;
+uniform vec2 hgBlink;
+varying vec2 vO;
+varying float vK;
+void main() {
+	vec4 mv = modelViewMatrix * vec4( position, 1.0 );
+	mv.xy += hgO * ${(2.4).toFixed(1)} * length( modelMatrix[ 0 ].xyz );
+	vO = hgO; vK = hgBlink.x;
+	gl_Position = projectionMatrix * mv;
+}`,
+        fragmentShader: `uniform vec4 hgBm;
+varying vec2 vO;
+varying float vK;
+void main() {
+	float r2 = dot( vO, vO );
+	float a = ( exp( - r2 * 5.0 ) * 0.5 + exp( - r2 * 40.0 ) ) * vK * hgBm.x;
+	gl_FragColor = vec4( vec3( ${SHAFT_RUN.map((v) => v.toFixed(3)).join(', ')} ) * a, 1.0 );
+}`,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.name = 'shaft:glow'; mesh.frustumCulled = false; mesh.renderOrder = 3;
+      out.push(mesh);
+    }
+    return out;
+  }
   // Der Schachtbausatz hat keine Texturkoordinaten: Seine Karten gelten mit
   // ihrem Mittelwert (oberste Mip-Stufe), so wie sie aus der Ferne wirken.
   const HG_MEAN = (t) => `textureLod( ${t}, vec2( 0.5 ), 16.0 )`;
@@ -3315,15 +3501,22 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     const pit = PIT_N > 0 && (m.userData.shaft || m.userData.lift);
     if (sh.fragmentShader.includes('vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;')) {
       sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `if ( vHgP.y < -0.05 ) outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * ( 1.0 - 0.92 * smoothstep( 0.5, ${LIFT_DARK.toFixed(1)}, -vHgP.y ) ) + totalEmissiveRadiance;${pit ? `
-	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) outgoingLight += material.diffuseColor * hgPit( vHgP, inverseTransformDirection( normal, viewMatrix ), ${m.userData.shaft ? '1.0' : '0.0'} );` : ''}
+	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) {
+		vec3 hgWn = inverseTransformDirection( normal, viewMatrix );
+		outgoingLight += material.diffuseColor * ( hgPit( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} )${m.userData.shaft ? '' : ' * hgShF.x'} + hgShLight( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} ) )${m.userData.shaft ? ' + hgShRim( vHgP, hgWn )' : ''};
+		outgoingLight = hgShHaze( outgoingLight, vHgP );
+	}` : ''}
 	#include <opaque_fragment>`);
     }
     if (pit) {
       sh.uniforms.hgPitA = hallPit.a; sh.uniforms.hgPitB = hallPit.b; sh.uniforms.hgPitC = hallPit.c;
       sh.uniforms.hgPitK = hallPit.k; sh.uniforms.hgPitBlink = hallPit.blink;
+      sh.uniforms.hgShA = hallShaft.a; sh.uniforms.hgShB = hallShaft.b; sh.uniforms.hgShC = hallShaft.c;
+      sh.uniforms.hgShD = hallShaft.d; sh.uniforms.hgShE = hallShaft.e; sh.uniforms.hgShF = hallShaft.f;
+      sh.uniforms.hgShG = hallShaft.g; sh.uniforms.hgShInvK = hallNoTileInvK;
       // feste Schleifenlänge je Programm (der Übersetzer rollt sie aus): der
       // Schacht alle, das Feld nur die vorderen
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n#define HG_PIT_N ${PIT_N}\n#define HG_PIT_C ${m.userData.shaft ? PIT_N : hallPit.field}\n${HALL_PIT_GLSL}`);
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n#define HG_PIT_N ${PIT_N}\n#define HG_PIT_C ${m.userData.shaft ? PIT_N : hallPit.field}\n${HALL_PIT_GLSL}\n${HALL_SHAFT_GLSL}`);
     }
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL)
@@ -3572,6 +3765,11 @@ ${HALL_LIGHTS_BEGIN}
             // flache Normalenkarte ohne Koordinaten: weg (unifyMaps gibt die neutrale)
             m.normalMap = null;
             m.userData.hgShade = true; m.userData.shaft = true;
+            // Die Vertexfarbe des Bausatzes steckt in hgShade (buildShaft legt
+            // kein color an). Mit vertexColors läse der Shader ein fehlendes
+            // Attribut als Schwarz: Die Wände nähmen dann kein Licht an, nur
+            // die Spiegelung (so bis 16.10.2026).
+            m.vertexColors = false;
             if (/glow/i.test(m.name)) {
               // Lampenglas leuchtet in der Farbe der Warnlichter, nur bei Fahrt
               m.emissiveMap = null; m.emissive.setRGB(1, 0.17, 0); m.emissiveIntensity = 0;
@@ -3590,6 +3788,24 @@ ${HALL_LIGHTS_BEGIN}
           });
           // unbenutzte Plätze: Radius 0 (1/r² groß), trifft nichts
           for (let i = pk.lights.length; i < PIT_N; i++) { hallPit.a.value[i].set(0, 1e4, 0, 1e6); hallPit.c.value[i].set(0, 0, 0, 0); }
+          // Lichtregie: Dunst in der Farbe der Nebellampe des Spiels, Lauflicht
+          // mit einem Abstand, der rundum aufgeht
+          const fog = (kit.info.lights || []).find((l) => l.role === 'fog');
+          const haze = fog?.states?.emergency?.color ?? fog?.color ?? SHAFT_HAZE;
+          const around = 4 * (shaft.hx + shaft.hz);
+          hallShaft.a.value.set(shaft.hx, shaft.hz, shaft.depth, SHAFT_FILL);
+          hallShaft.b.value.set(haze[0], haze[1], haze[2], SHAFT_HAZE_K);
+          hallShaft.f.value.set(SHAFT_FIELD, 0, SHAFT_HAZE_LAYER, SHAFT_HAZE_H);
+          hallShaft.g.value.set(...SHAFT_SPILL, SHAFT_FILL_FIELD);
+          hallShaft.beam.value.z = SHAFT_BEAM;
+          hallShaft.c.value.set(SHAFT_RUN[0] * SHAFT_RUN_GAIN, SHAFT_RUN[1] * SHAFT_RUN_GAIN, SHAFT_RUN[2] * SHAFT_RUN_GAIN, 0);
+          hallShaft.d.value.set(SHAFT_RUN[0] * SHAFT_HAZE_WARN, SHAFT_RUN[1] * SHAFT_HAZE_WARN, SHAFT_RUN[2] * SHAFT_HAZE_WARN, SHAFT_HAZE_MAX);
+          hallShaft.e.value.set(Math.round(around / SHAFT_RUN_GAP) / around, 0, SHAFT_HAZE_LUM, SHAFT_RIM);
+          shaft.around = around;
+          // Kegel und Lichthöfe neben dem Schacht (fit baut sh.pit neu), sichtbar mit ihm
+          shaft.fx = new THREE.Group(); shaft.fx.name = 'shaft:fx'; shaft.fx.visible = false;
+          for (const fx of shaftFx(shaft, all, Q0 !== 'niedrig')) shaft.fx.add(fx);
+          shaft.group.add(shaft.fx);
           shaft.pit.visible = false;
           model.add(shaft.group);
           console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}), ${Math.round(performance.now() - t3)} ms`);
@@ -3767,19 +3983,24 @@ ${HALL_LIGHTS_BEGIN}
   const pitState = { t0: 0 };
   // Abdunkeln im Schacht: Farbe und Spiegelung je Material, die Lichter
   // (Leuchtkarten) bleiben. Die Materialien gehören dem Objekt allein.
-  function dimIn(dim, f) {
-    if (dim.f === f) return;
-    dim.f = f;
+  // cool (0..1) färbt dazu zum Dunst des Schachts hin (SHAFT_TINT).
+  const dimTint = new THREE.Color();
+  function dimIn(dim, f, cool = 0) {
+    if (dim.f === f && dim.cool === cool) return;
+    dim.f = f; dim.cool = cool;
+    dimTint.setRGB(...SHAFT_TINT.map((v) => 1 + (v - 1) * cool));
     for (const [m, b] of dim.base) {
-      m.color.copy(b.c).multiplyScalar(f);
+      m.color.copy(b.c).multiplyScalar(f).multiply(dimTint);
       m.envMapIntensity = b.e * f;
     }
   }
   function dimOf(mats) {
     const base = new Map();
     for (const m of mats) if (m?.color && !base.has(m)) base.set(m, { c: m.color.clone(), e: m.envMapIntensity ?? 1 });
-    return { f: 1, base };
+    return { f: 1, cool: 0, base };
   }
+  // wie weit unten (0..1), solange die Schachtlampen an sind
+  const shaftCool = (y) => THREE.MathUtils.smoothstep(-y, 0.5, LIFT_DARK) * hallPit.k.value.x;
   let homeTgt = null;      // Blickziel der Startansicht des aktuellen Schiffs
   let frameFn = null;
   let token = 0;
@@ -4578,6 +4799,13 @@ ${HALL_LIGHTS_BEGIN}
         const bx = 0.5 + 0.5 * Math.cos(t * Math.PI * 2), by = Math.pow(0.5 + 0.5 * Math.cos(t * Math.PI), 4);
         hallPit.k.value.set(on, lift.y, 0);
         hallPit.blink.value.set(bx, by);
+        if (sh.fx) sh.fx.visible = active;
+        // Lichtregie nur unterwegs nachführen (in Ruhe rechnet sie nichts)
+        if (active || hallShaft.beam.value.x) {
+          hallShaft.c.value.w = bx;
+          hallShaft.e.value.y = (t * SHAFT_RUN_SPEED) % (sh.around || 1);
+          hallShaft.beam.value.x = on; hallShaft.beam.value.y = lift.y;
+        }
         if (sh.glow) sh.glow.emissiveIntensity = on * (0.4 + 5.6 * bx);
       }
       // Wer auf dem Schiffsfeld steht, fährt mit; festgelegt in Ruhelage und
@@ -4590,11 +4818,11 @@ ${HALL_LIGHTS_BEGIN}
         if (pick) u.ride = Math.abs(w.position.x) < hx && Math.abs(w.position.z) < hz;
         if (!u.ride) {
           // stand vorher auf dem Feld und jetzt daneben: zurück auf den Boden
-          if (u.dim && u.dim.f !== 1) { dimIn(u.dim, 1); w.position.y = 0; }
+          if (u.dim && (u.dim.f !== 1 || u.dim.cool)) { dimIn(u.dim, 1); w.position.y = 0; }
           continue;
         }
         w.position.y = lift.y * k;
-        if (u.mats) dimIn(u.dim ??= dimOf(u.mats), Math.min(1, liftShade(-lift.y - 0.9 / k) + PIT_SHIP * pitAt(lift.y + 0.9 / k)));
+        if (u.mats) dimIn(u.dim ??= dimOf(u.mats), Math.min(1, liftShade(-lift.y - 0.9 / k) + PIT_SHIP * pitAt(lift.y + 0.9 / k)), shaftCool(lift.y + 0.9 / k));
       }
     }
     if (current) {
@@ -4606,7 +4834,7 @@ ${HALL_LIGHTS_BEGIN}
         g.rotation.y = 0;
         g.visible = true;
         const yc = lift.y + current.info.height / 2 / k;
-        dimIn(current.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)));
+        dimIn(current.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)), shaftCool(yc));
       } else {
         // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,
         // setzt weich auf (ease-out quint), solange das alte noch abhebt

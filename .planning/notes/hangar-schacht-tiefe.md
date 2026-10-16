@@ -19,6 +19,10 @@ Folgeauftrag zu [`hangar-schacht.md`](hangar-schacht.md) (Bausatz
 
 ## Warum der Schacht leer wirkt (Befund Cloud)
 
+0. **Die Wände nahmen kein Licht an** (Fehler im Viewer seit PR #110,
+   behoben am 16.10.2026, siehe unten). Was man sah, war nur die
+   Spiegelung der Umgebung: gleichmäßig dunkelgrau, keine Lampe des
+   Spiels zeichnete sich ab.
 1. **Keine Texturkoordinaten.** `medtop.glb` trägt nur POSITION, NORMAL
    und COLOR_0. Die Trimsheets (`trim_hightech_c/_d`), die Greebles und
    die Lackschicht liegen als Texturen bei, lassen sich ohne UVs aber
@@ -82,7 +86,6 @@ Folgeauftrag zu [`hangar-schacht.md`](hangar-schacht.md) (Bausatz
 
 ## Cloud (läuft parallel, wartet nicht auf den PC)
 
-- Die alte Abdunkelung unter dem Boden für den Schacht abschalten.
 - Lichtregie für die Fahrt: kühler Dunst im Schacht gegen die warme,
   helle Halle; die orangen Warnlampen als Akzent; Lichtkegel der Fluter
   im Dunst; ein Lauflicht, das während der Fahrt mit der Plattform die
@@ -91,6 +94,40 @@ Folgeauftrag zu [`hangar-schacht.md`](hangar-schacht.md) (Bausatz
   Telefone mit eigener Stufe.
 - Nach der PC-Lieferung: Trims mit UVs, Abnutzung, Decals und Beiwerk
   einbauen.
+
+### Stand Cloud 16.10.2026
+
+- **Fehler gefunden und behoben.** Der Loader gibt den Schachtmaterialien
+  `vertexColors` mit, weil der Bausatz COLOR_0 trägt. `buildShaft` legt
+  die Vertexfarbe aber als `hgShade` ab und kein `color`; der Shader las
+  das fehlende Attribut als Schwarz und nahm die Grundfarbe mal null. Das
+  Licht der Spiellampen, der Fluter und der Lampenleisten kam so nie auf
+  den Wänden an. Jetzt `vertexColors = false` für die Schachtmaterialien
+  (die Hallenmaterialien hatten das schon). Gefunden mit einem Bild, das
+  die Grundfarbe mal zehn zeigt: schwarz auf allen Wänden.
+- **Lichtregie** (Stellschrauben `SHAFT_*` in `assets/hangar-viewer.js`,
+  Shader `HALL_SHAFT_GLSL`): Grundlicht von oben warm (Rest des
+  Hallenlichts, nimmt mit der Tiefe ab), von unten im Blau der
+  Nebellampe des Spiels, je nach Normale, so zeigen Rippen und Kanten ihre
+  Form; Kantenlicht (Fresnel); Dunst dünn überall und als Schicht über der
+  Plattform, geschlossen integriert, eine Rechnung je Bildpunkt; das
+  Feld bekommt die Schachtlampen nur zu 55 % (warme Bühne statt
+  ausgebrannter Fläche); Lauflicht im Orange der Warnlampen knapp über der
+  Plattform; Lichtkegel nur aus den weißen Flutern (die warmen standen
+  als massive orange Klingen im Bild); Lichthöfe um die Warnlampen;
+  Schiff und Crew tief unten etwas kühler (`SHAFT_TINT`).
+- Die alte Abdunkelung unter dem Boden bleibt für das Hallenlicht: Es
+  reicht nicht in den Schacht. Was der Schacht an Licht hat, kommt
+  danach dazu und wird nicht abgedunkelt.
+- **Kosten** (SwiftShader, 1920 × 1080, Grafikzeit je Bild, gleiche
+  Sitzung): halb abgefahren, steil von oben, Stufe hoch 9 754 ms vorher,
+  8 184 ms nachher (850 gegen 854 Zeichenbefehle: Kegel und Lichthöfe);
+  Stufe niedrig 4 388 gegen 4 388 ms (241 gegen 242, dort ohne Kegel). In
+  Ruhe 9 663 gegen 9 320 ms bei je 1 143 Zeichenbefehlen, also gleich im
+  Rauschen (ein dritter Lauf desselben Stands lag bei 10 831 ms).
+- Abgestimmt an acht Bildrunden (je 4 bis 8 Ansichten, steil von oben wie
+  auf Krisz' Bild, schräg, von innen an der Wand). Ob es Stimmung hat,
+  urteilt Krisz (WINDOWS.md id 77).
 
 ## Befund PC
 
