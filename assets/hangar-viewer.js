@@ -735,6 +735,9 @@ function shaftEdge(slab, hx, hz) {
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  // Abdunkelung aus dem Spiel (hgShade) neutral: Trägt das Material sie,
+  // läse der Shader ein fehlendes Attribut als Schwarz
+  geo.setAttribute('hgShade', new THREE.BufferAttribute(new Uint8Array(pos.length).fill(255), 3, true));
   geo.computeBoundingBox(); geo.computeBoundingSphere();
   const mesh = new THREE.Mesh(geo, slab.mat);
   mesh.name = 'shaft:edge';
