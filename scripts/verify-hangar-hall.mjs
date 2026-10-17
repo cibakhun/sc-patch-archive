@@ -17,7 +17,8 @@
    und jede Hallenstufe, die die Seite laedt (url, lite.url), aus dist/.
    Darauf rechnet es dieselbe Regel wie der Viewer (dropHallParts):
    zusammenhaengende Teile (gemeinsame Ecken auf 5 mm), ganz in `reach`,
-   mit mindestens einer Ecke in `seen`. Kein git, kein Netz, keine
+   mit mindestens einer Ecke in `seen`. Fuer [12] liest es dazu das
+   Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
    ZWOELF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:

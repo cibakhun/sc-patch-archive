@@ -247,7 +247,9 @@ export const CHECKS = [
   {
     // Neuzugang, vor dem langen audit:site: dekodiert die ausgelieferte
     // Halle (gut 10 MB, wenige Sekunden). Kein env-Feld: kein git, kein
-    // Netz, kein Kindprozess — liest nur dist/.
+    // Netz, kein Kindprozess — liest dist/ und fuer [12] dazu das Manifest
+    // src/data/hangar-assets.json (nennt es die Werkstatt, muss die Seite
+    // sie mitgeben).
     id: 'verify:hangar-hall',
     npm: 'verify:hangar-hall',
     script: 'scripts/verify-hangar-hall.mjs',

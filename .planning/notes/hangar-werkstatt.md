@@ -19,7 +19,11 @@ Regel 10-07 gilt: Geometrie und Texturen aus dem Spiel, nichts
 Selbstgebautes, auch keine selbst gemalten Flecken. Die Anordnung soll,
 wo es geht, aus einer Spielhalle übernommen werden statt erfunden. Keine
 Bilder, keine Roh-Exporte, kein `.mtl`-XML committen (das Repo ist
-öffentlich); alles Rohe bleibt in `.cache/`.
+öffentlich); alles Rohe bleibt in `.cache/`. Ausgeliefert werden nur die
+gebauten, verkleinerten Dateien (Draco, WebP, Größengrenzen unten), so wie
+Halle, Schiffe und Schacht; ob Spielinhalte öffentlich ausgeliefert werden
+dürfen, entscheidet der Betreiber (der Hangar steht bisher nur auf
+staging).
 
 ## Warum die Halle steril wirkt (Befund Cloud)
 

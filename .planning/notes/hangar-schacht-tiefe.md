@@ -176,11 +176,13 @@ PC-Lauf 2026-10-17 (Teil B von `hangar-werkstatt`). Der Schacht ist neu gebaut: 
 - **Der Bausatz trägt COLOR_0 jetzt als VEC4.** Bisher war es VEC3, das Alpha fehlte. Der Viewer liest also vier Kanäle.
 - Die Wear-Karten liegen auf dem Knoten `wear_0` (Material `…paint_c_notint_044_wear`).
 - `trim_hightech_c_metal` (Wear der Trimleiste) hat keine Farbkarte; seine Farbe ist sein Specular.
+- Stand Viewer (Cloud, 17.10.2026, PR #114): `buildShaft`/`shaftPieces` liest von COLOR_0 nur R und nimmt die Karten mit ihrem Mittelwert; UVs, die Mischmaske im Alpha, `wear_0` und das Beiwerk nutzt er erst mit dem Einbau. Bis dahin sieht der Schacht aus wie vorher (Bilder der Fahrt mit altem und neuem Bausatz verglichen).
 
 **4. Beiwerk.**
 - Im Schacht selbst stehen außer dem Bausatz zwei Arten: 35 Lichtrahmen (`util_decal_light_set_a_rect_b`, MeshDecal) an den Wänden und 52 Leuchtengehäuse (`light_fluorescent_f`, 284 Dreiecke, deckend, Glas leuchtet) für die Bodenstrahler (`base`) und Leisten.
 - Kabel, Rohre, Geländer und Leitern gibt es im Schacht nicht. Die Rohre stehen außen hinter der Wand, die Laufstege bei y −50/−86 liegen hinter der Wandebene.
 - Die Gehäuse der Fluter und Leisten sind Teil der Rippen (`rib_top_a`) und Ecken (`corner_top_a`), sie sind also schon im Bausatz.
+- Offen beim Einbau (Cloud): Die 52 Gehäuse `light_fluorescent_f` stehen laut oben an den Bodenstrahlern und Leisten, die Rippen tragen schon Gehäuse für Fluter und Leisten. Vor dem Setzen je Exemplar gegen die Rippen und Ecken prüfen, ob es dort doppelt sitzt, und nur die freien setzen.
 
 Am Rand, also auf dem Hallenboden bis 14 m um die Öffnung (y −50), liegen die Leitlinien:
 - Die Decal-Meshes kamen im Export ohne Dreiecke, weil StarBreaker Decal-Materialien weglässt; die Knoten mit ihrer Lage blieben erhalten.
