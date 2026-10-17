@@ -1179,7 +1179,7 @@ async function floorGrid(model, room, floorY, skip, pause = noPause) {
 // Bodendatei: { name, mat, tile } mit der Kachel in m je UV-Einheit aus
 // info.floors, oder null (Lack)
 function padFloor(scene, info, which) {
-  const name = WORK_PAD.floors[which in WORK_PAD.floors ? which : WORK_PAD.pick];
+  const name = WORK_PAD.floors[Object.hasOwn(WORK_PAD.floors, which ?? '') ? which : WORK_PAD.pick];
   let mat = null;
   if (which !== 'lack' && name) scene?.getObjectByName(name)?.traverse((o) => { if (!mat && o.isMesh) mat = o.material; });
   if (!mat) return null;

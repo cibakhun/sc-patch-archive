@@ -876,7 +876,10 @@ let pad = null;
 try { pad = pm ? JSON.parse(pm[1]) : null; } catch (e) { fail(`[12] WORK_PAD im Viewer ist kein JSON mehr (${e.message})`); }
 if (viewer && W && !pm) fail('[12] der Viewer traegt keinen Block /* work-pad */ … /* /work-pad */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 let padRe = null;
-if (pad) try { padRe = new RegExp(pad.mats, 'i'); } catch (e) { fail(`[12] WORK_PAD.mats ist kein regulaerer Ausdruck (${e.message})`); }
+if (pad) {
+  if (typeof pad.mats !== 'string' || !pad.mats.trim()) fail('[12] WORK_PAD.mats muss ein nichtleerer regulaerer Ausdruck sein: Leer traefe er jedes Material, und die Klinke zaehlte das ganze Feld');
+  else try { padRe = new RegExp(pad.mats, 'i'); } catch (e) { fail(`[12] WORK_PAD.mats ist kein regulaerer Ausdruck (${e.message})`); }
+}
 if (WM && !W) fail(`[12] das Manifest nennt die Werkstatt (${WM.url}), die Seite gibt sie nicht mit (opts.hall.workshop): Die Halle bliebe steril. HangarApp.astro pruefen (props.werkstatt, json und boden)`);
 if (W) {
   const files = { glb: W.url, json: W.json, boden: W.boden?.url };

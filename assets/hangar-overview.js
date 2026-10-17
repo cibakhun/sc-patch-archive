@@ -283,7 +283,8 @@ export function boot(doc) {
   // ohne ?grafik=
   const GRAFIK = grafikWahl();
   // Feldboden zum Vergleich: ?boden=asphalt oder ?boden=lack statt des
-  // gewaehlten Spielbodens (WORK_PAD im Viewer)
+  // gewaehlten Spielbodens (WORK_PAD im Viewer). Anders als ?grafik= bleibt
+  // er in der Adresse (urlOf), damit Neuladen und Kopieren ihn behalten.
   const BODEN = new URLSearchParams(location.search).get('boden');
   let state = parseState(location.search, location.hash, ctx);
 
@@ -294,7 +295,10 @@ export function boot(doc) {
   // nach einem Neuladen gehoert der Eintrag davor zum alten Dokument, back()
   // laedt dann neu und verwirft, was im Dialog geaendert wurde.
   let pushedHere = false;
-  const urlOf = (s) => `${location.pathname}${serializeState(s, ctx)}`;
+  const urlOf = (s) => {
+    const q = serializeState(s, ctx);
+    return `${location.pathname}${BODEN ? `${q ? `${q}&` : '?'}boden=${encodeURIComponent(BODEN)}` : q}`;
+  };
 
   // Die Adresse folgt dem Zustand, so gut es geht: WebKit wirft nach 100
   // replaceState-Aufrufen in 10 s. Die Seite steht dann trotzdem richtig, nur
