@@ -45,6 +45,25 @@ const HALLS = [
 // am nächsten an unserem Schiffsfeld 32 x 96 m). Exportiert wird der ganze
 // Hangar wie die Halle; der Build schneidet Plattform, Tor und Schacht heraus.
 const LIFTS = [{ key: 'medtop', socpak: 'hangar_medtop_001.socpak', lod: 1 }];
+// Werkstatt (.planning/notes/hangar-werkstatt.md): der Industrie-Hangar mit
+// den meisten Boden-Decals und dem meisten Arbeitsgerät am Feld (util_a,
+// mittlere Größe, Feld 56 x 88 m wie der Schacht). Beide Stufen: der Build
+// nimmt je Requisit LOD 0, wenn es ins Budget passt, sonst LOD 1.
+const WERKSTATT = [
+  { key: 'util-medtop002', socpak: 'util_a\\hangar_medtop_002.socpak', lod: 0 },
+  { key: 'util-medtop002-lod1', socpak: 'util_a\\hangar_medtop_002.socpak', lod: 1, info: true },
+];
+// Öl und Risse, die in der Vorlagenhalle fehlen, im Spiel aber auf
+// Hallenböden liegen (Fundorte und mittlere Kantenlänge aus 87 Hangar-socpaks
+// von util_a, VFG Industrial und Self-Land). Ohne Anordnung, die Cloud setzt sie.
+const WERK_EXTRA_DECALS = [
+  { material: 'materials/decals/cracks/cracks_c', edge: 5.2, from: ['hangar_smlfrnt_001_gh', 'hangar_smltop_001_gh', 'hangar_xltop_001_gh'] },
+  { material: 'materials/pu/decal/concrete/decal_concrete_crack_b', edge: 3.7, from: ['hangar_lrgtop_001_delving'] },
+  { material: 'materials/pu/decal/concrete/decal_concrete_debris_a', edge: 3.0, from: ['hangar_lrgtop_001_delving'] },
+  { material: 'materials/decals/oil/oil_puddle_a', edge: 6.2, from: ['hangar_lrgfrnt_001_gh', 'hangar_lrgfrnt_001_law', 'hangar_medfrnt_001_gh', 'hangar_medfrnt_001_gh_dressing', 'hangar_medfrnt_001_rest_rund_dressing'] },
+  { material: 'materials/decals/oil/oil_splat_a', edge: 14.9, from: ['hangar_lrgfrnt_001_gh', 'hangar_lrgfrnt_001_law', 'hangar_xltop_001_gh_dressing'] },
+];
+
 // Hangar-Crew: die RSI-Deckcrew-Montur, Teil für Teil (.skin). Der Weg über
 // die NPC-Archetypen scheitert: deren Skelett (.chr) exportiert StarBreaker
 // nicht, und ihre Kleidungs-Loadouts liegen nicht in der Data.p4k. Der Helm
@@ -59,7 +78,7 @@ const NPCS = [
 const argv = process.argv.slice(2);
 const FORCE = argv.includes('--force');
 const shipArg = argv.includes('--ships') ? argv[argv.indexOf('--ships') + 1].split(',') : null;
-const parts = argv.filter((a) => ['ships', 'hall', 'lift', 'npc'].includes(a));
+const parts = argv.filter((a) => ['ships', 'hall', 'lift', 'werkstatt', 'npc'].includes(a));
 const want = (p) => !parts.length || parts.includes(p);
 
 if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER} (SC_STARBREAKER setzen)`); process.exit(1); }
@@ -99,6 +118,7 @@ if (want('ships')) {
 const containers = [
   ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall' })) : []),
   ...(want('lift') ? LIFTS.map((h) => ({ ...h, dir: 'lift' })) : []),
+  ...(want('werkstatt') ? WERKSTATT.map((h) => ({ ...h, dir: 'werkstatt' })) : []),
 ];
 if (containers.length) {
   console.log('Halle/Aufzug');
@@ -136,9 +156,16 @@ if (containers.length) {
     const add = (p) => { if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/')); };
     for (const m of doc.getRoot().listMaterials()) { const x = m.getExtras() || {}; add(x.diffuse_tex); add(x.normal_tex); }
     for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); add(s.blend?.d); add(s.blend?.mask); }
-    if (h.dir === 'lift') {
+    // Decal-Farbkarten tragen ihr Alpha (Deckkraft) schon im RGBA-PNG
+    if (h.info) {
+      const info = werkstattInfo(h);
+      writeFileSync(`${SRC}${h.dir}/${h.key}.info.json`, JSON.stringify(info, null, 1));
+      for (const m of Object.values(info.decalMaterials)) { add(m.d); add(m.n); add(m.mask); }
+      console.log(`  Werkstatt: Landefläche ${info.landingArea?.dimensions?.join(' x ')} m, ${info.decals.length} Decals (${info.decals.filter((d) => d.floor).length} auf dem Boden), ${Object.keys(info.decalMaterials).length} Decal-Materialien`);
+    }
+    if (h.dir === 'lift' || h.dir === 'werkstatt') {
       const layers = layerMaterials(doc);
-      writeFileSync(`${SRC}lift/${h.key}.layers.json`, JSON.stringify(layers, null, 1));
+      writeFileSync(`${SRC}${h.dir}/${h.key}.layers.json`, JSON.stringify(layers, null, 1));
       for (const l of Object.values(layers)) { add(l.d); add(l.n); }
       console.log(`  Schichtmaterialien: ${Object.keys(layers).length} .mtl (${Object.values(layers).filter((l) => l.d).length} mit Farbkarte)`);
     }
@@ -393,6 +420,96 @@ function readSubsets(buf) {
   return best;
 }
 
+// ─── Werkstatt: Landefläche, Decals, Decal-Materialien ──────────────────
+// Decals stehen in der .soc nicht als Entity, sondern als eigener Objekttyp
+// im IncludedObjects-Chunk (Chunktyp 0x10010; StarBreaker überspringt ihn,
+// Protokoll „skipping Type10“). Ein Satz ist 132 Byte:
+//   u32 0x10 | 6 double Weltbox | u32 0 | u32 | u32 | 4 double Drehung
+//   (x, y, z, w) | 3 double Lage (Container-Raum, Z oben) | double Halbmaß |
+//   u32 (untere 16 Bit = Index in die Materialtabelle des Chunks)
+// Die Materialtabelle steht im selben Chunk: 256-Byte-Einträge mit Pfad. Ein
+// Decal ist ein Würfel mit Halbmaß s (die Weltbox ist 2 s weit): Fläche
+// 2 s × 2 s, projiziert entlang seiner lokalen Z. Boden-Decals haben eine
+// Drehung nur um Z.
+function socDecals(b) {
+  const cnt = b.readUInt32LE(8), tab = b.readUInt32LE(12);
+  let c0 = 0, c1 = 0;
+  for (let i = 0; i < cnt; i++) { const o = tab + i * 16; if (b.readUInt32LE(o) === 0x10010) { c0 = b.readUInt32LE(o + 12); c1 = c0 + b.readUInt32LE(o + 8); } }
+  const mt = [];
+  if (!c0) return { materials: mt, decals: [] };
+  const name = (o) => b.toString('latin1', o, o + 256).split('\0')[0];
+  const isName = (t) => /^[\x20-\x7e]{4,}$/.test(t);
+  const geo = /\.(cgf|cga|cdf|chr|skin)$/i;
+  for (let o = c0; o < c1 - 256; o += 4) {
+    const t = name(o);
+    if (isName(t) && !geo.test(t) && /^(materials|objects)\//i.test(t) && !(isName(name(o - 256)) && !geo.test(name(o - 256)))
+      && isName(name(o + 256)) && !geo.test(name(o + 256))) {
+      for (let p = o; isName(name(p)); p += 256) mt.push(name(p));
+      break;
+    }
+  }
+  const decals = [];
+  const r4 = (v) => Math.round(v * 1e4) / 1e4;
+  for (let o = c0; o < c1 - 132; o += 4) {
+    if (b.readUInt32LE(o) !== 0x10) continue;
+    const box = [0, 1, 2, 3, 4, 5].map((k) => b.readDoubleLE(o + 4 + k * 8));
+    if (!(box[0] < box[3] && box[1] < box[4] && box[2] < box[5]) || box.some((v) => !Number.isFinite(v) || Math.abs(v) > 1e7)) continue;
+    const q = [0, 1, 2, 3].map((k) => b.readDoubleLE(o + 64 + k * 8));
+    if (Math.abs(Math.hypot(...q) - 1) > 1e-3) continue;
+    const pos = [0, 1, 2].map((k) => b.readDoubleLE(o + 96 + k * 8));
+    const half = b.readDoubleLE(o + 120);
+    const m = b.readUInt32LE(o + 128) & 0xffff;
+    decals.push({ material: mt[m] ?? null, q: q.map(r4), pos: pos.map(r4), half: r4(half), floor: Math.abs(q[0]) < 0.02 && Math.abs(q[1]) < 0.02 });
+  }
+  return { materials: mt, decals };
+}
+
+function werkstattInfo(h) {
+  const RAW = `${SRC}werkstatt-raw/`;
+  mkdirSync(RAW, { recursive: true });
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(h.socpak)}$`]);
+  const pak = listFiles(RAW).find((f) => f.toLowerCase().replace(/\\/g, '/').endsWith(`/${h.socpak.toLowerCase().replace(/\\/g, '/')}`));
+  const zip = readZip(readFileSync(pak));
+  const soc = zip.get([...zip.keys()].find((k) => k.toLowerCase().endsWith('.soc')))();
+  const xml = socEntitiesXml(soc, `${RAW}${h.key}`);
+  const la = (xml.match(/<Entity\b[^>]*EntityClass="LandingArea"[^>]*>[\s\S]*?<\/Entity>/) || [])[0] || '';
+  const attr = (s, k) => (s.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
+  const { materials, decals } = socDecals(soc);
+  // Decal-Materialien (.mtl unter Materials/Decals): Farbe TexSlot1 (mit
+  // Alpha), Normalen/Glätte TexSlot2, Kopfwerte und PublicParams wörtlich
+  const used = [...new Set([...decals.map((d) => d.material), ...WERK_EXTRA_DECALS.map((e) => e.material)].filter(Boolean))];
+  sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${used.map((u) => esc(u.split('/').pop())).join('|')})\\.mtl$`]);
+  const files = listFiles(RAW);
+  const decalMaterials = {};
+  for (const u of used) {
+    const f = files.find((x) => x.toLowerCase().replace(/\\/g, '/').endsWith(`/${u.toLowerCase()}.mtl`));
+    if (!f) { decalMaterials[u] = { missing: true }; continue; }
+    let x = readFileSync(f, 'latin1');
+    if (x.startsWith('CryXmlB')) { spawnSync(STARBREAKER, ['cryxml', 'convert', f, `${f}.xml`]); x = readFileSync(`${f}.xml`, 'utf8'); }
+    const head = x.slice(0, x.indexOf('>'));
+    const tex = (slot) => (x.match(new RegExp(`Map="${slot}"[^>]*File="([^"]*)"`)) || [])[1];
+    const pp = (x.match(/<PublicParams\b([^>]*)\/>/) || [])[1] || '';
+    decalMaterials[u] = {
+      shader: attr(head, 'Shader'), mask: attr(head, 'StringGenMask'), diffuse: attr(head, 'Diffuse'), specular: attr(head, 'Specular'),
+      opacity: attr(head, 'Opacity'), shininess: attr(head, 'Shininess'), surface: attr(head, 'SurfaceType'),
+      d: tex('TexSlot1'), n: tex('TexSlot2'),
+      // %OPACITY_MAP: Deckkraft aus TexSlot12 (Maske, ungekachelt); Farbe mit TexMod
+      mask: tex('TexSlot12'),
+      tileD: (() => { const t = x.match(/<Texture\b[^>]*Map="TexSlot1"[^>]*?(?<!\/)>([\s\S]*?)<\/Texture>/)?.[1] || ''; const u = Number(t.match(/TileU="([^"]*)"/)?.[1] || 1), v = Number(t.match(/TileV="([^"]*)"/)?.[1] || 1); return u !== 1 || v !== 1 ? [u, v] : null; })(),
+      params: Object.fromEntries([...pp.matchAll(/(\w+)="([^"]*)"/g)].map((m) => [m[1], m[2]])),
+    };
+  }
+  return {
+    socpak: h.socpak,
+    landingArea: la && {
+      pos: String(attr(la, 'Pos') || '0,0,0').split(',').map(Number), rotate: attr(la, 'Rotate') || null,
+      dimensions: ['x', 'y', 'z'].map((k) => Number(attr((la.match(/<dimensions\b([^>]*)\/>/) || [])[1] || '', k))),
+    },
+    materialTable: materials.length, decals, decalMaterials, extraDecals: WERK_EXTRA_DECALS,
+  };
+}
+
 // ─── Schichtmaterialien (HardSurface / LayerBlend) ─────────────────────
 // Bausatzteile wie die Schachtwände tragen keine eigenen Karten: Ihr Material
 // nennt Schichten (extras.layers, je eine .mtl unter Materials/PU/layer/ mit
@@ -405,7 +522,8 @@ function layerMaterials(doc) {
   const want = new Set();
   for (const m of doc.getRoot().listMaterials()) {
     const x = m.getExtras() || {};
-    if (!x.diffuse_tex && x.layers?.[0]?.path) want.add(x.layers[0].path.replace(/\\/g, '/'));
+    // alle Schichten (Primary, Wear, …): der Build nimmt die erste, die JSON nennt alle
+    if (!x.diffuse_tex) for (const l of x.layers || []) if (l?.path) want.add(l.path.replace(/\\/g, '/'));
   }
   if (!want.size) return {};
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
