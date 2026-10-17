@@ -282,6 +282,9 @@ export function boot(doc) {
   // Jetzt lesen: writeUrl() schreibt die Adresse aus dem Zustand neu,
   // ohne ?grafik=
   const GRAFIK = grafikWahl();
+  // Feldboden zum Vergleich: ?boden=asphalt oder ?boden=lack statt des
+  // gewaehlten Spielbodens (WORK_PAD im Viewer)
+  const BODEN = new URLSearchParams(location.search).get('boden');
   let state = parseState(location.search, location.hash, ctx);
 
   // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
@@ -1060,7 +1063,7 @@ export function boot(doc) {
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, pad: BODEN }))
       .then((v) => {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
