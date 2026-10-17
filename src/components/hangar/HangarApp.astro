@@ -30,7 +30,7 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
 type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number };
-const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string }> };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string }>; props?: Record<string, Asset & { json?: string; boden?: Asset }> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
@@ -88,10 +88,18 @@ const liftJson = liftAsset?.json ? `public${liftAsset.json}` : '';
 const lift = liftAsset && liftJson && existsSync(liftJson)
   ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes }
   : null;
+// Werkstatt aus anderen Spielhallen (scripts/build-hangar-assets.mjs, Art
+// props; PC-Auftrag .planning/notes/hangar-werkstatt.md): Requisiten,
+// Boden-Decals als eigene kleine Datei und die Anordnung um das Landefeld.
+const workAsset = real.props?.werkstatt;
+const workJson = workAsset?.json ? `public${workAsset.json}` : '';
+const workshop = workAsset && workJson && existsSync(workJson)
+  ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null }
+  : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite
-  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift }
-  : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift };
+  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift, workshop }
+  : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift, workshop };
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 

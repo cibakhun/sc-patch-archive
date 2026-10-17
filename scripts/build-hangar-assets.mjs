@@ -14,9 +14,9 @@
 // Rohe Spieldateien werden NIE eingecheckt — nur diese Ausgabe.
 //
 // Usage:  node scripts/build-hangar-assets.mjs [--only <name>] [--force]
-import { NodeIO } from '@gltf-transform/core';
+import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP, KHRTextureTransform } from '@gltf-transform/extensions';
-import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh, transformPrimitive, getBounds } from '@gltf-transform/functions';
+import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh, transformPrimitive, getBounds, mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
@@ -373,18 +373,21 @@ function stripAttributes(doc, kind) {
   for (const m of root.listMeshes()) for (const p of m.listPrimitives()) {
     const c = p.getAttribute('COLOR_0');
     const mat = p.getMaterial();
-    if (kind === 'hall' && c && mat?.getExtras()?.vc) {
-      const n = c.getCount(), out = new Uint8Array(n * 3), v = [0, 0, 0, 1];
+    // Schacht (kind lift): VEC4 — im Alpha liegt die Mischmaske der Wear-Schicht
+    // (HardSurface %WEAR_LAYER), siehe .planning/notes/hangar-schacht-tiefe.md
+    const ch = kind === 'lift' ? 4 : 3;
+    if ((kind === 'hall' || kind === 'lift') && c && mat?.getExtras()?.vc) {
+      const n = c.getCount(), out = new Uint8Array(n * ch), v = [0, 0, 0, 1];
       const key = `${mat.getName()}|${p.getExtras()?.matfix ? 'matfix' : 'eigen'}`;
       const e = vc.get(key) || { tris: 0, n: 0, sumR: 0, low: 0 };
       for (let i = 0; i < n; i++) {
         c.getElement(i, v);
-        for (let k = 0; k < 3; k++) out[i * 3 + k] = Math.round(Math.min(1, Math.max(0, v[k])) * 255);
+        for (let k = 0; k < ch; k++) out[i * ch + k] = Math.round(Math.min(1, Math.max(0, v[k] ?? 1)) * 255);
         e.sumR += v[0]; if (v[0] < 0.98) e.low++;
       }
       e.n += n; e.tris += (p.getIndices()?.getCount() ?? 0) / 3;
       vc.set(key, e);
-      p.setAttribute('COLOR_0', doc.createAccessor().setType('VEC3').setArray(out).setNormalized(true).setBuffer(buffer));
+      p.setAttribute('COLOR_0', doc.createAccessor().setType(ch === 4 ? 'VEC4' : 'VEC3').setArray(out).setNormalized(true).setBuffer(buffer));
     } else {
       p.setAttribute('COLOR_0', null);
     }
@@ -633,11 +636,14 @@ function liftLights(info) {
 
 // public/hangar/lift/<name>.json neben dem GLB: Teile, Lampen, Fahrablauf.
 // Alles aus <name>.entities.json (Extraktor); Abgeleitetes steht als solches da.
-function writeLiftJson(name, parts) {
+function writeLiftJson(name, parts, { extras = null, uv = null, proj = null } = {}) {
   const infoFile = fileURLToPath(new URL(`lift/${name}.entities.json`, SRC));
   if (!existsSync(infoFile)) throw new Error(`Aufzug ${name}: ${infoFile} fehlt (Extraktor mit "lift" laufen lassen)`);
   const info = JSON.parse(readFileSync(infoFile, 'utf8'));
   const lights = liftLights(info);
+  // Projektormuster je Lampe (Pfad aus projectorParams, Bild klein daneben)
+  const byName = new Map([...(info.shaftLights || []), ...(info.padLights || [])].map((l) => [l.name, l.projector]));
+  for (const l of lights) { const pth = byName.get(l.name); if (pth) l.projector = { path: pth, url: proj?.get(pth.toLowerCase().replace(/\.(tif|dds)$/, ''))?.url ?? null }; }
   const plat = Object.values(info.anims || {})[0];
   const open = plat?.animations?.find((a) => a.name === 'door_open');
   const speed = plat?.doorAnimationSpeed || 1;
@@ -659,6 +665,9 @@ function writeLiftJson(name, parts) {
     modules: { ...modules, bottom: null },
     whole: null,
     lights,
+    ...(extras ? { materials: extras.materials, deco: extras.deco, decals: extras.decals } : {}),
+    ...(uv ? { uv } : {}),
+    ...(proj ? { projectors: [...proj.values()] } : {}),
     motion: {
       travel: { m: travel, source: `Plattform-Entity Pos z ${LIFT_SHAFT.floorY} (Oberkante auf Hallenboden); Plattform im Ruhezustand des .cga mit Oberkante ${LIFT_SHAFT.bottomY}; Lichtgruppe der Plattform ParentOffsetPos z ${info.padLightGroup?.parentOffsetPos?.[2]?.toFixed(3)}` },
       animations: info.anims,
@@ -680,15 +689,15 @@ function writeLiftJson(name, parts) {
   const file = fileURLToPath(new URL(`lift/${name}.json`, OUT));
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(out) + '\n');
-  return { file, lights: lights.length };
+  return { file, lights: lights.length, deco: extras?.deco.length ?? 0, decoCount: extras?.deco.reduce((n, d) => n + d.count, 0) ?? 0, decals: extras?.decals.length ?? 0, decalCount: extras?.decals.reduce((n, d) => n + d.at.length, 0) ?? 0, wear: Object.values(extras?.materials ?? {}).filter((m) => m.wear).length, projectors: proj?.size ?? 0 };
 }
 
 // Schichtmaterialien (HardSurface/LayerBlend ohne eigene Karten): Karten der
 // ersten Schicht aus <name>.layers.json (Extraktor) als Farbe/Normalen, die
 // Tönung der Schicht als Grundfarbe, LayerTiling als Kachelung. attachHall-
 // Textures hängt sie danach wie eigene Karten an.
-function applyLayers(doc, name) {
-  const f = fileURLToPath(new URL(`lift/${name}.layers.json`, SRC));
+function applyLayers(doc, name, dir = 'lift') {
+  const f = fileURLToPath(new URL(`${dir}/${name}.layers.json`, SRC));
   if (!existsSync(f)) return { missing: true };
   const layers = JSON.parse(readFileSync(f, 'utf8'));
   const s = { materials: 0, textured: 0, glow: 0 };
@@ -754,13 +763,196 @@ function prepareLift(doc, name) {
     materials: [...new Set(mesh.listPrimitives().map((q) => q.getMaterial()?.getName()))].length,
   }));
 }
+// ─── Schacht-Tiefe (.planning/notes/hangar-schacht-tiefe.md) ────────────
+// Zusätze zum Bausatz, alle als eigene benannte Knoten:
+// - deco_<rolle>_<n>: Beiwerk mit Decal-Material (Leitlinien, Chevrons,
+//   Pfeile, Lichtrahmen). Geometrie aus skin export (Modellraum Z oben ->
+//   glTF), Material = Untermaterial der überschriebenen .mtl. Ursprung am
+//   Montagepunkt des Spielmodells, Achsen glTF; die Exemplare stehen in der
+//   JSON (deco[].at, Schachtraum wie lights[].pos, dazu die volle Drehung).
+// - decal_<rolle>_<n>: Decal-Objekte am Schachtrand (Einheitsquadrat 1 × 1 m
+//   in XZ wie in der Werkstatt), Exemplare in decals[].at.
+// - wear_<n>: je Schachtmaterial mit zweiter Schicht ein 1 × 1-m-Quadrat mit
+//   deren Karten (Material „<name>_wear“); gemischt wird im Spiel über
+//   COLOR_0.a (HardSurface %WEAR_LAYER), das der Bausatz jetzt mitträgt.
+// Projektormuster der Lampen: public/hangar/lift/<name>-proj-<n>.webp.
+const ROOT_INV = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1];   // (x, y, z) -> (x, −z, y): hebt die Z-oben-Drehung des Exports auf
+const ROOT_ZUP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];   // (x, y, z) -> (x, z, −y)
+const decoRole = (cgf) => (/light_fluorescent/.test(cgf) ? 'leuchte' : /light_set/.test(cgf) ? 'lichtrahmen' : /chevron/.test(cgf) ? 'chevron' : /arrow/.test(cgf) ? 'pfeil' : /frame/.test(cgf) ? 'rahmen'
+  : /corner/.test(cgf) ? 'ecke' : /line|decal_8m/.test(cgf) ? 'leitlinie' : 'beiwerk');
+const m4 = (a, b) => { const m = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) m[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return m; };
+function quatOf(m) {
+  // Drehung aus einer (uniform) skalierten 3×3-Matrix, Spaltenmatrix
+  const sx = Math.hypot(m[0], m[1], m[2]), sy = Math.hypot(m[4], m[5], m[6]), sz = Math.hypot(m[8], m[9], m[10]);
+  const r = [m[0] / sx, m[1] / sx, m[2] / sx, m[4] / sy, m[5] / sy, m[6] / sy, m[8] / sz, m[9] / sz, m[10] / sz];
+  const tr = r[0] + r[4] + r[8];
+  let q;
+  if (tr > 0) { const s = Math.sqrt(tr + 1) * 2; q = [(r[5] - r[7]) / s, (r[6] - r[2]) / s, (r[1] - r[3]) / s, 0.25 * s]; }
+  else if (r[0] > r[4] && r[0] > r[8]) { const s = Math.sqrt(1 + r[0] - r[4] - r[8]) * 2; q = [0.25 * s, (r[3] + r[1]) / s, (r[6] + r[2]) / s, (r[5] - r[7]) / s]; }
+  else if (r[4] > r[8]) { const s = Math.sqrt(1 + r[4] - r[0] - r[8]) * 2; q = [(r[3] + r[1]) / s, 0.25 * s, (r[7] + r[5]) / s, (r[6] - r[2]) / s]; }
+  else { const s = Math.sqrt(1 + r[8] - r[0] - r[4]) * 2; q = [(r[6] + r[2]) / s, (r[7] + r[5]) / s, 0.25 * s, (r[1] - r[3]) / s]; }
+  return { q, scale: [sx, sy, sz] };
+}
+async function addLiftExtras(doc, name) {
+  const root = doc.getRoot(), scene = root.listScenes()[0], buf = root.listBuffers()[0];
+  const decoFile = fileURLToPath(new URL(`lift/${name}.deco.json`, SRC));
+  const layersFile = fileURLToPath(new URL(`lift/${name}.layers.json`, SRC));
+  const info = existsSync(decoFile) ? JSON.parse(readFileSync(decoFile, 'utf8')) : { deco: [], decals: [], decalMaterials: {} };
+  const layerInfo = existsSync(layersFile) ? JSON.parse(readFileSync(layersFile, 'utf8')) : {};
+  const lk = (p) => layerInfo[Object.keys(layerInfo).find((k) => k.toLowerCase() === String(p).toLowerCase().replace(/\\/g, '/'))] || null;
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const png = (file, label) => doc.createTexture(label).setImage(readFileSync(file)).setMimeType('image/png');
+  const rgb = (s) => (s ? String(s).split(',').map(Number) : [1, 1, 1]);
+  const quad = (sx, sz) => doc.createPrimitive()
+    .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array([-sx / 2, 0, -sz / 2, sx / 2, 0, -sz / 2, sx / 2, 0, sz / 2, -sx / 2, 0, sz / 2])).setBuffer(buf))
+    .setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0])).setBuffer(buf))
+    .setAttribute('TEXCOORD_0', doc.createAccessor().setType('VEC2').setArray(new Float32Array([0, 0, 1, 0, 1, 1, 0, 1])).setBuffer(buf))
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array([0, 2, 1, 0, 3, 2])).setBuffer(buf));
+  const out = { materials: {}, deco: [], decals: [] };
+
+  // 1) Schichten aller Schachtmaterialien, Wear-Karten als eigenes Material
+  let wi = 0;
+  for (const m of root.listMaterials()) {
+    const x = m.getExtras() || {};
+    const man = x.semantic?.layer_manifest;
+    if (!man?.length) continue;
+    const layers = man.map((l) => { const L = lk(l.path) || {}; return { name: l.name, path: l.path, tint: l.tint_color, wearTint: l.wear_tint, glossMult: l.gloss_mult, wearGloss: l.wear_gloss, uvTiling: l.uv_tiling, snapshot: l.layer_snapshot, maps: { d: L.d ?? null, n: L.n ?? null, detail: L.detail ?? null }, layerTiling: L.tiling ?? null }; });
+    const entry = { shader: x.shader, tokens: x.semantic?.decoded_string_gen_mask?.tokens, params: Object.fromEntries((x.semantic?.authored_public_params || []).map((p) => [p.name, p.value])), layers, blend: null };
+    const W = layers[1];
+    const wd = W && texFile(W.maps.d), wn = W && texFile(W.maps.n);
+    if (W) entry.blend = /WEAR_LAYER/.test((entry.tokens || []).join(' ')) ? 'COLOR_0.a (Vertex-Alpha, HardSurface %WEAR_LAYER), WearBlendBase/WearDirtBlendFalloff in params' : 'nicht über die Vertexfarbe (kein %WEAR_LAYER)';
+    if (wd) {
+      const wname = `${m.getName()}_wear`, node = `wear_${wi++}`;
+      const wm = doc.createMaterial(wname).setMetallicFactor(0).setBaseColorTexture(png(wd, `${node}_d`))
+        .setBaseColorFactor([...(W.snapshot?.diffuse || [1, 1, 1]).map((v, i) => Math.min(1, v * (W.tint || [1, 1, 1])[i])), 1])
+        .setRoughnessFactor(r3(1 - (W.snapshot?.shininess ?? 128) / 255 * (W.glossMult ?? 1)));
+      if (wn) wm.setNormalTexture(png(wn, `${node}_n`));
+      scene.addChild(doc.createNode(node).setMesh(doc.createMesh(node).addPrimitive(quad(1, 1).setMaterial(wm))));
+      entry.wear = { material: wname, node };
+    }
+    out.materials[m.getName()] = entry;
+  }
+
+  // 2) Beiwerk mit Decal-Material
+  const roleN = new Map();
+  for (const d of info.deco || []) {
+    if (d.missing || !d.glb) continue;
+    const src = await io.read(fileURLToPath(new URL(d.glb, SRC)));
+    const role = decoRole(d.cgf), n = roleN.get(role) || 0; roleN.set(role, n + 1);
+    const node = `deco_${role}_${n}`;
+    const mesh = doc.createMesh(node);
+    const prims = src.getRoot().listMeshes().flatMap((me) => me.listPrimitives());
+    prims.forEach((sp, i) => {
+      const sub = d.subs?.[i] || d.subs?.[0];
+      const p = doc.createPrimitive();
+      for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0']) {
+        const a = sp.getAttribute(sem); if (!a) continue;
+        p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setBuffer(buf));
+      }
+      const idx = sp.getIndices();
+      if (idx) p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx.getArray().slice()).setBuffer(buf));
+      transformPrimitive(p, ROOT_ZUP);   // Modellraum Z oben -> glTF
+      const mname = `${node}_${sub?.name || i}`;
+      // Decal-Shader blenden; Leuchtengehäuse sind deckend, ihr Glas leuchtet
+      const isDecal = /decal/i.test(sub?.shader || '') || /brand|decal/i.test(d.mtl || '');
+      const mat = doc.createMaterial(mname).setAlphaMode(isDecal ? 'BLEND' : 'OPAQUE').setMetallicFactor(0)
+        .setBaseColorFactor([...rgb(sub?.diffuse), Math.min(1, Number(sub?.opacity ?? 1))])
+        .setRoughnessFactor(r3(Math.max(0.05, 1 - Number(sub?.shininess ?? 128) / 255)));
+      const df = texFile(sub?.d);
+      if (df) mat.setBaseColorTexture(png(df, `${mname}_d`));
+      if (df && /glow/i.test(sub?.name || '')) mat.setEmissiveTexture(mat.getBaseColorTexture()).setEmissiveFactor([1, 1, 1]);
+      // MeshDecal-Atlas der Lichtrahmen: TexSlot2 ist dort eine Specular-Karte, keine Normale
+      const nf = texFile(sub?.n);
+      if (nf && /_ddna\.png$/i.test(nf)) mat.setNormalTexture(png(nf, `${mname}_n`));
+      mesh.addPrimitive(p.setMaterial(mat));
+    });
+    scene.addChild(doc.createNode(node).setMesh(mesh));
+    const at = d.instances.map((w) => {
+      const M = m4(w, ROOT_INV);
+      const { q, scale } = quatOf(M);
+      const yaw = Math.abs(q[0]) < 1e-3 && Math.abs(q[2]) < 1e-3 ? (2 * Math.atan2(q[1], q[3]) * 180) / Math.PI : null;
+      return { at: [r3(M[12]), r3(M[13] - LIFT_SHAFT.floorY), r3(M[14]), yaw === null ? null : r3(yaw)], q: q.map((v) => Math.round(v * 1e4) / 1e4), scale: r3(scale[0]) };
+    });
+    out.deco.push({ node, kind: d.cgf, rolle: role, mtl: d.mtl, sub: (d.subs || []).map((s) => s.name), tris: prims.reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0), count: at.length, at });
+  }
+
+  // 3) Decal-Objekte am Schachtrand
+  const dnodes = new Map(), dN = new Map();
+  for (const mtl of [...new Set((info.decals || []).map((d) => d.material).filter(Boolean))]) {
+    const m = info.decalMaterials?.[mtl]; if (!m || m.missing || !m.d) continue;
+    const dFile = texFile(m.d); if (!dFile) continue;
+    const role = decalRole(mtl), n = dN.get(role) || 0; dN.set(role, n + 1);
+    const node = `decal_${role}_${n}`;
+    const cbf = Number(m.params?.ColorBlendFactor ?? 1);
+    const mat = doc.createMaterial(node).setBaseColorTexture(png(dFile, `${node}_d`))
+      .setBaseColorFactor([...rgb(m.diffuse), r3(Math.min(1, Number(m.opacity ?? 1) * Math.min(1, cbf)))]).setAlphaMode('BLEND').setMetallicFactor(0)
+      .setRoughnessFactor(r3(Math.max(0.05, 1 - Number(m.shininess ?? 128) / 255)));
+    const nf = texFile(m.n); if (nf) mat.setNormalTexture(png(nf, `${node}_n`));
+    scene.addChild(doc.createNode(node).setMesh(doc.createMesh(node).addPrimitive(quad(1, 1).setMaterial(mat))));
+    dnodes.set(mtl, node);
+    out.decals.push({ node, rolle: role, path: mtl, game: m, at: [] });
+  }
+  for (const d of info.decals || []) {
+    const node = dnodes.get(d.material); if (!node) continue;
+    const p = [d.pos[0], d.pos[2], -d.pos[1]];
+    const floor = Math.abs(d.q[0]) < 0.02 && Math.abs(d.q[1]) < 0.02;
+    out.decals.find((x) => x.node === node).at.push({ at: [r3(p[0]), r3(p[1] - LIFT_SHAFT.floorY), r3(p[2]), floor ? r3((2 * Math.atan2(d.q[2], d.q[3]) * 180) / Math.PI) : null], size: r3(2 * d.half), qGame: d.q });
+  }
+  return out;
+}
+
+// Projektormuster: ≤ 256 px WebP neben dem GLB, Pfad -> Datei
+async function liftProjectors(name) {
+  const ent = JSON.parse(readFileSync(fileURLToPath(new URL(`lift/${name}.entities.json`, SRC)), 'utf8'));
+  const paths = [...new Set([...ent.shaftLights, ...ent.padLights].map((l) => l.projector).filter(Boolean))];
+  const map = new Map();
+  let i = 0;
+  for (const p of paths) {
+    const f = texFile(p); if (!f) continue;
+    const key = p.toLowerCase().replace(/\.(tif|dds)$/, '');
+    if ([...map.keys()].some((k) => k === key)) continue;
+    const file = `${name}-proj-${i++}.webp`;
+    const outPath = fileURLToPath(new URL(`lift/${file}`, OUT));
+    await sharp(f).resize(256, 256, { fit: 'inside' }).webp({ quality: 85 }).toFile(outPath);
+    map.set(key, { path: p, url: `/hangar/lift/${file}`, bytes: statSync(outPath).size });
+  }
+  return map;
+}
+
+// UV-Auskunft je Knoten und Material (vor dem Packen, also Spiel-UVs)
+function uvReport(doc) {
+  const rep = [];
+  for (const n of doc.getRoot().listNodes()) {
+    const me = n.getMesh(); if (!me) continue;
+    for (const p of me.listPrimitives()) {
+      const sets = p.listSemantics().filter((s) => /^TEXCOORD_/.test(s));
+      const uv = p.getAttribute('TEXCOORD_0');
+      let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity], deg = 0, tris = 0;
+      if (uv) {
+        const t = [0, 0];
+        for (let i = 0; i < uv.getCount(); i++) { uv.getElement(i, t); lo = [Math.min(lo[0], t[0]), Math.min(lo[1], t[1])]; hi = [Math.max(hi[0], t[0]), Math.max(hi[1], t[1])]; }
+        const idx = p.getIndices();
+        if (idx) for (let k = 0; k < idx.getCount(); k += 3) {
+          const [a, b, c] = [idx.getScalar(k), idx.getScalar(k + 1), idx.getScalar(k + 2)].map((j) => uv.getElement(j, [0, 0]));
+          tris++; if (Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) < 1e-10) deg++;
+        }
+      }
+      rep.push({ node: n.getName(), material: p.getMaterial()?.getName() ?? null, sets, range: uv ? [lo, hi].map((v) => v.map((x) => Math.round(x * 100) / 100)) : null, noArea: tris ? Math.round((1000 * deg) / tris) / 10 : null });
+    }
+  }
+  return rep;
+}
+
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
   const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
-  if (liftParts) await doc.transform(prune());
+  // keepAttributes: die Texturen hängen erst danach; ohne das wirft prune
+  // TEXCOORD_0 als unbenutzt weg (Schacht-Tiefe: Wände ohne UVs)
+  if (liftParts) await doc.transform(prune({ keepAttributes: true }));
+  const liftExtras = liftParts ? await addLiftExtras(doc, name) : null;
   // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
   // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
   const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
@@ -779,7 +971,8 @@ async function buildOne(kind, name, inPath) {
   const layered = kind === 'lift' ? applyLayers(doc, name) : null;
   const attached = kind === 'hall' || kind === 'lift' ? await attachHallTextures(doc) : 0;
   if (cover) cover.after = coverage(doc);
-  const vertexColors = stripAttributes(doc, kind === 'lift' ? 'hall' : kind);
+  const vertexColors = stripAttributes(doc, kind);
+  const liftUv = liftParts ? uvReport(doc) : null;
   cleanMaterials(doc);
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' }), weld());
@@ -862,12 +1055,14 @@ async function buildOne(kind, name, inPath) {
   const hash = createHash('sha1').update(readFileSync(outPath));
   const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
   if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
-  const liftJson = liftParts ? writeLiftJson(name, liftParts) : null;
+  const liftProj = liftParts ? await liftProjectors(name) : null;
+  const liftJson = liftParts ? writeLiftJson(name, liftParts, { extras: liftExtras, uv: liftUv, proj: liftProj }) : null;
   if (liftJson) hash.update(readFileSync(liftJson.file));
+  for (const pj of liftProj?.values() ?? []) hash.update(readFileSync(fileURLToPath(new URL(pj.url.replace(/^\/hangar\//, ''), OUT))));
   const v = hash.digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
-    ...(liftJson ? { json: `/hangar/lift/${name}.json`, parts: liftParts, lightCount: liftJson.lights, layered } : {}),
+    ...(liftJson ? { json: `/hangar/lift/${name}.json`, parts: liftParts, lightCount: liftJson.lights, layered, deco: liftJson.deco, decals: liftJson.decals, projectors: liftJson.projectors } : {}),
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
@@ -882,13 +1077,365 @@ async function buildOne(kind, name, inPath) {
   };
 }
 
+// ─── Werkstatt (.planning/notes/hangar-werkstatt.md) ────────────────────
+// Arbeitsgerät, Boden-Decals und Bodenmaterialien aus dem Industrie-Hangar
+// util_a/hangar_medtop_002 (Extraktor-Teil „werkstatt“), dazu ihre Anordnung
+// um das Landefeld. Zwei GLBs: werkstatt.glb (Requisiten) und
+// werkstatt-boden.glb (Decals und Bodenmuster), eine gemeinsame JSON.
+//
+// Requisit: je Art ein Exemplar, Gierung herausgedreht, Ursprung unten
+// mittig, +Y oben, Meter. Die Vorderseite des Spiels (lokale +Y des Modells)
+// liegt dann bei −Z. Die Anordnung nennt jedes Exemplar im Spiel mit Lage
+// relativ zur Feldmitte (glTF-Achsen, Y oben), Gierung um Y in Grad und
+// Maßstab.
+const WERK = { key: 'util-medtop002', lite: 'util-medtop002-lod1' };
+// Rolle, Mesh, Stufe (0 = volle; 1, wenn die volle über dem Budget liegt)
+const WERK_PROPS = [
+  ['diagnose', 'console_diagnostic_2_a', 1], ['diagnose', 'console_diagnostic_1_a', 1],
+  ['generator', 'generator_mobile_1_b', 0, 'gross'], ['generator', 'generator_mobile_1_pirate_a', 1],
+  ['schlauch', 'lt_airduct_hose_straight_8m_a', 0], ['schlauch', 'lt_airduct_hose_torn_a', 0], ['schlauch', 'fire_hose_1_a', 0],
+  ['kabeltrommel', 'cable_reel_6_a', 0], ['kabeltrommel', 'cable_reel_2_a', 0], ['kabeltrommel', 'cable_reel_11_a', 0],
+  ['kabel', 'cable_straight_3_cable_2m_a', 0], ['kabel', 'cable_straight_08x01x02_e', 0], ['kabel', 'cable_bend_2_a', 0],
+  ['gasflasche', 'tank_gas_2_025x0125x0125_a', 1], ['gasflasche', 'tank_gas_1_0125x0125x0125_a', 0], ['treibstoff', 'cell_fuel_1_a', 0],
+  ['fass', 'drum_dry_1_a', 0], ['heizer', 'heater_freestanding_1_a', 1],
+  ['werkzeug', 'tool_welder_a', 0], ['werkzeug', 'tool_power_1_drill_a', 0], ['werkzeug', 'tool_manual_1_ratchet_a', 0],
+  ['wagen', 'trolley_cargo_4_a', 1], ['kiste', 'crate_weapon_4_015x0075x0075_a', 0], ['kiste', 'crate_metal_2_01x005x0025_a', 0],
+  ['stapler', 'machine_forklift_1_extension_tank_a', 0],
+];
+const WERK_BUDGET = { prop: 8000, gross: 20000, all: 150000 };
+// Anordnung: Exemplare bis 40 m um das Feld, Unterkante bis 4 m über dem Boden
+const WERK_REACH = 40;
+const WERK_FLOORS = [
+  { name: 'asphalt', material: 'util_a_default_mtl_asphalt_bare_025' },
+  { name: 'paneel', material: 'util_a_default_mtl_secondary_tint_panel_floor_b_048' },
+];
+// Decal-Rolle aus dem Materialpfad (Materials/Decals/<ordner>/<name>)
+const decalRole = (p) => {
+  const [dir, n] = p.toLowerCase().split('/').slice(-2);
+  if (dir === 'oil') return 'oel';
+  if (dir === 'weathered') return /oil/.test(n) ? 'oel' : 'abnutzung';
+  if (dir === 'rubber_dmg') return 'abrieb';
+  if (dir === 'scratches') return 'kratzer';
+  if (dir === 'puddles') return 'pfuetze';
+  if (dir === 'streaks') return /tire/.test(n) ? 'reifenspur' : 'schmutz';
+  if (dir === 'manmade_marking') return 'markierung';
+  if (dir === 'dirty_rust') return 'rost';
+  if (dir === 'dust') return 'staub';
+  if (dir === 'leakings') return 'laufspur';
+  if (dir === 'water') return 'pfuetze';
+  if (dir === 'cracks' || (dir === 'concrete' && /crack/.test(n))) return 'riss';
+  if (dir === 'concrete') return 'betonschutt';
+  return dir;
+};
+// Nicht in eine Werkstatt: Blutspritzer (stehen im Spiel auch auf Böden),
+// Frost und Eis (Wetter am Tor, keine Arbeitsspur)
+const DECAL_SKIP = /blood|frost|_ice_/i;
+// Boden-Decals nur am Feld (Rand wie die Requisiten wäre bis an die Wände)
+const DECAL_REACH = 14;
+
+const r3 = (v) => Math.round(v * 1000) / 1000;
+const yawOf = (w) => Math.atan2(-w[2], w[0]);   // Drehung um Y, die lokale X auf (cos, 0, −sin) bringt
+const rotY = (a) => { const c = Math.cos(a), s = Math.sin(a); return [c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]; };
+const mul = (a, b) => { const m = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) m[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return m; };
+const apply = (m, v) => [0, 1, 2].map((r) => m[r] * v[0] + m[4 + r] * v[1] + m[8 + r] * v[2] + m[12 + r]);
+const meshKey = (n) => (n.getMesh()?.getName() || '').replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '');
+
+// Ein Dokument auf die Requisiten einer Stufe zuschneiden: je Mesh das erste
+// Exemplar, gebacken (Gierung heraus, Ursprung unten mittig). Gibt je Mesh
+// den Bezugspunkt im Modellraum zurück, damit die Anordnung jedes Exemplar
+// auf denselben Ursprung bezieht.
+function cutProps(doc, want) {
+  const root = doc.getRoot(), scene = root.listScenes()[0];
+  const first = new Map();
+  for (const n of root.listNodes()) { const k = meshKey(n); if (want.has(k) && !first.has(k)) first.set(k, n); }
+  const made = new Map();
+  for (const [k, n] of first) {
+    const w = n.getWorldMatrix(), yaw = yawOf(w);
+    const t = mul(rotY(-yaw), w);
+    const mesh = doc.createMesh(want.get(k));
+    for (const prim of n.getMesh().listPrimitives()) {
+      const q = prim.clone();
+      for (const sem of q.listSemantics()) q.setAttribute(sem, prim.getAttribute(sem).clone());
+      if (prim.getIndices()) q.setIndices(prim.getIndices().clone());
+      transformPrimitive(q, t);
+      mesh.addPrimitive(q);
+    }
+    const node = doc.createNode(want.get(k)).setMesh(mesh);
+    const b = getBounds(node);
+    const bc = [(b.min[0] + b.max[0]) / 2, b.min[1], (b.min[2] + b.max[2]) / 2];
+    for (const q of mesh.listPrimitives()) transformPrimitive(q, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -bc[0], -bc[1], -bc[2], 1]);
+    // Ursprung im Modellraum des Exemplars: W⁻¹ · R(yaw) · bc
+    const world = apply(rotY(yaw), bc);
+    made.set(k, { node, size: [0, 1, 2].map((i) => r3(b.max[i] - b.min[i])), originWorld: world, w0: w });
+  }
+  for (const n of root.listNodes()) if (![...made.values()].some((m) => m.node === n)) n.dispose();
+  for (const { node } of made.values()) scene.addChild(node);
+  return made;
+}
+
+// Lage eines beliebigen Exemplars: Bezugspunkt des ersten Exemplars über
+// dessen Modellraum auf das andere übertragen
+function instanceAt(w, ref) {
+  const inv = invert4(ref.w0);
+  const local = apply(inv, ref.originWorld);
+  const p = apply(w, local);
+  const s = Math.hypot(w[0], w[1], w[2]) / Math.hypot(ref.w0[0], ref.w0[1], ref.w0[2]);
+  return { p, yaw: yawOf(w), scale: s };
+}
+function invert4(m) {
+  // affine Inverse (3×3 + Verschiebung)
+  const [a, b, c, , d, e, f, , g, h, i] = m;
+  const det = a * (e * i - f * h) - d * (b * i - c * h) + g * (b * f - c * e);
+  const inv3 = [(e * i - f * h) / det, (c * h - b * i) / det, (b * f - c * e) / det, (f * g - d * i) / det, (a * i - c * g) / det, (c * d - a * f) / det, (d * h - e * g) / det, (b * g - a * h) / det, (a * e - b * d) / det];
+  const t = [m[12], m[13], m[14]];
+  const r = [0, 1, 2].map((k) => -(inv3[k] * t[0] + inv3[3 + k] * t[1] + inv3[6 + k] * t[2]));
+  return [inv3[0], inv3[1], inv3[2], 0, inv3[3], inv3[4], inv3[5], 0, inv3[6], inv3[7], inv3[8], 0, r[0], r[1], r[2], 1];
+}
+
+async function packDoc(doc, outPath, b) {
+  await doc.transform(prune(), unpartition());
+  // UV-Inseln an den Ursprung, sonst zerquantisiert Draco gekachelte UVs
+  for (const mesh of doc.getRoot().listMeshes()) for (const p of mesh.listPrimitives()) normalizeUvIslands(p, 'TEXCOORD_0');
+  const uvBits = texcoordBits(doc.getRoot(), 'TEXCOORD_0');
+  await doc.transform(
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: b.q ?? 82 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: b.q ?? 80 }),
+    draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits, quantizePosition: 14 }),
+  );
+  doc.createExtension(KHRDracoMeshCompression).setRequired(true);
+  doc.createExtension(EXTTextureWebP).setRequired(true);
+  mkdirSync(dirname(outPath), { recursive: true });
+  await io.write(outPath, doc);
+  return statSync(outPath).size;
+}
+
+async function buildWerkstatt() {
+  const dir = 'werkstatt';
+  const info = JSON.parse(readFileSync(fileURLToPath(new URL(`${dir}/${WERK.lite}.info.json`, SRC)), 'utf8'));
+  const la = info.landingArea;
+  // Feldmitte im glTF-Raum (Container Z oben -> glTF (x, z, −y))
+  const c = [la.pos[0], la.pos[2], -la.pos[1]];
+  const stages = [WERK.key, WERK.lite];
+  const docs = [], made = [];
+  for (const [i, key] of stages.entries()) {
+    const want = new Map(WERK_PROPS.filter((p) => p[2] === i).map((p) => [p[1], `prop_${p[0]}_${WERK_PROPS.filter((q) => q[0] === p[0]).indexOf(p)}`]));
+    const doc = await io.read(fileURLToPath(new URL(`${dir}/${key}.glb`, SRC)));
+    made.push(cutProps(doc, want));
+    await doc.transform(prune({ keepAttributes: true }));
+    const fix = fileURLToPath(new URL(`${dir}/${key}.matfix.json`, SRC));
+    if (existsSync(fix)) applyMatFix(doc, JSON.parse(readFileSync(fix, 'utf8')));
+    applyLayers(doc, key, dir);
+    docs.push(doc);
+  }
+  // Anordnung aus der vollen Stufe (beide Stufen stehen gleich)
+  const full = await io.read(fileURLToPath(new URL(`${dir}/${WERK.key}.glb`, SRC)));
+  const refs = new Map([...made[0], ...made[1]]);
+  const items = [];
+  const counts = new Map();
+  for (const n of full.getRoot().listNodes()) {
+    const k = meshKey(n); const ref = refs.get(k); if (!ref) continue;
+    const at = instanceAt(n.getWorldMatrix(), ref);
+    const dx = at.p[0] - c[0], dz = at.p[2] - c[2], dy = at.p[1] - c[1];
+    if (Math.abs(dx) > la.dimensions[0] / 2 + WERK_REACH || Math.abs(dz) > la.dimensions[1] / 2 + WERK_REACH || dy < -1 || dy > 4) continue;
+    items.push({ node: ref.node.getName(), at: [r3(dx), r3(dz), r3((at.yaw * 180) / Math.PI), r3(at.scale)], y: r3(dy) });
+    counts.set(k, (counts.get(k) || 0) + 1);
+  }
+  // beide Stufen zusammenlegen, dann Texturen wie die Halle
+  const doc = docs[0];
+  mergeDocuments(doc, docs[1]);
+  const scene = doc.getRoot().listScenes()[0];
+  for (const s of doc.getRoot().listScenes().slice(1)) { for (const ch of s.listChildren()) scene.addChild(ch); s.dispose(); }
+  const attached = await attachHallTextures(doc);
+  stripAttributes(doc, 'hall');
+  cleanMaterials(doc);
+  await doc.transform(dedup(), join({ keepNamed: true }), weld());
+  const props = [];
+  for (const n of scene.listChildren()) {
+    const k = [...refs].find(([, r]) => r.node.getName() === n.getName())?.[0];
+    const p = WERK_PROPS.find((q) => q[1] === k);
+    const tris = Math.round(n.getMesh().listPrimitives().reduce((t, q) => t + (q.getIndices()?.getCount() ?? 0) / 3, 0));
+    props.push({ node: n.getName(), rolle: p[0], path: k, lod: p[2], tris, size: refs.get(k).size, front: '-z', from: [info.socpak], count: counts.get(k) || 0, materials: n.getMesh().listPrimitives().length });
+  }
+  const propTris = props.reduce((s, p) => s + p.tris, 0);
+  const propsOut = fileURLToPath(new URL('hall/werkstatt.glb', OUT));
+  const propBytes = await packDoc(doc, propsOut, { tex: 1024, ntex: 512 });
+
+  // Boden: Decals (Einheitsquadrat 1 × 1 m in XZ, u entlang +X, v = 0 an
+  // −Z = lokale +Y des Spiels) und Bodenmuster
+  const bd = new Document();
+  bd.createBuffer();
+  const bscene = bd.createScene('werkstatt-boden');
+  const quad = (name, sx, sz, uvx, uvz) => {
+    const pos = new Float32Array([-sx / 2, 0, -sz / 2, sx / 2, 0, -sz / 2, sx / 2, 0, sz / 2, -sx / 2, 0, sz / 2]);
+    const uv = new Float32Array([0, 0, uvx, 0, uvx, uvz, 0, uvz]);
+    const nor = new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]);
+    const buf = bd.getRoot().listBuffers()[0];
+    return bd.createPrimitive()
+      .setAttribute('POSITION', bd.createAccessor().setType('VEC3').setArray(pos).setBuffer(buf))
+      .setAttribute('NORMAL', bd.createAccessor().setType('VEC3').setArray(nor).setBuffer(buf))
+      .setAttribute('TEXCOORD_0', bd.createAccessor().setType('VEC2').setArray(uv).setBuffer(buf))
+      .setIndices(bd.createAccessor().setType('SCALAR').setArray(new Uint16Array([0, 2, 1, 0, 3, 2])).setBuffer(buf));
+  };
+  const png = (file) => bd.createTexture(file.split(/[\\/]/).pop()).setImage(readFileSync(file)).setMimeType('image/png');
+  const rgb = (s, d = [1, 1, 1]) => (s ? String(s).split(',').map(Number) : d);
+  // Boden-Decals am Feld
+  const floorDecals = info.decals.filter((d) => d.floor && d.material && !DECAL_SKIP.test(d.material)
+    && Math.abs(d.pos[0] - la.pos[0]) < la.dimensions[0] / 2 + DECAL_REACH && Math.abs(d.pos[1] - la.pos[1]) < la.dimensions[1] / 2 + DECAL_REACH && Math.abs(d.pos[2] - la.pos[2]) < 1.5);
+  const decalNodes = new Map();
+  const decals = [];
+  // dazu Öl und Risse aus anderen Hallen (Extraktor: WERK_EXTRA_DECALS), ohne Anordnung
+  const extra = new Map((info.extraDecals || []).map((e) => [e.material, e]));
+  for (const mtl of [...new Set([...floorDecals.map((d) => d.material), ...extra.keys()])]) {
+    const m = info.decalMaterials[mtl]; if (!m || m.missing || !m.d) continue;
+    const ex = floorDecals.some((d) => d.material === mtl) ? null : extra.get(mtl);
+    const role = decalRole(mtl);
+    const nth = [...decalNodes.values()].filter((x) => x.role === role).length;
+    const node = `decal_${role}_${nth}`;
+    const dFile = texFile(m.d);
+    if (!dFile) continue;
+    // Farbe mit Alpha: das RGBA-PNG trägt die Deckkraft. Bei %OPACITY_MAP
+    // kommt sie aus der Maske (TexSlot12, ungekachelt), die Farbe wird mit
+    // ihrem TexMod (TileU/V) über die Maske gekachelt.
+    let image = readFileSync(dFile);
+    const maskFile = /OPACITY_MAP/.test(m.genMask || '') ? texFile(m.maskTex) : null;
+    if (maskFile) {
+      const mm = await sharp(maskFile).metadata();
+      const tile = m.tileD || [1, 1];
+      const cell = await sharp(dFile).removeAlpha().resize(Math.round(mm.width / tile[0]), Math.round(mm.height / tile[1])).png().toBuffer();
+      const color = await sharp({ create: { width: mm.width, height: mm.height, channels: 3, background: '#000' } }).composite([{ input: cell, tile: true }]).raw().toBuffer();
+      const { data: a } = await sharp(maskFile).greyscale().raw().toBuffer({ resolveWithObject: true });
+      image = await sharp(color, { raw: { width: mm.width, height: mm.height, channels: 3 } }).joinChannel(a, { raw: { width: mm.width, height: mm.height, channels: 1 } }).png().toBuffer();
+    }
+    // Deckkraft: Opacity × ColorBlendFactor (bis 1); der Rohwert steht in der JSON
+    const cbf = Number(m.params?.ColorBlendFactor ?? 1);
+    const mat = bd.createMaterial(node).setBaseColorTexture(bd.createTexture(`${node}_d`).setImage(image).setMimeType('image/png'))
+      .setBaseColorFactor([...rgb(m.diffuse), r3(Math.min(1, Number(m.opacity ?? 1) * Math.min(1, cbf)))]).setAlphaMode('BLEND')
+      .setMetallicFactor(0).setRoughnessFactor(r3(Math.max(0.05, 1 - Number(m.shininess ?? 128) / 255)));
+    const nFile = texFile(m.n);
+    if (nFile) mat.setNormalTexture(png(nFile));
+    const mesh = bd.createMesh(node).addPrimitive(quad(node, 1, 1, 1, 1).setMaterial(mat));
+    bscene.addChild(bd.createNode(node).setMesh(mesh));
+    const meta = await sharp(dFile).metadata();
+    decalNodes.set(mtl, { role, node });
+    decals.push({ node, rolle: role, path: mtl, size: ex ? [ex.edge, ex.edge] : [1, 1], alpha: true, opacityMap: !!maskFile, pom: false, from: ex ? ex.from : [info.socpak], inLayout: !ex, texture: [meta.width, meta.height], game: m });
+  }
+  for (const d of floorDecals) {
+    const dn = decalNodes.get(d.material); if (!dn) continue;
+    // Drehung nur um Z (Spiel) = um Y (glTF), Winkel gleich
+    const yaw = 2 * Math.atan2(d.q[2], d.q[3]);
+    const p = [d.pos[0], d.pos[2], -d.pos[1]];
+    items.push({ node: dn.node, at: [r3(p[0] - c[0]), r3(p[2] - c[2]), r3((yaw * 180) / Math.PI), r3(2 * d.half)], y: r3(p[1] - c[1]) });
+  }
+  // Bodenmuster: 4 × 4 m, UV in Metern geteilt durch die Kachelung
+  const floors = [];
+  const layerFile = fileURLToPath(new URL(`${dir}/${WERK.key}.layers.json`, SRC));
+  const layerInfo = existsSync(layerFile) ? JSON.parse(readFileSync(layerFile, 'utf8')) : {};
+  const lk = (p) => layerInfo[Object.keys(layerInfo).find((k) => k.toLowerCase() === String(p).toLowerCase().replace(/\\/g, '/'))] || null;
+  const fullMats = new Map(full.getRoot().listMaterials().map((m) => [m.getName(), m]));
+  for (const f of WERK_FLOORS) {
+    const src = fullMats.get(f.material); if (!src) continue;
+    const x = src.getExtras() || {};
+    const man = x.semantic?.layer_manifest || [];
+    const layers = man.map((l) => {
+      const a = Object.fromEntries((l.authored_attributes || []).map((t) => [t.name, t.value]));
+      const L = lk(l.path) || {};
+      return { name: l.name, path: l.path, tint: l.tint_color, wearTint: l.wear_tint, glossMult: l.gloss_mult, wearGloss: l.wear_gloss, uvTiling: l.uv_tiling, paletteTint: a.PaletteTint, snapshot: l.layer_snapshot, maps: { d: L.d ?? null, n: L.n ?? null, detail: L.detail ?? null }, layerTiling: L.tiling ?? null };
+    });
+    const tiling = f.tiling ?? werkTiling(full, f.material);
+    const L0 = layers[0] || {};
+    const node = `floor_${f.name}`;
+    const mat = bd.createMaterial(node).setMetallicFactor(0).setRoughnessFactor(r3(1 - (L0.snapshot?.shininess ?? 128) / 255 * (L0.glossMult ?? 1)));
+    const d = texFile(L0.maps?.d), n = texFile(L0.maps?.n);
+    const diff = L0.snapshot?.diffuse || [1, 1, 1], tint = L0.tint || [1, 1, 1];
+    mat.setBaseColorFactor([...diff.map((v, i) => Math.min(1, v * (d ? 1 : 1) * tint[i])), 1]);
+    if (d) mat.setBaseColorTexture(png(d));
+    if (n) mat.setNormalTexture(png(n));
+    const g = n && n.replace(/\.png$/, '.gloss.png');
+    const size = 4;
+    const mesh = bd.createMesh(node).addPrimitive(quad(node, size, size, size / tiling[0], size / tiling[1]).setMaterial(mat));
+    bscene.addChild(bd.createNode(node).setMesh(mesh).setTranslation([0, 0, 0]));
+    // zweite Schicht (Wear) als eigenes Muster daneben: das Spiel mischt sie
+    // über die Vertexfarbe des Hallenmeshs, die Cloud über eine eigene Maske
+    const L1 = layers[1];
+    const wd = L1 && texFile(L1.maps?.d), wn = L1 && texFile(L1.maps?.n);
+    let wearNode = null;
+    if (wd) {
+      wearNode = `${node}_wear`;
+      const wm = bd.createMaterial(wearNode).setMetallicFactor(0).setBaseColorTexture(png(wd))
+        .setBaseColorFactor([...(L1.snapshot?.diffuse || [1, 1, 1]).map((v, i) => Math.min(1, v * (L1.tint || [1, 1, 1])[i])), 1])
+        .setRoughnessFactor(r3(1 - (L1.snapshot?.shininess ?? 128) / 255 * (L1.glossMult ?? 1)));
+      if (wn) wm.setNormalTexture(png(wn));
+      bscene.addChild(bd.createNode(wearNode).setMesh(bd.createMesh(wearNode).addPrimitive(quad(wearNode, size, size, size / tiling[0], size / tiling[1]).setMaterial(wm))).setTranslation([size + 1, 0, 0]));
+    }
+    floors.push({ node, wearNode, name: f.name, path: f.material, tiling: tiling.map(r3), layers, blend: 'Schicht 2 (Wear) über die Vertexfarbe des Hallenmeshs (%VERTCOLORS/WEAR_LAYER); das Muster trägt keine Vertexfarbe und zeigt nur Schicht 1', gloss: g && existsSync(g) ? 'Glätte im Alpha der Normalenkarte (nicht im Muster)' : null });
+  }
+  const bodenOut = fileURLToPath(new URL('hall/werkstatt-boden.glb', OUT));
+  // Telefone und Stufe niedrig laden nur dieses GLB (≤ 2 MB): Farbe 512 px
+  const bodenBytes = await packDoc(bd, bodenOut, { tex: 512, ntex: 256, q: 74 });
+
+  // Materialien der Requisiten mit allen Schichten (Rohwerte)
+  const materials = {};
+  for (const m of full.getRoot().listMaterials()) {
+    if (!doc.getRoot().listMaterials().some((q) => q.getName() === m.getName())) continue;
+    const x = m.getExtras() || {};
+    const man = x.semantic?.layer_manifest;
+    if (!man?.length) continue;
+    materials[m.getName()] = { shader: x.shader, mask: x.semantic?.decoded_string_gen_mask?.tokens, layers: man.map((l) => ({ name: l.name, path: l.path, tint: l.tint_color, wearTint: l.wear_tint, glossMult: l.gloss_mult, uvTiling: l.uv_tiling, maps: (() => { const L = lk(l.path) || {}; return { d: L.d ?? null, n: L.n ?? null }; })() })) };
+  }
+  const json = {
+    v: 1,
+    source: { socpak: info.socpak, note: 'Industrie-Hangar util_a, mittlere Größe; Requisiten und Decals stehen im Spiel so' },
+    props, decals, floors, materials,
+    layout: {
+      source: info.socpak,
+      pad: { size: [la.dimensions[0], la.dimensions[1]], dir: 'Längsachse entlang z (Spiel-Y); at = [x, z] relativ zur Feldmitte auf dem Boden, Y oben, Drehung in Grad um Y, Maßstab (Decals: Kantenlänge in m); y = Höhe des Ursprungs über dem Feld' },
+      items,
+    },
+  };
+  const jsonOut = fileURLToPath(new URL('hall/werkstatt.json', OUT));
+  writeFileSync(jsonOut, JSON.stringify(json) + '\n');
+  const v = (f) => createHash('sha1').update(readFileSync(f)).digest('hex').slice(0, 8);
+  return {
+    url: '/hangar/hall/werkstatt.glb', v: v(propsOut), json: '/hangar/hall/werkstatt.json', jsonV: v(jsonOut), bytes: propBytes, tris: propTris,
+    boden: { url: '/hangar/hall/werkstatt-boden.glb', v: v(bodenOut), bytes: bodenBytes },
+    props: props.length, decals: decals.length, floors: floors.length, items: items.length, attached,
+    report: { props: props.map((p) => [p.node, p.path, p.tris]), decals: decals.map((d) => [d.node, d.path]), floors: floors.map((f) => [f.node, f.path, f.tiling]), jsonBytes: statSync(jsonOut).size },
+  };
+}
+
+// Kachelung eines Hallenmaterials in Metern: mittlere Meter je UV-Einheit
+// über seine Dreiecke im Export
+function werkTiling(doc, matName) {
+  let m2 = 0, uv2 = 0;
+  for (const n of doc.getRoot().listNodes()) {
+    const mesh = n.getMesh(); if (!mesh) continue;
+    const w = n.getWorldMatrix();
+    for (const p of mesh.listPrimitives()) {
+      if (p.getMaterial()?.getName() !== matName) continue;
+      const pos = p.getAttribute('POSITION'), uv = p.getAttribute('TEXCOORD_0'), idx = p.getIndices();
+      if (!pos || !uv || !idx) continue;
+      const P = (i) => apply(w, pos.getElement(i, [0, 0, 0])), U = (i) => uv.getElement(i, [0, 0]);
+      for (let t = 0; t < Math.min(idx.getCount(), 3000); t += 3) {
+        const [a, b, cc] = [idx.getScalar(t), idx.getScalar(t + 1), idx.getScalar(t + 2)];
+        const [pa, pb, pc] = [P(a), P(b), P(cc)], [ua, ub, uc] = [U(a), U(b), U(cc)];
+        const e1 = pb.map((v, i) => v - pa[i]), e2 = pc.map((v, i) => v - pa[i]);
+        const cr = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
+        m2 += Math.hypot(...cr) / 2;
+        uv2 += Math.abs((ub[0] - ua[0]) * (uc[1] - ua[1]) - (uc[0] - ua[0]) * (ub[1] - ua[1])) / 2;
+      }
+    }
+  }
+  const s = uv2 > 0 ? Math.sqrt(m2 / uv2) : 1;
+  return [s, s];
+}
+
 let prev = {};
 try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lauf */ }
 // Die leichte Hallenstufe steht im Manifest unter hallLite: die Seite nimmt
 // den ersten Eintrag unter hall als Halle.
 const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
-const manifest = { ships: {}, hall: {}, hallLite: {}, npc: {}, lift: {} };
+const manifest = { ships: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {} };
 let built = 0, reused = 0;
 for (const kind of Object.keys(BUDGET)) {
   const dir = new URL(`${kind}/`, SRC);
@@ -935,7 +1482,7 @@ for (const kind of Object.keys(BUDGET)) {
       }
       if (r.parts) {
         for (const t of r.parts) console.log(`    Teil ${t.role.padEnd(11)} ${String(t.tris).padStart(6)} Dreiecke  ${t.materials} Materialien  aus ${t.from.join(' + ')}`);
-        console.log(`    Aufzug: ${r.parts.length} Teile, ${r.tris.toLocaleString()} Dreiecke, ${r.lightCount} Lampen -> ${r.json}`);
+        console.log(`    Aufzug: ${r.parts.length} Teile, ${r.tris.toLocaleString()} Dreiecke, ${r.lightCount} Lampen, ${r.deco} Beiwerk-Arten, ${r.decals} Decal-Arten, ${r.projectors} Projektormuster -> ${r.json}`);
       }
       if (r.lights?.missing) {
         console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
@@ -950,6 +1497,25 @@ for (const kind of Object.keys(BUDGET)) {
     }
   }
 }
+// Werkstatt: eigene Quelle (zwei Stufen eines Hangars), nur bei Bedarf neu
+if (!ONLY || ONLY === 'werkstatt') {
+  const ins = ['util-medtop002.glb', 'util-medtop002-lod1.glb', 'util-medtop002-lod1.info.json'].map((f) => fileURLToPath(new URL(`werkstatt/${f}`, SRC)));
+  const outs = ['werkstatt.glb', 'werkstatt-boden.glb', 'werkstatt.json'].map((f) => fileURLToPath(new URL(`hall/${f}`, OUT)));
+  const fresh = outs.every((o) => existsSync(o)) && ins.every((i) => !existsSync(i) || outs.every((o) => statSync(o).mtimeMs > statSync(i).mtimeMs));
+  if (!ins.every((i) => existsSync(i))) { if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt; console.log('  werkstatt: Quelle fehlt (Extraktor-Teil "werkstatt"), Eintrag bleibt'); }
+  else if (!FORCE && fresh && prev.props?.werkstatt) { manifest.props.werkstatt = prev.props.werkstatt; reused++; }
+  else {
+    try {
+      const r = await buildWerkstatt();
+      const { report, attached, ...entry } = r;
+      manifest.props.werkstatt = entry; built++;
+      console.log(`  props/werkstatt  ${r.props} Requisiten (${r.tris.toLocaleString()} Dreiecke, ${(r.bytes / 1048576).toFixed(2)} MB), ${r.decals} Decal-Arten, ${r.floors} Böden (Boden-GLB ${(r.boden.bytes / 1048576).toFixed(2)} MB), ${r.items} Einträge der Anordnung, JSON ${(r.report.jsonBytes / 1024).toFixed(0)} KB`);
+      for (const [n, path, t] of r.report.props) console.log(`    ${n.padEnd(22)} ${String(t).padStart(6)} Dreiecke  ${path}`);
+      for (const [n, path] of r.report.decals) console.log(`    ${n.padEnd(22)} ${path}`);
+      for (const [n, path, t] of r.report.floors) console.log(`    ${n.padEnd(22)} ${path}  Kachel ${t.join(' x ')} m`);
+    } catch (err) { console.error(`  props/werkstatt: FEHLER ${err.stack || err.message}`); if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt; }
+  }
+} else if (prev.props) manifest.props = prev.props;
 await writeFile(MANIFEST, JSON.stringify({
   source: 'StarBreaker entity/socpak export -> gltf-transform (Draco, WebP)',
   ...manifest,
