@@ -238,17 +238,17 @@ Im Spiel ist das Feld selbst sauber, denn es ist die Aufzugsplattform mit Asphal
 - `public/hangar/hall/werkstatt.glb`:
   - 2,65 MB, **25 Requisiten**, 105 970 Dreiecke (Grenze 150 000).
   - 153 Primitive, also Zeichenbefehle, wenn man jedes Requisit einmal zeichnet.
-- `public/hangar/hall/werkstatt-boden.glb`: 1,93 MB.
+- `public/hangar/hall/werkstatt-boden.glb`: 1,87 MB.
   - **24 Decal-Arten** als Einheitsquadrat 1 × 1 m in XZ, Farbe mit Alpha, Normale wo vorhanden.
   - Zwei Böden: `floor_asphalt`, `floor_paneel`, je ein Musterquadrat 4 × 4 m und dazu `floor_*_wear` mit der Wear-Schicht.
-  - Farbe 512 px, Normalen 256 px, damit es unter 2 MB bleibt.
+  - Farbe 512 px, Normalen 256 px, WebP-Qualität 74, damit es unter 2 MB bleibt.
 - `public/hangar/hall/werkstatt.json` (153 KB), `v: 1`:
   - `props` (`front: "-z"` = lokale +Y des Spiels)
   - `decals` (mit Spiel-Rohwerten, Texturgröße, `inLayout`)
   - `floors` (alle Schichten)
   - `materials` (76 Requisiten-Materialien mit allen Schichten)
   - `layout` (131 Einträge: 53 Requisiten, 78 Decals; `at = [x, z, Grad um Y, Maßstab]` relativ zur Feldmitte, dazu `y`)
-- Zusammen 4,9 MB. Das Manifest hat den neuen Schlüssel `props.werkstatt`.
+- Zusammen 4,7 MB. Das Manifest hat den neuen Schlüssel `props.werkstatt`.
 
 | Knoten | Spielmodell | LOD | Dreiecke | Maße x × y × z (m) | in der Halle | Prim. |
 |---|---|---|---|---|---|---|

@@ -1228,13 +1228,13 @@
       "url": "/hangar/hall/werkstatt.glb",
       "v": "40e6ea0a",
       "json": "/hangar/hall/werkstatt.json",
-      "jsonV": "62460162",
+      "jsonV": "fd4cd8c3",
       "bytes": 2779264,
       "tris": 105970,
       "boden": {
         "url": "/hangar/hall/werkstatt-boden.glb",
-        "v": "dff31926",
-        "bytes": 2027088
+        "v": "88cc8762",
+        "bytes": 1956056
       },
       "props": 25,
       "decals": 24,

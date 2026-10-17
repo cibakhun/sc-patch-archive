@@ -1198,8 +1198,8 @@ async function packDoc(doc, outPath, b) {
   for (const mesh of doc.getRoot().listMeshes()) for (const p of mesh.listPrimitives()) normalizeUvIslands(p, 'TEXCOORD_0');
   const uvBits = texcoordBits(doc.getRoot(), 'TEXCOORD_0');
   await doc.transform(
-    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: 82 }),
-    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: 80 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: b.q ?? 82 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: b.q ?? 80 }),
     draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits, quantizePosition: 14 }),
   );
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
@@ -1371,7 +1371,7 @@ async function buildWerkstatt() {
   }
   const bodenOut = fileURLToPath(new URL('hall/werkstatt-boden.glb', OUT));
   // Telefone und Stufe niedrig laden nur dieses GLB (≤ 2 MB): Farbe 512 px
-  const bodenBytes = await packDoc(bd, bodenOut, { tex: 512, ntex: 256 });
+  const bodenBytes = await packDoc(bd, bodenOut, { tex: 512, ntex: 256, q: 74 });
 
   // Materialien der Requisiten mit allen Schichten (Rohwerte)
   const materials = {};
