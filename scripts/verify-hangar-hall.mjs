@@ -781,10 +781,11 @@ const SHAFT = hall?.id ? shaftAll[hall.id] ?? null : null;
 const shaftRun = { parts: 0, tris: 0, lamps: 0, lights: 0, sides: [], uvTris: 0, wornTris: 0, deco: 0, decoTris: 0, decoKinds: [] };
 // Beiwerk im Schacht: Block /* shaft-deco */ [Knoten, …] /* /shaft-deco */ im Viewer (JSON)
 const sdm = /\/\* shaft-deco \*\/([\s\S]*?)\/\* \/shaft-deco \*\//.exec(viewer);
-let decoNames = null;
-try { decoNames = sdm ? JSON.parse(sdm[1]) : null; } catch (e) { fail(`[11] SHAFT_DECO im Viewer ist kein JSON mehr (${e.message})`); }
+let decoNames = null, decoJsonBad = false;
+try { decoNames = sdm ? JSON.parse(sdm[1]) : null; } catch (e) { decoJsonBad = true; fail(`[11] SHAFT_DECO im Viewer ist kein JSON mehr (${e.message})`); }
 if (viewer && SHAFT && !sdm) fail('[11] der Viewer traegt keinen Block /* shaft-deco */ … /* /shaft-deco */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
-if (decoNames && !(Array.isArray(decoNames) && decoNames.every((n) => typeof n === 'string' && n))) { fail('[11] SHAFT_DECO muss eine Liste von Knotennamen sein'); decoNames = null; }
+// auch null oder eine Zahl: Der Viewer riefe darauf .includes auf, der Schacht fiele weg
+if (sdm && !decoJsonBad && !(Array.isArray(decoNames) && decoNames.every((n) => typeof n === 'string' && n))) { fail(`[11] SHAFT_DECO muss eine Liste von Knotennamen sein (ist ${JSON.stringify(decoNames)}): Der Viewer baute den Schacht nicht`); decoNames = null; }
 if (SHAFT && !LIFT) fail(`[11] HALL_SHAFT["${hall.id}"] ohne HALL_LIFT: Der Schacht steht unter dem Aufzug, ohne Feld gibt es keinen`);
 if (!SHAFT && hall?.lift) fail(`[11] die Seite gibt einen Schacht mit (${hall.lift.url?.split('?')[0]}), HALL_SHAFT im Viewer kennt fuer ${hall.id} keinen: Er wuerde geladen, aber nie gebaut. HALL_SHAFT eintragen oder HangarApp.astro ohne lift`);
 if (SHAFT && LIFT) {
@@ -848,13 +849,14 @@ if (SHAFT && LIFT) {
     // Beiwerk (SHAFT_DECO im Viewer): Lichtrahmen und Leuchtengehaeuse an den
     // Schachtwaenden. Der Viewer laesst eine Art ohne Knoten oder ohne
     // Exemplare in info.deco still weg, ebenso Exemplare auf dem Hallenboden
-    // (ueber y -0,5)
+    // (ueber y -0,5) und ohne Drehung; sonst setzt er jedes (shaftDecoList),
+    // gezaehlt wird hier mit derselben Regel
     if (decoNames) for (const n of decoNames) {
-      const d = (info?.deco ?? []).find((e) => e.node === n);
+      const ds = (info?.deco ?? []).filter((e) => e.node === n);
       if (!box.has(n) || !box.get(n).tris) fail(`[11] SHAFT_DECO nennt ${n}, der Schacht ${hall.lift.url.split('?')[0]} hat dafuer keinen Knoten mit Dreiecken: Das Beiwerk fiele still weg. Name pruefen (Befund PC in .planning/notes/hangar-schacht-tiefe.md)`);
-      else if (!d) fail(`[11] SHAFT_DECO nennt ${n}, ${hall.lift.json.split('?')[0]} hat dafuer keinen Eintrag in deco: keine Exemplare, nichts zu setzen`);
+      else if (!ds.length) fail(`[11] SHAFT_DECO nennt ${n}, ${hall.lift.json.split('?')[0]} hat dafuer keinen Eintrag in deco: keine Exemplare, nichts zu setzen`);
       else {
-        const inShaft = (d.at ?? []).filter((e) => e.at?.[1] < -0.5 && Array.isArray(e.q) && e.q.length === 4).length;
+        const inShaft = ds.flatMap((d) => d.at ?? []).filter((e) => e.at?.[1] < -0.5 && Array.isArray(e.q) && e.q.length === 4).length;
         shaftRun.deco += inShaft; shaftRun.decoTris += inShaft * box.get(n).tris;
         shaftRun.decoKinds.push(`${n} ${inShaft}`);
       }
@@ -912,7 +914,7 @@ if (SHAFT && LIFT) {
     }
   }
 }
-sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, je Rippe genau eine Warnlampe, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen, alle Teile mit Texturkoordinaten, mindestens ${KLINKE_SCHACHT[hall.id]?.worn ?? '?'} Dreiecke mit Abnutzung, mindestens ${KLINKE_SCHACHT[hall.id]?.deco ?? '?'} Exemplare Beiwerk mit Knoten` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}; Bausatz ${shaftRun.uvTris} Dreiecke mit Koordinaten, ${shaftRun.wornTris} mit Abnutzung; Beiwerk ${shaftRun.decoKinds.join(', ') || 'keins'} (${shaftRun.decoTris} Dreiecke, Gehaeuse vor Bausatzgeometrie laesst der Viewer weg)` : '(nichts gemessen)');
+sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, je Rippe genau eine Warnlampe, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen, alle Teile mit Texturkoordinaten, mindestens ${KLINKE_SCHACHT[hall.id]?.worn ?? '?'} Dreiecke mit Abnutzung, mindestens ${KLINKE_SCHACHT[hall.id]?.deco ?? '?'} Exemplare Beiwerk mit Knoten` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}; Bausatz ${shaftRun.uvTris} Dreiecke mit Koordinaten, ${shaftRun.wornTris} mit Abnutzung; Beiwerk ${shaftRun.decoKinds.join(', ') || 'keins'} (${shaftRun.decoTris} Dreiecke)` : '(nichts gemessen)');
 
 say('\n[12] Die Werkstatt kommt mit, jeder Platz und jede Spur auf dem Feld hat ihren Knoten');
 let manifest = null;

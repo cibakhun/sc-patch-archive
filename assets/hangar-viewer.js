@@ -619,11 +619,11 @@ function buildShaft(kit, info, L, lay) {
   sh.fit(depth0);
   // Beiwerk (SHAFT_DECO) auf die Wände der Grundtiefe; bleibt beim Vertiefen
   // stehen wie die Lampen, deren Höhe ebenfalls aus dem Spiel kommt
-  const deco = shaftDecoList(kit, info, hx, hz, lay, walls);
-  if (deco.list.length) {
-    const r = merge(deco.list);
+  const deco = shaftDecoList(kit, info, hx, hz, lay);
+  if (deco.length) {
+    const r = merge(deco);
     for (const m of r.meshes) { m.material.userData.deco = true; pit.add(m); sh.materials.add(m.material); }
-    Object.assign(sh, { decoTris: r.tris, decoParts: r.parts, decoSkip: deco.skip });
+    Object.assign(sh, { decoTris: r.tris, decoParts: r.parts });
   }
   return sh;
 }
@@ -632,50 +632,29 @@ function buildShaft(kit, info, L, lay) {
 // ein Knoten im Bausatz, die Exemplare in info.deco (Lage im Schachtraum des
 // Spiels, Drehung q, Maßstab), über dieselbe Abbildung wie die Lampen auf
 // diesen Schacht. Was über y −0,5 liegt, steht auf dem Hallenboden und
-// bleibt weg. Ein Gehäuse, vor dessen Montagefläche schon Geometrie des
-// Bausatzes steht, bleibt auch weg: Rippen und Ecken tragen ihre eigenen.
-// Die Leitlinien am Rand sind Markierungen einer anderen Marke (Atlas mit
-// Schriftzug) und warten auf ein Sichturteil.
+// bleibt weg, ebenso ein Exemplar ohne Drehung; verify:hangar-hall [11]
+// zählt mit derselben Regel. Doppelte mit Rippen und Ecken gibt es im
+// Bausatz vom 17.10.2026 nicht (geprüft beim Einbau). Die Leitlinien am
+// Rand sind Markierungen einer anderen Marke (Atlas mit Schriftzug) und
+// warten auf ein Sichturteil.
 const SHAFT_DECO = /* shaft-deco */ ["deco_leuchte_0", "deco_lichtrahmen_0"] /* /shaft-deco */;
-const SHAFT_DECO_FREE = 4;   // so viele Dreiecke des Bausatzes vor der Montagefläche gelten als besetzt
 const SHAFT_DECO_GLOW = [1.5, 0.8];   // Leuchtkraft der Lichtrahmen und des Leuchtenglases während der Fahrt
-function shaftDecoList(kit, info, hx, hz, lay, walls) {
-  const map = shaftMap(info, hx, hz, lay), list = [], skip = [];
-  // Mittelpunkte der Wanddreiecke (Schachtraum) für die Prüfung auf Doppelte
-  let n = 0;
-  for (const m of walls) n += m.geometry.index.count / 3;
-  const cen = new Float32Array(n * 3);
-  let k = 0;
-  for (const m of walls) {
-    const P = m.geometry.attributes.position.array, I = m.geometry.index.array;
-    for (let t = 0; t < I.length; t += 3, k += 3) for (let a = 0; a < 3; a++) cen[k + a] = (P[I[t] * 3 + a] + P[I[t + 1] * 3 + a] + P[I[t + 2] * 3 + a]) / 3;
-  }
-  const M = new THREE.Matrix4(), Mi = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), v = new THREE.Vector3();
+function shaftDecoList(kit, info, hx, hz, lay) {
+  const map = shaftMap(info, hx, hz, lay), list = [];
+  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), v = new THREE.Vector3();
   for (const d of info.deco || []) {
     if (!SHAFT_DECO.includes(d.node)) continue;
     const node = kit.getObjectByName(d.node);
     if (!node) continue;
     const parts = shaftPieces(node, false);
-    // Ausdehnung im Bezugssystem des Teils; y ist die Normale der Montagefläche
-    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-    for (const p of parts) for (let i = 0; i < p.pos.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], p.pos[i + a]); hi[a] = Math.max(hi[a], p.pos[i + a]); }
     for (const e of d.at || []) {
-      if (!(e.at?.[1] < -0.5)) continue;
+      if (!(e.at?.[1] < -0.5) || !(Array.isArray(e.q) && e.q.length === 4)) continue;
       q.set(e.q[0], e.q[1], e.q[2], e.q[3]);
       M.compose(v.fromArray(map(e.at)), q, s.setScalar(e.scale ?? 1));
-      if (hi[1] - lo[1] > 0.005) {
-        Mi.copy(M).invert();
-        let hit = 0;
-        for (let i = 0; i < cen.length && hit < SHAFT_DECO_FREE; i += 3) {
-          v.fromArray(cen, i).applyMatrix4(Mi);
-          if (v.y > 0.004 && v.y < hi[1] + 0.03 && v.x > lo[0] - 0.02 && v.x < hi[0] + 0.02 && v.z > lo[2] - 0.02 && v.z < hi[2] + 0.02) hit++;
-        }
-        if (hit >= SHAFT_DECO_FREE) { skip.push(d.node); continue; }
-      }
       list.push([parts, M.clone()]);
     }
   }
-  return { list, skip };
+  return list;
 }
 
 // Die vier Ränder der Öffnung im Schachtraum: Anfang, Richtung entlang,
@@ -4481,7 +4460,7 @@ ${HALL_LIGHTS_BEGIN}
           }
           shaft.pit.visible = false;
           model.add(shaft.group);
-          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke (${shaft.decoSkip?.length ?? 0} Gehäuse doppelt, weggelassen); ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
+          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
         } catch (e) {
           console.warn('[hangar] Schacht nicht gebaut', e);
           shaft = null;
