@@ -130,6 +130,9 @@
         (17.10.2026) zeigt der Schacht die Karten und die Abnutzung des
         Spiels: Jedes Teil traegt Texturkoordinaten, der Knoten wear_0 bringt
         die zweite Schicht, und genug Dreiecke tragen ihre Maske (COLOR_0.a).
+        Das Beiwerk aus SHAFT_DECO (Lichtrahmen, Leuchten) hat seine Knoten
+        und genug Exemplare im Schacht; seine Dreiecke zaehlen zur
+        Obergrenze.
     12  Die Werkstatt kommt mit (seit 17.10.2026): Die Halle wirkte steril
         (Betreiber 16.10.2026), Geraet und Bodenspuren kommen aus anderen
         Spielhallen (werkstatt.glb, werkstatt-boden.glb, Anordnung in
@@ -201,8 +204,10 @@ const KLINKE_ERGAENZUNG = { 'revelyork-single': 15482 };
 // (der Viewer zaehlt dasselbe), 84 Lampen. Obergrenze 60 000: so viel wie
 // ein mittleres Schiff, fuer zwei Sekunden Fahrt. Abnutzung (worn): Dreiecke
 // des Bausatzes mit Wear-Maske, Stand 17.10.2026 (Bausatz aus hangar-werkstatt
-// Teil B) 2713. Gleiche Regel wie oben.
-const KLINKE_SCHACHT = { 'revelyork-single': { minTris: 28264, maxTris: 60000, lights: 84, worn: 2713 } };
+// Teil B) 2713. Beiwerk (deco): Exemplare der Arten aus SHAFT_DECO im
+// Schacht, 51 Leuchten und 35 Lichtrahmen; ihre Dreiecke zaehlen zur
+// Obergrenze. Gleiche Regel wie oben.
+const KLINKE_SCHACHT = { 'revelyork-single': { minTris: 28264, maxTris: 60000, lights: 84, worn: 2713, deco: 86 } };
 const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 12, service: 11, pad: 31888 };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
@@ -773,7 +778,14 @@ shaftAll ??= {};
 for (const k of Object.keys(shaftAll).filter((k) => k !== hall?.id)) fail(`[11] HALL_SHAFT["${k}"]: die Seite laedt diese Halle nicht; Eintrag entfernen oder die Halle zurueck`);
 for (const k of Object.keys(KLINKE_SCHACHT).filter((k) => k !== hall?.id)) fail(`[11] KLINKE_SCHACHT["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 const SHAFT = hall?.id ? shaftAll[hall.id] ?? null : null;
-const shaftRun = { parts: 0, tris: 0, lamps: 0, lights: 0, sides: [], uvTris: 0, wornTris: 0 };
+const shaftRun = { parts: 0, tris: 0, lamps: 0, lights: 0, sides: [], uvTris: 0, wornTris: 0, deco: 0, decoTris: 0, decoKinds: [] };
+// Beiwerk im Schacht: Block /* shaft-deco */ [Knoten, …] /* /shaft-deco */ im Viewer (JSON)
+const sdm = /\/\* shaft-deco \*\/([\s\S]*?)\/\* \/shaft-deco \*\//.exec(viewer);
+let decoNames = null, decoJsonBad = false;
+try { decoNames = sdm ? JSON.parse(sdm[1]) : null; } catch (e) { decoJsonBad = true; fail(`[11] SHAFT_DECO im Viewer ist kein JSON mehr (${e.message})`); }
+if (viewer && SHAFT && !sdm) fail('[11] der Viewer traegt keinen Block /* shaft-deco */ … /* /shaft-deco */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+// auch null oder eine Zahl: Der Viewer riefe darauf .includes auf, der Schacht fiele weg
+if (sdm && !decoJsonBad && !(Array.isArray(decoNames) && decoNames.every((n) => typeof n === 'string' && n))) { fail(`[11] SHAFT_DECO muss eine Liste von Knotennamen sein (ist ${JSON.stringify(decoNames)}): Der Viewer baute den Schacht nicht`); decoNames = null; }
 if (SHAFT && !LIFT) fail(`[11] HALL_SHAFT["${hall.id}"] ohne HALL_LIFT: Der Schacht steht unter dem Aufzug, ohne Feld gibt es keinen`);
 if (!SHAFT && hall?.lift) fail(`[11] die Seite gibt einen Schacht mit (${hall.lift.url?.split('?')[0]}), HALL_SHAFT im Viewer kennt fuer ${hall.id} keinen: Er wuerde geladen, aber nie gebaut. HALL_SHAFT eintragen oder HangarApp.astro ohne lift`);
 if (SHAFT && LIFT) {
@@ -834,6 +846,21 @@ if (SHAFT && LIFT) {
     }
     if (noUv.length) fail(`[11] im Schacht ${hall.lift.url.split('?')[0]} tragen ${noUv.join(', ')} keine Texturkoordinaten: Der Viewer naehme fuer das ganze Material wieder den Mittelwert der Karten (einfarbige Wand). Export pruefen (prune mit keepAttributes, hangar-werkstatt Teil B)`);
     if (!wearMats.size) fail(`[11] der Schacht ${hall.lift.url.split('?')[0]} hat keinen Knoten wear_0 mit Farbkarte: Die Abnutzung des Spiels fiele still weg, der Lack saehe neu aus`);
+    // Beiwerk (SHAFT_DECO im Viewer): Lichtrahmen und Leuchtengehaeuse an den
+    // Schachtwaenden. Der Viewer laesst eine Art ohne Knoten oder ohne
+    // Exemplare in info.deco still weg, ebenso Exemplare auf dem Hallenboden
+    // (ueber y -0,5) und ohne Drehung; sonst setzt er jedes (shaftDecoList),
+    // gezaehlt wird hier mit derselben Regel
+    if (decoNames) for (const n of decoNames) {
+      const ds = (info?.deco ?? []).filter((e) => e.node === n);
+      if (!box.has(n) || !box.get(n).tris) fail(`[11] SHAFT_DECO nennt ${n}, der Schacht ${hall.lift.url.split('?')[0]} hat dafuer keinen Knoten mit Dreiecken: Das Beiwerk fiele still weg. Name pruefen (Befund PC in .planning/notes/hangar-schacht-tiefe.md)`);
+      else if (!ds.length) fail(`[11] SHAFT_DECO nennt ${n}, ${hall.lift.json.split('?')[0]} hat dafuer keinen Eintrag in deco: keine Exemplare, nichts zu setzen`);
+      else {
+        const inShaft = ds.flatMap((d) => d.at ?? []).filter((e) => e.at?.[1] < -0.5 && Array.isArray(e.q) && e.q.length === 4).length;
+        shaftRun.deco += inShaft; shaftRun.decoTris += inShaft * box.get(n).tris;
+        shaftRun.decoKinds.push(`${n} ${inShaft}`);
+      }
+    }
     // Rahmen jedes Teils (x entlang der Wand, y nach oben, ab 0) gegen die
     // Lampenliste: verrutscht ein Teil beim Export, klafft die Wand
     const E = 0.05;
@@ -879,14 +906,15 @@ if (SHAFT && LIFT) {
     // Lampen, die der Viewer rechnet (shaftLights): mit Stärke, Reichweite, nicht der Dunst
     shaftRun.lights = (info?.lights ?? []).filter((l) => (l.states?.emergency?.intensity ?? l.intensity ?? 0) > 0.05 && l.radius > 0 && l.role !== 'fog').length;
     if (K) {
-      if (shaftRun.tris > K.maxTris) fail(`[11] der Schacht kommt auf ${shaftRun.tris} Dreiecke, die Obergrenze ist ${K.maxTris}: zu teuer fuer einen Schiffswechsel. Bausatz pruefen (scripts/build-hangar-assets.mjs, Art lift); Obergrenze nur per Commit mit Ursache anheben`);
+      if (shaftRun.tris + shaftRun.decoTris > K.maxTris) fail(`[11] der Schacht kommt mit Beiwerk auf ${shaftRun.tris + shaftRun.decoTris} Dreiecke (${shaftRun.decoTris} davon Beiwerk), die Obergrenze ist ${K.maxTris}: zu teuer fuer einen Schiffswechsel. Bausatz pruefen (scripts/build-hangar-assets.mjs, Art lift); Obergrenze nur per Commit mit Ursache anheben`);
       if (shaftRun.tris < K.minTris) fail(`[11] der Schacht kommt nur auf ${shaftRun.tris} Dreiecke, die Klinke verlangt ${K.minTris}: Teile verloren oder vereinfacht? KLINKE_SCHACHT nur per Commit mit Ursache senken`);
       if (shaftRun.lights < K.lights) fail(`[11] ${hall.lift.json.split('?')[0]} bringt ${shaftRun.lights} Schachtlampen mit Licht, die Klinke verlangt ${K.lights}: Lampen beim Export verloren (Zustand emergency)? KLINKE_SCHACHT nur per Commit mit Ursache senken`);
+      if (decoNames && shaftRun.deco < K.deco) fail(`[11] im Schacht stehen nur ${shaftRun.deco} Exemplare Beiwerk (${shaftRun.decoKinds.join(', ') || 'keine'}), die Klinke verlangt ${K.deco}: Exemplare beim Export verloren oder SHAFT_DECO gekuerzt? KLINKE_SCHACHT nur per Commit mit Ursache senken`);
       if (shaftRun.wornTris < K.worn) fail(`[11] im Schacht tragen nur ${shaftRun.wornTris} Dreiecke des Bausatzes Abnutzung (COLOR_0.a unter 0,5 auf einem Material mit wear_0-Schicht), die Klinke verlangt ${K.worn}: Vertexfarbe beim Export auf drei Kanaele geschrumpft? KLINKE_SCHACHT nur per Commit mit Ursache senken`);
     }
   }
 }
-sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, je Rippe genau eine Warnlampe, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen, alle Teile mit Texturkoordinaten, mindestens ${KLINKE_SCHACHT[hall.id]?.worn ?? '?'} Dreiecke mit Abnutzung` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}; Bausatz ${shaftRun.uvTris} Dreiecke mit Koordinaten, ${shaftRun.wornTris} mit Abnutzung` : '(nichts gemessen)');
+sollIst(SHAFT ? `Bausatz ${SHAFT.kit} mit allen Teilen in ihrem Rahmen, Laengs- und Querwand ohne Luecke, Randleiste bis ans Ende, je Rippe genau eine Warnlampe, ${KLINKE_SCHACHT[hall.id]?.minTris ?? '?'} bis ${KLINKE_SCHACHT[hall.id]?.maxTris ?? '?'} Dreiecke, mindestens ${KLINKE_SCHACHT[hall.id]?.lights ?? '?'} Lampen, alle Teile mit Texturkoordinaten, mindestens ${KLINKE_SCHACHT[hall.id]?.worn ?? '?'} Dreiecke mit Abnutzung, mindestens ${KLINKE_SCHACHT[hall.id]?.deco ?? '?'} Exemplare Beiwerk mit Knoten` : 'kein Schacht fuer diese Halle', SHAFT ? `${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke (bei 36 m), ${shaftRun.lamps} Warnlampen, ${shaftRun.lights} Lampen; ${shaftRun.sides.join('; ')}; Bausatz ${shaftRun.uvTris} Dreiecke mit Koordinaten, ${shaftRun.wornTris} mit Abnutzung; Beiwerk ${shaftRun.decoKinds.join(', ') || 'keins'} (${shaftRun.decoTris} Dreiecke)` : '(nichts gemessen)');
 
 say('\n[12] Die Werkstatt kommt mit, jeder Platz und jede Spur auf dem Feld hat ihren Knoten');
 let manifest = null;
@@ -992,7 +1020,7 @@ for (const k of Object.keys(KLINKE_WERKSTATT).filter(() => !WM)) fail(`[12] KLIN
 sollIst(W ? `alle Dateien in dist/, jeder Platz und jede Feldspur mit Knoten, Decals flach; mindestens ${KLINKE_WERKSTATT.props} Geraete, ${KLINKE_WERKSTATT.decals} Decal-Arten, ${KLINKE_WERKSTATT.items} Plaetze, ${KLINKE_WERKSTATT.field} Feldspuren, ${KLINKE_WERKSTATT.service} Geraete am Schiff, Feld ${pad?.pick === 'lack' ? 'im Lack der Halle, Vergleichsboeden' : `aus Spielboden ${pad?.pick ?? '?'}, alle Boeden`} mit Knoten und Kachel, je Hallenstufe ${KLINKE_WERKSTATT.pad} Felddreiecke darunter (WORK_PAD); hoechstens ${OBERGRENZE_WERKSTATT.tris} Dreiecke, ${OBERGRENZE_WERKSTATT.bytes / 1e6} MB, Bodendatei ${OBERGRENZE_WERKSTATT.boden / 1048576} MiB` : 'keine Werkstatt fuer diese Halle', W ? `${workRun.props} Geraete, ${workRun.decals} Decal-Arten, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} Geraete am Schiff, Spielboden ${workRun.pad.join(', ') || 'keiner'}; ${workRun.tris} Dreiecke, ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, Bodendatei ${(workRun.boden / 1048576).toFixed(2)} MiB` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} am Schiff, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} am Schiff, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

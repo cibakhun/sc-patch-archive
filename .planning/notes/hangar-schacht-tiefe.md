@@ -268,4 +268,20 @@ Sie stehen in `lights[].projector = { path, url }`. Das Muster in `rect_half_100
   Gleiche Zeichenbefehle und Dreiecke, ein Programm mehr, sieben Texturen mehr (Wear-Karte und die Normalenkarten, die ohne Koordinaten wegfielen). Die Zeiten liegen im Rauschen dieser Messung (ein zweiter Lauf desselben Stands wich früher um 12 % ab); am Telefon in der Fahrt 8 % mehr, das bleibt zu beobachten.
 - Bild: `/mnt/project-files/hangar/v38-schacht-texturen-vorher-nachher.png` (Fahrt von oben, Längswand, Ecke). Sichturteil WINDOWS 81.
 
-**Teil 2 (offen): Beiwerk.** Lichtrahmen (35, an den Wänden 5 bis 10 m unter dem Rand) und Leuchtengehäuse (52, je Exemplar gegen Rippen und Ecken prüfen) über dieselbe Abbildung Spiel → Schacht wie `shaftLights`; Projektormuster in den Kegeln. Die Leitlinien und Chevrons am Rand sind blaue microTech-Markierungen aus einer anderen Halle, die Randdecals ähneln denen der Werkstatt (andere Halle, keine Doppelten, aber doppelte Dichte am Feld): beides erst nach Sicht.
+**Teil 2: Beiwerk** (nach PR #117):
+- `SHAFT_DECO` (Block `/* shaft-deco */` im Viewer) nennt die Arten: `deco_lichtrahmen_0` (35 Licht-Decals, 5 bis 10 m unter dem Rand) und `deco_leuchte_0` (52 Gehäuse light_fluorescent_f, 51 davon im Schacht, 8 bis 35 m tief; eins steht auf dem Hallenboden und bleibt weg).
+- `shaftMap` ist die Abbildung Spielschacht → unser Schacht, die `shaftLights` schon für die Lampen nutzte (Ecken, Längs- und Querwand über die Stützstellen der Rippen). `shaftDecoList` setzt jedes Exemplar mit seiner Drehung und seinem Maßstab darüber, auf die Wände der Grundtiefe; beim Vertiefen für hohe Schiffe bleibt das Beiwerk stehen wie die Lampen.
+- Doppelte: Beim Einbau stand vor keinem Gehäuse schon Geometrie des Bausatzes (Prüfung der Dreiecksmitten vor jeder Montagefläche, 0 Treffer). Die Prüfung lief zuerst im Viewer mit; sie ist wieder heraus, damit das Tor genau zählt, was der Viewer setzt (Hinweis des Prüfbots), und weil der Schachtaufbau mit ihr in einer Cloud-Messung 256 statt 165 ms brauchte. Ein neuer Bausatz mit eigenen Gehäusen in Rippen oder Ecken braucht die Prüfung von Neuem.
+- Licht: Die Lichtrahmen sind Decals und leuchten während der Fahrt mit ihrem Atlas (`SHAFT_DECO_GLOW[0]` 1,5, polygonOffset gegen Flackern). Das Glas der Gehäuse leuchtet mit seiner eigenen Karte schwächer (`SHAFT_DECO_GLOW[1]` 0,8). Die Materialien gehören nur dem Beiwerk, keins teilt sich mit den Wänden.
+- **Tor** `verify:hangar-hall [11]`: Jede Art aus `SHAFT_DECO` hat ihren Knoten mit Dreiecken und einen Eintrag in `deco`, mindestens 86 Exemplare stehen im Schacht (Klinke `deco`), und die Dreiecke des Beiwerks zählen zur Obergrenze von 60 000. Vorgeführt rot gegen `dist/`: `deco_leuchte_9` statt `deco_leuchte_0` („hat dafuer keinen Knoten mit Dreiecken“ und Klinke 35 statt 86) und `SHAFT_DECO` nur mit den Lichtrahmen („nur 35 Exemplare Beiwerk … die Klinke verlangt 86“), nach dem Prüfbot noch `null` im Block („SHAFT_DECO muss eine Liste von Knotennamen sein (ist null)“).
+- **Kosten** (SwiftShader, gleiche Ansicht wie Teil 1; Zeichenbefehle / Programme / Texturen / ms je Bild):
+
+  | Stufe | vorher Ruhe | nachher Ruhe | vorher Fahrt | nachher Fahrt |
+  |---|---|---|---|---|
+  | hoch 1920 × 1080 | 2300 / 57 / 535 / 10 434 | 2300 / 59 / 540 / 10 579 | 1404 / 57 / 535 / 9 735 | 1420 / 59 / 540 / 9 720 |
+  | niedrig | 620 / 36 / 323 / 3 569 | 620 / 38 / 328 / 3 629 | 330 / 36 / 323 / 3 716 | 338 / 38 / 328 / 3 721 |
+  | Telefon (mittel) | 622 / 37 / 326 / 2 834 | 622 / 39 / 331 / 2 799 | 148 / 37 / 326 / 2 005 | 156 / 39 / 331 / 1 991 |
+
+  In Ruhe ist der Schacht verborgen, also gleich. In der Fahrt kommen vier Materialien dazu: auf hoch 16 Befehle (vier Durchgänge über das Bild), auf mittel und niedrig 8, je Durchgang 14 554 Dreiecke, dazu zwei Programme und fünf Texturen. Die Zeiten liegen im Rauschen.
+- Bild: `/mnt/project-files/hangar/v39-schacht-beiwerk-vorher-nachher.png`. Sichturteil WINDOWS 82.
+- Bewusst nicht dabei: die Leitlinien und Chevrons am Rand. Das sind blaue microTech-Markierungen aus einer anderen Halle (Atlas mit Schriftzug). Die Randdecals ähneln denen der Werkstatt (andere Halle, keine Doppelten, aber doppelte Dichte am Feld). Beides erst nach Sicht.

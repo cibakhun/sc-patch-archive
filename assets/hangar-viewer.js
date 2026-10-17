@@ -605,17 +605,56 @@ function buildShaft(kit, info, L, lay) {
   const rest = merge(sides.map((s) => [piece('light_1'), place(s, 0, 0)]));
   for (const m of rest.meshes) group.add(m);
   const sh = { group, pit, tris: 0, restTris: rest.tris, parts: 0, bands: -1, depth: depth0, depth0, hx, hz, rimY, lampY, materials: new Set(rest.meshes.map((m) => m.material)) };
+  let walls = [];
   sh.fit = (d) => {
     const bands = Math.max(0, Math.ceil((d - depth0 - 0.05) / bandH));
     if (bands === sh.bands) return false;
-    for (const m of [...pit.children]) { m.geometry.dispose(); pit.remove(m); }
+    for (const m of walls) { m.geometry.dispose(); pit.remove(m); }
     const r = merge(layout(bands));
-    for (const m of r.meshes) { pit.add(m); sh.materials.add(m.material); }
+    walls = r.meshes;
+    for (const m of walls) { pit.add(m); sh.materials.add(m.material); }
     Object.assign(sh, { tris: r.tris, parts: r.parts, bands, depth: depth0 + bands * bandH });
     return true;
   };
   sh.fit(depth0);
+  // Beiwerk (SHAFT_DECO) auf die Wände der Grundtiefe; bleibt beim Vertiefen
+  // stehen wie die Lampen, deren Höhe ebenfalls aus dem Spiel kommt
+  const deco = shaftDecoList(kit, info, hx, hz, lay);
+  if (deco.length) {
+    const r = merge(deco);
+    for (const m of r.meshes) { m.material.userData.deco = true; pit.add(m); sh.materials.add(m.material); }
+    Object.assign(sh, { decoTris: r.tris, decoParts: r.parts });
+  }
   return sh;
+}
+
+// Beiwerk des Spiels im Schacht (Schacht-Tiefe Teil B, 17.10.2026): je Art
+// ein Knoten im Bausatz, die Exemplare in info.deco (Lage im Schachtraum des
+// Spiels, Drehung q, Maßstab), über dieselbe Abbildung wie die Lampen auf
+// diesen Schacht. Was über y −0,5 liegt, steht auf dem Hallenboden und
+// bleibt weg, ebenso ein Exemplar ohne Drehung; verify:hangar-hall [11]
+// zählt mit derselben Regel. Doppelte mit Rippen und Ecken gibt es im
+// Bausatz vom 17.10.2026 nicht (geprüft beim Einbau). Die Leitlinien am
+// Rand sind Markierungen einer anderen Marke (Atlas mit Schriftzug) und
+// warten auf ein Sichturteil.
+const SHAFT_DECO = /* shaft-deco */ ["deco_leuchte_0", "deco_lichtrahmen_0"] /* /shaft-deco */;
+const SHAFT_DECO_GLOW = [1.5, 0.8];   // Leuchtkraft der Lichtrahmen und des Leuchtenglases während der Fahrt
+function shaftDecoList(kit, info, hx, hz, lay) {
+  const map = shaftMap(info, hx, hz, lay), list = [];
+  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), v = new THREE.Vector3();
+  for (const d of info.deco || []) {
+    if (!SHAFT_DECO.includes(d.node)) continue;
+    const node = kit.getObjectByName(d.node);
+    if (!node) continue;
+    const parts = shaftPieces(node, false);
+    for (const e of d.at || []) {
+      if (!(e.at?.[1] < -0.5) || !(Array.isArray(e.q) && e.q.length === 4)) continue;
+      q.set(e.q[0], e.q[1], e.q[2], e.q[3]);
+      M.compose(v.fromArray(map(e.at)), q, s.setScalar(e.scale ?? 1));
+      list.push([parts, M.clone()]);
+    }
+  }
+  return list;
 }
 
 // Die vier Ränder der Öffnung im Schachtraum: Anfang, Richtung entlang,
@@ -775,9 +814,11 @@ const kelvin = (t) => {
   const b = k >= 66 ? 255 : k <= 19 ? 0 : 138.5177312231 * Math.log(k - 10) - 305.0447927307;
   return [r, g, b].map((c) => Math.min(1, Math.max(0, c / 255)));
 };
-function shaftLights(info, sh, lay) {
+// Abbildung Spielschacht -> dieser Schacht für Lampen und Beiwerk: Lage im
+// Schachtraum des Spiels (x quer, z längs, y ab Hallenboden) auf hier, `pad`
+// für Teile an der Plattform
+function shaftMap(info, hx, hz, lay) {
   const g = info.shaft?.inner ? [info.shaft.inner[0] / 2, info.shaft.inner[1] / 2] : [28, 44];
-  const { hx, hz } = sh;
   // Stützstellen entlang der Wände (Spiel -> hier): Ecken, Eckkanten, Rippen
   const ribs = (kind, half, gh) => (lay.lamps[kind] || []).map((a) => a - half).filter((c) => Math.abs(c) < half - 4);
   const anchors = (gh, h, ours) => {
@@ -795,19 +836,21 @@ function shaftLights(info, sh, lay) {
     }
     return A[A.length - 1][1] + (c - A[A.length - 1][0]);
   };
+  return ([x, y, z], pad) => {
+    if (pad) return [x * hx / g[0], y, along(z, longA)];
+    const dx = g[0] - Math.abs(x), dz = g[1] - Math.abs(z), sx = Math.sign(x) || 1, sz = Math.sign(z) || 1;
+    if (dx < 6 && dz < 6) return [sx * (hx - dx), y, sz * (hz - dz)];
+    if (dx <= dz) return [sx * (hx - dx), y, along(z, longA)];
+    return [along(x, crossA), y, sz * (hz - dz)];
+  };
+}
+function shaftLights(info, sh, lay) {
+  const map = shaftMap(info, sh.hx, sh.hz, lay);
   const out = [];
   for (const l of info.lights || []) {
     const st = l.states?.emergency ?? l, I = st.intensity ?? l.intensity ?? 0;
     if (!(I > 0.05) || !(l.radius > 0) || l.role === 'fog') continue;
-    const [x, y, z] = l.pos;
-    let p;
-    if (l.attach === 'pad') p = [x * hx / g[0], y, along(z, longA)];
-    else {
-      const dx = g[0] - Math.abs(x), dz = g[1] - Math.abs(z), sx = Math.sign(x) || 1, sz = Math.sign(z) || 1;
-      if (dx < 6 && dz < 6) p = [sx * (hx - dx), y, sz * (hz - dz)];
-      else if (dx <= dz) p = [sx * (hx - dx), y, along(z, longA)];
-      else p = [along(x, crossA), y, sz * (hz - dz)];
-    }
+    const p = map(l.pos, l.attach === 'pad');
     const t = l.useTemperature ? kelvin(st.temperature ?? l.temperature ?? 6500) : [1, 1, 1];
     const c = (st.color ?? l.color ?? [1, 1, 1]).map((v, i) => v * t[i] * I);
     const spot = l.type === 'Projector' && l.dir?.length === 3 && l.angle;
@@ -4360,7 +4403,15 @@ ${HALL_LIGHTS_BEGIN}
             // Attribut als Schwarz: Die Wände nähmen dann kein Licht an, nur
             // die Spiegelung (so bis 16.10.2026).
             m.vertexColors = false;
-            if (/glow/i.test(m.name)) {
+            if (m.userData.deco) {
+              // Beiwerk: Das Glas der Leuchten leuchtet mit seiner Karte, die
+              // Lichtrahmen sind Decals, die selbst leuchten (Atlas als Schein)
+              if (m.transparent || /light_atlas/i.test(m.name)) {
+                m.transparent = true; m.depthWrite = false;
+                m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2;
+                if (m.map) { m.emissiveMap = m.map; m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = SHAFT_DECO_GLOW[0]; }
+              } else if (m.emissiveMap) m.emissiveIntensity = SHAFT_DECO_GLOW[1];
+            } else if (/glow/i.test(m.name)) {
               // Lampenglas leuchtet in der Farbe der Warnlichter, nur bei Fahrt
               m.emissiveMap = null; m.emissive.setRGB(1, 0.17, 0); m.emissiveIntensity = 0;
               shaft.glow = m;
@@ -4409,7 +4460,7 @@ ${HALL_LIGHTS_BEGIN}
           }
           shaft.pit.visible = false;
           model.add(shaft.group);
-          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
+          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
         } catch (e) {
           console.warn('[hangar] Schacht nicht gebaut', e);
           shaft = null;

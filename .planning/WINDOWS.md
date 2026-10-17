@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 49
+open_count: 50
 waived_count: 1
 fixed_count: 30
-total_count: 80
-last_updated: 2026-10-17T20:40:00.000Z
+total_count: 81
+last_updated: 2026-10-17T21:00:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -1056,6 +1056,18 @@ last_updated: 2026-10-17T20:40:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-17T20:05:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 82,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schacht-Beiwerk, 17.10.2026): Zur ästhetischen Tiefe des Schachts (16.10.2026) stehen jetzt Beiwerk-Teile des Spiels an den Schachtwänden: 35 Lichtrahmen (Licht-Decals, 5 bis 10 m unter dem Rand, leuchten während der Fahrt mit ihrem Atlas) und 51 Leuchtengehäuse (light_fluorescent_f, 8 bis 35 m tief, Glas leuchtet schwach; die oberen, 8 m unter dem Rand, sind schon im Spiel um 45° nach unten geneigt und wirken deshalb verdreht), gesetzt über dieselbe Abbildung Spielschacht auf unseren Schacht wie die Lampen. Vor keinem Gehäuse steht schon Geometrie des Bausatzes (beim Einbau geprüft), es gibt also keine Doppelten. Gemessen sind Knoten und Exemplare (verify:hangar-hall [11], Klinke deco 86), die Kosten (in Ruhe gleich, während der Fahrt 16 Zeichenbefehle mehr auf hoch, 8 auf mittel und niedrig, zwei Shader mehr) und Bilder derselben Ansichten. Der Körper der Gehäuse kommt ohne Farbkarte aus dem Export (Grundfarbe Weiß, metal_panels_a_paint) und bleibt so. Nicht beurteilen kann die Cloud: ob die Gehäuse aus der Ferne als Leuchten lesen oder als verstreute weiße Punkte, ob die Lichtrahmen zu hell oder zu gleichmäßig wirken, und ob sie an unseren schmaleren Wänden glaubhaft verteilt sind (der Spielschacht ist 56 x 88 m, unserer 32 x 96 m). Die Leitlinien und Chevrons vom Rand (microTech-Markierungen) sind bewusst nicht dabei. Stellschrauben SHAFT_DECO und SHAFT_DECO_GLOW in assets/hangar-viewer.js. Zu beurteilen am Rechner: ein Schiffswechsel steil von oben und einmal während der Fahrt an eine Längswand gedreht. Beleg: /mnt/project-files/hangar/v39-schacht-beiwerk-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-17T21:00:00.000Z",
     "resolved_at": null
   }
 ]
