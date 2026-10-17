@@ -373,18 +373,21 @@ function stripAttributes(doc, kind) {
   for (const m of root.listMeshes()) for (const p of m.listPrimitives()) {
     const c = p.getAttribute('COLOR_0');
     const mat = p.getMaterial();
-    if (kind === 'hall' && c && mat?.getExtras()?.vc) {
-      const n = c.getCount(), out = new Uint8Array(n * 3), v = [0, 0, 0, 1];
+    // Schacht (kind lift): VEC4 — im Alpha liegt die Mischmaske der Wear-Schicht
+    // (HardSurface %WEAR_LAYER), siehe .planning/notes/hangar-schacht-tiefe.md
+    const ch = kind === 'lift' ? 4 : 3;
+    if ((kind === 'hall' || kind === 'lift') && c && mat?.getExtras()?.vc) {
+      const n = c.getCount(), out = new Uint8Array(n * ch), v = [0, 0, 0, 1];
       const key = `${mat.getName()}|${p.getExtras()?.matfix ? 'matfix' : 'eigen'}`;
       const e = vc.get(key) || { tris: 0, n: 0, sumR: 0, low: 0 };
       for (let i = 0; i < n; i++) {
         c.getElement(i, v);
-        for (let k = 0; k < 3; k++) out[i * 3 + k] = Math.round(Math.min(1, Math.max(0, v[k])) * 255);
+        for (let k = 0; k < ch; k++) out[i * ch + k] = Math.round(Math.min(1, Math.max(0, v[k] ?? 1)) * 255);
         e.sumR += v[0]; if (v[0] < 0.98) e.low++;
       }
       e.n += n; e.tris += (p.getIndices()?.getCount() ?? 0) / 3;
       vc.set(key, e);
-      p.setAttribute('COLOR_0', doc.createAccessor().setType('VEC3').setArray(out).setNormalized(true).setBuffer(buffer));
+      p.setAttribute('COLOR_0', doc.createAccessor().setType(ch === 4 ? 'VEC4' : 'VEC3').setArray(out).setNormalized(true).setBuffer(buffer));
     } else {
       p.setAttribute('COLOR_0', null);
     }
@@ -633,11 +636,14 @@ function liftLights(info) {
 
 // public/hangar/lift/<name>.json neben dem GLB: Teile, Lampen, Fahrablauf.
 // Alles aus <name>.entities.json (Extraktor); Abgeleitetes steht als solches da.
-function writeLiftJson(name, parts) {
+function writeLiftJson(name, parts, { extras = null, uv = null, proj = null } = {}) {
   const infoFile = fileURLToPath(new URL(`lift/${name}.entities.json`, SRC));
   if (!existsSync(infoFile)) throw new Error(`Aufzug ${name}: ${infoFile} fehlt (Extraktor mit "lift" laufen lassen)`);
   const info = JSON.parse(readFileSync(infoFile, 'utf8'));
   const lights = liftLights(info);
+  // Projektormuster je Lampe (Pfad aus projectorParams, Bild klein daneben)
+  const byName = new Map([...(info.shaftLights || []), ...(info.padLights || [])].map((l) => [l.name, l.projector]));
+  for (const l of lights) { const pth = byName.get(l.name); if (pth) l.projector = { path: pth, url: proj?.get(pth.toLowerCase().replace(/\.(tif|dds)$/, ''))?.url ?? null }; }
   const plat = Object.values(info.anims || {})[0];
   const open = plat?.animations?.find((a) => a.name === 'door_open');
   const speed = plat?.doorAnimationSpeed || 1;
@@ -659,6 +665,9 @@ function writeLiftJson(name, parts) {
     modules: { ...modules, bottom: null },
     whole: null,
     lights,
+    ...(extras ? { materials: extras.materials, deco: extras.deco, decals: extras.decals } : {}),
+    ...(uv ? { uv } : {}),
+    ...(proj ? { projectors: [...proj.values()] } : {}),
     motion: {
       travel: { m: travel, source: `Plattform-Entity Pos z ${LIFT_SHAFT.floorY} (Oberkante auf Hallenboden); Plattform im Ruhezustand des .cga mit Oberkante ${LIFT_SHAFT.bottomY}; Lichtgruppe der Plattform ParentOffsetPos z ${info.padLightGroup?.parentOffsetPos?.[2]?.toFixed(3)}` },
       animations: info.anims,
@@ -680,7 +689,7 @@ function writeLiftJson(name, parts) {
   const file = fileURLToPath(new URL(`lift/${name}.json`, OUT));
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(out) + '\n');
-  return { file, lights: lights.length };
+  return { file, lights: lights.length, deco: extras?.deco.length ?? 0, decoCount: extras?.deco.reduce((n, d) => n + d.count, 0) ?? 0, decals: extras?.decals.length ?? 0, decalCount: extras?.decals.reduce((n, d) => n + d.at.length, 0) ?? 0, wear: Object.values(extras?.materials ?? {}).filter((m) => m.wear).length, projectors: proj?.size ?? 0 };
 }
 
 // Schichtmaterialien (HardSurface/LayerBlend ohne eigene Karten): Karten der
@@ -754,6 +763,186 @@ function prepareLift(doc, name) {
     materials: [...new Set(mesh.listPrimitives().map((q) => q.getMaterial()?.getName()))].length,
   }));
 }
+// ─── Schacht-Tiefe (.planning/notes/hangar-schacht-tiefe.md) ────────────
+// Zusätze zum Bausatz, alle als eigene benannte Knoten:
+// - deco_<rolle>_<n>: Beiwerk mit Decal-Material (Leitlinien, Chevrons,
+//   Pfeile, Lichtrahmen). Geometrie aus skin export (Modellraum Z oben ->
+//   glTF), Material = Untermaterial der überschriebenen .mtl. Ursprung am
+//   Montagepunkt des Spielmodells, Achsen glTF; die Exemplare stehen in der
+//   JSON (deco[].at, Schachtraum wie lights[].pos, dazu die volle Drehung).
+// - decal_<rolle>_<n>: Decal-Objekte am Schachtrand (Einheitsquadrat 1 × 1 m
+//   in XZ wie in der Werkstatt), Exemplare in decals[].at.
+// - wear_<n>: je Schachtmaterial mit zweiter Schicht ein 1 × 1-m-Quadrat mit
+//   deren Karten (Material „<name>_wear“); gemischt wird im Spiel über
+//   COLOR_0.a (HardSurface %WEAR_LAYER), das der Bausatz jetzt mitträgt.
+// Projektormuster der Lampen: public/hangar/lift/<name>-proj-<n>.webp.
+const ROOT_INV = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1];   // (x, y, z) -> (x, −z, y): hebt die Z-oben-Drehung des Exports auf
+const ROOT_ZUP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];   // (x, y, z) -> (x, z, −y)
+const decoRole = (cgf) => (/light_fluorescent/.test(cgf) ? 'leuchte' : /light_set/.test(cgf) ? 'lichtrahmen' : /chevron/.test(cgf) ? 'chevron' : /arrow/.test(cgf) ? 'pfeil' : /frame/.test(cgf) ? 'rahmen'
+  : /corner/.test(cgf) ? 'ecke' : /line|decal_8m/.test(cgf) ? 'leitlinie' : 'beiwerk');
+const m4 = (a, b) => { const m = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) m[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return m; };
+function quatOf(m) {
+  // Drehung aus einer (uniform) skalierten 3×3-Matrix, Spaltenmatrix
+  const sx = Math.hypot(m[0], m[1], m[2]), sy = Math.hypot(m[4], m[5], m[6]), sz = Math.hypot(m[8], m[9], m[10]);
+  const r = [m[0] / sx, m[1] / sx, m[2] / sx, m[4] / sy, m[5] / sy, m[6] / sy, m[8] / sz, m[9] / sz, m[10] / sz];
+  const tr = r[0] + r[4] + r[8];
+  let q;
+  if (tr > 0) { const s = Math.sqrt(tr + 1) * 2; q = [(r[5] - r[7]) / s, (r[6] - r[2]) / s, (r[1] - r[3]) / s, 0.25 * s]; }
+  else if (r[0] > r[4] && r[0] > r[8]) { const s = Math.sqrt(1 + r[0] - r[4] - r[8]) * 2; q = [0.25 * s, (r[3] + r[1]) / s, (r[6] + r[2]) / s, (r[5] - r[7]) / s]; }
+  else if (r[4] > r[8]) { const s = Math.sqrt(1 + r[4] - r[0] - r[8]) * 2; q = [(r[3] + r[1]) / s, 0.25 * s, (r[7] + r[5]) / s, (r[6] - r[2]) / s]; }
+  else { const s = Math.sqrt(1 + r[8] - r[0] - r[4]) * 2; q = [(r[6] + r[2]) / s, (r[7] + r[5]) / s, 0.25 * s, (r[1] - r[3]) / s]; }
+  return { q, scale: [sx, sy, sz] };
+}
+async function addLiftExtras(doc, name) {
+  const root = doc.getRoot(), scene = root.listScenes()[0], buf = root.listBuffers()[0];
+  const decoFile = fileURLToPath(new URL(`lift/${name}.deco.json`, SRC));
+  const layersFile = fileURLToPath(new URL(`lift/${name}.layers.json`, SRC));
+  const info = existsSync(decoFile) ? JSON.parse(readFileSync(decoFile, 'utf8')) : { deco: [], decals: [], decalMaterials: {} };
+  const layerInfo = existsSync(layersFile) ? JSON.parse(readFileSync(layersFile, 'utf8')) : {};
+  const lk = (p) => layerInfo[Object.keys(layerInfo).find((k) => k.toLowerCase() === String(p).toLowerCase().replace(/\\/g, '/'))] || null;
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const png = (file, label) => doc.createTexture(label).setImage(readFileSync(file)).setMimeType('image/png');
+  const rgb = (s) => (s ? String(s).split(',').map(Number) : [1, 1, 1]);
+  const quad = (sx, sz) => doc.createPrimitive()
+    .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array([-sx / 2, 0, -sz / 2, sx / 2, 0, -sz / 2, sx / 2, 0, sz / 2, -sx / 2, 0, sz / 2])).setBuffer(buf))
+    .setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0])).setBuffer(buf))
+    .setAttribute('TEXCOORD_0', doc.createAccessor().setType('VEC2').setArray(new Float32Array([0, 0, 1, 0, 1, 1, 0, 1])).setBuffer(buf))
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array([0, 2, 1, 0, 3, 2])).setBuffer(buf));
+  const out = { materials: {}, deco: [], decals: [] };
+
+  // 1) Schichten aller Schachtmaterialien, Wear-Karten als eigenes Material
+  let wi = 0;
+  for (const m of root.listMaterials()) {
+    const x = m.getExtras() || {};
+    const man = x.semantic?.layer_manifest;
+    if (!man?.length) continue;
+    const layers = man.map((l) => { const L = lk(l.path) || {}; return { name: l.name, path: l.path, tint: l.tint_color, wearTint: l.wear_tint, glossMult: l.gloss_mult, wearGloss: l.wear_gloss, uvTiling: l.uv_tiling, snapshot: l.layer_snapshot, maps: { d: L.d ?? null, n: L.n ?? null, detail: L.detail ?? null }, layerTiling: L.tiling ?? null }; });
+    const entry = { shader: x.shader, tokens: x.semantic?.decoded_string_gen_mask?.tokens, params: Object.fromEntries((x.semantic?.authored_public_params || []).map((p) => [p.name, p.value])), layers, blend: null };
+    const W = layers[1];
+    const wd = W && texFile(W.maps.d), wn = W && texFile(W.maps.n);
+    if (W) entry.blend = /WEAR_LAYER/.test((entry.tokens || []).join(' ')) ? 'COLOR_0.a (Vertex-Alpha, HardSurface %WEAR_LAYER), WearBlendBase/WearDirtBlendFalloff in params' : 'nicht über die Vertexfarbe (kein %WEAR_LAYER)';
+    if (wd) {
+      const wname = `${m.getName()}_wear`, node = `wear_${wi++}`;
+      const wm = doc.createMaterial(wname).setMetallicFactor(0).setBaseColorTexture(png(wd, `${node}_d`))
+        .setBaseColorFactor([...(W.snapshot?.diffuse || [1, 1, 1]).map((v, i) => Math.min(1, v * (W.tint || [1, 1, 1])[i])), 1])
+        .setRoughnessFactor(r3(1 - (W.snapshot?.shininess ?? 128) / 255 * (W.glossMult ?? 1)));
+      if (wn) wm.setNormalTexture(png(wn, `${node}_n`));
+      scene.addChild(doc.createNode(node).setMesh(doc.createMesh(node).addPrimitive(quad(1, 1).setMaterial(wm))));
+      entry.wear = { material: wname, node };
+    }
+    out.materials[m.getName()] = entry;
+  }
+
+  // 2) Beiwerk mit Decal-Material
+  const roleN = new Map();
+  for (const d of info.deco || []) {
+    if (d.missing || !d.glb) continue;
+    const src = await io.read(fileURLToPath(new URL(d.glb, SRC)));
+    const role = decoRole(d.cgf), n = roleN.get(role) || 0; roleN.set(role, n + 1);
+    const node = `deco_${role}_${n}`;
+    const mesh = doc.createMesh(node);
+    const prims = src.getRoot().listMeshes().flatMap((me) => me.listPrimitives());
+    prims.forEach((sp, i) => {
+      const sub = d.subs?.[i] || d.subs?.[0];
+      const p = doc.createPrimitive();
+      for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0']) {
+        const a = sp.getAttribute(sem); if (!a) continue;
+        p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setBuffer(buf));
+      }
+      const idx = sp.getIndices();
+      if (idx) p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx.getArray().slice()).setBuffer(buf));
+      transformPrimitive(p, ROOT_ZUP);   // Modellraum Z oben -> glTF
+      const mname = `${node}_${sub?.name || i}`;
+      // Decal-Shader blenden; Leuchtengehäuse sind deckend, ihr Glas leuchtet
+      const isDecal = /decal/i.test(sub?.shader || '') || /brand|decal/i.test(d.mtl || '');
+      const mat = doc.createMaterial(mname).setAlphaMode(isDecal ? 'BLEND' : 'OPAQUE').setMetallicFactor(0)
+        .setBaseColorFactor([...rgb(sub?.diffuse), Math.min(1, Number(sub?.opacity ?? 1))])
+        .setRoughnessFactor(r3(Math.max(0.05, 1 - Number(sub?.shininess ?? 128) / 255)));
+      const df = texFile(sub?.d);
+      if (df) mat.setBaseColorTexture(png(df, `${mname}_d`));
+      if (df && /glow/i.test(sub?.name || '')) mat.setEmissiveTexture(mat.getBaseColorTexture()).setEmissiveFactor([1, 1, 1]);
+      // MeshDecal-Atlas der Lichtrahmen: TexSlot2 ist dort eine Specular-Karte, keine Normale
+      const nf = texFile(sub?.n);
+      if (nf && /_ddna\.png$/i.test(nf)) mat.setNormalTexture(png(nf, `${mname}_n`));
+      mesh.addPrimitive(p.setMaterial(mat));
+    });
+    scene.addChild(doc.createNode(node).setMesh(mesh));
+    const at = d.instances.map((w) => {
+      const M = m4(w, ROOT_INV);
+      const { q, scale } = quatOf(M);
+      const yaw = Math.abs(q[0]) < 1e-3 && Math.abs(q[2]) < 1e-3 ? (2 * Math.atan2(q[1], q[3]) * 180) / Math.PI : null;
+      return { at: [r3(M[12]), r3(M[13] - LIFT_SHAFT.floorY), r3(M[14]), yaw === null ? null : r3(yaw)], q: q.map((v) => Math.round(v * 1e4) / 1e4), scale: r3(scale[0]) };
+    });
+    out.deco.push({ node, kind: d.cgf, rolle: role, mtl: d.mtl, sub: (d.subs || []).map((s) => s.name), tris: prims.reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0), count: at.length, at });
+  }
+
+  // 3) Decal-Objekte am Schachtrand
+  const dnodes = new Map(), dN = new Map();
+  for (const mtl of [...new Set((info.decals || []).map((d) => d.material).filter(Boolean))]) {
+    const m = info.decalMaterials?.[mtl]; if (!m || m.missing || !m.d) continue;
+    const dFile = texFile(m.d); if (!dFile) continue;
+    const role = decalRole(mtl), n = dN.get(role) || 0; dN.set(role, n + 1);
+    const node = `decal_${role}_${n}`;
+    const cbf = Number(m.params?.ColorBlendFactor ?? 1);
+    const mat = doc.createMaterial(node).setBaseColorTexture(png(dFile, `${node}_d`))
+      .setBaseColorFactor([...rgb(m.diffuse), r3(Math.min(1, Number(m.opacity ?? 1) * Math.min(1, cbf)))]).setAlphaMode('BLEND').setMetallicFactor(0)
+      .setRoughnessFactor(r3(Math.max(0.05, 1 - Number(m.shininess ?? 128) / 255)));
+    const nf = texFile(m.n); if (nf) mat.setNormalTexture(png(nf, `${node}_n`));
+    scene.addChild(doc.createNode(node).setMesh(doc.createMesh(node).addPrimitive(quad(1, 1).setMaterial(mat))));
+    dnodes.set(mtl, node);
+    out.decals.push({ node, rolle: role, path: mtl, game: m, at: [] });
+  }
+  for (const d of info.decals || []) {
+    const node = dnodes.get(d.material); if (!node) continue;
+    const p = [d.pos[0], d.pos[2], -d.pos[1]];
+    const floor = Math.abs(d.q[0]) < 0.02 && Math.abs(d.q[1]) < 0.02;
+    out.decals.find((x) => x.node === node).at.push({ at: [r3(p[0]), r3(p[1] - LIFT_SHAFT.floorY), r3(p[2]), floor ? r3((2 * Math.atan2(d.q[2], d.q[3]) * 180) / Math.PI) : null], size: r3(2 * d.half), qGame: d.q });
+  }
+  return out;
+}
+
+// Projektormuster: ≤ 256 px WebP neben dem GLB, Pfad -> Datei
+async function liftProjectors(name) {
+  const ent = JSON.parse(readFileSync(fileURLToPath(new URL(`lift/${name}.entities.json`, SRC)), 'utf8'));
+  const paths = [...new Set([...ent.shaftLights, ...ent.padLights].map((l) => l.projector).filter(Boolean))];
+  const map = new Map();
+  let i = 0;
+  for (const p of paths) {
+    const f = texFile(p); if (!f) continue;
+    const key = p.toLowerCase().replace(/\.(tif|dds)$/, '');
+    if ([...map.keys()].some((k) => k === key)) continue;
+    const file = `${name}-proj-${i++}.webp`;
+    const outPath = fileURLToPath(new URL(`lift/${file}`, OUT));
+    await sharp(f).resize(256, 256, { fit: 'inside' }).webp({ quality: 85 }).toFile(outPath);
+    map.set(key, { path: p, url: `/hangar/lift/${file}`, bytes: statSync(outPath).size });
+  }
+  return map;
+}
+
+// UV-Auskunft je Knoten und Material (vor dem Packen, also Spiel-UVs)
+function uvReport(doc) {
+  const rep = [];
+  for (const n of doc.getRoot().listNodes()) {
+    const me = n.getMesh(); if (!me) continue;
+    for (const p of me.listPrimitives()) {
+      const sets = p.listSemantics().filter((s) => /^TEXCOORD_/.test(s));
+      const uv = p.getAttribute('TEXCOORD_0');
+      let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity], deg = 0, tris = 0;
+      if (uv) {
+        const t = [0, 0];
+        for (let i = 0; i < uv.getCount(); i++) { uv.getElement(i, t); lo = [Math.min(lo[0], t[0]), Math.min(lo[1], t[1])]; hi = [Math.max(hi[0], t[0]), Math.max(hi[1], t[1])]; }
+        const idx = p.getIndices();
+        if (idx) for (let k = 0; k < idx.getCount(); k += 3) {
+          const [a, b, c] = [idx.getScalar(k), idx.getScalar(k + 1), idx.getScalar(k + 2)].map((j) => uv.getElement(j, [0, 0]));
+          tris++; if (Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) < 1e-10) deg++;
+        }
+      }
+      rep.push({ node: n.getName(), material: p.getMaterial()?.getName() ?? null, sets, range: uv ? [lo, hi].map((v) => v.map((x) => Math.round(x * 100) / 100)) : null, noArea: tris ? Math.round((1000 * deg) / tris) / 10 : null });
+    }
+  }
+  return rep;
+}
+
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
@@ -763,6 +952,7 @@ async function buildOne(kind, name, inPath) {
   // keepAttributes: die Texturen hängen erst danach; ohne das wirft prune
   // TEXCOORD_0 als unbenutzt weg (Schacht-Tiefe: Wände ohne UVs)
   if (liftParts) await doc.transform(prune({ keepAttributes: true }));
+  const liftExtras = liftParts ? await addLiftExtras(doc, name) : null;
   // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
   // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
   const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
@@ -781,7 +971,8 @@ async function buildOne(kind, name, inPath) {
   const layered = kind === 'lift' ? applyLayers(doc, name) : null;
   const attached = kind === 'hall' || kind === 'lift' ? await attachHallTextures(doc) : 0;
   if (cover) cover.after = coverage(doc);
-  const vertexColors = stripAttributes(doc, kind === 'lift' ? 'hall' : kind);
+  const vertexColors = stripAttributes(doc, kind);
+  const liftUv = liftParts ? uvReport(doc) : null;
   cleanMaterials(doc);
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' }), weld());
@@ -864,12 +1055,14 @@ async function buildOne(kind, name, inPath) {
   const hash = createHash('sha1').update(readFileSync(outPath));
   const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
   if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
-  const liftJson = liftParts ? writeLiftJson(name, liftParts) : null;
+  const liftProj = liftParts ? await liftProjectors(name) : null;
+  const liftJson = liftParts ? writeLiftJson(name, liftParts, { extras: liftExtras, uv: liftUv, proj: liftProj }) : null;
   if (liftJson) hash.update(readFileSync(liftJson.file));
+  for (const pj of liftProj?.values() ?? []) hash.update(readFileSync(fileURLToPath(new URL(pj.url.replace(/^\/hangar\//, ''), OUT))));
   const v = hash.digest('hex').slice(0, 8);
   return {
     url: `/hangar/${kind}/${name}.glb`, v,
-    ...(liftJson ? { json: `/hangar/lift/${name}.json`, parts: liftParts, lightCount: liftJson.lights, layered } : {}),
+    ...(liftJson ? { json: `/hangar/lift/${name}.json`, parts: liftParts, lightCount: liftJson.lights, layered, deco: liftJson.deco, decals: liftJson.decals, projectors: liftJson.projectors } : {}),
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
@@ -1005,8 +1198,8 @@ async function packDoc(doc, outPath, b) {
   for (const mesh of doc.getRoot().listMeshes()) for (const p of mesh.listPrimitives()) normalizeUvIslands(p, 'TEXCOORD_0');
   const uvBits = texcoordBits(doc.getRoot(), 'TEXCOORD_0');
   await doc.transform(
-    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: 82 }),
-    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: 80 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: b.q ?? 82 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: b.q ?? 80 }),
     draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits, quantizePosition: 14 }),
   );
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
@@ -1104,7 +1297,7 @@ async function buildWerkstatt() {
     // kommt sie aus der Maske (TexSlot12, ungekachelt), die Farbe wird mit
     // ihrem TexMod (TileU/V) über die Maske gekachelt.
     let image = readFileSync(dFile);
-    const maskFile = /OPACITY_MAP/.test(m.mask || '') ? texFile(m.mask) : null;
+    const maskFile = /OPACITY_MAP/.test(m.genMask || '') ? texFile(m.maskTex) : null;
     if (maskFile) {
       const mm = await sharp(maskFile).metadata();
       const tile = m.tileD || [1, 1];
@@ -1178,7 +1371,7 @@ async function buildWerkstatt() {
   }
   const bodenOut = fileURLToPath(new URL('hall/werkstatt-boden.glb', OUT));
   // Telefone und Stufe niedrig laden nur dieses GLB (≤ 2 MB): Farbe 512 px
-  const bodenBytes = await packDoc(bd, bodenOut, { tex: 512, ntex: 256 });
+  const bodenBytes = await packDoc(bd, bodenOut, { tex: 512, ntex: 256, q: 74 });
 
   // Materialien der Requisiten mit allen Schichten (Rohwerte)
   const materials = {};
@@ -1289,7 +1482,7 @@ for (const kind of Object.keys(BUDGET)) {
       }
       if (r.parts) {
         for (const t of r.parts) console.log(`    Teil ${t.role.padEnd(11)} ${String(t.tris).padStart(6)} Dreiecke  ${t.materials} Materialien  aus ${t.from.join(' + ')}`);
-        console.log(`    Aufzug: ${r.parts.length} Teile, ${r.tris.toLocaleString()} Dreiecke, ${r.lightCount} Lampen -> ${r.json}`);
+        console.log(`    Aufzug: ${r.parts.length} Teile, ${r.tris.toLocaleString()} Dreiecke, ${r.lightCount} Lampen, ${r.deco} Beiwerk-Arten, ${r.decals} Decal-Arten, ${r.projectors} Projektormuster -> ${r.json}`);
       }
       if (r.lights?.missing) {
         console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
