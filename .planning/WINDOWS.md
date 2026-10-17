@@ -1018,6 +1018,18 @@ last_updated: 2026-10-16T14:50:00.000Z
     "reason": "",
     "recorded_at": "2026-10-16T14:50:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 79,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Werkstatt, 17.10.2026): Auf „das ganze hangar sieht iwi so steril aus … es fehlt öl, cracks auf dem boden, beton, werkzeuge, schläuche, fuel, diagnosegeräte“ (16.10.2026) steht jetzt Werkstattgerät aus einer Industriehalle des Spiels (util_a hangar_medtop_002) in der Halle: Generatoren, Kabeltrommeln, Schläuche, Treibstoffzellen, Gasflaschen, Diagnosegeräte, Werkzeug, Heizer, Kisten, Wagen. (1) An den Enden und Seiten des Felds nach der Anordnung des Spiels um dessen Landefeld, auf unsere Halle gestaucht; Wandgerät (höher als 0,35 m im Spiel) fehlt. (2) Ein Wartungsplatz beiderseits der Schiffsmitte (WORK_SERVICE), Gerät aus dem Spiel in unserer Aufstellung, weil die Anordnung des Spiels alles an die Feldenden stellt, 40 bis 70 m weg von einem kleinen Schiff. (3) Boden-Decals des Spiels (Öl, Abrieb, Kratzer, Rost, Pfützen, Staub, Reifenspur) nach der Anordnung, dazu auf dem Feld Risse, Betonschutt und Öllachen (WORK_FIELD; im Spiel ist das Landefeld sauber, hier liegen sie, wo man hinsieht, und fahren mit). Gemessen sind Lage, Kosten (auf hoch rund 2 % mehr Grafikzeit je Bild, am Telefon und auf niedrig nur Decals) und Bilder derselben Ansichten; nicht beurteilen kann die Cloud: ob die Halle jetzt nach Werkstatt aussieht, ob das tiefschwarze Öl auf dem hellen Lack zu hart wirkt (die große Lache unter dem Schiff), ob der Wartungsplatz zu ordentlich steht, und ob der helle Lack des Felds bleiben oder dem Beton beziehungsweise Asphalt des Spiels weichen soll (geliefert, noch nicht eingebaut). Stellschrauben WORK_* in assets/hangar-viewer.js. Zu beurteilen am Rechner: Startansicht, einmal flach am Schiff, einmal an ein Hallenende; am Telefon die Startansicht. Beleg: /mnt/project-files/hangar/v36-werkstatt-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-17T18:10:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
