@@ -4,7 +4,7 @@ open_count: 49
 waived_count: 1
 fixed_count: 30
 total_count: 80
-last_updated: 2026-10-17T20:25:00.000Z
+last_updated: 2026-10-17T20:40:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -1044,7 +1044,7 @@ last_updated: 2026-10-17T20:25:00.000Z
     "status": "fixed",
     "reason": "Betreiber 17.10.2026 19:59 auf der Karte im Faden gewählt: „Beton“ (zur Wahl standen Beton, Asphalt, Lack; Bild v37). Am selben Abend 20:19 zurückgenommen: „beton ist doch nicht gut doch lieber so wie davor, also halt weiss oder wies halt eben war“. Das Feld trägt wieder den Lack der Halle (WORK_PAD.pick \"lack\"), Beton und Asphalt bleiben als ?boden=beton und ?boden=asphalt zum Vergleich.",
     "recorded_at": "2026-10-17T19:15:00.000Z",
-    "resolved_at": "2026-10-17T19:59:52.000Z"
+    "resolved_at": "2026-10-17T20:19:00.000Z"
   },
   {
     "id": 81,
