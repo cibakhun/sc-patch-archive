@@ -247,3 +247,25 @@ Sie stehen in `lights[].projector = { path, url }`. Das Muster in `rect_half_100
 - Am PC habe ich den Spielschacht aus den Teilen gesetzt und gerendert: Schräg von oben zeigen Trimleiste und Randleiste ihre Paneele und orangen Streifen, die Lackwand ihre Abnutzung; um die Öffnung liegen die blauen Leitlinien, ein weiß gestreifter Chevron und Öl- und Kratzerspuren.
 - Die Bilder sind nicht committet.
 - Die neun alten Knoten behalten Namen und Rahmen.
+
+## Einbau Cloud (17.10.2026)
+
+**Teil 1: Karten und Abnutzung** (nach PR #115, Branch `claude/wot-hangar-hzs46w`):
+- `shaftPieces` liest jetzt TEXCOORD_0 und das Alpha von COLOR_0. `buildShaft` schreibt die Koordinaten mit und legt die Abnutzung (1 − Alpha) in den Grünkanal von `hgShade` (R und B bleiben die Abdunklung).
+- Trägt jedes Stück eines Materials Koordinaten, setzt `merge` `userData.shaftUv`. Der Shader liest dann die Karten (Farbe, Normalen, Rauheit) wirklich, statt ihren Mittelwert (`HG_MEAN`) zu nehmen. Ohne Koordinaten bleibt alles wie vorher.
+- Wear-Schicht: Das Material `<Name>_wear` am Knoten `wear_0` bringt Karte, Farbe und Rauheit. Wo die Maske steigt, mischt der Shader die Schicht ein; die Helligkeit der Wear-Karte franst die Grenze aus (`SHAFT_WEAR_BREAK` 0,9, smoothstep 0,3 bis 0,7). Die Rauheit folgt der Maske.
+- Richtung aus dem Spiel geschlossen: Alpha 1 heißt Grundlack. Ecke, Trim- und Randleiste tragen überall 1, und am PC zeigt die Randleiste ihre Paneele und Streifen (die Wear-Schicht dort wäre blankes Metall ohne Farbkarte). An der Lackwand liegt ein Viertel der Ecken auf 0.
+- Die Wear-Karte zählt zu `hgTex` und wird auf niedrig mit verkleinert. Programmschlüssel je Material (`shaft|uv|wear`).
+- **Tor** `verify:hangar-hall [11]`: Jedes Teil trägt Texturkoordinaten, `wear_0` hat eine Farbkarte, mindestens 2713 Dreiecke des Bausatzes tragen die Maske (Klinke `worn`). Vorgeführt rot gegen `dist/`: Teil `wall` ohne TEXCOORD_0 („tragen wall/trim_greebles_a_031, wall/paint_c_notint_044 keine Texturkoordinaten“) und COLOR_0 auf drei Kanäle („nur 0 Dreiecke … Abnutzung“).
+- **Kosten** (SwiftShader, gleiche Ansicht, in Ruhe und halb abgefahren; Zeichenbefehle / Programme / Texturen / ms je Bild):
+
+  | Stufe | vorher Ruhe | nachher Ruhe | vorher Fahrt | nachher Fahrt |
+  |---|---|---|---|---|
+  | hoch 1920 × 1080 | 2300 / 56 / 528 / 10 682 | 2300 / 57 / 535 / 10 320 | 1404 / 56 / 528 / 9 596 | 1404 / 57 / 535 / 9 730 |
+  | niedrig | 620 / 35 / 316 / 3 738 | 620 / 36 / 323 / 3 720 | 330 / 35 / 316 / 3 502 | 330 / 36 / 323 / 3 571 |
+  | Telefon (mittel) | 622 / 36 / 319 / 2 794 | 622 / 37 / 326 / 2 855 | 148 / 36 / 319 / 1 927 | 148 / 37 / 326 / 2 075 |
+
+  Gleiche Zeichenbefehle und Dreiecke, ein Programm mehr, sieben Texturen mehr (Wear-Karte und die Normalenkarten, die ohne Koordinaten wegfielen). Die Zeiten liegen im Rauschen dieser Messung (ein zweiter Lauf desselben Stands wich früher um 12 % ab); am Telefon in der Fahrt 8 % mehr, das bleibt zu beobachten.
+- Bild: `/mnt/project-files/hangar/v38-schacht-texturen-vorher-nachher.png` (Fahrt von oben, Längswand, Ecke). Sichturteil WINDOWS 81.
+
+**Teil 2 (offen): Beiwerk.** Lichtrahmen (35, an den Wänden 5 bis 10 m unter dem Rand) und Leuchtengehäuse (52, je Exemplar gegen Rippen und Ecken prüfen) über dieselbe Abbildung Spiel → Schacht wie `shaftLights`; Projektormuster in den Kegeln. Die Leitlinien und Chevrons am Rand sind blaue microTech-Markierungen aus einer anderen Halle, die Randdecals ähneln denen der Werkstatt (andere Halle, keine Doppelten, aber doppelte Dichte am Feld): beides erst nach Sicht.

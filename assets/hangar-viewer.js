@@ -424,6 +424,7 @@ const HALL_SHAFT = /* hall-shaft */ {
 // Lagen über der Wand: Oberteile von Wand, Rippe und Ecke (der Bausatz
 // trennt sie bei 12 m Höhe: Unterteil 12 m, Oberteil 20 m)
 const SHAFT_SPLIT = 12;
+const SHAFT_WEAR_BREAK = 0.9;   // wie stark die Helligkeit der Wear-Karte die Maskengrenze ausfranst
 // Rand der Öffnung (16.10.2026, Krisz: „zu dünn, ... als wäre es aus
 // papier“). Die Randleiste des Spiels ist unter dem Hallenboden eine 3 m
 // tiefe Nische, und die Bodenplatte der Halle ist am Schnitt des Felds
@@ -445,11 +446,14 @@ function shaftPieces(node, band) {
   const out = [];
   node.traverse((m) => {
     if (!m.isMesh) return;
-    const g = m.geometry, P = g.attributes.position, N = g.attributes.normal, C = g.attributes.color;
+    const g = m.geometry, P = g.attributes.position, N = g.attributes.normal, C = g.attributes.color, U = g.attributes.uv;
     if (!P || !N) return;
     M.multiplyMatrices(inv, m.matrixWorld);
     const nm = new THREE.Matrix3().getNormalMatrix(M), n = new THREE.Vector3();
     const pos = new Float32Array(P.count * 3), nor = new Float32Array(P.count * 3), sh = new Float32Array(P.count);
+    // Texturkoordinaten des Spiels und die Mischmaske der Wear-Schicht
+    // (COLOR_0.a: 1 Grundlack, 0 Abnutzung), seit Schacht-Tiefe 17.10.2026
+    const uv = U ? new Float32Array(P.count * 2) : null, wear = new Float32Array(P.count);
     for (let i = 0; i < P.count; i++) {
       v.fromBufferAttribute(P, i).applyMatrix4(M);
       if (band) v.y -= SHAFT_SPLIT;
@@ -457,6 +461,8 @@ function shaftPieces(node, band) {
       n.fromBufferAttribute(N, i).applyMatrix3(nm).normalize();
       nor.set([n.x, n.y, n.z], i * 3);
       sh[i] = C ? C.getX(i) : 1;
+      wear[i] = C && C.itemSize === 4 ? 1 - C.getW(i) : 0;
+      if (uv) { uv[i * 2] = U.getX(i); uv[i * 2 + 1] = U.getY(i); }
     }
     const I = g.index ? g.index.array : Uint32Array.from({ length: P.count }, (_, i) => i);
     let idx = I;
@@ -469,7 +475,7 @@ function shaftPieces(node, band) {
       }
       idx = Uint32Array.from(keep);
     }
-    if (idx.length) out.push({ mat: m.material, pos, nor, sh, idx, uv: !!g.attributes.uv });
+    if (idx.length) out.push({ mat: m.material, pos, nor, sh, wear, idx, uv });
   });
   return out;
 }
@@ -556,7 +562,8 @@ function buildShaft(kit, info, L, lay) {
     for (const [mat, items] of by) {
       let nv = 0, ni = 0;
       for (const [p] of items) { nv += p.pos.length / 3; ni += p.idx.length; }
-      const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), sh = new Uint8Array(nv * 3), idx = new Uint32Array(ni);
+      const withUv = items.every(([p]) => p.uv);
+      const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), sh = new Uint8Array(nv * 3), idx = new Uint32Array(ni), uv = withUv ? new Float32Array(nv * 2) : null;
       let ov = 0, oi = 0;
       for (const [p, M] of items) {
         nm.getNormalMatrix(M);
@@ -564,8 +571,11 @@ function buildShaft(kit, info, L, lay) {
         for (let i = 0; i < cnt; i++) {
           v.fromArray(p.pos, i * 3).applyMatrix4(M).toArray(pos, (ov + i) * 3);
           n.fromArray(p.nor, i * 3).applyMatrix3(nm).normalize().toArray(nor, (ov + i) * 3);
-          sh.fill(Math.round(Math.min(1, Math.max(0, p.sh[i])) * 255), (ov + i) * 3, (ov + i) * 3 + 3);
+          // hgShade: R Abdunklung, G Abnutzung (Wear-Maske), B wie R
+          const k = (ov + i) * 3, d = Math.round(Math.min(1, Math.max(0, p.sh[i])) * 255);
+          sh[k] = d; sh[k + 1] = Math.round(Math.min(1, Math.max(0, p.wear[i])) * 255); sh[k + 2] = d;
         }
+        if (uv) uv.set(p.uv, ov * 2);
         for (let i = 0; i < p.idx.length; i++) idx[oi + i] = p.idx[i] + ov;
         ov += cnt; oi += p.idx.length;
       }
@@ -573,11 +583,14 @@ function buildShaft(kit, info, L, lay) {
       g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
       g.setAttribute('hgShade', new THREE.BufferAttribute(sh, 3, true));
+      if (uv) g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
       g.setIndex(new THREE.BufferAttribute(idx, 1));
       g.computeBoundingBox(); g.computeBoundingSphere();
       const mesh = new THREE.Mesh(g, mat);
       mesh.name = `shaft:${mat.name}`;
-      mesh.userData.noUv = items.some(([p]) => !p.uv);
+      mesh.userData.noUv = !uv;
+      // Das Material liest seine Karten über die Koordinaten des Spiels
+      if (uv) mat.userData.shaftUv = true;
       meshes.push(mesh);
       tris += ni / 3;
     }
@@ -3034,7 +3047,10 @@ export async function initHangar(container, opts = {}) {
       await composerReady;
       const tex = new Set();
       root.traverse((n) => {
-        if (n.isMesh) for (const m of [].concat(n.material)) for (const k of TEX_SLOTS) if (m[k]) tex.add(m[k]);
+        if (n.isMesh) for (const m of [].concat(n.material)) {
+          for (const k of TEX_SLOTS) if (m[k]) tex.add(m[k]);
+          for (const t of m.userData.hgTex ?? []) tex.add(t);   // Karten nur im Shader (Wear-Schicht)
+        }
       });
       if (TEX_MAX) await shrinkTextures(tex);
       const compiled = compileFor(root, composer ? composer.readBuffer : null);
@@ -3866,8 +3882,9 @@ void main() {
     }
     return out;
   }
-  // Der Schachtbausatz hat keine Texturkoordinaten: Seine Karten gelten mit
-  // ihrem Mittelwert (oberste Mip-Stufe), so wie sie aus der Ferne wirken.
+  // Trägt ein Schachtmaterial keine Texturkoordinaten (Bausatz vor
+  // Schacht-Tiefe, 17.10.2026), gelten seine Karten mit ihrem Mittelwert
+  // (oberste Mip-Stufe), so wie sie aus der Ferne wirken.
   const HG_MEAN = (t) => `textureLod( ${t}, vec2( 0.5 ), 16.0 )`;
   // Spiegelung auf den Raumkasten projiziert: Die Umgebungskugel ist an
   // einer Stelle aufgenommen (2,5 m über der Plattform). Ohne Projektion
@@ -4027,16 +4044,33 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 ${HALL_LIGHTS_BEGIN}
 	material.roughness = hgRoughRefl;
 	if ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );`);
-    if (m.userData.shaft) {
+    if (m.userData.shaft && !m.userData.shaftUv) {
       sh.fragmentShader = sh.fragmentShader
         .replace(/vec4 sampledDiffuseColor = [^;]*;/, `vec4 sampledDiffuseColor = ${HG_MEAN('map')};`)
         .replace('#include <roughnessmap_fragment>', THREE.ShaderChunk.roughnessmap_fragment.replace('texture2D( roughnessMap, vRoughnessMapUv )', HG_MEAN('roughnessMap')))
         .replace('#include <metalnessmap_fragment>', THREE.ShaderChunk.metalnessmap_fragment.replace('texture2D( metalnessMap, vMetalnessMapUv )', HG_MEAN('metalnessMap')));
     }
+    // Wear-Schicht des Spiels (Schachtlack): Wo COLOR_0.a abfällt (hgShade.g),
+    // zeigt sich die zweite Schicht; ihre eigene Helligkeit franst die
+    // Grenze aus, so wie im Spiel die Abnutzung an Kanten und Flächen sitzt.
+    const W = m.userData.hgWear;
+    if (W && m.userData.shaftUv) {
+      sh.uniforms.hgWearMap = { value: W.map }; sh.uniforms.hgWearCol = { value: W.color }; sh.uniforms.hgWearRough = { value: W.roughness };
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying float vHgWear;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWear = hgShade.g;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vHgWear;\nuniform sampler2D hgWearMap;\nuniform vec3 hgWearCol;\nuniform float hgWearRough;')
+        .replace('diffuseColor *= sampledDiffuseColor;', `vec4 hgWc = texture2D( hgWearMap, vMapUv );
+	float hgWm = smoothstep( 0.3, 0.7, vHgWear + ( dot( hgWc.rgb, vec3( 0.3333 ) ) - 0.5 ) * ${SHAFT_WEAR_BREAK.toFixed(2)} );
+	diffuseColor.rgb = mix( diffuseColor.rgb * sampledDiffuseColor.rgb, hgWearCol * hgWc.rgb, hgWm );
+	diffuseColor.a *= sampledDiffuseColor.a;`)
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = mix( roughnessFactor, hgWearRough, hgWm );');
+    }
   };
   const hallKey = () => 'hall-v2';
   const pitKey = () => (PIT_N ? `hall-v2|pit${hallPit.field}` : 'hall-v2');
-  const shaftKey = () => 'hall-v2|shaft';
+  const shaftKey = (m) => () => `hall-v2|shaft${m.userData.shaftUv ? '|uv' : ''}${m.userData.hgWear ? '|wear' : ''}`;
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
@@ -4301,6 +4335,8 @@ ${HALL_LIGHTS_BEGIN}
         const t3 = performance.now(), lay = HALL_SHAFT[h.id];
         try {
           shaft = buildShaft(kit.kit, kit.info, L, lay);
+          const wearMats = new Map();
+          kit.kit.getObjectByName('wear_0')?.traverse((n) => { if (n.isMesh && n.material?.map) wearMats.set(n.material.name, n.material); });
           shaft.group.position.set(o[0], floorY, o[2]);
           shaft.group.traverse((n) => { if (n.isMesh) { n.receiveShadow = false; n.castShadow = false; } });
           for (const m of shaft.materials) {
@@ -4308,7 +4344,13 @@ ${HALL_LIGHTS_BEGIN}
             if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
             if (m.metalness > 0.4) m.metalness = 0.4;
             // flache Normalenkarte ohne Koordinaten: weg (unifyMaps gibt die neutrale)
-            m.normalMap = null;
+            if (!m.userData.shaftUv) m.normalMap = null;
+            // Wear-Schicht: Karten auf dem Knoten wear_0, Material <Name>_wear
+            const wm = wearMats.get(`${m.name}_wear`);
+            if (wm && m.userData.shaftUv) {
+              m.userData.hgWear = { map: wm.map, color: wm.color.clone(), roughness: wm.roughness };
+              m.userData.hgTex = [wm.map];
+            }
             m.userData.hgShade = true; m.userData.shaft = true;
             // Die Vertexfarbe des Bausatzes steckt in hgShade (buildShaft legt
             // kein color an). Mit vertexColors läse der Shader ein fehlendes
@@ -4321,7 +4363,7 @@ ${HALL_LIGHTS_BEGIN}
               shaft.glow = m;
             }
             m.onBeforeCompile = hallShader(m);
-            m.customProgramCacheKey = shaftKey;
+            m.customProgramCacheKey = shaftKey(m);
             unifyMaps(m);
           }
           const all = shaftLights(kit.info, shaft, lay), pk = pitPack(all, PIT_N);
