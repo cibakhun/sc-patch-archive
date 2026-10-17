@@ -282,8 +282,8 @@ export function boot(doc) {
   // Jetzt lesen: writeUrl() schreibt die Adresse aus dem Zustand neu,
   // ohne ?grafik=
   const GRAFIK = grafikWahl();
-  // Feldboden zum Vergleich: ?boden=asphalt oder ?boden=lack statt des
-  // gewaehlten Spielbodens (WORK_PAD im Viewer). Anders als ?grafik= bleibt
+  // Feldboden zum Vergleich: ?boden=beton, ?boden=asphalt oder ?boden=lack
+  // statt des gewaehlten (WORK_PAD im Viewer). Anders als ?grafik= bleibt
   // er in der Adresse (urlOf), damit Neuladen und Kopieren ihn behalten.
   const BODEN = new URLSearchParams(location.search).get('boden');
   let state = parseState(location.search, location.hash, ctx);

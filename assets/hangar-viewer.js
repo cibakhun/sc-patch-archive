@@ -1101,10 +1101,12 @@ const WORK_SERVICE = /* work-service */ [
 // Knoten (`floors`, Kachel aus info.floors). Auf dem Feld tragen die
 // Materialien `mats` (Platten, Bänder, Fugen) die Karten des gewählten
 // Bodens statt des Lacks, auf die Fläche projiziert wie die zerfallenen
-// Hallen-UVs (boxProject); Leisten und Lampen bleiben. Gewählt ist `pick`,
-// die Seite schaltet mit ?boden=asphalt oder ?boden=lack um (Vergleich).
+// Hallen-UVs (boxProject); Leisten und Lampen bleiben. Gewählt ist `pick`
+// ("lack": der helle Lack der Halle bleibt), die Seite schaltet mit
+// ?boden=beton, ?boden=asphalt oder ?boden=lack um (Vergleich). Krisz
+// wählte erst Beton, am selben Abend (17.10.2026) wieder den Lack.
 // verify:hangar-hall [12] prüft die Knoten und die Materialien im Feld.
-const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_03)$", "floors": { "beton": "floor_asphalt_wear", "asphalt": "floor_asphalt" }, "pick": "beton" } /* /work-pad */;
+const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_03)$", "floors": { "beton": "floor_asphalt_wear", "asphalt": "floor_asphalt" }, "pick": "lack" } /* /work-pad */;
 
 // Belegung des Hallenbodens im Modellraum: je Zelle (WORK_CELL) 1, wenn
 // Halle oder Einrichtung dort im Band WORK_BAND über dem Boden etwas hat.
@@ -1191,10 +1193,11 @@ async function floorGrid(model, room, floorY, skip, pause = noPause) {
 // Spielboden für das Feld (WORK_PAD, `which` aus ?boden=) aus der
 // Bodendatei: { name, mat, tile } mit der Kachel in m je UV-Einheit aus
 // info.floors, oder null (Lack)
+const padPick = (which) => (which === 'lack' || Object.hasOwn(WORK_PAD.floors, which ?? '') ? which : WORK_PAD.pick);
 function padFloor(scene, info, which) {
-  const name = WORK_PAD.floors[Object.hasOwn(WORK_PAD.floors, which ?? '') ? which : WORK_PAD.pick];
+  const name = WORK_PAD.floors[padPick(which)];
   let mat = null;
-  if (which !== 'lack' && name) scene?.getObjectByName(name)?.traverse((o) => { if (!mat && o.isMesh) mat = o.material; });
+  if (name) scene?.getObjectByName(name)?.traverse((o) => { if (!mat && o.isMesh) mat = o.material; });
   if (!mat) return null;
   const f = (info.floors || []).find((e) => e.node === name || e.wearNode === name);
   return { name, mat, tile: f?.tiling?.[0] || 4 };
@@ -4324,7 +4327,7 @@ ${HALL_LIGHTS_BEGIN}
         }
         const skinned = [...own.values()].filter((c) => c.userData.pad).length;
         if (pad) console.info(`[hangar] Feldboden: ${pad.name} (Kachel ${pad.tile} m) auf ${skinned} Materialien des Felds`);
-        else if (work) console.info(`[hangar] Feldboden: Lack${opts.pad === 'lack' ? ' (gewählt)' : ' (Spielboden fehlt in der Bodendatei)'}`);
+        else if (work) console.info(`[hangar] Feldboden: Lack${padPick(opts.pad) === 'lack' ? ' (gewählt)' : ' (Spielboden fehlt in der Bodendatei)'}`);
       }
       // Der Schacht darunter, im Schachtraum (Feldmitte auf dem Boden); seine
       // Materialien wie die der Halle, ohne deren Abdunkelung der weißen
