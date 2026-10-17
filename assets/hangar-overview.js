@@ -282,6 +282,10 @@ export function boot(doc) {
   // Jetzt lesen: writeUrl() schreibt die Adresse aus dem Zustand neu,
   // ohne ?grafik=
   const GRAFIK = grafikWahl();
+  // Feldboden zum Vergleich: ?boden=asphalt oder ?boden=lack statt des
+  // gewaehlten Spielbodens (WORK_PAD im Viewer). Anders als ?grafik= bleibt
+  // er in der Adresse (urlOf), damit Neuladen und Kopieren ihn behalten.
+  const BODEN = new URLSearchParams(location.search).get('boden');
   let state = parseState(location.search, location.hash, ctx);
 
   // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
@@ -291,7 +295,10 @@ export function boot(doc) {
   // nach einem Neuladen gehoert der Eintrag davor zum alten Dokument, back()
   // laedt dann neu und verwirft, was im Dialog geaendert wurde.
   let pushedHere = false;
-  const urlOf = (s) => `${location.pathname}${serializeState(s, ctx)}`;
+  const urlOf = (s) => {
+    const q = serializeState(s, ctx);
+    return `${location.pathname}${BODEN ? `${q ? `${q}&` : '?'}boden=${encodeURIComponent(BODEN)}` : q}`;
+  };
 
   // Die Adresse folgt dem Zustand, so gut es geht: WebKit wirft nach 100
   // replaceState-Aufrufen in 10 s. Die Seite steht dann trotzdem richtig, nur
@@ -1060,7 +1067,7 @@ export function boot(doc) {
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, pad: BODEN }))
       .then((v) => {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));

@@ -297,3 +297,19 @@ Im Spiel ist das Feld selbst sauber, denn es ist die Aufzugsplattform mit Asphal
 - Extraktor-Teil `werkstatt`: beide Stufen exportiert, Decals mit Materialien, alle Schichtmaterialien.
 - Build-Art `props`: `buildWerkstatt`.
 - Nebenbei: In der Art `lift` warf `prune` vor dem Anhängen der Texturen TEXCOORD_0 weg. Das betrifft Teil B.
+
+## Einbau Cloud (17.10.2026)
+
+- PR #114 (auf staging): Gerät und Decals nach der Anordnung, Spuren auf dem
+  Feld (`WORK_FIELD`), Wartungsplatz am Schiff (`WORK_SERVICE`). Auf hoch rund
+  4 % mehr Grafikzeit je Bild (gleiche Seite, abwechselnd mit und ohne).
+- Feldboden (`WORK_PAD`): Auf dem Feld tragen Platten, Bänder und Fugen
+  (`metal_dotty_01_016`, `metal_white_03`) die Karten eines Spielbodens aus
+  der Bodendatei, auf die Fläche projiziert, Kachel aus `floors[].tiling`.
+  Gewählt ist Beton (`floor_asphalt_wear`, die Wear-Schicht des
+  Aufzugsasphalts); `?boden=asphalt` zeigt den Asphalt selbst, `?boden=lack`
+  den Lack. Die Mischung über die Vertexfarbe des Spiels gibt es hier nicht
+  (das Feld der Halle trägt keine), deshalb ganz Beton oder ganz Asphalt.
+  Gleiche Zeichenbefehle, kleinere Karten als der Lack (512 statt 1024 px).
+  Vergleich: /mnt/project-files/hangar/v37-feldboden-lack-beton-asphalt.png,
+  Wahl liegt bei Krisz.
