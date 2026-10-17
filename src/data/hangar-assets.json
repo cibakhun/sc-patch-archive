@@ -1023,7 +1023,7 @@
   "lift": {
     "medtop": {
       "url": "/hangar/lift/medtop.glb",
-      "v": "dd92c876",
+      "v": "4e7a3ff2",
       "json": "/hangar/lift/medtop.json",
       "parts": [
         {
@@ -1139,13 +1139,16 @@
         "glow": 1,
         "metal": 1
       },
-      "tris": 7060,
+      "deco": 15,
+      "decals": 9,
+      "projectors": 5,
+      "tris": 7479,
       "trisRaw": 744895,
-      "textures": 16,
+      "textures": 37,
       "attached": {
         "attached": 10,
-        "color": 4,
-        "normal": 6,
+        "color": 30,
+        "normal": 13,
         "flatNormals": 0,
         "rough": 6,
         "tiled": 1,
@@ -1160,18 +1163,18 @@
       },
       "cover": {
         "before": {
-          "materials": 6,
-          "diffuse": 1,
-          "normal": 1,
+          "materials": 33,
+          "diffuse": 27,
+          "normal": 8,
           "trisOhneMaterial": 0,
-          "tris": 7060
+          "tris": 7479
         },
         "after": {
-          "materials": 6,
-          "diffuse": 4,
-          "normal": 6,
+          "materials": 33,
+          "diffuse": 30,
+          "normal": 13,
           "trisOhneMaterial": 0,
-          "tris": 7060
+          "tris": 7479
         }
       },
       "vertexColors": [
@@ -1212,12 +1215,12 @@
         }
       ],
       "uv": {
-        "rangeBefore": 0,
-        "rangeAfter": 0,
-        "bits": 12,
-        "degenerate": 0
+        "rangeBefore": 19,
+        "rangeAfter": 18.68,
+        "bits": 17,
+        "degenerate": 9.7
       },
-      "bytes": 319268
+      "bytes": 1918760
     }
   },
   "props": {
