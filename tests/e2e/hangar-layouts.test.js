@@ -38,6 +38,15 @@ describe('Werkstatt: Link-Code', () => {
     assert.deepEqual(decodeLayout(code), lo);
   });
 
+  test('die Lackierung reist als viertes Feld mit; Serienlack laesst den Code wie zuvor', () => {
+    const lo = { name: 'Rot', slots: { gun_nose: 'revenant' }, paint: '0d451905d1a0429215ab410823b6d2aa' };
+    assert.deepEqual(decodeLayout(encodeLayout(lo)), lo);
+    assert.equal(encodeLayout({ name: '', slots: {}, paint: null }), EMPTY_CODE);
+    assert.equal(encodeLayout({ name: '', slots: {}, paint: 'Böse Farbe' }), EMPTY_CODE);
+    assert.ok(!('paint' in decodeLayout(EMPTY_CODE)));
+    assert.ok(!sameLayout({ ship: 'aegs-gladius', name: '', slots: {}, paint: 'abc' }, { ship: 'aegs-gladius', name: '', slots: {} }));
+  });
+
   test('gleiche Layouts ergeben gleiche Codes, egal in welcher Folge die Slots kamen', () => {
     assert.equal(encodeLayout({ name: 'x', slots: { b: 'panther', a: 'mantis' } }), encodeLayout({ name: 'x', slots: { a: 'mantis', b: 'panther' } }));
   });
@@ -134,6 +143,14 @@ describe('Werkstatt: Ablage', () => {
     assert.ok(store.restore(gone));
     assert.deepEqual(store.list().map((e) => e.id), ['aaaa1111', 'bbbb2222']);
     assert.ok(sameLayout(store.get('aaaa1111'), { ship: 'aegs-gladius', name: 'Eins neu', slots: { gun_nose: 'revenant' } }));
+  });
+
+  test('die Lackierung wird mitgespeichert; ein Eintrag ohne sie traegt kein leeres Feld', () => {
+    const store = createStore(memory(), () => 1);
+    store.save({ id: 'cccc3333', ship: 'aegs-gladius', name: 'Lack', slots: {}, paint: '0d451905d1a0429215ab410823b6d2aa' });
+    store.save({ id: 'dddd4444', ship: 'aegs-gladius', name: 'Serie', slots: {}, paint: undefined });
+    assert.equal(store.get('cccc3333').paint, '0d451905d1a0429215ab410823b6d2aa');
+    assert.ok(!('paint' in store.get('dddd4444')));
   });
 
   test('kaputter Inhalt ergibt eine leere oder bereinigte Liste, keinen Wurf', () => {

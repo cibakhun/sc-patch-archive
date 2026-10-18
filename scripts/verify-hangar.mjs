@@ -38,7 +38,7 @@
      5  Zaehlungen gegen die Klinken (KLINKEN unten).
      6  Groessendeckel: groesste Bucht, Summe je Sprache.
      7  Viewer-Naht: dist/assets/hangar-viewer.js liefert project, focus,
-        setCover, onFrame und fit. Reisst sie, nennt die Meldung
+        setCover, onFrame, fit und paint. Reisst sie, nennt die Meldung
         .planning/notes/hangar-naht.md.
      8  Import-Map vor dem ersten Modul-Skript auf beiden Hangarseiten: ein
         Modul-Skript davor laesst Chrome die Map verwerfen, und three.js
@@ -76,6 +76,14 @@
         Tauschteile (Knoten mit extras.swap und 16 endlichen Zahlen in
         extras.anchor, aus dem JSON-Block der Datei gelesen). Zwei Klinken:
         Modelle und Ports mit Tauschteilen.
+    14  Lackierungen der Werkstatt: paints in dist/hangar-layouts.json je
+        Schiff mit Slots, Serienpalette und jede Lackierung mit drei
+        #rrggbb-Toenen, eindeutiger Kennung und Namen. Je Schiff mit Lack
+        (dist/hangar/ships) zaehlt die Pruefung die Materialien, deren
+        baseColorFactor ein Ton der Serienpalette ist (linear, wie der
+        Viewer sie in paint() sucht): ohne Treffer faerbt die Lackierung am
+        Modell nichts um. Klinken: Schiffe, Lackierungen, umfaerbbare
+        Schiffe mit Lack.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -90,6 +98,9 @@
      g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
+     j  in dist/hangar-layouts.json einen Ton auf 'rot' setzen       -> [14]
+     k  in dist/hangar-layouts.json die Serienpalette der Gladius
+        verstellen (Ton trifft kein Material mehr)                   -> [14]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -360,11 +371,11 @@ for (const k of KLINKEN) {
   }
 }
 
-say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, setCover, onFrame, fit');
+say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, setCover, onFrame, fit, paint');
 const viewerFile = join(DIST, 'assets', 'hangar-viewer.js');
 const viewer = existsSync(viewerFile) ? readFileSync(viewerFile, 'utf8') : '';
 const api = viewer.slice(viewer.lastIndexOf('return {'));
-const SEAM = ['project', 'focus', 'setCover', 'onFrame', 'fit'];
+const SEAM = ['project', 'focus', 'setCover', 'onFrame', 'fit', 'paint'];
 const seam = SEAM.filter((n) => new RegExp(`\\b${n}\\b`).test(api));
 sollIst(SEAM.join(', '), seam.join(', ') || '—');
 if (seam.length !== SEAM.length) fail(`[7] dist/assets/hangar-viewer.js liefert nicht mehr ${SEAM.filter((n) => !seam.includes(n)).join(', ')} — Absprache: .planning/notes/hangar-naht.md`);
@@ -564,8 +575,64 @@ const TAUSCH = { modelle: 112, ports: 37 };
   ist.tauschModelle = models.length; ist.tauschPorts = ports;
 }
 
+say('\n[14] Lackierungen: Daten der Werkstatt und Palettenmaterialien der Schiffe mit Lack');
+// Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Datenlauf (siehe Commit).
+const LACK = { schiffe: 0, lackierungen: 0, umfaerbbar: 0 };
+{
+  const lf = join(DIST, 'hangar-layouts.json');
+  const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
+  const HEXC = /^#[0-9a-f]{6}$/;
+  const entries = Object.entries(ld.paints ?? {});
+  let rows = 0, pattern = 0;
+  for (const [ship, p] of entries) {
+    if (!ld.ships?.[ship]) fail(`[14] Lackierungen fuer ${ship}, das in der Werkstatt keine Slots hat`);
+    if (!Array.isArray(p.base) || p.base.length !== 3 || !p.base.every((c) => HEXC.test(c))) fail(`[14] ${ship}: Serienpalette ${JSON.stringify(p.base)} ist nicht drei #rrggbb`);
+    const ids = new Set();
+    for (const r of p.list ?? []) {
+      rows++;
+      if (r[5] === 1) pattern++;
+      const ok = Array.isArray(r) && r.length === 6 && /^[a-z0-9][a-z0-9-]{0,63}$/.test(r[0]) && typeof r[1] === 'string' && r[1].trim()
+        && r.slice(2, 5).every((c) => HEXC.test(c)) && (r[5] === 0 || r[5] === 1);
+      if (!ok) fail(`[14] ${ship}: Lackierung ${JSON.stringify(r).slice(0, 120)} hat nicht die Form [kennung, name, #haupt, #zweit, #akzent, 0|1]`);
+      if (ids.has(r[0])) fail(`[14] ${ship}: Kennung ${r[0]} doppelt`);
+      ids.add(r[0]);
+    }
+  }
+  // Wie der Viewer (hullTint): Ton der Serienpalette, sRGB nach linear, Summe der Abstaende < 3e-3.
+  const lin = (h) => [1, 3, 5].map((i) => { const v = parseInt(h.slice(i, i + 2), 16) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  const shipDir = join(DIST, 'hangar', 'ships');
+  const tex = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).map((x) => x.replace(/\.glb$/, '')) : [];
+  const perShip = [];
+  let recolor = 0;
+  for (const ship of tex) {
+    const p = ld.paints?.[ship];
+    if (!p) { perShip.push(`${ship} ohne Lackierungen`); continue; }
+    const buf = readFileSync(join(shipDir, `${ship}.glb`));
+    const len = buf.readUInt32LE(12);
+    const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
+    const want = p.base.map(lin);
+    const hits = [0, 0, 0];
+    for (const m of gltf.materials ?? []) {
+      const f = m.pbrMetallicRoughness?.baseColorFactor;
+      if (!f) continue;
+      const pt = m.extras?.palette_tint;
+      const i = want.findIndex((w, k) => (pt == null || pt === k + 1) && Math.abs(w[0] - f[0]) + Math.abs(w[1] - f[1]) + Math.abs(w[2] - f[2]) < 3e-3);
+      if (i >= 0) hits[i]++;
+    }
+    if (hits.some(Boolean)) recolor++;
+    perShip.push(`${ship} ${hits.join('/')}`);
+  }
+  say(`    Schiffe mit Lackierungen: ${entries.length}   Lackierungen: ${rows} (${pattern} mit Muster)   umfaerbbar mit Lack: ${recolor} von ${tex.length}`);
+  say(`      Palettenmaterialien Haupt/Zweit/Akzent: ${perShip.join(', ')}`);
+  sollIst(`Schiffe >= ${LACK.schiffe}, Lackierungen >= ${LACK.lackierungen}, umfaerbbar >= ${LACK.umfaerbbar}`, `${entries.length}, ${rows}, ${recolor}`);
+  if (entries.length < LACK.schiffe) fail(`[14] nur ${entries.length} Schiffe mit Lackierungen (Klinke ${LACK.schiffe}): fehlt src/data/ship-paints.json oder passt die Schiffskennung nicht?`);
+  if (rows < LACK.lackierungen) fail(`[14] nur ${rows} Lackierungen (Klinke ${LACK.lackierungen})`);
+  if (recolor < LACK.umfaerbbar) fail(`[14] nur ${recolor} Schiffe mit Lack, deren Palettenmaterialien die Serienpalette tragen (Klinke ${LACK.umfaerbbar}): die Lackierung faerbt am Modell nichts um`);
+  ist.lackSchiffe = entries.length; ist.lackierungen = rows; ist.lackUmfaerbbar = recolor;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
