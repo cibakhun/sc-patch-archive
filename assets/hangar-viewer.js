@@ -3044,9 +3044,11 @@ export async function initHangar(container, opts = {}) {
   scene.add(fill);
 
   const life = buildLife(scene, reduceMotion, !REAL);
-  // Unter hoch werfen die Arbeiter keinen Schatten (sie laufen: die Karten
-  // müssten sonst jedes Bild neu), in der niedrigen Stufe gehen vier statt acht
-  if (Q0 !== 'hoch') life.setShadows(false);
+  // In der echten Halle werfen die Arbeiter keinen Schatten (sie laufen: die
+  // Karten müssten sonst jedes Bild neu, in hoch 315 Aufrufe und 2 ms
+  // Prozessorzeit je Bild mit der Gladius), in der niedrigen Stufe gehen
+  // vier statt acht
+  if (Q0 !== 'hoch' || REAL) life.setShadows(false);
   if (Q0 === 'niedrig') life.setCount(4);
   await breathe();
   // die Crew erscheint mit der Halle, nicht vorher im Leeren
@@ -3267,6 +3269,11 @@ export async function initHangar(container, opts = {}) {
     m.needsUpdate = true;
   }
   const isNeutral = (t) => !!t?.userData?.neutral;
+  // Doppelseitig Durchsichtiges zeichnet three.js in zwei Zügen (Rück-, dann
+  // Vorderseite) und ermittelt vor jedem Zug das Shaderprogramm neu. Decals
+  // und Relief liegen flach auf dem Rumpf: ein Zug genügt. Leuchtschalen
+  // (Triebwerke) behalten beide.
+  const onePass = (m) => { if (m.transparent && m.side === THREE.DoubleSide && !/glow/i.test(m.name)) m.forceSinglePass = true; };
 
   // Vor dem ersten Bild: Shader im Hintergrund übersetzen und Texturen in
   // Häppchen von höchstens ~6 ms hochladen, dazwischen kommt der Browser zum
@@ -4586,6 +4593,7 @@ ${HALL_LIGHTS_BEGIN}
           const us = uvStats.get(m);
           if (us && us.share > 0.4 && !boxed.has(m) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
           unifyMaps(m);
+          onePass(m);
         }
       });
       if (boxed.size) console.info(`[hangar] ${boxed.size} Hallenmaterialien projiziert (UVs zerfallen)`);
@@ -4793,6 +4801,9 @@ ${HALL_LIGHTS_BEGIN}
       // Eigenes Ziel mit 4-fach-MSAA: der Composer umgeht sonst die
       // Kantenglättung des Renderers, und jede Kante treppt.
       const rt = new THREE.WebGLRenderTarget(W(), H(), { type: THREE.HalfFloatType, samples: 4 });
+      // Mit Tiefenbild: Die Verdeckung liest die Tiefe des Bildes, statt die
+      // Szene ein zweites Mal für Normalen und Tiefe zu zeichnen (ao unten)
+      rt.depthTexture = new THREE.DepthTexture(W(), H());
       const c = new EffectComposer(renderer, rt);
       c.setPixelRatio(pixelRatio);
       c.setSize(W(), H());
@@ -4805,6 +4816,18 @@ ${HALL_LIGHTS_BEGIN}
       const ao = new GTAOPass(scene, camera, Math.max(1, W() >> 1), Math.max(1, H() >> 1));
       const aoSize = ao.setSize.bind(ao);
       ao.setSize = (w, h) => aoSize(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(h / 2)));
+      // Normalen aus der Tiefe des Bildes statt aus einem eigenen Durchgang
+      // (2026-10-18): Der zeichnete die ganze Szene noch einmal, mit der
+      // Gladius 326 Aufrufe und 2 ms Prozessorzeit je Bild. Der Composer
+      // wechselt zwischen rt und seiner Kopie (mit eigener Tiefe): gelesen
+      // wird die Tiefe des Bildes, in das RenderPass eben gezeichnet hat.
+      ao.setGBuffer(rt.depthTexture);
+      ao.normalRenderTarget.dispose();
+      const aoRender = ao.render.bind(ao);
+      ao.render = (r, w, read, ...rest) => {
+        ao.gtaoMaterial.uniforms.tDepth.value = ao.pdMaterial.uniforms.tDepth.value = read.depthTexture;
+        return aoRender(r, w, read, ...rest);
+      };
       // Der Pass rechnet nur die Verdeckung; aufs Bild legt sie aoMedianPass
       // (ohne Ausgabe schreibt er nichts ins Zielbild, also auch kein Tausch).
       ao.output = GTAOPass.OUTPUT.Off;
@@ -4843,16 +4866,13 @@ ${HALL_LIGHTS_BEGIN}
       c.addPass(new OutputPass());
       // Die Shader der Pässe jetzt übersetzen, solange das Laden ohnehin läuft
       // (die Verdeckung ist darunter der schwerste), dann ein Probebild für
-      // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter, die
-      // Normalen der Verdeckung dagegen mit denen der Szene.
+      // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter.
       const quad = new THREE.Group(), plane = new THREE.PlaneGeometry(2, 2);
       for (const m of [ao.gtaoMaterial, ao.pdMaterial, aoMix.material, aoMix.medMaterial,
         bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial]) {
         if (m) quad.add(new THREE.Mesh(plane, m));
       }
       await compileFor(quad, rt, quad);
-      const normals = new THREE.Mesh(plane, ao.normalMaterial);
-      await compileFor(normals, rt);
       plane.dispose();
       c.render();
       composer = c;
@@ -4999,6 +5019,7 @@ ${HALL_LIGHTS_BEGIN}
         m.envMapIntensity = 0.9;
         for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
         unifyMaps(m);
+        onePass(m);
         if (!m.transparent) hull.push([n, m]);
         return;
       }
@@ -5073,9 +5094,13 @@ ${HALL_LIGHTS_BEGIN}
     scene.add(ship);
     homeTgt = tgt;
     camFree = null; freeDirty = true;
-    const mats = [mat];
-    ship.traverse((n) => { if (n.material) mats.push(...[].concat(n.material)); });
-    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null, lift: up, dim: dimOf(mats) };
+    const mats = [mat], clear = [];
+    ship.traverse((n) => {
+      if (!n.material) return;
+      mats.push(...[].concat(n.material));
+      if (n.isMesh && [].concat(n.material).some((m) => m.transparent)) clear.push(n);
+    });
+    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null, lift: up, dim: dimOf(mats), clear };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship');
     reveal();
@@ -5179,11 +5204,13 @@ ${HALL_LIGHTS_BEGIN}
   // Schirm Bilder zeigt (an einem 144-Hz-Schirm 144 je Sekunde), auch wenn
   // niemand hinsah; mit der Seite allein lief eine RTX 30x0 Ti bei 75 %.
   // Jetzt höchstens 60 je Sekunde, solange jemand dreht, zoomt oder ein
-  // Schiff wechselt, im Leerlauf (Umlauf, Crew) 30. Ist das Fenster nicht
+  // Schiff wechselt, im Leerlauf (Umlauf, Crew) 24: Der Umlauf dreht 3° je
+  // Sekunde, und 24 statt 30 Bilder sparten 23 % der Arbeit des Chips
+  // (2026-10-18, RTX 3070 Ti, zwei Läufe). Ist das Fenster nicht
   // vorn (Spiel, anderes Programm), zeichnet die Bühne nur, solange der
   // Zeiger über ihr fährt; verborgen oder aus dem Bild gar nicht. fpsCap
   // deckelt beides (niedrige Stufe: 30).
-  const FPS_ACTIVE = 60, FPS_IDLE = 30, BG_HOVER = 3000;
+  const FPS_ACTIVE = 60, FPS_IDLE = 24, BG_HOVER = 3000;
   let fpsCap = Q0 === 'niedrig' ? 30 : 0, due = 0, capNow = 0;
   let focused = document.hasFocus(), hoverUntil = 0;
   const frameD = [];
@@ -5246,12 +5273,12 @@ ${HALL_LIGHTS_BEGIN}
     qualityFn?.(quality());
   }
   const quality = () => ({ level, start: Q0, why: pick.why, forced: FORCED, pixelRatio, levels: QUALITY_LEVELS.slice() });
-  // Schattenkarten unter hoch nur neu, wenn sich etwas bewegt, das Schatten
-  // wirft: das Schiff (Ein- und Ausfahrt, Aufzug), der Hallenmaßstab. Die
-  // Crew wirft dort keinen. Die gebaute Halle (ohne Spieldaten) hat
-  // laufende Teile mit Schatten: dort jedes Bild.
+  // Schattenkarten in der echten Halle nur neu, wenn sich etwas bewegt, das
+  // Schatten wirft: das Schiff (Ein- und Ausfahrt, Aufzug), der
+  // Hallenmaßstab. Die Crew wirft dort keinen. Die gebaute Halle (ohne
+  // Spieldaten) hat laufende Teile mit Schatten: dort jedes Bild.
   function shadowsDue() {
-    if (level === 'hoch' || !realHall) return true;
+    if (!realHall) return true;
     const g = current?.group, l = leaving?.group;
     const sig = `${g ? `${g.id}:${g.visible}:${g.position.y.toFixed(3)}:${g.rotation.y.toFixed(3)}` : '-'}|${l ? `${l.id}:${l.position.y.toFixed(3)}:${l.rotation.y.toFixed(3)}` : '-'}|${hallRoot.scale.x}`;
     if (sig === shadowSig) return false;
@@ -5662,8 +5689,13 @@ ${HALL_LIGHTS_BEGIN}
     const k = hallRoot.scale.x;
     hallRefl.mat.value.copy(mBias).multiply(mirrorCam.projectionMatrix).multiply(mirrorCam.matrixWorldInverse).multiply(mK.makeScale(k, k, k));
     const model = realHall.model, crew = life.root, crewOn = crew.visible, bg = scene.background, alpha = renderer.getClearAlpha();
+    // Ohne die durchsichtigen Teile des Schiffs (Decals, Relief): mit der
+    // Gladius 40 der 169 Aufrufe, 41 der 60 Shaderwechsel und 1,3 ms
+    // Prozessorzeit je Bild (gemessen vor onePass)
+    const clear = current.clear.filter((n) => n.visible);
     renderer.getClearColor(mClear);
     model.visible = false; crew.visible = false; scene.background = null;
+    for (const n of clear) n.visible = false;
     // Schattenkarten bleiben die des letzten Bilds (gleich darauf neu)
     renderer.shadowMap.needsUpdate = false;
     renderer.setClearColor(0x000000, 0);
@@ -5673,6 +5705,7 @@ ${HALL_LIGHTS_BEGIN}
     renderer.setRenderTarget(null);
     renderer.setClearColor(mClear, alpha);
     model.visible = true; crew.visible = crewOn; scene.background = bg;
+    for (const n of clear) n.visible = true;
     hallRefl.tex.value = mirrorRT.texture;
     hallRefl.on.value = 1;
   }
