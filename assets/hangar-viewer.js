@@ -3251,23 +3251,20 @@ export async function initHangar(container, opts = {}) {
   controls.enablePan = false;
   controls.minPolarAngle = 0.15;
   controls.maxPolarAngle = Math.PI / 2 - 0.03; // nie unter den Boden
-  controls.autoRotate = !reduceMotion;
-  // 1,5° je Sekunde (6° · Speed), unabhängig vom Bildtakt: frame() gibt
-  // die Zeit mit. Ohne sie dreht OrbitControls je Bild um 0,1° · Speed, so
-  // hing die Drehung bis 2026-10-18 am Takt (30 Bilder, Speed 0,5: 1,5°).
-  const SPIN = 0.25;
-  controls.autoRotateSpeed = SPIN;
+  // Kein Umlauf (Krisz, 2026-10-18: keine automatische Kameradrehung): die
+  // Kamera bewegt nur, wer sie zieht, zoomt oder die Ansicht zuruecksetzt.
+  controls.autoRotate = false;
   camera.position.copy(homePos());
   controls.update();
-  let idleTimer = 0, touched = false;
+  let touched = false;
   // Bildtakt (frame): bis activeUntil die volle Rate, sonst die des Leerlaufs.
   // seen: letzte Zeigerbewegung über der Bühne; mit activeUntil das Maß für
-  // Leerlauf und Ruhe (frame()). spin: Anteil der Umlaufgeschwindigkeit.
-  let activeUntil = 0, dragging = false, seen = performance.now(), spin = 1;
+  // Leerlauf und Ruhe (frame()).
+  let activeUntil = 0, dragging = false, seen = performance.now();
   const wake = (ms) => { activeUntil = Math.max(activeUntil, performance.now() + ms); };
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
-  controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; controls.autoRotate = false; clearTimeout(idleTimer); });
+  controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
   let fly = null;          // { a: Spherical, b: Spherical, ta, tb, t0, dur }
@@ -3307,8 +3304,6 @@ export async function initHangar(container, opts = {}) {
     // die Dämpfung läuft nach dem Loslassen noch etwa eine Sekunde
     dragging = false;
     wake(1500);
-    clearTimeout(idleTimer);
-    if (!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
   });
 
   // Echte Halle: wird geladen, sobald die Bühne steht. room = Innenraum im
@@ -5676,7 +5671,6 @@ ${HALL_LIGHTS_BEGIN}
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
     const t = homeTgt ? homeTgt.clone() : controls.target.clone();
     flyTo(t, HOME_DIR.clone().multiplyScalar(homeDist()).add(t));
-    if (!reduceMotion) controls.autoRotate = true;
   }
 
   // Schnittstelle für die Oberfläche um die Szene (Hardpoint-Marker, Fokus).
@@ -5721,7 +5715,7 @@ ${HALL_LIGHTS_BEGIN}
     const dir = out.lengthSq() > 1e-4 ? out.normalize().multiplyScalar(0.7).add(view.multiplyScalar(0.3)) : view;
     dir.y = Math.max(dir.normalize().y, 0.17);
     const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
-    touched = true; onPoint = true; controls.autoRotate = false; clearTimeout(idleTimer);
+    touched = true; onPoint = true;
     flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
   }
 
@@ -5738,9 +5732,9 @@ ${HALL_LIGHTS_BEGIN}
   // Schirm Bilder zeigt (an einem 144-Hz-Schirm 144 je Sekunde), auch wenn
   // niemand hinsah; mit der Seite allein lief eine RTX 30x0 Ti bei 75 %.
   // Jetzt höchstens 60 je Sekunde, solange jemand dreht, zoomt oder ein
-  // Schiff wechselt, im Leerlauf (Umlauf, Crew) 24: Der Umlauf dreht 1,5° je
-  // Sekunde, und 24 statt 30 Bilder sparten 23 % der Arbeit des Chips
-  // (2026-10-18, RTX 3070 Ti, zwei Läufe). Ist das Fenster nicht
+  // Schiff wechselt, im Leerlauf (Crew, Staub) 24: 24 statt 30 Bilder
+  // sparten 23 % der Arbeit des Chips (2026-10-18, RTX 3070 Ti, zwei Läufe,
+  // gemessen noch mit dem damaligen Umlauf). Ist das Fenster nicht
   // vorn (Spiel, anderes Programm), zeichnet die Bühne nur, solange der
   // Zeiger über ihr fährt; verborgen oder aus dem Bild gar nicht. fpsCap
   // deckelt beides (niedrige Stufe: 30).
@@ -5753,13 +5747,13 @@ ${HALL_LIGHTS_BEGIN}
   // performance"): Ab IDLE_MS ohne Zeigerbewegung über der Bühne und ohne
   // Bewegung, die jemand auslöst (activeUntil), zeichnet sie mit IDLE_SCALE
   // der Bildschärfe: rund 20 % weniger Arbeit des Chips im Leerlauf (RTX
-  // 3070 Ti, Gladius, zwei Läufe im Wechsel). Ab REST_MS läuft der Umlauf in
-  // REST_EASE aus, danach zeichnet sie nichts (Grafikprozess des Browsers
+  // 3070 Ti, Gladius, zwei Läufe im Wechsel). Ab REST_MS + REST_EASE (bis
+  // 2026-10-18 lief dort der Umlauf aus) zeichnet sie nichts (Grafikprozess des Browsers
   // 2,7 % statt 16 %), bis der Zeiger über sie fährt oder die Seite etwas
   // zeigt (wake). Die volle Schärfe kehrt schon beim Überfahren zurück, also
   // bevor jemand zieht: Das Umstellen legt die Zielbilder neu an (längstes
   // Bild dabei 21 ms, so lang wie die üblichen Ausreißer).
-  const IDLE_MS = 2000, IDLE_SCALE = 0.75, REST_MS = 20000, REST_EASE = 1500, SPIN_UP = 0.8;
+  const IDLE_MS = 2000, IDLE_SCALE = 0.75, REST_MS = 20000, REST_EASE = 1500;
   function applyPixels() {
     renderer.setPixelRatio(pixelRatio * pixelScale);
     composer?.setPixelRatio(pixelRatio * pixelScale);
@@ -6267,9 +6261,9 @@ ${HALL_LIGHTS_BEGIN}
     if (!focused && now > hoverUntil) return;
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate
     if (dragging || fly || lift.dur || leaving || fade.to || (current && now - current.born < 1600)) wake(300);
-    // Ruhe: Umlauf ausgelaufen, nichts zu zeichnen
+    // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
-    if (quiet > REST_MS + REST_EASE) { spin = 0; return; }
+    if (quiet > REST_MS + REST_EASE) return;
     const cap = Math.min(fpsCap || FPS_ACTIVE, now < activeUntil ? FPS_ACTIVE : FPS_IDLE);
     // gleichmäßig, auch am schnelleren Schirm (144 Hz: abwechselnd jedes
     // zweite und dritte Bild, im Mittel 60)
@@ -6278,8 +6272,6 @@ ${HALL_LIGHTS_BEGIN}
     due = Math.max(due + iv, now + iv / 2);
     const t = clock.getElapsedTime();
     const dt = Math.min(0.1, t - last); last = t;
-    spin = quiet > REST_MS ? Math.min(spin, 1 - (quiet - REST_MS) / REST_EASE) : Math.min(1, spin + dt / SPIN_UP);
-    controls.autoRotateSpeed = SPIN * spin;
     const scale = quiet > IDLE_MS ? IDLE_SCALE : 1;
     if (scale !== pixelScale) { pixelScale = scale; applyPixels(); }
     for (const f of anim) f(t);

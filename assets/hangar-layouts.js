@@ -418,6 +418,8 @@ export function initWorkshop(doc, bridge) {
     slotEls.clear();
     if (!slots.length) {
       slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')));
+      paintCat();
+      paintMods();
       return;
     }
     const groups = GROUPS.map((g) => {
@@ -425,12 +427,13 @@ export function initWorkshop(doc, bridge) {
       if (!mine.length) return null;
       const total = el('b', { 'data-total': g });
       const gd = el('i', { class: 'hgl-gd', 'data-gd': g });
-      return el('section', { class: 'hgl-grp' },
+      return el('section', { class: 'hgl-grp', 'data-cat': tabOf(mine[0]) },
         el('h3', {}, el('span', {}, m(`grp.${g}`)), SUMMED.has(g) ? gd : null, SUMMED.has(g) ? total : null),
         el('ul', {}, ...mine.map(slotEl)));
     }).filter(Boolean);
     slotsHost.replaceChildren(...groups);
     for (const s of slots) paintSlot(s);
+    paintCat();
     paintTotals();
     syncOpen();
   }
@@ -471,17 +474,79 @@ export function initWorkshop(doc, bridge) {
     }
   }
 
+  /* ---- Reiter: Waffen | Systeme ---- */
+  // Wie die Kategorien im Spiel: die Liste zeigt nur die Gruppen des Reiters,
+  // und am Schiff tragen nur seine getauschten Teile ihren Namen. Der Reiter
+  // ist tab des Controllers (Uebersicht zaehlt als Waffen), damit Reiter,
+  // Slot- und Markerklicks dieselbe Wahl teilen. Hat das Schiff nur eine
+  // Kategorie (unbewaffnet), entfaellt die Leiste.
+  const catBar = $('hgl-cats');
+  const catBtns = [...catBar.querySelectorAll('[role="tab"]')];
+  let cat = null;
+  function wantCat() {
+    const want = bridge.state().tab === 'systems' ? 'systems' : 'weapons';
+    const other = want === 'weapons' ? 'systems' : 'weapons';
+    return slots.some((s) => tabOf(s) === want) || !slots.some((s) => tabOf(s) === other) ? want : other;
+  }
+  function paintCat() {
+    const next = wantCat();
+    const moved = next !== cat;
+    cat = next;
+    const present = new Set(slots.map(tabOf));
+    const bar = present.size > 1;
+    catBar.hidden = !bar;
+    for (const b of catBtns) {
+      const on = b.dataset.cat === cat;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    }
+    if (bar) {
+      slotsHost.setAttribute('role', 'tabpanel');
+      slotsHost.setAttribute('aria-labelledby', `hgl-c-${cat}`);
+    } else {
+      slotsHost.removeAttribute('role');
+      slotsHost.removeAttribute('aria-labelledby');
+    }
+    for (const sec of slotsHost.querySelectorAll('.hgl-grp')) sec.hidden = sec.dataset.cat !== cat;
+    if (moved) paintMods();
+  }
+  function paintCatCounts() {
+    for (const b of catBtns) {
+      const n = slots.filter((s) => tabOf(s) === b.dataset.cat && s.key in draft.slots).length;
+      b.querySelector('[data-cat-n]').textContent = n ? nf.format(n) : '';
+    }
+  }
+  function pickCat(to) {
+    if (to === cat) return;
+    openKey = null;
+    bridge.set({ tab: to, hp: null });
+  }
+  catBar.addEventListener('click', (e) => {
+    const b = e.target.closest('[role="tab"]');
+    if (b) pickCat(b.dataset.cat);
+  });
+  catBar.addEventListener('keydown', (e) => {
+    const i = catBtns.findIndex((b) => b.dataset.cat === cat);
+    const n = catBtns.length;
+    const to = { ArrowRight: (i + 1) % n, ArrowLeft: (i + n - 1) % n, Home: 0, End: n - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    pickCat(catBtns[to].dataset.cat);
+    catBtns[to].focus();
+  });
+
   // Getauschte Hardpoints am Schiff: ihre Marker stehen im Werkstatt-Modus
-  // dauernd und tragen den Namen des neuen Teils. Als Stilregeln statt als
-  // Klassen, weil der Controller die Marker bei jedem Schiffswechsel neu
-  // einsetzt (Region marks) und die Regeln das ueberleben.
+  // und tragen den Namen des neuen Teils, aber nur die des gewaehlten
+  // Reiters. Als Stilregeln statt als Klassen, weil der Controller die Marker
+  // bei jedem Schiffswechsel neu einsetzt (Region marks) und die Regeln das
+  // ueberleben.
   const modStyle = doc.head.appendChild(el('style', { id: 'hgl-mods' }));
   const cssStr = (t) => `"${String(t).replace(/[\\"]/g, '\\$&').replace(/[\n\r]/g, ' ')}"`;
   function paintMods() {
     const byPort = new Map();
     for (const s of slots) {
       const k = draft.slots[s.key];
-      if (!k) continue;
+      if (!k || tabOf(s) !== cat) continue;
       const sel = `.hg[data-pane="layout"] .hgx-mk[data-tab="${tabOf(s)}"][data-port="${CSS.escape(portOf(s.key))}"]`;
       if (!byPort.has(sel)) byPort.set(sel, []);
       byPort.get(sel).push(itemName(k));
@@ -502,6 +567,7 @@ export function initWorkshop(doc, bridge) {
 
   function paintTotals() {
     paintMods();
+    paintCatCounts();
     const totals = groupTotals(slots, draft.slots, data.items);
     for (const [g, t] of totals) {
       const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : UNIT[g]();
@@ -796,7 +862,10 @@ export function initWorkshop(doc, bridge) {
       return;
     }
     if (state.ship !== draft.ship || (state.lo ?? EMPTY_CODE) !== code) adopt(state);
-    else syncOpen();
+    else {
+      paintCat();
+      syncOpen();
+    }
   }
 
   return { render };

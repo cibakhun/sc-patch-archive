@@ -400,7 +400,7 @@ export function boot(doc) {
       applyDock();
       if (filtered()) setDock(true, false);
     } else if (prev.ship !== state.ship) paintRandom();
-    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.hp !== state.hp || prev.pane !== state.pane) paintWorkshop();
+    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.pane !== state.pane) paintWorkshop();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
@@ -566,7 +566,6 @@ export function boot(doc) {
       el.classList.toggle('is-sel', !!state.hp && el.dataset.port === state.hp && el.dataset.tab === state.tab);
     }
     if (open.size) revealOpenRow();
-    applyFocus();
   }
   // Ein Link oder ein Markerklick oeffnet eine Zeile, die womoeglich weit
   // unten in der Tafel steht: nur die Tafel rollt, nie die Seite.
@@ -594,7 +593,6 @@ export function boot(doc) {
   // Punkte des alten Schiffs auf dem neuen.
   let placed = null;
   let pins = null;
-  let focused = null;
   const buf = [];
 
   function syncMarks() {
@@ -624,17 +622,10 @@ export function boot(doc) {
     });
   }
 
-  const pointOf = (port) => regionNow('marks').querySelector(`.hgx-mk[data-tab="${state.tab}"][data-port="${CSS.escape(port)}"]`)?.dataset.p.split(' ').map(Number) ?? null;
-
-  // Kamera auf den Hardpoint aus hp, sobald Modell und Bucht stehen; ohne hp
-  // zurueck in die Startansicht. Ein Port ohne Punkt oeffnet nur die Zeile.
-  function applyFocus() {
-    if (!pins) return;
-    const want = state.hp && pointOf(state.hp) ? state.hp : null;
-    if (want === focused) return;
-    focused = want;
-    viewer.focus(want ? pointOf(want) : null);
-  }
+  // Keine Kamerafahrt zum gewaehlten Hardpoint (Krisz, 2026-10-18: keine
+  // automatische Kameradrehung): hp hebt nur seinen Marker hervor (is-sel),
+  // die Kamera bewegt allein, wer sie zieht. viewer.focus() bleibt Teil der
+  // Naht, die Oberflaeche ruft es nicht mehr.
 
   function setHot(row) {
     for (const el of regionNow('marks').querySelectorAll('.hgx-mk')) el.classList.toggle('is-hot', !!row && el.dataset.rows.split(' ').includes(row));
@@ -1073,11 +1064,6 @@ export function boot(doc) {
     const my = ++showTok;
     placed = null;
     syncMarks();
-    // Die Nahansicht eines Hardpoints nicht auf das naechste Schiff tragen.
-    if (focused) {
-      focused = null;
-      viewer.focus(null);
-    }
     const [glb, tex, maker] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
@@ -1090,7 +1076,6 @@ export function boot(doc) {
         placed = id;
         fitKey = '';
         syncMarks();
-        applyFocus();
         applyFit();
       })
       .catch(() => { if (my === showTok) modelErr.hidden = false; })

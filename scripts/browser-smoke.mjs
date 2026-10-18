@@ -132,7 +132,7 @@ const SEITEN = [
   },
   // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
-  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000 },
+  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -485,6 +485,38 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
     await gibFrei();
   }
   return funde.length ? funde.join(' | ') : null;
+}
+
+/* Die Werkstatt nach Kategorien wie im Spiel: je ein Tausch unter Waffen und
+   unter Systeme, dann zeigt jeder Reiter nur seine Gruppen, zaehlt seine
+   Tausche und benennt am Schiff nur seine getauschten Teile (#hgl-mods). */
+async function probeWerkstatt(page) {
+  const KLICK = { timeout: 15000 };
+  const cats = page.locator('#hgl-cats');
+  if (!(await cats.isVisible())) return 'Werkstatt: Reiterleiste #hgl-cats fehlt beim bewaffneten Startschiff';
+  async function tausche(c) {
+    await page.click(`#hgl-cats [data-cat="${c}"]`, KLICK);
+    await page.click('#hgl-slots .hgl-grp:not([hidden]) .hgl-slot__btn', KLICK);
+    await page.click('#hgl-slots .hgl-slot.is-open .hgl-opt[aria-pressed="false"]', KLICK);
+  }
+  await tausche('weapons');
+  await tausche('systems');
+  for (const c of ['systems', 'weapons']) {
+    await page.click(`#hgl-cats [data-cat="${c}"]`, KLICK);
+    const st = await page.evaluate((c) => ({
+      sel: document.querySelector(`#hgl-cats [data-cat="${c}"]`)?.getAttribute('aria-selected'),
+      fremd: [...document.querySelectorAll('#hgl-slots .hgl-grp')].filter((s) => (s.dataset.cat === c) === s.hidden).length,
+      n: [...document.querySelectorAll('#hgl-cats [data-cat-n]')].map((i) => i.textContent).join('|'),
+      mods: document.getElementById('hgl-mods')?.textContent ?? '',
+    }), c);
+    if (st.sel !== 'true') return `Werkstatt: Reiter ${c} nach Klick nicht gewaehlt`;
+    if (st.fremd) return `Werkstatt: unter ${c} stehen ${st.fremd} Gruppe(n) falsch sichtbar oder verborgen`;
+    if (st.n !== '1|1') return `Werkstatt: Reiterzaehler "${st.n}", erwartet "1|1"`;
+    const anderer = c === 'weapons' ? 'systems' : 'weapons';
+    if (!st.mods.includes(`[data-tab="${c}"]`)) return `Werkstatt: unter ${c} traegt kein getauschtes Teil am Schiff seinen Namen`;
+    if (st.mods.includes(`[data-tab="${anderer}"]`)) return `Werkstatt: unter ${c} benennt das Schiff auch getauschte ${anderer}`;
+  }
+  return null;
 }
 
 /* ---------- Ein Seitenaufruf ---------- */
