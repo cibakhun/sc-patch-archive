@@ -36,11 +36,15 @@ const find = (re) => files.find((f) => re.test(f));
 
 // Knotenbaum der .cga (StarBreaker nmc dump)
 const cga = find(/ht_hangar_ship_elev_door_med_a\.cga$/i);
-const dump = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8' }).stdout;
+if (!cga) throw new Error('ht_hangar_ship_elev_door_med_a.cga fehlt im Auszug');
+const dr = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8', maxBuffer: 1 << 28 });
+if (dr.status !== 0) throw new Error(`nmc dump: ${(dr.stderr || dr.stdout || String(dr.error ?? '')).trim().split('\n').slice(-2).join(' | ')}`);
+const dump = dr.stdout;
 const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*\n\s*b2w\[0\] = \[([^\]]+)\]\n\s*b2w\[1\] = \[([^\]]+)\]\n\s*b2w\[2\] = \[([^\]]+)\]/g)].map((m) => ({
   index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), geom: Number(m[4]),
   t: [m[5], m[6], m[7]].map((r) => Number(r.split(',')[3])),
 }));
+if (!nodes.length) throw new Error('nmc dump: kein Knoten erkannt (Ausgabeformat geaendert?), tor.json bliebe ohne Bahnen');
 
 // Teilnetze je Stufe: [Material, Netz-Knoten, Dreiecke]
 function subsets(buf) {

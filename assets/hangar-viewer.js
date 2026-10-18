@@ -961,6 +961,8 @@ function buildGate(scene, info, sh, inner) {
     u.ids.push({ b: g.b, iid: g.b.addInstance(g.b.addGeometry(geo)) });
     tris += q.idx.length / 3;
   }
+  // addGeometry hat kopiert; gatePose braucht nur Bahnen, Lage und Exemplare
+  for (const u of parts) u.pieces = null;
   // Fahrkurve der Plattform (door_close: 0 bis −36 m), auf 0..1 gebracht;
   // nur wenn sie stetig steigt
   const pad = info.anim?.pad?.down?.keys, ps = info.anim?.pad?.down?.s;

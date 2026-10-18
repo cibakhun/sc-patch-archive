@@ -196,3 +196,5 @@ Ist das Tor ganz zu, werden Schacht, Feld und Schiff darunter nicht gezeichnet.
 Der Tausch war in allen drei Fällen verdeckt. Bis zum Tausch dauert es 0,3 bis 0,4 s länger.
 
 Sichturteil: WINDOWS 89.
+
+**Offen für den nächsten PC-Lauf:** Die vier Zylinder (`gate_9`, `gate_10`, `gate_14`, `gate_15`) haben im Spiel eine Drehspur (48-Bit-Quaternionen in der .caf), die der Auszug nicht dekodiert; sie fahren hier nur mit. Sie liegen 1,6 m unter den Flügeln und fahren mit ihnen, von der Kamera über dem Boden also nicht zu sehen. Mitnehmen, wenn der PC ohnehin an das Tor geht.

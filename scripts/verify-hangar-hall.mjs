@@ -1349,10 +1349,14 @@ try { GATE = gm ? JSON.parse(gm[1]) : null; } catch (e) { fail(`[15] HALL_GATE i
 const gateEntry = SHAFT?.kit ? manifest?.lift?.[SHAFT.kit]?.gate ?? null : null;
 const GT = hall?.lift?.gate ?? null;
 const gateRun = { teile: 0, ohne: [], zellen: 0, offen: 0, tris: 0, mats: 0, bytes: 0, bahnen: 0, zwillinge: 0 };
-if (gateEntry || GT) {
+// Baut der Viewer ein Tor (Block hall-gate) und laedt die Seite den Schacht,
+// gehoert eins dazu: Fiele es aus Manifest und Seite, liefe [15] sonst leer.
+const gateWant = !!(gateEntry || GT || (gm && SHAFT?.kit && hall?.lift));
+if (gateWant) {
+  if (!gateEntry) fail(`[15] der Viewer baut ein Schachttor (HALL_GATE) und die Seite laedt den Schacht ${SHAFT?.kit ?? '?'}, das Manifest nennt aber keins (lift.${SHAFT?.kit ?? '?'}.gate): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. scripts/build-hangar-assets.mjs (Schachttor) pruefen`);
   if (viewer && !gm) fail('[15] der Viewer traegt keinen Block /* hall-gate */ … /* /hall-gate */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
   if (GATE && !(GATE.reach >= 0 && GATE.reach < 1 && GATE.ms >= 600 && GATE.ms <= 6000 && GATE.clear >= 0)) fail(`[15] HALL_GATE ${JSON.stringify(GATE)}: reach 0..1 m, ms 600..6000, clear >= 0 erwartet`);
-  if (!GT?.url || !GT?.json) fail(`[15] das Manifest nennt ein Schachttor (lift.${SHAFT?.kit}.gate), die Seite gibt keins mit (opts.hall.lift.gate { url, json }): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. HangarApp.astro pruefen`);
+  if (!GT?.url || !GT?.json) fail(`[15] ${gateEntry ? `das Manifest nennt ein Schachttor (lift.${SHAFT?.kit}.gate), ` : ''}die Seite gibt keins mit (opts.hall.lift.gate { url, json }): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. HangarApp.astro pruefen`);
   else if (!existsSync(fromUrl(GT.url)) || !existsSync(fromUrl(GT.json))) fail(`[15] das Schachttor ${GT.url.split('?')[0]} oder seine Bahnen ${GT.json.split('?')[0]} liegen nicht in dist/`);
   else if (gateEntry && GT.url.split('?')[0] !== gateEntry.url) fail(`[15] die Seite laedt das Schachttor ${GT.url.split('?')[0]}, das Manifest nennt ${gateEntry.url}`);
   else if (GATE && LIFT && hall?.lift?.json) {
@@ -1446,7 +1450,7 @@ if (gateEntry || GT) {
     if (gateRun.bytes > O.bytes) fail(`[15] das Tor wiegt ${(gateRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(gateEntry || GT ? `Tor in dist/ wie im Manifest; jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateEntry || GT ? `${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+sollIst(gateWant ? `Tor in dist/ wie im Manifest; jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateWant ? `${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien`);

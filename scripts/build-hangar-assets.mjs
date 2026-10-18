@@ -1912,7 +1912,11 @@ if (manifest.lift.medtop) {
   const keep = prev.lift?.medtop?.gate;
   const tj = fileURLToPath(new URL('tor/tor.json', SRC));
   const outs = ['lift/medtop-tor.glb', 'lift/medtop-tor.json'].map((f) => fileURLToPath(new URL(f, OUT)));
-  const fresh = existsSync(tj) && outs.every((o) => existsSync(o) && statSync(o).mtimeMs > statSync(tj).mtimeMs);
+  // neu bauen, sobald eine Quelle juenger ist: Auszug, Tor-Export, Lackschichten des Schachts (applyLayers in buildTor)
+  let tglb = null;
+  try { tglb = existsSync(tj) ? JSON.parse(readFileSync(tj, 'utf8')).glb : null; } catch { tglb = null; }
+  const srcs = existsSync(tj) ? [tj, tglb && fileURLToPath(new URL(tglb, SRC)), fileURLToPath(new URL('lift/medtop.layers.json', SRC))].filter((x) => x && existsSync(x)) : [];
+  const fresh = srcs.length > 0 && outs.every((o) => existsSync(o) && srcs.every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
   if ((ONLY && ONLY !== 'tor') || !existsSync(tj) || (!FORCE && fresh && keep)) { if (keep) manifest.lift.medtop.gate = keep; }
   else {
     try {
