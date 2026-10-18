@@ -1355,7 +1355,7 @@ const gateWant = !!(gateEntry || GT || (gm && SHAFT?.kit && hall?.lift));
 if (gateWant) {
   if (!gateEntry) fail(`[15] der Viewer baut ein Schachttor (HALL_GATE) und die Seite laedt den Schacht ${SHAFT?.kit ?? '?'}, das Manifest nennt aber keins (lift.${SHAFT?.kit ?? '?'}.gate): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. scripts/build-hangar-assets.mjs (Schachttor) pruefen`);
   if (viewer && !gm) fail('[15] der Viewer traegt keinen Block /* hall-gate */ … /* /hall-gate */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
-  if (GATE && !(GATE.reach >= 0 && GATE.reach < 1 && GATE.ms >= 600 && GATE.ms <= 6000 && GATE.clear >= 0)) fail(`[15] HALL_GATE ${JSON.stringify(GATE)}: reach 0..1 m, ms 600..6000, clear >= 0 erwartet`);
+  if (GATE && !(GATE.reach >= 0 && GATE.reach < 1 && GATE.ms >= 600 && GATE.ms <= 6000 && GATE.clear >= 0 && GATE.lead >= 0 && GATE.lead <= 1000)) fail(`[15] HALL_GATE ${JSON.stringify(GATE)}: reach 0..1 m, ms 600..6000, clear >= 0, lead 0..1000 ms erwartet`);
   if (!GT?.url || !GT?.json) fail(`[15] ${gateEntry ? `das Manifest nennt ein Schachttor (lift.${SHAFT?.kit}.gate), ` : ''}die Seite gibt keins mit (opts.hall.lift.gate { url, json }): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. HangarApp.astro pruefen`);
   else if (!existsSync(fromUrl(GT.url)) || !existsSync(fromUrl(GT.json))) fail(`[15] das Schachttor ${GT.url.split('?')[0]} oder seine Bahnen ${GT.json.split('?')[0]} liegen nicht in dist/`);
   else if (gateEntry && GT.url.split('?')[0] !== gateEntry.url) fail(`[15] die Seite laedt das Schachttor ${GT.url.split('?')[0]}, das Manifest nennt ${gateEntry.url}`);
