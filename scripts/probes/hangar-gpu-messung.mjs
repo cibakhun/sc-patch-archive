@@ -200,7 +200,8 @@ const env = await page.evaluate(() => {
   return { gpu: gl.getParameter(x ? x.UNMASKED_RENDERER_WEBGL : gl.RENDERER), timer: !!gl.getExtension('EXT_disjoint_timer_query_webgl2'), focus: document.hasFocus() };
 });
 console.log(`GPU: ${env.gpu} · Zeitmessung ${env.timer ? 'ja' : 'NEIN'} · Fokus ${env.focus}`);
-if (!env.timer) { await browser.close(); process.exit(2); }
+// --nogl misst nur die CPU je Bild und braucht die Zeitabfrage nicht
+if (!env.timer && !NOGL) { await browser.close(); process.exit(2); }
 // Halle, Schiff und Crew sind da, und das Nachhallen des Ladens ist vorbei
 await page.waitForFunction(() => [...document.querySelectorAll('canvas')].some((c) => c.style.opacity !== '0' && c.width > 100), null, { timeout: 120000 });
 await page.waitForTimeout(12000);
