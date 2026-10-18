@@ -157,3 +157,42 @@ PC-Lauf 2026-10-18. Neue Skripte:
 **Nebenbei behoben:** `build-hangar-assets.mjs` hätte beim Schreiben des Manifests den Schlüssel `weapons` gelöscht: Seine Quellen (`.cache/hangar-src/weapons/`) liegen nicht auf diesem Rechner, und ohne Quellordner verwarf der Build die Einträge. Jetzt übernimmt er dann die bisherigen Einträge, und Schlüssel, die er nicht kennt, bleiben stehen.
 
 **Sicht:** Ich habe das Tor über dem Schacht gerendert, geschlossen, halb und offen. Geschlossen deckt es die Öffnung bündig mit dem Boden; offen ist nichts mehr zu sehen. Die Bilder sind nicht committet.
+
+## Einbau Cloud
+
+Cloud 2026-10-18, `buildGate()` in `assets/hangar-viewer.js`, Prüfung `verify:hangar-hall` [15].
+
+**Auf unser Feld:**
+- Quer bleibt das Spielmaß. Die zwei inneren Flügel je Seite (`gate_7`/`gate_8`, `gate_12`/`gate_13`) decken genau ±16,2 m, so breit wie unser Feld (±16 m). Sie fahren im Spiel erst ab x 16,5 m in die Mitte, vorher liegen sie unter unserem Hallenboden.
+- Längs ist das Tor um 96/88 gestreckt (`shaft.inner` aus `medtop.json`).
+- Ein Teil zählt, wenn es irgendwann mehr als `HALL_GATE.reach` (0,25 m) ins Feld reicht und offen ganz draußen liegt. Das sind 14 Teile.
+- Entfallen sind:
+  - die äußeren Flügel `gate_6`/`gate_11` (nur 0,1 m im Feld);
+  - die Eckstücke `gate_3`/`gate_5` (nie im Feld);
+  - die Eckstücke `gate_2`/`gate_4`: Sie schieben sich beim Öffnen 10 m in die Öffnung und stünden der Plattform im Weg.
+- 12 720 Dreiecke.
+- 5 Zeichenbefehle: je Material ein BatchedMesh. Die vier Lacke teilen eine Karte und sind eins, ihre Helligkeit geht in `hgShade`.
+- Vier Materialien tragen dieselben Bilder wie die gleichnamigen des Schachts. Der Viewer nimmt deren Texturen, das spart die zweite Kopie im Grafikspeicher.
+
+**Ablauf** (Krisz 16:57):
+1. Das Tor schließt, sobald die Oberkante des alten Schiffs 0,4 m unter dem Tor ist (`HALL_GATE.clear`, Unterkante −2,56 m).
+2. Getauscht wird erst unter dem geschlossenen Tor.
+3. Beim Hochfahren öffnet es sofort. Die Fahrt beginnt später, falls die Oberkante des neuen Schiffs sonst vor dem offenen Tor ankäme.
+
+Jede Bahn dauert 1,6 s statt 12,5 s (`HALL_GATE.ms`). Kehrt das Tor unterwegs um, überblendet es von der aktuellen Lage auf die nächstliegende Stelle der neuen Bahn.
+
+Die Plattform fährt mit Tor auf der Kurve `anim.pad` des Spiels.
+
+Ist das Tor ganz zu, werden Schacht, Feld und Schiff darunter nicht gezeichnet.
+
+**Gemessen** (Testbrowser, `torzeit.mjs`):
+
+| Wechsel | Tor beginnt zu schließen, nach Fahrtbeginn | Tor offen vor der Oberkante des neuen Schiffs |
+|---|---|---|
+| Carrack → Gladius | 0,64 s | 0,42 s |
+| Cutlass → Carrack | 0,73 s | 0,26 s |
+| Gladius → Cutlass | – | 0,13 s |
+
+Der Tausch war in allen drei Fällen verdeckt. Bis zum Tausch dauert es 0,3 bis 0,4 s länger.
+
+Sichturteil: WINDOWS 89.

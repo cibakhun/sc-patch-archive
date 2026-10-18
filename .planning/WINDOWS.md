@@ -1148,6 +1148,18 @@ last_updated: 2026-10-18T17:09:41.000Z
     "reason": "",
     "recorded_at": "2026-10-18T17:09:41.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 89,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schachttor beim Schiffswechsel, 18.10.2026): Auf „wenn die platform runterfährt soll auch das loch oder die schacht oben zugehen damit man das nicht sieht dass das schiff einfach nur dahinploppt“ schließt jetzt das Tor des Spiels (ht_hangar_ship_elev_door_med_a, 14 Teile: je Seite zwei Flügel, zwei Stirnplatten, Riegel, Zahnstangen, Zylinder) über der sinkenden Plattform, sobald die Oberkante des alten Schiffs 0,4 m darunter ist; getauscht wird erst unter dem geschlossenen Tor; es öffnet beim Hochfahren und ist offen, bevor die Oberkante des neuen Schiffs ankommt. Bewegung je Teil aus door_close/door_open, statt 12,5 s in 1,6 s je Richtung; die Plattform fährt jetzt auf der Kurve der Spielplattform (sanfter an und aus als vorher). Gemessen im Testbrowser: Tor beginnt 0,64 s (Gladius) bzw. 0,73 s (Carrack) nach Fahrtbeginn zu schließen, Tausch verdeckt, Tor offen 0,13 bis 0,42 s vor der Oberkante des neuen Schiffs; bis zum Tausch dauert es dadurch 0,3 bis 0,4 s länger. Nicht beurteilen kann die Cloud: ob das Tor im Tempo stimmt (1,6 s je Richtung, im Spiel 12,5 s) oder schwer genug wirkt; ob es im Hallenlicht zu dunkel ist (die Lacke des Spiels sind fast schwarz, die Mitte trägt Warnstreifen und Leuchtstreifen); ob die Spiegelung der Halle auf dem geschlossenen Tor stört; und ob die Fahrkurve des Spiels sich besser anfühlt als die alte. Stellschrauben HALL_GATE (ms, clear) und GATE_GLOW in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v44-schachttor-vorher-nachher.png und /mnt/project-files/hangar/v44-schachttor-film.gif im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-18T19:10:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
