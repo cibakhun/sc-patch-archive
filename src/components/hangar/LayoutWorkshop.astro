@@ -155,6 +155,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Im Werkstatt-Modus zeigt die Buehne nur den Hardpoint des Slots unter dem
    Zeiger oder in der Auswahl; die Tab-Regel der Seite blendet die uebrigen aus. */
 .hg[data-pane="layout"] .hgx-mk.is-hot[data-tab],.hg[data-pane="layout"] .hgx-mk.is-sel[data-tab]{display:block}
+/* Getauschte Hardpoints: Marker und Name des neuen Teils setzt
+   assets/hangar-layouts.js als Regeln in #hgl-mods (content je Port). */
+.hg[data-pane="layout"] .hgx-mk::after{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .45rem;border-radius:3px;background:var(--hg-amber);color:var(--ink);font-size:var(--fs-5);font-weight:700;white-space:nowrap;pointer-events:none}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
 .hgl button[hidden]{display:none}
 @media (min-width:761px) and (max-height:820px){
