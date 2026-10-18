@@ -8,7 +8,7 @@
 //   SC_STARBREAKER=<pfad zur starbreaker.exe>   (Default siehe unten)
 //   SC_P4K=<pfad zur Data.p4k>
 //
-// Usage:  node scripts/extract-hangar-sources.mjs [ships|hall|npc ...] [--ships slug,slug] [--force]
+// Usage:  node scripts/extract-hangar-sources.mjs [ships|weapons|hall|npc ...] [--ships slug,slug] [--force]
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
@@ -78,7 +78,7 @@ const NPCS = [
 const argv = process.argv.slice(2);
 const FORCE = argv.includes('--force');
 const shipArg = argv.includes('--ships') ? argv[argv.indexOf('--ships') + 1].split(',') : null;
-const parts = argv.filter((a) => ['ships', 'hall', 'lift', 'werkstatt', 'npc'].includes(a));
+const parts = argv.filter((a) => ['ships', 'weapons', 'hall', 'lift', 'werkstatt', 'npc'].includes(a));
 const want = (p) => !parts.length || parts.includes(p);
 
 if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER} (SC_STARBREAKER setzen)`); process.exit(1); }
@@ -112,6 +112,47 @@ if (want('ships')) {
     try { exportTo(`${SRC}ships/${slug}.glb`, args); }
     catch (e) { console.error(`  ! ${slug}: ${e.message}`); }
   }
+}
+
+// Bordwaffen für den Tausch in der Layout-Werkstatt: jede Waffe, die in einen
+// Waffen-Port eines Schiffs mit Rohexport passt (Größe wie das Serienteil),
+// als eigenes Modell. Datei = Schlüssel der Werkstatt (<id> oder <id>~<größe>,
+// „~“ wird „-s“), daneben <datei>.json mit Schlüssel und Entity-Namen: der
+// Build sucht unter diesem Namen den Befestigungspunkt.
+if (want('weapons')) {
+  console.log('Waffen');
+  const { openP4k } = await import('./lib/p4k.mjs');
+  const { openDataCore } = await import('./lib/datacore.mjs');
+  const root = new URL('../', import.meta.url);
+  const loadouts = JSON.parse(readFileSync(new URL('src/data/ship-loadouts.json', root), 'utf8')).ships;
+  const raw = existsSync(`${SRC}ships`) ? readdirSync(`${SRC}ships`).filter((f) => f.endsWith('.glb')).map((f) => f.slice(0, -4)) : [];
+  const sizes = new Set();
+  for (const slug of raw) for (const items of Object.values(loadouts[slug] ?? {})) {
+    for (const it of items) if (it.cat === 'weapon' && it.turretKind !== 'pdc' && it.size >= 1) sizes.add(it.size);
+  }
+  const all = JSON.parse(readFileSync(new URL('assets/universal-items.json', root), 'utf8'));
+  const want2 = [];
+  for (const it of Array.isArray(all) ? all : all.items ?? Object.values(all)) {
+    if (it.category !== 'Vehiclegear / Weapons / Guns' || /placeholder|<=|=>|\bTBD\b/i.test(it.name)) continue;
+    const g = it.game ?? {};
+    const vs = g.variants?.length ? g.variants.map((v) => ({ size: v.size, guid: v.guid, key: `${it.id}~${v.size}` })) : [{ size: g.size, guid: g.guid, key: it.id }];
+    for (const v of vs) if (sizes.has(v.size) && v.guid) want2.push(v);
+  }
+  console.log(`  ${want2.length} Waffen in den Größen ${[...sizes].sort((a, b) => a - b).join(', ')} (aus ${raw.length} Schiffen)`);
+  const p4k = openP4k(P4K);
+  const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
+  p4k.close();
+  let fail = 0;
+  for (const v of want2) {
+    const stem = db.recordById.get(v.guid)?.name?.replace(/^EntityClassDefinition\./, '');
+    if (!stem) { console.error(`  ! ${v.key}: kein Record`); fail++; continue; }
+    const file = `${SRC}weapons/${v.key.replace('~', '-s')}.glb`;
+    try {
+      exportTo(file, ['entity', 'export', stem]);
+      writeFileSync(file.replace(/\.glb$/, '.json'), JSON.stringify({ key: v.key, stem }) + '\n');
+    } catch (e) { console.error(`  ! ${v.key} (${stem}): ${e.message}`); fail++; }
+  }
+  if (fail) console.log(`  ${fail} Waffen ohne Modell`);
 }
 
 // Halle und Aufzug: socpak-Export mit Lichtprotokoll, Materialnachtrag, Texturen

@@ -19,6 +19,7 @@
 // der Vergleich zweier Layouts rechnen aus derselben Datei.
 
 import { createHash } from 'node:crypto';
+import hangarAssets from '../../data/hangar-assets.json';
 import { items, type Item, type ItemStats } from '../items';
 import { HANGAR_IDS } from './catalog';
 import { shipGeometry, type StockItem } from './ports';
@@ -61,7 +62,12 @@ export interface LayoutData {
   readonly v: 1;
   readonly items: Readonly<Record<string, LayoutItem>>;
   readonly ships: Readonly<Record<string, readonly LayoutSlot[]>>;
+  /** 3D-Modell je Bordwaffe (Schluessel wie items, URL mit ?v=): der Hangar setzt sie getauscht ans Schiff. */
+  readonly models: Readonly<Record<string, string>>;
 }
+
+type WeaponAsset = { url: string; v: string; key?: string };
+const WEAPON_MODELS = ((hangarAssets as unknown as { weapons?: Record<string, WeaponAsset> }).weapons) ?? {};
 
 const norm = (s: string) => s.toLowerCase().replace(/["'`„“”‚‘’]/g, '').replace(/\s+/g, ' ').trim();
 const PLACEHOLDER = /placeholder|<=|=>|\bTBD\b/i;
@@ -165,7 +171,12 @@ function build(): LayoutData {
   for (const slots of Object.values(ships)) for (const s of slots) fits.add(`${s[1]}|${s[2]}`);
   const used: Record<string, LayoutItem> = {};
   for (const k of Object.keys(out).sort()) if (fits.has(`${out[k][2]}|${out[k][3]}`)) used[k] = out[k];
-  return { v: 1, items: used, ships };
+  const models: Record<string, string> = {};
+  for (const [file, a] of Object.entries(WEAPON_MODELS)) {
+    const key = a.key ?? file;
+    if (used[key]?.[2] === 'gun') models[key] = `${a.url}?v=${a.v}`;
+  }
+  return { v: 1, items: used, ships, models };
 }
 
 function ensure() {

@@ -997,7 +997,19 @@ export function boot(doc) {
     set: (patch) => setState(patch),
     shipName: (id) => dock.get(id)?.name ?? id,
     say,
+    // Getauschte Bordwaffen ans Modell: gilt fuer das genannte Schiff und
+    // wird nach jedem Laden erneut angelegt (applyFit in viewerShow)
+    fit: (ship, list) => { fitting = { ship, list }; applyFit(); },
   };
+  let fitting = { ship: '', list: [] };
+  let fitKey = '';
+  function applyFit() {
+    if (!viewer?.fit || placed !== fitting.ship) return;
+    const key = `${placed}|${JSON.stringify(fitting.list)}`;
+    if (key === fitKey) return;
+    fitKey = key;
+    viewer.fit(fitting.list).catch(() => {});
+  }
   function paintWorkshop() {
     main.dataset.pane = state.pane;
     for (const b of paneBtns) {
@@ -1046,8 +1058,10 @@ export function boot(doc) {
       .then(() => {
         if (my !== showTok) return;
         placed = id;
+        fitKey = '';
         syncMarks();
         applyFocus();
+        applyFit();
       })
       .catch(() => { if (my === showTok) modelErr.hidden = false; })
       .finally(() => {

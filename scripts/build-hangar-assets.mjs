@@ -7,8 +7,9 @@
 //   .cache/hangar-src/hall/<key>.glb         socpak export (Texturen NUR als Pfad)
 //   .cache/hangar-src/tex/<p4k-pfad>.png     dazu dekodierte Hallen-Texturen
 //   .cache/hangar-src/npc/<key>.glb          entity export eines NPC-Archetyps
+//   .cache/hangar-src/weapons/<datei>.glb    entity export einer Bordwaffe (+ .json)
 // Ausgabe:
-//   public/hangar/{ships,hall,npc}/<name>.glb   dezimiert, Draco, WebP-Texturen
+//   public/hangar/{ships,weapons,hall,npc}/<name>.glb   dezimiert, Draco, WebP-Texturen
 //   src/data/hangar-assets.json                 Manifest (url, v, tris, bytes)
 //
 // Rohe Spieldateien werden NIE eingecheckt — nur diese Ausgabe.
@@ -50,6 +51,9 @@ const BUDGET = {
   // dem alten Budget von 700k lag, riss sie die Längswände auf (7748b0a).
   hall: { tris: 1600000, tex: 1024, ntex: 512 },
   npc: { tris: 30000, tex: 512, ntex: 512 },
+  // Bordwaffen für den Tausch in der Layout-Werkstatt: klein am Schiff,
+  // aus der Nähe aber angesehen (NDB-30 roh: 12.763 Dreiecke, 56 Texturen)
+  weapons: { tris: 12000, tex: 256, ntex: 128 },
   // Aufzugsschacht: Bausatzteile, nie dezimiert; Grenze = Warnschwelle
   lift: { tris: 60000, tex: 1024, ntex: 512 },
 };
@@ -456,6 +460,78 @@ function hallLights(doc, name) {
 // Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
 // gezählt für die Selbstauskunft.
 const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|table|locker/i;
+
+// Tauschbare Bordwaffen bleiben eigene Knoten (Layout-Werkstatt): Der
+// Viewer blendet die Serienwaffe eines Ports aus und setzt die gewählte an
+// ihre Stelle. Im Rohexport hängt jede Waffe als Teilbaum unter ihrem Port
+// (hardpoint_gun_nose -> Mount_Gimbal_S3 -> … -> GATS_BallisticGatling_S3);
+// gefunden wird sie über die Klasse des Serienteils (ship-loadouts.json),
+// außen zuerst, je Exemplar eines (Turm mit count 2: zwei). Jeder Mesh-Knoten
+// darin trägt extras { swap: Port, item: Index im Port, inst, anchor: Welt-
+// matrix der Waffenwurzel } und einen Namen, damit join() ihn nicht in den
+// Rumpf schmilzt. Alles andere verliert seinen Namen und wird wie bisher
+// zusammengelegt. Vor flatten() aufrufen: danach fehlt die Hierarchie.
+const LOADOUTS = JSON.parse(readFileSync(new URL('../src/data/ship-loadouts.json', import.meta.url), 'utf8')).ships;
+const round5 = (m) => Array.from(m, (v) => Math.round(v * 1e5) / 1e5);
+function markSwapParts(doc, slug) {
+  const root = doc.getRoot();
+  const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
+  const named = new Set();
+  const ports = {};
+  let nodes = 0;
+  for (const hp of root.listNodes()) {
+    const hit = stock.get(hp.getName().toLowerCase());
+    if (!hit) continue;
+    const [port, items] = hit;
+    items.forEach((it, i) => {
+      if (it.cat !== 'weapon' || !it.cls) return;
+      const want = it.cls.toLowerCase();
+      const roots = [];
+      const walk = (n) => { for (const c of n.listChildren()) { if (c.getName().toLowerCase() === want) roots.push(c); else walk(c); } };
+      walk(hp);
+      roots.forEach((r, inst) => {
+        const anchor = round5(r.getWorldMatrix());
+        r.traverse((n) => {
+          if (!n.getMesh()) return;
+          n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor });
+          n.setName(`swap_${nodes++}`);
+          named.add(n);
+          n.getMesh().setName(n.getName());
+        });
+      });
+      if (roots.length) ports[items.length > 1 ? `${port}.${i}` : port] = roots.length;
+    });
+  }
+  for (const n of root.listNodes()) if (!named.has(n)) n.setName('');
+  const keep = new Set([...named].map((n) => n.getMesh()));
+  for (const m of root.listMeshes()) if (!keep.has(m)) m.setName('');
+  return { ports, nodes };
+}
+
+// Bordwaffe: auf den Rahmen ihrer Wurzel umrechnen (Knoten mit dem Entity-
+// Namen aus <datei>.json, sonst das einzige Kind der Szenenwurzel). Der
+// Viewer setzt sie dann mit der anchor-Matrix des Ports ins Schiff, und
+// Achsdrehung wie Halterung kürzen sich heraus.
+function prepareWeapon(doc, name) {
+  const root = doc.getRoot();
+  const scene = root.listScenes()[0];
+  const metaFile = fileURLToPath(new URL(`weapons/${name}.json`, SRC));
+  const meta = existsSync(metaFile) ? JSON.parse(readFileSync(metaFile, 'utf8')) : {};
+  const stem = (meta.stem || '').toLowerCase();
+  let base = stem ? root.listNodes().find((n) => n.getName().toLowerCase() === stem) : null;
+  let by = base ? 'name' : null;
+  if (!base) {
+    const top = scene.listChildren();
+    if (top.length === 1 && top[0].listChildren().length === 1) { base = top[0].listChildren()[0]; by = 'kind'; }
+  }
+  if (base) {
+    const inv = invert4(base.getWorldMatrix());
+    const wrap = doc.createNode('weapon_base').setMatrix(inv);
+    for (const c of scene.listChildren()) { scene.removeChild(c); wrap.addChild(c); }
+    scene.addChild(wrap);
+  }
+  return { key: meta.key || name, by: by || 'wurzel' };
+}
 
 // Einrichtung bleibt eigener Knoten mit Bezugspunkt: Für große Schiffe wächst
 // die Halle mit (Faktor bis ≈ 3), und eingeschmolzen in die Hülle wüchsen
@@ -948,6 +1024,7 @@ async function buildOne(kind, name, inPath) {
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
+  const weapon = kind === 'weapons' ? prepareWeapon(doc, name) : null;
   const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
   // keepAttributes: die Texturen hängen erst danach; ohne das wirft prune
   // TEXCOORD_0 als unbenutzt weg (Schacht-Tiefe: Wände ohne UVs)
@@ -975,7 +1052,8 @@ async function buildOne(kind, name, inPath) {
   const liftUv = liftParts ? uvReport(doc) : null;
   cleanMaterials(doc);
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' }), weld());
+  const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
@@ -1069,6 +1147,8 @@ async function buildOne(kind, name, inPath) {
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
+    ...(swap ? { swap: swap.ports, swapNodes: swap.nodes } : {}),
+    ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     ...(hull ? { hull } : {}),
@@ -1435,7 +1515,7 @@ try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lau
 // den ersten Eintrag unter hall als Halle.
 const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
-const manifest = { ships: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {} };
+const manifest = { ships: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {} };
 let built = 0, reused = 0;
 for (const kind of Object.keys(BUDGET)) {
   const dir = new URL(`${kind}/`, SRC);
@@ -1456,7 +1536,8 @@ for (const kind of Object.keys(BUDGET)) {
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)));
-    if (!FORCE && prev[slot]?.[name] && fresh) {
+    // Schiffe ohne Tauschteile (vor der Layout-Werkstatt gebaut) neu
+    if (!FORCE && prev[slot]?.[name] && fresh && (kind !== 'ships' || prev[slot][name].swap)) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
     try {
@@ -1465,6 +1546,8 @@ for (const kind of Object.keys(BUDGET)) {
       manifest[slot][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
+      if (r.swap) console.log(`    Tauschteile: ${Object.keys(r.swap).length} Waffen-Ports (${Object.values(r.swap).reduce((a, b) => a + b, 0)} Exemplare, ${r.swapNodes} Knoten)${Object.keys(r.swap).length ? '' : ' — WARNUNG: keine Serienwaffe im Rohexport gefunden'}`);
+      if (r.anchorBy) console.log(`    Befestigung über ${r.anchorBy === 'name' ? 'den Entity-Namen' : r.anchorBy === 'kind' ? 'das einzige Kind der Wurzel' : 'die Szenenwurzel — WARNUNG: Lage am Schiff ungeprüft'}`);
       if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       if (r.hull) {
         // heile Halle: 0,04 %; aufgerissene Längswände: 1,1 bis 2,3 %

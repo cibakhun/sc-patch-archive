@@ -38,7 +38,7 @@
      5  Zaehlungen gegen die Klinken (KLINKEN unten).
      6  Groessendeckel: groesste Bucht, Summe je Sprache.
      7  Viewer-Naht: dist/assets/hangar-viewer.js liefert project, focus,
-        setCover und onFrame. Reisst sie, nennt die Meldung
+        setCover, onFrame und fit. Reisst sie, nennt die Meldung
         .planning/notes/hangar-naht.md.
      8  Import-Map vor dem ersten Modul-Skript auf beiden Hangarseiten: ein
         Modul-Skript davor laesst Chrome die Map verwerfen, und three.js
@@ -352,11 +352,11 @@ for (const k of KLINKEN) {
   }
 }
 
-say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, setCover, onFrame');
+say('\n[7] Viewer-Naht: hangar-viewer.js liefert project, focus, setCover, onFrame, fit');
 const viewerFile = join(DIST, 'assets', 'hangar-viewer.js');
 const viewer = existsSync(viewerFile) ? readFileSync(viewerFile, 'utf8') : '';
 const api = viewer.slice(viewer.lastIndexOf('return {'));
-const SEAM = ['project', 'focus', 'setCover', 'onFrame'];
+const SEAM = ['project', 'focus', 'setCover', 'onFrame', 'fit'];
 const seam = SEAM.filter((n) => new RegExp(`\\b${n}\\b`).test(api));
 sollIst(SEAM.join(', '), seam.join(', ') || '—');
 if (seam.length !== SEAM.length) fail(`[7] dist/assets/hangar-viewer.js liefert nicht mehr ${SEAM.filter((n) => !seam.includes(n)).join(', ')} — Absprache: .planning/notes/hangar-naht.md`);
