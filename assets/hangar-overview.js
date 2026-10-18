@@ -23,7 +23,7 @@
  * Schluessel hat eine URL-Form, Vorgaben fehlen in der URL.
  * @typedef {{
  *   ship: string, tab: string, hp: string|null, cmp: string[], view: 'stage'|'compare',
- *   fleetOnly: boolean, sort: string, q: string, type: string, maker: string,
+ *   lo: string|null, fleetOnly: boolean, sort: string, q: string, type: string, maker: string,
  * }} HangarState
  */
 /**
@@ -38,6 +38,12 @@
 
 export const MAX_COMPARE = 3;
 const PORT_RE = /^[a-z0-9_]{1,100}$/;
+// lo ist das Layout in der Werkstatt (assets/hangar-layouts.js), als dessen
+// Link-Code; gesetzt heisst: die Werkstatt ist offen. Welche Slots und Bauteile
+// der Code nennt, prueft erst die Werkstatt mit ihren Daten. EMPTY_LAYOUT ist
+// dort EMPTY_CODE (Serie, ohne Namen); der Test haelt beide gleich.
+const LAYOUT_RE = /^[A-Za-z0-9_-]{1,4000}$/;
+export const EMPTY_LAYOUT = 'WzEsIiIse31d';
 
 /**
  * Bringt einen beliebigen Zustandsentwurf in die gueltige Form. Unbekannte Ids
@@ -56,6 +62,7 @@ export function normalize(s, ctx) {
     hp: tab !== ctx.tabs[0] && typeof s.hp === 'string' && PORT_RE.test(s.hp) ? s.hp : null,
     cmp,
     view: s.view === 'compare' && cmp.length >= 2 ? 'compare' : 'stage',
+    lo: typeof s.lo === 'string' && LAYOUT_RE.test(s.lo) ? s.lo : null,
     fleetOnly: s.fleetOnly === true,
     sort: ctx.sorts.includes(s.sort) ? s.sort : ctx.sorts[0],
     q: String(s.q ?? '').trim().slice(0, 80),
@@ -82,6 +89,7 @@ export function parseState(search, hash, ctx) {
     hp: p.get('hp'),
     cmp: (p.get('cmp') ?? '').split(','),
     view: p.get('view'),
+    lo: p.get('layout'),
     fleetOnly: p.get('fleet') === '1',
     sort: p.get('sort'),
     q: p.get('q') ?? '',
@@ -92,9 +100,10 @@ export function parseState(search, hash, ctx) {
 
 /**
  * HangarState nach '?…', Vorgaben weggelassen, feste Schluesselfolge (ship,
- * tab, hp, cmp, view, fleet, sort, q, type, maker): gleiche Zustaende ergeben
- * gleiche URLs. scope 'share' (Link kopieren) nennt immer das Schiff und laesst
- * die persoenlichen Dock-Filter weg; der Empfaenger hat eine andere Flotte.
+ * tab, hp, cmp, view, layout, fleet, sort, q, type, maker): gleiche Zustaende
+ * ergeben gleiche URLs. scope 'share' (Link kopieren) nennt immer das Schiff
+ * und laesst die persoenlichen Dock-Filter weg; der Empfaenger hat eine andere
+ * Flotte. Das Layout der Werkstatt reist mit: es ist, was geteilt werden soll.
  * @param {HangarState} s @param {StateContext} ctx @param {'location'|'share'} [scope]
  * @returns {string}
  */
@@ -108,6 +117,8 @@ export function serializeState(s, ctx, scope = 'location') {
   // Ids sind [a-z0-9-]: die Kommas bleiben lesbar statt %2C.
   if (s.cmp.length) out.push(`cmp=${s.cmp.join(',')}`);
   if (s.view !== 'stage') put('view', s.view);
+  // base64url braucht keine Maskierung.
+  if (s.lo) out.push(`layout=${s.lo}`);
   if (!share) {
     if (s.fleetOnly) put('fleet', '1');
     if (s.sort !== ctx.sorts[0]) put('sort', s.sort);
@@ -322,6 +333,9 @@ export function boot(doc) {
    * @param {Partial<HangarState>} patch @param {boolean} [push]
    */
   function setState(patch, push = false) {
+    // Ein Layout gehoert zu seinem Schiff: wer bei offener Werkstatt das Schiff
+    // wechselt, beginnt dort mit der Serie, die Werkstatt bleibt offen.
+    if (patch.ship && patch.ship !== state.ship && !('lo' in patch) && state.lo != null) patch = { ...patch, lo: EMPTY_LAYOUT };
     commit(normalize({ ...state, ...patch }, ctx), push ? 'push' : 'replace');
   }
   /**
@@ -353,6 +367,7 @@ export function boot(doc) {
     if (prev.sort !== state.sort) applySort();
     if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) applyDock();
     else if (prev.ship !== state.ship) paintRandom();
+    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.hp !== state.hp) paintWorkshop();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
@@ -965,6 +980,32 @@ export function boot(doc) {
     }
   });
 
+  // Die Werkstatt laedt erst, wenn sie gebraucht wird (Knopf oder ?layout=),
+  // ueber ihre versionierte URL wie der Viewer. Sie bekommt eine schmale
+  // Bruecke statt des Speichers: lesen, aendern, Schiffsnamen, Ansage.
+  const layoutBtn = $('hgx-layout');
+  let workshop = null;
+  let workshopLoad = null;
+  const bridge = {
+    state: () => state,
+    set: (patch) => setState(patch),
+    shipName: (id) => dock.get(id)?.name ?? id,
+    say,
+    byHand: false,
+  };
+  function paintWorkshop() {
+    layoutBtn.setAttribute('aria-pressed', String(state.lo != null));
+    if (workshop) { workshop.render(state); return; }
+    if (state.lo == null) return;
+    workshopLoad ??= import(main.dataset.layoutJs).then((m) => { workshop = m.initWorkshop(doc, bridge); });
+    workshopLoad.then(() => workshop.render(state), () => { workshopLoad = null; });
+  }
+  layoutBtn.addEventListener('click', () => {
+    // Von Hand geoeffnet: schmal rollt die Werkstatt dann in Sicht, ein Link oeffnet still.
+    bridge.byHand = state.lo == null;
+    setState({ lo: state.lo == null ? EMPTY_LAYOUT : null, hp: null });
+  });
+
   let viewer = null;
   const loadEl = $('hg-load');
   const bar = loadEl.querySelector('i');
@@ -1100,6 +1141,7 @@ export function boot(doc) {
   if (window.VBFleet) window.VBFleet.subscribe(onFleet);
   else window.addEventListener('vb-fleet-ready', () => window.VBFleet.subscribe(onFleet), { once: true });
   paintTray();
+  if (state.lo != null) paintWorkshop();
   if (state.view === 'compare') paintView();
   if (state.sort !== ctx.sorts[0]) applySort();
   applyDock();

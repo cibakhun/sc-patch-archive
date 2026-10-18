@@ -1,0 +1,790 @@
+// Layout-Werkstatt im Hangar (/hangar.html, /de/hangar.html): Waffen und
+// Bauteile eines Schiffs tauschen, das Layout im Browser speichern und als
+// Link teilen. Der Controller der Seite (assets/hangar-overview.js) laedt
+// dieses Modul erst, wenn jemand die Werkstatt oeffnet oder ein Link mit
+// ?layout= kommt, und ruft initWorkshop(doc, bridge).
+//
+// Der Controller besitzt Zustand und Adresse. Das Layout in Arbeit steht dort
+// als lo (URL-Form ?layout=<code>): offen ist die Werkstatt genau dann, wenn
+// lo gesetzt ist, und jede Aenderung schreibt den Code neu. Neuladen,
+// Zurueck und "Link kopieren" der Seite tragen das Layout so ohne eigenes
+// Zutun mit. Der Slot in der Auswahl folgt hp, dem Hardpoint des Controllers:
+// die Kamera faehrt hin, und ein Klick auf einen Marker oeffnet den Slot.
+//
+// Daten: /hangar-layouts.json (src/lib/hangar/layouts.ts). Woerter: #hgl-msg
+// (src/components/hangar/LayoutWorkshop.astro), keines steht hier.
+//
+// Gespeichert wird in localStorage unter 'vb.layouts.v1'. Ein Layout ist
+// { id, ship, name, slots: { <slot>: <bauteil> }, created, updated }; slots
+// nennt nur Abweichungen von der Serie. Dasselbe Format traegt spaeter den
+// Kennwert-Ueberblick, den Vergleich zweier Layouts und einen Abgleich mit
+// dem Konto. Beim Import passiert nichts; die Tests rufen die reinen Funktionen.
+
+export const LAYOUT_VERSION = 1;
+export const STORE_KEY = 'vb.layouts.v1';
+export const MAX_SAVED = 200;
+export const MAX_NAME = 60;
+const SHIP_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
+const SLOT_RE = /^[a-z0-9][a-z0-9_.-]{0,99}$/;
+const ITEM_RE = /^[a-z0-9][a-z0-9~._-]{0,119}$/;
+export const CODE_RE = /^[A-Za-z0-9_-]{1,4000}$/;
+
+/* ---------------------------------------------------------- Link-Code --- */
+
+/** UTF-8-Text nach base64url ohne Fuellzeichen. */
+export function toB64url(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** Umkehrung von toB64url; null bei kaputtem Code. */
+export function fromB64url(code) {
+  try {
+    const bin = atob(String(code).replace(/-/g, '+').replace(/_/g, '/'));
+    return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+  } catch {
+    return null;
+  }
+}
+
+const cleanName = (name) => (typeof name === 'string' ? name.replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) : '');
+
+/** Nur wohlgeformte Schluessel, sortiert: gleiche Layouts ergeben gleiche Codes. */
+function cleanSlotMap(raw) {
+  const out = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (const k of Object.keys(raw).sort()) {
+    const v = raw[k];
+    if (SLOT_RE.test(k) && typeof v === 'string' && ITEM_RE.test(v)) out[k] = v;
+  }
+  return out;
+}
+
+/**
+ * Layout nach Link-Code: base64url von [1, name, slots]. Das Schiff steht
+ * daneben in ?ship=, damit ein leeres Layout auf jedes Schiff passt.
+ *   encodeLayout({ name: '', slots: {} }) === 'WzEsIiIse31d'
+ * @param {{ name?: string, slots?: Record<string, string> }} lo @returns {string}
+ */
+export function encodeLayout(lo) {
+  return toB64url(JSON.stringify([LAYOUT_VERSION, cleanName(lo.name), cleanSlotMap(lo.slots)]));
+}
+
+/** Das leere Layout: Serie, ohne Namen. Oeffnet die Werkstatt fuer jedes Schiff. */
+export const EMPTY_CODE = encodeLayout({ name: '', slots: {} });
+
+/**
+ * Link-Code nach Layout; null, wenn der Code nicht von encodeLayout stammen kann.
+ * @param {string} code @returns {{ name: string, slots: Record<string, string> }|null}
+ */
+export function decodeLayout(code) {
+  if (typeof code !== 'string' || !CODE_RE.test(code)) return null;
+  const text = fromB64url(code);
+  if (text == null) return null;
+  let v;
+  try { v = JSON.parse(text); } catch { return null; }
+  if (!Array.isArray(v) || v[0] !== LAYOUT_VERSION || typeof v[1] !== 'string') return null;
+  return { name: cleanName(v[1]), slots: cleanSlotMap(v[2]) };
+}
+
+/* ---------------------------------------------------------- Datenmodell --- */
+
+/**
+ * Die Slots eines Schiffs aus /hangar-layouts.json als Objekte.
+ * @param {ReadonlyArray<readonly [string, string, number, string|0, string, number]>} rows
+ */
+export function shipSlots(rows) {
+  return (rows ?? []).map(([key, type, size, stock, group, count]) => ({ key, type, size, stock: stock || null, group, count }));
+}
+
+/** Passt das Bauteil in den Slot? Dieselbe Art, dieselbe Groesse. */
+export function fits(item, slot) {
+  return !!item && item[2] === slot.type && item[3] === slot.size;
+}
+
+/**
+ * Bringt Abweichungen in die gueltige Form fuer dieses Schiff: unbekannte
+ * Slots und unpassende Bauteile fallen weg (und zaehlen als dropped), ein
+ * Eintrag gleich der Serie faellt still weg.
+ * @returns {{ slots: Record<string, string>, dropped: number }}
+ */
+export function cleanSlots(raw, slots, items) {
+  const byKey = new Map(slots.map((s) => [s.key, s]));
+  const out = {};
+  let dropped = 0;
+  for (const [k, v] of Object.entries(raw ?? {})) {
+    const slot = byKey.get(k);
+    if (!slot || !fits(items[v], slot)) { dropped++; continue; }
+    if (v !== slot.stock) out[k] = v;
+  }
+  return { slots: cleanSlotMap(out), dropped };
+}
+
+/**
+ * Alle Bauteile, die in den Slot passen, staerkster Kennwert zuerst, bei
+ * Gleichstand nach Namen.
+ * @returns {string[]}
+ */
+export function candidates(slot, items) {
+  return Object.keys(items)
+    .filter((k) => fits(items[k], slot))
+    .sort((a, b) => items[b][7] - items[a][7] || items[a][0].localeCompare(items[b][0], 'en'));
+}
+
+/**
+ * Abstand eines Kennwerts zum eingebauten Teil in ganzen Prozent; null ohne
+ * Bezug. deltaPct(110, 100) === 10, deltaPct(5, 0) === null.
+ */
+export function deltaPct(value, base) {
+  if (!Number.isFinite(value) || !Number.isFinite(base) || base <= 0) return null;
+  return Math.round(((value - base) / base) * 100);
+}
+
+/** Gruppen, deren Summe etwas sagt: Feuerkraft, Leistung, Kuehlung, Schild. */
+export const SUMMED = new Set(['pilot', 'manned', 'remote', 'power', 'cooler', 'shield']);
+
+/**
+ * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl).
+ * Slots ohne bekanntes Teil zaehlen 0.
+ * @returns {Map<string, { now: number, stock: number }>}
+ */
+export function groupTotals(slots, layout, items) {
+  const out = new Map();
+  for (const s of slots) {
+    if (!SUMMED.has(s.group)) continue;
+    const t = out.get(s.group) ?? { now: 0, stock: 0 };
+    const now = layout[s.key] ?? s.stock;
+    t.now += (items[now]?.[7] ?? 0) * s.count;
+    t.stock += (items[s.stock]?.[7] ?? 0) * s.count;
+    out.set(s.group, t);
+  }
+  return out;
+}
+
+/** Gleicher Inhalt: Schiff, Name und Abweichungen. */
+export function sameLayout(a, b) {
+  return !!a && !!b && a.ship === b.ship && cleanName(a.name) === cleanName(b.name)
+    && JSON.stringify(cleanSlotMap(a.slots)) === JSON.stringify(cleanSlotMap(b.slots));
+}
+
+/* ---------------------------------------------------------- Ablage --- */
+
+function cleanEntry(e) {
+  if (!e || typeof e !== 'object' || typeof e.id !== 'string' || !/^[a-z0-9]{4,32}$/.test(e.id) || !SHIP_RE.test(e.ship)) return null;
+  const created = Number.isFinite(e.created) ? e.created : 0;
+  return { id: e.id, ship: e.ship, name: cleanName(e.name), slots: cleanSlotMap(e.slots), created, updated: Number.isFinite(e.updated) ? e.updated : created };
+}
+
+/**
+ * Gespeicherte Layouts in einem Speicher mit getItem/setItem (localStorage).
+ * Jede Leseoperation liest neu: ein zweiter Tab schreibt mit. Ein Speicher,
+ * der wirft (privates Fenster, voll), liefert eine leere Liste, und save()
+ * meldet false.
+ * @param {Pick<Storage, 'getItem'|'setItem'>|null} storage @param {() => number} [now]
+ */
+export function createStore(storage, now = Date.now) {
+  const read = () => {
+    let raw = null;
+    try { raw = storage?.getItem(STORE_KEY) ?? null; } catch { return []; }
+    let v;
+    try { v = raw ? JSON.parse(raw) : null; } catch { return []; }
+    const list = Array.isArray(v?.layouts) ? v.layouts.map(cleanEntry).filter(Boolean) : [];
+    return list;
+  };
+  const write = (list) => {
+    try {
+      storage.setItem(STORE_KEY, JSON.stringify({ v: LAYOUT_VERSION, layouts: list.slice(0, MAX_SAVED) }));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  return {
+    /** Neueste zuerst. */
+    list: () => read().sort((a, b) => b.updated - a.updated),
+    get: (id) => read().find((e) => e.id === id) ?? null,
+    /** Legt an oder ersetzt (gleiche id); liefert den Eintrag oder null. */
+    save(entry) {
+      const list = read();
+      const at = list.findIndex((e) => e.id === entry.id);
+      const t = now();
+      const e = cleanEntry({ ...entry, created: at >= 0 ? list[at].created : t, updated: t });
+      if (!e) return null;
+      if (at >= 0) list.splice(at, 1);
+      list.unshift(e);
+      return write(list) ? e : null;
+    },
+    remove(id) {
+      const list = read();
+      const at = list.findIndex((e) => e.id === id);
+      if (at < 0) return null;
+      const [gone] = list.splice(at, 1);
+      return write(list) ? gone : null;
+    },
+    /** Ein geloeschtes Layout zurueck, mit seinen alten Zeitstempeln. */
+    restore(entry) {
+      const list = read().filter((e) => e.id !== entry.id);
+      const e = cleanEntry(entry);
+      if (!e) return false;
+      list.push(e);
+      list.sort((a, b) => b.updated - a.updated);
+      return write(list);
+    },
+  };
+}
+
+export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '0123456789abcdefghijklmnopqrstuvwxyz'[Math.floor(rnd() * 36)]).join('');
+
+/* ---------------------------------------------------------- Werkstatt --- */
+
+/**
+ * Verdrahtet die Werkstatt. bridge kommt vom Controller:
+ *   state()        der Zustand der Seite (ship, tab, hp, lo, …)
+ *   set(patch)     aendert ihn (und damit die Adresse)
+ *   shipName(id)   Name des Schiffs von seiner Dock-Karte
+ *   say(text)      hoefliche Live-Region der Seite
+ *   byHand         true, wenn der Knopf die Werkstatt eben geoeffnet hat
+ * Liefert render(state); der Controller ruft es nach jeder Aenderung von
+ * ship, hp oder lo.
+ * @param {Document} doc
+ */
+export function initWorkshop(doc, bridge) {
+  const $ = (id) => doc.getElementById(id);
+  const aside = $('hgl');
+  const main = doc.getElementById('main');
+  const loc = main.dataset.loc;
+  const de = aside.dataset.lang === 'de';
+  const nf = new Intl.NumberFormat(loc);
+  const pr = new Intl.PluralRules(loc);
+  const m = (k) => doc.querySelector(`#hgl-msg [data-m="${k}"]`)?.textContent ?? k;
+  const fill = (tpl, vals) => tpl.replace(/\{(\w+)\}/g, (x, k) => (k in vals ? String(vals[k]) : x));
+  const plural = (base, n) => fill(m(`${base}.${pr.select(n) === 'one' ? 'one' : 'other'}`), { n: nf.format(n) });
+  let storage = null;
+  try { storage = window.localStorage; } catch { storage = null; }
+  const store = createStore(storage);
+
+  const nameIn = $('hgl-name');
+  const slotsHost = $('hgl-slots');
+  const list = $('hgl-list');
+  const toast = $('hgl-toast');
+  const undoBtn = $('hgl-undo');
+  const copyField = $('hgl-copyfield');
+
+  /** @type {{ items: Record<string, any[]>, ships: Record<string, any[]> }|null} */
+  let data = null;
+  let loading = null;
+  // Das Layout in Arbeit, sein Code (wie in der Adresse) und die Slots seines Schiffs.
+  let draft = { ship: '', name: '', slots: {} };
+  let code = null;
+  let slots = [];
+  let savedId = null;
+  let pendingSaved = null;
+  let openKey = null;
+  let firstAdopt = true;
+  let closed = false;
+  let view = 'build';
+
+  const itemName = (k) => {
+    const it = data.items[k];
+    return it ? (de && it[1]) || it[0] : m('slot.unknown');
+  };
+  const portOf = (key) => `hardpoint_${key.split('.')[0]}`;
+  const tabOf = (slot) => (slot.type === 'gun' ? 'weapons' : 'systems');
+  const UNIT = { gun: () => 'DPS', power: () => m('unit.power'), cooler: () => m('unit.cooling'), shield: () => 'HP', quantum: () => 'Mm/s', radar: () => m('unit.sensitivity') };
+  const CLS = { Military: 'cls.military', Civilian: 'cls.civilian', Industrial: 'cls.industrial', Stealth: 'cls.stealth', Competition: 'cls.competition' };
+  function subLine(k, withPrice) {
+    const it = data.items[k];
+    if (!it) return '';
+    const parts = it[2] === 'gun'
+      ? [it[4] || null, it[8]?.dt ? m(`dt.${it[8].dt}`) : null]
+      : [it[5] ? (CLS[it[5]] ? m(CLS[it[5]]) : it[5]) : null, it[6] ? fill(m('grade'), { g: it[6] }) : null];
+    if (withPrice) parts.push(it[9] ? fill(m('pick.price'), { n: nf.format(it[9]) }) : m('pick.noshop'));
+    return parts.filter(Boolean).join(' · ');
+  }
+  const current = (slot) => draft.slots[slot.key] ?? slot.stock;
+  const changedCount = () => Object.keys(draft.slots).length;
+  const placeholder = () => fill(m('name.placeholder'), { ship: bridge.shipName(draft.ship) });
+
+  /** Element mit Attributen; Kinder als Knoten oder Text, nie als Markup. */
+  function el(tag, attrs, ...kids) {
+    const e = doc.createElement(tag);
+    for (const [k, v] of Object.entries(attrs ?? {})) if (v != null && v !== false) e.setAttribute(k, v === true ? '' : v);
+    e.append(...kids.filter((x) => x != null && x !== false));
+    return e;
+  }
+
+  function ensureData() {
+    if (data) return Promise.resolve(data);
+    if (!loading) {
+      $('hgl-loading').hidden = false;
+      $('hgl-failed').hidden = true;
+      loading = fetch(aside.dataset.src, { credentials: 'same-origin' })
+        .then((r) => {
+          if (!r.ok || r.redirected) throw new Error(`Werkstatt: HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((d) => {
+          if (d?.v !== LAYOUT_VERSION || !d.items || !d.ships) throw new Error('Werkstatt: fremde Datei');
+          data = d;
+          $('hgl-loading').hidden = true;
+          return d;
+        })
+        .catch((e) => {
+          loading = null;
+          $('hgl-loading').hidden = true;
+          $('hgl-failed').hidden = false;
+          throw e;
+        });
+    }
+    return loading;
+  }
+  $('hgl-retry').addEventListener('click', () => ensureData().then(() => render(bridge.state())).catch(() => {}));
+
+  // Ein Layout setzen, wie es aus der Adresse kommt (Neuladen, Zurueck,
+  // geteilter Link, Schiffswechsel, ein geoeffnetes gespeichertes Layout).
+  function adopt(state) {
+    const raw = decodeLayout(state.lo) ?? { name: '', slots: {} };
+    slots = shipSlots(data.ships[state.ship]);
+    const { slots: clean, dropped } = cleanSlots(raw.slots, slots, data.items);
+    draft = { ship: state.ship, name: raw.name, slots: clean };
+    code = encodeLayout(draft);
+    const pending = pendingSaved ? store.get(pendingSaved) : null;
+    const match = pending && sameLayout(pending, draft) ? pending : store.list().find((e) => sameLayout(e, draft));
+    savedId = match ? match.id : null;
+    pendingSaved = null;
+    $('hgl-shared').hidden = !(firstAdopt && changedCount() > 0 && !savedId);
+    firstAdopt = false;
+    buildSlots();
+    paintHead();
+    paintSaved();
+    if (dropped) showToast(plural('msg.dropped', dropped));
+    if (code !== state.lo) bridge.set({ lo: code });
+  }
+
+  /** Nach jeder eigenen Aenderung: Code neu, Adresse neu. */
+  let urlTimer = 0;
+  function commit({ soon = false, patch = {} } = {}) {
+    code = encodeLayout(draft);
+    $('hgl-shared').hidden = true;
+    clearTimeout(urlTimer);
+    // Tippen im Namen schreibt die Adresse erst nach einer Pause (WebKit wirft
+    // nach 100 replaceState-Aufrufen in 10 s).
+    if (soon) urlTimer = setTimeout(() => bridge.set({ lo: code }), 350);
+    else bridge.set({ ...patch, lo: code });
+    paintHead();
+  }
+
+  /* ---- Kopf: Name und Stand ---- */
+  function paintHead() {
+    if (doc.activeElement !== nameIn) nameIn.value = draft.name;
+    nameIn.placeholder = placeholder();
+    const n = changedCount();
+    const saved = savedId ? store.get(savedId) : null;
+    const isSaved = !!saved && sameLayout(saved, draft);
+    const st = $('hgl-state');
+    st.dataset.s = isSaved ? 'saved' : n ? 'changed' : 'stock';
+    $('hgl-state-txt').textContent = n ? plural('state.changed', n) : m('state.stock');
+    const sub = $('hgl-state-sub');
+    sub.textContent = isSaved ? `· ${m('state.saved')}` : n || draft.name ? `· ${m('state.unsaved')}` : '';
+    sub.className = isSaved ? 'is-saved' : '';
+    const none = !slots.length;
+    $('hgl-save').disabled = none;
+    $('hgl-share').disabled = none;
+    $('hgl-reset').disabled = none || n === 0;
+  }
+  nameIn.addEventListener('input', () => {
+    draft.name = cleanName(nameIn.value);
+    commit({ soon: true });
+  });
+  nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
+  nameIn.addEventListener('blur', () => { nameIn.value = draft.name; });
+  $('hgl-dice').addEventListener('click', (e) => {
+    const names = m('name.fun').split('|').filter((x) => x && x !== draft.name);
+    draft.name = names[Math.floor(Math.random() * names.length)] ?? draft.name;
+    nameIn.value = draft.name;
+    const b = e.currentTarget;
+    b.classList.remove('is-roll');
+    void b.offsetWidth;
+    b.classList.add('is-roll');
+    commit();
+  });
+
+  /* ---- Slots ---- */
+  const GROUPS = ['pilot', 'manned', 'remote', 'power', 'cooler', 'shield', 'quantum', 'radar'];
+  const slotEls = new Map();
+
+  function buildSlots() {
+    slotEls.clear();
+    if (!slots.length) {
+      slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')));
+      return;
+    }
+    const groups = GROUPS.map((g) => {
+      const mine = slots.filter((s) => s.group === g);
+      if (!mine.length) return null;
+      const total = el('b', { 'data-total': g });
+      const gd = el('i', { class: 'hgl-gd', 'data-gd': g });
+      return el('section', { class: 'hgl-grp' },
+        el('h3', {}, el('span', {}, m(`grp.${g}`)), SUMMED.has(g) ? gd : null, SUMMED.has(g) ? total : null),
+        el('ul', {}, ...mine.map(slotEl)));
+    }).filter(Boolean);
+    slotsHost.replaceChildren(...groups);
+    for (const s of slots) paintSlot(s);
+    paintTotals();
+    syncOpen();
+  }
+
+  function slotEl(slot) {
+    const id = `hgl-pick-${slot.key.replace(/[^a-z0-9_-]/g, '-')}`;
+    const btn = el('button', { type: 'button', class: 'hgl-slot__btn', 'aria-expanded': 'false', 'aria-controls': id, 'data-key': slot.key },
+      el('span', { class: 'hgl-sz' }, `S${slot.size}`),
+      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true })),
+      el('span', { class: 'hgl-fig' }),
+      el('span', { class: 'hgl-chev', 'aria-hidden': 'true' }, '›'));
+    const pick = el('div', { class: 'hgl-pick', id, hidden: true });
+    const li = el('li', { class: 'hgl-slot', 'data-type': slot.type, 'data-key': slot.key }, btn, pick);
+    slotEls.set(slot.key, li);
+    return li;
+  }
+
+  function paintSlot(slot, flash = false) {
+    const li = slotEls.get(slot.key);
+    if (!li) return;
+    const now = current(slot);
+    const it = data.items[now];
+    const changed = slot.key in draft.slots;
+    li.toggleAttribute('data-changed', changed);
+    const name = `${slot.count > 1 ? `${slot.count}× ` : ''}${itemName(now)}`;
+    li.querySelector('strong').textContent = name;
+    li.querySelector('.hgl-sub').textContent = subLine(now, false);
+    const was = li.querySelector('.hgl-was');
+    was.hidden = !changed;
+    was.textContent = changed ? fill(m('slot.was'), { name: slot.stock ? itemName(slot.stock) : m('slot.unknown') }) : '';
+    const fig = li.querySelector('.hgl-fig');
+    fig.replaceChildren(it ? nf.format(it[7]) : '–', el('small', {}, UNIT[slot.type]()));
+    li.querySelector('.hgl-slot__btn').setAttribute('aria-label', `${fill(m('slot.swap'), { slot: `S${slot.size} ${name}` })}`);
+    if (flash) {
+      li.classList.remove('is-flash');
+      void li.offsetWidth;
+      li.classList.add('is-flash');
+    }
+  }
+
+  function paintTotals() {
+    const totals = groupTotals(slots, draft.slots, data.items);
+    for (const [g, t] of totals) {
+      const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : UNIT[g]();
+      const b = slotsHost.querySelector(`[data-total="${g}"]`);
+      if (b) b.textContent = `${nf.format(Math.round(t.now))} ${unit}`;
+      const gd = slotsHost.querySelector(`[data-gd="${g}"]`);
+      if (!gd) continue;
+      const d = Math.round(t.now - t.stock);
+      gd.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
+      gd.className = `hgl-gd ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
+    }
+  }
+
+  // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
+  // Items behaelt den gewaehlten Slot, solange hp sein Port bleibt.
+  function syncOpen() {
+    const hp = bridge.state().hp;
+    if (!hp) openKey = null;
+    else if (!openKey || portOf(openKey) !== hp) openKey = slots.find((s) => portOf(s.key) === hp)?.key ?? null;
+    for (const s of slots) {
+      const li = slotEls.get(s.key);
+      const on = s.key === openKey;
+      if (li.classList.contains('is-open') === on) continue;
+      li.classList.toggle('is-open', on);
+      li.querySelector('.hgl-slot__btn').setAttribute('aria-expanded', String(on));
+      const pick = li.querySelector('.hgl-pick');
+      pick.hidden = !on;
+      if (on) {
+        buildPicker(s, pick);
+        revealSlot(li);
+      } else pick.replaceChildren();
+    }
+  }
+
+  function revealSlot(li) {
+    const host = $('hgl-scroll');
+    if (host.scrollHeight <= host.clientHeight) return;
+    const r = li.getBoundingClientRect(), h = host.getBoundingClientRect();
+    if (r.top < h.top || r.bottom > h.bottom) host.scrollTop += r.top - h.top - 8;
+  }
+
+  function buildPicker(slot, pick) {
+    const keys = candidates(slot, data.items);
+    const now = current(slot);
+    const base = data.items[now]?.[7] ?? null;
+    const max = Math.max(1, ...keys.map((k) => data.items[k][7]));
+    const q = el('input', { type: 'search', class: 'hgl-q', placeholder: m('pick.search'), 'aria-label': m('pick.searchLabel'), autocomplete: 'off' });
+    const count = el('span', { class: 'hgl-n', 'aria-live': 'polite' });
+    const ul = el('ul', { class: 'hgl-opts' });
+    const empty = el('p', { class: 'hgl-msgline', hidden: true }, m('pick.empty'));
+    const opts = keys.map((k) => {
+      const it = data.items[k];
+      const d = k === now ? null : deltaPct(it[7], base);
+      const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
+      const b = el('button', { type: 'button', class: 'hgl-opt', 'data-item': k, 'aria-pressed': String(k === now) },
+        el('span', { class: 'hgl-opt__nm' }, itemName(k), ...tags),
+        el('span', { class: 'hgl-opt__sub' }, subLine(k, true)),
+        el('span', { class: 'hgl-opt__fig' }, nf.format(it[7])),
+        el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d)} %`),
+        el('span', { class: 'hgl-opt__bar', 'aria-hidden': 'true' }, el('i', { style: `--w:${Math.round((it[7] / max) * 100)}%` })));
+      const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b);
+      return li;
+    });
+    ul.append(...opts);
+    const filter = () => {
+      const s = q.value.trim().toLowerCase();
+      let n = 0;
+      for (const li of opts) { const ok = !s || li.dataset.q.includes(s); li.hidden = !ok; if (ok) n++; }
+      count.textContent = plural('pick.count', n);
+      empty.hidden = n > 0;
+    };
+    q.addEventListener('input', filter);
+    filter();
+    const revert = el('button', { type: 'button', class: 'hgl-revert', hidden: !(slot.key in draft.slots) || !slot.stock }, m('slot.revert'));
+    revert.addEventListener('click', () => equip(slot, slot.stock));
+    pick.replaceChildren(el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
+    // Die gewaehlte Zeile in Sicht, ohne die Seite zu rollen.
+    const on = ul.querySelector('[aria-pressed="true"]');
+    if (on) ul.scrollTop = on.parentElement.offsetTop - ul.clientHeight / 2 + on.offsetHeight / 2;
+  }
+
+  function equip(slot, item) {
+    if (!item) return;
+    if (item === slot.stock) delete draft.slots[slot.key];
+    else draft.slots[slot.key] = item;
+    draft.slots = cleanSlotMap(draft.slots);
+    bridge.say(fill(m('msg.fitted'), { item: itemName(item) }));
+    // Zu: die Auswahl schliesst, die Kamera faehrt zurueck, der Slot leuchtet.
+    openKey = null;
+    commit({ patch: { hp: null } });
+    paintSlot(slot, true);
+    paintTotals();
+    slotEls.get(slot.key)?.querySelector('.hgl-slot__btn').focus({ preventScroll: true });
+  }
+
+  slotsHost.addEventListener('click', (e) => {
+    const opt = e.target.closest('.hgl-opt');
+    if (opt) {
+      const slot = slots.find((s) => s.key === opt.closest('.hgl-slot').dataset.key);
+      if (slot) equip(slot, opt.dataset.item);
+      return;
+    }
+    const btn = e.target.closest('.hgl-slot__btn');
+    if (!btn) return;
+    const slot = slots.find((s) => s.key === btn.dataset.key);
+    if (!slot) return;
+    if (openKey === slot.key) {
+      openKey = null;
+      bridge.set({ hp: null });
+    } else {
+      openKey = slot.key;
+      bridge.set({ tab: tabOf(slot), hp: portOf(slot.key) });
+    }
+    syncOpen();
+    if (openKey === slot.key) slotEls.get(slot.key).querySelector('.hgl-q')?.focus({ preventScroll: true });
+  });
+  // Pfeile in der Auswahl: Suche -> erste Zeile, dann Zeile fuer Zeile.
+  slotsHost.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const pick = e.target.closest('.hgl-pick');
+    if (!pick) return;
+    const opts = [...pick.querySelectorAll('li:not([hidden]) .hgl-opt')];
+    if (!opts.length) return;
+    e.preventDefault();
+    const i = opts.indexOf(e.target);
+    const to = e.key === 'ArrowDown' ? (i < 0 ? 0 : Math.min(opts.length - 1, i + 1)) : i <= 0 ? -1 : i - 1;
+    (to < 0 ? pick.querySelector('.hgl-q') : opts[to]).focus();
+  });
+  // Der Hardpoint unter dem Zeiger leuchtet am Schiff.
+  const hot = (key) => {
+    const port = key ? portOf(key) : null;
+    for (const mk of doc.querySelectorAll('.hgx-mk')) mk.classList.toggle('is-hot', !!port && mk.dataset.port === port);
+  };
+  slotsHost.addEventListener('pointerover', (e) => hot(e.target.closest('.hgl-slot')?.dataset.key ?? null));
+  slotsHost.addEventListener('pointerleave', () => hot(null));
+  slotsHost.addEventListener('focusin', (e) => hot(e.target.closest('.hgl-slot')?.dataset.key ?? null));
+  slotsHost.addEventListener('focusout', () => hot(null));
+
+  /* ---- Speichern, Teilen, Serie ---- */
+  function save() {
+    if (!slots.length) return;
+    const entry = store.save({ id: savedId && store.get(savedId) ? savedId : newId(), ship: draft.ship, name: draft.name || placeholder(), slots: draft.slots });
+    if (!entry) { showToast(m('msg.full')); return; }
+    savedId = entry.id;
+    if (!draft.name) {
+      draft.name = entry.name;
+      commit();
+    }
+    $('hgl-shared').hidden = true;
+    paintHead();
+    paintSaved();
+    done($('hgl-save'));
+    showToast(m('msg.saved'));
+  }
+  $('hgl-save').addEventListener('click', save);
+
+  const linkFor = (lo) => `${location.origin}${location.pathname}?ship=${encodeURIComponent(lo.ship)}&layout=${encodeLayout(lo)}`;
+  async function share(lo, btn) {
+    const url = linkFor(lo);
+    try {
+      await navigator.clipboard.writeText(url);
+      copyField.hidden = true;
+      done(btn);
+      showToast(m('msg.copied'));
+    } catch {
+      copyField.value = url;
+      copyField.hidden = false;
+      copyField.focus();
+      copyField.select();
+      showToast(m('msg.copyFallback'));
+    }
+  }
+  $('hgl-share').addEventListener('click', (e) => share(draft, e.currentTarget));
+
+  $('hgl-reset').addEventListener('click', () => {
+    draft.slots = {};
+    openKey = null;
+    commit({ patch: { hp: null } });
+    for (const s of slots) paintSlot(s, true);
+    paintTotals();
+    syncOpen();
+    showToast(m('msg.reset'));
+  });
+  $('hgl-close').addEventListener('click', () => bridge.set({ lo: null, hp: null }));
+
+  function done(btn) {
+    btn.classList.add('is-done');
+    setTimeout(() => btn.classList.remove('is-done'), 1400);
+  }
+  let toastTimer = 0;
+  let undo = null;
+  function showToast(text, onUndo = null) {
+    $('hgl-toast-txt').textContent = text;
+    undo = onUndo;
+    undoBtn.hidden = !onUndo;
+    toast.classList.add('is-on');
+    bridge.say(text);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.remove('is-on'); undo = null; }, onUndo ? 6000 : 2600);
+  }
+  undoBtn.addEventListener('click', () => {
+    const f = undo;
+    undo = null;
+    toast.classList.remove('is-on');
+    f?.();
+  });
+
+  /* ---- Ansichten: Bauen und Meine Layouts ---- */
+  const viewBtns = { build: $('hgl-v-build'), saved: $('hgl-v-saved') };
+  function setView(v) {
+    view = v;
+    for (const [k, b] of Object.entries(viewBtns)) {
+      b.setAttribute('aria-selected', String(k === v));
+      b.tabIndex = k === v ? 0 : -1;
+    }
+    $('hgl-build').hidden = v !== 'build';
+    $('hgl-saved').hidden = v !== 'saved';
+    if (v === 'saved') paintSaved();
+  }
+  viewBtns.build.addEventListener('click', () => setView('build'));
+  viewBtns.saved.addEventListener('click', () => setView('saved'));
+  doc.querySelector('.hgl-views').addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const to = view === 'build' ? 'saved' : 'build';
+    setView(to);
+    viewBtns[to].focus();
+  });
+
+  function paintSaved() {
+    const all = store.list();
+    $('hgl-count').textContent = nf.format(all.length);
+    if (view !== 'saved') return;
+    if (!all.length) {
+      list.replaceChildren(el('li', { class: 'hgl-empty' }, m('saved.empty')));
+      return;
+    }
+    const here = all.filter((e) => e.ship === draft.ship);
+    const rest = all.filter((e) => e.ship !== draft.ship);
+    list.replaceChildren(...[...here, ...rest].map((e) => {
+      const n = Object.keys(e.slots).length;
+      const isHere = e.ship === draft.ship;
+      return el('li', { class: `hgl-card${isHere ? ' is-here' : ''}${e.id === savedId ? ' is-current' : ''}`, 'data-id': e.id },
+        el('h4', {}, e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), isHere ? el('span', { class: 'hgl-card__tag' }, m('saved.here')) : null),
+        el('p', {}, el('b', {}, bridge.shipName(e.ship)), ` · ${n ? plural('state.changed', n) : m('saved.stock')}`),
+        el('span', { class: 'hgl-card__acts' },
+          el('button', { type: 'button', class: 'hgl-mini is-main', 'data-open': e.id }, m('saved.open')),
+          el('button', { type: 'button', class: 'hgl-mini', 'data-share': e.id }, m('saved.share')),
+          el('button', { type: 'button', class: 'hgl-mini', 'data-del': e.id, 'aria-label': fill(m('saved.deleteLabel'), { name: e.name }), title: m('saved.delete') }, '×')));
+    }));
+  }
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const entry = store.get(b.dataset.open || b.dataset.share || b.dataset.del);
+    if (!entry) { paintSaved(); return; }
+    if (b.dataset.open) {
+      pendingSaved = entry.id;
+      setView('build');
+      bridge.set({ ship: entry.ship, lo: encodeLayout(entry), hp: null });
+    } else if (b.dataset.share) share(entry, b);
+    else if (b.dataset.del) {
+      const gone = store.remove(entry.id);
+      if (!gone) return;
+      if (savedId === gone.id) savedId = null;
+      paintSaved();
+      paintHead();
+      (list.querySelector('button') ?? viewBtns.saved).focus();
+      showToast(fill(m('msg.deleted'), { name: gone.name }), () => {
+        store.restore(gone);
+        paintSaved();
+        paintHead();
+      });
+    }
+  });
+  // Ein zweiter Tab speichert mit: Liste und Stand ziehen nach.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== STORE_KEY || !data) return;
+    paintSaved();
+    paintHead();
+  });
+
+  /* ---- Takt des Controllers ---- */
+  function render(state) {
+    const open = state.lo != null;
+    if (open && aside.hidden && bridge.byHand && window.matchMedia('(max-width: 760px)').matches) {
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      requestAnimationFrame(() => aside.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }));
+    }
+    bridge.byHand = false;
+    aside.hidden = !open;
+    if (open) main.dataset.mode = 'layout';
+    else {
+      delete main.dataset.mode;
+      hot(null);
+      closed = true;
+      return;
+    }
+    if (!data) {
+      ensureData().then(() => render(bridge.state())).catch(() => {});
+      return;
+    }
+    // Zu und wieder auf am selben Schiff: das Layout in Arbeit ist noch da.
+    if (closed && state.lo === EMPTY_CODE && state.ship === draft.ship && code && code !== EMPTY_CODE) {
+      closed = false;
+      bridge.set({ lo: code });
+      return;
+    }
+    closed = false;
+    if (state.ship !== draft.ship || state.lo !== code) adopt(state);
+    else syncOpen();
+  }
+
+  return { render };
+}

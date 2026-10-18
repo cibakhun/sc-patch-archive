@@ -18,6 +18,8 @@ import SiteNav from '../SiteNav.astro';
 import ToolHelp from '../ToolHelp.astro';
 import HangarApp from './HangarApp.astro';
 import ShipBay from './ShipBay.astro';
+import LayoutWorkshop from './LayoutWorkshop.astro';
+import { layoutT } from '../../i18n/layoutText';
 import { localeFromPath, href, useTranslations } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
@@ -46,6 +48,9 @@ const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overvi
 // defer wie account-lite.js in SiteNav: verzoegerte Skripte laufen in
 // Dokumentfolge, fleet.js findet VBAccount vor und steht vor boot() bereit.
 const fleetSrc = versioned('assets/fleet.js', '/assets/fleet.js');
+// Die Werkstatt laedt der Controller erst bei Bedarf, ueber diese URL.
+const layoutSrc = versioned('assets/hangar-layouts.js', '/assets/hangar-layouts.js');
+const lt = layoutT(lang);
 const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z';
 ---
 <style is:inline>
@@ -288,7 +293,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
-<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-tab-active="overview">
+<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-layout-js={layoutSrc} data-tab-active="overview">
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <ShipBay bay={bay} region="marks" />
@@ -296,6 +301,10 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         <h1>Hangar</h1>
         <ShipBay bay={bay} region="head" />
         <div class="hgx-actions" role="group" aria-label={t('act.group')}>
+          <button type="button" class="hg-btn hgx-act is-layout" id="hgx-layout" aria-pressed="false" aria-controls="hgl" data-help={h('hangar.ctl.layout')}>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.6 17.2a1.5 1.5 0 002.1 2.1l5.7-5.7a4 4 0 005.2-5.4l-2.4 2.4-2.1-.4-.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            <span>{lt('open')}</span>
+          </button>
           {/* Folgt dem gewaehlten Schiff: der Controller tauscht data-fleet-ship
               und data-fleet-label, aria-pressed setzt assets/fleet.js. */}
           <button type="button" class="hg-btn hgx-act" id="hgx-fleet" data-help={h('hangar.ctl.fleet')} data-fleet-ship={bay.id} data-fleet-label={bay.head.name} data-fleet-on={ui('fleet.in')} data-fleet-off={ui('fleet.add')} aria-pressed="false">
@@ -372,6 +381,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         </div>
       </div>
     </aside>
+    <LayoutWorkshop lang={lang} />
     {/* Modal ueber der Buehne (showModal: Fokus bleibt drin, Escape ist "cancel").
         Zeilen aus dem Kennwert-Verzeichnis, Spalten setzt der Controller aus
         den Dock-Daten, ohne eine Bucht zu holen. In der Insel, damit er auch
@@ -398,7 +408,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 
   <section class="hg-dock" data-media-surface aria-label={t('dock.label')}>
     <div class="hg-filter">
-      <ToolHelp tool="hangar" lang={lang} steps={4} />
+      <ToolHelp tool="hangar" lang={lang} steps={5} />
       <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" data-help={h('hangar.ctl.search')} />
       <select id="hg-type" aria-label={t('dock.type')} data-help={h('hangar.ctl.select')}>
         <option value="">{t('dock.typeAll')}</option>
