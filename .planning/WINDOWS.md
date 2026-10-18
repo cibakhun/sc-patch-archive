@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 54
+open_count: 55
 waived_count: 1
 fixed_count: 30
-total_count: 85
-last_updated: 2026-10-18T15:10:14.562Z
+total_count: 86
+last_updated: 2026-10-18T15:30:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -100,6 +100,7 @@ last_updated: 2026-10-18T15:10:14.562Z
 | 84 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Grafiklast, 18.10.2026): Auf „optimiere das hangar weiter … 40 % GPU“ laufen in der hohen Stufe zwei Dinge sichtbar anders. 1) Die Arbeiter werfen in der echten Halle keinen Schatten mehr (wie schon in mittel und niedrig); die Schattenkarten zeichnen nur neu, wenn das Schiff sich bewegt. 2) Im Leerlauf (Umlauf, Crew) 24 statt 30 Bilder je Sekunde (FPS_IDLE). Ohne sichtbare Absicht geändert: Die Verdeckung liest die Tiefe des Bildes statt eines eigenen Durchgangs, doppelseitige Decals zeichnen in einem Zug, das Spiegelbild im Boden ohne Decals. Gemessen (RTX 3070 Ti, Gladius, 1920 × 970, scripts/probes/hangar-gpu-messung.mjs, je zwei Läufe im Wechsel alt/neu): Prozessorzeit je Bild −37 % im Leerlauf und −40 % beim Drehen, Zeichenaufrufe je Bild 1157 → 456, Arbeit des Chips (Takt × Auslastung) im Leerlauf −25 %, beim Drehen unverändert. Vorher/Nachher bei fester Kamera: kein Unterschied an Schiffsschatten, Verdeckung, Decals. Nicht beurteilen kann das Skript: ob der Umlauf mit 24 Bildern ruckelt, ob die Arbeiter ohne Schatten zu schweben scheinen, ob die Verdeckung an feinen Kanten anders sitzt. Zurück: FPS_IDLE und life.setShadows in assets/hangar-viewer.js. | open |  | 2026-10-18T12:25:04.969Z |  |
 | 85 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Leerlauf und Ruhe, 18.10.2026): Auf „optimize the hangar to have great performance“ hat der Betreiber zwei sichtbare Abstriche gewählt (Rest after idle, Softer image while idle). Gebaut: 2 s nach der letzten Zeigerbewegung über der Bühne (und ohne Bewegung, die die Seite auslöst) zeichnet sie mit 75 % der Bildschärfe; nach 20 s läuft der Umlauf in 1,5 s aus, danach zeichnet sie nichts mehr, die Crew bleibt stehen. Überfahren mit dem Zeiger, Ziehen, Rad, Tasten und jeder Schiffswechsel wecken sie sofort in voller Schärfe. Gemessen (RTX 3070 Ti, Gladius, scripts/probes/hangar-gpu-messung.mjs --rest): in Ruhe 0 Bilder, Grafikprozess des Browsers 2,7 % (Grundwert der Seite); Umschalten auf volle Schärfe ohne längeres Einzelbild als die üblichen Ausreißer (≤ 21 ms). Nicht beurteilen kann das Skript: ob das Leerlaufbild zu weich wirkt, ob das Stillstehen nach 20 s wie ein Hänger aussieht, ob 20 s die richtige Zeit ist. Stellschrauben IDLE_MS, IDLE_SCALE, REST_MS in assets/hangar-viewer.js. | open |  | 2026-10-18T13:57:46.755Z |  |
 | 86 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Verdeckung im Viertel, 18.10.2026): Auf „nicht nur cpu auslastung aber hauptsächlich auch gpu“ rechnet die Umgebungsverdeckung (GTAO) in einem Viertel statt der Hälfte der Auflösung je Achse; dazu ohne Bildänderung ein zweites Zielbild ohne Kantenglättung. Zusammen −23 % Arbeit des Chips je Bild (voll ausgelastet gemessen, RTX 3070 Ti, 3840×1560, zwei Läufe im Wechsel: 31,2/30,6 → 23,9/23,8 ms). Bildvergleich bei fester Kamera: im Mittel 0,43 von 255 Helligkeitsstufen Abweichung (zwei Aufnahmen desselben Stands 0,12), sichtbar nur als weichere Säume der Verdeckung an Schiffskanten und Bodenleisten. Nicht beurteilen kann das Skript: ob die Verdeckung beim Heranzoomen (Fahrwerk, Fugen, Füße der Crew) zu weich oder fleckig wirkt. Zurück: AO_DIV in assets/hangar-viewer.js von 4 auf 2. | open |  | 2026-10-18T15:10:14.562Z |  |
+| 87 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Wartungsplatz am Schiff, 18.10.2026): Auf „die assets sind allgemein zu wenige, und sind nicht belivable plaziert“, den Ölfleck wie verschüttete Tinte, den Schlauch ohne Anschluss und „viel mehr assets holen und die semantik … nicht nur random“ steht das Gerät jetzt nach seinem Zweck (Katalog, 198 Spiel-Requisiten) in sieben Stationen am Schiff: Strom (Generator, Kabeltrommel, Verteiler, Strahler), Treibstoff (Schlauchtrommel, fünf Brennstoffzellen, Löscher, Kegel, Mopp), Diagnose (Konsole, Rechner, Arbeitslicht), Werkzeug (Schrank, Kiste, Schweißgerät, Gasflasche, Arbeitslicht, Rollbrett, Steckschlüssel), Lager am Heck (Kisten, Fässer, Hubwagen), je zwei Kegel am Bug. Jede Station läuft von außen auf Flügel oder Rumpf zu, bis sie anstößt (Grundriss des Schiffs von unten), Kabel und Schlauch liegen vom Gerät über den Boden bis unter den Rumpf, Ölflecken nach Schiffsgröße unter dem Schiff, hinter dem Heck und an Strom und Treibstoff; die großen Flecken auf dem Feld sind weg. Gemessen: 7 von 7 Plätzen bei Gladius, Cutlass Black und Carrack, 29 Zeichenbefehle für den ganzen Satz, Gladius mittel von hinten 292 → 319 Zeichenaufrufe. Nicht beurteilen kann die Cloud: ob die Gruppen wie ein echter Arbeitsplatz wirken; ob die Ölflecken unter dem Schiff im Schatten zu sehen sind; ob Kabel und Schlauch glaubhaft enden (sie enden auf dem Boden unter dem Rumpf: das Spiel kennt keine Anschlusspunkte am Schiff); ob es jetzt genug Gerät ist; ob die Kegel am Bug stören; und ob das Gerät bei großen Schiffen (Carrack) in echter Größe zu klein wirkt, dort wären mehr Stationen entlang des Rumpfs der nächste Schritt. Stellschrauben WORK_DIENST, DIENST_CLEAR, DIENST_SPUR in assets/hangar-viewer.js, danach node scripts/build-hangar-dienst.mjs. Beleg: /mnt/project-files/hangar/v41-wartungsplatz-vorher-nachher.png im Projektordner. | open |  | 2026-10-18T15:30:00.000Z |  |
 
 ````json
 [
@@ -1121,6 +1122,18 @@ last_updated: 2026-10-18T15:10:14.562Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-18T15:10:14.562Z",
+    "resolved_at": null
+  },
+  {
+    "id": 87,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Wartungsplatz am Schiff, 18.10.2026): Auf „die assets sind allgemein zu wenige, und sind nicht belivable plaziert“, den Ölfleck wie verschüttete Tinte, den Schlauch ohne Anschluss und „viel mehr assets holen und die semantik … nicht nur random“ steht das Gerät jetzt nach seinem Zweck (Katalog, 198 Spiel-Requisiten) in sieben Stationen am Schiff: Strom (Generator, Kabeltrommel, Verteiler, Strahler), Treibstoff (Schlauchtrommel, fünf Brennstoffzellen, Löscher, Kegel, Mopp), Diagnose (Konsole, Rechner, Arbeitslicht), Werkzeug (Schrank, Kiste, Schweißgerät, Gasflasche, Arbeitslicht, Rollbrett, Steckschlüssel), Lager am Heck (Kisten, Fässer, Hubwagen), je zwei Kegel am Bug. Jede Station läuft von außen auf Flügel oder Rumpf zu, bis sie anstößt (Grundriss des Schiffs von unten), Kabel und Schlauch liegen vom Gerät über den Boden bis unter den Rumpf, Ölflecken nach Schiffsgröße unter dem Schiff, hinter dem Heck und an Strom und Treibstoff; die großen Flecken auf dem Feld sind weg. Gemessen: 7 von 7 Plätzen bei Gladius, Cutlass Black und Carrack, 29 Zeichenbefehle für den ganzen Satz, Gladius mittel von hinten 292 → 319 Zeichenaufrufe. Nicht beurteilen kann die Cloud: ob die Gruppen wie ein echter Arbeitsplatz wirken; ob die Ölflecken unter dem Schiff im Schatten zu sehen sind; ob Kabel und Schlauch glaubhaft enden (sie enden auf dem Boden unter dem Rumpf: das Spiel kennt keine Anschlusspunkte am Schiff); ob es jetzt genug Gerät ist; ob die Kegel am Bug stören; und ob das Gerät bei großen Schiffen (Carrack) in echter Größe zu klein wirkt, dort wären mehr Stationen entlang des Rumpfs der nächste Schritt. Stellschrauben WORK_DIENST, DIENST_CLEAR, DIENST_SPUR in assets/hangar-viewer.js, danach node scripts/build-hangar-dienst.mjs. Beleg: /mnt/project-files/hangar/v41-wartungsplatz-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-18T15:30:00.000Z",
     "resolved_at": null
   }
 ]

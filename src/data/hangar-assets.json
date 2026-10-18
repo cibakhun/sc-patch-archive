@@ -3434,6 +3434,92 @@
       "decals": 24,
       "floors": 2,
       "items": 131
+    },
+    "katalog": {
+      "url": "/hangar/props/katalog.json",
+      "v": "d18d0cc5",
+      "bytes": 323637,
+      "props": 198,
+      "kategorien": {
+        "diagnose": {
+          "file": "/hangar/props/diagnose.glb",
+          "v": "cbc68c1e",
+          "bytes": 1800012,
+          "props": 10
+        },
+        "energie": {
+          "file": "/hangar/props/energie.glb",
+          "v": "a928f0d9",
+          "bytes": 1880820,
+          "props": 9
+        },
+        "heben": {
+          "file": "/hangar/props/heben.glb",
+          "v": "ec3f08b3",
+          "bytes": 2332896,
+          "props": 7
+        },
+        "kabel": {
+          "file": "/hangar/props/kabel.glb",
+          "v": "8f07327e",
+          "bytes": 2852564,
+          "props": 59
+        },
+        "lager": {
+          "file": "/hangar/props/lager.glb",
+          "v": "aecc4ff9",
+          "bytes": 2649008,
+          "props": 12
+        },
+        "licht": {
+          "file": "/hangar/props/licht.glb",
+          "v": "f2e1be22",
+          "bytes": 1042376,
+          "props": 6
+        },
+        "luft": {
+          "file": "/hangar/props/luft.glb",
+          "v": "1c087549",
+          "bytes": 772988,
+          "props": 6
+        },
+        "reinigung": {
+          "file": "/hangar/props/reinigung.glb",
+          "v": "283a48f5",
+          "bytes": 1092676,
+          "props": 7
+        },
+        "schlauch": {
+          "file": "/hangar/props/schlauch.glb",
+          "v": "232fd553",
+          "bytes": 2993524,
+          "props": 22
+        },
+        "sicherheit": {
+          "file": "/hangar/props/sicherheit.glb",
+          "v": "1b253312",
+          "bytes": 1786420,
+          "props": 19
+        },
+        "transport": {
+          "file": "/hangar/props/transport.glb",
+          "v": "4dccf520",
+          "bytes": 2110404,
+          "props": 15
+        },
+        "treibstoff": {
+          "file": "/hangar/props/treibstoff.glb",
+          "v": "5a5a645a",
+          "bytes": 1161648,
+          "props": 5
+        },
+        "werkzeug": {
+          "file": "/hangar/props/werkzeug.glb",
+          "v": "91b679a8",
+          "bytes": 2274480,
+          "props": 21
+        }
+      }
     }
   }
 }

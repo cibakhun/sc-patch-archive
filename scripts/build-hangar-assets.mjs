@@ -1509,6 +1509,200 @@ function werkTiling(doc, matName) {
   return [s, s];
 }
 
+// ─── Gerätekatalog (.planning/notes/hangar-katalog.md) ──────────────────
+// Quelle: scripts/extract-hangar-katalog.mjs (.cache/hangar-src/katalog/).
+// Je Kategorie eine Datei public/hangar/props/<kategorie>.glb, je Requisit
+// ein Knoten prop_<kategorie>_<name>: Ursprung unten mittig, +Y oben,
+// Meter, Vorderseite des Spiels (lokale +Y) bei −Z. Materialien heißen
+// <mtl>_<untermaterial> in allen Dateien gleich. Dazu katalog.json mit
+// Bedeutung, Aufstellung, Nachbarn, Arbeitsplätzen, Leitungen, Schiffsseite.
+const KAT_DIR = 'katalog';
+// Zweck und Benutzung, abgeleitet aus Name, Kategorie und Aufstellung im
+// Spiel (quelle.zweck = "abgeleitet"); erster Treffer gewinnt
+const ZWECK = [
+  [/generator_oxygen/, 'Sauerstoffgenerator, erzeugt Atemluft für Arbeiten in Räumen ohne Lebenserhaltung', 'steht frei auf dem Boden; wird über Schläuche angeschlossen'],
+  [/generator/, 'mobiler Stromgenerator, versorgt Werkstattgerät am Schiff mit Strom', 'steht am Feldrand oder an der Wand; Kabel laufen zur Kabeltrommel und zum Gerät'],
+  [/cable_reel|hose_reel/, 'Trommel, auf der Kabel oder Schlauch aufgewickelt ist', 'wird neben Generator, Tank oder Arbeitsplatz abgestellt und zum Schiff abgerollt'],
+  [/cable_floor|cable_straight|cable_bend|cable_corner|cable_split|cable_small|maintenance_cable|cables_a/, 'Kabelstück (Strom/Daten), lose auf dem Boden oder an der Wand verlegt', 'wird zu Leitungen zwischen Gerät, Trommel und Schiff gereiht'],
+  [/cable_terminal|junctionbox|cable_box/, 'Anschluss- oder Verteilerdose für Kabel', 'sitzt an Wand oder Boden am Ende einer Kabelleitung'],
+  [/hose_floor_1_socket|securepoint_connector/, 'Bodenanschluss für einen Schlauch', 'Schlauchende im Boden; von hier läuft der Schlauch zum Schiff'],
+  [/hose_floor|maintenance_hose/, 'Schlauchstück, lose auf dem Boden verlegt (Treibstoff, Luft oder Kühlmittel)', 'wird zu Leitungen zwischen Anschluss, Tank und Schiff gereiht'],
+  [/airduct_fan/, 'Lüfter am Ende eines Luftschlauchs', 'bläst Luft durch angeschlossene Luftschläuche'],
+  [/airduct_hose/, 'flexibler Luftschlauch (Lüftung, Heizung)', 'läuft vom Heizer oder Lüfter am Boden oder hängend durch die Halle'],
+  [/heater/, 'Heizgerät für die Halle', 'steht frei auf dem Boden, oft mit Luftschlauch'],
+  [/tank_gas|gas_tank/, 'Gasflasche (Druckgas) für Schweiß- und Wartungsarbeiten', 'steht in Gruppen an der Wand oder neben Schweißgerät und Feuerlöscher'],
+  [/cell_fuel|fuel/, 'Treibstoffzelle, Behälter für Treibstoff', 'steht in Gruppen auf dem Boden oder im Regal'],
+  [/canister/, 'Kanister', 'steht am Boden oder im Regal'],
+  [/extinguisher_cabinet/, 'Feuerlöscherschrank', 'hängt an der Wand'],
+  [/extinguisher/, 'Feuerlöscher', 'steht am Boden neben Gerät oder hängt an der Wand'],
+  [/fire_hose|fire-hose/, 'Feuerlöschschlauch auf Wandhalter', 'hängt in Gruppen an der Wand'],
+  [/cone_/, 'Leitkegel zum Absperren', 'steht auf dem Boden um Arbeitsbereiche'],
+  [/barrier|bollard/, 'Absperrung', 'steht auf dem Boden am Rand von Arbeitsbereichen'],
+  [/sign_warning/, 'freistehendes Warnschild', 'steht am Rand eines Arbeitsbereichs'],
+  [/console_diagnostic|tool_tester|panel_engineering/, 'Diagnosegerät, liest Schiffssysteme aus', 'steht neben dem Schiff oder am Arbeitsplatz, über Kabel angeschlossen'],
+  [/computer|server_rack|monitor/, 'Rechner oder Bildschirm für Planung und Diagnose', 'steht auf Tisch oder Konsole, Server in Racks an der Wand'],
+  [/welder|welding/, 'Schweißgerät', 'steht neben Gasflaschen und Feuerlöscher am Arbeitsplatz'],
+  [/workbench/, 'Werkbank', 'steht an der Wand oder frei; Werkzeug liegt darauf'],
+  [/cabinet_tool|tool_drawer|toolbox|bag_toolbox|tool_chest|storage_toolbox/, 'Werkzeugschrank oder -kiste', 'steht am Arbeitsplatz oder an der Wand'],
+  [/tool_jack/, 'Wagenheber', 'steht am Boden unter oder neben dem Schiff'],
+  [/ladder/, 'Leiter oder fahrbare Treppe', 'steht am Schiff, um an Rumpf und Cockpit zu kommen'],
+  [/crane/, 'Kran oder Kranarm', 'steht am Arbeitsplatz für schwere Teile'],
+  [/tool_|drill|ratchet|wrench|socket_set|circularsaw|multi/, 'Handwerkzeug', 'liegt auf Tisch, Werkbank oder Boden am Arbeitsplatz'],
+  [/creeper/, 'Rollbrett für Arbeiten unter dem Schiff', 'liegt am Boden unter oder neben dem Schiff'],
+  [/forklift/, 'Gabelstapler oder Staplerteil', 'fährt Lasten zwischen Lager und Schiff'],
+  [/trolley|cart|dolly|pallet/, 'Transportwagen oder Palette', 'steht zwischen Lager und Schiff'],
+  [/work-light|tripod|light_stand|light_portable/, 'Arbeitsleuchte auf Stativ', 'steht neben dem Schiff und leuchtet den Arbeitsbereich aus'],
+  [/(^|_)mop|bucket/, 'Wischmop oder Eimer', 'steht an der Wand oder am Rand'],
+  [/trash/, 'Müll, Müllsäcke', 'liegt in Ecken und an Wänden'],
+  [/drum/, 'Fass', 'steht in Gruppen auf dem Boden'],
+  [/crate|box_|container|storage|shelf/, 'Lagerkiste oder Regal', 'steht gestapelt an Wänden und in Ecken'],
+];
+const zweckOf = (key) => { const z = ZWECK.find(([re]) => re.test(key)); return z ? { zweck: z[1], nutzung: z[2] } : { zweck: null, nutzung: null }; };
+const kTexFile = (p) => (p && !/^\$/.test(p) ? texFile(p) : null);
+
+async function buildKatalog() {
+  const qf = JSON.parse(readFileSync(fileURLToPath(new URL(`${KAT_DIR}/quellen.json`, SRC)), 'utf8'));
+  const inv = JSON.parse(readFileSync(fileURLToPath(new URL(`${KAT_DIR}/inventar.json`, SRC)), 'utf8'));
+  const entries = new Map(inv.entries.map((e) => [e.key, e]));
+  const layerInfo = qf.layers || {};
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const rgb = (s, d = [1, 1, 1]) => (s ? String(s).split(',').map(Number).slice(0, 3) : d);
+  const clean = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  const kats = new Map();
+  for (const q of qf.quellen.filter((x) => !x.missing)) { if (!kats.has(q.kat)) kats.set(q.kat, []); kats.get(q.kat).push(q); }
+  const out = { kategorien: {}, props: [] };
+  const report = [];
+  for (const [kat, list] of [...kats].sort()) {
+    const doc = new Document();
+    const buf = doc.createBuffer();
+    const scene = doc.createScene(kat);
+    const tt = doc.createExtension(KHRTextureTransform);
+    const texCache = new Map(), matCache = new Map();
+    const tex = (file) => { if (!texCache.has(file)) texCache.set(file, doc.createTexture(file.split(/[\\/]/).pop()).setImage(readFileSync(file)).setMimeType('image/png')); return texCache.get(file); };
+    const material = (mtl, sub) => {
+      const name = `${clean(String(mtl || 'mtl').split('/').pop())}_${clean(sub?.name || 'default')}`;
+      if (matCache.has(name)) return matCache.get(name);
+      const m = doc.createMaterial(name).setMetallicFactor(0);
+      const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null;
+      const d = kTexFile(sub?.d) || (LI && kTexFile(LI.d));
+      const n = kTexFile(sub?.n) || (LI && kTexFile(LI.n));
+      let factor = rgb(sub?.diffuse);
+      if (!kTexFile(sub?.d) && L0) factor = rgb(L0.tint).map((v, i) => v * rgb(LI?.diffuse)[i]);
+      if (d) {
+        const ti = m.setBaseColorTexture(tex(d)).getBaseColorTextureInfo();
+        const tile = !kTexFile(sub?.d) && L0 ? (L0.uvTiling || 1) * (LI?.tiling || 1) : 1;
+        if (tile !== 1) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale([tile, tile]));
+      }
+      if (n && /_ddna?\.png$|_ddn\.png$/i.test(n)) {
+        const ti = m.setNormalTexture(tex(n)).getNormalTextureInfo();
+        const tile = !kTexFile(sub?.n) && L0 ? (L0.uvTiling || 1) * (LI?.tiling || 1) : 1;
+        if (tile !== 1) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale([tile, tile]));
+      }
+      const spec = rgb(L0 ? LI?.specular : sub?.specular, [0.04, 0.04, 0.04]);
+      if (spec[0] > 0.3 && !d) { m.setMetallicFactor(1); factor = spec.map((v, i) => Math.min(1, v * rgb(L0?.tint)[i])); }
+      const shin = Number((L0 ? LI?.shininess : sub?.shininess) ?? 128);
+      m.setRoughnessFactor(r3(Math.min(1, Math.max(0.05, 1 - (shin / 255) * (L0?.glossMult ?? 1)))));
+      m.setBaseColorFactor([...factor.map((v) => Math.min(1, v)), 1]);
+      if (/glass/i.test(sub?.shader || '')) m.setAlphaMode('BLEND').setBaseColorFactor([0.2, 0.22, 0.25, 0.3]).setRoughnessFactor(0.05);
+      else if (/DECAL/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '')) m.setAlphaMode('BLEND');
+      else if (Number(sub?.alphaTest) > 0) m.setAlphaMode('MASK').setAlphaCutoff(Number(sub.alphaTest));
+      if (/glow/i.test(sub?.name || '') && d) m.setEmissiveTexture(m.getBaseColorTexture()).setEmissiveFactor([1, 1, 1]);
+      matCache.set(name, m);
+      return m;
+    };
+    const nodes = [];
+    for (const q of list) {
+      const src = await io.read(fileURLToPath(new URL(q.glb, SRC)));
+      const node = `prop_${kat}_${clean(q.key)}`;
+      const mesh = doc.createMesh(node);
+      const prims = src.getRoot().listMeshes().flatMap((me) => me.listPrimitives());
+      prims.forEach((sp, i) => {
+        const sub = q.subs?.[q.ids?.[i] ?? i];
+        if (/NoDraw/i.test(sub?.shader || '') || /proxy/i.test(sub?.name || '')) return;
+        // Decal-Flächen ohne eigene Karte (Branding aus $TintPaletteDecal zur Laufzeit,
+        // Glow-Decals ohne Bild) wären weiße Platten: weglassen
+        const decalish = /DECAL/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '') || /decal/i.test(sub?.name || '');
+        if (decalish && !kTexFile(sub?.d)) return;
+        const p = doc.createPrimitive();
+        for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0']) { const a = sp.getAttribute(sem); if (a) p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setBuffer(buf)); }
+        const idx = sp.getIndices(); if (idx) p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx.getArray().slice()).setBuffer(buf));
+        transformPrimitive(p, ROOT_ZUP);
+        mesh.addPrimitive(p.setMaterial(material(q.mtl, sub)));
+      });
+      if (!mesh.listPrimitives().length) { mesh.dispose(); continue; }
+      const n = doc.createNode(node).setMesh(mesh);
+      const b = getBounds(n);
+      const bc = [(b.min[0] + b.max[0]) / 2, b.min[1], (b.min[2] + b.max[2]) / 2];
+      for (const p of mesh.listPrimitives()) transformPrimitive(p, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -bc[0], -bc[1], -bc[2], 1]);
+      scene.addChild(n);
+      const size = [0, 1, 2].map((i) => r3(b.max[i] - b.min[i]));
+      const tris = Math.round(mesh.listPrimitives().reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0));
+      nodes.push(node);
+      const e = entries.get(q.key) || null;
+      const z = zweckOf(q.key);
+      out.props.push({
+        node, kategorie: kat, file: `/hangar/props/${kat}.glb`, path: q.p4k.replace(/\\/g, '/').replace(/^Data\//i, ''),
+        klasse: e?.klasse ?? null, name: e?.name ?? null, beschreibung: e?.beschreibung ?? null,
+        typ: e?.typ ?? null, tags: e?.tags ?? [], benutzung: [], tragbar: null,
+        zweck: z.zweck, nutzung: z.nutzung,
+        quelle: { geometrie: q.quelle, name: e?.name?.en ? 'spiel' : null, zweck: z.zweck ? 'abgeleitet' : null, aufstellung: e ? 'spiel' : null },
+        size, footprint: [size[0], size[2]], front: '-z', tris, lod: q.lod, materials: mesh.listPrimitives().length,
+        anschluesse: [],
+        aufstellung: e?.aufstellung ?? null, nachbarn: e?.nachbarn ?? [],
+        from: e?.from ?? [], count: e?.count ?? 0, hallen: e?.hallen ?? 0,
+      });
+    }
+    if (!nodes.length) continue;
+    const outPath = fileURLToPath(new URL(`props/${kat}.glb`, OUT));
+    let bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512 });
+    // je Datei ≤ 3 MB: sonst mit halber Kantenlänge neu packen
+    if (bytes > 3 * 1048576) { const d2 = await io.read(outPath); bytes = await packDoc(d2, outPath, { tex: 512, ntex: 256, q: 76 }); }
+    out.kategorien[kat] = { file: `/hangar/props/${kat}.glb`, bytes, props: nodes, v: createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8) };
+    report.push([kat, nodes.length, out.props.filter((p) => p.kategorie === kat).reduce((s, p) => s + p.tris, 0), bytes]);
+  }
+  const nodeOf = new Map(out.props.map((p) => [p.path.split('/').pop().replace(/\.(cgf|cga)$/i, '').toLowerCase(), p.node]));
+  const ref = (key) => nodeOf.get(key) ?? key;
+  // Arbeitsplätze: häufige Zusammensetzungen mit einem Vertreter aus dem Spiel
+  const arbeitsplaetze = inv.zusammensetzungen.filter((z) => z.n >= 3).map((z) => ({
+    name: z.sig, n: z.n, hallen: z.hallen, halle: z.vertreter.hall,
+    mitglieder: z.vertreter.mitglieder.map((m) => ({ node: ref(m.key), kategorie: m.kat, at: [m.at[0], m.at[2], m.drehungY], y: m.y })),
+    abstandFeld: z.vertreter.abstandFeld, abstandWand: z.vertreter.abstandWand,
+    ort: z.vertreter.abstandWand != null && z.vertreter.abstandWand < 1.5 ? 'wand' : 'frei',
+  }));
+  const leitungen = inv.leitungen.map((l) => ({ stuecke: l.stuecke.map((s) => ({ node: ref(s.key), at: s.at })), laenge: l.laenge, von: l.von ? ref(l.von) : null, nach: l.nach ? ref(l.nach) : null, halle: l.halle }));
+  // Schiffsseite: Knoten der Schiffsexporte mit Tank-, Daten- und Andockpunkten
+  const SHIP_PORTS = /fuel_?port|fuelport|IP_Panel_Fuel|umbilical|dataport|docking_collar|docking_port|refuel/i;
+  const schiffe = [];
+  for (const [slug, ent] of [['aegs-gladius', 'AEGS_Gladius'], ['drak-cutlass-black', 'DRAK_Cutlass_Black'], ['rsi-constellation-andromeda', 'RSI_Constellation_Andromeda']]) {
+    const f = fileURLToPath(new URL(`ships/${slug}.glb`, SRC));
+    const ports = [];
+    if (existsSync(f)) {
+      const d = await io.read(f);
+      for (const n of d.getRoot().listNodes()) if (SHIP_PORTS.test(n.getName()) && !/^\$/.test(n.getName())) {
+        const art = /fuel/i.test(n.getName()) ? 'treibstoff' : /data/i.test(n.getName()) ? 'daten' : 'andocken';
+        ports.push({ name: n.getName(), at: n.getWorldTranslation().map(r3), art });
+      }
+    }
+    const lo = inv.schiffe.find((s) => s.schiff === ent);
+    schiffe.push({ schiff: slug, anschluesse: ports, loadout: (lo?.anschluesse || []).filter((l) => /fuel_port|refuel|umbilical/i.test(l)), raum: 'Raum des Schiffsmodells: Y oben, Meter, Schiffsursprung' });
+  }
+  const json = { v: 1, kategorien: out.kategorien, props: out.props, arbeitsplaetze, leitungen, schiffe,
+    hinweise: {
+      anschluesse: 'Die Requisiten-Modelle tragen keine Helfer, Sockets oder Knochen mit Namen; Anschlusspunkte gibt das Spiel nicht her.',
+      namen: 'Spielname und Beschreibung gibt es nur, wo eine Entity mit Lokalisierung die Geometrie trägt; Deko-Requisiten nennen @LOC_PLACEHOLDER.',
+      leitungen: 'Am Boden legt das Spiel kaum Leitungen: kurze Ketten aus 2 bis 3 Stücken, kein Kabel vom Generator zum Schiff. Die meisten Kabelstücke sind Wand- und Deckenzüge.',
+      aufstellung: 'Höhe = Bezugspunkt über dem Feldboden; Abstand zum Feldrand achsparallel (innen negativ); Wandabstand zu Brushes mit „wall“ im Namen; Richtung = Vorderseite (lokale +Y) zur Feldmitte.',
+    } };
+  mkdirSync(fileURLToPath(new URL('props/', OUT)), { recursive: true });
+  const jsonOut = fileURLToPath(new URL('props/katalog.json', OUT));
+  writeFileSync(jsonOut, JSON.stringify(json) + '\n');
+  return {
+    url: '/hangar/props/katalog.json', v: createHash('sha1').update(readFileSync(jsonOut)).digest('hex').slice(0, 8), bytes: statSync(jsonOut).size,
+    props: out.props.length, kategorien: Object.fromEntries(Object.entries(out.kategorien).map(([k, x]) => [k, { file: x.file, v: x.v, bytes: x.bytes, props: x.props.length }])),
+    report: { kats: report, name: out.props.filter((p) => p.name?.en).length, desc: out.props.filter((p) => p.beschreibung?.en).length, zweck: out.props.filter((p) => p.zweck).length, auf: out.props.filter((p) => p.aufstellung).length, ap: arbeitsplaetze.length, lt: leitungen.length, ports: schiffe.map((s) => `${s.schiff} ${s.anschluesse.length}`).join(', ') },
+  };
+}
+
 let prev = {};
 try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lauf */ }
 // Die leichte Hallenstufe steht im Manifest unter hallLite: die Seite nimmt
@@ -1598,7 +1792,26 @@ if (!ONLY || ONLY === 'werkstatt') {
       for (const [n, path, t] of r.report.floors) console.log(`    ${n.padEnd(22)} ${path}  Kachel ${t.join(' x ')} m`);
     } catch (err) { console.error(`  props/werkstatt: FEHLER ${err.stack || err.message}`); if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt; }
   }
-} else if (prev.props) manifest.props = prev.props;
+} else if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt;
+// Gerätekatalog: eigene Quelle (scripts/extract-hangar-katalog.mjs)
+if (!ONLY || ONLY === 'katalog') {
+  const q = fileURLToPath(new URL('katalog/quellen.json', SRC)), qi = fileURLToPath(new URL('katalog/inventar.json', SRC));
+  // neu bauen, sobald eine der beiden Quellen juenger ist (inventar.json schreibt der Auszug zuerst)
+  const newest = () => Math.max(statSync(q).mtimeMs, existsSync(qi) ? statSync(qi).mtimeMs : 0);
+  if (!existsSync(q)) { if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; console.log('  katalog: Quelle fehlt (scripts/extract-hangar-katalog.mjs), Eintrag bleibt'); }
+  else if (!FORCE && prev.props?.katalog && existsSync(fileURLToPath(new URL('props/katalog.json', OUT))) && statSync(fileURLToPath(new URL('props/katalog.json', OUT))).mtimeMs > newest()) { manifest.props.katalog = prev.props.katalog; reused++; }
+  else {
+    try {
+      const r = await buildKatalog();
+      const { report, ...entry } = r;
+      manifest.props.katalog = entry; built++;
+      console.log(`  props/katalog  ${r.props} Requisiten in ${Object.keys(r.kategorien).length} Kategorien, katalog.json ${(r.bytes / 1024).toFixed(0)} KB`);
+      for (const [k, n, t, b] of report.kats) console.log(`    ${k.padEnd(12)} ${String(n).padStart(3)} Requisiten  ${String(t).padStart(7)} Dreiecke  ${(b / 1048576).toFixed(2)} MB`);
+      console.log(`    mit Spielname ${report.name}, mit Beschreibung ${report.desc}, mit Zweck (abgeleitet) ${report.zweck}, mit Aufstellung aus dem Spiel ${report.auf}, mit Anschlusspunkten 0`);
+      console.log(`    Arbeitsplätze ${report.ap}, Leitungen ${report.lt}; Schiffsanschlüsse: ${report.ports}`);
+    } catch (err) { console.error(`  props/katalog: FEHLER ${err.stack || err.message}`); if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; }
+  }
+} else if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog;
 await writeFile(MANIFEST, JSON.stringify({
   source: 'StarBreaker entity/socpak export -> gltf-transform (Draco, WebP)',
   ...manifest,

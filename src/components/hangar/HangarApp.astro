@@ -93,8 +93,13 @@ const lift = liftAsset && liftJson && existsSync(liftJson)
 // Boden-Decals als eigene kleine Datei und die Anordnung um das Landefeld.
 const workAsset = real.props?.werkstatt;
 const workJson = workAsset?.json ? `public${workAsset.json}` : '';
+// Dazu der Gerätesatz für den Wartungsplatz am Schiff (scripts/build-hangar-
+// dienst.mjs packt ihn aus dem Gerätekatalog; nicht im Manifest, das der
+// Asset-Build neu schreibt).
+const dienstFile = 'public/hangar/props/dienst.glb';
+const dienst = existsSync(dienstFile) ? { url: `/hangar/props/dienst.glb?v=${contentV([dienstFile])}`, bytes: statSync(dienstFile).size } : null;
 const workshop = workAsset && workJson && existsSync(workJson)
-  ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null }
+  ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null, dienst }
   : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite
