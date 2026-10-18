@@ -1069,6 +1069,18 @@ last_updated: 2026-10-17T21:00:00.000Z
     "reason": "",
     "recorded_at": "2026-10-17T21:00:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 83,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Feldmitte und Schlauch, 18.10.2026): Auf „unser platform ist nicht mittig“ stehen Schiffsfeld, Schacht und Schiff jetzt auf der Achse von Wänden, Decke und Rahmenlinie (x 36 statt 32). Das Feld rückt um 4 m, der Bodenstreifen mit Nischen und Rundplatten am Feldrand rückt mit, die ersten 4 m des schlichten Bodens dahinter füllen die Lücke auf der anderen Seite (HALL_SHIFT; bei x 60 geteilt). Werkstatt, Feldspuren, Spiellampen und Schacht folgen dem Feld. Dazu ist der orange Luftschlauch auf „das rohr ist durchsichtig“ von allen Seiten deckend (beidseitig, ohne Ausstanzen). Gemessen sind Mitte, Breite und Boden ohne Lücke oder Doppel am ausgelieferten GLB (verify:hangar-hall [13]), gleiche Zeichenbefehle, Ladezeit rund 220 ms mehr in der Cloud, und Bilder derselben Ansichten (von hinten wie im Bild des Betreibers, von oben, an beiden Feldkanten, während der Fahrt). Nicht beurteilen kann die Cloud: ob die Halle von hinten jetzt mittig wirkt, ob die Trimlinie, die nun etwa 4 m links vom Feldrand läuft (Feldseite des einen Streifens trifft die verschobene Trimleiste des anderen), auffällt, und ob die Innenseite des Schlauchs von der offenen Seite glaubhaft aussieht. Stellschrauben HALL_SHIFT und WORK_TWO_SIDED in assets/hangar-viewer.js. Zu beurteilen am Rechner: Startansicht von hinten, einmal flach an der linken Feldkante, einmal in den Schlauch. Beleg: /mnt/project-files/hangar/v40-mitte-schlauch-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-18T12:00:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
