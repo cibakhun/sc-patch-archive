@@ -876,9 +876,14 @@ function buildShaft(kit, info, L, lay) {
 // unterscheiden sich nur in der Helligkeit. Je Material ein BatchedMesh,
 // jedes Teil darin eine Instanz, die gatePose längs ihrer Bahn schiebt.
 // `ms`: so lange dauert hier eine Bahn des Spiels (dort 12,5 s); `clear`:
-// so weit bleibt die Oberkante des Schiffs unter dem Tor.
+// so weit bleibt die Oberkante des Schiffs unter dem Tor; `lead`: so lange
+// vor dem Halt der Plattform deckt das Tor das Feld schon ganz. Die Fahrt
+// hinab dauert dafür, wo nötig, länger als LIFT_DOWN_MS (liftDownMs): Bis
+// 18.10. war das Tor erst nach dem Halt zu, unten sah man das Feld mit
+// Schiff und Gerät im offenen Schacht (Krisz, Bild 20:28; gewünscht war
+// „während die Plattform runterfährt, schließt sich der Schacht“).
 // verify:hangar-hall [15] rechnet dieselbe Auswahl gegen die Dateien in dist/.
-const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1600, "clear": 0.4 } /* /hall-gate */;
+const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1300, "clear": 0.4, "lead": 200 } /* /hall-gate */;
 const GATE_BLEND_MS = 250;   // kehrt das Tor unterwegs um: so lange von der Lage auf die neue Bahn
 const GATE_SLACK_MS = 80;    // die Oberkante des neuen Schiffs kommt erst so lange nach dem offenen Tor
 const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
@@ -904,7 +909,7 @@ function buildGate(scene, info, sh, inner) {
     Math.min(p[0] + hi[0], sh.hx) - Math.max(p[0] + lo[0], -sh.hx),
     Math.min((p[2] + hi[2]) * sz, sh.hz) - Math.max((p[2] + lo[2]) * sz, -sh.hz));
   const parts = [], dropped = [];
-  let bottom = 0;
+  let bottom = 0, cover = 0;
   for (const p of info.parts || []) {
     const node = scene.getObjectByName(p.node), keys = p.keys;
     const pieces = node ? shaftPieces(node, false) : [];
@@ -916,6 +921,13 @@ function buildGate(scene, info, sh, inner) {
     if (reach < HALL_GATE.reach) { dropped.push(`${p.node} nie im Feld`); continue; }
     if (into(lo, hi, [open[1], open[2], open[3]]) >= 0) { dropped.push(`${p.node} offen im Feld`); continue; }
     bottom = Math.min(bottom, keys.close.at(-1)[2] + lo[1]);
+    // Deckt das Teil zu das Feld (bis an den Boden): ab wann steht es still
+    const shut = keys.close.at(-1);
+    if (into(lo, hi, [shut[1], shut[2], shut[3]]) > 0 && shut[2] + hi[1] >= -0.5) {
+      let i = keys.close.length - 1;
+      while (i > 0 && [1, 2, 3].every((a) => Math.abs(keys.close[i - 1][a] - shut[a]) < 0.01)) i--;
+      cover = Math.max(cover, keys.close[i][0]);
+    }
     parts.push({ node: p.node, keys, pieces, at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), ids: [] });
   }
   if (!parts.length) throw new Error(`Schachttor: kein Teil reicht ins Feld (${dropped.join(', ')})`);
@@ -980,7 +992,8 @@ function buildGate(scene, info, sh, inner) {
       };
     }
   }
-  const G = { group, parts, batches, used: parts.length, dropped, tris, T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
+  // cover: ab hier auf der Bahn zu ist das Feld ganz gedeckt (danach rasten nur noch die Riegel ein)
+  const G = { group, parts, batches, used: parts.length, dropped, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
   gatePose(G, 'open', T);
   return G;
 }
@@ -5684,6 +5697,15 @@ ${HALL_LIGHTS_BEGIN}
       gateSettle(G);
     }
   }
+  // Fahrt hinab: mit Tor so lange, dass es das Feld HALL_GATE.lead vor dem
+  // Halt ganz deckt. Es beginnt, wenn die Oberkante des Schiffs darunter ist
+  // (bei kc der Fahrzeit), und braucht bis zum Decken G.cover der Bahn.
+  function liftDownMs(info, to) {
+    const G = gateOf();
+    if (!G || !(to < lift.y)) return LIFT_DOWN_MS;
+    const kc = liftEaseInv(Math.min(1, Math.max(0, (gateClearY(G, info) - lift.y) / (to - lift.y))));
+    return Math.max(LIFT_DOWN_MS, ((G.cover * HALL_GATE.ms) / G.T + HALL_GATE.lead) / Math.max(0.25, 1 - kc));
+  }
   // Auffahrt: mit Tor erst auf, dann hinauf. Die Oberkante des Schiffs
   // erreicht das Tor erst, wenn es offen ist; die Fahrt beginnt dafür so
   // viel später wie nötig.
@@ -5809,7 +5831,7 @@ ${HALL_LIGHTS_BEGIN}
     prog.delete('ship');
     // Mit Aufzug fährt das alte Schiff gleich ab, das neue lädt derweil.
     // Das Tor schließt darüber, sobald es unten frei ist (gateClose)
-    const lowered = realHall?.lift && current && !reduceMotion ? liftTo(-liftDepth(current.info), LIFT_DOWN_MS) : null;
+    const lowered = realHall?.lift && current && !reduceMotion ? liftTo(-liftDepth(current.info), liftDownMs(current.info, -liftDepth(current.info))) : null;
     const covered = lowered ? gateClose(current.info) : null;
     if (lowered) current.lift = true;
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
