@@ -24,7 +24,7 @@
 
      node scripts/probes/hangar-gpu-messung.mjs --base http://localhost:4391
        [--grafik hoch|mittel|niedrig] [--secs 10] [--w 1920 --h 970]
-       [--path /hangar] [--headed] [--json out.json] [--nodrag]
+       [--path /hangar] [--headed] [--json out.json] [--nodrag] [--rest]
        [--brief] [--nogl] [--split prog] [--profile] [--css '<regeln>']
    ============================================================ */
 import { writeFileSync } from 'node:fs';
@@ -173,7 +173,8 @@ function probe(opt) {
         cpuEach: +(g.cpu / g.n).toFixed(3), sw: Math.round(g.sw / g.n), tex: Math.round(g.tex / g.n), unif: Math.round(g.unif / g.n),
       }));
       const cpu = frames.reduce((a, f) => a + (f.cpu || 0), 0) / Math.max(1, frames.length);
-      return { cpuMsPerFrame: +cpu.toFixed(2), frames: frames.length, secs: +secs.toFixed(2), fps: +(frames.length / secs).toFixed(1), gpuMsPerSec: +(total / secs).toFixed(1), gpuMsPerFrame: +(total / Math.max(1, frames.length)).toFixed(2), rows };
+      const cpuMax = frames.reduce((a, f) => Math.max(a, f.cpu || 0), 0);
+      return { cpuMsPerFrame: +cpu.toFixed(2), cpuMax: +cpuMax.toFixed(1), frames: frames.length, secs: +secs.toFixed(2), fps: +(frames.length / secs).toFixed(1), gpuMsPerSec: +(total / secs).toFixed(1), gpuMsPerFrame: +(total / Math.max(1, frames.length)).toFixed(2), rows };
     }).sort((a, b) => b.frames - a.frames);
   };
 }
@@ -243,7 +244,7 @@ async function measure(label, drive) {
   await page.evaluate(() => window.__gpuProbe.stop());
   for (let i = 0; i < 50 && !(await page.evaluate(() => window.__gpuProbe.flush())); i++) await page.waitForTimeout(50);
   const [r] = await page.evaluate(() => window.__gpuProbe.report());
-  console.log(`\n── ${label}: ${r.fps} Bilder/s, GPU ${r.gpuMsPerSec} ms je Sekunde (${(r.gpuMsPerSec / 10).toFixed(1)} %), ${r.gpuMsPerFrame} ms je Bild (CPU ${r.cpuMsPerFrame} ms), ${r.frames} Bilder in ${r.secs} s`);
+  console.log(`\n── ${label}: ${r.fps} Bilder/s, GPU ${r.gpuMsPerSec} ms je Sekunde (${(r.gpuMsPerSec / 10).toFixed(1)} %), ${r.gpuMsPerFrame} ms je Bild (CPU ${r.cpuMsPerFrame} ms, längstes ${r.cpuMax} ms), ${r.frames} Bilder in ${r.secs} s`);
   // Auslastung gilt für den Takt, mit dem der Chip gerade läuft; weniger Arbeit senkt oft nur den Takt.
   // Takt mal Auslastung (GHz·%) ist die Arbeit, unabhängig davon.
   if (chip) console.log(`   Task-Manager (3D, nur dieser Browser): ${chip.taskmgr ?? '?'} % bei ${chip.mhz} MHz = ${chip.taskmgr != null ? (chip.taskmgr * chip.mhz / 1000).toFixed(1) : '?'} GHz·% · nvidia-smi (ganzer Chip): ${chip.util} %, ${chip.watts} W`);
@@ -260,7 +261,13 @@ const box = await page.evaluate(() => {
   const r = c.getBoundingClientRect();
   return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height };
 });
+// Einmal über die Bühne: Der Viewer zählt Leerlauf (ab 2 s, weicheres Bild)
+// und Ruhe (ab 20 s, kein Bild) ab der letzten Zeigerbewegung über ihr.
+await page.mouse.move(box.x, box.y);
+await page.mouse.move(box.x + 20, box.y + 10);
 await page.mouse.move(5, 5);
+const idleFrom = Date.now();
+await page.waitForTimeout(3000);
 const out = [];
 // --profile: CPU-Profil des Leerlaufs, Eigenzeit je Funktion (wo die Bildzeit der CPU hingeht)
 if (argv.includes('--profile')) {
@@ -293,6 +300,11 @@ if (argv.includes('--profile')) {
   process.exit(0);
 }
 out.push(await measure('Leerlauf (Umlauf, Crew)', () => page.waitForTimeout(SECS * 1000)));
+// --rest: dazu die Ruhe, ab 23 s nach der letzten Zeigerbewegung über der Bühne
+if (argv.includes('--rest')) {
+  await page.waitForTimeout(Math.max(0, idleFrom + 23000 - Date.now()));
+  out.push(await measure('Ruhe (über 20 s ohne Eingabe)', () => page.waitForTimeout(SECS * 1000)));
+}
 if (!argv.includes('--nodrag')) out.push(await measure('Drehen (Ziehen mit der Maus)', async () => {
   await page.mouse.move(box.x, box.y);
   await page.mouse.down();

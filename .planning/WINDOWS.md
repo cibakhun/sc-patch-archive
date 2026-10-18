@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 52
+open_count: 53
 waived_count: 1
 fixed_count: 30
-total_count: 83
-last_updated: 2026-10-18T12:25:04.969Z
+total_count: 84
+last_updated: 2026-10-18T13:57:46.755Z
 ---
 
 # Broken Windows Ledger
@@ -98,6 +98,7 @@ last_updated: 2026-10-18T12:25:04.969Z
 | 82 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schacht-Beiwerk, 17.10.2026): Zur ästhetischen Tiefe des Schachts (16.10.2026) stehen jetzt Beiwerk-Teile des Spiels an den Schachtwänden: 35 Lichtrahmen (Licht-Decals, 5 bis 10 m unter dem Rand, leuchten während der Fahrt mit ihrem Atlas) und 51 Leuchtengehäuse (light_fluorescent_f, 8 bis 35 m tief, Glas leuchtet schwach; die oberen, 8 m unter dem Rand, sind schon im Spiel um 45° nach unten geneigt und wirken deshalb verdreht), gesetzt über dieselbe Abbildung Spielschacht auf unseren Schacht wie die Lampen. Vor keinem Gehäuse steht schon Geometrie des Bausatzes (beim Einbau geprüft), es gibt also keine Doppelten. Gemessen sind Knoten und Exemplare (verify:hangar-hall [11], Klinke deco 86), die Kosten (in Ruhe gleich, während der Fahrt 16 Zeichenbefehle mehr auf hoch, 8 auf mittel und niedrig, zwei Shader mehr) und Bilder derselben Ansichten. Der Körper der Gehäuse kommt ohne Farbkarte aus dem Export (Grundfarbe Weiß, metal_panels_a_paint) und bleibt so. Nicht beurteilen kann die Cloud: ob die Gehäuse aus der Ferne als Leuchten lesen oder als verstreute weiße Punkte, ob die Lichtrahmen zu hell oder zu gleichmäßig wirken, und ob sie an unseren schmaleren Wänden glaubhaft verteilt sind (der Spielschacht ist 56 x 88 m, unserer 32 x 96 m). Die Leitlinien und Chevrons vom Rand (microTech-Markierungen) sind bewusst nicht dabei. Stellschrauben SHAFT_DECO und SHAFT_DECO_GLOW in assets/hangar-viewer.js. Zu beurteilen am Rechner: ein Schiffswechsel steil von oben und einmal während der Fahrt an eine Längswand gedreht. Beleg: /mnt/project-files/hangar/v39-schacht-beiwerk-vorher-nachher.png im Projektordner. | open |  | 2026-10-17T21:00:00.000Z |  |
 | 83 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Feldmitte und Schlauch, 18.10.2026): Auf „unser platform ist nicht mittig“ stehen Schiffsfeld, Schacht und Schiff jetzt auf der Achse von Wänden, Decke und Rahmenlinie (x 36 statt 32). Das Feld rückt um 4 m, der Bodenstreifen mit Nischen und Rundplatten am Feldrand rückt mit, die ersten 4 m des schlichten Bodens dahinter füllen die Lücke auf der anderen Seite (HALL_SHIFT; bei x 60 geteilt). Werkstatt, Feldspuren, Spiellampen und Schacht folgen dem Feld. Dazu ist der orange Luftschlauch auf „das rohr ist durchsichtig“ von allen Seiten deckend (beidseitig, ohne Ausstanzen). Gemessen sind Mitte, Breite und Boden ohne Lücke oder Doppel am ausgelieferten GLB (verify:hangar-hall [13]), gleiche Zeichenbefehle, Ladezeit rund 220 ms mehr in der Cloud, und Bilder derselben Ansichten (von hinten wie im Bild des Betreibers, von oben, an beiden Feldkanten, während der Fahrt). Nicht beurteilen kann die Cloud: ob die Halle von hinten jetzt mittig wirkt, ob die Trimlinie, die nun etwa 4 m links vom Feldrand läuft (Feldseite des einen Streifens trifft die verschobene Trimleiste des anderen), auffällt, und ob die Innenseite des Schlauchs von der offenen Seite glaubhaft aussieht. Stellschrauben HALL_SHIFT und WORK_TWO_SIDED in assets/hangar-viewer.js. Zu beurteilen am Rechner: Startansicht von hinten, einmal flach an der linken Feldkante, einmal in den Schlauch. Beleg: /mnt/project-files/hangar/v40-mitte-schlauch-vorher-nachher.png im Projektordner. | open |  | 2026-10-18T12:00:00.000Z |  |
 | 84 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Grafiklast, 18.10.2026): Auf „optimiere das hangar weiter … 40 % GPU“ laufen in der hohen Stufe zwei Dinge sichtbar anders. 1) Die Arbeiter werfen in der echten Halle keinen Schatten mehr (wie schon in mittel und niedrig); die Schattenkarten zeichnen nur neu, wenn das Schiff sich bewegt. 2) Im Leerlauf (Umlauf, Crew) 24 statt 30 Bilder je Sekunde (FPS_IDLE). Ohne sichtbare Absicht geändert: Die Verdeckung liest die Tiefe des Bildes statt eines eigenen Durchgangs, doppelseitige Decals zeichnen in einem Zug, das Spiegelbild im Boden ohne Decals. Gemessen (RTX 3070 Ti, Gladius, 1920 × 970, scripts/probes/hangar-gpu-messung.mjs, je zwei Läufe im Wechsel alt/neu): Prozessorzeit je Bild −37 % im Leerlauf und −40 % beim Drehen, Zeichenaufrufe je Bild 1157 → 456, Arbeit des Chips (Takt × Auslastung) im Leerlauf −25 %, beim Drehen unverändert. Vorher/Nachher bei fester Kamera: kein Unterschied an Schiffsschatten, Verdeckung, Decals. Nicht beurteilen kann das Skript: ob der Umlauf mit 24 Bildern ruckelt, ob die Arbeiter ohne Schatten zu schweben scheinen, ob die Verdeckung an feinen Kanten anders sitzt. Zurück: FPS_IDLE und life.setShadows in assets/hangar-viewer.js. | open |  | 2026-10-18T12:25:04.969Z |  |
+| 85 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Leerlauf und Ruhe, 18.10.2026): Auf „optimize the hangar to have great performance“ hat der Betreiber zwei sichtbare Abstriche gewählt (Rest after idle, Softer image while idle). Gebaut: 2 s nach der letzten Zeigerbewegung über der Bühne (und ohne Bewegung, die die Seite auslöst) zeichnet sie mit 75 % der Bildschärfe; nach 20 s läuft der Umlauf in 1,5 s aus, danach zeichnet sie nichts mehr, die Crew bleibt stehen. Überfahren mit dem Zeiger, Ziehen, Rad, Tasten und jeder Schiffswechsel wecken sie sofort in voller Schärfe. Gemessen (RTX 3070 Ti, Gladius, scripts/probes/hangar-gpu-messung.mjs --rest): in Ruhe 0 Bilder, Grafikprozess des Browsers 2,7 % (Grundwert der Seite); Umschalten auf volle Schärfe ohne längeres Einzelbild als die üblichen Ausreißer (≤ 21 ms). Nicht beurteilen kann das Skript: ob das Leerlaufbild zu weich wirkt, ob das Stillstehen nach 20 s wie ein Hänger aussieht, ob 20 s die richtige Zeit ist. Stellschrauben IDLE_MS, IDLE_SCALE, REST_MS in assets/hangar-viewer.js. | open |  | 2026-10-18T13:57:46.755Z |  |
 
 ````json
 [
@@ -1095,6 +1096,18 @@ last_updated: 2026-10-18T12:25:04.969Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-18T12:25:04.969Z",
+    "resolved_at": null
+  },
+  {
+    "id": 85,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Leerlauf und Ruhe, 18.10.2026): Auf „optimize the hangar to have great performance“ hat der Betreiber zwei sichtbare Abstriche gewählt (Rest after idle, Softer image while idle). Gebaut: 2 s nach der letzten Zeigerbewegung über der Bühne (und ohne Bewegung, die die Seite auslöst) zeichnet sie mit 75 % der Bildschärfe; nach 20 s läuft der Umlauf in 1,5 s aus, danach zeichnet sie nichts mehr, die Crew bleibt stehen. Überfahren mit dem Zeiger, Ziehen, Rad, Tasten und jeder Schiffswechsel wecken sie sofort in voller Schärfe. Gemessen (RTX 3070 Ti, Gladius, scripts/probes/hangar-gpu-messung.mjs --rest): in Ruhe 0 Bilder, Grafikprozess des Browsers 2,7 % (Grundwert der Seite); Umschalten auf volle Schärfe ohne längeres Einzelbild als die üblichen Ausreißer (≤ 21 ms). Nicht beurteilen kann das Skript: ob das Leerlaufbild zu weich wirkt, ob das Stillstehen nach 20 s wie ein Hänger aussieht, ob 20 s die richtige Zeit ist. Stellschrauben IDLE_MS, IDLE_SCALE, REST_MS in assets/hangar-viewer.js.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-18T13:57:46.755Z",
     "resolved_at": null
   }
 ]

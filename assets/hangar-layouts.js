@@ -471,7 +471,28 @@ export function initWorkshop(doc, bridge) {
     }
   }
 
+  // Getauschte Hardpoints am Schiff: ihre Marker stehen im Werkstatt-Modus
+  // dauernd und tragen den Namen des neuen Teils. Als Stilregeln statt als
+  // Klassen, weil der Controller die Marker bei jedem Schiffswechsel neu
+  // einsetzt (Region marks) und die Regeln das ueberleben.
+  const modStyle = doc.head.appendChild(el('style', { id: 'hgl-mods' }));
+  const cssStr = (t) => `"${String(t).replace(/[\\"]/g, '\\$&').replace(/[\n\r]/g, ' ')}"`;
+  function paintMods() {
+    const byPort = new Map();
+    for (const s of slots) {
+      const k = draft.slots[s.key];
+      if (!k) continue;
+      const sel = `.hg[data-pane="layout"] .hgx-mk[data-tab="${tabOf(s)}"][data-port="${CSS.escape(portOf(s.key))}"]`;
+      if (!byPort.has(sel)) byPort.set(sel, []);
+      byPort.get(sel).push(itemName(k));
+    }
+    modStyle.textContent = [...byPort].map(([sel, names]) =>
+      `${sel}{display:block;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:var(--hg-amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--hg-amber) 35%,transparent),0 0 18px var(--hg-amber)}`
+      + `${sel} b{display:none}${sel}::after{content:${cssStr([...new Set(names)].join(' + '))}}`).join('\n');
+  }
+
   function paintTotals() {
+    paintMods();
     const totals = groupTotals(slots, draft.slots, data.items);
     for (const [g, t] of totals) {
       const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : UNIT[g]();

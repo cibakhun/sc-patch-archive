@@ -3125,6 +3125,8 @@ export async function initHangar(container, opts = {}) {
   // Stand der Schattenkarten unter hoch (shadowsDue); leer = neu zeichnen
   let shadowSig = '';
   let pixelRatio = Math.min(window.devicePixelRatio || 1, PR_CAP[Q0]);
+  // Im Leerlauf zeichnet die Bühne mit pixelRatio · pixelScale (frame())
+  let pixelScale = 1;
   console.info(`[hangar] Leistungsstufe ${Q0} (${pick.why})`);
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(W(), H());
@@ -3253,12 +3255,15 @@ export async function initHangar(container, opts = {}) {
   // 1,5° je Sekunde (6° · Speed), unabhängig vom Bildtakt: frame() gibt
   // die Zeit mit. Ohne sie dreht OrbitControls je Bild um 0,1° · Speed, so
   // hing die Drehung bis 2026-10-18 am Takt (30 Bilder, Speed 0,5: 1,5°).
-  controls.autoRotateSpeed = 0.25;
+  const SPIN = 0.25;
+  controls.autoRotateSpeed = SPIN;
   camera.position.copy(homePos());
   controls.update();
   let idleTimer = 0, touched = false;
-  // Bildtakt (frame): bis activeUntil die volle Rate, sonst die des Leerlaufs
-  let activeUntil = 0, dragging = false;
+  // Bildtakt (frame): bis activeUntil die volle Rate, sonst die des Leerlaufs.
+  // seen: letzte Zeigerbewegung über der Bühne; mit activeUntil das Maß für
+  // Leerlauf und Ruhe (frame()). spin: Anteil der Umlaufgeschwindigkeit.
+  let activeUntil = 0, dragging = false, seen = performance.now(), spin = 1;
   const wake = (ms) => { activeUntil = Math.max(activeUntil, performance.now() + ms); };
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
@@ -5235,7 +5240,7 @@ ${HALL_LIGHTS_BEGIN}
       // Szene ein zweites Mal für Normalen und Tiefe zu zeichnen (ao unten)
       rt.depthTexture = new THREE.DepthTexture(W(), H());
       const c = new EffectComposer(renderer, rt);
-      c.setPixelRatio(pixelRatio);
+      c.setPixelRatio(pixelRatio * pixelScale);
       c.setSize(W(), H());
       c.addPass(new RenderPass(scene, camera));
       // Verdeckung in halber Auflösung je Achse (2026-10-15): Normalen,
@@ -5649,11 +5654,25 @@ ${HALL_LIGHTS_BEGIN}
   let focused = document.hasFocus(), hoverUntil = 0;
   const frameD = [];
   let frameSum = 0, lastNow = 0;
+  // Leerlauf und Ruhe (2026-10-18, Wahl des Betreibers für „great
+  // performance"): Ab IDLE_MS ohne Zeigerbewegung über der Bühne und ohne
+  // Bewegung, die jemand auslöst (activeUntil), zeichnet sie mit IDLE_SCALE
+  // der Bildschärfe: rund 20 % weniger Arbeit des Chips im Leerlauf (RTX
+  // 3070 Ti, Gladius, zwei Läufe im Wechsel). Ab REST_MS läuft der Umlauf in
+  // REST_EASE aus, danach zeichnet sie nichts (Grafikprozess des Browsers
+  // 2,7 % statt 16 %), bis der Zeiger über sie fährt oder die Seite etwas
+  // zeigt (wake). Die volle Schärfe kehrt schon beim Überfahren zurück, also
+  // bevor jemand zieht: Das Umstellen legt die Zielbilder neu an (längstes
+  // Bild dabei 21 ms, so lang wie die üblichen Ausreißer).
+  const IDLE_MS = 2000, IDLE_SCALE = 0.75, REST_MS = 20000, REST_EASE = 1500, SPIN_UP = 0.8;
+  function applyPixels() {
+    renderer.setPixelRatio(pixelRatio * pixelScale);
+    composer?.setPixelRatio(pixelRatio * pixelScale);
+  }
   function setPixels(pr) {
     if (Math.abs(pr - pixelRatio) < 1e-3) return;
     pixelRatio = pr;
-    renderer.setPixelRatio(pixelRatio);
-    composer?.setPixelRatio(pixelRatio);
+    applyPixels();
     qualityFn?.(quality());
   }
   function adapt(now, cap) {
@@ -6153,6 +6172,9 @@ ${HALL_LIGHTS_BEGIN}
     if (!focused && now > hoverUntil) return;
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate
     if (dragging || fly || lift.dur || leaving || fade.to || (current && now - current.born < 1600)) wake(300);
+    // Ruhe: Umlauf ausgelaufen, nichts zu zeichnen
+    const quiet = now - Math.max(seen, activeUntil);
+    if (quiet > REST_MS + REST_EASE) { spin = 0; return; }
     const cap = Math.min(fpsCap || FPS_ACTIVE, now < activeUntil ? FPS_ACTIVE : FPS_IDLE);
     // gleichmäßig, auch am schnelleren Schirm (144 Hz: abwechselnd jedes
     // zweite und dritte Bild, im Mittel 60)
@@ -6161,6 +6183,10 @@ ${HALL_LIGHTS_BEGIN}
     due = Math.max(due + iv, now + iv / 2);
     const t = clock.getElapsedTime();
     const dt = Math.min(0.1, t - last); last = t;
+    spin = quiet > REST_MS ? Math.min(spin, 1 - (quiet - REST_MS) / REST_EASE) : Math.min(1, spin + dt / SPIN_UP);
+    controls.autoRotateSpeed = SPIN * spin;
+    const scale = quiet > IDLE_MS ? IDLE_SCALE : 1;
+    if (scale !== pixelScale) { pixelScale = scale; applyPixels(); }
     for (const f of anim) f(t);
     life.update(dt, t, !!realHall?.lift && (lift.y !== 0 || lift.dur > 0));
     if (dust && !reduceMotion) dust.update(t);
@@ -6331,7 +6357,12 @@ ${HALL_LIGHTS_BEGIN}
   document.addEventListener('visibilitychange', onVis);
   const onFocus = () => { focused = document.hasFocus(); if (focused) wake(500); };
   const onBlur = () => { focused = false; hoverUntil = 0; };
-  const onHover = () => { if (!focused) hoverUntil = performance.now() + BG_HOVER; };
+  const onHover = (e) => {
+    const now = performance.now();
+    if (!focused) hoverUntil = now + BG_HOVER;
+    const r = container.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX < r.right && e.clientY >= r.top && e.clientY < r.bottom) seen = now;
+  };
   window.addEventListener('focus', onFocus);
   window.addEventListener('blur', onBlur);
   document.addEventListener('pointermove', onHover, { passive: true });
@@ -6344,7 +6375,7 @@ ${HALL_LIGHTS_BEGIN}
     focus,
     // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
     // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
-    setCover(px) { coverTop = Math.max(0, Number(px) || 0); },
+    setCover(px) { coverTop = Math.max(0, Number(px) || 0); wake(300); },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
