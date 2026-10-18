@@ -32,9 +32,12 @@ Licht, Ablauf und Tempo der Fahrt macht die Cloud.
   Schacht wieder auf und während dessen das neue Schiff fährt hoch.“ Die
   Bewegungen überlappen: Das Tor geht zu, solange die Plattform noch
   sinkt, und auf, während sie schon steigt.
-- Grafikbudget (Krisz' Grafikkarte, siehe `hangar-gpu-pacing`): das Tor
-  sichtbar höchstens rund 6 Zeichenbefehle und 30 000 Dreiecke, nur
-  während des Wechsels gezeichnet.
+- Grafikbudget: Krisz will die Seite neben Star Citizen offen haben
+  (2026-10-15: die Hangarseite allein lastete seine Grafikkarte zu 75 %
+  aus). Der Schacht bekam dafür rund 10 Zeichenbefehle und 60 000
+  Dreiecke (`hangar-schacht.md`); das Tor höchstens die Hälfte davon,
+  rund 6 Zeichenbefehle und 30 000 Dreiecke, nur während des Wechsels
+  gezeichnet.
 
 ## Auftrag PC
 

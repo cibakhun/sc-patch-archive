@@ -244,18 +244,17 @@ const KLINKE_SCHACHT = { 'revelyork-single': { minTris: 28264, maxTris: 60000, l
 // grosse Lache in der Feldmitte sah aus wie verschuettete Tinte (Betreiber).
 // service entfaellt: WORK_SERVICE ist im Wartungsplatz aufgegangen ([14]).
 const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 31888 };
-// Wartungsplatz (Stand 18.10.2026): 7 Plaetze mit 38 Gliedern, 3
-// Leitungen, 8 Spuren aus 29 Requisiten. Obergrenze: 29 Materialien sind 29
-// Zeichenbefehle je Durchgang (auf mittel und hoch), dazu 114 907 Dreiecke
-// und 4,0 MB. Gleiche Regel wie oben, Obergrenzen steigen nur per Commit
+// Wartungsplatz (Stand 18.10.2026 abends; am Carrack wirkte der Platz
+// winzig, Gerät insgesamt zu wenig, Betreiber): Plätze nach Schiffsgröße
+// (ab/bis), 20 Plätze, 131 Glieder, 6 Leitungen, 13 Spuren aus 50
+// Requisiten. Obergrenze des Satzes: 41 Materialien (je Material ein
+// Zeichenbefehl je Durchgang auf mittel und hoch), 203 151 Dreiecke,
+// 4,9 MB. Was ein Schiff kostet, prüft das Tor je Größe (DIENST_KLASSEN:
+// Gladius, Cutlass, Carrack, größte Ausdehnung in m); jedes Band zwischen
+// zwei Grenzen ab/bis braucht eine davon. Ein kleines Schiff zahlt das
+// Gerät der großen nicht (layDienst schaltet Materialien ohne sichtbares
+// Stück ab). Gleiche Regel wie oben, Obergrenzen steigen nur per Commit
 // mit Ursache.
-// 18.10.2026 abends: am Carrack wirkte der Platz winzig, Gerät insgesamt zu
-// wenig (Betreiber). Plätze nach Schiffsgröße (ab/bis): 20 Plätze, 131
-// Glieder, 6 Leitungen, 13 Spuren aus 50 Requisiten. Obergrenze des Satzes:
-// 41 Materialien, 203 151 Dreiecke, 4,9 MB. Was ein Schiff kostet, prüft
-// das Tor je Größe (DIENST_KLASSEN: Gladius, Cutlass, Carrack, größte
-// Ausdehnung in m): Ein kleines Schiff zahlt das Gerät der großen nicht
-// (layDienst schaltet Materialien ohne sichtbares Stück ab).
 const KLINKE_DIENST = { stationen: 20, glieder: 131, leitungen: 6, spuren: 13, props: 50 };
 const OBERGRENZE_DIENST = { mats: 41, tris: 210000, bytes: 5.2e6 };
 const DIENST_KLASSEN = { klein: 20, mittel: 40, gross: 120 };
@@ -1184,7 +1183,7 @@ const dm = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewer)
 let dienst = null;
 try { dienst = dm ? JSON.parse(dm[1]) : null; } catch (e) { fail(`[14] WORK_DIENST im Viewer ist kein JSON mehr (${e.message})`); }
 const DI = W?.dienst ?? null;
-const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {} };
+const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {}, baender: 0 };
 if (W && !DI) fail(`[14] die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. ${existsSync(join(ROOT, 'public/hangar/props/dienst.glb')) ? 'HangarApp.astro pruefen' : 'public/hangar/props/dienst.glb fehlt, neu packen: node scripts/build-hangar-dienst.mjs'}`);
 if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 if (DI && dienst) {
@@ -1285,10 +1284,18 @@ if (DI && dienst) {
     // wie viele Materialien braucht er, also Zeichenbefehle je Durchgang
     // (layDienst schaltet ein BatchedMesh ohne sichtbares Stueck ab)
     const matsOf = (n) => new Set((j.meshes?.[top.get(n)?.mesh]?.primitives ?? []).map((pr) => j.materials?.[pr.material]?.name));
+    // Jedes Band zwischen zwei Grenzen (ab/bis) braucht eine Größe in
+    // DIENST_KLASSEN, sonst prüft das Tor die Schiffe darin nicht
+    const edges = [...new Set([0, ...(dienst.stationen ?? []).flatMap((s) => [s.ab, s.bis]).filter((v) => typeof v === 'number'), Infinity])].sort((a, b) => a - b);
+    dienstRun.baender = edges.length - 1;
+    for (let i = 0; i + 1 < edges.length; i++) {
+      const lo = edges[i], hi = edges[i + 1];
+      if (!Object.values(DIENST_KLASSEN).some((m) => m >= lo && m < hi)) fail(`[14] Schiffe von ${lo} bis ${hi} m: keine Groesse in DIENST_KLASSEN liegt darin, Plaetze und Kosten dieses Bands prueft das Tor nicht. Eine Groesse (Schiff, groesste Ausdehnung in m) mit Klinke und Obergrenze ergaenzen`);
+    }
     for (const [kl, span] of Object.entries(DIENST_KLASSEN)) {
       const on = (dienst.stationen ?? []).filter((s) => span >= (s.ab ?? 0) && span < (s.bis ?? Infinity));
       const names = new Set(on.map((s) => s.name)), uses = [];
-      for (const s of on) for (const g of s.glieder) uses.push(g[0]);
+      for (const s of on) for (const g of s.glieder ?? []) uses.push(g[0]);
       for (const l of dienst.leitungen ?? []) if (names.has(l.von?.[0])) uses.push(l.node);
       for (const sp of dienst.spuren ?? []) if (typeof sp[1] !== 'string' || names.has(sp[1])) uses.push(sp[0]);
       const mats = new Set();
@@ -1308,7 +1315,7 @@ if (DI && dienst) {
     if (dienstRun.bytes > O.bytes) fail(`[14] der Geraetesatz wiegt ${(dienstRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
+sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; jedes Band zwischen zwei Grenzen ab/bis mit einer Groesse; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; ${dienstRun.baender} Groessenbaender, je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke`);

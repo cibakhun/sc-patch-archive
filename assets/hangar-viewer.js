@@ -5772,6 +5772,9 @@ ${HALL_LIGHTS_BEGIN}
     onPoint = false;
     const r = THREE.MathUtils.clamp(pointRel * homeDist(), controls.minDistance, controls.maxDistance);
     flyTo(t, a.pos.sub(a.tgt).setLength(r).add(t), 700);
+    // der Umlauf, den focus() angehalten hat, setzt wie nach dem Ziehen wieder ein
+    clearTimeout(idleTimer);
+    if (!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 6000);
   }
 
   function resetView() {
