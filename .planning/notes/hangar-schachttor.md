@@ -230,3 +230,11 @@ Dreiecke, Zeichenaufrufe und Texturen bleiben unverändert (eine Rechnung mehr j
 **Nachgemessen** (Testbrowser, `torzeit2.mjs`, 1,3 s je Bahn): Cutlass → Carrack: Tor beginnt 0,85 s nach Fahrtbeginn, Feld 0,20 s vor dem Halt gedeckt, Tausch verdeckt, Tor offen 0,56 s vor der Oberkante des neuen Schiffs. Carrack → Gladius: 0,69 s, 0,20 s, verdeckt, 0,72 s. Gleich wie vor dem Umbau. Der erste Wechsel nach dem Laden ist im Testbrowser nicht messbar (Bilder von mehreren Sekunden).
 
 **Offen** (Sichturteil, WINDOWS 91): Liest sich der Schlitz als Gehäuse? Wirkt die 0,27 m dünne Bodenkante wieder „wie aus Papier“? Geschlossen liegt das Tor 0,14 m unter dem Boden (Maß des Spiels). Stört diese Stufe?
+
+## Flache Fahrzeuge (18.10. nachts)
+
+Das Tor ging zu, sobald die Oberkante des Schiffs 0,4 m unter ihm war (`gateClearY`). Das Gerät am Wartungsplatz fährt aber mit, und bei rund 20 Fahrzeugen ist es höher als sie: Werkzeugschrank 2,31 m, Generator 2,19 m; Nox 1,33 m, Pulse 1,5 m, X1 1,55 m, ATLS 1,6 m, Dragonfly 2 m, PTV 2,2 m. Gemessen (Testbrowser, `torzeit3.mjs`, Nox → Gladius, hoch): Das Tor begann zu schließen, als die Oberkante des Schranks 0,57 m über der Unterkante des Tors stand.
+
+Jetzt hält `layDienst` die Oberkante des höchsten gestellten Geräts fest (`info.dienstTop`, in der Konsole „höchstes Gerät“), und `gateClearY` wartet auf das Höhere von Schiff und Gerät. Das gilt beim Absenken (Schließen) und beim Auffahren (Öffnen, `liftUp`). Nachgemessen: Tor beginnt bei Feld −5,28 m, Gerät 0,40 m unter dem Tor; das Feld ist trotzdem 0,27 s vor dem Halt gedeckt.
+
+Ohne Wartungsplatz (niedrig, kleine Bildschirme) bleibt alles, wie es war.
