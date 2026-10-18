@@ -77,7 +77,7 @@
         extras.anchor, aus dem JSON-Block der Datei gelesen). Zwei Klinken:
         Modelle und Ports mit Tauschteilen.
     14  Lackierungen der Werkstatt: paints in dist/hangar-layouts.json je
-        Schiff mit Slots, Serienpalette und jede Lackierung mit drei
+        Schiff (auch ohne tauschbare Bauteile), Serienpalette und jede Lackierung mit drei
         #rrggbb-Toenen, eindeutiger Kennung und Namen. Je Schiff mit Lack
         (dist/hangar/ships) zaehlt die Pruefung die Materialien, deren
         baseColorFactor ein Ton der Serienpalette ist (linear, wie der
@@ -576,8 +576,11 @@ const TAUSCH = { modelle: 112, ports: 37 };
 }
 
 say('\n[14] Lackierungen: Daten der Werkstatt und Palettenmaterialien der Schiffe mit Lack');
-// Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Datenlauf (siehe Commit).
-const LACK = { schiffe: 0, lackierungen: 0, umfaerbbar: 0 };
+// Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Datenlauf am
+// 18.10.2026 (datamine:paints): 207 Schiffe, 2068 Lackierungen; von den zehn
+// Schiffen mit Lack sind neun umfaerbbar (die 300i hat keine Serienpalette
+// und keine Lackierungen).
+const LACK = { schiffe: 207, lackierungen: 2068, umfaerbbar: 9 };
 {
   const lf = join(DIST, 'hangar-layouts.json');
   const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
@@ -585,7 +588,7 @@ const LACK = { schiffe: 0, lackierungen: 0, umfaerbbar: 0 };
   const entries = Object.entries(ld.paints ?? {});
   let rows = 0, pattern = 0;
   for (const [ship, p] of entries) {
-    if (!ld.ships?.[ship]) fail(`[14] Lackierungen fuer ${ship}, das in der Werkstatt keine Slots hat`);
+    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(ship)) fail(`[14] Lackierungen unter der Schiffskennung ${JSON.stringify(ship)}, die der Controller nie meldet`);
     if (!Array.isArray(p.base) || p.base.length !== 3 || !p.base.every((c) => HEXC.test(c))) fail(`[14] ${ship}: Serienpalette ${JSON.stringify(p.base)} ist nicht drei #rrggbb`);
     const ids = new Set();
     for (const r of p.list ?? []) {
@@ -598,7 +601,8 @@ const LACK = { schiffe: 0, lackierungen: 0, umfaerbbar: 0 };
       ids.add(r[0]);
     }
   }
-  // Wie der Viewer (hullTint): Ton der Serienpalette, sRGB nach linear, Summe der Abstaende < 3e-3.
+  // Wie der Viewer (hullTint): Ton der Serienpalette, sRGB nach linear, Summe
+  // der Abstaende < 3e-3; traegt das Modell Lackkanaele, nur mit passendem Kanal.
   const lin = (h) => [1, 3, 5].map((i) => { const v = parseInt(h.slice(i, i + 2), 16) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
   const shipDir = join(DIST, 'hangar', 'ships');
   const tex = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).map((x) => x.replace(/\.glb$/, '')) : [];
@@ -612,11 +616,11 @@ const LACK = { schiffe: 0, lackierungen: 0, umfaerbbar: 0 };
     const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
     const want = p.base.map(lin);
     const hits = [0, 0, 0];
+    const tagged = (gltf.materials ?? []).some((m) => m.extras?.palette_tint != null);
     for (const m of gltf.materials ?? []) {
-      const f = m.pbrMetallicRoughness?.baseColorFactor;
-      if (!f) continue;
+      const f = m.pbrMetallicRoughness?.baseColorFactor ?? [1, 1, 1, 1];
       const pt = m.extras?.palette_tint;
-      const i = want.findIndex((w, k) => (pt == null || pt === k + 1) && Math.abs(w[0] - f[0]) + Math.abs(w[1] - f[1]) + Math.abs(w[2] - f[2]) < 3e-3);
+      const i = want.findIndex((w, k) => (tagged ? pt === k + 1 : true) && Math.abs(w[0] - f[0]) + Math.abs(w[1] - f[1]) + Math.abs(w[2] - f[2]) < 3e-3);
       if (i >= 0) hits[i]++;
     }
     if (hits.some(Boolean)) recolor++;

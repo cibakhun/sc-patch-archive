@@ -404,7 +404,7 @@ export function initWorkshop(doc, bridge) {
     const sub = $('hgl-state-sub');
     sub.textContent = isSaved ? `· ${m('state.saved')}` : n || draft.name ? `· ${m('state.unsaved')}` : '';
     sub.className = isSaved ? 'is-saved' : '';
-    const none = !slots.length;
+    const none = !slots.length && !hasPaints();
     $('hgl-save').disabled = none;
     $('hgl-share').disabled = none;
     $('hgl-reset').disabled = none || n === 0;
@@ -432,8 +432,11 @@ export function initWorkshop(doc, bridge) {
 
   function buildSlots() {
     slotEls.clear();
+    // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
+    // Lackierung, wenn das Schiff welche hat.
     if (!slots.length) {
-      slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')));
+      slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')), ...[paintSection()].filter(Boolean));
+      paintPaints();
       paintCat();
       paintMods();
       paintModel();
@@ -506,9 +509,9 @@ export function initWorkshop(doc, bridge) {
   let cat = null;
   let paintMode = false;
   let seenTab = null;
-  const hasPaints = () => !!data?.paints?.[draft.ship] && slots.length > 0;
+  const hasPaints = () => !!data?.paints?.[draft.ship];
   function wantCat() {
-    if (paintMode && hasPaints()) return 'paint';
+    if ((paintMode || !slots.length) && hasPaints()) return 'paint';
     const want = bridge.state().tab === 'systems' ? 'systems' : 'weapons';
     const other = want === 'weapons' ? 'systems' : 'weapons';
     return slots.some((s) => tabOf(s) === want) || !slots.some((s) => tabOf(s) === other) ? want : other;
@@ -779,7 +782,7 @@ export function initWorkshop(doc, bridge) {
 
   /* ---- Speichern, Teilen, Serie ---- */
   function save() {
-    if (!slots.length) return;
+    if (!slots.length && !hasPaints()) return;
     const entry = store.save({ id: savedId && store.get(savedId) ? savedId : newId(), ship: draft.ship, name: draft.name || placeholder(), slots: draft.slots, paint: draft.paint });
     if (!entry) { showToast(m('msg.full')); return; }
     savedId = entry.id;

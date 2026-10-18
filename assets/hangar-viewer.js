@@ -5699,19 +5699,23 @@ ${HALL_LIGHTS_BEGIN}
     return map.size;
   }
   // Palettenmaterialien des echten Lacks: Material -> { slot 0..2, Serienfarbe }.
-  // Einmal je Schiff, beim ersten paint() mit Serienpalette.
+  // Einmal je Schiff, beim ersten paint() mit Serienpalette. Traegt das Modell
+  // Lackkanaele (extras.palette_tint, nur an der eigenen Palette des Schiffs,
+  // nicht an Halterungen, Sitzen, Beibooten), zaehlt nur ein Material mit
+  // passendem Kanal: eine weisse Serienpalette (Avenger Titan) traefe sonst
+  // jedes reine Texturmaterial.
   function hullTint(c, base) {
     if (c.tint || !base) return c.tint ?? null;
     const want = base.map((h) => new THREE.Color(h));
     const near = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 3e-3;
+    const mats = new Set();
+    for (const [, orig] of c.hull) for (const m of [].concat(orig)) if (m?.color) mats.add(m);
+    const tagged = [...mats].some((m) => m.userData?.palette_tint != null);
     const map = new Map();
-    for (const [, orig] of c.hull) {
-      for (const m of [].concat(orig)) {
-        if (!m?.color || map.has(m)) continue;
-        const pt = m.userData?.palette_tint;
-        const slot = want.findIndex((w, i) => (pt == null || pt === i + 1) && near(w, m.color));
-        if (slot >= 0) map.set(m, { slot, c0: m.color.clone() });
-      }
+    for (const m of mats) {
+      const pt = m.userData?.palette_tint;
+      const slot = want.findIndex((w, i) => (tagged ? pt === i + 1 : true) && near(w, m.color));
+      if (slot >= 0) map.set(m, { slot, c0: m.color.clone() });
     }
     c.tint = map;
     return map;
