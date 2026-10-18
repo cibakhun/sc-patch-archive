@@ -4768,7 +4768,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 		vec3 hgWn = inverseTransformDirection( normal, viewMatrix );
 		outgoingLight += material.diffuseColor * ( hgPit( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} )${m.userData.shaft ? '' : ' * hgShF.x'} + hgShLight( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} ) )${m.userData.shaft ? ' + hgShRim( vHgP, hgWn )' : ''};
 	}` : ''}
-	outgoingLight *= hgPocketK( vHgP );${pit ? `
+	outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * hgPocketK( vHgP ) + totalEmissiveRadiance;${pit ? `
 	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) outgoingLight = hgShHaze( outgoingLight, vHgP );` : ''}
 	#include <opaque_fragment>`);
     }
