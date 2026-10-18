@@ -51,6 +51,7 @@
     "datamine:vehicles": "node scripts/datamine-vehicles.mjs",
     "datamine:components": "node scripts/datamine-ship-components.mjs",
     "datamine:vehicle-roles": "node scripts/datamine-vehicle-roles.mjs",
+    "datamine:paints": "node scripts/datamine-ship-paints.mjs",
     "build:vehicle-external": "node scripts/build-vehicle-external.mjs",
     "sync:extras": "node scripts/sync-fleetyards-extras.mjs",
     "sync:ship-hero-widths": "node scripts/sync-ship-hero-widths.mjs",

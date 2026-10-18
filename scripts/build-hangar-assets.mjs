@@ -328,7 +328,11 @@ async function attachHallTextures(doc) {
 
 // Materialien webtauglich machen: Glas ohne Transmission (teuer, im Viewer
 // ohnehin falsch), keine Lichter, Extras weg (hunderte KB Spiel-Metadaten).
-function cleanMaterials(doc) {
+// Schiffe behalten palette_tint (Lackkanal A/B/C), aber nur an eigenen
+// Materialien: der Rohexport markiert auch Gimbals, Feuerlöscher, Sitze usw.
+// mit deren eigener Palette, und ein Schiffslack darf sie nicht umfärben.
+// Ohne Quellangabe zählt das Material zum Schiff (Rumpf der 300i).
+function cleanMaterials(doc, { paletteOwner } = {}) {
   const root = doc.getRoot();
   for (const m of root.listMaterials()) {
     const x = m.getExtras() || {};
@@ -355,7 +359,9 @@ function cleanMaterials(doc) {
     if (x.glow && !m.getEmissiveTexture() && m.getBaseColorTexture()) {
       m.setEmissiveTexture(m.getBaseColorTexture()).setEmissiveFactor([1, 1, 1]);
     }
-    m.setExtras({});
+    const source = x.semantic?.palette?.source_name;
+    const ownTint = paletteOwner && [1, 2, 3].includes(x.palette_tint) && (source == null || source === paletteOwner);
+    m.setExtras(ownTint ? { palette_tint: x.palette_tint } : {});
   }
   for (const e of root.listExtensionsUsed()) {
     if (/lights_punctual|materials_(ior|transmission|volume)/.test(e.extensionName)) e.dispose();
@@ -1050,7 +1056,7 @@ async function buildOne(kind, name, inPath) {
   if (cover) cover.after = coverage(doc);
   const vertexColors = stripAttributes(doc, kind);
   const liftUv = liftParts ? uvReport(doc) : null;
-  cleanMaterials(doc);
+  cleanMaterials(doc, kind === 'ships' ? { paletteOwner: name.replace(/-/g, '_') } : {});
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' }), weld());
@@ -1122,6 +1128,8 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
+  const palette = kind === 'ships' ? { 1: 0, 2: 0, 3: 0 } : null;
+  if (palette) for (const m of written.getRoot().listMaterials()) { const t = m.getExtras()?.palette_tint; if (t in palette) palette[t]++; }
   if (seams) seams.written = seamStats(written);
   // Halle: Dichtheit der Hülle und Bodenhöhe (der Viewer lotet sie sonst
   // beim Laden selbst nach), beides gegen das geschriebene GLB
@@ -1148,6 +1156,7 @@ async function buildOne(kind, name, inPath) {
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
     ...(swap ? { swap: swap.ports, swapNodes: swap.nodes } : {}),
+    ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
@@ -1730,8 +1739,8 @@ for (const kind of Object.keys(BUDGET)) {
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)));
-    // Schiffe ohne Tauschteile (vor der Layout-Werkstatt gebaut) neu
-    if (!FORCE && prev[slot]?.[name] && fresh && (kind !== 'ships' || prev[slot][name].swap)) {
+    // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu
+    if (!FORCE && prev[slot]?.[name] && fresh && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette))) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
     try {
@@ -1741,6 +1750,7 @@ for (const kind of Object.keys(BUDGET)) {
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
       if (r.swap) console.log(`    Tauschteile: ${Object.keys(r.swap).length} Waffen-Ports (${Object.values(r.swap).reduce((a, b) => a + b, 0)} Exemplare, ${r.swapNodes} Knoten)${Object.keys(r.swap).length ? '' : ' — WARNUNG: keine Serienwaffe im Rohexport gefunden'}`);
+      if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
       if (r.anchorBy) console.log(`    Befestigung über ${r.anchorBy === 'name' ? 'den Entity-Namen' : r.anchorBy === 'kind' ? 'das einzige Kind der Wurzel' : 'die Szenenwurzel — WARNUNG: Lage am Schiff ungeprüft'}`);
       if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       if (r.hull) {
