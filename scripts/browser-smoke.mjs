@@ -125,10 +125,14 @@ const SEITEN = [
   // ist: die Ausstattung kommt dann als Buchtdokument per Abruf.
   {
     id: 'hangar',
-    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
-    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
+    // pane=ship: die Vorgabe der Tafel ist die Layout-Werkstatt, geprueft werden hier die Schiffsdaten.
+    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
+    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
     leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
   },
+  // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
+  // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
+  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000 },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -304,7 +308,7 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
   // ohne WebGL). Danach zweimal Leerlauf: die Halle laedt noch nach und blockiert
   // den Hauptfaden sekundenlang, und jeder Fall misst Zeitgeber von 150 ms.
   const frisch = async (q = '') => {
-    await page.goto(hangar + q, { waitUntil: 'domcontentloaded' });
+    await page.goto(hangar + (q ? `${q}&pane=ship` : '?pane=ship'), { waitUntil: 'domcontentloaded' });
     await warte(() => document.querySelector('.hgx-marks')?.hasAttribute('data-live') || !document.getElementById('hg-fallback').hidden, 45000);
     await page.evaluate(() => new Promise((ok) => requestIdleCallback(() => requestIdleCallback(ok, { timeout: 5000 }), { timeout: 5000 })));
     return page.evaluate(() => document.getElementById('hg-fallback').hidden);
@@ -418,7 +422,7 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
       return !mitGl || balken === '7%' ? null : `das Modell von ${kaputt} lud neu (Balken ${balken}), es soll nur die Bucht kommen`;
     }],
     ['zweimal Schliessen des Vergleichs', async () => {
-      const korb = '?cmp=aegs-gladius,drak-cutlass-black';
+      const korb = '?cmp=aegs-gladius,drak-cutlass-black&pane=ship';
       await page.goto(hangar + korb, { waitUntil: 'domcontentloaded' });
       await page.locator('#hgx-cmp-open').click(KLICK);
       if (!(await warte(() => document.getElementById('hgx-cmp').open, 30000))) return 'der Vergleich oeffnete nicht';
@@ -454,7 +458,7 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
     ['tiefer Link mit langsamer Bucht', async () => {
       // Die Bucht kommt nach dem Modell; hp haelt, bis sie da ist.
       await halte(buchtPfad('anvl-arrow'), async (r) => { await new Promise((ok) => setTimeout(ok, 2500)); await r.continue(); });
-      await page.goto(hangar + '?ship=anvl-arrow&tab=weapons&hp=hardpoint_weapon_wing_left', { waitUntil: 'domcontentloaded' });
+      await page.goto(hangar + '?ship=anvl-arrow&tab=weapons&hp=hardpoint_weapon_wing_left&pane=ship', { waitUntil: 'domcontentloaded' });
       const kam = await warte(() => document.querySelector('[data-bay="panel"]')?.dataset.id === 'anvl-arrow', 30000);
       await gibFrei();
       if (!kam) return 'die Bucht der Arrow kam nicht';
@@ -548,6 +552,8 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     // [4] Leitelement wirklich sichtbar
     geprueftePunkte++;
     const leit = page.locator(seite.leit);
+    // warteLeit: das Leitelement zeichnet erst ein nachgeladenes Skript.
+    if (seite.warteLeit) await leit.first().waitFor({ state: 'attached', timeout: seite.warteLeit }).catch(() => {});
     const anzahl = await leit.count();
     if (!anzahl) melde('leit', `Leitelement "${seite.leit}" fehlt`);
     else {
