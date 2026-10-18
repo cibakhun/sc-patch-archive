@@ -192,6 +192,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { seamStats } from './lib/hall-seams.mjs';
 import { FILL_TOL, touches, samples, normalOf, withNormals, onLite, worldTris } from './lib/hall-fill.mjs';
+import { sha8 } from './lib/eol-sha.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -1187,7 +1188,6 @@ const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0,
 if (W && !DI) fail(`[14] die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. ${existsSync(join(ROOT, 'public/hangar/props/dienst.glb')) ? 'HangarApp.astro pruefen' : 'public/hangar/props/dienst.glb fehlt, neu packen: node scripts/build-hangar-dienst.mjs'}`);
 if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 if (DI && dienst) {
-  const sha8 = (b) => createHash('sha1').update(b).digest('hex').slice(0, 8);
   const frac = (v) => Number.isFinite(v) && Math.abs(v) <= 1;
   // Der Block: Stellen, Glieder, Leitungen, Spuren (wie layDienst sie liest)
   const names = new Set(), props = new Set(), decals = new Set();
@@ -1224,7 +1224,8 @@ if (DI && dienst) {
     dienstRun.bytes = readFileSync(file).length;
     let kat = null;
     try { kat = JSON.parse(readFileSync(join(DIST, 'hangar/props/katalog.json'), 'utf8')); } catch (e) { fail(`[14] dist/hangar/props/katalog.json ist nicht lesbar (${e.message})`); }
-    // Fingerabdruck: zum Block des ausgelieferten Viewers und zu den Quellen in dist/
+    // Fingerabdruck: zum Block des ausgelieferten Viewers und zu den Quellen in dist/,
+    // Text auf LF wie beim Erzeuger (lib/eol-sha.mjs; CRLF-Arbeitskopie unter Windows)
     const st = j?.asset?.extras?.dienst;
     const stale = [];
     if (!st?.block || st.block !== sha8(dm[1].trim())) stale.push(`Block (Satz ${st?.block ?? 'ohne'}, Viewer ${sha8(dm[1].trim())})`);

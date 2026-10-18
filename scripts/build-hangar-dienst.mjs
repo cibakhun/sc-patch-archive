@@ -33,9 +33,9 @@ import { mergeDocuments, prune, dedup, draco, unpartition } from '@gltf-transfor
 import draco3d from 'draco3d';
 import sharp from 'sharp';
 import { readFileSync, statSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { normalizeUvIslands, texcoordBits } from './lib/uv-islands.mjs';
+import { sha8 as sha } from './lib/eol-sha.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const VIEWER = `${ROOT}assets/hangar-viewer.js`;
@@ -43,8 +43,6 @@ const KATALOG = `${ROOT}public/hangar/props/katalog.json`;
 const BODEN = `${ROOT}public/hangar/hall/werkstatt-boden.glb`;
 const OUT = `${ROOT}public/hangar/props/dienst.glb`;
 const FLAT = 'dienst_flach';
-
-const sha = (b) => createHash('sha1').update(b).digest('hex').slice(0, 8);
 
 /** Block /* work-dienst *\/ aus dem Viewer, als Text (Fingerabdruck) und JSON. */
 export function readDienst(viewerText) {
@@ -62,7 +60,7 @@ export function dienstNodes(block) {
   return { props: [...props], decals: [...decals] };
 }
 
-/** Fingerabdruck: Block, Katalog und jede Quelldatei. */
+/** Fingerabdruck: Block, Katalog und jede Quelldatei (Text auf LF, lib/eol-sha.mjs). */
 export function dienstStamp(text, files) {
   return { block: sha(text), quellen: Object.fromEntries(files.map((f) => [f.replace(ROOT, ''), sha(readFileSync(f))])) };
 }
