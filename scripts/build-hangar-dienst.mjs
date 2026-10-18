@@ -200,7 +200,9 @@ async function main() {
     if (!firstOf.has(key)) firstOf.set(key, m);
     else if (firstOf.get(key) !== m) p.setMaterial(firstOf.get(key));
   }
-  await doc.transform(prune(), dedup(), unpartition());
+  // keepAttributes: Glas ohne Bild (Gabelstapler, Frachtwagen) behält seine
+  // Null-Koordinaten, sonst hätte sein Material einen anderen Attributsatz
+  await doc.transform(prune({ keepAttributes: true }), dedup(), unpartition());
   for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) normalizeUvIslands(p, 'TEXCOORD_0');
   const uvBits = texcoordBits(root, 'TEXCOORD_0');
   await doc.transform(draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits, quantizePosition: 14, quantizeGeneric: 10 }));
