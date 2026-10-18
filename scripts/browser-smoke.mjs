@@ -512,9 +512,14 @@ async function probeWerkstatt(page) {
     if (st.sel !== 'true') return `Werkstatt: Reiter ${c} nach Klick nicht gewaehlt`;
     if (st.fremd) return `Werkstatt: unter ${c} stehen ${st.fremd} Gruppe(n) falsch sichtbar oder verborgen`;
     if (st.n !== '1|1') return `Werkstatt: Reiterzaehler "${st.n}", erwartet "1|1"`;
+    // Name und Leuchten nur fuer getauschte Waffen; Komponenten bleiben auch
+    // getauscht schlichte Punkte ohne Namenszettel (Wunsch Krisz).
     const anderer = c === 'weapons' ? 'systems' : 'weapons';
-    const namen = (t) => (st.mods.match(new RegExp(`\\[data-tab="${t}"\\][^{]*::after`, 'g')) ?? []).length;
-    if (!namen(c)) return `Werkstatt: unter ${c} traegt kein getauschtes Teil am Schiff seinen Namen`;
+    const namen = (st.mods.match(/::after/g) ?? []).length;
+    if (!st.mods.includes(`[data-tab="${c}"]`)) return `Werkstatt: unter ${c} markiert das Schiff keinen Hardpoint`;
+    if (c === 'weapons' && !namen) return 'Werkstatt: unter weapons traegt keine getauschte Waffe am Schiff ihren Namen';
+    if (c === 'systems' && namen) return `Werkstatt: unter systems tragen ${namen} Komponente(n) am Schiff einen Namen`;
+    if (c === 'systems' && st.mods.includes('box-shadow')) return 'Werkstatt: unter systems leuchtet eine getauschte Komponente am Schiff';
     if (st.mods.includes(`[data-tab="${anderer}"]`)) return `Werkstatt: unter ${c} markiert das Schiff auch ${anderer}`;
   }
   // Lackierung, sofern das Startschiff welche hat: nur ihre Liste, keine
