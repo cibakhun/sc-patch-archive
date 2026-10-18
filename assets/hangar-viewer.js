@@ -3088,7 +3088,10 @@ export async function initHangar(container, opts = {}) {
   controls.minPolarAngle = 0.15;
   controls.maxPolarAngle = Math.PI / 2 - 0.03; // nie unter den Boden
   controls.autoRotate = !reduceMotion;
-  controls.autoRotateSpeed = 0.5;
+  // 1,5° je Sekunde (6° · Speed), unabhängig vom Bildtakt: frame() gibt
+  // die Zeit mit. Ohne sie dreht OrbitControls je Bild um 0,1° · Speed, so
+  // hing die Drehung bis 2026-10-18 am Takt (30 Bilder, Speed 0,5: 1,5°).
+  controls.autoRotateSpeed = 0.25;
   camera.position.copy(homePos());
   controls.update();
   let idleTimer = 0, touched = false;
@@ -3271,9 +3274,13 @@ export async function initHangar(container, opts = {}) {
   const isNeutral = (t) => !!t?.userData?.neutral;
   // Doppelseitig Durchsichtiges zeichnet three.js in zwei Zügen (Rück-, dann
   // Vorderseite) und ermittelt vor jedem Zug das Shaderprogramm neu. Decals
-  // und Relief liegen flach auf dem Rumpf: ein Zug genügt. Leuchtschalen
-  // (Triebwerke) behalten beide.
-  const onePass = (m) => { if (m.transparent && m.side === THREE.DoubleSide && !/glow/i.test(m.name)) m.forceSinglePass = true; };
+  // und Relief liegen flach auf dem Rumpf: ein Zug genügt. Nur diese, nach
+  // Namen (die doppelseitig durchsichtigen Materialien der zehn texturierten
+  // Schiffe und der Halle, 18.10.2026): Glas ist dort einseitig, aber eine
+  // gewölbte Hülle (Leuchtschalen der Triebwerke, künftiges Glas) braucht
+  // beide Züge.
+  const ONE_PASS = /decal|pom|emblem|graphic|livery|stitch|trim|nernies/i;
+  const onePass = (m) => { if (m.transparent && m.side === THREE.DoubleSide && ONE_PASS.test(m.name)) m.forceSinglePass = true; };
 
   // Vor dem ersten Bild: Shader im Hintergrund übersetzen und Texturen in
   // Häppchen von höchstens ~6 ms hochladen, dazwischen kommt der Browser zum
@@ -5204,7 +5211,7 @@ ${HALL_LIGHTS_BEGIN}
   // Schirm Bilder zeigt (an einem 144-Hz-Schirm 144 je Sekunde), auch wenn
   // niemand hinsah; mit der Seite allein lief eine RTX 30x0 Ti bei 75 %.
   // Jetzt höchstens 60 je Sekunde, solange jemand dreht, zoomt oder ein
-  // Schiff wechselt, im Leerlauf (Umlauf, Crew) 24: Der Umlauf dreht 3° je
+  // Schiff wechselt, im Leerlauf (Umlauf, Crew) 24: Der Umlauf dreht 1,5° je
   // Sekunde, und 24 statt 30 Bilder sparten 23 % der Arbeit des Chips
   // (2026-10-18, RTX 3070 Ti, zwei Läufe). Ist das Fenster nicht
   // vorn (Spiel, anderes Programm), zeichnet die Bühne nur, solange der
@@ -5835,7 +5842,7 @@ ${HALL_LIGHTS_BEGIN}
       if (Math.abs(camWant - r) > 1e-3) camera.position.sub(controls.target).setLength(r + (camWant - r) * (reduceMotion ? 1 : Math.min(1, dt * 5))).add(controls.target);
     }
     if (fly) flyStep(now);
-    controls.update();
+    controls.update(dt);
     // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
     camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
     keepFree();
