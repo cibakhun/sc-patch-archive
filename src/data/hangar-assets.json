@@ -3464,7 +3464,13 @@
         "bits": 17,
         "degenerate": 9.7
       },
-      "bytes": 1918760
+      "bytes": 1918760,
+      "gate": {
+        "url": "/hangar/lift/medtop-tor.glb",
+        "json": "/hangar/lift/medtop-tor.json",
+        "bytes": 633456,
+        "v": "9af198b4"
+      }
     }
   },
   "props": {

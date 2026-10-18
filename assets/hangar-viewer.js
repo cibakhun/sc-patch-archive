@@ -855,6 +855,147 @@ function buildShaft(kit, info, L, lay) {
   return sh;
 }
 
+// Schachttor aus dem Spiel (18.10.2026, Krisz: „wenn die platform
+// runterfährt soll auch das loch oder die schacht oben zugehen damit man
+// das nicht sieht dass das schiff einfach nur dahinploppt“): das Tor des
+// mittleren Hangars (public/hangar/lift/medtop-tor.glb und .json, PC-Auftrag
+// .planning/notes/hangar-schachttor.md). Je Seite drei Flügel, die sich in
+// der Mitte treffen, zwei Stirnplatten an den Enden, darunter Riegel,
+// Zahnstangen und Zylinder; jedes Teil mit seiner Bahn aus door_close und
+// door_open (keys, Zeit in Spielsekunden). Das Spiel öffnet 56 × 88 m, unser
+// Feld ist 32 × 96 m. Quer bleibt das Spielmaß: Die zwei inneren Flügel je
+// Seite decken genau ±16,2 m, und sie fahren im Spiel erst ab 16,5 m in die
+// Mitte, vorher liegen sie unter unserem Hallenboden. Längs streckt sich
+// das Tor um 96/88 auf die Feldlänge. Ein Teil zählt, wenn es irgendwann
+// mehr als HALL_GATE.reach ins Feld reicht und offen ganz draußen liegt. So
+// fallen die äußeren Flügel weg (0,1 m im Feld) und die vier Eckstücke: Zwei
+// erreichen das Feld nie, die zwei an den Enden schieben sich beim Öffnen
+// 10 m hinein und stünden unserer Plattform im Weg.
+// Materialien mit denselben Karten werden eins, ihre Grundfarbe geht als
+// Abdunkelung in hgShade: Die vier Lacke des Tors teilen eine Karte und
+// unterscheiden sich nur in der Helligkeit. Je Material ein BatchedMesh,
+// jedes Teil darin eine Instanz, die gatePose längs ihrer Bahn schiebt.
+// `ms`: so lange dauert hier eine Bahn des Spiels (dort 12,5 s); `clear`:
+// so weit bleibt die Oberkante des Schiffs unter dem Tor.
+// verify:hangar-hall [15] rechnet dieselbe Auswahl gegen die Dateien in dist/.
+const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1600, "clear": 0.4 } /* /hall-gate */;
+const GATE_BLEND_MS = 250;   // kehrt das Tor unterwegs um: so lange von der Lage auf die neue Bahn
+const GATE_SLACK_MS = 80;    // die Oberkante des neuen Schiffs kommt erst so lange nach dem offenen Tor
+const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
+
+// Lage einer Bahn ([t, x, y, z], aufsteigend) zur Zeit tau, nach out
+function gateAt(keys, tau, out) {
+  if (tau <= keys[0][0]) return out.set(keys[0][1], keys[0][2], keys[0][3]);
+  let i = 1;
+  while (i < keys.length - 1 && keys[i][0] < tau) i++;
+  const a = keys[i - 1], b = keys[i], f = Math.min(1, (tau - a[0]) / (b[0] - a[0] || 1));
+  return out.set(a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f);
+}
+
+// Baut das Tor im Schachtraum (sh aus buildShaft; inner: Öffnung des Spiels
+// [quer, längs]). Liefert { group, parts, batches, used, dropped, tris, T,
+// ease, bottom, … }: parts je Teil die Bahnen und die Instanzen, ease die
+// Fahrkurve der Plattform aus dem Spiel (0..1 über die Zeit 0..1) oder null.
+function buildGate(scene, info, sh, inner) {
+  const sz = (2 * sh.hz) / (inner?.[1] ?? 88), T = Math.max(info.anim?.close?.s ?? 0, info.anim?.open?.s ?? 0);
+  if (!(sz > 0) || !(T > 0)) throw new Error('Schachttor: Öffnung oder Dauer fehlt');
+  // Wie weit ein Teil an der Stelle p ins Feld reicht (< 0: gar nicht)
+  const into = (lo, hi, p) => Math.min(
+    Math.min(p[0] + hi[0], sh.hx) - Math.max(p[0] + lo[0], -sh.hx),
+    Math.min((p[2] + hi[2]) * sz, sh.hz) - Math.max((p[2] + lo[2]) * sz, -sh.hz));
+  const parts = [], dropped = [];
+  let bottom = 0;
+  for (const p of info.parts || []) {
+    const node = scene.getObjectByName(p.node), keys = p.keys;
+    const pieces = node ? shaftPieces(node, false) : [];
+    if (!pieces.length || !(keys?.close?.length > 1) || !(keys?.open?.length > 1)) { dropped.push(`${p.node} fehlt`); continue; }
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (const q of pieces) for (let i = 0; i < q.pos.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], q.pos[i + a]); hi[a] = Math.max(hi[a], q.pos[i + a]); }
+    const reach = Math.max(...[...keys.close, ...keys.open].map((k) => into(lo, hi, [k[1], k[2], k[3]])));
+    const open = keys.open.at(-1);
+    if (reach < HALL_GATE.reach) { dropped.push(`${p.node} nie im Feld`); continue; }
+    if (into(lo, hi, [open[1], open[2], open[3]]) >= 0) { dropped.push(`${p.node} offen im Feld`); continue; }
+    bottom = Math.min(bottom, keys.close.at(-1)[2] + lo[1]);
+    parts.push({ node: p.node, keys, pieces, at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), ids: [] });
+  }
+  if (!parts.length) throw new Error(`Schachttor: kein Teil reicht ins Feld (${dropped.join(', ')})`);
+  // Materialien mit denselben Karten: eins (das hellste), die übrigen
+  // behalten ihre Helligkeit über die Abdunkelung
+  const lum = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  const keyOf = (m) => [m.map, m.normalMap, m.roughnessMap, m.metalnessMap, m.emissiveMap].map((t) => t?.uuid ?? '-').join('|') + `|${m.alphaTest}|${m.transparent}|${m.side}|${m.metalness}|${m.roughness}`;
+  const groups = new Map();
+  for (const u of parts) for (const q of u.pieces) {
+    const k = keyOf(q.mat);
+    if (!groups.has(k)) groups.set(k, { mat: q.mat, inst: 0, vert: 0, idx: 0, mats: new Set() });
+    const g = groups.get(k);
+    g.mats.add(q.mat.name);
+    if (lum(q.mat.color) > lum(g.mat.color)) g.mat = q.mat;
+    g.inst++; g.vert += q.pos.length / 3; g.idx += q.idx.length;
+  }
+  const group = new THREE.Group(), batches = [];
+  group.name = 'shaft:gate';
+  group.scale.set(1, 1, sz);
+  for (const g of groups.values()) {
+    const b = new THREE.BatchedMesh(g.inst, g.vert, g.idx, g.mat);
+    b.name = `gate:${g.mat.name}`;
+    b.frustumCulled = false; b.sortObjects = false;
+    b.castShadow = false; b.receiveShadow = false;
+    g.b = b;
+    group.add(b);
+    batches.push(b);
+  }
+  let tris = 0;
+  for (const u of parts) for (const q of u.pieces) {
+    const g = groups.get(keyOf(q.mat)), n = q.pos.length / 3, k = Math.min(1, lum(q.mat.color) / Math.max(1e-6, lum(g.mat.color)));
+    const geo = new THREE.BufferGeometry(), sh3 = new Uint8Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const d = Math.round(Math.min(1, Math.max(0, q.sh[i] * k)) * 255);
+      sh3[i * 3] = d; sh3[i * 3 + 1] = Math.round(Math.min(1, Math.max(0, q.wear[i])) * 255); sh3[i * 3 + 2] = d;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(q.pos, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(q.nor, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(q.uv ?? new Float32Array(n * 2), 2));
+    geo.setAttribute('hgShade', new THREE.BufferAttribute(sh3, 3, true));
+    geo.setIndex(new THREE.BufferAttribute(q.idx, 1));
+    geo.computeBoundingBox(); geo.computeBoundingSphere();
+    u.ids.push({ b: g.b, iid: g.b.addInstance(g.b.addGeometry(geo)) });
+    tris += q.idx.length / 3;
+  }
+  // addGeometry hat kopiert; gatePose braucht nur Bahnen, Lage und Exemplare
+  for (const u of parts) u.pieces = null;
+  // Fahrkurve der Plattform (door_close: 0 bis −36 m), auf 0..1 gebracht;
+  // nur wenn sie stetig steigt
+  const pad = info.anim?.pad?.down?.keys, ps = info.anim?.pad?.down?.s;
+  let ease = null;
+  if (Array.isArray(pad) && pad.length > 2 && ps > 0) {
+    const depth = pad.at(-1)[1], f = pad.map(([t, y]) => [t / ps, y / depth]);
+    if (depth < 0 && f.every((v, i) => i === 0 || (v[0] > f[i - 1][0] && v[1] >= f[i - 1][1]))) {
+      ease = (k) => {
+        if (k <= 0) return 0;
+        if (k >= 1) return 1;
+        let i = 1;
+        while (i < f.length - 1 && f[i][0] < k) i++;
+        const a = f[i - 1], b = f[i];
+        return a[1] + ((b[1] - a[1]) * (k - a[0])) / (b[0] - a[0]);
+      };
+    }
+  }
+  const G = { group, parts, batches, used: parts.length, dropped, tris, T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
+  gatePose(G, 'open', T);
+  return G;
+}
+
+// Alle Teile auf ihre Bahn `dir` zur Zeit tau; blend < 1: von snap dorthin
+function gatePose(G, dir, tau, blend = 1) {
+  for (const u of G.parts) {
+    gateAt(u.keys[dir], tau, G.v);
+    if (blend < 1) G.v.lerpVectors(u.snap, G.v, blend);
+    u.at.copy(G.v);
+    G.M.makeTranslation(G.v.x, G.v.y, G.v.z);
+    for (const id of u.ids) id.b.setMatrixAt(id.iid, G.M);
+  }
+}
+
 // Beiwerk des Spiels im Schacht (Schacht-Tiefe Teil B, 17.10.2026): je Art
 // ein Knoten im Bausatz, die Exemplare in info.deco (Lage im Schachtraum des
 // Spiels, Drehung q, Maßstab), über dieselbe Abbildung wie die Lampen auf
@@ -4874,6 +5015,19 @@ ${HALL_LIGHTS_BEGIN}
         return null;
       })
       : Promise.resolve(null);
+    // Schachttor (buildGate) mit seinen Bahnen, parallel; ohne es oder ohne
+    // Fahrt (reduceMotion) bleibt der Schacht beim Wechsel offen wie bisher
+    const G0 = h.lift?.gate;
+    const gateReady = G0?.url && G0.json && !reduceMotion
+      ? Promise.all([
+        fetchGltf(G0.url, 'gate', G0.bytes || 7e5),
+        fetch(G0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${G0.json}: ${r.status}`)))),
+      ]).then(([g, info]) => ({ scene: g.scene, info }), (e) => {
+        console.warn('[hangar] Schachttor nicht geladen', e);
+        prog.delete('gate');
+        return null;
+      })
+      : Promise.resolve(null);
     // Werkstatt (placeWorkshop), parallel; am Telefon und auf niedrig nur die
     // Bodendatei, ohne sie steht die Halle wie bisher
     const WB = WORK_BUDGET[SMALL ? 'niedrig' : Q0] ?? WORK_BUDGET.niedrig, W = h.workshop;
@@ -5213,6 +5367,40 @@ ${HALL_LIGHTS_BEGIN}
             shaft.group.add(shaft.edge);
           }
           shaft.pit.visible = false;
+          // Schachttor: Materialien wie die der Halle (es liegt im Boden und
+          // nimmt das Hallenlicht, nicht die Schachtlampen), unsichtbar, bis
+          // es zugeht
+          const gk = await gateReady;
+          if (gk) {
+            try {
+              const G = buildGate(gk.scene, gk.info, shaft, kit.info.shaft?.inner);
+              // Gleichnamige Materialien des Schachts tragen dieselben Karten
+              // (verify:hangar-hall [15] vergleicht die Bilder): deren Texturen
+              // statt einer zweiten Kopie im Grafikspeicher
+              const twins = new Map();
+              kit.kit.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) twins.set(m.name, m); });
+              let shared = 0;
+              for (const b of G.batches) {
+                const m = b.material, twin = twins.get(m.name);
+                if (twin) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap']) if (m[k] && twin[k] && !isNeutral(twin[k]) && m[k] !== twin[k]) { m[k].dispose(); m[k] = twin[k]; shared++; }
+                m.envMapIntensity = 0.05;
+                if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
+                if (m.metalness > 0.4) m.metalness = 0.4;
+                m.vertexColors = false; m.userData.hgShade = true;
+                if (/glow/i.test(m.name) && m.emissiveMap) { m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = GATE_GLOW; }
+                for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
+                m.onBeforeCompile = hallShader(m);
+                m.customProgramCacheKey = hallKey;
+                unifyMaps(m);
+              }
+              G.group.visible = false;
+              shaft.group.add(G.group);
+              shaft.gate = G;
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+            } catch (e) {
+              console.warn('[hangar] Schachttor nicht gebaut', e);
+            }
+          }
           model.add(shaft.group);
           console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
         } catch (e) {
@@ -5404,12 +5592,109 @@ ${HALL_LIGHTS_BEGIN}
   // Aufzug: y in Modellmetern (≤ 0 unter dem Boden); wer auf das Ende der
   // Fahrt wartet, steht in wait (auch wenn die Fahrt unterwegs umkehrt)
   const lift = { y: 0, from: 0, to: 0, t0: 0, dur: 0, wait: [] };
-  function liftTo(y, ms) {
+  // delay: fährt erst so viel später los (wartet auf das Tor)
+  function liftTo(y, ms, delay = 0) {
     return new Promise((done) => {
       lift.wait.push(done);
       if (Math.abs(y - lift.y) < 1e-4) { lift.dur = 0; lift.y = y; settleLift(); return; }
-      lift.from = lift.y; lift.to = y; lift.t0 = performance.now(); lift.dur = ms;
+      lift.from = lift.y; lift.to = y; lift.t0 = performance.now() + delay; lift.dur = ms;
+      lift.last = { from: lift.from, to: y, t0: lift.t0, dur: ms };
     });
+  }
+  // Fahrkurve: mit Tor die der Spielplattform (sanft wie ein Sinus), sonst
+  // ease-in-out kubisch; liftEaseInv sucht die Zeit zu einem Wegstück
+  const liftEase = (k) => realHall?.shaft?.gate?.ease?.(k) ?? (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  const liftEaseInv = (f) => {
+    let a = 0, b = 1;
+    for (let i = 0; i < 24; i++) { const m = (a + b) / 2; if (liftEase(m) < f) a = m; else b = m; }
+    return (a + b) / 2;
+  };
+  // Schachttor (buildGate): geht zu, sobald die Oberkante des alten Schiffs
+  // unter ihm ist, und auf, bevor die des neuen es erreicht. G.run: die
+  // laufende Bahn (Richtung, Beginn, Startzeit auf der Bahn, überblendet?);
+  // G.pend: Schließen wartet auf freie Bahn unter dem Tor. Wer wartet, steht
+  // in G.wait und kommt frei, sobald das Tor steht, auch nach einer Umkehr.
+  const gateOf = () => (reduceMotion ? null : realHall?.shaft?.gate ?? null);
+  // Höhe des Felds, bei der die Oberkante des Schiffs HALL_GATE.clear unter dem Tor ist
+  const gateClearY = (G, info) => G.bottom - HALL_GATE.clear - info.height / hallRoot.scale.x;
+  function gateSettle(G) {
+    const w = G.wait;
+    G.wait = [];
+    for (const f of w) f();
+  }
+  function gateStart(G, dir, t0 = performance.now()) {
+    let tau0 = 0, snap = false;
+    if (G.run) {
+      // Umkehr unterwegs: weiter ab der Stelle der neuen Bahn, die der Lage
+      // am nächsten kommt; den Rest überblendet gatePose
+      for (const u of G.parts) u.snap.copy(u.at);
+      let best = Infinity;
+      for (let i = 0; i <= 125; i++) {
+        const tau = (G.T * i) / 125;
+        let d = 0;
+        for (const u of G.parts) d += gateAt(u.keys[dir], tau, G.v).distanceTo(u.at);
+        if (d < best) { best = d; tau0 = tau; }
+      }
+      snap = true;
+    }
+    G.run = { dir, t0, tau0, snap };
+    G.group.visible = true;
+  }
+  function gateClose(info) {
+    const G = gateOf();
+    if (!G) return null;
+    return new Promise((done) => {
+      G.wait.push(done);
+      if (G.run?.dir === 'close') return;
+      if (G.state === 'closed' && !G.run) { gateSettle(G); return; }
+      G.pend = { y: gateClearY(G, info), t: performance.now() };
+    });
+  }
+  function gateOpen() {
+    const G = gateOf();
+    if (!G) return null;
+    G.pend = null;
+    return new Promise((done) => {
+      G.wait.push(done);
+      if (G.run?.dir === 'open') return;
+      if (G.state === 'open' && !G.run) { gateSettle(G); return; }
+      gateStart(G, 'open');
+    });
+  }
+  function gateFrame(now) {
+    const G = gateOf();
+    if (!G) return;
+    if (G.pend && lift.y <= G.pend.y) {
+      // ab dem Augenblick, in dem die Oberkante unter dem Tor war, nicht erst
+      // ab diesem Bild (bei wenigen Bildern je Sekunde ginge es sonst zu spät zu)
+      const L = lift.last, f = L && L.to < L.from ? (G.pend.y - L.from) / (L.to - L.from) : -1;
+      const t = f >= 0 && f <= 1 ? Math.min(now, Math.max(G.pend.t, L.t0 + L.dur * liftEaseInv(f))) : now;
+      G.pend = null;
+      gateStart(G, 'close', t);
+    }
+    const r = G.run;
+    if (!r) return;
+    const tau = Math.min(G.T, r.tau0 + ((now - r.t0) * G.T) / HALL_GATE.ms);
+    const b = r.snap ? Math.min(1, (now - r.t0) / GATE_BLEND_MS) : 1;
+    gatePose(G, r.dir, tau, b);
+    if (tau >= G.T && b >= 1) {
+      G.run = null;
+      G.state = r.dir === 'close' ? 'closed' : 'open';
+      G.group.visible = G.state === 'closed';
+      gateSettle(G);
+    }
+  }
+  // Auffahrt: mit Tor erst auf, dann hinauf. Die Oberkante des Schiffs
+  // erreicht das Tor erst, wenn es offen ist; die Fahrt beginnt dafür so
+  // viel später wie nötig.
+  function liftUp(info) {
+    const G = gateOf();
+    if (!G) return liftTo(0, LIFT_UP_MS);
+    gateOpen();
+    const left = G.run ? ((G.T - Math.min(G.T, G.run.tau0 + ((performance.now() - G.run.t0) * G.T) / HALL_GATE.ms)) * HALL_GATE.ms) / G.T + (G.run.snap ? GATE_BLEND_MS : 0) : 0;
+    const y0 = lift.y, yc = gateClearY(G, info);
+    const reach = y0 < yc ? LIFT_UP_MS * liftEaseInv((yc - y0) / -y0) : 0;
+    return liftTo(0, LIFT_UP_MS, Math.max(0, left + GATE_SLACK_MS - reach));
   }
   function settleLift() {
     const w = lift.wait;
@@ -5523,7 +5808,9 @@ ${HALL_LIGHTS_BEGIN}
     makerCode = o.maker || '';
     prog.delete('ship');
     // Mit Aufzug fährt das alte Schiff gleich ab, das neue lädt derweil.
+    // Das Tor schließt darüber, sobald es unten frei ist (gateClose)
     const lowered = realHall?.lift && current && !reduceMotion ? liftTo(-liftDepth(current.info), LIFT_DOWN_MS) : null;
+    const covered = lowered ? gateClose(current.info) : null;
     if (lowered) current.lift = true;
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
     let gltf = null, textured = false;
@@ -5533,7 +5820,7 @@ ${HALL_LIGHTS_BEGIN}
     }
     // Kommt gar kein Modell, fährt das alte wieder herauf
     if (!gltf) {
-      try { gltf = await fetchGltf(url, 'ship', 3e6, my); } catch (e) { if (lowered && my === token) liftTo(0, LIFT_UP_MS); throw e; }
+      try { gltf = await fetchGltf(url, 'ship', 3e6, my); } catch (e) { if (lowered && my === token) liftUp(current.info); throw e; }
     }
     if (my !== token) { disposeObject(gltf.scene); return; }   // überholt
 
@@ -5589,7 +5876,8 @@ ${HALL_LIGHTS_BEGIN}
       if (my !== token) { drop(); return; }
     }
     if (lowered) {
-      await lowered;
+      // getauscht wird unten und unter geschlossenem Tor
+      await Promise.all([lowered, covered]);
       if (my !== token) { drop(); return; }
     }
     const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
@@ -5624,7 +5912,7 @@ ${HALL_LIGHTS_BEGIN}
     }
     if (up) {
       lift.dur = 0; lift.y = -liftDepth(info); lift.regroup = true;
-      liftTo(0, LIFT_UP_MS);
+      liftUp(info);
     }
     scene.add(ship);
     homeTgt = tgt;
@@ -6403,7 +6691,7 @@ ${HALL_LIGHTS_BEGIN}
     const now = performance.now();
     if (!focused && now > hoverUntil) return;
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate
-    if (dragging || fly || lift.dur || leaving || fade.to || (current && now - current.born < 1600)) wake(300);
+    if (dragging || fly || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
@@ -6421,12 +6709,12 @@ ${HALL_LIGHTS_BEGIN}
     life.update(dt, t, !!realHall?.lift && (lift.y !== 0 || lift.dur > 0));
     if (dust && !reduceMotion) dust.update(t);
     if (lift.dur) {
-      // Aufzug: fährt sanft an und bremst sanft (ease-in-out kubisch)
-      const k = Math.min(1, (now - lift.t0) / lift.dur);
-      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-      lift.y = lift.from + (lift.to - lift.from) * e;
+      // Aufzug: fährt sanft an und bremst sanft (liftEase); vor t0 steht er
+      const k = Math.min(1, Math.max(0, (now - lift.t0) / lift.dur));
+      lift.y = lift.from + (lift.to - lift.from) * liftEase(k);
       if (k >= 1) { lift.dur = 0; lift.y = lift.to; settleLift(); }
     }
+    gateFrame(now);
     if (realHall?.lift) {
       realHall.lift.position.y = lift.y;
       if (realHall.dienst) realHall.dienst.group.position.y = realHall.floorY + lift.y;
@@ -6438,15 +6726,20 @@ ${HALL_LIGHTS_BEGIN}
         // an und aus im Sekundentakt, an der Plattform (Stil 2) ein Puls alle
         // zwei Sekunden; beides nachempfunden, die Spielkurven fehlen im Export.
         const active = lift.dur > 0 || lift.y < -1e-3;
-        sh.pit.visible = active;
+        // Ist das Tor zu, sieht niemand hinein: Schacht, Feld und das Schiff
+        // darunter kosten dann nichts (der Tausch wartet oft aufs Laden)
+        const sealed = sh.gate?.state === 'closed' && !sh.gate.run;
+        sh.pit.visible = active && !sealed;
+        realHall.lift.visible = !sealed;
+        if (realHall.dienst) realHall.dienst.group.visible = !sealed;
         if (!active) pitState.t0 = 0;
         else if (!pitState.t0) pitState.t0 = now;
         const on = active ? Math.min(1, (now - pitState.t0) / PIT_FADE_MS) : 0;
         const bx = 0.5 + 0.5 * Math.cos(t * Math.PI * 2), by = Math.pow(0.5 + 0.5 * Math.cos(t * Math.PI), 4);
         hallPit.k.value.set(on, lift.y, 0);
         hallPit.blink.value.set(bx, by);
-        if (sh.fx) sh.fx.visible = active;
-        if (sh.edge) sh.edge.visible = active;
+        if (sh.fx) sh.fx.visible = active && !sealed;
+        if (sh.edge) sh.edge.visible = active && !sealed;
         // Lichtregie nur unterwegs nachführen (in Ruhe rechnet sie nichts)
         if (active || hallShaft.beam.value.x) {
           hallShaft.c.value.w = bx;
@@ -6479,7 +6772,7 @@ ${HALL_LIGHTS_BEGIN}
         const k = hallRoot.scale.x;
         g.position.y = g.userData.baseY + lift.y * k;
         g.rotation.y = 0;
-        g.visible = true;
+        g.visible = !(realHall?.shaft?.gate?.state === 'closed' && !realHall.shaft.gate.run);
         const yc = lift.y + current.info.height / 2 / k;
         dimIn(current.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)), shaftCool(yc));
       } else {

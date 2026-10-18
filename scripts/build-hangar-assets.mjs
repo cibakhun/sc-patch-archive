@@ -21,6 +21,7 @@ import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, tr
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
+import { sample as sampleCaf } from './lib/ivo-caf.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
@@ -1712,6 +1713,108 @@ async function buildKatalog() {
   };
 }
 
+// ─── Schachttor (.planning/notes/hangar-schachttor.md) ──────────────────
+// Quelle: scripts/extract-hangar-tor.mjs (.cache/hangar-src/tor/). Je
+// Knochen der .cga ein Knoten gate_<n> (Teilnetze über ihren Netz-Knoten
+// zugeordnet), in geschlossener Stellung (= Ruhelage des Modells; door_open
+// beginnt dort). Raum wie lights[].pos des Schachts: Schachtmitte auf dem
+// Hallenboden = 0, x quer (56 m), z längs (88 m), y oben. Knoten-Ursprung =
+// Lage des Knochens; closed/open und die Spuren nennen diese Lage.
+async function buildTor() {
+  const T = JSON.parse(readFileSync(fileURLToPath(new URL('tor/tor.json', SRC)), 'utf8'));
+  const doc = await io.read(fileURLToPath(new URL(T.glb, SRC)));
+  const root = doc.getRoot(), scene = root.listScenes()[0];
+  const gateNode = root.listNodes().find((n) => /ht_hangar_ship_elev_door_med_a/.test(n.getMesh()?.getName() || ''));
+  if (!gateNode) throw new Error('Tor-Mesh fehlt im Export');
+  const prims = gateNode.getMesh().listPrimitives();
+  if (prims.length !== T.subsets.length) throw new Error(`Primitive ${prims.length} ≠ Teilnetze ${T.subsets.length}`);
+  const byIndex = new Map(T.nodes.map((n) => [n.index, n]));
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  // Lage eines Knochens im Container-Raum der .cga: Kette der lokalen Lagen
+  // (Spur zum Bild f, sonst Ruhelage aus dem Knotenbaum; die Tor-Knochen
+  // drehen nicht, nur die Zylinder — deren Drehung ist nicht dekodiert)
+  const chanOf = (caf, name) => caf.bones.find((b) => b.name === name)?.pos || null;
+  const localAt = (bone, caf, f) => { const ch = caf && chanOf(caf, bone.name); return ch ? sampleCaf(ch, f) : bone.t; };
+  const worldAt = (bone, caf, f) => { let p = [0, 0, 0]; for (let b = bone; b; b = b.parent != null ? byIndex.get(b.parent) : null) { const l = localAt(b, caf, f); p = p.map((v, i) => v + l[i]); } return p; };
+  const toShaft = (c) => [c[0], c[2], -c[1]];   // Container (Z oben) -> glTF; Tor steht mit seinem Ursprung auf der Schachtmitte am Boden
+  const cafOpen = T.cafs['ht_hangar_ship_elev_door_med_a_door_open.caf'], cafClose = T.cafs['ht_hangar_ship_elev_door_med_door_close.caf'];
+  const W = gateNode.getWorldMatrix();
+  // Primitive je Knochen sammeln
+  const groups = new Map();
+  T.subsets.forEach((s, i) => {
+    const meshNode = byIndex.get(s.node);
+    const bone = meshNode?.parent != null ? byIndex.get(meshNode.parent) : null;
+    const key = bone && /^anim_/.test(bone.name) ? bone.name : 'frame';
+    if (!groups.has(key)) groups.set(key, { bone: key === 'frame' ? null : bone, prims: [] });
+    groups.get(key).prims.push(prims[i]);
+  });
+  const parts = [];
+  let gi = 0;
+  const order = [...groups.keys()].sort();
+  for (const key of order) {
+    const g = groups.get(key);
+    const node = key === 'frame' ? 'gate_frame_0' : `gate_${gi++}`;
+    const pivot = g.bone ? toShaft(worldAt(g.bone, cafOpen, 0)) : [0, 0, 0];
+    const mesh = doc.createMesh(node);
+    // Weltmatrix einbacken, auf Schachtraum (Boden y 0) und Knochen-Ursprung schieben
+    const shift = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -pivot[0], -pivot[1] - LIFT_SHAFT.floorY, -pivot[2], 1];
+    for (const p of g.prims) {
+      const q = p.clone();
+      for (const sem of q.listSemantics()) q.setAttribute(sem, p.getAttribute(sem).clone());
+      if (p.getIndices()) q.setIndices(p.getIndices().clone());
+      transformPrimitive(q, W);
+      transformPrimitive(q, shift);
+      mesh.addPrimitive(q);
+    }
+    const n = doc.createNode(node).setMesh(mesh).setTranslation(pivot.map(r3));
+    const b = getBounds(n);
+    const track = (caf) => [...Array(31)].map((_, k) => { const f = (k / 30) * (caf?.frames || 450); const p = g.bone ? toShaft(worldAt(g.bone, caf, f)) : [0, 0, 0]; return [r3(f / (caf?.fps || 30) / (T.speed || 1)), ...p.map(r3)]; });
+    parts.push({
+      node, bone: g.bone?.name ?? null, n,
+      size: [0, 1, 2].map((i) => r3(b.max[i] - b.min[i])),
+      tris: g.prims.reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0),
+      closed: { pos: pivot.map(r3), quat: [0, 0, 0, 1] },
+      open: { pos: (g.bone ? toShaft(worldAt(g.bone, cafOpen, cafOpen.frames)) : [0, 0, 0]).map(r3), quat: [0, 0, 0, 1] },
+      rotation: g.bone && [cafOpen, cafClose].some((c) => c.bones.find((x) => x.name === g.bone.name)?.rot) ? 'Drehspur vorhanden (48-Bit-Quaternion), nicht dekodiert' : null,
+      keys: { close: track(cafClose), open: track(cafOpen) },
+    });
+  }
+  for (const n of root.listNodes()) if (!parts.some((p) => p.n === n)) n.dispose();
+  for (const p of parts) scene.addChild(p.n);
+  await doc.transform(prune({ keepAttributes: true }));
+  applyLayers(doc, 'medtop', 'lift');
+  const attached = await attachHallTextures(doc);
+  stripAttributes(doc, 'lift');
+  cleanMaterials(doc);
+  await doc.transform(dedup(), join({ keepNamed: true }), weld());
+  const outPath = fileURLToPath(new URL('lift/medtop-tor.glb', OUT));
+  const bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512 });
+  // Plattform: Knochen anim_pad001, Höhe der Oberkante relativ zum Hallenboden
+  const padTrack = (name) => { const c = T.cafs[name]; const ch = c?.bones.find((x) => x.name === 'anim_pad001')?.pos; return ch ? { s: r3(c.frames / c.fps / (T.speed || 1)), keys: [...Array(31)].map((_, k) => { const f = (k / 30) * c.frames; return [r3(f / c.fps / (T.speed || 1)), r3(sampleCaf(ch, f)[2])]; }) } : null; };
+  const g0 = T.gates[0];
+  const json = {
+    v: 1,
+    source: { geometry: 'ht_hangar_ship_elev_door_med_a.cga', lod: T.lod, stages: T.stages, entity: g0?.cls, note: 'Tor des mittleren Hangars (hangar_medtop_001); bewegt nur durch Verschieben, die Zylinder drehen zusätzlich' },
+    place: T.gates.map((g) => ({ pos: toShaft([g.pos[0], g.pos[1], g.pos[2] - LIFT_SHAFT.floorY]).map(r3), rot: g.rot })),
+    parts: parts.map(({ n, ...p }) => p),
+    anim: {
+      close: { s: r3(cafClose.frames / cafClose.fps / (T.speed || 1)), frames: cafClose.frames, fps: cafClose.fps, speed: T.speed, keys: 'je Teil in parts[].keys.close: [t s, x, y, z] (31 Stützstellen, linear zwischen den Spielschlüsseln)' },
+      open: { s: r3(cafOpen.frames / cafOpen.fps / (T.speed || 1)), frames: cafOpen.frames, fps: cafOpen.fps, speed: T.speed, keys: 'parts[].keys.open' },
+      pad: { down: padTrack('ht_hangar_ship_elev_med_door_close.caf'), up: padTrack('ht_hangar_ship_elev_med_door_open.caf'), note: 'Plattformoberkante relativ zur Ruhelage oben (0) in m; door_close fährt hinab, door_open hinauf' },
+    },
+    order: {
+      sequences: 'sq_hngr_medtop_doorclose_paddown (31,67 s) und sq_hngr_medtop_dooropen_padup (33 s) steuern nur Licht, Hologramm und Ton; wann Tor und Plattform losgehen, steht nicht in den Sequenzen',
+      animations: 'Tor und Plattform tragen gleich benannte Animationen gleicher Länge (door_close: Tor schließt, Plattform fährt hinab; door_open: Tor öffnet, Plattform fährt hinauf), je 450 Bilder bei 30 Bildern/s, DoorAnimationSpeed 1,2 an der Plattform-Entity — abgeleitet: beide laufen gleichzeitig',
+      events: T.events,
+      eventsNote: 'Zeit 0..1 der Animation. Tor: Ton Door_M_Close/Open und Alarm bei 0, Alarm aus bei 0,999. Plattform: Fahrton bei 0, aus bei 0,932 (Fahrt endet vor dem Animationsende)',
+    },
+  };
+  const jsonOut = fileURLToPath(new URL('lift/medtop-tor.json', OUT));
+  writeFileSync(jsonOut, JSON.stringify(json) + '\n');
+  const v = createHash('sha1').update(readFileSync(outPath)).update(readFileSync(jsonOut)).digest('hex').slice(0, 8);
+  return { url: '/hangar/lift/medtop-tor.glb', json: '/hangar/lift/medtop-tor.json', bytes, v, report: { parts: json.parts.map((p) => [p.node, p.bone, p.tris, p.closed.pos, p.open.pos]), attached, jsonBytes: statSync(jsonOut).size, materials: doc.getRoot().listMaterials().length } };
+}
+
 let prev = {};
 try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lauf */ }
 // Die leichte Hallenstufe steht im Manifest unter hallLite: die Seite nimmt
@@ -1722,7 +1825,8 @@ const manifest = { ships: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift
 let built = 0, reused = 0;
 for (const kind of Object.keys(BUDGET)) {
   const dir = new URL(`${kind}/`, SRC);
-  if (!existsSync(dir)) continue;
+  // ohne Quellordner auf diesem Rechner: bisherige Einträge unverändert übernehmen
+  if (!existsSync(dir)) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
   for (const f of readdirSync(dir).filter((x) => x.toLowerCase().endsWith('.glb'))) {
     const name = f.replace(/\.glb$/i, '');
     const slot = slotOf(kind, name);
@@ -1803,6 +1907,27 @@ if (!ONLY || ONLY === 'werkstatt') {
     } catch (err) { console.error(`  props/werkstatt: FEHLER ${err.stack || err.message}`); if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt; }
   }
 } else if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt;
+// Schachttor: hängt am Schacht-Eintrag lift.medtop (eigene Quelle scripts/extract-hangar-tor.mjs)
+if (manifest.lift.medtop) {
+  const keep = prev.lift?.medtop?.gate;
+  const tj = fileURLToPath(new URL('tor/tor.json', SRC));
+  const outs = ['lift/medtop-tor.glb', 'lift/medtop-tor.json'].map((f) => fileURLToPath(new URL(f, OUT)));
+  // neu bauen, sobald eine Quelle juenger ist: Auszug, Tor-Export, Lackschichten des Schachts (applyLayers in buildTor)
+  let tglb = null;
+  try { tglb = existsSync(tj) ? JSON.parse(readFileSync(tj, 'utf8')).glb : null; } catch { tglb = null; }
+  const srcs = existsSync(tj) ? [tj, tglb && fileURLToPath(new URL(tglb, SRC)), fileURLToPath(new URL('lift/medtop.layers.json', SRC))].filter((x) => x && existsSync(x)) : [];
+  const fresh = srcs.length > 0 && outs.every((o) => existsSync(o) && srcs.every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
+  if ((ONLY && ONLY !== 'tor') || !existsSync(tj) || (!FORCE && fresh && keep)) { if (keep) manifest.lift.medtop.gate = keep; }
+  else {
+    try {
+      const r = await buildTor();
+      const { report, ...gate } = r;
+      manifest.lift.medtop.gate = gate; built++;
+      console.log(`  lift/medtop-tor  ${report.parts.length} Knoten, ${report.parts.reduce((a, x) => a + x[2], 0).toLocaleString()} Dreiecke, ${report.materials} Materialien, ${(r.bytes / 1048576).toFixed(2)} MB, JSON ${(report.jsonBytes / 1024).toFixed(0)} KB`);
+      for (const [n, b, t, c, o] of report.parts) console.log(`    ${n.padEnd(14)} ${String(b).padEnd(22)} ${String(t).padStart(6)} Dreiecke  zu ${c.join('/')}  auf ${o.join('/')}`);
+    } catch (err) { console.error(`  lift/medtop-tor: FEHLER ${err.stack || err.message}`); if (keep) manifest.lift.medtop.gate = keep; }
+  }
+}
 // Gerätekatalog: eigene Quelle (scripts/extract-hangar-katalog.mjs)
 if (!ONLY || ONLY === 'katalog') {
   const q = fileURLToPath(new URL('katalog/quellen.json', SRC)), qi = fileURLToPath(new URL('katalog/inventar.json', SRC));
@@ -1822,8 +1947,10 @@ if (!ONLY || ONLY === 'katalog') {
     } catch (err) { console.error(`  props/katalog: FEHLER ${err.stack || err.message}`); if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; }
   }
 } else if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog;
-await writeFile(MANIFEST, JSON.stringify({
-  source: 'StarBreaker entity/socpak export -> gltf-transform (Draco, WebP)',
-  ...manifest,
-}, null, 2) + '\n', 'utf8');
+// Schlüssel, die andere Skripte pflegen (z. B. weapons), bleiben stehen;
+// Reihenfolge wie bisher in der Datei
+const merged = { source: 'StarBreaker entity/socpak export -> gltf-transform (Draco, WebP)' };
+for (const k of Object.keys(prev)) if (k !== 'source') merged[k] = k in manifest ? manifest[k] : prev[k];
+for (const k of Object.keys(manifest)) if (!(k in merged)) merged[k] = manifest[k];
+await writeFile(MANIFEST, JSON.stringify(merged, null, 2) + '\n', 'utf8');
 console.log(`${built} gebaut, ${reused} unveraendert -> src/data/hangar-assets.json`);

@@ -30,7 +30,7 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
 type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number };
-const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string }>; props?: Record<string, Asset & { json?: string; boden?: Asset }> };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
@@ -85,8 +85,14 @@ const patch = furniture && existsSync(patchFile)
 // aus dem Inhalt wie die Lampen der Halle.
 const liftAsset = Object.values(real.lift ?? {})[0];
 const liftJson = liftAsset?.json ? `public${liftAsset.json}` : '';
+// Dazu das Schachttor (Art lift, Eintrag gate): Tor und Bahnen seiner Teile.
+const gateAsset = liftAsset?.gate;
+const gateJson = gateAsset?.json ? `public${gateAsset.json}` : '';
+const gate = gateAsset && gateJson && existsSync(gateJson)
+  ? { url: withV(gateAsset), json: `${gateAsset.json}?v=${contentV([gateJson])}`, bytes: gateAsset.bytes }
+  : null;
 const lift = liftAsset && liftJson && existsSync(liftJson)
-  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes }
+  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes, gate }
   : null;
 // Werkstatt aus anderen Spielhallen (scripts/build-hangar-assets.mjs, Art
 // props; PC-Auftrag .planning/notes/hangar-werkstatt.md): Requisiten,

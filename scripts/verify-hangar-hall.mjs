@@ -17,11 +17,11 @@
    und jede Hallenstufe, die die Seite laedt (url, lite.url), aus dist/.
    Darauf rechnet es dieselbe Regel wie der Viewer (dropHallParts):
    zusammenhaengende Teile (gemeinsame Ecken auf 5 mm), ganz in `reach`,
-   mit mindestens einer Ecke in `seen`. Fuer [12] liest es dazu das
+   mit mindestens einer Ecke in `seen`. Fuer [12] und [15] liest es dazu das
    Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   VIERZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   FUENFZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -182,6 +182,22 @@
         Plaetze, Glieder, Leitungen, Spuren und Requisiten ueber ihrer
         Klinke, Materialien (Zeichenbefehle), Dreiecke und Bytes unter der
         Obergrenze (KLINKE_DIENST, OBERGRENZE_DIENST).
+    15  Das Schachttor schliesst beim Wechsel (seit 18.10.2026): Das Schiff
+        tauschte unten bei offenem Schacht, man sah es ploppen (Betreiber
+        18.10.2026). Das Tor des Spiels (lift.<Bausatz>.gate im Manifest,
+        buildGate im Viewer) geht ueber der sinkenden Plattform zu und ueber
+        der steigenden auf. Der Viewer nimmt nur Teile, die irgendwann mehr
+        als HALL_GATE.reach ins Feld reichen und offen ganz draussen liegen,
+        und streckt das Tor laengs auf das Feld. Geprueft: Nennt das
+        Manifest ein Tor, gibt die Seite genau dieses mit, beide Dateien in
+        dist/; jede Bahn laeuft von 0 bis zur Dauer und schliesst an
+        closed/open an (sonst springt ein Teil); Materialien, die der Schacht
+        gleichnamig traegt, haben dieselben Bilder (der Viewer nimmt dessen
+        Karten); mit derselben Auswahl
+        mindestens KLINKE_TOR Teile, und geschlossen deckt ihr Rahmen jede
+        Zelle des Felds (sonst saehe man durch den Spalt den Tausch);
+        Dreiecke, Materialien nach dem Zusammenlegen (Zeichenbefehle) und
+        Bytes unter OBERGRENZE_TOR.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -262,7 +278,13 @@ const DIENST_KLASSEN = { klein: 20, mittel: 40, gross: 120 };
 const KLINKE_DIENST_KLASSE = { klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
 const OBERGRENZE_DIENST_KLASSE = { klein: { mats: 30, tris: 210000 }, mittel: { mats: 34, tris: 255000 }, gross: { mats: 41, tris: 560000 } };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
-const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
+// Schachttor ([15], seit 18.10.2026): Teile, die ins Feld reichen (14 beim
+// Einbau: Mittelfluegel, Stirnplatten, Riegel, Zahnstangen, Zylinder); die
+// Kosten hoechstens die Haelfte des Schachtbudgets (.planning/notes/
+// hangar-schachttor.md: rund 6 Zeichenbefehle, 30 000 Dreiecke)
+const KLINKE_TOR = { teile: 14 };
+const OBERGRENZE_TOR = { tris: 30000, mats: 6, bytes: 2e6 };
+const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -447,6 +469,7 @@ const decode = (file) => {
   return decoded.get(file);
 };
 const sha1 = (file) => createHash('sha1').update(readFileSync(file)).digest('hex');
+const sha1Bytes = (b) => (b ? createHash('sha1').update(b).digest('hex') : '');
 const furnNodes = (json) => (json?.nodes ?? []).filter((n) => n.extras?.furniture != null && Array.isArray(n.extras?.anchor) && n.extras.anchor.length === 3 && n.extras.anchor.every(Number.isFinite)).length;
 const klinkeMoebel = hall?.id ? KLINKE_MOEBEL[hall.id] ?? 0 : 0;
 let inHall = 0, inFile = 0, furnSrc = '';
@@ -1318,8 +1341,119 @@ if (DI && dienst) {
 }
 sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; jedes Band zwischen zwei Grenzen ab/bis mit einer Groesse; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; ${dienstRun.baender} Groessenbaender, je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
 
+say('\n[15] Das Schachttor schliesst die Oeffnung beim Wechsel, ohne Spalt, und liegt offen ganz draussen');
+// Der Block steht im Viewer zwischen /* hall-gate */ und /* /hall-gate */ und ist JSON
+const gm = /\/\* hall-gate \*\/([\s\S]*?)\/\* \/hall-gate \*\//.exec(viewer);
+let GATE = null;
+try { GATE = gm ? JSON.parse(gm[1]) : null; } catch (e) { fail(`[15] HALL_GATE im Viewer ist kein JSON mehr (${e.message})`); }
+const gateEntry = SHAFT?.kit ? manifest?.lift?.[SHAFT.kit]?.gate ?? null : null;
+const GT = hall?.lift?.gate ?? null;
+const gateRun = { teile: 0, ohne: [], zellen: 0, offen: 0, tris: 0, mats: 0, bytes: 0, bahnen: 0, zwillinge: 0 };
+// Baut der Viewer ein Tor (Block hall-gate) und laedt die Seite den Schacht,
+// gehoert eins dazu: Fiele es aus Manifest und Seite, liefe [15] sonst leer.
+const gateWant = !!(gateEntry || GT || (gm && SHAFT?.kit && hall?.lift));
+if (gateWant) {
+  if (!gateEntry) fail(`[15] der Viewer baut ein Schachttor (HALL_GATE) und die Seite laedt den Schacht ${SHAFT?.kit ?? '?'}, das Manifest nennt aber keins (lift.${SHAFT?.kit ?? '?'}.gate): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. scripts/build-hangar-assets.mjs (Schachttor) pruefen`);
+  if (viewer && !gm) fail('[15] der Viewer traegt keinen Block /* hall-gate */ … /* /hall-gate */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+  if (GATE && !(GATE.reach >= 0 && GATE.reach < 1 && GATE.ms >= 600 && GATE.ms <= 6000 && GATE.clear >= 0)) fail(`[15] HALL_GATE ${JSON.stringify(GATE)}: reach 0..1 m, ms 600..6000, clear >= 0 erwartet`);
+  if (!GT?.url || !GT?.json) fail(`[15] ${gateEntry ? `das Manifest nennt ein Schachttor (lift.${SHAFT?.kit}.gate), ` : ''}die Seite gibt keins mit (opts.hall.lift.gate { url, json }): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. HangarApp.astro pruefen`);
+  else if (!existsSync(fromUrl(GT.url)) || !existsSync(fromUrl(GT.json))) fail(`[15] das Schachttor ${GT.url.split('?')[0]} oder seine Bahnen ${GT.json.split('?')[0]} liegen nicht in dist/`);
+  else if (gateEntry && GT.url.split('?')[0] !== gateEntry.url) fail(`[15] die Seite laedt das Schachttor ${GT.url.split('?')[0]}, das Manifest nennt ${gateEntry.url}`);
+  else if (GATE && LIFT && hall?.lift?.json) {
+    let gi = null, si = null;
+    try { gi = JSON.parse(readFileSync(fromUrl(GT.json), 'utf8')); } catch (e) { fail(`[15] ${GT.json.split('?')[0]} ist kein JSON (${e.message})`); }
+    try { si = JSON.parse(readFileSync(fromUrl(hall.lift.json), 'utf8')); } catch { si = null; }
+    gateRun.bytes = readFileSync(fromUrl(GT.url)).length;
+    const doc = await decode(fromUrl(GT.url));
+    // je Knoten: Ausdehnung im Knoten (der Viewer setzt den Knoten auf seine Bahn), Dreiecke, Materialien
+    const nodes = new Map();
+    for (const node of doc.getRoot().listNodes()) {
+      const mesh = node.getMesh();
+      if (!mesh) continue;
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity], prims = [];
+      let tris = 0;
+      for (const p of mesh.listPrimitives()) {
+        const P = p.getAttribute('POSITION')?.getArray();
+        if (!P) continue;
+        tris += (p.getIndices()?.getCount() ?? P.length / 3) / 3;
+        for (let i = 0; i + 2 < P.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], P[i + a]); hi[a] = Math.max(hi[a], P[i + a]); }
+        prims.push(p);
+      }
+      nodes.set(node.getName(), { lo, hi, tris, prims });
+    }
+    // Feld aus HALL_LIFT, Oeffnung des Spiels aus der Lampenliste des Schachts (wie buildGate)
+    const hx = (LIFT.to[0] - LIFT.from[0]) / 2, hz = (LIFT.to[1] - LIFT.from[1]) / 2;
+    const sz = (2 * hz) / (si?.shaft?.inner?.[1] ?? 88), T = Math.max(gi?.anim?.close?.s ?? 0, gi?.anim?.open?.s ?? 0);
+    if (!(T > 0)) fail(`[15] ${GT.json.split('?')[0]}: anim.close.s / anim.open.s fehlen; der Viewer baute das Tor nicht`);
+    const into = (lo, hi, p) => Math.min(Math.min(p[0] + hi[0], hx) - Math.max(p[0] + lo[0], -hx), Math.min((p[2] + hi[2]) * sz, hz) - Math.max((p[2] + lo[2]) * sz, -hz));
+    const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 0.01);
+    const used = [];
+    for (const p of gi?.parts ?? []) {
+      const n = nodes.get(p.node), K = p.keys;
+      const okKeys = (ks, s) => Array.isArray(ks) && ks.length > 1 && ks.every((k, i) => Array.isArray(k) && k.length === 4 && k.every(Number.isFinite) && (i === 0 || k[0] > ks[i - 1][0])) && Math.abs(ks[0][0]) < 0.01 && Math.abs(ks.at(-1)[0] - s) < 0.01;
+      if (!n || !n.tris) { fail(`[15] ${GT.json.split('?')[0]} nennt ${p.node}, das Tor hat dafuer keinen Knoten mit Dreiecken`); continue; }
+      if (!okKeys(K?.close, gi.anim?.close?.s) || !okKeys(K?.open, gi.anim?.open?.s)) { fail(`[15] ${p.node}: keys.close/keys.open brauchen [t, x, y, z] mit steigender Zeit von 0 bis anim.*.s`); continue; }
+      gateRun.bahnen++;
+      // Bahnen schliessen aneinander an: zu endet, wo auf beginnt, und umgekehrt (sonst springt das Teil)
+      const cl = p.closed?.pos, op = p.open?.pos;
+      if (!cl || !op || !near(K.close.at(-1).slice(1), cl) || !near(K.open[0].slice(1), cl) || !near(K.open.at(-1).slice(1), op) || !near(K.close[0].slice(1), op)) fail(`[15] ${p.node}: die Bahnen treffen closed/open nicht (zu endet ${K.close.at(-1).slice(1).join(', ')}, auf beginnt ${K.open[0].slice(1).join(', ')}; closed ${cl?.join(', ')}, open ${op?.join(', ')}): Das Teil spraenge beim Richtungswechsel`);
+      // dieselbe Auswahl wie buildGate
+      const reach = Math.max(...[...K.close, ...K.open].map((k) => into(n.lo, n.hi, [k[1], k[2], k[3]])));
+      if (reach < GATE.reach) { gateRun.ohne.push(`${p.node} nie im Feld`); continue; }
+      if (into(n.lo, n.hi, K.open.at(-1).slice(1)) >= 0) { gateRun.ohne.push(`${p.node} offen im Feld`); continue; }
+      used.push({ p, n });
+    }
+    gateRun.teile = used.length;
+    // Geschlossen: jede Zelle des Felds (CELL m) unter einem Teil, das bis
+    // an den Boden reicht (Oberkante ueber -0,5 m); sonst saehe man durch den
+    // Spalt den Tausch. Rahmen der Teile, Loecher in einem Teil sieht das nicht.
+    const CELL = 0.25, nx = Math.round((2 * hx) / CELL), nz = Math.round((2 * hz) / CELL), cov = new Uint8Array(nx * nz);
+    for (const { p, n } of used) {
+      const c = p.keys.close.at(-1);
+      if (c[2] + n.hi[1] < -0.5) continue;
+      const x0 = c[1] + n.lo[0], x1 = c[1] + n.hi[0], z0 = (c[3] + n.lo[2]) * sz, z1 = (c[3] + n.hi[2]) * sz;
+      for (let j = 0; j < nz; j++) {
+        const z = -hz + (j + 0.5) * CELL;
+        if (z < z0 || z > z1) continue;
+        for (let i = 0; i < nx; i++) { const x = -hx + (i + 0.5) * CELL; if (x >= x0 && x <= x1) cov[j * nx + i] = 1; }
+      }
+    }
+    gateRun.zellen = nx * nz;
+    gateRun.offen = cov.length - cov.reduce((a, v) => a + v, 0);
+    if (gateRun.offen) fail(`[15] geschlossen deckt das Tor ${gateRun.offen} von ${gateRun.zellen} Zellen (${CELL} m) des Felds nicht: Durch den Spalt saehe man den Tausch. Auswahl (HALL_GATE.reach) oder Streckung laengs pruefen`);
+    // Kosten: Dreiecke, Bytes, Materialien nach dem Zusammenlegen (gleiche Karten = eins, wie buildGate)
+    const texKey = (m) => [m?.getBaseColorTexture(), m?.getNormalTexture(), m?.getMetallicRoughnessTexture(), m?.getEmissiveTexture()].map((t) => (t ? doc.getRoot().listTextures().indexOf(t) : '-')).join('|') + `|${m?.getAlphaMode()}|${m?.getDoubleSided()}|${m?.getMetallicFactor()}|${m?.getRoughnessFactor()}`;
+    const groups = new Set();
+    for (const { n } of used) { gateRun.tris += n.tris; for (const pr of n.prims) groups.add(texKey(pr.getMaterial())); }
+    gateRun.mats = groups.size;
+    // Gleichnamige Materialien im Schacht: Der Viewer nimmt deren Karten, also
+    // muessen es dieselben Bilder sein (sonst truege das Tor fremde Texturen)
+    const shaftDoc = await decode(fromUrl(hall.lift.url));
+    const maps = (m) => [['Farbe', m.getBaseColorTexture()], ['Normale', m.getNormalTexture()], ['Rauheit', m.getMetallicRoughnessTexture()]];
+    const twinOf = new Map(shaftDoc.getRoot().listMaterials().map((m) => [m.getName(), m]));
+    const usedMats = new Set(used.flatMap(({ n }) => n.prims.map((pr) => pr.getMaterial())).filter(Boolean));
+    for (const m of usedMats) {
+      const tw = twinOf.get(m.getName());
+      if (!tw) continue;
+      gateRun.zwillinge++;
+      const twMaps = new Map(maps(tw));
+      for (const [k, t] of maps(m)) {
+        const u = twMaps.get(k);
+        if (!t || !u) continue;
+        if (sha1Bytes(t.getImage()) !== sha1Bytes(u.getImage())) fail(`[15] ${m.getName()}: die Karte ${k} des Tors ist ein anderes Bild als die des gleichnamigen Schachtmaterials; der Viewer naehme die des Schachts. Export pruefen oder das Material umbenennen`);
+      }
+    }
+    const O = OBERGRENZE_TOR;
+    if (gateRun.teile < KLINKE_TOR.teile) fail(`[15] nur ${gateRun.teile} Teile des Tors reichen ins Feld (ohne: ${gateRun.ohne.join(', ')}), die Klinke verlangt ${KLINKE_TOR.teile}: Teile beim Export verloren oder HALL_GATE.reach zu streng? KLINKE_TOR nur per Commit mit Ursache senken`);
+    if (gateRun.tris > O.tris) fail(`[15] das Tor zeichnet ${gateRun.tris} Dreiecke, die Obergrenze ist ${O.tris}: zu teuer fuer einen Schiffswechsel (halbes Schachtbudget). Kleinere LOD exportieren; OBERGRENZE_TOR nur per Commit mit Ursache anheben`);
+    if (gateRun.mats > O.mats) fail(`[15] das Tor braucht ${gateRun.mats} Materialien (Zeichenbefehle je Durchgang), die Obergrenze ist ${O.mats}: OBERGRENZE_TOR nur per Commit mit Ursache anheben`);
+    if (gateRun.bytes > O.bytes) fail(`[15] das Tor wiegt ${(gateRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
+  }
+}
+sollIst(gateWant ? `Tor in dist/ wie im Manifest; jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateWant ? `${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

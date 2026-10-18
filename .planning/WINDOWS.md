@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 56
+open_count: 57
 waived_count: 1
 fixed_count: 30
-total_count: 87
-last_updated: 2026-10-18T17:09:41.000Z
+total_count: 88
+last_updated: 2026-10-18T19:10:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -102,6 +102,7 @@ last_updated: 2026-10-18T17:09:41.000Z
 | 86 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Verdeckung im Viertel, 18.10.2026): Auf „nicht nur cpu auslastung aber hauptsächlich auch gpu“ rechnet die Umgebungsverdeckung (GTAO) in einem Viertel statt der Hälfte der Auflösung je Achse; dazu ohne Bildänderung ein zweites Zielbild ohne Kantenglättung. Zusammen −23 % Arbeit des Chips je Bild (voll ausgelastet gemessen, RTX 3070 Ti, 3840×1560, zwei Läufe im Wechsel: 31,2/30,6 → 23,9/23,8 ms). Bildvergleich bei fester Kamera: im Mittel 0,43 von 255 Helligkeitsstufen Abweichung (zwei Aufnahmen desselben Stands 0,12), sichtbar nur als weichere Säume der Verdeckung an Schiffskanten und Bodenleisten. Nicht beurteilen kann das Skript: ob die Verdeckung beim Heranzoomen (Fahrwerk, Fugen, Füße der Crew) zu weich oder fleckig wirkt. Zurück: AO_DIV in assets/hangar-viewer.js von 4 auf 2. | open |  | 2026-10-18T15:10:14.562Z |  |
 | 87 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Wartungsplatz am Schiff, 18.10.2026): Auf „die assets sind allgemein zu wenige, und sind nicht belivable plaziert“, den Ölfleck wie verschüttete Tinte, den Schlauch ohne Anschluss und „viel mehr assets holen und die semantik … nicht nur random“ steht das Gerät jetzt nach seinem Zweck (Katalog, 198 Spiel-Requisiten) in sieben Stationen am Schiff: Strom (Generator, Kabeltrommel, Verteiler, Strahler), Treibstoff (Schlauchtrommel, fünf Brennstoffzellen, Löscher, Kegel, Mopp), Diagnose (Konsole, Rechner, Arbeitslicht), Werkzeug (Schrank, Kiste, Schweißgerät, Gasflasche, Arbeitslicht, Rollbrett, Steckschlüssel), Lager am Heck (Kisten, Fässer, Hubwagen), je zwei Kegel am Bug. Jede Station läuft von außen auf Flügel oder Rumpf zu, bis sie anstößt (Grundriss des Schiffs von unten), Kabel und Schlauch liegen vom Gerät über den Boden bis unter den Rumpf, Ölflecken nach Schiffsgröße unter dem Schiff, hinter dem Heck und an Strom und Treibstoff; die großen Flecken auf dem Feld sind weg. Gemessen: 7 von 7 Plätzen bei Gladius, Cutlass Black und Carrack, 29 Zeichenbefehle für den ganzen Satz, Gladius mittel von hinten 292 → 319 Zeichenaufrufe. Nicht beurteilen kann die Cloud: ob die Gruppen wie ein echter Arbeitsplatz wirken; ob die Ölflecken unter dem Schiff im Schatten zu sehen sind; ob Kabel und Schlauch glaubhaft enden (sie enden auf dem Boden unter dem Rumpf: das Spiel kennt keine Anschlusspunkte am Schiff); ob es jetzt genug Gerät ist; ob die Kegel am Bug stören; und ob das Gerät bei großen Schiffen (Carrack) in echter Größe zu klein wirkt, dort wären mehr Stationen entlang des Rumpfs der nächste Schritt. Stellschrauben WORK_DIENST, DIENST_CLEAR, DIENST_SPUR in assets/hangar-viewer.js, danach node scripts/build-hangar-dienst.mjs. Beleg: /mnt/project-files/hangar/v41-wartungsplatz-vorher-nachher.png im Projektordner. | open |  | 2026-10-18T15:30:00.000Z |  |
 | 88 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Wartungsplatz nach Schiffsgröße, 18.10.2026): Auf „am Carrack wirkt der Platz winzig, Gerät insgesamt zu wenig“ stehen jetzt 20 Plätze nach Schiffsgröße (größte Ausdehnung, ab/bis): kleine Schiffe 10 (dazu Werkbank, Trittleiter, Diagnose am Bug), mittlere 11 (Rollleiter, Gabelstapler am Heck), große ab 60 m 19 (Tankstelle mit Gasflaschen, Schweißplatz mit Kranarm, großes Lager mit Containern, Frachtwagen, zweiter Strom- und Werkzeugplatz, Frachtzone hinter dem Heck, Vorfeld vor dem Bug). Alles in Originalgröße aus dem Spiel. Trägt das Gerät an der Carrack als Werkplatz, oder wirkt es noch verloren? Hebel: ab/bis/frei und die Stationen in WORK_DIENST (assets/hangar-viewer.js), danach node scripts/build-hangar-dienst.mjs. Beleg: /mnt/project-files/hangar/v42-wartungsplatz-schiffsgroessen-vorher-nachher.png und /mnt/project-files/hangar/v42b-carrack-nah.png im Projektordner. | open |  | 2026-10-18T17:09:41.000Z |  |
+| 89 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schachttor beim Schiffswechsel, 18.10.2026): Auf „wenn die platform runterfährt soll auch das loch oder die schacht oben zugehen damit man das nicht sieht dass das schiff einfach nur dahinploppt“ schließt jetzt das Tor des Spiels (ht_hangar_ship_elev_door_med_a, 14 Teile: je Seite zwei Flügel, zwei Stirnplatten, Riegel, Zahnstangen, Zylinder) über der sinkenden Plattform, sobald die Oberkante des alten Schiffs 0,4 m darunter ist; getauscht wird erst unter dem geschlossenen Tor; es öffnet beim Hochfahren und ist offen, bevor die Oberkante des neuen Schiffs ankommt. Bewegung je Teil aus door_close/door_open, statt 12,5 s in 1,6 s je Richtung; die Plattform fährt jetzt auf der Kurve der Spielplattform (sanfter an und aus als vorher). Gemessen im Testbrowser: Tor beginnt 0,64 s (Gladius) bzw. 0,73 s (Carrack) nach Fahrtbeginn zu schließen, Tausch verdeckt, Tor offen 0,13 bis 0,42 s vor der Oberkante des neuen Schiffs; bis zum Tausch dauert es dadurch 0,3 bis 0,4 s länger. Nicht beurteilen kann die Cloud: ob das Tor im Tempo stimmt (1,6 s je Richtung, im Spiel 12,5 s) oder schwer genug wirkt; ob es im Hallenlicht zu dunkel ist (die Lacke des Spiels sind fast schwarz, die Mitte trägt Warnstreifen und Leuchtstreifen); ob die Spiegelung der Halle auf dem geschlossenen Tor stört; und ob die Fahrkurve des Spiels sich besser anfühlt als die alte. Stellschrauben HALL_GATE (ms, clear) und GATE_GLOW in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v44-schachttor-vorher-nachher.png und /mnt/project-files/hangar/v44-schachttor-film.gif im Projektordner. | open |  | 2026-10-18T19:10:00.000Z |  |
 
 ````json
 [
@@ -1147,6 +1148,18 @@ last_updated: 2026-10-18T17:09:41.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-18T17:09:41.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 89,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schachttor beim Schiffswechsel, 18.10.2026): Auf „wenn die platform runterfährt soll auch das loch oder die schacht oben zugehen damit man das nicht sieht dass das schiff einfach nur dahinploppt“ schließt jetzt das Tor des Spiels (ht_hangar_ship_elev_door_med_a, 14 Teile: je Seite zwei Flügel, zwei Stirnplatten, Riegel, Zahnstangen, Zylinder) über der sinkenden Plattform, sobald die Oberkante des alten Schiffs 0,4 m darunter ist; getauscht wird erst unter dem geschlossenen Tor; es öffnet beim Hochfahren und ist offen, bevor die Oberkante des neuen Schiffs ankommt. Bewegung je Teil aus door_close/door_open, statt 12,5 s in 1,6 s je Richtung; die Plattform fährt jetzt auf der Kurve der Spielplattform (sanfter an und aus als vorher). Gemessen im Testbrowser: Tor beginnt 0,64 s (Gladius) bzw. 0,73 s (Carrack) nach Fahrtbeginn zu schließen, Tausch verdeckt, Tor offen 0,13 bis 0,42 s vor der Oberkante des neuen Schiffs; bis zum Tausch dauert es dadurch 0,3 bis 0,4 s länger. Nicht beurteilen kann die Cloud: ob das Tor im Tempo stimmt (1,6 s je Richtung, im Spiel 12,5 s) oder schwer genug wirkt; ob es im Hallenlicht zu dunkel ist (die Lacke des Spiels sind fast schwarz, die Mitte trägt Warnstreifen und Leuchtstreifen); ob die Spiegelung der Halle auf dem geschlossenen Tor stört; und ob die Fahrkurve des Spiels sich besser anfühlt als die alte. Stellschrauben HALL_GATE (ms, clear) und GATE_GLOW in assets/hangar-viewer.js. Beleg: /mnt/project-files/hangar/v44-schachttor-vorher-nachher.png und /mnt/project-files/hangar/v44-schachttor-film.gif im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-18T19:10:00.000Z",
     "resolved_at": null
   }
 ]
