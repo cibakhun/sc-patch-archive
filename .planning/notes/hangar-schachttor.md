@@ -181,7 +181,7 @@ Cloud 2026-10-18, `buildGate()` in `assets/hangar-viewer.js`, Prüfung `verify:h
 3. Getauscht wird erst unter dem geschlossenen Tor.
 4. Beim Hochfahren öffnet es sofort. Die Fahrt beginnt später, falls die Oberkante des neuen Schiffs sonst vor dem offenen Tor ankäme.
 
-Jede Bahn dauert 1,3 s statt 12,5 s (`HALL_GATE.ms`, bis 18.10. abends 1,6 s). Ganz gedeckt ist das Feld ab 11,25 s der Schließbahn (`G.cover`: früheste Zeit, zu der ein Raster aus 0,25-m-Zellen ganz unter Teilen liegt, die bis an den Boden reichen); danach rasten nur noch die Riegel `gate_18`/`gate_19` ein. Kehrt das Tor unterwegs um, überblendet es von der aktuellen Lage auf die nächstliegende Stelle der neuen Bahn.
+Jede Bahn dauert 1,3 s statt 12,5 s (`HALL_GATE.ms`, bis 18.10. abends 1,6 s). Ganz gedeckt ist das Feld ab 11,25 s der 12,5-s-Schließbahn des Spiels, hier also nach etwa 1,17 s (`G.cover`, in Spielzeit: früheste Zeit, zu der ein Raster aus 0,25-m-Zellen ganz unter Teilen liegt, die bis an den Boden reichen); danach rasten nur noch die Riegel `gate_18`/`gate_19` ein. Kehrt das Tor unterwegs um, überblendet es von der aktuellen Lage auf die nächstliegende Stelle der neuen Bahn.
 
 Die Plattform fährt mit Tor auf der Kurve `anim.pad` des Spiels.
 
