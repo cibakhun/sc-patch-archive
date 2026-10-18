@@ -172,20 +172,22 @@ Cloud 2026-10-18, `buildGate()` in `assets/hangar-viewer.js`, Prüfung `verify:h
   - die Eckstücke `gate_2`/`gate_4`: Sie schieben sich beim Öffnen 10 m in die Öffnung und stünden der Plattform im Weg.
 - 12 720 Dreiecke.
 - 5 Zeichenbefehle: je Material ein BatchedMesh. Die vier Lacke teilen eine Karte und sind eins, ihre Helligkeit geht in `hgShade`.
+- Lacke heller als im Export (seit 18.10. abends): Die Lacke des Spiels sind fast schwarz (linear 0,007 bis 0,06). Geschlossen las sich das Tor neben dem weißen Hallenboden als schwarzes Loch (Krisz, Bild 20:28). `GATE_PAINT` (5) hebt die dunklen, nicht leuchtenden Materialien an; `GATE_TONE` (0,5) rückt die vier Lacke zusammen (Abstand zum hellsten hoch 0,5), damit der rechte innere Flügel (`gate_13`, fast ganz der dunkelste Lack) nicht schwarz bleibt. Geometrie, Karten und Muster bleiben die des Spiels.
 - Vier Materialien tragen dieselben Bilder wie die gleichnamigen des Schachts. Der Viewer nimmt deren Texturen, das spart die zweite Kopie im Grafikspeicher.
 
 **Ablauf** (Krisz 16:57):
 1. Das Tor schließt, sobald die Oberkante des alten Schiffs 0,4 m unter dem Tor ist (`HALL_GATE.clear`, Unterkante −2,56 m).
-2. Getauscht wird erst unter dem geschlossenen Tor.
-3. Beim Hochfahren öffnet es sofort. Die Fahrt beginnt später, falls die Oberkante des neuen Schiffs sonst vor dem offenen Tor ankäme.
+2. Es deckt das Feld `HALL_GATE.lead` (200 ms) vor dem Halt der Plattform ganz. Dafür dauert die Fahrt hinab, wo nötig, länger als 1,9 s (`liftDownMs`). Bis 18.10. abends war das Tor erst 0,1 bis 0,3 s nach dem Halt zu, unten sah man das Feld mit Schiff und Gerät im offenen Schacht (Krisz, Bild 20:28).
+3. Getauscht wird erst unter dem geschlossenen Tor.
+4. Beim Hochfahren öffnet es sofort. Die Fahrt beginnt später, falls die Oberkante des neuen Schiffs sonst vor dem offenen Tor ankäme.
 
-Jede Bahn dauert 1,6 s statt 12,5 s (`HALL_GATE.ms`). Kehrt das Tor unterwegs um, überblendet es von der aktuellen Lage auf die nächstliegende Stelle der neuen Bahn.
+Jede Bahn dauert 1,3 s statt 12,5 s (`HALL_GATE.ms`, bis 18.10. abends 1,6 s). Ganz gedeckt ist das Feld ab 11,25 s der Schließbahn (`G.cover`: früheste Zeit, zu der ein Raster aus 0,25-m-Zellen ganz unter Teilen liegt, die bis an den Boden reichen); danach rasten nur noch die Riegel `gate_18`/`gate_19` ein. Kehrt das Tor unterwegs um, überblendet es von der aktuellen Lage auf die nächstliegende Stelle der neuen Bahn.
 
 Die Plattform fährt mit Tor auf der Kurve `anim.pad` des Spiels.
 
 Ist das Tor ganz zu, werden Schacht, Feld und Schiff darunter nicht gezeichnet.
 
-**Gemessen** (Testbrowser, `torzeit.mjs`):
+**Gemessen** (Testbrowser, `torzeit.mjs`), Stand PR #128 (1,6 s je Bahn, Fahrt hinab immer 1,9 s):
 
 | Wechsel | Tor beginnt zu schließen, nach Fahrtbeginn | Tor offen vor der Oberkante des neuen Schiffs |
 |---|---|---|
@@ -193,8 +195,17 @@ Ist das Tor ganz zu, werden Schacht, Feld und Schiff darunter nicht gezeichnet.
 | Cutlass → Carrack | 0,73 s | 0,26 s |
 | Gladius → Cutlass | – | 0,13 s |
 
-Der Tausch war in allen drei Fällen verdeckt. Bis zum Tausch dauert es 0,3 bis 0,4 s länger.
+Der Tausch war in allen drei Fällen verdeckt, das Feld aber erst nach dem Halt gedeckt. Bis zum Tausch dauerte es 0,3 bis 0,4 s länger.
 
-Sichturteil: WINDOWS 89.
+Stand 18.10. abends (1,3 s je Bahn, Fahrt hinab nach `liftDownMs`):
+
+| Wechsel | Fahrt hinab | Tor beginnt zu schließen | Feld gedeckt vor dem Halt | Tor offen vor der Oberkante des neuen Schiffs |
+|---|---|---|---|---|
+| Cutlass → Carrack | 2,22 s | 0,85 s | 0,20 s | 0,56 s |
+| Carrack → Gladius | 2,06 s | 0,69 s | 0,20 s | 0,72 s |
+
+Tausch in beiden Fällen verdeckt. Bild: `hangar/v45-schachttor-hell-vorher-nachher.png` im Projektordner.
+
+Sichturteil: WINDOWS 90 (89 erledigt durch Krisz' Bilder vom 18.10. 20:28).
 
 **Offen für den nächsten PC-Lauf:** Die vier Zylinder (`gate_9`, `gate_10`, `gate_14`, `gate_15`) haben im Spiel eine Drehspur (48-Bit-Quaternionen in der .caf), die der Auszug nicht dekodiert; sie fahren hier nur mit. Sie liegen 1,6 m unter den Flügeln und fahren mit ihnen, von der Kamera über dem Boden also nicht zu sehen. Mitnehmen, wenn der PC ohnehin an das Tor geht.
