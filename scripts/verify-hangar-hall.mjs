@@ -1175,7 +1175,7 @@ let dienst = null;
 try { dienst = dm ? JSON.parse(dm[1]) : null; } catch (e) { fail(`[14] WORK_DIENST im Viewer ist kein JSON mehr (${e.message})`); }
 const DI = W?.dienst ?? null;
 const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0 };
-if (W && !DI && existsSync(join(ROOT, 'public/hangar/props/dienst.glb'))) fail('[14] public/hangar/props/dienst.glb liegt bereit, die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. HangarApp.astro pruefen');
+if (W && !DI) fail(`[14] die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. ${existsSync(join(ROOT, 'public/hangar/props/dienst.glb')) ? 'HangarApp.astro pruefen' : 'public/hangar/props/dienst.glb fehlt, neu packen: node scripts/build-hangar-dienst.mjs'}`);
 if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 if (DI && dienst) {
   const sha8 = (b) => createHash('sha1').update(b).digest('hex').slice(0, 8);
@@ -1210,10 +1210,17 @@ if (DI && dienst) {
   else {
     const j = glbJson(file);
     dienstRun.bytes = readFileSync(file).length;
+    let kat = null;
+    try { kat = JSON.parse(readFileSync(join(DIST, 'hangar/props/katalog.json'), 'utf8')); } catch (e) { fail(`[14] dist/hangar/props/katalog.json ist nicht lesbar (${e.message})`); }
     // Fingerabdruck: zum Block des ausgelieferten Viewers und zu den Quellen in dist/
     const st = j?.asset?.extras?.dienst;
     const stale = [];
     if (!st?.block || st.block !== sha8(dm[1].trim())) stale.push(`Block (Satz ${st?.block ?? 'ohne'}, Viewer ${sha8(dm[1].trim())})`);
+    // Quellen, die der Block verlangt: Katalog, die Kategoriedatei jeder Requisite, der Decal-Satz fuer die Spuren
+    const want = new Set(['public/hangar/props/katalog.json']);
+    for (const q of kat?.props ?? []) if (props.has(q.node) && q.file) want.add(`public${q.file.split('?')[0]}`);
+    if (decals.size && W?.boden?.url) want.add(`public${W.boden.url.split('?')[0]}`);
+    for (const rel of want) if (!(rel in (st?.quellen ?? {}))) stale.push(`${rel} fehlt im Fingerabdruck`);
     for (const [rel, h] of Object.entries(st?.quellen ?? {})) {
       const f = join(DIST, rel.replace(/^public\//, ''));
       dienstRun.quellen++;
@@ -1226,8 +1233,9 @@ if (DI && dienst) {
     const top = new Map((j?.scenes?.[j.scene ?? 0]?.nodes ?? []).map((i) => [j.nodes[i].name, j.nodes[i]]));
     const lost = [...props, ...decals].filter((n) => !top.has(n));
     if (lost.length) fail(`[14] der Geraetesatz traegt ${lost.length} Knoten nicht, die WORK_DIENST nennt (${lost.slice(0, 3).join(', ')}): Das Stueck fehlte still am Schiff`);
-    let kat = null;
-    try { kat = JSON.parse(readFileSync(join(DIST, 'hangar/props/katalog.json'), 'utf8')); } catch (e) { fail(`[14] dist/hangar/props/katalog.json ist nicht lesbar (${e.message})`); }
+    // buildDienst nimmt nur Knoten mit Geometrie; ein leerer Knoten fehlte ebenso still
+    const empty = [...props, ...decals].filter((n) => top.has(n) && !(j.meshes?.[top.get(n).mesh]?.primitives?.length));
+    if (empty.length) fail(`[14] ${empty.length} Knoten des Geraetesatzes ohne Geometrie (${empty.slice(0, 3).join(', ')}): Das Stueck fehlte still am Schiff. Neu packen: node scripts/build-hangar-dienst.mjs`);
     const inKat = new Set((kat?.props ?? []).map((q) => q.node));
     const noKat = [...props].filter((n) => !inKat.has(n));
     if (kat && noKat.length) fail(`[14] ${noKat.length} Requisiten des Wartungsplatzes stehen nicht im Katalog (${noKat.slice(0, 3).join(', ')}): Ihre Bedeutung (wofuer, wo im Spiel) ist nicht belegt`);

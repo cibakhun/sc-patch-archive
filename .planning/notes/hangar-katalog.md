@@ -179,8 +179,9 @@ PC-Lauf 2026-10-18. Neues Skript `scripts/extract-hangar-katalog.mjs`, Leser `sc
 
 ### K1 Requisiten
 
-**198 exportiert** (Ziel ≥ 60): jede Art, die mindestens dreimal steht, dazu alle Kabel- und Schlauchstücke und das Wartungsgerät des Archivs.
+**198 exportiert** (Ziel ≥ 60): jede Art, die mindestens dreimal steht, mit zwei Grenzen (folgende Punkte), dazu alle Kabel- und Schlauchstücke und das Wartungsgerät des Archivs.
 - Bei Lager und Müll habe ich nur die häufigsten genommen: 12 Kisten und 3 Müllhaufen.
+- Von den Kabelkanälen `roomsm_addon_cable*` nur die ersten drei Arten (`taken.conduit` im Auszug); die übrigen fehlen im Katalog, obwohl sie dreimal stehen.
 - 66 Stück stammen aus dem Archiv, vor allem `…/prop/maintenance/…`. Das ist der Wartungssatz der Hightech-Hangars:
   - Bodenkabel `cable_floor_1_a–f`, Hängekabel `cable_hanging_1_a–i`;
   - Bodenschläuche `hose_floor_1_a–c` mit Bodenanschluss `hose_floor_1_socket_a`, Schlauchtrommeln;

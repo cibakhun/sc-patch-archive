@@ -280,7 +280,10 @@ const sigs = new Map();
 for (const g of groups) { const e = sigs.get(g.sig) || { sig: g.sig, n: 0, hallen: new Set(), vertreter: null }; e.n++; e.hallen.add(g.hall); if (!e.vertreter || g.size > e.vertreter.size) e.vertreter = g; sigs.set(g.sig, e); }
 
 // ─── 6. Leitungen: Ketten aus Kabel- und Schlauchstücken ────────────────
-const LINE = /^cable_(straight|bend|corner|split)|^cables_a_|lt_airduct_hose_(straight|corner|junction|torn)|cable_terminal_\d_floor/;
+// dieselben Familien wie LINE_PIECE (unten), dazu die Wandkabel cables_a_*: sonst fehlten Bodenkabel und -schlauch
+// (cable_small, cable_floor, hose_floor) in den Ketten und zaehlten am Ende als Geraet; der
+// Bodenanschluss hose_floor_*_socket bleibt Endpunkt
+const LINE = /^cable_(straight|bend|corner|split|small)|^cable_floor|^cables_a_|^hose_floor(?!_\d_socket)|maintenance_(cable|hose)|lt_airduct_hose_(straight|corner|junction|torn)|cable_terminal_\d_floor/;
 const lines = [];
 for (const [h, list] of byHall) {
   // nur am Boden (bis 0,6 m): die Kabelzüge an Wänden und Decken sind keine Leitung zum Gerät
@@ -380,7 +383,7 @@ function parseMtl(xml) {
   return blocks.map((block) => {
     const head = block.slice(0, block.indexOf('>'));
     const at = (src, k) => (src.match(new RegExp(`\\b${k}="([^"]*)"`, 'i')) || [])[1];
-    const tex = (slot) => (block.match(new RegExp(`Map="${slot}"[^>]*File="([^"]*)"`, 'i')) || [])[1];
+    const tex = (slot) => (block.match(new RegExp(`Map="${slot}"[^>]*File="([^"]*)"|File="([^"]*)"[^>]*Map="${slot}"`, 'i')) || []).slice(1).find(Boolean);
     const layers = [...(block.match(/<MatLayers>([\s\S]*?)<\/MatLayers>/i)?.[1] || '').matchAll(/<Layer\b([^>]*)\/?>/gi)].map((m) => ({
       name: at(m[1], 'Name'), path: at(m[1], 'Path'), tint: at(m[1], 'TintColor'), wearTint: at(m[1], 'WearTint'),
       glossMult: Number(at(m[1], 'GlossMult') ?? 1), uvTiling: Number(at(m[1], 'UVTiling') ?? 1), paletteTint: at(m[1], 'PaletteTint'),

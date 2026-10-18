@@ -66,7 +66,8 @@ export function socObjects(b) {
     }
   }
   const brushes = [], decals = [];
-  for (let o = c0; o < c1 - 132; o += 4) {
+  // ein Decal reicht bis o + 132, das letzte darf genau an der Chunkgrenze enden
+  for (let o = c0; o <= c1 - 132; o += 4) {
     const t = b.readUInt32LE(o);
     if (t !== 1 && t !== 0x10) continue;
     const box = [0, 1, 2, 3, 4, 5].map((k) => b.readDoubleLE(o + 4 + k * 8));

@@ -1712,9 +1712,11 @@ if (!ONLY || ONLY === 'werkstatt') {
 } else if (prev.props?.werkstatt) manifest.props.werkstatt = prev.props.werkstatt;
 // Gerätekatalog: eigene Quelle (scripts/extract-hangar-katalog.mjs)
 if (!ONLY || ONLY === 'katalog') {
-  const q = fileURLToPath(new URL('katalog/quellen.json', SRC));
+  const q = fileURLToPath(new URL('katalog/quellen.json', SRC)), qi = fileURLToPath(new URL('katalog/inventar.json', SRC));
+  // neu bauen, sobald eine der beiden Quellen juenger ist (inventar.json schreibt der Auszug zuerst)
+  const newest = () => Math.max(statSync(q).mtimeMs, existsSync(qi) ? statSync(qi).mtimeMs : 0);
   if (!existsSync(q)) { if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; console.log('  katalog: Quelle fehlt (scripts/extract-hangar-katalog.mjs), Eintrag bleibt'); }
-  else if (!FORCE && prev.props?.katalog && existsSync(fileURLToPath(new URL('props/katalog.json', OUT))) && statSync(fileURLToPath(new URL('props/katalog.json', OUT))).mtimeMs > statSync(q).mtimeMs) { manifest.props.katalog = prev.props.katalog; reused++; }
+  else if (!FORCE && prev.props?.katalog && existsSync(fileURLToPath(new URL('props/katalog.json', OUT))) && statSync(fileURLToPath(new URL('props/katalog.json', OUT))).mtimeMs > newest()) { manifest.props.katalog = prev.props.katalog; reused++; }
   else {
     try {
       const r = await buildKatalog();
