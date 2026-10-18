@@ -678,7 +678,9 @@ export function initWorkshop(doc, bridge) {
     const host = $('hgl-scroll');
     if (host.scrollHeight <= host.clientHeight) return;
     const r = li.getBoundingClientRect(), h = host.getBoundingClientRect();
-    if (r.top < h.top || r.bottom > h.bottom) host.scrollTop += r.top - h.top - 8;
+    // Die Reiter kleben oben in der Liste: der Slot gehoert darunter, nicht dahinter.
+    const cats = $('hgl-cats'), top = h.top + (cats.hidden ? 0 : cats.offsetHeight);
+    if (r.top < top || r.bottom > h.bottom) host.scrollTop += r.top - top - 8;
   }
 
   function buildPicker(slot, pick) {
