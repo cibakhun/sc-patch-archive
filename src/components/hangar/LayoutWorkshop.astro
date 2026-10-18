@@ -160,14 +160,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-toast span{flex:1}
 .hgl-toast button{appearance:none;border:0;background:none;padding:0;color:var(--hg-amber);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .hgl-toast button[hidden]{display:none}
-/* Im Werkstatt-Modus markiert die Buehne die Hardpoints des gewaehlten
-   Reiters (tab des Controllers; Uebersicht zaehlt wie in der Liste als
-   Waffen), dazu den Slot unter dem Zeiger oder in der Auswahl. Fracht hat
-   hier keinen Reiter. Getauschte Teile tragen ihren Namen nur im gewaehlten
-   Reiter; die Regeln setzt paintMods. */
-.hg[data-pane="layout"]:not([data-tab-active="systems"]) .hgx-mk[data-tab="weapons"]{display:block}
+/* Im Werkstatt-Modus markiert die Buehne nur den Slot unter dem Zeiger oder
+   in der Auswahl; die Hardpoints mit Slot im gewaehlten Reiter (Waffen oder
+   Systeme) und ihre getauschten Teile samt Namen setzt paintMods in
+   #hgl-mods darueber. Raketen und Fracht haben hier keinen Slot. */
+.hg[data-pane="layout"] .hgx-mk{display:none}
 .hg[data-pane="layout"] .hgx-mk.is-hot[data-tab],.hg[data-pane="layout"] .hgx-mk.is-sel[data-tab]{display:block}
-.hg[data-pane="layout"] .hgx-mk[data-tab="cargo"]{display:none}
 /* Getauschte Hardpoints: Marker und Name des neuen Teils setzt
    assets/hangar-layouts.js als Regeln in #hgl-mods (content je Port). */
 .hg[data-pane="layout"] .hgx-mk::after{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .45rem;border-radius:3px;background:var(--hg-amber);color:var(--ink);font-size:var(--fs-5);font-weight:700;white-space:nowrap;pointer-events:none}

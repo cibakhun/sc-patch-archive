@@ -535,25 +535,26 @@ export function initWorkshop(doc, bridge) {
     catBtns[to].focus();
   });
 
-  // Getauschte Hardpoints am Schiff: ihre Marker stehen im Werkstatt-Modus
-  // und tragen den Namen des neuen Teils, aber nur die des gewaehlten
-  // Reiters. Als Stilregeln statt als Klassen, weil der Controller die Marker
-  // bei jedem Schiffswechsel neu einsetzt (Region marks) und die Regeln das
-  // ueberleben.
+  // Marker am Schiff im Werkstatt-Modus: nur die Hardpoints mit Slot im
+  // gewaehlten Reiter (keine Raketen, keine Fracht), getauschte gross und mit
+  // dem Namen des neuen Teils. Als Stilregeln statt als Klassen, weil der
+  // Controller die Marker bei jedem Schiffswechsel neu einsetzt (Region
+  // marks) und die Regeln das ueberleben; #main hebt sie ueber die Tab-Regel
+  // der Seite und die Grundregel der Werkstatt (LayoutWorkshop.astro).
   const modStyle = doc.head.appendChild(el('style', { id: 'hgl-mods' }));
   const cssStr = (t) => `"${String(t).replace(/[\\"]/g, '\\$&').replace(/[\n\r]/g, ' ')}"`;
   function paintMods() {
     const byPort = new Map();
     for (const s of slots) {
-      const k = draft.slots[s.key];
-      if (!k || tabOf(s) !== cat) continue;
-      const sel = `.hg[data-pane="layout"] .hgx-mk[data-tab="${tabOf(s)}"][data-port="${CSS.escape(portOf(s.key))}"]`;
+      if (tabOf(s) !== cat) continue;
+      const sel = `#main.hg[data-pane="layout"] .hgx-mk[data-tab="${cat}"][data-port="${CSS.escape(portOf(s.key))}"]`;
       if (!byPort.has(sel)) byPort.set(sel, []);
-      byPort.get(sel).push(itemName(k));
+      const k = draft.slots[s.key];
+      if (k) byPort.get(sel).push(itemName(k));
     }
-    modStyle.textContent = [...byPort].map(([sel, names]) =>
-      `${sel}{display:block;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:var(--hg-amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--hg-amber) 35%,transparent),0 0 18px var(--hg-amber)}`
-      + `${sel} b{display:none}${sel}::after{content:${cssStr([...new Set(names)].join(' + '))}}`).join('\n');
+    modStyle.textContent = [...byPort].map(([sel, names]) => (!names.length ? `${sel}{display:block}`
+      : `${sel}{display:block;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:var(--hg-amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--hg-amber) 35%,transparent),0 0 18px var(--hg-amber)}`
+      + `${sel} b{display:none}${sel}::after{content:${cssStr([...new Set(names)].join(' + '))}}`)).join('\n');
     // Am Modell: getauschte Bordwaffen, deren 3D-Modell es gibt (der Viewer
     // laesst Ports ohne Tauschteile von selbst in Serie)
     const fits = [];

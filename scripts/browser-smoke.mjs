@@ -513,8 +513,9 @@ async function probeWerkstatt(page) {
     if (st.fremd) return `Werkstatt: unter ${c} stehen ${st.fremd} Gruppe(n) falsch sichtbar oder verborgen`;
     if (st.n !== '1|1') return `Werkstatt: Reiterzaehler "${st.n}", erwartet "1|1"`;
     const anderer = c === 'weapons' ? 'systems' : 'weapons';
-    if (!st.mods.includes(`[data-tab="${c}"]`)) return `Werkstatt: unter ${c} traegt kein getauschtes Teil am Schiff seinen Namen`;
-    if (st.mods.includes(`[data-tab="${anderer}"]`)) return `Werkstatt: unter ${c} benennt das Schiff auch getauschte ${anderer}`;
+    const namen = (t) => (st.mods.match(new RegExp(`\\[data-tab="${t}"\\][^{]*::after`, 'g')) ?? []).length;
+    if (!namen(c)) return `Werkstatt: unter ${c} traegt kein getauschtes Teil am Schiff seinen Namen`;
+    if (st.mods.includes(`[data-tab="${anderer}"]`)) return `Werkstatt: unter ${c} markiert das Schiff auch ${anderer}`;
   }
   return null;
 }
