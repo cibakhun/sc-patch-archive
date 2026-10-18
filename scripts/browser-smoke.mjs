@@ -123,10 +123,12 @@ const SEITEN = [
   { id: 'item-detail', en: '/items/hardy-boots.html', de: '/de/items/hardy-boots.html', leit: 'main' },
   // Der 3D-Hangar, als tiefer Link auf ein Schiff, das nicht das Startschiff
   // ist: die Ausstattung kommt dann als Buchtdokument per Abruf.
+  // pane=ship: Seit der Layout-Werkstatt (18.10.2026) steht rechts zuerst
+  // die Werkstatt; geprobt werden hier die Schiffsdaten.
   {
     id: 'hangar',
-    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
-    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret',
+    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
+    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
     leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
   },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
@@ -303,7 +305,8 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
   // Frisch auf dem Startschiff; liefert, ob der Viewer laeuft (sonst Rueckfall
   // ohne WebGL). Danach zweimal Leerlauf: die Halle laedt noch nach und blockiert
   // den Hauptfaden sekundenlang, und jeder Fall misst Zeitgeber von 150 ms.
-  const frisch = async (q = '') => {
+  // Mit pane=ship wie der tiefe Link oben: Tabs und Bucht stehen in den Schiffsdaten.
+  const frisch = async (q = '?pane=ship') => {
     await page.goto(hangar + q, { waitUntil: 'domcontentloaded' });
     await warte(() => document.querySelector('.hgx-marks')?.hasAttribute('data-live') || !document.getElementById('hg-fallback').hidden, 45000);
     await page.evaluate(() => new Promise((ok) => requestIdleCallback(() => requestIdleCallback(ok, { timeout: 5000 }), { timeout: 5000 })));
