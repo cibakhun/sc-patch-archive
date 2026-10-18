@@ -70,6 +70,12 @@
         weiter; beide Hangarseiten tragen den Grafik-Schalter mit genau
         den Stufen des Viewers. Ohne das faellt ein schwaches Geraet still
         in die volle Stufe zurueck, und nur ein Ruckeln verriete es.
+    13  Getauschte Bordwaffen am Modell (Layout-Werkstatt): jede URL unter
+        models in dist/hangar-layouts.json traegt ?v= und liegt in dist/,
+        und die Schiffs-GLBs in dist/hangar/ships tragen ihre Serienwaffen als
+        Tauschteile (Knoten mit extras.swap und 16 endlichen Zahlen in
+        extras.anchor, aus dem JSON-Block der Datei gelesen). Zwei Klinken:
+        Modelle und Ports mit Tauschteilen.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -82,6 +88,8 @@
      e  in dist/hangar.html zwei Werte einer Karte tauschen          -> [10]
      f  in einer gebauten Bucht einen Port gross schreiben           -> [11]
      g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
+     h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
+     i  in dist/hangar-layouts.json models leeren                    -> [13]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -516,8 +524,48 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   ist.chips = checked;
 }
 
+say('\n[13] Getauschte Bordwaffen: Modelle der Werkstatt und Tauschteile der Schiffe');
+// Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 18.10.2026:
+// 112 der 125 gebauten Waffenmodelle passen in einen Werkstatt-Slot, die
+// zehn Schiffe mit Lack tragen 37 Waffen-Ports als Tauschteile.
+const TAUSCH = { modelle: 112, ports: 37 };
+{
+  const lf = join(DIST, 'hangar-layouts.json');
+  const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
+  const models = Object.entries(ld.models ?? {});
+  const bad = models.filter(([, u]) => !/\?v=[0-9a-f]{6,}$/.test(u) || !existsSync(join(DIST, u.replace(/\?.*$/, ''))));
+  for (const [k, u] of bad.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k}: ${u} ohne ?v= oder nicht in dist/`);
+  const notGun = models.filter(([k]) => ld.items?.[k]?.[2] !== 'gun');
+  for (const [k] of notGun.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k} ist keine Bordwaffe der Werkstatt`);
+  const shipDir = join(DIST, 'hangar', 'ships');
+  let ports = 0, nodes = 0, badAnchor = 0;
+  const perShip = [];
+  for (const f of existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')) : []) {
+    const buf = readFileSync(join(shipDir, f));
+    const len = buf.readUInt32LE(12);
+    const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
+    const mine = new Set();
+    for (const n of gltf.nodes ?? []) {
+      const x = n.extras;
+      if (typeof x?.swap !== 'string') continue;
+      nodes++;
+      mine.add(`${x.swap}|${x.item ?? 0}`);
+      if (!Array.isArray(x.anchor) || x.anchor.length !== 16 || !x.anchor.every(Number.isFinite)) badAnchor++;
+    }
+    ports += mine.size;
+    perShip.push(`${f.replace(/\.glb$/, '')} ${mine.size}`);
+  }
+  if (badAnchor) fail(`[13] ${badAnchor} Tauschteil-Knoten ohne gueltige anchor-Matrix: der Viewer setzt die Waffe dort nicht`);
+  say(`    Werkstatt-Modelle: ${models.length} (${bad.length} ohne Datei/Version, ${notGun.length} keine Bordwaffe)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten`);
+  say(`      ${perShip.join(', ')}`);
+  sollIst(`Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}`, `${models.length}, ${ports}`);
+  if (models.length < TAUSCH.modelle) fail(`[13] nur ${models.length} Waffenmodelle in der Werkstatt (Klinke ${TAUSCH.modelle}): fehlt src/data/hangar-assets.json weapons oder der Schluessel-Join in src/lib/hangar/layouts.ts?`);
+  if (ports < TAUSCH.ports) fail(`[13] nur ${ports} Waffen-Ports mit Tauschteilen (Klinke ${TAUSCH.ports}): Schiffe ohne markSwapParts gebaut (scripts/build-hangar-assets.mjs)?`);
+  ist.tauschModelle = models.length; ist.tauschPorts = ports;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
