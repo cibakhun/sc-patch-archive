@@ -305,6 +305,32 @@ export function boot(doc) {
   const BODEN = new URLSearchParams(location.search).get('boden');
   let state = parseState(location.search, location.hash, ctx);
 
+  // Auf- und Zuklappen des Docks. Gemerkt wird nur der Klick auf den Schalter
+  // (das Inline-Skript in HangarPage.astro liest ihn vor dem ersten Bild). Ein
+  // Filter klappt es ohne Merken auf: zugeklappt lenkte er die Pfeiltasten
+  // und den Zufall, ohne dass man ihn sieht.
+  const DOCK_KEY = 'hg-dock';
+  const dockTog = $('hgx-docktog');
+  const filtered = () => !!(state.q || state.type || state.maker || state.fleetOnly);
+  function setDock(open, remember) {
+    const was = main.dataset.dock !== 'closed';
+    main.dataset.dock = open ? 'open' : 'closed';
+    dockTog.setAttribute('aria-expanded', String(open));
+    // Zugeklappt hat der Streifen keine Breite; erst offen findet er die Karte,
+    // und zwar sofort: weich glitte er ueber Dutzende Karten (scroll-behavior).
+    if (open && !was) {
+      strip.style.scrollBehavior = 'auto';
+      scrollToCard(state.ship, 'auto');
+      strip.style.scrollBehavior = '';
+    }
+    if (!remember) return;
+    try {
+      if (open) localStorage.setItem(DOCK_KEY, 'open');
+      else localStorage.removeItem(DOCK_KEY);
+    } catch { /* ohne Speicher gilt die Wahl bis zum Neuladen */ }
+  }
+  dockTog.addEventListener('click', () => setDock(main.dataset.dock === 'closed', true));
+
   // Markiert den Verlaufseintrag, den das Oeffnen des Vergleichs anlegt:
   // Schliessen geht dorthin zurueck, statt einen zweiten Eintrag zu stapeln.
   const CMP_ENTRY = 'hgx-cmp';
@@ -370,8 +396,10 @@ export function boot(doc) {
     }
     if (prev.fleetOnly !== state.fleetOnly) paintFleetFilter();
     if (prev.sort !== state.sort) applySort();
-    if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) applyDock();
-    else if (prev.ship !== state.ship) paintRandom();
+    if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) {
+      applyDock();
+      if (filtered()) setDock(true, false);
+    } else if (prev.ship !== state.ship) paintRandom();
     if (prev.lo !== state.lo || prev.ship !== state.ship || prev.hp !== state.hp || prev.pane !== state.pane) paintWorkshop();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
@@ -579,6 +607,8 @@ export function boot(doc) {
     // Die Rumpfmitte reist als letzter Punkt mit: was hinter ihr liegt, dimmt.
     const c = region.dataset.c ? region.dataset.c.split(' ').map(Number) : null;
     pins = { els, pts: c ? [...pts, c] : pts, center: !!c };
+    // gleich setzen: In der Ruhe (20 s ohne Eingabe) zeichnet der Viewer kein Bild, das es täte
+    placeMarks();
   }
 
   function placeMarks() {
@@ -1161,6 +1191,7 @@ export function boot(doc) {
 
   writeUrl();
   syncControls();
+  setDock(main.dataset.dock !== 'closed' || filtered(), false);
   syncFleetBtn();
   paintFleetFilter();
   // fleet.js laeuft vor diesem Modul (beide verzoegert, in Dokumentfolge);

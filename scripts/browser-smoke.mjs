@@ -367,6 +367,8 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
         const echt = history.replaceState.bind(history);
         history.replaceState = (...a) => { window.__rsN++; return echt(...a); };
       });
+      // Die Suche steht im Dock, und das ist zu, bis jemand es aufklappt.
+      if (await page.evaluate(() => document.getElementById('main').dataset.dock === 'closed')) await page.locator('#hgx-docktog').click(KLICK);
       await page.locator('#hg-q').focus();
       await page.keyboard.type('cut', { delay: 60 });
       const beimTippen = await page.evaluate(() => window.__rsN);
