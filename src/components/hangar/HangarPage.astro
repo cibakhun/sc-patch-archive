@@ -231,8 +231,8 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hg-filter input,.hg-filter select{font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:.45rem .6rem;min-width:0}
 /* Der Umbruch rechnet mit der Basis, nicht mit der Mindestbreite: eine kleine
    Basis laesst die Suche erst wachsen, wenn die Zeile Platz hat. */
-.hg-filter input{flex:1 1 7rem;max-width:320px}
-.hg-count{margin-left:auto;font-size:var(--fs-6);color:var(--muted);font-variant-numeric:tabular-nums}
+.hg-filter input{flex:1 1 5rem;max-width:320px}
+.hg-count{font-size:var(--fs-6);color:var(--muted);font-variant-numeric:tabular-nums}
 .hg-rail{position:relative;display:flex;align-items:stretch;gap:.5rem}
 .hg-strip{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x proximity;scroll-behavior:smooth;padding:.45rem .3rem .7rem;margin:0;list-style:none;flex:1;min-width:0;overscroll-behavior-x:contain}
 .hg-strip li{flex:0 0 auto;scroll-snap-align:start}
@@ -267,6 +267,19 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hg-filter .tool-help{flex:0 1 auto;margin:0;border-radius:4px}
 .hg-filter .tool-help[open]{flex-basis:100%}
 .hg-filter .tool-help__summary{padding:.42rem .8rem;font-size:var(--fs-7)}
+/* Zugeklappt bleibt vom Dock eine Zeile: Hilfe und Schalter. Ab 761 px waechst
+   die Buehne um den Rest (HangarApp.astro rechnet offen mit 190 px); schmal
+   steht das Dock unter der Tafel und kuerzt dort nur die Seite. Offen nennt
+   der Schalter nur noch die Anzahl, sein Wort bleibt fuer Vorleser stehen. */
+.hgx-docktog svg{transition:transform var(--dur-fast) var(--ease-ui)}
+.hg:not([data-dock="closed"]) .hgx-docktog svg{transform:rotate(180deg)}
+.hg:not([data-dock="closed"]) .hgx-docktog__lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.hg:not([data-dock="closed"]) .hgx-docktog{padding-inline:.6rem}
+.hg:not([data-dock="closed"]) .hgx-docktog .hg-count{color:inherit}
+.hg[data-dock="closed"] .hg-dock{padding-block:.5rem}
+.hg[data-dock="closed"] .hg-filter{margin-bottom:0}
+.hg[data-dock="closed"] .hg-filter>:is(input,select,.hgx-chip:not(.hgx-docktog)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty{display:none}
+@media (min-width:761px){.hg[data-dock="closed"] .hg-stage{height:clamp(520px,calc(100svh - 60px),940px)}}
 /* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert ueber dem Namen. */
 .hg-card[data-sv]::before{content:attr(data-sv);position:absolute;right:.45rem;bottom:1.85rem;z-index:1;padding:.05rem .35rem;border-radius:2px;background:color-mix(in srgb,var(--bg) 80%,transparent);color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 
@@ -302,13 +315,16 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
   .hgx-cmp__name{font-size:var(--fs-7)}
   .hg-hint{display:none}
   .hg-arrow{display:none}
-  .hg-count{margin-left:0;width:100%}
 }
-@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk{transition:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg{transition:none}}</style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
 <main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-layout-js={layoutSrc} data-tab-active="overview" data-pane="layout">
+  {/* Das Dock ist zu, bis jemand es aufklappt; die Halle bekommt seinen Platz.
+      Vor der Buehne entschieden, damit ihre Hoehe nicht nach dem ersten Bild
+      springt. Ohne Skript bleibt es offen. */}
+  <script is:inline>try{if(localStorage.getItem('hg-dock')!=='open')document.currentScript.parentElement.dataset.dock='closed'}catch(e){document.currentScript.parentElement.dataset.dock='closed'}</script>
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <ShipBay bay={bay} region="marks" />
@@ -407,7 +423,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
     </aside>
     <LayoutWorkshop lang={lang} />
     </div>
-    <noscript><style>.hg .hg-stats{display:flex!important}.hg .hgl,.hg .hg-pane{display:none!important}</style></noscript>
+    <noscript><style>.hg .hg-stats{display:flex!important}.hg .hgl,.hg .hg-pane,.hg .hgx-docktog{display:none!important}</style></noscript>
     {/* Modal ueber der Buehne (showModal: Fokus bleibt drin, Escape ist "cancel").
         Zeilen aus dem Kennwert-Verzeichnis, Spalten setzt der Controller aus
         den Dock-Daten, ohne eine Bucht zu holen. In der Insel, damit er auch
@@ -435,6 +451,16 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
   <section class="hg-dock" data-media-surface aria-label={t('dock.label')}>
     <div class="hg-filter">
       <ToolHelp tool="hangar" lang={lang} steps={5} />
+      {/* Hinter der Hilfe: tool-help.js laesst sie beim Erstbesuch nur offen,
+          wenn das naechste Bedienelement im Bild bleibt, und zugeklappt ist
+          das dieser Schalter. */}
+      {/* Traegt die Anzahl: so kostet er die offene Zeile kaum Breite, und die
+          bleibt ab 1280 px einzeilig. */}
+      <button type="button" class="hgx-chip hgx-docktog" id="hgx-docktog" aria-expanded="true" aria-controls="hg-strip" data-help={h('hangar.ctl.dock')}>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span class="hgx-docktog__lbl">{t('dock.label')}</span>
+        <span class="hg-count" id="hg-count" aria-live="polite">{count}</span>
+      </button>
       <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" data-help={h('hangar.ctl.search')} />
       <select id="hg-type" aria-label={t('dock.type')} data-help={h('hangar.ctl.select')}>
         <option value="">{t('dock.typeAll')}</option>
@@ -453,7 +479,6 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         <span>{t('dock.fleet')}</span> <span>(<span id="hgx-fleetn">0</span>)</span>
       </button>
-      <span class="hg-count" id="hg-count" aria-live="polite">{count}</span>
     </div>
     <div class="hg-rail">
       <button type="button" class="hg-arrow" id="hg-prev" aria-label={t('dock.prev')}>‹</button>
