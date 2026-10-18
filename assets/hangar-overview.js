@@ -579,6 +579,8 @@ export function boot(doc) {
     // Die Rumpfmitte reist als letzter Punkt mit: was hinter ihr liegt, dimmt.
     const c = region.dataset.c ? region.dataset.c.split(' ').map(Number) : null;
     pins = { els, pts: c ? [...pts, c] : pts, center: !!c };
+    // gleich setzen: In der Ruhe (20 s ohne Eingabe) zeichnet der Viewer kein Bild, das es täte
+    placeMarks();
   }
 
   function placeMarks() {
