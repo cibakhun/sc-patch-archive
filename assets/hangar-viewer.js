@@ -337,9 +337,47 @@ const HALL_LIFT = /* hall-lift */ {
   "revelyork-single": { "from": [16, -120], "to": [48, -24], "y": [-0.3, 1.2], "min": 50000 }
 } /* /hall-lift */;
 
+// Feld in der Hallenmitte (18.10.2026). Krisz: „unser platform ist nicht
+// mittig“. Wände, Decke, Galerie und die Rahmenlinie im Boden stehen um
+// x = 36, das Schiffsfeld des Spiels aber bei x 16..48, 4 m daneben (bis
+// zur Wand links 16 m, rechts 24 m). Der Boden besteht aus 8 m breiten
+// Modulen; zwischen den Feldenden (`z`) endet jedes Bodendreieck bei x 48
+// und 56. Das Feld rückt um `field` m in x zur Mitte, die Bodenstreifen
+// daneben tauschen die Plätze (`strips`: [x von, bis, um m]): Der Streifen
+// mit Nischen und Rundplatten am Feldrand (48..56) rückt mit, die ersten
+// 4 m des schlichten Bodens dahinter (56..60) füllen die Lücke auf der
+// anderen Seite. Bei x 60 endet nicht jedes Dreieck, dort wird geteilt
+// (shiftHallFloor). `y`: so hoch reicht, was mitwandert (ein Rollwagen
+// der Halle steht auf dem Streifen). Einrichtung mit Bezugspunkt auf einem
+// Streifen und Spiellampen darin und im Feld wandern mit.
+// verify:hangar-hall [13] liest den Block und prüft ihn am ausgelieferten
+// GLB: Feld danach in der Raummitte, vorher und nachher dieselbe Breite
+// ohne Überlappung, an den Feldenden kein Dreieck über der Kante, je
+// Streifen mindestens `min` Dreiecke.
+const HALL_SHIFT = /* hall-shift */ {
+  "revelyork-single": { "field": 4, "z": [-120, -24], "y": [-0.3, 8], "strips": [[48, 56, 4], [56, 60, -40]], "min": [55000, 18000] }
+} /* /hall-shift */;
+
+// Das Feld, wie es steht: HALL_LIFT, um HALL_SHIFT.field verschoben
+function liftField(h) {
+  const L = HALL_LIFT[h.id], d = HALL_SHIFT[h.id]?.field || 0;
+  return L && d ? { ...L, from: [L.from[0] + d, L.from[1]], to: [L.to[0] + d, L.to[1]] } : L;
+}
+
+// Ein Punkt im Modellraum der Halle (Spiellampe), dorthin, wo sein Boden
+// nach HALL_SHIFT liegt
+function hallShiftPoint(h, p) {
+  const S = HALL_SHIFT[h.id], L = HALL_LIFT[h.id];
+  if (!S || !L || p[1] < S.y[0] || p[1] > S.y[1] || p[2] < S.z[0] || p[2] >= S.z[1]) return p;
+  let d = 0;
+  if (p[0] >= L.from[0] && p[0] < L.to[0] && p[2] >= L.from[1] && p[2] < L.to[1]) d = S.field;
+  else for (const [a, b, by] of S.strips) if (p[0] >= a && p[0] < b) d = by;
+  return d ? [p[0] + d, p[1], p[2]] : p;
+}
+
 // Mitte des Schiffsfelds (mit Aufzug) oder des Raums, im Modellraum
 function hallSpot(h) {
-  const c = h.room.center, L = HALL_LIFT[h.id];
+  const c = h.room.center, L = liftField(h);
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
 }
 
@@ -399,6 +437,194 @@ async function cutHallLift(model, L, skip, pause = noPause) {
     tris += m / 3;
   }
   return tris ? { group, tris, parts: group.children.length } : null;
+}
+
+// Bodenstreifen umsetzen (HALL_SHIFT). Ein Dreieck ganz in einem Streifen
+// bekommt eigene, verschobene Ecken in seiner Geometrie; eins über einer
+// Streifenkante wird dort geteilt, die Teile wandern mit ihrem Streifen
+// oder bleiben. So kommt kein Zeichenbefehl dazu, nur Ecken. Teilen andere
+// Meshes die Ecken (das Feld aus cutHallLift), bekommen sie die neuen
+// Puffer mit. Einrichtung mit Bezugspunkt auf einem Streifen wandert mit.
+// Die Hallenmeshes haben zusammen rund 1,8 Mio. Ecken; die beiden Läufe
+// darüber sind darum eigene Funktionen ohne await (die Engine übersetzt
+// sie dann ganz), pause kommt zwischen ihren Häppchen.
+// Liefert { moved: Dreiecke je Streifen, split, furniture } oder null.
+const SHIFT_CHUNK = 16384;
+// Ecken i0..i1: x im Modellraum für die im Höhen- und Tiefenband (ok = 1)
+function shiftScanCorners(pa, m, X, ok, i0, i1, y0, y1, z0, z1) {
+  for (let i = i0; i < i1; i++) {
+    const x = pa[i * 3], y = pa[i * 3 + 1], z = pa[i * 3 + 2];
+    const wy = m[1] * x + m[5] * y + m[9] * z + m[13], wz = m[2] * x + m[6] * y + m[10] * z + m[14];
+    if (wy < y0 || wy > y1 || wz < z0 || wz > z1) continue;
+    X[i] = m[0] * x + m[4] * y + m[8] * z + m[12];
+    ok[i] = 1;
+  }
+}
+// Dreiecke t0..t1: ganz im Band und nicht ganz links von lo oder rechts von
+// hi. Ihre Nummern kommen nach hits ab h; liefert das neue h.
+function shiftScanTris(I, X, ok, t0, t1, lo, hi, hits, h) {
+  for (let t = t0; t < t1; t++) {
+    const a = I[t * 3], b = I[t * 3 + 1], c = I[t * 3 + 2];
+    if (!(ok[a] & ok[b] & ok[c])) continue;
+    const xa = X[a], xb = X[b], xc = X[c];
+    if ((xa <= lo && xb <= lo && xc <= lo) || (xa >= hi && xb >= hi && xc >= hi)) continue;
+    hits[h++] = t;
+  }
+  return h;
+}
+async function shiftHallFloor(model, S, skip, furn, pause = noPause) {
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const [y0, y1] = S.y, [z0, z1] = S.z, e = 0.01;
+  const cuts = [...new Set(S.strips.flatMap(([a, b]) => [a, b]))].sort((p, q) => p - q);
+  const box = new THREE.Box3(new THREE.Vector3(cuts[0], y0, z0 - e), new THREE.Vector3(cuts[cuts.length - 1], y1, z1 + e));
+  const stripOf = (lo, hi) => S.strips.findIndex(([a, b]) => lo >= a - e && hi <= b + e);
+  const meshes = [], uses = new Map(), owners = new Map();
+  model.traverse((n) => {
+    if (!n.isMesh) return;
+    uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1);
+    for (const a of Object.values(n.geometry.attributes)) owners.set(a, [...(owners.get(a) || []), n.geometry]);
+    if (!n.geometry.index || n.geometry.groups.length) return;
+    for (let p = n; p; p = p.parent) if (skip.has(p)) return;
+    meshes.push(n);
+  });
+  const moved = S.strips.map(() => 0), M = new THREE.Matrix4(), Mi = new THREE.Matrix4(), bb = new THREE.Box3(), v = new THREE.Vector3();
+  let split = 0;
+  for (const mesh of meshes) {
+    await pause();
+    const g = mesh.geometry, P = g.attributes.position;
+    if (uses.get(g) > 1 || !(P.array instanceof Float32Array) || P.isInterleavedBufferAttribute || P.normalized) continue;
+    M.multiplyMatrices(toModel, mesh.matrixWorld);
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (!bb.copy(g.boundingBox).applyMatrix4(M).intersectsBox(box)) continue;
+    const n0 = P.count, X = new Float32Array(n0), ok = new Uint8Array(n0);
+    for (let i = 0; i < n0; i += SHIFT_CHUNK) {
+      await pause();
+      shiftScanCorners(P.array, M.elements, X, ok, i, Math.min(n0, i + SHIFT_CHUNK), y0, y1, z0 - e, z1 + e);
+    }
+    const I = g.index.array, T = I.length / 3, hits = new Int32Array(T);
+    let nh = 0;
+    for (let t = 0; t < T; t += SHIFT_CHUNK) {
+      await pause();
+      nh = shiftScanTris(I, X, ok, t, Math.min(T, t + SHIFT_CHUNK), cuts[0] + e, cuts[cuts.length - 1] - e, hits, nh);
+    }
+    if (!nh) continue;
+    // Verschiebung je Streifen im Knotenraum
+    Mi.copy(M).invert();
+    const o0 = new THREE.Vector3().applyMatrix4(Mi);
+    const shift = S.strips.map(([, , by]) => new THREE.Vector3(by, 0, 0).applyMatrix4(Mi).sub(o0));
+    // neue Ecken hinter den alten: Kopien (copy: alte Ecke, Streifen; remap
+    // je Streifen alte → neue Nummer) und Teilecken (part: [a, b, c,
+    // Gewichte, Streifen oder -1]). sub: Dreieck, Streifen (-2 geteilt),
+    // bei geteilten die Vielecke als Nummern in part
+    const remap = S.strips.map(() => null), copy = [], part = [], sub = [];
+    const corner = (i, s) => {
+      const r = (remap[s] ??= new Int32Array(n0).fill(-1));
+      if (r[i] < 0) { r[i] = n0 + copy.length / 2; copy.push(i, s); }
+    };
+    let extra = 0;
+    for (let h = 0; h < nh; h++) {
+      if (!(h % SHIFT_CHUNK)) await pause();
+      const t = hits[h], a = I[t * 3], b = I[t * 3 + 1], c = I[t * 3 + 2];
+      const lo = Math.min(X[a], X[b], X[c]), hi = Math.max(X[a], X[b], X[c]);
+      const s = stripOf(lo, hi);
+      if (s >= 0) { sub.push(t, s, null); corner(a, s); corner(b, s); corner(c, s); moved[s]++; continue; }
+      // an jeder Kante dazwischen teilen: Ecken als Gewichte über a, b, c
+      let ps = [[[1, 0, 0], [0, 1, 0], [0, 0, 1]]];
+      const xw = (w) => w[0] * X[a] + w[1] * X[b] + w[2] * X[c];
+      for (const k of cuts) {
+        if (!(lo < k - e && hi > k + e)) continue;
+        const next = [];
+        for (const poly of ps) {
+          const L = [], R = [];
+          for (let q = 0; q < poly.length; q++) {
+            const p0 = poly[q], p1 = poly[(q + 1) % poly.length], x0 = xw(p0) - k, x1 = xw(p1) - k;
+            (x0 < 0 ? L : R).push(p0);
+            if ((x0 < 0) !== (x1 < 0)) {
+              const f = x0 / (x0 - x1), w = p0.map((u, r) => u + (p1[r] - u) * f);
+              L.push(w); R.push(w);
+            }
+          }
+          for (const q of [L, R]) if (q.length >= 3) next.push(q);
+        }
+        ps = next;
+      }
+      if (!ps.length) continue;
+      const polys = ps.map((poly) => {
+        const xs = poly.map(xw), s2 = stripOf(Math.min(...xs), Math.max(...xs));
+        if (s2 >= 0) moved[s2]++;
+        return poly.map((w) => { part.push([a, b, c, w, s2]); return part.length - 1; });
+      });
+      sub.push(t, -2, polys);
+      split++;
+      extra += polys.reduce((q, ids) => q + ids.length - 2, 0) - 1;
+    }
+    if (!copy.length && !part.length) continue;
+    // Teilecken stehen hinter den Kopien
+    const nc = copy.length / 2, n1 = n0 + nc + part.length, base = n0 + nc;
+    // Puffer verlängern: alte Ecken bleiben, die neuen hängen dahinter
+    for (const [name, A] of Object.entries(g.attributes)) {
+      await pause();
+      const k = A.itemSize, B = new THREE.BufferAttribute(new A.array.constructor(n1 * k), k, A.normalized);
+      const pos = name === 'position', src = A.isInterleavedBufferAttribute ? null : A.array, dst = B.array;
+      if (src) {
+        dst.set(src.subarray(0, n0 * k));
+        for (let j = 0; j < nc; j++) {
+          const i = copy[j * 2], s = copy[j * 2 + 1], o = (n0 + j) * k;
+          for (let r = 0; r < k; r++) dst[o + r] = src[i * k + r];
+          if (pos) { const d = shift[s]; dst[o] += d.x; dst[o + 1] += d.y; dst[o + 2] += d.z; }
+        }
+      } else {
+        for (let i = 0; i < n0; i++) for (let r = 0; r < k; r++) B.setComponent(i, r, A.getComponent(i, r));
+        for (let j = 0; j < nc; j++) for (let r = 0; r < k; r++) B.setComponent(n0 + j, r, A.getComponent(copy[j * 2], r));
+      }
+      for (let j = 0; j < part.length; j++) {
+        const [a, b, c, w, s] = part[j];
+        for (let r = 0; r < k; r++) {
+          let val = A.getComponent(a, r) * w[0] + A.getComponent(b, r) * w[1] + A.getComponent(c, r) * w[2];
+          if (pos && s >= 0) val += shift[s].getComponent(r);
+          B.setComponent(base + j, r, val);
+        }
+      }
+      for (const og of owners.get(A) || []) og.setAttribute(name, B);
+    }
+    // Dreiecksliste: die alte, darin die gewanderten umgezeigt; ein geteiltes
+    // Dreieck nimmt sein erstes Teil auf, die übrigen hängen hinten an
+    const J = new (n1 > 65535 ? Uint32Array : I.constructor)(I.length + extra * 3);
+    J.set(I);
+    let o = I.length;
+    for (let q = 0; q < sub.length; q += 3) {
+      const t = sub[q], s = sub[q + 1];
+      if (s >= 0) { const r = remap[s]; for (let u = 0; u < 3; u++) J[t * 3 + u] = r[I[t * 3 + u]]; continue; }
+      let first = true;
+      for (const ids of sub[q + 2]) for (let u = 1; u + 1 < ids.length; u++) {
+        const at = first ? t * 3 : o;
+        J[at] = base + ids[0]; J[at + 1] = base + ids[u]; J[at + 2] = base + ids[u + 1];
+        if (first) first = false; else o += 3;
+      }
+    }
+    g.setIndex(new THREE.BufferAttribute(J, 1));
+    // Hülle: die alten Ecken bleiben im Puffer, also nur die neuen dazu
+    const Q = g.attributes.position;
+    for (let i = n0; i < n1; i++) g.boundingBox.expandByPoint(v.fromBufferAttribute(Q, i));
+    g.boundingSphere = g.boundingBox.getBoundingSphere(g.boundingSphere ?? new THREE.Sphere());
+    for (const og of owners.get(Q) || []) if (og !== g) { og.boundingBox = g.boundingBox.clone(); og.boundingSphere = g.boundingSphere.clone(); }
+  }
+  // Einrichtung: Bezugspunkt auf einem Streifen
+  let furniture = 0;
+  for (const f of furn) {
+    const A = f.userData.anchor;
+    if (!(A[2] >= z0 && A[2] < z1)) continue;
+    const s = S.strips.findIndex(([a, b]) => A[0] >= a && A[0] < b);
+    if (s < 0) continue;
+    const by = S.strips[s][2];
+    Mi.multiplyMatrices(toModel, f.parent.matrixWorld).invert();
+    f.position.add(new THREE.Vector3(by, 0, 0).applyMatrix4(Mi).sub(new THREE.Vector3().applyMatrix4(Mi)));
+    f.userData.anchor = [A[0] + by, A[1], A[2]];
+    furniture++;
+  }
+  model.updateMatrixWorld(true);
+  return moved.some((q) => q) ? { moved, split, furniture } : null;
 }
 
 // Aufzugsschacht aus dem Spiel (15.10.2026). Fährt das Feld ab, öffnet sich
@@ -3334,6 +3560,8 @@ export async function initHangar(container, opts = {}) {
     // Umgebungskugel aus der Halle.
     const all = (d.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient'
       && !(l.type === 'area' && (l.radius || 0) < LAMP_MIN_RADIUS));
+    // Lampen im Boden von Feld und Streifen wandern mit (HALL_SHIFT)
+    for (const l of all) l.pos = hallShiftPoint(h, l.pos);
     if (!all.length) return false;
     const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
     // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
@@ -4226,6 +4454,18 @@ ${HALL_LIGHTS_BEGIN}
         extra.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
         await pause();
       }
+      // Feld und Bodenstreifen in die Hallenmitte (HALL_SHIFT): nach der
+      // Möbeldatei (ihre Füllung liegt im Boden), vor dem Zusammenlegen.
+      // F ist das Feld, wie es danach steht.
+      const S = lift ? HALL_SHIFT[h.id] : null, F = S ? liftField(h) : L;
+      if (S) {
+        const t7 = performance.now();
+        lift.group.position.x = S.field;
+        const sh = await shiftHallFloor(model, S, new Set([lift.group, ...furn]), furn, pause);
+        if (sh) console.info(`[hangar] Feldmitte: Feld um ${S.field} m, ${sh.moved.map((q, i) => `Streifen ${S.strips[i][0]}..${S.strips[i][1]} um ${S.strips[i][2]} m ${q}`).join(', ')} Dreiecke, ${sh.split} geteilt, ${sh.furniture} Möbel mit; ${Math.round(performance.now() - t7)} ms`);
+        else console.warn('[hangar] Feldmitte: Streifen treffen keine Dreiecke');
+        await pause();
+      }
       const t1 = performance.now();
       const furniture = await mergeFurniture(model, furn, pause);
       for (const n of furn) {
@@ -4245,9 +4485,11 @@ ${HALL_LIGHTS_BEGIN}
         const t6 = performance.now();
         try {
           const grid = WB.props > 0 ? await floorGrid(model, h.room, floorY, new Set([lift?.group].filter(Boolean)), pause) : null;
-          const w = placeWorkshop(model, work.scenes, work.info, L, h.room, floorY, WB, grid);
+          const w = placeWorkshop(model, work.scenes, work.info, F, h.room, floorY, WB, grid);
           model.updateMatrixWorld(true);
           const merged = await mergeFurniture(model, w.nodes, pause);
+          // Bezugspunkte der Feld-Decals in den Raum der Aufzugsgruppe
+          if (lift) for (const n of w.field) n.userData.anchor = n.userData.anchor.map((q, i) => q - lift.group.position.getComponent(i));
           const ride = lift && w.field.length ? await mergeFurniture(lift.group, w.field, pause) : [];
           for (const n of [...w.nodes, ...w.field]) {
             let left = false;
@@ -4387,7 +4629,7 @@ ${HALL_LIGHTS_BEGIN}
       if (kit) {
         const t3 = performance.now(), lay = HALL_SHAFT[h.id];
         try {
-          shaft = buildShaft(kit.kit, kit.info, L, lay);
+          shaft = buildShaft(kit.kit, kit.info, F, lay);
           const wearMats = new Map();
           kit.kit.getObjectByName('wear_0')?.traverse((n) => { if (n.isMesh && n.material?.map) wearMats.set(n.material.name, n.material); });
           shaft.group.position.set(o[0], floorY, o[2]);
@@ -4459,7 +4701,7 @@ ${HALL_LIGHTS_BEGIN}
           shaft.group.add(shaft.fx);
           // Stirn der Bodenplatte an der Öffnung, sichtbar mit dem Schacht
           // (in Ruhe deckt das Feld sie zu), im Material der Halle
-          const t4 = performance.now(), slab = await hallSlab(model, L, [o[0], floorY, o[2]], new Set([lift.group]), pause), t5 = performance.now();
+          const t4 = performance.now(), slab = await hallSlab(model, F, [o[0], floorY, o[2]], new Set([lift.group]), pause), t5 = performance.now();
           if (slab) {
             shaft.edge = shaftEdge(slab, shaft.hx, shaft.hz);
             shaft.edge.visible = false;
@@ -4485,7 +4727,7 @@ ${HALL_LIGHTS_BEGIN}
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? L : null, shaft };
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
