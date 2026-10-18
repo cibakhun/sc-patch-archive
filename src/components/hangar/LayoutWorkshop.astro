@@ -71,7 +71,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:.75rem .7rem .5rem}
 .hgl-msgline{margin:.4rem .3rem;font-size:var(--fs-7);color:var(--hg-dim)}
 .hgl-msgline[hidden],.hgl-pane[hidden]{display:none}
-.hgl-cats{display:flex;gap:.3rem;margin:0 0 .8rem;padding:.2rem;border-radius:8px;background:color-mix(in srgb,var(--bg) 45%,transparent);border:1px solid var(--hg-hair)}
+/* Die Reiter kleben oben, nur die Liste darunter rollt (lange Systemlisten);
+   top gleicht das obere Polster von .hgl-scroll aus.
+   Deckender Grund, sonst scheinen die Zeilen beim Rollen durch. */
+.hgl-cats{position:sticky;top:-.75rem;z-index:2;display:flex;gap:.3rem;margin:0 0 .8rem;padding:.2rem;border-radius:8px;background:var(--bg);border:1px solid var(--hg-hair);box-shadow:0 6px 14px -8px var(--shadow-color)}
 .hgl-cats[hidden],.hgl-cats button[hidden],.hgl-grp[hidden]{display:none}
 .hgl-cats button{appearance:none;flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.1rem;border:0;border-radius:6px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .hgl-cats button:hover,.hgl-cats button:focus-visible{color:var(--hg-on)}
@@ -190,6 +193,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 @media (max-width:760px){
   .hgl{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);backdrop-filter:none;box-shadow:none;overflow:visible}
   .hgl-scroll{overflow:visible}
+  .hgl-cats{top:var(--nav-h,68px);background:var(--bg-2);backdrop-filter:none}
   .hgl-foot{position:sticky;bottom:0;z-index:2}
   .hgl-toast{position:fixed;bottom:5.2rem;z-index:5}
   .hgl-opts{max-height:50vh}
