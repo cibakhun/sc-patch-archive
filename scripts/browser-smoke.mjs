@@ -407,14 +407,17 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
     }],
     ['Wiederholen nach gescheiterter Bucht', async () => {
       // Nur show() bewegt den Balken: bleibt er stehen, lud das Modell nicht neu.
+      // Vorher muss das erste show() fertig sein, und das zeigt nur sein 100 %:
+      // Die Ladeanzeige erscheint erst nach 180 ms, die Bucht scheitert schneller
+      // (gemessen 50 ms), und die Abfahrt im Aufzug allein dauert 1,9 s.
       mitGl = await frisch();
       const kaputt = reihe[Math.floor(reihe.length / 3)];
       await halte(buchtPfad(kaputt), (r) => r.fulfill({ status: 500, body: 'kaputt' }));
       await waehle(kaputt);
       if (!(await warte(() => !document.getElementById('hgx-bayerr').hidden, 15000))) return `Bucht ${kaputt} mit 500: keine Fehlermeldung`;
       await gibFrei();
-      if (mitGl) await warte(() => document.getElementById('hg-load').hidden, 30000);
-      await page.waitForTimeout(1500);
+      if (mitGl && !(await warte(() => document.querySelector('#hg-load i').style.getPropertyValue('--p') === '100%' || !document.getElementById('hgx-modelerr').hidden, 30000)))
+        return `das Modell von ${kaputt} war nach 30 s nicht fertig`;
       await page.evaluate(() => document.querySelector('#hg-load i').style.setProperty('--p', '7%'));
       await page.locator('#hgx-bayretry').click(KLICK);
       if (!(await warte((k) => document.querySelector('[data-bay="panel"]')?.dataset.id === k && document.getElementById('hgx-bayerr').hidden, 15000, kaputt)))
