@@ -271,7 +271,7 @@ export function initWorkshop(doc, bridge) {
   const undoBtn = $('hgl-undo');
   const copyField = $('hgl-copyfield');
 
-  /** @type {{ items: Record<string, any[]>, ships: Record<string, any[]> }|null} */
+  /** @type {{ items: Record<string, any[]>, ships: Record<string, any[]>, models?: Record<string, string> }|null} */
   let data = null;
   let loading = null;
   // Das Layout in Arbeit, sein Code (wie in der Adresse) und die Slots seines Schiffs.
@@ -489,6 +489,15 @@ export function initWorkshop(doc, bridge) {
     modStyle.textContent = [...byPort].map(([sel, names]) =>
       `${sel}{display:block;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:var(--hg-amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--hg-amber) 35%,transparent),0 0 18px var(--hg-amber)}`
       + `${sel} b{display:none}${sel}::after{content:${cssStr([...new Set(names)].join(' + '))}}`).join('\n');
+    // Am Modell: getauschte Bordwaffen, deren 3D-Modell es gibt (der Viewer
+    // laesst Ports ohne Tauschteile von selbst in Serie)
+    const fits = [];
+    for (const s of slots) {
+      const k = draft.slots[s.key];
+      const url = k && s.type === 'gun' ? data.models?.[k] : null;
+      if (url) fits.push({ port: portOf(s.key), item: Number(s.key.split('.')[1] ?? 0), url });
+    }
+    bridge.fit?.(draft.ship, fits);
   }
 
   function paintTotals() {

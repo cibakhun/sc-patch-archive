@@ -31,7 +31,7 @@
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
 // API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url } }) -> Promise<{
-//         show(url, { maker, tex? }) -> Promise<void>, setLivery(key),
+//         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
 // project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
@@ -5413,6 +5413,26 @@ ${HALL_LIGHTS_BEGIN}
     busyStart();
     try { return await showShip(url, o); } finally { busyEnd(); }
   }
+  // Material eines Teils mit echtem Lack herrichten (Schiff und getauschte
+  // Bordwaffe gleich). false: das Teil bleibt unsichtbar.
+  function dressTextured(n) {
+    const m = n.material;
+    // POM-Decals sind im Spiel reine Relief-Schichten über dem Rumpf
+    // (Nieten, Plattenkanten), deren Farbbild nie sichtbar ist. Als
+    // eigene Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
+    if (/(^|_)pom(_|$)|pom_?decal/i.test(m.name || '')) { n.visible = false; return false; }
+    // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
+    // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
+    // ist im Spiel fast immer, was dort sitzt.
+    if (!m.map && m.color.r + m.color.g + m.color.b < 0.06) {
+      m.color.setHex(0x3a3d42); m.metalness = 0.6; m.roughness = 0.45;
+    }
+    m.envMapIntensity = 0.9;
+    for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
+    unifyMaps(m);
+    onePass(m);
+    return true;
+  }
   async function showShip(url, o) {
     const my = ++token;
     makerCode = o.maker || '';
@@ -5440,22 +5460,7 @@ ${HALL_LIGHTS_BEGIN}
       n.castShadow = true;
       n.receiveShadow = true;
       if (textured) {
-        const m = n.material;
-        // POM-Decals sind im Spiel reine Relief-Schichten über dem Rumpf
-        // (Nieten, Plattenkanten), deren Farbbild nie sichtbar ist. Als
-        // eigene Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
-        if (/(^|_)pom(_|$)|pom_?decal/i.test(m.name || '')) { n.visible = false; return; }
-        // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
-        // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
-        // ist im Spiel fast immer, was dort sitzt.
-        if (!m.map && m.color.r + m.color.g + m.color.b < 0.06) {
-          m.color.setHex(0x3a3d42); m.metalness = 0.6; m.roughness = 0.45;
-        }
-        m.envMapIntensity = 0.9;
-        for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
-        unifyMaps(m);
-        onePass(m);
-        if (!m.transparent) hull.push([n, m]);
+        if (dressTextured(n) && !n.material.transparent) hull.push([n, n.material]);
         return;
       }
       n.material.dispose();
@@ -5552,6 +5557,7 @@ ${HALL_LIGHTS_BEGIN}
   }
   // Ein Schiff freigeben — samt der Materialien, die gerade nicht hängen.
   function release(c) {
+    unfit(c);
     if (c.hull) {
       wearPaint(c, false);
       // texturierte Fassung: ~200 Bilder je Schiff, die sonst im Grafikspeicher blieben
@@ -5574,6 +5580,84 @@ ${HALL_LIGHTS_BEGIN}
     fade.to = p; fade.t0 = performance.now();
     u.uPattern.value = p.pattern;
     if (reduceMotion) { applyPaint(current.mat, p); fade.to = null; }
+  }
+
+  // Layout-Werkstatt: getauschte Bordwaffen am Schiff. Die Web-Fassung trägt
+  // jede Serienwaffe als eigene Knoten (extras swap/item/inst/anchor, siehe
+  // markSwapParts in scripts/build-hangar-assets.mjs). fit() blendet die
+  // eines Ports aus und setzt das Modell der gewählten Waffe an jede ihrer
+  // Wurzeln (anchor: Matrix im Modellraum der .glb). Ports ohne Tauschteile
+  // und Waffen ohne Modell bleiben, wie sie sind; die Marker der Oberfläche
+  // zeigen den Tausch dann weiter allein.
+  // list: [{ port, item, url }]; [] stellt die Serie wieder her.
+  const weaponTpl = new Map();   // url -> Promise<Object3D>, geteilt über Schiffe
+  function loadWeapon(url) {
+    if (!weaponTpl.has(url)) {
+      const p = new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject)).then(async (g) => {
+        const tpl = g.scene;
+        tpl.traverse((n) => {
+          if (!n.isMesh) return;
+          n.castShadow = true; n.receiveShadow = true;
+          dressTextured(n);
+        });
+        await prepare(tpl);
+        return tpl;
+      });
+      p.catch(() => weaponTpl.delete(url));
+      weaponTpl.set(url, p);
+    }
+    return weaponTpl.get(url);
+  }
+  function swapParts(c) {
+    if (c.parts) return c.parts;
+    c.parts = new Map();
+    c.model.traverse((n) => {
+      const u = n.userData;
+      if (typeof u?.swap !== 'string' || !Array.isArray(u.anchor)) return;
+      const k = `${u.swap}|${u.item ?? 0}`;
+      if (!c.parts.has(k)) c.parts.set(k, { nodes: [], anchors: new Map(), added: [] });
+      const p = c.parts.get(k);
+      p.nodes.push(n);
+      if (!p.anchors.has(u.inst ?? 0)) p.anchors.set(u.inst ?? 0, new THREE.Matrix4().fromArray(u.anchor));
+    });
+    return c.parts;
+  }
+  function unfit(c) {
+    for (const p of c.parts?.values() ?? []) {
+      for (const n of p.nodes) n.visible = true;
+      for (const o of p.added) o.removeFromParent();
+      p.added = [];
+    }
+  }
+  let fitTok = 0;
+  async function fit(list = []) {
+    const c = current, my = ++fitTok;
+    if (!c) return 0;
+    const parts = swapParts(c);
+    const want = list.filter((f) => f?.url && parts.has(`${f.port}|${f.item ?? 0}`));
+    const tpls = await Promise.all(want.map((f) => loadWeapon(f.url).catch(() => null)));
+    if (my !== fitTok || current !== c) return 0;
+    unfit(c);
+    let n = 0;
+    want.forEach((f, i) => {
+      const tpl = tpls[i];
+      if (!tpl) return;
+      const p = parts.get(`${f.port}|${f.item ?? 0}`);
+      for (const nd of p.nodes) nd.visible = false;
+      for (const a of p.anchors.values()) {
+        const o = tpl.clone(true);
+        o.matrixAutoUpdate = false;
+        o.matrix.copy(a);
+        o.userData.fitted = f.port;
+        c.model.add(o);
+        p.added.push(o);
+        n++;
+      }
+    });
+    c.model.updateMatrixWorld(true);
+    shadowSig = '';
+    wake(800);
+    return n;
   }
 
   function resetView() {
@@ -6370,6 +6454,7 @@ ${HALL_LIGHTS_BEGIN}
   return {
     show,
     setLivery,
+    fit,
     resetView,
     project,
     focus,

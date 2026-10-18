@@ -3,153 +3,2347 @@
   "ships": {
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "086d75c6",
-      "tris": 216566,
+      "v": "c8850343",
+      "tris": 214725,
       "trisRaw": 289558,
       "textures": 218,
       "attached": 0,
+      "swap": {
+        "hardpoint_weapon_gun_class1_right_wing": 1,
+        "hardpoint_weapon_gun_class1_left_wing": 1,
+        "hardpoint_weapon_class2_nose": 1
+      },
+      "swapNodes": 14,
       "uv": {
         "rangeBefore": 18,
         "rangeAfter": 18.38,
         "bits": 17,
-        "degenerate": 1.8
+        "degenerate": 1.9
       },
-      "bytes": 12072584
+      "bytes": 12086492
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "4b35ed60",
-      "tris": 255643,
+      "v": "3d635d4d",
+      "tris": 233173,
       "trisRaw": 417041,
       "textures": 185,
       "attached": 0,
+      "swap": {
+        "hardpoint_gun_nose": 1,
+        "hardpoint_gun_right_wing": 1,
+        "hardpoint_gun_left_wing": 1
+      },
+      "swapNodes": 9,
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2.1
+        "degenerate": 2.4
       },
-      "bytes": 9967004
+      "bytes": 9836884
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
-      "v": "212e5163",
-      "tris": 205630,
+      "v": "f63f3746",
+      "tris": 196090,
       "trisRaw": 189516,
       "textures": 107,
       "attached": 0,
-      "uv": {
-        "rangeBefore": 288,
-        "rangeAfter": 241.37,
-        "bits": 20,
-        "degenerate": 1.3
+      "swap": {
+        "hardpoint_gimbal_mount": 2,
+        "hardpoint_weapon_wing_left": 1,
+        "hardpoint_weapon_wing_right": 1
       },
-      "bytes": 6953644
-    },
-    "anvl-hornet-f7c-mk2": {
-      "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "f4167c69",
-      "tris": 210871,
-      "trisRaw": 219205,
-      "textures": 97,
-      "attached": 0,
-      "uv": {
-        "rangeBefore": 59,
-        "rangeAfter": 58.51,
-        "bits": 18,
-        "degenerate": 1.1
-      },
-      "bytes": 7695132
-    },
-    "crus-starlifter-c2": {
-      "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "950080b6",
-      "tris": 526992,
-      "trisRaw": 700759,
-      "textures": 131,
-      "attached": 0,
-      "uv": {
-        "rangeBefore": 733,
-        "rangeAfter": 605.15,
-        "bits": 22,
-        "degenerate": 3.3
-      },
-      "bytes": 10917532
-    },
-    "drak-cutlass-black": {
-      "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "81e15bc0",
-      "tris": 403608,
-      "trisRaw": 522351,
-      "textures": 161,
-      "attached": 0,
+      "swapNodes": 10,
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
         "degenerate": 1.4
       },
-      "bytes": 11592840
+      "bytes": 6865228
     },
-    "misc-freelancer": {
-      "url": "/hangar/ships/misc-freelancer.glb",
-      "v": "b264dfb2",
-      "tris": 289125,
-      "trisRaw": 377329,
-      "textures": 169,
+    "anvl-hornet-f7c-mk2": {
+      "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
+      "v": "21220fdd",
+      "tris": 203601,
+      "trisRaw": 219205,
+      "textures": 97,
       "attached": 0,
+      "swap": {
+        "hardpoint_weapon_left_wing": 1,
+        "hardpoint_weapon_right_wing": 1
+      },
+      "swapNodes": 4,
+      "uv": {
+        "rangeBefore": 59,
+        "rangeAfter": 58.51,
+        "bits": 18,
+        "degenerate": 1.1
+      },
+      "bytes": 7604868
+    },
+    "crus-starlifter-c2": {
+      "url": "/hangar/ships/crus-starlifter-c2.glb",
+      "v": "832e6d66",
+      "tris": 496160,
+      "trisRaw": 700759,
+      "textures": 131,
+      "attached": 0,
+      "swap": {
+        "hardpoint_remote_turret_rear": 2,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_weapon_top_right": 1,
+        "hardpoint_weapon_top_left": 1
+      },
+      "swapNodes": 16,
+      "uv": {
+        "rangeBefore": 733,
+        "rangeAfter": 605.15,
+        "bits": 22,
+        "degenerate": 3.5
+      },
+      "bytes": 10427068
+    },
+    "drak-cutlass-black": {
+      "url": "/hangar/ships/drak-cutlass-black.glb",
+      "v": "2f41c0b4",
+      "tris": 325177,
+      "trisRaw": 522351,
+      "textures": 161,
+      "attached": 0,
+      "swap": {
+        "hardpoint_left_body_weapon": 1,
+        "hardpoint_right_body_weapon": 1,
+        "hardpoint_tractor_turret": 1,
+        "hardpoint_right_wing_weapon": 1,
+        "hardpoint_left_wing_weapon": 1,
+        "hardpoint_turret": 2
+      },
+      "swapNodes": 38,
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 1.1
+        "degenerate": 1.8
       },
-      "bytes": 10698848
+      "bytes": 11101996
+    },
+    "misc-freelancer": {
+      "url": "/hangar/ships/misc-freelancer.glb",
+      "v": "245fd6cf",
+      "tris": 237369,
+      "trisRaw": 377329,
+      "textures": 169,
+      "attached": 0,
+      "swap": {
+        "hardpoint_sidecannon_left": 2,
+        "hardpoint_sidecannon_right": 2,
+        "hardpoint_rear_turret": 2
+      },
+      "swapNodes": 12,
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.3
+      },
+      "bytes": 10330016
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "b45376cb",
-      "tris": 211433,
+      "v": "b2194bed",
+      "tris": 201634,
       "trisRaw": 179288,
       "textures": 93,
       "attached": 0,
+      "swap": {
+        "hardpoint_weapon_nose": 1,
+        "hardpoint_weapon_wing_right": 1,
+        "hardpoint_weapon_wing_left": 1
+      },
+      "swapNodes": 25,
       "uv": {
         "rangeBefore": 97,
         "rangeAfter": 95.88,
         "bits": 19,
-        "degenerate": 3.1
+        "degenerate": 3.2
       },
-      "bytes": 5396348
+      "bytes": 5231480
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
-      "v": "209c3ffe",
-      "tris": 529735,
+      "v": "986e83d2",
+      "tris": 441179,
       "trisRaw": 756891,
       "textures": 188,
       "attached": 0,
+      "swap": {
+        "hardpoint_weapon_top_right": 1,
+        "hardpoint_weapon_bottom_left": 1,
+        "hardpoint_weapon_bottom_right": 1,
+        "hardpoint_weapon_top_left": 1
+      },
+      "swapNodes": 16,
       "uv": {
         "rangeBefore": 1084,
         "rangeAfter": 681.13,
         "bits": 22,
-        "degenerate": 2.4
+        "degenerate": 2.9
       },
-      "bytes": 14163072
+      "bytes": 13502628
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "e29869d7",
-      "tris": 795922,
+      "v": "ca524ab0",
+      "tris": 617142,
       "trisRaw": 968432,
-      "textures": 118,
+      "textures": 119,
       "attached": 0,
+      "swap": {
+        "hardpoint_gun_laser_bottom_right": 1,
+        "hardpoint_gun_laser_bottom_left": 1,
+        "hardpoint_gun_laser_top_right": 1,
+        "hardpoint_gun_laser_top_left": 1,
+        "hardpoint_turret_base_upper": 2,
+        "hardpoint_turret_base_lower": 2
+      },
+      "swapNodes": 32,
       "uv": {
         "rangeBefore": 1633,
         "rangeAfter": 1554,
         "bits": 23,
-        "degenerate": 2.2
+        "degenerate": 2.6
       },
-      "bytes": 13851808
+      "bytes": 12419308
+    }
+  },
+  "weapons": {
+    "10-series-greatsword-cannon": {
+      "url": "/hangar/weapons/10-series-greatsword-cannon.glb",
+      "v": "e576ab32",
+      "tris": 12016,
+      "trisRaw": 15315,
+      "textures": 7,
+      "attached": 0,
+      "key": "10-series-greatsword-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 3.11,
+        "bits": 14,
+        "degenerate": 0.5
+      },
+      "bytes": 193792
+    },
+    "11-series-broadsword-cannon": {
+      "url": "/hangar/weapons/11-series-broadsword-cannon.glb",
+      "v": "5e1b1fe8",
+      "tris": 12359,
+      "trisRaw": 17623,
+      "textures": 7,
+      "attached": 0,
+      "key": "11-series-broadsword-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 3.13,
+        "bits": 14,
+        "degenerate": 0.5
+      },
+      "bytes": 191196
+    },
+    "9-series-longsword-cannon": {
+      "url": "/hangar/weapons/9-series-longsword-cannon.glb",
+      "v": "4bfb9140",
+      "tris": 11841,
+      "trisRaw": 11841,
+      "textures": 7,
+      "attached": 0,
+      "key": "9-series-longsword-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 3.11,
+        "bits": 14,
+        "degenerate": 0.5
+      },
+      "bytes": 189504
+    },
+    "absolution-distortion-scattergun": {
+      "url": "/hangar/weapons/absolution-distortion-scattergun.glb",
+      "v": "39d58d23",
+      "tris": 12753,
+      "trisRaw": 20713,
+      "textures": 8,
+      "attached": 0,
+      "key": "absolution-distortion-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 28,
+        "rangeAfter": 14.27,
+        "bits": 16,
+        "degenerate": 0.2
+      },
+      "bytes": 180380
+    },
+    "ad4b-ballistic-gatling": {
+      "url": "/hangar/weapons/ad4b-ballistic-gatling.glb",
+      "v": "84298cb6",
+      "tris": 12220,
+      "trisRaw": 16214,
+      "textures": 12,
+      "attached": 0,
+      "key": "ad4b-ballistic-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 3.32,
+        "bits": 14,
+        "degenerate": 0.8
+      },
+      "bytes": 194056
+    },
+    "ad5b-ballistic-gatling": {
+      "url": "/hangar/weapons/ad5b-ballistic-gatling.glb",
+      "v": "14411978",
+      "tris": 12225,
+      "trisRaw": 16214,
+      "textures": 15,
+      "attached": 0,
+      "key": "ad5b-ballistic-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 3.32,
+        "bits": 14,
+        "degenerate": 0.8
+      },
+      "bytes": 200164
+    },
+    "ardor-1-salvaged-repeater": {
+      "url": "/hangar/weapons/ardor-1-salvaged-repeater.glb",
+      "v": "aefd2b65",
+      "tris": 10024,
+      "trisRaw": 10024,
+      "textures": 7,
+      "attached": 0,
+      "key": "ardor-1-salvaged-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.42,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 102388
+    },
+    "ardor-2-salvaged-repeater": {
+      "url": "/hangar/weapons/ardor-2-salvaged-repeater.glb",
+      "v": "d372036c",
+      "tris": 10024,
+      "trisRaw": 10024,
+      "textures": 7,
+      "attached": 0,
+      "key": "ardor-2-salvaged-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.42,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 102372
+    },
+    "ardor-3-salvaged-repeater": {
+      "url": "/hangar/weapons/ardor-3-salvaged-repeater.glb",
+      "v": "b6af84bf",
+      "tris": 10024,
+      "trisRaw": 10024,
+      "textures": 7,
+      "attached": 0,
+      "key": "ardor-3-salvaged-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.42,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 102304
+    },
+    "attrition-1-repeater": {
+      "url": "/hangar/weapons/attrition-1-repeater.glb",
+      "v": "86cbea6f",
+      "tris": 12063,
+      "trisRaw": 21275,
+      "textures": 37,
+      "attached": 0,
+      "key": "attrition-1-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 428840
+    },
+    "attrition-2-repeater": {
+      "url": "/hangar/weapons/attrition-2-repeater.glb",
+      "v": "410a2cfe",
+      "tris": 12064,
+      "trisRaw": 21275,
+      "textures": 37,
+      "attached": 0,
+      "key": "attrition-2-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 428748
+    },
+    "attrition-3-repeater": {
+      "url": "/hangar/weapons/attrition-3-repeater.glb",
+      "v": "5ba62aeb",
+      "tris": 12060,
+      "trisRaw": 21275,
+      "textures": 37,
+      "attached": 0,
+      "key": "attrition-3-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 428724
+    },
+    "attrition-4-repeater": {
+      "url": "/hangar/weapons/attrition-4-repeater.glb",
+      "v": "7545fb28",
+      "tris": 12020,
+      "trisRaw": 21727,
+      "textures": 29,
+      "attached": 0,
+      "key": "attrition-4-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.6
+      },
+      "bytes": 335220
+    },
+    "attrition-5-repeater": {
+      "url": "/hangar/weapons/attrition-5-repeater.glb",
+      "v": "04474c3a",
+      "tris": 12017,
+      "trisRaw": 21727,
+      "textures": 29,
+      "attached": 0,
+      "key": "attrition-5-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.6
+      },
+      "bytes": 335040
+    },
+    "atvs-repeater": {
+      "url": "/hangar/weapons/atvs-repeater.glb",
+      "v": "9d139db8",
+      "tris": 2024,
+      "trisRaw": 2024,
+      "textures": 8,
+      "attached": 0,
+      "key": "atvs-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 144980
+    },
+    "axiom-l-22-repeater": {
+      "url": "/hangar/weapons/axiom-l-22-repeater.glb",
+      "v": "54118ae7",
+      "tris": 23194,
+      "trisRaw": 48619,
+      "textures": 10,
+      "attached": 0,
+      "key": "axiom-l-22-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 9,
+        "rangeAfter": 6.57,
+        "bits": 15,
+        "degenerate": 0.7
+      },
+      "bytes": 287788
+    },
+    "breakneck-s4-gatling": {
+      "url": "/hangar/weapons/breakneck-s4-gatling.glb",
+      "v": "1d8cbbd6",
+      "tris": 12558,
+      "trisRaw": 27507,
+      "textures": 8,
+      "attached": 0,
+      "key": "breakneck-s4-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 4.07,
+        "bits": 15,
+        "degenerate": 0.1
+      },
+      "bytes": 127640
+    },
+    "brvs-repeater": {
+      "url": "/hangar/weapons/brvs-repeater.glb",
+      "v": "f60f9084",
+      "tris": 928,
+      "trisRaw": 928,
+      "textures": 7,
+      "attached": 0,
+      "key": "brvs-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.12,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 99388
+    },
+    "c-788-cannon": {
+      "url": "/hangar/weapons/c-788-cannon.glb",
+      "v": "81cebca0",
+      "tris": 8816,
+      "trisRaw": 8816,
+      "textures": 8,
+      "attached": 0,
+      "key": "c-788-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 3.58,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 178604
+    },
+    "cf-117-bulldog-hazard-zone-repeater": {
+      "url": "/hangar/weapons/cf-117-bulldog-hazard-zone-repeater.glb",
+      "v": "f9e5b743",
+      "tris": 12006,
+      "trisRaw": 21048,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-117-bulldog-hazard-zone-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 10.4
+      },
+      "bytes": 179020
+    },
+    "cf-117-bulldog-repeater": {
+      "url": "/hangar/weapons/cf-117-bulldog-repeater.glb",
+      "v": "b0f21633",
+      "tris": 12006,
+      "trisRaw": 21048,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-117-bulldog-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 10.4
+      },
+      "bytes": 179020
+    },
+    "cf-227-badger-hazard-zone-repeater": {
+      "url": "/hangar/weapons/cf-227-badger-hazard-zone-repeater.glb",
+      "v": "88c311f7",
+      "tris": 12173,
+      "trisRaw": 17181,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-227-badger-hazard-zone-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.1
+      },
+      "bytes": 193388
+    },
+    "cf-227-badger-repeater": {
+      "url": "/hangar/weapons/cf-227-badger-repeater.glb",
+      "v": "82e1c2c5",
+      "tris": 12173,
+      "trisRaw": 17181,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-227-badger-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.1
+      },
+      "bytes": 193388
+    },
+    "cf-337-panther-hazard-zone-repeater": {
+      "url": "/hangar/weapons/cf-337-panther-hazard-zone-repeater.glb",
+      "v": "3a9bab51",
+      "tris": 12000,
+      "trisRaw": 17031,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-337-panther-hazard-zone-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.1
+      },
+      "bytes": 187860
+    },
+    "cf-337-panther-repeater": {
+      "url": "/hangar/weapons/cf-337-panther-repeater.glb",
+      "v": "0c102a4f",
+      "tris": 12000,
+      "trisRaw": 17031,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-337-panther-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.1
+      },
+      "bytes": 187860
+    },
+    "cf-447-rhino-repeater": {
+      "url": "/hangar/weapons/cf-447-rhino-repeater.glb",
+      "v": "70aa7926",
+      "tris": 12409,
+      "trisRaw": 19766,
+      "textures": 8,
+      "attached": 0,
+      "key": "cf-447-rhino-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 3.13,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 183724
+    },
+    "cf-557-galdereen-repeater": {
+      "url": "/hangar/weapons/cf-557-galdereen-repeater.glb",
+      "v": "4f5c18f3",
+      "tris": 12410,
+      "trisRaw": 19766,
+      "textures": 8,
+      "attached": 0,
+      "key": "cf-557-galdereen-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 3.13,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 183752
+    },
+    "cf-999-akuma-repeater": {
+      "url": "/hangar/weapons/cf-999-akuma-repeater.glb",
+      "v": "324f44c9",
+      "tris": 12122,
+      "trisRaw": 16651,
+      "textures": 12,
+      "attached": 0,
+      "key": "cf-999-akuma-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.1
+      },
+      "bytes": 191568
+    },
+    "cvsa-cannon": {
+      "url": "/hangar/weapons/cvsa-cannon.glb",
+      "v": "e99e9854",
+      "tris": 460,
+      "trisRaw": 460,
+      "textures": 6,
+      "attached": 0,
+      "key": "cvsa-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.01,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 76148
+    },
+    "deadbolt-i-cannon": {
+      "url": "/hangar/weapons/deadbolt-i-cannon.glb",
+      "v": "6fb8e6ce",
+      "tris": 11398,
+      "trisRaw": 11398,
+      "textures": 14,
+      "attached": 0,
+      "key": "deadbolt-i-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.06,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 151476
+    },
+    "deadbolt-ii-cannon": {
+      "url": "/hangar/weapons/deadbolt-ii-cannon.glb",
+      "v": "e3a4f6ed",
+      "tris": 11398,
+      "trisRaw": 11398,
+      "textures": 14,
+      "attached": 0,
+      "key": "deadbolt-ii-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.06,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 151440
+    },
+    "deadbolt-iii-cannon": {
+      "url": "/hangar/weapons/deadbolt-iii-cannon.glb",
+      "v": "e012993e",
+      "tris": 11398,
+      "trisRaw": 11398,
+      "textures": 14,
+      "attached": 0,
+      "key": "deadbolt-iii-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.06,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 151400
+    },
+    "deadbolt-iv-cannon": {
+      "url": "/hangar/weapons/deadbolt-iv-cannon.glb",
+      "v": "8b85b9ff",
+      "tris": 11398,
+      "trisRaw": 11398,
+      "textures": 14,
+      "attached": 0,
+      "key": "deadbolt-iv-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.06,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 151496
+    },
+    "deadbolt-v-cannon": {
+      "url": "/hangar/weapons/deadbolt-v-cannon.glb",
+      "v": "5a40d2ba",
+      "tris": 11398,
+      "trisRaw": 11398,
+      "textures": 14,
+      "attached": 0,
+      "key": "deadbolt-v-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.06,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 151512
+    },
+    "deathroll-s2-gatling": {
+      "url": "/hangar/weapons/deathroll-s2-gatling.glb",
+      "v": "7c12afcb",
+      "tris": 12585,
+      "trisRaw": 27507,
+      "textures": 8,
+      "attached": 0,
+      "key": "deathroll-s2-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 4.07,
+        "bits": 15,
+        "degenerate": 0.1
+      },
+      "bytes": 127924
+    },
+    "dominance-1-scattergun": {
+      "url": "/hangar/weapons/dominance-1-scattergun.glb",
+      "v": "ad2d2fd2",
+      "tris": 10918,
+      "trisRaw": 10918,
+      "textures": 14,
+      "attached": 0,
+      "key": "dominance-1-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 398,
+        "rangeAfter": 368,
+        "bits": 21,
+        "degenerate": 0.3
+      },
+      "bytes": 155848
+    },
+    "dominance-2-scattergun": {
+      "url": "/hangar/weapons/dominance-2-scattergun.glb",
+      "v": "e4160d9a",
+      "tris": 10918,
+      "trisRaw": 10918,
+      "textures": 14,
+      "attached": 0,
+      "key": "dominance-2-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 398,
+        "rangeAfter": 368,
+        "bits": 21,
+        "degenerate": 0.3
+      },
+      "bytes": 155804
+    },
+    "dominance-3-scattergun": {
+      "url": "/hangar/weapons/dominance-3-scattergun.glb",
+      "v": "e518a3fd",
+      "tris": 10918,
+      "trisRaw": 10918,
+      "textures": 14,
+      "attached": 0,
+      "key": "dominance-3-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 398,
+        "rangeAfter": 368,
+        "bits": 21,
+        "degenerate": 0.3
+      },
+      "bytes": 155752
+    },
+    "dr-model-xj1-repeater": {
+      "url": "/hangar/weapons/dr-model-xj1-repeater.glb",
+      "v": "35fd3b7d",
+      "tris": 2257,
+      "trisRaw": 2257,
+      "textures": 7,
+      "attached": 0,
+      "key": "dr-model-xj1-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 48280
+    },
+    "dr-model-xj2-repeater": {
+      "url": "/hangar/weapons/dr-model-xj2-repeater.glb",
+      "v": "384d87e9",
+      "tris": 2257,
+      "trisRaw": 2257,
+      "textures": 7,
+      "attached": 0,
+      "key": "dr-model-xj2-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 48236
+    },
+    "dr-model-xj3-repeater": {
+      "url": "/hangar/weapons/dr-model-xj3-repeater.glb",
+      "v": "f07c3afe",
+      "tris": 2257,
+      "trisRaw": 2257,
+      "textures": 7,
+      "attached": 0,
+      "key": "dr-model-xj3-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 48156
+    },
+    "echion-repeater": {
+      "url": "/hangar/weapons/echion-repeater.glb",
+      "v": "e65bba64",
+      "tris": 12002,
+      "trisRaw": 14839,
+      "textures": 4,
+      "attached": 0,
+      "key": "echion-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 10,
+        "rangeAfter": 10.77,
+        "bits": 16,
+        "degenerate": 1.1
+      },
+      "bytes": 153824
+    },
+    "evsd-cannon": {
+      "url": "/hangar/weapons/evsd-cannon.glb",
+      "v": "48ceadf4",
+      "tris": 938,
+      "trisRaw": 938,
+      "textures": 8,
+      "attached": 0,
+      "key": "evsd-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 120568
+    },
+    "fl-11-cannon": {
+      "url": "/hangar/weapons/fl-11-cannon.glb",
+      "v": "53dacc8b",
+      "tris": 12106,
+      "trisRaw": 15084,
+      "textures": 16,
+      "attached": 0,
+      "key": "fl-11-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 1.32,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 155228
+    },
+    "fl-22-cannon": {
+      "url": "/hangar/weapons/fl-22-cannon.glb",
+      "v": "fd700648",
+      "tris": 12107,
+      "trisRaw": 15084,
+      "textures": 16,
+      "attached": 0,
+      "key": "fl-22-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 1.32,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 155236
+    },
+    "fl-33-cannon": {
+      "url": "/hangar/weapons/fl-33-cannon.glb",
+      "v": "9ed2b231",
+      "tris": 12105,
+      "trisRaw": 15084,
+      "textures": 16,
+      "attached": 0,
+      "key": "fl-33-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 1.32,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 155204
+    },
+    "gvsr-repeater-s2": {
+      "url": "/hangar/weapons/gvsr-repeater-s2.glb",
+      "v": "cc20fe0d",
+      "tris": 724,
+      "trisRaw": 724,
+      "textures": 7,
+      "attached": 0,
+      "key": "gvsr-repeater~2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 94204
+    },
+    "havoc-scattergun-sharkmouth-edition": {
+      "url": "/hangar/weapons/havoc-scattergun-sharkmouth-edition.glb",
+      "v": "f0410c46",
+      "tris": 12082,
+      "trisRaw": 23362,
+      "textures": 9,
+      "attached": 0,
+      "key": "havoc-scattergun-sharkmouth-edition",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.7
+      },
+      "bytes": 130648
+    },
+    "havoc-scattergun": {
+      "url": "/hangar/weapons/havoc-scattergun.glb",
+      "v": "227bbec5",
+      "tris": 10880,
+      "trisRaw": 10880,
+      "textures": 8,
+      "attached": 0,
+      "key": "havoc-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 118004
+    },
+    "hellion-scattergun-2": {
+      "url": "/hangar/weapons/hellion-scattergun-2.glb",
+      "v": "874cf3a5",
+      "tris": 10880,
+      "trisRaw": 10880,
+      "textures": 8,
+      "attached": 0,
+      "key": "hellion-scattergun-2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 118064
+    },
+    "hellion-scattergun-sharkmouth-edition": {
+      "url": "/hangar/weapons/hellion-scattergun-sharkmouth-edition.glb",
+      "v": "32543083",
+      "tris": 12078,
+      "trisRaw": 23362,
+      "textures": 9,
+      "attached": 0,
+      "key": "hellion-scattergun-sharkmouth-edition",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 130512
+    },
+    "leonids-cannon": {
+      "url": "/hangar/weapons/leonids-cannon.glb",
+      "v": "80853b4b",
+      "tris": 11993,
+      "trisRaw": 13382,
+      "textures": 5,
+      "attached": 0,
+      "key": "leonids-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 9,
+        "rangeAfter": 10,
+        "bits": 16,
+        "degenerate": 4.3
+      },
+      "bytes": 163192
+    },
+    "lightstrike-i-cannon": {
+      "url": "/hangar/weapons/lightstrike-i-cannon.glb",
+      "v": "2bc4117f",
+      "tris": 12309,
+      "trisRaw": 16246,
+      "textures": 15,
+      "attached": 0,
+      "key": "lightstrike-i-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.61,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 186764
+    },
+    "lightstrike-ii-cannon": {
+      "url": "/hangar/weapons/lightstrike-ii-cannon.glb",
+      "v": "66891e71",
+      "tris": 12311,
+      "trisRaw": 16246,
+      "textures": 15,
+      "attached": 0,
+      "key": "lightstrike-ii-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.61,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 186644
+    },
+    "lightstrike-iii-cannon": {
+      "url": "/hangar/weapons/lightstrike-iii-cannon.glb",
+      "v": "55d264b2",
+      "tris": 12314,
+      "trisRaw": 16246,
+      "textures": 15,
+      "attached": 0,
+      "key": "lightstrike-iii-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.61,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 186732
+    },
+    "lightstrike-iv-cannon": {
+      "url": "/hangar/weapons/lightstrike-iv-cannon.glb",
+      "v": "5f528ae8",
+      "tris": 12252,
+      "trisRaw": 16246,
+      "textures": 15,
+      "attached": 0,
+      "key": "lightstrike-iv-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.61,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 186028
+    },
+    "lightstrike-v-cannon": {
+      "url": "/hangar/weapons/lightstrike-v-cannon.glb",
+      "v": "fb56c88c",
+      "tris": 12253,
+      "trisRaw": 16246,
+      "textures": 15,
+      "attached": 0,
+      "key": "lightstrike-v-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.61,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 185996
+    },
+    "m2c-swarm-s1": {
+      "url": "/hangar/weapons/m2c-swarm-s1.glb",
+      "v": "c92860c4",
+      "tris": 1715,
+      "trisRaw": 1715,
+      "textures": 8,
+      "attached": 0,
+      "key": "m2c-swarm~1",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.63,
+        "bits": 13,
+        "degenerate": 7.7
+      },
+      "bytes": 100188
+    },
+    "m2c-swarm-s2": {
+      "url": "/hangar/weapons/m2c-swarm-s2.glb",
+      "v": "3f0b9e38",
+      "tris": 12395,
+      "trisRaw": 15711,
+      "textures": 25,
+      "attached": 0,
+      "key": "m2c-swarm~2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 39,
+        "rangeAfter": 39.39,
+        "bits": 18,
+        "degenerate": 9.7
+      },
+      "bytes": 327432
+    },
+    "m3a-cannon-defense-division": {
+      "url": "/hangar/weapons/m3a-cannon-defense-division.glb",
+      "v": "04a173b1",
+      "tris": 11992,
+      "trisRaw": 17289,
+      "textures": 6,
+      "attached": 0,
+      "key": "m3a-cannon-defense-division",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.17,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 177452
+    },
+    "m3a-cannon": {
+      "url": "/hangar/weapons/m3a-cannon.glb",
+      "v": "584d7dad",
+      "tris": 11992,
+      "trisRaw": 17289,
+      "textures": 6,
+      "attached": 0,
+      "key": "m3a-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.17,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 176368
+    },
+    "m4a-cannon-defense-division": {
+      "url": "/hangar/weapons/m4a-cannon-defense-division.glb",
+      "v": "1d77829e",
+      "tris": 12067,
+      "trisRaw": 23411,
+      "textures": 6,
+      "attached": 0,
+      "key": "m4a-cannon-defense-division",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.09,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 186780
+    },
+    "m4a-cannon": {
+      "url": "/hangar/weapons/m4a-cannon.glb",
+      "v": "07bb4aa0",
+      "tris": 12067,
+      "trisRaw": 23411,
+      "textures": 6,
+      "attached": 0,
+      "key": "m4a-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.09,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 185696
+    },
+    "m5a-cannon-defense-division": {
+      "url": "/hangar/weapons/m5a-cannon-defense-division.glb",
+      "v": "e8dcde2c",
+      "tris": 12594,
+      "trisRaw": 28125,
+      "textures": 7,
+      "attached": 0,
+      "key": "m5a-cannon-defense-division",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.44,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 192236
+    },
+    "m5a-cannon": {
+      "url": "/hangar/weapons/m5a-cannon.glb",
+      "v": "c51554b4",
+      "tris": 12594,
+      "trisRaw": 28125,
+      "textures": 6,
+      "attached": 0,
+      "key": "m5a-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.44,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 189240
+    },
+    "m6a-cannon": {
+      "url": "/hangar/weapons/m6a-cannon.glb",
+      "v": "cccc5665",
+      "tris": 13193,
+      "trisRaw": 13193,
+      "textures": 8,
+      "attached": 0,
+      "key": "m6a-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 4.19,
+        "bits": 15,
+        "degenerate": 0.1
+      },
+      "bytes": 229136
+    },
+    "m7a-cannon": {
+      "url": "/hangar/weapons/m7a-cannon.glb",
+      "v": "33fd6755",
+      "tris": 11993,
+      "trisRaw": 14227,
+      "textures": 9,
+      "attached": 0,
+      "key": "m7a-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 9,
+        "rangeAfter": 4.35,
+        "bits": 15,
+        "degenerate": 0.2
+      },
+      "bytes": 210496
+    },
+    "mantis-gt-220-gatling": {
+      "url": "/hangar/weapons/mantis-gt-220-gatling.glb",
+      "v": "cee39e04",
+      "tris": 8409,
+      "trisRaw": 8409,
+      "textures": 12,
+      "attached": 0,
+      "key": "mantis-gt-220-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 126864
+    },
+    "mrx-torrent-s1": {
+      "url": "/hangar/weapons/mrx-torrent-s1.glb",
+      "v": "4bf15820",
+      "tris": 8216,
+      "trisRaw": 8216,
+      "textures": 5,
+      "attached": 0,
+      "key": "mrx-torrent~1",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.63,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 98376
+    },
+    "mrx-torrent-s2": {
+      "url": "/hangar/weapons/mrx-torrent-s2.glb",
+      "v": "061d7440",
+      "tris": 12975,
+      "trisRaw": 25303,
+      "textures": 9,
+      "attached": 0,
+      "key": "mrx-torrent~2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 9,
+        "rangeAfter": 2.63,
+        "bits": 14,
+        "degenerate": 0.7
+      },
+      "bytes": 237208
+    },
+    "mvsa-cannon": {
+      "url": "/hangar/weapons/mvsa-cannon.glb",
+      "v": "5a3f533e",
+      "tris": 337,
+      "trisRaw": 337,
+      "textures": 7,
+      "attached": 0,
+      "key": "mvsa-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 91772
+    },
+    "ndb-26-repeater": {
+      "url": "/hangar/weapons/ndb-26-repeater.glb",
+      "v": "82096c78",
+      "tris": 12763,
+      "trisRaw": 12763,
+      "textures": 40,
+      "attached": 0,
+      "key": "ndb-26-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 6.13,
+        "bits": 15,
+        "degenerate": 0.3
+      },
+      "bytes": 463120
+    },
+    "ndb-28-repeater": {
+      "url": "/hangar/weapons/ndb-28-repeater.glb",
+      "v": "1a5b17f8",
+      "tris": 12763,
+      "trisRaw": 12763,
+      "textures": 40,
+      "attached": 0,
+      "key": "ndb-28-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 6.13,
+        "bits": 15,
+        "degenerate": 0.3
+      },
+      "bytes": 463180
+    },
+    "ndb-30-repeater": {
+      "url": "/hangar/weapons/ndb-30-repeater.glb",
+      "v": "7cb4312f",
+      "tris": 12763,
+      "trisRaw": 12763,
+      "textures": 40,
+      "attached": 0,
+      "key": "ndb-30-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 6.13,
+        "bits": 15,
+        "degenerate": 0.3
+      },
+      "bytes": 462808
+    },
+    "nn-13-cannon": {
+      "url": "/hangar/weapons/nn-13-cannon.glb",
+      "v": "ee15a05b",
+      "tris": 11430,
+      "trisRaw": 11430,
+      "textures": 9,
+      "attached": 0,
+      "key": "nn-13-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 2.84,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 125376
+    },
+    "nn-14-cannon": {
+      "url": "/hangar/weapons/nn-14-cannon.glb",
+      "v": "97d81d82",
+      "tris": 12110,
+      "trisRaw": 19584,
+      "textures": 10,
+      "attached": 0,
+      "key": "nn-14-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 4.36,
+        "bits": 15,
+        "degenerate": 0.1
+      },
+      "bytes": 144984
+    },
+    "nn-15-cannon": {
+      "url": "/hangar/weapons/nn-15-cannon.glb",
+      "v": "d0b726e3",
+      "tris": 12315,
+      "trisRaw": 24746,
+      "textures": 10,
+      "attached": 0,
+      "key": "nn-15-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 6.1,
+        "bits": 15,
+        "degenerate": 0.2
+      },
+      "bytes": 152304
+    },
+    "nv57-ballistic-gatling": {
+      "url": "/hangar/weapons/nv57-ballistic-gatling.glb",
+      "v": "411341b1",
+      "tris": 12111,
+      "trisRaw": 21648,
+      "textures": 9,
+      "attached": 0,
+      "key": "nv57-ballistic-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.33,
+        "bits": 14,
+        "degenerate": 4.2
+      },
+      "bytes": 214416
+    },
+    "omnisky-iii-cannon": {
+      "url": "/hangar/weapons/omnisky-iii-cannon.glb",
+      "v": "7b069bc0",
+      "tris": 7552,
+      "trisRaw": 7552,
+      "textures": 7,
+      "attached": 0,
+      "key": "omnisky-iii-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.54,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 124568
+    },
+    "omnisky-ix-cannon": {
+      "url": "/hangar/weapons/omnisky-ix-cannon.glb",
+      "v": "e1f2d238",
+      "tris": 7552,
+      "trisRaw": 7552,
+      "textures": 7,
+      "attached": 0,
+      "key": "omnisky-ix-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.54,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 124592
+    },
+    "omnisky-vi-cannon": {
+      "url": "/hangar/weapons/omnisky-vi-cannon.glb",
+      "v": "20236224",
+      "tris": 7552,
+      "trisRaw": 7552,
+      "textures": 7,
+      "attached": 0,
+      "key": "omnisky-vi-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.54,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 124612
+    },
+    "omnisky-xii-cannon": {
+      "url": "/hangar/weapons/omnisky-xii-cannon.glb",
+      "v": "33c28100",
+      "tris": 12000,
+      "trisRaw": 13436,
+      "textures": 6,
+      "attached": 0,
+      "key": "omnisky-xii-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 4.24,
+        "bits": 15,
+        "degenerate": 0.2
+      },
+      "bytes": 146016
+    },
+    "omnisky-xv-cannon": {
+      "url": "/hangar/weapons/omnisky-xv-cannon.glb",
+      "v": "dbacb98b",
+      "tris": 11999,
+      "trisRaw": 13550,
+      "textures": 7,
+      "attached": 0,
+      "key": "omnisky-xv-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 4.24,
+        "bits": 15,
+        "degenerate": 0.2
+      },
+      "bytes": 148160
+    },
+    "predator-scattergun-sharkmouth-edition": {
+      "url": "/hangar/weapons/predator-scattergun-sharkmouth-edition.glb",
+      "v": "f5f7a1cd",
+      "tris": 12078,
+      "trisRaw": 23362,
+      "textures": 9,
+      "attached": 0,
+      "key": "predator-scattergun-sharkmouth-edition",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 130460
+    },
+    "predator-scattergun": {
+      "url": "/hangar/weapons/predator-scattergun.glb",
+      "v": "0155195b",
+      "tris": 10880,
+      "trisRaw": 10880,
+      "textures": 8,
+      "attached": 0,
+      "key": "predator-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 117992
+    },
+    "pyroburst-scattergun": {
+      "url": "/hangar/weapons/pyroburst-scattergun.glb",
+      "v": "5d5fbae8",
+      "tris": 10890,
+      "trisRaw": 10890,
+      "textures": 15,
+      "attached": 0,
+      "key": "pyroburst-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.5,
+        "bits": 14,
+        "degenerate": 0.4
+      },
+      "bytes": 215092
+    },
+    "quarreler-cannon": {
+      "url": "/hangar/weapons/quarreler-cannon.glb",
+      "v": "b19fc8cc",
+      "tris": 12093,
+      "trisRaw": 23354,
+      "textures": 8,
+      "attached": 0,
+      "key": "quarreler-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 4.17,
+        "bits": 15,
+        "degenerate": 0.2
+      },
+      "bytes": 195744
+    },
+    "reign-3-repeater": {
+      "url": "/hangar/weapons/reign-3-repeater.glb",
+      "v": "8376f453",
+      "tris": 12024,
+      "trisRaw": 17251,
+      "textures": 14,
+      "attached": 0,
+      "key": "reign-3-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 5.47,
+        "bits": 15,
+        "degenerate": 0
+      },
+      "bytes": 285368
+    },
+    "relentless-l-21-gatling": {
+      "url": "/hangar/weapons/relentless-l-21-gatling.glb",
+      "v": "d01e826b",
+      "tris": 12799,
+      "trisRaw": 20245,
+      "textures": 6,
+      "attached": 0,
+      "key": "relentless-l-21-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 11,
+        "rangeAfter": 5.98,
+        "bits": 15,
+        "degenerate": 0.1
+      },
+      "bytes": 180920
+    },
+    "revenant-gatling-s3": {
+      "url": "/hangar/weapons/revenant-gatling-s3.glb",
+      "v": "81655fee",
+      "tris": 2546,
+      "trisRaw": 2546,
+      "textures": 9,
+      "attached": 0,
+      "key": "revenant-gatling~3",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 2.73,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 164164
+    },
+    "revenant-gatling-s4": {
+      "url": "/hangar/weapons/revenant-gatling-s4.glb",
+      "v": "47e1af7e",
+      "tris": 12683,
+      "trisRaw": 17348,
+      "textures": 9,
+      "attached": 0,
+      "key": "revenant-gatling~4",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.8
+      },
+      "bytes": 233384
+    },
+    "salvation-distortion-scattergun": {
+      "url": "/hangar/weapons/salvation-distortion-scattergun.glb",
+      "v": "93d168be",
+      "tris": 12129,
+      "trisRaw": 20421,
+      "textures": 8,
+      "attached": 0,
+      "key": "salvation-distortion-scattergun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 27,
+        "rangeAfter": 14.26,
+        "bits": 16,
+        "degenerate": 0.2
+      },
+      "bytes": 180072
+    },
+    "scorpion-gt-215-gatling": {
+      "url": "/hangar/weapons/scorpion-gt-215-gatling.glb",
+      "v": "a4a9a0c9",
+      "tris": 8409,
+      "trisRaw": 8409,
+      "textures": 12,
+      "attached": 0,
+      "key": "scorpion-gt-215-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 126992
+    },
+    "singe-cannon-s1": {
+      "url": "/hangar/weapons/singe-cannon-s1.glb",
+      "v": "797c2e1c",
+      "tris": 11979,
+      "trisRaw": 19101,
+      "textures": 18,
+      "attached": 0,
+      "key": "singe-cannon-s1",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.55,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 169612
+    },
+    "singe-cannon-s2": {
+      "url": "/hangar/weapons/singe-cannon-s2.glb",
+      "v": "a153dc4d",
+      "tris": 11979,
+      "trisRaw": 19101,
+      "textures": 18,
+      "attached": 0,
+      "key": "singe-cannon-s2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.55,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 169516
+    },
+    "singe-cannon-s3": {
+      "url": "/hangar/weapons/singe-cannon-s3.glb",
+      "v": "0b1f75b9",
+      "tris": 11976,
+      "trisRaw": 19101,
+      "textures": 18,
+      "attached": 0,
+      "key": "singe-cannon-s3",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.55,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 169512
+    },
+    "slayer-cannon": {
+      "url": "/hangar/weapons/slayer-cannon.glb",
+      "v": "e6f3035a",
+      "tris": 12050,
+      "trisRaw": 12050,
+      "textures": 7,
+      "attached": 0,
+      "key": "slayer-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 6,
+        "bits": 15,
+        "degenerate": 18.7
+      },
+      "bytes": 164116
+    },
+    "sledge-i-mass-driver-cannon": {
+      "url": "/hangar/weapons/sledge-i-mass-driver-cannon.glb",
+      "v": "f0d88bb8",
+      "tris": 11382,
+      "trisRaw": 11382,
+      "textures": 10,
+      "attached": 0,
+      "key": "sledge-i-mass-driver-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.02,
+        "bits": 14,
+        "degenerate": 1.2
+      },
+      "bytes": 147952
+    },
+    "sledge-ii-mass-driver-cannon": {
+      "url": "/hangar/weapons/sledge-ii-mass-driver-cannon.glb",
+      "v": "3af328f2",
+      "tris": 11382,
+      "trisRaw": 11382,
+      "textures": 10,
+      "attached": 0,
+      "key": "sledge-ii-mass-driver-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.02,
+        "bits": 14,
+        "degenerate": 1.2
+      },
+      "bytes": 148020
+    },
+    "sledge-iii-mass-driver-cannon": {
+      "url": "/hangar/weapons/sledge-iii-mass-driver-cannon.glb",
+      "v": "4c6431c9",
+      "tris": 11382,
+      "trisRaw": 11382,
+      "textures": 10,
+      "attached": 0,
+      "key": "sledge-iii-mass-driver-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.02,
+        "bits": 14,
+        "degenerate": 1.2
+      },
+      "bytes": 147876
+    },
+    "snapper-s2-repeater": {
+      "url": "/hangar/weapons/snapper-s2-repeater.glb",
+      "v": "f4066d8e",
+      "tris": 11990,
+      "trisRaw": 15099,
+      "textures": 8,
+      "attached": 0,
+      "key": "snapper-s2-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.47,
+        "bits": 14,
+        "degenerate": 0.2
+      },
+      "bytes": 112004
+    },
+    "strife-mass-driver-cannon": {
+      "url": "/hangar/weapons/strife-mass-driver-cannon.glb",
+      "v": "3a9ebfa0",
+      "tris": 11997,
+      "trisRaw": 19225,
+      "textures": 10,
+      "attached": 0,
+      "key": "strife-mass-driver-cannon",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 3.58,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 178068
+    },
+    "suckerpunch-cannon": {
+      "url": "/hangar/weapons/suckerpunch-cannon.glb",
+      "v": "af73000f",
+      "tris": 12167,
+      "trisRaw": 20254,
+      "textures": 20,
+      "attached": 0,
+      "key": "suckerpunch-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 20,
+        "rangeAfter": 11.13,
+        "bits": 16,
+        "degenerate": 0.3
+      },
+      "bytes": 224080
+    },
+    "suckerpunch-l-cannon": {
+      "url": "/hangar/weapons/suckerpunch-l-cannon.glb",
+      "v": "61ab196c",
+      "tris": 12158,
+      "trisRaw": 20254,
+      "textures": 20,
+      "attached": 0,
+      "key": "suckerpunch-l-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 20,
+        "rangeAfter": 11.13,
+        "bits": 16,
+        "degenerate": 0.3
+      },
+      "bytes": 223832
+    },
+    "suckerpunch-xl-cannon": {
+      "url": "/hangar/weapons/suckerpunch-xl-cannon.glb",
+      "v": "e1a4df35",
+      "tris": 12165,
+      "trisRaw": 20254,
+      "textures": 20,
+      "attached": 0,
+      "key": "suckerpunch-xl-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 20,
+        "rangeAfter": 11.13,
+        "bits": 16,
+        "degenerate": 0.3
+      },
+      "bytes": 223864
+    },
+    "suregrip-th2-tractor-beam": {
+      "url": "/hangar/weapons/suregrip-th2-tractor-beam.glb",
+      "v": "b7676134",
+      "tris": 1275,
+      "trisRaw": 1275,
+      "textures": 1,
+      "attached": 0,
+      "key": "suregrip-th2-tractor-beam",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 22872
+    },
+    "sw16br1-buzzsaw-repeater": {
+      "url": "/hangar/weapons/sw16br1-buzzsaw-repeater.glb",
+      "v": "ee4bbd3e",
+      "tris": 13034,
+      "trisRaw": 16290,
+      "textures": 24,
+      "attached": 0,
+      "key": "sw16br1-buzzsaw-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.5
+      },
+      "bytes": 235364
+    },
+    "sw16br2-sawbuck-repeater": {
+      "url": "/hangar/weapons/sw16br2-sawbuck-repeater.glb",
+      "v": "de5fb1ae",
+      "tris": 13042,
+      "trisRaw": 16290,
+      "textures": 24,
+      "attached": 0,
+      "key": "sw16br2-sawbuck-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.5
+      },
+      "bytes": 235372
+    },
+    "sw16br3-shredder-repeater": {
+      "url": "/hangar/weapons/sw16br3-shredder-repeater.glb",
+      "v": "b416fdd3",
+      "tris": 13039,
+      "trisRaw": 16290,
+      "textures": 24,
+      "attached": 0,
+      "key": "sw16br3-shredder-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 235376
+    },
+    "tarantula-gt-870-mark-1-cannon": {
+      "url": "/hangar/weapons/tarantula-gt-870-mark-1-cannon.glb",
+      "v": "f70696e0",
+      "tris": 11454,
+      "trisRaw": 11454,
+      "textures": 12,
+      "attached": 0,
+      "key": "tarantula-gt-870-mark-1-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 171056
+    },
+    "tarantula-gt-870-mark-2-cannon": {
+      "url": "/hangar/weapons/tarantula-gt-870-mark-2-cannon.glb",
+      "v": "994a4c59",
+      "tris": 11454,
+      "trisRaw": 11454,
+      "textures": 12,
+      "attached": 0,
+      "key": "tarantula-gt-870-mark-2-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 171048
+    },
+    "tarantula-gt-870-mark-3-cannon-s3": {
+      "url": "/hangar/weapons/tarantula-gt-870-mark-3-cannon-s3.glb",
+      "v": "160774c1",
+      "tris": 11454,
+      "trisRaw": 11454,
+      "textures": 12,
+      "attached": 0,
+      "key": "tarantula-gt-870-mark-3-cannon~3",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 170964
+    },
+    "thlilye-laser-gatling": {
+      "url": "/hangar/weapons/thlilye-laser-gatling.glb",
+      "v": "4790ce16",
+      "tris": 12102,
+      "trisRaw": 15319,
+      "textures": 3,
+      "attached": 0,
+      "key": "thlilye-laser-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 3.17,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 83444
+    },
+    "tigerstrike-t-19p": {
+      "url": "/hangar/weapons/tigerstrike-t-19p.glb",
+      "v": "fc8197be",
+      "tris": 9161,
+      "trisRaw": 9161,
+      "textures": 6,
+      "attached": 0,
+      "key": "tigerstrike-t-19p",
+      "anchorBy": "name",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 4.39,
+        "bits": 15,
+        "degenerate": 0.2
+      },
+      "bytes": 100028
+    },
+    "tmsb-5-gatling": {
+      "url": "/hangar/weapons/tmsb-5-gatling.glb",
+      "v": "4a3fe22b",
+      "tris": 2546,
+      "trisRaw": 2546,
+      "textures": 9,
+      "attached": 0,
+      "key": "tmsb-5-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 2.73,
+        "bits": 14,
+        "degenerate": 0
+      },
+      "bytes": 164164
+    },
+    "tormenter-s3-repeater": {
+      "url": "/hangar/weapons/tormenter-s3-repeater.glb",
+      "v": "33e08366",
+      "tris": 11991,
+      "trisRaw": 15099,
+      "textures": 8,
+      "attached": 0,
+      "key": "tormenter-s3-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.47,
+        "bits": 14,
+        "degenerate": 0.2
+      },
+      "bytes": 111784
+    },
+    "war-cannon": {
+      "url": "/hangar/weapons/war-cannon.glb",
+      "v": "a4eca118",
+      "tris": 6052,
+      "trisRaw": 6052,
+      "textures": 10,
+      "attached": 0,
+      "key": "war-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 23,
+        "rangeAfter": 3.34,
+        "bits": 14,
+        "degenerate": 0.6
+      },
+      "bytes": 94516
+    },
+    "warlord-cannon": {
+      "url": "/hangar/weapons/warlord-cannon.glb",
+      "v": "a1f25e6e",
+      "tris": 12098,
+      "trisRaw": 18975,
+      "textures": 15,
+      "attached": 0,
+      "key": "warlord-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 4.63,
+        "bits": 15,
+        "degenerate": 13.9
+      },
+      "bytes": 241412
+    },
+    "wasp-repeater": {
+      "url": "/hangar/weapons/wasp-repeater.glb",
+      "v": "114512ba",
+      "tris": 9437,
+      "trisRaw": 9437,
+      "textures": 10,
+      "attached": 0,
+      "key": "wasp-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 39,
+        "rangeAfter": 39.39,
+        "bits": 18,
+        "degenerate": 14.9
+      },
+      "bytes": 144248
+    },
+    "weak-repeater": {
+      "url": "/hangar/weapons/weak-repeater.glb",
+      "v": "0a9353f8",
+      "tris": 178,
+      "trisRaw": 178,
+      "textures": 4,
+      "attached": 0,
+      "key": "weak-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.42,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 20576
+    },
+    "whip-cannon": {
+      "url": "/hangar/weapons/whip-cannon.glb",
+      "v": "51af5dfe",
+      "tris": 12098,
+      "trisRaw": 18975,
+      "textures": 15,
+      "attached": 0,
+      "key": "whip-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 8,
+        "rangeAfter": 4.63,
+        "bits": 15,
+        "degenerate": 13.9
+      },
+      "bytes": 241412
+    },
+    "whiptail-str-e2-repeater": {
+      "url": "/hangar/weapons/whiptail-str-e2-repeater.glb",
+      "v": "933b5a98",
+      "tris": 12129,
+      "trisRaw": 17190,
+      "textures": 10,
+      "attached": 0,
+      "key": "whiptail-str-e2-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 13,
+        "rangeAfter": 13.91,
+        "bits": 16,
+        "degenerate": 3.5
+      },
+      "bytes": 206660
+    },
+    "wrath-cannon": {
+      "url": "/hangar/weapons/wrath-cannon.glb",
+      "v": "7ef5ebc6",
+      "tris": 12882,
+      "trisRaw": 16571,
+      "textures": 9,
+      "attached": 0,
+      "key": "wrath-cannon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 11,
+        "rangeAfter": 6.01,
+        "bits": 15,
+        "degenerate": 0.5
+      },
+      "bytes": 210952
+    },
+    "yellowjacket-gt-210-gatling": {
+      "url": "/hangar/weapons/yellowjacket-gt-210-gatling.glb",
+      "v": "5c404ba5",
+      "tris": 8409,
+      "trisRaw": 8409,
+      "textures": 12,
+      "attached": 0,
+      "key": "yellowjacket-gt-210-gatling",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 127016
+    },
+    "yeng-tu-repeater": {
+      "url": "/hangar/weapons/yeng-tu-repeater.glb",
+      "v": "365b90d3",
+      "tris": 12025,
+      "trisRaw": 13746,
+      "textures": 8,
+      "attached": 0,
+      "key": "yeng-tu-repeater",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 4,
+        "bits": 14,
+        "degenerate": 1.4
+      },
+      "bytes": 181348
     }
   },
   "hall": {

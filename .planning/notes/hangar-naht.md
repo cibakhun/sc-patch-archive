@@ -14,6 +14,7 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `focus(point)` | Kamerafahrt auf den Punkt (gleicher Raum), Abstand ~0,6 × Spannweite. `focus(null)` = zurück in die Startansicht dieses Schiffs. |
 | `setCover(px)` | Die obersten `px` CSS-Pixel der Bühne verdeckt die Oberfläche. Die Szene rückt das Bild nach unten wie ein verschobenes Objektiv (`camera.setViewOffset`, gleicher Bildwinkel): im Abstand der Startansicht steht das Schiff über den ganzen Umlauf mittig im freien Teil. Ist es dafür zu hoch (von oben gesehen, kleine Telefone), rückt es nur so weit, dass unten 8 px Luft bleiben, und reicht oben unter den Titel; reicht es schon ohne Verschiebung näher als 8 px an den unteren Rand, bleibt das Bild mittig. `0` = mittig. `project()` rechnet die Verschiebung mit. |
 | `onFrame(fn)` | `fn()` läuft nach jedem gezeichneten Bild, nur solange die Bühne sichtbar ist. Ein Aufruf ersetzt den vorigen. |
+| `fit(list)` | Layout-Werkstatt: `list` = `[{ port, item, url }]`, je getauschte Bordwaffe der Port (`hardpoint_…`), der Index im Port und die URL ihres Modells (`/hangar/weapons/*.glb?v=`). Blendet die Serienwaffe dieser Ports aus und setzt das Modell an jede ihrer Wurzeln; `[]` stellt die Serie her. Gilt für das stehende Schiff; die Oberfläche ruft es nach jedem `show()` erneut. Ports ohne Tauschteile in der `.glb` und fehlende Modelle bleiben still in Serie. Liefert die Zahl gesetzter Waffen. |
 | `onProgress(fn)` | Meldet Schiff und Halle zusammen bis 90 %, dann 100, wenn das jüngste `show()` steht. Ein überholtes `show()` lädt still zu Ende (`fetchGltf(…, my)`), damit der Balken nur das gewählte Schiff zeigt. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
@@ -93,7 +94,7 @@ Szene müsste diese Weiche in `assets/hangar-overview.js` (`hasGpu`) mitbewegen.
 Die Lage von `#hg-fallback` legt `HangarPage.astro` fest (zwischen Titel und
 Tafel, am Telefon am Bühnenfuß).
 
-`show`, `focus`, `project`, `setCover` und `onFrame` gehören der Oberfläche. Braucht ein
+`show`, `focus`, `project`, `setCover`, `onFrame` und `fit` gehören der Oberfläche. Braucht ein
 szenenseitiges Skript den Viewer, etwa ein künftiger Hallenschalter, legen
 beide Seiten den Weg dann fest; heute hört niemand zu.
 
