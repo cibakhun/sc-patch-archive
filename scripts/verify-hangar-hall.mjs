@@ -21,7 +21,7 @@
    Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   ZWOELF ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   DREIZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -151,6 +151,20 @@
         und je Hallenstufe tragen mindestens KLINKE_WERKSTATT.pad
         fahrende Dreiecke ([10]) ein Material aus WORK_PAD.mats; sonst
         bliebe das Feld still Lack.
+    13  Das Schiffsfeld steht in der Hallenmitte (seit 18.10.2026): Das Feld
+        des Spiels lag 4 m neben der Achse von Waenden, Decke und Rahmen-
+        linie (Betreiber 18.10.2026: „unser platform ist nicht mittig“).
+        HALL_SHIFT im Viewer rueckt es um `field` m und laesst zwei
+        Bodenstreifen daneben die Plaetze tauschen; was ueber eine
+        Streifenkante reicht, teilt der Viewer (shiftHallFloor). Geprueft:
+        jeder Schluessel ist die Halle der Seite und hat ein Feld; die
+        Feldmitte liegt danach auf der Raummitte; die Tiefe `z` ist die des
+        Felds; Feld und Streifen bedecken vorher und nachher dieselbe
+        Breite ohne Ueberlappung (sonst klafft eine Luecke oder Boden liegt
+        doppelt). Je Hallenstufe und in der Moebeldatei: kein Bodendreieck
+        reicht ueber die Feldenden in z, keins ist im Streifen und nicht
+        teilbar, kein Stueck landet nach dem Ruecken im Feld (es laege ueber
+        dem Schacht), und je Streifen wandern mindestens `min` Dreiecke.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -674,6 +688,8 @@ for (const k of Object.keys(liftAll).filter((k) => k !== hall?.id)) fail(`[10] H
 const LIFT = hall?.id ? liftAll[hall.id] ?? null : null;
 const LIFT_E = 0.01;
 const liftRuns = [], liftExtra = [];
+// Moebel- und Telefon-Datei, wie [10] sie liest; [13] braucht sie auch
+const extraDocs = new Map();
 if (LIFT) {
   const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
   if (!(pair(LIFT.from) && pair(LIFT.to) && pair(LIFT.y) && LIFT.from[0] < LIFT.to[0] && LIFT.from[1] < LIFT.to[1] && LIFT.y[0] < LIFT.y[1] && Number.isInteger(LIFT.min) && LIFT.min > 0)) {
@@ -737,6 +753,7 @@ if (LIFT) {
       const f = fromUrl(u);
       if (!existsSync(f)) continue;
       const doc = await decode(f);
+      extraDocs.set(u.split('?')[0], doc);
       let stay = 0, over = 0, floating = 0;
       const ex = [], fx = [];
       for (const node of doc.getRoot().listNodes()) {
@@ -1018,6 +1035,121 @@ if (W) {
 }
 for (const k of Object.keys(KLINKE_WERKSTATT).filter(() => !WM)) fail(`[12] KLINKE_WERKSTATT.${k}: das Manifest nennt keine Werkstatt mehr; den Eintrag hier per Commit mit Ursache entfernen`);
 sollIst(W ? `alle Dateien in dist/, jeder Platz und jede Feldspur mit Knoten, Decals flach; mindestens ${KLINKE_WERKSTATT.props} Geraete, ${KLINKE_WERKSTATT.decals} Decal-Arten, ${KLINKE_WERKSTATT.items} Plaetze, ${KLINKE_WERKSTATT.field} Feldspuren, ${KLINKE_WERKSTATT.service} Geraete am Schiff, Feld ${pad?.pick === 'lack' ? 'im Lack der Halle, Vergleichsboeden' : `aus Spielboden ${pad?.pick ?? '?'}, alle Boeden`} mit Knoten und Kachel, je Hallenstufe ${KLINKE_WERKSTATT.pad} Felddreiecke darunter (WORK_PAD); hoechstens ${OBERGRENZE_WERKSTATT.tris} Dreiecke, ${OBERGRENZE_WERKSTATT.bytes / 1e6} MB, Bodendatei ${OBERGRENZE_WERKSTATT.boden / 1048576} MiB` : 'keine Werkstatt fuer diese Halle', W ? `${workRun.props} Geraete, ${workRun.decals} Decal-Arten, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} Geraete am Schiff, Spielboden ${workRun.pad.join(', ') || 'keiner'}; ${workRun.tris} Dreiecke, ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, Bodendatei ${(workRun.boden / 1048576).toFixed(2)} MiB` : '(nichts gemessen)');
+
+say('\n[13] Das Schiffsfeld steht in der Hallenmitte, der Boden daneben ohne Luecke');
+// Der Block steht im Viewer zwischen /* hall-shift */ und /* /hall-shift */ und ist JSON
+const sfm = /\/\* hall-shift \*\/([\s\S]*?)\/\* \/hall-shift \*\//.exec(viewer);
+let shiftAll = null;
+try { shiftAll = sfm ? JSON.parse(sfm[1]) : null; } catch (e) { fail(`[13] HALL_SHIFT im Viewer ist kein JSON mehr (${e.message})`); }
+if (viewer && !sfm) fail('[13] der Viewer traegt keinen Block /* hall-shift */ … /* /hall-shift */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+shiftAll ??= {};
+for (const k of Object.keys(shiftAll).filter((k) => k !== hall?.id)) fail(`[13] HALL_SHIFT["${k}"]: die Seite laedt diese Halle nicht; Eintrag entfernen oder die Halle zurueck`);
+const SHIFT = hall?.id ? shiftAll[hall.id] ?? null : null;
+const shiftRuns = [];
+let shiftCentre = null;
+if (SHIFT && !LIFT) fail(`[13] HALL_SHIFT["${hall.id}"] ohne Schiffsfeld in HALL_LIFT: Es gibt nichts zu verschieben`);
+if (SHIFT && LIFT) {
+  const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
+  const strips = Array.isArray(SHIFT.strips) ? SHIFT.strips : [];
+  const okStrips = strips.length && strips.every((s) => Array.isArray(s) && s.length === 3 && s.every(Number.isFinite) && s[0] < s[1]);
+  if (!(Number.isFinite(SHIFT.field) && pair(SHIFT.z) && pair(SHIFT.y) && okStrips && Array.isArray(SHIFT.min) && SHIFT.min.length === strips.length && SHIFT.min.every((m) => Number.isInteger(m) && m > 0))) {
+    fail(`[13] HALL_SHIFT["${hall.id}"] braucht field (m), z [von, bis], y [unten, oben], strips [[x von, bis, um m], …] und je Streifen eine Klinke in min`);
+  } else {
+    const E = LIFT_E, [fx0, fz0] = LIFT.from, [fx1, fz1] = LIFT.to, d = SHIFT.field, [sy0, sy1] = SHIFT.y, [sz0, sz1] = SHIFT.z;
+    // Mitte: das Feld danach auf der Mittelachse des Raums
+    shiftCentre = (fx0 + fx1) / 2 + d;
+    const rc = hall.room?.center?.[0];
+    if (!Number.isFinite(rc)) fail('[13] die Seite gibt der Halle keinen Raum (room.center) mit: Ohne ihn ist die Mitte nicht pruefbar');
+    else if (Math.abs(shiftCentre - rc) > 0.05) fail(`[13] das Feld steht danach bei x ${shiftCentre}, die Raummitte bei x ${rc}: field in HALL_SHIFT nachmessen`);
+    if (Math.abs(sz0 - fz0) > E || Math.abs(sz1 - fz1) > E) fail(`[13] HALL_SHIFT.z (${sz0}..${sz1}) ist nicht die Laenge des Felds (${fz0}..${fz1}): Die Streifen saeßen dann gegen das Feld versetzt`);
+    // Breite: vorher und nachher dieselbe Strecke, ohne Ueberlappung
+    const before = [[fx0, fx1], ...strips.map(([a, b]) => [a, b])], after = [[fx0 + d, fx1 + d], ...strips.map(([a, b, by]) => [a + by, b + by])];
+    const union = (iv) => iv.slice().sort((p, q) => p[0] - q[0]).reduce((u, [a, b]) => (u.length && a <= u[u.length - 1][1] + E ? (u[u.length - 1][1] = Math.max(u[u.length - 1][1], b), u) : [...u, [a, b]]), []);
+    const sum = (iv) => iv.reduce((s, [a, b]) => s + b - a, 0), ub = union(before), ua = union(after);
+    if (ub.length !== ua.length || ub.some(([a, b], i) => Math.abs(a - ua[i][0]) > E || Math.abs(b - ua[i][1]) > E)) fail(`[13] Feld und Streifen decken vorher ${ub.map(([a, b]) => `${a}..${b}`).join(', ')}, nachher ${ua.map(([a, b]) => `${a}..${b}`).join(', ')}: Dort entstuende eine Luecke im Boden oder Boden laege doppelt`);
+    if (Math.abs(sum(before) - sum(ub)) > E || Math.abs(sum(after) - sum(ua)) > E) fail('[13] Feld und Streifen ueberlappen sich (vorher oder nachher): Boden laege doppelt');
+    const cuts = [...new Set(strips.flatMap(([a, b]) => [a, b]))].sort((p, q) => p - q);
+    const stripOf = (lo, hi) => strips.findIndex(([a, b]) => lo >= a - E && hi <= b + E);
+    for (const [u, doc] of [...stageDocs, ...extraDocs]) {
+      // Hallenstufe: das Feld ist schon geschnitten ([10]); Moebel- und
+      // Telefon-Datei kommen erst danach dazu
+      const stage = stageDocs.has(u);
+      // wie der Viewer (shiftHallFloor): mehrfach gestellte Geometrie und
+      // solche ohne Index setzt er nicht um, Moebel wandern ueber ihren Bezugspunkt
+      const acc = new Map(), refs = new Map();
+      const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
+      for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
+      const moved = strips.map(() => 0);
+      let split = 0, edge = 0, stuck = 0, deep = 0, furn = 0;
+      const ex = [];
+      const inLift = (q) => q.every(([x, y, z]) => x >= fx0 - E && x <= fx1 + E && z >= fz0 - E && z <= fz1 + E && y >= LIFT.y[0] && y <= LIFT.y[1]);
+      for (const node of doc.getRoot().listNodes()) {
+        let anchor = null;
+        for (let a = node; a && !anchor; a = a.getParentNode()) anchor = Array.isArray(a.getExtras()?.anchor) ? a : null;
+        if (anchor) {
+          const x = anchor.getExtras().anchor;
+          if (anchor === node && x[2] >= sz0 && x[2] < sz1 && strips.some(([a, b]) => x[0] >= a && x[0] < b)) furn++;
+          continue;
+        }
+        const mesh = node.getMesh();
+        if (!mesh) continue;
+        const w = node.getWorldMatrix();
+        for (const p of mesh.listPrimitives()) {
+          const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
+          if (!P) continue;
+          const can = !!I && !(refs.get(geo(p)) > 1);
+          const at = (i) => {
+            const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+            return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
+          };
+          const n = I ? I.length : P.length / 3;
+          for (let t = 0; t + 2 < n; t += 3) {
+            const q = [at(I ? I[t] : t), at(I ? I[t + 1] : t + 1), at(I ? I[t + 2] : t + 2)];
+            if (stage && can && inLift(q)) continue;   // faehrt mit dem Feld ([10])
+            const xs = q.map((v) => v[0]), lo = Math.min(...xs), hi = Math.max(...xs);
+            const ys = q.map((v) => v[1]), zs = q.map((v) => v[2]);
+            const inY = Math.min(...ys) >= sy0 && Math.max(...ys) <= sy1, overX = hi > cuts[0] + E && lo < cuts[cuts.length - 1] - E;
+            const zIn = Math.min(...zs) >= sz0 - E && Math.max(...zs) <= sz1 + E, zTouch = Math.max(...zs) > sz0 + E && Math.min(...zs) < sz1 - E;
+            // Stuecke nach dem Umsetzen: [von, bis] in x, je Teil zwischen zwei Schnitten
+            let pieces = [[lo, hi, 0]];
+            if (inY && zIn && overX) {
+              if (!can) { stuck++; if (ex.length < 2) ex.push(`bleibt stehen: ${p.getMaterial()?.getName()?.split('_mtl_').pop() ?? '?'} x ${lo.toFixed(2)}..${hi.toFixed(2)}`); continue; }
+              const s = stripOf(lo, hi);
+              if (s >= 0) { moved[s]++; pieces = [[lo + strips[s][2], hi + strips[s][2], 1]]; } else {
+                split++;
+                const ks = [lo, ...cuts.filter((k) => lo < k - E && hi > k + E), hi];
+                pieces = ks.slice(1).map((b, i) => {
+                  const a = ks[i], s2 = stripOf(a, b);
+                  if (s2 >= 0) moved[s2]++;
+                  return s2 >= 0 ? [a + strips[s2][2], b + strips[s2][2], 1] : [a, b, 0];
+                });
+              }
+            } else if (inY && overX && zTouch) {
+              // ragt ueber ein Feldende: der Viewer teilt nur in x
+              edge++;
+              if (ex.length < 2) ex.push(`ueber dem Feldende: ${p.getMaterial()?.getName()?.split('_mtl_').pop() ?? '?'} z ${Math.min(...zs).toFixed(2)}..${Math.max(...zs).toFixed(2)}`);
+              continue;
+            }
+            // danach im Feld: Boden unter dem Feld bliebe ueber dem offenen Schacht
+            const zDeep = Math.min(...zs) < fz1 - E && Math.max(...zs) > fz0 + E, yDeep = Math.min(...ys) <= LIFT.y[1] && Math.max(...ys) >= LIFT.y[0];
+            if (zDeep && yDeep && pieces.some(([a, b]) => a < fx1 + d - E && b > fx0 + d + E)) {
+              deep++;
+              if (ex.length < 2) ex.push(`im Feld: ${p.getMaterial()?.getName()?.split('_mtl_').pop() ?? '?'} x ${lo.toFixed(2)}..${hi.toFixed(2)}`);
+            }
+          }
+        }
+      }
+      shiftRuns.push({ u, moved, split, edge, stuck, deep, furn, stage });
+      say(`    ${u}: ${moved.map((m, i) => `Streifen ${strips[i][0]}..${strips[i][1]} um ${strips[i][2]} m ${m}`).join(', ')} Dreiecke, ${split} geteilt; ${edge} ueber den Feldenden, ${stuck} bleiben stehen, ${deep} danach im Feld; ${furn} Moebel wandern mit`);
+      if (edge) fail(`[13] ${u}: ${edge} Dreiecke reichen ueber ein Feldende in die Streifen (z. B. ${ex.join('; ')}): Der Viewer teilt nur in x, dort risse der Boden. HALL_SHIFT.z nachmessen oder die Halle pruefen`);
+      if (stuck) fail(`[13] ${u}: ${stuck} Dreiecke in den Streifen kann der Viewer nicht umsetzen (mehrfach gestellt oder ohne Index; z. B. ${ex.join('; ')}): Sie blieben stehen, der Boden laege doppelt`);
+      if (deep) fail(`[13] ${u}: ${deep} Dreiecke laegen nach dem Umsetzen im Feld (z. B. ${ex.join('; ')}) und blieben ueber dem offenen Schacht stehen: strips in HALL_SHIFT nachmessen`);
+      if (stage) moved.forEach((m, i) => { if (m < SHIFT.min[i]) fail(`[13] ${u}: Streifen ${strips[i][0]}..${strips[i][1]} traegt ${m} Dreiecke, die Klinke verlangt ${SHIFT.min[i]}: Liegt der Boden noch an dieser Stelle? HALL_SHIFT nachmessen; min nur per Commit mit Ursache senken`); });
+    }
+    if (!stageDocs.size) fail('[13] HALL_SHIFT, aber keine Hallenstufe gemessen ([3])');
+  }
+}
+sollIst(SHIFT ? `Feld danach in der Raummitte (x ${hall?.room?.center?.[0]}); vorher und nachher dieselbe Breite ohne Ueberlappung; je Hallenstufe 0 Dreiecke ueber den Feldenden, 0 stehenbleibende, 0 danach im Feld, je Streifen mindestens ${Array.isArray(SHIFT.min) ? SHIFT.min.join(' / ') : '?'}` : 'keine Verschiebung fuer diese Halle', shiftRuns.length ? `Feld bei x ${shiftCentre}; ${shiftRuns.map((r) => `${r.u}: ${r.moved.join(' / ')} umgesetzt, ${r.split} geteilt, ${r.edge} ueber den Enden, ${r.stuck} stehen, ${r.deep} im Feld`).join('; ')}` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} am Schiff, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke`);
