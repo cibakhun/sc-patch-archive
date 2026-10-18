@@ -21,7 +21,7 @@ describe('Hangar: URL-Zustand', () => {
   test('eine nackte Seite ist das Startschiff im Ueberblick', () => {
     assert.equal(url(''), '');
     assert.deepEqual(parseState('', '', ctx), {
-      ship: 'aegs-gladius', tab: 'overview', hp: null, cmp: [], view: 'stage', lo: null,
+      ship: 'aegs-gladius', tab: 'overview', hp: null, cmp: [], view: 'stage', lo: null, pane: 'layout',
       fleetOnly: false, sort: 'name', q: '', type: '', maker: '',
     });
   });

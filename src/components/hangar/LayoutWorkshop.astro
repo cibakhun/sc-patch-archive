@@ -1,14 +1,15 @@
 ---
-// Die Layout-Werkstatt, EIN Koerper fuer DE und EN: die Tafel, die im
-// Werkstatt-Modus an die Stelle der Kennwert-Tafel tritt (rechts ueber der
-// Buehne, unter 760 px zwischen Buehne und Dock). Gebaut steht nur das
+// Die Layout-Werkstatt, EIN Koerper fuer DE und EN: die Vorgabe der Tafel
+// rechts ueber der Buehne (unter 760 px zwischen Buehne und Dock); der
+// Schalter darueber (HangarPage.astro) wechselt zu den Schiffsdaten. Gebaut steht nur das
 // Geruest mit jedem festen Wort; Slots, Auswahllisten und die gespeicherten
 // Layouts zeichnet assets/hangar-layouts.js aus /hangar-layouts.json
 // (src/lib/hangar/layouts.ts). Seine Woerter liest es aus #hgl-msg, eines je
 // data-m, damit audit:site und verify:sync sie sehen.
 //
-// Geoeffnet und geschlossen wird die Werkstatt ueber den Zustand des
-// Controllers (assets/hangar-overview.js, Schluessel lo, URL-Form ?layout=).
+// Welche Tafel steht und welches Layout darin, sagt der Zustand des
+// Controllers (assets/hangar-overview.js, Schluessel pane und lo, URL-Form
+// ?pane=ship und ?layout=).
 import { layoutT, type LayoutKey } from '../../i18n/layoutText';
 import { hangarT, type HangarKey } from '../../i18n/hangarText';
 import { useHelp } from '../../i18n/help';
@@ -39,19 +40,11 @@ const BAY_MSG: HangarKey[] = [
 const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014-4z';
 ---
 <style is:inline>
-/* Die Werkstatt steht, wo sonst die Kennwert-Tafel steht, eine Spur breiter:
-   Namen der Bauteile sollen nicht umbrechen. Die Insel-Variablen (--hg-*)
-   setzt .hg-stagewrap in HangarPage.astro. */
-.hg[data-mode="layout"] .hg-stats{display:none}
-.hg[data-mode="layout"] .hg-stagewrap{--hg-panelw:min(410px,36vw)}
-.hgl{position:absolute;right:var(--hg-gut);top:calc(var(--hg-top) + 12px);bottom:16px;width:var(--hg-panelw);display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:8px;backdrop-filter:blur(10px);color:var(--hg-on);overflow:hidden;box-shadow:0 18px 50px -20px var(--shadow-color)}
+/* Die Werkstatt fuellt die Spalte der Tafel (.hg-side in HangarPage.astro)
+   bis zum Buehnenfuss. Die Insel-Variablen (--hg-*) setzt .hg-stagewrap. */
+.hgl{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:8px;backdrop-filter:blur(10px);color:var(--hg-on);overflow:hidden;box-shadow:0 18px 50px -20px var(--shadow-color)}
 .hgl[hidden]{display:none}
 .hgl-head{padding:.85rem 1rem .6rem;border-bottom:1px solid var(--hg-hair)}
-.hgl-top{display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem}
-.hgl-kicker{flex:1;margin:0;display:flex;align-items:center;gap:.45rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-amber)}
-.hgl-kicker svg{flex:0 0 auto}
-.hgl-x{appearance:none;width:2rem;height:2rem;display:inline-grid;place-items:center;border:1px solid var(--hg-hair);border-radius:50%;background:none;color:var(--hg-on);font:inherit;font-size:var(--fs-9);line-height:1;cursor:pointer}
-.hgl-x:hover,.hgl-x:focus-visible{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgl-namebox{display:flex;align-items:center;gap:.4rem}
 .hgl-name{flex:1;min-width:0;font:inherit;font-family:var(--font-display);font-size:var(--fs-10);font-weight:800;color:var(--hg-on);background:transparent;border:1px solid transparent;border-bottom-color:var(--hg-hair);border-radius:4px 4px 0 0;padding:.3rem .4rem;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
 .hgl-name::placeholder{color:color-mix(in srgb,var(--hg-on) 45%,transparent);font-weight:600}
@@ -161,10 +154,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-toast button[hidden]{display:none}
 /* Im Werkstatt-Modus zeigt die Buehne nur den Hardpoint des Slots unter dem
    Zeiger oder in der Auswahl; die Tab-Regel der Seite blendet die uebrigen aus. */
-.hg[data-mode="layout"] .hgx-mk.is-hot[data-tab],.hg[data-mode="layout"] .hgx-mk.is-sel[data-tab]{display:block}
-.hgx-act.is-layout{border-color:var(--hg-amber);background:color-mix(in srgb,var(--hg-amber) 18%,var(--hg-panel))}
-.hgx-act.is-layout[aria-pressed="true"]{background:var(--hg-amber);color:var(--ink)}
-.hgx-act.is-layout[aria-pressed="true"] path{fill:none}
+.hg[data-pane="layout"] .hgx-mk.is-hot[data-tab],.hg[data-pane="layout"] .hgx-mk.is-sel[data-tab]{display:block}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
 .hgl button[hidden]{display:none}
 @media (min-width:761px) and (max-height:820px){
@@ -182,15 +172,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 @media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn{transition:none}}
 </style>
 
-<aside class="hgl" id="hgl" aria-labelledby="hgl-title" data-lang={lang} data-src={layoutDataHref()} hidden>
+<aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hg-pane-layout" data-lang={lang} data-src={layoutDataHref()}>
   <div class="hgl-head">
-    <div class="hgl-top">
-      <h2 class="hgl-kicker" id="hgl-title">
-        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.6 17.2a1.5 1.5 0 002.1 2.1l5.7-5.7a4 4 0 005.2-5.4l-2.4 2.4-2.1-.4-.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
-        <span>{l('title')}</span>
-      </h2>
-      <button type="button" class="hgl-x" id="hgl-close" aria-label={l('close')}>×</button>
-    </div>
     <div class="hgl-namebox" data-help={h('hangar.ctl.layoutName')}>
       <input class="hgl-name" id="hgl-name" type="text" maxlength="60" autocomplete="off" spellcheck="false" aria-label={l('name.label')} />
       <button type="button" class="hgl-dice" id="hgl-dice" aria-label={l('name.dice')} title={l('name.dice')}>

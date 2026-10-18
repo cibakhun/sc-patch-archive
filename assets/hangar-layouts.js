@@ -245,9 +245,8 @@ export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '01
  *   set(patch)     aendert ihn (und damit die Adresse)
  *   shipName(id)   Name des Schiffs von seiner Dock-Karte
  *   say(text)      hoefliche Live-Region der Seite
- *   byHand         true, wenn der Knopf die Werkstatt eben geoeffnet hat
  * Liefert render(state); der Controller ruft es nach jeder Aenderung von
- * ship, hp oder lo.
+ * ship, hp, lo oder pane. lo null ist Serie ohne Namen (EMPTY_CODE).
  * @param {Document} doc
  */
 export function initWorkshop(doc, bridge) {
@@ -283,7 +282,6 @@ export function initWorkshop(doc, bridge) {
   let pendingSaved = null;
   let openKey = null;
   let firstAdopt = true;
-  let closed = false;
   let view = 'build';
 
   const itemName = (k) => {
@@ -346,6 +344,7 @@ export function initWorkshop(doc, bridge) {
   // geteilter Link, Schiffswechsel, ein geoeffnetes gespeichertes Layout).
   function adopt(state) {
     const raw = decodeLayout(state.lo) ?? { name: '', slots: {} };
+    if (state.ship !== draft.ship) $('hgl-scroll').scrollTop = 0;
     slots = shipSlots(data.ships[state.ship]);
     const { slots: clean, dropped } = cleanSlots(raw.slots, slots, data.items);
     draft = { ship: state.ship, name: raw.name, slots: clean };
@@ -360,7 +359,7 @@ export function initWorkshop(doc, bridge) {
     paintHead();
     paintSaved();
     if (dropped) showToast(plural('msg.dropped', dropped));
-    if (code !== state.lo) bridge.set({ lo: code });
+    if (code !== (state.lo ?? EMPTY_CODE)) bridge.set({ lo: code });
   }
 
   /** Nach jeder eigenen Aenderung: Code neu, Adresse neu. */
@@ -656,7 +655,6 @@ export function initWorkshop(doc, bridge) {
     syncOpen();
     showToast(m('msg.reset'));
   });
-  $('hgl-close').addEventListener('click', () => bridge.set({ lo: null, hp: null }));
 
   function done(btn) {
     btn.classList.add('is-done');
@@ -757,32 +755,17 @@ export function initWorkshop(doc, bridge) {
 
   /* ---- Takt des Controllers ---- */
   function render(state) {
-    const open = state.lo != null;
-    if (open && aside.hidden && bridge.byHand && window.matchMedia('(max-width: 760px)').matches) {
-      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      requestAnimationFrame(() => aside.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }));
-    }
-    bridge.byHand = false;
+    const open = state.pane === 'layout';
     aside.hidden = !open;
-    if (open) main.dataset.mode = 'layout';
-    else {
-      delete main.dataset.mode;
+    if (!open) {
       hot(null);
-      closed = true;
       return;
     }
     if (!data) {
       ensureData().then(() => render(bridge.state())).catch(() => {});
       return;
     }
-    // Zu und wieder auf am selben Schiff: das Layout in Arbeit ist noch da.
-    if (closed && state.lo === EMPTY_CODE && state.ship === draft.ship && code && code !== EMPTY_CODE) {
-      closed = false;
-      bridge.set({ lo: code });
-      return;
-    }
-    closed = false;
-    if (state.ship !== draft.ship || state.lo !== code) adopt(state);
+    if (state.ship !== draft.ship || (state.lo ?? EMPTY_CODE) !== code) adopt(state);
     else syncOpen();
   }
 

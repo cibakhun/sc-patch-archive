@@ -62,7 +62,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
    noch der Papierwert, nicht der Inselwert. */
 .hg-stagewrap{--hg-top:76px;--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 74%,transparent);--hg-hair:var(--line)}
 /* Rand und Tafelbreite einmal: die Leiste am Buehnenfuss spart genau die Spalte der Tafel aus. */
-.hg-stagewrap{--hg-gut:clamp(16px,3vw,40px);--hg-panelw:min(360px,34vw)}
+.hg-stagewrap{--hg-gut:clamp(16px,3vw,40px);--hg-panelw:min(400px,36vw)}
 .hg-stagewrap{position:relative}
 .hg-title{position:absolute;left:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);max-width:min(520px,60%);pointer-events:none}
 .hg-title h1{margin:0 0 .4rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-amber)}
@@ -77,7 +77,19 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 .hg-maker,.hg-role{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
 .hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
 @keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.hg-stats{position:absolute;right:var(--hg-gut);top:calc(var(--hg-top) + 12px);width:var(--hg-panelw);max-height:calc(100% - var(--hg-top) - 28px);display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:.3rem 1.1rem 1rem;backdrop-filter:blur(8px)}
+/* Die Spalte rechts: Schalter oben, darunter die gewaehlte Tafel. Werkstatt
+   fuellt sie bis zum Buehnenfuss, die Schiffsdaten nur so weit wie ihr Inhalt;
+   wo die Spalte leer ist, gehen Klicks zur Leinwand durch. */
+.hg-side{position:absolute;right:var(--hg-gut);top:calc(var(--hg-top) + 12px);bottom:16px;width:var(--hg-panelw);display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.hg-side>*{pointer-events:auto}
+.hg-pane{flex:0 0 auto;display:flex;gap:3px;padding:3px;border:1px solid var(--hg-hair);border-radius:8px;background:var(--hg-panel);backdrop-filter:blur(10px)}
+.hg-pane button{appearance:none;flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.5rem .6rem;border:0;border-radius:6px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hg-pane button:hover,.hg-pane button:focus-visible{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 7%,transparent)}
+.hg-pane button:focus-visible{outline:2px solid var(--hg-amber);outline-offset:1px}
+.hg-pane button[aria-selected="true"]{background:var(--hg-amber);color:var(--ink)}
+.hg-pane svg{flex:0 0 auto}
+.hg[data-pane="layout"] .hg-stats,.hg[data-pane="ship"] .hgl{display:none}
+.hg-stats{position:relative;flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:6px;padding:.3rem 1.1rem 1rem;backdrop-filter:blur(8px)}
 .hgx-stats{margin:0;display:grid;gap:.55rem}
 .hg-row{display:grid;grid-template-columns:1fr auto;gap:.15rem .6rem;font-size:var(--fs-7)}
 .hg-row dt{color:var(--hg-dim)}
@@ -272,6 +284,9 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
   .hg-title{max-width:calc(100% - 32px)}
   /* Die Aktionen brechen hier in zwei Zeilen um: Meldungen an den Buehnenfuss. */
   .hgx-modelerr,.hg-stagewrap .hg-fallback{top:auto;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px)}
+  .hg-side{position:static;width:auto;display:block}
+  .hg-pane{margin:0;padding:.5rem 16px;border-width:1px 0 0;border-radius:0;background:var(--bg-2);backdrop-filter:none}
+  .hg-pane button{padding:.6rem .6rem}
   .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
   .hgx-foot{position:static;background:none}
@@ -293,7 +308,7 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
-<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-layout-js={layoutSrc} data-tab-active="overview">
+<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-layout-js={layoutSrc} data-tab-active="overview" data-pane="layout">
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <ShipBay bay={bay} region="marks" />
@@ -301,10 +316,6 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         <h1>Hangar</h1>
         <ShipBay bay={bay} region="head" />
         <div class="hgx-actions" role="group" aria-label={t('act.group')}>
-          <button type="button" class="hg-btn hgx-act is-layout" id="hgx-layout" aria-pressed="false" aria-controls="hgl" data-help={h('hangar.ctl.layout')}>
-            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.6 17.2a1.5 1.5 0 002.1 2.1l5.7-5.7a4 4 0 005.2-5.4l-2.4 2.4-2.1-.4-.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
-            <span>{lt('open')}</span>
-          </button>
           {/* Folgt dem gewaehlten Schiff: der Controller tauscht data-fleet-ship
               und data-fleet-label, aria-pressed setzt assets/fleet.js. */}
           <button type="button" class="hg-btn hgx-act" id="hgx-fleet" data-help={h('hangar.ctl.fleet')} data-fleet-ship={bay.id} data-fleet-label={bay.head.name} data-fleet-on={ui('fleet.in')} data-fleet-off={ui('fleet.add')} aria-pressed="false">
@@ -367,7 +378,20 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
         <p class="hgx-tray__msg" id="hgx-tray-msg" hidden>{t('cmp.full')}</p>
       </div>
     </div>
-    <aside class="hg-stats" aria-label={t('panel.label')}>
+    {/* Die Tafel rechts: oben der Schalter, darunter Werkstatt (Vorgabe) oder
+        Schiffsdaten. Ohne Skript gibt es nur die Schiffsdaten (noscript unten). */}
+    <div class="hg-side">
+    <div class="hg-pane" role="tablist" aria-label={lt('pane.label')} data-help={h('hangar.ctl.layout')}>
+      <button type="button" role="tab" id="hg-pane-layout" data-pane-to="layout" aria-controls="hgl" aria-selected="true">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.6 17.2a1.5 1.5 0 002.1 2.1l5.7-5.7a4 4 0 005.2-5.4l-2.4 2.4-2.1-.4-.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+        <span>{lt('pane.layout')}</span>
+      </button>
+      <button type="button" role="tab" id="hg-pane-ship" data-pane-to="ship" aria-controls="hg-stats" aria-selected="false" tabindex="-1">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        <span>{lt('pane.ship')}</span>
+      </button>
+    </div>
+    <aside class="hg-stats" id="hg-stats" aria-label={t('panel.label')}>
       <div class="hgx-tabs" role="tablist" aria-label={t('panel.tabs')} data-help={h('hangar.ctl.tabs')}>
         {TABS.map((k) => (
           <button type="button" role="tab" id={`hgx-tab-${k}`} data-tab={k} aria-controls={`hgx-tp-${k}`} aria-selected={k === 'overview' ? 'true' : 'false'} tabindex={k === 'overview' ? '0' : '-1'}>{t(`tab.${k}`)}</button>
@@ -382,6 +406,8 @@ const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5
       </div>
     </aside>
     <LayoutWorkshop lang={lang} />
+    </div>
+    <noscript><style>.hg .hg-stats{display:flex!important}.hg .hgl,.hg .hg-pane{display:none!important}</style></noscript>
     {/* Modal ueber der Buehne (showModal: Fokus bleibt drin, Escape ist "cancel").
         Zeilen aus dem Kennwert-Verzeichnis, Spalten setzt der Controller aus
         den Dock-Daten, ohne eine Bucht zu holen. In der Insel, damit er auch

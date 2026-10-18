@@ -11,9 +11,10 @@
 import type { Locale } from './ui';
 
 const DE = {
-  'open': 'Layout bauen',
   'title': 'Layout-Werkstatt',
-  'close': 'Werkstatt schließen',
+  'pane.label': 'Tafel rechts',
+  'pane.layout': 'Layout',
+  'pane.ship': 'Schiffsdaten',
   'name.label': 'Name des Layouts',
   'name.placeholder': '{ship} · Mein Layout',
   'name.dice': 'Zufälligen Namen würfeln',
@@ -72,9 +73,10 @@ const DE = {
 export type LayoutKey = keyof typeof DE;
 
 const EN: Readonly<Record<LayoutKey, string>> = {
-  'open': 'Build loadout',
   'title': 'Loadout workshop',
-  'close': 'Close workshop',
+  'pane.label': 'Side panel',
+  'pane.layout': 'Loadout',
+  'pane.ship': 'Ship data',
   'name.label': 'Loadout name',
   'name.placeholder': '{ship} · My loadout',
   'name.dice': 'Roll a random name',
@@ -146,7 +148,7 @@ function assertParity(): void {
 }
 assertParity();
 
-/** layoutT('de')('open') === 'Layout bauen'; Platzhalter bleiben fuer den Client stehen. */
+/** layoutT('de')('pane.ship') === 'Schiffsdaten'; Platzhalter bleiben fuer den Client stehen. */
 export function layoutT(lang: Locale): (key: LayoutKey) => string {
   const dict = LAYOUT_UI[lang];
   return (key) => dict[key];

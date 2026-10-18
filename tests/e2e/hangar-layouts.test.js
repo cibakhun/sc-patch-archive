@@ -3,8 +3,9 @@
 // Namen; ein Link aus einem aelteren Datenstand verliert nur die Teile, die
 // nicht mehr passen; gespeicherte Layouts ueberleben einen kaputten oder
 // gesperrten Speicher, ohne die Seite mitzureissen. Dazu die Naht zum
-// Controller: der leere Code ist in beiden Dateien derselbe, und ?layout=
-// reist durch parseState/serializeState unveraendert, auch beim Teilen.
+// Controller: der leere Code ist in beiden Dateien derselbe und kostet keine
+// Adresse, ?layout= reist durch parseState/serializeState unveraendert, auch
+// beim Teilen, und die Ansicht der Tafel (?pane=) bleibt beim Teilen daheim.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -68,6 +69,17 @@ describe('Werkstatt: Link-Code', () => {
     assert.equal(serializeState(s, ctx), `?ship=anvl-arrow&layout=${code}&q=arrow`);
     assert.equal(serializeState(s, ctx, 'share'), `?ship=anvl-arrow&layout=${code}`);
     assert.equal(parseState('?layout=<script>', '', ctx).lo, null);
+  });
+
+  test('Serie kostet keine Adresse; die Schiffsdaten stehen als ?pane=ship, geteilt nie', () => {
+    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], types: new Set(), makers: new Set() };
+    assert.equal(parseState(`?layout=${EMPTY_CODE}`, '', ctx).lo, null);
+    assert.equal(parseState('', '', ctx).pane, 'layout');
+    assert.equal(parseState('?pane=nope', '', ctx).pane, 'layout');
+    const s = parseState('?ship=anvl-arrow&pane=ship', '', ctx);
+    assert.equal(s.pane, 'ship');
+    assert.equal(serializeState(s, ctx), '?ship=anvl-arrow&pane=ship');
+    assert.equal(serializeState(s, ctx, 'share'), '?ship=anvl-arrow');
   });
 });
 
