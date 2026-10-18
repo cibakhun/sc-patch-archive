@@ -652,14 +652,23 @@ const HALL_SHAFT = /* hall-shaft */ {
 // trennt sie bei 12 m Höhe: Unterteil 12 m, Oberteil 20 m)
 const SHAFT_SPLIT = 12;
 const SHAFT_WEAR_BREAK = 0.9;   // wie stark die Helligkeit der Wear-Karte die Maskengrenze ausfranst
-// Rand der Öffnung (16.10.2026, Krisz: „zu dünn, ... als wäre es aus
-// papier“). Die Randleiste des Spiels ist unter dem Hallenboden eine 3 m
-// tiefe Nische, und die Bodenplatte der Halle ist am Schnitt des Felds
-// offen (in der Halle schließt das Feld an). Von oben sah man durch die
-// Platte in die Nische, der Boden las sich wie ein Blatt über dem Leeren.
-// Darum rücken Decke und Rückwand der Nische nach vorn (die Lippen
-// bleiben), und die Platte bekommt an der Öffnung ihre Stirn (shaftEdge).
-const SHAFT_RIM_DEPTH = 0.5;   // Nische nur so tief (im Spiel 3 m)
+// Rand der Öffnung. Die Randleiste des Spiels ist unter dem Hallenboden
+// eine 3 m tiefe Nische (Decke 0,25 m unter dem Boden, Sohle 3,75 m), und
+// darin liegt das Schachttor, wenn es offen ist: Flügel und Stirnplatten
+// schieben sich aus ihr über die Öffnung. Die Bodenplatte der Halle ist am
+// Schnitt des Felds offen (in der Halle schließt das Feld an) und bekommt
+// an der Öffnung ihre Stirn (shaftEdge).
+// 16.10.2026 (Krisz: „zu dünn, ... als wäre es aus papier“): Von oben sah
+// man durch die offene Platte in die Nische. Damals wurde die Nische 0,5 m
+// flach und die Stirn 1 m hoch. 18.10. abends (Krisz: „das was den schaft
+// zu macht kommt einfach so aus der wand heraus“): Das Tor schob sich so
+// aus der Stirn und der flachen Rückwand. Jetzt ist die Nische wieder so
+// tief wie im Spiel, die Stirn reicht nur bis an ihre Decke, und nach hinten
+// wird es dunkel (SHAFT_POCKET, hgPocket im Hallenshader): Unter den Boden
+// fällt kaum Licht, das Tor kommt aus einem dunklen Schlitz.
+const SHAFT_RIM_DEPTH = 3;      // Nische so tief (wie im Spiel)
+const SHAFT_SLOT_LIP = 0.25;    // Stirn der Bodenplatte bis an die Decke der Nische
+const SHAFT_POCKET = [0.1, 1.8, 3.3, 0.2];   // hinter der Wandebene: dunkel von .. bis (m), dahinter (Wand der Nische) keine Wirkung; Rest-Licht
 const SHAFT_EDGE_GAP = 0.02;   // Stirn so weit hinter der Wandebene: Die Plattform fährt davor vorbei
 const SHAFT_RIMS = { rim: ['z'], rim_8: ['z'], rim_corner: ['x', 'z'] };   // Tiefenachsen der Randleisten
 
@@ -707,11 +716,11 @@ function shaftPieces(node, band) {
   return out;
 }
 
-// Randleiste mit flacher Nische (SHAFT_RIM_DEPTH): im Bezugssystem des Teils
-// (y ab 0 bis h, Wand bei <= 0 auf den Achsen `axes`) rückt, was hinter der
-// Wandebene liegt, auf die neue Tiefe vor, die Decke mit; die obere Lippe
-// tritt hinter die Stirn der Bodenplatte zurück. Unten der Sockel (y 0)
-// bleibt, wie er ist, und die untere Lippe vorn auch.
+// Randleiste mit Nische bis SHAFT_RIM_DEPTH: im Bezugssystem des Teils
+// (y ab 0 bis h, Wand bei <= 0 auf den Achsen `axes`) rückt, was tiefer
+// hinter der Wandebene liegt, auf diese Tiefe vor, die Decke mit; die obere
+// Lippe tritt hinter die Stirn der Bodenplatte zurück. Unten der Sockel
+// (y 0) bleibt, wie er ist, und die untere Lippe vorn auch.
 function rimShallow(parts, axes, h) {
   const lip = SHAFT_EDGE_GAP + 0.02;
   for (const p of parts) for (let i = 0; i < p.pos.length; i += 3) {
@@ -896,6 +905,14 @@ const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
 // Geometrie, Karten und Muster bleiben die des Spiels.
 const GATE_PAINT = 5;
 const GATE_TONE = 0.5;
+// Offen liegt jedes Teil mindestens so tief in der Nische unter dem Boden,
+// dass es ganz im dunklen Teil liegt (SHAFT_POCKET). Die Flügel liegen offen
+// ohnehin 12 m hinter unserer Wand (der Spielschacht ist 56 m breit, unser
+// Feld 32 m); die Stirnplatten lagen in der Mündung, ihre Front sah aus wie
+// ein Stück Wand, aus dem sie dann herausfuhren (Krisz, 18.10. abends). Im
+// Spiel deckt dort ein Rahmenstück die Mündung, das in unser Feld nicht
+// passt. Ihre Bahn wird dafür vom geschlossenen Stand aus gestreckt.
+const GATE_STOW = SHAFT_POCKET[1] + 0.2;
 
 // Lage einer Bahn ([t, x, y, z], aufsteigend) zur Zeit tau, nach out
 function gateAt(keys, tau, out) {
@@ -933,6 +950,21 @@ function buildGate(scene, info, sh, inner) {
     parts.push({ node: p.node, keys, pieces, lo, hi, at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), ids: [] });
   }
   if (!parts.length) throw new Error(`Schachttor: kein Teil reicht ins Feld (${dropped.join(', ')})`);
+  // Offen zu flach in der Nische (GATE_STOW): Bahn längs der Fahrachse ab
+  // dem geschlossenen Stand strecken, bis die Innenkante tief genug liegt
+  const stowed = [];
+  for (const u of parts) {
+    const c = u.keys.close.at(-1), o = u.keys.close[0];
+    const ax = Math.abs(o[1] - c[1]) >= Math.abs(o[3] - c[3]) ? 0 : 2, k = ax === 0 ? 1 : sz, half = ax === 0 ? sh.hx : sh.hz;
+    const run = (o[ax + 1] - c[ax + 1]) * k;
+    if (Math.abs(run) < 0.5) continue;
+    const edge = (run > 0 ? o[ax + 1] + u.lo[ax] : -(o[ax + 1] + u.hi[ax])) * k, behind = edge - half;
+    if (behind >= GATE_STOW) continue;
+    const f = 1 + (GATE_STOW - behind) / Math.abs(run);
+    for (const ks of [u.keys.close, u.keys.open]) for (const q of ks) q[ax + 1] = c[ax + 1] + (q[ax + 1] - c[ax + 1]) * f;
+    u.at.set(u.keys.open.at(-1)[1], u.keys.open.at(-1)[2], u.keys.open.at(-1)[3]);
+    stowed.push(`${u.node} +${(GATE_STOW - behind).toFixed(2)} m`);
+  }
   // Ab wann das Tor das Feld ganz deckt: früheste Zeit der Schließbahn, zu
   // der jede Zelle (0,25 m) unter einem Teil liegt, das bis an den Boden
   // reicht (wie verify:hangar-hall [15]). Riegel, die danach noch fahren,
@@ -1013,7 +1045,7 @@ function buildGate(scene, info, sh, inner) {
     }
   }
   // cover: ab hier auf der Bahn zu ist das Feld ganz gedeckt (danach rasten nur noch die Riegel ein)
-  const G = { group, parts, batches, used: parts.length, dropped, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
+  const G = { group, parts, batches, used: parts.length, dropped, stowed, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
   gatePose(G, 'open', T);
   return G;
 }
@@ -1168,10 +1200,12 @@ async function hallSlab(model, L, at, skip, pause = noPause) {
 
 // Stirn der Bodenplatte rund um die Öffnung, im Material der Platte: ihre
 // Unterseite an der Kante hochgeklappt (dasselbe Texturmaß, an der Kante
-// nahtlos), SHAFT_EDGE_GAP hinter der Wandebene, von der Oberkante bis zur
-// Unterseite. Je Rand 8-m-Stücke (Licht und Spiegelung je Bildpunkt).
+// nahtlos), SHAFT_EDGE_GAP hinter der Wandebene, von der Oberkante bis an
+// die Decke der Nische (SHAFT_SLOT_LIP, 2 cm darunter, damit keine Fuge
+// bleibt): Darunter ist der Schlitz, aus dem das Tor fährt. Je Rand
+// 8-m-Stücke (Licht und Spiegelung je Bildpunkt).
 function shaftEdge(slab, hx, hz) {
-  const pos = [], nor = [], uv = [], g = SHAFT_EDGE_GAP, [Ua, Ub] = slab.grad, t = slab.t;
+  const pos = [], nor = [], uv = [], g = SHAFT_EDGE_GAP, [Ua, Ub] = slab.grad, t = slab.t, b = Math.min(t, SHAFT_SLOT_LIP + 0.02);
   for (const s of shaftSides(hx, hz)) {
     const n = Math.ceil((s.len + 2 * g) / 8);
     for (let i = 0; i < n; i++) {
@@ -1183,7 +1217,7 @@ function shaftEdge(slab, hx, hz) {
         uv.push(Ua[0] + Ua[1] * a + Ua[2] * (y + t), Ub[0] + Ub[1] * a + Ub[2] * (y + t));
       };
       // zur Schachtmitte gewandt
-      for (const [a, y] of [[a0, 0], [a1, -t], [a1, 0], [a0, 0], [a0, -t], [a1, -t]]) at(a, y);
+      for (const [a, y] of [[a0, 0], [a1, -b], [a1, 0], [a0, 0], [a0, -b], [a1, -b]]) at(a, y);
     }
   }
   const geo = new THREE.BufferGeometry();
@@ -4377,6 +4411,19 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
   // Rauschen. Ein Wert für alle Hallenmaterialien, scaleWorld setzt ihn.
   const hallNoTileInvK = { value: 1 };
+  // Nische unter dem Hallenboden rund um die Öffnung (Torschlitz): x, z
+  // halbe Feldmaße, z an, w Sohle der Nische (Modellmeter, Feldmitte 0)
+  const hallPocket = { value: new THREE.Vector4(0, 0, 0, 0) };
+  const HALL_POCKET_GLSL = `uniform vec4 hgPocket;
+// Unter dem Boden hinter der Schachtwand fällt kaum Licht hinein: in der
+// Nische nach hinten dunkel (nicht schwarz, sonst liest sie sich als Loch),
+// so kommt das Tor aus einem dunklen Schlitz.
+// Hinter der Rückwand der Nische (SHAFT_POCKET[2]) keine Wirkung mehr.
+float hgPocketK( vec3 p ) {
+	if ( hgPocket.z < 0.5 || p.y > -0.08 || p.y < hgPocket.w ) return 1.0;
+	float d = max( abs( p.x ) - hgPocket.x, abs( p.z ) - hgPocket.y );
+	return d > ${SHAFT_POCKET[2].toFixed(2)} ? 1.0 : mix( 1.0, ${SHAFT_POCKET[3].toFixed(2)}, smoothstep( ${SHAFT_POCKET[0].toFixed(2)}, ${SHAFT_POCKET[1].toFixed(2)}, d ) );
+}`;
   // Weg des Aufzugs (Modellmeter): Die Materialien des Schiffsfelds ziehen
   // ihn für das Rauschen ab, damit das Plattenbild mitfährt statt unterwegs
   // zu wechseln; alle übrigen lesen 0.
@@ -4697,6 +4744,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgNoTile = { value: m.userData.noTile ? 1 : 0 };
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
+    sh.uniforms.hgPocket = hallPocket;
     sh.uniforms.hgLiftY = m.userData.lift ? hallLiftY : hallLiftNo;
     sh.uniforms.hgBoxOn = hallBox.on; sh.uniforms.hgBoxMin = hallBox.min; sh.uniforms.hgBoxMax = hallBox.max; sh.uniforms.hgBoxPos = hallBox.pos;
     sh.uniforms.hgRoughMin = { value: m.userData.gloss ? HALL_GLOSS_MIN : HALL_ROUGH_MIN };
@@ -4719,8 +4767,9 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) {
 		vec3 hgWn = inverseTransformDirection( normal, viewMatrix );
 		outgoingLight += material.diffuseColor * ( hgPit( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} )${m.userData.shaft ? '' : ' * hgShF.x'} + hgShLight( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} ) )${m.userData.shaft ? ' + hgShRim( vHgP, hgWn )' : ''};
-		outgoingLight = hgShHaze( outgoingLight, vHgP );
 	}` : ''}
+	outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * hgPocketK( vHgP ) + totalEmissiveRadiance;${pit ? `
+	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) outgoingLight = hgShHaze( outgoingLight, vHgP );` : ''}
 	#include <opaque_fragment>`);
     }
     if (pit) {
@@ -4734,7 +4783,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n#define HG_PIT_N ${PIT_N}\n#define HG_PIT_C ${m.userData.shaft ? PIT_N : hallPit.field}\n${HALL_PIT_GLSL}\n${HALL_SHAFT_GLSL}`);
     }
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL)
+      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL + '\n' + HALL_POCKET_GLSL)
       .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb *= vHgShade;')
       .replace('#include <map_fragment>', `#ifdef USE_MAP
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
@@ -5325,6 +5374,7 @@ ${HALL_LIGHTS_BEGIN}
           const wearMats = new Map();
           kit.kit.getObjectByName('wear_0')?.traverse((n) => { if (n.isMesh && n.material?.map) wearMats.set(n.material.name, n.material); });
           shaft.group.position.set(o[0], floorY, o[2]);
+          hallPocket.value.set(shaft.hx, shaft.hz, 1, shaft.rimY - 0.2);
           shaft.group.traverse((n) => { if (n.isMesh) { n.receiveShadow = false; n.castShadow = false; } });
           for (const m of shaft.materials) {
             m.envMapIntensity = 0.05;
@@ -5430,13 +5480,13 @@ ${HALL_LIGHTS_BEGIN}
               G.group.visible = false;
               shaft.group.add(G.group);
               shaft.gate = G;
-              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
             } catch (e) {
               console.warn('[hangar] Schachttor nicht gebaut', e);
             }
           }
           model.add(shaft.group);
-          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
+          console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m unter ${SHAFT_SLOT_LIP} m Lippe, dunkel nach hinten (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
         } catch (e) {
           console.warn('[hangar] Schacht nicht gebaut', e);
           shaft = null;
