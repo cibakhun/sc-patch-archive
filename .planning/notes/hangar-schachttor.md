@@ -209,3 +209,24 @@ Tausch in beiden Fällen verdeckt. Bild: `hangar/v45-schachttor-hell-vorher-nach
 Sichturteil: WINDOWS 90 (89 erledigt durch Krisz' Bilder vom 18.10. 20:28).
 
 **Offen für den nächsten PC-Lauf:** Die vier Zylinder (`gate_9`, `gate_10`, `gate_14`, `gate_15`) haben im Spiel eine Drehspur (48-Bit-Quaternionen in der .caf), die der Auszug nicht dekodiert; sie fahren hier nur mit. Sie liegen 1,6 m unter den Flügeln und fahren mit ihnen, von der Kamera über dem Boden also nicht zu sehen. Mitnehmen, wenn der PC ohnehin an das Tor geht.
+
+## Torschlitz (18.10. abends)
+
+Krisz, 21:46, mit zwei Bildern vom ausgelieferten Stand: „das was den schaft zu macht kommt einfach so aus der wand heraus, nicht belivable at all“. Auf den Bildern schiebt sich die Stirnplatte am Ende des Schachts unter der Bodenkante heraus, aus einer hellen, geschlossenen Wand.
+
+**Ursache.** Die Randleiste des Spiels (`rim`, `rim_8`, `rim_corner`) ist unter dem Hallenboden eine 3 m tiefe Nische: Decke 0,25 m unter dem Boden, Sohle 3,75 m, vorn je eine Lippe. In ihr liegt das offene Tor. Am 16.10. (Krisz: „aus papier“) wurde die Nische auf 0,5 m verflacht und die Bodenplatte bekam eine 1 m hohe Stirn. Damit fuhr das Tor aus der Stirn und aus einer hell beleuchteten Rückwand 0,5 m dahinter. Die Stirnplatten `gate_16`/`gate_17` lagen offen dazu genau in der Mündung (0,14 m hinter unserer Wand), ihre Front las sich als Stück Wand.
+
+**Im Spiel** decken die Rahmenstücke `gate_2` bis `gate_5` diese Mündung. Sie fahren beim Öffnen 10 m in die Öffnung und verengen den 56 × 88 m großen Spielschacht auf etwa 34 × 66 m. In unser 32 × 96 m großes Feld passen sie nicht, sie bleiben weg.
+
+**Geändert** (`assets/hangar-viewer.js`):
+
+- `SHAFT_RIM_DEPTH` 3: Die Nische ist wieder so tief wie im Spiel.
+- `SHAFT_SLOT_LIP` 0,25: Die Stirn der Bodenplatte (`shaftEdge`) reicht nur bis an die Decke der Nische (0,27 m), darunter ist der Schlitz.
+- `SHAFT_POCKET` [0,1, 1,8, 3,3, 0,2]: Hinter der Wandebene wird es unter dem Boden dunkel, von 0,1 m bis 1,8 m auf 20 % Restlicht (`hgPocketK` im Hallenshader, Uniform `hgPocket`). Hinter der Rückwand der Nische (ab 3,3 m) wirkt es nicht mehr. Das gilt für alle Hallenmaterialien, auch für das Tor: Es kommt aus dem Dunkel. Ganz schwarz las sich die Nische im Testbild als Loch.
+- `GATE_STOW`: Offen liegt jedes Teil mit Bahn mindestens 2 m hinter der Wandebene. Betroffen sind nur die Stirnplatten (`gate_16`, `gate_17`, je +1,97 m). Die Flügel liegen offen ohnehin 12 m hinter unserer Wand. Ihre Bahn wird vom geschlossenen Stand aus gestreckt; Zeiten und geschlossene Lage bleiben, wie sie sind.
+
+Dreiecke, Zeichenaufrufe und Texturen bleiben unverändert (eine Rechnung mehr je Bildpunkt in den Hallenmaterialien).
+
+**Nachgemessen** (Testbrowser, `torzeit2.mjs`, 1,3 s je Bahn): Cutlass → Carrack: Tor beginnt 0,85 s nach Fahrtbeginn, Feld 0,20 s vor dem Halt gedeckt, Tausch verdeckt, Tor offen 0,56 s vor der Oberkante des neuen Schiffs. Carrack → Gladius: 0,69 s, 0,20 s, verdeckt, 0,72 s. Gleich wie vor dem Umbau. Der erste Wechsel nach dem Laden ist im Testbrowser nicht messbar (Bilder von mehreren Sekunden).
+
+**Offen** (Sichturteil, WINDOWS 91): Liest sich der Schlitz als Gehäuse? Wirkt die 0,27 m dünne Bodenkante wieder „wie aus Papier“? Geschlossen liegt das Tor 0,14 m unter dem Boden (Maß des Spiels). Stört diese Stufe?
