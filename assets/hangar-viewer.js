@@ -33,7 +33,7 @@
 // API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         resetView(), onProgress(fn), dispose(),
-//         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
+//         project(points) -> [{ x, y, d } | null], focus(point | null), unfocus(), setCover(px), onFrame(fn) }>
 // project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
 // (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
 // Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
@@ -1388,7 +1388,15 @@ const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_0
 // `sonst`: weitere Stellen, falls die erste nicht ins Feld passt (das Gerät
 // fährt mit dem Aufzug, große Schiffe lassen dort kaum Platz). glieder:
 // [Knoten, x, z, Drehung, Höhe] im Platz: z zeigt vom Schiff weg, Drehung 0
-// heißt Vorderseite des Spiels (-z) zum Schiff. Die Zusammensetzungen folgen den Arbeitsplätzen
+// heißt Vorderseite des Spiels (-z) zum Schiff. `ab` und `bis` (m, größte
+// Ausdehnung des Schiffs): Der Platz steht nur an Schiffen dieser Größe;
+// `frei` (m): so weit bleibt er von jedem Teil des Rumpfs, auch von hohen
+// (Frachtzone hinter dem Heck statt unter den Triebwerken).
+// Krisz am 18.10.2026: am Carrack wirkte der Platz winzig; das Gerät bleibt
+// in Originalgröße, große Schiffe bekommen mehr und größeres Gerät des
+// Spiels (Gabelstapler, Container, Frachtwagen, Schweißkran, große
+// Schlauchtrommel am Bodenanschluss), Plätze an beiden Enden doppelt, und
+// Leitungen von jedem. Die Zusammensetzungen folgen den Arbeitsplätzen
 // des Katalogs (Diagnose mit Kabeltrommel 7 und Kisten mit Kabeltrommel 4
 // stehen im Spiel auf dem Landefeld, Gasflasche neben Feuerlöscher in 71 %).
 // leitungen: Schlauch oder Kabel aus dem Satz, vom Gerät ([Platz, x, z,
@@ -1404,7 +1412,7 @@ const WORK_DIENST = /* work-dienst */ {
   "stationen": [
     { "name": "strom", "wo": ["seite", 1, -0.3], "sonst": [["ende", -1, 0.55]], "glieder": [
       ["prop_energie_generator_mobile_1_b", 0, 0.15, 0], ["prop_kabel_cable_reel_6_a", 2.9, 0.2, 0], ["prop_kabel_cable_terminal_6_a", -2.35, -0.15, 15],
-      ["prop_licht_light_portable_tripod_1_base_a", -2.9, 1.1, 200]] },
+      ["prop_licht_light_portable_tripod_1_base_a", -2.9, 1.1, 200], ["prop_sicherheit_tool_fire_extinguisher_1_a", 1.9, 1.0, -30]] },
     { "name": "treibstoff", "wo": ["seite", -1, -0.3], "sonst": [["ende", -1, -0.55]], "glieder": [
       ["prop_schlauch_hose_reel_2_a", 0, 0, 0], ["prop_treibstoff_cell_fuel_1_a", 1.25, 0.15, 0], ["prop_treibstoff_cell_fuel_1_a", 1.55, 0.3, 40],
       ["prop_treibstoff_cell_fuel_1_a", 1.3, 0.5, 75], ["prop_treibstoff_cell_fuel_1_a", 1.6, 0.75, 10], ["prop_treibstoff_cell_fuel_1_a", 1.95, 0.5, 120],
@@ -1416,26 +1424,88 @@ const WORK_DIENST = /* work-dienst */ {
     { "name": "werkzeug", "wo": ["seite", 1, 0.35], "sonst": [["ende", 1, 0.5]], "glieder": [
       ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_werkzeug_tool_welder_a", -1.45, 0.1, -15],
       ["prop_treibstoff_tank_gas_1_005x005x005_a", -2.15, 0.35, 0], ["prop_licht_light_work_light_2_a", -2.9, 0.5, 0],
-      ["prop_transport_trolley_creeper_a", 2.7, -0.9, 80], ["prop_werkzeug_tool_socket_set_1_a", 1.15, -0.95, 35]] },
+      ["prop_transport_trolley_creeper_a", 2.7, -0.9, 80], ["prop_werkzeug_tool_socket_set_1_a", 1.15, -0.95, 35],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", 0.45, -0.75, -10], ["prop_werkzeug_tool_manual_1_ratchet_a", 1.8, -1.3, 65],
+      ["prop_werkzeug_tool_manual_1_pliers_a", 2.1, -1.55, 140], ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.8, -1.45, 200],
+      ["prop_werkzeug_tool_allenkey_1_a", 2.35, -1.2, 20]] },
+    { "name": "werkbank", "wo": ["seite", -1, -0.75], "sonst": [["ende", -1, -0.75], ["seite", 1, -0.75]], "glieder": [
+      ["prop_werkzeug_workbench_table_1_a", 0, 0.2, 0], ["prop_werkzeug_tool_socket_set_closed_1_a", -1.35, 0.3, 15, 1.0],
+      ["prop_werkzeug_tool_tester_1_b", -0.45, 0.05, 80, 1.0], ["prop_werkzeug_tool_manual_1_ratchet_a", 0.3, 0.25, 100, 1.0],
+      ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.55, 0.05, 160, 1.0], ["prop_werkzeug_tool_socket_set_1_a", 1.3, 0.35, -12, 1.0],
+      ["prop_lager_drum_dry_1_a", 2.8, 0.35, 0], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.7, 0.1, 30]] },
     { "name": "lager", "wo": ["ende", -1, 0.3], "sonst": [["ende", -1, -0.3], ["ende", 1, 0]], "glieder": [
       ["prop_lager_crate_dry_2_0125x0125x0125_a", 0, 0.3, 7], ["prop_lager_crate_dry_2_0125x0125x0125_a", -0.1, -1.1, -89],
       ["prop_lager_crate_metal_2_01x005x0025_a", -0.3, -1.0, 80, 1.25], ["prop_lager_crate_dry_1_0125x0125x00625_a", 1.15, 1.25, 4],
       ["prop_lager_drum_dry_1_a", -1.35, 0.75, 0], ["prop_lager_drum_dry_1_a", -1.8, 0.35, 0], ["prop_kabel_cable_reel_4_a", 0.4, 1.95, 180],
-      ["prop_transport_trolley_pallet_1_a", 2.3, -0.2, 90]] },
+      ["prop_transport_trolley_pallet_1_a", 2.3, -0.2, 90], ["prop_lager_crate_stack_1_025x0125x00625_a", -3.4, 0.9, 90],
+      ["prop_transport_prop_dumper_transport_pallet_a", 5.0, 0.5, 4], ["prop_lager_crate_dry_2_0125x0125x0125_a", 4.6, 0.15, 10, 0.25],
+      ["prop_lager_crate_metal_2_01x005x0025_a", 5.45, 0.95, 85, 0.25]] },
+    { "name": "leiter-klein", "bis": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75]], "glieder": [
+      ["prop_heben_ladder_step_1_a", 0, 0, 0]] },
+    { "name": "leiter", "ab": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75], ["seite", 1, 0.55]], "glieder": [
+      ["prop_heben_ladder_mobile_1_b", 0, 0.2, 0], ["prop_sicherheit_cone_1_a", -0.9, -0.6, 0], ["prop_sicherheit_cone_1_a", 0.9, -0.6, 25]] },
+    { "name": "transport", "ab": 30, "wo": ["ende", -1, -0.8], "sonst": [["ende", 1, 0.75], ["ende", -1, 0.85]], "glieder": [
+      ["prop_transport_machine_forklift_1_b", 0, 0.6, 90], ["prop_transport_machine_forklift_1_extension_console_a", 3.3, 0.4, 0],
+      ["prop_transport_prop_dumper_transport_pallet_a", -3.9, 0.5, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.3, 0.15, 5, 0.25],
+      ["prop_lager_crate_dry_1_0125x0125x00625_a", -3.5, 1.15, -8, 0.25]] },
+    { "name": "tankstelle", "ab": 60, "wo": ["seite", -1, 0.05], "sonst": [["seite", -1, -0.1], ["ende", -1, -0.35]], "glieder": [
+      ["prop_schlauch_hose_reel_1_065x045x045_a", 0, 0.8, 0], ["prop_schlauch_hose_floor_1_socket_a", -4.6, 0.6, 0],
+      ["prop_treibstoff_tank_gas_2_025x0125x0125_a", 4.7, 0.1, 0], ["prop_treibstoff_tank_gas_2_025x0125x0125_a", 4.7, 1.55, 4],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", 3.0, -1.0, 20], ["prop_sicherheit_cone_1_a", -2.6, -1.4, 0], ["prop_sicherheit_cone_1_a", 2.4, -1.6, 30]] },
+    { "name": "schweiss", "ab": 60, "wo": ["seite", 1, -0.7], "sonst": [["ende", -1, 0.7], ["seite", 1, -0.55]], "glieder": [
+      ["prop_werkzeug_crane_welding_arm_1_a", 0, 1.5, 0], ["prop_treibstoff_tank_gas_2_025x0125x0125_a", 4.2, 0.4, 90],
+      ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.6, 0.2, 0], ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.95, 0.75, 0],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -3.3, 1.2, 40], ["prop_werkzeug_tool_welder_a", 2.4, -1.4, -25]] },
+    { "name": "lager-gross", "ab": 60, "wo": ["ende", -1, -0.45], "sonst": [["ende", -1, 0.65], ["ende", 1, -0.6]], "glieder": [
+      ["prop_lager_storage_container_1_025x05x025_a", -1.4, 1.0, 0], ["prop_lager_storage_container_1_025x05x025_a", 1.4, 1.0, 0],
+      ["prop_lager_storage_container_1_025x05x025_a", -1.4, 1.0, 0, 2.5], ["prop_lager_crate_stack_1_025x0125x00625_a", 4.0, 0.6, 0],
+      ["prop_transport_prop_dumper_transport_pallet_a", -4.7, 0.2, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.9, -0.1, 3, 0.25],
+      ["prop_lager_crate_metal_2_01x005x0025_a", -4.4, 0.75, 85, 0.25], ["prop_transport_trolley_pallet_1_a", 1.0, -2.6, 90]] },
+    { "name": "fracht", "ab": 60, "wo": ["ende", 1, 0.55], "sonst": [["ende", 1, -0.55], ["ende", -1, 0.9]], "glieder": [
+      ["prop_transport_trolley_cargo_1_a", 0, 1.2, 90], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.6, 0.4, 12],
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.4, 1.8, -6], ["prop_lager_crate_dry_1_0125x0125x00625_a", -4.5, 1.1, 0, 1.25]] },
+    { "name": "strom-bug", "ab": 60, "wo": ["seite", -1, 0.7], "sonst": [["seite", -1, 0.55], ["ende", 1, -0.8]], "glieder": [
+      ["prop_energie_generator_mobile_1_b", 0, 0.15, 0], ["prop_kabel_cable_reel_6_a", 2.9, 0.2, 0], ["prop_kabel_cable_terminal_6_a", -2.35, -0.15, 15],
+      ["prop_licht_light_portable_tripod_1_base_a", -2.9, 1.1, 200]] },
+    { "name": "werkzeug-heck", "ab": 60, "wo": ["seite", -1, -0.6], "sonst": [["seite", -1, -0.45], ["ende", -1, 0.1]], "glieder": [
+      ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_licht_light_work_light_2_a", -1.6, 0.4, 0],
+      ["prop_transport_trolley_creeper_a", 2.6, -0.9, 95], ["prop_werkzeug_tool_socket_set_1_a", 1.05, -0.95, 35],
+      ["prop_werkzeug_tool_manual_1_ratchet_a", 1.7, -1.35, 65], ["prop_werkzeug_tool_manual_1_pliers_a", 2.0, -1.6, 140]] },
+    { "name": "diagnose-bug", "wo": ["ende", 1, 0.3], "sonst": [["seite", 1, 0.55], ["ende", 1, -0.3]], "glieder": [
+      ["prop_diagnose_console_diagnostic_1_a", 0, 0, 0], ["prop_kabel_cable_reel_7_a", 1.3, 0.25, -10], ["prop_licht_light_work_light_1_a", -1.3, 0.35, 0]] },
+    { "name": "frachtzone", "ab": 60, "frei": 6, "wo": ["ende", -1, 0], "sonst": [["ende", -1, 0.4], ["ende", 1, 0]], "glieder": [
+      ["prop_lager_storage_container_1_025x05x025_a", -6.0, 2.6, 0], ["prop_lager_storage_container_1_025x05x025_a", -3.3, 2.6, 0],
+      ["prop_lager_storage_container_1_025x05x025_a", -0.6, 2.6, 0], ["prop_lager_storage_container_1_025x05x025_a", -6.0, 2.6, 0, 2.5],
+      ["prop_lager_storage_container_1_025x05x025_a", -3.3, 2.6, 0, 2.5], ["prop_transport_machine_forklift_1_b", 3.6, 1.2, -70],
+      ["prop_transport_trolley_cargo_1_a", 8.8, 2.8, 0], ["prop_transport_prop_dumper_transport_pallet_a", 3.4, 5.4, 6],
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", 3.0, 5.1, 2, 0.25], ["prop_lager_crate_dry_1_0125x0125x00625_a", 3.9, 6.0, -4, 0.25],
+      ["prop_transport_trolley_pallet_1_a", -9.2, 1.4, 15], ["prop_sicherheit_cone_1_a", -4.0, -1.4, 0], ["prop_sicherheit_cone_1_a", 0.2, -1.6, 20],
+      ["prop_sicherheit_cone_1_a", 4.4, -1.4, -10]] },
+    { "name": "vorfeld", "ab": 60, "frei": 4, "wo": ["ende", 1, -0.35], "sonst": [["ende", 1, 0.35], ["ende", 1, 0]], "glieder": [
+      ["prop_lager_crate_stack_1_025x0125x00625_a", -2.2, 0.8, 90], ["prop_lager_crate_stack_1_025x0125x00625_a", -2.2, 2.6, 90],
+      ["prop_transport_prop_dumper_transport_pallet_a", 1.4, 0.9, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", 1.0, 0.6, 8, 0.25],
+      ["prop_lager_crate_metal_2_01x005x0025_a", 1.9, 1.5, 90, 0.25], ["prop_lager_drum_dry_1_a", 3.6, 0.4, 0], ["prop_lager_drum_dry_1_a", 4.2, 0.8, 0],
+      ["prop_lager_drum_dry_1_a", 3.7, 1.1, 0], ["prop_licht_light_portable_tripod_1_base_a", -4.6, 0.3, 160],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", 5.2, 0.0, 30], ["prop_sicherheit_cone_1_a", -1.0, -1.3, 0], ["prop_sicherheit_cone_1_a", 2.6, -1.3, 15]] },
     { "name": "kegel-links", "wo": ["ende", 1, -0.9], "sonst": [["ende", 1, -0.6]], "glieder": [
-      ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", 1.1, -0.2, 30]] },
+      ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", 1.1, -0.2, 30], ["prop_sicherheit_cone_1_closed_a", 0.5, 0.8, 70]] },
     { "name": "kegel-rechts", "wo": ["ende", 1, 0.9], "sonst": [["ende", 1, 0.6]], "glieder": [
       ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", -1.1, -0.2, -30]] }
   ],
   "leitungen": [
     { "name": "strom", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom", -1.0, -0.75, 0.55], "nach": [0.45, -0.25] },
     { "name": "treibstoff", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["treibstoff", 0, -0.5, 0.45], "nach": [-0.4, -0.15] },
-    { "name": "daten", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose", 0.2, -0.6, 0.6], "nach": [-0.25, 0.4] }
+    { "name": "daten", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose", 0.2, -0.6, 0.6], "nach": [-0.25, 0.4] },
+    { "name": "tankstelle", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["tankstelle", -4.6, 0.1, 0.15], "nach": [-0.3, 0.05] },
+    { "name": "strom-bug", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom-bug", -1.0, -0.75, 0.55], "nach": [-0.35, 0.55] },
+    { "name": "daten-bug", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose-bug", 0.2, -0.6, 0.6], "nach": [0.3, 0.5] }
   ],
   "spuren": [
     ["decal_oel_1", 0.12, -0.6, 0.11, 20], ["decal_oel_1", -0.2, -0.72, 0.08, 200], ["decal_oel_0", -0.42, -0.25, 0.06, 70],
     ["decal_oel_0", 0.25, 0.2, 0.05, 130], ["decal_oel_2", 0.03, -0.35, 0.07, 0], ["decal_oel_0", -0.12, -1.03, 0.06, 40],
-    ["decal_oel_2", "treibstoff", 1.55, -0.55, 1.3, 25], ["decal_oel_1", "strom", 0.9, -0.95, 0.8, 110]
+    ["decal_oel_2", "treibstoff", 1.55, -0.55, 1.3, 25], ["decal_oel_1", "strom", 0.9, -0.95, 0.8, 110],
+    ["decal_oel_2", "tankstelle", -1.8, -1.2, 2.2, 60], ["decal_oel_1", "schweiss", 1.2, -0.6, 1.6, 15],
+    ["decal_oel_0", "transport", 0.6, -0.9, 1.4, 160], ["decal_oel_1", "lager-gross", -0.6, -2.2, 1.8, 95], ["decal_oel_0", "frachtzone", 3.4, -0.2, 1.6, 40]
   ]
 } /* /work-dienst */;
 // Raster des Grundrisses von unten (m); Abstand des Geräts zum Rumpf
@@ -4682,10 +4752,13 @@ ${HALL_LIGHTS_BEGIN}
       const ex = (Math.abs(Math.cos(r)) * e.size.x + Math.abs(Math.sin(r)) * e.size.z) / 2, ez = (Math.abs(Math.sin(r)) * e.size.x + Math.abs(Math.cos(r)) * e.size.z) / 2;
       return { u, x: ax + u.x * c + u.z * s, z: az - u.x * s + u.z * c, r, ex, ez, top: u.y + e.size.y };
     });
+    // nur die Plätze für diese Schiffsgröße (ab/bis, größte Ausdehnung)
+    const span = Math.max(info.len, 2 * W), fits = (st) => span >= (st.ab ?? 0) && span < (st.bis ?? Infinity);
     const taken = [], placed = new Map(), report = [];
     WORK_DIENST.stationen.forEach((st, si) => {
       const own = glieder.filter((u) => u.st === si);
-      if (!own.length) return;
+      if (!own.length || !fits(st)) return;
+      const fr = st.frei ?? 0;   // Abstand zu jedem Teil des Rumpfs, auch hoch oben
       // Ausdehnung zum Schiff hin (z im Platz, ungedreht)
       const zmin = Math.min(...boxes(si, 0, 0, 0).map((q) => q.z - q.ez));
       let best = null;
@@ -4694,9 +4767,9 @@ ${HALL_LIGHTS_BEGIN}
         const reach = kind === 'seite' ? W : Lh;
         for (const df of DIENST_SHIFT) {
           const f = f0 + df, bx = kind === 'seite' ? 0 : f * W, bz = kind === 'seite' ? f * Lh : 0;
-          for (let dist = reach + DIENST_OVER + CH - zmin; dist >= -zmin; dist -= DIENST_STEP) {
+          for (let dist = reach + DIENST_OVER + CH + fr - zmin; dist >= -zmin; dist -= DIENST_STEP) {
             const ax = bx + ox * dist, az = bz + oz * dist, q = boxes(si, ax, az, th);
-            if (!q.every((b) => clear(b.x, b.z, b.ex, b.ez, b.top))) break;
+            if (!q.every((b) => clear(b.x, b.z, b.ex, b.ez, b.top) && (!fr || clear(b.x, b.z, b.ex + fr, b.ez + fr, Infinity)))) break;
             const inField = q.every((b) => Math.abs(b.x + sx) + b.ex <= FX && Math.abs(b.z + sz) + b.ez <= FZ);
             const free = q.every((b) => taken.every((t) => Math.abs(b.x - t.x) >= b.ex + t.ex + 0.4 || Math.abs(b.z - t.z) >= b.ez + t.ez + 0.4));
             if (inField && free) best = { q, ax, az, th, at: `${kind === 'seite' ? `Seite ${side > 0 ? '+x' : '-x'}` : side > 0 ? 'Bug' : 'Heck'} ${f.toFixed(2)}` };
@@ -4770,9 +4843,14 @@ ${HALL_LIGHTS_BEGIN}
       for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
       spots++;
     }
-    for (const b of d.batches.values()) { b.computeBoundingBox(); b.computeBoundingSphere(); }
+    // Ein Material, dessen Stücke alle fehlen (Gerät nur großer Schiffe),
+    // kostet keinen Zeichenbefehl: das BatchedMesh geht ganz aus
+    const live = new Map();
+    for (const u of d.uses) for (const id of u.ids) if (id.b.getVisibleAt(id.iid)) live.set(id.b, (live.get(id.b) ?? 0) + id.p.geo.index.count / 3);
+    for (const b of d.batches.values()) { b.visible = live.has(b); b.computeBoundingBox(); b.computeBoundingSphere(); }
+    const tris = [...live.values()].reduce((a, v) => a + v, 0);
     shadowSig = '';
-    console.info(`[hangar] Wartungsplatz: ${placed.size} von ${WORK_DIENST.stationen.length} Plätzen (${report.join(', ')}), ${lines} Leitungen, ${spots} Spuren; ${d.batches.size} Meshes, ${Math.round(d.tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
+    console.info(`[hangar] Wartungsplatz bei ${span.toFixed(0)} m: ${placed.size} von ${WORK_DIENST.stationen.filter(fits).length} Plätzen (${report.join(', ')}), ${lines} Leitungen, ${spots} Spuren; ${live.size} von ${d.batches.size} Meshes, ${Math.round(tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
   }
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
@@ -5519,19 +5597,25 @@ ${HALL_LIGHTS_BEGIN}
       if (my !== token) { drop(); return; }
     }
     const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
+    // Blick des alten Schiffs, gemessen an dessen Startentfernung
+    const camAim = current ? aimNow() : null;
     scaleWorld(info);
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
     const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
-    onPoint = false;
-    if (!touched) {
-      const pos = HOME_DIR.clone().multiplyScalar(homeDist()).add(tgt);
-      if (current) flyTo(tgt, pos); else { controls.target.copy(tgt); camera.position.copy(pos); }
+    if (!current) {
+      onPoint = false;
+      controls.target.copy(tgt); camera.position.copy(HOME_DIR.clone().multiplyScalar(homeDist()).add(tgt));
     } else {
-      // vom Nutzer gewählter Blick bleibt, nur der Abstand passt sich an
-      const off = camera.position.clone().sub(controls.target);
-      const r = THREE.MathUtils.clamp(off.length() * Math.max(0.6, Math.min(1.6, span / Math.max(1, current?.info.len ?? span))), controls.minDistance, controls.maxDistance);
+      // Der Blick bleibt beim Wechsel (Betreiber 18.10.2026: „die kamera
+      // soll sich nicht reseten“): Richtung und Höhenwinkel wie zuletzt,
+      // auch im Umlauf, der Zoom im Verhältnis zur Startentfernung des
+      // Schiffs. Steckt die Kamera dann im neuen Rumpf, schiebt keepFree()
+      // sie hinaus, wie beim Drehen.
+      const off = camAim.pos.clone().sub(camAim.tgt);
+      const r = THREE.MathUtils.clamp(camAim.rel * homeDist(), controls.minDistance, controls.maxDistance);
+      onPoint = false;
       flyTo(tgt, off.setLength(r).add(tgt), 700);
     }
 
@@ -5671,6 +5755,25 @@ ${HALL_LIGHTS_BEGIN}
     return n;
   }
 
+  // Blick, auf den die Kamera gerade zuläuft (im Flug dessen Ziel), und ihr
+  // Zoom als Anteil der Startentfernung; auf einem Hardpoint der Zoom von
+  // vor dem Fokus
+  let pointRel = 1;
+  function aimNow() {
+    const tgt = fly ? fly.tb.clone() : controls.target.clone();
+    const pos = fly ? new THREE.Vector3().setFromSpherical(fly.b).add(fly.tb) : camera.position.clone();
+    return { tgt, pos, rel: onPoint ? pointRel : pos.distanceTo(tgt) / homeDist() };
+  }
+  // Fokus lösen, ohne die Ansicht zurückzusetzen (Schiffswechsel): Das Ziel
+  // geht auf die Schiffsmitte, Richtung bleibt, Zoom wie vor dem Fokus.
+  function unfocus() {
+    if (!onPoint || !current) return;
+    const a = aimNow(), t = homeTgt ? homeTgt.clone() : a.tgt;
+    onPoint = false;
+    const r = THREE.MathUtils.clamp(pointRel * homeDist(), controls.minDistance, controls.maxDistance);
+    flyTo(t, a.pos.sub(a.tgt).setLength(r).add(t), 700);
+  }
+
   function resetView() {
     touched = false; onPoint = false;
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
@@ -5721,6 +5824,7 @@ ${HALL_LIGHTS_BEGIN}
     const dir = out.lengthSq() > 1e-4 ? out.normalize().multiplyScalar(0.7).add(view.multiplyScalar(0.3)) : view;
     dir.y = Math.max(dir.normalize().y, 0.17);
     const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
+    if (!onPoint) pointRel = aimNow().rel;
     touched = true; onPoint = true; controls.autoRotate = false; clearTimeout(idleTimer);
     flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
   }
@@ -6469,6 +6573,7 @@ ${HALL_LIGHTS_BEGIN}
     resetView,
     project,
     focus,
+    unfocus,
     // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
     // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
     setCover(px) { coverTop = Math.max(0, Number(px) || 0); wake(300); },

@@ -1073,10 +1073,11 @@ export function boot(doc) {
     const my = ++showTok;
     placed = null;
     syncMarks();
-    // Die Nahansicht eines Hardpoints nicht auf das naechste Schiff tragen.
+    // Die Nahansicht eines Hardpoints nicht auf das naechste Schiff tragen,
+    // die Blickrichtung aber schon (kein Ruecksprung in die Startansicht).
     if (focused) {
       focused = null;
-      viewer.focus(null);
+      viewer.unfocus();
     }
     const [glb, tex, maker] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt

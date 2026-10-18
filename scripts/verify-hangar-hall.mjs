@@ -249,8 +249,18 @@ const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 318
 // Zeichenbefehle je Durchgang (auf mittel und hoch), dazu 114 907 Dreiecke
 // und 4,0 MB. Gleiche Regel wie oben, Obergrenzen steigen nur per Commit
 // mit Ursache.
-const KLINKE_DIENST = { stationen: 7, glieder: 38, leitungen: 3, spuren: 8, props: 29 };
-const OBERGRENZE_DIENST = { mats: 29, tris: 120000, bytes: 4.4e6 };
+// 18.10.2026 abends: am Carrack wirkte der Platz winzig, Gerät insgesamt zu
+// wenig (Betreiber). Plätze nach Schiffsgröße (ab/bis): 20 Plätze, 131
+// Glieder, 6 Leitungen, 13 Spuren aus 50 Requisiten. Obergrenze des Satzes:
+// 41 Materialien, 203 151 Dreiecke, 4,9 MB. Was ein Schiff kostet, prüft
+// das Tor je Größe (DIENST_KLASSEN: Gladius, Cutlass, Carrack, größte
+// Ausdehnung in m): Ein kleines Schiff zahlt das Gerät der großen nicht
+// (layDienst schaltet Materialien ohne sichtbares Stück ab).
+const KLINKE_DIENST = { stationen: 20, glieder: 131, leitungen: 6, spuren: 13, props: 50 };
+const OBERGRENZE_DIENST = { mats: 41, tris: 210000, bytes: 5.2e6 };
+const DIENST_KLASSEN = { klein: 20, mittel: 40, gross: 120 };
+const KLINKE_DIENST_KLASSE = { klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
+const OBERGRENZE_DIENST_KLASSE = { klein: { mats: 30, tris: 210000 }, mittel: { mats: 34, tris: 255000 }, gross: { mats: 41, tris: 560000 } };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
@@ -1174,7 +1184,7 @@ const dm = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewer)
 let dienst = null;
 try { dienst = dm ? JSON.parse(dm[1]) : null; } catch (e) { fail(`[14] WORK_DIENST im Viewer ist kein JSON mehr (${e.message})`); }
 const DI = W?.dienst ?? null;
-const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0 };
+const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {} };
 if (W && !DI) fail(`[14] die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. ${existsSync(join(ROOT, 'public/hangar/props/dienst.glb')) ? 'HangarApp.astro pruefen' : 'public/hangar/props/dienst.glb fehlt, neu packen: node scripts/build-hangar-dienst.mjs'}`);
 if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 if (DI && dienst) {
@@ -1188,6 +1198,9 @@ if (DI && dienst) {
     names.add(st.name);
     for (const q of [st.wo, ...(st.sonst ?? [])]) if (!spot(q)) fail(`[14] WORK_DIENST ${st.name}: Stelle ${JSON.stringify(q)} ist keine ["seite"|"ende", ±1, Bruchteil -1..1]; layDienst liesse den Platz still weg`);
     if (!(st.glieder?.length)) fail(`[14] WORK_DIENST ${st.name}: Platz ohne Glieder`);
+    const ab = st.ab ?? 0, bis = st.bis ?? Infinity;
+    if (st.frei !== undefined && !(Number.isFinite(st.frei) && st.frei >= 0 && st.frei <= 20)) fail(`[14] WORK_DIENST ${st.name}: frei ${st.frei} ist kein Abstand zum Rumpf in m (0..20)`);
+    if (!(Number.isFinite(ab) && ab >= 0 && (bis === Infinity || Number.isFinite(bis)) && ab < bis)) fail(`[14] WORK_DIENST ${st.name}: ab ${st.ab} / bis ${st.bis} ist kein Bereich der Schiffsgroesse in m (0 <= ab < bis); layDienst stellte den Platz an kein Schiff`);
     for (const g of st.glieder ?? []) {
       if (!(typeof g[0] === 'string' && g.slice(1).every(Number.isFinite) && g.length >= 3)) fail(`[14] WORK_DIENST ${st.name}: Glied ${JSON.stringify(g)} braucht [Knoten, x, z, Drehung, Hoehe]`);
       else { props.add(g[0]); dienstRun.glieder++; }
@@ -1267,6 +1280,27 @@ if (DI && dienst) {
       const [x, y, z] = extent(nd).size;
       if (!(z > 5 * Math.max(x, y))) fail(`[14] Leitung ${l.name}: ${l.node} liegt nicht laengs z (${x.toFixed(2)} × ${y.toFixed(2)} × ${z.toFixed(2)} m); layDienst biegt sie laengs z und legte sie quer`);
     }
+    // Je Schiffsgroesse (ab/bis): welche Plaetze stehen, wie viele Dreiecke
+    // zeichnet der Platz (jedes Glied, jede Leitung, jede Spur einmal) und
+    // wie viele Materialien braucht er, also Zeichenbefehle je Durchgang
+    // (layDienst schaltet ein BatchedMesh ohne sichtbares Stueck ab)
+    const matsOf = (n) => new Set((j.meshes?.[top.get(n)?.mesh]?.primitives ?? []).map((pr) => j.materials?.[pr.material]?.name));
+    for (const [kl, span] of Object.entries(DIENST_KLASSEN)) {
+      const on = (dienst.stationen ?? []).filter((s) => span >= (s.ab ?? 0) && span < (s.bis ?? Infinity));
+      const names = new Set(on.map((s) => s.name)), uses = [];
+      for (const s of on) for (const g of s.glieder) uses.push(g[0]);
+      for (const l of dienst.leitungen ?? []) if (names.has(l.von?.[0])) uses.push(l.node);
+      for (const sp of dienst.spuren ?? []) if (typeof sp[1] !== 'string' || names.has(sp[1])) uses.push(sp[0]);
+      const mats = new Set();
+      let tris = 0;
+      for (const n of uses) { if (!top.has(n)) continue; tris += extent(top.get(n)).tris; for (const m of matsOf(n)) mats.add(m); }
+      const r = { stationen: on.length, mats: mats.size, tris: Math.round(tris) };
+      dienstRun.klassen[kl] = r;
+      const KK = KLINKE_DIENST_KLASSE[kl], OK = OBERGRENZE_DIENST_KLASSE[kl];
+      if (r.stationen < KK.stationen) fail(`[14] an einem Schiff von ${span} m (${kl}) stehen ${r.stationen} Plaetze, die Klinke verlangt ${KK.stationen}: ab/bis in WORK_DIENST pruefen; KLINKE_DIENST_KLASSE nur per Commit mit Ursache senken`);
+      if (r.mats > OK.mats) fail(`[14] an einem Schiff von ${span} m (${kl}) braucht der Wartungsplatz ${r.mats} Materialien, die Obergrenze ist ${OK.mats}: je Material ein Zeichenbefehl in jedem Durchgang. Geraet mit eigenen Materialien nur an groessere Schiffe (ab) oder flach zusammenlegen; OBERGRENZE_DIENST_KLASSE nur per Commit mit Ursache anheben`);
+      if (r.tris > OK.tris) fail(`[14] an einem Schiff von ${span} m (${kl}) zeichnet der Wartungsplatz ${r.tris} Dreiecke, die Obergrenze ist ${OK.tris}: OBERGRENZE_DIENST_KLASSE nur per Commit mit Ursache anheben`);
+    }
     const K = KLINKE_DIENST, O = OBERGRENZE_DIENST;
     for (const k of Object.keys(K)) if (dienstRun[k] < K[k]) fail(`[14] der Wartungsplatz hat ${dienstRun[k]} ${k}, die Klinke verlangt ${K[k]}: KLINKE_DIENST nur per Commit mit Ursache senken`);
     if (dienstRun.mats > O.mats) fail(`[14] der Geraetesatz traegt ${dienstRun.mats} Materialien, die Obergrenze ist ${O.mats}: je Material ein Zeichenbefehl in jedem Durchgang. Flache Teile zusammenlegen (scripts/build-hangar-dienst.mjs); OBERGRENZE_DIENST nur per Commit mit Ursache anheben`);
@@ -1274,7 +1308,7 @@ if (DI && dienst) {
     if (dienstRun.bytes > O.bytes) fail(`[14] der Geraetesatz wiegt ${(dienstRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke`);
