@@ -30,8 +30,8 @@ export interface HallConfig {
   readonly patch?: { url: string; bytes?: number } | null;
   /** Aufzugsschacht unter dem Schiffsfeld: Bausatz (glb) und Lampenliste (json), HALL_SHAFT im Viewer */
   readonly lift?: { url: string; json: string; bytes?: number } | null;
-  /** Werkstatt: Requisiten (glb), Boden-Decals (boden, eigene Datei fuers Telefon) und Anordnung (json), placeWorkshop im Viewer */
-  readonly workshop?: { url: string; json: string; bytes?: number; boden?: { url: string; bytes?: number } | null } | null;
+  /** Werkstatt: Requisiten (glb), Boden-Decals (boden, eigene Datei fuers Telefon), Anordnung (json), placeWorkshop im Viewer; dienst: Geraetesatz fuer den Wartungsplatz am Schiff (scripts/build-hangar-dienst.mjs), layDienst im Viewer */
+  readonly workshop?: { url: string; json: string; bytes?: number; boden?: { url: string; bytes?: number } | null; dienst?: { url: string; bytes?: number } | null } | null;
 }
 
 export interface StageConfig {

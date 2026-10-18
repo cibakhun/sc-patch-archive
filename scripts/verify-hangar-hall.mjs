@@ -21,7 +21,7 @@
    Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   DREIZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   VIERZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -140,9 +140,8 @@
         dessen Knoten fehlt, still weg. Geprueft: Nennt das Manifest die
         Werkstatt, gibt die Seite sie mit; alle drei Dateien liegen in
         dist/; jeder Platz der Anordnung und jede Spur auf dem Feld (Block
-        work-field im Viewer) und jedes Geraet am Schiff (Block
-        work-service, mindestens 1 m vom Feldrand) hat seinen Knoten in
-        der richtigen Datei;
+        work-field im Viewer) hat seinen Knoten in der richtigen Datei (das
+        Geraet am Schiff prueft seit 18.10.2026 [14]);
         Decals liegen flach; Geraet, Decals, Plaetze und Feldspuren ueber
         ihrer Klinke, Dreiecke und Bytes unter der Obergrenze
         (KLINKE_WERKSTATT, OBERGRENZE_WERKSTATT; Telefone laden nur die
@@ -165,6 +164,24 @@
         reicht ueber die Feldenden in z, keins ist im Streifen und nicht
         teilbar, kein Stueck landet nach dem Ruecken im Feld (es laege ueber
         dem Schacht), und je Streifen wandern mindestens `min` Dreiecke.
+    14  Der Wartungsplatz am Schiff kommt mit (seit 18.10.2026): Das Geraet
+        stand verstreut und zu wenig (Betreiber 18.10.2026: „nicht
+        belivable plaziert“). Der Viewer stellt je Schiff Arbeitsplaetze,
+        Leitungen und Oelspuren um den Rumpf (Block work-dienst, layDienst),
+        aus einem Geraetesatz, den
+        scripts/build-hangar-dienst.mjs aus dem Geraetekatalog packt (ein
+        BatchedMesh je Material). Fehlt ein Knoten oder passt ein
+        Attributsatz nicht, steht das Schiff still ohne Geraet. Geprueft:
+        liegt der Satz bereit, gibt die Seite ihn mit; er liegt in dist/ und
+        passt zum Block des ausgelieferten Viewers und zu seinen Quellen in
+        dist/ (Fingerabdruck); jeder genannte Knoten steht oben im Satz,
+        jede Requisite im Katalog; je Material ein Attributsatz mit Index,
+        dienst_flach mit Farbe und Rauheit je Ecke, die uebrigen mit
+        Texturkoordinaten; Leitungen liegen laengs z (der Viewer biegt sie
+        so); jede Stelle, Leitung und Spur im Block ist gueltig;
+        Plaetze, Glieder, Leitungen, Spuren und Requisiten ueber ihrer
+        Klinke, Materialien (Zeichenbefehle), Dreiecke und Bytes unter der
+        Obergrenze (KLINKE_DIENST, OBERGRENZE_DIENST).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -222,7 +239,18 @@ const KLINKE_ERGAENZUNG = { 'revelyork-single': 15482 };
 // Schacht, 51 Leuchten und 35 Lichtrahmen; ihre Dreiecke zaehlen zur
 // Obergrenze. Gleiche Regel wie oben.
 const KLINKE_SCHACHT = { 'revelyork-single': { minTris: 28264, maxTris: 60000, lights: 84, worn: 2713, deco: 86 } };
-const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 12, service: 11, pad: 31888 };
+// field 12 -> 9 (18.10.2026): die drei Oelflecken auf dem Feld liegen jetzt
+// nach Schiffsgroesse unter dem Schiff (WORK_DIENST.spuren, [14]); die
+// grosse Lache in der Feldmitte sah aus wie verschuettete Tinte (Betreiber).
+// service entfaellt: WORK_SERVICE ist im Wartungsplatz aufgegangen ([14]).
+const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 31888 };
+// Wartungsplatz (Stand 18.10.2026): 7 Plaetze mit 38 Gliedern, 3
+// Leitungen, 8 Spuren aus 29 Requisiten. Obergrenze: 29 Materialien sind 29
+// Zeichenbefehle je Durchgang (auf mittel und hoch), dazu 114 907 Dreiecke
+// und 4,0 MB. Gleiche Regel wie oben, Obergrenzen steigen nur per Commit
+// mit Ursache.
+const KLINKE_DIENST = { stationen: 7, glieder: 38, leitungen: 3, spuren: 8, props: 29 };
+const OBERGRENZE_DIENST = { mats: 29, tris: 120000, bytes: 4.4e6 };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 const KLINKE_FUELLUNG = { 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
@@ -937,15 +965,11 @@ say('\n[12] Die Werkstatt kommt mit, jeder Platz und jede Spur auf dem Feld hat 
 let manifest = null;
 try { manifest = JSON.parse(readFileSync(join(ROOT, 'src/data/hangar-assets.json'), 'utf8')); } catch (e) { fail(`[12] src/data/hangar-assets.json ist nicht lesbar (${e.message})`); }
 const W = hall?.workshop ?? null, WM = manifest?.props?.werkstatt ?? null;
-const workRun = { props: 0, decals: 0, items: 0, field: 0, service: 0, tris: 0, bytes: 0, boden: 0, pad: [] };
+const workRun = { props: 0, decals: 0, items: 0, field: 0, tris: 0, bytes: 0, boden: 0, pad: [] };
 const fm = /\/\* work-field \*\/([\s\S]*?)\/\* \/work-field \*\//.exec(viewer);
 let field = null;
 try { field = fm ? JSON.parse(fm[1]) : null; } catch (e) { fail(`[12] WORK_FIELD im Viewer ist kein JSON mehr (${e.message})`); }
 if (viewer && W && !fm) fail('[12] der Viewer traegt keinen Block /* work-field */ … /* /work-field */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
-const sm2 = /\/\* work-service \*\/([\s\S]*?)\/\* \/work-service \*\//.exec(viewer);
-let service = null;
-try { service = sm2 ? JSON.parse(sm2[1]) : null; } catch (e) { fail(`[12] WORK_SERVICE im Viewer ist kein JSON mehr (${e.message})`); }
-if (viewer && W && !sm2) fail('[12] der Viewer traegt keinen Block /* work-service */ … /* /work-service */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 const pm = /\/\* work-pad \*\/([\s\S]*?)\/\* \/work-pad \*\//.exec(viewer);
 let pad = null;
 try { pad = pm ? JSON.parse(pm[1]) : null; } catch (e) { fail(`[12] WORK_PAD im Viewer ist kein JSON mehr (${e.message})`); }
@@ -1000,17 +1024,11 @@ if (W) {
       else if (!(Math.abs(u) <= 1 && Math.abs(v) <= 1)) fail(`[12] WORK_FIELD ${n} bei ${u}, ${v}: ausserhalb des Felds (Bruchteile der halben Breite und Laenge, -1 bis 1)`);
       else workRun.field++;
     }
-    for (const [n, d, z] of service ?? []) {
-      if (!props.has(n)) fail(`[12] WORK_SERVICE nennt ${n}, ${W.url.split('?')[0]} traegt den Knoten nicht: Das Geraet fehlte still am Schiff. Namen im Viewer nachziehen`);
-      else if (!(Math.abs(d) >= 1 && Number.isFinite(z))) fail(`[12] WORK_SERVICE ${n}: ${d} m vom Feldrand ist zu nah (mindestens 1 m, WORK_EDGE), das Geraet stuende sonst ueber dem Schacht`);
-      else workRun.service++;
-    }
     const K = KLINKE_WERKSTATT, O = OBERGRENZE_WERKSTATT;
     if (workRun.props < K.props) fail(`[12] ${W.url.split('?')[0]} traegt ${workRun.props} Geraete (prop_*), die Klinke verlangt ${K.props}: beim Export verloren? KLINKE_WERKSTATT nur per Commit mit Ursache senken`);
     if (workRun.decals < K.decals) fail(`[12] ${W.boden.url.split('?')[0]} traegt ${workRun.decals} Decal-Arten, die Klinke verlangt ${K.decals}: beim Export verloren? KLINKE_WERKSTATT nur per Commit mit Ursache senken`);
     if (workRun.items < K.items) fail(`[12] die Anordnung hat ${workRun.items} Plaetze, die Klinke verlangt ${K.items}: KLINKE_WERKSTATT nur per Commit mit Ursache senken`);
     if (workRun.field < K.field) fail(`[12] auf dem Feld liegen ${workRun.field} Spuren (WORK_FIELD), die Klinke verlangt ${K.field}: KLINKE_WERKSTATT nur per Commit mit Ursache senken`);
-    if (workRun.service < K.service) fail(`[12] am Schiff stehen ${workRun.service} Geraete (WORK_SERVICE), die Klinke verlangt ${K.service}: KLINKE_WERKSTATT nur per Commit mit Ursache senken`);
     if (workRun.tris > O.tris) fail(`[12] das Geraet hat ${workRun.tris} Dreiecke, die Obergrenze ist ${O.tris}: zu teuer neben der Halle. OBERGRENZE_WERKSTATT nur per Commit mit Ursache anheben`);
     if (workRun.bytes + workRun.boden > O.bytes) fail(`[12] die Werkstatt wiegt ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
     if (workRun.boden > O.boden) fail(`[12] die Bodendatei wiegt ${(workRun.boden / 1048576).toFixed(2)} MiB, die Obergrenze ist ${O.boden / 1048576} MiB: Telefone laden sie`);
@@ -1034,7 +1052,7 @@ if (W) {
   }
 }
 for (const k of Object.keys(KLINKE_WERKSTATT).filter(() => !WM)) fail(`[12] KLINKE_WERKSTATT.${k}: das Manifest nennt keine Werkstatt mehr; den Eintrag hier per Commit mit Ursache entfernen`);
-sollIst(W ? `alle Dateien in dist/, jeder Platz und jede Feldspur mit Knoten, Decals flach; mindestens ${KLINKE_WERKSTATT.props} Geraete, ${KLINKE_WERKSTATT.decals} Decal-Arten, ${KLINKE_WERKSTATT.items} Plaetze, ${KLINKE_WERKSTATT.field} Feldspuren, ${KLINKE_WERKSTATT.service} Geraete am Schiff, Feld ${pad?.pick === 'lack' ? 'im Lack der Halle, Vergleichsboeden' : `aus Spielboden ${pad?.pick ?? '?'}, alle Boeden`} mit Knoten und Kachel, je Hallenstufe ${KLINKE_WERKSTATT.pad} Felddreiecke darunter (WORK_PAD); hoechstens ${OBERGRENZE_WERKSTATT.tris} Dreiecke, ${OBERGRENZE_WERKSTATT.bytes / 1e6} MB, Bodendatei ${OBERGRENZE_WERKSTATT.boden / 1048576} MiB` : 'keine Werkstatt fuer diese Halle', W ? `${workRun.props} Geraete, ${workRun.decals} Decal-Arten, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} Geraete am Schiff, Spielboden ${workRun.pad.join(', ') || 'keiner'}; ${workRun.tris} Dreiecke, ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, Bodendatei ${(workRun.boden / 1048576).toFixed(2)} MiB` : '(nichts gemessen)');
+sollIst(W ? `alle Dateien in dist/, jeder Platz und jede Feldspur mit Knoten, Decals flach; mindestens ${KLINKE_WERKSTATT.props} Geraete, ${KLINKE_WERKSTATT.decals} Decal-Arten, ${KLINKE_WERKSTATT.items} Plaetze, ${KLINKE_WERKSTATT.field} Feldspuren, Feld ${pad?.pick === 'lack' ? 'im Lack der Halle, Vergleichsboeden' : `aus Spielboden ${pad?.pick ?? '?'}, alle Boeden`} mit Knoten und Kachel, je Hallenstufe ${KLINKE_WERKSTATT.pad} Felddreiecke darunter (WORK_PAD); hoechstens ${OBERGRENZE_WERKSTATT.tris} Dreiecke, ${OBERGRENZE_WERKSTATT.bytes / 1e6} MB, Bodendatei ${OBERGRENZE_WERKSTATT.boden / 1048576} MiB` : 'keine Werkstatt fuer diese Halle', W ? `${workRun.props} Geraete, ${workRun.decals} Decal-Arten, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 'keiner'}; ${workRun.tris} Dreiecke, ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, Bodendatei ${(workRun.boden / 1048576).toFixed(2)} MiB` : '(nichts gemessen)');
 
 say('\n[13] Das Schiffsfeld steht in der Hallenmitte, der Boden daneben ohne Luecke');
 // Der Block steht im Viewer zwischen /* hall-shift */ und /* /hall-shift */ und ist JSON
@@ -1151,8 +1169,107 @@ if (SHIFT && LIFT) {
 }
 sollIst(SHIFT ? `Feld danach in der Raummitte (x ${hall?.room?.center?.[0]}); vorher und nachher dieselbe Breite ohne Ueberlappung; je Hallenstufe 0 Dreiecke ueber den Feldenden, 0 stehenbleibende, 0 danach im Feld, je Streifen mindestens ${Array.isArray(SHIFT.min) ? SHIFT.min.join(' / ') : '?'}` : 'keine Verschiebung fuer diese Halle', shiftRuns.length ? `Feld bei x ${shiftCentre}; ${shiftRuns.map((r) => `${r.u}: ${r.moved.join(' / ')} umgesetzt, ${r.split} geteilt, ${r.edge} ueber den Enden, ${r.stuck} stehen, ${r.deep} im Feld`).join('; ')}` : '(nichts gemessen)');
 
+say('\n[14] Der Wartungsplatz am Schiff kommt mit, jedes Stueck hat seinen Knoten');
+const dm = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewer);
+let dienst = null;
+try { dienst = dm ? JSON.parse(dm[1]) : null; } catch (e) { fail(`[14] WORK_DIENST im Viewer ist kein JSON mehr (${e.message})`); }
+const DI = W?.dienst ?? null;
+const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0 };
+if (W && !DI && existsSync(join(ROOT, 'public/hangar/props/dienst.glb'))) fail('[14] public/hangar/props/dienst.glb liegt bereit, die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. HangarApp.astro pruefen');
+if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+if (DI && dienst) {
+  const sha8 = (b) => createHash('sha1').update(b).digest('hex').slice(0, 8);
+  const frac = (v) => Number.isFinite(v) && Math.abs(v) <= 1;
+  // Der Block: Stellen, Glieder, Leitungen, Spuren (wie layDienst sie liest)
+  const names = new Set(), props = new Set(), decals = new Set();
+  const spot = (q) => Array.isArray(q) && ['seite', 'ende'].includes(q[0]) && Math.abs(q[1]) === 1 && frac(q[2]);
+  for (const st of dienst.stationen ?? []) {
+    if (typeof st.name !== 'string' || names.has(st.name)) fail(`[14] WORK_DIENST: Platz ohne oder mit doppeltem Namen (${st.name})`);
+    names.add(st.name);
+    for (const q of [st.wo, ...(st.sonst ?? [])]) if (!spot(q)) fail(`[14] WORK_DIENST ${st.name}: Stelle ${JSON.stringify(q)} ist keine ["seite"|"ende", ±1, Bruchteil -1..1]; layDienst liesse den Platz still weg`);
+    if (!(st.glieder?.length)) fail(`[14] WORK_DIENST ${st.name}: Platz ohne Glieder`);
+    for (const g of st.glieder ?? []) {
+      if (!(typeof g[0] === 'string' && g.slice(1).every(Number.isFinite) && g.length >= 3)) fail(`[14] WORK_DIENST ${st.name}: Glied ${JSON.stringify(g)} braucht [Knoten, x, z, Drehung, Hoehe]`);
+      else { props.add(g[0]); dienstRun.glieder++; }
+    }
+    dienstRun.stationen++;
+  }
+  for (const l of dienst.leitungen ?? []) {
+    if (!(names.has(l.von?.[0]) && l.von.slice(1).every(Number.isFinite) && Array.isArray(l.nach) && l.nach.length === 2 && l.nach.every(frac) && typeof l.node === 'string')) fail(`[14] WORK_DIENST Leitung ${l.name}: braucht node, von [Platz, x, z, Hoehe] mit einem Platz des Blocks und nach [quer, laengs] in -1..1`);
+    else { props.add(l.node); dienstRun.leitungen++; }
+  }
+  for (const sp of dienst.spuren ?? []) {
+    const atShip = typeof sp[0] === 'string' && frac(sp[1]) && Math.abs(sp[2]) <= 1.2 && sp[3] > 0 && sp[3] <= 0.5 && Number.isFinite(sp[4] ?? 0);
+    const atSpot = typeof sp[0] === 'string' && names.has(sp[1]) && Number.isFinite(sp[2]) && Number.isFinite(sp[3]) && sp[4] > 0 && sp[4] <= 4 && Number.isFinite(sp[5] ?? 0);
+    if (!atShip && !atSpot) fail(`[14] WORK_DIENST Spur ${JSON.stringify(sp)}: braucht [Knoten, quer (-1..1), laengs (bis ±1,2), Kante (Bruchteil der Breite, bis 0,5), Drehung] oder [Knoten, Platz des Blocks, x, z, Kante (m, bis 4), Drehung]`);
+    else { decals.add(sp[0]); dienstRun.spuren++; }
+  }
+  dienstRun.props = props.size;
+  const file = fromUrl(DI.url);
+  if (!existsSync(file)) fail(`[14] ${DI.url.split('?')[0]} fehlt in dist/`);
+  else {
+    const j = glbJson(file);
+    dienstRun.bytes = readFileSync(file).length;
+    // Fingerabdruck: zum Block des ausgelieferten Viewers und zu den Quellen in dist/
+    const st = j?.asset?.extras?.dienst;
+    const stale = [];
+    if (!st?.block || st.block !== sha8(dm[1].trim())) stale.push(`Block (Satz ${st?.block ?? 'ohne'}, Viewer ${sha8(dm[1].trim())})`);
+    for (const [rel, h] of Object.entries(st?.quellen ?? {})) {
+      const f = join(DIST, rel.replace(/^public\//, ''));
+      dienstRun.quellen++;
+      if (!existsSync(f)) stale.push(`${rel} fehlt in dist/`);
+      else if (sha8(readFileSync(f)) !== h) stale.push(rel);
+    }
+    if (!dienstRun.quellen) stale.push('keine Quellen im Fingerabdruck');
+    if (stale.length) fail(`[14] ${DI.url.split('?')[0]} passt nicht mehr: ${stale.join(', ')}. Neu packen: node scripts/build-hangar-dienst.mjs`);
+    // Knoten oben im Satz, Requisiten im Katalog
+    const top = new Map((j?.scenes?.[j.scene ?? 0]?.nodes ?? []).map((i) => [j.nodes[i].name, j.nodes[i]]));
+    const lost = [...props, ...decals].filter((n) => !top.has(n));
+    if (lost.length) fail(`[14] der Geraetesatz traegt ${lost.length} Knoten nicht, die WORK_DIENST nennt (${lost.slice(0, 3).join(', ')}): Das Stueck fehlte still am Schiff`);
+    let kat = null;
+    try { kat = JSON.parse(readFileSync(join(DIST, 'hangar/props/katalog.json'), 'utf8')); } catch (e) { fail(`[14] dist/hangar/props/katalog.json ist nicht lesbar (${e.message})`); }
+    const inKat = new Set((kat?.props ?? []).map((q) => q.node));
+    const noKat = [...props].filter((n) => !inKat.has(n));
+    if (kat && noKat.length) fail(`[14] ${noKat.length} Requisiten des Wartungsplatzes stehen nicht im Katalog (${noKat.slice(0, 3).join(', ')}): Ihre Bedeutung (wofuer, wo im Spiel) ist nicht belegt`);
+    // je Material ein Attributsatz mit Index (ein BatchedMesh je Material)
+    const sigs = sigsByMat(j);
+    dienstRun.mats = sigs.size;
+    for (const [m, set] of sigs) {
+      if (set.size !== 1) fail(`[14] ${m} kommt im Geraetesatz mit ${set.size} verschiedenen Attributsaetzen (${[...set].join(' | ')}): Der Viewer legt je Material ein BatchedMesh an und braeche den Wartungsplatz ab`);
+      const sig = [...set][0] ?? '';
+      if (m === 'dienst_flach' ? !(/_TINT:VEC3/.test(sig) && /_RM:VEC2/.test(sig)) : !/TEXCOORD_0:VEC2/.test(sig)) fail(`[14] ${m}: Attributsatz ${sig} — dienst_flach braucht _TINT und _RM, die uebrigen TEXCOORD_0`);
+    }
+    const unindexed = (j?.meshes ?? []).flatMap((me) => me.primitives).filter((pr) => pr.indices == null).length;
+    if (unindexed) fail(`[14] ${unindexed} Teile des Geraetesatzes ohne Index: Ein BatchedMesh braucht sie alle mit oder alle ohne`);
+    // Dreiecke je Knoten (wie oft er steht) und Lage der Leitungen
+    const extent = (nd) => {
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      let tris = 0;
+      for (const pr of j.meshes?.[nd.mesh]?.primitives ?? []) {
+        const pos = j.accessors?.[pr.attributes?.POSITION];
+        tris += (pr.indices != null ? j.accessors[pr.indices].count : pos?.count ?? 0) / 3;
+        for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], pos?.min?.[a] ?? Infinity); hi[a] = Math.max(hi[a], pos?.max?.[a] ?? -Infinity); }
+      }
+      return { tris, size: hi.map((v, a) => v - lo[a]) };
+    };
+    for (const [n, nd] of top) dienstRun.tris += extent(nd).tris;
+    for (const l of dienst.leitungen ?? []) {
+      const nd = top.get(l.node);
+      if (!nd) continue;
+      const [x, y, z] = extent(nd).size;
+      if (!(z > 5 * Math.max(x, y))) fail(`[14] Leitung ${l.name}: ${l.node} liegt nicht laengs z (${x.toFixed(2)} × ${y.toFixed(2)} × ${z.toFixed(2)} m); layDienst biegt sie laengs z und legte sie quer`);
+    }
+    const K = KLINKE_DIENST, O = OBERGRENZE_DIENST;
+    for (const k of Object.keys(K)) if (dienstRun[k] < K[k]) fail(`[14] der Wartungsplatz hat ${dienstRun[k]} ${k}, die Klinke verlangt ${K[k]}: KLINKE_DIENST nur per Commit mit Ursache senken`);
+    if (dienstRun.mats > O.mats) fail(`[14] der Geraetesatz traegt ${dienstRun.mats} Materialien, die Obergrenze ist ${O.mats}: je Material ein Zeichenbefehl in jedem Durchgang. Flache Teile zusammenlegen (scripts/build-hangar-dienst.mjs); OBERGRENZE_DIENST nur per Commit mit Ursache anheben`);
+    if (dienstRun.tris > O.tris) fail(`[14] der Geraetesatz hat ${dienstRun.tris} Dreiecke, die Obergrenze ist ${O.tris}: OBERGRENZE_DIENST nur per Commit mit Ursache anheben`);
+    if (dienstRun.bytes > O.bytes) fail(`[14] der Geraetesatz wiegt ${(dienstRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
+  }
+}
+sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, ${workRun.service} am Schiff, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

@@ -1347,29 +1347,18 @@ const WORK_TWO_SIDED = /airduct_hose/i;
 // Feldlänge]. Im Spiel ist das Landefeld Asphalt ohne Decals, und Risse,
 // Schutt und große Öllachen kennt die Anordnung gar nicht (im Spiel kaum in
 // Hallen). Unser Feld ist der helle Lack der Ausstellungshalle, und auf ihm
-// steht das Schiff, wo man hinsieht: Dort liegen diese Spuren, die große
-// Lache unter der Schiffsmitte, der Rest so, dass ein kleines Schiff ihn
-// nicht verdeckt. Sie fahren mit dem Aufzug; im Budget kommen sie zuerst.
+// steht das Schiff, wo man hinsieht: Dort liegen diese Spuren so, dass ein
+// kleines Schiff sie nicht verdeckt. Sie fahren mit dem Aufzug; im Budget
+// kommen sie zuerst. Öl liegt seit dem 18.10.2026 nicht mehr hier, sondern
+// nach Schiffsgröße unter dem Schiff (WORK_DIENST.spuren); Krisz: die große
+// Lache in der Feldmitte sah aus wie verschüttete Tinte.
 // verify:hangar-hall [12] liest den Block und prüft jeden Knoten an der
 // ausgelieferten Bodendatei.
 const WORK_FIELD = /* work-field */ [
-  ["decal_oel_3", 0, 0.1], ["decal_oel_2", -0.6, -0.22], ["decal_riss_0", 0.66, 0.28], ["decal_riss_1", -0.68, 0.4],
-  ["decal_betonschutt_0", 0.62, -0.38], ["decal_riss_1", 0.48, -0.66], ["decal_riss_0", -0.5, -0.6], ["decal_oel_0", 0.4, 0.5],
+  ["decal_riss_0", 0.66, 0.28], ["decal_riss_1", -0.68, 0.4],
+  ["decal_betonschutt_0", 0.62, -0.38], ["decal_riss_1", 0.48, -0.66], ["decal_riss_0", -0.5, -0.6],
   ["decal_kratzer_0", -0.35, 0.12], ["decal_abrieb_1", 0.32, -0.12], ["decal_betonschutt_0", -0.62, 0.7], ["decal_reifenspur_0", 0.2, 0.75]
 ] /* /work-field */;
-// Wartungsplatz neben dem Schiff: [Knoten, Abstand vom Längsrand des Felds
-// (m, + auf der Seite +x), Lage längs ab Feldmitte (m), Drehung (Grad) über
-// „zum Feld gewandt“ hinaus]. Die Anordnung des Spiels stellt das Gerät an
-// die Enden seines 88 m langen Landefelds, bei einem kleinen Schiff in der
-// Mitte also 40 bis 70 m weit weg; Krisz vermisst es am Schiff. Hier steht
-// ein Satz daraus beiderseits der Schiffsmitte, Gerät aus dem Spiel in
-// unserer Aufstellung (wie WORK_FIELD); belegte Stellen weichen aus wie die
-// übrigen. verify:hangar-hall [12] prüft die Knoten.
-const WORK_SERVICE = /* work-service */ [
-  ["prop_generator_0", 3, -6, 0], ["prop_kabeltrommel_0", 2.5, -1.5, 0], ["prop_schlauch_0", 1.8, 3.5, 0],
-  ["prop_diagnose_0", 2.5, 8, 0], ["prop_treibstoff_0", 3.5, 11, 15], ["prop_treibstoff_0", 4.2, 11.6, -20], ["prop_werkzeug_0", 2, 13, 30],
-  ["prop_wagen_0", -2.5, -4, 0], ["prop_diagnose_1", -2.5, 4, 0], ["prop_gasflasche_1", -3, 8.5, 0], ["prop_kiste_0", -3.5, -9.5, 0]
-] /* /work-service */;
 // Feldboden aus dem Spiel (17.10.2026): Krisz vermisst Beton. Im Spiel ist
 // das Landefeld der Aufzug selbst, Asphalt mit Rutschschutz, abgenutzt zu
 // beschädigtem Beton; die Bodendatei trägt beide Schichten als eigene
@@ -1382,6 +1371,180 @@ const WORK_SERVICE = /* work-service */ [
 // wählte erst Beton, am selben Abend (17.10.2026) wieder den Lack.
 // verify:hangar-hall [12] prüft die Knoten und die Materialien im Feld.
 const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_03)$", "floors": { "beton": "floor_asphalt_wear", "asphalt": "floor_asphalt" }, "pick": "lack" } /* /work-pad */;
+// Wartungsplatz am Schiff (18.10.2026). Krisz: „die assets sind allgemein
+// zu wenige, und sind nicht belivable plaziert“; Öl und Gerät nach der
+// Schiffsgröße, Gerät an Arbeitsplätzen gruppiert, Schläuche und Kabel zu
+// Generator oder Treibstoff, die Bedeutung der Requisiten gespeichert
+// (Katalog, public/hangar/props/katalog.json, PC-Auftrag
+// .planning/notes/hangar-katalog.md). Je Schiff neu um seinen Umriss
+// gestellt und mit dem Aufzug gefahren (layDienst), das Gerät in
+// Originalgröße aus dem Gerätesatz (scripts/build-hangar-dienst.mjs liest
+// diesen Block und packt genau diese Knoten).
+// stationen: Arbeitsplätze; `wo` sagt, wo am Schiff: ["seite", ±1 (+x oder
+// -x), Lage längs als Bruchteil der halben Länge (+ zum Bug)] oder ["ende",
+// ±1 (Bug oder Heck), Lage quer als Bruchteil der halben Breite]; der Platz
+// rückt von außen an den Rumpf heran, bis er an ihn stößt (DIENST_CLEAR,
+// Grundriss von unten: shipUnder), unter Flügeln nur mit Kopffreiheit.
+// `sonst`: weitere Stellen, falls die erste nicht ins Feld passt (das Gerät
+// fährt mit dem Aufzug, große Schiffe lassen dort kaum Platz). glieder:
+// [Knoten, x, z, Drehung, Höhe] im Platz: z zeigt vom Schiff weg, Drehung 0
+// heißt Vorderseite des Spiels (-z) zum Schiff. Die Zusammensetzungen folgen den Arbeitsplätzen
+// des Katalogs (Diagnose mit Kabeltrommel 7 und Kisten mit Kabeltrommel 4
+// stehen im Spiel auf dem Landefeld, Gasflasche neben Feuerlöscher in 71 %).
+// leitungen: Schlauch oder Kabel aus dem Satz, vom Gerät ([Platz, x, z,
+// Höhe] im Platz) über den Boden unter den Rumpf ([Bruchteil quer, längs]);
+// das Spiel verlegt keine Leitung zum Schiff, die Stücke sind seine.
+// spuren: Öl unter dem Schiff, [Knoten, Bruchteil quer, längs, Kante als
+// Bruchteil der Schiffsbreite (DIENST_SPUR begrenzt sie in m), Drehung],
+// meist unter dem Heck, wo die Triebwerke sitzen und eine Lache knapp
+// dahinter (von hinten zu sehen); oder an einem Platz, [Knoten, Platz, x, z,
+// Kante in m, Drehung] wie ein Glied (verschütteter Treibstoff). verify:hangar-hall [14]
+// prüft jeden Knoten am Gerätesatz und am Katalog.
+const WORK_DIENST = /* work-dienst */ {
+  "stationen": [
+    { "name": "strom", "wo": ["seite", 1, -0.3], "sonst": [["ende", -1, 0.55]], "glieder": [
+      ["prop_energie_generator_mobile_1_b", 0, 0.15, 0], ["prop_kabel_cable_reel_6_a", 2.9, 0.2, 0], ["prop_kabel_cable_terminal_6_a", -2.35, -0.15, 15],
+      ["prop_licht_light_portable_tripod_1_base_a", -2.9, 1.1, 200]] },
+    { "name": "treibstoff", "wo": ["seite", -1, -0.3], "sonst": [["ende", -1, -0.55]], "glieder": [
+      ["prop_schlauch_hose_reel_2_a", 0, 0, 0], ["prop_treibstoff_cell_fuel_1_a", 1.25, 0.15, 0], ["prop_treibstoff_cell_fuel_1_a", 1.55, 0.3, 40],
+      ["prop_treibstoff_cell_fuel_1_a", 1.3, 0.5, 75], ["prop_treibstoff_cell_fuel_1_a", 1.6, 0.75, 10], ["prop_treibstoff_cell_fuel_1_a", 1.95, 0.5, 120],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -1.15, 0.05, 25], ["prop_sicherheit_cone_1_a", -0.8, -1.5, 10], ["prop_sicherheit_cone_1_a", 1.0, -1.6, -20],
+      ["prop_reinigung_tool_mop_1_bucket_a", 2.6, -0.7, 30], ["prop_reinigung_tool_mop_1_a", 2.85, -0.45, 70]] },
+    { "name": "diagnose", "wo": ["seite", -1, 0.35], "sonst": [["ende", 1, -0.5]], "glieder": [
+      ["prop_diagnose_console_diagnostic_2_a", 0, 0, 0], ["prop_kabel_cable_reel_7_a", -1.25, 0.2, 15], ["prop_licht_light_work_light_1_a", 1.25, 0.35, 0],
+      ["prop_diagnose_computer_1_a", -2.45, 0.35, 10]] },
+    { "name": "werkzeug", "wo": ["seite", 1, 0.35], "sonst": [["ende", 1, 0.5]], "glieder": [
+      ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_werkzeug_tool_welder_a", -1.45, 0.1, -15],
+      ["prop_treibstoff_tank_gas_1_005x005x005_a", -2.15, 0.35, 0], ["prop_licht_light_work_light_2_a", -2.9, 0.5, 0],
+      ["prop_transport_trolley_creeper_a", 2.7, -0.9, 80], ["prop_werkzeug_tool_socket_set_1_a", 1.15, -0.95, 35]] },
+    { "name": "lager", "wo": ["ende", -1, 0.3], "sonst": [["ende", -1, -0.3], ["ende", 1, 0]], "glieder": [
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", 0, 0.3, 7], ["prop_lager_crate_dry_2_0125x0125x0125_a", -0.1, -1.1, -89],
+      ["prop_lager_crate_metal_2_01x005x0025_a", -0.3, -1.0, 80, 1.25], ["prop_lager_crate_dry_1_0125x0125x00625_a", 1.15, 1.25, 4],
+      ["prop_lager_drum_dry_1_a", -1.35, 0.75, 0], ["prop_lager_drum_dry_1_a", -1.8, 0.35, 0], ["prop_kabel_cable_reel_4_a", 0.4, 1.95, 180],
+      ["prop_transport_trolley_pallet_1_a", 2.3, -0.2, 90]] },
+    { "name": "kegel-links", "wo": ["ende", 1, -0.9], "sonst": [["ende", 1, -0.6]], "glieder": [
+      ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", 1.1, -0.2, 30]] },
+    { "name": "kegel-rechts", "wo": ["ende", 1, 0.9], "sonst": [["ende", 1, 0.6]], "glieder": [
+      ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", -1.1, -0.2, -30]] }
+  ],
+  "leitungen": [
+    { "name": "strom", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom", -1.0, -0.75, 0.55], "nach": [0.45, -0.25] },
+    { "name": "treibstoff", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["treibstoff", 0, -0.5, 0.45], "nach": [-0.4, -0.15] },
+    { "name": "daten", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose", 0.2, -0.6, 0.6], "nach": [-0.25, 0.4] }
+  ],
+  "spuren": [
+    ["decal_oel_1", 0.12, -0.6, 0.11, 20], ["decal_oel_1", -0.2, -0.72, 0.08, 200], ["decal_oel_0", -0.42, -0.25, 0.06, 70],
+    ["decal_oel_0", 0.25, 0.2, 0.05, 130], ["decal_oel_2", 0.03, -0.35, 0.07, 0], ["decal_oel_0", -0.12, -1.03, 0.06, 40],
+    ["decal_oel_2", "treibstoff", 1.55, -0.55, 1.3, 25], ["decal_oel_1", "strom", 0.9, -0.95, 0.8, 110]
+  ]
+} /* /work-dienst */;
+// Raster des Grundrisses von unten (m); Abstand des Geräts zum Rumpf
+// waagrecht und Kopffreiheit darüber, wo es unter einen Flügel ragt (m);
+// Abstand zum Feldrand (m); Kante der Ölspuren (m); Schritt beim
+// Heranrücken an den Rumpf (m)
+const DIENST_CELL = 0.5;
+const DIENST_CLEAR = [0.7, 0.5];
+const DIENST_EDGE = 0.6;
+const DIENST_SPUR = [0.5, 3.5];
+const DIENST_STEP = 0.25;
+const DIENST_OVER = 3;          // Grundriss so weit über den Kasten hinaus, m
+
+// Grundriss des Schiffs von unten für den Wartungsplatz: je Zelle
+// (DIENST_CELL) die tiefste Höhe des Rumpfs darüber, Infinity, wo nichts
+// ist. Im Raum des Schiffs (Mitte, Boden 0) über ±hw × ±hl und DIENST_OVER
+// darüber hinaus (der Kasten ohne Ausreißer schneidet Flügelspitzen ab:
+// Beim Gladius reichen sie gut 0,5 m weiter); kleine Dreiecke
+// zählen mit ihrer tiefsten Ecke, große über Kanten und Zellmitten mit der
+// Höhe ihrer Ebene. Mit pause in Häppchen (slicer).
+async function shipUnder(root, hw, hl, pause = noPause) {
+  const C = DIENST_CELL, M = DIENST_OVER, x0 = -hw - M, z0 = -hl - M;
+  const nx = Math.ceil((2 * (hw + M)) / C), nz = Math.ceil((2 * (hl + M)) / C);
+  const low = new Float32Array(nx * nz).fill(Infinity);
+  const cell = (i, j, y) => { if (i >= 0 && j >= 0 && i < nx && j < nz && y < low[j * nx + i]) low[j * nx + i] = y; };
+  const put = (x, z, y) => cell(Math.floor((x - x0) / C), Math.floor((z - z0) / C), y);
+  root.updateMatrixWorld(true);
+  const meshes = [];
+  root.traverse((n) => { if (n.isMesh && n.visible && n.geometry.attributes.position) meshes.push(n); });
+  for (const mesh of meshes) {
+    await pause();
+    const g = mesh.geometry, P = g.attributes.position, m = mesh.matrixWorld.elements, n = P.count;
+    const X = new Float32Array(n), Y = new Float32Array(n), Z = new Float32Array(n);
+    const raw = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize === 3 ? P.array : null;
+    for (let i = 0; i < n; i++) {
+      const x = raw ? raw[i * 3] : P.getX(i), y = raw ? raw[i * 3 + 1] : P.getY(i), z = raw ? raw[i * 3 + 2] : P.getZ(i);
+      X[i] = m[0] * x + m[4] * y + m[8] * z + m[12];
+      Y[i] = m[1] * x + m[5] * y + m[9] * z + m[13];
+      Z[i] = m[2] * x + m[6] * y + m[10] * z + m[14];
+    }
+    const I = g.index?.array, T = I ? I.length : n;
+    const edge = (a, b) => {
+      const k = Math.ceil(Math.hypot(X[b] - X[a], Z[b] - Z[a]) / (C * 0.5)) || 1;
+      for (let s = 0; s <= k; s++) put(X[a] + ((X[b] - X[a]) * s) / k, Z[a] + ((Z[b] - Z[a]) * s) / k, Y[a] + ((Y[b] - Y[a]) * s) / k);
+    };
+    for (let t = 0; t + 2 < T; t += 3) {
+      if (!(t % 49152)) await pause();
+      const a = I ? I[t] : t, b = I ? I[t + 1] : t + 1, c = I ? I[t + 2] : t + 2;
+      const i0 = Math.floor((Math.min(X[a], X[b], X[c]) - x0) / C), i1 = Math.floor((Math.max(X[a], X[b], X[c]) - x0) / C);
+      const j0 = Math.floor((Math.min(Z[a], Z[b], Z[c]) - z0) / C), j1 = Math.floor((Math.max(Z[a], Z[b], Z[c]) - z0) / C);
+      if (i1 - i0 <= 1 && j1 - j0 <= 1) {
+        const y = Math.min(Y[a], Y[b], Y[c]);
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) cell(i, j, y);
+        continue;
+      }
+      edge(a, b); edge(b, c); edge(c, a);
+      const d = (X[b] - X[a]) * (Z[c] - Z[a]) - (X[c] - X[a]) * (Z[b] - Z[a]);
+      if (Math.abs(d) < 1e-6) continue;
+      for (let j = Math.max(0, j0); j <= Math.min(nz - 1, j1); j++) {
+        const pz = z0 + (j + 0.5) * C;
+        for (let i = Math.max(0, i0); i <= Math.min(nx - 1, i1); i++) {
+          const px = x0 + (i + 0.5) * C;
+          const wa = ((X[b] - px) * (Z[c] - pz) - (X[c] - px) * (Z[b] - pz)) / d;
+          const wb = ((X[c] - px) * (Z[a] - pz) - (X[a] - px) * (Z[c] - pz)) / d;
+          if (wa >= 0 && wb >= 0 && wa + wb <= 1) cell(i, j, wa * Y[a] + wb * Y[b] + (1 - wa - wb) * Y[c]);
+        }
+      }
+    }
+  }
+  return { x0, z0, nx, nz, C, low };
+}
+
+// Leitung biegen: src liegt längs z (Ursprung beliebig, box: ihr Kasten),
+// pts die Punkte des Wegs. Längs wird auf den Weg verteilt, quer bleibt der
+// Querschnitt (x zur Seite, y nach oben, die Unterseite auf dem Weg).
+// Liefert eine Geometrie mit eigenen Ecken und Normalen, Rest geteilt.
+function bendAlong(src, box, pts) {
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  const N = 128, S = curve.getSpacedPoints(N);
+  const up = new THREE.Vector3(0, 1, 0), T = [], X = [], U = [];
+  let prev = new THREE.Vector3(1, 0, 0);
+  for (let i = 0; i <= N; i++) {
+    const t = new THREE.Vector3().subVectors(S[Math.min(N, i + 1)], S[Math.max(0, i - 1)]).normalize();
+    const x = new THREE.Vector3().crossVectors(up, t);
+    if (x.lengthSq() < 1e-6) x.copy(prev); else x.normalize();
+    prev = x;
+    T.push(t); X.push(x); U.push(new THREE.Vector3().crossVectors(t, x));
+  }
+  const P = src.attributes.position, Nn = src.attributes.normal, n = P.count;
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
+  const cx = (box.min.x + box.max.x) / 2, z0 = box.min.z, L = Math.max(1e-6, box.max.z - box.min.z);
+  const p = new THREE.Vector3(), t = new THREE.Vector3(), x = new THREE.Vector3(), u = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const f = THREE.MathUtils.clamp((P.getZ(i) - z0) / L, 0, 1) * N, k = Math.min(N - 1, Math.floor(f)), w = f - k;
+    p.lerpVectors(S[k], S[k + 1], w); t.lerpVectors(T[k], T[k + 1], w).normalize();
+    x.lerpVectors(X[k], X[k + 1], w).normalize(); u.lerpVectors(U[k], U[k + 1], w).normalize();
+    const lx = P.getX(i) - cx, ly = P.getY(i) - box.min.y;
+    pos[i * 3] = p.x + x.x * lx + u.x * ly; pos[i * 3 + 1] = p.y + x.y * lx + u.y * ly; pos[i * 3 + 2] = p.z + x.z * lx + u.z * ly;
+    const a = Nn.getX(i), b = Nn.getY(i), c = Nn.getZ(i);
+    nor[i * 3] = x.x * a + u.x * b + t.x * c; nor[i * 3 + 1] = x.y * a + u.y * b + t.y * c; nor[i * 3 + 2] = x.z * a + u.z * b + t.z * c;
+  }
+  const g = new THREE.BufferGeometry();
+  for (const [k, a] of Object.entries(src.attributes)) g.setAttribute(k, a);
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setIndex(src.index);
+  g.computeBoundingBox(); g.computeBoundingSphere();
+  return { geo: g, length: curve.getLength() };
+}
 
 // Belegung des Hallenbodens im Modellraum: je Zelle (WORK_CELL) 1, wenn
 // Halle oder Einrichtung dort im Band WORK_BAND über dem Boden etwas hat.
@@ -1517,9 +1680,6 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
   const edge = (n) => { const a = items.filter((it) => it.node === n).map((it) => it.at[3] ?? 1).sort((p, q) => p - q); return a.length ? a[a.length >> 1] : 1; };
   const fieldSpots = WORK_FIELD.filter(([n]) => kit.has(n)).map(([n, u, v], i) => ({ node: n, frac: [u, v], at: [0, 0, (i * 137.5) % 360, edge(n)] }));
   stats.missing += WORK_FIELD.length - fieldSpots.length;
-  // Wartungsplatz (WORK_SERVICE): zum Feld gewandt heißt die Front (-z) zur Feldmitte
-  const service = WORK_SERVICE.filter(([n]) => kit.has(n)).map(([n, d, z, r]) => ({ node: n, abs: [Math.sign(d) * (hx + Math.abs(d)), z], at: [0, 0, (d > 0 ? 90 : -90) + r, 1] }));
-  stats.missing += WORK_SERVICE.length - service.length;
   let pad = info.layout?.pad?.size;
   if (!items.length) {
     stats.source = null;
@@ -1539,7 +1699,7 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
     }
   }
   if (!pad) pad = [2 * hx, 2 * hz];
-  items.push(...fieldSpots, ...service);
+  items.push(...fieldSpots);
   let px = pad[0] / 2, pz = pad[1] / 2;
   const turn = (px > pz) !== (hx > hz);
   if (turn) [px, pz] = [pz, px];
@@ -1571,7 +1731,7 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
   for (const it of items) {
     if (!allow.has(it.node)) { stats.overBudget++; continue; }
     let [x, z, r = 0, s = 1] = it.at;
-    if (it.frac) { x = it.frac[0] * hx; z = it.frac[1] * hz; } else if (it.abs) [x, z] = it.abs; else {
+    if (it.frac) { x = it.frac[0] * hx; z = it.frac[1] * hz; } else {
       if (turn) { [x, z] = [z, -x]; r += 90; }
       x = axis(x, px, hx, 0); z = axis(z, pz, hz, 1);
     }
@@ -2959,6 +3119,8 @@ export async function initHangar(container, opts = {}) {
     if (rank(p2.level) <= rank(pick.level)) pick = p2;
   }
   const Q0 = pick.level, FORCED = pick.why === 'gewählt';
+  // Wartungsplatz am Schiff, wo die Stufe Requisiten hat (loadRealHall)
+  const DIENST_ON = REAL && !!opts.hall?.workshop?.dienst && (WORK_BUDGET[SMALL ? 'niedrig' : Q0]?.props ?? 0) > 0;
   let level = Q0;
   // Stand der Schattenkarten unter hoch (shadowsDue); leer = neu zeichnen
   let shadowSig = '';
@@ -3176,6 +3338,7 @@ export async function initHangar(container, opts = {}) {
       hallRoot.scale.setScalar(k);
       hallNoTileInvK.value = 1 / k;
       scaleFurniture(realHall.furniture, 1 / k);
+      if (realHall.dienst) layDienst(realHall.dienst, shipInfo, k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
       scaleLamps();
@@ -3727,6 +3890,8 @@ export async function initHangar(container, opts = {}) {
     // leuchten die Strahler darüber hinein. In Ruhelage fehlt ihm nur der
     // Schatten seiner eigenen 2 cm hohen Leisten.
     if (realHall.lift?.visible) hide.push(realHall.lift);
+    // das Gerät am Schiff steht je Schiff anders: keine festen Schatten
+    if (realHall.dienst?.group.visible) hide.push(realHall.dienst.group);
     if (realHall.shaft?.pit.visible) hide.push(realHall.shaft.pit);
     if (realHall.shaft?.edge?.visible) hide.push(realHall.shaft.edge);
     for (const o of hide) o.visible = false;
@@ -4298,7 +4463,8 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgLiftY;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying vec3 vHgN;\nvarying float vHgShade;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgP = ( modelMatrix * vec4( position, 1.0 ) ).xyz * hgInvK;\nvHgN = vHgP - vec3( 0.0, hgLiftY, 0.0 );\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
+      // im BatchedMesh (Wartungsplatz) dazu die Matrix des Stücks
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 hgPos = vec4( position, 1.0 );\n#ifdef USE_BATCHING\nhgPos = batchingMatrix * hgPos;\n#endif\nvHgP = ( modelMatrix * hgPos ).xyz * hgInvK;\nvHgN = vHgP - vec3( 0.0, hgLiftY, 0.0 );\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
     // Unter dem Boden (das abgefahrene Schiffsfeld) wird es mit der Tiefe
     // dunkel wie in liftShade; was selbst leuchtet, bleibt hell.
     // Im Schacht und auf dem abgefahrenen Feld dazu die Schachtlampen.
@@ -4367,6 +4533,243 @@ ${HALL_LIGHTS_BEGIN}
   const pitKey = () => (PIT_N ? `hall-v2|pit${hallPit.field}` : 'hall-v2');
   const shaftKey = (m) => () => `hall-v2|shaft${m.userData.shaftUv ? '|uv' : ''}${m.userData.hgWear ? '|wear' : ''}`;
 
+  // Wartungsplatz am Schiff (WORK_DIENST). Die Materialien des Gerätesatzes
+  // wie die der Halle (gedämpfte Lackfarbe, Metall und Rauheit begrenzt wie
+  // in der Schleife oben, Leuchten, Hallenshader) und wie das Schiffsfeld mit
+  // dem Aufzugsweg (userData.lift: im Schacht dunkel, Schachtlampen).
+  // dienst_flach trägt Farbe, Rauheit und Metall je Ecke (dienstTint,
+  // dienstPbr, aus _TINT und _RM der Datei).
+  const dienstShader = (m) => {
+    const hall = hallShader(m);
+    return (sh) => {
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute vec3 dienstTint;\nattribute vec2 dienstPbr;\nvarying vec3 vDienstTint;\nvarying vec2 vDienstPbr;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvDienstTint = dienstTint; vDienstPbr = dienstPbr;');
+      hall(sh);
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vDienstTint;\nvarying vec2 vDienstPbr;')
+        .replace('diffuseColor.rgb *= vHgShade;', 'diffuseColor.rgb *= vHgShade * vDienstTint;')
+        .replace('roughnessFactor = max(roughnessFactor, hgRoughMin);', 'roughnessFactor = max( max( vDienstPbr.x, vDienstPbr.y > 0.4 ? 0.45 : 0.65 ), hgRoughMin );')
+        .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n\tmetalnessFactor = min( vDienstPbr.y, 0.4 );');
+    };
+  };
+  function dienstMaterial(m) {
+    // Spuren (decal_*) und durchsichtige Aufkleber der Requisiten liegen auf
+    // Boden und Gehäuse: vorgezogen, ohne Schatten zu werfen
+    const flat = m.name === 'dienst_flach', sticker = /decal/i.test(m.name), decal = /^decal_/i.test(m.name) || (sticker && m.transparent);
+    m.envMapIntensity = 0.05;
+    if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
+    if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
+    if (flat) { m.roughness = 1; m.metalness = 1; }
+    else if (m.metalness > 0.4) { m.metalness = 0.4; if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.45); }
+    else if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.65);
+    if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
+    if (/light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
+      m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
+    } else if (m.emissiveMap) m.emissiveIntensity = 4;
+    for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
+    if (sticker) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
+    if (decal && m.transparent) m.depthWrite = false;
+    m.userData.workDecal = decal;
+    m.userData.lift = true;
+    m.onBeforeCompile = flat ? dienstShader(m) : hallShader(m);
+    m.customProgramCacheKey = flat ? () => `${pitKey()}|dienst` : pitKey;
+    unifyMaps(m);
+    onePass(m);
+    return decal;
+  }
+
+  // Gerätesatz (scripts/build-hangar-dienst.mjs) in BatchedMeshes, eines je
+  // Material: ein Zeichenbefehl für alle Stücke darin, gleich wie viele.
+  // Jedes Stück aus WORK_DIENST (Glied eines Platzes, Leitung, Spur) ist je
+  // Material eine Instanz; Leitungen haben eigene Geometrie (layDienst biegt
+  // sie je Schiff). Die Gruppe hängt im Modell an der Feldmitte auf dem
+  // Boden, im Maßstab 1/k: darin sind es Meter wie in der Welt.
+  function buildDienst(kitScene) {
+    const D = WORK_DIENST, parts = new Map();
+    for (const node of kitScene.children) {
+      const list = [], box = new THREE.Box3();
+      node.traverse((n) => {
+        if (!n.isMesh) return;
+        const g = n.geometry, m = n.material, flat = m.name === 'dienst_flach';
+        const geo = new THREE.BufferGeometry();
+        for (const [k, a] of flat ? [['position', 'position'], ['normal', 'normal'], ['dienstTint', '_tint'], ['dienstPbr', '_rm']] : [['position', 'position'], ['normal', 'normal'], ['uv', 'uv']]) {
+          if (!g.attributes[a]) throw new Error(`${node.name}: ${m.name} ohne ${a}`);
+          geo.setAttribute(k, g.attributes[a]);
+        }
+        geo.setIndex(g.index);
+        geo.computeBoundingBox();
+        box.union(geo.boundingBox);
+        list.push({ mat: m, geo });
+      });
+      if (list.length) parts.set(node.name, { parts: list, box, size: box.getSize(new THREE.Vector3()), centre: box.getCenter(new THREE.Vector3()) });
+    }
+    const uses = [];
+    let missing = 0;
+    const use = (u) => { if (parts.has(u.node)) uses.push(u); else missing++; };
+    D.stationen.forEach((st, si) => st.glieder.forEach(([node, x, z, r = 0, y = 0]) => use({ kind: 'glied', st: si, node, x, z, r, y })));
+    D.leitungen.forEach((l, li) => use({ kind: 'leitung', li, node: l.node }));
+    D.spuren.forEach((a) => use({ kind: 'spur', node: a[0], a }));
+    // Größe je Material: Instanzen, Ecken und Indizes (geteilte Geometrie einmal)
+    const need = new Map(), once = new Set();
+    for (const u of uses) for (const p of parts.get(u.node).parts) {
+      if (!need.has(p.mat)) need.set(p.mat, { inst: 0, vert: 0, idx: 0 });
+      const e = need.get(p.mat), own = u.kind === 'leitung';
+      e.inst++;
+      if (own || !once.has(p.geo)) { if (!own) once.add(p.geo); e.vert += p.geo.attributes.position.count; e.idx += p.geo.index.count; }
+    }
+    const group = new THREE.Group(), batches = new Map();
+    group.name = 'dienst';
+    for (const [m, e] of need) {
+      const decal = dienstMaterial(m);
+      const b = new THREE.BatchedMesh(e.inst, e.vert, e.idx, m);
+      b.name = `dienst:${m.name}`;
+      b.castShadow = !decal; b.receiveShadow = true;
+      b.userData.geo = new Map();
+      group.add(b);
+      batches.set(m, b);
+    }
+    for (const u of uses) {
+      u.ids = parts.get(u.node).parts.map((p) => {
+        const b = batches.get(p.mat), map = b.userData.geo;
+        let gid = u.kind === 'leitung' ? b.addGeometry(p.geo) : map.get(p.geo);
+        if (gid === undefined) { gid = b.addGeometry(p.geo); map.set(p.geo, gid); }
+        return { b, gid, iid: b.addInstance(gid), p };
+      });
+    }
+    const tris = uses.reduce((sum, u) => sum + parts.get(u.node).parts.reduce((q, p) => q + p.geo.index.count / 3, 0), 0);
+    return { group, uses, parts, batches, missing, tris, sig: '' };
+  }
+
+  // Plätze, Leitungen und Spuren um das Schiff (info: Maße, info.under:
+  // Grundriss von unten), im Feld des Aufzugs. Je Platz die Stellen aus
+  // `wo` und `sonst`, längs etwas verschoben, falls besetzt; an jeder rückt
+  // er von außen an den Rumpf heran, bis er an ihn stößt (DIENST_CLEAR), und
+  // bleibt an der letzten freien Stelle im Feld. Passt keine, fehlt er (die
+  // Konsole sagt welcher).
+  const DIENST_SHIFT = [0, 0.15, -0.15, 0.3, -0.3];
+  function layDienst(d, info, k) {
+    const L = realHall.liftL, o = realHall.spot, fc = [(L.from[0] + L.to[0]) / 2, (L.from[1] + L.to[1]) / 2];
+    d.group.scale.setScalar(1 / k);
+    d.group.position.set(fc[0], realHall.floorY + lift.y, fc[1]);
+    const sx = (o[0] - fc[0]) * k, sz = (o[2] - fc[1]) * k;
+    const FX = ((L.to[0] - L.from[0]) * k) / 2 - DIENST_EDGE, FZ = ((L.to[1] - L.from[1]) * k) / 2 - DIENST_EDGE;
+    const W = info.halfW, Lh = info.len / 2, U = info.under, [CH, CV] = DIENST_CLEAR;
+    const sig = `${k.toFixed(4)}|${W}|${Lh}|${info.height}|${!!U}`;
+    if (sig === d.sig) return;
+    d.sig = sig;
+    // frei vom Rumpf: um den Kasten (cx, cz, ex, ez) bis Höhe top
+    const clear = (cx, cz, ex, ez, top) => {
+      if (!U) return Math.abs(cx) - ex - CH >= W || Math.abs(cz) - ez - CH >= Lh;
+      const { x0, z0, nx, nz, C, low } = U;
+      const ci = Math.floor((cx - x0) / C), cj = Math.floor((cz - z0) / C);
+      if (ci >= 0 && cj >= 0 && ci < nx && cj < nz && low[cj * nx + ci] < Infinity) return false;
+      const i0 = Math.max(0, Math.floor((cx - ex - CH - x0) / C)), i1 = Math.min(nx - 1, Math.floor((cx + ex + CH - x0) / C));
+      const j0 = Math.max(0, Math.floor((cz - ez - CH - z0) / C)), j1 = Math.min(nz - 1, Math.floor((cz + ez + CH - z0) / C));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) if (low[j * nx + i] < top + CV) return false;
+      return true;
+    };
+    // Kästen eines Platzes (im Schiffsraum) an der Stelle A, Drehung th
+    const M = new THREE.Matrix4(), R = new THREE.Matrix4(), T0 = new THREE.Matrix4(), S0 = new THREE.Matrix4();
+    const glieder = d.uses.filter((u) => u.kind === 'glied');
+    const boxes = (si, ax, az, th) => glieder.filter((u) => u.st === si).map((u) => {
+      const e = d.parts.get(u.node), c = Math.cos(th), s = Math.sin(th), r = th + u.r * DEG;
+      const ex = (Math.abs(Math.cos(r)) * e.size.x + Math.abs(Math.sin(r)) * e.size.z) / 2, ez = (Math.abs(Math.sin(r)) * e.size.x + Math.abs(Math.cos(r)) * e.size.z) / 2;
+      return { u, x: ax + u.x * c + u.z * s, z: az - u.x * s + u.z * c, r, ex, ez, top: u.y + e.size.y };
+    });
+    const taken = [], placed = new Map(), report = [];
+    WORK_DIENST.stationen.forEach((st, si) => {
+      const own = glieder.filter((u) => u.st === si);
+      if (!own.length) return;
+      // Ausdehnung zum Schiff hin (z im Platz, ungedreht)
+      const zmin = Math.min(...boxes(si, 0, 0, 0).map((q) => q.z - q.ez));
+      let best = null;
+      for (const [kind, side, f0] of [st.wo, ...(st.sonst ?? [])]) {
+        const th = kind === 'seite' ? (side * Math.PI) / 2 : side > 0 ? 0 : Math.PI, ox = Math.sin(th), oz = Math.cos(th);
+        const reach = kind === 'seite' ? W : Lh;
+        for (const df of DIENST_SHIFT) {
+          const f = f0 + df, bx = kind === 'seite' ? 0 : f * W, bz = kind === 'seite' ? f * Lh : 0;
+          for (let dist = reach + DIENST_OVER + CH - zmin; dist >= -zmin; dist -= DIENST_STEP) {
+            const ax = bx + ox * dist, az = bz + oz * dist, q = boxes(si, ax, az, th);
+            if (!q.every((b) => clear(b.x, b.z, b.ex, b.ez, b.top))) break;
+            const inField = q.every((b) => Math.abs(b.x + sx) + b.ex <= FX && Math.abs(b.z + sz) + b.ez <= FZ);
+            const free = q.every((b) => taken.every((t) => Math.abs(b.x - t.x) >= b.ex + t.ex + 0.4 || Math.abs(b.z - t.z) >= b.ez + t.ez + 0.4));
+            if (inField && free) best = { q, ax, az, th, at: `${kind === 'seite' ? `Seite ${side > 0 ? '+x' : '-x'}` : side > 0 ? 'Bug' : 'Heck'} ${f.toFixed(2)}` };
+          }
+          if (best) break;
+        }
+        if (best) break;
+      }
+      report.push(best ? `${st.name} ${best.at}` : `${st.name} fehlt`);
+      if (!best) return;
+      taken.push(...best.q);
+      placed.set(st.name, best);
+    });
+    // Glieder: Matrix und Sichtbarkeit
+    const show = (u, on) => { for (const id of u.ids) id.b.setVisibleAt(id.iid, on); };
+    for (const u of glieder) {
+      const p = placed.get(WORK_DIENST.stationen[u.st].name), b = p?.q.find((q) => q.u === u);
+      show(u, !!b);
+      if (!b) continue;
+      const e = d.parts.get(u.node);
+      T0.makeTranslation(-e.centre.x, -e.box.min.y, -e.centre.z);
+      M.makeTranslation(b.x + sx, u.y, b.z + sz).multiply(R.makeRotationY(b.r)).multiply(T0);
+      for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
+    }
+    // Leitungen: vom Gerät auf den Boden, in einem Bogen unter den Rumpf
+    let lines = 0;
+    for (const u of d.uses.filter((q) => q.kind === 'leitung')) {
+      const l = WORK_DIENST.leitungen[u.li], [stn, lx, lz, h] = l.von, p = placed.get(stn);
+      show(u, !!p);
+      if (!p) continue;
+      const c = Math.cos(p.th), s = Math.sin(p.th), e = d.parts.get(u.node);
+      const a = new THREE.Vector3(p.ax + lx * c + lz * s, h, p.az - lx * s + lz * c);
+      // Ziel unter dem Rumpf: von der genannten Stelle zur Schiffsmitte, bis Rumpf darüber ist
+      let tx = l.nach[0] * W, tz = l.nach[1] * Lh;
+      const covered = (x, z) => {
+        if (!U) return Math.abs(x) < W && Math.abs(z) < Lh;
+        const i = Math.floor((x - U.x0) / U.C), j = Math.floor((z - U.z0) / U.C);
+        return i >= 0 && j >= 0 && i < U.nx && j < U.nz && U.low[j * U.nx + i] < 3;
+      };
+      for (let t = 0; t < 1 && !covered(tx, tz); t += 0.05) { tx *= 0.95; tz *= 0.95; }
+      const end = new THREE.Vector3(tx, 0, tz), dir = new THREE.Vector3(end.x - a.x, 0, end.z - a.z).normalize();
+      const drop = new THREE.Vector3(a.x + dir.x * 0.6, 0, a.z + dir.z * 0.6);
+      const chord = drop.distanceTo(end), want = Math.min(e.size.z, chord * 1.15);
+      const sag = want > chord ? Math.sqrt((3 * chord * (want - chord)) / 8) : 0, side = u.li % 2 ? 1 : -1;
+      const mid = new THREE.Vector3().lerpVectors(drop, end, 0.5).add(new THREE.Vector3(-dir.z * sag * side, 0, dir.x * sag * side));
+      const pts = [a, new THREE.Vector3(a.x + dir.x * 0.25, h * 0.35, a.z + dir.z * 0.25), drop, mid, end].map((v) => v.add(new THREE.Vector3(sx, 0, sz)));
+      for (const id of u.ids) {
+        const bent = bendAlong(id.p.geo, e.box, pts);
+        id.b.setGeometryAt(id.gid, bent.geo);
+        id.b.setMatrixAt(id.iid, M.identity());
+      }
+      lines++;
+    }
+    // Spuren unter dem Schiff (Kante nach Schiffsbreite) oder an einem Platz (Kante in m)
+    let spots = 0;
+    for (const u of d.uses.filter((q) => q.kind === 'spur')) {
+      const e = d.parts.get(u.node), a = u.a, p = typeof a[1] === 'string' ? placed.get(a[1]) : null;
+      show(u, typeof a[1] !== 'string' || !!p);
+      if (typeof a[1] === 'string' && !p) continue;
+      let x, z, r, edge;
+      if (p) {
+        const c = Math.cos(p.th), sn = Math.sin(p.th);
+        edge = a[4]; x = p.ax + a[2] * c + a[3] * sn + sx; z = p.az - a[2] * sn + a[3] * c + sz; r = p.th + (a[5] ?? 0) * DEG;
+      } else {
+        edge = THREE.MathUtils.clamp(a[3] * 2 * W, ...DIENST_SPUR); x = a[1] * W + sx; z = a[2] * Lh + sz; r = (a[4] ?? 0) * DEG;
+      }
+      const sc = edge / Math.max(e.size.x, e.size.z, 1e-3);
+      x = THREE.MathUtils.clamp(x, edge / 2 - FX, FX - edge / 2); z = THREE.MathUtils.clamp(z, edge / 2 - FZ, FZ - edge / 2);
+      T0.makeTranslation(-e.centre.x, -e.box.min.y, -e.centre.z);
+      M.makeTranslation(x, WORK_LIFT, z).multiply(R.makeRotationY(r)).multiply(S0.makeScale(sc, 1, sc)).multiply(T0);
+      for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
+      spots++;
+    }
+    for (const b of d.batches.values()) { b.computeBoundingBox(); b.computeBoundingSphere(); }
+    shadowSig = '';
+    console.info(`[hangar] Wartungsplatz: ${placed.size} von ${WORK_DIENST.stationen.length} Plätzen (${report.join(', ')}), ${lines} Leitungen, ${spots} Spuren; ${d.batches.size} Meshes, ${Math.round(d.tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
+  }
+
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
   function loadRealHall(h) {
@@ -4403,6 +4806,14 @@ ${HALL_LIGHTS_BEGIN}
       ]).then(([props, boden, info]) => ({ scenes: [props, boden], info }), (e) => {
         console.warn('[hangar] Werkstatt nicht geladen', e);
         prog.delete('workshop'); prog.delete('workshop-floor');
+        return null;
+      })
+      : Promise.resolve(null);
+    // Gerätesatz für den Wartungsplatz am Schiff, wo die Stufe Requisiten hat
+    const dienstReady = W?.dienst?.url && WB.props > 0 && HALL_LIFT[h.id]
+      ? fetchGltf(W.dienst.url, 'dienst', W.dienst.bytes || 3.5e6).then((g) => g.scene, (e) => {
+        console.warn('[hangar] Wartungsplatz nicht geladen', e);
+        prog.delete('dienst');
         return null;
       })
       : Promise.resolve(null);
@@ -4730,6 +5141,18 @@ ${HALL_LIGHTS_BEGIN}
           shaft = null;
         }
       }
+      // Wartungsplatz (buildDienst): fährt mit dem Feld, gestellt je Schiff in scaleWorld
+      let dienst = null;
+      const dienstKit = lift ? await dienstReady : null;
+      if (dienstKit) {
+        try {
+          dienst = buildDienst(dienstKit);
+          model.add(dienst.group);
+        } catch (e) {
+          console.warn('[hangar] Wartungsplatz nicht gebaut', e);
+          dienst = null;
+        }
+      }
       // Die Lampen stehen schon (oder kommen nie): erst übersetzen und
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
@@ -4742,7 +5165,7 @@ ${HALL_LIGHTS_BEGIN}
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft };
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst };
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -4772,12 +5195,12 @@ ${HALL_LIGHTS_BEGIN}
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
-      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor');
+      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst');
       return true;
     }).catch((e) => {
       // ohne echte Halle die gebaute
       console.warn('[hangar] Halle nicht geladen', e);
-      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor');
+      prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst');
       hallFailed = true;
       dropHallLamps();
       buildStage();
@@ -5050,6 +5473,10 @@ ${HALL_LIGHTS_BEGIN}
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     wrap.position.set(-center.x, -box.min.y, -center.z);
+    // Grundriss von unten für den Wartungsplatz (layDienst)
+    const tu = performance.now(), under = (realHall ? realHall.dienst : DIENST_ON) ? await shipUnder(wrap, size.x / 2, size.z / 2, slicer(12, nextTask)) : null;
+    if (under) under.ms = Math.round(performance.now() - tu);
+    if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     // Lack-Uniforms im Objektraum des Modells (Z oben, Meter)
     const u = mat.userData.u;
     u.uZ.value.set(box.min.y, box.max.y);
@@ -5070,7 +5497,7 @@ ${HALL_LIGHTS_BEGIN}
       await lowered;
       if (my !== token) { drop(); return; }
     }
-    const info = { len: size.z, halfW: size.x / 2, height: size.y };
+    const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
     scaleWorld(info);
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
@@ -5746,6 +6173,7 @@ ${HALL_LIGHTS_BEGIN}
     }
     if (realHall?.lift) {
       realHall.lift.position.y = lift.y;
+      if (realHall.dienst) realHall.dienst.group.position.y = realHall.floorY + lift.y;
       hallLiftY.value = lift.y;
       const sh = realHall.shaft;
       if (sh) {
