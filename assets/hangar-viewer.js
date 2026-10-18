@@ -1111,6 +1111,12 @@ const WORK_FLOOR = 0.35;        // höher oder tiefer im Spiel: an der Wand, auf
 const WORK_WALL = 1.5;          // Abstand zur Hallenwand beim Stauchen der Anordnung, m
 // Was Krisz genannt hat, kommt zuerst ins Budget (Rolle aus info.props)
 const WORK_FIRST = ['diagnose', 'schlauch', 'treibstoff', 'gasflasche', 'werkzeug', 'generator', 'kabeltrommel', 'wagen'];
+// Beidseitig und ohne Ausstanzen (18.10.2026). Krisz: „das rohr ist
+// durchsichtig“. Der Luftschlauch ist im Export eine einzelne Stofflage mit
+// Normalen nach außen: Von der offenen Seite her fehlte die Innenwand, man
+// sah durch die Windungen auf den Boden. Dazu stanzt sein Material Risse
+// aus (MASK); die Lage ist überall sonst deckend.
+const WORK_TWO_SIDED = /airduct_hose/i;
 // Spuren auf dem Feld: [Knoten, Bruchteil der halben Feldbreite, der halben
 // Feldlänge]. Im Spiel ist das Landefeld Asphalt ohne Decals, und Risse,
 // Schutt und große Öllachen kennt die Anordnung gar nicht (im Spiel kaum in
@@ -1387,6 +1393,7 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
     n.traverse((o) => {
       if (!o.isMesh) return;
       o.castShadow = false; o.receiveShadow = true;
+      if (!decal) for (const m of [].concat(o.material)) if (WORK_TWO_SIDED.test(m.name)) { m.side = THREE.DoubleSide; m.alphaTest = 0; }
       if (decal) for (const m of [].concat(o.material)) {
         m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2;
         if (m.transparent) m.depthWrite = false;
