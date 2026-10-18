@@ -9,14 +9,15 @@
 // lo gesetzt ist, und jede Aenderung schreibt den Code neu. Neuladen,
 // Zurueck und "Link kopieren" der Seite tragen das Layout so ohne eigenes
 // Zutun mit. Der Slot in der Auswahl folgt hp, dem Hardpoint des Controllers:
-// die Kamera faehrt hin, und ein Klick auf einen Marker oeffnet den Slot.
+// sein Marker hebt sich hervor, und ein Klick auf einen Marker oeffnet den Slot.
 //
 // Daten: /hangar-layouts.json (src/lib/hangar/layouts.ts). Woerter: #hgl-msg
 // (src/components/hangar/LayoutWorkshop.astro), keines steht hier.
 //
 // Gespeichert wird in localStorage unter 'vb.layouts.v1'. Ein Layout ist
-// { id, ship, name, slots: { <slot>: <bauteil> }, created, updated }; slots
-// nennt nur Abweichungen von der Serie. Dasselbe Format traegt spaeter den
+// { id, ship, name, slots: { <slot>: <bauteil> }, paint?, created, updated };
+// slots nennt nur Abweichungen von der Serie, paint die Lackierung, wenn es
+// nicht der Serienlack ist. Dasselbe Format traegt spaeter den
 // Kennwert-Ueberblick, den Vergleich zweier Layouts und einen Abgleich mit
 // dem Konto. Beim Import passiert nichts; die Tests rufen die reinen Funktionen.
 
@@ -27,6 +28,7 @@ export const MAX_NAME = 60;
 const SHIP_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SLOT_RE = /^[a-z0-9][a-z0-9_.-]{0,99}$/;
 const ITEM_RE = /^[a-z0-9][a-z0-9~._-]{0,119}$/;
+const PAINT_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export const CODE_RE = /^[A-Za-z0-9_-]{1,4000}$/;
 
 /* ---------------------------------------------------------- Link-Code --- */
@@ -50,6 +52,8 @@ export function fromB64url(code) {
 }
 
 const cleanName = (name) => (typeof name === 'string' ? name.replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) : '');
+/** Kennung einer Lackierung oder null (Serienlack). */
+const cleanPaint = (p) => (typeof p === 'string' && PAINT_RE.test(p) ? p : null);
 
 /** Nur wohlgeformte Schluessel, sortiert: gleiche Layouts ergeben gleiche Codes. */
 function cleanSlotMap(raw) {
@@ -63,13 +67,18 @@ function cleanSlotMap(raw) {
 }
 
 /**
- * Layout nach Link-Code: base64url von [1, name, slots]. Das Schiff steht
- * daneben in ?ship=, damit ein leeres Layout auf jedes Schiff passt.
+ * Layout nach Link-Code: base64url von [1, name, slots] und, wenn nicht
+ * Serienlack, der Lackierung als viertem Feld (aeltere Seiten lesen es nicht
+ * und zeigen den Rest). Das Schiff steht daneben in ?ship=, damit ein leeres
+ * Layout auf jedes Schiff passt.
  *   encodeLayout({ name: '', slots: {} }) === 'WzEsIiIse31d'
- * @param {{ name?: string, slots?: Record<string, string> }} lo @returns {string}
+ * @param {{ name?: string, slots?: Record<string, string>, paint?: string|null }} lo @returns {string}
  */
 export function encodeLayout(lo) {
-  return toB64url(JSON.stringify([LAYOUT_VERSION, cleanName(lo.name), cleanSlotMap(lo.slots)]));
+  const v = [LAYOUT_VERSION, cleanName(lo.name), cleanSlotMap(lo.slots)];
+  const paint = cleanPaint(lo.paint);
+  if (paint) v.push(paint);
+  return toB64url(JSON.stringify(v));
 }
 
 /** Das leere Layout: Serie, ohne Namen. Oeffnet die Werkstatt fuer jedes Schiff. */
@@ -77,7 +86,7 @@ export const EMPTY_CODE = encodeLayout({ name: '', slots: {} });
 
 /**
  * Link-Code nach Layout; null, wenn der Code nicht von encodeLayout stammen kann.
- * @param {string} code @returns {{ name: string, slots: Record<string, string> }|null}
+ * @param {string} code @returns {{ name: string, slots: Record<string, string>, paint?: string }|null}
  */
 export function decodeLayout(code) {
   if (typeof code !== 'string' || !CODE_RE.test(code)) return null;
@@ -86,7 +95,8 @@ export function decodeLayout(code) {
   let v;
   try { v = JSON.parse(text); } catch { return null; }
   if (!Array.isArray(v) || v[0] !== LAYOUT_VERSION || typeof v[1] !== 'string') return null;
-  return { name: cleanName(v[1]), slots: cleanSlotMap(v[2]) };
+  const paint = cleanPaint(v[3]);
+  return { name: cleanName(v[1]), slots: cleanSlotMap(v[2]), ...(paint ? { paint } : {}) };
 }
 
 /* ---------------------------------------------------------- Datenmodell --- */
@@ -163,10 +173,11 @@ export function groupTotals(slots, layout, items) {
   return out;
 }
 
-/** Gleicher Inhalt: Schiff, Name und Abweichungen. */
+/** Gleicher Inhalt: Schiff, Name, Abweichungen und Lackierung. */
 export function sameLayout(a, b) {
   return !!a && !!b && a.ship === b.ship && cleanName(a.name) === cleanName(b.name)
-    && JSON.stringify(cleanSlotMap(a.slots)) === JSON.stringify(cleanSlotMap(b.slots));
+    && JSON.stringify(cleanSlotMap(a.slots)) === JSON.stringify(cleanSlotMap(b.slots))
+    && cleanPaint(a.paint) === cleanPaint(b.paint);
 }
 
 /* ---------------------------------------------------------- Ablage --- */
@@ -174,7 +185,8 @@ export function sameLayout(a, b) {
 function cleanEntry(e) {
   if (!e || typeof e !== 'object' || typeof e.id !== 'string' || !/^[a-z0-9]{4,32}$/.test(e.id) || !SHIP_RE.test(e.ship)) return null;
   const created = Number.isFinite(e.created) ? e.created : 0;
-  return { id: e.id, ship: e.ship, name: cleanName(e.name), slots: cleanSlotMap(e.slots), created, updated: Number.isFinite(e.updated) ? e.updated : created };
+  const paint = cleanPaint(e.paint);
+  return { id: e.id, ship: e.ship, name: cleanName(e.name), slots: cleanSlotMap(e.slots), ...(paint ? { paint } : {}), created, updated: Number.isFinite(e.updated) ? e.updated : created };
 }
 
 /**
@@ -302,7 +314,8 @@ export function initWorkshop(doc, bridge) {
     return parts.filter(Boolean).join(' · ');
   }
   const current = (slot) => draft.slots[slot.key] ?? slot.stock;
-  const changedCount = () => Object.keys(draft.slots).length;
+  // Die Lackierung zaehlt wie im Spiel als eigener Slot.
+  const changedCount = () => Object.keys(draft.slots).length + (draft.paint ? 1 : 0);
   const placeholder = () => fill(m('name.placeholder'), { ship: bridge.shipName(draft.ship) });
 
   /** Element mit Attributen; Kinder als Knoten oder Text, nie als Markup. */
@@ -346,8 +359,11 @@ export function initWorkshop(doc, bridge) {
     const raw = decodeLayout(state.lo) ?? { name: '', slots: {} };
     if (state.ship !== draft.ship) $('hgl-scroll').scrollTop = 0;
     slots = shipSlots(data.ships[state.ship]);
-    const { slots: clean, dropped } = cleanSlots(raw.slots, slots, data.items);
-    draft = { ship: state.ship, name: raw.name, slots: clean };
+    const { slots: clean, dropped: lost } = cleanSlots(raw.slots, slots, data.items);
+    // eine Lackierung, die dieses Schiff nicht kennt, faellt weg wie ein unpassendes Teil
+    const paint = raw.paint && data.paints?.[state.ship]?.list.some((r) => r[0] === raw.paint) ? raw.paint : null;
+    const dropped = lost + (raw.paint && !paint ? 1 : 0);
+    draft = { ship: state.ship, name: raw.name, slots: clean, ...(paint ? { paint } : {}) };
     code = encodeLayout(draft);
     const pending = pendingSaved ? store.get(pendingSaved) : null;
     const match = pending && sameLayout(pending, draft) ? pending : store.list().find((e) => sameLayout(e, draft));
@@ -388,7 +404,7 @@ export function initWorkshop(doc, bridge) {
     const sub = $('hgl-state-sub');
     sub.textContent = isSaved ? `· ${m('state.saved')}` : n || draft.name ? `· ${m('state.unsaved')}` : '';
     sub.className = isSaved ? 'is-saved' : '';
-    const none = !slots.length;
+    const none = !slots.length && !hasPaints();
     $('hgl-save').disabled = none;
     $('hgl-share').disabled = none;
     $('hgl-reset').disabled = none || n === 0;
@@ -416,10 +432,14 @@ export function initWorkshop(doc, bridge) {
 
   function buildSlots() {
     slotEls.clear();
+    // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
+    // Lackierung, wenn das Schiff welche hat.
     if (!slots.length) {
-      slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')));
+      slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')), ...[paintSection()].filter(Boolean));
+      paintPaints();
       paintCat();
       paintMods();
+      paintModel();
       return;
     }
     const groups = GROUPS.map((g) => {
@@ -431,8 +451,9 @@ export function initWorkshop(doc, bridge) {
         el('h3', {}, el('span', {}, m(`grp.${g}`)), SUMMED.has(g) ? gd : null, SUMMED.has(g) ? total : null),
         el('ul', {}, ...mine.map(slotEl)));
     }).filter(Boolean);
-    slotsHost.replaceChildren(...groups);
+    slotsHost.replaceChildren(...groups, ...[paintSection()].filter(Boolean));
     for (const s of slots) paintSlot(s);
+    paintPaints();
     paintCat();
     paintTotals();
     syncOpen();
@@ -480,10 +501,17 @@ export function initWorkshop(doc, bridge) {
   // ist tab des Controllers (Uebersicht zaehlt als Waffen), damit Reiter,
   // Slot- und Markerklicks dieselbe Wahl teilen. Hat das Schiff nur eine
   // Kategorie (unbewaffnet), entfaellt die Leiste.
+  // Der Reiter Lackierung hat keinen Zustand im Controller (kein Ausstattungs-
+  // Tab, keine Marker): paintMode, bis jemand Waffen oder Systeme waehlt oder
+  // ein Klick am Schiff den tab des Controllers aendert.
   const catBar = $('hgl-cats');
   const catBtns = [...catBar.querySelectorAll('[role="tab"]')];
   let cat = null;
+  let paintMode = false;
+  let seenTab = null;
+  const hasPaints = () => !!data?.paints?.[draft.ship];
   function wantCat() {
+    if ((paintMode || !slots.length) && hasPaints()) return 'paint';
     const want = bridge.state().tab === 'systems' ? 'systems' : 'weapons';
     const other = want === 'weapons' ? 'systems' : 'weapons';
     return slots.some((s) => tabOf(s) === want) || !slots.some((s) => tabOf(s) === other) ? want : other;
@@ -493,10 +521,12 @@ export function initWorkshop(doc, bridge) {
     const moved = next !== cat;
     cat = next;
     const present = new Set(slots.map(tabOf));
+    if (hasPaints()) present.add('paint');
     const bar = present.size > 1;
     catBar.hidden = !bar;
     for (const b of catBtns) {
       const on = b.dataset.cat === cat;
+      b.hidden = !present.has(b.dataset.cat);
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     }
@@ -512,28 +542,68 @@ export function initWorkshop(doc, bridge) {
   }
   function paintCatCounts() {
     for (const b of catBtns) {
-      const n = slots.filter((s) => tabOf(s) === b.dataset.cat && s.key in draft.slots).length;
+      const n = b.dataset.cat === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === b.dataset.cat && s.key in draft.slots).length;
       b.querySelector('[data-cat-n]').textContent = n ? nf.format(n) : '';
     }
   }
   function pickCat(to) {
     if (to === cat) return;
     openKey = null;
-    bridge.set({ tab: to, hp: null });
+    paintMode = to === 'paint';
+    bridge.set(paintMode ? { hp: null } : { tab: to, hp: null });
+    paintCat();
+    syncOpen();
   }
   catBar.addEventListener('click', (e) => {
     const b = e.target.closest('[role="tab"]');
     if (b) pickCat(b.dataset.cat);
   });
   catBar.addEventListener('keydown', (e) => {
-    const i = catBtns.findIndex((b) => b.dataset.cat === cat);
-    const n = catBtns.length;
+    const vis = catBtns.filter((b) => !b.hidden);
+    const i = vis.findIndex((b) => b.dataset.cat === cat);
+    const n = vis.length;
     const to = { ArrowRight: (i + 1) % n, ArrowLeft: (i + n - 1) % n, Home: 0, End: n - 1 }[e.key];
     if (to === undefined) return;
     e.preventDefault();
-    pickCat(catBtns[to].dataset.cat);
-    catBtns[to].focus();
+    pickCat(vis[to].dataset.cat);
+    vis[to].focus();
   });
+
+  /* ---- Lackierung ---- */
+  // Serienlack zuerst, dann die Lackierungen des Schiffs mit ihren drei Toenen.
+  // Muster (eigene Texturen im Spiel) zeigt die Vorschau nicht, nur die Farben.
+  function paintSection() {
+    const sp = data.paints?.[draft.ship];
+    if (!sp) return null;
+    const rows = [['', m('paint.stock'), ...sp.base, 0], ...sp.list];
+    return el('section', { class: 'hgl-grp', 'data-cat': 'paint' },
+      el('h3', {}, el('span', {}, m('grp.paint'))),
+      el('ul', { class: 'hgl-paints' }, ...rows.map(([id, name, a, b, c, pattern]) => el('li', {},
+        el('button', { type: 'button', class: 'hgl-paint', 'data-paint': id, 'aria-pressed': 'false' },
+          el('span', { class: 'hgl-sw', 'aria-hidden': 'true' }, ...[a, b, c].map((col) => el('i', { style: `background:${col}` }))),
+          el('span', { class: 'hgl-nm' }, el('strong', {}, name), pattern ? el('small', { class: 'hgl-sub' }, m('paint.pattern')) : null),
+          el('span', { class: 'hgl-tick', 'aria-hidden': 'true' }))))));
+  }
+  function paintPaints() {
+    for (const b of slotsHost.querySelectorAll('.hgl-paint')) b.setAttribute('aria-pressed', String(b.dataset.paint === (draft.paint ?? '')));
+  }
+  function pickPaint(id) {
+    if ((draft.paint ?? '') === id) return;
+    if (id) draft.paint = id;
+    else delete draft.paint;
+    commit();
+    paintPaints();
+    paintTotals();
+    const row = data.paints[draft.ship].list.find((r) => r[0] === id);
+    bridge.say(row ? row[1] : m('paint.stock'));
+  }
+  // Am Modell: die Toene der Lackierung samt Serienpalette, nach der der
+  // Viewer die Palettenmaterialien erkennt; null = Serienlack.
+  function paintModel() {
+    const sp = data.paints?.[draft.ship];
+    const row = draft.paint && sp?.list.find((r) => r[0] === draft.paint);
+    bridge.paint?.(draft.ship, row ? { cols: row.slice(2, 5), base: sp.base } : null);
+  }
 
   // Marker am Schiff im Werkstatt-Modus: nur die Hardpoints mit Slot im
   // gewaehlten Reiter (keine Raketen, keine Fracht), getauschte gross und mit
@@ -568,6 +638,7 @@ export function initWorkshop(doc, bridge) {
 
   function paintTotals() {
     paintMods();
+    paintModel();
     paintCatCounts();
     const totals = groupTotals(slots, draft.slots, data.items);
     for (const [g, t] of totals) {
@@ -665,6 +736,8 @@ export function initWorkshop(doc, bridge) {
   }
 
   slotsHost.addEventListener('click', (e) => {
+    const pb = e.target.closest('.hgl-paint');
+    if (pb) { pickPaint(pb.dataset.paint); return; }
     const opt = e.target.closest('.hgl-opt');
     if (opt) {
       const slot = slots.find((s) => s.key === opt.closest('.hgl-slot').dataset.key);
@@ -709,8 +782,8 @@ export function initWorkshop(doc, bridge) {
 
   /* ---- Speichern, Teilen, Serie ---- */
   function save() {
-    if (!slots.length) return;
-    const entry = store.save({ id: savedId && store.get(savedId) ? savedId : newId(), ship: draft.ship, name: draft.name || placeholder(), slots: draft.slots });
+    if (!slots.length && !hasPaints()) return;
+    const entry = store.save({ id: savedId && store.get(savedId) ? savedId : newId(), ship: draft.ship, name: draft.name || placeholder(), slots: draft.slots, paint: draft.paint });
     if (!entry) { showToast(m('msg.full')); return; }
     savedId = entry.id;
     if (!draft.name) {
@@ -745,9 +818,11 @@ export function initWorkshop(doc, bridge) {
 
   $('hgl-reset').addEventListener('click', () => {
     draft.slots = {};
+    delete draft.paint;
     openKey = null;
     commit({ patch: { hp: null } });
     for (const s of slots) paintSlot(s, true);
+    paintPaints();
     paintTotals();
     syncOpen();
     showToast(m('msg.reset'));
@@ -808,7 +883,7 @@ export function initWorkshop(doc, bridge) {
     const here = all.filter((e) => e.ship === draft.ship);
     const rest = all.filter((e) => e.ship !== draft.ship);
     list.replaceChildren(...[...here, ...rest].map((e) => {
-      const n = Object.keys(e.slots).length;
+      const n = Object.keys(e.slots).length + (e.paint ? 1 : 0);
       const isHere = e.ship === draft.ship;
       return el('li', { class: `hgl-card${isHere ? ' is-here' : ''}${e.id === savedId ? ' is-current' : ''}`, 'data-id': e.id },
         el('h4', {}, e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), isHere ? el('span', { class: 'hgl-card__tag' }, m('saved.here')) : null),
@@ -861,6 +936,11 @@ export function initWorkshop(doc, bridge) {
     if (!data) {
       ensureData().then(() => render(bridge.state())).catch(() => {});
       return;
+    }
+    // Ein neuer tab (Klick am Schiff, Slot, Reiter) beendet den Reiter Lackierung.
+    if (state.tab !== seenTab) {
+      if (seenTab !== null) paintMode = false;
+      seenTab = state.tab;
     }
     if (state.ship !== draft.ship || (state.lo ?? EMPTY_CODE) !== code) adopt(state);
     else {

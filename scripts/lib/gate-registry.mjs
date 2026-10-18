@@ -206,7 +206,7 @@ export const CHECKS = [
     script: 'scripts/verify-hangar.mjs',
     rail: 'A',
     checks:
-      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports)',
+      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe)',
   },
   {
     id: 'verify:theme',
@@ -345,6 +345,15 @@ export const CHECKS = [
     checks:
       'flugfaehige /spaceships/- und /groundvehicles/-Records im DataCore (nach dem isVariantJunk-Filter aus datamine-vehicles.mjs) ohne Katalog-Eintrag und ohne benannte Ausnahme — WARNUNG; FEHLER nur bei Zombie-Ausnahmen oder Leser unter der Klinke',
     env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B. Anlass: Sabre Raven EX und S-65 Stingray fehlten still im zirkulaer geschlossenen Katalog (07.10.2026)',
+  },
+  {
+    id: 'datamine:paints',
+    npm: 'datamine:paints',
+    script: 'scripts/datamine-ship-paints.mjs',
+    rail: 'B',
+    checks:
+      'zieht je Hangar-Schiff die Lackierungen mit ihren Palettenfarben A/B/C nach src/data/ship-paints.json und reisst, wenn der Leser kein Schiff oder keine Lackierung findet',
+    env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B',
   },
 
   // ---------------------------------------------------------------

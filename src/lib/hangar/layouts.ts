@@ -64,7 +64,27 @@ export interface LayoutData {
   readonly ships: Readonly<Record<string, readonly LayoutSlot[]>>;
   /** 3D-Modell je Bordwaffe (Schluessel wie items, URL mit ?v=): der Hangar setzt sie getauscht ans Schiff. */
   readonly models: Readonly<Record<string, string>>;
+  /** Lackierungen je Schiff (nur Schiffe mit mindestens einer); fehlt die Datendatei, leer. */
+  readonly paints: Readonly<Record<string, ShipPaints>>;
 }
+
+/**
+ * Lackierungen eines Schiffs: base = Serienpalette [Haupt, Zweit, Akzent] als
+ * #rrggbb, list = [kennung, name, haupt, zweit, akzent, muster 1|0]. muster:
+ * die Lackierung bringt eigene Texturen mit, die Vorschau zeigt nur ihre Farben.
+ */
+export interface ShipPaints {
+  readonly base: readonly [string, string, string];
+  readonly list: readonly (readonly [id: string, name: string, a: string, b: string, c: string, pattern: 1 | 0])[];
+}
+
+// Optional: src/data/ship-paints.json entsteht auf dem Rechner mit den
+// Spieldaten (npm run datamine:paints). Ohne die Datei baut die Seite weiter,
+// die Werkstatt zeigt dann keinen Reiter Lackierung.
+type PaintRow = { id: string; name: string; a: string; b: string; c: string; pattern?: boolean };
+type PaintFile = { ships?: Record<string, { base: { a: string; b: string; c: string }; paints: PaintRow[] }> };
+const PAINT_FILE = (Object.values(import.meta.glob('../../data/ship-paints.json', { eager: true, import: 'default' }))[0] ?? {}) as PaintFile;
+const HEX = /^#[0-9a-f]{6}$/;
 
 type WeaponAsset = { url: string; v: string; key?: string };
 const WEAPON_MODELS = ((hangarAssets as unknown as { weapons?: Record<string, WeaponAsset> }).weapons) ?? {};
@@ -176,7 +196,21 @@ function build(): LayoutData {
     const key = a.key ?? file;
     if (used[key]?.[2] === 'gun') models[key] = `${a.url}?v=${a.v}`;
   }
-  return { v: 1, items: used, ships, models };
+  const paints: Record<string, ShipPaints> = {};
+  const hx = (c: unknown) => (typeof c === 'string' && HEX.test(c.toLowerCase()) ? c.toLowerCase() : null);
+  for (const id of HANGAR_IDS) {
+    const p = PAINT_FILE.ships?.[id];
+    const base = p ? [hx(p.base?.a), hx(p.base?.b), hx(p.base?.c)] : [];
+    if (!p || base.length !== 3 || base.some((c) => !c)) continue;
+    const list = (p.paints ?? []).flatMap((r) => {
+      const col = [hx(r.a), hx(r.b), hx(r.c)];
+      const id = String(r.id ?? '').toLowerCase();
+      if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id) || typeof r.name !== 'string' || !r.name.trim() || col.some((c) => !c)) return [];
+      return [[id, r.name.trim(), col[0]!, col[1]!, col[2]!, r.pattern ? 1 : 0] as const];
+    });
+    if (list.length) paints[id] = { base: base as [string, string, string], list };
+  }
+  return { v: 1, items: used, ships, models, paints };
 }
 
 function ensure() {

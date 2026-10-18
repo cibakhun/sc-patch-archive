@@ -506,7 +506,7 @@ async function probeWerkstatt(page) {
     const st = await page.evaluate((c) => ({
       sel: document.querySelector(`#hgl-cats [data-cat="${c}"]`)?.getAttribute('aria-selected'),
       fremd: [...document.querySelectorAll('#hgl-slots .hgl-grp')].filter((s) => (s.dataset.cat === c) === s.hidden).length,
-      n: [...document.querySelectorAll('#hgl-cats [data-cat-n]')].map((i) => i.textContent).join('|'),
+      n: ['weapons', 'systems'].map((k) => document.querySelector(`#hgl-cats [data-cat-n="${k}"]`)?.textContent).join('|'),
       mods: document.getElementById('hgl-mods')?.textContent ?? '',
     }), c);
     if (st.sel !== 'true') return `Werkstatt: Reiter ${c} nach Klick nicht gewaehlt`;
@@ -516,6 +516,29 @@ async function probeWerkstatt(page) {
     const namen = (t) => (st.mods.match(new RegExp(`\\[data-tab="${t}"\\][^{]*::after`, 'g')) ?? []).length;
     if (!namen(c)) return `Werkstatt: unter ${c} traegt kein getauschtes Teil am Schiff seinen Namen`;
     if (st.mods.includes(`[data-tab="${anderer}"]`)) return `Werkstatt: unter ${c} markiert das Schiff auch ${anderer}`;
+  }
+  // Lackierung, sofern das Startschiff welche hat: nur ihre Liste, keine
+  // Marker am Schiff, Zaehler 1, und der Link traegt sie als viertes Feld.
+  const lack = page.locator('#hgl-cats [data-cat="paint"]');
+  if (await lack.isVisible()) {
+    await lack.click(KLICK);
+    await page.click('#hgl-slots .hgl-grp[data-cat="paint"] .hgl-paint[aria-pressed="false"]', KLICK);
+    await page.waitForTimeout(500);
+    const st = await page.evaluate(() => {
+      const code = new URL(location.href).searchParams.get('layout') ?? '';
+      let felder = 0;
+      try { felder = JSON.parse(atob(code.replace(/-/g, '+').replace(/_/g, '/'))).length; } catch { felder = -1; }
+      return {
+        sichtbar: [...document.querySelectorAll('#hgl-slots .hgl-grp')].filter((s) => !s.hidden).map((s) => s.dataset.cat).join('|'),
+        n: document.querySelector('#hgl-cats [data-cat-n="paint"]')?.textContent,
+        mods: document.getElementById('hgl-mods')?.textContent ?? '',
+        felder,
+      };
+    });
+    if (st.sichtbar !== 'paint') return `Werkstatt: unter Lackierung stehen die Gruppen "${st.sichtbar}"`;
+    if (st.n !== '1') return `Werkstatt: Reiterzaehler Lackierung "${st.n}", erwartet "1"`;
+    if (st.mods) return 'Werkstatt: unter Lackierung markiert das Schiff Hardpoints';
+    if (st.felder !== 4) return `Werkstatt: der Link traegt die Lackierung nicht (${st.felder} Felder statt 4)`;
   }
   return null;
 }

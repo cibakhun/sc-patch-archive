@@ -32,6 +32,7 @@
 //
 // API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url } }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
+//         paint({ cols, base } | null) -> n,
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
 // project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
@@ -5950,12 +5951,60 @@ ${HALL_LIGHTS_BEGIN}
     liveryKey = k;
     if (!current) return;
     if (current.hull) wearPaint(current, k !== 'werk');
-    const p = paintFor(makerCode, k);
+    fadePaint(paintFor(makerCode, k));
+  }
+  // Shader-Lack auf neue Toene: gleitet, ausser direkt nach dem Laden.
+  function fadePaint(p) {
     const u = current.mat.userData.u;
     fade.from = [u.uPrim.value.clone(), u.uSec.value.clone(), u.uAcc.value.clone()];
     fade.to = p; fade.t0 = performance.now();
     u.uPattern.value = p.pattern;
-    if (reduceMotion) { applyPaint(current.mat, p); fade.to = null; }
+    if (reduceMotion || performance.now() - current.born < 300) { applyPaint(current.mat, p); fade.to = null; }
+  }
+
+  // Layout-Werkstatt: Lackierung aus der Palette des Spiels. p = { cols, base },
+  // je [Haupt, Zweit, Akzent] als #rrggbb, oder null fuer den Serienlack.
+  // Echter Lack: Die Palettenmaterialien tragen den Serienton als Grundfarbe
+  // (baseColorFactor = linear(Serienton), am Gladius exakt); welche das sind,
+  // sagt dieser Ton, bestaetigt durch extras.palette_tint, wo der Build es
+  // mitgibt. Sie bekommen den neuen Ton, Texturen und Muster bleiben. Die
+  // Geometrie-Fassung nimmt die drei Toene in den Shader-Lack.
+  // Gilt fuer das geladene Schiff; die Oberflaeche ruft es nach jedem show().
+  // Liefert die Zahl umgefaerbter Materialien (Shader-Lack: 1).
+  function paint(p) {
+    const on = p && p.cols?.length === 3 && p.base?.length === 3 ? p : null;
+    if (!current) return 0;
+    wake(800);
+    if (!current.hull) {
+      fadePaint(on ? { cols: on.cols.map((c) => new THREE.Color(c)), pattern: 0 } : paintFor(makerCode, liveryKey));
+      return 1;
+    }
+    const map = hullTint(current, on?.base);
+    if (!map) return 0;
+    for (const [m, t] of map) m.color.copy(on ? new THREE.Color(on.cols[t.slot]) : t.c0);
+    return map.size;
+  }
+  // Palettenmaterialien des echten Lacks: Material -> { slot 0..2, Serienfarbe }.
+  // Einmal je Schiff, beim ersten paint() mit Serienpalette. Traegt das Modell
+  // Lackkanaele (extras.palette_tint, nur an der eigenen Palette des Schiffs,
+  // nicht an Halterungen, Sitzen, Beibooten), zaehlt nur ein Material mit
+  // passendem Kanal: eine weisse Serienpalette (Avenger Titan) traefe sonst
+  // jedes reine Texturmaterial.
+  function hullTint(c, base) {
+    if (c.tint || !base) return c.tint ?? null;
+    const want = base.map((h) => new THREE.Color(h));
+    const near = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 3e-3;
+    const mats = new Set();
+    for (const [, orig] of c.hull) for (const m of [].concat(orig)) if (m?.color) mats.add(m);
+    const tagged = [...mats].some((m) => m.userData?.palette_tint != null);
+    const map = new Map();
+    for (const m of mats) {
+      const pt = m.userData?.palette_tint;
+      const slot = want.findIndex((w, i) => (tagged ? pt === i + 1 : true) && near(w, m.color));
+      if (slot >= 0) map.set(m, { slot, c0: m.color.clone() });
+    }
+    c.tint = map;
+    return map;
   }
 
   // Layout-Werkstatt: getauschte Bordwaffen am Schiff. Die Web-Fassung trägt
@@ -6842,6 +6891,7 @@ ${HALL_LIGHTS_BEGIN}
   return {
     show,
     setLivery,
+    paint,
     fit,
     resetView,
     project,
