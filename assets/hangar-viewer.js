@@ -5239,37 +5239,48 @@ ${HALL_LIGHTS_BEGIN}
       // Mit Tiefenbild: Die Verdeckung liest die Tiefe des Bildes, statt die
       // Szene ein zweites Mal für Normalen und Tiefe zu zeichnen (ao unten)
       rt.depthTexture = new THREE.DepthTexture(W(), H());
-      const c = new EffectComposer(renderer, rt);
+      // Die Szene zeichnet immer in rt (readBuffer), das zweite Ziel des
+      // Composers nimmt nur Vollbild-Pässe auf (Verdeckung aufs Bild, Schein)
+      // und braucht weder Kantenglättung noch Tiefe. Als Kopie von rt hatte
+      // es beides, und jeder Pass dorthin wurde einmal mehr aufgelöst: 10 %
+      // der Arbeit des Chips (2026-10-18, voll ausgelastet gemessen).
+      const flat = new THREE.WebGLRenderTarget(W(), H(), { type: THREE.HalfFloatType, depthBuffer: false });
+      const c = new EffectComposer(renderer, flat);
+      c.renderTarget2.dispose();
+      c.renderTarget2 = c.readBuffer = rt;
+      // Zwei Pässe tauschen je Bild (aoMix, Ausgabe): Die Szene landet so
+      // immer in rt. Fiele ein Tausch weg, zeichnete sie sonst ohne Tiefe.
+      const composeOnce = c.render.bind(c);
+      c.render = (dt) => {
+        if (c.readBuffer !== rt) c.swapBuffers();
+        composeOnce(dt);
+      };
       c.setPixelRatio(pixelRatio * pixelScale);
       c.setSize(W(), H());
       c.addPass(new RenderPass(scene, camera));
-      // Verdeckung in halber Auflösung je Achse (2026-10-15): Normalen,
-      // Verdeckung und Entrauschen zeichnen ein Viertel der Pixel. Das waren
-      // je Pixel rund 90 Texturzugriffe (36 Tiefen für die Horizonte, 16 × 3
-      // fürs Entrauschen, 9 für den Median), gut doppelt so viele wie das
-      // Licht der Halle; die Verdeckung ist ohnehin weich.
-      const ao = new GTAOPass(scene, camera, Math.max(1, W() >> 1), Math.max(1, H() >> 1));
+      // Verdeckung in einem Viertel der Auflösung je Achse (2026-10-18; vorher
+      // halb, seit 2026-10-15): Verdeckung und Entrauschen rechnen je Pixel
+      // rund 80 Texturzugriffe (36 Tiefen für die Horizonte, 16 × 3 fürs
+      // Entrauschen) und kosteten in halber Auflösung 22 % der Arbeit des
+      // Chips; ein Viertel sparte 19 %. Im Bildvergleich bei fester Kamera
+      // weichere Säume an Schiffskanten und Bodenleisten, sonst gleich (0,49
+      // von 255 im Mittel, zwei Aufnahmen desselben Stands 0,22).
+      const AO_DIV = 4;
+      const ao = new GTAOPass(scene, camera, Math.max(1, Math.round(W() / AO_DIV)), Math.max(1, Math.round(H() / AO_DIV)));
       const aoSize = ao.setSize.bind(ao);
-      ao.setSize = (w, h) => aoSize(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(h / 2)));
+      ao.setSize = (w, h) => aoSize(Math.max(1, Math.round(w / AO_DIV)), Math.max(1, Math.round(h / AO_DIV)));
       // Normalen aus der Tiefe des Bildes statt aus einem eigenen Durchgang
       // (2026-10-18): Der zeichnete die ganze Szene noch einmal, mit der
-      // Gladius 326 Aufrufe und 2 ms Prozessorzeit je Bild. Der Composer
-      // wechselt zwischen rt und seiner Kopie (mit eigener Tiefe): gelesen
-      // wird die Tiefe des Bildes, in das RenderPass eben gezeichnet hat.
+      // Gladius 326 Aufrufe und 2 ms Prozessorzeit je Bild.
       ao.setGBuffer(rt.depthTexture);
       ao.normalRenderTarget.dispose();
-      const aoRender = ao.render.bind(ao);
-      ao.render = (r, w, read, ...rest) => {
-        ao.gtaoMaterial.uniforms.tDepth.value = ao.pdMaterial.uniforms.tDepth.value = read.depthTexture;
-        return aoRender(r, w, read, ...rest);
-      };
       // Der Pass rechnet nur die Verdeckung; aufs Bild legt sie aoMedianPass
       // (ohne Ausgabe schreibt er nichts ins Zielbild, also auch kein Tausch).
       ao.output = GTAOPass.OUTPUT.Off;
       ao.needsSwap = false;
       ao.blendIntensity = 1;
       ao.updateGtaoMaterial({ radius: 2.5, distanceExponent: 1.4, thickness: 2, scale: 1.2, samples: 16 });
-      // Halbmesser in Pixeln des Passes: 3 in halber Auflösung = die 6 von vorher
+      // Halbmesser in Pixeln des Passes: 3 im Viertel = 12 Bildpunkte (gemessen so)
       ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 3, rings: 2, samples: 16 });
       c.addPass(ao);
       const aoMix = aoMedianPass(ao, Pass, FullScreenQuad);

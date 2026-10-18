@@ -25,7 +25,11 @@
      node scripts/probes/hangar-gpu-messung.mjs --base http://localhost:4391
        [--grafik hoch|mittel|niedrig] [--secs 10] [--w 1920 --h 970]
        [--path /hangar] [--headed] [--json out.json] [--nodrag] [--rest]
-       [--brief] [--nogl] [--split prog] [--profile] [--css '<regeln>']
+       [--brief] [--nogl] [--split prog] [--seq] [--profile] [--css '<regeln>'] [--dsf 2]
+
+   Für die Arbeit des Chips je Durchgang: --dsf 2 (doppelte Pixeldichte)
+   mit einer Viewer-Kopie im Messmodus (feste Kamera, ohne Takt): Dann ist
+   der Chip voll ausgelastet, und die Zeitabfrage misst ihn statt der CPU.
    ============================================================ */
 import { writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
@@ -38,10 +42,15 @@ const PATH = flag('--path', '/hangar');
 const GRAFIK = flag('--grafik', 'hoch');
 const SECS = Number(flag('--secs', '10'));
 const W = Number(flag('--w', '1920')), H = Number(flag('--h', '970'));
+// --dsf 2: doppelte Pixeldichte. Dann ist der Chip voll ausgelastet, läuft mit vollem Takt,
+// und die Zeitabfrage je Durchgang misst seine Arbeit statt des Wartens auf die CPU.
+const DSF = Number(flag('--dsf', '1'));
 const JSON_OUT = flag('--json', null);
 const HEADED = argv.includes('--headed');
 // --split prog: dazu ein Abschnitt je Shaderwechsel (Kosten je Material)
 const SPLIT = flag('--split', 'fb');
+// --seq: Abschnitte nach ihrer Stelle im Bild statt nach Inhalt (gleich benannte Vollbild-Pässe trennen)
+const SEQ = argv.includes('--seq');
 // --brief: nur die Summen je Lage; --extra 'a=b&c=d': weitere Adressparameter
 const BRIEF = argv.includes('--brief');
 const EXTRA = flag('--extra', '');
@@ -157,10 +166,12 @@ function probe(opt) {
       const frames = S.frames.filter((f) => f.segs.every((s) => s.ms != null || s.drop));
       const groups = new Map();
       let total = 0;
-      for (const f of frames) for (const s of f.segs) {
+      for (const f of frames) for (let i = 0, j = 0; i < f.segs.length; i++) {
+        const s = f.segs[i];
         if (!(s.draws || s.blits || s.clears)) { total += s.ms || 0; continue; }
+        j++;
         const progs = Object.entries(s.progs).sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n}×${c}`).slice(0, 4).join(' ');
-        const key = `${s.vp} ${progs || (s.blits ? 'blit' : 'clear')}`;
+        const key = `${opt.seq ? `#${String(j).padStart(2, '0')} ` : ''}${s.vp} ${progs || (s.blits ? 'blit' : 'clear')}`;
         const g = groups.get(key) || { key, n: 0, ms: 0, draws: 0, tris: 0, fbs: new Set(), cpu: 0, sw: 0, tex: 0, unif: 0 };
         g.n++; g.ms += s.ms || 0; g.draws += s.draws; g.tris += s.tris; g.fbs.add(s.fb);
         g.cpu += s.cpu; g.sw += s.sw; g.tex += s.tex; g.unif += s.unif;
@@ -183,8 +194,8 @@ const browser = await chromium.launch({
   channel: 'chrome', headless: !HEADED,
   args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', `--window-size=${W},${H + 120}`],
 });
-const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1, bypassCSP: true });
-await page.addInitScript(probe, { split: SPLIT, nogl: NOGL });
+const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: DSF, bypassCSP: true });
+await page.addInitScript(probe, { split: SPLIT, nogl: NOGL, seq: SEQ });
 // --xp a,b: Versuchsschalter einer gepatchten Viewer-Kopie (die Seite schreibt die Adresse um, bevor der Viewer lädt)
 await page.addInitScript((x) => { window.__XP = x; }, flag('--xp', ''));
 // --css '<regeln>': zusätzliche Regeln für die Seite (welche Ebenen beim Zusammensetzen kosten)
@@ -250,7 +261,7 @@ async function measure(label, drive) {
   if (chip) console.log(`   Task-Manager (3D, nur dieser Browser): ${chip.taskmgr ?? '?'} % bei ${chip.mhz} MHz = ${chip.taskmgr != null ? (chip.taskmgr * chip.mhz / 1000).toFixed(1) : '?'} GHz·% · nvidia-smi (ganzer Chip): ${chip.util} %, ${chip.watts} W`);
   if (BRIEF) return { label, chip, ...r };
   console.log('  ms/s    ms/Abschn. CPU-ms  je Bild  Aufrufe Progr. Tex.  Unif.  Dreiecke   Durchgang');
-  for (const x of r.rows.slice(0, SPLIT === 'prog' ? 40 : 18)) {
+  for (const x of (SEQ ? [...r.rows].sort((a, b) => a.pass.localeCompare(b.pass)) : r.rows).slice(0, SPLIT === 'prog' || SEQ ? 40 : 18)) {
     console.log(`  ${String(x.msPerSec).padStart(6)}  ${x.msEach.toFixed(3).padStart(8)}  ${x.cpuEach.toFixed(3).padStart(6)}  ${String(x.perFrame).padStart(6)}  ${String(x.draws).padStart(7)} ${String(x.sw).padStart(5)} ${String(x.tex).padStart(5)} ${String(x.unif).padStart(6)}  ${String(x.tris).padStart(9)}   ${x.pass}`);
   }
   return { label, chip, ...r };
