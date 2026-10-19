@@ -1099,12 +1099,18 @@ export function boot(doc) {
   }
 
   // Ohne Buehne gibt es nichts zu drehen: Zuruecksetzen und Bedienhinweis gehen mit.
-  function noStage() {
+  // why waehlt den Text (data-blocked, -soft, -failed an #hg-fallback), ohne
+  // passenden Text bleibt der allgemeine; die Konsole nennt die Ursache.
+  const fallback = $('hg-fallback');
+  const RESTORE_KEY = 'vb.hangar.restore';
+  function noStage(why, detail) {
     loadEl.hidden = true;
-    $('hg-fallback').hidden = false;
+    if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
+    fallback.hidden = false;
     $('hg-reset').hidden = true;
     const hint = doc.querySelector('.hg-hint');
     if (hint) hint.hidden = true;
+    console.warn(`[hangar] ohne 3D-Ansicht: ${why || 'kein WebGL2'}`, detail ?? '');
   }
   // Ohne GPU zeichnet der Browser WebGL in Software: gemessen knapp 11 s je
   // Bild (SwiftShader, 1280x720), und die ganze Seite steht, Panel und Dock
@@ -1115,16 +1121,37 @@ export function boot(doc) {
   // Leistungsstufe (pickQuality in hangar-viewer.js).
   const SOFT_GL = /swiftshader|llvmpipe|softpipe|software|basic render/i;
   let gpuName = '';
-  function hasGpu() {
+  // Was der Buehne fehlt: '' nichts, 'none' WebGL2 kennt der Browser nicht,
+  // 'blocked' WebGL2 gibt es, aber keinen Kontext. So antwortet Chrome, wenn
+  // die Seite den Grafiktreiber einmal zurueckgesetzt hat: Er sperrt sie bis
+  // zum Neustart des Browsers („Web page caused context loss and was
+  // blocked“). Gibt es den Kontext nur ohne den Vorbehalt: 'soft', wenn der
+  // Name nach Software klingt, sonst 'caveat' (ein Chip, den der Browser nur
+  // bremst, etwa ein Treiber auf seiner Sperrliste; allgemeiner Text).
+  let gpuWhy = '';
+  const chipOf = (gl) => {
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return name;
+  };
+  function gpuMiss() {
+    if (typeof WebGL2RenderingContext === 'undefined') return 'none';
     try {
-      const gl = doc.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
-      if (!gl) return false;
-      const info = gl.getExtension('WEBGL_debug_renderer_info');
-      gpuName = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
-      return !SOFT_GL.test(gpuName);
-    } catch {
-      return false;
+      const c = doc.createElement('canvas');
+      c.addEventListener('webglcontextcreationerror', (e) => { gpuWhy = e.statusMessage || gpuWhy; });
+      const gl = c.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+      if (!gl) {
+        const any = doc.createElement('canvas').getContext('webgl2');
+        if (!any) return 'blocked';
+        gpuWhy = chipOf(any);
+        return SOFT_GL.test(gpuWhy) ? 'soft' : 'caveat';
+      }
+      gpuName = gpuWhy = chipOf(gl);
+      return SOFT_GL.test(gpuName) ? 'soft' : '';
+    } catch (e) {
+      gpuWhy = String(e?.message || e);
+      return 'blocked';
     }
   }
   // Grafik-Schalter: Automatisch zeigt dahinter die Stufe, die gerade
@@ -1159,7 +1186,8 @@ export function boot(doc) {
   function canStore() {
     try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
-  if (!hasGpu()) noStage();
+  const miss = gpuMiss();
+  if (miss) noStage(miss, gpuWhy);
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
@@ -1168,6 +1196,23 @@ export function boot(doc) {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
         v.onFrame(placeMarks);
+        // Kontext weg: die Meldung steht ueber der Buehne. Kommt er zurueck,
+        // laedt die Seite neu (wie beim Grafik-Schalter): Umgebung und
+        // Hallenschatten entstehen nur beim Laden, der Zustand steht in der
+        // Adresse. Hoechstens einmal je Minute, sonst bleibt die Meldung.
+        v.onLost((lost) => {
+          if (lost) {
+            fallback.textContent = fallback.dataset.lost;
+            fallback.hidden = false;
+            console.warn('[hangar] Zeichenkontext verloren');
+            return;
+          }
+          let last = 0;
+          try { last = Number(sessionStorage.getItem(RESTORE_KEY)) || 0; } catch { /* ohne Speicher gilt die Sperre nicht */ }
+          if (Date.now() - last < 60000) return;
+          try { sessionStorage.setItem(RESTORE_KEY, String(Date.now())); } catch { /* siehe oben */ }
+          location.reload();
+        });
         // Schmal (Umbruch wie in HangarPage.astro) liegt der Titelblock samt
         // Knoepfen ueber dem oberen Teil der Buehne: das Schiff rueckt darunter.
         // offset* statt getBoundingClientRect: beim Wechsel faehrt der Titel
@@ -1184,7 +1229,7 @@ export function boot(doc) {
         grafikSchalter(v);
         viewerShow(state.ship);
       })
-      .catch(noStage);
+      .catch((e) => noStage('failed', e));
   }
 
   writeUrl();

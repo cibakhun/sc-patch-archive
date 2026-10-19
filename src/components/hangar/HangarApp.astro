@@ -159,7 +159,13 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
     <section class="hg-stage" data-hg-stage aria-label={de ? '3D-Hangar' : '3D hangar'}>
       <div class="hg-canvas" id="hg-canvas"></div>
       <div class="hg-load" id="hg-load" hidden>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}<b><i></i></b></div>
-      <div class="hg-fallback" id="hg-fallback" hidden>{de ? 'Dein Browser kann die 3D-Ansicht nicht darstellen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser cannot show the 3D view. The figures and the data sheet are still available.'}</div>
+      {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt */}
+      <div class="hg-fallback" id="hg-fallback" role="status" hidden
+        data-blocked={de ? 'Dein Browser lässt gerade keine 3D-Grafik zu, meist nach einem Absturz des Grafiktreibers. Dann hilft es, alle seine Fenster zu schließen und ihn neu zu öffnen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is not allowing 3D graphics right now, usually after a graphics driver crash. Closing all of its windows and opening it again fixes that. The figures and the data sheet are still available.'}
+        data-soft={de ? 'Dein Browser zeichnet gerade ohne Grafikkarte, für die Halle ist das zu langsam. Hardwarebeschleunigung einschalten oder den Browser neu starten. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is drawing without the graphics card right now, which is too slow for the hangar. Turn on hardware acceleration or restart the browser. The figures and the data sheet are still available.'}
+        data-failed={de ? 'Die 3D-Ansicht konnte nicht starten. Neu laden hilft meist. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'The 3D view could not start. Reloading the page usually helps. The figures and the data sheet are still available.'}
+        data-lost={de ? 'Die Grafikkarte hat die 3D-Ansicht verloren. Sobald sie wieder bereit ist, lädt die Seite neu; tut sie das nicht, die Seite selbst neu laden. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'The graphics card dropped the 3D view. The page reloads as soon as it is available again; if it does not, reload the page yourself. The figures and the data sheet are still available.'}
+      >{de ? 'Dein Browser kann die 3D-Ansicht nicht darstellen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser cannot show the 3D view. The figures and the data sheet are still available.'}</div>
       <slot />
     </section>
 <script type="application/json" id="hg-stage" set:html={payload}></script>
