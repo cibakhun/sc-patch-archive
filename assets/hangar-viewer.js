@@ -1608,7 +1608,7 @@ const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_0
 // Leitungen von jedem. Die Zusammensetzungen folgen den Arbeitsplätzen
 // des Katalogs (Diagnose mit Kabeltrommel 7 und Kisten mit Kabeltrommel 4
 // stehen im Spiel auf dem Landefeld, Gasflasche neben Feuerlöscher in 71 %).
-// Fahrzeuge unter 10 m (Bikes, Rover, Nox, Dragonfly, Fury, Storm) bekommen
+// Fahrzeuge unter 10 m (Bikes, Rover, Nox, X1, Dragonfly, Fury, Storm) bekommen
 // nur Werkzeug, Treibstoff, Diagnose, Werkbank und Kegel: Generator,
 // Kistenstapel, zweite Diagnose und Leiter waren größer als das Fahrzeug,
 // es stand in einem Haufen Gerät (19.10.2026).

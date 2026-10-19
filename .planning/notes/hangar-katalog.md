@@ -303,7 +303,8 @@ Razor, Merlin und Pisces bleibt alles wie vorher. Die Grenze 10 m liegt in der
 Lücke zwischen Storm (9,9 m) und M50.
 
 Kosten an der Dragonfly: 24 statt 30 Materialien (Zeichenbefehle je
-Durchgang), 109 000 statt 200 000 Dreiecke.
+Durchgang), 109 000 statt 200 000 Dreiecke (Konsole des Viewers). Das Tor zählt
+jede Leitung und Spur des Bands einmal und kommt auf 112 195 Dreiecke.
 
 Der Gerätesatz wurde neu gepackt. Gleiche Knoten, nur der Fingerabdruck des
 Blocks hat sich geändert (8 Byte).
@@ -315,6 +316,6 @@ Vorgeführt rot:
 - Ohne die Größe meldet das Tor: „Schiffe von 0 bis 10 m: keine Groesse in
   DIENST_KLASSEN liegt darin“.
 - Mit Klinke 7 und Obergrenze 23 / 112 000 meldet es drei FEHLER „an einem
-  Schiff von 6.5 m (winzig) …“.
+  Schiff von 6.5 m (winzig) …“: 6 Plätze, 24 Materialien, 112 195 Dreiecke.
 
 Sichturteil: WINDOWS 92.
