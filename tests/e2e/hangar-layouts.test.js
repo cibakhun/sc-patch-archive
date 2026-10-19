@@ -117,6 +117,20 @@ describe('Werkstatt: passende Teile', () => {
     assert.deepEqual(t.get('manned'), { now: 853 * 2, stock: 546 * 2 });
     assert.deepEqual(t.get('shield'), { now: 3168, stock: 3168 });
   });
+
+  test('Raketen: je Halterung derselbe Untertyp und dieselbe Groesse, Schaden mal Stueckzahl', () => {
+    const ord = {
+      ignite: ['Ignite II Missile', 'Ignite-II-Rakete', 'missile', 2, 'FireStorm Kinetics', 0, 'A', 2404, { trk: 'i' }, 680],
+      bullet: ['\'Bullet\' II Missile', 0, 'missile', 2, 'Vanduul', 0, 'A', 2824, { trk: 'i' }, 420],
+      igniteG: ['Ignite II-G Missile', 0, 'gmissile', 2, 'FireStorm Kinetics', 0, 'A', 2404, { trk: 'i' }, 0],
+      arrester: ['Arrester III Missile', 0, 'missile', 3, 'FireStorm Kinetics', 0, 'A', 2564, { trk: 'c' }, 0],
+      reaper: ['Reaper V Missile', 0, 'torpedo', 5, 'Talon', 0, 'A', 14901, { trk: 'e' }, 0],
+    };
+    const rack = shipSlots([['missilerack_left_wing_outer', 'missile', 2, 'ignite', 'missile', 2]]);
+    assert.deepEqual(candidates(rack[0], ord), ['bullet', 'ignite']);
+    assert.deepEqual(groupTotals(rack, { missilerack_left_wing_outer: 'bullet' }, ord).get('missile'), { now: 2824 * 2, stock: 2404 * 2 });
+    assert.deepEqual(cleanSlots({ missilerack_left_wing_outer: 'igniteG' }, rack, ord), { slots: {}, dropped: 1 });
+  });
 });
 
 describe('Werkstatt: Ablage', () => {

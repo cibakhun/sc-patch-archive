@@ -109,7 +109,7 @@ export function shipSlots(rows) {
   return (rows ?? []).map(([key, type, size, stock, group, count]) => ({ key, type, size, stock: stock || null, group, count }));
 }
 
-/** Passt das Bauteil in den Slot? Dieselbe Art, dieselbe Groesse. */
+/** Passt das Bauteil in den Slot? Dieselbe Art, dieselbe Groesse (bei Raketen: derselbe Untertyp). */
 export function fits(item, slot) {
   return !!item && item[2] === slot.type && item[3] === slot.size;
 }
@@ -152,8 +152,10 @@ export function deltaPct(value, base) {
   return Math.round(((value - base) / base) * 100);
 }
 
-/** Gruppen, deren Summe etwas sagt: Feuerkraft, Leistung, Kuehlung, Schild. */
-export const SUMMED = new Set(['pilot', 'manned', 'remote', 'power', 'cooler', 'shield']);
+/** Gruppen, deren Summe etwas sagt: Feuerkraft, Raketenschaden, Leistung, Kuehlung, Schild. */
+export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield']);
+/** Arten im Reiter Waffen: Bordwaffen und alles, was eine Halterung abfeuert. */
+export const WEAPON_TYPES = new Set(['gun', 'missile', 'torpedo', 'gmissile', 'bomb']);
 
 /**
  * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl).
@@ -301,15 +303,19 @@ export function initWorkshop(doc, bridge) {
     return it ? (de && it[1]) || it[0] : m('slot.unknown');
   };
   const portOf = (key) => `hardpoint_${key.split('.')[0]}`;
-  const tabOf = (slot) => (slot.type === 'gun' ? 'weapons' : 'systems');
-  const UNIT = { gun: () => 'DPS', power: () => m('unit.power'), cooler: () => m('unit.cooling'), shield: () => 'HP', quantum: () => 'Mm/s', radar: () => m('unit.sensitivity') };
+  const tabOf = (slot) => (WEAPON_TYPES.has(slot.type) ? 'weapons' : 'systems');
+  const dmg = () => m('unit.damage');
+  const UNIT = { gun: () => 'DPS', missile: dmg, torpedo: dmg, gmissile: dmg, bomb: dmg, power: () => m('unit.power'), cooler: () => m('unit.cooling'), shield: () => 'HP', quantum: () => 'Mm/s', radar: () => m('unit.sensitivity') };
   const CLS = { Military: 'cls.military', Civilian: 'cls.civilian', Industrial: 'cls.industrial', Stealth: 'cls.stealth', Competition: 'cls.competition' };
   function subLine(k, withPrice) {
     const it = data.items[k];
     if (!it) return '';
+    // Waffen: Hersteller und Schadensart; Raketen: Hersteller und Verfolgungssignal.
     const parts = it[2] === 'gun'
       ? [it[4] || null, it[8]?.dt ? m(`dt.${it[8].dt}`) : null]
-      : [it[5] ? (CLS[it[5]] ? m(CLS[it[5]]) : it[5]) : null, it[6] ? fill(m('grade'), { g: it[6] }) : null];
+      : WEAPON_TYPES.has(it[2])
+        ? [it[4] || null, it[8]?.trk ? m(`trk.${it[8].trk}`) : null]
+        : [it[5] ? (CLS[it[5]] ? m(CLS[it[5]]) : it[5]) : null, it[6] ? fill(m('grade'), { g: it[6] }) : null];
     if (withPrice) parts.push(it[9] ? fill(m('pick.price'), { n: nf.format(it[9]) }) : m('pick.noshop'));
     return parts.filter(Boolean).join(' · ');
   }
@@ -427,7 +433,7 @@ export function initWorkshop(doc, bridge) {
   });
 
   /* ---- Slots ---- */
-  const GROUPS = ['pilot', 'manned', 'remote', 'power', 'cooler', 'shield', 'quantum', 'radar'];
+  const GROUPS = ['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield', 'quantum', 'radar'];
   const slotEls = new Map();
 
   function buildSlots() {
@@ -606,8 +612,9 @@ export function initWorkshop(doc, bridge) {
   }
 
   // Marker am Schiff im Werkstatt-Modus: nur die Hardpoints mit Slot im
-  // gewaehlten Reiter (keine Raketen, keine Fracht). Getauschte Waffen gross
-  // und mit dem Namen des neuen Teils; Komponenten bleiben schlichte Punkte
+  // gewaehlten Reiter (keine Gegenmassnahmen, keine Fracht). Getauschte
+  // Waffen und Raketen gross und mit dem Namen des neuen Teils; Komponenten
+  // bleiben schlichte Punkte
   // ohne Namen, auch getauscht (Krisz: Name und Hervorhebung nur bei
   // Waffen). Der Namenszettel der Seite (b) traegt das Serienteil und
   // faellt deshalb bei Komponenten ganz weg. Als Stilregeln statt als
@@ -647,7 +654,7 @@ export function initWorkshop(doc, bridge) {
     paintCatCounts();
     const totals = groupTotals(slots, draft.slots, data.items);
     for (const [g, t] of totals) {
-      const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : UNIT[g]();
+      const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : g === 'missile' || g === 'bomb' ? dmg() : UNIT[g]();
       const b = slotsHost.querySelector(`[data-total="${g}"]`);
       if (b) b.textContent = `${nf.format(Math.round(t.now))} ${unit}`;
       const gd = slotsHost.querySelector(`[data-gd="${g}"]`);

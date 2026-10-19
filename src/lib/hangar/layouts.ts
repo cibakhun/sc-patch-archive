@@ -10,9 +10,12 @@
 //
 // Tauschbar ist, was ein Spieler am Terminal tauscht und was der Katalog mit
 // Zahlen kennt: Waffen des Piloten und bemannter oder ferngesteuerter Tuerme,
-// Generator, Kuehler, Schild, Quantum-Antrieb, Radar. Raketen, Taeuschkoerper,
-// Tanks, Punktverteidigung und Bergbaulaser bleiben in Serie. Passend heisst:
-// dieselbe Art und dieselbe Groesse wie das Serienteil.
+// Raketen, Torpedos und Bomben je Halterung, Generator, Kuehler, Schild,
+// Quantum-Antrieb, Radar. Taeuschkoerper und Tanks sind im Spiel fest
+// verbaut; Punktverteidigung und Bergbaulaser bleiben in Serie. Passend
+// heisst: dieselbe Art und dieselbe Groesse wie das Serienteil. Bei Raketen
+// ist die Art der Untertyp des Spiels (Rakete, Torpedo, Bodenrakete, Bombe):
+// in eine Halterung kommt, was ihr Serienteil ist, nur ein anderes Modell.
 //
 // Das Format traegt mehr Zahlen, als die Werkstatt heute zeigt (Schadensart,
 // Feuerrate, Schildregeneration, Preis): der spaetere Kennwert-Ueberblick und
@@ -25,23 +28,36 @@ import { HANGAR_IDS } from './catalog';
 import { shipGeometry, type StockItem } from './ports';
 
 /** Art eines tauschbaren Slots. Die Werkstatt waehlt danach Gruppe, Kennwert und Kandidaten. */
-export type LayoutType = 'gun' | 'power' | 'cooler' | 'shield' | 'quantum' | 'radar';
+export type LayoutType = 'gun' | OrdnanceType | 'power' | 'cooler' | 'shield' | 'quantum' | 'radar';
+/** Raketen und ihre Verwandten, getrennt nach dem Untertyp des Spiels (gmissile: Rakete fuer Bodenfahrzeuge). */
+export type OrdnanceType = 'missile' | 'torpedo' | 'gmissile' | 'bomb';
 /** Gruppe in der Werkstatt, dieselben Schluessel wie die Gruppen der Bucht (bay.ts GroupKey). */
-export type LayoutGroup = 'pilot' | 'manned' | 'remote' | 'power' | 'cooler' | 'shield' | 'quantum' | 'radar';
+export type LayoutGroup = 'pilot' | 'manned' | 'remote' | 'missile' | 'bomb' | 'power' | 'cooler' | 'shield' | 'quantum' | 'radar';
 
-const CATEGORY: Readonly<Record<LayoutType, string>> = {
-  gun: 'Vehiclegear / Weapons / Guns',
-  power: 'Vehiclegear / Powerplant',
-  cooler: 'Vehiclegear / Cooler',
-  shield: 'Vehiclegear / Shield',
-  quantum: 'Vehiclegear / Quantumdrive',
-  radar: 'Vehiclegear / Radar',
+const CATEGORY: Readonly<Record<string, LayoutType>> = {
+  'Vehiclegear / Weapons / Guns': 'gun',
+  'Vehiclegear / Powerplant': 'power',
+  'Vehiclegear / Cooler': 'cooler',
+  'Vehiclegear / Shield': 'shield',
+  'Vehiclegear / Quantumdrive': 'quantum',
+  'Vehiclegear / Radar': 'radar',
 };
+const ORDNANCE: Readonly<Record<string, OrdnanceType>> = { Missile: 'missile', Torpedo: 'torpedo', GroundVehicleMissile: 'gmissile' };
+const isOrdnance = (t: LayoutType): t is OrdnanceType => t === 'missile' || t === 'torpedo' || t === 'gmissile' || t === 'bomb';
+
+/** Art eines Katalog-Items; Raketen und Torpedos nach Untertyp, nicht nach Ordner (Reaper V ist ein Torpedo). */
+function itemType(it: Item): LayoutType | null {
+  const c = CATEGORY[it.category];
+  if (c) return c;
+  if (/^Vehiclegear \/ Weapons \/ (Missiles|Torpedoes)$/.test(it.category)) return ORDNANCE[it.game?.subType ?? ''] ?? null;
+  return it.category === 'Vehiclegear / Weapons / Bombs' ? 'bomb' : null;
+}
 
 /**
  * Ein Bauteil in einer Groesse, als Tupel, damit die Datei klein bleibt:
  *   [nameEn, nameDe|0, art, groesse, hersteller|0, klasse|0, grade|0, kennwert|0, extra, preis|0]
- * kennwert: DPS (Waffe), Leistung, Kuehlrate, Schild-HP, Quantum Mm/s, Empfindlichkeit.
+ * kennwert: DPS (Waffe), Schaden (Rakete, Torpedo, Bombe), Leistung, Kuehlrate,
+ * Schild-HP, Quantum Mm/s, Empfindlichkeit.
  * extra: zusaetzliche Zahlen fuer spaetere Kennwerte, nur gesetzte Schluessel.
  * preis: niedrigster Ladenpreis in aUEC.
  */
@@ -93,12 +109,16 @@ const norm = (s: string) => s.toLowerCase().replace(/["'`„“”‚‘’]/g, 
 const PLACEHOLDER = /placeholder|<=|=>|\bTBD\b/i;
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
-function typeOf(it: StockItem): { type: LayoutType; group: LayoutGroup } | null {
+/** Art und Gruppe eines Serienteils; bei Raketen entscheidet das Katalog-Item (stock) die Art. */
+function typeOf(it: StockItem, stock: LayoutItem | undefined): { type: LayoutType; group: LayoutGroup } | null {
   switch (it.cat) {
     case 'weapon':
       if (it.carrier !== 'turret') return { type: 'gun', group: 'pilot' };
       if (it.turretKind === 'pdc') return null;
       return { type: 'gun', group: it.turretKind === 'remote' ? 'remote' : 'manned' };
+    case 'missile':
+      if (!stock || !isOrdnance(stock[2])) return null;
+      return { type: stock[2], group: stock[2] === 'bomb' ? 'bomb' : 'missile' };
     case 'power': case 'cooler': case 'shield': case 'quantum': case 'radar':
       return { type: it.cat, group: it.cat };
     default:
@@ -106,11 +126,28 @@ function typeOf(it: StockItem): { type: LayoutType; group: LayoutGroup } | null 
   }
 }
 
+/** Verfolgungssignal aus der englischen Beschreibung ("Tracking Signal: Infrared"); i, e, c oder null. */
+function tracking(desc: string | undefined): 'i' | 'e' | 'c' | null {
+  const m = /Tracking Signal:\s*([^\n]+)/i.exec(desc ?? '')?.[1] ?? '';
+  return /^inf/i.test(m) ? 'i' : /^electro/i.test(m) ? 'e' : /^cross/i.test(m) ? 'c' : null;
+}
+
+/** Schaden aller Kanaele zusammen, wie der Kennwert der Bucht (bay.ts totalDamage). */
+const totalDamage = (s: ItemStats): number => Object.values(s.damage ?? {}).reduce((a, b) => a + (typeof b === 'number' && b > 0 ? b : 0), 0);
+
 /** Der Kennwert der Werkstatt und die Zahlen fuer spaeter, je Art. */
-function figures(type: LayoutType, s: ItemStats): { f: number | 0; x: Record<string, number | string> } {
+function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: Record<string, number | string> } {
   const x: Record<string, number | string> = {};
   const put = (k: string, v: unknown) => { if (typeof v === 'number' && Number.isFinite(v)) x[k] = r1(v); };
   switch (type) {
+    case 'missile': case 'torpedo': case 'gmissile': case 'bomb': {
+      const trk = tracking(it.game?.desc);
+      if (trk) x.trk = trk;
+      put('blast', s.blastRadius);
+      put('arm', s.armTime);
+      put('life', s.lifetime);
+      return { f: Math.round(totalDamage(s)), x };
+    }
     case 'gun': {
       const d = s.damage ?? {};
       const ch = (['physical', 'energy', 'distortion'] as const).filter((k) => (d[k] ?? 0) > 0)
@@ -142,9 +179,8 @@ function build(): LayoutData {
   // bekommen je Groesse einen eigenen Schluessel '<id>~<groesse>'.
   const out: Record<string, LayoutItem> = {};
   const byName = new Map<string, Map<number, string>>();
-  const types = Object.entries(CATEGORY) as [LayoutType, string][];
   for (const it of items) {
-    const type = types.find(([, c]) => c === it.category)?.[0];
+    const type = itemType(it);
     if (!type || PLACEHOLDER.test(it.name)) continue;
     const g = it.game ?? {};
     const variants = g.variants?.length
@@ -153,7 +189,7 @@ function build(): LayoutData {
     for (const v of variants) {
       // Groesse 0 sind Fahrzeug- und Bodenteile; sie passen in keinen Schiffsslot.
       if (typeof v.size !== 'number' || v.size < 1 || !v.stats) continue;
-      const { f, x } = figures(type, v.stats);
+      const { f, x } = figures(type, v.stats, it);
       if (!f) continue;
       const de = g.nameDe?.trim();
       out[v.key] = [it.name, de && de !== it.name ? de : 0, type, v.size, v.maker || 0, g.class || 0, v.grade || 0, f, x, shopPrice(it)];
@@ -171,11 +207,13 @@ function build(): LayoutData {
     for (const port of shipGeometry(id).ports) {
       const base = port.name.replace(/^hardpoint_/, '');
       port.items.forEach((it, i) => {
-        const t = typeOf(it);
-        if (!t || typeof it.size !== 'number' || it.size < 1) return;
+        if (typeof it.size !== 'number' || it.size < 1) return;
         const stock = it.name ? byName.get(norm(it.name))?.get(it.size) : undefined;
+        const t = typeOf(it, stock ? out[stock] : undefined);
+        if (!t) return;
         // Eine Waffe, die der Katalog nicht als Bordwaffe fuehrt (Bergbau-,
-        // Bergungs- oder Traktorlaser), ist kein Slot der Werkstatt.
+        // Bergungs- oder Traktorlaser), ist kein Slot der Werkstatt; eine
+        // Rakete ohne Katalog-Item hat schon in typeOf keine Art.
         if (!stock && t.type === 'gun') return;
         if (stock && out[stock][2] !== t.type) return;
         const key = port.items.length > 1 ? `${base}.${i}` : base;
