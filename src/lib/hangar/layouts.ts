@@ -68,11 +68,19 @@ export type LayoutItem = readonly [
 ];
 
 /**
- * Ein tauschbarer Slot: [schluessel, art, groesse, serienteil|0, gruppe, anzahl].
+ * Ein tauschbarer Slot: [schluessel, art, groesse, serienteil|0, gruppe, anzahl, halter?].
  * schluessel = Portname ohne 'hardpoint_', bei mehreren Items im Port mit '.<i>'.
  * Er ist patch-stabil wie der Portname und steht so im geteilten Link.
+ * halter: nur an Raketenports mit Wahl, die Halterungen, die das Spiel dort
+ * erlaubt (Schluessel in racks), die Serienhalterung zuerst.
  */
-export type LayoutSlot = readonly [key: string, type: LayoutType, size: number, stock: string | 0, group: LayoutGroup, count: number];
+export type LayoutSlot = readonly [key: string, type: LayoutType, size: number, stock: string | 0, group: LayoutGroup, count: number, racks?: readonly string[]];
+
+/**
+ * Eine Raketenhalterung: [nameEn, nameDe|0, groesse, plaetze, raketengroesse, art, hersteller|0, preis|0].
+ * art: was die Werkstatt in ihre Plaetze anbietet (Untertyp wie bei LayoutItem).
+ */
+export type LayoutRack = readonly [nameEn: string, nameDe: string | 0, size: number, n: number, ms: number, type: OrdnanceType, maker: string | 0, price: number | 0];
 
 export interface LayoutData {
   readonly v: 1;
@@ -82,6 +90,8 @@ export interface LayoutData {
   readonly models: Readonly<Record<string, string>>;
   /** Lackierungen je Schiff (nur Schiffe mit mindestens einer); fehlt die Datendatei, leer. */
   readonly paints: Readonly<Record<string, ShipPaints>>;
+  /** Raketenhalterungen, die an mindestens einem Port eine Wahl bieten; fehlt die Datendatei, leer. */
+  readonly racks: Readonly<Record<string, LayoutRack>>;
 }
 
 /**
@@ -101,6 +111,32 @@ type PaintRow = { id: string; name: string; a: string; b: string; c: string; pat
 type PaintFile = { ships?: Record<string, { base: { a: string; b: string; c: string }; paints: PaintRow[] }> };
 const PAINT_FILE = (Object.values(import.meta.glob('../../data/ship-paints.json', { eager: true, import: 'default' }))[0] ?? {}) as PaintFile;
 const HEX = /^#[0-9a-f]{6}$/;
+
+// Optional wie die Lackierungen: src/data/ship-missile-racks.json entsteht auf
+// dem Rechner mit den Spieldaten (npm run datamine:racks). Je Raketenport die
+// Serienhalterung und die Halterungen, die das Spiel dort erlaubt (fit), je
+// Halterung Plaetze, Raketengroesse und erlaubte Munition. Ohne die Datei
+// bleiben die Halterungen in Serie, die Raketen darin sind trotzdem tauschbar.
+type RackPort = { rack?: string; fit?: string[] };
+type RackRow = { name?: string; size?: number; n?: number; ms?: number; types?: string[] };
+type RackFile = { ships?: Record<string, Record<string, RackPort>>; racks?: Record<string, RackRow> };
+const RACK_FILE = (Object.values(import.meta.glob('../../data/ship-missile-racks.json', { eager: true, import: 'default' }))[0] ?? {}) as RackFile;
+const RACK_CATEGORIES = new Set(['Vehiclegear / Weapons / Missile Racks', 'Vehiclegear / Weapons / Bomb Racks']);
+
+/** Munitionstypen des Spiels (Port-Typ 'Missile.Torpedo', 'Bomb', ...) als Arten der Werkstatt; ohne Untertyp jede Rakete. */
+function ammoTypes(types: readonly string[] | undefined): Set<OrdnanceType> {
+  const out = new Set<OrdnanceType>();
+  for (const t of types ?? []) {
+    const [main, sub] = String(t).split('.');
+    if (/^bomb/i.test(main)) out.add('bomb');
+    else if (/^missile$/i.test(main)) {
+      if (!sub || /^(missile|undefined)$/i.test(sub)) out.add('missile');
+      if (!sub || /^torpedo$/i.test(sub)) out.add('torpedo');
+      if (!sub || /^groundvehiclemissile$/i.test(sub)) out.add('gmissile');
+    }
+  }
+  return out;
+}
 
 type WeaponAsset = { url: string; v: string; key?: string };
 const WEAPON_MODELS = ((hangarAssets as unknown as { weapons?: Record<string, WeaponAsset> }).weapons) ?? {};
@@ -200,12 +236,55 @@ function build(): LayoutData {
     }
   }
 
+  // Halterungen aus dem Katalog: deutscher Name, Hersteller, Ladenpreis.
+  const rackCat = new Map<string, Item>();
+  for (const it of items) if (RACK_CATEGORIES.has(it.category)) rackCat.set(norm(it.name), it);
+  const pool = new Set(Object.values(out).map((x) => `${x[2]}|${x[3]}`));
+  const racks: Record<string, LayoutRack> = {};
+  const ORDER: readonly OrdnanceType[] = ['missile', 'torpedo', 'gmissile', 'bomb'];
+  /**
+   * Halterung der Spieldatei als Eintrag der Werkstatt; null, wenn ihre
+   * Plaetze nichts aus dem Katalog aufnehmen. Nimmt sie mehrere Arten, gilt
+   * die des Serienteils (want), sonst die erste; jede weitere Art bekommt
+   * einen eigenen Schluessel '<halter>~<art>', damit ein Schluessel genau
+   * eine Art meint.
+   */
+  function rackOf(cls: string, want: OrdnanceType): string | null {
+    const r = RACK_FILE.racks?.[cls];
+    if (!r?.name || !Number.isInteger(r.n) || !Number.isInteger(r.ms) || (r.n as number) < 1 || (r.ms as number) < 1) return null;
+    const ok = ammoTypes(r.types);
+    const accepted = ORDER.filter((t) => ok.has(t) && pool.has(`${t}|${r.ms}`));
+    if (!accepted.length) return null;
+    const type = accepted.includes(want) ? want : accepted[0];
+    const cat = rackCat.get(norm(r.name));
+    const key = (cat?.id ?? cls.toLowerCase().replace(/[^a-z0-9._-]/g, '-')) + (type === accepted[0] ? '' : `~${type}`);
+    if (!racks[key]) {
+      const de = cat?.game?.nameDe?.trim();
+      racks[key] = [r.name, de && de !== r.name ? de : 0, typeof r.size === 'number' ? r.size : 0, r.n as number, r.ms as number, type, cat?.game?.manufacturer || 0, cat ? shopPrice(cat) : 0];
+    }
+    return key;
+  }
+  /** Die Halterungen eines Raketenports, Serie zuerst; undefined ohne Wahl oder wenn die Serie nicht zum Loadout passt. */
+  function rackChoice(id: string, port: string, type: OrdnanceType, size: number, count: number): string[] | undefined {
+    const p = RACK_FILE.ships?.[id]?.[port];
+    const stock = p?.rack ? RACK_FILE.racks?.[p.rack] : undefined;
+    // Datenstand der Halterungen und des Loadouts muessen zusammenpassen.
+    if (!p?.rack || !stock || stock.n !== count || stock.ms !== size) return undefined;
+    const first = rackOf(p.rack, type);
+    if (!first || racks[first][5] !== type) return undefined;
+    const rest = [...new Set((p.fit ?? []).filter((c) => c !== p.rack).map((c) => rackOf(c, type)).filter((k): k is string => !!k && k !== first))];
+    return rest.length ? [first, ...rest] : undefined;
+  }
+
   // Slots: je Schiff die tauschbaren Items in Loadout-Reihenfolge.
   const ships: Record<string, LayoutSlot[]> = {};
   for (const id of HANGAR_IDS) {
     const slots: LayoutSlot[] = [];
     for (const port of shipGeometry(id).ports) {
       const base = port.name.replace(/^hardpoint_/, '');
+      // Halterungen nur, wo eine einzige Rakete im Port sitzt: eine gemischte
+      // Serienbelegung (Buccaneer) hat keinen Slot, der die Halterung traegt.
+      const ordnance = port.items.filter((x) => x.cat === 'missile').length;
       port.items.forEach((it, i) => {
         if (typeof it.size !== 'number' || it.size < 1) return;
         const stock = it.name ? byName.get(norm(it.name))?.get(it.size) : undefined;
@@ -217,7 +296,8 @@ function build(): LayoutData {
         if (!stock && t.type === 'gun') return;
         if (stock && out[stock][2] !== t.type) return;
         const key = port.items.length > 1 ? `${base}.${i}` : base;
-        slots.push([key, t.type, it.size, stock ?? 0, t.group, it.count]);
+        const rk = ordnance === 1 && isOrdnance(t.type) ? rackChoice(id, port.name, t.type, it.size, it.count) : undefined;
+        slots.push(rk ? [key, t.type, it.size, stock ?? 0, t.group, it.count, rk] : [key, t.type, it.size, stock ?? 0, t.group, it.count]);
       });
     }
     if (slots.length) ships[id] = slots;
@@ -227,6 +307,7 @@ function build(): LayoutData {
   // Teile, die niemand einbauen kann.
   const fits = new Set<string>();
   for (const slots of Object.values(ships)) for (const s of slots) fits.add(`${s[1]}|${s[2]}`);
+  for (const r of Object.values(racks)) fits.add(`${r[5]}|${r[4]}`);
   const used: Record<string, LayoutItem> = {};
   for (const k of Object.keys(out).sort()) if (fits.has(`${out[k][2]}|${out[k][3]}`)) used[k] = out[k];
   const models: Record<string, string> = {};
@@ -248,7 +329,11 @@ function build(): LayoutData {
     });
     if (list.length) paints[id] = { base: base as [string, string, string], list };
   }
-  return { v: 1, items: used, ships, models, paints };
+  // Nur Halterungen, die ein Slot anbietet (rackOf legt auch verworfene an).
+  const offered = new Set(Object.values(ships).flatMap((slots) => slots.flatMap((s) => s[6] ?? [])));
+  const rackOut: Record<string, LayoutRack> = {};
+  for (const k of Object.keys(racks).sort()) if (offered.has(k)) rackOut[k] = racks[k];
+  return { v: 1, items: used, ships, models, paints, racks: rackOut };
 }
 
 function ensure() {

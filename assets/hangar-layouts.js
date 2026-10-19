@@ -15,9 +15,11 @@
 // (src/components/hangar/LayoutWorkshop.astro), keines steht hier.
 //
 // Gespeichert wird in localStorage unter 'vb.layouts.v1'. Ein Layout ist
-// { id, ship, name, slots: { <slot>: <bauteil> }, paint?, created, updated };
-// slots nennt nur Abweichungen von der Serie, paint die Lackierung, wenn es
-// nicht der Serienlack ist. Dasselbe Format traegt spaeter den
+// { id, ship, name, slots: { <slot>: <bauteil> }, racks?: { <slot>: <halter> },
+// paint?, created, updated }; slots nennt nur Abweichungen von der Serie,
+// racks die getauschten Raketenhalterungen (dann steht die Rakete des Slots
+// immer ausdruecklich in slots), paint die Lackierung, wenn es nicht der
+// Serienlack ist. Dasselbe Format traegt spaeter den
 // Kennwert-Ueberblick, den Vergleich zweier Layouts und einen Abgleich mit
 // dem Konto. Beim Import passiert nichts; die Tests rufen die reinen Funktionen.
 
@@ -68,16 +70,21 @@ function cleanSlotMap(raw) {
 
 /**
  * Layout nach Link-Code: base64url von [1, name, slots] und, wenn nicht
- * Serienlack, der Lackierung als viertem Feld (aeltere Seiten lesen es nicht
- * und zeigen den Rest). Das Schiff steht daneben in ?ship=, damit ein leeres
- * Layout auf jedes Schiff passt.
+ * Serienlack, der Lackierung als viertem Feld; getauschte Raketenhalterungen
+ * als fuenftes (die Lackierung steht dann als '' davor, wenn es der
+ * Serienlack ist). Aeltere Seiten lesen die hinteren Felder nicht und zeigen
+ * den Rest. Das Schiff steht daneben in ?ship=, damit ein leeres Layout auf
+ * jedes Schiff passt.
  *   encodeLayout({ name: '', slots: {} }) === 'WzEsIiIse31d'
- * @param {{ name?: string, slots?: Record<string, string>, paint?: string|null }} lo @returns {string}
+ * @param {{ name?: string, slots?: Record<string, string>, racks?: Record<string, string>, paint?: string|null }} lo @returns {string}
  */
 export function encodeLayout(lo) {
   const v = [LAYOUT_VERSION, cleanName(lo.name), cleanSlotMap(lo.slots)];
   const paint = cleanPaint(lo.paint);
-  if (paint) v.push(paint);
+  const racks = cleanSlotMap(lo.racks);
+  const hasRacks = Object.keys(racks).length > 0;
+  if (paint || hasRacks) v.push(paint ?? '');
+  if (hasRacks) v.push(racks);
   return toB64url(JSON.stringify(v));
 }
 
@@ -86,7 +93,7 @@ export const EMPTY_CODE = encodeLayout({ name: '', slots: {} });
 
 /**
  * Link-Code nach Layout; null, wenn der Code nicht von encodeLayout stammen kann.
- * @param {string} code @returns {{ name: string, slots: Record<string, string>, paint?: string }|null}
+ * @param {string} code @returns {{ name: string, slots: Record<string, string>, racks?: Record<string, string>, paint?: string }|null}
  */
 export function decodeLayout(code) {
   if (typeof code !== 'string' || !CODE_RE.test(code)) return null;
@@ -96,17 +103,21 @@ export function decodeLayout(code) {
   try { v = JSON.parse(text); } catch { return null; }
   if (!Array.isArray(v) || v[0] !== LAYOUT_VERSION || typeof v[1] !== 'string') return null;
   const paint = cleanPaint(v[3]);
-  return { name: cleanName(v[1]), slots: cleanSlotMap(v[2]), ...(paint ? { paint } : {}) };
+  const racks = cleanSlotMap(v[4]);
+  return { name: cleanName(v[1]), slots: cleanSlotMap(v[2]), ...(Object.keys(racks).length ? { racks } : {}), ...(paint ? { paint } : {}) };
 }
 
 /* ---------------------------------------------------------- Datenmodell --- */
 
 /**
- * Die Slots eines Schiffs aus /hangar-layouts.json als Objekte.
- * @param {ReadonlyArray<readonly [string, string, number, string|0, string, number]>} rows
+ * Die Slots eines Schiffs aus /hangar-layouts.json als Objekte. racks: die
+ * Halterungen, die das Spiel an diesem Raketenport erlaubt, Serie zuerst;
+ * null, wenn es keine Wahl gibt.
+ * @param {ReadonlyArray<readonly [string, string, number, string|0, string, number, string[]?]>} rows
  */
 export function shipSlots(rows) {
-  return (rows ?? []).map(([key, type, size, stock, group, count]) => ({ key, type, size, stock: stock || null, group, count }));
+  return (rows ?? []).map(([key, type, size, stock, group, count, racks]) =>
+    ({ key, type, size, stock: stock || null, group, count, racks: Array.isArray(racks) && racks.length > 1 ? racks : null }));
 }
 
 /** Passt das Bauteil in den Slot? Dieselbe Art, dieselbe Groesse (bei Raketen: derselbe Untertyp). */
@@ -115,21 +126,60 @@ export function fits(item, slot) {
 }
 
 /**
- * Bringt Abweichungen in die gueltige Form fuer dieses Schiff: unbekannte
- * Slots und unpassende Bauteile fallen weg (und zaehlen als dropped), ein
- * Eintrag gleich der Serie faellt still weg.
- * @returns {{ slots: Record<string, string>, dropped: number }}
+ * Der Slot, wie die gewaehlte Halterung ihn formt: Art, Groesse und Anzahl
+ * der Raketen kommen von ihr. Ohne Wahl, mit der Serienhalterung oder einer
+ * Halterung, die hier nicht passt, der Slot selbst.
+ * racks: { <halter>: [nameEn, nameDe|0, groesse, plaetze, raketengroesse, art, hersteller|0, preis|0] }
  */
-export function cleanSlots(raw, slots, items) {
+export function rackSlot(slot, rack, racks) {
+  const r = rack && rack !== slot.racks?.[0] && slot.racks?.includes(rack) ? racks?.[rack] : null;
+  return r ? { ...slot, type: r[5], size: r[4], count: r[3] } : slot;
+}
+
+/**
+ * Die Rakete fuer eine neu gewaehlte Halterung: die bisherige, wenn sie
+ * passt, sonst die staerkste mit demselben Verfolgungssignal, sonst die
+ * staerkste ueberhaupt; null, wenn keine passt.
+ */
+export function rackMissile(slot, items, prefer) {
+  const keys = candidates(slot, items);
+  if (prefer && keys.includes(prefer)) return prefer;
+  const trk = items[prefer]?.[8]?.trk;
+  return keys.find((k) => trk && items[k][8]?.trk === trk) ?? keys[0] ?? null;
+}
+
+/**
+ * Bringt Abweichungen in die gueltige Form fuer dieses Schiff: unbekannte
+ * Slots, unpassende Halterungen und unpassende Bauteile fallen weg (und
+ * zaehlen als dropped), ein Eintrag gleich der Serie faellt still weg. Mit
+ * getauschter Halterung steht die Rakete immer ausdruecklich da; fehlt sie
+ * oder passt sie nicht, waehlt rackMissile eine (zaehlt als dropped, wenn
+ * eine da war).
+ * @returns {{ slots: Record<string, string>, racks: Record<string, string>, dropped: number }}
+ */
+export function cleanSlots(raw, slots, items, rawRacks = null, racks = null) {
   const byKey = new Map(slots.map((s) => [s.key, s]));
-  const out = {};
+  const outR = {};
   let dropped = 0;
+  for (const [k, v] of Object.entries(rawRacks ?? {})) {
+    const slot = byKey.get(k);
+    if (!slot?.racks?.includes(v) || !racks?.[v]) { dropped++; continue; }
+    if (v !== slot.racks[0]) outR[k] = v;
+  }
+  const out = {};
   for (const [k, v] of Object.entries(raw ?? {})) {
     const slot = byKey.get(k);
-    if (!slot || !fits(items[v], slot)) { dropped++; continue; }
-    if (v !== slot.stock) out[k] = v;
+    if (!slot || !fits(items[v], rackSlot(slot, outR[k], racks))) { dropped++; continue; }
+    if (v !== slot.stock || outR[k]) out[k] = v;
   }
-  return { slots: cleanSlotMap(out), dropped };
+  for (const k of Object.keys(outR)) {
+    if (out[k]) continue;
+    const slot = byKey.get(k);
+    const m = rackMissile(rackSlot(slot, outR[k], racks), items, slot.stock);
+    if (m) out[k] = m;
+    else { delete outR[k]; dropped++; }
+  }
+  return { slots: cleanSlotMap(out), racks: cleanSlotMap(outR), dropped };
 }
 
 /**
@@ -158,28 +208,35 @@ export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', '
 export const WEAPON_TYPES = new Set(['gun', 'missile', 'torpedo', 'gmissile', 'bomb']);
 
 /**
- * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl).
- * Slots ohne bekanntes Teil zaehlen 0.
+ * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl;
+ * jetzt mit der Anzahl der gewaehlten Halterung). Slots ohne bekanntes Teil
+ * zaehlen 0.
  * @returns {Map<string, { now: number, stock: number }>}
  */
-export function groupTotals(slots, layout, items) {
+export function groupTotals(slots, layout, items, rackSel = null, racks = null) {
   const out = new Map();
   for (const s of slots) {
     if (!SUMMED.has(s.group)) continue;
     const t = out.get(s.group) ?? { now: 0, stock: 0 };
     const now = layout[s.key] ?? s.stock;
-    t.now += (items[now]?.[7] ?? 0) * s.count;
+    t.now += (items[now]?.[7] ?? 0) * rackSlot(s, rackSel?.[s.key], racks).count;
     t.stock += (items[s.stock]?.[7] ?? 0) * s.count;
     out.set(s.group, t);
   }
   return out;
 }
 
-/** Gleicher Inhalt: Schiff, Name, Abweichungen und Lackierung. */
+/** Gleicher Inhalt: Schiff, Name, Abweichungen, Halterungen und Lackierung. */
 export function sameLayout(a, b) {
   return !!a && !!b && a.ship === b.ship && cleanName(a.name) === cleanName(b.name)
     && JSON.stringify(cleanSlotMap(a.slots)) === JSON.stringify(cleanSlotMap(b.slots))
+    && JSON.stringify(cleanSlotMap(a.racks)) === JSON.stringify(cleanSlotMap(b.racks))
     && cleanPaint(a.paint) === cleanPaint(b.paint);
+}
+
+/** Wie viele Slots vom Serienstand abweichen; eine Halterung samt Rakete zaehlt einmal, die Lackierung als eigener Slot. */
+export function changeCount(lo) {
+  return new Set([...Object.keys(lo.slots ?? {}), ...Object.keys(lo.racks ?? {})]).size + (lo.paint ? 1 : 0);
 }
 
 /* ---------------------------------------------------------- Ablage --- */
@@ -188,7 +245,8 @@ function cleanEntry(e) {
   if (!e || typeof e !== 'object' || typeof e.id !== 'string' || !/^[a-z0-9]{4,32}$/.test(e.id) || !SHIP_RE.test(e.ship)) return null;
   const created = Number.isFinite(e.created) ? e.created : 0;
   const paint = cleanPaint(e.paint);
-  return { id: e.id, ship: e.ship, name: cleanName(e.name), slots: cleanSlotMap(e.slots), ...(paint ? { paint } : {}), created, updated: Number.isFinite(e.updated) ? e.updated : created };
+  const racks = cleanSlotMap(e.racks);
+  return { id: e.id, ship: e.ship, name: cleanName(e.name), slots: cleanSlotMap(e.slots), ...(Object.keys(racks).length ? { racks } : {}), ...(paint ? { paint } : {}), created, updated: Number.isFinite(e.updated) ? e.updated : created };
 }
 
 /**
@@ -285,7 +343,7 @@ export function initWorkshop(doc, bridge) {
   const undoBtn = $('hgl-undo');
   const copyField = $('hgl-copyfield');
 
-  /** @type {{ items: Record<string, any[]>, ships: Record<string, any[]>, models?: Record<string, string> }|null} */
+  /** @type {{ items: Record<string, any[]>, ships: Record<string, any[]>, racks?: Record<string, any[]>, models?: Record<string, string> }|null} */
   let data = null;
   let loading = null;
   // Das Layout in Arbeit, sein Code (wie in der Adresse) und die Slots seines Schiffs.
@@ -320,8 +378,15 @@ export function initWorkshop(doc, bridge) {
     return parts.filter(Boolean).join(' · ');
   }
   const current = (slot) => draft.slots[slot.key] ?? slot.stock;
+  // Der Slot mit der gewaehlten Halterung (Anzahl und Groesse der Raketen).
+  const eff = (slot) => rackSlot(slot, draft.racks?.[slot.key], data.racks);
+  const isChanged = (slot) => slot.key in draft.slots || !!draft.racks?.[slot.key];
   // Die Lackierung zaehlt wie im Spiel als eigener Slot.
-  const changedCount = () => Object.keys(draft.slots).length + (draft.paint ? 1 : 0);
+  const changedCount = () => changeCount(draft);
+  const rackName = (k) => {
+    const r = data.racks?.[k];
+    return r ? (de && r[1]) || r[0] : m('slot.unknown');
+  };
   const placeholder = () => fill(m('name.placeholder'), { ship: bridge.shipName(draft.ship) });
 
   /** Element mit Attributen; Kinder als Knoten oder Text, nie als Markup. */
@@ -365,11 +430,11 @@ export function initWorkshop(doc, bridge) {
     const raw = decodeLayout(state.lo) ?? { name: '', slots: {} };
     if (state.ship !== draft.ship) $('hgl-scroll').scrollTop = 0;
     slots = shipSlots(data.ships[state.ship]);
-    const { slots: clean, dropped: lost } = cleanSlots(raw.slots, slots, data.items);
+    const { slots: clean, racks: rk, dropped: lost } = cleanSlots(raw.slots, slots, data.items, raw.racks, data.racks);
     // eine Lackierung, die dieses Schiff nicht kennt, faellt weg wie ein unpassendes Teil
     const paint = raw.paint && data.paints?.[state.ship]?.list.some((r) => r[0] === raw.paint) ? raw.paint : null;
     const dropped = lost + (raw.paint && !paint ? 1 : 0);
-    draft = { ship: state.ship, name: raw.name, slots: clean, ...(paint ? { paint } : {}) };
+    draft = { ship: state.ship, name: raw.name, slots: clean, ...(Object.keys(rk).length ? { racks: rk } : {}), ...(paint ? { paint } : {}) };
     code = encodeLayout(draft);
     const pending = pendingSaved ? store.get(pendingSaved) : null;
     const match = pending && sameLayout(pending, draft) ? pending : store.list().find((e) => sameLayout(e, draft));
@@ -478,22 +543,28 @@ export function initWorkshop(doc, bridge) {
     return li;
   }
 
+  const times = (n) => (n > 1 ? `${n}× ` : '');
   function paintSlot(slot, flash = false) {
     const li = slotEls.get(slot.key);
     if (!li) return;
     const now = current(slot);
     const it = data.items[now];
-    const changed = slot.key in draft.slots;
+    const e = eff(slot);
+    const changed = isChanged(slot);
     li.toggleAttribute('data-changed', changed);
-    const name = `${slot.count > 1 ? `${slot.count}× ` : ''}${itemName(now)}`;
+    li.dataset.type = e.type;
+    const name = `${times(e.count)}${itemName(now)}`;
+    li.querySelector('.hgl-sz').textContent = `S${e.size}`;
     li.querySelector('strong').textContent = name;
-    li.querySelector('.hgl-sub').textContent = subLine(now, false);
+    // Mit getauschter Halterung nennt die Unterzeile sie zuerst.
+    const rk = draft.racks?.[slot.key];
+    li.querySelector('.hgl-sub').textContent = [rk ? rackShort(rk) || rackName(rk) : null, subLine(now, false)].filter(Boolean).join(' · ');
     const was = li.querySelector('.hgl-was');
     was.hidden = !changed;
-    was.textContent = changed ? fill(m('slot.was'), { name: slot.stock ? itemName(slot.stock) : m('slot.unknown') }) : '';
+    was.textContent = changed ? fill(m('slot.was'), { name: slot.stock ? `${times(slot.count)}${itemName(slot.stock)}` : m('slot.unknown') }) : '';
     const fig = li.querySelector('.hgl-fig');
-    fig.replaceChildren(it ? nf.format(it[7]) : '–', el('small', {}, UNIT[slot.type]()));
-    li.querySelector('.hgl-slot__btn').setAttribute('aria-label', `${fill(m('slot.swap'), { slot: `S${slot.size} ${name}` })}`);
+    fig.replaceChildren(it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()));
+    li.querySelector('.hgl-slot__btn').setAttribute('aria-label', `${fill(m('slot.swap'), { slot: `S${e.size} ${name}` })}`);
     if (flash) {
       li.classList.remove('is-flash');
       void li.offsetWidth;
@@ -548,7 +619,7 @@ export function initWorkshop(doc, bridge) {
   }
   function paintCatCounts() {
     for (const b of catBtns) {
-      const n = b.dataset.cat === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === b.dataset.cat && s.key in draft.slots).length;
+      const n = b.dataset.cat === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === b.dataset.cat && isChanged(s)).length;
       b.querySelector('[data-cat-n]').textContent = n ? nf.format(n) : '';
     }
   }
@@ -652,7 +723,7 @@ export function initWorkshop(doc, bridge) {
     paintMods();
     paintModel();
     paintCatCounts();
-    const totals = groupTotals(slots, draft.slots, data.items);
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
     for (const [g, t] of totals) {
       const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : g === 'missile' || g === 'bomb' ? dmg() : UNIT[g]();
       const b = slotsHost.querySelector(`[data-total="${g}"]`);
@@ -695,8 +766,33 @@ export function initWorkshop(doc, bridge) {
     if (r.top < top || r.bottom > h.bottom) host.scrollTop += r.top - top - 8;
   }
 
+  // Halterungen eines Raketenports: je eine Taste mit Anzahl und Groesse der
+  // Raketen, darunter Name und Preis der gewaehlten; die Serie traegt ihr Etikett.
+  function rackBar(slot) {
+    const on = draft.racks?.[slot.key] ?? slot.racks[0];
+    // kleine Raketen zuerst, bei gleicher Groesse die mit mehr Plaetzen
+    const order = [...slot.racks].sort((a, b) => data.racks[a][4] - data.racks[b][4] || data.racks[b][3] - data.racks[a][3]);
+    const btns = order.map((k) => {
+      const r = data.racks[k];
+      const tags = [k === slot.racks[0] && k !== on ? el('em', {}, m('slot.stock')) : null];
+      return el('button', { type: 'button', class: 'hgl-rack', 'data-rack': k, 'aria-pressed': String(k === on), title: rackName(k) },
+        el('b', {}, `${r[3]}× S${r[4]}`), el('small', {}, rackShort(k)), ...tags);
+    });
+    const r = data.racks[on];
+    const info = [rackName(on), r?.[7] ? fill(m('pick.price'), { n: nf.format(r[7]) }) : m('pick.noshop')].join(' · ');
+    return el('div', { class: 'hgl-racks', role: 'group', 'aria-label': m('rack.label') },
+      el('span', { class: 'hgl-racks__h' }, m('rack.label')),
+      el('div', { class: 'hgl-racks__row' }, ...btns),
+      el('small', { class: 'hgl-racks__info' }, info));
+  }
+  // Kurzname einer Halterung fuer die Taste: ohne Art, Bauweise und Belegung ("MSD-322", "Gatac").
+  const rackShort = (k) => (data.racks[k]?.[0] ?? '')
+    .replace(/\b\d+\s*x\s*S?\d+\b/gi, '')
+    .replace(/\b(missile|torpedo|bomb)\b/gi, '').replace(/\b(racks?|launchers?)\b/gi, '')
+    .replace(/\s+-\s*$/, '').replace(/\s{2,}/g, ' ').trim();
+
   function buildPicker(slot, pick) {
-    const keys = candidates(slot, data.items);
+    const keys = candidates(eff(slot), data.items);
     const now = current(slot);
     const base = data.items[now]?.[7] ?? null;
     const max = Math.max(1, ...keys.map((k) => data.items[k][7]));
@@ -727,19 +823,53 @@ export function initWorkshop(doc, bridge) {
     };
     q.addEventListener('input', filter);
     filter();
-    const revert = el('button', { type: 'button', class: 'hgl-revert', hidden: !(slot.key in draft.slots) || !slot.stock }, m('slot.revert'));
-    revert.addEventListener('click', () => equip(slot, slot.stock));
-    pick.replaceChildren(el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
+    const revert = el('button', { type: 'button', class: 'hgl-revert', hidden: !isChanged(slot) || !slot.stock }, m('slot.revert'));
+    revert.addEventListener('click', () => equip(slot, slot.stock, slot.racks?.[0]));
+    pick.replaceChildren(...[slot.racks ? rackBar(slot) : null].filter(Boolean), el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
     // Die gewaehlte Zeile in Sicht, ohne die Seite zu rollen.
     const on = ul.querySelector('[aria-pressed="true"]');
     if (on) ul.scrollTop = on.parentElement.offsetTop - ul.clientHeight / 2 + on.offsetHeight / 2;
   }
 
-  function equip(slot, item) {
-    if (!item) return;
-    if (item === slot.stock) delete draft.slots[slot.key];
+  /** Setzt die Halterung eines Slots (undefined: bleibt); mit getauschter Halterung steht die Rakete ausdruecklich da. */
+  function setRack(slot, rack) {
+    if (rack === undefined || !slot.racks) return;
+    const racks = { ...(draft.racks ?? {}) };
+    if (rack === slot.racks[0]) delete racks[slot.key];
+    else racks[slot.key] = rack;
+    if (Object.keys(racks).length) draft.racks = cleanSlotMap(racks);
+    else delete draft.racks;
+  }
+  function setItem(slot, item) {
+    if (item === slot.stock && !draft.racks?.[slot.key]) delete draft.slots[slot.key];
     else draft.slots[slot.key] = item;
     draft.slots = cleanSlotMap(draft.slots);
+  }
+
+  // Eine andere Halterung: die Rakete folgt (rackMissile), die Auswahl bleibt
+  // offen, damit gleich die Rakete gewaehlt werden kann.
+  function equipRack(slot, rack) {
+    if ((draft.racks?.[slot.key] ?? slot.racks[0]) === rack) return;
+    const prev = current(slot);
+    setRack(slot, rack);
+    const next = rackMissile(eff(slot), data.items, prev) ?? rackMissile(eff(slot), data.items, slot.stock);
+    if (!next) return;
+    setItem(slot, next);
+    bridge.say(fill(m('msg.fitted'), { item: `${rackName(rack)}, ${times(eff(slot).count)}${itemName(next)}` }));
+    commit();
+    paintSlot(slot, true);
+    paintTotals();
+    const li = slotEls.get(slot.key);
+    if (li && openKey === slot.key) {
+      buildPicker(slot, li.querySelector('.hgl-pick'));
+      li.querySelector(`.hgl-rack[data-rack="${CSS.escape(rack)}"]`)?.focus({ preventScroll: true });
+    }
+  }
+
+  function equip(slot, item, rack) {
+    if (!item) return;
+    setRack(slot, rack);
+    setItem(slot, item);
     bridge.say(fill(m('msg.fitted'), { item: itemName(item) }));
     // Zu: die Auswahl schliesst, die Kamera faehrt zurueck, der Slot leuchtet.
     openKey = null;
@@ -752,6 +882,12 @@ export function initWorkshop(doc, bridge) {
   slotsHost.addEventListener('click', (e) => {
     const pb = e.target.closest('.hgl-paint');
     if (pb) { pickPaint(pb.dataset.paint); return; }
+    const rb = e.target.closest('.hgl-rack');
+    if (rb) {
+      const slot = slots.find((s) => s.key === rb.closest('.hgl-slot').dataset.key);
+      if (slot) equipRack(slot, rb.dataset.rack);
+      return;
+    }
     const opt = e.target.closest('.hgl-opt');
     if (opt) {
       const slot = slots.find((s) => s.key === opt.closest('.hgl-slot').dataset.key);
@@ -797,7 +933,7 @@ export function initWorkshop(doc, bridge) {
   /* ---- Speichern, Teilen, Serie ---- */
   function save() {
     if (!slots.length && !hasPaints()) return;
-    const entry = store.save({ id: savedId && store.get(savedId) ? savedId : newId(), ship: draft.ship, name: draft.name || placeholder(), slots: draft.slots, paint: draft.paint });
+    const entry = store.save({ id: savedId && store.get(savedId) ? savedId : newId(), ship: draft.ship, name: draft.name || placeholder(), slots: draft.slots, racks: draft.racks, paint: draft.paint });
     if (!entry) { showToast(m('msg.full')); return; }
     savedId = entry.id;
     if (!draft.name) {
@@ -832,6 +968,7 @@ export function initWorkshop(doc, bridge) {
 
   $('hgl-reset').addEventListener('click', () => {
     draft.slots = {};
+    delete draft.racks;
     delete draft.paint;
     openKey = null;
     commit({ patch: { hp: null } });
@@ -897,7 +1034,7 @@ export function initWorkshop(doc, bridge) {
     const here = all.filter((e) => e.ship === draft.ship);
     const rest = all.filter((e) => e.ship !== draft.ship);
     list.replaceChildren(...[...here, ...rest].map((e) => {
-      const n = Object.keys(e.slots).length + (e.paint ? 1 : 0);
+      const n = changeCount(e);
       const isHere = e.ship === draft.ship;
       return el('li', { class: `hgl-card${isHere ? ' is-here' : ''}${e.id === savedId ? ' is-current' : ''}`, 'data-id': e.id },
         el('h4', {}, e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), isHere ? el('span', { class: 'hgl-card__tag' }, m('saved.here')) : null),
