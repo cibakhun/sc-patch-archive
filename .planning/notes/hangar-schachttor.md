@@ -231,6 +231,14 @@ Dreiecke, Zeichenaufrufe und Texturen bleiben unverändert (eine Rechnung mehr j
 
 **Offen** (Sichturteil, WINDOWS 91): Liest sich der Schlitz als Gehäuse? Wirkt die 0,27 m dünne Bodenkante wieder „wie aus Papier“? Geschlossen liegt das Tor 0,14 m unter dem Boden (Maß des Spiels). Stört diese Stufe?
 
+## Flache Fahrzeuge (18.10. nachts)
+
+Das Tor ging zu, sobald die Oberkante des Schiffs 0,4 m unter ihm war (`gateClearY`). Das Gerät am Wartungsplatz fährt aber mit, und bei rund 20 Fahrzeugen ist es höher als sie: Werkzeugschrank 2,31 m, Generator 2,19 m; Nox 1,33 m, Pulse 1,5 m, X1 1,55 m, ATLS 1,6 m, Dragonfly 2 m, PTV 2,2 m. Gemessen (Testbrowser, `torzeit3.mjs`, Nox → Gladius, hoch): Das Tor begann zu schließen, als die Oberkante des Schranks 0,57 m über der Unterkante des Tors stand.
+
+Jetzt hält `layDienst` die Oberkante des höchsten gestellten Geräts fest (`info.dienstTop`, in der Konsole „höchstes Gerät“), und `gateClearY` wartet auf das Höhere von Schiff und Gerät. Das gilt beim Absenken (Schließen) und beim Auffahren (Öffnen, `liftUp`). Nachgemessen: Tor beginnt bei Feld −5,28 m, Gerät 0,40 m unter dem Tor; das Feld ist trotzdem 0,27 s vor dem Halt gedeckt.
+
+Ohne Wartungsplatz (niedrig, kleine Bildschirme) bleibt alles, wie es war.
+
 ## Alle Seiten zugleich (19.10.)
 
 Krisz, 00:05: „wenn der platform runterfährt und die schacht zu geht kommen erst die 2 kurzen seiten und erst dann die 2 langen. alle sollen gleichzeitig starten aber die gesamt länge von der animation hat gepasst“.
@@ -241,4 +249,4 @@ Krisz, 00:05: „wenn der platform runterfährt und die schacht zu geht kommen e
 
 **Nachgesehen** (Testbrowser in Zeitlupe, Blick von oben mit weitem Winkel): vorher sind die Stirnplatten nach 0,57 s zu und die Flügel kommen erst; nachher fahren bei 0,37 s und 0,54 s Flügel und Stirnplatten gemeinsam ein. Bild `hangar-schachttor/schachttor-vorher-nachher.png` im Projektordner.
 
-**Offen** (Sichturteil, WINDOWS 92): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Soll das Öffnen (nicht ausdrücklich verlangt) ebenfalls gleichzeitig bleiben?
+**Offen** (Sichturteil, WINDOWS 93): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Soll das Öffnen (nicht ausdrücklich verlangt) ebenfalls gleichzeitig bleiben?
