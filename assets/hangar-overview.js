@@ -683,6 +683,7 @@ export function boot(doc) {
     $('hgx-empty-fleet').hidden = !noFleet;
     $('hg-empty').hidden = n > 0 || noFleet;
     paintRandom();
+    paintFilterTog();
   }
 
   // Die Karten wandern im DOM; nach einem Kennwert sortiert, traegt jede
@@ -697,7 +698,23 @@ export function boot(doc) {
       else s.li.firstElementChild.dataset.sv = figureText(v, row, loc);
     }
     scrollToCard(state.ship, 'auto');
+    paintFilterTog();
   }
+
+  // Rolle, Hersteller und Sortierung liegen hinter "Filter"; die Zahl am
+  // Knopf nennt, wie viele davon gerade vom Normalfall abweichen.
+  const filterTog = $('hgx-filtertog');
+  const filterBox = $('hgx-filters');
+  function paintFilterTog() {
+    const n = (state.type ? 1 : 0) + (state.maker ? 1 : 0) + (state.sort !== 'name' ? 1 : 0);
+    $('hgx-filtern').hidden = n === 0;
+    $('hgx-filtern').textContent = String(n);
+  }
+  filterTog.addEventListener('click', () => {
+    filterBox.hidden = !filterBox.hidden;
+    filterTog.setAttribute('aria-expanded', String(!filterBox.hidden));
+    if (!filterBox.hidden) $('hg-type').focus({ preventScroll: true });
+  });
 
   function paintRandom() {
     $('hgx-random').disabled = !visibleIds().some((id) => id !== state.ship);
