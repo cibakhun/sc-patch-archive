@@ -1004,26 +1004,17 @@ export function initWorkshop(doc, bridge) {
   });
 
   /* ---- Ansichten: Bauen und Meine Layouts ---- */
-  const viewBtns = { build: $('hgl-v-build'), saved: $('hgl-v-saved') };
+  // Ein Schalter im Kopf: gedrueckt zeigt die Tafel die gespeicherten
+  // Layouts, ein zweiter Klick (oder Oeffnen eines Layouts) fuehrt zum Bauen.
+  const savedBtn = $('hgl-v-saved');
   function setView(v) {
     view = v;
-    for (const [k, b] of Object.entries(viewBtns)) {
-      b.setAttribute('aria-selected', String(k === v));
-      b.tabIndex = k === v ? 0 : -1;
-    }
+    savedBtn.setAttribute('aria-pressed', String(v === 'saved'));
     $('hgl-build').hidden = v !== 'build';
     $('hgl-saved').hidden = v !== 'saved';
     if (v === 'saved') paintSaved();
   }
-  viewBtns.build.addEventListener('click', () => setView('build'));
-  viewBtns.saved.addEventListener('click', () => setView('saved'));
-  doc.querySelector('.hgl-views').addEventListener('keydown', (e) => {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    e.preventDefault();
-    const to = view === 'build' ? 'saved' : 'build';
-    setView(to);
-    viewBtns[to].focus();
-  });
+  savedBtn.addEventListener('click', () => setView(view === 'saved' ? 'build' : 'saved'));
 
   function paintSaved() {
     const all = store.list();
@@ -1063,7 +1054,7 @@ export function initWorkshop(doc, bridge) {
       if (savedId === gone.id) savedId = null;
       paintSaved();
       paintHead();
-      (list.querySelector('button') ?? viewBtns.saved).focus();
+      (list.querySelector('button') ?? savedBtn).focus();
       showToast(fill(m('msg.deleted'), { name: gone.name }), () => {
         store.restore(gone);
         paintSaved();

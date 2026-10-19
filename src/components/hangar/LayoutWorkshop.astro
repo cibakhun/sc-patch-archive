@@ -43,7 +43,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 <style is:inline>
 /* Die Werkstatt fuellt die Spalte der Tafel (.hg-side in HangarPage.astro)
    bis zum Buehnenfuss. Die Insel-Variablen (--hg-*) setzt .hg-stagewrap. */
-.hgl{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:8px;backdrop-filter:blur(10px);color:var(--hg-on);overflow:hidden;box-shadow:0 18px 50px -20px var(--shadow-color)}
+.hgl{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:0 0 8px 8px;backdrop-filter:blur(10px);color:var(--hg-on);overflow:hidden;box-shadow:0 18px 50px -20px var(--shadow-color)}
 .hgl[hidden]{display:none}
 .hgl-head{padding:.85rem 1rem .6rem;border-bottom:1px solid var(--hg-hair)}
 .hgl-namebox{display:flex;align-items:center;gap:.4rem}
@@ -55,19 +55,22 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-dice:hover,.hgl-dice:focus-visible{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgl-dice.is-roll{animation:hgl-roll .5s var(--ease-ui)}
 @keyframes hgl-roll{0%{transform:rotate(0)}60%{transform:rotate(250deg) scale(1.15)}100%{transform:rotate(360deg)}}
-.hgl-state{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin:.5rem 0 0;font-size:var(--fs-6);color:var(--hg-dim)}
+.hgl-staterow{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:.45rem 0 0}
+.hgl-state{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;min-width:0;margin:0;font-size:var(--fs-6);color:var(--hg-dim)}
+.hgl-savedbtn{appearance:none;flex:0 0 auto;display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .55rem;border:1px solid var(--hg-hair);border-radius:999px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgl-savedbtn:hover,.hgl-savedbtn:focus-visible{border-color:var(--hg-amber);color:var(--hg-on);outline:0}
+.hgl-savedbtn[aria-pressed="true"]{border-color:var(--hg-amber);color:var(--hg-amber)}
+.hgl-savedbtn i{font-style:normal;min-width:1.1rem;padding:0 .3rem;border-radius:9px;background:color-mix(in srgb,var(--hg-on) 12%,transparent);color:var(--hg-on);font-size:var(--fs-5);line-height:1.1rem;text-align:center;font-variant-numeric:tabular-nums}
+.hgl-savedbtn[aria-pressed="true"] i{background:var(--hg-amber);color:var(--ink)}
 .hgl-state b{font-weight:600;color:var(--hg-on)}
 .hgl-state .is-saved{color:var(--hg-amber)}
 .hgl-dot{width:.45rem;height:.45rem;border-radius:50%;background:var(--hg-dim)}
 .hgl-state[data-s="changed"] .hgl-dot{background:var(--hg-amber);box-shadow:0 0 8px var(--hg-amber)}
 .hgl-state[data-s="saved"] .hgl-dot{background:none;width:auto;height:auto;color:var(--hg-amber)}
 .hgl-state[data-s="saved"] .hgl-dot::before{content:"✓";font-style:normal;font-weight:700}
-.hgl-shared{margin:.55rem 0 0;padding:.4rem .6rem;border-radius:6px;background:color-mix(in srgb,var(--hg-amber) 14%,transparent);border:1px solid color-mix(in srgb,var(--hg-amber) 45%,transparent);font-size:var(--fs-6)}
+/* Geteilter Link: eine Zeile unter dem Stand, kein Kasten. */
+.hgl-shared{margin:.3rem 0 0;font-size:var(--fs-6);color:color-mix(in srgb,var(--hg-amber) 80%,var(--hg-on))}
 .hgl-shared[hidden]{display:none}
-.hgl-views{display:flex;gap:.25rem;margin:.7rem 0 -.6rem}
-.hgl-views button{appearance:none;flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:.45rem .2rem .5rem;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
-.hgl-views button:hover,.hgl-views button:focus-visible{color:var(--hg-on)}
-.hgl-views button[aria-selected="true"]{color:var(--hg-on);border-bottom-color:var(--hg-amber)}
 .hgl-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:.75rem .7rem .5rem}
 .hgl-msgline{margin:.4rem .3rem;font-size:var(--fs-7);color:var(--hg-dim)}
 .hgl-msgline[hidden],.hgl-pane[hidden]{display:none}
@@ -221,15 +224,19 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={dice} fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="9" cy="9" r="1.4" fill="currentColor" /><circle cx="15" cy="9" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="9" cy="15" r="1.4" fill="currentColor" /><circle cx="15" cy="15" r="1.4" fill="currentColor" /></svg>
       </button>
     </div>
-    <p class="hgl-state" id="hgl-state" data-s="stock" aria-live="polite"><i class="hgl-dot" aria-hidden="true"></i><b id="hgl-state-txt">{l('state.stock')}</b><span id="hgl-state-sub"></span></p>
-    <p class="hgl-shared" id="hgl-shared" hidden>{l('shared')}</p>
-    <div class="hgl-views" role="tablist" aria-label={l('title')}>
-      <button type="button" role="tab" id="hgl-v-build" aria-controls="hgl-build" aria-selected="true">{l('view.build')}</button>
-      <button type="button" role="tab" id="hgl-v-saved" aria-controls="hgl-saved" aria-selected="false" tabindex="-1">{l('view.saved')} (<span id="hgl-count">0</span>)</button>
+    {/* Stand links, rechts der Weg zu den gespeicherten Layouts: ein Schalter
+        statt einer zweiten Reiterleiste ueber den Reitern Waffen, Systeme, Lackierung. */}
+    <div class="hgl-staterow">
+      <p class="hgl-state" id="hgl-state" data-s="stock" aria-live="polite"><i class="hgl-dot" aria-hidden="true"></i><b id="hgl-state-txt">{l('state.stock')}</b><span id="hgl-state-sub"></span></p>
+      <button type="button" class="hgl-savedbtn" id="hgl-v-saved" aria-controls="hgl-saved" aria-pressed="false" data-help={h('hangar.ctl.layoutSaved')}>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        <span>{l('view.saved')}</span> <i id="hgl-count">0</i>
+      </button>
     </div>
+    <p class="hgl-shared" id="hgl-shared" hidden>{l('shared')}</p>
   </div>
   <div class="hgl-scroll" id="hgl-scroll">
-    <div class="hgl-pane" id="hgl-build" role="tabpanel" aria-labelledby="hgl-v-build" data-help={h('hangar.ctl.layoutSlots')}>
+    <div class="hgl-pane" id="hgl-build" data-help={h('hangar.ctl.layoutSlots')}>
       <p class="hgl-msgline" id="hgl-loading">{l('loading')}</p>
       <p class="hgl-msgline" id="hgl-failed" role="alert" hidden>{l('failed')} <button type="button" class="hgl-revert" id="hgl-retry">{l('retry')}</button></p>
       <div class="hgl-cats" id="hgl-cats" role="tablist" aria-label={l('cat.label')} hidden>
@@ -240,7 +247,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       <div id="hgl-slots"></div>
       <p class="hgl-note">{l('note')}</p>
     </div>
-    <div class="hgl-pane" id="hgl-saved" role="tabpanel" aria-labelledby="hgl-v-saved" hidden>
+    <div class="hgl-pane" id="hgl-saved" role="region" aria-labelledby="hgl-v-saved" hidden>
       <ul class="hgl-list" id="hgl-list"></ul>
     </div>
   </div>

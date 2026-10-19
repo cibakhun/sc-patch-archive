@@ -202,6 +202,7 @@ export const HELP = {
     'hangar.ctl.layoutName': 'Name des Layouts; der Würfel schlägt einen vor.',
     'hangar.ctl.layoutSlots': 'Die Reiter Waffen, Systeme und Lackierung teilen die Slots wie im Spiel; am Schiff sind nur die Teile des gewählten Reiters markiert, eine Lackierung färbt das Modell um. Ein Klick auf einen Slot zeigt alle passenden Bauteile, sortiert nach ihrem Kennwert; die Zahl rechts ist der Abstand zum eingebauten Teil.',
     'hangar.ctl.layoutSave': 'Speichert das Layout in diesem Browser; „Link teilen“ kopiert eine Adresse, die genau dieses Layout öffnet.',
+    'hangar.ctl.layoutSaved': 'Zeigt deine gespeicherten Layouts zum Öffnen, Teilen oder Löschen; ein zweiter Klick führt zurück zum Bauen.',
     'hangar.ctl.dock': 'Klappt die Schiffsauswahl mit Suche und Filtern auf oder zu; zugeklappt hat die Halle mehr Platz.',
     'hangar.ctl.search': 'Freitextsuche über Schiffs- und Herstellernamen.',
     'hangar.ctl.select': 'Schränkt das Dock auf einen Wert dieser Auswahlliste ein.',
@@ -214,7 +215,7 @@ export const HELP = {
     'hangar.ctl.compare': 'Legt das gezeigte Schiff in den Vergleich, höchstens drei.',
     'hangar.ctl.copy': 'Kopiert einen Link auf dieses Schiff, diesen Tab und den Vergleich, ohne die Filter des Docks.',
     'hangar.ctl.tray': 'Die Schiffe im Vergleich; ab zwei öffnet der Knopf sie nebeneinander.',
-    'hangar.ctl.fleetLine': 'Summen der Flotte; ein Klick zeigt im Dock nur ihre Schiffe.',
+    'hangar.ctl.fleetLine': 'Summen der Flotte und wo sie gespeichert ist; steht, solange das Dock nur die Flotte zeigt.',
 
     // -- Precision Jump --
     'precisionjump.title': 'Wie funktioniert der Precision-Jump-Rechner?',
@@ -413,6 +414,7 @@ export const HELP = {
     'hangar.ctl.layoutName': 'Name of the loadout; the die suggests one.',
     'hangar.ctl.layoutSlots': 'The Weapons, Systems and Paint tabs split the slots as in the game; on the ship, only parts of the selected tab are marked, and a paint recolours the model. Clicking a slot lists every matching component, sorted by its key figure; the number on the right is the gap to the fitted part.',
     'hangar.ctl.layoutSave': 'Saves the loadout in this browser; “Share link” copies an address that opens exactly this loadout.',
+    'hangar.ctl.layoutSaved': 'Shows your saved loadouts to open, share or delete; a second click goes back to building.',
     'hangar.ctl.dock': 'Opens or closes the ship selection with search and filters; closed, the hall gets more room.',
     'hangar.ctl.search': 'Free-text search across ship and manufacturer names.',
     'hangar.ctl.select': 'Narrows the dock down to a value from this dropdown.',
@@ -425,7 +427,7 @@ export const HELP = {
     'hangar.ctl.compare': 'Puts the ship shown into the comparison, three at most.',
     'hangar.ctl.copy': 'Copies a link to this ship, tab and comparison, without the dock filters.',
     'hangar.ctl.tray': 'The ships in the comparison; from two on, the button opens them side by side.',
-    'hangar.ctl.fleetLine': 'Fleet totals; a click shows only its ships in the dock.',
+    'hangar.ctl.fleetLine': 'Fleet totals and where the fleet is kept; shown while the dock shows only the fleet.',
 
     // -- Precision Jump --
     'precisionjump.title': 'How does the Precision Jump calculator work?',
