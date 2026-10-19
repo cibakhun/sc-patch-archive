@@ -707,6 +707,19 @@ export function boot(doc) {
     if (id) select(id);
   });
 
+  // Die Blase am Zeichen (.hgx-tip) steht linksbuendig am Knopf. Wo sie so
+  // aus dem Fenster liefe, steht sie rechtsbuendig (is-end): Auch
+  // unsichtbar zaehlt sie zur Breite der Seite, am Zufallsknopf am
+  // Zeilenende machte sie die Seite bei 360 px 32 px breiter als das Fenster.
+  // Neu gemessen, sobald die Filterzeile anders umbricht.
+  const tips = [...main.querySelectorAll('.hgx-tip')];
+  const fitTips = () => {
+    for (const t of tips) t.classList.remove('is-end');
+    const w = doc.documentElement.clientWidth;
+    for (const t of tips) { const r = t.getBoundingClientRect(); if (r.width && r.right > w - 4) t.classList.add('is-end'); }
+  };
+  new ResizeObserver(fitTips).observe(dockTog.parentElement);
+
   function syncControls() {
     $('hg-q').value = state.q;
     $('hg-type').value = state.type;

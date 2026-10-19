@@ -116,6 +116,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Linksbuendig am Knopf: die Knoepfe stehen am linken Rand, mittig liefe die
    Blase des ersten aus der Buehne. Unten auf der Buehne steht sie darueber. */
 .hg-tools .hgx-tip,.hgx-rand .hgx-tip{top:auto;bottom:calc(100% + 6px);transform:translateY(3px)}
+/* Am Zeilenende liefe sie aus dem Fenster: dort rechtsbuendig (hangar-overview.js, fitTips) */
+.hgx-tip.is-end{left:auto;right:0}
 .hg-tools{position:absolute;left:var(--hg-gut);bottom:16px;z-index:2;display:flex;gap:.4rem}
 .hgx-gfx[hidden]{display:none}
 /* var(--fs-8) = 16,2 px: iOS Safari zoomt in jedes Formularfeld unter 16 px. */
