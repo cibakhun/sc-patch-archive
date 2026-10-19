@@ -249,7 +249,7 @@ Krisz, 00:05: „wenn der platform runterfährt und die schacht zu geht kommen e
 
 **Nachgesehen** (Testbrowser in Zeitlupe, Blick von oben mit weitem Winkel): vorher sind die Stirnplatten nach 0,57 s zu und die Flügel kommen erst; nachher fahren bei 0,37 s und 0,54 s Flügel und Stirnplatten gemeinsam ein. Bild `hangar-schachttor/schachttor-vorher-nachher.png` im Projektordner.
 
-**Offen** (Sichturteil, WINDOWS 93): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Soll das Öffnen (nicht ausdrücklich verlangt) ebenfalls gleichzeitig bleiben?
+**Offen** (Sichturteil, WINDOWS 93): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Das Öffnen bleibt gleichzeitig (Krisz, 19.10. 21:33: „Ja, so lassen“).
 
 ## Torrahmen und Torlack (19.10.)
 
@@ -382,3 +382,20 @@ PC-Lauf 2026-10-19. Geändert: `scripts/lib/ivo-caf.mjs` (Drehungen), `scripts/e
   - mit `rand_landeleuchte_22` bei 33: „[16] Leuchte rand_landeleuchte_22 an a 33: liegt ausserhalb der Seite (0..32 m) oder des Rands (w 0..4 m)“.
 
 **Bild:** `hangar/v48-torrahmen-vorher-nachher.png` im Projektordner. **Offen:** WINDOWS 94.
+
+## Tor liegt in der Nische bereit (19.10. abends)
+
+Krisz, 21:31, mit zwei Bildern vom Ende des Schachts: „siehstr du wie es einfach aus dem nichts erscheint?“
+
+**Ursache.** Nachgestellt als Bildfolge eines Schiffswechsels (Testbrowser in Zeitlupe, Cutlass, Stand staging 9e37ce2), einmal mit Blick auf das ferne Ende, einmal auf eine Längsseite. Sobald die Plattform unter die Decke der Nische fährt, sieht man von oben in die Nische hinein.
+- Enden: Die Stirnplatten liegen offen 2 m hinter der Wandebene in der Nische (`GATE_STOW`), ihre Vorderkante ist ein Fachwerk. Gezeichnet wurde das Tor aber erst ab `gateStart` und nach dem Öffnen nicht mehr (`G.group.visible`). Die Nische war also zuerst leer, mit dem ersten Bild des Schließens stand das Fachwerk darin, nach dem Öffnen verschwand es ebenso mit einem Bild. Das sind Krisz' Bilder.
+- Längsseiten: Die Flügel und was mit ihnen fährt (Zylinder, Riegel, Zahnräder) liegen offen wie im Spiel 12 m hinter unserer Wand, hinter der Rückwand der Nische (3 m). Beim Schließen schossen sie in rund 0,08 s durch diese Rückwand und standen dann hell an der Wandebene. Seit „Alle Seiten zugleich“ ist der Weg bis zur Wand auf 0,1 s gerafft (0,93 s der Bahn); vorher dauerte er 0,43 s und kam ebenso aus der Wand.
+
+**Geändert.**
+- Bildschleife: Das Tor ist sichtbar, solange das Feld unterwegs oder unten ist, das Tor fährt oder zu ist. In Ruhe bleibt es aus wie bisher. `gateStart` und `gateFrame` schalten die Sichtbarkeit nicht mehr selbst. Unterwegs kostet das Tor bis zu 6 Zeichenbefehle mehr, auch solange es offen ist.
+- `buildGate`: Jede Bahn endet nach außen `GATE_STOW` hinter der Wandebene, wie die Stirnplatten schon lagen (Konsole „offen nicht hinter der Nische“: Flügel, Zylinder, Zahnräder und Riegel um 9,7 bis 11,9 m gekürzt). Die Flügel liegen so offen dunkel in der Nische, mit ihren Leuchtstreifen.
+- „Seiten zugleich“ misst den Abschnitt jetzt ab der Nische statt ab dem Feld. Zu: alle Seiten 0 bis 11,25 s (Flügel vorher 2,90 s, Stirnplatten 0 s), auf: 1,23 bis 12,5 s. Alle vier Seiten fahren also im selben Augenblick aus ihrer Nische los und kommen zugleich darin an. `cover` und die Fahrt hinab bleiben.
+
+**Nachgesehen:** dieselben Bildfolgen vorher und nachher, je 4 Zeitpunkte an Ende und Längsseite. Die Längsseite „vorher“ stammt vom Stand mit nur der Sichtbarkeitsänderung; für die Flügel ist das derselbe Ablauf wie auf staging. Bild `hangar-schachttor/schacht-nische-vorher-nachher.png` im Projektordner.
+
+**Offen** (Sichturteil, WINDOWS 95): Kommt beim Wechsel noch etwas aus dem Nichts? Lesen sich Platten und Flügel, dunkel in der Nische, als bereitliegende Teile des Tors? Die Stirnplatten fahren jetzt rund 2,7-mal so langsam wie im Spiel, die Flügel etwas schneller als zuvor.

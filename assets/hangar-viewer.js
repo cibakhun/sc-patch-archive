@@ -904,13 +904,15 @@ const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
 // nicht“). Jetzt tragen sie die Farbe des Spiels, die übrigen Materialien
 // ihre eigene Tönung wie im Schacht.
 const GATE_PALETTE = ['', 'primary', 'secondary', 'tertiary'];
-// Offen liegt jedes Teil mindestens so tief in der Nische unter dem Boden,
-// dass es ganz im dunklen Teil liegt (SHAFT_POCKET). Die Flügel liegen offen
-// ohnehin 12 m hinter unserer Wand (der Spielschacht ist 56 m breit, unser
-// Feld 32 m); die Stirnplatten lagen in der Mündung, ihre Front sah aus wie
-// ein Stück Wand, aus dem sie dann herausfuhren (Krisz, 18.10. abends). Im
-// Spiel deckt dort ein Rahmenstück die Mündung, das in unser Feld nicht
-// passt. Ihre Bahn wird dafür vom geschlossenen Stand aus gestreckt.
+// Offen liegt jedes Teil so tief in der Nische unter dem Boden, dass es ganz
+// im dunklen Teil liegt (SHAFT_POCKET), und nicht tiefer. Die Stirnplatten
+// lagen in der Mündung, ihre Front sah aus wie ein Stück Wand, aus dem sie
+// dann herausfuhren (Krisz, 18.10. abends). Im Spiel deckt dort ein
+// Rahmenstück die Mündung, das in unser Feld nicht passt. Ihre Bahn wird
+// dafür vom geschlossenen Stand aus gestreckt. Die Flügel lagen offen wie im
+// Spiel 12 m hinter unserer Wand (der Spielschacht ist 56 m breit, unser
+// Feld 32 m), hinter der Rückwand der Nische; ihre Bahn endet seit 19.10.
+// hier (buildGate).
 const GATE_STOW = SHAFT_POCKET[1] + 0.2;
 
 // Lage einer Bahn ([t, x, y, z], aufsteigend) zur Zeit tau, nach out
@@ -983,6 +985,29 @@ function buildGate(scene, info, sh, inner) {
     u.at.set(u.keys.open.at(-1)[1], u.keys.open.at(-1)[2], u.keys.open.at(-1)[3]);
     stowed.push(`${u.node} +${(GATE_STOW - behind).toFixed(2)} m`);
   }
+  // Offen zu tief: Die Flügel und was mit ihnen fährt liegen im Spiel offen
+  // 12 m hinter unserer Wand, hinter der Rückwand der Nische, und schossen
+  // beim Schließen in 0,08 s durch sie hindurch (19.10.2026, Krisz:
+  // „siehstr du wie es einfach aus dem nichts erscheint?“). Jede Bahn endet
+  // darum GATE_STOW hinter der Wandebene: Offen liegt alles dunkel in der
+  // Nische bereit wie die Stirnplatten und fährt von dort aus.
+  const cut = [];
+  for (const u of parts) {
+    const c = u.keys.close.at(-1), o = u.keys.close[0];
+    const ax = Math.abs(o[1] - c[1]) >= Math.abs(o[3] - c[3]) ? 0 : 2, k = ax === 0 ? 1 : sz, half = ax === 0 ? sh.hx : sh.hz;
+    const run = (o[ax + 1] - c[ax + 1]) * k;
+    if (Math.abs(run) < 0.5) continue;
+    const lim = run > 0 ? (half + GATE_STOW) / k - u.lo[ax] : -(half + GATE_STOW) / k - u.hi[ax];
+    let most = 0;
+    for (const ks of [u.keys.close, u.keys.open]) for (const q of ks) {
+      const v = run > 0 ? Math.min(q[ax + 1], lim) : Math.max(q[ax + 1], lim);
+      most = Math.max(most, Math.abs(q[ax + 1] - v) * k);
+      q[ax + 1] = v;
+    }
+    if (most < 0.01) continue;
+    u.at.set(u.keys.open.at(-1)[1], u.keys.open.at(-1)[2], u.keys.open.at(-1)[3]);
+    cut.push(`${u.node} −${most.toFixed(2)} m`);
+  }
   // Deckt das Tor auf der Bahn dir zur Zeit t das Feld ganz? Jede Zelle
   // (0,25 m) unter einem Teil, das bis an den Boden reicht (wie
   // verify:hangar-hall [15])
@@ -1013,11 +1038,13 @@ function buildGate(scene, info, sh, inner) {
   // bis 4,2 s der Bahn), dann die Flügel (4,2 bis 11,25 s), beim Öffnen
   // umgekehrt. Je Seite (Teile mit derselben Fahrachse und -richtung) und
   // Bahn wird die Zeit deshalb umgelegt: Der Abschnitt, in dem Teile der
-  // Seite bis an den Boden im Feld fahren, solange es nicht zwischen zwei
-  // Stützstellen ganz gedeckt ist (die Riegel rasten danach ein), wird auf
-  // den aller Seiten zusammen gedehnt; davor und danach läuft der Rest der
-  // Bahn gerafft. Anfang und Ende des Wechsels bleiben, wie sie waren, so
-  // auch cover (wie bisher an den Stützstellen des Spiels gemessen).
+  // Seite bis an den Boden in Nische oder Feld fahren, solange es nicht
+  // zwischen zwei Stützstellen ganz gedeckt ist (die Riegel rasten danach
+  // ein), wird auf den aller Seiten zusammen gedehnt; davor und danach
+  // läuft der Rest der Bahn gerafft. Anfang und Ende des Wechsels bleiben,
+  // wie sie waren, so auch cover (wie bisher an den Stützstellen des Spiels
+  // gemessen). Seit die Bahnen in der Nische enden (cut), beginnt der
+  // Abschnitt dort: Alle Seiten fahren zugleich aus ihr los.
   const sides = new Map(), sync = [], N = 500;
   for (const u of parts) {
     const c = u.keys.close.at(-1), o = u.keys.close[0], ax = Math.abs(o[1] - c[1]) >= Math.abs(o[3] - c[3]) ? 1 : 3;
@@ -1035,7 +1062,7 @@ function buildGate(scene, info, sh, inner) {
       for (const u of us) for (let i = 0; i < N; i++) {
         if (ss[i] && ss[i + 1]) continue;
         gateAt(u.keys[dir], ts[i], at); gateAt(u.keys[dir], ts[i + 1], at2);
-        if (at.distanceTo(at2) < 1e-4 || !floor(u, at) || Math.max(into(u.lo, u.hi, at.toArray()), into(u.lo, u.hi, at2.toArray())) <= 0) continue;
+        if (at.distanceTo(at2) < 1e-4 || !floor(u, at) || Math.max(into(u.lo, u.hi, at.toArray()), into(u.lo, u.hi, at2.toArray())) <= -GATE_STOW - 0.05) continue;
         a = Math.min(a, ts[i]); b = Math.max(b, ts[i + 1]);
       }
       if (b > a) span.set(k, [a, b]);
@@ -1044,12 +1071,16 @@ function buildGate(scene, info, sh, inner) {
     const S = Math.min(...[...span.values()].map((s) => s[0])), E = Math.max(...[...span.values()].map((s) => s[1]));
     for (const [k, [a, b]] of span) {
       const w = (t) => (t <= a ? (a > 0 ? (t * S) / a : S) : t <= b ? S + ((t - a) * (E - S)) / (b - a) : E + ((t - b) * (T - E)) / (T - b));
+      // Was auf null Zeit gerafft würde (S = 0 oder E = T), fällt weg: Dort
+      // steht die Seite in der Nische, und die Zylinder klappten sonst mit
+      // einem Bild in die Lage bei a oder b um
+      const keep = ([t]) => !((t < a && S <= 0) || (t > b && E >= T));
       for (const u of sides.get(k)) {
-        const ks = u.keys[dir].map(([t, x, y, z]) => [w(t), x, y, z]);
+        const ks = u.keys[dir].filter(keep).map(([t, x, y, z]) => [w(t), x, y, z]);
         for (const t of [a, b]) { gateAt(u.keys[dir], t, at); ks.push([w(t), at.x, at.y, at.z]); }
         u.keys = { ...u.keys, [dir]: ks.sort((p, q) => p[0] - q[0]) };
         if (u.rot) {
-          const rs = u.rot[dir].map(([t, ...q]) => [w(t), ...q]), q = new THREE.Quaternion();
+          const rs = u.rot[dir].filter(keep).map(([t, ...q]) => [w(t), ...q]), q = new THREE.Quaternion();
           for (const t of [a, b]) rs.push([w(t), ...gateRot(u.rot[dir], t, q).toArray()]);
           u.rot = { ...u.rot, [dir]: rs.sort((p, q) => p[0] - q[0]) };
         }
@@ -1127,7 +1158,7 @@ function buildGate(scene, info, sh, inner) {
     }
   }
   // cover: ab hier auf der Bahn zu ist das Feld ganz gedeckt (danach rasten nur noch die Riegel ein)
-  const G = { group, parts, batches, used: parts.length, dropped, stowed, sync, lacke, turn: parts.filter((u) => u.rot).length, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
+  const G = { group, parts, batches, used: parts.length, dropped, stowed, cut, sync, lacke, turn: parts.filter((u) => u.rot).length, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
   gatePose(G, 'open', T);
   return G;
 }
@@ -5775,8 +5806,8 @@ ${HALL_LIGHTS_BEGIN}
           }
           shaft.pit.visible = false;
           // Schachttor: Materialien wie die der Halle (es liegt im Boden und
-          // nimmt das Hallenlicht, nicht die Schachtlampen), unsichtbar, bis
-          // es zugeht
+          // nimmt das Hallenlicht, nicht die Schachtlampen), sichtbar mit dem
+          // Schacht (in der Bildschleife)
           const gk = await gateReady;
           if (gk) {
             try {
@@ -5803,7 +5834,7 @@ ${HALL_LIGHTS_BEGIN}
               G.group.visible = false;
               shaft.group.add(G.group);
               shaft.gate = G;
-              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; offen nicht hinter der Nische: ${G.cut.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
             } catch (e) {
               console.warn('[hangar] Schachttor nicht gebaut', e);
             }
@@ -6088,7 +6119,6 @@ ${HALL_LIGHTS_BEGIN}
       snap = true;
     }
     G.run = { dir, t0, tau0, snap };
-    G.group.visible = true;
   }
   function gateClose(info) {
     const G = gateOf();
@@ -6130,7 +6160,6 @@ ${HALL_LIGHTS_BEGIN}
     if (tau >= G.T && b >= 1) {
       G.run = null;
       G.state = r.dir === 'close' ? 'closed' : 'open';
-      G.group.visible = G.state === 'closed';
       gateSettle(G);
     }
   }
@@ -7197,6 +7226,13 @@ ${HALL_LIGHTS_BEGIN}
         // darunter kosten dann nichts (der Tausch wartet oft aufs Laden)
         const sealed = sh.gate?.state === 'closed' && !sh.gate.run;
         sh.pit.visible = active && !sealed;
+        // Das Tor liegt sichtbar in seiner Nische, solange man in den Schacht
+        // sieht (19.10.2026, Krisz: „siehstr du wie es einfach aus dem nichts
+        // erscheint?“). Bis dahin kam es erst mit dem Schließen ins Bild: Die
+        // Stirnplatten, offen in der Nische an den Enden (GATE_STOW), tauchten
+        // dort mit einem Bild auf und verschwanden nach dem Öffnen ebenso. In
+        // Ruhe deckt das Feld den Schacht, dann bleibt es aus.
+        if (sh.gate) sh.gate.group.visible = active || !!sh.gate.run || sh.gate.state === 'closed';
         realHall.lift.visible = !sealed;
         if (realHall.dienst) realHall.dienst.group.visible = !sealed;
         if (!active) pitState.t0 = 0;
