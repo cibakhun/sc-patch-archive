@@ -249,7 +249,7 @@ Krisz, 00:05: „wenn der platform runterfährt und die schacht zu geht kommen e
 
 **Nachgesehen** (Testbrowser in Zeitlupe, Blick von oben mit weitem Winkel): vorher sind die Stirnplatten nach 0,57 s zu und die Flügel kommen erst; nachher fahren bei 0,37 s und 0,54 s Flügel und Stirnplatten gemeinsam ein. Bild `hangar-schachttor/schachttor-vorher-nachher.png` im Projektordner.
 
-**Offen** (Sichturteil, WINDOWS 93): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Soll das Öffnen (nicht ausdrücklich verlangt) ebenfalls gleichzeitig bleiben?
+**Offen** (Sichturteil, WINDOWS 93): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Das Öffnen bleibt gleichzeitig (Krisz, 19.10. 21:33: „Ja, so lassen“).
 
 ## Torrahmen und Torlack (19.10.)
 
@@ -382,3 +382,15 @@ PC-Lauf 2026-10-19. Geändert: `scripts/lib/ivo-caf.mjs` (Drehungen), `scripts/e
   - mit `rand_landeleuchte_22` bei 33: „[16] Leuchte rand_landeleuchte_22 an a 33: liegt ausserhalb der Seite (0..32 m) oder des Rands (w 0..4 m)“.
 
 **Bild:** `hangar/v48-torrahmen-vorher-nachher.png` im Projektordner. **Offen:** WINDOWS 94.
+
+## Stirnplatten in der Nische (19.10. abends)
+
+Krisz, 21:31, mit zwei Bildern vom Ende des Schachts: „siehstr du wie es einfach aus dem nichts erscheint?“
+
+**Ursache.** Nachgestellt als Bildfolge eines Schiffswechsels (Testbrowser in Zeitlupe, Blick von der Feldmitte auf das ferne Ende, Cutlass, Stand staging 9e37ce2). Die Stirnplatten liegen offen 2 m hinter der Wandebene in der Nische (`GATE_STOW`). Ihre Vorderkante ist ein Fachwerk. Sobald die Plattform unter die Decke der Nische fährt, sieht man von oben in die Nische hinein. Gezeichnet wurde das Tor aber erst ab `gateStart` und nach dem Öffnen wieder nicht mehr (`G.group.visible`). Darum war die Nische zuerst leer, und mit dem ersten Bild des Schließens stand das Fachwerk darin. Nach dem Öffnen verschwand es ebenso mit einem Bild. Die Flügel betrifft das nicht: Sie liegen offen 12 m hinter unserer Wand, hinter der Rückwand der Nische und unter dem Hallenboden.
+
+**Geändert** (Bildschleife): Das Tor ist sichtbar, solange das Feld unterwegs oder unten ist, das Tor fährt oder zu ist. Die Platten liegen damit von Anfang an dunkel in ihrer Nische bereit und fahren von dort aus. Nach dem Öffnen bleiben sie dort liegen, bis die Plattform oben den Schacht wieder deckt. In Ruhe bleibt das Tor aus wie bisher. `gateStart` und `gateFrame` schalten die Sichtbarkeit nicht mehr selbst. Unterwegs kostet das Tor bis zu 6 Zeichenbefehle mehr, auch solange es offen ist.
+
+**Nachgesehen:** dieselbe Bildfolge vorher und nachher, je 4 Zeitpunkte. Bild `hangar-schachttor/stirnplatte-vorher-nachher.png` im Projektordner.
+
+**Offen** (Sichturteil, WINDOWS 95): Kommt beim Wechsel noch etwas aus dem Nichts? Liest sich die dunkle Platte in der Nische als bereitliegendes Teil des Tors?

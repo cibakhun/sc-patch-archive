@@ -5775,8 +5775,8 @@ ${HALL_LIGHTS_BEGIN}
           }
           shaft.pit.visible = false;
           // Schachttor: Materialien wie die der Halle (es liegt im Boden und
-          // nimmt das Hallenlicht, nicht die Schachtlampen), unsichtbar, bis
-          // es zugeht
+          // nimmt das Hallenlicht, nicht die Schachtlampen), sichtbar mit dem
+          // Schacht (in der Bildschleife)
           const gk = await gateReady;
           if (gk) {
             try {
@@ -6088,7 +6088,6 @@ ${HALL_LIGHTS_BEGIN}
       snap = true;
     }
     G.run = { dir, t0, tau0, snap };
-    G.group.visible = true;
   }
   function gateClose(info) {
     const G = gateOf();
@@ -6130,7 +6129,6 @@ ${HALL_LIGHTS_BEGIN}
     if (tau >= G.T && b >= 1) {
       G.run = null;
       G.state = r.dir === 'close' ? 'closed' : 'open';
-      G.group.visible = G.state === 'closed';
       gateSettle(G);
     }
   }
@@ -7197,6 +7195,13 @@ ${HALL_LIGHTS_BEGIN}
         // darunter kosten dann nichts (der Tausch wartet oft aufs Laden)
         const sealed = sh.gate?.state === 'closed' && !sh.gate.run;
         sh.pit.visible = active && !sealed;
+        // Das Tor liegt sichtbar in seiner Nische, solange man in den Schacht
+        // sieht (19.10.2026, Krisz: „siehstr du wie es einfach aus dem nichts
+        // erscheint?“). Bis dahin kam es erst mit dem Schließen ins Bild: Die
+        // Stirnplatten liegen offen in der Nische an den Enden, tauchten dort
+        // mit einem Bild auf und verschwanden nach dem Öffnen ebenso. In Ruhe
+        // deckt das Feld den Schacht, dann bleibt es aus.
+        if (sh.gate) sh.gate.group.visible = active || !!sh.gate.run || sh.gate.state === 'closed';
         realHall.lift.visible = !sealed;
         if (realHall.dienst) realHall.dienst.group.visible = !sealed;
         if (!active) pitState.t0 = 0;
