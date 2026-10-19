@@ -742,7 +742,9 @@ export function boot(doc) {
     e.preventDefault();
     // Eine gehaltene Taste wechselt einmal, nicht dreissigmal je Sekunde mit je
     // einem Abruf und einer neuen Adresse.
-    if (!e.repeat) step(e.key === 'ArrowLeft' ? -1 : 1);
+    if (e.repeat) return;
+    hintSeen();
+    step(e.key === 'ArrowLeft' ? -1 : 1);
   });
 
   window.addEventListener('popstate', () => {
@@ -764,6 +766,7 @@ export function boot(doc) {
   const fleetBtn = $('hgx-fleet');
   const fleetChip = $('hgx-fleetonly');
   const fleetSum = $('hgx-fleetsum');
+  const fleetLine = $('hgx-fleetline');
   const fleetSync = $('hgx-fleetsync');
   const mergedNote = $('hgx-merged');
   let fleet = { ids: [], mode: 'guest', sync: 'local', error: null, merged: 0 };
@@ -788,7 +791,6 @@ export function boot(doc) {
       else s.li.firstElementChild.removeAttribute('aria-describedby');
     }
     $('hgx-fleetn').textContent = new Intl.NumberFormat(loc).format(sum.n);
-    $('hgx-fleetempty').hidden = sum.n > 0;
     fleetSum.hidden = sum.n === 0;
     $('hgx-fleetsum-txt').textContent = [
       fillMessage(msg('fleet-ships'), { n: sum.n }, loc),
@@ -808,12 +810,23 @@ export function boot(doc) {
       $('hgx-merged-txt').textContent = text;
       if (wasHidden) say(text);
     }
+    paintFleetLine();
+  }
+
+  // Die Zeile im Dock steht, solange das Dock nur die Flotte zeigt. Eine
+  // Uebernahme oder ein Fehler im Abgleich braucht den Besucher: dann steht
+  // sie von selbst, auch bei zugeklapptem Dock (is-alert).
+  function paintFleetLine() {
+    const alert = fleet.merged > 0 || fleet.sync === 'error';
+    fleetLine.classList.toggle('is-alert', alert);
+    fleetLine.hidden = !(alert || (state.fleetOnly && (!fleetSum.hidden || !fleetSync.hidden)));
   }
 
   // Die Live-Region sagt nur an, was der Besucher hier geklickt hat. Ein
-  // Abgleich mit einem anderen Tab oder Geraet aendert die Flotte still; die
-  // Zeile am Buehnenfuss zeigt ihn. Dieser Hoerer am Knopf laeuft vor dem von
-  // fleet.js am Dokument, und fleet.js meldet den Klick noch im selben Ereignis.
+  // Abgleich mit einem anderen Tab oder Geraet aendert die Flotte still; der
+  // Zaehler im Dock und die Sterne der Karten zeigen ihn. Dieser Hoerer am
+  // Knopf laeuft vor dem von fleet.js am Dokument, und fleet.js meldet den
+  // Klick noch im selben Ereignis.
   let clicked = null;
   fleetBtn.addEventListener('click', () => {
     clicked = fleetBtn.dataset.fleetShip;
@@ -828,10 +841,9 @@ export function boot(doc) {
 
   function paintFleetFilter() {
     fleetChip.setAttribute('aria-pressed', String(state.fleetOnly));
-    fleetSum.setAttribute('aria-pressed', String(state.fleetOnly));
+    paintFleetLine();
   }
   fleetChip.addEventListener('click', () => setState({ fleetOnly: !state.fleetOnly }));
-  fleetSum.addEventListener('click', () => setState({ fleetOnly: !state.fleetOnly }));
   $('hgx-merged-x').addEventListener('click', () => {
     mergedNote.hidden = true;
     window.VBFleet?.dismissMerged();
@@ -880,6 +892,7 @@ export function boot(doc) {
   function paintTray() {
     const m = msg('cmp');
     tray.hidden = !state.cmp.length;
+    $('hgx-stagebar').hidden = tray.hidden;
     trayMsg.hidden = true;
     $('hgx-tray-list').replaceChildren(...state.cmp.map((id) => el('li', {}, el('span', {}, dock.get(id).name), removeBtn(id, m))));
     $('hgx-tray-hint').hidden = state.cmp.length !== 1;
@@ -1167,7 +1180,11 @@ export function boot(doc) {
     const wahl = GRAFIK;
     sel.value = v.quality().levels.includes(wahl) ? wahl : 'auto';
     // Von Hand gewaehlt, steht hinter Automatisch nichts: welche Stufe es waere, weiss erst ein Laden ohne Wahl
-    const paint = (q) => { auto.textContent = q.forced ? autoText : `${autoText} · ${textOf(q.level)}`; };
+    // Die Blase am Zeichen nennt, was gerade gilt, wie die offene Liste.
+    const paint = (q) => {
+      auto.textContent = q.forced ? autoText : `${autoText} · ${textOf(q.level)}`;
+      $('hgx-gfx-now').textContent = sel.selectedOptions[0]?.textContent ?? '';
+    };
     paint(v.quality());
     v.onQuality(paint);
     wrap.hidden = false;
@@ -1186,6 +1203,17 @@ export function boot(doc) {
   function canStore() {
     try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
+  // Der Bedienhinweis geht beim ersten Anfassen der Halle oder dem ersten
+  // Schiffswechsel per Pfeiltaste und bleibt weg
+  // (das Inline-Skript in HangarPage.astro liest hg-hint vor dem ersten Bild).
+  const HINT_KEY = 'hg-hint';
+  function hintSeen() {
+    if (main.dataset.hint === 'seen') return;
+    main.dataset.hint = 'seen';
+    try { localStorage.setItem(HINT_KEY, '1'); } catch { /* ohne Speicher kommt er beim naechsten Laden wieder */ }
+  }
+  for (const ev of ['pointerdown', 'wheel']) $('hg-canvas').addEventListener(ev, hintSeen, { once: true, passive: true });
+
   const miss = gpuMiss();
   if (miss) noStage(miss, gpuWhy);
   else {
