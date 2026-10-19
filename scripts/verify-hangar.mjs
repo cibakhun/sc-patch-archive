@@ -87,9 +87,13 @@
     15  Raketen der Werkstatt: jeder Raketen-, Torpedo- und Bombenslot in
         dist/hangar-layouts.json hat ein Serienteil im Katalog derselben
         Art und Groesse, die Gruppe passt zur Art (Bombe zu bomb, sonst
-        missile), und die Stueckzahl ist eine ganze Zahl ab 1. Klinken:
-        Schiffe mit Raketenslots, Raketenslots, Slots mit mindestens einer
-        Alternative zum Serienteil.
+        missile), und die Stueckzahl ist eine ganze Zahl ab 1. Bietet ein
+        Slot Halterungen an, steht jede in racks, die erste (Serie) traegt
+        genau Art, Raketengroesse und Anzahl des Slots, keine kommt doppelt
+        vor, und in jede passt mindestens eine Rakete des Katalogs.
+        Klinken: Schiffe mit Raketenslots, Raketenslots, Slots mit
+        mindestens einer Alternative zum Serienteil, Slots mit Wahl der
+        Halterung.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -108,6 +112,8 @@
      k  in dist/hangar-layouts.json die Serienpalette der Gladius
         verstellen (Ton trifft kein Material mehr)                   -> [14]
      l  in dist/hangar-layouts.json die Torpedos aus items nehmen    -> [15]
+     m  in dist/hangar-layouts.json die Plaetze der MSD-322 auf 3
+        setzen (Serie passt nicht mehr zum Slot)                     -> [15]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -644,7 +650,7 @@ const LACK = { schiffe: 207, lackierungen: 2068, umfaerbbar: 9 };
 
 say('\n[15] Raketen der Werkstatt: Serienteil, Art, Groesse und Gruppe je Halterung');
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 19.10.2026.
-const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462 };
+const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462, halterWahl: 214 };
 {
   const lf = join(DIST, 'hangar-layouts.json');
   const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
@@ -653,8 +659,10 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462 };
   // Kandidaten je Art und Groesse, wie candidates() im Client
   const pool = new Map();
   for (const it of Object.values(items)) if (ORD.has(it[2])) pool.set(`${it[2]}|${it[3]}`, (pool.get(`${it[2]}|${it[3]}`) ?? 0) + 1);
-  let ships = 0, slots = 0, swappable = 0;
+  let ships = 0, slots = 0, swappable = 0, rackPorts = 0;
   const byType = {};
+  const racks = ld.racks ?? {};
+  const usedRacks = new Set();
   for (const [ship, rows] of Object.entries(ld.ships ?? {})) {
     const mine = rows.filter((r) => ORD.has(r[1]));
     if (!mine.length) continue;
@@ -668,14 +676,29 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462 };
       if (group !== (type === 'bomb' ? 'bomb' : 'missile')) fail(`[15] ${ship} ${key}: Gruppe ${group} passt nicht zur Art ${type}`);
       if (!Number.isInteger(count) || count < 1) fail(`[15] ${ship} ${key}: Stueckzahl ${count}`);
       if ((pool.get(`${type}|${size}`) ?? 0) > 1) swappable++;
+      const choice = mine.find((r) => r[0] === key)?.[6];
+      if (!choice) continue;
+      rackPorts++;
+      if (!Array.isArray(choice) || choice.length < 2 || new Set(choice).size !== choice.length) fail(`[15] ${ship} ${key}: Halterungen ${JSON.stringify(choice)} sind keine Wahl aus mindestens zwei verschiedenen`);
+      for (const rk of choice) {
+        usedRacks.add(rk);
+        const r = racks[rk];
+        if (!Array.isArray(r) || r.length !== 8 || typeof r[0] !== 'string' || !r[0].trim() || !Number.isInteger(r[3]) || r[3] < 1 || !Number.isInteger(r[4]) || r[4] < 1 || !ORD.has(r[5])) { fail(`[15] ${ship} ${key}: Halterung ${rk} fehlt in racks oder hat nicht die Form [name, nameDe|0, groesse, plaetze, raketengroesse, art, hersteller|0, preis|0]`); continue; }
+        if (!pool.get(`${r[5]}|${r[4]}`)) fail(`[15] ${ship} ${key}: in Halterung ${rk} (${r[5]} S${r[4]}) passt keine Rakete des Katalogs`);
+      }
+      const st = racks[choice[0]];
+      if (st && (st[5] !== type || st[4] !== size || st[3] !== count)) fail(`[15] ${ship} ${key}: Serienhalterung ${choice[0]} traegt ${st[3]}x ${st[5]} S${st[4]}, der Slot ${count}x ${type} S${size}`);
     }
   }
-  say(`    Schiffe mit Raketenslots: ${ships}   Slots: ${slots} (${Object.entries(byType).map(([k, v]) => `${k} ${v}`).join(', ')})   mit Alternative: ${swappable}`);
-  sollIst(`Schiffe >= ${RAKETEN.schiffe}, Slots >= ${RAKETEN.slots}, mit Alternative >= ${RAKETEN.tauschbar}`, `${ships}, ${slots}, ${swappable}`);
+  const idle = Object.keys(racks).filter((k) => !usedRacks.has(k));
+  if (idle.length) fail(`[15] ${idle.length} Halterungen in racks, die kein Slot anbietet: ${idle.slice(0, 5).join(', ')}`);
+  say(`    Schiffe mit Raketenslots: ${ships}   Slots: ${slots} (${Object.entries(byType).map(([k, v]) => `${k} ${v}`).join(', ')})   mit Alternative: ${swappable}   mit Wahl der Halterung: ${rackPorts} (${Object.keys(racks).length} Halterungen)`);
+  sollIst(`Schiffe >= ${RAKETEN.schiffe}, Slots >= ${RAKETEN.slots}, mit Alternative >= ${RAKETEN.tauschbar}, mit Halterwahl >= ${RAKETEN.halterWahl}`, `${ships}, ${slots}, ${swappable}, ${rackPorts}`);
   if (ships < RAKETEN.schiffe) fail(`[15] nur ${ships} Schiffe mit Raketenslots (Klinke ${RAKETEN.schiffe}): bricht der Join Rakete -> Katalog in src/lib/hangar/layouts.ts (itemType, typeOf)?`);
   if (slots < RAKETEN.slots) fail(`[15] nur ${slots} Raketenslots (Klinke ${RAKETEN.slots})`);
   if (swappable < RAKETEN.tauschbar) fail(`[15] nur ${swappable} Raketenslots mit einer Alternative zum Serienteil (Klinke ${RAKETEN.tauschbar}): fehlen Raketen oder Torpedos im Katalog?`);
-  ist.raketenSchiffe = ships; ist.raketenSlots = slots; ist.raketenTauschbar = swappable;
+  if (rackPorts < RAKETEN.halterWahl) fail(`[15] nur ${rackPorts} Raketenslots mit Wahl der Halterung (Klinke ${RAKETEN.halterWahl}): fehlt src/data/ship-missile-racks.json, oder passt die Serienhalterung nicht mehr zum Loadout (rackChoice in src/lib/hangar/layouts.ts)?`);
+  ist.raketenSchiffe = ships; ist.raketenSlots = slots; ist.raketenTauschbar = swappable; ist.halterWahl = rackPorts;
 }
 
 say('\n[Selbstauskunft]');

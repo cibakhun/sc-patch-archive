@@ -114,10 +114,13 @@ const HEX = /^#[0-9a-f]{6}$/;
 
 // Optional wie die Lackierungen: src/data/ship-missile-racks.json entsteht auf
 // dem Rechner mit den Spieldaten (npm run datamine:racks). Je Raketenport die
-// Serienhalterung und die Halterungen, die das Spiel dort erlaubt (fit), je
-// Halterung Plaetze, Raketengroesse und erlaubte Munition. Ohne die Datei
-// bleiben die Halterungen in Serie, die Raketen darin sind trotzdem tauschbar.
-type RackPort = { rack?: string; fit?: string[] };
+// Serienhalterung und die Halterungen, die das Spiel dort erlaubt (fit: Typ,
+// Groesse und Tags wie im Spiel), je Halterung Plaetze, Raketengroesse und
+// erlaubte Munition. locked: das Spiel sperrt den Port (die Halterung bleibt,
+// die Raketen darin nicht). Ports unter einem Traeger (Turm, Modul) heissen
+// '<schiffsport>/<traegerport>'. Ohne die Datei bleiben die Halterungen in
+// Serie, die Raketen darin sind trotzdem tauschbar.
+type RackPort = { rack?: string; fit?: string[]; locked?: boolean };
 type RackRow = { name?: string; size?: number; n?: number; ms?: number; types?: string[] };
 type RackFile = { ships?: Record<string, Record<string, RackPort>>; racks?: Record<string, RackRow> };
 const RACK_FILE = (Object.values(import.meta.glob('../../data/ship-missile-racks.json', { eager: true, import: 'default' }))[0] ?? {}) as RackFile;
@@ -239,6 +242,30 @@ function build(): LayoutData {
   // Halterungen aus dem Katalog: deutscher Name, Hersteller, Ladenpreis.
   const rackCat = new Map<string, Item>();
   for (const it of items) if (RACK_CATEGORIES.has(it.category)) rackCat.set(norm(it.name), it);
+  // Das Spiel vergibt Namen locker: "MSD-481 Missile Rack" heisst auch eine
+  // Halterung mit 8x S3, "Missile Rack" ist bei Kruger 4x S1 und an der
+  // Aurora 1x S2. Der Katalogeintrag (deutscher Name, Ladenpreis) gilt nur
+  // fuer die Klasse, deren Belegung er nennt ("Missiles: 2xS2"); nennt er
+  // keine, nur wenn der Name eindeutig ist. Jede andere Klasse bekommt ihren
+  // eigenen Schluessel ohne Katalogdaten.
+  const sigs = new Map<string, Set<string>>();
+  for (const r of Object.values(RACK_FILE.racks ?? {})) {
+    if (!r?.name) continue;
+    const n = norm(r.name);
+    sigs.set(n, (sigs.get(n) ?? new Set()).add(`${r.size}|${r.n}|${r.ms}|${[...(r.types ?? [])].sort().join(',')}`));
+  }
+  const capOf = (it: Item): string | null => {
+    const d = it.game?.desc ?? '';
+    const m = /\b(\d+)\s*x\s*S0?(\d+)\b/i.exec(d) ?? /\bcarries\s+(\d+)\s+S(\d+)\b/i.exec(d);
+    return m ? `${Number(m[1])}|${Number(m[2])}` : null;
+  };
+  const catFor = (r: RackRow): Item | undefined => {
+    const it = rackCat.get(norm(r.name ?? ''));
+    if (!it) return undefined;
+    const cap = capOf(it);
+    if (cap) return cap === `${r.n}|${r.ms}` ? it : undefined;
+    return sigs.get(norm(r.name ?? ''))?.size === 1 ? it : undefined;
+  };
   const pool = new Set(Object.values(out).map((x) => `${x[2]}|${x[3]}`));
   const racks: Record<string, LayoutRack> = {};
   const ORDER: readonly OrdnanceType[] = ['missile', 'torpedo', 'gmissile', 'bomb'];
@@ -251,12 +278,13 @@ function build(): LayoutData {
    */
   function rackOf(cls: string, want: OrdnanceType): string | null {
     const r = RACK_FILE.racks?.[cls];
-    if (!r?.name || !Number.isInteger(r.n) || !Number.isInteger(r.ms) || (r.n as number) < 1 || (r.ms as number) < 1) return null;
+    // Ohne Namen im Spiel traegt die Datei die Klasse; die zeigt die Werkstatt nicht.
+    if (!r?.name || /^[A-Za-z0-9]+_[A-Za-z0-9_]+$/.test(r.name) || !Number.isInteger(r.n) || !Number.isInteger(r.ms) || (r.n as number) < 1 || (r.ms as number) < 1) return null;
     const ok = ammoTypes(r.types);
     const accepted = ORDER.filter((t) => ok.has(t) && pool.has(`${t}|${r.ms}`));
     if (!accepted.length) return null;
     const type = accepted.includes(want) ? want : accepted[0];
-    const cat = rackCat.get(norm(r.name));
+    const cat = catFor(r);
     const key = (cat?.id ?? cls.toLowerCase().replace(/[^a-z0-9._-]/g, '-')) + (type === accepted[0] ? '' : `~${type}`);
     if (!racks[key]) {
       const de = cat?.game?.nameDe?.trim();
@@ -264,15 +292,32 @@ function build(): LayoutData {
     }
     return key;
   }
-  /** Die Halterungen eines Raketenports, Serie zuerst; undefined ohne Wahl oder wenn die Serie nicht zum Loadout passt. */
+  /**
+   * Die Halterungen eines Raketenports, Serie zuerst; undefined ohne Wahl,
+   * an einem gesperrten Port oder wenn die Serie nicht zum Loadout passt.
+   * Ein Port unter einem Traeger zaehlt, wenn er der einzige Raketenport
+   * darunter ist.
+   */
   function rackChoice(id: string, port: string, type: OrdnanceType, size: number, count: number): string[] | undefined {
-    const p = RACK_FILE.ships?.[id]?.[port];
+    const all = RACK_FILE.ships?.[id] ?? {};
+    const under = Object.keys(all).filter((k) => k.startsWith(`${port}/`));
+    const p = all[port] ?? (under.length === 1 ? all[under[0]] : undefined);
     const stock = p?.rack ? RACK_FILE.racks?.[p.rack] : undefined;
     // Datenstand der Halterungen und des Loadouts muessen zusammenpassen.
-    if (!p?.rack || !stock || stock.n !== count || stock.ms !== size) return undefined;
+    if (!p?.rack || p.locked || !stock || stock.n !== count || stock.ms !== size) return undefined;
     const first = rackOf(p.rack, type);
     if (!first || racks[first][5] !== type) return undefined;
-    const rest = [...new Set((p.fit ?? []).filter((c) => c !== p.rack).map((c) => rackOf(c, type)).filter((k): k is string => !!k && k !== first))];
+    // Die Serie steht in fit nicht immer (das Spiel prueft Serien-Loadouts nicht): rack und fit zusammen.
+    // Gleiche Halterungen unter zwei Klassen (MSD-322 und seine Meteor-Fassung) bieten sich einmal an.
+    const same = (k: string) => JSON.stringify(racks[k].slice(0, 6));
+    const seen = new Set([same(first)]);
+    const rest: string[] = [];
+    for (const c of p.fit ?? []) {
+      const k = c === p.rack ? null : rackOf(c, type);
+      if (!k || seen.has(same(k))) continue;
+      seen.add(same(k));
+      rest.push(k);
+    }
     return rest.length ? [first, ...rest] : undefined;
   }
 
