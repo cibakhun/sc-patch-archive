@@ -30,7 +30,7 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
 type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number };
-const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }> };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
@@ -91,8 +91,15 @@ const gateJson = gateAsset?.json ? `public${gateAsset.json}` : '';
 const gate = gateAsset && gateJson && existsSync(gateJson)
   ? { url: withV(gateAsset), json: `${gateAsset.json}?v=${contentV([gateJson])}`, bytes: gateAsset.bytes }
   : null;
+// Und der feste Rand um die Öffnung (Eintrag rand): Gitterstegring mit
+// Leuchten und Schriftzug, so wie er im Spiel um den Schacht liegt.
+const randAsset = liftAsset?.rand;
+const randJson = randAsset?.json ? `public${randAsset.json}` : '';
+const rand = randAsset && randJson && existsSync(randJson)
+  ? { url: withV(randAsset), json: `${randAsset.json}?v=${contentV([randJson])}`, bytes: randAsset.bytes }
+  : null;
 const lift = liftAsset && liftJson && existsSync(liftJson)
-  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes, gate }
+  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes, gate, rand }
   : null;
 // Werkstatt aus anderen Spielhallen (scripts/build-hangar-assets.mjs, Art
 // props; PC-Auftrag .planning/notes/hangar-werkstatt.md): Requisiten,

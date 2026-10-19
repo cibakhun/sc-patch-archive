@@ -21,7 +21,7 @@
    Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   FUENFZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   SECHZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -197,7 +197,27 @@
         mindestens KLINKE_TOR Teile, und geschlossen deckt ihr Rahmen jede
         Zelle des Felds (sonst saehe man durch den Spalt den Tausch);
         Dreiecke, Materialien nach dem Zusammenlegen (Zeichenbefehle) und
-        Bytes unter OBERGRENZE_TOR.
+        Bytes unter OBERGRENZE_TOR. Seit 19.10.2026 tragen die
+        Palettenlacke (paint_b_*) die Farbe der Palette am Tor (Betreiber
+        19.10.2026: „textur mässig undso passts auch nicht“); jeder hat
+        seinen Eintrag, mindestens KLINKE_TOR.lacke.
+    16  Um das Feld liegt der feste Rand des Spiels (seit 19.10.2026): Das
+        Tor kam aus dem Nichts (Betreiber 19.10.2026: „es ploppt aus dem
+        nichts rein“, „soll so aussehen wie ein element was da fest verbaut
+        ist“). Im Spiel umrahmt ein 4 m breiter Gitterstegring die
+        Oeffnung, das Tor kommt aus der Fuge davor. HALL_RAND im Viewer
+        reiht seine Teile (lift.<Bausatz>.rand) je Seite um unser Feld,
+        der Hallenshader spart den Boden darunter aus. Geprueft: Nennt das
+        Manifest den Rand, gibt die Seite genau diesen mit, beide Dateien
+        in dist/; jeder genannte Knoten steht im Rand; die Stege decken
+        jede Seite von 0 bis zur Laenge ohne Luecke und Ueberlappung und
+        liegen buendig mit dem Boden (hgCut spart bis 0,3 m darunter aus);
+        Ecken, Leuchten und Schriftzug liegen im Rand und auf ihrer Seite;
+        Materialien, die der Schacht gleichnamig traegt, haben dieselben
+        Bilder (der Viewer nimmt dessen Karten);
+        Teile ueber KLINKE_RAND, Dreiecke, Materialien nach dem
+        Zusammenlegen (Zeichenbefehle in jedem Bild) und Bytes unter
+        OBERGRENZE_RAND.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -284,8 +304,14 @@ const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 
 // Einbau: Mittelfluegel, Stirnplatten, Riegel, Zahnstangen, Zylinder); die
 // Kosten hoechstens die Haelfte des Schachtbudgets (.planning/notes/
 // hangar-schachttor.md: rund 6 Zeichenbefehle, 30 000 Dreiecke)
-const KLINKE_TOR = { teile: 14 };
+const KLINKE_TOR = { teile: 14, lacke: 3 };
 const OBERGRENZE_TOR = { tris: 30000, mats: 6, bytes: 2e6 };
+// Fester Rand um das Feld ([16], seit 19.10.2026): Gitterstegring des
+// Spiels, 4 m breit, mit Landeleuchten und Schriftzug (42 Teile beim
+// Einbau: 4 Ecken mit Leuchte, je Seite Stege und Leuchten, zwei
+// Bodenleuchten). In Ruhe immer zu sehen, also knapp halten.
+const KLINKE_RAND = { teile: 42 };
+const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
@@ -1350,7 +1376,7 @@ let GATE = null;
 try { GATE = gm ? JSON.parse(gm[1]) : null; } catch (e) { fail(`[15] HALL_GATE im Viewer ist kein JSON mehr (${e.message})`); }
 const gateEntry = SHAFT?.kit ? manifest?.lift?.[SHAFT.kit]?.gate ?? null : null;
 const GT = hall?.lift?.gate ?? null;
-const gateRun = { teile: 0, ohne: [], zellen: 0, offen: 0, tris: 0, mats: 0, bytes: 0, bahnen: 0, zwillinge: 0 };
+const gateRun = { teile: 0, ohne: [], zellen: 0, offen: 0, tris: 0, mats: 0, bytes: 0, bahnen: 0, zwillinge: 0, lacke: 0 };
 // Baut der Viewer ein Tor (Block hall-gate) und laedt die Seite den Schacht,
 // gehoert eins dazu: Fiele es aus Manifest und Seite, liefe [15] sonst leer.
 const gateWant = !!(gateEntry || GT || (gm && SHAFT?.kit && hall?.lift));
@@ -1424,10 +1450,25 @@ if (gateWant) {
     gateRun.offen = cov.length - cov.reduce((a, v) => a + v, 0);
     if (gateRun.offen) fail(`[15] geschlossen deckt das Tor ${gateRun.offen} von ${gateRun.zellen} Zellen (${CELL} m) des Felds nicht: Durch den Spalt saehe man den Tausch. Auswahl (HALL_GATE.reach) oder Streckung laengs pruefen`);
     // Kosten: Dreiecke, Bytes, Materialien nach dem Zusammenlegen (gleiche Karten = eins, wie buildGate)
-    const texKey = (m) => [m?.getBaseColorTexture(), m?.getNormalTexture(), m?.getMetallicRoughnessTexture(), m?.getEmissiveTexture()].map((t) => (t ? doc.getRoot().listTextures().indexOf(t) : '-')).join('|') + `|${m?.getAlphaMode()}|${m?.getDoubleSided()}|${m?.getMetallicFactor()}|${m?.getRoughnessFactor()}`;
+    // Palettenlacke wie im Viewer (GATE_PALETTE): Farbe der Palette am Tor;
+    // ein farbiger Lack bleibt fuer sich (hgShade ist ein Wert)
+    const PAL = gi?.palette, PAL_E = ['', 'primary', 'secondary', 'tertiary'];
+    const colOf = (m) => PAL?.entries?.[PAL_E[PAL.layers?.[m.getName().split('_mtl_').pop()] ?? 0]]?.linear ?? m.getBaseColorFactor().slice(0, 3);
+    const hue = (m) => { const c = colOf(m), hi = Math.max(...c); return hi > 0 && (hi - Math.min(...c)) / hi > 0.3 ? `|${c.join(',')}` : ''; };
+    const texKey = (m) => [m?.getBaseColorTexture(), m?.getNormalTexture(), m?.getMetallicRoughnessTexture(), m?.getEmissiveTexture()].map((t) => (t ? doc.getRoot().listTextures().indexOf(t) : '-')).join('|') + `|${m?.getAlphaMode()}|${m?.getDoubleSided()}|${m?.getMetallicFactor()}|${m?.getRoughnessFactor()}${m ? hue(m) : ''}`;
     const groups = new Set();
     for (const { n } of used) { gateRun.tris += n.tris; for (const pr of n.prims) groups.add(texKey(pr.getMaterial())); }
     gateRun.mats = groups.size;
+    // Palettenlacke (paint_b_*): Das Spiel faerbt sie mit der Palette am
+    // Tor. Ohne Eintrag truege das Tor die fast schwarze Behaelterpalette
+    // des Exports (bis 19.10.2026 mit GATE_PAINT zu stumpfem Grau gehoben).
+    for (const m of new Set(used.flatMap(({ n }) => n.prims.map((pr) => pr.getMaterial())).filter(Boolean))) {
+      const nm = m.getName().split('_mtl_').pop();
+      if (!/^paint_b_/.test(nm)) continue;
+      const e = PAL?.entries?.[PAL_E[PAL?.layers?.[nm] ?? 0]];
+      if (!(Array.isArray(e?.linear) && e.linear.length === 3 && e.linear.every((v) => Number.isFinite(v) && v >= 0 && v <= 1))) fail(`[15] ${nm} ist ein Palettenlack, ${GT.json.split('?')[0]} traegt dafuer keine Farbe (palette.layers / palette.entries.*.linear): Das Tor laege fast schwarz. scripts/build-hangar-assets.mjs (buildTor, Palette) pruefen`);
+      else gateRun.lacke++;
+    }
     // Gleichnamige Materialien im Schacht: Der Viewer nimmt deren Karten, also
     // muessen es dieselben Bilder sein (sonst truege das Tor fremde Texturen)
     const shaftDoc = await decode(fromUrl(hall.lift.url));
@@ -1447,15 +1488,169 @@ if (gateWant) {
     }
     const O = OBERGRENZE_TOR;
     if (gateRun.teile < KLINKE_TOR.teile) fail(`[15] nur ${gateRun.teile} Teile des Tors reichen ins Feld (ohne: ${gateRun.ohne.join(', ')}), die Klinke verlangt ${KLINKE_TOR.teile}: Teile beim Export verloren oder HALL_GATE.reach zu streng? KLINKE_TOR nur per Commit mit Ursache senken`);
+    if (gateRun.lacke < KLINKE_TOR.lacke) fail(`[15] nur ${gateRun.lacke} Palettenlacke am Tor tragen die Farbe des Spiels, die Klinke verlangt ${KLINKE_TOR.lacke}: KLINKE_TOR nur per Commit mit Ursache senken`);
     if (gateRun.tris > O.tris) fail(`[15] das Tor zeichnet ${gateRun.tris} Dreiecke, die Obergrenze ist ${O.tris}: zu teuer fuer einen Schiffswechsel (halbes Schachtbudget). Kleinere LOD exportieren; OBERGRENZE_TOR nur per Commit mit Ursache anheben`);
     if (gateRun.mats > O.mats) fail(`[15] das Tor braucht ${gateRun.mats} Materialien (Zeichenbefehle je Durchgang), die Obergrenze ist ${O.mats}: OBERGRENZE_TOR nur per Commit mit Ursache anheben`);
     if (gateRun.bytes > O.bytes) fail(`[15] das Tor wiegt ${(gateRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(gateWant ? `Tor in dist/ wie im Manifest; jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateWant ? `${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+sollIst(gateWant ? `Tor in dist/ wie im Manifest; jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; mindestens ${KLINKE_TOR.lacke} Palettenlacke in der Farbe des Spiels; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateWant ? `${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.lacke} Palettenlacke; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+
+say('\n[16] Der feste Rand liegt rund um das Feld, ohne Luecke, buendig mit dem Boden');
+// Block /* hall-rand */ … /* /hall-rand */ im Viewer (JSON), wie buildRand
+const rm = /\/\* hall-rand \*\/([\s\S]*?)\/\* \/hall-rand \*\//.exec(viewer);
+let RAND = null;
+try { RAND = rm ? JSON.parse(rm[1]) : null; } catch (e) { fail(`[16] HALL_RAND im Viewer ist kein JSON mehr (${e.message})`); }
+const randEntry = SHAFT?.kit ? manifest?.lift?.[SHAFT.kit]?.rand ?? null : null;
+const RT = hall?.lift?.rand ?? null;
+const randRun = { teile: 0, tris: 0, mats: 0, bytes: 0, seiten: 0, stege: 0, zwillinge: 0 };
+// Liegt der Rand bereit (Manifest) oder baut der Viewer einen, gehoert er
+// auf die Seite: Fiele er weg, laege das Feld ohne Rahmen, und der
+// Hallenboden fehlte dort nicht mehr (hgCut liefe leer) — oder umgekehrt.
+const randWant = !!(randEntry || RT || (rm && SHAFT?.kit && hall?.lift));
+if (randWant) {
+  if (!randEntry) fail(`[16] der Viewer baut einen Rand (HALL_RAND) und die Seite laedt den Schacht ${SHAFT?.kit ?? '?'}, das Manifest nennt aber keinen (lift.${SHAFT?.kit ?? '?'}.rand): scripts/build-hangar-assets.mjs (buildRand) pruefen`);
+  if (viewer && !rm) fail('[16] der Viewer traegt keinen Block /* hall-rand */ … /* /hall-rand */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+  if (!RT?.url || !RT?.json) fail(`[16] ${randEntry ? `das Manifest nennt einen Rand (lift.${SHAFT?.kit}.rand), ` : ''}die Seite gibt keinen mit (opts.hall.lift.rand { url, json }): Das Feld laege ohne Rahmen. HangarApp.astro pruefen`);
+  else if (!existsSync(fromUrl(RT.url)) || !existsSync(fromUrl(RT.json))) fail(`[16] der Rand ${RT.url.split('?')[0]} oder ${RT.json.split('?')[0]} liegt nicht in dist/`);
+  else if (randEntry && RT.url.split('?')[0] !== randEntry.url) fail(`[16] die Seite laedt den Rand ${RT.url.split('?')[0]}, das Manifest nennt ${randEntry.url}`);
+  else if (RAND && LIFT && hall?.lift?.json) {
+    let si = null;
+    try { si = JSON.parse(readFileSync(fromUrl(hall.lift.json), 'utf8')); } catch { si = null; }
+    randRun.bytes = readFileSync(fromUrl(RT.url)).length;
+    const doc = await decode(fromUrl(RT.url));
+    // je Knoten: Ausdehnung im Schachtraum des Spiels (Knoten mit Lage), Dreiecke, Materialien
+    const nodes = new Map();
+    for (const node of doc.getRoot().listNodes()) {
+      const mesh = node.getMesh();
+      if (!mesh) continue;
+      const w = node.getWorldMatrix(), pts = [];
+      let tris = 0;
+      const mats = new Set();
+      for (const pr of mesh.listPrimitives()) {
+        const P = pr.getAttribute('POSITION')?.getArray();
+        if (!P) continue;
+        tris += (pr.getIndices()?.getCount() ?? P.length / 3) / 3;
+        if (pr.getMaterial()) mats.add(pr.getMaterial());
+        for (let i = 0; i + 2 < P.length; i += 3) {
+          const x = P[i], y = P[i + 1], z = P[i + 2];
+          pts.push([w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]]);
+        }
+      }
+      if (pts.length) nodes.set(node.getName(), { pts, tris, mats });
+    }
+    // Seiten wie shaftSides im Viewer: Anfang o, entlang t, nach aussen n
+    const sidesOf = (hx, hz) => [
+      { o: [hx, -hz], t: [0, 1], n: [1, 0], len: 2 * hz, kind: 'long' },
+      { o: [-hx, hz], t: [0, -1], n: [-1, 0], len: 2 * hz, kind: 'long' },
+      { o: [hx, hz], t: [-1, 0], n: [0, 1], len: 2 * hx, kind: 'cross' },
+      { o: [-hx, -hz], t: [1, 0], n: [0, -1], len: 2 * hx, kind: 'cross' },
+    ];
+    const gx = (si?.shaft?.inner?.[0] ?? 56) / 2, gz = (si?.shaft?.inner?.[1] ?? 88) / 2, hx = (LIFT.to[0] - LIFT.from[0]) / 2, hz = (LIFT.to[1] - LIFT.from[1]) / 2;
+    const game = sidesOf(gx, gz), ours = sidesOf(hx, hz), W = RAND.width;
+    // Exemplar im Bezugssystem seiner Seite des Spiels (randSideOf): a entlang, w nach aussen
+    const local = new Map();
+    const loc = (name) => {
+      if (local.has(name)) return local.get(name);
+      const n = nodes.get(name);
+      if (!n) { local.set(name, null); return null; }
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      for (const p of n.pts) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+      const c = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2];
+      let s = game[0], bd = Infinity;
+      for (const g of game) {
+        const a = (c[0] - g.o[0]) * g.t[0] + (c[2] - g.o[1]) * g.t[1], ww = (c[0] - g.o[0]) * g.n[0] + (c[2] - g.o[1]) * g.n[1];
+        const d = (ww < -0.5 ? 100 : 0) + Math.max(0, -4 - a) + Math.max(0, a - g.len);
+        if (d < bd) { bd = d; s = g; }
+      }
+      const r = { a0: Infinity, a1: -Infinity, w0: Infinity, w1: -Infinity, y0: lo[1], y1: hi[1], side: s, tris: n.tris, mats: n.mats };
+      for (const p of n.pts) {
+        const x = p[0] - s.o[0], z = p[2] - s.o[1], a = x * s.t[0] + z * s.t[1], ww = x * s.n[0] + z * s.n[1];
+        r.a0 = Math.min(r.a0, a); r.a1 = Math.max(r.a1, a); r.w0 = Math.min(r.w0, ww); r.w1 = Math.max(r.w1, ww);
+      }
+      local.set(name, r);
+      return r;
+    };
+    // Materialien nach dem Zusammenlegen (gleiche Karten = eins, wie matKey im Viewer)
+    const texKey = (m) => { const c = m.getBaseColorFactor().slice(0, 3), hi = Math.max(...c); return [m.getBaseColorTexture(), m.getNormalTexture(), m.getMetallicRoughnessTexture(), m.getEmissiveTexture()].map((t) => (t ? doc.getRoot().listTextures().indexOf(t) : '-')).join('|') + `|${m.getAlphaMode()}|${m.getDoubleSided()}|${m.getMetallicFactor()}|${m.getRoughnessFactor()}` + (hi > 0 && (hi - Math.min(...c)) / hi > 0.3 ? `|${c.join(',')}` : ''); };
+    const E = 0.05, mats = new Set(), usedMats = new Set();
+    const need = (name, where) => { const L = loc(name); if (!L) fail(`[16] HALL_RAND ${where} nennt ${name}, der Rand hat dafuer keinen Knoten mit Dreiecken: buildRand braeche ab, das Feld laege ohne Rahmen`); return L; };
+    const count = (L) => { randRun.teile++; randRun.tris += L.tris; for (const m of L.mats) { mats.add(texKey(m)); usedMats.add(m); } };
+    const pairs = (v) => Array.isArray(v) && v.every((q) => Array.isArray(q) && q.length === 2 && typeof q[0] === 'string' && Number.isFinite(q[1]));
+    if (!(W > 0 && W <= 8 && Array.isArray(RAND.corner) && pairs(RAND.long) && pairs(RAND.cross) && pairs(RAND.lights?.long) && pairs(RAND.lights?.cross) && pairs(RAND.once ?? []))) fail(`[16] HALL_RAND braucht width (m), corner [Knoten], long/cross/lights.long/lights.cross/once als [Knoten, a]`);
+    else {
+      for (const s of ours) {
+        const steg = [];
+        for (const n of RAND.corner) {
+          const L = need(n, 'corner');
+          if (!L) continue;
+          count(L);
+          if (L.a0 < -W - E || L.a1 > E || L.w0 < -E || L.w1 > W + E) fail(`[16] Ecke ${n}: liegt von a ${L.a0.toFixed(2)} bis ${L.a1.toFixed(2)}, w ${L.w0.toFixed(2)} bis ${L.w1.toFixed(2)} m, erwartet im Quadrat vor dem Seitenanfang (a −${W}..0, w 0..${W})`);
+        }
+        for (const [n, a] of RAND[s.kind]) {
+          const L = need(n, s.kind);
+          if (!L) continue;
+          count(L);
+          const len = L.a1 - L.a0, lo = /steg/.test(n) ? a : a - len / 2;
+          if (/steg/.test(n)) steg.push([lo, lo + len, n]);
+          else if (lo < -E || lo + len > s.len + E) fail(`[16] ${n} an a ${a} auf der ${s.kind === 'long' ? 'Laengs' : 'Quer'}seite reicht von ${lo.toFixed(2)} bis ${(lo + len).toFixed(2)} m, die Seite ist ${s.len} m lang`);
+          if (L.w0 < -E || L.w1 > W + E) fail(`[16] ${n}: liegt von w ${L.w0.toFixed(2)} bis ${L.w1.toFixed(2)} m, der Rand ist ${W} m breit: Es ragte ins Feld oder auf den Hallenboden`);
+          if (/steg/.test(n) && (Math.abs(L.y1) > 0.02 || L.y0 < -0.3)) fail(`[16] ${n}: Oberkante ${L.y1.toFixed(3)} m, Unterkante ${L.y0.toFixed(3)} m; der Steg muss buendig mit dem Boden liegen (±0,02) und nicht tiefer als 0,3 m reichen (so weit spart der Hallenshader den Boden aus, hgCut)`);
+        }
+        for (const [n, a] of RAND.lights[s.kind]) {
+          const L = need(n, `lights.${s.kind}`);
+          if (!L) continue;
+          count(L);
+          const len = L.a1 - L.a0;
+          if (a - len / 2 < -E || a + len / 2 > s.len + E || L.w0 < -E || L.w1 > W + E) fail(`[16] Leuchte ${n} an a ${a}: liegt ausserhalb der Seite (0..${s.len} m) oder des Rands (w 0..${W} m)`);
+        }
+        // Stege decken die Seite von 0 bis zur Laenge, ohne Luecke und ohne Ueberlappung
+        steg.sort((p, q) => p[0] - q[0]);
+        let at = 0;
+        for (const [lo, hi, n] of steg) {
+          if (lo > at + E) fail(`[16] ${s.kind === 'long' ? 'Laengs' : 'Quer'}seite: Luecke im Steg von ${at.toFixed(2)} bis ${lo.toFixed(2)} m (vor ${n}); man saehe unter den Boden`);
+          if (lo < at - E) fail(`[16] ${s.kind === 'long' ? 'Laengs' : 'Quer'}seite: ${n} ueberlappt den Steg davor um ${(at - lo).toFixed(2)} m; beide flimmerten gegeneinander`);
+          at = Math.max(at, hi);
+          randRun.stege++;
+        }
+        if (Math.abs(at - s.len) > E) fail(`[16] ${s.kind === 'long' ? 'Laengs' : 'Quer'}seite: die Stege enden bei ${at.toFixed(2)} m, die Seite ist ${s.len} m lang`);
+        randRun.seiten++;
+      }
+      for (const [n, a] of RAND.once ?? []) {
+        const L = need(n, 'once');
+        if (!L) continue;
+        const s = ours.find((q) => q.t[0] === L.side.t[0] && q.t[1] === L.side.t[1]);
+        count(L);
+        const len = L.a1 - L.a0;
+        if (a - len / 2 < -E || a + len / 2 > s.len + E || L.w0 < -E || L.w1 > W + E) fail(`[16] ${n} an a ${a}: liegt ausserhalb seiner Seite (0..${s.len} m) oder des Rands (w 0..${W} m)`);
+      }
+      randRun.mats = mats.size;
+      // Gleichnamige Materialien im Schacht: Der Viewer nimmt deren Karten (wie [15])
+      const shaftDoc = await decode(fromUrl(hall.lift.url));
+      const maps = (m) => [['Farbe', m.getBaseColorTexture()], ['Normale', m.getNormalTexture()], ['Rauheit', m.getMetallicRoughnessTexture()]];
+      const twinOf = new Map(shaftDoc.getRoot().listMaterials().map((m) => [m.getName(), m]));
+      for (const m of usedMats) {
+        const tw = twinOf.get(m.getName());
+        if (!tw) continue;
+        randRun.zwillinge++;
+        const twMaps = new Map(maps(tw));
+        for (const [k, t] of maps(m)) {
+          const u = twMaps.get(k);
+          if (t && u && sha1Bytes(t.getImage()) !== sha1Bytes(u.getImage())) fail(`[16] ${m.getName()}: die Karte ${k} des Rands ist ein anderes Bild als die des gleichnamigen Schachtmaterials; der Viewer naehme die des Schachts. Export pruefen oder das Material umbenennen`);
+        }
+      }
+      const O = OBERGRENZE_RAND;
+      if (randRun.teile < KLINKE_RAND.teile) fail(`[16] der Rand traegt ${randRun.teile} Teile, die Klinke verlangt ${KLINKE_RAND.teile}: Eintrag in HALL_RAND verloren? KLINKE_RAND nur per Commit mit Ursache senken`);
+      if (randRun.tris > O.tris) fail(`[16] der Rand zeichnet ${randRun.tris} Dreiecke, die Obergrenze ist ${O.tris}: Er ist in Ruhe immer zu sehen. OBERGRENZE_RAND nur per Commit mit Ursache anheben`);
+      if (randRun.mats > O.mats) fail(`[16] der Rand braucht ${randRun.mats} Materialien (Zeichenbefehle in jedem Bild), die Obergrenze ist ${O.mats}: OBERGRENZE_RAND nur per Commit mit Ursache anheben`);
+      if (randRun.bytes > O.bytes) fail(`[16] der Rand wiegt ${(randRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
+    }
+  }
+}
+sollIst(randWant ? `Rand in dist/ wie im Manifest; jede Seite mit Stegen von 0 bis zur Laenge, ohne Luecke und Ueberlappung, buendig mit dem Boden; Ecken, Leuchten und Schriftzug im Rand; Materialien wie im Schacht mit denselben Karten; mindestens ${KLINKE_RAND.teile} Teile; hoechstens ${OBERGRENZE_RAND.tris} Dreiecke, ${OBERGRENZE_RAND.mats} Materialien, ${OBERGRENZE_RAND.bytes / 1e6} MB` : 'kein Rand fuer diese Halle', randWant ? `${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.zwillinge} Materialien mit Schachtkarten verglichen; ${randRun.tris} Dreiecke, ${randRun.mats} Materialien, ${(randRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

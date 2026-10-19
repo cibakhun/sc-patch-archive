@@ -896,15 +896,14 @@ const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1300, "clear": 0.4, "le
 const GATE_BLEND_MS = 250;   // kehrt das Tor unterwegs um: so lange von der Lage auf die neue Bahn
 const GATE_SLACK_MS = 80;    // die Oberkante des neuen Schiffs kommt erst so lange nach dem offenen Tor
 const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
-// Lackfarben des Tors heller als im Export: Die Lacke des Spiels sind fast
-// schwarz (linear 0,007 bis 0,06), und unser Hallenlicht ist sparsamer als
-// das des Spiels. Geschlossen las sich das Tor neben dem weißen Hallenboden
-// als schwarzes Loch (Krisz, Bild 18.10. 20:28). GATE_PAINT hebt die dunklen
-// Materialien an, GATE_TONE rückt die vier Lacke zusammen (Abstand zum
-// hellsten hoch GATE_TONE), damit der dunkelste Flügel nicht schwarz bleibt.
-// Geometrie, Karten und Muster bleiben die des Spiels.
-const GATE_PAINT = 5;
-const GATE_TONE = 0.5;
+// Lackfarben des Tors: Die Lacke paint_b_* sind Palettenlacke, das Spiel
+// färbt sie mit der Palette am Tor (info.palette, 19.10.2026: Hellgrau,
+// Dunkelgrau, Dunkelblau). Der Export trug die Palette des Behälters (fast
+// schwarz, linear 0,007 bis 0,032); bis dahin hob GATE_PAINT sie zu einem
+// stumpfen Grau an (Krisz 19.10. 13:37: „textur mässig undso passts auch
+// nicht“). Jetzt tragen sie die Farbe des Spiels, die übrigen Materialien
+// ihre eigene Tönung wie im Schacht.
+const GATE_PALETTE = ['', 'primary', 'secondary', 'tertiary'];
 // Offen liegt jedes Teil mindestens so tief in der Nische unter dem Boden,
 // dass es ganz im dunklen Teil liegt (SHAFT_POCKET). Die Flügel liegen offen
 // ohnehin 12 m hinter unserer Wand (der Spielschacht ist 56 m breit, unser
@@ -922,6 +921,23 @@ function gateAt(keys, tau, out) {
   const a = keys[i - 1], b = keys[i], f = Math.min(1, (tau - a[0]) / (b[0] - a[0] || 1));
   return out.set(a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f);
 }
+// Drehung einer Bahn ([t, qx, qy, qz, qw], aufsteigend) zur Zeit tau, nach out
+const GATE_Q = new THREE.Quaternion();
+function gateRot(keys, tau, out) {
+  if (tau <= keys[0][0]) return out.fromArray(keys[0], 1);
+  let i = 1;
+  while (i < keys.length - 1 && keys[i][0] < tau) i++;
+  const a = keys[i - 1], b = keys[i], f = Math.min(1, (tau - a[0]) / (b[0] - a[0] || 1));
+  return out.fromArray(a, 1).slerp(GATE_Q.fromArray(b, 1), f);
+}
+
+// Materialien mit denselben Karten legen Tor und Rand zusammen: eins (das
+// hellste) je Schlüssel, die übrigen behalten ihre Helligkeit über die
+// Abdunkelung (hgShade ist ein Wert, ein farbiger Lack wie der blaue des
+// Tors bleibt darum für sich)
+const matLum = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+const matHue = (c) => { const hi = Math.max(c.r, c.g, c.b); return hi > 0 && (hi - Math.min(c.r, c.g, c.b)) / hi > 0.3 ? `|${c.getHexString()}` : ''; };
+const matKey = (m) => [m.map, m.normalMap, m.roughnessMap, m.metalnessMap, m.emissiveMap].map((t) => t?.uuid ?? '-').join('|') + `|${m.alphaTest}|${m.transparent}|${m.side}|${m.metalness}|${m.roughness}${matHue(m.color)}`;
 
 // Baut das Tor im Schachtraum (sh aus buildShaft; inner: Öffnung des Spiels
 // [quer, längs]). Liefert { group, parts, batches, used, dropped, tris, T,
@@ -947,7 +963,9 @@ function buildGate(scene, info, sh, inner) {
     if (reach < HALL_GATE.reach) { dropped.push(`${p.node} nie im Feld`); continue; }
     if (into(lo, hi, [open[1], open[2], open[3]]) >= 0) { dropped.push(`${p.node} offen im Feld`); continue; }
     bottom = Math.min(bottom, keys.close.at(-1)[2] + lo[1]);
-    parts.push({ node: p.node, keys, pieces, lo, hi, at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), ids: [] });
+    // Zylinder kippen um ihren Ursprung (keysRot, dieselben Zeiten wie keys)
+    const R = p.keysRot, rot = R?.close?.length > 1 && R.open?.length > 1 ? { close: R.close, open: R.open } : null;
+    parts.push({ node: p.node, keys, rot, pieces, lo, hi, at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), q: new THREE.Quaternion(), snapQ: new THREE.Quaternion(), ids: [] });
   }
   if (!parts.length) throw new Error(`Schachttor: kein Teil reicht ins Feld (${dropped.join(', ')})`);
   // Offen zu flach in der Nische (GATE_STOW): Bahn längs der Fahrachse ab
@@ -1030,15 +1048,27 @@ function buildGate(scene, info, sh, inner) {
         const ks = u.keys[dir].map(([t, x, y, z]) => [w(t), x, y, z]);
         for (const t of [a, b]) { gateAt(u.keys[dir], t, at); ks.push([w(t), at.x, at.y, at.z]); }
         u.keys = { ...u.keys, [dir]: ks.sort((p, q) => p[0] - q[0]) };
+        if (u.rot) {
+          const rs = u.rot[dir].map(([t, ...q]) => [w(t), ...q]), q = new THREE.Quaternion();
+          for (const t of [a, b]) rs.push([w(t), ...gateRot(u.rot[dir], t, q).toArray()]);
+          u.rot = { ...u.rot, [dir]: rs.sort((p, q) => p[0] - q[0]) };
+        }
       }
       sync.push(`${dir === 'close' ? 'zu' : 'auf'} ${k} ${a.toFixed(2)}–${b.toFixed(2)}`);
     }
     sync.push(`${dir === 'close' ? 'zu' : 'auf'} alle ${S.toFixed(2)}–${E.toFixed(2)} s`);
   }
-  // Materialien mit denselben Karten: eins (das hellste), die übrigen
-  // behalten ihre Helligkeit über die Abdunkelung
-  const lum = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-  const keyOf = (m) => [m.map, m.normalMap, m.roughnessMap, m.metalnessMap, m.emissiveMap].map((t) => t?.uuid ?? '-').join('|') + `|${m.alphaTest}|${m.transparent}|${m.side}|${m.metalness}|${m.roughness}`;
+  // Palettenlacke in der Farbe des Spiels (GATE_PALETTE)
+  const pal = info.palette, lacke = [];
+  for (const u of parts) for (const q of u.pieces) {
+    const e = pal?.entries?.[GATE_PALETTE[pal.layers?.[q.mat.name.split('_mtl_').pop()] ?? 0]];
+    if (!e?.linear || q.mat.userData.gatePal) continue;
+    q.mat.color.setRGB(e.linear[0], e.linear[1], e.linear[2]);
+    q.mat.userData.gatePal = true;
+    lacke.push(q.mat.name.split('_mtl_').pop());
+  }
+  // Materialien zusammenlegen (matKey)
+  const lum = matLum, keyOf = matKey;
   const groups = new Map();
   for (const u of parts) for (const q of u.pieces) {
     const k = keyOf(q.mat);
@@ -1062,7 +1092,7 @@ function buildGate(scene, info, sh, inner) {
   }
   let tris = 0;
   for (const u of parts) for (const q of u.pieces) {
-    const g = groups.get(keyOf(q.mat)), n = q.pos.length / 3, k = Math.pow(Math.min(1, lum(q.mat.color) / Math.max(1e-6, lum(g.mat.color))), GATE_TONE);
+    const g = groups.get(keyOf(q.mat)), n = q.pos.length / 3, k = Math.min(1, lum(q.mat.color) / Math.max(1e-6, lum(g.mat.color)));
     const geo = new THREE.BufferGeometry(), sh3 = new Uint8Array(n * 3);
     for (let i = 0; i < n; i++) {
       const d = Math.round(Math.min(1, Math.max(0, q.sh[i] * k)) * 255);
@@ -1097,7 +1127,7 @@ function buildGate(scene, info, sh, inner) {
     }
   }
   // cover: ab hier auf der Bahn zu ist das Feld ganz gedeckt (danach rasten nur noch die Riegel ein)
-  const G = { group, parts, batches, used: parts.length, dropped, stowed, sync, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
+  const G = { group, parts, batches, used: parts.length, dropped, stowed, sync, lacke, turn: parts.filter((u) => u.rot).length, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
   gatePose(G, 'open', T);
   return G;
 }
@@ -1108,9 +1138,151 @@ function gatePose(G, dir, tau, blend = 1) {
     gateAt(u.keys[dir], tau, G.v);
     if (blend < 1) G.v.lerpVectors(u.snap, G.v, blend);
     u.at.copy(G.v);
-    G.M.makeTranslation(G.v.x, G.v.y, G.v.z);
+    if (u.rot) {
+      gateRot(u.rot[dir], tau, G.q);
+      if (blend < 1) G.q.slerpQuaternions(u.snapQ, G.q, blend);
+      u.q.copy(G.q);
+      G.M.compose(G.v, G.q, G.one);
+    } else G.M.makeTranslation(G.v.x, G.v.y, G.v.z);
     for (const id of u.ids) id.b.setMatrixAt(id.iid, G.M);
   }
+}
+
+// Fester Rand um die Öffnung (19.10.2026, Krisz: „es soll so aussehen wie
+// ein element was da fest verbaut ist und soll halt ein glaubhaftes
+// mechanismus sein“). Im Spiel liegt zwischen Schachtkante und Hallenboden
+// ein 4 m breiter Gitterstegring, bündig mit dem Boden, darin Landeleuchten
+// und an den Stirnseiten der Schriftzug des Hangars; das Tor kommt aus der
+// Fuge zwischen Plattformkante und Steg (public/hangar/lift/medtop-rand.glb,
+// PC-Befund in .planning/notes/hangar-schachttor.md). Hier liegt er rund um
+// unser Feld, der Hallenboden darunter wird ausgespart (hgCut im
+// Hallenshader). Die Teile kommen je Art von einem Exemplar des Spiels und
+// werden wie die Wände des Schachts je Seite gereiht: im Bezugssystem ihrer
+// Seite (a entlang, w nach außen ab der Schachtkante) genommen und auf
+// unsere Seite gestellt. `long`/`cross`: [Knoten, an a] je Seite, `lights`:
+// [Knoten, an a] auf jeder Seite ihrer Art, `corner`: an jedem Seitenanfang,
+// `once`: [Knoten, an a] nur auf der Seite des Exemplars. Die Warnlampen
+// der Ecken stehen schon im Schacht (light_1).
+// verify:hangar-hall [16] liest den Block und prüft ihn an den Dateien.
+const HALL_RAND = /* hall-rand */ {
+  "width": 4,
+  "corner": ["rand_stegecke_2", "rand_landeleuchte_2"],
+  "long": [["rand_steg_1", 0], ["rand_steg_1", 24], ["rand_steg_1", 48], ["rand_steg_1", 72]],
+  "cross": [["rand_steg_5", 0], ["rand_steg_7", 24], ["rand_logo_0", 16]],
+  "lights": { "long": [["rand_landeleuchte_3", 12], ["rand_landeleuchte_3", 24], ["rand_landeleuchte_3", 36], ["rand_landeleuchte_3", 48], ["rand_landeleuchte_3", 60], ["rand_landeleuchte_3", 72], ["rand_landeleuchte_3", 84]], "cross": [["rand_landeleuchte_22", 7], ["rand_landeleuchte_22", 25]] },
+  "once": [["rand_bodenleuchte_0", 11.9], ["rand_bodenleuchte_1", 20.2]]
+} /* /hall-rand */;
+const RAND_GLOW = 2.5;   // Leuchtkraft der Lande- und Bodenleuchten im Steg
+
+// Seiten eines Schachts mit halben Maßen hx, hz: Anfang o (linke Innenecke
+// von der Mitte gesehen), t entlang, n nach außen; wie shaftSides
+const randSide = (hx, hz) => shaftSides(hx, hz).map((s) => ({ ...s, kind: s.n[0] ? 'long' : 'cross' }));
+// Seite des Spiels, auf der ein Exemplar liegt (Mitte c im Schachtraum des
+// Spiels, gx, gz halbe Öffnung): bei Ecken die, an deren Anfang es liegt
+function randSideOf(c, gx, gz) {
+  const S = randSide(gx, gz);
+  let best = 0, bd = Infinity;
+  S.forEach((s, i) => {
+    const a = (c[0] - s.o[0]) * s.t[0] + (c[2] - s.o[1]) * s.t[1], w = (c[0] - s.o[0]) * s.n[0] + (c[2] - s.o[1]) * s.n[1];
+    // außen (w >= 0), entlang so nah wie möglich in [−4, len]
+    const d = (w < -0.5 ? 100 : 0) + Math.max(0, -4 - a) + Math.max(0, a - s.len);
+    if (d < bd) { bd = d; best = i; }
+  });
+  return S[best];
+}
+
+// Baut den Rand im Schachtraum (sh aus buildShaft; inner: Öffnung des
+// Spiels [quer, längs]). Liefert { group, meshes, materials, tris, parts }
+// oder wirft, wenn ein Knoten fehlt.
+function buildRand(scene, info, sh, inner) {
+  const gx = (inner?.[0] ?? 56) / 2, gz = (inner?.[1] ?? 88) / 2, ours = randSide(sh.hx, sh.hz);
+  const cache = new Map();
+  // Stücke eines Exemplars im Bezugssystem seiner Seite: [a, y, w]
+  const local = (name) => {
+    if (cache.has(name)) return cache.get(name);
+    const node = scene.getObjectByName(name);
+    if (!node) throw new Error(`Rand: Knoten ${name} fehlt`);
+    const pieces = shaftPieces(node, false);
+    const b = new THREE.Box3().setFromObject(node), c = b.getCenter(new THREE.Vector3()).toArray();
+    const s = randSideOf(c, gx, gz);
+    for (const p of pieces) {
+      for (let i = 0; i < p.pos.length; i += 3) {
+        const x = p.pos[i] - s.o[0], z = p.pos[i + 2] - s.o[1];
+        p.pos[i] = x * s.t[0] + z * s.t[1]; p.pos[i + 2] = x * s.n[0] + z * s.n[1];
+        const nx = p.nor[i], nz = p.nor[i + 2];
+        p.nor[i] = nx * s.t[0] + nz * s.t[1]; p.nor[i + 2] = nx * s.n[0] + nz * s.n[1];
+      }
+    }
+    let a0 = Infinity;
+    for (const p of pieces) for (let i = 0; i < p.pos.length; i += 3) a0 = Math.min(a0, p.pos[i]);
+    const out = { pieces, a0, side: s };
+    cache.set(name, out);
+    return out;
+  };
+  // Seitenteil an a (Anfang des Exemplars an a; Ecken, Leuchten und
+  // Schriftzug: deren Mitte, siehe at)
+  const list = [];   // [Stücke, Seite, Verschiebung entlang]
+  const put = (name, s, da) => list.push([local(name).pieces, s, da]);
+  const mid = (name) => { const L = local(name); let lo = Infinity, hi = -Infinity; for (const p of L.pieces) for (let i = 0; i < p.pos.length; i += 3) { lo = Math.min(lo, p.pos[i]); hi = Math.max(hi, p.pos[i]); } return (lo + hi) / 2; };
+  for (const s of ours) {
+    for (const n of HALL_RAND.corner) put(n, s, 0);
+    for (const [n, a] of HALL_RAND[s.kind]) put(n, s, /steg/.test(n) ? a - local(n).a0 : a - mid(n));
+    for (const [n, a] of HALL_RAND.lights[s.kind]) put(n, s, a - mid(n));
+  }
+  for (const [n, a] of HALL_RAND.once) {
+    const L = local(n), s = ours.find((q) => q.t[0] === L.side.t[0] && q.t[1] === L.side.t[1]);
+    put(n, s, a - mid(n));
+  }
+  // je Material ein Mesh (zusammengelegt wie beim Tor, matKey);
+  // Seitenrahmen zurück in den Schachtraum
+  const by = new Map();
+  for (const [pieces, s, da] of list) for (const p of pieces) {
+    const k = matKey(p.mat);
+    if (!by.has(k)) by.set(k, { mat: p.mat, items: [] });
+    const g = by.get(k);
+    if (matLum(p.mat.color) > matLum(g.mat.color)) g.mat = p.mat;
+    g.items.push([p, s, da]);
+  }
+  const group = new THREE.Group(), meshes = [];
+  group.name = 'shaft:rand';
+  let tris = 0;
+  for (const { mat, items } of by.values()) {
+    let nv = 0, ni = 0;
+    for (const [p] of items) { nv += p.pos.length / 3; ni += p.idx.length; }
+    const withUv = items.every(([p]) => p.uv);
+    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), shd = new Uint8Array(nv * 3), idx = new Uint32Array(ni), uv = withUv ? new Float32Array(nv * 2) : null;
+    let ov = 0, oi = 0;
+    for (const [p, s, da] of items) {
+      const cnt = p.pos.length / 3, f = Math.min(1, matLum(p.mat.color) / Math.max(1e-6, matLum(mat.color)));
+      for (let i = 0; i < cnt; i++) {
+        const j = i * 3, k = (ov + i) * 3, a = p.pos[j] + da, w = p.pos[j + 2];
+        pos[k] = s.o[0] + a * s.t[0] + w * s.n[0]; pos[k + 1] = p.pos[j + 1]; pos[k + 2] = s.o[1] + a * s.t[1] + w * s.n[1];
+        nor[k] = p.nor[j] * s.t[0] + p.nor[j + 2] * s.n[0]; nor[k + 1] = p.nor[j + 1]; nor[k + 2] = p.nor[j] * s.t[1] + p.nor[j + 2] * s.n[1];
+        const d = Math.round(Math.min(1, Math.max(0, p.sh[i] * f)) * 255);
+        shd[k] = d; shd[k + 1] = Math.round(Math.min(1, Math.max(0, p.wear[i])) * 255); shd[k + 2] = d;
+      }
+      if (uv) uv.set(p.uv, ov * 2);
+      for (let i = 0; i < p.idx.length; i++) idx[oi + i] = p.idx[i] + ov;
+      ov += cnt; oi += p.idx.length;
+    }
+    // eine ungültige Lage zeichnete das ganze Mesh nicht, still
+    if (!pos.every(Number.isFinite)) throw new Error(`Rand: ${mat.name} mit ungültiger Lage`);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    g.setAttribute('hgShade', new THREE.BufferAttribute(shd, 3, true));
+    if (uv) g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    g.computeBoundingBox(); g.computeBoundingSphere();
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.name = `rand:${mat.name}`;
+    mesh.castShadow = false; mesh.receiveShadow = false;
+    mesh.userData.noUv = !uv;
+    group.add(mesh);
+    meshes.push(mesh);
+    tris += ni / 3;
+  }
+  return { group, meshes, materials: meshes.map((m) => m.material), tris, parts: list.length, width: HALL_RAND.width };
 }
 
 // Beiwerk des Spiels im Schacht (Schacht-Tiefe Teil B, 17.10.2026): je Art
@@ -1449,6 +1621,41 @@ function swapHallDetail(model, extra) {
   let filled = 0;
   for (const o of fill) { filled += tris(o.geometry); o.material = byName.get(key(o)) ?? o.material; }
   return { materials: names.size, added, cut, parts: gone.length, filled };
+}
+
+// Möbel der Halle, die auf dem festen Rand stünden (HALL_RAND, 19.10.2026):
+// Die Kisten der Halle standen neben dem Feld, wo jetzt der Gittersteg
+// liegt. Was am Boden steht und in den Rand reicht, ohne im Feld zu stehen,
+// rückt senkrecht zur Feldkante, an der es liegt, hinaus, bis es frei
+// steht; käme es so nicht mehr in die Halle, bleibt es weg. F: das Feld
+// (Modellraum der Halle, nach HALL_SHIFT), rim: Breite des Rands.
+function clearRandFurniture(model, furn, F, rim, room, floorY) {
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert(), b = new THREE.Box3(), c = new THREE.Vector3(), p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
+  const x0 = F.from[0], x1 = F.to[0], z0 = F.from[1], z1 = F.to[1], GAP = 0.3;
+  const rx = [room.center[0] - room.halfW + GAP, room.center[0] + room.halfW - GAP], rz = [room.center[2] - room.halfL + GAP, room.center[2] + room.halfL - GAP];
+  const out = { moved: [], dropped: [] };
+  for (const n of furn) {
+    b.setFromObject(n).applyMatrix4(toModel);
+    if (b.isEmpty() || b.min.y > floorY + 0.5) continue;
+    if (b.max.x <= x0 - rim || b.min.x >= x1 + rim || b.max.z <= z0 - rim || b.min.z >= z1 + rim) continue;
+    if (b.min.x >= x0 && b.max.x <= x1 && b.min.z >= z0 && b.max.z <= z1) continue;
+    // die Feldkante, hinter der seine Mitte am weitesten liegt
+    b.getCenter(c);
+    const side = [c.x - x1, x0 - c.x, c.z - z1, z0 - c.z];
+    const k = side.indexOf(Math.max(...side));
+    const d = [x1 + rim + GAP - b.min.x, x0 - rim - GAP - b.max.x, z1 + rim + GAP - b.min.z, z0 - rim - GAP - b.max.z][k];
+    const dx = k < 2 ? d : 0, dz = k < 2 ? 0 : d;
+    if (b.min.x + dx < rx[0] || b.max.x + dx > rx[1] || b.min.z + dz < rz[0] || b.max.z + dz > rz[1]) { out.dropped.push(n); continue; }
+    const A = n.userData.anchor;
+    n.parent.worldToLocal(model.localToWorld(p0.set(A[0], A[1], A[2])));
+    n.parent.worldToLocal(model.localToWorld(p1.set(A[0] + dx, A[1], A[2] + dz)));
+    n.position.add(p1.sub(p0));
+    n.userData.anchor = [A[0] + dx, A[1], A[2] + dz];
+    out.moved.push(`${n.name || '?'} ${Math.abs(d).toFixed(1)} m`);
+  }
+  for (const n of out.dropped) n.removeFromParent();
+  return out;
 }
 
 // Einrichtung zusammenlegen (2026-10-08). Der Build stellt jedes Möbel als
@@ -1979,16 +2186,19 @@ function padFloor(scene, info, which) {
 // Requisiten und Decals aus der Werkstattdatei an ihre Plätze (siehe oben).
 // scenes: die geladenen GLBs (Requisiten, Boden), info: die json, L: das
 // Schiffsfeld (HALL_LIFT), budget: WORK_BUDGET der Stufe, grid: floorGrid.
+// rim: so breit liegt der feste Rand um das Feld (HALL_RAND, 0 ohne); was
+// neben dem Feld steht oder liegt, rückt um ihn nach außen, damit der
+// Gittersteg frei bleibt wie im Spiel.
 // Liefert { nodes, field, stats }: nodes (Requisiten und Decals neben dem
 // Feld) hängen mit Bezugspunkt (userData.anchor) im Modell, für
 // mergeFurniture; field (Decals auf dem Feld) für die Aufzugsgruppe.
-function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
+function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid, rim = 0) {
   const R = THREE.MathUtils.DEG2RAD;
   const kit = new Map();
   for (const s of scenes) s?.traverse((n) => { if (/^(prop|decal)_/.test(n.name) && !kit.has(n.name)) kit.set(n.name, n); });
   const cx = (L.from[0] + L.to[0]) / 2, cz = (L.from[1] + L.to[1]) / 2, hx = (L.to[0] - L.from[0]) / 2, hz = (L.to[1] - L.from[1]) / 2;
   const decalInfo = new Map((info.decals || []).map((d) => [d.node, d])), propInfo = new Map((info.props || []).map((q) => [q.node, q]));
-  const stats = { source: info.layout?.source || null, props: 0, decals: 0, field: 0, inField: 0, blocked: 0, moved: 0, overBudget: 0, missing: 0, raised: 0 };
+  const stats = { source: info.layout?.source || null, rim, props: 0, decals: 0, field: 0, inField: 0, blocked: 0, moved: 0, overBudget: 0, missing: 0, raised: 0 };
   // Maße je Knoten im eigenen Raum (Ursprung unten mittig), Materialien
   const box = new THREE.Box3(), meta = new Map();
   const metaOf = (name) => {
@@ -2045,8 +2255,11 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
     return Math.sign(v) === sign ? Math.abs(v) - (a ? pz : px) : 0;
   })) + 1;
   const wall = (sign, a) => (a ? (sign > 0 ? room.center[2] + room.halfL - (cz + hz) : cz - hz - (room.center[2] - room.halfL)) : (sign > 0 ? room.center[0] + room.halfW - (cx + hx) : cx - hx - (room.center[0] - room.halfW))) - WORK_WALL;
-  const squeeze = [[0, 1], [1, 1], [0, -1], [1, -1]].reduce((o, [a, sg]) => ({ ...o, [`${a}${sg}`]: Math.min(1, Math.max(0, wall(sg, a)) / deep(sg, a)) }), {});
-  const axis = (v, p, h, a) => (Math.abs(v) <= p ? (v * h) / p : Math.sign(v) * (h + (Math.abs(v) - p) * squeeze[`${a}${Math.sign(v)}`]));
+  // Mit Rand zählt der Abstand ab seiner Außenkante, hier wie in der
+  // Anordnung des Spiels (dort liegt derselbe Steg um die Öffnung, pad)
+  const squeeze = [[0, 1], [1, 1], [0, -1], [1, -1]].reduce((o, [a, sg]) => ({ ...o, [`${a}${sg}`]: Math.min(1, Math.max(0, wall(sg, a) - rim) / Math.max(1, deep(sg, a) - rim)) }), {});
+  const axis = (v, p, h, a) => (Math.abs(v) <= p ? (v * h) / p : Math.sign(v) * (h + rim + Math.max(0, Math.abs(v) - p - rim) * squeeze[`${a}${Math.sign(v)}`]));
+  const rx = hx + rim, rz = hz + rim;   // Außenkante des Rands
   // Budget: zuerst, was Krisz genannt hat (Gerät nach WORK_FIRST, die Spuren
   // auf dem Feld), dann die häufigsten Knoten, solange ihre Materialien reinpassen
   const allow = new Set();
@@ -2082,14 +2295,14 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid) {
       if (onField) {
         x = fx < hx ? THREE.MathUtils.clamp(x, fx - hx, hx - fx) : 0;
         z = fz < hz ? THREE.MathUtils.clamp(z, fz - hz, hz - fz) : 0;
-      } else if (Math.abs(x) < hx + fx && Math.abs(z) < hz + fz) {
-        if (hx - Math.abs(x) > hz - Math.abs(z)) z = (Math.sign(z) || 1) * (hz + fz); else x = (Math.sign(x) || 1) * (hx + fx);
+      } else if (Math.abs(x) < rx + fx && Math.abs(z) < rz + fz) {
+        if (rx - Math.abs(x) > rz - Math.abs(z)) z = (Math.sign(z) || 1) * (rz + fz); else x = (Math.sign(x) || 1) * (rx + fx);
       }
     } else {
       if (onField) { stats.inField++; continue; }
       // vom Feldrand weg (Normale der nächsten Kante), dann längs
       const out = hx - Math.abs(x) > hz - Math.abs(z) ? [0, Math.sign(z) || 1] : [Math.sign(x) || 1, 0];
-      const ok = (qx, qz) => (Math.abs(qx) >= hx + WORK_EDGE + fx || Math.abs(qz) >= hz + WORK_EDGE + fz) && grid.free(cx + qx, cz + qz, fx + 0.1, fz + 0.1);
+      const ok = (qx, qz) => (Math.abs(qx) >= rx + WORK_EDGE + fx || Math.abs(qz) >= rz + WORK_EDGE + fz) && grid.free(cx + qx, cz + qz, fx + 0.1, fz + 0.1);
       let at = null;
       for (let d = 0; d <= WORK_MOVE && !at; d += 0.5) {
         for (const t of d ? [d, -d] : [0]) {
@@ -4470,6 +4683,33 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Nische unter dem Hallenboden rund um die Öffnung (Torschlitz): x, z
   // halbe Feldmaße, z an, w Sohle der Nische (Modellmeter, Feldmitte 0)
   const hallPocket = { value: new THREE.Vector4(0, 0, 0, 0) };
+  // Ausgesparter Hallenboden unter dem Rand (buildRand): innen halbe
+  // Feldmaße, außen halbe Maße bis zur Außenkante des Stegs (Modellmeter,
+  // Feldmitte 0); z = 0: aus. Nur die Materialien der Halle (userData.cut):
+  // alles bis 4,5 cm über dem Boden (die Fasen der Bodenplatten reichen bis
+  // 3,9 cm hinauf und lägen sonst als Strichlinien auf dem Steg) und ihre
+  // waagrechten Flächen bis 6 cm; was auf dem Boden steht, bleibt darüber.
+  const hallCut = { value: new THREE.Vector4(0, 0, 0, 0) };
+  const HALL_CUT_GLSL = `uniform vec4 hgCut;
+uniform float hgCutOn;
+void hgCutOut( vec3 p ) {
+	if ( hgCutOn < 0.5 || hgCut.z <= 0.0 || p.y > 0.06 || p.y < -0.3 ) return;
+	vec2 q = abs( p.xz );
+	if ( q.x > hgCut.z || q.y > hgCut.w || ( q.x < hgCut.x && q.y < hgCut.y ) ) return;
+	vec3 fn = cross( dFdx( p ), dFdy( p ) );
+	if ( p.y < 0.045 || abs( fn.y ) > 0.9 * length( fn ) ) discard;
+}`;
+  // In den Tiefenkarten der Halle (statMat) fehlt der Boden dort ebenso,
+  // sonst läge der Steg im Schatten eines Bodens, den man nicht mehr sieht
+  statMat.onBeforeCompile = (sh) => {
+    sh.uniforms.hgInvK = hallNoTileInvK; sh.uniforms.hgCut = hallCut; sh.uniforms.hgCutOn = { value: 1 };
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 hgPos = vec4( position, 1.0 );\n#ifdef USE_BATCHING\nhgPos = batchingMatrix * hgPos;\n#endif\n#ifdef USE_INSTANCING\nhgPos = instanceMatrix * hgPos;\n#endif\nvHgP = ( modelMatrix * hgPos ).xyz * hgInvK;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vHgP;\n' + HALL_CUT_GLSL)
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n\thgCutOut( vHgP );');
+  };
   const HALL_POCKET_GLSL = `uniform vec4 hgPocket;
 // Unter dem Boden hinter der Schachtwand fällt kaum Licht hinein: in der
 // Nische nach hinten dunkel (nicht schwarz, sonst liest sie sich als Loch),
@@ -4801,6 +5041,8 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
     sh.uniforms.hgPocket = hallPocket;
+    sh.uniforms.hgCut = hallCut;
+    sh.uniforms.hgCutOn = { value: m.userData.cut ? 1 : 0 };
     sh.uniforms.hgLiftY = m.userData.lift ? hallLiftY : hallLiftNo;
     sh.uniforms.hgBoxOn = hallBox.on; sh.uniforms.hgBoxMin = hallBox.min; sh.uniforms.hgBoxMax = hallBox.max; sh.uniforms.hgBoxPos = hallBox.pos;
     sh.uniforms.hgRoughMin = { value: m.userData.gloss ? HALL_GLOSS_MIN : HALL_ROUGH_MIN };
@@ -4839,7 +5081,8 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\n#define HG_PIT_N ${PIT_N}\n#define HG_PIT_C ${m.userData.shaft ? PIT_N : hallPit.field}\n${HALL_PIT_GLSL}\n${HALL_SHAFT_GLSL}`);
     }
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL + '\n' + HALL_POCKET_GLSL)
+      .replace('#include <common>', '#include <common>\nvarying float vHgShade;\nuniform float hgRoughMin;\n' + HALL_NO_TILE_GLSL + '\n' + HALL_STAT_GLSL + '\n' + HALL_POCKET_GLSL + '\n' + HALL_CUT_GLSL)
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n\thgCutOut( vHgP );')
       .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb *= vHgShade;')
       .replace('#include <map_fragment>', `#ifdef USE_MAP
 	vec4 sampledDiffuseColor = hgNoTile > 0.5 ? hgNoTileSample( map, vMapUv ) : texture2D( map, vMapUv );
@@ -5171,6 +5414,19 @@ ${HALL_LIGHTS_BEGIN}
         return null;
       })
       : Promise.resolve(null);
+    // Fester Rand um die Öffnung (buildRand), parallel; ohne ihn bleibt der
+    // Hallenboden bis an das Feld
+    const R0 = h.lift?.rand;
+    const randReady = R0?.url && R0.json
+      ? Promise.all([
+        fetchGltf(R0.url, 'rand', R0.bytes || 7e5),
+        fetch(R0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${R0.json}: ${r.status}`)))),
+      ]).then(([g, info]) => ({ scene: g.scene, info }), (e) => {
+        console.warn('[hangar] Rand nicht geladen', e);
+        prog.delete('rand');
+        return null;
+      })
+      : Promise.resolve(null);
     // Werkstatt (placeWorkshop), parallel; am Telefon und auf niedrig nur die
     // Bodendatei, ohne sie steht die Halle wie bisher
     const WB = WORK_BUDGET[SMALL ? 'niedrig' : Q0] ?? WORK_BUDGET.niedrig, W = h.workshop;
@@ -5267,6 +5523,12 @@ ${HALL_LIGHTS_BEGIN}
         else console.warn('[hangar] Feldmitte: Streifen treffen keine Dreiecke');
         await pause();
       }
+      // Fester Rand um das Feld: Möbel darauf rücken hinaus (clearRandFurniture)
+      if (lift && h.lift?.rand) {
+        const cr = clearRandFurniture(model, furn, F, HALL_RAND.width, h.room, floorY);
+        for (const n of cr.dropped) furn.splice(furn.indexOf(n), 1);
+        if (cr.moved.length || cr.dropped.length) console.info(`[hangar] Rand: ${cr.moved.length} Möbel vom Steg gerückt (${cr.moved.join(', ') || '–'}), ${cr.dropped.length} weggelassen (${cr.dropped.map((n) => n.name).join(', ') || '–'})`);
+      }
       const t1 = performance.now();
       const furniture = await mergeFurniture(model, furn, pause);
       for (const n of furn) {
@@ -5286,7 +5548,7 @@ ${HALL_LIGHTS_BEGIN}
         const t6 = performance.now();
         try {
           const grid = WB.props > 0 ? await floorGrid(model, h.room, floorY, new Set([lift?.group].filter(Boolean)), pause) : null;
-          const w = placeWorkshop(model, work.scenes, work.info, F, h.room, floorY, WB, grid);
+          const w = placeWorkshop(model, work.scenes, work.info, F, h.room, floorY, WB, grid, h.lift?.rand ? HALL_RAND.width : 0);
           model.updateMatrixWorld(true);
           const merged = await mergeFurniture(model, w.nodes, pause);
           // Bezugspunkte der Feld-Decals in den Raum der Aufzugsgruppe
@@ -5301,7 +5563,7 @@ ${HALL_LIGHTS_BEGIN}
           for (const f of merged) f.flat = !!f.mesh.material.userData.workDecal;
           furniture.push(...merged);
           const st = w.stats, tri = [...merged, ...ride].reduce((sum, f) => sum + f.mesh.geometry.index.count / 3, 0);
-          console.info(`[hangar] Werkstatt: ${st.props} Requisiten, ${st.decals} Decals (${st.field} auf dem Feld) in ${merged.length + ride.length} Meshes, ${tri} Dreiecke; Anordnung ${st.source ? `aus ${st.source}` : 'eigene (keine aus dem Spiel)'}; ${st.moved} ausgewichen, weggelassen: ${st.inField} im Feld, ${st.blocked} verstellt, ${st.raised} nicht am Boden, ${st.overBudget} über dem Budget (${WB.props}/${WB.decals}), ${st.missing} ohne Knoten; ${grid ? `Boden ${Math.round(grid.share * 100)} % belegt (${grid.tris} Dreiecke); ` : ''}${Math.round(performance.now() - t6)} ms`);
+          console.info(`[hangar] Werkstatt: ${st.props} Requisiten, ${st.decals} Decals (${st.field} auf dem Feld) in ${merged.length + ride.length} Meshes, ${tri} Dreiecke; Anordnung ${st.source ? `aus ${st.source}` : 'eigene (keine aus dem Spiel)'}; ${st.moved} ausgewichen, ${st.rim} m Rand frei; weggelassen: ${st.inField} im Feld, ${st.blocked} verstellt, ${st.raised} nicht am Boden, ${st.overBudget} über dem Budget (${WB.props}/${WB.decals}), ${st.missing} ohne Knoten; ${grid ? `Boden ${Math.round(grid.share * 100)} % belegt (${grid.tris} Dreiecke); ` : ''}${Math.round(performance.now() - t6)} ms`);
         } catch (e) {
           console.warn('[hangar] Werkstatt nicht aufgestellt', e);
         }
@@ -5376,6 +5638,7 @@ ${HALL_LIGHTS_BEGIN}
           if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
           m.userData.noTile = !!m.map && HALL_NO_TILE.test(m.name);
           m.userData.gloss = !!m.roughnessMap && HALL_GLOSS.test(m.name);
+          m.userData.cut = true;
           m.onBeforeCompile = hallShader(m);
           m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
@@ -5532,7 +5795,6 @@ ${HALL_LIGHTS_BEGIN}
                 if (m.metalness > 0.4) m.metalness = 0.4;
                 m.vertexColors = false; m.userData.hgShade = true;
                 if (/glow/i.test(m.name) && m.emissiveMap) { m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = GATE_GLOW; }
-                else if (0.2126 * m.color.r + 0.7152 * m.color.g + 0.0722 * m.color.b < 0.12) m.color.multiplyScalar(GATE_PAINT);
                 for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
                 m.onBeforeCompile = hallShader(m);
                 m.customProgramCacheKey = hallKey;
@@ -5541,9 +5803,51 @@ ${HALL_LIGHTS_BEGIN}
               G.group.visible = false;
               shaft.group.add(G.group);
               shaft.gate = G;
-              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
             } catch (e) {
               console.warn('[hangar] Schachttor nicht gebaut', e);
+            }
+          }
+          // Fester Rand: Gitterstegring um das Feld, in Ruhe sichtbar; der
+          // Hallenboden darunter ist ausgespart (hgCut), die Stirn der
+          // Bodenplatte an der Feldkante übernimmt die Innenkante des Stegs
+          const rk = await randReady;
+          if (rk) {
+            try {
+              const R = buildRand(rk.scene, rk.info, shaft, kit.info.shaft?.inner);
+              // Materialien wie die der Halle (der Rand liegt im Boden und
+              // nimmt das Hallenlicht; die des Schachts nähmen nur die
+              // Schachtlampen und lägen in Ruhe schwarz), Karten gleichnamiger
+              // Schachtmaterialien statt einer zweiten Kopie (verify:hangar-hall
+              // [16] vergleicht die Bilder)
+              const twins = new Map();
+              kit.kit.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) twins.set(m.name, m); });
+              let shared = 0;
+              const own = new Set();
+              for (const mesh of R.meshes) {
+                const m = mesh.material, twin = twins.get(m.name);
+                if (own.has(m)) continue;
+                own.add(m);
+                if (twin) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap']) if (m[k] && twin[k] && !isNeutral(twin[k]) && m[k] !== twin[k]) { m[k].dispose(); m[k] = twin[k]; shared++; }
+                m.envMapIntensity = 0.05;
+                if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
+                if (m.metalness > 0.4) m.metalness = 0.4;
+                m.vertexColors = false; m.userData.hgShade = true;
+                if (/glow/i.test(m.name) && (m.emissiveMap || m.map)) { m.emissiveMap = m.emissiveMap || m.map; m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = RAND_GLOW; }
+                if (m.transparent) { m.depthWrite = false; }
+                for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
+                m.onBeforeCompile = hallShader(m);
+                m.customProgramCacheKey = hallKey;
+                unifyMaps(m);
+              }
+              shaft.group.add(R.group);
+              shaft.rand = R;
+              // Hallenboden aus: zwischen Feldkante und Außenkante des Stegs
+              hallCut.value.set(shaft.hx + 0.005, shaft.hz + 0.005, shaft.hx + R.width - 0.01, shaft.hz + R.width - 0.01);
+              if (shaft.edge) { shaft.group.remove(shaft.edge); shaft.edge.geometry.dispose(); shaft.edge = null; }
+              console.info(`[hangar] Rand: ${R.parts} Teile, ${R.tris} Dreiecke, ${R.meshes.length} Materialien (${R.meshes.filter((x) => x.userData.noUv).length} ohne Texturkoordinaten), ${shared} Karten vom Schacht, ${R.width} m breit um das Feld; Hallenboden darunter ausgespart`);
+            } catch (e) {
+              console.warn('[hangar] Rand nicht gebaut', e);
             }
           }
           model.add(shaft.group);
@@ -5773,7 +6077,7 @@ ${HALL_LIGHTS_BEGIN}
     if (G.run) {
       // Umkehr unterwegs: weiter ab der Stelle der neuen Bahn, die der Lage
       // am nächsten kommt; den Rest überblendet gatePose
-      for (const u of G.parts) u.snap.copy(u.at);
+      for (const u of G.parts) { u.snap.copy(u.at); u.snapQ.copy(u.q); }
       let best = Infinity;
       for (let i = 0; i <= 125; i++) {
         const tau = (G.T * i) / 125;
