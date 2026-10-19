@@ -4950,8 +4950,9 @@ ${HALL_LIGHTS_BEGIN}
     const FX = ((L.to[0] - L.from[0]) * k) / 2 - DIENST_EDGE, FZ = ((L.to[1] - L.from[1]) * k) / 2 - DIENST_EDGE;
     const W = info.halfW, Lh = info.len / 2, U = info.under, [CH, CV] = DIENST_CLEAR;
     const sig = `${k.toFixed(4)}|${W}|${Lh}|${info.height}|${!!U}`;
-    if (sig === d.sig) return;
-    d.sig = sig;
+    // gleiche Maße, aber ein anderes Schiff (eigener Grundriss): neu stellen
+    if (sig === d.sig && U === d.under) { info.dienstTop = d.top; return; }
+    d.sig = sig; d.under = U;
     // frei vom Rumpf: um den Kasten (cx, cz, ex, ez) bis Höhe top
     const clear = (cx, cz, ex, ez, top) => {
       if (!U) return Math.abs(cx) - ex - CH >= W || Math.abs(cz) - ez - CH >= Lh;
@@ -5002,6 +5003,10 @@ ${HALL_LIGHTS_BEGIN}
       taken.push(...best.q);
       placed.set(st.name, best);
     });
+    // Höchstes Gerät: Bei flachen Fahrzeugen (Nox 1,3 m) ist der Werkzeugschrank
+    // (2,3 m) höher als das Schiff, und es fährt mit; das Schachttor wartet auf beides
+    d.top = Math.max(0, ...[...placed.values()].flatMap((p) => p.q.map((b) => b.top)));
+    info.dienstTop = d.top;
     // Glieder: Matrix und Sichtbarkeit
     const show = (u, on) => { for (const id of u.ids) id.b.setVisibleAt(id.iid, on); };
     for (const u of glieder) {
@@ -5069,7 +5074,7 @@ ${HALL_LIGHTS_BEGIN}
     for (const b of d.batches.values()) { b.visible = live.has(b); b.computeBoundingBox(); b.computeBoundingSphere(); }
     const tris = [...live.values()].reduce((a, v) => a + v, 0);
     shadowSig = '';
-    console.info(`[hangar] Wartungsplatz bei ${span.toFixed(0)} m: ${placed.size} von ${WORK_DIENST.stationen.filter(fits).length} Plätzen (${report.join(', ')}), ${lines} Leitungen, ${spots} Spuren; ${live.size} von ${d.batches.size} Meshes, ${Math.round(tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
+    console.info(`[hangar] Wartungsplatz bei ${span.toFixed(0)} m: ${placed.size} von ${WORK_DIENST.stationen.filter(fits).length} Plätzen (${report.join(', ')}), ${lines} Leitungen, ${spots} Spuren, höchstes Gerät ${d.top.toFixed(2)} m; ${live.size} von ${d.batches.size} Meshes, ${Math.round(tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
   }
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
@@ -5699,8 +5704,9 @@ ${HALL_LIGHTS_BEGIN}
   // G.pend: Schließen wartet auf freie Bahn unter dem Tor. Wer wartet, steht
   // in G.wait und kommt frei, sobald das Tor steht, auch nach einer Umkehr.
   const gateOf = () => (reduceMotion ? null : realHall?.shaft?.gate ?? null);
-  // Höhe des Felds, bei der die Oberkante des Schiffs HALL_GATE.clear unter dem Tor ist
-  const gateClearY = (G, info) => G.bottom - HALL_GATE.clear - info.height / hallRoot.scale.x;
+  // Höhe des Felds, bei der die Oberkante des Schiffs (oder des höheren
+  // Geräts am Wartungsplatz, layDienst) HALL_GATE.clear unter dem Tor ist
+  const gateClearY = (G, info) => G.bottom - HALL_GATE.clear - Math.max(info.height, info.dienstTop ?? 0) / hallRoot.scale.x;
   function gateSettle(G) {
     const w = G.wait;
     G.wait = [];
