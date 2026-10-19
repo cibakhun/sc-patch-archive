@@ -53,6 +53,7 @@ const layoutSrc = versioned('assets/hangar-layouts.js', '/assets/hangar-layouts.
 const lt = layoutT(lang);
 const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z';
 const link = 'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1';
+const funnel = 'M4 5h16l-6 7.5V19l-4-2v-4.5z';
 const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014-4z';
 ---
 <style is:inline>
@@ -274,6 +275,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .hgx-chip.hgx-ico{width:2.3rem;height:2.3rem;padding:0;border-radius:999px;backdrop-filter:none}
 .hgx-chip:disabled{opacity:.5;cursor:default;border-color:var(--line)}
+.hgx-filters:not([hidden]){display:contents}
+.hgx-filtertog[aria-expanded="true"]{border-color:var(--accent)}
+.hgx-filtern{min-width:1.2rem;padding:0 .3rem;border-radius:999px;background:var(--accent);color:var(--bg);font-size:var(--fs-6);font-weight:800;text-align:center}
+.hgx-filtern[hidden]{display:none}
 .hg-strip li.is-fleet .hg-card::after{content:"★";position:absolute;top:.3rem;right:.45rem;color:var(--accent);font-size:var(--fs-8);line-height:1;text-shadow:0 1px 3px var(--bg)}
 .hg-strip li.is-fleet .hg-card small{max-width:calc(100% - 2.2rem)}
 .hg-btn:disabled{opacity:.5;cursor:default;border-color:var(--hg-hair)}
@@ -302,7 +307,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg:not([data-dock="closed"]) .hgx-docktog .hg-count{color:inherit}
 .hg[data-dock="closed"] .hg-dock{padding-block:.5rem}
 .hg[data-dock="closed"] .hg-filter{margin-bottom:0}
-.hg[data-dock="closed"] .hg-filter>:is(input,select,.hgx-chip:not(.hgx-docktog,.hgx-rand)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty,.hg[data-dock="closed"] .hgx-fleetline:not(.is-alert){display:none}
+.hg[data-dock="closed"] .hg-filter>:is(input,select,.hgx-filters,.hgx-chip:not(.hgx-docktog,.hgx-rand)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty,.hg[data-dock="closed"] .hgx-fleetline:not(.is-alert){display:none}
 .hg[data-dock="closed"] .hgx-fleetline{margin:.5rem 0 0}
 @media (min-width:761px){.hg[data-dock="closed"] .hg-stage{height:clamp(520px,calc(100svh - 60px),940px)}}
 /* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert ueber dem Namen. */
@@ -491,6 +496,15 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <span class="hgx-tip">{t('dock.random')}</span>
       </button>
       <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" data-help={h('hangar.ctl.search')} />
+      {/* Rolle, Hersteller und Sortierung hinter einem Knopf: drei Listen
+          weniger in der Zeile. Die Zahl nennt, wie viele vom Normalfall
+          abweichen, damit ein Filter nicht unsichtbar weiterwirkt. */}
+      <button type="button" class="hgx-chip hgx-filtertog" id="hgx-filtertog" aria-expanded="false" aria-controls="hgx-filters" data-help={h('hangar.ctl.filters')}>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={funnel} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+        <span>{t('dock.filter')}</span>
+        <span class="hgx-filtern" id="hgx-filtern" hidden></span>
+      </button>
+      <span class="hgx-filters" id="hgx-filters" hidden>
       <select id="hg-type" aria-label={t('dock.type')} data-help={h('hangar.ctl.select')}>
         <option value="">{t('dock.typeAll')}</option>
         {types.map((ty) => <option value={ty.key}>{ty.label}</option>)}
@@ -504,6 +518,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <option value="name">{t('dock.sortName')}</option>
         {STATS.filter((s) => s.sortable).map((s) => <option value={s.key}>{t(`stat.${s.key}`)}</option>)}
       </select>
+      </span>
       <button type="button" class="hgx-chip" id="hgx-fleetonly" aria-pressed="false" data-help={h('hangar.ctl.fleetFilter')}>
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         <span>{t('dock.fleet')}</span> <span>(<span id="hgx-fleetn">0</span>)</span>
