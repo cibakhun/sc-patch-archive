@@ -55,7 +55,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-dice:hover,.hgl-dice:focus-visible{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgl-dice.is-roll{animation:hgl-roll .5s var(--ease-ui)}
 @keyframes hgl-roll{0%{transform:rotate(0)}60%{transform:rotate(250deg) scale(1.15)}100%{transform:rotate(360deg)}}
-.hgl-staterow{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:.45rem 0 0}
+.hgl-staterow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin:.45rem 0 0}
 .hgl-state{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;min-width:0;margin:0;font-size:var(--fs-6);color:var(--hg-dim)}
 .hgl-savedbtn{appearance:none;flex:0 0 auto;display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .55rem;border:1px solid var(--hg-hair);border-radius:999px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .hgl-savedbtn:hover,.hgl-savedbtn:focus-visible{border-color:var(--hg-amber);color:var(--hg-on);outline:0}

@@ -742,7 +742,9 @@ export function boot(doc) {
     e.preventDefault();
     // Eine gehaltene Taste wechselt einmal, nicht dreissigmal je Sekunde mit je
     // einem Abruf und einer neuen Adresse.
-    if (!e.repeat) step(e.key === 'ArrowLeft' ? -1 : 1);
+    if (e.repeat) return;
+    hintSeen();
+    step(e.key === 'ArrowLeft' ? -1 : 1);
   });
 
   window.addEventListener('popstate', () => {
@@ -1201,7 +1203,8 @@ export function boot(doc) {
   function canStore() {
     try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
-  // Der Bedienhinweis geht beim ersten Anfassen der Halle und bleibt weg
+  // Der Bedienhinweis geht beim ersten Anfassen der Halle oder dem ersten
+  // Schiffswechsel per Pfeiltaste und bleibt weg
   // (das Inline-Skript in HangarPage.astro liest hg-hint vor dem ersten Bild).
   const HINT_KEY = 'hg-hint';
   function hintSeen() {
