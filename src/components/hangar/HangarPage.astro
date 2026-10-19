@@ -339,6 +339,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgx-cmp__name{font-size:var(--fs-7)}
   .hg-hint{display:none}
   .hg-arrow{display:none}
+  /* Die Dockzeile bricht hier je nach Sprache anders um: das Zufallsschiff
+     steht mal am rechten, mal am linken Rand, und seine Blase ragte (auch
+     unsichtbar) aus dem Fenster, die Seite scrollte waagerecht. Ohne Maus
+     zeigt sie ohnehin nie; den Namen traegt aria-label. */
+  .hgx-rand .hgx-tip{display:none}
 }
 @media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg{transition:none}}</style>
 
@@ -481,7 +486,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <span class="hg-count" id="hg-count" aria-live="polite">{count}</span>
       </button>
       {/* Bleibt auch zugeklappt stehen: der Zufall zieht aus den sichtbaren Karten. */}
-      <button type="button" class="hgx-chip hgx-ico hgx-rand" id="hgx-random" data-help={h('hangar.ctl.random')}>
+      <button type="button" class="hgx-chip hgx-ico hgx-rand" id="hgx-random" aria-label={t('dock.random')} data-help={h('hangar.ctl.random')}>
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={dice} fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="9" cy="9" r="1.4" fill="currentColor" /><circle cx="15" cy="15" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /></svg>
         <span class="hgx-tip">{t('dock.random')}</span>
       </button>
