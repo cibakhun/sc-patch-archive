@@ -10,7 +10,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
-  sameLayout, createStore, STORE_KEY, MAX_NAME,
+  sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -45,6 +45,18 @@ describe('Werkstatt: Link-Code', () => {
     assert.equal(encodeLayout({ name: '', slots: {}, paint: 'Böse Farbe' }), EMPTY_CODE);
     assert.ok(!('paint' in decodeLayout(EMPTY_CODE)));
     assert.ok(!sameLayout({ ship: 'aegs-gladius', name: '', slots: {}, paint: 'abc' }, { ship: 'aegs-gladius', name: '', slots: {} }));
+  });
+
+  test('Halterungen reisen als fuenftes Feld; ohne sie bleibt der Code wie zuvor', () => {
+    const lo = { name: 'Igel', slots: { missilerack_left_wing_outer: 'marksman' }, racks: { missilerack_left_wing_outer: 'msd-341-missile-rack' } };
+    const code = encodeLayout(lo);
+    assert.deepEqual(decodeLayout(code), lo);
+    assert.deepEqual(JSON.parse(Buffer.from(code, 'base64url').toString('utf8')), [1, 'Igel', lo.slots, '', lo.racks]);
+    assert.deepEqual(decodeLayout(encodeLayout({ ...lo, paint: 'abc' })), { ...lo, paint: 'abc' });
+    // der Code ohne Halterungen, wie ihn aeltere Seiten schreiben und lesen
+    assert.equal(encodeLayout({ name: 'x', slots: {} }), 'WzEsIngiLHt9XQ');
+    assert.equal(encodeLayout({ name: 'x', slots: {}, racks: {} }), 'WzEsIngiLHt9XQ');
+    assert.ok(!sameLayout({ ship: 's', ...lo }, { ship: 's', ...lo, racks: {} }));
   });
 
   test('gleiche Layouts ergeben gleiche Codes, egal in welcher Folge die Slots kamen', () => {
@@ -117,6 +129,54 @@ describe('Werkstatt: passende Teile', () => {
     assert.deepEqual(t.get('manned'), { now: 853 * 2, stock: 546 * 2 });
     assert.deepEqual(t.get('shield'), { now: 3168, stock: 3168 });
   });
+
+  test('Raketen: je Halterung derselbe Untertyp und dieselbe Groesse, Schaden mal Stueckzahl', () => {
+    const ord = {
+      ignite: ['Ignite II Missile', 'Ignite-II-Rakete', 'missile', 2, 'FireStorm Kinetics', 0, 'A', 2404, { trk: 'i' }, 680],
+      bullet: ['\'Bullet\' II Missile', 0, 'missile', 2, 'Vanduul', 0, 'A', 2824, { trk: 'i' }, 420],
+      igniteG: ['Ignite II-G Missile', 0, 'gmissile', 2, 'FireStorm Kinetics', 0, 'A', 2404, { trk: 'i' }, 0],
+      arrester: ['Arrester III Missile', 0, 'missile', 3, 'FireStorm Kinetics', 0, 'A', 2564, { trk: 'c' }, 0],
+      reaper: ['Reaper V Missile', 0, 'torpedo', 5, 'Talon', 0, 'A', 14901, { trk: 'e' }, 0],
+    };
+    const rack = shipSlots([['missilerack_left_wing_outer', 'missile', 2, 'ignite', 'missile', 2]]);
+    assert.deepEqual(candidates(rack[0], ord), ['bullet', 'ignite']);
+    assert.deepEqual(groupTotals(rack, { missilerack_left_wing_outer: 'bullet' }, ord).get('missile'), { now: 2824 * 2, stock: 2404 * 2 });
+    assert.deepEqual(cleanSlots({ missilerack_left_wing_outer: 'igniteG' }, rack, ord), { slots: {}, racks: {}, dropped: 1 });
+  });
+
+  test('Halterungen: die gewaehlte formt den Slot, die Rakete folgt ihr, ein Link bleibt lesbar', () => {
+    const ord = {
+      ignite: ['Ignite II Missile', 0, 'missile', 2, 'FireStorm Kinetics', 0, 'A', 2404, { trk: 'i' }, 680],
+      marksman: ['Marksman I Missile', 0, 'missile', 1, 'Behring', 0, 'A', 1142, { trk: 'i' }, 300],
+      spark: ['Spark I Missile', 0, 'missile', 1, 'FireStorm Kinetics', 0, 'A', 1188, { trk: 'c' }, 300],
+      arrester: ['Arrester III Missile', 0, 'missile', 3, 'FireStorm Kinetics', 0, 'A', 3600, { trk: 'c' }, 0],
+      viper: ['Viper III Missile', 0, 'missile', 3, 'Nova Pyrotechnica', 0, 'A', 3257, { trk: 'i' }, 0],
+    };
+    const racks = {
+      'msd-322-missile-rack': ['MSD-322 Missile Rack', 0, 3, 2, 2, 'missile', 'Behring', 4760],
+      'msd-341-missile-rack': ['MSD-341 Missile Rack', 0, 3, 4, 1, 'missile', 'Behring', 3173],
+      'msd-313-missile-rack': ['MSD-313 Missile Rack', 0, 3, 1, 3, 'missile', 'Behring', 7140],
+    };
+    const k = 'missilerack_left_wing_outer';
+    const [slot] = shipSlots([[k, 'missile', 2, 'ignite', 'missile', 2, Object.keys(racks)]]);
+    assert.deepEqual(shipSlots([[k, 'missile', 2, 'ignite', 'missile', 2, ['msd-322-missile-rack']]])[0].racks, null);
+    assert.deepEqual([rackSlot(slot, 'msd-341-missile-rack', racks)].map((x) => [x.type, x.size, x.count]), [['missile', 1, 4]]);
+    assert.equal(rackSlot(slot, 'msd-322-missile-rack', racks), slot);
+    assert.equal(rackSlot(slot, 'fremd', racks), slot);
+    // dasselbe Verfolgungssignal vor dem staerkeren Schaden
+    assert.equal(rackMissile(rackSlot(slot, 'msd-341-missile-rack', racks), ord, 'ignite'), 'marksman');
+    assert.equal(rackMissile(rackSlot(slot, 'msd-313-missile-rack', racks), ord, 'ignite'), 'viper');
+    // getauschte Halterung ohne Rakete im Link: rackMissile fuellt, nichts faellt weg
+    assert.deepEqual(cleanSlots({}, [slot], ord, { [k]: 'msd-313-missile-rack' }, racks), { slots: { [k]: 'viper' }, racks: { [k]: 'msd-313-missile-rack' }, dropped: 0 });
+    // Serienhalterung faellt still weg; eine fremde Halterung zaehlt, ihre S1-Rakete passt dann nicht in die Serie
+    assert.deepEqual(cleanSlots({ [k]: 'spark' }, [slot], ord, { [k]: 'msd-341-missile-rack' }, racks), { slots: { [k]: 'spark' }, racks: { [k]: 'msd-341-missile-rack' }, dropped: 0 });
+    assert.deepEqual(cleanSlots({ [k]: 'ignite' }, [slot], ord, { [k]: 'msd-322-missile-rack' }, racks), { slots: {}, racks: {}, dropped: 0 });
+    assert.deepEqual(cleanSlots({ [k]: 'spark' }, [slot], ord, { [k]: 'weg' }, racks), { slots: {}, racks: {}, dropped: 2 });
+    assert.deepEqual(groupTotals([slot], { [k]: 'marksman' }, ord, { [k]: 'msd-341-missile-rack' }, racks).get('missile'), { now: 1142 * 4, stock: 2404 * 2 });
+    // eine Halterung samt Rakete ist ein Slot
+    assert.equal(changeCount({ slots: { [k]: 'marksman' }, racks: { [k]: 'msd-341-missile-rack' } }), 1);
+    assert.equal(changeCount({ slots: { [k]: 'marksman' }, racks: { [k]: 'msd-341-missile-rack' }, paint: 'abc' }), 2);
+  });
 });
 
 describe('Werkstatt: Ablage', () => {
@@ -151,6 +211,9 @@ describe('Werkstatt: Ablage', () => {
     store.save({ id: 'dddd4444', ship: 'aegs-gladius', name: 'Serie', slots: {}, paint: undefined });
     assert.equal(store.get('cccc3333').paint, '0d451905d1a0429215ab410823b6d2aa');
     assert.ok(!('paint' in store.get('dddd4444')));
+    store.save({ id: 'eeee5555', ship: 'aegs-gladius', name: 'Igel', slots: { r: 'marksman' }, racks: { r: 'msd-341-missile-rack' } });
+    assert.deepEqual(store.get('eeee5555').racks, { r: 'msd-341-missile-rack' });
+    assert.ok(!('racks' in store.get('dddd4444')));
   });
 
   test('kaputter Inhalt ergibt eine leere oder bereinigte Liste, keinen Wurf', () => {

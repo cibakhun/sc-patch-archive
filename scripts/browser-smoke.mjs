@@ -522,6 +522,22 @@ async function probeWerkstatt(page) {
     if (c === 'systems' && st.mods.includes('box-shadow')) return 'Werkstatt: unter systems leuchtet eine getauschte Komponente am Schiff';
     if (st.mods.includes(`[data-tab="${anderer}"]`)) return `Werkstatt: unter ${c} markiert das Schiff auch ${anderer}`;
   }
+  // Raketen bleiben wie Komponenten schlichte Punkte, auch getauscht (Wunsch
+  // Krisz); der Port ist markiert, traegt aber weder Namen noch Leuchten.
+  await page.click('#hgl-cats [data-cat="weapons"]', KLICK);
+  const rakete = page.locator('#hgl-slots .hgl-slot[data-type="missile"] .hgl-slot__btn').first();
+  if (!(await rakete.count())) return 'Werkstatt: das Startschiff hat keinen Raketenslot (Startschiff in catalog.ts gewechselt? dann hier eines mit Raketen waehlen)';
+  await rakete.click(KLICK);
+  await page.click('#hgl-slots .hgl-slot.is-open .hgl-opt[aria-pressed="false"]', KLICK);
+  const rk = await page.evaluate(() => {
+    const li = document.querySelector('#hgl-slots .hgl-slot[data-changed][data-type="missile"]');
+    const port = li ? `hardpoint_${li.dataset.key.split('.')[0]}` : null;
+    const mods = document.getElementById('hgl-mods')?.textContent ?? '';
+    return { port, regel: port ? mods.split('\n').filter((r) => r.includes(`[data-port="${CSS.escape(port)}"]`)).join('\n') : '' };
+  });
+  if (!rk.port) return 'Werkstatt: die getauschte Rakete steht nicht als geaendert in der Liste';
+  if (!rk.regel) return `Werkstatt: der Raketenport ${rk.port} ist am Schiff nicht markiert`;
+  if (rk.regel.includes('::after') || rk.regel.includes('box-shadow')) return `Werkstatt: die getauschte Rakete an ${rk.port} leuchtet oder traegt am Schiff einen Namen`;
   // Lackierung, sofern das Startschiff welche hat: nur ihre Liste, keine
   // Marker am Schiff, Zaehler 1, und der Link traegt sie als viertes Feld.
   const lack = page.locator('#hgl-cats [data-cat="paint"]');
