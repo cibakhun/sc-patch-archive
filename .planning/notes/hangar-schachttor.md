@@ -383,14 +383,19 @@ PC-Lauf 2026-10-19. Geändert: `scripts/lib/ivo-caf.mjs` (Drehungen), `scripts/e
 
 **Bild:** `hangar/v48-torrahmen-vorher-nachher.png` im Projektordner. **Offen:** WINDOWS 94.
 
-## Stirnplatten in der Nische (19.10. abends)
+## Tor liegt in der Nische bereit (19.10. abends)
 
 Krisz, 21:31, mit zwei Bildern vom Ende des Schachts: „siehstr du wie es einfach aus dem nichts erscheint?“
 
-**Ursache.** Nachgestellt als Bildfolge eines Schiffswechsels (Testbrowser in Zeitlupe, Blick von der Feldmitte auf das ferne Ende, Cutlass, Stand staging 9e37ce2). Die Stirnplatten liegen offen 2 m hinter der Wandebene in der Nische (`GATE_STOW`). Ihre Vorderkante ist ein Fachwerk. Sobald die Plattform unter die Decke der Nische fährt, sieht man von oben in die Nische hinein. Gezeichnet wurde das Tor aber erst ab `gateStart` und nach dem Öffnen wieder nicht mehr (`G.group.visible`). Darum war die Nische zuerst leer, und mit dem ersten Bild des Schließens stand das Fachwerk darin. Nach dem Öffnen verschwand es ebenso mit einem Bild. Die Flügel betrifft das nicht: Sie liegen offen 12 m hinter unserer Wand, hinter der Rückwand der Nische und unter dem Hallenboden.
+**Ursache.** Nachgestellt als Bildfolge eines Schiffswechsels (Testbrowser in Zeitlupe, Cutlass, Stand staging 9e37ce2), einmal mit Blick auf das ferne Ende, einmal auf eine Längsseite. Sobald die Plattform unter die Decke der Nische fährt, sieht man von oben in die Nische hinein.
+- Enden: Die Stirnplatten liegen offen 2 m hinter der Wandebene in der Nische (`GATE_STOW`), ihre Vorderkante ist ein Fachwerk. Gezeichnet wurde das Tor aber erst ab `gateStart` und nach dem Öffnen nicht mehr (`G.group.visible`). Die Nische war also zuerst leer, mit dem ersten Bild des Schließens stand das Fachwerk darin, nach dem Öffnen verschwand es ebenso mit einem Bild. Das sind Krisz' Bilder.
+- Längsseiten: Die Flügel und was mit ihnen fährt (Zylinder, Riegel, Zahnräder) liegen offen wie im Spiel 12 m hinter unserer Wand, hinter der Rückwand der Nische (3 m). Beim Schließen schossen sie in rund 0,08 s durch diese Rückwand und standen dann hell an der Wandebene. Seit „Alle Seiten zugleich“ ist der Weg bis zur Wand auf 0,1 s gerafft (0,93 s der Bahn); vorher dauerte er 0,43 s und kam ebenso aus der Wand.
 
-**Geändert** (Bildschleife): Das Tor ist sichtbar, solange das Feld unterwegs oder unten ist, das Tor fährt oder zu ist. Die Platten liegen damit von Anfang an dunkel in ihrer Nische bereit und fahren von dort aus. Nach dem Öffnen bleiben sie dort liegen, bis die Plattform oben den Schacht wieder deckt. In Ruhe bleibt das Tor aus wie bisher. `gateStart` und `gateFrame` schalten die Sichtbarkeit nicht mehr selbst. Unterwegs kostet das Tor bis zu 6 Zeichenbefehle mehr, auch solange es offen ist.
+**Geändert.**
+- Bildschleife: Das Tor ist sichtbar, solange das Feld unterwegs oder unten ist, das Tor fährt oder zu ist. In Ruhe bleibt es aus wie bisher. `gateStart` und `gateFrame` schalten die Sichtbarkeit nicht mehr selbst. Unterwegs kostet das Tor bis zu 6 Zeichenbefehle mehr, auch solange es offen ist.
+- `buildGate`: Jede Bahn endet nach außen `GATE_STOW` hinter der Wandebene, wie die Stirnplatten schon lagen (Konsole „offen nicht hinter der Nische“: Flügel, Zylinder, Zahnräder und Riegel um 9,7 bis 11,9 m gekürzt). Die Flügel liegen so offen dunkel in der Nische, mit ihren Leuchtstreifen.
+- „Seiten zugleich“ misst den Abschnitt jetzt ab der Nische statt ab dem Feld. Zu: alle Seiten 0 bis 11,25 s (Flügel vorher 2,90 s, Stirnplatten 0 s), auf: 1,23 bis 12,5 s. Alle vier Seiten fahren also im selben Augenblick aus ihrer Nische los und kommen zugleich darin an. `cover` und die Fahrt hinab bleiben.
 
-**Nachgesehen:** dieselbe Bildfolge vorher und nachher, je 4 Zeitpunkte. Bild `hangar-schachttor/stirnplatte-vorher-nachher.png` im Projektordner.
+**Nachgesehen:** dieselben Bildfolgen vorher und nachher, je 4 Zeitpunkte an Ende und Längsseite. Die Längsseite „vorher“ stammt vom Stand mit nur der Sichtbarkeitsänderung; für die Flügel ist das derselbe Ablauf wie auf staging. Bild `hangar-schachttor/schacht-nische-vorher-nachher.png` im Projektordner.
 
-**Offen** (Sichturteil, WINDOWS 95): Kommt beim Wechsel noch etwas aus dem Nichts? Liest sich die dunkle Platte in der Nische als bereitliegendes Teil des Tors?
+**Offen** (Sichturteil, WINDOWS 95): Kommt beim Wechsel noch etwas aus dem Nichts? Lesen sich Platten und Flügel, dunkel in der Nische, als bereitliegende Teile des Tors? Die Stirnplatten fahren jetzt rund 2,7-mal so langsam wie im Spiel, die Flügel etwas schneller als zuvor.
