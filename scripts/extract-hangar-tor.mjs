@@ -66,6 +66,10 @@ console.log(`Stufen: ${stages.map((s) => `LOD${s.lod} ${s.tris}`).join(', ')} ->
 // socpak-Export in dieser Stufe (Texturen als Pfade; dekodiert hat sie der Schacht-Lauf)
 const glb = `${OUT}medtop-lod${pick.lod}.glb`;
 if (FORCE || !existsSync(glb)) sb(['socpak', 'export', 'hightech_a\\hangar_medtop_001.socpak', glb, '--materials', 'textures', '--mip', '1', '--lod', String(pick.lod)]);
+// Der feste Knoten (…_non_merged001) hat nur in LOD0 Teilnetze: diese Stufe zusätzlich
+const stage0 = stages.find((s) => s.lod === 0);
+const glb0 = `${OUT}medtop-lod0.glb`;
+if (stage0 && stage0.subsets.some((r) => r.node === 0) && (FORCE || !existsSync(glb0))) sb(['socpak', 'export', 'hightech_a\\hangar_medtop_001.socpak', glb0, '--materials', 'textures', '--mip', '1', '--lod', '0']);
 
 // Tor-Entity: Exemplare und Lage (Container-Raum; der Schacht-Raum hat die Schachtmitte auf dem Hallenboden)
 const pak = find(/hightech_a\/hangar_medtop_001\.socpak$/i);
@@ -101,5 +105,26 @@ for (const f of files.filter((x) => x.endsWith('.animevents'))) {
   events[f.split('/').pop()] = [...x.matchAll(/<event\b([^>]*)\/?>/gi)].map((m) => ({ name: attr(m[1], 'name'), time: Number(attr(m[1], 'time')), parameter: attr(m[1], 'parameter') }));
 }
 
-writeFileSync(`${OUT}tor.json`, JSON.stringify({ lod: pick.lod, stages: stages.map((s) => ({ lod: s.lod, tris: s.tris })), subsets: pick.subsets, nodes, gates, speed, cafs, events, glb: glb.slice(SRC.length) }, null, 1));
+// Paletten: am Tor-Entity (RenderProxy Palette), dazu die übrigen Plattform-Paletten des Hangars
+const palettes = ents.map((e) => ({ cls: attr(e.head, 'EntityClass'), name: attr(e.head, 'Name'), palette: (e.body.match(/<RenderProxy\b[^>]*Palette="([^"]*)"/) || [])[1] || null, wear: Number((e.body.match(/<RenderProxy\b[^>]*Wear="([^"]*)"/) || [])[1] ?? NaN) })).filter((e) => e.palette);
+// Farben der Paletten aus dem DataCore (TintPaletteTree): je Eintrag A/B/C
+// Tönung, Specular, Glanz (0–255), dazu Glas und Decal-Farben. Zum Vergleich
+// die Paletten der Industrie-Hangars (util_a: gen_grey_darkgrey_yellow).
+const { openP4k } = await import('./lib/p4k.mjs');
+const { openDataCore } = await import('./lib/datacore.mjs');
+const p4k = openP4k(P4K);
+const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
+p4k.close();
+const wantPal = new Set([...palettes.map((x) => x.palette.split('/').pop().replace(/&lt;\d+&gt;|<\d+>/, '').toLowerCase()), 'gen_grey_darkgrey_yellow', 'gen_grey_darkblue_darkorange']);
+const palColors = {};
+for (const r of db.records.filter((r) => db.structs[r.structIndex]?.name === 'TintPaletteTree')) {
+  const nm = String(r.name || '').replace(/^TintPaletteTree\./, '').toLowerCase();
+  if (!wantPal.has(nm)) continue;
+  const v = db.readRecord(r, { typed: true, maxDepth: 12 })?.root;
+  if (!v) continue;
+  const e = (x) => ({ rgb: [x.tintColor.r, x.tintColor.g, x.tintColor.b], spec: [x.specColor.r, x.specColor.g, x.specColor.b], gloss: x.glossiness });
+  palColors[nm] = { file: r.fileName, entries: { primary: e(v.entryA), secondary: e(v.entryB), tertiary: e(v.entryC) }, glass: [v.glassColor.r, v.glassColor.g, v.glassColor.b], decal: { texture: v.decalTexture || null, r: [v.decalColorR.r, v.decalColorR.g, v.decalColorR.b], g: [v.decalColorG.r, v.decalColorG.g, v.decalColorG.b], b: [v.decalColorB.r, v.decalColorB.g, v.decalColorB.b] } };
+}
+console.log(`Paletten: ${Object.keys(palColors).join(', ')}`);
+writeFileSync(`${OUT}tor.json`, JSON.stringify({ palColors, lod: pick.lod, stages: stages.map((s) => ({ lod: s.lod, tris: s.tris })), subsets: pick.subsets, nodes, gates, speed, cafs, events, glb: glb.slice(SRC.length), frame: stage0 ? { glb: glb0.slice(SRC.length), subsets: stage0.subsets } : null, palettes }, null, 1));
 console.log(`Tor: ${gates.length} Exemplar(e) ${gates.map((g) => `${g.cls} @ ${g.pos.join(',')}`).join('; ')}; ${nodes.length} Knoten; ${pick.subsets.length} Teilnetze; Spuren ${Object.entries(cafs).map(([k, c]) => `${k} ${c.bones.filter((b) => b.pos).length}`).join(', ')}; Ereignisse ${Object.values(events).flat().length}`);

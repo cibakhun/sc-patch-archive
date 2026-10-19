@@ -21,7 +21,7 @@ import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, tr
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
-import { sample as sampleCaf } from './lib/ivo-caf.mjs';
+import { sample as sampleCaf, sampleRot as sampleCafRot } from './lib/ivo-caf.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
@@ -1768,16 +1768,55 @@ async function buildTor() {
     }
     const n = doc.createNode(node).setMesh(mesh).setTranslation(pivot.map(r3));
     const b = getBounds(n);
-    const track = (caf) => [...Array(31)].map((_, k) => { const f = (k / 30) * (caf?.frames || 450); const p = g.bone ? toShaft(worldAt(g.bone, caf, f)) : [0, 0, 0]; return [r3(f / (caf?.fps || 30) / (T.speed || 1)), ...p.map(r3)]; });
+    // Drehung des Knochens (nur die Zylinder haben eine Spur): Container-Quaternion (x, y, z, w) -> glTF (x, z, −y, w)
+    const rotCh = (caf) => (g.bone ? caf?.bones.find((x) => x.name === g.bone.name)?.rot : null);
+    const quatAt = (caf, f) => { const ch = rotCh(caf); if (!ch?.values) return null; const q = sampleCafRot(ch, f); return [q[0], q[2], -q[1], q[3]].map((v) => Math.round(v * 1e4) / 1e4); };
+    const tOf = (caf, k) => r3(((k / 30) * (caf?.frames || 450)) / (caf?.fps || 30) / (T.speed || 1));
+    const track = (caf) => [...Array(31)].map((_, k) => { const f = (k / 30) * (caf?.frames || 450); const p = g.bone ? toShaft(worldAt(g.bone, caf, f)) : [0, 0, 0]; return [tOf(caf, k), ...p.map(r3)]; });
+    // Drehung getrennt von keys (dort bleibt es bei [t, x, y, z]): [t, qx, qy, qz, qw]
+    const rotTrack = (caf) => (rotCh(caf)?.values ? [...Array(31)].map((_, k) => [tOf(caf, k), ...quatAt(caf, (k / 30) * (caf?.frames || 450))]) : null);
     parts.push({
       node, bone: g.bone?.name ?? null, n,
       size: [0, 1, 2].map((i) => r3(b.max[i] - b.min[i])),
       tris: g.prims.reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0),
-      closed: { pos: pivot.map(r3), quat: [0, 0, 0, 1] },
-      open: { pos: (g.bone ? toShaft(worldAt(g.bone, cafOpen, cafOpen.frames)) : [0, 0, 0]).map(r3), quat: [0, 0, 0, 1] },
-      rotation: g.bone && [cafOpen, cafClose].some((c) => c.bones.find((x) => x.name === g.bone.name)?.rot) ? 'Drehspur vorhanden (48-Bit-Quaternion), nicht dekodiert' : null,
+      closed: { pos: pivot.map(r3), quat: quatAt(cafOpen, 0) || [0, 0, 0, 1] },
+      open: { pos: (g.bone ? toShaft(worldAt(g.bone, cafOpen, cafOpen.frames)) : [0, 0, 0]).map(r3), quat: quatAt(cafOpen, cafOpen.frames) || [0, 0, 0, 1] },
+      rotation: rotCh(cafOpen)?.values ? `Drehspur des Spiels (${rotCh(cafOpen).keys} Schlüssel, 48-Bit-Quaternion): keysRot-Zeilen [t, qx, qy, qz, qw] (glTF), Drehung um den Knoten-Ursprung` : null,
       keys: { close: track(cafClose), open: track(cafOpen) },
+      ...(rotCh(cafOpen)?.values ? { keysRot: { close: rotTrack(cafClose), open: rotTrack(cafOpen) } } : {}),
     });
+  }
+  // Fester Teil (Netz-Knoten 0, …_non_merged001): nur LOD0 hat ihn
+  if (T.frame) {
+    const d0 = await io.read(fileURLToPath(new URL(T.frame.glb, SRC)));
+    const g0 = d0.getRoot().listNodes().find((n) => /ht_hangar_ship_elev_door_med_a/.test(n.getMesh()?.getName() || ''));
+    const p0 = g0?.getMesh().listPrimitives() || [];
+    // Primitive den Teilnetzen zuordnen: in Reihenfolge, Teilnetze ohne Primitiv (vom Export verworfenes Material) überspringen
+    const map = []; let k = 0;
+    for (const sub of T.frame.subsets) { if (k < p0.length && p0[k].getIndices().getCount() / 3 === sub.tris) { map.push([sub, p0[k]]); k++; } }
+    const framePrims = map.filter(([sub]) => sub.node === 0).map(([, pr]) => pr);
+    if (framePrims.length) {
+      const mesh = doc.createMesh('gate_frame_0');
+      const W0 = g0.getWorldMatrix();
+      for (const pr of framePrims) {
+        // aus dem LOD0-Dokument übernehmen: Attribute kopieren, Material gleichen Namens im Tor-Dokument
+        const q = doc.createPrimitive();
+        for (const sem of pr.listSemantics()) { const a = pr.getAttribute(sem); q.setAttribute(sem, doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setNormalized(a.getNormalized()).setBuffer(root.listBuffers()[0])); }
+        q.setIndices(doc.createAccessor().setType('SCALAR').setArray(pr.getIndices().getArray().slice()).setBuffer(root.listBuffers()[0]));
+        transformPrimitive(q, W0);
+        transformPrimitive(q, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -LIFT_SHAFT.floorY, 0, 1]);
+        const mn = pr.getMaterial()?.getName();
+        const mat = root.listMaterials().find((m) => m.getName() === mn);
+        if (mat) q.setMaterial(mat);
+        mesh.addPrimitive(q);
+      }
+      const n = doc.createNode('gate_frame_0').setMesh(mesh);
+      const b = getBounds(n);
+      parts.push({ node: 'gate_frame_0', bone: null, n, size: [0, 1, 2].map((i) => r3(b.max[i] - b.min[i])), tris: framePrims.reduce((t, p) => t + p.getIndices().getCount() / 3, 0),
+        closed: { pos: [0, 0, 0], quat: [0, 0, 0, 1] }, open: { pos: [0, 0, 0], quat: [0, 0, 0, 1] }, rotation: null,
+        keys: (() => { const st = (c) => [...Array(31)].map((_, k) => [r3(((k / 30) * c.frames) / c.fps / (T.speed || 1)), 0, 0, 0]); return { close: st(cafClose), open: st(cafOpen) }; })(),
+        what: `fester Knoten …_non_merged001 (nur LOD0), Material ${framePrims[0].getMaterial()?.getName()}, Box ${b.min.map(r3).join('/')} … ${b.max.map(r3).join('/')}` });
+    }
   }
   for (const n of root.listNodes()) if (!parts.some((p) => p.n === n)) n.dispose();
   for (const p of parts) scene.addChild(p.n);
@@ -1796,6 +1835,20 @@ async function buildTor() {
     v: 1,
     source: { geometry: 'ht_hangar_ship_elev_door_med_a.cga', lod: T.lod, stages: T.stages, entity: g0?.cls, note: 'Tor des mittleren Hangars (hangar_medtop_001); bewegt nur durch Verschieben, die Zylinder drehen zusätzlich' },
     place: T.gates.map((g) => ({ pos: toShaft([g.pos[0], g.pos[1], g.pos[2] - LIFT_SHAFT.floorY]).map(r3), rot: g.rot })),
+    palette: (() => {
+      const own = T.palettes?.find((x) => x.cls === 'LoadingPlatformLoadingGate');
+      const key = own?.palette.split('/').pop().replace(/&lt;\d+&gt;|<\d+>/, '').toLowerCase();
+      const c = T.palColors?.[key];
+      const lin = (v) => r3((v / 255) ** 2.2);
+      return own && c ? {
+        source: `RenderProxy Palette am Entity LoadingPlatformLoadingGate (${own.palette}), Paletten-Datensatz TintPaletteTree ${c.file}`, name: key, wear: own.wear,
+        entries: Object.fromEntries(Object.entries(c.entries).map(([k, e]) => [k, { rgb: e.rgb, linear: e.rgb.map(lin), spec: e.spec, gloss: e.gloss }])), glass: c.glass, decal: c.decal,
+        layers: { paint_b_primary_041: 1, paint_b_secondary_042: 2, paint_b_tertiary_043: 3, paint_c_notint_044: 0, trim_metal_a_030: 0, trim_greebles_a_031: 0, metal_a_046: 0, glow_a_019: 0 },
+        layersNote: 'PaletteTint der Basisschicht (Primary) je Material: 1 = primary (A), 2 = secondary (B), 3 = tertiary (C), 0 = eigene Tönung der Schicht; die Wear-Schichten haben überall 0',
+        others: Object.entries(T.palColors || {}).filter(([k]) => k !== key).map(([k, v]) => ({ name: k, where: k === 'gen_grey_darkgrey_yellow' ? 'Tor und Plattform der Industrie-Hangars util_a (Lorville, Levski, Nyx)' : k === 'gen_grey_darkblue_darkorange' ? 'Plattform der Hightech-Hangars (LoadingPlatform)' : k.startsWith('aeroview') ? 'Itembanks im Hangar' : null, entries: v.entries })),
+        locations: 'Alle Hightech-Hangars (sml/med/lrg/xl, top und front) setzen am Tor gen_grey_darkgrey_darkblue; die Ortsvarianten _newbab und _orison setzen keine eigene',
+      } : null;
+    })(),
     parts: parts.map(({ n, ...p }) => p),
     anim: {
       close: { s: r3(cafClose.frames / cafClose.fps / (T.speed || 1)), frames: cafClose.frames, fps: cafClose.fps, speed: T.speed, keys: 'je Teil in parts[].keys.close: [t s, x, y, z] (31 Stützstellen, linear zwischen den Spielschlüsseln)' },
@@ -1813,6 +1866,71 @@ async function buildTor() {
   writeFileSync(jsonOut, JSON.stringify(json) + '\n');
   const v = createHash('sha1').update(readFileSync(outPath)).update(readFileSync(jsonOut)).digest('hex').slice(0, 8);
   return { url: '/hangar/lift/medtop-tor.glb', json: '/hangar/lift/medtop-tor.json', bytes, v, report: { parts: json.parts.map((p) => [p.node, p.bone, p.tris, p.closed.pos, p.open.pos]), attached, jsonBytes: statSync(jsonOut).size, materials: doc.getRoot().listMaterials().length } };
+}
+
+// ─── Rand der Toröffnung (.planning/notes/hangar-schachttor.md, Torrahmen) ─
+// Was in Ruhe um die Öffnung zu sehen ist: alle Netze des Schacht-Rohexports
+// (hangar_medtop_001, LOD2 aus dem Tor-Lauf) mit Bezugspunkt im Band bis 4 m um den Rand der
+// Öffnung (Schachtraum |x| 24…32 oder |z| 40…48, y −4…+1), außer den
+// Bausatzteilen, die medtop.glb schon trägt (Randleisten), und dem Tor.
+// Je Exemplar ein Knoten rand_<art>_<n> im Schachtraum (Ursprung 0).
+// Hologramm über dem Feld (hangar_holo_m) ist kein fester Rand, es blendet die Sequenz ein und aus
+const RAND_SKIP = /hangar_ship_elevator_|ht_hangar_ship_elev|light_hazard_2_d|hangar_holo/;
+const randKind = (k) => (/walkway_str/.test(k) ? 'steg' : /walkway_corner/.test(k) ? 'stegecke' : /light_landing/.test(k) ? 'landeleuchte' : /light_hazard/.test(k) ? 'warnlampe'
+  : /light_floor/.test(k) ? 'bodenleuchte' : /logo/.test(k) ? 'logo' : k.replace(/_[a-z]$/, ''));
+async function buildRand() {
+  const doc = await io.read(fileURLToPath(new URL('tor/medtop-lod2.glb', SRC)));
+  const root = doc.getRoot(), scene = root.listScenes()[0];
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const inBand = (p) => { const ax = Math.abs(p[0]), az = Math.abs(p[2]); return p[1] >= -4 && p[1] <= 1 && ((ax >= 24 && ax <= 32 && az <= 48) || (az >= 40 && az <= 48 && ax <= 32)); };
+  const made = [], count = new Map();
+  for (const n of root.listNodes()) {
+    const m = n.getMesh(); if (!m || !m.listPrimitives().length) continue;
+    const key = m.getName().replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '');
+    if (RAND_SKIP.test(key)) continue;
+    const w = n.getWorldMatrix();
+    const at = [w[12], w[13] - LIFT_SHAFT.floorY, w[14]];
+    if (!inBand(at)) continue;
+    const kind = randKind(key), i = count.get(kind) || 0; count.set(kind, i + 1);
+    const name = `rand_${kind}_${i}`;
+    const mesh = doc.createMesh(name);
+    for (const p of m.listPrimitives()) {
+      const q = p.clone();
+      for (const sem of q.listSemantics()) q.setAttribute(sem, p.getAttribute(sem).clone());
+      if (p.getIndices()) q.setIndices(p.getIndices().clone());
+      transformPrimitive(q, w);
+      transformPrimitive(q, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -LIFT_SHAFT.floorY, 0, 1]);
+      mesh.addPrimitive(q);
+    }
+    made.push({ node: name, kind, key, at: at.map(r3), mesh, mats: m.listPrimitives().map((p) => p.getMaterial()) });
+  }
+  // Schichten je Material (vor applyLayers/cleanMaterials festhalten)
+  const materials = {};
+  for (const mt of new Set(made.flatMap((x) => x.mats))) {
+    const x = mt?.getExtras() || {};
+    const man = x.semantic?.layer_manifest || [];
+    materials[mt?.getName()] = { shader: x.shader ?? null, layers: man.map((l) => ({ name: l.name, path: l.path, tint: l.tint_color, paletteTint: l.palette_tint, glossMult: l.gloss_mult, uvTiling: l.uv_tiling })), palette: x.semantic?.palette?.source_name ?? (x.semantic?.palette ? 'layer' : null), diffuse: x.diffuse_tex ?? null };
+  }
+  for (const n of root.listNodes()) n.dispose();
+  for (const x of made) scene.addChild(doc.createNode(x.node).setMesh(x.mesh));
+  await doc.transform(prune({ keepAttributes: true }));
+  applyLayers(doc, 'medtop', 'lift');
+  await attachHallTextures(doc);
+  stripAttributes(doc, 'lift');
+  cleanMaterials(doc);
+  await doc.transform(dedup(), join({ keepNamed: true }), weld());
+  const nodes = scene.listChildren().map((n) => {
+    const x = made.find((y) => y.node === n.getName()); const b = getBounds(n);
+    return { node: n.getName(), kind: x.kind, path: x.key, place: x.at, size: [0, 1, 2].map((i) => r3(b.max[i] - b.min[i])), box: [b.min.map(r3), b.max.map(r3)], tris: Math.round(n.getMesh().listPrimitives().reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0)), materials: x.mats.map((m) => m?.getName()) };
+  });
+  const tris = nodes.reduce((t, n) => t + n.tris, 0);
+  const outPath = fileURLToPath(new URL('lift/medtop-rand.glb', OUT));
+  const bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512 });
+  const json = { v: 1, source: { container: 'hangar_medtop_001 (Hightech)', lod: 2, band: 'Schachtraum |x| 24…32 oder |z| 40…48, y −4…+1; ohne Randleisten (in medtop.glb) und Tor', palette: 'Brushes tragen keine eigene Palette; Schichten mit PaletteTint > 0 nehmen die Vorgabe des Containers' }, nodes, materials, tris };
+  const jsonOut = fileURLToPath(new URL('lift/medtop-rand.json', OUT));
+  writeFileSync(jsonOut, JSON.stringify(json) + '\n');
+  const v = createHash('sha1').update(readFileSync(outPath)).update(readFileSync(jsonOut)).digest('hex').slice(0, 8);
+  return { url: '/hangar/lift/medtop-rand.glb', json: '/hangar/lift/medtop-rand.json', bytes, v, report: { nodes: nodes.length, tris, kinds: [...count], jsonBytes: statSync(jsonOut).size } };
 }
 
 let prev = {};
@@ -1926,6 +2044,19 @@ if (manifest.lift.medtop) {
       console.log(`  lift/medtop-tor  ${report.parts.length} Knoten, ${report.parts.reduce((a, x) => a + x[2], 0).toLocaleString()} Dreiecke, ${report.materials} Materialien, ${(r.bytes / 1048576).toFixed(2)} MB, JSON ${(report.jsonBytes / 1024).toFixed(0)} KB`);
       for (const [n, b, t, c, o] of report.parts) console.log(`    ${n.padEnd(14)} ${String(b).padEnd(22)} ${String(t).padStart(6)} Dreiecke  zu ${c.join('/')}  auf ${o.join('/')}`);
     } catch (err) { console.error(`  lift/medtop-tor: FEHLER ${err.stack || err.message}`); if (keep) manifest.lift.medtop.gate = keep; }
+  }
+}
+// Rand der Toröffnung: hängt ebenfalls an lift.medtop (Quelle: Schacht-Rohexport)
+if (manifest.lift.medtop) {
+  const keep = prev.lift?.medtop?.rand;
+  if (ONLY && ONLY !== 'tor' && ONLY !== 'rand') { if (keep) manifest.lift.medtop.rand = keep; }
+  else {
+    try {
+      const r = await buildRand();
+      const { report, ...rand } = r;
+      manifest.lift.medtop.rand = rand; built++;
+      console.log(`  lift/medtop-rand  ${report.nodes} Knoten, ${report.tris.toLocaleString()} Dreiecke, ${(r.bytes / 1048576).toFixed(2)} MB, JSON ${(report.jsonBytes / 1024).toFixed(0)} KB: ${report.kinds.map(([k, n]) => `${n}× ${k}`).join(', ')}`);
+    } catch (err) { console.error(`  lift/medtop-rand: FEHLER ${err.stack || err.message}`); if (keep) manifest.lift.medtop.rand = keep; }
   }
 }
 // Gerätekatalog: eigene Quelle (scripts/extract-hangar-katalog.mjs)

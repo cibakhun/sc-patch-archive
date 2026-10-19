@@ -3468,8 +3468,14 @@
       "gate": {
         "url": "/hangar/lift/medtop-tor.glb",
         "json": "/hangar/lift/medtop-tor.json",
-        "bytes": 633456,
-        "v": "9af198b4"
+        "bytes": 635296,
+        "v": "426c8446"
+      },
+      "rand": {
+        "url": "/hangar/lift/medtop-rand.glb",
+        "json": "/hangar/lift/medtop-rand.json",
+        "bytes": 657308,
+        "v": "1789bdd3"
       }
     }
   },
