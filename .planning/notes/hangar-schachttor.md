@@ -250,3 +250,135 @@ Krisz, 00:05: „wenn der platform runterfährt und die schacht zu geht kommen e
 **Nachgesehen** (Testbrowser in Zeitlupe, Blick von oben mit weitem Winkel): vorher sind die Stirnplatten nach 0,57 s zu und die Flügel kommen erst; nachher fahren bei 0,37 s und 0,54 s Flügel und Stirnplatten gemeinsam ein. Bild `hangar-schachttor/schachttor-vorher-nachher.png` im Projektordner.
 
 **Offen** (Sichturteil, WINDOWS 93): Wirkt das gemeinsame, langsamere Einfahren der Stirnplatten stimmig? Soll das Öffnen (nicht ausdrücklich verlangt) ebenfalls gleichzeitig bleiben?
+
+## Torrahmen und Torlack (19.10.)
+
+Auslöser für die PC-Sitzung: **„Hangar-Torrahmen“**. Anlass: Krisz 2026-10-19 13:37 zum Schlitz (#131): „das problem mit der schaft zumachmechanismus war das es nicht belivable ist, es ploppt aus dem nicht rein und textur mässig undso passts auch nicht“, 13:38: „es soll so aussehen wie ein element was da fest verbaut ist und soll halt ein glaubhaftes mechanismus sein“.
+
+**Befund Cloud** (Bildfolge aus der Standardansicht, Cutlass, Stand staging 2992e7e):
+- Gezeichnet wird das Tor auf dem ganzen Weg, es springt nicht. Die Flügel liegen offen 12 m hinter unserer Wand, hinter der 3 m tiefen Nische; sie kommen erst bei rund 0,45 s aus dem dunklen Schlitz und queren das Feld in rund 0,7 s. In Ruhe ist vom Tor nichts zu sehen, kein Rahmen, keine Führung. Es kommt also unter einer weißen Bodenkante hervor, ohne dass man vorher sieht, wo es wohnt.
+- Die Lacke des Tors heißen `paint_b_primary`/`_secondary`/`_tertiary`. Das sind die Palettenlacke des Spiels; der Schacht nutzt `paint_c_notint` (ohne Palette). Im Export tragen sie die Grundtöne ihrer Schichten (linear 0,007 bis 0,032, fast schwarz), die Farbkarte ist fast einfarbig (0,69 bis 0,78). Im Spiel färbt die Palette des Tor-Entitys sie ein. Die fehlt uns; `GATE_PAINT`/`GATE_TONE` hellen nur auf, daher das stumpfe Grau mit grauen Warnstreifen.
+- Die Eckstücke `gate_2` bis `gate_5` sind große Blöcke aus `trim_metal_a`: 13 × 3,55 × 61,6 m bzw. 13 × 3,55 × 93,6 m, Oberkante 0,17 m unter dem Boden. Offen schieben sie sich 10 m in die Öffnung und lassen 34 × 66 m frei, so groß wie die Plattform. Vermutlich ist das im Spiel der sichtbare Rahmen um die Plattform in Ruhe, der beim Schließen unter den Boden zurückfährt, bevor die Flügel kommen. Das wäre genau das „fest verbaute Element“. Unser Feld ist 32 × 96 m, und unser Hallenboden schließt direkt an; die Blöcke sind darum weggelassen.
+
+## Auftrag PC (Hangar-Torrahmen)
+
+1. `git pull` auf `claude/wot-hangar-hzs46w`.
+2. **Torlack.** Für die Materialien des Tors (`paint_b_primary_041`, `paint_b_secondary_042`, `paint_b_tertiary_043`, `paint_c_notint_044`, `trim_metal_a_030`, `metal_a_046`) je Schicht `PaletteTint` und eigene Tönung nennen. Die Palette des Tors finden: am Entity `LoadingPlatformLoadingGate` in `hangar_medtop_001` (`SGeometryResourceParams`, `TintPaletteTree` oder Palettenverweis wie bei den Schiffen in `datamine-ship-paints.mjs`), sonst am Objektcontainer oder als Vorgabe der Geometrie. Je Eintrag (primär, sekundär, tertiär, dazu Decal-Farben, falls vorhanden) Farbe, Specular, Glanz. Hängt die Palette am Ort des Hangars (mehrere Hangar-Paletten), alle mit Namen und Farben auflisten und sagen, welche zu welchem Ort gehört. Ablage: `medtop-tor.json` → `palette: { source, name, entries: { primary: { rgb, spec, gloss }, … }, layers: { <Material>: <PaletteTint> }, others?: [ … ] }`.
+3. **Was in Ruhe um die Öffnung zu sehen ist.** Alle Entities und Netze in `hangar_medtop_001` auflisten, die im Band bis 4 m um den Rand der Toröffnung liegen (Schachtraum: |x| 24 bis 32 oder |z| 40 bis 48, y −4 bis +1): Name, Geometriepfad, Lage, Größe, Materialien, Dreiecke. Gemeint sind Bodenstücke an der Öffnung, Rand- und Rahmenleisten, Schienen, Lichtbänder, Warnmarkierungen und Decals. Dazu die Eckstücke `gate_2` bis `gate_5`: Sind sie sichtbare Geometrie oder Verdecker/Kollision (Materialflags, NoDraw, Proxy)? Was davon sieht ein Spieler bei offenem Tor und oben stehender Plattform? Die sichtbaren Teile exportieren wie den Schacht (Draco, WebP ≤ 1024 px, Schichtmaterialien, COLOR_0 behalten), zusammen höchstens 10 000 Dreiecke in der besten passenden LOD, je Teil ein Knoten im Schachtraum, nach `public/hangar/lift/medtop-rand.glb` und `medtop-rand.json` (`nodes`, `place`, `size`, `tris`, Materialien mit Schichten und Palette), im Manifest unter `lift.medtop.rand`.
+4. **Fester Teil des Tors.** Den Knoten `…_non_merged001` (nur LOD0, 104 Dreiecke) als `gate_frame_0` in `medtop-tor.glb` aufnehmen und sagen, was er ist (Schiene, Rahmen, Antrieb). Ist er unsichtbar oder ohne Material, das sagen und weglassen.
+5. **Zylinder.** Die Drehspur der vier Zylinder (`gate_9`, `gate_10`, `gate_14`, `gate_15`, 48-Bit-Quaternionen) dekodieren und in `parts[].keys` als Drehung mitgeben; geht es nicht, sagen, woran es scheitert.
+6. **Sicht.** Den Hangar um den Schacht so rendern, wie das Spiel ihn baut (Boden, Rand, Tor mit Palette, Plattform): in Ruhe, Tor halb zu, Tor zu. In Worten beschreiben, was am Boden zu sehen ist: woher das Tor kommt (Schlitz, Rahmen, Schienen), welche Farben die Lacke mit der Palette haben, welche Warnmarkierungen es gibt. Keine Bilder und keine Roh-Exporte committen (das Repo ist öffentlich).
+7. Selbstauskunft mit der üblichen Kopfzeile: Palette und Quelle, gelistete und exportierte Teile mit Dreiecken, Materialien und Bytes, Zylinderspuren. Vor dem Push `npm run build && npm run gate`; auf den Branch, ohne PR. Einbau, Merge nach staging und die Bildfolge vorher/nachher macht die Cloud.
+
+## Befund PC (Hangar-Torrahmen)
+
+PC-Lauf 2026-10-19. Geändert: `scripts/lib/ivo-caf.mjs` (Drehungen), `scripts/extract-hangar-tor.mjs` (LOD0, Paletten), `scripts/build-hangar-assets.mjs` (`buildTor`: Palette, `gate_frame_0`, Zylinderdrehung; neu `buildRand`).
+
+**2. Torlack.**
+- Die Palette hängt am Entity: `LoadingPlatformLoadingGate` trägt `<RenderProxy Wear="0.8" Palette="Libs/Foundry/Records/TintPalettes/Generic/gen_grey_darkgrey_darkblue">`.
+- Werte aus dem DataCore (`TintPaletteTree`):
+
+| Eintrag | Farbe (sRGB 0–255) | linear | Specular | Glanz |
+|---|---|---|---|---|
+| primary (A) | 170 / 170 / 170 | 0.41 / 0.41 / 0.41 | 59 | 255 |
+| secondary (B) | 57 / 57 / 57 | 0.037 / 0.037 / 0.037 | 59 | 255 |
+| tertiary (C) | 53 / 93 / 123 | 0.032 / 0.109 / 0.201 | 59 | 255 |
+
+- Glas weiß, Decal-Farben R/G/B weiß, keine Decal-Textur.
+- `PaletteTint` der Basisschicht:
+  - `paint_b_primary_041` = 1 (A), `paint_b_secondary_042` = 2 (B), `paint_b_tertiary_043` = 3 (C).
+  - `paint_c_notint_044`, `trim_metal_a_030`, `trim_greebles_a_031`, `metal_a_046`, `glow_a_019` = 0. Diese behalten ihre eigene Tönung, etwa `paint_c_notint` 0,051/0,056/0,063.
+  - Die Wear-Schichten haben überall 0. Glanzfaktor der Lacke: 0,95, Wear 0,7.
+- **Die drei Lacke sind also Hellgrau, Dunkelgrau und Dunkelblau, nicht fast schwarz.** Der Export trug die „default“-Palette des Containers, daher kamen die Werte 0,007 bis 0,032.
+- **Ort:** Alle Hightech-Hangars (sml/med/lrg/xl, top und front) setzen am Tor dieselbe Palette; die Ortsvarianten `_newbab` und `_orison` setzen keine eigene.
+- Andere Paletten zum Vergleich (`palette.others`):
+  - Plattform der Hightech-Hangars: `gen_grey_darkblue_darkorange` (170 grau / 53,93,123 blau / 197,136,66 orange).
+  - Tor und Plattform der Industrie-Hangars `util_a`: `gen_grey_darkgrey_yellow` (123 / 100 / 229,171,91 gelb).
+  - Itembanks: `aeroview_hangars_default`.
+- Ablage: `medtop-tor.json` → `palette`.
+
+**3. In Ruhe um die Öffnung.** Im Band (|x| 24–32 oder |z| 40–48, y −4…+1) liegen neben Tor und Randleisten:
+
+| Art | Spielmodell | Exemplare | Dreiecke (LOD2) | Materialien |
+|---|---|---|---|---|
+| landeleuchte | light_landing_1_a | 26 | 884 | decal glow_03, glass_tinted_05, metal_painted_07 |
+| logo | aeroview_logo_b | 2 | 440 | painted_metal_primary_021, painted_metal_secondary_022 |
+| warnlampe | light_hazard_2_b | 4 | 240 | decal_glow_lod_06, metal_painted_grey_dark_09 |
+| stegecke | hangar_walkway_corner_4m_a | 4 | 1240 | grating_atlas_a_027, trim_greebles_a_031, paint_c_notint_044, metal_a_046 |
+| bodenleuchte | light_floor_01_b | 2 | 168 | glow_03, metal_paint_grey_05 |
+| steg | hangar_walkway_str_08m_a | 16 | 4004 | grating_atlas_a_027, trim_greebles_a_031, paint_c_notint_044, metal_a_046 |
+
+- Dazu das Bodenhologramm `hangar_holo_m_a` über dem Feld, das die Sequenz ein- und ausblendet. Es ist kein fester Rand und bleibt weg.
+- Decal-Objekte gibt es im Band keine. Die blauen Leitlinien liegen weiter außen und stehen in `medtop.json` → `deco`.
+- **Der Stegring ist der „fest verbaute“ Rahmen:**
+  - 16 gerade Gitterstege und 4 Eckstege, 4 m breit, Oberkante 0,25 m unter dem Boden. Sie umrahmen die Öffnung zwischen Schachtkante (±28 / ±44) und Hallenboden (±32 / ±48).
+  - Darin liegen die Landeleuchten im Raster, die vier Eck-Warnlampen, zwei Bodenleuchten und zweimal der Schriftzug „AEROVIEW HANGARS“ an den Stirnseiten.
+- **Tor-Eckstücke `gate_2`–`gate_5`:** sichtbare Geometrie, kein Verdecker.
+  - Material `trim_metal_a_030` (HardSurface, Trimsheet), kein NoDraw, kein Proxy.
+  - Je 61,6 × 3,55 × 13 m bzw. 13 × 3,55 × 93,6 m, Oberkante 0,22 m unter dem Boden, also knapp unter dem Steg.
+  - In Ruhe (Tor offen, Plattform oben) liegen sie unter Steg und Plattformkante und sind nicht zu sehen. Sie kommen beim Schließen heraus und tragen die schwarz-weißen Chevron-Bänder auf den Diagonalen.
+- Export: `public/hangar/lift/medtop-rand.glb` (0,63 MB, LOD2, **6976 Dreiecke**) und `medtop-rand.json` (22 KB). Je Exemplar ein Knoten `rand_<art>_<n>` im Schachtraum; `nodes` mit Lage, Größe, Box, Dreiecken und Materialien, `materials` mit Schichten und `paletteTint`.
+  - LOD1 läge ohne Hologramm bei rund 10 000 Dreiecken, knapp über der Grenze.
+  - Brushes tragen keine eigene Palette.
+- Manifest: `lift.medtop.rand`.
+
+**4. Fester Teil.** `gate_frame_0` ist jetzt in `medtop-tor.glb`: der Knoten `…_non_merged001` aus LOD0, 104 Dreiecke, Material `paint_c_notint_044` (der Schachtlack).
+- Box 61,1 × 3,6 × 93,2 m, y −3,75 bis −0,13.
+- Das ist das Gehäuse der Tortasche: ein Kasten um die Öffnung unter dem Stegring, in dem das offene Tor liegt. Schienen oder Antrieb sind es nicht; die bewegten Teile tragen ihre Führungen (Riegel, Zylinder, Zahnräder) selbst.
+- In Ruhe ist das Gehäuse unter dem Steg nicht zu sehen.
+
+**5. Zylinder.** Die 48-Bit-Quaternionen sind dekodiert (`ivo-caf.mjs`):
+- Als 48-Bit-Zahl tragen Bit 46–47 den Index der größten Komponente (x, y, z, w). Die drei übrigen folgen zu je 15 Bit ab Bit 0, Wert (v − 16383) / 23170,475; die größte ergibt sich als √(1 − Σ).
+- Alle vier Zylinder (`gate_9`, `gate_10`, `gate_14`, `gate_15`) kippen beim Öffnen von 0° auf −90° um X und beim Schließen zurück, 46 bzw. 47 Schlüssel.
+- Die Drehung steht in einem eigenen Feld `parts[].keysRot.close`/`.open` mit Zeilen `[t, qx, qy, qz, qw]` (glTF, 31 Stützstellen wie `keys`), dazu `closed.quat` (0, 0, 0, 1) und `open.quat` (−0,7071, 0, 0, 0,7071). Die Drehung geht um den Knoten-Ursprung.
+- Warum nicht in `keys`: `verify:hangar-hall` [15] verlangt dort genau `[t, x, y, z]`. In einem ersten Lauf hatte ich die Drehung an `keys` angehängt; das Tor riss, und die vier Zylinder fielen aus der Zählung „im Feld“. `keys` bleibt deshalb unverändert.
+- `gate_frame_0` hat konstante `keys` (0, 0, 0) über beide Bahnen, damit die Prüfung jedes Teil gleich lesen kann.
+
+**6. Sicht.** Ich habe am PC den Schacht wie im Spiel gerendert: Bausatz, Rand, Tor mit Palette und Plattform, in Ruhe, halb zu und zu. Die Bilder sind nicht committet.
+- **In Ruhe:**
+  - Um die Plattform liegt ein dunkler, 4 m breiter Gitterstegring mit hellen Stahlkanten.
+  - Darin sitzen die Landeleuchten als kleine helle Punkte im Raster, an den vier Ecken die Warnlampen, an den Stirnseiten der Schriftzug „AEROVIEW HANGARS“.
+  - Vom Tor ist nichts zu sehen, auch kein Schlitz.
+- **Halb zu:**
+  - Das Tor kommt aus der Fuge zwischen Plattformkante und Stegring: zuerst Eckstücke und Stirnplatten, dann die Flügel.
+  - Die großen Flächen sind hellgrau (A), Fugen und Kanten dunkelgrau (B), einzelne Flächen dunkelblau (C).
+  - Auf den diagonalen Eckstücken laufen schwarz-weiße Chevron-Warnstreifen.
+- **Zu:** Eine hellgraue, gegliederte Fläche mit Mittelfuge, Riegeln und blauen Akzenten liegt bündig im Stegring.
+- **Rahmen, Schienen, Antrieb:** Am Boden sind sie nicht zu sehen; der „Rahmen“ ist der Stegring.
+
+**Einbau Cloud danach:** Torlacke aus der Palette statt `GATE_PAINT`/`GATE_TONE`. Den Rand aus Punkt 3 auf unser Feld gestellt und in Ruhe sichtbar; das Tor kommt beim Schließen aus ihm, so wie im Spiel, mit den Eckstücken, wenn sie sichtbar sind. Die Gesamtdauer der Bahn bleibt (Krisz 19.10. 00:05: „die gesamt länge von der animation hat gepasst“).
+
+## Einbau Cloud (Torrahmen, 19.10. abends)
+
+**Torlack.** `GATE_PAINT`/`GATE_TONE` sind weg. `buildGate` setzt die Farbe jedes Palettenlacks direkt aus `info.palette` (`GATE_PALETTE`: Schicht 1/2/3 → primary/secondary/tertiary, `linear`). Die übrigen Materialien behalten ihre eigene Tönung wie im Schacht. Zusammengelegt wird weiter nach Karten (`matKey`, jetzt auch für den Rand); ein farbiger Lack (Sättigung über 0,3, das Blau) bleibt für sich, weil `hgShade` nur einen Helligkeitswert trägt. Konsole: „Lack aus der Palette gen_grey_darkgrey_darkblue: paint_b_primary_041, paint_b_secondary_042, paint_b_tertiary_043, 4 drehen“.
+
+**Zylinder.** `keysRot` wird mit `gateRot` (slerp) gelesen, auch durch den Zeitverzug der gleichzeitigen Seiten (#134) und beim Umkehren (`snapQ`). Gedreht wird um den Knotenursprung.
+
+**Rand (`HALL_RAND`, `buildRand`).**
+- Je Art wird ein Exemplar des Spiels genommen, in das Bezugssystem seiner Seite gelegt (a entlang ab der linken Innenecke, w nach außen ab der Schachtkante) und auf unsere vier Seiten gestellt. Die Längsseiten bekommen 4 Stege zu je 24 m, die Querseiten 32 m (Steg 8 m bei 0, Steg 16 m bei 24, dazwischen der Schriftzug bei 16). Dazu kommen die Ecke mit ihrer Landeleuchte an jedem Seitenanfang, Landeleuchten alle 12 m längs und bei 7/25 m quer, und die beiden Bodenleuchten auf ihrer Seite.
+- Ergebnis: 42 Teile, 6104 Dreiecke, 10 Materialien, 4 m breit.
+- Die Materialien sind die des Rand-GLB, wie die der Halle vorbereitet (Hallenlicht, `hgShade`, Hallenshader). Die Schachtmaterialien gleichen Namens nehmen nur die Schachtlampen und lagen in Ruhe schwarz. Geteilt werden nur ihre Karten (11 Karten).
+- Die Warnlampen der Ecken stehen schon im Schacht (`light_1`).
+- Der Ring kostet in Ruhe 10 Draw-Calls mehr.
+
+**Hallenboden unter dem Rand.** `hgCut` im Hallenshader spart den Boden zwischen Feldkante (+5 mm) und Außenkante des Stegs (−1 cm) aus. Ausgespart wird alles unter 4,5 cm, und waagrechte Flächen bis 6 cm. Die Fasen der Bodenplatten reichen 3,9 cm hoch und lagen vorher als Strichlinien auf dem Steg. Was auf dem Boden steht, bleibt darüber stehen. Dieselbe Aussparung gilt in den statischen Schattenkarten (`statMat`), damit der Steg nicht im Schatten eines Bodens liegt, den man nicht mehr sieht; im Bild ändert das nur einzelne Pixel. Die alte Stirnkante `shaft.edge` entfällt mit dem Rand.
+
+**Möbel und Werkstatt.**
+- `clearRandFurniture`: Möbel am Boden, die in den Rand reichen, rücken senkrecht zur nächsten Feldkante hinaus, plus 0,3 m. Käme eines damit aus der Halle, bleibt es weg. Gerückt wurden `furniture_19_19` 4,4 m, `23_23` 4,7 m, `31_31` 4,4 m, `52_52` 3,8 m und `53_53` 3,9 m; weggelassen keins.
+- Ein Rollwagen, der Teil der Hallengeometrie ist (x ≈ 17,4, z ≈ 19,4), bleibt auf dem Steg stehen. Seine unteren 4,5 cm sind ausgespart.
+- `placeWorkshop(…, rim)` zählt Abstände ab der Außenkante des Rands, wie die Anordnung des Spiels, deren Feld (56 × 88) denselben Steg hat. Konsole: „4 m Rand frei“.
+
+**Weiter weg:** `gate_2` bis `gate_5` (Eckstücke mit Chevron-Bändern) und `gate_frame_0` (Gehäuse). Offen lägen sie in unserem schmaleren Feld, also im Bild über der Plattform.
+
+**Prüfung** (`verify:hangar-hall`):
+- [15] verlangt für jeden `paint_b_*` eine Farbe aus der Palette, Klinke 3. Rot vorgeführt mit `palette.entries.tertiary` aus `dist/…/medtop-tor.json` entfernt: „[15] paint_b_tertiary_043 ist ein Palettenlack, /hangar/lift/medtop-tor.json traegt dafuer keine Farbe …“ und „[15] nur 2 Palettenlacke am Tor tragen die Farbe des Spiels, die Klinke verlangt 3“.
+- [16] ist neu und liest `HALL_RAND` aus dem ausgelieferten Viewer gegen GLB und JSON in `dist/`. Geprüft wird:
+  - jede Seite ist von 0 bis zur Länge mit Stegen gedeckt, ohne Lücke und ohne Überlappung, bündig mit dem Boden;
+  - Ecken, Leuchten und Schriftzug liegen in ihrer Seite und im Rand;
+  - gleichnamige Schachtmaterialien tragen dieselben Karten;
+  - Klinke 42 Teile, Obergrenze 10 000 Dreiecke, 10 Materialien, 1 MB.
+- [16] rot vorgeführt:
+  - mit `rand_steg_7` bei 20: „[16] Querseite: rand_steg_7 ueberlappt den Steg davor um 4.00 m; beide flimmerten gegeneinander“ und „… die Stege enden bei 28.00 m, die Seite ist 32 m lang“;
+  - mit `rand_landeleuchte_22` bei 33: „[16] Leuchte rand_landeleuchte_22 an a 33: liegt ausserhalb der Seite (0..32 m) oder des Rands (w 0..4 m)“.
+
+**Bild:** `hangar/v48-torrahmen-vorher-nachher.png` im Projektordner. **Offen:** WINDOWS 94.

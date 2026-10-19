@@ -17,8 +17,12 @@
 //   Position 0xC2: Kopf 3 float Skalierung, 3 float Versatz; Achsen mit
 //              Skalierung FLT_MAX sind konstant (= Versatz), die übrigen
 //              tragen je Schlüssel ein u16: Wert = Versatz + u16 · Skalierung
-//   Drehung 0x82: 48-Bit-Quaternion je Schlüssel (6 Byte) — hier nicht
-//              dekodiert, nur gezählt.
+//   Drehung 0x82: 48-Bit-Quaternion je Schlüssel (6 Byte, „SmallTree48Bit“):
+//              als 48-Bit-Zahl gelesen tragen Bit 46–47 den Index der
+//              größten Komponente (x, y, z, w = 0…3), die drei übrigen
+//              stehen in Reihenfolge zu je 15 Bit ab Bit 0:
+//              Komponente = (Wert − 16383) / 23170,475 (= 16383·√2); die
+//              größte = √(1 − Summe der Quadrate).
 // Lage im Raum des Elternknochens, CryEngine-Achsen (Z oben).
 import { crc32 } from 'node:zlib';
 
@@ -56,6 +60,20 @@ function positions(b, p, count, fmt) {
   return null;
 }
 
+function rotations(b, p, count, fmt) {
+  if ((fmt >> 8) !== 0x82) return null;
+  return [...Array(count)].map((_, k) => {
+    const d = p + k * 6;
+    const v = BigInt(b.readUInt16LE(d)) | (BigInt(b.readUInt16LE(d + 2)) << 16n) | (BigInt(b.readUInt16LE(d + 4)) << 32n);
+    const idx = Number(v >> 46n);
+    const q = [0, 0, 0, 0];
+    let sh = 0n, sum = 0;
+    for (let c = 0; c < 4; c++) { if (c === idx) continue; q[c] = (Number((v >> sh) & 0x7fffn) - 16383) / 23170.475; sh += 15n; sum += q[c] * q[c]; }
+    q[idx] = Math.sqrt(Math.max(0, 1 - sum));
+    return q;
+  });
+}
+
 export function readCaf(buf, boneNames = []) {
   const cs = chunks(buf);
   const info = cs.find((c) => c.type === 0x4733c6ed), anim = cs.find((c) => c.type === 0xa9496cb5);
@@ -71,12 +89,22 @@ export function readCaf(buf, boneNames = []) {
     const p = o + 12 + n * 4 + i * 24;
     const rk = buf.readUInt16LE(p), rf = buf.readUInt16LE(p + 2);
     const pk = buf.readUInt16LE(p + 12), pf = buf.readUInt16LE(p + 14), pto = buf.readUInt32LE(p + 16), pdo = buf.readUInt32LE(p + 20);
-    const rto = buf.readUInt32LE(p + 4);
+    const rto = buf.readUInt32LE(p + 4), rdo = buf.readUInt32LE(p + 8);
     const pos = pk ? { times: times(buf, p + pto, pk, pf), values: positions(buf, p + pdo, pk, pf), format: pf.toString(16) } : null;
-    const rot = rk ? { keys: rk, times: times(buf, p + rto, rk, rf), format: rf.toString(16), decoded: false } : null;
+    const rq = rk ? rotations(buf, p + rdo, rk, rf) : null;
+    const rot = rk ? { keys: rk, times: times(buf, p + rto, rk, rf), values: rq, format: rf.toString(16), decoded: !!rq } : null;
     bones.push({ hash: hash.toString(16), name: byHash.get(hash) ?? null, pos, rot });
   }
   return { fps, frames, bones };
+}
+
+// Drehung eines Kanals zum Bild f (normiertes lineares Mischen, kürzester Weg)
+export function sampleRot(ch, f) {
+  const t = ch.times, v = ch.values;
+  const mix = (a, b, w) => { const d = a.reduce((s, x, i) => s + x * b[i], 0) < 0 ? -1 : 1; const q = a.map((x, i) => x + (d * b[i] - x) * w); const n = Math.hypot(...q) || 1; return q.map((x) => x / n); };
+  if (f <= t[0]) return v[0];
+  for (let k = 1; k < t.length; k++) if (f <= t[k]) return mix(v[k - 1], v[k], (f - t[k - 1]) / (t[k] - t[k - 1] || 1));
+  return v[v.length - 1];
 }
 
 // Wert eines Positionskanals zum Bild f (linear zwischen Schlüsseln)
