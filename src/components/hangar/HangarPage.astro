@@ -63,13 +63,18 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Auf der Insel selbst deklariert, nicht an .hg: eine Variable, die auf
    var(--text) verweist, loest dort auf, wo sie steht — an .hg waere das
    noch der Papierwert, nicht der Inselwert. */
-.hg-stagewrap{--hg-top:76px;--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 74%,transparent);--hg-hair:var(--line)}
+.hg-stagewrap{--hg-top:76px;--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 90%,transparent);--hg-hair:var(--line)}
+/* Keine Unschaerfe hinter Tafel und Knoepfen: backdrop-filter ueber der
+   WebGL-Leinwand kostet die Grafikkarte in jedem Bild. Die Flaechen sind
+   dafuer fast deckend. Ein Lichtsaum oben gibt ihnen Kante statt Glas. */
+.hg-stagewrap{--hg-rim:inset 0 1px 0 color-mix(in srgb,var(--hg-on) 9%,transparent);--hg-lift:0 18px 44px -22px var(--shadow-color)}
 /* Rand und Tafelbreite einmal: die Leiste am Buehnenfuss spart genau die Spalte der Tafel aus. */
 .hg-stagewrap{--hg-gut:clamp(16px,3vw,40px);--hg-panelw:min(400px,36vw)}
 .hg-stagewrap{position:relative}
 .hg-title{position:absolute;left:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);max-width:min(520px,60%);pointer-events:none}
-.hg-title h1{margin:0 0 .4rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-amber)}
-.hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-7);color:var(--hg-dim)}
+.hg-title h1{display:flex;align-items:center;gap:.55rem;margin:0 0 .55rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--hg-amber);text-shadow:0 1px 3px var(--bg)}
+.hg-title h1::before{content:"";width:1.6rem;height:2px;border-radius:1px;background:var(--hg-amber)}
+.hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:600;letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--hg-dim)}
 .hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
 /* Lange Namen eine oder zwei Stufen kleiner (bay.ts nameStep), statt in zwei
@@ -88,29 +93,32 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Der Schalter ist der Kopf der Tafel, eine Karte statt zweier. Gewaehlt
    heisst Unterstrich: Bernstein als Flaeche bleibt den Reitern der Werkstatt
    und dem Speichern, sonst stehen zwei gelbe Balken uebereinander. */
-.hg-pane{flex:0 0 auto;display:flex;gap:.25rem;padding:0 .6rem;border:1px solid var(--hg-hair);border-bottom:0;border-radius:8px 8px 0 0;background:var(--hg-panel);backdrop-filter:blur(10px)}
-.hg-pane button{appearance:none;flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;margin-bottom:-1px;padding:.7rem .6rem .6rem;border:0;border-bottom:2px solid transparent;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.hg-pane{flex:0 0 auto;display:flex;gap:.3rem;padding:.45rem;border:1px solid var(--hg-hair);border-bottom:0;border-radius:12px 12px 0 0;background:var(--hg-panel);box-shadow:var(--hg-rim)}
+.hg-pane button{appearance:none;flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.55rem .6rem;border:0;border-radius:8px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
 .hg-pane button:hover,.hg-pane button:focus-visible{color:var(--hg-on)}
 .hg-pane button:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
-.hg-pane button[aria-selected="true"]{color:var(--hg-on);border-bottom-color:var(--hg-amber)}
+.hg-pane button:hover{background:color-mix(in srgb,var(--hg-on) 5%,transparent)}
+.hg-pane button[aria-selected="true"]{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 10%,transparent)}
+.hg-pane button[aria-selected="true"] svg{color:var(--hg-amber)}
 .hg-pane svg{flex:0 0 auto}
 .hg[data-pane="layout"] .hg-stats,.hg[data-pane="ship"] .hgl{display:none}
-.hg-stats{position:relative;flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:0 0 8px 8px;padding:.3rem 1.1rem 1rem;backdrop-filter:blur(8px)}
+.hg-stats{position:relative;flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:0 0 12px 12px;padding:.3rem 1.1rem 1rem;box-shadow:var(--hg-lift)}
 .hgx-stats{margin:0;display:grid;gap:.55rem}
 .hg-row{display:grid;grid-template-columns:1fr auto;gap:.15rem .6rem;font-size:var(--fs-7)}
 .hg-row dt{color:var(--hg-dim)}
 .hg-row dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;color:var(--hg-on);font-weight:600}
-.hg-bar{grid-column:1/-1;height:4px;background:var(--line-soft);border-radius:2px;overflow:hidden}
-.hg-bar i{display:block;height:100%;width:var(--w,0%);background:var(--hg-amber);transition:width var(--dur-slow) var(--ease-ui)}
+.hg-bar{grid-column:1/-1;height:3px;background:var(--line-soft);border-radius:2px;overflow:hidden}
+.hg-bar i{display:block;height:100%;width:var(--w,0%);border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--hg-amber) 55%,transparent),var(--hg-amber));transition:width var(--dur-slow) var(--ease-ui)}
 .hg-row.is-na dd{color:var(--hg-dim);font-weight:400}
 .hg-note{margin:.8rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
-.hg-sheet{display:flex;justify-content:center;margin-top:.9rem;padding:.65rem 1rem;background:var(--hg-amber);color:var(--ink);font-family:var(--font-ui);font-weight:700;border-radius:4px;text-decoration:none}
+.hg-sheet{display:flex;justify-content:center;margin-top:.9rem;padding:.65rem 1rem;background:var(--hg-amber);color:var(--ink);font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;border-radius:8px;text-decoration:none}
 .hg-sheet:hover,.hg-sheet:focus-visible{background:color-mix(in srgb,var(--hg-amber) 82%,var(--text))}
 .hg-btn{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.45rem .8rem;border-radius:4px;cursor:pointer}
 .hg-btn:hover,.hg-btn:focus-visible{border-color:var(--hg-amber)}
 /* Knopf als Zeichen: das Wort steht als Blase daneben (.hgx-tip). Die Blase
    bleibt im Baum (Deckkraft, nicht display), sie ist der Name des Knopfs. */
-.hgx-ico{position:relative;display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;padding:0;border-radius:8px;backdrop-filter:blur(8px);transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgx-ico{position:relative;display:inline-flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;padding:0;border-radius:10px;box-shadow:var(--hg-rim),0 6px 16px -10px var(--shadow-color);transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-ico:hover,.hgx-ico:focus-visible{background:var(--bg-2)}
 .hgx-ico:hover,.hgx-ico:focus-visible{color:var(--hg-amber,var(--accent))}
 .hgx-tip{position:absolute;left:0;top:calc(100% + 6px);z-index:3;transform:translateY(-3px);padding:.2rem .55rem;border:1px solid var(--line);border-radius:4px;background:var(--bg-2);color:var(--text);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:600;line-height:1.35;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
 .hgx-ico:is(:hover,:focus-visible,:focus-within) .hgx-tip{opacity:1;transform:none}
@@ -126,7 +134,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-gfx select option{background:var(--bg-2);color:var(--text)}
 .hgx-gfx:focus-within{border-color:var(--hg-amber)}
 /* Bedienhinweis neben den Zeichen der Ansicht, bis zum ersten Anfassen. */
-.hg-hint{position:absolute;left:calc(var(--hg-gut) + 6.5rem);bottom:22px;margin:0;max-width:calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px - 7rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);backdrop-filter:blur(6px);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+.hg-hint{position:absolute;left:calc(var(--hg-gut) + 6.5rem);bottom:22px;margin:0;max-width:calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px - 7rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
 .hg[data-hint="seen"] .hg-hint{opacity:0;visibility:hidden}
 /* Steht der Korb des Vergleichs unten, macht der Hinweis ihm Platz. */
 .hg:has(#hgx-tray:not([hidden])) .hg-hint{display:none}
@@ -153,7 +161,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-x{appearance:none;border:1px solid var(--hg-hair);border-radius:3px;background:none;color:var(--hg-on);font:inherit;line-height:1;padding:.15rem .45rem;cursor:pointer}
 .hgx-x:hover,.hgx-x:focus-visible{border-color:var(--hg-amber)}
 /* Korb des Vergleichs, rechts in der Leiste. */
-.hgx-tray{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;max-width:100%;margin-left:auto;padding:.35rem .5rem .35rem .65rem;border:1px solid var(--hg-hair);border-radius:4px;background:var(--hg-panel);backdrop-filter:blur(6px);font-size:var(--fs-6);color:var(--hg-on);pointer-events:auto}
+.hgx-tray{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;max-width:100%;margin-left:auto;padding:.35rem .5rem .35rem .65rem;border:1px solid var(--hg-hair);border-radius:10px;background:var(--hg-panel);box-shadow:var(--hg-rim);font-size:var(--fs-6);color:var(--hg-on);pointer-events:auto}
 .hgx-tray__title{font-family:var(--font-ui);font-weight:700;color:var(--hg-amber)}
 .hgx-tray__list{display:flex;flex-wrap:wrap;gap:.35rem;margin:0;padding:0;list-style:none}
 .hgx-tray__list li{display:inline-flex;align-items:center;gap:.35rem;padding:.1rem .15rem .1rem .55rem;border:1px solid var(--hg-hair);border-radius:999px;white-space:nowrap}
@@ -190,10 +198,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-copyfield{width:min(320px,100%);min-width:0;font:inherit;font-size:var(--fs-6);background:var(--hg-panel);color:var(--hg-on);border:1px solid var(--hg-hair);border-radius:4px;padding:.4rem .55rem}
 .hg-title.is-busy .hgx-head,.hgx-scroll[aria-busy="true"] .hgx-tps{opacity:.45;transition:opacity var(--dur-fast) var(--ease-ui)}
 /* Tabs nach dem WAI-ARIA-Muster; der aktive traegt die Akzentkante. */
-.hgx-tabs{display:flex;margin:0 -.5rem .75rem;border-bottom:1px solid var(--hg-hair)}
-.hgx-tabs button{flex:1 1 0;min-width:0;appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:.6rem .2rem .45rem;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.hgx-tabs{display:flex;margin:.35rem -.5rem .8rem;border-bottom:1px solid var(--hg-hair)}
+.hgx-tabs button{flex:1 1 0;min-width:0;appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:.6rem .2rem .45rem;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
 .hgx-tabs button:hover,.hgx-tabs button:focus-visible{color:var(--hg-on)}
-.hgx-tabs button[aria-selected="true"]{color:var(--hg-on);border-bottom-color:var(--hg-amber)}
+.hgx-tabs button[aria-selected="true"]{color:var(--hg-amber);border-bottom-color:var(--hg-amber)}
 .hgx-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-right:-.6rem;padding-right:.6rem}
 .hgx-grp{margin:0 0 .9rem}
 .hgx-grp h3{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin:0 0 .3rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;color:var(--hg-amber)}
@@ -228,7 +236,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    zwischen Titel und Tafel; ganzflaechig zentriert lief er unter beide. Mitte
    und Breite sind die des freien Streifens links der Tafel (wie .hgx-stagebar):
    auf der Buehnenmitte lag bei 1100 px das letzte Drittel unter der Tafel. */
-.hgx-modelerr,.hg-stagewrap .hg-fallback{inset:auto;position:absolute;left:calc((100% - var(--hg-panelw) - 16px) / 2);top:58%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px));margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center;backdrop-filter:blur(6px)}
+.hgx-modelerr,.hg-stagewrap .hg-fallback{inset:auto;position:absolute;left:calc((100% - var(--hg-panelw) - 16px) / 2);top:58%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px));margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
    transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab
@@ -240,11 +248,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-mk[data-tab="systems"]{border-color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 30%,transparent)}
 .hgx-mk.is-far{opacity:.35}
 .hgx-mk.is-hot,.hgx-mk.is-sel{z-index:1;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:color-mix(in srgb,var(--hg-amber) 55%,transparent)}
-.hgx-mk b{display:none;position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .45rem;border-radius:3px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-5);font-weight:600;white-space:nowrap;pointer-events:none;backdrop-filter:blur(6px)}
+.hgx-mk b{display:none;position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .45rem;border-radius:3px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-5);font-weight:600;white-space:nowrap;pointer-events:none}
 .hgx-mk.is-hot b,.hgx-mk.is-sel b,.hgx-mk:hover b{display:block}
 .hg:not([data-tab-active="weapons"]) .hgx-mk[data-tab="weapons"],.hg:not([data-tab-active="systems"]) .hgx-mk[data-tab="systems"],.hg:not([data-tab-active="cargo"]) .hgx-mk[data-tab="cargo"]{display:none}
 
-.hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
+.hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);box-shadow:0 -1px 0 color-mix(in srgb,var(--accent) 12%,transparent),0 -14px 30px -18px color-mix(in srgb,var(--accent) 30%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
 .hg-filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
 .hg-filter input,.hg-filter select{font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:.45rem .6rem;min-width:0}
 /* Der Umbruch rechnet mit der Basis, nicht mit der Mindestbreite: eine kleine
@@ -257,14 +265,14 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-strip li[hidden]{display:none}
 /* Kacheln wie im Hangar-Menü eines Spiels: Bild füllt die Kachel, Name
    auf einem Verlauf am unteren Rand, gewählte Kachel leuchtet. */
-.hg-card{position:relative;display:block;width:176px;height:100px;padding:0;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left;transition:transform var(--dur-fast) var(--ease-ui),border-color var(--dur-fast),box-shadow var(--dur-fast)}
+.hg-card{position:relative;display:block;width:176px;height:100px;padding:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left;transition:transform var(--dur-fast) var(--ease-ui),border-color var(--dur-fast),box-shadow var(--dur-fast)}
 .hg-card:hover,.hg-card:focus-visible{border-color:color-mix(in srgb,var(--accent) 70%,transparent);transform:translateY(-2px)}
 .hg-card[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px color-mix(in srgb,var(--accent) 40%,transparent);transform:translateY(-3px)}
 .hg-card img,.hg-card .hg-noimg{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:var(--surface-2);filter:saturate(.8) brightness(.72);transition:filter var(--dur-fast)}
 .hg-card:hover img,.hg-card[aria-current="true"] img{filter:none}
 .hg-card span{position:absolute;left:0;right:0;bottom:0;padding:1.3rem .55rem .35rem;background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 94%,transparent) 70%);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hg-card small{position:absolute;top:.35rem;left:.4rem;max-width:calc(100% - .8rem);padding:.05rem .35rem;background:color-mix(in srgb,var(--bg) 78%,transparent);border-radius:2px;font-size:var(--fs-5);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hg-arrow{flex:0 0 auto;width:2.4rem;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:6px;font-size:var(--fs-12);cursor:pointer}
+.hg-arrow{flex:0 0 auto;width:2.4rem;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;font-size:var(--fs-12);cursor:pointer}
 .hg-arrow:hover,.hg-arrow:focus-visible{border-color:var(--accent)}
 .hg-empty{color:var(--muted);font-size:var(--fs-7);padding:1rem 0}
 .hg-empty[hidden]{display:none}
@@ -273,7 +281,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-chip{appearance:none;display:inline-flex;align-items:center;gap:.4rem;font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:.42rem .8rem;cursor:pointer;font-variant-numeric:tabular-nums}
 .hgx-chip:hover,.hgx-chip:focus-visible{border-color:var(--accent)}
 .hgx-chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.hgx-chip.hgx-ico{width:2.3rem;height:2.3rem;padding:0;border-radius:999px;backdrop-filter:none}
+.hgx-chip.hgx-ico{width:2.3rem;height:2.3rem;padding:0;border-radius:999px;box-shadow:none}
 .hgx-chip:disabled{opacity:.5;cursor:default;border-color:var(--line)}
 .hgx-filters:not([hidden]){display:contents}
 .hgx-filtertog[aria-expanded="true"]{border-color:var(--accent)}
@@ -328,8 +336,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   /* Die Aktionen brechen hier in zwei Zeilen um: Meldungen an den Buehnenfuss. */
   .hgx-modelerr,.hg-stagewrap .hg-fallback{left:50%;top:auto;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px)}
   .hg-side{position:static;width:auto;display:block}
-  .hg-pane{margin:0;padding:0 16px;border-width:1px 0 0;border-radius:0;background:var(--bg-2);backdrop-filter:none}
-  .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);backdrop-filter:none}
+  .hg-pane{margin:0;padding:.5rem 16px;border-width:1px 0 0;border-radius:0;background:var(--bg-2);box-shadow:none}
+  .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);box-shadow:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
   .hgx-foot{position:static;background:none}
   .hgx-mk{width:12px;height:12px;margin:-6px 0 0 -6px}
