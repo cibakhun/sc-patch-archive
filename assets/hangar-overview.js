@@ -1100,8 +1100,9 @@ export function boot(doc) {
 
   // Ohne Buehne gibt es nichts zu drehen: Zuruecksetzen und Bedienhinweis gehen mit.
   // why waehlt den Text (data-blocked, -soft, -failed an #hg-fallback), ohne
-  // why bleibt der allgemeine; die Konsole nennt die Ursache.
+  // passenden Text bleibt der allgemeine; die Konsole nennt die Ursache.
   const fallback = $('hg-fallback');
+  const RESTORE_KEY = 'vb.hangar.restore';
   function noStage(why, detail) {
     loadEl.hidden = true;
     if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
@@ -1121,11 +1122,19 @@ export function boot(doc) {
   const SOFT_GL = /swiftshader|llvmpipe|softpipe|software|basic render/i;
   let gpuName = '';
   // Was der Buehne fehlt: '' nichts, 'none' WebGL2 kennt der Browser nicht,
-  // 'soft' nur ohne Grafikkarte, 'blocked' WebGL2 gibt es, aber keinen
-  // Kontext. So antwortet Chrome, wenn die Seite den Grafiktreiber einmal
-  // zurueckgesetzt hat: Er sperrt sie bis zum Neustart des Browsers
-  // („Web page caused context loss and was blocked“).
+  // 'blocked' WebGL2 gibt es, aber keinen Kontext. So antwortet Chrome, wenn
+  // die Seite den Grafiktreiber einmal zurueckgesetzt hat: Er sperrt sie bis
+  // zum Neustart des Browsers („Web page caused context loss and was
+  // blocked“). Gibt es den Kontext nur ohne den Vorbehalt: 'soft', wenn der
+  // Name nach Software klingt, sonst 'caveat' (ein Chip, den der Browser nur
+  // bremst, etwa ein Treiber auf seiner Sperrliste; allgemeiner Text).
   let gpuWhy = '';
+  const chipOf = (gl) => {
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return name;
+  };
   function gpuMiss() {
     if (typeof WebGL2RenderingContext === 'undefined') return 'none';
     try {
@@ -1133,14 +1142,12 @@ export function boot(doc) {
       c.addEventListener('webglcontextcreationerror', (e) => { gpuWhy = e.statusMessage || gpuWhy; });
       const gl = c.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
       if (!gl) {
-        const sw = doc.createElement('canvas').getContext('webgl2');
-        sw?.getExtension('WEBGL_lose_context')?.loseContext();
-        return sw ? 'soft' : 'blocked';
+        const any = doc.createElement('canvas').getContext('webgl2');
+        if (!any) return 'blocked';
+        gpuWhy = chipOf(any);
+        return SOFT_GL.test(gpuWhy) ? 'soft' : 'caveat';
       }
-      const info = gl.getExtension('WEBGL_debug_renderer_info');
-      gpuName = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
-      gpuWhy = gpuName;
+      gpuName = gpuWhy = chipOf(gl);
       return SOFT_GL.test(gpuName) ? 'soft' : '';
     } catch (e) {
       gpuWhy = String(e?.message || e);
@@ -1189,13 +1196,22 @@ export function boot(doc) {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
         v.onFrame(placeMarks);
-        // Kontext weg: die Meldung steht ueber der Buehne, bis er zurueckkommt
+        // Kontext weg: die Meldung steht ueber der Buehne. Kommt er zurueck,
+        // laedt die Seite neu (wie beim Grafik-Schalter): Umgebung und
+        // Hallenschatten entstehen nur beim Laden, der Zustand steht in der
+        // Adresse. Hoechstens einmal je Minute, sonst bleibt die Meldung.
         v.onLost((lost) => {
           if (lost) {
             fallback.textContent = fallback.dataset.lost;
+            fallback.hidden = false;
             console.warn('[hangar] Zeichenkontext verloren');
+            return;
           }
-          fallback.hidden = !lost;
+          let last = 0;
+          try { last = Number(sessionStorage.getItem(RESTORE_KEY)) || 0; } catch { /* ohne Speicher gilt die Sperre nicht */ }
+          if (Date.now() - last < 60000) return;
+          try { sessionStorage.setItem(RESTORE_KEY, String(Date.now())); } catch { /* siehe oben */ }
+          location.reload();
         });
         // Schmal (Umbruch wie in HangarPage.astro) liegt der Titelblock samt
         // Knoepfen ueber dem oberen Teil der Buehne: das Schiff rueckt darunter.

@@ -5906,11 +5906,12 @@ ${HALL_LIGHTS_BEGIN}
   let frameFn = null;
   // Zeichenkontext verloren (Treiber zurückgesetzt, Grafikspeicher voll):
   // three.js hält ihn zur Rückgabe offen (preventDefault in WebGLRenderer),
-  // die Seite erfährt beides über onLost(true/false). Zurück zeichnen die
-  // Schattenkarten neu, sie standen im alten Kontext.
+  // die Seite erfährt beides über onLost(true/false). Was beim Laden einmal
+  // gezeichnet wurde (Umgebungskugeln, Hallenschatten), ist im neuen Kontext
+  // leer; neu aufbauen muss es die Seite.
   let lostFn = null;
   renderer.domElement.addEventListener('webglcontextlost', () => lostFn?.(true));
-  renderer.domElement.addEventListener('webglcontextrestored', () => { shadowSig = ''; wake(800); lostFn?.(false); });
+  renderer.domElement.addEventListener('webglcontextrestored', () => lostFn?.(false));
   let token = 0;
   let liveryKey = 'werk';
   let makerCode = '';
