@@ -683,7 +683,11 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462, halterWahl: 214 };
       for (const rk of choice) {
         usedRacks.add(rk);
         const r = racks[rk];
-        if (!Array.isArray(r) || r.length !== 8 || typeof r[0] !== 'string' || !r[0].trim() || !Number.isInteger(r[3]) || r[3] < 1 || !Number.isInteger(r[4]) || r[4] < 1 || !ORD.has(r[5])) { fail(`[15] ${ship} ${key}: Halterung ${rk} fehlt in racks oder hat nicht die Form [name, nameDe|0, groesse, plaetze, raketengroesse, art, hersteller|0, preis|0]`); continue; }
+        const form = Array.isArray(r) && r.length === 8 && typeof r[0] === 'string' && !!r[0].trim()
+          && (r[1] === 0 || (typeof r[1] === 'string' && !!r[1].trim())) && Number.isInteger(r[2]) && r[2] >= 1
+          && Number.isInteger(r[3]) && r[3] >= 1 && Number.isInteger(r[4]) && r[4] >= 1 && ORD.has(r[5])
+          && (r[6] === 0 || (typeof r[6] === 'string' && !!r[6].trim())) && (r[7] === 0 || (Number.isFinite(r[7]) && r[7] > 0));
+        if (!form) { fail(`[15] ${ship} ${key}: Halterung ${rk} fehlt in racks oder hat nicht die Form [name, nameDe|0, groesse, plaetze, raketengroesse, art, hersteller|0, preis|0]`); continue; }
         if (!pool.get(`${r[5]}|${r[4]}`)) fail(`[15] ${ship} ${key}: in Halterung ${rk} (${r[5]} S${r[4]}) passt keine Rakete des Katalogs`);
       }
       const st = racks[choice[0]];

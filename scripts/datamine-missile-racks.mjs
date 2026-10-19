@@ -317,7 +317,8 @@ for (const [id, ports] of Object.entries(ships)) {
     compared++;
     const ms = (LO.ships[id]?.[top] ?? []).filter((x) => x.cat === 'missile');
     const n = ms.reduce((s, x) => s + x.count, 0);
-    const sizeOk = ms.every((x) => exp.slots.some((s) => x.size >= s.min && x.size <= s.max));
+    // fehlende Grenze = offen, wie in der Passregel oben
+    const sizeOk = ms.every((x) => exp.slots.some((s) => (s.min == null || x.size >= s.min) && (s.max == null || x.size <= s.max)));
     if (n === exp.slots.length && sizeOk) continue;
     // Ein leerer Schiffs-Eintrag fuellt sich aus den Plaetzen des Halters selbst
     // (Ports[].defaultItem) — Eclipse/Gladiator-Schaechte. ship-loadouts.json

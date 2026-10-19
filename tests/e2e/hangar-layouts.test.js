@@ -53,7 +53,9 @@ describe('Werkstatt: Link-Code', () => {
     assert.deepEqual(decodeLayout(code), lo);
     assert.deepEqual(JSON.parse(Buffer.from(code, 'base64url').toString('utf8')), [1, 'Igel', lo.slots, '', lo.racks]);
     assert.deepEqual(decodeLayout(encodeLayout({ ...lo, paint: 'abc' })), { ...lo, paint: 'abc' });
-    assert.equal(encodeLayout({ name: 'x', slots: {}, racks: {} }), encodeLayout({ name: 'x', slots: {} }));
+    // der Code ohne Halterungen, wie ihn aeltere Seiten schreiben und lesen
+    assert.equal(encodeLayout({ name: 'x', slots: {} }), 'WzEsIngiLHt9XQ');
+    assert.equal(encodeLayout({ name: 'x', slots: {}, racks: {} }), 'WzEsIngiLHt9XQ');
     assert.ok(!sameLayout({ ship: 's', ...lo }, { ship: 's', ...lo, racks: {} }));
   });
 
@@ -172,6 +174,7 @@ describe('Werkstatt: passende Teile', () => {
     assert.deepEqual(cleanSlots({ [k]: 'spark' }, [slot], ord, { [k]: 'weg' }, racks), { slots: {}, racks: {}, dropped: 2 });
     assert.deepEqual(groupTotals([slot], { [k]: 'marksman' }, ord, { [k]: 'msd-341-missile-rack' }, racks).get('missile'), { now: 1142 * 4, stock: 2404 * 2 });
     // eine Halterung samt Rakete ist ein Slot
+    assert.equal(changeCount({ slots: { [k]: 'marksman' }, racks: { [k]: 'msd-341-missile-rack' } }), 1);
     assert.equal(changeCount({ slots: { [k]: 'marksman' }, racks: { [k]: 'msd-341-missile-rack' }, paint: 'abc' }), 2);
   });
 });
