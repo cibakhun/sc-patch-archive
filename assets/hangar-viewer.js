@@ -4950,8 +4950,9 @@ ${HALL_LIGHTS_BEGIN}
     const FX = ((L.to[0] - L.from[0]) * k) / 2 - DIENST_EDGE, FZ = ((L.to[1] - L.from[1]) * k) / 2 - DIENST_EDGE;
     const W = info.halfW, Lh = info.len / 2, U = info.under, [CH, CV] = DIENST_CLEAR;
     const sig = `${k.toFixed(4)}|${W}|${Lh}|${info.height}|${!!U}`;
-    if (sig === d.sig) { info.dienstTop = d.top; return; }
-    d.sig = sig;
+    // gleiche Maße, aber ein anderes Schiff (eigener Grundriss): neu stellen
+    if (sig === d.sig && U === d.under) { info.dienstTop = d.top; return; }
+    d.sig = sig; d.under = U;
     // frei vom Rumpf: um den Kasten (cx, cz, ex, ez) bis Höhe top
     const clear = (cx, cz, ex, ez, top) => {
       if (!U) return Math.abs(cx) - ex - CH >= W || Math.abs(cz) - ez - CH >= Lh;
