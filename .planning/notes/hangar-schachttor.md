@@ -347,3 +347,38 @@ PC-Lauf 2026-10-19. Geändert: `scripts/lib/ivo-caf.mjs` (Drehungen), `scripts/e
 - **Rahmen, Schienen, Antrieb:** Am Boden sind sie nicht zu sehen; der „Rahmen“ ist der Stegring.
 
 **Einbau Cloud danach:** Torlacke aus der Palette statt `GATE_PAINT`/`GATE_TONE`. Den Rand aus Punkt 3 auf unser Feld gestellt und in Ruhe sichtbar; das Tor kommt beim Schließen aus ihm, so wie im Spiel, mit den Eckstücken, wenn sie sichtbar sind. Die Gesamtdauer der Bahn bleibt (Krisz 19.10. 00:05: „die gesamt länge von der animation hat gepasst“).
+
+## Einbau Cloud (Torrahmen, 19.10. abends)
+
+**Torlack.** `GATE_PAINT`/`GATE_TONE` sind weg. `buildGate` setzt die Farbe jedes Palettenlacks direkt aus `info.palette` (`GATE_PALETTE`: Schicht 1/2/3 → primary/secondary/tertiary, `linear`). Die übrigen Materialien behalten ihre eigene Tönung wie im Schacht. Zusammengelegt wird weiter nach Karten (`matKey`, jetzt auch für den Rand); ein farbiger Lack (Sättigung über 0,3, das Blau) bleibt für sich, weil `hgShade` nur einen Helligkeitswert trägt. Konsole: „Lack aus der Palette gen_grey_darkgrey_darkblue: paint_b_primary_041, paint_b_secondary_042, paint_b_tertiary_043, 4 drehen“.
+
+**Zylinder.** `keysRot` wird mit `gateRot` (slerp) gelesen, auch durch den Zeitverzug der gleichzeitigen Seiten (#134) und beim Umkehren (`snapQ`). Gedreht wird um den Knotenursprung.
+
+**Rand (`HALL_RAND`, `buildRand`).**
+- Je Art wird ein Exemplar des Spiels genommen, in das Bezugssystem seiner Seite gelegt (a entlang ab der linken Innenecke, w nach außen ab der Schachtkante) und auf unsere vier Seiten gestellt. Die Längsseiten bekommen 4 Stege zu je 24 m, die Querseiten 32 m (Steg 8 m bei 0, Steg 16 m bei 24, dazwischen der Schriftzug bei 16). Dazu kommen die Ecke mit ihrer Landeleuchte an jedem Seitenanfang, Landeleuchten alle 12 m längs und bei 7/25 m quer, und die beiden Bodenleuchten auf ihrer Seite.
+- Ergebnis: 42 Teile, 6104 Dreiecke, 10 Materialien, 4 m breit.
+- Die Materialien sind die des Rand-GLB, wie die der Halle vorbereitet (Hallenlicht, `hgShade`, Hallenshader). Die Schachtmaterialien gleichen Namens nehmen nur die Schachtlampen und lagen in Ruhe schwarz. Geteilt werden nur ihre Karten (11 Karten).
+- Die Warnlampen der Ecken stehen schon im Schacht (`light_1`).
+- Der Ring kostet in Ruhe 10 Draw-Calls mehr.
+
+**Hallenboden unter dem Rand.** `hgCut` im Hallenshader spart den Boden zwischen Feldkante (+5 mm) und Außenkante des Stegs (−1 cm) aus. Ausgespart wird alles unter 4,5 cm, und waagrechte Flächen bis 6 cm. Die Fasen der Bodenplatten reichen 3,9 cm hoch und lagen vorher als Strichlinien auf dem Steg. Was auf dem Boden steht, bleibt darüber stehen. Dieselbe Aussparung gilt in den statischen Schattenkarten (`statMat`), damit der Steg nicht im Schatten eines Bodens liegt, den man nicht mehr sieht; im Bild ändert das nur einzelne Pixel. Die alte Stirnkante `shaft.edge` entfällt mit dem Rand.
+
+**Möbel und Werkstatt.**
+- `clearRandFurniture`: Möbel am Boden, die in den Rand reichen, rücken senkrecht zur nächsten Feldkante hinaus, plus 0,3 m. Käme eines damit aus der Halle, bleibt es weg. Gerückt wurden `furniture_19_19` 4,4 m, `23_23` 4,7 m, `31_31` 4,4 m, `52_52` 3,8 m und `53_53` 3,9 m; weggelassen keins.
+- Ein Rollwagen, der Teil der Hallengeometrie ist (x ≈ 17,4, z ≈ 19,4), bleibt auf dem Steg stehen. Seine unteren 4,5 cm sind ausgespart.
+- `placeWorkshop(…, rim)` zählt Abstände ab der Außenkante des Rands, wie die Anordnung des Spiels, deren Feld (56 × 88) denselben Steg hat. Konsole: „4 m Rand frei“.
+
+**Weiter weg:** `gate_2` bis `gate_5` (Eckstücke mit Chevron-Bändern) und `gate_frame_0` (Gehäuse). Offen lägen sie in unserem schmaleren Feld, also im Bild über der Plattform.
+
+**Prüfung** (`verify:hangar-hall`):
+- [15] verlangt für jeden `paint_b_*` eine Farbe aus der Palette, Klinke 3. Rot vorgeführt mit `palette.entries.tertiary` aus `dist/…/medtop-tor.json` entfernt: „[15] paint_b_tertiary_043 ist ein Palettenlack, /hangar/lift/medtop-tor.json traegt dafuer keine Farbe …“ und „[15] nur 2 Palettenlacke am Tor tragen die Farbe des Spiels, die Klinke verlangt 3“.
+- [16] ist neu und liest `HALL_RAND` aus dem ausgelieferten Viewer gegen GLB und JSON in `dist/`. Geprüft wird:
+  - jede Seite ist von 0 bis zur Länge mit Stegen gedeckt, ohne Lücke und ohne Überlappung, bündig mit dem Boden;
+  - Ecken, Leuchten und Schriftzug liegen in ihrer Seite und im Rand;
+  - gleichnamige Schachtmaterialien tragen dieselben Karten;
+  - Klinke 42 Teile, Obergrenze 10 000 Dreiecke, 10 Materialien, 1 MB.
+- [16] rot vorgeführt:
+  - mit `rand_steg_7` bei 20: „[16] Querseite: rand_steg_7 ueberlappt den Steg davor um 4.00 m; beide flimmerten gegeneinander“ und „… die Stege enden bei 28.00 m, die Seite ist 32 m lang“;
+  - mit `rand_landeleuchte_22` bei 33: „[16] Leuchte rand_landeleuchte_22 an a 33: liegt ausserhalb der Seite (0..32 m) oder des Rands (w 0..4 m)“.
+
+**Bild:** `hangar/v48-torrahmen-vorher-nachher.png` im Projektordner. **Offen:** WINDOWS 94.
