@@ -276,3 +276,45 @@ PC-Lauf 2026-10-18. Neues Skript `scripts/extract-hangar-katalog.mjs`, Leser `sc
 - Manifest `props.katalog: { url, v, bytes, props, kategorien }`.
 
 **Sicht:** Ich habe alle 13 Dateien am PC als Galerie gerendert und angeschaut: Texturen und Tönungen sitzen. Die Bilder sind nicht committet.
+
+## Kleine Fahrzeuge (19.10.2026, Cloud)
+
+**Befund.** Rundgang über acht Schiffe von 6,5 bis 119 m (Stufe hoch, 960 × 540).
+Ab der Arrow sitzt der Wartungsplatz glaubhaft. Bei der Dragonfly (6,5 m) steht
+das Bike in einem Haufen Gerät:
+- Der Generator ist größer als das Fahrzeug.
+- Dahinter stehen Palettenwagen und Kistenstapel.
+- Dazu kommen eine zweite Diagnose am Bug und eine Leiter für 1,45 m Höhe.
+
+Zehn Plätze kamen um ein 2 m breites Fahrzeug, das ist ein Platz je Meter Länge.
+
+**Änderung.** `strom`, `lager`, `leiter-klein` und `diagnose-bug` tragen
+`"ab": 10`. Unter 10 m größter Ausdehnung stehen sechs Plätze:
+- Werkzeug
+- Treibstoff
+- Diagnose
+- Werkbank
+- Kegel links
+- Kegel rechts
+
+Das betrifft Bikes und Rover (Pulse, X1, Nox, Dragonfly, Cyclone, Ursa, ROC,
+Mule, PTV, ATLS), Fury, Pitbull, Skylark, MPUV und Storm. Ab M50 (10,9 m),
+Razor, Merlin und Pisces bleibt alles wie vorher. Die Grenze 10 m liegt in der
+Lücke zwischen Storm (9,9 m) und M50.
+
+Kosten an der Dragonfly: 24 statt 30 Materialien (Zeichenbefehle je
+Durchgang), 109 000 statt 200 000 Dreiecke.
+
+Der Gerätesatz wurde neu gepackt. Gleiche Knoten, nur der Fingerabdruck des
+Blocks hat sich geändert (8 Byte).
+
+**Tor.** `verify:hangar-hall` [14] hat die Größe `winzig: 6.5` (Dragonfly),
+Klinke 6 Plätze, Obergrenze 24 Materialien und 115 000 Dreiecke.
+
+Vorgeführt rot:
+- Ohne die Größe meldet das Tor: „Schiffe von 0 bis 10 m: keine Groesse in
+  DIENST_KLASSEN liegt darin“.
+- Mit Klinke 7 und Obergrenze 23 / 112 000 meldet es drei FEHLER „an einem
+  Schiff von 6.5 m (winzig) …“.
+
+Sichturteil: WINDOWS 92.

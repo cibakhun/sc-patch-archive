@@ -267,16 +267,18 @@ const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 318
 // Requisiten. Obergrenze des Satzes: 41 Materialien (je Material ein
 // Zeichenbefehl je Durchgang auf mittel und hoch), 203 151 Dreiecke,
 // 4,9 MB. Was ein Schiff kostet, prüft das Tor je Größe (DIENST_KLASSEN:
-// Gladius, Cutlass, Carrack, größte Ausdehnung in m); jedes Band zwischen
+// Dragonfly, Gladius, Cutlass, Carrack, größte Ausdehnung in m; Fahrzeuge
+// unter 10 m bekommen seit 19.10.2026 nur sechs Plätze, das Gerät war
+// größer als sie); jedes Band zwischen
 // zwei Grenzen ab/bis braucht eine davon. Ein kleines Schiff zahlt das
 // Gerät der großen nicht (layDienst schaltet Materialien ohne sichtbares
 // Stück ab). Gleiche Regel wie oben, Obergrenzen steigen nur per Commit
 // mit Ursache.
 const KLINKE_DIENST = { stationen: 20, glieder: 131, leitungen: 6, spuren: 13, props: 50 };
 const OBERGRENZE_DIENST = { mats: 41, tris: 210000, bytes: 5.2e6 };
-const DIENST_KLASSEN = { klein: 20, mittel: 40, gross: 120 };
-const KLINKE_DIENST_KLASSE = { klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
-const OBERGRENZE_DIENST_KLASSE = { klein: { mats: 30, tris: 210000 }, mittel: { mats: 34, tris: 255000 }, gross: { mats: 41, tris: 560000 } };
+const DIENST_KLASSEN = { winzig: 6.5, klein: 20, mittel: 40, gross: 120 };
+const KLINKE_DIENST_KLASSE = { winzig: { stationen: 6 }, klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
+const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 115000 }, klein: { mats: 30, tris: 210000 }, mittel: { mats: 34, tris: 255000 }, gross: { mats: 41, tris: 560000 } };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 // Schachttor ([15], seit 18.10.2026): Teile, die ins Feld reichen (14 beim
 // Einbau: Mittelfluegel, Stirnplatten, Riegel, Zahnstangen, Zylinder); die
