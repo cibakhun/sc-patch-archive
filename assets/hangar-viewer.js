@@ -5904,6 +5904,13 @@ ${HALL_LIGHTS_BEGIN}
   const shaftCool = (y) => THREE.MathUtils.smoothstep(-y, 0.5, LIFT_DARK) * hallPit.k.value.x;
   let homeTgt = null;      // Blickziel der Startansicht des aktuellen Schiffs
   let frameFn = null;
+  // Zeichenkontext verloren (Treiber zurückgesetzt, Grafikspeicher voll):
+  // three.js hält ihn zur Rückgabe offen (preventDefault in WebGLRenderer),
+  // die Seite erfährt beides über onLost(true/false). Zurück zeichnen die
+  // Schattenkarten neu, sie standen im alten Kontext.
+  let lostFn = null;
+  renderer.domElement.addEventListener('webglcontextlost', () => lostFn?.(true));
+  renderer.domElement.addEventListener('webglcontextrestored', () => { shadowSig = ''; wake(800); lostFn?.(false); });
   let token = 0;
   let liveryKey = 'werk';
   let makerCode = '';
@@ -7062,6 +7069,8 @@ ${HALL_LIGHTS_BEGIN}
     onQuality(fn) { qualityFn = fn; },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
+    // fn(true): Zeichenkontext verloren, fn(false): wieder da
+    onLost(fn) { lostFn = fn; },
     dispose() {
       cancelAnimationFrame(raf);
       ro.disconnect(); io.disconnect();

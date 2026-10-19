@@ -1099,12 +1099,17 @@ export function boot(doc) {
   }
 
   // Ohne Buehne gibt es nichts zu drehen: Zuruecksetzen und Bedienhinweis gehen mit.
-  function noStage() {
+  // why waehlt den Text (data-blocked, -soft, -failed an #hg-fallback), ohne
+  // why bleibt der allgemeine; die Konsole nennt die Ursache.
+  const fallback = $('hg-fallback');
+  function noStage(why, detail) {
     loadEl.hidden = true;
-    $('hg-fallback').hidden = false;
+    if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
+    fallback.hidden = false;
     $('hg-reset').hidden = true;
     const hint = doc.querySelector('.hg-hint');
     if (hint) hint.hidden = true;
+    console.warn(`[hangar] ohne 3D-Ansicht: ${why || 'kein WebGL2'}`, detail ?? '');
   }
   // Ohne GPU zeichnet der Browser WebGL in Software: gemessen knapp 11 s je
   // Bild (SwiftShader, 1280x720), und die ganze Seite steht, Panel und Dock
@@ -1115,16 +1120,31 @@ export function boot(doc) {
   // Leistungsstufe (pickQuality in hangar-viewer.js).
   const SOFT_GL = /swiftshader|llvmpipe|softpipe|software|basic render/i;
   let gpuName = '';
-  function hasGpu() {
+  // Was der Buehne fehlt: '' nichts, 'none' WebGL2 kennt der Browser nicht,
+  // 'soft' nur ohne Grafikkarte, 'blocked' WebGL2 gibt es, aber keinen
+  // Kontext. So antwortet Chrome, wenn die Seite den Grafiktreiber einmal
+  // zurueckgesetzt hat: Er sperrt sie bis zum Neustart des Browsers
+  // („Web page caused context loss and was blocked“).
+  let gpuWhy = '';
+  function gpuMiss() {
+    if (typeof WebGL2RenderingContext === 'undefined') return 'none';
     try {
-      const gl = doc.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
-      if (!gl) return false;
+      const c = doc.createElement('canvas');
+      c.addEventListener('webglcontextcreationerror', (e) => { gpuWhy = e.statusMessage || gpuWhy; });
+      const gl = c.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+      if (!gl) {
+        const sw = doc.createElement('canvas').getContext('webgl2');
+        sw?.getExtension('WEBGL_lose_context')?.loseContext();
+        return sw ? 'soft' : 'blocked';
+      }
       const info = gl.getExtension('WEBGL_debug_renderer_info');
       gpuName = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
       gl.getExtension('WEBGL_lose_context')?.loseContext();
-      return !SOFT_GL.test(gpuName);
-    } catch {
-      return false;
+      gpuWhy = gpuName;
+      return SOFT_GL.test(gpuName) ? 'soft' : '';
+    } catch (e) {
+      gpuWhy = String(e?.message || e);
+      return 'blocked';
     }
   }
   // Grafik-Schalter: Automatisch zeigt dahinter die Stufe, die gerade
@@ -1159,7 +1179,8 @@ export function boot(doc) {
   function canStore() {
     try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
-  if (!hasGpu()) noStage();
+  const miss = gpuMiss();
+  if (miss) noStage(miss, gpuWhy);
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
@@ -1168,6 +1189,14 @@ export function boot(doc) {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
         v.onFrame(placeMarks);
+        // Kontext weg: die Meldung steht ueber der Buehne, bis er zurueckkommt
+        v.onLost((lost) => {
+          if (lost) {
+            fallback.textContent = fallback.dataset.lost;
+            console.warn('[hangar] Zeichenkontext verloren');
+          }
+          fallback.hidden = !lost;
+        });
         // Schmal (Umbruch wie in HangarPage.astro) liegt der Titelblock samt
         // Knoepfen ueber dem oberen Teil der Buehne: das Schiff rueckt darunter.
         // offset* statt getBoundingClientRect: beim Wechsel faehrt der Titel
@@ -1184,7 +1213,7 @@ export function boot(doc) {
         grafikSchalter(v);
         viewerShow(state.ship);
       })
-      .catch(noStage);
+      .catch((e) => noStage('failed', e));
   }
 
   writeUrl();
