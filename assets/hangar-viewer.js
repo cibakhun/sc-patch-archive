@@ -1608,6 +1608,10 @@ const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_0
 // Leitungen von jedem. Die Zusammensetzungen folgen den Arbeitsplätzen
 // des Katalogs (Diagnose mit Kabeltrommel 7 und Kisten mit Kabeltrommel 4
 // stehen im Spiel auf dem Landefeld, Gasflasche neben Feuerlöscher in 71 %).
+// Fahrzeuge unter 10 m (Bikes, Rover, Nox, X1, Dragonfly, Fury, Storm) bekommen
+// nur Werkzeug, Treibstoff, Diagnose, Werkbank und Kegel: Generator,
+// Kistenstapel, zweite Diagnose und Leiter waren größer als das Fahrzeug,
+// es stand in einem Haufen Gerät (19.10.2026).
 // leitungen: Schlauch oder Kabel aus dem Satz, vom Gerät ([Platz, x, z,
 // Höhe] im Platz) über den Boden unter den Rumpf ([Bruchteil quer, längs]);
 // das Spiel verlegt keine Leitung zum Schiff, die Stücke sind seine.
@@ -1619,7 +1623,7 @@ const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_0
 // prüft jeden Knoten am Gerätesatz und am Katalog.
 const WORK_DIENST = /* work-dienst */ {
   "stationen": [
-    { "name": "strom", "wo": ["seite", 1, -0.3], "sonst": [["ende", -1, 0.55]], "glieder": [
+    { "name": "strom", "ab": 10, "wo": ["seite", 1, -0.3], "sonst": [["ende", -1, 0.55]], "glieder": [
       ["prop_energie_generator_mobile_1_b", 0, 0.15, 0], ["prop_kabel_cable_reel_6_a", 2.9, 0.2, 0], ["prop_kabel_cable_terminal_6_a", -2.35, -0.15, 15],
       ["prop_licht_light_portable_tripod_1_base_a", -2.9, 1.1, 200], ["prop_sicherheit_tool_fire_extinguisher_1_a", 1.9, 1.0, -30]] },
     { "name": "treibstoff", "wo": ["seite", -1, -0.3], "sonst": [["ende", -1, -0.55]], "glieder": [
@@ -1642,14 +1646,14 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_werkzeug_tool_tester_1_b", -0.45, 0.05, 80, 1.0], ["prop_werkzeug_tool_manual_1_ratchet_a", 0.3, 0.25, 100, 1.0],
       ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.55, 0.05, 160, 1.0], ["prop_werkzeug_tool_socket_set_1_a", 1.3, 0.35, -12, 1.0],
       ["prop_lager_drum_dry_1_a", 2.8, 0.35, 0], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.7, 0.1, 30]] },
-    { "name": "lager", "wo": ["ende", -1, 0.3], "sonst": [["ende", -1, -0.3], ["ende", 1, 0]], "glieder": [
+    { "name": "lager", "ab": 10, "wo": ["ende", -1, 0.3], "sonst": [["ende", -1, -0.3], ["ende", 1, 0]], "glieder": [
       ["prop_lager_crate_dry_2_0125x0125x0125_a", 0, 0.3, 7], ["prop_lager_crate_dry_2_0125x0125x0125_a", -0.1, -1.1, -89],
       ["prop_lager_crate_metal_2_01x005x0025_a", -0.3, -1.0, 80, 1.25], ["prop_lager_crate_dry_1_0125x0125x00625_a", 1.15, 1.25, 4],
       ["prop_lager_drum_dry_1_a", -1.35, 0.75, 0], ["prop_lager_drum_dry_1_a", -1.8, 0.35, 0], ["prop_kabel_cable_reel_4_a", 0.4, 1.95, 180],
       ["prop_transport_trolley_pallet_1_a", 2.3, -0.2, 90], ["prop_lager_crate_stack_1_025x0125x00625_a", -3.4, 0.9, 90],
       ["prop_transport_prop_dumper_transport_pallet_a", 5.0, 0.5, 4], ["prop_lager_crate_dry_2_0125x0125x0125_a", 4.6, 0.15, 10, 0.25],
       ["prop_lager_crate_metal_2_01x005x0025_a", 5.45, 0.95, 85, 0.25]] },
-    { "name": "leiter-klein", "bis": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75]], "glieder": [
+    { "name": "leiter-klein", "ab": 10, "bis": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75]], "glieder": [
       ["prop_heben_ladder_step_1_a", 0, 0, 0]] },
     { "name": "leiter", "ab": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75], ["seite", 1, 0.55]], "glieder": [
       ["prop_heben_ladder_mobile_1_b", 0, 0.2, 0], ["prop_sicherheit_cone_1_a", -0.9, -0.6, 0], ["prop_sicherheit_cone_1_a", 0.9, -0.6, 25]] },
@@ -1680,7 +1684,7 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_licht_light_work_light_2_a", -1.6, 0.4, 0],
       ["prop_transport_trolley_creeper_a", 2.6, -0.9, 95], ["prop_werkzeug_tool_socket_set_1_a", 1.05, -0.95, 35],
       ["prop_werkzeug_tool_manual_1_ratchet_a", 1.7, -1.35, 65], ["prop_werkzeug_tool_manual_1_pliers_a", 2.0, -1.6, 140]] },
-    { "name": "diagnose-bug", "wo": ["ende", 1, 0.3], "sonst": [["seite", 1, 0.55], ["ende", 1, -0.3]], "glieder": [
+    { "name": "diagnose-bug", "ab": 10, "wo": ["ende", 1, 0.3], "sonst": [["seite", 1, 0.55], ["ende", 1, -0.3]], "glieder": [
       ["prop_diagnose_console_diagnostic_1_a", 0, 0, 0], ["prop_kabel_cable_reel_7_a", 1.3, 0.25, -10], ["prop_licht_light_work_light_1_a", -1.3, 0.35, 0]] },
     { "name": "frachtzone", "ab": 60, "frei": 6, "wo": ["ende", -1, 0], "sonst": [["ende", -1, 0.4], ["ende", 1, 0]], "glieder": [
       ["prop_lager_storage_container_1_025x05x025_a", -6.0, 2.6, 0], ["prop_lager_storage_container_1_025x05x025_a", -3.3, 2.6, 0],
