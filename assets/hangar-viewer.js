@@ -965,23 +965,75 @@ function buildGate(scene, info, sh, inner) {
     u.at.set(u.keys.open.at(-1)[1], u.keys.open.at(-1)[2], u.keys.open.at(-1)[3]);
     stowed.push(`${u.node} +${(GATE_STOW - behind).toFixed(2)} m`);
   }
-  // Ab wann das Tor das Feld ganz deckt: früheste Zeit der Schließbahn, zu
-  // der jede Zelle (0,25 m) unter einem Teil liegt, das bis an den Boden
-  // reicht (wie verify:hangar-hall [15]). Riegel, die danach noch fahren,
-  // zählen so nicht mit.
-  const CELL = 0.25, nx = Math.round((2 * sh.hx) / CELL), nz = Math.round((2 * sh.hz) / CELL), cells = new Uint8Array(nx * nz), at = new THREE.Vector3();
-  const times = [...new Set(parts.flatMap((u) => u.keys.close.map((k) => k[0])))].sort((a, b) => a - b);
-  let cover = 0;
-  for (const t of times) {
+  // Deckt das Tor auf der Bahn dir zur Zeit t das Feld ganz? Jede Zelle
+  // (0,25 m) unter einem Teil, das bis an den Boden reicht (wie
+  // verify:hangar-hall [15])
+  const CELL = 0.25, nx = Math.round((2 * sh.hx) / CELL), nz = Math.round((2 * sh.hz) / CELL), cells = new Uint8Array(nx * nz), at = new THREE.Vector3(), at2 = new THREE.Vector3();
+  const floor = (u, p) => p.y + u.hi[1] >= -0.5;
+  const full = (dir, t) => {
     cells.fill(0);
     for (const u of parts) {
-      gateAt(u.keys.close, t, at);
-      if (at.y + u.hi[1] < -0.5) continue;
+      gateAt(u.keys[dir], t, at);
+      if (!floor(u, at)) continue;
       const i0 = Math.max(0, Math.ceil((at.x + u.lo[0] + sh.hx) / CELL - 0.5)), i1 = Math.min(nx - 1, Math.floor((at.x + u.hi[0] + sh.hx) / CELL - 0.5));
       const j0 = Math.max(0, Math.ceil(((at.z + u.lo[2]) * sz + sh.hz) / CELL - 0.5)), j1 = Math.min(nz - 1, Math.floor(((at.z + u.hi[2]) * sz + sh.hz) / CELL - 0.5));
       for (let j = j0; j <= j1; j++) cells.fill(1, j * nx + i0, j * nx + i1 + 1);
     }
-    if (cells.every(Boolean)) { cover = t; break; }
+    return cells.indexOf(0) < 0;
+  };
+  // Ab wann das Tor das Feld ganz deckt: früheste Zeit der Schließbahn, zu
+  // der es full ist. Riegel, die danach noch fahren, zählen so nicht mit.
+  const times = [...new Set(parts.flatMap((u) => u.keys.close.map((k) => k[0])))].sort((a, b) => a - b);
+  let cover = 0;
+  for (const t of times) if (full('close', t)) { cover = t; break; }
+  // Alle vier Seiten zugleich (19.10.2026, Krisz: „wenn der platform
+  // runterfährt und die schacht zu geht kommen erst die 2 kurzen seiten und
+  // erst dann die 2 langen. alle sollen gleichzeitig starten aber die gesamt
+  // länge von der animation hat gepasst“). Im Spiel fahren alle Teile ab 0
+  // los, die Flügel kommen aber aus 28 m und liegen bis zu unserer Wand bei
+  // 16 m unter dem Boden: Beim Schließen sah man erst die Stirnplatten (0,94
+  // bis 4,2 s der Bahn), dann die Flügel (4,2 bis 11,25 s), beim Öffnen
+  // umgekehrt. Je Seite (Teile mit derselben Fahrachse und -richtung) und
+  // Bahn wird die Zeit deshalb umgelegt: Der Abschnitt, in dem Teile der
+  // Seite bis an den Boden im Feld fahren, solange es nicht zwischen zwei
+  // Stützstellen ganz gedeckt ist (die Riegel rasten danach ein), wird auf
+  // den aller Seiten zusammen gedehnt; davor und danach läuft der Rest der
+  // Bahn gerafft. Anfang und Ende des Wechsels bleiben, wie sie waren, so
+  // auch cover (wie bisher an den Stützstellen des Spiels gemessen).
+  const sides = new Map(), sync = [], N = 500;
+  for (const u of parts) {
+    const c = u.keys.close.at(-1), o = u.keys.close[0], ax = Math.abs(o[1] - c[1]) >= Math.abs(o[3] - c[3]) ? 1 : 3;
+    if (Math.abs(o[ax] - c[ax]) < 0.5) continue;
+    const k = `${ax === 1 ? 'x' : 'z'}${o[ax] > c[ax] ? '+' : '-'}`;
+    if (!sides.has(k)) sides.set(k, []);
+    sides.get(k).push(u);
+  }
+  for (const dir of ['close', 'open']) {
+    const kt = [...new Set(parts.flatMap((u) => u.keys[dir].map((k) => k[0])))].sort((a, b) => a - b), kf = kt.map((t) => full(dir, t));
+    const sealed = (t) => { let j = 0; while (j < kt.length - 2 && kt[j + 1] <= t) j++; return kf[j] && kf[j + 1]; };
+    const ts = Array.from({ length: N + 1 }, (_, i) => (T * i) / N), ss = ts.map(sealed), span = new Map();
+    for (const [k, us] of sides) {
+      let a = Infinity, b = -Infinity;
+      for (const u of us) for (let i = 0; i < N; i++) {
+        if (ss[i] && ss[i + 1]) continue;
+        gateAt(u.keys[dir], ts[i], at); gateAt(u.keys[dir], ts[i + 1], at2);
+        if (at.distanceTo(at2) < 1e-4 || !floor(u, at) || Math.max(into(u.lo, u.hi, at.toArray()), into(u.lo, u.hi, at2.toArray())) <= 0) continue;
+        a = Math.min(a, ts[i]); b = Math.max(b, ts[i + 1]);
+      }
+      if (b > a) span.set(k, [a, b]);
+    }
+    if (span.size < 2) continue;
+    const S = Math.min(...[...span.values()].map((s) => s[0])), E = Math.max(...[...span.values()].map((s) => s[1]));
+    for (const [k, [a, b]] of span) {
+      const w = (t) => (t <= a ? (a > 0 ? (t * S) / a : S) : t <= b ? S + ((t - a) * (E - S)) / (b - a) : E + ((t - b) * (T - E)) / (T - b));
+      for (const u of sides.get(k)) {
+        const ks = u.keys[dir].map(([t, x, y, z]) => [w(t), x, y, z]);
+        for (const t of [a, b]) { gateAt(u.keys[dir], t, at); ks.push([w(t), at.x, at.y, at.z]); }
+        u.keys = { ...u.keys, [dir]: ks.sort((p, q) => p[0] - q[0]) };
+      }
+      sync.push(`${dir === 'close' ? 'zu' : 'auf'} ${k} ${a.toFixed(2)}–${b.toFixed(2)}`);
+    }
+    sync.push(`${dir === 'close' ? 'zu' : 'auf'} alle ${S.toFixed(2)}–${E.toFixed(2)} s`);
   }
   // Materialien mit denselben Karten: eins (das hellste), die übrigen
   // behalten ihre Helligkeit über die Abdunkelung
@@ -1045,7 +1097,7 @@ function buildGate(scene, info, sh, inner) {
     }
   }
   // cover: ab hier auf der Bahn zu ist das Feld ganz gedeckt (danach rasten nur noch die Riegel ein)
-  const G = { group, parts, batches, used: parts.length, dropped, stowed, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
+  const G = { group, parts, batches, used: parts.length, dropped, stowed, sync, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), M: new THREE.Matrix4() };
   gatePose(G, 'open', T);
   return G;
 }
@@ -5480,7 +5532,7 @@ ${HALL_LIGHTS_BEGIN}
               G.group.visible = false;
               shaft.group.add(G.group);
               shaft.gate = G;
-              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
             } catch (e) {
               console.warn('[hangar] Schachttor nicht gebaut', e);
             }
