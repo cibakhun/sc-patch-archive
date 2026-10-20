@@ -2029,9 +2029,9 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_werkzeug_tool_manual_1_pliers_a", 2.1, -1.55, 140], ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.8, -1.45, 200],
       ["prop_werkzeug_tool_allenkey_1_a", 2.35, -1.2, 20]] },
     { "name": "werkbank", "wo": ["seite", -1, -0.75], "sonst": [["ende", -1, -0.75], ["seite", 1, -0.75]], "glieder": [
-      ["prop_werkzeug_workbench_table_1_a", 0, 0.2, 0], ["prop_werkzeug_tool_socket_set_closed_1_a", -1.35, 0.3, 15, 1.0],
-      ["prop_werkzeug_tool_tester_1_b", -0.45, 0.05, 80, 1.0], ["prop_werkzeug_tool_manual_1_ratchet_a", 0.3, 0.25, 100, 1.0],
-      ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.55, 0.05, 160, 1.0], ["prop_werkzeug_tool_socket_set_1_a", 1.3, 0.35, -12, 1.0],
+      ["prop_werkzeug_workbench_mobile_1_a", 0, 0.2, 90], ["prop_werkzeug_tool_socket_set_closed_1_a", -1.35, 0.3, 15, 1.215],
+      ["prop_werkzeug_tool_tester_1_b", -0.45, 0.05, 80, 1.215], ["prop_werkzeug_tool_manual_1_ratchet_a", 0.3, 0.25, 100, 1.215],
+      ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.55, 0.05, 160, 1.215], ["prop_werkzeug_tool_socket_set_1_a", 1.3, 0.35, -12, 1.215],
       ["prop_lager_drum_dry_1_a", 2.8, 0.35, 0], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.7, 0.1, 30]] },
     { "name": "lager", "ab": 10, "wo": ["ende", -1, 0.3], "sonst": [["ende", -1, -0.3], ["ende", 1, 0]], "glieder": [
       ["prop_lager_crate_dry_2_0125x0125x0125_a", 0, 0.3, 7], ["prop_lager_crate_dry_2_0125x0125x0125_a", -0.1, -1.1, -89],
@@ -3258,6 +3258,75 @@ function pathOf(points) {
 }
 const polar = (r, a, y = 0) => new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a) * r);
 
+// Gerät, um das die Crew herumgeht (20.10.2026, Krisz' Bild: ein Arbeiter
+// lief mitten durch die Werkbank): Rechtecke { x, z, ex, ez } in Weltmetern,
+// Abstand schon eingerechnet. clearOf rückt einen Punkt an den nächsten Rand,
+// detour führt einen geschlossenen Weg um die Rechtecke: Schneidet ein
+// Abschnitt eines, geht er über dessen Ecken auf der Seite, die weniger unter
+// den Rumpf führt (hull(x, z): Rumpf dort tiefer als CREW_HEAD), bei
+// Gleichstand außen (weiter von der Schiffsmitte); die neuen Abschnitte
+// werden wieder geprüft.
+const CREW_GAP = 0.35;   // m vom Gerät bis zur Mitte des Arbeiters
+const CREW_HEAD = 1.9;   // m: tiefer hängender Rumpf ist im Weg
+function clearOf(p, blocks) {
+  for (let n = 0; n < 4; n++) {
+    let moved = false;
+    for (const r of blocks) {
+      const dx = p.x - r.x, dz = p.z - r.z;
+      if (Math.abs(dx) >= r.ex || Math.abs(dz) >= r.ez) continue;
+      if (r.ex - Math.abs(dx) < r.ez - Math.abs(dz)) p.x = r.x + Math.sign(dx || 1) * r.ex;
+      else p.z = r.z + Math.sign(dz || 1) * r.ez;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return p;
+}
+// Anteil (0..1), an dem der Abschnitt a→b ins Innere von r tritt, sonst Infinity
+function segHit(a, b, r) {
+  const e = 1e-3, dx = b.x - a.x, dz = b.z - a.z;
+  let t0 = 0, t1 = 1;
+  for (const [p, q] of [[-dx, a.x - (r.x - r.ex + e)], [dx, r.x + r.ex - e - a.x], [-dz, a.z - (r.z - r.ez + e)], [dz, r.z + r.ez - e - a.z]]) {
+    if (Math.abs(p) < 1e-9) { if (q < 0) return Infinity; continue; }
+    const t = q / p;
+    if (p < 0) { if (t > t1) return Infinity; t0 = Math.max(t0, t); } else { if (t < t0) return Infinity; t1 = Math.min(t1, t); }
+  }
+  return t0 < t1 ? t0 : Infinity;
+}
+function detour(points, blocks, hull = null) {
+  if (!blocks.length) return points;
+  // Weg unter dem Rumpf in m, alle 0,25 m abgetastet
+  const under = (line) => {
+    if (!hull) return 0;
+    let m = 0;
+    for (let i = 1; i < line.length; i++) {
+      const a = line[i - 1], b = line[i], n = Math.ceil(a.distanceTo(b) / 0.25);
+      for (let k = 0; k < n; k++) if (hull(a.x + ((b.x - a.x) * k) / n, a.z + ((b.z - a.z) * k) / n)) m += 0.25;
+    }
+    return m;
+  };
+  const pts = points.map((p) => clearOf(p.clone(), blocks)), out = [];
+  const around = (a, b, depth) => {
+    let hit = null, tMin = Infinity;
+    for (const r of blocks) { const t = segHit(a, b, r); if (t < tMin) { tMin = t; hit = r; } }
+    if (!hit || depth > 8) return;
+    const dx = b.x - a.x, dz = b.z - a.z;
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sz]) => new THREE.Vector3(hit.x + sx * (hit.ex + 0.02), 0, hit.z + sz * (hit.ez + 0.02)));
+    const side = (p) => dx * (p.z - a.z) - dz * (p.x - a.x);
+    const sides = [corners.filter((p) => side(p) > 0), corners.filter((p) => side(p) <= 0)].filter((s) => s.length);
+    const along = (p, q) => (p.x - a.x) * dx + (p.z - a.z) * dz - ((q.x - a.x) * dx + (q.z - a.z) * dz);
+    const ways = sides.map((c) => c.map((p) => clearOf(p, blocks.filter((r) => r !== hit))).sort(along));
+    const outer = (c) => c.reduce((sum, p) => sum + Math.hypot(p.x, p.z), 0) / c.length;
+    const cost = ways.map((c) => under([a, ...c, b]));
+    const via = ways.length < 2 ? ways[0] : Math.abs(cost[0] - cost[1]) > 0.1 ? ways[cost[0] < cost[1] ? 0 : 1] : ways[outer(ways[0]) >= outer(ways[1]) ? 0 : 1];
+    let prev = a;
+    for (const c of via) { around(prev, c, depth + 1); out.push(c); prev = c; }
+    around(prev, b, depth + 1);
+  };
+  for (let i = 0; i < pts.length; i++) { out.push(pts[i]); around(pts[i], pts[(i + 1) % pts.length], 0); }
+  return out;
+}
+
 // Zerlegt die echte Crew-Figur in Glieder für das Arbeitergerüst.
 // Die Figur steht in Metern, Y oben, blickt in -Z, Arme nach vorn unten
 // zusammengeführt (so kommt sie aus dem Build). Ergebnis: Gelenkname ->
@@ -3365,6 +3434,9 @@ function buildLife(scene, reduceMotion, withStage = true) {
   let props = null, tugV = null, dr = null, welder = null, welder2 = null;
   let crane = null, beam = null, trolley = null, rope = null, hook = null;
   let L = null; // aktuelle Anordnung
+  // Gerät des Wartungsplatzes (setBlocks, vor layout): je Platz ein Rechteck,
+  // dazu der Rumpf (hull), damit der Umweg nicht unter ihn führt
+  let blocks = [], hull = null;
   const v = new THREE.Vector3();
   function addStage() {
     if (props) return;
@@ -3417,10 +3489,10 @@ function buildLife(scene, reduceMotion, withStage = true) {
     const benchPos = (b, side) => b.localToWorld(new THREE.Vector3(side, 0, 0.9));
     L = {
       S, R, ring, ship,
-      // Rundweg um die Plattform, mit Abstecher zum Tor
-      loop: pathOf([0, 1, 2, 3, 4, 5, 6, 7].map((i) => polar(ring, D + (i / 8) * Math.PI * 2 + 0.2))),
-      doorRun: pathOf([polar(ring, D + 0.25), polar(HALL_R * S * 0.85, D + 0.12), polar(HALL_R * S * 0.85, D - 0.12), polar(ring, D - 0.25), polar(R + 5.5, D - 0.9)]),
-      cartRun: pathOf([polar(R + 2, D - 0.2), polar(R + 2, D + 1.2), polar(R + 4, D + 1.8), polar(R + 4, D - 0.6)]),
+      // Rundweg um die Plattform, mit Abstecher zum Tor, um das Gerät herum
+      loop: pathOf(detour([0, 1, 2, 3, 4, 5, 6, 7].map((i) => polar(ring, D + (i / 8) * Math.PI * 2 + 0.2)), blocks, hull)),
+      doorRun: pathOf(detour([polar(ring, D + 0.25), polar(HALL_R * S * 0.85, D + 0.12), polar(HALL_R * S * 0.85, D - 0.12), polar(ring, D - 0.25), polar(R + 5.5, D - 0.9)], blocks, hull)),
+      cartRun: pathOf(detour([polar(R + 2, D - 0.2), polar(R + 2, D + 1.2), polar(R + 4, D + 1.8), polar(R + 4, D - 0.6)], blocks, hull)),
       tugRun: pathOf([0, 1, 2, 3, 4, 5].map((i) => polar(R + 10 + S * 2, D + 0.5 + (i / 6) * Math.PI * 2))),
       weldAt: props ? benchPos(props.bench, 0.3) : null,
       weldAt2: props ? benchPos(props.bench2, -0.3) : null,
@@ -3551,7 +3623,7 @@ function buildLife(scene, reduceMotion, withStage = true) {
         sp.update(Math.min(dt, 0.05), on);
       } else if (role === 'tablet') {
         // steht am Bug, schaut abwechselnd aufs Tablet und zum Schiff
-        w.root.position.copy(polar(L.R + 1.5, DOOR_ANGLE + Math.PI + (props ? 0.35 : tabletAt[i])));
+        w.root.position.copy(clearOf(polar(L.R + 1.5, DOOR_ANGLE + Math.PI + (props ? 0.35 : tabletAt[i])), blocks));
         w.root.lookAt(0, 0, 0);
         poseStand(w);
         w.shR.rotation.x = -0.9; w.elR.rotation.x = -0.9; w.shL.rotation.x = -0.7; w.elL.rotation.x = -1.0;
@@ -3595,7 +3667,27 @@ function buildLife(scene, reduceMotion, withStage = true) {
     hook.position.set(tx + (reduceMotion ? 0 : Math.sin(t * 0.7) * 0.15), -1.4 - ropeLen, cz);
   }
 
-  return { layout, update, root, setCrew, showCrew, crewMeshes: () => crewMeshes, addStage, setShadows, setCount, isRigged: () => rigged };
+  // Rechtecke in Weltmetern ({ x, z, ex, ez }); mit Abstand für Schultern.
+  // Überlappende fasst es zu einem zusammen, sonst läge die Ecke des einen
+  // im anderen. Gilt ab dem nächsten layout.
+  function setBlocks(list, under = null) {
+    hull = under;
+    const rs = list.map((r) => [r.x - r.ex - CREW_GAP, r.x + r.ex + CREW_GAP, r.z - r.ez - CREW_GAP, r.z + r.ez + CREW_GAP]);
+    const meet = (a, b) => a[0] < b[1] && b[0] < a[1] && a[2] < b[3] && b[2] < a[3];
+    for (let merged = true; merged;) {
+      merged = false;
+      for (let i = 0; i < rs.length && !merged; i++) for (let j = i + 1; j < rs.length && !merged; j++) {
+        if (!meet(rs[i], rs[j])) continue;
+        const a = rs[i], b = rs[j];
+        rs[i] = [Math.min(a[0], b[0]), Math.max(a[1], b[1]), Math.min(a[2], b[2]), Math.max(a[3], b[3])];
+        rs.splice(j, 1);
+        merged = true;
+      }
+    }
+    blocks = rs.map(([x0, x1, z0, z1]) => ({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, ex: (x1 - x0) / 2, ez: (z1 - z0) / 2 }));
+  }
+
+  return { layout, update, root, setCrew, showCrew, crewMeshes: () => crewMeshes, addStage, setShadows, setCount, isRigged: () => rigged, setBlocks };
 }
 
 // Gelenke des Arbeitergerüsts in der Folge der Knochen (worker(), rigCrew())
@@ -4415,6 +4507,7 @@ export async function initHangar(container, opts = {}) {
       dust.pts.scale.set(dw, shipInfo.height * 1.8 + 4, dw);
       dust.pts.material.size = 0.035 * Math.max(1, span / 14);
     }
+    life.setBlocks(realHall?.dienst?.blocks ?? [], realHall?.dienst?.hull ?? null);
     life.layout(S, shipInfo);
   }
 
@@ -5825,6 +5918,25 @@ ${HALL_LIGHTS_BEGIN}
       taken.push(...best.q);
       placed.set(st.name, best);
     });
+    // Für die Crew: je Platz die Grundfläche aller Stücke als Rechteck in
+    // Weltmetern (die Gruppe steht im Maßstab 1/k im Modell: Meter wie dort)
+    d.group.updateWorldMatrix(true, false);
+    const wsc = d.group.getWorldScale(new THREE.Vector3()).x;
+    d.blocks = [...placed.values()].map((p) => {
+      const x0 = Math.min(...p.q.map((b) => b.x - b.ex)), x1 = Math.max(...p.q.map((b) => b.x + b.ex));
+      const z0 = Math.min(...p.q.map((b) => b.z - b.ez)), z1 = Math.max(...p.q.map((b) => b.z + b.ez));
+      const c = d.group.localToWorld(new THREE.Vector3((x0 + x1) / 2 + sx, 0, (z0 + z1) / 2 + sz));
+      return { x: c.x, z: c.z, ex: ((x1 - x0) / 2) * wsc, ez: ((z1 - z0) / 2) * wsc };
+    });
+    // und wo der Rumpf tiefer als CREW_HEAD hängt (Grundriss U, sonst Kasten)
+    const inv = d.group.matrixWorld.clone().invert(), hv = new THREE.Vector3();
+    d.hull = (x, z) => {
+      hv.set(x, 0, z).applyMatrix4(inv);
+      const lx = hv.x - sx, lz = hv.z - sz;
+      if (!U) return Math.abs(lx) < W && Math.abs(lz) < Lh;
+      const i = Math.floor((lx - U.x0) / U.C), j = Math.floor((lz - U.z0) / U.C);
+      return i >= 0 && j >= 0 && i < U.nx && j < U.nz && U.low[j * U.nx + i] < CREW_HEAD / wsc;
+    };
     // Höchstes Gerät: Bei flachen Fahrzeugen (Nox 1,3 m) ist der Werkzeugschrank
     // (2,3 m) höher als das Schiff, und es fährt mit; das Schachttor wartet auf beides
     d.top = Math.max(0, ...[...placed.values()].flatMap((p) => p.q.map((b) => b.top)));

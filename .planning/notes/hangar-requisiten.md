@@ -176,3 +176,32 @@ Requisit über alle Gruppen vorkommt:
       (`scripts/build-hangar-dienst.mjs`); der PC lässt es, wie es ist.
     - Den Einbau macht die Cloud: Schichten im Shader des Wartungsplatzes,
       neue Requisiten an den Plätzen.
+
+## Einbau Cloud ohne PC (20.10. abends)
+
+- **Werkbank.** Station `werkbank` nimmt statt `workbench_table_1_a` die
+  fahrbare Werkbank `workbench_mobile_1_a` (Hubgestell, helle Platte auf
+  1,215 m, quer zum Rumpf gedreht). Das Werkzeug liegt auf der Platte statt
+  0,5 m darüber. R3 klärt, ob das Spiel sie als Werkbank führt.
+- **Crew um das Gerät.** `layDienst` gibt je Platz die Grundfläche aller
+  Stücke als Rechteck in Weltmetern weiter (`d.blocks`), dazu den Rumpf
+  aus dem Grundriss (`d.hull`, tiefer als 1,9 m). `buildLife.setBlocks`
+  legt 0,35 m Abstand dazu und fasst überlappende Rechtecke zusammen.
+  `detour` führt Rundweg, Torweg und Wagenweg über die Ecken um jedes
+  Rechteck, auf der Seite mit weniger Weg unter dem Rumpf, bei Gleichstand
+  außen. Wer mit dem Tablet steht, rückt an den Rand.
+- **Gemessen** (Wege gegen die Kästen der Requisiten über 0,3 m Höhe, plus
+  0,2 m für den Körper; Meter Weg im Gerät, vorher → nachher):
+
+  | Schiff | Rundweg | Torweg | Wagenweg | Weg unter dem Rumpf (Wagenweg) |
+  |---|---|---|---|---|
+  | Gladius | 3,3 → 0 | 1,4 → 0 | 6,4 → 0 | 0,5 → 0,3 |
+  | Cutlass Black | 9,7 → 0 | 5,0 → 0 | 12,7 → 0 | 2,0 → 0 |
+  | Freelancer | 5,3 → 0 | 7,0 → 0 | 8,7 → 0 | 2,3 → 0 |
+  | Starlifter C2 | 27,3 → 0 | 31,5 → 0 | 19,0 → 0 | 0 → 3,0 |
+  | Carrack (nur nachher) | 0 | 0 | 0 | 0 |
+
+  Der Rest beim C2 liegt auf der Sehne des Wagenwegs unter der Schiffsmitte
+  (Fahrwerk), nicht an einem Umweg.
+- Bild: `hangar/v55-werkbank-vorher-nachher.png` im Projektordner;
+  Sichturteil WINDOWS 96.
