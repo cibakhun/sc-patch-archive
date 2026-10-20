@@ -31,10 +31,8 @@ const LAYOUT_MSG: LayoutKey[] = [
   'msg.saved', 'msg.copied', 'msg.copyFallback', 'msg.reset', 'msg.fitted', 'msg.deleted', 'msg.undo',
   'msg.dropped.one', 'msg.dropped.other', 'msg.full',
   'saved.empty', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
-  'grp.paint', 'paint.stock', 'paint.pattern', 'sum.max', 'pick.head',
+  'grp.paint', 'paint.stock', 'paint.pattern', 'pick.head',
 ];
-// Kampfwerte im Kopf: Summe der Gruppen, wie assets/hangar-layouts.js sie bildet (paintTotals).
-const SUM: LayoutKey[] = ['sum.fire', 'sum.ord', 'sum.shield'];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
   'cls.military', 'cls.civilian', 'cls.industrial', 'cls.stealth', 'cls.competition', 'grade',
@@ -78,21 +76,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-shared[hidden]{display:none}
 /* Kampfwerte: drei Kacheln unter dem Stand, die Zahl gross, darunter der
    Balken bis zum Bestwert mit dem Strich auf der Serie. */
-.hgl-sum{--n:3;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:.4rem;margin:.7rem 0 .1rem}
-.hgl-sum[hidden],.hgl-stat[hidden]{display:none}
-.hgl-sum[data-n="2"]{--n:2}
-.hgl-sum[data-n="1"]{--n:1}
-.hgl-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:.05rem .4rem;min-width:0;padding:.45rem .55rem .55rem;border:1px solid var(--hg-hair);border-radius:8px;background:linear-gradient(180deg,color-mix(in srgb,var(--hg-on) 5%,transparent),transparent 70%),color-mix(in srgb,var(--bg) 50%,transparent)}
-.hgl-stat__k{grid-column:1/-1;min-width:0;overflow:hidden;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-dim);white-space:nowrap;text-overflow:ellipsis}
-.hgl-stat__d{grid-row:3;grid-column:2;align-self:center;margin-top:.3rem;font-style:normal;line-height:1;font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.hgl-stat__d.is-up{color:var(--hg-amber)}
-.hgl-stat__d.is-down{color:color-mix(in srgb,var(--hot) 60%,var(--hg-on))}
-.hgl-stat__v{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .3rem;min-width:0;line-height:1.15}
-.hgl-stat__v b{font-family:var(--font-ui);font-size:var(--fs-14);font-weight:700;color:var(--hg-on);font-variant-numeric:tabular-nums}
-.hgl-stat__v small{font-size:var(--fs-5);color:var(--hg-dim)}
-.hgl-stat__bar{grid-row:3;grid-column:1;align-self:center;position:relative;height:4px;margin-top:.35rem;border-radius:2px;background:var(--line-soft)}
-.hgl-stat__bar i{position:absolute;left:0;top:0;bottom:0;width:var(--now,0%);border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--hg-amber) 45%,transparent),var(--hg-amber));transition:width var(--dur-slow) var(--ease-ui)}
-.hgl-stat__max{grid-column:1/-1;margin-top:.25rem;font-size:var(--fs-5);color:var(--hg-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
 /* Hinweis ueber der Liste, solange kein Slot offen ist */
 .hgl-hintline{display:flex;align-items:center;gap:.45rem;margin:-.2rem .3rem .7rem;font-size:var(--fs-6);color:var(--hg-on)}
 .hgl-hintline::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--hg-amber)}
@@ -243,9 +226,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgl-head{padding:.6rem .9rem .5rem}
   .hgl-name{font-size:var(--fs-9)}
   .hgl-opts{max-height:min(240px,34vh)}
-  .hgl-sum{margin-top:.5rem}
-  .hgl-stat{padding:.35rem .5rem .45rem}
-  .hgl-stat__v b{font-size:var(--fs-12)}
 }
 @media (max-width:760px){
   .hgl{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);box-shadow:none;overflow:visible}
@@ -255,7 +235,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgl-toast{position:fixed;bottom:5.2rem;z-index:5}
   .hgl-opts{max-height:50vh}
 }
-@media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock,.hgl-stat__bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock{transition:none}}
 </style>
 
 <aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hg-pane-layout" data-lang={lang} data-src={layoutDataHref()}>
@@ -276,21 +256,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </button>
     </div>
     <p class="hgl-shared" id="hgl-shared" hidden>{l('shared')}</p>
-    {/* Kampfwerte wie im Spielmenue: Zahl, Abstand zur Serie und in Worten,
-        wie nah das Layout am Hoechsten ist, was das Schiff tragen kann (der
-        Balken allein blieb ohne Erklaerung unverstanden). Werte setzt
-        paintTotals, ohne Werte bleibt die Kachel weg. */}
-    <div class="hgl-sum" id="hgl-sum" role="group" aria-label={l('sum.label')} title={l('sum.note')} hidden>
-      {SUM.map((k) => (
-        <div class="hgl-stat" data-sum={k.slice(4)} hidden>
-          <span class="hgl-stat__k">{l(k)}</span>
-          <span class="hgl-stat__v"><b></b><small></small></span>
-          <i class="hgl-stat__d"></i>
-          <span class="hgl-stat__bar" aria-hidden="true"><i></i></span>
-          <small class="hgl-stat__max"></small>
-        </div>
-      ))}
-    </div>
   </div>
   <div class="hgl-scroll" id="hgl-scroll">
     <div class="hgl-pane" id="hgl-build" data-help={h('hangar.ctl.layoutSlots')}>
