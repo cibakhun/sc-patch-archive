@@ -76,6 +76,12 @@ const DE = {
   'failed': 'Die Bauteile konnten nicht geladen werden.',
   'retry': 'Erneut versuchen',
   'noslots': 'Dieses Schiff hat keine tauschbaren Bauteile.',
+  'sum.label': 'Kampfwerte dieses Layouts',
+  'sum.fire': 'Feuerkraft',
+  'sum.ord': 'Raketen',
+  'sum.shield': 'Schild',
+  'sum.note': 'Balken: Anteil am Bestwert, den die Slots fassen. Strich: Serie.',
+  'slot.rank': 'Platz {r} von {n} passenden Bauteilen',
 } as const;
 
 export type LayoutKey = keyof typeof DE;
@@ -146,6 +152,12 @@ const EN: Readonly<Record<LayoutKey, string>> = {
   'failed': 'The components could not be loaded.',
   'retry': 'Try again',
   'noslots': 'This ship has no swappable components.',
+  'sum.label': 'Combat readout of this loadout',
+  'sum.fire': 'Firepower',
+  'sum.ord': 'Missiles',
+  'sum.shield': 'Shields',
+  'sum.note': 'Bar: share of the best value these slots can hold. Tick: stock.',
+  'slot.rank': 'Rank {r} of {n} fitting components',
 };
 
 const LAYOUT_UI: Readonly<Record<Locale, Readonly<Record<LayoutKey, string>>>> = { de: DE, en: EN };

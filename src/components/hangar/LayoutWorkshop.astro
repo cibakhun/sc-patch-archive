@@ -31,8 +31,10 @@ const LAYOUT_MSG: LayoutKey[] = [
   'msg.saved', 'msg.copied', 'msg.copyFallback', 'msg.reset', 'msg.fitted', 'msg.deleted', 'msg.undo',
   'msg.dropped.one', 'msg.dropped.other', 'msg.full',
   'saved.empty', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
-  'grp.paint', 'paint.stock', 'paint.pattern',
+  'grp.paint', 'paint.stock', 'paint.pattern', 'slot.rank',
 ];
+// Kampfwerte im Kopf: Summe der Gruppen, wie assets/hangar-layouts.js sie bildet (paintTotals).
+const SUM: LayoutKey[] = ['sum.fire', 'sum.ord', 'sum.shield'];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
   'cls.military', 'cls.civilian', 'cls.industrial', 'cls.stealth', 'cls.competition', 'grade',
@@ -57,7 +59,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 @keyframes hgl-roll{0%{transform:rotate(0)}60%{transform:rotate(250deg) scale(1.15)}100%{transform:rotate(360deg)}}
 .hgl-staterow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin:.45rem 0 0}
 .hgl-state{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;min-width:0;margin:0;font-size:var(--fs-6);color:var(--hg-dim)}
-.hgl-savedbtn{appearance:none;flex:0 0 auto;display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .55rem;border:1px solid var(--hg-hair);border-radius:999px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgl-savedbtn{appearance:none;position:relative;flex:0 0 auto;display:inline-flex;align-items:center;gap:.35rem;height:2.3rem;padding:0 .55rem;border:1px solid var(--hg-hair);border-radius:10px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .hgl-savedbtn:hover,.hgl-savedbtn:focus-visible{border-color:var(--hg-amber);color:var(--hg-on);outline:0}
 .hgl-savedbtn[aria-pressed="true"]{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgl-savedbtn i{font-style:normal;min-width:1.1rem;padding:0 .3rem;border-radius:9px;background:color-mix(in srgb,var(--hg-on) 12%,transparent);color:var(--hg-on);font-size:var(--fs-5);line-height:1.1rem;text-align:center;font-variant-numeric:tabular-nums}
@@ -69,8 +71,26 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-state[data-s="saved"] .hgl-dot{background:none;width:auto;height:auto;color:var(--hg-amber)}
 .hgl-state[data-s="saved"] .hgl-dot::before{content:"✓";font-style:normal;font-weight:700}
 /* Geteilter Link: eine Zeile unter dem Stand, kein Kasten. */
+.hgl-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .hgl-shared{margin:.3rem 0 0;font-size:var(--fs-6);color:color-mix(in srgb,var(--hg-amber) 45%,var(--hg-on))}
 .hgl-shared[hidden]{display:none}
+/* Kampfwerte: drei Kacheln unter dem Stand, die Zahl gross, darunter der
+   Balken bis zum Bestwert mit dem Strich auf der Serie. */
+.hgl-sum{--n:3;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:.4rem;margin:.7rem 0 .1rem}
+.hgl-sum[hidden],.hgl-stat[hidden]{display:none}
+.hgl-sum[data-n="2"]{--n:2}
+.hgl-sum[data-n="1"]{--n:1}
+.hgl-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:.05rem .4rem;min-width:0;padding:.45rem .55rem .55rem;border:1px solid var(--hg-hair);border-radius:8px;background:linear-gradient(180deg,color-mix(in srgb,var(--hg-on) 5%,transparent),transparent 70%),color-mix(in srgb,var(--bg) 50%,transparent)}
+.hgl-stat__k{grid-column:1/-1;min-width:0;overflow:hidden;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-dim);white-space:nowrap;text-overflow:ellipsis}
+.hgl-stat__d{grid-row:3;grid-column:2;align-self:center;margin-top:.3rem;font-style:normal;line-height:1;font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hgl-stat__d.is-up{color:var(--hg-amber)}
+.hgl-stat__d.is-down{color:color-mix(in srgb,var(--hot) 60%,var(--hg-on))}
+.hgl-stat__v{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .3rem;min-width:0;line-height:1.15}
+.hgl-stat__v b{font-family:var(--font-ui);font-size:var(--fs-14);font-weight:700;color:var(--hg-on);font-variant-numeric:tabular-nums}
+.hgl-stat__v small{font-size:var(--fs-5);color:var(--hg-dim)}
+.hgl-stat__bar{grid-row:3;grid-column:1;align-self:center;position:relative;height:4px;margin-top:.35rem;border-radius:2px;background:var(--line-soft)}
+.hgl-stat__bar i{position:absolute;left:0;top:0;bottom:0;width:var(--now,0%);border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--hg-amber) 45%,transparent),var(--hg-amber));transition:width var(--dur-slow) var(--ease-ui)}
+.hgl-stat__bar s{position:absolute;top:-3px;bottom:-3px;left:var(--stock,0%);width:2px;margin-left:-1px;border-radius:1px;background:var(--hg-on);opacity:.75}
 .hgl-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:.75rem .7rem .5rem}
 .hgl-msgline{margin:.4rem .3rem;font-size:var(--fs-7);color:var(--hg-dim)}
 .hgl-msgline[hidden],.hgl-pane[hidden]{display:none}
@@ -88,11 +108,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-cats i:empty{display:none}
 .hgl-cats button[aria-selected="true"] i{background:var(--hg-amber);color:var(--ink)}
 /* Lackierungen: drei Toene (Haupt, Zweit, Akzent) als Farbfeld, die gewaehlte mit Haken */
-.hgl-paints{margin:0;padding:0;list-style:none}
-.hgl-paint{appearance:none;display:grid;grid-template-columns:3.1rem minmax(0,1fr) 1rem;gap:.65rem;align-items:center;width:100%;margin:0 0 .35rem;padding:.5rem .6rem;border:1px solid var(--hg-hair);border-radius:8px;background:color-mix(in srgb,var(--bg) 35%,transparent);color:inherit;font:inherit;font-size:var(--fs-7);text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgl-paints{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;margin:0;padding:0;list-style:none}
+.hgl-paint{appearance:none;display:grid;grid-template-columns:minmax(0,1fr) 1rem;gap:.5rem;align-items:center;width:100%;height:100%;margin:0;padding:.45rem .45rem .55rem;border:1px solid var(--hg-hair);border-radius:8px;background:color-mix(in srgb,var(--bg) 35%,transparent);color:inherit;font:inherit;font-size:var(--fs-7);text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
 .hgl-paint:hover,.hgl-paint:focus-visible{border-color:color-mix(in srgb,var(--hg-amber) 60%,transparent);outline:0}
 .hgl-paint[aria-pressed="true"]{border-color:var(--hg-amber);background:color-mix(in srgb,var(--hg-amber) 9%,color-mix(in srgb,var(--bg) 35%,transparent))}
-.hgl-sw{display:flex;height:1.6rem;border-radius:5px;overflow:hidden;box-shadow:0 0 0 1px color-mix(in srgb,var(--hg-on) 18%,transparent)}
+.hgl-sw{grid-column:1/-1;display:flex;height:2.8rem;border-radius:5px;overflow:hidden;box-shadow:0 0 0 1px color-mix(in srgb,var(--hg-on) 18%,transparent)}
 .hgl-sw i:first-child{flex:2}
 .hgl-sw i{flex:1}
 .hgl-tick{width:1rem;height:1rem;border-radius:50%;border:2px solid var(--hg-hair)}
@@ -114,10 +134,20 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-slot.is-open{background:color-mix(in srgb,var(--hg-on) 6%,transparent)}
 .hgl-slot.is-flash{animation:hgl-flash .7s var(--ease-ui)}
 @keyframes hgl-flash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--hg-amber) 70%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
-.hgl-slot__btn{appearance:none;display:grid;grid-template-columns:2.1rem minmax(0,1fr) auto 1rem;gap:.6rem;align-items:center;width:100%;margin:0;padding:.5rem .55rem;background:none;border:0;border-radius:8px;color:inherit;font:inherit;font-size:var(--fs-7);text-align:left;cursor:pointer}
+.hgl-slot__btn{appearance:none;display:grid;grid-template-columns:2.6rem minmax(0,1fr) auto 1rem;gap:.7rem;align-items:center;width:100%;margin:0;padding:.6rem .55rem .65rem;background:none;border:0;border-radius:8px;color:inherit;font:inherit;font-size:var(--fs-7);text-align:left;cursor:pointer}
 .hgl-slot__btn:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
-.hgl-sz{display:inline-grid;place-items:center;height:1.7rem;border:1px solid var(--hg-hair);border-radius:6px;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:800;color:var(--hg-dim)}
-.hgl-slot:is([data-type="gun"],[data-type="missile"],[data-type="torpedo"],[data-type="gmissile"],[data-type="bomb"]) .hgl-sz{color:var(--hg-on)}
+/* Sockel: Zeichen der Art, darunter die Groesse als Marke. */
+.hgl-sock{position:relative;display:grid;place-items:center;width:2.6rem;height:2.6rem;border:1px solid var(--hg-hair);border-radius:8px;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--hg-on) 9%,transparent),transparent 70%),color-mix(in srgb,var(--bg) 55%,transparent);color:var(--hg-on);transition:border-color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui)}
+.hgl-ico{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.hgl-sz{position:absolute;left:50%;bottom:-.5rem;transform:translateX(-50%);padding:0 .3rem;border:1px solid var(--hg-hair);border-radius:4px;background:var(--bg-2);font-family:var(--font-ui);font-size:var(--fs-4);font-weight:800;line-height:1.35;color:var(--hg-dim)}
+.hgl-slot:hover .hgl-sock,.hgl-slot.is-open .hgl-sock{border-color:color-mix(in srgb,var(--hg-on) 30%,transparent)}
+.hgl-slot[data-changed] .hgl-sock{border-color:color-mix(in srgb,var(--hg-amber) 65%,transparent);box-shadow:0 0 14px -4px var(--hg-amber);color:var(--hg-amber)}
+.hgl-slot[data-changed] .hgl-ico{opacity:1}
+/* Rang unter allem, was passt: voller Balken heisst das beste Teil. */
+.hgl-tier{display:block;max-width:10rem;height:3px;margin-top:.4rem;border-radius:2px;background:var(--line-soft);overflow:hidden}
+.hgl-tier[hidden]{display:none}
+.hgl-tier i{display:block;height:100%;width:var(--w,0%);border-radius:2px;background:color-mix(in srgb,var(--hg-on) 45%,transparent);transition:width var(--dur-slow) var(--ease-ui)}
+.hgl-tier.is-top i{background:var(--hg-amber)}
 .hgl-slot[data-changed] .hgl-sz{border-color:color-mix(in srgb,var(--hg-amber) 55%,transparent);color:var(--hg-amber)}
 .hgl-nm{line-height:1.3;min-width:0}
 .hgl-nm strong{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -211,6 +241,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgl-head{padding:.6rem .9rem .5rem}
   .hgl-name{font-size:var(--fs-9)}
   .hgl-opts{max-height:min(240px,34vh)}
+  .hgl-sum{margin-top:.5rem}
+  .hgl-stat{padding:.35rem .5rem .45rem}
+  .hgl-stat__v b{font-size:var(--fs-12)}
 }
 @media (max-width:760px){
   .hgl{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);box-shadow:none;overflow:visible}
@@ -220,7 +253,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgl-toast{position:fixed;bottom:5.2rem;z-index:5}
   .hgl-opts{max-height:50vh}
 }
-@media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn{transition:none}}
+@media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock,.hgl-tier i,.hgl-stat__bar i{transition:none}}
 </style>
 
 <aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hg-pane-layout" data-lang={lang} data-src={layoutDataHref()}>
@@ -230,17 +263,31 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       <button type="button" class="hgl-dice" id="hgl-dice" aria-label={l('name.dice')} title={l('name.dice')}>
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={dice} fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="9" cy="9" r="1.4" fill="currentColor" /><circle cx="15" cy="9" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="9" cy="15" r="1.4" fill="currentColor" /><circle cx="15" cy="15" r="1.4" fill="currentColor" /></svg>
       </button>
-    </div>
-    {/* Stand links, rechts der Weg zu den gespeicherten Layouts: ein Schalter
-        statt einer zweiten Reiterleiste ueber den Reitern Waffen, Systeme, Lackierung. */}
-    <div class="hgl-staterow">
-      <p class="hgl-state" id="hgl-state" data-s="stock" aria-live="polite"><i class="hgl-dot" aria-hidden="true"></i><b id="hgl-state-txt">{l('state.stock')}</b><span id="hgl-state-sub"></span></p>
-      <button type="button" class="hgl-savedbtn" id="hgl-v-saved" aria-controls="hgl-saved" aria-pressed="false" data-help={h('hangar.ctl.layoutSaved')}>
+      <button type="button" class="hgl-savedbtn" title={l('view.saved')} id="hgl-v-saved" aria-controls="hgl-saved" aria-pressed="false" data-help={h('hangar.ctl.layoutSaved')}>
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-        <span>{l('view.saved')}</span> <i id="hgl-count">0</i>
+        <span class="hgl-sr">{l('view.saved')}</span> <i id="hgl-count">0</i>
       </button>
     </div>
+    {/* Der Weg zu den gespeicherten Layouts steht als Zeichen mit Zahl neben
+        dem Wuerfel: ein Schalter statt einer zweiten Reiterleiste, und der
+        Kopf bleibt flach genug fuer die Kampfwerte. */}
+    <div class="hgl-staterow">
+      <p class="hgl-state" id="hgl-state" data-s="stock" aria-live="polite"><i class="hgl-dot" aria-hidden="true"></i><b id="hgl-state-txt">{l('state.stock')}</b><span id="hgl-state-sub"></span></p>
+    </div>
     <p class="hgl-shared" id="hgl-shared" hidden>{l('shared')}</p>
+    {/* Kampfwerte wie im Spielmenue: Zahl, Abstand zur Serie und ein Balken
+        bis zum Bestwert, den die Slots fassen; der Strich steht auf der Serie.
+        Werte setzt paintTotals, ohne Werte bleibt die Kachel weg. */}
+    <div class="hgl-sum" id="hgl-sum" role="group" aria-label={l('sum.label')} title={l('sum.note')} hidden>
+      {SUM.map((k) => (
+        <div class="hgl-stat" data-sum={k.slice(4)} hidden>
+          <span class="hgl-stat__k">{l(k)}</span>
+          <span class="hgl-stat__v"><b></b><small></small></span>
+          <i class="hgl-stat__d"></i>
+          <span class="hgl-stat__bar" aria-hidden="true"><i></i><s></s></span>
+        </div>
+      ))}
+    </div>
   </div>
   <div class="hgl-scroll" id="hgl-scroll">
     <div class="hgl-pane" id="hgl-build" data-help={h('hangar.ctl.layoutSlots')}>

@@ -500,12 +500,44 @@ export function initWorkshop(doc, bridge) {
   /* ---- Slots ---- */
   const GROUPS = ['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield', 'quantum', 'radar'];
   const slotEls = new Map();
+  // Zeichen je Bauteilart, wie die Sockel im Ausruestungsmenue eines Spiels:
+  // Fadenkreuz, Rakete, Schild, Blitz, Kuehlrippen, Sprung, Peilung.
+  const MISSILE = 'M14.5 4.5l5-1-1 5-8.8 8.8-4-4zM9.7 17.3l-2.2 3.2-1-3-3-1 3.2-2.2M14 10h.01';
+  const ICON = {
+    gun: 'M12 4.5a7.5 7.5 0 110 15 7.5 7.5 0 010-15zM12 2v5M12 17v5M2 12h5M17 12h5',
+    missile: MISSILE, torpedo: MISSILE, gmissile: MISSILE, bomb: 'M10.5 8.5a6 6 0 110 12 6 6 0 010-12zM14.5 9.5l2.5-2.5M17 4v2M19.5 6.5h-2',
+    shield: 'M12 3l7.5 3v5.5c0 4.6-3.1 8-7.5 9.5-4.4-1.5-7.5-4.9-7.5-9.5V6z',
+    power: 'M13 2.5L5 13.5h6l-1 8 8-11h-6z',
+    cooler: 'M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5',
+    quantum: 'M4.5 6l6 6-6 6M12 6l6 6-6 6',
+    radar: 'M4 13a8 8 0 0116 0M7.5 13a4.5 4.5 0 019 0M12 13l4-6M12 14.5a1.5 1.5 0 100-3',
+  };
+  const SVG = 'http://www.w3.org/2000/svg';
+  function ico(type) {
+    const svg = doc.createElementNS(SVG, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', 'hgl-ico');
+    const path = doc.createElementNS(SVG, 'path');
+    path.setAttribute('d', ICON[type] ?? ICON.gun);
+    svg.append(path);
+    return svg;
+  }
+  // Was in einen Slot passt, je Art und Groesse einmal gerechnet: daraus der
+  // Rang eines Teils und der Bestwert der Kampfwerte.
+  const candCache = new Map();
+  const fitting = (e) => {
+    const k = `${e.type}|${e.size}`;
+    if (!candCache.has(k)) candCache.set(k, candidates(e, data.items));
+    return candCache.get(k);
+  };
 
   function buildSlots() {
     slotEls.clear();
     // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
     // Lackierung, wenn das Schiff welche hat.
     if (!slots.length) {
+      sumHost.hidden = true;
       slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')), ...[paintSection()].filter(Boolean));
       paintPaints();
       paintCat();
@@ -533,8 +565,9 @@ export function initWorkshop(doc, bridge) {
   function slotEl(slot) {
     const id = `hgl-pick-${slot.key.replace(/[^a-z0-9_-]/g, '-')}`;
     const btn = el('button', { type: 'button', class: 'hgl-slot__btn', 'aria-expanded': 'false', 'aria-controls': id, 'data-key': slot.key },
-      el('span', { class: 'hgl-sz' }, `S${slot.size}`),
-      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true })),
+      el('span', { class: 'hgl-sock' }, ico(slot.type), el('b', { class: 'hgl-sz' }, `S${slot.size}`)),
+      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true }),
+        el('span', { class: 'hgl-tier' }, el('i', {}))),
       el('span', { class: 'hgl-fig' }),
       el('span', { class: 'hgl-chev', 'aria-hidden': 'true' }, '›'));
     const pick = el('div', { class: 'hgl-pick', id, hidden: true });
@@ -555,6 +588,19 @@ export function initWorkshop(doc, bridge) {
     li.dataset.type = e.type;
     const name = `${times(e.count)}${itemName(now)}`;
     li.querySelector('.hgl-sz').textContent = `S${e.size}`;
+    if (li.dataset.ico !== e.type) {
+      li.querySelector('.hgl-ico').replaceWith(ico(e.type));
+      li.dataset.ico = e.type;
+    }
+    // Rang unter allem, was passt: der Balken unter dem Namen misst am Besten.
+    const cands = fitting(e);
+    const best = cands.length ? data.items[cands[0]][7] : 0;
+    const tier = li.querySelector('.hgl-tier');
+    const rank = cands.indexOf(now) + 1;
+    tier.hidden = !(it && best > 0 && cands.length > 1);
+    tier.firstChild.style.setProperty('--w', `${it && best > 0 ? Math.round((it[7] / best) * 100) : 0}%`);
+    tier.title = rank ? fill(m('slot.rank'), { r: nf.format(rank), n: nf.format(cands.length) }) : '';
+    tier.classList.toggle('is-top', rank === 1);
     li.querySelector('strong').textContent = name;
     // Mit getauschter Halterung nennt die Unterzeile sie zuerst.
     const rk = draft.racks?.[slot.key];
@@ -736,6 +782,46 @@ export function initWorkshop(doc, bridge) {
       gd.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
       gd.className = `hgl-gd ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
     }
+    paintSum(totals);
+  }
+
+  // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
+  // Bomben, Schild. Der Balken laeuft bis zum Bestwert, den die Slots fassen
+  // (je Slot das staerkste passende Teil), der Strich steht auf der Serie.
+  const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
+  const sumHost = $('hgl-sum');
+  function paintSum(totals) {
+    let shown = 0;
+    for (const [k, groups] of Object.entries(SUMS)) {
+      const tile = sumHost.querySelector(`[data-sum="${k}"]`);
+      let now = 0, stock = 0, top = 0;
+      for (const g of groups) {
+        const t = totals.get(g);
+        if (t) { now += t.now; stock += t.stock; }
+      }
+      for (const s of slots) {
+        if (!groups.includes(s.group)) continue;
+        const e = eff(s);
+        const c = fitting(e);
+        top += (c.length ? data.items[c[0]][7] : 0) * e.count;
+      }
+      tile.hidden = !(now > 0 || stock > 0);
+      if (tile.hidden) continue;
+      shown++;
+      tile.querySelector('b').textContent = nf.format(Math.round(now));
+      // Raketen ohne Einheit: "Schaden" passt nicht neben die Zahl, die Kachel sagt es.
+      tile.querySelector('small').textContent = k === 'fire' ? 'DPS' : k === 'shield' ? 'HP' : '';
+      const d = Math.round(now - stock);
+      const di = tile.querySelector('.hgl-stat__d');
+      di.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
+      di.className = `hgl-stat__d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
+      const scale = Math.max(top, now, stock, 1);
+      const bar = tile.querySelector('.hgl-stat__bar');
+      bar.style.setProperty('--now', `${Math.round((now / scale) * 100)}%`);
+      bar.style.setProperty('--stock', `${Math.round((stock / scale) * 100)}%`);
+    }
+    sumHost.hidden = !shown;
+    sumHost.dataset.n = String(shown);
   }
 
   // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
