@@ -32,6 +32,9 @@ const LAYOUT_MSG: LayoutKey[] = [
   'msg.dropped.one', 'msg.dropped.other', 'msg.full',
   'saved.empty', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
   'grp.paint', 'paint.stock', 'paint.pattern', 'pick.head',
+  'dt.t', 'tot.head', 'tot.fire', 'tot.alpha', 'tot.split', 'tot.ord', 'tot.ordn', 'tot.shield', 'tot.regen', 'tot.power', 'tot.cool', 'tot.qt',
+  'sp.alpha', 'sp.rate', 'sp.mag', 'sp.empty', 'sp.hp', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life', 'sp.trk', 'sp.regen', 'sp.full',
+  'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.price', 'u.rpm', 'u.shots',
 ];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
@@ -220,6 +223,27 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Getauschte Waffen: Marker und Name des neuen Teils setzt
    assets/hangar-layouts.js als Regeln in #hgl-mods (content je Port). */
 .hg[data-pane="layout"] .hgx-mk::after{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .5rem;border-radius:4px;background:color-mix(in srgb,var(--bg) 88%,transparent);box-shadow:inset 2px 0 0 var(--hg-amber);color:var(--hg-amber);font-size:var(--fs-5);font-weight:700;white-space:nowrap;pointer-events:none}
+/* Ansicht Schnell | Alle Werte */
+.hgl-mode{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin:.55rem 0 0;padding:2px;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--bg) 45%,transparent)}
+.hgl-mode button{appearance:none;height:2rem;border:0;border-radius:8px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgl-mode button:hover,.hgl-mode button:focus-visible{color:var(--hg-on);outline:0}
+.hgl-mode button[aria-pressed="true"]{background:color-mix(in srgb,var(--hg-on) 12%,transparent);color:var(--hg-on)}
+/* Layout gesamt und die Werte je Teil gibt es nur in Alle Werte. */
+.hgl-tot{margin:.2rem 0 .9rem;padding:.6rem .7rem .55rem;border:1px solid var(--hg-hair);border-radius:8px;background:color-mix(in srgb,var(--bg) 45%,transparent)}
+.hgl-tot[hidden]{display:none}
+.hgl-tot h3{margin:0 0 .4rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-amber)}
+.hgl-tot dl,.hgl-specs{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:baseline;gap:.2rem .6rem;margin:0}
+.hgl-tot dt,.hgl-specs dt{min-width:0;color:var(--hg-dim);font-size:var(--fs-6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hgl-tot dd,.hgl-specs dd{margin:0;color:var(--hg-on);font-size:var(--fs-6);font-weight:600;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hgl-tot dd small,.hgl-specs dd small{margin-left:.25rem;font-weight:400;color:var(--hg-dim)}
+.hgl-tot dd.hgl-tot__d{min-width:3.6rem;font-size:var(--fs-5);font-weight:700}
+.hgl-tot__d.is-up{color:var(--hg-amber)}
+.hgl-tot__d.is-down{color:color-mix(in srgb,var(--hot) 60%,var(--hg-on))}
+.hgl-tot__miss{margin:.5rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
+.hgl-specs{grid-template-columns:minmax(0,1fr) auto;margin:0 .6rem .55rem 3.6rem;padding:.4rem 0 0;border-top:1px dashed var(--hg-hair)}
+.hgl:not(.is-full) .hgl-specs,.hgl:not(.is-full) .hgl-opt__specs{display:none}
+.hgl-opt__specs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.1rem .9rem;margin-top:.2rem;font-size:var(--fs-5);color:var(--hg-dim)}
+.hgl-opt__specs b{margin-right:.25rem;color:var(--hg-on);font-weight:600;font-variant-numeric:tabular-nums}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
 .hgl button[hidden]{display:none}
 @media (min-width:761px) and (max-height:820px){
@@ -256,6 +280,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </button>
     </div>
     <p class="hgl-shared" id="hgl-shared" hidden>{l('shared')}</p>
+    {/* Zwei Wege durch dieselbe Werkstatt (Krisz 10-20): Schnell fuer wer sich
+        auskennt, Alle Werte mit jeder Zahl je Teil und fuer das ganze Layout. */}
+    <div class="hgl-mode" id="hgl-mode" role="group" aria-label={l('mode.label')}>
+      <button type="button" data-mode="quick" aria-pressed="true">{l('mode.quick')}</button>
+      <button type="button" data-mode="full" aria-pressed="false">{l('mode.full')}</button>
+    </div>
   </div>
   <div class="hgl-scroll" id="hgl-scroll">
     <div class="hgl-pane" id="hgl-build" data-help={h('hangar.ctl.layoutSlots')}>
@@ -267,6 +297,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <button type="button" role="tab" id="hgl-c-paint" data-cat="paint" aria-selected="false" aria-controls="hgl-slots" tabindex="-1" hidden>{l('cat.paint')}<i data-cat-n="paint"></i></button>
       </div>
       <p class="hgl-hintline" id="hgl-hint" hidden>{l('hint.swap')}</p>
+      <section class="hgl-tot" id="hgl-tot" aria-labelledby="hgl-tot-h" hidden>
+        <h3 id="hgl-tot-h">{l('tot.head')}</h3>
+        <dl id="hgl-tot-dl"></dl>
+        <p class="hgl-tot__miss">{l('tot.missing')}</p>
+      </section>
       <div id="hgl-slots"></div>
       <p class="hgl-note">{l('note')}</p>
     </div>

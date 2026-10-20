@@ -17,9 +17,9 @@
 // ist die Art der Untertyp des Spiels (Rakete, Torpedo, Bodenrakete, Bombe):
 // in eine Halterung kommt, was ihr Serienteil ist, nur ein anderes Modell.
 //
-// Das Format traegt mehr Zahlen, als die Werkstatt heute zeigt (Schadensart,
-// Feuerrate, Schildregeneration, Preis): der spaetere Kennwert-Ueberblick und
-// der Vergleich zweier Layouts rechnen aus derselben Datei.
+// Neben dem Kennwert traegt jedes Bauteil seine weiteren Zahlen (Schaden je
+// Art, Feuerrate, Magazin, Schildaufladung, Haltbarkeit, Preis); die Ansicht
+// "Alle Werte" der Werkstatt zeigt sie je Teil und summiert sie je Layout.
 
 import { createHash } from 'node:crypto';
 import hangarAssets from '../../data/hangar-assets.json';
@@ -182,12 +182,20 @@ const totalDamage = (s: ItemStats): number => Object.values(s.damage ?? {}).redu
 function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: Record<string, number | string> } {
   const x: Record<string, number | string> = {};
   const put = (k: string, v: unknown) => { if (typeof v === 'number' && Number.isFinite(v)) x[k] = r1(v); };
+  // Fuer den Reiter "Erweitert": Haltbarkeit jedes Teils, Schaden je Art je
+  // Schuss bzw. Sprengkopf (dP physisch, dE Energie, dD Distortion, dT thermisch).
+  put('hp', s.health);
+  const dm = s.damage ?? {};
+  for (const [k, short] of [['physical', 'dP'], ['energy', 'dE'], ['distortion', 'dD'], ['thermal', 'dT']] as const) {
+    if ((dm[k] ?? 0) > 0) put(short, dm[k]);
+  }
   switch (type) {
     case 'missile': case 'torpedo': case 'gmissile': case 'bomb': {
       const trk = tracking(it.game?.desc);
       if (trk) x.trk = trk;
       put('blast', s.blastRadius);
       put('arm', s.armTime);
+      put('ign', s.igniteTime);
       put('life', s.lifetime);
       return { f: Math.round(totalDamage(s)), x };
     }
@@ -200,11 +208,16 @@ function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: 
       put('mag', s.magazine);
       return { f: s.dps ? Math.round(s.dps) : 0, x };
     }
-    case 'power': put('hp', s.health); return { f: s.powerOutput ?? 0, x };
-    case 'cooler': put('hp', s.health); return { f: s.coolingRate ?? 0, x };
-    case 'shield': put('regen', s.regen); put('hp', s.health); return { f: s.shieldHp ?? 0, x };
+    case 'power': return { f: s.powerOutput ?? 0, x };
+    case 'cooler': return { f: s.coolingRate ?? 0, x };
+    case 'shield':
+      put('regen', s.regen); put('dly', s.damagedRegenDelay); put('down', s.downedRegenDelay);
+      return { f: s.shieldHp ?? 0, x };
     case 'quantum':
       put('cd', s.cooldown); put('fuel', typeof s.fuelPerGm === 'number' ? s.fuelPerGm * 1000 : undefined);
+      // Beschleunigung in Mm/s² wie die Geschwindigkeit in Mm/s
+      put('a1', typeof s.stageOneAccel === 'number' ? s.stageOneAccel / 1e6 : undefined);
+      put('a2', typeof s.stageTwoAccel === 'number' ? s.stageTwoAccel / 1e6 : undefined);
       return { f: s.driveSpeed ? Math.round(s.driveSpeed / 1e6) : 0, x };
     case 'radar': return { f: s.sensitivity ?? 0, x };
   }
