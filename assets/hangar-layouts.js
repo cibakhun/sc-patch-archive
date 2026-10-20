@@ -531,6 +531,14 @@ export function initWorkshop(doc, bridge) {
     if (!candCache.has(k)) candCache.set(k, candidates(e, data.items));
     return candCache.get(k);
   };
+  // Bestwert eines Slots aus Teilen, die es im Laden gibt (Preis bekannt):
+  // Beute- und Sonderteile ohne Laden setzen sonst eine Latte, die kaum
+  // jemand erreicht. Ohne kaufbares Teil gilt das staerkste ueberhaupt.
+  const bestOf = (e) => {
+    const c = fitting(e);
+    const k = c.find((x) => data.items[x][9] > 0) ?? c[0];
+    return k ? data.items[k][7] : 0;
+  };
 
   function buildSlots() {
     slotEls.clear();
@@ -594,13 +602,13 @@ export function initWorkshop(doc, bridge) {
     }
     // Rang unter allem, was passt: der Balken unter dem Namen misst am Besten.
     const cands = fitting(e);
-    const best = cands.length ? data.items[cands[0]][7] : 0;
+    const best = bestOf(e);
     const tier = li.querySelector('.hgl-tier');
     const rank = cands.indexOf(now) + 1;
     tier.hidden = !(it && best > 0 && cands.length > 1);
-    tier.firstChild.style.setProperty('--w', `${it && best > 0 ? Math.round((it[7] / best) * 100) : 0}%`);
+    tier.firstChild.style.setProperty('--w', `${it && best > 0 ? Math.min(100, Math.round((it[7] / best) * 100)) : 0}%`);
     tier.title = rank ? fill(m('slot.rank'), { r: nf.format(rank), n: nf.format(cands.length) }) : '';
-    tier.classList.toggle('is-top', rank === 1);
+    tier.classList.toggle('is-top', !!it && best > 0 && it[7] >= best);
     li.querySelector('strong').textContent = name;
     // Mit getauschter Halterung nennt die Unterzeile sie zuerst.
     const rk = draft.racks?.[slot.key];
@@ -787,7 +795,8 @@ export function initWorkshop(doc, bridge) {
 
   // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
   // Bomben, Schild. Der Balken laeuft bis zum Bestwert, den die Slots fassen
-  // (je Slot das staerkste passende Teil), der Strich steht auf der Serie.
+  // (je Slot das staerkste kaufbare Teil, bestOf), der Strich steht auf der
+  // Serie. Liegt ein Beuteteil darueber, ist der Balken voll.
   const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
   const sumHost = $('hgl-sum');
   function paintSum(totals) {
@@ -802,8 +811,7 @@ export function initWorkshop(doc, bridge) {
       for (const s of slots) {
         if (!groups.includes(s.group)) continue;
         const e = eff(s);
-        const c = fitting(e);
-        top += (c.length ? data.items[c[0]][7] : 0) * e.count;
+        top += bestOf(e) * e.count;
       }
       tile.hidden = !(now > 0 || stock > 0);
       if (tile.hidden) continue;
