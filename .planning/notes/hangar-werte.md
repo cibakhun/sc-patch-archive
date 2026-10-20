@@ -46,5 +46,6 @@ Die Seite sagt offen: „Noch nicht dabei: Projektilgeschwindigkeit, Reichweite,
    
    Ablage hier unter „Befund PC (Hangar-Werte)“.
 5. Push auf den eigenen Branch, ohne PR. Den Einbau in `src/lib/hangar/layouts.ts` (`figures`), die Anzeige und den Merge nach staging macht die Cloud.
+6. **Im selben Lauf Teil 2:** Requisiten mit allen Schichten und mehr Requisiten, Auftrag in [`hangar-requisiten.md`](hangar-requisiten.md) („Auftrag PC (Hangar-Werte, Teil 2: Requisiten)“). Gleicher Branch, eigener Befund dort.
 
 Keine Datenherkunft im sichtbaren Text (`audit:site`).
