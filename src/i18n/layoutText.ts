@@ -80,7 +80,7 @@ const DE = {
   'sum.fire': 'Feuerkraft',
   'sum.ord': 'Raketen',
   'sum.shield': 'Schild',
-  'sum.note': 'Balken: Anteil am Bestwert, den die Slots fassen. Strich: Serie.',
+  'sum.note': 'Balken: Anteil am Bestwert aus kaufbaren Teilen. Strich: Serie.',
   'slot.rank': 'Platz {r} von {n} passenden Bauteilen',
 } as const;
 
@@ -156,7 +156,7 @@ const EN: Readonly<Record<LayoutKey, string>> = {
   'sum.fire': 'Firepower',
   'sum.ord': 'Missiles',
   'sum.shield': 'Shields',
-  'sum.note': 'Bar: share of the best value these slots can hold. Tick: stock.',
+  'sum.note': 'Bar: share of the best value from parts sold in shops. Tick: stock.',
   'slot.rank': 'Rank {r} of {n} fitting components',
 };
 
