@@ -1230,6 +1230,29 @@ export function boot(doc) {
       } else location.reload();
     });
   }
+  // Ton-Schalter: Geraeusche von Plattform, Tor und Dampf an oder aus,
+  // gemerkt unter hg-ton (nur 'aus' wird gespeichert; Vorgabe an)
+  const TON_KEY = 'hg-ton';
+  const tonAus = () => { try { return localStorage.getItem(TON_KEY) === 'aus'; } catch { return false; } };
+  function tonSchalter(v) {
+    const btn = $('hgx-snd');
+    if (!btn || typeof v.sound !== 'function' || !v.sound().can) return;
+    const paint = (on) => {
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      $('hgx-snd-now').textContent = on ? btn.dataset.on : btn.dataset.off;
+    };
+    paint(v.sound().on);
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      const on = !v.sound().on;
+      v.setSound(on);
+      paint(on);
+      try {
+        if (on) localStorage.removeItem(TON_KEY);
+        else localStorage.setItem(TON_KEY, 'aus');
+      } catch { /* ohne Speicher gilt die Wahl bis zum Neuladen */ }
+    });
+  }
   function canStore() {
     try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
@@ -1249,7 +1272,7 @@ export function boot(doc) {
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, pad: BODEN }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, pad: BODEN, sound: !tonAus() }))
       .then((v) => {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
@@ -1285,6 +1308,7 @@ export function boot(doc) {
           else v.resetView();
         });
         grafikSchalter(v);
+        tonSchalter(v);
         viewerShow(state.ship);
       })
       .catch((e) => noStage('failed', e));

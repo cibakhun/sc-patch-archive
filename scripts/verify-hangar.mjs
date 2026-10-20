@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   FUENFZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   SECHZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -94,6 +94,15 @@
         Klinken: Schiffe mit Raketenslots, Raketenslots, Slots mit
         mindestens einer Alternative zum Serienteil, Slots mit Wahl der
         Halterung.
+    16  Bildlook, Ausgabe und Ton (Krisz 2026-10-20: „besseres Licht,
+        Colorgrading, Geraeusche“). Die zwei Textstellen, mit denen der
+        Viewer sich in three.js einhaengt (LOOK_HOOK in der Tonabbildung,
+        OETF im OutputShader), stehen je genau einmal in dist/vendor/three;
+        beide liest das Tor aus dem ausgelieferten Viewer. Die Lookwerte
+        sind endliche Zahlen in der Form von LOOK_GLSL. Der Viewer liefert
+        setSound und sound, der Controller gibt sound an initHangar, beide
+        Hangarseiten tragen den Ton-Schalter. Ohne das faellt die Halle
+        nach einem Update von three.js still auf den alten Look zurueck.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -114,6 +123,9 @@
      l  in dist/hangar-layouts.json die Torpedos aus items nehmen    -> [15]
      m  in dist/hangar-layouts.json die Plaetze der MSD-322 auf 3
         setzen (Serie passt nicht mehr zum Slot)                     -> [15]
+     n  in dist/vendor/three/three.module.min.js den Einhaengepunkt
+        CustomToneMapping umbenennen                                -> [16]
+     o  in dist/hangar.html data-off des Ton-Schalters entfernen    -> [16]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -705,8 +717,56 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462, halterWahl: 214 };
   ist.raketenSchiffe = ships; ist.raketenSlots = slots; ist.raketenTauschbar = swappable; ist.halterWahl = rackPorts;
 }
 
+say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Controller und Seite');
+// Der Viewer haengt sich mit zwei Textstellen in three.js ein (Bildlook in
+// die Tonabbildung, Rauschen hinter die sRGB-Umrechnung). Beide liest das Tor
+// aus dem ausgelieferten Viewer selbst, keine Liste hier: nach einem Update
+// von three.js fiele die Halle sonst still auf ACES zurueck, und nur ein
+// Auge, das den alten Look kennt, saehe es.
+{
+  const vendor = (...p) => { const f = join(DIST, 'vendor', 'three', ...p); return existsSync(f) ? readFileSync(f, 'utf8') : ''; };
+  const times = (text, needle) => (needle && text ? text.split(needle).length - 1 : 0);
+  const anchors = [
+    ['Bildlook', /const LOOK_HOOK = '([^']+)'/, 'three.module.min.js', vendor('three.module.min.js'), 'LOOK_GLSL an den neuen tonemapping_pars_fragment anpassen'],
+    ['Ausgaberauschen', /OETF = '([^']+)'/, 'addons/shaders/OutputShader.js', vendor('addons', 'shaders', 'OutputShader.js'), 'die Zeile nach sRGBTransferOETF im OutputShader neu suchen'],
+  ];
+  for (const [name, re, file, text, fix] of anchors) {
+    const needle = re.exec(viewer)?.[1] ?? null;
+    const n = times(text, needle);
+    sollIst(`${name}: Einhaengepunkt genau einmal in ${file}`, needle ? String(n) : 'der Viewer nennt keinen');
+    if (!needle) fail(`[16] dist/assets/hangar-viewer.js nennt den Einhaengepunkt fuer ${name} nicht mehr — der Leser ist kaputt oder der Code ist umgezogen`);
+    else if (n !== 1) fail(`[16] ${name}: der Einhaengepunkt steht ${n}-mal in dist/vendor/three/${file} statt einmal; three.js geaendert? ${fix}`);
+    else ist.haken = (ist.haken ?? 0) + 1;
+  }
+  // Die Werte des Looks: von Hand gestimmt, also endliche Zahlen in der Form,
+  // die LOOK_GLSL einsetzt (ein NaN baut und zeichnet schwarz).
+  let look = null;
+  try { look = JSON.parse(/\/\* hall-look \*\/ (\{[^}]*\}) \/\* \/hall-look \*\//.exec(viewer)?.[1] ?? 'null'); } catch { look = null; }
+  const num = (x) => typeof x === 'number' && Number.isFinite(x);
+  const shape = { exposure: 1, slope: 3, offset: 3, power: 3, sat: 1, curve: 1, shadow: 3, high: 3, balance: 1 };
+  const badLook = look ? Object.entries(shape).filter(([k, n]) => !(n === 1 ? num(look[k]) && (look[k] > 0 || k === 'curve') : Array.isArray(look[k]) && look[k].length === n && look[k].every(num))).map(([k]) => k) : null;
+  sollIst(`Lookwerte: ${Object.keys(shape).join(', ')}`, badLook === null ? 'nicht lesbar' : badLook.length ? `falsch: ${badLook.join(', ')}` : 'ja');
+  if (badLook === null) fail('[16] dist/assets/hangar-viewer.js: der Block /* hall-look */ … /* /hall-look */ fehlt oder ist kein JSON');
+  else if (badLook.length) fail(`[16] Lookwerte ${badLook.join(', ')} fehlen oder sind keine endlichen Zahlen in der Form von LOOK_GLSL`);
+  // Ton: Viewer liefert Schalter und Abfrage, der Controller gibt die
+  // gespeicherte Wahl an initHangar, beide Seiten tragen den Schalter.
+  const apiS = ['setSound', 'sound'].filter((n) => !new RegExp(`\\b${n}\\s*[(:]`).test(api));
+  sollIst('Viewer liefert setSound, sound', apiS.length ? `fehlt ${apiS.join(', ')}` : 'ja');
+  for (const n of apiS) fail(`[16] dist/assets/hangar-viewer.js liefert ${n} nicht mehr: der Ton-Schalter bleibt verborgen`);
+  const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
+  sollIst('Controller gibt sound an initHangar', /\bsound:/.test(call) ? 'ja' : 'nein');
+  if (!/\bsound:/.test(call)) fail('[16] dist/assets/hangar-overview.js gibt sound nicht mehr an initHangar: wer den Ton ausgeschaltet hat, hoert ihn beim naechsten Besuch wieder');
+  for (const page of PAGES) {
+    const btn = /<button\b[^>]*\bid="hgx-snd"[^>]*>/.exec(page.html)?.[0] ?? null;
+    const ok = btn && /\bdata-on="[^"]+"/.test(btn) && /\bdata-off="[^"]+"/.test(btn) && /\bhidden\b/.test(btn) && page.html.includes('id="hgx-snd-now"');
+    say(`    ${page.file}: Ton-Schalter ${btn ? (ok ? 'mit data-on, data-off, hidden und Anzeige' : 'unvollstaendig') : 'fehlt'}${ok ? '' : '   GERISSEN'}`);
+    if (ok) ist.tonSeiten = (ist.tonSeiten ?? 0) + 1;
+    if (!ok) fail(`[16] ${page.file}: Ton-Schalter #hgx-snd ${btn ? 'ohne data-on, data-off, hidden oder #hgx-snd-now' : 'fehlt'} (HangarPage.astro)`);
+  }
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
