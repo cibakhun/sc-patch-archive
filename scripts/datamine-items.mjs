@@ -231,9 +231,9 @@ function damageObj(di) {
   return Object.keys(d).length ? d : null;
 }
 
-// ---- Waffen-Schaden: Munition -> DamageInfo ----
+// ---- Waffen-Schaden: Munition -> DamageInfo (+ Flugbahn: speed m/s, lifetime s) ----
 const ammoCache = new Map();
-function ammoDamageFromRef(ref) {
+function ammoFromRef(ref) {
   if (!ref) return null;
   if (ammoCache.has(ref)) return ammoCache.get(ref);
   const rec = db.recordById.get(ref);
@@ -242,10 +242,38 @@ function ammoDamageFromRef(ref) {
     const ao = db.readRecord(rec, { maxDepth: 14, typed: true });
     // BulletProjectileParams.damage ODER erstes DamageInfo mit Schaden
     const bp = first(ao, /BulletProjectileParams|SProjectileParams/);
-    out = damageObj((bp && bp.damage) || first(ao, /DamageInfo/));
+    out = { damage: damageObj((bp && bp.damage) || first(ao, /DamageInfo/)), speed: num(ao.speed), lifetime: num(ao.lifetime) };
   }
   ammoCache.set(ref, out);
   return out;
+}
+const ammoDamageFromRef = (ref) => ammoFromRef(ref)?.damage ?? null;
+
+// ---- Ressourcen-Zustand „Online“: Strombedarf + Signaturen ----
+// Strom steht als Verbrauch (oder Umwandlung, beim Schild) der Ressource Power,
+// je nach Bauteil in Segmenten (`units`) oder Standard-Einheiten.
+function resourceStats(s, deep) {
+  const rc = first(deep, /^ItemResourceComponentParams$/);
+  const st = rc?.states?.find((x) => x?.name === 'Online') || rc?.states?.[0];
+  if (!st) return;
+  for (const d of st.deltas || []) {
+    if (d?.consumption?.resource !== 'Power') continue;
+    const a = d.consumption.resourceAmountPerSecond;
+    const v = num(a?.units) ?? num(a?.standardResourceUnits);
+    if (v) { s.powerDraw = round(v); break; }
+  }
+  const em = num(st.signatureParams?.EMSignature?.nominalSignature);
+  const ir = num(st.signatureParams?.IRSignature?.nominalSignature);
+  if (em) s.em = round(em);
+  if (ir) s.ir = round(ir);
+}
+const RESOURCE_TYPES = new Set(['WeaponGun', 'Shield', 'Cooler', 'PowerPlant', 'QuantumDrive', 'Radar']);
+// Reihenfolge der Schadensarten in ShieldResistance/ShieldAbsorption = DamageInfo
+const SHIELD_KINDS = ['physical', 'energy', 'distortion'];
+function shieldRanges(arr) {
+  const o = {};
+  SHIELD_KINDS.forEach((k, i) => { const e = arr?.[i]; const lo = round(num(e?.Min), 3), hi = round(num(e?.Max), 3); if (lo || hi) o[k] = [lo ?? 0, hi ?? 0]; });
+  return Object.keys(o).length ? o : null;
 }
 // Default-Loadout -> Magazin-Item -> ammoParamsRecord (Personenwaffen)
 function magazineAmmoRef(deep) {
@@ -300,11 +328,11 @@ function extractStats(type, deep) {
 
   if (type === 'Shield') {
     const p = first(deep, /SCItemShieldGeneratorParams/);
-    if (p) Object.assign(s, clean({ shieldHp: round(num(p.MaxShieldHealth)), regen: round(num(p.MaxShieldRegen)), decayRatio: round(num(p.DecayRatio), 3), downedRegenDelay: round(num(p.DownedRegenDelay)), damagedRegenDelay: round(num(p.DamagedRegenDelay)) }));
+    if (p) Object.assign(s, clean({ shieldHp: round(num(p.MaxShieldHealth)), regen: round(num(p.MaxShieldRegen)), decayRatio: round(num(p.DecayRatio), 3), downedRegenDelay: round(num(p.DownedRegenDelay)), damagedRegenDelay: round(num(p.DamagedRegenDelay)), resist: shieldRanges(p?.ShieldResistance), absorb: shieldRanges(p?.ShieldAbsorption) }));
   } else if (type === 'QuantumDrive') {
     const p = first(deep, /SCItemQuantumDriveParams/);
     const pp = p?.params || {};
-    if (p) Object.assign(s, clean({ driveSpeed: round(num(pp.driveSpeed)), cooldown: round(num(pp.cooldownTime)), fuelPerGm: round(num(p.quantumFuelRequirement), 4), stageOneAccel: round(num(pp.stageOneAccelRate)), stageTwoAccel: round(num(pp.stageTwoAccelRate)) }));
+    if (p) Object.assign(s, clean({ driveSpeed: round(num(pp.driveSpeed)), cooldown: round(num(pp.cooldownTime)), fuelPerGm: round(num(p.quantumFuelRequirement), 4), stageOneAccel: round(num(pp.stageOneAccelRate)), stageTwoAccel: round(num(pp.stageTwoAccelRate)), spoolTime: round(num(pp.spoolUpTime)) }));
   } else if (type === 'Cooler') {
     // Kühlleistung = erzeugte Standard-Resource/s aus der Wärme-Konvertierung
     // (variiert je Kühler; CoolingEqualizationRate ist dagegen eine geteilte Konstante).
@@ -355,16 +383,58 @@ function extractStats(type, deep) {
   } else if (type === 'Missile' || type === 'Bomb') {
     const p = first(deep, /SCItemMissileParams/);
     if (p) Object.assign(s, clean({ lifetime: round(num(p.maxLifetime)), armTime: round(num(p.armTime)), igniteTime: round(num(p.igniteTime)) }));
-    // Schaden = Explosions-/Sprengkopf-Schaden (Missiles haben keinen Ammo-Container)
-    const exp = first(deep, /ExplosionParams/);
+    // Höchstgeschwindigkeit aus der Lenkung, Aufschaltung aus den Zielparametern
+    const tp = p?.targetingParams;
+    if (p) Object.assign(s, clean({ speed: round(num(p.GCSParams?.linearSpeed)), lockRange: round(num(tp?.lockRangeMax)), lockRangeMin: round(num(tp?.lockRangeMin)), lockTime: round(num(tp?.lockTime)), lockAngle: round(num(tp?.lockingAngle)) }));
+    // Schaden = Sprengkopf (SCItemMissileParams.explosionParams; Missiles haben keinen
+    // Ammo-Container). Das erste typisierte ExplosionParams ist die Todes-Explosion
+    // der Health-Komponente (Abschuss der Rakete) — nur Rückfall, wenn kein Sprengkopf steht.
+    const exp = (p?.explosionParams?.damage ? p.explosionParams : null) || first(deep, /ExplosionParams/);
     const dmg = damageObj(exp?.damage);
     if (dmg) { s.damage = dmg; const rad = round(num(exp.maxRadius)); if (rad) s.blastRadius = rad; }
   } else if (type === 'WeaponGun' || type === 'Turret' || type === 'WeaponDefensive' || type === 'MissileLauncher') {
     weaponStats(s, deep, /* direct */ true);
+    if (type === 'WeaponGun') gunStats(s, deep);
   } else if (type === 'WeaponPersonal' || type === 'WeaponMining') {
     weaponStats(s, deep, /* direct */ false);
   }
+  if (RESOURCE_TYPES.has(type)) resourceStats(s, deep);
   return s;
+}
+
+// Schiffswaffen: Flugbahn, Hitze, Streuung, Kapazitor, weitere Feuermodi
+function gunStats(s, deep) {
+  const wc = first(deep, /^SCItemWeaponComponentParams$/);
+  const ac = first(deep, /SAmmoContainerComponentParams/);
+  const ammo = ammoFromRef(ac?.ammoParamsRecord?.__ref);
+  if (ammo?.speed) s.speed = round(ammo.speed);
+  if (ammo?.lifetime) s.lifetime = round(ammo.lifetime, 3);
+  if (ammo?.speed && ammo?.lifetime) s.range = round(ammo.speed * ammo.lifetime, 0);
+  const actions = (wc?.fireActions || []).filter(Boolean);
+  const fa = actions[0] ? (first(actions[0], /SWeaponActionFire(Single|Rapid|Burst|Charge)Params/) || actions[0]) : null;
+  const heat = num(fa?.heatPerShot);
+  if (heat) s.heatPerShot = round(heat, 3);
+  const hp = wc?.connectionParams?.simplifiedHeatParams;
+  if (hp) Object.assign(s, clean({ overheatTemperature: round(num(hp.overheatTemperature)), coolingPerSecond: round(num(hp.coolingPerSecond)), overheatFixTime: round(num(hp.overheatFixTime)) }));
+  const sp = first(fa || {}, /^SProjectileLauncher$/)?.spreadParams;
+  if (sp && (num(sp.min) || num(sp.max))) { s.spreadMin = round(num(sp.min), 3); s.spreadMax = round(num(sp.max), 3); }
+  // Energiewaffen: Ladungen aus dem Kapazitor statt Magazin
+  const rg = wc?.weaponRegenConsumerParams;
+  if (rg) Object.assign(s, clean({ ammoLoad: round(num(rg.maxAmmoLoad)), regenPerSec: round(num(rg.maxRegenPerSec)), regenCooldown: round(num(rg.regenerationCooldown)) }));
+  // Weitere Feuermodi; der erste ist der Standard und steht oben
+  if (actions.length > 1) {
+    const perShot = s.damage ? Object.values(s.damage).reduce((a, b) => a + b, 0) : 0;
+    const modes = actions.slice(1).map((a) => {
+      const inner = first(a, /SWeaponActionFire(Single|Rapid|Burst|Charge)Params/) || a;
+      const rate = num(findKey(inner, 'fireRate'));
+      const lp = first(inner, /^SProjectileLauncher$/);
+      const mult = (num(lp?.pelletCount) || 1) * (num(lp?.damageMultiplier) ?? 1);
+      // Laden verändert den Schaden je Schuss — dort keine DPS behaupten
+      const charged = /Charge/.test(a.__type) || /Charge/.test(inner.__type);
+      return clean({ name: a.name || inner.name || null, fireRate: round(rate), dps: !charged && rate && perShot ? round(perShot * mult * rate / 60) : null });
+    }).filter((m) => m.name || m.fireRate);
+    if (modes.length) s.modes = modes;
+  }
 }
 
 function weaponStats(s, deep, direct) {
@@ -414,7 +484,7 @@ if (DEBUG) console.log(`Pass1: ${candidates.length} Kandidaten (scanned ${scanne
 // =========================================================
 //  Pass 2: Deep-Read + Stats
 // =========================================================
-const NEED_DEEP = new Set(['WeaponPersonal', 'WeaponMining', 'WeaponGun', 'Turret', 'WeaponDefensive', 'MissileLauncher', 'Missile', 'Bomb', 'FuelTank', 'QuantumFuelTank', 'ExternalFuelTank', 'EMP', 'QuantumInterdictionGenerator', 'Radar']);
+const NEED_DEEP = new Set(['WeaponPersonal', 'WeaponMining', 'WeaponGun', 'Turret', 'WeaponDefensive', 'MissileLauncher', 'Missile', 'Bomb', 'FuelTank', 'QuantumFuelTank', 'ExternalFuelTank', 'EMP', 'QuantumInterdictionGenerator', 'Radar', ...RESOURCE_TYPES]);
 const built = [];
 for (const c of candidates) {
   const { r, f, att, nameEn, tagPaths } = c;
@@ -466,7 +536,14 @@ if (DEBUG) console.log(`Pass2: ${built.length} gebaut · ${Date.now() - t0}ms`);
 // Variantenabhängige — Größe, Grade, Hersteller, Kennzahlen — steht in
 // `variants`, und `size` bleibt leer statt eine der Größen zu behaupten.
 const JUNK_FILE = /_pob_|_hologram|_generic/i;
-const score = (it) => (it.stats ? Object.keys(it.stats).length : 0) * 10 + (it.manufacturer ? 2 : 0) + (it.desc ? 1 : 0) - (JUNK_FILE.test(it.file) ? 5 : 0);
+// Die Werte-Erweiterung (Flugbahn, Hitze, Strom, Signaturen …) zählt hier nicht mit:
+// sie würde sonst bei Gleichstand einen anderen Repräsentanten wählen (GVSR Repeater
+// sprang so auf einen Record mit 120 SCU Volumen).
+const DETAIL_KEYS = new Set(['speed', 'lifetime', 'range', 'heatPerShot', 'overheatTemperature', 'coolingPerSecond', 'overheatFixTime', 'spreadMin', 'spreadMax', 'ammoLoad', 'regenPerSec', 'regenCooldown', 'modes', 'powerDraw', 'em', 'ir', 'lockRange', 'lockRangeMin', 'lockTime', 'lockAngle', 'absorb', 'spoolTime']);
+// `lifetime` führten Raketen schon vorher, `resist` die Rüstungen — dort zählen sie weiter.
+const isDetail = (k, it) => (k === 'lifetime' ? it.gameType === 'WeaponGun' : k === 'resist' ? it.gameType === 'Shield' : DETAIL_KEYS.has(k));
+const scoreKeys = (it) => (it.stats ? Object.keys(it.stats).filter((k) => !isDetail(k, it)).length : 0);
+const score = (it) => scoreKeys(it) * 10 + (it.manufacturer ? 2 : 0) + (it.desc ? 1 : 0) - (JUNK_FILE.test(it.file) ? 5 : 0);
 const byName = new Map();
 for (const it of built) {
   const k = it.name.toLowerCase().trim();

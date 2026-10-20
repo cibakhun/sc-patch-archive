@@ -131,6 +131,13 @@ const MAX_VERZUG = 10000;
 // wieder von sich aus einhaelt.
 const AUSNAHMEN = [
   // { kennung: 'Beispiel', anlass: 'Vollstaendiger Satz, der den Rueckstand erklaert.' },
+  // Lauf „Hangar-Werte“ (21.10.2026): nur der Item-Katalog wurde neu erzeugt, gegen den
+  // installierten 4.10.2-Nachbau 12913470; die uebrigen stehen auf 12881860 und folgen
+  // beim naechsten vollstaendigen Datenlauf — dann reisst der Zombie-Waechter hier.
+  ...['Missionen', 'Mining', 'Crafting', 'Refinery', 'Zerlegung', 'Wikelo'].map((kennung) => ({
+    kennung,
+    anlass: `${kennung} steht auf 4.10.2 (12881860), weil der Werte-Lauf vom 21.10.2026 nur den Item-Katalog gegen den Nachbau 12913470 erneuert hat.`,
+  })),
 ];
 
 /* ---------- Lauf ---------- */
