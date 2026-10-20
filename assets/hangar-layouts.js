@@ -522,6 +522,7 @@ export function initWorkshop(doc, bridge) {
     $('hgl-save').disabled = none;
     $('hgl-share').disabled = none;
     $('hgl-reset').disabled = none || n === 0;
+    paintWin();
   }
   nameIn.addEventListener('input', () => {
     draft.name = cleanName(nameIn.value);
@@ -841,47 +842,68 @@ export function initWorkshop(doc, bridge) {
     systems: [['shield', 'tot.shield', 'HP'], ['regen', 'tot.regen', 'HP/s'], ['power', 'tot.power', ''], ['cool', 'tot.cool', ''], ['qt', 'tot.qt', 'Mm/s']],
   };
   const sgn = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
-  /* ---- Alle Werte: eigenes grosses Fenster ueber dem Hangar ---- */
-  // Krisz 10-20: die Ansicht mit allen Werten darf ein eigenes Fenster sein.
-  // Oben die Summen des Layouts, darunter je Gruppe eine Tabelle der
-  // eingebauten Teile; "Vergleichen" klappt alle passenden Teile mit jeder
-  // Zahl auf, sortierbar je Spalte, und baut per Klick ein. Das Seitenpanel
-  // bleibt der schnelle Weg. Solange das Fenster offen ist, erreichen seine
-  // Mausbewegungen die Buehne nicht: die 3D-Szene geht in ihre Ruhe.
+  /* ---- Advanced Loadout: der volle Editor im grossen Fenster ---- */
+  // Krisz 10-20: neben dem schnellen Panel ein Advanced Loadout, in dem man
+  // alles aendert und dabei jeden Wert sieht ("nur eine Tabelle" war zu
+  // wenig). Links die Slots des Reiters mit Abstand zur Serie, rechts der
+  // gewaehlte Slot: seine Werte gegen das Serienteil und alle passenden
+  // Teile mit jeder Zahl; ein Klick auf eine Zeile baut ein. Name,
+  // Speichern, Teilen, Meine Layouts, Serie und Lackierung gehen hier wie im
+  // Panel (dieselben Funktionen). Solange das Fenster offen ist, erreichen
+  // seine Mausbewegungen die Buehne nicht: die 3D-Szene geht in ihre Ruhe.
   const win = $('hgw');
-  const winBody = $('hgw-groups');
+  const winSlots = $('hgw-slots');
+  const winMain = $('hgw-main');
+  const winName = $('hgw-name');
   const winCats = [...win.querySelectorAll('[data-wcat]')];
+  const winSavedBtn = $('hgw-saved');
   let winCat = 'weapons';
-  let cmpKey = null;
+  let selKey = null;
+  let winView = 'build';
   let sort = { key: 'main', dir: -1 };
+  let query = '';
   for (const t of ['pointermove', 'pointerover', 'wheel']) win.addEventListener(t, (e) => e.stopPropagation(), { passive: true });
 
   function openWin() {
     if (!data || win.open) return;
-    winCat = cat === 'systems' ? 'systems' : 'weapons';
-    if (!slots.some((s) => tabOf(s) === winCat)) winCat = winCat === 'weapons' ? 'systems' : 'weapons';
-    cmpKey = null;
+    winCat = cat === 'paint' ? 'paint' : cat === 'systems' ? 'systems' : 'weapons';
+    selKey = openKey;
+    winView = 'build';
     win.showModal();
+    // Hinweise (gespeichert, kopiert, rueckgaengig) erscheinen im Fenster.
+    win.append(toast);
     paintWin();
     $('hgw-x').focus();
   }
   function closeWin() {
     if (win.open) win.close();
   }
-  win.addEventListener('close', () => $('hgl-allbtn').focus({ preventScroll: true }));
+  win.addEventListener('close', () => {
+    aside.insertBefore(toast, $('hgl-msg'));
+    $('hgl-allbtn').focus({ preventScroll: true });
+  });
   $('hgl-allbtn').addEventListener('click', openWin);
   $('hgw-x').addEventListener('click', closeWin);
   // Klick auf den abgedunkelten Rand schliesst wie im Spielmenue.
   win.addEventListener('click', (e) => { if (e.target === win) closeWin(); });
-  for (const b of winCats) b.addEventListener('click', () => { winCat = b.dataset.wcat; cmpKey = null; paintWin(); });
+  for (const b of winCats) b.addEventListener('click', () => { winCat = b.dataset.wcat; winView = 'build'; selKey = null; query = ''; paintWin(); });
+  winName.addEventListener('input', () => { nameIn.value = winName.value; nameIn.dispatchEvent(new Event('input')); });
+  winName.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); paintWin(); } });
+  $('hgw-save').addEventListener('click', () => { save(); paintWin(); });
+  $('hgw-share').addEventListener('click', (e) => share(draft, e.currentTarget));
+  $('hgw-reset').addEventListener('click', () => $('hgl-reset').click());
+  winSavedBtn.addEventListener('click', () => { winView = winView === 'saved' ? 'build' : 'saved'; paintWin(); });
 
   const deltaEl = (d, tag = 'small') => el(tag, { class: `hgw-d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}` }, d ? `${d > 0 ? '▲' : '▼'} ${sgn.format(Math.abs(d))}` : '');
 
   function paintWinSum() {
+    const host = $('hgw-sum');
+    host.hidden = winCat === 'paint' || winView === 'saved';
+    if (host.hidden) return;
     const now = tally((s) => [current(s), eff(s).count]);
     const stock = tally((s) => [s.stock, s.count]);
     const mixed = DT.filter(([k]) => now[k] > 0 || stock[k] > 0).length > 1;
-    $('hgw-sum').replaceChildren(...TOT[winCat].flatMap(([k, lk, unit, isSplit]) => {
+    host.replaceChildren(...TOT[winCat].flatMap(([k, lk, unit, isSplit]) => {
       if ((!now[k] && !stock[k]) || (isSplit && !mixed)) return [];
       const label = isSplit ? fill(m('tot.split'), { t: m(lk) }) : m(lk);
       return [el('div', { class: 'hgw-card' }, el('span', {}, label),
@@ -892,121 +914,206 @@ export function initWorkshop(doc, bridge) {
 
   const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.mag', 'sp.empty', 'sp.trk', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life',
     'sp.regen', 'sp.full', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.hp', 'sp.price'];
-  // Spalten einer Tabelle: Hauptwert, dann jede Zahl, die eines ihrer Teile hat, in der Reihenfolge von specs().
+  // Spalten: Hauptwert, dann jede Zahl, die eines der Teile hat, in fester Reihenfolge.
   function colsFor(keys) {
     const seen = new Map();
     for (const k of keys) for (const [id, label, , unit] of specs(k)) if (!seen.has(id)) seen.set(id, { id, label, unit });
     return [...seen.values()].sort((a, b) => COL_ORDER.indexOf(a.id) - COL_ORDER.indexOf(b.id));
   }
-  const cell = (row, col) => {
-    const r = row.find(([id]) => id === col.id);
-    return el('td', { class: 'is-num' }, r ? r[2] : '–');
-  };
-  const head = (type, cols, sortable) => el('tr', {},
-    el('th', { scope: 'col', class: 'is-name' }, m('win.part')),
-    ...[{ id: 'main', label: UNIT[type](), unit: '' }, ...cols].map((c) => {
-      const label = el('span', {}, c.label, c.unit && !c.label.includes(c.unit) ? el('small', {}, ` ${c.unit}`) : null);
-      if (!sortable) return el('th', { scope: 'col', class: 'is-num' }, label);
-      const on = sort.key === c.id;
-      return el('th', { scope: 'col', class: 'is-num', 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none' },
-        el('button', { type: 'button', class: 'hgw-sort', 'data-sort': c.id }, label, el('i', { 'aria-hidden': 'true' }, on ? (sort.dir < 0 ? '▼' : '▲') : '')));
-    }),
-    el('th', { scope: 'col' }, el('span', { class: 'hgw-sr' }, m('win.act'))));
-  const nameCell = (k, extra) => el('td', { class: 'is-name' }, el('b', {}, itemName(k)), ...extra, el('small', {}, subLine(k, false)));
 
-  function compareTable(slot) {
+  // Links: die Slots des Reiters, gruppiert wie im Panel, mit Abstand zur Serie.
+  function paintWinSlots(mine) {
+    winSlots.replaceChildren(...GROUPS.map((g) => {
+      const rows = mine.filter((s) => s.group === g);
+      if (!rows.length) return null;
+      return el('section', { class: 'hgw-sgrp' }, el('h3', {}, m(`grp.${g}`)),
+        el('ul', {}, ...rows.map((slot) => {
+          const k = current(slot);
+          const e = eff(slot);
+          const it = data.items[k];
+          const st = data.items[slot.stock];
+          const d = it && st && k !== slot.stock ? deltaPct(it[7] * e.count, st[7] * slot.count) : null;
+          return el('li', {}, el('button', { type: 'button', class: `hgw-slot${slot.key === selKey ? ' is-sel' : ''}${isChanged(slot) ? ' is-changed' : ''}`, 'data-sel': slot.key, 'aria-pressed': String(slot.key === selKey) },
+            el('span', { class: 'hgl-sock' }, ico(e.type), el('b', { class: 'hgl-sz' }, `S${e.size}`)),
+            el('span', { class: 'hgw-slot__nm' }, el('strong', {}, `${times(e.count)}${itemName(k)}`), el('small', {}, subLine(k, false))),
+            el('span', { class: 'hgw-slot__fig' }, it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()),
+              d ? el('i', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, `${d > 0 ? '▲' : '▼'} ${nf.format(Math.abs(d))} %`) : null)));
+        })));
+    }).filter(Boolean));
+  }
+
+  // Rechts: der gewaehlte Slot. Werte des eingebauten Teils gegen das
+  // Serienteil, dann alle passenden Teile; Klick auf eine Zeile baut ein.
+  function paintWinSlot(slot) {
     const e = eff(slot);
     const now = current(slot);
+    const nowSpecs = specs(now);
+    const stockSpecs = slot.stock ? specs(slot.stock) : [];
+    const it = data.items[now];
+    const st = data.items[slot.stock];
+    const mainRow = [UNIT[e.type](), it ? nf.format(it[7]) : '–', st ? nf.format(st[7]) : '–', it && st ? it[7] - st[7] : 0];
+    const valRows = [mainRow, ...nowSpecs.map(([id, label, v, u, raw]) => {
+      const s = stockSpecs.find(([sid]) => sid === id);
+      return [`${label}${u ? ` (${u})` : ''}`, v, s ? s[2] : '–', typeof raw === 'number' && typeof s?.[4] === 'number' ? raw - s[4] : 0];
+    })];
+    const vals = el('table', { class: 'hgw-t hgw-vals' },
+      el('thead', {}, el('tr', {}, el('th', { scope: 'col' }, m('win.value')), el('th', { scope: 'col', class: 'is-num' }, m('slot.fitted')), el('th', { scope: 'col', class: 'is-num' }, m('saved.stock')), el('th', { scope: 'col', class: 'is-num' }, m('win.diff')))),
+      el('tbody', {}, ...valRows.map(([label, v, s, d]) => el('tr', {}, el('th', { scope: 'row' }, label), el('td', { class: 'is-num is-main' }, v), el('td', { class: 'is-num' }, s),
+        el('td', { class: 'is-num' }, d ? el('span', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, `${d > 0 ? '▲' : '▼'} ${f1.format(Math.abs(d))}`) : '')))));
+
     const keys = candidates(e, data.items);
     const cols = colsFor(keys);
     const val = (k) => {
       if (sort.key === 'main') return data.items[k][7];
-      const r = specs(k).find(([id]) => id === sort.key);
-      return r?.[4] ?? null;
+      if (sort.key === 'name') return null;
+      return specs(k).find(([id]) => id === sort.key)?.[4] ?? null;
     };
-    // Teile ohne den Wert ans Ende, gleich welche Richtung.
-    const sorted = [...keys].sort((a, b) => {
-      const va = val(a), vb = val(b);
-      if (va == null || vb == null) return (va == null) - (vb == null);
-      return (va - vb) * sort.dir;
-    });
-    const base = data.items[now]?.[7] ?? null;
-    const rows = sorted.map((k) => {
-      const it = data.items[k];
-      const d = k === now ? null : deltaPct(it[7], base);
-      const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
+    const sorted = sort.key === 'name'
+      ? [...keys].sort((a, b) => itemName(a).localeCompare(itemName(b), loc) * sort.dir)
+      // Teile ohne den Wert ans Ende, gleich welche Richtung.
+      : [...keys].sort((a, b) => { const va = val(a), vb = val(b); return va == null || vb == null ? (va == null) - (vb == null) : (va - vb) * sort.dir; });
+    const q = query.trim().toLowerCase();
+    const shown = sorted.filter((k) => !q || `${data.items[k][0]} ${data.items[k][1] || ''} ${data.items[k][4] || ''}`.toLowerCase().includes(q));
+    const base = it?.[7] ?? null;
+    const th = (c) => {
+      const on = sort.key === c.id;
+      return el('th', { scope: 'col', class: c.id === 'name' ? '' : 'is-num', 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none' },
+        el('button', { type: 'button', class: 'hgw-sort', 'data-sort': c.id }, c.label, c.unit && !c.label.includes(c.unit) ? el('small', {}, ` ${c.unit}`) : null,
+          el('i', { 'aria-hidden': 'true' }, on ? (sort.dir < 0 ? '▼' : '▲') : '')));
+    };
+    const rows = shown.map((k) => {
+      const ki = data.items[k];
+      const d = k === now ? null : deltaPct(ki[7], base);
       const row = specs(k);
-      return el('tr', { class: k === now ? 'is-now' : '' },
-        nameCell(k, tags),
-        el('td', { class: 'is-num is-main' }, nf.format(it[7]), d ? el('small', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, ` ${d > 0 ? '▲' : '▼'} ${nf.format(Math.abs(d))} %`) : null),
-        ...cols.map((c) => cell(row, c)),
-        el('td', {}, k === now ? null : el('button', { type: 'button', class: 'hgw-fit', 'data-fit': k, 'data-slot': slot.key }, m('win.fit'))));
+      const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
+      return el('tr', { class: `hgw-opt${k === now ? ' is-now' : ''}`, 'data-fit': k, tabindex: '0', 'aria-label': fill(m('msg.fitted'), { item: itemName(k) }) },
+        el('td', { class: 'is-name' }, el('b', {}, itemName(k)), ...tags, el('small', {}, subLine(k, false))),
+        el('td', { class: 'is-num is-main' }, nf.format(ki[7]), d ? el('small', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, ` ${d > 0 ? '▲' : '▼'} ${nf.format(Math.abs(d))} %`) : null),
+        ...cols.map((c) => { const r = row.find(([id]) => id === c.id); return el('td', { class: 'is-num' }, r ? r[2] : '–'); }));
     });
-    return el('div', { class: 'hgw-cmp' },
-      el('p', { class: 'hgw-cmp__h' }, fill(m('win.cmpHead'), { n: nf.format(keys.length) })),
-      el('div', { class: 'hgw-scroll' }, el('table', { class: 'hgw-t is-cmp' }, el('thead', {}, head(e.type, cols, true)), el('tbody', {}, ...rows))));
+    const search = el('input', { type: 'search', class: 'hgl-q', id: 'hgw-q', value: query, placeholder: m('pick.search'), 'aria-label': m('pick.searchLabel'), autocomplete: 'off' });
+    const revert = isChanged(slot) && slot.stock ? el('button', { type: 'button', class: 'hgw-mini', 'data-revert': slot.key }, m('slot.revert')) : null;
+    winMain.replaceChildren(
+      el('div', { class: 'hgw-selhead' },
+        el('span', { class: 'hgl-sock' }, ico(e.type), el('b', { class: 'hgl-sz' }, `S${e.size}`)),
+        el('div', {}, el('p', {}, m(`grp.${slot.group}`)), el('h3', {}, `${times(e.count)}${itemName(now)}`)), revert),
+      ...(slot.racks ? [rackBar(slot)] : []),
+      el('div', { class: 'hgw-scroll' }, vals),
+      el('div', { class: 'hgw-pickbar' }, el('h4', {}, m('pick.head')), search, el('span', { class: 'hgl-n' }, plural('pick.count', shown.length))),
+      el('p', { class: 'hgw-hint' }, m('win.pickHint')),
+      el('div', { class: 'hgw-scroll hgw-opts' }, el('table', { class: 'hgw-t' },
+        el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }), th({ id: 'main', label: UNIT[e.type](), unit: '' }), ...cols.map(th))),
+        el('tbody', {}, ...rows))));
+  }
+
+  function savedCards() {
+    const all = store.list();
+    if (!all.length) return [el('li', { class: 'hgl-empty' }, m('saved.empty'))];
+    const here = all.filter((e) => e.ship === draft.ship);
+    const rest = all.filter((e) => e.ship !== draft.ship);
+    return [...here, ...rest].map((e) => {
+      const n = changeCount(e);
+      const isHere = e.ship === draft.ship;
+      return el('li', { class: `hgl-card${isHere ? ' is-here' : ''}${e.id === savedId ? ' is-current' : ''}`, 'data-id': e.id },
+        el('h4', {}, e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), isHere ? el('span', { class: 'hgl-card__tag' }, m('saved.here')) : null),
+        el('p', {}, el('b', {}, bridge.shipName(e.ship)), ` · ${n ? plural('state.changed', n) : m('saved.stock')}`),
+        el('span', { class: 'hgl-card__acts' },
+          el('button', { type: 'button', class: 'hgl-mini is-main', 'data-open': e.id }, m('saved.open')),
+          el('button', { type: 'button', class: 'hgl-mini', 'data-share': e.id }, m('saved.share')),
+          el('button', { type: 'button', class: 'hgl-mini', 'data-del': e.id, 'aria-label': fill(m('saved.deleteLabel'), { name: e.name }), title: m('saved.delete') }, '×')));
+    });
   }
 
   function paintWin() {
     if (!win.open || !data) return;
-    $('hgw-h').textContent = draft.name || placeholder();
+    if (doc.activeElement !== winName) winName.value = draft.name;
+    winName.placeholder = placeholder();
+    $('hgw-state').textContent = [$('hgl-state-txt').textContent, $('hgl-state-sub').textContent].join(' ');
+    $('hgw-state').dataset.s = $('hgl-state').dataset.s;
+    $('hgw-save').disabled = $('hgl-save').disabled;
+    $('hgw-share').disabled = $('hgl-share').disabled;
+    $('hgw-reset').disabled = $('hgl-reset').disabled;
+    winSavedBtn.setAttribute('aria-pressed', String(winView === 'saved'));
+    $('hgw-count').textContent = nf.format(store.list().length);
+    const has = { weapons: slots.some((s) => tabOf(s) === 'weapons'), systems: slots.some((s) => tabOf(s) === 'systems'), paint: hasPaints() };
+    if (!has[winCat]) winCat = ['weapons', 'systems', 'paint'].find((c) => has[c]) ?? 'weapons';
     for (const b of winCats) {
-      const has = slots.some((s) => tabOf(s) === b.dataset.wcat);
-      b.hidden = !has;
-      b.setAttribute('aria-selected', String(b.dataset.wcat === winCat));
+      b.hidden = !has[b.dataset.wcat];
+      b.setAttribute('aria-selected', String(b.dataset.wcat === winCat && winView === 'build'));
     }
     paintWinSum();
-    const groups = GROUPS.map((g) => {
-      const mine = slots.filter((s) => s.group === g && tabOf(s) === winCat);
-      if (!mine.length) return null;
-      const type = eff(mine[0]).type;
-      const cols = colsFor(mine.map(current));
-      const body = mine.flatMap((slot) => {
-        const k = current(slot);
-        const e = eff(slot);
-        const open = cmpKey === slot.key;
-        const tr = el('tr', { class: `${isChanged(slot) ? 'is-changed' : ''}${open ? ' is-open' : ''}` },
-          nameCell(k, [el('em', { class: 'hgw-sz' }, `${times(e.count)}S${e.size}`)]),
-          el('td', { class: 'is-num is-main' }, data.items[k] ? nf.format(data.items[k][7]) : '–'),
-          ...cols.map((c) => cell(specs(k), c)),
-          el('td', {}, el('button', { type: 'button', class: 'hgw-cmpbtn', 'data-cmp': slot.key, 'aria-expanded': String(open) }, m(open ? 'win.cmpClose' : 'win.cmp'))));
-        return open ? [tr, el('tr', { class: 'hgw-cmprow' }, el('td', { colspan: String(cols.length + 3) }, compareTable(slot)))] : [tr];
-      });
-      return el('section', { class: 'hgw-grp' },
-        el('h3', {}, m(`grp.${g}`)),
-        el('div', { class: 'hgw-scroll' }, el('table', { class: 'hgw-t' }, el('thead', {}, head(type, cols, false)), el('tbody', {}, ...body))));
-    }).filter(Boolean);
-    winBody.replaceChildren(...groups);
+    win.dataset.view = winView === 'saved' ? 'saved' : winCat === 'paint' ? 'paint' : 'build';
+    if (winView === 'saved') {
+      winSlots.replaceChildren();
+      winMain.replaceChildren(el('ul', { class: 'hgl-list hgw-list' }, ...savedCards()));
+      return;
+    }
+    if (winCat === 'paint') {
+      winSlots.replaceChildren();
+      const sec = paintSection();
+      winMain.replaceChildren(...[sec].filter(Boolean));
+      for (const b of winMain.querySelectorAll('.hgl-paint')) b.setAttribute('aria-pressed', String(b.dataset.paint === (draft.paint ?? '')));
+      return;
+    }
+    const mine = slots.filter((s) => tabOf(s) === winCat);
+    if (!mine.some((s) => s.key === selKey)) selKey = mine[0]?.key ?? null;
+    paintWinSlots(mine);
+    const slot = mine.find((s) => s.key === selKey);
+    if (slot) paintWinSlot(slot);
+    else winMain.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')));
   }
 
-  winBody.addEventListener('click', (e) => {
-    const sb = e.target.closest('.hgw-sort');
+  function fitFromWin(slot, k) {
+    if (!k || k === current(slot)) return;
+    setItem(slot, k);
+    bridge.say(fill(m('msg.fitted'), { item: itemName(k) }));
+    commit();
+    paintSlot(slot, true);
+    paintTotals();
+  }
+  const selSlot = () => slots.find((s) => s.key === selKey);
+  win.addEventListener('click', (e) => {
+    const t = e.target;
+    const sel = t.closest('[data-sel]');
+    if (sel) {
+      if (selKey !== sel.dataset.sel) { selKey = sel.dataset.sel; sort = { key: 'main', dir: -1 }; query = ''; }
+      paintWin();
+      win.querySelector(`[data-sel="${CSS.escape(selKey)}"]`)?.focus({ preventScroll: true });
+      // Auf dem Handy steht der Slot unter der Liste: dorthin rollen.
+      if (win.querySelector('.hgw-grid')?.offsetWidth < 760) winMain.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      return;
+    }
+    const sb = t.closest('.hgw-sort');
     if (sb) {
       const id = sb.dataset.sort;
-      sort = sort.key === id ? { key: id, dir: -sort.dir } : { key: id, dir: id === 'sp.price' ? 1 : -1 };
+      sort = sort.key === id ? { key: id, dir: -sort.dir } : { key: id, dir: id === 'sp.price' || id === 'name' ? 1 : -1 };
       paintWin();
-      winBody.querySelector(`.hgw-sort[data-sort="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+      winMain.querySelector(`.hgw-sort[data-sort="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
       return;
     }
-    const cb = e.target.closest('.hgw-cmpbtn');
-    if (cb) {
-      cmpKey = cmpKey === cb.dataset.cmp ? null : cb.dataset.cmp;
-      sort = { key: 'main', dir: -1 };
-      paintWin();
-      winBody.querySelector(`.hgw-cmpbtn[data-cmp="${CSS.escape(cb.dataset.cmp)}"]`)?.focus({ preventScroll: true });
-      return;
-    }
-    const fb = e.target.closest('.hgw-fit');
-    if (fb) {
-      const slot = slots.find((s) => s.key === fb.dataset.slot);
-      if (!slot) return;
-      setItem(slot, fb.dataset.fit);
-      bridge.say(fill(m('msg.fitted'), { item: itemName(fb.dataset.fit) }));
-      commit();
-      paintSlot(slot, true);
-      paintTotals();
-      winBody.querySelector(`.hgw-cmpbtn[data-cmp="${CSS.escape(slot.key)}"]`)?.focus({ preventScroll: true });
-    }
+    const opt = t.closest('.hgw-opt');
+    if (opt && selSlot()) { fitFromWin(selSlot(), opt.dataset.fit); return; }
+    const rv = t.closest('[data-revert]');
+    if (rv && selSlot()) { const s = selSlot(); equip(s, s.stock, s.racks?.[0]); paintWin(); return; }
+    const rb = t.closest('.hgl-rack');
+    if (rb && selSlot()) { equipRack(selSlot(), rb.dataset.rack); paintWin(); return; }
+    const pb = t.closest('.hgl-paint');
+    if (pb) { pickPaint(pb.dataset.paint); paintWin(); return; }
+    const sv = t.closest('.hgw-list button');
+    if (sv) { savedClick(sv); if (sv.dataset.open) { winView = 'build'; selKey = null; } paintWin(); }
+  });
+  win.addEventListener('keydown', (e) => {
+    const opt = e.target.closest?.('.hgw-opt');
+    if (opt && (e.key === 'Enter' || e.key === ' ') && selSlot()) { e.preventDefault(); fitFromWin(selSlot(), opt.dataset.fit); }
+  });
+  win.addEventListener('input', (e) => {
+    if (e.target.id !== 'hgw-q') return;
+    query = e.target.value;
+    const pos = e.target.selectionStart;
+    paintWin();
+    const q = $('hgw-q');
+    q.focus({ preventScroll: true });
+    q.setSelectionRange(pos, pos);
   });
 
   // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
@@ -1296,23 +1403,10 @@ export function initWorkshop(doc, bridge) {
       list.replaceChildren(el('li', { class: 'hgl-empty' }, m('saved.empty')));
       return;
     }
-    const here = all.filter((e) => e.ship === draft.ship);
-    const rest = all.filter((e) => e.ship !== draft.ship);
-    list.replaceChildren(...[...here, ...rest].map((e) => {
-      const n = changeCount(e);
-      const isHere = e.ship === draft.ship;
-      return el('li', { class: `hgl-card${isHere ? ' is-here' : ''}${e.id === savedId ? ' is-current' : ''}`, 'data-id': e.id },
-        el('h4', {}, e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), isHere ? el('span', { class: 'hgl-card__tag' }, m('saved.here')) : null),
-        el('p', {}, el('b', {}, bridge.shipName(e.ship)), ` · ${n ? plural('state.changed', n) : m('saved.stock')}`),
-        el('span', { class: 'hgl-card__acts' },
-          el('button', { type: 'button', class: 'hgl-mini is-main', 'data-open': e.id }, m('saved.open')),
-          el('button', { type: 'button', class: 'hgl-mini', 'data-share': e.id }, m('saved.share')),
-          el('button', { type: 'button', class: 'hgl-mini', 'data-del': e.id, 'aria-label': fill(m('saved.deleteLabel'), { name: e.name }), title: m('saved.delete') }, '×')));
-    }));
+    list.replaceChildren(...savedCards());
   }
-  list.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
+  // Oeffnen, Teilen, Loeschen eines gespeicherten Layouts; Panel und Fenster teilen sich das.
+  function savedClick(b) {
     const entry = store.get(b.dataset.open || b.dataset.share || b.dataset.del);
     if (!entry) { paintSaved(); return; }
     if (b.dataset.open) {
@@ -1326,13 +1420,19 @@ export function initWorkshop(doc, bridge) {
       if (savedId === gone.id) savedId = null;
       paintSaved();
       paintHead();
-      (list.querySelector('button') ?? savedBtn).focus();
+      paintWin();
+      if (!win.open) (list.querySelector('button') ?? savedBtn).focus();
       showToast(fill(m('msg.deleted'), { name: gone.name }), () => {
         store.restore(gone);
         paintSaved();
         paintHead();
+        paintWin();
       });
     }
+  }
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (b) savedClick(b);
   });
   // Ein zweiter Tab speichert mit: Liste und Stand ziehen nach.
   window.addEventListener('storage', (e) => {
