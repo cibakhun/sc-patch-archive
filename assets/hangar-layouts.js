@@ -531,13 +531,12 @@ export function initWorkshop(doc, bridge) {
     if (!candCache.has(k)) candCache.set(k, candidates(e, data.items));
     return candCache.get(k);
   };
-  // Bestwert eines Slots aus Teilen, die es im Laden gibt (Preis bekannt):
-  // Beute- und Sonderteile ohne Laden setzen sonst eine Latte, die kaum
-  // jemand erreicht. Ohne kaufbares Teil gilt das staerkste ueberhaupt.
+  // Bestwert eines Slots: das staerkste Teil, das im Spiel irgendwie dort
+  // sitzen kann, Beute- und Belohnungsteile eingeschlossen (Krisz 10-20:
+  // "das absolut hoechste"). Platzhalter filtert schon der Build (layouts.ts).
   const bestOf = (e) => {
     const c = fitting(e);
-    const k = c.find((x) => data.items[x][9] > 0) ?? c[0];
-    return k ? data.items[k][7] : 0;
+    return c.length ? data.items[c[0]][7] : 0;
   };
 
   function buildSlots() {
@@ -795,8 +794,8 @@ export function initWorkshop(doc, bridge) {
 
   // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
   // Bomben, Schild. Der Balken laeuft bis zum Bestwert, den die Slots fassen
-  // (je Slot das staerkste kaufbare Teil, bestOf), der Strich steht auf der
-  // Serie. Liegt ein Beuteteil darueber, ist der Balken voll.
+  // (je Slot das staerkste Teil im Spiel, bestOf), der Strich steht auf der
+  // Serie.
   const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
   const sumHost = $('hgl-sum');
   function paintSum(totals) {
