@@ -750,7 +750,10 @@ say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Cont
   else if (badLook.length) fail(`[16] Lookwerte ${badLook.join(', ')} fehlen oder sind keine endlichen Zahlen in der Form von LOOK_GLSL`);
   // Ton: Viewer liefert Schalter und Abfrage, der Controller gibt die
   // gespeicherte Wahl an initHangar, beide Seiten tragen den Schalter.
-  const apiS = ['setSound', 'sound'].filter((n) => !new RegExp(`\\b${n}\\s*[(:]`).test(api));
+  // Ohne Zeilenkommentare: der Kommentar über setSound nennt „sound():“ und
+  // hielt die Prüfung grün, auch als das echte sound: fehlte.
+  const apiCode = api.replace(/\/\/[^\n]*/g, '');
+  const apiS = ['setSound', 'sound'].filter((n) => !new RegExp(`\\b${n}\\s*[(:]`).test(apiCode));
   sollIst('Viewer liefert setSound, sound', apiS.length ? `fehlt ${apiS.join(', ')}` : 'ja');
   for (const n of apiS) fail(`[16] dist/assets/hangar-viewer.js liefert ${n} nicht mehr: der Ton-Schalter bleibt verborgen`);
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
