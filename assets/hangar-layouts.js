@@ -523,30 +523,11 @@ export function initWorkshop(doc, bridge) {
     svg.append(path);
     return svg;
   }
-  // Was in einen Slot passt, je Art und Groesse einmal gerechnet: daraus der
-  // Rang eines Teils und der Bestwert der Kampfwerte.
-  const candCache = new Map();
-  const fitting = (e) => {
-    const k = `${e.type}|${e.size}`;
-    if (!candCache.has(k)) candCache.set(k, candidates(e, data.items));
-    return candCache.get(k);
-  };
-  // Was ein Spieler irgendwie in den Slot bekommt (Krisz 10-20: "das absolut
-  // hoechste"): Laden, Beute, Belohnung, exklusiv (items[k][10] !== 0), dazu
-  // das Serienteil des Slots selbst. Teile ohne jede Quelle sind meist an ihr
-  // Fahrzeug gebunden (Reign-3 nur am Storm) und setzen keine Latte.
-  const reachable = (e, stock) => fitting(e).filter((x) => data.items[x][10] !== 0 || x === stock);
-  const bestOf = (e, stock) => {
-    const c = reachable(e, stock);
-    return c.length ? data.items[c[0]][7] : 0;
-  };
-
   function buildSlots() {
     slotEls.clear();
     // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
     // Lackierung, wenn das Schiff welche hat.
     if (!slots.length) {
-      sumHost.hidden = true;
       slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')), ...[paintSection()].filter(Boolean));
       paintPaints();
       paintCat();
@@ -787,44 +768,6 @@ export function initWorkshop(doc, bridge) {
       gd.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
       gd.className = `hgl-gd ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
     }
-    paintSum(totals);
-  }
-
-  // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
-  // Bomben, Schild. Balken und Prozent messen am Bestwert, den die Slots
-  // fassen (je Slot das staerkste erreichbare Teil, bestOf).
-  const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
-  const sumHost = $('hgl-sum');
-  function paintSum(totals) {
-    let shown = 0;
-    for (const [k, groups] of Object.entries(SUMS)) {
-      const tile = sumHost.querySelector(`[data-sum="${k}"]`);
-      let now = 0, stock = 0, top = 0;
-      for (const g of groups) {
-        const t = totals.get(g);
-        if (t) { now += t.now; stock += t.stock; }
-      }
-      for (const s of slots) {
-        if (!groups.includes(s.group)) continue;
-        const e = eff(s);
-        top += bestOf(e, s.stock) * e.count;
-      }
-      tile.hidden = !(now > 0 || stock > 0);
-      if (tile.hidden) continue;
-      shown++;
-      tile.querySelector('b').textContent = nf.format(Math.round(now));
-      // Raketen ohne Einheit: "Schaden" passt nicht neben die Zahl, die Kachel sagt es.
-      tile.querySelector('small').textContent = k === 'fire' ? 'DPS' : k === 'shield' ? 'HP' : '';
-      const d = Math.round(now - stock);
-      const di = tile.querySelector('.hgl-stat__d');
-      di.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
-      di.className = `hgl-stat__d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
-      const pct = Math.min(100, Math.round((now / Math.max(top, 1)) * 100));
-      tile.querySelector('.hgl-stat__bar').style.setProperty('--now', `${pct}%`);
-      tile.querySelector('.hgl-stat__max').textContent = fill(m('sum.max'), { p: nf.format(pct) });
-    }
-    sumHost.hidden = !shown;
-    sumHost.dataset.n = String(shown);
   }
 
   // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
