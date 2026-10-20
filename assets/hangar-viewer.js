@@ -954,6 +954,17 @@ const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
 // Beton.
 const GATE_SLOT = [0.3, 1.2];
 const GATE_GRIME = [4, 2];
+// Oberseite wie der Hallenboden (20.10.2026 abends, Krisz: „warum kannst du
+// das schliess tor gleiches finish und material undso als den rest des
+// bodens machen“). Am Render lag neben dem glatten, spiegelnden Boden ein
+// stumpfes Grau: Die Lacke des Tors (paint_b_*) sind im Spiel matt, der
+// Boden (metal_white_03) ist glatter Lack mit Kratzern. Die Lacke nehmen
+// jetzt Farbe, Karten und Glätte des Bodens; die Streifen bleiben so viel
+// dunkler wie im Spiel (hgShade), der blaue Lack behält seine Farbe. Die
+// Karte liegt im Maßstab des Bodens (4 m je Kachel, am Hallenmodell
+// gemessen) von oben auf jedem Teil, gerechnet im geschlossenen Stand,
+// damit sie mitfährt und die zwei Flügel in der Mitte aneinanderpassen.
+const GATE_FLOOR = { re: /_mtl_paint_b_/, tile: 4 };
 // Lackfarben des Tors: Die Lacke paint_b_* sind Palettenlacke, das Spiel
 // färbt sie mit der Palette am Tor (info.palette, 19.10.2026: Hellgrau,
 // Dunkelgrau, Dunkelblau). Der Export trug die Palette des Behälters (fast
@@ -1066,6 +1077,27 @@ function buildGate(scene, info, sh, inner) {
     parts.push({ node: p.node, keys, rot, pieces, lo, hi, at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), q: new THREE.Quaternion(), snapQ: new THREE.Quaternion(), ids: [] });
   }
   if (!parts.length) throw new Error(`Schachttor: kein Teil reicht ins Feld (${dropped.join(', ')})`);
+  // Zylinder an der Mittelfuge Stirn an Stirn (20.10.2026 abends, Krisz:
+  // „zylinder buggen immernoch ineinander“). Je Fuge zwei Rohre gleichen
+  // Querschnitts (außen 0,8 m, innen 0,55 m); geschlossen ragt das eine im
+  // Spiel 0,55 m über die Fuge in das andere. Dort liegt das unter den
+  // Flügeln, hier sah man es im letzten Spalt: Wand in Wand, und wo die
+  // Flächen gleich übereinander liegen, flimmerten sie. Jedes Teil mit
+  // Drehung endet geschlossen jetzt an der Fuge (Ebene 0 seiner Fahrachse);
+  // die ganze Bahn rückt um das Stück nach außen, gedreht wird um die
+  // eigene Achse wie vorher.
+  const seam = [];
+  for (const u of parts) {
+    if (!u.rot) continue;
+    const c = u.keys.close.at(-1), o = u.keys.close[0];
+    const ax = Math.abs(o[1] - c[1]) >= Math.abs(o[3] - c[3]) ? 0 : 2, from = Math.sign(o[ax + 1] - c[ax + 1]);
+    if (!from) continue;
+    const over = -from * (c[ax + 1] + (from > 0 ? u.lo[ax] : u.hi[ax]));
+    if (over < 0.01) continue;
+    for (const ks of [u.keys.close, u.keys.open]) for (const q of ks) q[ax + 1] += from * over;
+    u.at.set(u.keys.open.at(-1)[1], u.keys.open.at(-1)[2], u.keys.open.at(-1)[3]);
+    seam.push(`${u.node} ${over.toFixed(2)} m`);
+  }
   // Offen zu flach in der Nische (GATE_STOW): Bahn längs der Fahrachse ab
   // dem geschlossenen Stand strecken, bis die Innenkante tief genug liegt
   const stowed = [];
@@ -1227,7 +1259,23 @@ function buildGate(scene, info, sh, inner) {
     }
     geo.setAttribute('position', new THREE.BufferAttribute(q.pos, 3));
     geo.setAttribute('normal', new THREE.BufferAttribute(q.nor, 3));
-    geo.setAttribute('uv', new THREE.BufferAttribute(q.uv ?? new Float32Array(n * 2), 2));
+    // Lacke im Maßstab des Hallenbodens (GATE_FLOOR), je Fläche aus der
+    // Richtung, in die sie zeigt; im geschlossenen Stand und längs gestreckt.
+    // Entscheidend ist das Material der Gruppe: Der ungefärbte Lack
+    // (paint_c_notint, ein Drittel der Oberseite) teilt die Karten mit
+    // paint_b und zeichnet mit dessen Material.
+    let uv = q.uv ?? new Float32Array(n * 2);
+    if (GATE_FLOOR.re.test(g.mat.name)) {
+      const c = u.keys.close.at(-1), s = 1 / GATE_FLOOR.tile;
+      uv = new Float32Array(n * 2);
+      for (let i = 0; i < n; i++) {
+        const x = q.pos[i * 3] + c[1], y = q.pos[i * 3 + 1] + c[2], z = (q.pos[i * 3 + 2] + c[3]) * sz;
+        const ax = Math.abs(q.nor[i * 3]), ay = Math.abs(q.nor[i * 3 + 1]), az = Math.abs(q.nor[i * 3 + 2]);
+        uv[i * 2] = (ay >= ax && ay >= az ? x : ax >= az ? z : x) * s;
+        uv[i * 2 + 1] = (ay >= ax && ay >= az ? z : y) * s;
+      }
+    }
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.setAttribute('hgShade', new THREE.BufferAttribute(sh3, 3, true));
     geo.setIndex(new THREE.BufferAttribute(q.idx, 1));
     geo.computeBoundingBox(); geo.computeBoundingSphere();
@@ -1255,7 +1303,7 @@ function buildGate(scene, info, sh, inner) {
     }
   }
   // cover: ab hier auf der Bahn zu ist das Feld ganz gedeckt (danach rasten nur noch die Riegel ein)
-  const G = { group, parts, batches, used: parts.length, dropped, stowed, cut, sync, lacke, turn: parts.filter((u) => u.rot).length, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
+  const G = { group, parts, batches, used: parts.length, dropped, seam, stowed, cut, sync, lacke, turn: parts.filter((u) => u.rot).length, tris, T, cover: cover || T, ease, bottom, sz, mats: [...groups.values()].map((g) => [...g.mats].map((n) => n.split('_mtl_').pop()).join('+')), state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
   gatePose(G, 'open', T);
   return G;
 }
@@ -3864,49 +3912,313 @@ function buildSteam(max) {
 
 // ─── Geräusche ────────────────────────────────────────────────────────────
 // Zum Dampf die Geräusche der Mechanik (Krisz 20.10.2026: „geräusche wenn
-// dampf kommt, geräusche wenn tor sich schliest wenn platform runterfährt“).
-// Alles entsteht im Browser (Web Audio), keine Tondateien: Rauschen und
-// Schwingungen durch Filter, dazu ein künstlicher Nachhall, denn die Halle
-// ist groß und hart. Antrieb der Plattform: Brummen und Rumpeln, die mit
-// ihrer Geschwindigkeit an- und abschwellen und dumpfer werden, je tiefer
-// sie im Schacht ist; Tor: Stellmotor mit Getrieberasseln; Einrasten:
-// dumpfer Schlag mit metallischem Nachklang; Dampf: Zischen. Der Ton geht
-// erst nach der ersten Berührung der Seite an (Regel der Browser) und lässt
-// sich abschalten (setSound, Schalter auf der Bühne).
-const SND_VOL = 0.4;        // Gesamtlautstärke
-const SND_VERB = 0.32;      // Anteil im Nachhall
+// dampf kommt, geräusche wenn tor sich schliest wenn platform runterfährt“;
+// abends: „töne könnten wesentlich besser sein“). Alles entsteht im Browser,
+// keine Tondateien. Die erste Fassung baute jeden Klang aus Web-Audio-Knoten
+// (Sägezahn, Sinus, gefiltertes Rauschen) und klang danach: ein Brummen wie
+// ein Synthesizer. Jetzt werden die Klänge beim ersten Ton einmal als
+// Wellenform gerechnet (sndBank) und nur noch abgespielt: Schläge aus den
+// Eigenschwingungen einer dicken Stahlplatte (20 unharmonische Moden, die
+// hohen klingen schneller ab) über einem Unterton, der beim Aufschlag fällt,
+// mit Nachklappern loser Teile; Zischen als Strahlrauschen, dessen Druck
+// nachlässt (es wird dunkler) und das in sich wirbelt; Antrieb der
+// Plattform als nahtlose Schleife aus Rumpeln, den Stößen der Hydraulik-
+// pumpe, einem Motor mit schwankenden Obertönen, Getriebesingen und
+// Knarzen der Führung; Tor als Rollen über Plattenstöße, Reibung und
+// Stellmotor nach dem Tempo der Fahrt. Der Nachhall hat frühe Rückwürfe
+// und einen Ausklang, der in den Höhen schneller endet (große, harte Halle).
+// Der Ton geht erst nach der ersten Berührung der Seite an (Regel der
+// Browser) und lässt sich abschalten (setSound, Schalter auf der Bühne).
+const SND_VOL = 0.55;       // Gesamtlautstärke
+const SND_VERB = 0.42;      // Anteil im Nachhall
 function hangarSound() {
   const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
-  let ctx = null, out = null, dry = null, wet = null, noise = null, on = true, drive = null;
+  let ctx = null, out = null, dry = null, wet = null, on = true, drive = null, bank = null, lastClunk = -1;
+  const motors = new Map(), hissing = [];
+  // Zufall mit Startwert (mulberry32): bei jedem Laden dieselben Klänge
+  const rng = (seed) => () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  // Filter nach dem Audio-EQ-Kochbuch (RBJ), an Ort und Stelle
+  function biquad(x, sr, type, f, q = 0.707, db = 0) {
+    const w = (2 * Math.PI * Math.min(f, sr * 0.45)) / sr, c = Math.cos(w), al = Math.sin(w) / (2 * q), A = Math.pow(10, db / 40);
+    let b0, b1, b2, a0, a1, a2;
+    if (type === 'lp') { b0 = (1 - c) / 2; b1 = 1 - c; b2 = b0; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+    else if (type === 'hp') { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = b0; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+    else if (type === 'bp') { b0 = al; b1 = 0; b2 = -al; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+    else { b0 = 1 + al * A; b1 = -2 * c; b2 = 1 - al * A; a0 = 1 + al / A; a1 = -2 * c; a2 = 1 - al / A; }
+    b0 /= a0; b1 /= a0; b2 /= a0; a1 /= a0; a2 /= a0;
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    for (let i = 0; i < x.length; i++) {
+      const v = x[i], y = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+      x2 = x1; x1 = v; y2 = y1; y1 = y; x[i] = y;
+    }
+    return x;
+  }
+  const white = (n, r) => { const x = new Float32Array(n); for (let i = 0; i < n; i++) x[i] = r() * 2 - 1; return x; };
+  // langsames Schwanken: Rauschen durch einen Tiefpass, auf ±1 gebracht
+  function wander(n, sr, hz, r) {
+    const x = white(n, r), k = 1 - Math.exp((-2 * Math.PI * hz) / sr);
+    let y = 0, m = 1e-9;
+    for (let i = 0; i < n; i++) { y += k * (x[i] - y); x[i] = y; m = Math.max(m, Math.abs(y)); }
+    for (let i = 0; i < n; i++) x[i] /= m;
+    return x;
+  }
+  // gedämpfte Schwingung (Resonator) ab Stelle i0 dazuzählen, ohne sin je Wert
+  function ring(x, sr, i0, f, tau, a, ph = 0) {
+    const w = (2 * Math.PI * f) / sr, r = Math.exp(-1 / (tau * sr)), c = 2 * r * Math.cos(w), r2 = r * r;
+    let y2 = a * Math.sin(ph), y1 = a * r * Math.sin(w + ph);
+    const end = Math.min(x.length, i0 + Math.ceil(tau * sr * 9));
+    for (let i = Math.max(0, i0); i < end; i++) { x[i] += y2; const y = c * y1 - r2 * y2; y2 = y1; y1 = y; }
+  }
+  const peakTo = (chs, p) => { let m = 1e-9; for (const x of chs) for (let i = 0; i < x.length; i++) m = Math.max(m, Math.abs(x[i])); for (const x of chs) for (let i = 0; i < x.length; i++) x[i] *= p / m; };
+  const toBuf = (L, R) => { const b = ctx.createBuffer(2, L.length, ctx.sampleRate); b.copyToChannel(L, 0); b.copyToChannel(R, 1); return b; };
+  // Eigenschwingungen einer dicken Stahlplatte (Verhältnisse zur Grundmode)
+  const PLATE = [1, 1.594, 2.136, 2.296, 2.653, 2.918, 3.156, 3.501, 3.6, 4.06, 4.147, 4.61, 5.031, 5.404, 5.651, 6.208, 6.536, 7.153, 7.5, 8.12];
+  // Schlag: w Gewicht 0..1 (schwer: tiefer, dumpfer, länger)
+  function makeClunk(seed, w) {
+    const sr = ctx.sampleRate, n = Math.round(sr * 2.2), L = new Float32Array(n), R = new Float32Array(n), r = rng(seed);
+    // Unterton: fällt beim Aufschlag, leicht übersteuert für Masse
+    let ph = 0;
+    const f1 = 82 - 20 * w, f2 = 42 - 8 * w, dec = 0.09 + 0.08 * w;
+    for (let i = 0; i < n; i++) {
+      const t = i / sr, f = f2 + (f1 - f2) * Math.exp(-t / 0.05);
+      ph += (2 * Math.PI * f) / sr;
+      const e = (1 - Math.exp(-t / 0.0015)) * Math.exp(-t / dec), s = (Math.tanh(2 * Math.sin(ph) * e) / Math.tanh(2)) * 0.6;
+      L[i] += s; R[i] += s;
+    }
+    // Platte
+    const f0 = 150 - 55 * w, bright = 2200 + 3000 * (1 - w);
+    for (let k = 0; k < PLATE.length; k++) {
+      const f = f0 * PLATE[k] * (0.97 + 0.06 * r());
+      if (f > 9000) break;
+      const tau = ((0.7 + 0.4 * w) * Math.pow(f0 / f, 0.7) * (0.7 + 0.6 * r())) / 6.91, a = ((0.55 + 0.45 * r()) / (1 + 0.22 * k)) * Math.exp(-f / bright) * 0.8;
+      ring(L, sr, 0, f, tau, a * (0.8 + 0.4 * r()), r() * 6.28);
+      ring(R, sr, 0, f * (1 + 0.002 * (r() - 0.5)), tau, a * (0.8 + 0.4 * r()), r() * 6.28);
+    }
+    // Aufschlag: ein paar Millisekunden Rauschen, dazu Stahl auf Stahl (der
+    // Riegel trifft sein Gegenstück: hell und kurz)
+    const nb = Math.round(sr * 0.012), burst = biquad(biquad(white(nb, r), sr, 'hp', 300, 0.7), sr, 'lp', 3500 + 3000 * (1 - w));
+    for (let i = 0; i < nb; i++) { const e = Math.exp(-i / (sr * 0.0016)) * 1.1; L[i] += burst[i] * e; R[i] += burst[nb - 1 - i] * e * 0.3 + burst[i] * e * 0.7; }
+    for (const [f, tau, a] of [[1380, 0.09, 0.2], [2270, 0.07, 0.16], [3150, 0.05, 0.12], [4630, 0.035, 0.08], [6100, 0.02, 0.05]]) {
+      const ff = f * (0.92 + 0.16 * r());
+      ring(L, sr, 0, ff, tau, a * (0.7 + 0.6 * r()), r() * 6.28); ring(R, sr, 0, ff * 1.004, tau, a * (0.7 + 0.6 * r()), r() * 6.28);
+    }
+    // Nachklappern loser Teile
+    let t0 = 0.022 + 0.02 * r();
+    for (let j = 0; j < 3; j++) {
+      const i0 = Math.round(t0 * sr), a = 0.16 * (1 - 0.3 * j) * (0.6 + 0.4 * w), pan = r();
+      for (const f of [1150, 1720, 2630, 3300]) {
+        const ff = f * (0.9 + 0.2 * r()), tau = 0.012 + 0.025 * r();
+        ring(L, sr, i0, ff, tau, a * (1 - pan) * (0.5 + r()), r() * 6.28);
+        ring(R, sr, i0, ff, tau, a * pan * (0.5 + r()), r() * 6.28);
+      }
+      t0 += 0.03 + 0.05 * r();
+    }
+    peakTo([L, R], 0.92);
+    return toBuf(L, R);
+  }
+  // Zischen: Druck entweicht. Hell und scharf am Anfang, mit nachlassendem
+  // Druck dunkler und leiser; in sich wirbelnd (schnelles Schwanken)
+  function makeHiss(seed, len) {
+    const sr = ctx.sampleRate, n = Math.round(sr * len), r = rng(seed), chs = [];
+    const turb = wander(n, sr, 28, r), slow = wander(n, sr, 3, r);
+    for (let ch = 0; ch < 2; ch++) {
+      const src = white(n, r), hi = Float32Array.from(src), lo = Float32Array.from(src);
+      biquad(hi, sr, 'hp', 520, 0.7); biquad(hi, sr, 'pk', 4200, 0.6, 7); biquad(hi, sr, 'lp', 11500, 0.7);
+      biquad(lo, sr, 'hp', 160, 0.7); biquad(lo, sr, 'lp', 2100, 0.6); biquad(lo, sr, 'pk', 850, 0.8, 4);
+      const x = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const t = i / sr, c = Math.min(1, t / (len * 0.75)) * 0.75;
+        const e = (1 - Math.exp(-t / 0.006)) * Math.exp(-t / (len * 0.42)) * (1 + 0.32 * turb[i] + 0.12 * slow[i]);
+        x[i] = (hi[i] * (1 - c) + lo[i] * c * 1.6) * e;
+      }
+      // Ventil: kurzer Knall beim Öffnen
+      const nb = Math.round(sr * 0.01), pop = biquad(white(nb, r), sr, 'bp', 1900, 0.9);
+      for (let i = 0; i < nb; i++) x[i] += pop[i] * Math.exp(-i / (sr * 0.0012)) * 2.2;
+      chs.push(x);
+    }
+    // tiefes Fauchen der Luftmasse
+    const wh = biquad(biquad(white(n, r), sr, 'lp', 320, 0.7), sr, 'hp', 60, 0.7);
+    for (let i = 0; i < n; i++) { const t = i / sr, e = (1 - Math.exp(-t / 0.03)) * Math.exp(-t / (len * 0.3)) * 2.5; chs[0][i] += wh[i] * e; chs[1][i] += wh[i] * e; }
+    peakTo(chs, 0.9);
+    return toBuf(chs[0], chs[1]);
+  }
+  // Antrieb der Plattform: nahtlose Schleife (len s), Tempo über die
+  // Abspielrate. Ganzzahlige Pumpenstöße je Schleife, damit der Takt hält.
+  function makeDrive(seed, len) {
+    const sr = ctx.sampleRate, fade = 0.4, n = Math.round(sr * (len + fade)), r = rng(seed);
+    const L = new Float32Array(n), R = new Float32Array(n);
+    // Rumpeln: braunes Rauschen sehr tief, langsam schwellend
+    for (let ch = 0; ch < 2; ch++) {
+      const x = white(n, r), y = ch ? R : L, am = wander(n, sr, 0.6, r);
+      let b = 0;
+      for (let i = 0; i < n; i++) { b = 0.997 * b + 0.05 * x[i]; x[i] = b; }
+      biquad(x, sr, 'lp', 95, 0.7); biquad(x, sr, 'hp', 24, 0.7);
+      let m = 1e-9; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(x[i]));
+      for (let i = 0; i < n; i++) y[i] += (x[i] / m) * 0.9 * (1 + 0.25 * am[i]);
+    }
+    // Hydraulikpumpe: Stöße im festen Takt, jeder ein dumpfer Druckschlag
+    const beats = Math.round(9.5 * len), per = len / beats, hum = new Float32Array(n);
+    for (let k = 0; k < beats + 2; k++) {
+      const i0 = Math.round((k * per + (r() - 0.5) * 0.004) * sr), a = 0.42 * (0.85 + 0.3 * r());
+      ring(hum, sr, i0, 128 + 14 * r(), 0.03, a);
+      ring(hum, sr, i0, 262 + 20 * r(), 0.018, a * 0.45);
+    }
+    const thud = biquad(white(n, r), sr, 'lp', 520, 0.8);
+    for (let k = 0; k < beats + 2; k++) {
+      const i0 = Math.round(k * per * sr);
+      for (let i = 0; i < sr * 0.06 && i0 + i < n; i++) hum[i0 + i] += thud[i0 + i] * Math.exp(-i / (sr * 0.012)) * 0.5;
+    }
+    for (let i = 0; i < n; i++) { L[i] += hum[i]; R[i] += hum[i] * 0.92; }
+    // Motor: Obertöne von 49 Hz, jede mit eigener Schwankung
+    const jit = wander(n, sr, 2.5, r);
+    for (let h = 1; h <= 12; h++) {
+      const aw = wander(n, sr, 1.2 + r(), r), a = 0.06 / Math.pow(h, 1.15) * (h % 2 ? 1 : 0.7);
+      let ph = r() * 6.28;
+      for (let i = 0; i < n; i++) {
+        ph += (2 * Math.PI * 49 * h * (1 + 0.003 * jit[i])) / sr;
+        const s = Math.sin(ph) * a * (1 + 0.5 * aw[i]);
+        L[i] += s; R[i] += s * (h % 3 ? 1 : 0.8);
+      }
+    }
+    // Getriebe singt: schmales Rauschband statt reinem Ton
+    for (let ch = 0; ch < 2; ch++) {
+      const x = biquad(biquad(white(n, r), sr, 'bp', 735, 28), sr, 'bp', 735, 18), y = ch ? R : L;
+      let m = 1e-9; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(x[i]));
+      for (let i = 0; i < n; i++) y[i] += (x[i] / m) * 0.05;
+    }
+    // Schleifen der Führung, unregelmäßig
+    for (let ch = 0; ch < 2; ch++) {
+      const x = biquad(biquad(white(n, r), sr, 'bp', 1500, 1.1), sr, 'lp', 3500), am = wander(n, sr, 4, r), y = ch ? R : L;
+      for (let i = 0; i < n; i++) y[i] += x[i] * 0.07 * Math.max(0, 0.4 + am[i]);
+    }
+    // Knarzen und Klappern, selten
+    const ev = Math.round(len * 1.3);
+    for (let j = 0; j < ev; j++) {
+      const i0 = Math.round(r() * len * sr), f = 380 + 900 * r(), pan = r(), a = 0.05 + 0.06 * r();
+      ring(L, sr, i0, f, 0.04 + 0.1 * r(), a * (1 - pan)); ring(R, sr, i0, f * 1.003, 0.04 + 0.1 * r(), a * pan);
+      ring(L, sr, i0, f * 2.71, 0.02, a * 0.4 * (1 - pan)); ring(R, sr, i0, f * 2.71, 0.02, a * 0.4 * pan);
+    }
+    // Ende über den Anfang blenden (gleiche Leistung): nahtlos
+    const m = Math.round(sr * len), fn = n - m;
+    for (const x of [L, R]) {
+      for (let i = 0; i < fn; i++) { const g = i / fn; x[i] = x[i] * Math.sin(g * Math.PI / 2) + x[m + i] * Math.cos(g * Math.PI / 2); }
+    }
+    const Lm = L.subarray(0, m), Rm = R.subarray(0, m);
+    peakTo([Lm, Rm], 0.85);
+    return toBuf(Lm, Rm);
+  }
+  // Tor: zwei Flügel rollen über die Stöße ihrer Platten, Reibung und
+  // Stellmotor folgen dem Tempo; T s Fahrt, danach Auslauf
+  function makeGate(seed, T) {
+    const sr = ctx.sampleRate, n = Math.round(sr * (T + 0.45)), r = rng(seed), L = new Float32Array(n), R = new Float32Array(n);
+    const sp = (t) => { const u = t / T; if (u <= 0 || u >= 1) return 0; const a = Math.min(1, u / 0.2), b = Math.min(1, (1 - u) / 0.24); return (a * a * (3 - 2 * a)) * (b * b * (3 - 2 * b)); };
+    const v = new Float32Array(n);
+    for (let i = 0; i < n; i++) v[i] = sp(i / sr);
+    // Rollen: tiefes Rumpeln mit dem Tempo
+    for (let ch = 0; ch < 2; ch++) {
+      const x = white(n, r), y = ch ? R : L;
+      let b = 0;
+      for (let i = 0; i < n; i++) { b = 0.995 * b + 0.06 * x[i]; x[i] = b; }
+      biquad(x, sr, 'lp', 160, 0.7); biquad(x, sr, 'hp', 30, 0.7);
+      let m = 1e-9; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(x[i]));
+      for (let i = 0; i < n; i++) y[i] += (x[i] / m) * 0.8 * v[i];
+    }
+    // Plattenstöße: die Rollen überfahren sie, je schneller, desto dichter
+    let d = 0, next = 0.3 + 0.4 * r();
+    for (let i = 0; i < n; i++) {
+      d += (v[i] * 13) / sr;
+      if (d < next) continue;
+      next = d + 0.75 + 0.5 * r();
+      const a = 0.32 * v[i] * (0.7 + 0.6 * r()), pan = 0.3 + 0.4 * r();
+      ring(L, sr, i, 72 + 10 * r(), 0.045, a * (1 - pan)); ring(R, sr, i, 74 + 10 * r(), 0.045, a * pan);
+      ring(L, sr, i, 1300 + 600 * r(), 0.008, a * 0.25 * (1 - pan)); ring(R, sr, i, 1350 + 600 * r(), 0.008, a * 0.25 * pan);
+    }
+    // Reibung der Dichtleisten
+    for (let ch = 0; ch < 2; ch++) {
+      const x = biquad(biquad(white(n, r), sr, 'bp', 1050, 0.9), sr, 'lp', 4000), am = wander(n, sr, 5, r), y = ch ? R : L;
+      for (let i = 0; i < n; i++) y[i] += x[i] * 0.09 * v[i] * Math.max(0, 0.5 + am[i]);
+    }
+    // Stellmotor: Obertöne, steigen mit dem Tempo, durch das Gehäuse
+    const M = new Float32Array(n), jit = wander(n, sr, 3, r);
+    let ph = 0;
+    for (let i = 0; i < n; i++) {
+      ph += (2 * Math.PI * (68 + 44 * v[i]) * (1 + 0.004 * jit[i])) / sr;
+      let s = 0;
+      for (let h = 1; h <= 10; h++) s += Math.sin(ph * h + h * 1.7) / Math.pow(h, 1.4);
+      M[i] = s * (0.25 + 0.75 * v[i]) * Math.min(1, i / (sr * 0.06));
+    }
+    biquad(M, sr, 'pk', 330, 1, 6); biquad(M, sr, 'lp', 2400, 0.7);
+    for (let i = 0; i < n; i++) { L[i] += M[i] * 0.05; R[i] += M[i] * 0.045; }
+    // Zahneingriff: Rauschen im Takt der Zähne, der mit dem Tempo steigt
+    for (let ch = 0; ch < 2; ch++) {
+      const x = biquad(biquad(white(n, r), sr, 'bp', 1250, 1.2), sr, 'lp', 5000), y = ch ? R : L;
+      let tp = r();
+      for (let i = 0; i < n; i++) {
+        tp += (22 + 48 * v[i]) / sr;
+        const pulse = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * tp), 6);
+        y[i] += x[i] * 0.16 * v[i] * (0.25 + pulse);
+      }
+    }
+    // Anlauf: die Kupplung greift
+    for (const [f, tau, a] of [[610, 0.05, 0.18], [960, 0.035, 0.12], [1540, 0.025, 0.08]]) { ring(L, sr, 0, f, tau, a); ring(R, sr, 0, f * 1.01, tau, a * 0.8); }
+    peakTo([L, R], 0.85);
+    return toBuf(L, R);
+  }
+  // Nachhall einer großen, harten Halle: frühe Rückwürfe, dann ein
+  // Ausklang, der tief lang (2,7 s) und hoch kurz (0,95 s) nachklingt
+  function makeVerb() {
+    const sr = ctx.sampleRate, len = 3.2, n = Math.round(sr * len), r = rng(7), chs = [];
+    for (let ch = 0; ch < 2; ch++) {
+      const src = white(n, r), lo = biquad(Float32Array.from(src), sr, 'lp', 320, 0.7), mid = biquad(biquad(Float32Array.from(src), sr, 'hp', 320, 0.7), sr, 'lp', 3200, 0.7), hi = biquad(Float32Array.from(src), sr, 'hp', 3200, 0.7);
+      const x = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const t = i / sr, on = t < 0.018 ? 0 : Math.min(1, (t - 0.018) / 0.05);
+        x[i] = on * (lo[i] * Math.exp((-6.91 * t) / 2.7) + mid[i] * Math.exp((-6.91 * t) / 2.2) + hi[i] * Math.exp((-6.91 * t) / 0.95) * 0.7);
+      }
+      for (const t0 of [0.009, 0.014, 0.021, 0.027, 0.034, 0.043, 0.052, 0.063, 0.074, 0.088, 0.103, 0.121]) {
+        const i0 = Math.round(t0 * (0.9 + 0.2 * r()) * sr), a = 0.9 * Math.exp(-t0 / 0.05) * (r() < 0.5 ? -1 : 1);
+        x[i0] += a; x[i0 + 1] += a * 0.6; x[i0 + 2] += a * 0.25;
+      }
+      chs.push(x);
+    }
+    let e = 0;
+    for (const x of chs) for (let i = 0; i < n; i++) e += x[i] * x[i];
+    const g = 1 / Math.sqrt(e / 2);
+    for (const x of chs) for (let i = 0; i < n; i++) x[i] *= g;
+    return toBuf(chs[0], chs[1]);
+  }
   function make() {
     if (!AC || ctx) return ctx;
     try { ctx = new AC({ latencyHint: 'interactive' }); } catch { return null; }
     const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -16; comp.knee.value = 8; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.25;
+    comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.006; comp.release.value = 0.3;
     out = ctx.createGain();
     out.gain.value = on ? SND_VOL : 0;
     out.connect(comp).connect(ctx.destination);
     dry = ctx.createGain(); dry.connect(out);
-    // Nachhall: abklingendes Rauschen, links und rechts verschieden, die
-    // Höhen verklingen schneller als die Tiefen
-    const len = Math.round(ctx.sampleRate * 2.8), ir = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = ir.getChannelData(ch);
-      let lp = 0;
-      for (let i = 0; i < len; i++) {
-        const t = i / ctx.sampleRate, k = Math.min(0.92, 0.3 + t * 0.4);
-        lp = lp * k + (Math.random() * 2 - 1) * (1 - k);
-        d[i] = lp * Math.exp(-t * 2.4) * (t < 0.012 ? t / 0.012 : 1) * 2.2;
-      }
-    }
     const verb = ctx.createConvolver();
-    verb.buffer = ir;
+    verb.normalize = false;
+    verb.buffer = makeVerb();
     wet = ctx.createGain(); wet.gain.value = SND_VERB;
-    wet.connect(verb).connect(out);
-    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const nd = noise.getChannelData(0);
-    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 110; hp.Q.value = 0.6;
+    wet.connect(hp).connect(verb).connect(out);
     return ctx;
+  }
+  // Klänge einmal rechnen (beim ersten Gebrauch, je etwa 10 bis 40 ms)
+  function sounds() {
+    if (bank) return bank;
+    bank = {
+      clunk: [makeClunk(11, 1), makeClunk(12, 0.75), makeClunk(13, 0.45), makeClunk(14, 0.2)],
+      hiss: [makeHiss(21, 2.6), makeHiss(22, 1.4)],
+      drive: makeDrive(31, 6),
+    };
+    return bank;
   }
   const live = () => !!ctx && on && ctx.state === 'running';
   // Ziel eines Klangs: trocken und in den Nachhall, im Stereobild bei pan
@@ -3918,19 +4230,18 @@ function hangarSound() {
     if (verb > 0) { const s = ctx.createGain(); s.gain.value = verb; tail.connect(s).connect(wet); }
     return g;
   }
-  function noiseSrc() {
-    const s = ctx.createBufferSource();
-    s.buffer = noise; s.loop = true;
-    s.playbackRate.value = 0.85 + Math.random() * 0.3;
-    return s;
+  // Puffer abspielen: Lautstärke, Rate, dumpf 0..1 (Tiefpass), Ziel
+  function play(buf, gain, rate, muffle, b, t) {
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = buf; s.playbackRate.value = rate;
+    g.gain.value = gain;
+    let head = g;
+    if (muffle > 0.01) { const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000 * Math.pow(1 - 0.92 * muffle, 2) + 250; lp.Q.value = 0.6; g.connect(lp); head = lp; }
+    head.connect(b);
+    s.connect(g);
+    s.start(t);
+    return { s, g };
   }
-  const env = (p, t, a, peak, hold, rel) => {
-    p.setValueAtTime(0.0001, t);
-    p.exponentialRampToValueAtTime(peak, t + a);
-    p.setValueAtTime(peak, t + a + hold);
-    p.exponentialRampToValueAtTime(0.0001, t + a + hold + rel);
-  };
-  function stopAt(nodes, t) { for (const n of nodes) { try { n.stop(t); } catch { /* schon aus */ } } }
   return {
     // nach einer Berührung der Seite (pointerdown, keydown)
     unlock() {
@@ -3955,90 +4266,38 @@ function hangarSound() {
     // Zischen: Stärke 0..1, Dauer s, Lage im Bild -1..1
     hiss(k, dur, pan = 0) {
       if (!live()) return;
-      const t = ctx.currentTime + 0.005, b = bus(pan, 0.8);
-      const s = noiseSrc(), hp = ctx.createBiquadFilter(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-      const top = ctx.createBiquadFilter();
-      hp.type = 'highpass'; hp.frequency.value = 900;
-      bp.type = 'peaking'; bp.frequency.value = 3800 + Math.random() * 1500; bp.Q.value = 0.8; bp.gain.value = 7;
-      top.type = 'lowpass'; top.frequency.value = 9000;
-      s.connect(hp).connect(bp).connect(top).connect(g).connect(b);
-      env(g.gain, t, 0.025, 0.42 * k, dur * 0.25, dur * 0.75);
-      bp.frequency.setTargetAtTime(2400, t + dur * 0.3, dur * 0.4);
-      // dazu ein tiefes Fauchen
-      const s2 = noiseSrc(), lp = ctx.createBiquadFilter(), g2 = ctx.createGain();
-      lp.type = 'lowpass'; lp.frequency.value = 420;
-      s2.connect(lp).connect(g2).connect(b);
-      env(g2.gain, t, 0.04, 0.5 * k, dur * 0.15, dur * 0.6);
-      s.start(t, Math.random() * 1.5); s2.start(t, Math.random() * 1.5);
-      stopAt([s, s2], t + dur + 0.1);
+      const B = sounds(), t = ctx.currentTime + 0.005, long = dur > 1;
+      const buf = B.hiss[long ? 0 : 1], rate = (buf.duration / Math.max(0.4, dur * 1.25)) * (0.94 + Math.random() * 0.12);
+      // höchstens zwei zugleich: das älteste blendet aus
+      while (hissing.length && hissing[0].end < t) hissing.shift();
+      if (hissing.length >= 2) { const o = hissing.shift(); o.g.gain.cancelScheduledValues(t); o.g.gain.setTargetAtTime(0.0001, t, 0.08); try { o.s.stop(t + 0.5); } catch { /* schon aus */ } }
+      const { s, g } = play(buf, 0.85 * k, Math.min(1.6, Math.max(0.7, rate)), 0, bus(pan, 0.9), t);
+      g.gain.setValueAtTime(0.85 * k, t + dur * 0.6);
+      g.gain.setTargetAtTime(0.0001, t + dur * 0.6, dur * 0.25);
+      s.stop(t + dur + 0.6);
+      hissing.push({ s, g, end: t + dur + 0.6 });
     },
-    // Einrasten: dumpfer Schlag, Gewicht 0..1, dumpf 0..1 (unter dem Tor)
+    // Einrasten: Schlag, Gewicht 0..1, dumpf 0..1 (unter dem Tor)
     clunk(w, muffle = 0, pan = 0) {
       if (!live()) return;
-      const t = ctx.currentTime + 0.005, b = bus(pan, 1.1);
-      const lp = ctx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 6000 * (1 - 0.88 * muffle) + 300;
-      lp.connect(b);
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(86 - 26 * w, t);
-      o.frequency.exponentialRampToValueAtTime(34, t + 0.32);
-      o.connect(g).connect(lp);
-      env(g.gain, t, 0.006, 0.9 * (0.5 + 0.5 * w), 0.02, 0.55 + 0.3 * w);
-      const s = noiseSrc(), nf = ctx.createBiquadFilter(), ng = ctx.createGain();
-      nf.type = 'lowpass'; nf.frequency.value = 2600;
-      s.connect(nf).connect(ng).connect(lp);
-      env(ng.gain, t, 0.002, 0.55 * (0.4 + 0.6 * w), 0.008, 0.07);
-      // metallischer Nachklang (nicht harmonisch, wie eine schwere Platte)
-      const ring = [];
-      for (const [f, a, d] of [[173, 0.07, 0.9], [289, 0.05, 0.7], [457, 0.035, 0.5], [731, 0.02, 0.35]]) {
-        const r = ctx.createOscillator(), rg = ctx.createGain();
-        r.frequency.value = f * (1 - 0.15 * w) * (0.97 + Math.random() * 0.06);
-        r.connect(rg).connect(lp);
-        env(rg.gain, t, 0.004, a * (0.6 + 0.4 * w), 0, d);
-        r.start(t); ring.push(r);
-      }
-      o.start(t); s.start(t, Math.random());
-      stopAt([o, s, ...ring], t + 1.4);
+      const B = sounds(), t = ctx.currentTime + 0.005, i = Math.min(3, Math.max(0, Math.round((1 - w) * 3)));
+      // zwei Schläge fast zugleich klängen wie einer, nur lauter und unsauber
+      if (t - lastClunk < 0.09) return;
+      lastClunk = t;
+      play(B.clunk[i], 0.55 + 0.45 * w, 0.96 + Math.random() * 0.08, muffle, bus(pan, 1.1), t);
     },
-    // Stellmotor des Tors für ms; dumpf 0..1. Liefert stop() für eine
-    // Umkehr unterwegs (dann setzt ein neuer Lauf ein)
+    // Tor für ms; dumpf 0..1. Liefert stop() für eine Umkehr unterwegs
+    // (dann setzt ein neuer Lauf ein)
     motor(ms, muffle = 0) {
       if (!live()) return null;
-      const t = ctx.currentTime + 0.005, T = ms / 1000, b = bus(0, 0.9);
-      const lp = ctx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 2400 * (1 - 0.7 * muffle) + 200; lp.Q.value = 0.5;
-      lp.connect(b);
-      const o = ctx.createOscillator(), og = ctx.createGain(), of = ctx.createBiquadFilter();
-      o.type = 'sawtooth';
-      of.type = 'lowpass'; of.frequency.value = 520;
-      o.frequency.setValueAtTime(58, t);
-      o.frequency.linearRampToValueAtTime(92, t + T * 0.2);
-      o.frequency.setValueAtTime(92, t + T * 0.75);
-      o.frequency.linearRampToValueAtTime(70, t + T);
-      o.connect(of).connect(og).connect(lp);
-      env(og.gain, t, 0.12, 0.2, Math.max(0, T - 0.3), 0.18);
-      const w = ctx.createOscillator(), wg = ctx.createGain();
-      w.type = 'triangle';
-      w.frequency.setValueAtTime(380, t);
-      w.frequency.linearRampToValueAtTime(610, t + T * 0.25);
-      w.frequency.linearRampToValueAtTime(540, t + T);
-      w.connect(wg).connect(lp);
-      env(wg.gain, t, 0.15, 0.06, Math.max(0, T - 0.35), 0.2);
-      // Getrieberasseln: Rauschen im Takt der Zähne
-      const s = noiseSrc(), bp = ctx.createBiquadFilter(), sg = ctx.createGain(), am = ctx.createGain(), lfo = ctx.createOscillator(), la = ctx.createGain();
-      bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.4;
-      lfo.frequency.value = 26; la.gain.value = 0.5; am.gain.value = 0.5;
-      lfo.connect(la).connect(am.gain);
-      s.connect(bp).connect(am).connect(sg).connect(lp);
-      env(sg.gain, t, 0.1, 0.24, Math.max(0, T - 0.3), 0.2);
-      for (const n of [o, w, s, lfo]) n.start(t);
-      stopAt([o, w, s, lfo], t + T + 0.4);
+      const t = ctx.currentTime + 0.005, key = Math.round(ms / 50) * 50;
+      if (!motors.has(key)) motors.set(key, makeGate(41 + motors.size, key / 1000));
+      const { s, g } = play(motors.get(key), 0.45, 1, muffle, bus(0, 0.9), t);
       return {
         stop() {
           const now = ctx.currentTime;
-          for (const p of [og.gain, wg.gain, sg.gain]) { p.cancelScheduledValues(now); p.setTargetAtTime(0.0001, now, 0.04); }
-          stopAt([o, w, s, lfo], now + 0.3);
+          g.gain.cancelScheduledValues(now); g.gain.setTargetAtTime(0.0001, now, 0.05);
+          try { s.stop(now + 0.35); } catch { /* schon aus */ }
         },
       };
     },
@@ -4049,42 +4308,28 @@ function hangarSound() {
       const t = ctx.currentTime;
       if (!drive) {
         if (!(v > 0.001) || !live()) return;
-        const g = ctx.createGain(); g.gain.value = 0;
-        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
-        g.connect(lp).connect(bus(0, 0.7));
-        const hum = ctx.createOscillator(), hg = ctx.createGain(), hf = ctx.createBiquadFilter();
-        hum.type = 'sawtooth'; hum.frequency.value = 44;
-        hf.type = 'lowpass'; hf.frequency.value = 240;
-        hg.gain.value = 0.32;
-        hum.connect(hf).connect(hg).connect(g);
-        const whine = ctx.createOscillator(), wg = ctx.createGain();
-        whine.type = 'sine'; whine.frequency.value = 260; wg.gain.value = 0.05;
-        whine.connect(wg).connect(g);
-        const rum = noiseSrc(), rf = ctx.createBiquadFilter(), rg = ctx.createGain();
-        rf.type = 'lowpass'; rf.frequency.value = 180; rg.gain.value = 0.9;
-        rum.connect(rf).connect(rg).connect(g);
-        // Hydraulik: ein Band in der Mitte, das auch kleine Lautsprecher zeigen
-        const hyd = noiseSrc(), yf = ctx.createBiquadFilter(), yg = ctx.createGain();
-        yf.type = 'bandpass'; yf.frequency.value = 520; yf.Q.value = 0.9; yg.gain.value = 0.22;
-        hyd.connect(yf).connect(yg).connect(g);
-        for (const n of [hum, whine, rum, hyd]) n.start(t);
-        drive = { g, lp, hum, whine, rum, hyd, idle: 0 };
+        const B = sounds(), s = ctx.createBufferSource(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+        s.buffer = B.drive; s.loop = true;
+        g.gain.value = 0;
+        lp.type = 'lowpass'; lp.frequency.value = 3000; lp.Q.value = 0.5;
+        s.connect(lp).connect(g).connect(bus(0, 0.8));
+        s.start(t, Math.random() * B.drive.duration);
+        drive = { s, g, lp, idle: 0 };
       }
       const k = on ? Math.min(1, Math.max(0, v)) : 0;
-      drive.g.gain.setTargetAtTime(0.32 * Math.pow(k, 0.7), t, 0.06);
-      drive.hum.frequency.setTargetAtTime(38 + 26 * k, t, 0.08);
-      drive.whine.frequency.setTargetAtTime(220 + 330 * k, t, 0.08);
-      drive.lp.frequency.setTargetAtTime(Math.max(160, 1900 * (1 - 0.75 * depth) * (1 - 0.8 * muffle)), t, 0.1);
+      drive.g.gain.setTargetAtTime(0.4 * Math.pow(k, 0.6), t, 0.07);
+      drive.s.playbackRate.setTargetAtTime(0.78 + 0.3 * k, t, 0.12);
+      drive.lp.frequency.setTargetAtTime(Math.max(220, 4200 * (1 - 0.72 * depth) * (1 - 0.8 * muffle)), t, 0.1);
       if (k > 0.001) { drive.idle = 0; return; }
       // still: nach dem Ausklingen abbauen
       if (!drive.idle) drive.idle = t;
       else if (t - drive.idle > 0.6) {
-        stopAt([drive.hum, drive.whine, drive.rum, drive.hyd], t);
+        try { drive.s.stop(t); } catch { /* schon aus */ }
         drive.g.disconnect();
         drive = null;
       }
     },
-    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; drive = null; },
+    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; drive = null; bank = null; motors.clear(); hissing.length = 0; },
   };
 }
 
@@ -4281,9 +4526,20 @@ export async function initHangar(container, opts = {}) {
   let coverTop = 0, lensS = 0, lensLive = false, baseFov = 38, lensFit = null;
   // Passt ein großes Schiff (C2, Carrack) nicht mit Abstand in die Halle,
   // weitet sich der Blickwinkel, statt das Schiff anzuschneiden.
-  const fitFov = () => {
+  // fovGlide { a, t0, dur }: Beim Schiffswechsel gleitet er mit der
+  // Kamerafahrt vom alten Wert her. Sonst sprang das ganze Bild beim Tausch
+  // unter geschlossenem Tor (Gladius -> 300i: 38 auf 41,5 Grad; Krisz,
+  // 20.10.2026: „poppen“).
+  let fovGlide = null;
+  const inOut3 = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  const fitFov = (now = performance.now()) => {
     const d = wantDist(), k = 1 + lensS;
     baseFov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
+    if (fovGlide) {
+      const t = Math.min(1, (now - fovGlide.t0) / fovGlide.dur);
+      baseFov = THREE.MathUtils.lerp(fovGlide.a, baseFov, inOut3(t));
+      if (t >= 1) fovGlide = null;
+    }
     camera.fov = 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * k));
     camera.aspect = W() / (H() * k);
     // beide rechnen die Projektion neu
@@ -4326,7 +4582,7 @@ export async function initHangar(container, opts = {}) {
   }
   const flyStep = (now) => {
     const k = Math.min(1, (now - fly.t0) / fly.dur);
-    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    const e = inOut3(k);
     controls.target.lerpVectors(fly.ta, fly.tb, e);
     const s = new THREE.Spherical(
       THREE.MathUtils.lerp(fly.a.radius, fly.b.radius, e),
@@ -4541,8 +4797,8 @@ export async function initHangar(container, opts = {}) {
   }
   // Laden läuft (prepare, show): Nachregeln (adapt) misst dann nicht, und
   // eine Sekunde danach auch nicht, weil Übersetzen und Hochladen nachhallen
-  let busy = 0, quietAt = 0;
-  const busyStart = () => { busy++; };
+  let busy = 0, quietAt = 0, busyAt = 0;
+  const busyStart = () => { if (!busy) busyAt = performance.now(); busy++; };
   const busyEnd = () => { busy = Math.max(0, busy - 1); quietAt = performance.now() + 1000; };
   async function prepare(root) {
     busyStart();
@@ -5558,12 +5814,16 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     // Unter dem Boden (das abgefahrene Schiffsfeld) wird es mit der Tiefe
     // dunkel wie in liftShade; was selbst leuchtet, bleibt hell.
     // Im Schacht und auf dem abgefahrenen Feld dazu die Schachtlampen.
+    // Auf dem Feld (lift) klingen sie auf den letzten 3 m unter der Kante
+    // aus: Sonst lag das Schachtlicht oben noch voll auf dem Licht der
+    // Halle und brach beim Einrasten auf einen Schlag weg, die Schatten
+    // unter dem Schiff sprangen dunkler (Krisz, 20.10.2026: „poppen“).
     const pit = PIT_N > 0 && (m.userData.shaft || m.userData.lift);
     if (sh.fragmentShader.includes('vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;')) {
       sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `if ( vHgP.y < -0.05 ) outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * ( 1.0 - 0.92 * smoothstep( 0.5, ${LIFT_DARK.toFixed(1)}, -vHgP.y ) ) + totalEmissiveRadiance;${pit ? `
 	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) {
 		vec3 hgWn = inverseTransformDirection( normal, viewMatrix );
-		outgoingLight += material.diffuseColor * ( hgPit( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} )${m.userData.shaft ? '' : ' * hgShF.x'} + hgShLight( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} ) )${m.userData.shaft ? ' + hgShRim( vHgP, hgWn )' : ''};
+		outgoingLight += material.diffuseColor * ( hgPit( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} )${m.userData.shaft ? '' : ' * hgShF.x'} + hgShLight( vHgP, hgWn, ${m.userData.shaft ? '1.0' : '0.0'} ) )${m.userData.shaft ? ' + hgShRim( vHgP, hgWn )' : ''}${m.userData.lift ? ' * smoothstep( 0.05, 3.0, - vHgP.y )' : ''};
 	}` : ''}
 	outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * hgPocketK( vHgP ) + totalEmissiveRadiance;${pit ? `
 	if ( vHgP.y < -0.05 && hgPitK.x > 0.0 ) outgoingLight = hgShHaze( outgoingLight, vHgP );` : ''}
@@ -5626,6 +5886,11 @@ ${HALL_LIGHTS_BEGIN}
     // Mittel so hell wie vorher; im Raum des Teils vor batchingMatrix.
     // Dunkler Schmutz ist rauer. Unter dem Boden dunkel wie im Schlitz.
     const Gr = m.userData.hgGrime;
+    // Lack wie der Hallenboden (GATE_FLOOR): das Rauschen gegen sichtbare
+    // Wiederholung (hgNoTile) liest die Lage im geschlossenen Stand aus den
+    // Kachelkoordinaten, sonst wanderten die Flecken mit der Fahrt
+    if (m.userData.gateFloor) sh.vertexShader = sh.vertexShader.replace('vHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;', `vHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;
+vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     if (m.userData.gate) sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * mix( 1.0, ${SHAFT_POCKET[3].toFixed(2)}, smoothstep( ${GATE_SLOT[0].toFixed(2)}, ${GATE_SLOT[1].toFixed(2)}, - vHgP.y ) ) + totalEmissiveRadiance;
 	#include <opaque_fragment>`);
     if (m.userData.gate && Gr) {
@@ -5645,7 +5910,7 @@ ${HALL_LIGHTS_BEGIN}
     }
   };
   const hallKey = () => 'hall-v2';
-  const gateKey = (m) => () => `hall-v2|gate${m.userData.hgGrime ? '|grime' : ''}`;
+  const gateKey = (m) => () => `hall-v2|gate${m.userData.hgGrime ? '|grime' : ''}${m.userData.gateFloor ? '|floor' : ''}`;
   const pitKey = () => (PIT_N ? `hall-v2|pit${hallPit.field}` : 'hall-v2');
   const shaftKey = (m) => () => `hall-v2|shaft${m.userData.shaftUv ? '|uv' : ''}${m.userData.hgWear ? '|wear' : ''}`;
 
@@ -6314,6 +6579,9 @@ ${HALL_LIGHTS_BEGIN}
               const white = [...seen].filter((h) => h.map && /mtl_metal_white_03$/i.test(h.name));
               const grime = (white.find((h) => /kit_master/i.test(h.name)) ?? white[0])?.map ?? null;
               if (grime) grime.anisotropy = maxAniso;
+              // Boden der Halle (GATE_FLOOR): glatter weißer Lack mit Kratzern
+              const floorM = white.find((h) => h.userData.gloss && /kit_master/i.test(h.name)) ?? white.find((h) => h.userData.gloss) ?? null;
+              let floored = 0;
               for (const b of G.batches) {
                 const m = b.material, twin = twins.get(m.name);
                 if (twin) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap']) if (m[k] && twin[k] && !isNeutral(twin[k]) && m[k] !== twin[k]) { m[k].dispose(); m[k] = twin[k]; shared++; }
@@ -6325,6 +6593,17 @@ ${HALL_LIGHTS_BEGIN}
                 if (/glow/i.test(m.name) && m.emissiveMap) { m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = GATE_GLOW; }
                 for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
                 m.userData.gate = true; m.userData.hgGrime = grime;
+                if (floorM && GATE_FLOOR.re.test(m.name)) {
+                  // farbige Lacke (der blaue) behalten ihre Farbe, die grauen nehmen die des Bodens
+                  if (!matHue(m.color)) m.color.copy(floorM.color);
+                  for (const k of ['map', 'roughnessMap', 'metalnessMap', 'normalMap']) m[k] = floorM[k];
+                  m.metalness = floorM.metalness; m.roughness = floorM.roughness;
+                  if (m.normalScale && floorM.normalScale) m.normalScale.copy(floorM.normalScale);
+                  m.userData.gloss = floorM.userData.gloss; m.userData.noTile = floorM.userData.noTile;
+                  m.userData.envGain = floorM.userData.envGain;
+                  m.userData.gateFloor = true; m.userData.hgGrime = null;
+                  floored++;
+                }
                 m.onBeforeCompile = hallShader(m);
                 m.customProgramCacheKey = gateKey(m);
                 unifyMaps(m);
@@ -6332,7 +6611,7 @@ ${HALL_LIGHTS_BEGIN}
               G.group.visible = false;
               shaft.group.add(G.group);
               shaft.gate = G;
-              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen, ${steel} Metall wie die Bodenplatten, Schmutz ${grime ? 'wie der Hallenlack' : 'fehlt'}, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; offen nicht hinter der Nische: ${G.cut.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen (an der Fuge: ${G.seam.join(', ') || 'keiner verschoben'}), ${steel} Metall wie die Bodenplatten, ${floored} Lack wie der Hallenboden, Schmutz ${grime ? 'wie der Hallenlack' : 'fehlt'}, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; offen nicht hinter der Nische: ${G.cut.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
             } catch (e) {
               console.warn('[hangar] Schachttor nicht gebaut', e);
             }
@@ -6586,8 +6865,11 @@ ${HALL_LIGHTS_BEGIN}
     return new Promise((done) => {
       lift.wait.push(done);
       if (Math.abs(y - lift.y) < 1e-4) { lift.dur = 0; lift.y = y; settleLift(); return; }
+      // fährt sie schon und kehrt nur um oder ändert das Ziel (schnelles
+      // Weiterklicken), rastet nichts neu aus: kein zweites Anfahren (fx.liftGo)
+      const moving = lift.dur > 0 && lift.going;
       lift.from = lift.y; lift.to = y; lift.t0 = performance.now() + delay; lift.dur = ms;
-      lift.going = false;
+      lift.going = moving;
       lift.last = { from: lift.from, to: y, t0: lift.t0, dur: ms };
     });
   }
@@ -6709,7 +6991,22 @@ ${HALL_LIGHTS_BEGIN}
   // die mitfährt), Maße mal Hallenmaßstab k; Dampf nur in der Nähe des
   // Schiffs, das Feld reicht weit hinter die Kamera.
   const rnd = (a, b) => a + Math.random() * (b - a);
-  let motorRun = null;
+  // downAt: Feld unten angeschlagen. Fährt es gleich wieder an (Tausch unter
+  // dem Tor), ist das ein Schlag, kein zweiter: Torschluss, Anschlag und
+  // Anfahren lagen sonst in 120 ms als Dreifachschlag übereinander.
+  let motorRun = null, downAt = -1e9;
+  // Höchstens ein Anlass je Art in so vielen ms (20.10.2026, Krisz: „wenn ich
+  // den pfeil spamme der das nächste schiff ruft spammt auch dampfgeräusch
+  // undso“): Jeder Klick kehrte Plattform und Tor um, und jede Umkehr setzte
+  // Zischen, Schlag und Dampf neu an, bis sie sich stapelten.
+  const FX_GAP = { liftGo: 1800, liftStop: 1200, vapour: 2500, seam: 1800, gateStop: 900 };
+  const fxLast = new Map();
+  const fxOk = (key) => {
+    const now = performance.now();
+    if (now - (fxLast.get(key) ?? -1e9) < FX_GAP[key]) return false;
+    fxLast.set(key, now);
+    return true;
+  };
   const fx = {
     field() {
       const L = realHall?.liftL;
@@ -6762,35 +7059,35 @@ ${HALL_LIGHTS_BEGIN}
       }
     },
     liftGo(dir, late) {
-      if (late > 400) return;
+      if (late > 400 || !fxOk('liftGo')) return;
       const t = (performance.now() - T0) / 1000;
       if (dir === 'down') {
         // Bremse auf, Druck ab
         sound.clunk(0.35, 0, 0); sound.hiss(0.5, 0.9, 0);
         this.edges(t, 6, 0.55);
-      } else sound.clunk(0.5, 0.8, 0);
+      } else if (performance.now() - downAt > 300) sound.clunk(0.5, 0.8, 0);
     },
     liftStop(dir, late) {
-      if (late > 400) return;
+      if (late > 400 || !fxOk('liftStop')) return;
       const t = (performance.now() - T0) / 1000;
       if (dir === 'up') {
         // oben eingerastet: schwerer Schlag, dann entweicht der Druck
         sound.clunk(1, 0, 0);
         sound.hiss(1, 1.7, 0);
         this.edges(t, 18, 1);
-      } else sound.clunk(0.7, 0.85, 0);
+      } else { sound.clunk(0.7, 0.85, 0); downAt = performance.now(); }
     },
     gateGo(dir, ms, late) {
       motorRun?.stop();
       motorRun = late > 400 ? null : sound.motor(ms, 0);
-      if (late > 400 || dir !== 'open') return;
+      if (late > 400 || dir !== 'open' || !fxOk('vapour')) return;
       sound.hiss(0.35, ms / 1000 * 0.9, 0);
       this.vapour((performance.now() - T0) / 1000, 20, ms);
     },
     gateStop(dir, late) {
       motorRun = null;
-      if (late > 400) return;
-      if (dir === 'close') {
+      if (late > 400 || !fxOk('gateStop')) return;
+      if (dir === 'close' && fxOk('seam')) {
         sound.clunk(0.8, 0, 0); sound.hiss(0.7, 1.2, 0);
         this.seam((performance.now() - T0) / 1000, 40);
       } else sound.clunk(0.4, 0, 0);
@@ -6997,7 +7294,19 @@ ${HALL_LIGHTS_BEGIN}
     const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
     // Blick des alten Schiffs, gemessen an dessen Startentfernung
     const camAim = current ? aimNow() : null;
+    const k0 = hallRoot.scale.x, fov0 = baseFov;
     scaleWorld(info);
+    // Die Halle wächst oder schrumpft mit dem Schiff (realHallScale). Die
+    // Kamera geht im selben Verhältnis um die Hallenmitte mit, dann steht
+    // das Bild beim Tausch still, und die Fahrt unten gleitet von dort zur
+    // neuen Ansicht. Sonst sprang die ganze Halle unter geschlossenem Tor
+    // auf die neue Größe (Krisz, 20.10.2026: „poppen“).
+    // Auf dem Aufzug (up) steht das alte Schiff da schon unter dem Tor.
+    const up = !!(realHall?.lift && !reduceMotion);
+    if (current && up && hallRoot.scale.x !== k0) {
+      const kr = hallRoot.scale.x / k0;
+      camera.position.multiplyScalar(kr); controls.target.multiplyScalar(kr);
+    }
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
@@ -7015,11 +7324,11 @@ ${HALL_LIGHTS_BEGIN}
       const r = THREE.MathUtils.clamp(camAim.rel * homeDist(), controls.minDistance, controls.maxDistance);
       onPoint = false;
       flyTo(tgt, off.setLength(r).add(tgt), 700);
+      if (!reduceMotion && Math.abs(baseFov - fov0) > 0.01) { fovGlide = { a: fov0, t0: performance.now(), dur: 700 }; fitFov(); }
     }
 
     if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     // Auf dem Aufzug kommt es von unten herauf; das alte steht unten und geht.
-    const up = !!(realHall?.lift && !reduceMotion);
     if (current) {
       if (up) { scene.remove(current.group); release(current); }
       else leaving = { group: current.group, t0: performance.now(), c: current, y0: current.group.position.y, r0: current.group.rotation.y };
@@ -7830,8 +8139,13 @@ ${HALL_LIGHTS_BEGIN}
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
     if (!focused && now > hoverUntil) { sound.drive(0, 0, 0); return; }
-    // Bewegung, die jemand auslöst oder verfolgt: volle Rate
-    if (dragging || fly || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
+    // Bewegung, die jemand auslöst oder verfolgt: volle Rate. Auch solange
+    // ein Wechsel läuft (busy) und das Feld unten auf das neue Schiff wartet:
+    // Sonst fiel die Bühne dort nach IDLE_MS auf IDLE_SCALE der Schärfe und
+    // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
+    // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
+    // Laden, das hängt, hält sie nicht länger als 20 s wach.
+    if ((busy && now - busyAt < 20000) || dragging || fly || fovGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
@@ -7973,6 +8287,7 @@ ${HALL_LIGHTS_BEGIN}
       if (Math.abs(camWant - r) > 1e-3) camera.position.sub(controls.target).setLength(r + (camWant - r) * (reduceMotion ? 1 : Math.min(1, dt * 5))).add(controls.target);
     }
     if (fly) flyStep(now);
+    if (fovGlide) fitFov(now);
     controls.update(dt);
     // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
     camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
