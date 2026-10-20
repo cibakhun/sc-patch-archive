@@ -419,10 +419,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
           </select>
         </label>
         {/* Geraeusche von Plattform, Tor und Dampf (hangar-viewer.js, hangarSound);
-            gemerkt unter hg-ton, sichtbar, sobald die Buehne Ton kann. */}
-        <button type="button" class="hg-btn hgx-ico hgx-snd" id="hgx-snd" aria-pressed="true" data-help={h('hangar.ctl.snd')} data-on={t('snd.on')} data-off={t('snd.off')} hidden>
+            gemerkt unter hg-ton, sichtbar, sobald die Buehne Ton kann; Vorgabe aus. */}
+        <button type="button" class="hg-btn hgx-ico hgx-snd" id="hgx-snd" aria-pressed="false" data-help={h('hangar.ctl.snd')} data-on={t('snd.on')} data-off={t('snd.off')} hidden>
           <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path class="hgx-snd__on" d="M15.5 9a4.2 4.2 0 010 6M18 6.5a8 8 0 010 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path class="hgx-snd__off" d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-          <span class="hgx-tip">{t('snd.label')}: <span id="hgx-snd-now">{t('snd.on')}</span></span>
+          <span class="hgx-tip">{t('snd.label')}: <span id="hgx-snd-now">{t('snd.off')}</span></span>
         </button>
       </div>
       <p class="hg-hint" id="hg-hint">{t('act.hint')}</p>

@@ -1231,9 +1231,11 @@ export function boot(doc) {
     });
   }
   // Ton-Schalter: Geraeusche von Plattform, Tor und Dampf an oder aus,
-  // gemerkt unter hg-ton (nur 'aus' wird gespeichert; Vorgabe an)
+  // gemerkt unter hg-ton (nur 'an' wird gespeichert). Vorgabe aus, bis die
+  // Geraeusche aus dem Spiel kommen statt gerechnet (Krisz, 20.10.2026:
+  // „wtf sind das denn für geräusche?“).
   const TON_KEY = 'hg-ton';
-  const tonAus = () => { try { return localStorage.getItem(TON_KEY) === 'aus'; } catch { return false; } };
+  const tonAn = () => { try { return localStorage.getItem(TON_KEY) === 'an'; } catch { return false; } };
   function tonSchalter(v) {
     const btn = $('hgx-snd');
     if (!btn || typeof v.sound !== 'function' || !v.sound().can) return;
@@ -1248,8 +1250,8 @@ export function boot(doc) {
       v.setSound(on);
       paint(on);
       try {
-        if (on) localStorage.removeItem(TON_KEY);
-        else localStorage.setItem(TON_KEY, 'aus');
+        if (on) localStorage.setItem(TON_KEY, 'an');
+        else localStorage.removeItem(TON_KEY);
       } catch { /* ohne Speicher gilt die Wahl bis zum Neuladen */ }
     });
   }
@@ -1272,7 +1274,7 @@ export function boot(doc) {
   else {
     loadEl.hidden = false;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, pad: BODEN, sound: !tonAus() }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, pad: BODEN, sound: tonAn() }))
       .then((v) => {
         viewer = v;
         v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
