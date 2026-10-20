@@ -31,10 +31,11 @@ const LAYOUT_MSG: LayoutKey[] = [
   'msg.saved', 'msg.copied', 'msg.copyFallback', 'msg.reset', 'msg.fitted', 'msg.deleted', 'msg.undo',
   'msg.dropped.one', 'msg.dropped.other', 'msg.full',
   'saved.empty', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
-  'grp.paint', 'paint.stock', 'paint.pattern', 'slot.rank',
+  'grp.paint', 'paint.stock', 'paint.pattern', 'pick.head',
+  'dt.t', 'tot.head', 'tot.fire', 'tot.alpha', 'tot.split', 'tot.ord', 'tot.ordn', 'tot.shield', 'tot.regen', 'tot.power', 'tot.cool', 'tot.qt',
+  'sp.alpha', 'sp.rate', 'sp.mag', 'sp.empty', 'sp.hp', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life', 'sp.trk', 'sp.regen', 'sp.full',
+  'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.price', 'u.rpm', 'u.shots',
 ];
-// Kampfwerte im Kopf: Summe der Gruppen, wie assets/hangar-layouts.js sie bildet (paintTotals).
-const SUM: LayoutKey[] = ['sum.fire', 'sum.ord', 'sum.shield'];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
   'cls.military', 'cls.civilian', 'cls.industrial', 'cls.stealth', 'cls.competition', 'grade',
@@ -57,16 +58,18 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-dice:hover,.hgl-dice:focus-visible{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgl-dice.is-roll{animation:hgl-roll .5s var(--ease-ui)}
 @keyframes hgl-roll{0%{transform:rotate(0)}60%{transform:rotate(250deg) scale(1.15)}100%{transform:rotate(360deg)}}
-.hgl-staterow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin:.45rem 0 0}
-.hgl-state{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;min-width:0;margin:0;font-size:var(--fs-6);color:var(--hg-dim)}
+.hgl-staterow{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:.5rem;margin:.45rem 0 0}
+.hgl-state{display:flex;flex-wrap:nowrap;flex:1 1 auto;align-items:center;gap:.35rem;min-width:0;white-space:nowrap;overflow:hidden;margin:0;font-size:var(--fs-6);color:var(--hg-dim)}
 .hgl-savedbtn{appearance:none;position:relative;flex:0 0 auto;display:inline-flex;align-items:center;gap:.35rem;height:2.3rem;padding:0 .55rem;border:1px solid var(--hg-hair);border-radius:10px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .hgl-savedbtn:hover,.hgl-savedbtn:focus-visible{border-color:var(--hg-amber);color:var(--hg-on);outline:0}
 .hgl-savedbtn[aria-pressed="true"]{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgl-savedbtn i{font-style:normal;min-width:1.1rem;padding:0 .3rem;border-radius:9px;background:color-mix(in srgb,var(--hg-on) 12%,transparent);color:var(--hg-on);font-size:var(--fs-5);line-height:1.1rem;text-align:center;font-variant-numeric:tabular-nums}
 .hgl-savedbtn[aria-pressed="true"] i{background:var(--hg-amber);color:var(--ink)}
 .hgl-state b{font-weight:600;color:var(--hg-on)}
+/* Eine Zeile mit „Meine Layouts": der Zusatz kuerzt sich, statt die Liste nach unten zu schieben. */
+#hgl-state-sub{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .hgl-state .is-saved{color:var(--hg-amber)}
-.hgl-dot{width:.45rem;height:.45rem;border-radius:50%;background:var(--hg-dim)}
+.hgl-dot{flex:none;width:.45rem;height:.45rem;border-radius:50%;background:var(--hg-dim)}
 .hgl-state[data-s="changed"] .hgl-dot{background:var(--hg-amber);box-shadow:0 0 8px var(--hg-amber)}
 .hgl-state[data-s="saved"] .hgl-dot{background:none;width:auto;height:auto;color:var(--hg-amber)}
 .hgl-state[data-s="saved"] .hgl-dot::before{content:"✓";font-style:normal;font-weight:700}
@@ -76,21 +79,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-shared[hidden]{display:none}
 /* Kampfwerte: drei Kacheln unter dem Stand, die Zahl gross, darunter der
    Balken bis zum Bestwert mit dem Strich auf der Serie. */
-.hgl-sum{--n:3;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:.4rem;margin:.7rem 0 .1rem}
-.hgl-sum[hidden],.hgl-stat[hidden]{display:none}
-.hgl-sum[data-n="2"]{--n:2}
-.hgl-sum[data-n="1"]{--n:1}
-.hgl-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:.05rem .4rem;min-width:0;padding:.45rem .55rem .55rem;border:1px solid var(--hg-hair);border-radius:8px;background:linear-gradient(180deg,color-mix(in srgb,var(--hg-on) 5%,transparent),transparent 70%),color-mix(in srgb,var(--bg) 50%,transparent)}
-.hgl-stat__k{grid-column:1/-1;min-width:0;overflow:hidden;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-dim);white-space:nowrap;text-overflow:ellipsis}
-.hgl-stat__d{grid-row:3;grid-column:2;align-self:center;margin-top:.3rem;font-style:normal;line-height:1;font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.hgl-stat__d.is-up{color:var(--hg-amber)}
-.hgl-stat__d.is-down{color:color-mix(in srgb,var(--hot) 60%,var(--hg-on))}
-.hgl-stat__v{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .3rem;min-width:0;line-height:1.15}
-.hgl-stat__v b{font-family:var(--font-ui);font-size:var(--fs-14);font-weight:700;color:var(--hg-on);font-variant-numeric:tabular-nums}
-.hgl-stat__v small{font-size:var(--fs-5);color:var(--hg-dim)}
-.hgl-stat__bar{grid-row:3;grid-column:1;align-self:center;position:relative;height:4px;margin-top:.35rem;border-radius:2px;background:var(--line-soft)}
-.hgl-stat__bar i{position:absolute;left:0;top:0;bottom:0;width:var(--now,0%);border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--hg-amber) 45%,transparent),var(--hg-amber));transition:width var(--dur-slow) var(--ease-ui)}
-.hgl-stat__bar s{position:absolute;top:-3px;bottom:-3px;left:var(--stock,0%);width:2px;margin-left:-1px;border-radius:1px;background:var(--hg-on);opacity:.75}
+/* Hinweis ueber der Liste, solange kein Slot offen ist */
+.hgl-hintline{display:flex;align-items:center;gap:.45rem;margin:-.2rem .3rem .7rem;font-size:var(--fs-6);color:var(--hg-on)}
+.hgl-hintline::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:var(--hg-amber)}
+.hgl-hintline[hidden]{display:none}
+.hgl-pickhead{margin:.1rem 0 .4rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-amber)}
 .hgl-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:.75rem .7rem .5rem}
 .hgl-msgline{margin:.4rem .3rem;font-size:var(--fs-7);color:var(--hg-dim)}
 .hgl-msgline[hidden],.hgl-pane[hidden]{display:none}
@@ -143,11 +136,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-slot:hover .hgl-sock,.hgl-slot.is-open .hgl-sock{border-color:color-mix(in srgb,var(--hg-on) 30%,transparent)}
 .hgl-slot[data-changed] .hgl-sock{border-color:color-mix(in srgb,var(--hg-amber) 65%,transparent);box-shadow:0 0 14px -4px var(--hg-amber);color:var(--hg-amber)}
 .hgl-slot[data-changed] .hgl-ico{opacity:1}
-/* Rang unter allem, was passt: voller Balken heisst das beste Teil. */
-.hgl-tier{display:block;max-width:10rem;height:3px;margin-top:.4rem;border-radius:2px;background:var(--line-soft);overflow:hidden}
-.hgl-tier[hidden]{display:none}
-.hgl-tier i{display:block;height:100%;width:var(--w,0%);border-radius:2px;background:color-mix(in srgb,var(--hg-on) 45%,transparent);transition:width var(--dur-slow) var(--ease-ui)}
-.hgl-tier.is-top i{background:var(--hg-amber)}
 .hgl-slot[data-changed] .hgl-sz{border-color:color-mix(in srgb,var(--hg-amber) 55%,transparent);color:var(--hg-amber)}
 .hgl-nm{line-height:1.3;min-width:0}
 .hgl-nm strong{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -235,15 +223,33 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Getauschte Waffen: Marker und Name des neuen Teils setzt
    assets/hangar-layouts.js als Regeln in #hgl-mods (content je Port). */
 .hg[data-pane="layout"] .hgx-mk::after{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .5rem;border-radius:4px;background:color-mix(in srgb,var(--bg) 88%,transparent);box-shadow:inset 2px 0 0 var(--hg-amber);color:var(--hg-amber);font-size:var(--fs-5);font-weight:700;white-space:nowrap;pointer-events:none}
+/* Ansicht Schnell | Alle Werte */
+.hgl-mode{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin:.55rem 0 0;padding:2px;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--bg) 45%,transparent)}
+.hgl-mode button{appearance:none;height:2rem;border:0;border-radius:8px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.hgl-mode button:hover,.hgl-mode button:focus-visible{color:var(--hg-on);outline:0}
+.hgl-mode button[aria-pressed="true"]{background:color-mix(in srgb,var(--hg-on) 12%,transparent);color:var(--hg-on)}
+/* Layout gesamt und die Werte je Teil gibt es nur in Alle Werte. */
+.hgl-tot{margin:.2rem 0 .9rem;padding:.6rem .7rem .55rem;border:1px solid var(--hg-hair);border-radius:8px;background:color-mix(in srgb,var(--bg) 45%,transparent)}
+.hgl-tot[hidden]{display:none}
+.hgl-tot h3{margin:0 0 .4rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-amber)}
+.hgl-tot dl,.hgl-specs{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:baseline;gap:.2rem .6rem;margin:0}
+.hgl-tot dt,.hgl-specs dt{min-width:0;color:var(--hg-dim);font-size:var(--fs-6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hgl-tot dd,.hgl-specs dd{margin:0;color:var(--hg-on);font-size:var(--fs-6);font-weight:600;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hgl-tot dd small,.hgl-specs dd small{margin-left:.25rem;font-weight:400;color:var(--hg-dim)}
+.hgl-tot dd.hgl-tot__d{min-width:3.6rem;font-size:var(--fs-5);font-weight:700}
+.hgl-tot__d.is-up{color:var(--hg-amber)}
+.hgl-tot__d.is-down{color:color-mix(in srgb,var(--hot) 60%,var(--hg-on))}
+.hgl-tot__miss{margin:.5rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
+.hgl-specs{grid-template-columns:minmax(0,1fr) auto;margin:0 .6rem .55rem 3.6rem;padding:.4rem 0 0;border-top:1px dashed var(--hg-hair)}
+.hgl:not(.is-full) .hgl-specs,.hgl:not(.is-full) .hgl-opt__specs{display:none}
+.hgl-opt__specs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.1rem .9rem;margin-top:.2rem;font-size:var(--fs-5);color:var(--hg-dim)}
+.hgl-opt__specs b{margin-right:.25rem;color:var(--hg-on);font-weight:600;font-variant-numeric:tabular-nums}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
 .hgl button[hidden]{display:none}
 @media (min-width:761px) and (max-height:820px){
   .hgl-head{padding:.6rem .9rem .5rem}
   .hgl-name{font-size:var(--fs-9)}
   .hgl-opts{max-height:min(240px,34vh)}
-  .hgl-sum{margin-top:.5rem}
-  .hgl-stat{padding:.35rem .5rem .45rem}
-  .hgl-stat__v b{font-size:var(--fs-12)}
 }
 @media (max-width:760px){
   .hgl{position:static;width:auto;border-radius:0;border-width:1px 0 0;background:var(--bg-2);box-shadow:none;overflow:visible}
@@ -253,7 +259,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgl-toast{position:fixed;bottom:5.2rem;z-index:5}
   .hgl-opts{max-height:50vh}
 }
-@media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock,.hgl-tier i,.hgl-stat__bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock{transition:none}}
 </style>
 
 <aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hg-pane-layout" data-lang={lang} data-src={layoutDataHref()}>
@@ -263,30 +269,22 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       <button type="button" class="hgl-dice" id="hgl-dice" aria-label={l('name.dice')} title={l('name.dice')}>
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={dice} fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="9" cy="9" r="1.4" fill="currentColor" /><circle cx="15" cy="9" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="9" cy="15" r="1.4" fill="currentColor" /><circle cx="15" cy="15" r="1.4" fill="currentColor" /></svg>
       </button>
-      <button type="button" class="hgl-savedbtn" title={l('view.saved')} id="hgl-v-saved" aria-controls="hgl-saved" aria-pressed="false" data-help={h('hangar.ctl.layoutSaved')}>
-        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-        <span class="hgl-sr">{l('view.saved')}</span> <i id="hgl-count">0</i>
-      </button>
     </div>
-    {/* Der Weg zu den gespeicherten Layouts steht als Zeichen mit Zahl neben
-        dem Wuerfel: ein Schalter statt einer zweiten Reiterleiste, und der
-        Kopf bleibt flach genug fuer die Kampfwerte. */}
+    {/* Stand links, rechts der Weg zu den gespeicherten Layouts, mit Wort:
+        als blosses Zeichen fand ihn niemand. */}
     <div class="hgl-staterow">
       <p class="hgl-state" id="hgl-state" data-s="stock" aria-live="polite"><i class="hgl-dot" aria-hidden="true"></i><b id="hgl-state-txt">{l('state.stock')}</b><span id="hgl-state-sub"></span></p>
+      <button type="button" class="hgl-savedbtn" id="hgl-v-saved" aria-controls="hgl-saved" aria-pressed="false" data-help={h('hangar.ctl.layoutSaved')}>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        <span>{l('view.saved')}</span> <i id="hgl-count">0</i>
+      </button>
     </div>
     <p class="hgl-shared" id="hgl-shared" hidden>{l('shared')}</p>
-    {/* Kampfwerte wie im Spielmenue: Zahl, Abstand zur Serie und ein Balken
-        bis zum Bestwert, den die Slots fassen; der Strich steht auf der Serie.
-        Werte setzt paintTotals, ohne Werte bleibt die Kachel weg. */}
-    <div class="hgl-sum" id="hgl-sum" role="group" aria-label={l('sum.label')} title={l('sum.note')} hidden>
-      {SUM.map((k) => (
-        <div class="hgl-stat" data-sum={k.slice(4)} hidden>
-          <span class="hgl-stat__k">{l(k)}</span>
-          <span class="hgl-stat__v"><b></b><small></small></span>
-          <i class="hgl-stat__d"></i>
-          <span class="hgl-stat__bar" aria-hidden="true"><i></i><s></s></span>
-        </div>
-      ))}
+    {/* Zwei Wege durch dieselbe Werkstatt (Krisz 10-20): Schnell fuer wer sich
+        auskennt, Alle Werte mit jeder Zahl je Teil und fuer das ganze Layout. */}
+    <div class="hgl-mode" id="hgl-mode" role="group" aria-label={l('mode.label')}>
+      <button type="button" data-mode="quick" aria-pressed="true">{l('mode.quick')}</button>
+      <button type="button" data-mode="full" aria-pressed="false">{l('mode.full')}</button>
     </div>
   </div>
   <div class="hgl-scroll" id="hgl-scroll">
@@ -298,6 +296,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <button type="button" role="tab" id="hgl-c-systems" data-cat="systems" aria-selected="false" aria-controls="hgl-slots" tabindex="-1">{t('tab.systems')}<i data-cat-n="systems"></i></button>
         <button type="button" role="tab" id="hgl-c-paint" data-cat="paint" aria-selected="false" aria-controls="hgl-slots" tabindex="-1" hidden>{l('cat.paint')}<i data-cat-n="paint"></i></button>
       </div>
+      <p class="hgl-hintline" id="hgl-hint" hidden>{l('hint.swap')}</p>
+      <section class="hgl-tot" id="hgl-tot" aria-labelledby="hgl-tot-h" hidden>
+        <h3 id="hgl-tot-h">{l('tot.head')}</h3>
+        <dl id="hgl-tot-dl"></dl>
+        <p class="hgl-tot__miss">{l('tot.missing')}</p>
+      </section>
       <div id="hgl-slots"></div>
       <p class="hgl-note">{l('note')}</p>
     </div>

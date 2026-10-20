@@ -377,6 +377,57 @@ export function initWorkshop(doc, bridge) {
     if (withPrice) parts.push(it[9] ? fill(m('pick.price'), { n: nf.format(it[9]) }) : m('pick.noshop'));
     return parts.filter(Boolean).join(' · ');
   }
+  // Alle Werte: jede Zahl eines Teils als [id, Bezeichnung, Wert, Einheit].
+  // Schaden je Art je Schuss (Waffe) bzw. Sprengkopf (Rakete) in extra.dP/dE/dD/dT.
+  const f1 = new Intl.NumberFormat(loc, { maximumFractionDigits: 1 });
+  const DT = [['dP', 'dt.p'], ['dE', 'dt.e'], ['dD', 'dt.d'], ['dT', 'dt.t']];
+  const alphaOf = (x) => DT.reduce((a, [k]) => a + (x?.[k] ?? 0), 0);
+  function specs(k) {
+    const it = data.items[k];
+    if (!it) return [];
+    const x = it[8] ?? {};
+    const out = [];
+    const add = (id, v, unit = '', label = m(id)) => {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out.push([id, label, f1.format(v), unit]);
+    };
+    // Die Aufteilung nach Art lohnt erst bei gemischtem Schaden; die eine Art nennt schon die Unterzeile.
+    const split = () => { if (DT.filter(([key]) => x[key] > 0).length > 1) for (const [key, lk] of DT) add(key, x[key], '', m(lk)); };
+    if (it[2] === 'gun') {
+      add('sp.alpha', alphaOf(x));
+      split();
+      add('sp.rate', x.rate, m('u.rpm'));
+      add('sp.mag', x.mag, m('u.shots'));
+      if (x.mag && x.rate) add('sp.empty', (x.mag / x.rate) * 60, 's');
+    } else if (WEAPON_TYPES.has(it[2])) {
+      split();
+      if (x.trk) out.push(['sp.trk', m('sp.trk'), m(`trk.${x.trk}`), '']);
+      add('sp.blast', x.blast, 'm');
+      add('sp.arm', x.arm, 's');
+      add('sp.ign', x.ign, 's');
+      add('sp.life', x.life, 's');
+    } else if (it[2] === 'shield') {
+      add('sp.regen', x.regen, 'HP/s');
+      if (x.regen) add('sp.full', it[7] / x.regen, 's');
+      add('sp.dly', x.dly, 's');
+      add('sp.down', x.down, 's');
+    } else if (it[2] === 'quantum') {
+      add('sp.cd', x.cd, 's');
+      add('sp.fuel', x.fuel);
+      add('sp.a1', x.a1, 'Mm/s²');
+      add('sp.a2', x.a2, 'Mm/s²');
+    }
+    add('sp.hp', x.hp, 'HP');
+    out.push(['sp.price', m('sp.price'), it[9] ? nf.format(it[9]) : m('pick.noshop'), it[9] ? 'aUEC' : '']);
+    return out;
+  }
+  // In der Auswahl stehen je Art nur die Werte, die beim Vergleichen entscheiden.
+  const SHORT = { gun: ['sp.alpha', 'sp.rate', 'sp.mag'], shield: ['sp.regen', 'sp.dly'], quantum: ['sp.cd', 'sp.fuel'] };
+  const shortSpecs = (k) => {
+    const t = data.items[k]?.[2];
+    const want = SHORT[t] ?? (WEAPON_TYPES.has(t) ? ['sp.blast', 'sp.arm', 'sp.trk'] : ['sp.hp']);
+    return specs(k).filter(([id]) => want.includes(id));
+  };
+  const specKids = (rows) => rows.flatMap(([, label, v, u]) => [el('dt', {}, label), el('dd', {}, v, u ? el('small', {}, u) : null)]);
   const current = (slot) => draft.slots[slot.key] ?? slot.stock;
   // Der Slot mit der gewaehlten Halterung (Anzahl und Groesse der Raketen).
   const eff = (slot) => rackSlot(slot, draft.racks?.[slot.key], data.racks);
@@ -523,21 +574,11 @@ export function initWorkshop(doc, bridge) {
     svg.append(path);
     return svg;
   }
-  // Was in einen Slot passt, je Art und Groesse einmal gerechnet: daraus der
-  // Rang eines Teils und der Bestwert der Kampfwerte.
-  const candCache = new Map();
-  const fitting = (e) => {
-    const k = `${e.type}|${e.size}`;
-    if (!candCache.has(k)) candCache.set(k, candidates(e, data.items));
-    return candCache.get(k);
-  };
-
   function buildSlots() {
     slotEls.clear();
     // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
     // Lackierung, wenn das Schiff welche hat.
     if (!slots.length) {
-      sumHost.hidden = true;
       slotsHost.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')), ...[paintSection()].filter(Boolean));
       paintPaints();
       paintCat();
@@ -566,12 +607,11 @@ export function initWorkshop(doc, bridge) {
     const id = `hgl-pick-${slot.key.replace(/[^a-z0-9_-]/g, '-')}`;
     const btn = el('button', { type: 'button', class: 'hgl-slot__btn', 'aria-expanded': 'false', 'aria-controls': id, 'data-key': slot.key },
       el('span', { class: 'hgl-sock' }, ico(slot.type), el('b', { class: 'hgl-sz' }, `S${slot.size}`)),
-      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true }),
-        el('span', { class: 'hgl-tier' }, el('i', {}))),
+      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true })),
       el('span', { class: 'hgl-fig' }),
       el('span', { class: 'hgl-chev', 'aria-hidden': 'true' }, '›'));
     const pick = el('div', { class: 'hgl-pick', id, hidden: true });
-    const li = el('li', { class: 'hgl-slot', 'data-type': slot.type, 'data-key': slot.key }, btn, pick);
+    const li = el('li', { class: 'hgl-slot', 'data-type': slot.type, 'data-key': slot.key }, btn, el('dl', { class: 'hgl-specs' }), pick);
     slotEls.set(slot.key, li);
     return li;
   }
@@ -592,15 +632,6 @@ export function initWorkshop(doc, bridge) {
       li.querySelector('.hgl-ico').replaceWith(ico(e.type));
       li.dataset.ico = e.type;
     }
-    // Rang unter allem, was passt: der Balken unter dem Namen misst am Besten.
-    const cands = fitting(e);
-    const best = cands.length ? data.items[cands[0]][7] : 0;
-    const tier = li.querySelector('.hgl-tier');
-    const rank = cands.indexOf(now) + 1;
-    tier.hidden = !(it && best > 0 && cands.length > 1);
-    tier.firstChild.style.setProperty('--w', `${it && best > 0 ? Math.round((it[7] / best) * 100) : 0}%`);
-    tier.title = rank ? fill(m('slot.rank'), { r: nf.format(rank), n: nf.format(cands.length) }) : '';
-    tier.classList.toggle('is-top', rank === 1);
     li.querySelector('strong').textContent = name;
     // Mit getauschter Halterung nennt die Unterzeile sie zuerst.
     const rk = draft.racks?.[slot.key];
@@ -610,6 +641,7 @@ export function initWorkshop(doc, bridge) {
     was.textContent = changed ? fill(m('slot.was'), { name: slot.stock ? `${times(slot.count)}${itemName(slot.stock)}` : m('slot.unknown') }) : '';
     const fig = li.querySelector('.hgl-fig');
     fig.replaceChildren(it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()));
+    li.querySelector('.hgl-specs').replaceChildren(...specKids(specs(now)));
     li.querySelector('.hgl-slot__btn').setAttribute('aria-label', `${fill(m('slot.swap'), { slot: `S${e.size} ${name}` })}`);
     if (flash) {
       li.classList.remove('is-flash');
@@ -662,6 +694,13 @@ export function initWorkshop(doc, bridge) {
     }
     for (const sec of slotsHost.querySelectorAll('.hgl-grp')) sec.hidden = sec.dataset.cat !== cat;
     if (moved) paintMods();
+    paintHint();
+    paintTot();
+  }
+  // Ein Satz ueber der Liste sagt, was zu tun ist; er geht, sobald ein Slot offen ist.
+  function paintHint() {
+    const open = openKey && slots.find((s) => s.key === openKey);
+    $('hgl-hint').hidden = cat === 'paint' || !slots.length || (!!open && tabOf(open) === cat);
   }
   function paintCatCounts() {
     for (const b of catBtns) {
@@ -782,47 +821,66 @@ export function initWorkshop(doc, bridge) {
       gd.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
       gd.className = `hgl-gd ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
     }
-    paintSum(totals);
+    paintTot();
   }
 
-  // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
-  // Bomben, Schild. Der Balken laeuft bis zum Bestwert, den die Slots fassen
-  // (je Slot das staerkste passende Teil), der Strich steht auf der Serie.
-  const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
-  const sumHost = $('hgl-sum');
-  function paintSum(totals) {
-    let shown = 0;
-    for (const [k, groups] of Object.entries(SUMS)) {
-      const tile = sumHost.querySelector(`[data-sum="${k}"]`);
-      let now = 0, stock = 0, top = 0;
-      for (const g of groups) {
-        const t = totals.get(g);
-        if (t) { now += t.now; stock += t.stock; }
-      }
-      for (const s of slots) {
-        if (!groups.includes(s.group)) continue;
-        const e = eff(s);
-        const c = fitting(e);
-        top += (c.length ? data.items[c[0]][7] : 0) * e.count;
-      }
-      tile.hidden = !(now > 0 || stock > 0);
-      if (tile.hidden) continue;
-      shown++;
-      tile.querySelector('b').textContent = nf.format(Math.round(now));
-      // Raketen ohne Einheit: "Schaden" passt nicht neben die Zahl, die Kachel sagt es.
-      tile.querySelector('small').textContent = k === 'fire' ? 'DPS' : k === 'shield' ? 'HP' : '';
-      const d = Math.round(now - stock);
-      const di = tile.querySelector('.hgl-stat__d');
-      di.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
-      di.className = `hgl-stat__d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
-      const scale = Math.max(top, now, stock, 1);
-      const bar = tile.querySelector('.hgl-stat__bar');
-      bar.style.setProperty('--now', `${Math.round((now / scale) * 100)}%`);
-      bar.style.setProperty('--stock', `${Math.round((stock / scale) * 100)}%`);
+  // Layout gesamt (Alle Werte): Summen des Reiters, daneben der Abstand zur Serie.
+  function tally(pick) {
+    const t = { fire: 0, alpha: 0, dP: 0, dE: 0, dD: 0, dT: 0, ord: 0, ordn: 0, shield: 0, regen: 0, power: 0, cool: 0, qt: 0 };
+    for (const s of slots) {
+      const [k, n] = pick(s);
+      const it = data.items[k];
+      if (!it) continue;
+      const x = it[8] ?? {};
+      if (it[2] === 'gun') {
+        const a = alphaOf(x);
+        t.fire += it[7] * n;
+        t.alpha += a * n;
+        // DPS je Art im Verhaeltnis des Schadens je Schuss
+        if (a) for (const [key] of DT) t[key] += (it[7] * n * (x[key] ?? 0)) / a;
+      } else if (WEAPON_TYPES.has(it[2])) { t.ord += it[7] * n; t.ordn += n; }
+      else if (it[2] === 'shield') { t.shield += it[7] * n; t.regen += (x.regen ?? 0) * n; }
+      else if (it[2] === 'power') t.power += it[7] * n;
+      else if (it[2] === 'cooler') t.cool += it[7] * n;
+      else if (it[2] === 'quantum') t.qt = Math.max(t.qt, it[7]);
     }
-    sumHost.hidden = !shown;
-    sumHost.dataset.n = String(shown);
+    return t;
   }
+  const TOT = {
+    weapons: [['fire', 'tot.fire', 'DPS'], ['alpha', 'tot.alpha', ''], ...DT.map(([k, lk]) => [k, lk, 'DPS', true]), ['ord', 'tot.ord', ''], ['ordn', 'tot.ordn', '']],
+    systems: [['shield', 'tot.shield', 'HP'], ['regen', 'tot.regen', 'HP/s'], ['power', 'tot.power', ''], ['cool', 'tot.cool', ''], ['qt', 'tot.qt', 'Mm/s']],
+  };
+  const sgn = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
+  function paintTot() {
+    const box = $('hgl-tot');
+    const rows = full && data && slots.length ? TOT[cat] : null;
+    box.hidden = !rows;
+    if (!rows) return;
+    const now = tally((s) => [current(s), eff(s).count]);
+    const stock = tally((s) => [s.stock, s.count]);
+    const mixed = DT.filter(([k]) => now[k] > 0 || stock[k] > 0).length > 1;
+    $('hgl-tot-dl').replaceChildren(...rows.flatMap(([k, lk, unit, isSplit]) => {
+      if ((!now[k] && !stock[k]) || (isSplit && !mixed)) return [];
+      const d = Math.round(now[k] - stock[k]);
+      const label = isSplit ? fill(m('tot.split'), { t: m(lk) }) : m(lk);
+      return [el('dt', {}, label), el('dd', {}, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, unit) : null),
+        el('dd', { class: `hgl-tot__d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}` }, d ? `${d > 0 ? '▲' : '▼'} ${sgn.format(Math.abs(d))}` : '')];
+    }));
+  }
+
+  // Ansicht Schnell | Alle Werte, im Browser gemerkt.
+  const MODE_KEY = 'vb.layouts.mode';
+  const modeBtns = [...$('hgl-mode').querySelectorAll('button')];
+  let full = false;
+  function setMode(v) {
+    full = v === 'full';
+    aside.classList.toggle('is-full', full);
+    for (const b of modeBtns) b.setAttribute('aria-pressed', String(b.dataset.mode === v));
+    try { storage?.setItem(MODE_KEY, v); } catch { /* privat: nur fuer diesen Besuch */ }
+    if (data) paintTot();
+  }
+  for (const b of modeBtns) b.addEventListener('click', () => setMode(b.dataset.mode));
+  try { if (storage?.getItem(MODE_KEY) === 'full') setMode('full'); } catch { /* ohne Speicher bleibt Schnell */ }
 
   // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
   // Items behaelt den gewaehlten Slot, solange hp sein Port bleibt.
@@ -843,6 +901,7 @@ export function initWorkshop(doc, bridge) {
         revealSlot(li);
       } else pick.replaceChildren();
     }
+    paintHint();
   }
 
   function revealSlot(li) {
@@ -896,7 +955,8 @@ export function initWorkshop(doc, bridge) {
         el('span', { class: 'hgl-opt__nm' }, itemName(k), ...tags),
         el('span', { class: 'hgl-opt__sub' }, subLine(k, true)),
         el('span', { class: 'hgl-opt__fig' }, nf.format(it[7])),
-        el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d)} %`),
+        el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`),
+        el('span', { class: 'hgl-opt__specs' }, ...shortSpecs(k).map(([, label, v, u]) => el('span', {}, el('b', {}, `${v}${u ? ` ${u}` : ''}`), label))),
         el('span', { class: 'hgl-opt__bar', 'aria-hidden': 'true' }, el('i', { style: `--w:${Math.round((it[7] / max) * 100)}%` })));
       const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b);
       return li;
@@ -913,7 +973,7 @@ export function initWorkshop(doc, bridge) {
     filter();
     const revert = el('button', { type: 'button', class: 'hgl-revert', hidden: !isChanged(slot) || !slot.stock }, m('slot.revert'));
     revert.addEventListener('click', () => equip(slot, slot.stock, slot.racks?.[0]));
-    pick.replaceChildren(...[slot.racks ? rackBar(slot) : null].filter(Boolean), el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
+    pick.replaceChildren(el('p', { class: 'hgl-pickhead' }, m('pick.head')), ...[slot.racks ? rackBar(slot) : null].filter(Boolean), el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
     // Die gewaehlte Zeile in Sicht, ohne die Seite zu rollen.
     const on = ul.querySelector('[aria-pressed="true"]');
     if (on) ul.scrollTop = on.parentElement.offsetTop - ul.clientHeight / 2 + on.offsetHeight / 2;
