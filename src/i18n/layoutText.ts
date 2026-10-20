@@ -80,8 +80,10 @@ const DE = {
   'sum.fire': 'Feuerkraft',
   'sum.ord': 'Raketen',
   'sum.shield': 'Schild',
-  'sum.note': 'Balken: Anteil am Höchsten, was dieses Schiff im Spiel tragen kann. Strich: Serie.',
-  'slot.rank': 'Platz {r} von {n} passenden Bauteilen',
+  'sum.note': 'Prozent: wie nah dieses Layout am Höchsten ist, was das Schiff im Spiel tragen kann.',
+  'sum.max': '{p} % vom Max.',
+  'hint.swap': 'Ein Bauteil anklicken, um es zu tauschen.',
+  'pick.head': 'Ersetzen durch',
 } as const;
 
 export type LayoutKey = keyof typeof DE;
@@ -156,8 +158,10 @@ const EN: Readonly<Record<LayoutKey, string>> = {
   'sum.fire': 'Firepower',
   'sum.ord': 'Missiles',
   'sum.shield': 'Shields',
-  'sum.note': 'Bar: share of the highest this ship can carry in the game. Tick: stock.',
-  'slot.rank': 'Rank {r} of {n} fitting components',
+  'sum.note': 'Percent: how close this loadout is to the highest this ship can carry in the game.',
+  'sum.max': '{p} % of max',
+  'hint.swap': 'Click a component to swap it.',
+  'pick.head': 'Replace with',
 };
 
 const LAYOUT_UI: Readonly<Record<Locale, Readonly<Record<LayoutKey, string>>>> = { de: DE, en: EN };

@@ -575,8 +575,7 @@ export function initWorkshop(doc, bridge) {
     const id = `hgl-pick-${slot.key.replace(/[^a-z0-9_-]/g, '-')}`;
     const btn = el('button', { type: 'button', class: 'hgl-slot__btn', 'aria-expanded': 'false', 'aria-controls': id, 'data-key': slot.key },
       el('span', { class: 'hgl-sock' }, ico(slot.type), el('b', { class: 'hgl-sz' }, `S${slot.size}`)),
-      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true }),
-        el('span', { class: 'hgl-tier' }, el('i', {}))),
+      el('span', { class: 'hgl-nm' }, el('strong', {}), el('small', { class: 'hgl-sub' }), el('small', { class: 'hgl-was', hidden: true })),
       el('span', { class: 'hgl-fig' }),
       el('span', { class: 'hgl-chev', 'aria-hidden': 'true' }, '›'));
     const pick = el('div', { class: 'hgl-pick', id, hidden: true });
@@ -601,15 +600,6 @@ export function initWorkshop(doc, bridge) {
       li.querySelector('.hgl-ico').replaceWith(ico(e.type));
       li.dataset.ico = e.type;
     }
-    // Rang unter allem, was passt: der Balken unter dem Namen misst am Besten.
-    const cands = reachable(e, slot.stock);
-    const best = bestOf(e, slot.stock);
-    const tier = li.querySelector('.hgl-tier');
-    const rank = cands.indexOf(now) + 1;
-    tier.hidden = !(it && best > 0 && fitting(e).length > 1);
-    tier.firstChild.style.setProperty('--w', `${it && best > 0 ? Math.min(100, Math.round((it[7] / best) * 100)) : 0}%`);
-    tier.title = rank ? fill(m('slot.rank'), { r: nf.format(rank), n: nf.format(cands.length) }) : '';
-    tier.classList.toggle('is-top', !!it && best > 0 && it[7] >= best);
     li.querySelector('strong').textContent = name;
     // Mit getauschter Halterung nennt die Unterzeile sie zuerst.
     const rk = draft.racks?.[slot.key];
@@ -671,6 +661,12 @@ export function initWorkshop(doc, bridge) {
     }
     for (const sec of slotsHost.querySelectorAll('.hgl-grp')) sec.hidden = sec.dataset.cat !== cat;
     if (moved) paintMods();
+    paintHint();
+  }
+  // Ein Satz ueber der Liste sagt, was zu tun ist; er geht, sobald ein Slot offen ist.
+  function paintHint() {
+    const open = openKey && slots.find((s) => s.key === openKey);
+    $('hgl-hint').hidden = cat === 'paint' || !slots.length || (!!open && tabOf(open) === cat);
   }
   function paintCatCounts() {
     for (const b of catBtns) {
@@ -795,9 +791,8 @@ export function initWorkshop(doc, bridge) {
   }
 
   // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
-  // Bomben, Schild. Der Balken laeuft bis zum Bestwert, den die Slots fassen
-  // (je Slot das staerkste erreichbare Teil, bestOf), der Strich steht auf
-  // der Serie.
+  // Bomben, Schild. Balken und Prozent messen am Bestwert, den die Slots
+  // fassen (je Slot das staerkste erreichbare Teil, bestOf).
   const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
   const sumHost = $('hgl-sum');
   function paintSum(totals) {
@@ -824,10 +819,9 @@ export function initWorkshop(doc, bridge) {
       const di = tile.querySelector('.hgl-stat__d');
       di.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
       di.className = `hgl-stat__d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
-      const scale = Math.max(top, now, stock, 1);
-      const bar = tile.querySelector('.hgl-stat__bar');
-      bar.style.setProperty('--now', `${Math.round((now / scale) * 100)}%`);
-      bar.style.setProperty('--stock', `${Math.round((stock / scale) * 100)}%`);
+      const pct = Math.min(100, Math.round((now / Math.max(top, 1)) * 100));
+      tile.querySelector('.hgl-stat__bar').style.setProperty('--now', `${pct}%`);
+      tile.querySelector('.hgl-stat__max').textContent = fill(m('sum.max'), { p: nf.format(pct) });
     }
     sumHost.hidden = !shown;
     sumHost.dataset.n = String(shown);
@@ -852,6 +846,7 @@ export function initWorkshop(doc, bridge) {
         revealSlot(li);
       } else pick.replaceChildren();
     }
+    paintHint();
   }
 
   function revealSlot(li) {
@@ -905,7 +900,7 @@ export function initWorkshop(doc, bridge) {
         el('span', { class: 'hgl-opt__nm' }, itemName(k), ...tags),
         el('span', { class: 'hgl-opt__sub' }, subLine(k, true)),
         el('span', { class: 'hgl-opt__fig' }, nf.format(it[7])),
-        el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d)} %`),
+        el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`),
         el('span', { class: 'hgl-opt__bar', 'aria-hidden': 'true' }, el('i', { style: `--w:${Math.round((it[7] / max) * 100)}%` })));
       const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b);
       return li;
@@ -922,7 +917,7 @@ export function initWorkshop(doc, bridge) {
     filter();
     const revert = el('button', { type: 'button', class: 'hgl-revert', hidden: !isChanged(slot) || !slot.stock }, m('slot.revert'));
     revert.addEventListener('click', () => equip(slot, slot.stock, slot.racks?.[0]));
-    pick.replaceChildren(...[slot.racks ? rackBar(slot) : null].filter(Boolean), el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
+    pick.replaceChildren(el('p', { class: 'hgl-pickhead' }, m('pick.head')), ...[slot.racks ? rackBar(slot) : null].filter(Boolean), el('div', { class: 'hgl-pickbar' }, q, count), ul, empty, revert);
     // Die gewaehlte Zeile in Sicht, ohne die Seite zu rollen.
     const on = ul.querySelector('[aria-pressed="true"]');
     if (on) ul.scrollTop = on.parentElement.offsetTop - ul.clientHeight / 2 + on.offsetHeight / 2;
