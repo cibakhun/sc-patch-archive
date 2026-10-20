@@ -128,13 +128,15 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Am Zeilenende liefe sie aus dem Fenster: dort rechtsbuendig (hangar-overview.js, fitTips) */
 .hgx-tip.is-end{left:auto;right:0}
 .hg-tools{position:absolute;left:var(--hg-gut);bottom:16px;z-index:2;display:flex;gap:.4rem}
-.hgx-gfx[hidden]{display:none}
+.hgx-gfx[hidden],.hgx-snd[hidden]{display:none}
+.hgx-snd[aria-pressed="true"] .hgx-snd__off,.hgx-snd[aria-pressed="false"] .hgx-snd__on{display:none}
+.hgx-snd[aria-pressed="false"]{color:var(--hg-dim)}
 /* var(--fs-8) = 16,2 px: iOS Safari zoomt in jedes Formularfeld unter 16 px. */
 .hgx-gfx select{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:var(--fs-8);cursor:pointer}
 .hgx-gfx select option{background:var(--bg-2);color:var(--text)}
 .hgx-gfx:focus-within{border-color:var(--hg-amber)}
-/* Bedienhinweis neben den Zeichen der Ansicht, bis zum ersten Anfassen. */
-.hg-hint{position:absolute;left:calc(var(--hg-gut) + 6.5rem);bottom:22px;margin:0;max-width:calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px - 7rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+/* Bedienhinweis neben den drei Zeichen der Ansicht, bis zum ersten Anfassen. */
+.hg-hint{position:absolute;left:calc(var(--hg-gut) + 9.4rem);bottom:22px;margin:0;max-width:calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px - 9.9rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
 .hg[data-hint="seen"] .hg-hint{opacity:0;visibility:hidden}
 /* Steht der Korb des Vergleichs unten, macht der Hinweis ihm Platz. */
 .hg:has(#hgx-tray:not([hidden])) .hg-hint{display:none}
@@ -396,7 +398,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </header>
       <p class="hgx-modelerr" id="hgx-modelerr" role="status" hidden>{t('model.failed')}</p>
       {/* Unten links auf der Buehne nur, was die Ansicht selbst betrifft:
-          zuruecksetzen und die Grafikstufe, beide als Zeichen. Der Zufall
+          zuruecksetzen, die Grafikstufe und der Ton, alle als Zeichen. Der Zufall
           steht beim Dock, die Flottenzeile im Dock. Der Bedienhinweis steht,
           bis jemand die Halle zum ersten Mal anfasst (data-hint, gemerkt
           unter hg-hint). */}
@@ -416,6 +418,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
             <option value="niedrig">{t('gfx.niedrig')}</option>
           </select>
         </label>
+        {/* Geraeusche von Plattform, Tor und Dampf (hangar-viewer.js, hangarSound);
+            gemerkt unter hg-ton, sichtbar, sobald die Buehne Ton kann. */}
+        <button type="button" class="hg-btn hgx-ico hgx-snd" id="hgx-snd" aria-pressed="true" data-help={h('hangar.ctl.snd')} data-on={t('snd.on')} data-off={t('snd.off')} hidden>
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path class="hgx-snd__on" d="M15.5 9a4.2 4.2 0 010 6M18 6.5a8 8 0 010 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path class="hgx-snd__off" d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+          <span class="hgx-tip">{t('snd.label')}: <span id="hgx-snd-now">{t('snd.on')}</span></span>
+        </button>
       </div>
       <p class="hg-hint" id="hg-hint">{t('act.hint')}</p>
     </HangarApp>

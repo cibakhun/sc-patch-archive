@@ -30,9 +30,9 @@
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url } }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
-//         paint({ cols, base } | null) -> n,
+//         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
 // project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
@@ -43,6 +43,45 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── Bildlook ─────────────────────────────────────────────────────────────
+// 20.10.2026, Krisz: „besseres licht (nicht mehr, qualitativ besser also
+// künstlerisch qualitativ) colorgrading“. Die Kurve bleibt ACES (three), so
+// hell und so tief wie bisher: AgX (Blender) lief im Vergleich an derselben
+// Rohaufnahme der Halle flau, die Tiefen grau, das Schiff blass. Darauf ein
+// Look (LOOK) im wahrnehmungsnahen Raum (Gamma 2,2), wie ein Coloristen-Pass:
+// Tiefen einen Hauch kühl, Lichter einen Hauch warm (warmes Hallenlicht,
+// kalter Schacht), etwas mehr Sättigung in Tiefen und Mitten (Lack, Gelb der
+// Geräte; zum Weiß hin aus, damit der helle Boden nicht gelb wird) und eine
+// sanfte S-Kurve für Tiefe. Gestimmt an einer Rohaufnahme der Halle (Stufe
+// hoch, Belichtung als Log-Bild) gegen das bisherige Bild: mittlere
+// Helligkeit 0,468 → 0,462, Sättigung 0,016 → 0,038.
+// Gilt für die Nachbearbeitung (OutputPass) und für die Stufen ohne sie
+// (Tonabbildung im Material) gleich: three ruft CustomToneMapping.
+// exposure: Faktor vor der Kurve (1 = toneMappingExposure allein);
+// slope/offset/power wie ASC CDL je Kanal (R, G, B), sat Sättigung um die
+// Helligkeit, curve Anteil der S-Kurve; shadow/high: Tönung der Tiefen und
+// Lichter (Faktoren, nach der Abbildung), balance: Helligkeit (0..1), an der
+// beide sich treffen. Alle neutral (1, 0, 1, 1, 0, 1, 1) ergibt genau ACES.
+const LOOK = /* hall-look */ { "exposure": 1, "slope": [1.02, 1, 0.98], "offset": [-0.01, -0.005, 0.01], "power": [1, 1, 1], "sat": 1.2, "curve": 0.18, "shadow": [0.95, 1, 1.06], "high": [1.02, 1, 0.97], "balance": 0.35 } /* /hall-look */;
+const v3 = (a) => `vec3( ${a.map((x) => Number(x).toFixed(4)).join(', ')} )`;
+const f1 = (x) => Number(x).toFixed(4);
+const LOOK_GLSL = /* glsl */ `
+vec3 CustomToneMapping( vec3 color ) {
+  color = ACESFilmicToneMapping( color * ${f1(LOOK.exposure)} );
+  vec3 g = pow( color, vec3( 1.0 / 2.2 ) );
+  g = pow( max( g * ${v3(LOOK.slope)} + ${v3(LOOK.offset)}, vec3( 0.0 ) ), ${v3(LOOK.power)} );
+  float y = dot( g, vec3( 0.2126, 0.7152, 0.0722 ) ), w = clamp( ( y - 0.6 ) / 0.4, 0.0, 1.0 );
+  g = y + ( 1.0 + ${f1(LOOK.sat - 1)} * ( 1.0 - w * w ) ) * ( g - y );
+  g += ${f1(LOOK.curve)} * ( g * g * ( 3.0 - 2.0 * g ) - g );
+  color = pow( clamp( g, 0.0, 1.0 ), vec3( 2.2 ) );
+  y = dot( color, vec3( 0.2126, 0.7152, 0.0722 ) );
+  return clamp( color * mix( ${v3(LOOK.shadow)}, ${v3(LOOK.high)}, smoothstep( 0.0, ${f1(2 * LOOK.balance)}, sqrt( y ) ) ), 0.0, 1.0 );
+}`;
+const LOOK_HOOK = 'vec3 CustomToneMapping( vec3 color ) { return color; }';
+const LOOK_ON = THREE.ShaderChunk.tonemapping_pars_fragment.includes(LOOK_HOOK);
+if (LOOK_ON) THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace(LOOK_HOOK, LOOK_GLSL);
+else console.warn('[hangar] Bildlook: Einhängepunkt fehlt (three.js geändert?), ACES bleibt');
 
 // Halle bei S = 1 (Schiff bis ~16 m Spannweite). Alle Hallenmaße unten
 // beziehen sich auf diesen Grundriss; das Gerät rückt mit, bleibt aber
@@ -896,6 +935,25 @@ const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1300, "clear": 0.4, "le
 const GATE_BLEND_MS = 250;   // kehrt das Tor unterwegs um: so lange von der Lage auf die neue Bahn
 const GATE_SLACK_MS = 80;    // die Oberkante des neuen Schiffs kommt erst so lange nach dem offenen Tor
 const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
+// Finish des Tors (20.10.2026, Krisz: „in der mitte die zylinder sind
+// verbuggt iwi, ganze tor was oben schacht zu macht hat nicht den selben
+// finish wie der rest“). Am Render aus seinem Blickwinkel drei Ursachen:
+// Das Metall des Tors (metal_a_046: Kolben, Dichtleisten, Flanken der
+// Flügel) ist im Spiel blankes Metall mit Grundfarbe 0,55. Auf 0,4 Metall
+// gedeckelt wurde es heller Lack und leuchtete in der Fuge als weiße
+// Klötze; es nimmt jetzt die Einstellung der Bodenplatten der Halle
+// (Stahlgrau). Unter dem Boden lag das Tor im vollen Hallenlicht, obwohl
+// über ihm nur ein Schlitz offen ist: Es dunkelt mit der Tiefe unter dem
+// Hallenboden auf das Restlicht der Nische (GATE_SLOT, ab .. bis in m).
+// Und die Lacke tragen im Export eine glatte Einheitskarte (ein Grau,
+// flache Normalen), während Boden und Feld daneben Kratzer und Flecken
+// zeigen: Das Tor bekommt die Schmutzkarte des weißen Hallenlacks
+// (metal_white_03, auch auf dem Feld), im Raum des Teils projiziert, damit
+// sie mitfährt (GATE_GRIME: Kachel in m wie im Spiel, Verstärkung). Die
+// Wear-Karte des Schachts war am Render zu fleckig, das Tor sah aus wie
+// Beton.
+const GATE_SLOT = [0.3, 1.2];
+const GATE_GRIME = [4, 2];
 // Lackfarben des Tors: Die Lacke paint_b_* sind Palettenlacke, das Spiel
 // färbt sie mit der Palette am Tor (info.palette, 19.10.2026: Hellgrau,
 // Dunkelgrau, Dunkelblau). Der Export trug die Palette des Behälters (fast
@@ -915,13 +973,51 @@ const GATE_PALETTE = ['', 'primary', 'secondary', 'tertiary'];
 // hier (buildGate).
 const GATE_STOW = SHAFT_POCKET[1] + 0.2;
 
+// Zwischen den Stützstellen einer Bahn monoton kubisch (Fritsch-Carlson,
+// wie PCHIP) statt geradlinig (20.10.2026, Krisz: „smoother animation“):
+// Geradlinig sprang das Tempo an jeder Stützstelle, beim Tor alle 43 ms, bei
+// der Plattform alle 60 bis 90 ms; man sah es als leises Stottern. Kubisch
+// ist das Tempo stetig; monoton heißt, kein Teil schießt über eine
+// Stützstelle hinaus (etwa in die Wand der Nische), flache Abschnitte bleiben
+// flach. Durch die Stützstellen selbst geht die Bahn wie vorher.
+// Steigung der Spalte j an Stützstelle n von keys ([t, …], aufsteigend)
+function pchipSlope(keys, n, j) {
+  const c = keys[n], p = keys[n - 1], q = keys[n + 1];
+  const h0 = p ? c[0] - p[0] : 0, h1 = q ? q[0] - c[0] : 0;
+  const d0 = h0 > 1e-9 ? (c[j] - p[j]) / h0 : null, d1 = h1 > 1e-9 ? (q[j] - c[j]) / h1 : null;
+  if (d0 === null && d1 === null) return 0;
+  if (d0 === null || d1 === null) {
+    // Rand: aus den nächsten zwei Abschnitten, ohne Vorzeichenwechsel
+    const d = d0 ?? d1, r = d0 === null ? keys[n + 2] : keys[n - 2], h = d0 === null ? h1 : h0;
+    const h2 = r ? Math.abs(r[0] - (d0 === null ? q[0] : p[0])) : 0;
+    if (!(h2 > 1e-9)) return d;
+    const e = d0 === null ? (r[j] - q[j]) / h2 : (p[j] - r[j]) / h2;
+    let m = ((2 * h + h2) * d - h * e) / (h + h2);
+    if (Math.sign(m) !== Math.sign(d)) m = 0;
+    else if (Math.sign(d) !== Math.sign(e) && Math.abs(m) > Math.abs(3 * d)) m = 3 * d;
+    return m;
+  }
+  if (d0 * d1 <= 0) return 0;
+  const w1 = 2 * h1 + h0, w2 = h1 + 2 * h0;
+  return (w1 + w2) / (w1 / d0 + w2 / d1);
+}
+// Wert der Spalte j im Abschnitt keys[i-1]..keys[i] bei f (0..1)
+function pchipAt(keys, i, f, j) {
+  const a = keys[i - 1], b = keys[i], h = b[0] - a[0];
+  if (!(h > 1e-9)) return b[j];
+  const f2 = f * f, f3 = f2 * f;
+  return (2 * f3 - 3 * f2 + 1) * a[j] + (f3 - 2 * f2 + f) * h * pchipSlope(keys, i - 1, j)
+    + (3 * f2 - 2 * f3) * b[j] + (f3 - f2) * h * pchipSlope(keys, i, j);
+}
 // Lage einer Bahn ([t, x, y, z], aufsteigend) zur Zeit tau, nach out
 function gateAt(keys, tau, out) {
   if (tau <= keys[0][0]) return out.set(keys[0][1], keys[0][2], keys[0][3]);
   let i = 1;
   while (i < keys.length - 1 && keys[i][0] < tau) i++;
-  const a = keys[i - 1], b = keys[i], f = Math.min(1, (tau - a[0]) / (b[0] - a[0] || 1));
-  return out.set(a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f);
+  const a = keys[i - 1], b = keys[i];
+  if (tau >= b[0]) return out.set(b[1], b[2], b[3]);
+  const f = (tau - a[0]) / (b[0] - a[0] || 1);
+  return out.set(pchipAt(keys, i, f, 1), pchipAt(keys, i, f, 2), pchipAt(keys, i, f, 3));
 }
 // Drehung einer Bahn ([t, qx, qy, qz, qw], aufsteigend) zur Zeit tau, nach out
 const GATE_Q = new THREE.Quaternion();
@@ -1147,13 +1243,14 @@ function buildGate(scene, info, sh, inner) {
   if (Array.isArray(pad) && pad.length > 2 && ps > 0) {
     const depth = pad.at(-1)[1], f = pad.map(([t, y]) => [t / ps, y / depth]);
     if (depth < 0 && f.every((v, i) => i === 0 || (v[0] > f[i - 1][0] && v[1] >= f[i - 1][1]))) {
+      // monoton kubisch wie die Bahnen des Tors (pchipAt)
       ease = (k) => {
         if (k <= 0) return 0;
         if (k >= 1) return 1;
         let i = 1;
         while (i < f.length - 1 && f[i][0] < k) i++;
         const a = f[i - 1], b = f[i];
-        return a[1] + ((b[1] - a[1]) * (k - a[0])) / (b[0] - a[0]);
+        return pchipAt(f, i, (k - a[0]) / (b[0] - a[0]), 1);
       };
     }
   }
@@ -3631,6 +3728,366 @@ function disposeObject(o) {
   });
 }
 
+// ─── Dampf ────────────────────────────────────────────────────────────────
+// 20.10.2026, Krisz: „effekte wie zb dampf, rauch, geräusche wenn dampf
+// kommt … yk belivebality“. Dampf steigt, wo Mechanik unter Druck arbeitet:
+// aus der Mittelfuge, wenn das Schachttor einrastet, als warmer Schwaden
+// aus dem Schacht, wenn es aufgeht, und in Stößen an den Kanten des Felds,
+// wenn die Plattform oben einrastet oder unten losfährt (fx in
+// initHangar). Jedes Teilchen ist ein zur Kamera gedrehtes Viereck; seine
+// Bahn rechnet der Shader aus Startpunkt, Geschwindigkeit und Alter, der
+// Prozessor schreibt nur beim Ausstoß ein paar Zahlen in einen Ringpuffer.
+// Ist nichts in der Luft, zeichnet er nichts.
+// Bahn: Der Stoß bremst in der Luft (STEAM_DRAG, 1/s), danach treibt der
+// Dampf mit seiner Steiggeschwindigkeit nach oben (aV.w: Lebensdauer).
+const STEAM_DRAG = 2.2;
+// Farbe (linear, vor der Belichtung): oben im Licht der Halle, unten im
+// eigenen Schatten, kühl wie das Streulicht der weißen Wände
+const STEAM_LIT = [1.5, 1.47, 1.43];
+const STEAM_SHADE = [0.62, 0.66, 0.72];
+const STEAM_VS = /* glsl */ `
+attribute vec4 aP;   // Start (Welt, m), Geburt (s)
+attribute vec4 aV;   // Stoß (m/s), Lebensdauer (s)
+attribute vec4 aS;   // Größe am Anfang und am Ende (m), Zufall, Deckkraft
+attribute vec2 aR;   // Steiggeschwindigkeit (m/s), Wirbel (m)
+uniform float uTime;
+varying vec2 vUv, vUp;
+varying float vA, vSeed, vAge, vY;
+void main() {
+  float age = uTime - aP.w, k = age / aV.w;
+  vUv = position.xy + 0.5;
+  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0;
+  if (k < 0.0 || k >= 1.0) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
+  float d = (1.0 - exp(-${STEAM_DRAG.toFixed(1)} * age)) / ${STEAM_DRAG.toFixed(1)};
+  vec3 p = aP.xyz + aV.xyz * d;
+  p.y += aR.x * max(0.0, age - d);
+  float w = aR.y * k;
+  p.x += sin(age * 1.7 + aS.z * 40.0) * w;
+  p.z += cos(age * 1.3 + aS.z * 23.0) * w;
+  float s = mix(aS.x, aS.y, 1.0 - (1.0 - k) * (1.0 - k));
+  float a = aS.z * 6.2832 + age * (aS.z - 0.5) * 0.8;
+  vec2 c = mat2(cos(a), sin(a), -sin(a), cos(a)) * position.xy * s;
+  // Oben der Welt in den Achsen des gedrehten Vierecks (Licht von oben)
+  vec2 u = normalize(vec2(viewMatrix[1][0], viewMatrix[1][1]) + vec2(0.0, 1e-4));
+  vUp = vec2(dot(u, vec2(cos(a), sin(a))), dot(u, vec2(-sin(a), cos(a))));
+  vec4 mv = viewMatrix * vec4(p, 1.0);
+  mv.xy += c;
+  gl_Position = projectionMatrix * mv;
+  // Höhe des Bildpunkts über dem Boden (Ecken über die Achsen der Kamera)
+  vY = p.y + c.x * viewMatrix[1][0] + c.y * viewMatrix[1][1];
+  // rasch da, lang verweht; dünner, je größer er wird: Der Dampf mischt
+  // sich mit Luft, die Menge im Ballen bleibt, die Dichte fällt mit der
+  // Fläche (sonst wachsen dichte Wattebäusche heran)
+  vA = aS.w * smoothstep(0.0, 0.04, k) * (1.0 - smoothstep(0.35, 1.0, k)) * aS.x / s;
+}`;
+const STEAM_FS = /* glsl */ `
+uniform vec3 uLit, uShade;
+uniform float uFloor;
+varying vec2 vUv, vUp;
+varying float vA, vSeed, vAge, vY;
+float sHash(vec2 p) { p = fract(p * vec2(0.1031, 0.1030)); p += dot(p, p.yx + 33.33); return fract((p.x + p.y) * p.x); }
+float sNoise(vec2 x) {
+  vec2 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(sHash(i), sHash(i + vec2(1.0, 0.0)), f.x), mix(sHash(i + vec2(0.0, 1.0)), sHash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+void main() {
+  vec2 q = vUv * 2.0 - 1.0;
+  float r0 = dot(q, q);
+  if (r0 >= 1.0 || vA <= 0.0) discard;
+  // Schleier statt Ballen: weich nach außen (Gauß), innen Schlieren aus
+  // verzerrtem Rauschen, die mit dem Alter aufreißen. Ein ausgefranster
+  // Umriss mit dunkler Unterseite las sich als Wattewolke (Render 20.10.)
+  vec2 o = vec2(vSeed * 37.0, vSeed * 11.0 - vAge * 0.9);
+  vec2 wq = vUv * 2.3 + o + 0.8 * vec2(sNoise(vUv * 1.7 + o.yx), sNoise(vUv * 1.7 - o));
+  float n = 0.5 * sNoise(wq) + 0.3 * sNoise(wq * 2.1 - o) + 0.2 * sNoise(wq * 4.3 + o.yx);
+  float dens = exp(-3.2 * r0) * (1.0 - smoothstep(0.75, 1.0, r0));
+  dens *= clamp(0.25 + 1.5 * n * n - vAge * 0.45 * (1.0 - n), 0.0, 1.0);
+  // Licht von oben (Hallendecke), schwach: Dampf streut das Licht nach allen Seiten
+  vec3 col = mix(uShade, uLit, clamp(0.7 + 0.25 * dot(q, vUp) + (n - 0.5) * 0.4, 0.0, 1.0));
+  float a = dens * vA * smoothstep(uFloor - 0.05, uFloor + 0.5, vY);
+  gl_FragColor = vec4(col, a);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+  gl_FragColor.rgb *= gl_FragColor.a;
+}`;
+function buildSteam(max) {
+  const g = new THREE.InstancedBufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]), 3));
+  g.setIndex([0, 1, 2, 0, 2, 3]);
+  const A = {};
+  for (const [k, w] of [['aP', 4], ['aV', 4], ['aS', 4], ['aR', 2]]) {
+    A[k] = new THREE.InstancedBufferAttribute(new Float32Array(max * w), w);
+    A[k].setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute(k, A[k]);
+  }
+  // alle schon verweht
+  for (let i = 0; i < max; i++) { A.aP.array[i * 4 + 3] = -1e5; A.aV.array[i * 4 + 3] = 1; }
+  g.instanceCount = max;
+  const u = {
+    uTime: { value: 0 }, uFloor: { value: 0 },
+    uLit: { value: new THREE.Color(...STEAM_LIT) }, uShade: { value: new THREE.Color(...STEAM_SHADE) },
+  };
+  const mat = new THREE.ShaderMaterial({
+    name: 'steam', uniforms: u, vertexShader: STEAM_VS, fragmentShader: STEAM_FS,
+    transparent: true, depthWrite: false, premultipliedAlpha: true, blending: THREE.NormalBlending,
+  });
+  const mesh = new THREE.Mesh(g, mat);
+  mesh.name = 'steam';
+  mesh.frustumCulled = false;
+  mesh.renderOrder = 5;
+  mesh.visible = false;
+  let n = 0, until = -1, dirty = false;
+  return {
+    mesh,
+    get until() { return until; },
+    // t: Geburt (s, Uhr der Bühne); p Start, v Stoß (m/s); life s; s0, s1 m;
+    // a Deckkraft; rise m/s; swirl m
+    puff(t, p, v, life, s0, s1, a, rise = 0.6, swirl = 0.5) {
+      const i = n++ % max;
+      A.aP.array.set([p[0], p[1], p[2], t], i * 4);
+      A.aV.array.set([v[0], v[1], v[2], life], i * 4);
+      A.aS.array.set([s0, s1, Math.random(), a], i * 4);
+      A.aR.array.set([rise, swirl], i * 2);
+      until = Math.max(until, t + life);
+      dirty = true;
+    },
+    frame(t) {
+      u.uTime.value = t;
+      mesh.visible = t < until;
+      if (!dirty) return;
+      for (const k in A) A[k].needsUpdate = true;
+      dirty = false;
+    },
+    dispose() { g.dispose(); mat.dispose(); },
+  };
+}
+
+// ─── Geräusche ────────────────────────────────────────────────────────────
+// Zum Dampf die Geräusche der Mechanik (Krisz 20.10.2026: „geräusche wenn
+// dampf kommt, geräusche wenn tor sich schliest wenn platform runterfährt“).
+// Alles entsteht im Browser (Web Audio), keine Tondateien: Rauschen und
+// Schwingungen durch Filter, dazu ein künstlicher Nachhall, denn die Halle
+// ist groß und hart. Antrieb der Plattform: Brummen und Rumpeln, die mit
+// ihrer Geschwindigkeit an- und abschwellen und dumpfer werden, je tiefer
+// sie im Schacht ist; Tor: Stellmotor mit Getrieberasseln; Einrasten:
+// dumpfer Schlag mit metallischem Nachklang; Dampf: Zischen. Der Ton geht
+// erst nach der ersten Berührung der Seite an (Regel der Browser) und lässt
+// sich abschalten (setSound, Schalter auf der Bühne).
+const SND_VOL = 0.4;        // Gesamtlautstärke
+const SND_VERB = 0.32;      // Anteil im Nachhall
+function hangarSound() {
+  const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
+  let ctx = null, out = null, dry = null, wet = null, noise = null, on = true, drive = null;
+  function make() {
+    if (!AC || ctx) return ctx;
+    try { ctx = new AC({ latencyHint: 'interactive' }); } catch { return null; }
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 8; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.25;
+    out = ctx.createGain();
+    out.gain.value = on ? SND_VOL : 0;
+    out.connect(comp).connect(ctx.destination);
+    dry = ctx.createGain(); dry.connect(out);
+    // Nachhall: abklingendes Rauschen, links und rechts verschieden, die
+    // Höhen verklingen schneller als die Tiefen
+    const len = Math.round(ctx.sampleRate * 2.8), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      let lp = 0;
+      for (let i = 0; i < len; i++) {
+        const t = i / ctx.sampleRate, k = Math.min(0.92, 0.3 + t * 0.4);
+        lp = lp * k + (Math.random() * 2 - 1) * (1 - k);
+        d[i] = lp * Math.exp(-t * 2.4) * (t < 0.012 ? t / 0.012 : 1) * 2.2;
+      }
+    }
+    const verb = ctx.createConvolver();
+    verb.buffer = ir;
+    wet = ctx.createGain(); wet.gain.value = SND_VERB;
+    wet.connect(verb).connect(out);
+    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const nd = noise.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    return ctx;
+  }
+  const live = () => !!ctx && on && ctx.state === 'running';
+  // Ziel eines Klangs: trocken und in den Nachhall, im Stereobild bei pan
+  function bus(pan = 0, verb = 1) {
+    const g = ctx.createGain();
+    let tail = g;
+    if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); g.connect(p); tail = p; }
+    tail.connect(dry);
+    if (verb > 0) { const s = ctx.createGain(); s.gain.value = verb; tail.connect(s).connect(wet); }
+    return g;
+  }
+  function noiseSrc() {
+    const s = ctx.createBufferSource();
+    s.buffer = noise; s.loop = true;
+    s.playbackRate.value = 0.85 + Math.random() * 0.3;
+    return s;
+  }
+  const env = (p, t, a, peak, hold, rel) => {
+    p.setValueAtTime(0.0001, t);
+    p.exponentialRampToValueAtTime(peak, t + a);
+    p.setValueAtTime(peak, t + a + hold);
+    p.exponentialRampToValueAtTime(0.0001, t + a + hold + rel);
+  };
+  function stopAt(nodes, t) { for (const n of nodes) { try { n.stop(t); } catch { /* schon aus */ } } }
+  return {
+    // nach einer Berührung der Seite (pointerdown, keydown)
+    unlock() {
+      if (!on) return;
+      if (!make()) return;
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    },
+    set(v) {
+      on = !!v;
+      if (on) this.unlock();
+      if (!ctx) return;
+      out.gain.setTargetAtTime(on ? SND_VOL : 0, ctx.currentTime, 0.05);
+      if (!on) this.drive(0, 0, 0);
+    },
+    get on() { return on; },
+    // Seite verborgen: anhalten, damit nichts im Hintergrund weiterbrummt
+    pause(hidden) {
+      if (!ctx) return;
+      if (hidden) ctx.suspend().catch(() => {});
+      else if (on) ctx.resume().catch(() => {});
+    },
+    // Zischen: Stärke 0..1, Dauer s, Lage im Bild -1..1
+    hiss(k, dur, pan = 0) {
+      if (!live()) return;
+      const t = ctx.currentTime + 0.005, b = bus(pan, 0.8);
+      const s = noiseSrc(), hp = ctx.createBiquadFilter(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+      const top = ctx.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 900;
+      bp.type = 'peaking'; bp.frequency.value = 3800 + Math.random() * 1500; bp.Q.value = 0.8; bp.gain.value = 7;
+      top.type = 'lowpass'; top.frequency.value = 9000;
+      s.connect(hp).connect(bp).connect(top).connect(g).connect(b);
+      env(g.gain, t, 0.025, 0.42 * k, dur * 0.25, dur * 0.75);
+      bp.frequency.setTargetAtTime(2400, t + dur * 0.3, dur * 0.4);
+      // dazu ein tiefes Fauchen
+      const s2 = noiseSrc(), lp = ctx.createBiquadFilter(), g2 = ctx.createGain();
+      lp.type = 'lowpass'; lp.frequency.value = 420;
+      s2.connect(lp).connect(g2).connect(b);
+      env(g2.gain, t, 0.04, 0.5 * k, dur * 0.15, dur * 0.6);
+      s.start(t, Math.random() * 1.5); s2.start(t, Math.random() * 1.5);
+      stopAt([s, s2], t + dur + 0.1);
+    },
+    // Einrasten: dumpfer Schlag, Gewicht 0..1, dumpf 0..1 (unter dem Tor)
+    clunk(w, muffle = 0, pan = 0) {
+      if (!live()) return;
+      const t = ctx.currentTime + 0.005, b = bus(pan, 1.1);
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 6000 * (1 - 0.88 * muffle) + 300;
+      lp.connect(b);
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(86 - 26 * w, t);
+      o.frequency.exponentialRampToValueAtTime(34, t + 0.32);
+      o.connect(g).connect(lp);
+      env(g.gain, t, 0.006, 0.9 * (0.5 + 0.5 * w), 0.02, 0.55 + 0.3 * w);
+      const s = noiseSrc(), nf = ctx.createBiquadFilter(), ng = ctx.createGain();
+      nf.type = 'lowpass'; nf.frequency.value = 2600;
+      s.connect(nf).connect(ng).connect(lp);
+      env(ng.gain, t, 0.002, 0.55 * (0.4 + 0.6 * w), 0.008, 0.07);
+      // metallischer Nachklang (nicht harmonisch, wie eine schwere Platte)
+      const ring = [];
+      for (const [f, a, d] of [[173, 0.07, 0.9], [289, 0.05, 0.7], [457, 0.035, 0.5], [731, 0.02, 0.35]]) {
+        const r = ctx.createOscillator(), rg = ctx.createGain();
+        r.frequency.value = f * (1 - 0.15 * w) * (0.97 + Math.random() * 0.06);
+        r.connect(rg).connect(lp);
+        env(rg.gain, t, 0.004, a * (0.6 + 0.4 * w), 0, d);
+        r.start(t); ring.push(r);
+      }
+      o.start(t); s.start(t, Math.random());
+      stopAt([o, s, ...ring], t + 1.4);
+    },
+    // Stellmotor des Tors für ms; dumpf 0..1. Liefert stop() für eine
+    // Umkehr unterwegs (dann setzt ein neuer Lauf ein)
+    motor(ms, muffle = 0) {
+      if (!live()) return null;
+      const t = ctx.currentTime + 0.005, T = ms / 1000, b = bus(0, 0.9);
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2400 * (1 - 0.7 * muffle) + 200; lp.Q.value = 0.5;
+      lp.connect(b);
+      const o = ctx.createOscillator(), og = ctx.createGain(), of = ctx.createBiquadFilter();
+      o.type = 'sawtooth';
+      of.type = 'lowpass'; of.frequency.value = 520;
+      o.frequency.setValueAtTime(58, t);
+      o.frequency.linearRampToValueAtTime(92, t + T * 0.2);
+      o.frequency.setValueAtTime(92, t + T * 0.75);
+      o.frequency.linearRampToValueAtTime(70, t + T);
+      o.connect(of).connect(og).connect(lp);
+      env(og.gain, t, 0.12, 0.2, Math.max(0, T - 0.3), 0.18);
+      const w = ctx.createOscillator(), wg = ctx.createGain();
+      w.type = 'triangle';
+      w.frequency.setValueAtTime(380, t);
+      w.frequency.linearRampToValueAtTime(610, t + T * 0.25);
+      w.frequency.linearRampToValueAtTime(540, t + T);
+      w.connect(wg).connect(lp);
+      env(wg.gain, t, 0.15, 0.06, Math.max(0, T - 0.35), 0.2);
+      // Getrieberasseln: Rauschen im Takt der Zähne
+      const s = noiseSrc(), bp = ctx.createBiquadFilter(), sg = ctx.createGain(), am = ctx.createGain(), lfo = ctx.createOscillator(), la = ctx.createGain();
+      bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.4;
+      lfo.frequency.value = 26; la.gain.value = 0.5; am.gain.value = 0.5;
+      lfo.connect(la).connect(am.gain);
+      s.connect(bp).connect(am).connect(sg).connect(lp);
+      env(sg.gain, t, 0.1, 0.24, Math.max(0, T - 0.3), 0.2);
+      for (const n of [o, w, s, lfo]) n.start(t);
+      stopAt([o, w, s, lfo], t + T + 0.4);
+      return {
+        stop() {
+          const now = ctx.currentTime;
+          for (const p of [og.gain, wg.gain, sg.gain]) { p.cancelScheduledValues(now); p.setTargetAtTime(0.0001, now, 0.04); }
+          stopAt([o, w, s, lfo], now + 0.3);
+        },
+      };
+    },
+    // Antrieb der Plattform, je Bild: Geschwindigkeit 0..1, Tiefe 0..1,
+    // dumpf 0..1 (Tor zu). 0 schaltet ihn aus, sobald er verklungen ist.
+    drive(v, depth, muffle) {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      if (!drive) {
+        if (!(v > 0.001) || !live()) return;
+        const g = ctx.createGain(); g.gain.value = 0;
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+        g.connect(lp).connect(bus(0, 0.7));
+        const hum = ctx.createOscillator(), hg = ctx.createGain(), hf = ctx.createBiquadFilter();
+        hum.type = 'sawtooth'; hum.frequency.value = 44;
+        hf.type = 'lowpass'; hf.frequency.value = 240;
+        hg.gain.value = 0.32;
+        hum.connect(hf).connect(hg).connect(g);
+        const whine = ctx.createOscillator(), wg = ctx.createGain();
+        whine.type = 'sine'; whine.frequency.value = 260; wg.gain.value = 0.05;
+        whine.connect(wg).connect(g);
+        const rum = noiseSrc(), rf = ctx.createBiquadFilter(), rg = ctx.createGain();
+        rf.type = 'lowpass'; rf.frequency.value = 180; rg.gain.value = 0.9;
+        rum.connect(rf).connect(rg).connect(g);
+        // Hydraulik: ein Band in der Mitte, das auch kleine Lautsprecher zeigen
+        const hyd = noiseSrc(), yf = ctx.createBiquadFilter(), yg = ctx.createGain();
+        yf.type = 'bandpass'; yf.frequency.value = 520; yf.Q.value = 0.9; yg.gain.value = 0.22;
+        hyd.connect(yf).connect(yg).connect(g);
+        for (const n of [hum, whine, rum, hyd]) n.start(t);
+        drive = { g, lp, hum, whine, rum, hyd, idle: 0 };
+      }
+      const k = on ? Math.min(1, Math.max(0, v)) : 0;
+      drive.g.gain.setTargetAtTime(0.32 * Math.pow(k, 0.7), t, 0.06);
+      drive.hum.frequency.setTargetAtTime(38 + 26 * k, t, 0.08);
+      drive.whine.frequency.setTargetAtTime(220 + 330 * k, t, 0.08);
+      drive.lp.frequency.setTargetAtTime(Math.max(160, 1900 * (1 - 0.75 * depth) * (1 - 0.8 * muffle)), t, 0.1);
+      if (k > 0.001) { drive.idle = 0; return; }
+      // still: nach dem Ausklingen abbauen
+      if (!drive.idle) drive.idle = t;
+      else if (t - drive.idle > 0.6) {
+        stopAt([drive.hum, drive.whine, drive.rum, drive.hyd], t);
+        drive.g.disconnect();
+        drive = null;
+      }
+    },
+    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; drive = null; },
+  };
+}
+
 // Leistungsstufen (Krisz, 2026-10-15: „auf komplett potato flüssig“). hoch
 // ist das volle Bild; mittel lässt Nachbearbeitung (Umgebungsverdeckung,
 // Lichtschein), Bodenspiegelung des Schiffs und Crew-Schatten weg, hat
@@ -3710,7 +4167,7 @@ export async function initHangar(container, opts = {}) {
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(W(), H());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMapping = LOOK_ON ? THREE.CustomToneMapping : THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   // PCF ausdrücklich: three r185 stellt PCFSoft beim ersten Zeichnen der
@@ -3786,6 +4243,17 @@ export async function initHangar(container, opts = {}) {
   const fill = new THREE.DirectionalLight(0x8fb4ff, 0.5);
   scene.add(fill);
 
+  // Dampf und Geräusche der Mechanik (fx): ohne Bewegung (reduceMotion)
+  // fährt nichts, also auch kein Dampf; die niedrige Stufe mit weniger
+  // Teilchen (Füllrate: große, durchscheinende Flächen)
+  const steamK = Q0 === 'niedrig' ? 0.5 : Q0 === 'mittel' ? 0.75 : 1;
+  const steam = reduceMotion ? null : buildSteam(Math.round(160 * steamK));
+  if (steam) scene.add(steam.mesh);
+  const sound = hangarSound();
+  if (opts.sound === false) sound.set(false);
+  const unlockSound = () => sound.unlock();
+  document.addEventListener('pointerdown', unlockSound, { capture: true, passive: true });
+  document.addEventListener('keydown', unlockSound, { capture: true });
   const life = buildLife(scene, reduceMotion, !REAL);
   // In der echten Halle werfen die Arbeiter keinen Schatten (sie laufen: die
   // Karten müssten sonst jedes Bild neu, in hoch 315 Aufrufe und 2 ms
@@ -5152,8 +5620,32 @@ ${HALL_LIGHTS_BEGIN}
 	diffuseColor.a *= sampledDiffuseColor.a;`)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = mix( roughnessFactor, hgWearRough, hgWm );');
     }
+    // Schachttor (GATE_SLOT, GATE_GRIME): Schmutz aus zwei Abtastungen in
+    // verschiedenem Maßstab (sonst sähe man die Kachel auf 64 m Flügel),
+    // bezogen auf den Mittelwert der Karte (oberste Mip-Stufe), also im
+    // Mittel so hell wie vorher; im Raum des Teils vor batchingMatrix.
+    // Dunkler Schmutz ist rauer. Unter dem Boden dunkel wie im Schlitz.
+    const Gr = m.userData.hgGrime;
+    if (m.userData.gate) sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * mix( 1.0, ${SHAFT_POCKET[3].toFixed(2)}, smoothstep( ${GATE_SLOT[0].toFixed(2)}, ${GATE_SLOT[1].toFixed(2)}, - vHgP.y ) ) + totalEmissiveRadiance;
+	#include <opaque_fragment>`);
+    if (m.userData.gate && Gr) {
+      sh.uniforms.hgGrimeMap = { value: Gr };
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vHgGrUv;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+	{ vec3 gn = abs( normal ); vHgGrUv = ( gn.x > gn.y && gn.x > gn.z ? position.zy : ( gn.y > gn.z ? position.xz : position.xy ) ) / ${GATE_GRIME[0].toFixed(2)}; }`);
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vHgGrUv;\nuniform sampler2D hgGrimeMap;')
+        .replace('#include <color_fragment>', `#include <color_fragment>
+	float hgGrM = max( dot( textureLod( hgGrimeMap, vec2( 0.5 ), 16.0 ).rgb, vec3( 0.3333 ) ), 0.01 );
+	float hgGr = dot( texture2D( hgGrimeMap, vHgGrUv ).rgb + texture2D( hgGrimeMap, vHgGrUv * 0.37 + 0.31 ).rgb, vec3( 0.1667 ) ) / hgGrM;
+	hgGr = max( 1.0 + ${GATE_GRIME[1].toFixed(2)} * ( hgGr - 1.0 ), 0.0 );
+	diffuseColor.rgb *= hgGr;`)
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n\troughnessFactor = clamp( roughnessFactor * ( 2.0 - hgGr ), 0.0, 1.0 );');
+    }
   };
   const hallKey = () => 'hall-v2';
+  const gateKey = (m) => () => `hall-v2|gate${m.userData.hgGrime ? '|grime' : ''}`;
   const pitKey = () => (PIT_N ? `hall-v2|pit${hallPit.field}` : 'hall-v2');
   const shaftKey = (m) => () => `hall-v2|shaft${m.userData.shaftUv ? '|uv' : ''}${m.userData.hgWear ? '|wear' : ''}`;
 
@@ -5817,24 +6309,30 @@ ${HALL_LIGHTS_BEGIN}
               // statt einer zweiten Kopie im Grafikspeicher
               const twins = new Map();
               kit.kit.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) twins.set(m.name, m); });
-              let shared = 0;
+              let shared = 0, steel = 0;
+              // Schmutz (GATE_GRIME): die Karte des weißen Hallenlacks, schon geladen
+              const white = [...seen].filter((h) => h.map && /mtl_metal_white_03$/i.test(h.name));
+              const grime = (white.find((h) => /kit_master/i.test(h.name)) ?? white[0])?.map ?? null;
+              if (grime) grime.anisotropy = maxAniso;
               for (const b of G.batches) {
                 const m = b.material, twin = twins.get(m.name);
                 if (twin) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap']) if (m[k] && twin[k] && !isNeutral(twin[k]) && m[k] !== twin[k]) { m[k].dispose(); m[k] = twin[k]; shared++; }
                 m.envMapIntensity = 0.05;
                 if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
-                if (m.metalness > 0.4) m.metalness = 0.4;
+                // Metall wie die Bodenplatten der Halle (GATE_SLOT)
+                if (m.metalness > 0.4) { m.color.multiplyScalar(0.5); m.metalness = 0.7; m.userData.envGain = 0.75; steel++; }
                 m.vertexColors = false; m.userData.hgShade = true;
                 if (/glow/i.test(m.name) && m.emissiveMap) { m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = GATE_GLOW; }
                 for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
+                m.userData.gate = true; m.userData.hgGrime = grime;
                 m.onBeforeCompile = hallShader(m);
-                m.customProgramCacheKey = hallKey;
+                m.customProgramCacheKey = gateKey(m);
                 unifyMaps(m);
               }
               G.group.visible = false;
               shaft.group.add(G.group);
               shaft.gate = G;
-              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; offen nicht hinter der Nische: ${G.cut.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+              console.info(`[hangar] Schachttor: ${G.used} Teile, ${G.tris} Dreiecke, ${G.batches.length} Materialien (${G.mats.join(', ')}), Lack aus der Palette ${gk.info.palette?.name ?? "(keine)"}: ${G.lacke.join(', ') || 'keiner'}, ${G.turn} drehen, ${steel} Metall wie die Bodenplatten, Schmutz ${grime ? 'wie der Hallenlack' : 'fehlt'}, längs ×${G.sz.toFixed(3)}, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; offen tiefer in der Nische: ${G.stowed.join(', ') || 'keins'}; offen nicht hinter der Nische: ${G.cut.join(', ') || 'keins'}; Seiten zugleich: ${G.sync.join(', ') || 'keine'}; ${shared} Karten vom Schacht; ohne ${G.dropped.join(', ') || 'keins'}; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
             } catch (e) {
               console.warn('[hangar] Schachttor nicht gebaut', e);
             }
@@ -5913,6 +6411,8 @@ ${HALL_LIGHTS_BEGIN}
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
       realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst };
+      // Dampf gleich mit übersetzen: sein erster Stoß soll nicht ruckeln
+      if (steam && lift) prepare(steam.mesh).catch(() => {});
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
       // es nur Spielinhalte).
       if (hall) { hall.visible = false; floor.visible = false; dust.pts.visible = false; }
@@ -6052,6 +6552,15 @@ ${HALL_LIGHTS_BEGIN}
 			vec4 texel = mix( mix( hgOk( c ), hgOk( c + ivec2( 1, 0 ) ), w.x ), mix( hgOk( c + ivec2( 0, 1 ) ), hgOk( c + 1 ), w.x ), w.y );`);
       else console.warn('[hangar] Schein: Eingang nicht begrenzt (three.js geändert?)');
       c.addPass(new OutputPass());
+      // Rauschen von ±½ Stufe des 8-Bit-Bilds nach der Umrechnung in sRGB
+      // (20.10.2026): Ohne es treppten sanfte Verläufe in Bänder, der Dunst
+      // im Schacht, die dunklen Ecken der Halle, der Schein um die Lampen.
+      // Dreiecksverteilt (zwei Zufallswerte), fest je Bildpunkt.
+      const outPass = c.passes[c.passes.length - 1], OETF = 'gl_FragColor = sRGBTransferOETF( gl_FragColor );';
+      if (outPass.material.fragmentShader.split(OETF).length === 2) outPass.material.fragmentShader = outPass.material.fragmentShader.replace(OETF, `${OETF}
+				vec2 hgD = fract( sin( vec2( dot( gl_FragCoord.xy, vec2( 12.9898, 78.233 ) ), dot( gl_FragCoord.xy, vec2( 39.3468, 11.1357 ) ) ) ) * 43758.5453 );
+				gl_FragColor.rgb += ( hgD.x + hgD.y - 1.0 ) / 255.0;`);
+      else console.warn('[hangar] Ausgabe: kein Dither (three.js geändert?)');
       // Die Shader der Pässe jetzt übersetzen, solange das Laden ohnehin läuft
       // (die Verdeckung ist darunter der schwerste), dann ein Probebild für
       // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter.
@@ -6078,6 +6587,7 @@ ${HALL_LIGHTS_BEGIN}
       lift.wait.push(done);
       if (Math.abs(y - lift.y) < 1e-4) { lift.dur = 0; lift.y = y; settleLift(); return; }
       lift.from = lift.y; lift.to = y; lift.t0 = performance.now() + delay; lift.dur = ms;
+      lift.going = false;
       lift.last = { from: lift.from, to: y, t0: lift.t0, dur: ms };
     });
   }
@@ -6119,6 +6629,7 @@ ${HALL_LIGHTS_BEGIN}
       snap = true;
     }
     G.run = { dir, t0, tau0, snap };
+    fx.gateGo(dir, ((G.T - tau0) * HALL_GATE.ms) / G.T, performance.now() - t0);
   }
   function gateClose(info) {
     const G = gateOf();
@@ -6160,6 +6671,7 @@ ${HALL_LIGHTS_BEGIN}
     if (tau >= G.T && b >= 1) {
       G.run = null;
       G.state = r.dir === 'close' ? 'closed' : 'open';
+      fx.gateStop(r.dir, now - (r.t0 + ((G.T - r.tau0) * HALL_GATE.ms) / G.T));
       gateSettle(G);
     }
   }
@@ -6189,6 +6701,112 @@ ${HALL_LIGHTS_BEGIN}
     lift.wait = [];
     for (const f of w) f();
   }
+  // Dampf und Geräusche zur Mechanik (buildSteam, hangarSound): Anlässe aus
+  // frame (Plattform fährt los, rastet ein) und gateStart/gateFrame (Tor
+  // läuft, rastet ein). Kam ein Anlass verspätet an (Seite verborgen, dann
+  // holte frame die Fahrt nach), bleibt er stumm und ohne Dampf.
+  // Lage in der Halle: das Feld liegt mittig um den Ursprung (wie die Crew,
+  // die mitfährt), Maße mal Hallenmaßstab k; Dampf nur in der Nähe des
+  // Schiffs, das Feld reicht weit hinter die Kamera.
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  let motorRun = null;
+  const fx = {
+    field() {
+      const L = realHall?.liftL;
+      if (!L || !steam) return null;
+      const k = hallRoot.scale.x, hx = (L.to[0] - L.from[0]) * k / 2, hz = (L.to[1] - L.from[1]) * k / 2;
+      const zl = Math.min(hz, ((current?.info.len ?? 20) / 2 + 7) * Math.max(1, k * 0.6));
+      return { k, hx, hz, zl };
+    },
+    // Stoß an den Langseiten des Felds: aus dem Spalt zwischen Feld und
+    // Boden nach außen und oben; n je Seite, Stärke w
+    edges(t, n, w) {
+      const F = this.field();
+      if (!F) return;
+      const { k, hx, zl } = F;
+      n = Math.max(2, Math.round(n * steamK));
+      for (const sx of [-1, 1]) for (let i = 0; i < n; i++) {
+        // unregelmäßig: Lage, Zeit, Größe und Wucht streuen, sonst steht
+        // eine Reihe gleicher Ballen am Rand
+        // klein und dicht aus dem Spalt, rasch breit und dünn
+        const z = ((i + rnd(-0.3, 1.3)) / n * 2 - 1) * zl, b = t + rnd(0, 0.3) * rnd(0, 1), f = rnd(0.55, 1.25);
+        steam.puff(b, [sx * (hx + rnd(-0.2, 0.3) * k), rnd(0.05, 0.25) * k, z], [sx * rnd(3, 6) * w * k * f, rnd(1.5, 3.5) * w * k * f, rnd(-1, 1) * k],
+          rnd(1.8, 3) * (0.7 + 0.3 * w), rnd(0.4, 1) * k, rnd(3, 6) * k * (0.6 + 0.4 * w), rnd(0.7, 0.95) * w, rnd(0.5, 0.9) * k, rnd(0.4, 0.9) * k);
+        // flach über den Boden nach außen rollend
+        if (i % 2 === 0) steam.puff(b + 0.08, [sx * (hx + 0.4 * k), 0.25 * k, z], [sx * rnd(1.5, 2.6) * w * k, rnd(0.05, 0.2) * k, rnd(-0.4, 0.4) * k],
+          rnd(3, 4), rnd(1, 1.6) * k, rnd(5, 8) * k * (0.6 + 0.4 * w), rnd(0.3, 0.4) * w, 0.1 * k, 0.6 * k);
+      }
+    },
+    // Mittelfuge des Tors: beim Einrasten quillt der Dampf hoch
+    seam(t, n) {
+      const F = this.field();
+      if (!F) return;
+      const { k, zl } = F;
+      n = Math.max(3, Math.round(n * steamK));
+      for (let i = 0; i < n; i++) {
+        const z = ((i + rnd(-0.4, 1.4)) / n * 2 - 1) * zl, f = rnd(0.5, 1.3);
+        steam.puff(t + rnd(0, 0.25) * rnd(0, 1), [rnd(-0.4, 0.4) * k, rnd(0.05, 0.2) * k, z], [rnd(-1.2, 1.2) * k, rnd(3, 5.5) * k * f, rnd(-0.5, 0.5) * k],
+          rnd(1.6, 2.8), rnd(0.35, 0.9) * k, rnd(3.5, 6.5) * k, rnd(0.7, 0.95), rnd(0.4, 0.8) * k, rnd(0.3, 0.8) * k);
+      }
+    },
+    // Schwaden aus dem Schacht, solange das Tor aufgeht (warme Luft von unten)
+    vapour(t, n, ms) {
+      const F = this.field();
+      if (!F) return;
+      const { k, hx, zl } = F;
+      n = Math.max(3, Math.round(n * steamK));
+      for (let i = 0; i < n; i++) {
+        const z = rnd(-1, 1) * zl, f = i / n;
+        steam.puff(t + f * ms / 1000 * 0.55, [rnd(-1, 1) * hx * (0.15 + 0.6 * f), -0.6 * k, z], [rnd(-0.4, 0.4) * k, rnd(1, 1.8) * k, rnd(-0.4, 0.4) * k],
+          rnd(3.5, 5), rnd(2, 3) * k, rnd(6, 10) * k, rnd(0.14, 0.22), 0.6 * k, 1 * k);
+      }
+    },
+    liftGo(dir, late) {
+      if (late > 400) return;
+      const t = (performance.now() - T0) / 1000;
+      if (dir === 'down') {
+        // Bremse auf, Druck ab
+        sound.clunk(0.35, 0, 0); sound.hiss(0.5, 0.9, 0);
+        this.edges(t, 6, 0.55);
+      } else sound.clunk(0.5, 0.8, 0);
+    },
+    liftStop(dir, late) {
+      if (late > 400) return;
+      const t = (performance.now() - T0) / 1000;
+      if (dir === 'up') {
+        // oben eingerastet: schwerer Schlag, dann entweicht der Druck
+        sound.clunk(1, 0, 0);
+        sound.hiss(1, 1.7, 0);
+        this.edges(t, 18, 1);
+      } else sound.clunk(0.7, 0.85, 0);
+    },
+    gateGo(dir, ms, late) {
+      motorRun?.stop();
+      motorRun = late > 400 ? null : sound.motor(ms, 0);
+      if (late > 400 || dir !== 'open') return;
+      sound.hiss(0.35, ms / 1000 * 0.9, 0);
+      this.vapour((performance.now() - T0) / 1000, 20, ms);
+    },
+    gateStop(dir, late) {
+      motorRun = null;
+      if (late > 400) return;
+      if (dir === 'close') {
+        sound.clunk(0.8, 0, 0); sound.hiss(0.7, 1.2, 0);
+        this.seam((performance.now() - T0) / 1000, 40);
+      } else sound.clunk(0.4, 0, 0);
+    },
+    // je Bild: Teilchen auf die Uhr, Antrieb nach der Fahrt
+    frame(now, t) {
+      if (steam) steam.frame(t);
+      let v = 0;
+      if (lift.dur && now >= lift.t0) {
+        const k = Math.min(1, (now - lift.t0) / lift.dur), e = 0.01;
+        v = (liftEase(Math.min(1, k + e)) - liftEase(Math.max(0, k - e))) / (Math.min(1, k + e) - Math.max(0, k - e)) / 1.6;
+      }
+      const G = realHall?.shaft?.gate;
+      sound.drive(v, THREE.MathUtils.clamp(-lift.y / 30, 0, 1), G?.state === 'closed' && !G.run ? 1 : 0);
+    },
+  };
   // Tiefe für ein Schiff, in Modellmetern der Halle
   // Mit Schacht fährt das Feld mindestens auf seinen Grund (36 m wie im
   // Spiel); braucht ein Schiff mehr, wächst er mit (fit, nur nach unten).
@@ -6755,8 +7373,32 @@ ${HALL_LIGHTS_BEGIN}
     return true;
   }
 
-  const clock = new THREE.Clock();
+  // Uhr der Bühne (s): aus dem Zeitstempel, den der Browser jedem Bild
+  // mitgibt (frame), nicht aus dem Augenblick, in dem das Skript läuft. Der
+  // schwankt um das, was vorher im selben Bild zu tun war, und jede Bewegung
+  // mit ihm (20.10.2026).
+  const T0 = performance.now();
   let raf = 0, visible = true, last = 0;
+  // Takt des Schirms (20.10.2026): Median der Abstände zwischen den
+  // Bildaufrufen des Browsers. Gezeichnet wird in ganzen Vielfachen davon;
+  // 24 Bilder je Sekunde an einem 60-Hz-Schirm hießen abwechselnd jedes
+  // zweite und dritte Bild, und so ruckelten Crew und Warnlichter im
+  // Leerlauf (Krisz: „smoother animation“). paced() nimmt das Vielfache am
+  // nächsten zum Wunschtakt, im Zweifel das schnellere: an 60 Hz im Leerlauf
+  // 30 statt 24, an 144 Hz 24 im Leerlauf und 72 beim Bedienen.
+  let vsMs = 1000 / 60, vsLast = 0;
+  const vsD = [];
+  function vsync(ts) {
+    const d = ts - vsLast;
+    vsLast = ts;
+    if (!(d > 3 && d < 45)) return;
+    vsD.push(d);
+    if (vsD.length < 40) return;
+    vsD.sort((a, b) => a - b);
+    vsMs = vsD[vsD.length >> 1];
+    vsD.length = 0;
+  }
+  const paced = (fps) => vsMs * Math.max(1, Math.floor(1000 / vsMs / fps + 0.25));
   // Freiraum der Kamera (2026-10-10). Ihre Grenze war eine Kugel um das
   // Ziel (camRoom), die Halle ist keine: Ganz herausgezoomt fuhr die Kamera
   // bei 16 bis 32 Grad Höhe in Balkone und Kabeltrassen der Seitenwände (das
@@ -7179,25 +7821,27 @@ ${HALL_LIGHTS_BEGIN}
     hallRefl.on.value = 1;
   }
 
-  function frame() {
+  function frame(ts) {
     raf = requestAnimationFrame(frame);
-    if (!visible) return;
+    const now = typeof ts === 'number' ? ts : performance.now();
+    vsync(now);
+    // ohne Bild auch kein Antrieb (er hielte sonst seinen letzten Ton)
+    if (!visible) { sound.drive(0, 0, 0); return; }
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
-    const now = performance.now();
-    if (!focused && now > hoverUntil) return;
+    if (!focused && now > hoverUntil) { sound.drive(0, 0, 0); return; }
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate
-    if (dragging || fly || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600)) wake(300);
+    if (dragging || fly || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
     const cap = Math.min(fpsCap || FPS_ACTIVE, now < activeUntil ? FPS_ACTIVE : FPS_IDLE);
-    // gleichmäßig, auch am schnelleren Schirm (144 Hz: abwechselnd jedes
-    // zweite und dritte Bild, im Mittel 60)
-    const iv = 1000 / cap;
-    if (now < due - iv / 4) return;
+    // im Raster des Schirms (paced); die halbe Bildzeit Spielraum fängt das
+    // Zittern der Zeitstempel
+    const iv = paced(cap);
+    if (now < due - vsMs / 2) return;
     due = Math.max(due + iv, now + iv / 2);
-    const t = clock.getElapsedTime();
+    const t = (now - T0) / 1000;
     const dt = Math.min(0.1, t - last); last = t;
     const scale = quiet > IDLE_MS ? IDLE_SCALE : 1;
     if (scale !== pixelScale) { pixelScale = scale; applyPixels(); }
@@ -7206,11 +7850,18 @@ ${HALL_LIGHTS_BEGIN}
     if (dust && !reduceMotion) dust.update(t);
     if (lift.dur) {
       // Aufzug: fährt sanft an und bremst sanft (liftEase); vor t0 steht er
-      const k = Math.min(1, Math.max(0, (now - lift.t0) / lift.dur));
+      const k = Math.min(1, Math.max(0, (now - lift.t0) / lift.dur)), dir = lift.to > lift.from ? 'up' : 'down';
+      if (k > 0 && !lift.going) { lift.going = true; fx.liftGo(dir, now - lift.t0); }
       lift.y = lift.from + (lift.to - lift.from) * liftEase(k);
-      if (k >= 1) { lift.dur = 0; lift.y = lift.to; settleLift(); }
+      if (k >= 1) {
+        const late = now - lift.t0 - lift.dur;
+        lift.dur = 0; lift.y = lift.to; lift.going = false;
+        fx.liftStop(dir, late);
+        settleLift();
+      }
     }
     gateFrame(now);
+    fx.frame(now, t);
     if (realHall?.lift) {
       realHall.lift.position.y = lift.y;
       if (realHall.dienst) realHall.dienst.group.position.y = realHall.floorY + lift.y;
@@ -7379,7 +8030,7 @@ ${HALL_LIGHTS_BEGIN}
   ro.observe(container);
   const io = new IntersectionObserver((es) => { visible = es[0]?.isIntersecting ?? true; });
   io.observe(container);
-  const onVis = () => { visible = !document.hidden; };
+  const onVis = () => { visible = !document.hidden; sound.pause(document.hidden); };
   document.addEventListener('visibilitychange', onVis);
   const onFocus = () => { focused = document.hasFocus(); if (focused) wake(500); };
   const onBlur = () => { focused = false; hoverUntil = 0; };
@@ -7412,8 +8063,16 @@ ${HALL_LIGHTS_BEGIN}
     onProgress(fn) { progressFn = fn; },
     // fn(true): Zeichenkontext verloren, fn(false): wieder da
     onLost(fn) { lostFn = fn; },
+    // Geräusche an/aus (Schalter auf der Bühne); sound(): { on, can }. Ohne
+    // Bewegung (reduceMotion) fährt nichts, dann gibt es auch nichts zu hören.
+    setSound(on) { sound.set(on); },
+    sound: () => ({ on: sound.on, can: !reduceMotion && !!(window.AudioContext || window.webkitAudioContext) }),
     dispose() {
       cancelAnimationFrame(raf);
+      document.removeEventListener('pointerdown', unlockSound, { capture: true });
+      document.removeEventListener('keydown', unlockSound, { capture: true });
+      sound.dispose();
+      steam?.dispose();
       ro.disconnect(); io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('focus', onFocus);
