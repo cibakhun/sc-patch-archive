@@ -377,7 +377,7 @@ export function initWorkshop(doc, bridge) {
     if (withPrice) parts.push(it[9] ? fill(m('pick.price'), { n: nf.format(it[9]) }) : m('pick.noshop'));
     return parts.filter(Boolean).join(' · ');
   }
-  // Alle Werte: jede Zahl eines Teils als [id, Bezeichnung, Wert, Einheit].
+  // Alle Werte: jede Zahl eines Teils als [id, Bezeichnung, Wert, Einheit, Zahl zum Sortieren].
   // Schaden je Art je Schuss (Waffe) bzw. Sprengkopf (Rakete) in extra.dP/dE/dD/dT.
   const f1 = new Intl.NumberFormat(loc, { maximumFractionDigits: 1 });
   const DT = [['dP', 'dt.p'], ['dE', 'dt.e'], ['dD', 'dt.d'], ['dT', 'dt.t']];
@@ -388,7 +388,7 @@ export function initWorkshop(doc, bridge) {
     const x = it[8] ?? {};
     const out = [];
     const add = (id, v, unit = '', label = m(id)) => {
-      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out.push([id, label, f1.format(v), unit]);
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out.push([id, label, f1.format(v), unit, v]);
     };
     // Die Aufteilung nach Art lohnt erst bei gemischtem Schaden; die eine Art nennt schon die Unterzeile.
     const split = () => { if (DT.filter(([key]) => x[key] > 0).length > 1) for (const [key, lk] of DT) add(key, x[key], '', m(lk)); };
@@ -400,7 +400,7 @@ export function initWorkshop(doc, bridge) {
       if (x.mag && x.rate) add('sp.empty', (x.mag / x.rate) * 60, 's');
     } else if (WEAPON_TYPES.has(it[2])) {
       split();
-      if (x.trk) out.push(['sp.trk', m('sp.trk'), m(`trk.${x.trk}`), '']);
+      if (x.trk) out.push(['sp.trk', m('sp.trk'), m(`trk.${x.trk}`), '', null]);
       add('sp.blast', x.blast, 'm');
       add('sp.arm', x.arm, 's');
       add('sp.ign', x.ign, 's');
@@ -417,17 +417,9 @@ export function initWorkshop(doc, bridge) {
       add('sp.a2', x.a2, 'Mm/s²');
     }
     add('sp.hp', x.hp, 'HP');
-    out.push(['sp.price', m('sp.price'), it[9] ? nf.format(it[9]) : m('pick.noshop'), it[9] ? 'aUEC' : '']);
+    out.push(['sp.price', m('sp.price'), it[9] ? nf.format(it[9]) : '–', 'aUEC', it[9] || 0]);
     return out;
   }
-  // In der Auswahl stehen je Art nur die Werte, die beim Vergleichen entscheiden.
-  const SHORT = { gun: ['sp.alpha', 'sp.rate', 'sp.mag'], shield: ['sp.regen', 'sp.dly'], quantum: ['sp.cd', 'sp.fuel'] };
-  const shortSpecs = (k) => {
-    const t = data.items[k]?.[2];
-    const want = SHORT[t] ?? (WEAPON_TYPES.has(t) ? ['sp.blast', 'sp.arm', 'sp.trk'] : ['sp.hp']);
-    return specs(k).filter(([id]) => want.includes(id));
-  };
-  const specKids = (rows) => rows.flatMap(([, label, v, u]) => [el('dt', {}, label), el('dd', {}, v, u ? el('small', {}, u) : null)]);
   const current = (slot) => draft.slots[slot.key] ?? slot.stock;
   // Der Slot mit der gewaehlten Halterung (Anzahl und Groesse der Raketen).
   const eff = (slot) => rackSlot(slot, draft.racks?.[slot.key], data.racks);
@@ -611,7 +603,7 @@ export function initWorkshop(doc, bridge) {
       el('span', { class: 'hgl-fig' }),
       el('span', { class: 'hgl-chev', 'aria-hidden': 'true' }, '›'));
     const pick = el('div', { class: 'hgl-pick', id, hidden: true });
-    const li = el('li', { class: 'hgl-slot', 'data-type': slot.type, 'data-key': slot.key }, btn, el('dl', { class: 'hgl-specs' }), pick);
+    const li = el('li', { class: 'hgl-slot', 'data-type': slot.type, 'data-key': slot.key }, btn, pick);
     slotEls.set(slot.key, li);
     return li;
   }
@@ -641,7 +633,6 @@ export function initWorkshop(doc, bridge) {
     was.textContent = changed ? fill(m('slot.was'), { name: slot.stock ? `${times(slot.count)}${itemName(slot.stock)}` : m('slot.unknown') }) : '';
     const fig = li.querySelector('.hgl-fig');
     fig.replaceChildren(it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()));
-    li.querySelector('.hgl-specs').replaceChildren(...specKids(specs(now)));
     li.querySelector('.hgl-slot__btn').setAttribute('aria-label', `${fill(m('slot.swap'), { slot: `S${e.size} ${name}` })}`);
     if (flash) {
       li.classList.remove('is-flash');
@@ -695,7 +686,6 @@ export function initWorkshop(doc, bridge) {
     for (const sec of slotsHost.querySelectorAll('.hgl-grp')) sec.hidden = sec.dataset.cat !== cat;
     if (moved) paintMods();
     paintHint();
-    paintTot();
   }
   // Ein Satz ueber der Liste sagt, was zu tun ist; er geht, sobald ein Slot offen ist.
   function paintHint() {
@@ -821,7 +811,7 @@ export function initWorkshop(doc, bridge) {
       gd.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
       gd.className = `hgl-gd ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
     }
-    paintTot();
+    paintWin();
   }
 
   // Layout gesamt (Alle Werte): Summen des Reiters, daneben der Abstand zur Serie.
@@ -851,36 +841,173 @@ export function initWorkshop(doc, bridge) {
     systems: [['shield', 'tot.shield', 'HP'], ['regen', 'tot.regen', 'HP/s'], ['power', 'tot.power', ''], ['cool', 'tot.cool', ''], ['qt', 'tot.qt', 'Mm/s']],
   };
   const sgn = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
-  function paintTot() {
-    const box = $('hgl-tot');
-    const rows = full && data && slots.length ? TOT[cat] : null;
-    box.hidden = !rows;
-    if (!rows) return;
+  /* ---- Alle Werte: eigenes grosses Fenster ueber dem Hangar ---- */
+  // Krisz 10-20: die Ansicht mit allen Werten darf ein eigenes Fenster sein.
+  // Oben die Summen des Layouts, darunter je Gruppe eine Tabelle der
+  // eingebauten Teile; "Vergleichen" klappt alle passenden Teile mit jeder
+  // Zahl auf, sortierbar je Spalte, und baut per Klick ein. Das Seitenpanel
+  // bleibt der schnelle Weg. Solange das Fenster offen ist, erreichen seine
+  // Mausbewegungen die Buehne nicht: die 3D-Szene geht in ihre Ruhe.
+  const win = $('hgw');
+  const winBody = $('hgw-groups');
+  const winCats = [...win.querySelectorAll('[data-wcat]')];
+  let winCat = 'weapons';
+  let cmpKey = null;
+  let sort = { key: 'main', dir: -1 };
+  for (const t of ['pointermove', 'pointerover', 'wheel']) win.addEventListener(t, (e) => e.stopPropagation(), { passive: true });
+
+  function openWin() {
+    if (!data || win.open) return;
+    winCat = cat === 'systems' ? 'systems' : 'weapons';
+    if (!slots.some((s) => tabOf(s) === winCat)) winCat = winCat === 'weapons' ? 'systems' : 'weapons';
+    cmpKey = null;
+    win.showModal();
+    paintWin();
+    $('hgw-x').focus();
+  }
+  function closeWin() {
+    if (win.open) win.close();
+  }
+  win.addEventListener('close', () => $('hgl-allbtn').focus({ preventScroll: true }));
+  $('hgl-allbtn').addEventListener('click', openWin);
+  $('hgw-x').addEventListener('click', closeWin);
+  // Klick auf den abgedunkelten Rand schliesst wie im Spielmenue.
+  win.addEventListener('click', (e) => { if (e.target === win) closeWin(); });
+  for (const b of winCats) b.addEventListener('click', () => { winCat = b.dataset.wcat; cmpKey = null; paintWin(); });
+
+  const deltaEl = (d, tag = 'small') => el(tag, { class: `hgw-d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}` }, d ? `${d > 0 ? '▲' : '▼'} ${sgn.format(Math.abs(d))}` : '');
+
+  function paintWinSum() {
     const now = tally((s) => [current(s), eff(s).count]);
     const stock = tally((s) => [s.stock, s.count]);
     const mixed = DT.filter(([k]) => now[k] > 0 || stock[k] > 0).length > 1;
-    $('hgl-tot-dl').replaceChildren(...rows.flatMap(([k, lk, unit, isSplit]) => {
+    $('hgw-sum').replaceChildren(...TOT[winCat].flatMap(([k, lk, unit, isSplit]) => {
       if ((!now[k] && !stock[k]) || (isSplit && !mixed)) return [];
-      const d = Math.round(now[k] - stock[k]);
       const label = isSplit ? fill(m('tot.split'), { t: m(lk) }) : m(lk);
-      return [el('dt', {}, label), el('dd', {}, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, unit) : null),
-        el('dd', { class: `hgl-tot__d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}` }, d ? `${d > 0 ? '▲' : '▼'} ${sgn.format(Math.abs(d))}` : '')];
+      return [el('div', { class: 'hgw-card' }, el('span', {}, label),
+        el('b', {}, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, ` ${unit}`) : null),
+        deltaEl(Math.round(now[k] - stock[k])))];
     }));
   }
 
-  // Ansicht Schnell | Alle Werte, im Browser gemerkt.
-  const MODE_KEY = 'vb.layouts.mode';
-  const modeBtns = [...$('hgl-mode').querySelectorAll('button')];
-  let full = false;
-  function setMode(v) {
-    full = v === 'full';
-    aside.classList.toggle('is-full', full);
-    for (const b of modeBtns) b.setAttribute('aria-pressed', String(b.dataset.mode === v));
-    try { storage?.setItem(MODE_KEY, v); } catch { /* privat: nur fuer diesen Besuch */ }
-    if (data) paintTot();
+  const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.mag', 'sp.empty', 'sp.trk', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life',
+    'sp.regen', 'sp.full', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.hp', 'sp.price'];
+  // Spalten einer Tabelle: Hauptwert, dann jede Zahl, die eines ihrer Teile hat, in der Reihenfolge von specs().
+  function colsFor(keys) {
+    const seen = new Map();
+    for (const k of keys) for (const [id, label, , unit] of specs(k)) if (!seen.has(id)) seen.set(id, { id, label, unit });
+    return [...seen.values()].sort((a, b) => COL_ORDER.indexOf(a.id) - COL_ORDER.indexOf(b.id));
   }
-  for (const b of modeBtns) b.addEventListener('click', () => setMode(b.dataset.mode));
-  try { if (storage?.getItem(MODE_KEY) === 'full') setMode('full'); } catch { /* ohne Speicher bleibt Schnell */ }
+  const cell = (row, col) => {
+    const r = row.find(([id]) => id === col.id);
+    return el('td', { class: 'is-num' }, r ? r[2] : '–');
+  };
+  const head = (type, cols, sortable) => el('tr', {},
+    el('th', { scope: 'col', class: 'is-name' }, m('win.part')),
+    ...[{ id: 'main', label: UNIT[type](), unit: '' }, ...cols].map((c) => {
+      const label = el('span', {}, c.label, c.unit && !c.label.includes(c.unit) ? el('small', {}, ` ${c.unit}`) : null);
+      if (!sortable) return el('th', { scope: 'col', class: 'is-num' }, label);
+      const on = sort.key === c.id;
+      return el('th', { scope: 'col', class: 'is-num', 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none' },
+        el('button', { type: 'button', class: 'hgw-sort', 'data-sort': c.id }, label, el('i', { 'aria-hidden': 'true' }, on ? (sort.dir < 0 ? '▼' : '▲') : '')));
+    }),
+    el('th', { scope: 'col' }, el('span', { class: 'hgw-sr' }, m('win.act'))));
+  const nameCell = (k, extra) => el('td', { class: 'is-name' }, el('b', {}, itemName(k)), ...extra, el('small', {}, subLine(k, false)));
+
+  function compareTable(slot) {
+    const e = eff(slot);
+    const now = current(slot);
+    const keys = candidates(e, data.items);
+    const cols = colsFor(keys);
+    const val = (k) => {
+      if (sort.key === 'main') return data.items[k][7];
+      const r = specs(k).find(([id]) => id === sort.key);
+      return r?.[4] ?? null;
+    };
+    // Teile ohne den Wert ans Ende, gleich welche Richtung.
+    const sorted = [...keys].sort((a, b) => {
+      const va = val(a), vb = val(b);
+      if (va == null || vb == null) return (va == null) - (vb == null);
+      return (va - vb) * sort.dir;
+    });
+    const base = data.items[now]?.[7] ?? null;
+    const rows = sorted.map((k) => {
+      const it = data.items[k];
+      const d = k === now ? null : deltaPct(it[7], base);
+      const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
+      const row = specs(k);
+      return el('tr', { class: k === now ? 'is-now' : '' },
+        nameCell(k, tags),
+        el('td', { class: 'is-num is-main' }, nf.format(it[7]), d ? el('small', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, ` ${d > 0 ? '▲' : '▼'} ${nf.format(Math.abs(d))} %`) : null),
+        ...cols.map((c) => cell(row, c)),
+        el('td', {}, k === now ? null : el('button', { type: 'button', class: 'hgw-fit', 'data-fit': k, 'data-slot': slot.key }, m('win.fit'))));
+    });
+    return el('div', { class: 'hgw-cmp' },
+      el('p', { class: 'hgw-cmp__h' }, fill(m('win.cmpHead'), { n: nf.format(keys.length) })),
+      el('div', { class: 'hgw-scroll' }, el('table', { class: 'hgw-t is-cmp' }, el('thead', {}, head(e.type, cols, true)), el('tbody', {}, ...rows))));
+  }
+
+  function paintWin() {
+    if (!win.open || !data) return;
+    $('hgw-h').textContent = draft.name || placeholder();
+    for (const b of winCats) {
+      const has = slots.some((s) => tabOf(s) === b.dataset.wcat);
+      b.hidden = !has;
+      b.setAttribute('aria-selected', String(b.dataset.wcat === winCat));
+    }
+    paintWinSum();
+    const groups = GROUPS.map((g) => {
+      const mine = slots.filter((s) => s.group === g && tabOf(s) === winCat);
+      if (!mine.length) return null;
+      const type = eff(mine[0]).type;
+      const cols = colsFor(mine.map(current));
+      const body = mine.flatMap((slot) => {
+        const k = current(slot);
+        const e = eff(slot);
+        const open = cmpKey === slot.key;
+        const tr = el('tr', { class: `${isChanged(slot) ? 'is-changed' : ''}${open ? ' is-open' : ''}` },
+          nameCell(k, [el('em', { class: 'hgw-sz' }, `${times(e.count)}S${e.size}`)]),
+          el('td', { class: 'is-num is-main' }, data.items[k] ? nf.format(data.items[k][7]) : '–'),
+          ...cols.map((c) => cell(specs(k), c)),
+          el('td', {}, el('button', { type: 'button', class: 'hgw-cmpbtn', 'data-cmp': slot.key, 'aria-expanded': String(open) }, m(open ? 'win.cmpClose' : 'win.cmp'))));
+        return open ? [tr, el('tr', { class: 'hgw-cmprow' }, el('td', { colspan: String(cols.length + 3) }, compareTable(slot)))] : [tr];
+      });
+      return el('section', { class: 'hgw-grp' },
+        el('h3', {}, m(`grp.${g}`)),
+        el('div', { class: 'hgw-scroll' }, el('table', { class: 'hgw-t' }, el('thead', {}, head(type, cols, false)), el('tbody', {}, ...body))));
+    }).filter(Boolean);
+    winBody.replaceChildren(...groups);
+  }
+
+  winBody.addEventListener('click', (e) => {
+    const sb = e.target.closest('.hgw-sort');
+    if (sb) {
+      const id = sb.dataset.sort;
+      sort = sort.key === id ? { key: id, dir: -sort.dir } : { key: id, dir: id === 'sp.price' ? 1 : -1 };
+      paintWin();
+      winBody.querySelector(`.hgw-sort[data-sort="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+      return;
+    }
+    const cb = e.target.closest('.hgw-cmpbtn');
+    if (cb) {
+      cmpKey = cmpKey === cb.dataset.cmp ? null : cb.dataset.cmp;
+      sort = { key: 'main', dir: -1 };
+      paintWin();
+      winBody.querySelector(`.hgw-cmpbtn[data-cmp="${CSS.escape(cb.dataset.cmp)}"]`)?.focus({ preventScroll: true });
+      return;
+    }
+    const fb = e.target.closest('.hgw-fit');
+    if (fb) {
+      const slot = slots.find((s) => s.key === fb.dataset.slot);
+      if (!slot) return;
+      setItem(slot, fb.dataset.fit);
+      bridge.say(fill(m('msg.fitted'), { item: itemName(fb.dataset.fit) }));
+      commit();
+      paintSlot(slot, true);
+      paintTotals();
+      winBody.querySelector(`.hgw-cmpbtn[data-cmp="${CSS.escape(slot.key)}"]`)?.focus({ preventScroll: true });
+    }
+  });
 
   // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
   // Items behaelt den gewaehlten Slot, solange hp sein Port bleibt.
@@ -956,7 +1083,6 @@ export function initWorkshop(doc, bridge) {
         el('span', { class: 'hgl-opt__sub' }, subLine(k, true)),
         el('span', { class: 'hgl-opt__fig' }, nf.format(it[7])),
         el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`),
-        el('span', { class: 'hgl-opt__specs' }, ...shortSpecs(k).map(([, label, v, u]) => el('span', {}, el('b', {}, `${v}${u ? ` ${u}` : ''}`), label))),
         el('span', { class: 'hgl-opt__bar', 'aria-hidden': 'true' }, el('i', { style: `--w:${Math.round((it[7] / max) * 100)}%` })));
       const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b);
       return li;
@@ -1221,6 +1347,7 @@ export function initWorkshop(doc, bridge) {
     aside.hidden = !open;
     if (!open) {
       hot(null);
+      closeWin();
       return;
     }
     if (!data) {
