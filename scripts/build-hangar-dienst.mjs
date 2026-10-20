@@ -220,4 +220,4 @@ async function main() {
   console.log(`  Fingerabdruck: Block ${stamp.block}, ${Object.keys(stamp.quellen).length} Quellen`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) await main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
