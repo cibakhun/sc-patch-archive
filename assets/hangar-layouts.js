@@ -531,11 +531,13 @@ export function initWorkshop(doc, bridge) {
     if (!candCache.has(k)) candCache.set(k, candidates(e, data.items));
     return candCache.get(k);
   };
-  // Bestwert eines Slots: das staerkste Teil, das im Spiel irgendwie dort
-  // sitzen kann, Beute- und Belohnungsteile eingeschlossen (Krisz 10-20:
-  // "das absolut hoechste"). Platzhalter filtert schon der Build (layouts.ts).
-  const bestOf = (e) => {
-    const c = fitting(e);
+  // Was ein Spieler irgendwie in den Slot bekommt (Krisz 10-20: "das absolut
+  // hoechste"): Laden, Beute, Belohnung, exklusiv (items[k][10] !== 0), dazu
+  // das Serienteil des Slots selbst. Teile ohne jede Quelle sind meist an ihr
+  // Fahrzeug gebunden (Reign-3 nur am Storm) und setzen keine Latte.
+  const reachable = (e, stock) => fitting(e).filter((x) => data.items[x][10] !== 0 || x === stock);
+  const bestOf = (e, stock) => {
+    const c = reachable(e, stock);
     return c.length ? data.items[c[0]][7] : 0;
   };
 
@@ -600,11 +602,11 @@ export function initWorkshop(doc, bridge) {
       li.dataset.ico = e.type;
     }
     // Rang unter allem, was passt: der Balken unter dem Namen misst am Besten.
-    const cands = fitting(e);
-    const best = bestOf(e);
+    const cands = reachable(e, slot.stock);
+    const best = bestOf(e, slot.stock);
     const tier = li.querySelector('.hgl-tier');
     const rank = cands.indexOf(now) + 1;
-    tier.hidden = !(it && best > 0 && cands.length > 1);
+    tier.hidden = !(it && best > 0 && fitting(e).length > 1);
     tier.firstChild.style.setProperty('--w', `${it && best > 0 ? Math.min(100, Math.round((it[7] / best) * 100)) : 0}%`);
     tier.title = rank ? fill(m('slot.rank'), { r: nf.format(rank), n: nf.format(cands.length) }) : '';
     tier.classList.toggle('is-top', !!it && best > 0 && it[7] >= best);
@@ -794,8 +796,8 @@ export function initWorkshop(doc, bridge) {
 
   // Kampfwerte im Kopf: Feuerkraft aller Bordwaffen und Tuerme, Raketen und
   // Bomben, Schild. Der Balken laeuft bis zum Bestwert, den die Slots fassen
-  // (je Slot das staerkste Teil im Spiel, bestOf), der Strich steht auf der
-  // Serie.
+  // (je Slot das staerkste erreichbare Teil, bestOf), der Strich steht auf
+  // der Serie.
   const SUMS = { fire: ['pilot', 'manned', 'remote'], ord: ['missile', 'bomb'], shield: ['shield'] };
   const sumHost = $('hgl-sum');
   function paintSum(totals) {
@@ -810,7 +812,7 @@ export function initWorkshop(doc, bridge) {
       for (const s of slots) {
         if (!groups.includes(s.group)) continue;
         const e = eff(s);
-        top += bestOf(e) * e.count;
+        top += bestOf(e, s.stock) * e.count;
       }
       tile.hidden = !(now > 0 || stock > 0);
       if (tile.hidden) continue;

@@ -65,6 +65,10 @@ export type LayoutItem = readonly [
   nameEn: string, nameDe: string | 0, type: LayoutType, size: number,
   maker: string | 0, cls: string | 0, grade: string | 0, figure: number | 0,
   extra: Readonly<Record<string, number | string>>, price: number | 0,
+  // 1: Spieler kommen irgendwie dran (Laden, Beute, Belohnung, Fahrzeug,
+  // exklusiv); 0: keine bekannte Quelle, meist an ein Fahrzeug gebunden
+  // (Reign-3 nur am Storm). Die Kampfwerte der Werkstatt messen nur daran.
+  source: 1 | 0,
 ];
 
 /**
@@ -231,7 +235,7 @@ function build(): LayoutData {
       const { f, x } = figures(type, v.stats, it);
       if (!f) continue;
       const de = g.nameDe?.trim();
-      out[v.key] = [it.name, de && de !== it.name ? de : 0, type, v.size, v.maker || 0, g.class || 0, v.grade || 0, f, x, shopPrice(it)];
+      out[v.key] = [it.name, de && de !== it.name ? de : 0, type, v.size, v.maker || 0, g.class || 0, v.grade || 0, f, x, shopPrice(it), it.obtain.length || g.lootable ? 1 : 0];
       const n = norm(it.name);
       const sizes = byName.get(n) ?? new Map<number, string>();
       if (!sizes.has(v.size)) sizes.set(v.size, v.key);
