@@ -189,7 +189,8 @@
         eine Karte je Name; jede Zeile ist ein LayerBlend-Material des
         Katalogs mit genau dessen Blend- und Abnutzungskarte (eine
         vorhandene Blend-Karte darf nicht fehlen) und der Detail- und
-        Normalenkarte seiner ersten Grundschicht; jede Ecke hoechstens
+        Normalenkarte seiner ersten Grundschicht (eine mit Muster darf
+        nicht fehlen, gemessen wie im Build); jede Ecke hoechstens
         eine Viertelzeile neben ihrer Zeile (draco); Zeilen, Karten,
         Ecken mit Zeile und Zeilen mit Blend-, Abnutzungs-, Detail- und
         Normalenkarte ueber KLINKE_SCHICHTEN, das Raster unter
@@ -245,6 +246,8 @@ import draco3d from 'draco3d';
 import { seamStats } from './lib/hall-seams.mjs';
 import { FILL_TOL, touches, samples, normalOf, withNormals, onLite, worldTris } from './lib/hall-fill.mjs';
 import { sha8 } from './lib/eol-sha.mjs';
+import sharp from 'sharp';
+import { MUSTER } from './build-hangar-dienst.mjs';
 
 /** Breite und Höhe einer WebP-Datei aus ihrem Kopf (VP8, VP8L, VP8X), sonst null. */
 function webpSize(b) {
@@ -1370,13 +1373,24 @@ if (DI && dienst) {
       }
       R.karten = n;
       const rows = sch.materialien ?? [];
+      // Muster wie im Build (Standardabweichung eines Kanals ueber MUSTER):
+      // Hat die erste Grundschicht eine Karte mit Muster, muss die Zeile sie tragen
+      const L1of = (km) => (km?.layers ?? []).filter((l) => /^BaseLayer\d/.test(l.name)).sort((a, b) => a.name.localeCompare(b.name))[0];
+      const muster = new Map();
+      if (rows.length * T * 4 === (sch.tafel?.length ?? -1)) for (const name of rows) {
+        const L1 = L1of(kat?.materials?.[name]);
+        for (const [f, ch] of [[L1?.maps?.d, 3], [L1?.maps?.n, 2]]) {
+          const file = f && join(DIST, 'hangar/props/schichten', f), key = `${f}|${ch}`;
+          if (file && !muster.has(key) && existsSync(file)) muster.set(key, (await sharp(file).stats()).channels.slice(0, ch).some((c) => c.stdev > MUSTER));
+        }
+      }
       if ((sch.tafel?.length ?? -1) !== rows.length * T * 4 || T !== 11) fail(`[14] Schichttafel mit ${sch.tafel?.length ?? 0} Werten fuer ${rows.length} Zeilen zu ${T} Texeln: Der Viewer laese verschobene Zeilen`);
       else rows.forEach((name, i) => {
         const km = kat?.materials?.[name], f = sch.tafel.slice((i * T + 8) * 4, (i * T + 9) * 4), [bi, , wi, ao] = f;
         // Muster der ersten Grundschicht: Detail- und Normalenkarte genau ihre, mit ihrer Kachelung
         const [di, ni, lt] = sch.tafel.slice((i * T + 9) * 4, (i * T + 10) * 4), dm = sch.tafel.slice((i * T + 10) * 4, (i * T + 10) * 4 + 3);
-        const L1 = (km?.layers ?? []).filter((l) => /^BaseLayer\d/.test(l.name)).sort((a, b) => a.name.localeCompare(b.name))[0];
-        if (di >= n || ni >= n || (di >= 0 && sch.namen[di] !== L1?.maps?.d) || (ni >= 0 && sch.namen[ni] !== L1?.maps?.n) || ((di >= 0 || ni >= 0) && lt !== (Number(L1?.uvTiling) || 1)) || (di >= 0 && !dm.every((v) => v > 0 && v <= 1))) fail(`[14] Schichtzeile ${i + 1} (${name}): Detailkarte ${di >= 0 ? sch.namen[di] : 'keine'}, Normalenkarte ${ni >= 0 ? sch.namen[ni] : 'keine'}, Kachelung ${lt}, Mittel ${dm.join('/')}; die erste Grundschicht im Katalog hat ${L1?.maps?.d ?? 'keine'}, ${L1?.maps?.n ?? 'keine'}, ${L1?.uvTiling ?? '?'}`);
+        const L1 = L1of(km);
+        if (di >= n || ni >= n || (di >= 0 && sch.namen[di] !== L1?.maps?.d) || (ni >= 0 && sch.namen[ni] !== L1?.maps?.n) || (di < 0 && muster.get(`${L1?.maps?.d}|3`)) || (ni < 0 && muster.get(`${L1?.maps?.n}|2`)) || ((di >= 0 || ni >= 0) && lt !== (Number(L1?.uvTiling) || 1)) || (di >= 0 && !dm.every((v) => v > 0 && v <= 1))) fail(`[14] Schichtzeile ${i + 1} (${name}): Detailkarte ${di >= 0 ? sch.namen[di] : 'keine'}, Normalenkarte ${ni >= 0 ? sch.namen[ni] : 'keine'}, Kachelung ${lt}, Mittel ${dm.join('/')}; die erste Grundschicht im Katalog hat ${L1?.maps?.d ?? 'keine'}${muster.get(`${L1?.maps?.d}|3`) ? ' (mit Muster)' : ''}, ${L1?.maps?.n ?? 'keine'}${muster.get(`${L1?.maps?.n}|2`) ? ' (mit Muster)' : ''}, ${L1?.uvTiling ?? '?'}`);
         if (di >= 0) R.detail++;
         if (ni >= 0) R.normale++;
         const wear = km?.textures?.TexSlot11?.split('/').pop().replace(/\.(tif|dds|png)$/i, '.webp');

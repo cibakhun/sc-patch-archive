@@ -42,7 +42,7 @@ Bitte als `<Dateiname>.webp` (wie TexSlot11, Endung `.webp`) in denselben
 Ordner. Am besten gleich alle TexSlot11 aller LayerBlend-Materialien des
 Katalogs, damit neue Requisiten sie schon haben.
 
-## S2. Schmutz (G der Vertexfarbe)
+## S2. Schmutz (Kanal der Vertexfarbe ungeklärt)
 
 Die Cloud lässt Schmutz aus: Sie weiß nicht, welche Farbe oder Karte
 LayerBlend_V2 dafür nimmt. Gesucht: Woher kommt der Schmutz (eigene

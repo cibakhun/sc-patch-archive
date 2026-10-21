@@ -68,7 +68,7 @@ export const KARTEN_SPALTEN = 8;
 export const TAFEL_TEXEL = 11;
 // Muster: Standardabweichung eines Farbkanals (Detailkarte) oder eines der
 // Kanäle r, g (Normalenkarte) über 4 von 255
-const MUSTER = 4;
+export const MUSTER = 4;
 
 /** Block /* work-dienst *\/ aus dem Viewer, als Text (Fingerabdruck) und JSON. */
 export function readDienst(viewerText) {
@@ -300,7 +300,10 @@ async function main() {
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
   doc.createExtension(EXTTextureWebP).setRequired(true);
   // Kartenraster: je Karte 256 × 256, KARTEN_SPALTEN nebeneinander, ohne
-  // Alpha (die Glätte im Alpha der Normalenkarten bleibt weg)
+  // Alpha (die Glätte im Alpha der Normalenkarten bleibt weg). Verlustbehaftetes
+  // WebP halbiert die Farbauflösung immer (4:2:0); smartSubsample hält die
+  // Kanäle der Blend-Karten getrennter (Fehler im 99. Perzentil 27 -> 11 von
+  // 255, +4 % Bytes; verlustfrei wöge das Raster 2,5 MB statt 0,6)
   const tafel = [];
   for (const r of rows.slice(1)) {
     const bi = mapIdx(r.blend), wi = mapIdx(r.wear), di = mapIdx(r.detail), ni = mapIdx(r.normal);
@@ -310,7 +313,7 @@ async function main() {
   const cols = Math.min(KARTEN_SPALTEN, maps.length), gridH = Math.ceil(maps.length / KARTEN_SPALTEN);
   const strip = maps.length ? await sharp({ create: { width: KARTE_PX * cols, height: KARTE_PX * gridH, channels: 3, background: { r: 0, g: 0, b: 0 } } })
     .composite(await Promise.all(maps.map(async (n, i) => ({ input: await sharp(SCHICHTEN + n).resize(KARTE_PX, KARTE_PX, { fit: 'fill' }).removeAlpha().png().toBuffer(), top: Math.floor(i / KARTEN_SPALTEN) * KARTE_PX, left: (i % KARTEN_SPALTEN) * KARTE_PX }))))
-    .webp({ quality: 92, effort: 6 }).toBuffer() : null;
+    .webp({ quality: 92, effort: 6, smartSubsample: true }).toBuffer() : null;
   if (strip) writeFileSync(KARTEN, strip);
   const stamp = dienstStamp(D.text, [KATALOG, ...[...files].sort(), ...maps.map((n) => SCHICHTEN + n)]);
   if (strip) stamp.schichten = { karten: KARTEN.split('/').pop(), sha: sha(strip), px: KARTE_PX, spalten: cols, namen: maps, texel: TAFEL_TEXEL, materialien: rows.slice(1).map((r) => r.name), tafel };
