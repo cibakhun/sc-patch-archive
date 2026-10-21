@@ -99,13 +99,13 @@ const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.speed', 's
   'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.spool', 'sp.pw', 'sp.em', 'sp.ir', 'sp.hp', 'sp.price'];
 // Die Spalten, die je Art ohne "Alle Werte" stehen: was beim Waehlen zaehlt.
 const CORE = {
-  gun: ['sp.alpha', 'sp.rate', 'sp.range', 'sp.speed', 'sp.mag', 'sp.chg', 'sp.price'],
-  missile: ['sp.trk', 'sp.lkR', 'sp.mspeed', 'sp.blast', 'sp.price'],
+  gun: ['sp.alpha', 'sp.range', 'sp.speed', 'sp.price'],
+  missile: ['sp.trk', 'sp.lkR', 'sp.mspeed', 'sp.price'],
   bomb: ['sp.blast', 'sp.arm', 'sp.price'],
-  shield: ['sp.regen', 'sp.dly', 'sp.down', 'sp.price'],
+  shield: ['sp.regen', 'sp.dly', 'sp.price'],
   power: ['sp.em', 'sp.price'],
   cooler: ['sp.pw', 'sp.ir', 'sp.price'],
-  quantum: ['sp.spool', 'sp.cd', 'sp.fuel', 'sp.price'],
+  quantum: ['sp.spool', 'sp.fuel', 'sp.price'],
   radar: ['sp.pw', 'sp.em', 'sp.price'],
 };
 CORE.torpedo = CORE.missile;
@@ -285,17 +285,25 @@ function paintTop() {
   doc.title = `${shipName(draft.ship)} · ${m('lo.title')} | VerseBase`;
 }
 
+// Drei kurze Bloecke statt Textkarten: Zahl, ▲/▼ und ein Balken gegen Serie.
+// Die Erklaerung steht im Tooltip, nicht als Satz darunter.
+const SUMG = [['lo.sumAtk', ['fire', 'alpha', 'ord', 'ordn']], ['lo.sumDef', ['shield', 'regen']], ['lo.sumSys', ['power', 'cool', 'qt']]];
 function paintSum() {
   const now = tally((s) => [current(s), eff(s).count]);
   const stock = tally((s) => [s.stock, s.count]);
-  $('lo-sum').replaceChildren(...TOT.flatMap(([k, lk, unit]) => {
-    if (!now[k] && !stock[k]) return [];
-    return [el('div', { class: 'lo-card' },
-      el('span', { class: 'lo-card__l' }, m(lk)),
-      el('b', { class: 'lo-card__v' }, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, ` ${unit}`) : null),
-      deltaEl(Math.round(now[k] - stock[k]), false, nf),
-      el('small', { class: 'lo-card__ex' }, m(`ex.${k}`)))];
-  }));
+  const byKey = new Map(TOT.map((r) => [r[0], r]));
+  $('lo-sum').replaceChildren(...SUMG.map(([gk, keys]) => {
+    const rows = keys.filter((k) => now[k] || stock[k]).map((k) => {
+      const [, lk, unit] = byKey.get(k);
+      const top = Math.max(now[k], stock[k]) || 1;
+      return el('div', { class: 'lo-st', title: m(`ex.${k}`) },
+        el('span', { class: 'lo-st__l' }, m(lk)),
+        el('b', { class: 'lo-st__v' }, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, ` ${unit}`) : null),
+        deltaEl(Math.round(now[k] - stock[k]), false, nf),
+        el('span', { class: `lo-st__bar${now[k] < stock[k] ? ' is-low' : ''}`, 'aria-hidden': 'true', style: `--w:${(now[k] / top) * 100}%;--s:${(stock[k] / top) * 100}%` }));
+    });
+    return rows.length ? el('section', { class: 'lo-sumg' }, el('h3', {}, m(gk)), ...rows) : null;
+  }).filter(Boolean));
 }
 
 /* ---------------------------------------------------------- Ausstattung --- */
@@ -351,7 +359,8 @@ function rackBar(slot) {
     el('small', { class: 'lo-racks__info' }, rackName(on)));
 }
 
-/** Vergleich zweier Teile: jede Zahl mit Erklaerung, a gegen b. */
+/** Vergleich zweier Teile als Balken: rechts gruen = besser, links rot = schlechter.
+ *  Gleiche Werte treten zurueck; die Erklaerung steht im Tooltip. */
 function compareTable(slot, a, b, headA, headB) {
   const type = eff(slot).type;
   const ia = data.items[a];
@@ -359,19 +368,31 @@ function compareTable(slot, a, b, headA, headB) {
   const sa = specs(a);
   const sb = b ? specs(b) : [];
   const ids = [...new Set([...sa, ...sb].map((r) => r[0]))].sort((x, y) => COL_ORDER.indexOf(x) - COL_ORDER.indexOf(y));
-  const rows = [[UNIT[type](), mainEx(type), ia ? nf.format(ia[7]) : '–', ib ? nf.format(ib[7]) : '–', ia && ib ? ia[7] - ib[7] : 0, false, nf]];
+  const rows = [[UNIT[type](), '', mainEx(type), ia ? nf.format(ia[7]) : '–', ib ? nf.format(ib[7]) : '–', ia?.[7], ib?.[7], false, nf]];
   for (const id of ids) {
     const ra = sa.find((r) => r[0] === id);
     const rb = sb.find((r) => r[0] === id);
     const r = ra ?? rb;
+    if (id === 'sp.price' && !(ra?.[4] > 0) && !(rb?.[4] > 0)) continue;
     const fmt = id === 'sp.spread' || id === 'sp.heat' || id === 'sp.chd' ? f2 : f1;
-    rows.push([`${r[1]}${r[3] ? ` (${r[3]})` : ''}`, exOf(id), ra ? ra[2] : '–', rb ? rb[2] : '–', ra?.[4] > 0 && rb?.[4] > 0 ? ra[4] - rb[4] : 0, LOWER.has(id), fmt]);
+    rows.push([r[1], r[3], exOf(id), ra ? ra[2] : '–', rb ? rb[2] : '–', ra?.[4], rb?.[4], LOWER.has(id), fmt]);
   }
-  return el('div', { class: 'lo-scroll' }, el('table', { class: 'lo-t lo-cmp' },
-    el('thead', {}, el('tr', {}, el('th', { scope: 'col' }, m('win.value')), el('th', { scope: 'col', class: 'is-num' }, headA), el('th', { scope: 'col', class: 'is-num' }, headB), el('th', { scope: 'col', class: 'is-num' }, m('win.diff')))),
-    el('tbody', {}, rows.map(([label, ex, va, vb, d, lower, fmt]) => el('tr', {},
-      el('th', { scope: 'row' }, label, el('small', {}, ex)),
-      el('td', { class: 'is-num is-a' }, va), el('td', { class: 'is-num' }, vb), el('td', { class: 'is-num' }, deltaEl(d, lower, fmt)))))));
+  return el('div', { class: 'lo-dv', role: 'table', 'aria-label': `${headA} / ${headB}` },
+    el('div', { class: 'lo-dv__r lo-dv__h', role: 'row' }, el('span', { role: 'columnheader' }, m('win.value')), el('span', { role: 'columnheader', class: 'is-num' }, headA),
+      el('span', { role: 'columnheader', class: 'is-mid' }, m('win.diff')), el('span', { role: 'columnheader', class: 'is-num' }, headB)),
+    ...rows.map(([label, unit, ex, va, vb, na, nb, lower, fmt]) => {
+      const both = na > 0 && nb > 0;
+      const d = both ? na - nb : 0;
+      const good = (d > 0) !== lower;
+      const rel = both && d ? Math.min(Math.abs(d) / nb, 1) : 0;
+      return el('div', { class: `lo-dv__r${d ? '' : ' is-same'}`, role: 'row', title: ex },
+        el('span', { role: 'rowheader', class: 'lo-dv__l' }, label, unit && unit !== label ? el('small', {}, ` ${unit}`) : null),
+        el('b', { role: 'cell', class: 'is-num' }, va),
+        el('span', { role: 'cell', class: 'is-mid' },
+          el('span', { class: `lo-dv__bar${d ? (good ? ' is-good' : ' is-bad') : ''}`, 'aria-hidden': 'true', style: `--r:${rel * 50}%` }),
+          d ? deltaEl(d, lower, fmt) : null),
+        el('span', { role: 'cell', class: 'is-num lo-dv__b' }, vb));
+    }));
 }
 
 function colsFor(keys, type) {
@@ -404,6 +425,7 @@ function paintPick() {
   // Oben alle passenden Teile.
   const cols = colsFor(keys, e.type);
   const base = data.items[now]?.[7] ?? null;
+  const best = Math.max(...keys.map((k) => data.items[k]?.[7] ?? 0), 1);
   const val = (k) => (sort.key === 'main' ? data.items[k][7] : specs(k).find(([id]) => id === sort.key)?.[4] ?? null);
   const sorted = sort.key === 'name'
     ? [...keys].sort((a, b) => itemName(a).localeCompare(itemName(b), loc) * sort.dir)
@@ -422,7 +444,8 @@ function paintPick() {
     const d = k === now ? null : deltaPct(it[7], base);
     return el('tr', { class: `lo-opt${k === now ? ' is-now' : ''}${k === prev ? ' is-prev' : ''}`, 'data-k': k, tabindex: '0', 'aria-selected': String(k === prev) },
       el('td', { class: 'is-name' }, el('b', {}, itemName(k)), k === slot.stock ? el('em', {}, m('slot.stock')) : null, el('small', {}, subLine(k))),
-      el('td', { class: 'is-num is-main' }, nf.format(it[7]), d ? deltaEl(d, false, nf, ' %') : null),
+      el('td', { class: 'is-num is-main' }, el('span', { class: 'lo-mainv' }, nf.format(it[7]), d ? deltaEl(d, false, nf, ' %') : null),
+        el('span', { class: 'lo-mainbar', 'aria-hidden': 'true', style: `--w:${(it[7] / best) * 100}%` })),
       cols.map((c) => { const r = row.find(([id]) => id === c.id); return el('td', { class: 'is-num' }, r ? r[2] : '–'); }),
       el('td', { class: 'is-act' }, k === now ? el('span', { class: 'lo-fitted' }, m('slot.fitted')) : el('button', { type: 'button', class: 'lo-btn lo-fit', 'data-fit': k }, m('lo.fit'))));
   });
@@ -431,9 +454,8 @@ function paintPick() {
     el('div', { class: 'lo-box__h' }, el('h3', {}, m('lo.pickFor')), el('span', { class: 'lo-n' }, plural('pick.count', shown.length))),
     el('div', { class: 'lo-pickbar' }, search,
       el('button', { type: 'button', class: 'lo-btn', id: 'lo-more', 'aria-pressed': String(more) }, m(more ? 'lo.less' : 'lo.more'))),
-    el('p', { class: 'lo-hint' }, m('lo.compareHint')),
     el('div', { class: 'lo-scroll lo-optscroll' }, el('table', { class: 'lo-t lo-opts' },
-      el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c) => th(c, exOf(c.id))), el('th', { scope: 'col' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
+      el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c) => th(c, exOf(c.id))), el('th', { scope: 'col', class: 'is-act' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
       el('tbody', {}, rows))),
     shown.length ? null : el('p', { class: 'lo-msgline' }, m('pick.empty')));
   pick.replaceChildren(...[el('button', { type: 'button', class: 'lo-tolist', 'data-tolist': '1' }, `‹ ${m('lo.toList')}`), head, slot.racks ? rackBar(slot) : null, list, cmp].filter(Boolean));
