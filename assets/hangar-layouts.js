@@ -377,80 +377,6 @@ export function initWorkshop(doc, bridge) {
     if (withPrice) parts.push(it[9] ? fill(m('pick.price'), { n: nf.format(it[9]) }) : m('pick.noshop'));
     return parts.filter(Boolean).join(' · ');
   }
-  // Alle Werte: jede Zahl eines Teils als [id, Bezeichnung, Wert, Einheit, Zahl zum Sortieren].
-  // Schaden je Art je Schuss (Waffe) bzw. Sprengkopf (Rakete) in extra.dP/dE/dD/dT.
-  const f1 = new Intl.NumberFormat(loc, { maximumFractionDigits: 1 });
-  const f2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
-  // Werte, bei denen weniger besser ist: dort zeigt der Pfeil die Richtung, die Farbe das Urteil.
-  const LOWER = new Set(['sp.spread', 'sp.heat', 'sp.ovf', 'sp.chd', 'sp.lkT', 'sp.pw', 'sp.em', 'sp.ir', 'sp.spool',
-    'sp.arm', 'sp.ign', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.full', 'sp.price']);
-  const DT = [['dP', 'dt.p'], ['dE', 'dt.e'], ['dD', 'dt.d'], ['dT', 'dt.t']];
-  const alphaOf = (x) => DT.reduce((a, [k]) => a + (x?.[k] ?? 0), 0);
-  function specs(k) {
-    const it = data.items[k];
-    if (!it) return [];
-    const x = it[8] ?? {};
-    const out = [];
-    const add = (id, v, unit = '', label = m(id), fmt = f1) => {
-      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out.push([id, label, fmt.format(v), unit, v]);
-    };
-    // Spanne "min|max" in Prozent; sortiert wird nach dem Hoechstwert.
-    const span = (id, v, label) => {
-      if (typeof v !== 'string') return;
-      const [a, b] = v.split('|').map(Number);
-      out.push([id, label, a === b ? nf.format(b) : `${nf.format(a)}–${nf.format(b)}`, '%', b]);
-    };
-    const sig = () => { add('sp.pw', x.pw); add('sp.em', x.em); add('sp.ir', x.ir); };
-    // Die Aufteilung nach Art lohnt erst bei gemischtem Schaden; die eine Art nennt schon die Unterzeile.
-    const split = () => { if (DT.filter(([key]) => x[key] > 0).length > 1) for (const [key, lk] of DT) add(key, x[key], '', m(lk)); };
-    if (it[2] === 'gun') {
-      add('sp.alpha', alphaOf(x));
-      split();
-      add('sp.rate', x.rate, m('u.rpm'));
-      add('sp.mag', x.mag, m('u.shots'));
-      if (x.mag && x.rate) add('sp.empty', (x.mag / x.rate) * 60, 's');
-      add('sp.speed', x.spd, 'm/s');
-      add('sp.range', x.rng, 'm');
-      add('sp.spread', x.spr, '°', m('sp.spread'), f2);
-      add('sp.heat', x.hps, '', m('sp.heat'), f2);
-      if (x.hps && x.ovh) add('sp.hot', Math.floor(x.ovh / x.hps), m('u.shots'));
-      add('sp.cps', x.cps, '/s');
-      add('sp.ovf', x.ovf, 's');
-      add('sp.chg', x.chg);
-      add('sp.chr', x.chr, '/s');
-      add('sp.chd', x.chd, 's', m('sp.chd'), f2);
-      sig();
-    } else if (WEAPON_TYPES.has(it[2])) {
-      split();
-      if (x.trk) out.push(['sp.trk', m('sp.trk'), m(`trk.${x.trk}`), '', null]);
-      add('sp.blast', x.blast, 'm');
-      add('sp.arm', x.arm, 's');
-      add('sp.ign', x.ign, 's');
-      add('sp.life', x.life, 's');
-      add('sp.mspeed', x.spd, 'm/s');
-      add('sp.lkR', x.lkR, 'm');
-      add('sp.lkT', x.lkT, 's');
-      add('sp.lkA', x.lkA, '°');
-    } else if (it[2] === 'shield') {
-      add('sp.regen', x.regen, 'HP/s');
-      if (x.regen) add('sp.full', it[7] / x.regen, 's');
-      add('sp.dly', x.dly, 's');
-      add('sp.down', x.down, 's');
-      for (const [t, lk] of [['P', 'dt.p'], ['E', 'dt.e'], ['D', 'dt.d']]) span(`sp.r${t}`, x[`r${t}`], fill(m('sp.res'), { t: m(lk) }));
-      for (const [t, lk] of [['P', 'dt.p'], ['E', 'dt.e'], ['D', 'dt.d']]) span(`sp.a${t}`, x[`a${t}`], fill(m('sp.abs'), { t: m(lk) }));
-      sig();
-    } else if (it[2] === 'quantum') {
-      add('sp.cd', x.cd, 's');
-      add('sp.fuel', x.fuel);
-      add('sp.a1', x.a1, 'Mm/s²');
-      add('sp.a2', x.a2, 'Mm/s²');
-      add('sp.spool', x.spool, 's');
-      sig();
-    } else sig();
-    add('sp.hp', x.hp, 'HP');
-    out.push(['sp.price', m('sp.price'), it[9] ? nf.format(it[9]) : '–', 'aUEC', it[9] || 0]);
-    return out;
-  }
   const current = (slot) => draft.slots[slot.key] ?? slot.stock;
   // Der Slot mit der gewaehlten Halterung (Anzahl und Groesse der Raketen).
   const eff = (slot) => rackSlot(slot, draft.racks?.[slot.key], data.racks);
@@ -553,7 +479,12 @@ export function initWorkshop(doc, bridge) {
     $('hgl-save').disabled = none;
     $('hgl-share').disabled = none;
     $('hgl-reset').disabled = none || n === 0;
-    paintWin();
+    loLink(draft.ship, code);
+  }
+  // Das Advanced Loadout ist eine eigene Seite: der Weg dorthin traegt Schiff und Layout mit.
+  function loLink(ship, lo) {
+    const a = $('hgl-allbtn');
+    if (a && ship) a.href = `${aside.dataset.lo}?ship=${encodeURIComponent(ship)}${lo && lo !== EMPTY_CODE ? `&layout=${lo}` : ''}`;
   }
   nameIn.addEventListener('input', () => {
     draft.name = cleanName(nameIn.value);
@@ -843,202 +774,6 @@ export function initWorkshop(doc, bridge) {
       gd.textContent = d ? new Intl.NumberFormat(loc, { signDisplay: 'exceptZero' }).format(d) : '';
       gd.className = `hgl-gd ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}`;
     }
-    paintWin();
-  }
-
-  // Layout gesamt (Alle Werte): Summen des Reiters, daneben der Abstand zur Serie.
-  function tally(pick) {
-    const t = { fire: 0, alpha: 0, dP: 0, dE: 0, dD: 0, dT: 0, ord: 0, ordn: 0, shield: 0, regen: 0, power: 0, cool: 0, qt: 0 };
-    for (const s of slots) {
-      const [k, n] = pick(s);
-      const it = data.items[k];
-      if (!it) continue;
-      const x = it[8] ?? {};
-      if (it[2] === 'gun') {
-        const a = alphaOf(x);
-        t.fire += it[7] * n;
-        t.alpha += a * n;
-        // DPS je Art im Verhaeltnis des Schadens je Schuss
-        if (a) for (const [key] of DT) t[key] += (it[7] * n * (x[key] ?? 0)) / a;
-      } else if (WEAPON_TYPES.has(it[2])) { t.ord += it[7] * n; t.ordn += n; }
-      else if (it[2] === 'shield') { t.shield += it[7] * n; t.regen += (x.regen ?? 0) * n; }
-      else if (it[2] === 'power') t.power += it[7] * n;
-      else if (it[2] === 'cooler') t.cool += it[7] * n;
-      else if (it[2] === 'quantum') t.qt = Math.max(t.qt, it[7]);
-    }
-    return t;
-  }
-  const TOT = {
-    weapons: [['fire', 'tot.fire', 'DPS'], ['alpha', 'tot.alpha', ''], ...DT.map(([k, lk]) => [k, lk, 'DPS', true]), ['ord', 'tot.ord', ''], ['ordn', 'tot.ordn', '']],
-    systems: [['shield', 'tot.shield', 'HP'], ['regen', 'tot.regen', 'HP/s'], ['power', 'tot.power', ''], ['cool', 'tot.cool', ''], ['qt', 'tot.qt', 'Mm/s']],
-  };
-  const sgn = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
-  /* ---- Advanced Loadout: der volle Editor im grossen Fenster ---- */
-  // Krisz 10-20: neben dem schnellen Panel ein Advanced Loadout, in dem man
-  // alles aendert und dabei jeden Wert sieht ("nur eine Tabelle" war zu
-  // wenig). Links die Slots des Reiters mit Abstand zur Serie, rechts der
-  // gewaehlte Slot: seine Werte gegen das Serienteil und alle passenden
-  // Teile mit jeder Zahl; ein Klick auf eine Zeile baut ein. Name,
-  // Speichern, Teilen, Meine Layouts, Serie und Lackierung gehen hier wie im
-  // Panel (dieselben Funktionen). Solange das Fenster offen ist, erreichen
-  // seine Mausbewegungen die Buehne nicht: die 3D-Szene geht in ihre Ruhe.
-  const win = $('hgw');
-  const winSlots = $('hgw-slots');
-  const winMain = $('hgw-main');
-  const winName = $('hgw-name');
-  const winCats = [...win.querySelectorAll('[data-wcat]')];
-  const winSavedBtn = $('hgw-saved');
-  let winCat = 'weapons';
-  let selKey = null;
-  let winView = 'build';
-  let sort = { key: 'main', dir: -1 };
-  let query = '';
-  for (const t of ['pointermove', 'pointerover', 'wheel']) win.addEventListener(t, (e) => e.stopPropagation(), { passive: true });
-
-  function openWin() {
-    if (!data || win.open) return;
-    winCat = cat === 'paint' ? 'paint' : cat === 'systems' ? 'systems' : 'weapons';
-    selKey = openKey;
-    winView = 'build';
-    win.showModal();
-    // Hinweise (gespeichert, kopiert, rueckgaengig) erscheinen im Fenster.
-    win.append(toast);
-    paintWin();
-    $('hgw-x').focus();
-  }
-  function closeWin() {
-    if (win.open) win.close();
-  }
-  win.addEventListener('close', () => {
-    aside.insertBefore(toast, $('hgl-msg'));
-    $('hgl-allbtn').focus({ preventScroll: true });
-  });
-  $('hgl-allbtn').addEventListener('click', openWin);
-  $('hgw-x').addEventListener('click', closeWin);
-  // Klick auf den abgedunkelten Rand schliesst wie im Spielmenue.
-  win.addEventListener('click', (e) => { if (e.target === win) closeWin(); });
-  for (const b of winCats) b.addEventListener('click', () => { winCat = b.dataset.wcat; winView = 'build'; selKey = null; query = ''; paintWin(); });
-  winName.addEventListener('input', () => { nameIn.value = winName.value; nameIn.dispatchEvent(new Event('input')); });
-  winName.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); paintWin(); } });
-  $('hgw-save').addEventListener('click', () => { save(); paintWin(); });
-  $('hgw-share').addEventListener('click', (e) => share(draft, e.currentTarget));
-  $('hgw-reset').addEventListener('click', () => $('hgl-reset').click());
-  winSavedBtn.addEventListener('click', () => { winView = winView === 'saved' ? 'build' : 'saved'; paintWin(); });
-
-  const deltaEl = (d, tag = 'small') => el(tag, { class: `hgw-d ${d > 0 ? 'is-up' : d < 0 ? 'is-down' : ''}` }, d ? `${d > 0 ? '▲' : '▼'} ${sgn.format(Math.abs(d))}` : '');
-
-  function paintWinSum() {
-    const host = $('hgw-sum');
-    host.hidden = winCat === 'paint' || winView === 'saved';
-    if (host.hidden) return;
-    const now = tally((s) => [current(s), eff(s).count]);
-    const stock = tally((s) => [s.stock, s.count]);
-    const mixed = DT.filter(([k]) => now[k] > 0 || stock[k] > 0).length > 1;
-    host.replaceChildren(...TOT[winCat].flatMap(([k, lk, unit, isSplit]) => {
-      if ((!now[k] && !stock[k]) || (isSplit && !mixed)) return [];
-      const label = isSplit ? fill(m('tot.split'), { t: m(lk) }) : m(lk);
-      return [el('div', { class: 'hgw-card' }, el('span', {}, label),
-        el('b', {}, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, ` ${unit}`) : null),
-        deltaEl(Math.round(now[k] - stock[k])))];
-    }));
-  }
-
-  const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.speed', 'sp.range', 'sp.spread', 'sp.mag', 'sp.empty',
-    'sp.chg', 'sp.chr', 'sp.chd', 'sp.heat', 'sp.hot', 'sp.cps', 'sp.ovf',
-    'sp.trk', 'sp.mspeed', 'sp.lkR', 'sp.lkT', 'sp.lkA', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life',
-    'sp.regen', 'sp.full', 'sp.dly', 'sp.down', 'sp.rP', 'sp.rE', 'sp.rD', 'sp.aP', 'sp.aE', 'sp.aD',
-    'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.spool', 'sp.pw', 'sp.em', 'sp.ir', 'sp.hp', 'sp.price'];
-  // Spalten: Hauptwert, dann jede Zahl, die eines der Teile hat, in fester Reihenfolge.
-  function colsFor(keys) {
-    const seen = new Map();
-    for (const k of keys) for (const [id, label, , unit] of specs(k)) if (!seen.has(id)) seen.set(id, { id, label, unit });
-    return [...seen.values()].sort((a, b) => COL_ORDER.indexOf(a.id) - COL_ORDER.indexOf(b.id));
-  }
-
-  // Links: die Slots des Reiters, gruppiert wie im Panel, mit Abstand zur Serie.
-  function paintWinSlots(mine) {
-    winSlots.replaceChildren(...GROUPS.map((g) => {
-      const rows = mine.filter((s) => s.group === g);
-      if (!rows.length) return null;
-      return el('section', { class: 'hgw-sgrp' }, el('h3', {}, m(`grp.${g}`)),
-        el('ul', {}, ...rows.map((slot) => {
-          const k = current(slot);
-          const e = eff(slot);
-          const it = data.items[k];
-          const st = data.items[slot.stock];
-          const d = it && st && k !== slot.stock ? deltaPct(it[7] * e.count, st[7] * slot.count) : null;
-          return el('li', {}, el('button', { type: 'button', class: `hgw-slot${slot.key === selKey ? ' is-sel' : ''}${isChanged(slot) ? ' is-changed' : ''}`, 'data-sel': slot.key, 'aria-pressed': String(slot.key === selKey) },
-            el('span', { class: 'hgl-sock' }, ico(e.type), el('b', { class: 'hgl-sz' }, `S${e.size}`)),
-            el('span', { class: 'hgw-slot__nm' }, el('strong', {}, `${times(e.count)}${itemName(k)}`), el('small', {}, subLine(k, false))),
-            el('span', { class: 'hgw-slot__fig' }, it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()),
-              d ? el('i', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, `${d > 0 ? '▲' : '▼'} ${nf.format(Math.abs(d))} %`) : null)));
-        })));
-    }).filter(Boolean));
-  }
-
-  // Rechts: der gewaehlte Slot. Werte des eingebauten Teils gegen das
-  // Serienteil, dann alle passenden Teile; Klick auf eine Zeile baut ein.
-  function paintWinSlot(slot) {
-    const e = eff(slot);
-    const now = current(slot);
-    const ord = (a, b) => COL_ORDER.indexOf(a[0]) - COL_ORDER.indexOf(b[0]);
-    const nowSpecs = specs(now).sort(ord);
-    const stockSpecs = slot.stock ? specs(slot.stock) : [];
-    const it = data.items[now];
-    const st = data.items[slot.stock];
-    const mainRow = [UNIT[e.type](), it ? nf.format(it[7]) : '–', st ? nf.format(st[7]) : '–', it && st ? it[7] - st[7] : 0];
-    const valRows = [mainRow, ...nowSpecs.map(([id, label, v, u, raw]) => {
-      const s = stockSpecs.find(([sid]) => sid === id);
-      return [`${label}${u ? ` (${u})` : ''}`, v, s ? s[2] : '–', raw > 0 && s?.[4] > 0 ? raw - s[4] : 0, id];
-    })];
-    const vals = el('table', { class: 'hgw-t hgw-vals' },
-      el('thead', {}, el('tr', {}, el('th', { scope: 'col' }, m('win.value')), el('th', { scope: 'col', class: 'is-num' }, m('slot.fitted')), el('th', { scope: 'col', class: 'is-num' }, m('saved.stock')), el('th', { scope: 'col', class: 'is-num' }, m('win.diff')))),
-      el('tbody', {}, ...valRows.map(([label, v, s, d, id]) => el('tr', {}, el('th', { scope: 'row' }, label), el('td', { class: 'is-num is-main' }, v), el('td', { class: 'is-num' }, s),
-        el('td', { class: 'is-num' }, d ? el('span', { class: `hgw-d ${(d > 0) !== LOWER.has(id) ? 'is-up' : 'is-down'}` }, `${d > 0 ? '▲' : '▼'} ${f2.format(Math.abs(d))}`) : '')))));
-
-    const keys = candidates(e, data.items);
-    const cols = colsFor(keys);
-    const val = (k) => {
-      if (sort.key === 'main') return data.items[k][7];
-      if (sort.key === 'name') return null;
-      return specs(k).find(([id]) => id === sort.key)?.[4] ?? null;
-    };
-    const sorted = sort.key === 'name'
-      ? [...keys].sort((a, b) => itemName(a).localeCompare(itemName(b), loc) * sort.dir)
-      // Teile ohne den Wert ans Ende, gleich welche Richtung.
-      : [...keys].sort((a, b) => { const va = val(a), vb = val(b); return va == null || vb == null ? (va == null) - (vb == null) : (va - vb) * sort.dir; });
-    const q = query.trim().toLowerCase();
-    const shown = sorted.filter((k) => !q || `${data.items[k][0]} ${data.items[k][1] || ''} ${data.items[k][4] || ''}`.toLowerCase().includes(q));
-    const base = it?.[7] ?? null;
-    const th = (c) => {
-      const on = sort.key === c.id;
-      return el('th', { scope: 'col', class: c.id === 'name' ? '' : 'is-num', 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none' },
-        el('button', { type: 'button', class: 'hgw-sort', 'data-sort': c.id }, c.label, c.unit && c.unit !== c.label ? el('small', {}, ` ${c.unit}`) : null,
-          el('i', { 'aria-hidden': 'true' }, on ? (sort.dir < 0 ? '▼' : '▲') : '')));
-    };
-    const rows = shown.map((k) => {
-      const ki = data.items[k];
-      const d = k === now ? null : deltaPct(ki[7], base);
-      const row = specs(k);
-      const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
-      return el('tr', { class: `hgw-opt${k === now ? ' is-now' : ''}`, 'data-fit': k, tabindex: '0', 'aria-label': fill(m('msg.fitted'), { item: itemName(k) }) },
-        el('td', { class: 'is-name' }, el('b', {}, itemName(k)), ...tags, el('small', {}, subLine(k, false))),
-        el('td', { class: 'is-num is-main' }, nf.format(ki[7]), d ? el('small', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, ` ${d > 0 ? '▲' : '▼'} ${nf.format(Math.abs(d))} %`) : null),
-        ...cols.map((c) => { const r = row.find(([id]) => id === c.id); return el('td', { class: 'is-num' }, r ? r[2] : '–'); }));
-    });
-    const search = el('input', { type: 'search', class: 'hgl-q', id: 'hgw-q', value: query, placeholder: m('pick.search'), 'aria-label': m('pick.searchLabel'), autocomplete: 'off' });
-    const revert = isChanged(slot) && slot.stock ? el('button', { type: 'button', class: 'hgw-mini', 'data-revert': slot.key }, m('slot.revert')) : null;
-    winMain.replaceChildren(
-      el('div', { class: 'hgw-selhead' },
-        el('span', { class: 'hgl-sock' }, ico(e.type), el('b', { class: 'hgl-sz' }, `S${e.size}`)),
-        el('div', {}, el('p', {}, m(`grp.${slot.group}`)), el('h3', {}, `${times(e.count)}${itemName(now)}`)), revert),
-      ...(slot.racks ? [rackBar(slot)] : []),
-      el('div', { class: 'hgw-scroll' }, vals),
-      el('div', { class: 'hgw-pickbar' }, el('h4', {}, m('pick.head')), search, el('span', { class: 'hgl-n' }, plural('pick.count', shown.length))),
-      el('p', { class: 'hgw-hint' }, m('win.pickHint')),
-      el('div', { class: 'hgw-scroll hgw-opts' }, el('table', { class: 'hgw-t' },
-        el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }), th({ id: 'main', label: UNIT[e.type](), unit: '' }), ...cols.map(th))),
-        el('tbody', {}, ...rows))));
   }
 
   function savedCards() {
@@ -1058,98 +793,6 @@ export function initWorkshop(doc, bridge) {
           el('button', { type: 'button', class: 'hgl-mini', 'data-del': e.id, 'aria-label': fill(m('saved.deleteLabel'), { name: e.name }), title: m('saved.delete') }, '×')));
     });
   }
-
-  function paintWin() {
-    if (!win.open || !data) return;
-    if (doc.activeElement !== winName) winName.value = draft.name;
-    winName.placeholder = placeholder();
-    $('hgw-state').textContent = [$('hgl-state-txt').textContent, $('hgl-state-sub').textContent].join(' ');
-    $('hgw-state').dataset.s = $('hgl-state').dataset.s;
-    $('hgw-save').disabled = $('hgl-save').disabled;
-    $('hgw-share').disabled = $('hgl-share').disabled;
-    $('hgw-reset').disabled = $('hgl-reset').disabled;
-    winSavedBtn.setAttribute('aria-pressed', String(winView === 'saved'));
-    $('hgw-count').textContent = nf.format(store.list().length);
-    const has = { weapons: slots.some((s) => tabOf(s) === 'weapons'), systems: slots.some((s) => tabOf(s) === 'systems'), paint: hasPaints() };
-    if (!has[winCat]) winCat = ['weapons', 'systems', 'paint'].find((c) => has[c]) ?? 'weapons';
-    for (const b of winCats) {
-      b.hidden = !has[b.dataset.wcat];
-      b.setAttribute('aria-selected', String(b.dataset.wcat === winCat && winView === 'build'));
-    }
-    paintWinSum();
-    win.dataset.view = winView === 'saved' ? 'saved' : winCat === 'paint' ? 'paint' : 'build';
-    if (winView === 'saved') {
-      winSlots.replaceChildren();
-      winMain.replaceChildren(el('ul', { class: 'hgl-list hgw-list' }, ...savedCards()));
-      return;
-    }
-    if (winCat === 'paint') {
-      winSlots.replaceChildren();
-      const sec = paintSection();
-      winMain.replaceChildren(...[sec].filter(Boolean));
-      for (const b of winMain.querySelectorAll('.hgl-paint')) b.setAttribute('aria-pressed', String(b.dataset.paint === (draft.paint ?? '')));
-      return;
-    }
-    const mine = slots.filter((s) => tabOf(s) === winCat);
-    if (!mine.some((s) => s.key === selKey)) selKey = mine[0]?.key ?? null;
-    paintWinSlots(mine);
-    const slot = mine.find((s) => s.key === selKey);
-    if (slot) paintWinSlot(slot);
-    else winMain.replaceChildren(el('p', { class: 'hgl-empty' }, m('noslots')));
-  }
-
-  function fitFromWin(slot, k) {
-    if (!k || k === current(slot)) return;
-    setItem(slot, k);
-    bridge.say(fill(m('msg.fitted'), { item: itemName(k) }));
-    commit();
-    paintSlot(slot, true);
-    paintTotals();
-  }
-  const selSlot = () => slots.find((s) => s.key === selKey);
-  win.addEventListener('click', (e) => {
-    const t = e.target;
-    const sel = t.closest('[data-sel]');
-    if (sel) {
-      if (selKey !== sel.dataset.sel) { selKey = sel.dataset.sel; sort = { key: 'main', dir: -1 }; query = ''; }
-      paintWin();
-      win.querySelector(`[data-sel="${CSS.escape(selKey)}"]`)?.focus({ preventScroll: true });
-      // Auf dem Handy steht der Slot unter der Liste: dorthin rollen.
-      if (win.querySelector('.hgw-grid')?.offsetWidth < 760) winMain.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      return;
-    }
-    const sb = t.closest('.hgw-sort');
-    if (sb) {
-      const id = sb.dataset.sort;
-      sort = sort.key === id ? { key: id, dir: -sort.dir } : { key: id, dir: id === 'sp.price' || id === 'name' ? 1 : -1 };
-      paintWin();
-      winMain.querySelector(`.hgw-sort[data-sort="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
-      return;
-    }
-    const opt = t.closest('.hgw-opt');
-    if (opt && selSlot()) { fitFromWin(selSlot(), opt.dataset.fit); return; }
-    const rv = t.closest('[data-revert]');
-    if (rv && selSlot()) { const s = selSlot(); equip(s, s.stock, s.racks?.[0]); paintWin(); return; }
-    const rb = t.closest('.hgl-rack');
-    if (rb && selSlot()) { equipRack(selSlot(), rb.dataset.rack); paintWin(); return; }
-    const pb = t.closest('.hgl-paint');
-    if (pb) { pickPaint(pb.dataset.paint); paintWin(); return; }
-    const sv = t.closest('.hgw-list button');
-    if (sv) { savedClick(sv); if (sv.dataset.open) { winView = 'build'; selKey = null; } paintWin(); }
-  });
-  win.addEventListener('keydown', (e) => {
-    const opt = e.target.closest?.('.hgw-opt');
-    if (opt && (e.key === 'Enter' || e.key === ' ') && selSlot()) { e.preventDefault(); fitFromWin(selSlot(), opt.dataset.fit); }
-  });
-  win.addEventListener('input', (e) => {
-    if (e.target.id !== 'hgw-q') return;
-    query = e.target.value;
-    const pos = e.target.selectionStart;
-    paintWin();
-    const q = $('hgw-q');
-    q.focus({ preventScroll: true });
-    q.setSelectionRange(pos, pos);
-  });
 
   // Auswahl eines Slots: folgt hp des Controllers. Ein Port mit mehreren
   // Items behaelt den gewaehlten Slot, solange hp sein Port bleibt.
@@ -1455,14 +1098,12 @@ export function initWorkshop(doc, bridge) {
       if (savedId === gone.id) savedId = null;
       paintSaved();
       paintHead();
-      paintWin();
-      if (!win.open) (list.querySelector('button') ?? savedBtn).focus();
+        (list.querySelector('button') ?? savedBtn).focus();
       showToast(fill(m('msg.deleted'), { name: gone.name }), () => {
         store.restore(gone);
         paintSaved();
         paintHead();
-        paintWin();
-      });
+          });
     }
   }
   list.addEventListener('click', (e) => {
@@ -1482,10 +1123,10 @@ export function initWorkshop(doc, bridge) {
     aside.hidden = !open;
     if (!open) {
       hot(null);
-      closeWin();
       return;
     }
     if (!data) {
+      loLink(state.ship, state.lo);
       ensureData().then(() => render(bridge.state())).catch(() => {});
       return;
     }

@@ -1,0 +1,262 @@
+---
+// Advanced Loadout als eigene Seite, EIN Koerper fuer DE und EN. Krisz 10-21:
+// raus aus dem Hangar und viel einfacher zu bedienen. Gebaut steht das
+// Geruest mit jedem festen Wort und der Liste der Schiffe; Ausstattung,
+// Vergleich und Teileliste zeichnet assets/hangar-loadout.js aus
+// /hangar-layouts.json. Seine Woerter liest es aus #lo-msg, eines je data-m,
+// damit audit:site und verify:sync sie sehen.
+//
+// Adresse wie die Werkstatt im Hangar: ?ship=<id>&layout=<code>. "Im Hangar
+// ansehen" fuehrt mit demselben Layout zurueck.
+import SiteNav from '../SiteNav.astro';
+import { LAYOUT_KEYS, layoutT } from '../../i18n/layoutText';
+import { hangarT, type HangarKey } from '../../i18n/hangarText';
+import { localeFromPath, href } from '../../i18n/ui';
+import { versioned } from '../../lib/assetVersion';
+import { layoutDataHref } from '../../lib/hangar/layouts';
+import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, shipFacts } from '../../lib/hangar/catalog';
+
+const lang = localeFromPath(Astro.url.pathname);
+const loc = lang === 'de' ? 'de-DE' : 'en-US';
+const l = layoutT(lang);
+const t = hangarT(lang);
+const ships = HANGAR_IDS.map((id) => shipFacts(id, lang))
+  .sort((a, b) => a.name.localeCompare(b.name, loc))
+  .map((s) => ({ id: s.id, name: s.name, maker: s.maker || '' }));
+const BAY_MSG: HangarKey[] = [
+  'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
+  'cls.military', 'cls.civilian', 'cls.industrial', 'cls.stealth', 'cls.competition', 'grade',
+  'unit.damage', 'unit.power', 'unit.cooling', 'unit.sensitivity',
+];
+const script = versioned('assets/hangar-loadout.js', '/assets/hangar-loadout.js');
+const libSrc = versioned('assets/hangar-layouts.js', '/assets/hangar-layouts.js');
+const hangar = href('/hangar.html', lang);
+const save = 'M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6';
+const listIco = 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01';
+const link = 'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1';
+---
+<style is:inline>
+/* Dieselbe Palette und Schrift wie der Hangar (HangarApp.astro): theme.css
+   bringt sie nicht mit, jede Seite ihren Stapel. */
+:root{--font-display:'Orbitron','Rajdhani',system-ui,sans-serif;--font-ui:'Rajdhani','Barlow',system-ui,sans-serif;--font-body:'Barlow',system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased}
+.lo *,.lo *::before,.lo *::after{box-sizing:border-box}
+:root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef8;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1c1f25;--muted:#4e586c;--accent:#7c5104;--accent-2:#49556d;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#9aa6bd;--line:rgba(148,104,38,.3);--line-soft:rgba(43,46,52,.12)}
+.lo{--lo-a:var(--accent);--lo-on:var(--text);--lo-dim:var(--muted);--lo-hair:var(--line);--lo-soft:var(--line-soft);--lo-card:var(--bg-2);--lo-good:var(--accent);--lo-bad:color-mix(in srgb,var(--hot) 70%,var(--text));
+  max-width:1500px;margin:0 auto;padding:calc(var(--nav-h,68px) + 1rem) clamp(16px,3vw,40px) 3rem;color:var(--lo-on)}
+.lo-top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:1rem 1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--lo-hair)}
+.lo-id{flex:1 1 26rem;min-width:0}
+.lo-eyebrow{margin:0 0 .3rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--lo-a)}
+.lo-id h1{margin:0;font-family:var(--font-display);font-size:var(--fs-12);font-weight:900;line-height:1.1}
+.lo-lead{margin:.4rem 0 0;max-width:60ch;font-size:var(--fs-7);color:var(--lo-dim)}
+.lo-fields{display:flex;flex-wrap:wrap;gap:.6rem 1rem;margin-top:.9rem}
+.lo-field{display:flex;flex-direction:column;gap:.25rem;flex:1 1 15rem;min-width:0}
+.lo-field>span{font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+.lo-field select,.lo-field input{width:100%;min-width:0;height:2.6rem;padding:0 .7rem;border:1px solid var(--lo-hair);border-radius:8px;background:var(--lo-card);color:var(--lo-on);font:inherit;font-size:var(--fs-8)}
+.lo-field select:focus-visible,.lo-field input:focus-visible{outline:2px solid var(--lo-a);outline-offset:1px}
+.lo-state{margin:.5rem 0 0;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-state[data-s="changed"]{color:var(--lo-a)}
+.lo-acts{display:flex;flex-wrap:wrap;gap:.45rem}
+.lo-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.4rem;padding:0 .9rem;border:1px solid var(--lo-hair);border-radius:8px;background:var(--lo-card);color:var(--lo-on);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
+.lo-btn:hover,.lo-btn:focus-visible{border-color:var(--lo-a);color:var(--lo-a);outline:0}
+.lo-btn.is-main{background:var(--lo-a);border-color:var(--lo-a);color:var(--ink)}
+.lo-btn.is-main:hover,.lo-btn.is-main:focus-visible{background:color-mix(in srgb,var(--lo-a) 85%,var(--text));color:var(--ink)}
+.lo-btn:disabled{opacity:.45;cursor:default;border-color:var(--lo-hair);color:var(--lo-on)}
+.lo-btn i{font-style:normal;min-width:1.3rem;padding:0 .3rem;border-radius:999px;background:color-mix(in srgb,var(--lo-on) 12%,transparent);font-size:var(--fs-5)}
+.lo-btn svg{flex:0 0 auto}
+.lo-copyfield{width:min(360px,100%);height:2.4rem;padding:0 .6rem;border:1px solid var(--lo-hair);border-radius:8px;background:var(--lo-card);color:var(--lo-on);font:inherit;font-size:var(--fs-6)}
+.lo-copyfield[hidden]{display:none}
+.lo-msgline{margin:1rem 0;color:var(--lo-dim)}
+.lo-msgline[hidden]{display:none}
+/* Summen oben: was das ganze Layout kann, gegen Serie, mit einem Satz dazu. */
+.lo-sumh{margin:1.2rem 0 .6rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+.lo-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(12rem,100%),1fr));gap:.6rem}
+.lo-card{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:.15rem .5rem;padding:.7rem .85rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card)}
+.lo-card__l{grid-column:1/-1;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-card__v{font-family:var(--font-ui);font-size:var(--fs-10);font-weight:800;font-variant-numeric:tabular-nums}
+.lo-card__v small{font-size:var(--fs-5);font-weight:600;color:var(--lo-dim)}
+.lo-card__ex{grid-column:1/-1;font-size:var(--fs-5);line-height:1.35;color:var(--lo-dim)}
+.lo-d{font-style:normal;font-size:var(--fs-6);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lo-d.is-good{color:var(--lo-good)}
+.lo-d.is-bad{color:var(--lo-bad)}
+/* Zwei Spalten: links die Ausstattung, rechts der gewaehlte Platz. */
+.lo-grid{display:grid;grid-template-columns:minmax(0,25rem) minmax(0,1fr);gap:1.4rem;margin-top:1.4rem;align-items:start}
+.lo-equip h2,.lo-pickhead h2{margin:0}
+.lo-equip>h2{margin:0 0 .2rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+.lo-equip>p{margin:0 0 .6rem;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-grp h3{margin:.9rem 0 .35rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+.lo-grp ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.35rem}
+.lo-slot{appearance:none;width:100%;display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card);color:var(--lo-on);font:inherit;text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.lo-slot:hover,.lo-slot:focus-visible{border-color:color-mix(in srgb,var(--lo-a) 60%,var(--lo-hair));outline:0}
+.lo-slot.is-sel{border-color:var(--lo-a);background:color-mix(in srgb,var(--lo-a) 9%,var(--lo-card))}
+.lo-slot__nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.lo-slot__nm strong{font-size:var(--fs-7);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lo-slot__nm small{font-size:var(--fs-5);color:var(--lo-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lo-slot__nm em,.lo-opt em{font-style:normal;margin-right:.35rem;padding:0 .35rem;border-radius:4px;background:color-mix(in srgb,var(--lo-a) 18%,transparent);color:var(--lo-a);font-weight:700}
+.lo-slot__fig{display:flex;flex-direction:column;align-items:flex-end;font-family:var(--font-ui);font-weight:800;font-variant-numeric:tabular-nums}
+.lo-slot__fig small{font-size:var(--fs-5);font-weight:600;color:var(--lo-dim)}
+.lo-chev{font-size:var(--fs-9);color:var(--lo-dim)}
+.lo-slot.is-sel .lo-chev{color:var(--lo-a)}
+.lo-sock{position:relative;flex:0 0 auto;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border:1px solid var(--lo-hair);border-radius:8px;color:var(--lo-on)}
+.lo-sock svg{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.lo-sock b{position:absolute;bottom:-.45rem;left:50%;transform:translateX(-50%);padding:0 .25rem;border-radius:4px;background:var(--bg);font-family:var(--font-ui);font-size:var(--fs-4);font-weight:800}
+.lo-sw{display:flex;overflow:hidden;padding:0}
+.lo-sw i{flex:1;height:100%}
+/* Rechts: steht neben der Liste still, solange sie laeuft. */
+.lo-pick{position:sticky;top:calc(var(--nav-h,68px) + .8rem);max-height:calc(100dvh - var(--nav-h,68px) - 1.6rem);overflow:auto;overscroll-behavior:contain;display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;padding-right:.2rem}
+.lo-pick:empty{display:none}
+.lo-tolist{display:none}
+.lo-pickhead{display:flex;align-items:center;gap:.8rem}
+.lo-pickhead>div{flex:1;min-width:0}
+.lo-pickhead p{margin:0;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+.lo-pickhead h2{font-family:var(--font-display);font-size:var(--fs-11);font-weight:800;line-height:1.15}
+.lo-pickhead small{font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-box{scroll-margin-top:calc(var(--nav-h,68px) + .5rem);border:1px solid var(--lo-hair);border-radius:12px;background:var(--lo-card);overflow:hidden}
+.lo-box.is-prev{border-color:var(--lo-a)}
+.lo-box__h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;padding:.7rem .9rem;border-bottom:1px solid var(--lo-hair)}
+.lo-box__h h3{margin:0;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:800}
+.lo-n{font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-pickbar{display:flex;flex-wrap:wrap;gap:.5rem;padding:.7rem .9rem 0}
+.lo-q{flex:1 1 14rem;min-width:0;height:2.4rem;padding:0 .7rem;border:1px solid var(--lo-hair);border-radius:8px;background:var(--bg);color:var(--lo-on);font:inherit;font-size:var(--fs-8)}
+.lo-q:focus-visible{outline:2px solid var(--lo-a);outline-offset:1px}
+.lo-btn[aria-pressed="true"]{border-color:var(--lo-a);color:var(--lo-a)}
+.lo-hint{margin:.5rem .9rem .6rem;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-scroll{position:relative;overflow-x:auto}
+/* Die Liste bleibt kurz genug, dass der Vergleich darunter im Blick ist. */
+.lo-optscroll{max-height:min(30rem,52vh);overflow-y:auto;overscroll-behavior:contain}
+.lo-optscroll .lo-t thead th{position:sticky;top:0;z-index:1;background:var(--lo-card);box-shadow:inset 0 -1px 0 var(--lo-soft)}
+.lo-t{width:100%;border-collapse:collapse;font-size:var(--fs-6);font-variant-numeric:tabular-nums}
+.lo-t th,.lo-t td{padding:.5rem .7rem;border-top:1px solid var(--lo-soft);text-align:left;vertical-align:middle}
+.lo-t thead th{border-top:0;background:color-mix(in srgb,var(--lo-on) 4%,transparent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;color:var(--lo-dim);white-space:nowrap}
+.lo-t .is-num{text-align:right;white-space:nowrap}
+.lo-cmp tbody th{font-weight:600}
+.lo-cmp tbody th small{display:block;font-weight:400;font-size:var(--fs-5);line-height:1.3;color:var(--lo-dim)}
+.lo-cmp td.is-a{font-weight:800}
+.lo-sort{appearance:none;border:0;background:none;padding:0;color:inherit;font:inherit;cursor:pointer;white-space:nowrap}
+.lo-sort small{font-weight:400}
+.lo-sort i{font-style:normal;color:var(--lo-a);margin-left:.2rem}
+.lo-sort:hover,.lo-sort:focus-visible{color:var(--lo-on);outline:0}
+.lo-opt{cursor:pointer}
+.lo-opt:hover,.lo-opt:focus-visible{background:color-mix(in srgb,var(--lo-on) 5%,transparent);outline:0}
+.lo-opt.is-now{background:color-mix(in srgb,var(--lo-a) 8%,transparent)}
+.lo-opt.is-prev{background:color-mix(in srgb,var(--lo-a) 16%,transparent);box-shadow:inset 3px 0 0 var(--lo-a)}
+.lo-opt .is-name b{display:block;font-size:var(--fs-6)}
+.lo-opt .is-name small{display:block;font-size:var(--fs-5);color:var(--lo-dim)}
+.lo-opt .is-main{font-weight:800}
+.lo-opt .is-main .lo-d{margin-left:.4rem;font-size:var(--fs-5)}
+.lo-opt .is-act{text-align:right}
+.lo-fit{min-height:2rem;padding:0 .7rem}
+.lo-fitted{font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;color:var(--lo-a);white-space:nowrap}
+.lo-vh{position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.lo-racks{display:grid;gap:.4rem}
+.lo-racks__h{font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+.lo-racks__row{display:flex;flex-wrap:wrap;gap:.35rem}
+.lo-rack{appearance:none;display:inline-flex;flex-direction:column;align-items:center;padding:.35rem .7rem;border:1px solid var(--lo-hair);border-radius:8px;background:var(--lo-card);color:var(--lo-on);font:inherit;cursor:pointer}
+.lo-rack small{font-size:var(--fs-4);color:var(--lo-dim)}
+.lo-rack[aria-pressed="true"]{border-color:var(--lo-a);color:var(--lo-a)}
+.lo-racks__info{font-size:var(--fs-5);color:var(--lo-dim)}
+.lo-paints{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(13rem,100%),1fr));gap:.5rem}
+.lo-paint{appearance:none;width:100%;display:flex;flex-direction:column;gap:.35rem;padding:.5rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card);color:var(--lo-on);font:inherit;text-align:left;cursor:pointer}
+.lo-paint__sw{display:flex;height:2.4rem;border-radius:6px;overflow:hidden}
+.lo-paint__sw i{flex:1}
+.lo-paint strong{font-size:var(--fs-6)}
+.lo-paint small{font-size:var(--fs-5);color:var(--lo-dim)}
+.lo-paint[aria-pressed="true"]{border-color:var(--lo-a);background:color-mix(in srgb,var(--lo-a) 9%,var(--lo-card))}
+/* Meine Layouts im Dialog */
+.lo-dlg{width:min(720px,calc(100vw - 2rem));max-height:calc(100dvh - 4rem);padding:0;border:1px solid var(--lo-hair);border-radius:12px;background:var(--bg);color:var(--lo-on)}
+.lo-dlg::backdrop{background:var(--overlay-backdrop,rgb(0 0 0 / .6))}
+.lo-dlg__h{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1rem;border-bottom:1px solid var(--lo-hair)}
+.lo-dlg__h h2{margin:0;font-family:var(--font-ui);font-size:var(--fs-9);font-weight:800}
+.lo-list{list-style:none;margin:0;padding:.8rem 1rem 1rem;display:grid;gap:.5rem}
+.lo-saved{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;padding:.7rem .8rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card)}
+.lo-saved.is-current{border-color:var(--lo-a)}
+.lo-saved h4{margin:0;font-size:var(--fs-7)}
+.lo-saved p{margin:.15rem 0 0;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-saved p b{color:var(--lo-on)}
+.lo-tag{margin-left:.4rem;padding:0 .35rem;border-radius:4px;background:color-mix(in srgb,var(--lo-a) 18%,transparent);color:var(--lo-a);font-size:var(--fs-5)}
+.lo-saved__acts{display:flex;gap:.35rem}
+.lo-empty{color:var(--lo-dim)}
+.lo-toast{position:fixed;left:50%;bottom:1.2rem;z-index:20;display:flex;align-items:center;gap:.8rem;max-width:min(32rem,calc(100% - 2rem));padding:.65rem .9rem;border:1px solid var(--lo-a);border-radius:10px;background:var(--bg-2);color:var(--lo-on);font-size:var(--fs-6);box-shadow:0 12px 30px -12px var(--shadow-color);transform:translate(-50%,1rem);opacity:0;visibility:hidden;pointer-events:none;transition:visibility var(--dur-fast),opacity var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
+.lo-toast.is-on{opacity:1;visibility:visible;transform:translate(-50%,0);pointer-events:auto}
+.lo-toast button{appearance:none;border:0;background:none;color:var(--lo-a);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.lo-toast button[hidden],.lo button[hidden]{display:none}
+@media (max-width:900px){
+  .lo-grid{grid-template-columns:minmax(0,1fr)}
+  .lo-pick{position:static;max-height:none;overflow:visible;scroll-margin-top:calc(var(--nav-h,68px) + .5rem)}
+  .lo-sum{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lo-t th,.lo-t td{padding:.45rem .5rem}
+  .lo-cmp th{hyphens:auto;overflow-wrap:anywhere}
+  .lo-cmp thead th{white-space:normal}
+  .lo-optscroll{max-height:min(26rem,60vh)}
+  .lo-equip,.lo-slot{scroll-margin-top:calc(var(--nav-h,68px) + .5rem)}
+  .lo-tolist{display:inline-flex;justify-self:start;appearance:none;border:0;background:none;padding:0;color:var(--lo-a);font:inherit;font-weight:700;cursor:pointer}
+  .lo-acts{width:100%}
+  .lo-acts .lo-btn{flex:1 1 auto}
+}
+@media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn{transition:none}}
+</style>
+
+<SiteNav crumbs={lang === 'de' ? [{ label: 'Hangar', href: '/de/hangar.html' }, { label: l('lo.title') }] : [{ label: 'Hangar', href: '/hangar.html' }, { label: l('lo.title') }]} hasEn={true} />
+
+<main class="lo" id="lo" data-lang={lang} data-loc={loc} data-src={layoutDataHref()} data-lib={libSrc} data-hangar={hangar} data-ship={HANGAR_DEFAULT_SHIP}>
+  <header class="lo-top">
+    <div class="lo-id">
+      <p class="lo-eyebrow">Hangar</p>
+      <h1>{l('lo.title')}</h1>
+      <p class="lo-lead">{l('lo.lead')}</p>
+      <div class="lo-fields">
+        <label class="lo-field"><span>{l('lo.ship')}</span><select id="lo-shipsel"></select></label>
+        <label class="lo-field"><span>{l('name.label')}</span><input id="lo-name" type="text" maxlength="60" autocomplete="off" spellcheck="false" /></label>
+      </div>
+      <p class="lo-state" id="lo-state" aria-live="polite"></p>
+    </div>
+    <div class="lo-acts">
+      <button type="button" class="lo-btn is-main" id="lo-save">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d={save} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+        {l('act.save')}
+      </button>
+      <button type="button" class="lo-btn" id="lo-savedbtn" aria-haspopup="dialog" aria-controls="lo-saved">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={listIco} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        {l('view.saved')} <i id="lo-count">0</i>
+      </button>
+      <button type="button" class="lo-btn" id="lo-share">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d={link} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        {l('act.share')}
+      </button>
+      <button type="button" class="lo-btn" id="lo-reset">{l('act.reset')}</button>
+      <a class="lo-btn" id="lo-back" href={hangar}>{l('lo.back')}</a>
+      <input class="lo-copyfield" id="lo-copyfield" type="text" readonly hidden aria-label={l('act.share')} />
+    </div>
+  </header>
+
+  <p class="lo-msgline" id="lo-loading">{l('loading')}</p>
+  <p class="lo-msgline" id="lo-failed" role="alert" hidden>{l('failed')} <button type="button" class="lo-btn" id="lo-retry">{l('retry')}</button></p>
+
+  <h2 class="lo-sumh">{l('lo.sum')}</h2>
+  <div class="lo-sum" id="lo-sum" role="group" aria-label={l('lo.sum')}></div>
+
+  <div class="lo-grid">
+    <nav class="lo-equip" id="lo-equip" aria-label={l('lo.equip')}>
+      <h2>{l('lo.equip')}</h2>
+      <p>{l('hint.swap')}</p>
+      <div id="lo-equip-list"></div>
+      <p>{l('note')}</p>
+    </nav>
+    <div class="lo-pick" id="lo-pick" aria-live="polite"></div>
+  </div>
+
+  <dialog class="lo-dlg" id="lo-saved" aria-labelledby="lo-saved-h">
+    <div class="lo-dlg__h"><h2 id="lo-saved-h">{l('view.saved')}</h2><button type="button" class="lo-btn" id="lo-saved-x">{l('win.close')}</button></div>
+    <ul class="lo-list" id="lo-list"></ul>
+  </dialog>
+  <div class="lo-toast" id="lo-toast" role="status"><span id="lo-toast-txt"></span><button type="button" id="lo-undo" hidden>{l('msg.undo')}</button></div>
+
+  <script type="application/json" id="lo-ships" set:html={JSON.stringify(ships).replace(/</g, '\\u003c')}></script>
+  <div id="lo-msg" hidden>
+    {LAYOUT_KEYS.map((k) => <span data-m={k}>{l(k)}</span>)}
+    {BAY_MSG.map((k) => <span data-m={k}>{t(k)}</span>)}
+  </div>
+</main>
+<script type="module" is:inline src={script}></script>

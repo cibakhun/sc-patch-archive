@@ -1,0 +1,18 @@
+---
+// Hülle (DE). Körper: components/hangar/LoadoutPage.astro — geteilt mit der
+// anderen Sprache, damit die beiden nicht auseinanderlaufen können (D-12).
+import Layout from '../../layouts/Layout.astro';
+import Body from '../../components/hangar/LoadoutPage.astro';
+import { layoutT } from '../../i18n/layoutText';
+const l = layoutT('de');
+---
+<Layout
+  title={l('lo.metaTitle')}
+  description={l('lo.metaDesc')}
+  themeColor="#07080b"
+  footer={true}
+  translated={true}
+  ogImage="/assets/img-hammerhead.jpg"
+>
+<Body />
+</Layout>
