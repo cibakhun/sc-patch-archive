@@ -181,7 +181,20 @@
         so); jede Stelle, Leitung und Spur im Block ist gueltig;
         Plaetze, Glieder, Leitungen, Spuren und Requisiten ueber ihrer
         Klinke, Materialien (Zeichenbefehle), Dreiecke und Bytes unter der
-        Obergrenze (KLINKE_DIENST, OBERGRENZE_DIENST).
+        Obergrenze (KLINKE_DIENST, OBERGRENZE_DIENST). Seit 21.10.2026 die
+        Schichten (Betreiber 20.10.2026: „es fehlen auch texturen bei den
+        assets“): dienst_flach traegt dazu Texturkoordinaten, Tafelzeile
+        und Vertexfarbe; der Satz traegt die Schichttafel, das
+        Kartenraster liegt daneben in dist/, passt zum Satz und misst
+        eine Karte je Name; jede Zeile ist ein LayerBlend-Material des
+        Katalogs mit genau dessen Blend- und Abnutzungskarte (eine
+        vorhandene Blend-Karte darf nicht fehlen) und der Detail- und
+        Normalenkarte seiner ersten Grundschicht (eine mit Muster darf
+        nicht fehlen, gemessen wie im Build); jede Ecke hoechstens
+        eine Viertelzeile neben ihrer Zeile (draco); Zeilen, Karten,
+        Ecken mit Zeile und Zeilen mit Blend-, Abnutzungs-, Detail- und
+        Normalenkarte ueber KLINKE_SCHICHTEN, das Raster unter
+        OBERGRENZE_SCHICHTEN.
     15  Das Schachttor schliesst beim Wechsel (seit 18.10.2026): Das Schiff
         tauschte unten bei offenem Schacht, man sah es ploppen (Betreiber
         18.10.2026). Das Tor des Spiels (lift.<Bausatz>.gate im Manifest,
@@ -233,6 +246,18 @@ import draco3d from 'draco3d';
 import { seamStats } from './lib/hall-seams.mjs';
 import { FILL_TOL, touches, samples, normalOf, withNormals, onLite, worldTris } from './lib/hall-fill.mjs';
 import { sha8 } from './lib/eol-sha.mjs';
+import sharp from 'sharp';
+import { MUSTER } from './build-hangar-dienst.mjs';
+
+/** Breite und Höhe einer WebP-Datei aus ihrem Kopf (VP8, VP8L, VP8X), sonst null. */
+function webpSize(b) {
+  if (b.length < 30 || b.toString('ascii', 0, 4) !== 'RIFF' || b.toString('ascii', 8, 12) !== 'WEBP') return null;
+  const c = b.toString('ascii', 12, 16);
+  if (c === 'VP8X') return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
+  if (c === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
+  if (c === 'VP8L') { const v = b.readUInt32LE(21); return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)]; }
+  return null;
+}
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -304,7 +329,16 @@ const KLINKE_DIENST = { stationen: 20, glieder: 131, leitungen: 6, spuren: 13, p
 // 21.10.2026 angehoben (210000 -> 213000, Klassen +5000/+5000/+4000): Teilflaechen mit dem
 // LayerBlend-Flag %DECALS fielen im Katalog-Build bisher still weg (als Decal ohne Karte
 // gelesen); seit Hangar-Werte Teil 2 sind sie da (Satz 212 465, Klassen 217 562 / 261 231 / 563 622).
-const OBERGRENZE_DIENST = { mats: 41, tris: 213000, bytes: 5.2e6 };
+// Bytes 21.10.2026 5,2 -> 5,5 MB: dienst_flach traegt fuer die Schichten je Ecke
+// Texturkoordinaten, Tafelzeile und Vertexfarbe des Spiels (Satz 5,35 MB).
+const OBERGRENZE_DIENST = { mats: 41, tris: 213000, bytes: 5.5e6 };
+// Schichten des Wartungsplatzes (seit 21.10.2026, Katalog v2): Zeilen der
+// Schichttafel (flache LayerBlend-Materialien), davon mit Blend-Karte, mit
+// Abnutzungskarte, mit Detail- und mit Normalenkarte; Karten im Raster; Ecken
+// von dienst_flach mit einer Zeile (am 21.10.2026: 124 Zeilen, 61, 61, 42,
+// 37, 41 Karten, 150 954 Ecken, 563 KB); das Raster höchstens so schwer.
+const KLINKE_SCHICHTEN = { zeilen: 124, blend: 61, abnutzung: 61, detail: 42, normale: 37, karten: 41, ecken: 150000 };
+const OBERGRENZE_SCHICHTEN = { bytes: 700000 };
 const DIENST_KLASSEN = { winzig: 6.5, klein: 20, mittel: 40, gross: 120 };
 const KLINKE_DIENST_KLASSE = { winzig: { stationen: 6 }, klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
 const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 117000 }, klein: { mats: 30, tris: 218000 }, mittel: { mats: 34, tris: 262000 }, gross: { mats: 41, tris: 564000 } };
@@ -1244,7 +1278,7 @@ const dm = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewer)
 let dienst = null;
 try { dienst = dm ? JSON.parse(dm[1]) : null; } catch (e) { fail(`[14] WORK_DIENST im Viewer ist kein JSON mehr (${e.message})`); }
 const DI = W?.dienst ?? null;
-const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {}, baender: 0 };
+const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {}, baender: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DI) fail(`[14] die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. ${existsSync(join(ROOT, 'public/hangar/props/dienst.glb')) ? 'HangarApp.astro pruefen' : 'public/hangar/props/dienst.glb fehlt, neu packen: node scripts/build-hangar-dienst.mjs'}`);
 if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 if (DI && dienst) {
@@ -1319,6 +1353,68 @@ if (DI && dienst) {
       if (set.size !== 1) fail(`[14] ${m} kommt im Geraetesatz mit ${set.size} verschiedenen Attributsaetzen (${[...set].join(' | ')}): Der Viewer legt je Material ein BatchedMesh an und braeche den Wartungsplatz ab`);
       const sig = [...set][0] ?? '';
       if (m === 'dienst_flach' ? !(/_TINT:VEC3/.test(sig) && /_RM:VEC2/.test(sig)) : !/TEXCOORD_0:VEC2/.test(sig)) fail(`[14] ${m}: Attributsatz ${sig} — dienst_flach braucht _TINT und _RM, die uebrigen TEXCOORD_0`);
+      if (m === 'dienst_flach' && !(/TEXCOORD_0:VEC2/.test(sig) && /_SLOT:SCALAR/.test(sig) && /COLOR_0:VEC4/.test(sig))) fail(`[14] dienst_flach: Attributsatz ${sig} — fuer die Schichten braucht es dazu TEXCOORD_0, _SLOT und COLOR_0 (Vertexfarbe des Spiels). Neu packen: node scripts/build-hangar-dienst.mjs`);
+    }
+    // Schichten: Tafel im Satz, Kartenstreifen daneben in dist/, jede Zeile
+    // ein LayerBlend-Material des Katalogs mit genau seinen Karten
+    const sch = st?.schichten;
+    if (!sch) fail(`[14] ${DI.url.split('?')[0]} traegt keine Schichttafel (asset.extras.dienst.schichten): Die Requisiten stuenden wieder einfarbig in der Grundschicht. Neu packen: node scripts/build-hangar-dienst.mjs`);
+    else {
+      const R = dienstRun.schichten, n = sch.namen?.length ?? 0, T = sch.texel ?? 0, cols = sch.spalten ?? 0;
+      const strip = join(DIST, 'hangar/props', sch.karten ?? '');
+      if (!sch.karten || !existsSync(strip)) fail(`[14] Kartenraster ${sch.karten ?? '(ohne Namen)'} fehlt in dist/hangar/props/: Der Viewer faende die Blend-, Abnutzungs- und Detailkarten nicht`);
+      else {
+        const buf = readFileSync(strip), size = webpSize(buf);
+        R.bytes = buf.length;
+        if (sha8(buf) !== sch.sha) fail(`[14] Kartenraster ${sch.karten} passt nicht zum Satz (Satz ${sch.sha}, Datei ${sha8(buf)}). Neu packen: node scripts/build-hangar-dienst.mjs`);
+        const gw = sch.px * cols, gh = sch.px * Math.ceil(n / (cols || 1));
+        if (!size || !(cols > 0) || size[0] !== gw || size[1] !== gh) fail(`[14] Kartenraster ${sch.karten} misst ${size ? size.join(' x ') : 'unlesbar'}, die Tafel erwartet ${gw} x ${gh} (${n} Karten zu ${cols} Spalten): Der Viewer lehnte es ab`);
+        if (R.bytes > OBERGRENZE_SCHICHTEN.bytes) fail(`[14] Kartenraster wiegt ${(R.bytes / 1024).toFixed(0)} KB, die Obergrenze ist ${OBERGRENZE_SCHICHTEN.bytes / 1000} KB: OBERGRENZE_SCHICHTEN nur per Commit mit Ursache anheben`);
+      }
+      R.karten = n;
+      const rows = sch.materialien ?? [];
+      // Muster wie im Build (Standardabweichung eines Kanals ueber MUSTER):
+      // Hat die erste Grundschicht eine Karte mit Muster, muss die Zeile sie tragen
+      const L1of = (km) => (km?.layers ?? []).filter((l) => /^BaseLayer\d/.test(l.name)).sort((a, b) => a.name.localeCompare(b.name))[0];
+      const muster = new Map();
+      if (rows.length * T * 4 === (sch.tafel?.length ?? -1)) for (const name of rows) {
+        const L1 = L1of(kat?.materials?.[name]);
+        for (const [f, ch] of [[L1?.maps?.d, 3], [L1?.maps?.n, 2]]) {
+          const file = f && join(DIST, 'hangar/props/schichten', f), key = `${f}|${ch}`;
+          if (file && !muster.has(key) && existsSync(file)) muster.set(key, (await sharp(file).stats()).channels.slice(0, ch).some((c) => c.stdev > MUSTER));
+        }
+      }
+      if ((sch.tafel?.length ?? -1) !== rows.length * T * 4 || T !== 11) fail(`[14] Schichttafel mit ${sch.tafel?.length ?? 0} Werten fuer ${rows.length} Zeilen zu ${T} Texeln: Der Viewer laese verschobene Zeilen`);
+      else rows.forEach((name, i) => {
+        const km = kat?.materials?.[name], f = sch.tafel.slice((i * T + 8) * 4, (i * T + 9) * 4), [bi, , wi, ao] = f;
+        // Muster der ersten Grundschicht: Detail- und Normalenkarte genau ihre, mit ihrer Kachelung
+        const [di, ni, lt] = sch.tafel.slice((i * T + 9) * 4, (i * T + 10) * 4), dm = sch.tafel.slice((i * T + 10) * 4, (i * T + 10) * 4 + 3);
+        const L1 = L1of(km);
+        if (di >= n || ni >= n || (di >= 0 && sch.namen[di] !== L1?.maps?.d) || (ni >= 0 && sch.namen[ni] !== L1?.maps?.n) || (di < 0 && muster.get(`${L1?.maps?.d}|3`)) || (ni < 0 && muster.get(`${L1?.maps?.n}|2`)) || ((di >= 0 || ni >= 0) && lt !== (Number(L1?.uvTiling) || 1)) || (di >= 0 && !dm.every((v) => v > 0 && v <= 1))) fail(`[14] Schichtzeile ${i + 1} (${name}): Detailkarte ${di >= 0 ? sch.namen[di] : 'keine'}, Normalenkarte ${ni >= 0 ? sch.namen[ni] : 'keine'}, Kachelung ${lt}, Mittel ${dm.join('/')}; die erste Grundschicht im Katalog hat ${L1?.maps?.d ?? 'keine'}${muster.get(`${L1?.maps?.d}|3`) ? ' (mit Muster)' : ''}, ${L1?.maps?.n ?? 'keine'}${muster.get(`${L1?.maps?.n}|2`) ? ' (mit Muster)' : ''}, ${L1?.uvTiling ?? '?'}`);
+        if (di >= 0) R.detail++;
+        if (ni >= 0) R.normale++;
+        const wear = km?.textures?.TexSlot11?.split('/').pop().replace(/\.(tif|dds|png)$/i, '.webp');
+        const wao = !!km?.mask?.includes('WEAR_DIRT_AO_VERTEX');
+        if (km?.shader !== 'LayerBlend_V2') fail(`[14] Schichtzeile ${i + 1} (${name}) ist im Katalog kein LayerBlend-Material`);
+        else if (bi >= n || wi >= n || (bi >= 0 && sch.namen[bi] !== km.blendMap) || (wi >= 0 && (sch.namen[wi] !== wear || !wao)) || (bi < 0 && km.blendMap && existsSync(join(DIST, 'hangar/props/schichten', km.blendMap))) || ao !== (wao ? 1 : 0)) fail(`[14] Schichtzeile ${i + 1} (${name}): Blend-Karte ${bi >= 0 ? sch.namen[bi] : 'keine'}, Abnutzung ${wi >= 0 ? sch.namen[wi] : 'keine'}, Verschattung ${ao}; der Katalog sagt ${km.blendMap ?? 'keine'}, ${wao ? wear : 'ohne Vertex-Abnutzung'}, ${wao ? 1 : 0}`);
+        R.zeilen++; if (bi >= 0) R.blend++; if (wi >= 0) R.abnutzung++;
+      });
+      // Zeilennummer je Ecke: draco quantisiert _SLOT; der Viewer rundet, also
+      // hoechstens eine Viertelzeile daneben und keine Zeile hinter der Tafel
+      const flatPrims = (await decode(file)).getRoot().listMeshes().flatMap((me) => me.listPrimitives()).filter((p) => p.getMaterial()?.getName() === 'dienst_flach');
+      let off = 0, worst = 0, past = 0;
+      for (const p of flatPrims) {
+        const s = p.getAttribute('_SLOT');
+        for (let i = 0; i < (s?.getCount() ?? 0); i++) {
+          const v = s.getScalar(i), d = Math.abs(v - Math.round(v));
+          if (Math.round(v) > 0) R.ecken++;
+          worst = Math.max(worst, d);
+          if (d > 0.25) off++;
+          if (Math.round(v) < 0 || Math.round(v) > rows.length) past++;
+        }
+      }
+      if (off || past) fail(`[14] ${off} Ecken von dienst_flach liegen mehr als eine Viertelzeile neben ihrer Schichtzeile (schlimmste ${worst.toFixed(3)}), ${past} zeigen hinter die Tafel (${rows.length} Zeilen): draco quantisiert _SLOT zu grob, quantizeGeneric in scripts/build-hangar-dienst.mjs anheben`);
+      for (const k of Object.keys(KLINKE_SCHICHTEN)) if (R[k] < KLINKE_SCHICHTEN[k]) fail(`[14] die Schichten des Wartungsplatzes haben ${R[k]} ${k}, die Klinke verlangt ${KLINKE_SCHICHTEN[k]}: Katalog v2 und Kartenordner pruefen; KLINKE_SCHICHTEN nur per Commit mit Ursache senken`);
     }
     const unindexed = (j?.meshes ?? []).flatMap((me) => me.primitives).filter((pr) => pr.indices == null).length;
     if (unindexed) fail(`[14] ${unindexed} Teile des Geraetesatzes ohne Index: Ein BatchedMesh braucht sie alle mit oder alle ohne`);
@@ -1376,7 +1472,7 @@ if (DI && dienst) {
     if (dienstRun.bytes > O.bytes) fail(`[14] der Geraetesatz wiegt ${(dienstRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; jedes Band zwischen zwei Grenzen ab/bis mit einer Groesse; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; ${dienstRun.baender} Groessenbaender, je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
+sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; Schichten: mindestens ${KLINKE_SCHICHTEN.zeilen} Zeilen, ${KLINKE_SCHICHTEN.blend} mit Blend-Karte, ${KLINKE_SCHICHTEN.abnutzung} mit Abnutzungskarte, ${KLINKE_SCHICHTEN.detail} mit Detail-, ${KLINKE_SCHICHTEN.normale} mit Normalenkarte, ${KLINKE_SCHICHTEN.karten} Karten, ${KLINKE_SCHICHTEN.ecken} Ecken mit Zeile (je hoechstens 0,25 daneben), jede Zeile wie im Katalog, Raster hoechstens ${OBERGRENZE_SCHICHTEN.bytes / 1000} KB; jedes Band zwischen zwei Grenzen ab/bis mit einer Groesse; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dienstRun.schichten.zeilen} Zeilen, ${dienstRun.schichten.blend} mit Blend-Karte, ${dienstRun.schichten.abnutzung} mit Abnutzungskarte, ${dienstRun.schichten.detail} mit Detail-, ${dienstRun.schichten.normale} mit Normalenkarte, ${dienstRun.schichten.karten} Karten, ${dienstRun.schichten.ecken} Ecken mit Zeile, Raster ${(dienstRun.schichten.bytes / 1024).toFixed(0)} KB; ${dienstRun.baender} Groessenbaender, je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
 
 say('\n[15] Das Schachttor schliesst die Oeffnung beim Wechsel, ohne Spalt, und liegt offen ganz draussen');
 // Der Block steht im Viewer zwischen /* hall-gate */ und /* /hall-gate */ und ist JSON
@@ -1674,7 +1770,7 @@ if (randWant) {
 sollIst(randWant ? `Rand in dist/ wie im Manifest; jede Seite mit Stegen von 0 bis zur Laenge, ohne Luecke und Ueberlappung, buendig mit dem Boden; Ecken, Leuchten und Schriftzug im Rand; Materialien wie im Schacht mit denselben Karten; mindestens ${KLINKE_RAND.teile} Teile; hoechstens ${OBERGRENZE_RAND.tris} Dreiecke, ${OBERGRENZE_RAND.mats} Materialien, ${OBERGRENZE_RAND.bytes / 1e6} MB` : 'kein Rand fuer diese Halle', randWant ? `${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.zwillinge} Materialien mit Schachtkarten verglichen; ${randRun.tris} Dreiecke, ${randRun.mats} Materialien, ${(randRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

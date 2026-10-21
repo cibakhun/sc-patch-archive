@@ -17,11 +17,25 @@
 // Gummi, Metall). Diese „flachen“ Untermaterialien legt das Skript zu einem
 // Material zusammen (dienst_flach): Farbe, Rauheit und Metall wandern als
 // Eckenwerte mit (_TINT, _RM), die Tönung mal der mittleren Farbe der
-// Detailkarte; die Kachelkarten selbst fallen weg (aus Hangarentfernung
-// nicht zu sehen). Was eigene Bilder trägt (Beschriftung, Leisten, Leuchten,
-// Bildschirme), bleibt eigenes Material, gleichnamige aus allen Dateien als
-// eines. POM-Decals fallen weg wie auf den Schiffen: Im Spiel sind sie
+// Detailkarte; die Kachelkarten selbst fallen hier weg (die mit Muster
+// bringen die Schichten unten zurück). Was eigene Bilder trägt
+// (Beschriftung, Leisten, Leuchten, Bildschirme), bleibt eigenes Material,
+// gleichnamige aus allen Dateien als eines. POM-Decals fallen weg wie auf den Schiffen: Im Spiel sind sie
 // Reliefschichten, deren Farbbild nie zu sehen ist.
+//
+// Schichten (21.10.2026, Katalog v2). Die flachen Teile tragen dazu je Ecke
+// ihre Zeile in der Schichttafel (_SLOT), Texturkoordinaten und die
+// Vertexfarbe des Spiels (COLOR_0). Die Zeile hält die vier Grund- und vier
+// Abnutzungsschichten des LayerBlend-Materials (Farbe wie die Grundschicht
+// heute: Schichtfarbe mal mittlere Farbe ihrer Karte, Metall) und welche
+// Blend- und Abnutzungskarte es mischt, dazu Detail- und Normalenkarte der
+// ersten Grundschicht, wenn sie ein Muster tragen (Rost, Riffelblech,
+// Gewebe; die meisten Lackkarten sind glatt und bleiben weg). Die Karten
+// selbst liegen als ein Raster in public/hangar/props/dienst-schichten.webp
+// (je 256 px, 8 nebeneinander, im Viewer eine Texturliste); die Tafel steht
+// in asset.extras.dienst.schichten.
+// Zeile 0 heißt: keine Schichten, Farbe wie bisher aus _TINT. Kein
+// zusätzlicher Zeichenbefehl: alles bleibt im Material dienst_flach.
 //
 // Selbstauskunft: Requisiten, Dreiecke, Materialien (flach und eigene), Bytes.
 // Die Datei trägt in asset.extras.dienst den Fingerabdruck des Blocks und
@@ -32,7 +46,7 @@ import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP } from '@gltf-t
 import { mergeDocuments, prune, dedup, draco, unpartition } from '@gltf-transform/functions';
 import draco3d from 'draco3d';
 import sharp from 'sharp';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { normalizeUvIslands, texcoordBits } from './lib/uv-islands.mjs';
 import { sha8 as sha } from './lib/eol-sha.mjs';
@@ -43,6 +57,18 @@ const KATALOG = `${ROOT}public/hangar/props/katalog.json`;
 const BODEN = `${ROOT}public/hangar/hall/werkstatt-boden.glb`;
 const OUT = `${ROOT}public/hangar/props/dienst.glb`;
 const FLAT = 'dienst_flach';
+const SCHICHTEN = `${ROOT}public/hangar/props/schichten/`;
+const KARTEN = `${ROOT}public/hangar/props/dienst-schichten.webp`;
+export const KARTE_PX = 256;
+export const KARTEN_SPALTEN = 8;
+// Texel je Zeile der Schichttafel: 0..3 Grundschicht 1..4 (rgb linear, a Metall),
+// 4..7 Abnutzungsschicht 1..4, 8 (Blend-Karte, ihre Kachelung, Abnutzungskarte,
+// Verschattung), 9 (Detailkarte, Normalenkarte, Kachelung der ersten
+// Grundschicht, 0), 10 (mittlere lineare Farbe der Detailkarte, 0); Karte -1 = keine
+export const TAFEL_TEXEL = 11;
+// Muster: Standardabweichung eines Farbkanals (Detailkarte) oder eines der
+// Kanäle r, g (Normalenkarte) über 4 von 255
+export const MUSTER = 4;
 
 /** Block /* work-dienst *\/ aus dem Viewer, als Text (Fingerabdruck) und JSON. */
 export function readDienst(viewerText) {
@@ -76,6 +102,39 @@ async function meanChannel(tex, k) {
   if (!tex) return 1;
   const { channels } = await sharp(Buffer.from(tex.getImage())).stats();
   return (channels[k] ?? channels[0]).mean / 255;
+}
+
+// Schichten eines LayerBlend-Materials (Katalog v2): Farbe wie die flache
+// Grundschicht (Schicht mal mittlere Farbe ihrer Karte), Metall, wenn die
+// Farbe der Schicht im Specular steht (PC-Befund Teil 2)
+const karte = (name) => (name && existsSync(SCHICHTEN + name) ? SCHICHTEN + name : null);
+async function layerRow(km, kat, base, H) {
+  const num = (re) => km.layers.filter((l) => re.test(l.name)).sort((a, b) => a.name.localeCompare(b.name));
+  const B = num(/^BaseLayer\d/), Wl = num(/^WearLayer\d/);
+  if (!B.length) return null;
+  const colour = async (l) => {
+    const sc = kat.schichten?.[l.path] ?? {}, spec = sc.specular ?? [0.04, 0.04, 0.04];
+    const metal = Math.max(...spec) > 0.2;
+    const raw = metal ? spec : [0, 1, 2].map((k) => l.tint[k] * (sc.diffuse?.[k] ?? 1));
+    const mean = karte(l.maps?.d) ? await H.mean(karte(l.maps.d)) : [1, 1, 1];
+    return [...[0, 1, 2].map((k) => Math.min(1, raw[k] * mean[k])), metal ? 1 : 0];
+  };
+  const pad = (a) => { while (a.length < 4) a.push(a[a.length - 1]); return a.slice(0, 4); };
+  const bc = pad(await Promise.all(B.map(colour)));
+  bc[0] = [...base.col, base.metal];   // Grundschicht 1 genau wie bisher
+  const wc = Wl.length ? pad(await Promise.all(Wl.map(colour))) : bc.map((c) => [...c]);
+  const wearMap = km.textures?.TexSlot11?.split('/').pop().replace(/\.(tif|dds|png)$/i, '.webp');
+  const L1 = B[0], muster = async (f, ch) => (karte(f) && (await H.stats(karte(f))).slice(0, ch).some((c) => c.stdev > MUSTER) ? f : null);
+  const detail = await muster(L1.maps?.d, 3), normal = await muster(L1.maps?.n, 2);
+  return {
+    bc, wc, detail, normal,
+    layerTiling: Number(L1.uvTiling) || 1,
+    dMean: detail ? await H.linMean(karte(detail)) : [1, 1, 1],
+    blend: km.blendMap && karte(km.blendMap) ? km.blendMap : null,
+    tiling: Number(km.params?.BlendMapTiling ?? 1) || 1,
+    wear: km.mask?.includes('WEAR_DIRT_AO_VERTEX') && karte(wearMap) ? wearMap : null,
+    ao: km.mask?.includes('WEAR_DIRT_AO_VERTEX') ? 1 : 0,
+  };
 }
 
 // Flach: undurchsichtig, ohne Leuchtkarte, Farbkarte und Normalenkarte
@@ -131,6 +190,28 @@ async function main() {
   const cached = (key, fn) => { if (!meanCache.has(key)) meanCache.set(key, fn()); return meanCache.get(key); };
   const report = [];
   let flatMats = new Set(), ownMats = new Set(), dropped = 0;
+  // Schichttafel: Zeile 0 = keine Schichten; je Material eine Zeile
+  const H = {
+    mean: (f) => cached(f, async () => meanColour({ getImage: () => readFileSync(f) })),
+    stats: (f) => cached(`${f}|stats`, async () => (await sharp(f).stats()).channels),
+    // so, wie der Viewer die Karte liest (256 px, Farbe hoch 2,2)
+    linMean: (f) => cached(`${f}|lin`, async () => {
+      const { data } = await sharp(f).resize(KARTE_PX, KARTE_PX, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      const m = [0, 0, 0];
+      for (let i = 0; i < data.length; i += 3) for (let k = 0; k < 3; k++) m[k] += (data[i + k] / 255) ** 2.2;
+      return m.map((v) => +(v / (data.length / 3)).toFixed(5));
+    }),
+  };
+  const rows = [null], rowOf = new Map(), maps = [], mapIdx = (n) => { if (!n) return -1; if (!maps.includes(n)) maps.push(n); return maps.indexOf(n); };
+  const rowFor = async (m, base) => {
+    const name = m.getName();
+    if (rowOf.has(name)) return rowOf.get(name);
+    const km = kat.materials?.[name];
+    const r = km?.shader === 'LayerBlend_V2' && km.layers?.length ? await layerRow(km, kat, base, H) : null;
+    const use = r && (r.blend || r.wear || r.ao || r.detail || r.normal) ? rows.push({ name, ...r }) - 1 : 0;
+    rowOf.set(name, use);
+    return use;
+  };
   for (const name of [...kept.keys()].sort()) {
     const node = kept.get(name);
     scene.addChild(node);
@@ -140,12 +221,14 @@ async function main() {
     // Ursprung unten mittig, ohne eigene Lage (der Viewer setzt sie je Platz)
     const S = node.getScale(), T0 = node.getTranslation(), R0 = node.getRotation();
     if (T0.some((v) => Math.abs(v) > 1e-6) || R0.slice(0, 3).some((v) => Math.abs(v) > 1e-6) || S.some((v) => Math.abs(v - 1) > 1e-6)) throw new Error(`${name} trägt eine eigene Lage (T ${T0}, R ${R0}, S ${S}); der Satz erwartet sie im Mesh`);
-    const pos = [], nor = [], tint = [], rm = [], idx = [];
+    const pos = [], nor = [], tint = [], rm = [], idx = [], uvs = [], slot = [], vc = [];
     let tris = 0;
     for (const p of mesh.listPrimitives()) {
       const m = p.getMaterial();
       if (isPom(m)) { mesh.removePrimitive(p); p.dispose(); dropped++; continue; }
-      for (const sem of p.listSemantics()) if (!/^(POSITION|NORMAL|TEXCOORD_0)$/.test(sem)) p.setAttribute(sem, null);
+      // COLOR_0 bleibt bis zum Lesen (flach: Vertexfarbe der Schichten; die
+      // übrigen verlieren sie unten)
+      for (const sem of p.listSemantics()) if (!/^(POSITION|NORMAL|TEXCOORD_0|COLOR_0)$/.test(sem)) p.setAttribute(sem, null);
       const P = p.getAttribute('POSITION'), N = p.getAttribute('NORMAL'), I = p.getIndices();
       if (!N) throw new Error(`${name}: Teil mit ${m?.getName()} ohne Normalen`);
       const cnt = I ? I.getCount() : P.getCount();
@@ -165,12 +248,17 @@ async function main() {
       const rough = Math.min(1, Math.max(0.04, m.getRoughnessFactor() * (mr ? await cached(`${mr.getName()}|g`, () => meanChannel(mr, 1)) : 1)));
       const metal = Math.min(1, Math.max(0, m.getMetallicFactor() * (mr ? await cached(`${mr.getName()}|b`, () => meanChannel(mr, 2)) : 1)));
       flatMats.add(m.getName());
-      const base = pos.length / 3, a = [0, 0, 0];
+      const row = await rowFor(m, { col, metal });
+      const UV = p.getAttribute('TEXCOORD_0'), VC = p.getAttribute('COLOR_0');
+      const base = pos.length / 3, a = [0, 0, 0, 0];
       for (let i = 0; i < P.getCount(); i++) {
         P.getElement(i, a); pos.push(a[0], a[1], a[2]);
         N.getElement(i, a); nor.push(a[0], a[1], a[2]);
         tint.push(col[0], col[1], col[2]);
         rm.push(rough, metal);
+        if (UV) { UV.getElement(i, a); uvs.push(a[0], a[1]); } else uvs.push(0, 0);
+        slot.push(row);
+        if (VC && row) { a[3] = 1; VC.getElement(i, a); vc.push(...[0, 1, 2, 3].map((k) => Math.round(Math.min(1, Math.max(0, a[k] ?? 1)) * 255))); } else vc.push(255, 255, 255, 255);
       }
       for (let i = 0; i < cnt; i++) idx.push(base + (I ? I.getScalar(i) : i));
       mesh.removePrimitive(p);
@@ -183,6 +271,9 @@ async function main() {
         .setAttribute('NORMAL', acc('VEC3', new Float32Array(nor)))
         .setAttribute('_TINT', acc('VEC3', new Float32Array(tint)))
         .setAttribute('_RM', acc('VEC2', new Float32Array(rm)))
+        .setAttribute('TEXCOORD_0', acc('VEC2', new Float32Array(uvs)))
+        .setAttribute('_SLOT', acc('SCALAR', new Float32Array(slot)))
+        .setAttribute('COLOR_0', acc('VEC4', new Uint8Array(vc)).setNormalized(true))
         .setIndices(acc('SCALAR', pos.length / 3 > 65535 ? new Uint32Array(idx) : new Uint16Array(idx)))
         .setMaterial(flat);
       mesh.addPrimitive(q);
@@ -191,7 +282,7 @@ async function main() {
   }
   // Flache Teile ohne Texturkoordinaten, eigene mit: je Material dieselben Attribute
   for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) {
-    if (p.getMaterial() !== flat) { p.setAttribute('_TINT', null); p.setAttribute('_RM', null); }
+    if (p.getMaterial() !== flat) { p.setAttribute('_TINT', null); p.setAttribute('_RM', null); p.setAttribute('_SLOT', null); p.setAttribute('COLOR_0', null); }
   }
   // gleichnamige Materialien zu einem (der Katalog benennt sie über alle Dateien gleich)
   const firstOf = new Map();
@@ -208,7 +299,24 @@ async function main() {
   await doc.transform(draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits, quantizePosition: 14, quantizeGeneric: 10 }));
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
   doc.createExtension(EXTTextureWebP).setRequired(true);
-  const stamp = dienstStamp(D.text, [KATALOG, ...[...files].sort()]);
+  // Kartenraster: je Karte 256 × 256, KARTEN_SPALTEN nebeneinander, ohne
+  // Alpha (die Glätte im Alpha der Normalenkarten bleibt weg). Verlustbehaftetes
+  // WebP halbiert die Farbauflösung immer (4:2:0); smartSubsample hält die
+  // Kanäle der Blend-Karten getrennter (Fehler im 99. Perzentil 27 -> 11 von
+  // 255, +4 % Bytes; verlustfrei wöge das Raster 2,5 MB statt 0,6)
+  const tafel = [];
+  for (const r of rows.slice(1)) {
+    const bi = mapIdx(r.blend), wi = mapIdx(r.wear), di = mapIdx(r.detail), ni = mapIdx(r.normal);
+    for (const c of [...r.bc, ...r.wc]) tafel.push(...c.map((v) => +v.toFixed(5)));
+    tafel.push(bi, r.tiling, wi, r.ao, di, ni, r.layerTiling, 0, ...r.dMean, 0);
+  }
+  const cols = Math.min(KARTEN_SPALTEN, maps.length), gridH = Math.ceil(maps.length / KARTEN_SPALTEN);
+  const strip = maps.length ? await sharp({ create: { width: KARTE_PX * cols, height: KARTE_PX * gridH, channels: 3, background: { r: 0, g: 0, b: 0 } } })
+    .composite(await Promise.all(maps.map(async (n, i) => ({ input: await sharp(SCHICHTEN + n).resize(KARTE_PX, KARTE_PX, { fit: 'fill' }).removeAlpha().png().toBuffer(), top: Math.floor(i / KARTEN_SPALTEN) * KARTE_PX, left: (i % KARTEN_SPALTEN) * KARTE_PX }))))
+    .webp({ quality: 92, effort: 6, smartSubsample: true }).toBuffer() : null;
+  if (strip) writeFileSync(KARTEN, strip);
+  const stamp = dienstStamp(D.text, [KATALOG, ...[...files].sort(), ...maps.map((n) => SCHICHTEN + n)]);
+  if (strip) stamp.schichten = { karten: KARTEN.split('/').pop(), sha: sha(strip), px: KARTE_PX, spalten: cols, namen: maps, texel: TAFEL_TEXEL, materialien: rows.slice(1).map((r) => r.name), tafel };
   root.getAsset().extras = { dienst: stamp };
   await io.write(OUT, doc);
 
@@ -218,6 +326,8 @@ async function main() {
   for (const [n, t, k] of report) console.log(`  ${n.padEnd(52)} ${String(Math.round(t)).padStart(6)} Dreiecke  ${k} Teile`);
   console.log(`  eigene Materialien: ${root.listMaterials().map((m) => m.getName()).filter((n) => n !== FLAT).join(', ')}`);
   console.log(`  Fingerabdruck: Block ${stamp.block}, ${Object.keys(stamp.quellen).length} Quellen`);
+  const R1 = rows.slice(1);
+  console.log(`  Schichten: ${R1.length} flache Materialien mit Schichtzeile (${R1.filter((r) => r.blend).length} mit Blend-Karte, ${R1.filter((r) => r.wear).length} mit Abnutzungskarte, ${R1.filter((r) => r.ao).length} mit Verschattung aus der Vertexfarbe, ${R1.filter((r) => r.detail).length} mit Detailkarte, ${R1.filter((r) => r.normal).length} mit Normalenkarte); ${maps.length} Karten in ${KARTEN.replace(ROOT, '')}${strip ? ` (${(strip.length / 1024).toFixed(0)} KB)` : ''}: ${maps.join(', ')}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
