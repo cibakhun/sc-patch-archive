@@ -1300,6 +1300,48 @@ async function packDoc(doc, outPath, b) {
   return statSync(outPath).size;
 }
 
+// Bodenquadrat sx × sz in XZ (u entlang +X, v = 0 an −Z = lokale +Y des Spiels)
+function quadPrim(doc, sx, sz, uvx, uvz) {
+  const pos = new Float32Array([-sx / 2, 0, -sz / 2, sx / 2, 0, -sz / 2, sx / 2, 0, sz / 2, -sx / 2, 0, sz / 2]);
+  const uv = new Float32Array([0, 0, uvx, 0, uvx, uvz, 0, uvz]);
+  const nor = new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]);
+  const buf = doc.getRoot().listBuffers()[0];
+  return doc.createPrimitive()
+    .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(pos).setBuffer(buf))
+    .setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(nor).setBuffer(buf))
+    .setAttribute('TEXCOORD_0', doc.createAccessor().setType('VEC2').setArray(uv).setBuffer(buf))
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array([0, 2, 1, 0, 3, 2])).setBuffer(buf));
+}
+const pngTexture = (doc, file) => doc.createTexture(file.split(/[\\/]/).pop()).setImage(readFileSync(file)).setMimeType('image/png');
+// Material eines projizierten Decals (m: Werte der .mtl wie readDecalMaterials).
+// Farbe mit Alpha: das RGBA-PNG trägt die Deckkraft. Bei %OPACITY_MAP kommt
+// sie aus der Maske (TexSlot12, ungekachelt), die Farbe wird mit ihrem TexMod
+// (TileU/V) über die Maske gekachelt. Deckkraft: Opacity × ColorBlendFactor
+// (bis 1); der Rohwert steht in der JSON.
+async function decalMaterial(doc, node, m) {
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const rgb = (s, d = [1, 1, 1]) => (s ? String(s).split(',').map(Number) : d);
+  const dFile = texFile(m.d);
+  if (!dFile) return null;
+  let image = readFileSync(dFile);
+  const maskFile = /OPACITY_MAP/.test(m.genMask || '') ? texFile(m.maskTex) : null;
+  if (maskFile) {
+    const mm = await sharp(maskFile).metadata();
+    const tile = m.tileD || [1, 1];
+    const cell = await sharp(dFile).removeAlpha().resize(Math.round(mm.width / tile[0]), Math.round(mm.height / tile[1])).png().toBuffer();
+    const color = await sharp({ create: { width: mm.width, height: mm.height, channels: 3, background: '#000' } }).composite([{ input: cell, tile: true }]).raw().toBuffer();
+    const { data: a } = await sharp(maskFile).greyscale().raw().toBuffer({ resolveWithObject: true });
+    image = await sharp(color, { raw: { width: mm.width, height: mm.height, channels: 3 } }).joinChannel(a, { raw: { width: mm.width, height: mm.height, channels: 1 } }).png().toBuffer();
+  }
+  const cbf = Number(m.params?.ColorBlendFactor ?? 1);
+  const mat = doc.createMaterial(node).setBaseColorTexture(doc.createTexture(`${node}_d`).setImage(image).setMimeType('image/png'))
+    .setBaseColorFactor([...rgb(m.diffuse), r3(Math.min(1, Number(m.opacity ?? 1) * Math.min(1, cbf)))]).setAlphaMode('BLEND')
+    .setMetallicFactor(0).setRoughnessFactor(r3(Math.max(0.05, 1 - Number(m.shininess ?? 128) / 255)));
+  const nFile = texFile(m.n);
+  if (nFile) mat.setNormalTexture(pngTexture(doc, nFile));
+  return { mat, dFile, maskFile };
+}
+
 async function buildWerkstatt() {
   const dir = 'werkstatt';
   const info = JSON.parse(readFileSync(fileURLToPath(new URL(`${dir}/${WERK.lite}.info.json`, SRC)), 'utf8'));
@@ -1356,18 +1398,8 @@ async function buildWerkstatt() {
   const bd = new Document();
   bd.createBuffer();
   const bscene = bd.createScene('werkstatt-boden');
-  const quad = (name, sx, sz, uvx, uvz) => {
-    const pos = new Float32Array([-sx / 2, 0, -sz / 2, sx / 2, 0, -sz / 2, sx / 2, 0, sz / 2, -sx / 2, 0, sz / 2]);
-    const uv = new Float32Array([0, 0, uvx, 0, uvx, uvz, 0, uvz]);
-    const nor = new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]);
-    const buf = bd.getRoot().listBuffers()[0];
-    return bd.createPrimitive()
-      .setAttribute('POSITION', bd.createAccessor().setType('VEC3').setArray(pos).setBuffer(buf))
-      .setAttribute('NORMAL', bd.createAccessor().setType('VEC3').setArray(nor).setBuffer(buf))
-      .setAttribute('TEXCOORD_0', bd.createAccessor().setType('VEC2').setArray(uv).setBuffer(buf))
-      .setIndices(bd.createAccessor().setType('SCALAR').setArray(new Uint16Array([0, 2, 1, 0, 3, 2])).setBuffer(buf));
-  };
-  const png = (file) => bd.createTexture(file.split(/[\\/]/).pop()).setImage(readFileSync(file)).setMimeType('image/png');
+  const quad = (name, sx, sz, uvx, uvz) => quadPrim(bd, sx, sz, uvx, uvz);
+  const png = (file) => pngTexture(bd, file);
   const rgb = (s, d = [1, 1, 1]) => (s ? String(s).split(',').map(Number) : d);
   // Boden-Decals am Feld
   const floorDecals = info.decals.filter((d) => d.floor && d.material && !DECAL_SKIP.test(d.material)
@@ -1382,33 +1414,13 @@ async function buildWerkstatt() {
     const role = decalRole(mtl);
     const nth = [...decalNodes.values()].filter((x) => x.role === role).length;
     const node = `decal_${role}_${nth}`;
-    const dFile = texFile(m.d);
-    if (!dFile) continue;
-    // Farbe mit Alpha: das RGBA-PNG trägt die Deckkraft. Bei %OPACITY_MAP
-    // kommt sie aus der Maske (TexSlot12, ungekachelt), die Farbe wird mit
-    // ihrem TexMod (TileU/V) über die Maske gekachelt.
-    let image = readFileSync(dFile);
-    const maskFile = /OPACITY_MAP/.test(m.genMask || '') ? texFile(m.maskTex) : null;
-    if (maskFile) {
-      const mm = await sharp(maskFile).metadata();
-      const tile = m.tileD || [1, 1];
-      const cell = await sharp(dFile).removeAlpha().resize(Math.round(mm.width / tile[0]), Math.round(mm.height / tile[1])).png().toBuffer();
-      const color = await sharp({ create: { width: mm.width, height: mm.height, channels: 3, background: '#000' } }).composite([{ input: cell, tile: true }]).raw().toBuffer();
-      const { data: a } = await sharp(maskFile).greyscale().raw().toBuffer({ resolveWithObject: true });
-      image = await sharp(color, { raw: { width: mm.width, height: mm.height, channels: 3 } }).joinChannel(a, { raw: { width: mm.width, height: mm.height, channels: 1 } }).png().toBuffer();
-    }
-    // Deckkraft: Opacity × ColorBlendFactor (bis 1); der Rohwert steht in der JSON
-    const cbf = Number(m.params?.ColorBlendFactor ?? 1);
-    const mat = bd.createMaterial(node).setBaseColorTexture(bd.createTexture(`${node}_d`).setImage(image).setMimeType('image/png'))
-      .setBaseColorFactor([...rgb(m.diffuse), r3(Math.min(1, Number(m.opacity ?? 1) * Math.min(1, cbf)))]).setAlphaMode('BLEND')
-      .setMetallicFactor(0).setRoughnessFactor(r3(Math.max(0.05, 1 - Number(m.shininess ?? 128) / 255)));
-    const nFile = texFile(m.n);
-    if (nFile) mat.setNormalTexture(png(nFile));
-    const mesh = bd.createMesh(node).addPrimitive(quad(node, 1, 1, 1, 1).setMaterial(mat));
+    const dm = await decalMaterial(bd, node, m);
+    if (!dm) continue;
+    const mesh = bd.createMesh(node).addPrimitive(quad(node, 1, 1, 1, 1).setMaterial(dm.mat));
     bscene.addChild(bd.createNode(node).setMesh(mesh));
-    const meta = await sharp(dFile).metadata();
+    const meta = await sharp(dm.dFile).metadata();
     decalNodes.set(mtl, { role, node });
-    decals.push({ node, rolle: role, path: mtl, size: ex ? [ex.edge, ex.edge] : [1, 1], alpha: true, opacityMap: !!maskFile, pom: false, from: ex ? ex.from : [info.socpak], inLayout: !ex, texture: [meta.width, meta.height], game: m });
+    decals.push({ node, rolle: role, path: mtl, size: ex ? [ex.edge, ex.edge] : [1, 1], alpha: true, opacityMap: !!dm.maskFile, pom: false, from: ex ? ex.from : [info.socpak], inLayout: !ex, texture: [meta.width, meta.height], game: m });
   }
   for (const d of floorDecals) {
     const dn = decalNodes.get(d.material); if (!dn) continue;
@@ -1575,7 +1587,44 @@ const ZWECK = [
   [/drum/, 'Fass', 'steht in Gruppen auf dem Boden'],
   [/crate|box_|container|storage|shelf/, 'Lagerkiste oder Regal', 'steht gestapelt an Wänden und in Ecken'],
 ];
-const zweckOf = (key) => { const z = ZWECK.find(([re]) => re.test(key)); return z ? { zweck: z[1], nutzung: z[2] } : { zweck: null, nutzung: null }; };
+// Zweck und Benutzung der Kategorien der Hallendeko (hangar-deko.md D2), vor ZWECK geprüft
+const ZWECK_NEU = [
+  [/^powr_/, 'Kraftwerk (Schiffsbauteil), liefert dem Schiff Strom', 'liegt als Ersatzteil im Lager, auf Palette oder Werkbank, bis es ins Schiff eingebaut wird'],
+  [/^cool_/, 'Kühler (Schiffsbauteil), führt die Wärme der Schiffssysteme ab', 'liegt als Ersatzteil im Lager, auf Palette oder Werkbank, bis es ins Schiff eingebaut wird'],
+  [/^shld_/, 'Schildgenerator (Schiffsbauteil), erzeugt den Schild des Schiffs', 'liegt als Ersatzteil im Lager, auf Palette oder Werkbank, bis es ins Schiff eingebaut wird'],
+  [/^qdrv_/, 'Quantenantrieb (Schiffsbauteil), für Sprünge zwischen Orten', 'liegt als Ersatzteil im Lager, auf Palette oder Werkbank, bis es ins Schiff eingebaut wird'],
+  [/lift_scissor/, 'Scherenhubbühne für Arbeiten in der Höhe', 'steht am Schiff oder an Regalen, fährt Arbeiter nach oben'],
+  [/lift_platform/, 'Hubplattform', 'steht am Boden; hebt Lasten oder Arbeiter'],
+  [/forklift_machine/, 'Gabelstapler', 'fährt Paletten und Kisten zwischen Lager und Schiff'],
+  [/trolley_pallet_powered/, 'elektrischer Palettenhubwagen', 'fährt Paletten im Lager'],
+  [/crane/, 'Kran mit Haken für schwere Lasten', 'steht am Arbeitsplatz oder über dem Lager'],
+  [/scaffold/, 'Baugerüst (Fuß, Mittelteil, Kopf zum Stapeln)', 'steht an Schiff oder Wand für Arbeiten in der Höhe'],
+  [/cargo_rack/, 'Frachtregal (Schwerlast) für SCU-Kisten, in Teilen zusammengesetzt', 'steht in Reihen im Frachtdeck; Kisten stehen in den Fächern'],
+  [/shelf|rack/, 'Lagerregal', 'steht an der Wand oder in Reihen; trägt Kisten und Kartons'],
+  [/pallet/, 'Frachtpalette', 'liegt am Boden unter Frachtkisten; wird mit Stapler oder Hubwagen bewegt'],
+  [/cargo|crate|container|freight/, 'Frachtkiste in SCU-Größe', 'steht gestapelt und in Reihen im Lager, auf Paletten oder im Frachtregal'],
+  [/locker/, 'Spind der Crew', 'steht in Reihen an der Wand des Aufenthaltsbereichs'],
+  [/water_?cooler/, 'Wasserspender', 'steht an der Wand im Aufenthaltsbereich'],
+  [/vending/, 'Getränke- oder Snackautomat', 'steht an der Wand im Aufenthaltsbereich'],
+  [/waste|trash|(^|_)bin_/, 'Mülleimer', 'steht an Wand oder Sitzplatz'],
+  [/stool/, 'Hocker', 'steht an Tisch oder Werkbank'],
+  [/table/, 'Tisch', 'steht im Aufenthaltsbereich, mit Sitzen darum'],
+  [/bench|seat|chair/, 'Sitz der Crew (Bank, Stuhl)', 'steht im Aufenthaltsbereich, an Tischen oder an der Wand'],
+  [/console_desk/, 'Steuerpult mit Bildschirmen', 'steht im Leitstand oder an der Wand'],
+  [/relay_electrical|fuse/, 'Schalt- oder Verteilerkasten', 'hängt an der Wand, Kabel laufen ab'],
+  [/display_video_wall|screen/, 'Bildschirm oder Infotafel an der Wand', 'hängt an der Wand in Augenhöhe oder darüber'],
+  [/nav_sign/, 'Hinweisschild (Wegweiser)', 'hängt an der Wand über Türen und Gängen'],
+  [/panel_sign/, 'Warn- oder Hinweistafel', 'hängt an der Wand an Gefahrenstellen'],
+  [/pipe/, 'Rohrleitung', 'läuft an der Wand entlang'],
+  [/cable_terminal/, 'Kabelanschluss an der Wand', 'sitzt an der Wand am Ende einer Kabelleitung'],
+  [/hvac/, 'Lüftungskanal', 'läuft unter der Decke'],
+  [/light_hung/, 'Hängeleuchte der Werkstatt', 'hängt an Kabel oder Kette unter der Decke über dem Arbeitsbereich'],
+  [/pulley/, 'Seilrolle eines Kettenzugs', 'hängt unter der Decke über dem Arbeitsplatz; das Seil läuft nach unten'],
+  [/cable_sign_hanging/, 'hängendes Schild', 'hängt an Kabeln unter der Decke'],
+  [/cable_hanging/, 'durchhängendes Kabel', 'hängt zwischen Decke und Wand'],
+];
+const NEU_KATS = new Set(['fracht', 'regal', 'crew', 'bauteile', 'maschine', 'wand', 'decke']);
+const zweckOf = (key, kat) => { const z = (NEU_KATS.has(kat) && ZWECK_NEU.find(([re]) => re.test(key))) || ZWECK.find(([re]) => re.test(key)); return z ? { zweck: z[1], nutzung: z[2] } : { zweck: null, nutzung: null }; };
 const kTexFile = (p) => (p && !/^\$/.test(p) ? texFile(p) : null);
 
 async function buildKatalog() {
@@ -1594,18 +1643,22 @@ async function buildKatalog() {
   const matInfo = new Map();
   // Metall = Farbe im Specular (Dielektrika liegen bei 0,02–0,06)
   const isMetal = (spec) => Math.max(...spec) > 0.2;
-  for (const [kat, list] of [...kats].sort()) {
+  // Dokument einer Datei: Materialien heißen <mtl>_<untermaterial>, gleich in allen Dateien
+  const kit = (name) => {
     const doc = new Document();
     const buf = doc.createBuffer();
-    const scene = doc.createScene(kat);
+    const scene = doc.createScene(name);
     const tt = doc.createExtension(KHRTextureTransform);
     const texCache = new Map(), matCache = new Map();
     const tex = (file) => { if (!texCache.has(file)) texCache.set(file, doc.createTexture(file.split(/[\\/]/).pop()).setImage(readFileSync(file)).setMimeType('image/png')); return texCache.get(file); };
-    const material = (mtl, sub) => {
-      const name = `${clean(String(mtl || 'mtl').split('/').pop())}_${clean(sub?.name || 'default')}`;
+    const material = (mtl, sub, pal = null) => {
+      const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null;
+      // Grundschicht mit PaletteTint 1–3: Farbe aus der Palette der Entity (Eintrag A–C),
+      // als eigenes Material „<name>_<palette>“, denn ohne Palette heißt es anders getönt gleich
+      const pe = pal && [1, 2, 3].includes(Number(L0?.paletteTint)) ? pal['abc'[Number(L0.paletteTint) - 1]] : null;
+      const name = `${clean(String(mtl || 'mtl').split('/').pop())}_${clean(sub?.name || 'default')}${pe ? `_${clean(pal.name)}` : ''}`;
       if (matCache.has(name)) return matCache.get(name);
       const m = doc.createMaterial(name).setMetallicFactor(0);
-      const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null;
       // conductor_diff: schwarze Platzhalter-Farbkarte alter Illum-Materialien für
       // Metall, die Farbe steht im Specular. Als Karte gebunden wäre alles schwarz.
       const conductor = /conductor_diff/i.test(sub?.d || '');
@@ -1613,7 +1666,7 @@ async function buildKatalog() {
       const d = (conductor ? null : kTexFile(sub?.d)) || (LI && kTexFile(LI.d));
       const n = kTexFile(sub?.n) || (LI && kTexFile(LI.n));
       let factor = rgb(sub?.diffuse);
-      if (!kTexFile(sub?.d) && L0) factor = rgb(L0.tint).map((v, i) => v * rgb(LI?.diffuse)[i]);
+      if (!kTexFile(sub?.d) && L0) factor = (pe ? pe.tint : rgb(L0.tint)).map((v, i) => v * rgb(LI?.diffuse)[i]);
       if (d) {
         const ti = m.setBaseColorTexture(tex(d)).getBaseColorTextureInfo();
         const tile = !kTexFile(sub?.d) && L0 ? (L0.uvTiling || 1) * (LI?.tiling || 1) : 1;
@@ -1637,7 +1690,7 @@ async function buildKatalog() {
       const shin = Number((L0 ? LI?.shininess : sub?.shininess) ?? 128);
       m.setRoughnessFactor(r3(Math.min(1, Math.max(0.05, 1 - (shin / 255) * (L0?.glossMult ?? 1)))));
       m.setBaseColorFactor([...factor.map((v) => Math.min(1, v)), 1]);
-      matInfo.set(name, { sub, mtl, alt, neu: { metallic: m.getMetallicFactor(), base: factor.map((v) => r3(Math.min(1, v))) } });
+      matInfo.set(name, { sub, mtl, alt, neu: { metallic: m.getMetallicFactor(), base: factor.map((v) => r3(Math.min(1, v))) }, pal: pe ? pal : null });
       if (/glass/i.test(sub?.shader || '')) m.setAlphaMode('BLEND').setBaseColorFactor([0.2, 0.22, 0.25, 0.3]).setRoughnessFactor(0.05);
       else if (/%DECAL(?![A-Z_])/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '')) m.setAlphaMode('BLEND');
       else if (Number(sub?.alphaTest) > 0) m.setAlphaMode('MASK').setAlphaCutoff(Number(sub.alphaTest));
@@ -1645,10 +1698,9 @@ async function buildKatalog() {
       matCache.set(name, m);
       return m;
     };
-    const nodes = [];
-    for (const q of list) {
+    // Stück aus seiner Quelle als Knoten: Ursprung unten mittig, +Y oben
+    const addNode = async (q, node) => {
       const src = await io.read(fileURLToPath(new URL(q.glb, SRC)));
-      const node = `prop_${kat}_${clean(q.key)}`;
       const mesh = doc.createMesh(node);
       const prims = src.getRoot().listMeshes().flatMap((me) => me.listPrimitives());
       prims.forEach((sp, i) => {
@@ -1663,9 +1715,9 @@ async function buildKatalog() {
         for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0']) { const a = sp.getAttribute(sem); if (a) p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(a.getArray().slice()).setBuffer(buf)); }
         const idx = sp.getIndices(); if (idx) p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx.getArray().slice()).setBuffer(buf));
         transformPrimitive(p, ROOT_ZUP);
-        mesh.addPrimitive(p.setMaterial(material(q.mtl, sub)));
+        mesh.addPrimitive(p.setMaterial(material(q.mtl, sub, q.palette)));
       });
-      if (!mesh.listPrimitives().length) { mesh.dispose(); continue; }
+      if (!mesh.listPrimitives().length) { mesh.dispose(); return null; }
       const n = doc.createNode(node).setMesh(mesh);
       const b = getBounds(n);
       const bc = [(b.min[0] + b.max[0]) / 2, b.min[1], (b.min[2] + b.max[2]) / 2];
@@ -1673,28 +1725,77 @@ async function buildKatalog() {
       scene.addChild(n);
       const size = [0, 1, 2].map((i) => r3(b.max[i] - b.min[i]));
       const tris = Math.round(mesh.listPrimitives().reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0));
+      return { size, tris, materials: mesh.listPrimitives().length };
+    };
+    return { doc, scene, addNode };
+  };
+  // je Datei ≤ 3 MB: sonst mit halber Kantenlänge neu packen
+  const pack = async (doc, file) => {
+    const outPath = fileURLToPath(new URL(`props/${file}.glb`, OUT));
+    let bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512, keepAttributes: true });
+    if (bytes > 3 * 1048576) { const d2 = await io.read(outPath); bytes = await packDoc(d2, outPath, { tex: 512, ntex: 256, q: 76, keepAttributes: true }); }
+    return { bytes, v: createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8) };
+  };
+  // erst die Kategorien bis v2, dann die neuen: so behalten die Karten unter
+  // schichten/ ihre Namen (gleichnamige bekommen in Bau-Reihenfolge ein „_“)
+  for (const [kat, list] of [...kats].sort(([a], [b]) => NEU_KATS.has(a) - NEU_KATS.has(b) || a.localeCompare(b))) {
+    const { doc, addNode } = kit(kat);
+    const nodes = [];
+    for (const q of list) {
+      const node = `prop_${kat}_${clean(q.key)}`;
+      const made = await addNode(q, node);
+      if (!made) continue;
       nodes.push(node);
       const e = entries.get(q.key) || null;
-      const z = zweckOf(q.key);
+      // Items (Schiffsbauteile) stehen in keiner Halle: ihre Spieldaten bringt die Quelle mit
+      const sp = q.spiel || null;
+      const name = e?.name ?? sp?.name ?? null;
+      const z = zweckOf(q.key, kat);
       out.props.push({
         node, kategorie: kat, file: `/hangar/props/${kat}.glb`, path: q.p4k.replace(/\\/g, '/').replace(/^Data\//i, ''),
-        klasse: e?.klasse ?? null, name: e?.name ?? null, beschreibung: e?.beschreibung ?? null,
-        typ: e?.typ ?? null, tags: e?.tags ?? [], benutzung: [], tragbar: null,
+        klasse: e?.klasse ?? sp?.klasse ?? null, name, beschreibung: e?.beschreibung ?? sp?.beschreibung ?? null,
+        typ: e?.typ ?? sp?.typ ?? null, tags: e?.tags ?? sp?.tags ?? [], benutzung: [], tragbar: null,
+        ...(sp?.groesse != null ? { groesse: sp.groesse } : {}),
         zweck: z.zweck, nutzung: z.nutzung,
-        quelle: { geometrie: q.quelle, name: e?.name?.en ? 'spiel' : null, zweck: z.zweck ? 'abgeleitet' : null, aufstellung: e ? 'spiel' : null },
-        size, footprint: [size[0], size[2]], front: '-z', tris, lod: q.lod, materials: mesh.listPrimitives().length,
+        quelle: { geometrie: q.quelle, name: name?.en ? 'spiel' : null, zweck: z.zweck ? 'abgeleitet' : null, aufstellung: e ? 'spiel' : null },
+        size: made.size, footprint: [made.size[0], made.size[2]], front: '-z', tris: made.tris, lod: q.lod, materials: made.materials,
         anschluesse: [],
         aufstellung: e?.aufstellung ?? null, nachbarn: e?.nachbarn ?? [],
-        from: e?.from ?? [], count: e?.count ?? 0, hallen: e?.hallen ?? 0,
+        zone: e?.zone ?? null, stapel: e?.stapel ?? null, reihen: e?.reihen ?? null,
+        from: e?.from ?? [], count: e?.count ?? 0, hallen: e?.hallen ?? 0, fundorte: e?.fundorte ?? {},
       });
     }
     if (!nodes.length) continue;
-    const outPath = fileURLToPath(new URL(`props/${kat}.glb`, OUT));
-    let bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512, keepAttributes: true });
-    // je Datei ≤ 3 MB: sonst mit halber Kantenlänge neu packen
-    if (bytes > 3 * 1048576) { const d2 = await io.read(outPath); bytes = await packDoc(d2, outPath, { tex: 512, ntex: 256, q: 76, keepAttributes: true }); }
-    out.kategorien[kat] = { file: `/hangar/props/${kat}.glb`, bytes, props: nodes, v: createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8) };
+    const { bytes, v } = await pack(doc, kat);
+    out.kategorien[kat] = { file: `/hangar/props/${kat}.glb`, bytes, props: nodes, v };
     report.push([kat, nodes.length, out.props.filter((p) => p.kategorie === kat).reduce((s, p) => s + p.tris, 0), bytes]);
+  }
+  // ── Boden für Zonen und Wege (hangar-deko.md D2, Punkt 4) ──
+  // Knoten decal_<rolle>_<name>: projizierte Decals als Einheitsquadrat 1 × 1 m
+  // (Kante im Spiel unter size), Boden-Meshes des Spiels mit Ursprung unten mittig.
+  const boden = { decals: [] };
+  if (qf.boden) {
+    const { doc, scene, addNode } = kit('boden');
+    const used = new Set();
+    const nodeName = (rolle, n) => { let s = `decal_${rolle}_${clean(n)}`; while (used.has(s)) s += '_'; used.add(s); return s; };
+    for (const q of qf.boden.quads || []) {
+      if (!q.mtl) continue;
+      const node = nodeName(q.rolle, q.material.split('/').pop());
+      const m = { ...q.mtl, maskTex: q.mtl.blendMap };
+      const dm = await decalMaterial(doc, node, m);
+      if (!dm) { used.delete(node); continue; }
+      scene.addChild(doc.createNode(node).setMesh(doc.createMesh(node).addPrimitive(quadPrim(doc, 1, 1, 1, 1).setMaterial(dm.mat))));
+      const meta = await sharp(dm.dFile).metadata();
+      boden.decals.push({ node, rolle: q.rolle, art: 'projektion', path: q.material, size: [q.kante, q.kante], einheit: [1, 1], alpha: true, opacityMap: !!dm.maskFile, n: q.n, hallen: q.hallen, fundorte: q.fundorte, texture: [meta.width, meta.height],
+        game: { shader: q.mtl.shader, genMask: q.mtl.genMask, diffuse: q.mtl.diffuse, opacity: q.mtl.opacity, shininess: q.mtl.shininess, d: q.mtl.d, n: q.mtl.n, mask: q.mtl.blendMap ?? null, tileD: q.mtl.tileD ?? null, params: q.mtl.params } });
+    }
+    for (const q of (qf.boden.meshes || []).filter((x) => !x.missing)) {
+      const node = nodeName(q.rolle, q.key);
+      const made = await addNode(q, node);
+      if (!made) { used.delete(node); continue; }
+      boden.decals.push({ node, rolle: q.rolle, art: 'mesh', path: q.p4k.replace(/\\/g, '/').replace(/^Data\//i, ''), size: [made.size[0], made.size[2]], hoehe: made.size[1], tris: made.tris, materials: made.materials, n: q.n, flach: q.flach, hallen: q.hallen, fundorte: q.fundorte });
+    }
+    if (boden.decals.length) Object.assign(boden, { file: '/hangar/props/boden.glb', ...(await pack(doc, 'boden')) });
   }
   // ── Materialien mit allen Schichten (.planning/notes/hangar-requisiten.md, R1) ──
   // Karten der Schichten und Blend-Maps je einmal als public/hangar/props/schichten/<name>.webp,
@@ -1733,7 +1834,7 @@ async function buildKatalog() {
   const materials = {}, schichtDateien = {};
   // Attribute der Schicht, die oben noch nicht als eigenes Feld stehen
   const rest = (a) => { if (!a) return null; const { Name, Path, TintColor, WearTint, GlossMult, UVTiling, PaletteTint, ...r } = a; return r; };
-  for (const [name, { sub, alt, neu }] of matInfo) {
+  for (const [name, { sub, alt, neu, pal }] of matInfo) {
     if (!sub) { materials[name] = { shader: null, mask: [], layers: [], params: {}, blendMap: null, blendUv: null, vertex: null }; continue; }
     const layers = [];
     for (const l of sub.layers || []) {
@@ -1754,18 +1855,18 @@ async function buildKatalog() {
       // Illum mit BLENDLAYER: zweite Schicht (Werte BlendLayer2* stehen in params)
       blendLayer: /%BLENDLAYER(?![A-Z_])/.test(sub.genMask || '') ? { d: await schicht(sub.textures?.TexSlot9), n: await schicht(sub.textures?.TexSlot3) } : null,
       gltf: { baseColorFactor: neu.base, metallic: neu.metallic }, vorher: { baseColorFactor: alt.base.map(r3), metallic: alt.metallic },
+      // Palette der Entity (linear): Schichten mit paletteTint 1/2/3 nehmen a/b/c.tint statt ihrer tint
+      ...(pal ? { palette: pal } : {}),
     };
   }
-  const nodeOf = new Map(out.props.map((p) => [p.path.split('/').pop().replace(/\.(cgf|cga)$/i, '').toLowerCase(), p.node]));
+  const nodeOf = new Map(out.props.map((p) => [p.path.split('/').pop().replace(/\.(cgf|cga|cdf|skin)$/i, '').toLowerCase(), p.node]));
   const ref = (key) => nodeOf.get(key) ?? key;
-  // Arbeitsplätze: häufige Zusammensetzungen mit einem Vertreter aus dem Spiel
-  const arbeitsplaetze = inv.zusammensetzungen.filter((z) => z.n >= 3).map((z) => ({
-    name: z.sig, n: z.n, hallen: z.hallen, halle: z.vertreter.hall,
-    mitglieder: z.vertreter.mitglieder.map((m) => ({ node: ref(m.key), kategorie: m.kat, at: [m.at[0], m.at[2], m.drehungY], y: m.y })),
-    abstandFeld: z.vertreter.abstandFeld, abstandWand: z.vertreter.abstandWand,
-    ort: z.vertreter.abstandWand != null && z.vertreter.abstandWand < 1.5 ? 'wand' : 'frei',
-  }));
-  const leitungen = inv.leitungen.map((l) => ({ stuecke: l.stuecke.map((s) => ({ node: ref(s.key), at: s.at })), laenge: l.laenge, von: l.von ? ref(l.von) : null, nach: l.nach ? ref(l.nach) : null, halle: l.halle }));
+  const platz = (pl) => pl && { ...pl, mitglieder: pl.mitglieder.map((m) => ({ node: ref(m.key), kategorie: m.kat, at: m.at, y: m.y })) };
+  // Arbeitsplätze und Leitungen wie bis v2 (K3), dazu der Platz des Vertreters mit Wandseite
+  const arbeitsplaetze = inv.arbeitsplaetze.map((a) => ({ ...a, platz: platz(a.platz) }));
+  const leitungen = inv.leitungen;
+  // Zonen der Hallen (hangar-deko.md D4)
+  const zonen = inv.zonen.map(({ mitglieder, ...z }) => ({ ...z, mitglieder: mitglieder.map((m) => ({ node: ref(m.key), kategorie: m.kat, at: m.at, y: m.y })) }));
   // Schiffsseite: Knoten der Schiffsexporte mit Tank-, Daten- und Andockpunkten
   const SHIP_PORTS = /fuel_?port|fuelport|IP_Panel_Fuel|umbilical|dataport|docking_collar|docking_port|refuel/i;
   const schiffe = [];
@@ -1782,13 +1883,20 @@ async function buildKatalog() {
     const lo = inv.schiffe.find((s) => s.schiff === ent);
     schiffe.push({ schiff: slug, anschluesse: ports, loadout: (lo?.anschluesse || []).filter((l) => /fuel_port|refuel|umbilical/i.test(l)), raum: 'Raum des Schiffsmodells: Y oben, Meter, Schiffsursprung' });
   }
-  const json = { v: 2, kategorien: out.kategorien, props: out.props, arbeitsplaetze, leitungen, schiffe, materials, schichten: schichtDateien,
+  const json = { v: 3, kategorien: out.kategorien, props: out.props, arbeitsplaetze, leitungen, zonen, boden, fundorte: inv.fundorte, schiffe, materials, schichten: schichtDateien,
     hinweise: {
       materials: 'Je Material im GLB: Shader, Maske, alle Schichten mit ihren Rohwerten (attrs = übrige Attribute wörtlich; die Werte der Schicht-Datei stehen einmal unter schichten[path]), params = Kopf und PublicParams des Materials wörtlich. Karten liegen unter /hangar/props/schichten/; bei Normalenkarten (_ddna) steht die Glätte im Alpha. blendUv 0 = TEXCOORD_0. vertex: Kanal je Bedeutung, null = vom Spiel nicht benannt. gltf = Werte im GLB, vorher = Werte bis v1.',
       anschluesse: 'Die Requisiten-Modelle tragen keine Helfer, Sockets oder Knochen mit Namen; Anschlusspunkte gibt das Spiel nicht her.',
-      namen: 'Spielname und Beschreibung gibt es nur, wo eine Entity mit Lokalisierung die Geometrie trägt; Deko-Requisiten nennen @LOC_PLACEHOLDER.',
-      leitungen: 'Am Boden legt das Spiel kaum Leitungen: kurze Ketten aus 2 bis 3 Stücken, kein Kabel vom Generator zum Schiff. Die meisten Kabelstücke sind Wand- und Deckenzüge.',
-      aufstellung: 'Höhe = Bezugspunkt über dem Feldboden; Abstand zum Feldrand achsparallel (innen negativ); Wandabstand zu Brushes mit „wall“ im Namen; Richtung = Vorderseite (lokale +Y) zur Feldmitte.',
+      namen: 'Spielname und Beschreibung gibt es nur, wo eine Entity mit Lokalisierung die Geometrie trägt; Deko-Requisiten nennen @LOC_PLACEHOLDER. Schiffsbauteile (Kategorie bauteile) sind Items: Name, Beschreibung, Typ und groesse (S1–S3) aus ihrem Datensatz.',
+      leitungen: 'Am Boden legt das Spiel kaum Leitungen: kurze Ketten aus 2 bis 3 Stücken, kein Kabel vom Generator zum Schiff. Die meisten Kabelstücke sind Wand- und Deckenzüge. Wie bis v2, nur aus den Hangars.',
+      aufstellung: 'Gezählt über alle Fundorte (fundorte). Höhe = Unterkante über dem Boden darunter (Ebene, auf der mindestens drei Bodenstücke stehen, oder Bodenplatte), ohne Boden über dem Feld; Abstand zum Feldrand achsparallel (innen negativ), nur in Hallen mit Landefläche; Wandabstand zur nächsten Bauwand oder zum nächsten Wandgerät; Richtung = Vorderseite (lokale +Y des Spiels, im GLB −z) zur Feldmitte.',
+      zone: 'Anteil der Aufstellungen je Zone, Vorrang in dieser Reihenfolge: decke (Unterkante > 2,6 m über dem Boden), ecke (≤ 3 m von zwei Wänden quer zueinander, die zweite ≥ 3,5 m lang), wand (≤ 1,5 m), tor (≤ 8 m von einer Öffnung ≥ 6 m breit und ≥ 5 m hoch auf Höhe des Stücks), feldrand (≤ 6 m vom Feld, innen zählt mit), halle (sonst). Wand = Bauwand (aufrecht, dünn, ≥ 3,5 m lang, oder Wandstück) oder Rückseite eines Wandgeräts (Feuerschlauch, Verteilerdose, Wandbildschirm …), ±4 m entlang.',
+      stapel: 'auf: worauf es steht (art boden, palette, kiste, regal = in einem Regal, tisch, geraet, bau = Einbau über dem Boden, haengt = ohne Träger über dem Boden), node = Art des Trägers, anteil, hoehe = Unterkante über dem Boden (Median). traegt: Anteil der Aufstellungen, auf denen etwas steht, und was. saeule: Kisten übereinander in der Säule jeder Aufstellung (Median, Maximum). Nur Brushes mit Box.',
+      reihen: 'Gleiche Stücke in einer Flucht, gleich ausgerichtet, mindestens drei je Reihe: Zahl der Reihen, stueck (Median), abstand (Mitte zu Mitte), laenge, gang = lichte Weite zur nächsten parallelen Reihe derselben Art (0,5 bis 12 m), doppelreihen = Rücken an Rücken.',
+      zonen: 'Gruppen, deren Requisiten näher als 6 m zueinander stehen (ohne Wand- und Deckenteile, Leitungsstücke und Kleinteile unter 25 cm). name = Kategorien mit ≥ 20 % der Mitglieder; n = Gruppen, Vertreter = Gruppe mittlerer Größe (bis 120 Stück).',
+      platz: 'Platzkoordinaten (zonen[] und arbeitsplaetze[].platz): +z zeigt zur nächsten Wand (≤ 3 m von einem Mitglied), z = 0 ist die Wandfläche, x = 0 die Mitte entlang der Wand; at = [x, z, Drehung in Grad um Y], Drehung 0 = Vorderseite des Spiels (im GLB −z) zur Halle; y = Höhe über dem Boden. wand.aus = bauwand oder wandgeraet; ecke.x = Lage der Querwand. Ohne Wand: achse "feld" (+z zur Feldmitte) oder "halle" (Achsen der Halle, +z = Spiel −Y).',
+      boden: 'boden.glb: projizierte Decals als Einheitsquadrat (1 × 1 m in XZ, u entlang +X, v = 0 an −Z), size = Kantenlänge im Spiel (Median); Boden-Meshes des Spiels (Gitter, Linien, Ecken, Ziffern) mit Ursprung unten mittig, size = Grundfläche. rolle: schraffur, linie, pfeil, ziffer, parkfeld, markierung, gitter, oel, reifenspur, schleifspur.',
+      fundorte: 'Hangars (111 socpaks) und die Fundorte der Hallendeko samt Kind-Containern; je socpak einmal gezählt, auch wo das Spiel es mehrfach einsetzt.',
     } };
   mkdirSync(fileURLToPath(new URL('props/', OUT)), { recursive: true });
   const jsonOut = fileURLToPath(new URL('props/katalog.json', OUT));
@@ -1796,7 +1904,8 @@ async function buildKatalog() {
   return {
     url: '/hangar/props/katalog.json', v: createHash('sha1').update(readFileSync(jsonOut)).digest('hex').slice(0, 8), bytes: statSync(jsonOut).size,
     props: out.props.length, kategorien: Object.fromEntries(Object.entries(out.kategorien).map(([k, x]) => [k, { file: x.file, v: x.v, bytes: x.bytes, props: x.props.length }])),
-    report: { kats: report, name: out.props.filter((p) => p.name?.en).length, desc: out.props.filter((p) => p.beschreibung?.en).length, zweck: out.props.filter((p) => p.zweck).length, auf: out.props.filter((p) => p.aufstellung).length, ap: arbeitsplaetze.length, lt: leitungen.length, ports: schiffe.map((s) => `${s.schiff} ${s.anschluesse.length}`).join(', ') },
+    boden: boden.file ? { url: boden.file, v: boden.v, bytes: boden.bytes, decals: boden.decals.length } : null,
+    report: { kats: report, name: out.props.filter((p) => p.name?.en).length, desc: out.props.filter((p) => p.beschreibung?.en).length, zweck: out.props.filter((p) => p.zweck).length, auf: out.props.filter((p) => p.aufstellung).length, ap: arbeitsplaetze.length, apPlatz: arbeitsplaetze.filter((a) => a.platz).length, zonen: zonen.length, lt: leitungen.length, boden: boden.decals.map((d) => `${d.rolle}:${d.art === 'mesh' ? 'm' : 'p'}`).reduce((o, k) => ((o[k] = (o[k] || 0) + 1), o), {}), ports: schiffe.map((s) => `${s.schiff} ${s.anschluesse.length}`).join(', ') },
   };
 }
 
@@ -2151,20 +2260,24 @@ if (!ONLY || ONLY === 'katalog') {
   const q = fileURLToPath(new URL('katalog/quellen.json', SRC)), qi = fileURLToPath(new URL('katalog/inventar.json', SRC));
   // neu bauen, sobald eine der beiden Quellen juenger ist (inventar.json schreibt der Auszug zuerst)
   const newest = () => Math.max(statSync(q).mtimeMs, existsSync(qi) ? statSync(qi).mtimeMs : 0);
-  if (!existsSync(q)) { if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; console.log('  katalog: Quelle fehlt (scripts/extract-hangar-katalog.mjs), Eintrag bleibt'); }
-  else if (!FORCE && prev.props?.katalog && existsSync(fileURLToPath(new URL('props/katalog.json', OUT))) && statSync(fileURLToPath(new URL('props/katalog.json', OUT))).mtimeMs > newest()) { manifest.props.katalog = prev.props.katalog; reused++; }
+  // Boden der Hallendeko (props/boden.glb) entsteht im selben Lauf
+  const keep = () => { if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; if (prev.props?.boden) manifest.props.boden = prev.props.boden; };
+  if (!existsSync(q)) { keep(); console.log('  katalog: Quelle fehlt (scripts/extract-hangar-katalog.mjs), Eintrag bleibt'); }
+  else if (!FORCE && prev.props?.katalog && existsSync(fileURLToPath(new URL('props/katalog.json', OUT))) && statSync(fileURLToPath(new URL('props/katalog.json', OUT))).mtimeMs > newest()) { keep(); reused++; }
   else {
     try {
       const r = await buildKatalog();
-      const { report, ...entry } = r;
+      const { report, boden, ...entry } = r;
       manifest.props.katalog = entry; built++;
+      if (boden) manifest.props.boden = boden;
       console.log(`  props/katalog  ${r.props} Requisiten in ${Object.keys(r.kategorien).length} Kategorien, katalog.json ${(r.bytes / 1024).toFixed(0)} KB`);
       for (const [k, n, t, b] of report.kats) console.log(`    ${k.padEnd(12)} ${String(n).padStart(3)} Requisiten  ${String(t).padStart(7)} Dreiecke  ${(b / 1048576).toFixed(2)} MB`);
       console.log(`    mit Spielname ${report.name}, mit Beschreibung ${report.desc}, mit Zweck (abgeleitet) ${report.zweck}, mit Aufstellung aus dem Spiel ${report.auf}, mit Anschlusspunkten 0`);
-      console.log(`    Arbeitsplätze ${report.ap}, Leitungen ${report.lt}; Schiffsanschlüsse: ${report.ports}`);
-    } catch (err) { console.error(`  props/katalog: FEHLER ${err.stack || err.message}`); if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; }
+      console.log(`    Arbeitsplätze ${report.ap} (mit Platz ${report.apPlatz}), Zonen ${report.zonen}, Leitungen ${report.lt}; Schiffsanschlüsse: ${report.ports}`);
+      if (boden) console.log(`  props/boden  ${boden.decals} Decals (${Object.entries(report.boden).map(([k, n]) => `${n} ${k}`).join(', ')}), ${(boden.bytes / 1048576).toFixed(2)} MB`);
+    } catch (err) { console.error(`  props/katalog: FEHLER ${err.stack || err.message}`); keep(); }
   }
-} else if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog;
+} else { if (prev.props?.katalog) manifest.props.katalog = prev.props.katalog; if (prev.props?.boden) manifest.props.boden = prev.props.boden; }
 // Schlüssel, die andere Skripte pflegen (z. B. weapons), bleiben stehen;
 // Reihenfolge wie bisher in der Datei
 const merged = { source: 'StarBreaker entity/socpak export -> gltf-transform (Draco, WebP)' };
