@@ -4014,7 +4014,8 @@ function buildSteam(max) {
 // abgelehnten Fassungen aus einem Synthesizer im Browser: „okay nehme die
 // audios und mache die animation passend dazu“), seit 21.10.2026 auf den
 // flotten Takt geschnitten (Krisz: „gesamt animation ist viel zu langsam“,
-// „dampf sound ist super crappy“). Die Dateien liegen in public/hangar/ton
+// „dampf sound ist super crappy“), ohne Warnton („mach diesen alarm sound
+// aus“). Die Dateien liegen in public/hangar/ton
 // (scripts/build-hangar-sound.mjs: Stücke der Aufnahmen aneinander, Pegel),
 // die Seite gibt Ordner und Version mit (hall.lift.sound). Jeder Klang
 // sitzt, wo das Spiel ihn auslöst, nur kürzer:
@@ -4025,16 +4026,15 @@ function buildSteam(max) {
 //   der Anschlag (SND_HIT) fällt auf das Ende der Bahn. Kehrt das Tor
 //   unterwegs um, setzt die andere Aufnahme so ein, dass ihr Anschlag
 //   wieder auf das Ende fällt.
-// - Warnton im Takt von 1,2 s, solange die Plattform hinabfährt oder Tor
-//   und Auffahrt laufen, höchstens viermal wie im Spiel.
 // Dampf bleibt still: Der mittlere Hangar hat keinen eigenen Klang dafür,
 // und die aus anderen Hangars und von Türen passten nicht (Krisz, s. o.).
+// Den Warnton des Spiels hat Krisz nach dem Hören verworfen (s. o.).
 // Aus der Tiefe und unter dem geschlossenen Tor klingt die Plattform leiser
 // und dumpfer (space). Geladen wird erst, wenn der Ton an ist und die Seite
 // berührt wurde (Regel der Browser); kein Nachhall dazu, die Aufnahmen
 // tragen ihren Raum.
 const SND_VOL = 0.5;        // Gesamtlautstärke
-const SND_FILES = ['platte-start', 'platte-lauf', 'platte-halt', 'tor-auf', 'tor-zu', 'warnton'];
+const SND_FILES = ['platte-start', 'platte-lauf', 'platte-halt', 'tor-auf', 'tor-zu'];
 // Fahrschleife: zwischen start und start + len periodisch (build-hangar-sound.mjs gibt beides aus)
 const SND_LOOP = { start: 0.5, len: 4.202222 };
 // Schlag der geschnittenen Klänge, s nach ihrem Anfang: Halt beim
@@ -4046,7 +4046,7 @@ function hangarSound(src = null) {
   const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
   let ctx = null, out = null, pad = null, on = true, buf = null, loading = null, ride = null, gate = null;
   // alles, was gerade klingt oder angesetzt ist: hush() blendet es aus, sonst
-  // spielte nach dem Verbergen ein halber Warnton weiter, sobald die Seite
+  // spielte nach dem Verbergen ein halber Torklang weiter, sobald die Seite
   // wiederkommt (der Zeitgeber steht derweil still)
   const shots = new Set();
   const keep = (s, g) => {
@@ -4173,11 +4173,6 @@ function hangarSound(src = null) {
       if (gate) { const h = gate; h.s.addEventListener('ended', () => { if (gate === h) gate = null; }); }
     },
     gateDone() { gate = null; },
-    // Warnton im Takt von 1,2 s, solange die Bewegung läuft (sec), höchstens viermal
-    alarm(sec) {
-      if (!live()) return;
-      for (let i = 0; i < 4 && i * 1.2 < sec; i++) play('warnton', out, 0.8, 0, i * 1.2);
-    },
     // je Bild: Tiefe der Plattform 0..1, Tor über ihr geschlossen 0..1
     space(depth, cover) {
       if (!pad) return;
@@ -6971,7 +6966,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   // den pfeil spamme der das nächste schiff ruft spammt auch dampfgeräusch
   // undso“): Jeder Klick kehrte Plattform und Tor um, und jede Umkehr setzte
   // Zischen, Schlag und Dampf neu an, bis sie sich stapelten.
-  const FX_GAP = { liftGo: 1800, liftStop: 1200, vapour: 2500, seam: 1800, gateStop: 900, alarm: 5000 };
+  const FX_GAP = { liftGo: 1800, liftStop: 1200, vapour: 2500, seam: 1800, gateStop: 900 };
   const fxLast = new Map();
   const fxOk = (key) => {
     const now = performance.now();
@@ -7030,16 +7025,12 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
           rnd(3.5, 5), rnd(2, 3) * k, rnd(6, 10) * k, rnd(0.14, 0.22), 0.6 * k, 1 * k);
       }
     },
-    // Klänge: siehe hangarSound. Anfahren, Fahrschleife und (hinab) der
-    // Warnton beim Losfahren; der Halt kommt aus frame, SND_HIT vor dem Stillstand.
+    // Klänge: siehe hangarSound. Anfahren und Fahrschleife beim Losfahren;
+    // der Halt kommt aus frame, SND_HIT vor dem Stillstand.
     liftGo(dir, late) {
       if (late > 400 || !fxOk('liftGo')) return;
-      const t = (performance.now() - T0) / 1000;
       sound.rideStart();
-      if (dir === 'down') {
-        if (fxOk('alarm')) sound.alarm(lift.dur / 1000);
-        this.edges(t, 6, 0.55);
-      }
+      if (dir === 'down') this.edges((performance.now() - T0) / 1000, 6, 0.55);
     },
     liftHalt(dir, late) {
       if (late > 400) { sound.hush(); return; }
@@ -7053,10 +7044,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // Anschlag der Aufnahme fällt auf das Ende der Bahn.
     gateGo(dir, ms, late) {
       sound.gate(dir, (ms - Math.max(0, late)) / 1000);
-      if (late > 400 || dir !== 'open') return;
-      // Warnton über Tor und Auffahrt
-      if (fxOk('alarm')) sound.alarm((ms + LIFT_UP_MS) / 1000);
-      if (!fxOk('vapour')) return;
+      if (late > 400 || dir !== 'open' || !fxOk('vapour')) return;
       this.vapour((performance.now() - T0) / 1000, 30, ms);
     },
     gateStop(dir, late) {

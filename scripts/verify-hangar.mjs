@@ -727,9 +727,10 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462, halterWahl: 214 };
 }
 
 // Sperrklinke (Grundsatz 5), Startwert 20.10.2026: Klaenge des Hangars in
-// SND_FILES (Plattform 3, Tor 2, Warnton); am 21.10.2026 von 12 auf 6, die
-// sechs Dampfklaenge sind raus (Krisz: „dampf sound ist super crappy“)
-const KLINKE_TON = 6;
+// SND_FILES (Plattform 3, Tor 2); am 21.10.2026 von 12 auf 6, die sechs
+// Dampfklaenge sind raus (Krisz: „dampf sound ist super crappy“), dann von
+// 6 auf 5, der Warnton ist raus (Krisz: „mach diesen alarm sound aus“)
+const KLINKE_TON = 5;
 // Anschlag der Torklaenge neben dem Ende der Bahn, Anteil der Bahn: Darüber
 // liefe das Tor ein gutes Stück still, oder der Klang finge vor ihm an
 const TOR_TAKT_LUFT = 0.25;

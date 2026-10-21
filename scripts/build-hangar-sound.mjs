@@ -26,7 +26,8 @@
      ansetzt; passt es nicht mehr, endet das Skript mit Fehler.
    - Dampf ist raus (Krisz, 21.10.2026: „dampf sound ist super crappy“):
      Der mittlere Hangar hat keinen eigenen, die aus anderen Hangars und
-     von Türen passten nicht.
+     von Türen passten nicht. Ebenso der Warnton des Tors (Krisz,
+     21.10.2026, nach dem Hören: „mach diesen alarm sound aus“).
    - Schleife der Plattform: Die Datei endet nicht dort, wo sie wieder
      anfängt (die letzten 60 ms klingen aus und sind still; die Marken
      der Schleife gehen beim Auspacken verloren). Gesucht wird darum die
@@ -76,7 +77,6 @@ const PLAN = [
   // lauter Anlauf, dann das Auslaufen vor dem Schlag bei 13,29 s (Teile
   // treffen sich), danach ausgeblendet; der leise Riegel bei 15,15 s fällt weg
   ['tor-zu', 'tor_zu_', { teile: [[0.04, 0.62], [12.47, 14.1]], aus: 0.45, schlag: 13.29 }],
-  ['warnton', 'tor_alarm_piep_', 0],
 ];
 
 if (!existsSync(FROM)) {
