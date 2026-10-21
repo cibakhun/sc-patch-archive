@@ -325,23 +325,35 @@ const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 318
 // mit Ursache. 20.10.2026: winzig/klein/mittel +2000..3000, weil die
 // schwebende Bergbau-Platte (workbench_table_1_a, 3812) der fahrbaren
 // Werkbank des Spiels (workbench_mobile_1_a, 7856) gewichen ist.
-const KLINKE_DIENST = { stationen: 20, glieder: 131, leitungen: 6, spuren: 13, props: 50 };
+// 21.10.2026 (Betreiber 20.10.2026: „wir k0nnten auch mehr assets holen, die
+// assets besser zusammenstellen“): Gruppen aus den Arbeitsplätzen des
+// Katalogs, 56 Requisiten, 138 Glieder: Werkzeugtasche mit Zange obenauf
+// (Gruppe „werkzeug“, im Spiel 159-mal), Kunststoffkisten am Planenstapel,
+// Mehrzweckkisten am Palettenwagen („lager+transport“), zweite Tasche.
+const KLINKE_DIENST = { stationen: 20, glieder: 138, leitungen: 6, spuren: 13, props: 56 };
 // 21.10.2026 angehoben (210000 -> 213000, Klassen +5000/+5000/+4000): Teilflaechen mit dem
 // LayerBlend-Flag %DECALS fielen im Katalog-Build bisher still weg (als Decal ohne Karte
 // gelesen); seit Hangar-Werte Teil 2 sind sie da (Satz 212 465, Klassen 217 562 / 261 231 / 563 622).
 // Bytes 21.10.2026 5,2 -> 5,5 MB: dienst_flach traegt fuer die Schichten je Ecke
 // Texturkoordinaten, Tafelzeile und Vertexfarbe des Spiels (Satz 5,35 MB).
-const OBERGRENZE_DIENST = { mats: 41, tris: 213000, bytes: 5.5e6 };
+// 21.10.2026 angehoben (Gruppen oben): 41 -> 45 Materialien (Kunststoffkiste 4:
+// Beschriftung, Leuchte, Leiste; Mehrzweckkiste: Beschriftung), 213000 ->
+// 227000 Dreiecke (Satz 226 905), 5,5 -> 5,6 MB (Satz 5,51 MB).
+const OBERGRENZE_DIENST = { mats: 45, tris: 227000, bytes: 5.6e6 };
 // Schichten des Wartungsplatzes (seit 21.10.2026, Katalog v2): Zeilen der
 // Schichttafel (flache LayerBlend-Materialien), davon mit Blend-Karte, mit
 // Abnutzungskarte, mit Detail- und mit Normalenkarte; Karten im Raster; Ecken
 // von dienst_flach mit einer Zeile (am 21.10.2026: 124 Zeilen, 61, 61, 42,
-// 37, 41 Karten, 150 954 Ecken, 563 KB); das Raster höchstens so schwer.
-const KLINKE_SCHICHTEN = { zeilen: 124, blend: 61, abnutzung: 61, detail: 42, normale: 37, karten: 41, ecken: 150000 };
+// 37, 41 Karten, 150 954 Ecken, 563 KB; mit den Gruppen 133, 63, 61, 45,
+// 42, 45 Karten, 162 007 Ecken, 643 KB); das Raster höchstens so schwer.
+const KLINKE_SCHICHTEN = { zeilen: 133, blend: 63, abnutzung: 61, detail: 45, normale: 42, karten: 45, ecken: 162000 };
 const OBERGRENZE_SCHICHTEN = { bytes: 700000 };
 const DIENST_KLASSEN = { winzig: 6.5, klein: 20, mittel: 40, gross: 120 };
 const KLINKE_DIENST_KLASSE = { winzig: { stationen: 6 }, klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
-const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 117000 }, klein: { mats: 30, tris: 218000 }, mittel: { mats: 34, tris: 262000 }, gross: { mats: 41, tris: 564000 } };
+// 21.10.2026 mit den Gruppen (oben): winzig +2000 (Werkzeugtasche, 118 305),
+// klein +2 Materialien und +11000 (Kunststoffkisten am Lager: 32, 228 174),
+// mittel +2 und +11000 (36, 271 843), gross +4 und +17000 (45, 580 320).
+const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 119000 }, klein: { mats: 32, tris: 229000 }, mittel: { mats: 36, tris: 273000 }, gross: { mats: 45, tris: 581000 } };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 // Schachttor ([15], seit 18.10.2026): Teile, die ins Feld reichen (14 beim
 // Einbau: Mittelfluegel, Stirnplatten, Riegel, Zahnstangen, Zylinder); die

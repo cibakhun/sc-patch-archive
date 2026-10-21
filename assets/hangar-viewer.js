@@ -2082,9 +2082,9 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_werkzeug_tool_welder_a", -1.45, 0.1, -15],
       ["prop_treibstoff_tank_gas_1_005x005x005_a", -2.15, 0.35, 0], ["prop_licht_light_work_light_2_a", -2.9, 0.5, 0],
       ["prop_transport_trolley_creeper_a", 2.7, -0.9, 80], ["prop_werkzeug_tool_socket_set_1_a", 1.15, -0.95, 35],
-      ["prop_werkzeug_tool_socket_set_closed_1_a", 0.45, -0.75, -10], ["prop_werkzeug_tool_manual_1_ratchet_a", 1.8, -1.3, 65],
-      ["prop_werkzeug_tool_manual_1_pliers_a", 2.1, -1.55, 140], ["prop_werkzeug_tool_manual_1_screwdriver_a", 0.8, -1.45, 200],
-      ["prop_werkzeug_tool_allenkey_1_a", 2.35, -1.2, 20]] },
+      ["prop_werkzeug_tool_socket_set_closed_1_a", 0.45, -0.75, -10], ["prop_werkzeug_bag_toolbox_1_a", 1.9, -1.5, 30],
+      ["prop_werkzeug_tool_manual_1_pliers_a", 1.9, -1.48, -110, 0.26], ["prop_werkzeug_tool_manual_1_screwdriver_a", 1.51, -1.49, -141],
+      ["prop_werkzeug_tool_manual_1_ratchet_a", 0.59, -1.24, 60], ["prop_werkzeug_tool_allenkey_1_a", 2.35, -1.2, 20]] },
     { "name": "werkbank", "wo": ["seite", -1, -0.75], "sonst": [["ende", -1, -0.75], ["seite", 1, -0.75]], "glieder": [
       ["prop_werkzeug_workbench_mobile_1_a", 0, 0.2, 90], ["prop_werkzeug_tool_socket_set_closed_1_a", -1.35, 0.3, 15, 1.215],
       ["prop_werkzeug_tool_tester_1_b", -0.45, 0.05, 80, 1.215], ["prop_werkzeug_tool_manual_1_ratchet_a", 0.3, 0.25, 100, 1.215],
@@ -2096,7 +2096,8 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_lager_drum_dry_1_a", -1.35, 0.75, 0], ["prop_lager_drum_dry_1_a", -1.8, 0.35, 0], ["prop_kabel_cable_reel_4_a", 0.4, 1.95, 180],
       ["prop_transport_trolley_pallet_1_a", 2.3, -0.2, 90], ["prop_lager_crate_stack_1_025x0125x00625_a", -3.4, 0.9, 90],
       ["prop_transport_prop_dumper_transport_pallet_a", 5.0, 0.5, 4], ["prop_lager_crate_dry_2_0125x0125x0125_a", 4.6, 0.15, 10, 0.25],
-      ["prop_lager_crate_metal_2_01x005x0025_a", 5.45, 0.95, 85, 0.25]] },
+      ["prop_lager_crate_metal_2_01x005x0025_a", 5.45, 0.95, 85, 0.25], ["prop_lager_box_plastic_4_weapon_005x010x005_a", -3.85, -0.55, 2],
+      ["prop_lager_box_plastic_4_weapon_closed_005x010x0025_a", -3.8, -0.55, -3, 0.5], ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", -2.95, -0.5, 14]] },
     { "name": "leiter-klein", "ab": 10, "bis": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75]], "glieder": [
       ["prop_heben_ladder_step_1_a", 0, 0, 0]] },
     { "name": "leiter", "ab": 30, "wo": ["seite", 1, 0.75], "sonst": [["seite", -1, 0.75], ["seite", 1, 0.55]], "glieder": [
@@ -2117,7 +2118,8 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_lager_storage_container_1_025x05x025_a", -1.4, 1.0, 0], ["prop_lager_storage_container_1_025x05x025_a", 1.4, 1.0, 0],
       ["prop_lager_storage_container_1_025x05x025_a", -1.4, 1.0, 0, 2.5], ["prop_lager_crate_stack_1_025x0125x00625_a", 4.0, 0.6, 0],
       ["prop_transport_prop_dumper_transport_pallet_a", -4.7, 0.2, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.9, -0.1, 3, 0.25],
-      ["prop_lager_crate_metal_2_01x005x0025_a", -4.4, 0.75, 85, 0.25], ["prop_transport_trolley_pallet_1_a", 1.0, -2.6, 90]] },
+      ["prop_lager_crate_metal_2_01x005x0025_a", -4.4, 0.75, 85, 0.25], ["prop_transport_trolley_pallet_1_a", 1.0, -2.6, 90],
+      ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", -1.58, -3.2, -98], ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", -0.08, -2.83, 177]] },
     { "name": "fracht", "ab": 60, "wo": ["ende", 1, 0.55], "sonst": [["ende", 1, -0.55], ["ende", -1, 0.9]], "glieder": [
       ["prop_transport_trolley_cargo_1_a", 0, 1.2, 90], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.6, 0.4, 12],
       ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.4, 1.8, -6], ["prop_lager_crate_dry_1_0125x0125x00625_a", -4.5, 1.1, 0, 1.25]] },
@@ -2127,7 +2129,8 @@ const WORK_DIENST = /* work-dienst */ {
     { "name": "werkzeug-heck", "ab": 60, "wo": ["seite", -1, -0.6], "sonst": [["seite", -1, -0.45], ["ende", -1, 0.1]], "glieder": [
       ["prop_werkzeug_cabinet_tool_1_a", 0, 0, 0], ["prop_werkzeug_storage_toolbox_a", 1.3, -0.15, 25], ["prop_licht_light_work_light_2_a", -1.6, 0.4, 0],
       ["prop_transport_trolley_creeper_a", 2.6, -0.9, 95], ["prop_werkzeug_tool_socket_set_1_a", 1.05, -0.95, 35],
-      ["prop_werkzeug_tool_manual_1_ratchet_a", 1.7, -1.35, 65], ["prop_werkzeug_tool_manual_1_pliers_a", 2.0, -1.6, 140]] },
+      ["prop_werkzeug_tool_manual_1_ratchet_a", 1.7, -1.35, 65], ["prop_werkzeug_tool_manual_1_pliers_a", 2.0, -1.6, 140],
+      ["prop_werkzeug_bag_toolbox_2_a", -0.95, -0.9, -20]] },
     { "name": "diagnose-bug", "ab": 10, "wo": ["ende", 1, 0.3], "sonst": [["seite", 1, 0.55], ["ende", 1, -0.3]], "glieder": [
       ["prop_diagnose_console_diagnostic_1_a", 0, 0, 0], ["prop_kabel_cable_reel_7_a", 1.3, 0.25, -10], ["prop_licht_light_work_light_1_a", -1.3, 0.35, 0]] },
     { "name": "frachtzone", "ab": 60, "frei": 6, "wo": ["ende", -1, 0], "sonst": [["ende", -1, 0.4], ["ende", 1, 0]], "glieder": [
