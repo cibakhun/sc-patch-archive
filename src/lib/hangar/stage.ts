@@ -28,8 +28,8 @@ export interface HallConfig {
   readonly furniture?: { url: string; bytes?: number } | null;
   /** Ergaenzung der leichteren Stufe aus der vollen (Glas, Rohre, Fuellung), nur neben der Moebeldatei */
   readonly patch?: { url: string; bytes?: number } | null;
-  /** Aufzugsschacht unter dem Schiffsfeld: Bausatz (glb) und Lampenliste (json), HALL_SHAFT im Viewer; gate: Schachttor (glb) und Bahnen seiner Teile (json), buildGate im Viewer; rand: fester Rand um die Öffnung (glb, json), buildRand im Viewer */
-  readonly lift?: { url: string; json: string; bytes?: number; gate?: { url: string; json: string; bytes?: number } | null; rand?: { url: string; json: string; bytes?: number } | null } | null;
+  /** Aufzugsschacht unter dem Schiffsfeld: Bausatz (glb) und Lampenliste (json), HALL_SHAFT im Viewer; gate: Schachttor (glb) und Bahnen seiner Teile (json), buildGate im Viewer; rand: fester Rand um die Öffnung (glb, json), buildRand im Viewer; sound: Ordner und Version der Geräusche von Plattform und Tor, hangarSound im Viewer */
+  readonly lift?: { url: string; json: string; bytes?: number; gate?: { url: string; json: string; bytes?: number } | null; rand?: { url: string; json: string; bytes?: number } | null; sound?: { dir: string; v: string } | null } | null;
   /** Werkstatt: Requisiten (glb), Boden-Decals (boden, eigene Datei fuers Telefon), Anordnung (json), placeWorkshop im Viewer; dienst: Geraetesatz fuer den Wartungsplatz am Schiff (scripts/build-hangar-dienst.mjs), layDienst im Viewer */
   readonly workshop?: { url: string; json: string; bytes?: number; boden?: { url: string; bytes?: number } | null; dienst?: { url: string; bytes?: number } | null } | null;
 }

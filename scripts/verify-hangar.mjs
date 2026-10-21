@@ -103,6 +103,10 @@
         setSound und sound, der Controller gibt sound an initHangar, beide
         Hangarseiten tragen den Ton-Schalter. Ohne das faellt die Halle
         nach einem Update von three.js still auf den alten Look zurueck.
+        Seit 20.10.2026 abends (Aufnahmen statt Synthese): Jeder Klang in
+        SND_FILES liegt als MP3 in dem Ordner, den die Seite mitgibt
+        (hall.lift.sound), und dessen Version ist der Inhalt der Dateien.
+        Klinke: KLINKE_TON Klaenge.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -126,12 +130,14 @@
      n  in dist/vendor/three/three.module.min.js den Einhaengepunkt
         CustomToneMapping umbenennen                                -> [16]
      o  in dist/hangar.html data-off des Ton-Schalters entfernen    -> [16]
+     p  dist/hangar/ton/tor-zu.mp3 loeschen                         -> [16]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
                                                (zum bewussten Anheben)
    ============================================================ */
 
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -717,6 +723,9 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462, halterWahl: 214 };
   ist.raketenSchiffe = ships; ist.raketenSlots = slots; ist.raketenTauschbar = swappable; ist.halterWahl = rackPorts;
 }
 
+// Sperrklinke (Grundsatz 5), Startwert 20.10.2026: Klaenge des Hangars in
+// SND_FILES (Plattform 3, Tor 2, Warnton, Dampf 6)
+const KLINKE_TON = 12;
 say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Controller und Seite');
 // Der Viewer haengt sich mit zwei Textstellen in three.js ein (Bildlook in
 // die Tonabbildung, Rauschen hinter die sRGB-Umrechnung). Beide liest das Tor
@@ -766,10 +775,45 @@ say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Cont
     if (ok) ist.tonSeiten = (ist.tonSeiten ?? 0) + 1;
     if (!ok) fail(`[16] ${page.file}: Ton-Schalter #hgx-snd ${btn ? 'ohne data-on, data-off, hidden oder #hgx-snd-now' : 'fehlt'} (HangarPage.astro)`);
   }
+  // Die Klänge selbst (seit 20.10.2026 abends Aufnahmen statt Synthese,
+  // scripts/build-hangar-sound.mjs): Jeder Name in SND_FILES des Viewers
+  // liegt als MP3 in dem Ordner, den die Seite mitgibt (hall.lift.sound),
+  // und die Version dort ist der Inhalt dieser Dateien. Fehlt eine, bleibt
+  // ihr Anlass still, und niemand merkt es, der den Ton nicht anhat; passt
+  // die Version nicht, hört ein Besucher ein Jahr lang die alte Fassung.
+  const sndNames = (() => { try { return JSON.parse((/const SND_FILES = (\[[^\]]*\]);/.exec(viewer)?.[1] ?? 'null').replace(/'/g, '"')); } catch { return null; } })();
+  sollIst(`Klaenge: SND_FILES im Viewer, mindestens ${KLINKE_TON} Dateien`, sndNames ? String(sndNames.length) : 'nicht lesbar');
+  if (!sndNames) fail('[16] dist/assets/hangar-viewer.js: const SND_FILES = [...] fehlt oder ist nicht lesbar — der Leser ist kaputt oder der Code ist umgezogen');
+  else if (sndNames.length < KLINKE_TON) fail(`[16] der Viewer nennt ${sndNames.length} Klaenge, die Klinke ist ${KLINKE_TON}: KLINKE_TON nur per Commit mit Ursache senken`);
+  for (const page of PAGES) {
+    let snd = null;
+    try { snd = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html)?.[1] ?? 'null')?.opts?.hall?.lift?.sound ?? null; } catch { snd = null; }
+    const dir = snd?.dir && /^\/[\w/-]+\/$/.test(snd.dir) ? join(DIST, ...snd.dir.split('/').filter(Boolean)) : null;
+    const files = (sndNames ?? []).map((n) => join(dir ?? DIST, `${n}.mp3`));
+    // MP3 ohne Kopf: Rahmensynchron 0xFFE am Anfang
+    const bad = dir ? files.filter((f) => { if (!existsSync(f) || statSync(f).size < 2000) return true; const b = readFileSync(f); return !(b[0] === 0xff && (b[1] & 0xe0) === 0xe0); }) : files;
+    // Version wie HangarApp.astro: über alle MP3 im Ordner, nach Namen
+    // sortiert. Eine übrige Datei (in SND_FILES nicht mehr genannt) geht
+    // mit hinein und ist nur Ballast: WARNUNG, kein FEHLER.
+    const all = dir && existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.mp3')).sort() : [];
+    const h = createHash('sha1');
+    for (const f of all) h.update(readFileSync(join(dir, f)));
+    const v = h.digest('hex').slice(0, 8), vOk = !!snd?.v && snd.v === v;
+    const extra = all.filter((f) => !(sndNames ?? []).includes(f.slice(0, -4)));
+    if (extra.length) say(`    WARNUNG: ${extra.join(', ')} in ${snd.dir} nennt der Viewer nicht (SND_FILES): wird mit ausgeliefert, aber nie gespielt`);
+    sollIst(`${page.file}: Klaenge in ${snd?.dir ?? '?'}, je MP3 ab 2 KB, Version aus dem Inhalt`, !snd ? 'die Seite gibt keinen Ordner mit (hall.lift.sound)' : `${files.length - bad.length} von ${files.length} da, Version ${vOk ? 'passt' : `${snd.v} statt ${v}`}`);
+    if (!snd) fail(`[16] ${page.file}: hall.lift.sound fehlt in #hg-stage (HangarApp.astro): der Ton-Schalter schaltet nichts ein`);
+    else if (!dir) fail(`[16] ${page.file}: hall.lift.sound.dir "${snd.dir}" ist kein Ordnerpfad der Seite`);
+    else {
+      for (const f of bad) fail(`[16] ${f.slice(DIST.length + 1)} fehlt, ist kleiner als 2 KB oder kein MP3 ohne Kopf: dieser Klang bliebe still (scripts/build-hangar-sound.mjs)`);
+      if (!vOk) fail(`[16] ${page.file}: Version der Klaenge ${snd.v} passt nicht zum Inhalt der Dateien (${v}, sha1 ueber alle MP3 im Ordner nach Namen sortiert wie HangarApp.astro)`);
+      if (!bad.length && vOk) ist.tonDateien = files.length;
+    }
+  }
 }
 
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

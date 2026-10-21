@@ -98,8 +98,14 @@ const randJson = randAsset?.json ? `public${randAsset.json}` : '';
 const rand = randAsset && randJson && existsSync(randJson)
   ? { url: withV(randAsset), json: `${randAsset.json}?v=${contentV([randJson])}`, bytes: randAsset.bytes }
   : null;
+// Geräusche von Plattform und Tor (scripts/build-hangar-sound.mjs): ein
+// Ordner, eine Version aus dem Inhalt aller Dateien. Der Viewer lädt sie
+// erst, wenn jemand den Ton einschaltet (hangarSound).
+const tonDir = 'public/hangar/ton';
+const tonFiles = existsSync(tonDir) ? readdirSync(tonDir).filter((f) => f.endsWith('.mp3')).sort() : [];
+const sound = tonFiles.length ? { dir: '/hangar/ton/', v: contentV(tonFiles.map((f) => `${tonDir}/${f}`)) } : null;
 const lift = liftAsset && liftJson && existsSync(liftJson)
-  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes, gate, rand }
+  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes, gate, rand, sound }
   : null;
 // Werkstatt aus anderen Spielhallen (scripts/build-hangar-assets.mjs, Art
 // props; PC-Auftrag .planning/notes/hangar-werkstatt.md): Requisiten,

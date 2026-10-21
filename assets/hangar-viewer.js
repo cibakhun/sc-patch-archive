@@ -94,7 +94,9 @@ const HALL_H = 24;
 const HOME_DIR = new THREE.Vector3(0.64, 0.22, 0.74).normalize();   // flach wie im Hangar-Menü des Spiels
 const DOOR_ANGLE = Math.atan2(-HOME_DIR.x, -HOME_DIR.z); // Winkel um Y, 0 = +Z
 const DOOR_WIDTH = 1.15; // Bogenmaß der Toröffnung
-// Aufzug (HALL_LIFT): Fahrzeiten ab und auf; Tiefe des Felds unten, in
+// Aufzug (HALL_LIFT): Fahrzeiten ab und auf ohne Schachttor (mit ihm im
+// Takt des Spiels, HALL_GATE.lift; LIFT_UP_MS dann nur für das erste
+// Schiff nach dem Laden); Tiefe des Felds unten, in
 // Modellmetern der Halle unter dem Schiffsboden. Im Schacht wird es mit der
 // Tiefe dunkel, ab LIFT_DARK fast schwarz; die Leuchtstreifen des Felds und
 // die Lichter am Schiff leuchten weiter.
@@ -923,15 +925,22 @@ function buildShaft(kit, info, L, lay) {
 // Abdunkelung in hgShade: Die vier Lacke des Tors teilen eine Karte und
 // unterscheiden sich nur in der Helligkeit. Je Material ein BatchedMesh,
 // jedes Teil darin eine Instanz, die gatePose längs ihrer Bahn schiebt.
-// `ms`: so lange dauert hier eine Bahn des Spiels (dort 12,5 s); `clear`:
-// so weit bleibt die Oberkante des Schiffs unter dem Tor; `lead`: so lange
-// vor dem Halt der Plattform deckt das Tor das Feld schon ganz. Die Fahrt
-// hinab dauert dafür, wo nötig, länger als LIFT_DOWN_MS (liftDownMs): Bis
-// 18.10. war das Tor erst nach dem Halt zu, unten sah man das Feld mit
+// `ms`: so lange dauert eine Bahn, `lift`: so lange eine Fahrt der Plattform
+// mit Schiff. Beides im Takt des Spiels (Krisz, 20.10.2026 abends: „okay
+// nehme die audios und mache die animation passend dazu“; bis dahin 1,3 s
+// und 1,9/2,8 s): 450 Bilder bei 30 je Sekunde, 15 s. Gemessen am Ton: Die
+// Aufnahme des Tors schlägt bei 15,05 s an, schließend wie öffnend, und die
+// Bahnen enden bei 12,5 Spielsekunden mal 1,2 = 15 s; Zwischenstöße der
+// Aufnahme (Riegel, Zylinder) fallen auf die Teile, die dort anlaufen oder
+// enden. verify:hangar-hall [15] hält ms und lift an den Bahnen des Spiels.
+// `clear`: so weit bleibt die Oberkante des Schiffs unter dem Tor; `lead`:
+// so lange vor dem Halt der Plattform deckt das Tor das Feld schon ganz.
+// Die Fahrt hinab dauert dafür, wo nötig, länger als `lift` (liftDownMs):
+// Bis 18.10. war das Tor erst nach dem Halt zu, unten sah man das Feld mit
 // Schiff und Gerät im offenen Schacht (Krisz, Bild 20:28; gewünscht war
 // „während die Plattform runterfährt, schließt sich der Schacht“).
 // verify:hangar-hall [15] rechnet dieselbe Auswahl gegen die Dateien in dist/.
-const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1300, "clear": 0.4, "lead": 200 } /* /hall-gate */;
+const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 15000, "lift": 15000, "clear": 0.4, "lead": 200 } /* /hall-gate */;
 const GATE_BLEND_MS = 250;   // kehrt das Tor unterwegs um: so lange von der Lage auf die neue Bahn
 const GATE_SLACK_MS = 80;    // die Oberkante des neuen Schiffs kommt erst so lange nach dem offenen Tor
 const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
@@ -4003,425 +4012,208 @@ function buildSteam(max) {
 }
 
 // ─── Geräusche ────────────────────────────────────────────────────────────
-// Zum Dampf die Geräusche der Mechanik (Krisz 20.10.2026: „geräusche wenn
-// dampf kommt, geräusche wenn tor sich schliest wenn platform runterfährt“;
-// abends: „töne könnten wesentlich besser sein“). Alles entsteht im Browser,
-// keine Tondateien. Die erste Fassung baute jeden Klang aus Web-Audio-Knoten
-// (Sägezahn, Sinus, gefiltertes Rauschen) und klang danach: ein Brummen wie
-// ein Synthesizer. Jetzt werden die Klänge beim ersten Ton einmal als
-// Wellenform gerechnet (sndBank) und nur noch abgespielt: Schläge aus den
-// Eigenschwingungen einer dicken Stahlplatte (20 unharmonische Moden, die
-// hohen klingen schneller ab) über einem Unterton, der beim Aufschlag fällt,
-// mit Nachklappern loser Teile; Zischen als Strahlrauschen, dessen Druck
-// nachlässt (es wird dunkler) und das in sich wirbelt; Antrieb der
-// Plattform als nahtlose Schleife aus Rumpeln, den Stößen der Hydraulik-
-// pumpe, einem Motor mit schwankenden Obertönen, Getriebesingen und
-// Knarzen der Führung; Tor als Rollen über Plattenstöße, Reibung und
-// Stellmotor nach dem Tempo der Fahrt. Der Nachhall hat frühe Rückwürfe
-// und einen Ausklang, der in den Höhen schneller endet (große, harte Halle).
-// Der Ton geht erst nach der ersten Berührung der Seite an (Regel der
-// Browser) und lässt sich abschalten (setSound, Schalter auf der Bühne).
-const SND_VOL = 0.55;       // Gesamtlautstärke
-const SND_VERB = 0.42;      // Anteil im Nachhall
-function hangarSound() {
+// Die Originalklänge des Hangars (Krisz 20.10.2026 abends, nach drei
+// abgelehnten Fassungen aus einem Synthesizer im Browser: „okay nehme die
+// audios und mache die animation passend dazu“). Die Dateien liegen in
+// public/hangar/ton (scripts/build-hangar-sound.mjs: nur Pegel und Länge
+// angepasst), die Seite gibt Ordner und Version mit (hall.lift.sound).
+// Tor und Plattform laufen dafür im Takt des Spiels (HALL_GATE.ms, .lift),
+// und jeder Klang sitzt, wo das Spiel ihn auslöst:
+// - Plattform: Anfahren und Fahrschleife (1 s eingeblendet) beim Losfahren;
+//   bei 93,2 % der Fahrt der Halt, die Schleife blendet dabei 1 s aus. Der
+//   Schlag des Halts liegt 1,25 s nach seinem Anfang, beim Stillstand.
+// - Tor: auf und zu je als ganze Aufnahme, die mit der Bahn läuft; ihr
+//   Endanschlag (15,05 s) ist das Ende der Bewegung (15,0 s). Kehrt das Tor
+//   unterwegs um, setzt die andere Aufnahme an derselben Stelle der Bahn ein.
+// - Warnton viermal im Takt von 1,2 s, wenn die Plattform hinabfährt und
+//   wenn das Tor aufgeht.
+// - Dampf: Der mittlere Hangar hat keinen eigenen Klang dafür, die Klänge
+//   kommen aus anderen Hangars und von Türen. Druckablass, wenn die
+//   Plattform oben einrastet; Luftstoß beim Schluss des Tors; leises
+//   Bodenzischen zu den kleinen Stößen und den Schwaden aus dem Schacht.
+// Aus der Tiefe und unter dem geschlossenen Tor klingt die Plattform leiser
+// und dumpfer (space). Geladen wird erst, wenn der Ton an ist und die Seite
+// berührt wurde (Regel der Browser); kein Nachhall dazu, die Aufnahmen
+// tragen ihren Raum.
+const SND_VOL = 0.5;        // Gesamtlautstärke
+const SND_FILES = ['platte-start', 'platte-lauf', 'platte-halt', 'tor-auf', 'tor-zu', 'warnton', 'dampf-1', 'dampf-2', 'dampf-3', 'dampf-4', 'druckablass', 'luftstoss'];
+// Fahrschleife: zwischen start und start + len periodisch (build-hangar-sound.mjs gibt beides aus)
+const SND_LOOP = { start: 0.5, len: 4.202222 };
+const SND_HALT_AT = 0.932;  // Anteil der Fahrt, bei dem das Spiel den Halt auslöst
+function hangarSound(src = null) {
   const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
-  let ctx = null, out = null, dry = null, wet = null, on = true, drive = null, bank = null, lastClunk = -1;
-  const motors = new Map(), hissing = [];
-  // Zufall mit Startwert (mulberry32): bei jedem Laden dieselben Klänge
-  const rng = (seed) => () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  let ctx = null, out = null, pad = null, on = true, buf = null, loading = null, ride = null, gate = null;
+  // alles, was gerade klingt oder angesetzt ist: hush() blendet es aus, sonst
+  // spielte nach dem Verbergen ein halber Dampfstoß weiter, sobald die Seite
+  // wiederkommt (der Zeitgeber steht derweil still)
+  const shots = new Set();
+  const keep = (s, g) => {
+    const h = { s, g };
+    shots.add(h);
+    s.onended = () => { g.disconnect(); shots.delete(h); };
+    return h;
   };
-  // Filter nach dem Audio-EQ-Kochbuch (RBJ), an Ort und Stelle
-  function biquad(x, sr, type, f, q = 0.707, db = 0) {
-    const w = (2 * Math.PI * Math.min(f, sr * 0.45)) / sr, c = Math.cos(w), al = Math.sin(w) / (2 * q), A = Math.pow(10, db / 40);
-    let b0, b1, b2, a0, a1, a2;
-    if (type === 'lp') { b0 = (1 - c) / 2; b1 = 1 - c; b2 = b0; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
-    else if (type === 'hp') { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = b0; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
-    else if (type === 'bp') { b0 = al; b1 = 0; b2 = -al; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
-    else { b0 = 1 + al * A; b1 = -2 * c; b2 = 1 - al * A; a0 = 1 + al / A; a1 = -2 * c; a2 = 1 - al / A; }
-    b0 /= a0; b1 /= a0; b2 /= a0; a1 /= a0; a2 /= a0;
-    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-    for (let i = 0; i < x.length; i++) {
-      const v = x[i], y = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
-      x2 = x1; x1 = v; y2 = y1; y1 = y; x[i] = y;
-    }
-    return x;
-  }
-  const white = (n, r) => { const x = new Float32Array(n); for (let i = 0; i < n; i++) x[i] = r() * 2 - 1; return x; };
-  // langsames Schwanken: Rauschen durch einen Tiefpass, auf ±1 gebracht
-  function wander(n, sr, hz, r) {
-    const x = white(n, r), k = 1 - Math.exp((-2 * Math.PI * hz) / sr);
-    let y = 0, m = 1e-9;
-    for (let i = 0; i < n; i++) { y += k * (x[i] - y); x[i] = y; m = Math.max(m, Math.abs(y)); }
-    for (let i = 0; i < n; i++) x[i] /= m;
-    return x;
-  }
-  // gedämpfte Schwingung (Resonator) ab Stelle i0 dazuzählen, ohne sin je Wert
-  function ring(x, sr, i0, f, tau, a, ph = 0) {
-    const w = (2 * Math.PI * f) / sr, r = Math.exp(-1 / (tau * sr)), c = 2 * r * Math.cos(w), r2 = r * r;
-    let y2 = a * Math.sin(ph), y1 = a * r * Math.sin(w + ph);
-    const end = Math.min(x.length, i0 + Math.ceil(tau * sr * 9));
-    for (let i = Math.max(0, i0); i < end; i++) { x[i] += y2; const y = c * y1 - r2 * y2; y2 = y1; y1 = y; }
-  }
-  const peakTo = (chs, p) => { let m = 1e-9; for (const x of chs) for (let i = 0; i < x.length; i++) m = Math.max(m, Math.abs(x[i])); for (const x of chs) for (let i = 0; i < x.length; i++) x[i] *= p / m; };
-  const toBuf = (L, R) => { const b = ctx.createBuffer(2, L.length, ctx.sampleRate); b.copyToChannel(L, 0); b.copyToChannel(R, 1); return b; };
-  // Eigenschwingungen einer dicken Stahlplatte (Verhältnisse zur Grundmode)
-  const PLATE = [1, 1.594, 2.136, 2.296, 2.653, 2.918, 3.156, 3.501, 3.6, 4.06, 4.147, 4.61, 5.031, 5.404, 5.651, 6.208, 6.536, 7.153, 7.5, 8.12];
-  // Schlag: w Gewicht 0..1 (schwer: tiefer, dumpfer, länger)
-  function makeClunk(seed, w) {
-    const sr = ctx.sampleRate, n = Math.round(sr * 2.2), L = new Float32Array(n), R = new Float32Array(n), r = rng(seed);
-    // Unterton: fällt beim Aufschlag, leicht übersteuert für Masse
-    let ph = 0;
-    const f1 = 82 - 20 * w, f2 = 42 - 8 * w, dec = 0.09 + 0.08 * w;
-    for (let i = 0; i < n; i++) {
-      const t = i / sr, f = f2 + (f1 - f2) * Math.exp(-t / 0.05);
-      ph += (2 * Math.PI * f) / sr;
-      const e = (1 - Math.exp(-t / 0.0015)) * Math.exp(-t / dec), s = (Math.tanh(2 * Math.sin(ph) * e) / Math.tanh(2)) * 0.6;
-      L[i] += s; R[i] += s;
-    }
-    // Platte
-    const f0 = 150 - 55 * w, bright = 2200 + 3000 * (1 - w);
-    for (let k = 0; k < PLATE.length; k++) {
-      const f = f0 * PLATE[k] * (0.97 + 0.06 * r());
-      if (f > 9000) break;
-      const tau = ((0.7 + 0.4 * w) * Math.pow(f0 / f, 0.7) * (0.7 + 0.6 * r())) / 6.91, a = ((0.55 + 0.45 * r()) / (1 + 0.22 * k)) * Math.exp(-f / bright) * 0.8;
-      ring(L, sr, 0, f, tau, a * (0.8 + 0.4 * r()), r() * 6.28);
-      ring(R, sr, 0, f * (1 + 0.002 * (r() - 0.5)), tau, a * (0.8 + 0.4 * r()), r() * 6.28);
-    }
-    // Aufschlag: ein paar Millisekunden Rauschen, dazu Stahl auf Stahl (der
-    // Riegel trifft sein Gegenstück: hell und kurz)
-    const nb = Math.round(sr * 0.012), burst = biquad(biquad(white(nb, r), sr, 'hp', 300, 0.7), sr, 'lp', 3500 + 3000 * (1 - w));
-    for (let i = 0; i < nb; i++) { const e = Math.exp(-i / (sr * 0.0016)) * 1.1; L[i] += burst[i] * e; R[i] += burst[nb - 1 - i] * e * 0.3 + burst[i] * e * 0.7; }
-    for (const [f, tau, a] of [[1380, 0.09, 0.2], [2270, 0.07, 0.16], [3150, 0.05, 0.12], [4630, 0.035, 0.08], [6100, 0.02, 0.05]]) {
-      const ff = f * (0.92 + 0.16 * r());
-      ring(L, sr, 0, ff, tau, a * (0.7 + 0.6 * r()), r() * 6.28); ring(R, sr, 0, ff * 1.004, tau, a * (0.7 + 0.6 * r()), r() * 6.28);
-    }
-    // Nachklappern loser Teile
-    let t0 = 0.022 + 0.02 * r();
-    for (let j = 0; j < 3; j++) {
-      const i0 = Math.round(t0 * sr), a = 0.16 * (1 - 0.3 * j) * (0.6 + 0.4 * w), pan = r();
-      for (const f of [1150, 1720, 2630, 3300]) {
-        const ff = f * (0.9 + 0.2 * r()), tau = 0.012 + 0.025 * r();
-        ring(L, sr, i0, ff, tau, a * (1 - pan) * (0.5 + r()), r() * 6.28);
-        ring(R, sr, i0, ff, tau, a * pan * (0.5 + r()), r() * 6.28);
-      }
-      t0 += 0.03 + 0.05 * r();
-    }
-    peakTo([L, R], 0.92);
-    return toBuf(L, R);
-  }
-  // Zischen: Druck entweicht. Hell und scharf am Anfang, mit nachlassendem
-  // Druck dunkler und leiser; in sich wirbelnd (schnelles Schwanken)
-  function makeHiss(seed, len) {
-    const sr = ctx.sampleRate, n = Math.round(sr * len), r = rng(seed), chs = [];
-    const turb = wander(n, sr, 28, r), slow = wander(n, sr, 3, r);
-    for (let ch = 0; ch < 2; ch++) {
-      const src = white(n, r), hi = Float32Array.from(src), lo = Float32Array.from(src);
-      biquad(hi, sr, 'hp', 520, 0.7); biquad(hi, sr, 'pk', 4200, 0.6, 7); biquad(hi, sr, 'lp', 11500, 0.7);
-      biquad(lo, sr, 'hp', 160, 0.7); biquad(lo, sr, 'lp', 2100, 0.6); biquad(lo, sr, 'pk', 850, 0.8, 4);
-      const x = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        const t = i / sr, c = Math.min(1, t / (len * 0.75)) * 0.75;
-        const e = (1 - Math.exp(-t / 0.006)) * Math.exp(-t / (len * 0.42)) * (1 + 0.32 * turb[i] + 0.12 * slow[i]);
-        x[i] = (hi[i] * (1 - c) + lo[i] * c * 1.6) * e;
-      }
-      // Ventil: kurzer Knall beim Öffnen
-      const nb = Math.round(sr * 0.01), pop = biquad(white(nb, r), sr, 'bp', 1900, 0.9);
-      for (let i = 0; i < nb; i++) x[i] += pop[i] * Math.exp(-i / (sr * 0.0012)) * 2.2;
-      chs.push(x);
-    }
-    // tiefes Fauchen der Luftmasse
-    const wh = biquad(biquad(white(n, r), sr, 'lp', 320, 0.7), sr, 'hp', 60, 0.7);
-    for (let i = 0; i < n; i++) { const t = i / sr, e = (1 - Math.exp(-t / 0.03)) * Math.exp(-t / (len * 0.3)) * 2.5; chs[0][i] += wh[i] * e; chs[1][i] += wh[i] * e; }
-    peakTo(chs, 0.9);
-    return toBuf(chs[0], chs[1]);
-  }
-  // Antrieb der Plattform: nahtlose Schleife (len s), Tempo über die
-  // Abspielrate. Ganzzahlige Pumpenstöße je Schleife, damit der Takt hält.
-  function makeDrive(seed, len) {
-    const sr = ctx.sampleRate, fade = 0.4, n = Math.round(sr * (len + fade)), r = rng(seed);
-    const L = new Float32Array(n), R = new Float32Array(n);
-    // Rumpeln: braunes Rauschen sehr tief, langsam schwellend
-    for (let ch = 0; ch < 2; ch++) {
-      const x = white(n, r), y = ch ? R : L, am = wander(n, sr, 0.6, r);
-      let b = 0;
-      for (let i = 0; i < n; i++) { b = 0.997 * b + 0.05 * x[i]; x[i] = b; }
-      biquad(x, sr, 'lp', 95, 0.7); biquad(x, sr, 'hp', 24, 0.7);
-      let m = 1e-9; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(x[i]));
-      for (let i = 0; i < n; i++) y[i] += (x[i] / m) * 0.9 * (1 + 0.25 * am[i]);
-    }
-    // Hydraulikpumpe: Stöße im festen Takt, jeder ein dumpfer Druckschlag
-    const beats = Math.round(9.5 * len), per = len / beats, hum = new Float32Array(n);
-    for (let k = 0; k < beats + 2; k++) {
-      const i0 = Math.round((k * per + (r() - 0.5) * 0.004) * sr), a = 0.42 * (0.85 + 0.3 * r());
-      ring(hum, sr, i0, 128 + 14 * r(), 0.03, a);
-      ring(hum, sr, i0, 262 + 20 * r(), 0.018, a * 0.45);
-    }
-    const thud = biquad(white(n, r), sr, 'lp', 520, 0.8);
-    for (let k = 0; k < beats + 2; k++) {
-      const i0 = Math.round(k * per * sr);
-      for (let i = 0; i < sr * 0.06 && i0 + i < n; i++) hum[i0 + i] += thud[i0 + i] * Math.exp(-i / (sr * 0.012)) * 0.5;
-    }
-    for (let i = 0; i < n; i++) { L[i] += hum[i]; R[i] += hum[i] * 0.92; }
-    // Motor: Obertöne von 49 Hz, jede mit eigener Schwankung
-    const jit = wander(n, sr, 2.5, r);
-    for (let h = 1; h <= 12; h++) {
-      const aw = wander(n, sr, 1.2 + r(), r), a = 0.06 / Math.pow(h, 1.15) * (h % 2 ? 1 : 0.7);
-      let ph = r() * 6.28;
-      for (let i = 0; i < n; i++) {
-        ph += (2 * Math.PI * 49 * h * (1 + 0.003 * jit[i])) / sr;
-        const s = Math.sin(ph) * a * (1 + 0.5 * aw[i]);
-        L[i] += s; R[i] += s * (h % 3 ? 1 : 0.8);
-      }
-    }
-    // Getriebe singt: schmales Rauschband statt reinem Ton
-    for (let ch = 0; ch < 2; ch++) {
-      const x = biquad(biquad(white(n, r), sr, 'bp', 735, 28), sr, 'bp', 735, 18), y = ch ? R : L;
-      let m = 1e-9; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(x[i]));
-      for (let i = 0; i < n; i++) y[i] += (x[i] / m) * 0.05;
-    }
-    // Schleifen der Führung, unregelmäßig
-    for (let ch = 0; ch < 2; ch++) {
-      const x = biquad(biquad(white(n, r), sr, 'bp', 1500, 1.1), sr, 'lp', 3500), am = wander(n, sr, 4, r), y = ch ? R : L;
-      for (let i = 0; i < n; i++) y[i] += x[i] * 0.07 * Math.max(0, 0.4 + am[i]);
-    }
-    // Knarzen und Klappern, selten
-    const ev = Math.round(len * 1.3);
-    for (let j = 0; j < ev; j++) {
-      const i0 = Math.round(r() * len * sr), f = 380 + 900 * r(), pan = r(), a = 0.05 + 0.06 * r();
-      ring(L, sr, i0, f, 0.04 + 0.1 * r(), a * (1 - pan)); ring(R, sr, i0, f * 1.003, 0.04 + 0.1 * r(), a * pan);
-      ring(L, sr, i0, f * 2.71, 0.02, a * 0.4 * (1 - pan)); ring(R, sr, i0, f * 2.71, 0.02, a * 0.4 * pan);
-    }
-    // Ende über den Anfang blenden (gleiche Leistung): nahtlos
-    const m = Math.round(sr * len), fn = n - m;
-    for (const x of [L, R]) {
-      for (let i = 0; i < fn; i++) { const g = i / fn; x[i] = x[i] * Math.sin(g * Math.PI / 2) + x[m + i] * Math.cos(g * Math.PI / 2); }
-    }
-    const Lm = L.subarray(0, m), Rm = R.subarray(0, m);
-    peakTo([Lm, Rm], 0.85);
-    return toBuf(Lm, Rm);
-  }
-  // Tor: zwei Flügel rollen über die Stöße ihrer Platten, Reibung und
-  // Stellmotor folgen dem Tempo; T s Fahrt, danach Auslauf
-  function makeGate(seed, T) {
-    const sr = ctx.sampleRate, n = Math.round(sr * (T + 0.45)), r = rng(seed), L = new Float32Array(n), R = new Float32Array(n);
-    const sp = (t) => { const u = t / T; if (u <= 0 || u >= 1) return 0; const a = Math.min(1, u / 0.2), b = Math.min(1, (1 - u) / 0.24); return (a * a * (3 - 2 * a)) * (b * b * (3 - 2 * b)); };
-    const v = new Float32Array(n);
-    for (let i = 0; i < n; i++) v[i] = sp(i / sr);
-    // Rollen: tiefes Rumpeln mit dem Tempo
-    for (let ch = 0; ch < 2; ch++) {
-      const x = white(n, r), y = ch ? R : L;
-      let b = 0;
-      for (let i = 0; i < n; i++) { b = 0.995 * b + 0.06 * x[i]; x[i] = b; }
-      biquad(x, sr, 'lp', 160, 0.7); biquad(x, sr, 'hp', 30, 0.7);
-      let m = 1e-9; for (let i = 0; i < n; i++) m = Math.max(m, Math.abs(x[i]));
-      for (let i = 0; i < n; i++) y[i] += (x[i] / m) * 0.8 * v[i];
-    }
-    // Plattenstöße: die Rollen überfahren sie, je schneller, desto dichter
-    let d = 0, next = 0.3 + 0.4 * r();
-    for (let i = 0; i < n; i++) {
-      d += (v[i] * 13) / sr;
-      if (d < next) continue;
-      next = d + 0.75 + 0.5 * r();
-      const a = 0.32 * v[i] * (0.7 + 0.6 * r()), pan = 0.3 + 0.4 * r();
-      ring(L, sr, i, 72 + 10 * r(), 0.045, a * (1 - pan)); ring(R, sr, i, 74 + 10 * r(), 0.045, a * pan);
-      ring(L, sr, i, 1300 + 600 * r(), 0.008, a * 0.25 * (1 - pan)); ring(R, sr, i, 1350 + 600 * r(), 0.008, a * 0.25 * pan);
-    }
-    // Reibung der Dichtleisten
-    for (let ch = 0; ch < 2; ch++) {
-      const x = biquad(biquad(white(n, r), sr, 'bp', 1050, 0.9), sr, 'lp', 4000), am = wander(n, sr, 5, r), y = ch ? R : L;
-      for (let i = 0; i < n; i++) y[i] += x[i] * 0.09 * v[i] * Math.max(0, 0.5 + am[i]);
-    }
-    // Stellmotor: Obertöne, steigen mit dem Tempo, durch das Gehäuse
-    const M = new Float32Array(n), jit = wander(n, sr, 3, r);
-    let ph = 0;
-    for (let i = 0; i < n; i++) {
-      ph += (2 * Math.PI * (68 + 44 * v[i]) * (1 + 0.004 * jit[i])) / sr;
-      let s = 0;
-      for (let h = 1; h <= 10; h++) s += Math.sin(ph * h + h * 1.7) / Math.pow(h, 1.4);
-      M[i] = s * (0.25 + 0.75 * v[i]) * Math.min(1, i / (sr * 0.06));
-    }
-    biquad(M, sr, 'pk', 330, 1, 6); biquad(M, sr, 'lp', 2400, 0.7);
-    for (let i = 0; i < n; i++) { L[i] += M[i] * 0.05; R[i] += M[i] * 0.045; }
-    // Zahneingriff: Rauschen im Takt der Zähne, der mit dem Tempo steigt
-    for (let ch = 0; ch < 2; ch++) {
-      const x = biquad(biquad(white(n, r), sr, 'bp', 1250, 1.2), sr, 'lp', 5000), y = ch ? R : L;
-      let tp = r();
-      for (let i = 0; i < n; i++) {
-        tp += (22 + 48 * v[i]) / sr;
-        const pulse = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * tp), 6);
-        y[i] += x[i] * 0.16 * v[i] * (0.25 + pulse);
-      }
-    }
-    // Anlauf: die Kupplung greift
-    for (const [f, tau, a] of [[610, 0.05, 0.18], [960, 0.035, 0.12], [1540, 0.025, 0.08]]) { ring(L, sr, 0, f, tau, a); ring(R, sr, 0, f * 1.01, tau, a * 0.8); }
-    peakTo([L, R], 0.85);
-    return toBuf(L, R);
-  }
-  // Nachhall einer großen, harten Halle: frühe Rückwürfe, dann ein
-  // Ausklang, der tief lang (2,7 s) und hoch kurz (0,95 s) nachklingt
-  function makeVerb() {
-    const sr = ctx.sampleRate, len = 3.2, n = Math.round(sr * len), r = rng(7), chs = [];
-    for (let ch = 0; ch < 2; ch++) {
-      const src = white(n, r), lo = biquad(Float32Array.from(src), sr, 'lp', 320, 0.7), mid = biquad(biquad(Float32Array.from(src), sr, 'hp', 320, 0.7), sr, 'lp', 3200, 0.7), hi = biquad(Float32Array.from(src), sr, 'hp', 3200, 0.7);
-      const x = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        const t = i / sr, on = t < 0.018 ? 0 : Math.min(1, (t - 0.018) / 0.05);
-        x[i] = on * (lo[i] * Math.exp((-6.91 * t) / 2.7) + mid[i] * Math.exp((-6.91 * t) / 2.2) + hi[i] * Math.exp((-6.91 * t) / 0.95) * 0.7);
-      }
-      for (const t0 of [0.009, 0.014, 0.021, 0.027, 0.034, 0.043, 0.052, 0.063, 0.074, 0.088, 0.103, 0.121]) {
-        const i0 = Math.round(t0 * (0.9 + 0.2 * r()) * sr), a = 0.9 * Math.exp(-t0 / 0.05) * (r() < 0.5 ? -1 : 1);
-        x[i0] += a; x[i0 + 1] += a * 0.6; x[i0 + 2] += a * 0.25;
-      }
-      chs.push(x);
-    }
-    let e = 0;
-    for (const x of chs) for (let i = 0; i < n; i++) e += x[i] * x[i];
-    const g = 1 / Math.sqrt(e / 2);
-    for (const x of chs) for (let i = 0; i < n; i++) x[i] *= g;
-    return toBuf(chs[0], chs[1]);
-  }
   function make() {
-    if (!AC || ctx) return ctx;
-    try { ctx = new AC({ latencyHint: 'interactive' }); } catch { return null; }
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.006; comp.release.value = 0.3;
+    if (ctx) return ctx;
+    if (!AC || !src?.dir) return null;
+    try { ctx = new AC(); } catch { return null; }
+    // Begrenzer am Ende: Tor und Fahrt zugleich dürfen nicht übersteuern
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -8; lim.knee.value = 4; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.25;
     out = ctx.createGain();
     out.gain.value = on ? SND_VOL : 0;
-    out.connect(comp).connect(ctx.destination);
-    dry = ctx.createGain(); dry.connect(out);
-    const verb = ctx.createConvolver();
-    verb.normalize = false;
-    verb.buffer = makeVerb();
-    wet = ctx.createGain(); wet.gain.value = SND_VERB;
-    const hp = ctx.createBiquadFilter();
-    hp.type = 'highpass'; hp.frequency.value = 110; hp.Q.value = 0.6;
-    wet.connect(hp).connect(verb).connect(out);
+    out.connect(lim).connect(ctx.destination);
+    // Plattform: eigener Weg mit Tiefpass, für Tiefe und Tor (space)
+    const lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    lp.type = 'lowpass'; lp.frequency.value = 18000; lp.Q.value = 0.5;
+    lp.connect(g).connect(out);
+    pad = { lp, g };
     return ctx;
   }
-  // Klänge einmal rechnen (beim ersten Gebrauch, je etwa 10 bis 40 ms)
-  function sounds() {
-    if (bank) return bank;
-    bank = {
-      clunk: [makeClunk(11, 1), makeClunk(12, 0.75), makeClunk(13, 0.45), makeClunk(14, 0.2)],
-      hiss: [makeHiss(21, 2.6), makeHiss(22, 1.4)],
-      drive: makeDrive(31, 6),
-    };
-    return bank;
+  function load() {
+    if (loading || !make()) return;
+    const v = src.v ? `?v=${src.v}` : '';
+    loading = Promise.all(SND_FILES.map((n) => fetch(`${src.dir}${n}.mp3${v}`)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .then((a) => new Promise((ok, no) => ctx.decodeAudioData(a, ok, no)))
+      .then((b) => [n, b], () => [n, null])))
+      .then((all) => {
+        buf = Object.fromEntries(all);
+        const miss = all.filter(([, b]) => !b).map(([n]) => n);
+        if (miss.length) console.warn(`[hangar] Ton: ${miss.join(', ')} nicht geladen`);
+      });
   }
-  const live = () => !!ctx && on && ctx.state === 'running';
-  // Ziel eines Klangs: trocken und in den Nachhall, im Stereobild bei pan
-  function bus(pan = 0, verb = 1) {
-    const g = ctx.createGain();
-    let tail = g;
-    if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); g.connect(p); tail = p; }
-    tail.connect(dry);
-    if (verb > 0) { const s = ctx.createGain(); s.gain.value = verb; tail.connect(s).connect(wet); }
-    return g;
-  }
-  // Puffer abspielen: Lautstärke, Rate, dumpf 0..1 (Tiefpass), Ziel
-  function play(buf, gain, rate, muffle, b, t) {
+  const live = () => !!ctx && on && ctx.state === 'running' && !!buf;
+  // Puffer abspielen: Ziel, Lautstärke, ab Sekunde, in Sekunden ab jetzt
+  function play(name, dest, gain = 1, offset = 0, at = 0) {
+    const b = buf?.[name];
+    if (!b || offset >= b.duration) return null;
     const s = ctx.createBufferSource(), g = ctx.createGain();
-    s.buffer = buf; s.playbackRate.value = rate;
+    s.buffer = b;
     g.gain.value = gain;
-    let head = g;
-    if (muffle > 0.01) { const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000 * Math.pow(1 - 0.92 * muffle, 2) + 250; lp.Q.value = 0.6; g.connect(lp); head = lp; }
-    head.connect(b);
-    s.connect(g);
-    s.start(t);
-    return { s, g };
+    s.connect(g).connect(dest);
+    s.start(ctx.currentTime + 0.005 + at, offset);
+    return keep(s, g);
+  }
+  function fadeOut(h, sec) {
+    if (!h) return;
+    const t = ctx.currentTime;
+    h.g.gain.cancelScheduledValues(t); h.g.gain.setValueAtTime(h.g.gain.value, t); h.g.gain.linearRampToValueAtTime(0, t + sec);
+    try { h.s.stop(t + sec + 0.05); } catch { /* schon aus */ }
+  }
+  // Bodenzischen: die vier Stücke zufällig aneinander, nie dasselbe zweimal,
+  // 150 ms überblendet (so kettet das Spiel sie), Dauer s, Lautstärke k
+  function steam(dur, k) {
+    const t0 = ctx.currentTime + 0.005, X = 0.15;
+    let t = t0, last = -1;
+    while (t < t0 + dur) {
+      let i;
+      do { i = Math.floor(Math.random() * 4); } while (i === last);
+      last = i;
+      const b = buf[`dampf-${i + 1}`];
+      if (!b) return;
+      const s = ctx.createBufferSource(), g = ctx.createGain();
+      s.buffer = b;
+      // Hüllkurve der ganzen Kette: 0,3 s an, das letzte Drittel aus
+      const env = (x) => k * Math.min(1, (x - t0) / 0.3, Math.max(0, (t0 + dur - x) / (dur / 3)));
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(env(t + X), t + X);
+      g.gain.setValueAtTime(env(t + b.duration - X), t + b.duration - X);
+      g.gain.linearRampToValueAtTime(0, t + b.duration);
+      s.connect(g).connect(out);
+      s.start(t);
+      keep(s, g);
+      t += b.duration - X;
+    }
   }
   return {
     // nach einer Berührung der Seite (pointerdown, keydown)
     unlock() {
-      if (!on) return;
-      if (!make()) return;
+      if (!on || !make()) return;
       if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      load();
     },
     set(v) {
       on = !!v;
       if (on) this.unlock();
       if (!ctx) return;
       out.gain.setTargetAtTime(on ? SND_VOL : 0, ctx.currentTime, 0.05);
-      if (!on) this.drive(0, 0, 0);
+      // aus: nichts läuft stumm weiter; wieder an, setzt fx.frame Fahrt und Tor an der Stelle an
+      if (!on) this.hush();
     },
     get on() { return on; },
-    // Seite verborgen: anhalten, damit nichts im Hintergrund weiterbrummt
+    get live() { return live(); },
+    get riding() { return !!ride; },
+    get gating() { return !!gate; },
+    // Seite verborgen: anhalten. Was lief, verstummt; die Bewegung läuft
+    // derweil nach der Uhr weiter, also setzt fx.frame Fahrt und Tor beim
+    // Wiederkommen an der richtigen Stelle neu an (rideOn, gate).
     pause(hidden) {
       if (!ctx) return;
-      if (hidden) ctx.suspend().catch(() => {});
-      else if (on) ctx.resume().catch(() => {});
+      if (hidden) { this.hush(); ctx.suspend().catch(() => {}); } else if (on) ctx.resume().catch(() => {});
     },
-    // Zischen: Stärke 0..1, Dauer s, Lage im Bild -1..1
-    hiss(k, dur, pan = 0) {
-      if (!live()) return;
-      const B = sounds(), t = ctx.currentTime + 0.005, long = dur > 1;
-      const buf = B.hiss[long ? 0 : 1], rate = (buf.duration / Math.max(0.4, dur * 1.25)) * (0.94 + Math.random() * 0.12);
-      // höchstens zwei zugleich: das älteste blendet aus
-      while (hissing.length && hissing[0].end < t) hissing.shift();
-      if (hissing.length >= 2) { const o = hissing.shift(); o.g.gain.cancelScheduledValues(t); o.g.gain.setTargetAtTime(0.0001, t, 0.08); try { o.s.stop(t + 0.5); } catch { /* schon aus */ } }
-      const { s, g } = play(buf, 0.85 * k, Math.min(1.6, Math.max(0.7, rate)), 0, bus(pan, 0.9), t);
-      g.gain.setValueAtTime(0.85 * k, t + dur * 0.6);
-      g.gain.setTargetAtTime(0.0001, t + dur * 0.6, dur * 0.25);
-      s.stop(t + dur + 0.6);
-      hissing.push({ s, g, end: t + dur + 0.6 });
-    },
-    // Einrasten: Schlag, Gewicht 0..1, dumpf 0..1 (unter dem Tor)
-    clunk(w, muffle = 0, pan = 0) {
-      if (!live()) return;
-      const B = sounds(), t = ctx.currentTime + 0.005, i = Math.min(3, Math.max(0, Math.round((1 - w) * 3)));
-      // zwei Schläge fast zugleich klängen wie einer, nur lauter und unsauber
-      if (t - lastClunk < 0.09) return;
-      lastClunk = t;
-      play(B.clunk[i], 0.55 + 0.45 * w, 0.96 + Math.random() * 0.08, muffle, bus(pan, 1.1), t);
-    },
-    // Tor für ms; dumpf 0..1. Liefert stop() für eine Umkehr unterwegs
-    // (dann setzt ein neuer Lauf ein)
-    motor(ms, muffle = 0) {
-      if (!live()) return null;
-      const t = ctx.currentTime + 0.005, key = Math.round(ms / 50) * 50;
-      if (!motors.has(key)) motors.set(key, makeGate(41 + motors.size, key / 1000));
-      const { s, g } = play(motors.get(key), 0.45, 1, muffle, bus(0, 0.9), t);
-      return {
-        stop() {
-          const now = ctx.currentTime;
-          g.gain.cancelScheduledValues(now); g.gain.setTargetAtTime(0.0001, now, 0.05);
-          try { s.stop(now + 0.35); } catch { /* schon aus */ }
-        },
-      };
-    },
-    // Antrieb der Plattform, je Bild: Geschwindigkeit 0..1, Tiefe 0..1,
-    // dumpf 0..1 (Tor zu). 0 schaltet ihn aus, sobald er verklungen ist.
-    drive(v, depth, muffle) {
+    hush() {
       if (!ctx) return;
-      const t = ctx.currentTime;
-      if (!drive) {
-        if (!(v > 0.001) || !live()) return;
-        const B = sounds(), s = ctx.createBufferSource(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
-        s.buffer = B.drive; s.loop = true;
-        g.gain.value = 0;
-        lp.type = 'lowpass'; lp.frequency.value = 3000; lp.Q.value = 0.5;
-        s.connect(lp).connect(g).connect(bus(0, 0.8));
-        s.start(t, Math.random() * B.drive.duration);
-        drive = { s, g, lp, idle: 0 };
-      }
-      const k = on ? Math.min(1, Math.max(0, v)) : 0;
-      drive.g.gain.setTargetAtTime(0.4 * Math.pow(k, 0.6), t, 0.07);
-      drive.s.playbackRate.setTargetAtTime(0.78 + 0.3 * k, t, 0.12);
-      drive.lp.frequency.setTargetAtTime(Math.max(220, 4200 * (1 - 0.72 * depth) * (1 - 0.8 * muffle)), t, 0.1);
-      if (k > 0.001) { drive.idle = 0; return; }
-      // still: nach dem Ausklingen abbauen
-      if (!drive.idle) drive.idle = t;
-      else if (t - drive.idle > 0.6) {
-        try { drive.s.stop(t); } catch { /* schon aus */ }
-        drive.g.disconnect();
-        drive = null;
-      }
+      for (const h of shots) fadeOut(h, 0.05);
+      shots.clear();
+      ride = null; gate = null;
     },
-    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; drive = null; bank = null; motors.clear(); hissing.length = 0; },
+    // Plattform fährt los: Anfahren und die Schleife, 1 s eingeblendet
+    rideStart() {
+      if (!live()) return;
+      if (ride) for (const h of [ride.loop, ride.start]) fadeOut(h, 0.15);
+      ride = { start: play('platte-start', pad.lp, 1) };
+      this.rideOn(1);
+    },
+    // Schleife sicherstellen (nach Umkehr, Wiederkommen, Einschalten)
+    rideOn(fade = 0.3) {
+      if (!live()) return;
+      if (ride?.loop) return;
+      const b = buf['platte-lauf'];
+      if (!b) return;
+      const s = ctx.createBufferSource(), g = ctx.createGain(), t = ctx.currentTime + 0.005;
+      s.buffer = b; s.loop = true;
+      s.loopStart = SND_LOOP.start; s.loopEnd = SND_LOOP.start + SND_LOOP.len;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + fade);
+      s.connect(g).connect(pad.lp);
+      s.start(t, SND_LOOP.start + Math.random() * SND_LOOP.len);
+      ride = { ...(ride ?? {}), loop: keep(s, g) };
+    },
+    // Halt (bei SND_HALT_AT der Fahrt): Schlag, Schleife 1 s aus; das
+    // Anfahren auch, falls die Fahrt kürzer war als seine 4,2 s
+    rideHalt() {
+      if (ride) { for (const h of [ride.loop, ride.start]) fadeOut(h, 1); ride = null; }
+      if (live()) play('platte-halt', pad.lp, 1);
+    },
+    // Tor auf oder zu, ab Sekunde offset seiner Bahn (Umkehr unterwegs)
+    gate(dir, offset = 0) {
+      if (gate) { fadeOut(gate, 0.12); gate = null; }
+      if (!live()) return;
+      gate = play(dir === 'open' ? 'tor-auf' : 'tor-zu', out, 1, Math.max(0, offset));
+      if (gate && offset > 0.05) { const t = ctx.currentTime; gate.g.gain.setValueAtTime(0, t); gate.g.gain.linearRampToValueAtTime(1, t + 0.08); }
+      if (gate) { const h = gate; h.s.addEventListener('ended', () => { if (gate === h) gate = null; }); }
+    },
+    gateDone() { gate = null; },
+    // Warnton: viermal im Takt von 1,2 s
+    alarm() {
+      if (!live()) return;
+      for (let i = 0; i < 4; i++) play('warnton', out, 0.8, 0, i * 1.2);
+    },
+    // Dampf: 'druck' (Druckablass), 'stoss' (Luftstoß), 'zischen' (Dauer s)
+    puff(kind, dur = 1) {
+      if (!live()) return;
+      if (kind === 'druck') play('druckablass', out, 1.4, 0, 0.25);
+      else if (kind === 'stoss') play('luftstoss', out, 1.2);
+      else steam(dur, 2);
+    },
+    // je Bild: Tiefe der Plattform 0..1, Tor über ihr geschlossen 0..1
+    space(depth, cover) {
+      if (!pad) return;
+      const m = Math.min(1, 0.5 * depth + 0.5 * cover * Math.min(1, depth * 4)), t = ctx.currentTime;
+      pad.lp.frequency.setTargetAtTime(250 + 17750 * Math.pow(1 - m, 2.5), t, 0.1);
+      pad.g.gain.setTargetAtTime(1 - 0.45 * m, t, 0.1);
+    },
+    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; pad = null; buf = null; loading = null; ride = null; gate = null; shots.clear(); },
   };
 }
 
@@ -4586,7 +4378,7 @@ export async function initHangar(container, opts = {}) {
   const steamK = Q0 === 'niedrig' ? 0.5 : Q0 === 'mittel' ? 0.75 : 1;
   const steam = reduceMotion ? null : buildSteam(Math.round(160 * steamK));
   if (steam) scene.add(steam.mesh);
-  const sound = hangarSound();
+  const sound = hangarSound(opts.hall?.lift?.sound ?? null);
   if (opts.sound === false) sound.set(false);
   const unlockSound = () => sound.unlock();
   document.addEventListener('pointerdown', unlockSound, { capture: true, passive: true });
@@ -6977,11 +6769,18 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     return new Promise((done) => {
       lift.wait.push(done);
       if (Math.abs(y - lift.y) < 1e-4) { lift.dur = 0; lift.y = y; settleLift(); return; }
+      // fährt sie schon dorthin (Weiterklicken während der Fahrt hinab),
+      // bleibt die Fahrt, wie sie ist: Neu angesetzt finge die Kurve wieder
+      // bei null an, die Plattform stockte, und im Takt des Spiels käme
+      // jeder Klick bis zu 18 s dazu
+      if (lift.dur > 0 && Math.abs(y - lift.to) < 1e-4) return;
       // fährt sie schon und kehrt nur um oder ändert das Ziel (schnelles
       // Weiterklicken), rastet nichts neu aus: kein zweites Anfahren (fx.liftGo)
       const moving = lift.dur > 0 && lift.going;
       lift.from = lift.y; lift.to = y; lift.t0 = performance.now() + delay; lift.dur = ms;
       lift.going = moving;
+      // neue Fahrt, neuer Halt (bei SND_HALT_AT); war er schon, holt fx.frame die Schleife wieder
+      lift.halted = false;
       lift.last = { from: lift.from, to: y, t0: lift.t0, dur: ms };
     });
   }
@@ -7076,19 +6875,21 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     const G = gateOf();
     if (!G || !(to < lift.y)) return LIFT_DOWN_MS;
     const kc = liftEaseInv(Math.min(1, Math.max(0, (gateClearY(G, info) - lift.y) / (to - lift.y))));
-    return Math.max(LIFT_DOWN_MS, ((G.cover * HALL_GATE.ms) / G.T + HALL_GATE.lead) / Math.max(0.25, 1 - kc));
+    return Math.max(HALL_GATE.lift, ((G.cover * HALL_GATE.ms) / G.T + HALL_GATE.lead) / Math.max(0.25, 1 - kc));
   }
   // Auffahrt: mit Tor erst auf, dann hinauf. Die Oberkante des Schiffs
   // erreicht das Tor erst, wenn es offen ist; die Fahrt beginnt dafür so
-  // viel später wie nötig.
-  function liftUp(info) {
+  // viel später wie nötig. ms: im Takt des Spiels, nur das erste Schiff
+  // nach dem Laden kommt rasch (LIFT_UP_MS; still, der Ton braucht erst
+  // eine Berührung der Seite).
+  function liftUp(info, ms = HALL_GATE.lift) {
     const G = gateOf();
     if (!G) return liftTo(0, LIFT_UP_MS);
     gateOpen();
     const left = G.run ? ((G.T - Math.min(G.T, G.run.tau0 + ((performance.now() - G.run.t0) * G.T) / HALL_GATE.ms)) * HALL_GATE.ms) / G.T + (G.run.snap ? GATE_BLEND_MS : 0) : 0;
     const y0 = lift.y, yc = gateClearY(G, info);
-    const reach = y0 < yc ? LIFT_UP_MS * liftEaseInv((yc - y0) / -y0) : 0;
-    return liftTo(0, LIFT_UP_MS, Math.max(0, left + GATE_SLACK_MS - reach));
+    const reach = y0 < yc ? ms * liftEaseInv((yc - y0) / -y0) : 0;
+    return liftTo(0, ms, Math.max(0, left + GATE_SLACK_MS - reach));
   }
   function settleLift() {
     const w = lift.wait;
@@ -7103,15 +6904,11 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
   // die mitfährt), Maße mal Hallenmaßstab k; Dampf nur in der Nähe des
   // Schiffs, das Feld reicht weit hinter die Kamera.
   const rnd = (a, b) => a + Math.random() * (b - a);
-  // downAt: Feld unten angeschlagen. Fährt es gleich wieder an (Tausch unter
-  // dem Tor), ist das ein Schlag, kein zweiter: Torschluss, Anschlag und
-  // Anfahren lagen sonst in 120 ms als Dreifachschlag übereinander.
-  let motorRun = null, downAt = -1e9;
   // Höchstens ein Anlass je Art in so vielen ms (20.10.2026, Krisz: „wenn ich
   // den pfeil spamme der das nächste schiff ruft spammt auch dampfgeräusch
   // undso“): Jeder Klick kehrte Plattform und Tor um, und jede Umkehr setzte
   // Zischen, Schlag und Dampf neu an, bis sie sich stapelten.
-  const FX_GAP = { liftGo: 1800, liftStop: 1200, vapour: 2500, seam: 1800, gateStop: 900 };
+  const FX_GAP = { liftGo: 1800, liftStop: 1200, vapour: 2500, seam: 1800, gateStop: 900, alarm: 5000 };
   const fxLast = new Map();
   const fxOk = (key) => {
     const now = performance.now();
@@ -7170,50 +6967,64 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
           rnd(3.5, 5), rnd(2, 3) * k, rnd(6, 10) * k, rnd(0.14, 0.22), 0.6 * k, 1 * k);
       }
     },
+    // Klänge: siehe hangarSound. Anfahren, Fahrschleife und (hinab) der
+    // Warnton beim Losfahren; der Halt kommt aus frame bei SND_HALT_AT.
     liftGo(dir, late) {
       if (late > 400 || !fxOk('liftGo')) return;
       const t = (performance.now() - T0) / 1000;
+      sound.rideStart();
       if (dir === 'down') {
         // Bremse auf, Druck ab
-        sound.clunk(0.35, 0, 0); sound.hiss(0.5, 0.9, 0);
+        if (fxOk('alarm')) sound.alarm();
+        sound.puff('zischen', 0.9);
         this.edges(t, 6, 0.55);
-      } else if (performance.now() - downAt > 300) sound.clunk(0.5, 0.8, 0);
+      }
+    },
+    liftHalt(dir, late) {
+      if (late > 400) { sound.hush(); return; }
+      sound.rideHalt();
     },
     liftStop(dir, late) {
       if (late > 400 || !fxOk('liftStop')) return;
-      const t = (performance.now() - T0) / 1000;
+      // oben eingerastet: Der Druck entweicht
       if (dir === 'up') {
-        // oben eingerastet: schwerer Schlag, dann entweicht der Druck
-        sound.clunk(1, 0, 0);
-        sound.hiss(1, 1.7, 0);
-        this.edges(t, 18, 1);
-      } else { sound.clunk(0.7, 0.85, 0); downAt = performance.now(); }
+        sound.puff('druck');
+        this.edges((performance.now() - T0) / 1000, 18, 1);
+      }
     },
+    // ms: Rest der Bahn ab dem Einsatz, late: so lange läuft sie schon. Die
+    // Aufnahme setzt an der Stelle der Bahn ein, an der das Tor steht.
     gateGo(dir, ms, late) {
-      motorRun?.stop();
-      motorRun = late > 400 ? null : sound.motor(ms, 0);
-      if (late > 400 || dir !== 'open' || !fxOk('vapour')) return;
-      sound.hiss(0.35, ms / 1000 * 0.9, 0);
-      this.vapour((performance.now() - T0) / 1000, 20, ms);
+      sound.gate(dir, (HALL_GATE.ms - ms + Math.max(0, late)) / 1000);
+      if (late > 400 || dir !== 'open') return;
+      if (fxOk('alarm')) sound.alarm();
+      if (!fxOk('vapour')) return;
+      sound.puff('zischen', 3);
+      this.vapour((performance.now() - T0) / 1000, 30, ms);
     },
     gateStop(dir, late) {
-      motorRun = null;
+      sound.gateDone();
       if (late > 400 || !fxOk('gateStop')) return;
       if (dir === 'close' && fxOk('seam')) {
-        sound.clunk(0.8, 0, 0); sound.hiss(0.7, 1.2, 0);
+        sound.puff('stoss');
         this.seam((performance.now() - T0) / 1000, 40);
-      } else sound.clunk(0.4, 0, 0);
+      }
     },
-    // je Bild: Teilchen auf die Uhr, Antrieb nach der Fahrt
+    // je Bild: Teilchen auf die Uhr; der Ton folgt der Mechanik. Fehlt er zu
+    // einem laufenden Tor oder einer Fahrt (Seite war verborgen, Ton eben
+    // eingeschaltet, Klänge erst jetzt geladen), setzt er dort ein, wo die
+    // Bewegung steht.
     frame(now, t) {
       if (steam) steam.frame(t);
-      let v = 0;
-      if (lift.dur && now >= lift.t0) {
-        const k = Math.min(1, (now - lift.t0) / lift.dur), e = 0.01;
-        v = (liftEase(Math.min(1, k + e)) - liftEase(Math.max(0, k - e))) / (Math.min(1, k + e) - Math.max(0, k - e)) / 1.6;
-      }
       const G = realHall?.shaft?.gate;
-      sound.drive(v, THREE.MathUtils.clamp(-lift.y / 30, 0, 1), G?.state === 'closed' && !G.run ? 1 : 0);
+      let cover = 0;
+      if (G?.run) {
+        const r = G.run, tau = Math.min(G.T, Math.max(0, r.tau0 + ((now - r.t0) * G.T) / HALL_GATE.ms));
+        cover = r.dir === 'close' ? tau / G.T : 1 - tau / G.T;
+        if (!sound.gating && sound.live && now >= r.t0 && tau < G.T) sound.gate(r.dir, (tau * HALL_GATE.ms) / G.T / 1000);
+      } else if (G?.state === 'closed') cover = 1;
+      if (lift.going && !lift.halted && !sound.riding && sound.live) sound.rideOn();
+      sound.space(THREE.MathUtils.clamp(-lift.y / 36, 0, 1), cover);
     },
   };
   // Tiefe für ein Schiff, in Modellmetern der Halle
@@ -7447,7 +7258,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     }
     if (up) {
       lift.dur = 0; lift.y = -liftDepth(info); lift.regroup = true;
-      liftUp(info);
+      liftUp(info, current ? HALL_GATE.lift : LIFT_UP_MS);
     }
     scene.add(ship);
     homeTgt = tgt;
@@ -8246,18 +8057,21 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     raf = requestAnimationFrame(frame);
     const now = typeof ts === 'number' ? ts : performance.now();
     vsync(now);
-    // ohne Bild auch kein Antrieb (er hielte sonst seinen letzten Ton)
-    if (!visible) { sound.drive(0, 0, 0); return; }
+    // ohne Bild auch kein Ton: Die Bewegung läuft nach der Uhr weiter, ohne
+    // Bilder blieben aber Halt und Umkehr aus, die Fahrschleife liefe fort.
+    // Beim Wiederkommen setzt fx.frame Fahrt und Tor an der Stelle neu an.
+    if (!visible) { sound.hush(); return; }
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
-    if (!focused && now > hoverUntil) { sound.drive(0, 0, 0); return; }
+    if (!focused && now > hoverUntil) { sound.hush(); return; }
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate. Auch solange
     // ein Wechsel läuft (busy) und das Feld unten auf das neue Schiff wartet:
     // Sonst fiel die Bühne dort nach IDLE_MS auf IDLE_SCALE der Schärfe und
     // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
     // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
-    // Laden, das hängt, hält sie nicht länger als 20 s wach.
-    if ((busy && now - busyAt < 20000) || dragging || fly || fovGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
+    // Laden, das hängt, hält sie nicht länger als 60 s wach (ein Wechsel im
+    // Takt des Spiels dauert um 40 s).
+    if ((busy && now - busyAt < 60000) || dragging || fly || fovGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
@@ -8278,6 +8092,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       // Aufzug: fährt sanft an und bremst sanft (liftEase); vor t0 steht er
       const k = Math.min(1, Math.max(0, (now - lift.t0) / lift.dur)), dir = lift.to > lift.from ? 'up' : 'down';
       if (k > 0 && !lift.going) { lift.going = true; fx.liftGo(dir, now - lift.t0); }
+      if (lift.going && !lift.halted && k >= SND_HALT_AT) { lift.halted = true; fx.liftHalt(dir, now - lift.t0 - SND_HALT_AT * lift.dur); }
       lift.y = lift.from + (lift.to - lift.from) * liftEase(k);
       if (k >= 1) {
         const late = now - lift.t0 - lift.dur;

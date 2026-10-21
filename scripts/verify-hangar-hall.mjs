@@ -200,7 +200,11 @@
         Bytes unter OBERGRENZE_TOR. Seit 19.10.2026 tragen die
         Palettenlacke (paint_b_*) die Farbe der Palette am Tor (Betreiber
         19.10.2026: „textur mässig undso passts auch nicht“); jeder hat
-        seinen Eintrag, mindestens KLINKE_TOR.lacke.
+        seinen Eintrag, mindestens KLINKE_TOR.lacke. Seit 20.10.2026 abends
+        laufen Bahn (HALL_GATE.ms) und Fahrt (HALL_GATE.lift) im Takt des
+        Spiels, anim.s mal speed der Bahnen auf 2 %: Der Viewer spielt die
+        Aufnahmen von Tor und Plattform ganz ab, ihr Anschlag ist das Ende
+        der Bewegung (Krisz: „mache die animation passend dazu“).
     16  Um das Feld liegt der feste Rand des Spiels (seit 19.10.2026): Das
         Tor kam aus dem Nichts (Betreiber 19.10.2026: „es ploppt aus dem
         nichts rein“, „soll so aussehen wie ein element was da fest verbaut
@@ -1378,14 +1382,14 @@ let GATE = null;
 try { GATE = gm ? JSON.parse(gm[1]) : null; } catch (e) { fail(`[15] HALL_GATE im Viewer ist kein JSON mehr (${e.message})`); }
 const gateEntry = SHAFT?.kit ? manifest?.lift?.[SHAFT.kit]?.gate ?? null : null;
 const GT = hall?.lift?.gate ?? null;
-const gateRun = { teile: 0, ohne: [], zellen: 0, offen: 0, tris: 0, mats: 0, bytes: 0, bahnen: 0, zwillinge: 0, lacke: 0 };
+const gateRun = { teile: 0, ohne: [], zellen: 0, offen: 0, tris: 0, mats: 0, bytes: 0, bahnen: 0, zwillinge: 0, lacke: 0, takt: 'nicht gemessen' };
 // Baut der Viewer ein Tor (Block hall-gate) und laedt die Seite den Schacht,
 // gehoert eins dazu: Fiele es aus Manifest und Seite, liefe [15] sonst leer.
 const gateWant = !!(gateEntry || GT || (gm && SHAFT?.kit && hall?.lift));
 if (gateWant) {
   if (!gateEntry) fail(`[15] der Viewer baut ein Schachttor (HALL_GATE) und die Seite laedt den Schacht ${SHAFT?.kit ?? '?'}, das Manifest nennt aber keins (lift.${SHAFT?.kit ?? '?'}.gate): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. scripts/build-hangar-assets.mjs (Schachttor) pruefen`);
   if (viewer && !gm) fail('[15] der Viewer traegt keinen Block /* hall-gate */ … /* /hall-gate */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
-  if (GATE && !(GATE.reach >= 0 && GATE.reach < 1 && GATE.ms >= 600 && GATE.ms <= 6000 && GATE.clear >= 0 && GATE.lead >= 0 && GATE.lead <= 1000)) fail(`[15] HALL_GATE ${JSON.stringify(GATE)}: reach 0..1 m, ms 600..6000, clear >= 0, lead 0..1000 ms erwartet`);
+  if (GATE && !(GATE.reach >= 0 && GATE.reach < 1 && GATE.ms >= 600 && GATE.ms <= 30000 && GATE.lift >= 600 && GATE.lift <= 30000 && GATE.clear >= 0 && GATE.lead >= 0 && GATE.lead <= 1000)) fail(`[15] HALL_GATE ${JSON.stringify(GATE)}: reach 0..1 m, ms und lift 600..30000, clear >= 0, lead 0..1000 ms erwartet`);
   if (!GT?.url || !GT?.json) fail(`[15] ${gateEntry ? `das Manifest nennt ein Schachttor (lift.${SHAFT?.kit}.gate), ` : ''}die Seite gibt keins mit (opts.hall.lift.gate { url, json }): Beim Wechsel bliebe der Schacht offen, und das Schiff ploppte sichtbar. HangarApp.astro pruefen`);
   else if (!existsSync(fromUrl(GT.url)) || !existsSync(fromUrl(GT.json))) fail(`[15] das Schachttor ${GT.url.split('?')[0]} oder seine Bahnen ${GT.json.split('?')[0]} liegen nicht in dist/`);
   else if (gateEntry && GT.url.split('?')[0] !== gateEntry.url) fail(`[15] die Seite laedt das Schachttor ${GT.url.split('?')[0]}, das Manifest nennt ${gateEntry.url}`);
@@ -1415,6 +1419,21 @@ if (gateWant) {
     const hx = (LIFT.to[0] - LIFT.from[0]) / 2, hz = (LIFT.to[1] - LIFT.from[1]) / 2;
     const sz = (2 * hz) / (si?.shaft?.inner?.[1] ?? 88), T = Math.max(gi?.anim?.close?.s ?? 0, gi?.anim?.open?.s ?? 0);
     if (!(T > 0)) fail(`[15] ${GT.json.split('?')[0]}: anim.close.s / anim.open.s fehlen; der Viewer baute das Tor nicht`);
+    // Im Takt des Spiels (seit 20.10.2026 abends, Krisz: „mache die animation
+    // passend dazu“): Der Viewer spielt die Aufnahmen von Tor und Plattform
+    // ganz ab, ihr Endanschlag ist das Ende der Bahn (Tor: 15,05 s in der
+    // Aufnahme, 12,5 Spielsekunden mal speed 1,2 in den Bahnen). Liefe die
+    // Bahn schneller oder langsamer, schluege das Tor still an, und der
+    // Anschlag der Aufnahme fiele ins Leere.
+    const spd = gi?.anim?.close?.speed ?? gi?.anim?.open?.speed ?? 0;
+    // Fahrt in beide Richtungen: HALL_GATE.lift gilt hinab wie hinauf
+    const spielMs = Math.round(T * spd * 1000), fahrMs = Math.round((gi?.anim?.pad?.down?.s ?? T) * spd * 1000), aufMs = Math.round((gi?.anim?.pad?.up?.s ?? T) * spd * 1000);
+    gateRun.takt = `Bahn ${GATE.ms} ms (Spiel ${spielMs}), Fahrt ${GATE.lift} ms (Spiel hinab ${fahrMs}, hinauf ${aufMs})`;
+    if (!(spd > 0)) fail(`[15] ${GT.json.split('?')[0]}: anim.close.speed fehlt; ohne ihn ist der Takt des Spiels nicht bekannt`);
+    else {
+      if (Math.abs(GATE.ms - spielMs) > spielMs * 0.02) fail(`[15] HALL_GATE.ms ${GATE.ms} weicht vom Takt des Spiels ab (${spielMs} ms = anim.s ${T} mal speed ${spd}): Die Aufnahme des Tors schlaegt bei 15,05 s an, das Tor aber nicht mehr dort. Takt nur zusammen mit den Klaengen aendern (scripts/build-hangar-sound.mjs)`);
+      for (const [wohin, ms] of [['down', fahrMs], ['up', aufMs]]) if (Math.abs(GATE.lift - ms) > ms * 0.02) fail(`[15] HALL_GATE.lift ${GATE.lift} weicht vom Takt der Plattform im Spiel ab (${ms} ms = anim.pad.${wohin}.s mal speed ${spd}): Der Halt (bei SND_HALT_AT der Fahrt) schluege nicht mehr beim Stillstand an`);
+    }
     const into = (lo, hi, p) => Math.min(Math.min(p[0] + hi[0], hx) - Math.max(p[0] + lo[0], -hx), Math.min((p[2] + hi[2]) * sz, hz) - Math.max((p[2] + lo[2]) * sz, -hz));
     const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 0.01);
     const used = [];
@@ -1496,7 +1515,7 @@ if (gateWant) {
     if (gateRun.bytes > O.bytes) fail(`[15] das Tor wiegt ${(gateRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(gateWant ? `Tor in dist/ wie im Manifest; jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; mindestens ${KLINKE_TOR.lacke} Palettenlacke in der Farbe des Spiels; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateWant ? `${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.lacke} Palettenlacke; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
+sollIst(gateWant ? `Tor in dist/ wie im Manifest; Bahn und Fahrt im Takt des Spiels (anim.s mal speed, 2 %); jede Bahn von 0 bis zur Dauer, an closed/open anschliessend; mindestens ${KLINKE_TOR.teile} Teile im Feld und offen draussen; geschlossen 0 offene Zellen; mindestens ${KLINKE_TOR.lacke} Palettenlacke in der Farbe des Spiels; Materialien wie im Schacht mit denselben Karten; hoechstens ${OBERGRENZE_TOR.tris} Dreiecke, ${OBERGRENZE_TOR.mats} Materialien, ${OBERGRENZE_TOR.bytes / 1e6} MB` : 'kein Schachttor fuer diese Halle', gateWant ? `${gateRun.takt}; ${gateRun.bahnen} Bahnen, ${gateRun.teile} Teile im Feld (ohne: ${gateRun.ohne.join(', ') || 'keins'}); geschlossen ${gateRun.offen} von ${gateRun.zellen} Zellen offen; ${gateRun.lacke} Palettenlacke; ${gateRun.zwillinge} Materialien mit Schachtkarten verglichen; ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${(gateRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
 
 say('\n[16] Der feste Rand liegt rund um das Feld, ohne Luecke, buendig mit dem Boden');
 // Block /* hall-rand */ … /* /hall-rand */ im Viewer (JSON), wie buildRand
