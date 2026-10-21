@@ -140,8 +140,8 @@ async function meanChannel(tex, k) {
 // Schichten eines LayerBlend-Materials (Katalog v2): Farbe wie die flache
 // Grundschicht (Schicht mal mittlere Farbe ihrer Karte), Metall, wenn die
 // Farbe der Schicht im Specular steht (PC-Befund Teil 2). Katalog v3: eine
-// Schicht mit paletteTint 1 bis 3 nimmt dazu die Farbe a, b oder c der
-// Palette ihres Materials (Stor*All-Kisten: schwarz, grau, orange)
+// Schicht mit paletteTint 1 bis 3 nimmt statt ihrer Tönung die Farbe a, b
+// oder c der Palette ihres Materials (Stor*All-Kisten: schwarz, grau, orange)
 const karte = (name) => (name && existsSync(SCHICHTEN + name) ? SCHICHTEN + name : null);
 async function layerRow(km, kat, base, H) {
   const num = (re) => km.layers.filter((l) => re.test(l.name)).sort((a, b) => a.name.localeCompare(b.name));
@@ -151,7 +151,7 @@ async function layerRow(km, kat, base, H) {
     const sc = kat.schichten?.[l.path] ?? {}, spec = sc.specular ?? [0.04, 0.04, 0.04];
     const metal = Math.max(...spec) > 0.2;
     const pal = l.paletteTint > 0 ? km.palette?.['abc'[l.paletteTint - 1]]?.tint : null;
-    const raw = metal ? spec : [0, 1, 2].map((k) => l.tint[k] * (sc.diffuse?.[k] ?? 1) * (pal?.[k] ?? 1));
+    const raw = metal ? spec : [0, 1, 2].map((k) => (pal?.[k] ?? l.tint[k]) * (sc.diffuse?.[k] ?? 1));
     const mean = karte(l.maps?.d) ? await H.mean(karte(l.maps.d)) : [1, 1, 1];
     return [...[0, 1, 2].map((k) => Math.min(1, raw[k] * mean[k])), metal ? 1 : 0];
   };
