@@ -396,13 +396,23 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Bytes des Satzes. Stand beim Einbau: 21 Zonen (7 ab mittel), 224 Glieder
 // (44 gestapelt), 15 Spuren, 88 Arten; 109 Materialien, 377 334 / 1 041 825
 // Dreiecke (mittel / hoch), 7,77 MB. Gleiche Regel wie oben.
-const KLINKE_DEKO = { zonen: 21, mittel: 7, glieder: 224, gestapelt: 44, spuren: 15, arten: 88 };
-const OBERGRENZE_DEKO = { mats: 112, tris: { mittel: 400000, hoch: 1100000 }, bytes: 8e6 };
+// Angehoben 21.10.2026 mit Katalog v3 (99 neue Requisiten vom PC: Fracht,
+// Regale, Bauteile, Crew, Maschinen): 6 Zonen mehr nur auf hoch
+// (Frachtlager, Teilelager, Pausenecke, Automat, Maschinenpark,
+// Geruestplatz), Stuecke auch in Regalfaechern. Stand: 27 Zonen (7 ab
+// mittel), 319 Glieder (84 gestapelt), 19 Spuren, 123 Arten, 27 in
+// Regalfaechern; 142 Materialien, 381 590 / 1 613 384 Dreiecke, 11,23 MB.
+// Selbstauskunft der Grundrissprobe: 295 Stuecke im Band, 80 hohe darueber,
+// 6 groessere Hallen nachgerechnet.
+const KLINKE_DEKO = { zonen: 27, mittel: 7, glieder: 319, gestapelt: 84, spuren: 19, arten: 123, fach: 27, geprueft: 295, hochGeprueft: 80, massstaebe: 6 };
+const OBERGRENZE_DEKO = { mats: 150, tris: { mittel: 400000, hoch: 1700000 }, bytes: 12e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
-// 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB.
-const KLINKE_DEKO_SCHICHTEN = { zeilen: 187, blend: 104, abnutzung: 84, detail: 50, normale: 51, karten: 55, ecken: 249000 };
-const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1000000 };
+// 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB. Mit Katalog v3
+// (21.10.2026): 240 Zeilen, 136 / 98 / 65 / 66, 57 Karten, 381 169 Ecken,
+// Raster 1010 KB.
+const KLINKE_DEKO_SCHICHTEN = { zeilen: 240, blend: 136, abnutzung: 98, detail: 65, normale: 66, karten: 57, ecken: 381000 };
+const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1100000 };
 const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
@@ -486,10 +496,12 @@ async function measure(file, list) {
         pos[i + 1] = w[1] * x + w[5] * y + w[9] * z + w[13];
         pos[i + 2] = w[2] * x + w[6] * y + w[10] * z + w[14];
       }
-      tris.push({ pos, I });
+      tris.push({ pos, I, p });
     }
   }
   const total = tris.reduce((s, t) => s + t.I.length / 3, 0);
+  // je Primitive die Dreiecke, die der Viewer weglaesst (fuer den Grundriss in [17])
+  const gonePrims = new Map();
   if (skipped) say(`    (${skipped} Primitive ohne Index oder mehrfach gestellt: der Viewer schneidet dort nicht, hier ebenso)`);
   const out = [];
   for (const d of list) {
@@ -529,14 +541,19 @@ async function measure(file, list) {
         const a = kid[I[t]];
         if (a < 0 || kid[I[t + 1]] < 0 || kid[I[t + 2]] < 0) continue;
         const r = find(a);
-        if (!held.has(r) && shown.has(r)) { gone.add(r); n++; }
+        if (!held.has(r) && shown.has(r)) {
+          gone.add(r); n++;
+          const p = tris[m].p;
+          if (!gonePrims.has(p)) gonePrims.set(p, new Set());
+          gonePrims.get(p).add(t);
+        }
       }
     });
     out.push({ tris: n, parts: gone.size });
   }
   // Naehte gegen dieselbe Stufe; die T-Stoesse kosten das Doppelte und
   // bleiben der Selbstauskunft des PC-Builds
-  return { total, out, seams: seamStats(doc, { tJunctions: false }), doc };
+  return { total, out, seams: seamStats(doc, { tJunctions: false }), doc, gonePrims };
 }
 
 say('\n[3] Jeder Eintrag trifft in jeder Hallenstufe mindestens seine Klinke');
@@ -544,12 +561,13 @@ say('[4] Kein Eintrag nimmt mehr als 2 % einer Stufe');
 const files = hall ? [hall.url, hall.lite?.url].filter(Boolean) : [];
 let measured = 0;
 const seamRuns = [];
-const stageDocs = new Map();
+const stageDocs = new Map(), stageGone = new Map();
 for (const u of files) {
   const f = fromUrl(u);
   if (!existsSync(f)) { fail(`[3] Hallenstufe ${u} liegt nicht in dist/`); continue; }
-  const { total, out, seams, doc } = await measure(f, entries);
+  const { total, out, seams, doc, gonePrims } = await measure(f, entries);
   stageDocs.set(u.split('?')[0], doc);
+  stageGone.set(u.split('?')[0], gonePrims);
   measured++;
   seamRuns.push({ u: u.split('?')[0], ...seams });
   say(`    ${u.split('?')[0]}: ${total} Dreiecke`);
@@ -1817,7 +1835,7 @@ const kdm = /\/\* work-deko \*\/([\s\S]*?)\/\* \/work-deko \*\//.exec(viewer);
 let dekoBlock = null;
 try { dekoBlock = kdm ? JSON.parse(kdm[1]) : null; } catch (e) { fail(`[17] WORK_DEKO im Viewer ist kein JSON mehr (${e.message})`); }
 const DK = W?.deko ?? null;
-const dekoRun = { zonen: 0, mittel: 0, glieder: 0, spuren: 0, gestapelt: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+const dekoRun = { zonen: 0, mittel: 0, glieder: 0, spuren: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DK && existsSync(join(ROOT, 'public/hangar/props/deko.glb'))) fail('[17] public/hangar/props/deko.glb liegt bereit, die Seite gibt die Hallendeko nicht mit (opts.hall.workshop.deko): Die Halle stuende still leer. HangarApp.astro pruefen');
 if (DK && !kdm) fail('[17] die Seite gibt die Hallendeko mit, der Viewer traegt keinen Block /* work-deko */ … /* /work-deko */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 for (const k of Object.keys(KLINKE_DEKO).filter(() => !DK)) fail(`[17] KLINKE_DEKO.${k}: die Seite gibt keine Hallendeko mehr mit; den Eintrag hier per Commit mit Ursache entfernen`);
@@ -1835,8 +1853,12 @@ if (DK && dekoBlock) {
   // Der Block: Halle, Zonen mit Stufe, Herkunft (Arbeitsplatz oder Kategorie
   // des Katalogs), Wand, Bezugspunkt, Glieder und Spuren
   if (dekoBlock.halle !== hall?.id) fail(`[17] WORK_DEKO.halle ist ${dekoBlock.halle}, die Seite laedt ${hall?.id ?? 'keine Halle'}: Der Viewer stellte die Deko nicht auf (Zombie). Block auf die Halle der Seite umstellen oder entfernen`);
-  const aus = new Set([...(kat?.arbeitsplaetze ?? []).map((a) => a.name), ...Object.keys(kat?.kategorien ?? {})]);
+  // Herkunft: ein Arbeitsplatz, eine Kategorie oder eine Zone, wie das Spiel sie stellt (Katalog v3)
+  const aus = new Set([...(kat?.arbeitsplaetze ?? []).map((a) => a.name), ...Object.keys(kat?.kategorien ?? {}), ...(kat?.zonen ?? []).map((z) => z.name)]);
   const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
+  // Spuren: bis 4 m Kante; Boden-Decals des Katalogs (props/boden.glb) bis
+  // ein Viertel über die Kante, die sie im Spiel haben
+  const spielKante = new Map((kat?.boden?.decals ?? []).filter((d) => d.size?.length).map((d) => [d.node, Math.max(...d.size)]));
   const names = new Set(), props = new Set(), decals = new Set();
   const zones = Array.isArray(dekoBlock.zonen) ? dekoBlock.zonen : [];
   if (!zones.length) fail('[17] WORK_DEKO traegt keine Zonen');
@@ -1845,14 +1867,15 @@ if (DK && dekoBlock) {
     names.add(z.name);
     if (!['mittel', 'hoch'].includes(z.stufe)) fail(`[17] WORK_DEKO ${z.name}: stufe ${z.stufe} ist weder mittel noch hoch; buildDeko stellte sie nie oder auch auf niedrig`);
     if (!(WAND && z.wand in WAND) || !pair(z.at)) fail(`[17] WORK_DEKO ${z.name}: wand ${z.wand} (eine von ${WAND ? Object.keys(WAND).join(', ') : '?'}) und at [x, z] im Modellraum noetig`);
-    if (kat && !aus.has(z.aus)) fail(`[17] WORK_DEKO ${z.name}: aus „${z.aus}“ ist weder ein Arbeitsplatz noch eine Kategorie des Katalogs: Woher die Zusammenstellung kommt, ist nicht belegt`);
+    if (kat && !aus.has(z.aus)) fail(`[17] WORK_DEKO ${z.name}: aus „${z.aus}“ ist weder ein Arbeitsplatz noch eine Kategorie noch eine Zone des Katalogs: Woher die Zusammenstellung kommt, ist nicht belegt`);
     if (!(z.glieder?.length)) fail(`[17] WORK_DEKO ${z.name}: Zone ohne Glieder`);
     for (const g of z.glieder ?? []) {
       if (!(typeof g[0] === 'string' && g.length >= 3 && g.length <= 5 && g.slice(1).every(Number.isFinite) && (g[4] ?? 0) >= 0)) fail(`[17] WORK_DEKO ${z.name}: Glied ${JSON.stringify(g)} braucht [Knoten, x, z, Drehung, Hoehe ab 0]`);
       else props.add(g[0]);
     }
     for (const sp of z.spuren ?? []) {
-      if (!(typeof sp[0] === 'string' && sp.length >= 4 && sp.length <= 5 && sp.slice(1).every(Number.isFinite) && sp[3] > 0 && sp[3] <= 4)) fail(`[17] WORK_DEKO ${z.name}: Spur ${JSON.stringify(sp)} braucht [Knoten, x, z, Kante (m, bis 4), Drehung]`);
+      const most = Math.max(4, 1.25 * (spielKante.get(sp[0]) ?? 0));
+      if (!(typeof sp[0] === 'string' && sp.length >= 4 && sp.length <= 5 && sp.slice(1).every(Number.isFinite) && sp[3] > 0 && sp[3] <= most)) fail(`[17] WORK_DEKO ${z.name}: Spur ${JSON.stringify(sp)} braucht [Knoten, x, z, Kante (m, bis ${+most.toFixed(2)}), Drehung]`);
       else decals.add(sp[0]);
     }
   }
@@ -1868,6 +1891,7 @@ if (DK && dekoBlock) {
     const want = new Set(['public/hangar/props/katalog.json']);
     for (const q of kat?.props ?? []) if (props.has(q.node) && q.file) want.add(`public${q.file.split('?')[0]}`);
     if (decals.size && W?.boden?.url) want.add(`public${W.boden.url.split('?')[0]}`);
+    if (kat?.boden?.file && [...decals].some((n) => spielKante.has(n))) want.add(`public${kat.boden.file.split('?')[0]}`);
     for (const rel of want) if (!(rel in (st?.quellen ?? {}))) stale.push(`${rel} fehlt im Fingerabdruck`);
     for (const [rel, h] of Object.entries(st?.quellen ?? {})) {
       const f = join(DIST, rel.replace(/^public\//, ''));
@@ -1963,19 +1987,60 @@ if (DK && dekoBlock) {
     // Keine zwei festen Stuecke ineinander (beide flach unter 0,35 m, etwa
     // Schlauch auf Kabel, oder uebereinander ohne Hoehe gemeinsam: erlaubt)
     const solid = items.filter((m) => m.kind === 'glied');
+    // Boeden je Knoten aus dem Satz: nach oben zeigende Flaechen auf einer
+    // Hoehe (5 cm), zusammen ueber 60 % der Grundflaeche (Regalboeden,
+    // Gerueststufe, Deckel). Darauf liegt, was in einem Fach steht.
+    const decksOf = new Map();
+    {
+      const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
+      const doc = await io.read(file);
+      for (const node of doc.getRoot().getDefaultScene()?.listChildren() ?? []) {
+        const e = sizeOf.get(node.getName());
+        if (!e || !node.getMesh()) continue;
+        const hist = new Map(), foot = e.size[0] * e.size[2];
+        for (const pr of node.getMesh().listPrimitives()) {
+          const P = pr.getAttribute('POSITION')?.getArray(), I = pr.getIndices()?.getArray();
+          if (!P) continue;
+          const n = I ? I.length : P.length / 3, v = (t, a) => P[(I ? I[t] : t) * 3 + a];
+          for (let t = 0; t + 2 < n; t += 3) {
+            const ux = v(t + 1, 0) - v(t, 0), uy = v(t + 1, 1) - v(t, 1), uz = v(t + 1, 2) - v(t, 2), wx = v(t + 2, 0) - v(t, 0), wy = v(t + 2, 1) - v(t, 1), wz = v(t + 2, 2) - v(t, 2);
+            const ny = uz * wx - ux * wz, len = Math.hypot(uy * wz - uz * wy, ny, ux * wy - uy * wx);
+            if (len < 1e-9 || ny / len < 0.95) continue;
+            const y = Math.round(((v(t, 1) + v(t + 1, 1) + v(t + 2, 1)) / 3) * 20) / 20;
+            hist.set(y, (hist.get(y) ?? 0) + len / 2);
+          }
+        }
+        const lo = Math.min(...hist.keys(), 0);
+        decksOf.set(node.getName(), [...hist].filter(([, a]) => foot > 0 && a >= 0.6 * foot).map(([y]) => +(y - lo).toFixed(2)).sort((a, b) => a - b));
+      }
+    }
+    // m steht in einem Fach von q: auf einem Boden von q unter dessen
+    // Oberkante, ganz in seiner Grundflaeche (2 cm Spiel); hoeher als bis zum
+    // naechsten Boden darf es nicht reichen
+    const tooTall = [];
+    const inShelf = (m, q) => {
+      if (m.zone !== q.zone || m.y < 0.05) return false;
+      const ds = decksOf.get(q.node) ?? [], rel = m.y - q.y, on = ds.find((d) => Math.abs(d - rel) < 0.06 && d < q.top - q.y - 0.06);
+      if (on === undefined || !corners(m).every(([x, z]) => inside(q, x, z, 0.02))) return false;
+      const next = ds.find((d) => d > on + 0.1) ?? q.top - q.y;
+      if (m.top - q.y > next + 0.02) { tooTall.push(`${tag(m)} reicht ${(m.top - q.y - next).toFixed(2)} m in den Boden darueber`); return false; }
+      return true;
+    };
     const clash = [];
     for (let i = 0; i < solid.length; i++) for (let k = i + 1; k < solid.length; k++) {
       const p = solid[i], q = solid[k];
       if (Math.min(p.top, q.top) - Math.max(p.y, q.y) < 0.05) continue;
       if (p.top - p.y < 0.35 && q.top - q.y < 0.35) continue;
+      if (inShelf(p, q) || inShelf(q, p)) { dekoRun.fach++; continue; }
       const ov = overlap(p, q);
       if (ov >= 0.02) clash.push(`${tag(p)} mit ${tag(q)} ${ov.toFixed(2)} m`);
     }
     if (clash.length) fail(`[17] ${clash.length} Stuecke der Hallendeko stecken ineinander (${clash.slice(0, 3).join('; ')}): x/z in WORK_DEKO nachziehen`);
+    if (tooTall.length) fail(`[17] ${tooTall.length} Stuecke in Regalfaechern der Hallendeko sind zu hoch fuer ihr Fach (${[...new Set(tooTall)].slice(0, 3).join('; ')}): ein Fach hoeher stellen oder ein niedrigeres Stueck`);
     // Gestapeltes liegt auf: ein Stueck derselben Zone endet auf seiner
-    // Hoehe, und seine Mitte steht darauf (bis 3 cm neben der Kante: auf der
-    // Fuge zweier Kisten)
-    const air = solid.filter((m) => m.y > 0.05 && !solid.some((q) => q !== m && q.zone === m.zone && Math.abs(q.top - m.y) < 0.06 && inside(q, ...m.c, 0.03)));
+    // Hoehe oder hat dort einen Boden, und seine Mitte steht darauf (bis
+    // 3 cm neben der Kante: auf der Fuge zweier Kisten)
+    const air = solid.filter((m) => m.y > 0.05 && !solid.some((q) => q !== m && q.zone === m.zone && (Math.abs(q.top - m.y) < 0.06 || (decksOf.get(q.node) ?? []).some((d) => Math.abs(q.y + d - m.y) < 0.06)) && inside(q, ...m.c, 0.03)));
     if (air.length) fail(`[17] ${air.length} Stuecke der Hallendeko schweben (z. B. ${air.slice(0, 3).map((m) => `${tag(m)} auf ${m.y} m`).join('; ')}): Darunter endet nichts derselben Zone auf dieser Hoehe`);
     // Halle und Einrichtung im Band des Grundrisses (floorGrid): Hallenstufe
     // der Seite und Moebeldatei, Moebel auf den Streifen umgesetzt wie
@@ -1988,11 +2053,52 @@ if (DK && dekoBlock) {
     else {
       const nx = Math.ceil((2 * room.halfW) / CELL), nz = Math.ceil((2 * room.halfL) / CELL), cells = new Uint8Array(nx * nz);
       const y0 = hall.floor + BAND[0], y1 = hall.floor + BAND[1];
-      const mark = (x, z) => { const i = Math.floor((x - rx0) / CELL), k = Math.floor((z - rz0) / CELL); if (i >= 0 && k >= 0 && i < nx && k < nz) cells[k * nx + i] = 1; };
+      // Darüber, bis zum höchsten Stück: je Zelle die tiefste Unterkante von
+      // Halle und Einrichtung über dem Band (Regale, Container, Gerüste an
+      // der Wand). Der Viewer prüft dort nichts, ein Stück stäke sichtbar in
+      // Wandkonsole, Leuchte oder Galerie.
+      const yTop = hall.floor + Math.max(BAND[1], ...solid.map((m) => m.top)), above = new Float32Array(nx * nz).fill(Infinity);
+      let into = cells, val = 1;
+      const mark = (x, z) => { const i = Math.floor((x - rx0) / CELL), k = Math.floor((z - rz0) / CELL); if (i >= 0 && k >= 0 && i < nx && k < nz) into[k * nx + i] = Math.min(into[k * nx + i] || Infinity, val); };
       const edgeMark = (ax, az, bx, bz) => { const n = Math.ceil(Math.hypot(bx - ax, bz - az) / (CELL * 0.5)) || 1; for (let s = 0; s <= n; s++) mark(ax + ((bx - ax) * s) / n, az + ((bz - az) * s) / n); };
-      const reach = entries.map((e) => e.reach).filter(box);
-      const dropped = (q) => reach.some(([lo, hi]) => q.every((v) => v.every((c, a) => c >= lo[a] && c <= hi[a])));
+      // Weggelassenes wie dropHallParts ([3]: Bauteile mit sichtbarer Ecke,
+      // nicht gehalten), nur in der Hallenstufe
+      const goneOf = stageGone.get(hall.url.split('?')[0]) ?? new Map();
       const strips = SHIFT && Array.isArray(SHIFT.strips) ? SHIFT.strips : [];
+      // Umgesetztes wie shiftHallFloor ([13]): ein Dreieck ganz im Band
+      // (y, z) ueber den Schnitten wandert mit seinem Streifen, eines ueber
+      // einem Schnitt wird dort geteilt und jedes Stueck wandert mit seinem
+      const SE = 0.01, cutsS = [...new Set(strips.flatMap(([a, b]) => [a, b]))].sort((p, q) => p - q);
+      const stripAt = (lo, hi) => strips.findIndex(([a, b]) => lo >= a - SE && hi <= b + SE);
+      const pieces = (q) => {
+        const xs = q.map((v) => v[0]), ys = q.map((v) => v[1]), zs = q.map((v) => v[2]), lo = Math.min(...xs), hi = Math.max(...xs);
+        if (!cutsS.length || Math.min(...ys) < SHIFT.y[0] || Math.max(...ys) > SHIFT.y[1] || Math.min(...zs) < SHIFT.z[0] - SE || Math.max(...zs) > SHIFT.z[1] + SE || hi <= cutsS[0] + SE || lo >= cutsS[cutsS.length - 1] - SE) return [q];
+        let ps = [q];
+        for (const k of cutsS) {
+          if (!(lo < k - SE && hi > k + SE)) continue;
+          const next = [];
+          for (const poly of ps) {
+            const L = [], R = [];
+            for (let i = 0; i < poly.length; i++) {
+              const p0 = poly[i], p1 = poly[(i + 1) % poly.length], x0 = p0[0] - k, x1 = p1[0] - k;
+              (x0 < 0 ? L : R).push(p0);
+              if ((x0 < 0) !== (x1 < 0)) { const f = x0 / (x0 - x1); const w = p0.map((u, r) => u + (p1[r] - u) * f); L.push(w); R.push(w); }
+            }
+            for (const r of [L, R]) if (r.length >= 3) next.push(r);
+          }
+          ps = next;
+        }
+        const out = [];
+        for (const poly of ps) {
+          const px = poly.map((v) => v[0]), s2 = stripAt(Math.min(...px), Math.max(...px)), d = s2 >= 0 ? strips[s2][2] : 0;
+          for (let i = 1; i + 1 < poly.length; i++) out.push([poly[0], poly[i], poly[i + 1]].map(([x, y, z]) => [x + d, y, z]));
+        }
+        return out;
+      };
+      // wie [13]: mehrfach gestellte Geometrie und solche ohne Index setzt der Viewer nicht um
+      const acc = new Map(), refs = new Map();
+      const geoKey = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
+      for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geoKey(p), (refs.get(geoKey(p)) || 0) + 1);
       for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) {
         const mesh = node.getMesh();
         if (!mesh) continue;
@@ -2003,24 +2109,34 @@ if (DK && dekoBlock) {
         for (const p of mesh.listPrimitives()) {
           const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
           if (!P) continue;
+          const gone = doc === stageDoc ? goneOf.get(p) : null, shifts = !anchor && SHIFT && !!I && !(refs.get(geoKey(p)) > 1);
           const at = (i) => { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; return [w[0] * x + w[4] * y + w[8] * z + w[12] + dx, w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]]; };
           const n = I ? I.length : P.length / 3;
           for (let t = 0; t + 2 < n; t += 3) {
-            const q = [at(I ? I[t] : t), at(I ? I[t + 1] : t + 1), at(I ? I[t + 2] : t + 2)];
-            if (Math.max(q[0][1], q[1][1], q[2][1]) < y0 || Math.min(q[0][1], q[1][1], q[2][1]) > y1 || dropped(q)) continue;
-            dekoRun.band++;
-            const [[ax, , az], [bx, , bz], [cx, , cz]] = q;
-            edgeMark(ax, az, bx, bz); edgeMark(bx, bz, cx, cz); edgeMark(cx, cz, ax, az);
-            const dd = (bx - ax) * (cz - az) - (cx - ax) * (bz - az);
-            if (Math.abs(dd) < CELL * CELL) continue;
-            const sg = Math.sign(dd);
-            const i0 = Math.max(0, Math.floor((Math.min(ax, bx, cx) - rx0) / CELL)), i1 = Math.min(nx - 1, Math.floor((Math.max(ax, bx, cx) - rx0) / CELL));
-            const k0 = Math.max(0, Math.floor((Math.min(az, bz, cz) - rz0) / CELL)), k1 = Math.min(nz - 1, Math.floor((Math.max(az, bz, cz) - rz0) / CELL));
-            for (let k = k0; k <= k1; k++) {
-              const pz = rz0 + (k + 0.5) * CELL;
-              for (let i = i0; i <= i1; i++) {
-                const px = rx0 + (i + 0.5) * CELL;
-                if (sg * ((bx - ax) * (pz - az) - (bz - az) * (px - ax)) >= 0 && sg * ((cx - bx) * (pz - bz) - (cz - bz) * (px - bx)) >= 0 && sg * ((ax - cx) * (pz - cz) - (az - cz) * (px - cx)) >= 0) cells[k * nx + i] = 1;
+            if (gone?.has(t)) continue;
+            const q0 = [at(I ? I[t] : t), at(I ? I[t + 1] : t + 1), at(I ? I[t + 2] : t + 2)];
+            for (const q of shifts ? pieces(q0) : [q0]) {
+              const lo = Math.min(q[0][1], q[1][1], q[2][1]), hi = Math.max(q[0][1], q[1][1], q[2][1]);
+              const inBand = hi >= y0 && lo <= y1, inAbove = hi > y1 && lo < yTop;
+              if (!inBand && !inAbove) continue;
+              if (inBand) dekoRun.band++;
+              if (inAbove) dekoRun.darueber++;
+              const [[ax, , az], [bx, , bz], [cx, , cz]] = q;
+              for (const [grid, v] of [inBand && [cells, 1], inAbove && [above, Math.max(lo, y1)]].filter(Boolean)) {
+                into = grid; val = v;
+                edgeMark(ax, az, bx, bz); edgeMark(bx, bz, cx, cz); edgeMark(cx, cz, ax, az);
+                const dd = (bx - ax) * (cz - az) - (cx - ax) * (bz - az);
+                if (Math.abs(dd) < CELL * CELL) continue;
+                const sg = Math.sign(dd);
+                const i0 = Math.max(0, Math.floor((Math.min(ax, bx, cx) - rx0) / CELL)), i1 = Math.min(nx - 1, Math.floor((Math.max(ax, bx, cx) - rx0) / CELL));
+                const k0 = Math.max(0, Math.floor((Math.min(az, bz, cz) - rz0) / CELL)), k1 = Math.min(nz - 1, Math.floor((Math.max(az, bz, cz) - rz0) / CELL));
+                for (let k = k0; k <= k1; k++) {
+                  const pz = rz0 + (k + 0.5) * CELL;
+                  for (let i = i0; i <= i1; i++) {
+                    const px = rx0 + (i + 0.5) * CELL;
+                    if (sg * ((bx - ax) * (pz - az) - (bz - az) * (px - ax)) >= 0 && sg * ((cx - bx) * (pz - bz) - (cz - bz) * (px - bx)) >= 0 && sg * ((ax - cx) * (pz - cz) - (az - cz) * (px - cx)) >= 0) grid[k * nx + i] = Math.min(grid[k * nx + i] || Infinity, v);
+                  }
+                }
               }
             }
           }
@@ -2041,6 +2157,54 @@ if (DK && dekoBlock) {
         if (hit) walled.push(`${tag(m)} ${hit} Zellen`);
       }
       if (walled.length) fail(`[17] ${walled.length} Stuecke der Hallendeko stehen in Wand oder Einrichtung der Halle (${walled.slice(0, 3).join('; ')}): buildDeko liesse sie still weg. x/z in WORK_DEKO nachziehen`);
+      // Was über das Band reicht: frei bis zu seiner Oberkante
+      const stuck = [];
+      for (const m of solid) {
+        if (!(m.top > BAND[1])) continue;
+        dekoRun.hochGeprueft++;
+        const cs = corners(m), xs = cs.map((v) => v[0]), zs = cs.map((v) => v[1]);
+        let hit = 0, low = Infinity;
+        for (let k = Math.max(0, Math.floor((Math.min(...zs) - rz0) / CELL)); k <= Math.min(nz - 1, Math.floor((Math.max(...zs) - rz0) / CELL)); k++) {
+          for (let i = Math.max(0, Math.floor((Math.min(...xs) - rx0) / CELL)); i <= Math.min(nx - 1, Math.floor((Math.max(...xs) - rx0) / CELL)); i++) {
+            const v = above[k * nx + i];
+            if (v < hall.floor + m.top - 0.02 && inside(m, rx0 + (i + 0.5) * CELL, rz0 + (k + 0.5) * CELL)) { hit++; low = Math.min(low, v - hall.floor); }
+          }
+        }
+        if (hit) stuck.push(`${tag(m)} bis ${m.top.toFixed(2)} m, Halle ab ${low.toFixed(2)} m in ${hit} Zellen`);
+      }
+      if (stuck.length) fail(`[17] ${stuck.length} hohe Stuecke der Hallendeko ragen oberhalb von ${BAND[1]} m in Wand, Leuchte oder Einrichtung der Halle (${stuck.slice(0, 3).join('; ')}): Der Viewer prueft dort nicht, man saehe es. x/z in WORK_DEKO nachziehen`);
+      // Groessere Hallen (Schiffswechsel, Massstab k): Die Halle waechst, jede
+      // Zone bleibt in Originalgroesse und rueckt im Modell in 1/k zu ihrem
+      // Bezugspunkt an der Wand. Auf dem Weg dorthin darf kein Stueck in Wand
+      // oder Einrichtung geraten (etwa hinter einem Pfeiler, an dem es bei
+      // k = 1 vorbei steht) und keines in das einer anderen Zone; innerhalb
+      // einer Zone schrumpft alles gleich und bleibt getrennt.
+      const KS = [1.25, 1.5, 2, 3, 4, 6], drift = new Map(), driftPair = new Map();
+      const toK = (m, k) => { const [ax, az] = m.zone.at; return { ...m, c: [ax + (m.c[0] - ax) / k, az + (m.c[1] - az) / k], hx: m.hx / k, hz: m.hz / k, y: m.y / k, top: m.top / k }; };
+      for (const k of KS) {
+        dekoRun.massstaebe++;
+        const ms = solid.map((m) => toK(m, k));
+        for (const m of ms) {
+          const cs = corners(m), xs = cs.map((v) => v[0]), zs = cs.map((v) => v[1]), low = m.y < BAND[1] && m.top > BAND[0];
+          let hit = 0;
+          for (let kk = Math.max(0, Math.floor((Math.min(...zs) - rz0) / CELL)); kk <= Math.min(nz - 1, Math.floor((Math.max(...zs) - rz0) / CELL)); kk++) {
+            for (let i = Math.max(0, Math.floor((Math.min(...xs) - rx0) / CELL)); i <= Math.min(nx - 1, Math.floor((Math.max(...xs) - rx0) / CELL)); i++) {
+              const c = kk * nx + i;
+              if (((low && cells[c]) || above[c] < hall.floor + m.top - 0.02 / k) && inside(m, rx0 + (i + 0.5) * CELL, rz0 + (kk + 0.5) * CELL)) hit++;
+            }
+          }
+          if (hit && !drift.has(tag(m))) drift.set(tag(m), `${tag(m)} bei k ${k}: ${hit} Zellen`);
+        }
+        for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
+          const p = ms[i], q = ms[j];
+          if (p.zone === q.zone || Math.abs(p.c[0] - q.c[0]) > p.hx + p.hz + q.hx + q.hz || Math.abs(p.c[1] - q.c[1]) > p.hx + p.hz + q.hx + q.hz) continue;
+          if (Math.min(p.top, q.top) - Math.max(p.y, q.y) < 0.05 / k || (p.top - p.y < 0.35 / k && q.top - q.y < 0.35 / k)) continue;
+          const ov = overlap(p, q), key = `${tag(p)} mit ${tag(q)}`;
+          if (ov >= 0.02 / k && !driftPair.has(key)) driftPair.set(key, `${key} bei k ${k}`);
+        }
+      }
+      if (drift.size) fail(`[17] ${drift.size} Stuecke der Hallendeko geraten in groesseren Hallen (Schiffswechsel) in Wand oder Einrichtung (${[...drift.values()].slice(0, 3).join('; ')}): Zwischen Bezugspunkt und Stueck steht etwas von der Halle. Die Zone naeher an das Stueck setzen (eigener Bezugspunkt) oder das Stueck naeher an at`);
+      if (driftPair.size) fail(`[17] ${driftPair.size} Paare aus verschiedenen Zonen der Hallendeko geraten in groesseren Hallen ineinander (${[...driftPair.values()].slice(0, 3).join('; ')}): Jede Zone rueckt zu ihrem eigenen Bezugspunkt; die Zonen so legen, dass sich ihre Wege nicht kreuzen`);
     }
     const K = KLINKE_DEKO, O = OBERGRENZE_DEKO;
     for (const k of Object.keys(K)) if (dekoRun[k] < K[k]) fail(`[17] die Hallendeko hat ${dekoRun[k]} ${k}, die Klinke verlangt ${K[k]}: KLINKE_DEKO nur per Commit mit Ursache senken`);
@@ -2049,7 +2213,7 @@ if (DK && dekoBlock) {
     if (dekoRun.bytes > O.bytes) fail(`[17] der Satz der Hallendeko wiegt ${(dekoRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend oder in Wand und Einrichtung; mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band), ${dekoRun.geprueft} Stuecke darin geprueft` : '(nichts gemessen)');
+sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);

@@ -95,7 +95,9 @@ welcher Seite die Wand steht. Für Plätze an der Wand braucht die Cloud das.
    - **`zone`**: wo in einer Halle, gezählt über alle Aufstellungen:
      `feldrand` (≤ 6 m vom Feld), `halle` (weiter weg, frei), `wand`
      (≤ 1,5 m von einer Wand), `ecke` (≤ 3 m von zwei Wänden), `decke`,
-     `tor` (≤ 8 m vom Hallentor). Je Zone der Anteil.
+     `tor` (≤ 8 m vom Hallentor). Je Zone der Anteil. Jede Aufstellung
+     zählt genau einmal, Vorrang decke > ecke > wand > tor > feldrand >
+     halle (genaue Regeln in `hinweise.zone` des Katalogs).
    - **`stapel`**: worauf es steht (Boden, Palette, Kiste, Regalboden: Knoten
      und Höhe) und was darauf steht; bei Frachtkisten die übliche
      Stapelhöhe.

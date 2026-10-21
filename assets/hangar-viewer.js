@@ -2181,7 +2181,11 @@ const DIENST_OVER = 3;          // Grundriss so weit über den Kasten hinaus, m
 // der Platz in public/hangar/props/katalog.json, den die Zone aufgreift):
 // Fracht, Gas, Munition vor der Nische, Werkstatt und Energie an der
 // Westwand; Leitstand, Sanität und Lager an der Galerie; Lager, Transport,
-// Lüftung und Tankstelle an der Ostwand; Fracht am Hallentor. Fest in der
+// Lüftung und Tankstelle an der Ostwand; Fracht am Hallentor. Katalog v3
+// dazu: Stor*All-Frachtlager und Gerüstplatz im Westen, Teilelager mit
+// Regalen im Osten, Pausenecke, Automat und Maschinenpark vor der Galerie
+// (`aus` dort auch eine Zone, wie das Spiel sie stellt, etwa crew+fracht).
+// Fest in der
 // Halle (fährt nicht mit dem Aufzug), in Originalgröße wie die Werkstatt:
 // Wächst die Halle mit großen Schiffen, rückt die Zone an ihren Bezugspunkt
 // auf der Wand. Gepackt wie der Wartungsplatz, in einem eigenen Satz
@@ -2193,8 +2197,10 @@ const DIENST_OVER = 3;          // Grundriss so weit über den Kasten hinaus, m
 // nur zeigt z zur Wand (z = 0 ist die Wand, die Halle liegt bei z < 0) und
 // x nach rechts, mit dem Rücken zur Wand gesehen; Drehung 0 heißt
 // Vorderseite des Spiels (-z) zur Halle; Höhe: steht auf einem anderen
-// Glied (Container, Kisten auf der Palette). spuren: [Knoten, x, z, Kante
-// in m, Drehung]. stufe: mittel steht ab mittel, hoch nur auf hoch
+// Glied (Container, Kisten auf der Palette) oder in dessen Fach (Regal-
+// boden, den [17] aus der Geometrie misst). spuren: [Knoten, x, z, Kante
+// in m, Drehung]; Boden-Decals des Katalogs (props/boden.glb) in etwa ihrer
+// Größe im Spiel. stufe: mittel steht ab mittel, hoch nur auf hoch
 // (niedrig hat keine Requisiten). Was im Grundriss (floorGrid) auf Halle
 // oder Einrichtung stößt, fällt weg, mit allem, was darauf steht, und die
 // Konsole nennt es; das Übrige belegt den Grundriss, die Werkstatt danach
@@ -2207,7 +2213,7 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_lager_storage_container_1_025x05x025_a", -4.6, -1.66, 90], ["prop_lager_storage_container_1_025x05x025_a", 0.5, -1.66, 90],
       ["prop_lager_storage_container_1_025x05x025_a", -4.6, -1.66, 90, 2.5], ["prop_lager_storage_container_1_025x05x025_a", 5, -2.9, 0],
       ["prop_transport_prop_dumper_transport_pallet_a", -5.4, -5, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -6.03, -5, 0, 0.25],
-      ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.775, -5, 0, 0.25], ["prop_lager_crate_metal_4_0125x0125x0125_a_yellow", -5.4, -5, 12, 1.5],
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.775, -5, 0, 0.25], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -5.4, -5, 12, 1.5],
       ["prop_transport_machine_forklift_1_b", 0.6, -6, 180], ["prop_transport_trolley_pallet_1_a", -2.4, -4.6, 90],
       ["prop_lager_crate_stack_1_03x025x0125_a", 5, -7.3, 0]], "spuren": [["decal_reifenspur_0", 0.6, -8.6, 3.2, 90], ["decal_oel_0", -1.4, -6.6, 1.1, 40]] },
     { "name": "gas-west", "stufe": "mittel", "aus": "kabel+reinigung+sicherheit+treibstoff", "wand": "w", "at": [3.5, -99], "glieder": [
@@ -2254,7 +2260,7 @@ const WORK_DEKO = /* work-deko */ {
     { "name": "sanitaet-galerie", "stufe": "hoch", "aus": "sicherheit+transport", "wand": "s", "at": [45, -1.75], "glieder": [
       ["prop_sicherheit_canister_medical_1_stand_b", 0, -0.65, 0], ["prop_transport_prop_dumper_int_transport_pallet_a", 2.2, -0.85, 0],
       ["prop_sicherheit_medical_canister_1_a", -1.1, -0.5, 0], ["prop_sicherheit_medical_canister_1_a", -1.55, -0.55, 20],
-      ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.3, -0.5, 0], ["prop_lager_crate_metal_4_0125x0125x0125_a_yellow", 2, -2.6, -8]] },
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.3, -0.5, 0], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 2, -2.6, -8]] },
     { "name": "lager-galerie", "stufe": "hoch", "aus": "lager", "wand": "s", "at": [56, -1.75], "glieder": [
       ["prop_lager_crate_stack_1_03x025x0125_a", -4.6, -2, 0], ["prop_lager_crate_stack_1_03x025x0125_a", -1.6, -2, 0],
       ["prop_lager_crate_stack_1_025x0125x00625_a", 1, -1.7, 0], ["prop_lager_drum_dry_1_a", 2.5, -0.6, 0],
@@ -2318,14 +2324,14 @@ const WORK_DEKO = /* work-deko */ {
     { "name": "frachtinsel-west", "stufe": "mittel", "aus": "lager+transport", "wand": "w", "at": [3.5, -59], "glieder": [
       ["prop_transport_prop_dumper_transport_pallet_a", 0, -9.8, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -0.625, -10.425, 0, 0.25],
       ["prop_lager_crate_dry_2_0125x0125x0125_a", 0.625, -10.425, 0, 0.25], ["prop_lager_crate_dry_2_0125x0125x0125_a", -0.625, -9.175, 0, 0.25],
-      ["prop_lager_crate_dry_2_0125x0125x0125_a", 0.625, -9.175, 0, 0.25], ["prop_lager_crate_metal_4_0125x0125x0125_a_yellow", 0, -9.8, 8, 1.5],
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", 0.625, -9.175, 0, 0.25], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 0, -9.8, 8, 1.5],
       ["prop_transport_trolley_pallet_1_a", 2.3, -9.7, 0], ["prop_transport_prop_dumper_transport_pallet_a", -3.1, -9.8, 0],
       ["prop_lager_crate_weapon_4_015x0075x0075_a", -3.1, -10.175, 0, 0.25], ["prop_lager_crate_weapon_4_015x0075x0075_a", -3.1, -9.425, 0, 0.25],
       ["prop_lager_crate_weapon_4_015x0075x0075_a", -3.1, -9.8, 0, 1]], "spuren": [["decal_reifenspur_0", 2.3, -7, 3, 90]] },
     { "name": "ladeinsel-ost", "stufe": "hoch", "aus": "lager+transport", "wand": "o", "at": [68.5, -73], "glieder": [
       ["prop_transport_prop_dumper_transport_pallet_a", -2, -9.2, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -2.625, -9.825, 0, 0.25],
       ["prop_lager_crate_dry_2_0125x0125x0125_a", -1.375, -9.825, 0, 0.25], ["prop_lager_crate_dry_2_0125x0125x0125_a", -2.625, -8.575, 0, 0.25],
-      ["prop_lager_crate_dry_2_0125x0125x0125_a", -1.375, -8.575, 0, 0.25], ["prop_lager_crate_metal_4_0125x0125x0125_a_yellow", -2, -9.2, -6, 1.5],
+      ["prop_lager_crate_dry_2_0125x0125x0125_a", -1.375, -8.575, 0, 0.25], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -2, -9.2, -6, 1.5],
       ["prop_lager_crate_stack_1_03x025x0125_a", 2.4, -9, 90], ["prop_transport_trolley_pallet_1_a", -4.7, -9.2, 0]] },
     { "name": "werkplatz-ost", "stufe": "hoch", "aus": "energie+werkzeug", "wand": "o", "at": [68.5, -48], "glieder": [
       ["prop_energie_generator_oxygen_1_a", -1, -2.2, 0], ["prop_werkzeug_workbench_table_1_light_a", 6.6, -0.41, 0],
@@ -2341,7 +2347,67 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_lager_crate_dry_2_0125x0125x0125_a", 4.225, -10.975, 0, 0.25], ["prop_lager_crate_dry_1_0125x0125x00625_a", 3.6, -11.6, 6, 1.5]], "spuren": [["decal_reifenspur_0", -1.6, -8.6, 3.2, 0]] },
     { "name": "fahrzeugplatz-galerie", "stufe": "hoch", "aus": "transport", "wand": "s", "at": [56, -1.75], "glieder": [
       ["prop_transport_trolley_cargo_1_a", -4, -12.2, 90], ["prop_transport_trolley_mobile_1_a", 5, -10.2, 0],
-      ["prop_transport_machine_forklift_1_a", 6, -15.2, 160]], "spuren": [["decal_reifenspur_0", 1, -15, 3.2, 90]] }
+      ["prop_transport_machine_forklift_1_a", 6, -15.2, 160]], "spuren": [["decal_reifenspur_0", 1, -15, 3.2, 90]] },
+    { "name": "frachtlager-west", "stufe": "hoch", "aus": "crew+fracht", "wand": "w", "at": [3.5, -73], "glieder": [
+      ["prop_fracht_cargo_multipurpose_1_025x025x05_a", -5.8, -1.4, 90], ["prop_fracht_cargo_multipurpose_1_025x025x05_a", -0.6, -1.4, 90],
+      ["prop_fracht_cargo_multipurpose_1_025x025x05_a", -5.8, -1.4, 90, 2.5], ["prop_fracht_cargo_multipurpose_1_025x025x025_a", 3.35, -1.4, 0],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 2.72, -1.4, 0, 2.5],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 3.98, -1.4, 3, 2.5], ["prop_fracht_cargo_multipurpose_1_025x025x0125_a", 6.6, -1.3, 0],
+      ["prop_fracht_cargo_multipurpose_1_025x025x0125_a", 6.6, -1.3, 0, 1.26], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -6.6, -4, 0],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -5.35, -4, 0], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -4.1, -4, 0],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -6.6, -5.3, 0], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -5.35, -5.3, 0],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -4.1, -5.3, 0], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -6.6, -4, 2, 1.26],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -5.35, -4, 0, 1.26],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -6.6, -5.3, -2, 1.26], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", -1.2, -4.2, 0],
+      ["prop_fracht_cargo_multipurpose_1_025x0125x0125_a", -1.2, -4.2, 90, 0.25], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", -1.2, -5.8, 0],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -1.82, -5.8, 0, 0.25],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -0.58, -5.8, 2, 0.25], ["prop_crew_table_bar_table_2_watertank_b", 2.2, -4.6, 0],
+      ["prop_crew_table_bar_table_2_watertank_b", 3.8, -4.6, 0], ["prop_crew_steat_stool_1_a", 2.2, -5.75, 10],
+      ["prop_crew_steat_stool_1_a", 3.8, -5.75, -15], ["prop_crew_steat_stool_1_a", 1.15, -4.6, 80],
+      ["prop_maschine_trolley_pallet_powered_1_a", 6.6, -5, -15]], "spuren": [["decal_linie_lowtech_a_int_decal_4m_a", -6, -7, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", -2, -7, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 2, -7, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 6, -7, 4, 0]] },
+    { "name": "teilelager-ost", "stufe": "hoch", "aus": "fracht+regal", "wand": "o", "at": [68.5, -73], "glieder": [
+      ["prop_regal_storage_rack_1_02x0575x08_a", -5.3, -1.15, 0], ["prop_regal_storage_rack_1_02x0575x08_a", 0.55, -1.15, 0],
+      ["prop_bauteile_powr_aegs_s02_pl02", -7.2, -1.15, 0, 2.26], ["prop_bauteile_cool_aegs_s02_pl03", -5.3, -1.15, 0, 2.26],
+      ["prop_lager_box_plastic_4_weapon_005x010x005_a", -3.4, -1.15, 0, 2.26],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -7.4, -1.15, 0, 3.38],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -6, -1.15, 0, 3.38],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -4.6, -1.15, 0, 3.38],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -3.2, -1.15, 0, 3.38],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -6.9, -1.15, 0, 5.25],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -5.55, -1.15, 0, 5.25],
+      ["prop_fracht_cargo_multipurpose_1_025x0125x0125_a", -3.65, -1.15, 90, 5.25], ["prop_bauteile_powr_aegs_s01_pl04", -1.6, -1.15, 0, 2.26],
+      ["prop_bauteile_qdrv_arcc_s01_pl02", -0.7, -1.15, 0, 2.26], ["prop_lager_box_plastic_4_weapon_005x010x005_a", 0.6, -1.15, 0, 2.26],
+      ["prop_lager_box_plastic_4_weapon_005x010x005_a", 1.8, -1.15, 0, 2.26], ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", 2.85, -1.15, 0, 2.26],
+      ["prop_fracht_crate_dry_1_0125x0125x0125_a", -1.4, -1.15, 0, 3.38], ["prop_fracht_crate_dry_1_0125x0125x0125_b", 0, -1.15, 0, 3.38],
+      ["prop_bauteile_shld_basl_s02_pl04", 1.9, -1.15, 0, 3.38], ["prop_fracht_crate_dry_1_0125x0125x0125_c", -1.4, -1.15, 0, 5.25],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 0, -1.15, 0, 5.25],
+      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 1.4, -1.15, 0, 5.25], ["prop_regal_uee_lawless_prop_shelf_storage_large", 6, -1.05, 90],
+      ["prop_fracht_crate_dry_1_0125x0125x0125_b", 4.14, -1.05, 0, 0.25], ["prop_fracht_crate_dry_1_0125x0125x0125_a", 5.38, -1.05, 0, 0.25],
+      ["prop_fracht_crate_dry_1_0125x0125x0125_c", 6.62, -1.05, 0, 0.25], ["prop_fracht_crate_dry_1_0125x0125x0125_b", 7.86, -1.05, 0, 0.25],
+      ["prop_bauteile_shld_basl_s03_pl02", 4.95, -1.05, 0, 2.75], ["prop_bauteile_powr_aegs_s02_pl02", 7.45, -1.05, 0, 2.75],
+      ["prop_bauteile_powr_aegs_s03_pl03", -5, -4, 0], ["prop_bauteile_qdrv_arcc_s03_pl04", -1.3, -4, 0],
+      ["prop_bauteile_cool_aegs_s03_pl01", 2.6, -4.1, 0], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", -5, -6.3, 0],
+      ["prop_bauteile_cool_aegs_s02_pl03", -5.6, -6.3, 0, 0.25], ["prop_maschine_col_lift_platform_small_a", 6, -4.6, -90]] },
+    { "name": "pausenecke-galerie", "stufe": "hoch", "aus": "crew", "wand": "s", "at": [27.5, -1.75], "glieder": [
+      ["prop_crew_bench_security_1_start_a", -1.515, -7.2, 0], ["prop_crew_bench_security_1_straight_a", -0.505, -7.2, 0],
+      ["prop_crew_bench_security_1_straight_a", 0.505, -7.2, 0], ["prop_crew_bench_security_1_end_a", 1.515, -7.2, 0],
+      ["prop_crew_bench_security_1_start_a", 1.515, -8.3, 180], ["prop_crew_bench_security_1_straight_a", 0.505, -8.3, 180],
+      ["prop_crew_bench_security_1_straight_a", -0.505, -8.3, 180], ["prop_crew_bench_security_1_end_a", -1.515, -8.3, 180],
+      ["prop_crew_table_bar_table_2_watertank_b", -2, -11, 0], ["prop_crew_table_bar_table_2_watertank_b", 0, -11, 90],
+      ["prop_crew_table_bar_table_2_watertank_b", 2, -11, 0], ["prop_crew_steat_stool_1_a", -2, -12.15, 5],
+      ["prop_crew_steat_stool_1_a", 0, -12.15, -10], ["prop_crew_steat_stool_1_a", 2, -9.85, 170], ["prop_crew_steat_stool_1_a", -2, -9.85, 190],
+      ["prop_crew_waste_trashcan_3_a", -2.45, -7.75, 0], ["prop_crew_waste_bin_1_a", 2.55, -7.75, -90],
+      ["prop_crew_machine_water_cooler_1_a", 3.35, -0.3, 0]] },
+    { "name": "automat-galerie", "stufe": "hoch", "aus": "crew+reinigung", "wand": "s", "at": [42, -1.75], "glieder": [
+      ["prop_crew_machine_vending_01x01x02_a", -0.2, -0.63, 0]] },
+    { "name": "maschinenpark-galerie", "stufe": "hoch", "aus": "maschine", "wand": "s", "at": [45, -1.75], "glieder": [
+      ["prop_maschine_lift_scissor_1_a", -0.5, -7.5, 0], ["prop_maschine_col_lift_platform_small_a", -2.4, -11.6, 20],
+      ["prop_maschine_trolley_pallet_powered_1_a", 1.6, -11.8, 0], ["prop_maschine_forklift_machine_1_a", -0.6, -15, 180]] },
+    { "name": "geruestplatz-west", "stufe": "hoch", "aus": "maschine+reinigung", "wand": "w", "at": [3.5, -101], "glieder": [
+      ["prop_maschine_construction_scaffold_base_04x02x02_a", 1, -8.2, 0], ["prop_maschine_construction_scaffold_mid_04x02x02_a", 1, -8.2, 0, 2.01],
+      ["prop_maschine_construction_scaffold_top_04x02x01_a", 1, -8.2, 0, 4.01], ["prop_maschine_lift_scissor_1_a", -5.4, -8.6, 0],
+      ["prop_kabel_cable_reel_7_a", 3.6, -7, 30], ["prop_licht_light_work_light_1_a", -1.6, -10.4, 0], ["prop_heben_ladder_mobile_1_b", 3.9, -9.6, 90],
+      ["prop_werkzeug_bag_toolbox_2_a", -1.4, -6.9, 20]] }
   ]
 } /* /work-deko */;
 // Drehung des Platzes je Wand (Grad um y): z des Platzes zeigt zur Wand
@@ -4689,10 +4755,15 @@ export async function initHangar(container, opts = {}) {
     }
     if (realHall.deko) layDeko(realHall.deko, kk);
   }
+  // Die festen Hallenschatten (renderHallShadows) gleiten mit: alle
+  // PROP_SHADOW_MS neu und am Ende genau. Sonst lagen Einrichtung und Deko
+  // bis zum nächsten Schiffswechsel mit ihrer gewachsenen Größe in ihnen.
+  const PROP_SHADOW_MS = 250;
   const propStep = (now) => {
     const t = Math.min(1, (now - propGlide.t0) / propGlide.dur);
     const b = hallRoot.scale.x;
     layProps(t >= 1 ? b : propGlide.a * Math.pow(b / propGlide.a, inOut3(t)), t < 1);
+    if (t >= 1 || now - propGlide.shade >= PROP_SHADOW_MS) { propGlide.shade = now; statK = 0; renderHallShadows(); }
     if (t >= 1) propGlide = null;
   };
 
@@ -4744,7 +4815,8 @@ export async function initHangar(container, opts = {}) {
       dust.pts.scale.set(dw, shipInfo.height * 1.8 + 4, dw);
       dust.pts.material.size = 0.035 * Math.max(1, span / 14);
     }
-    life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...(realHall?.deko?.blocks ?? [])], realHall?.dienst?.hull ?? null);
+    // Deko, wo sie nach dem Gleiten steht (propGlide): Die Crew stellt sich jetzt auf
+    life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...(realHall?.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [])], realHall?.dienst?.hull ?? null);
     life.layout(S, shipInfo);
   }
 
@@ -6244,18 +6316,24 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       }
       for (const q of hit) gone.push(`${zn.name}: ${q.node.replace(/^prop_/, '')}`);
       const keep = own.filter((q) => !hit.includes(q));
-      if (grid) for (const q of keep) if (q.kind === 'glied' && q.y < 0.05) grid.fill(q.at[0], q.at[1], q.ex, q.ez);
       uses.push(...keep);
       if (keep.length) zones++;
     });
+    // Erst danach als belegt eintragen (die Werkstatt weicht aus): Gegen den
+    // Grundriss prüft jede Zone nur Halle und Einrichtung. Ihre Stücke
+    // untereinander und gegen andere Zonen prüft [17] mit der echten
+    // Grundfläche. Eingetragen wird das achsparallele Rechteck samt
+    // angeschnittener Zellen; daran fiel ein Regal neben einer schräg
+    // stehenden Kabeltrommel der Nachbarzone samt Inhalt still weg.
+    if (grid) for (const q of uses) if (q.kind === 'glied' && q.y < 0.05) grid.fill(q.at[0], q.at[1], q.ex, q.ez);
     const { group, batches, tris } = kitBatches(uses, parts, 'deko', (m) => dekoMaterial(m, S));
     // Schatten wie die Einrichtung: aus den Hallenlampen (renderHallShadows), nicht vom Schiffslicht
     for (const b of batches.values()) b.castShadow = false;
-    return { group, uses, parts, batches, missing, gone, tris, zones, floorY, k: 0, blocks: [] };
+    return { group, uses, parts, batches, missing, gone, tris, zones, floorY, k: 0 };
   }
   // Matrizen der Deko im Modell für den Maßstab k der Halle: jedes Stück
   // um den Bezugspunkt seiner Zone auf der Wand in 1/k, also in Metern wie
-  // in der Welt. Dazu die Grundflächen für Crew (blocks, Weltmeter).
+  // in der Welt.
   function layDeko(d, k) {
     if (d.k === k) return;
     d.k = k;
@@ -6269,11 +6347,15 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     }
     for (const b of d.batches.values()) { b.computeBoundingBox(); b.computeBoundingSphere(); }
     d.group.updateWorldMatrix(true, false);
-    d.blocks = dekoBoxes(d, 0).map((b) => ({ x: (b.min.x + b.max.x) / 2, z: (b.min.z + b.max.z) / 2, ex: (b.max.x - b.min.x) / 2, ez: (b.max.z - b.min.z) / 2 }));
   }
-  // Hüllquader der stehenden Stücke in der Welt, um m größer (Kamera, Crew)
-  function dekoBoxes(d, m) {
-    const k = d.k || 1, out = [];
+  // Grundflächen der Deko für die Crew (Weltmeter), gelegt für den Maßstab k
+  function dekoBlocks(d, k) {
+    return dekoBoxes(d, 0, k).map((b) => ({ x: (b.min.x + b.max.x) / 2, z: (b.min.z + b.max.z) / 2, ex: (b.max.x - b.min.x) / 2, ez: (b.max.z - b.min.z) / 2 }));
+  }
+  // Hüllquader der stehenden Stücke in der Welt, um m größer (Kamera, Crew),
+  // so wie sie für k liegen (sonst wie sie gerade liegen)
+  function dekoBoxes(d, m, k = d.k || 1) {
+    const out = [];
     d.group.updateWorldMatrix(true, false);
     for (const u of d.uses) {
       if (u.kind !== 'glied') continue;
@@ -7624,7 +7706,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (current && up && hallRoot.scale.x !== k0) {
       const kr = hallRoot.scale.x / k0;
       camera.position.multiplyScalar(kr); controls.target.multiplyScalar(kr);
-      propGlide = { a: propK, t0: performance.now(), dur: PROP_GLIDE_MS };
+      propGlide = { a: propK, t0: performance.now(), dur: PROP_GLIDE_MS, shade: performance.now() };
     }
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
