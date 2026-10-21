@@ -380,6 +380,10 @@ export function initWorkshop(doc, bridge) {
   // Alle Werte: jede Zahl eines Teils als [id, Bezeichnung, Wert, Einheit, Zahl zum Sortieren].
   // Schaden je Art je Schuss (Waffe) bzw. Sprengkopf (Rakete) in extra.dP/dE/dD/dT.
   const f1 = new Intl.NumberFormat(loc, { maximumFractionDigits: 1 });
+  const f2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
+  // Werte, bei denen weniger besser ist: dort zeigt der Pfeil die Richtung, die Farbe das Urteil.
+  const LOWER = new Set(['sp.spread', 'sp.heat', 'sp.ovf', 'sp.chd', 'sp.lkT', 'sp.pw', 'sp.em', 'sp.ir', 'sp.spool',
+    'sp.arm', 'sp.ign', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.full', 'sp.price']);
   const DT = [['dP', 'dt.p'], ['dE', 'dt.e'], ['dD', 'dt.d'], ['dT', 'dt.t']];
   const alphaOf = (x) => DT.reduce((a, [k]) => a + (x?.[k] ?? 0), 0);
   function specs(k) {
@@ -387,9 +391,16 @@ export function initWorkshop(doc, bridge) {
     if (!it) return [];
     const x = it[8] ?? {};
     const out = [];
-    const add = (id, v, unit = '', label = m(id)) => {
-      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out.push([id, label, f1.format(v), unit, v]);
+    const add = (id, v, unit = '', label = m(id), fmt = f1) => {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out.push([id, label, fmt.format(v), unit, v]);
     };
+    // Spanne "min|max" in Prozent; sortiert wird nach dem Hoechstwert.
+    const span = (id, v, label) => {
+      if (typeof v !== 'string') return;
+      const [a, b] = v.split('|').map(Number);
+      out.push([id, label, a === b ? nf.format(b) : `${nf.format(a)}–${nf.format(b)}`, '%', b]);
+    };
+    const sig = () => { add('sp.pw', x.pw); add('sp.em', x.em); add('sp.ir', x.ir); };
     // Die Aufteilung nach Art lohnt erst bei gemischtem Schaden; die eine Art nennt schon die Unterzeile.
     const split = () => { if (DT.filter(([key]) => x[key] > 0).length > 1) for (const [key, lk] of DT) add(key, x[key], '', m(lk)); };
     if (it[2] === 'gun') {
@@ -398,6 +409,17 @@ export function initWorkshop(doc, bridge) {
       add('sp.rate', x.rate, m('u.rpm'));
       add('sp.mag', x.mag, m('u.shots'));
       if (x.mag && x.rate) add('sp.empty', (x.mag / x.rate) * 60, 's');
+      add('sp.speed', x.spd, 'm/s');
+      add('sp.range', x.rng, 'm');
+      add('sp.spread', x.spr, '°', m('sp.spread'), f2);
+      add('sp.heat', x.hps, '', m('sp.heat'), f2);
+      if (x.hps && x.ovh) add('sp.hot', Math.floor(x.ovh / x.hps), m('u.shots'));
+      add('sp.cps', x.cps, '/s');
+      add('sp.ovf', x.ovf, 's');
+      add('sp.chg', x.chg);
+      add('sp.chr', x.chr, '/s');
+      add('sp.chd', x.chd, 's', m('sp.chd'), f2);
+      sig();
     } else if (WEAPON_TYPES.has(it[2])) {
       split();
       if (x.trk) out.push(['sp.trk', m('sp.trk'), m(`trk.${x.trk}`), '', null]);
@@ -405,17 +427,26 @@ export function initWorkshop(doc, bridge) {
       add('sp.arm', x.arm, 's');
       add('sp.ign', x.ign, 's');
       add('sp.life', x.life, 's');
+      add('sp.mspeed', x.spd, 'm/s');
+      add('sp.lkR', x.lkR, 'm');
+      add('sp.lkT', x.lkT, 's');
+      add('sp.lkA', x.lkA, '°');
     } else if (it[2] === 'shield') {
       add('sp.regen', x.regen, 'HP/s');
       if (x.regen) add('sp.full', it[7] / x.regen, 's');
       add('sp.dly', x.dly, 's');
       add('sp.down', x.down, 's');
+      for (const [t, lk] of [['P', 'dt.p'], ['E', 'dt.e'], ['D', 'dt.d']]) span(`sp.r${t}`, x[`r${t}`], fill(m('sp.res'), { t: m(lk) }));
+      for (const [t, lk] of [['P', 'dt.p'], ['E', 'dt.e'], ['D', 'dt.d']]) span(`sp.a${t}`, x[`a${t}`], fill(m('sp.abs'), { t: m(lk) }));
+      sig();
     } else if (it[2] === 'quantum') {
       add('sp.cd', x.cd, 's');
       add('sp.fuel', x.fuel);
       add('sp.a1', x.a1, 'Mm/s²');
       add('sp.a2', x.a2, 'Mm/s²');
-    }
+      add('sp.spool', x.spool, 's');
+      sig();
+    } else sig();
     add('sp.hp', x.hp, 'HP');
     out.push(['sp.price', m('sp.price'), it[9] ? nf.format(it[9]) : '–', 'aUEC', it[9] || 0]);
     return out;
@@ -912,8 +943,11 @@ export function initWorkshop(doc, bridge) {
     }));
   }
 
-  const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.mag', 'sp.empty', 'sp.trk', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life',
-    'sp.regen', 'sp.full', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.hp', 'sp.price'];
+  const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.speed', 'sp.range', 'sp.spread', 'sp.mag', 'sp.empty',
+    'sp.chg', 'sp.chr', 'sp.chd', 'sp.heat', 'sp.hot', 'sp.cps', 'sp.ovf',
+    'sp.trk', 'sp.mspeed', 'sp.lkR', 'sp.lkT', 'sp.lkA', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life',
+    'sp.regen', 'sp.full', 'sp.dly', 'sp.down', 'sp.rP', 'sp.rE', 'sp.rD', 'sp.aP', 'sp.aE', 'sp.aD',
+    'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.spool', 'sp.pw', 'sp.em', 'sp.ir', 'sp.hp', 'sp.price'];
   // Spalten: Hauptwert, dann jede Zahl, die eines der Teile hat, in fester Reihenfolge.
   function colsFor(keys) {
     const seen = new Map();
@@ -947,19 +981,20 @@ export function initWorkshop(doc, bridge) {
   function paintWinSlot(slot) {
     const e = eff(slot);
     const now = current(slot);
-    const nowSpecs = specs(now);
+    const ord = (a, b) => COL_ORDER.indexOf(a[0]) - COL_ORDER.indexOf(b[0]);
+    const nowSpecs = specs(now).sort(ord);
     const stockSpecs = slot.stock ? specs(slot.stock) : [];
     const it = data.items[now];
     const st = data.items[slot.stock];
     const mainRow = [UNIT[e.type](), it ? nf.format(it[7]) : '–', st ? nf.format(st[7]) : '–', it && st ? it[7] - st[7] : 0];
     const valRows = [mainRow, ...nowSpecs.map(([id, label, v, u, raw]) => {
       const s = stockSpecs.find(([sid]) => sid === id);
-      return [`${label}${u ? ` (${u})` : ''}`, v, s ? s[2] : '–', typeof raw === 'number' && typeof s?.[4] === 'number' ? raw - s[4] : 0];
+      return [`${label}${u ? ` (${u})` : ''}`, v, s ? s[2] : '–', raw > 0 && s?.[4] > 0 ? raw - s[4] : 0, id];
     })];
     const vals = el('table', { class: 'hgw-t hgw-vals' },
       el('thead', {}, el('tr', {}, el('th', { scope: 'col' }, m('win.value')), el('th', { scope: 'col', class: 'is-num' }, m('slot.fitted')), el('th', { scope: 'col', class: 'is-num' }, m('saved.stock')), el('th', { scope: 'col', class: 'is-num' }, m('win.diff')))),
-      el('tbody', {}, ...valRows.map(([label, v, s, d]) => el('tr', {}, el('th', { scope: 'row' }, label), el('td', { class: 'is-num is-main' }, v), el('td', { class: 'is-num' }, s),
-        el('td', { class: 'is-num' }, d ? el('span', { class: `hgw-d ${d > 0 ? 'is-up' : 'is-down'}` }, `${d > 0 ? '▲' : '▼'} ${f1.format(Math.abs(d))}`) : '')))));
+      el('tbody', {}, ...valRows.map(([label, v, s, d, id]) => el('tr', {}, el('th', { scope: 'row' }, label), el('td', { class: 'is-num is-main' }, v), el('td', { class: 'is-num' }, s),
+        el('td', { class: 'is-num' }, d ? el('span', { class: `hgw-d ${(d > 0) !== LOWER.has(id) ? 'is-up' : 'is-down'}` }, `${d > 0 ? '▲' : '▼'} ${f2.format(Math.abs(d))}`) : '')))));
 
     const keys = candidates(e, data.items);
     const cols = colsFor(keys);
@@ -978,7 +1013,7 @@ export function initWorkshop(doc, bridge) {
     const th = (c) => {
       const on = sort.key === c.id;
       return el('th', { scope: 'col', class: c.id === 'name' ? '' : 'is-num', 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none' },
-        el('button', { type: 'button', class: 'hgw-sort', 'data-sort': c.id }, c.label, c.unit && !c.label.includes(c.unit) ? el('small', {}, ` ${c.unit}`) : null,
+        el('button', { type: 'button', class: 'hgw-sort', 'data-sort': c.id }, c.label, c.unit && c.unit !== c.label ? el('small', {}, ` ${c.unit}`) : null,
           el('i', { 'aria-hidden': 'true' }, on ? (sort.dir < 0 ? '▼' : '▲') : '')));
     };
     const rows = shown.map((k) => {
