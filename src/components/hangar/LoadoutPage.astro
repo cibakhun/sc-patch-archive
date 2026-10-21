@@ -253,6 +253,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-links{display:none}
 .lo-dv__more{appearance:none;justify-self:start;margin:.4rem .9rem .6rem;padding:0;border:0;background:none;color:var(--lo-dim);font:inherit;font-size:var(--fs-5);font-weight:700;cursor:pointer}
 .lo-dv__more:hover,.lo-dv__more:focus-visible{color:var(--lo-a);outline:0}
+@property --nt{syntax:'<length>';inherits:true;initial-value:0px}
+@property --nh{syntax:'<length>';inherits:true;initial-value:0px}
 /* Breite Schirme: alles auf einen Blick, die Seite selbst scrollt nicht.
    Nur die Listen (Ausstattung, Teile, Vergleich) laufen in ihrem Kasten. */
 @media (min-width:1100px) and (min-height:600px){
@@ -297,27 +299,32 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-dv__h{position:sticky;top:0;z-index:1;background:var(--lo-card)}
   .lo-dv__r{padding:.3rem .8rem}
   .lo-paints{grid-column:1/-1;grid-row:3;min-height:0;overflow-y:auto;align-content:start}
-  /* Was angeklickt ist, haengt am Panel, das es geoeffnet hat: ein Rahmen von links nach rechts.
-     Platz -> Panel in hellem Grau, Teil -> Vergleich in Gold (der eine Fokus). Steg und Kerbe setzt das Skript. */
-  .lo{position:relative;--lo-chain:color-mix(in srgb,var(--lo-on) 34%,transparent);--lo-chainbg:color-mix(in srgb,var(--lo-on) 4%,transparent);--lo-pvbg:color-mix(in srgb,var(--lo-a) 12%,var(--bg));--lo-cmpbg:color-mix(in srgb,var(--lo-a) 5%,var(--bg))}
+  /* Was angeklickt ist, haengt am Panel, das es geoeffnet hat: eine Form von links nach rechts.
+     Platz -> Panel und Teil -> Vergleich, beide in Gold, der zweite kraeftiger (der Fokus).
+     Die Lasche (Rahmen ums Angeklickte + Steg) legt das Skript als eigene Ebene darueber;
+     sie gleitet beim Wechsel weich zum neuen Ziel, die Kerbe im Panelrahmen gleitet mit. */
+  .lo{position:relative;--lo-ca:color-mix(in srgb,var(--lo-a) 42%,transparent);--lo-cb:color-mix(in srgb,var(--lo-a) 78%,transparent);--lo-ga:color-mix(in srgb,var(--lo-a) 5%,transparent);--lo-gb:color-mix(in srgb,var(--lo-a) 11%,transparent);--lo-boxbg:color-mix(in srgb,var(--lo-on) 3%,var(--bg))}
   .lo-links{display:block;position:absolute;inset:0;z-index:4;pointer-events:none}
-  .lo-link{position:absolute;box-sizing:border-box;border-block:1px solid var(--lo-chain);background:var(--lo-chainbg)}
-  .lo-link.is-b{border-color:var(--lo-a);background:linear-gradient(90deg,var(--lo-pvbg),var(--lo-cmpbg))}
-  .lo-link.is-cut-t{border-top-color:transparent}
-  .lo-link.is-cut-b{border-bottom-color:transparent}
-  .lo-pick{position:relative;top:auto;padding:.6rem .7rem .7rem;border-radius:12px;background:var(--lo-chainbg)}
-  .lo-pick.is-linked::before,.lo-cmpbox.is-linked::before{content:"";position:absolute;inset:0;z-index:3;border:1px solid var(--lo-chain);border-radius:inherit;pointer-events:none;-webkit-mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt,0px)/3px var(--nh,0px) no-repeat;-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt,0px)/3px var(--nh,0px) no-repeat;mask-composite:exclude}
-  .lo-slot.is-sel{border-color:var(--lo-chain);border-right-color:transparent;border-radius:10px 0 0 10px;background:var(--lo-chainbg)}
-  .lo-slot.is-sel .lo-sock,.lo-slot.is-sel .lo-chev{color:var(--lo-a)}
-  .lo-cmpbox{position:relative}
-  .lo-cmpbox.is-prev{background:var(--lo-cmpbg)}
-  .lo-cmpbox.is-prev .lo-dv__h{background:var(--lo-cmpbg)}
+  .lo-tab{position:absolute;left:0;top:0;box-sizing:border-box;border:1px solid var(--lo-ca);border-right:0;border-radius:10px 0 0 10px;background:linear-gradient(90deg,var(--lo-ga),color-mix(in srgb,var(--lo-a) 3%,transparent));box-shadow:0 0 14px -4px color-mix(in srgb,var(--lo-a) 30%,transparent);opacity:0;transition:transform var(--dur-slow,.3s) var(--ease-ui,ease),width var(--dur-slow,.3s) var(--ease-ui,ease),height var(--dur-slow,.3s) var(--ease-ui,ease),opacity var(--dur-fast,.15s) var(--ease-ui,ease)}
+  .lo-tab.is-b{border-color:var(--lo-cb);background:linear-gradient(90deg,var(--lo-gb),color-mix(in srgb,var(--lo-a) 5%,transparent))}
+  .lo-tab.is-on{opacity:1}
+  .lo-tab.is-cut-t{border-top-color:transparent;border-top-left-radius:0}
+  .lo-tab.is-cut-b{border-bottom-color:transparent;border-bottom-left-radius:0}
+  .lo-tab.is-jump{transition:opacity var(--dur-fast,.15s) var(--ease-ui,ease)}
+  .lo-pick{position:relative;top:auto;padding:.6rem .7rem .7rem;border-radius:12px;background:var(--lo-ga)}
+  .lo-pick.is-linked::before,.lo-cmpbox.is-linked::before{content:"";position:absolute;inset:0;z-index:3;border:1px solid var(--lo-ca);border-radius:inherit;pointer-events:none;-webkit-mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt)/3px var(--nh) no-repeat;-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt)/3px var(--nh) no-repeat;mask-composite:exclude;transition:--nt var(--dur-slow,.3s) var(--ease-ui,ease),--nh var(--dur-slow,.3s) var(--ease-ui,ease)}
+  .lo-pick.is-snap::before,.lo-cmpbox.is-snap::before{transition:none}
+  .lo-slot.is-sel{border-color:transparent;background:transparent}
+  .lo-slot.is-sel .lo-sock,.lo-slot.is-sel .lo-chev,.lo-slot.is-sel strong{color:var(--lo-a)}
+  .lo-cmpbox{position:relative;transition:background var(--dur-slow,.3s) var(--ease-ui,ease)}
+  .lo-cmpbox.is-prev{background:color-mix(in srgb,var(--lo-a) 4%,var(--bg))}
+  .lo-cmpbox.is-prev .lo-dv__h{background:color-mix(in srgb,var(--lo-a) 4%,var(--bg))}
   .lo-cmpbox.is-linked{border-color:transparent}
-  .lo-cmpbox.is-linked::before{border-color:var(--lo-a)}
+  .lo-cmpbox.is-linked::before{border-color:var(--lo-cb);box-shadow:inset 0 0 16px -6px color-mix(in srgb,var(--lo-a) 35%,transparent)}
   .lo-cmpbox:not(.is-prev).is-linked::before{display:none}
-  .lo-opt.is-prev,.lo-opt.is-prev .is-act{background:var(--lo-pvbg)}
-  .lo-opt.is-prev>td{box-shadow:inset 0 1px 0 var(--lo-a),inset 0 -1px 0 var(--lo-a)}
-  .lo-opt.is-prev>td:first-child{box-shadow:inset 1px 0 0 var(--lo-a),inset 0 1px 0 var(--lo-a),inset 0 -1px 0 var(--lo-a)}
+  .lo-opt.is-prev{background:transparent}
+  .lo-opt.is-prev .is-act{background:var(--lo-boxbg)}
+  .lo-opt.is-prev>td{box-shadow:none}
 }
 @media (min-width:1100px) and (max-width:1599px) and (min-height:600px){
   .lo-id h1{display:none}
@@ -353,7 +360,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-acts{width:100%}
   .lo-acts .lo-btn{flex:1 1 auto}
 }
-@media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn{transition:none}}
+@media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn,.lo-tab,.lo-cmpbox,.lo-pick::before,.lo-cmpbox::before{transition:none}}
 </style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Hangar', href: '/de/hangar.html' }, { label: l('lo.title') }] : [{ label: 'Hangar', href: '/hangar.html' }, { label: l('lo.title') }]} hasEn={true} />
