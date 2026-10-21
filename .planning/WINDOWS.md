@@ -1252,6 +1252,18 @@ last_updated: 2026-10-20T18:40:00.000Z
     "reason": "",
     "recorded_at": "2026-10-20T18:40:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 97,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Wartungsplatz nach Krisz 20.10.2026 17:32: „es fehlen auch texturen bei den assets“): Die Requisiten tragen jetzt die Schichten ihrer Spielmaterialien statt einer Farbe je Teil: Die Blend-Karte mischt bis zu vier Lacke und Metalle, die Abnutzungskarte legt Kratzer, Rost und blankes Metall darüber (wo die Vertexfarbe des Spiels Abnutzung zulässt), Ecken und Fugen sind verschattet, und Flächen mit Muster (Rost, Riffelblech, Gewebe, Kreuzschraffur) tragen ihre Detail- und Normalenkarte, ohne zusätzlichen Zeichenbefehl. Welcher Kanal der Vertexfarbe was trägt und in welche Richtung die Abnutzung wächst, sagt das Spiel nicht; beides ist erschlossen. Zu beurteilen: (1) Der gelbe Generator ist jetzt deutlich abgenutzt, der weiße Kasten daran rostig; zu viel, zu wenig, oder wie im Spiel? (2) Lesen sich die schwarzen Kisten und der Hubwagen jetzt als texturiert, oder wirkt das Muster körnig? (3) Der Diagnosecomputer ist jetzt überwiegend orange statt weiß (seine Blend-Karte legt die zweite Schicht, einen orangen Lack, auf den größten Teil); ist er im Spiel orange? (4) Kabel tragen jetzt gelbe Abschnitte. (5) Schmutz fehlt noch, und 8 von 9 Abnutzungskarten fehlen in der Ablage (PC-Auftrag .planning/notes/hangar-schichten.md, Satz „Hangar-Schichten“, noch nicht vergeben). Bild: hangar/v56-schichten-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-21T02:30:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
