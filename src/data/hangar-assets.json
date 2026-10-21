@@ -3499,9 +3499,9 @@
     },
     "katalog": {
       "url": "/hangar/props/katalog.json",
-      "v": "45704c95",
-      "bytes": 1641679,
-      "props": 256,
+      "v": "70626632",
+      "bytes": 2881006,
+      "props": 355,
       "kategorien": {
         "diagnose": {
           "file": "/hangar/props/diagnose.glb",
@@ -3586,8 +3586,56 @@
           "v": "b255a151",
           "bytes": 2531188,
           "props": 23
+        },
+        "bauteile": {
+          "file": "/hangar/props/bauteile.glb",
+          "v": "62259164",
+          "bytes": 1503020,
+          "props": 12
+        },
+        "crew": {
+          "file": "/hangar/props/crew.glb",
+          "v": "959b089b",
+          "bytes": 2962996,
+          "props": 18
+        },
+        "decke": {
+          "file": "/hangar/props/decke.glb",
+          "v": "911565d9",
+          "bytes": 984396,
+          "props": 12
+        },
+        "fracht": {
+          "file": "/hangar/props/fracht.glb",
+          "v": "ac9fd2d6",
+          "bytes": 2330136,
+          "props": 18
+        },
+        "maschine": {
+          "file": "/hangar/props/maschine.glb",
+          "v": "9152b734",
+          "bytes": 2050232,
+          "props": 9
+        },
+        "regal": {
+          "file": "/hangar/props/regal.glb",
+          "v": "317af7d3",
+          "bytes": 1903248,
+          "props": 14
+        },
+        "wand": {
+          "file": "/hangar/props/wand.glb",
+          "v": "96908709",
+          "bytes": 2927180,
+          "props": 16
         }
       }
+    },
+    "boden": {
+      "url": "/hangar/props/boden.glb",
+      "v": "1496a9f9",
+      "bytes": 2827040,
+      "decals": 57
     }
   }
 }
