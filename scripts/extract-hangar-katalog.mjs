@@ -358,7 +358,33 @@ for (const e of entries) {
   add(e.key, e.kat, `Data/${e.path.replace(/^data[\\/]/i, '')}`, 'hangar');
 }
 for (const f of archivList) { const key = base(f); add(key, kategorie(key, f) || (/maintenance/i.test(f) ? 'werkzeug' : null), f, 'archiv'); }
-console.log(`Auswahl: ${want.size} Requisiten (${[...want.values()].filter((w) => w.quelle === 'archiv').length} aus dem Archiv)`);
+// Mitglieder der Arbeitsplätze (Zusammensetzungen ≥ 3, deren Vertreter): alle,
+// auch wenn die Kappung oben sie wegen Lager/Müll übergangen hat
+const entryOf = new Map(entries.map((e) => [e.key, e]));
+for (const z of [...sigs.values()].filter((z) => z.n >= 3)) for (const m of z.vertreter.mitglieder) {
+  const e = entryOf.get(m.key);
+  if (e) add(e.key, e.kat, `Data/${e.path.replace(/^data[\\/]/i, '')}`, 'arbeitsplatz');
+}
+// Häufiges um das Landefeld: ≤ 6 m vom Feldrand (innen zählt mit), mindestens dreimal
+const nearField = new Map();
+for (const p of props) if (p.pl.dField != null && p.pl.dField <= 6) nearField.set(p.key, (nearField.get(p.key) || 0) + 1);
+for (const [key, n] of nearField) { if (n < 3) continue; const e = entryOf.get(key); if (e) add(e.key, e.kat, `Data/${e.path.replace(/^data[\\/]/i, '')}`, 'feld'); }
+// Schiffswartung aus dem Archiv (Bauteile, Waffen, Raketen, Munition, Werkzeugtaschen),
+// auch ohne Hangar-Aufstellung. Werkzeugwände und Schiffsstützen gibt es als Requisit nicht.
+const WARTUNG = [
+  [/[\\/]munitions_frame[\\/]missile_frame_s\d+_1_a\.cgf$/i, 'munition'],
+  [/[\\/]uee[\\/]crate[\\/]crate_torpedo_1_(0[357]x0075x0075_a|0[357]x0075x0075_open_a|a)\.cgf$/i, 'munition'],
+  [/[\\/]uee[\\/]rack[\\/]rack_torpedo_1_a\.cgf$/i, 'munition'],
+  [/[\\/]ammo-box[\\/]ammo-box_1_(ballistic_05x025x025_a|ballistic_1x05x025_a|ballistic_open_1x05x025_a|closed_a|pallet_125x125x025_a|pallet_250x125x025_a)\.cgf$/i, 'munition'],
+  [/[\\/]storage[\\/]crate[\\/]crate_weapon_(1_015x0075x0075_a|1_01x005x0025_a|2_015x0075x0075_a|3_075x045x00375_a|4_015x0075x0075_a|4_open_015x0075x0075_a)\.cgf$/i, 'munition'],
+  [/uee_lawless_prop_(missilestack_(small|medium|large)|ammocrate_01)\.cgf$/i, 'munition'],
+  [/prop_component_display_dumper_c\.cgf$/i, 'munition'],
+  [/[\\/]bag[\\/]bag_toolbox_[12]_a\.cgf$/i, 'werkzeug'],
+];
+const wartList = sb(['p4k', 'list', '--regex', '(?i)[\\\\/]prop[\\\\/].*\\.cgf$']).split('\n').map((l) => l.split('\t')[0].trim()).filter(Boolean);
+for (const f of wartList) { const w = WARTUNG.find(([re]) => re.test(f)); if (w) add(base(f), w[1], f, 'wartung'); }
+const byQuelle = [...want.values()].reduce((o, w) => ((o[w.quelle] = (o[w.quelle] || 0) + 1), o), {});
+console.log(`Auswahl: ${want.size} Requisiten (${Object.entries(byQuelle).map(([k, n]) => `${k} ${n}`).join(', ')})`);
 
 const GEO = `${OUT}geo/`; mkdirSync(GEO, { recursive: true });
 const MRAW = `${RAW}mesh/`; mkdirSync(MRAW, { recursive: true });
@@ -377,6 +403,8 @@ function readSubsets(buf) {
   }
   return best;
 }
+// alle Attribute eines XML-Kopfs als Objekt (Werte wörtlich)
+const attrs = (src) => Object.fromEntries([...String(src).matchAll(/\b([\w:]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
 // .mtl (XML): Untermaterialien in Reihenfolge, je mit Karten und Schichten
 function parseMtl(xml) {
   const blocks = /<SubMaterials>/i.test(xml) ? xml.split(/<SubMaterials>/i)[1].split(/<Material\b/i).slice(1) : [xml.replace(/^[\s\S]*?<Material\b/i, '')];
@@ -387,16 +415,23 @@ function parseMtl(xml) {
     const layers = [...(block.match(/<MatLayers>([\s\S]*?)<\/MatLayers>/i)?.[1] || '').matchAll(/<Layer\b([^>]*)\/?>/gi)].map((m) => ({
       name: at(m[1], 'Name'), path: at(m[1], 'Path'), tint: at(m[1], 'TintColor'), wearTint: at(m[1], 'WearTint'),
       glossMult: Number(at(m[1], 'GlossMult') ?? 1), uvTiling: Number(at(m[1], 'UVTiling') ?? 1), paletteTint: at(m[1], 'PaletteTint'),
+      // alle Attribute der Schicht wörtlich (WearGloss, HeightBias, HeightScale, Submtl …)
+      raw: attrs(m[1]),
     }));
+    // nur der eigene Block bis zu einem verschachtelten Material: Karten und PublicParams
+    const own = block.split(/<Material\b/i)[0];
+    const textures = Object.fromEntries([...own.matchAll(/<Texture\b([^>]*)\/?>/gi)].map((m) => [at(m[1], 'Map'), at(m[1], 'File')]).filter(([k, v]) => k && v));
+    const pp = own.match(/<PublicParams\b([^>]*)\/?>/i);
     return {
       name: at(head, 'Name'), shader: at(head, 'Shader'), genMask: at(head, 'StringGenMask'), diffuse: at(head, 'Diffuse'), specular: at(head, 'Specular'),
       shininess: at(head, 'Shininess'), opacity: at(head, 'Opacity'), alphaTest: at(head, 'AlphaTest'),
       d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'), wear: tex('TexSlot11'), blendMap: tex('TexSlot12'), layers,
+      head: attrs(head), textures, params: pp ? attrs(pp[1]) : {},
     };
   });
 }
 const xmlOf = (f) => { let x = readFileSync(f, 'latin1'); if (x.startsWith('CryXmlB')) { if (!existsSync(`${f}.xml`)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, `${f}.xml`]); x = existsSync(`${f}.xml`) ? readFileSync(`${f}.xml`, 'utf8') : ''; } return x; };
-const BIG = /generator|forklift|trolley_cargo|crane|ladder|workbench|heater_large|shelf|server_rack|container_|cargo_container|shipping_container/;
+const BIG = /generator|forklift|trolley_cargo|crane|ladder|workbench|heater_large|shelf|server_rack|container_|cargo_container|shipping_container|missile_frame|torpedo|missilestack|pallet|component_display/;
 const quellen = [];
 const texPaths = new Set();
 for (const w of want.values()) {
@@ -446,11 +481,13 @@ if (layerPaths.size) {
     if (!f) { layerInfo[lp] = { missing: true }; continue; }
     const m = parseMtl(xmlOf(f))[0] || {};
     const xml = xmlOf(f);
-    layerInfo[lp] = { d: m.d ?? null, n: m.n ?? null, diffuse: m.diffuse, specular: m.specular, shininess: m.shininess, tiling: Number((xml.match(/LayerTiling="([^"]*)"/) || [])[1] || 1) };
+    layerInfo[lp] = { d: m.d ?? null, n: m.n ?? null, diffuse: m.diffuse, specular: m.specular, shininess: m.shininess, tiling: Number((xml.match(/LayerTiling="([^"]*)"/) || [])[1] || 1), shader: m.shader ?? null, textures: m.textures ?? {}, params: m.params ?? {} };
   }
 }
 for (const q of quellen) for (const s of q.subs || []) {
-  for (const t of [s.d, s.n]) if (t && !/^\$|defaults\//i.test(t)) texPaths.add(t);
+  // Illum mit BLENDLAYER: zweite Schicht Farbe (TexSlot9) und Normale (TexSlot3), Maske TexSlot12
+  const bl = /%BLENDLAYER(?![A-Z_])/.test(s.genMask || '') ? [s.textures?.TexSlot9, s.textures?.TexSlot3] : [];
+  for (const t of [s.d, s.n, s.blendMap, ...bl]) if (t && !/^\$|defaults\//i.test(t)) texPaths.add(t);
   for (const l of s.layers) { const L = layerInfo[l.path]; if (L?.d) texPaths.add(L.d); if (L?.n) texPaths.add(L.n); }
 }
 // Karten dekodieren wie der Hallen-Extraktor (mip 1, _ddna mit Glätte)

@@ -1283,7 +1283,8 @@ function invert4(m) {
 }
 
 async function packDoc(doc, outPath, b) {
-  await doc.transform(prune(), unpartition());
+  // keepAttributes: COLOR_0 nutzt kein glTF-Material, prune würfe es sonst weg
+  await doc.transform(prune({ keepAttributes: !!b.keepAttributes }), unpartition());
   // UV-Inseln an den Ursprung, sonst zerquantisiert Draco gekachelte UVs
   for (const mesh of doc.getRoot().listMeshes()) for (const p of mesh.listPrimitives()) normalizeUvIslands(p, 'TEXCOORD_0');
   const uvBits = texcoordBits(doc.getRoot(), 'TEXCOORD_0');
@@ -1562,6 +1563,13 @@ const ZWECK = [
   [/forklift/, 'Gabelstapler oder Staplerteil', 'fährt Lasten zwischen Lager und Schiff'],
   [/trolley|cart|dolly|pallet/, 'Transportwagen oder Palette', 'steht zwischen Lager und Schiff'],
   [/work-light|tripod|light_stand|light_portable/, 'Arbeitsleuchte auf Stativ', 'steht neben dem Schiff und leuchtet den Arbeitsbereich aus'],
+  [/missile_frame/, 'Raketengestell, hält Raketen einer Größe für das Bestücken bereit', 'steht am Boden neben dem Schiff oder im Waffenlager'],
+  [/missilestack/, 'Stapel Raketen auf Gestell', 'steht im Waffenlager oder neben dem Schiff zum Bestücken'],
+  [/rack_torpedo/, 'Torpedogestell', 'steht im Waffenlager oder neben dem Schiff zum Bestücken'],
+  [/crate_torpedo/, 'Torpedokiste', 'steht gestapelt im Lager oder neben dem Schiff'],
+  [/ammo-box|ammocrate/, 'Munitionskiste', 'steht gestapelt am Boden oder auf Palette neben dem Schiff'],
+  [/crate_weapon/, 'Waffenkiste', 'steht gestapelt im Lager oder neben dem Schiff'],
+  [/component_display/, 'Auslage für Schiffsbauteile', 'steht im Laden oder an der Wand der Werkstatt'],
   [/(^|_)mop|bucket/, 'Wischmop oder Eimer', 'steht an der Wand oder am Rand'],
   [/trash/, 'Müll, Müllsäcke', 'liegt in Ecken und an Wänden'],
   [/drum/, 'Fass', 'steht in Gruppen auf dem Boden'],
@@ -1582,6 +1590,10 @@ async function buildKatalog() {
   for (const q of qf.quellen.filter((x) => !x.missing)) { if (!kats.has(q.kat)) kats.set(q.kat, []); kats.get(q.kat).push(q); }
   const out = { kategorien: {}, props: [] };
   const report = [];
+  // Untermaterial je GLB-Materialname, für `materials` in katalog.json (nach dem Bau)
+  const matInfo = new Map();
+  // Metall = Farbe im Specular (Dielektrika liegen bei 0,02–0,06)
+  const isMetal = (spec) => Math.max(...spec) > 0.2;
   for (const [kat, list] of [...kats].sort()) {
     const doc = new Document();
     const buf = doc.createBuffer();
@@ -1594,7 +1606,11 @@ async function buildKatalog() {
       if (matCache.has(name)) return matCache.get(name);
       const m = doc.createMaterial(name).setMetallicFactor(0);
       const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null;
-      const d = kTexFile(sub?.d) || (LI && kTexFile(LI.d));
+      // conductor_diff: schwarze Platzhalter-Farbkarte alter Illum-Materialien für
+      // Metall, die Farbe steht im Specular. Als Karte gebunden wäre alles schwarz.
+      const conductor = /conductor_diff/i.test(sub?.d || '');
+      const dOld = kTexFile(sub?.d) || (LI && kTexFile(LI.d));
+      const d = (conductor ? null : kTexFile(sub?.d)) || (LI && kTexFile(LI.d));
       const n = kTexFile(sub?.n) || (LI && kTexFile(LI.n));
       let factor = rgb(sub?.diffuse);
       if (!kTexFile(sub?.d) && L0) factor = rgb(L0.tint).map((v, i) => v * rgb(LI?.diffuse)[i]);
@@ -1609,12 +1625,21 @@ async function buildKatalog() {
         if (tile !== 1) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale([tile, tile]));
       }
       const spec = rgb(L0 ? LI?.specular : sub?.specular, [0.04, 0.04, 0.04]);
-      if (spec[0] > 0.3 && !d) { m.setMetallicFactor(1); factor = spec.map((v, i) => Math.min(1, v * rgb(L0?.tint)[i])); }
+      // vorher: Metall nur ohne Karte und mit Specular > 0,3, Farbe = Specular × Tönung
+      const alt = spec[0] > 0.3 && !dOld ? { metallic: 1, base: spec.map((v, i) => Math.min(1, v * rgb(L0?.tint)[i])) } : { metallic: 0, base: factor.map((v) => Math.min(1, v)) };
+      // Metall trägt seine Farbe im Specular. Die Tönung der Schicht bleibt dort
+      // weg: Metallschichten (TintMode 2) stehen mit Tönung 0 bzw. 0,016 im
+      // Material (Aluminium, Titan) und wären mit ihr schwarz.
+      // Ohne Schichten (Illum): nur ohne eigene Farbkarte (oder mit conductor_diff) und
+      // ohne Specular-Karte — mit Karte ist Specular deren Faktor, keine Farbe.
+      const metal = L0 ? isMetal(spec) : isMetal(spec) && (!kTexFile(sub?.d) || conductor) && !/%SPECULAR_MAP(?![A-Z_])/.test(sub?.genMask || '');
+      if (metal) { m.setMetallicFactor(1); factor = spec; }
       const shin = Number((L0 ? LI?.shininess : sub?.shininess) ?? 128);
       m.setRoughnessFactor(r3(Math.min(1, Math.max(0.05, 1 - (shin / 255) * (L0?.glossMult ?? 1)))));
       m.setBaseColorFactor([...factor.map((v) => Math.min(1, v)), 1]);
+      matInfo.set(name, { sub, mtl, alt, neu: { metallic: m.getMetallicFactor(), base: factor.map((v) => r3(Math.min(1, v))) } });
       if (/glass/i.test(sub?.shader || '')) m.setAlphaMode('BLEND').setBaseColorFactor([0.2, 0.22, 0.25, 0.3]).setRoughnessFactor(0.05);
-      else if (/DECAL/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '')) m.setAlphaMode('BLEND');
+      else if (/%DECAL(?![A-Z_])/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '')) m.setAlphaMode('BLEND');
       else if (Number(sub?.alphaTest) > 0) m.setAlphaMode('MASK').setAlphaCutoff(Number(sub.alphaTest));
       if (/glow/i.test(sub?.name || '') && d) m.setEmissiveTexture(m.getBaseColorTexture()).setEmissiveFactor([1, 1, 1]);
       matCache.set(name, m);
@@ -1631,10 +1656,11 @@ async function buildKatalog() {
         if (/NoDraw/i.test(sub?.shader || '') || /proxy/i.test(sub?.name || '')) return;
         // Decal-Flächen ohne eigene Karte (Branding aus $TintPaletteDecal zur Laufzeit,
         // Glow-Decals ohne Bild) wären weiße Platten: weglassen
-        const decalish = /DECAL/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '') || /decal/i.test(sub?.name || '');
+        const decalish = /%DECAL(?![A-Z_])/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '') || /decal/i.test(sub?.name || '');
         if (decalish && !kTexFile(sub?.d)) return;
         const p = doc.createPrimitive();
-        for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0']) { const a = sp.getAttribute(sem); if (a) p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setBuffer(buf)); }
+        // COLOR_0: alle vier Kanäle (Abnutzung, Schmutz, Verschattung …), siehe materials[].vertex
+        for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0']) { const a = sp.getAttribute(sem); if (a) p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(a.getArray().slice()).setBuffer(buf)); }
         const idx = sp.getIndices(); if (idx) p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx.getArray().slice()).setBuffer(buf));
         transformPrimitive(p, ROOT_ZUP);
         mesh.addPrimitive(p.setMaterial(material(q.mtl, sub)));
@@ -1664,11 +1690,71 @@ async function buildKatalog() {
     }
     if (!nodes.length) continue;
     const outPath = fileURLToPath(new URL(`props/${kat}.glb`, OUT));
-    let bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512 });
+    let bytes = await packDoc(doc, outPath, { tex: 1024, ntex: 512, keepAttributes: true });
     // je Datei ≤ 3 MB: sonst mit halber Kantenlänge neu packen
-    if (bytes > 3 * 1048576) { const d2 = await io.read(outPath); bytes = await packDoc(d2, outPath, { tex: 512, ntex: 256, q: 76 }); }
+    if (bytes > 3 * 1048576) { const d2 = await io.read(outPath); bytes = await packDoc(d2, outPath, { tex: 512, ntex: 256, q: 76, keepAttributes: true }); }
     out.kategorien[kat] = { file: `/hangar/props/${kat}.glb`, bytes, props: nodes, v: createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8) };
     report.push([kat, nodes.length, out.props.filter((p) => p.kategorie === kat).reduce((s, p) => s + p.tris, 0), bytes]);
+  }
+  // ── Materialien mit allen Schichten (.planning/notes/hangar-requisiten.md, R1) ──
+  // Karten der Schichten und Blend-Maps je einmal als public/hangar/props/schichten/<name>.webp,
+  // ≤ 256 px; bei _ddna steht die Glätte im Alpha der Normalenkarte.
+  const SCH = fileURLToPath(new URL('props/schichten/', OUT));
+  mkdirSync(SCH, { recursive: true });
+  const schichtOf = new Map(), schichtUsed = new Set();
+  const schicht = async (p) => {
+    const f = kTexFile(p);
+    if (!f) return null;
+    if (schichtOf.has(f)) return schichtOf.get(f);
+    let stem = f.split(/[\\/]/).pop().replace(/\.png$/i, '').toLowerCase();
+    while (schichtUsed.has(stem)) stem += '_';
+    const name = `${stem}.webp`;
+    schichtUsed.add(stem);
+    let img = sharp(readFileSync(f)).resize(256, 256, { fit: 'inside', withoutEnlargement: true });
+    const gl = f.replace(/\.png$/i, '.gloss.png');
+    if (existsSync(gl)) {
+      const { data, info } = await img.removeAlpha().png().toBuffer({ resolveWithObject: true });
+      const g = await sharp(readFileSync(gl)).resize(info.width, info.height, { fit: 'fill' }).extractChannel(0).png().toBuffer();
+      img = sharp(data).joinChannel(g);
+    }
+    await img.webp({ quality: 80, alphaQuality: 90 }).toFile(SCH + name);
+    schichtOf.set(f, name);
+    return name;
+  };
+  const rgbOrNull = (s) => (s == null ? null : String(s).split(',').map(Number));
+  // Vertexfarbe laut Shader-Definition: HardSurface nennt die Kanäle, LayerBlend_V2
+  // nur „Vertex Wear-Dirt-AO“ ohne Zuordnung
+  const vertexOf = (sub) => {
+    const mask = String(sub?.genMask || '');
+    if (/^HardSurface$/i.test(sub?.shader || '') && /%VERTCOLORS(?![A-Z_])/.test(mask)) return { damage: 'r', glow: 'g', ao: 'b', wear: 'a' };
+    if (/%WEAR_DIRT_AO_VERTEX(?![A-Z_])/.test(mask)) return { wear: null, dirt: null, ao: null };
+    return null;
+  };
+  const materials = {}, schichtDateien = {};
+  // Attribute der Schicht, die oben noch nicht als eigenes Feld stehen
+  const rest = (a) => { if (!a) return null; const { Name, Path, TintColor, WearTint, GlossMult, UVTiling, PaletteTint, ...r } = a; return r; };
+  for (const [name, { sub, alt, neu }] of matInfo) {
+    if (!sub) { materials[name] = { shader: null, mask: [], layers: [], params: {}, blendMap: null, blendUv: null, vertex: null }; continue; }
+    const layers = [];
+    for (const l of sub.layers || []) {
+      const L = layerInfo[l.path] || {};
+      layers.push({
+        name: l.name, path: l.path, tint: rgbOrNull(l.tint), wearTint: rgbOrNull(l.wearTint), glossMult: l.glossMult, uvTiling: l.uvTiling,
+        paletteTint: l.paletteTint != null ? Number(l.paletteTint) : null, attrs: rest(l.raw),
+        maps: { d: await schicht(L.d), n: await schicht(L.n) },
+      });
+      if (l.path && !schichtDateien[l.path]) schichtDateien[l.path] = { shader: L.shader ?? null, diffuse: rgbOrNull(L.diffuse), specular: rgbOrNull(L.specular), shininess: L.shininess != null ? Number(L.shininess) : null, tiling: L.tiling ?? null, params: L.params ?? {} };
+    }
+    const { Name, Shader, StringGenMask, ...head } = sub.head || {};
+    const blendMap = await schicht(sub.blendMap);
+    materials[name] = {
+      shader: sub.shader ?? null, mask: String(sub.genMask || '').split('%').filter(Boolean), layers,
+      params: { ...head, ...(sub.params || {}) }, textures: sub.textures ?? {},
+      blendMap, blendUv: blendMap ? 0 : null, vertex: vertexOf(sub),
+      // Illum mit BLENDLAYER: zweite Schicht (Werte BlendLayer2* stehen in params)
+      blendLayer: /%BLENDLAYER(?![A-Z_])/.test(sub.genMask || '') ? { d: await schicht(sub.textures?.TexSlot9), n: await schicht(sub.textures?.TexSlot3) } : null,
+      gltf: { baseColorFactor: neu.base, metallic: neu.metallic }, vorher: { baseColorFactor: alt.base.map(r3), metallic: alt.metallic },
+    };
   }
   const nodeOf = new Map(out.props.map((p) => [p.path.split('/').pop().replace(/\.(cgf|cga)$/i, '').toLowerCase(), p.node]));
   const ref = (key) => nodeOf.get(key) ?? key;
@@ -1696,8 +1782,9 @@ async function buildKatalog() {
     const lo = inv.schiffe.find((s) => s.schiff === ent);
     schiffe.push({ schiff: slug, anschluesse: ports, loadout: (lo?.anschluesse || []).filter((l) => /fuel_port|refuel|umbilical/i.test(l)), raum: 'Raum des Schiffsmodells: Y oben, Meter, Schiffsursprung' });
   }
-  const json = { v: 1, kategorien: out.kategorien, props: out.props, arbeitsplaetze, leitungen, schiffe,
+  const json = { v: 2, kategorien: out.kategorien, props: out.props, arbeitsplaetze, leitungen, schiffe, materials, schichten: schichtDateien,
     hinweise: {
+      materials: 'Je Material im GLB: Shader, Maske, alle Schichten mit ihren Rohwerten (attrs = übrige Attribute wörtlich; die Werte der Schicht-Datei stehen einmal unter schichten[path]), params = Kopf und PublicParams des Materials wörtlich. Karten liegen unter /hangar/props/schichten/; bei Normalenkarten (_ddna) steht die Glätte im Alpha. blendUv 0 = TEXCOORD_0. vertex: Kanal je Bedeutung, null = vom Spiel nicht benannt. gltf = Werte im GLB, vorher = Werte bis v1.',
       anschluesse: 'Die Requisiten-Modelle tragen keine Helfer, Sockets oder Knochen mit Namen; Anschlusspunkte gibt das Spiel nicht her.',
       namen: 'Spielname und Beschreibung gibt es nur, wo eine Entity mit Lokalisierung die Geometrie trägt; Deko-Requisiten nennen @LOC_PLACEHOLDER.',
       leitungen: 'Am Boden legt das Spiel kaum Leitungen: kurze Ketten aus 2 bis 3 Stücken, kein Kabel vom Generator zum Schiff. Die meisten Kabelstücke sind Wand- und Deckenzüge.',
