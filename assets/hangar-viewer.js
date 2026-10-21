@@ -94,9 +94,7 @@ const HALL_H = 24;
 const HOME_DIR = new THREE.Vector3(0.64, 0.22, 0.74).normalize();   // flach wie im Hangar-Menü des Spiels
 const DOOR_ANGLE = Math.atan2(-HOME_DIR.x, -HOME_DIR.z); // Winkel um Y, 0 = +Z
 const DOOR_WIDTH = 1.15; // Bogenmaß der Toröffnung
-// Aufzug (HALL_LIFT): Fahrzeiten ab und auf ohne Schachttor (mit ihm im
-// Takt des Spiels, HALL_GATE.lift; LIFT_UP_MS dann nur für das erste
-// Schiff nach dem Laden); Tiefe des Felds unten, in
+// Aufzug (HALL_LIFT): Fahrzeiten ab und auf; Tiefe des Felds unten, in
 // Modellmetern der Halle unter dem Schiffsboden. Im Schacht wird es mit der
 // Tiefe dunkel, ab LIFT_DARK fast schwarz; die Leuchtstreifen des Felds und
 // die Lichter am Schiff leuchten weiter.
@@ -925,22 +923,19 @@ function buildShaft(kit, info, L, lay) {
 // Abdunkelung in hgShade: Die vier Lacke des Tors teilen eine Karte und
 // unterscheiden sich nur in der Helligkeit. Je Material ein BatchedMesh,
 // jedes Teil darin eine Instanz, die gatePose längs ihrer Bahn schiebt.
-// `ms`: so lange dauert eine Bahn, `lift`: so lange eine Fahrt der Plattform
-// mit Schiff. Beides im Takt des Spiels (Krisz, 20.10.2026 abends: „okay
-// nehme die audios und mache die animation passend dazu“; bis dahin 1,3 s
-// und 1,9/2,8 s): 450 Bilder bei 30 je Sekunde, 15 s. Gemessen am Ton: Die
-// Aufnahme des Tors schlägt bei 15,05 s an, schließend wie öffnend, und die
-// Bahnen enden bei 12,5 Spielsekunden mal 1,2 = 15 s; Zwischenstöße der
-// Aufnahme (Riegel, Zylinder) fallen auf die Teile, die dort anlaufen oder
-// enden. verify:hangar-hall [15] hält ms und lift an den Bahnen des Spiels.
-// `clear`: so weit bleibt die Oberkante des Schiffs unter dem Tor; `lead`:
-// so lange vor dem Halt der Plattform deckt das Tor das Feld schon ganz.
-// Die Fahrt hinab dauert dafür, wo nötig, länger als `lift` (liftDownMs):
+// `ms`: so lange dauert hier eine Bahn des Spiels (dort 12,5 s mal 1,2).
+// Eine Nacht lief alles im Takt des Spiels, 15 s je Bahn und Fahrt; Krisz
+// am 21.10.2026: „gesamt animation ist viel zu langsam“. Seitdem wieder
+// der flotte Takt, und die Aufnahmen sind auf ihn geschnitten
+// (build-hangar-sound.mjs, SND_HIT). `clear`: so weit bleibt die
+// Oberkante des Schiffs unter dem Tor; `lead`: so lange vor dem Halt der
+// Plattform deckt das Tor das Feld schon ganz. Die Fahrt hinab dauert
+// dafür, wo nötig, länger als LIFT_DOWN_MS (liftDownMs):
 // Bis 18.10. war das Tor erst nach dem Halt zu, unten sah man das Feld mit
 // Schiff und Gerät im offenen Schacht (Krisz, Bild 20:28; gewünscht war
 // „während die Plattform runterfährt, schließt sich der Schacht“).
 // verify:hangar-hall [15] rechnet dieselbe Auswahl gegen die Dateien in dist/.
-const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 15000, "lift": 15000, "clear": 0.4, "lead": 200 } /* /hall-gate */;
+const HALL_GATE = /* hall-gate */ { "reach": 0.25, "ms": 1300, "clear": 0.4, "lead": 200 } /* /hall-gate */;
 const GATE_BLEND_MS = 250;   // kehrt das Tor unterwegs um: so lange von der Lage auf die neue Bahn
 const GATE_SLACK_MS = 80;    // die Oberkante des neuen Schiffs kommt erst so lange nach dem offenen Tor
 const GATE_GLOW = 2.5;       // Leuchtstreifen in den Mittelflügeln
@@ -4017,37 +4012,41 @@ function buildSteam(max) {
 // ─── Geräusche ────────────────────────────────────────────────────────────
 // Die Originalklänge des Hangars (Krisz 20.10.2026 abends, nach drei
 // abgelehnten Fassungen aus einem Synthesizer im Browser: „okay nehme die
-// audios und mache die animation passend dazu“). Die Dateien liegen in
-// public/hangar/ton (scripts/build-hangar-sound.mjs: nur Pegel und Länge
-// angepasst), die Seite gibt Ordner und Version mit (hall.lift.sound).
-// Tor und Plattform laufen dafür im Takt des Spiels (HALL_GATE.ms, .lift),
-// und jeder Klang sitzt, wo das Spiel ihn auslöst:
-// - Plattform: Anfahren und Fahrschleife (1 s eingeblendet) beim Losfahren;
-//   bei 93,2 % der Fahrt der Halt, die Schleife blendet dabei 1 s aus. Der
-//   Schlag des Halts liegt 1,25 s nach seinem Anfang, beim Stillstand.
-// - Tor: auf und zu je als ganze Aufnahme, die mit der Bahn läuft; ihr
-//   Endanschlag (15,05 s) ist das Ende der Bewegung (15,0 s). Kehrt das Tor
-//   unterwegs um, setzt die andere Aufnahme an derselben Stelle der Bahn ein.
-// - Warnton viermal im Takt von 1,2 s, wenn die Plattform hinabfährt und
-//   wenn das Tor aufgeht.
-// - Dampf: Der mittlere Hangar hat keinen eigenen Klang dafür, die Klänge
-//   kommen aus anderen Hangars und von Türen. Druckablass, wenn die
-//   Plattform oben einrastet; Luftstoß beim Schluss des Tors; leises
-//   Bodenzischen zu den kleinen Stößen und den Schwaden aus dem Schacht.
+// audios und mache die animation passend dazu“), seit 21.10.2026 auf den
+// flotten Takt geschnitten (Krisz: „gesamt animation ist viel zu langsam“,
+// „dampf sound ist super crappy“). Die Dateien liegen in public/hangar/ton
+// (scripts/build-hangar-sound.mjs: Stücke der Aufnahmen aneinander, Pegel),
+// die Seite gibt Ordner und Version mit (hall.lift.sound). Jeder Klang
+// sitzt, wo das Spiel ihn auslöst, nur kürzer:
+// - Plattform: Anfahren und Fahrschleife (SND_FADE eingeblendet) beim
+//   Losfahren; SND_HIT vor dem Stillstand der Halt, die Schleife blendet
+//   dabei aus. Sein Schlag ist der Stillstand.
+// - Tor: auf und zu je der Anlauf vom Anfang der Aufnahme, dann ihr Ende;
+//   der Anschlag (SND_HIT) fällt auf das Ende der Bahn. Kehrt das Tor
+//   unterwegs um, setzt die andere Aufnahme so ein, dass ihr Anschlag
+//   wieder auf das Ende fällt.
+// - Warnton im Takt von 1,2 s, solange die Plattform hinabfährt oder Tor
+//   und Auffahrt laufen, höchstens viermal wie im Spiel.
+// Dampf bleibt still: Der mittlere Hangar hat keinen eigenen Klang dafür,
+// und die aus anderen Hangars und von Türen passten nicht (Krisz, s. o.).
 // Aus der Tiefe und unter dem geschlossenen Tor klingt die Plattform leiser
 // und dumpfer (space). Geladen wird erst, wenn der Ton an ist und die Seite
 // berührt wurde (Regel der Browser); kein Nachhall dazu, die Aufnahmen
 // tragen ihren Raum.
 const SND_VOL = 0.5;        // Gesamtlautstärke
-const SND_FILES = ['platte-start', 'platte-lauf', 'platte-halt', 'tor-auf', 'tor-zu', 'warnton', 'dampf-1', 'dampf-2', 'dampf-3', 'dampf-4', 'druckablass', 'luftstoss'];
+const SND_FILES = ['platte-start', 'platte-lauf', 'platte-halt', 'tor-auf', 'tor-zu', 'warnton'];
 // Fahrschleife: zwischen start und start + len periodisch (build-hangar-sound.mjs gibt beides aus)
 const SND_LOOP = { start: 0.5, len: 4.202222 };
-const SND_HALT_AT = 0.932;  // Anteil der Fahrt, bei dem das Spiel den Halt auslöst
+// Schlag der geschnittenen Klänge, s nach ihrem Anfang: Halt beim
+// Stillstand, Tor beim Ende der Bahn (build-hangar-sound.mjs schneidet sie
+// so und prüft die Werte hier, verify:hangar [16] hält das Tor am Takt)
+const SND_HIT = { 'platte-halt': 0.7, 'tor-auf': 1.3, 'tor-zu': 1.3 };
+const SND_FADE = 0.4;       // s Ein- und Ausblenden der Fahrschleife (im Spiel 1 s bei 12,5 s Fahrt)
 function hangarSound(src = null) {
   const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
   let ctx = null, out = null, pad = null, on = true, buf = null, loading = null, ride = null, gate = null;
   // alles, was gerade klingt oder angesetzt ist: hush() blendet es aus, sonst
-  // spielte nach dem Verbergen ein halber Dampfstoß weiter, sobald die Seite
+  // spielte nach dem Verbergen ein halber Warnton weiter, sobald die Seite
   // wiederkommt (der Zeitgeber steht derweil still)
   const shots = new Set();
   const keep = (s, g) => {
@@ -4104,31 +4103,6 @@ function hangarSound(src = null) {
     h.g.gain.cancelScheduledValues(t); h.g.gain.setValueAtTime(h.g.gain.value, t); h.g.gain.linearRampToValueAtTime(0, t + sec);
     try { h.s.stop(t + sec + 0.05); } catch { /* schon aus */ }
   }
-  // Bodenzischen: die vier Stücke zufällig aneinander, nie dasselbe zweimal,
-  // 150 ms überblendet (so kettet das Spiel sie), Dauer s, Lautstärke k
-  function steam(dur, k) {
-    const t0 = ctx.currentTime + 0.005, X = 0.15;
-    let t = t0, last = -1;
-    while (t < t0 + dur) {
-      let i;
-      do { i = Math.floor(Math.random() * 4); } while (i === last);
-      last = i;
-      const b = buf[`dampf-${i + 1}`];
-      if (!b) return;
-      const s = ctx.createBufferSource(), g = ctx.createGain();
-      s.buffer = b;
-      // Hüllkurve der ganzen Kette: 0,3 s an, das letzte Drittel aus
-      const env = (x) => k * Math.min(1, (x - t0) / 0.3, Math.max(0, (t0 + dur - x) / (dur / 3)));
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(env(t + X), t + X);
-      g.gain.setValueAtTime(env(t + b.duration - X), t + b.duration - X);
-      g.gain.linearRampToValueAtTime(0, t + b.duration);
-      s.connect(g).connect(out);
-      s.start(t);
-      keep(s, g);
-      t += b.duration - X;
-    }
-  }
   return {
     // nach einer Berührung der Seite (pointerdown, keydown)
     unlock() {
@@ -4161,12 +4135,12 @@ function hangarSound(src = null) {
       shots.clear();
       ride = null; gate = null;
     },
-    // Plattform fährt los: Anfahren und die Schleife, 1 s eingeblendet
+    // Plattform fährt los: Anfahren und die Schleife, SND_FADE eingeblendet
     rideStart() {
       if (!live()) return;
       if (ride) for (const h of [ride.loop, ride.start]) fadeOut(h, 0.15);
       ride = { start: play('platte-start', pad.lp, 1) };
-      this.rideOn(1);
+      this.rideOn(SND_FADE);
     },
     // Schleife sicherstellen (nach Umkehr, Wiederkommen, Einschalten)
     rideOn(fade = 0.3) {
@@ -4182,32 +4156,27 @@ function hangarSound(src = null) {
       s.start(t, SND_LOOP.start + Math.random() * SND_LOOP.len);
       ride = { ...(ride ?? {}), loop: keep(s, g) };
     },
-    // Halt (bei SND_HALT_AT der Fahrt): Schlag, Schleife 1 s aus; das
-    // Anfahren auch, falls die Fahrt kürzer war als seine 4,2 s
-    rideHalt() {
-      if (ride) { for (const h of [ride.loop, ride.start]) fadeOut(h, 1); ride = null; }
-      if (live()) play('platte-halt', pad.lp, 1);
+    // Halt (SND_HIT vor dem Stillstand, late ms zu spät): Schlag beim
+    // Stillstand, Schleife und Anfahren blenden aus
+    rideHalt(late = 0) {
+      if (ride) { for (const h of [ride.loop, ride.start]) fadeOut(h, SND_FADE); ride = null; }
+      if (live()) play('platte-halt', pad.lp, 1, Math.max(0, late) / 1000);
     },
-    // Tor auf oder zu, ab Sekunde offset seiner Bahn (Umkehr unterwegs)
-    gate(dir, offset = 0) {
+    // Tor auf oder zu, die Bahn endet in left s: Der Anschlag fällt dorthin
+    // (nach einer Umkehr setzt die Aufnahme mitten drin ein)
+    gate(dir, left) {
       if (gate) { fadeOut(gate, 0.12); gate = null; }
       if (!live()) return;
-      gate = play(dir === 'open' ? 'tor-auf' : 'tor-zu', out, 1, Math.max(0, offset));
+      const name = dir === 'open' ? 'tor-auf' : 'tor-zu', offset = SND_HIT[name] - left;
+      gate = play(name, out, 1, Math.max(0, offset), Math.max(0, -offset));
       if (gate && offset > 0.05) { const t = ctx.currentTime; gate.g.gain.setValueAtTime(0, t); gate.g.gain.linearRampToValueAtTime(1, t + 0.08); }
       if (gate) { const h = gate; h.s.addEventListener('ended', () => { if (gate === h) gate = null; }); }
     },
     gateDone() { gate = null; },
-    // Warnton: viermal im Takt von 1,2 s
-    alarm() {
+    // Warnton im Takt von 1,2 s, solange die Bewegung läuft (sec), höchstens viermal
+    alarm(sec) {
       if (!live()) return;
-      for (let i = 0; i < 4; i++) play('warnton', out, 0.8, 0, i * 1.2);
-    },
-    // Dampf: 'druck' (Druckablass), 'stoss' (Luftstoß), 'zischen' (Dauer s)
-    puff(kind, dur = 1) {
-      if (!live()) return;
-      if (kind === 'druck') play('druckablass', out, 1.4, 0, 0.25);
-      else if (kind === 'stoss') play('luftstoss', out, 1.2);
-      else steam(dur, 2);
+      for (let i = 0; i < 4 && i * 1.2 < sec; i++) play('warnton', out, 0.8, 0, i * 1.2);
     },
     // je Bild: Tiefe der Plattform 0..1, Tor über ihr geschlossen 0..1
     space(depth, cover) {
@@ -6865,15 +6834,14 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       if (Math.abs(y - lift.y) < 1e-4) { lift.dur = 0; lift.y = y; settleLift(); return; }
       // fährt sie schon dorthin (Weiterklicken während der Fahrt hinab),
       // bleibt die Fahrt, wie sie ist: Neu angesetzt finge die Kurve wieder
-      // bei null an, die Plattform stockte, und im Takt des Spiels käme
-      // jeder Klick bis zu 18 s dazu
+      // bei null an, die Plattform stockte, und jeder Klick verlängerte sie
       if (lift.dur > 0 && Math.abs(y - lift.to) < 1e-4) return;
       // fährt sie schon und kehrt nur um oder ändert das Ziel (schnelles
       // Weiterklicken), rastet nichts neu aus: kein zweites Anfahren (fx.liftGo)
       const moving = lift.dur > 0 && lift.going;
       lift.from = lift.y; lift.to = y; lift.t0 = performance.now() + delay; lift.dur = ms;
       lift.going = moving;
-      // neue Fahrt, neuer Halt (bei SND_HALT_AT); war er schon, holt fx.frame die Schleife wieder
+      // neue Fahrt, neuer Halt (SND_HIT vor dem Stillstand); war er schon, holt fx.frame die Schleife wieder
       lift.halted = false;
       lift.last = { from: lift.from, to: y, t0: lift.t0, dur: ms };
     });
@@ -6969,21 +6937,19 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const G = gateOf();
     if (!G || !(to < lift.y)) return LIFT_DOWN_MS;
     const kc = liftEaseInv(Math.min(1, Math.max(0, (gateClearY(G, info) - lift.y) / (to - lift.y))));
-    return Math.max(HALL_GATE.lift, ((G.cover * HALL_GATE.ms) / G.T + HALL_GATE.lead) / Math.max(0.25, 1 - kc));
+    return Math.max(LIFT_DOWN_MS, ((G.cover * HALL_GATE.ms) / G.T + HALL_GATE.lead) / Math.max(0.25, 1 - kc));
   }
   // Auffahrt: mit Tor erst auf, dann hinauf. Die Oberkante des Schiffs
   // erreicht das Tor erst, wenn es offen ist; die Fahrt beginnt dafür so
-  // viel später wie nötig. ms: im Takt des Spiels, nur das erste Schiff
-  // nach dem Laden kommt rasch (LIFT_UP_MS; still, der Ton braucht erst
-  // eine Berührung der Seite).
-  function liftUp(info, ms = HALL_GATE.lift) {
+  // viel später wie nötig.
+  function liftUp(info) {
     const G = gateOf();
     if (!G) return liftTo(0, LIFT_UP_MS);
     gateOpen();
     const left = G.run ? ((G.T - Math.min(G.T, G.run.tau0 + ((performance.now() - G.run.t0) * G.T) / HALL_GATE.ms)) * HALL_GATE.ms) / G.T + (G.run.snap ? GATE_BLEND_MS : 0) : 0;
     const y0 = lift.y, yc = gateClearY(G, info);
-    const reach = y0 < yc ? ms * liftEaseInv((yc - y0) / -y0) : 0;
-    return liftTo(0, ms, Math.max(0, left + GATE_SLACK_MS - reach));
+    const reach = y0 < yc ? LIFT_UP_MS * liftEaseInv((yc - y0) / -y0) : 0;
+    return liftTo(0, LIFT_UP_MS, Math.max(0, left + GATE_SLACK_MS - reach));
   }
   function settleLift() {
     const w = lift.wait;
@@ -7062,47 +7028,38 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       }
     },
     // Klänge: siehe hangarSound. Anfahren, Fahrschleife und (hinab) der
-    // Warnton beim Losfahren; der Halt kommt aus frame bei SND_HALT_AT.
+    // Warnton beim Losfahren; der Halt kommt aus frame, SND_HIT vor dem Stillstand.
     liftGo(dir, late) {
       if (late > 400 || !fxOk('liftGo')) return;
       const t = (performance.now() - T0) / 1000;
       sound.rideStart();
       if (dir === 'down') {
-        // Bremse auf, Druck ab
-        if (fxOk('alarm')) sound.alarm();
-        sound.puff('zischen', 0.9);
+        if (fxOk('alarm')) sound.alarm(lift.dur / 1000);
         this.edges(t, 6, 0.55);
       }
     },
     liftHalt(dir, late) {
       if (late > 400) { sound.hush(); return; }
-      sound.rideHalt();
+      sound.rideHalt(late);
     },
     liftStop(dir, late) {
       if (late > 400 || !fxOk('liftStop')) return;
-      // oben eingerastet: Der Druck entweicht
-      if (dir === 'up') {
-        sound.puff('druck');
-        this.edges((performance.now() - T0) / 1000, 18, 1);
-      }
+      if (dir === 'up') this.edges((performance.now() - T0) / 1000, 18, 1);
     },
-    // ms: Rest der Bahn ab dem Einsatz, late: so lange läuft sie schon. Die
-    // Aufnahme setzt an der Stelle der Bahn ein, an der das Tor steht.
+    // ms: Rest der Bahn ab dem Einsatz, late: so lange läuft sie schon. Der
+    // Anschlag der Aufnahme fällt auf das Ende der Bahn.
     gateGo(dir, ms, late) {
-      sound.gate(dir, (HALL_GATE.ms - ms + Math.max(0, late)) / 1000);
+      sound.gate(dir, (ms - Math.max(0, late)) / 1000);
       if (late > 400 || dir !== 'open') return;
-      if (fxOk('alarm')) sound.alarm();
+      // Warnton über Tor und Auffahrt
+      if (fxOk('alarm')) sound.alarm((ms + LIFT_UP_MS) / 1000);
       if (!fxOk('vapour')) return;
-      sound.puff('zischen', 3);
       this.vapour((performance.now() - T0) / 1000, 30, ms);
     },
     gateStop(dir, late) {
       sound.gateDone();
       if (late > 400 || !fxOk('gateStop')) return;
-      if (dir === 'close' && fxOk('seam')) {
-        sound.puff('stoss');
-        this.seam((performance.now() - T0) / 1000, 40);
-      }
+      if (dir === 'close' && fxOk('seam')) this.seam((performance.now() - T0) / 1000, 40);
     },
     // je Bild: Teilchen auf die Uhr; der Ton folgt der Mechanik. Fehlt er zu
     // einem laufenden Tor oder einer Fahrt (Seite war verborgen, Ton eben
@@ -7115,7 +7072,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       if (G?.run) {
         const r = G.run, tau = Math.min(G.T, Math.max(0, r.tau0 + ((now - r.t0) * G.T) / HALL_GATE.ms));
         cover = r.dir === 'close' ? tau / G.T : 1 - tau / G.T;
-        if (!sound.gating && sound.live && now >= r.t0 && tau < G.T) sound.gate(r.dir, (tau * HALL_GATE.ms) / G.T / 1000);
+        if (!sound.gating && sound.live && now >= r.t0 && tau < G.T) sound.gate(r.dir, ((G.T - tau) * HALL_GATE.ms) / G.T / 1000);
       } else if (G?.state === 'closed') cover = 1;
       if (lift.going && !lift.halted && !sound.riding && sound.live) sound.rideOn();
       sound.space(THREE.MathUtils.clamp(-lift.y / 36, 0, 1), cover);
@@ -7352,7 +7309,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     }
     if (up) {
       lift.dur = 0; lift.y = -liftDepth(info); lift.regroup = true;
-      liftUp(info, current ? HALL_GATE.lift : LIFT_UP_MS);
+      liftUp(info);
     }
     scene.add(ship);
     homeTgt = tgt;
@@ -8163,8 +8120,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // Sonst fiel die Bühne dort nach IDLE_MS auf IDLE_SCALE der Schärfe und
     // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
     // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
-    // Laden, das hängt, hält sie nicht länger als 60 s wach (ein Wechsel im
-    // Takt des Spiels dauert um 40 s).
+    // Laden, das hängt, hält sie nicht länger als 60 s wach.
     if ((busy && now - busyAt < 60000) || dragging || fly || fovGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
@@ -8186,7 +8142,8 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       // Aufzug: fährt sanft an und bremst sanft (liftEase); vor t0 steht er
       const k = Math.min(1, Math.max(0, (now - lift.t0) / lift.dur)), dir = lift.to > lift.from ? 'up' : 'down';
       if (k > 0 && !lift.going) { lift.going = true; fx.liftGo(dir, now - lift.t0); }
-      if (lift.going && !lift.halted && k >= SND_HALT_AT) { lift.halted = true; fx.liftHalt(dir, now - lift.t0 - SND_HALT_AT * lift.dur); }
+      const halt = lift.t0 + lift.dur - SND_HIT['platte-halt'] * 1000;
+      if (lift.going && !lift.halted && now >= halt) { lift.halted = true; fx.liftHalt(dir, now - halt); }
       lift.y = lift.from + (lift.to - lift.from) * liftEase(k);
       if (k >= 1) {
         const late = now - lift.t0 - lift.dur;

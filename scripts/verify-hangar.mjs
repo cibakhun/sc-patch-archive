@@ -106,7 +106,9 @@
         Seit 20.10.2026 abends (Aufnahmen statt Synthese): Jeder Klang in
         SND_FILES liegt als MP3 in dem Ordner, den die Seite mitgibt
         (hall.lift.sound), und dessen Version ist der Inhalt der Dateien.
-        Klinke: KLINKE_TON Klaenge.
+        Klinke: KLINKE_TON Klaenge. Seit 21.10.2026 (flotter Takt, Klaenge
+        geschnitten): Der Anschlag beider Torklaenge (SND_HIT) liegt
+        hoechstens TOR_TAKT_LUFT neben dem Ende der Bahn (HALL_GATE.ms).
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -131,6 +133,7 @@
         CustomToneMapping umbenennen                                -> [16]
      o  in dist/hangar.html data-off des Ton-Schalters entfernen    -> [16]
      p  dist/hangar/ton/tor-zu.mp3 loeschen                         -> [16]
+     q  in dist/assets/hangar-viewer.js HALL_GATE.ms auf 15000        -> [16]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -724,8 +727,12 @@ const RAKETEN = { schiffe: 152, slots: 468, tauschbar: 462, halterWahl: 214 };
 }
 
 // Sperrklinke (Grundsatz 5), Startwert 20.10.2026: Klaenge des Hangars in
-// SND_FILES (Plattform 3, Tor 2, Warnton, Dampf 6)
-const KLINKE_TON = 12;
+// SND_FILES (Plattform 3, Tor 2, Warnton); am 21.10.2026 von 12 auf 6, die
+// sechs Dampfklaenge sind raus (Krisz: „dampf sound ist super crappy“)
+const KLINKE_TON = 6;
+// Anschlag der Torklaenge neben dem Ende der Bahn, Anteil der Bahn: Darüber
+// liefe das Tor ein gutes Stück still, oder der Klang finge vor ihm an
+const TOR_TAKT_LUFT = 0.25;
 say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Controller und Seite');
 // Der Viewer haengt sich mit zwei Textstellen in three.js ein (Bildlook in
 // die Tonabbildung, Rauschen hinter die sRGB-Umrechnung). Beide liest das Tor
@@ -785,6 +792,22 @@ say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Cont
   sollIst(`Klaenge: SND_FILES im Viewer, mindestens ${KLINKE_TON} Dateien`, sndNames ? String(sndNames.length) : 'nicht lesbar');
   if (!sndNames) fail('[16] dist/assets/hangar-viewer.js: const SND_FILES = [...] fehlt oder ist nicht lesbar — der Leser ist kaputt oder der Code ist umgezogen');
   else if (sndNames.length < KLINKE_TON) fail(`[16] der Viewer nennt ${sndNames.length} Klaenge, die Klinke ist ${KLINKE_TON}: KLINKE_TON nur per Commit mit Ursache senken`);
+  // Tor und Klang im selben Takt (seit 21.10.2026): Die Torklaenge sind auf
+  // eine Bahn geschnitten, der Viewer legt ihren Anschlag (SND_HIT) auf das
+  // Ende der Bahn. Ist die Bahn viel laenger als der Schnitt, laeuft das Tor
+  // erst still; ist sie viel kuerzer, faengt der Klang vor ihm an. So war
+  // es vom 20. auf den 21.10., nur andersherum: Tor im Takt der ganzen
+  // Aufnahme, 15 s je Bahn, und Krisz fand den Wechsel viel zu langsam.
+  const gateMs = (() => { try { return JSON.parse(/\/\* hall-gate \*\/([\s\S]*?)\/\* \/hall-gate \*\//.exec(viewer)?.[1] ?? 'null')?.ms ?? null; } catch { return null; } })();
+  const hits = (() => { try { return JSON.parse((/const SND_HIT = (\{[^}]*\});/.exec(viewer)?.[1] ?? 'null').replace(/'/g, '"')); } catch { return null; } })();
+  const torHits = ['tor-auf', 'tor-zu'].map((n) => [n, hits?.[n]]);
+  sollIst(`Torklaenge: Anschlag (SND_HIT) hoechstens ${TOR_TAKT_LUFT * 100} % der Bahn neben ihrem Ende (HALL_GATE.ms)`, gateMs && hits ? `Bahn ${gateMs} ms, Anschlag ${torHits.map(([n, h]) => `${n} ${h} s`).join(', ')}` : 'nicht lesbar');
+  if (!hits) fail('[16] dist/assets/hangar-viewer.js: const SND_HIT = {...} fehlt oder ist nicht lesbar — der Leser ist kaputt oder der Code ist umgezogen');
+  else if (!(gateMs > 0)) fail('[16] dist/assets/hangar-viewer.js: HALL_GATE.ms im Block /* hall-gate */ fehlt — der Leser ist kaputt oder der Code ist umgezogen');
+  else for (const [n, h] of torHits) {
+    if (!(h > 0)) fail(`[16] SND_HIT im Viewer nennt ${n} nicht: der Torklang saesse nirgends`);
+    else if (Math.abs(h * 1000 - gateMs) > TOR_TAKT_LUFT * gateMs) fail(`[16] ${n} schlaegt ${h} s nach seinem Anfang an, eine Bahn des Tors dauert ${gateMs / 1000} s: ${h * 1000 < gateMs ? 'das Tor liefe erst still' : 'der Klang finge vor dem Tor an'}. Klaenge auf den Takt schneiden (scripts/build-hangar-sound.mjs) oder HALL_GATE.ms zurueck`);
+  }
   for (const page of PAGES) {
     let snd = null;
     try { snd = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html)?.[1] ?? 'null')?.opts?.hall?.lift?.sound ?? null; } catch { snd = null; }
