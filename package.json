@@ -11,6 +11,7 @@
     "gate": "node scripts/run-gate.mjs",
     "gate:data": "node scripts/run-gate.mjs --rail B",
     "smoke": "node scripts/browser-smoke.mjs",
+    "check:hangar-shader": "node scripts/check-hangar-shader.mjs",
     "check:staging": "node scripts/check-deployed.mjs --base https://staging.verse-base.com --vorschau",
     "check:live": "node scripts/check-deployed.mjs --base https://verse-base.com --live",
     "check:gate": "node scripts/check-gate.mjs --base https://staging.verse-base.com",

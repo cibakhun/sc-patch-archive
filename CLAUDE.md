@@ -89,3 +89,8 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
   als benannter Punkt nach `.planning/WINDOWS.md` an den Betreiber.
 - Bei sichtbaren Ergebnissen: erst hinsehen (Screenshot/Render), dann
   berichten. Kennzahlen messen die Untergrenze, nicht die Güte.
+- 3D-Hangar: Software-WebGL (Cloud, CI) erlaubt 32 Texturen je Shader,
+  Chrome unter Windows nur 16 — darüber bleibt ein Material dort
+  unsichtbar, und jede Aufnahme hier sieht trotzdem gut aus. Vor der
+  Fertig-Meldung von Hangar-Arbeit `npm run check:hangar-shader -- --base …`
+  gegen den gebauten Stand.
