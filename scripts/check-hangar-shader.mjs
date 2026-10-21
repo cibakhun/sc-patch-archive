@@ -80,7 +80,7 @@ function vorSeite() {
       const name = (src.match(/#define SHADER_NAME (.+)/) || [])[1] || '?';
       window.__texProgramme.push({ name: name.trim(), n, ok, schichten: /dienstTafel/.test(src) });
     } catch (e) {
-      window.__texProgramme.push({ name: '?', n: 0, ok: false, zaehlung: e.message, schichten: false });
+      window.__texProgramme.push({ name: '?', n: 0, ok: false, zaehlung: String(e?.message || e || 'ohne Meldung'), schichten: false });
     }
   };
 }
