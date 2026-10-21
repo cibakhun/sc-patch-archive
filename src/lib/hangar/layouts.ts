@@ -182,9 +182,13 @@ const totalDamage = (s: ItemStats): number => Object.values(s.damage ?? {}).redu
 function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: Record<string, number | string> } {
   const x: Record<string, number | string> = {};
   const put = (k: string, v: unknown) => { if (typeof v === 'number' && Number.isFinite(v)) x[k] = r1(v); };
+  // Kleine Werte (Hitze je Schuss, Streuung) brauchen zwei Stellen.
+  const put2 = (k: string, v: unknown) => { if (typeof v === 'number' && Number.isFinite(v)) x[k] = Math.round(v * 100) / 100; };
   // Fuer den Reiter "Erweitert": Haltbarkeit jedes Teils, Schaden je Art je
   // Schuss bzw. Sprengkopf (dP physisch, dE Energie, dD Distortion, dT thermisch).
   put('hp', s.health);
+  // Strom und Signatur, wo das Teil sie setzt (Strom nur innerhalb einer Art vergleichbar).
+  put('pw', s.powerDraw); put('em', s.em); put('ir', s.ir);
   const dm = s.damage ?? {};
   for (const [k, short] of [['physical', 'dP'], ['energy', 'dE'], ['distortion', 'dD'], ['thermal', 'dT']] as const) {
     if ((dm[k] ?? 0) > 0) put(short, dm[k]);
@@ -197,6 +201,8 @@ function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: 
       put('arm', s.armTime);
       put('ign', s.igniteTime);
       put('life', s.lifetime);
+      put('spd', s.speed);
+      put('lkR', s.lockRange); put('lkT', s.lockTime); put('lkA', s.lockAngle);
       return { f: Math.round(totalDamage(s)), x };
     }
     case 'gun': {
@@ -206,18 +212,31 @@ function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: 
       if (ch) x.dt = ch === 'physical' ? 'p' : ch === 'energy' ? 'e' : 'd';
       put('rate', s.fireRate);
       put('mag', s.magazine);
+      put('spd', s.speed); put('rng', s.range);
+      put2('spr', s.spreadMax);
+      put2('hps', s.heatPerShot); put('ovh', s.overheatTemperature); put('cps', s.coolingPerSecond); put('ovf', s.overheatFixTime);
+      // Energiewaffen: Ladungen statt Magazin
+      put('chg', s.ammoLoad); put('chr', s.regenPerSec); put2('chd', s.regenCooldown);
       return { f: s.dps ? Math.round(s.dps) : 0, x };
     }
     case 'power': return { f: s.powerOutput ?? 0, x };
     case 'cooler': return { f: s.coolingRate ?? 0, x };
     case 'shield':
       put('regen', s.regen); put('dly', s.damagedRegenDelay); put('down', s.downedRegenDelay);
+      // Widerstand und Absorption je Art als Spanne in Prozent, "min|max"
+      for (const [key, src] of [['r', s.resist], ['a', s.absorb]] as const) {
+        for (const [k, short] of [['physical', 'P'], ['energy', 'E'], ['distortion', 'D']] as const) {
+          const v = (src as Record<string, unknown> | undefined)?.[k];
+          if (Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === 'number')) x[key + short] = `${Math.round(v[0] * 100)}|${Math.round(v[1] * 100)}`;
+        }
+      }
       return { f: s.shieldHp ?? 0, x };
     case 'quantum':
       put('cd', s.cooldown); put('fuel', typeof s.fuelPerGm === 'number' ? s.fuelPerGm * 1000 : undefined);
       // Beschleunigung in Mm/s² wie die Geschwindigkeit in Mm/s
       put('a1', typeof s.stageOneAccel === 'number' ? s.stageOneAccel / 1e6 : undefined);
       put('a2', typeof s.stageTwoAccel === 'number' ? s.stageTwoAccel / 1e6 : undefined);
+      put('spool', s.spoolTime);
       return { f: s.driveSpeed ? Math.round(s.driveSpeed / 1e6) : 0, x };
     case 'radar': return { f: s.sensitivity ?? 0, x };
   }

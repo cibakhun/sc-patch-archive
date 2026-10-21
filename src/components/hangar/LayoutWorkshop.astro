@@ -35,6 +35,8 @@ const LAYOUT_MSG: LayoutKey[] = [
   'dt.t', 'win.part', 'win.value', 'win.diff', 'win.pickHint', 'tot.fire', 'tot.alpha', 'tot.split', 'tot.ord', 'tot.ordn', 'tot.shield', 'tot.regen', 'tot.power', 'tot.cool', 'tot.qt',
   'sp.alpha', 'sp.rate', 'sp.mag', 'sp.empty', 'sp.hp', 'sp.blast', 'sp.arm', 'sp.ign', 'sp.life', 'sp.trk', 'sp.regen', 'sp.full',
   'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.a1', 'sp.a2', 'sp.price', 'u.rpm', 'u.shots',
+  'sp.speed', 'sp.range', 'sp.spread', 'sp.heat', 'sp.hot', 'sp.cps', 'sp.ovf', 'sp.chg', 'sp.chr', 'sp.chd',
+  'sp.mspeed', 'sp.lkR', 'sp.lkT', 'sp.lkA', 'sp.res', 'sp.abs', 'sp.spool', 'sp.pw', 'sp.em', 'sp.ir',
 ];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
@@ -280,7 +282,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgw-pickbar h4{margin:0;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--hg-amber)}
 .hgw-pickbar .hgl-q{flex:1 1 12rem;max-width:22rem}
 .hgw-hint{margin:-.3rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
-.hgw-miss{margin:.4rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
 .hgw-scroll{overflow-x:auto;border:1px solid var(--hg-hair);border-radius:10px}
 .hgw-opts{max-height:min(30rem,55dvh);overflow:auto}
 .hgw-t{width:100%;border-collapse:collapse;font-size:var(--fs-6)}
@@ -427,7 +428,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <nav class="hgw-slots" id="hgw-slots" aria-label={l('win.slots')}></nav>
         <div class="hgw-main" id="hgw-main"></div>
       </div>
-      <p class="hgw-miss">{l('tot.missing')}</p>
     </div>
   </dialog>
   <div id="hgl-msg" hidden>
