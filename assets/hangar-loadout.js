@@ -387,20 +387,21 @@ function compareTable(slot, a, b, headA, headB) {
     const rel = both && d ? Math.min(Math.abs(d) / nb, 1) : 0;
     const node = el('div', { class: `lo-dv__r${d ? (good ? ' is-up' : ' is-down') : ' is-same'}${i === 0 ? ' is-key' : ''}`, role: 'row', title: ex },
       el('span', { role: 'rowheader', class: 'lo-dv__l' }, label, unit && unit !== label ? el('small', {}, ` ${unit}`) : null),
-      el('b', { role: 'cell', class: 'is-num' }, va),
+      el('span', { role: 'cell', class: 'is-num lo-dv__b' }, vb),
       el('span', { role: 'cell', class: 'is-mid' },
         el('span', { class: `lo-dv__bar${d ? (good ? ' is-good' : ' is-bad') : ''}`, 'aria-hidden': 'true', style: `--r:${rel * 50}%` }),
         d ? deltaEl(d, lower, fmt) : null),
-      el('span', { role: 'cell', class: 'is-num lo-dv__b' }, vb));
+      el('b', { role: 'cell', class: 'is-num' }, va));
     return { node, d, key: i === 0 };
   });
   const top = built.filter((r) => r.key || r.d);
   const rest = built.filter((r) => !r.key && !r.d);
   const fold = top.length > 1 && rest.length > 0;
   const shown = fold && !cmpAll ? top : built;
-  return el('div', { class: 'lo-dv', role: 'table', 'aria-label': `${headA} / ${headB}` },
-    el('div', { class: 'lo-dv__r lo-dv__h', role: 'row' }, el('span', { role: 'columnheader' }, m('win.value')), el('span', { role: 'columnheader', class: 'is-num' }, headA),
-      el('span', { role: 'columnheader', class: 'is-mid' }, m('win.diff')), el('span', { role: 'columnheader', class: 'is-num' }, headB)),
+  return el('div', { class: 'lo-dv', role: 'table', 'aria-label': `${headB} / ${headA}` },
+    // Links das Alte (eingebaut bzw. Serie), rechts das Neue: gelesen wird von links nach rechts.
+    el('div', { class: 'lo-dv__r lo-dv__h', role: 'row' }, el('span', { role: 'columnheader' }, m('win.value')), el('span', { role: 'columnheader', class: 'is-num' }, headB),
+      el('span', { role: 'columnheader', class: 'is-mid' }, m('win.diff')), el('span', { role: 'columnheader', class: 'is-num' }, headA)),
     ...shown.map((r) => r.node),
     fold ? el('button', { type: 'button', class: 'lo-dv__more', 'data-cmpall': '1', 'aria-expanded': String(cmpAll) },
       cmpAll ? m('lo.less') : fill(m('lo.sameN'), { n: nf.format(rest.length) })) : null);
