@@ -21,7 +21,7 @@
    Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   SECHZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   SIEBZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -235,6 +235,28 @@
         Teile ueber KLINKE_RAND, Dreiecke, Materialien nach dem
         Zusammenlegen (Zeichenbefehle in jedem Bild) und Bytes unter
         OBERGRENZE_RAND.
+    17  Die Hallendeko steht in ihren Zonen (seit 21.10.2026): Die Halle
+        sollte heavy dekoriert werden, auch im Hintergrund (Betreiber
+        21.10.2026). WORK_DEKO im Viewer reiht je Zone (Fracht, Gas,
+        Munition, Werkstatt, Energie, Leitstand, Lager, Transport, …) Glieder
+        und Spuren um einen Bezugspunkt an einer Wand (DEKO_WAND), aus einem
+        Satz, den scripts/build-hangar-dienst.mjs deko packt; buildDeko laesst
+        still weg, was keinen Knoten hat oder im Grundriss auf Halle oder
+        Einrichtung stoesst. Geprueft: liegt der Satz bereit, gibt die Seite
+        ihn mit; Halle des Blocks die der Seite (sonst Zombie); jede Zone
+        mit Namen, Stufe (mittel, hoch), Wand, Bezugspunkt und Herkunft (ein
+        Arbeitsplatz oder eine Kategorie des Katalogs); Fingerabdruck,
+        Knoten, Katalog, Attributsaetze und Schichten wie in [14]; jedes
+        Stueck im Raum, keines im Feld samt Rand und WORK_EDGE, keine zwei
+        festen ineinander, Gestapeltes liegt auf einem Stueck seiner Zone
+        auf, und keines steht im Band des Grundrisses (WORK_BAND, Zellen
+        WORK_CELL, Regel wie floorGrid/freeRot) in Wand oder Einrichtung
+        aus Hallenstufe und Moebeldatei der Seite (Moebel auf den Streifen
+        umgesetzt wie shiftHallFloor, Teile ganz in einer Ausnahme aus
+        HALL_DROP weggelassen; die Moebel, die der Viewer vom Rand rueckt,
+        nicht nachgebildet). Zonen, Glieder, Gestapeltes, Spuren, Arten und
+        Schichten ueber KLINKE_DEKO und KLINKE_DEKO_SCHICHTEN, Materialien,
+        Dreiecke je Stufe und Bytes unter OBERGRENZE_DEKO.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -367,6 +389,20 @@ const OBERGRENZE_TOR = { tris: 30000, mats: 6, bytes: 2e6 };
 // Bodenleuchten). In Ruhe immer zu sehen, also knapp halten.
 const KLINKE_RAND = { teile: 42 };
 const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
+// Hallendeko ([17], seit 21.10.2026; Betreiber 21.10.2026: „wir dekorieren
+// mal bisschen das hangar, also nicht nur bisschen sondern heavy“): Zonen
+// (davon ab mittel), Glieder, gestapelte Glieder, Spuren und Arten des
+// Blocks; Materialien (Zeichenbefehle je Durchgang), Dreiecke je Stufe und
+// Bytes des Satzes. Stand beim Einbau: 21 Zonen (7 ab mittel), 224 Glieder
+// (44 gestapelt), 15 Spuren, 88 Arten; 109 Materialien, 377 334 / 1 041 825
+// Dreiecke (mittel / hoch), 7,77 MB. Gleiche Regel wie oben.
+const KLINKE_DEKO = { zonen: 21, mittel: 7, glieder: 224, gestapelt: 44, spuren: 15, arten: 88 };
+const OBERGRENZE_DEKO = { mats: 112, tris: { mittel: 400000, hoch: 1100000 }, bytes: 8e6 };
+// Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
+// 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
+// 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB.
+const KLINKE_DEKO_SCHICHTEN = { zeilen: 187, blend: 104, abnutzung: 84, detail: 50, normale: 51, karten: 55, ecken: 249000 };
+const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1000000 };
 const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
@@ -1285,6 +1321,73 @@ if (SHIFT && LIFT) {
 }
 sollIst(SHIFT ? `Feld danach in der Raummitte (x ${hall?.room?.center?.[0]}); vorher und nachher dieselbe Breite ohne Ueberlappung; je Hallenstufe 0 Dreiecke ueber den Feldenden, 0 stehenbleibende, 0 danach im Feld, je Streifen mindestens ${Array.isArray(SHIFT.min) ? SHIFT.min.join(' / ') : '?'}` : 'keine Verschiebung fuer diese Halle', shiftRuns.length ? `Feld bei x ${shiftCentre}; ${shiftRuns.map((r) => `${r.u}: ${r.moved.join(' / ')} umgesetzt, ${r.split} geteilt, ${r.edge} ueber den Enden, ${r.stuck} stehen, ${r.deep} im Feld`).join('; ')}` : '(nichts gemessen)');
 
+// Schichten eines Satzes (Wartungsplatz [14], Hallendeko [17]): Tafel im
+// Satz, Kartenraster daneben in dist/, jede Zeile ein LayerBlend-Material des
+// Katalogs mit genau seinen Karten. tag: Zusicherung, satz: Schluessel unter
+// asset.extras, was: wessen Schichten (fuer die Meldung), file/url: der Satz,
+// sch: seine Tafel, R: Zaehler, K/O: Klinke und Obergrenze (k/o ihre Namen),
+// pack: wie man neu packt
+async function pruefeSchichten({ tag, satz, was, file, url, sch, kat, R, K, O, k, o, pack }) {
+  if (!sch) fail(`${tag} ${url.split('?')[0]} traegt keine Schichttafel (asset.extras.${satz}.schichten): Die Requisiten stuenden wieder einfarbig in der Grundschicht. Neu packen: ${pack}`);
+  else {
+    const n = sch.namen?.length ?? 0, T = sch.texel ?? 0, cols = sch.spalten ?? 0;
+    const strip = join(DIST, 'hangar/props', sch.karten ?? '');
+    if (!sch.karten || !existsSync(strip)) fail(`${tag} Kartenraster ${sch.karten ?? '(ohne Namen)'} fehlt in dist/hangar/props/: Der Viewer faende die Blend-, Abnutzungs- und Detailkarten nicht`);
+    else {
+      const buf = readFileSync(strip), size = webpSize(buf);
+      R.bytes = buf.length;
+      if (sha8(buf) !== sch.sha) fail(`${tag} Kartenraster ${sch.karten} passt nicht zum Satz (Satz ${sch.sha}, Datei ${sha8(buf)}). Neu packen: ${pack}`);
+      const gw = sch.px * cols, gh = sch.px * Math.ceil(n / (cols || 1));
+      if (!size || !(cols > 0) || size[0] !== gw || size[1] !== gh) fail(`${tag} Kartenraster ${sch.karten} misst ${size ? size.join(' x ') : 'unlesbar'}, die Tafel erwartet ${gw} x ${gh} (${n} Karten zu ${cols} Spalten): Der Viewer lehnte es ab`);
+      if (R.bytes > O.bytes) fail(`${tag} Kartenraster wiegt ${(R.bytes / 1024).toFixed(0)} KB, die Obergrenze ist ${O.bytes / 1000} KB: ${o} nur per Commit mit Ursache anheben`);
+    }
+    R.karten = n;
+    const rows = sch.materialien ?? [];
+    // Muster wie im Build (Standardabweichung eines Kanals ueber MUSTER):
+    // Hat die erste Grundschicht eine Karte mit Muster, muss die Zeile sie tragen
+    const L1of = (km) => (km?.layers ?? []).filter((l) => /^BaseLayer\d/.test(l.name)).sort((a, b) => a.name.localeCompare(b.name))[0];
+    const muster = new Map();
+    if (rows.length * T * 4 === (sch.tafel?.length ?? -1)) for (const name of rows) {
+      const L1 = L1of(kat?.materials?.[name]);
+      for (const [f, ch] of [[L1?.maps?.d, 3], [L1?.maps?.n, 2]]) {
+        const file = f && join(DIST, 'hangar/props/schichten', f), key = `${f}|${ch}`;
+        if (file && !muster.has(key) && existsSync(file)) muster.set(key, (await sharp(file).stats()).channels.slice(0, ch).some((c) => c.stdev > MUSTER));
+      }
+    }
+    if ((sch.tafel?.length ?? -1) !== rows.length * T * 4 || T !== 11) fail(`${tag} Schichttafel mit ${sch.tafel?.length ?? 0} Werten fuer ${rows.length} Zeilen zu ${T} Texeln: Der Viewer laese verschobene Zeilen`);
+    else rows.forEach((name, i) => {
+      const km = kat?.materials?.[name], f = sch.tafel.slice((i * T + 8) * 4, (i * T + 9) * 4), [bi, , wi, ao] = f;
+      // Muster der ersten Grundschicht: Detail- und Normalenkarte genau ihre, mit ihrer Kachelung
+      const [di, ni, lt] = sch.tafel.slice((i * T + 9) * 4, (i * T + 10) * 4), dm = sch.tafel.slice((i * T + 10) * 4, (i * T + 10) * 4 + 3);
+      const L1 = L1of(km);
+      if (di >= n || ni >= n || (di >= 0 && sch.namen[di] !== L1?.maps?.d) || (ni >= 0 && sch.namen[ni] !== L1?.maps?.n) || (di < 0 && muster.get(`${L1?.maps?.d}|3`)) || (ni < 0 && muster.get(`${L1?.maps?.n}|2`)) || ((di >= 0 || ni >= 0) && lt !== (Number(L1?.uvTiling) || 1)) || (di >= 0 && !dm.every((v) => v > 0 && v <= 1))) fail(`${tag} Schichtzeile ${i + 1} (${name}): Detailkarte ${di >= 0 ? sch.namen[di] : 'keine'}, Normalenkarte ${ni >= 0 ? sch.namen[ni] : 'keine'}, Kachelung ${lt}, Mittel ${dm.join('/')}; die erste Grundschicht im Katalog hat ${L1?.maps?.d ?? 'keine'}${muster.get(`${L1?.maps?.d}|3`) ? ' (mit Muster)' : ''}, ${L1?.maps?.n ?? 'keine'}${muster.get(`${L1?.maps?.n}|2`) ? ' (mit Muster)' : ''}, ${L1?.uvTiling ?? '?'}`);
+      if (di >= 0) R.detail++;
+      if (ni >= 0) R.normale++;
+      const wear = km?.textures?.TexSlot11?.split('/').pop().replace(/\.(tif|dds|png)$/i, '.webp');
+      const wao = !!km?.mask?.includes('WEAR_DIRT_AO_VERTEX');
+      if (km?.shader !== 'LayerBlend_V2') fail(`${tag} Schichtzeile ${i + 1} (${name}) ist im Katalog kein LayerBlend-Material`);
+      else if (bi >= n || wi >= n || (bi >= 0 && sch.namen[bi] !== km.blendMap) || (wi >= 0 && (sch.namen[wi] !== wear || !wao)) || (bi < 0 && km.blendMap && existsSync(join(DIST, 'hangar/props/schichten', km.blendMap))) || ao !== (wao ? 1 : 0)) fail(`${tag} Schichtzeile ${i + 1} (${name}): Blend-Karte ${bi >= 0 ? sch.namen[bi] : 'keine'}, Abnutzung ${wi >= 0 ? sch.namen[wi] : 'keine'}, Verschattung ${ao}; der Katalog sagt ${km.blendMap ?? 'keine'}, ${wao ? wear : 'ohne Vertex-Abnutzung'}, ${wao ? 1 : 0}`);
+      R.zeilen++; if (bi >= 0) R.blend++; if (wi >= 0) R.abnutzung++;
+    });
+    // Zeilennummer je Ecke: draco quantisiert _SLOT; der Viewer rundet, also
+    // hoechstens eine Viertelzeile daneben und keine Zeile hinter der Tafel
+    const flatPrims = (await decode(file)).getRoot().listMeshes().flatMap((me) => me.listPrimitives()).filter((p) => p.getMaterial()?.getName() === 'dienst_flach');
+    let off = 0, worst = 0, past = 0;
+    for (const p of flatPrims) {
+      const s = p.getAttribute('_SLOT');
+      for (let i = 0; i < (s?.getCount() ?? 0); i++) {
+        const v = s.getScalar(i), d = Math.abs(v - Math.round(v));
+        if (Math.round(v) > 0) R.ecken++;
+        worst = Math.max(worst, d);
+        if (d > 0.25) off++;
+        if (Math.round(v) < 0 || Math.round(v) > rows.length) past++;
+      }
+    }
+    if (off || past) fail(`${tag} ${off} Ecken von dienst_flach liegen mehr als eine Viertelzeile neben ihrer Schichtzeile (schlimmste ${worst.toFixed(3)}), ${past} zeigen hinter die Tafel (${rows.length} Zeilen): draco quantisiert _SLOT zu grob, quantizeGeneric in scripts/build-hangar-dienst.mjs anheben`);
+    for (const key of Object.keys(K)) if (R[key] < K[key]) fail(`${tag} die Schichten ${was} haben ${R[key]} ${key}, die Klinke verlangt ${K[key]}: Katalog und Kartenordner pruefen; ${k} nur per Commit mit Ursache senken`);
+  }
+}
+
 say('\n[14] Der Wartungsplatz am Schiff kommt mit, jedes Stueck hat seinen Knoten');
 const dm = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewer);
 let dienst = null;
@@ -1369,65 +1472,7 @@ if (DI && dienst) {
     }
     // Schichten: Tafel im Satz, Kartenstreifen daneben in dist/, jede Zeile
     // ein LayerBlend-Material des Katalogs mit genau seinen Karten
-    const sch = st?.schichten;
-    if (!sch) fail(`[14] ${DI.url.split('?')[0]} traegt keine Schichttafel (asset.extras.dienst.schichten): Die Requisiten stuenden wieder einfarbig in der Grundschicht. Neu packen: node scripts/build-hangar-dienst.mjs`);
-    else {
-      const R = dienstRun.schichten, n = sch.namen?.length ?? 0, T = sch.texel ?? 0, cols = sch.spalten ?? 0;
-      const strip = join(DIST, 'hangar/props', sch.karten ?? '');
-      if (!sch.karten || !existsSync(strip)) fail(`[14] Kartenraster ${sch.karten ?? '(ohne Namen)'} fehlt in dist/hangar/props/: Der Viewer faende die Blend-, Abnutzungs- und Detailkarten nicht`);
-      else {
-        const buf = readFileSync(strip), size = webpSize(buf);
-        R.bytes = buf.length;
-        if (sha8(buf) !== sch.sha) fail(`[14] Kartenraster ${sch.karten} passt nicht zum Satz (Satz ${sch.sha}, Datei ${sha8(buf)}). Neu packen: node scripts/build-hangar-dienst.mjs`);
-        const gw = sch.px * cols, gh = sch.px * Math.ceil(n / (cols || 1));
-        if (!size || !(cols > 0) || size[0] !== gw || size[1] !== gh) fail(`[14] Kartenraster ${sch.karten} misst ${size ? size.join(' x ') : 'unlesbar'}, die Tafel erwartet ${gw} x ${gh} (${n} Karten zu ${cols} Spalten): Der Viewer lehnte es ab`);
-        if (R.bytes > OBERGRENZE_SCHICHTEN.bytes) fail(`[14] Kartenraster wiegt ${(R.bytes / 1024).toFixed(0)} KB, die Obergrenze ist ${OBERGRENZE_SCHICHTEN.bytes / 1000} KB: OBERGRENZE_SCHICHTEN nur per Commit mit Ursache anheben`);
-      }
-      R.karten = n;
-      const rows = sch.materialien ?? [];
-      // Muster wie im Build (Standardabweichung eines Kanals ueber MUSTER):
-      // Hat die erste Grundschicht eine Karte mit Muster, muss die Zeile sie tragen
-      const L1of = (km) => (km?.layers ?? []).filter((l) => /^BaseLayer\d/.test(l.name)).sort((a, b) => a.name.localeCompare(b.name))[0];
-      const muster = new Map();
-      if (rows.length * T * 4 === (sch.tafel?.length ?? -1)) for (const name of rows) {
-        const L1 = L1of(kat?.materials?.[name]);
-        for (const [f, ch] of [[L1?.maps?.d, 3], [L1?.maps?.n, 2]]) {
-          const file = f && join(DIST, 'hangar/props/schichten', f), key = `${f}|${ch}`;
-          if (file && !muster.has(key) && existsSync(file)) muster.set(key, (await sharp(file).stats()).channels.slice(0, ch).some((c) => c.stdev > MUSTER));
-        }
-      }
-      if ((sch.tafel?.length ?? -1) !== rows.length * T * 4 || T !== 11) fail(`[14] Schichttafel mit ${sch.tafel?.length ?? 0} Werten fuer ${rows.length} Zeilen zu ${T} Texeln: Der Viewer laese verschobene Zeilen`);
-      else rows.forEach((name, i) => {
-        const km = kat?.materials?.[name], f = sch.tafel.slice((i * T + 8) * 4, (i * T + 9) * 4), [bi, , wi, ao] = f;
-        // Muster der ersten Grundschicht: Detail- und Normalenkarte genau ihre, mit ihrer Kachelung
-        const [di, ni, lt] = sch.tafel.slice((i * T + 9) * 4, (i * T + 10) * 4), dm = sch.tafel.slice((i * T + 10) * 4, (i * T + 10) * 4 + 3);
-        const L1 = L1of(km);
-        if (di >= n || ni >= n || (di >= 0 && sch.namen[di] !== L1?.maps?.d) || (ni >= 0 && sch.namen[ni] !== L1?.maps?.n) || (di < 0 && muster.get(`${L1?.maps?.d}|3`)) || (ni < 0 && muster.get(`${L1?.maps?.n}|2`)) || ((di >= 0 || ni >= 0) && lt !== (Number(L1?.uvTiling) || 1)) || (di >= 0 && !dm.every((v) => v > 0 && v <= 1))) fail(`[14] Schichtzeile ${i + 1} (${name}): Detailkarte ${di >= 0 ? sch.namen[di] : 'keine'}, Normalenkarte ${ni >= 0 ? sch.namen[ni] : 'keine'}, Kachelung ${lt}, Mittel ${dm.join('/')}; die erste Grundschicht im Katalog hat ${L1?.maps?.d ?? 'keine'}${muster.get(`${L1?.maps?.d}|3`) ? ' (mit Muster)' : ''}, ${L1?.maps?.n ?? 'keine'}${muster.get(`${L1?.maps?.n}|2`) ? ' (mit Muster)' : ''}, ${L1?.uvTiling ?? '?'}`);
-        if (di >= 0) R.detail++;
-        if (ni >= 0) R.normale++;
-        const wear = km?.textures?.TexSlot11?.split('/').pop().replace(/\.(tif|dds|png)$/i, '.webp');
-        const wao = !!km?.mask?.includes('WEAR_DIRT_AO_VERTEX');
-        if (km?.shader !== 'LayerBlend_V2') fail(`[14] Schichtzeile ${i + 1} (${name}) ist im Katalog kein LayerBlend-Material`);
-        else if (bi >= n || wi >= n || (bi >= 0 && sch.namen[bi] !== km.blendMap) || (wi >= 0 && (sch.namen[wi] !== wear || !wao)) || (bi < 0 && km.blendMap && existsSync(join(DIST, 'hangar/props/schichten', km.blendMap))) || ao !== (wao ? 1 : 0)) fail(`[14] Schichtzeile ${i + 1} (${name}): Blend-Karte ${bi >= 0 ? sch.namen[bi] : 'keine'}, Abnutzung ${wi >= 0 ? sch.namen[wi] : 'keine'}, Verschattung ${ao}; der Katalog sagt ${km.blendMap ?? 'keine'}, ${wao ? wear : 'ohne Vertex-Abnutzung'}, ${wao ? 1 : 0}`);
-        R.zeilen++; if (bi >= 0) R.blend++; if (wi >= 0) R.abnutzung++;
-      });
-      // Zeilennummer je Ecke: draco quantisiert _SLOT; der Viewer rundet, also
-      // hoechstens eine Viertelzeile daneben und keine Zeile hinter der Tafel
-      const flatPrims = (await decode(file)).getRoot().listMeshes().flatMap((me) => me.listPrimitives()).filter((p) => p.getMaterial()?.getName() === 'dienst_flach');
-      let off = 0, worst = 0, past = 0;
-      for (const p of flatPrims) {
-        const s = p.getAttribute('_SLOT');
-        for (let i = 0; i < (s?.getCount() ?? 0); i++) {
-          const v = s.getScalar(i), d = Math.abs(v - Math.round(v));
-          if (Math.round(v) > 0) R.ecken++;
-          worst = Math.max(worst, d);
-          if (d > 0.25) off++;
-          if (Math.round(v) < 0 || Math.round(v) > rows.length) past++;
-        }
-      }
-      if (off || past) fail(`[14] ${off} Ecken von dienst_flach liegen mehr als eine Viertelzeile neben ihrer Schichtzeile (schlimmste ${worst.toFixed(3)}), ${past} zeigen hinter die Tafel (${rows.length} Zeilen): draco quantisiert _SLOT zu grob, quantizeGeneric in scripts/build-hangar-dienst.mjs anheben`);
-      for (const k of Object.keys(KLINKE_SCHICHTEN)) if (R[k] < KLINKE_SCHICHTEN[k]) fail(`[14] die Schichten des Wartungsplatzes haben ${R[k]} ${k}, die Klinke verlangt ${KLINKE_SCHICHTEN[k]}: Katalog v2 und Kartenordner pruefen; KLINKE_SCHICHTEN nur per Commit mit Ursache senken`);
-    }
+    await pruefeSchichten({ tag: '[14]', satz: 'dienst', was: 'des Wartungsplatzes', file, url: DI.url, sch: st?.schichten, kat, R: dienstRun.schichten, K: KLINKE_SCHICHTEN, O: OBERGRENZE_SCHICHTEN, k: 'KLINKE_SCHICHTEN', o: 'OBERGRENZE_SCHICHTEN', pack: 'node scripts/build-hangar-dienst.mjs' });
     const unindexed = (j?.meshes ?? []).flatMap((me) => me.primitives).filter((pr) => pr.indices == null).length;
     if (unindexed) fail(`[14] ${unindexed} Teile des Geraetesatzes ohne Index: Ein BatchedMesh braucht sie alle mit oder alle ohne`);
     // Dreiecke je Knoten (wie oft er steht) und Lage der Leitungen
@@ -1766,8 +1811,248 @@ if (randWant) {
 }
 sollIst(randWant ? `Rand in dist/ wie im Manifest; jede Seite mit Stegen von 0 bis zur Laenge, ohne Luecke und Ueberlappung, buendig mit dem Boden; Ecken, Leuchten und Schriftzug im Rand; Materialien wie im Schacht mit denselben Karten; mindestens ${KLINKE_RAND.teile} Teile; hoechstens ${OBERGRENZE_RAND.tris} Dreiecke, ${OBERGRENZE_RAND.mats} Materialien, ${OBERGRENZE_RAND.bytes / 1e6} MB` : 'kein Rand fuer diese Halle', randWant ? `${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.zwillinge} Materialien mit Schachtkarten verglichen; ${randRun.tris} Dreiecke, ${randRun.mats} Materialien, ${(randRun.bytes / 1e6).toFixed(2)} MB` : '(nichts gemessen)');
 
+say('\n[17] Die Hallendeko steht in ihren Zonen: frei von Wand, Feld und einander, jedes Stueck mit Knoten');
+// Block /* work-deko */ … /* /work-deko */ im Viewer (JSON), wie buildDeko
+const kdm = /\/\* work-deko \*\/([\s\S]*?)\/\* \/work-deko \*\//.exec(viewer);
+let dekoBlock = null;
+try { dekoBlock = kdm ? JSON.parse(kdm[1]) : null; } catch (e) { fail(`[17] WORK_DEKO im Viewer ist kein JSON mehr (${e.message})`); }
+const DK = W?.deko ?? null;
+const dekoRun = { zonen: 0, mittel: 0, glieder: 0, spuren: 0, gestapelt: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+if (W && !DK && existsSync(join(ROOT, 'public/hangar/props/deko.glb'))) fail('[17] public/hangar/props/deko.glb liegt bereit, die Seite gibt die Hallendeko nicht mit (opts.hall.workshop.deko): Die Halle stuende still leer. HangarApp.astro pruefen');
+if (DK && !kdm) fail('[17] die Seite gibt die Hallendeko mit, der Viewer traegt keinen Block /* work-deko */ … /* /work-deko */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+for (const k of Object.keys(KLINKE_DEKO).filter(() => !DK)) fail(`[17] KLINKE_DEKO.${k}: die Seite gibt keine Hallendeko mehr mit; den Eintrag hier per Commit mit Ursache entfernen`);
+if (DK && dekoBlock) {
+  const PACK = 'node scripts/build-hangar-dienst.mjs deko';
+  // Wandseiten (Grad), Raster und Band des Grundrisses wie im Viewer
+  const num = (re) => { const m = re.exec(viewer); return m ? JSON.parse(m[1]) : null; };
+  let WAND = null;
+  try { const m = /const DEKO_WAND = (\{[^}]*\});/.exec(viewer); WAND = m ? JSON.parse(m[1].replace(/(\w+):/g, '"$1":')) : null; } catch { WAND = null; }
+  const CELL = num(/const WORK_CELL = ([\d.]+);/), BAND = num(/const WORK_BAND = (\[[\d., ]+\]);/), EDGE = num(/const WORK_EDGE = ([\d.]+);/);
+  if (!WAND || !Object.values(WAND).every(Number.isFinite)) fail('[17] der Viewer traegt DEKO_WAND nicht mehr als { Seite: Grad } — umbenannt? Dann dieses Tor mitnehmen');
+  if (!(CELL > 0 && BAND?.length === 2 && EDGE >= 0)) fail('[17] WORK_CELL, WORK_BAND oder WORK_EDGE stehen nicht mehr im Viewer — umbenannt? Dann dieses Tor mitnehmen');
+  let kat = null;
+  try { kat = JSON.parse(readFileSync(join(DIST, 'hangar/props/katalog.json'), 'utf8')); } catch (e) { fail(`[17] dist/hangar/props/katalog.json ist nicht lesbar (${e.message})`); }
+  // Der Block: Halle, Zonen mit Stufe, Herkunft (Arbeitsplatz oder Kategorie
+  // des Katalogs), Wand, Bezugspunkt, Glieder und Spuren
+  if (dekoBlock.halle !== hall?.id) fail(`[17] WORK_DEKO.halle ist ${dekoBlock.halle}, die Seite laedt ${hall?.id ?? 'keine Halle'}: Der Viewer stellte die Deko nicht auf (Zombie). Block auf die Halle der Seite umstellen oder entfernen`);
+  const aus = new Set([...(kat?.arbeitsplaetze ?? []).map((a) => a.name), ...Object.keys(kat?.kategorien ?? {})]);
+  const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
+  const names = new Set(), props = new Set(), decals = new Set();
+  const zones = Array.isArray(dekoBlock.zonen) ? dekoBlock.zonen : [];
+  if (!zones.length) fail('[17] WORK_DEKO traegt keine Zonen');
+  for (const z of zones) {
+    if (typeof z.name !== 'string' || names.has(z.name)) fail(`[17] WORK_DEKO: Zone ohne oder mit doppeltem Namen (${z.name})`);
+    names.add(z.name);
+    if (!['mittel', 'hoch'].includes(z.stufe)) fail(`[17] WORK_DEKO ${z.name}: stufe ${z.stufe} ist weder mittel noch hoch; buildDeko stellte sie nie oder auch auf niedrig`);
+    if (!(WAND && z.wand in WAND) || !pair(z.at)) fail(`[17] WORK_DEKO ${z.name}: wand ${z.wand} (eine von ${WAND ? Object.keys(WAND).join(', ') : '?'}) und at [x, z] im Modellraum noetig`);
+    if (kat && !aus.has(z.aus)) fail(`[17] WORK_DEKO ${z.name}: aus „${z.aus}“ ist weder ein Arbeitsplatz noch eine Kategorie des Katalogs: Woher die Zusammenstellung kommt, ist nicht belegt`);
+    if (!(z.glieder?.length)) fail(`[17] WORK_DEKO ${z.name}: Zone ohne Glieder`);
+    for (const g of z.glieder ?? []) {
+      if (!(typeof g[0] === 'string' && g.length >= 3 && g.length <= 5 && g.slice(1).every(Number.isFinite) && (g[4] ?? 0) >= 0)) fail(`[17] WORK_DEKO ${z.name}: Glied ${JSON.stringify(g)} braucht [Knoten, x, z, Drehung, Hoehe ab 0]`);
+      else props.add(g[0]);
+    }
+    for (const sp of z.spuren ?? []) {
+      if (!(typeof sp[0] === 'string' && sp.length >= 4 && sp.length <= 5 && sp.slice(1).every(Number.isFinite) && sp[3] > 0 && sp[3] <= 4)) fail(`[17] WORK_DEKO ${z.name}: Spur ${JSON.stringify(sp)} braucht [Knoten, x, z, Kante (m, bis 4), Drehung]`);
+      else decals.add(sp[0]);
+    }
+  }
+  const file = fromUrl(DK.url);
+  if (!existsSync(file)) fail(`[17] ${DK.url.split('?')[0]} fehlt in dist/`);
+  else {
+    const j = glbJson(file);
+    dekoRun.bytes = readFileSync(file).length;
+    // Fingerabdruck: zum Block des ausgelieferten Viewers und zu den Quellen in dist/ (wie [14])
+    const st = j?.asset?.extras?.deko;
+    const stale = [];
+    if (!st?.block || st.block !== sha8(kdm[1].trim())) stale.push(`Block (Satz ${st?.block ?? 'ohne'}, Viewer ${sha8(kdm[1].trim())})`);
+    const want = new Set(['public/hangar/props/katalog.json']);
+    for (const q of kat?.props ?? []) if (props.has(q.node) && q.file) want.add(`public${q.file.split('?')[0]}`);
+    if (decals.size && W?.boden?.url) want.add(`public${W.boden.url.split('?')[0]}`);
+    for (const rel of want) if (!(rel in (st?.quellen ?? {}))) stale.push(`${rel} fehlt im Fingerabdruck`);
+    for (const [rel, h] of Object.entries(st?.quellen ?? {})) {
+      const f = join(DIST, rel.replace(/^public\//, ''));
+      dekoRun.quellen++;
+      if (!existsSync(f)) stale.push(`${rel} fehlt in dist/`);
+      else if (sha8(readFileSync(f)) !== h) stale.push(rel);
+    }
+    if (!dekoRun.quellen) stale.push('keine Quellen im Fingerabdruck');
+    if (stale.length) fail(`[17] ${DK.url.split('?')[0]} passt nicht mehr: ${stale.join(', ')}. Neu packen: ${PACK}`);
+    // Knoten oben im Satz mit Geometrie, Requisiten im Katalog
+    const top = new Map((j?.scenes?.[j.scene ?? 0]?.nodes ?? []).map((i) => [j.nodes[i].name, j.nodes[i]]));
+    const lost = [...props, ...decals].filter((n) => !top.has(n) || !(j.meshes?.[top.get(n).mesh]?.primitives?.length));
+    if (lost.length) fail(`[17] der Satz traegt ${lost.length} Knoten nicht oder ohne Geometrie, die WORK_DEKO nennt (${lost.slice(0, 3).join(', ')}): buildDeko liesse das Stueck still weg. Neu packen: ${PACK}`);
+    const inKat = new Set((kat?.props ?? []).map((q) => q.node));
+    const noKat = [...props].filter((n) => !inKat.has(n));
+    if (kat && noKat.length) fail(`[17] ${noKat.length} Requisiten der Hallendeko stehen nicht im Katalog (${noKat.slice(0, 3).join(', ')}): Ihre Bedeutung (wofuer, wo im Spiel) ist nicht belegt`);
+    dekoRun.arten = props.size;
+    // je Material ein Attributsatz mit Index (ein BatchedMesh je Material, kitParts)
+    const sigs = sigsByMat(j);
+    dekoRun.mats = sigs.size;
+    for (const [m, set] of sigs) {
+      const sig = [...set][0] ?? '';
+      if (set.size !== 1) fail(`[17] ${m} kommt im Satz der Hallendeko mit ${set.size} verschiedenen Attributsaetzen (${[...set].join(' | ')}): Der Viewer legt je Material ein BatchedMesh an und braeche die Deko ab`);
+      else if (m === 'dienst_flach' ? !['_TINT:VEC3', '_RM:VEC2', 'TEXCOORD_0:VEC2', '_SLOT:SCALAR', 'COLOR_0:VEC4'].every((a) => sig.includes(a)) : !sig.includes('TEXCOORD_0:VEC2')) fail(`[17] ${m}: Attributsatz ${sig} — dienst_flach braucht _TINT, _RM, TEXCOORD_0, _SLOT und COLOR_0, die uebrigen TEXCOORD_0 (kitParts brichte ab)`);
+    }
+    const unindexed = (j?.meshes ?? []).flatMap((me) => me.primitives).filter((pr) => pr.indices == null).length;
+    if (unindexed) fail(`[17] ${unindexed} Teile der Hallendeko ohne Index: Ein BatchedMesh braucht sie alle mit oder alle ohne`);
+    await pruefeSchichten({ tag: '[17]', satz: 'deko', was: 'der Hallendeko', file, url: DK.url, sch: st?.schichten, kat, R: dekoRun.schichten, K: KLINKE_DEKO_SCHICHTEN, O: OBERGRENZE_DEKO_SCHICHTEN, k: 'KLINKE_DEKO_SCHICHTEN', o: 'OBERGRENZE_DEKO_SCHICHTEN', pack: PACK });
+
+    // Lage: Masse je Knoten aus dem Satz (Huelle aller Teile, wie kitParts),
+    // Stuecke wie buildDeko im Modellraum bei Massstab 1. Groessere Hallen
+    // ruecken jedes Stueck in 1/k zu seinem Bezugspunkt an der Wand: weg
+    // vom Feld, im Raum.
+    const sizeOf = new Map();
+    for (const [n, nd] of top) {
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      let tris = 0;
+      for (const pr of j.meshes?.[nd.mesh]?.primitives ?? []) {
+        const pos = j.accessors?.[pr.attributes?.POSITION];
+        tris += (pr.indices != null ? j.accessors[pr.indices].count : pos?.count ?? 0) / 3;
+        for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], pos?.min?.[a] ?? Infinity); hi[a] = Math.max(hi[a], pos?.max?.[a] ?? -Infinity); }
+      }
+      sizeOf.set(n, { size: hi.map((v, a) => v - lo[a]), tris });
+    }
+    const D2R = Math.PI / 180, items = [];
+    for (const z of zones) {
+      if (!(WAND && z.wand in WAND) || !pair(z.at)) continue;
+      const th = WAND[z.wand] * D2R, c = Math.cos(th), s = Math.sin(th), [ax, az] = z.at;
+      const at = (x, q) => [ax + x * c + q * s, az - x * s + q * c];
+      dekoRun.zonen++;
+      if (z.stufe === 'mittel') dekoRun.mittel++;
+      for (const [node, x, q, r = 0, y = 0] of z.glieder ?? []) {
+        const e = sizeOf.get(node);
+        if (!e || !Number.isFinite(x + q + r + y)) continue;
+        items.push({ zone: z, node, kind: 'glied', c: at(x, q), a: th + r * D2R, y, top: y + e.size[1], hx: e.size[0] / 2, hz: e.size[2] / 2, tris: e.tris, local: [x, q] });
+        dekoRun.glieder++;
+        if (y > 0.05) dekoRun.gestapelt++;
+      }
+      for (const [node, x, q, edge, r = 0] of z.spuren ?? []) {
+        const e = sizeOf.get(node);
+        if (!e || !Number.isFinite(x + q + edge + r)) continue;
+        const sc = edge / Math.max(e.size[0], e.size[2], 1e-3);
+        items.push({ zone: z, node, kind: 'spur', c: at(x, q), a: th + r * D2R, y: 0, top: 0, hx: (e.size[0] * sc) / 2, hz: (e.size[2] * sc) / 2, tris: e.tris, local: [x, q] });
+        dekoRun.spuren++;
+      }
+    }
+    for (const it of items) { dekoRun.tris.hoch += it.tris; if (it.zone.stufe === 'mittel') dekoRun.tris.mittel += it.tris; }
+    const tag = (m) => `${m.zone.name} ${m.node.replace(/^(prop|decal)_/, '')} (${m.local.join(', ')})`;
+    const corners = (m) => [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => { const x = u * m.hx, q = v * m.hz; return [m.c[0] + x * Math.cos(m.a) + q * Math.sin(m.a), m.c[1] - x * Math.sin(m.a) + q * Math.cos(m.a)]; });
+    const inside = (m, px, pz, tol = 0) => { const dx = px - m.c[0], dz = pz - m.c[1], ca = Math.cos(m.a), sa = Math.sin(m.a); return Math.abs(dx * ca - dz * sa) <= m.hx + tol && Math.abs(dx * sa + dz * ca) <= m.hz + tol; };
+    // Trennachsen zweier Rechtecke: kleinste Ueberdeckung (<= 0: getrennt)
+    const overlap = (p, q) => {
+      const cp = corners(p), cq = corners(q);
+      let min = Infinity;
+      for (const a of [p.a, p.a + Math.PI / 2, q.a, q.a + Math.PI / 2]) {
+        const ux = Math.cos(a), uz = -Math.sin(a), pr = (cs) => cs.map(([x, z]) => x * ux + z * uz);
+        const pp = pr(cp), qq = pr(cq);
+        min = Math.min(min, Math.min(Math.max(...pp), Math.max(...qq)) - Math.max(Math.min(...pp), Math.min(...qq)));
+      }
+      return min;
+    };
+    // Raum, und frei von Feld, Rand und WORK_EDGE (Feld nach HALL_SHIFT)
+    const room = hall?.room, rx0 = room ? room.center[0] - room.halfW : 0, rz0 = room ? room.center[2] - room.halfL : 0;
+    const outside = items.filter((m) => !room || corners(m).some(([x, z]) => x < rx0 - 0.01 || x > rx0 + 2 * room.halfW + 0.01 || z < rz0 - 0.01 || z > rz0 + 2 * room.halfL + 0.01));
+    if (outside.length) fail(`[17] ${outside.length} Stuecke der Hallendeko ragen aus dem Raum der Halle (z. B. ${outside.slice(0, 3).map(tag).join('; ')}): at oder x/z in WORK_DEKO nachmessen`);
+    let onField = [];
+    if (LIFT && RAND && Number.isFinite(RAND.width)) {
+      const d = SHIFT?.field ?? 0, g = RAND.width + (EDGE ?? 1);
+      const F = { c: [(LIFT.from[0] + LIFT.to[0]) / 2 + d, (LIFT.from[1] + LIFT.to[1]) / 2], a: 0, hx: (LIFT.to[0] - LIFT.from[0]) / 2 + g, hz: (LIFT.to[1] - LIFT.from[1]) / 2 + g };
+      onField = items.filter((m) => overlap(m, F) > 0.01);
+      if (onField.length) fail(`[17] ${onField.length} Stuecke der Hallendeko liegen im Feld, auf dem Rand oder naeher als ${EDGE} m daran (z. B. ${onField.slice(0, 3).map(tag).join('; ')}): Dort faehrt das Schiff, die Werkstatt und die Crew brauchen den Weg`);
+    } else fail('[17] ohne Feld (HALL_LIFT) und Rand (HALL_RAND.width) laesst sich der Abstand der Deko zum Feld nicht pruefen');
+    // Keine zwei festen Stuecke ineinander (beide flach unter 0,35 m, etwa
+    // Schlauch auf Kabel, oder uebereinander ohne Hoehe gemeinsam: erlaubt)
+    const solid = items.filter((m) => m.kind === 'glied');
+    const clash = [];
+    for (let i = 0; i < solid.length; i++) for (let k = i + 1; k < solid.length; k++) {
+      const p = solid[i], q = solid[k];
+      if (Math.min(p.top, q.top) - Math.max(p.y, q.y) < 0.05) continue;
+      if (p.top - p.y < 0.35 && q.top - q.y < 0.35) continue;
+      const ov = overlap(p, q);
+      if (ov >= 0.02) clash.push(`${tag(p)} mit ${tag(q)} ${ov.toFixed(2)} m`);
+    }
+    if (clash.length) fail(`[17] ${clash.length} Stuecke der Hallendeko stecken ineinander (${clash.slice(0, 3).join('; ')}): x/z in WORK_DEKO nachziehen`);
+    // Gestapeltes liegt auf: ein Stueck derselben Zone endet auf seiner
+    // Hoehe, und seine Mitte steht darauf (bis 3 cm neben der Kante: auf der
+    // Fuge zweier Kisten)
+    const air = solid.filter((m) => m.y > 0.05 && !solid.some((q) => q !== m && q.zone === m.zone && Math.abs(q.top - m.y) < 0.06 && inside(q, ...m.c, 0.03)));
+    if (air.length) fail(`[17] ${air.length} Stuecke der Hallendeko schweben (z. B. ${air.slice(0, 3).map((m) => `${tag(m)} auf ${m.y} m`).join('; ')}): Darunter endet nichts derselben Zone auf dieser Hoehe`);
+    // Halle und Einrichtung im Band des Grundrisses (floorGrid): Hallenstufe
+    // der Seite und Moebeldatei, Moebel auf den Streifen umgesetzt wie
+    // shiftHallFloor, ohne Teile ganz in einer Ausnahme (HALL_DROP). Nicht
+    // nachgebildet: die Moebel, die der Viewer vom Rand rueckt (sie stehen
+    // am Feld, die Deko mindestens EDGE davor); dort laesst buildDeko ein
+    // getroffenes Stueck weg und meldet es.
+    const stageDoc = hall?.url ? stageDocs.get(hall.url.split('?')[0]) : null, furnDoc = hall?.furniture?.url ? extraDocs.get(hall.furniture.url.split('?')[0]) : null;
+    if (!stageDoc || !room || !Number.isFinite(hall?.floor) || !(CELL > 0 && BAND)) fail('[17] Hallenstufe, Raum oder Bodenhoehe der Seite fehlen ([3], [10]): Ohne sie laesst sich nicht pruefen, ob die Deko in Waenden steht');
+    else {
+      const nx = Math.ceil((2 * room.halfW) / CELL), nz = Math.ceil((2 * room.halfL) / CELL), cells = new Uint8Array(nx * nz);
+      const y0 = hall.floor + BAND[0], y1 = hall.floor + BAND[1];
+      const mark = (x, z) => { const i = Math.floor((x - rx0) / CELL), k = Math.floor((z - rz0) / CELL); if (i >= 0 && k >= 0 && i < nx && k < nz) cells[k * nx + i] = 1; };
+      const edgeMark = (ax, az, bx, bz) => { const n = Math.ceil(Math.hypot(bx - ax, bz - az) / (CELL * 0.5)) || 1; for (let s = 0; s <= n; s++) mark(ax + ((bx - ax) * s) / n, az + ((bz - az) * s) / n); };
+      const reach = entries.map((e) => e.reach).filter(box);
+      const dropped = (q) => reach.some(([lo, hi]) => q.every((v) => v.every((c, a) => c >= lo[a] && c <= hi[a])));
+      const strips = SHIFT && Array.isArray(SHIFT.strips) ? SHIFT.strips : [];
+      for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) {
+        const mesh = node.getMesh();
+        if (!mesh) continue;
+        let anchor = null;
+        for (let a = node; a && !anchor; a = a.getParentNode()) anchor = Array.isArray(a.getExtras()?.anchor) ? a.getExtras().anchor : null;
+        const st2 = anchor && SHIFT && anchor[2] >= SHIFT.z[0] && anchor[2] < SHIFT.z[1] ? strips.find(([a, b]) => anchor[0] >= a && anchor[0] < b) : null;
+        const dx = st2 ? st2[2] : 0, w = node.getWorldMatrix();
+        for (const p of mesh.listPrimitives()) {
+          const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
+          if (!P) continue;
+          const at = (i) => { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; return [w[0] * x + w[4] * y + w[8] * z + w[12] + dx, w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]]; };
+          const n = I ? I.length : P.length / 3;
+          for (let t = 0; t + 2 < n; t += 3) {
+            const q = [at(I ? I[t] : t), at(I ? I[t + 1] : t + 1), at(I ? I[t + 2] : t + 2)];
+            if (Math.max(q[0][1], q[1][1], q[2][1]) < y0 || Math.min(q[0][1], q[1][1], q[2][1]) > y1 || dropped(q)) continue;
+            dekoRun.band++;
+            const [[ax, , az], [bx, , bz], [cx, , cz]] = q;
+            edgeMark(ax, az, bx, bz); edgeMark(bx, bz, cx, cz); edgeMark(cx, cz, ax, az);
+            const dd = (bx - ax) * (cz - az) - (cx - ax) * (bz - az);
+            if (Math.abs(dd) < CELL * CELL) continue;
+            const sg = Math.sign(dd);
+            const i0 = Math.max(0, Math.floor((Math.min(ax, bx, cx) - rx0) / CELL)), i1 = Math.min(nx - 1, Math.floor((Math.max(ax, bx, cx) - rx0) / CELL));
+            const k0 = Math.max(0, Math.floor((Math.min(az, bz, cz) - rz0) / CELL)), k1 = Math.min(nz - 1, Math.floor((Math.max(az, bz, cz) - rz0) / CELL));
+            for (let k = k0; k <= k1; k++) {
+              const pz = rz0 + (k + 0.5) * CELL;
+              for (let i = i0; i <= i1; i++) {
+                const px = rx0 + (i + 0.5) * CELL;
+                if (sg * ((bx - ax) * (pz - az) - (bz - az) * (px - ax)) >= 0 && sg * ((cx - bx) * (pz - bz) - (cz - bz) * (px - bx)) >= 0 && sg * ((ax - cx) * (pz - cz) - (az - cz) * (px - cx)) >= 0) cells[k * nx + i] = 1;
+              }
+            }
+          }
+        }
+      }
+      dekoRun.zellen = cells.length;
+      for (const v of cells) dekoRun.belegt += v;
+      // wie freeRot: belegt, wenn eine Zellmitte im gedrehten Grundriss liegt
+      const walled = [];
+      for (const m of solid) {
+        if (!(m.y < BAND[1] && m.top > BAND[0])) continue;
+        dekoRun.geprueft++;
+        const cs = corners(m), xs = cs.map((v) => v[0]), zs = cs.map((v) => v[1]);
+        let hit = 0;
+        for (let k = Math.max(0, Math.floor((Math.min(...zs) - rz0) / CELL)); k <= Math.min(nz - 1, Math.floor((Math.max(...zs) - rz0) / CELL)); k++) {
+          for (let i = Math.max(0, Math.floor((Math.min(...xs) - rx0) / CELL)); i <= Math.min(nx - 1, Math.floor((Math.max(...xs) - rx0) / CELL)); i++) if (cells[k * nx + i] && inside(m, rx0 + (i + 0.5) * CELL, rz0 + (k + 0.5) * CELL)) hit++;
+        }
+        if (hit) walled.push(`${tag(m)} ${hit} Zellen`);
+      }
+      if (walled.length) fail(`[17] ${walled.length} Stuecke der Hallendeko stehen in Wand oder Einrichtung der Halle (${walled.slice(0, 3).join('; ')}): buildDeko liesse sie still weg. x/z in WORK_DEKO nachziehen`);
+    }
+    const K = KLINKE_DEKO, O = OBERGRENZE_DEKO;
+    for (const k of Object.keys(K)) if (dekoRun[k] < K[k]) fail(`[17] die Hallendeko hat ${dekoRun[k]} ${k}, die Klinke verlangt ${K[k]}: KLINKE_DEKO nur per Commit mit Ursache senken`);
+    if (dekoRun.mats > O.mats) fail(`[17] der Satz der Hallendeko traegt ${dekoRun.mats} Materialien, die Obergrenze ist ${O.mats}: je Material ein Zeichenbefehl in jedem Durchgang; OBERGRENZE_DEKO nur per Commit mit Ursache anheben`);
+    for (const s of ['mittel', 'hoch']) if (dekoRun.tris[s] > O.tris[s]) fail(`[17] bei ${s} zeichnet die Hallendeko ${Math.round(dekoRun.tris[s])} Dreiecke, die Obergrenze ist ${O.tris[s]}: OBERGRENZE_DEKO nur per Commit mit Ursache anheben`);
+    if (dekoRun.bytes > O.bytes) fail(`[17] der Satz der Hallendeko wiegt ${(dekoRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
+  }
+}
+sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend oder in Wand und Einrichtung; mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band), ${dekoRun.geprueft} Stuecke darin geprueft` : '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

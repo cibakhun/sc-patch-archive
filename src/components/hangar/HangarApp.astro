@@ -117,8 +117,11 @@ const workJson = workAsset?.json ? `public${workAsset.json}` : '';
 // Asset-Build neu schreibt).
 const dienstFile = 'public/hangar/props/dienst.glb';
 const dienst = existsSync(dienstFile) ? { url: `/hangar/props/dienst.glb?v=${contentV([dienstFile])}`, bytes: statSync(dienstFile).size } : null;
+// Und der Satz der Hallendeko (Zonen an Wänden und Stirnseiten, derselbe Packer: build-hangar-dienst.mjs deko)
+const dekoFile = 'public/hangar/props/deko.glb';
+const deko = existsSync(dekoFile) ? { url: `/hangar/props/deko.glb?v=${contentV([dekoFile])}`, bytes: statSync(dekoFile).size } : null;
 const workshop = workAsset && workJson && existsSync(workJson)
-  ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null, dienst }
+  ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null, dienst, deko }
   : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite

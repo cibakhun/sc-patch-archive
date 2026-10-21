@@ -40,6 +40,19 @@
 // Selbstauskunft: Requisiten, Dreiecke, Materialien (flach und eigene), Bytes.
 // Die Datei trägt in asset.extras.dienst den Fingerabdruck des Blocks und
 // ihrer Quellen; verify:hangar-hall [14] reißt, wenn sie nicht dazu passt.
+//
+// Hallendeko (21.10.2026). Krisz: die ganze Halle „heavy“ dekorieren, mit
+// Bedeutung platziert. Die Zonen an Wänden und Stirnseiten stehen im Block
+// /* work-deko */ des Viewers; derselbe Packer macht daraus einen eigenen
+// Satz, gleich gebaut (dienst_flach, Schichttafel, Kartenraster):
+//
+//   node scripts/build-hangar-dienst.mjs deko
+//
+// -> public/hangar/props/deko.glb und deko-schichten.webp, Fingerabdruck in
+// asset.extras.deko; verify:hangar-hall [17] prüft ihn. Eigene Datei statt
+// eines größeren Wartungsplatz-Satzes: Der Wartungsplatz fährt je Schiff mit
+// dem Aufzug, die Deko steht fest in der Halle, und jeder Satz hat seine
+// eigenen Grenzen im Tor.
 
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP } from '@gltf-transform/extensions';
@@ -55,10 +68,8 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const VIEWER = `${ROOT}assets/hangar-viewer.js`;
 const KATALOG = `${ROOT}public/hangar/props/katalog.json`;
 const BODEN = `${ROOT}public/hangar/hall/werkstatt-boden.glb`;
-const OUT = `${ROOT}public/hangar/props/dienst.glb`;
 const FLAT = 'dienst_flach';
 const SCHICHTEN = `${ROOT}public/hangar/props/schichten/`;
-const KARTEN = `${ROOT}public/hangar/props/dienst-schichten.webp`;
 export const KARTE_PX = 256;
 export const KARTEN_SPALTEN = 8;
 // Texel je Zeile der Schichttafel: 0..3 Grundschicht 1..4 (rgb linear, a Metall),
@@ -70,12 +81,14 @@ export const TAFEL_TEXEL = 11;
 // Kanäle r, g (Normalenkarte) über 4 von 255
 export const MUSTER = 4;
 
-/** Block /* work-dienst *\/ aus dem Viewer, als Text (Fingerabdruck) und JSON. */
-export function readDienst(viewerText) {
-  const m = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewerText);
+/** Block /* work-<name> *\/ aus dem Viewer, als Text (Fingerabdruck) und JSON. */
+export function readBlock(viewerText, name) {
+  const m = new RegExp(`/\\* work-${name} \\*/([\\s\\S]*?)/\\* /work-${name} \\*/`).exec(viewerText);
   if (!m) return null;
   return { text: m[1].trim(), block: JSON.parse(m[1]) };
 }
+export const readDienst = (viewerText) => readBlock(viewerText, 'dienst');
+export const readDeko = (viewerText) => readBlock(viewerText, 'deko');
 
 /** Knoten, die der Block nennt: Requisiten (prop_*) und Spuren (decal_*). */
 export function dienstNodes(block) {
@@ -85,6 +98,26 @@ export function dienstNodes(block) {
   for (const [n] of block.spuren ?? []) decals.add(n);
   return { props: [...props], decals: [...decals] };
 }
+
+/** Knoten der Hallendeko: Glieder der Zonen (prop_*) und ihre Spuren (decal_*). */
+export function dekoNodes(block) {
+  const props = new Set(), decals = new Set();
+  for (const z of block.zonen ?? []) {
+    for (const [n] of z.glieder ?? []) props.add(n);
+    for (const [n] of z.spuren ?? []) decals.add(n);
+  }
+  return { props: [...props], decals: [...decals] };
+}
+
+// Bilder der Hallendeko höchstens so groß (px, längere Kante): Sie steht an
+// den Wänden, meist 15 bis 40 m von der Kamera; volle Bilder wogen 6,3 von
+// 9,3 MB des Satzes (die Leiter allein 0,9 MB)
+export const DEKO_TEX = 512;
+// Die Sätze: Block im Viewer, Knoten daraus, Ausgabe und Schlüssel in asset.extras
+export const SAETZE = {
+  dienst: { read: readDienst, nodes: dienstNodes, out: `${ROOT}public/hangar/props/dienst.glb`, karten: `${ROOT}public/hangar/props/dienst-schichten.webp`, name: 'Gerätesatz' },
+  deko: { read: readDeko, nodes: dekoNodes, out: `${ROOT}public/hangar/props/deko.glb`, karten: `${ROOT}public/hangar/props/deko-schichten.webp`, name: 'Hallendeko', maxTex: DEKO_TEX },
+};
 
 /** Fingerabdruck: Block, Katalog und jede Quelldatei (Text auf LF, lib/eol-sha.mjs). */
 export function dienstStamp(text, files) {
@@ -152,11 +185,14 @@ function isFlat(m) {
 }
 const isPom = (m) => m?.getAlphaMode() === 'BLEND' && /(^|_)pom(_|$)|decals?_pom/i.test(m.getName());
 
-async function main() {
+async function main(satz) {
+  const SZ = SAETZE[satz];
+  if (!SZ) throw new Error(`Satz ${satz} gibt es nicht (${Object.keys(SAETZE).join(', ')})`);
+  const OUT = SZ.out, KARTEN = SZ.karten;
   const viewer = readFileSync(VIEWER, 'utf8');
-  const D = readDienst(viewer);
-  if (!D) throw new Error('assets/hangar-viewer.js trägt keinen Block /* work-dienst */');
-  const want = dienstNodes(D.block);
+  const D = SZ.read(viewer);
+  if (!D) throw new Error(`assets/hangar-viewer.js trägt keinen Block /* work-${satz} */`);
+  const want = SZ.nodes(D.block);
   const kat = JSON.parse(readFileSync(KATALOG, 'utf8'));
   const byNode = new Map(kat.props.map((p) => [p.node, p]));
   const files = new Set([BODEN]);
@@ -173,7 +209,7 @@ async function main() {
   const doc = new Document();
   for (const f of [...files].sort()) mergeDocuments(doc, await io.read(f));
   const root = doc.getRoot();
-  const scene = doc.createScene('dienst');
+  const scene = doc.createScene(satz);
   root.setDefaultScene(scene);
   const wanted = new Set([...want.props, ...want.decals]), kept = new Map();
   for (const s of root.listScenes()) {
@@ -294,6 +330,16 @@ async function main() {
   // keepAttributes: Glas ohne Bild (Gabelstapler, Frachtwagen) behält seine
   // Null-Koordinaten, sonst hätte sein Material einen anderen Attributsatz
   await doc.transform(prune({ keepAttributes: true }), dedup(), unpartition());
+  // Bilder verkleinern (maxTex), als WebP wie die Quellen
+  let shrunk = 0;
+  if (SZ.maxTex) for (const t of root.listTextures()) {
+    const img = t.getImage();
+    if (!img) continue;
+    const meta = await sharp(Buffer.from(img)).metadata();
+    if (Math.max(meta.width, meta.height) <= SZ.maxTex) continue;
+    t.setImage(new Uint8Array(await sharp(Buffer.from(img)).resize(SZ.maxTex, SZ.maxTex, { fit: 'inside' }).webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer())).setMimeType('image/webp');
+    shrunk++;
+  }
   for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) normalizeUvIslands(p, 'TEXCOORD_0');
   const uvBits = texcoordBits(root, 'TEXCOORD_0');
   await doc.transform(draco({ method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits, quantizePosition: 14, quantizeGeneric: 10 }));
@@ -317,17 +363,17 @@ async function main() {
   if (strip) writeFileSync(KARTEN, strip);
   const stamp = dienstStamp(D.text, [KATALOG, ...[...files].sort(), ...maps.map((n) => SCHICHTEN + n)]);
   if (strip) stamp.schichten = { karten: KARTEN.split('/').pop(), sha: sha(strip), px: KARTE_PX, spalten: cols, namen: maps, texel: TAFEL_TEXEL, materialien: rows.slice(1).map((r) => r.name), tafel };
-  root.getAsset().extras = { dienst: stamp };
+  root.getAsset().extras = { [satz]: stamp };
   await io.write(OUT, doc);
 
   const bytes = statSync(OUT).size, mats = root.listMaterials().length;
   const T = report.reduce((s, r) => s + r[1], 0);
-  console.log(`Gerätesatz ${OUT.replace(ROOT, '')}: ${want.props.length} Requisiten, ${want.decals.length} Spuren, ${Math.round(T)} Dreiecke, ${mats} Materialien (${FLAT} aus ${flatMats.size} flachen, ${mats - 1} eigene), ${dropped} POM-Teile weg, ${(bytes / 1048576).toFixed(2)} MB`);
+  console.log(`${SZ.name} ${OUT.replace(ROOT, '')}: ${want.props.length} Requisiten, ${want.decals.length} Spuren, ${Math.round(T)} Dreiecke, ${mats} Materialien (${FLAT} aus ${flatMats.size} flachen, ${mats - 1} eigene), ${dropped} POM-Teile weg, ${(bytes / 1048576).toFixed(2)} MB`);
   for (const [n, t, k] of report) console.log(`  ${n.padEnd(52)} ${String(Math.round(t)).padStart(6)} Dreiecke  ${k} Teile`);
   console.log(`  eigene Materialien: ${root.listMaterials().map((m) => m.getName()).filter((n) => n !== FLAT).join(', ')}`);
-  console.log(`  Fingerabdruck: Block ${stamp.block}, ${Object.keys(stamp.quellen).length} Quellen`);
+  console.log(`  Fingerabdruck: Block ${stamp.block}, ${Object.keys(stamp.quellen).length} Quellen${SZ.maxTex ? `; ${shrunk} Bilder auf ${SZ.maxTex} px verkleinert` : ''}`);
   const R1 = rows.slice(1);
   console.log(`  Schichten: ${R1.length} flache Materialien mit Schichtzeile (${R1.filter((r) => r.blend).length} mit Blend-Karte, ${R1.filter((r) => r.wear).length} mit Abnutzungskarte, ${R1.filter((r) => r.ao).length} mit Verschattung aus der Vertexfarbe, ${R1.filter((r) => r.detail).length} mit Detailkarte, ${R1.filter((r) => r.normal).length} mit Normalenkarte); ${maps.length} Karten in ${KARTEN.replace(ROOT, '')}${strip ? ` (${(strip.length / 1024).toFixed(0)} KB)` : ''}: ${maps.join(', ')}`);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await main(process.argv[2] ?? 'dienst');
