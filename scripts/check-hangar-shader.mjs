@@ -80,7 +80,7 @@ function vorSeite() {
       const name = (src.match(/#define SHADER_NAME (.+)/) || [])[1] || '?';
       window.__texProgramme.push({ name: name.trim(), n, ok, schichten: /dienstTafel/.test(src) });
     } catch (e) {
-      window.__texProgramme.push({ name: 'Zaehlung: ' + e.message, n: 0, ok: true, schichten: false });
+      window.__texProgramme.push({ name: '?', n: 0, ok: false, zaehlung: e.message, schichten: false });
     }
   };
 }
@@ -122,7 +122,7 @@ console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);
 console.log(`  ${deko ? deko.slice(9, 100) : 'Hallendeko: —'}`);
 console.log(`  Viewer meldet: ${viewer ? viewer.slice(9) : '—'}`);
 for (const p of ueber) fehler.push(`${p.name} braucht ${p.n} Texturen, Grenze ${GRENZE}: unter Windows unsichtbar`);
-for (const p of kaputt) fehler.push(`${p.name} linkt nicht`);
+for (const p of kaputt) fehler.push(p.zaehlung ? `Zaehlung eines Programms fehlgeschlagen (${p.zaehlung}): ungeprueft` : `${p.name} linkt nicht`);
 for (const s of shaderFehler) fehler.push(s);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
