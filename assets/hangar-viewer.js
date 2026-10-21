@@ -4824,6 +4824,34 @@ export async function initHangar(container, opts = {}) {
   const loader = new GLTFLoader().setDRACOLoader(draco).register(embeddedImages(8));
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
+  // Höchstens 16 Texturen je Bildshader: so viele erlaubt Chrome unter
+  // Windows (ANGLE über Direct3D 11). Ein Programm darüber linkt dort nicht,
+  // sein Material bleibt unsichtbar und nur sein Schatten fällt (Wartungsplatz
+  // und Hallendeko, Krisz 21.10.2026). Software-WebGL erlaubt 32 und zeigt
+  // das nicht, deshalb zählt der Viewer selbst, je fertigem Programm einmal.
+  const TEX_BUDGET = 16;
+  const texSeen = new WeakSet();
+  let texAt = 0, texMax = 0, texN = 0;
+  const texBudget = () => {
+    const gl = renderer.getContext(), progs = renderer.info.programs ?? [];
+    const sampler = new Set([gl.SAMPLER_2D, gl.SAMPLER_CUBE, gl.SAMPLER_3D, gl.SAMPLER_2D_ARRAY, gl.SAMPLER_2D_SHADOW, gl.SAMPLER_CUBE_SHADOW, gl.SAMPLER_2D_ARRAY_SHADOW, gl.INT_SAMPLER_2D, gl.INT_SAMPLER_3D, gl.INT_SAMPLER_CUBE, gl.INT_SAMPLER_2D_ARRAY, gl.UNSIGNED_INT_SAMPLER_2D, gl.UNSIGNED_INT_SAMPLER_3D, gl.UNSIGNED_INT_SAMPLER_CUBE, gl.UNSIGNED_INT_SAMPLER_2D_ARRAY].filter((t) => t !== undefined));
+    let neu = false;
+    for (const p of progs) {
+      if (texSeen.has(p) || (p.isReady && !p.isReady())) continue;
+      texSeen.add(p); neu = true; texN++;
+      const frag = (gl.getAttachedShaders(p.program) ?? []).find((sh) => gl.getShaderParameter(sh, gl.SHADER_TYPE) === gl.FRAGMENT_SHADER);
+      const src = frag ? gl.getShaderSource(frag) ?? '' : '';
+      let n = 0;
+      for (let i = 0, c = gl.getProgramParameter(p.program, gl.ACTIVE_UNIFORMS); i < c; i++) {
+        const u = gl.getActiveUniform(p.program, i);
+        if (u && sampler.has(u.type) && new RegExp(`\\b${u.name.replace(/\[\d+\]$/, '')}\\b`).test(src)) n += u.size;
+      }
+      if (n > TEX_BUDGET) console.error(`[hangar] Shader ${p.name} braucht ${n} Texturen, Grenze ${TEX_BUDGET}: unter Windows unsichtbar`);
+      texMax = Math.max(texMax, n);
+    }
+    if (neu) console.info(`[hangar] Texturen je Bildshader: ${texN} Programme, höchstens ${texMax} (Grenze ${TEX_BUDGET})`);
+  };
+
   // ─── Laden ohne Einfrieren ──────────────────────────────────────────────
   // Die Seite fror beim Laden ein (Krisz, 2026-10-07). Gemessen: Fast alle
   // Zeit steckte im Übersetzen der Shader, und zwar doppelt — erst für das
@@ -6196,7 +6224,10 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     m.userData.lift = true;
     m.onBeforeCompile = flat ? dienstShader(m, S) : hallShader(m);
     m.customProgramCacheKey = flat ? () => `${pitKey()}|dienst${S ? '|schichten' : ''}` : pitKey;
-    unifyMaps(m);
+    // dienst_flach hat ein eigenes Programm und keine Karten: Platzhalter
+    // kosteten sechs Texturplätze, mit Schichttafel und Kartenliste wären es
+    // 17 (TEX_BUDGET)
+    if (!flat) unifyMaps(m);
     onePass(m);
     return decal;
   }
@@ -8696,6 +8727,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (fly) flyStep(now);
     if (fovGlide) fitFov(now);
     if (propGlide) propStep(now);
+    if (now - texAt > 2000) { texAt = now; texBudget(); }
     controls.update(dt);
     // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
     camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);

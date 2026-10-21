@@ -371,6 +371,17 @@ export const CHECKS = [
   },
 
   {
+    id: 'check:hangar-shader',
+    npm: 'check:hangar-shader',
+    script: 'scripts/check-hangar-shader.mjs',
+    rail: 'C',
+    checks:
+      'kein Bildshader des 3D-Hangars braucht mehr als 16 Texturen (die Grenze von Chrome unter Windows; darueber linkt das Programm dort nicht und sein Material bleibt unsichtbar): auf hoch mit ganzer Hallendeko je gelinktem Programm selbst gezaehlt, kein Programm linkt nicht, die Zeile des Viewers ist da, Klinken fuer Programme und Programme mit Schichttafel',
+    env:
+      'Browser und laufender Server: laedt <base>/hangar.html in einem installierten Chromium mit Software-WebGL und vorgetaeuschter Grafikkarte (sonst zeigt die Seite ihren Rueckfall) und wartet, bis die Hallendeko steht (in Software-WebGL einige Minuten). Beides gibt es im Build-Container nicht, deshalb Schiene C. Anlass: Wartungsplatz und Hallendeko waren auf staging unter Windows unsichtbar, waehrend jede Aufnahme mit Software-WebGL (32 Texturen erlaubt) und der Rauchtest (sieht nur den Rueckfall) gruen waren (Krisz, 21.10.2026).',
+  },
+
+  {
     id: 'check:staging',
     npm: 'check:staging',
     script: 'scripts/check-deployed.mjs',
