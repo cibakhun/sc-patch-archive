@@ -54,6 +54,7 @@ let prev = null;       // angeklickte Zeile zum Vergleich
 let sort = { key: 'main', dir: -1 };
 let query = '';
 let more = false;
+let cmpAll = false;    // Vergleich: auch gleiche Werte zeigen
 try { more = storage?.getItem('vb.loadout.more') === '1'; } catch { more = false; }
 
 const GROUPS = ['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield', 'quantum', 'radar'];
@@ -300,7 +301,7 @@ function paintSum() {
         el('span', { class: 'lo-st__l' }, m(lk)),
         el('b', { class: 'lo-st__v' }, f1.format(Math.round(now[k] * 10) / 10), unit ? el('small', {}, ` ${unit}`) : null),
         deltaEl(Math.round(now[k] - stock[k]), false, nf),
-        el('span', { class: `lo-st__bar${now[k] < stock[k] ? ' is-low' : ''}`, 'aria-hidden': 'true', style: `--w:${(now[k] / top) * 100}%;--s:${(stock[k] / top) * 100}%` }));
+        el('span', { class: `lo-st__bar${now[k] < stock[k] ? ' is-low' : now[k] > stock[k] ? ' is-up' : ' is-even'}`, 'aria-hidden': 'true', style: `--w:${(now[k] / top) * 100}%;--s:${(stock[k] / top) * 100}%` }));
     });
     return rows.length ? el('section', { class: 'lo-sumg' }, el('h3', {}, m(gk)), ...rows) : null;
   }).filter(Boolean));
@@ -319,10 +320,11 @@ function paintEquip() {
         const it = data.items[k];
         const st = data.items[slot.stock];
         const d = it && st && isChanged(slot) ? deltaPct(it[7] * e.count, st[7] * slot.count) : null;
-        return el('li', {}, el('button', { type: 'button', class: `lo-slot${slot.key === sel ? ' is-sel' : ''}${isChanged(slot) ? ' is-changed' : ''}`, 'data-sel': slot.key, 'aria-pressed': String(slot.key === sel) },
+        // Hersteller und Art nur im Tooltip: links steht pro Platz ein Name und eine Zahl.
+        return el('li', {}, el('button', { type: 'button', class: `lo-slot${slot.key === sel ? ' is-sel' : ''}${isChanged(slot) ? ' is-changed' : ''}`, 'data-sel': slot.key, 'aria-pressed': String(slot.key === sel), title: subLine(k) },
           sock(e.type, e.size),
           el('span', { class: 'lo-slot__nm' }, el('strong', {}, `${times(e.count)}${itemName(k)}`),
-            el('small', {}, isChanged(slot) ? el('em', {}, m('lo.changed')) : null, subLine(k))),
+            isChanged(slot) ? el('small', {}, el('em', {}, m('lo.changed'))) : null),
           el('span', { class: 'lo-slot__fig' }, it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()),
             d ? deltaEl(d, false, nf, ' %') : null),
           el('span', { class: 'lo-chev', 'aria-hidden': 'true' }, '›')));
@@ -377,22 +379,31 @@ function compareTable(slot, a, b, headA, headB) {
     const fmt = id === 'sp.spread' || id === 'sp.heat' || id === 'sp.chd' ? f2 : f1;
     rows.push([r[1], r[3], exOf(id), ra ? ra[2] : '–', rb ? rb[2] : '–', ra?.[4], rb?.[4], LOWER.has(id), fmt]);
   }
+  // Erst was sich aendert, gleiche Werte hinter einem Klick: weniger Zahlen auf einmal.
+  const built = rows.map(([label, unit, ex, va, vb, na, nb, lower, fmt], i) => {
+    const both = na > 0 && nb > 0;
+    const d = both ? na - nb : 0;
+    const good = (d > 0) !== lower;
+    const rel = both && d ? Math.min(Math.abs(d) / nb, 1) : 0;
+    const node = el('div', { class: `lo-dv__r${d ? (good ? ' is-up' : ' is-down') : ' is-same'}${i === 0 ? ' is-key' : ''}`, role: 'row', title: ex },
+      el('span', { role: 'rowheader', class: 'lo-dv__l' }, label, unit && unit !== label ? el('small', {}, ` ${unit}`) : null),
+      el('b', { role: 'cell', class: 'is-num' }, va),
+      el('span', { role: 'cell', class: 'is-mid' },
+        el('span', { class: `lo-dv__bar${d ? (good ? ' is-good' : ' is-bad') : ''}`, 'aria-hidden': 'true', style: `--r:${rel * 50}%` }),
+        d ? deltaEl(d, lower, fmt) : null),
+      el('span', { role: 'cell', class: 'is-num lo-dv__b' }, vb));
+    return { node, d, key: i === 0 };
+  });
+  const top = built.filter((r) => r.key || r.d);
+  const rest = built.filter((r) => !r.key && !r.d);
+  const fold = top.length > 1 && rest.length > 0;
+  const shown = fold && !cmpAll ? top : built;
   return el('div', { class: 'lo-dv', role: 'table', 'aria-label': `${headA} / ${headB}` },
     el('div', { class: 'lo-dv__r lo-dv__h', role: 'row' }, el('span', { role: 'columnheader' }, m('win.value')), el('span', { role: 'columnheader', class: 'is-num' }, headA),
       el('span', { role: 'columnheader', class: 'is-mid' }, m('win.diff')), el('span', { role: 'columnheader', class: 'is-num' }, headB)),
-    ...rows.map(([label, unit, ex, va, vb, na, nb, lower, fmt]) => {
-      const both = na > 0 && nb > 0;
-      const d = both ? na - nb : 0;
-      const good = (d > 0) !== lower;
-      const rel = both && d ? Math.min(Math.abs(d) / nb, 1) : 0;
-      return el('div', { class: `lo-dv__r${d ? '' : ' is-same'}`, role: 'row', title: ex },
-        el('span', { role: 'rowheader', class: 'lo-dv__l' }, label, unit && unit !== label ? el('small', {}, ` ${unit}`) : null),
-        el('b', { role: 'cell', class: 'is-num' }, va),
-        el('span', { role: 'cell', class: 'is-mid' },
-          el('span', { class: `lo-dv__bar${d ? (good ? ' is-good' : ' is-bad') : ''}`, 'aria-hidden': 'true', style: `--r:${rel * 50}%` }),
-          d ? deltaEl(d, lower, fmt) : null),
-        el('span', { role: 'cell', class: 'is-num lo-dv__b' }, vb));
-    }));
+    ...shown.map((r) => r.node),
+    fold ? el('button', { type: 'button', class: 'lo-dv__more', 'data-cmpall': '1', 'aria-expanded': String(cmpAll) },
+      cmpAll ? m('lo.less') : fill(m('lo.sameN'), { n: nf.format(rest.length) })) : null);
 }
 
 function colsFor(keys, type) {
@@ -412,7 +423,7 @@ function paintPick() {
   if (prev && (!keys.includes(prev) || prev === now)) prev = null;
   const head = el('div', { class: 'lo-pickhead' },
     sock(e.type, e.size),
-    el('div', {}, el('p', {}, `${m(`grp.${slot.group}`)} · ${fill(m('lo.size'), { s: e.size })}`), el('h2', {}, `${times(e.count)}${itemName(now)}`), el('small', {}, subLine(now))),
+    el('div', { title: `${m(`grp.${slot.group}`)} · ${fill(m('lo.size'), { s: e.size })}` }, el('h2', {}, `${times(e.count)}${itemName(now)}`), el('small', {}, subLine(now))),
     isChanged(slot) && slot.stock ? el('button', { type: 'button', class: 'lo-btn', 'data-revert': slot.key }, m('slot.revert')) : null);
 
   // Unter der Liste der Vergleich: angeklickte Zeile gegen eingebaut, sonst eingebaut gegen Serie.
@@ -432,9 +443,9 @@ function paintPick() {
     : [...keys].sort((a, b) => { const va = val(a), vb = val(b); return va == null || vb == null ? (va == null) - (vb == null) : (va - vb) * sort.dir; });
   const q = query.trim().toLowerCase();
   const shown = q ? sorted.filter((k) => `${data.items[k][0]} ${data.items[k][1] || ''} ${data.items[k][4] || ''}`.toLowerCase().includes(q)) : sorted;
-  const th = (c, ex) => {
+  const th = (c, ex, cls = '') => {
     const on = sort.key === c.id;
-    return el('th', { scope: 'col', class: c.id === 'name' ? '' : 'is-num', 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none', title: ex },
+    return el('th', { scope: 'col', class: `${c.id === 'name' ? '' : 'is-num'} ${cls}`.trim() || null, 'aria-sort': on ? (sort.dir < 0 ? 'descending' : 'ascending') : 'none', title: ex },
       el('button', { type: 'button', class: 'lo-sort', 'data-sort': c.id }, c.label, c.unit && c.unit !== c.label ? el('small', {}, ` ${c.unit}`) : null,
         el('i', { 'aria-hidden': 'true' }, on ? (sort.dir < 0 ? '▼' : '▲') : '')));
   };
@@ -446,7 +457,7 @@ function paintPick() {
       el('td', { class: 'is-name' }, el('b', {}, itemName(k)), k === slot.stock ? el('em', {}, m('slot.stock')) : null, el('small', {}, subLine(k))),
       el('td', { class: 'is-num is-main' }, el('span', { class: 'lo-mainv' }, nf.format(it[7]), d ? deltaEl(d, false, nf, ' %') : null),
         el('span', { class: 'lo-mainbar', 'aria-hidden': 'true', style: `--w:${(it[7] / best) * 100}%` })),
-      cols.map((c) => { const r = row.find(([id]) => id === c.id); return el('td', { class: 'is-num' }, r ? r[2] : '–'); }),
+      cols.map((c) => { const r = row.find(([id]) => id === c.id); return el('td', { class: 'is-num is-col' }, r ? r[2] : '–'); }),
       el('td', { class: 'is-act' }, k === now ? el('span', { class: 'lo-fitted' }, m('slot.fitted')) : el('button', { type: 'button', class: 'lo-btn lo-fit', 'data-fit': k }, m('lo.fit'))));
   });
   const search = el('input', { type: 'search', class: 'lo-q', id: 'lo-q', value: query, placeholder: m('pick.search'), 'aria-label': m('pick.searchLabel'), autocomplete: 'off' });
@@ -454,8 +465,8 @@ function paintPick() {
     el('div', { class: 'lo-box__h' }, el('h3', {}, m('lo.pickFor')), el('span', { class: 'lo-n' }, plural('pick.count', shown.length))),
     el('div', { class: 'lo-pickbar' }, search,
       el('button', { type: 'button', class: 'lo-btn', id: 'lo-more', 'aria-pressed': String(more) }, m(more ? 'lo.less' : 'lo.more'))),
-    el('div', { class: 'lo-scroll lo-optscroll' }, el('table', { class: 'lo-t lo-opts' },
-      el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c) => th(c, exOf(c.id))), el('th', { scope: 'col', class: 'is-act' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
+    el('div', { class: 'lo-scroll lo-optscroll' }, el('table', { class: `lo-t lo-opts${more ? ' is-more' : ''}` },
+      el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c) => th(c, exOf(c.id), 'is-col')), el('th', { scope: 'col', class: 'is-act' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
       el('tbody', {}, rows))),
     shown.length ? null : el('p', { class: 'lo-msgline' }, m('pick.empty')));
   pick.replaceChildren(...[el('button', { type: 'button', class: 'lo-tolist', 'data-tolist': '1' }, `‹ ${m('lo.toList')}`), head, slot.racks ? rackBar(slot) : null, list, cmp].filter(Boolean));
@@ -555,6 +566,12 @@ pick.addEventListener('click', (e) => {
     sort = sort.key === k ? { key: k, dir: -sort.dir } : { key: k, dir: k === 'name' || LOWER.has(k) ? 1 : -1 };
     paintPick();
     pick.querySelector(`.lo-sort[data-sort="${CSS.escape(k)}"]`)?.focus();
+    return;
+  }
+  if (t.closest('[data-cmpall]')) {
+    cmpAll = !cmpAll;
+    paintPick();
+    pick.querySelector('[data-cmpall]')?.focus();
     return;
   }
   if (t.closest('#lo-more')) {
