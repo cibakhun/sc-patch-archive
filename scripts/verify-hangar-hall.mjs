@@ -1426,12 +1426,13 @@ if (gateWant) {
     // Bahn schneller oder langsamer, schluege das Tor still an, und der
     // Anschlag der Aufnahme fiele ins Leere.
     const spd = gi?.anim?.close?.speed ?? gi?.anim?.open?.speed ?? 0;
-    const spielMs = Math.round(T * spd * 1000), fahrMs = Math.round((gi?.anim?.pad?.down?.s ?? T) * spd * 1000);
-    gateRun.takt = `Bahn ${GATE.ms} ms (Spiel ${spielMs}), Fahrt ${GATE.lift} ms (Spiel ${fahrMs})`;
+    // Fahrt in beide Richtungen: HALL_GATE.lift gilt hinab wie hinauf
+    const spielMs = Math.round(T * spd * 1000), fahrMs = Math.round((gi?.anim?.pad?.down?.s ?? T) * spd * 1000), aufMs = Math.round((gi?.anim?.pad?.up?.s ?? T) * spd * 1000);
+    gateRun.takt = `Bahn ${GATE.ms} ms (Spiel ${spielMs}), Fahrt ${GATE.lift} ms (Spiel hinab ${fahrMs}, hinauf ${aufMs})`;
     if (!(spd > 0)) fail(`[15] ${GT.json.split('?')[0]}: anim.close.speed fehlt; ohne ihn ist der Takt des Spiels nicht bekannt`);
     else {
       if (Math.abs(GATE.ms - spielMs) > spielMs * 0.02) fail(`[15] HALL_GATE.ms ${GATE.ms} weicht vom Takt des Spiels ab (${spielMs} ms = anim.s ${T} mal speed ${spd}): Die Aufnahme des Tors schlaegt bei 15,05 s an, das Tor aber nicht mehr dort. Takt nur zusammen mit den Klaengen aendern (scripts/build-hangar-sound.mjs)`);
-      if (Math.abs(GATE.lift - fahrMs) > fahrMs * 0.02) fail(`[15] HALL_GATE.lift ${GATE.lift} weicht vom Takt der Plattform im Spiel ab (${fahrMs} ms = anim.pad.down.s mal speed ${spd}): Der Halt (bei SND_HALT_AT der Fahrt) schluege nicht mehr beim Stillstand an`);
+      for (const [wohin, ms] of [['down', fahrMs], ['up', aufMs]]) if (Math.abs(GATE.lift - ms) > ms * 0.02) fail(`[15] HALL_GATE.lift ${GATE.lift} weicht vom Takt der Plattform im Spiel ab (${ms} ms = anim.pad.${wohin}.s mal speed ${spd}): Der Halt (bei SND_HALT_AT der Fahrt) schluege nicht mehr beim Stillstand an`);
     }
     const into = (lo, hi, p) => Math.min(Math.min(p[0] + hi[0], hx) - Math.max(p[0] + lo[0], -hx), Math.min((p[2] + hi[2]) * sz, hz) - Math.max((p[2] + lo[2]) * sz, -hz));
     const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 0.01);

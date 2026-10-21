@@ -27,7 +27,9 @@
      ist die Naht auch dann sauber, wenn ein Dekoder den Anfang um die
      Verzögerung des MP3-Kodierers versetzt (Browser tun das verschieden).
      Länge und PAD schreibt das Skript aus; sie stehen im Viewer
-     (SND_LOOP).
+     (SND_LOOP). Passen sie nicht mehr zur neuen Datei, endet das Skript
+     mit Fehler: Sonst schliffe der Viewer ins Polster oder ließe einen
+     Teil der Aufnahme aus.
    - MP3 (VBR), weil jeder Browser es per decodeAudioData liest; Ogg und
      Opus liest Safari nicht verlässlich. Ohne Kopf-Metadaten.
 
@@ -107,6 +109,7 @@ function loop(src, out) {
   z.set(y.subarray(0, P * 2), (P + len) * 2);
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'f32le', '-ar', String(sr), '-ac', '2', '-i', 'pipe:0', '-af', `volume=${TRIM}dB`, ...MP3, out], { input: Buffer.from(z.buffer) });
   console.log(`  Schleife: Naht bei ${(E / sr).toFixed(4)} s (Ähnlichkeit ${best.toFixed(3)}), Länge ${(len / sr).toFixed(6)} s, Polster ${PAD} s -> SND_LOOP { start: ${PAD}, len: ${(len / sr).toFixed(6)} }`);
+  return len / sr;
 }
 
 mkdirSync(TO, { recursive: true });
@@ -115,7 +118,15 @@ for (const [name, pre, len, fade] of PLAN) {
   const file = findSrc(pre);
   if (!file) { console.error(`build-hangar-sound: liste.json nennt keine Datei ${pre}*`); process.exit(1); }
   const src = join(FROM, file), out = join(TO, `${name}.mp3`), dur = probe(src);
-  if (len === 'schleife') loop(src, out);
+  if (len === 'schleife') {
+    // die Marken der Schleife stehen im Viewer: dort muss die neue Länge hin
+    const got = loop(src, out), V = 'assets/hangar-viewer.js';
+    const m = /const SND_LOOP = \{ start: ([\d.]+), len: ([\d.]+) \};/.exec(existsSync(V) ? readFileSync(V, 'utf8') : '');
+    if (!m || Number(m[1]) !== PAD || Math.abs(Number(m[2]) - got) > 2e-6) {
+      console.error(`build-hangar-sound: ${V} schleift ${m ? `ab ${m[1]} über ${m[2]} s` : '(SND_LOOP nicht gefunden)'}, die neue Datei braucht SND_LOOP = { start: ${PAD}, len: ${got.toFixed(6)} }. Dort eintragen, sonst schleift der Viewer ins Polster.`);
+      process.exitCode = 1;
+    }
+  }
   else {
     const end = len ? Math.min(len, dur) : dur;
     const af = [`volume=${TRIM}dB`];

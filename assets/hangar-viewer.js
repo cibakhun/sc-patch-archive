@@ -4043,7 +4043,16 @@ const SND_HALT_AT = 0.932;  // Anteil der Fahrt, bei dem das Spiel den Halt ausl
 function hangarSound(src = null) {
   const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
   let ctx = null, out = null, pad = null, on = true, buf = null, loading = null, ride = null, gate = null;
-  const alarms = [];
+  // alles, was gerade klingt oder angesetzt ist: hush() blendet es aus, sonst
+  // spielte nach dem Verbergen ein halber Dampfstoß weiter, sobald die Seite
+  // wiederkommt (der Zeitgeber steht derweil still)
+  const shots = new Set();
+  const keep = (s, g) => {
+    const h = { s, g };
+    shots.add(h);
+    s.onended = () => { g.disconnect(); shots.delete(h); };
+    return h;
+  };
   function make() {
     if (ctx) return ctx;
     if (!AC || !src?.dir) return null;
@@ -4084,8 +4093,7 @@ function hangarSound(src = null) {
     g.gain.value = gain;
     s.connect(g).connect(dest);
     s.start(ctx.currentTime + 0.005 + at, offset);
-    s.onended = () => g.disconnect();
-    return { s, g };
+    return keep(s, g);
   }
   function fadeOut(h, sec) {
     if (!h) return;
@@ -4114,7 +4122,7 @@ function hangarSound(src = null) {
       g.gain.linearRampToValueAtTime(0, t + b.duration);
       s.connect(g).connect(out);
       s.start(t);
-      s.onended = () => g.disconnect();
+      keep(s, g);
       t += b.duration - X;
     }
   }
@@ -4146,9 +4154,9 @@ function hangarSound(src = null) {
     },
     hush() {
       if (!ctx) return;
-      if (ride) { for (const h of [ride.loop, ride.start]) fadeOut(h, 0.05); ride = null; }
-      if (gate) { fadeOut(gate, 0.05); gate = null; }
-      for (const h of alarms.splice(0)) fadeOut(h, 0.02);
+      for (const h of shots) fadeOut(h, 0.05);
+      shots.clear();
+      ride = null; gate = null;
     },
     // Plattform fährt los: Anfahren und die Schleife, 1 s eingeblendet
     rideStart() {
@@ -4169,12 +4177,12 @@ function hangarSound(src = null) {
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + fade);
       s.connect(g).connect(pad.lp);
       s.start(t, SND_LOOP.start + Math.random() * SND_LOOP.len);
-      s.onended = () => g.disconnect();
-      ride = { ...(ride ?? {}), loop: { s, g } };
+      ride = { ...(ride ?? {}), loop: keep(s, g) };
     },
-    // Halt (bei SND_HALT_AT der Fahrt): Schlag, Schleife 1 s aus
+    // Halt (bei SND_HALT_AT der Fahrt): Schlag, Schleife 1 s aus; das
+    // Anfahren auch, falls die Fahrt kürzer war als seine 4,2 s
     rideHalt() {
-      if (ride) { fadeOut(ride.loop, 1); ride = null; }
+      if (ride) { for (const h of [ride.loop, ride.start]) fadeOut(h, 1); ride = null; }
       if (live()) play('platte-halt', pad.lp, 1);
     },
     // Tor auf oder zu, ab Sekunde offset seiner Bahn (Umkehr unterwegs)
@@ -4189,8 +4197,7 @@ function hangarSound(src = null) {
     // Warnton: viermal im Takt von 1,2 s
     alarm() {
       if (!live()) return;
-      alarms.length = 0;
-      for (let i = 0; i < 4; i++) { const h = play('warnton', out, 0.8, 0, i * 1.2); if (h) alarms.push(h); }
+      for (let i = 0; i < 4; i++) play('warnton', out, 0.8, 0, i * 1.2);
     },
     // Dampf: 'druck' (Druckablass), 'stoss' (Luftstoß), 'zischen' (Dauer s)
     puff(kind, dur = 1) {
@@ -4206,7 +4213,7 @@ function hangarSound(src = null) {
       pad.lp.frequency.setTargetAtTime(250 + 17750 * Math.pow(1 - m, 2.5), t, 0.1);
       pad.g.gain.setTargetAtTime(1 - 0.45 * m, t, 0.1);
     },
-    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; pad = null; buf = null; loading = null; ride = null; gate = null; alarms.length = 0; },
+    dispose() { if (ctx) ctx.close().catch(() => {}); ctx = null; pad = null; buf = null; loading = null; ride = null; gate = null; shots.clear(); },
   };
 }
 

@@ -792,15 +792,21 @@ say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Cont
     const files = (sndNames ?? []).map((n) => join(dir ?? DIST, `${n}.mp3`));
     // MP3 ohne Kopf: Rahmensynchron 0xFFE am Anfang
     const bad = dir ? files.filter((f) => { if (!existsSync(f) || statSync(f).size < 2000) return true; const b = readFileSync(f); return !(b[0] === 0xff && (b[1] & 0xe0) === 0xe0); }) : files;
+    // Version wie HangarApp.astro: über alle MP3 im Ordner, nach Namen
+    // sortiert. Eine übrige Datei (in SND_FILES nicht mehr genannt) geht
+    // mit hinein und ist nur Ballast: WARNUNG, kein FEHLER.
+    const all = dir && existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.mp3')).sort() : [];
     const h = createHash('sha1');
-    for (const f of [...files].sort()) if (existsSync(f)) h.update(readFileSync(f));
+    for (const f of all) h.update(readFileSync(join(dir, f)));
     const v = h.digest('hex').slice(0, 8), vOk = !!snd?.v && snd.v === v;
+    const extra = all.filter((f) => !(sndNames ?? []).includes(f.slice(0, -4)));
+    if (extra.length) say(`    WARNUNG: ${extra.join(', ')} in ${snd.dir} nennt der Viewer nicht (SND_FILES): wird mit ausgeliefert, aber nie gespielt`);
     sollIst(`${page.file}: Klaenge in ${snd?.dir ?? '?'}, je MP3 ab 2 KB, Version aus dem Inhalt`, !snd ? 'die Seite gibt keinen Ordner mit (hall.lift.sound)' : `${files.length - bad.length} von ${files.length} da, Version ${vOk ? 'passt' : `${snd.v} statt ${v}`}`);
     if (!snd) fail(`[16] ${page.file}: hall.lift.sound fehlt in #hg-stage (HangarApp.astro): der Ton-Schalter schaltet nichts ein`);
     else if (!dir) fail(`[16] ${page.file}: hall.lift.sound.dir "${snd.dir}" ist kein Ordnerpfad der Seite`);
     else {
       for (const f of bad) fail(`[16] ${f.slice(DIST.length + 1)} fehlt, ist kleiner als 2 KB oder kein MP3 ohne Kopf: dieser Klang bliebe still (scripts/build-hangar-sound.mjs)`);
-      if (!vOk) fail(`[16] ${page.file}: Version der Klaenge ${snd.v} passt nicht zum Inhalt der Dateien (${v}, sha1 ueber die nach Namen sortierten Dateien wie HangarApp.astro)`);
+      if (!vOk) fail(`[16] ${page.file}: Version der Klaenge ${snd.v} passt nicht zum Inhalt der Dateien (${v}, sha1 ueber alle MP3 im Ordner nach Namen sortiert wie HangarApp.astro)`);
       if (!bad.length && vOk) ist.tonDateien = files.length;
     }
   }
