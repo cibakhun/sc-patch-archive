@@ -381,12 +381,13 @@ function extractStats(type, deep) {
     if (capVol) s.storageScu = round(capVol / 1e6, 3);
     // (EVA-Tempo verworfen: MaxLinearVelocity ist konstant 6 über alle Anzüge → nicht differenzierend)
   } else if (type === 'Missile' || type === 'Bomb') {
-    const p = first(deep, /SCItemMissileParams/);
+    // Bomben tragen dieselben Felder als SCItemBombParams (ohne Lenkung/Aufschaltung)
+    const p = first(deep, /SCItem(Missile|Bomb)Params/);
     if (p) Object.assign(s, clean({ lifetime: round(num(p.maxLifetime)), armTime: round(num(p.armTime)), igniteTime: round(num(p.igniteTime)) }));
     // Höchstgeschwindigkeit aus der Lenkung, Aufschaltung aus den Zielparametern
     const tp = p?.targetingParams;
     if (p) Object.assign(s, clean({ speed: round(num(p.GCSParams?.linearSpeed)), lockRange: round(num(tp?.lockRangeMax)), lockRangeMin: round(num(tp?.lockRangeMin)), lockTime: round(num(tp?.lockTime)), lockAngle: round(num(tp?.lockingAngle)) }));
-    // Schaden = Sprengkopf (SCItemMissileParams.explosionParams; Missiles haben keinen
+    // Schaden = Sprengkopf (SCItemMissile/BombParams.explosionParams; Missiles haben keinen
     // Ammo-Container). Das erste typisierte ExplosionParams ist die Todes-Explosion
     // der Health-Komponente (Abschuss der Rakete) — nur Rückfall, wenn kein Sprengkopf steht.
     const exp = (p?.explosionParams?.damage ? p.explosionParams : null) || first(deep, /ExplosionParams/);

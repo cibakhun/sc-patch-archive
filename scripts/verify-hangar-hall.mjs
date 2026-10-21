@@ -297,10 +297,13 @@ const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 318
 // schwebende Bergbau-Platte (workbench_table_1_a, 3812) der fahrbaren
 // Werkbank des Spiels (workbench_mobile_1_a, 7856) gewichen ist.
 const KLINKE_DIENST = { stationen: 20, glieder: 131, leitungen: 6, spuren: 13, props: 50 };
-const OBERGRENZE_DIENST = { mats: 41, tris: 210000, bytes: 5.2e6 };
+// 21.10.2026 angehoben (210000 -> 213000, Klassen +5000/+5000/+4000): Teilflaechen mit dem
+// LayerBlend-Flag %DECALS fielen im Katalog-Build bisher still weg (als Decal ohne Karte
+// gelesen); seit Hangar-Werte Teil 2 sind sie da (Satz 212 465, Klassen 217 562 / 261 231 / 563 622).
+const OBERGRENZE_DIENST = { mats: 41, tris: 213000, bytes: 5.2e6 };
 const DIENST_KLASSEN = { winzig: 6.5, klein: 20, mittel: 40, gross: 120 };
 const KLINKE_DIENST_KLASSE = { winzig: { stationen: 6 }, klein: { stationen: 10 }, mittel: { stationen: 11 }, gross: { stationen: 19 } };
-const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 117000 }, klein: { mats: 30, tris: 213000 }, mittel: { mats: 34, tris: 257000 }, gross: { mats: 41, tris: 560000 } };
+const OBERGRENZE_DIENST_KLASSE = { winzig: { mats: 24, tris: 117000 }, klein: { mats: 30, tris: 218000 }, mittel: { mats: 34, tris: 262000 }, gross: { mats: 41, tris: 564000 } };
 const OBERGRENZE_WERKSTATT = { tris: 150000, bytes: 8e6, boden: 2 * 1024 * 1024 };
 // Schachttor ([15], seit 18.10.2026): Teile, die ins Feld reichen (14 beim
 // Einbau: Mittelfluegel, Stirnplatten, Riegel, Zahnstangen, Zylinder); die
