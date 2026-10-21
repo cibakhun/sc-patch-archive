@@ -5805,28 +5805,118 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
   // dem Aufzugsweg (userData.lift: im Schacht dunkel, Schachtlampen).
   // dienst_flach trägt Farbe, Rauheit und Metall je Ecke (dienstTint,
   // dienstPbr, aus _TINT und _RM der Datei).
-  const dienstShader = (m) => {
+  //
+  // Schichten (S, aus dienstSchichten): Die Ecke nennt ihre Zeile der
+  // Schichttafel (dienstSlot, 0 = keine), dazu Texturkoordinaten und die
+  // Vertexfarbe des Spiels (dienstVc). Wie LayerBlend im Spiel mischt die
+  // Blend-Karte die vier Grundschichten (r, g, b legen Schicht 2, 3, 4 über
+  // die erste); die Abnutzungskarte legt, wo die Vertexfarbe Abnutzung
+  // zulässt (r), die Abnutzungsschicht darüber: zuerst in ihren dunklen
+  // Kratzern, je höher r, desto weiter; b verschattet (Ecken, Fugen). Die
+  // erste Grundschicht trägt ihr Muster (Detailkarte als Faktor um ihre
+  // mittlere Farbe, Normalenkarte, beide mit ihrer Kachelung), wo die Karte
+  // eines hat. Welcher Kanal was trägt, sagt das Spiel für diese Shader
+  // nicht: r, g, b nach der Reihenfolge des Namens (Wear-Dirt-AO), b sieht
+  // aus wie Verschattung (PC-Befund 21.10.2026). Schmutz (g) bleibt aus.
+  // Texturen mit Ableitungen von außerhalb der Verzweigung (textureGrad):
+  // die Zeile wechselt von Dreieck zu Dreieck.
+  const DIENST_WEAR_EDGE = 0.06, DIENST_AO = 0.9;
+  const dienstShader = (m, S) => {
     const hall = hallShader(m);
     return (sh) => {
       sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute vec3 dienstTint;\nattribute vec2 dienstPbr;\nvarying vec3 vDienstTint;\nvarying vec2 vDienstPbr;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvDienstTint = dienstTint; vDienstPbr = dienstPbr;');
+        .replace('#include <common>', '#include <common>\nattribute vec3 dienstTint;\nattribute vec2 dienstPbr;\nvarying vec3 vDienstTint;\nvarying vec2 vDienstPbr;' + (S ? '\nattribute vec2 dienstUv;\nattribute float dienstSlot;\nattribute vec4 dienstVc;\nvarying vec2 vDienstUv;\nflat varying float vDienstSlot;\nvarying vec4 vDienstVc;' : ''))
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\n\tvDienstTint = dienstTint; vDienstPbr = dienstPbr;' + (S ? ' vDienstUv = dienstUv; vDienstSlot = dienstSlot; vDienstVc = dienstVc;' : ''));
       hall(sh);
+      if (S) { sh.uniforms.dienstTafel = { value: S.tafel }; sh.uniforms.dienstKarten = { value: S.karten }; }
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vDienstTint;\nvarying vec2 vDienstPbr;')
-        .replace('diffuseColor.rgb *= vHgShade;', 'diffuseColor.rgb *= vHgShade * vDienstTint;')
-        .replace('roughnessFactor = max(roughnessFactor, hgRoughMin);', 'roughnessFactor = max( max( vDienstPbr.x, vDienstPbr.y > 0.4 ? 0.45 : 0.65 ), hgRoughMin );')
-        .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\n\tmetalnessFactor = min( vDienstPbr.y, 0.4 );');
+        .replace('#include <common>', '#include <common>\nvarying vec3 vDienstTint;\nvarying vec2 vDienstPbr;' + (S ? `
+varying vec2 vDienstUv;
+flat varying float vDienstSlot;
+varying vec4 vDienstVc;
+uniform highp sampler2D dienstTafel;
+uniform highp sampler2DArray dienstKarten;
+vec4 dienstMix( int s, int o, vec3 b ) {
+	vec4 c = texelFetch( dienstTafel, ivec2( o, s ), 0 );
+	c = mix( c, texelFetch( dienstTafel, ivec2( o + 1, s ), 0 ), b.r );
+	c = mix( c, texelFetch( dienstTafel, ivec2( o + 2, s ), 0 ), b.g );
+	return mix( c, texelFetch( dienstTafel, ivec2( o + 3, s ), 0 ), b.b );
+}
+vec4 dienstKarte( float k, float t, vec2 dx, vec2 dy ) {
+	return textureGrad( dienstKarten, vec3( vDienstUv * t, k ), dx * t, dy * t );
+}
+mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
+	vec3 q1p = cross( q1, N ), q0p = cross( N, q0 );
+	vec3 T = q1p * st0.x + q0p * st1.x, B = q1p * st0.y + q0p * st1.y;
+	float det = max( dot( T, T ), dot( B, B ) );
+	return mat3( T * ( det == 0.0 ? 0.0 : inversesqrt( det ) ), B * ( det == 0.0 ? 0.0 : inversesqrt( det ) ), N );
+}` : ''))
+        .replace('diffuseColor.rgb *= vHgShade;', (S ? `vec3 dTint = vDienstTint; float dMet = vDienstPbr.y;
+	int dS = int( vDienstSlot + 0.5 );
+	vec4 dL = vec4( -1.0 );
+	vec2 dUx = dFdx( vDienstUv ), dUy = dFdy( vDienstUv );
+	vec3 dQx = dFdx( - vViewPosition ), dQy = dFdy( - vViewPosition );
+	if ( dS > 0 ) {
+		vec4 dK = texelFetch( dienstTafel, ivec2( 8, dS ), 0 );
+		dL = texelFetch( dienstTafel, ivec2( 9, dS ), 0 );
+		vec3 dB = dK.x >= 0.0 ? dienstKarte( dK.x, dK.y, dUx, dUy ).rgb : vec3( 0.0 );
+		vec4 dC = dienstMix( dS, 0, dB ), dA = dC;
+		float dW = 0.0;
+		if ( dK.z >= 0.0 ) {
+			dW = 1.0 - smoothstep( vDienstVc.r - ${DIENST_WEAR_EDGE.toFixed(2)}, vDienstVc.r + ${DIENST_WEAR_EDGE.toFixed(2)}, dienstKarte( dK.z, 1.0, dUx, dUy ).r );
+			dA = dienstMix( dS, 4, dB );
+		}
+		if ( dL.x >= 0.0 ) dC.rgb *= clamp( pow( dienstKarte( dL.x, dL.z, dUx, dUy ).rgb, vec3( 2.2 ) ) / max( texelFetch( dienstTafel, ivec2( 10, dS ), 0 ).rgb, vec3( 0.01 ) ), 0.25, 2.0 );
+		dTint = mix( dC.rgb, dA.rgb, dW ) * mix( 1.0, vDienstVc.b, ${DIENST_AO.toFixed(2)} * dK.w );
+		dMet = mix( dC.a, dA.a, dW );
+	}
+	diffuseColor.rgb *= vHgShade * dTint;` : 'diffuseColor.rgb *= vHgShade * vDienstTint;'))
+        .replace('roughnessFactor = max(roughnessFactor, hgRoughMin);', `roughnessFactor = max( max( vDienstPbr.x, ${S ? 'dMet' : 'vDienstPbr.y'} > 0.4 ? 0.45 : 0.65 ), hgRoughMin );`)
+        .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\n\tmetalnessFactor = min( ${S ? 'dMet' : 'vDienstPbr.y'}, 0.4 );`);
+      if (S) sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+	if ( dL.y >= 0.0 ) normal = normalize( dienstTbn( dQx, dQy, dUx * dL.z, dUy * dL.z, normal ) * ( dienstKarte( dL.y, dL.z, dUx, dUy ).xyz * 2.0 - 1.0 ) );`);
     };
   };
-  function dienstMaterial(m) {
+  // Schichttafel und Kartenraster des Gerätesatzes (build-hangar-dienst.mjs):
+  // Tafel als Gleitkommatextur (Zeile je Material), Karten als Texturliste
+  async function dienstSchichten(x, url) {
+    if (!x?.tafel?.length || !x.namen?.length) return null;
+    try {
+      const n = x.namen.length, px = x.px, cols = x.spalten, rows = x.tafel.length / (x.texel * 4);
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = new URL(`${x.karten}?v=${x.sha}`, new URL(url, location.href)).href; });
+      const W = px * cols, H = px * Math.ceil(n / cols);
+      if (img.width !== W || img.height !== H) throw new Error(`Kartenraster ${img.width}×${img.height}, erwartet ${W}×${H}`);
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0);
+      const src = cx.getImageData(0, 0, W, H).data, buf = new Uint8Array(px * px * 4 * n);
+      // Karte i aus dem Raster (Spalte i % cols, Reihe i / cols) als Ebene i
+      for (let i = 0; i < n; i++) for (let y = 0; y < px; y++) {
+        const o = ((Math.floor(i / cols) * px + y) * W + (i % cols) * px) * 4;
+        buf.set(src.subarray(o, o + px * 4), (i * px + y) * px * 4);
+      }
+      const karten = new THREE.DataArrayTexture(buf, px, px, n);
+      karten.wrapS = karten.wrapT = THREE.RepeatWrapping;
+      karten.minFilter = THREE.LinearMipmapLinearFilter; karten.magFilter = THREE.LinearFilter;
+      karten.generateMipmaps = true; karten.anisotropy = maxAniso; karten.needsUpdate = true;
+      const data = new Float32Array((rows + 1) * x.texel * 4);
+      data.set(x.tafel, x.texel * 4);   // Zeile 0 bleibt leer: keine Schichten
+      const tafel = new THREE.DataTexture(data, x.texel, rows + 1, THREE.RGBAFormat, THREE.FloatType);
+      tafel.minFilter = tafel.magFilter = THREE.NearestFilter; tafel.needsUpdate = true;
+      return { karten, tafel, rows, maps: n };
+    } catch (e) {
+      console.warn('[hangar] Wartungsplatz ohne Schichten', e);
+      return null;
+    }
+  }
+  function dienstMaterial(m, S = null) {
     // Spuren (decal_*) und durchsichtige Aufkleber der Requisiten liegen auf
     // Boden und Gehäuse: vorgezogen, ohne Schatten zu werfen
     const flat = m.name === 'dienst_flach', sticker = /decal/i.test(m.name), decal = /^decal_/i.test(m.name) || (sticker && m.transparent);
     m.envMapIntensity = 0.05;
     if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
     if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
-    if (flat) { m.roughness = 1; m.metalness = 1; }
+    // COLOR_0 kommt als dienstVc in den Shader, nicht als Vertexfarbe
+    if (flat) { m.roughness = 1; m.metalness = 1; m.vertexColors = false; }
     else if (m.metalness > 0.4) { m.metalness = 0.4; if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.45); }
     else if (!m.roughnessMap) m.roughness = Math.max(m.roughness, 0.65);
     if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
@@ -5838,8 +5928,8 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     if (decal && m.transparent) m.depthWrite = false;
     m.userData.workDecal = decal;
     m.userData.lift = true;
-    m.onBeforeCompile = flat ? dienstShader(m) : hallShader(m);
-    m.customProgramCacheKey = flat ? () => `${pitKey()}|dienst` : pitKey;
+    m.onBeforeCompile = flat ? dienstShader(m, S) : hallShader(m);
+    m.customProgramCacheKey = flat ? () => `${pitKey()}|dienst${S ? '|schichten' : ''}` : pitKey;
     unifyMaps(m);
     onePass(m);
     return decal;
@@ -5851,15 +5941,16 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
   // Material eine Instanz; Leitungen haben eigene Geometrie (layDienst biegt
   // sie je Schiff). Die Gruppe hängt im Modell an der Feldmitte auf dem
   // Boden, im Maßstab 1/k: darin sind es Meter wie in der Welt.
-  function buildDienst(kitScene) {
+  function buildDienst(kitScene, S = null) {
     const D = WORK_DIENST, parts = new Map();
+    const flatAttrs = [['position', 'position'], ['normal', 'normal'], ['dienstTint', '_tint'], ['dienstPbr', '_rm'], ...(S ? [['dienstUv', 'uv'], ['dienstSlot', '_slot'], ['dienstVc', 'color']] : [])];
     for (const node of kitScene.children) {
       const list = [], box = new THREE.Box3();
       node.traverse((n) => {
         if (!n.isMesh) return;
         const g = n.geometry, m = n.material, flat = m.name === 'dienst_flach';
         const geo = new THREE.BufferGeometry();
-        for (const [k, a] of flat ? [['position', 'position'], ['normal', 'normal'], ['dienstTint', '_tint'], ['dienstPbr', '_rm']] : [['position', 'position'], ['normal', 'normal'], ['uv', 'uv']]) {
+        for (const [k, a] of flat ? flatAttrs : [['position', 'position'], ['normal', 'normal'], ['uv', 'uv']]) {
           if (!g.attributes[a]) throw new Error(`${node.name}: ${m.name} ohne ${a}`);
           geo.setAttribute(k, g.attributes[a]);
         }
@@ -5887,7 +5978,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     const group = new THREE.Group(), batches = new Map();
     group.name = 'dienst';
     for (const [m, e] of need) {
-      const decal = dienstMaterial(m);
+      const decal = dienstMaterial(m, m.name === 'dienst_flach' ? S : null);
       const b = new THREE.BatchedMesh(e.inst, e.vert, e.idx, m);
       b.name = `dienst:${m.name}`;
       b.castShadow = !decal; b.receiveShadow = true;
@@ -5904,7 +5995,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       });
     }
     const tris = uses.reduce((sum, u) => sum + parts.get(u.node).parts.reduce((q, p) => q + p.geo.index.count / 3, 0), 0);
-    return { group, uses, parts, batches, missing, tris, sig: '' };
+    return { group, uses, parts, batches, missing, tris, sig: '', schichten: S ? { rows: S.rows, maps: S.maps } : null };
   }
 
   // Plätze, Leitungen und Spuren um das Schiff (info: Maße, info.under:
@@ -6135,7 +6226,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       : Promise.resolve(null);
     // Gerätesatz für den Wartungsplatz am Schiff, wo die Stufe Requisiten hat
     const dienstReady = W?.dienst?.url && WB.props > 0 && HALL_LIFT[h.id]
-      ? fetchGltf(W.dienst.url, 'dienst', W.dienst.bytes || 3.5e6).then((g) => g.scene, (e) => {
+      ? fetchGltf(W.dienst.url, 'dienst', W.dienst.bytes || 3.5e6).then(async (g) => ({ scene: g.scene, schichten: await dienstSchichten(g.asset?.extras?.dienst?.schichten, W.dienst.url) }), (e) => {
         console.warn('[hangar] Wartungsplatz nicht geladen', e);
         prog.delete('dienst');
         return null;
@@ -6574,7 +6665,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       const dienstKit = lift ? await dienstReady : null;
       if (dienstKit) {
         try {
-          dienst = buildDienst(dienstKit);
+          dienst = buildDienst(dienstKit.scene, dienstKit.schichten);
           model.add(dienst.group);
         } catch (e) {
           console.warn('[hangar] Wartungsplatz nicht gebaut', e);
