@@ -72,12 +72,19 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-msgline[hidden]{display:none}
 /* Summen oben: was das ganze Layout kann, gegen Serie, mit einem Satz dazu. */
 .lo-sumh{margin:1.2rem 0 .6rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
-.lo-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(12rem,100%),1fr));gap:.6rem}
-.lo-card{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:.15rem .5rem;padding:.7rem .85rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card)}
-.lo-card__l{grid-column:1/-1;font-size:var(--fs-6);color:var(--lo-dim)}
-.lo-card__v{font-family:var(--font-ui);font-size:var(--fs-10);font-weight:800;font-variant-numeric:tabular-nums}
-.lo-card__v small{font-size:var(--fs-5);font-weight:600;color:var(--lo-dim)}
-.lo-card__ex{grid-column:1/-1;font-size:var(--fs-5);line-height:1.35;color:var(--lo-dim)}
+.lo-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(17rem,100%),1fr));gap:.6rem}
+.lo-sumg{display:grid;align-content:start;gap:.45rem;padding:.7rem .85rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card)}
+.lo-sumg h3{margin:0;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
+/* Zeile: Name links, Zahl und ▲/▼ rechts, darunter ein Balken gegen Serie (Strich = Serie). */
+.lo-st{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:0 .5rem;cursor:help}
+.lo-st__l{font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-st__v{font-family:var(--font-ui);font-size:var(--fs-8);font-weight:800;font-variant-numeric:tabular-nums}
+.lo-st__v small{font-size:var(--fs-5);font-weight:600;color:var(--lo-dim)}
+.lo-st .lo-d{min-width:3.5rem;text-align:right;font-size:var(--fs-5)}
+.lo-st__bar{grid-column:1/-1;position:relative;height:4px;margin-top:.2rem;border-radius:2px;background:var(--lo-soft)}
+.lo-st__bar::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);border-radius:2px;background:var(--lo-a)}
+.lo-st__bar.is-low::before{background:var(--lo-bad)}
+.lo-st__bar::after{content:"";position:absolute;top:-3px;bottom:-3px;left:calc(var(--s) - 1px);width:2px;background:var(--lo-on);opacity:.55}
 .lo-d{font-style:normal;font-size:var(--fs-6);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lo-d.is-good{color:var(--lo-good)}
 .lo-d.is-bad{color:var(--lo-bad)}
@@ -86,6 +93,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-equip h2,.lo-pickhead h2{margin:0}
 .lo-equip>h2{margin:0 0 .2rem;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
 .lo-equip>p{margin:0 0 .6rem;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-equip>.lo-note{margin-top:1rem;font-size:var(--fs-5)}
 .lo-grp h3{margin:.9rem 0 .35rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--lo-dim)}
 .lo-grp ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.35rem}
 .lo-slot{appearance:none;width:100%;display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border:1px solid var(--lo-hair);border-radius:10px;background:var(--lo-card);color:var(--lo-on);font:inherit;text-align:left;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
@@ -126,14 +134,30 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-scroll{position:relative;overflow-x:auto}
 /* Die Liste bleibt kurz genug, dass der Vergleich darunter im Blick ist. */
 .lo-optscroll{max-height:min(30rem,52vh);overflow-y:auto;overscroll-behavior:contain}
+.lo-optscroll .lo-t thead th.is-act{z-index:2}
 .lo-optscroll .lo-t thead th{position:sticky;top:0;z-index:1;background:var(--lo-card);box-shadow:inset 0 -1px 0 var(--lo-soft)}
 .lo-t{width:100%;border-collapse:collapse;font-size:var(--fs-6);font-variant-numeric:tabular-nums}
 .lo-t th,.lo-t td{padding:.5rem .7rem;border-top:1px solid var(--lo-soft);text-align:left;vertical-align:middle}
 .lo-t thead th{border-top:0;background:color-mix(in srgb,var(--lo-on) 4%,transparent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;color:var(--lo-dim);white-space:nowrap}
 .lo-t .is-num{text-align:right;white-space:nowrap}
-.lo-cmp tbody th{font-weight:600}
-.lo-cmp tbody th small{display:block;font-weight:400;font-size:var(--fs-5);line-height:1.3;color:var(--lo-dim)}
-.lo-cmp td.is-a{font-weight:800}
+/* Vergleich als Balken: Mitte = gleich, rechts besser, links schlechter. */
+.lo-dv{display:grid;font-size:var(--fs-6)}
+.lo-dv__r{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(4.5rem,.6fr) minmax(7rem,1fr) minmax(4.5rem,.6fr);align-items:center;gap:.6rem;padding:.4rem .9rem;border-top:1px solid var(--lo-soft);font-variant-numeric:tabular-nums}
+.lo-dv__h{border-top:0;background:color-mix(in srgb,var(--lo-on) 4%,transparent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;color:var(--lo-dim)}
+.lo-dv .is-num{text-align:right;white-space:nowrap}
+.lo-dv .is-mid{position:relative;display:flex;justify-content:center;align-items:center;min-height:1.4rem}
+.lo-dv__h .is-mid{text-align:center}
+.lo-dv__l{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lo-dv__l small{font-weight:400;color:var(--lo-dim)}
+.lo-dv__b{color:var(--lo-dim)}
+.lo-dv__r.is-same{color:var(--lo-dim)}
+.lo-dv__r.is-same b{font-weight:600}
+.lo-dv__r[title]{cursor:help}
+.lo-dv__bar{position:absolute;top:50%;left:0;right:0;height:6px;margin-top:-3px;border-radius:3px;background:linear-gradient(var(--lo-hair),var(--lo-hair)) 50% 0/1px 100% no-repeat,var(--lo-soft)}
+.lo-dv__bar::before{content:"";position:absolute;top:0;bottom:0;width:var(--r);border-radius:3px}
+.lo-dv__bar.is-good::before{left:50%;background:var(--lo-good)}
+.lo-dv__bar.is-bad::before{right:50%;background:var(--lo-bad)}
+.lo-dv .is-mid .lo-d{position:relative;padding:0 .3rem;border-radius:4px;background:var(--lo-card);font-size:var(--fs-5)}
 .lo-sort{appearance:none;border:0;background:none;padding:0;color:inherit;font:inherit;cursor:pointer;white-space:nowrap}
 .lo-sort small{font-weight:400}
 .lo-sort i{font-style:normal;color:var(--lo-a);margin-left:.2rem}
@@ -142,11 +166,16 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-opt:hover,.lo-opt:focus-visible{background:color-mix(in srgb,var(--lo-on) 5%,transparent);outline:0}
 .lo-opt.is-now{background:color-mix(in srgb,var(--lo-a) 8%,transparent)}
 .lo-opt.is-prev{background:color-mix(in srgb,var(--lo-a) 16%,transparent);box-shadow:inset 3px 0 0 var(--lo-a)}
-.lo-opt .is-name b{display:block;font-size:var(--fs-6)}
-.lo-opt .is-name small{display:block;font-size:var(--fs-5);color:var(--lo-dim)}
-.lo-opt .is-main{font-weight:800}
+.lo-opt .is-name{min-width:12rem}
+.lo-opt .is-name b{display:block;font-size:var(--fs-6);white-space:nowrap}
+.lo-opt .is-name small{display:block;max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-5);color:var(--lo-dim)}
+.lo-opt .is-main{min-width:7.5rem;font-weight:800}
+.lo-mainv{display:block}
+.lo-mainbar{display:block;height:3px;margin-top:.3rem;border-radius:2px;background:linear-gradient(var(--lo-a),var(--lo-a)) 0 0/var(--w) 100% no-repeat,var(--lo-soft)}
 .lo-opt .is-main .lo-d{margin-left:.4rem;font-size:var(--fs-5)}
-.lo-opt .is-act{text-align:right}
+/* Einbauen bleibt am rechten Rand stehen, auch wenn die Tabelle seitlich laeuft. */
+.lo-t .is-act{position:sticky;right:0;text-align:right;background:var(--lo-card);box-shadow:-10px 0 10px -6px var(--lo-card)}
+.lo-opt.is-now .is-act,.lo-opt.is-prev .is-act{background:color-mix(in srgb,var(--lo-a) 12%,var(--lo-card))}
 .lo-fit{min-height:2rem;padding:0 .7rem}
 .lo-fitted{font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;color:var(--lo-a);white-space:nowrap}
 .lo-vh{position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -185,10 +214,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 @media (max-width:900px){
   .lo-grid{grid-template-columns:minmax(0,1fr)}
   .lo-pick{position:static;max-height:none;overflow:visible;scroll-margin-top:calc(var(--nav-h,68px) + .5rem)}
-  .lo-sum{grid-template-columns:repeat(2,minmax(0,1fr))}
   .lo-t th,.lo-t td{padding:.45rem .5rem}
-  .lo-cmp th{hyphens:auto;overflow-wrap:anywhere}
-  .lo-cmp thead th{white-space:normal}
+  .lo-dv__r{grid-template-columns:minmax(3.5rem,auto) minmax(0,1fr) minmax(3.5rem,auto);gap:.15rem .5rem;padding:.45rem .7rem}
+  .lo-dv__l{grid-column:1/-1}
+  .lo-dv__h>span:first-child{display:none}
   .lo-optscroll{max-height:min(26rem,60vh)}
   .lo-equip,.lo-slot{scroll-margin-top:calc(var(--nav-h,68px) + .5rem)}
   .lo-tolist{display:inline-flex;justify-self:start;appearance:none;border:0;background:none;padding:0;color:var(--lo-a);font:inherit;font-weight:700;cursor:pointer}
@@ -240,9 +269,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   <div class="lo-grid">
     <nav class="lo-equip" id="lo-equip" aria-label={l('lo.equip')}>
       <h2>{l('lo.equip')}</h2>
-      <p>{l('hint.swap')}</p>
       <div id="lo-equip-list"></div>
-      <p>{l('note')}</p>
+      <p class="lo-note">{l('note')}</p>
     </nav>
     <div class="lo-pick" id="lo-pick" aria-live="polite"></div>
   </div>
