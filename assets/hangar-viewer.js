@@ -6884,7 +6884,10 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       snap = true;
     }
     G.run = { dir, t0, tau0, snap };
-    fx.gateGo(dir, ((G.T - tau0) * HALL_GATE.ms) / G.T, performance.now() - t0);
+    // Rest der Bahn; nach einer Umkehr steht das Tor frühestens nach
+    // GATE_BLEND_MS (gateFrame), dorthin gehört auch der Anschlag des Tons
+    const rest = ((G.T - tau0) * HALL_GATE.ms) / G.T;
+    fx.gateGo(dir, snap ? Math.max(rest, GATE_BLEND_MS) : rest, performance.now() - t0);
   }
   function gateClose(info) {
     const G = gateOf();
@@ -7072,7 +7075,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       if (G?.run) {
         const r = G.run, tau = Math.min(G.T, Math.max(0, r.tau0 + ((now - r.t0) * G.T) / HALL_GATE.ms));
         cover = r.dir === 'close' ? tau / G.T : 1 - tau / G.T;
-        if (!sound.gating && sound.live && now >= r.t0 && tau < G.T) sound.gate(r.dir, ((G.T - tau) * HALL_GATE.ms) / G.T / 1000);
+        if (!sound.gating && sound.live && now >= r.t0 && tau < G.T) sound.gate(r.dir, Math.max(((G.T - tau) * HALL_GATE.ms) / G.T, r.snap ? r.t0 + GATE_BLEND_MS - now : 0) / 1000);
       } else if (G?.state === 'closed') cover = 1;
       if (lift.going && !lift.halted && !sound.riding && sound.live) sound.rideOn();
       sound.space(THREE.MathUtils.clamp(-lift.y / 36, 0, 1), cover);
