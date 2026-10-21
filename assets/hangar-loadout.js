@@ -736,6 +736,51 @@ $('lo-undo').addEventListener('click', () => {
 
 /* ---------------------------------------------------------- Start --- */
 
+/* ---------------------------------------------------------- Verbindungen --- */
+
+// Was angeklickt ist, haengt sichtbar an dem, was es geoeffnet hat: gewaehlter Platz
+// -> Panel rechts, angeklicktes Teil -> Vergleich. Ein Steg ueberbrueckt die Luecke,
+// der Panelrahmen bekommt an der Stelle eine Kerbe (--nt/--nh), so wird es eine Form.
+const linkLayer = el('div', { class: 'lo-links', 'aria-hidden': 'true' });
+root.append(linkLayer);
+const wide = matchMedia('(min-width:1100px) and (min-height:600px)');
+let linkQueued = false;
+function paintLinks() {
+  linkQueued = false;
+  const o = root.getBoundingClientRect();
+  const pairs = [
+    ['is-a', $('lo-equip-list').querySelector('.lo-slot.is-sel'), $('lo-equip'), pick],
+    ['is-b', pick.querySelector('.lo-opt.is-prev'), pick.querySelector('.lo-optscroll'), $('lo-cmp')],
+  ];
+  linkLayer.replaceChildren();
+  for (const p of [pick, ...pick.querySelectorAll('.lo-cmpbox')]) p.classList.remove('is-linked');
+  if (!wide.matches) return;
+  for (const [cls, src, box, panel] of pairs) {
+    if (!src || !box || !panel || !panel.childElementCount) continue;
+    const r = src.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    const p = panel.getBoundingClientRect();
+    panel.classList.add('is-linked');
+    const top = Math.max(r.top, b.top, p.top);
+    const bot = Math.min(r.bottom, b.bottom, p.bottom);
+    if (bot - top < 6) { panel.style.setProperty('--nh', '0px'); continue; }
+    panel.style.setProperty('--nt', `${top - p.top}px`);
+    panel.style.setProperty('--nh', `${bot - top}px`);
+    const left = Math.min(r.right, b.right);
+    linkLayer.append(el('span', { class: `lo-link ${cls}${r.top < top ? ' is-cut-t' : ''}${r.bottom > bot ? ' is-cut-b' : ''}`, style: `left:${left - o.left}px;top:${top - o.top}px;width:${p.left - left + 1}px;height:${bot - top}px` }));
+  }
+}
+function queueLinks() {
+  if (linkQueued) return;
+  linkQueued = true;
+  requestAnimationFrame(paintLinks);
+}
+const linkWatch = new MutationObserver(queueLinks);
+linkWatch.observe(pick, { childList: true });
+linkWatch.observe($('lo-equip-list'), { childList: true });
+root.addEventListener('scroll', queueLinks, true);
+addEventListener('resize', queueLinks);
+
 async function boot() {
   $('lo-failed').hidden = true;
   $('lo-loading').hidden = false;

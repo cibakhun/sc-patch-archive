@@ -779,6 +779,11 @@ export const EXCLUSIONS = [
     selectorFamilies: ['.holo__panel::after'],
     reason: 'src/components/ShipDetail.astro: .holo__panel::after ist eine sehr blasse (7%) Scanline-Textur UEBER der bereits OPAKEN Basisflaeche von .holo__panel (background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6)) -- beide Stops identisch, also deckend). Der massgebliche Kontrast (Text gegen scrim-6) haengt an der Basisregel, nicht an diesem `::after`; die Basisregel ist kein `::before/::after` und wird von Zusicherung 5 nicht erfasst, ihre Deckkraft macht die Stelle aber unkritisch (scrim-6 ist mode-unabhaengig nahezu Schwarz).',
   },
+  {
+    id: 'X-loadout-link-frame',
+    selectorFamilies: ['.lo-pick.is-linked::before', '.lo-cmpbox.is-linked::before'],
+    reason: 'src/components/hangar/LoadoutPage.astro: die beiden ::before sind nur ein 1px-Rahmen (border) ohne Hintergrund; die linear-gradient(#000 0 0)-Werte stehen in mask/-webkit-mask und schneiden die Kerbe heraus, an der der Rahmen in den Steg zum angeklickten Platz/Teil uebergeht. Keine Flaeche ueber Text, also kein Kontrastfall.',
+  },
 ];
 
 /* ============================================================

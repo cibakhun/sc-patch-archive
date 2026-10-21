@@ -250,6 +250,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-dv__r.is-key{font-size:var(--fs-7)}
 .lo-dv__r.is-key b{font-weight:800}
 .lo-dv__r.is-same{opacity:.6}
+.lo-links{display:none}
 .lo-dv__more{appearance:none;justify-self:start;margin:.4rem .9rem .6rem;padding:0;border:0;background:none;color:var(--lo-dim);font:inherit;font-size:var(--fs-5);font-weight:700;cursor:pointer}
 .lo-dv__more:hover,.lo-dv__more:focus-visible{color:var(--lo-a);outline:0}
 /* Breite Schirme: alles auf einen Blick, die Seite selbst scrollt nicht.
@@ -296,14 +297,44 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-dv__h{position:sticky;top:0;z-index:1;background:var(--lo-card)}
   .lo-dv__r{padding:.3rem .8rem}
   .lo-paints{grid-column:1/-1;grid-row:3;min-height:0;overflow-y:auto;align-content:start}
+  /* Was angeklickt ist, haengt am Panel, das es geoeffnet hat: ein Rahmen von links nach rechts.
+     Platz -> Panel in hellem Grau, Teil -> Vergleich in Gold (der eine Fokus). Steg und Kerbe setzt das Skript. */
+  .lo{position:relative;--lo-chain:color-mix(in srgb,var(--lo-on) 34%,transparent);--lo-chainbg:color-mix(in srgb,var(--lo-on) 4%,transparent);--lo-pvbg:color-mix(in srgb,var(--lo-a) 12%,var(--bg));--lo-cmpbg:color-mix(in srgb,var(--lo-a) 5%,var(--bg))}
+  .lo-links{display:block;position:absolute;inset:0;z-index:4;pointer-events:none}
+  .lo-link{position:absolute;box-sizing:border-box;border-block:1px solid var(--lo-chain);background:var(--lo-chainbg)}
+  .lo-link.is-b{border-color:var(--lo-a);background:linear-gradient(90deg,var(--lo-pvbg),var(--lo-cmpbg))}
+  .lo-link.is-cut-t{border-top-color:transparent}
+  .lo-link.is-cut-b{border-bottom-color:transparent}
+  .lo-pick{position:relative;top:auto;padding:.6rem .7rem .7rem;border-radius:12px;background:var(--lo-chainbg)}
+  .lo-pick.is-linked::before,.lo-cmpbox.is-linked::before{content:"";position:absolute;inset:0;z-index:3;border:1px solid var(--lo-chain);border-radius:inherit;pointer-events:none;-webkit-mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt,0px)/3px var(--nh,0px) no-repeat;-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt,0px)/3px var(--nh,0px) no-repeat;mask-composite:exclude}
+  .lo-slot.is-sel{border-color:var(--lo-chain);border-right-color:transparent;border-radius:10px 0 0 10px;background:var(--lo-chainbg)}
+  .lo-slot.is-sel .lo-sock,.lo-slot.is-sel .lo-chev{color:var(--lo-a)}
+  .lo-cmpbox{position:relative}
+  .lo-cmpbox.is-prev{background:var(--lo-cmpbg)}
+  .lo-cmpbox.is-prev .lo-dv__h{background:var(--lo-cmpbg)}
+  .lo-cmpbox.is-linked{border-color:transparent}
+  .lo-cmpbox.is-linked::before{border-color:var(--lo-a)}
+  .lo-cmpbox:not(.is-prev).is-linked::before{display:none}
+  .lo-opt.is-prev,.lo-opt.is-prev .is-act{background:var(--lo-pvbg)}
+  .lo-opt.is-prev>td{box-shadow:inset 0 1px 0 var(--lo-a),inset 0 -1px 0 var(--lo-a)}
+  .lo-opt.is-prev>td:first-child{box-shadow:inset 1px 0 0 var(--lo-a),inset 0 1px 0 var(--lo-a),inset 0 -1px 0 var(--lo-a)}
 }
 @media (min-width:1100px) and (max-width:1599px) and (min-height:600px){
   .lo-id h1{display:none}
   .lo-state{max-width:9rem}
   .lo-pick{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
   .lo-dv__r{grid-template-columns:minmax(0,1fr) auto minmax(4.5rem,6.5rem) auto;gap:.5rem;padding:.3rem .65rem}
-  /* Schmal: die Liste zeigt Name und Hauptwert, den Rest der Vergleich daneben. */
+}
+/* Bis knapp 2K zeigt die Liste Name und Hauptwert, den Rest der Vergleich daneben. */
+@media (min-width:1100px) and (max-width:1999px) and (min-height:600px){
   .lo-opts:not(.is-more) .is-col{display:none}
+}
+@media (min-width:1100px) and (max-width:1599px) and (min-height:600px){
+  .lo-pick{padding:.45rem .5rem .5rem}
+  .lo-opt .is-name{min-width:0;max-width:12rem}
+  .lo-opt .is-name b{overflow:hidden;text-overflow:ellipsis}
+  .lo-opt .is-main{min-width:0}
+  .lo-t th,.lo-t td{padding:.45rem .5rem}
 }
 @media (min-width:1100px) and (min-height:600px) and (max-height:820px){
   .lo-sumg h3,.lo-pickhead small,.lo-equip>h2{display:none}
