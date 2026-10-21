@@ -739,43 +739,57 @@ $('lo-undo').addEventListener('click', () => {
 /* ---------------------------------------------------------- Verbindungen --- */
 
 // Was angeklickt ist, haengt sichtbar an dem, was es geoeffnet hat: gewaehlter Platz
-// -> Panel rechts, angeklicktes Teil -> Vergleich. Ein Steg ueberbrueckt die Luecke,
-// der Panelrahmen bekommt an der Stelle eine Kerbe (--nt/--nh), so wird es eine Form.
+// -> Panel rechts, angeklicktes Teil -> Vergleich. Eine Lasche (Rahmen ums Angeklickte
+// plus Steg ueber die Luecke) liegt als eigene Ebene darueber und gleitet beim Wechsel
+// weich zum neuen Ziel; der Panelrahmen bekommt an der Stelle eine Kerbe (--nt/--nh).
 const linkLayer = el('div', { class: 'lo-links', 'aria-hidden': 'true' });
+const tabs = { 'is-a': el('span', { class: 'lo-tab is-a' }), 'is-b': el('span', { class: 'lo-tab is-b' }) };
+linkLayer.append(tabs['is-a'], tabs['is-b']);
 root.append(linkLayer);
 const wide = matchMedia('(min-width:1100px) and (min-height:600px)');
 let linkQueued = false;
+let linkSnap = false;  // Scrollen/Groesse: Lasche folgt sofort, ohne Gleiten
 function paintLinks() {
   linkQueued = false;
+  const snap = linkSnap;
+  linkSnap = false;
   const o = root.getBoundingClientRect();
   const pairs = [
     ['is-a', $('lo-equip-list').querySelector('.lo-slot.is-sel'), $('lo-equip'), pick],
     ['is-b', pick.querySelector('.lo-opt.is-prev'), pick.querySelector('.lo-optscroll'), $('lo-cmp')],
   ];
-  linkLayer.replaceChildren();
-  for (const p of [pick, ...pick.querySelectorAll('.lo-cmpbox')]) p.classList.remove('is-linked');
-  if (!wide.matches) return;
+  for (const p of [pick, ...pick.querySelectorAll('.lo-cmpbox')]) if (!pairs.some((x) => x[3] === p && x[1])) p.classList.remove('is-linked');
   for (const [cls, src, box, panel] of pairs) {
-    if (!src || !box || !panel || !panel.childElementCount) continue;
+    const tab = tabs[cls];
+    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.remove('is-on'); continue; }
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
-    panel.classList.add('is-linked');
     const top = Math.max(r.top, b.top, p.top);
     const bot = Math.min(r.bottom, b.bottom, p.bottom);
-    if (bot - top < 6) { panel.style.setProperty('--nh', '0px'); continue; }
+    panel.classList.add('is-linked');
+    panel.classList.toggle('is-snap', snap);
+    if (bot - top < 6) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
     panel.style.setProperty('--nt', `${top - p.top}px`);
     panel.style.setProperty('--nh', `${bot - top}px`);
-    const left = Math.min(r.right, b.right);
-    linkLayer.append(el('span', { class: `lo-link ${cls}${r.top < top ? ' is-cut-t' : ''}${r.bottom > bot ? ' is-cut-b' : ''}`, style: `left:${left - o.left}px;top:${top - o.top}px;width:${p.left - left + 1}px;height:${bot - top}px` }));
+    const left = Math.max(r.left, b.left);
+    // Erstes Erscheinen springt (nur Einblenden), danach gleitet die Lasche.
+    tab.classList.toggle('is-jump', snap || !tab.classList.contains('is-on'));
+    tab.classList.toggle('is-cut-t', r.top < top - 1);
+    tab.classList.toggle('is-cut-b', r.bottom > bot + 1);
+    tab.style.transform = `translate(${left - o.left}px,${top - o.top}px)`;
+    tab.style.width = `${p.left - left + 1}px`;
+    tab.style.height = `${bot - top}px`;
+    tab.classList.add('is-on');
   }
 }
-function queueLinks() {
+function queueLinks(e) {
+  if (e?.type === 'scroll' || e?.type === 'resize') linkSnap = true;
   if (linkQueued) return;
   linkQueued = true;
   requestAnimationFrame(paintLinks);
 }
-const linkWatch = new MutationObserver(queueLinks);
+const linkWatch = new MutationObserver(() => queueLinks());
 linkWatch.observe(pick, { childList: true });
 linkWatch.observe($('lo-equip-list'), { childList: true });
 root.addEventListener('scroll', queueLinks, true);
