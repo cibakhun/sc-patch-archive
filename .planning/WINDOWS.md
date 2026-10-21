@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 61
+open_count: 62
 waived_count: 1
 fixed_count: 34
-total_count: 96
-last_updated: 2026-10-21T02:30:00.000Z
+total_count: 97
+last_updated: 2026-10-21T03:50:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -111,6 +111,7 @@ last_updated: 2026-10-21T02:30:00.000Z
 | 95 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Schachttor nach Krisz 19.10.2026 21:31 mit zwei Bildern vom Ende des Schachts: „siehstr du wie es einfach aus dem nichts erscheint?“): Gezeichnet wurde das Tor erst ab dem Schließen. Das Fachwerk der Stirnplatten stand so mit einem Bild in der leeren Nische an den Enden und verschwand nach dem Öffnen ebenso; an den Längsseiten schossen die Flügel in rund 0,08 s durch die Rückwand der Nische. Jetzt ist das Tor sichtbar, solange man in den Schacht sieht, und alle Teile liegen offen dunkel in der Nische bereit (Flügel 2 m hinter der Wandebene statt 12 m). Alle vier Seiten fahren im selben Augenblick aus ihr los und kommen zugleich darin an; in Ruhe bleibt das Tor aus wie bisher. Zu beurteilen: (1) Kommt beim Wechsel noch etwas aus dem Nichts? (2) Lesen sich Platten und Flügel in der Nische als bereitliegende Teile des Tors (Frage 1 von Nr. 94)? (3) Die Stirnplatten fahren rund 2,7-mal so langsam wie im Spiel; passt das, oder sollen sie früher fertig sein (Frage 1 aus Nr. 93)? Bild: hangar-schachttor/schacht-nische-vorher-nachher.png im Projektordner; Befund in .planning/notes/hangar-schachttor.md, Abschnitt „Tor liegt in der Nische bereit“. | open |  | 2026-10-19T21:55:00.000Z |  |
 | 96 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Wartungsplatz nach Krisz 20.10.2026 17:32 mit einem Bild der Werkbank: „es fehlen auch texturen bei den assets, wir k0nnten auch mehr assets holen, die assets besser zusammenstellen etc“): Die dunkle Platte mit orangem Rand und schwarzen Keilen war workbench_table_1_a, ein Bergbau-Tisch aus dem Archiv (Platte auf 0,5 m, schwarzer Mittelrahmen bis 1 m, der Fuß kommt aus dem Export schwarz und ohne Karte, darum schwebte sie; das Werkzeug lag 0,5 m darüber). An ihrer Stelle steht jetzt die fahrbare Werkbank des Spiels (workbench_mobile_1_a: Hubgestell mit heller Platte auf 1,2 m), das Werkzeug liegt auf der Platte. Die Crew lief durch das Gerät (gemessen auf ihren Wegen: Gladius bis 6,4 m, Starlifter bis 31,5 m je Weg in Requisiten); jetzt geht sie um jeden Platz herum (0 m auf sechs Schiffen) und wählt dabei die Seite, die weniger unter den Rumpf führt. Die fehlenden Texturen selbst (Abnutzung, Schmutz, Verschattung, Metallfarbe) kommen mit dem PC-Lauf „Hangar-Werte“, Teil 2 (.planning/notes/hangar-requisiten.md). Zu beurteilen: (1) Passt die fahrbare Werkbank als Werkbank am Schiff? (2) Wirkt es, dass die Crew um das Gerät herumgeht, oder sieht man die Umwege als Zickzack? Bild: hangar/v55-werkbank-vorher-nachher.png im Projektordner. | open |  | 2026-10-20T18:40:00.000Z |  |
 | 97 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Wartungsplatz nach Krisz 20.10.2026 17:32: „es fehlen auch texturen bei den assets“): Die Requisiten tragen jetzt die Schichten ihrer Spielmaterialien statt einer Farbe je Teil: Die Blend-Karte mischt bis zu vier Lacke und Metalle, die Abnutzungskarte legt Kratzer, Rost und blankes Metall darüber (wo die Vertexfarbe des Spiels Abnutzung zulässt), Ecken und Fugen sind verschattet, und Flächen mit Muster (Rost, Riffelblech, Gewebe, Kreuzschraffur) tragen ihre Detail- und Normalenkarte, ohne zusätzlichen Zeichenbefehl. Welcher Kanal der Vertexfarbe was trägt und in welche Richtung die Abnutzung wächst, sagt das Spiel nicht; beides ist erschlossen. Zu beurteilen: (1) Der gelbe Generator ist jetzt deutlich abgenutzt, der weiße Kasten daran rostig; zu viel, zu wenig, oder wie im Spiel? (2) Lesen sich die schwarzen Kisten und der Hubwagen jetzt als texturiert, oder wirkt das Muster körnig? (3) Der Diagnosecomputer ist jetzt überwiegend orange statt weiß (seine Blend-Karte legt die zweite Schicht, einen orangen Lack, auf den größten Teil); ist er im Spiel orange? (4) Kabel tragen jetzt gelbe Abschnitte. (5) Schmutz fehlt noch, und 8 von 9 Abnutzungskarten fehlen in der Ablage (PC-Auftrag .planning/notes/hangar-schichten.md, Satz „Hangar-Schichten“, noch nicht vergeben). Bild: hangar/v56-schichten-vorher-nachher.png im Projektordner. | open |  | 2026-10-21T02:30:00.000Z |  |
+| 98 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Wartungsplatz nach Krisz 20.10.2026 17:32: „wir k0nnten auch mehr assets holen, die assets besser zusammenstellen“): Der Wartungsplatz trägt jetzt Gruppen aus den Arbeitsplätzen des Spiels statt einzeln verstreuter Teile: Am Werkzeugschrank liegt die Werkzeugtasche mit der Zange obenauf, Schraubendreher und Ratsche daneben (im Spiel steht diese Gruppe 159-mal); am Planenstapel stehen zwei gestapelte Kunststoffkisten und eine offene Munitionskiste; auf großen Schiffen stehen zwei Mehrzweckkisten am Palettenwagen; am Heck steht eine zweite Tasche. Die Höhen der Kisten unter den Planen gibt die Gruppe des Spiels nicht her, dieser Stapel ist deshalb nachgestellt, nicht übernommen. Kosten: kleine und mittlere Schiffe +3 Zeichenbefehle, große +4; Satz 5,51 statt 5,35 MB. Zu beurteilen: (1) Liegt das Werkzeug glaubhaft auf und neben der Tasche? (2) Passen die Kunststoffkisten an den Planenstapel, oder wird der Platz zu voll? (3) Stehen die Mehrzweckkisten auf großen Schiffen (Polaris) glaubhaft am Palettenwagen? Zurück: die neuen Glieder in WORK_DIENST (assets/hangar-viewer.js) streichen, dann node scripts/build-hangar-dienst.mjs. Bild: hangar/v57-requisiten-vorher-nachher.png im Projektordner. | open |  | 2026-10-21T03:50:00.000Z |  |
 
 ````json
 [
@@ -1264,6 +1265,18 @@ last_updated: 2026-10-21T02:30:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-21T02:30:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 98,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Wartungsplatz nach Krisz 20.10.2026 17:32: „wir k0nnten auch mehr assets holen, die assets besser zusammenstellen“): Der Wartungsplatz trägt jetzt Gruppen aus den Arbeitsplätzen des Spiels statt einzeln verstreuter Teile: Am Werkzeugschrank liegt die Werkzeugtasche mit der Zange obenauf, Schraubendreher und Ratsche daneben (im Spiel steht diese Gruppe 159-mal); am Planenstapel stehen zwei gestapelte Kunststoffkisten und eine offene Munitionskiste; auf großen Schiffen stehen zwei Mehrzweckkisten am Palettenwagen; am Heck steht eine zweite Tasche. Die Höhen der Kisten unter den Planen gibt die Gruppe des Spiels nicht her, dieser Stapel ist deshalb nachgestellt, nicht übernommen. Kosten: kleine und mittlere Schiffe +3 Zeichenbefehle, große +4; Satz 5,51 statt 5,35 MB. Zu beurteilen: (1) Liegt das Werkzeug glaubhaft auf und neben der Tasche? (2) Passen die Kunststoffkisten an den Planenstapel, oder wird der Platz zu voll? (3) Stehen die Mehrzweckkisten auf großen Schiffen (Polaris) glaubhaft am Palettenwagen? Zurück: die neuen Glieder in WORK_DIENST (assets/hangar-viewer.js) streichen, dann node scripts/build-hangar-dienst.mjs. Bild: hangar/v57-requisiten-vorher-nachher.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-21T03:50:00.000Z",
     "resolved_at": null
   }
 ]
