@@ -770,15 +770,26 @@ function paintLinks() {
     panel.classList.add('is-linked');
     panel.classList.toggle('is-snap', snap);
     if (bot - top < 6) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
-    panel.style.setProperty('--nt', `${top - p.top}px`);
-    panel.style.setProperty('--nh', `${bot - top}px`);
+    // Viertelboegen oben/unten: nur wenn Platz bis zur Panelecke ist, sonst gerade hinein.
+    const cs = getComputedStyle(root);
+    const fr = parseFloat(cs.getPropertyValue('--lo-fr')) || 14;
+    const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
+    const cutT = r.top < top - 1;
+    const cutB = r.bottom > bot + 1;
+    const filT = !cutT && top - fr >= p.top + corner;
+    const filB = !cutB && bot + fr <= p.bottom - corner;
+    const nt = top - p.top - (filT ? fr : 0);
+    panel.style.setProperty('--nt', `${nt}px`);
+    panel.style.setProperty('--nh', `${bot - top + (filT ? fr : 0) + (filB ? fr : 0)}px`);
     const left = Math.max(r.left, b.left);
     // Erstes Erscheinen springt (nur Einblenden), danach gleitet die Lasche.
     tab.classList.toggle('is-jump', snap || !tab.classList.contains('is-on'));
-    tab.classList.toggle('is-cut-t', r.top < top - 1);
-    tab.classList.toggle('is-cut-b', r.bottom > bot + 1);
+    tab.classList.toggle('is-cut-t', cutT);
+    tab.classList.toggle('is-cut-b', cutB);
+    tab.classList.toggle('is-nofil-t', !filT);
+    tab.classList.toggle('is-nofil-b', !filB);
     tab.style.transform = `translate(${left - o.left}px,${top - o.top}px)`;
-    tab.style.width = `${p.left - left + 2}px`;
+    tab.style.width = `${p.left - left - fr}px`;
     tab.style.height = `${bot - top}px`;
     tab.classList.add('is-on');
   }

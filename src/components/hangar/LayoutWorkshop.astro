@@ -124,8 +124,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-slot[data-changed]{box-shadow:inset 3px 0 0 var(--hg-amber);background:color-mix(in srgb,var(--hg-amber) 6%,transparent)}
 /* Offen: Platz und seine Auswahl darunter tragen einen gemeinsamen, weichen gelben Rahmen,
    eine Form; der Rahmen blendet weich ein, die Auswahl gleitet auf. */
-.hgl-slot.is-open{border-radius:12px;background:color-mix(in srgb,var(--hg-amber) 5%,transparent);border-bottom-color:transparent;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--hg-amber) 40%,transparent),inset 0 0 22px -10px color-mix(in srgb,var(--hg-amber) 30%,transparent),0 0 20px -8px color-mix(in srgb,var(--hg-amber) 30%,transparent)}
-.hgl-slot.is-open[data-changed]{box-shadow:inset 4px 0 0 color-mix(in srgb,var(--hg-amber) 80%,transparent),inset 0 0 0 2px color-mix(in srgb,var(--hg-amber) 40%,transparent),inset 0 0 22px -10px color-mix(in srgb,var(--hg-amber) 30%,transparent),0 0 20px -8px color-mix(in srgb,var(--hg-amber) 30%,transparent)}
+.hgl-slot.is-open{border-radius:20px;background:color-mix(in srgb,var(--hg-amber) 6%,transparent);border-bottom-color:transparent;box-shadow:inset 0 0 0 4px var(--hg-amber),inset 0 0 26px -10px color-mix(in srgb,var(--hg-amber) 40%,transparent),0 0 24px -8px color-mix(in srgb,var(--hg-amber) 35%,transparent);transition:border-radius var(--dur-slow,.3s) var(--ease-ui,ease),box-shadow var(--dur-slow,.3s) var(--ease-ui,ease),background var(--dur-slow,.3s) var(--ease-ui,ease)}
+.hgl-slot.is-open[data-changed]{box-shadow:inset 0 0 0 4px var(--hg-amber),inset 0 0 26px -10px color-mix(in srgb,var(--hg-amber) 40%,transparent),0 0 24px -8px color-mix(in srgb,var(--hg-amber) 35%,transparent)}
+.hgl-slot.is-open>.hgl-slot__btn{padding-inline:.8rem}
+.hgl-slot.is-open>.hgl-pick{padding:0 .8rem .8rem}
 .hgl-slot.is-open .hgl-pick{animation:hgl-open var(--dur-slow,.3s) var(--ease-ui,ease) both}
 @keyframes hgl-open{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .hgl-slot.is-flash{animation:hgl-flash .7s var(--ease-ui)}
