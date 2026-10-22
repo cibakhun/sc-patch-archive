@@ -303,24 +303,32 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
      Platz -> Panel und Teil -> Vergleich, beide in Gold, der zweite kraeftiger (der Fokus).
      Die Lasche (Rahmen ums Angeklickte + Steg) legt das Skript als eigene Ebene darueber;
      sie gleitet beim Wechsel weich zum neuen Ziel, die Kerbe im Panelrahmen gleitet mit. */
-  .lo{position:relative;--lo-ca:color-mix(in srgb,var(--lo-a) 40%,transparent);--lo-cb:color-mix(in srgb,var(--lo-a) 62%,transparent);--lo-glow:color-mix(in srgb,var(--lo-a) 26%,transparent);--lo-ga:color-mix(in srgb,var(--lo-a) 5%,transparent);--lo-gb:color-mix(in srgb,var(--lo-a) 11%,transparent);--lo-boxbg:color-mix(in srgb,var(--lo-on) 3%,var(--bg))}
+  .lo{position:relative;--lo-fw:4px;--lo-fr:14px;--lo-ca:var(--lo-a);--lo-cb:var(--lo-a);--lo-glow:color-mix(in srgb,var(--lo-a) 32%,transparent);--lo-ga:color-mix(in srgb,var(--lo-a) 5%,transparent);--lo-gb:color-mix(in srgb,var(--lo-a) 10%,transparent);--lo-boxbg:color-mix(in srgb,var(--lo-on) 3%,var(--bg))}
   .lo-links{display:block;position:absolute;inset:0;z-index:4;pointer-events:none}
-  .lo-tab{position:absolute;left:0;top:0;box-sizing:border-box;border:2px solid var(--lo-ca);border-right:0;border-radius:14px 0 0 14px;background:linear-gradient(90deg,var(--lo-ga),color-mix(in srgb,var(--lo-a) 3%,transparent));box-shadow:-2px 0 22px -6px var(--lo-glow);opacity:0;transition:transform var(--dur-slow,.3s) var(--ease-ui,ease),width var(--dur-slow,.3s) var(--ease-ui,ease),height var(--dur-slow,.3s) var(--ease-ui,ease),opacity var(--dur-fast,.15s) var(--ease-ui,ease)}
-  .lo-tab.is-b{border-color:var(--lo-cb);background:linear-gradient(90deg,var(--lo-gb),color-mix(in srgb,var(--lo-a) 5%,transparent))}
+  .lo-tab{position:absolute;left:0;top:0;box-sizing:border-box;border:var(--lo-fw) solid var(--lo-ca);border-right:0;border-radius:22px 0 0 22px;background:linear-gradient(90deg,var(--lo-ga),color-mix(in srgb,var(--lo-a) 3%,transparent));box-shadow:-2px 0 24px -6px var(--lo-glow);opacity:0;transition:transform var(--dur-slow,.3s) var(--ease-ui,ease),width var(--dur-slow,.3s) var(--ease-ui,ease),height var(--dur-slow,.3s) var(--ease-ui,ease),opacity var(--dur-fast,.15s) var(--ease-ui,ease)}
+  /* Weiche Uebergaenge: zwei Viertelboegen fuehren den Laschenrand in den Panelrand. */
+  .lo-tab::before,.lo-tab::after{content:"";position:absolute;left:100%;width:calc(var(--lo-fr) + var(--lo-fw));height:calc(var(--lo-fr) + var(--lo-fw));box-sizing:border-box;border:0 solid var(--lo-ca);pointer-events:none}
+  .lo-tab::before{top:calc(-1 * var(--lo-fr) - var(--lo-fw));border-right-width:var(--lo-fw);border-bottom-width:var(--lo-fw);border-bottom-right-radius:calc(var(--lo-fr) + var(--lo-fw))}
+  .lo-tab::after{bottom:calc(-1 * var(--lo-fr) - var(--lo-fw));border-right-width:var(--lo-fw);border-top-width:var(--lo-fw);border-top-right-radius:calc(var(--lo-fr) + var(--lo-fw))}
+  /* Liegt das Angeklickte buendig an der Panelecke, laeuft der Rand gerade hinein. */
+  .lo-tab.is-nofil-t::before{top:calc(-1 * var(--lo-fw));height:var(--lo-fw);border-width:var(--lo-fw) 0 0;border-radius:0}
+  .lo-tab.is-nofil-b::after{bottom:calc(-1 * var(--lo-fw));height:var(--lo-fw);border-width:0 0 var(--lo-fw);border-radius:0}
+  .lo-tab.is-cut-t::before,.lo-tab.is-cut-b::after{display:none}
+  .lo-tab.is-b{background:linear-gradient(90deg,var(--lo-gb),color-mix(in srgb,var(--lo-a) 5%,transparent))}
   .lo-tab.is-on{opacity:1}
   .lo-tab.is-cut-t{border-top-color:transparent;border-top-left-radius:0}
   .lo-tab.is-cut-b{border-bottom-color:transparent;border-bottom-left-radius:0}
   .lo-tab.is-jump{transition:opacity var(--dur-fast,.15s) var(--ease-ui,ease)}
-  .lo-pick{position:relative;top:auto;padding:.6rem .7rem .7rem;border-radius:16px;background:var(--lo-ga)}
-  .lo-pick.is-linked::before,.lo-cmpbox.is-linked::before{content:"";position:absolute;inset:0;z-index:3;border:2px solid var(--lo-ca);border-radius:inherit;box-shadow:inset 0 0 26px -10px var(--lo-glow);pointer-events:none;-webkit-mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt)/4px var(--nh) no-repeat;-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt)/4px var(--nh) no-repeat;mask-composite:exclude;transition:--nt var(--dur-slow,.3s) var(--ease-ui,ease),--nh var(--dur-slow,.3s) var(--ease-ui,ease)}
+  .lo-pick{position:relative;top:auto;padding:.75rem .85rem .85rem;border-radius:24px;background:var(--lo-ga)}
+  .lo-pick.is-linked::before,.lo-cmpbox.is-linked::before{content:"";position:absolute;inset:0;z-index:3;border:var(--lo-fw) solid var(--lo-ca);border-radius:inherit;box-shadow:inset 0 0 28px -10px var(--lo-glow),0 0 24px -8px var(--lo-glow);pointer-events:none;-webkit-mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt)/calc(var(--lo-fw) + 2px) var(--nh) no-repeat;-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0),linear-gradient(#000 0 0) 0 var(--nt)/calc(var(--lo-fw) + 2px) var(--nh) no-repeat;mask-composite:exclude;transition:--nt var(--dur-slow,.3s) var(--ease-ui,ease),--nh var(--dur-slow,.3s) var(--ease-ui,ease)}
   .lo-pick.is-snap::before,.lo-cmpbox.is-snap::before{transition:none}
   .lo-slot.is-sel{border-color:transparent;background:transparent}
   .lo-slot.is-sel .lo-sock,.lo-slot.is-sel .lo-chev,.lo-slot.is-sel strong{color:var(--lo-a)}
-  .lo-cmpbox{position:relative;border-radius:14px;transition:background var(--dur-slow,.3s) var(--ease-ui,ease)}
+  .lo-cmpbox{position:relative;border-radius:20px;transition:background var(--dur-slow,.3s) var(--ease-ui,ease)}
   .lo-cmpbox.is-prev{background:color-mix(in srgb,var(--lo-a) 4%,var(--bg))}
   .lo-cmpbox.is-prev .lo-dv__h{background:color-mix(in srgb,var(--lo-a) 4%,var(--bg))}
   .lo-cmpbox.is-linked{border-color:transparent}
-  .lo-cmpbox.is-linked::before{border-color:var(--lo-cb);box-shadow:inset 0 0 26px -8px var(--lo-glow)}
+  .lo-cmpbox.is-linked::before{border-color:var(--lo-cb)}
   .lo-cmpbox:not(.is-prev).is-linked::before{display:none}
   .lo-opt.is-prev{background:transparent}
   .lo-opt.is-prev .is-act{background:var(--lo-boxbg)}
