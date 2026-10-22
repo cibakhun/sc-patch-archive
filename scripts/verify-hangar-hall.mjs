@@ -248,13 +248,15 @@
         Arbeitsplatz oder eine Kategorie des Katalogs); Fingerabdruck,
         Knoten, Katalog, Attributsaetze und Schichten wie in [14]; jedes
         Stueck im Raum, keines im Feld samt Rand und WORK_EDGE, keine zwei
-        festen ineinander, Gestapeltes liegt auf einem Stueck seiner Zone
-        auf, und keines steht im Band des Grundrisses (WORK_BAND, Zellen
-        WORK_CELL, Regel wie floorGrid/freeRot) in Wand oder Einrichtung
-        aus Hallenstufe und Moebeldatei der Seite (Moebel auf den Streifen
-        umgesetzt wie shiftHallFloor, Teile ganz in einer Ausnahme aus
-        HALL_DROP weggelassen; die Moebel, die der Viewer vom Rand rueckt,
-        nicht nachgebildet). Zonen, Glieder, Gestapeltes, Spuren, Arten und
+        festen ineinander, jedes gerade zur Wand (Drehung in Vierteln, seit
+        der Neuordnung 21.10.2026: „jetzt stehen die assetes dum rum“),
+        Gestapeltes liegt auf einem Stueck seiner Zone auf, und keines
+        steht im Band des Grundrisses (WORK_BAND, Zellen WORK_CELL, Regel
+        wie floorGrid/freeRot) in Wand oder Einrichtung aus Hallenstufe und
+        Moebeldatei der Seite (Moebel auf den Streifen umgesetzt wie
+        shiftHallFloor, Teile ganz in einer Ausnahme aus HALL_DROP
+        weggelassen, Moebel am festen Rand hinausgerueckt wie
+        clearRandFurniture, seit 21.10.2026). Zonen, Glieder, Gestapeltes, Spuren, Arten und
         Schichten ueber KLINKE_DEKO und KLINKE_DEKO_SCHICHTEN, Materialien,
         Dreiecke je Stufe und Bytes unter OBERGRENZE_DEKO.
    ============================================================ */
@@ -404,14 +406,27 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Regalfaechern; 142 Materialien, 381 590 / 1 613 384 Dreiecke, 11,23 MB.
 // Selbstauskunft der Grundrissprobe: 295 Stuecke im Band, 80 hohe darueber,
 // 6 groessere Hallen nachgerechnet.
-const KLINKE_DEKO = { zonen: 27, mittel: 7, glieder: 319, gestapelt: 84, spuren: 19, arten: 123, fach: 27, geprueft: 295, hochGeprueft: 80, massstaebe: 6 };
+// Neu geordnet am Abend des 21.10.2026 (Betreiber: „jetzt stehen die
+// assetes dum rum“): alles zwischen Wand und erster Bodenlinie, nach
+// Zweck in Arbeitsplaetzen, gerade zur Wand; Regale gefuellt, Fahrzeuge in
+// Stellplaetzen mit Bodenlinien auf der Vorflaeche vor der Fahrspur.
+// Stand: 27 Zonen (7 ab mittel), 348 Glieder (153 gestapelt),
+// 117 Spuren, 131 Arten, 59 in Regalfaechern, 326 im Band. Gesenkt: hohe
+// Stuecke ueber dem Band 80 -> 76, weil die fleckigen Serverschraenke und
+// der Standgenerator (ueber 2,4 m) Schaltschraenken unter 2,4 m gewichen
+// sind. Neu: 5 Moebel, die der Viewer vom festen Rand rueckt, im
+// Grundriss mit ihrem neuen Platz (gerueckt).
+const KLINKE_DEKO = { zonen: 27, mittel: 7, glieder: 348, gestapelt: 153, spuren: 117, arten: 131, fach: 59, geprueft: 326, hochGeprueft: 76, massstaebe: 6, gerueckt: 5 };
 const OBERGRENZE_DEKO = { mats: 150, tris: { mittel: 400000, hoch: 1700000 }, bytes: 12e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
 // 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB. Mit Katalog v3
 // (21.10.2026): 240 Zeilen, 136 / 98 / 65 / 66, 57 Karten, 381 169 Ecken,
-// Raster 1010 KB.
-const KLINKE_DEKO_SCHICHTEN = { zeilen: 240, blend: 136, abnutzung: 98, detail: 65, normale: 66, karten: 57, ecken: 381000 };
+// Raster 1010 KB. Nach der Neuordnung am selben Abend: 271 Zeilen,
+// 142 / 118 / 82 / 80, 58 Karten, 377 721 Ecken, Raster 919 KB; Ecken
+// gesenkt (381 000 -> 377 000), weil Serverschraenke und Standgenerator
+// mit vielen geschichteten Ecken aus der Deko gegangen sind.
+const KLINKE_DEKO_SCHICHTEN = { zeilen: 271, blend: 142, abnutzung: 118, detail: 82, normale: 80, karten: 58, ecken: 377000 };
 const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1100000 };
 const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
@@ -1835,7 +1850,7 @@ const kdm = /\/\* work-deko \*\/([\s\S]*?)\/\* \/work-deko \*\//.exec(viewer);
 let dekoBlock = null;
 try { dekoBlock = kdm ? JSON.parse(kdm[1]) : null; } catch (e) { fail(`[17] WORK_DEKO im Viewer ist kein JSON mehr (${e.message})`); }
 const DK = W?.deko ?? null;
-const dekoRun = { zonen: 0, mittel: 0, glieder: 0, spuren: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+const dekoRun = { zonen: 0, mittel: 0, glieder: 0, spuren: 0, gerade: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DK && existsSync(join(ROOT, 'public/hangar/props/deko.glb'))) fail('[17] public/hangar/props/deko.glb liegt bereit, die Seite gibt die Hallendeko nicht mit (opts.hall.workshop.deko): Die Halle stuende still leer. HangarApp.astro pruefen');
 if (DK && !kdm) fail('[17] die Seite gibt die Hallendeko mit, der Viewer traegt keinen Block /* work-deko */ … /* /work-deko */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 for (const k of Object.keys(KLINKE_DEKO).filter(() => !DK)) fail(`[17] KLINKE_DEKO.${k}: die Seite gibt keine Hallendeko mehr mit; den Eintrag hier per Commit mit Ursache entfernen`);
@@ -1946,7 +1961,7 @@ if (DK && dekoBlock) {
       for (const [node, x, q, r = 0, y = 0] of z.glieder ?? []) {
         const e = sizeOf.get(node);
         if (!e || !Number.isFinite(x + q + r + y)) continue;
-        items.push({ zone: z, node, kind: 'glied', c: at(x, q), a: th + r * D2R, y, top: y + e.size[1], hx: e.size[0] / 2, hz: e.size[2] / 2, tris: e.tris, local: [x, q] });
+        items.push({ zone: z, node, kind: 'glied', r, c: at(x, q), a: th + r * D2R, y, top: y + e.size[1], hx: e.size[0] / 2, hz: e.size[2] / 2, tris: e.tris, local: [x, q] });
         dekoRun.glieder++;
         if (y > 0.05) dekoRun.gestapelt++;
       }
@@ -1954,12 +1969,19 @@ if (DK && dekoBlock) {
         const e = sizeOf.get(node);
         if (!e || !Number.isFinite(x + q + edge + r)) continue;
         const sc = edge / Math.max(e.size[0], e.size[2], 1e-3);
-        items.push({ zone: z, node, kind: 'spur', c: at(x, q), a: th + r * D2R, y: 0, top: 0, hx: (e.size[0] * sc) / 2, hz: (e.size[2] * sc) / 2, tris: e.tris, local: [x, q] });
+        items.push({ zone: z, node, kind: 'spur', r, c: at(x, q), a: th + r * D2R, y: 0, top: 0, hx: (e.size[0] * sc) / 2, hz: (e.size[2] * sc) / 2, tris: e.tris, local: [x, q] });
         dekoRun.spuren++;
       }
     }
     for (const it of items) { dekoRun.tris.hoch += it.tris; if (it.zone.stufe === 'mittel') dekoRun.tris.mittel += it.tris; }
     const tag = (m) => `${m.zone.name} ${m.node.replace(/^(prop|decal)_/, '')} (${m.local.join(', ')})`;
+    // Gerade zur Wand (Betreiber 21.10.2026 zur ersten Anordnung: „jetzt
+    // stehen die assetes dum rum“): Glieder und Spuren drehen nur in
+    // Vierteln, damit Regale, Kisten, Baenke und Stellplaetze in einer
+    // Flucht mit Wand und einander stehen
+    const schraeg = items.filter((m) => Math.abs(m.r / 90 - Math.round(m.r / 90)) > 1e-6);
+    dekoRun.gerade = items.length - schraeg.length;
+    if (schraeg.length) fail(`[17] ${schraeg.length} Stuecke der Hallendeko stehen schraeg zur Wand (z. B. ${schraeg.slice(0, 3).map((m) => `${tag(m)} um ${m.r} Grad`).join('; ')}): Drehung in WORK_DEKO auf 0, 90, 180 oder 270 Grad, Ordnung statt Zufall`);
     const corners = (m) => [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => { const x = u * m.hx, q = v * m.hz; return [m.c[0] + x * Math.cos(m.a) + q * Math.sin(m.a), m.c[1] - x * Math.sin(m.a) + q * Math.cos(m.a)]; });
     const inside = (m, px, pz, tol = 0) => { const dx = px - m.c[0], dz = pz - m.c[1], ca = Math.cos(m.a), sa = Math.sin(m.a); return Math.abs(dx * ca - dz * sa) <= m.hx + tol && Math.abs(dx * sa + dz * ca) <= m.hz + tol; };
     // Trennachsen zweier Rechtecke: kleinste Ueberdeckung (<= 0: getrennt)
@@ -2044,10 +2066,10 @@ if (DK && dekoBlock) {
     if (air.length) fail(`[17] ${air.length} Stuecke der Hallendeko schweben (z. B. ${air.slice(0, 3).map((m) => `${tag(m)} auf ${m.y} m`).join('; ')}): Darunter endet nichts derselben Zone auf dieser Hoehe`);
     // Halle und Einrichtung im Band des Grundrisses (floorGrid): Hallenstufe
     // der Seite und Moebeldatei, Moebel auf den Streifen umgesetzt wie
-    // shiftHallFloor, ohne Teile ganz in einer Ausnahme (HALL_DROP). Nicht
-    // nachgebildet: die Moebel, die der Viewer vom Rand rueckt (sie stehen
-    // am Feld, die Deko mindestens EDGE davor); dort laesst buildDeko ein
-    // getroffenes Stueck weg und meldet es.
+    // shiftHallFloor, ohne Teile ganz in einer Ausnahme (HALL_DROP), und
+    // vom festen Rand gerueckt wie clearRandFurniture (seit 21.10.2026: Ein
+    // Stapler auf einem Stellplatz vor der Ostnische stand dort, wo eine
+    // vom Rand gerueckte Plane steht, und buildDeko liess ihn still weg).
     const stageDoc = hall?.url ? stageDocs.get(hall.url.split('?')[0]) : null, furnDoc = hall?.furniture?.url ? extraDocs.get(hall.furniture.url.split('?')[0]) : null;
     if (!stageDoc || !room || !Number.isFinite(hall?.floor) || !(CELL > 0 && BAND)) fail('[17] Hallenstufe, Raum oder Bodenhoehe der Seite fehlen ([3], [10]): Ohne sie laesst sich nicht pruefen, ob die Deko in Waenden steht');
     else {
@@ -2099,18 +2121,52 @@ if (DK && dekoBlock) {
       const acc = new Map(), refs = new Map();
       const geoKey = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
       for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geoKey(p), (refs.get(geoKey(p)) || 0) + 1);
+      // Moebel mit Anker: Streifen wie shiftHallFloor, dann vom Rand wie
+      // clearRandFurniture (Grundriss ueber alle seine Teile; was am Boden
+      // steht und in den Rand reicht, rueckt senkrecht zur naechsten
+      // Feldkante hinaus oder faellt weg)
+      const ankerOf = (node) => { for (let a = node; a; a = a.getParentNode()) if (Array.isArray(a.getExtras()?.anchor)) return a; return null; };
+      const stripOf = (A) => { const an = A?.getExtras().anchor; const st2 = an && SHIFT && an[2] >= SHIFT.z[0] && an[2] < SHIFT.z[1] ? strips.find(([a, b]) => an[0] >= a && an[0] < b) : null; return st2 ? st2[2] : 0; };
+      const rimMove = new Map();
+      if (hall?.lift?.rand && LIFT && Number.isFinite(RAND?.width)) {
+        const boxes = new Map();
+        for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) {
+          const A = node.getMesh() ? ankerOf(node) : null;
+          if (!A) continue;
+          const w = node.getWorldMatrix(), dx = stripOf(A), b = boxes.get(A) ?? boxes.set(A, [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity]).get(A);
+          for (const p of node.getMesh().listPrimitives()) {
+            const P = p.getAttribute('POSITION')?.getArray();
+            for (let i = 0; P && i < P.length; i += 3) {
+              const v = [w[0] * P[i] + w[4] * P[i + 1] + w[8] * P[i + 2] + w[12] + dx, w[1] * P[i] + w[5] * P[i + 1] + w[9] * P[i + 2] + w[13], w[2] * P[i] + w[6] * P[i + 1] + w[10] * P[i + 2] + w[14]];
+              for (let a = 0; a < 3; a++) { b[a] = Math.min(b[a], v[a]); b[a + 3] = Math.max(b[a + 3], v[a]); }
+            }
+          }
+        }
+        const d0 = SHIFT?.field ?? 0, x0 = LIFT.from[0] + d0, x1 = LIFT.to[0] + d0, z0 = LIFT.from[1], z1 = LIFT.to[1], rim = RAND.width, GAP = 0.3;
+        const rx = [rx0 + GAP, rx0 + 2 * room.halfW - GAP], rz = [rz0 + GAP, rz0 + 2 * room.halfL - GAP];
+        for (const [A, [ax0, ay0, az0, ax1, , az1]] of boxes) {
+          if (!(ax0 < ax1) || ay0 > hall.floor + 0.5) continue;
+          if (ax1 <= x0 - rim || ax0 >= x1 + rim || az1 <= z0 - rim || az0 >= z1 + rim) continue;
+          if (ax0 >= x0 && ax1 <= x1 && az0 >= z0 && az1 <= z1) continue;
+          const cx = (ax0 + ax1) / 2, cz = (az0 + az1) / 2, side = [cx - x1, x0 - cx, cz - z1, z0 - cz], k = side.indexOf(Math.max(...side));
+          const d = [x1 + rim + GAP - ax0, x0 - rim - GAP - ax1, z1 + rim + GAP - az0, z0 - rim - GAP - az1][k], mx = k < 2 ? d : 0, mz = k < 2 ? 0 : d;
+          const mv = ax0 + mx < rx[0] || ax1 + mx > rx[1] || az0 + mz < rz[0] || az1 + mz > rz[1] ? null : [mx, mz];
+          rimMove.set(A, mv);
+          if (mv) dekoRun.gerueckt++; else dekoRun.randWeg++;
+        }
+      }
       for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) {
         const mesh = node.getMesh();
         if (!mesh) continue;
-        let anchor = null;
-        for (let a = node; a && !anchor; a = a.getParentNode()) anchor = Array.isArray(a.getExtras()?.anchor) ? a.getExtras().anchor : null;
-        const st2 = anchor && SHIFT && anchor[2] >= SHIFT.z[0] && anchor[2] < SHIFT.z[1] ? strips.find(([a, b]) => anchor[0] >= a && anchor[0] < b) : null;
-        const dx = st2 ? st2[2] : 0, w = node.getWorldMatrix();
+        const A = ankerOf(node), mv = A && rimMove.has(A) ? rimMove.get(A) : [0, 0];
+        if (!mv) continue;
+        const anchor = A ? A.getExtras().anchor : null;
+        const dx = stripOf(A) + mv[0], dz = mv[1], w = node.getWorldMatrix();
         for (const p of mesh.listPrimitives()) {
           const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
           if (!P) continue;
           const gone = doc === stageDoc ? goneOf.get(p) : null, shifts = !anchor && SHIFT && !!I && !(refs.get(geoKey(p)) > 1);
-          const at = (i) => { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; return [w[0] * x + w[4] * y + w[8] * z + w[12] + dx, w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]]; };
+          const at = (i) => { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; return [w[0] * x + w[4] * y + w[8] * z + w[12] + dx, w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14] + dz]; };
           const n = I ? I.length : P.length / 3;
           for (let t = 0; t + 2 < n; t += 3) {
             if (gone?.has(t)) continue;
@@ -2213,7 +2269,7 @@ if (DK && dekoBlock) {
     if (dekoRun.bytes > O.bytes) fail(`[17] der Satz der Hallendeko wiegt ${(dekoRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
+sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; 0 Stuecke schraeg zur Wand, ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} gerade zur Wand; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);
