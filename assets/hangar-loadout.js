@@ -310,10 +310,10 @@ function paintSum() {
 /* ---------------------------------------------------------- Ausstattung --- */
 
 function paintEquip() {
-  const groups = GROUPS.map((g) => {
+  const parts = GROUPS.map((g) => {
     const rows = slots.filter((s) => s.group === g);
     if (!rows.length) return null;
-    return el('section', { class: 'lo-grp' }, el('h3', {}, m(`grp.${g}`)),
+    return [g, el('section', { class: 'lo-grp' }, el('h3', {}, m(`grp.${g}`)),
       el('ul', {}, rows.map((slot) => {
         const k = current(slot);
         const e = eff(slot);
@@ -328,17 +328,25 @@ function paintEquip() {
           el('span', { class: 'lo-slot__fig' }, it ? nf.format(it[7]) : '–', el('small', {}, UNIT[e.type]()),
             d ? deltaEl(d, false, nf, ' %') : null),
           el('span', { class: 'lo-chev', 'aria-hidden': 'true' }, '›')));
-      })));
+      })))];
   }).filter(Boolean);
+  // Grosskategorien zuerst sichtbar: Waffen, Komponenten, Lackierung als eigene Baender.
+  const big = (key, icon, kids) => (kids.length ? el('section', { class: 'lo-big', 'data-big': key },
+    el('h2', { class: 'lo-big__h' }, el('span', { class: 'lo-big__i', 'aria-hidden': 'true' }, icon), m(key)), ...kids) : null);
+  const WEAP = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb']);
+  const groups = [
+    big('big.weapons', ico('gun'), parts.filter(([g]) => WEAP.has(g)).map(([, n]) => n)),
+    big('big.comp', ico('power'), parts.filter(([g]) => !WEAP.has(g)).map(([, n]) => n)),
+  ].filter(Boolean);
   const sp = data.paints?.[draft.ship];
   if (sp) {
     const row = draft.paint && sp.list.find((r) => r[0] === draft.paint);
     const cols = row ? row.slice(2, 5) : sp.base;
-    groups.push(el('section', { class: 'lo-grp' }, el('h3', {}, m('cat.paint')),
+    groups.push(big('cat.paint', el('span', { class: 'lo-big__sw' }, cols.map((c) => el('i', { style: `background:${c}` }))), [el('section', { class: 'lo-grp' },
       el('ul', {}, el('li', {}, el('button', { type: 'button', class: `lo-slot${sel === 'paint' ? ' is-sel' : ''}${draft.paint ? ' is-changed' : ''}`, 'data-sel': 'paint', 'aria-pressed': String(sel === 'paint') },
         el('span', { class: 'lo-sock lo-sw' }, cols.map((c) => el('i', { style: `background:${c}` }))),
         el('span', { class: 'lo-slot__nm' }, el('strong', {}, row ? row[1] : m('paint.stock')), el('small', {}, draft.paint ? el('em', {}, m('lo.changed')) : null, m('lo.paintHint'))),
-        el('span', { class: 'lo-chev', 'aria-hidden': 'true' }, '›'))))));
+        el('span', { class: 'lo-chev', 'aria-hidden': 'true' }, '›')))))]));
   }
   $('lo-equip-list').replaceChildren(...(groups.length ? groups : [el('p', { class: 'lo-msgline' }, m('noslots'))]));
 }
@@ -765,7 +773,9 @@ function paintLinks() {
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
-    const top = Math.max(r.top, b.top, p.top);
+    // Angeheftete Kategorie-Baender verdecken den oberen Rand der Liste.
+    const pinned = Math.max(b.top, ...[...box.querySelectorAll('.lo-big__h')].map((h) => h.getBoundingClientRect()).filter((h) => h.top <= b.top + 1).map((h) => h.bottom));
+    const top = Math.max(r.top, pinned, p.top);
     const bot = Math.min(r.bottom, b.bottom, p.bottom);
     panel.classList.add('is-linked');
     panel.classList.toggle('is-snap', snap);
