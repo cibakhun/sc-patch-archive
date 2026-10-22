@@ -99,11 +99,12 @@ export function dienstNodes(block) {
   return { props: [...props], decals: [...decals] };
 }
 
-/** Knoten der Hallendeko: Glieder der Zonen (prop_*) und ihre Spuren (decal_*). */
+/** Knoten der Hallendeko: Glieder und Leitungen der Zonen (prop_*) und ihre Spuren (decal_*). */
 export function dekoNodes(block) {
   const props = new Set(), decals = new Set();
   for (const z of block.zonen ?? []) {
     for (const [n] of z.glieder ?? []) props.add(n);
+    for (const l of z.leitungen ?? []) props.add(l.node);
     for (const [n] of z.spuren ?? []) decals.add(n);
   }
   return { props: [...props], decals: [...decals] };

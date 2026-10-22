@@ -358,7 +358,10 @@ const KLINKE_WERKSTATT = { props: 25, decals: 24, items: 131, field: 9, pad: 318
 // Katalogs, 56 Requisiten, 138 Glieder: Werkzeugtasche mit Zange obenauf
 // (Gruppe „werkzeug“, im Spiel 159-mal), Kunststoffkisten am Planenstapel,
 // Mehrzweckkisten am Palettenwagen („lager+transport“), zweite Tasche.
-const KLINKE_DIENST = { stationen: 20, glieder: 138, leitungen: 6, spuren: 13, props: 56 };
+// 22.10.2026 (Betreiber: „kabel connected nicht“): buchsen = Leitungen, deren
+// Anschluss auf der Oberflaeche eines Geraets ihres Platzes sitzt und zum
+// Schiff hin frei ist (BUCHSE).
+const KLINKE_DIENST = { stationen: 20, glieder: 138, leitungen: 6, buchsen: 6, spuren: 13, props: 56 };
 // 21.10.2026 angehoben (210000 -> 213000, Klassen +5000/+5000/+4000): Teilflaechen mit dem
 // LayerBlend-Flag %DECALS fielen im Katalog-Build bisher still weg (als Decal ohne Karte
 // gelesen); seit Hangar-Werte Teil 2 sind sie da (Satz 212 465, Klassen 217 562 / 261 231 / 563 622).
@@ -446,7 +449,25 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // mittel 400 000 -> 620 000, hoch 1 700 000 -> 1 800 000, Bytes 12 -> 13 MB.
 // Neu: gehwege = Rechtecke freihalten (Eingaenge), in denen keine
 // Requisite steht und denen die Werkstatt ausweicht.
-const KLINKE_DEKO = { zonen: 31, mittel: 13, glieder: 446, gestapelt: 171, spuren: 191, arten: 172, fach: 69, geprueft: 422, hochGeprueft: 68, massstaebe: 6, gerueckt: 5, frei: 286, gehwege: 5 };
+// Leitungen am 22.10.2026 (Betreiber: „kabel connected nicht“): Die neun
+// losen Bodenkabel und Bodenschlaeuche (cable_floor_1_b/c/d,
+// hose_floor_1_a/c) sind raus, ihre Enden lagen frei; dafuer acht Leitungen
+// von Geraet zu Geraet (Tank an Schlauchrolle, Trommel an Stativlampe,
+// Wandterminal an Schweissgeraet und Stapler, Generator an Lampe und
+// Verteiler, Terminal an Trommel) und ein Wandterminal in der Werkinsel.
+// Gesenkt: glieder 446 -> 438 (neun lose Stuecke weniger, ein Terminal
+// mehr), arten 172 -> 169 (fuenf Bodenstuecke weniger, Kabel und Schlauch
+// der Leitungen dazu), geprueft 422 -> 420 und frei 286 -> 278 (die losen
+// Stuecke lagen im Band und schraeg). Neu: leitungen = Leitungen mit beiden
+// Buchsen auf ihrem Geraet (BUCHSE).
+// Luftschlauch Ost am selben Tag: Das Eckstueck lag neben dem Ende des
+// 8-m-Schlauchs, der Luefter (der hohe auf dem Sockel) stand daneben. Jetzt
+// eine Kette Lueftungseinheit an der Wand, Schlauch, Ecke, Steigstueck,
+// Luefter am Boden, Oeffnung an Oeffnung (LUFT_OEFFNUNG). Gesenkt: frei
+// 278 -> 277, der Luefter steht jetzt gerade in der Flucht des Schlauchs
+// (274 -> 0 Grad). Angehoben: glieder 439, arten 170, geprueft 421. Neu:
+// luftEnden = Enden von Luftschlauchteilen an einer Gegenoeffnung.
+const KLINKE_DEKO = { zonen: 31, mittel: 13, glieder: 439, gestapelt: 171, spuren: 191, arten: 170, fach: 69, geprueft: 421, hochGeprueft: 68, massstaebe: 6, gerueckt: 5, frei: 277, gehwege: 5, leitungen: 8, luftEnden: 6 };
 const OBERGRENZE_DEKO = { mats: 165, tris: { mittel: 620000, hoch: 1800000 }, bytes: 13e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
@@ -1183,7 +1204,7 @@ say('\n[12] Die Werkstatt kommt mit, jeder Platz und jede Spur auf dem Feld hat 
 let manifest = null;
 try { manifest = JSON.parse(readFileSync(join(ROOT, 'src/data/hangar-assets.json'), 'utf8')); } catch (e) { fail(`[12] src/data/hangar-assets.json ist nicht lesbar (${e.message})`); }
 const W = hall?.workshop ?? null, WM = manifest?.props?.werkstatt ?? null;
-const workRun = { props: 0, decals: 0, items: 0, field: 0, tris: 0, bytes: 0, boden: 0, pad: [] };
+const workRun = { props: 0, decals: 0, items: 0, lose: 0, field: 0, tris: 0, bytes: 0, boden: 0, pad: [] };
 const fm = /\/\* work-field \*\/([\s\S]*?)\/\* \/work-field \*\//.exec(viewer);
 let field = null;
 try { field = fm ? JSON.parse(fm[1]) : null; } catch (e) { fail(`[12] WORK_FIELD im Viewer ist kein JSON mehr (${e.message})`); }
@@ -1236,6 +1257,20 @@ if (W) {
     const lost = items.filter((it) => !(it.node?.startsWith('prop_') ? props : decals).has(it.node)).map((it) => it.node);
     if (lost.length) fail(`[12] ${lost.length} Plaetze der Anordnung nennen Knoten, die ihre Datei nicht traegt (${[...new Set(lost)].slice(0, 3).join(', ')}): Der Viewer liesse sie still weg. Export pruefen (scripts/build-hangar-assets.mjs, Art props)`);
     const bent = D.filter((n) => decals.get(n).flat > 0.02);
+    // Kabelstraenge der Spielhalle laufen dort in Rinne, Wand oder Decke;
+    // hier stand ein 2-m-Strang frei im Raum und ein Buendel endete offen auf
+    // dem Boden (22.10.2026, Betreiber: „kabel connected nicht“). Der Viewer
+    // laesst ihre Rolle weg (WORK_LOSE); jede Rolle dort hat am Boden einen
+    // Platz der Anordnung (sonst ist die Ausnahme ohne Anlass).
+    const loseM = /const WORK_LOSE = (\[[^\]]*\]);/.exec(viewer), floorM = /const WORK_FLOOR = ([\d.]+);/.exec(viewer);
+    const WL = loseM ? JSON.parse(loseM[1].replace(/'/g, '"')) : null, WF = floorM ? +floorM[1] : null;
+    if (!WL || !(WF > 0)) fail('[12] WORK_LOSE oder WORK_FLOOR stehen nicht mehr im Viewer — umbenannt? Dann dieses Tor mitnehmen');
+    else {
+      const rolle = new Map((info?.props ?? []).map((q) => [q.node, q.rolle])), amBoden = items.filter((it) => Math.abs(it.y ?? 0) <= WF);
+      if (amBoden.some((it) => rolle.get(it.node) === 'kabel') && !WL.includes('kabel')) fail(`[12] die Anordnung stellt Kabelstraenge (Rolle kabel) auf den Boden, WORK_LOSE laesst sie nicht weg: Sie stuenden frei im Raum oder endeten offen`);
+      for (const r of WL) if (!amBoden.some((it) => rolle.get(it.node) === r)) fail(`[12] WORK_LOSE nennt die Rolle ${r}, die Anordnung hat am Boden keinen Platz mit ihr: Ausnahme ohne Anlass, aus dem Viewer nehmen`);
+      workRun.lose = amBoden.filter((it) => WL.includes(rolle.get(it.node))).length;
+    }
     if (bent.length) fail(`[12] ${bent.length} Decals liegen nicht flach (${bent.slice(0, 3).map((n) => `${n} ${decals.get(n).flat.toFixed(2)} m hoch`).join(', ')}): Der Viewer legt sie als Quadrat in x/z auf den Boden, sie stuenden sonst im Raum`);
     for (const [n, u, v] of field ?? []) {
       if (!decals.has(n)) fail(`[12] WORK_FIELD nennt ${n}, ${W.boden.url.split('?')[0]} traegt den Knoten nicht: Die Spur fehlte still auf dem Feld. Namen im Viewer nachziehen`);
@@ -1270,7 +1305,7 @@ if (W) {
   }
 }
 for (const k of Object.keys(KLINKE_WERKSTATT).filter(() => !WM)) fail(`[12] KLINKE_WERKSTATT.${k}: das Manifest nennt keine Werkstatt mehr; den Eintrag hier per Commit mit Ursache entfernen`);
-sollIst(W ? `alle Dateien in dist/, jeder Platz und jede Feldspur mit Knoten, Decals flach; mindestens ${KLINKE_WERKSTATT.props} Geraete, ${KLINKE_WERKSTATT.decals} Decal-Arten, ${KLINKE_WERKSTATT.items} Plaetze, ${KLINKE_WERKSTATT.field} Feldspuren, Feld ${pad?.pick === 'lack' ? 'im Lack der Halle, Vergleichsboeden' : `aus Spielboden ${pad?.pick ?? '?'}, alle Boeden`} mit Knoten und Kachel, je Hallenstufe ${KLINKE_WERKSTATT.pad} Felddreiecke darunter (WORK_PAD); hoechstens ${OBERGRENZE_WERKSTATT.tris} Dreiecke, ${OBERGRENZE_WERKSTATT.bytes / 1e6} MB, Bodendatei ${OBERGRENZE_WERKSTATT.boden / 1048576} MiB` : 'keine Werkstatt fuer diese Halle', W ? `${workRun.props} Geraete, ${workRun.decals} Decal-Arten, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 'keiner'}; ${workRun.tris} Dreiecke, ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, Bodendatei ${(workRun.boden / 1048576).toFixed(2)} MiB` : '(nichts gemessen)');
+sollIst(W ? `alle Dateien in dist/, jeder Platz und jede Feldspur mit Knoten, Decals flach, Kabelstraenge am Boden weggelassen (WORK_LOSE, jede Rolle dort mit Platz); mindestens ${KLINKE_WERKSTATT.props} Geraete, ${KLINKE_WERKSTATT.decals} Decal-Arten, ${KLINKE_WERKSTATT.items} Plaetze, ${KLINKE_WERKSTATT.field} Feldspuren, Feld ${pad?.pick === 'lack' ? 'im Lack der Halle, Vergleichsboeden' : `aus Spielboden ${pad?.pick ?? '?'}, alle Boeden`} mit Knoten und Kachel, je Hallenstufe ${KLINKE_WERKSTATT.pad} Felddreiecke darunter (WORK_PAD); hoechstens ${OBERGRENZE_WERKSTATT.tris} Dreiecke, ${OBERGRENZE_WERKSTATT.bytes / 1e6} MB, Bodendatei ${OBERGRENZE_WERKSTATT.boden / 1048576} MiB` : 'keine Werkstatt fuer diese Halle', W ? `${workRun.props} Geraete, ${workRun.decals} Decal-Arten, ${workRun.items} Plaetze (${workRun.lose} lose Kabelstraenge weggelassen), ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 'keiner'}; ${workRun.tris} Dreiecke, ${((workRun.bytes + workRun.boden) / 1e6).toFixed(2)} MB, Bodendatei ${(workRun.boden / 1048576).toFixed(2)} MiB` : '(nichts gemessen)');
 
 say('\n[13] Das Schiffsfeld steht in der Hallenmitte, der Boden daneben ohne Luecke');
 // Der Block steht im Viewer zwischen /* hall-shift */ und /* /hall-shift */ und ist JSON
@@ -1454,12 +1489,115 @@ async function pruefeSchichten({ tag, satz, was, file, url, sch, kat, R, K, O, k
   }
 }
 
+// Buchsen der Leitungen ([14], [17], seit 22.10.2026; Betreiber: „kabel
+// connected nicht“, zwei Bilder: ein Schlauch endete vor der Schlauchrolle in
+// der Luft, ein Kabel neben der Diagnosekonsole). Ein Anschluss [x, z, Hoehe]
+// im Rahmen seines Platzes oder seiner Zone sitzt auf der Oberflaeche eines
+// Glieds (hoechstens BUCHSE.flaeche daneben) und zeigt waagrecht hinaus
+// (Richtung a) ins Freie: Das Glied selbst liegt BUCHSE.frei weit nicht im Weg.
+// Glieder [Knoten, x, z, Drehung, Hoehe] wie buildDeko und layDienst sie
+// stellen; Dreiecke je Knoten im Raum des Knotens, wie kitParts sie nimmt.
+const BUCHSE = { flaeche: 0.04, frei: 0.35, spiel: 0.05 };
+// Oeffnungen der Luftschlauchteile ([17], seit 22.10.2026, gleicher Anlass:
+// Im Osten lag das Eckstueck neben dem Ende des 8-m-Schlauchs, keine seiner
+// Oeffnungen zeigte auf den Schlauch oder den Luefter). Je Knoten
+// [x, Hoehe, z, Richtung] im Raum des Knotens (Mitte in x und z, Boden 0),
+// Richtung wie a der Zonen: 0 = +x, 90 = -z, 180 = -x, 270 = +z. Gemessen als
+// Mitte der Randpunkte an der Stirnseite; [17] misst sie im Satz nach.
+// LUFT_OEFFNUNG.schlauch: Teile, deren Oeffnungen alle an einer
+// Gegenoeffnung sitzen muessen (Luefter und Lueftungseinheit duerfen eine
+// freie haben). Gegenueber heisst: entgegengesetzt (spiel Grad), laengs
+// hoechstens luecke m auseinander oder ineinander, quer und in der Hoehe
+// hoechstens versatz m (Steigstueck in den Luefter 0,04 m).
+const LUFT_OEFFNUNG = {
+  luecke: 0.05, versatz: 0.1, spiel: 10, mess: 0.03,
+  schlauch: /airduct_hose_(straight|corner|stepdown)/,
+  teile: {
+    prop_schlauch_lt_airduct_hose_junction_a: [[0.626, 0.376, -0.007, 0]],
+    prop_schlauch_lt_airduct_hose_straight_8m_a: [[-3.963, 0.295, 0.086, 180], [3.968, 0.296, 0.092, 0]],
+    prop_schlauch_lt_airduct_hose_corner_1m_a: [[0.655, 0.296, 0.331, 0], [-0.352, 0.297, -0.645, 90]],
+    prop_schlauch_lt_airduct_hose_stepdown_0_025m_a: [[-1, 0.294, 0.009, 180], [1.005, 0.529, 0.023, 0]],
+    prop_schlauch_lt_sm_airduct_fan_a_b: [[-0.542, 0.573, 0, 180], [0.542, 0.573, 0, 0]],
+  },
+};
+const knotenDreiecke = async (file) => {
+  const out = new Map();
+  for (const node of (await decode(file)).getRoot().getDefaultScene()?.listChildren() ?? []) {
+    const T = [];
+    for (const pr of node.getMesh()?.listPrimitives() ?? []) {
+      const P = pr.getAttribute('POSITION')?.getArray(), I = pr.getIndices()?.getArray();
+      if (!P) continue;
+      const n = I ? I.length : P.length / 3;
+      for (let t = 0; t < n; t++) { const k = (I ? I[t] : t) * 3; T.push(P[k], P[k + 1], P[k + 2]); }
+    }
+    if (!T.length) continue;
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < T.length; i++) { lo[i % 3] = Math.min(lo[i % 3], T[i]); hi[i % 3] = Math.max(hi[i % 3], T[i]); }
+    out.set(node.getName(), { T: Float32Array.from(T), lo, hi });
+  }
+  return out;
+};
+// kleinster Abstand von p zum Dreieck ab T[i] (naechster Punkt nach Ericson)
+const dreieckAbstand = (p, T, i) => {
+  const a = [T[i], T[i + 1], T[i + 2]], b = [T[i + 3], T[i + 4], T[i + 5]], c = [T[i + 6], T[i + 7], T[i + 8]];
+  const sub = (u, v) => [u[0] - v[0], u[1] - v[1], u[2] - v[2]], dot = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  const ab = sub(b, a), ac = sub(c, a), ap = sub(p, a), d1 = dot(ab, ap), d2 = dot(ac, ap);
+  const at = (u, v) => Math.hypot(p[0] - a[0] - ab[0] * u - ac[0] * v, p[1] - a[1] - ab[1] * u - ac[1] * v, p[2] - a[2] - ab[2] * u - ac[2] * v);
+  if (d1 <= 0 && d2 <= 0) return at(0, 0);
+  const bp = sub(p, b), d3 = dot(ab, bp), d4 = dot(ac, bp);
+  if (d3 >= 0 && d4 <= d3) return at(1, 0);
+  const vc = d1 * d4 - d3 * d2;
+  if (vc <= 0 && d1 >= 0 && d3 <= 0) return at(d1 / (d1 - d3), 0);
+  const cp = sub(p, c), d5 = dot(ab, cp), d6 = dot(ac, cp);
+  if (d6 >= 0 && d5 <= d6) return at(0, 1);
+  const vb = d5 * d2 - d1 * d6;
+  if (vb <= 0 && d2 >= 0 && d6 <= 0) return at(0, d2 / (d2 - d6));
+  const va = d3 * d6 - d5 * d4;
+  if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) { const w = (d4 - d3) / (d4 - d3 + (d5 - d6)); return Math.hypot(p[0] - b[0] - (c[0] - b[0]) * w, p[1] - b[1] - (c[1] - b[1]) * w, p[2] - b[2] - (c[2] - b[2]) * w); }
+  const den = 1 / (va + vb + vc);
+  return at(vb * den, vc * den);
+};
+// trifft der Strahl o + t d (0 < t < max) ein Dreieck (Moeller-Trumbore)?
+const strahlTrifft = (T, o, d, max) => {
+  for (let i = 0; i < T.length; i += 9) {
+    const e1 = [T[i + 3] - T[i], T[i + 4] - T[i + 1], T[i + 5] - T[i + 2]], e2 = [T[i + 6] - T[i], T[i + 7] - T[i + 1], T[i + 8] - T[i + 2]];
+    const h = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], det = e1[0] * h[0] + e1[1] * h[1] + e1[2] * h[2];
+    if (Math.abs(det) < 1e-12) continue;
+    const f = 1 / det, s = [o[0] - T[i], o[1] - T[i + 1], o[2] - T[i + 2]], u = f * (s[0] * h[0] + s[1] * h[1] + s[2] * h[2]);
+    if (u < 0 || u > 1) continue;
+    const q = [s[1] * e1[2] - s[2] * e1[1], s[2] * e1[0] - s[0] * e1[2], s[0] * e1[1] - s[1] * e1[0]], v = f * (d[0] * q[0] + d[1] * q[1] + d[2] * q[2]);
+    if (v < 0 || u + v > 1) continue;
+    const t = f * (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]);
+    if (t > 1e-6 && t < max) return true;
+  }
+  return false;
+};
+// Sitz eines Anschlusses: das Glied mit der naechsten Flaeche (Punkt in
+// seinem Kasten samt Spiel), Abstand dorthin und ob es hinaus frei ist
+const buchseAn = (glieder, tris, [x, z, h], a) => {
+  let best = null;
+  for (const [gi, [node, gx, gz, r = 0, gy = 0]] of glieder.entries()) {
+    const K = tris.get(node);
+    if (!K) continue;
+    const R = (r * Math.PI) / 180, dx = x - gx, dz = z - gz, lx = dx * Math.cos(R) - dz * Math.sin(R), lz = dx * Math.sin(R) + dz * Math.cos(R);
+    const hx = (K.hi[0] - K.lo[0]) / 2, hz = (K.hi[2] - K.lo[2]) / 2, top = K.hi[1] - K.lo[1];
+    if (Math.abs(lx) > hx + BUCHSE.spiel || Math.abs(lz) > hz + BUCHSE.spiel || h - gy < -BUCHSE.spiel || h - gy > top + BUCHSE.spiel) continue;
+    const p = [lx + (K.lo[0] + K.hi[0]) / 2, h - gy + K.lo[1], lz + (K.lo[2] + K.hi[2]) / 2];
+    let dist = Infinity;
+    for (let i = 0; i < K.T.length; i += 9) dist = Math.min(dist, dreieckAbstand(p, K.T, i));
+    if (best && best.dist <= dist) continue;
+    const ux = Math.cos((a * Math.PI) / 180), uz = -Math.sin((a * Math.PI) / 180), d = [ux * Math.cos(R) - uz * Math.sin(R), 0, ux * Math.sin(R) + uz * Math.cos(R)];
+    best = { node, gi, dist, frei: !strahlTrifft(K.T, [p[0] + d[0] * 0.02, p[1], p[2] + d[2] * 0.02], d, BUCHSE.frei) };
+  }
+  return best;
+};
+
 say('\n[14] Der Wartungsplatz am Schiff kommt mit, jedes Stueck hat seinen Knoten');
 const dm = /\/\* work-dienst \*\/([\s\S]*?)\/\* \/work-dienst \*\//.exec(viewer);
 let dienst = null;
 try { dienst = dm ? JSON.parse(dm[1]) : null; } catch (e) { fail(`[14] WORK_DIENST im Viewer ist kein JSON mehr (${e.message})`); }
 const DI = W?.dienst ?? null;
-const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {}, baender: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+const dienstRun = { stationen: 0, glieder: 0, leitungen: 0, buchsen: 0, spuren: 0, props: 0, mats: 0, tris: 0, bytes: 0, quellen: 0, klassen: {}, baender: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DI) fail(`[14] die Seite gibt den Geraetesatz nicht mit (opts.hall.workshop.dienst): Das Schiff stuende ohne Wartungsplatz. ${existsSync(join(ROOT, 'public/hangar/props/dienst.glb')) ? 'HangarApp.astro pruefen' : 'public/hangar/props/dienst.glb fehlt, neu packen: node scripts/build-hangar-dienst.mjs'}`);
 if (DI && !dm) fail('[14] die Seite gibt den Geraetesatz mit, der Viewer traegt keinen Block /* work-dienst */ … /* /work-dienst */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 if (DI && dienst) {
@@ -1559,6 +1697,17 @@ if (DI && dienst) {
       const [x, y, z] = extent(nd).size;
       if (!(z > 5 * Math.max(x, y))) fail(`[14] Leitung ${l.name}: ${l.node} liegt nicht laengs z (${x.toFixed(2)} × ${y.toFixed(2)} × ${z.toFixed(2)} m); layDienst biegt sie laengs z und legte sie quer`);
     }
+    // Buchse jeder Leitung an einem Geraet ihres Platzes, hinaus zum Schiff
+    // (-z im Platz, layDienst); seit 22.10.2026, siehe BUCHSE
+    const dT = await knotenDreiecke(file);
+    for (const l of dienst.leitungen ?? []) {
+      const st = (dienst.stationen ?? []).find((q) => q.name === l.von?.[0]);
+      if (!st || !l.von.slice(1).every(Number.isFinite)) continue;
+      const b = buchseAn(st.glieder ?? [], dT, l.von.slice(1), 90);
+      if (!b || b.dist > BUCHSE.flaeche) fail(`[14] Leitung ${l.name}: der Anschluss ${JSON.stringify(l.von)} sitzt auf keinem Geraet des Platzes ${st.name} (naechste Flaeche ${b ? `${b.dist.toFixed(2)} m` : 'keine'}, erlaubt ${BUCHSE.flaeche} m): Die Leitung begaenne in der Luft. Buchse am Geraet nachmessen`);
+      else if (!b.frei) fail(`[14] Leitung ${l.name}: aus dem Anschluss am ${b.node.replace(/^prop_/, '')} stoesst sie in ${BUCHSE.frei} m wieder ins Geraet (Richtung -z, zum Schiff): Buchse auf die Seite zum Schiff legen`);
+      else dienstRun.buchsen++;
+    }
     // Je Schiffsgroesse (ab/bis): welche Plaetze stehen, wie viele Dreiecke
     // zeichnet der Platz (jedes Glied, jede Leitung, jede Spur einmal) und
     // wie viele Materialien braucht er, also Zeichenbefehle je Durchgang
@@ -1595,7 +1744,7 @@ if (DI && dienst) {
     if (dienstRun.bytes > O.bytes) fail(`[14] der Geraetesatz wiegt ${(dienstRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen, ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; Schichten: mindestens ${KLINKE_SCHICHTEN.zeilen} Zeilen, ${KLINKE_SCHICHTEN.blend} mit Blend-Karte, ${KLINKE_SCHICHTEN.abnutzung} mit Abnutzungskarte, ${KLINKE_SCHICHTEN.detail} mit Detail-, ${KLINKE_SCHICHTEN.normale} mit Normalenkarte, ${KLINKE_SCHICHTEN.karten} Karten, ${KLINKE_SCHICHTEN.ecken} Ecken mit Zeile (je hoechstens 0,25 daneben), jede Zeile wie im Katalog, Raster hoechstens ${OBERGRENZE_SCHICHTEN.bytes / 1000} KB; jedes Band zwischen zwei Grenzen ab/bis mit einer Groesse; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dienstRun.schichten.zeilen} Zeilen, ${dienstRun.schichten.blend} mit Blend-Karte, ${dienstRun.schichten.abnutzung} mit Abnutzungskarte, ${dienstRun.schichten.detail} mit Detail-, ${dienstRun.schichten.normale} mit Normalenkarte, ${dienstRun.schichten.karten} Karten, ${dienstRun.schichten.ecken} Ecken mit Zeile, Raster ${(dienstRun.schichten.bytes / 1024).toFixed(0)} KB; ${dienstRun.baender} Groessenbaender, je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
+sollIst(DI ? `Satz in dist/, passend zu Block und ${dienstRun.quellen || '?'} Quellen; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Leitungen laengs z, jede mit ihrer Buchse auf einem Geraet ihres Platzes (hoechstens ${BUCHSE.flaeche} m daneben) und zum Schiff hin ${BUCHSE.frei} m frei; mindestens ${KLINKE_DIENST.stationen} Plaetze, ${KLINKE_DIENST.glieder} Glieder, ${KLINKE_DIENST.leitungen} Leitungen (${KLINKE_DIENST.buchsen} mit Buchse), ${KLINKE_DIENST.spuren} Spuren, ${KLINKE_DIENST.props} Requisiten; hoechstens ${OBERGRENZE_DIENST.mats} Materialien, ${OBERGRENZE_DIENST.tris} Dreiecke, ${OBERGRENZE_DIENST.bytes / 1e6} MB; Schichten: mindestens ${KLINKE_SCHICHTEN.zeilen} Zeilen, ${KLINKE_SCHICHTEN.blend} mit Blend-Karte, ${KLINKE_SCHICHTEN.abnutzung} mit Abnutzungskarte, ${KLINKE_SCHICHTEN.detail} mit Detail-, ${KLINKE_SCHICHTEN.normale} mit Normalenkarte, ${KLINKE_SCHICHTEN.karten} Karten, ${KLINKE_SCHICHTEN.ecken} Ecken mit Zeile (je hoechstens 0,25 daneben), jede Zeile wie im Katalog, Raster hoechstens ${OBERGRENZE_SCHICHTEN.bytes / 1000} KB; jedes Band zwischen zwei Grenzen ab/bis mit einer Groesse; je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => `${m} m: mindestens ${KLINKE_DIENST_KLASSE[k].stationen} Plaetze, hoechstens ${OBERGRENZE_DIENST_KLASSE[k].mats} Materialien und ${OBERGRENZE_DIENST_KLASSE[k].tris} Dreiecke`).join('; ')}` : 'kein Wartungsplatz fuer diese Halle', DI ? `${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen (${dienstRun.buchsen} mit Buchse), ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten; ${dienstRun.mats} Materialien, ${Math.round(dienstRun.tris)} Dreiecke, ${(dienstRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dienstRun.schichten.zeilen} Zeilen, ${dienstRun.schichten.blend} mit Blend-Karte, ${dienstRun.schichten.abnutzung} mit Abnutzungskarte, ${dienstRun.schichten.detail} mit Detail-, ${dienstRun.schichten.normale} mit Normalenkarte, ${dienstRun.schichten.karten} Karten, ${dienstRun.schichten.ecken} Ecken mit Zeile, Raster ${(dienstRun.schichten.bytes / 1024).toFixed(0)} KB; ${dienstRun.baender} Groessenbaender, je Schiffsgroesse ${Object.entries(DIENST_KLASSEN).map(([k, m]) => { const r = dienstRun.klassen[k]; return r ? `${m} m: ${r.stationen} Plaetze, ${r.mats} Materialien, ${r.tris} Dreiecke` : `${m} m: nicht gemessen`; }).join('; ')}` : '(nichts gemessen)');
 
 say('\n[15] Das Schachttor schliesst die Oeffnung beim Wechsel, ohne Spalt, und liegt offen ganz draussen');
 // Der Block steht im Viewer zwischen /* hall-gate */ und /* /hall-gate */ und ist JSON
@@ -1883,7 +2032,7 @@ const kdm = /\/\* work-deko \*\/([\s\S]*?)\/\* \/work-deko \*\//.exec(viewer);
 let dekoBlock = null;
 try { dekoBlock = kdm ? JSON.parse(kdm[1]) : null; } catch (e) { fail(`[17] WORK_DEKO im Viewer ist kein JSON mehr (${e.message})`); }
 const DK = W?.deko ?? null;
-const dekoRun = { zonen: 0, mittel: 0, gehwege: 0, gehwegFlaeche: 0, glieder: 0, spuren: 0, gerade: 0, frei: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+const dekoRun = { zonen: 0, mittel: 0, leitungen: 0, luftEnden: 0, gehwege: 0, gehwegFlaeche: 0, glieder: 0, spuren: 0, gerade: 0, frei: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DK && existsSync(join(ROOT, 'public/hangar/props/deko.glb'))) fail('[17] public/hangar/props/deko.glb liegt bereit, die Seite gibt die Hallendeko nicht mit (opts.hall.workshop.deko): Die Halle stuende still leer. HangarApp.astro pruefen');
 if (DK && !kdm) fail('[17] die Seite gibt die Hallendeko mit, der Viewer traegt keinen Block /* work-deko */ … /* /work-deko */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 for (const k of Object.keys(KLINKE_DEKO).filter(() => !DK)) fail(`[17] KLINKE_DEKO.${k}: die Seite gibt keine Hallendeko mehr mit; den Eintrag hier per Commit mit Ursache entfernen`);
@@ -1904,6 +2053,8 @@ if (DK && dekoBlock) {
   // Herkunft: ein Arbeitsplatz, eine Kategorie oder eine Zone, wie das Spiel sie stellt (Katalog v3)
   const aus = new Set([...(kat?.arbeitsplaetze ?? []).map((a) => a.name), ...Object.keys(kat?.kategorien ?? {}), ...(kat?.zonen ?? []).map((z) => z.name)]);
   const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
+  // Anschluss einer Leitung: [x, z, Hoehe (bis 3 m), Richtung in Grad]
+  const quad = (q) => Array.isArray(q) && q.length === 4 && q.every(Number.isFinite) && q[2] > 0 && q[2] <= 3;
   // Spuren: bis 4 m Kante; Boden-Decals des Katalogs (props/boden.glb) bis
   // ein Viertel über die Kante, die sie im Spiel haben
   const spielKante = new Map((kat?.boden?.decals ?? []).filter((d) => d.size?.length).map((d) => [d.node, Math.max(...d.size)]));
@@ -1929,6 +2080,13 @@ if (DK && dekoBlock) {
       const most = Math.max(4, 1.25 * (spielKante.get(sp[0]) ?? 0));
       if (!(typeof sp[0] === 'string' && sp.length >= 4 && sp.length <= 5 && sp.slice(1).every(Number.isFinite) && sp[3] > 0 && sp[3] <= most)) fail(`[17] WORK_DEKO ${z.name}: Spur ${JSON.stringify(sp)} braucht [Knoten, x, z, Kante (m, bis ${+most.toFixed(2)}), Drehung]`);
       else decals.add(sp[0]);
+    }
+    // Leitungen von Geraet zu Geraet (seit 22.10.2026, BUCHSE): Name, Knoten
+    // (gebogen wie im Wartungsplatz), von und nach, hoechstens durch
+    const lnames = new Set();
+    for (const l of z.leitungen ?? []) {
+      if (!(typeof l.name === 'string' && !lnames.has(l.name) && typeof l.node === 'string' && quad(l.von) && quad(l.nach) && (l.durch === undefined || (Array.isArray(l.durch) && l.durch.every(pair))))) fail(`[17] WORK_DEKO ${z.name}: Leitung ${JSON.stringify(l).slice(0, 140)} braucht einen eigenen Namen, node, von und nach [x, z, Hoehe bis 3 m, Richtung in Grad] und hoechstens durch [[x, z], …]`);
+      else { lnames.add(l.name); props.add(l.node); }
     }
   }
   const file = fromUrl(DK.url);
@@ -2122,6 +2280,96 @@ if (DK && dekoBlock) {
     // 3 cm neben der Kante: auf der Fuge zweier Kisten)
     const air = solid.filter((m) => m.y > 0.05 && !solid.some((q) => q !== m && q.zone === m.zone && (Math.abs(q.top - m.y) < 0.06 || (decksOf.get(q.node) ?? []).some((d) => Math.abs(q.y + d - m.y) < 0.06)) && inside(q, ...m.c, 0.03)));
     if (air.length) fail(`[17] ${air.length} Stuecke der Hallendeko schweben (z. B. ${air.slice(0, 3).map((m) => `${tag(m)} auf ${m.y} m`).join('; ')}): Darunter endet nichts derselben Zone auf dieser Hoehe`);
+    // Leitungen (seit 22.10.2026; Betreiber: „kabel connected nicht“): Lose
+    // Bodenkabel, Kabelstraenge und Bodenschlaeuche gibt es nicht mehr, ihre
+    // Enden lagen frei. Jede Leitung steckt mit beiden Enden in einem Glied
+    // ihrer Zone (BUCHSE). Ihr Weg wie dekoWeg: aus der Buchse waagrecht
+    // heraus und im Bogen auf den Boden (leitungAus), am Boden durch die
+    // Punkte durch, sonst in einem flachen Bogen, und so in die andere
+    // Buchse. Er fuehrt durch kein festes Stueck einer Zone (Grundflaeche und
+    // Hoehe; die beiden eigenen Geraete nach ihren Dreiecken) und durch
+    // keinen Gehweg.
+    const LOSE = /cable_(floor|straight|bend|corner|small)|cables_|hose_floor_1_[a-e]$/;
+    const lose = solid.filter((m) => LOSE.test(m.node));
+    if (lose.length) fail(`[17] ${lose.length} lose Kabel und Schlaeuche in der Hallendeko (z. B. ${lose.slice(0, 3).map(tag).join('; ')}): Ihre Enden liegen frei. Eine Leitung von Geraet zu Geraet gehoert in leitungen ihrer Zone`);
+    const dT = await knotenDreiecke(file), lbad = [], lweg = [];
+    for (const z of zones) {
+      if (!(WAND && z.wand in WAND) || !pair(z.at)) continue;
+      const th = WAND[z.wand] * D2R, c = Math.cos(th), s = Math.sin(th), [ax, az] = z.at;
+      const at = (x, q) => [ax + x * c + q * s, az - x * s + q * c];
+      for (const l of z.leitungen ?? []) {
+        if (!quad(l.von) || !quad(l.nach) || !sizeOf.has(l.node)) continue;
+        const sz = sizeOf.get(l.node).size, r = sz[1] / 2;
+        if (!(sz[2] > 5 * Math.max(sz[0], sz[1]))) lbad.push(`${z.name} ${l.name}: ${l.node} liegt nicht laengs z`);
+        const own = [];
+        for (const [k, q] of [['von', l.von], ['nach', l.nach]]) {
+          const b = buchseAn(z.glieder ?? [], dT, q.slice(0, 3), q[3]);
+          if (!b || b.dist > BUCHSE.flaeche) lbad.push(`${z.name} ${l.name}: ${k} ${JSON.stringify(q)} sitzt auf keinem Glied der Zone (naechste Flaeche ${b ? `${b.dist.toFixed(2)} m` : 'keine'}, erlaubt ${BUCHSE.flaeche} m)`);
+          else if (!b.frei) lbad.push(`${z.name} ${l.name}: aus ${k} am ${b.node.replace(/^prop_/, '')} stoesst sie in ${BUCHSE.frei} m wieder ins Geraet`);
+          else { const g = z.glieder[b.gi]; own.push(solid.find((m) => m.zone === z && m.node === g[0] && m.local[0] === g[1] && m.local[1] === g[2] && m.y === (g[4] ?? 0))); }
+        }
+        if (own.length === 2) dekoRun.leitungen++;
+        // Weg im Rahmen der Zone [x, z, Hoehe der Achse]
+        const kopf = (q) => { const o = Math.max(0.5, q[2] * 0.9), A = q[3] * D2R, u = Math.cos(A), v = -Math.sin(A), y = Math.max(r, q[2]); return [[q[0] + u * 0.02, q[1] + v * 0.02, y], [q[0] + u * 0.15, q[1] + v * 0.15, y], [q[0] + u * o * 0.55, q[1] + v * o * 0.55, r + (y - r) * 0.4], [q[0] + u * o, q[1] + v * o, r]]; };
+        const head = kopf(l.von), tail = kopf(l.nach).reverse(), F = head[3], G = tail[0];
+        const mid = (l.durch ?? []).length ? l.durch.map(([x, q]) => [x, q, r]) : [[(F[0] + G[0]) / 2 - (G[1] - F[1]) * 0.15, (F[1] + G[1]) / 2 + (G[0] - F[0]) * 0.15, r]];
+        const path = [...head, ...mid, ...tail], hits = new Set();
+        for (let i = 0; i + 1 < path.length; i++) {
+          const p = path[i], q = path[i + 1], len = Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]), n = Math.max(1, Math.ceil(len / 0.1)), floor = i >= 3 && i < path.length - 4;
+          for (let t = 0; t <= n; t++) {
+            const x = p[0] + ((q[0] - p[0]) * t) / n, zq = p[1] + ((q[1] - p[1]) * t) / n, y = p[2] + ((q[2] - p[2]) * t) / n, [X, Z] = at(x, zq);
+            for (const m of solid) if (!own.includes(m) && y >= m.y && y <= m.top && inside(m, X, Z, -0.03)) hits.add(tag(m));
+            if (floor) for (const w of wege) if (inside(w, X, Z, 0)) hits.add(`Gehweg von ${w.zone.name}`);
+          }
+          // die eigenen Geraete nach ihren Dreiecken (Strahl laengs des Stuecks)
+          for (const m of own) {
+            const K = dT.get(m.node);
+            if (!K || !len) continue;
+            const R = m.r * D2R, loc = ([x, zq, y]) => { const dx = x - m.local[0], dz = zq - m.local[1]; return [dx * Math.cos(R) - dz * Math.sin(R) + (K.lo[0] + K.hi[0]) / 2, y - m.y + K.lo[1], dx * Math.sin(R) + dz * Math.cos(R) + (K.lo[2] + K.hi[2]) / 2]; };
+            const a = loc(p), b = loc(q), d = [(b[0] - a[0]) / len, (b[1] - a[1]) / len, (b[2] - a[2]) / len];
+            if (strahlTrifft(K.T, a, d, len)) hits.add(`eigenes ${m.node.replace(/^prop_/, '')}`);
+          }
+        }
+        if (hits.size) lweg.push(`${z.name} ${l.name} durch ${[...hits].slice(0, 3).join(', ')}`);
+      }
+    }
+    if (lbad.length) fail(`[17] ${lbad.length} Leitungen der Hallendeko stecken nicht in ihrem Geraet (${lbad.slice(0, 3).join('; ')}): Buchse am Geraet nachmessen, sonst beginnt oder endet sie in der Luft`);
+    if (lweg.length) fail(`[17] ${lweg.length} Leitungen der Hallendeko laufen durch Stuecke oder Gehwege (${lweg.slice(0, 3).join('; ')}): durch-Punkte setzen oder die Buchse auf eine freie Seite legen`);
+    // Luftschlaeuche als Kette (LUFT_OEFFNUNG): erst die Tabelle am Satz
+    // nachmessen, dann jedes Ende eines Schlauchteils an einer Gegenoeffnung
+    // eines Glieds derselben Zone
+    const LO = LUFT_OEFFNUNG, lbruch = [], lmess = [];
+    const ungemessen = [...props].filter((n) => /airduct/.test(n) && !LO.teile[n]);
+    if (ungemessen.length) fail(`[17] ${ungemessen.length} Luftschlauchteile der Hallendeko ohne gemessene Oeffnungen (${ungemessen.slice(0, 3).join(', ')}): in LUFT_OEFFNUNG.teile eintragen (Mitte der Randpunkte je Stirnseite)`);
+    for (const [n, os] of Object.entries(LO.teile)) {
+      const K = dT.get(n);
+      if (!props.has(n) || !K) { fail(`[17] LUFT_OEFFNUNG.teile nennt ${n}, die Hallendeko stellt es nicht: Eintrag ohne Anlass, herausnehmen`); continue; }
+      const V = new Map();
+      for (let i = 0; i < K.T.length; i += 3) V.set(`${K.T[i]},${K.T[i + 1]},${K.T[i + 2]}`, [K.T[i] - (K.lo[0] + K.hi[0]) / 2, K.T[i + 1] - K.lo[1], K.T[i + 2] - (K.lo[2] + K.hi[2]) / 2]);
+      for (const [x, y, z, a] of os) {
+        const u = Math.cos(a * D2R), w = -Math.sin(a * D2R), pr = (v) => v[0] * u + v[2] * w, e = Math.max(...[...V.values()].map(pr));
+        const S = [...V.values()].filter((v) => pr(v) > e - LO.mess), m = [0, 1, 2].map((k) => S.reduce((s, v) => s + v[k], 0) / S.length);
+        const d = Math.hypot(m[0] - x, m[1] - y, m[2] - z);
+        if (d > LO.mess) lmess.push(`${n.replace(/^prop_/, '')} Richtung ${a}: im Satz bei ${m.map((v) => v.toFixed(3)).join(' ')}, eingetragen ${[x, y, z].join(' ')} (${d.toFixed(3)} m)`);
+      }
+    }
+    if (lmess.length) fail(`[17] ${lmess.length} Oeffnungen in LUFT_OEFFNUNG passen nicht zum Satz (${lmess.slice(0, 3).join('; ')}): neu messen`);
+    const oeffnungen = (m) => (LO.teile[m.node] ?? []).map(([x, y, z, a]) => {
+      const ca = Math.cos(m.a), sa = Math.sin(m.a), u = Math.cos(a * D2R), w = -Math.sin(a * D2R);
+      return { m, p: [m.c[0] + x * ca + z * sa, m.y + y, m.c[1] - x * sa + z * ca], d: [u * ca + w * sa, -u * sa + w * ca] };
+    });
+    for (const m of solid) {
+      if (!LO.schlauch.test(m.node)) continue;
+      for (const o of oeffnungen(m)) {
+        const passt = solid.some((q) => q !== m && q.zone === m.zone && oeffnungen(q).some((g) => {
+          const dx = g.p[0] - o.p[0], dz = g.p[2] - o.p[2], laengs = dx * o.d[0] + dz * o.d[1], quer = Math.abs(dx * o.d[1] - dz * o.d[0]);
+          return o.d[0] * g.d[0] + o.d[1] * g.d[1] < -Math.cos(LO.spiel * D2R) && Math.abs(laengs) <= LO.luecke && quer <= LO.versatz && Math.abs(g.p[1] - o.p[1]) <= LO.versatz;
+        }));
+        if (passt) dekoRun.luftEnden++;
+        else lbruch.push(`${tag(m)} Ende nach ${Math.round((Math.atan2(-o.d[1], o.d[0]) / D2R + 360) % 360)} Grad`);
+      }
+    }
+    if (lbruch.length) fail(`[17] ${lbruch.length} Enden von Luftschlaeuchen der Hallendeko sitzen an keiner Gegenoeffnung (${lbruch.slice(0, 3).join('; ')}): Das Stueck liegt lose; Teile mit LUFT_OEFFNUNG Oeffnung an Oeffnung legen`);
     // Halle und Einrichtung im Band des Grundrisses (floorGrid): Hallenstufe
     // der Seite und Moebeldatei, Moebel auf den Streifen umgesetzt wie
     // shiftHallFloor, ohne Teile ganz in einer Ausnahme (HALL_DROP), und
@@ -2327,7 +2575,7 @@ if (DK && dekoBlock) {
     if (dekoRun.bytes > O.bytes) fail(`[17] der Satz der Hallendeko wiegt ${(dekoRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); 0 Requisiten in Gehwegen (freihalten); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.frei} im Raum gedreht, ${dekoRun.gehwege} Gehwege frei (${Math.round(dekoRun.gehwegFlaeche)} m²); ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
+sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); 0 Requisiten in Gehwegen (freihalten); 0 lose Kabel und Schlaeuche, jede Leitung mit beiden Buchsen auf einem Glied ihrer Zone (hoechstens ${BUCHSE.flaeche} m daneben, ${BUCHSE.frei} m hinaus frei), ihr Weg durch kein Stueck und keinen Gehweg; jedes Ende eines Luftschlauchteils an einer Gegenoeffnung (LUFT_OEFFNUNG, im Satz nachgemessen); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.frei} im Raum gedreht, ${dekoRun.gehwege} Gehwege frei (${Math.round(dekoRun.gehwegFlaeche)} m²), ${dekoRun.leitungen} Leitungen mit beiden Buchsen, ${dekoRun.luftEnden} Enden von Luftschlaeuchen an einer Gegenoeffnung; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);
