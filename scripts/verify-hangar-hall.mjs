@@ -252,7 +252,9 @@
         8 Grad neben einer Vierteldrehung, alles andere frei gedreht wie im
         Spiel (seit 22.10.2026; vorher nur Viertel, das ergab eine Reihe an
         der Wand: „alles steht in einer reihe wie eine asset austestellung“),
-        Gestapeltes liegt auf einem Stueck seiner Zone auf, und keines
+        keine Requisite in einem Gehweg (freihalten: Rechtecke je Zone vor
+        den Eingaengen, seit 22.10.2026; „eingänge richtig gestalten mit
+        eingang undso“), Gestapeltes liegt auf einem Stueck seiner Zone auf, und keines
         steht im Band des Grundrisses (WORK_BAND, Zellen WORK_CELL, Regel
         wie floorGrid/freeRot) in Wand oder Einrichtung aus Hallenstufe und
         Moebeldatei der Seite (Moebel auf den Streifen umgesetzt wie
@@ -426,8 +428,26 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Materialien, 375 749 / 1 645 301 Dreiecke. Neu: frei = Glieder, die nicht
 // auf einer Vierteldrehung stehen (270); faellt die Zahl, kehrt die Reihe
 // zurueck.
-const KLINKE_DEKO = { zonen: 27, mittel: 7, glieder: 401, gestapelt: 177, spuren: 124, arten: 151, fach: 75, geprueft: 375, hochGeprueft: 77, massstaebe: 6, gerueckt: 5, frei: 270 };
-const OBERGRENZE_DEKO = { mats: 150, tris: { mittel: 400000, hoch: 1700000 }, bytes: 12e6 };
+// Beide Seiten und Eingaenge am 22.10.2026 (Betreiber: „nur auf einer seite,
+// mehr assets, beide seiten füllen, eingänge richtig gestalten mit eingang
+// undso“): mittel stand ganz im Westen, jetzt je vier Szenen West und Ost
+// (auch in der Mitte der Laengswaende) und die fuenf Eingaenge (Schwelle,
+// Gehweg, Bank, Sicherheitspunkt, Konsole, Licht); neu im Osten
+// Stromverteilung und Leitstand. Stand: 31 Zonen (13 ab mittel),
+// 446 Glieder (171 gestapelt), 191 Spuren, 172 Arten, 69 in Regalfaechern,
+// 422 im Band, 68 hohe darueber, 286 frei gedreht, 5 Gehwege;
+// 159 Materialien, 596 390 / 1 717 678 Dreiecke, 12,30 MB. Gesenkt: gestapelt 177 -> 171, fach 75 -> 69, hohe darueber
+// 77 -> 68, weil der alte Containerstapel am Tor West im Weg des
+// Nordwesteingangs stand und das Lager mit dem Hochregal an der Galerie
+// samt Leitstand und Sanitaet dort dem Galerieeingang und der versetzten
+// Pausenecke gewichen sind (ihre Arbeit tun jetzt Leitstand Ost und die
+// Sicherheitspunkte der Eingaenge). Angehoben, weil mittel jetzt beide
+// Seiten und die Eingaenge zeichnet: Materialien 150 -> 165, Dreiecke
+// mittel 400 000 -> 620 000, hoch 1 700 000 -> 1 800 000, Bytes 12 -> 13 MB.
+// Neu: gehwege = Rechtecke freihalten (Eingaenge), in denen keine
+// Requisite steht und denen die Werkstatt ausweicht.
+const KLINKE_DEKO = { zonen: 31, mittel: 13, glieder: 446, gestapelt: 171, spuren: 191, arten: 172, fach: 69, geprueft: 422, hochGeprueft: 68, massstaebe: 6, gerueckt: 5, frei: 286, gehwege: 5 };
+const OBERGRENZE_DEKO = { mats: 165, tris: { mittel: 620000, hoch: 1800000 }, bytes: 13e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
 // 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB. Mit Katalog v3
@@ -437,8 +457,9 @@ const OBERGRENZE_DEKO = { mats: 150, tris: { mittel: 400000, hoch: 1700000 }, by
 // gesenkt (381 000 -> 377 000), weil Serverschraenke und Standgenerator
 // mit vielen geschichteten Ecken aus der Deko gegangen sind. Als Szenen
 // (22.10.2026): 287 Zeilen, 147 / 118 / 83 / 83, 61 Karten, 408 298 Ecken,
-// Raster 948 KB.
-const KLINKE_DEKO_SCHICHTEN = { zeilen: 287, blend: 147, abnutzung: 118, detail: 83, normale: 83, karten: 61, ecken: 408000 };
+// Raster 948 KB. Beide Seiten und Eingaenge (22.10.2026): 317 Zeilen,
+// 154 / 136 / 91 / 89, 63 Karten, 443 563 Ecken, Raster 1005 KB.
+const KLINKE_DEKO_SCHICHTEN = { zeilen: 317, blend: 154, abnutzung: 136, detail: 91, normale: 89, karten: 63, ecken: 443000 };
 const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1100000 };
 const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
@@ -1862,7 +1883,7 @@ const kdm = /\/\* work-deko \*\/([\s\S]*?)\/\* \/work-deko \*\//.exec(viewer);
 let dekoBlock = null;
 try { dekoBlock = kdm ? JSON.parse(kdm[1]) : null; } catch (e) { fail(`[17] WORK_DEKO im Viewer ist kein JSON mehr (${e.message})`); }
 const DK = W?.deko ?? null;
-const dekoRun = { zonen: 0, mittel: 0, glieder: 0, spuren: 0, gerade: 0, frei: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+const dekoRun = { zonen: 0, mittel: 0, gehwege: 0, gehwegFlaeche: 0, glieder: 0, spuren: 0, gerade: 0, frei: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DK && existsSync(join(ROOT, 'public/hangar/props/deko.glb'))) fail('[17] public/hangar/props/deko.glb liegt bereit, die Seite gibt die Hallendeko nicht mit (opts.hall.workshop.deko): Die Halle stuende still leer. HangarApp.astro pruefen');
 if (DK && !kdm) fail('[17] die Seite gibt die Hallendeko mit, der Viewer traegt keinen Block /* work-deko */ … /* /work-deko */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 for (const k of Object.keys(KLINKE_DEKO).filter(() => !DK)) fail(`[17] KLINKE_DEKO.${k}: die Seite gibt keine Hallendeko mehr mit; den Eintrag hier per Commit mit Ursache entfernen`);
@@ -1899,6 +1920,10 @@ if (DK && dekoBlock) {
     for (const g of z.glieder ?? []) {
       if (!(typeof g[0] === 'string' && g.length >= 3 && g.length <= 5 && g.slice(1).every(Number.isFinite) && (g[4] ?? 0) >= 0)) fail(`[17] WORK_DEKO ${z.name}: Glied ${JSON.stringify(g)} braucht [Knoten, x, z, Drehung, Hoehe ab 0]`);
       else props.add(g[0]);
+    }
+    if (z.freihalten !== undefined && !Array.isArray(z.freihalten)) fail(`[17] WORK_DEKO ${z.name}: freihalten ist keine Liste von Rechtecken [x0, z0, x1, z1]`);
+    for (const f of Array.isArray(z.freihalten) ? z.freihalten : []) {
+      if (!(Array.isArray(f) && f.length === 4 && f.every(Number.isFinite) && f[0] < f[2] && f[1] < f[3])) fail(`[17] WORK_DEKO ${z.name}: freihalten ${JSON.stringify(f)} braucht [x0, z0, x1, z1] mit x0 < x1 und z0 < z1 (buildDeko hielte sonst nichts frei)`);
     }
     for (const sp of z.spuren ?? []) {
       const most = Math.max(4, 1.25 * (spielKante.get(sp[0]) ?? 0));
@@ -1963,13 +1988,20 @@ if (DK && dekoBlock) {
       }
       sizeOf.set(n, { size: hi.map((v, a) => v - lo[a]), tris });
     }
-    const D2R = Math.PI / 180, items = [];
+    const D2R = Math.PI / 180, items = [], wege = [];
     for (const z of zones) {
       if (!(WAND && z.wand in WAND) || !pair(z.at)) continue;
       const th = WAND[z.wand] * D2R, c = Math.cos(th), s = Math.sin(th), [ax, az] = z.at;
       const at = (x, q) => [ax + x * c + q * s, az - x * s + q * c];
       dekoRun.zonen++;
       if (z.stufe === 'mittel') dekoRun.mittel++;
+      for (const f of Array.isArray(z.freihalten) ? z.freihalten : []) {
+        if (!(f?.length === 4 && f.every(Number.isFinite) && f[0] < f[2] && f[1] < f[3])) continue;
+        const [x0, q0, x1, q1] = f;
+        wege.push({ zone: z, c: at((x0 + x1) / 2, (q0 + q1) / 2), a: th, hx: (x1 - x0) / 2, hz: (q1 - q0) / 2 });
+        dekoRun.gehwege++;
+        dekoRun.gehwegFlaeche += (x1 - x0) * (q1 - q0);
+      }
       for (const [node, x, q, r = 0, y = 0] of z.glieder ?? []) {
         const e = sizeOf.get(node);
         if (!e || !Number.isFinite(x + q + r + y)) continue;
@@ -2077,6 +2109,12 @@ if (DK && dekoBlock) {
       const ov = overlap(p, q);
       if (ov >= 0.02) clash.push(`${tag(p)} mit ${tag(q)} ${ov.toFixed(2)} m`);
     }
+    // Gehwege der Eingaenge (freihalten, seit 22.10.2026): keine Requisite
+    // irgendeiner Zone darin, nur Bodenlinien und Pfeile. Die Werkstatt
+    // weicht ihnen aus (buildDeko traegt sie in den Grundriss ein).
+    const imWeg = [];
+    for (const w of wege) for (const m of solid) if (overlap(m, w) > 0.01) imWeg.push(`${tag(m)} im Gehweg von ${w.zone.name}`);
+    if (imWeg.length) fail(`[17] ${imWeg.length} Requisiten der Hallendeko stehen in einem Gehweg, der frei bleiben soll (${imWeg.slice(0, 3).join('; ')}): x/z in WORK_DEKO nachziehen oder freihalten der Zone anpassen`);
     if (clash.length) fail(`[17] ${clash.length} Stuecke der Hallendeko stecken ineinander (${clash.slice(0, 3).join('; ')}): x/z in WORK_DEKO nachziehen`);
     if (tooTall.length) fail(`[17] ${tooTall.length} Stuecke in Regalfaechern der Hallendeko sind zu hoch fuer ihr Fach (${[...new Set(tooTall)].slice(0, 3).join('; ')}): ein Fach hoeher stellen oder ein niedrigeres Stueck`);
     // Gestapeltes liegt auf: ein Stueck derselben Zone endet auf seiner
@@ -2289,7 +2327,7 @@ if (DK && dekoBlock) {
     if (dekoRun.bytes > O.bytes) fail(`[17] der Satz der Hallendeko wiegt ${(dekoRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.frei} im Raum gedreht; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
+sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb des Raums, im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); 0 Requisiten in Gehwegen (freihalten); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.frei} im Raum gedreht, ${dekoRun.gehwege} Gehwege frei (${Math.round(dekoRun.gehwegFlaeche)} m²); ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);
