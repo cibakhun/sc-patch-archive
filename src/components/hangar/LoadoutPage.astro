@@ -211,6 +211,15 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-toast.is-on{opacity:1;visibility:visible;transform:translate(-50%,0);pointer-events:auto}
 .lo-toast button{appearance:none;border:0;background:none;color:var(--lo-a);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 .lo-toast button[hidden],.lo button[hidden]{display:none}
+/* Grosskategorien: Waffen, Komponenten, Lackierung als eigene Baender, beim Scrollen oben angeheftet. */
+.lo-equip>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.lo-big{margin:0 0 1rem}
+.lo-big__h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:.6rem;margin:0 0 .15rem;padding:.5rem .7rem;border-radius:14px;background:color-mix(in srgb,var(--lo-a) 12%,var(--bg));color:var(--lo-on);font-family:var(--font-display);font-size:var(--fs-8);font-weight:800;letter-spacing:var(--ls-6);text-transform:uppercase}
+.lo-big__i{flex:0 0 auto;display:inline-grid;place-items:center;width:1.9rem;height:1.9rem;border-radius:999px;background:var(--lo-a);color:var(--ink)}
+.lo-big__i svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lo-big__sw{display:inline-flex;width:1.9rem;height:1.9rem;border-radius:999px;overflow:hidden}
+.lo-big__sw i{flex:1}
+.lo-big .lo-grp h3{margin-left:.7rem}
 /* Ruhe fuers Auge: weniger Rahmen und Linien, ein Fokus (gewaehlter Platz,
    angeklicktes Teil, Einbauen). Gold = besser, Rot = schlechter, Grau = gleich. */
 .lo-sumg{border-color:transparent;background:color-mix(in srgb,var(--lo-on) 3%,transparent)}
@@ -330,7 +339,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-cmpbox.is-linked{border-color:transparent}
   .lo-cmpbox.is-linked::before{border-color:var(--lo-cb)}
   .lo-cmpbox:not(.is-prev).is-linked::before{display:none}
-  .lo-opt.is-prev{background:transparent}
+  .lo-opt.is-prev{background:transparent;box-shadow:none}
   .lo-opt.is-prev .is-act{background:var(--lo-boxbg)}
   .lo-opt.is-prev>td{box-shadow:none}
 }
