@@ -2186,13 +2186,16 @@ const DIENST_OVER = 3;          // Grundriss so weit über den Kasten hinaus, m
 // Regalen im Osten, Pausenecke, Automat und Maschinenpark vor der Galerie
 // (`aus` dort auch eine Zone, wie das Spiel sie stellt, etwa crew+fracht).
 // Neu geordnet am selben Abend (Krisz: „okay jetzt stehen die assetes dum
-// rum“): Alles steht im Streifen zwischen Wand und Fahrspur (West bis
-// x 7,8, Ost ab 64,2, Hallentor bis z -128, in den Nischen bis 7,3 m vor
-// ihrer Rückwand), nach Zweck in Arbeitsplätzen beisammen, gerade zur
-// Wand (Drehung 0, 90 oder 180 Grad), Kleinteile auf Werkbänken und in
-// Regalfächern statt lose am Boden, Paletten und Kisten in Reihen.
-// Hubbühnen, Stapler und Wagen parken in Stellplätzen mit Bodenlinien vor
-// der Fahrspur; Schraffur vor Gas und Munition. Vor den Toren bleibt frei.
+// rum“): Was nicht fährt, steht im Streifen zwischen Wand und erster
+// Bodenlinie (West bis x 7,8, Ost ab 64,2, Hallentor bis z -128, in den
+// Nischen bis 7,3 m vor ihrer Rückwand), nach Zweck in Arbeitsplätzen
+// beisammen, gerade zur Wand (Drehung 0, 90 oder 180 Grad), Kleinteile auf
+// Werkbänken und in Regalfächern statt lose am Boden, Paletten und Kisten
+// in Reihen. Hubbühnen, Stapler und Wagen parken davor auf der Vorfläche,
+// in Stellplätzen mit Bodenlinien diesseits der dunklen Fahrspur (Zonen
+// transport-ost, maschinenpark- und fahrzeugplatz-galerie, Hubbühne am
+// geruestplatz-west); Schraffur vor Gas und Munition. Vor den Toren bleibt
+// frei.
 // Fest in der
 // Halle (fährt nicht mit dem Aufzug), in Originalgröße wie die Werkstatt:
 // Wächst die Halle mit großen Schiffen, rückt die Zone an ihren Bezugspunkt
