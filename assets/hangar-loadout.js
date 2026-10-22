@@ -778,7 +778,7 @@ function paintLinks() {
     tab.classList.toggle('is-cut-t', r.top < top - 1);
     tab.classList.toggle('is-cut-b', r.bottom > bot + 1);
     tab.style.transform = `translate(${left - o.left}px,${top - o.top}px)`;
-    tab.style.width = `${p.left - left + 1}px`;
+    tab.style.width = `${p.left - left + 2}px`;
     tab.style.height = `${bot - top}px`;
     tab.classList.add('is-on');
   }
