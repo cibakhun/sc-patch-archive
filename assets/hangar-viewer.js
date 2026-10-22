@@ -1983,6 +1983,12 @@ const WORK_LIFT = 0.004;        // Decals so hoch über dem Boden, m (dazu polyg
 const WORK_MOVE = 3;            // so weit darf ein Requisit ausweichen, m
 const WORK_FLOOR = 0.35;        // höher oder tiefer im Spiel: an der Wand, auf einem Regal, in einer Rinne
 const WORK_WALL = 1.5;          // Abstand zur Hallenwand beim Stauchen der Anordnung, m
+// Kabelstränge der Spielhalle fallen weg (22.10.2026, Krisz: „kabel
+// connected nicht“). Dort laufen sie in einer Rinne, an der Wand hoch oder
+// unter die Decke; hier stand ein 2-m-Strang frei im Raum und ein
+// Kabelbündel endete offen auf dem Boden. Leitungen legt WORK_DEKO.leitungen
+// von Gerät zu Gerät.
+const WORK_LOSE = ['kabel'];
 // Was Krisz genannt hat, kommt zuerst ins Budget (Rolle aus info.props)
 const WORK_FIRST = ['diagnose', 'schlauch', 'treibstoff', 'gasflasche', 'werkzeug', 'generator', 'kabeltrommel', 'wagen'];
 // Beidseitig und ohne Ausstanzen (18.10.2026). Krisz: „das rohr ist
@@ -2051,9 +2057,17 @@ const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_0
 // nur Werkzeug, Treibstoff, Diagnose, Werkbank und Kegel: Generator,
 // Kistenstapel, zweite Diagnose und Leiter waren größer als das Fahrzeug,
 // es stand in einem Haufen Gerät (19.10.2026).
-// leitungen: Schlauch oder Kabel aus dem Satz, vom Gerät ([Platz, x, z,
-// Höhe] im Platz) über den Boden unter den Rumpf ([Bruchteil quer, längs]);
-// das Spiel verlegt keine Leitung zum Schiff, die Stücke sind seine.
+// leitungen: Schlauch oder Kabel aus dem Satz, vom Anschluss am Gerät
+// ([Platz, x, z, Höhe der Achse] im Platz: auf der Fläche, die zum Schiff
+// zeigt; der Stecker steckt darin) über den Boden unter den Rumpf und dort
+// senkrecht hinauf in ihn, an einer flachen Stelle nahe [Bruchteil quer,
+// längs] (DIENST_PORT); das Spiel verlegt keine Leitung zum Schiff, die
+// Stücke sind seine. Krisz am 22.10.2026: „kabel connected nicht“, sie
+// begannen 0,2 bis 0,3 m vor dem Gerät in der Luft und endeten lose auf dem
+// Boden. Die Anschlüsse sind an der Geometrie vermessen: Generator am
+// Schaltkasten, Schlauchtrommel an ihrem Rohrstutzen, Diagnose unten an der
+// Front, Tankstelle an einer Buchse des Bodenanschlusses (der dafür mit den
+// Buchsen zum Schiff steht); verify:hangar-hall [14] prüft jeden daran.
 // spuren: Öl unter dem Schiff, [Knoten, Bruchteil quer, längs, Kante als
 // Bruchteil der Schiffsbreite (DIENST_SPUR begrenzt sie in m), Drehung],
 // meist unter dem Heck, wo die Triebwerke sitzen und eine Lache knapp
@@ -2102,7 +2116,7 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_transport_prop_dumper_transport_pallet_a", -3.9, 0.5, 0], ["prop_lager_crate_dry_2_0125x0125x0125_a", -4.3, 0.15, 5, 0.25],
       ["prop_lager_crate_dry_1_0125x0125x00625_a", -3.5, 1.15, -8, 0.25]] },
     { "name": "tankstelle", "ab": 60, "wo": ["seite", -1, 0.05], "sonst": [["seite", -1, -0.1], ["ende", -1, -0.35]], "glieder": [
-      ["prop_schlauch_hose_reel_1_065x045x045_a", 0, 0.8, 0], ["prop_schlauch_hose_floor_1_socket_a", -4.6, 0.6, 0],
+      ["prop_schlauch_hose_reel_1_065x045x045_a", 0, 0.8, 0], ["prop_schlauch_hose_floor_1_socket_a", -4.6, 0.6, 180],
       ["prop_treibstoff_tank_gas_2_025x0125x0125_a", 4.7, 0.1, 0], ["prop_treibstoff_tank_gas_2_025x0125x0125_a", 4.7, 1.55, 4],
       ["prop_sicherheit_tool_fire_extinguisher_1_a", 3.0, -1.0, 20], ["prop_sicherheit_cone_1_a", -2.6, -1.4, 0], ["prop_sicherheit_cone_1_a", 2.4, -1.6, 30]] },
     { "name": "schweiss", "ab": 60, "wo": ["seite", 1, -0.7], "sonst": [["ende", -1, 0.7], ["seite", 1, -0.55]], "glieder": [
@@ -2148,12 +2162,12 @@ const WORK_DIENST = /* work-dienst */ {
       ["prop_sicherheit_cone_1_a", 0, 0, 0], ["prop_sicherheit_cone_1_a", -1.1, -0.2, -30]] }
   ],
   "leitungen": [
-    { "name": "strom", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom", -1.0, -0.75, 0.55], "nach": [0.45, -0.25] },
-    { "name": "treibstoff", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["treibstoff", 0, -0.5, 0.45], "nach": [-0.4, -0.15] },
-    { "name": "daten", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose", 0.2, -0.6, 0.6], "nach": [-0.25, 0.4] },
-    { "name": "tankstelle", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["tankstelle", -4.6, 0.1, 0.15], "nach": [-0.3, 0.05] },
-    { "name": "strom-bug", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom-bug", -1.0, -0.75, 0.55], "nach": [-0.35, 0.55] },
-    { "name": "daten-bug", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose-bug", 0.2, -0.6, 0.6], "nach": [0.3, 0.5] }
+    { "name": "strom", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom", -1.45, -0.435, 0.6], "nach": [0.45, -0.25] },
+    { "name": "treibstoff", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["treibstoff", -0.01, -0.355, 0.235], "nach": [-0.4, -0.15] },
+    { "name": "daten", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose", 0.2, -0.285, 0.4], "nach": [-0.25, 0.4] },
+    { "name": "tankstelle", "node": "prop_schlauch_maintenance_hose_1_a", "von": ["tankstelle", -4.075, 0.156, 0.14], "nach": [-0.3, 0.05] },
+    { "name": "strom-bug", "node": "prop_kabel_maintenance_cable_1_a", "von": ["strom-bug", -1.45, -0.435, 0.6], "nach": [-0.35, 0.55] },
+    { "name": "daten-bug", "node": "prop_kabel_maintenance_cable_1_a", "von": ["diagnose-bug", 0.2, -0.492, 0.35], "nach": [0.3, 0.5] }
   ],
   "spuren": [
     ["decal_oel_1", 0.12, -0.6, 0.11, 20], ["decal_oel_1", -0.2, -0.72, 0.08, 200], ["decal_oel_0", -0.42, -0.25, 0.06, 70],
@@ -2173,6 +2187,20 @@ const DIENST_EDGE = 0.6;
 const DIENST_SPUR = [0.5, 3.5];
 const DIENST_STEP = 0.25;
 const DIENST_OVER = 3;          // Grundriss so weit über den Kasten hinaus, m
+// Anschluss einer Leitung am Rumpf: Höhe der Unterseite dort (m, von bis;
+// tiefer hat der Bogen hinauf keinen Platz, höher hinge sie lang herab) und
+// wie flach sie in den 3 × 3 Zellen darum sein muss (m), damit das Ende
+// überall in ihr steckt; bei gleichem Abstand gewinnt die tiefere Stelle
+// (Gewicht je m Höhe). Fahrzeuge, die so tief liegen, dass keine Stelle
+// passt, bekommen den zweiten Satz: flacher Bogen, weniger eben. Passt
+// auch der nicht (X1), bleibt die Leitung eingerollt.
+const DIENST_PORT = [{ lo: 0.45, hi: 4, flat: 0.1, hoch: 2 }, { lo: 0.22, hi: 4, flat: 0.2, hoch: 2 }];
+// Stecker und Anschlussstücke der Leitungen (m am Anfang und am Ende des
+// Stücks, längs z): Sie behalten beim Biegen ihre Länge und stecken zu 40 %
+// im Gerät oder Rumpf; ohne Stück steckt das Ende 5 cm darin
+const DIENST_STECKER = { "prop_kabel_maintenance_cable_1_a": [0.1, 0], "prop_schlauch_maintenance_hose_1_a": [0.2, 0.2] };
+// Leitungen vor dem Biegen so fein längs schneiden (m im Stück, sliceAlong)
+const LEITUNG_SCHNITT = 0.1;
 // Hallendeko (21.10.2026). Krisz: „mehr assets auch für hintergrund also
 // nicht alles muss um das schiff direkt herumstehen, wir dekorieren mal
 // bisschen das hangar, also nicht nur bisschen sondern heavy“, platziert
@@ -2253,20 +2281,20 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_treibstoff_tank_gas_3_05x025x025_a", 1.2, -1.542, 0], ["prop_treibstoff_tank_gas_1_0125x0125x0125_a", -2.25, -0.946, 6],
       ["prop_treibstoff_cell_fuel_1_a", 4.3, -0.5, 1], ["prop_treibstoff_cell_fuel_1_a", 4.64, -0.56, 92],
       ["prop_treibstoff_cell_fuel_1_a", 4.42, -0.88, 177], ["prop_treibstoff_cell_fuel_1_a", 4.8, -0.92, 271],
-      ["prop_sicherheit_cone_2_a", -1.6, -3.6, 12], ["prop_sicherheit_cone_2_a", 2.9, -3.55, 330],
-      ["prop_sicherheit_sign_warning_1_freestanding_a", 0.6, -3.6, 345], ["prop_schlauch_hose_reel_2_a", 4, -4.4, 335],
-      ["prop_schlauch_hose_floor_1_c", 3, -8.2, 350], ["prop_transport_trolley_cargo_4_a", -1.1, -6.9, 305],
-      ["prop_treibstoff_tank_gas_1_005x005x005_a", -1.551, -6.585, 315, 0.2], ["prop_treibstoff_tank_gas_1_005x005x005_a", -1.018, -6.957, 285, 0.2],
-      ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.4, -3.3, 0]], "spuren": [
+      ["prop_sicherheit_cone_2_a", -1.6, -3.6, 12], ["prop_sicherheit_cone_2_a", 2.1, -3.75, 330],
+      ["prop_sicherheit_sign_warning_1_freestanding_a", 0.6, -3.6, 345], ["prop_schlauch_hose_reel_2_a", 4, -4.4, 154],
+      ["prop_transport_trolley_cargo_4_a", -1.1, -6.9, 305], ["prop_treibstoff_tank_gas_1_005x005x005_a", -1.551, -6.585, 315, 0.2],
+      ["prop_treibstoff_tank_gas_1_005x005x005_a", -1.018, -6.957, 285, 0.2], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.4, -3.3, 0]], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -0.9, -3.15, 3.8, 0],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 2.9, -3.15, 3.8, 0]] },
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 2.9, -3.15, 3.8, 0]], "leitungen": [
+      { "name": "tank-rolle", "node": "prop_schlauch_maintenance_hose_1_a", "von": [3.853, -4.076, 0.235, 244], "nach": [3.2, -2.761, 0.4, 90] }] },
     { "name": "geruestplatz-west", "stufe": "hoch", "aus": "maschine+reinigung", "wand": "w", "at": [3.5, -93.75], "glieder": [
       ["prop_maschine_construction_scaffold_base_04x02x02_a", -1, -1.416, 0],
       ["prop_maschine_construction_scaffold_mid_04x02x02_a", -1, -1.416, 0, 2.012],
       ["prop_maschine_construction_scaffold_top_04x02x01_a", -1, -1.416, 0, 4.012], ["prop_heben_ladder_step_1_a", 1.75, -1.2, 12],
       ["prop_maschine_lift_scissor_1_a", 1.1, -5, 6], ["prop_werkzeug_bag_toolbox_1_a", 2.435, -4.738, 26, 2.05],
-      ["prop_kabel_cable_reel_7_a", -0.292, -4.854, 351, 2.05], ["prop_licht_light_portable_tripod_1_base_a", -2.5, -4.6, 50],
-      ["prop_kabel_cable_reel_7_a", 3.6, -0.665, 0], ["prop_kabel_cable_floor_1_d", 4.35, -3, 352], ["prop_werkzeug_bag_toolbox_2_a", -2.6, -2.9, 15],
+      ["prop_kabel_cable_reel_7_a", -0.292, -4.854, 351, 2.05], ["prop_licht_light_portable_tripod_1_base_a", 3.3, -2.9, 188],
+      ["prop_kabel_cable_reel_7_a", 3.6, -0.665, 0], ["prop_werkzeug_bag_toolbox_2_a", -2.6, -2.9, 15],
       ["prop_werkzeug_tool_socket_set_closed_1_a", -1.9, -3.3, 325], ["prop_sicherheit_cone_2_a", -2.9, -7.6, 10],
       ["prop_sicherheit_cone_2_a", -0.2, -8, 40], ["prop_sicherheit_cone_2_a", 2.7, -7.8, 335]], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -0.2, -3.5, 2.8, 0],
@@ -2274,7 +2302,8 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -0.2, -6.6, 2.8, 0],
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 2.6, -6.6, 2.8, 0],
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -1.6, -5.05, 3.1, 90],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 4, -5.05, 3.1, 90]] },
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 4, -5.05, 3.1, 90]], "leitungen": [
+      { "name": "trommel-licht", "node": "prop_kabel_maintenance_cable_1_a", "von": [3.6, -0.832, 0.3, 90], "nach": [3.331, -2.682, 0.55, 278] }] },
     { "name": "munition-west", "stufe": "hoch", "aus": "munition", "wand": "w", "at": [0.5, -72.25], "glieder": [
       ["prop_munition_rack_torpedo_1_a", -13.9, -1.625, 90], ["prop_munition_uee_lawless_prop_missilestack_large", -9.3, -1.145, 90],
       ["prop_munition_uee_lawless_prop_missilestack_large", -9.3, -1.145, 91.5, 1.731],
@@ -2346,40 +2375,41 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_werkzeug_tool_drawer_1_a", 0.9, -0.513, 0], ["prop_luft_heater_freestanding_1_a", 4.4, -0.801, 0],
       ["prop_werkzeug_workbench_table_1_a", 0.7, -5, 8], ["prop_bauteile_powr_aegs_s02_pl02", 0.997, -5.042, 5, 1],
       ["prop_werkzeug_tool_power_1_drill_a", 2.637, -4.868, 318, 1], ["prop_werkzeug_bag_toolbox_1_a", -1.011, -4.961, 23, 1],
-      ["prop_werkzeug_tool_welder_a", 3.6, -6.6, 325], ["prop_kabel_cable_floor_1_c", 4.3, -3.4, 18], ["prop_heben_ladder_step_1_a", 2.4, -2.4, 70],
-      ["prop_crew_steat_stool_1_a", 1.3, -7, 20], ["prop_werkzeug_bag_toolbox_2_a", -1, -7.2, 335],
-      ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.8, -6.4, 0]] },
+      ["prop_werkzeug_tool_welder_a", 3.6, -6.6, 325], ["prop_heben_ladder_step_1_a", 2.4, -2.4, 70], ["prop_crew_steat_stool_1_a", 1.3, -7, 20],
+      ["prop_werkzeug_bag_toolbox_2_a", -1, -7.2, 335], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.8, -6.4, 0],
+      ["prop_kabel_cable_terminal_1_floor_a", 2.6, -0.635, 0]], "leitungen": [
+      { "name": "terminal-schweissgeraet", "node": "prop_kabel_maintenance_cable_1_a", "von": [2.6, -0.969, 0.3, 90], "nach": [3.374, -6.278, 0.3, 235] }] },
     { "name": "energie-west", "stufe": "mittel", "aus": "energie+luft+reinigung+sicherheit+treibstoff", "wand": "w", "at": [3.5, -20.5], "glieder": [
       ["prop_energie_generator_mining_1_a", -6.6, -1.102, 0], ["prop_energie_roomsm_addon_generator_c", -4.9, -0.445, 0],
       ["prop_energie_roomsm_addon_generator_c", -3.65, -0.445, 0], ["prop_energie_roomsm_addon_generator_c", -2.4, -0.445, 0],
       ["prop_lager_cell_power_1_rack_a", 4.4, -1.214, 0], ["prop_kabel_cable_terminal_1_floor_a", -0.9, -0.635, 0],
-      ["prop_transport_machine_forklift_1_b", -2.8, -5.5, 178], ["prop_kabel_cable_floor_1_c", -0.9, -2.6, 0],
-      ["prop_transport_machine_forklift_1_extension_tank_a", 0.8, -3.6, 12], ["prop_transport_machine_forklift_1_extension_console_a", 1.5, -5.2, 354],
-      ["prop_kabel_cable_reel_6_a", -6.3, -3.6, 25]], "spuren": [
+      ["prop_transport_machine_forklift_1_b", -2.8, -5.5, 178], ["prop_transport_machine_forklift_1_extension_tank_a", 0.8, -3.6, 12],
+      ["prop_transport_machine_forklift_1_extension_console_a", 1.5, -5.2, 354], ["prop_kabel_cable_reel_6_a", -6.3, -3.6, 25]], "spuren": [
       ["decal_linie_lowtech_a_int_decal_4m_a", -4.9, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_2m_a", -4.9, -7.6, 2, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -4.9, -8.85, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -0.8, -4.6, 4, 90],
       ["decal_linie_lowtech_a_int_decal_2m_a", -0.8, -7.6, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -0.8, -8.85, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_4m_a", 3.3, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_2m_a", 3.3, -7.6, 2, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 3.3, -8.85, 0.5, 90], ["decal_ziffer_secondary_number_1", -2.85, -8.6, 0.8, 0],
-      ["decal_ziffer_secondary_number_2", 1.25, -8.6, 0.8, 0]] },
+      ["decal_ziffer_secondary_number_2", 1.25, -8.6, 0.8, 0]], "leitungen": [
+      { "name": "terminal-stapler", "node": "prop_kabel_maintenance_cable_1_a", "von": [-0.9, -0.969, 0.3, 90], "nach": [-2.032, -4.566, 0.5, 268] }] },
     { "name": "tankstelle-ost", "stufe": "mittel", "aus": "sicherheit+treibstoff", "wand": "o", "at": [68.5, -116.5], "glieder": [
       ["prop_schlauch_hose_reel_1_065x045x045_a", 2.8, -2.647, 0], ["prop_treibstoff_tank_gas_3_05x025x025_a", -3.4, -1.542, 0],
       ["prop_sicherheit_extinguisher_cabinet_1_a", -0.55, -0.298, 0], ["prop_treibstoff_cell_fuel_1_a", -5.9, -4.3, 0],
       ["prop_treibstoff_cell_fuel_1_a", -5.54, -4.34, 92], ["prop_treibstoff_cell_fuel_1_a", -5.72, -4.67, 178],
-      ["prop_schlauch_hose_floor_1_c", 1, -7.9, 60], ["prop_schlauch_hose_floor_1_a", -1.7, -9.7, 68],
       ["prop_transport_trolley_cargo_4_a", -3.7, -6.7, 248], ["prop_treibstoff_tank_gas_1_005x005x005_a", -4.21, -6.906, 262, 0.2],
-      ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.561, -6.644, 239, 0.2], ["prop_sicherheit_tool_fire_extinguisher_1_a", -1, -3.6, 0],
+      ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.561, -6.644, 239, 0.2], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.5, -3.35, 0],
       ["prop_sicherheit_cone_2_a", -0.4, -5.4, 25]], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -4.8, -3.2, 2.8, 0],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -2, -3.2, 2.8, 0]] },
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -2, -3.2, 2.8, 0]], "leitungen": [
+      { "name": "tank-rolle", "node": "prop_schlauch_maintenance_hose_1_a", "von": [-1.6, -2.763, 0.4, 90], "nach": [-0.17, -3.647, 0.6, 180] }] },
     { "name": "luft-ost", "stufe": "hoch", "aus": "schlauch", "wand": "o", "at": [68.5, -103.5], "glieder": [
-      ["prop_schlauch_lt_airduct_hose_securepoint_connector_a", 0.2, -0.6, 0], ["prop_schlauch_lt_airduct_hose_straight_8m_a", 0.2, -4.95, 90],
-      ["prop_schlauch_lt_airduct_hose_corner_1m_a", 0.2, -9.62, 0], ["prop_schlauch_lt_sm_airduct_fan_a", 1.65, -9.7, 274],
-      ["prop_luft_heater_freestanding_1_a", -3, -5.8, 20], ["prop_luft_heater_freestanding_1_b", 3.2, -6.6, 330],
-      ["prop_reinigung_tank_water_3_waste_0125x0125x0125_a", -3.6, -0.875, 0], ["prop_reinigung_tank_water_3_waste_0125x0125x0125_a", -2.2, -0.875, 3],
-      ["prop_reinigung_tool_mop_1_bucket_a", 3.2, -0.7, 5], ["prop_reinigung_tool_mop_1_a", 3.8, -0.35, 0],
-      ["prop_crew_waste_bin_1_a", -2.9, -2.2, 14], ["prop_transport_prop_dumper_transport_pallet_a", 3.6, -3.4, 348],
-      ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 2.83, -2.95, 350, 0.25],
+      ["prop_schlauch_lt_airduct_hose_junction_a", 0.2, -0.858, 90], ["prop_schlauch_lt_airduct_hose_straight_8m_a", 0.104, -5.455, 90],
+      ["prop_schlauch_lt_airduct_hose_corner_1m_a", 0.524, -10.075, 270], ["prop_schlauch_lt_airduct_hose_stepdown_0_025m_a", 2.174, -10.436, 0],
+      ["prop_schlauch_lt_sm_airduct_fan_a_b", 3.733, -10.413, 0], ["prop_luft_heater_freestanding_1_a", -3, -5.8, 20],
+      ["prop_luft_heater_freestanding_1_b", 3.2, -6.6, 330], ["prop_reinigung_tank_water_3_waste_0125x0125x0125_a", -3.6, -0.875, 0],
+      ["prop_reinigung_tank_water_3_waste_0125x0125x0125_a", -2.2, -0.875, 3], ["prop_reinigung_tool_mop_1_bucket_a", 3.2, -0.7, 5],
+      ["prop_reinigung_tool_mop_1_a", 3.8, -0.35, 0], ["prop_crew_waste_bin_1_a", -2.9, -2.2, 14],
+      ["prop_transport_prop_dumper_transport_pallet_a", 3.6, -3.4, 348], ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 2.83, -2.95, 350, 0.25],
       ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 4.121, -2.676, 347, 0.25],
       ["prop_lager_crate_plastic_1_005x01x005_a", 2.83, -2.95, 355, 1.51], ["prop_lager_crate_plastic_1_005x01x005_a", 3.256, -4.189, 344, 0.25],
       ["prop_sicherheit_cone_2_a", -1.4, -10, 20], ["prop_sicherheit_cone_2_a", 3.3, -9.3, 320]] },
@@ -2590,19 +2620,21 @@ const WORK_DEKO = /* work-deko */ {
     { "name": "tor-west", "stufe": "hoch", "aus": "lager+transport", "wand": "n", "at": [18, -136], "glieder": [
       ["prop_lager_storage_container_1_025x05x025_a", -0.8, -1.562, 90], ["prop_lager_storage_container_1_025x05x025_a", -0.8, -1.612, 88.5, 2.504]] },
     { "name": "tor-ost", "stufe": "hoch", "aus": "kabel+transport", "wand": "n", "at": [54, -136], "glieder": [
-      ["prop_energie_generator_mobile_1_b", -0.6, -1.2, 0], ["prop_kabel_cable_floor_1_d", 0.6, -3.2, 75],
-      ["prop_kabel_cable_reel_6_a", 1.8, -4.1, 345], ["prop_licht_light_portable_tripod_1_base_a", -2.2, -4, 160]] },
+      ["prop_energie_generator_mobile_1_b", -0.6, -1.2, 0], ["prop_kabel_cable_reel_6_a", 1.8, -4.1, 345],
+      ["prop_licht_light_portable_tripod_1_base_a", -2.2, -4, 160]], "leitungen": [
+      { "name": "generator-licht", "node": "prop_kabel_maintenance_cable_1_a", "von": [-2.05, -1.785, 0.6, 90], "nach": [-2.275, -3.793, 0.55, 250] }] },
     { "name": "verteilung-ost", "stufe": "hoch", "aus": "kabel+werkzeug", "wand": "o", "at": [68.5, -94.2], "glieder": [
       ["prop_lager_cell_power_1_rack_a", -2.5, -1.264, 0], ["prop_wand_relay_electrical_1_a", 0.75, -0.637, 0],
       ["prop_wand_fuse_mounted_1_c", 2.6, -0.454, 0], ["prop_kabel_cable_terminal_1_floor_b", 4.1, -0.479, 0],
-      ["prop_energie_generator_mobile_1_d", -1.6, -5.2, 22], ["prop_kabel_cable_floor_1_c", 0.4, -3.1, 78],
-      ["prop_kabel_cable_floor_1_b", 2.6, -3.6, 345], ["prop_kabel_cable_reel_2_a", 3.9, -6.3, 35], ["prop_kabel_cable_reel_1_a", 4.6, -5, 350],
+      ["prop_energie_generator_mobile_1_d", -1.6, -5.2, 22], ["prop_kabel_cable_reel_2_a", 3.9, -6.3, 35], ["prop_kabel_cable_reel_1_a", 4.6, -5, 350],
       ["prop_transport_trolley_cargo_4_a", -3.6, -6.6, 300], ["prop_kabel_roomsm_addon_cable_junctionbox_c", -4.12, -6.3, 304, 0.2],
       ["prop_kabel_roomsm_addon_cable_junctionbox_b", -3.427, -6.7, 292, 0.2], ["prop_werkzeug_bag_toolbox_2_a", -2.864, -7.025, 306, 0.2],
       ["prop_heben_ladder_step_1_b", 2.6, -1.3, 8], ["prop_licht_light_portable_tripod_1_base_a", -4.9, -3.5, 320],
       ["prop_werkzeug_bag_toolbox_1_a", 1, -1.9, 25], ["prop_sicherheit_cone_1_a", -3.4, -8.6, 15], ["prop_sicherheit_cone_1_a", 0.6, -8.4, 340],
       ["prop_sicherheit_cone_1_a", 4, -7.7, 30]], "spuren": [
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.6, -1.55, 3.6, 0]] },
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.6, -1.55, 3.6, 0]], "leitungen": [
+      { "name": "generator-relais", "node": "prop_kabel_maintenance_cable_1_a", "von": [-0.282, -5.14, 0.5, 292], "nach": [0.35, -0.878, 0.25, 90] },
+      { "name": "terminal-trommel", "node": "prop_kabel_maintenance_cable_1_a", "von": [4.1, -0.708, 0.3, 90], "nach": [4.575, -4.856, 0.2, 260] }] },
     { "name": "leitstand-ost", "stufe": "mittel", "aus": "diagnose+kabel", "wand": "o", "at": [68.5, -36.3], "glieder": [
       ["prop_regal_server_rack_1_c", -5, -0.868, 0], ["prop_kabel_cable_terminal_1_floor_a", -3.6, -0.635, 0],
       ["prop_werkzeug_workbench_table_1_a", 2.9, -1.059, 0], ["prop_diagnose_computer_monitor_1_a", 1.5, -1.159, 352, 1],
@@ -2683,28 +2715,118 @@ async function shipUnder(root, hw, hl, pause = noPause) {
   return { x0, z0, nx, nz, C, low };
 }
 
+// Leitung längs fein schneiden: Ebenen z = konstant im Abstand h teilen
+// jedes Dreieck, das über eine reicht, an seinen Kanten (Nachbarn teilen
+// dieselben Schnittpunkte, also ohne Risse). Der Schlauch hat im Mittelteil
+// Ringe bis über 1 m auseinander; gebogen wurde zwischen zwei Ringen ein
+// flaches, verdrehtes Band daraus (22.10.2026). Liefert eine Geometrie mit
+// Index und denselben Attributen (Art, normalized) für BatchedMesh.
+function sliceAlong(src, h) {
+  const P = src.attributes.position, I = src.index, names = Object.keys(src.attributes);
+  const out = names.map((k) => ({ k, a: src.attributes[k], v: [] }));
+  for (const o of out) for (let i = 0; i < o.a.count; i++) for (let c = 0; c < o.a.itemSize; c++) o.v.push(o.a.getComponent(i, c));
+  let n = P.count, z0 = Infinity;
+  for (let i = 0; i < n; i++) z0 = Math.min(z0, P.getZ(i));
+  const cut = new Map(), idx = [];
+  // Schnittpunkt der Kante a-b mit Ebene m (einmal je Kante und Ebene)
+  const at = (a, b, m) => {
+    if (a > b) [a, b] = [b, a];
+    const key = `${a},${b},${m}`;
+    if (cut.has(key)) return cut.get(key);
+    const t = (z0 + m * h - P.getZ(a)) / (P.getZ(b) - P.getZ(a));
+    for (const o of out) for (let c = 0; c < o.a.itemSize; c++) {
+      const x = o.v[a * o.a.itemSize + c], y = o.v[b * o.a.itemSize + c];
+      o.v.push(x === y ? x : x + (y - x) * t);
+    }
+    cut.set(key, n);
+    return n++;
+  };
+  const pv = out[names.indexOf('position')].v, pos = (i) => new THREE.Vector3(pv[i * 3], pv[i * 3 + 1], pv[i * 3 + 2]);
+  const face = (a, b, c) => new THREE.Vector3().crossVectors(pos(b).sub(pos(a)), pos(c).sub(pos(a)));
+  const T = I ? I.count : P.count;
+  for (let f = 0; f < T; f += 3) {
+    const tri = [0, 1, 2].map((k) => (I ? I.getX(f + k) : f + k));
+    const [A, B, C] = [...tri].sort((p, q) => P.getZ(p) - P.getZ(q));
+    const lo = P.getZ(A), mid = P.getZ(B), hi = P.getZ(C);
+    const m0 = Math.floor((lo - z0) / h + 1e-9) + 1, m1 = Math.ceil((hi - z0) / h - 1e-9) - 1;
+    if (m0 > m1) { idx.push(...tri); continue; }
+    const want = face(...tri);
+    // je Ebene ein Punkt auf A-C und einer auf A-B oder B-C
+    const rows = [[A, A]];
+    for (let m = m0; m <= m1; m++) {
+      const zc = z0 + m * h;
+      rows.push([at(A, C, m), zc < mid ? at(A, B, m) : zc > mid ? at(B, C, m) : B]);
+    }
+    rows.push([C, C]);
+    for (let r = 0; r + 1 < rows.length; r++) {
+      const z1 = r + 1 < rows.length - 1 ? z0 + (m0 + r) * h : hi, zA = r ? z0 + (m0 + r - 1) * h : lo;
+      const ring = [rows[r][0], rows[r + 1][0], rows[r + 1][1]];
+      if (mid >= zA && mid <= z1 && !ring.includes(B)) ring.push(B);
+      ring.push(rows[r][1]);
+      const poly = ring.filter((v, i) => v !== ring[(i + 1) % ring.length]);
+      for (let k = 1; k + 1 < poly.length; k++) {
+        const t3 = [poly[0], poly[k], poly[k + 1]], nf = face(...t3);
+        if (nf.lengthSq() < 1e-14) continue;
+        idx.push(...(nf.dot(want) < 0 ? [t3[0], t3[2], t3[1]] : t3));
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  for (const o of out) {
+    const at2 = new THREE.BufferAttribute(new o.a.array.constructor(n * o.a.itemSize), o.a.itemSize, o.a.normalized);
+    for (let i = 0; i < n; i++) for (let c = 0; c < o.a.itemSize; c++) at2.setComponent(i, c, o.v[i * o.a.itemSize + c]);
+    g.setAttribute(o.k, at2);
+  }
+  g.setIndex(idx);
+  g.computeBoundingBox();
+  g.userData.sliced = h;
+  return g;
+}
+
+// Weg einer Leitung aus ihrer Buchse: A Unterseite der Leitung am
+// Anschluss (Achse in Höhe h), o waagrecht hinaus, ins so weit steckt sie
+// darin. Erst waagrecht heraus, dann im Bogen auf den Boden, umso weiter
+// vom Gerät, je höher die Buchse sitzt.
+function leitungAus(A, o, h, ins) {
+  const out = Math.max(0.5, h * 0.9), at = (k, y) => A.clone().addScaledVector(o, k).setY(y);
+  return [at(-ins, A.y), at(0.15, A.y), at(out * 0.55, A.y * 0.4), at(out, 0)];
+}
+
 // Leitung biegen: src liegt längs z (Ursprung beliebig, box: ihr Kasten),
 // pts die Punkte des Wegs. Längs wird auf den Weg verteilt, quer bleibt der
 // Querschnitt (x zur Seite, y nach oben, die Unterseite auf dem Weg).
+// keep: so viele m am Anfang (z klein) und am Ende behalten ihre Länge
+// (Stecker, Anschlussstück), nur dazwischen wird gestreckt oder gestaucht.
+// floor: nicht tiefer als diese Höhe (die Kurve schwingt nach einem steilen
+// Abstieg sonst unter den Boden, und die Leitung verschwand darin).
 // Liefert eine Geometrie mit eigenen Ecken und Normalen, Rest geteilt.
-function bendAlong(src, box, pts) {
+function bendAlong(src, box, pts, keep = [0, 0], floor = -Infinity) {
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const N = 128, S = curve.getSpacedPoints(N);
+  for (const q of S) q.y = Math.max(q.y, floor);
+  // Rahmen ohne Verdrillen (mitgeführt): x beginnt waagrecht quer und
+  // verliert je Schritt nur seinen Anteil längs der neuen Richtung; so
+  // bleibt er auch dort quer, wo der Weg senkrecht in den Rumpf steigt
+  // (aus oben × Richtung entstand dort ein verdrehter Fächer)
   const up = new THREE.Vector3(0, 1, 0), T = [], X = [], U = [];
-  let prev = new THREE.Vector3(1, 0, 0);
+  let prev = null;
   for (let i = 0; i <= N; i++) {
     const t = new THREE.Vector3().subVectors(S[Math.min(N, i + 1)], S[Math.max(0, i - 1)]).normalize();
-    const x = new THREE.Vector3().crossVectors(up, t);
-    if (x.lengthSq() < 1e-6) x.copy(prev); else x.normalize();
+    const x = prev ? prev.clone().addScaledVector(t, -prev.dot(t)) : new THREE.Vector3().crossVectors(up, t);
+    if (x.lengthSq() < 1e-8) x.set(1, 0, 0).addScaledVector(t, -t.x);
+    x.normalize();
     prev = x;
     T.push(t); X.push(x); U.push(new THREE.Vector3().crossVectors(t, x));
   }
   const P = src.attributes.position, Nn = src.attributes.normal, n = P.count;
   const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
   const cx = (box.min.x + box.max.x) / 2, z0 = box.min.z, L = Math.max(1e-6, box.max.z - box.min.z);
+  const len = curve.getLength(), [k0, k1] = keep[0] + keep[1] < Math.min(L, len) ? keep : [0, 0];
+  // Lage längs des Wegs (Bruchteil) zur Lage im Stück
+  const along = (dz) => (dz <= k0 ? dz : dz >= L - k1 ? len - (L - dz) : k0 + ((dz - k0) * (len - k0 - k1)) / (L - k0 - k1)) / len;
   const p = new THREE.Vector3(), t = new THREE.Vector3(), x = new THREE.Vector3(), u = new THREE.Vector3();
   for (let i = 0; i < n; i++) {
-    const f = THREE.MathUtils.clamp((P.getZ(i) - z0) / L, 0, 1) * N, k = Math.min(N - 1, Math.floor(f)), w = f - k;
+    const f = THREE.MathUtils.clamp(along(THREE.MathUtils.clamp(P.getZ(i) - z0, 0, L)), 0, 1) * N, k = Math.min(N - 1, Math.floor(f)), w = f - k;
     p.lerpVectors(S[k], S[k + 1], w); t.lerpVectors(T[k], T[k + 1], w).normalize();
     x.lerpVectors(X[k], X[k + 1], w).normalize(); u.lerpVectors(U[k], U[k + 1], w).normalize();
     const lx = P.getX(i) - cx, ly = P.getY(i) - box.min.y;
@@ -2718,7 +2840,7 @@ function bendAlong(src, box, pts) {
   g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
   g.setIndex(src.index);
   g.computeBoundingBox(); g.computeBoundingSphere();
-  return { geo: g, length: curve.getLength() };
+  return { geo: g, length: len };
 }
 
 // Belegung des Hallenbodens im Modellraum: je Zelle (WORK_CELL) 1, wenn
@@ -2844,7 +2966,7 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid, rim =
   for (const s of scenes) s?.traverse((n) => { if (/^(prop|decal)_/.test(n.name) && !kit.has(n.name)) kit.set(n.name, n); });
   const cx = (L.from[0] + L.to[0]) / 2, cz = (L.from[1] + L.to[1]) / 2, hx = (L.to[0] - L.from[0]) / 2, hz = (L.to[1] - L.from[1]) / 2;
   const decalInfo = new Map((info.decals || []).map((d) => [d.node, d])), propInfo = new Map((info.props || []).map((q) => [q.node, q]));
-  const stats = { source: info.layout?.source || null, rim, props: 0, decals: 0, field: 0, inField: 0, blocked: 0, moved: 0, overBudget: 0, missing: 0, raised: 0 };
+  const stats = { source: info.layout?.source || null, rim, props: 0, decals: 0, field: 0, inField: 0, blocked: 0, moved: 0, overBudget: 0, missing: 0, raised: 0, loose: 0 };
   // Maße je Knoten im eigenen Raum (Ursprung unten mittig), Materialien
   const box = new THREE.Box3(), meta = new Map();
   const metaOf = (name) => {
@@ -2865,6 +2987,7 @@ function placeWorkshop(model, scenes, info, L, room, floorY, budget, grid, rim =
   let items = (info.layout?.items || []).filter((it) => {
     if (!kit.has(it.node)) { stats.missing++; return false; }
     if (Math.abs(it.y ?? 0) > WORK_FLOOR) { stats.raised++; return false; }
+    if (WORK_LOSE.includes(propInfo.get(it.node)?.rolle)) { stats.loose++; return false; }
     return true;
   });
   // Spuren aufs Feld (WORK_FIELD), Kantenlänge wie meist in der Anordnung
@@ -6512,6 +6635,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const use = (u) => { if (parts.has(u.node)) uses.push(u); else missing++; };
     D.stationen.forEach((st, si) => st.glieder.forEach(([node, x, z, r = 0, y = 0]) => use({ kind: 'glied', st: si, node, x, z, r, y })));
     D.leitungen.forEach((l, li) => use({ kind: 'leitung', li, node: l.node }));
+    for (const u of uses) if (u.kind === 'leitung') for (const p of parts.get(u.node).parts) if (!p.geo.userData.sliced) p.geo = sliceAlong(p.geo, LEITUNG_SCHNITT);
     D.spuren.forEach((a) => use({ kind: 'spur', node: a[0], a }));
     const { group, batches, tris } = kitBatches(uses, parts, 'dienst', (m) => dienstMaterial(m, m.name === 'dienst_flach' ? S : null));
     return { group, uses, parts, batches, missing, tris, sig: '', schichten: S ? { rows: S.rows, maps: S.maps } : null };
@@ -6527,6 +6651,21 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     m.userData.lift = false;
     m.customProgramCacheKey = flat ? () => `hall-v2|dienst${S ? '|schichten' : ''}` : hallKey;
     return decal;
+  }
+  // Weg einer Leitung der Deko im Raum ihrer Zone (m ab Bezugspunkt und
+  // Boden; c, s: Drehung der Wand): aus der Buchse von über den Boden
+  // (durch, sonst ein flacher Bogen) in die Buchse nach
+  function dekoWeg(l, e, c, s) {
+    const D = THREE.MathUtils.DEG2RAD, r = e.size.y / 2, keep = DIENST_STECKER[l.node] ?? [0, 0];
+    const pt = (x, q, y) => new THREE.Vector3(x * c + q * s, y, -x * s + q * c);
+    const aus = ([x, q, h, a], k) => leitungAus(pt(x, q, Math.max(0, h - r)), pt(Math.cos(a * D), -Math.sin(a * D), 0), h, keep[k] ? keep[k] * 0.4 : 0.05);
+    const head = aus(l.von, 0), tail = aus(l.nach, 1).reverse();
+    let mid = (l.durch ?? []).map(([x, q]) => pt(x, q, 0));
+    if (!mid.length) {
+      const F = head[3], E = tail[0], d = new THREE.Vector3().subVectors(E, F);
+      mid = [new THREE.Vector3().lerpVectors(F, E, 0.5).add(new THREE.Vector3(-d.z, 0, d.x).multiplyScalar(0.15))];
+    }
+    return [...head, ...mid, ...tail];
   }
   function buildDeko(kitScene, S, grid, floorY, stufe) {
     const parts = kitParts(kitScene, S), uses = [], gone = [], frei = [], R = THREE.MathUtils.DEG2RAD;
@@ -6564,6 +6703,14 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       const keep = own.filter((q) => !hit.includes(q));
       uses.push(...keep);
       if (keep.length) zones++;
+      // Leitungen von Gerät zu Gerät; fiel eines ihrer Geräte weg, fehlt sie auch
+      for (const l of zn.leitungen ?? []) {
+        const e = parts.get(l.node);
+        if (!e) { missing++; continue; }
+        const ends = [l.von, l.nach].map(([x, z]) => at(x, z));
+        if (hit.some((b) => ends.some(([x, z]) => Math.abs(x - b.at[0]) < b.ex + 0.1 && Math.abs(z - b.at[1]) < b.ez + 0.1))) { gone.push(`${zn.name}: Leitung ${l.name}`); continue; }
+        uses.push({ kind: 'leitung', zone: zi, node: l.node, pts: dekoWeg(l, e, c, s) });
+      }
     });
     // Erst danach als belegt eintragen (die Werkstatt weicht aus): Gegen den
     // Grundriss prüft jede Zone nur Halle und Einrichtung. Ihre Stücke
@@ -6574,7 +6721,21 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (grid) for (const q of uses) if (q.kind === 'glied' && q.y < 0.05) grid.fill(q.at[0], q.at[1], q.ex, q.ez);
     // Gehwege der Eingänge ebenso: Die Werkstatt stellt dort nichts hin
     if (grid) for (const f of frei) grid.fill(f.at[0], f.at[1], f.ex, f.ez);
+    // und nichts auf eine Leitung (alle 0,25 m ihres Wegs eine Zelle)
+    if (grid) for (const u of uses) if (u.kind === 'leitung') {
+      const [ax, az] = WORK_DEKO.zonen[u.zone].at;
+      for (let i = 0; i + 1 < u.pts.length; i++) {
+        const p = u.pts[i], q = u.pts[i + 1], n = Math.ceil(p.distanceTo(q) / 0.25);
+        for (let k = 0; k <= n; k++) grid.fill(ax + p.x + ((q.x - p.x) * k) / n, az + p.z + ((q.z - p.z) * k) / n, 0.1, 0.1);
+      }
+    }
+    for (const u of uses) if (u.kind === 'leitung') for (const p of parts.get(u.node).parts) if (!p.geo.userData.sliced) p.geo = sliceAlong(p.geo, LEITUNG_SCHNITT);
     const { group, batches, tris } = kitBatches(uses, parts, 'deko', (m) => dekoMaterial(m, S));
+    // Leitungen einmal gebogen, im Raum ihrer Zone (layDeko skaliert ihn)
+    for (const u of uses) if (u.kind === 'leitung') {
+      const e = parts.get(u.node);
+      for (const id of u.ids) id.b.setGeometryAt(id.gid, bendAlong(id.p.geo, e.box, u.pts, DIENST_STECKER[u.node] ?? [0, 0], 0).geo);
+    }
     // Schatten wie die Einrichtung: aus den Hallenlampen (renderHallShadows), nicht vom Schiffslicht
     for (const b of batches.values()) b.castShadow = false;
     return { group, uses, parts, batches, missing, gone, tris, zones, frei: frei.length, floorY, k: 0 };
@@ -6588,6 +6749,11 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const M = new THREE.Matrix4(), R = new THREE.Matrix4(), S0 = new THREE.Matrix4(), T0 = new THREE.Matrix4();
     for (const u of d.uses) {
       const e = d.parts.get(u.node), [ax, az] = WORK_DEKO.zonen[u.zone].at;
+      if (u.kind === 'leitung') {
+        M.makeTranslation(ax, d.floorY, az).multiply(S0.makeScale(1 / k, 1 / k, 1 / k));
+        for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
+        continue;
+      }
       T0.makeTranslation(-e.centre.x, -e.box.min.y, -e.centre.z);
       M.makeTranslation(ax + (u.at[0] - ax) / k, d.floorY + u.y / k, az + (u.at[1] - az) / k)
         .multiply(R.makeRotationY(u.a)).multiply(S0.makeScale(u.sc / k, 1 / k, u.sc / k)).multiply(T0);
@@ -6716,30 +6882,51 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       M.makeTranslation(b.x + sx, u.y, b.z + sz).multiply(R.makeRotationY(b.r)).multiply(T0);
       for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
     }
-    // Leitungen: vom Gerät auf den Boden, in einem Bogen unter den Rumpf
-    let lines = 0;
+    // Leitungen: aus dem Anschluss am Gerät waagrecht heraus, auf den Boden,
+    // in einem Bogen unter den Rumpf und dort senkrecht hinauf in ihn
+    // (port: flache Stelle, nahe der genannten, eher tief)
+    const port = (gx, gz, P = DIENST_PORT[0]) => {
+      if (!U) return null;
+      const { x0, z0, nx, nz, C, low } = U;
+      let best = null;
+      for (let j = 1; j < nz - 1; j++) for (let i = 1; i < nx - 1; i++) {
+        const y = low[j * nx + i];
+        if (!(y >= P.lo && y <= P.hi)) continue;
+        let a = y, b = y;
+        for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const v = low[(j + dj) * nx + i + di]; a = Math.min(a, v); b = Math.max(b, v); }
+        if (!(b - a <= P.flat)) continue;
+        const x = x0 + (i + 0.5) * C, z = z0 + (j + 0.5) * C, cost = Math.hypot(x - gx, z - gz) + y * P.hoch;
+        if (!best || cost < best.cost) best = { x, z, y: b, cost };
+      }
+      return best;
+    };
+    let lines = 0, rolled = 0;
     for (const u of d.uses.filter((q) => q.kind === 'leitung')) {
       const l = WORK_DIENST.leitungen[u.li], [stn, lx, lz, h] = l.von, p = placed.get(stn);
       show(u, !!p);
       if (!p) continue;
-      const c = Math.cos(p.th), s = Math.sin(p.th), e = d.parts.get(u.node);
-      const a = new THREE.Vector3(p.ax + lx * c + lz * s, h, p.az - lx * s + lz * c);
-      // Ziel unter dem Rumpf: von der genannten Stelle zur Schiffsmitte, bis Rumpf darüber ist
-      let tx = l.nach[0] * W, tz = l.nach[1] * Lh;
-      const covered = (x, z) => {
-        if (!U) return Math.abs(x) < W && Math.abs(z) < Lh;
-        const i = Math.floor((x - U.x0) / U.C), j = Math.floor((z - U.z0) / U.C);
-        return i >= 0 && j >= 0 && i < U.nx && j < U.nz && U.low[j * U.nx + i] < 3;
-      };
-      for (let t = 0; t < 1 && !covered(tx, tz); t += 0.05) { tx *= 0.95; tz *= 0.95; }
-      const end = new THREE.Vector3(tx, 0, tz), dir = new THREE.Vector3(end.x - a.x, 0, end.z - a.z).normalize();
-      const drop = new THREE.Vector3(a.x + dir.x * 0.6, 0, a.z + dir.z * 0.6);
-      const chord = drop.distanceTo(end), want = Math.min(e.size.z, chord * 1.15);
+      const c = Math.cos(p.th), s = Math.sin(p.th), e = d.parts.get(u.node), r = e.size.y / 2;
+      const keep = DIENST_STECKER[u.node] ?? [0, 0], ins = keep.map((k) => (k ? k * 0.4 : 0.05));
+      // Anschluss (Unterseite der Leitung, bendAlong) und hinaus zum Schiff (-z im Platz)
+      const A = new THREE.Vector3(p.ax + lx * c + lz * s, Math.max(0, h - r), p.az - lx * s + lz * c), o = new THREE.Vector3(-s, 0, -c);
+      const head = leitungAus(A, o, h, ins[0]);
+      const F = head[3];
+      // Anschluss am Rumpf. Ohne Grundriss oder flache Stelle bleibt die
+      // Leitung eingerollt: Ein Ende lose auf dem Boden unter dem Schiff
+      // war der Befund vom 22.10.2026.
+      const T = port(l.nach[0] * W, l.nach[1] * Lh) ?? port(l.nach[0] * W, l.nach[1] * Lh, DIENST_PORT[1]);
+      if (!T) { show(u, false); rolled++; continue; }
+      const toT = new THREE.Vector3(T.x - F.x, 0, T.z - F.z).normalize();
+      const tail = [new THREE.Vector3(T.x - toT.x * 0.5, 0, T.z - toT.z * 0.5), new THREE.Vector3(T.x - toT.x * 0.08, T.y * 0.2, T.z - toT.z * 0.08),
+        new THREE.Vector3(T.x, T.y * 0.6, T.z), new THREE.Vector3(T.x, T.y + ins[1], T.z)];
+      // dazwischen auf dem Boden, etwas durchhängend
+      const E = tail[0], dir = new THREE.Vector3(E.x - F.x, 0, E.z - F.z).normalize();
+      const chord = F.distanceTo(E), want = Math.min(e.size.z, chord * 1.15);
       const sag = want > chord ? Math.sqrt((3 * chord * (want - chord)) / 8) : 0, side = u.li % 2 ? 1 : -1;
-      const mid = new THREE.Vector3().lerpVectors(drop, end, 0.5).add(new THREE.Vector3(-dir.z * sag * side, 0, dir.x * sag * side));
-      const pts = [a, new THREE.Vector3(a.x + dir.x * 0.25, h * 0.35, a.z + dir.z * 0.25), drop, mid, end].map((v) => v.add(new THREE.Vector3(sx, 0, sz)));
+      const mid = new THREE.Vector3().lerpVectors(F, E, 0.5).add(new THREE.Vector3(-dir.z * sag * side, 0, dir.x * sag * side));
+      const pts = [...head, mid, ...tail].map((v) => v.add(new THREE.Vector3(sx, 0, sz)));
       for (const id of u.ids) {
-        const bent = bendAlong(id.p.geo, e.box, pts);
+        const bent = bendAlong(id.p.geo, e.box, pts, keep, 0);
         id.b.setGeometryAt(id.gid, bent.geo);
         id.b.setMatrixAt(id.iid, M.identity());
       }
@@ -6772,7 +6959,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     for (const b of d.batches.values()) { b.visible = live.has(b); b.computeBoundingBox(); b.computeBoundingSphere(); }
     const tris = [...live.values()].reduce((a, v) => a + v, 0);
     shadowSig = '';
-    console.info(`[hangar] Wartungsplatz bei ${span.toFixed(0)} m: ${placed.size} von ${WORK_DIENST.stationen.filter(fits).length} Plätzen (${report.join(', ')}), ${lines} Leitungen, ${spots} Spuren, höchstes Gerät ${d.top.toFixed(2)} m; ${live.size} von ${d.batches.size} Meshes, ${Math.round(tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
+    console.info(`[hangar] Wartungsplatz bei ${span.toFixed(0)} m: ${placed.size} von ${WORK_DIENST.stationen.filter(fits).length} Plätzen (${report.join(', ')}), ${lines} Leitungen am Rumpf angeschlossen${rolled ? ` (${rolled} eingerollt, keine flache Stelle)` : ''}, ${spots} Spuren, höchstes Gerät ${d.top.toFixed(2)} m; ${live.size} von ${d.batches.size} Meshes, ${Math.round(tris)} Dreiecke${U ? `, Grundriss ${U.nx} × ${U.nz} Zellen in ${U.ms} ms` : ', ohne Grundriss (Kasten)'}${d.missing ? `, ${d.missing} ohne Knoten` : ''}`);
   }
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
@@ -6968,8 +7155,8 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         const t8 = performance.now();
         try {
           deko = buildDeko(dekoKit.scene, dekoKit.schichten, grid, floorY, SMALL ? 'niedrig' : Q0);
-          const n = deko.uses.filter((u) => u.kind === 'glied').length;
-          console.info(`[hangar] Hallendeko: ${deko.zones} Zonen, ${n} Requisiten, ${deko.uses.length - n} Spuren, ${deko.frei} Gehwege frei, ${Math.round(deko.tris)} Dreiecke in ${deko.batches.size} Meshes, ${dekoKit.schichten ? `${dekoKit.schichten.rows} Schichtzeilen` : 'ohne Schichten'}; weggelassen ${deko.gone.length}${deko.gone.length ? ` (${deko.gone.join(', ')})` : ''}${deko.missing ? `, ${deko.missing} ohne Knoten` : ''}; ${Math.round(performance.now() - t8)} ms`);
+          const n = deko.uses.filter((u) => u.kind === 'glied').length, nl = deko.uses.filter((u) => u.kind === 'leitung').length;
+          console.info(`[hangar] Hallendeko: ${deko.zones} Zonen, ${n} Requisiten, ${nl} Leitungen, ${deko.uses.length - n - nl} Spuren, ${deko.frei} Gehwege frei, ${Math.round(deko.tris)} Dreiecke in ${deko.batches.size} Meshes, ${dekoKit.schichten ? `${dekoKit.schichten.rows} Schichtzeilen` : 'ohne Schichten'}; weggelassen ${deko.gone.length}${deko.gone.length ? ` (${deko.gone.join(', ')})` : ''}${deko.missing ? `, ${deko.missing} ohne Knoten` : ''}; ${Math.round(performance.now() - t8)} ms`);
         } catch (e) {
           console.warn('[hangar] Hallendeko nicht gebaut', e);
           deko = null;
@@ -6994,7 +7181,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
           for (const f of merged) f.flat = !!f.mesh.material.userData.workDecal;
           furniture.push(...merged);
           const st = w.stats, tri = [...merged, ...ride].reduce((sum, f) => sum + f.mesh.geometry.index.count / 3, 0);
-          console.info(`[hangar] Werkstatt: ${st.props} Requisiten, ${st.decals} Decals (${st.field} auf dem Feld) in ${merged.length + ride.length} Meshes, ${tri} Dreiecke; Anordnung ${st.source ? `aus ${st.source}` : 'eigene (keine aus dem Spiel)'}; ${st.moved} ausgewichen, ${st.rim} m Rand frei; weggelassen: ${st.inField} im Feld, ${st.blocked} verstellt, ${st.raised} nicht am Boden, ${st.overBudget} über dem Budget (${WB.props}/${WB.decals}), ${st.missing} ohne Knoten; ${grid ? `Boden ${Math.round(grid.share * 100)} % belegt (${grid.tris} Dreiecke); ` : ''}${Math.round(performance.now() - t6)} ms`);
+          console.info(`[hangar] Werkstatt: ${st.props} Requisiten, ${st.decals} Decals (${st.field} auf dem Feld) in ${merged.length + ride.length} Meshes, ${tri} Dreiecke; Anordnung ${st.source ? `aus ${st.source}` : 'eigene (keine aus dem Spiel)'}; ${st.moved} ausgewichen, ${st.rim} m Rand frei; weggelassen: ${st.inField} im Feld, ${st.blocked} verstellt, ${st.raised} nicht am Boden, ${st.loose} lose Kabelstränge, ${st.overBudget} über dem Budget (${WB.props}/${WB.decals}), ${st.missing} ohne Knoten; ${grid ? `Boden ${Math.round(grid.share * 100)} % belegt (${grid.tris} Dreiecke); ` : ''}${Math.round(performance.now() - t6)} ms`);
         } catch (e) {
           console.warn('[hangar] Werkstatt nicht aufgestellt', e);
         }
