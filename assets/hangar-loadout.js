@@ -781,7 +781,7 @@ function paintDent(cls, panel, o, now) {
   const st = pull[cls];
   const path = dents[cls];
   const t = st.bump ? now - st.bump.t0 : Infinity;
-  if (t >= DENT_MS) { st.bump = null; path.removeAttribute('d'); return false; }
+  if (t >= DENT_MS) { st.bump = null; path.removeAttribute('d'); panel.style.removeProperty('--nw'); return false; }
   const p = panel.getBoundingClientRect();
   const fw = parseFloat(getComputedStyle(root).getPropertyValue('--lo-fw')) || 4;
   const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
@@ -797,6 +797,9 @@ function paintDent(cls, panel, o, now) {
   panel.classList.add('is-snap');
   panel.style.setProperty('--nt', `${yc - h / 2 - p.top}px`);
   panel.style.setProperty('--nh', `${h}px`);
+  // Nur den Rahmenstrich ausblenden, nicht den Lichtsaum innen: sonst stuende neben der
+  // Delle ein dunkler Streifen.
+  panel.style.setProperty('--nw', `${fw}px`);
   return true;
 }
 function paintLinks(now = performance.now()) {
@@ -812,7 +815,8 @@ function paintLinks(now = performance.now()) {
     const tab = tabs[cls];
     const st = pull[cls];
     const shown = tab.classList.contains('is-on');
-    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.remove('is-on'); st.k = 0; st.v = 0; st.src = null; st.bump = null; dents[cls].removeAttribute('d'); continue; }
+    // Ohne Ziel sofort weg: ausgeblendet stuende sie kurz als Geisterrahmen ueber neuem Inhalt.
+    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.add('is-solid'); tab.classList.remove('is-on'); st.k = 0; st.v = 0; st.src = null; st.bump = null; dents[cls].removeAttribute('d'); continue; }
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
@@ -843,7 +847,8 @@ function paintLinks(now = performance.now()) {
     if (Math.abs(goal - st.k) < 0.003 && Math.abs(st.v) < 0.02) { st.k = goal; st.v = 0; } else again = true;
     const k = Math.min(1.1, st.k);
     const snap = linkSnap || st.k !== goal || (shown && goal < 1);
-    panel.classList.toggle('is-snap', !!snap);
+    // Ohne Lasche folgt die Kerbe sofort: ein Gleiten liesse sie kurz als Luecke offen.
+    panel.classList.toggle('is-snap', !!snap || k < 0.01 || !shown);
     if (k < 0.01) {
       if (shown && !calm.matches) st.bump = { t0: now, yc: st.yc };
       tab.classList.toggle('is-solid', shown);  // sofort weg, die Delle uebernimmt die Kante
@@ -852,9 +857,10 @@ function paintLinks(now = performance.now()) {
       continue;
     }
     if (st.bump) { st.bump = null; dents[cls].removeAttribute('d'); }
-    // Kommt derselbe Platz wieder herein, steht die Lasche sofort voll da: ein Einblenden
-    // liesse die schon offene Kerbe kurz als Luecke im Rahmen sehen.
-    tab.classList.toggle('is-solid', !shown && !fresh);
+    panel.style.removeProperty('--nw');
+    // Erscheint die Lasche, steht sie sofort voll da: ein Einblenden liesse die schon
+    // offene Kerbe kurz als Luecke im Rahmen sehen.
+    tab.classList.toggle('is-solid', !shown);
     // Noch nachlaufend, aber schon ganz draussen: am Listenrand als kurze Lasche weiter
     // einziehen; nie flacher als 16 px, sonst wirkt sie wie ein Strich.
     const hMin = 16 + 28 * k;
@@ -884,7 +890,10 @@ function paintLinks(now = performance.now()) {
     tab.style.setProperty('--lo-fx', `${fx}px`);
     tab.style.setProperty('--lo-rx', `${rx}px`);
     tab.style.setProperty('--lo-ry', `${ry}px`);
-    tab.style.transform = `translate(${p.left - depth - o.left}px,${top - o.top}px)`;
+    // left/top statt transform: so gleitet die Lasche im selben Takt wie die Kerbe im
+    // Panelrahmen; ein Compositor-transform eilte ihr vor, wenn das Panel neu aufbaut.
+    tab.style.left = `${p.left - depth - o.left}px`;
+    tab.style.top = `${top - o.top}px`;
     tab.style.width = `${depth - fx}px`;
     tab.style.height = `${h}px`;
     st.yc = top + h / 2;
