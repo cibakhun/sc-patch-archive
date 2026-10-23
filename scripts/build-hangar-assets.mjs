@@ -17,7 +17,7 @@
 // Usage:  node scripts/build-hangar-assets.mjs [--only <name>] [--force]
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRDracoMeshCompression, EXTTextureWebP, KHRTextureTransform } from '@gltf-transform/extensions';
-import { dedup, prune, weld, flatten, join, simplify, draco, textureCompress, transformMesh, transformPrimitive, getBounds, mergeDocuments, unpartition } from '@gltf-transform/functions';
+import { dedup, prune, weld, flatten, join, joinPrimitives, simplify, draco, textureCompress, transformMesh, transformPrimitive, getBounds, mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
@@ -1624,7 +1624,20 @@ const ZWECK_NEU = [
   [/cable_hanging/, 'durchhängendes Kabel', 'hängt zwischen Decke und Wand'],
 ];
 const NEU_KATS = new Set(['fracht', 'regal', 'crew', 'bauteile', 'maschine', 'wand', 'decke']);
-const zweckOf = (key, kat) => { const z = (NEU_KATS.has(kat) && ZWECK_NEU.find(([re]) => re.test(key))) || ZWECK.find(([re]) => re.test(key)); return z ? { zweck: z[1], nutzung: z[2] } : { zweck: null, nutzung: null }; };
+// Fahrzeugwerkstatt (.planning/notes/hangar-fahrzeuge.md), vor ZWECK_NEU geprüft
+const FZ_KATS = new Set(['fahrzeug', 'tor', 'reifen']);
+const FZ_NUTZUNG = 'steht auf seinen Rädern in der Fahrzeugwerkstatt, Front zur Halle oder zum Tor; daneben Werkzeug, Reifen und Diagnose';
+const ZWECK_FZ = [
+  [/ursa_rover/, 'Bodenfahrzeug: gepanzerter Geländewagen mit Geschützturm und Heckrampe', FZ_NUTZUNG],
+  [/cyclone/, 'Bodenfahrzeug: leichter Geländebuggy mit Ladefläche', FZ_NUTZUNG],
+  [/grin_roc/, 'Bodenfahrzeug: Bergbaufahrzeug mit Abbaulaser am Arm', FZ_NUTZUNG],
+  [/grin_ptv/, 'Bodenfahrzeug: offener Zweisitzer für kurze Wege', FZ_NUTZUNG],
+  [/garage_door/, 'geschlossenes Garagentor mit Rahmen, Zufahrt der Fahrzeugwerkstatt', 'steht mit der Rückseite an der Wand, Unterkante auf dem Boden'],
+  [/ptv_tire/, 'Ersatzreifen eines Kleinfahrzeugs', 'steht oder liegt als Ersatzteil an Wand, Regal oder Werkbank der Werkstatt'],
+  [/racetrack_tyre/, 'großer Reifen', 'steht in Gruppen an Wand und Rand oder hängt als Deko'],
+  [/landing_wheel/, 'Fahrwerksrad (Ersatzteil)', 'liegt als Ersatzteil auf Regal, Palette oder Boden'],
+];
+const zweckOf = (key, kat) => { const z = (FZ_KATS.has(kat) && ZWECK_FZ.find(([re]) => re.test(key))) || (NEU_KATS.has(kat) && ZWECK_NEU.find(([re]) => re.test(key))) || ZWECK.find(([re]) => re.test(key)); return z ? { zweck: z[1], nutzung: z[2] } : { zweck: null, nutzung: null }; };
 const kTexFile = (p) => (p && !/^\$/.test(p) ? texFile(p) : null);
 
 async function buildKatalog() {
@@ -1643,6 +1656,43 @@ async function buildKatalog() {
   const matInfo = new Map();
   // Metall = Farbe im Specular (Dielektrika liegen bei 0,02–0,06)
   const isMetal = (spec) => Math.max(...spec) > 0.2;
+  // Werkstatt (hangar-fahrzeuge.md): so wenige Materialien wie möglich. Je Stück
+  // behalten die drei Untermaterialien mit den meisten Dreiecken, die eine eigene,
+  // nicht gekachelte Farb- oder Normalenkarte tragen, ihre Karten; wer gleich aussieht
+  // (dieselben Karten, dieselbe Farbe), nimmt deren Material, die übrigen werden
+  // einfarbig (Mittelwert der Farbkarte). Glas ist ein Material, Kleinteile unter 1 %
+  // der Dreiecke nehmen das größte einfarbige, Bildschirme und Schadensnetze fallen weg.
+  const tileOf = (sub, slot) => { const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null; return !kTexFile(sub?.[slot]) && L0 ? (L0.uvTiling || 1) * (LI?.tiling || 1) : 1; };
+  const farbkarte = (sub) => { const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null; const d = (/conductor_diff/i.test(sub?.d || '') ? null : kTexFile(sub?.d)) || (LI && kTexFile(LI.d)); return d && tileOf(sub, 'd') <= 1.5 ? d : null; };
+  const normalkarte = (sub) => { const L0 = sub?.layers?.[0], LI = L0 ? layerInfo[L0.path] : null; const n = kTexFile(sub?.n) || (LI && kTexFile(LI.n)); return n && /_ddna?\.png$|_ddn\.png$/i.test(n) && tileOf(sub, 'n') <= 1.5 ? n : null; };
+  const mittel = new Map();
+  const mittelOf = async (f) => { if (!mittel.has(f)) { const ch = (await sharp(f).stats()).channels; const lin = (c) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; mittel.set(f, ch.slice(0, 3).map((c) => r3(lin(c.mean)))); } return mittel.get(f); };
+  async function werkstattPlan(q, n) {
+    const tris = new Map();
+    for (let i = 0; i < n.length; i++) { const s = q.ids?.[i] ?? i; tris.set(s, (tris.get(s) || 0) + n[i]); }
+    const total = [...tris.values()].reduce((a, b) => a + b, 0);
+    const plan = new Map(), byTris = [...tris.keys()].sort((a, b) => tris.get(b) - tris.get(a) || a - b);
+    const sub = (s) => q.subs?.[s];
+    for (const s of byTris) if (/NoDraw|DisplayScreen/i.test(sub(s)?.shader || '') || /internal|damage|_dmg|proxy/i.test(sub(s)?.name || '')) plan.set(s, { skip: true });
+    const offen = byTris.filter((s) => !plan.has(s));
+    const glas = offen.filter((s) => /glass/i.test(sub(s)?.shader || ''));
+    for (const s of glas.slice(1)) plan.set(s, { use: glas[0] });
+    // gleich aussehend: dieselben Karten und dieselbe Farbe (Palettenkanal, Tönung, Diffuse)
+    const blick = (x) => JSON.stringify([farbkarte(x), normalkarte(x), x?.layers?.[0]?.paletteTint ?? null, x?.layers?.[0]?.tint ?? null, x?.diffuse ?? null, !!x?.fremd]);
+    const behalten = [];
+    for (const s of offen.filter((x) => !glas.includes(x) && (farbkarte(sub(x)) || normalkarte(sub(x))))) {
+      const d = farbkarte(sub(s)), gleich = d ? behalten.find((b) => blick(sub(b)) === blick(sub(s))) : undefined;
+      if (gleich !== undefined) plan.set(s, { use: gleich });
+      else if (behalten.length < 3) behalten.push(s);
+      else plan.set(s, { flach: d ? await mittelOf(d) : [1, 1, 1] });
+    }
+    const einfarbig = offen.filter((s) => !glas.includes(s) && !behalten.includes(s) && plan.get(s)?.use == null);
+    for (const s of einfarbig.slice(1)) if (tris.get(s) < total * 0.01) plan.set(s, { use: einfarbig[0] });
+    return plan;
+  }
+  // wie build-hangar-dienst.mjs: undurchsichtig, ohne Leuchtkarte, Karten höchstens gekachelt
+  const gekachelt = (ti) => { const tr = ti?.getExtension('KHR_texture_transform'); return !!tr && Math.max(...tr.getScale()) > 1.5; };
+  const istFlach = (m) => m.getAlphaMode() === 'OPAQUE' && !m.getEmissiveTexture() && (!m.getBaseColorTexture() || gekachelt(m.getBaseColorTextureInfo())) && (!m.getNormalTexture() || gekachelt(m.getNormalTextureInfo()));
   // Dokument einer Datei: Materialien heißen <mtl>_<untermaterial>, gleich in allen Dateien
   const kit = (name) => {
     const doc = new Document();
@@ -1656,17 +1706,20 @@ async function buildKatalog() {
       // Grundschicht mit PaletteTint 1–3: Farbe aus der Palette der Entity (Eintrag A–C),
       // als eigenes Material „<name>_<palette>“, denn ohne Palette heißt es anders getönt gleich
       const pe = pal && [1, 2, 3].includes(Number(L0?.paletteTint)) ? pal['abc'[Number(L0.paletteTint) - 1]] : null;
-      const name = `${clean(String(mtl || 'mtl').split('/').pop())}_${clean(sub?.name || 'default')}${pe ? `_${clean(pal.name)}` : ''}`;
+      // flach (Werkstatt): ohne Karten, die Farbe trägt den Mittelwert der Farbkarte
+      const flach = sub?.flach || null;
+      const name = `${clean(String(mtl || 'mtl').split('/').pop())}_${clean(sub?.name || 'default')}${pe ? `_${clean(pal.name)}` : ''}${flach ? '_flach' : ''}`;
       if (matCache.has(name)) return matCache.get(name);
       const m = doc.createMaterial(name).setMetallicFactor(0);
       // conductor_diff: schwarze Platzhalter-Farbkarte alter Illum-Materialien für
       // Metall, die Farbe steht im Specular. Als Karte gebunden wäre alles schwarz.
       const conductor = /conductor_diff/i.test(sub?.d || '');
       const dOld = kTexFile(sub?.d) || (LI && kTexFile(LI.d));
-      const d = (conductor ? null : kTexFile(sub?.d)) || (LI && kTexFile(LI.d));
-      const n = kTexFile(sub?.n) || (LI && kTexFile(LI.n));
+      const d = flach ? null : (conductor ? null : kTexFile(sub?.d)) || (LI && kTexFile(LI.d));
+      const n = flach ? null : kTexFile(sub?.n) || (LI && kTexFile(LI.n));
       let factor = rgb(sub?.diffuse);
       if (!kTexFile(sub?.d) && L0) factor = (pe ? pe.tint : rgb(L0.tint)).map((v, i) => v * rgb(LI?.diffuse)[i]);
+      if (flach) factor = factor.map((v, i) => v * flach[i]);
       if (d) {
         const ti = m.setBaseColorTexture(tex(d)).getBaseColorTextureInfo();
         const tile = !kTexFile(sub?.d) && L0 ? (L0.uvTiling || 1) * (LI?.tiling || 1) : 1;
@@ -1693,7 +1746,7 @@ async function buildKatalog() {
       matInfo.set(name, { sub, mtl, alt, neu: { metallic: m.getMetallicFactor(), base: factor.map((v) => r3(Math.min(1, v))) }, pal: pe ? pal : null });
       if (/glass/i.test(sub?.shader || '')) m.setAlphaMode('BLEND').setBaseColorFactor([0.2, 0.22, 0.25, 0.3]).setRoughnessFactor(0.05);
       else if (/%DECAL(?![A-Z_])/.test(sub?.genMask || '') || /MeshDecal/i.test(sub?.shader || '')) m.setAlphaMode('BLEND');
-      else if (Number(sub?.alphaTest) > 0) m.setAlphaMode('MASK').setAlphaCutoff(Number(sub.alphaTest));
+      else if (Number(sub?.alphaTest) > 0 && !flach) m.setAlphaMode('MASK').setAlphaCutoff(Number(sub.alphaTest));
       if (/glow/i.test(sub?.name || '') && d) m.setEmissiveTexture(m.getBaseColorTexture()).setEmissiveFactor([1, 1, 1]);
       matCache.set(name, m);
       return m;
@@ -1703,8 +1756,14 @@ async function buildKatalog() {
       const src = await io.read(fileURLToPath(new URL(q.glb, SRC)));
       const mesh = doc.createMesh(node);
       const prims = src.getRoot().listMeshes().flatMap((me) => me.listPrimitives());
+      const plan = FZ_KATS.has(q.kat) ? await werkstattPlan(q, prims.map((p) => (p.getIndices()?.getCount() ?? 0) / 3)) : null;
       prims.forEach((sp, i) => {
-        const sub = q.subs?.[q.ids?.[i] ?? i];
+        let s = q.ids?.[i] ?? i;
+        const pl = plan?.get(s);
+        if (pl?.skip) return;
+        if (pl?.use != null) s = pl.use;
+        const fl = plan?.get(s)?.flach ?? pl?.flach;
+        const sub = fl ? { ...q.subs?.[s], flach: fl } : q.subs?.[s];
         if (/NoDraw/i.test(sub?.shader || '') || /proxy/i.test(sub?.name || '')) return;
         // Decal-Flächen ohne eigene Karte (Branding aus $TintPaletteDecal zur Laufzeit,
         // Glow-Decals ohne Bild) wären weiße Platten: weglassen
@@ -1715,9 +1774,22 @@ async function buildKatalog() {
         for (const sem of ['POSITION', 'NORMAL', 'TEXCOORD_0', 'TEXCOORD_1', 'COLOR_0']) { const a = sp.getAttribute(sem); if (a) p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(a.getArray().slice()).setBuffer(buf)); }
         const idx = sp.getIndices(); if (idx) p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx.getArray().slice()).setBuffer(buf));
         transformPrimitive(p, ROOT_ZUP);
-        mesh.addPrimitive(p.setMaterial(material(q.mtl, sub, q.palette)));
+        // Untermaterial einer anderen .mtl (Fahrzeuge, Tor) und fremde Palette (Lafette u. ä.)
+        mesh.addPrimitive(p.setMaterial(material(sub?.mtl ?? q.mtl, sub, sub?.fremd ? null : q.palette)));
       });
       if (!mesh.listPrimitives().length) { mesh.dispose(); return null; }
+      // Werkstatt: ein Primitiv je Material; fehlt einem Teil die zweite UV, nimmt es die erste
+      if (plan) {
+        const groups = new Map();
+        for (const p of mesh.listPrimitives()) { const k = `${p.getMaterial().getName()}|${p.listSemantics().filter((s) => s !== 'TEXCOORD_1').sort().join(',')}`; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(p); }
+        for (const g of groups.values()) {
+          if (g.length < 2) continue;
+          if (g.some((p) => p.getAttribute('TEXCOORD_1'))) for (const p of g) if (!p.getAttribute('TEXCOORD_1')) { const a = p.getAttribute('TEXCOORD_0'); p.setAttribute('TEXCOORD_1', doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setBuffer(buf)); }
+          const j = joinPrimitives(g);
+          for (const p of g) { mesh.removePrimitive(p); p.dispose(); }
+          mesh.addPrimitive(j);
+        }
+      }
       const n = doc.createNode(node).setMesh(mesh);
       const b = getBounds(n);
       const bc = [(b.min[0] + b.max[0]) / 2, b.min[1], (b.min[2] + b.max[2]) / 2];
@@ -1725,7 +1797,7 @@ async function buildKatalog() {
       scene.addChild(n);
       const size = [0, 1, 2].map((i) => r3(b.max[i] - b.min[i]));
       const tris = Math.round(mesh.listPrimitives().reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0));
-      return { size, tris, materials: mesh.listPrimitives().length };
+      return { size, tris, materials: mesh.listPrimitives().length, ...(plan ? { eigen: new Set(mesh.listPrimitives().map((p) => p.getMaterial()).filter((m) => !istFlach(m))).size } : {}) };
     };
     return { doc, scene, addNode };
   };
@@ -1736,9 +1808,10 @@ async function buildKatalog() {
     if (bytes > 3 * 1048576) { const d2 = await io.read(outPath); bytes = await packDoc(d2, outPath, { tex: 512, ntex: 256, q: 76, keepAttributes: true }); }
     return { bytes, v: createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8) };
   };
-  // erst die Kategorien bis v2, dann die neuen: so behalten die Karten unter
-  // schichten/ ihre Namen (gleichnamige bekommen in Bau-Reihenfolge ein „_“)
-  for (const [kat, list] of [...kats].sort(([a], [b]) => NEU_KATS.has(a) - NEU_KATS.has(b) || a.localeCompare(b))) {
+  // erst die Kategorien bis v2, dann die der Hallendeko, dann der Boden, zuletzt die der
+  // Werkstatt: so behalten die Karten unter schichten/ ihre Namen (gleichnamige bekommen
+  // in Bau-Reihenfolge ein „_“)
+  const baueKategorie = async (kat, list) => {
     const { doc, addNode } = kit(kat);
     const nodes = [];
     for (const q of list) {
@@ -1759,17 +1832,22 @@ async function buildKatalog() {
         zweck: z.zweck, nutzung: z.nutzung,
         quelle: { geometrie: q.quelle, name: name?.en ? 'spiel' : null, zweck: z.zweck ? 'abgeleitet' : null, aufstellung: e ? 'spiel' : null },
         size: made.size, footprint: [made.size[0], made.size[2]], front: '-z', tris: made.tris, lod: q.lod, materials: made.materials,
+        // Werkstatt: Materialien mit eigener Karte, Glas oder Leuchten; Dreiecke vor dem Ausdünnen, Reifen, Maßstab der Aufstellung
+        ...(made.eigen != null ? { eigeneMaterialien: made.eigen } : {}),
+        ...(q.werkstatt ? { werkstatt: Object.fromEntries(Object.entries(q.werkstatt).filter(([k]) => k !== 'tris' && k !== 'container')) } : {}),
         anschluesse: [],
         aufstellung: e?.aufstellung ?? null, nachbarn: e?.nachbarn ?? [],
         zone: e?.zone ?? null, stapel: e?.stapel ?? null, reihen: e?.reihen ?? null,
         from: e?.from ?? [], count: e?.count ?? 0, hallen: e?.hallen ?? 0, fundorte: e?.fundorte ?? {},
       });
     }
-    if (!nodes.length) continue;
+    if (!nodes.length) return;
     const { bytes, v } = await pack(doc, kat);
     out.kategorien[kat] = { file: `/hangar/props/${kat}.glb`, bytes, props: nodes, v };
     report.push([kat, nodes.length, out.props.filter((p) => p.kategorie === kat).reduce((s, p) => s + p.tris, 0), bytes]);
-  }
+  };
+  const reihe = [...kats].sort(([a], [b]) => NEU_KATS.has(a) - NEU_KATS.has(b) || a.localeCompare(b));
+  for (const [kat, list] of reihe.filter(([k]) => !FZ_KATS.has(k))) await baueKategorie(kat, list);
   // ── Boden für Zonen und Wege (hangar-deko.md D2, Punkt 4) ──
   // Knoten decal_<rolle>_<name>: projizierte Decals als Einheitsquadrat 1 × 1 m
   // (Kante im Spiel unter size), Boden-Meshes des Spiels mit Ursprung unten mittig.
@@ -1797,6 +1875,7 @@ async function buildKatalog() {
     }
     if (boden.decals.length) Object.assign(boden, { file: '/hangar/props/boden.glb', ...(await pack(doc, 'boden')) });
   }
+  for (const [kat, list] of reihe.filter(([k]) => FZ_KATS.has(k))) await baueKategorie(kat, list);
   // ── Materialien mit allen Schichten (.planning/notes/hangar-requisiten.md, R1) ──
   // Karten der Schichten und Blend-Maps je einmal als public/hangar/props/schichten/<name>.webp,
   // ≤ 256 px; bei _ddna steht die Glätte im Alpha der Normalenkarte.
@@ -1897,6 +1976,7 @@ async function buildKatalog() {
       platz: 'Platzkoordinaten (zonen[] und arbeitsplaetze[].platz): +z zeigt zur nächsten Wand (≤ 3 m von einem Mitglied), z = 0 ist die Wandfläche, x = 0 die Mitte entlang der Wand; at = [x, z, Drehung in Grad um Y], Drehung 0 = Vorderseite des Spiels (im GLB −z) zur Halle; y = Höhe über dem Boden. wand.aus = bauwand oder wandgeraet; ecke.x = Lage der Querwand. Ohne Wand: achse "feld" (+z zur Feldmitte) oder "halle" (Achsen der Halle, +z = Spiel −Y).',
       boden: 'boden.glb: projizierte Decals als Einheitsquadrat (1 × 1 m in XZ, u entlang +X, v = 0 an −Z), size = Kantenlänge im Spiel (Median); Boden-Meshes des Spiels (Gitter, Linien, Ecken, Ziffern) mit Ursprung unten mittig, size = Grundfläche. rolle: schraffur, linie, pfeil, ziffer, parkfeld, markierung, gitter, oel, reifenspur, schleifspur.',
       fundorte: 'Hangars (111 socpaks) und die Fundorte der Hallendeko samt Kind-Containern; je socpak einmal gezählt, auch wo das Spiel es mehrfach einsetzt.',
+      werkstatt: 'Kategorien fahrzeug, tor, reifen (Fahrzeugwerkstatt). fahrzeug: das ganze Fahrzeug im Stand, geschlossen, Standardlack (palette), ohne Relais, eingebaute Bauteile, Armaturen und Schadensnetze; werkstatt.roh = Dreiecke der Stufe davor, werkstatt.reifen = Reifen vor und nach dem Ausdünnen, unterkante = Abstand der Reifen zur Unterkante des Ganzen (0 = Räder am Boden), werkstatt.netzRepariert = Knoten, deren Netz der Export einem Geschwister zugeordnet hatte und die das Netz des gleichnamigen Knotens bekamen. Je Stück behalten höchstens drei Untermaterialien ihre eigene, nicht gekachelte Farb- oder Normalenkarte, die übrigen sind gekachelt oder einfarbig (Namen mit _flach, Farbe = Mittelwert der Karte), Glas ist ein Material; eigeneMaterialien = Materialien, die ein eigenes Zeichnen brauchen (Karte, Glas, Leuchten), die übrigen sind flach wie im Wartungsplatz. tor: geschlossene Ruhelage, werkstatt.massstab = Maßstab, in dem das Spiel es aufstellt. Eine Hebebühne für Fahrzeuge gibt es im Spiel nicht.',
     } };
   mkdirSync(fileURLToPath(new URL('props/', OUT)), { recursive: true });
   const jsonOut = fileURLToPath(new URL('props/katalog.json', OUT));

@@ -499,8 +499,25 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // niedrige Regal faellt weg). Angehoben: zonen 33, glieder 471, gestapelt
 // 192, spuren 202. Neu: nischen = Nischen mit Deko, inNischen = Stuecke
 // darin.
-const KLINKE_DEKO = { zonen: 33, mittel: 13, glieder: 471, gestapelt: 192, spuren: 202, arten: 170, fach: 84, geprueft: 448, hochGeprueft: 68, massstaebe: 6, gerueckt: 5, frei: 299, gehwege: 5, leitungen: 8, luftEnden: 6, nischen: 1, inNischen: 89 };
-const OBERGRENZE_DEKO = { mats: 165, tris: { mittel: 620000, hoch: 1800000 }, bytes: 13e6 };
+// Westnische am selben Tag (Betreiber: „westnische kann zu einem tor oder
+// rudchgang für bodenfahrzeuge geben, da machen wir auch eine werkstatt
+// daraus“): Fahrzeugwerkstatt mit Garagentor in der Rueckwand, Zufahrt als
+// Gehweg bis vors Feld, ROC, Cyclone und Ursa in Buchten, Ladezone mit
+// Containern und Stapler im Sueden; die Munition rueckt kompakt nach vorn
+// in die Halle, der PTV zieht dort den Torpedowagen. Fahrzeuge, Tor und
+// Reifen kommen neu in den Katalog (365 Requisiten). Stand: 36 Zonen
+// (15 ab mittel), 493 Glieder (197 gestapelt), 229 Spuren, 176 Arten,
+// 87 in Regalfaechern, 470 im Band (76 hohe darueber), 305 frei gedreht,
+// 6 Gehwege, 2 Nischen mit 134 Stuecken; 173 Materialien,
+// 627 617 / 1 889 042 Dreiecke, 13,78 MB. Angehoben: zonen 36, mittel 15,
+// glieder 493, gestapelt 197, spuren 229, arten 176, fach 87, geprueft 470,
+// hochGeprueft 76, frei 305, gehwege 6, nischen 2, inNischen 134.
+// OBERGRENZE_DEKO angehoben (165 -> 178 Materialien, 620 000 -> 630 000 /
+// 1 800 000 -> 1 900 000 Dreiecke, 13 -> 14 MB): die vier Fahrzeuge und das
+// Tor bringen eigene Materialien und dichte Netze mit, auf mittel stehen
+// Tor, ROC, Container und Torsteuerung.
+const KLINKE_DEKO = { zonen: 36, mittel: 15, glieder: 493, gestapelt: 197, spuren: 229, arten: 176, fach: 87, geprueft: 470, hochGeprueft: 76, massstaebe: 6, gerueckt: 5, frei: 305, gehwege: 6, leitungen: 8, luftEnden: 6, nischen: 2, inNischen: 134 };
+const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, bytes: 14e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
 // 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB. Mit Katalog v3
