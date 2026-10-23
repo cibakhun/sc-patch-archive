@@ -529,7 +529,19 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Regalfaechern, 470 im Band (77 hohe darueber), 305 frei gedreht,
 // 2 Nischen mit 154 Stuecken. Angehoben: gestapelt 199, fach 90,
 // hochGeprueft 77, inNischen 154.
-const KLINKE_DEKO = { zonen: 36, mittel: 15, glieder: 493, gestapelt: 199, spuren: 229, arten: 176, fach: 90, geprueft: 470, hochGeprueft: 77, massstaebe: 6, gerueckt: 5, frei: 305, gehwege: 6, fahrspuren: 4, leitungen: 8, luftEnden: 6, nischen: 2, inNischen: 154 };
+// Westnische als Werkstatt am selben Abend (Betreiber: „nur weil da paar
+// sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): drei
+// nummerierte Buchten (PTV auf der Hubbuehne, ROC, Ursa), je ein Kabel von
+// Diagnosekonsole bzw. Schweissgeraet ans Fahrzeug, Serviceinsel,
+// Reifenlager und Werkbank an der Suedwand; Cyclone, Frachtlager und
+// Frachtinsel gehen. Stand: 38 Zonen (15 ab mittel), 506 Glieder
+// (207 gestapelt), 264 Spuren, 178 Arten, 107 in Regalfaechern, 487 im
+// Band (78 hohe darueber), 312 frei gedreht, 11 Leitungen, 2 Nischen mit
+// 167 Stuecken; 173 Materialien, 624 760 / 1 891 856 Dreiecke, 13,67 MB.
+// Angehoben: zonen 38, glieder 506, gestapelt 207, spuren 264, arten 178,
+// fach 107, geprueft 487, hochGeprueft 78, frei 312, leitungen 11,
+// inNischen 167.
+const KLINKE_DEKO = { zonen: 38, mittel: 15, glieder: 506, gestapelt: 207, spuren: 264, arten: 178, fach: 107, geprueft: 487, hochGeprueft: 78, massstaebe: 6, gerueckt: 5, frei: 312, gehwege: 6, fahrspuren: 4, leitungen: 11, luftEnden: 6, nischen: 2, inNischen: 167 };
 const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, bytes: 14e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,

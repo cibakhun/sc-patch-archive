@@ -2256,9 +2256,7 @@ const LEITUNG_SCHNITT = 0.1;
 // daraus“) ist die Fahrzeugwerkstatt: Garagentor rechts in der Rückwand
 // (0,16 m davor, die Zellen bis x −14,5 gelten als Wand), Zufahrt bis vors
 // Feld als `freihalten` mit Rändern, Mittellinie und Pfeilen, daneben
-// Torsteuerung und Ladesäule. Der ROC steht mitten vor dem Logo, die
-// Cyclone nördlich daneben, der Ursa mit dem Heck an der Ladezone im Süden
-// (Container an Rück- und Südwand, Paletten, Stapler).
+// Torsteuerung und Ladesäule.
 // Vor den Fahrzeugen frei am selben Abend (Krisz mit Bild der Nische: „hier
 // stehen sachen einfach vorm auto“): Vor jedem Fahrzeug bleibt eine Spur
 // in seiner Breite 8 m frei (verify:hangar-hall [17], FAHRSPUR). Die
@@ -2268,9 +2266,19 @@ const LEITUNG_SCHNITT = 0.1;
 // Schiffen hat die Westwand keine weiteren 9 m frei (im Süden endet sie am
 // Aufzugsturm bei z −13). Die Werkzeugwand der Werkinsel hängt jetzt an
 // der Nordwand der Nische neben der Zufahrt (1,65 m bis zum Gehweg, die
-// Werkbank passt dort nicht hin). Die Werkbank der Cyclone steht zwischen
-// Cyclone und ROC, Reifen und Leiter hinter bzw. neben der Cyclone, die
-// Konsole zwischen ROC und Ursa hinter der Front.
+// Werkbank passt dort nicht hin).
+// Als Werkstatt eingerichtet am selben Abend (Krisz: „nur weil da paar
+// sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): drei
+// nummerierte Buchten mit Linien an der Rückwand, Bucht 1 der PTV auf der
+// Hubbühne (Diagnosekonsole mit Kabel an der Bühne, zwei abgenommene Räder
+// daneben, Leiter, Rollbrett, Kabeltrommel), Bucht 2 der ROC vor dem Logo
+// mit Diagnosekonsole am Kabel, Bucht 3 der Ursa mit dem Heck an der
+// Rückwand und dem Schweißgerät am Kabel. Zwischen ROC und Ursa eine
+// Serviceinsel (fahrbare Werkbank mit Werkzeug, Teilewagen mit Rädern,
+// Standleuchten), an der Südwand das Reifenlager (Regal mit Reifen und
+// Fahrwerksrädern, Reifenstapel) und die Werkbank mit Lichtbalken, Schrank
+// und Kabelanschluss. Vor dem Tor Reifenspuren und eine Ölspur. Die Cyclone
+// und das Frachtlager sind dafür gegangen.
 // Fest in der
 // Halle (fährt nicht mit dem Aufzug), in Originalgröße wie die Werkstatt:
 // Wächst die Halle mit großen Schiffen, rückt die Zone an ihren Bezugspunkt
@@ -2357,18 +2365,17 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_munition_crate_torpedo_1_07x0075x0075_a", -1, -0.75, 0], ["prop_munition_crate_torpedo_1_05x0075x0075_a", -0.4, -0.75, 358, 0.767],
       ["prop_munition_uee_lawless_prop_ammocrate_01", 3.6, -0.95, 0], ["prop_munition_rack_torpedo_1_a", 3.05, -4.05, 0],
       ["prop_munition_uee_lawless_prop_missilestack_large", -0.6, -3.9, 0],
-      ["prop_munition_uee_lawless_prop_missilestack_large", -0.6, -3.9, 1.5, 1.731], ["prop_munition_uee_lawless_prop_missilestack_medium", 1, -3.75, 0],
-      ["prop_transport_trolley_mobile_1_a", -3.15, -4.35, 0], ["prop_munition_crate_torpedo_1_03x0075x0075_a", -4.001, -3.65, 89, 0.55],
+      ["prop_munition_uee_lawless_prop_missilestack_large", -0.6, -3.9, 1.5, 1.731],
+      ["prop_munition_uee_lawless_prop_missilestack_medium", 1, -3.75, 0], ["prop_transport_trolley_mobile_1_a", -3.15, -4.35, 0],
+      ["prop_munition_crate_torpedo_1_03x0075x0075_a", -4.001, -3.65, 89, 0.55],
       ["prop_munition_crate_torpedo_1_03x0075x0075_a", -3.15, -3.65, 91.5, 0.55],
       ["prop_munition_crate_torpedo_1_03x0075x0075_a", -2.3, -3.65, 89.5, 0.55],
       ["prop_munition_ammo_box_1_ballistic_1x05x025_a", -3.65, -5.95, 6, 0.55],
       ["prop_munition_ammo_box_1_ballistic_open_1x05x025_a", -2.55, -5.85, 356, 0.55], ["prop_fahrzeug_grin_ptv", -3.15, -8.5, 0],
       ["prop_munition_ammo_box_1_pallet_250x125x025_a", -0.45, -7, 0], ["prop_munition_ammo_box_1_ballistic_1x05x025_a", -1, -6.73, 0, 0.25],
-      ["prop_munition_ammo_box_1_ballistic_1x05x025_a", 0.1, -6.73, 2, 0.25],
-      ["prop_munition_ammo_box_1_ballistic_1x05x025_a", -1, -7.27, 358, 0.25],
-      ["prop_munition_ammo_box_1_ballistic_open_1x05x025_a", -1, -7.27, 354, 0.504],
-      ["prop_munition_crate_torpedo_1_03x0075x0075_a", 2.95, -7, 0], ["prop_munition_crate_torpedo_1_03x0075x0075_a", 2.95, -7, 358.5, 0.767],
-      ["prop_munition_crate_torpedo_1_03x0075x0075_a", 2.95, -7, 0.5, 1.534],
+      ["prop_munition_ammo_box_1_ballistic_1x05x025_a", 0.1, -6.73, 2, 0.25], ["prop_munition_ammo_box_1_ballistic_1x05x025_a", -1, -7.27, 358, 0.25],
+      ["prop_munition_ammo_box_1_ballistic_open_1x05x025_a", -1, -7.27, 354, 0.504], ["prop_munition_crate_torpedo_1_03x0075x0075_a", 2.95, -7, 0],
+      ["prop_munition_crate_torpedo_1_03x0075x0075_a", 2.95, -7, 358.5, 0.767], ["prop_munition_crate_torpedo_1_03x0075x0075_a", 2.95, -7, 0.5, 1.534],
       ["prop_munition_crate_torpedo_1_03x0075x0075_open_a", 0, -10.2, 2], ["prop_sicherheit_cone_2_a", -4.85, -10.3, 20],
       ["prop_sicherheit_cone_2_a", 4.75, -10.6, 350]], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -2.5, -10.95, 3.95, 0],
@@ -2379,9 +2386,6 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", 3.8, -8.75, 6, 1], ["prop_crew_console_desk_1_chair", 2.05, -10.1, 165],
       ["prop_munition_crate_weapon_2_015x0075x0075_a", 3.7, -10.05, 2], ["prop_munition_crate_weapon_2_015x0075x0075_a", 3.7, -10.05, 359, 0.751],
       ["prop_munition_crate_weapon_4_open_015x0075x0075_a", 3.7, -10.05, 3, 1.502], ["prop_munition_ammo_box_1_closed_a", -1.15, -8.85, 88]] },
-    { "name": "frachtlager-west", "stufe": "mittel", "aus": "crew+fracht", "wand": "w", "at": [-14.6, -61], "glieder": [
-      ["prop_fracht_cargo_multipurpose_1_025x025x05_a", -1.5, -1.42, 90], ["prop_fracht_cargo_multipurpose_1_025x025x05_a", -1.5, -1.42, 91.5, 2.499],
-      ["prop_fracht_storage_container_1_025x075x025_b", 2.72, -3.9, 0]] },
     { "name": "zufahrt-west", "stufe": "mittel", "aus": "tor", "wand": "w", "at": [-14.6, -82.8], "freihalten": [[-2.8, -28.1, 2.8, -0.55]], "glieder": [
       ["prop_tor_high_tech_garage_door_s", 0, -0.19, 0], ["prop_diagnose_console_diagnostic_2_a", 3.5, -0.6, 0],
       ["prop_kabel_cable_terminal_1_floor_a", -3.6, -0.5, 0]], "spuren": [
@@ -2403,34 +2407,11 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_1m_a", 0, -24.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -26.7, 1, 270],
       ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -5.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -3.7, 1.3, 90],
       ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -13.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -11.7, 1.3, 90],
-      ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -21.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -19.7, 1.3, 90]] },
-    { "name": "fahrzeugbucht-west", "stufe": "mittel", "aus": "fahrzeug", "wand": "w", "at": [-11.9, -72], "glieder": [
-      ["prop_fahrzeug_grin_roc", 0.5, -4.7, 356], ["prop_licht_light_work_light_1_a", -2.1, -9.7, 200]], "spuren": [
-      ["decal_parkfeld_roomsm_floor_decal_06x12x0025_a", 0.75, -4.6, 9.4, 0]] },
-    { "name": "frachtinsel-west", "stufe": "hoch", "aus": "lager+transport", "wand": "w", "at": [-14.6, -61], "glieder": [
-      ["prop_transport_prop_dumper_transport_pallet_a", -2.6, -4.1, 4], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -3.222, -3.385, 4.5, 0.25],
-      ["prop_fracht_crate_metal_4_0125x0125x0125_a", -3.222, -3.385, 6.5, 1.51],
-      ["prop_lager_crate_dry_2_0125x0125x0125_a", -1.885, -3.478, 2.5, 0.25],
-      ["prop_lager_crate_metal_4_0125x0125x0125_a_yellow", -1.885, -3.478, 3.5, 1.5],
-      ["prop_fracht_crate_metal_4_0125x0125x0125_a", -3.315, -4.722, 3, 0.25],
-      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -1.978, -4.815, 5.5, 0.25],
-      ["prop_lager_crate_plastic_1_005x01x005_a", -3.222, -3.385, 13.5, 2.77], ["prop_fracht_container_dry_3_025x025x025_a", 0.05, -4.45, 0],
-      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -0.59, -3.85, 1.5, 2.514],
-      ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 0.69, -3.851, 359, 2.514], ["prop_transport_forklift_standing_1_a", -5.25, -5.4, 300],
-      ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 2.75, -9.1, 90], ["prop_fracht_crate_metal_4_0125x0125x0125_a", 2.75, -8.44, 92, 0.25],
-      ["prop_lager_crate_metal_4_0125x0125x0125_a_yellow", 2.75, -9.76, 89, 0.25], ["prop_lager_crate_plastic_1_005x01x005_a", 2.75, -8.44, 98, 1.51],
-      ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 2.75, -11.9, 92], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", 2.75, -11.9, 90.5, 0.25]] },
-    { "name": "fahrzeugwerkstatt-west", "stufe": "hoch", "aus": "fahrzeug", "wand": "w", "at": [-11.9, -72], "glieder": [
-      ["prop_fahrzeug_tmbl_cyclone", -5.3, -4, 5], ["prop_werkzeug_tool_welder_a", -2.4, -1.6, 75], ["prop_heben_ladder_step_1_a", -7.5, -1.9, 0],
-      ["prop_werkzeug_tool_drawer_1_a", 3.55, -2, 90], ["prop_werkzeug_bag_toolbox_2_a", 3.4, -3.2, 70],
-      ["prop_transport_trolley_creeper_1_a", 3.7, -5.7, 10], ["prop_crew_steat_stool_1_a", 4.4, -4.4, 30], ["prop_diagnose_console_diagnostic_1_a", 4, -7.5, 275],
-      ["prop_reifen_ptv_tire", -3.6, -0.75, 0], ["prop_reifen_ptv_tire", -3.6, -0.75, 23, 0.321], ["prop_reifen_ptv_tire", -3.6, -0.75, 46, 0.642],
-      ["prop_reifen_ptv_tire", -2.85, -0.6, 0], ["prop_fahrzeug_rsi_ursa_rover", 8.6, -8.2, 20],
-      ["prop_licht_light_portable_tripod_1_base_a", -2.4, -7.3, 90], ["prop_werkzeug_workbench_mobile_1_a", -2.4, -4.05, 0],
-      ["prop_werkzeug_tool_socket_set_closed_1_a", -2.4, -2.95, 4, 1.215], ["prop_werkzeug_tool_power_1_drill_a", -2.6, -3.75, 40, 1.215],
-      ["prop_werkzeug_tool_tester_1_b", -2.2, -4.35, 340, 1.215], ["prop_werkzeug_tool_manual_1_ratchet_a", -2.65, -4.85, 75, 1.215],
-      ["prop_werkzeug_tool_manual_1_pliers_a", -2.2, -5.25, 330, 1.215]], "spuren": [
-      ["decal_parkfeld_roomsm_floor_decal_06x12x0025_a", -5.1, -4.6, 9.4, 0]] },
+      ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -21.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -19.7, 1.3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -5.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -5.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -8.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -8.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -11.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -11.4, 3, 90],
+      ["decal_oel_oil_line_a", 0.2, -7, 3, 270]] },
     { "name": "werkstatt-west", "stufe": "mittel", "aus": "energie+werkzeug", "wand": "w", "at": [3.5, -48.25], "glieder": [
       ["prop_werkzeug_tool_drawer_1_a", -5, -0.513, 0], ["prop_werkzeug_workbench_table_1_light_a", -2.6, -0.609, 0],
       ["prop_energie_generator_mining_1_a", 3.9, -1.102, 0], ["prop_transport_prop_dumper_transport_pallet_a", -0.6, -5.6, 12],
@@ -2450,8 +2431,7 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_werkzeug_tool_tester_1_a", -1.35, -0.601, 0, 1.5], ["prop_werkzeug_bag_toolbox_1_a", -0.6, -0.601, 357, 1.5],
       ["prop_werkzeug_tool_drawer_1_a", -3, -0.513, 2], ["prop_luft_heater_freestanding_1_a", 3, -0.701, 3],
       ["prop_werkzeug_tool_socket_set_closed_1_a", -1.85, -0.601, 356, 1.5], ["prop_heben_ladder_step_1_a", -4, -0.75, 357],
-      ["prop_sicherheit_tool_fire_extinguisher_1_a", -4.7, -0.35, 0], ["prop_bauteile_powr_aegs_s02_pl02", -5.8, -0.75, 2],
-      ["prop_werkzeug_bag_toolbox_2_a", -5.75, -0.8, 335, 1.004], ["prop_werkzeug_tool_welder_a", 4.6, -1.1, 96],
+      ["prop_sicherheit_tool_fire_extinguisher_1_a", -4.7, -0.35, 0], ["prop_werkzeug_tool_welder_a", 4.6, -1.1, 96],
       ["prop_kabel_cable_terminal_1_floor_a", 5.6, -0.535, 0]], "leitungen": [
       { "name": "terminal-schweissgeraet", "node": "prop_kabel_maintenance_cable_1_a", "von": [5.6, -0.869, 0.3, 90], "nach": [4.992, -1.141, 0.3, 6] }] },
     { "name": "energie-west", "stufe": "mittel", "aus": "energie+luft+reinigung+sicherheit+treibstoff", "wand": "w", "at": [3.5, -20.5], "glieder": [
@@ -2747,7 +2727,62 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_2m_a", -6.6, -5.3, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -6.6, -6.55, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -6.6, -7.05, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 5.4, -2.3, 4, 90],
       ["decal_linie_lowtech_a_int_decal_2m_a", 5.4, -5.3, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -6.55, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -7.05, 0.5, 90]] }
+      ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -7.05, 0.5, 90]] },
+    { "name": "hebebuehne-west", "stufe": "hoch", "aus": "heben", "wand": "w", "at": [-11.9, -79.35], "glieder": [
+      ["prop_maschine_col_lift_platform_small_a", 2.05, -2.9, 0], ["prop_fahrzeug_grin_ptv", 2.05, -2.9, 0, 1.769],
+      ["prop_diagnose_console_diagnostic_1_a", 0, -0.05, 0], ["prop_heben_ladder_mobile_1_c", 4.35, -2.9, 90],
+      ["prop_kabel_cable_reel_5_a", 3.75, -0.6, 3], ["prop_werkzeug_tool_drawer_1_a", -0.05, -5.3, 352],
+      ["prop_licht_light_work_light_1_a", 0, -7.3, 215], ["prop_transport_trolley_creeper_1_a", 4.3, -5.5, 6],
+      ["prop_werkzeug_bag_toolbox_2_a", 4.15, -6.9, 20], ["prop_reifen_ptv_tire", 0.15, -3.6, 12], ["prop_reifen_ptv_tire", 0.15, -3.6, 31, 0.321]], "spuren": [
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 0.6, -2.9, 3.2, 0],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 3.5, -2.9, 3.2, 0], ["decal_ziffer_secondary_number_1", 2.05, -8.5, 0.9, 270],
+      ["decal_oel_decal_stain_surface_var_oil_a", 2.35, -3.3, 2.6, 30]], "leitungen": [
+      { "name": "konsole-hebebuehne", "node": "prop_kabel_maintenance_cable_1_a", "von": [0.3, -0.597, 0.8, 90], "nach": [0.947, -2.9, 0.5, 180] }] },
+    { "name": "fahrzeugbucht-west", "stufe": "mittel", "aus": "fahrzeug", "wand": "w", "at": [-14.6, -72], "glieder": [
+      ["prop_fahrzeug_grin_roc", 0, -3.96, 0], ["prop_diagnose_console_diagnostic_2_a", 2.95, -8.5, 95]], "spuren": [
+      ["decal_ziffer_secondary_number_2", 0, -11.2, 0.9, 270], ["decal_ziffer_secondary_number_3", 9.45, -11.2, 0.9, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", -7.9, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -7.9, -8.6, 4, 90],
+      ["decal_linie_lowtech_a_int_decal_1m_a", -7.9, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -7.9, -11.85, 0.5, 90],
+      ["decal_linie_lowtech_a_int_decal_4m_a", -2.75, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -2.75, -8.6, 4, 90],
+      ["decal_linie_lowtech_a_int_decal_1m_a", -2.75, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -2.75, -11.85, 0.5, 90],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 2.45, -5.2, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 2.45, -9.2, 4, 90],
+      ["decal_linie_lowtech_a_int_decal_05m_a", 2.45, -11.45, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 2.45, -11.95, 0.5, 90],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 6.8, -5.2, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 6.8, -9.2, 4, 90],
+      ["decal_linie_lowtech_a_int_decal_05m_a", 6.8, -11.45, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 6.8, -11.95, 0.5, 90],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 13.4, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 13.4, -8.6, 4, 90],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 13.4, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 13.4, -11.85, 0.5, 90],
+      ["decal_oel_oil_var01", 0.4, -5, 4.2, 110]], "leitungen": [
+      { "name": "konsole-roc", "node": "prop_kabel_maintenance_cable_1_a", "von": [2.977, -8.19, 0.8, 275], "nach": [1.113, -3.96, 1.3, 0] }] },
+    { "name": "ursabucht-west", "stufe": "hoch", "aus": "fahrzeug", "wand": "w", "at": [-14.6, -62.55], "glieder": [
+      ["prop_fahrzeug_rsi_ursa_rover", 0, -4.01, 0], ["prop_werkzeug_tool_welder_a", -3.65, -9, 350],
+      ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.5, -9.9, 20]], "spuren": [
+      ["decal_oel_decal_stain_surface_var_oil_b", -0.05, -9.4, 3.6, 200], ["decal_reifenspur_decal_tire_marks_straight_a", 1.25, -12.8, 3, 90]], "leitungen": [
+      { "name": "schweissgeraet-ursa", "node": "prop_kabel_maintenance_cable_1_a", "von": [-3.48, -8.97, 0.6, 350], "nach": [-2.536, -6.51, 1.3, 180] }] },
+    { "name": "reifenlager-west", "stufe": "hoch", "aus": "reifen", "wand": "s", "at": [-11.5, -57], "glieder": [
+      ["prop_regal_storage_rack_1_02x0575x03_a", 0.025, -1.1, 0], ["prop_reifen_ptv_tire", -2.5, -1.55, 0, 0.4],
+      ["prop_reifen_ptv_tire", -1.72, -1.55, 11, 0.4], ["prop_reifen_ptv_tire", -0.94, -1.55, 22, 0.4], ["prop_reifen_ptv_tire", -0.16, -1.55, 8, 0.4],
+      ["prop_reifen_ptv_tire", 0.62, -1.55, 19, 0.4], ["prop_reifen_ptv_tire", 1.4, -1.55, 5, 0.4], ["prop_reifen_ptv_tire", 2.18, -1.55, 16, 0.4],
+      ["prop_reifen_landing_wheel_1_a", -2.45, -1.1, 0, 2.25], ["prop_reifen_landing_wheel_1_a", -1.75, -1.1, 15, 2.25],
+      ["prop_reifen_landing_wheel_3_a", -1.05, -1.1, 30, 2.25], ["prop_werkzeug_bag_toolbox_2_a", -0.3, -1.1, 4, 2.25],
+      ["prop_werkzeug_storage_toolbox_a", 0.45, -1.1, 90, 2.25], ["prop_werkzeug_bag_toolbox_2_a", 1.25, -1.1, 357, 2.25],
+      ["prop_reifen_landing_wheel_1_a", 2.1, -1.1, 40, 2.25], ["prop_reifen_ptv_tire", 3.45, -0.45, 0],
+      ["prop_reifen_ptv_tire", 3.45, -0.45, 9, 0.321], ["prop_reifen_ptv_tire", 3.45, -0.45, 18, 0.642],
+      ["prop_reifen_ptv_tire", 3.45, -0.45, 27, 0.963], ["prop_reifen_ptv_tire", 3.43, -1.2, 17], ["prop_reifen_ptv_tire", 3.43, -1.2, 26, 0.321],
+      ["prop_reifen_ptv_tire", 3.43, -1.2, 5, 0.642]] },
+    { "name": "serviceinsel-west", "stufe": "hoch", "aus": "werkzeug", "wand": "w", "at": [-11.2, -67.4], "glieder": [
+      ["prop_werkzeug_workbench_mobile_1_a", -0.05, -2.6, 0], ["prop_werkzeug_tool_socket_set_closed_1_a", -0.05, -1.5, 4, 1.215],
+      ["prop_werkzeug_tool_power_1_drill_a", -0.3, -2.4, 40, 1.215], ["prop_werkzeug_tool_tester_1_b", 0.15, -3, 340, 1.215],
+      ["prop_werkzeug_tool_manual_1_ratchet_a", -0.25, -3.5, 75, 1.215], ["prop_werkzeug_tool_manual_1_pliers_a", 0.2, -4, 330, 1.215],
+      ["prop_transport_trolley_cargo_4_a", -0.15, -7.35, 92], ["prop_reifen_ptv_tire", -0.8, -7.35, 10, 0.2],
+      ["prop_reifen_ptv_tire", -0.1, -7.35, 25, 0.2], ["prop_werkzeug_bag_toolbox_2_a", 0.6, -7.35, 85, 0.2],
+      ["prop_licht_light_portable_tripod_1_base_a", -1.6, -8.9, 150], ["prop_licht_light_portable_tripod_1_base_a", 1, -9, 30],
+      ["prop_lager_drum_dry_1_a", -1.5, -0.3, 0], ["prop_reinigung_tool_mop_1_bucket_b", 1.65, -1.2, 15],
+      ["prop_sicherheit_cone_2_open_a", 1.35, -10.4, 20]], "spuren": [
+      ["decal_oel_oil_line_a", -0.2, -9.8, 2.5, 80]] },
+    { "name": "werkbank-sued-west", "stufe": "mittel", "aus": "werkzeug", "wand": "s", "at": [-4.5, -57], "glieder": [
+      ["prop_wand_cable_terminal_2_wall_a", -2.7, -0.195, 0], ["prop_werkzeug_workbench_table_1_light_a", -0.5, -0.609, 0],
+      ["prop_werkzeug_cabinet_tool_1_a", 2.1, -0.615, 180], ["prop_werkzeug_bag_toolbox_1_a", 1.95, -0.6, 2, 2.314],
+      ["prop_werkzeug_tool_drawer_1_a", 3.3, -0.415, 2]] }
   ]
 } /* /work-deko */;
 // Drehung des Platzes je Wand (Grad um y): z des Platzes zeigt zur Wand

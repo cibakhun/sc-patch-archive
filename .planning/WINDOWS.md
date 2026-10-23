@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 70
+open_count: 71
 waived_count: 1
 fixed_count: 37
-total_count: 108
-last_updated: 2026-10-23T21:50:00.000Z
+total_count: 109
+last_updated: 2026-10-23T23:18:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -123,6 +123,7 @@ last_updated: 2026-10-23T21:50:00.000Z
 | 107 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Ausrichtung nach Krisz 23.10.2026 19:54 mit Bild: „schiff steht in falscher richtung“): Seit dem 6.10. zeigte der Bug mit Absicht zur Startansicht und damit vom Hallentor (Nordtor) weg. Jetzt steht jedes Schiff mit dem Bug zum Hallentor, wie im Spiel; der Wartungsplatz dreht mit (Geräte am Bug bleiben am Bug, Kabel am Rumpf), die Crew am Bug ebenso. Die Startansicht schaut weiter vorn rechts auf den Bug, jetzt mit der Westnische und dem Südende der Halle dahinter statt dem Tor. Geprüft an Gladius, Cutlass, Constellation und C2 (Draufsicht, Blick zum Tor, Blick auf den Bug, dein Blickwinkel, Startansicht). Zu beurteilen: (1) Steht das Schiff jetzt richtig herum? (2) Passt die Startansicht auf den Bug, oder soll sie von hinten zum Tor schauen? Bilder unter hangar-ausrichtung im Projektordner. | open |  | 2026-10-23T20:35:00.000Z |  |
 | 108 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Seite ohne Fuß nach Krisz 23.10.2026 20:53 mit Bild des Seitenfußes: „mach das mal raus so dass man nicht scrollen kann auf der seite“): Der Hangar hat keinen Seitenfuß mehr und ist ab 761 px Breite genau ein Fenster hoch; die Halle nimmt, was das Dock übrig lässt, zugeklappt wie aufgeklappt (vorher bis 940 px gedeckelt). Impressum und Datenschutz stehen leise am Ende der Dockzeile (rechtlich nötig, einen Klick entfernt); der Fan-Hinweis steht im Impressum. Die Werkzeug-Hilfe (?) klappt als Tafel über der Halle auf statt das Dock zu verlängern. Erst unter 540 px Fensterhöhe scrollt die Seite wieder. Auf dem Handy (bis 760 px) steht die Werkstatt unter der Halle, dort bleibt die Seite lang; sie endet jetzt am Dock. Maschinell gemessen (Seitenhöhe = Fensterhöhe) bei 1024x640, 1280x720, 1440x900, 1920x1080, 2560x1300 und 768x1024, jeweils Dock zu und offen. Zu beurteilen: (1) Passt der Hangar auf deinem Bildschirm ohne Scrollen? (2) Sind Impressum und Datenschutz unten rechts gut so? (3) Passt die Hilfe als Tafel über der Halle? (4) Soll auch das Handy ohne Scrollen auskommen (Werkstatt dann mit eigenem Bildlauf unter der Halle)? Bilder unter hangar-ohne-footer im Projektordner. | open |  | 2026-10-23T21:40:00.000Z |  |
 | 109 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 20:45 mit Bild: „hier stehen sachen einfach vorm auto“): Vor jedem Fahrzeug bleibt jetzt eine 8 m lange Fahrspur frei, das Tor [17] prüft das (Regel FAHRSPUR). Der Munitionsblock am Nischenmund ist an die Westwand zwischen Werkstatt und Energie gewandert, kompakter (Raketen- und Torpedogestelle, Kistenstapel, Ausgabetisch, PTV). Die Werkzeuginsel vor der Nische ist jetzt eine Werkzeugwand an der Nordwand der Nische (Regale mit Werkzeug, Schubladenschrank, Leiter, Schweißgerät am Terminal). Die Werkbank der Fahrzeugwerkstatt steht zwischen Cyclone und ROC statt vor ihnen. Zu beurteilen: (1) Ist die Sicht auf die Fahrzeuge jetzt frei? (2) Passt das Munitionslager an der neuen Stelle? (3) Wirkt die Werkzeugwand in der Nische stimmig? Bilder unter hangar-deko/vorm-auto im Projektordner. | open |  | 2026-10-23T21:50:00.000Z |  |
+| 110 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 22:04 mit Bild: „nur weil da paar sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): Die Nische ist jetzt als Werkstatt eingerichtet: drei nummerierte Buchten mit Linien, Bucht 1 der PTV auf der Hubbühne (Diagnosekonsole mit Kabel, zwei abgenommene Räder daneben, Leiter, Rollbrett), Bucht 2 der ROC mit Diagnosekonsole am Kabel, Bucht 3 der Ursa mit Schweißgerät am Kabel. Dazwischen eine Serviceinsel (fahrbare Werkbank mit Werkzeug, Teilewagen, Standleuchten), an der Südwand Reifenlager (Regal mit Reifen und Fahrwerksrädern) und eine Werkbank mit Lichtbalken und Werkzeugschrank, vor dem Tor Reifen- und Ölspuren. Die Cyclone und das Frachtlager sind dafür gegangen. Auf Stufe mittel bleiben ROC, Konsole, Werkbankzeile und Tor. Zu beurteilen: (1) Liest sich die Nische aus der Halle als Werkstatt für Bodenfahrzeuge? (2) Fehlt etwas Wichtiges (z. B. mehr an den oberen Wänden)? (3) Stimmen Dichte und Ordnung? Bilder unter hangar-deko/werkstatt im Projektordner. | open |  | 2026-10-23T23:18:00.000Z |  |
 
 ````json
 [
@@ -1420,6 +1421,18 @@ last_updated: 2026-10-23T21:50:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-23T21:50:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 110,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 22:04 mit Bild: „nur weil da paar sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): Die Nische ist jetzt als Werkstatt eingerichtet: drei nummerierte Buchten mit Linien, Bucht 1 der PTV auf der Hubbühne (Diagnosekonsole mit Kabel, zwei abgenommene Räder daneben, Leiter, Rollbrett), Bucht 2 der ROC mit Diagnosekonsole am Kabel, Bucht 3 der Ursa mit Schweißgerät am Kabel. Dazwischen eine Serviceinsel (fahrbare Werkbank mit Werkzeug, Teilewagen, Standleuchten), an der Südwand Reifenlager (Regal mit Reifen und Fahrwerksrädern) und eine Werkbank mit Lichtbalken und Werkzeugschrank, vor dem Tor Reifen- und Ölspuren. Die Cyclone und das Frachtlager sind dafür gegangen. Auf Stufe mittel bleiben ROC, Konsole, Werkbankzeile und Tor. Zu beurteilen: (1) Liest sich die Nische aus der Halle als Werkstatt für Bodenfahrzeuge? (2) Fehlt etwas Wichtiges (z. B. mehr an den oberen Wänden)? (3) Stimmen Dichte und Ordnung? Bilder unter hangar-deko/werkstatt im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-23T23:18:00.000Z",
     "resolved_at": null
   }
 ]
