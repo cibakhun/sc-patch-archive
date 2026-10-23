@@ -467,7 +467,21 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // 278 -> 277, der Luefter steht jetzt gerade in der Flucht des Schlauchs
 // (274 -> 0 Grad). Angehoben: glieder 439, arten 170, geprueft 421. Neu:
 // luftEnden = Enden von Luftschlauchteilen an einer Gegenoeffnung.
-const KLINKE_DEKO = { zonen: 31, mittel: 13, glieder: 439, gestapelt: 171, spuren: 191, arten: 170, fach: 69, geprueft: 421, hochGeprueft: 68, massstaebe: 6, gerueckt: 5, frei: 277, gehwege: 5, leitungen: 8, luftEnden: 6 };
+// Werkzeugecke Ost am 23.10.2026 (Betreiber zur Ostnische: „das könnte eine
+// werkzeug ekke sein mit regalen verschiedenen tools, toolcarts undsowas“):
+// Das Teilelager wird Werkzeugecke, ab mittel Werkzeugwand (Schrank,
+// Wandregale mit Werkzeug, Rollschraenke), Bauteiltisch und Werkzeugwagen,
+// auf hoch dahinter die beiden Hochregale mit Werkzeugkoffern, ein
+// Plattformwagen beim Beladen, Leiter, Licht. Die Ladeinsel Ost geht auf
+// hoch (Budget mittel), der Fahrweg von Transport Ost ins alte Teilelager
+// faellt weg. Werkzeugschrank und Wandregale stehen jetzt mit der Front zur
+// Halle (r 180, das Modell schaut nach +z), auch am Werkplatz Ost und in der
+// Werkinsel West. Stand: 32 Zonen (13 ab mittel), 466 Glieder
+// (187 gestapelt), 201 Spuren, 171 Arten, 84 in Regalfaechern, 448 im Band,
+// 299 frei gedreht; 158 Materialien, 615 973 / 1 747 552 Dreiecke.
+// Angehoben: zonen 32, glieder 466, gestapelt 187, spuren 201, arten 171,
+// fach 84, geprueft 448, frei 299.
+const KLINKE_DEKO = { zonen: 32, mittel: 13, glieder: 466, gestapelt: 187, spuren: 201, arten: 171, fach: 84, geprueft: 448, hochGeprueft: 68, massstaebe: 6, gerueckt: 5, frei: 299, gehwege: 5, leitungen: 8, luftEnden: 6 };
 const OBERGRENZE_DEKO = { mats: 165, tris: { mittel: 620000, hoch: 1800000 }, bytes: 13e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,

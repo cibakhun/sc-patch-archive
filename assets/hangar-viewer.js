@@ -2246,9 +2246,14 @@ const LEITUNG_SCHNITT = 0.1;
 // glieder: [Knoten, x, z, Drehung, Höhe] im Platz wie beim Wartungsplatz,
 // nur zeigt z zur Wand (z = 0 ist die Wand, die Halle liegt bei z < 0) und
 // x nach rechts, mit dem Rücken zur Wand gesehen; Drehung 0 heißt
-// Vorderseite des Spiels (-z) zur Halle; Höhe: steht auf einem anderen
-// Glied (Container, Kisten auf der Palette) oder in dessen Fach (Regal-
-// boden, den [17] aus der Geometrie misst). spuren: [Knoten, x, z, Kante
+// Vorderseite des Spiels (-z) zur Halle. Ausnahmen tragen ihre nutzbare
+// Seite bei +z und stehen an der Wand mit 180: Werkzeugschrank
+// (cabinet_tool_1_a: Schubladen, Auszug) und Wandregal (shelf_wall_1_a:
+// Bretter vor den Pfosten), beides am 23.10.2026 von beiden Seiten
+// gerendert; der Rollschrank (tool_drawer_1_a) folgt der Regel. Höhe:
+// steht auf einem anderen Glied (Container, Kisten auf der Palette) oder
+// in dessen Fach (Regalboden, den [17] aus der Geometrie misst).
+// spuren: [Knoten, x, z, Kante
 // in m, Drehung]; Boden-Decals des Katalogs (props/boden.glb) in etwa ihrer
 // Größe im Spiel. stufe: mittel steht ab mittel, hoch nur auf hoch
 // (niedrig hat keine Requisiten). freihalten: [[x0, z0, x1, z1]] im Platz
@@ -2368,7 +2373,7 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_lager_drum_dry_1_a", 5.3, -3.1, 0], ["prop_werkzeug_bag_toolbox_2_a", 0.6, -9, 33]], "spuren": [
       ["decal_parkfeld_roomsm_floor_decal_06x12x0025_a", -0.4, -6, 7.6, 90]] },
     { "name": "werkinsel-west", "stufe": "hoch", "aus": "werkzeug", "wand": "w", "at": [3.5, -36.5], "glieder": [
-      ["prop_regal_shelf_wall_1_a", -3.3, -0.601, 0], ["prop_regal_shelf_wall_1_a", -1.1, -0.601, 0],
+      ["prop_regal_shelf_wall_1_a", -3.3, -0.601, 180], ["prop_regal_shelf_wall_1_a", -1.1, -0.601, 180],
       ["prop_werkzeug_bag_toolbox_1_a", -3.8, -0.601, 0, 1], ["prop_werkzeug_tool_socket_set_closed_1_a", -2.9, -0.601, 4, 1],
       ["prop_werkzeug_storage_toolbox_a", -3.1, -0.601, 90, 1.5], ["prop_werkzeug_bag_toolbox_2_a", -1.55, -0.601, 0, 1],
       ["prop_werkzeug_tool_power_1_drill_a", -0.6, -0.601, 30, 1], ["prop_werkzeug_tool_tester_1_a", -1.3, -0.601, 0, 1.5],
@@ -2413,28 +2418,50 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 4.121, -2.676, 347, 0.25],
       ["prop_lager_crate_plastic_1_005x01x005_a", 2.83, -2.95, 355, 1.51], ["prop_lager_crate_plastic_1_005x01x005_a", 3.256, -4.189, 344, 0.25],
       ["prop_sicherheit_cone_2_a", -1.4, -10, 20], ["prop_sicherheit_cone_2_a", 3.3, -9.3, 320]] },
-    { "name": "teilelager-ost", "stufe": "hoch", "aus": "fracht+regal", "wand": "o", "at": [71.5, -72.25], "glieder": [
-      ["prop_regal_storage_rack_1_02x0575x08_a", -5.2, -1.299, 0], ["prop_regal_storage_rack_1_02x0575x03_a", 0.75, -1.299, 0],
-      ["prop_bauteile_powr_aegs_s02_pl02", -7.2, -1.299, 0, 0.4], ["prop_lager_crate_plastic_1_005x01x005_a", -5.4, -1.299, 0, 0.4],
-      ["prop_lager_crate_plastic_1_005x01x005_a", -4, -1.299, 0, 0.4], ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", -2.9, -1.299, 0, 0.4],
-      ["prop_bauteile_shld_basl_s02_pl04", -7.3, -1.299, 0, 2.25], ["prop_lager_box_plastic_4_005x005x005_a", -5.8, -1.299, 0, 2.25],
-      ["prop_lager_crate_plastic_1_005x01x005_a", -4.7, -1.299, 0, 2.25], ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", -3.6, -1.299, 0, 2.25],
-      ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", -2.9, -1.299, 0, 2.25],
-      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -7.3, -1.299, 0, 3.4], ["prop_bauteile_qdrv_arcc_s01_pl02", -5.8, -1.299, 0, 3.4],
-      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -3.1, -1.299, 0, 3.4],
-      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -7.3, -1.299, 0, 5.25],
-      ["prop_lager_crate_dry_1_0125x0125x00625_a", -3.8, -1.299, 0, 5.25], ["prop_bauteile_qdrv_arcc_s02_pl04", -1.15, -1.299, 0, 0.4],
-      ["prop_lager_box_plastic_4_weapon_closed_005x010x0025_a", 1.35, -1.299, 0, 0.4],
-      ["prop_lager_box_plastic_4_005x005x005_a", 2.55, -1.299, 0, 0.4], ["prop_lager_crate_dry_1_0125x0125x00625_a", -1.35, -1.299, 0, 2.25],
-      ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", 0.15, -1.299, 0, 2.25], ["prop_lager_crate_plastic_1_005x01x005_a", 1.65, -1.299, 0, 2.25],
-      ["prop_lager_box_plastic_4_weapon_005x010x005_a", 2.85, -1.299, 0, 2.25], ["prop_transport_forklift_standing_1_a", -3.4, -3.2, 180],
-      ["prop_transport_prop_dumper_transport_pallet_a", -6.4, -6.6, 7], ["prop_bauteile_powr_aegs_s03_pl03", -6.4, -6.6, 5, 0.25],
-      ["prop_transport_prop_dumper_transport_pallet_a", -2.6, -7.6, 355], ["prop_bauteile_qdrv_arcc_s03_pl04", -2.6, -7.6, 358, 0.25],
-      ["prop_heben_ladder_mobile_1_b", -7.4, -3.6, 0], ["prop_transport_trolley_cargo_4_a", 0.2, -4, 78],
-      ["prop_lager_box_plastic_4_weapon_005x010x005_a", 0.64, -3.906, 81, 0.2], ["prop_lager_box_plastic_4_005x005x005_a", -0.338, -4.114, 76, 0.2],
-      ["prop_lager_crate_dry_2_0125x0125x0125_a", 5.6, -3.4, 354], ["prop_diagnose_computer_monitor_1_a", 5.6, -3.4, 330, 1.25],
-      ["prop_crew_steat_stool_1_a", 6.4, -4.6, 30]] },
-    { "name": "ladeinsel-ost", "stufe": "mittel", "aus": "lager+transport", "wand": "o", "at": [71.5, -72.25], "glieder": [
+    { "name": "werkzeugecke-ost", "stufe": "mittel", "aus": "werkzeug", "wand": "o", "at": [71.5, -72.25], "glieder": [
+      ["prop_werkzeug_cabinet_tool_1_a", 8.55, -0.765, 180], ["prop_regal_shelf_wall_1_a", 6.68, -0.6, 180],
+      ["prop_regal_shelf_wall_1_a", 4.5, -0.6, 180], ["prop_werkzeug_tool_drawer_1_a", 2.95, -0.563, 0],
+      ["prop_werkzeug_tool_drawer_1_a", 2.13, -0.563, 0], ["prop_werkzeug_bag_toolbox_2_a", 6.3, -0.68, 184, 1],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", 7.1, -0.68, 3, 1], ["prop_werkzeug_storage_toolbox_a", 6.2, -0.68, 90, 1.5],
+      ["prop_werkzeug_tool_power_1_drill_a", 7, -0.68, 120, 1.5], ["prop_werkzeug_storage_toolbox_a", 4.05, -0.68, 270, 1],
+      ["prop_werkzeug_bag_toolbox_1_a", 4.85, -0.68, 6, 1], ["prop_werkzeug_bag_toolbox_2_a", 4.5, -0.68, 178, 1.5],
+      ["prop_werkzeug_workbench_table_1_a", -0.9, -5, 4], ["prop_bauteile_cool_aegs_s03_pl01", -1.03, -4.991, 4, 1],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", -2.778, -4.618, 16, 0.55], ["prop_werkzeug_tool_power_1_drill_a", 0.825, -5.421, 300, 0.55],
+      ["prop_werkzeug_tool_manual_1_ratchet_a", 1.07, -4.787, 84, 0.55], ["prop_werkzeug_tool_drawer_1_a", 2.75, -4.35, 18],
+      ["prop_werkzeug_bag_toolbox_1_a", 2.75, -4.35, 43, 1.2], ["prop_werkzeug_workbench_mobile_1_a", 6.3, -5.7, 80],
+      ["prop_werkzeug_tool_manual_1_screwdriver_a", 5.816, -5.836, 105, 1], ["prop_werkzeug_tool_manual_1_pliers_a", 6.671, -5.787, 140, 1],
+      ["prop_transport_trolley_creeper_1_a", 0.9, -7.5, 72], ["prop_crew_steat_stool_1_a", -2.1, -6.75, 25]], "spuren": [
+      ["decal_linie_lowtech_a_int_decal_4m_a", -2.75, -3.35, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 1.25, -3.35, 4, 0],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 5.25, -3.35, 4, 0], ["decal_linie_lowtech_a_int_decal_1m_a", 7.75, -3.35, 1, 0],
+      ["decal_linie_lowtech_a_int_decal_05m_a", 8.5, -3.35, 0.5, 0], ["decal_linie_lowtech_a_int_decal_05m_a", 9, -3.35, 0.5, 0],
+      ["decal_linie_lowtech_a_int_decal_4m_a", -2.75, -9.3, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 1.25, -9.3, 4, 0],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 5.25, -9.3, 4, 0], ["decal_linie_lowtech_a_int_decal_1m_a", 7.75, -9.3, 1, 0],
+      ["decal_linie_lowtech_a_int_decal_05m_a", 8.5, -9.3, 0.5, 0], ["decal_linie_lowtech_a_int_decal_05m_a", 9, -9.3, 0.5, 0],
+      ["decal_linie_lowtech_a_int_decal_4m_a", -4.75, -5.35, 4, 90], ["decal_linie_lowtech_a_int_decal_1m_a", -4.75, -7.85, 1, 90],
+      ["decal_linie_lowtech_a_int_decal_05m_a", -4.75, -8.6, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -4.75, -9.1, 0.5, 90],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 9, -5.35, 4, 90], ["decal_linie_lowtech_a_int_decal_1m_a", 9, -7.85, 1, 90],
+      ["decal_linie_lowtech_a_int_decal_05m_a", 9, -8.6, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 9, -9.1, 0.5, 90]] },
+    { "name": "werkzeuglager-ost", "stufe": "hoch", "aus": "lager+werkzeug", "wand": "o", "at": [71.5, -72.25], "glieder": [
+      ["prop_regal_storage_rack_1_02x0575x03_a", -1.35, -1.299, 0], ["prop_werkzeug_tool_drawer_1_a", -3.35, -1.299, 0, 0.4],
+      ["prop_werkzeug_tool_drawer_1_a", -2.5, -1.299, 0, 0.4], ["prop_werkzeug_bag_toolbox_2_a", -1.35, -1.299, 3, 0.4],
+      ["prop_lager_box_plastic_4_005x005x005_a", -0.15, -1.299, 0, 0.4], ["prop_werkzeug_storage_toolbox_a", 0.85, -1.299, 90, 0.4],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", -3.35, -1.299, 0, 2.25], ["prop_werkzeug_storage_toolbox_a", -2.55, -1.299, 90, 2.25],
+      ["prop_werkzeug_bag_toolbox_1_a", -1.75, -1.299, 354, 2.25], ["prop_lager_box_plastic_4_weapon_closed_005x010x0025_a", -0.75, -1.299, 0, 2.25],
+      ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", 0.25, -1.299, 0, 2.25], ["prop_regal_storage_rack_1_02x0575x08_a", -7.2, -1.299, 0],
+      ["prop_lager_box_plastic_4_weapon_005x010x005_a", -9.3, -1.299, 0, 0.4], ["prop_werkzeug_tool_circularsaw_1_a", -8.1, -1.299, 8, 0.4],
+      ["prop_lager_crate_plastic_1_005x01x005_a", -6.9, -1.299, 0, 0.4], ["prop_werkzeug_bag_toolbox_2_a", -5.7, -1.299, 357, 0.4],
+      ["prop_werkzeug_bag_toolbox_1_a", -4.9, -1.299, 10, 0.4], ["prop_lager_box_plastic_4_005x005x005_a", -9.1, -1.299, 0, 2.25],
+      ["prop_bauteile_qdrv_arcc_s02_pl04", -7.8, -1.299, 0, 2.25], ["prop_werkzeug_storage_toolbox_a", -6.7, -1.299, 90, 2.25],
+      ["prop_werkzeug_tool_socket_set_closed_1_a", -5.9, -1.299, 0, 2.25], ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", -5, -1.299, 0, 2.25],
+      ["prop_bauteile_qdrv_arcc_s01_pl02", -9.3, -1.299, 0, 3.4], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -7.8, -1.299, 0, 3.4],
+      ["prop_bauteile_shld_basl_s02_pl04", -5.8, -1.299, 0, 3.4], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -9.2, -1.299, 0, 5.25],
+      ["prop_lager_crate_dry_1_0125x0125x00625_a", -5.8, -1.299, 0, 5.25], ["prop_transport_trolley_mobile_1_a", -6.9, -6.6, 96],
+      ["prop_werkzeug_tool_socket_set_1_a", -8.025, -6.783, 111, 0.55], ["prop_werkzeug_bag_toolbox_2_a", -6.759, -6.213, 86, 0.55],
+      ["prop_werkzeug_storage_toolbox_a", -5.853, -7.163, 176, 0.55], ["prop_licht_light_portable_tripod_1_base_a", 3.5, -7.6, 215],
+      ["prop_werkzeug_tool_welder_a", -3.9, -4.4, 335], ["prop_werkzeug_bag_toolbox_2_a", -3.6, -6.9, 335],
+      ["prop_heben_ladder_mobile_1_b", -9.4, -3.6, 182], ["prop_sicherheit_tool_fire_extinguisher_1_a", -10.45, -0.419, 0],
+      ["prop_transport_trolley_creeper_a", -1.6, -8.7, 196], ["prop_werkzeug_bag_toolbox_1_a", -0.4, -8.95, 20]] },
+    { "name": "ladeinsel-ost", "stufe": "hoch", "aus": "lager+transport", "wand": "o", "at": [71.5, -72.25], "glieder": [
       ["prop_transport_prop_dumper_transport_pallet_a", 11.4, -2, 2], ["prop_fracht_crate_dry_1_0125x0125x0125_a", 10.754, -1.307, 2.5, 0.25],
       ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", 10.754, -1.307, 4.5, 1.504],
       ["prop_fracht_crate_metal_4_0125x0125x0125_a", 12.093, -1.354, 0.5, 0.25],
@@ -2450,19 +2477,14 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_4m_a", 16.3, -2.3, 4, 90], ["decal_linie_lowtech_a_int_decal_2m_a", 16.3, -5.3, 2, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 16.3, -6.55, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 16.3, -7.05, 0.5, 90]] },
     { "name": "transport-ost", "stufe": "hoch", "aus": "transport", "wand": "o", "at": [71.5, -72.25], "glieder": [
-      ["prop_transport_trolley_cargo_3_b", -11.2, -6.6, 94], ["prop_bauteile_cool_aegs_s02_pl03", -10.402, -6.656, 96, 0.5],
-      ["prop_lager_crate_plastic_1_005x01x005_a", -12.098, -6.537, 91, 0.5], ["prop_transport_prop_dumper_transport_pallet_a", -14.2, -4.4, 4],
-      ["prop_bauteile_cool_aegs_s03_pl01", -14.2, -4.4, 1, 0.25], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", -11.2, -3, 357],
-      ["prop_bauteile_shld_basl_s03_pl02", -11.2, -3, 359, 0.25], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -14.6, -1, 2],
+      ["prop_transport_trolley_cargo_3_b", -12.7, -7.6, 94], ["prop_bauteile_cool_aegs_s02_pl03", -11.902, -7.656, 96, 0.5],
+      ["prop_lager_crate_plastic_1_005x01x005_a", -13.598, -7.537, 91, 0.5], ["prop_transport_prop_dumper_transport_pallet_a", -14.4, -5.1, 4],
+      ["prop_bauteile_qdrv_arcc_s03_pl04", -14.4, -5.1, 1, 0.25], ["prop_fracht_pallet_shipping_1_025x0125x0025_a", -11.75, -3.35, 357],
+      ["prop_bauteile_shld_basl_s03_pl02", -11.75, -3.35, 359, 0.25], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -14.6, -1, 2],
       ["prop_fracht_crate_metal_4_0125x0125x0125_a", -14.6, -1, 359, 1.26], ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -14.6, -1, 3, 2.52],
-      ["prop_transport_machine_forklift_1_b", -6.8, -10.9, 35]], "spuren": [
-      ["decal_linie_lowtech_a_int_decal_1m_a", -1, -5.9, 1, 90], ["decal_linie_lowtech_a_int_decal_1m_a", -1, -7.9, 1, 90],
-      ["decal_linie_lowtech_a_int_decal_1m_a", -1, -9.9, 1, 90], ["decal_linie_lowtech_a_int_decal_1m_a", -1, -11.9, 1, 90],
-      ["decal_linie_lowtech_a_int_decal_1m_a", -4.6, -5.9, 1, 90], ["decal_linie_lowtech_a_int_decal_1m_a", -4.6, -7.9, 1, 90],
-      ["decal_linie_lowtech_a_int_decal_1m_a", -4.6, -9.9, 1, 90], ["decal_linie_lowtech_a_int_decal_1m_a", -4.6, -11.9, 1, 90],
-      ["decal_pfeil_decal_arrow_025x015x001_a", -2.8, -11.6, 2.6, 0], ["decal_pfeil_decal_arrow_025x015x001_a", -2.8, -8.2, 2.6, 0]] },
+      ["prop_transport_machine_forklift_1_b", -6.8, -10.9, 35]] },
     { "name": "werkplatz-ost", "stufe": "mittel", "aus": "energie+werkzeug", "wand": "o", "at": [68.5, -48.25], "glieder": [
-      ["prop_werkzeug_cabinet_tool_1_a", -4.9, -0.715, 0], ["prop_werkzeug_tool_drawer_1_a", -3.7, -0.513, 0],
+      ["prop_werkzeug_cabinet_tool_1_a", -4.9, -0.715, 180], ["prop_werkzeug_tool_drawer_1_a", -3.7, -0.513, 0],
       ["prop_werkzeug_workbench_table_1_light_a", -1.4, -0.609, 0], ["prop_energie_generator_mobile_1_d", 3.6, -0.937, 0],
       ["prop_maschine_col_lift_platform_small_a", 0.8, -5.4, 350], ["prop_bauteile_cool_aegs_s02_pl03", 0.8, -5.4, 354, 1.769],
       ["prop_heben_ladder_step_1_a", -1.3, -6, 60], ["prop_werkzeug_bag_toolbox_2_a", -0.3, -7.5, 345],
