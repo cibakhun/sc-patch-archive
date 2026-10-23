@@ -2548,7 +2548,7 @@ if (DK && dekoBlock) {
             const q0 = [at(I ? I[t] : t), at(I ? I[t + 1] : t + 1), at(I ? I[t + 2] : t + 2)];
             for (const q of shifts ? pieces(q0) : [q0]) {
               const lo = Math.min(q[0][1], q[1][1], q[2][1]), hi = Math.max(q[0][1], q[1][1], q[2][1]);
-              const inBand = hi >= y0 && lo <= y1, inAbove = hi > y1 && lo < yTop, amBoden = NISCHEN.length && lo >= hall.floor - 0.05 && hi <= hall.floor + 0.05;
+              const inBand = hi >= y0 && lo <= y1, inAbove = hi > y1 && lo < yTop, amBoden = NISCHEN.length && doc === stageDoc && lo >= hall.floor - 0.05 && hi <= hall.floor + 0.05;
               if (!inBand && !inAbove && !amBoden) continue;
               if (inBand) dekoRun.band++;
               if (inAbove) dekoRun.darueber++;
@@ -2578,7 +2578,8 @@ if (DK && dekoBlock) {
       dekoRun.belegt -= aussen;
       // Boden der Nischen: Hallenflaeche auf Bodenhoehe (5 cm) unter fast
       // jeder Zellmitte, sonst stuende die Deko ueber einem Loch oder in
-      // einer Wand, die das Band nicht trifft
+      // einer Wand, die das Band nicht trifft; nur die Hallenstufe zaehlt,
+      // flache Moebel auf Bodenhoehe sind kein Boden
       for (const n of NISCHEN) {
         let alle = 0, da = 0;
         for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++) {
