@@ -2246,9 +2246,14 @@ const LEITUNG_SCHNITT = 0.1;
 // glieder: [Knoten, x, z, Drehung, Höhe] im Platz wie beim Wartungsplatz,
 // nur zeigt z zur Wand (z = 0 ist die Wand, die Halle liegt bei z < 0) und
 // x nach rechts, mit dem Rücken zur Wand gesehen; Drehung 0 heißt
-// Vorderseite des Spiels (-z) zur Halle; Höhe: steht auf einem anderen
-// Glied (Container, Kisten auf der Palette) oder in dessen Fach (Regal-
-// boden, den [17] aus der Geometrie misst). spuren: [Knoten, x, z, Kante
+// Vorderseite des Spiels (-z) zur Halle. Ausnahmen tragen ihre nutzbare
+// Seite bei +z und stehen an der Wand mit 180: Werkzeugschrank
+// (cabinet_tool_1_a: Schubladen, Auszug) und Wandregal (shelf_wall_1_a:
+// Bretter vor den Pfosten), beides am 23.10.2026 von beiden Seiten
+// gerendert; der Rollschrank (tool_drawer_1_a) folgt der Regel. Höhe:
+// steht auf einem anderen Glied (Container, Kisten auf der Palette) oder
+// in dessen Fach (Regalboden, den [17] aus der Geometrie misst).
+// spuren: [Knoten, x, z, Kante
 // in m, Drehung]; Boden-Decals des Katalogs (props/boden.glb) in etwa ihrer
 // Größe im Spiel. stufe: mittel steht ab mittel, hoch nur auf hoch
 // (niedrig hat keine Requisiten). freihalten: [[x0, z0, x1, z1]] im Platz
