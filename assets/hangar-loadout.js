@@ -757,6 +757,7 @@ root.append(linkLayer);
 const wide = matchMedia('(min-width:1100px) and (min-height:600px)');
 let linkQueued = false;
 let linkSnap = false;  // Scrollen/Groesse: Lasche folgt sofort, ohne Gleiten
+const STUB = 22;  // Mindesthoehe der Lasche, auch wenn der Platz rausgescrollt ist
 function paintLinks() {
   linkQueued = false;
   const snap = linkSnap;
@@ -773,19 +774,32 @@ function paintLinks() {
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
-    // Angeheftete Kategorie-Baender verdecken den oberen Rand der Liste.
-    const pinned = Math.max(b.top, ...[...box.querySelectorAll('.lo-big__h')].map((h) => h.getBoundingClientRect()).filter((h) => h.top <= b.top + 1).map((h) => h.bottom));
-    const top = Math.max(r.top, pinned, p.top);
-    const bot = Math.min(r.bottom, b.bottom, p.bottom);
+    // Angeheftete Kategorie-Baender und Tabellenkoepfe verdecken den oberen Rand der Liste: jedes Band,
+    // das oben klebt, verdeckt bis zu seiner Unterkante (Spielraum fuer Zoom-Rundung).
+    const pinned = Math.max(b.top, ...[...box.querySelectorAll('.lo-big__h, thead th')].map((h) => h.getBoundingClientRect()).filter((h) => h.top <= b.top + 4).map((h) => h.bottom));
+    const visT = Math.max(pinned, p.top);
+    const visB = Math.min(b.bottom, p.bottom);
+    let top = Math.max(r.top, visT);
+    let bot = Math.min(r.bottom, visB);
+    let cutT = r.top < top - 1;
+    let cutB = r.bottom > bot + 1;
     panel.classList.add('is-linked');
     panel.classList.toggle('is-snap', snap);
-    if (bot - top < 6) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
+    if (visB - visT < STUB) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
+    // Rausgescrollt: die Lasche bleibt als Stummel am Listenrand haengen, offen zur
+    // Seite, auf der der Platz liegt - der Rahmen bricht nie ab.
+    if (bot - top < STUB) {
+      if (r.top < visT) { top = visT; bot = visT + STUB; cutT = true; cutB = false; }
+      else {
+        // Unten nicht ueber ein Kategorie-Band legen, sondern davor andocken.
+        const band = [...box.querySelectorAll('.lo-big__h')].map((h) => h.getBoundingClientRect()).find((h) => h.top < visB && h.bottom > visB - STUB && h.top >= visT + STUB);
+        bot = band ? band.top - 2 : visB; top = bot - STUB; cutB = true; cutT = false;
+      }
+    }
     // Viertelboegen oben/unten: nur wenn Platz bis zur Panelecke ist, sonst gerade hinein.
     const cs = getComputedStyle(root);
     const fr = parseFloat(cs.getPropertyValue('--lo-fr')) || 14;
     const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
-    const cutT = r.top < top - 1;
-    const cutB = r.bottom > bot + 1;
     const filT = !cutT && top - fr >= p.top + corner;
     const filB = !cutB && bot + fr <= p.bottom - corner;
     const nt = top - p.top - (filT ? fr : 0);
