@@ -23,7 +23,8 @@
 // Welche Requisiten exportiert werden, steht im Katalog im Repo
 // (public/hangar/props/katalog.json): Was dort steht, bleibt mit Knoten und
 // Kategorie, wie es ist; neu ausgewählt werden nur die Kategorien der
-// Hallendeko (NEU_KATEGORIEN).
+// Hallendeko (NEU_KATEGORIEN). Fest dazu kommt die Fahrzeugwerkstatt
+// (.planning/notes/hangar-fahrzeuge.md): Bodenfahrzeuge, ein Garagentor, Reifen.
 // Ausgabe (gitignored): .cache/hangar-src/katalog/
 //
 // Usage: node scripts/extract-hangar-katalog.mjs [--force]
@@ -102,6 +103,16 @@ export const NEU_KATEGORIEN = [
 ];
 const HARD_SKIP = /_lod\d|_proxy|_col$|_damaged|decal|anim$|_physicsgrid/;
 const NEU_SET = new Set(NEU_KATEGORIEN.map(([k]) => k));
+// Fahrzeugwerkstatt (.planning/notes/hangar-fahrzeuge.md): feste Auswahl, nicht aus dem
+// Inventar. Fahrzeuge über ihre Entity (entity export), das Tor über einen Container,
+// in dem das Spiel es aufstellt (die .cga gibt es nur als Entity mit Animation), Reifen
+// und Räder als Lagerteile aus dem Archiv. Eine Hebebühne für Fahrzeuge hat das Spiel nicht.
+const FAHRZEUGE = ['RSI_Ursa_Rover', 'TMBL_Cyclone', 'GRIN_ROC', 'GRIN_PTV'];
+const TORE = [{ key: 'high_tech_garage_door_s', p4k: 'Objects/buildingsets/human/hightech/delta/int/garage/high_tech_garage_door_s.cga', socpak: 'shippart\\cousincrows\\cousincrows_orison.socpak' }];
+// Nicht darunter, nach Sichtprüfung: racetrack_tyre_seat_a (der Reifenstapel als Sitz
+// kommt als einzelner stehender Reifen heraus)
+const REIFEN = ['ptv_tire', 'racetrack_tyre_1_a', 'landing_wheel_1_a', 'landing_wheel_2_a', 'landing_wheel_3_a'];
+const FZ_SET = new Set(['fahrzeug', 'tor', 'reifen']);
 // Bestand: was der Katalog im Repo führt, behält Kategorie und Knoten; seine
 // Arbeitsplätze und Leitungen (K3) bleiben wörtlich, neu ist nur der Platz
 const KAT0 = existsSync(KATALOG) ? JSON.parse(readFileSync(KATALOG, 'utf8')) : null;
@@ -111,9 +122,11 @@ const BESTAND = new Map(bestand.map((p) => [base(p.path), p]));
 const keyOfNode = new Map(bestand.map((p) => [p.node, base(p.path)]));
 // Einteilung bis v2 für die Arbeitsplätze von K3: Bestand der alten Kategorien, sonst
 // die alten Regeln, auch für Stücke, die inzwischen in einer neuen Kategorie stehen
-const katAltOf = (key, ...paths) => { const b = BESTAND.get(key)?.kategorie; return b && !NEU_SET.has(b) ? b : paths.map((p) => kategorie(key, p)).find(Boolean) ?? null; };
+const katAltOf = (key, ...paths) => { const b = BESTAND.get(key)?.kategorie; return b && !NEU_SET.has(b) && !FZ_SET.has(b) ? b : paths.map((p) => kategorie(key, p)).find(Boolean) ?? null; };
+// Die Werkstatt-Stücke zählen im Inventar wie vor ihrer Aufnahme (sonst änderten sich
+// Nachbarn und Zonen der übrigen Requisiten)
 function katOf(key, path = '') {
-  if (BESTAND.has(key)) return BESTAND.get(key).kategorie;
+  if (BESTAND.has(key) && !FZ_SET.has(BESTAND.get(key).kategorie)) return BESTAND.get(key).kategorie;
   const n = key.toLowerCase();
   if (HARD_SKIP.test(n)) return null;
   if (path && !PROPDIR.test(String(path).replace(/\\/g, '/'))) return null;
@@ -859,7 +872,7 @@ const add = (key, kat, p4k, quelle, klasse = null, ersatz = null) => { if (!want
 for (const p of bestand) add(base(p.path), p.kategorie, `Data/${p.path}`, p.quelle?.geometrie ?? 'hangar', p.quelle?.geometrie === 'item' ? p.klasse : null, byGeo.get(base(p.path))?.[0]);
 const nBestand = want.size;
 // Kategorien der Hallendeko (NEU_SET): Palette und Material-Ersatz gelten für sie, gleich ob neu oder schon im Bestand
-for (const w of want.values()) if (NEU_SET.has(w.kat)) { const e = entries.find((x) => x.key === w.key); if (e?.material) w.material = e.material; }
+for (const w of want.values()) if (NEU_SET.has(w.kat) || FZ_SET.has(w.kat)) { const e = entries.find((x) => x.key === w.key); if (e?.material) w.material = e.material; }
 const KAPPE = { fracht: 18, regal: 14, crew: 18, wand: 16, decke: 12, maschine: 10, bauteile: 16 };
 // nicht in eine Halle: Ladeneinrichtung, Kleidung, Essen, Kunst der Lobbys
 const NICHT_HALLE = /casaba|kiosk|shoe|expo_hall|medical|hosp|clothing|(^|_)hat_|helmet|food|(^|_)bar_(?!table)|planter|flower|hangingframes|showroom|dumpersdepot_screen|_glass|template_/;
@@ -912,6 +925,13 @@ for (const typ of Object.keys(BAUART)) {
     if (x) take('bauteile', base(dGeo.get(x.c)), `Data/${dGeo.get(x.c)}`, 'item', x.c);
   }
 }
+// Fahrzeugwerkstatt: Entity bzw. Container gelten auch für den Bestand (zweiter Lauf),
+// der Katalog nennt nur die Geometrie
+for (const c of FAHRZEUGE) { const g = dGeo.get(c); if (g) take('fahrzeug', base(g), `Data/${g}`, 'fahrzeug', c); }
+for (const t of TORE) take('tor', t.key, `Data/${t.p4k}`, 'fundort');
+for (const k of REIFEN) { const f = archivOf.get(k); if (f) take('reifen', k, f, entries.some((e) => e.key === k) ? 'fundort' : 'archiv'); }
+for (const c of FAHRZEUGE) { const w = dGeo.get(c) && want.get(base(dGeo.get(c))); if (w) { w.klasse = c; delete w.ersatz; } }
+for (const t of TORE) if (want.has(t.key)) Object.assign(want.get(t.key), { socpak: t.socpak });
 // Der ATLS fehlt mit Absicht: Er lässt sich nur als Figur mit Skelett exportieren
 // (ARGO_ATLS, .cdf); unter 20 000 Dreiecken bleibt nur LOD 3 (15 839), und dort
 // zerfällt das Netz und die Schichten bleiben weiß. LOD 2 hat 41 548.
@@ -922,7 +942,9 @@ if (process.argv.includes('--inventar')) { writeFileSync(`${OUT}want.json`, JSON
 const GEO = `${OUT}geo/`; mkdirSync(GEO, { recursive: true });
 const MRAW = `${RAW}mesh/`; mkdirSync(MRAW, { recursive: true });
 const { NodeIO, Document } = await import('@gltf-transform/core');
-const { transformPrimitive } = await import('@gltf-transform/functions');
+const { transformPrimitive, weldPrimitive, simplifyPrimitive } = await import('@gltf-transform/functions');
+const { MeshoptSimplifier } = await import('meshoptimizer');
+await MeshoptSimplifier.ready;
 const io = new NodeIO();
 const trisOf = async (f) => { const d = await io.read(f); let t = 0; for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) t += (p.getIndices()?.getCount() ?? 0) / 3; return Math.round(t); };
 function readSubsets(buf) {
@@ -983,7 +1005,7 @@ const mtlByName = (file) => {
   return hit ? hit.replace(/\\/g, '/').replace(/^Data\//i, '').replace(/\.mtl$/i, '') : null;
 };
 const BIG = /generator|forklift|trolley_cargo|crane|ladder|workbench|heater_large|shelf|server_rack|container_|cargo_container|shipping_container|missile_frame|torpedo|missilestack|pallet|component_display/;
-const limitOf = (w) => (BIG.test(w.key) || ['maschine', 'regal', 'bauteile'].includes(w.kat) || /025x025x(025|05|075|1)_|_025x05x025|_025x075x025/.test(w.key) ? 20000 : 8000);
+const limitOf = (w) => (w.kat === 'fahrzeug' ? 25000 : w.kat === 'tor' ? 6000 : BIG.test(w.key) || ['maschine', 'regal', 'bauteile'].includes(w.kat) || /025x025x(025|05|075|1)_|_025x05x025|_025x075x025/.test(w.key) ? 20000 : 8000);
 
 // entity export: Knoten in den Raum der Wurzel (Z oben) backen, ein Mesh wie beim skin export
 async function entityGlb(cls, lod, out) {
@@ -1029,9 +1051,143 @@ function invertAffine(m) {
 }
 const mulMat = (a, b) => { const m = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) m[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return m; };
 
+// ─── Fahrzeugwerkstatt: Fahrzeuge (entity export) und Tor (socpak-Export) ───
+// Ein Fahrzeug zeigt im Stand weder Relais noch eingebaute Bauteile (Kühler,
+// Kraftwerk, Lebenserhaltung …), Schadensnetze oder Armaturen.
+const FZ_DROP = /^RELAY_|damage|_dmg|dashboard|hardpoint_(cooler|powerplant|shield|quantum|life|fuel|radar|computer)|^(COOL|POWR|SHLD|LFSP|QDRV|RADR|FUEL)_|internal|placeholder|^\$/i;
+const FZ_TIRE = /tire|tyre/i;
+const trisIn = (prims) => Math.round(prims.reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0));
+// Teil eines Primitivs: .mtl (ohne Data/ und Endung), Untermaterial, Lack der eigenen Palette
+// (semantic.palette.source_name = die Entity selbst oder fehlt; fremd: Waffenlafette u. ä.)
+function partOf(mat, owner) {
+  const s = mat?.getExtras()?.semantic || {};
+  const id = s.material_set_identity || {};
+  const mtl = String(id.source_path || '').replace(/\\/g, '/').replace(/^Data\//i, '').replace(/\.mtl$/i, '') || null;
+  const sub = id.submaterial_name ?? (s.authored_attributes || []).find((a) => a.name === 'Name')?.value ?? mat?.getName() ?? 'default';
+  const src = s.palette?.source_name;
+  return { mtl, sub, eigen: !src || src === owner };
+}
+// Netz-Knoten in ein Mesh im Raum der Wurzel (Z oben); je Primitiv sein Teil
+function bakeParts(src, pick, owner) {
+  const root = src.getRoot();
+  const zup = root.listNodes().find((n) => /CryEngine_Z_up/i.test(n.getName()));
+  const inv = zup ? invertAffine(zup.getWorldMatrix()) : null;
+  const doc = new Document(); const buf = doc.createBuffer(); const mesh = doc.createMesh('mesh');
+  const teile = [], keyOf = new Map(), mats = new Map(), prims = [], tires = [];
+  for (const { node, matrix, mesh: m = node.getMesh() } of pick(root, inv)) {
+    for (const sp of m.listPrimitives()) {
+      // Die Primitive eines Exports teilen sich oft einen Vertex-Puffer: nur die benutzten Vertices
+      const ix = sp.getIndices()?.getArray() ?? Uint32Array.from({ length: sp.getAttribute('POSITION').getCount() }, (_, i) => i);
+      const neu = new Map(), alt = [];
+      const idx = new Uint32Array(ix.length);
+      for (let i = 0; i < ix.length; i++) { let v = neu.get(ix[i]); if (v === undefined) { v = alt.length; neu.set(ix[i], v); alt.push(ix[i]); } idx[i] = v; }
+      const p = doc.createPrimitive();
+      for (const sem of sp.listSemantics()) {
+        if (/^(JOINTS|WEIGHTS)_/.test(sem)) continue;
+        const a = sp.getAttribute(sem), e = a.getElementSize(), arr = a.getArray(), out = new arr.constructor(alt.length * e);
+        for (let i = 0; i < alt.length; i++) for (let k = 0; k < e; k++) out[i * e + k] = arr[alt[i] * e + k];
+        p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(out).setBuffer(buf));
+      }
+      p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
+      transformPrimitive(p, matrix);
+      const t = partOf(sp.getMaterial(), owner), k = `${t.mtl}|${t.sub}|${t.eigen}`;
+      if (!keyOf.has(k)) { keyOf.set(k, teile.length); teile.push(t); mats.set(k, doc.createMaterial(k)); }
+      mesh.addPrimitive(p.setMaterial(mats.get(k)));
+      prims.push(keyOf.get(k));
+      if (FZ_TIRE.test(node.getName()) || FZ_TIRE.test(t.sub)) tires.push(p);
+    }
+  }
+  doc.createScene().addChild(doc.createNode('mesh').setMesh(mesh));
+  return { doc, mesh, teile, prims, tires };
+}
+const zMin = (prims) => { let m = Infinity; for (const p of prims) { const a = p.getAttribute('POSITION').getArray(); for (let i = 2; i < a.length; i += 3) m = Math.min(m, a[i]); } return m; };
+async function fahrzeugGlb(cls, lod, out, limit) {
+  const raw = `${out}.raw.glb`;
+  if (FORCE || !existsSync(raw) || !existsSync(`${raw}.log`)) {
+    const r = spawnSync(STARBREAKER, ['entity', 'export', cls, raw, '--lod', String(lod), '--materials', 'colors', '--no-lights', '--no-interior', '--p4k', P4K], { encoding: 'utf8', maxBuffer: 1 << 30 });
+    const l = `${r.stdout || ''}\n${r.stderr || ''}`;
+    if (r.status !== 0) throw new Error(l.trim().split('\n').slice(-3).join(' | '));
+    writeFileSync(`${raw}.log`, l);
+  }
+  const log = readFileSync(`${raw}.log`, 'utf8');
+  if (!new RegExp(`EntityClassDefinition\\.${esc(cls)}\\b`).test(log)) throw new Error(`entity export ${cls}: anderer Datensatz (${log.split('\n')[0]})`);
+  const dropped = (n) => { for (let x = n; x; x = x.getParentNode?.()) if (FZ_DROP.test(x.getName())) return true; return false; };
+  // Steckt ein Item zweimal im Fahrzeug, trägt beim zweiten Einbau mancher Knoten das Netz
+  // eines Geschwisters (PTV-Rad: Knoten wheel mit dem Netz damper). Dann nimmt er das Netz
+  // des gleichnamigen Knotens im gleichen Item, dessen Netz so heißt wie er.
+  let repariert = 0;
+  const { doc, mesh, teile, prims, tires } = bakeParts(await io.read(raw), (root, inv) => {
+    const all = root.listNodes().filter((n) => n.getMesh());
+    return all.filter((n) => !dropped(n)).map((n) => {
+      const p = n.getParentNode()?.getName();
+      const spender = n.getMesh().getName() !== n.getName() && all.find((x) => x !== n && x.getName() === n.getName() && x.getParentNode()?.getName() === p && x.getMesh().getName() === n.getName());
+      if (spender) repariert++;
+      return { node: n, mesh: spender ? spender.getMesh() : n.getMesh(), matrix: inv ? mulMat(inv, n.getWorldMatrix()) : n.getWorldMatrix() };
+    });
+  }, cls.toLowerCase());
+  const all = mesh.listPrimitives(), roh = trisIn(all), reifenRoh = trisIn(tires);
+  // Reifen sind das dichteste Netz (Profil): reicht es, sie um höchstens 70 % zu
+  // vereinfachen, bleibt die Stufe; sonst die nächste
+  let reifen = reifenRoh;
+  if (roh > limit && reifenRoh && roh - 0.7 * reifenRoh <= limit) {
+    const ratio = (reifenRoh - (roh - limit * 0.98)) / reifenRoh;
+    for (const error of [0.01, 0.03, 0.1]) {
+      for (const p of tires) { weldPrimitive(p); simplifyPrimitive(p, { simplifier: MeshoptSimplifier, ratio, error }); }
+      reifen = trisIn(tires);
+      if (roh - reifenRoh + reifen <= limit) break;
+    }
+  }
+  await io.write(out, doc);
+  const mtl = (log.match(/^Material:[ \t]*(\S.*)$/m) || [])[1]?.trim().replace(/\\/g, '/').replace(/^Data\//i, '').replace(/\.mtl$/i, '') || null;
+  // Räder am Boden: Unterkante der Reifen gegen die des ganzen Fahrzeugs (Z oben)
+  return { mtl, teile, prims, tris: trisIn(all), roh, reifen: tires.length ? { vorher: reifenRoh, nachher: reifen, unterkante: r3(zMin(tires) - zMin(all)) } : null, netzRepariert: repariert };
+}
+// Tor: die Platzierung der .cga im Container (geschlossen = Ruhelage), im Maßstab,
+// in dem das Spiel sie dort aufstellt
+async function torGlb(w, lod, out) {
+  const raw = `${RAW}socpak/${w.key}-lod${lod}.glb`;
+  mkdirSync(`${RAW}socpak/`, { recursive: true });
+  if (FORCE || !existsSync(raw)) sb(['socpak', 'export', w.socpak, raw, '--materials', 'colors', '--lod', String(lod), '--no-lights']);
+  const re = new RegExp(`[\\\\/]${esc(base(w.p4k))}\\.cga$`, 'i');
+  let scale = null;
+  const { doc, mesh, teile, prims } = bakeParts(await io.read(raw), (root, inv) => {
+    const n = root.listNodes().find((x) => x.getMesh() && re.test(x.getMesh().getName()));
+    if (!n) throw new Error(`${base(w.p4k)}.cga steht nicht in ${w.socpak}`);
+    const m = inv ? mulMat(inv, n.getWorldMatrix()) : n.getWorldMatrix();
+    scale = r3(Math.hypot(m[0], m[1], m[2]));
+    return [{ node: n, matrix: [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1] }];
+  }, null);
+  await io.write(out, doc);
+  return { mtl: teile[0]?.mtl ?? null, teile, prims, tris: trisIn(mesh.listPrimitives()), massstab: scale, container: w.socpak };
+}
+// Spieldaten einer Entity (Items, Fahrzeuge: sie stehen in keiner Halle)
+const spielOf = (c) => ({ klasse: c, name: { en: loc(dName.get(c), EN), de: loc(dName.get(c), DE) }, beschreibung: { en: loc(dDesc.get(c), EN), de: loc(dDesc.get(c), DE) }, typ: [dType.get(c), dSub.get(c)].filter((x) => x && x !== 'UNDEFINED').join('.') || null, groesse: dSize.get(c) != null ? Number(dSize.get(c)) : null, tags: String(dTags.get(c) || '').split(/[\s,]+/).filter(Boolean) });
+async function werkstattSource(w, limit, make, tag) {
+  let chosen = null;
+  for (const lod of [0, 1, 2, 3, 4, 5]) {
+    const glb = `${GEO}${w.key}_${tag}${lod}.glb`;
+    let info;
+    if (FORCE || !existsSync(glb) || !existsSync(`${glb}.json`)) { try { info = await make(lod, glb); writeFileSync(`${glb}.json`, JSON.stringify(info)); } catch (e) { if (!lod) return { ...w, missing: e.message }; break; } }
+    else info = JSON.parse(readFileSync(`${glb}.json`, 'utf8'));
+    chosen = { lod, glb, info };
+    if (info.tris <= limit) break;
+  }
+  const { teile, prims, mtl, ...werkstatt } = chosen.info;
+  const subsOf = new Map([...new Set(teile.map((t) => t.mtl).filter(Boolean))].map((m) => [m, mtlFile(m)]));
+  const subs = teile.map((t) => {
+    const s = (subsOf.get(t.mtl) || []).find((x) => x.name === t.sub) || { name: t.sub, layers: [] };
+    // HardSurface: TexSlot1 ist eine Makrokarte (Großflächenmuster, Verschattung), die Farbe kommt aus den Schichten
+    const hs = /^HardSurface$/i.test(s.shader || '') && s.layers?.length && s.d ? { d: null, makro: s.d } : {};
+    return { ...s, ...hs, mtl: t.mtl, ...(t.eigen ? {} : { fremd: true }) };
+  });
+  return { ...w, lod: chosen.lod, glb: chosen.glb.slice(SRC.length), tris: chosen.info.tris, ids: prims, mtl: mtl ?? teile[0]?.mtl ?? null, subs, ...(w.klasse ? { spiel: spielOf(w.klasse) } : {}), werkstatt };
+}
+
 // Geometrie, Untermaterial-IDs und Material eines Stücks (Requisit oder Boden-Mesh)
 async function source(w) {
   const limit = limitOf(w);
+  if (w.kat === 'fahrzeug' && w.klasse) return werkstattSource(w, limit, (lod, glb) => fahrzeugGlb(w.klasse, lod, glb, limit), 'f');
+  if (w.socpak) return werkstattSource(w, limit, (lod, glb) => torGlb(w, lod, glb), 's');
   if (w.klasse) {
     let chosen = null;
     for (const lod of [0, 1, 2, 3, 4]) {
@@ -1047,9 +1203,7 @@ async function source(w) {
     const subs = mtlPath ? mtlFile(mtlPath) : [];
     const ids = chosen.info.names.map((n) => subs.findIndex((s) => s.name === n));
     // Spieldaten des Items selbst (es steht in keiner Halle)
-    const c = w.klasse;
-    const spiel = { klasse: c, name: { en: loc(dName.get(c), EN), de: loc(dName.get(c), DE) }, beschreibung: { en: loc(dDesc.get(c), EN), de: loc(dDesc.get(c), DE) }, typ: [dType.get(c), dSub.get(c)].filter((x) => x && x !== 'UNDEFINED').join('.') || null, groesse: dSize.get(c) != null ? Number(dSize.get(c)) : null, tags: String(dTags.get(c) || '').split(/[\s,]+/).filter(Boolean) };
-    return { ...w, lod: chosen.lod, glb: chosen.glb.slice(SRC.length), tris: chosen.tris, ids, mtl: mtlPath, subs, spiel };
+    return { ...w, lod: chosen.lod, glb: chosen.glb.slice(SRC.length), tris: chosen.tris, ids, mtl: mtlPath, subs, spiel: spielOf(w.klasse) };
   }
   const p4k = w.p4k.replace(/\.cga$/i, '.cgf');
   let chosen = null;
@@ -1069,7 +1223,7 @@ async function source(w) {
   // LOD-Stufen nennen kein Material; das steht nur in der Grund-.cgf
   const mtlSrc = chosen.lod ? ensureRaw(p4k.replace(/^Data\\/i, '')) || cgfFile : cgfFile;
   // ohne eigene .mtl: die Original-.cga, dann die Überschreibung der Brushes in der Halle (nur Kategorien der Hallendeko, die alten bleiben gleich)
-  const neuesStueck = NEU_SET.has(w.kat);
+  const neuesStueck = NEU_SET.has(w.kat) || FZ_SET.has(w.kat);
   const mtlPath = mtlPathIn(mtlSrc) || (neuesStueck && /\.cga$/i.test(w.p4k) ? mtlPathIn(ensureRaw(w.p4k.replace(/^Data\\/i, ''))) : null) || (neuesStueck ? mtlByName(mtlSrc) : null) || w.material?.replace(/^Data\//i, '').replace(/\.mtl$/i, '') || null;
   return { ...w, lod: chosen.lod, glb: chosen.glb.slice(SRC.length), tris: chosen.tris, ids, mtl: mtlPath, subs: mtlPath ? mtlFile(mtlPath) : [] };
 }
@@ -1080,7 +1234,7 @@ for (const w of want.values()) {
   // Palette nur in den Kategorien der Hallendeko (die alten bleiben, wie sie gebaut sind): die Entity mit Namen, sonst die Ersatz-Entity
   // die SCU-Reihe der Standardkiste einheitlich in der Palette der 1-SCU-Kiste (16–32 SCU gibt es nur mit Warenfarben)
   const serie = /^cargo_multipurpose_1_/.test(w.key) ? 'Carryable_TBO_InventoryContainer_1SCU' : null;
-  const pal = !NEU_SET.has(w.kat) ? null : [serie, w.klasse, entryByKey.get(w.key)?.klasse, w.ersatz, ...(byGeo.get(w.key) || [])].filter(Boolean).map(paletteOf).find(Boolean);
+  const pal = !NEU_SET.has(w.kat) && !FZ_SET.has(w.kat) ? null : [serie, w.klasse, entryByKey.get(w.key)?.klasse, w.ersatz, ...(byGeo.get(w.key) || [])].filter(Boolean).map(paletteOf).find(Boolean);
   quellen.push(pal ? { ...q, palette: pal } : q);
 }
 // Boden: Meshes wie Requisiten, projizierte Decals nur ihr Material

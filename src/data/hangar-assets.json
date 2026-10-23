@@ -3499,9 +3499,9 @@
     },
     "katalog": {
       "url": "/hangar/props/katalog.json",
-      "v": "70626632",
-      "bytes": 2881006,
-      "props": 355,
+      "v": "e95056ad",
+      "bytes": 2975957,
+      "props": 365,
       "kategorien": {
         "diagnose": {
           "file": "/hangar/props/diagnose.glb",
@@ -3628,6 +3628,24 @@
           "v": "96908709",
           "bytes": 2927180,
           "props": 16
+        },
+        "fahrzeug": {
+          "file": "/hangar/props/fahrzeug.glb",
+          "v": "0c1443bf",
+          "bytes": 2094084,
+          "props": 4
+        },
+        "reifen": {
+          "file": "/hangar/props/reifen.glb",
+          "v": "15056b78",
+          "bytes": 730860,
+          "props": 5
+        },
+        "tor": {
+          "file": "/hangar/props/tor.glb",
+          "v": "7d3bf458",
+          "bytes": 166220,
+          "props": 1
         }
       }
     },
