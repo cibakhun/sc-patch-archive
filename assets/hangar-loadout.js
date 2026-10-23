@@ -757,7 +757,6 @@ root.append(linkLayer);
 const wide = matchMedia('(min-width:1100px) and (min-height:600px)');
 let linkQueued = false;
 let linkSnap = false;  // Scrollen/Groesse: Lasche folgt sofort, ohne Gleiten
-const STUB = 22;  // Mindesthoehe der Lasche, auch wenn der Platz rausgescrollt ist
 function paintLinks() {
   linkQueued = false;
   const snap = linkSnap;
@@ -779,41 +778,32 @@ function paintLinks() {
     const pinned = Math.max(b.top, ...[...box.querySelectorAll('.lo-big__h, thead th')].map((h) => h.getBoundingClientRect()).filter((h) => h.top <= b.top + 4).map((h) => h.bottom));
     const visT = Math.max(pinned, p.top);
     const visB = Math.min(b.bottom, p.bottom);
-    let top = Math.max(r.top, visT);
-    let bot = Math.min(r.bottom, visB);
-    let cutT = r.top < top - 1;
-    let cutB = r.bottom > bot + 1;
+    const top = Math.max(r.top, visT);
+    const bot = Math.min(r.bottom, visB);
     panel.classList.add('is-linked');
     panel.classList.toggle('is-snap', snap);
-    if (visB - visT < STUB) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
-    // Rausgescrollt: die Lasche bleibt als Stummel am Listenrand haengen, offen zur
-    // Seite, auf der der Platz liegt - der Rahmen bricht nie ab.
-    if (bot - top < STUB) {
-      if (r.top < visT) { top = visT; bot = visT + STUB; cutT = true; cutB = false; }
-      else {
-        // Unten nicht ueber ein Kategorie-Band legen, sondern davor andocken.
-        const band = [...box.querySelectorAll('.lo-big__h')].map((h) => h.getBoundingClientRect()).find((h) => h.top < visB && h.bottom > visB - STUB && h.top >= visT + STUB);
-        bot = band ? band.top - 2 : visB; top = bot - STUB; cutB = true; cutT = false;
-      }
-    }
+    // Rausgescrollt: die Lasche zieht sich im Mass des verdeckten Anteils nach rechts
+    // ins Panel zurueck (bleibt dabei geschlossen); ganz draussen bleibt nur der
+    // geschlossene Panelrahmen.
+    const seen = r.height ? Math.max(0, bot - top) / r.height : 0;
+    if (seen < 0.04) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
     // Viertelboegen oben/unten: nur wenn Platz bis zur Panelecke ist, sonst gerade hinein.
     const cs = getComputedStyle(root);
     const fr = parseFloat(cs.getPropertyValue('--lo-fr')) || 14;
     const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
-    const filT = !cutT && top - fr >= p.top + corner;
-    const filB = !cutB && bot + fr <= p.bottom - corner;
+    const filT = top - fr >= p.top + corner;
+    const filB = bot + fr <= p.bottom - corner;
     const nt = top - p.top - (filT ? fr : 0);
     panel.style.setProperty('--nt', `${nt}px`);
     panel.style.setProperty('--nh', `${bot - top + (filT ? fr : 0) + (filB ? fr : 0)}px`);
-    const left = Math.max(r.left, b.left);
+    const full = p.left - fr - Math.max(r.left, b.left);
+    const left = p.left - fr - full * seen;
     // Erstes Erscheinen springt (nur Einblenden), danach gleitet die Lasche.
     tab.classList.toggle('is-jump', snap || !tab.classList.contains('is-on'));
-    tab.classList.toggle('is-cut-t', cutT);
-    tab.classList.toggle('is-cut-b', cutB);
     tab.classList.toggle('is-nofil-t', !filT);
     tab.classList.toggle('is-nofil-b', !filB);
     tab.style.transform = `translate(${left - o.left}px,${top - o.top}px)`;
-    tab.style.width = `${p.left - left - fr}px`;
+    tab.style.width = `${full * seen}px`;
     tab.style.height = `${bot - top}px`;
     tab.classList.add('is-on');
   }
