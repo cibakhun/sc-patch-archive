@@ -760,18 +760,44 @@ let linkSnap = false;  // Scrollen/Groesse: Lasche folgt sofort, ohne Gleiten
 // Einzug je Lasche (1 = voll da, 0 = ganz im Panel). Er folgt dem Scrollziel ueber eine
 // leicht unterdaempfte Feder: auch ein grosser Mausrad-Schritt laeuft fluessig ab, und
 // beim Herausfahren federt die Kante einen Hauch nach.
-const pull = { 'is-a': { k: 0, v: 0, t: 0, src: null }, 'is-b': { k: 0, v: 0, t: 0, src: null } };
+const pull = { 'is-a': { k: 0, v: 0, t: 0, src: null, yc: 0, bump: null }, 'is-b': { k: 0, v: 0, t: 0, src: null, yc: 0, bump: null } };
 const SPRING_W = 11;    // 1/s, Eigenfrequenz (~0,55 s je Schwingung)
 const SPRING_Z = 0.7;   // Daempfung < 1: leichtes Ueberschwingen (~5 %)
 const calm = matchMedia('(prefers-reduced-motion:reduce)');
-// Gegenreaktion des grossen Rahmens: dockt die Kante an, gibt er kurz nach innen nach;
-// loest sie sich, wird er kurz mitgezogen. Beides federt zurueck (CSS lo-bump-*).
-function bump(panel, dir) {
-  if (calm.matches) return;
-  panel.style.setProperty('--lo-bs', 6 / Math.max(200, panel.offsetWidth));  // ~6 px Ausschlag der linken Kante
-  panel.classList.remove('is-bump-in', 'is-bump-out');
-  void panel.offsetWidth;  // Animation neu starten
-  panel.classList.add(`is-bump-${dir}`);
+// Gegenreaktion des grossen Rahmens: dockt die Kante ein, gibt seine linke Kante genau
+// an der Andockstelle kurz nach innen nach (eine weiche Delle, oben und unten auslaufend)
+// und federt zurueck; der Rest des Rahmens bleibt still. Die Delle ist ein eigener
+// Strich ueber der Kerbe, waehrend die Kerbe die echte Kante an der Stelle ausblendet.
+const NS = 'http://www.w3.org/2000/svg';
+const dentSvg = document.createElementNS(NS, 'svg');
+dentSvg.setAttribute('class', 'lo-dent');
+const dents = { 'is-a': document.createElementNS(NS, 'path'), 'is-b': document.createElementNS(NS, 'path') };
+dentSvg.append(dents['is-a'], dents['is-b']);
+linkLayer.append(dentSvg);
+const DENT_MS = 620;   // Dauer der Delle
+const DENT_PX = 10;    // Amplitude; sichtbarer Ausschlag nach innen ~6 px
+const DENT_H = 130;    // Laenge des nachgebenden Kantenstuecks
+function paintDent(cls, panel, o, now) {
+  const st = pull[cls];
+  const path = dents[cls];
+  const t = st.bump ? now - st.bump.t0 : Infinity;
+  if (t >= DENT_MS) { st.bump = null; path.removeAttribute('d'); return false; }
+  const p = panel.getBoundingClientRect();
+  const fw = parseFloat(getComputedStyle(root).getPropertyValue('--lo-fw')) || 4;
+  const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
+  const h = Math.min(DENT_H, p.height - 2 * corner);
+  const yc = Math.min(p.bottom - corner - h / 2, Math.max(p.top + corner + h / 2, st.bump.yc));
+  // Gedaempfte Schwingung: erst nach innen, dann ein Hauch nach aussen, dann Ruhe.
+  const d = DENT_PX * Math.exp(-t / 170) * Math.sin(Math.PI * Math.min(1, t / 90) / 2 + Math.max(0, t - 90) / 115);
+  const x = p.left - o.left + fw / 2;
+  const y0 = yc - h / 2 - o.top;
+  const y1 = yc + h / 2 - o.top;
+  const ym = yc - o.top;
+  path.setAttribute('d', `M${x} ${y0}C${x} ${y0 + h * 0.3} ${x + d} ${ym - h * 0.18} ${x + d} ${ym}C${x + d} ${ym + h * 0.18} ${x} ${y1 - h * 0.3} ${x} ${y1}`);
+  panel.classList.add('is-snap');
+  panel.style.setProperty('--nt', `${yc - h / 2 - p.top}px`);
+  panel.style.setProperty('--nh', `${h}px`);
+  return true;
 }
 function paintLinks(now = performance.now()) {
   linkQueued = false;
@@ -819,10 +845,12 @@ function paintLinks(now = performance.now()) {
     const snap = linkSnap || st.k !== goal || (shown && goal < 1);
     panel.classList.toggle('is-snap', !!snap);
     if (k < 0.01) {
-      if (shown) bump(panel, 'in');
-      panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue;
+      if (shown && !calm.matches) st.bump = { t0: now, yc: st.yc };
+      tab.classList.remove('is-on');
+      if (paintDent(cls, panel, o, now)) again = true; else panel.style.setProperty('--nh', '0px');
+      continue;
     }
-    if (!shown && !fresh) bump(panel, 'out');
+    if (st.bump) { st.bump = null; dents[cls].removeAttribute('d'); }
     // Noch nachlaufend, aber schon ganz draussen: am Listenrand weiter einziehen.
     const hMin = 30 * k;
     if (bot - top < hMin) {
@@ -854,6 +882,7 @@ function paintLinks(now = performance.now()) {
     tab.style.transform = `translate(${p.left - depth - o.left}px,${top - o.top}px)`;
     tab.style.width = `${depth - fx}px`;
     tab.style.height = `${h}px`;
+    st.yc = top + h / 2;
     tab.classList.add('is-on');
   }
   linkSnap = false;
@@ -867,7 +896,6 @@ function queueLinks(e) {
 }
 const linkWatch = new MutationObserver(() => queueLinks());
 linkWatch.observe(pick, { childList: true });
-root.addEventListener('animationend', (e) => { if (e.animationName.startsWith('lo-bump')) e.target.classList.remove('is-bump-in', 'is-bump-out'); });
 linkWatch.observe($('lo-equip-list'), { childList: true });
 root.addEventListener('scroll', queueLinks, true);
 addEventListener('resize', queueLinks);
