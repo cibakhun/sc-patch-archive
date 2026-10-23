@@ -11,9 +11,14 @@
 // keine Kalibrierung, kein Schweben. Der Client transformiert die cry-
 // Positionen nur per fester Achsvertauschung (x, z, -y) in den glTF-Raum.
 //
-// Usage:  node scripts/build-holo-meshes.mjs
+// --src hangar: statt .cache/starbreaker-glb/ die Rohexporte des Hangars
+// (.cache/hangar-src/ships/, scripts/extract-hangar-sources.mjs): alle Schiffe
+// aus dem aktuellen Patch, mit _GS-Neubau (Constellation, Hammerhead), mit
+// Texturen und Innenraum; die interior_*-Container fallen hier weg.
+//
+// Usage:  node scripts/build-holo-meshes.mjs [--src hangar] [--only <slug> ...]
 import { NodeIO } from '@gltf-transform/core';
-import { KHRDracoMeshCompression } from '@gltf-transform/extensions';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { dedup, prune, weld, flatten, join, draco } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
@@ -22,7 +27,9 @@ import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-const IN_DIR = new URL('../.cache/starbreaker-glb/', import.meta.url);
+const argv = process.argv.slice(2);
+const FROM_HANGAR = argv.includes('--src') && argv[argv.indexOf('--src') + 1] === 'hangar';
+const IN_DIR = new URL(FROM_HANGAR ? '../.cache/hangar-src/ships/' : '../.cache/starbreaker-glb/', import.meta.url);
 const OUT_DIR = new URL('../public/holo/', import.meta.url);
 const MANIFEST = new URL('../src/data/holo-meshes.json', import.meta.url);
 const TARGET_TRIS = 130000; // Silhouette + Grobfläche reichen fürs Hologramm
@@ -32,7 +39,7 @@ mkdirSync(OUT_DIR, { recursive: true });
 
 await MeshoptSimplifier.ready;
 const io = new NodeIO()
-  .registerExtensions([KHRDracoMeshCompression])
+  .registerExtensions(ALL_EXTENSIONS)
   .registerDependencies({
     'draco3d.decoder': await draco3d.createDecoderModule(),
     'draco3d.encoder': await draco3d.createEncoderModule(),
@@ -53,6 +60,11 @@ function countTris(root) {
 async function buildOne(slug, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
+
+  // 0) Innenraum-Container (Rohexport des Hangars) samt Teilbaum verwerfen
+  for (const scene of root.listScenes()) for (const top of scene.listChildren()) {
+    for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) { c.traverse((n) => n.setMesh(null)); top.removeChild(c); }
+  }
 
   // 1) Deko-Meshes verwerfen
   for (const mesh of root.listMeshes()) if (DROP.test(mesh.getName() || '')) mesh.dispose();
@@ -108,7 +120,7 @@ const ONLY = process.argv.slice(2).flatMap((a, i, all) => (all[i - 1] === '--onl
 const inputs = readdirSync(IN_DIR).filter((f) => f.toLowerCase().endsWith('.glb'))
   .filter((f) => !ONLY.length || ONLY.includes(f.replace(/\.glb$/i, '')));
 console.log(`${inputs.length} StarBreaker-GLB(s) gefunden`);
-if (ONLY.length && inputs.length !== ONLY.length) { console.error(`--only: ${ONLY.length - inputs.length} GLB(s) fehlen in .cache/starbreaker-glb/`); process.exit(1); }
+if (ONLY.length && inputs.length !== ONLY.length) { console.error(`--only: ${ONLY.length - inputs.length} GLB(s) fehlen in ${fileURLToPath(IN_DIR)}`); process.exit(1); }
 // Resume: Output juenger als Input UND schon im Manifest -> nicht neu dezimieren
 // (der Batch ueber alle ~226 dauert sonst bei jedem Neustart wieder Minuten).
 let prev = {};

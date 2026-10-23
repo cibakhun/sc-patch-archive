@@ -22,18 +22,34 @@ const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citize
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
 const SRC = fileURLToPath(new URL('../.cache/hangar-src/', import.meta.url));
 
-// Schiffe mit Werkslack. Slug = vehicles.json-id; die Entity heißt wie der
-// Slug mit Unterstrichen (aegs-gladius -> AEGS_Gladius, Teilstring-Suche).
-const SHIPS = [
+// Schiffe: jedes Fahrzeug mit Hangar-Modell (src/data/holo-meshes.json), diese
+// zuerst. Slug = vehicles.json-id, Record = Slug mit Unterstrichen; gibt es
+// <Record>_GS (4.10.2: Constellation, Hammerhead), gewinnt er wie in
+// scripts/lib/vehicle-records.mjs, sonst stünde das alte Modell im Hangar.
+const SHIPS_FIRST = [
   'aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk2', 'aegs-avenger-titan', 'rsi-aurora-mk2',
   'drak-cutlass-black', 'misc-freelancer', 'orig-300i', 'crus-starlifter-c2', 'rsi-constellation-andromeda',
   'drak-corsair', 'rsi-zeus-es', 'misc-prospector', 'aegs-sabre', 'crus-intrepid', 'drak-vulture',
   'anvl-c8x-pisces-expedition', 'orig-400i', 'anvl-carrack', 'rsi-polaris',
 ];
-// Innenraum nur bei Jägern, deren Cockpit man durch die Haube sieht. Bei
-// allen anderen sind Kabinen und Laderäume von außen unsichtbar, aber bis zu
-// zwei Drittel der Dreiecke (Aurora Mk II: 2 von 3 Millionen).
-const KEEP_INTERIOR = new Set(['aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk2', 'aegs-avenger-titan', 'orig-300i', 'aegs-sabre']);
+// Ein Export je Schiff, MIT Innenraum: die Container hängen als
+// interior_*-Knoten unter der Wurzel, der Build nimmt sie für die Außenfassung
+// weg. --materials all: Normalen und Rauheit auch der Schichtmaterialien
+// (Rumpf, Lackkanäle); mit „textures“ fehlen sie genau dort.
+const SHIP_ARGS = ['--materials', 'all', '--mip', '1', '--lod', '1'];
+// Speichergrenze je Export (MB) und Zeitgrenze: ein Großschiff mit Innenraum
+// bricht ab statt den Rechner auszulagern (Polaris: 24 GB, dann Stillstand
+// ohne Rechenzeit); der Lauf versucht es dann ohne Innenraum.
+const SHIP_MEM_CAP = '24000';
+const SHIP_TIMEOUT = 15 * 60000;
+// Ab dieser Länge (m, vehicles.json) gleich ohne Innenraum: Polaris (181 m)
+// sprengte mit ihm den Speicher, die Carrack (126 m) ging noch (771 MB).
+const SHIP_NO_INTERIOR_M = 150;
+// Daneben der zerlegte Export in EINEN gemeinsamen Ordner (geteilte Texturen
+// liegen einmal): Lackvarianten mit Muster-Material (paints.json), Paletten
+// samt Finish (palettes.json), je .mtl die Untermaterialien mit Schichten,
+// Stencil und Decal-Karten (<mtl>_TEX1.materials.json), Texturen als PNG.
+const SHIP_DEC = `${SRC}ships-dec/`;
 // Die Halle: Revel & York, Deluxe-Hangar (72 x 136 m Boden). Weitere Hallen
 // über denselben Weg (socpak-Name als Teilstring).
 // lod 0 = volle Stufe (Rechner), lod 1 = dichte, leichtere Kopie (Telefone)
@@ -85,8 +101,11 @@ if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER}
 if (!existsSync(P4K)) { console.error(`Data.p4k fehlt: ${P4K} (SC_P4K setzen)`); process.exit(1); }
 
 // log: StarBreaker mit -v aufrufen und dessen Protokoll (stderr) mit zurückgeben
-function sb(args, { log = false } = {}) {
-  const r = spawnSync(STARBREAKER, [...(log ? ['-v'] : []), ...args, '--p4k', P4K], { encoding: 'utf8', maxBuffer: 256 << 20 });
+// timeout (ms): danach abbrechen — ein Großschiff, das den Speicher auslagert,
+// steht sonst ohne Rechenzeit still, statt an der Grenze abzubrechen
+function sb(args, { log = false, timeout = 0 } = {}) {
+  const r = spawnSync(STARBREAKER, [...(log ? ['-v'] : []), ...args, '--p4k', P4K], { encoding: 'utf8', maxBuffer: 256 << 20, timeout });
+  if (r.error?.code === 'ETIMEDOUT') throw new Error(`abgebrochen nach ${Math.round(timeout / 60000)} min`);
   if (r.status !== 0) throw new Error((r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' | '));
   return log ? { stdout: r.stdout, log: r.stderr } : r.stdout;
 }
@@ -104,14 +123,93 @@ function exportTo(file, args, common = COMMON, { log = false } = {}) {
   return log ? r.log : true;
 }
 
+// Spielstand der Data.p4k (build_manifest.id daneben): steht in jeder
+// Schiffs-Sidecar, damit ein neuer Patch den Rohbestand als veraltet erkennt.
+function gameBuild() {
+  const f = `${dirname(P4K)}/build_manifest.id`;
+  if (!existsSync(f)) return null;
+  const d = JSON.parse(readFileSync(f, 'utf8')).Data ?? {};
+  return { branch: d.Branch ?? null, change: d.RequestedP4ChangeNum ?? null };
+}
+
+function shipRecords(db, slugs) {
+  const names = new Map();
+  for (const r of db.records) {
+    if (db.structs[r.structIndex]?.name !== 'EntityClassDefinition') continue;
+    const n = r.name.replace(/^EntityClassDefinition\./, '');
+    if (!names.has(n.toLowerCase())) names.set(n.toLowerCase(), n);
+  }
+  return new Map(slugs.map((s) => {
+    const base = s.replace(/-/g, '_').toLowerCase();
+    return [s, names.get(`${base}_gs`) ?? names.get(base) ?? null];
+  }));
+}
+
 if (want('ships')) {
   console.log('Schiffe');
-  for (const slug of shipArg ?? SHIPS) {
-    const args = ['entity', 'export', slug.replace(/-/g, '_')];
-    if (!KEEP_INTERIOR.has(slug)) args.push('--no-interior');
-    try { exportTo(`${SRC}ships/${slug}.glb`, args); }
-    catch (e) { console.error(`  ! ${slug}: ${e.message}`); }
+  const root = new URL('../', import.meta.url);
+  const holo = Object.keys(JSON.parse(readFileSync(new URL('src/data/holo-meshes.json', root), 'utf8')).meshes);
+  const slugs = shipArg ?? [...new Set([...SHIPS_FIRST.filter((s) => holo.includes(s)), ...holo])];
+  const { openP4k } = await import('./lib/p4k.mjs');
+  const { openDataCore } = await import('./lib/datacore.mjs');
+  const p4k = openP4k(P4K);
+  const recs = shipRecords(openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i)), slugs);
+  p4k.close();
+  const build = gameBuild();
+  const sig = { args: SHIP_ARGS, interior: true, build };
+  const lengthM = new Map(JSON.parse(readFileSync(new URL('src/data/vehicles.json', root), 'utf8')).vehicles.map((v) => [v.id, v.lengthM ?? 0]));
+  mkdirSync(`${SRC}ships`, { recursive: true });
+  mkdirSync(SHIP_DEC, { recursive: true });
+  const decIndexFile = `${SHIP_DEC}index.json`;
+  const decIndex = existsSync(decIndexFile) ? JSON.parse(readFileSync(decIndexFile, 'utf8')) : {};
+  const t0 = Date.now();
+  let done = 0, fresh = 0, fail = 0;
+  for (const slug of slugs) {
+    const rec = recs.get(slug);
+    done++;
+    if (!rec) { console.error(`  ! ${slug}: kein Record`); fail++; continue; }
+    const glb = `${SRC}ships/${slug}.glb`, side = `${SRC}ships/${slug}.json`;
+    const prev = existsSync(side) ? JSON.parse(readFileSync(side, 'utf8')) : null;
+    const same = prev && prev.record === rec && JSON.stringify(prev.sig) === JSON.stringify(sig) && existsSync(glb) && decIndex[slug]?.record === rec;
+    if (same && !FORCE) { console.log(`  = ${slug} (${rec})`); continue; }
+    const t = Date.now();
+    const info = { slug, record: rec, sig, interior: true };
+    try {
+      const limits = { timeout: SHIP_TIMEOUT };
+      try {
+        if (lengthM.get(slug) >= SHIP_NO_INTERIOR_M) throw new Error(`${lengthM.get(slug)} m lang`);
+        sb(['entity', 'export', rec, glb, ...SHIP_ARGS, '--mem-cap', SHIP_MEM_CAP], limits);
+      } catch (e) {
+        // Großschiff über der Speichergrenze: dann wenigstens die Außenhaut,
+        // und reicht auch das nicht (Idris: 24 GB ohne Innenraum), mit Texturen
+        // in halber Kantenlänge (mip 2, der Build deckelt ohnehin auf 1024)
+        console.error(`  ! ${slug}: ${e.message} — zweiter Versuch ohne Innenraum`);
+        info.interior = false;
+        try { sb(['entity', 'export', rec, glb, ...SHIP_ARGS, '--no-interior', '--mem-cap', SHIP_MEM_CAP], limits); }
+        catch (e2) {
+          console.error(`  ! ${slug}: ${e2.message.split(' | ').at(-1)} — dritter Versuch mit mip 2`);
+          sb(['entity', 'export', rec, glb, ...SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' ? '2' : a)), '--no-interior', '--mem-cap', SHIP_MEM_CAP], limits);
+          info.mip = 2;
+        }
+      }
+      const before = new Set(existsSync(`${SHIP_DEC}Packages`) ? readdirSync(`${SHIP_DEC}Packages`) : []);
+      const decArgs = info.mip ? SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' ? String(info.mip) : a)) : SHIP_ARGS;
+      sb(['entity', 'export', rec, SHIP_DEC.replace(/\/$/, ''), '--kind', 'decomposed', ...decArgs, '--skip-existing-assets', ...(info.interior ? [] : ['--no-interior']), '--mem-cap', SHIP_MEM_CAP], limits);
+      // Das Paket heißt nach dem Record (Unterstriche als Leerzeichen); gibt es
+      // den Namen nicht, das neu angelegte
+      const named = `${rec.replace(/_/g, ' ')}_LOD1_TEX${info.mip ?? 1}`;
+      const pkg = existsSync(`${SHIP_DEC}Packages/${named}`) ? named : readdirSync(`${SHIP_DEC}Packages`).find((p) => !before.has(p)) ?? null;
+      decIndex[slug] = { record: rec, package: pkg };
+      writeFileSync(decIndexFile, JSON.stringify(decIndex, null, 1));
+      info.seconds = Math.round((Date.now() - t) / 1000);
+      info.bytes = statSync(glb).size;
+      writeFileSync(side, JSON.stringify(info, null, 1) + '\n');
+      fresh++;
+      const eta = ((Date.now() - t0) / fresh) * (slugs.length - done) / 60000;
+      console.log(`  + ${slug} (${rec}${info.interior ? '' : ', ohne Innenraum'})  ${(info.bytes / 1e6).toFixed(0)} MB, ${info.seconds} s, Paket ${pkg ?? '?'}  [${done}/${slugs.length}, noch ~${eta.toFixed(0)} min]`);
+    } catch (e) { console.error(`  ! ${slug} (${rec}): ${e.message}`); fail++; }
   }
+  console.log(`  ${fresh} exportiert, ${slugs.length - fresh - fail} aktuell, ${fail} fehlgeschlagen`);
 }
 
 // Bordwaffen für den Tausch in der Layout-Werkstatt: jede Waffe, die in einen

@@ -3,10 +3,10 @@
   "ships": {
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "46544c1d",
-      "tris": 214725,
+      "v": "94147e23",
+      "tris": 214729,
       "trisRaw": 289558,
-      "textures": 218,
+      "textures": 336,
       "attached": 0,
       "swap": {
         "hardpoint_weapon_gun_class1_right_wing": 1,
@@ -19,20 +19,27 @@
         "2": 3,
         "3": 4
       },
+      "record": "AEGS_Avenger_Titan",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "paints": {
+        "url": "/hangar/paints/aegs-avenger-titan.json",
+        "v": "ed7d0445"
+      },
       "uv": {
         "rangeBefore": 18,
         "rangeAfter": 18.38,
         "bits": 17,
-        "degenerate": 1.9
+        "degenerate": 1.7
       },
-      "bytes": 12086772
+      "bytes": 17487628
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "66f68ce6",
-      "tris": 233173,
+      "v": "e0e0d0fc",
+      "tris": 233179,
       "trisRaw": 417041,
-      "textures": 185,
+      "textures": 283,
       "attached": 0,
       "swap": {
         "hardpoint_gun_nose": 1,
@@ -45,20 +52,27 @@
         "2": 4,
         "3": 4
       },
+      "record": "AEGS_Gladius",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "paints": {
+        "url": "/hangar/paints/aegs-gladius.json",
+        "v": "f2a04881"
+      },
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2.4
+        "degenerate": 2.7
       },
-      "bytes": 9837192
+      "bytes": 13246752
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
-      "v": "8a0fd28a",
+      "v": "d7dbf86f",
       "tris": 196090,
       "trisRaw": 189516,
-      "textures": 107,
+      "textures": 161,
       "attached": 0,
       "swap": {
         "hardpoint_gimbal_mount": 2,
@@ -67,24 +81,31 @@
       },
       "swapNodes": 10,
       "palette": {
-        "1": 2,
-        "2": 3,
+        "1": 3,
+        "2": 5,
         "3": 4
+      },
+      "record": "ANVL_Arrow",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "paints": {
+        "url": "/hangar/paints/anvl-arrow.json",
+        "v": "6b9b8a7e"
       },
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 1.4
+        "degenerate": 1.3
       },
-      "bytes": 6865480
+      "bytes": 8810992
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "8be5d891",
-      "tris": 203601,
+      "v": "a63078f7",
+      "tris": 203603,
       "trisRaw": 219205,
-      "textures": 97,
+      "textures": 161,
       "attached": 0,
       "swap": {
         "hardpoint_weapon_left_wing": 1,
@@ -94,22 +115,29 @@
       "palette": {
         "1": 8,
         "2": 4,
-        "3": 4
+        "3": 5
+      },
+      "record": "ANVL_Hornet_F7C_Mk2",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7c-mk2.json",
+        "v": "2c2b2518"
       },
       "uv": {
         "rangeBefore": 59,
         "rangeAfter": 58.51,
         "bits": 18,
-        "degenerate": 1.1
+        "degenerate": 1.8
       },
-      "bytes": 7605316
+      "bytes": 10805436
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "472f4e50",
-      "tris": 496160,
-      "trisRaw": 700759,
-      "textures": 131,
+      "v": "30078a3d",
+      "tris": 466966,
+      "trisRaw": 1221469,
+      "textures": 206,
       "attached": 0,
       "swap": {
         "hardpoint_remote_turret_rear": 2,
@@ -119,24 +147,31 @@
       },
       "swapNodes": 16,
       "palette": {
-        "1": 6,
+        "1": 7,
         "2": 6,
-        "3": 6
+        "3": 8
+      },
+      "record": "CRUS_Starlifter_C2",
+      "game": "12913470",
+      "interiorDropped": 8,
+      "paints": {
+        "url": "/hangar/paints/crus-starlifter-c2.json",
+        "v": "3bf98019"
       },
       "uv": {
         "rangeBefore": 733,
-        "rangeAfter": 605.15,
+        "rangeAfter": 606.15,
         "bits": 22,
-        "degenerate": 3.5
+        "degenerate": 4
       },
-      "bytes": 10427572
+      "bytes": 13626652
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "db62620d",
-      "tris": 325177,
-      "trisRaw": 522351,
-      "textures": 161,
+      "v": "e37dbd2e",
+      "tris": 325209,
+      "trisRaw": 749280,
+      "textures": 239,
       "attached": 0,
       "swap": {
         "hardpoint_left_body_weapon": 1,
@@ -152,20 +187,27 @@
         "2": 3,
         "3": 5
       },
+      "record": "DRAK_Cutlass_Black",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "paints": {
+        "url": "/hangar/paints/drak-cutlass-black.json",
+        "v": "e9bf4569"
+      },
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 1.8
+        "degenerate": 1.7
       },
-      "bytes": 11102304
+      "bytes": 14437936
     },
     "misc-freelancer": {
       "url": "/hangar/ships/misc-freelancer.glb",
-      "v": "6a9bea1a",
-      "tris": 237369,
-      "trisRaw": 377329,
-      "textures": 169,
+      "v": "11bf93b3",
+      "tris": 237535,
+      "trisRaw": 651045,
+      "textures": 252,
       "attached": 0,
       "swap": {
         "hardpoint_sidecannon_left": 2,
@@ -174,9 +216,16 @@
       },
       "swapNodes": 12,
       "palette": {
-        "1": 5,
+        "1": 6,
         "2": 5,
         "3": 4
+      },
+      "record": "MISC_Freelancer",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "paints": {
+        "url": "/hangar/paints/misc-freelancer.json",
+        "v": "4bae8033"
       },
       "uv": {
         "rangeBefore": 288,
@@ -184,14 +233,14 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 10330408
+      "bytes": 13109448
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "86de2b6b",
-      "tris": 201634,
+      "v": "85182a3c",
+      "tris": 180537,
       "trisRaw": 179288,
-      "textures": 93,
+      "textures": 147,
       "attached": 0,
       "swap": {
         "hardpoint_weapon_nose": 1,
@@ -204,20 +253,23 @@
         "2": 2,
         "3": 3
       },
+      "record": "ORIG_300i",
+      "game": "12913470",
+      "interiorDropped": 0,
       "uv": {
         "rangeBefore": 97,
         "rangeAfter": 95.88,
         "bits": 19,
-        "degenerate": 3.2
+        "degenerate": 3.6
       },
-      "bytes": 5231648
+      "bytes": 7182272
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
-      "v": "3de23729",
-      "tris": 441179,
-      "trisRaw": 756891,
-      "textures": 188,
+      "v": "20ac301c",
+      "tris": 442275,
+      "trisRaw": 1319916,
+      "textures": 287,
       "attached": 0,
       "swap": {
         "hardpoint_weapon_top_right": 1,
@@ -227,46 +279,60 @@
       },
       "swapNodes": 16,
       "palette": {
-        "1": 9,
-        "2": 5,
+        "1": 22,
+        "2": 9,
         "3": 4
+      },
+      "record": "RSI_Aurora_Mk2",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "paints": {
+        "url": "/hangar/paints/rsi-aurora-mk2.json",
+        "v": "696519fe"
       },
       "uv": {
         "rangeBefore": 1084,
         "rangeAfter": 681.13,
         "bits": 22,
-        "degenerate": 2.9
+        "degenerate": 3.5
       },
-      "bytes": 13503132
+      "bytes": 19170292
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "2c9089a2",
-      "tris": 617606,
-      "trisRaw": 968432,
-      "textures": 119,
+      "v": "b8b80ba1",
+      "tris": 824566,
+      "trisRaw": 1960624,
+      "textures": 329,
       "attached": 0,
       "swap": {
-        "hardpoint_gun_laser_bottom_right": 1,
-        "hardpoint_gun_laser_bottom_left": 1,
         "hardpoint_gun_laser_top_right": 1,
         "hardpoint_gun_laser_top_left": 1,
+        "hardpoint_turret_base_lower": 2,
         "hardpoint_turret_base_upper": 2,
-        "hardpoint_turret_base_lower": 2
+        "hardpoint_gun_laser_bottom_right": 1,
+        "hardpoint_gun_laser_bottom_left": 1
       },
       "swapNodes": 32,
       "palette": {
-        "1": 3,
-        "2": 4,
-        "3": 4
+        "1": 11,
+        "2": 12,
+        "3": 6
+      },
+      "record": "RSI_Constellation_Andromeda_GS",
+      "game": "12913470",
+      "interiorDropped": 10,
+      "paints": {
+        "url": "/hangar/paints/rsi-constellation-andromeda.json",
+        "v": "139aff93"
       },
       "uv": {
-        "rangeBefore": 1633,
-        "rangeAfter": 1554,
-        "bits": 23,
-        "degenerate": 2.6
+        "rangeBefore": 429,
+        "rangeAfter": 281,
+        "bits": 21,
+        "degenerate": 2.7
       },
-      "bytes": 12428856
+      "bytes": 23347176
     }
   },
   "weapons": {
@@ -3499,8 +3565,8 @@
     },
     "katalog": {
       "url": "/hangar/props/katalog.json",
-      "v": "e95056ad",
-      "bytes": 2975957,
+      "v": "7ab0bf17",
+      "bytes": 2976807,
       "props": 365,
       "kategorien": {
         "diagnose": {
@@ -3631,8 +3697,8 @@
         },
         "fahrzeug": {
           "file": "/hangar/props/fahrzeug.glb",
-          "v": "0c1443bf",
-          "bytes": 2094084,
+          "v": "4a38e91f",
+          "bytes": 2157644,
           "props": 4
         },
         "reifen": {
@@ -3643,8 +3709,8 @@
         },
         "tor": {
           "file": "/hangar/props/tor.glb",
-          "v": "7d3bf458",
-          "bytes": 166220,
+          "v": "aca73149",
+          "bytes": 347044,
           "props": 1
         }
       }
