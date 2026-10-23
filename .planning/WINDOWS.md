@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 67
+open_count: 68
 waived_count: 1
 fixed_count: 37
-total_count: 105
-last_updated: 2026-10-23T19:05:00.000Z
+total_count: 106
+last_updated: 2026-10-23T20:35:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -120,6 +120,7 @@ last_updated: 2026-10-23T19:05:00.000Z
 | 104 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Werkzeugecke Ost nach Krisz 23.10.2026 12:07 zur Revel-&-York-Nische Ost: „das könnte eine werkzeug ekke sein mit regalen verschiedenen tools, toolcarts undsowas“): Das Teilelager in der Ostnische ist jetzt eine Werkzeugecke. Ab mittel: Werkzeugwand (Werkzeugschrank, zwei Wandregale mit Werkzeugkoffern, Bohrer und Steckschlüsselkasten, zwei Rollschränke), davor ein Bauteiltisch mit einem Kühler in den Böcken und Werkzeug auf der Platte, ein herausgerollter Rollschrank, ein Scherenhubwagen mit Werkzeug, Rollbrett und Hocker, alles in einem Arbeitsbereich mit Bodenlinie. Auf hoch dazu die beiden Hochregale mit Werkzeugkoffern, Kreissäge und Ersatzteilen, ein Plattformwagen beim Beladen (offener Steckschlüsselkasten), Rollleiter am Hochregal, Schweißgerät, Stativlampe, Feuerlöscher, zweites Rollbrett. Die Ladeinsel Ost steht nur noch auf hoch (mittel ist bis auf 4 000 Dreiecke ausgeschöpft). Nebenbei: Werkzeugschrank am Werkplatz Ost und Wandregale der Werkinsel West standen mit dem Rücken zur Halle, jetzt mit der Front. Maschinell geprüft (verify:hangar-hall [17]): nichts schwebt, nichts steckt ineinander, Werkzeug liegt auf Brett, Platte oder Regalboden; Klinken angehoben. Zu beurteilen: (1) Liest sich die Nische auf deinem PC als Werkzeugecke? (2) Ist sie zu voll oder zu leer, und fehlt ein Stück, das du in einer Werkzeugecke erwartest? Bilder unter hangar-deko/werkzeugecke im Projektordner. | fixed | Betreiber-Urteil 23.10.2026 14:16 zum Bild der Nische: „da hinten ist nichts drin nur davorgestellt“. Die Werkzeugecke stand vor der Nische, weil die Nischen außerhalb des Hallenraums lagen; sie steht jetzt in der Nische, das offene Urteil dazu steht in #105. Frage (2) geht in #105 über. | 2026-10-23T13:30:00.000Z | 2026-10-23T16:00:00.000Z |
 | 105 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Ostnische von innen nach Krisz 23.10.2026 14:16 zum Bild der Nische: „da hinten ist nichts drin nur davorgestellt“): Die beiden Revel-&-York-Nischen lagen außerhalb des Hallenraums, Deko konnte dort nicht stehen und stand deshalb davor. Jetzt zählen Nischen zum Raum der Deko, und die Ostnische ist von innen gefüllt. Ab mittel: Werkzeugwand an der Rückwand (Werkzeugschrank, zwei Wandregale, zwei Rollschränke), davor Bauteiltisch, Scherenhubwagen, Rollbrett und Hocker. Auf hoch dazu je ein 8-m-Hochregal an der Nordwand und an der Rückwand im Süden (Werkzeugkoffer, Kisten, Bauteile in den Fächern), Teilelager mit Kistenstapel und Bauteil-Paletten an der Südwand, Plattformwagen und Schweißgerät vor dem Südregal, die Ladeinsel mitten vor Logo und Pflanzkübeln, Stapler und Wagen locker an der Vorderkante, halb in der Halle. Vor der Nische in der Halle steht davon nichts mehr. Maschinell geprüft (verify:hangar-hall [17]): jede Nische liegt außen an einer Wandlinie, hat Hallenboden und trägt Deko (alle drei Regeln vorgeführt rot), nichts schwebt, nichts steckt ineinander oder in der Wand, auch in größeren Hallen. Auf mittel steht in der Nische nur die Werkzeugwand mit Tisch (mittel ist bis auf 4 000 Dreiecke ausgeschöpft). Zu beurteilen: (1) Wirkt die Ostnische auf deinem PC jetzt von innen gefüllt? (2) Ist die Vorderkante zu leer oder richtig locker? (3) Reicht mittel so, oder soll ein Hochregal auch dort stehen (kostet Budget anderswo)? (4) aus #104: Fehlt ein Stück, das du in einer Werkzeugecke erwartest? Die Westnische folgt als Bodenfahrzeug-Werkstatt mit Tor. Vorher/Nachher-Bilder unter hangar-deko/nischen im Projektordner. | open |  | 2026-10-23T16:00:00.000Z |  |
 | 106 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische als Fahrzeugwerkstatt nach Krisz 23.10.2026 14:38: „westnische kann zu einem tor oder rudchgang für bodenfahrzeuge geben, da machen wir auch eine werkstatt daraus und da machen wir dann halt bodenfahrzeuge“): In der Rückwand der Westnische sitzt rechts ein Garagentor, davor Torsteuerung und Ladesäule; eine Zufahrt mit Randlinien, Mittellinie und Pfeilen führt bis vors Schiffsfeld und bleibt frei. In den Buchten stehen der ROC (vor dem Logo), die Cyclone (nördlich, mit Werkbank, Schweißgerät, Leiter und Reifenstapel) und der Ursa (südlich, Heck an der Ladezone mit Containern, Paletten und Stapler). Die Munition rückt kompakt nach vorn in die Halle, dort zieht der PTV den Torpedowagen. Auf mittel stehen nur Tor, ROC, Container und Torsteuerung (Budget). Maschinell geprüft (verify:hangar-hall [17]): nichts in Wand, Kübeln, Zufahrt oder ineinander, beide Nischen zu 100 % mit Hallenboden. Bekannte Abweichungen: Das Tor ist fast schwarz (Spielfarbe ohne Raumlicht), die Cyclone dunkler als im Spiel, der Ursa wirkt von vorn offen (durchsichtige Scheiben). Zu beurteilen: (1) Liest sich die Nische als Fahrzeugwerkstatt mit Tor? (2) Soll das Tor heller werden? (3) Stören Farbe der Cyclone oder die Front des Ursa? (4) Aus deinem Blickwinkel verdeckt die Munition vorn links die untere Nische (Räder des Ursa, Container): soll sie woandershin, etwa auf die Galerie? (5) Reicht auf mittel Tor, ROC und Container? Bilder unter hangar-deko/westnische im Projektordner. | open |  | 2026-10-23T19:05:00.000Z |  |
+| 107 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Ausrichtung nach Krisz 23.10.2026 19:54 mit Bild: „schiff steht in falscher richtung“): Seit dem 6.10. zeigte der Bug mit Absicht zur Startansicht und damit vom Hallentor (Nordtor) weg. Jetzt steht jedes Schiff mit dem Bug zum Hallentor, wie im Spiel; der Wartungsplatz dreht mit (Geräte am Bug bleiben am Bug, Kabel am Rumpf), die Crew am Bug ebenso. Die Startansicht schaut weiter vorn rechts auf den Bug, jetzt mit der Westnische und dem Südende der Halle dahinter statt dem Tor. Geprüft an Gladius, Cutlass, Constellation und C2 (Draufsicht, Blick zum Tor, Blick auf den Bug, dein Blickwinkel, Startansicht). Zu beurteilen: (1) Steht das Schiff jetzt richtig herum? (2) Passt die Startansicht auf den Bug, oder soll sie von hinten zum Tor schauen? Bilder unter hangar-ausrichtung im Projektordner. | open |  | 2026-10-23T20:35:00.000Z |  |
 
 ````json
 [
@@ -1381,6 +1382,18 @@ last_updated: 2026-10-23T19:05:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-23T19:05:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 107,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Ausrichtung nach Krisz 23.10.2026 19:54 mit Bild: „schiff steht in falscher richtung“): Seit dem 6.10. zeigte der Bug mit Absicht zur Startansicht und damit vom Hallentor (Nordtor) weg. Jetzt steht jedes Schiff mit dem Bug zum Hallentor, wie im Spiel; der Wartungsplatz dreht mit (Geräte am Bug bleiben am Bug, Kabel am Rumpf), die Crew am Bug ebenso. Die Startansicht schaut weiter vorn rechts auf den Bug, jetzt mit der Westnische und dem Südende der Halle dahinter statt dem Tor. Geprüft an Gladius, Cutlass, Constellation und C2 (Draufsicht, Blick zum Tor, Blick auf den Bug, dein Blickwinkel, Startansicht). Zu beurteilen: (1) Steht das Schiff jetzt richtig herum? (2) Passt die Startansicht auf den Bug, oder soll sie von hinten zum Tor schauen? Bilder unter hangar-ausrichtung im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-23T20:35:00.000Z",
     "resolved_at": null
   }
 ]
