@@ -812,7 +812,7 @@ function paintLinks(now = performance.now()) {
     const tab = tabs[cls];
     const st = pull[cls];
     const shown = tab.classList.contains('is-on');
-    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.remove('is-on'); st.k = 0; st.v = 0; st.src = null; continue; }
+    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.remove('is-on'); st.k = 0; st.v = 0; st.src = null; st.bump = null; dents[cls].removeAttribute('d'); continue; }
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
@@ -846,13 +846,18 @@ function paintLinks(now = performance.now()) {
     panel.classList.toggle('is-snap', !!snap);
     if (k < 0.01) {
       if (shown && !calm.matches) st.bump = { t0: now, yc: st.yc };
+      tab.classList.toggle('is-solid', shown);  // sofort weg, die Delle uebernimmt die Kante
       tab.classList.remove('is-on');
       if (paintDent(cls, panel, o, now)) again = true; else panel.style.setProperty('--nh', '0px');
       continue;
     }
     if (st.bump) { st.bump = null; dents[cls].removeAttribute('d'); }
-    // Noch nachlaufend, aber schon ganz draussen: am Listenrand weiter einziehen.
-    const hMin = 30 * k;
+    // Kommt derselbe Platz wieder herein, steht die Lasche sofort voll da: ein Einblenden
+    // liesse die schon offene Kerbe kurz als Luecke im Rahmen sehen.
+    tab.classList.toggle('is-solid', !shown && !fresh);
+    // Noch nachlaufend, aber schon ganz draussen: am Listenrand als kurze Lasche weiter
+    // einziehen; nie flacher als 16 px, sonst wirkt sie wie ein Strich.
+    const hMin = 16 + 28 * k;
     if (bot - top < hMin) {
       if (r.top < visT) { top = visT; bot = visT + hMin; } else { bot = visB; top = visB - hMin; }
     }
