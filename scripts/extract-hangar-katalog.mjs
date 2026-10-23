@@ -1130,8 +1130,11 @@ async function fahrzeugGlb(cls, lod, out, limit) {
   // vereinfachen, bleibt die Stufe; sonst die nächste
   let reifen = reifenRoh;
   if (roh > limit && reifenRoh && roh - 0.7 * reifenRoh <= limit) {
-    const ratio = (reifenRoh - (roh - limit * 0.98)) / reifenRoh;
+    // Ziel in Dreiecken; jeder Durchgang rechnet vom erreichten Stand aus, sonst
+    // dünnt ein zweiter die schon ausgedünnten Reifen noch einmal um denselben Anteil
+    const ziel = reifenRoh - (roh - limit * 0.98);
     for (const error of [0.01, 0.03, 0.1]) {
+      const ratio = ziel / reifen;
       for (const p of tires) { weldPrimitive(p); simplifyPrimitive(p, { simplifier: MeshoptSimplifier, ratio, error }); }
       reifen = trisIn(tires);
       if (roh - reifenRoh + reifen <= limit) break;
