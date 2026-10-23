@@ -335,6 +335,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-cmpbox.is-prev .lo-dv__h{background:color-mix(in srgb,var(--lo-a) 4%,var(--bg))}
   .lo-cmpbox.is-linked{border-color:transparent}
   .lo-cmpbox.is-linked::before{border-color:var(--lo-cb)}
+  .lo-pick.is-bump-in::before,.lo-cmpbox.is-bump-in::before{transform-origin:right center;animation:lo-bump-in .55s ease-out}
+  .lo-pick.is-bump-out::before,.lo-cmpbox.is-bump-out::before{transform-origin:right center;animation:lo-bump-out .55s ease-out}
+  @keyframes lo-bump-in{28%{transform:scaleX(calc(1 - var(--lo-bs,.006)))}58%{transform:scaleX(calc(1 + var(--lo-bs,.006) * .35))}80%{transform:scaleX(calc(1 - var(--lo-bs,.006) * .12))}}
+  @keyframes lo-bump-out{28%{transform:scaleX(calc(1 + var(--lo-bs,.006)))}58%{transform:scaleX(calc(1 - var(--lo-bs,.006) * .35))}80%{transform:scaleX(calc(1 + var(--lo-bs,.006) * .12))}}
   .lo-cmpbox:not(.is-prev).is-linked::before{display:none}
   .lo-opt.is-prev{background:transparent;box-shadow:none}
   .lo-opt.is-prev .is-act{background:var(--lo-boxbg)}
@@ -374,7 +378,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-acts{width:100%}
   .lo-acts .lo-btn{flex:1 1 auto}
 }
-@media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn,.lo-tab,.lo-cmpbox,.lo-pick::before,.lo-cmpbox::before{transition:none}}
+@media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn,.lo-tab,.lo-cmpbox,.lo-pick::before,.lo-cmpbox::before{transition:none;animation:none}}
 </style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Hangar', href: '/de/hangar.html' }, { label: l('lo.title') }] : [{ label: 'Hangar', href: '/hangar.html' }, { label: l('lo.title') }]} hasEn={true} />

@@ -764,6 +764,15 @@ const pull = { 'is-a': { k: 0, v: 0, t: 0, src: null }, 'is-b': { k: 0, v: 0, t:
 const SPRING_W = 11;    // 1/s, Eigenfrequenz (~0,55 s je Schwingung)
 const SPRING_Z = 0.7;   // Daempfung < 1: leichtes Ueberschwingen (~5 %)
 const calm = matchMedia('(prefers-reduced-motion:reduce)');
+// Gegenreaktion des grossen Rahmens: dockt die Kante an, gibt er kurz nach innen nach;
+// loest sie sich, wird er kurz mitgezogen. Beides federt zurueck (CSS lo-bump-*).
+function bump(panel, dir) {
+  if (calm.matches) return;
+  panel.style.setProperty('--lo-bs', 6 / Math.max(200, panel.offsetWidth));  // ~6 px Ausschlag der linken Kante
+  panel.classList.remove('is-bump-in', 'is-bump-out');
+  void panel.offsetWidth;  // Animation neu starten
+  panel.classList.add(`is-bump-${dir}`);
+}
 function paintLinks(now = performance.now()) {
   linkQueued = false;
   let again = false;
@@ -798,7 +807,8 @@ function paintLinks(now = performance.now()) {
     let dt = Math.min(rest ? 17 : 64, Math.max(0, now - st.t)) / 1000;
     st.t = now;
     // Neu gewaehlt: sofort am Ziel. Derselbe Platz kommt wieder herein: aus dem Panel herausfedern.
-    if (src !== st.src || calm.matches) { st.k = goal; st.v = 0; st.src = src; }
+    const fresh = src !== st.src;
+    if (fresh || calm.matches) { st.k = goal; st.v = 0; st.src = src; }
     for (; dt > 0; dt -= 0.008) {
       const h = Math.min(dt, 0.008);
       st.v += (-SPRING_W * SPRING_W * (st.k - goal) - 2 * SPRING_Z * SPRING_W * st.v) * h;
@@ -808,7 +818,11 @@ function paintLinks(now = performance.now()) {
     const k = Math.min(1.1, st.k);
     const snap = linkSnap || st.k !== goal || (shown && goal < 1);
     panel.classList.toggle('is-snap', !!snap);
-    if (k < 0.01) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
+    if (k < 0.01) {
+      if (shown) bump(panel, 'in');
+      panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue;
+    }
+    if (!shown && !fresh) bump(panel, 'out');
     // Noch nachlaufend, aber schon ganz draussen: am Listenrand weiter einziehen.
     const hMin = 30 * k;
     if (bot - top < hMin) {
@@ -853,6 +867,7 @@ function queueLinks(e) {
 }
 const linkWatch = new MutationObserver(() => queueLinks());
 linkWatch.observe(pick, { childList: true });
+root.addEventListener('animationend', (e) => { if (e.animationName.startsWith('lo-bump')) e.target.classList.remove('is-bump-in', 'is-bump-out'); });
 linkWatch.observe($('lo-equip-list'), { childList: true });
 root.addEventListener('scroll', queueLinks, true);
 addEventListener('resize', queueLinks);
