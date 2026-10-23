@@ -782,28 +782,33 @@ function paintLinks() {
     const bot = Math.min(r.bottom, visB);
     panel.classList.add('is-linked');
     panel.classList.toggle('is-snap', snap);
-    // Rausgescrollt: die Lasche zieht sich im Mass des verdeckten Anteils nach rechts
-    // ins Panel zurueck (bleibt dabei geschlossen); ganz draussen bleibt nur der
-    // geschlossene Panelrahmen.
+    // Rausgescrollt: die senkrechte Kante der Lasche gleitet gerade nach rechts, bis sie
+    // auf der Panelkante liegt (Ecken und Viertelboegen schrumpfen mit, damit nichts
+    // spitz zulaeuft); dann schliesst sich der Panelrahmen. Gezogen wird, waehrend
+    // die obere bzw. untere Haelfte des Platzes verschwindet.
     const seen = r.height ? Math.max(0, bot - top) / r.height : 0;
-    if (seen < 0.04) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
+    const t = Math.min(1, Math.max(0, (seen - 0.5) / 0.5));
+    const k = t * t * (3 - 2 * t);
+    if (k < 0.01) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
     // Viertelboegen oben/unten: nur wenn Platz bis zur Panelecke ist, sonst gerade hinein.
     const cs = getComputedStyle(root);
-    const fr = parseFloat(cs.getPropertyValue('--lo-fr')) || 14;
+    const fr = (parseFloat(cs.getPropertyValue('--lo-fr')) || 14) * k;
     const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
     const filT = top - fr >= p.top + corner;
     const filB = bot + fr <= p.bottom - corner;
     const nt = top - p.top - (filT ? fr : 0);
     panel.style.setProperty('--nt', `${nt}px`);
     panel.style.setProperty('--nh', `${bot - top + (filT ? fr : 0) + (filB ? fr : 0)}px`);
-    const full = p.left - fr - Math.max(r.left, b.left);
-    const left = p.left - fr - full * seen;
+    const full = p.left - fr / k - Math.max(r.left, b.left);
+    const left = p.left - fr - full * k;
     // Erstes Erscheinen springt (nur Einblenden), danach gleitet die Lasche.
     tab.classList.toggle('is-jump', snap || !tab.classList.contains('is-on'));
     tab.classList.toggle('is-nofil-t', !filT);
     tab.classList.toggle('is-nofil-b', !filB);
+    tab.style.setProperty('--lo-fr', `${fr}px`);
+    tab.style.setProperty('--lo-k', k);
     tab.style.transform = `translate(${left - o.left}px,${top - o.top}px)`;
-    tab.style.width = `${full * seen}px`;
+    tab.style.width = `${full * k}px`;
     tab.style.height = `${bot - top}px`;
     tab.classList.add('is-on');
   }
