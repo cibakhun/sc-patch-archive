@@ -257,7 +257,9 @@
         der Wand: „alles steht in einer reihe wie eine asset austestellung“),
         keine Requisite in einem Gehweg (freihalten: Rechtecke je Zone vor
         den Eingaengen, seit 22.10.2026; „eingänge richtig gestalten mit
-        eingang undso“), Gestapeltes liegt auf einem Stueck seiner Zone auf, und keines
+        eingang undso“), keine vor einem Fahrzeug in seiner Fahrspur
+        (FAHRSPUR, seit 23.10.2026; „hier stehen sachen einfach vorm
+        auto“), Gestapeltes liegt auf einem Stueck seiner Zone auf, und keines
         steht im Band des Grundrisses (WORK_BAND, Zellen WORK_CELL, Regel
         wie floorGrid/freeRot) in Wand oder Einrichtung aus Hallenstufe und
         Moebeldatei der Seite (Moebel auf den Streifen umgesetzt wie
@@ -516,7 +518,18 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // 1 800 000 -> 1 900 000 Dreiecke, 13 -> 14 MB): die vier Fahrzeuge und das
 // Tor bringen eigene Materialien und dichte Netze mit, auf mittel stehen
 // Tor, ROC, Container und Torsteuerung.
-const KLINKE_DEKO = { zonen: 36, mittel: 15, glieder: 493, gestapelt: 197, spuren: 229, arten: 176, fach: 87, geprueft: 470, hochGeprueft: 76, massstaebe: 6, gerueckt: 5, frei: 305, gehwege: 6, leitungen: 8, luftEnden: 6, nischen: 2, inNischen: 134 };
+// Fahrspuren am selben Abend (Betreiber mit Bild der Westnische: „hier
+// stehen sachen einfach vorm auto“): Munitionsblock vor dem Ursa, Werkbank
+// vor der Cyclone, Reifen und Konsole vor dem ROC. Die Munition zieht an den
+// Platz der Werkinsel an der Westwand, deren Werkzeugwand an die Nordwand
+// der Westnische (die Werkbank der Insel faellt weg, ihr Werkzeug liegt im
+// Regal). Neu: fahrspuren = Fahrzeuge mit freier Spur (vorgefuehrt rot mit
+// dem alten Stand: 17 Requisiten in den Spuren von PTV, ROC, Cyclone und
+// Ursa). Stand: 36 Zonen, 493 Glieder (199 gestapelt), 90 in
+// Regalfaechern, 470 im Band (77 hohe darueber), 305 frei gedreht,
+// 2 Nischen mit 154 Stuecken. Angehoben: gestapelt 199, fach 90,
+// hochGeprueft 77, inNischen 154.
+const KLINKE_DEKO = { zonen: 36, mittel: 15, glieder: 493, gestapelt: 199, spuren: 229, arten: 176, fach: 90, geprueft: 470, hochGeprueft: 77, massstaebe: 6, gerueckt: 5, frei: 305, gehwege: 6, fahrspuren: 4, leitungen: 8, luftEnden: 6, nischen: 2, inNischen: 154 };
 const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, bytes: 14e6 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
@@ -1547,6 +1560,13 @@ async function pruefeSchichten({ tag, satz, was, file, url, sch, kat, R, K, O, k
 // Glieder [Knoten, x, z, Drehung, Hoehe] wie buildDeko und layDienst sie
 // stellen; Dreiecke je Knoten im Raum des Knotens, wie kitParts sie nimmt.
 const BUCHSE = { flaeche: 0.04, frei: 0.35, spiel: 0.05 };
+// Fahrspur vor jedem Fahrzeug der Hallendeko (prop_fahrzeug_*, [17], seit
+// 23.10.2026; Betreiber zur Westnische: „hier stehen sachen einfach vorm
+// auto“, Bild: Munitionsblock und Kisten vor dem Ursa). Ein Rechteck vor
+// der Front (-z des Fahrzeugs) in seiner Breite und rand m mehr je Seite,
+// laenge m lang: Aus den Buchten der Nische reicht das 3 bis 8 m in die
+// Halle. Stapler zaehlen nicht, sie stehen mit Absicht vor ihrer Palette.
+const FAHRSPUR = { laenge: 8, rand: 0.3 };
 // Oeffnungen der Luftschlauchteile ([17], seit 22.10.2026, gleicher Anlass:
 // Im Osten lag das Eckstueck neben dem Ende des 8-m-Schlauchs, keine seiner
 // Oeffnungen zeigte auf den Schlauch oder den Luefter). Je Knoten
@@ -2081,7 +2101,7 @@ const kdm = /\/\* work-deko \*\/([\s\S]*?)\/\* \/work-deko \*\//.exec(viewer);
 let dekoBlock = null;
 try { dekoBlock = kdm ? JSON.parse(kdm[1]) : null; } catch (e) { fail(`[17] WORK_DEKO im Viewer ist kein JSON mehr (${e.message})`); }
 const DK = W?.deko ?? null;
-const dekoRun = { zonen: 0, mittel: 0, leitungen: 0, luftEnden: 0, gehwege: 0, gehwegFlaeche: 0, glieder: 0, spuren: 0, gerade: 0, frei: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, nischen: 0, inNischen: 0, nischenBoden: [], band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
+const dekoRun = { zonen: 0, mittel: 0, leitungen: 0, luftEnden: 0, gehwege: 0, fahrspuren: 0, gehwegFlaeche: 0, glieder: 0, spuren: 0, gerade: 0, frei: 0, gerueckt: 0, randWeg: 0, gestapelt: 0, fach: 0, arten: 0, mats: 0, tris: { mittel: 0, hoch: 0 }, bytes: 0, quellen: 0, zellen: 0, belegt: 0, nischen: 0, inNischen: 0, nischenBoden: [], band: 0, geprueft: 0, darueber: 0, hochGeprueft: 0, massstaebe: 0, schichten: { zeilen: 0, blend: 0, abnutzung: 0, detail: 0, normale: 0, karten: 0, ecken: 0, bytes: 0 } };
 if (W && !DK && existsSync(join(ROOT, 'public/hangar/props/deko.glb'))) fail('[17] public/hangar/props/deko.glb liegt bereit, die Seite gibt die Hallendeko nicht mit (opts.hall.workshop.deko): Die Halle stuende still leer. HangarApp.astro pruefen');
 if (DK && !kdm) fail('[17] die Seite gibt die Hallendeko mit, der Viewer traegt keinen Block /* work-deko */ … /* /work-deko */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
 for (const k of Object.keys(KLINKE_DEKO).filter(() => !DK)) fail(`[17] KLINKE_DEKO.${k}: die Seite gibt keine Hallendeko mehr mit; den Eintrag hier per Commit mit Ursache entfernen`);
@@ -2347,6 +2367,19 @@ if (DK && dekoBlock) {
     const imWeg = [];
     for (const w of wege) for (const m of solid) if (overlap(m, w) > 0.01) imWeg.push(`${tag(m)} im Gehweg von ${w.zone.name}`);
     if (imWeg.length) fail(`[17] ${imWeg.length} Requisiten der Hallendeko stehen in einem Gehweg, der frei bleiben soll (${imWeg.slice(0, 3).join('; ')}): x/z in WORK_DEKO nachziehen oder freihalten der Zone anpassen`);
+    // Fahrspuren (seit 23.10.2026; Betreiber zur Westnische: „hier stehen
+    // sachen einfach vorm auto“): Vor jedem Fahrzeug bleibt eine Spur in
+    // seiner Breite frei, FAHRSPUR.laenge m ab der Front, damit man es sieht
+    // und es hinausfahren koennte. Nichts aus irgendeiner Zone steht darin,
+    // auch nicht aus der des Fahrzeugs.
+    const imSpur = [];
+    for (const v of solid.filter((m) => /^prop_fahrzeug_/.test(m.node))) {
+      const L = FAHRSPUR.laenge, d = v.hz + L / 2;
+      const spur = { zone: v.zone, c: [v.c[0] - d * Math.sin(v.a), v.c[1] - d * Math.cos(v.a)], a: v.a, hx: v.hx + FAHRSPUR.rand, hz: L / 2 };
+      dekoRun.fahrspuren++;
+      for (const m of solid) if (m !== v && overlap(m, spur) > 0.01) imSpur.push(`${tag(m)} vor ${v.node.replace(/^prop_fahrzeug_/, '')}`);
+    }
+    if (imSpur.length) fail(`[17] ${imSpur.length} Requisiten der Hallendeko stehen vor einem Fahrzeug in seiner Fahrspur (${imSpur.slice(0, 3).join('; ')}): neben oder hinter das Fahrzeug stellen`);
     if (clash.length) fail(`[17] ${clash.length} Stuecke der Hallendeko stecken ineinander (${clash.slice(0, 3).join('; ')}): x/z in WORK_DEKO nachziehen`);
     if (tooTall.length) fail(`[17] ${tooTall.length} Stuecke in Regalfaechern der Hallendeko sind zu hoch fuer ihr Fach (${[...new Set(tooTall)].slice(0, 3).join('; ')}): ein Fach hoeher stellen oder ein niedrigeres Stueck`);
     // Gestapeltes liegt auf: ein Stueck derselben Zone endet auf seiner
@@ -2676,7 +2709,7 @@ if (DK && dekoBlock) {
     if (dekoRun.bytes > O.bytes) fail(`[17] der Satz der Hallendeko wiegt ${(dekoRun.bytes / 1e6).toFixed(2)} MB, die Obergrenze ist ${O.bytes / 1e6} MB`);
   }
 }
-sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb von Raum und Nischen (jede Nische aussen an einer Wandlinie, mit Hallenboden unter 95 % ihrer Zellen und mit Deko), im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); 0 Requisiten in Gehwegen (freihalten); 0 lose Kabel und Schlaeuche, jede Leitung mit beiden Buchsen auf einem Glied ihrer Zone (hoechstens ${BUCHSE.flaeche} m daneben, ${BUCHSE.frei} m hinaus frei), ihr Weg durch kein Stueck und keinen Gehweg; jedes Ende eines Luftschlauchteils an einer Gegenoeffnung (LUFT_OEFFNUNG, im Satz nachgemessen); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.nischen} Nischen mit ${dekoRun.inNischen} Stuecken (Boden ${dekoRun.nischenBoden.join(', ') || '-'}), ${dekoRun.frei} im Raum gedreht, ${dekoRun.gehwege} Gehwege frei (${Math.round(dekoRun.gehwegFlaeche)} m²), ${dekoRun.leitungen} Leitungen mit beiden Buchsen, ${dekoRun.luftEnden} Enden von Luftschlaeuchen an einer Gegenoeffnung; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
+sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb von Raum und Nischen (jede Nische aussen an einer Wandlinie, mit Hallenboden unter 95 % ihrer Zellen und mit Deko), im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); 0 Requisiten in Gehwegen (freihalten) und vor Fahrzeugen (je ${FAHRSPUR.laenge} m Fahrspur); 0 lose Kabel und Schlaeuche, jede Leitung mit beiden Buchsen auf einem Glied ihrer Zone (hoechstens ${BUCHSE.flaeche} m daneben, ${BUCHSE.frei} m hinaus frei), ihr Weg durch kein Stueck und keinen Gehweg; jedes Ende eines Luftschlauchteils an einer Gegenoeffnung (LUFT_OEFFNUNG, im Satz nachgemessen); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.nischen} Nischen mit ${dekoRun.inNischen} Stuecken (Boden ${dekoRun.nischenBoden.join(', ') || '-'}), ${dekoRun.frei} im Raum gedreht, ${dekoRun.gehwege} Gehwege frei (${Math.round(dekoRun.gehwegFlaeche)} m²), ${dekoRun.fahrspuren} Fahrspuren frei, ${dekoRun.leitungen} Leitungen mit beiden Buchsen, ${dekoRun.luftEnden} Enden von Luftschlaeuchen an einer Gegenoeffnung; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);
