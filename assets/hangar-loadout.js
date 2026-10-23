@@ -757,10 +757,16 @@ root.append(linkLayer);
 const wide = matchMedia('(min-width:1100px) and (min-height:600px)');
 let linkQueued = false;
 let linkSnap = false;  // Scrollen/Groesse: Lasche folgt sofort, ohne Gleiten
-function paintLinks() {
+// Einzug je Lasche (1 = voll da, 0 = ganz im Panel). Er folgt dem Scrollziel ueber eine
+// leicht unterdaempfte Feder: auch ein grosser Mausrad-Schritt laeuft fluessig ab, und
+// beim Herausfahren federt die Kante einen Hauch nach.
+const pull = { 'is-a': { k: 0, v: 0, t: 0, src: null }, 'is-b': { k: 0, v: 0, t: 0, src: null } };
+const SPRING_W = 11;    // 1/s, Eigenfrequenz (~0,55 s je Schwingung)
+const SPRING_Z = 0.7;   // Daempfung < 1: leichtes Ueberschwingen (~5 %)
+const calm = matchMedia('(prefers-reduced-motion:reduce)');
+function paintLinks(now = performance.now()) {
   linkQueued = false;
-  const snap = linkSnap;
-  linkSnap = false;
+  let again = false;
   const o = root.getBoundingClientRect();
   const pairs = [
     ['is-a', $('lo-equip-list').querySelector('.lo-slot.is-sel'), $('lo-equip'), pick],
@@ -769,7 +775,9 @@ function paintLinks() {
   for (const p of [pick, ...pick.querySelectorAll('.lo-cmpbox')]) if (!pairs.some((x) => x[3] === p && x[1])) p.classList.remove('is-linked');
   for (const [cls, src, box, panel] of pairs) {
     const tab = tabs[cls];
-    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.remove('is-on'); continue; }
+    const st = pull[cls];
+    const shown = tab.classList.contains('is-on');
+    if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.remove('is-on'); st.k = 0; st.v = 0; st.src = null; continue; }
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     const p = panel.getBoundingClientRect();
@@ -778,40 +786,64 @@ function paintLinks() {
     const pinned = Math.max(b.top, ...[...box.querySelectorAll('.lo-big__h, thead th')].map((h) => h.getBoundingClientRect()).filter((h) => h.top <= b.top + 4).map((h) => h.bottom));
     const visT = Math.max(pinned, p.top);
     const visB = Math.min(b.bottom, p.bottom);
-    const top = Math.max(r.top, visT);
-    const bot = Math.min(r.bottom, visB);
+    let top = Math.max(r.top, visT);
+    let bot = Math.min(r.bottom, visB);
     panel.classList.add('is-linked');
-    panel.classList.toggle('is-snap', snap);
-    // Rausgescrollt: die senkrechte Kante der Lasche gleitet gerade nach rechts, bis sie
-    // auf der Panelkante liegt (Ecken und Viertelboegen schrumpfen mit, damit nichts
-    // spitz zulaeuft); dann schliesst sich der Panelrahmen. Gezogen wird, waehrend
-    // die obere bzw. untere Haelfte des Platzes verschwindet.
+    // Rausgescrollt: die senkrechte Kante gleitet gerade nach rechts, bis sie auf der
+    // Panelkante liegt; dann schliesst sich der Panelrahmen. Ziel ist der Anteil, der
+    // von der zweiten Haelfte des Platzes noch zu sehen ist.
     const seen = r.height ? Math.max(0, bot - top) / r.height : 0;
-    const t = Math.min(1, Math.max(0, (seen - 0.5) / 0.5));
-    const k = t * t * (3 - 2 * t);
+    const goal = Math.min(1, Math.max(0, (seen - 0.5) / 0.5));
+    const rest = st.v === 0;
+    let dt = Math.min(rest ? 17 : 64, Math.max(0, now - st.t)) / 1000;
+    st.t = now;
+    // Neu gewaehlt: sofort am Ziel. Derselbe Platz kommt wieder herein: aus dem Panel herausfedern.
+    if (src !== st.src || calm.matches) { st.k = goal; st.v = 0; st.src = src; }
+    for (; dt > 0; dt -= 0.008) {
+      const h = Math.min(dt, 0.008);
+      st.v += (-SPRING_W * SPRING_W * (st.k - goal) - 2 * SPRING_Z * SPRING_W * st.v) * h;
+      st.k += st.v * h;
+    }
+    if (Math.abs(goal - st.k) < 0.003 && Math.abs(st.v) < 0.02) { st.k = goal; st.v = 0; } else again = true;
+    const k = Math.min(1.1, st.k);
+    const snap = linkSnap || st.k !== goal || (shown && goal < 1);
+    panel.classList.toggle('is-snap', !!snap);
     if (k < 0.01) { panel.style.setProperty('--nh', '0px'); tab.classList.remove('is-on'); continue; }
-    // Viertelboegen oben/unten: nur wenn Platz bis zur Panelecke ist, sonst gerade hinein.
+    // Noch nachlaufend, aber schon ganz draussen: am Listenrand weiter einziehen.
+    const hMin = 30 * k;
+    if (bot - top < hMin) {
+      if (r.top < visT) { top = visT; bot = visT + hMin; } else { bot = visB; top = visB - hMin; }
+    }
+    const h = bot - top;
+    // Tiefe der Ausbuchtung; Ecken und Viertelboegen werden nur flacher (elliptisch),
+    // nie eckig: senkrecht bleiben sie rund, waagrecht passen sie in die Tiefe.
     const cs = getComputedStyle(root);
-    const fr = (parseFloat(cs.getPropertyValue('--lo-fr')) || 14) * k;
+    const fr = parseFloat(cs.getPropertyValue('--lo-fr')) || 14;
+    const depth = (p.left - Math.max(r.left, b.left)) * k;
+    const fx = Math.min(fr, depth / 3);
+    const rx = Math.min(22, depth - fx);
+    const ry = Math.min(22, h / 2);
     const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
     const filT = top - fr >= p.top + corner;
     const filB = bot + fr <= p.bottom - corner;
-    const nt = top - p.top - (filT ? fr : 0);
-    panel.style.setProperty('--nt', `${nt}px`);
-    panel.style.setProperty('--nh', `${bot - top + (filT ? fr : 0) + (filB ? fr : 0)}px`);
-    const full = p.left - fr / k - Math.max(r.left, b.left);
-    const left = p.left - fr - full * k;
+    // Kerbe je 1,5 px kuerzer als der Bogen: Panelkante und Bogen ueberlappen, so dass
+    // bei Bruchteil-Pixeln (Windows-Skalierung) kein Spalt aufgeht.
+    panel.style.setProperty('--nt', `${top - p.top - (filT ? fr : 0) + 1.5}px`);
+    panel.style.setProperty('--nh', `${Math.max(0, h + (filT ? fr : 0) + (filB ? fr : 0) - 3)}px`);
     // Erstes Erscheinen springt (nur Einblenden), danach gleitet die Lasche.
-    tab.classList.toggle('is-jump', snap || !tab.classList.contains('is-on'));
+    tab.classList.toggle('is-jump', !!snap || !shown);
     tab.classList.toggle('is-nofil-t', !filT);
     tab.classList.toggle('is-nofil-b', !filB);
-    tab.style.setProperty('--lo-fr', `${fr}px`);
-    tab.style.setProperty('--lo-k', k);
-    tab.style.transform = `translate(${left - o.left}px,${top - o.top}px)`;
-    tab.style.width = `${full * k}px`;
-    tab.style.height = `${bot - top}px`;
+    tab.style.setProperty('--lo-fx', `${fx}px`);
+    tab.style.setProperty('--lo-rx', `${rx}px`);
+    tab.style.setProperty('--lo-ry', `${ry}px`);
+    tab.style.transform = `translate(${p.left - depth - o.left}px,${top - o.top}px)`;
+    tab.style.width = `${depth - fx}px`;
+    tab.style.height = `${h}px`;
     tab.classList.add('is-on');
   }
+  linkSnap = false;
+  if (again) queueLinks();
 }
 function queueLinks(e) {
   if (e?.type === 'scroll' || e?.type === 'resize') linkSnap = true;
