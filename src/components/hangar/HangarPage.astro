@@ -60,6 +60,18 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Die Bühne ist eine dunkle Insel (data-media-surface, theme.css): im
    Hellmodus bleibt sie Halle, nur das Karussell darunter wird Papier. */
 .hg{display:block}
+/* Ab 761 px ist die Seite genau ein Fenster hoch und scrollt nicht: kein
+   Seitenfuss (footer={false} in pages/hangar.astro), die Buehne nimmt, was
+   das Dock uebrig laesst, auch wenn es aufklappt oder die Hilfe darin offen
+   steht. Impressum und Datenschutz stehen dafuer am Ende der Dockzeile
+   (.hg-legal). Erst unter 540 px Fensterhoehe scrollt die Seite wieder,
+   kleiner wird die Tafel unbedienbar. Schmal bleibt sie eine lange Seite:
+   die Tafel steht dort unter der Buehne. */
+@media (min-width:761px){
+  .hg{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:540px}
+  .hg-stagewrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .hg-dock{flex:none}
+}
 /* Auf der Insel selbst deklariert, nicht an .hg: eine Variable, die auf
    var(--text) verweist, loest dort auf, wo sie steht — an .hg waere das
    noch der Papierwert, nicht der Inselwert. */
@@ -306,8 +318,23 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-filter .tool-help:not([open]){border-radius:999px}
 .hg-filter .tool-help:not([open]) .tool-help__summary{width:2.3rem;height:2.3rem;padding:0;justify-content:center;gap:0;font-size:0}
 .hg-filter .tool-help:not([open]) .tool-help__summary::before{content:'?';font-size:var(--fs-8);font-weight:800;line-height:1}
+/* Ab 761 px klappt die Hilfe als Tafel ueber der Halle auf, links neben der
+   Tafel der Werkstatt: im Dock zoege sie die Buehne um 320 px zusammen, die
+   Seite ist dort ein Fenster hoch. Das Fragezeichen bleibt in der Zeile und
+   traegt den Akzent, solange sie offen ist. */
+@media (min-width:761px){
+  .hg-dock{position:relative}
+  .hg-filter .tool-help{overflow:visible}
+  .hg-filter .tool-help[open]{flex-basis:auto;border-radius:999px;border-color:var(--accent)}
+  .hg-filter .tool-help[open] .tool-help__summary{width:2.3rem;height:2.3rem;padding:0;justify-content:center;gap:0;font-size:0}
+  .hg .hg-dock .hg-filter .tool-help[open] .tool-help__summary::before{content:'?';font-size:var(--fs-8);font-weight:800;line-height:1;transform:none}
+  .hg-filter .tool-help__body{position:absolute;left:clamp(16px,3vw,40px);bottom:calc(100% + 10px);z-index:4;width:min(720px,calc(100% - 2 * clamp(16px,3vw,40px) - min(400px,36vw) - 16px));max-height:min(460px,calc(100dvh - 390px));overflow-y:auto;overscroll-behavior:contain;padding:.2rem 1.1rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);box-shadow:0 18px 44px -22px var(--shadow-color)}
+  /* Ihre Oberkante bleibt unter den Knoepfen des Titels (bis 300 px), was
+     nicht passt, rollt in der Tafel; offen ist das Dock 155 px hoeher. */
+  .hg:not([data-dock="closed"]) .hg-filter .tool-help__body{max-height:max(150px,min(460px,calc(100dvh - 545px)))}
+}
 /* Zugeklappt bleibt vom Dock eine Zeile: Hilfe und Schalter. Ab 761 px waechst
-   die Buehne um den Rest (HangarApp.astro rechnet offen mit 190 px); schmal
+   die Buehne um den Rest (sie fuellt die Spalte, siehe .hg oben); schmal
    steht das Dock unter der Tafel und kuerzt dort nur die Seite. Offen nennt
    der Schalter nur noch die Anzahl, sein Wort bleibt fuer Vorleser stehen. */
 .hgx-docktog svg{transition:transform var(--dur-fast) var(--ease-ui)}
@@ -319,7 +346,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg[data-dock="closed"] .hg-filter{margin-bottom:0}
 .hg[data-dock="closed"] .hg-filter>:is(input,select,.hgx-filters,.hgx-chip:not(.hgx-docktog,.hgx-rand)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty,.hg[data-dock="closed"] .hgx-fleetline:not(.is-alert){display:none}
 .hg[data-dock="closed"] .hgx-fleetline{margin:.5rem 0 0}
-@media (min-width:761px){.hg[data-dock="closed"] .hg-stage{height:clamp(520px,calc(100svh - 60px),940px)}}
+/* Die Pflichtlinks des fehlenden Seitenfusses: leise am Zeilenende, auch bei
+   zugeklapptem Dock. */
+.hg-legal{display:flex;align-items:center;gap:.5rem;margin-left:auto;font-size:var(--fs-5);color:var(--muted)}
+.hg-legal a{color:var(--muted);text-decoration:none}
+.hg-legal a:hover,.hg-legal a:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 /* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert ueber dem Namen. */
 .hg-card[data-sv]::before{content:attr(data-sv);position:absolute;right:.45rem;bottom:1.85rem;z-index:1;padding:.05rem .35rem;border-radius:2px;background:color-mix(in srgb,var(--bg) 80%,transparent);color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 
@@ -539,6 +570,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         <span>{t('dock.fleet')}</span> <span>(<span id="hgx-fleetn">0</span>)</span>
       </button>
+      {/* Statt des Seitenfusses (die Seite ist ein Fenster hoch): Impressum
+          und Datenschutz bleiben einen Klick entfernt. */}
+      <nav class="hg-legal" aria-label={ui('footer.pageNav')}>
+        <a href={href('/impressum.html', lang)}>{ui('footer.imprint')}</a>
+        <span aria-hidden="true">·</span>
+        <a href={href('/datenschutz.html', lang)}>{ui('footer.privacy')}</a>
+      </nav>
     </div>
     {/* Summen der Flotte und wo sie liegt: steht, solange das Dock nur die
         Flotte zeigt, und von selbst bei einer Uebernahme oder einem Fehler

@@ -153,7 +153,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 :root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef8;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1c1f25;--muted:#4e586c;--accent:#7c5104;--accent-2:#49556d;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#9aa6bd;--line:rgba(148,104,38,.3);--line-soft:rgba(43,46,52,.12)}
-.hg-stage{position:relative;height:clamp(520px,calc(100svh - 190px),940px);background:var(--bg);overflow:hidden;color:var(--hg-on);isolation:isolate}
+/* Ab 761 px fuellt die Buehne, was das Dock vom Fenster uebrig laesst
+   (HangarPage.astro: die Seite ist dort eine Spalte von Fensterhoehe). */
+.hg-stage{position:relative;flex:1 1 auto;min-height:0;background:var(--bg);overflow:hidden;color:var(--hg-on);isolation:isolate}
 .hg-canvas{position:absolute;inset:0}
 .hg-canvas::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,transparent 50%,color-mix(in srgb,var(--bg) 55%,transparent) 100%)}
 .hg-canvas canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
@@ -165,7 +167,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
 .hg-fallback[hidden]{display:none}
 @media (max-width:760px){
-  .hg-stage{height:clamp(360px,62svh,560px)}
+  .hg-stage{flex:none;height:clamp(360px,62svh,560px)}
   /* Senkrecht wischen scrollt die Seite, waagerecht ziehen dreht das Schiff.
      OrbitControls setzt touch-action:none als Inline-Stil, nur !important
      schlaegt ihn. */
