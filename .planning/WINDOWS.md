@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 69
+open_count: 70
 waived_count: 1
 fixed_count: 37
-total_count: 107
-last_updated: 2026-10-23T21:40:00.000Z
+total_count: 108
+last_updated: 2026-10-23T21:50:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -122,6 +122,7 @@ last_updated: 2026-10-23T21:40:00.000Z
 | 106 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische als Fahrzeugwerkstatt nach Krisz 23.10.2026 14:38: „westnische kann zu einem tor oder rudchgang für bodenfahrzeuge geben, da machen wir auch eine werkstatt daraus und da machen wir dann halt bodenfahrzeuge“): In der Rückwand der Westnische sitzt rechts ein Garagentor, davor Torsteuerung und Ladesäule; eine Zufahrt mit Randlinien, Mittellinie und Pfeilen führt bis vors Schiffsfeld und bleibt frei. In den Buchten stehen der ROC (vor dem Logo), die Cyclone (nördlich, mit Werkbank, Schweißgerät, Leiter und Reifenstapel) und der Ursa (südlich, Heck an der Ladezone mit Containern, Paletten und Stapler). Die Munition rückt kompakt nach vorn in die Halle, dort zieht der PTV den Torpedowagen. Auf mittel stehen nur Tor, ROC, Container und Torsteuerung (Budget). Maschinell geprüft (verify:hangar-hall [17]): nichts in Wand, Kübeln, Zufahrt oder ineinander, beide Nischen zu 100 % mit Hallenboden. Bekannte Abweichungen: Das Tor ist fast schwarz (Spielfarbe ohne Raumlicht), die Cyclone dunkler als im Spiel, der Ursa wirkt von vorn offen (durchsichtige Scheiben). Zu beurteilen: (1) Liest sich die Nische als Fahrzeugwerkstatt mit Tor? (2) Soll das Tor heller werden? (3) Stören Farbe der Cyclone oder die Front des Ursa? (4) Aus deinem Blickwinkel verdeckt die Munition vorn links die untere Nische (Räder des Ursa, Container): soll sie woandershin, etwa auf die Galerie? (5) Reicht auf mittel Tor, ROC und Container? Bilder unter hangar-deko/westnische im Projektordner. | open |  | 2026-10-23T19:05:00.000Z |  |
 | 107 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Ausrichtung nach Krisz 23.10.2026 19:54 mit Bild: „schiff steht in falscher richtung“): Seit dem 6.10. zeigte der Bug mit Absicht zur Startansicht und damit vom Hallentor (Nordtor) weg. Jetzt steht jedes Schiff mit dem Bug zum Hallentor, wie im Spiel; der Wartungsplatz dreht mit (Geräte am Bug bleiben am Bug, Kabel am Rumpf), die Crew am Bug ebenso. Die Startansicht schaut weiter vorn rechts auf den Bug, jetzt mit der Westnische und dem Südende der Halle dahinter statt dem Tor. Geprüft an Gladius, Cutlass, Constellation und C2 (Draufsicht, Blick zum Tor, Blick auf den Bug, dein Blickwinkel, Startansicht). Zu beurteilen: (1) Steht das Schiff jetzt richtig herum? (2) Passt die Startansicht auf den Bug, oder soll sie von hinten zum Tor schauen? Bilder unter hangar-ausrichtung im Projektordner. | open |  | 2026-10-23T20:35:00.000Z |  |
 | 108 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Seite ohne Fuß nach Krisz 23.10.2026 20:53 mit Bild des Seitenfußes: „mach das mal raus so dass man nicht scrollen kann auf der seite“): Der Hangar hat keinen Seitenfuß mehr und ist ab 761 px Breite genau ein Fenster hoch; die Halle nimmt, was das Dock übrig lässt, zugeklappt wie aufgeklappt (vorher bis 940 px gedeckelt). Impressum und Datenschutz stehen leise am Ende der Dockzeile (rechtlich nötig, einen Klick entfernt); der Fan-Hinweis steht im Impressum. Die Werkzeug-Hilfe (?) klappt als Tafel über der Halle auf statt das Dock zu verlängern. Erst unter 540 px Fensterhöhe scrollt die Seite wieder. Auf dem Handy (bis 760 px) steht die Werkstatt unter der Halle, dort bleibt die Seite lang; sie endet jetzt am Dock. Maschinell gemessen (Seitenhöhe = Fensterhöhe) bei 1024x640, 1280x720, 1440x900, 1920x1080, 2560x1300 und 768x1024, jeweils Dock zu und offen. Zu beurteilen: (1) Passt der Hangar auf deinem Bildschirm ohne Scrollen? (2) Sind Impressum und Datenschutz unten rechts gut so? (3) Passt die Hilfe als Tafel über der Halle? (4) Soll auch das Handy ohne Scrollen auskommen (Werkstatt dann mit eigenem Bildlauf unter der Halle)? Bilder unter hangar-ohne-footer im Projektordner. | open |  | 2026-10-23T21:40:00.000Z |  |
+| 109 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 20:45 mit Bild: „hier stehen sachen einfach vorm auto“): Vor jedem Fahrzeug bleibt jetzt eine 8 m lange Fahrspur frei, das Tor [17] prüft das (Regel FAHRSPUR). Der Munitionsblock am Nischenmund ist an die Westwand zwischen Werkstatt und Energie gewandert, kompakter (Raketen- und Torpedogestelle, Kistenstapel, Ausgabetisch, PTV). Die Werkzeuginsel vor der Nische ist jetzt eine Werkzeugwand an der Nordwand der Nische (Regale mit Werkzeug, Schubladenschrank, Leiter, Schweißgerät am Terminal). Die Werkbank der Fahrzeugwerkstatt steht zwischen Cyclone und ROC statt vor ihnen. Zu beurteilen: (1) Ist die Sicht auf die Fahrzeuge jetzt frei? (2) Passt das Munitionslager an der neuen Stelle? (3) Wirkt die Werkzeugwand in der Nische stimmig? Bilder unter hangar-deko/vorm-auto im Projektordner. | open |  | 2026-10-23T21:50:00.000Z |  |
 
 ````json
 [
@@ -1407,6 +1408,18 @@ last_updated: 2026-10-23T21:40:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-23T21:40:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 109,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 20:45 mit Bild: „hier stehen sachen einfach vorm auto“): Vor jedem Fahrzeug bleibt jetzt eine 8 m lange Fahrspur frei, das Tor [17] prüft das (Regel FAHRSPUR). Der Munitionsblock am Nischenmund ist an die Westwand zwischen Werkstatt und Energie gewandert, kompakter (Raketen- und Torpedogestelle, Kistenstapel, Ausgabetisch, PTV). Die Werkzeuginsel vor der Nische ist jetzt eine Werkzeugwand an der Nordwand der Nische (Regale mit Werkzeug, Schubladenschrank, Leiter, Schweißgerät am Terminal). Die Werkbank der Fahrzeugwerkstatt steht zwischen Cyclone und ROC statt vor ihnen. Zu beurteilen: (1) Ist die Sicht auf die Fahrzeuge jetzt frei? (2) Passt das Munitionslager an der neuen Stelle? (3) Wirkt die Werkzeugwand in der Nische stimmig? Bilder unter hangar-deko/vorm-auto im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-23T21:50:00.000Z",
     "resolved_at": null
   }
 ]
