@@ -89,10 +89,18 @@ else console.warn('[hangar] Bildlook: Einhängepunkt fehlt (three.js geändert?)
 const PAD_R = 10;
 const HALL_R = 34;
 const HALL_H = 24;
-// Richtung, aus der die Kamera anfangs schaut (vorn rechts oben). Das
-// Hallentor liegt genau gegenüber, damit es hinter dem Schiff im Bild ist.
-const HOME_DIR = new THREE.Vector3(0.64, 0.22, 0.74).normalize();   // flach wie im Hangar-Menü des Spiels
-const DOOR_ANGLE = Math.atan2(-HOME_DIR.x, -HOME_DIR.z); // Winkel um Y, 0 = +Z
+// Das Schiff steht mit dem Bug zum Hallentor (Nordtor, -Z), wie im Spiel
+// (Krisz am 23.10.2026: „schiff steht in falscher richtung“; bis dahin
+// zeigte der Bug vom Tor weg zur Startansicht). SHIP_YAW dreht das Schiff
+// als Ganzes um seine Mitte, der Wartungsplatz dreht mit; im Schiffsraum
+// (Grundriss, layDienst) zeigt der Bug weiter nach +Z. Nur 0 oder π: Das
+// Feld des Aufzugs ist ein Rechteck längs z.
+const SHIP_YAW = Math.PI;
+// Richtung, aus der die Kamera anfangs schaut: vorn rechts oben, also auf
+// den Bug, mit dem Tor im Rücken. Das Tor der gebauten Halle liegt vorn
+// links (DOOR_ANGLE), auch dort zeigt der Bug zu ihm.
+const HOME_DIR = new THREE.Vector3(0.64, 0.22, -0.74).normalize();   // flach wie im Hangar-Menü des Spiels
+const DOOR_ANGLE = Math.atan2(-HOME_DIR.x, HOME_DIR.z); // Winkel um Y, 0 = +Z
 const DOOR_WIDTH = 1.15; // Bogenmaß der Toröffnung
 // Aufzug (HALL_LIFT): Fahrzeiten ab und auf; Tiefe des Felds unten, in
 // Modellmetern der Halle unter dem Schiffsboden. Im Schacht wird es mit der
@@ -4356,7 +4364,7 @@ function buildLife(scene, reduceMotion, withStage = true) {
         sp.update(Math.min(dt, 0.05), on);
       } else if (role === 'tablet') {
         // steht am Bug, schaut abwechselnd aufs Tablet und zum Schiff
-        w.root.position.copy(clearOf(polar(L.R + 1.5, DOOR_ANGLE + Math.PI + (props ? 0.35 : tabletAt[i])), blocks));
+        w.root.position.copy(clearOf(polar(L.R + 1.5, DOOR_ANGLE + Math.PI + SHIP_YAW + (props ? 0.35 : tabletAt[i])), blocks));
         w.root.lookAt(0, 0, 0);
         poseStand(w);
         w.shR.rotation.x = -0.9; w.elR.rotation.x = -0.9; w.shL.rotation.x = -0.7; w.elL.rotation.x = -1.0;
@@ -6883,7 +6891,11 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const L = realHall.liftL, o = realHall.spot, fc = [(L.from[0] + L.to[0]) / 2, (L.from[1] + L.to[1]) / 2];
     d.group.scale.setScalar(1 / k);
     d.group.position.set(fc[0], realHall.floorY + lift.y, fc[1]);
-    const sx = (o[0] - fc[0]) * k, sz = (o[2] - fc[1]) * k;
+    // Die Gruppe dreht mit dem Schiff um die Feldmitte; in ihr gilt der
+    // Schiffsraum (Bug +Z), die Schiffsmitte liegt dort gedreht
+    d.group.rotation.y = SHIP_YAW;
+    const dx = (o[0] - fc[0]) * k, dz = (o[2] - fc[1]) * k, cy = Math.cos(SHIP_YAW), sy = Math.sin(SHIP_YAW);
+    const sx = dx * cy - dz * sy, sz = dx * sy + dz * cy;
     const FX = ((L.to[0] - L.from[0]) * k) / 2 - DIENST_EDGE, FZ = ((L.to[1] - L.from[1]) * k) / 2 - DIENST_EDGE;
     const W = info.halfW, Lh = info.len / 2, U = info.under, [CH, CV] = DIENST_CLEAR;
     const sig = `${k.toFixed(4)}|${W}|${Lh}|${info.height}|${!!U}`;
@@ -8180,8 +8192,8 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       n.geometry.computeVertexNormals();
     });
     // Die Achsdrehung Z-oben -> Y-oben steckt schon im Knoten der .glb.
-    // Bug in -Z, die Startansicht kommt von +Z: einmal umdrehen, damit der
-    // Besucher dem Schiff ins Gesicht schaut und das Tor dahinter liegt.
+    // Bug in -Z: einmal umdrehen, im Schiffsraum zeigt er nach +Z (Grundriss,
+    // Wartungsplatz); zum Hallentor dreht ihn erst SHIP_YAW an der Gruppe.
     const turn = new THREE.Group();
     turn.rotation.y = Math.PI;
     turn.add(model);
@@ -8206,6 +8218,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
 
     const ship = new THREE.Group();
     ship.add(wrap);
+    ship.rotation.y = SHIP_YAW;
     const drop = () => { if (textured) for (const m of new Set(hull.map(([, x]) => x))) for (const k of TEX_SLOTS) if (m[k] && !isNeutral(m[k])) m[k].dispose(); mat.dispose(); disposeObject(ship); };
     await prepare(ship);
     if (my !== token) { drop(); return; }
@@ -8483,7 +8496,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // waere nach einem Hallenwechsel falsch. Wechselt die Halle erst danach,
     // nimmt settleShip() das Ziel mit (.planning/notes/hangar-naht.md).
     const g = current.group, y = g.position.y, ry = g.rotation.y;
-    g.position.y = g.userData.baseY; g.rotation.y = 0; g.updateMatrixWorld(true);
+    g.position.y = g.userData.baseY; g.rotation.y = SHIP_YAW; g.updateMatrixWorld(true);
     const tgt = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(current.model.matrixWorld);
     g.position.y = y; g.rotation.y = ry; g.updateMatrixWorld(true);
     // Von aussen durch den Hardpoint schauen, nicht durch den Rumpf: Richtung
@@ -8772,7 +8785,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
     // zum Ziel um ein Vielfaches der Höhe.
     const pose = [g.position.y, g.rotation.y, g.visible];
-    g.rotation.y = 0; g.visible = true;
+    g.rotation.y = SHIP_YAW; g.visible = true;
     const at = (h) => () => { g.position.y = y + b * h; g.updateMatrixWorld(true); };
     const poses = (b > 0 ? [-1, -0.5, 0, 0.5, 1] : [0]).map(at);
     shipBusy = true;
@@ -8808,7 +8821,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const c = current, g = c.group, y = g.userData.baseY, d = homeDist(), o = homeTgt ?? controls.target;
     if (lensFit && lensFit.c === c && lensFit.y === y && Math.abs(lensFit.d - d) < 1e-3 * d && lensFit.o.equals(o)) return lensFit;
     const pose = [g.position.y, g.rotation.y], t0 = performance.now();
-    g.position.y = y; g.rotation.y = 0; g.updateMatrixWorld(true);
+    g.position.y = y; g.rotation.y = SHIP_YAW; g.updateMatrixWorld(true);
     const meshes = [];
     let n = 0;
     g.traverse((m) => { if (m.isMesh && m.geometry?.attributes.position) { meshes.push(m); n += m.geometry.attributes.position.count; } });
@@ -9173,7 +9186,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         // steht auf dem Aufzug und fährt mit ihm, im Schacht abgedunkelt
         const k = hallRoot.scale.x;
         g.position.y = g.userData.baseY + lift.y * k;
-        g.rotation.y = 0;
+        g.rotation.y = SHIP_YAW;
         g.visible = !(realHall?.shaft?.gate?.state === 'closed' && !realHall.shaft.gate.run);
         const yc = lift.y + current.info.height / 2 / k;
         dimIn(current.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)), shaftCool(yc));
@@ -9183,7 +9196,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         const k = reduceMotion ? 1 : Math.min(1, Math.max(0, now - current.born - 120) / 1100);
         const e = 1 - Math.pow(1 - k, 5);
         g.position.y = g.userData.baseY + shipBob() * Math.sin(t * 1.1) + (1 - e) * span * 0.18;
-        g.rotation.y = (1 - e) * -0.45;
+        g.rotation.y = SHIP_YAW + (1 - e) * -0.45;
         g.visible = reduceMotion || now - current.born > 60;
       }
       if (fade.to) {
