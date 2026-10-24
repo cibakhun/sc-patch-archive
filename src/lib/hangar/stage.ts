@@ -44,6 +44,6 @@ export interface StageConfig {
   readonly viewer: string;
   /** Wird unverändert in initHangar(container, { reduceMotion, ...opts }) gespreizt: neue Szenen-Optionen brauchen keine Oberflaechen-Aenderung. */
   readonly opts: { readonly hall?: HallConfig | null; readonly crew?: { url: string } | null } & Readonly<Record<string, unknown>>;
-  /** Je Id aus HANGAR_IDS: [Geometrie-glb, Werkslack-glb oder null, Herstellerkuerzel, Ort] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. */
+  /** Je Id aus HANGAR_IDS: [Geometrie-glb (Hangar-Fassung mit Fahrwerk, sonst Holo), Werkslack-glb oder null, Herstellerkuerzel, Ort] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. */
   readonly models: Readonly<Record<ShipId, readonly [glb: string, tex: string | null, maker: string, ort: StageOrt]>>;
 }

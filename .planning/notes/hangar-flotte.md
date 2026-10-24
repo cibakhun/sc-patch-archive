@@ -118,14 +118,53 @@ Offen ist das Fahrwerk:
 
 ## Cloud danach
 
-- Viewer: Schiff auf seine Aufstandspunkte statt auf den tiefsten Punkt
-  stellen, mit der Neigung aus `gear.tilt`; Aufzug, Wartungsplatz
-  (`shipUnder`) und Kamera auf die neue Lage umstellen; Geometrie-Fassung
-  aus `public/hangar/geo/` laden.
-- Prüfung in `scripts/lib/gate-registry.mjs`: Jedes Schiff hat `gear`,
-  kein Punkt der Webdatei liegt mehr als 2 cm unter der Aufstandsebene,
-  mindestens drei Aufstandspunkte oder ein benannter Grund; einmal
-  vorgeführt rot.
+Erledigt am 25.10.2026 (Teil A, B und D sind eingebaut):
+
+- Viewer: `standOn` stellt das Schiff auf seine Aufstandspunkte; die Ebene
+  rechnet `gearPlane` (exportiert, dieselbe Rechnung im Tor), steiler als
+  15 Grad gilt als Lesefehler. Aufzug, Wartungsplatz (`shipUnder`), Marker
+  und getauschte Waffen gehen mit, weil die Neigung zwischen Drehung und
+  Zentrierung sitzt. Ohne Fahrwerk nennt `opts.gear` nur `ground`.
+- `HangarApp.astro` lädt die Geometrie-Fassung aus `public/hangar/geo/` und
+  entscheidet je Schiff (`standFor`): `aus` mit mindestens drei Punkten und
+  nichts tiefer als 20 cm unter der Ebene (`GEAR_SINK`) auf das Fahrwerk;
+  `keins` und `aus` mit nur zwei Punkten waagrecht auf `ground`; sonst wie
+  bisher auf den tiefsten Punkt. Stand: 127 auf dem Fahrwerk, 47 waagrecht,
+  32 mit Teilen in Flugstellung, 19 eingefahren, 6 ohne Export. Der
+  Werkslack bleibt bis Teil C wie bisher.
+- Tor `verify:hangar-gear`: misst jede Datei, die die Seite aufs Fahrwerk
+  stellt, gegen die Ebene des ausgelieferten Viewers. Nichts tiefer als
+  20 cm im Boden, die tiefste Ecke höchstens 5 cm (große Schiffe 0,1 % der
+  Länge) darüber, jedes Schiff zugeordnet; Klinken 127 und 47. Die Grenze
+  von 2 cm aus dem Plan hielt nicht: Fußplatten und Düsen bis 17 cm
+  (Skylark, Hull A und B, Wolf) verdeckt der Rumpf, ein Rückfall auf den
+  tiefsten Punkt sähe dort schlechter aus.
+
+### Für den nächsten Lauf (vom Tor gefunden)
+
+Zusätzlich zu Teil C, mit derselben Regel: alles aus dem Spiel.
+
+- **Werkslack aufs Fahrwerk.** Trägt eine Webdatei nach Teil C die Beine
+  wie die Geometrie-Fassung (ausgefahren und eingefedert, gleiche
+  Aufstandspunkte), in `ships.<slug>` `gear: true` setzen. Dann stellt die
+  Seite auch den Werkslack darauf, und das Tor misst die Webdatei mit.
+- **Bewegliche Teile in Landestellung** (32 Schiffe tiefer als 20 cm, Liste
+  in `gear.<slug>.below`): Polaris-Flossen 5,9 m, Redeemer `thruster_bar`
+  12,7 m, 300i-Reihe `lg_hinge_front_left` 3,7 m, Paladin, Star Runner,
+  Starfarer, Constellation, Prowler, Corsair, Sabre `foot_flap_a`,
+  Starlancer, Guardian, Stinger, Caterpillar, Asgard, Golem, Hoverquad.
+  Wo das Spiel dafür eine Lande-Animation hat (Fragmente Deploy), ihr
+  letztes Bild anwenden wie bei den Beinen.
+- **Schwebende Füße** (Tor-WARNUNG, Fußpunkt mehr als 5 cm über der
+  Ebene): Starlifter A2, C2, M2 rund 32 cm; Spirit A1 und C1 7 bis 14 cm;
+  Hull B 13 bis 14 cm; 600i (drei Fassungen), Hermes, Apollo (zwei),
+  Starlite 6 bis 9 cm. Das Bein steht in der Fassung anders als die Feder.
+- **Nur zwei Aufstandspunkte**: Mantis, Meteor, Buccaneer (Beine mit
+  demselben Helfer fallen zusammen); stehen bis dahin waagrecht.
+- **Lose Knoten im Kreis** in sechs Fassungen (Blade, CSV-Cargo, Hornet
+  F7C-R, M80, Nova, Salvation): von der Szene nicht erreicht, nicht
+  gezeichnet; beim Bau entfernen.
+- Die 19 mit `pose: ein` und die 6 ohne Export wie im Befund.
 
 ## Befund PC
 

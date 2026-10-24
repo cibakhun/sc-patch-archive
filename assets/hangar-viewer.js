@@ -31,10 +31,11 @@
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
 // FAHRWERK: opts.gear nennt je Modelldatei (Pfad ohne ?v=) die
-// Aufstandspunkte { contacts: [[x, y, z] …] }; das Schiff steht dann auf
-// ihnen statt auf seinem tiefsten Punkt (standOn).
+// Aufstandspunkte { contacts: [[x, y, z] …] } oder, ohne Fahrwerk, die Höhe
+// { ground }; das Schiff steht dann darauf statt auf dem tiefsten Punkt
+// seines Hüllquaders (standOn).
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } }, sound?: false }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
@@ -4641,34 +4642,42 @@ async function robustBox(root, pause = noPause) {
 // Aufstand auf dem Fahrwerk (PC-Lauf „Hangar-Flotte“, Krisz 24.10.2026:
 // „alle schiffe korrekt auf dem boden … mit deren landinggear“). contacts
 // sind die tiefsten Punkte der Räder, Füße und Kufen im Raum der Webdatei
-// (glTF, Y oben, Meter). Die Ebene durch sie (kleinste Quadrate, bei drei
-// Punkten genau) dreht lean waagerecht; ihre Höhe danach ist der Boden.
-// null: weniger als drei Punkte, alle auf einer Linie oder eine Neigung über
-// GEAR_TILT_MAX (ein Lesefehler, kein Fahrwerk). Dann bleibt der tiefste
-// Punkt des Hüllquaders der Boden. Dieselbe Rechnung prüft
-// scripts/verify-hangar-gear.mjs gegen die Dateien.
-const GEAR_TILT_MAX = 8;
-function standOn(lean, gear) {
-  // turn dreht um 180 Grad um Y: (x, y, z) -> (-x, y, -z)
-  const pts = (gear?.contacts ?? []).filter((p) => p?.length === 3 && p.every(Number.isFinite)).map(([x, y, z]) => new THREE.Vector3(-x, y, -z));
+// (glTF, Y oben, Meter), ihre Höhe kommt aus der Feder des Spiels.
+// gearPlane legt die Ebene durch sie (kleinste Quadrate, bei drei Punkten
+// genau), standOn dreht sie mit lean waagerecht; ihre Höhe danach ist der
+// Boden. Ohne Fahrwerk im Spiel nennt gear nur ground (den tiefsten Punkt
+// der Datei), das Schiff steht dann waagrecht darauf. null: weniger als drei
+// Punkte, alle auf einer Linie oder steiler als GEAR_TILT_MAX (ein
+// Lesefehler: die steilsten Fahrwerke im Spiel sind Hoverquad mit 12,4 Grad
+// und Wolf mit 10,6 Grad). Dann bleibt der tiefste Punkt des Hüllquaders
+// der Boden. scripts/verify-hangar-gear.mjs prüft mit gearPlane aus dist/.
+export const GEAR_TILT_MAX = 15;
+export function gearPlane(contacts) {
+  const pts = (contacts ?? []).filter((p) => p?.length === 3 && p.every(Number.isFinite));
   if (pts.length < 3) return null;
-  const m = pts.reduce((s, p) => s.add(p), new THREE.Vector3()).divideScalar(pts.length);
+  const mx = pts.reduce((s, p) => s + p[0], 0) / pts.length, my = pts.reduce((s, p) => s + p[1], 0) / pts.length, mz = pts.reduce((s, p) => s + p[2], 0) / pts.length;
   let xx = 0, zz = 0, xz = 0, xy = 0, zy = 0;
-  for (const p of pts) {
-    const x = p.x - m.x, y = p.y - m.y, z = p.z - m.z;
+  for (const [px, py, pz] of pts) {
+    const x = px - mx, y = py - my, z = pz - mz;
     xx += x * x; zz += z * z; xz += x * z; xy += x * y; zy += z * y;
   }
   const det = xx * zz - xz * xz;
   if (!(det > 1e-6 * (xx + zz) ** 2)) return null;
-  // y = a·x + b·z + c, Normale (-a, 1, -b)
-  const a = (xy * zz - zy * xz) / det, b = (zy * xx - xy * xz) / det;
-  const n = new THREE.Vector3(-a, 1, -b).normalize();
-  const tilt = THREE.MathUtils.radToDeg(Math.acos(Math.min(1, n.y)));
-  if (tilt > GEAR_TILT_MAX) { console.warn(`[hangar] Fahrwerk: Neigung ${tilt.toFixed(1)}° über ${GEAR_TILT_MAX}°, Schiff steht auf dem tiefsten Punkt`); return null; }
-  lean.quaternion.setFromUnitVectors(n, new THREE.Vector3(0, 1, 0));
-  const ys = pts.map((p) => p.applyQuaternion(lean.quaternion).y);
+  // y = a·x + b·z + c
+  const a = (xy * zz - zy * xz) / det, b = (zy * xx - xy * xz) / det, c = my - a * mx - b * mz;
+  const tilt = (Math.atan(Math.hypot(a, b)) * 180) / Math.PI;
+  return tilt > GEAR_TILT_MAX ? null : { a, b, c, tilt, pts };
+}
+function standOn(lean, gear) {
+  if (!gear) return null;
+  if (!gear.contacts && Number.isFinite(gear.ground)) return { ground: gear.ground, tilt: 0, n: 0, spread: 0 };
+  const pl = gearPlane(gear.contacts);
+  if (!pl) { console.warn('[hangar] Fahrwerk: keine brauchbare Ebene durch die Aufstandspunkte, Schiff steht auf dem tiefsten Punkt'); return null; }
+  // Normale (-a, 1, -b); turn dreht um 180 Grad um Y: (x, y, z) -> (-x, y, -z)
+  lean.quaternion.setFromUnitVectors(new THREE.Vector3(pl.a, 1, pl.b).normalize(), new THREE.Vector3(0, 1, 0));
+  const ys = pl.pts.map(([x, y, z]) => new THREE.Vector3(-x, y, -z).applyQuaternion(lean.quaternion).y);
   const ground = ys.reduce((s, y) => s + y, 0) / ys.length;
-  return { ground, tilt, n: pts.length, spread: Math.max(...ys) - Math.min(...ys) };
+  return { ground, tilt: pl.tilt, n: ys.length, spread: Math.max(...ys) - Math.min(...ys) };
 }
 
 function disposeObject(o) {
@@ -5265,7 +5274,7 @@ export async function initHangar(container, opts = {}) {
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
   const REAL = !!(opts.hall?.url && opts.hall.room);
-  // Fahrwerk je Modelldatei (Pfad ohne ?v=): { contacts }, standOn
+  // Fahrwerk je Modelldatei (Pfad ohne ?v=): { contacts } oder { ground }, standOn
   const gearOf = (u) => (u && opts.gear?.[u.split('?')[0]]) || null;
   // Telefon: schmal oder Touch
   const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
