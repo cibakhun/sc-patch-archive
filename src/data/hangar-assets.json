@@ -3655,5 +3655,502 @@
       "bytes": 2827040,
       "decals": 57
     }
+  },
+  "werkhalle": {
+    "ht-garage-lrg-buehne": {
+      "url": "/hangar/werkhalle/ht-garage-lrg-buehne.glb",
+      "v": "d6b6344f",
+      "tris": 8772,
+      "trisRaw": 8772,
+      "textures": 12,
+      "attached": {
+        "attached": 24,
+        "color": 12,
+        "normal": 12,
+        "flatNormals": 2,
+        "rough": 12,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 14,
+          "diffuse": 2,
+          "normal": 4,
+          "trisOhneMaterial": 0,
+          "tris": 8772
+        },
+        "after": {
+          "materials": 14,
+          "diffuse": 12,
+          "normal": 14,
+          "trisOhneMaterial": 0,
+          "tris": 8772
+        }
+      },
+      "vertexColors": [
+        {
+          "material": "hightech_a_default_mtl_rubber_a_045",
+          "origin": "eigen",
+          "tris": 2830,
+          "meanR": 0.913,
+          "below098": 14.9
+        },
+        {
+          "material": "hightech_a_default_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 2110,
+          "meanR": 0.913,
+          "below098": 14.9
+        },
+        {
+          "material": "hightech_a_default_mtl_paint_b_secondary_042",
+          "origin": "eigen",
+          "tris": 2056,
+          "meanR": 0.913,
+          "below098": 14.9
+        },
+        {
+          "material": "hightech_a_default_mtl_trim_metal_a_030",
+          "origin": "eigen",
+          "tris": 1380,
+          "meanR": 0.913,
+          "below098": 14.9
+        },
+        {
+          "material": "hightech_a_default_mtl_glow_a_link_020",
+          "origin": "eigen",
+          "tris": 48,
+          "meanR": 0.913,
+          "below098": 14.9
+        }
+      ],
+      "crease": {
+        "corners": 26316,
+        "changedPct": 19.7
+      },
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 7.47,
+        "bits": 15,
+        "degenerate": 0.7
+      },
+      "materials": 8,
+      "nodes": {
+        "fixtures": 0,
+        "decke": 0,
+        "wand": 0,
+        "boden": 0,
+        "tor": 0,
+        "buehne": 3
+      },
+      "bytes": 483868
+    },
+    "ht-garage-lrg": {
+      "url": "/hangar/werkhalle/ht-garage-lrg.glb",
+      "v": "503dcd13",
+      "tris": 224742,
+      "trisRaw": 109854,
+      "textures": 65,
+      "attached": {
+        "attached": 89,
+        "color": 44,
+        "normal": 45,
+        "flatNormals": 4,
+        "rough": 45,
+        "tiled": 12,
+        "blended": 28,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 53,
+          "diffuse": 42,
+          "normal": 43,
+          "trisOhneMaterial": 0,
+          "tris": 109854
+        },
+        "after": {
+          "materials": 53,
+          "diffuse": 44,
+          "normal": 49,
+          "trisOhneMaterial": 0,
+          "tris": 109854
+        }
+      },
+      "lights": {
+        "total": 279,
+        "byType": {
+          "point": 94,
+          "area": 24,
+          "spot": 161
+        },
+        "matched": 279,
+        "orient": {
+          "spots": 161,
+          "area": 24,
+          "areaMounted": 24,
+          "spotsAway": 57,
+          "spotsMounted": 83
+        },
+        "withFixture": 193
+      },
+      "furniture": null,
+      "vertexColors": [
+        {
+          "material": "hightech_delta_int_a_mtl_primary_tint_paint_b_041",
+          "origin": "eigen",
+          "tris": 28494,
+          "meanR": 0.517,
+          "below098": 64
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 19783,
+          "meanR": 0.535,
+          "below098": 61.1
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_secondary_tint_paint_b_042",
+          "origin": "eigen",
+          "tris": 9980,
+          "meanR": 0.494,
+          "below098": 67.2
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_metal_a_046",
+          "origin": "eigen",
+          "tris": 6904,
+          "meanR": 0.535,
+          "below098": 61
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_nest_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 3823,
+          "meanR": 0.882,
+          "below098": 14.5
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_nest_mtl_panel_metal_a_047",
+          "origin": "eigen",
+          "tris": 3344,
+          "meanR": 0.882,
+          "below098": 14.5
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_mtl_tertiary_tint_paint_b_043",
+          "origin": "eigen",
+          "tris": 2952,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_rubber_a_045",
+          "origin": "eigen",
+          "tris": 2724,
+          "meanR": 0.469,
+          "below098": 69.4
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_paint_c_notint_terrainblend_059",
+          "origin": "eigen",
+          "tris": 2630,
+          "meanR": 0.584,
+          "below098": 53.8
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_mtl_metal_a_046",
+          "origin": "eigen",
+          "tris": 2332,
+          "meanR": 0.867,
+          "below098": 28.2
+        },
+        {
+          "material": "hightech_delta_int_a_lab_c_mtl_secondary_tint_paint_a_039",
+          "origin": "eigen",
+          "tris": 2252,
+          "meanR": 0.941,
+          "below098": 6.6
+        },
+        {
+          "material": "hightech_delta_int_garages_a_mtl_primary_tint_paint_b_041",
+          "origin": "eigen",
+          "tris": 2232,
+          "meanR": 0.671,
+          "below098": 36.6
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_secondary_tint_paint_a_039",
+          "origin": "eigen",
+          "tris": 1936,
+          "meanR": 0.916,
+          "below098": 8.5
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_tertiary_tint_panel_b_057",
+          "origin": "eigen",
+          "tris": 1652,
+          "meanR": 0.61,
+          "below098": 51.3
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_landing_surface_b_049",
+          "origin": "eigen",
+          "tris": 1479,
+          "meanR": 0.47,
+          "below098": 69.1
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_mtl_secondary_tint_paint_b_042",
+          "origin": "eigen",
+          "tris": 1456,
+          "meanR": 0.844,
+          "below098": 64.1
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 1432,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_landing_surface_a_048",
+          "origin": "eigen",
+          "tris": 1256,
+          "meanR": 0.546,
+          "below098": 58.4
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_nest_mtl_rubber_a_045",
+          "origin": "eigen",
+          "tris": 1143,
+          "meanR": 0.882,
+          "below098": 14.5
+        },
+        {
+          "material": "hightech_delta_int_a_lab_c_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 1132,
+          "meanR": 0.941,
+          "below098": 6.6
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_nest_mtl_metal_a_046",
+          "origin": "eigen",
+          "tris": 1116,
+          "meanR": 0.882,
+          "below098": 14.5
+        },
+        {
+          "material": "hightech_delta_int_garages_a_mtl_paint_c_notint_044",
+          "origin": "eigen",
+          "tris": 772,
+          "meanR": 0.671,
+          "below098": 36.6
+        },
+        {
+          "material": "hightech_delta_int_a_lab_c_mtl_metal_a_046",
+          "origin": "eigen",
+          "tris": 688,
+          "meanR": 0.941,
+          "below098": 6.6
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 680,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_panel_metal_a_047",
+          "origin": "eigen",
+          "tris": 587,
+          "meanR": 0.441,
+          "below098": 73.4
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_trim_a_029",
+          "origin": "eigen",
+          "tris": 168,
+          "meanR": 0.421,
+          "below098": 75.2
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_grating_atlas_a_027",
+          "origin": "eigen",
+          "tris": 96,
+          "meanR": 0.61,
+          "below098": 51.3
+        },
+        {
+          "material": "light_hazard_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 54,
+          "meanR": 0.655,
+          "below098": 68.9
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_glow_a_019",
+          "origin": "eigen",
+          "tris": 48,
+          "meanR": 0.442,
+          "below098": 73.3
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_trim_b_030",
+          "origin": "eigen",
+          "tris": 48,
+          "meanR": 0.687,
+          "below098": 41.7
+        },
+        {
+          "material": "light_panel_1_a_mtl_decal_glow_03",
+          "origin": "eigen",
+          "tris": 46,
+          "meanR": 0.507,
+          "below098": 59.3
+        },
+        {
+          "material": "hightech_delta_int_a_mtl_glow_a_link_020",
+          "origin": "eigen",
+          "tris": 44,
+          "meanR": 0.957,
+          "below098": 5.2
+        },
+        {
+          "material": "hightech_delta_int_garages_a_mtl_rubber_a_045",
+          "origin": "eigen",
+          "tris": 40,
+          "meanR": 0.671,
+          "below098": 36.6
+        },
+        {
+          "material": "hightech_delta_int_newbab_a_mtl_grating_atlas_a_027",
+          "origin": "eigen",
+          "tris": 36,
+          "meanR": 0.856,
+          "below098": 16
+        },
+        {
+          "material": "hightech_delta_int_garages_a_mtl_metal_a_046",
+          "origin": "eigen",
+          "tris": 28,
+          "meanR": 0.671,
+          "below098": 36.6
+        },
+        {
+          "material": "hightech_delta_int_garages_a_mtl_glow_a_019",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 0.671,
+          "below098": 36.6
+        },
+        {
+          "material": "microtech_brand_a_mtl_alphabet_screen_a_07",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "light_landing_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 14,
+          "meanR": 0.633,
+          "below098": 62.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 12,
+          "meanR": 1,
+          "below098": 0
+        }
+      ],
+      "crease": {
+        "corners": 674226,
+        "changedPct": 44.2
+      },
+      "uv": {
+        "rangeBefore": 1535,
+        "rangeAfter": 1535,
+        "bits": 23,
+        "degenerate": 4
+      },
+      "materials": 31,
+      "nodes": {
+        "fixtures": 92,
+        "decke": 24,
+        "wand": 23,
+        "boden": 45,
+        "tor": 4,
+        "buehne": 0
+      },
+      "json": "/hangar/werkhalle/ht-garage-lrg.json",
+      "lightsUrl": "/hangar/werkhalle/ht-garage-lrg.lights.json",
+      "buehne": "/hangar/werkhalle/ht-garage-lrg-buehne.glb",
+      "room": {
+        "floorY": 0.026,
+        "interior": {
+          "x": [
+            -16.2,
+            16.182
+          ],
+          "z": [
+            0,
+            39.2
+          ],
+          "height": 6.837
+        },
+        "ceiling": {
+          "min": 6.863,
+          "median": 7.807,
+          "max": 8.387,
+          "rays": 187,
+          "open": 0
+        },
+        "gate": {
+          "width": 16.043,
+          "height": 6.2,
+          "openClear": {
+            "width": 16.043,
+            "height": 5.899
+          }
+        },
+        "stage": [
+          25,
+          33.5
+        ],
+        "panel": [
+          14,
+          31.5
+        ],
+        "fixtures": 92,
+        "ceilingFixtures": 24,
+        "buehnen": [
+          "buehne_lift_m",
+          "buehne_lift_l",
+          "buehne_drehteller"
+        ]
+      },
+      "bytes": 3108780
+    }
   }
 }
