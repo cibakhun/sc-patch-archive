@@ -53,9 +53,7 @@ let sel = null;        // Schluessel des gewaehlten Platzes oder 'paint'
 let prev = null;       // angeklickte Zeile zum Vergleich
 let sort = { key: 'main', dir: -1 };
 let query = '';
-let more = false;
 let cmpAll = false;    // Vergleich: auch gleiche Werte zeigen
-try { more = storage?.getItem('vb.loadout.more') === '1'; } catch { more = false; }
 
 const GROUPS = ['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield', 'quantum', 'radar'];
 const current = (slot) => draft.slots[slot.key] ?? slot.stock;
@@ -419,7 +417,7 @@ function colsFor(keys, type) {
   const seen = new Map();
   for (const k of keys) for (const [id, label, , unit] of specs(k)) if (!seen.has(id)) seen.set(id, { id, label, unit });
   const all = [...seen.values()].sort((a, b) => COL_ORDER.indexOf(a.id) - COL_ORDER.indexOf(b.id));
-  return more ? all : all.filter((c) => CORE[type]?.includes(c.id));
+  return all.filter((c) => CORE[type]?.includes(c.id));
 }
 
 function paintPick() {
@@ -472,9 +470,8 @@ function paintPick() {
   const search = el('input', { type: 'search', class: 'lo-q', id: 'lo-q', value: query, placeholder: m('pick.search'), 'aria-label': m('pick.searchLabel'), autocomplete: 'off' });
   const list = el('section', { class: 'lo-box' },
     el('div', { class: 'lo-box__h' }, el('h3', {}, m('lo.pickFor')), el('span', { class: 'lo-n' }, plural('pick.count', shown.length))),
-    el('div', { class: 'lo-pickbar' }, search,
-      el('button', { type: 'button', class: 'lo-btn', id: 'lo-more', 'aria-pressed': String(more) }, m(more ? 'lo.less' : 'lo.more'))),
-    el('div', { class: 'lo-scroll lo-optscroll' }, el('table', { class: `lo-t lo-opts${more ? ' is-more' : ''}` },
+    el('div', { class: 'lo-pickbar' }, search),
+    el('div', { class: 'lo-scroll lo-optscroll' }, el('table', { class: 'lo-t lo-opts' },
       el('thead', {}, el('tr', {}, th({ id: 'name', label: m('win.part'), unit: '' }, ''), th({ id: 'main', label: UNIT[e.type](), unit: '' }, mainEx(e.type)), cols.map((c) => th(c, exOf(c.id), 'is-col')), el('th', { scope: 'col', class: 'is-act' }, el('span', { class: 'lo-vh' }, m('lo.fit'))))),
       el('tbody', {}, rows))),
     shown.length ? null : el('p', { class: 'lo-msgline' }, m('pick.empty')));
@@ -581,13 +578,6 @@ pick.addEventListener('click', (e) => {
     cmpAll = !cmpAll;
     paintPick();
     pick.querySelector('[data-cmpall]')?.focus();
-    return;
-  }
-  if (t.closest('#lo-more')) {
-    more = !more;
-    try { storage?.setItem('vb.loadout.more', more ? '1' : '0'); } catch { /* egal */ }
-    paintPick();
-    $('lo-more')?.focus();
     return;
   }
   const row = t.closest('.lo-opt');
