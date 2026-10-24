@@ -271,7 +271,7 @@ async function oneShip(slug, meta) {
     // Geometrie des Beins: Knoten unter dem Helfer (das Spiel nennt bei der
     // Polaris für alle drei Beine dieselbe Front.cga), Ordner aus dem Spiel
     const geoNode = parts.find((n) => /\.(cdf|cga|cgf)$/i.test(n.getName()));
-    leg.geometry = geoNode && g.geometry ? `${g.geometry.replace(/[^/\\]+$/, '')}${geoNode.getName()}` : g.geometry;
+    leg.geometry = geoNode && g.geometry ? (/[\\/]/.test(geoNode.getName()) ? geoNode.getName() : `${g.geometry.replace(/[^/\\]+$/, '')}${geoNode.getName()}`) : g.geometry;
     if (leg.foot && leg.foot[1] > leg.game.y + 0.5 && leg.geometry) {
       let an = legAnims(leg.geometry);
       if (an?.all) {

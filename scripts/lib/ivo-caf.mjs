@@ -16,7 +16,15 @@
 //   Position 0xC0: float x, y, z je Schlüssel
 //   Position 0xC2: Kopf 3 float Skalierung, 3 float Versatz; Achsen mit
 //              Skalierung FLT_MAX sind konstant (= Versatz), die übrigen
-//              tragen je Schlüssel ein u16: Wert = Versatz + u16 · Skalierung
+//              tragen je Schlüssel ein u16: Wert = Versatz + u16 · Skalierung;
+//              die Kanäle liegen nacheinander (erst alle Schlüssel des ersten
+//              laufenden Kanals, dann des nächsten)
+//   Position 0xC1: derselbe Kopf, dann je Schlüssel drei u16 für x, y, z
+//              (verschränkt, auch konstante Kanäle)
+//   Beide Lesarten belegt am Fahrwerk (.dba): letztes Bild von extend =
+//   erstes von compress, 79 von 79 Positionen.
+//   Zeit 0x40: keine lesbare Zeitspur (der Versatz zeigt teils in fremde
+//              Daten); Anfang und Ende der Werte sind trotzdem gültig
 //   Drehung 0x82: 48-Bit-Quaternion je Schlüssel (6 Byte, „SmallTree48Bit“):
 //              als 48-Bit-Zahl gelesen tragen Bit 46–47 den Index der
 //              größten Komponente (x, y, z, w = 0…3), die drei übrigen
@@ -49,6 +57,12 @@ function times(b, p, count, fmt) {
 function positions(b, p, count, fmt) {
   const df = fmt >> 8;
   if (df === 0xc0) return [...Array(count)].map((_, k) => [0, 1, 2].map((i) => b.readFloatLE(p + k * 12 + i * 4)));
+  // 0xC1: derselbe Kopf, dann je Schlüssel drei u16 (alle Kanäle, verschränkt).
+  // Belegt am Fahrwerk: letztes Bild von extend = erstes von compress.
+  if (df === 0xc1) {
+    const sc = [0, 1, 2].map((i) => b.readFloatLE(p + i * 4)), off = [0, 1, 2].map((i) => b.readFloatLE(p + 12 + i * 4));
+    return [...Array(count)].map((_, k) => [0, 1, 2].map((i) => off[i] + b.readUInt16LE(p + 24 + (k * 3 + i) * 2) * (sc[i] < FLT_MAX ? sc[i] : 0)));
+  }
   if (df === 0xc2) {
     const sc = [0, 1, 2].map((i) => b.readFloatLE(p + i * 4)), off = [0, 1, 2].map((i) => b.readFloatLE(p + 12 + i * 4));
     const live = [0, 1, 2].filter((i) => sc[i] < FLT_MAX);
