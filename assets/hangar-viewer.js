@@ -5012,20 +5012,24 @@ const WERK = /* werk */ {
   "bahn": { "vor": -26, "nische": 7, "y": 2.4, "aus": 4 }
 } /* /werk */;
 // Das Fahrzeug steht mit dem Bug zum Durchgang (+x); die Kamera sieht es
-// von vorn rechts oben, mit dem Durchgang im Rücken
+// von vorn, mittig und knapp über Augenhöhe, mit dem Durchgang im Rücken
+// und der Rückwand im Bild (Krisz, 24.10.2026, mit Bild: „in dieser
+// position ungefähr soll die kamera enden“; vorher von vorn links oben)
 const WERK_YAW = Math.PI / 2;
-const WERK_HOME_DIR = new THREE.Vector3(0.74, 0.22, 0.64).normalize();
+const WERK_HOME_DIR = new THREE.Vector3(1, 0.12, 0).normalize();
 // Hebebühne: Fahrzeit hinab und hinauf (wie das Schiffsfeld), unten steht
 // sie 0,5 m über der Sohle der Grube
 const WERK_DOWN_MS = 1900, WERK_UP_MS = 2800;
 const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // Fahrt der Kamera zwischen Halle und Werkhalle: Dauer aus der Weglänge in
-// Hallenmetern (s = a + Weg / v, gedeckelt), Lampenreihen gehen bei diesen
-// Anteilen der Fahrt an, von hinten nach vorn; der Spot genau bei der
-// Ankunft, mit der Bühne. Das erste Band erst, wenn man durch das
-// aufgehende Tor hineinsieht (vorher lief die Folge hinter dem Tor ab)
+// Hallenmetern (s = a + Weg / v, gedeckelt). Das Tor ist so viel früher
+// offen, als die Kamera es erreicht (ms). Die Lampenreihen gehen von hinten
+// nach vorn an, bei diesen Anteilen der Spanne vom ersten Blick durch das
+// aufgehende Tor (42 % offen; vorher lief die Folge hinter dem Tor ab) bis
+// zur Ankunft; der Spot genau bei der Ankunft, mit der Bühne
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
-const WERK_ROWS_AT = [0.5, 0.58, 0.66, 0.74, 0.82];
+const WERK_TOR_VOR = 1200;
+const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
 // dafür mal quer), des Spots und des Hallenlichts vor dem Durchgang;
 // Grundlicht und Spiegelung wachsen mit den Reihen. Aus geht eine Leuchte in
@@ -9150,42 +9154,59 @@ void main() {
     };
     return { pts, curve, len, ms, at };
   }
-  function tripStart(plan, look0, look1, ev = [], t0 = performance.now()) {
+  // hold: so lange steht die Kamera erst am Start (das Tor hinter ihr geht
+  // auf) und dreht sich derweil schon zum Weg
+  function tripStart(plan, look0, look1, ev = [], t0 = performance.now(), hold = 0) {
     fly = null; onPoint = false; touched = false;
     controls.enabled = false;
+    // Was die Dämpfung vom letzten Ziehen noch nachlaufen ließe, ist mit der
+    // Fahrt vorbei: einmal ohne Dämpfung ganz angewandt (das Bild setzt gleich
+    // tripStep). Sonst ruhte es während der Fahrt und drehte die Kamera nach
+    // der Ankunft weiter (Aufnahme: 6 m zur Seite).
+    controls.enableDamping = false; controls.update(); controls.enableDamping = true;
     let end;
     const done = new Promise((r) => { end = r; });
     const p0 = plan.curve.getPointAt(0), d0 = look0.clone().sub(p0);
-    trip = { ...plan, t0, look0: look0.clone(), look1: look1.clone(), d0: d0.clone().normalize(), r0: d0.length(), ev: ev.map(([at, fn]) => ({ at, fn, ran: false })), done, end, look: new THREE.Vector3(), ahead: new THREE.Vector3(), here: new THREE.Vector3(), dir: new THREE.Vector3(), dirA: new THREE.Vector3(), dirB: new THREE.Vector3() };
+    trip = { ...plan, t0, hold, side1: {}, side2: {}, look0: look0.clone(), look1: look1.clone(), d0: d0.clone().normalize(), r0: d0.length(), ev: ev.map(([at, fn]) => ({ at, fn, ran: false })), done, end, look: new THREE.Vector3(), ahead: new THREE.Vector3(), here: new THREE.Vector3(), dir: new THREE.Vector3(), dirA: new THREE.Vector3(), dirB: new THREE.Vector3() };
     tripStep(t0);
     return done;
   }
   // Blickrichtung zwischen a und b (Einheitsvektoren) als Schwenk: Gierwinkel
   // auf dem kürzeren Weg, Neigung linear. Ein Mischen der Blickpunkte lief
   // bei der Fahrt hinaus durch die Kamera hindurch, der Blick sprang in
-  // einem Bild um 180 Grad (Garage rückwärts, dann die Halle).
-  function panDir(a, b, t, out) {
+  // einem Bild um 180 Grad (Garage rückwärts, dann die Halle). side: Seite
+  // des Schwenks je Fahrt. Fast genau kehrt (hinaus aus der Ansicht von
+  // vorn) bleibt er auf ihr, der kürzere Weg wechselte sonst zwischen zwei
+  // Bildern von links nach rechts.
+  function panDir(a, b, t, out, side) {
     const ya = Math.atan2(a.x, a.z), yb = Math.atan2(b.x, b.z);
     const pa = Math.asin(THREE.MathUtils.clamp(a.y, -1, 1)), pb = Math.asin(THREE.MathUtils.clamp(b.y, -1, 1));
     let dy = yb - ya;
     dy -= Math.PI * 2 * Math.round(dy / (Math.PI * 2));
+    if (side) {
+      if (side.s && Math.sign(dy) !== side.s && Math.abs(dy) > Math.PI - 0.6) dy += side.s * Math.PI * 2;
+      else if (Math.abs(dy) > 1e-4) side.s = Math.sign(dy);
+    }
     const y = ya + dy * t, p = pa + (pb - pa) * t;
     return out.set(Math.sin(y) * Math.cos(p), Math.sin(p), Math.cos(y) * Math.cos(p));
   }
   function tripStep(now) {
-    const P = trip, k = hallRoot.scale.x, f = THREE.MathUtils.clamp((now - P.t0) / P.ms, 0, 1), u = sine(f);
+    const P = trip, k = hallRoot.scale.x, e = now - P.t0, f = THREE.MathUtils.clamp((e - P.hold) / P.ms, 0, 1), u = sine(f);
     P.curve.getPointAt(u, P.here);
     camera.position.copy(P.here).multiplyScalar(k);
     P.curve.getPointAt(Math.min(1, u + 0.12), P.ahead);
     // Blick: vom Ziel des Starts über den Weg voraus zum Ziel der Ankunft,
-    // als Richtung geschwenkt; der Abstand des Blickpunkts mischt mit
-    const s1 = THREE.MathUtils.smoothstep(u, 0, 0.3), s2 = THREE.MathUtils.smoothstep(u, 0.55, 1);
+    // als Richtung geschwenkt; der Abstand des Blickpunkts mischt mit. Wartet
+    // sie erst (hold), hat sie sich bis zum Losfahren (mindestens 1,2 s) zum
+    // Weg gedreht: Halb gedreht sah sie im Tor auf dessen Rahmen und die
+    // Wand der Nische.
+    const s1 = THREE.MathUtils.smoothstep(Math.max(u / 0.3, P.hold > 0 ? e / Math.max(P.hold, 1200) : 0), 0, 1), s2 = THREE.MathUtils.smoothstep(u, 0.55, 1);
     const ra = Math.max(0.5, P.ahead.distanceTo(P.here)), r1 = P.look1.distanceTo(P.here);
     const dA = P.dirB.subVectors(P.ahead, P.here);
     if (dA.lengthSq() < 1e-8) dA.copy(P.d0); else dA.normalize();
-    panDir(P.d0, dA, s1, P.dir);
+    panDir(P.d0, dA, s1, P.dir, P.side1);
     const d1 = r1 > 1e-4 ? P.dirB.subVectors(P.look1, P.here).divideScalar(r1) : P.dirB.copy(P.dir);
-    panDir(P.dirA.copy(P.dir), d1, s2, P.dir);
+    panDir(P.dirA.copy(P.dir), d1, s2, P.dir, P.side2);
     const r = THREE.MathUtils.lerp(THREE.MathUtils.lerp(P.r0, ra, s1), r1, s2);
     P.look.copy(P.here).addScaledVector(P.dir, r);
     if (f >= 1) P.look.copy(P.look1);
@@ -9234,8 +9255,10 @@ void main() {
   // Weg zwischen einem Punkt in der Halle (hallP) und einem in der
   // Werkhalle (werkP), in Hallenmetern: vor der Nische auf Türhöhe, durch
   // Durchgang und Tunnel, außen um Schiff und Fahrzeug herum. 'in' von der
-  // Halle hinüber, 'out' zurück.
-  function werkPath(dir, hallP, werkP, box, vehInfo) {
+  // Halle hinüber, 'out' zurück. vehSc: Maßstab der Fahrzeuggruppe; hinaus
+  // hat werkRescale sie schon mitgenommen (sonst zählte das Fahrzeug nur so
+  // groß, wie es im Maßstab des Schiffs wäre, und die Kamera fuhr hindurch).
+  function werkPath(dir, hallP, werkP, box, vehInfo, vehSc = 1) {
     const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn, yd = Math.min(B.y, T.h * 0.55);
     const pts = [hallP.clone()];
     if (hallP.x > B.vor) {
@@ -9244,9 +9267,17 @@ void main() {
       if (box && segHits(hallP, a, new THREE.Vector3(), box.sx, box.sy, box.sz)) pts.push(new THREE.Vector3(0, Math.max(hallP.y, yd + 1), (hallP.z > 0.5 ? 1 : -1) * (box.sz + 1.5)));
       pts.push(a);
     }
-    pts.push(new THREE.Vector3(T.x + B.nische, yd, 0), new THREE.Vector3(WERK.raum.x[1] - B.aus, yd + 0.2, 0));
+    // Hinter dem Tor auf der Achse, wenn der Punkt in der Werkhalle tiefer
+    // liegt; nahe am Tor nur, wenn die Gerade zu ihm nicht durch den
+    // Durchgang ginge. Die Ansicht von vorn (WERK_HOME_DIR) steht vor diesem
+    // Punkt: Die Kamera fuhr sonst an ihr vorbei und wieder zurück.
+    const nP = new THREE.Vector3(T.x + B.nische, yd, 0), ax = WERK.raum.x[1] - B.aus;
+    const f = (T.x - nP.x) / Math.min(-1e-3, werkP.x - nP.x), zc = f * werkP.z, yc = yd + f * (werkP.y - yd);
+    pts.push(nP);
+    if (werkP.x < ax - 1) pts.push(new THREE.Vector3(ax, yd + 0.2, 0));
+    else if (Math.abs(zc) > T.b / 2 - 1.5 || yc < 0.6 || yc > T.h - 1) pts.push(new THREE.Vector3(werkP.x, yd + 0.2, 0));
     if (vehInfo) {
-      const vx = vehInfo.len / 2 / k + 2, vz = vehInfo.halfW / k + 2, vy = vehInfo.height / k + 1.2;
+      const q = vehSc / k, vx = (vehInfo.len / 2) * q + 2, vz = vehInfo.halfW * q + 2, vy = vehInfo.height * q + 1.2;
       if (segHits(pts.at(-1), werkP, new THREE.Vector3(F.x, 0, F.z), vx, vy, vz)) pts.push(new THREE.Vector3(F.x + vx * 0.3, Math.max(werkP.y, vy + 0.5), F.z + (werkP.z >= F.z ? 1 : -1) * (vz + 2)));
     }
     pts.push(werkP.clone());
@@ -9351,14 +9382,17 @@ void main() {
     const box = shipBox(old.info, old.group.scale.x, k);
     let plan = planFor(werkPath('in', from, to, null, s.info));
     if (tripHits(plan, t0, box, liftAt)) plan = planFor(werkPath('in', from, to, box, s.info));
-    const cross = plan.at(WERK.tor.x + 1.2);
-    werkMove(W.tor, 1, WERK.tor.ms, t0 + Math.max(0, cross - need));
-    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, t0 + plan.ms * WERK_ROWS_AT[i]));
+    // Das Tor ist offen, bevor die Kamera durch die Nische ist (WERK_TOR_VOR);
+    // die Bänder gehen vom ersten Blick hinein bis zur Ankunft an
+    // (WERK_ROWS_AT): Die Kamera hält gleich hinter dem Tor
+    const cross = plan.at(WERK.tor.x + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR), look = torAt + WERK.tor.ms * 0.42;
+    werkMove(W.tor, 1, WERK.tor.ms, t0 + torAt);
+    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, t0 + look + (plan.ms - look) * WERK_ROWS_AT[i]));
     werkMove(W.buehne, 0, WERK_UP_MS, t0 + plan.ms - WERK_UP_MS);
     lampSet(W.spot, WERK_SPOT_FLICKER, 1, t0 + plan.ms);
     if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
     homeTgt = tgt;
-    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
+    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${(torAt / 1000).toFixed(1)} s, durch bei ${(cross / 1000).toFixed(1)} s, Bänder ${WERK_ROWS_AT.map((r) => ((look + (plan.ms - look) * r) / 1000).toFixed(1)).join('/')} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
     await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [], t0);
     werkMove(W.tor, 0, WERK.tor.ms);
     return true;
@@ -9414,22 +9448,31 @@ void main() {
     adopt(ship, s, { lift: true });
     const tgt = new THREE.Vector3(0, Math.max(1.2, s.info.height * 0.45 + 0.3), 0), end = tgt.clone().addScaledVector(HOME_DIR, homeDist());
     const up = liftUpMs(s.info), need = WERK.tor.ms + 250;
+    // Steht die Kamera gleich hinter dem Tor (Ansicht von vorn), wartet sie,
+    // bis es offen ist, und dreht sich derweil zum Weg (hold). Die Fahrt zu
+    // strecken, bis sie spät genug ans Tor kommt, machte sie von dort aus
+    // zehnmal so lang. Näher als 1,2 m ist sie gleich am Tor: at() fände die
+    // Ebene hinter ihr nie und gäbe das Ende, das Tor ging erst auf, als sie
+    // schon hindurch war.
+    const gx = WERK.tor.x - 1.2, c0 = (p) => (camera.position.x / k > gx ? 0 : p.at(gx));
     const planFor = (pts) => {
-      const p = tripPlan(pts, up + 300), c0 = p.at(WERK.tor.x - 1.2);
-      return c0 < need ? tripPlan(pts, (p.ms * need) / Math.max(1, c0)) : p;
+      const p = tripPlan(pts, up + 300);
+      p.hold = Math.max(0, need - c0(p));
+      return p;
     };
     // Das Schiff wartet unten und kommt erst zum Ende herauf (liftUp bei
-    // plan.ms - up); ab da zählt es in voller Höhe
+    // hold + plan.ms - up); ab da zählt es in voller Höhe
     const t0 = performance.now(), from = end.divideScalar(k), at = camera.position.clone().divideScalar(k);
     const box = shipBox(s.info, ship.scale.x, k), y0 = lift.y;
-    let plan = planFor(werkPath('out', from, at, null, veh.info));
-    if (tripHits(plan, t0, box, (t) => (t < t0 + plan.ms - up ? y0 : 0))) plan = planFor(werkPath('out', from, at, box, veh.info));
-    const cross = plan.at(WERK.tor.x - 1.2);
+    const hits = (p) => tripHits(p, t0 + p.hold, box, (t) => (t < t0 + p.hold + p.ms - up ? y0 : 0));
+    let plan = planFor(werkPath('out', from, at, null, veh.info, veh.group.scale.x));
+    if (hits(plan)) plan = planFor(werkPath('out', from, at, box, veh.info, veh.group.scale.x));
+    const cross = plan.hold + c0(plan), all = plan.hold + plan.ms;
     werkMove(W.tor, 1, WERK.tor.ms, t0 + Math.max(0, cross - need));
-    if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
+    if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = all; }
     homeTgt = tgt;
-    console.info(`[hangar] Fahrt aus der Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Aufzug ab ${((plan.ms - up) / 1000).toFixed(1)} s`);
-    await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [[plan.ms - up, () => liftUp(s.info)]], t0);
+    console.info(`[hangar] Fahrt aus der Werkhalle: ${plan.len.toFixed(0)} m in ${(all / 1000).toFixed(1)} s (${(plan.hold / 1000).toFixed(1)} s Warten am Tor), Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Aufzug ab ${((all - up) / 1000).toFixed(1)} s`);
+    await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [[all - up, () => liftUp(s.info)]], t0, plan.hold);
     camFree = null; freeDirty = true;
     werkMove(W.tor, 0, WERK.tor.ms).then(() => { if (ort === 'halle' && !trip) werkClear(); });
     return true;

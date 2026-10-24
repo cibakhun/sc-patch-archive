@@ -1446,6 +1446,18 @@ last_updated: 2026-10-23T23:18:00.000Z
     "reason": "",
     "recorded_at": "2026-10-24T15:00:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 112,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Werkhalle nach Krisz 24.10.2026 17:45/17:47 mit Bildern: „die kamer is iwi in dem schiff drin“ und „in dieser position ungefähr soll die kamera enden und nicht da links oben“): Die Fahrt in die Werkhalle endet jetzt vorn mittig, knapp über Augenhöhe, mit Blick gerade auf das Fahrzeug und die Rückwand (wie auf Krisz' Bild), 1 bis 2 m hinter dem Tor. Das Tor ist offen, bevor die Kamera durch die Nische ist, die Lichter gehen von hinten nach vorn an, während sie hineinfährt, der Spot bei der Ankunft. Zurück zu einem Schiff dreht sich die Kamera erst zum Tor, während es aufgeht (rund 2 s), und fährt dann hinaus. Die Kamera in einer Hülle ließ sich hier nicht nachstellen; behoben sind zwei Fehler, die dahin führen konnten (Weg hinaus durch das Fahrzeug, Weiterdrehen nach der Ankunft). Zu beurteilen: (1) Stimmt die Endposition so? (2) Ist das Warten am Tor beim Hinausfahren zu lang? (3) Sitzt die Kamera noch irgendwo im Schiff oder Fahrzeug, und wenn ja, nach welchem Klick? Bilder unter hangar-werkhalle/endpunkt im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-24T21:00:00.000Z",
+    "resolved_at": null
   }
 ]
 ````

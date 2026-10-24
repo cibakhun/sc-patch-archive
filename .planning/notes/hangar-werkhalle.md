@@ -328,3 +328,50 @@ die json. Vorgeführt rot: Datei in `dist/` weggenommen („die Seite liefert
 keine Bühnendatei in dist/ … Das Fahrzeug stünde ohne Plattform in der
 Grube“), Knoten auf `buehne_lift_x` gestellt („… hat keinen Knoten
 buehne_lift_x (feld.buehne)“ neben dem Befund der json).
+
+## Endpunkt und Fahrt hinaus (Krisz, 24.10.2026 abends)
+
+Krisz, 17:45 mit Bild: „die kamer is iwi in dem schiff drin“, 17:47 mit
+Bild: „in dieser position ungefähr soll die kamera enden und nicht da links
+oben wo jetzt isie endet“. Das zweite Bild zeigt die Werkhalle vom Tor aus,
+mittig auf der Achse, knapp über Augenhöhe, das Fahrzeug auf der blauen
+Bühne, dahinter die Rückwand.
+
+- **Startansicht** `WERK_HOME_DIR` jetzt `(1, 0.12, 0)`: auf der Achse zum
+  Durchgang, 6,8 Grad hoch (vorher `(0.74, 0.22, 0.64)`, vom Tor aus links
+  oben). `werkRoom` misst längs dieser Richtung nur noch bis 0,8 m vor dem
+  Tor (15,8 statt 17,6 H-m), große Fahrzeuge bekommen darum einen etwas
+  größeren Maßstab (Nova 1,41 → 1,56). PTV: Kamera 1,9 m hinter dem Tor,
+  Ursa und größer 0,8 m. Tor [18] prüft die Richtung (höchstens 1 Grad
+  seitlich, 0 bis 11 Grad hoch), zweimal rot vorgeführt: alte Richtung
+  („steht 40.9 Grad seitlich, 12.7 Grad hoch“) und ohne `.normalize()`
+  („steht nicht mehr als Vector3(x, y, z).normalize() im Viewer“).
+- **Weg hinein**: Der Punkt hinter dem Tor (`bahn.aus`, 4 m) liegt jetzt
+  hinter dem Ziel; er kommt nur noch dazu, wenn das Ziel tiefer im Raum
+  liegt oder die Gerade von der Nische nicht durch den Durchgang ginge.
+- **Licht**: Das Tor ist `WERK_TOR_VOR` (1,2 s) vor der Kamera offen, die
+  Bänder gehen vom ersten Blick hinein (Tor 42 % offen) bis zur Ankunft an,
+  `WERK_ROWS_AT` sind jetzt Anteile dieser Spanne. Gladius → PTV: 81 m in
+  5,3 s, Tor ab 1,6 s, durch bei 4,6 s, Bänder 2,5/3,1/3,6/4,1/4,6 s, Spot
+  5,3 s.
+- **Hinaus aus der Ansicht von vorn**: `p.at(tor.x − 1,2)` fand die Ebene
+  hinter einer Kamera, die näher als 1,2 m am Tor steht, nie und gab das
+  Ende: Das Tor ging erst auf, als sie hindurch war (Aufnahme: blaues
+  Torblatt bildfüllend). Jetzt zählt sie dort als gleich am Tor, wartet
+  (`hold`), bis es offen ist, und dreht sich derweil ganz zum Weg (vorher
+  halb gedreht: Blick im Tor auf Rahmen und Nischenwand). Vorher hätte die
+  Fahrt auf ein Vielfaches gestreckt werden müssen. Ursa → Gladius: 7,3 s
+  mit 2,0 s Warten.
+- **Kehrtwende**: `panDir` hält die Seite des Schwenks, wenn er fast genau
+  180 Grad dreht; der kürzere Weg sprang sonst zwischen zwei Bildern.
+- **Kamera im Fahrzeug**: Nachgestellt mit Prüfung je Bild (Strahlen von der
+  Kamera, Rückseiten gezählt) über Fahrten mit Gladius, Carrack, Spartan,
+  Ursa, Nova, PTV, ROC, Zoom ganz hinein und Drehen: in keinem Bild in einer
+  Hülle. Ganz hineingezoomt und dann auf ein größeres Fahrzeug gewechselt,
+  füllt die Hülle aus 2 m das Bild (Nova). Zwei echte Fehler dabei: (1) Auf
+  dem Weg hinaus zählte das Fahrzeug nur so groß, wie es im Maßstab des
+  neuen Schiffs wäre (`werkRescale` hatte die Gruppe schon mitgenommen),
+  die Kamera konnte hindurchfahren; jetzt mit `vehSc`. (2) Der Nachlauf
+  der Dämpfung vom letzten Ziehen ruhte während der Fahrt und drehte die
+  Kamera nach der Ankunft weiter (Aufnahme: 6 m zur Seite); `tripStart`
+  verwirft ihn jetzt.
