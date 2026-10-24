@@ -4990,6 +4990,7 @@ function hangarSound(src = null) {
 //   lampen: Leuchtkörper (Netz, ab Höhe) aus der json, die im Shader
 //     leuchten, je höchstens je Band (niedrig eine je Band)
 //   spot: Strahler über der Bühne, Höhe und Kegel innen/außen in Grad
+//     (weicher Rand: Krisz, 24.10.2026, „den spotlight softer“; vorher 16/30)
 //   logo: Logo der Rückwand (Kasten in Hallenmetern) rückt über den Rahmen:
 //     neue Unterkante unten, Maßstab s um seine Mitte
 //   frei: Möbel der Halle mit Bezugspunkt hier weichen dem Weg zum Durchgang
@@ -5006,7 +5007,7 @@ const WERK = /* werk */ {
   "feld": { "x": -68.5, "z": 0, "hx": 8.2, "hz": 6.4, "tief": 7, "rand": 0.45, "buehne": "buehne_lift_m" },
   "reihen": [[30.5, 41], [23, 30.5], [15, 23], [7, 15], [-1, 7]],
   "lampen": { "netze": ["light_panel_1_d", "light_fixture_rectangular_e"], "ab": 7, "je": 4 },
-  "spot": { "y": 6.4, "innen": 16, "aussen": 30 },
+  "spot": { "y": 6.4, "innen": 5, "aussen": 36 },
   "logo": { "x": [-51.4, -50.6], "y": [4.3, 7.9], "z": [-3.6, 3.4], "unten": 6.95, "s": 0.42 },
   "frei": { "x": [-51, -46.5], "z": [-9.5, 9.5] },
   "bahn": { "vor": -26, "nische": 7, "y": 2.4, "aus": 4 }
@@ -5031,18 +5032,77 @@ const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
 const WERK_TOR_VOR = 1200;
 const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
-// dafür mal quer), des Spots und des Hallenlichts vor dem Durchgang;
+// dafür mal quer), des Spots (weicher seit 24.10.2026: 170 statt 260, das
+// Fahrzeug strahlte weiß) und des Hallenlichts vor dem Durchgang;
 // Grundlicht und Spiegelung wachsen mit den Reihen. Aus geht eine Leuchte in
 // WERK_OFF_MS. Leuchtflächen strahlen über der Schwelle des Lichtscheins.
 const WERK_LIGHT = {
-  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 260, spill: [1.0, 0.98, 0.95], spillI: 40,
+  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 170, spill: [1.0, 0.98, 0.95], spillI: 40,
   amb: [0.85, 0.88, 0.95], amb0: 0.012, ambK: 0.4, env0: 0.04, envK: 0.5, torAmb: 0.35, glow: 7, dark: 0.006,
 };
+// Zu den Wänden hin dunkler (Krisz, 24.10.2026: „sonst alles im hintergrund
+// richtung wände dunkler machen“): Licht der Reihen, Grundlicht und
+// Spiegelung fallen mit dem Abstand von der Bühne, bezogen auf den Weg bis
+// zur Wand in dieser Richtung (hinten, vorn, Seite), ab diesem Anteil bis
+// auf rest an der Wand; Leuchtflächen halb so stark (sie sind Lampen).
+// Bühne, Fahrzeug und Spot bleiben, wie sie sind.
+const WERK_WAND = { ab: 0.35, rest: 0.22, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
 // danach voll; der Spot schlägt kurz über
 const WERK_FLICKER = [[0, 0], [30, 0.9], [70, 0.05], [130, 0.6], [170, 0.1], [260, 0.85], [300, 0.7], [420, 1]];
-const WERK_SPOT_FLICKER = [[0, 0], [40, 1.25], [140, 0.92], [260, 1]];
+const WERK_SPOT_FLICKER = [[0, 0], [40, 1.12], [140, 0.94], [260, 1]];
+// Leitungen unter der Decke der Werkhalle (Krisz, 24.10.2026: „decke iwi
+// verbessern, rohre, kablen etc“). Stücke aus dem Gerätekatalog des Spiels,
+// gepackt von scripts/build-werkhalle-decke.mjs (props/werkdecke.glb), in
+// Hallenmetern wie WERK. Gemessenes Deckenprofil der Garage: Mittelplatte
+// (z ±6,5) 7,8 m hoch von x -81 bis -53,5, davor und dahinter tiefere
+// Träger; Randträger bei z ±7,5 bis 6,8 m herab, Seitenstreifen 6,9 m; über
+// der Rückwand eine Bucht bis 8,4 m (x -86..-85).
+//   laeufe: node Stück an Stück von von bis bis (Länge lang je Stück, auf
+//     der Achse des Laufs), r Drehung um y in Grad (Kanäle und Rohre liegen
+//     im Modell längs z, Kabel längs x)
+//   stuecke: [node, x, oben, z, r] einzeln
+// Kabel enden in Anschlussdosen an der Decke oder im Kanal; Querzüge von
+// Kanal zu Kanal über die Mitte, zwischen den Leuchten.
+// Höhen sind Oberkanten (oben: an der Decke). Keine Unterkante unter 6,3 m:
+// Die Kamera bleibt unter raum.h - 0,8. verify:hangar-hall [18] prüft
+// Raum, Höhe, Spot und Länge der Läufe gegen den Katalog.
+const WERK_DECKE = /* work-werkdecke */ {
+  "laeufe": [
+    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-81.0, 7.8, 4.6], "bis": [-53.0, 7.8, 4.6], "lang": 4, "r": 90 },
+    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-81.0, 7.8, -4.6], "bis": [-53.0, 7.8, -4.6], "lang": 4, "r": 90 },
+    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-81.0, 7.8, 6.0], "bis": [-53.0, 7.8, 6.0], "lang": 4, "r": 90 },
+    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-81.0, 7.8, -6.0], "bis": [-53.0, 7.8, -6.0], "lang": 4, "r": 90 },
+    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-80.5, 7.8, 3.5], "bis": [-55.5, 7.8, 3.5], "lang": 12.5, "r": 0 },
+    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-80.5, 7.8, -3.5], "bis": [-55.5, 7.8, -3.5], "lang": 12.5, "r": 0 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-75.0, 7.8, -4.46], "bis": [-75.0, 7.8, 4.46], "lang": 4.46, "r": 90 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-61.0, 7.8, -4.46], "bis": [-61.0, 7.8, 4.46], "lang": 4.46, "r": 90 }
+  ],
+  "stuecke": [
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -80.5, 7.8, 3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -68.0, 7.8, 3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -55.5, 7.8, 3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -80.5, 7.8, -3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -68.0, 7.8, -3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -55.5, 7.8, -3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -75.0, 7.8, 0, 90],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -61.0, 7.8, 0, 90]
+  ]
+} /* /work-werkdecke */;
+// Ton der Deckenstücke (Faktor auf die Farbe): Das Rohr trägt im Katalog
+// die Palettenfarbe Weiß (0,87, glänzend) und stand hell wie ein Leuchtbalken
+// unter der schwarzen Decke; die Kanäle (Beige des Depots) dicht an den
+// Leuchten fast weiß
+const WERK_DECKE_TON = [[/pipe_air_processing/, 0.28], [/dumpersdepot/, 0.6]];
+// Plätze der Stücke aus WERK_DECKE: [node, Mitte x, Oberkante, Mitte z, r in Grad]
+const werkDeckePlaetze = (D) => [
+  ...(D.laeufe ?? []).flatMap((L) => {
+    const d = [L.bis[0] - L.von[0], L.bis[2] - L.von[2]], len = Math.hypot(...d), n = Math.max(1, Math.round(len / L.lang));
+    return Array.from({ length: n }, (_, i) => [L.node, L.von[0] + (d[0] * (i + 0.5)) / n, L.von[1], L.von[2] + (d[1] * (i + 0.5)) / n, L.r]);
+  }),
+  ...(D.stuecke ?? []),
+];
 const flicker = (curve, ms) => {
   if (ms <= 0) return 0;
   for (let i = 1; i < curve.length; i++) {
@@ -5111,7 +5171,15 @@ uniform vec4 hgWkD[ HG_WK_N ];
 uniform vec3 hgWkAmb;
 uniform vec4 hgWkTor;
 uniform float hgWkK, hgWkEnv;
+uniform vec4 hgWkVigA, hgWkVigB;
 varying vec3 vHgWk;
+// Abfall zu den Wänden (WERK_WAND): A Mitte der Bühne x/z, Weg bis zur Wand
+// hinten (-x) und vorn (+x); B Weg zur Seitenwand, ab, rest
+float hgWkVig() {
+	vec2 q = vHgWk.xz - hgWkVigA.xy;
+	q /= vec2( q.x < 0.0 ? hgWkVigA.z : hgWkVigA.w, hgWkVigB.x );
+	return mix( 1.0, hgWkVigB.z, smoothstep( hgWkVigB.y, 1.0, length( q ) ) );
+}
 #ifdef HG_WK_FOOT
 uniform sampler2D hgWkFoot;
 uniform vec4 hgWkFootB;
@@ -5157,6 +5225,7 @@ IncidentLight directLight;
 float hgWkDeep = smoothstep( 0.0, 4.5, - vHgWk.y );
 vec3 hgWkN = inverseTransformDirection( geometryNormal, viewMatrix );
 vec2 hgWkSh = vec2( 1.0 );
+float hgWkV = hgWkVig();
 #ifdef HG_WK_FOOT
 	// nur was nach oben zeigt (Boden, Bühne, Mittelfeld), nicht die Decke darüber
 	if ( hgWkN.y > 0.6 ) hgWkSh = hgWkShade();
@@ -5171,11 +5240,12 @@ for ( int i = 0; i < HG_WK_N; i ++ ) {
 	float att = ( 1.0 - q * q ) * ( 1.0 - q * q ) / ( d2 + 1.0 );
 	if ( c.w > -1.5 ) att *= smoothstep( c.w, d.w, dot( - directLight.direction, normalize( ( viewMatrix * vec4( d.xyz, 0.0 ) ).xyz ) ) );
 	if ( i == HG_WK_N - 1 && vHgWk.x < hgWkTor.x ) att *= hgWkTor.y;
+	if ( i < HG_WK_N - 2 ) att *= hgWkV;
 	directLight.color = c.rgb * att * hgWkSh.x * ( 1.0 - 0.88 * hgWkDeep );
 	directLight.visible = true;
 	RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
 }
-vec3 irradiance = hgWkAmb * ( 0.78 + 0.22 * hgWkN.y ) * hgWkSh.y * ( 1.0 - 0.9 * hgWkDeep );
+vec3 irradiance = hgWkAmb * ( 0.78 + 0.22 * hgWkN.y ) * hgWkSh.y * ( 1.0 - 0.9 * hgWkDeep ) * hgWkV;
 // Hallenlicht im Tunnel und am Tor: von der Halle her, hinter dem Tor nur offen
 irradiance += vec3( hgWkTor.z ) * smoothstep( hgWkTor.x - 3.0, hgWkTor.x + 1.5, vHgWk.x ) * ( vHgWk.x < hgWkTor.x ? hgWkTor.y : 1.0 ) * ( 0.6 + 0.4 * max( hgWkN.x, 0.0 ) );
 vec3 iblIrradiance = vec3( 0.0 );
@@ -6894,6 +6964,9 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     d: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, -1, 0, 1)) },    // Richtung, cos Innenkegel
     amb: { value: new THREE.Color(0, 0, 0) },
     tor: { value: new THREE.Vector4(WERK.tor.x, 0, 0, 0) },   // x des Tors, offen 0..1, Hallenlicht am Tor
+    // Abfall zu den Wänden (hgWkVig): Seitenwand aus der json der Garage (werkBauen)
+    vigA: { value: new THREE.Vector4(WERK.feld.x, WERK.feld.z, WERK.feld.x - WERK.raum.x[0], WERK.raum.x[1] - WERK.feld.x) },
+    vigB: { value: new THREE.Vector4(WERK.raum.z[1], WERK_WAND.ab, WERK_WAND.rest, 0) },
     k: { value: 1 }, env: { value: 0 },
     foot: { value: null }, footB: { value: new THREE.Vector4(0, 0, 1, 0) },
     glow: { value: new Array(WK_ROWS).fill(0) },
@@ -6919,6 +6992,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     prev?.call(m, sh, r);
     sh.uniforms.hgWkP = werkU.p; sh.uniforms.hgWkC = werkU.c; sh.uniforms.hgWkD = werkU.d;
     sh.uniforms.hgWkAmb = werkU.amb; sh.uniforms.hgWkTor = werkU.tor; sh.uniforms.hgWkK = werkU.k; sh.uniforms.hgWkEnv = werkU.env;
+    sh.uniforms.hgWkVigA = werkU.vigA; sh.uniforms.hgWkVigB = werkU.vigB;
     const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow;
     if (foot) { sh.uniforms.hgWkFoot = werkU.foot; sh.uniforms.hgWkFootB = werkU.footB; sh.uniforms.hgWkFootK = m.userData.werkFoot === 'pad' ? werkFootPad : werkFootFloor; }
     if (pit) sh.uniforms.hgWkPit = werkU.pit;
@@ -6929,9 +7003,9 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${WERK_LIGHTS_GLSL}`)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n#ifdef HG_WK_PIT\n\tif ( abs( vHgWk.x - hgWkPit.x ) < hgWkPit.z && abs( vHgWk.z - hgWkPit.y ) < hgWkPit.w && vHgWk.y < 0.25 ) discard;\n#endif')
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt();\n#endif')
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt() * mix( 1.0, hgWkVig(), ${WERK_WAND.glow.toFixed(2)} );\n#endif`)
       .replace('#include <lights_fragment_begin>', WERK_LIGHTS_BEGIN)
-      .replace('#include <lights_fragment_maps>', '#include <lights_fragment_maps>\n\tiblIrradiance *= hgWkEnv; radiance *= hgWkEnv;');
+      .replace('#include <lights_fragment_maps>', '#include <lights_fragment_maps>\n\tiblIrradiance *= hgWkEnv * hgWkV; radiance *= hgWkEnv * hgWkV;');
   };
   const werkKey = (m) => () => `werk-v2${m.userData.werkFoot ? `|foot-${m.userData.werkFoot}` : ''}${m.userData.werkPit ? '|pit' : ''}${m.userData.werkGlow ? '|glow' : ''}`;
 
@@ -7487,6 +7561,8 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   // füllen den Durchgang von der Halle aus.
   function werkBauen(seen, garage) {
     const T = WERK.tuer, F = WERK.feld, GC = WERK.garage, D = garage.dims;
+    // Seitenwand für den Abfall des Lichts: Innenraum der Garage (ihr x ist hier z)
+    if (D.interior?.x) werkU.vigB.value.x = Math.min(...D.interior.x.map(Math.abs));
     const steelSrc = [...seen].find((m) => m.isMeshStandardMaterial && /mtl_metal_grey_04$/.test(m.name)) ?? null;
     const used = [];
     const werkMat = (m, flags) => {
@@ -7740,7 +7816,7 @@ varying float vT;
 void main() {
 	float f = abs( dot( normalize( vN ), normalize( vV ) ) );
 	float a = f * f * smoothstep( 0.0, 0.15, vT ) * ( 1.0 - vT * 0.65 ) * hgBeam;
-	gl_FragColor = vec4( vec3( 1.0, 0.93, 0.8 ) * a * 0.08, 1.0 );
+	gl_FragColor = vec4( vec3( 1.0, 0.93, 0.8 ) * a * 0.04, 1.0 );
 }`,
       });
       const b = new THREE.Mesh(geo, m);
@@ -7748,6 +7824,52 @@ void main() {
       raum.add(b);
       return b;
     })();
+    // Leitungen unter der Decke (WERK_DECKE): je Material eine Geometrie
+    // aus allen Plätzen, im Licht der Werkhalle wie die Garage
+    let decke = null;
+    if (garage.decke) {
+      const src = new Map(), M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+      garage.decke.traverse((o) => { if (o.name.startsWith('prop_') && !src.has(o.name)) src.set(o.name, o); });
+      const parts = new Map(), dm = new Map(), fehlt = new Set();
+      let n = 0;
+      for (const [node, x, top, z, r] of werkDeckePlaetze(WERK_DECKE)) {
+        const o = src.get(node);
+        if (!o) { fehlt.add(node); continue; }
+        o.updateMatrixWorld(true);
+        const bb = new THREE.Box3().setFromObject(o);
+        M.compose(new THREE.Vector3(x, top - bb.max.y, z), q.setFromAxisAngle(up, r * DEG), new THREE.Vector3(1, 1, 1));
+        o.traverse((c) => {
+          if (!c.isMesh) return;
+          let mat = dm.get(c.material);
+          if (!mat) {
+            mat = garMat(c.material, null, false);
+            const ton = WERK_DECKE_TON.find(([re]) => re.test(mat.name));
+            if (ton && mat.color) mat.color.multiplyScalar(ton[1]);
+            dm.set(c.material, mat);
+          }
+          const g = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone();
+          for (const k of Object.keys(g.attributes)) if (!/^(position|normal|uv)$/.test(k)) g.deleteAttribute(k);
+          g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(M, c.matrixWorld));
+          (parts.get(mat) ?? parts.set(mat, []).get(mat)).push(g);
+        });
+        n++;
+      }
+      decke = { stuecke: n, fehlt: [...fehlt], netze: 0, tris: 0 };
+      for (const [mat, gs] of parts) {
+        const keys = ['position', 'normal', 'uv'].filter((k) => gs.every((g) => g.attributes[k]));
+        const out = new THREE.BufferGeometry();
+        for (const k of keys) {
+          const size = gs[0].attributes[k].itemSize, arr = new Float32Array(gs.reduce((a, g) => a + g.attributes[k].count * size, 0));
+          let off = 0;
+          for (const g of gs) { arr.set(g.attributes[k].array, off); off += g.attributes[k].array.length; g.dispose(); }
+          out.setAttribute(k, new THREE.BufferAttribute(arr, size));
+        }
+        out.computeBoundingBox(); out.computeBoundingSphere();
+        const m = mesh(out, mat, raum);
+        m.name = `werk:decke:${mat.name}`;
+        decke.netze++; decke.tris += out.attributes.position.count / 3;
+      }
+    }
     // Leuchten: Leuchtkörper aus der json je Band (hinten zuerst), höchstens WK_JE
     const toH = (p) => [GC.x - p[2], p[1] - (D.floorY ?? 0), p[0]];
     const picked = WERK.reihen.map(() => []);
@@ -7773,7 +7895,7 @@ void main() {
     werkLamp(WK_SPILL, [T.x + 2.2, 2.6, 0], 30, [-1, -0.1, 0], 30, 72);
     hallDoor.value.set(T.x, T.b / 2, T.h, 1);
     return {
-      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps,
+      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps, decke,
       gateSec: D.gate?.motion?.open?.seconds ?? 6.667, gateT: D.gate?.motion?.open?.t ?? [],
       // Tor (v: offen 0..1, dir: +1 auf, -1 zu) und Bühne (v: Höhe in
       // Hallenmetern, 0 oben), beide unten (werkMove); Reihen und Spot
@@ -7864,9 +7986,15 @@ void main() {
         fetchGltf(h.werk.url, 'werk', h.werk.bytes || 3.2e6),
         fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`)))),
         h.werk.buehne?.url ? fetchGltf(h.werk.buehne.url, 'buehne', h.werk.buehne.bytes || 5e5) : null,
-      ]).then(([g, dims, b]) => ({ scene: g.scene, dims, buehne: b?.scene ?? null }), (e) => {
+        // Leitungen unter der Decke (WERK_DECKE); ohne sie bleibt die Decke leer
+        h.werk.decke?.url ? fetchGltf(h.werk.decke.url, 'werkdecke', h.werk.decke.bytes || 1e6).catch((e) => {
+          console.warn('[hangar] Decke der Werkhalle nicht geladen', e);
+          prog.delete('werkdecke');
+          return null;
+        }) : null,
+      ]).then(([g, dims, b, d]) => ({ scene: g.scene, dims, buehne: b?.scene ?? null, decke: d?.scene ?? null }), (e) => {
         console.warn('[hangar] Werkhalle nicht geladen', e);
-        prog.delete('werk'); prog.delete('buehne');
+        prog.delete('werk'); prog.delete('buehne'); prog.delete('werkdecke');
         return null;
       })
       : Promise.resolve(null);
@@ -8362,7 +8490,7 @@ void main() {
       if (werkHier) {
         try {
           werk = werkBauen(seen, garage);
-          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht`);
+          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht; Decke ${werk.decke ? `${werk.decke.stuecke} Stücke in ${werk.decke.netze} Netzen, ${Math.round(werk.decke.tris)} Dreiecke${werk.decke.fehlt.length ? `, fehlen: ${werk.decke.fehlt.join(', ')}` : ''}` : 'leer'}`);
         } catch (e) {
           console.warn('[hangar] Werkhalle nicht gebaut', e);
           werk = null;

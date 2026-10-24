@@ -342,8 +342,8 @@ Bühne, dahinter die Rückwand.
   oben). `werkRoom` misst längs dieser Richtung nur noch bis 0,8 m vor dem
   Tor (15,8 statt 17,6 H-m), große Fahrzeuge bekommen darum einen etwas
   größeren Maßstab (Nova 1,41 → 1,56). PTV: Kamera 1,9 m hinter dem Tor,
-  Ursa und größer 0,8 m. Tor [18] prüft die Richtung (höchstens 1 Grad
-  seitlich, 0 bis 11 Grad hoch), zweimal rot vorgeführt: alte Richtung
+  Ursa und größer 0,8 m. Tor [18] prüft die Richtung (höchstens 1,1 Grad
+  seitlich, 0 bis 11,5 Grad hoch; auf dem Einheitsvektor |z| ≤ 0,02, y ≤ 0,2), zweimal rot vorgeführt: alte Richtung
   („steht 40.9 Grad seitlich, 12.7 Grad hoch“) und ohne `.normalize()`
   („steht nicht mehr als Vector3(x, y, z).normalize() im Viewer“).
 - **Weg hinein**: Der Punkt hinter dem Tor (`bahn.aus`, 4 m) liegt jetzt
@@ -375,3 +375,41 @@ Bühne, dahinter die Rückwand.
   der Dämpfung vom letzten Ziehen ruhte während der Fahrt und drehte die
   Kamera nach der Ankunft weiter (Aufnahme: 6 m zur Seite); `tripStart`
   verwirft ihn jetzt.
+
+## Decke, Hintergrund, Spot (Krisz, 24.10.2026 abends)
+
+Krisz zur Frage nach der fast schwarzen Decke: „decke iwi verbessern,
+rohre, kablen etc, sonst alles im hintergrund richtung wände dunkler machen,
+den spotlight softer“.
+
+- **Deckenprofil der Garage**, gemessen (senkrecht nach oben je 0,5 m, im
+  Viewer): Mittelplatte (z ±6,5) 7,8 m hoch von x −81 bis −53,5; davor ein
+  Träger bis 7,4 m, dahinter ein Sturz bis 6,8 m; Randträger bei z ±7,5 bis
+  6,8 m herab; Seitenstreifen z ±8..10 bei 6,9 m mit Rippen alle 8 m (x −79,
+  −71, −63, −55); Leuchtbuchten bei z ±10,5..12; über der Rückwand eine Bucht
+  bis 8,4 m (von vorn nicht zu sehen). Die Kamera bleibt unter
+  `raum.h − 0,8` = 6,0 m.
+- **Leitungen** (`WERK_DECKE`, Block `/* work-werkdecke */`, gepackt von
+  `scripts/build-werkhalle-decke.mjs` nach `public/hangar/props/werkdecke.glb`,
+  die Materialien bleiben wie im Katalog und bekommen das Licht der
+  Werkhalle wie die Garage): unter der Mittelplatte je Seite ein
+  Lüftungskanal (z ±4,6, sieben 4-m-Stücke von x −81 bis −53, vom hinteren
+  Sturz bis in den vorderen Träger), ein Rohr daneben (z ±6,0) und ein
+  durchhängender Kabelzug (z ±3,5, zwei 12,5-m-Stücke) mit Anschlussdosen an
+  beiden Enden und in der Mitte; dazu zwei Querzüge von Kanal zu Kanal über
+  die Mitte (x −75 und −61, zwischen den Leuchten) mit einer Dose in der
+  Mitte. Je Material eine Geometrie: 6 Zeichenbefehle. Das Rohr trägt im
+  Katalog die Palettenfarbe Weiß und stand wie ein Leuchtbalken unter der
+  Decke; `WERK_DECKE_TON` dunkelt es (×0,28) und die Kanäle (×0,6).
+- **Zu den Wänden hin dunkler** (`WERK_WAND`): Licht der Reihen,
+  Grundlicht und Spiegelung fallen ab 35 % des Wegs von der Bühnenmitte bis
+  zur Wand (hinten 22,7 m, vorn 16,5 m, Seite aus der json der Garage) bis
+  auf 22 % an der Wand; Leuchtflächen halb so stark. Bühne, Fahrzeug und
+  Spot bleiben.
+- **Spot weicher**: Kegel innen 5 statt 16 Grad, außen 36 statt 30, Stärke
+  170 statt 260 (das Fahrzeug strahlte weiß), Überschlag beim Einschalten
+  1,12 statt 1,25, Lichtkegel im Raum halb so dicht.
+- Tor [18] prüft die Decke: Satz der Seite passt zum Block (Fingerabdruck),
+  jedes Stück im Katalog, in der Garage, Oberkante an der Decke, Unterkante
+  0,3 m über der Kamera, frei vom Spot, Läufe Stück an Stück, Klinke
+  `KLINKE_WERK.decke`.
