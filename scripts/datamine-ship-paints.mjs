@@ -79,7 +79,8 @@ const slugs = readJson('vehicles.json').vehicles.map((v) => v.id).filter((id) =>
 
 // Derselbe Record wie das 3D-Modell (scripts/extract-hangar-sources.mjs): gibt
 // es <Record>_GS, gewinnt er (Constellation, Hammerhead), sonst passten
-// Farben und Lackliste nicht zum Neubau.
+// Farben und Lackliste nicht zum Neubau. Dieselbe Regel wie preferGoldStandard
+// in lib/vehicle-records.mjs, hier über Record-Namen statt Katalog-Ids.
 const shipByName = new Map();
 for (const r of entityRecs) { const n = r.name.toLowerCase(); if (!shipByName.has(n)) shipByName.set(n, r); }
 

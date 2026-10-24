@@ -28,7 +28,9 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const argv = process.argv.slice(2);
-const FROM_HANGAR = argv.includes('--src') && argv[argv.indexOf('--src') + 1] === 'hangar';
+const SRC_ARG = argv.includes('--src') ? argv[argv.indexOf('--src') + 1] : 'starbreaker';
+if (!['hangar', 'starbreaker'].includes(SRC_ARG)) { console.error(`--src: unbekannter Wert "${SRC_ARG}" (erlaubt: hangar, starbreaker)`); process.exit(1); }
+const FROM_HANGAR = SRC_ARG === 'hangar';
 const IN_DIR = new URL(FROM_HANGAR ? '../.cache/hangar-src/ships/' : '../.cache/starbreaker-glb/', import.meta.url);
 const OUT_DIR = new URL('../public/holo/', import.meta.url);
 const MANIFEST = new URL('../src/data/holo-meshes.json', import.meta.url);
@@ -62,7 +64,7 @@ async function buildOne(slug, inPath) {
   const root = doc.getRoot();
 
   // 0) Innenraum-Container (Rohexport des Hangars) samt Teilbaum verwerfen
-  for (const scene of root.listScenes()) for (const top of scene.listChildren()) {
+  if (FROM_HANGAR) for (const scene of root.listScenes()) for (const top of scene.listChildren()) {
     for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) { c.traverse((n) => n.setMesh(null)); top.removeChild(c); }
   }
 
@@ -121,8 +123,9 @@ const inputs = readdirSync(IN_DIR).filter((f) => f.toLowerCase().endsWith('.glb'
   .filter((f) => !ONLY.length || ONLY.includes(f.replace(/\.glb$/i, '')));
 console.log(`${inputs.length} StarBreaker-GLB(s) gefunden`);
 if (ONLY.length && inputs.length !== ONLY.length) { console.error(`--only: ${ONLY.length - inputs.length} GLB(s) fehlen in ${fileURLToPath(IN_DIR)}`); process.exit(1); }
-// Resume: Output juenger als Input UND schon im Manifest -> nicht neu dezimieren
-// (der Batch ueber alle ~226 dauert sonst bei jedem Neustart wieder Minuten).
+// Resume: Output juenger als Input UND schon im Manifest UND aus derselben
+// Quelle (src) -> nicht neu dezimieren (der Batch ueber alle ~226 dauert sonst
+// bei jedem Neustart wieder Minuten). Eintraege ohne src stammen aus starbreaker.
 let prev = {};
 try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')).meshes ?? {}; } catch { /* erster Lauf */ }
 const meshes = ONLY.length ? { ...prev } : {};
@@ -131,7 +134,7 @@ for (const f of inputs) {
   const slug = f.replace(/\.glb$/i, '');
   const inPath = fileURLToPath(new URL(f, IN_DIR));
   const outPath = fileURLToPath(new URL(`${slug}.glb`, OUT_DIR));
-  if (prev[slug] && existsSync(outPath) && statSync(outPath).mtimeMs > statSync(inPath).mtimeMs) {
+  if (prev[slug] && (prev[slug].src ?? 'starbreaker') === SRC_ARG && existsSync(outPath) && statSync(outPath).mtimeMs > statSync(inPath).mtimeMs) {
     const v = createHash('sha1').update(readFileSync(outPath)).digest('hex').slice(0, 8);
     meshes[slug] = { ...prev[slug], v };
     reused++;
@@ -139,7 +142,7 @@ for (const f of inputs) {
   }
   try {
     const { tris, bytes, v } = await buildOne(slug, inPath);
-    meshes[slug] = { url: `/holo/${slug}.glb`, tris, v };
+    meshes[slug] = { url: `/holo/${slug}.glb`, tris, v, ...(FROM_HANGAR ? { src: SRC_ARG } : {}) };
     built++;
     console.log(`  ${slug.padEnd(30)} ${tris.toLocaleString().padStart(8)} Dreiecke  ${(bytes / 1024).toFixed(0)} KB`);
   } catch (err) {

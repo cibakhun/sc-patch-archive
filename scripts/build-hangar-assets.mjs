@@ -33,7 +33,7 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import sharp from 'sharp';
-import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -646,7 +646,10 @@ async function paintTexture(rel, made) {
   if (!rel) return null;
   const src = fileURLToPath(new URL(rel, PAINT_DEC));
   if (!existsSync(src)) return null;
-  const name = rel.split('/').pop().replace(/_TEX\d+\.png$/i, '').toLowerCase() + '.webp';
+  // Name mit Inhaltskennung: gleich heißende Karten aus verschiedenen Ordnern
+  // überschreiben sich in der geteilten Ablage nicht, gleiche bleiben geteilt
+  const sum = createHash('sha1').update(readFileSync(src)).digest('hex').slice(0, 8);
+  const name = `${rel.split('/').pop().replace(/_TEX\d+\.png$/i, '').toLowerCase()}-${sum}.webp`;
   if (!made.has(name)) {
     const out = fileURLToPath(new URL(`paints/tex/${name}`, OUT));
     mkdirSync(dirname(out), { recursive: true });
@@ -690,6 +693,13 @@ async function paintPlan(slug) {
     const pal = palettes.get(v.palette_id);
     const ids = (SHIP_PAINTS[slug]?.paints ?? []).filter((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase()).map((p) => p.id);
     const look = { tag: v.subgeometry_tag, ids, name: v.display_name ?? null, palette: null, materials: {} };
+    // Ohne Palette im zerlegten Export (Freelancer Storm Surge): die Lackkanäle
+    // aus ship-paints.json (dieselbe Palette, aus dem Schiffs-Record gelesen)
+    const listed = !pal && (SHIP_PAINTS[slug]?.paints ?? []).find((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase());
+    if (listed) {
+      const none = { gloss: null, specular: null };
+      look.palette = { a: listed.a, b: listed.b, c: listed.c, glass: null, finish: { a: none, b: none, c: none }, decal: null };
+    }
     if (pal) {
       const fin = (k) => ({ gloss: pal.finish?.[k]?.glossiness ?? null, specular: pal.finish?.[k]?.specular ? linHex(pal.finish[k].specular) : null });
       look.palette = {
@@ -2580,7 +2590,12 @@ for (const kind of Object.keys(BUDGET)) {
     const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
     // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
+    // bei Schiffen auch der Lack-Bauplan: Lackliste, Index des zerlegten
+    // Exports und Sidecar des Rohexports müssen älter sein als Modell und Bauplan
+    if (kind === 'ships') side.push(...[fileURLToPath(new URL('../src/data/ship-paints.json', import.meta.url)), fileURLToPath(new URL('index.json', PAINT_DEC)), fileURLToPath(new URL(`${name}.json`, dir))].filter((x) => existsSync(x)));
+    const paintOut = kind === 'ships' && prev.ships?.[name]?.paints ? fileURLToPath(new URL(`paints/${name}.json`, OUT)) : null;
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
+      && (!paintOut || (existsSync(paintOut) && [inPath, ...side].every((x) => statSync(paintOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
@@ -2638,6 +2653,16 @@ for (const kind of Object.keys(BUDGET)) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
     }
   }
+}
+// Lackkarten, auf die kein Bauplan mehr zeigt (alte Namen ohne Inhaltskennung,
+// geänderte Karten), nur auf dem Rechner mit Rohbestand entfernen
+const PAINT_DIR = fileURLToPath(new URL('paints/', OUT));
+if (existsSync(new URL('ships/', SRC)) && existsSync(`${PAINT_DIR}tex`)) {
+  const used = new Set(readdirSync(PAINT_DIR).filter((f) => f.endsWith('.json'))
+    .flatMap((f) => [...readFileSync(`${PAINT_DIR}${f}`, 'utf8').matchAll(/\/hangar\/paints\/tex\/([^"]+)/g)].map((m) => m[1])));
+  const stale = readdirSync(`${PAINT_DIR}tex`).filter((f) => !used.has(f));
+  for (const f of stale) rmSync(`${PAINT_DIR}tex/${f}`);
+  console.log(`  Lackkarten: ${used.size} in Gebrauch, ${stale.length} verwaiste entfernt`);
 }
 // Werkstatt: eigene Quelle (zwei Stufen eines Hangars), nur bei Bedarf neu
 if ((!ONLY || ONLY === 'werkstatt') && !KIND) {

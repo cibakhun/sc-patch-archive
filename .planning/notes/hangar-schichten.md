@@ -1,7 +1,7 @@
 # Hangar: fehlende Karten der Schichten im Wartungsplatz (2026-10-21)
 
 Läuft mit im Auftrag **„Hangar-Flotte“** ([`hangar-flotte.md`](hangar-flotte.md),
-Teil E). Der eigene Satz „Hangar-Schichten“ wurde nie vergeben.
+Teil D). Der eigene Satz „Hangar-Schichten“ wurde nie vergeben.
 
 Anlass, Krisz 2026-10-20 17:32: „es fehlen auch texturen bei den assets“.
 Teil 2 von „Hangar-Werte“ hat Katalog v2 geliefert

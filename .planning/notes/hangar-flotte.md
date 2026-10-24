@@ -87,12 +87,19 @@ Offen ist das Fahrwerk:
 ### Teil C: Werkslack mit Fahrwerk
 
 6. Die zehn Web-Schiffe mit ausgefahrenem Fahrwerk neu bauen, sonst wie in
-   `pc/schiffe-komplett`.
+   `pc/schiffe-komplett`. Kein Schiff wird schwerer als nach
+   `pc/schiffe-komplett` auf staging (PR #204; Gladius 12,6 MB, Aurora
+   18,3 MB, Bytes je Schiff in `ships.<slug>.bytes`). Ob die schwereren
+   Lacke bleiben, entscheidet Krisz in WINDOWS 112 (4); sagt er nein, gilt
+   für die zehn wieder der Stand vor PR #204. Seit PR #204 tragen die
+   Lackkarten eine Inhaltskennung im Namen und der Bau entfernt verwaiste;
+   der Austausch in `public/hangar/paints/tex/` ist also erwartet. Lacke ohne
+   Palette im zerlegten Export nehmen die Farben aus `ship-paints.json`.
 7. Dann die zweiten zehn aus `SHIPS` (Corsair, Zeus ES, Prospector, Sabre,
    Intrepid, Vulture, Pisces Expedition, 400i, Carrack, Polaris), gleicher
-   Weg, Budget wie heute (200 000 Dreiecke, Farbe 1024 px, Normalen 512 px,
-   höchstens rund 14 MB je Schiff). Krisz' Grenze für die Grafiklast gilt:
-   kein Schiff schwerer als heute.
+   Weg, Budget je Schiff: 200 000 Dreiecke, Farbe 1024 px, Normalen 512 px,
+   höchstens rund 14 MB (darüber Karten verkleinern und die Größe
+   nennen).
 8. Halt. Im Befund: Bytes, Dreiecke und Texturen je Schiff und die Summe für
    alle 231 hochgerechnet. Alle 231 mit Lack wären bei 10 bis 14 MB je
    Schiff 2,3 bis 3,2 GB, zu viel für das Repo (rund 1 GB); über die Ablage
