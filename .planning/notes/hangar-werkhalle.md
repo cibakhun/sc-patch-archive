@@ -321,3 +321,10 @@ Zweiter Lauf, Garage 2 m nach vorn (`garage.x` −50): 4 FEHLER, darunter
 im Innenraum der Garage“ und „18991 Dreiecke der Garage ragen vor die
 Nischenwand in die Halle (H x > −51 …): Ihre Außenwand stünde vor der
 Wand“. Mit dem Block wie geliefert: alle Zusicherungen erfüllt.
+
+Nachtrag (Review): [18] prüft jetzt auch die Bühnendatei der Seite
+(`opts.hall.werk.buehne`) und den Knoten `feld.buehne` darin; vorher reichte
+die json. Vorgeführt rot: Datei in `dist/` weggenommen („die Seite liefert
+keine Bühnendatei in dist/ … Das Fahrzeug stünde ohne Plattform in der
+Grube“), Knoten auf `buehne_lift_x` gestellt („… hat keinen Knoten
+buehne_lift_x (feld.buehne)“ neben dem Befund der json).
