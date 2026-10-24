@@ -30,7 +30,11 @@
 // CREW: liegt ein Crew-Modell vor (opts.crew), stehen echte Figuren statt
 // der gebauten Arbeiter an den Arbeitsplätzen.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, sound?: false }) -> Promise<{
+// FAHRWERK: opts.gear nennt je Modelldatei (Pfad ohne ?v=) die
+// Aufstandspunkte { contacts: [[x, y, z] …] }; das Schiff steht dann auf
+// ihnen statt auf seinem tiefsten Punkt (standOn).
+//
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
@@ -4634,6 +4638,39 @@ async function robustBox(root, pause = noPause) {
   return new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
 }
 
+// Aufstand auf dem Fahrwerk (PC-Lauf „Hangar-Flotte“, Krisz 24.10.2026:
+// „alle schiffe korrekt auf dem boden … mit deren landinggear“). contacts
+// sind die tiefsten Punkte der Räder, Füße und Kufen im Raum der Webdatei
+// (glTF, Y oben, Meter). Die Ebene durch sie (kleinste Quadrate, bei drei
+// Punkten genau) dreht lean waagerecht; ihre Höhe danach ist der Boden.
+// null: weniger als drei Punkte, alle auf einer Linie oder eine Neigung über
+// GEAR_TILT_MAX (ein Lesefehler, kein Fahrwerk). Dann bleibt der tiefste
+// Punkt des Hüllquaders der Boden. Dieselbe Rechnung prüft
+// scripts/verify-hangar-gear.mjs gegen die Dateien.
+const GEAR_TILT_MAX = 8;
+function standOn(lean, gear) {
+  // turn dreht um 180 Grad um Y: (x, y, z) -> (-x, y, -z)
+  const pts = (gear?.contacts ?? []).filter((p) => p?.length === 3 && p.every(Number.isFinite)).map(([x, y, z]) => new THREE.Vector3(-x, y, -z));
+  if (pts.length < 3) return null;
+  const m = pts.reduce((s, p) => s.add(p), new THREE.Vector3()).divideScalar(pts.length);
+  let xx = 0, zz = 0, xz = 0, xy = 0, zy = 0;
+  for (const p of pts) {
+    const x = p.x - m.x, y = p.y - m.y, z = p.z - m.z;
+    xx += x * x; zz += z * z; xz += x * z; xy += x * y; zy += z * y;
+  }
+  const det = xx * zz - xz * xz;
+  if (!(det > 1e-6 * (xx + zz) ** 2)) return null;
+  // y = a·x + b·z + c, Normale (-a, 1, -b)
+  const a = (xy * zz - zy * xz) / det, b = (zy * xx - xy * xz) / det;
+  const n = new THREE.Vector3(-a, 1, -b).normalize();
+  const tilt = THREE.MathUtils.radToDeg(Math.acos(Math.min(1, n.y)));
+  if (tilt > GEAR_TILT_MAX) { console.warn(`[hangar] Fahrwerk: Neigung ${tilt.toFixed(1)}° über ${GEAR_TILT_MAX}°, Schiff steht auf dem tiefsten Punkt`); return null; }
+  lean.quaternion.setFromUnitVectors(n, new THREE.Vector3(0, 1, 0));
+  const ys = pts.map((p) => p.applyQuaternion(lean.quaternion).y);
+  const ground = ys.reduce((s, y) => s + y, 0) / ys.length;
+  return { ground, tilt, n: pts.length, spread: Math.max(...ys) - Math.min(...ys) };
+}
+
 function disposeObject(o) {
   o.traverse((n) => {
     if (n.geometry) n.geometry.dispose();
@@ -5228,6 +5265,8 @@ export async function initHangar(container, opts = {}) {
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
   const REAL = !!(opts.hall?.url && opts.hall.room);
+  // Fahrwerk je Modelldatei (Pfad ohne ?v=): { contacts }, standOn
+  const gearOf = (u) => (u && opts.gear?.[u.split('?')[0]]) || null;
   // Telefon: schmal oder Touch
   const SMALL = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   // Leistungsstufe beim Start (pickQuality). Q0 legt fest, was beim Laden
@@ -9513,14 +9552,20 @@ void main() {
     const turn = new THREE.Group();
     turn.rotation.y = Math.PI;
     turn.add(model);
+    // Neigung auf dem Fahrwerk (standOn) zwischen Drehung und Zentrierung:
+    // Hardpoints, Marker und getauschte Waffen hängen am Modell und gehen mit
+    const lean = new THREE.Group();
+    lean.add(turn);
     const wrap = new THREE.Group();
-    wrap.add(turn);
+    wrap.add(lean);
+    const stand = standOn(lean, gearOf(textured ? o.tex : url));
     wrap.updateMatrixWorld(true);
     const box = await robustBox(wrap, slicer(12, nextTask));
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    wrap.position.set(-center.x, -box.min.y, -center.z);
+    wrap.position.set(-center.x, stand ? -stand.ground : -box.min.y, -center.z);
+    if (stand) console.info(`[hangar] Fahrwerk: ${stand.n} Aufstandspunkte, Neigung ${stand.tilt.toFixed(2)}°, Streuung ${(stand.spread * 100).toFixed(1)} cm, Hüllquader ${((box.min.y - stand.ground) * 100).toFixed(1)} cm über dem Boden`);
     // Grundriss von unten für den Wartungsplatz (layDienst)
     const tu = performance.now(), under = (realHall ? realHall.dienst : DIENST_ON) ? await shipUnder(wrap, size.x / 2, size.z / 2, slicer(12, nextTask)) : null;
     if (under) under.ms = Math.round(performance.now() - tu);
