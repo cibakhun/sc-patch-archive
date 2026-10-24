@@ -266,43 +266,68 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-mk.is-hot b,.hgx-mk.is-sel b,.hgx-mk:hover b{display:block}
 .hg:not([data-tab-active="weapons"]) .hgx-mk[data-tab="weapons"],.hg:not([data-tab-active="systems"]) .hgx-mk[data-tab="systems"],.hg:not([data-tab-active="cargo"]) .hgx-mk[data-tab="cargo"]{display:none}
 
-.hg-dock{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent);box-shadow:0 -1px 0 color-mix(in srgb,var(--accent) 12%,transparent),0 -14px 30px -18px color-mix(in srgb,var(--accent) 30%,transparent);padding:.9rem clamp(16px,3vw,40px) 1.2rem;color:var(--text)}
-.hg-filter{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
-.hg-filter input,.hg-filter select{font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:.45rem .6rem;min-width:0}
+.hg-dock{--dk-a:var(--accent);background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:1px solid color-mix(in srgb,var(--dk-a) 40%,transparent);box-shadow:0 -1px 0 color-mix(in srgb,var(--dk-a) 12%,transparent),0 -14px 30px -18px color-mix(in srgb,var(--dk-a) 30%,transparent);padding:.7rem clamp(16px,3vw,40px) .55rem;color:var(--text)}
+/* Eine ruhige Werkzeugzeile: Suche als breites Feld mit Lupe, alles andere
+   runde Knoepfe in einer Hoehe. Die Anzahl steht leise im Klappschalter. */
+.hg-filter{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.35rem}
+.hg-filter input,.hg-filter select{font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:.45rem .8rem;min-width:0}
+.hg-filter select{appearance:none;padding-right:2rem;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 1.05rem) 55%,calc(100% - .75rem) 55%;background-size:.3rem .3rem;background-repeat:no-repeat}
+.hg-filter select:hover,.hg-filter select:focus-visible{border-color:var(--dk-a)}
 /* Der Umbruch rechnet mit der Basis, nicht mit der Mindestbreite: eine kleine
    Basis laesst die Suche erst wachsen, wenn die Zeile Platz hat. */
-.hg-filter input{flex:1 1 5rem;max-width:320px}
+.hgx-search{position:relative;flex:1 1 7rem;max-width:380px;display:flex;align-items:center}
+.hgx-search svg{position:absolute;left:.85rem;color:var(--muted);pointer-events:none}
+.hg-filter .hgx-search input{flex:1;height:2.3rem;padding-left:2.3rem;background:color-mix(in srgb,var(--text) 5%,var(--bg));border-color:transparent;transition:border-color var(--dur-fast),background var(--dur-fast)}
+.hg-filter .hgx-search input:hover{border-color:var(--line)}
+.hg-filter .hgx-search input:focus{outline:none;border-color:var(--dk-a);background:var(--bg);box-shadow:0 0 0 3px color-mix(in srgb,var(--dk-a) 18%,transparent)}
+.hg-filter .hgx-search input::placeholder{color:var(--muted);opacity:.8}
 .hg-count{font-size:var(--fs-6);color:var(--muted);font-variant-numeric:tabular-nums}
-.hg-rail{position:relative;display:flex;align-items:stretch;gap:.5rem}
-.hg-strip{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x proximity;scroll-behavior:smooth;padding:.45rem .3rem .7rem;margin:0;list-style:none;flex:1;min-width:0;overscroll-behavior-x:contain}
-.hg-strip li{flex:0 0 auto;scroll-snap-align:start}
+/* Die Leiste: Karten laufen unter weich ausgeblendete Raender, die Pfeile
+   schweben rund darueber, statt je eine Spalte zu belegen. */
+.hg-rail{position:relative}
+.hg-strip{display:flex;gap:.7rem;overflow-x:auto;scroll-snap-type:x proximity;scroll-behavior:smooth;padding:.55rem 2.6rem .6rem;margin:0 -.4rem;list-style:none;min-width:0;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--text) 18%,transparent) transparent;-webkit-mask-image:linear-gradient(90deg,transparent,#000 2.4rem,#000 calc(100% - 2.4rem),transparent);mask-image:linear-gradient(90deg,transparent,#000 2.4rem,#000 calc(100% - 2.4rem),transparent)}
+.hg-strip li{flex:0 0 auto;scroll-snap-align:center}
 .hg-strip li[hidden]{display:none}
-/* Kacheln wie im Hangar-Menü eines Spiels: Bild füllt die Kachel, Name
-   auf einem Verlauf am unteren Rand, gewählte Kachel leuchtet. */
-.hg-card{position:relative;display:block;width:176px;height:100px;padding:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left;transition:transform var(--dur-fast) var(--ease-ui),border-color var(--dur-fast),box-shadow var(--dur-fast)}
-.hg-card:hover,.hg-card:focus-visible{border-color:color-mix(in srgb,var(--accent) 70%,transparent);transform:translateY(-2px)}
-.hg-card[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px color-mix(in srgb,var(--accent) 40%,transparent);transform:translateY(-3px)}
-.hg-card img,.hg-card .hg-noimg{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:var(--surface-2);filter:saturate(.8) brightness(.72);transition:filter var(--dur-fast)}
+/* Kacheln wie im Hangar-Menue eines Spiels: das Bild fuellt die Kachel,
+   Hersteller und Name stehen auf einem Verlauf am unteren Rand, der Name
+   in normaler Schrift und bis zu zwei Zeilen, nie abgeschnitten im Wort. */
+.hg-card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:196px;height:112px;padding:0;background:var(--surface-2);border:1px solid color-mix(in srgb,var(--text) 10%,transparent);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;cursor:pointer;font:inherit;text-align:left;transition:transform var(--dur-fast) var(--ease-ui),border-color var(--dur-fast),box-shadow var(--dur-fast)}
+.hg-card:hover,.hg-card:focus-visible{border-color:color-mix(in srgb,var(--dk-a) 65%,transparent);transform:translateY(-2px);box-shadow:0 8px 18px -10px #000}
+.hg-card:focus-visible{outline:none}
+.hg-card[aria-current="true"]{border:3px solid var(--dk-a);box-shadow:0 0 14px -2px color-mix(in srgb,var(--dk-a) 55%,transparent);transform:none}
+.hg-card img,.hg-card .hg-noimg{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:radial-gradient(120% 90% at 50% 30%,var(--surface-2),var(--bg));filter:saturate(.9) brightness(.86);transition:filter var(--dur-fast),transform var(--dur-slow) var(--ease-ui)}
 .hg-card:hover img,.hg-card[aria-current="true"] img{filter:none}
-.hg-card span{position:absolute;left:0;right:0;bottom:0;padding:1.3rem .55rem .35rem;background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 94%,transparent) 70%);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-6);text-transform:uppercase;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hg-card small{position:absolute;top:.35rem;left:.4rem;max-width:calc(100% - .8rem);padding:.05rem .35rem;background:color-mix(in srgb,var(--bg) 78%,transparent);border-radius:2px;font-size:var(--fs-5);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hg-arrow{flex:0 0 auto;width:2.4rem;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;font-size:var(--fs-12);cursor:pointer}
-.hg-arrow:hover,.hg-arrow:focus-visible{border-color:var(--accent)}
+.hg-card:hover img{transform:scale(1.04)}
+.hg-card small{position:relative;order:1;display:block;padding:1.6rem .65rem 0;background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 88%,transparent));font-size:var(--fs-5);line-height:1.2;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hg-card span{position:relative;order:2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;padding:.05rem .65rem .45rem;background:color-mix(in srgb,var(--bg) 88%,transparent);font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.hg-card[aria-current="true"] span{color:var(--dk-a)}
+.hg-arrow{position:absolute;top:50%;z-index:2;width:2.3rem;height:2.3rem;margin-top:-1.15rem;display:grid;place-items:center;padding:0 0 .15rem;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--bg-2) 92%,transparent);color:var(--text);font-size:var(--fs-10);line-height:1;cursor:pointer;box-shadow:0 4px 14px -6px #000;transition:border-color var(--dur-fast),color var(--dur-fast),transform var(--dur-fast) var(--ease-ui)}
+#hg-prev{left:-.4rem}
+#hg-next{right:-.4rem}
+.hg-arrow:hover,.hg-arrow:focus-visible{border-color:var(--dk-a);color:var(--dk-a);transform:scale(1.08)}
 .hg-empty{color:var(--muted);font-size:var(--fs-7);padding:1rem 0}
 .hg-empty[hidden]{display:none}
-/* "Meine Flotte (n)" filtert das Dock; der Stern markiert Karten der Flotte,
-   sein Wort haengt per aria-describedby an der Karte (#hgx-fleet-mark). */
-.hgx-chip{appearance:none;display:inline-flex;align-items:center;gap:.4rem;font:inherit;font-size:var(--fs-7);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:.42rem .8rem;cursor:pointer;font-variant-numeric:tabular-nums}
-.hgx-chip:hover,.hgx-chip:focus-visible{border-color:var(--accent)}
-.hgx-chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.hgx-chip.hgx-ico{width:2.3rem;height:2.3rem;padding:0;border-radius:999px;box-shadow:none}
+/* "Meine Flotte" filtert das Dock; die Zahl steht als Marke im Knopf. Der
+   Stern markiert Karten der Flotte, sein Wort haengt per aria-describedby
+   an der Karte (#hgx-fleet-mark). */
+.hgx-chip{appearance:none;display:inline-flex;align-items:center;gap:.45rem;height:2.3rem;font:inherit;font-size:var(--fs-7);background:transparent;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:0 .9rem;cursor:pointer;font-variant-numeric:tabular-nums;transition:border-color var(--dur-fast),color var(--dur-fast),background var(--dur-fast)}
+.hgx-chip svg{color:var(--muted);transition:color var(--dur-fast)}
+.hgx-chip:hover,.hgx-chip:focus-visible{border-color:var(--dk-a)}
+.hgx-chip:hover svg,.hgx-chip:focus-visible svg{color:var(--dk-a)}
+.hgx-chip[aria-pressed="true"]{border-color:var(--dk-a);color:var(--dk-a);background:color-mix(in srgb,var(--dk-a) 12%,transparent)}
+.hgx-chip[aria-pressed="true"] svg{color:var(--dk-a);fill:currentColor}
+.hgx-chip.hgx-ico{width:2.3rem;height:2.3rem;padding:0;justify-content:center;border-radius:999px;box-shadow:none}
 .hgx-chip:disabled{opacity:.5;cursor:default;border-color:var(--line)}
+.hgx-chipn{min-width:1.35rem;padding:0 .35rem;border-radius:999px;background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--muted);font-size:var(--fs-6);font-weight:700;line-height:1.35rem;text-align:center}
+.hgx-chip[aria-pressed="true"] .hgx-chipn{background:var(--dk-a);color:var(--bg)}
 .hgx-filters:not([hidden]){display:contents}
-.hgx-filtertog[aria-expanded="true"]{border-color:var(--accent)}
-.hgx-filtern{min-width:1.2rem;padding:0 .3rem;border-radius:999px;background:var(--accent);color:var(--bg);font-size:var(--fs-6);font-weight:800;text-align:center}
+.hgx-filtertog[aria-expanded="true"]{border-color:var(--dk-a);color:var(--dk-a)}
+.hgx-filtertog[aria-expanded="true"] svg{color:var(--dk-a)}
+.hgx-filtern{min-width:1.2rem;padding:0 .3rem;border-radius:999px;background:var(--dk-a);color:var(--bg);font-size:var(--fs-6);font-weight:800;text-align:center}
 .hgx-filtern[hidden]{display:none}
-.hg-strip li.is-fleet .hg-card::after{content:"★";position:absolute;top:.3rem;right:.45rem;color:var(--accent);font-size:var(--fs-8);line-height:1;text-shadow:0 1px 3px var(--bg)}
-.hg-strip li.is-fleet .hg-card small{max-width:calc(100% - 2.2rem)}
+.hg-strip li.is-fleet .hg-card::after{content:"★";position:absolute;top:.4rem;right:.45rem;z-index:1;display:grid;place-items:center;width:1.4rem;height:1.4rem;border-radius:999px;background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--dk-a);font-size:var(--fs-6);line-height:1}
+/* Ab 2K wachsen die Karten mit: bei 2560 px wirkten sie sonst wie Briefmarken. */
+@media (min-width:2200px) and (min-height:1200px){.hg-card{width:236px;height:132px}.hg-card span{font-size:var(--fs-8)}}
 .hg-btn:disabled{opacity:.5;cursor:default;border-color:var(--hg-hair)}
 /* Die Filterzeile bleibt ab 1280 px einzeilig, sonst rutschen die Karten
    unter die Falz: die Herstellerliste ist sonst so breit wie ihr laengster Name. */
@@ -343,16 +368,17 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg:not([data-dock="closed"]) .hgx-docktog{padding-inline:.6rem}
 .hg:not([data-dock="closed"]) .hgx-docktog .hg-count{color:inherit}
 .hg[data-dock="closed"] .hg-dock{padding-block:.5rem}
+.hg[data-dock="closed"] .hgx-docktog{padding-inline:.9rem}
 .hg[data-dock="closed"] .hg-filter{margin-bottom:0}
-.hg[data-dock="closed"] .hg-filter>:is(input,select,.hgx-filters,.hgx-chip:not(.hgx-docktog,.hgx-rand)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty,.hg[data-dock="closed"] .hgx-fleetline:not(.is-alert){display:none}
+.hg[data-dock="closed"] .hg-filter>:is(.hgx-search,select,.hgx-filters,.hgx-chip:not(.hgx-docktog,.hgx-rand)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty,.hg[data-dock="closed"] .hgx-fleetline:not(.is-alert){display:none}
 .hg[data-dock="closed"] .hgx-fleetline{margin:.5rem 0 0}
 /* Die Pflichtlinks des fehlenden Seitenfusses: leise am Zeilenende, auch bei
    zugeklapptem Dock. */
 .hg-legal{display:flex;align-items:center;gap:.5rem;margin-left:auto;font-size:var(--fs-5);color:var(--muted)}
 .hg-legal a{color:var(--muted);text-decoration:none}
 .hg-legal a:hover,.hg-legal a:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
-/* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert ueber dem Namen. */
-.hg-card[data-sv]::before{content:attr(data-sv);position:absolute;right:.45rem;bottom:1.85rem;z-index:1;padding:.05rem .35rem;border-radius:2px;background:color-mix(in srgb,var(--bg) 80%,transparent);color:var(--accent);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert oben links. */
+.hg-card[data-sv]::before{content:attr(data-sv);position:absolute;left:.45rem;top:.4rem;z-index:1;padding:.1rem .45rem;border-radius:999px;background:color-mix(in srgb,var(--bg) 78%,transparent);color:var(--dk-a);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* Flache Fenster (1280x720): Ueberblick und Datenblatt-Knopf passen ohne
    Bildlauf in die Buehne. */
@@ -542,7 +568,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={dice} fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="9" cy="9" r="1.4" fill="currentColor" /><circle cx="15" cy="15" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /></svg>
         <span class="hgx-tip">{t('dock.random')}</span>
       </button>
-      <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" data-help={h('hangar.ctl.search')} />
+      <label class="hgx-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2" /><path d="M16 16l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        <input id="hg-q" type="search" placeholder={t('dock.search')} aria-label={t('dock.searchLabel')} autocomplete="off" data-help={h('hangar.ctl.search')} />
+      </label>
       {/* Rolle, Hersteller und Sortierung hinter einem Knopf: drei Listen
           weniger in der Zeile. Die Zahl nennt, wie viele vom Normalfall
           abweichen, damit ein Filter nicht unsichtbar weiterwirkt. */}
@@ -568,7 +597,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </span>
       <button type="button" class="hgx-chip" id="hgx-fleetonly" aria-pressed="false" data-help={h('hangar.ctl.fleetFilter')}>
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
-        <span>{t('dock.fleet')}</span> <span>(<span id="hgx-fleetn">0</span>)</span>
+        <span>{t('dock.fleet')}</span> <span class="hgx-chipn" id="hgx-fleetn">0</span>
       </button>
       {/* Statt des Seitenfusses (die Seite ist ein Fenster hoch): Impressum
           und Datenschutz bleiben einen Klick entfernt. */}
