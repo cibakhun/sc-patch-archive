@@ -83,4 +83,173 @@ Maße); Einbau, Kamerafahrt, Licht-Abfolge, Aufzug und Prüfung macht die Cloud.
 
 ## Befund PC
 
-(offen)
+=== Werkhalle `ht-garage-lrg` · große Hightech-Garage aus New Babbage · Tor 16,0 × 6,2 m · 224 742 Dreiecke, 31 Materialien, 2,96 MB · 279 Lampen, 92 Leuchtkörper · Branch `pc/hangar-werkhalle` ===
+
+Gewählt ist die große Garage der Hightech-Städte, also der Bausatz
+`delta/int/garage` aus der Notiz. Sie kommt aus zwei Containern im selben
+Raum: der Hülle `hightech_a/garage_lrg_001` (Wände, Pfeiler, Boden, Decke)
+und ihrer Einrichtung für New Babbage `garage_lrg_001_newbab` (Torrahmen,
+Leuchtkörper, alle Lampen). Die Einrichtung nennt die Hülle als externes
+Kind, das StarBreaker nicht nachlädt; der Extraktor exportiert darum beide
+zusammen. Das Torblatt stellt erst der Raumhafen auf, der die Garage enthält
+(`newbab_sp_surface_entrance_int`, Garage bei (19, −287, 16), ungedreht). Der
+Extraktor holt es dort heraus und setzt es in den Rahmen. Der Raum ist
+sauber und hell, eine Werkhalle der Stadt, mit Pfeilerreihe, Wandpaneelen,
+zwei Reihen Deckenleuchten und einem Mittelfeld im Boden. Gerät und
+Leitungen gibt es nicht; die würde nur die Außenposten-Garage mitbringen
+(Kandidat 4).
+
+Neu sind `public/hangar/werkhalle/ht-garage-lrg.glb` (3 108 780 Bytes),
+`ht-garage-lrg.lights.json` (63 409), `ht-garage-lrg.json` (Maße, 27 378),
+`ht-garage-lrg-buehne.glb` (483 868), im Manifest der Abschnitt `werkhalle`
+mit den Einträgen `ht-garage-lrg` und `ht-garage-lrg-buehne`. Gebaut über die
+neue Art `werkhalle` in `scripts/build-hangar-assets.mjs` (wie die Halle: nie
+dezimiert, Materialnachtrag, Schichtmaterialien, Texturen, Kantennormalen,
+Draco 16 Bit), Quelle ist der neue Teil `werkhalle` in
+`scripts/extract-hangar-sources.mjs`. Große Halle, Katalog, Schiffe und alle
+übrigen Manifest-Einträge sind unverändert (im Manifest nur angehängt).
+
+Nachbauen: `node scripts/extract-hangar-sources.mjs werkhalle`, dann
+`node scripts/build-hangar-assets.mjs --only ht-garage-lrg` und
+`--only ht-garage-lrg-buehne`. Rohdaten unter `.cache/hangar-src/werkhalle/`
+und `werkhalle-raw/`.
+
+### Kandidaten
+
+Maße der Rohexporte (Außenmaß der Container, Meter), Dreiecke und Lampen in
+LOD 1 je Exemplar gezählt. Tor = Breite × Höhe der Öffnung.
+
+| # | Raum (Container) | Maße | Tor | Dreiecke | Lampen | Urteil |
+|---|---|---|---|---|---|---|
+| 1 | Hightech-Garage groß (`garage_lrg_001` + `_newbab`, New Babbage) | 34 × 40,6, Decke 6,9 bis 8,4 über dem Boden | 16,0 × 6,2 (Tor L) | 65 988 (LOD 0 gebaut: 224 742) | 279 | **gewählt** |
+| 2 | Hightech-Garage mittel (`garage_med_001` + `_newbab`) | 26 × 30,6, gleiche Höhe | 12,0 × 6,2 (Tor M) | 54 994 | 213 | gut, aber freier Boden nur 12 m breit |
+| 3 | Hightech-Garage klein (`garage_sml_001` + `_newbab`) | 22 × 26,6 | 8,0 × 6,2 (Tor S) | 44 357 | 152 | unter 24 m |
+| 4 | Außenposten-Garage (`grge_a_sa_int` + Einrichtung `…_ovrly_indy_a`) | Raum 28,9 × 23,2, Höhe 9,7 | 12,2 × 7,3 (Rahmen, Blatt animiert) | 39 222 + 1 931 325 | 4 + 324 | die Werkstatt mit Rohren und Maschinen, aber die Einrichtung allein ist dreimal das Budget |
+| 5 | Außenposten-Garage im Hauptgebäude (`grge_a_int` + `…_ovrly_indy_a`) | gleicher Raum | gleich | 116 954 + 1 735 414 | 2 + 370 | wie 4 |
+| 6 | Wartungsladen Orison (`maintenance_orison`) | 31,5 × 33,2 × 12,5, L-förmig | 12 × 4,25 (Ladenfront) | 307 134 | 168 | Tor zu niedrig, Laden statt Halle |
+| 7 | Wartungsraum Außenposten (`col_a_maintenance_room_001`) | 27,7 × 27,5 × 8,7 | nur eine Tür | 143 979 | 7 | kein Tor |
+| 8 | Garage der Bodenkampf-Arena (`EA/tow/Phase2/garage`) | 56 × 56, rund 16 hoch | kein Blatt im Container | 226 700 | 16 | zu groß |
+| 9 | Verladehalle der Verteilzentren (`ugf/util/rm/surf/tns/surf_base_tns_001`) | 84,5 × 54,9 | – | 1 401 722 | 316 (Einrichtung) | zu groß |
+| 10 | Astro Armada Area18 (`astroarmada_area18_int`) | 45 × 62 × 29 | Glastüren 8 × 2,5 | 503 005 | 184 | Ausstellungsraum, zu groß |
+
+Gesucht in allen 9 668 socpaks nach garage, vehicle, veh, asop, workshop,
+repair, maint, depot, motorpool, showroom, dealer, distrib und den Torblättern.
+Stadtgaragen als Innenraum hat nur New Babbage (Kandidaten 1 bis 3, je in
+zwei, vier und sechs Exemplaren im Raumhafen). Für Lorville und Area18 fand
+die Suche nur Läden, für Orison nur die offene Fahrzeugstation
+(`orison_vehicle_station_a_base`, 33,5 × 16,9 × 5,3 m, ohne Decke und Lampen).
+Die Fahrzeugbuchten der Stationen (`wall_straight_repairspot_*`) sind
+Wandstücke, keine Räume.
+
+### W1. Halle
+
+- **Budget:** 224 742 Dreiecke (Grenze 600 000), 31 Materialien nach dem
+  Zusammenlegen (53 im Rohexport; Grenze 80), 2,96 MB (Grenze 12 MB),
+  65 Texturen. Alle Dreiecke haben ein Material; von den 53 Rohmaterialien
+  haben 44 eine Farbkarte, 45 Normalen und Rauheit, 28 tragen die zweite
+  Lackschicht eingebacken wie bei `revelyork-single`.
+- **Leuchtkörper:** Jeder Knoten, dessen Netz ein Leuchtkörper ist (Name
+  enthält `light`), bleibt ein eigener Knoten `leuchte_<netz>_<nn>`, gezählt
+  je Netz von vorn (Tor) nach hinten. 92 Knoten: an der Decke 8 Lichtpaneele
+  `light_panel_1_d` in zwei Reihen zu vier (x ±2,9, z 3/11/19/27, y 7,79),
+  10 Lichtleisten `light_fixture_rectangular_e` oben an den Seitenwänden und
+  hinten, 6 Warnleuchten `light_hazard_1_a` (x ±8, y 6,94); an den Wänden
+  23 (Leisten, Wandlampen); im Boden 45 (Bodenleuchten entlang des
+  Mittelfelds und der Seiten). Ihr leuchtendes Material (`…glow…`) hat die
+  Farbkarte als Emissive, wie in der Halle. Identische Leuchtkörper teilen
+  sich das Netz (Instanzen), die Knoten sind getrennt.
+- **Lampenliste v 2** (`ht-garage-lrg.lights.json`, Aufbau wie
+  `revelyork-single.lights.json`): 279 Lampen (161 Spot, 94 Punkt,
+  24 Fläche), alle mit Spieltyp aus dem Exportprotokoll. Neu je Lampe das
+  Feld `fixture`, der Knoten des Leuchtkörpers, wenn die Lampe in dessen um
+  0,6 m erweiterter Box liegt: 193 Lampen; die übrigen 86 sind Lampen ohne
+  sichtbaren Körper (Füll- und Wandlicht der Lichtgruppen). Jedes
+  Deckenpaneel hat zwei Lampen.
+- **Was fehlt:** Decals schreibt der socpak-Export nicht (wie bei allen
+  Hallen): am Torblatt 4 Decal-Materialien mit 2 798 Dreiecken (Aufschrift,
+  Prägungen), am Drehteller eines (664 Dreiecke). Ein Streifen am Blatt
+  `tor_unten_1` hat UVs von 0 bis 1 535 (so im Spiel); darum packt Draco die
+  UVs mit 23 Bit.
+
+### W2. Maße (`ht-garage-lrg.json`)
+
+glTF-Achsen, y oben, Meter. Ursprung = Ursprung des Garagen-Containers. Das
+Tor liegt vorn bei z = 0 und zeigt nach −z, der Raum reicht nach +z.
+
+- **Boden** `floorY` 0,026. Das Mittelfeld (x ±7 bis ±8,5) liegt 7 bis
+  11 cm höher als der übrige Boden; alles befahrbar.
+- **Innenraum** `interior`: x −16,2 … 16,18 (zwischen den Wänden der
+  Seitenbuchten auf 1,5 m Höhe), z 0 … 39,2 (Tor bis Rückwand). Die Halle
+  selbst (Bodenfeld zwischen den Pfeilern) ist 24 m breit (x ±12); die
+  Seitenbuchten dahinter haben eine niedrigere Decke (5,0 bis 5,8 m).
+- **Decke** `ceiling` über dem Bodenfeld: 6,86 bis 8,39 m, im Mittel
+  7,81 m; lichte Höhe unter dem tiefsten Deckenteil 6,84 m. Kein Strahl
+  nach oben entkommt: Das Glasfeld der Decke (7,1 bis 7,5 m) hat darüber
+  die geschlossene Deckenplatte.
+- **Tor** `gate`: Mitte (−0,02, 3,1, 0), 16,04 × 6,2 m, nach außen
+  (0, 0, −1); offen bleiben 16,04 × 5,90 m frei (unten steht die Schwelle
+  10 cm über dem Boden).
+- **Leuchtkörper** `fixtures`: je Knoten, Netz, Mitte, Box, Montage
+  (`decke`/`wand`/`boden`) und die Namen seiner Lampen.
+- **Freier Boden** in der Mitte, nichts zwischen Boden und 4,5 m:
+  `stage` (Bodenstufen bis 15 cm) 25 × 33,5 m, x ±12,5, z 1 … 34,5;
+  `panel` (nur das ebene Mittelfeld) 14 × 31,5 m, x ±7, z 0,5 … 32.
+  12 × 22 m passen in beide.
+
+### W3. Tor
+
+Das Blatt ist `high_tech_garage_door_l` (.cga), 8 208 Dreiecke in LOD 0,
+im Raumhafen im Maßstab 1, genau im Rahmen
+`garage_lrg_doorframe_02x16x07_a` (16,5 × 7,7 m). Es ist kein Rolltor,
+sondern teilt sich waagerecht, und jede Hälfte schiebt sich teleskopisch
+zusammen. Vier Knoten, geschlossen exportiert:
+
+| Knoten | Knochen | geschlossen y | öffnen Δy |
+|---|---|---|---|
+| `tor_unten_1` | `door_bottom_primary` (Schwelle) | 0 … 1,0 | −0,899 |
+| `tor_unten_2` | `door_bottom_secondary` | 0,95 … 3,0 | −2,899 |
+| `tor_oben_2` | `door_top_secundary` | 3,0 … 5,05 | +3,0 |
+| `tor_oben_1` | `door_top_primary` (Sturz) | 5,0 … 6,2 | +1,0 |
+
+Öffnen dauert 6,67 s (200 Bilder zu 30/s); erst gleiten die beiden inneren
+Blätter in die äußeren (ab Bild 3), ab Bild 83 (2,77 s) fahren die äußeren
+mit (unten in den Boden, oben in den Sturz), alle mit weichem Anfahren und
+Abbremsen. Schließen ist die Umkehrung. Die Kurve steht je
+Blatt in `gate.motion.open`/`close` (11 Stützstellen, Zeit `t` und `dy`),
+die rohen Spuren in `.cache/hangar-src/werkhalle/ht-garage-lrg.tor.json`.
+Die Blätter sind New-Babbage-Blau (`0,011 / 0,356 / 0,768`): Das ist die
+zweite Lackschicht des Materials, eingebacken wie in der Halle.
+
+### W4. Fahrzeugbühne
+
+Eine Plattform für Fahrzeuge gibt es; sie steht als eigene Datei
+`ht-garage-lrg-buehne.glb` daneben, je Teil ein Knoten, mittig über dem
+Ursprung, Oberkante y = 0:
+
+| Knoten | Teil | Maße (x × y × z) | Dreiecke |
+|---|---|---|---|
+| `buehne_lift_m` | Plattform des mittleren Lastenaufzugs der Hightech-Hangars (`elev_ht_cargo_pad_m`) | 18 × 0,25 × 14 | 4 032 |
+| `buehne_lift_l` | Plattform des großen Lastenaufzugs (`elev_ht_cargo_pad_l`) | 28,15 × 0,25 × 22,18 | 4 424 |
+| `buehne_drehteller` | Drehteller der Ausstellungshalle New Babbage (`expo_hall_connection_turntable_001_a`) | 15,89 × 0,90 × 15,89, rund | 316 |
+
+- Die Aufzugsplatten sind flache Platten mit Rand und eingelassenem
+  Mittelfeld, aus demselben Hightech-Bausatz wie die Garage. Im Spiel fahren
+  sie im Schacht hoch und runter; das passt zum Fahrzeug, das von unten
+  kommt. Für die Nova (20 m) reicht nur `buehne_lift_l` in Längsrichtung
+  (um 90° gedreht: 22,2 × 28,1 m, passt auf das Bodenfeld 24 × 35 m).
+- Der Drehteller ist 0,9 m hoch; im Spiel steht er auf dem Boden.
+- Garagen-eigene Fahrzeug-Pads gibt es nicht: Die Hightech-Garage hat ihr
+  Mittelfeld im Boden (siehe `panel`).
+
+### Prüfung
+
+`npm run build && npm run gate`: 28 von 28 grün; mit `STAGING=1` ebenfalls
+28 von 28 grün. Auszug und Bau zweimal hintereinander: alle vier Dateien
+unter `public/hangar/werkhalle/` byte-gleich.
+
+Sichtprüfung als Render im lokalen Chrome (three.js, Umgebungslicht, ohne
+Spiellampen): `.cache/werkhalle-bilder/werkhalle-von-der-tuer.jpg`,
+`werkhalle-von-hinten.jpg`, `werkhalle-von-oben.jpg` (Decke ab 6,6 m
+weggeschnitten; gelb Lampen mit Leuchtkörper, blau ohne, grün `stage`,
+rosa `panel`). Der weiße Fleck auf dem Tor in der Ansicht von hinten ist
+die Spiegelung des Umgebungslichts im Viewer, kein Material.
