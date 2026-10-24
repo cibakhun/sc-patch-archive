@@ -1,9 +1,9 @@
 ---
 schema_version: 1
 open_count: 72
-waived_count: 1
+waived_count: 2
 fixed_count: 37
-total_count: 110
+total_count: 111
 last_updated: 2026-10-24T18:40:00.000Z
 ---
 
@@ -1431,7 +1431,7 @@ last_updated: 2026-10-24T18:40:00.000Z
     "file": "assets/hangar-viewer.js",
     "line": null,
     "description": "Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 22:04 mit Bild: „nur weil da paar sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): Die Nische ist jetzt als Werkstatt eingerichtet: drei nummerierte Buchten mit Linien, Bucht 1 der PTV auf der Hubbühne (Diagnosekonsole mit Kabel, zwei abgenommene Räder daneben, Leiter, Rollbrett), Bucht 2 der ROC mit Diagnosekonsole am Kabel, Bucht 3 der Ursa mit Schweißgerät am Kabel. Dazwischen eine Serviceinsel (fahrbare Werkbank mit Werkzeug, Teilewagen, Standleuchten), an der Südwand Reifenlager (Regal mit Reifen und Fahrwerksrädern) und eine Werkbank mit Lichtbalken und Werkzeugschrank, vor dem Tor Reifen- und Ölspuren. Die Cyclone und das Frachtlager sind dafür gegangen. Auf Stufe mittel bleiben ROC, Konsole, Werkbankzeile und Tor. Zu beurteilen: (1) Liest sich die Nische aus der Halle als Werkstatt für Bodenfahrzeuge? (2) Fehlt etwas Wichtiges (z. B. mehr an den oberen Wänden)? (3) Stimmen Dichte und Ordnung? Bilder unter hangar-deko/werkstatt im Projektordner.",
-    "status": "resolved",
+    "status": "waived",
     "reason": "Überholt: Krisz am 24.10.2026 11:45 „okay ne wir machens anders, du machst da ein durchgang hin, baust eine werkstatt halle“. Die Westnische ist jetzt die Zufahrt zur Werkhalle (Nr. 111), die Buchten sind weg.",
     "recorded_at": "2026-10-23T23:18:00.000Z",
     "resolved_at": "2026-10-24T15:00:00.000Z"
