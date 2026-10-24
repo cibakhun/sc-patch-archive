@@ -110,6 +110,24 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-sock{position:relative;flex:0 0 auto;display:inline-grid;place-items:center;width:2.4rem;height:2.4rem;border:1px solid var(--lo-hair);border-radius:8px;color:var(--lo-on)}
 .lo-sock svg{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .lo-sock b{position:absolute;bottom:-.45rem;left:50%;transform:translateX(-50%);padding:0 .25rem;border-radius:4px;background:var(--bg);font-family:var(--font-ui);font-size:var(--fs-4);font-weight:800}
+/* Unterton je Bauteilart: die Art ist links an der Farbe erkennbar (Symbol, Feld, Gruppenkopf, Hauch
+   in der Zeile). Leise Pastelltoene, keiner im Orange der Auswahl; die Auswahl bleibt orange. */
+.lo-grp[data-g=pilot]{--lo-tc:#ff8f86}
+.lo-grp[data-g=manned]{--lo-tc:#f6a0c4}
+.lo-grp[data-g=remote]{--lo-tc:#dca6e6}
+.lo-grp[data-g=missile]{--lo-tc:#b9a6f2}
+.lo-grp[data-g=bomb]{--lo-tc:#98a6ee}
+.lo-grp[data-g=power]{--lo-tc:#efe49a}
+.lo-grp[data-g=cooler]{--lo-tc:#86e0e6}
+.lo-grp[data-g=shield]{--lo-tc:#8fbdf5}
+.lo-grp[data-g=quantum]{--lo-tc:#a3dcaa}
+.lo-grp[data-g=radar]{--lo-tc:#c9d3da}
+.lo-grp[data-g] h3{color:color-mix(in srgb,var(--lo-tc,var(--lo-dim)) 75%,var(--lo-dim))}
+.lo-grp[data-g] h3::before{content:"";display:inline-block;width:.45rem;height:.45rem;margin-right:.45rem;border-radius:50%;background:var(--lo-tc,transparent);vertical-align:.08em}
+.lo-grp[data-g] .lo-sock{color:var(--lo-tc,var(--lo-on));border-color:color-mix(in srgb,var(--lo-tc,var(--lo-hair)) 38%,transparent);background:color-mix(in srgb,var(--lo-tc,transparent) 9%,transparent)}
+.lo-grp[data-g] .lo-slot.is-sel .lo-sock{color:var(--lo-a)}
+.lo-grp[data-g] .lo-slot:not(.is-sel){background-image:linear-gradient(90deg,color-mix(in srgb,var(--lo-tc,transparent) 7%,transparent),transparent 55%)}
+.lo-grp[data-g] .lo-slot:not(.is-sel):hover,.lo-grp[data-g] .lo-slot:not(.is-sel):focus-visible{background-image:linear-gradient(90deg,color-mix(in srgb,var(--lo-tc,transparent) 13%,transparent),transparent 85%)}
 .lo-sw{display:flex;overflow:hidden;padding:0}
 .lo-sw i{flex:1;height:100%}
 /* Rechts: steht neben der Liste still, solange sie laeuft. */
@@ -379,6 +397,17 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-acts .lo-btn{flex:1 1 auto}
 }
 @media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn,.lo-tab,.lo-cmpbox,.lo-pick::before,.lo-cmpbox::before{transition:none}}
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .lo-grp[data-g=pilot]{--lo-tc:#a01f22}
+:root[data-theme="light"] .lo-grp[data-g=manned]{--lo-tc:#8d315e}
+:root[data-theme="light"] .lo-grp[data-g=remote]{--lo-tc:#773c82}
+:root[data-theme="light"] .lo-grp[data-g=missile]{--lo-tc:#5f4598}
+:root[data-theme="light"] .lo-grp[data-g=bomb]{--lo-tc:#454f9d}
+:root[data-theme="light"] .lo-grp[data-g=power]{--lo-tc:#645902}
+:root[data-theme="light"] .lo-grp[data-g=cooler]{--lo-tc:#00656a}
+:root[data-theme="light"] .lo-grp[data-g=shield]{--lo-tc:#245995}
+:root[data-theme="light"] .lo-grp[data-g=quantum]{--lo-tc:#236833}
+:root[data-theme="light"] .lo-grp[data-g=radar]{--lo-tc:#4f5a61}
 </style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Hangar', href: '/de/hangar.html' }, { label: l('lo.title') }] : [{ label: 'Hangar', href: '/hangar.html' }, { label: l('lo.title') }]} hasEn={true} />

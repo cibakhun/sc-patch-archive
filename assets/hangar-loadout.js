@@ -311,7 +311,7 @@ function paintEquip() {
   const parts = GROUPS.map((g) => {
     const rows = slots.filter((s) => s.group === g);
     if (!rows.length) return null;
-    return [g, el('section', { class: 'lo-grp' }, el('h3', {}, m(`grp.${g}`)),
+    return [g, el('section', { class: 'lo-grp', 'data-g': g }, el('h3', {}, m(`grp.${g}`)),
       el('ul', {}, rows.map((slot) => {
         const k = current(slot);
         const e = eff(slot);
