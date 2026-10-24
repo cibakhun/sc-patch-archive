@@ -20,7 +20,7 @@ import { localeFromPath } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { HANGAR_IDS, shipFacts } from '../../lib/hangar/catalog';
+import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
 import type { StageConfig } from '../../lib/hangar/stage';
 
 const lang = localeFromPath(Astro.url.pathname);
@@ -30,7 +30,7 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
 type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number };
-const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }> };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
@@ -123,10 +123,20 @@ const deko = existsSync(dekoFile) ? { url: `/hangar/props/deko.glb?v=${contentV(
 const workshop = workAsset && workJson && existsSync(workJson)
   ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null, dienst, deko }
   : null;
+// Werkhalle für Bodenfahrzeuge (scripts/build-hangar-assets.mjs, Art
+// werkhalle; PC-Lauf 24.10.2026): Garage aus dem Spiel, Maße mit Tor und
+// Leuchtkörpern, Bühnen als eigene Datei. WERK im Viewer stellt sie hinter
+// die Westnische; die Seite gibt nur weiter, was im Manifest steht.
+const [werkKey, werkAsset] = Object.entries(real.werkhalle ?? {}).find(([, a]) => a.json) ?? [];
+const werkJson = werkAsset?.json ? `public${werkAsset.json}` : '';
+const buehneAsset = werkAsset?.buehne ? Object.values(real.werkhalle ?? {}).find((a) => a.url === werkAsset.buehne) : null;
+const werk = werkAsset && werkJson && existsSync(werkJson)
+  ? { id: werkKey, url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null }
+  : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite
-  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift, workshop }
-  : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift, workshop };
+  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift, workshop, werk }
+  : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift, workshop, werk };
 const crewAsset = Object.values(real.npc ?? {})[0];
 const crew = crewAsset ? { url: withV(crewAsset) } : null;
 
@@ -140,6 +150,8 @@ const stage = {
     withV(meshes[id]),
     real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
     shipFacts(id, lang).makerCode,
+    // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026); Gravlev-Räder sind Raumschiffe und bleiben auf dem Feld
+    shipData(id).isSpaceship === false ? 'werk' : 'halle',
   ] as const])),
 } satisfies StageConfig;
 const payload = JSON.stringify(stage).replace(/</g, '\\u003c');

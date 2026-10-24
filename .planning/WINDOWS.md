@@ -1430,9 +1430,21 @@ last_updated: 2026-10-23T23:18:00.000Z
     "file": "assets/hangar-viewer.js",
     "line": null,
     "description": "Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 22:04 mit Bild: „nur weil da paar sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): Die Nische ist jetzt als Werkstatt eingerichtet: drei nummerierte Buchten mit Linien, Bucht 1 der PTV auf der Hubbühne (Diagnosekonsole mit Kabel, zwei abgenommene Räder daneben, Leiter, Rollbrett), Bucht 2 der ROC mit Diagnosekonsole am Kabel, Bucht 3 der Ursa mit Schweißgerät am Kabel. Dazwischen eine Serviceinsel (fahrbare Werkbank mit Werkzeug, Teilewagen, Standleuchten), an der Südwand Reifenlager (Regal mit Reifen und Fahrwerksrädern) und eine Werkbank mit Lichtbalken und Werkzeugschrank, vor dem Tor Reifen- und Ölspuren. Die Cyclone und das Frachtlager sind dafür gegangen. Auf Stufe mittel bleiben ROC, Konsole, Werkbankzeile und Tor. Zu beurteilen: (1) Liest sich die Nische aus der Halle als Werkstatt für Bodenfahrzeuge? (2) Fehlt etwas Wichtiges (z. B. mehr an den oberen Wänden)? (3) Stimmen Dichte und Ordnung? Bilder unter hangar-deko/werkstatt im Projektordner.",
+    "status": "resolved",
+    "reason": "Überholt: Krisz am 24.10.2026 11:45 „okay ne wir machens anders, du machst da ein durchgang hin, baust eine werkstatt halle“. Die Westnische ist jetzt die Zufahrt zur Werkhalle (Nr. 111), die Buchten sind weg.",
+    "recorded_at": "2026-10-23T23:18:00.000Z",
+    "resolved_at": "2026-10-24T15:00:00.000Z"
+  },
+  {
+    "id": 111,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Werkhalle nach Krisz 24.10.2026 11:45: „du machst da ein durchgang hin, baust eine werkstatt halle, wenn man ground vehicle auswählt fahrt die kamera da rein … lichter in der hintegrund beginnend zum vorderghrund … bis schliesslich das mittlere spotlight licht angeht“): In der Rückwand der Westnische ist jetzt ein Durchgang so groß wie das Tor der großen Garage aus New Babbage, die dahinter steht (Tor in New-Babbage-Blau mit der Bewegung aus dem Spiel, Revel-&-York-Logo über dem Durchgang). Wählt man ein Bodenfahrzeug, fliegt die Kamera durch die Nische, das Tor geht auf, die Deckenleuchten gehen in fünf Bändern von hinten nach vorn mit Flackern an, das Fahrzeug fährt auf der Plattform des Lastenaufzugs aus der Grube herauf, und der Spot über der Bühne geht an, wenn Kamera und Fahrzeug ankommen; dann schließt das Tor. Von Fahrzeug zu Fahrzeug fährt die Bühne ab und wieder herauf, zu einem Schiff fliegt die Kamera zurück in die Halle. Zu beurteilen: (1) Stimmt die Fahrt (Tempo, Weg durch die Nische, Moment des Spots)? (2) Wirken Garage, Bühne und Licht wie im Spiel, oder ist es zu dunkel oder zu hell? (3) Passt der Durchgang von der Halle aus (Rahmen, Logo, Zufahrt mit Markierung)? (4) Die Decke über dem Glasfeld ist im Spielmaterial eine fast schwarze Hochglanzplatte; man sieht nur die Leuchten und ihre Spiegelung. Trägt das, oder soll sie heller werden? Bilder unter hangar-werkhalle im Projektordner.",
     "status": "open",
     "reason": "",
-    "recorded_at": "2026-10-23T23:18:00.000Z",
+    "recorded_at": "2026-10-24T15:00:00.000Z",
     "resolved_at": null
   }
 ]

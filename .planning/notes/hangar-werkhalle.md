@@ -253,3 +253,71 @@ Spiellampen): `.cache/werkhalle-bilder/werkhalle-von-der-tuer.jpg`,
 weggeschnitten; gelb Lampen mit Leuchtkörper, blau ohne, grün `stage`,
 rosa `panel`). Der weiße Fleck auf dem Tor in der Ansicht von hinten ist
 die Spiegelung des Umgebungslichts im Viewer, kein Material.
+
+## Einbau Cloud (2026-10-24)
+
+Alles im Block `WERK` in `assets/hangar-viewer.js`; Gate [18] in
+`scripts/verify-hangar-hall.mjs` liest ihn und misst ihn gegen die
+Garagen-json in `dist/`.
+
+- **Ort.** Jedes Modell trägt in `models` ein viertes Feld, den Ort
+  (`hall` oder `werk`). Bodenfahrzeuge (`isSpaceship === false`, 31 Stück)
+  gehen nach `werk`, Gravlev bleibt in der Halle. `show()` bekommt den Ort;
+  wechselt er, fährt die Kamera (`werkIn`, `werkOut`), sonst bleibt alles
+  wie bei Schiffen. Die Loadout-Werkstatt rechnet über
+  `current.model.matrixWorld`, sie arbeitet in der Werkhalle unverändert.
+- **Lage.** Garage um −90° gedreht, Torebene bei Hallen-x −52, 1 m hinter
+  der Nischenrückwand (x −51). Die Wand bekommt einen Durchgang
+  16,3 × 6,55 m mit Rahmen; das Logo der Rückwand rückt darüber. Kein
+  Dreieck der Garage liegt vor der Wand (Gate [18] zählt nach).
+- **Zwei Lichtwege.** Innen leuchtet der Werk-Shader (analytische Lampen je
+  Band, Spot über der Bühne, Lichtschein der Halle vor dem Tor). Tor und
+  Vorderteile sieht man auch aus der Halle: Sie tragen zwei Materialsätze,
+  im Hallenmodus das Licht der Halle, in der Werkhalle bei geschlossenem
+  Tor das eigene. Beide Programme werden beim Laden vorgewärmt.
+- **Vertexfarben der Garage.** COLOR_0 ist nur dort Abdunklung, wo es grau
+  mit vollem Bereich ist (max ≥ 0,6). Der Boden (max 0,16) und bunte
+  Masken sind keine Farbe und werden weiß; sonst wird der Boden schwarz
+  oder orange.
+- **Bühne.** Die Plattform `buehne_lift_m` liegt in einer Grube im
+  Mittelfeld, 7 m tief, und fährt hinab (1,9 s) und hinauf (2,8 s) wie das
+  Schiffsfeld. Ihr Knoten behält seine eigene Drehung (sonst steht sie
+  hochkant).
+- **Fahrt.** Weg als CatmullRom aus der Halle tief durch die Nische ins
+  Tor, Dauer 1,6 s + Weg / 22 m/s (4,2 bis 6,4 s, rein mit Gladius 95 m in
+  5,9 s). Die Blickrichtung schwenkt (Gier auf kürzestem Weg, Neigung
+  linear) statt Blickpunkte zu mischen; sonst kippt der Blick beim
+  Herausfahren in einem Bild um 180°. Nach der Fahrt wird der
+  Kameraabstand neu gesetzt, sonst gleitet sie zurück. Um das alte Schiff
+  geht der Weg nur herum, wenn die Kamera es dort trifft, wo es gerade ist
+  (Fahrkurve des Aufzugs, Maßstab seiner Gruppe); mit festem Quader flog
+  sie von der Carrack bis an die Stirnwand und dicht am Aufzugsturm
+  vorbei, obwohl die Carrack längst unten war.
+- **Licht-Abfolge.** Tor auf ab 2,2 s, Bühne ab 3,1 s. Die fünf Bänder
+  gehen bei 50, 58, 66, 74 und 82 % der Fahrt an, von der Rückwand zum
+  Tor, jedes mit Flackern; der Spot genau bei der Ankunft, wenn die Bühne
+  oben ist. Vorher lief die Folge hinter dem noch geschlossenen Tor ab.
+- **Raus.** Bühne hinab, Fahrt zurück in die Halle, das Schiffsfeld fährt
+  zur Ankunft herauf, das Tor schließt, die Lampen gehen aus.
+- **Deko.** Die Werkstatt aus PR #197 in der Westnische ist weg. Die
+  Zufahrt hat drei Zonen: `zufahrt-west` mittig nur mit Markierung und
+  Fahrspuren, `zufahrt-nord-west` und `zufahrt-sued-west` am Rand mit
+  Konsole bzw. Kabelterminal. Klinken der Hallendeko mit Begründung
+  gesenkt.
+
+### Gate [18] vorgeführt rot
+
+Durchgang 1,5 m verschoben (`tuer.x` −49,5), ein Band mit Lücke
+(`[23, 29]`), Lichtfolge vertauscht (`WERK_ROWS_AT` 0,58 vor 0,5):
+6 FEHLER, darunter „der Tunnel endet bei x −50.5, die Torebene der Garage
+steht bei x −52“, „WERK.reihen … laufen nicht lückenlos von der Rückwand
+(Garage z 39.2) bis vors Tor“, „WERK_ROWS_AT (0.58, 0.5, …) braucht je
+Band einen Anteil der Fahrt, steigend“, „der Durchgang … liegt auf keiner
+Rückwand einer Nische“ und „nur 0 Dreiecke Wand in der Scheibe des
+Durchgangs, die Klinke verlangt 740“.
+
+Zweiter Lauf, Garage 2 m nach vorn (`garage.x` −50): 4 FEHLER, darunter
+„tor.x (−52) ist nicht die Torebene der Garage (−50)“, „raum … liegt nicht
+im Innenraum der Garage“ und „18991 Dreiecke der Garage ragen vor die
+Nischenwand in die Halle (H x > −51 …): Ihre Außenwand stünde vor der
+Wand“. Mit dem Block wie geliefert: alle Zusicherungen erfüllt.
