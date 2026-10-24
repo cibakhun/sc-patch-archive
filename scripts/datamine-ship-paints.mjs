@@ -1,6 +1,6 @@
 // datamine-ship-paints.mjs — Lackierungen je Hangar-Schiff mit ihren drei
 // Palettenfarben (A/B/C) aus dem DataCore. Ausgabe: src/data/ship-paints.json
-// { ships: { <ship-id>: { base: {a,b,c}, paints: [{id,name,a,b,c,pattern}] } } }.
+// { ships: { <ship-id>: { base: {a,b,c}, paints: [{id,name,tag,a,b,c,pattern}] } } }.
 //
 // Kernstruktur im Spiel: das Lack-Item (SAttachableComponentParams,
 // AttachDef.Type 'Paints') nennt in AttachDef.Tags seine Selektoren
@@ -77,9 +77,10 @@ const readJson = (f) => JSON.parse(readFileSync(resolve(DATA, f), 'utf8'));
 const meshes = readJson('holo-meshes.json').meshes;
 const slugs = readJson('vehicles.json').vehicles.map((v) => v.id).filter((id) => meshes[id]);
 
-// Exakter Record statt preferGoldStandard (lib/vehicle-records.mjs): die Farben
-// muessen zum exportierten 3D-Modell passen, und StarBreakers entity export
-// nimmt den exakten Record (rsi_constellation_andromeda, nicht den _GS-Record).
+// Derselbe Record wie das 3D-Modell (scripts/extract-hangar-sources.mjs): gibt
+// es <Record>_GS, gewinnt er (Constellation, Hammerhead), sonst passten
+// Farben und Lackliste nicht zum Neubau. Dieselbe Regel wie preferGoldStandard
+// in lib/vehicle-records.mjs, hier über Record-Namen statt Katalog-Ids.
 const shipByName = new Map();
 for (const r of entityRecs) { const n = r.name.toLowerCase(); if (!shipByName.has(n)) shipByName.set(n, r); }
 
@@ -87,7 +88,8 @@ const noRecord = [], noBase = [], sameName = [];
 let subNoPalette = 0, dupDropped = 0;
 const ships = {};
 for (const slug of slugs) {
-  const rec = shipByName.get('entityclassdefinition.' + slug.replace(/-/g, '_'));
+  const key = 'entityclassdefinition.' + slug.replace(/-/g, '_');
+  const rec = shipByName.get(`${key}_gs`) ?? shipByName.get(key);
   if (!rec) { noRecord.push(slug); continue; }
   const geo = component(db.readRecord(rec, { typed: true, maxDepth: 10 }), 'SGeometryResourceParams')?.Geometry;
   const matched = (geo?.SubGeometry ?? [])
@@ -105,7 +107,10 @@ for (const slug of slugs) {
     let colours = paletteColours(sub.Geometry?.Palette);
     if (!colours) { subNoPalette++; colours = base; }
     const pattern = !!sub.Geometry?.Material?.path;
-    for (const it of items) if (!byId.has(it.id)) byId.set(it.id, { id: it.id, name: it.name, ...colours, pattern });
+    // tag: der Selektor dieses Eintrags, Schlüssel des Lack-Bauplans
+    // (public/hangar/paints/<schiff>.json, scripts/build-hangar-assets.mjs)
+    const tagOf = (it) => tokens(sub.Tags).find((t) => (paintsByTag.get(t.toLowerCase()) ?? []).includes(it)) ?? null;
+    for (const it of items) if (!byId.has(it.id)) byId.set(it.id, { id: it.id, name: it.name, tag: tagOf(it), ...colours, pattern });
   }
   const byLook = new Map();
   for (const p of [...byId.values()].sort((x, y) => (x.id < y.id ? -1 : 1))) {

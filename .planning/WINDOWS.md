@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 71
+open_count: 72
 waived_count: 1
 fixed_count: 37
-total_count: 109
-last_updated: 2026-10-23T23:18:00.000Z
+total_count: 110
+last_updated: 2026-10-24T18:40:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -124,6 +124,7 @@ last_updated: 2026-10-23T23:18:00.000Z
 | 108 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Seite ohne Fuß nach Krisz 23.10.2026 20:53 mit Bild des Seitenfußes: „mach das mal raus so dass man nicht scrollen kann auf der seite“): Der Hangar hat keinen Seitenfuß mehr und ist ab 761 px Breite genau ein Fenster hoch; die Halle nimmt, was das Dock übrig lässt, zugeklappt wie aufgeklappt (vorher bis 940 px gedeckelt). Impressum und Datenschutz stehen leise am Ende der Dockzeile (rechtlich nötig, einen Klick entfernt); der Fan-Hinweis steht im Impressum. Die Werkzeug-Hilfe (?) klappt als Tafel über der Halle auf statt das Dock zu verlängern. Erst unter 540 px Fensterhöhe scrollt die Seite wieder. Auf dem Handy (bis 760 px) steht die Werkstatt unter der Halle, dort bleibt die Seite lang; sie endet jetzt am Dock. Maschinell gemessen (Seitenhöhe = Fensterhöhe) bei 1024x640, 1280x720, 1440x900, 1920x1080, 2560x1300 und 768x1024, jeweils Dock zu und offen. Zu beurteilen: (1) Passt der Hangar auf deinem Bildschirm ohne Scrollen? (2) Sind Impressum und Datenschutz unten rechts gut so? (3) Passt die Hilfe als Tafel über der Halle? (4) Soll auch das Handy ohne Scrollen auskommen (Werkstatt dann mit eigenem Bildlauf unter der Halle)? Bilder unter hangar-ohne-footer im Projektordner. | open |  | 2026-10-23T21:40:00.000Z |  |
 | 109 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 20:45 mit Bild: „hier stehen sachen einfach vorm auto“): Vor jedem Fahrzeug bleibt jetzt eine 8 m lange Fahrspur frei, das Tor [17] prüft das (Regel FAHRSPUR). Der Munitionsblock am Nischenmund ist an die Westwand zwischen Werkstatt und Energie gewandert, kompakter (Raketen- und Torpedogestelle, Kistenstapel, Ausgabetisch, PTV). Die Werkzeuginsel vor der Nische ist jetzt eine Werkzeugwand an der Nordwand der Nische (Regale mit Werkzeug, Schubladenschrank, Leiter, Schweißgerät am Terminal). Die Werkbank der Fahrzeugwerkstatt steht zwischen Cyclone und ROC statt vor ihnen. Zu beurteilen: (1) Ist die Sicht auf die Fahrzeuge jetzt frei? (2) Passt das Munitionslager an der neuen Stelle? (3) Wirkt die Werkzeugwand in der Nische stimmig? Bilder unter hangar-deko/vorm-auto im Projektordner. | open |  | 2026-10-23T21:50:00.000Z |  |
 | 110 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Westnische nach Krisz 23.10.2026 22:04 mit Bild: „nur weil da paar sachen stehen wurde es nicht zu eineer groiund vehicle werkstatt“): Die Nische ist jetzt als Werkstatt eingerichtet: drei nummerierte Buchten mit Linien, Bucht 1 der PTV auf der Hubbühne (Diagnosekonsole mit Kabel, zwei abgenommene Räder daneben, Leiter, Rollbrett), Bucht 2 der ROC mit Diagnosekonsole am Kabel, Bucht 3 der Ursa mit Schweißgerät am Kabel. Dazwischen eine Serviceinsel (fahrbare Werkbank mit Werkzeug, Teilewagen, Standleuchten), an der Südwand Reifenlager (Regal mit Reifen und Fahrwerksrädern) und eine Werkbank mit Lichtbalken und Werkzeugschrank, vor dem Tor Reifen- und Ölspuren. Die Cyclone und das Frachtlager sind dafür gegangen. Auf Stufe mittel bleiben ROC, Konsole, Werkbankzeile und Tor. Zu beurteilen: (1) Liest sich die Nische aus der Halle als Werkstatt für Bodenfahrzeuge? (2) Fehlt etwas Wichtiges (z. B. mehr an den oberen Wänden)? (3) Stimmen Dichte und Ordnung? Bilder unter hangar-deko/werkstatt im Projektordner. | open |  | 2026-10-23T23:18:00.000Z |  |
+| 112 | hangar | unrun-verify | scripts/build-hangar-assets.mjs |  | Sichturteil offen (Hangar, Schiffe komplett nach Krisz 23.10.2026 23:55: „hole alle schiffstexturen, finishes, interiors am besten wenns geht“): Die zehn Schiffe mit echtem Lack kommen jetzt aus 4.10.2 mit Normalen- und Rauheitskarten auf den Lackschichten (vorher nur Farbe); im Hangar glänzen sie dadurch stärker und zeigen Plattenrelief. Die Constellation Andromeda ist jetzt der 4.10.2-Neubau (_GS) samt Palette und bleibt vorerst in HOLD. Geprüft: Gladius im gebauten Hangar, alle zehn im Vergleich alt/neu. Zu beurteilen: (1) Wirkt der Lack der zehn Schiffe wie im Spiel oder zu spiegelnd? (2) Darf die Andromeda (Neubau) mit echtem Lack aus HOLD? (3) Trifft der HOLD-Anlass der Freelancer (schwarz glänzend) noch zu? Bilder im Thread „Schiffstexturen komplett extrahieren“. (4) Läuft der Hangar damit noch flüssig neben dem Spiel? Gemessen in der Cloud (24.10. abends): Download je Schiff +27 bis +45 % (Gladius 9,4 → 12,6 MB, Cutlass 10,6 → 13,8 MB), Texturspeicher geschätzt Gladius 264 → 339 MB, Cutlass 246 → 312 MB; Dreiecke und Zeichenaufrufe gleich, höchstens 16 Texturen je Bildshader. Vergleichsbild Gladius, Cutlass, Aurora, Avenger: hangar/v79-schiffe-komplett-vorher-nachher.png. | open |  | 2026-10-24T00:30:00.000Z |  |
 
 ````json
 [
@@ -1445,6 +1446,18 @@ last_updated: 2026-10-23T23:18:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-24T15:00:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 112,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "scripts/build-hangar-assets.mjs",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schiffe komplett nach Krisz 23.10.2026 23:55: „hole alle schiffstexturen, finishes, interiors am besten wenns geht“): Die zehn Schiffe mit echtem Lack kommen jetzt aus 4.10.2 mit Normalen- und Rauheitskarten auf den Lackschichten (vorher nur Farbe); im Hangar glänzen sie dadurch stärker und zeigen Plattenrelief. Die Constellation Andromeda ist jetzt der 4.10.2-Neubau (_GS) samt Palette und bleibt vorerst in HOLD. Geprüft: Gladius im gebauten Hangar, alle zehn im Vergleich alt/neu. Zu beurteilen: (1) Wirkt der Lack der zehn Schiffe wie im Spiel oder zu spiegelnd? (2) Darf die Andromeda (Neubau) mit echtem Lack aus HOLD? (3) Trifft der HOLD-Anlass der Freelancer (schwarz glänzend) noch zu? Bilder im Thread „Schiffstexturen komplett extrahieren“. (4) Läuft der Hangar damit noch flüssig neben dem Spiel? Gemessen in der Cloud (24.10. abends): Download je Schiff +27 bis +45 % (Gladius 9,4 → 12,6 MB, Cutlass 10,6 → 13,8 MB), Texturspeicher geschätzt Gladius 264 → 339 MB, Cutlass 246 → 312 MB; Dreiecke und Zeichenaufrufe gleich, höchstens 16 Texturen je Bildshader. Vergleichsbild Gladius, Cutlass, Aurora, Avenger: hangar/v79-schiffe-komplett-vorher-nachher.png.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-24T00:30:00.000Z",
     "resolved_at": null
   }
 ]
