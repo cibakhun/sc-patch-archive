@@ -777,12 +777,19 @@ linkLayer.append(dentSvg);
 const DENT_MS = 620;   // Dauer der Delle
 const DENT_PX = 10;    // Amplitude; sichtbarer Ausschlag nach innen ~6 px
 const DENT_H = 130;    // Laenge des nachgebenden Kantenstuecks
+// Der Panelrahmen (::before) liegt im eigenen Rand des Panels: der Vergleich hat 1 px Rand,
+// ohne Abzug saesse seine Kante 1 px neben dem Bogen der Lasche (Stufe an der Naht).
+function frameRect(panel) {
+  const r = panel.getBoundingClientRect();
+  const x = panel.clientLeft, y = panel.clientTop;
+  return { left: r.left + x, top: r.top + y, right: r.right - x, bottom: r.bottom - y, height: r.height - 2 * y };
+}
 function paintDent(cls, panel, o, now) {
   const st = pull[cls];
   const path = dents[cls];
   const t = st.bump ? now - st.bump.t0 : Infinity;
   if (t >= DENT_MS) { st.bump = null; path.removeAttribute('d'); panel.style.removeProperty('--nw'); return false; }
-  const p = panel.getBoundingClientRect();
+  const p = frameRect(panel);
   const fw = parseFloat(getComputedStyle(root).getPropertyValue('--lo-fw')) || 4;
   const corner = parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 0;
   const h = Math.min(DENT_H, p.height - 2 * corner);
@@ -819,7 +826,7 @@ function paintLinks(now = performance.now()) {
     if (!wide.matches || !src || !box || !panel || !panel.childElementCount) { tab.classList.add('is-solid'); tab.classList.remove('is-on'); st.k = 0; st.v = 0; st.src = null; st.bump = null; dents[cls].removeAttribute('d'); continue; }
     const r = src.getBoundingClientRect();
     const b = box.getBoundingClientRect();
-    const p = panel.getBoundingClientRect();
+    const p = frameRect(panel);
     // Angeheftete Kategorie-Baender und Tabellenkoepfe verdecken den oberen Rand der Liste: jedes Band,
     // das oben klebt, verdeckt bis zu seiner Unterkante (Spielraum fuer Zoom-Rundung).
     const pinned = Math.max(b.top, ...[...box.querySelectorAll('.lo-big__h, thead th')].map((h) => h.getBoundingClientRect()).filter((h) => h.top <= b.top + 4).map((h) => h.bottom));
@@ -836,9 +843,11 @@ function paintLinks(now = performance.now()) {
     const rest = st.v === 0;
     let dt = Math.min(rest ? 17 : 64, Math.max(0, now - st.t)) / 1000;
     st.t = now;
-    // Neu gewaehlt: sofort am Ziel. Derselbe Platz kommt wieder herein: aus dem Panel herausfedern.
+    // Neu gewaehlt, waehrend eine Lasche steht: sie gleitet hinueber (Ziel sofort). Neu gewaehlt
+    // ohne Lasche: sie waechst aus dem Panelrahmen heraus wie beim Wieder-Hereinscrollen,
+    // gespiegelt zum Einziehen. Derselbe Platz kommt wieder herein: ebenso herausfedern.
     const fresh = src !== st.src;
-    if (fresh || calm.matches) { st.k = goal; st.v = 0; st.src = src; }
+    if (fresh || calm.matches) { st.k = fresh && !shown && !calm.matches ? 0 : goal; st.v = 0; st.src = src; }
     for (; dt > 0; dt -= 0.008) {
       const h = Math.min(dt, 0.008);
       st.v += (-SPRING_W * SPRING_W * (st.k - goal) - 2 * SPRING_Z * SPRING_W * st.v) * h;
