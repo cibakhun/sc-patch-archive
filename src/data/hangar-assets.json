@@ -5401,7 +5401,7 @@
     },
     "aegs-eclipse": {
       "pose": "ein",
-      "why": "landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.544, Aufstand -3.012; landinggear_right: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.544, Aufstand -3.012",
+      "why": "landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012; landinggear_right: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012",
       "contacts": [
         [
           0.243,
@@ -5464,7 +5464,7 @@
           {
             "bone": "landinggear_left",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.544, Aufstand -3.012",
+            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012",
             "foot": [
               -11.838,
               -1.447,
@@ -5486,7 +5486,7 @@
           {
             "bone": "landinggear_right",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.544, Aufstand -3.012",
+            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012",
             "foot": [
               11.839,
               -1.445,
@@ -6022,7 +6022,7 @@
     },
     "aegs-reclaimer": {
       "pose": "ein",
-      "why": "hardpoint_landinggear_main_left: nach lg_foot_deploy_main_left.caf (16 Positionen in Ruhelage) Fuß bei -16.269, Aufstand -22.6; hardpoint_landinggear_main_right: nach lg_foot_deploy_main_right.caf (10 Positionen in Ruhelage) Fuß bei -16.249, Aufstand -22.6; hardpoint_landinggear_aux_left: nach lg_foot_deploy_aux_left.caf (22 Positionen in Ruhelage) Fuß bei -12.147, Aufstand -22.6; hardpoint_landinggear_aux_right: nach lg_foot_deploy_aux_right.caf (22 Positionen in Ruhelage) Fuß bei -12.155, Aufstand -22.6",
+      "why": "hardpoint_landinggear_main_left: nach lg_foot_deploy_main_left.caf Fuß bei -16.269, Aufstand -22.6; hardpoint_landinggear_main_right: nach lg_foot_deploy_main_right.caf Fuß bei -16.249, Aufstand -22.6; hardpoint_landinggear_aux_left: nach lg_foot_deploy_aux_left.caf Fuß bei -12.012, Aufstand -22.6; hardpoint_landinggear_aux_right: nach lg_foot_deploy_aux_right.caf Fuß bei -12.028, Aufstand -22.6",
       "contacts": [
         [
           -43.42,
@@ -6069,7 +6069,7 @@
           {
             "bone": "hardpoint_landinggear_main_left",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_main_left.caf (16 Positionen in Ruhelage) Fuß bei -16.269, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_main_left.caf Fuß bei -16.269, Aufstand -22.6",
             "foot": [
               -43.42,
               -11.299,
@@ -6091,7 +6091,7 @@
           {
             "bone": "hardpoint_landinggear_main_right",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_main_right.caf (10 Positionen in Ruhelage) Fuß bei -16.249, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_main_right.caf Fuß bei -16.249, Aufstand -22.6",
             "foot": [
               43.446,
               -11.289,
@@ -6113,7 +6113,7 @@
           {
             "bone": "hardpoint_landinggear_aux_left",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_aux_left.caf (22 Positionen in Ruhelage) Fuß bei -12.147, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_aux_left.caf Fuß bei -12.012, Aufstand -22.6",
             "foot": [
               -34.611,
               -12.111,
@@ -6135,7 +6135,7 @@
           {
             "bone": "hardpoint_landinggear_aux_right",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_aux_right.caf (22 Positionen in Ruhelage) Fuß bei -12.155, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_aux_right.caf Fuß bei -12.028, Aufstand -22.6",
             "foot": [
               34.621,
               -12.106,
@@ -6163,7 +6163,7 @@
     },
     "aegs-reclaimer-showdown": {
       "pose": "ein",
-      "why": "hardpoint_landinggear_main_left: nach lg_foot_deploy_main_left.caf (16 Positionen in Ruhelage) Fuß bei -16.269, Aufstand -22.6; hardpoint_landinggear_main_right: nach lg_foot_deploy_main_right.caf (10 Positionen in Ruhelage) Fuß bei -16.249, Aufstand -22.6; hardpoint_landinggear_aux_left: nach lg_foot_deploy_aux_left.caf (22 Positionen in Ruhelage) Fuß bei -12.147, Aufstand -22.6; hardpoint_landinggear_aux_right: nach lg_foot_deploy_aux_right.caf (22 Positionen in Ruhelage) Fuß bei -12.155, Aufstand -22.6",
+      "why": "hardpoint_landinggear_main_left: nach lg_foot_deploy_main_left.caf Fuß bei -16.269, Aufstand -22.6; hardpoint_landinggear_main_right: nach lg_foot_deploy_main_right.caf Fuß bei -16.249, Aufstand -22.6; hardpoint_landinggear_aux_left: nach lg_foot_deploy_aux_left.caf Fuß bei -12.012, Aufstand -22.6; hardpoint_landinggear_aux_right: nach lg_foot_deploy_aux_right.caf Fuß bei -12.028, Aufstand -22.6",
       "contacts": [
         [
           -43.42,
@@ -6210,7 +6210,7 @@
           {
             "bone": "hardpoint_landinggear_main_left",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_main_left.caf (16 Positionen in Ruhelage) Fuß bei -16.269, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_main_left.caf Fuß bei -16.269, Aufstand -22.6",
             "foot": [
               -43.42,
               -11.299,
@@ -6232,7 +6232,7 @@
           {
             "bone": "hardpoint_landinggear_main_right",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_main_right.caf (10 Positionen in Ruhelage) Fuß bei -16.249, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_main_right.caf Fuß bei -16.249, Aufstand -22.6",
             "foot": [
               43.446,
               -11.289,
@@ -6254,7 +6254,7 @@
           {
             "bone": "hardpoint_landinggear_aux_left",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_aux_left.caf (22 Positionen in Ruhelage) Fuß bei -12.147, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_aux_left.caf Fuß bei -12.012, Aufstand -22.6",
             "foot": [
               -34.611,
               -12.111,
@@ -6276,7 +6276,7 @@
           {
             "bone": "hardpoint_landinggear_aux_right",
             "pose": "ruhelage",
-            "animError": "nach lg_foot_deploy_aux_right.caf (22 Positionen in Ruhelage) Fuß bei -12.155, Aufstand -22.6",
+            "animError": "nach lg_foot_deploy_aux_right.caf Fuß bei -12.028, Aufstand -22.6",
             "foot": [
               34.621,
               -12.106,
@@ -9133,7 +9133,7 @@
     },
     "anvl-hawk": {
       "pose": "ein",
-      "why": "hardpoint_landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.163, Aufstand -3.447; hardpoint_landinggear_right: nach landing_gear_extend (1 Positionen in Ruhelage) Fuß bei -1.445, Aufstand -3.443",
+      "why": "hardpoint_landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -5.141, Aufstand -3.447",
       "contacts": [
         [
           -0.169,
@@ -9146,15 +9146,15 @@
           -3.147
         ],
         [
-          7.308,
+          2.478,
           -3.443,
-          -3.154
+          -3.586
         ]
       ],
-      "ground": -3.446,
+      "ground": -3.445,
       "tilt": [
-        0.016,
-        -0.015
+        0.022,
+        -0.022
       ],
       "below": [],
       "belowCount": 0,
@@ -9196,7 +9196,7 @@
           {
             "bone": "hardpoint_landinggear_left",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.163, Aufstand -3.447",
+            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -5.141, Aufstand -3.447",
             "foot": [
               -7.315,
               -2.762,
@@ -9217,12 +9217,11 @@
           },
           {
             "bone": "hardpoint_landinggear_right",
-            "pose": "ruhelage",
-            "animError": "nach landing_gear_extend (1 Positionen in Ruhelage) Fuß bei -1.445, Aufstand -3.443",
+            "pose": "landing_gear_extend + landing_gear_compress 0.392",
             "foot": [
-              7.308,
-              -2.767,
-              -3.154
+              2.478,
+              -3.443,
+              -3.586
             ],
             "y": -3.443,
             "yMax": -3.912,
@@ -18396,14 +18395,14 @@
           -0.797
         ],
         [
-          -5.216,
+          -5.212,
           -3.873,
-          1.836
+          1.753
         ],
         [
-          5.214,
+          5.21,
           -3.873,
-          1.835
+          1.753
         ]
       ],
       "ground": -3.873,
@@ -18488,11 +18487,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_left",
-            "pose": "landing_gear_deploy (4 Positionen in Ruhelage)",
+            "pose": "landing_gear_deploy",
             "foot": [
-              -5.216,
+              -5.212,
               -3.873,
-              1.836
+              1.753
             ],
             "y": -3.873,
             "yMax": -4.454,
@@ -18509,11 +18508,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_right",
-            "pose": "landing_gear_deploy (4 Positionen in Ruhelage)",
+            "pose": "landing_gear_deploy",
             "foot": [
-              5.214,
+              5.21,
               -3.873,
-              1.835
+              1.753
             ],
             "y": -3.873,
             "yMax": -4.454,
@@ -18549,8 +18548,8 @@
         "compress": [
           -0.232,
           -0.232,
-          -0.382,
-          -0.383
+          -0.358,
+          -0.358
         ]
       },
       "hullLowest": -3.306,
@@ -18571,14 +18570,14 @@
           -0.797
         ],
         [
-          -5.216,
+          -5.212,
           -3.873,
-          1.836
+          1.753
         ],
         [
-          5.214,
+          5.21,
           -3.873,
-          1.835
+          1.753
         ]
       ],
       "ground": -3.873,
@@ -18663,11 +18662,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_left",
-            "pose": "landing_gear_deploy (4 Positionen in Ruhelage)",
+            "pose": "landing_gear_deploy",
             "foot": [
-              -5.216,
+              -5.212,
               -3.873,
-              1.836
+              1.753
             ],
             "y": -3.873,
             "yMax": -4.454,
@@ -18684,11 +18683,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_right",
-            "pose": "landing_gear_deploy (4 Positionen in Ruhelage)",
+            "pose": "landing_gear_deploy",
             "foot": [
-              5.214,
+              5.21,
               -3.873,
-              1.835
+              1.753
             ],
             "y": -3.873,
             "yMax": -4.454,
@@ -18724,8 +18723,8 @@
         "compress": [
           -0.232,
           -0.232,
-          -0.382,
-          -0.383
+          -0.358,
+          -0.358
         ]
       },
       "hullLowest": -3.306,
@@ -20595,7 +20594,7 @@
     },
     "krig-s65-stingray": {
       "pose": "ein",
-      "why": "hardpoint_landing_gear_front_left: nach landing_gear_extend (1 Positionen in Ruhelage) Fuß bei -0.17, Aufstand -2.674; hardpoint_landing_gear_front_right: nach landing_gear_extend (1 Positionen in Ruhelage) Fuß bei -0.17, Aufstand -2.674",
+      "why": "hardpoint_landing_gear_front_left: nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674; hardpoint_landing_gear_front_right: nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674",
       "contacts": [
         [
           0.181,
@@ -20658,7 +20657,7 @@
           {
             "bone": "hardpoint_landing_gear_front_left",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend (1 Positionen in Ruhelage) Fuß bei -0.17, Aufstand -2.674",
+            "animError": "nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674",
             "foot": [
               -4.485,
               -0.271,
@@ -20680,7 +20679,7 @@
           {
             "bone": "hardpoint_landing_gear_front_right",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend (1 Positionen in Ruhelage) Fuß bei -0.17, Aufstand -2.674",
+            "animError": "nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674",
             "foot": [
               4.485,
               -0.271,
@@ -26273,7 +26272,7 @@
     },
     "orig-890jump": {
       "pose": "ein",
-      "why": "hardpoint_landinggear_front: p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]ORIG_890jump_LandingGear_Front\\.cdf$/i; hardpoint_landinggear_left: p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]ORIG_890jump_LandingGear_Rear_Left\\.cdf$/i; hardpoint_landinggear_right: p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]ORIG_890jump_LandingGear_Rear_Right\\.cdf$/i",
+      "why": "hardpoint_landinggear_front: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -41.726, Aufstand -25.775; hardpoint_landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -29.096, Aufstand -25.725",
       "contacts": [
         [
           -3.677,
@@ -26286,14 +26285,14 @@
           77.293
         ],
         [
-          28.251,
+          37.715,
           -25.725,
-          52.082
+          50.418
         ]
       ],
       "ground": -25.748,
       "tilt": [
-        0.009,
+        0.008,
         0.02
       ],
       "below": [
@@ -26301,9 +26300,14 @@
           "node": "LiftPoles",
           "depth": 5.62,
           "gear": false
+        },
+        {
+          "node": "BONE_RLG_Foot_r",
+          "depth": 0.221,
+          "gear": true
         }
       ],
-      "belowCount": 1,
+      "belowCount": 2,
       "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
       "game": {
         "landingSystem": "ORIG_890Jump_LandingSystem",
@@ -26321,7 +26325,7 @@
           {
             "bone": "hardpoint_landinggear_front",
             "pose": "ruhelage",
-            "animError": "p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]ORIG_890jump_LandingGear_Front\\.cdf$/i",
+            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -41.726, Aufstand -25.775",
             "foot": [
               -3.677,
               -21.58,
@@ -26343,7 +26347,7 @@
           {
             "bone": "hardpoint_landinggear_left",
             "pose": "ruhelage",
-            "animError": "p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]ORIG_890jump_LandingGear_Rear_Left\\.cdf$/i",
+            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -29.096, Aufstand -25.725",
             "foot": [
               -28.701,
               -24.008,
@@ -26364,12 +26368,11 @@
           },
           {
             "bone": "hardpoint_landinggear_right",
-            "pose": "ruhelage",
-            "animError": "p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]Objects[\\\\/]Spaceships[\\\\/]Ships[\\\\/]ORIG[\\\\/]LandingGear[\\\\/]890jump[\\\\/]ORIG_890jump_LandingGear_Rear_Right\\.cdf$/i",
+            "pose": "landing_gear_extend + landing_gear_compress 1",
             "foot": [
-              28.251,
-              -24.008,
-              52.082
+              37.715,
+              -25.944,
+              50.418
             ],
             "y": -25.725,
             "yMax": -27.08,
@@ -32725,9 +32728,9 @@
     },
     "anvl-hawk": {
       "url": "/hangar/geo/anvl-hawk.glb",
-      "tris": 81739,
-      "bytes": 401584,
-      "v": "1dec913d"
+      "tris": 81755,
+      "bytes": 404272,
+      "v": "5ba138b2"
     },
     "anvl-hornet-f7a-mk1": {
       "url": "/hangar/geo/anvl-hornet-f7a-mk1.glb",
@@ -33013,21 +33016,21 @@
     },
     "crus-starlifter-a2": {
       "url": "/hangar/geo/crus-starlifter-a2.glb",
-      "tris": 68303,
+      "tris": 68300,
       "bytes": 436176,
-      "v": "84014a16"
+      "v": "d6ed784a"
     },
     "crus-starlifter-c2": {
       "url": "/hangar/geo/crus-starlifter-c2.glb",
-      "tris": 71678,
-      "bytes": 421992,
-      "v": "93fbd407"
+      "tris": 71671,
+      "bytes": 421836,
+      "v": "b10afcee"
     },
     "crus-starlifter-m2": {
       "url": "/hangar/geo/crus-starlifter-m2.glb",
-      "tris": 71503,
-      "bytes": 453468,
-      "v": "c29f6427"
+      "tris": 71500,
+      "bytes": 453476,
+      "v": "25a673b2"
     },
     "drak-buccaneer": {
       "url": "/hangar/geo/drak-buccaneer.glb",
@@ -33163,15 +33166,15 @@
     },
     "espr-talon": {
       "url": "/hangar/geo/espr-talon.glb",
-      "tris": 85451,
-      "bytes": 434712,
-      "v": "04f98fb4"
+      "tris": 85499,
+      "bytes": 435004,
+      "v": "9b31b90d"
     },
     "espr-talon-shrike": {
       "url": "/hangar/geo/espr-talon-shrike.glb",
-      "tris": 86780,
-      "bytes": 436748,
-      "v": "27f4f12c"
+      "tris": 86828,
+      "bytes": 437040,
+      "v": "c4e0cf76"
     },
     "gama-railen": {
       "url": "/hangar/geo/gama-railen.glb",
@@ -33337,9 +33340,9 @@
     },
     "misc-hull-b": {
       "url": "/hangar/geo/misc-hull-b.glb",
-      "tris": 68677,
-      "bytes": 414412,
-      "v": "86892dff"
+      "tris": 68691,
+      "bytes": 414496,
+      "v": "2c282e79"
     },
     "misc-hull-c": {
       "url": "/hangar/geo/misc-hull-c.glb",
@@ -33535,9 +33538,9 @@
     },
     "orig-890jump": {
       "url": "/hangar/geo/orig-890jump.glb",
-      "tris": 74366,
-      "bytes": 319608,
-      "v": "de780415"
+      "tris": 74368,
+      "bytes": 319424,
+      "v": "788e3625"
     },
     "orig-m50": {
       "url": "/hangar/geo/orig-m50.glb",

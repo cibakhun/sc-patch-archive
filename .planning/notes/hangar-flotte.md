@@ -193,8 +193,9 @@ Das Landesystem enthält:
   - Drehung 0x82 lesbar.
   - Position 0xC0 und 0xC2 lesbar. Bei 0xC2 liegen die Kanäle nacheinander, nicht verschränkt; der Leser ist korrigiert.
   - Zeitformat 0x40 trägt keine lesbare Zeitspur, Anfang und Ende gehen trotzdem.
-  - **Position 0xC1 ist nicht entschlüsselt** (3 Floats Kopf, dann 16-Bit-Dreiergruppen; kein getesteter Maßstab trifft).
-  - Von 264 Beinen sind 76 voll lesbar. Fehlende Positionen kommen aus der jeweils anderen Spur oder bleiben in Ruhelage.
+  - Position 0xC1 ist entschlüsselt: derselbe Kopf wie 0xC2, dann je Schlüssel drei u16 für x, y, z, verschränkt. Belegt: 79 von 79 Positionen stimmen in der Gegenprobe extend/compress (Gladius 42, Prospector 37). Bei 0xC2 belegt dieselbe Probe die Lesart „nacheinander“ (15 von 15; „verschränkt“ 0 von 15).
+  - Fehlt eine Spur, kommt der Wert aus der jeweils anderen Spur.
+  - Das Schachttor nutzt denselben Leser; seine Bahnen sind mit der korrigierten Lesart unverändert (neu gebaut, kein Unterschied).
 
 **StarBreaker** kann beim Export keine Pose setzen; `entity export --help` hat keinen Schalter dafür. Der Rohexport steht in der Ruhelage der Modelle, und die ist je Schiff verschieden: ausgefahren (Gladius, Carrack), gemischt (Prospector: Bugbein ein) oder eingefahren (Polaris).
 
@@ -204,7 +205,7 @@ Das Landesystem enthält:
 
 **Einfederung.** Das Spiel kennt sie: `lengthTarget` zwischen `lengthMin` und `lengthMax`, Fragment Compress. Angewandt wird sie so:
 - Ist compress lesbar: Halbierungssuche über die Spur, bis der Fuß auf der Aufstandshöhe steht (Prospector-Bugbein 0,938, Polaris 0,491).
-- Sonst: starr je Bein, höchstens 0,6 m. Über alle Schiffe sind es 472 Beine, im Median 0,09 m, höchstens 0,57 m.
+- Sonst: starr je Bein, höchstens 0,6 m. Über alle Schiffe sind es 472 Beine, im Median 0,06 m, höchstens 0,57 m.
 
 **Die fünf Proben:**
 
@@ -236,11 +237,10 @@ Das Landesystem enthält:
 
 | Gruppe | Schiffe | Grund |
 |---|---|---|
-| Animation nicht weit genug lesbar | Eclipse, Hawk, Hull C, Reclaimer (+ Showdown), Stingray, 85X, Glaive, Mole, Moth, Railen, Tyilui | Positionen 0xC1; nach der Animation liegt der Fuß mehr als 0,6 m neben dem Aufstand |
+| Animation trifft den Aufstand nicht | Eclipse, Hawk, Hull C, Reclaimer (+ Showdown), Stingray, 85X, Glaive, Mole, Moth, Railen, Tyilui, 890 Jump | Alle Spuren sind lesbar, aber nach extend (+ compress) liegt der Fuß mehr als 0,6 m neben dem Aufstand des Spiels: zu kurz (Reclaimer, Glaive, Mole) oder zu lang (Eclipse, Hawk, Hull C, 890 Jump). Vermutlich koppelt das Spiel zur Laufzeit eine Gelenkkette an die Feder (`springBone`, IK); die steht nicht in den Spuren. |
 | Animation führt woandershin | Prowler Utility, San'tok.yāi, Syulen | Fuß nach der Animation über dem Rumpf (bei Syulen ein Bein `hardpoint_lg_top`) |
 | keine Animation | Nomad | — |
 | Gravplatten, keine Beine | Dragonfly (+ Yellow) | — |
-| Pfadfehler im Skript | 890 Jump | Pfad der Geometrie doppelt zusammengesetzt; ist zu beheben |
 
 **`mismatch`.** Bei 23 ausgefahrenen Schiffen weicht mindestens ein Bein mehr als 0,6 m von der Feder ab. Solche Beine bleiben unverschoben, die Höhe kommt trotzdem aus der Feder, die Teile stehen in `below`.
 - Ursache sind Gelenkteile in anderer Stellung als im Spiel, z. B. `foot_flap_a` der Sabre an Bug- und linkem Bein.
@@ -256,7 +256,7 @@ Das Landesystem enthält:
 
 Für das Tor heißt das: mindestens drei Aufstandspunkte oder ein benannter Grund geht; „kein Punkt mehr als 2 cm unter der Ebene“ hält bei diesen 44 nicht, ohne dass die beweglichen Teile in Landestellung gebracht werden.
 
-**Geometrie-Fassung.** 225 Dateien, zusammen 84,7 MB (88 696 540 Byte), 17,5 Mio. Dreiecke, je Schiff rund 80 000. Die größte ist `aegs-javelin` mit 951 KB. `public/holo/` ist unverändert.
+**Geometrie-Fassung.** 225 Dateien, zusammen 84,7 MB (88 788 896 Byte), 17,5 Mio. Dreiecke, je Schiff rund 80 000. Die größte ist `aegs-javelin` mit 951 KB. `public/holo/` ist unverändert.
 
 ### Selbstauskunft
 
