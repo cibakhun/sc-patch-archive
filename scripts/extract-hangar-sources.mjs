@@ -8,7 +8,7 @@
 //   SC_STARBREAKER=<pfad zur starbreaker.exe>   (Default siehe unten)
 //   SC_P4K=<pfad zur Data.p4k>
 //
-// Usage:  node scripts/extract-hangar-sources.mjs [ships|weapons|hall|npc ...] [--ships slug,slug] [--force]
+// Usage:  node scripts/extract-hangar-sources.mjs [ships|weapons|hall|lift|werkstatt|werkhalle|npc ...] [--ships slug,slug] [--force]
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
@@ -64,6 +64,29 @@ const WERK_EXTRA_DECALS = [
   { material: 'materials/decals/oil/oil_splat_a', edge: 14.9, from: ['hangar_lrgfrnt_001_gh', 'hangar_lrgfrnt_001_law', 'hangar_xltop_001_gh_dressing'] },
 ];
 
+// Werkhalle für Bodenfahrzeuge (.planning/notes/hangar-werkhalle.md): die
+// große Garage der Hightech-Städte (Bausatz delta/int/garage). Der Teilstring
+// trifft zwei socpaks im selben Raum: die Hülle garage_lrg_001 und ihre
+// Einrichtung in New Babbage (garage_lrg_001_newbab: Torrahmen, Leuchten,
+// Lampen; sie nennt die Hülle als externes Kind, das StarBreaker nicht
+// nachlädt). Das Torblatt stellt erst der Raumhafen auf, der die Garage
+// enthält (bei Garage (19, −287, 16), ungedreht, Container-Raum Z oben).
+// Die Bühnen sind eigene Teile: zwei Lastenaufzug-Plattformen desselben
+// Bausatzes und der Drehteller der Ausstellungshalle.
+const WERKHALLE = [{
+  key: 'ht-garage-lrg', socpak: 'hightech_a\\garage_lrg_001', lod: 0,
+  // Blätter = Knochen der .cga; was an keinem hängt, ist tor_rahmen
+  tor: {
+    socpak: 'newbab\\newbab_sp_surface_entrance_int.socpak', cga: 'high_tech_garage_door_l', garage: [19, 16, 287],
+    blatt: { door_bottom_primary: 'tor_unten_1', door_bottom_secondary: 'tor_unten_2', door_top_primary: 'tor_oben_1', door_top_secundary: 'tor_oben_2' },
+  },
+  buehnen: [
+    { node: 'buehne_lift_m', socpak: 'elev_hightech\\elev_ht_cargo_hangar_med_a.socpak', mesh: /[\\/]elev_ht_cargo_pad_m\.cga$/i },
+    { node: 'buehne_lift_l', socpak: 'elev_hightech\\elev_ht_cargo_hangar_lrg_a.socpak', mesh: /[\\/]elev_ht_cargo_pad_l\.cga$/i },
+    { node: 'buehne_drehteller', socpak: 'hightech_a\\ht_fw_center_connection_master.socpak', mesh: /^expo_hall_connection_turntable_001_a$/i },
+  ],
+}];
+
 // Hangar-Crew: die RSI-Deckcrew-Montur, Teil für Teil (.skin). Der Weg über
 // die NPC-Archetypen scheitert: deren Skelett (.chr) exportiert StarBreaker
 // nicht, und ihre Kleidungs-Loadouts liegen nicht in der Data.p4k. Der Helm
@@ -78,7 +101,7 @@ const NPCS = [
 const argv = process.argv.slice(2);
 const FORCE = argv.includes('--force');
 const shipArg = argv.includes('--ships') ? argv[argv.indexOf('--ships') + 1].split(',') : null;
-const parts = argv.filter((a) => ['ships', 'weapons', 'hall', 'lift', 'werkstatt', 'npc'].includes(a));
+const parts = argv.filter((a) => ['ships', 'weapons', 'hall', 'lift', 'werkstatt', 'werkhalle', 'npc'].includes(a));
 const want = (p) => !parts.length || parts.includes(p);
 
 if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER} (SC_STARBREAKER setzen)`); process.exit(1); }
@@ -160,11 +183,18 @@ const containers = [
   ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall' })) : []),
   ...(want('lift') ? LIFTS.map((h) => ({ ...h, dir: 'lift' })) : []),
   ...(want('werkstatt') ? WERKSTATT.map((h) => ({ ...h, dir: 'werkstatt' })) : []),
+  // Werkhalle: Raum roh nach werkhalle-raw/, daraus Raum mit Torblatt und die
+  // Bühnen-Datei (werkhalleCompose); beide laufen dann wie die Halle weiter
+  ...(want('werkhalle') ? WERKHALLE.flatMap((h) => [
+    { ...h, dir: 'werkhalle', raw: `${SRC}werkhalle-raw/${h.key}.raum.glb` },
+    { key: `${h.key}-buehne`, dir: 'werkhalle', from: h.key },
+  ]) : []),
 ];
 if (containers.length) {
   console.log('Halle/Aufzug');
   for (const h of containers) {
     const file = `${SRC}${h.dir}/${h.key}.glb`;
+    mkdirSync(`${SRC}${h.dir}`, { recursive: true });
     // Stufe je Halle (h.lod): die volle Stufe hat Fasen, Schrauben und
     // Kantenprofile, die LOD 1 fehlen. Schiffe bleiben bei COMMON.
     // Lichter: das GLB trägt sie als KHR_lights_punctual, kennt aber nur
@@ -174,13 +204,17 @@ if (containers.length) {
     // Zeilen gehen nach <halle>.lights-src.txt, der Build verbindet sie über
     // den Namen mit den Lichtknoten.
     try {
-      const log = exportTo(file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(h.lod) : a)), { log: true });
-      if (typeof log === 'string') {
-        const lines = log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
-        writeFileSync(`${SRC}${h.dir}/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
-        console.log(`  Lichtangaben: ${lines.length}`);
+      if (h.socpak) {
+        const log = exportTo(h.raw ?? file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(h.lod) : a)), { log: true });
+        if (typeof log === 'string') {
+          const lines = log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
+          writeFileSync(`${SRC}${h.dir}/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
+          console.log(`  Lichtangaben: ${lines.length}`);
+        }
       }
+      if (h.tor) await werkhalleCompose(h, file);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
+    if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
     if (h.dir === 'lift') {
       const info = liftEntities(h);
       writeFileSync(`${SRC}lift/${h.key}.entities.json`, JSON.stringify(info, null, 1));
@@ -204,7 +238,7 @@ if (containers.length) {
       for (const m of Object.values(info.decalMaterials)) { add(m.d); add(m.n); add(m.maskTex); }
       console.log(`  Werkstatt: Landefläche ${info.landingArea?.dimensions?.join(' x ')} m, ${info.decals.length} Decals (${info.decals.filter((d) => d.floor).length} auf dem Boden), ${Object.keys(info.decalMaterials).length} Decal-Materialien`);
     }
-    if (h.dir === 'lift' || h.dir === 'werkstatt') {
+    if (h.dir === 'lift' || h.dir === 'werkstatt' || h.dir === 'werkhalle') {
       const layers = layerMaterials(doc);
       writeFileSync(`${SRC}${h.dir}/${h.key}.layers.json`, JSON.stringify(layers, null, 1));
       for (const l of Object.values(layers)) { add(l.d); add(l.n); }
@@ -382,6 +416,144 @@ function liftEntities(h) {
     sequences, padLightGroup: padGroup && { name: padGroup.name, helper: padGroup.at('AttachmentTarget'), parentOffsetPos: num(padGroup.at('ParentOffsetPos')) },
     padLights, shaftLights, anims,
   };
+}
+
+// ─── Werkhalle: Raum, Torblatt, Bühnen ───────────────────────────────────
+// Das Torblatt (.cga) steht nur im Raumhafen. Dessen socpak-Export legt es
+// als ein Mesh ab, ein Primitiv je Teilnetz der .cgam in deren Reihenfolge
+// (Teilnetze mit verworfenem Material fehlen); welches Blatt ein Teilnetz
+// trägt, sagt sein Netz-Knoten (obere 16 Bit, wie beim Schachttor). Je Blatt
+// ein eigener Knoten tor_<blatt> im Raum der Garage, geschlossen; die
+// Bewegung (Lage je Knochen über die Bilder der .caf) geht nach
+// <key>.tor.json. Die Bühnen je als eigener Knoten, mittig über dem
+// Ursprung, Oberkante y = 0, nach <key>-buehne.glb.
+async function werkhalleCompose(h, file) {
+  const { copyToDocument, getBounds } = await import('@gltf-transform/functions');
+  const { readCaf } = await import('./lib/ivo-caf.mjs');
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+  const RAW = `${SRC}werkhalle-raw/`;
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const part = (socpak) => {
+    const f = `${RAW}teile/${socpak.split('\\').pop().replace(/\.socpak$/i, '')}-lod${h.lod}.glb`;
+    if (FORCE || !existsSync(f)) {
+      mkdirSync(dirname(f), { recursive: true });
+      sb(['socpak', 'export', socpak, f, '--materials', 'textures', '--mip', '1', '--lod', String(h.lod), '--no-lights']);
+      console.log(`  + ${f.slice(SRC.length)}`);
+    }
+    return f;
+  };
+  const mul = (a, b) => { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; };
+  const move = (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
+
+  const room = await io.read(h.raw);
+  const scene = room.getRoot().listScenes()[0];
+  const t = h.tor;
+  const src = await io.read(part(t.socpak));
+  const re = new RegExp(`[\\\\/]${esc(t.cga)}\\.cga$`, 'i');
+  const off = (n) => { const w = n.getWorldMatrix(); return Math.hypot(w[12] - t.garage[0], w[13] - t.garage[1], w[14] - t.garage[2]); };
+  const door = src.getRoot().listNodes().filter((n) => n.getMesh() && re.test(n.getMesh().getName())).sort((a, b) => off(a) - off(b))[0];
+  if (!door || off(door) > 2) throw new Error(`${t.cga}.cga steht nicht am Garagentor in ${t.socpak}`);
+  const W = door.getWorldMatrix();
+
+  // Knotenbaum und Teilnetze der .cga, Animationen
+  sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)delta[\\\\/]int[\\\\/]garage[\\\\/]${esc(t.cga)}`]);
+  const files = listFiles(RAW);
+  const cga = files.find((f) => f.toLowerCase().endsWith(`/${t.cga}.cga`));
+  const dump = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout || '';
+  const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*\n\s*b2w\[0\] = \[([^\]]+)\]\n\s*b2w\[1\] = \[([^\]]+)\]\n\s*b2w\[2\] = \[([^\]]+)\]/g)].map((m) => ({
+    index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), t: [m[5], m[6], m[7]].map((r) => Number(r.split(',')[3])),
+  }));
+  if (!nodes.length) throw new Error('nmc dump: kein Knoten erkannt');
+  const cgam = files.find((f) => f.toLowerCase().endsWith(`/${t.cga}${h.lod ? `_lod${h.lod}` : ''}.cgam`));
+  const subs = readSubsetsNode(readFileSync(cgam));
+  const blattOf = (i) => { for (let n = nodes.find((x) => x.index === i); n; n = nodes.find((x) => x.index === n.parent)) if (t.blatt[n.name]) return t.blatt[n.name]; return 'tor_rahmen'; };
+  // Primitive den Teilnetzen zuordnen: gleiche Indexzahl, ausgelassene Teilnetze überspringen
+  const prims = door.getMesh().listPrimitives();
+  const owner = [];
+  let s = 0;
+  for (const p of prims) {
+    const n = p.getIndices()?.getCount() ?? 0;
+    while (s < subs.length && subs[s].tris * 3 !== n) s++;
+    if (s >= subs.length) throw new Error(`Tor: Primitiv ${owner.length} (${n / 3} Dreiecke) passt zu keinem Teilnetz`);
+    owner.push(blattOf(subs[s].node)); s++;
+  }
+  // Die Primitive teilen sich einen Vertex-Puffer (14 000 Ecken für das ganze
+  // Tor): je Primitiv auf die benutzten Ecken verdichten
+  const map = copyToDocument(room, src, [door.getMesh()]);
+  const shared = map.get(door.getMesh());
+  const copied = shared.listPrimitives().map((p) => compactPrimitive(room, p));
+  const old = new Set(shared.listPrimitives().flatMap((p) => [p.getIndices(), ...p.listAttributes()]));
+  for (const p of shared.listPrimitives()) p.dispose();
+  for (const a of old) a?.dispose();
+  shared.dispose();
+  const M = mul(move(-t.garage[0], -t.garage[1], -t.garage[2]), W);
+  const blaetter = {};
+  for (const name of [...new Set(owner)]) {
+    const mesh = room.createMesh(`${t.cga}_${name}`);
+    copied.forEach((p, i) => { if (owner[i] === name) mesh.addPrimitive(p); });
+    scene.addChild(room.createNode(name).setMesh(mesh).setMatrix(M));
+    blaetter[name] = { prims: mesh.listPrimitives().length, tris: mesh.listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0) };
+  }
+  // Spuren: Lage je Knochen (Elternraum, Container-Achsen Z oben) über die Bilder
+  const cafs = {};
+  for (const f of files.filter((x) => x.toLowerCase().endsWith('.caf'))) {
+    const c = readCaf(readFileSync(f), nodes.map((n) => n.name));
+    const tracks = {};
+    for (const b of c.bones) if (b.name && b.pos?.times && b.pos?.values) tracks[b.name] = b.pos.times.map((tt, k) => [tt, ...b.pos.values[k].map((v) => Math.round(v * 10000) / 10000)]);
+    cafs[f.split('/').pop().replace(/\.caf$/i, '')] = { fps: c.fps, frames: c.frames, tracks };
+  }
+  const scale = Math.hypot(W[0], W[1], W[2]);
+  writeFileSync(`${SRC}werkhalle/${h.key}.tor.json`, JSON.stringify({ cga: t.cga, container: t.socpak, garage: t.garage, lod: h.lod, scale: Math.round(scale * 1000) / 1000, nodes, subsets: subs, owner, blaetter, blattOf: t.blatt, cafs }, null, 1));
+  await room.transform(unpartition());
+  await io.write(file, room);
+  console.log(`  Tor: ${t.cga} aus ${t.socpak} (Abstand ${off(door).toFixed(2)} m, Maßstab ${scale.toFixed(3)}), ${Object.entries(blaetter).map(([k, v]) => `${k} ${v.tris}`).join(', ')}; Spuren ${Object.keys(cafs).join(', ')}`);
+
+  // Bühnen
+  const bdoc = new Document();
+  bdoc.createBuffer();
+  const bscene = bdoc.createScene();
+  const report = [];
+  for (const b of h.buehnen) {
+    const s2 = await io.read(part(b.socpak));
+    const n = s2.getRoot().listNodes().find((x) => x.getMesh() && b.mesh.test(x.getMesh().getName()));
+    if (!n) { console.error(`  ! ${b.node}: ${b.mesh} steht nicht in ${b.socpak}`); continue; }
+    const bb = getBounds(n);
+    const c = [(bb.min[0] + bb.max[0]) / 2, bb.max[1], (bb.min[2] + bb.max[2]) / 2];
+    const m2 = copyToDocument(bdoc, s2, [n.getMesh()]);
+    bscene.addChild(bdoc.createNode(b.node).setMesh(m2.get(n.getMesh())).setMatrix(mul(move(-c[0], -c[1], -c[2]), n.getWorldMatrix())));
+    report.push(`${b.node} ${(bb.max[0] - bb.min[0]).toFixed(2)} x ${(bb.max[2] - bb.min[2]).toFixed(2)} x ${(bb.max[1] - bb.min[1]).toFixed(2)} m`);
+  }
+  await bdoc.transform(unpartition());
+  await io.write(`${SRC}werkhalle/${h.key}-buehne.glb`, bdoc);
+  console.log(`  Bühnen: ${report.join('; ')}`);
+}
+
+function compactPrimitive(doc, sp) {
+  const buf = doc.getRoot().listBuffers()[0];
+  const ix = sp.getIndices().getArray();
+  const neu = new Map(), alt = [];
+  const idx = new Uint32Array(ix.length);
+  for (let i = 0; i < ix.length; i++) { let v = neu.get(ix[i]); if (v === undefined) { v = alt.length; neu.set(ix[i], v); alt.push(ix[i]); } idx[i] = v; }
+  const p = doc.createPrimitive().setMaterial(sp.getMaterial()).setExtras(sp.getExtras());
+  for (const sem of sp.listSemantics()) {
+    const a = sp.getAttribute(sem), e = a.getElementSize(), arr = a.getArray(), out = new arr.constructor(alt.length * e);
+    for (let i = 0; i < alt.length; i++) for (let k = 0; k < e; k++) out[i * e + k] = arr[alt[i] * e + k];
+    p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(out).setBuffer(buf));
+  }
+  return p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
+}
+
+// Teilnetze einer .cgam mit Netz-Knoten: [Material, Knoten, Dreiecke]
+function readSubsetsNode(buf) {
+  const i32 = (o) => buf.readInt32LE(o);
+  let best = null;
+  for (let o = 0; o + 48 <= buf.length; o += 4) {
+    if (i32(o + 4) !== 0 || i32(o + 12) !== 0 || i32(o + 16) !== 0) continue;
+    const rows = []; let at = o, next = 0;
+    while (at + 48 <= buf.length && i32(at + 4) === next && i32(at + 8) > 0 && i32(at + 8) % 3 === 0) { rows.push({ mat: buf.readUInt16LE(at), node: buf.readUInt16LE(at + 2), tris: i32(at + 8) / 3 }); next += i32(at + 8); at += 48; }
+    if (rows.length && (!best || rows.length > best.length)) best = rows;
+  }
+  return best || [];
 }
 
 // ─── Hallen-Materialien, die der socpak-Export nicht auflöst ─────────────

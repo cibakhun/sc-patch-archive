@@ -1817,6 +1817,63 @@ function swapHallDetail(model, extra) {
 // rückt senkrecht zur Feldkante, an der es liegt, hinaus, bis es frei
 // steht; käme es so nicht mehr in die Halle, bleibt es weg. F: das Feld
 // (Modellraum der Halle, nach HALL_SHIFT), rim: Breite des Rands.
+// Werkhalle (WERK.logo): Das Logo der Westnische säße mitten im Durchgang.
+// Seine Ecken im Kasten rücken nach oben und schrumpfen um ihre Mitte, in
+// der Geometrie selbst (das Logo ist ein eigenes, ungeteiltes Mesh). o:
+// hallSpot, floorY: Boden im Modell. Liefert die Zahl der Ecken.
+function werkLogo(model, o, floorY) {
+  const L = WERK.logo, toModel = new THREE.Matrix4(), back = new THREE.Matrix4(), v = new THREE.Vector3();
+  model.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const hits = [];
+  model.traverse((n) => {
+    if (!n.isMesh || ![].concat(n.material).some((m) => /decals_logo_glow/i.test(m.name))) return;
+    toModel.multiplyMatrices(inv, n.matrixWorld);
+    const a = n.geometry.attributes.position, idx = [];
+    for (let i = 0; i < a.count; i++) {
+      v.fromBufferAttribute(a, i).applyMatrix4(toModel);
+      const x = v.x - o[0], y = v.y - floorY, z = v.z - o[2];
+      if (x > L.x[0] && x < L.x[1] && y > L.y[0] && y < L.y[1] && z > L.z[0] && z < L.z[1]) idx.push(i);
+    }
+    if (idx.length) hits.push({ n, idx, M: toModel.clone() });
+  });
+  if (!hits.length) return 0;
+  let y0 = Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const { n, idx, M } of hits) for (const i of idx) {
+    v.fromBufferAttribute(n.geometry.attributes.position, i).applyMatrix4(M);
+    y0 = Math.min(y0, v.y); z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z);
+  }
+  const zc = (z0 + z1) / 2, y1 = floorY + L.unten;
+  let count = 0;
+  for (const { n, idx, M } of hits) {
+    const a = n.geometry.attributes.position;
+    back.copy(M).invert();
+    for (const i of idx) {
+      v.fromBufferAttribute(a, i).applyMatrix4(M);
+      v.set(v.x, y1 + (v.y - y0) * L.s, zc + (v.z - zc) * L.s).applyMatrix4(back);
+      a.setXYZ(i, v.x, v.y, v.z);
+      count++;
+    }
+    a.needsUpdate = true;
+    n.geometry.computeBoundingBox(); n.geometry.computeBoundingSphere();
+  }
+  return count;
+}
+// Möbel, deren Hüllquader mittig in WERK.frei liegt (Hallenmeter): Sie
+// stünden auf dem Weg zum Durchgang (die zwei Pflanzkübel der Westnische)
+function werkFrei(model, furn, o, floorY) {
+  const F = WERK.frei, b = new THREE.Box3(), c = new THREE.Vector3();
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  return furn.filter((n) => {
+    b.setFromObject(n).applyMatrix4(toModel);
+    if (b.isEmpty()) return false;
+    b.getCenter(c);
+    const x = c.x - o[0], z = c.z - o[2];
+    return x > F.x[0] && x < F.x[1] && z > F.z[0] && z < F.z[1] && b.min.y < floorY + 0.5;
+  });
+}
+
 function clearRandFurniture(model, furn, F, rim, room, floorY) {
   model.updateMatrixWorld(true);
   const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert(), b = new THREE.Box3(), c = new THREE.Vector3(), p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
@@ -2279,6 +2336,17 @@ const LEITUNG_SCHNITT = 0.1;
 // Fahrwerksrädern, Reifenstapel) und die Werkbank mit Lichtbalken, Schrank
 // und Kabelanschluss. Vor dem Tor Reifenspuren und eine Ölspur. Die Cyclone
 // und das Frachtlager sind dafür gegangen.
+// Zur Zufahrt am 24.10.2026 (Krisz: „du machst da ein durchgang hin, baust
+// eine werkstatt halle“): Die Fahrzeuge stehen jetzt in der Werkhalle
+// (WERK) hinter dem Durchgang in der Rückwand, also sind die drei Buchten,
+// die Serviceinsel und das Garagentor gegangen. Die Nische ist die Zufahrt:
+// 10,8 m breit frei vom Durchgang bis vors Feld (`freihalten`, die Kamera
+// fliegt dort hindurch), schraffierte Schwelle, Ränder, Mittellinie,
+// Pfeile je Richtung, Reifenspuren; daneben Torkonsole und Kabelanschluss.
+// Die beiden Ränder mit Konsole und Anschluss sind eigene Zonen mit dem
+// Bezugspunkt auf ihrer Linie: In größeren Hallen rückt jede Zone zu ihrem
+// Bezugspunkt, so bleiben sie am Rand des Durchgangs, statt vor ihn zu
+// wandern. Reifenlager und Lichtbalken-Werkbank an der Südwand bleiben.
 // Fest in der
 // Halle (fährt nicht mit dem Aufzug), in Originalgröße wie die Werkstatt:
 // Wächst die Halle mit großen Schiffen, rückt die Zone an ihren Bezugspunkt
@@ -2386,32 +2454,39 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", 3.8, -8.75, 6, 1], ["prop_crew_console_desk_1_chair", 2.05, -10.1, 165],
       ["prop_munition_crate_weapon_2_015x0075x0075_a", 3.7, -10.05, 2], ["prop_munition_crate_weapon_2_015x0075x0075_a", 3.7, -10.05, 359, 0.751],
       ["prop_munition_crate_weapon_4_open_015x0075x0075_a", 3.7, -10.05, 3, 1.502], ["prop_munition_ammo_box_1_closed_a", -1.15, -8.85, 88]] },
-    { "name": "zufahrt-west", "stufe": "mittel", "aus": "tor", "wand": "w", "at": [-14.6, -82.8], "freihalten": [[-2.8, -28.1, 2.8, -0.55]], "glieder": [
-      ["prop_tor_high_tech_garage_door_s", 0, -0.19, 0], ["prop_diagnose_console_diagnostic_2_a", 3.5, -0.6, 0],
-      ["prop_kabel_cable_terminal_1_floor_a", -3.6, -0.5, 0]], "spuren": [
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -1.25, -0.85, 2.5, 0],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.25, -0.85, 2.5, 0], ["decal_linie_lowtech_a_int_decal_4m_a", -2.8, -3.1, 4, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -2.8, -7.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", -2.8, -11.1, 4, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -2.8, -15.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", -2.8, -19.1, 4, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -2.8, -23.1, 4, 270], ["decal_linie_lowtech_a_int_decal_2m_a", -2.8, -26.1, 2, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", -2.8, -27.6, 1, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 2.8, -3.1, 4, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 2.8, -7.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 2.8, -11.1, 4, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 2.8, -15.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 2.8, -19.1, 4, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 2.8, -23.1, 4, 270], ["decal_linie_lowtech_a_int_decal_2m_a", 2.8, -26.1, 2, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 2.8, -27.6, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -2.7, 1, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -4.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -6.7, 1, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -8.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -10.7, 1, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -12.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -14.7, 1, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -16.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -18.7, 1, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -20.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -22.7, 1, 270],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -24.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -26.7, 1, 270],
-      ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -5.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -3.7, 1.3, 90],
-      ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -13.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -11.7, 1.3, 90],
-      ["decal_pfeil_decal_arrow_0075x0075x001_a", -1.4, -21.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 1.4, -19.7, 1.3, 90],
-      ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -5.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -5.4, 3, 90],
-      ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -8.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -8.4, 3, 90],
-      ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -11.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -11.4, 3, 90],
-      ["decal_oel_oil_line_a", 0.2, -7, 3, 270]] },
+    { "name": "zufahrt-west", "stufe": "mittel", "aus": "tor", "wand": "w", "at": [-14.6, -72], "freihalten": [[-8.4, -28.1, 8.4, -0.55]], "glieder": [], "spuren": [
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -1.35833, -0.85, 2.71667, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.35833, -0.85, 2.71667, 0],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -4.075, -0.85, 2.71667, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 4.075, -0.85, 2.71667, 0],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -2.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -4.7, 1, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -6.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -8.7, 1, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -10.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -12.7, 1, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -14.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -16.7, 1, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -18.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -20.7, 1, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -22.7, 1, 270], ["decal_linie_lowtech_a_int_decal_1m_a", 0, -24.7, 1, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -26.7, 1, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", -3.5, -5.7, 1.3, 270],
+      ["decal_pfeil_decal_arrow_0075x0075x001_a", -3.5, -13.7, 1.3, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", -3.5, -21.7, 1.3, 270],
+      ["decal_pfeil_decal_arrow_0075x0075x001_a", 3.5, -3.7, 1.3, 90], ["decal_pfeil_decal_arrow_0075x0075x001_a", 3.5, -11.7, 1.3, 90],
+      ["decal_pfeil_decal_arrow_0075x0075x001_a", 3.5, -19.7, 1.3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", -4.6, -5.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", -2.4, -5.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 2.4, -5.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", 4.6, -5.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", -4.6, -8.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", -2.4, -8.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 2.4, -8.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", 4.6, -8.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", -4.6, -11.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", -2.4, -11.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 2.4, -11.4, 3, 90],
+      ["decal_reifenspur_decal_tire_marks_straight_a", 4.6, -11.4, 3, 90], ["decal_oel_oil_line_a", -3.2, -7, 3, 270]] },
+    { "name": "zufahrt-nord-west", "stufe": "mittel", "aus": "kabel", "wand": "w", "at": [-14.6, -80.4], "glieder": [
+      ["prop_kabel_cable_terminal_1_floor_a", -1.2, -0.5, 0]], "spuren": [
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.60833, -0.85, 2.71667, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 0, -3.1, 4, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 0, -7.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 0, -11.1, 4, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 0, -15.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 0, -19.1, 4, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 0, -23.1, 4, 270], ["decal_linie_lowtech_a_int_decal_2m_a", 0, -26.1, 2, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -27.6, 1, 270]] },
+    { "name": "zufahrt-sued-west", "stufe": "mittel", "aus": "tor", "wand": "w", "at": [-14.6, -63.6], "glieder": [
+      ["prop_diagnose_console_diagnostic_2_a", 1.2, -0.6, 0]], "spuren": [
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -1.60833, -0.85, 2.71667, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 0, -3.1, 4, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 0, -7.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 0, -11.1, 4, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 0, -15.1, 4, 270], ["decal_linie_lowtech_a_int_decal_4m_a", 0, -19.1, 4, 270],
+      ["decal_linie_lowtech_a_int_decal_4m_a", 0, -23.1, 4, 270], ["decal_linie_lowtech_a_int_decal_2m_a", 0, -26.1, 2, 270],
+      ["decal_linie_lowtech_a_int_decal_1m_a", 0, -27.6, 1, 270]] },
     { "name": "werkstatt-west", "stufe": "mittel", "aus": "energie+werkzeug", "wand": "w", "at": [3.5, -48.25], "glieder": [
       ["prop_werkzeug_tool_drawer_1_a", -5, -0.513, 0], ["prop_werkzeug_workbench_table_1_light_a", -2.6, -0.609, 0],
       ["prop_energie_generator_mining_1_a", 3.9, -1.102, 0], ["prop_transport_prop_dumper_transport_pallet_a", -0.6, -5.6, 12],
@@ -2728,36 +2803,6 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_05m_a", -6.6, -7.05, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 5.4, -2.3, 4, 90],
       ["decal_linie_lowtech_a_int_decal_2m_a", 5.4, -5.3, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -6.55, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -7.05, 0.5, 90]] },
-    { "name": "hebebuehne-west", "stufe": "hoch", "aus": "heben", "wand": "w", "at": [-11.9, -79.35], "glieder": [
-      ["prop_maschine_col_lift_platform_small_a", 2.05, -2.9, 0], ["prop_fahrzeug_grin_ptv", 2.05, -2.9, 0, 1.769],
-      ["prop_diagnose_console_diagnostic_1_a", 0, -0.05, 0], ["prop_heben_ladder_mobile_1_c", 4.35, -2.9, 90],
-      ["prop_kabel_cable_reel_5_a", 3.75, -0.6, 3], ["prop_werkzeug_tool_drawer_1_a", -0.05, -5.3, 352],
-      ["prop_licht_light_work_light_1_a", 0, -7.3, 215], ["prop_transport_trolley_creeper_1_a", 4.3, -5.5, 6],
-      ["prop_werkzeug_bag_toolbox_2_a", 4.15, -6.9, 20], ["prop_reifen_ptv_tire", 0.15, -3.6, 12], ["prop_reifen_ptv_tire", 0.15, -3.6, 31, 0.321]], "spuren": [
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 0.6, -2.9, 3.2, 0],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 3.5, -2.9, 3.2, 0], ["decal_ziffer_secondary_number_1", 2.05, -8.5, 0.9, 270],
-      ["decal_oel_decal_stain_surface_var_oil_a", 2.35, -3.3, 2.6, 30]], "leitungen": [
-      { "name": "konsole-hebebuehne", "node": "prop_kabel_maintenance_cable_1_a", "von": [0.3, -0.597, 0.8, 90], "nach": [0.947, -2.9, 0.5, 180] }] },
-    { "name": "fahrzeugbucht-west", "stufe": "mittel", "aus": "fahrzeug", "wand": "w", "at": [-14.6, -72], "glieder": [
-      ["prop_fahrzeug_grin_roc", 0, -3.96, 0], ["prop_diagnose_console_diagnostic_2_a", 2.95, -8.5, 95]], "spuren": [
-      ["decal_ziffer_secondary_number_2", 0, -11.2, 0.9, 270], ["decal_ziffer_secondary_number_3", 9.45, -11.2, 0.9, 270],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -7.9, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -7.9, -8.6, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_1m_a", -7.9, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -7.9, -11.85, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -2.75, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -2.75, -8.6, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_1m_a", -2.75, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -2.75, -11.85, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 2.45, -5.2, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 2.45, -9.2, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 2.45, -11.45, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 2.45, -11.95, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 6.8, -5.2, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 6.8, -9.2, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 6.8, -11.45, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 6.8, -11.95, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 13.4, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 13.4, -8.6, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_1m_a", 13.4, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 13.4, -11.85, 0.5, 90],
-      ["decal_oel_oil_var01", 0.4, -5, 4.2, 110]], "leitungen": [
-      { "name": "konsole-roc", "node": "prop_kabel_maintenance_cable_1_a", "von": [2.977, -8.19, 0.8, 275], "nach": [1.113, -3.96, 1.3, 0] }] },
-    { "name": "ursabucht-west", "stufe": "hoch", "aus": "fahrzeug", "wand": "w", "at": [-14.6, -62.55], "glieder": [
-      ["prop_fahrzeug_rsi_ursa_rover", 0, -4.01, 0], ["prop_werkzeug_tool_welder_a", -3.65, -9, 350],
-      ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.5, -9.9, 20]], "spuren": [
-      ["decal_oel_decal_stain_surface_var_oil_b", -0.05, -9.4, 3.6, 200], ["decal_reifenspur_decal_tire_marks_straight_a", 1.25, -12.8, 3, 90]], "leitungen": [
-      { "name": "schweissgeraet-ursa", "node": "prop_kabel_maintenance_cable_1_a", "von": [-3.48, -8.97, 0.6, 350], "nach": [-2.536, -6.51, 1.3, 180] }] },
     { "name": "reifenlager-west", "stufe": "hoch", "aus": "reifen", "wand": "s", "at": [-11.5, -57], "glieder": [
       ["prop_regal_storage_rack_1_02x0575x03_a", 0.025, -1.1, 0], ["prop_reifen_ptv_tire", -2.5, -1.55, 0, 0.4],
       ["prop_reifen_ptv_tire", -1.72, -1.55, 11, 0.4], ["prop_reifen_ptv_tire", -0.94, -1.55, 22, 0.4], ["prop_reifen_ptv_tire", -0.16, -1.55, 8, 0.4],
@@ -2769,16 +2814,6 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_reifen_ptv_tire", 3.45, -0.45, 9, 0.321], ["prop_reifen_ptv_tire", 3.45, -0.45, 18, 0.642],
       ["prop_reifen_ptv_tire", 3.45, -0.45, 27, 0.963], ["prop_reifen_ptv_tire", 3.43, -1.2, 17], ["prop_reifen_ptv_tire", 3.43, -1.2, 26, 0.321],
       ["prop_reifen_ptv_tire", 3.43, -1.2, 5, 0.642]] },
-    { "name": "serviceinsel-west", "stufe": "hoch", "aus": "werkzeug", "wand": "w", "at": [-11.2, -67.4], "glieder": [
-      ["prop_werkzeug_workbench_mobile_1_a", -0.05, -2.6, 0], ["prop_werkzeug_tool_socket_set_closed_1_a", -0.05, -1.5, 4, 1.215],
-      ["prop_werkzeug_tool_power_1_drill_a", -0.3, -2.4, 40, 1.215], ["prop_werkzeug_tool_tester_1_b", 0.15, -3, 340, 1.215],
-      ["prop_werkzeug_tool_manual_1_ratchet_a", -0.25, -3.5, 75, 1.215], ["prop_werkzeug_tool_manual_1_pliers_a", 0.2, -4, 330, 1.215],
-      ["prop_transport_trolley_cargo_4_a", -0.15, -7.35, 92], ["prop_reifen_ptv_tire", -0.8, -7.35, 10, 0.2],
-      ["prop_reifen_ptv_tire", -0.1, -7.35, 25, 0.2], ["prop_werkzeug_bag_toolbox_2_a", 0.6, -7.35, 85, 0.2],
-      ["prop_licht_light_portable_tripod_1_base_a", -1.6, -8.9, 150], ["prop_licht_light_portable_tripod_1_base_a", 1, -9, 30],
-      ["prop_lager_drum_dry_1_a", -1.5, -0.3, 0], ["prop_reinigung_tool_mop_1_bucket_b", 1.65, -1.2, 15],
-      ["prop_sicherheit_cone_2_open_a", 1.35, -10.4, 20]], "spuren": [
-      ["decal_oel_oil_line_a", -0.2, -9.8, 2.5, 80]] },
     { "name": "werkbank-sued-west", "stufe": "mittel", "aus": "werkzeug", "wand": "s", "at": [-4.5, -57], "glieder": [
       ["prop_wand_cable_terminal_2_wall_a", -2.7, -0.195, 0], ["prop_werkzeug_workbench_table_1_light_a", -0.5, -0.609, 0],
       ["prop_werkzeug_cabinet_tool_1_a", 2.1, -0.615, 180], ["prop_werkzeug_bag_toolbox_1_a", 1.95, -0.6, 2, 2.314],
@@ -4915,6 +4950,236 @@ function hangarSound(src = null) {
   };
 }
 
+// ─── Werkhalle für Bodenfahrzeuge ───────────────────────────────────────
+// Krisz am 24.10.2026: „du machst da ein durchgang hin, baust eine werkstatt
+// halle, wenn man ground vehicle auswählt fährt die kamera da rein, da kann
+// man ground vehicle loadouts machen undso […] in der werkstatthalle
+// reinfahrend soll das ausgewählte fahrzeug auch nach oben fahren und
+// nacheinander die lichter im hintergrund beginnend zum vordergrund
+// arbeitend angehen bis schließlich das mittlere spotlight licht angeht,
+// wenn die kamera ankommt und das fahrzeug gleichzeitig angekommen sind.“
+// Bodenfahrzeug heißt Ort 'werk' in der Modellliste der Seite
+// (HangarApp.astro: vehicles.json isSpaceship === false). Eine Ausnahme von
+// „keine automatischen Kamerafahrten“ (18.10.2026): nur dieser Ortswechsel.
+//
+// Die Werkhalle ist die große Garage der Hightech-Städte aus dem Spiel
+// (New Babbage, PC-Lauf 24.10.2026, public/hangar/werkhalle/; Maße, Tor und
+// Leuchtkörper in ihrer json). Sie steht hinter der Rückwand der Westnische,
+// ihr Tor ist der Durchgang.
+//
+// Maße in Hallenmetern ab der Bodenmitte der Halle, wie vHgP im
+// Hallenshader (Modell minus hallSpot, Boden 0, x nach Osten). Die
+// Westnische liegt bei x -51..-36 und z -15..15, ihre Rückwand bei x -51,
+// ihre Decke 8,6 m hoch.
+//   garage: id im Manifest (werkhalle); x: Torebene (z = 0 der Garage), ihr
+//     Raum reicht nach -x (Garage z -> Halle -x, Garage x -> Halle z), ihr
+//     Boden (floorY) auf 0; vorn: Dreiecke ganz vor dieser Garagen-z
+//     (Rahmen, Torwand) bleiben stehen, wenn die Garage verborgen ist
+//   tuer: Schnitt in der Rückwand, b breit und h hoch, mittig auf z 0 (im
+//     Torrahmen der Garage, der dahinter steht); tief: bis zur Torebene;
+//     Rahmen rahmen breit und vor weit in die Nische (deckt die Schnittkante)
+//   tor: Torebene x; die vier Blätter der Garage fahren in ms auf (Bahnen
+//     des Spiels aus der json, schneller abgespielt)
+//   raum: Halle der Garage zwischen den Pfeilern (Kamera bleibt darin), h
+//     die lichte Höhe
+//   feld: Hebebühne, Mitte x/z, halbe Maße hx (längs, Bug zum Tor) und hz,
+//     im ebenen Mittelfeld; Grube tief; Rand: Warnstreifen so breit um die
+//     Öffnung; buehne: Knoten der Plattform in der Bühnendatei
+//   reihen: Bänder in Garagen-z, von hinten nach vorn (so gehen sie an):
+//     Leuchten und Leuchtflächen darin gehen zusammen an
+//   lampen: Leuchtkörper (Netz, ab Höhe) aus der json, die im Shader
+//     leuchten, je höchstens je Band (niedrig eine je Band)
+//   spot: Strahler über der Bühne, Höhe und Kegel innen/außen in Grad
+//   logo: Logo der Rückwand (Kasten in Hallenmetern) rückt über den Rahmen:
+//     neue Unterkante unten, Maßstab s um seine Mitte
+//   frei: Möbel der Halle mit Bezugspunkt hier weichen dem Weg zum Durchgang
+//   bahn: Weg der Kamera (werkPath): ab x vor in der Halle tief auf Höhe y
+//     (höchstens 55 % der Durchgangshöhe), nische m vor der Rückwand mittig,
+//     aus m hinter der Torebene in der Garage
+// verify:hangar-hall [18] liest diesen Block.
+const WERK = /* werk */ {
+  "halle": "revelyork-single",
+  "garage": { "id": "ht-garage-lrg", "x": -52.0, "vorn": 1.0 },
+  "tuer": { "x": -51.0, "b": 16.3, "h": 6.55, "tief": 1.0, "rahmen": 0.3, "vor": 0.15 },
+  "tor": { "x": -52.0, "ms": 1800 },
+  "raum": { "x": [-91.2, -52.0], "z": [-12, 12], "h": 6.8 },
+  "feld": { "x": -68.5, "z": 0, "hx": 8.2, "hz": 6.4, "tief": 7, "rand": 0.45, "buehne": "buehne_lift_m" },
+  "reihen": [[30.5, 41], [23, 30.5], [15, 23], [7, 15], [-1, 7]],
+  "lampen": { "netze": ["light_panel_1_d", "light_fixture_rectangular_e"], "ab": 7, "je": 4 },
+  "spot": { "y": 6.4, "innen": 16, "aussen": 30 },
+  "logo": { "x": [-51.4, -50.6], "y": [4.3, 7.9], "z": [-3.6, 3.4], "unten": 6.95, "s": 0.42 },
+  "frei": { "x": [-51, -46.5], "z": [-9.5, 9.5] },
+  "bahn": { "vor": -26, "nische": 7, "y": 2.4, "aus": 4 }
+} /* /werk */;
+// Das Fahrzeug steht mit dem Bug zum Durchgang (+x); die Kamera sieht es
+// von vorn rechts oben, mit dem Durchgang im Rücken
+const WERK_YAW = Math.PI / 2;
+const WERK_HOME_DIR = new THREE.Vector3(0.74, 0.22, 0.64).normalize();
+// Hebebühne: Fahrzeit hinab und hinauf (wie das Schiffsfeld), unten steht
+// sie 0,5 m über der Sohle der Grube
+const WERK_DOWN_MS = 1900, WERK_UP_MS = 2800;
+const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
+// Fahrt der Kamera zwischen Halle und Werkhalle: Dauer aus der Weglänge in
+// Hallenmetern (s = a + Weg / v, gedeckelt), Lampenreihen gehen bei diesen
+// Anteilen der Fahrt an, von hinten nach vorn; der Spot genau bei der
+// Ankunft, mit der Bühne. Das erste Band erst, wenn man durch das
+// aufgehende Tor hineinsieht (vorher lief die Folge hinter dem Tor ab)
+const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
+const WERK_ROWS_AT = [0.5, 0.58, 0.66, 0.74, 0.82];
+// Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
+// dafür mal quer), des Spots und des Hallenlichts vor dem Durchgang;
+// Grundlicht und Spiegelung wachsen mit den Reihen. Aus geht eine Leuchte in
+// WERK_OFF_MS. Leuchtflächen strahlen über der Schwelle des Lichtscheins.
+const WERK_LIGHT = {
+  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 260, spill: [1.0, 0.98, 0.95], spillI: 40,
+  amb: [0.85, 0.88, 0.95], amb0: 0.012, ambK: 0.4, env0: 0.04, envK: 0.5, torAmb: 0.35, glow: 7, dark: 0.006,
+};
+const WERK_OFF_MS = 350;
+// Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
+// danach voll; der Spot schlägt kurz über
+const WERK_FLICKER = [[0, 0], [30, 0.9], [70, 0.05], [130, 0.6], [170, 0.1], [260, 0.85], [300, 0.7], [420, 1]];
+const WERK_SPOT_FLICKER = [[0, 0], [40, 1.25], [140, 0.92], [260, 1]];
+const flicker = (curve, ms) => {
+  if (ms <= 0) return 0;
+  for (let i = 1; i < curve.length; i++) {
+    if (ms < curve[i][0]) {
+      const [t0, a] = curve[i - 1], [t1, b] = curve[i];
+      return a + (b - a) * ((ms - t0) / (t1 - t0));
+    }
+  }
+  return curve[curve.length - 1][1];
+};
+
+// Baukasten der Werkhalle: Vierecke und Quader je Material in einer
+// Geometrie. Texturkoordinaten planar in Metern durch die Kachel des
+// Materials (tile), Normale nach außen. Quader: faces nennt die Seiten,
+// klein für die negative, groß für die positive Achse ('xXyYzZ').
+function werkBaukasten(tiles) {
+  const parts = new Map();
+  const part = (key) => {
+    if (!parts.has(key)) parts.set(key, { pos: [], nor: [], uv: [], idx: [] });
+    return parts.get(key);
+  };
+  const quad = (key, a, b, c, d, n) => {
+    const p = part(key), o = p.pos.length / 3, t = tiles[key] ?? 1;
+    const ax = Math.abs(n[0]), ay = Math.abs(n[1]);
+    const uvOf = (q) => (ax > 0.5 ? [q[2] * Math.sign(n[0]), q[1]] : ay > 0.5 ? [q[0], q[2] * Math.sign(n[1])] : [-q[0] * Math.sign(n[2]), q[1]]);
+    for (const q of [a, b, c, d]) {
+      p.pos.push(q[0], q[1], q[2]); p.nor.push(n[0], n[1], n[2]);
+      const [u, v] = uvOf(q);
+      p.uv.push(u / t, v / t);
+    }
+    p.idx.push(o, o + 1, o + 2, o, o + 2, o + 3);
+  };
+  const box = (key, lo, hi, faces = 'xXyYzZ') => {
+    const [x0, y0, z0] = lo, [x1, y1, z1] = hi;
+    if (faces.includes('X')) quad(key, [x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0]);
+    if (faces.includes('x')) quad(key, [x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0]);
+    if (faces.includes('Y')) quad(key, [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], [0, 1, 0]);
+    if (faces.includes('y')) quad(key, [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], [0, -1, 0]);
+    if (faces.includes('Z')) quad(key, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1]);
+    if (faces.includes('z')) quad(key, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1]);
+  };
+  const geometry = (key) => {
+    const p = parts.get(key);
+    if (!p) return null;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(p.pos, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(p.nor, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(p.uv, 2));
+    g.setIndex(p.idx);
+    g.computeBoundingBox(); g.computeBoundingSphere();
+    return g;
+  };
+  return { quad, box, geometry, keys: () => [...parts.keys()] };
+}
+
+// Licht der Werkhalle (eigene Lampen statt der Szenenlichter): Der Shader
+// ersetzt lights_fragment_begin. Die Lampen der Halle (Szenenlichter,
+// Halbkugel) erreichen hier nichts; es leuchten die Reihen, der Spot und
+// das Hallenlicht, das durch den offenen Durchgang fällt (letzte Lampe,
+// hinter dem Tor mal offen). vHgWk: Lage in Hallenmetern. Unter dem Boden
+// (Grube) wird es mit der Tiefe dunkel, oben fällt der Schatten des
+// Fahrzeugs (Draufsicht, hgWkFoot) auf Boden und Bühne.
+const WERK_LIGHTS_GLSL = `uniform vec4 hgWkP[ HG_WK_N ];
+uniform vec4 hgWkC[ HG_WK_N ];
+uniform vec4 hgWkD[ HG_WK_N ];
+uniform vec3 hgWkAmb;
+uniform vec4 hgWkTor;
+uniform float hgWkK, hgWkEnv;
+varying vec3 vHgWk;
+#ifdef HG_WK_FOOT
+uniform sampler2D hgWkFoot;
+uniform vec4 hgWkFootB;
+uniform float hgWkFootK;
+// Draufsicht des Fahrzeugs: Kernschatten für das Licht von oben, weiter
+// gefasst als Verdeckung für das Grundlicht. Das Bild sieht von oben, rechts
+// ist +x, oben -z (footB: linke Kante x, Kante bei +z, 1 / Seitenlänge)
+vec2 hgWkShade() {
+	vec2 uv = vec2( vHgWk.x - hgWkFootB.x, hgWkFootB.y - vHgWk.z ) * hgWkFootB.z;
+	if ( hgWkFootK <= 0.0 || any( lessThan( uv, vec2( 0.0 ) ) ) || any( greaterThan( uv, vec2( 1.0 ) ) ) ) return vec2( 1.0 );
+	float r1 = 0.3 * hgWkFootB.z, r2 = 1.1 * hgWkFootB.z, a = 0.0, b = 0.0;
+	for ( int i = -1; i <= 1; i ++ ) for ( int j = -1; j <= 1; j ++ ) {
+		vec2 o = vec2( float( i ), float( j ) );
+		a += texture2D( hgWkFoot, uv + o * r1 ).r;
+		b += texture2D( hgWkFoot, uv + o * r2 ).r;
+	}
+	return vec2( 1.0 - 0.8 * hgWkFootK * a / 9.0, 1.0 - 0.55 * hgWkFootK * b / 9.0 );
+}
+#endif
+// Leuchtflächen der Garage je Band (WERK.reihen): Helligkeit des Bands, in
+// dem das Fragment liegt (glowX: Unterkante in x, aufsteigend)
+#ifdef HG_WK_GLOW
+uniform float hgWkGlow[ HG_WK_ROWS ];
+uniform float hgWkGlowX[ HG_WK_ROWS ];
+float hgWkGlowAt() {
+	float g = hgWkGlow[ 0 ];
+	for ( int i = 1; i < HG_WK_ROWS; i ++ ) if ( vHgWk.x > hgWkGlowX[ i ] ) g = hgWkGlow[ i ];
+	return g;
+}
+#endif
+// Grube der Hebebühne im Boden der Garage: Mitte x/z, halbe Maße
+#ifdef HG_WK_PIT
+uniform vec4 hgWkPit;
+#endif`;
+const WERK_LIGHTS_BEGIN = `vec3 geometryPosition = - vViewPosition;
+vec3 geometryNormal = normal;
+vec3 geometryViewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );
+vec3 geometryClearcoatNormal = vec3( 0.0 );
+#ifdef USE_CLEARCOAT
+	geometryClearcoatNormal = clearcoatNormal;
+#endif
+IncidentLight directLight;
+float hgWkDeep = smoothstep( 0.0, 4.5, - vHgWk.y );
+vec3 hgWkN = inverseTransformDirection( geometryNormal, viewMatrix );
+vec2 hgWkSh = vec2( 1.0 );
+#ifdef HG_WK_FOOT
+	// nur was nach oben zeigt (Boden, Bühne, Mittelfeld), nicht die Decke darüber
+	if ( hgWkN.y > 0.6 ) hgWkSh = hgWkShade();
+#endif
+for ( int i = 0; i < HG_WK_N; i ++ ) {
+	vec4 p = hgWkP[ i ], c = hgWkC[ i ], d = hgWkD[ i ];
+	if ( dot( c.rgb, vec3( 1.0 ) ) <= 0.0 ) continue;
+	vec3 lv = ( viewMatrix * vec4( p.xyz * hgWkK, 1.0 ) ).xyz - geometryPosition;
+	float d2 = dot( lv, lv ) / ( hgWkK * hgWkK ), q = d2 * p.w;
+	if ( q >= 1.0 ) continue;
+	directLight.direction = normalize( lv );
+	float att = ( 1.0 - q * q ) * ( 1.0 - q * q ) / ( d2 + 1.0 );
+	if ( c.w > -1.5 ) att *= smoothstep( c.w, d.w, dot( - directLight.direction, normalize( ( viewMatrix * vec4( d.xyz, 0.0 ) ).xyz ) ) );
+	if ( i == HG_WK_N - 1 && vHgWk.x < hgWkTor.x ) att *= hgWkTor.y;
+	directLight.color = c.rgb * att * hgWkSh.x * ( 1.0 - 0.88 * hgWkDeep );
+	directLight.visible = true;
+	RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
+}
+vec3 irradiance = hgWkAmb * ( 0.78 + 0.22 * hgWkN.y ) * hgWkSh.y * ( 1.0 - 0.9 * hgWkDeep );
+// Hallenlicht im Tunnel und am Tor: von der Halle her, hinter dem Tor nur offen
+irradiance += vec3( hgWkTor.z ) * smoothstep( hgWkTor.x - 3.0, hgWkTor.x + 1.5, vHgWk.x ) * ( vHgWk.x < hgWkTor.x ? hgWkTor.y : 1.0 ) * ( 0.6 + 0.4 * max( hgWkN.x, 0.0 ) );
+vec3 iblIrradiance = vec3( 0.0 );
+vec3 radiance = vec3( 0.0 );
+#if defined( RE_IndirectSpecular )
+	vec3 clearcoatRadiance = vec3( 0.0 );
+#endif`;
+
 // Leistungsstufen (Krisz, 2026-10-15: „auf komplett potato flüssig“). hoch
 // ist das volle Bild; mittel lässt Nachbearbeitung (Umgebungsverdeckung,
 // Lichtschein), Bodenspiegelung des Schiffs und Crew-Schatten weg, hat
@@ -5098,7 +5363,7 @@ export async function initHangar(container, opts = {}) {
   // camLimit: in der echten Halle darf die Kamera nicht durch die Wand
   // (Kugel um das Ziel; was in die Halle ragt, hält keepFree() fern)
   let camLimit = Infinity;
-  const wantDist = () => span * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
+  const wantDist = (sp = span) => sp * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
   const homeDist = () => Math.min(camLimit, wantDist());
   // Shift-Optik (setCover): Am Telefon liegt der Titelblock der Seite samt
   // Knöpfen über dem oberen Teil der Bühne (390 x 844: 319 von 523 px). Das
@@ -5128,7 +5393,12 @@ export async function initHangar(container, opts = {}) {
     if (lensS > 0) camera.setViewOffset(W(), H() * k, 0, 0, W(), H());
     else camera.clearViewOffset();
   };
-  const homePos = () => HOME_DIR.clone().multiplyScalar(homeDist()).add(controls.target);
+  // ort: wo die Bühne steht, 'halle' oder 'werk' (Werkhalle, WERK); trip:
+  // laufende Fahrt der Kamera zwischen beiden (tripStart). Startansicht in
+  // der Werkhalle von vorn rechts oben (WERK_HOME_DIR).
+  let ort = 'halle', trip = null;
+  const homeDir = () => (ort === 'werk' ? WERK_HOME_DIR : HOME_DIR);
+  const homePos = () => homeDir().clone().multiplyScalar(homeDist()).add(controls.target);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 2.2, 0);
   controls.enableDamping = true;
@@ -5246,10 +5516,32 @@ export async function initHangar(container, opts = {}) {
     if (t >= 1) propGlide = null;
   };
 
+  // Maßstab in der Werkhalle (WERK): Das Fahrzeug passt mit Rand auf die
+  // Bühne (Bug längs x), unter den Boden der Grube und unter den Spot, die
+  // Kamera der Grundansicht in den Raum. werkRoom: Platz vom Ziel über der
+  // Bühne längs WERK_HOME_DIR bis 0,8 m vor Wand, Boden oder Decke
+  const werkRoom = (k) => {
+    const R = WERK.raum, F = WERK.feld, d = WERK_HOME_DIR, m = 0.8;
+    let L = Infinity;
+    for (const [a, lo, hi, p] of [['x', R.x[0] + m, R.x[1] - m, F.x], ['y', 0.4, R.h - 0.8, 1.5], ['z', R.z[0] + m, R.z[1] - m, F.z]]) {
+      if (d[a] > 1e-9) L = Math.min(L, (hi - p) / d[a]);
+      else if (d[a] < -1e-9) L = Math.min(L, (lo - p) / d[a]);
+    }
+    return L * k;
+  };
+  const spanOf = (info) => Math.max(info.len, info.halfW * 2, 6);
+  const werkScale = (info) => {
+    const F = WERK.feld;
+    return Math.max(1, (info.len + 1) / (2 * F.hx), (2 * info.halfW + 1) / (2 * F.hz), (info.height + 0.6) / (-WERK_PAD_DOWN - 0.1), (info.height + 1.2) / WERK.spot.y, wantDist(spanOf(info)) / werkRoom(1));
+  };
+  const hallScale = (info) => (ort === 'werk' && realHall?.werk ? werkScale(info) : realHallScale(realHall.room));
+
   // Halle, Licht, Nebel und Kamera auf die Schiffsgröße einstellen.
   // hold: Einrichtung und Deko bleiben, wie sie liegen (Schiffswechsel auf
-  // dem Aufzug, show() setzt dann propGlide)
-  function scaleWorld(shipInfo, hold = false) {
+  // dem Aufzug, show() setzt dann propGlide). keep: dazu bleiben
+  // Wartungsplatz und Crew, wie sie stehen (die Kamera fährt gerade aus der
+  // Halle, werkRescale)
+  function scaleWorld(shipInfo, hold = false, keep = false) {
     lastInfo = shipInfo;
     span = Math.max(shipInfo.len, shipInfo.halfW * 2, 6);
     S = Math.max(1, span / 16);
@@ -5260,11 +5552,11 @@ export async function initHangar(container, opts = {}) {
     }
     scene.fog.near = HALL_R * S * 1.1; scene.fog.far = HALL_R * S * 3.2;
     if (realHall) {
-      const k = realHallScale(realHall.room);
+      const k = hallScale(shipInfo);
       hallRoot.scale.setScalar(k);
       hallNoTileInvK.value = 1 / k;
       if (!hold) { propGlide = null; layProps(k); }
-      if (realHall.dienst) layDienst(realHall.dienst, shipInfo, k);
+      if (realHall.dienst && !keep) layDienst(realHall.dienst, shipInfo, k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
       scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
       scaleLamps();
@@ -5281,9 +5573,10 @@ export async function initHangar(container, opts = {}) {
     controls.maxDistance = HALL_R * S * 0.95;
     camLimit = Infinity;
     if (realHall) {
-      camLimit = camRoom(realHall.room, realHallScale(realHall.room));
+      const k = hallRoot.scale.x;
+      camLimit = ort === 'werk' && realHall.werk ? werkRoom(k) : camRoom(realHall.room, k);
       controls.maxDistance = Math.max(controls.minDistance, camLimit);
-      camera.far = Math.max(realHall.room.halfL, realHall.room.height) * realHallScale(realHall.room) * 4;
+      camera.far = Math.max(realHall.room.halfL, realHall.room.height) * k * 4;
       camera.updateProjectionMatrix();
     }
     fitFov();
@@ -5295,6 +5588,8 @@ export async function initHangar(container, opts = {}) {
       dust.pts.material.size = 0.035 * Math.max(1, span / 14);
     }
     // Deko, wo sie nach dem Gleiten steht (propGlide): Die Crew stellt sich jetzt auf
+    if (keep) return;
+    life.root.scale.setScalar(1);
     life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...(realHall?.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [])], realHall?.dienst?.hull ?? null);
     life.layout(S, shipInfo);
   }
@@ -5855,6 +6150,8 @@ export async function initHangar(container, opts = {}) {
     // ihnen, das Feld fuhr in dessen Schatten herauf und wurde erst beim
     // Einrasten hell (Gladius -> Carrack, ein Bild).
     if (realHall.shaft?.gate?.group.visible) hide.push(realHall.shaft.gate.group);
+    // die Werkhalle liegt hinter der Wand, ihre Torblätter fahren
+    if (realHall.werk?.group.visible) hide.push(realHall.werk.group);
     for (const o of hide) o.visible = false;
     const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
     scene.background = null; scene.overrideMaterial = statMat;
@@ -6103,10 +6400,17 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // 3,9 cm hinauf und lägen sonst als Strichlinien auf dem Steg) und ihre
   // waagrechten Flächen bis 6 cm; was auf dem Boden steht, bleibt darüber.
   const hallCut = { value: new THREE.Vector4(0, 0, 0, 0) };
-  const HALL_CUT_GLSL = `uniform vec4 hgCut;
+  // Durchgang zur Werkhalle (WERK.tuer) in der Rückwand der Westnische: x
+  // der Wand, halbe Breite, Höhe (Hallenmeter), an. Nur die Materialien der
+  // Halle (hgCutOn) und die Tiefenkarten ihrer Schatten; der Rahmen
+  // (werkBauen) deckt die Kanten.
+  const hallDoor = { value: new THREE.Vector4(0, 0, 0, 0) };
+  const HALL_CUT_GLSL = `uniform vec4 hgCut, hgDoor;
 uniform float hgCutOn;
 void hgCutOut( vec3 p ) {
-	if ( hgCutOn < 0.5 || hgCut.z <= 0.0 || p.y > 0.06 || p.y < -0.3 ) return;
+	if ( hgCutOn < 0.5 ) return;
+	if ( hgDoor.w > 0.0 && p.x > hgDoor.x - 0.6 && p.x < hgDoor.x + 0.12 && abs( p.z ) < hgDoor.y && p.y > 0.03 && p.y < hgDoor.z ) discard;
+	if ( hgCut.z <= 0.0 || p.y > 0.06 || p.y < -0.3 ) return;
 	vec2 q = abs( p.xz );
 	if ( q.x > hgCut.z || q.y > hgCut.w || ( q.x < hgCut.x && q.y < hgCut.y ) ) return;
 	vec3 fn = cross( dFdx( p ), dFdy( p ) );
@@ -6115,7 +6419,7 @@ void hgCutOut( vec3 p ) {
   // In den Tiefenkarten der Halle (statMat) fehlt der Boden dort ebenso,
   // sonst läge der Steg im Schatten eines Bodens, den man nicht mehr sieht
   statMat.onBeforeCompile = (sh) => {
-    sh.uniforms.hgInvK = hallNoTileInvK; sh.uniforms.hgCut = hallCut; sh.uniforms.hgCutOn = { value: 1 };
+    sh.uniforms.hgInvK = hallNoTileInvK; sh.uniforms.hgCut = hallCut; sh.uniforms.hgDoor = hallDoor; sh.uniforms.hgCutOn = { value: 1 };
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 hgPos = vec4( position, 1.0 );\n#ifdef USE_BATCHING\nhgPos = batchingMatrix * hgPos;\n#endif\n#ifdef USE_INSTANCING\nhgPos = instanceMatrix * hgPos;\n#endif\nvHgP = ( modelMatrix * hgPos ).xyz * hgInvK;');
@@ -6454,7 +6758,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgShadeOn = m.userData.hgShadeU = { value: m.userData.hgShade ? 1 : 0 };
     sh.uniforms.hgInvK = hallNoTileInvK;
     sh.uniforms.hgPocket = hallPocket;
-    sh.uniforms.hgCut = hallCut;
+    sh.uniforms.hgCut = hallCut; sh.uniforms.hgDoor = hallDoor;
     sh.uniforms.hgCutOn = { value: m.userData.cut ? 1 : 0 };
     sh.uniforms.hgLiftY = m.userData.lift ? hallLiftY : hallLiftNo;
     sh.uniforms.hgBoxOn = hallBox.on; sh.uniforms.hgBoxMin = hallBox.min; sh.uniforms.hgBoxMax = hallBox.max; sh.uniforms.hgBoxPos = hallBox.pos;
@@ -6571,6 +6875,61 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
   const gateKey = (m) => () => `hall-v2|gate${m.userData.hgGrime ? '|grime' : ''}${m.userData.gateFloor ? '|floor' : ''}`;
   const pitKey = () => (PIT_N ? `hall-v2|pit${hallPit.field}` : 'hall-v2');
   const shaftKey = (m) => () => `hall-v2|shaft${m.userData.shaftUv ? '|uv' : ''}${m.userData.hgWear ? '|wear' : ''}`;
+
+  // Licht der Werkhalle (WERK_LIGHTS_GLSL): je Leuchte drei vec4. Je Band
+  // (WERK.reihen) bis zu WERK.lampen.je Leuchten der Garage (niedrig eine
+  // je Band, dafür stärker), der Spot über der Bühne, zuletzt das
+  // Hallenlicht vor dem Durchgang. werkLamp stellt Lage, Reichweite und
+  // Kegel einmal, die Bildschleife (werkFrame) die Farbe mal Helligkeit.
+  // Die Leuchtflächen gehen mit ihrem Band an (glow, glowX).
+  const WK_JE = Q0 === 'niedrig' ? 1 : WERK.lampen.je, WK_ROWS = WERK.reihen.length;
+  const WK_ROW_N = WK_JE * WK_ROWS, WK_SPOT = WK_ROW_N, WK_SPILL = WK_ROW_N + 1, WK_N = WK_ROW_N + 2;
+  const werkU = {
+    p: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, 1e4, 0, 1)) },   // Lage, 1/Reichweite²
+    c: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, 0, 0, -2)) },    // Farbe mal Stärke, cos Außenkegel (-2 rundum)
+    d: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, -1, 0, 1)) },    // Richtung, cos Innenkegel
+    amb: { value: new THREE.Color(0, 0, 0) },
+    tor: { value: new THREE.Vector4(WERK.tor.x, 0, 0, 0) },   // x des Tors, offen 0..1, Hallenlicht am Tor
+    k: { value: 1 }, env: { value: 0 },
+    foot: { value: null }, footB: { value: new THREE.Vector4(0, 0, 1, 0) },
+    glow: { value: new Array(WK_ROWS).fill(0) },
+    // Unterkante je Band in x, aufsteigend (Band 0 hinten)
+    glowX: { value: WERK.reihen.map(([, z1], i) => (i ? WERK.garage.x - z1 : -1e4)) },
+    pit: { value: new THREE.Vector4(WERK.feld.x, WERK.feld.z, WERK.feld.hx - 0.01, WERK.feld.hz - 0.01) },
+  };
+  // Schatten des Fahrzeugs: auf der Bühne immer, auf dem Hallenboden erst, wenn sie oben ist
+  const werkFootFloor = { value: 0 }, werkFootPad = { value: 0 };
+  const werkLamp = (i, pos, reach, dir = null, inner = 0, outer = 0) => {
+    werkU.p.value[i].set(pos[0], pos[1], pos[2], 1 / (reach * reach));
+    if (dir) {
+      const d = new THREE.Vector3(...dir).normalize();
+      werkU.d.value[i].set(d.x, d.y, d.z, Math.cos(inner * DEG));
+      werkU.c.value[i].w = Math.cos(outer * DEG);
+    } else werkU.c.value[i].w = -2;
+  };
+  // Material mit dem Licht der Werkhalle; der Lack der Fahrzeuge hängt es an
+  // seinen eigenen Shader (prev). userData: werkFoot ('floor' oder 'pad',
+  // Schatten des Fahrzeugs), werkPit (Garage: in der Grube ausgespart),
+  // werkGlow (Leuchtfläche, geht mit ihrem Band an)
+  const werkShader = (m, prev = null) => (sh, r) => {
+    prev?.call(m, sh, r);
+    sh.uniforms.hgWkP = werkU.p; sh.uniforms.hgWkC = werkU.c; sh.uniforms.hgWkD = werkU.d;
+    sh.uniforms.hgWkAmb = werkU.amb; sh.uniforms.hgWkTor = werkU.tor; sh.uniforms.hgWkK = werkU.k; sh.uniforms.hgWkEnv = werkU.env;
+    const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow;
+    if (foot) { sh.uniforms.hgWkFoot = werkU.foot; sh.uniforms.hgWkFootB = werkU.footB; sh.uniforms.hgWkFootK = m.userData.werkFoot === 'pad' ? werkFootPad : werkFootFloor; }
+    if (pit) sh.uniforms.hgWkPit = werkU.pit;
+    if (glow) { sh.uniforms.hgWkGlow = werkU.glow; sh.uniforms.hgWkGlowX = werkU.glowX; }
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform float hgWkK;\nvarying vec3 vHgWk;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWk = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz / hgWkK;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${WERK_LIGHTS_GLSL}`)
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n#ifdef HG_WK_PIT\n\tif ( abs( vHgWk.x - hgWkPit.x ) < hgWkPit.z && abs( vHgWk.z - hgWkPit.y ) < hgWkPit.w && vHgWk.y < 0.25 ) discard;\n#endif')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt();\n#endif')
+      .replace('#include <lights_fragment_begin>', WERK_LIGHTS_BEGIN)
+      .replace('#include <lights_fragment_maps>', '#include <lights_fragment_maps>\n\tiblIrradiance *= hgWkEnv; radiance *= hgWkEnv;');
+  };
+  const werkKey = (m) => () => `werk-v2${m.userData.werkFoot ? `|foot-${m.userData.werkFoot}` : ''}${m.userData.werkPit ? '|pit' : ''}${m.userData.werkGlow ? '|glow' : ''}`;
 
   // Wartungsplatz am Schiff (WORK_DIENST). Die Materialien des Gerätesatzes
   // wie die der Halle (gedämpfte Lackfarbe, Metall und Rauheit begrenzt wie
@@ -7113,6 +7472,316 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
+  // Werkhalle (WERK) hinter der Westnische: die Garage aus dem Spiel
+  // (garage: scene, dims aus ihrer json, buehne: Bühnendatei), gedreht und
+  // gerückt in die Hallenmeter, ihre Materialien im eigenen Licht
+  // (werkShader); dazu Grube, Hebebühne, Spot und der Rahmen um den Schnitt
+  // in der Nischenwand (im Licht der Halle). Liegt in hallRoot (wächst mit
+  // k), nicht im Modell: Die Halle kann unsichtbar werden, während die
+  // Kamera in der Werkhalle ist. Verborgen wird nur das Innere (innen);
+  // Rahmen und Torwand der Garage (vorn) und die Torblätter bleiben, sie
+  // füllen den Durchgang von der Halle aus.
+  function werkBauen(seen, garage) {
+    const T = WERK.tuer, F = WERK.feld, GC = WERK.garage, D = garage.dims;
+    const steelSrc = [...seen].find((m) => m.isMeshStandardMaterial && /mtl_metal_grey_04$/.test(m.name)) ?? null;
+    const used = [];
+    const werkMat = (m, flags) => {
+      Object.assign(m.userData, { werk: true }, flags);
+      m.envMap = envRT.texture; m.envMapIntensity = 1;
+      m.onBeforeCompile = werkShader(m);
+      m.customProgramCacheKey = werkKey(m);
+      unifyMaps(m);
+      used.push(m);
+      return m;
+    };
+    // Garagenmaterial: wie die Halle gedämpft (Lackschichten weiß), Metall
+    // begrenzt, Rauheit aus der Karte; Leuchtflächen leuchten mit ihrem Band
+    const garMat = (src, foot, pit) => {
+      const m = src.clone();
+      m.name = `werk:${src.name}`;
+      if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic/i.test(m.name) ? 0.62 : 0.85);
+      if (m.metalness > 0.4) m.metalness = 0.4;
+      if (m.roughnessMap) m.roughness = Math.max(m.roughness, 1);
+      else m.roughness = Math.max(m.roughness, 0.55);
+      const glow = (/light|glow|screen/i.test(src.name) && !/glass/i.test(src.name) && !!(m.emissiveMap || m.map)) || !!src.emissiveMap;
+      if (glow) { m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 4; }
+      for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
+      return werkMat(m, { werkFoot: foot, werkPit: pit, werkGlow: glow });
+    };
+    // Dasselbe im Licht der Halle: für alles, was man von der Halle aus im
+    // Durchgang sieht (Tor, Stirn der Garage), solange das Tor offen ist
+    // oder die Kamera in der Halle. Sonst stünde das Tor im Restlicht der
+    // dunklen Werkhalle schwarz in der hellen Nische.
+    const hallMats = [];
+    const garHall = (w) => {
+      const m = w.clone();
+      m.name = w.name.replace(/^werk:/, 'werk-halle:');
+      m.userData = { cut: false, hgShade: false, lift: false, boxUv: null, noTile: false };
+      m.vertexColors = false;
+      if (m.emissiveIntensity > 0 && w.userData.werkGlow) m.emissiveIntensity = 2;
+      m.onBeforeCompile = hallShader(m);
+      m.customProgramCacheKey = hallKey;
+      unifyMaps(m);
+      hallMats.push(m); used.push(m);
+      return m;
+    };
+    const hallOf = new Map();
+    const twoLit = (o) => {
+      const w = o.material, hm = [].concat(w).map((x) => hallOf.get(x) ?? hallOf.set(x, garHall(x)).get(x));
+      o.userData.werkSets = [Array.isArray(w) ? hm : hm[0], w];
+      o.material = o.userData.werkSets[0];
+    };
+    const group = new THREE.Group();
+    group.name = 'werk';
+    const raum = new THREE.Group();
+    raum.name = 'werk:raum';
+    group.add(raum);
+    // Garage: z -> -x, x -> z (Drehung um y), Torebene auf GC.x, Boden auf 0
+    const gar = garage.scene;
+    gar.name = 'werk:garage';
+    gar.rotation.y = -Math.PI / 2;
+    gar.position.set(GC.x, -(D.floorY ?? 0), 0);
+    group.add(gar);
+    gar.updateMatrixWorld(true);
+    const toGar = new THREE.Matrix4().copy(gar.matrixWorld).invert(), rel = new THREE.Matrix4(), v = new THREE.Vector3();
+    const mats = new Map(), innen = [], vorn = [];
+    const leaves = [];
+    for (const name of D.gate?.nodes ?? []) {
+      const n = gar.getObjectByName(name);
+      if (!n) continue;
+      leaves.push({ node: n, y0: n.position.y, open: D.gate.motion?.open?.dy?.[name], close: D.gate.motion?.close?.dy?.[name] });
+    }
+    const isLeaf = (o) => leaves.some((l) => l.node === o || l.node.getObjectById(o.id));
+    let tris = 0, split = 0;
+    const meshes = [], uses = new Map();
+    gar.traverse((o) => { if (o.isMesh) { meshes.push(o); uses.set(o.geometry, (uses.get(o.geometry) ?? 0) + 1); } });
+    // COLOR_0 des Spiels: Grau mit vollem Umfang ist Abdunklung (wie in der
+    // Halle), alles andere (Boden bis 0,16, Masken mit Farbe) wäre als
+    // Vertexfarbe schwarz oder bunt und wird weiß
+    let vcGrau = 0, vcWeiss = 0;
+    const vcDone = new WeakSet();
+    const vcFix = (g) => {
+      const c = g.attributes.color;
+      if (!c || vcDone.has(g)) return;
+      vcDone.add(g);
+      let mx = 0, bunt = false;
+      for (let i = 0; i < c.count; i++) {
+        const r = c.getX(i), gg = c.getY(i), b = c.getZ(i);
+        mx = Math.max(mx, r);
+        if (Math.abs(r - gg) > 0.02 || Math.abs(r - b) > 0.02) { bunt = true; break; }
+      }
+      if (!bunt && mx >= 0.6) { vcGrau++; return; }
+      g.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(c.count * c.itemSize).fill(255), c.itemSize, true));
+      vcWeiss++;
+    };
+    for (const o of meshes) {
+      vcFix(o.geometry);
+      const src = [].concat(o.material);
+      const lit = src.map((m) => {
+        const key = `${m.uuid}|${isLeaf(o) ? 'tor' : 'raum'}`;
+        if (!mats.has(key)) mats.set(key, garMat(m, isLeaf(o) ? null : 'floor', !isLeaf(o)));
+        return mats.get(key);
+      });
+      o.material = Array.isArray(o.material) ? lit : lit[0];
+      o.castShadow = false; o.receiveShadow = false;
+      const g = o.geometry, idx = g.index;
+      tris += (idx ? idx.count : g.attributes.position.count) / 3;
+      if (isLeaf(o)) { vorn.push(o); twoLit(o); continue; }
+      // vorn/innen: Dreiecke ganz vor GC.vorn (Garagen-z) bleiben stehen
+      if (!idx || g.groups.length > 1) { innen.push(o); continue; }
+      rel.multiplyMatrices(toGar, o.matrixWorld);
+      const P = g.attributes.position, zOf = new Float32Array(P.count);
+      for (let i = 0; i < P.count; i++) zOf[i] = v.fromBufferAttribute(P, i).applyMatrix4(rel).z;
+      const front = [], back = [];
+      for (let t = 0; t < idx.count; t += 3) {
+        const a = idx.getX(t), b = idx.getX(t + 1), c = idx.getX(t + 2);
+        (zOf[a] < GC.vorn && zOf[b] < GC.vorn && zOf[c] < GC.vorn ? front : back).push(a, b, c);
+      }
+      if (!front.length) { innen.push(o); continue; }
+      if (!back.length) { vorn.push(o); twoLit(o); continue; }
+      // geteiltes Netz (gleiche Leuchtkörper): nicht schneiden, das Exemplar bleibt innen
+      if (uses.get(g) > 1) { innen.push(o); continue; }
+      const gf = new THREE.BufferGeometry();
+      for (const [k, at] of Object.entries(g.attributes)) gf.setAttribute(k, at);
+      gf.setIndex(front);
+      g.setIndex(back);
+      g.computeBoundingSphere(); g.computeBoundingBox(); gf.computeBoundingSphere(); gf.computeBoundingBox();
+      const f = new THREE.Mesh(gf, o.material);
+      f.name = `${o.name}:vorn`;
+      f.position.copy(o.position); f.quaternion.copy(o.quaternion); f.scale.copy(o.scale);
+      f.castShadow = false; f.receiveShadow = false;
+      o.parent.add(f);
+      twoLit(f);
+      innen.push(o); vorn.push(f);
+      split++;
+    }
+    // Grube, Warnband (im Licht der Werkhalle, Material der Garage für die Wände)
+    const metalSrc = [...mats.values()].find((m) => /metal_a/i.test(m.name)) ?? null;
+    const grube = werkMat(metalSrc ? metalSrc.clone() : new THREE.MeshStandardMaterial({ color: 0x3a3e44, roughness: 0.8 }), { werkFoot: null, werkPit: false, werkGlow: false });
+    grube.name = 'werk:grube'; grube.color.multiplyScalar(0.6); grube.emissive?.set(0); grube.emissiveIntensity = 0;
+    const hazard = hazardTexture();
+    hazard.repeat.set(1, 1);
+    const warn = werkMat(new THREE.MeshStandardMaterial({ map: hazard, roughness: 0.6, metalness: 0.1 }), { werkFoot: 'floor', werkPit: false, werkGlow: false });
+    warn.name = 'werk:warn';
+    const hx0 = F.x - F.hx, hx1 = F.x + F.hx, hz0 = F.z - F.hz, hz1 = F.z + F.hz, rw = F.rand, Dp = F.tief, yW = 0.004;
+    const B = werkBaukasten({ grube: 2, rahmen: 2 });
+    B.quad('grube', [hx0, -Dp, hz1], [hx0, -Dp, hz0], [hx0, 0, hz0], [hx0, 0, hz1], [1, 0, 0]);
+    B.quad('grube', [hx1, -Dp, hz0], [hx1, -Dp, hz1], [hx1, 0, hz1], [hx1, 0, hz0], [-1, 0, 0]);
+    B.quad('grube', [hx0, -Dp, hz0], [hx1, -Dp, hz0], [hx1, 0, hz0], [hx0, 0, hz0], [0, 0, 1]);
+    B.quad('grube', [hx1, -Dp, hz1], [hx0, -Dp, hz1], [hx0, 0, hz1], [hx1, 0, hz1], [0, 0, -1]);
+    B.quad('grube', [hx0, -Dp, hz1], [hx1, -Dp, hz1], [hx1, -Dp, hz0], [hx0, -Dp, hz0], [0, 1, 0]);
+    // Rahmen um den Schnitt in der Nischenwand, von der Garage bis vor die Wand, im Licht der Halle
+    const fr = T.rahmen, fx0 = T.x - T.tief + 0.75, fx1 = T.x + T.vor;
+    B.box('rahmen', [fx0, 0, T.b / 2], [fx1, T.h + fr, T.b / 2 + fr], 'XzY');
+    B.box('rahmen', [fx0, 0, -T.b / 2 - fr], [fx1, T.h + fr, -T.b / 2], 'XZY');
+    B.box('rahmen', [fx0, T.h, -T.b / 2 - fr], [fx1, T.h + fr, T.b / 2 + fr], 'XyY');
+    const rahmen = steelSrc ? steelSrc.clone() : new THREE.MeshStandardMaterial({ color: 0x6a6e74 });
+    rahmen.name = `werk-rahmen:${steelSrc?.name ?? 'grau'}`;
+    rahmen.userData = { ...steelSrc?.userData, cut: false, hgShade: false, lift: false, boxUv: null, noTile: false };
+    rahmen.vertexColors = false;
+    rahmen.onBeforeCompile = hallShader(rahmen);
+    rahmen.customProgramCacheKey = hallKey;
+    unifyMaps(rahmen);
+    used.push(rahmen);
+    const mesh = (geo, mat, parent) => {
+      const m = new THREE.Mesh(geo, mat);
+      m.receiveShadow = false; m.castShadow = false;
+      m.name = mat.name;
+      parent.add(m);
+      tris += (geo.index ? geo.index.count : geo.attributes.position.count) / 3;
+      return m;
+    };
+    mesh(B.geometry('grube'), grube, raum);
+    vorn.push(mesh(B.geometry('rahmen'), rahmen, group));
+    const warnGeo = new THREE.BufferGeometry();
+    {
+      // Warnband um die Öffnung, je Seite eigene Texturkoordinaten (Streifen längs)
+      const P = [], N = [], U = [], I = [];
+      const band = (a, b, c, d, len) => {
+        const o = P.length / 3;
+        for (const q of [a, b, c, d]) { P.push(...q); N.push(0, 1, 0); }
+        U.push(0, 0, len / (8 * rw), 0, len / (8 * rw), 1, 0, 1);
+        I.push(o, o + 1, o + 2, o, o + 2, o + 3);
+      };
+      const L = hx1 - hx0 + 2 * rw, Wd = hz1 - hz0 + 2 * rw;
+      band([hx0 - rw, yW, hz1 + rw], [hx1 + rw, yW, hz1 + rw], [hx1 + rw, yW, hz1], [hx0 - rw, yW, hz1], L);
+      band([hx1 + rw, yW, hz0 - rw], [hx0 - rw, yW, hz0 - rw], [hx0 - rw, yW, hz0], [hx1 + rw, yW, hz0], L);
+      band([hx1 + rw, yW, hz1], [hx1 + rw, yW, hz0], [hx1, yW, hz0], [hx1, yW, hz1], Wd - 2 * rw);
+      band([hx0 - rw, yW, hz0], [hx0 - rw, yW, hz1], [hx0, yW, hz1], [hx0, yW, hz0], Wd - 2 * rw);
+      warnGeo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+      warnGeo.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+      warnGeo.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2));
+      warnGeo.setIndex(I);
+    }
+    mesh(warnGeo, warn, raum);
+    // Hebebühne: die Plattform des Lastenaufzugs aus dem Spiel, auf das Feld gebracht
+    const pad = new THREE.Group();
+    pad.name = 'werk:buehne';
+    const padSrc = garage.buehne?.getObjectByName(F.buehne) ?? null;
+    let padS = 0;
+    if (padSrc) {
+      // Drehung des Knotens bleibt (Achsen des Exports), nur Lage und Maßstab neu
+      const n = padSrc.clone(true), p = new THREE.Group();
+      n.position.set(0, 0, 0);
+      p.add(n);
+      p.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(p), sz = bb.getSize(new THREE.Vector3()), c = bb.getCenter(new THREE.Vector3());
+      padS = Math.min((2 * F.hx - 0.06) / sz.x, (2 * F.hz - 0.06) / sz.z);
+      p.scale.setScalar(padS);
+      p.position.set(F.x - c.x * padS, -bb.max.y * padS, F.z - c.z * padS);
+      const pm = new Map();
+      p.traverse((o) => {
+        if (!o.isMesh) return;
+        vcFix(o.geometry);
+        const mm = [].concat(o.material).map((m) => pm.get(m) ?? pm.set(m, garMat(m, 'pad', false)).get(m));
+        o.material = Array.isArray(o.material) ? mm : mm[0];
+        o.castShadow = false; o.receiveShadow = false;
+        tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+      });
+      pad.add(p);
+    }
+    raum.add(pad);
+    // Spot über der Bühne an einer Stange von der Decke
+    const spotMat = new THREE.MeshBasicMaterial({ color: 0x101214 });
+    spotMat.name = 'werk:spot';
+    const ceil = Math.max(WERK.spot.y + 0.9, (D.ceiling?.median ?? 7.8) - (D.floorY ?? 0));
+    {
+      const bk = werkBaukasten({ grube: 2 });
+      bk.box('grube', [F.x - 0.45, WERK.spot.y, F.z - 0.45], [F.x + 0.45, WERK.spot.y + 0.75, F.z + 0.45], 'xXyzZ');
+      bk.box('grube', [F.x - 0.06, WERK.spot.y + 0.75, F.z - 0.06], [F.x + 0.06, ceil, F.z + 0.06], 'xXzZ');
+      mesh(bk.geometry('grube'), grube, raum);
+      const bl = werkBaukasten({});
+      bl.box('l', [F.x - 0.36, WERK.spot.y - 0.02, F.z - 0.36], [F.x + 0.36, WERK.spot.y, F.z + 0.36], 'y');
+      mesh(bl.geometry('l'), spotMat, raum);
+    }
+    // Lichtkegel des Spots im Raum: additiv, außen und zur Spitze weich
+    const beamU = { hgBeam: { value: 0 } };
+    const beam = (() => {
+      const h = WERK.spot.y - 0.05, r = Math.tan(WERK.spot.aussen * 0.62 * DEG) * h;
+      const geo = new THREE.CylinderGeometry(0.3, r, h, 40, 1, true);
+      geo.translate(F.x, h / 2, F.z);
+      const m = new THREE.ShaderMaterial({
+        uniforms: beamU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+        vertexShader: `varying vec3 vN, vV;
+varying float vT;
+void main() {
+	vec4 wp = modelMatrix * vec4( position, 1.0 );
+	vT = clamp( 1.0 - ( position.y ) / ${h.toFixed(2)}, 0.0, 1.0 );
+	vN = normalize( mat3( modelMatrix ) * normal ); vV = cameraPosition - wp.xyz;
+	gl_Position = projectionMatrix * viewMatrix * wp;
+}`,
+        fragmentShader: `uniform float hgBeam;
+varying vec3 vN, vV;
+varying float vT;
+void main() {
+	float f = abs( dot( normalize( vN ), normalize( vV ) ) );
+	float a = f * f * smoothstep( 0.0, 0.15, vT ) * ( 1.0 - vT * 0.65 ) * hgBeam;
+	gl_FragColor = vec4( vec3( 1.0, 0.93, 0.8 ) * a * 0.08, 1.0 );
+}`,
+      });
+      const b = new THREE.Mesh(geo, m);
+      b.name = 'werk:kegel'; b.frustumCulled = false; b.renderOrder = 4; b.visible = false;
+      raum.add(b);
+      return b;
+    })();
+    // Leuchten: Leuchtkörper aus der json je Band (hinten zuerst), höchstens WK_JE
+    const toH = (p) => [GC.x - p[2], p[1] - (D.floorY ?? 0), p[0]];
+    const picked = WERK.reihen.map(() => []);
+    for (const f of D.fixtures ?? []) {
+      if (!WERK.lampen.netze.includes(f.mesh) || f.pos[1] < WERK.lampen.ab) continue;
+      const i = WERK.reihen.findIndex(([z0, z1]) => f.pos[2] >= z0 && f.pos[2] < z1);
+      if (i >= 0) picked[i].push(toH(f.pos));
+    }
+    let lamps = 0;
+    picked.forEach((ps, i) => {
+      if (!ps.length) return;
+      if (WK_JE === 1) {
+        const c = ps.reduce((a, p) => a.map((x, j) => x + p[j] / ps.length), [0, 0, 0]);
+        werkLamp(i, [c[0], c[1] - 0.3, 0], 22);
+        lamps++;
+        return;
+      }
+      // Reichweite knapp zwei Bänder: Jedes Band hellt vor allem seinen Teil auf, die Folge bleibt sichtbar
+      ps.slice(0, WK_JE).forEach((p, j) => { werkLamp(i * WK_JE + j, [p[0], p[1] - 0.3, p[2]], 15); lamps++; });
+    });
+    const rowLamps = picked.map((ps) => Math.min(WK_JE, ps.length));
+    werkLamp(WK_SPOT, [F.x, WERK.spot.y - 0.05, F.z], 24, [0, -1, 0], WERK.spot.innen, WERK.spot.aussen);
+    werkLamp(WK_SPILL, [T.x + 2.2, 2.6, 0], 30, [-1, -0.1, 0], 30, 72);
+    hallDoor.value.set(T.x, T.b / 2, T.h, 1);
+    return {
+      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps,
+      gateSec: D.gate?.motion?.open?.seconds ?? 6.667, gateT: D.gate?.motion?.open?.t ?? [],
+      // Tor (v: offen 0..1, dir: +1 auf, -1 zu) und Bühne (v: Höhe in
+      // Hallenmetern, 0 oben), beide unten (werkMove); Reihen und Spot
+      // (lampAt): Ziel an/aus ab t
+      tor: { v: 0, from: 0, to: 0, t0: 0, dur: 0, wait: [] },
+      buehne: { v: WERK_PAD_DOWN, from: 0, to: 0, t0: 0, dur: 0, wait: [] },
+      rows: WERK.reihen.map(() => ({ to: 0, t: -1e9, from: 0 })),
+      spot: { to: 0, t: -1e9, from: 0 },
+      innenShown: true,
+    };
+  }
+
   function loadRealHall(h) {
     // Möbel als eigene Datei (am Rechner neben der leichteren Stufe), parallel
     // zur Halle; scheitert sie, steht die Halle ohne. Am Telefon steht hier
@@ -7185,6 +7854,18 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       })
       : Promise.resolve(null);
     // Satz der Hallendeko (WORK_DEKO), nur für die Halle, deren Koordinaten er trägt
+    // Werkhalle (WERK): Garage aus dem Spiel, ihre Maße und die Bühnendatei, nur für die Halle des Blocks
+    const werkReady = WERK.halle === h.id && HALL_LIFT[h.id] && h.werk?.url && h.werk.json && h.werk.id === WERK.garage.id
+      ? Promise.all([
+        fetchGltf(h.werk.url, 'werk', h.werk.bytes || 3.2e6),
+        fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`)))),
+        h.werk.buehne?.url ? fetchGltf(h.werk.buehne.url, 'buehne', h.werk.buehne.bytes || 5e5) : null,
+      ]).then(([g, dims, b]) => ({ scene: g.scene, dims, buehne: b?.scene ?? null }), (e) => {
+        console.warn('[hangar] Werkhalle nicht geladen', e);
+        prog.delete('werk'); prog.delete('buehne');
+        return null;
+      })
+      : Promise.resolve(null);
     const dekoReady = W?.deko?.url && WB.props > 0 && HALL_LIFT[h.id] && WORK_DEKO.halle === h.id
       ? fetchGltf(W.deko.url, 'deko', W.deko.bytes || 4e6).then(async (g) => ({ scene: g.scene, schichten: await dienstSchichten(g.asset?.extras?.deko?.schichten, W.deko.url) }), (e) => {
         console.warn('[hangar] Hallendeko nicht geladen', e);
@@ -7236,6 +7917,14 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         if (r.tris) console.info(`[hangar] Halle: ${r.tris} Dreiecke in ${r.parts} Teilen entfernt (${r.why.split(' (')[0]}), ${ms} ms`);
         else console.warn(`[hangar] Halle: Ausnahme trifft nichts mehr: ${r.why}`);
       }
+      // Werkhalle (WERK) hinter der Westnische: das Logo rückt über den Durchgang
+      const garage = await werkReady;
+      const werkHier = !!garage;
+      if (werkHier) {
+        const lg = werkLogo(model, o, floorY);
+        if (lg) console.info(`[hangar] Werkhalle: Logo der Westnische über den Durchgang (${lg} Ecken, Unterkante ${WERK.logo.unten} m, ×${WERK.logo.s})`);
+        else console.warn('[hangar] Werkhalle: Logo der Westnische nicht gefunden (WERK.logo)');
+      }
       await pause();
       // Schiffsfeld als Aufzug, vor der Einrichtung (die bleibt stehen)
       const L = HALL_LIFT[h.id], t2 = performance.now();
@@ -7265,6 +7954,12 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         if (sh) console.info(`[hangar] Feldmitte: Feld um ${S.field} m, ${sh.moved.map((q, i) => `Streifen ${S.strips[i][0]}..${S.strips[i][1]} um ${S.strips[i][2]} m ${q}`).join(', ')} Dreiecke, ${sh.split} geteilt, ${sh.furniture} Möbel mit; ${Math.round(performance.now() - t7)} ms`);
         else console.warn('[hangar] Feldmitte: Streifen treffen keine Dreiecke');
         await pause();
+      }
+      // Der Weg zum Durchgang bleibt frei (WERK.frei): die Pflanzkübel vor der Rückwand
+      if (werkHier) {
+        const weg = werkFrei(model, furn, o, floorY);
+        for (const n of weg) { furn.splice(furn.indexOf(n), 1); n.removeFromParent(); }
+        console.info(`[hangar] Werkhalle: ${weg.length} Möbel vom Weg zum Durchgang genommen${weg.length ? ` (${weg.map((n) => n.name || '?').join(', ')})` : ''}`);
       }
       // Fester Rand um das Feld: Möbel darauf rücken hinaus (clearRandFurniture)
       if (lift && h.lift?.rand) {
@@ -7658,19 +8353,40 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
           dienst = null;
         }
       }
+      // Werkhalle, nach den Hallenmaterialien (sie leiht sich deren Karten)
+      let werk = null;
+      if (werkHier) {
+        try {
+          werk = werkBauen(seen, garage);
+          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht`);
+        } catch (e) {
+          console.warn('[hangar] Werkhalle nicht gebaut', e);
+          werk = null;
+          hallDoor.value.set(0, 0, 0, 0);
+        }
+      }
       // Die Lampen stehen schon (oder kommen nie): erst übersetzen und
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
       await prepare(model);
+      if (werk) {
+        // beide Lichter von Tor und Stirn übersetzen, sonst hakt der erste Wechsel
+        await prepare(werk.group);
+        for (const o of werk.vorn) if (o.userData.werkSets) o.material = o.userData.werkSets[1];
+        await prepare(werk.group);
+        for (const o of werk.vorn) if (o.userData.werkSets) o.material = o.userData.werkSets[0];
+      }
       if (hallLamps) {
         hallLamps.position.copy(model.position);
         hallVol.min.value.fromArray(hallVol.at).add(model.position);
       }
       hallRoot.add(model);
+      if (werk) hallRoot.add(werk.group);
       if (!hallRoot.parent) scene.add(hallRoot);
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko };
+      for (const m of werk?.hallMats ?? []) mats.add(m);
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk };
       // Dampf gleich mit übersetzen: sein erster Stoß soll nicht ruckeln
       if (steam && lift) prepare(steam.mesh).catch(() => {});
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
@@ -8173,6 +8889,552 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   }
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // ─── Werkhalle: Bühne, Licht, Fahrt der Kamera ──────────────────────────
+  // Bodenfahrzeuge (Seitenvertrag ort 'werk') stehen in der Werkhalle auf
+  // der Hebebühne (werkVeh, current.werk), die Schiffe in der Halle. Wer
+  // eines wählt, während die Bühne woanders steht, fährt mit der Kamera
+  // durch den Durchgang der Westnische hinüber (werkIn, werkOut); in der
+  // Werkhalle tauscht die Bühne wie das Feld der Halle (werkSwap).
+  const sine = (k) => 0.5 - 0.5 * Math.cos(Math.PI * THREE.MathUtils.clamp(k, 0, 1));
+  // Tor (v offen 0..1) und Bühne (v Höhe) fahren wie der Aufzug: werkMove
+  // setzt an (t0 auch später), werkStep führt je Bild nach; wer auf das Ende
+  // wartet, steht in M.wait, auch über eine Umkehr hinweg.
+  function werkMove(M, v, ms, t0 = performance.now()) {
+    return new Promise((done) => {
+      M.wait.push(done);
+      if (M.dur && Math.abs(v - M.to) < 1e-4) return;
+      if (ms <= 0 || (!M.dur && Math.abs(v - M.v) < 1e-4)) { M.dur = 0; M.v = v; werkSettle(M); return; }
+      M.from = M.v; M.to = v; M.t0 = t0; M.dur = ms;
+    });
+  }
+  function werkSettle(M) {
+    const w = M.wait;
+    M.wait = [];
+    for (const f of w) f();
+  }
+  function werkStep(M, now) {
+    if (!M.dur) return;
+    const k = (now - M.t0) / M.dur;
+    M.v = M.from + (M.to - M.from) * sine(k);
+    if (k >= 1) { M.v = M.to; M.dur = 0; werkSettle(M); }
+  }
+  // Leuchte (Reihe, Spot): geht ab t mit ihrem Flackern an oder in
+  // WERK_OFF_MS aus; lampNow ohne Übergang
+  const lampAt = (L, curve, now) => (L.to ? (now < L.t ? L.from : flicker(curve, now - L.t)) : L.from * (1 - THREE.MathUtils.clamp((now - L.t) / WERK_OFF_MS, 0, 1)));
+  function lampSet(L, curve, to, at = performance.now()) {
+    L.from = lampAt(L, curve, performance.now());
+    L.to = to; L.t = at;
+  }
+  const lampNow = (L, to) => { L.to = to; L.from = 0; L.t = -1e9; };
+
+  // werkVeh: das Fahrzeug auf der Bühne (bleibt beim Hinausfahren stehen, bis
+  // das Tor hinter der Kamera zu ist); werkParked: das Schiff, das beim
+  // Hineinfahren unten in der Halle bleibt, bis Feld und Tor unten sind
+  let werkVeh = null, werkParked = null, hallShown = true;
+  function werkDropParked() {
+    const c = werkParked;
+    werkParked = null;
+    if (c && c !== current) { scene.remove(c.group); release(c); }
+  }
+  // Werkhalle leer: Fahrzeug weg, Licht aus, Bühne unten; so wartet sie
+  // hinter geschlossenem Tor auf die nächste Einfahrt
+  function werkClear() {
+    const W = realHall?.werk;
+    if (!W) return;
+    if (werkVeh && werkVeh !== current) { scene.remove(werkVeh.group); release(werkVeh); }
+    werkVeh = null;
+    werkU.foot.value = null;
+    for (const L of W.rows) lampNow(L, 0);
+    lampNow(W.spot, 0);
+    werkMove(W.buehne, WERK_PAD_DOWN, 0);
+  }
+  // Halle beim Start in der Werkhalle: Feld unten, Tor zu, wie nach einer
+  // Einfahrt (dann fährt das nächste Schiff von unten herauf)
+  function hallShut(info) {
+    const G = gateOf();
+    if (!G || !realHall?.lift) return;
+    lift.dur = 0; lift.y = -liftDepth(info); lift.regroup = true;
+    settleLift();
+    if (G.run || G.state !== 'closed') { G.run = null; G.pend = null; gatePose(G, 'close', G.T); G.state = 'closed'; gateSettle(G); }
+  }
+  // Zeit von liftUp bis oben, bei geschlossenem Tor und Feld unten
+  function liftUpMs(info) {
+    const G = gateOf();
+    if (!G) return LIFT_UP_MS;
+    const y0 = -liftDepth(info), yc = gateClearY(G, info);
+    const reach = y0 < yc ? LIFT_UP_MS * liftEaseInv((yc - y0) / -y0) : 0;
+    return Math.max(0, HALL_GATE.ms + GATE_SLACK_MS - reach) + LIFT_UP_MS;
+  }
+
+  // Fahrzeug im Licht der Werkhalle: werkShader hinter dem eigenen Shader,
+  // Programm mit eigenem Schlüssel; keine Schatten der Hallenlampen
+  function werkLit(m) {
+    if (!m?.isMeshStandardMaterial || m.userData.werkLit) return m;
+    const prev = m.onBeforeCompile, key = m.customProgramCacheKey();
+    m.onBeforeCompile = werkShader(m, prev);
+    m.customProgramCacheKey = () => `${key}|werk`;
+    m.userData.werkLit = true;
+    m.needsUpdate = true;
+    return m;
+  }
+  function werkDress(root, extra = []) {
+    root.traverse((n) => {
+      if (!n.isMesh) return;
+      n.castShadow = false; n.receiveShadow = false;
+      for (const m of [].concat(n.material)) werkLit(m);
+    });
+    for (const m of extra) werkLit(m);
+  }
+  // getauschte Waffe am Fahrzeug: eigene Kopie der Vorlage mit Materialien
+  // im Licht der Werkhalle (die Vorlage bleibt für die Schiffe)
+  const werkTpls = new WeakMap();
+  function werkTpl(tpl) {
+    if (!werkTpls.has(tpl)) {
+      const o = tpl.clone(true), copies = new Map();
+      const one = (m) => { if (!copies.has(m)) copies.set(m, werkLit(m.clone())); return copies.get(m); };
+      o.traverse((n) => {
+        if (!n.isMesh) return;
+        n.castShadow = false; n.receiveShadow = false;
+        n.material = Array.isArray(n.material) ? n.material.map(one) : one(n.material);
+      });
+      werkTpls.set(tpl, prepare(o).then(() => o));
+    }
+    return werkTpls.get(tpl);
+  }
+  // Lage auf der Bühne (Bug zum Durchgang) und Blickziel der Startansicht
+  function werkPlace(ship) {
+    const k = hallRoot.scale.x, F = WERK.feld;
+    ship.userData.baseY = 0.02; ship.userData.yaw = WERK_YAW;
+    ship.rotation.y = WERK_YAW;
+    ship.position.set(F.x * k, 0.02 + realHall.werk.buehne.v * k, F.z * k);
+  }
+  const werkTarget = (info) => new THREE.Vector3(WERK.feld.x * hallRoot.scale.x, Math.max(1.2, info.height * 0.45 + 0.3), WERK.feld.z * hallRoot.scale.x);
+
+  // Schatten des Fahrzeugs auf Boden und Bühne (hgWkFoot): einmal je
+  // Fahrzeug von oben, weiß auf schwarz, in der Ruhelage auf der Bühne.
+  // Rechts im Bild ist +x, oben -z (Kamera mit oben = -z).
+  let footRT = null;
+  const footCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 100);
+  const footMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+  function werkFoot(c) {
+    const F = WERK.feld, k = hallRoot.scale.x, g = c.group;
+    const s = Math.max(c.info.len, 2 * c.info.halfW) / k + 3, h = (s / 2) * k;
+    if (!footRT) {
+      footRT = new THREE.WebGLRenderTarget(256, 256, { depthBuffer: false });
+      footRT.texture.generateMipmaps = false;
+    }
+    footCam.left = -h; footCam.right = h; footCam.top = h; footCam.bottom = -h;
+    footCam.near = 1; footCam.far = 200 * k;
+    footCam.position.set(F.x * k, 100 * k, F.z * k);
+    footCam.up.set(0, 0, -1);
+    footCam.lookAt(F.x * k, 0, F.z * k);
+    footCam.updateProjectionMatrix(); footCam.updateMatrixWorld();
+    const pose = [g.position.y, g.visible];
+    g.position.y = g.userData.baseY; g.visible = true; g.updateMatrixWorld(true);
+    const off = [];
+    for (const o of scene.children) if (o !== g && o.visible) { o.visible = false; off.push(o); }
+    const keep = { bg: scene.background, fog: scene.fog, om: scene.overrideMaterial, rt: renderer.getRenderTarget(), cc: renderer.getClearColor(new THREE.Color()), ca: renderer.getClearAlpha(), su: renderer.shadowMap.needsUpdate };
+    try {
+      scene.background = null; scene.fog = null; scene.overrideMaterial = footMat;
+      renderer.shadowMap.needsUpdate = false;
+      renderer.setClearColor(0x000000, 1);
+      renderer.setRenderTarget(footRT);
+      renderer.clear();
+      renderer.render(scene, footCam);
+    } finally {
+      renderer.setRenderTarget(keep.rt);
+      renderer.setClearColor(keep.cc, keep.ca);
+      renderer.shadowMap.needsUpdate = keep.su;
+      scene.background = keep.bg; scene.fog = keep.fog; scene.overrideMaterial = keep.om;
+      for (const o of off) o.visible = true;
+      [g.position.y, g.visible] = pose; g.updateMatrixWorld(true);
+    }
+    werkU.foot.value = footRT.texture;
+    werkU.footB.value.set(F.x - s / 2, F.z + s / 2, 1 / s, 0);
+  }
+
+  // Je Bild: Tor, Bühne, Licht und Sichtbarkeit. Die Halle ist aus, solange
+  // die Kamera in der Werkhalle ist und das Tor zu (Crew, Dampf, Schacht und
+  // Einrichtung kosten dann nichts), die Werkhalle umgekehrt ebenso.
+  const WL = WERK_LIGHT;
+  // Torblatt der Garage: Bahn des Spiels (Stützstellen t, dy) bei Zeit x
+  const gateDy = (t, dy, x) => {
+    if (!dy?.length) return 0;
+    if (x <= t[0]) return dy[0];
+    for (let i = 1; i < t.length; i++) if (x <= t[i]) return dy[i - 1] + ((dy[i] - dy[i - 1]) * (x - t[i - 1])) / (t[i] - t[i - 1]);
+    return dy.at(-1);
+  };
+  function werkFrame(now) {
+    const W = realHall.werk, F = WERK.feld, k = hallRoot.scale.x;
+    werkStep(W.tor, now); werkStep(W.buehne, now);
+    werkU.k.value = k;
+    const rowI = WL.rowI * (WK_JE > 1 ? 1 : 2.6);
+    let sum = 0;
+    W.rows.forEach((L, i) => {
+      const v = lampAt(L, WERK_FLICKER, now), I = rowI * v;
+      sum += v;
+      for (let j = 0; j < WK_JE; j++) werkU.c.value[i * WK_JE + j].setX(j < W.rowLamps[i] ? WL.row[0] * I : 0).setY(j < W.rowLamps[i] ? WL.row[1] * I : 0).setZ(j < W.rowLamps[i] ? WL.row[2] * I : 0);
+      werkU.glow.value[i] = v;
+    });
+    const sv = lampAt(W.spot, WERK_SPOT_FLICKER, now), SI = WL.spotI * sv;
+    werkU.c.value[WK_SPOT].setX(WL.spot[0] * SI).setY(WL.spot[1] * SI).setZ(WL.spot[2] * SI);
+    W.spotMat.color.setRGB(WL.dark + WL.spot[0] * WL.glow * 1.4 * sv, WL.dark + WL.spot[1] * WL.glow * 1.4 * sv, WL.dark + WL.spot[2] * WL.glow * 1.4 * sv);
+    werkU.c.value[WK_SPILL].setX(WL.spill[0] * WL.spillI).setY(WL.spill[1] * WL.spillI).setZ(WL.spill[2] * WL.spillI);
+    werkU.tor.value.set(WERK.tor.x, W.tor.v, WL.torAmb, 0);
+    const avg = sum / W.rows.length, a = WL.amb0 + WL.ambK * avg + 0.04 * sv;
+    werkU.amb.value.setRGB(WL.amb[0] * a, WL.amb[1] * a, WL.amb[2] * a);
+    werkU.env.value = WL.env0 + WL.envK * avg;
+    // Torblätter: auf mit der Bahn „open“, zu mit „close“ (ab offen), so
+    // schnell, dass die ganze Bahn in WERK.tor.ms passt
+    const opening = W.tor.to >= W.tor.from, x = (opening ? W.tor.v : 1 - W.tor.v) * W.gateSec;
+    for (const l of W.leaves) l.node.position.y = l.y0 + (opening ? gateDy(W.gateT, l.open, x) : (l.open?.at(-1) ?? 0) + gateDy(W.gateT, l.close, x));
+    W.pad.position.y = W.buehne.v;
+    const foot = werkVeh && werkU.foot.value ? 1 : 0;
+    werkFootPad.value = foot;
+    werkFootFloor.value = foot * THREE.MathUtils.smoothstep(W.buehne.v, -0.6, 0);
+    const open = !!trip || W.tor.v > 1e-3 || W.tor.dur > 0;
+    const inside = ort === 'werk' || open;
+    // Tor und Stirn: im Licht der Werkhalle nur hinter geschlossenem Tor von innen
+    const lit = ort === 'werk' && !open ? 1 : 0;
+    if (lit !== W.vornLit) {
+      W.vornLit = lit;
+      for (const o of W.vorn) if (o.userData.werkSets) o.material = o.userData.werkSets[lit];
+    }
+    if (inside !== W.innenShown) {
+      W.innenShown = inside;
+      W.raum.visible = inside;
+      for (const o of W.innen) o.visible = inside;
+    }
+    W.beam.visible = sv > 0.01 && inside;
+    W.beamU.hgBeam.value = sv;
+    if (werkVeh) {
+      const g = werkVeh.group;
+      g.position.set(F.x * k, g.userData.baseY + W.buehne.v * k, F.z * k);
+      g.rotation.y = WERK_YAW;
+      g.visible = inside;
+    }
+    const hallOn = ort === 'halle' || open;
+    if (hallOn !== hallShown) {
+      hallShown = hallOn;
+      realHall.model.visible = hallOn;
+      if (steam) steam.mesh.visible = hallOn;
+      if (hallOn) life.root.visible = !REAL || (revealed && life.isRigged());
+    }
+    if (!hallOn) life.root.visible = false;
+  }
+  const werkBusy = (now) => {
+    const W = realHall?.werk;
+    if (!W) return false;
+    if (W.tor.dur || W.buehne.dur) return true;
+    for (const L of W.rows) if (now - L.t < 700 && now > L.t - 60000) return true;
+    return now - W.spot.t < 700 && now > W.spot.t - 60000;
+  };
+
+  // Fahrt der Kamera, in Hallenmetern: durch pts, mit dem Blick von look0
+  // über den Weg voraus zu look1; Dauer aus der Weglänge (WERK_TRIP),
+  // mindestens minMs. at(x): Zeit ab Beginn (ms), zu der die Kamera die
+  // Ebene x kreuzt. Unterwegs ruht die Steuerung; ev: [ms, fn] auf der Uhr
+  // der Fahrt.
+  function tripPlan(pts, minMs = 0) {
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+    const len = curve.getLength();
+    const ms = Math.max(minMs, 1000 * THREE.MathUtils.clamp(WERK_TRIP.a + len / WERK_TRIP.v, WERK_TRIP.min, WERK_TRIP.max));
+    const at = (x) => {
+      let d0 = curve.getPointAt(0).x - x;
+      for (let i = 1; i <= 240; i++) {
+        const u = i / 240, d = curve.getPointAt(u).x - x;
+        if (Math.sign(d) !== Math.sign(d0)) return (ms * Math.acos(1 - 2 * u)) / Math.PI;
+        d0 = d;
+      }
+      return ms;
+    };
+    return { pts, curve, len, ms, at };
+  }
+  function tripStart(plan, look0, look1, ev = [], t0 = performance.now()) {
+    fly = null; onPoint = false; touched = false;
+    controls.enabled = false;
+    let end;
+    const done = new Promise((r) => { end = r; });
+    const p0 = plan.curve.getPointAt(0), d0 = look0.clone().sub(p0);
+    trip = { ...plan, t0, look0: look0.clone(), look1: look1.clone(), d0: d0.clone().normalize(), r0: d0.length(), ev: ev.map(([at, fn]) => ({ at, fn, ran: false })), done, end, look: new THREE.Vector3(), ahead: new THREE.Vector3(), here: new THREE.Vector3(), dir: new THREE.Vector3(), dirA: new THREE.Vector3(), dirB: new THREE.Vector3() };
+    tripStep(t0);
+    return done;
+  }
+  // Blickrichtung zwischen a und b (Einheitsvektoren) als Schwenk: Gierwinkel
+  // auf dem kürzeren Weg, Neigung linear. Ein Mischen der Blickpunkte lief
+  // bei der Fahrt hinaus durch die Kamera hindurch, der Blick sprang in
+  // einem Bild um 180 Grad (Garage rückwärts, dann die Halle).
+  function panDir(a, b, t, out) {
+    const ya = Math.atan2(a.x, a.z), yb = Math.atan2(b.x, b.z);
+    const pa = Math.asin(THREE.MathUtils.clamp(a.y, -1, 1)), pb = Math.asin(THREE.MathUtils.clamp(b.y, -1, 1));
+    let dy = yb - ya;
+    dy -= Math.PI * 2 * Math.round(dy / (Math.PI * 2));
+    const y = ya + dy * t, p = pa + (pb - pa) * t;
+    return out.set(Math.sin(y) * Math.cos(p), Math.sin(p), Math.cos(y) * Math.cos(p));
+  }
+  function tripStep(now) {
+    const P = trip, k = hallRoot.scale.x, f = THREE.MathUtils.clamp((now - P.t0) / P.ms, 0, 1), u = sine(f);
+    P.curve.getPointAt(u, P.here);
+    camera.position.copy(P.here).multiplyScalar(k);
+    P.curve.getPointAt(Math.min(1, u + 0.12), P.ahead);
+    // Blick: vom Ziel des Starts über den Weg voraus zum Ziel der Ankunft,
+    // als Richtung geschwenkt; der Abstand des Blickpunkts mischt mit
+    const s1 = THREE.MathUtils.smoothstep(u, 0, 0.3), s2 = THREE.MathUtils.smoothstep(u, 0.55, 1);
+    const ra = Math.max(0.5, P.ahead.distanceTo(P.here)), r1 = P.look1.distanceTo(P.here);
+    const dA = P.dirB.subVectors(P.ahead, P.here);
+    if (dA.lengthSq() < 1e-8) dA.copy(P.d0); else dA.normalize();
+    panDir(P.d0, dA, s1, P.dir);
+    const d1 = r1 > 1e-4 ? P.dirB.subVectors(P.look1, P.here).divideScalar(r1) : P.dirB.copy(P.dir);
+    panDir(P.dirA.copy(P.dir), d1, s2, P.dir);
+    const r = THREE.MathUtils.lerp(THREE.MathUtils.lerp(P.r0, ra, s1), r1, s2);
+    P.look.copy(P.here).addScaledVector(P.dir, r);
+    if (f >= 1) P.look.copy(P.look1);
+    P.look.multiplyScalar(k);
+    controls.target.copy(P.look);
+    camera.lookAt(P.look);
+    for (const e of P.ev) if (!e.ran && now >= P.t0 + e.at) { e.ran = true; e.fn(); }
+    if (f < 1) return;
+    trip = null;
+    controls.enabled = true;
+    controls.update();
+    // Der Abstand der Ankunft gilt: camWant stammte noch von vor der Fahrt,
+    // die Kamera glitt sonst danach auf ihn zurück (Ursa: 0,8 m hinaus)
+    camWant = camera.position.distanceTo(controls.target);
+    camRef = 0;
+    P.end();
+  }
+  // Liegt die Strecke a-b im Quader um c (halbe Maße sx, sz, Höhe sy)?
+  function segHits(a, b, c, sx, sy, sz) {
+    const p = new THREE.Vector3();
+    for (let i = 0; i <= 16; i++) {
+      p.lerpVectors(a, b, i / 16);
+      if (Math.abs(p.x - c.x) < sx && Math.abs(p.z - c.z) < sz && p.y < sy) return true;
+    }
+    return false;
+  }
+  // Quader eines Schiffs auf dem Feld in Hallenmetern (halbe Breite und
+  // Länge, Höhe, mit Rand); sc: Maßstab seiner Gruppe (werkRescale)
+  const shipBox = (info, sc, k) => ({ sx: (info.halfW * sc) / k + 2, sy: (info.height * sc) / k + 1.5, sz: (info.len / 2) * sc / k + 2 });
+  // Trifft die Fahrt das Schiff dort, wo es steht, wenn die Kamera
+  // vorbeikommt? liftY(t): Aufzug zur Zeit t. Ein Schiff, das schon
+  // hinabfährt, ist meist unter dem Boden, bevor die Kamera über dem Feld
+  // ist; ein fester Quader schickte sie um sein Ende herum (Carrack: bis an
+  // die Stirnwand und dicht an den Aufzugsturm).
+  function tripHits(plan, t0, box, liftY) {
+    const p = new THREE.Vector3();
+    for (let i = 0; i <= 64; i++) {
+      const f = i / 64;
+      plan.curve.getPointAt(sine(f), p);
+      if (Math.abs(p.x) < box.sx && Math.abs(p.z) < box.sz && p.y < liftY(t0 + f * plan.ms) + box.sy) return true;
+    }
+    return false;
+  }
+  // Höhe des Aufzugs zur Zeit t auf seiner laufenden Fahrt
+  const liftAt = (t) => (lift.dur > 0 ? lift.from + (lift.to - lift.from) * liftEase(THREE.MathUtils.clamp((t - lift.t0) / lift.dur, 0, 1)) : lift.y);
+  // Weg zwischen einem Punkt in der Halle (hallP) und einem in der
+  // Werkhalle (werkP), in Hallenmetern: vor der Nische auf Türhöhe, durch
+  // Durchgang und Tunnel, außen um Schiff und Fahrzeug herum. 'in' von der
+  // Halle hinüber, 'out' zurück.
+  function werkPath(dir, hallP, werkP, box, vehInfo) {
+    const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn, yd = Math.min(B.y, T.h * 0.55);
+    const pts = [hallP.clone()];
+    if (hallP.x > B.vor) {
+      const a = new THREE.Vector3(B.vor, THREE.MathUtils.lerp(yd, hallP.y, 0.45), hallP.z * 0.3);
+      // box (shipBox): außen um das Schiff herum, wenn die Fahrt es sonst trifft (tripHits)
+      if (box && segHits(hallP, a, new THREE.Vector3(), box.sx, box.sy, box.sz)) pts.push(new THREE.Vector3(0, Math.max(hallP.y, yd + 1), (hallP.z > 0.5 ? 1 : -1) * (box.sz + 1.5)));
+      pts.push(a);
+    }
+    pts.push(new THREE.Vector3(T.x + B.nische, yd, 0), new THREE.Vector3(WERK.raum.x[1] - B.aus, yd + 0.2, 0));
+    if (vehInfo) {
+      const vx = vehInfo.len / 2 / k + 2, vz = vehInfo.halfW / k + 2, vy = vehInfo.height / k + 1.2;
+      if (segHits(pts.at(-1), werkP, new THREE.Vector3(F.x, 0, F.z), vx, vy, vz)) pts.push(new THREE.Vector3(F.x + vx * 0.3, Math.max(werkP.y, vy + 0.5), F.z + (werkP.z >= F.z ? 1 : -1) * (vz + 2)));
+    }
+    pts.push(werkP.clone());
+    return dir === 'in' ? pts : pts.reverse();
+  }
+  // Maßstab für das neue Schiff oder Fahrzeug, ohne dass das Bild springt:
+  // Die Kamera und was gerade zu sehen ist und nicht in der Halle hängt
+  // (moving), gehen im selben Verhältnis um den Ursprung mit. keep: Die
+  // Kamera ist noch in der Halle, Einrichtung, Wartungsplatz und Crew
+  // bleiben, wie sie stehen (die Crew wächst mit).
+  function werkRescale(info, keep, moving = []) {
+    const k0 = hallRoot.scale.x, fov0 = baseFov;
+    scaleWorld(info, keep, keep);
+    const kr = hallRoot.scale.x / k0;
+    if (Math.abs(kr - 1) > 1e-9) {
+      camera.position.multiplyScalar(kr); controls.target.multiplyScalar(kr);
+      homeTgt?.multiplyScalar(kr);
+      for (const g of moving) { g.position.multiplyScalar(kr); g.scale.multiplyScalar(kr); }
+      if (keep) life.root.scale.multiplyScalar(kr);
+    }
+    if (!reduceMotion && Math.abs(baseFov - fov0) > 0.01) { fovGlide = { a: fov0, t0: performance.now(), dur: 700 }; fitFov(); }
+    return kr;
+  }
+  // Übernehmen als current (wie am Ende von showShip)
+  function adopt(ship, s, flags) {
+    const mats = [s.mat], clear = [];
+    ship.traverse((n) => {
+      if (!n.material) return;
+      mats.push(...[].concat(n.material));
+      if (n.isMesh && [].concat(n.material).some((m) => m.transparent)) clear.push(n);
+    });
+    current = { group: ship, model: s.model, born: performance.now(), mat: s.mat, info: s.info, hull: s.textured ? s.hull : null, lift: !!flags.lift, werk: !!flags.werk, dim: dimOf(mats), clear };
+    if (s.textured) wearPaint(current, liveryKey !== 'werk');
+    if (flags.werk) werkVeh = current;
+    camFree = null; freeDirty = !flags.werk;
+    prog.delete('ship');
+    reveal();
+    if (progressFn) progressFn(100);
+  }
+
+  // Ein Bodenfahrzeug in der Werkhalle zeigen oder ein Schiff aus ihr
+  // zurück in die Halle bringen. s: was showShip vorbereitet hat. false:
+  // showShip macht weiter wie beim ersten Schiff in der Halle.
+  async function werkShow(ship, s) {
+    if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
+    if (s.toWerk && current?.werk) return werkSwap(ship, s);
+    if (s.toWerk) return current && !reduceMotion ? werkIn(ship, s) : werkCut(ship, s);
+    return werkOut(ship, s);
+  }
+  // sofort in der Werkhalle (erstes Bild, ohne Bewegung): Licht an, Bühne
+  // oben, Kamera in der Startansicht
+  function werkCut(ship, s) {
+    const W = realHall.werk;
+    werkDropParked();
+    if (current) { scene.remove(current.group); release(current); current = null; }
+    werkClear();
+    ort = 'werk';
+    scaleWorld(s.info);
+    hallShut(s.info);
+    werkMove(W.tor, 0, 0); werkMove(W.buehne, 0, 0);
+    for (const L of W.rows) lampNow(L, 1);
+    lampNow(W.spot, 1);
+    werkPlace(ship);
+    scene.add(ship);
+    adopt(ship, s, { werk: true });
+    werkFoot(current);
+    const tgt = werkTarget(s.info);
+    fly = null; onPoint = false; touched = false;
+    controls.target.copy(tgt);
+    camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
+    controls.update();
+    homeTgt = tgt;
+    return true;
+  }
+  // Hinein: Das Schiff fährt in der Halle ab (seit dem Klick), die Kamera
+  // fliegt durch die Nische und den Durchgang, das Tor ist offen, bevor sie
+  // es erreicht. Die Reihen gehen von hinten nach vorn an, die Bühne kommt
+  // mit der Kamera oben an und mit beiden der Spot. Dann schließt das Tor
+  // hinter ihr, und die Halle geht aus.
+  async function werkIn(ship, s) {
+    const W = realHall.werk, old = current;
+    werkDropParked();
+    werkClear();
+    ort = 'werk';
+    werkRescale(s.info, true, [old.group]);
+    werkParked = old;
+    if (s.lowered) Promise.all([s.lowered, s.covered]).then(() => { if (werkParked === old) werkDropParked(); });
+    const k = hallRoot.scale.x;
+    werkPlace(ship);
+    scene.add(ship);
+    adopt(ship, s, { werk: true });
+    werkFoot(current);
+    const tgt = werkTarget(s.info), end = tgt.clone().addScaledVector(WERK_HOME_DIR, homeDist());
+    const need = WERK.tor.ms + 250;
+    const planFor = (pts) => {
+      const p = tripPlan(pts, WERK_UP_MS + 600), c0 = p.at(WERK.tor.x + 1.2);
+      return c0 < need ? tripPlan(pts, (p.ms * need) / Math.max(1, c0)) : p;
+    };
+    // das alte Schiff fährt seit dem Klick hinab: erst der gerade Weg, um
+    // das Schiff herum nur, wenn die Kamera es dort trifft, wo es dann ist
+    const t0 = performance.now(), from = camera.position.clone().divideScalar(k), to = end.divideScalar(k);
+    const box = shipBox(old.info, old.group.scale.x, k);
+    let plan = planFor(werkPath('in', from, to, null, s.info));
+    if (tripHits(plan, t0, box, liftAt)) plan = planFor(werkPath('in', from, to, box, s.info));
+    const cross = plan.at(WERK.tor.x + 1.2);
+    werkMove(W.tor, 1, WERK.tor.ms, t0 + Math.max(0, cross - need));
+    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, t0 + plan.ms * WERK_ROWS_AT[i]));
+    werkMove(W.buehne, 0, WERK_UP_MS, t0 + plan.ms - WERK_UP_MS);
+    lampSet(W.spot, WERK_SPOT_FLICKER, 1, t0 + plan.ms);
+    if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
+    homeTgt = tgt;
+    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
+    await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [], t0);
+    werkMove(W.tor, 0, WERK.tor.ms);
+    return true;
+  }
+  // Von Fahrzeug zu Fahrzeug: Die Bühne ist seit dem Klick unterwegs nach
+  // unten (s.padDown), der Spot aus; unten wird getauscht, das neue kommt
+  // herauf, der Spot geht mit ihm oben an.
+  async function werkSwap(ship, s) {
+    const W = realHall.werk;
+    await s.padDown;
+    if (s.my !== token) { s.drop(); return true; }
+    const old = current;
+    werkRescale(s.info, false);
+    const camAim = aimNow();
+    scene.remove(old.group); release(old);
+    werkVeh = null;
+    werkPlace(ship);
+    scene.add(ship);
+    adopt(ship, s, { werk: true });
+    werkFoot(current);
+    const tgt = werkTarget(s.info), off = camAim.pos.clone().sub(camAim.tgt);
+    const r = THREE.MathUtils.clamp(camAim.rel * homeDist(), controls.minDistance, controls.maxDistance);
+    onPoint = false;
+    flyTo(tgt, off.setLength(r).add(tgt), 700);
+    homeTgt = tgt;
+    werkMove(W.buehne, 0, reduceMotion ? 0 : WERK_UP_MS);
+    if (reduceMotion) lampNow(W.spot, 1); else lampSet(W.spot, WERK_SPOT_FLICKER, 1, performance.now() + WERK_UP_MS);
+    return true;
+  }
+  // Hinaus: Die Halle richtet sich verborgen für das Schiff ein, es steht
+  // unten unter geschlossenem Tor. Die Kamera fliegt aus der Werkhalle durch
+  // den Durchgang zurück, das Schiff kommt mit ihr oben an (liftUp, so spät
+  // angesetzt). Dann schließt das Tor, und die Werkhalle geht aus.
+  async function werkOut(ship, s) {
+    const W = realHall.werk, veh = current;
+    werkDropParked();
+    if (reduceMotion) {
+      // ohne Bewegung: gleich in der Halle, wie beim ersten Schiff
+      current = null;
+      werkClear();
+      werkMove(W.tor, 0, 0);
+      ort = 'halle';
+      lift.dur = 0; lift.y = 0; settleLift();
+      return false;
+    }
+    ort = 'halle';
+    werkRescale(s.info, false, [veh.group]);
+    const k = hallRoot.scale.x;
+    hallShut(s.info);
+    ship.userData.baseY = 0.02; ship.userData.yaw = SHIP_YAW;
+    ship.position.y = ship.userData.baseY;
+    scene.add(ship);
+    adopt(ship, s, { lift: true });
+    const tgt = new THREE.Vector3(0, Math.max(1.2, s.info.height * 0.45 + 0.3), 0), end = tgt.clone().addScaledVector(HOME_DIR, homeDist());
+    const up = liftUpMs(s.info), need = WERK.tor.ms + 250;
+    const planFor = (pts) => {
+      const p = tripPlan(pts, up + 300), c0 = p.at(WERK.tor.x - 1.2);
+      return c0 < need ? tripPlan(pts, (p.ms * need) / Math.max(1, c0)) : p;
+    };
+    // Das Schiff wartet unten und kommt erst zum Ende herauf (liftUp bei
+    // plan.ms - up); ab da zählt es in voller Höhe
+    const t0 = performance.now(), from = end.divideScalar(k), at = camera.position.clone().divideScalar(k);
+    const box = shipBox(s.info, ship.scale.x, k), y0 = lift.y;
+    let plan = planFor(werkPath('out', from, at, null, veh.info));
+    if (tripHits(plan, t0, box, (t) => (t < t0 + plan.ms - up ? y0 : 0))) plan = planFor(werkPath('out', from, at, box, veh.info));
+    const cross = plan.at(WERK.tor.x - 1.2);
+    werkMove(W.tor, 1, WERK.tor.ms, t0 + Math.max(0, cross - need));
+    if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
+    homeTgt = tgt;
+    console.info(`[hangar] Fahrt aus der Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Aufzug ab ${((plan.ms - up) / 1000).toFixed(1)} s`);
+    await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [[plan.ms - up, () => liftUp(s.info)]], t0);
+    camFree = null; freeDirty = true;
+    werkMove(W.tor, 0, WERK.tor.ms).then(() => { if (ort === 'halle' && !trip) werkClear(); });
+    return true;
+  }
+
   async function show(url, o = {}) {
     wake(1500);
     busyStart();
@@ -8202,11 +9464,20 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const my = ++token;
     makerCode = o.maker || '';
     prog.delete('ship');
+    // Eine Fahrt zwischen Halle und Werkhalle fährt zu Ende, dann der nächste Wechsel
+    while (trip) await trip.done;
+    if (my !== token) return;
+    // Bodenfahrzeug (ort 'werk'): in die Werkhalle, wenn es sie gibt
+    const fromWerk = !!current?.werk, wantWerk = o.ort === 'werk';
     // Mit Aufzug fährt das alte Schiff gleich ab, das neue lädt derweil.
-    // Das Tor schließt darüber, sobald es unten frei ist (gateClose)
-    const lowered = realHall?.lift && current && !reduceMotion ? liftTo(-liftDepth(current.info), liftDownMs(current.info, -liftDepth(current.info))) : null;
+    // Das Tor schließt darüber, sobald es unten frei ist (gateClose). In der
+    // Werkhalle fährt die Bühne ab, wenn wieder ein Fahrzeug kommt, und der
+    // Spot geht aus; zu einem Schiff bleibt das Fahrzeug stehen (werkOut).
+    const lowered = !fromWerk && realHall?.lift && current && !reduceMotion ? liftTo(-liftDepth(current.info), liftDownMs(current.info, -liftDepth(current.info))) : null;
     const covered = lowered ? gateClose(current.info) : null;
     if (lowered) current.lift = true;
+    const padDown = fromWerk && wantWerk && !reduceMotion ? werkMove(realHall.werk.buehne, WERK_PAD_DOWN, WERK_DOWN_MS) : null;
+    if (padDown) lampSet(realHall.werk.spot, WERK_SPOT_FLICKER, 0);
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
     let gltf = null, textured = false;
     if (o.tex) {
@@ -8265,18 +9536,32 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     ship.add(wrap);
     ship.rotation.y = SHIP_YAW;
     const drop = () => { if (textured) for (const m of new Set(hull.map(([, x]) => x))) for (const k of TEX_SLOTS) if (m[k] && !isNeutral(m[k])) m[k].dispose(); mat.dispose(); disposeObject(ship); };
+    // Das Bodenfahrzeug wartet auf die Halle (mit ihr kommt die Werkhalle)
+    // und bekommt deren Licht, bevor es übersetzt wird. Ohne Frist wie beim
+    // Schiff: Sonst stuende es bei langsamer Leitung auf dem Schiffsfeld und
+    // bliebe dort (hallSettled endet auch, wenn die Halle scheitert).
+    if (wantWerk && REAL && !realHall) {
+      await hallSettled;
+      if (my !== token) { drop(); return; }
+    }
+    const toWerk = wantWerk && !!realHall?.werk;
+    if (toWerk) werkDress(ship, [mat]);
     await prepare(ship);
     if (my !== token) { drop(); return; }
     if (REAL && !revealed) {
       await Promise.race([hallSettled, sleep(6000)]);
       if (my !== token) { drop(); return; }
     }
+    const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
+    // in die Werkhalle, in ihr von Fahrzeug zu Fahrzeug oder aus ihr hinaus
+    if (toWerk || current?.werk) {
+      if (await werkShow(ship, { model, mat, info, textured, hull, my, drop, lowered, covered, padDown, toWerk })) return;
+    }
     if (lowered) {
       // getauscht wird unten und unter geschlossenem Tor
       await Promise.all([lowered, covered]);
       if (my !== token) { drop(); return; }
     }
-    const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
     // Blick des alten Schiffs, gemessen an dessen Startentfernung
     const camAim = current ? aimNow() : null;
     const k0 = hallRoot.scale.x, fov0 = baseFov;
@@ -8299,7 +9584,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
     if (!current) {
       onPoint = false;
-      controls.target.copy(tgt); camera.position.copy(HOME_DIR.clone().multiplyScalar(homeDist()).add(tgt));
+      controls.target.copy(tgt); camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
     } else {
       // Der Blick bleibt beim Wechsel (Betreiber 18.10.2026: „die kamera
       // soll sich nicht reseten“): Richtung und Höhenwinkel wie zuletzt,
@@ -8471,7 +9756,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (!c) return 0;
     const parts = swapParts(c);
     const want = list.filter((f) => f?.url && parts.has(`${f.port}|${f.item ?? 0}`));
-    const tpls = await Promise.all(want.map((f) => loadWeapon(f.url).catch(() => null)));
+    const tpls = await Promise.all(want.map((f) => loadWeapon(f.url).then((t) => (c.werk ? werkTpl(t) : t)).catch(() => null)));
     if (my !== fitTok || current !== c) return 0;
     unfit(c);
     let n = 0;
@@ -8506,10 +9791,12 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     return { tgt, pos, rel: onPoint ? pointRel : pos.distanceTo(tgt) / homeDist() };
   }
   function resetView() {
+    // die Fahrt zwischen Halle und Werkhalle führt die Kamera selbst
+    if (trip) return;
     touched = false; onPoint = false;
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
     const t = homeTgt ? homeTgt.clone() : controls.target.clone();
-    flyTo(t, HOME_DIR.clone().multiplyScalar(homeDist()).add(t));
+    flyTo(t, homeDir().clone().multiplyScalar(homeDist()).add(t));
   }
 
   // Schnittstelle für die Oberfläche um die Szene (Hardpoint-Marker, Fokus).
@@ -8519,8 +9806,9 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   const projV = new THREE.Vector3();
   function project(points, out = []) {
     out.length = points.length;
-    // Im Schacht (Aufzug nicht oben) zeigt die Oberfläche keine Marker
-    const m = current && current.group.visible && !(current.lift && lift.y < -0.05) ? current.model.matrixWorld : null;
+    // Im Schacht (Aufzug nicht oben), mit der Bühne der Werkhalle unten und
+    // auf der Fahrt dorthin zeigt die Oberfläche keine Marker
+    const m = current && current.group.visible && !trip && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
     const w = W(), h = H();
     for (let i = 0; i < points.length; i++) {
       if (!m) { out[i] = null; continue; }
@@ -8533,7 +9821,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     return out;
   }
   function focus(p) {
-    if (!current) return;
+    if (!current || trip) return;
     if (!p) { resetView(); return; }
     // Ziel aus der Ruhelage: waehrend der Einfahrt schwebt und dreht die
     // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
@@ -8541,7 +9829,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // waere nach einem Hallenwechsel falsch. Wechselt die Halle erst danach,
     // nimmt settleShip() das Ziel mit (.planning/notes/hangar-naht.md).
     const g = current.group, y = g.position.y, ry = g.rotation.y;
-    g.position.y = g.userData.baseY; g.rotation.y = SHIP_YAW; g.updateMatrixWorld(true);
+    g.position.y = g.userData.baseY; g.rotation.y = g.userData.yaw ?? SHIP_YAW; g.updateMatrixWorld(true);
     const tgt = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(current.model.matrixWorld);
     g.position.y = y; g.rotation.y = ry; g.updateMatrixWorld(true);
     // Von aussen durch den Hardpoint schauen, nicht durch den Rumpf: Richtung
@@ -8788,7 +10076,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // gemessen wird die Einrichtung in Originalgröße, also nach propGlide
     if (propGlide) return;
     freeDirty = false;
-    if (!realHall || !homeTgt || freeBusy) return;
+    if (!realHall || !homeTgt || freeBusy || ort === 'werk') return;
     const hall = realHall, k = hall.group.scale.x, o = homeTgt.clone(), t0 = performance.now();
     freeBusy = true;
     let p;
@@ -8830,7 +10118,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
     // zum Ziel um ein Vielfaches der Höhe.
     const pose = [g.position.y, g.rotation.y, g.visible];
-    g.rotation.y = SHIP_YAW; g.visible = true;
+    g.rotation.y = g.userData.yaw ?? SHIP_YAW; g.visible = true;
     const at = (h) => () => { g.position.y = y + b * h; g.updateMatrixWorld(true); };
     const poses = (b > 0 ? [-1, -0.5, 0, 0.5, 1] : [0]).map(at);
     shipBusy = true;
@@ -8866,7 +10154,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const c = current, g = c.group, y = g.userData.baseY, d = homeDist(), o = homeTgt ?? controls.target;
     if (lensFit && lensFit.c === c && lensFit.y === y && Math.abs(lensFit.d - d) < 1e-3 * d && lensFit.o.equals(o)) return lensFit;
     const pose = [g.position.y, g.rotation.y], t0 = performance.now();
-    g.position.y = y; g.rotation.y = SHIP_YAW; g.updateMatrixWorld(true);
+    g.position.y = y; g.rotation.y = g.userData.yaw ?? SHIP_YAW; g.updateMatrixWorld(true);
     const meshes = [];
     let n = 0;
     g.traverse((m) => { if (m.isMesh && m.geometry?.attributes.position) { meshes.push(m); n += m.geometry.attributes.position.count; } });
@@ -9053,6 +10341,20 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     }
     c.copy(keepAt(t, lo));
   }
+  // In der Werkhalle bleibt die Kamera im Raum (mit Rand vor Wänden, Boden
+  // und Decke): auf der Linie vom Blickziel nach außen bis zur ersten Wand
+  function keepWerk() {
+    const c = camera.position, t = controls.target, k = hallRoot.scale.x, R = WERK.raum, m = 0.8;
+    let L = keepD.subVectors(c, t).length();
+    if (L < 1e-6) return;
+    keepD.divideScalar(L);
+    for (const [a, lo, hi] of [['x', R.x[0] + m, R.x[1] - m], ['y', 0.4, R.h - 0.8], ['z', R.z[0] + m, R.z[1] - m]]) {
+      const d = keepD[a], p = t[a] / k;
+      if (d > 1e-9) L = Math.min(L, ((hi - p) * k) / d);
+      else if (d < -1e-9) L = Math.min(L, ((lo - p) * k) / d);
+    }
+    c.copy(keepAt(t, Math.max(0, L)));
+  }
 
   // Spiegelbild für den Boden (hallRefl): die Kamera an der Bodenebene
   // gespiegelt, mit schräger Nahebene in der Ebene (three.js Reflector),
@@ -9072,7 +10374,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   const mBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
   function renderMirror() {
     hallRefl.on.value = 0;
-    if (!MIRROR || level !== 'hoch' || !composer || !realHall?.model || !realHall.envOn || !current) return;
+    if (!MIRROR || level !== 'hoch' || !composer || !realHall?.model || !realHall.envOn || !current || trip || ort === 'werk') return;
     camera.updateMatrixWorld();
     mC.setFromMatrixPosition(camera.matrixWorld);
     if (mC.y <= 0.01) return;
@@ -9118,6 +10420,15 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     hallRefl.on.value = 1;
   }
 
+  // Steht auf dem Aufzug und fährt mit ihm, im Schacht abgedunkelt
+  function rideLift(c) {
+    const g = c.group, k = hallRoot.scale.x;
+    g.position.y = g.userData.baseY + lift.y * k;
+    g.rotation.y = SHIP_YAW;
+    g.visible = !(realHall?.shaft?.gate?.state === 'closed' && !realHall.shaft.gate.run);
+    const yc = lift.y + (c.info.height * g.scale.x) / 2 / k;
+    dimIn(c.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)), shaftCool(yc));
+  }
   function frame(ts) {
     raf = requestAnimationFrame(frame);
     const now = typeof ts === 'number' ? ts : performance.now();
@@ -9135,7 +10446,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
     // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
     // Laden, das hängt, hält sie nicht länger als 60 s wach.
-    if ((busy && now - busyAt < 60000) || dragging || fly || fovGlide || propGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until)) wake(300);
+    if ((busy && now - busyAt < 60000) || dragging || fly || trip || fovGlide || propGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
@@ -9150,7 +10461,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const scale = quiet > IDLE_MS ? IDLE_SCALE : 1;
     if (scale !== pixelScale) { pixelScale = scale; applyPixels(); }
     for (const f of anim) f(t);
-    life.update(dt, t, !!realHall?.lift && (lift.y !== 0 || lift.dur > 0));
+    if (hallShown) life.update(dt, t, !!realHall?.lift && (lift.y !== 0 || lift.dur > 0));
     if (dust && !reduceMotion) dust.update(t);
     if (lift.dur) {
       // Aufzug: fährt sanft an und bremst sanft (liftEase); vor t0 steht er
@@ -9168,6 +10479,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     }
     gateFrame(now);
     fx.frame(now, t);
+    if (realHall?.werk) werkFrame(now);
     if (realHall?.lift) {
       realHall.lift.position.y = lift.y;
       if (realHall.dienst) realHall.dienst.group.position.y = realHall.floorY + lift.y;
@@ -9225,16 +10537,14 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         if (u.mats) dimIn(u.dim ??= dimOf(u.mats), Math.min(1, liftShade(-lift.y - 0.9 / k) + PIT_SHIP * pitAt(lift.y + 0.9 / k)), shaftCool(lift.y + 0.9 / k));
       }
     }
+    // das beim Hineinfahren in die Werkhalle abgefahrene Schiff fährt zu Ende hinab
+    if (werkParked) rideLift(werkParked);
     if (current) {
       const g = current.group;
-      if (current.lift) {
-        // steht auf dem Aufzug und fährt mit ihm, im Schacht abgedunkelt
-        const k = hallRoot.scale.x;
-        g.position.y = g.userData.baseY + lift.y * k;
-        g.rotation.y = SHIP_YAW;
-        g.visible = !(realHall?.shaft?.gate?.state === 'closed' && !realHall.shaft.gate.run);
-        const yc = lift.y + current.info.height / 2 / k;
-        dimIn(current.dim, Math.min(1, liftShade(-yc) + PIT_SHIP * pitAt(yc)), shaftCool(yc));
+      if (current.werk) {
+        // steht auf der Bühne der Werkhalle (werkFrame)
+      } else if (current.lift) {
+        rideLift(current);
       } else {
         // Einfahrt: senkt sich aus der Höhe auf die Plattform und dreht ein,
         // setzt weich auf (ease-out quint), solange das alte noch abhebt
@@ -9261,15 +10571,16 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
-    if (freeDirty) measureFree();
-    if (shipStale()) measureShip();
+    if (freeDirty && !trip) measureFree();
+    if (!trip && shipStale()) measureShip();
     // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
     // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
     // Bildern: Drehen lässt ihn, Hineinzoomen setzt ihn auf den neuen
     // Abstand, Herauszoomen mindestens darauf. Die Kamera gleitet zu ihm
     // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
     const flying = !!fly;
-    if (!flying) {
+    if (trip) tripStep(now);
+    else if (!flying) {
       const r = camera.position.distanceTo(controls.target);
       if (!camRef) camWant = r;
       else if (!camera.position.equals(camLast)) {
@@ -9282,17 +10593,21 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (fovGlide) fitFov(now);
     if (propGlide) propStep(now);
     if (now - texAt > 2000) { texAt = now; texBudget(); }
-    controls.update(dt);
-    // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
-    camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
-    keepFree();
-    // Shift-Optik folgt Höhe, Schiff und Titel weich; im ersten Bild sitzt sie
-    const lw = lensWant();
-    if (Math.abs(lw - lensS) > 1e-4) {
-      lensS = reduceMotion || !lensLive ? lw : lensS + (lw - lensS) * Math.min(1, dt * 6);
-      fitFov();
+    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep)
+    if (!trip) {
+      controls.update(dt);
+      // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
+      camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
+      keepFree();
+      if (ort === 'werk') keepWerk();
+      // Shift-Optik folgt Höhe, Schiff und Titel weich; im ersten Bild sitzt sie
+      const lw = lensWant();
+      if (Math.abs(lw - lensS) > 1e-4) {
+        lensS = reduceMotion || !lensLive ? lw : lensS + (lw - lensS) * Math.min(1, dt * 6);
+        fitFov();
+      }
+      lensLive = true;
     }
-    lensLive = true;
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
     adapt(now, cap);
@@ -9334,7 +10649,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
     fitFov();
-    if (!touched) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
+    if (!touched && !trip) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
   ro.observe(container);
   const io = new IntersectionObserver((es) => { visible = es[0]?.isIntersecting ?? true; });

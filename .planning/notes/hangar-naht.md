@@ -59,8 +59,11 @@ in `HangarPage.astro`; beide Seitenhüllen (`src/pages/hangar.astro`,
 2. `<script type="application/json" id="hg-stage">` mit genau einer
    `StageConfig` (`src/lib/hangar/stage.ts`): `viewer` (versionierte URL),
    `opts` (wird unverändert in `initHangar` gespreizt) und
-   `models[id] = [glb, Werkslack-glb oder null, Herstellerkürzel]` für jede Id
-   aus `HANGAR_IDS`.
+   `models[id] = [glb, Werkslack-glb oder null, Herstellerkürzel, Ort]` für
+   jede Id aus `HANGAR_IDS`. Ort ist `'werk'` für die Bodenfahrzeuge
+   (`vehicles.json` `isSpaceship === false`, seit 24.10.2026): Sie stehen in
+   der Werkhalle hinter der Westnische, die Kamera fliegt hinüber. Sonst
+   `'halle'`. Die Garage dafür kommt in `opts.hall.werk` (glb, Maße, Bühnen).
 3. Die Import-Map für three.js, vor jedem Modul-Skript der Seite.
 
 Die Modellpolitik bleibt in der Szene: `HOLD`, die Werkslack-Fassungen, Halle
@@ -77,7 +80,7 @@ scrollt die Seite, waagerechtes Ziehen dreht das Schiff. Die Regel braucht
 Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 ...opts })`, zeigt `#hg-load` und setzt `--p` aus `onProgress`, zeigt bei
 einem Fehler `#hg-fallback` und lädt Schiffe mit
-`show(models[id][0], { maker: models[id][2], tex: models[id][1] })`.
+`show(models[id][0], { maker: models[id][2], tex: models[id][1], ort: models[id][3] })`.
 
 Unter 760 px liegt der Titelblock samt Knöpfen über dem oberen Teil der
 Bühne (390 × 844: 319 von 523 px). Dort meldet sie dessen Unterkante mit
@@ -151,6 +154,7 @@ bleibt auf 2,02 m.
 ### Was verify:hangar für die Szene prüft
 
 Zusicherung 1 vergleicht Dock, `#hg-stage.models` und beide Buchtordner und
-prüft die Form der `StageConfig`. Zusicherung 7 prüft, dass der ausgelieferte
+prüft die Form der `StageConfig`, dazu den Ort: `'werk'` genau für die
+Bodenfahrzeuge (Klinke `werkhalle`). Zusicherung 7 prüft, dass der ausgelieferte
 Viewer `project`, `focus`, `setCover` und `onFrame` liefert. Zusicherung 8 prüft die
 Import-Map vor dem ersten Modul-Skript. Eine rote Zeile nennt diese Notiz.

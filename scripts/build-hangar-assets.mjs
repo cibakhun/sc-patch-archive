@@ -57,6 +57,9 @@ const BUDGET = {
   weapons: { tris: 12000, tex: 256, ntex: 128 },
   // Aufzugsschacht: Bausatzteile, nie dezimiert; Grenze = Warnschwelle
   lift: { tris: 60000, tex: 1024, ntex: 512 },
+  // Werkhalle für Bodenfahrzeuge (.planning/notes/hangar-werkhalle.md): wie
+  // die Halle nie dezimiert; die Grenzen des Auftrags sind Warnschwellen
+  werkhalle: { tris: 600000, tex: 1024, ntex: 512, materials: 80, bytes: 12 << 20 },
 };
 
 // Innenraum je Halle (Meter, glTF-Raum Y oben): Bodenmitte, halbe Breite (x),
@@ -421,12 +424,14 @@ function stripAttributes(doc, kind) {
 // Richtungen aus (Spots aus dem Z-oben-Raum nach glTF, Flächenlichter von
 // ihrer Fläche weg, siehe scripts/lib/hall-lights.mjs); v: 2 kennzeichnet das.
 const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
-function hallLights(doc, name) {
-  const srcFile = fileURLToPath(new URL(`hall/${name}.lights-src.txt`, SRC));
+// Werkhalle (fixtures): je Lampe der Leuchtkörper, in dessen um 0,6 m
+// erweiterter Box sie liegt (der nächste, wenn mehrere), als fixture.
+function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
+  const srcFile = fileURLToPath(new URL(`${kind}/${name}.lights-src.txt`, SRC));
   // Ohne Exportprotokoll kennt der Build weder Spieltyp noch Spielstärke: Die
   // Werte der Lichtknoten allein ergäben eine falsche Beleuchtung. Dann bleibt
   // die bisherige Lampenliste stehen, und der Hinweis sagt, was zu tun ist.
-  if (!existsSync(srcFile)) return { missing: `hall/${name}.lights-src.txt` };
+  if (!existsSync(srcFile)) return { missing: `${kind}/${name}.lights-src.txt` };
   const src = new Map();
   for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
     const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
@@ -456,12 +461,21 @@ function hallLights(doc, name) {
     });
   }
   const orient = orientHallLights(lights, hallRaycaster(doc));
-  const outFile = fileURLToPath(new URL(`hall/${name}.lights.json`, OUT));
+  if (fixtures) for (const l of lights) {
+    let best = null, bd = Infinity;
+    for (const f of fixtures) {
+      if (l.pos.some((v, i) => v < f.box[0][i] - 0.6 || v > f.box[1][i] + 0.6)) continue;
+      const d = Math.hypot(...l.pos.map((v, i) => v - f.pos[i]));
+      if (d < bd) { bd = d; best = f; }
+    }
+    if (best) { l.fixture = best.node; (best.lights ??= []).push(l.name); }
+  }
+  const outFile = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
   mkdirSync(dirname(outFile), { recursive: true });
   writeFileSync(outFile, JSON.stringify({ v: 2, lights }) + '\n');
   const byType = {};
   for (const l of lights) byType[l.type] = (byType[l.type] || 0) + 1;
-  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient };
+  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient, ...(fixtures ? { withFixture: lights.filter((l) => l.fixture).length } : {}) };
 }
 
 // Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
@@ -1026,6 +1040,152 @@ function uvReport(doc) {
   return rep;
 }
 
+// ─── Werkhalle (.planning/notes/hangar-werkhalle.md) ────────────────────
+// Leuchtkörper (Netzname mit „light“) heißen leuchte_<netz>_<nn> und bleiben
+// eigene Knoten, damit der Viewer sie einzeln schaltet; Torblätter (tor_*)
+// und Bühnen (buehne_*) tragen ihren Namen aus dem Extraktor. Alle übrigen
+// Netzknoten verlieren ihren Namen, damit join sie zusammenlegt (Lichtknoten
+// behalten ihn: hallLights verbindet über ihn das Exportprotokoll).
+const WERK_FIXTURE = /light/i;
+const WERK_KEEP = /^(tor|buehne)_/;
+function markWerkhalle(doc) {
+  const root = doc.getRoot();
+  const base = (m) => m.getName().replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '');
+  const found = [];
+  for (const n of root.listNodes()) {
+    const m = n.getMesh();
+    if (!m || WERK_KEEP.test(n.getName()) || !WERK_FIXTURE.test(base(m))) continue;
+    const b = getBounds(n);
+    found.push({ n, mesh: base(m), box: [b.min, b.max], c: [0, 1, 2].map((k) => (b.min[k] + b.max[k]) / 2) });
+  }
+  // je Leuchtkörper von vorn (Tor) nach hinten, dann von links nach rechts
+  found.sort((a, b) => a.mesh.localeCompare(b.mesh) || a.c[2] - b.c[2] || a.c[0] - b.c[0]);
+  const count = new Map();
+  const fixtures = found.map((f) => {
+    const i = count.get(f.mesh) ?? 0;
+    count.set(f.mesh, i + 1);
+    const node = `leuchte_${f.mesh}_${String(i).padStart(2, '0')}`;
+    f.n.setName(node);
+    // Decke ab 6,5 m (die Decke hängt 6,9 bis 8,4 m hoch), Boden unter 0,4 m
+    const mount = f.c[1] > 6.5 ? 'decke' : f.c[1] < 0.4 ? 'boden' : 'wand';
+    return { node, mesh: f.mesh, pos: f.c.map(r3), box: f.box.map((v) => v.map(r3)), mount };
+  });
+  const named = new Set();
+  for (const n of root.listNodes()) {
+    if (n.getName().startsWith('leuchte_') || WERK_KEEP.test(n.getName())) { if (n.getMesh()) named.add(n.getMesh()); continue; }
+    if (n.getMesh()) n.setName('');
+  }
+  for (const m of root.listMeshes()) if (!named.has(m)) m.setName('');
+  const nodes = root.listNodes().map((n) => n.getName());
+  const mounts = Object.fromEntries(['decke', 'wand', 'boden'].map((m) => [m, fixtures.filter((f) => f.mount === m).length]));
+  return { fixtures, counts: { fixtures: fixtures.length, ...mounts, tor: nodes.filter((n) => n.startsWith('tor_')).length, buehne: nodes.filter((n) => n.startsWith('buehne_')).length } };
+}
+
+// Maße der Werkhalle (W2) -> public/hangar/werkhalle/<name>.json, gemessen
+// mit Strahlen gegen das geschriebene GLB (Glas zählt nicht als Fläche):
+// Boden, Breite zwischen den Seiten und Länge bis zur Rückwand auf 1,5 m
+// Höhe, Decke über dem Boden, das Tor aus den Blättern samt Bewegung aus
+// <name>.tor.json, die Leuchtkörper mit ihren Lampen, das größte freie
+// Rechteck in der Mitte (nichts zwischen Boden und 4,5 m) und die Bühnen.
+async function writeWerkhalleJson(doc, name, werkNodes, lights) {
+  const root = doc.getRoot();
+  const rc = hallRaycaster(doc);
+  const nodeBox = (re) => {
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (const n of root.listNodes()) if (re.test(n.getName()) && n.getMesh()) { const b = getBounds(n); for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], b.min[i]); hi[i] = Math.max(hi[i], b.max[i]); } }
+    return [lo, hi];
+  };
+  const tor = nodeBox(/^tor_/);
+  const torZ = (tor[0][2] + tor[1][2]) / 2;
+  const back = rc.ray([0, 1.5, torZ + 18], [1e-6, 1e-6, 1], 80);
+  const backZ = back ? torZ + 18 + back.t : null;
+  const midZ = (torZ + (backZ ?? torZ + 36)) / 2;
+  const floorY = floorLevel(doc, { center: [0, 0, midZ] }, { rc }) ?? 0;
+  const ray = (o, d, far = 60) => { const n = Math.hypot(...d); const u = d.map((v) => (v || 1e-6) / n); const h = rc.ray(o, u, far); return h ? h.t : null; };
+  const med = (a) => { const s = a.filter((v) => v != null).sort((p, q) => p - q); return s.length ? s[Math.floor(s.length / 2)] : null; };
+  const zs = [0.15, 0.3, 0.5, 0.7, 0.85].map((f) => torZ + f * ((backZ ?? torZ + 36) - torZ));
+  const left = med(zs.map((z) => ray([0, floorY + 1.5, z], [-1, 0, 0])));
+  const right = med(zs.map((z) => ray([0, floorY + 1.5, z], [1, 0, 0])));
+  // Decke: Strahlen nach oben über ein 2-m-Raster des Bodens
+  const up = [];
+  let escaped = 0;
+  for (let x = -10; x <= 10; x += 2) for (const z of [...Array(17)].map((_, i) => torZ + 2 + i * 2)) {
+    if (backZ != null && z > backZ - 1) continue;
+    const t = ray([x, floorY + 0.5, z], [0, 1, 0], 40);
+    if (t == null) escaped++; else up.push(floorY + 0.5 + t);
+  }
+  up.sort((a, b) => a - b);
+  // freies Rechteck um x = 0: 0,5-m-Zellen; frei = der Strahl von 4,5 m nach
+  // unten trifft erst Boden, der höchstens tol von floorY abweicht
+  const step = 0.5, half = Math.floor((right ?? 12) / step) * step;
+  const zEnd = backZ ?? torZ + 36;
+  const cols = [];
+  for (let x = -half + step / 2; x < half; x += step) cols.push(x);
+  const hits = [];
+  for (let z = torZ + step / 2; z < zEnd; z += step) hits.push({ z, y: new Map(cols.map((x) => { const t = ray([x, floorY + 4.5, z], [0, -1, 0], 6); return [x, t == null ? null : floorY + 4.5 - t]; })) });
+  const freeRect = (tol) => {
+    let out = null;
+    for (let w = step; w <= half; w += step) {
+      let run = 0, best = null;
+      for (const r of hits) {
+        const ok = cols.filter((x) => Math.abs(x) < w).every((x) => r.y.get(x) != null && Math.abs(r.y.get(x) - floorY) <= tol);
+        run = ok ? run + 1 : 0;
+        if (ok && (!best || run > best.run)) best = { run, z1: r.z + step / 2 };
+      }
+      if (best && (!out || 2 * w * best.run * step > out.w * out.l)) out = { w: 2 * w, l: best.run * step, z: [best.z1 - best.run * step, best.z1] };
+    }
+    return out && { center: [0, r3(floorY), r3((out.z[0] + out.z[1]) / 2)], size: [r3(out.w), r3(out.l)], x: [r3(-out.w / 2), r3(out.w / 2)], z: out.z.map(r3), tol };
+  };
+  // Tor: Bewegung je Blatt (Welt-y, Meter) aus den Spuren; das zweite Blatt hängt am ersten
+  const tj = JSON.parse(readFileSync(fileURLToPath(new URL(`werkhalle/${name}.tor.json`, SRC)), 'utf8'));
+  const boneOf = Object.fromEntries(Object.entries(tj.blattOf).map(([b, n]) => [n, b]));
+  const chain = (bone) => { const out = []; for (let n = tj.nodes.find((x) => x.name === bone); n; n = tj.nodes.find((x) => x.index === n.parent)) out.push(n.name); return out; };
+  const track = (caf, bone, f) => { const tr = tj.cafs[caf]?.tracks[bone]; if (!tr) return null; let a = tr[0]; for (const k of tr) { if (k[0] <= f) a = k; else { const w = (f - a[0]) / (k[0] - a[0] || 1); return [1, 2, 3].map((i) => a[i] + (k[i] - a[i]) * w); } } return tr[tr.length - 1].slice(1); };
+  const motion = {};
+  for (const caf of Object.keys(tj.cafs).filter((k) => tj.cafs[k].frames > 0)) {
+    const { fps, frames } = tj.cafs[caf];
+    const samples = [...Array(11)].map((_, i) => Math.round((i / 10) * frames));
+    const leaves = {};
+    for (const leaf of Object.keys(boneOf)) {
+      const dy = samples.map((f) => r3(chain(boneOf[leaf]).reduce((s, b) => { const p = track(caf, b, f), p0 = track(caf, b, 0); return s + (p && p0 ? (p[2] - p0[2]) * tj.scale : 0); }, 0)));
+      leaves[leaf] = dy;
+    }
+    motion[caf.replace(`${tj.cga}_`, '')] = { seconds: r3(frames / fps), frames, fps, t: samples.map((f) => r3(f / fps)), dy: leaves };
+  }
+  const opened = motion.open?.dy ?? {};
+  const after = (leaf, k) => { const b = nodeBox(new RegExp(`^${leaf}$`)); return b[k][1] + (opened[leaf]?.at(-1) ?? 0); };
+  const clear = opened.tor_unten_1 && opened.tor_oben_1 ? r3(Math.min(after('tor_oben_1', 0), after('tor_oben_2', 0)) - Math.max(after('tor_unten_1', 1), after('tor_unten_2', 1))) : null;
+  // Bühnen aus der Rohdatei (je Knoten Oberkante y = 0, mittig)
+  const bFile = fileURLToPath(new URL(`werkhalle/${name}-buehne.glb`, SRC));
+  const buehnen = [];
+  if (existsSync(bFile)) {
+    const bd = await io.read(bFile);
+    for (const n of bd.getRoot().listNodes()) if (n.getMesh()) { const b = getBounds(n); buehnen.push({ node: n.getName(), size: [0, 1, 2].map((i) => r3(b.max[i] - b.min[i])), top: r3(b.max[1]) }); }
+  }
+  const fixtures = werkNodes.fixtures.map((f) => ({ node: f.node, mesh: f.mesh, pos: f.pos, box: f.box, mount: f.mount, lights: f.lights ?? [] }));
+  const json = {
+    v: 1,
+    axes: 'glTF, y oben, Meter; Tor vorn bei z ≈ 0, Raum nach +z',
+    floorY: r3(floorY),
+    interior: { x: [r3(-(left ?? 0)), r3(right ?? 0)], z: [r3(torZ), backZ != null ? r3(backZ) : null], height: up.length ? r3(up[0] - floorY) : null },
+    ceiling: { min: up.length ? r3(up[0]) : null, median: up.length ? r3(med(up)) : null, max: up.length ? r3(up.at(-1)) : null, rays: up.length + escaped, open: escaped },
+    gate: {
+      center: [r3((tor[0][0] + tor[1][0]) / 2), r3((tor[0][1] + tor[1][1]) / 2), r3(torZ)], width: r3(tor[1][0] - tor[0][0]), height: r3(tor[1][1] - tor[0][1]),
+      out: [0, 0, Math.sign(torZ - midZ) || -1], openClear: clear != null ? { width: r3(tor[1][0] - tor[0][0]), height: clear } : null,
+      nodes: Object.keys(tj.blaetter), bones: boneOf, motion,
+    },
+    fixtures,
+    lights: { total: lights?.total ?? 0, withFixture: lights?.withFixture ?? 0 },
+    // stage: befahrbarer Boden (Stufen bis 15 cm); panel: das ebene Mittelfeld
+    stage: freeRect(0.15),
+    panel: freeRect(0.02),
+    buehnen,
+  };
+  const file = fileURLToPath(new URL(`werkhalle/${name}.json`, OUT));
+  writeFileSync(file, JSON.stringify(json) + '\n');
+  return { file, json, summary: { floorY: json.floorY, interior: json.interior, ceiling: json.ceiling, gate: { width: json.gate.width, height: json.gate.height, openClear: json.gate.openClear }, stage: json.stage && json.stage.size, panel: json.panel && json.panel.size, fixtures: fixtures.length, ceilingFixtures: fixtures.filter((f) => f.mount === 'decke').length, buehnen: buehnen.map((b) => b.node) } };
+}
+
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
@@ -1037,30 +1197,33 @@ async function buildOne(kind, name, inPath) {
   // TEXCOORD_0 als unbenutzt weg (Schacht-Tiefe: Wände ohne UVs)
   if (liftParts) await doc.transform(prune({ keepAttributes: true }));
   const liftExtras = liftParts ? await addLiftExtras(doc, name) : null;
+  // Werkhalle: Leuchtkörper, Torblätter und Bühnen bleiben eigene, benannte Knoten
+  const werk = kind === 'werkhalle', werkRoom = werk && !/-buehne$/.test(name);
+  const werkNodes = werk ? markWerkhalle(doc) : null;
   // Halle: Einrichtung zählen und Spiellampen herausschreiben, bevor
   // flatten/join die Knotennamen und cleanMaterials die Lichter verwirft
   const furniture = kind === 'hall' ? root.listNodes().filter((n) => n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)).length : null;
   // leichte Stufe (<halle>-lod1, für Telefone): ohne Einrichtung und ohne
   // eigene Lampenliste — die Seite gibt ihr die der vollen Stufe
   const lite = isLite(kind, name);
-  const lights = kind === 'hall' && !lite ? hallLights(doc, name) : null;
+  const lights = kind === 'hall' && !lite ? hallLights(doc, name) : werkRoom ? hallLights(doc, name, { kind, fixtures: werkNodes.fixtures }) : null;
   if (lite) for (const n of root.listNodes()) if (n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)) n.setMesh(null);
   dropJunk(doc);
   let matfix = null, cover = null;
-  if (kind === 'hall' || kind === 'lift') {
+  if (kind === 'hall' || kind === 'lift' || werk) {
     const fixFile = fileURLToPath(new URL(`${kind}/${name}.matfix.json`, SRC));
     cover = { before: coverage(doc) };
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
-  const layered = kind === 'lift' ? applyLayers(doc, name) : null;
-  const attached = kind === 'hall' || kind === 'lift' ? await attachHallTextures(doc) : 0;
+  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : null;
+  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : 0;
   if (cover) cover.after = coverage(doc);
-  const vertexColors = stripAttributes(doc, kind);
+  const vertexColors = stripAttributes(doc, werk ? 'hall' : kind);
   const liftUv = liftParts ? uvReport(doc) : null;
   cleanMaterials(doc, kind === 'ships' ? { paletteOwner: name.replace(/-/g, '_') } : {});
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' }), weld());
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' || werk }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
@@ -1074,7 +1237,7 @@ async function buildOne(kind, name, inPath) {
   // in der Ebene kostet ein Kantenkollaps keinen Fehler, und der Vereinfacher
   // zieht Ränder über Öffnungen und reißt Wände auf (scripts/lib/hall-hull.mjs).
   const b = BUDGET[kind];
-  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' || kind === 'lift' ? [] : [0.004, 0.01, 0.02, 0.04];
+  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' || kind === 'lift' || werk ? [] : [0.004, 0.01, 0.02, 0.04];
   for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
@@ -1083,7 +1246,7 @@ async function buildOne(kind, name, inPath) {
   // Halle: Normalen mit Kantenwinkel neu, sonst helle Keile an jeder Fuge
   // (siehe scripts/lib/crease-normals.mjs).
   let crease = null;
-  if (kind === 'hall') {
+  if (kind === 'hall' || werk) {
     crease = { corners: 0, changed: 0 };
     for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) {
       const r = creaseNormals(p);
@@ -1116,7 +1279,7 @@ async function buildOne(kind, name, inPath) {
     draco({
       method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits,
       // dichte Kopie: ein Raster für die ganze Halle, 18 Bit (≈ 0,7 mm)
-      ...(lite ? { quantizePosition: 18, quantizationVolume: 'scene' } : { quantizePosition: kind === 'hall' ? 16 : 14 }),
+      ...(lite ? { quantizePosition: 18, quantizationVolume: 'scene' } : { quantizePosition: kind === 'hall' || werk ? 16 : 14 }),
     }),
   );
   // Nur noch das Nötige ankündigen
@@ -1142,6 +1305,8 @@ async function buildOne(kind, name, inPath) {
   const hash = createHash('sha1').update(readFileSync(outPath));
   const lightsPath = outPath.replace(/\.glb$/, '.lights.json');
   if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
+  const werkJson = werkRoom ? await writeWerkhalleJson(written, name, werkNodes, lights) : null;
+  if (werkJson) hash.update(readFileSync(werkJson.file));
   const liftProj = liftParts ? await liftProjectors(name) : null;
   const liftJson = liftParts ? writeLiftJson(name, liftParts, { extras: liftExtras, uv: liftUv, proj: liftProj }) : null;
   if (liftJson) hash.update(readFileSync(liftJson.file));
@@ -1163,6 +1328,8 @@ async function buildOne(kind, name, inPath) {
     uv: { rangeBefore: Math.round(uvRange.before), rangeAfter: Math.round(uvRange.after * 100) / 100, bits: uvBits, degenerate: Math.round(uvDeg.share * 1000) / 10 },
     ...(hull ? { hull } : {}),
     ...(floor != null ? { floor } : {}),
+    ...(werk ? { materials: written.getRoot().listMaterials().length, nodes: werkNodes.counts } : {}),
+    ...(werkJson ? { json: `/hangar/werkhalle/${name}.json`, lightsUrl: `/hangar/werkhalle/${name}.lights.json`, buehne: `/hangar/werkhalle/${name}-buehne.glb`, room: werkJson.summary } : {}),
     bytes: statSync(outPath).size,
   };
 }
@@ -2215,7 +2382,7 @@ try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lau
 // den ersten Eintrag unter hall als Halle.
 const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
-const manifest = { ships: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {} };
+const manifest = { ships: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
 let built = 0, reused = 0;
 for (const kind of Object.keys(BUDGET)) {
   const dir = new URL(`${kind}/`, SRC);
@@ -2230,13 +2397,17 @@ for (const kind of Object.keys(BUDGET)) {
     // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
     // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
     // Lampenliste muss schon da sein.
-    const side = kind === 'hall' || kind === 'lift' ? ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    const side = kind === 'hall' || kind === 'lift' || kind === 'werkhalle' ? ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json', 'tor.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    // Werkhalle: Maße und Lampenliste müssen jünger sein; die Maße lesen auch die Bühnen-Rohdatei
+    const werkOut = kind === 'werkhalle' && !/-buehne$/.test(name) ? ['json', 'lights.json'].map((x) => fileURLToPath(new URL(`werkhalle/${name}.${x}`, OUT))) : [];
+    if (werkOut.length && existsSync(fileURLToPath(new URL(`${name}-buehne.glb`, dir)))) side.push(fileURLToPath(new URL(`${name}-buehne.glb`, dir)));
     const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
     // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
-      && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)));
+      && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
+      && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
     // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu
     if (!FORCE && prev[slot]?.[name] && fresh && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette))) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
@@ -2257,6 +2428,12 @@ for (const kind of Object.keys(BUDGET)) {
         console.log(`    Hülle: ${r.hull.pct} % von ${r.hull.rays.toLocaleString()} Blickstrahlen aus dem Raum treffen nichts${r.hull.pct > 0.5 ? ` — WARNUNG: Löcher in der Hülle (${where}; x = Längswände, z = Stirnwände, y = Decke/Boden)` : ''}`);
       }
       if (kind === 'hall' && r.tris > BUDGET.hall.tris) console.log(`    WARNUNG Halle: ${r.tris.toLocaleString()} Dreiecke über der Warnschwelle von ${BUDGET.hall.tris.toLocaleString()} (nicht dezimiert)`);
+      if (kind === 'werkhalle') {
+        const b = BUDGET.werkhalle;
+        console.log(`    Werkhalle: ${r.materials} Materialien, Knoten ${JSON.stringify(r.nodes)}`);
+        if (r.room) console.log(`    Maße: ${JSON.stringify(r.room)}`);
+        for (const [what, have, max] of [['Dreiecke', r.tris, b.tris], ['Materialien', r.materials, b.materials], ['Bytes', r.bytes, b.bytes]]) if (have > max) console.log(`    WARNUNG Werkhalle: ${have.toLocaleString()} ${what} über dem Budget von ${max.toLocaleString()}`);
+      }
       for (const c of r.vertexColors ?? []) console.log(`    Vertexfarben: ${c.material} (${c.origin}) ${c.tris.toLocaleString()} Dreiecke, R im Mittel ${c.meanR}, ${c.below098} % der Ecken R < 0,98`);
       if (r.seams) for (const [k, s] of Object.entries({ Quelle: r.seams.source, Datei: r.seams.written })) console.log(`    Nähte (${k}): ${JSON.stringify(s)}`);
       if (r.seams) console.log(`    sealSeams: ${JSON.stringify(r.seams.seal)}`);
@@ -2273,7 +2450,7 @@ for (const kind of Object.keys(BUDGET)) {
         console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
       } else if (r.lights) {
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
-        console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture} Einrichtungsobjekte, ${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp), ${(r.bytes / 1048576).toFixed(2)} MB`);
+        console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture != null ? `${r.furniture} Einrichtungsobjekte, ` : ''}${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp${r.lights.withFixture != null ? `, ${r.lights.withFixture} an einem Leuchtkörper` : ''}), ${(r.bytes / 1048576).toFixed(2)} MB`);
         const o = r.lights.orient;
         if (o) console.log(`    Lampen: ${o.spots} Spots umgerechnet (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
       }

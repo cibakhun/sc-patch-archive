@@ -17,7 +17,10 @@
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
         DE-Buchten. Die Zahl selbst hat ihre Klinke in verify:metrics
-        (seitenHangarBuchten), neben allen anderen Seitenzahlen.
+        (seitenHangarBuchten), neben allen anderen Seitenzahlen. Seit
+        24.10.2026 dazu der Ort: 'werk' (Werkhalle) genau fuer die
+        Bodenfahrzeuge aus src/data/vehicles.json (isSpaceship === false),
+        Klinke werkhalle.
      2  Buchtgestalt: main[data-bay-id] gleich Dateiname, genau die drei
         Regionen head, panel, marks und keine weitere (der Controller setzt
         nur diese ein), je Bucht ein Tab-Panel fuer genau die Tabs,
@@ -167,6 +170,10 @@ const KLINKEN = [
     anlass: '3.389 von 3.621 Loadout-Ports tragen einen Bone, keiner verteilt seine Items auf zwei Tabs. Faellt, wenn der Hardpoint-Join oder die Portnamen brechen.',
   },
   {
+    id: 'werkhalle', wert: 31, regel: 'min',
+    anlass: 'Bodenfahrzeuge (vehicles.json isSpaceship === false) mit Hangar-Modell, die in der Werkhalle hinter der Westnische stehen (Krisz 24.10.2026). Faellt die Zahl, stehen sie still wieder auf dem Schiffsfeld.',
+  },
+  {
     id: 'schiffeMitWaffen', wert: 211, regel: 'min',
     anlass: '211 Schiffe zeigen mindestens eine Waffenzeile; 16 sind unbewaffnet oder ohne Loadout.',
   },
@@ -203,7 +210,7 @@ const dockIds = (html) => [...html.matchAll(/<li data-id="([^"]+)"/g)].map((m) =
 
 // Die Modellliste der Seite: die StageConfig der Szene in #hg-stage
 // (src/lib/hangar/stage.ts). Liefert die Ids, deren Eintrag die Form
-// [glb, Werkslack oder null, Herstellerkuerzel] hat, und die Formfehler.
+// [glb, Werkslack oder null, Herstellerkuerzel, Ort] hat, und die Formfehler.
 function stageModels(html) {
   const m = /<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(html);
   if (!m) return { ids: null, bad: ['kein #hg-stage'] };
@@ -212,12 +219,13 @@ function stageModels(html) {
   const bad = [];
   if (typeof cfg.viewer !== 'string' || !cfg.viewer.includes('hangar-viewer.js')) bad.push('viewer ist keine URL von hangar-viewer.js');
   if (!cfg.opts || typeof cfg.opts !== 'object') bad.push('opts fehlt');
-  const ids = [];
+  const ids = [], werk = [];
   for (const [id, e] of Object.entries(cfg.models ?? {})) {
-    const ok = Array.isArray(e) && e.length === 3 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string';
-    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker]`);
+    const ok = Array.isArray(e) && e.length === 4 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string' && (e[3] === 'halle' || e[3] === 'werk');
+    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker, 'halle'|'werk']`);
+    if (ok && e[3] === 'werk') werk.push(id);
   }
-  return { ids, bad };
+  return { ids, werk, bad };
 }
 
 // Das Dock so gelesen, wie der Client es liest: data-stats und data-v je Karte.
@@ -274,9 +282,18 @@ function readBays(dir) {
 const BAYS = { en: readBays('hangar-bay'), de: readBays('de/hangar-bay') };
 const bayIds = (lang) => new Set(BAYS[lang].map((b) => b.name));
 
-say('\n[1] Eine Id-Menge: Dock, Modellliste, EN-Buchten, DE-Buchten (je Hangarseite)');
+say('\n[1] Eine Id-Menge: Dock, Modellliste, EN-Buchten, DE-Buchten (je Hangarseite); Ort Werkhalle genau fuer Bodenfahrzeuge');
+const BODEN = new Set(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.filter((v) => v.isSpaceship === false).map((v) => v.id));
+const werkZahl = [];
 for (const page of PAGES) {
   const stage = stageModels(page.html);
+  if (stage.ids) {
+    const werk = new Set(stage.werk), falsch = stage.ids.filter((id) => werk.has(id) !== BODEN.has(id));
+    say(`    ${page.file}: Werkhalle ${werk.size}, Bodenfahrzeuge mit Modell ${stage.ids.filter((id) => BODEN.has(id)).length}`);
+    sollIst('0 falsch zugeordnet', falsch.length);
+    for (const id of falsch) fail(`[1] ${page.file}: ${id} steht ${werk.has(id) ? 'in der Werkhalle, ist aber kein Bodenfahrzeug' : 'auf dem Schiffsfeld, ist aber ein Bodenfahrzeug'} (vehicles.json isSpaceship) — HangarApp.astro`);
+    werkZahl.push(werk.size);
+  }
   const places = {
     Dock: new Set(dockIds(page.html)),
     Modelle: new Set(stage.ids ?? []),
@@ -367,6 +384,7 @@ const ist = {
   slotZeilen: BAYS.en.reduce((n, b) => n + b.rows.length, 0),
   slotZeilenMitWerten: BAYS.en.reduce((n, b) => n + b.rows.filter((r) => r.numbers).length, 0),
   schiffeMitWaffen: BAYS.en.filter((b) => b.rows.some((r) => r.tab === 'weapons')).length,
+  werkhalle: werkZahl.length ? Math.min(...werkZahl) : 0,
 };
 
 say('\n[4] EN gleich DE je Schiff: Zeilen und Marker');

@@ -1118,13 +1118,13 @@ export function boot(doc) {
     const my = ++showTok;
     placed = null;
     syncMarks();
-    const [glb, tex, maker] = stageCfg.models[id];
+    const [glb, tex, maker, ort] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
     // blendet nur aus, was ihm gehoert.
     bar.style.setProperty('--p', '0%');
     const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 180);
-    viewer.show(glb, { maker, tex })
+    viewer.show(glb, { maker, tex, ort })
       .then(() => {
         if (my !== showTok) return;
         placed = id;
