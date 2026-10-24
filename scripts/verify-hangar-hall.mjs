@@ -268,6 +268,24 @@
         clearRandFurniture, seit 21.10.2026). Zonen, Glieder, Gestapeltes, Spuren, Arten und
         Schichten ueber KLINKE_DEKO und KLINKE_DEKO_SCHICHTEN, Materialien,
         Dreiecke je Stufe und Bytes unter OBERGRENZE_DEKO.
+    18  Die Nischen tragen die Huelle einer Werkstatt (seit 24.10.2026):
+        Waende, Boden und Decke der Westnische waren die weissen Paneele
+        und der helle Lochblechboden der Ausstellungshalle (Betreiber:
+        „ja die assets sind da aber aussehen wie eine reparaturstelle oder
+        werkstatt siehts überhaupt nicht aus, die wände nicht, der boden
+        nicht, nichts davon“). WORK_HUELLE im Viewer schneidet je Eintrag
+        die Dreiecke ganz in einem Kasten mit einem Material aus `mats` aus
+        der Halle (cutHallShell), sortiert sie nach Lage (Boden, Wand,
+        Decke) und legt die Karten eines Spielbodens aus der Bodendatei der
+        Werkstatt darauf; Moebel der Halle im Kasten fallen mit
+        "moebel": false weg. Ohne Knoten bliebe die Halle still weiss.
+        Geprueft: jeder Schluessel ist die Halle der Seite; jeder Eintrag
+        mit Namen, Kasten, Materialien und mindestens einer Lage mit Knoten;
+        der Kasten liegt ganz hinter einer Wandlinie (sonst bekaemen Flaechen
+        zur Halle hin Werkstattpaneele); jeder Knoten steht mit Farbkarte in
+        der Bodendatei; je Hallenstufe und Lage trifft der Kasten mindestens
+        KLINKE_HUELLE Dreiecke (Regel wie cutHallShell; sonst Zombie oder
+        Halle neu gebaut); "moebel": false hat Moebel im Kasten.
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -541,8 +559,20 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Angehoben: zonen 38, glieder 506, gestapelt 207, spuren 264, arten 178,
 // fach 107, geprueft 487, hochGeprueft 78, frei 312, leitungen 11,
 // inNischen 167.
-const KLINKE_DEKO = { zonen: 38, mittel: 15, glieder: 506, gestapelt: 207, spuren: 264, arten: 178, fach: 107, geprueft: 487, hochGeprueft: 78, massstaebe: 6, gerueckt: 5, frei: 312, gehwege: 6, fahrspuren: 4, leitungen: 11, luftEnden: 6, nischen: 2, inNischen: 167 };
+// Werkstatt-Huelle der Westnische (24.10.2026, [18]): dazu grosse
+// Oelflecken unter den Buchten, Reifenspuren aus Bucht und Tor und eine
+// Warnlinie an der Einfahrt. Stand: 279 Spuren; 175 Materialien,
+// 624 822 / 1 891 922 Dreiecke, 13,91 MB. Angehoben: spuren 279.
+const KLINKE_DEKO = { zonen: 38, mittel: 15, glieder: 506, gestapelt: 207, spuren: 279, arten: 178, fach: 107, geprueft: 487, hochGeprueft: 78, massstaebe: 6, gerueckt: 5, frei: 312, gehwege: 6, fahrspuren: 4, leitungen: 11, luftEnden: 6, nischen: 2, inNischen: 167 };
 const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, bytes: 14e6 };
+// Werkstatt-Huelle ([18], seit 24.10.2026): je Halle Eintraege, je Eintrag
+// und Lage so viele Dreiecke trifft der Kasten in jeder Hallenstufe
+// mindestens. Beim Einbau (Westnische, volle und leichtere Stufe gleich):
+// Boden 2342, Wand 6821, Decke 946. Gleiche Regel wie oben. Vorgefuehrt
+// rot: Knoten floor_paneel_x (fehlt in der Bodendatei), Kasten bis x 5 (in
+// den Raum), Kasten bis y 10,6 (Wand 6371 unter der Klinke), Kasten bei
+// z -120..-100 (trifft nichts, kein Moebel: Zombie).
+const KLINKE_HUELLE = { 'revelyork-single': { eintraege: 1, west: { boden: 2342, wand: 6821, decke: 946 } } };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
 // 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB. Mit Katalog v3
@@ -2723,8 +2753,117 @@ if (DK && dekoBlock) {
 }
 sollIst(DK ? `Satz in dist/, passend zu Block und ${dekoRun.quellen || '?'} Quellen; Halle des Blocks die der Seite; jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog; jeder Knoten im Satz, jede Requisite im Katalog; je Material ein Attributsatz mit Index; Schichten wie im Katalog; kein Regal und kein Stueck an der Wand mehr als 8 Grad schraeg; 0 Stuecke ausserhalb von Raum und Nischen (jede Nische aussen an einer Wandlinie, mit Hallenboden unter 95 % ihrer Zellen und mit Deko), im Feld samt Rand und WORK_EDGE, ineinander, schwebend, zu hoch fuers Regalfach oder in Wand und Einrichtung, auch ueber dem Band und in groesseren Hallen (k bis 6); 0 Requisiten in Gehwegen (freihalten) und vor Fahrzeugen (je ${FAHRSPUR.laenge} m Fahrspur); 0 lose Kabel und Schlaeuche, jede Leitung mit beiden Buchsen auf einem Glied ihrer Zone (hoechstens ${BUCHSE.flaeche} m daneben, ${BUCHSE.frei} m hinaus frei), ihr Weg durch kein Stueck und keinen Gehweg; jedes Ende eines Luftschlauchteils an einer Gegenoeffnung (LUFT_OEFFNUNG, im Satz nachgemessen); mindestens ${Object.entries(KLINKE_DEKO).map(([k, v]) => `${v} ${k}`).join(', ')}; hoechstens ${OBERGRENZE_DEKO.mats} Materialien, ${OBERGRENZE_DEKO.tris.mittel} / ${OBERGRENZE_DEKO.tris.hoch} Dreiecke (mittel / hoch), ${OBERGRENZE_DEKO.bytes / 1e6} MB` : 'keine Hallendeko fuer diese Halle', DK ? `${dekoRun.zonen} Zonen (${dekoRun.mittel} ab mittel), ${dekoRun.glieder} Glieder (${dekoRun.gestapelt} gestapelt), ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.gerade} Regale und Stuecke an der Wand gerade, ${dekoRun.nischen} Nischen mit ${dekoRun.inNischen} Stuecken (Boden ${dekoRun.nischenBoden.join(', ') || '-'}), ${dekoRun.frei} im Raum gedreht, ${dekoRun.gehwege} Gehwege frei (${Math.round(dekoRun.gehwegFlaeche)} m²), ${dekoRun.fahrspuren} Fahrspuren frei, ${dekoRun.leitungen} Leitungen mit beiden Buchsen, ${dekoRun.luftEnden} Enden von Luftschlaeuchen an einer Gegenoeffnung; ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.mittel)} / ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${(dekoRun.bytes / 1e6).toFixed(2)} MB; Schichten: ${dekoRun.schichten.zeilen} Zeilen, ${dekoRun.schichten.karten} Karten; Grundriss ${dekoRun.belegt} von ${dekoRun.zellen} Zellen belegt (${dekoRun.band} Dreiecke im Band, ${dekoRun.gerueckt} Moebel vom Rand gerueckt${dekoRun.randWeg ? `, ${dekoRun.randWeg} dort weggelassen` : ''}), ${dekoRun.geprueft} Stuecke darin geprueft, ${dekoRun.hochGeprueft} hohe darueber (${dekoRun.darueber} Dreiecke); ${dekoRun.fach} Stuecke in Regalfaechern; ${dekoRun.massstaebe} groessere Hallen nachgerechnet` : '(nichts gemessen)');
 
+say('\n[18] Die Nischen tragen die Huelle einer Werkstatt: Boden, Wand und Decke aus dem Spielboden, nur hinter der Wandlinie');
+// Der Block steht im Viewer zwischen /* work-huelle */ und /* /work-huelle */ und ist JSON
+const hlm = /\/\* work-huelle \*\/([\s\S]*?)\/\* \/work-huelle \*\//.exec(viewer);
+let huelleAll = null;
+try { huelleAll = hlm ? JSON.parse(hlm[1]) : null; } catch (e) { fail(`[18] WORK_HUELLE im Viewer ist kein JSON mehr (${e.message})`); }
+if (viewer && !hlm) fail('[18] der Viewer traegt keinen Block /* work-huelle */ … /* /work-huelle */ mehr — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+huelleAll ??= {};
+for (const k of Object.keys(huelleAll).filter((k) => k !== hall?.id)) fail(`[18] WORK_HUELLE["${k}"]: die Seite laedt diese Halle nicht; Eintrag entfernen oder die Halle zurueck`);
+const HUELLE = hall?.id ? huelleAll[hall.id] ?? [] : [];
+const KH = hall?.id ? KLINKE_HUELLE[hall.id] ?? null : null;
+const huelleRun = { eintraege: HUELLE.length, knoten: 0, moebel: 0, stufen: [] };
+for (const k of Object.keys(KLINKE_HUELLE).filter((k) => k !== hall?.id)) fail(`[18] KLINKE_HUELLE["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
+if (KH && HUELLE.length < KH.eintraege) fail(`[18] WORK_HUELLE["${hall.id}"] traegt ${HUELLE.length} Eintraege, die Klinke verlangt ${KH.eintraege}: Eine Nische saehe wieder aus wie die Ausstellungshalle. Zurueckholen, oder KLINKE_HUELLE per Commit mit Ursache senken`);
+if (HUELLE.length) {
+  const LAGEN = ['boden', 'wand', 'decke'];
+  const pair = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite) && q[0] < q[1];
+  const room = hall?.room, rx = room ? [room.center[0] - room.halfW, room.center[0] + room.halfW] : null, rz = room ? [room.center[2] - room.halfL, room.center[2] + room.halfL] : null;
+  // Knoten der Bodendatei mit Farbkarte (der Viewer nimmt die Karten vom ersten Mesh darunter)
+  const bodenJson = W?.boden?.url && existsSync(fromUrl(W.boden.url)) ? glbJson(fromUrl(W.boden.url)) : null;
+  const mitKarte = (name) => {
+    const j = bodenJson, i = j?.nodes?.findIndex((n) => n.name === name) ?? -1;
+    if (i < 0) return null;
+    let tex = false;
+    const walk = (k) => {
+      const q = j.nodes[k];
+      for (const pr of j.meshes?.[q.mesh]?.primitives ?? []) if (j.materials?.[pr.material]?.pbrMetallicRoughness?.baseColorTexture) tex = true;
+      for (const c of q.children ?? []) walk(c);
+    };
+    walk(i);
+    return tex;
+  };
+  const names = new Set(), ok = [];
+  for (const H of HUELLE) {
+    const tag = `WORK_HUELLE ${H?.name ?? '?'}`;
+    let re = null;
+    try { re = typeof H?.mats === 'string' && H.mats.trim() ? new RegExp(H.mats, 'i') : null; } catch { re = null; }
+    const lagen = LAGEN.filter((k) => H?.[k]);
+    if (typeof H?.name !== 'string' || names.has(H.name) || !pair(H.x) || !pair(H.y) || !pair(H.z) || !re || !lagen.length) { fail(`[18] ${tag}: braucht einen eigenen Namen, x, y, z als [von, bis] im Modellraum, mats als regulaeren Ausdruck und mindestens eine Lage (${LAGEN.join(', ')})`); continue; }
+    names.add(H.name);
+    if (H.unten !== undefined && !Number.isFinite(H.unten)) fail(`[18] ${tag}: unten ist keine Zahl (Unterkante der Wandkacheln im Modellraum)`);
+    if (H.moebel !== undefined && H.moebel !== false) fail(`[18] ${tag}: moebel kennt nur false (Moebel der Halle im Kasten fallen weg)`);
+    for (const k of lagen) {
+      const c = H[k];
+      if (typeof c.node !== 'string' || !(c.tile === undefined || c.tile > 0) || !(c.farbe === undefined || c.farbe > 0) || !(c.rau === undefined || (c.rau >= 0 && c.rau <= 1))) { fail(`[18] ${tag}.${k}: braucht node (Knoten der Bodendatei) und hoechstens tile > 0, farbe > 0, rau 0..1, streuen, schatten`); continue; }
+      const t = bodenJson ? mitKarte(c.node) : undefined;
+      if (!bodenJson) fail(`[18] ${tag}.${k}: keine Bodendatei der Werkstatt in dist/ (${W?.boden?.url?.split('?')[0] ?? 'die Seite gibt keine mit'}): Die Nische bliebe still die Ausstellungshalle`);
+      else if (t === null) fail(`[18] ${tag}.${k}: ${W.boden.url.split('?')[0]} traegt den Knoten ${c.node} nicht: Die Lage bliebe still weiss. Namen im Viewer nachziehen`);
+      else if (!t) fail(`[18] ${tag}.${k}: ${c.node} hat in ${W.boden.url.split('?')[0]} keine Farbkarte: Die Lage waere einfarbig`);
+      else huelleRun.knoten++;
+    }
+    // Ganz hinter einer Wandlinie: sonst bekaemen Flaechen zur Halle hin Werkstattpaneele
+    if (!rx) fail(`[18] ${tag}: die Seite nennt keinen Raum der Halle (opts.hall.room); ohne ihn laesst sich die Wandlinie nicht pruefen`);
+    else if (H.x[0] < rx[1] - 0.01 && H.x[1] > rx[0] + 0.01 && H.z[0] < rz[1] - 0.01 && H.z[1] > rz[0] + 0.01) fail(`[18] ${tag}: der Kasten (x ${H.x.join('..')}, z ${H.z.join('..')}) reicht in den Raum der Halle (x ${rx.map((v) => +v.toFixed(2)).join('..')}, z ${rz.map((v) => +v.toFixed(2)).join('..')}): Waende und Boden zur Halle hin trugen Werkstattpaneele. Kasten hinter die Wandlinie legen`);
+    ok.push({ H, re, lagen });
+  }
+  // Je Hallenstufe wie cutHallShell: Dreiecke ganz im Kasten, Material aus
+  // mats, nur Geometrie, die der Viewer schneidet (mit Index, einmal
+  // gestellt, kein Moebel); Boden nach oben bis 0,6 m ueber y[0], Decke
+  // nach unten, sonst Wand
+  const moebelIn = new Map();
+  const imKasten = (H, v) => v[0] >= H.x[0] && v[0] <= H.x[1] && v[1] >= H.y[0] && v[1] <= H.y[1] && v[2] >= H.z[0] && v[2] <= H.z[1];
+  const moebel = (node) => { const A = node.getExtras()?.anchor; if (Array.isArray(A)) for (const o of ok) if (imKasten(o.H, A)) moebelIn.set(`${o.H.name}:${node.getName()}`, o.H.name); };
+  for (const [u, doc] of stageDocs) {
+    const acc = new Map(), refs = new Map(), hits = new Map(ok.map((o) => [o.H.name, { boden: 0, wand: 0, decke: 0 }]));
+    const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
+    for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
+    for (const node of doc.getRoot().listNodes()) {
+      moebel(node);
+      let furn = false;
+      for (let a = node; a && !furn; a = a.getParentNode()) furn = Array.isArray(a.getExtras()?.anchor);
+      const mesh = node.getMesh();
+      if (!mesh || furn) continue;
+      const w = node.getWorldMatrix();
+      for (const p of mesh.listPrimitives()) {
+        const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray(), mn = p.getMaterial()?.getName() ?? '';
+        if (!P || !I || refs.get(geo(p)) > 1) continue;
+        const mine = ok.filter((o) => o.re.test(mn));
+        if (!mine.length) continue;
+        const at = (i) => { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]]; };
+        for (let t = 0; t + 2 < I.length; t += 3) {
+          const a = at(I[t]), b = at(I[t + 1]), c = at(I[t + 2]);
+          const o = mine.find((q) => imKasten(q.H, a) && imKasten(q.H, b) && imKasten(q.H, c));
+          if (!o) continue;
+          const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+          const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz) || 1;
+          hits.get(o.H.name)[ny / l > 0.7 && (a[1] + b[1] + c[1]) / 3 < o.H.y[0] + 0.6 ? 'boden' : ny / l < -0.7 ? 'decke' : 'wand']++;
+        }
+      }
+    }
+    huelleRun.stufen.push(`${u}: ${[...hits].map(([n, h]) => `${n} Boden ${h.boden}, Wand ${h.wand}, Decke ${h.decke}`).join('; ')}`);
+    for (const o of ok) {
+      const h = hits.get(o.H.name), kl = KH?.[o.H.name] ?? {};
+      for (const k of o.lagen) {
+        if (!h[k]) fail(`[18] ${u}: WORK_HUELLE ${o.H.name} trifft keine Dreiecke der Lage ${k} (Material ${o.H.mats}): Zombie, oder die Halle ist neu gebaut. Kasten und mats nachmessen`);
+        else if (h[k] < (kl[k] ?? 0)) fail(`[18] ${u}: WORK_HUELLE ${o.H.name} trifft ${h[k]} Dreiecke der Lage ${k}, die Klinke verlangt ${kl[k]}: Teile der Nische blieben weiss. Kasten nachmessen, KLINKE_HUELLE nur per Commit mit Ursache senken`);
+      }
+    }
+  }
+  for (const o of ok) if (KH && !KH[o.H.name]) fail(`[18] WORK_HUELLE ${o.H.name} hat keine Klinke in KLINKE_HUELLE: gemessene Dreiecke je Lage dort eintragen`);
+  if (!stageDocs.size) fail('[18] WORK_HUELLE, aber keine Hallenstufe gemessen ([3])');
+  for (const doc of extraDocs.values()) for (const node of doc.getRoot().listNodes()) moebel(node);
+  for (const o of ok.filter((q) => q.H.moebel === false)) {
+    const n = [...moebelIn.values()].filter((v) => v === o.H.name).length;
+    huelleRun.moebel += n;
+    if (!n) fail(`[18] WORK_HUELLE ${o.H.name}: "moebel": false, aber kein Moebel der Halle steht im Kasten: Ausnahme ohne Anlass, herausnehmen`);
+  }
+}
+sollIst(HUELLE.length ? `je Eintrag Name, Kasten hinter der Wandlinie, mats und Lagen mit Knoten und Farbkarte in der Bodendatei; je Hallenstufe und Lage mindestens ${HUELLE.map((H) => `${H?.name}: ${Object.entries(KH?.[H?.name] ?? {}).map(([k, v]) => `${k} ${v}`).join(', ')}`).join('; ')} Dreiecke; "moebel": false mit Moebeln im Kasten` : 'keine Werkstatt-Huelle fuer diese Halle', HUELLE.length ? `${huelleRun.eintraege} Eintraege, ${huelleRun.knoten} Lagen mit Knoten; ${huelleRun.stufen.join(' | ') || 'keine Stufe gemessen'}; ${huelleRun.moebel} Moebel im Kasten weggelassen` : '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss   Huelle: ${huelleRun.eintraege} Eintraege, ${huelleRun.knoten} Lagen, ${huelleRun.moebel} Moebel weg`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);

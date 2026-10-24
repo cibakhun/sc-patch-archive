@@ -487,6 +487,98 @@ async function cutHallLift(model, L, skip, pause = noPause) {
   return tris ? { group, tris, parts: group.children.length } : null;
 }
 
+// Werkstatt-Hülle (WORK_HUELLE): schneidet wie cutHallLift die Dreiecke
+// ganz im Kasten aus der Halle, nur die der Materialien `mats`, und legt sie
+// je Material und Lage (userData.huelle: boden, wand, decke) als eigene
+// Geometrie im Modellraum an, mit eigenen Texturkoordinaten: Boden und Decke
+// von oben (x, z), die Wand entlang ihrer Fläche und ab dem Boden der
+// Nische (y - unten) nach oben, damit Paneelreihen waagerecht und auf
+// gleicher Höhe umlaufen. Liefert { group, tris, parts, kinds } oder null.
+async function cutHallShell(model, H, skip, pause = noPause) {
+  model.updateMatrixWorld(true);
+  const toModel = new THREE.Matrix4().copy(model.matrixWorld).invert();
+  const box = new THREE.Box3(new THREE.Vector3(H.x[0], H.y[0], H.z[0]), new THREE.Vector3(H.x[1], H.y[1], H.z[1]));
+  const mats = new RegExp(H.mats, 'i');
+  const meshes = [], uses = new Map();
+  model.traverse((n) => {
+    if (!n.isMesh) return;
+    uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1);
+    if (!n.geometry.index || n.geometry.groups.length || !mats.test(n.material?.name || '')) return;
+    for (let p = n; p; p = p.parent) if (skip.has(p)) return;
+    meshes.push(n);
+  });
+  const KINDS = ['boden', 'wand', 'decke'], kinds = { boden: 0, wand: 0, decke: 0 };
+  const group = new THREE.Group(), M = new THREE.Matrix4(), N = new THREE.Matrix3(), bb = new THREE.Box3();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), nrm = new THREE.Vector3();
+  const tile = (k) => H[k]?.tile || 4, unten = H.unten ?? H.y[0];
+  let tris = 0;
+  for (const mesh of meshes) {
+    await pause();
+    const g = mesh.geometry;
+    if (uses.get(g) > 1) continue;
+    M.multiplyMatrices(toModel, mesh.matrixWorld);
+    N.getNormalMatrix(M);
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (!bb.copy(g.boundingBox).applyMatrix4(M).intersectsBox(box)) continue;
+    const P = g.attributes.position, NO = g.attributes.normal, CO = g.attributes.color;
+    const inside = new Uint8Array(P.count), W = new Float32Array(P.count * 3);
+    for (let i = 0; i < P.count; i++) {
+      if (!(i & 16383)) await pause();
+      a.fromBufferAttribute(P, i).applyMatrix4(M);
+      W[i * 3] = a.x; W[i * 3 + 1] = a.y; W[i * 3 + 2] = a.z;
+      inside[i] = box.containsPoint(a) ? 1 : 0;
+    }
+    const I = g.index.array, keep = new I.constructor(I.length), cut = KINDS.map(() => []);
+    let n = 0;
+    for (let t = 0; t + 2 < I.length; t += 3) {
+      if (!(t % 49152)) await pause();
+      const i0 = I[t], i1 = I[t + 1], i2 = I[t + 2];
+      if (!(inside[i0] && inside[i1] && inside[i2])) { keep[n++] = i0; keep[n++] = i1; keep[n++] = i2; continue; }
+      a.fromArray(W, i0 * 3); b.fromArray(W, i1 * 3); c.fromArray(W, i2 * 3);
+      nrm.subVectors(b, a).cross(c.sub(a)).normalize();
+      const k = nrm.y > 0.7 && (a.y + b.y + W[i2 * 3 + 1]) / 3 < H.y[0] + 0.6 ? 0 : nrm.y < -0.7 ? 2 : 1;
+      // Achse entlang der Fläche nach der Normalen des Dreiecks (0: liegend)
+      cut[k].push(i0, i1, i2, Math.abs(nrm.y) > 0.7 ? 0 : Math.abs(nrm.x) >= Math.abs(nrm.z) ? (nrm.x > 0 ? 1 : -1) : (nrm.z > 0 ? 2 : -2));
+    }
+    if (!cut.some((q) => q.length)) continue;
+    g.setIndex(new THREE.BufferAttribute(keep.slice(0, n), 1));
+    for (let k = 0; k < 3; k++) {
+      const q = cut[k], cnt = (q.length / 4) * 3;
+      if (!cnt) continue;
+      const pos = new Float32Array(cnt * 3), nor = new Float32Array(cnt * 3), uv = new Float32Array(cnt * 2), col = CO && H[KINDS[k]]?.schatten !== false ? new Float32Array(cnt * CO.itemSize) : null;
+      const t = tile(KINDS[k]);
+      for (let f = 0, o = 0; f < q.length; f += 4) {
+        const ax = q[f + 3];
+        for (let j = 0; j < 3; j++, o++) {
+          const i = q[f + j], x = W[i * 3], y = W[i * 3 + 1], z = W[i * 3 + 2];
+          pos[o * 3] = x; pos[o * 3 + 1] = y; pos[o * 3 + 2] = z;
+          if (NO) { nrm.fromBufferAttribute(NO, i).applyMatrix3(N).normalize(); nor[o * 3] = nrm.x; nor[o * 3 + 1] = nrm.y; nor[o * 3 + 2] = nrm.z; }
+          if (col) for (let e = 0; e < CO.itemSize; e++) col[o * CO.itemSize + e] = CO.getComponent(i, e);
+          // Stehende Flächen: u entlang der Fläche (Blick von innen), v von
+          // oben nach unten wie im Bild, die Unterkante einer Kachel auf
+          // `unten`; liegende (auch Simse der Wand) von oben
+          if (ax) { uv[o * 2] = (Math.abs(ax) === 1 ? -z * Math.sign(ax) : x * Math.sign(ax)) / t; uv[o * 2 + 1] = 1 - (y - unten) / t; }
+          else { uv[o * 2] = x / t; uv[o * 2 + 1] = z / t; }
+        }
+      }
+      const lg = new THREE.BufferGeometry();
+      lg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      if (NO) lg.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); else lg.computeVertexNormals();
+      lg.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      if (col) lg.setAttribute('color', new THREE.BufferAttribute(col, CO.itemSize));
+      lg.setIndex(new THREE.BufferAttribute(Uint32Array.from({ length: cnt }, (_, i) => i), 1));
+      lg.computeBoundingBox(); lg.computeBoundingSphere();
+      const part = new THREE.Mesh(lg, mesh.material);
+      part.matrixAutoUpdate = false;
+      part.userData.huelle = KINDS[k];
+      group.add(part);
+      kinds[KINDS[k]] += cnt / 3;
+      tris += cnt / 3;
+    }
+  }
+  return tris ? { group, tris, parts: group.children.length, kinds } : null;
+}
+
 // Bodenstreifen umsetzen (HALL_SHIFT). Ein Dreieck ganz in einem Streifen
 // bekommt eigene, verschobene Ecken in seiner Geometrie; eins über einer
 // Streifenkante wird dort geteilt, die Teile wandern mit ihrem Streifen
@@ -2033,6 +2125,37 @@ const WORK_FIELD = /* work-field */ [
 // wählte erst Beton, am selben Abend (17.10.2026) wieder den Lack.
 // verify:hangar-hall [12] prüft die Knoten und die Materialien im Feld.
 const WORK_PAD = /* work-pad */ { "mats": "mtl_(metal_dotty_01_016|metal_white_03)$", "floors": { "beton": "floor_asphalt_wear", "asphalt": "floor_asphalt" }, "pick": "lack" } /* /work-pad */;
+// Werkstatt-Hülle der Nischen (24.10.2026, Krisz zur Westnische mit den
+// Fahrzeugen: „ja die assets sind da aber aussehen wie eine reparaturstelle
+// oder werkstatt siehts überhaupt nicht aus, die wände nicht, der boden
+// nicht, nichts davon“). Wände, Boden und Decke der Nische sind Teil der
+// Ausstellungshalle: weiße Paneele, heller Lochblechboden. Beim Laden
+// schneidet cutHallShell die Dreiecke ganz im Kasten (x, y, z im Modell)
+// mit einem der Materialien `mats` aus der Halle und sortiert sie nach
+// ihrer Lage: Boden (nach oben, bis 0,6 m über y[0]), Decke (nach unten),
+// sonst Wand. Jede Lage trägt dann die Karten eines Spielbodens aus der
+// Industriehalle (Bodendatei der Werkstatt, Knoten `node`, wie WORK_PAD):
+// `tile` m je Kachel, Farbe des Bodens mal `farbe`, Rauheit `rau` statt
+// seiner; `streuen` bricht die Wiederholung (hgNoTile, nur ohne Muster:
+// Die Paneelreihen der Wand liefen sonst durcheinander); `schatten: false`
+// lässt die Abdunkelung der Ausstellungspaneele weg (ihre Felder passen
+// nicht zu den Fugen der neuen Paneele). Die Wand legt die Unterkante
+// jeder Kachel auf `unten` (Boden der Nische), so laufen Lüftungsgitter,
+// Paneele und Nietband waagerecht um. Der Kasten endet vor dem Rahmen der
+// Öffnung (x bis -0,95): Der weiße Rahmen der Halle fasst die Werkstatt
+// ein, und keine Fläche zur Halle hin wird Werkstatt. "moebel": false
+// nimmt die Möbel der Halle im Kasten heraus (zwei Pflanzkübel). Ohne
+// Bodendatei bleibt die Halle. verify:hangar-hall [18] prüft Knoten,
+// Wandlinie, Dreiecke je Lage und die Möbel.
+const WORK_HUELLE = /* work-huelle */ {
+  "revelyork-single": [
+    { "name": "west", "x": [-15.2, -0.95], "y": [0.85, 12.2], "z": [-88, -56], "mats": "kit_master_mtl_(plastic_white01_06|metal_grey_04|metal_dotty_01_016|metal_white_02_07)$",
+      "unten": 1, "moebel": false,
+      "boden": { "node": "floor_asphalt_wear", "tile": 4, "farbe": 1.5, "streuen": true },
+      "wand": { "node": "floor_paneel", "tile": 4.8, "farbe": 0.55, "rau": 0.55, "schatten": false },
+      "decke": { "node": "floor_paneel", "tile": 4.8, "farbe": 0.35, "rau": 0.7 } }
+  ]
+} /* /work-huelle */;
 // Wartungsplatz am Schiff (18.10.2026). Krisz: „die assets sind allgemein
 // zu wenige, und sind nicht belivable plaziert“; Öl und Gerät nach der
 // Schiffsgröße, Gerät an Arbeitsplätzen gruppiert, Schläuche und Kabel zu
@@ -2278,7 +2401,11 @@ const LEITUNG_SCHNITT = 0.1;
 // Standleuchten), an der Südwand das Reifenlager (Regal mit Reifen und
 // Fahrwerksrädern, Reifenstapel) und die Werkbank mit Lichtbalken, Schrank
 // und Kabelanschluss. Vor dem Tor Reifenspuren und eine Ölspur. Die Cyclone
-// und das Frachtlager sind dafür gegangen.
+// und das Frachtlager sind dafür gegangen. Mit der Werkstatt-Hülle
+// (WORK_HUELLE, 24.10.2026) dazu große Ölflecken unter den Buchten,
+// Reifenspuren aus Bucht 2 und vom Tor und eine Warnlinie quer über die
+// Einfahrt der Nische; Projektionsspuren achsparallel, damit ihr Quadrat in
+// der Nische bleibt.
 // Fest in der
 // Halle (fährt nicht mit dem Aufzug), in Originalgröße wie die Werkstatt:
 // Wächst die Halle mit großen Schiffen, rückt die Zone an ihren Bezugspunkt
@@ -2411,7 +2538,8 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -5.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -5.4, 3, 90],
       ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -8.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -8.4, 3, 90],
       ["decal_reifenspur_decal_tire_marks_straight_a", -1.05, -11.4, 3, 90], ["decal_reifenspur_decal_tire_marks_straight_a", 1.05, -11.4, 3, 90],
-      ["decal_oel_oil_line_a", 0.2, -7, 3, 270]] },
+      ["decal_oel_oil_line_a", 0.2, -7, 3, 270], ["decal_reifenspur_tire_streak001a", 0, -9, 8, 90],
+      ["decal_oel_fs_oil_dirt", 0.8, -4.5, 6, 200]] },
     { "name": "werkstatt-west", "stufe": "mittel", "aus": "energie+werkzeug", "wand": "w", "at": [3.5, -48.25], "glieder": [
       ["prop_werkzeug_tool_drawer_1_a", -5, -0.513, 0], ["prop_werkzeug_workbench_table_1_light_a", -2.6, -0.609, 0],
       ["prop_energie_generator_mining_1_a", 3.9, -1.102, 0], ["prop_transport_prop_dumper_transport_pallet_a", -0.6, -5.6, 12],
@@ -2736,7 +2864,7 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_werkzeug_bag_toolbox_2_a", 4.15, -6.9, 20], ["prop_reifen_ptv_tire", 0.15, -3.6, 12], ["prop_reifen_ptv_tire", 0.15, -3.6, 31, 0.321]], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 0.6, -2.9, 3.2, 0],
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 3.5, -2.9, 3.2, 0], ["decal_ziffer_secondary_number_1", 2.05, -8.5, 0.9, 270],
-      ["decal_oel_decal_stain_surface_var_oil_a", 2.35, -3.3, 2.6, 30]], "leitungen": [
+      ["decal_oel_decal_stain_surface_var_oil_a", 2.35, -3.3, 2.6, 30], ["decal_oel_fs_oil_dirt", 2.05, -3, 6, 20]], "leitungen": [
       { "name": "konsole-hebebuehne", "node": "prop_kabel_maintenance_cable_1_a", "von": [0.3, -0.597, 0.8, 90], "nach": [0.947, -2.9, 0.5, 180] }] },
     { "name": "fahrzeugbucht-west", "stufe": "mittel", "aus": "fahrzeug", "wand": "w", "at": [-14.6, -72], "glieder": [
       ["prop_fahrzeug_grin_roc", 0, -3.96, 0], ["prop_diagnose_console_diagnostic_2_a", 2.95, -8.5, 95]], "spuren": [
@@ -2751,12 +2879,19 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_05m_a", 6.8, -11.45, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 6.8, -11.95, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_4m_a", 13.4, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 13.4, -8.6, 4, 90],
       ["decal_linie_lowtech_a_int_decal_1m_a", 13.4, -11.1, 1, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 13.4, -11.85, 0.5, 90],
-      ["decal_oel_oil_var01", 0.4, -5, 4.2, 110]], "leitungen": [
+      ["decal_oel_oil_var01", 0.4, -5, 4.2, 110], ["decal_oel_fs_oil_dirt", 0, -4.2, 7, 90],
+      ["decal_reifenspur_tire_streak001a", 0.3, -9.6, 9, 90],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -14.55, -13.3, 1.2, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -12, -13.3, 4, 0],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -8, -13.3, 4, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -4, -13.3, 4, 0],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 0, -13.3, 4, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 4, -13.3, 4, 0],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 8, -13.3, 4, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 12, -13.3, 4, 0],
+      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 14.55, -13.3, 1.2, 0]], "leitungen": [
       { "name": "konsole-roc", "node": "prop_kabel_maintenance_cable_1_a", "von": [2.977, -8.19, 0.8, 275], "nach": [1.113, -3.96, 1.3, 0] }] },
     { "name": "ursabucht-west", "stufe": "hoch", "aus": "fahrzeug", "wand": "w", "at": [-14.6, -62.55], "glieder": [
       ["prop_fahrzeug_rsi_ursa_rover", 0, -4.01, 0], ["prop_werkzeug_tool_welder_a", -3.65, -9, 350],
       ["prop_treibstoff_tank_gas_1_005x005x005_a", -3.5, -9.9, 20]], "spuren": [
-      ["decal_oel_decal_stain_surface_var_oil_b", -0.05, -9.4, 3.6, 200], ["decal_reifenspur_decal_tire_marks_straight_a", 1.25, -12.8, 3, 90]], "leitungen": [
+      ["decal_oel_decal_stain_surface_var_oil_b", -0.05, -9.4, 3.6, 200], ["decal_reifenspur_decal_tire_marks_straight_a", 1.25, -12.8, 3, 90],
+      ["decal_oel_fs_oil_dirt", 0, -4.2, 7, 180]], "leitungen": [
       { "name": "schweissgeraet-ursa", "node": "prop_kabel_maintenance_cable_1_a", "von": [-3.48, -8.97, 0.6, 350], "nach": [-2.536, -6.51, 1.3, 180] }] },
     { "name": "reifenlager-west", "stufe": "hoch", "aus": "reifen", "wand": "s", "at": [-11.5, -57], "glieder": [
       ["prop_regal_storage_rack_1_02x0575x03_a", 0.025, -1.1, 0], ["prop_reifen_ptv_tire", -2.5, -1.55, 0, 0.4],
@@ -3094,6 +3229,13 @@ function padFloor(scene, info, which) {
   if (!mat) return null;
   const f = (info.floors || []).find((e) => e.node === name || e.wearNode === name);
   return { name, mat, tile: f?.tiling?.[0] || 4 };
+}
+
+// Material eines Bodenknotens der Bodendatei (WORK_HUELLE) oder null
+function workFloorMat(scene, name) {
+  let mat = null;
+  scene?.getObjectByName(name)?.traverse((o) => { if (!mat && o.isMesh) mat = o.material; });
+  return mat;
 }
 
 // Requisiten und Decals aus der Werkstattdatei an ihre Plätze (siehe oben).
@@ -7244,6 +7386,13 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         model.add(lift.group);
         console.info(`[hangar] Aufzug: ${lift.tris} Dreiecke in ${lift.parts} Teilen aus dem Schiffsfeld, ${Math.round(performance.now() - t2)} ms`);
       } else if (L) console.warn('[hangar] Aufzug: Schiffsfeld trifft keine Dreiecke');
+      // Werkstatt-Hülle der Nischen (WORK_HUELLE), aus der Halle, nicht der Einrichtung
+      const shells = [];
+      for (const H of WORK_HUELLE[h.id] || []) {
+        const sh = await cutHallShell(model, H, new Set([...furn, lift?.group].filter(Boolean)), pause);
+        if (sh) { model.add(sh.group); sh.H = H; shells.push(sh); console.info(`[hangar] Nischenhülle ${H.name}: ${sh.tris} Dreiecke in ${sh.parts} Teilen (Boden ${sh.kinds.boden}, Wand ${sh.kinds.wand}, Decke ${sh.kinds.decke})`); }
+        else console.warn(`[hangar] Nischenhülle ${H.name}: trifft keine Dreiecke`);
+      }
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
       await pause();
@@ -7261,7 +7410,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       if (S) {
         const t7 = performance.now();
         lift.group.position.x = S.field;
-        const sh = await shiftHallFloor(model, S, new Set([lift.group, ...furn]), furn, pause);
+        const sh = await shiftHallFloor(model, S, new Set([lift.group, ...shells.map((q) => q.group), ...furn]), furn, pause);
         if (sh) console.info(`[hangar] Feldmitte: Feld um ${S.field} m, ${sh.moved.map((q, i) => `Streifen ${S.strips[i][0]}..${S.strips[i][1]} um ${S.strips[i][2]} m ${q}`).join(', ')} Dreiecke, ${sh.split} geteilt, ${sh.furniture} Möbel mit; ${Math.round(performance.now() - t7)} ms`);
         else console.warn('[hangar] Feldmitte: Streifen treffen keine Dreiecke');
         await pause();
@@ -7271,6 +7420,13 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         const cr = clearRandFurniture(model, furn, F, HALL_RAND.width, h.room, floorY);
         for (const n of cr.dropped) furn.splice(furn.indexOf(n), 1);
         if (cr.moved.length || cr.dropped.length) console.info(`[hangar] Rand: ${cr.moved.length} Möbel vom Steg gerückt (${cr.moved.join(', ') || '–'}), ${cr.dropped.length} weggelassen (${cr.dropped.map((n) => n.name).join(', ') || '–'})`);
+      }
+      // Möbel der Ausstellungshalle in einer Werkstatt-Hülle (Pflanzkübel) fallen weg
+      for (const sh of shells) {
+        if (sh.H.moebel !== false) continue;
+        const gone = furn.filter((n) => { const [x, y, z] = n.userData.anchor; return x >= sh.H.x[0] && x <= sh.H.x[1] && y >= sh.H.y[0] && y <= sh.H.y[1] && z >= sh.H.z[0] && z <= sh.H.z[1]; });
+        for (const n of gone) { furn.splice(furn.indexOf(n), 1); n.removeFromParent(); }
+        console.info(`[hangar] Nischenhülle ${sh.H.name}: ${gone.length} Möbel der Halle weggelassen (${gone.map((n) => n.name).join(', ') || '–'})`);
       }
       const t1 = performance.now();
       const furniture = await mergeFurniture(model, furn, pause);
@@ -7452,6 +7608,35 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
         const skinned = [...own.values()].filter((c) => c.userData.pad).length;
         if (pad) console.info(`[hangar] Feldboden: ${pad.name} (Kachel ${pad.tile} m) auf ${skinned} Materialien des Felds`);
         else if (work) console.info(`[hangar] Feldboden: Lack${padPick(opts.pad) === 'lack' ? ' (gewählt)' : ' (Spielboden fehlt in der Bodendatei)'}`);
+      }
+      // Werkstatt-Hülle: Boden und Wand mit den Karten des Spielbodens, Decke
+      // dunkler; die Texturkoordinaten bringt cutHallShell mit (kein boxProject)
+      for (const sh of shells) {
+        const own = new Map(), skin = { boden: 0, wand: 0, decke: 0 };
+        for (const part of sh.group.children) {
+          const m = part.material, kind = part.userData.huelle, cfg = sh.H[kind];
+          // ohne den Spielboden (Bodendatei fehlt) bleibt die Halle
+          const src = cfg?.node && work ? workFloorMat(work.scenes[1], cfg.node) : null;
+          if (!seen.has(m) || !src) continue;
+          const key = `${m.uuid}|${kind}`;
+          if (!own.has(key)) {
+            const c = m.clone();
+            c.onBeforeCompile = hallShader(c);
+            c.customProgramCacheKey = hallKey;
+            for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap']) c[k] = src[k] ?? null;
+            c.normalScale.copy(src.normalScale); c.color.copy(src.color).multiplyScalar(cfg.farbe ?? 1);
+            c.roughness = cfg.rau ?? src.roughness; c.metalness = 0; c.envMapIntensity = 0.05;
+            c.userData.gloss = false; c.userData.noTile = !!c.map && !!cfg.streuen;
+            for (const tx of [c.map, c.normalMap]) if (tx) tx.anisotropy = maxAniso;
+            unifyMaps(c);
+            c.userData.huelle = kind;
+            own.set(key, c);
+          }
+          part.material = own.get(key);
+          skin[kind]++;
+        }
+        if (own.size) console.info(`[hangar] Nischenhülle ${sh.H.name}: ${own.size} Materialien (Boden ${skin.boden}, Wand ${skin.wand}, Decke ${skin.decke} Teile)`);
+        else console.warn(`[hangar] Nischenhülle ${sh.H.name}: ${work ? 'Spielboden fehlt in der Bodendatei' : 'ohne Bodendatei'}, die Halle bleibt`);
       }
       // Der Schacht darunter, im Schachtraum (Feldmitte auf dem Boden); seine
       // Materialien wie die der Halle, ohne deren Abdunkelung der weißen

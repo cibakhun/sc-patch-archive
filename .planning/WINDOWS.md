@@ -1434,6 +1434,18 @@ last_updated: 2026-10-23T23:18:00.000Z
     "reason": "",
     "recorded_at": "2026-10-23T23:18:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 111,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Westnische nach Krisz 24.10.2026 zu PR #197: „ja die assets sind da aber aussehen wie eine reparaturstelle oder werkstatt siehts überhaupt nicht aus, die wände nicht, der boden nicht, nichts davon“): Die Raumhülle der Nische selbst ist jetzt eine Werkstatt. Der weiße Hallenboden ist dort Beton mit Gebrauchsspuren, die Wände tragen dunkelgraue Industriepaneele (Nietband, Lochblech, Gitterfeld), die Decke dunklere Paneele; der Rahmen des Nischenmunds bleibt hell wie die Halle. Die weißen Hallenmöbel in der Nische (Bänke, Spinde) sind weg. Am Boden Ölflecken in den Buchten und am Hebebühnenplatz, Reifenspuren in der Einfahrt und eine gestrichelte Warnlinie quer über den Nischenmund (sie erscheint schwarz-weiß, nicht gelb). Das Tor [18] prüft, dass die Hülle Boden, Wand und Decke wirklich trifft. Zu beurteilen: (1) Liest sich die Nische jetzt als Werkstatt (Wände, Boden, Decke)? (2) Ist sie zu dunkel oder zu hell gegen die Halle? (3) Passt die Paneeloptik der Wände, oder lieber eine andere Wandart? (4) Passen Öl- und Reifenspuren, und soll die Warnlinie am Nischenmund gelb sein statt schwarz-weiß? Bilder unter hangar-deko/huelle im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-24T11:30:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
