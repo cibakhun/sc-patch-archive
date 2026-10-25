@@ -590,7 +590,9 @@ klassische effekt haben und spotlight am ende halt“.
 - **Prüfung** verify:hangar-hall [18]: Klinke `KLINKE_WERK.baender` 9; eine
   Reihe ist voll (letzter Punkt von WERK_FLICKER), bevor die übernächste
   kommt; der Spot mindestens 200 ms nach der letzten; Reihen und Spot
-  zusammen höchstens `STUFEN_MAX` 3500 ms (Krisz 21.10.: Tempo vor Effekt).
+  zusammen höchstens `STUFEN_MAX` 3500 ms, gezählt bis der Spot voll brennt
+  (mit dem Anlauf aus `WERK_SPOT_FLICKER`, 650 ms; jetzt 2650 ms; Hinweis
+  aus der Durchsicht von PR #217) (Krisz 21.10.: Tempo vor Effekt).
   Ersetzt die Regel zu `WERK_ROWS_AT`.
 - **Was man sieht**: Die Reihen 1 bis 7 gehen an, während die Kamera durchs
   Tor fährt und unter die Decke blickt, dort liest sich die Folge Leuchte
@@ -612,5 +614,8 @@ Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt
 - Spot 100 ms nach der letzten: „der Spot kommt 100 ms nach der letzten
   Reihe (WERK_STUFEN.spot): Unter 200 ms ginge er mit ihr an, nicht am Ende“
 - abstand 500: „Reihen und Spot brauchen 4500 ms, hoechstens 3500“
+- Spot läuft 2 s an (`WERK_SPOT_FLICKER` letzter Punkt 2000, Stand
+  200/400): „Reihen und Spot brauchen 4000 ms, bis der Spot voll brennt
+  (WERK_STUFEN, WERK_SPOT_FLICKER), hoechstens 3500“
 
 Sauber: „ALLE ZUSICHERUNGEN ERFUELLT“.

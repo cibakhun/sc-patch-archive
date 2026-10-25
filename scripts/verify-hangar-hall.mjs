@@ -290,8 +290,9 @@
         laufen lueckenlos von der Rueckwand bis vors Tor, jedes mit
         Leuchten aus lampen.netze, mindestens KLINKE_WERK.baender Baender,
         die einzeln nacheinander angehen (WERK_STUFEN: jedes voll, bevor
-        das uebernaechste kommt, der Spot spuerbar nach dem letzten, alles
-        in hoechstens STUFEN_MAX ms); die Startansicht (WERK_HOME_DIR) vorn
+        das uebernaechste kommt, der Spot spuerbar nach dem letzten, bis
+        er voll brennt hoechstens STUFEN_MAX ms); die Startansicht
+        (WERK_HOME_DIR) vorn
         mittig, knapp ueber Augenhoehe (Krisz); die Leitungen unter der
         Decke (WERK_DECKE, Krisz: „rohre, kablen etc“) kommen im Satz der
         Seite (Fingerabdruck wie [17]), jedes Stueck aus dem Katalog in der
@@ -611,7 +612,8 @@ const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, by
 // baender: Lampenreihen, die einzeln nacheinander angehen (WERK.reihen),
 // 25.10.2026 9 statt 5 (Krisz: „mehr lampen nacheinander“).
 const KLINKE_WERK = { wand: 740, logo: 8, decke: 225, baender: 9 };
-// Reihen und Spot zusammen hoechstens so lang (ms), ab dem Einschalten
+// Reihen und Spot zusammen hoechstens so lang (ms), vom Einschalten bis der
+// Spot voll brennt (WERK_SPOT_FLICKER mitgezaehlt)
 const STUFEN_MAX = 3500;
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
@@ -2878,7 +2880,8 @@ if (WK) {
   const fin = (...v) => v.every(Number.isFinite), pair2 = (a) => Array.isArray(a) && a.length === 2 && fin(...a) && a[0] < a[1];
   const T = WK.tuer, GA = WK.garage, G = WK.tor, R = WK.raum, F = WK.feld, B = WK.bahn, Lg = WK.logo, Fr = WK.frei, L = WK.lampen, E = 0.01;
   const stufen = (() => { const m = /const WERK_STUFEN = \{ abstand: (\d+), spot: (\d+) \};/.exec(viewer); return m ? { abstand: +m[1], spot: +m[2] } : null; })();
-  const flicker = (() => { const m = /const WERK_FLICKER = (\[[\[\]\d., ]+\]);/.exec(viewer); try { return m ? JSON.parse(m[1]) : null; } catch { return null; } })();
+  const flickerOf = (name) => { const m = new RegExp(`const ${name} = (\\[[\\[\\]\\d., ]+\\]);`).exec(viewer); try { return m ? JSON.parse(m[1]) : null; } catch { return null; } };
+  const flicker = flickerOf('WERK_FLICKER'), spotFlicker = flickerOf('WERK_SPOT_FLICKER');
   // Startansicht der Werkhalle (WERK_HOME_DIR, vom Ziel ueber der Buehne zur Kamera)
   const homeDir = (() => { const m = /const WERK_HOME_DIR = new THREE\.Vector3\(([-\d.]+), ([-\d.]+), ([-\d.]+)\)\.normalize\(\);/.exec(viewer); if (!m) return null; const v = m.slice(1).map(Number), l = Math.hypot(...v); return l > 0 ? v.map((x) => x / l) : null; })();
   const shape = T && fin(T.x, T.b, T.h, T.tief, T.rahmen, T.vor) && GA && typeof GA.id === 'string' && fin(GA.x, GA.vorn) && (GA.s === undefined || (fin(GA.s) && GA.s >= 1 && GA.s <= 1.5)) && G && fin(G.x, G.ms) && R && pair2(R.x) && pair2(R.z) && fin(R.h)
@@ -2954,13 +2957,14 @@ if (WK) {
     // die uebernaechste angeht, der Spot kommt nach dem letzten, und die
     // ganze Folge bleibt kurz (Krisz 21.10.2026: Tempo vor Effekt)
     if (WK.reihen.length < KLINKE_WERK.baender) fail(`[18] WERK.reihen hat ${WK.reihen.length} Baender, die Klinke verlangt ${KLINKE_WERK.baender}: Weniger Lampenreihen gingen nacheinander an (Krisz 25.10.2026). Senken nur per Commit mit Ursache`);
-    if (!stufen || !flicker?.length) fail('[18] WERK_STUFEN { abstand, spot } oder WERK_FLICKER steht nicht mehr im Viewer — umbenannt? Dann dieses Tor mitnehmen');
+    if (!stufen || !flicker?.length || !spotFlicker?.length) fail('[18] WERK_STUFEN { abstand, spot }, WERK_FLICKER oder WERK_SPOT_FLICKER steht nicht mehr im Viewer — umbenannt? Dann dieses Tor mitnehmen');
     else {
-      const voll = flicker.at(-1)[0], folge = (WK.reihen.length - 1) * stufen.abstand + stufen.spot;
+      // bis der Spot voll brennt: letzte Reihe, Pause, Anlauf des Spots
+      const voll = flicker.at(-1)[0], folge = (WK.reihen.length - 1) * stufen.abstand + stufen.spot + spotFlicker.at(-1)[0];
       werkRun.stufen = { abstand: stufen.abstand, voll, folge };
       if (voll > 2 * stufen.abstand) fail(`[18] eine Lampenreihe ist erst nach ${voll} ms voll (WERK_FLICKER), die naechsten kommen alle ${stufen.abstand} ms (WERK_STUFEN.abstand): Mehr als zwei Reihen flackerten zugleich, die Folge verschwaemme wie vor dem 25.10.2026`);
       if (stufen.spot < 200) fail(`[18] der Spot kommt ${stufen.spot} ms nach der letzten Reihe (WERK_STUFEN.spot): Unter 200 ms ginge er mit ihr an, nicht am Ende (Krisz: „spotlight am ende halt“)`);
-      if (folge > STUFEN_MAX) fail(`[18] Reihen und Spot brauchen ${folge} ms, hoechstens ${STUFEN_MAX}: Die Werkhalle ginge schleppend an (Krisz 21.10.2026: Tempo vor Effekt)`);
+      if (folge > STUFEN_MAX) fail(`[18] Reihen und Spot brauchen ${folge} ms, bis der Spot voll brennt (WERK_STUFEN, WERK_SPOT_FLICKER), hoechstens ${STUFEN_MAX}: Die Werkhalle ginge schleppend an (Krisz 21.10.2026: Tempo vor Effekt)`);
     }
     // Krisz, 24.10.2026, mit Bild: Die Fahrt endet vorn mittig, knapp ueber
     // Augenhoehe, mit Blick gerade auf das Fahrzeug und die Rueckwand (vorher
@@ -3190,8 +3194,8 @@ if (WK) {
     }
   }
 }
-sollIst(WK ? `Block fuer die Halle der Seite, Modelle mit Ort werk, Garage der Seite mit Massen in dist/; Masse stimmig (Tunnel bis zur Torebene der Garage, Durchgang mindestens so gross wie ihr Tor, Raum in ihrem Innenraum, Grube samt Rand im flachen Mittelfeld, Buehne in der json und als Knoten in der Buehnendatei der Seite, Startansicht vorn mittig knapp ueber Augenhoehe, mindestens ${KLINKE_WERK.decke} Stuecke unter der Decke aus dem Katalog im Satz der Seite (an der Decke darueber gemessen oder an einem Stueck darueber, ueber der Kamera, frei vom Spot, Laeufe Stueck an Stueck), Logo ueber dem Rahmen, Bahn vor Nische und Feld, Torbahn je Fluegel); Baender lueckenlos von der Rueckwand bis vors Tor, jedes mit Leuchten, mindestens ${KLINKE_WERK.baender}, einzeln nacheinander (jedes voll vor dem uebernaechsten, Spot mindestens 200 ms nach dem letzten, alles in hoechstens ${STUFEN_MAX} ms); Durchgang auf einer Nischenrueckwand, Raum ausserhalb der Halle; je Hallenstufe mindestens ${KLINKE_WERK.wand} Dreiecke Wand im Schnitt und ${KLINKE_WERK.logo} Ecken Logo; 0 Dreiecke der Halle in Tunnel, Anflug und Raum; 0 Dreiecke der Garage vor der Nischenwand; frei nimmt mindestens 1 Moebel; 0 Deko in der Flugschneise (k 1 bis 6)` : (werkRun.fahrzeuge ? 'Block fuer die Modelle mit Ort werk' : 'keine Werkhalle'),
-  WK ? `${werkRun.fahrzeuge} Modelle mit Ort werk; Garage ${werkRun.garage ?? '-'}, Buehne ${werkRun.buehne ?? '-'}, Startansicht ${werkRun.ansicht ?? '-'}, Decke ${werkRun.decke ?? '-'} Stuecke (${werkRun.deckeAn ? `${werkRun.deckeAn.decke} an der Decke, auf ${werkRun.deckeAn.punkte} Punkten gemessen, ${werkRun.deckeAn.stueck} an einem Stueck darueber` : '-'}), Leuchten je Band ${werkRun.baender?.join(', ') ?? '-'} (${werkRun.stufen ? `alle ${werkRun.stufen.abstand} ms, voll nach ${werkRun.stufen.voll} ms, mit Spot ${werkRun.stufen.folge} ms` : '-'}), ${werkRun.garageVor ?? '-'} von ${werkRun.garageTris ?? '-'} Dreiecken vor der Wand; Wand ${werkRun.wand.join(', ') || '-'} Dreiecke, Logo ${werkRun.logo.join(', ') || '-'} Ecken; Tunnel ${werkRun.tunnel}, Anflug ${werkRun.davor}, Raum ${werkRun.raum} Dreiecke von ${werkRun.tris} geprueft; frei nimmt ${werkRun.frei} Moebel (${werkRun.freiNamen.join(', ') || '-'}); Flugschneise: ${werkRun.imWeg.size} Stuecke darin, ${werkRun.schneise} Lagen in ${werkRun.schneiseK} Massstaeben geprueft` : `${werkRun.fahrzeuge} Modelle mit Ort werk`);
+sollIst(WK ? `Block fuer die Halle der Seite, Modelle mit Ort werk, Garage der Seite mit Massen in dist/; Masse stimmig (Tunnel bis zur Torebene der Garage, Durchgang mindestens so gross wie ihr Tor, Raum in ihrem Innenraum, Grube samt Rand im flachen Mittelfeld, Buehne in der json und als Knoten in der Buehnendatei der Seite, Startansicht vorn mittig knapp ueber Augenhoehe, mindestens ${KLINKE_WERK.decke} Stuecke unter der Decke aus dem Katalog im Satz der Seite (an der Decke darueber gemessen oder an einem Stueck darueber, ueber der Kamera, frei vom Spot, Laeufe Stueck an Stueck), Logo ueber dem Rahmen, Bahn vor Nische und Feld, Torbahn je Fluegel); Baender lueckenlos von der Rueckwand bis vors Tor, jedes mit Leuchten, mindestens ${KLINKE_WERK.baender}, einzeln nacheinander (jedes voll vor dem uebernaechsten, Spot mindestens 200 ms nach dem letzten, bis der Spot voll brennt hoechstens ${STUFEN_MAX} ms); Durchgang auf einer Nischenrueckwand, Raum ausserhalb der Halle; je Hallenstufe mindestens ${KLINKE_WERK.wand} Dreiecke Wand im Schnitt und ${KLINKE_WERK.logo} Ecken Logo; 0 Dreiecke der Halle in Tunnel, Anflug und Raum; 0 Dreiecke der Garage vor der Nischenwand; frei nimmt mindestens 1 Moebel; 0 Deko in der Flugschneise (k 1 bis 6)` : (werkRun.fahrzeuge ? 'Block fuer die Modelle mit Ort werk' : 'keine Werkhalle'),
+  WK ? `${werkRun.fahrzeuge} Modelle mit Ort werk; Garage ${werkRun.garage ?? '-'}, Buehne ${werkRun.buehne ?? '-'}, Startansicht ${werkRun.ansicht ?? '-'}, Decke ${werkRun.decke ?? '-'} Stuecke (${werkRun.deckeAn ? `${werkRun.deckeAn.decke} an der Decke, auf ${werkRun.deckeAn.punkte} Punkten gemessen, ${werkRun.deckeAn.stueck} an einem Stueck darueber` : '-'}), Leuchten je Band ${werkRun.baender?.join(', ') ?? '-'} (${werkRun.stufen ? `alle ${werkRun.stufen.abstand} ms, voll nach ${werkRun.stufen.voll} ms, bis der Spot voll brennt ${werkRun.stufen.folge} ms` : '-'}), ${werkRun.garageVor ?? '-'} von ${werkRun.garageTris ?? '-'} Dreiecken vor der Wand; Wand ${werkRun.wand.join(', ') || '-'} Dreiecke, Logo ${werkRun.logo.join(', ') || '-'} Ecken; Tunnel ${werkRun.tunnel}, Anflug ${werkRun.davor}, Raum ${werkRun.raum} Dreiecke von ${werkRun.tris} geprueft; frei nimmt ${werkRun.frei} Moebel (${werkRun.freiNamen.join(', ') || '-'}); Flugschneise: ${werkRun.imWeg.size} Stuecke darin, ${werkRun.schneise} Lagen in ${werkRun.schneiseK} Massstaeben geprueft` : `${werkRun.fahrzeuge} Modelle mit Ort werk`);
 
 say('\n[Selbstauskunft]');
 say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss   Werkhalle: ${werkRun.fahrzeuge} Modelle, Garage ${werkRun.garageTris ?? 0} Dreiecke, Leuchten je Band ${werkRun.baender?.join('/') ?? 0}, Wand ${werkRun.wand.join(', ') || 0} Dreiecke, ${werkRun.tris} Dreiecke geprueft, ${werkRun.schneise} Lagen in der Flugschneise`);
