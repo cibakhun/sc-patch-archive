@@ -110,6 +110,9 @@ export function readDba(buf, boneNames = []) {
   const at = [];
   for (let p = buf.indexOf('#dba'); p >= 0; p = buf.indexOf('#dba', p + 4)) if (buf.readUInt16LE(p + 6) === 0xaa55) at.push(p);
   const names = [...buf.toString('latin1').matchAll(/[\w/.-]+\.caf(?=\0)/gi)].map((m) => m[0]);
+  // Zuordnung nach Lage: Bei ungleicher Zahl verrutschen die Namen. Die Wahl
+  // je Bein prüft den Fuß gegen die Feder (0,6 m), die Lücke soll aber sichtbar sein
+  if (names.length !== at.length) console.warn(`[dba] ${at.length} Blöcke, ${names.length} .caf-Pfade: Namen nach Lage zugeordnet, ab der Lücke unsicher`);
   return at.map((o, i) => ({ name: names[i] ?? null, bones: readBlock(buf, o, boneNames) }));
 }
 

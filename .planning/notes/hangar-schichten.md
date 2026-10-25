@@ -87,7 +87,7 @@ Bei LayerBlend_V2 steht kein Schmutz in den Daten:
 - **Schicht-Dateien:** Sie tragen nur `WearDirtBlendFalloff`, einen gemeinsamen Übergang für Abnutzung und Schmutz, in allen 186 Schicht-.mtl. Werte stehen in `schichten[path].params`.
 - **Shader-Definition:** Sie nennt nur die Maske `%WEAR_DIRT_AO_VERTEX`.
 
-Damit kommt der Schmutz bei LayerBlend aus der Vertexfarbe (Kanal laut Hangar-Werte nicht belegt, vermutlich G) mit einer Farbe, die nicht in den Spieldateien steht (Engine-Vorgabe). Eine Karte oder Farbe für `materials[].dirt` gibt es nicht.
+Damit kommt der Schmutz bei LayerBlend vermutlich aus der Vertexfarbe; der Kanal ist nicht belegt (Hangar-Werte, siehe `hangar-requisiten.md`, vermutlich G), und eine Schmutzfarbe steht nicht in den Spieldateien (vermutlich eine Vorgabe der Engine, ebenfalls nicht belegt). Eine Karte oder Farbe für `materials[].dirt` gibt es nicht.
 
 Eigene Schmutzwerte haben nur andere Shader:
 - GlassPBR und DisplayScreen: `DirtBlendBase`, `DirtBlendFalloff`, `DirtTiling`, `DirtBlendMask` und die Schmutzkarte in TexSlot11 (18 Materialien).
@@ -106,7 +106,7 @@ Für LayerBlend_V2 nicht belegbar.
 
 ### S4. Glatte Normalenkarten
 
-Die Karten sind im Spiel glatt; der Export hat nichts verloren. Volle Stufe (mip 0, 512 px) direkt aus dem Archiv dekodiert:
+Die drei geprüften Karten sind im Spiel glatt; für sie hat der Export nichts verloren. Volle Stufe (mip 0, 512 px) direkt aus dem Archiv dekodiert:
 
 | Karte | R | G | Alpha (Glätte) |
 |---|---|---|---|

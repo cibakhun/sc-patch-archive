@@ -45,7 +45,7 @@
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
@@ -91,7 +91,7 @@ const viewerFile = stage?.viewer ? fromUrl(stage.viewer) : null;
 let gearPlane = null, TILT_MAX = null;
 if (viewerFile && existsSync(viewerFile)) {
   try {
-    const mod = await import(new URL(`file://${viewerFile}`).href);
+    const mod = await import(pathToFileURL(viewerFile).href);
     gearPlane = typeof mod.gearPlane === 'function' ? mod.gearPlane : null;
     TILT_MAX = mod.GEAR_TILT_MAX ?? null;
   } catch (e) { fail(`der Viewer ${stage.viewer} laedt nicht als Modul (${e.message})`); }

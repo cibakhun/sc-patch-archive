@@ -439,7 +439,7 @@ for (const slug of slugs) {
   const metaF = `${RAW}${slug}.json`;
   if (!existsSync(metaF) || !existsSync(`${RAW}${slug}.glb`)) {
     report[slug] = { error: 'kein Rohexport' };
-    manifest.gear[slug] = { pose: 'offen', why: 'kein Rohexport: das Schiff liegt über der Speichergrenze des Exports (24 GB) oder fehlt im Rohbestand', contacts: [], ground: null, tilt: [0, 0] };
+    manifest.gear[slug] ??= { pose: 'offen', why: 'kein Rohexport: das Schiff liegt über der Speichergrenze des Exports (24 GB) oder fehlt im Rohbestand', contacts: [], ground: null, tilt: [0, 0] };
     writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
     console.log(`[${n}/${slugs.length}] ${slug}: kein Rohexport`); continue; }
   const meta = JSON.parse(readFileSync(metaF, 'utf8'));

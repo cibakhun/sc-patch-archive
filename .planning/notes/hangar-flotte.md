@@ -139,6 +139,11 @@ Erledigt am 25.10.2026 (Teil A, B und D sind eingebaut):
   von 2 cm aus dem Plan hielt nicht: Fußplatten und Düsen bis 17 cm
   (Skylark, Hull A und B, Wolf) verdeckt der Rumpf, ein Rückfall auf den
   tiefsten Punkt sähe dort schlechter aus.
+- Rot vorgeführt (24.10.): Polaris aufs Fahrwerk gestellt (Flossen
+  583,8 cm im Boden), Prospector 60 cm tiefer (60,2 cm im Boden), Cyclone
+  50 cm höher (schwebt 50,0 cm), Gladius mit nur zwei Punkten (keine
+  Ebene), Eintrag der Carrack entfernt ([4] und Klinke 126 < 127). Die
+  Meldungen stehen in der Commit-Botschaft von 9af9f27b.
 
 ### Für den nächsten Lauf (vom Tor gefunden)
 

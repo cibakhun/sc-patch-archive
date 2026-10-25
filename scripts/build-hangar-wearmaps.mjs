@@ -31,8 +31,8 @@ for (const [stem, { path }] of maps) {
   if (existsSync(out)) { had++; continue; }
   const png = `${TMP}${stem}.png`;
   const r = spawnSync(STARBREAKER, ['dds', 'decode', `Data/${path.replace(/^data[\\/]/i, '').replace(/\.(tif|png)$/i, '.dds')}`, png, '--mip', '1', '--p4k', P4K], { encoding: 'utf8' });
-  if (r.status !== 0 || !existsSync(png)) { failed.push(`${stem}: ${(r.stderr || r.stdout || '').trim().split('\n').pop()}`); continue; }
-  await sharp(readFileSync(png)).resize(256, 256, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 82, alphaQuality: 90 }).toFile(out);
+  if (r.status !== 0 || !existsSync(png)) { failed.push(`${stem}: ${r.error?.message ?? (r.stderr || r.stdout || '').trim().split('\n').pop()}`); continue; }
+  try { await sharp(readFileSync(png)).resize(256, 256, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 82, alphaQuality: 90 }).toFile(out); } catch (e) { failed.push(`${stem}: ${e.message}`); continue; }
   made++;
 }
 rmSync(TMP, { recursive: true, force: true });

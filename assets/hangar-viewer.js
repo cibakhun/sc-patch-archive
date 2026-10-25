@@ -4599,7 +4599,7 @@ function selectRank(a, r, lo, hi) {
 // abseits des Rumpfs (Exportreste). Ein strenger Quader liesse das Schiff
 // darum über der Plattform schweben; gezählt wird deshalb vom 0,5. bis zum
 // 99,5. Perzentil je Achse. Mit pause in Häppchen (slicer).
-async function robustBox(root, pause = noPause) {
+async function robustBox(root, pause = noPause, unlean = null) {
   // Stichprobe je Teil wie gehabt; sortiert wird in typisierten Feldern ohne
   // Vergleichsfunktion (beim Gladius gut 0,4 s weniger beim Einfahren).
   const parts = [], v = new THREE.Vector3();
@@ -4613,13 +4613,16 @@ async function robustBox(root, pause = noPause) {
   });
   if (!cap) return new THREE.Box3().setFromObject(root);
   const xs = new Float64Array(cap), ys = new Float64Array(cap), zs = new Float64Array(cap);
+  const us = unlean ? new Float64Array(cap) : null;
   let k = 0;
   for (const [n, pos, step] of parts) {
     await pause();
     for (let i = 0; i < pos.count; i += step) {
       if (!(k & 16383)) await pause();
       v.fromBufferAttribute(pos, i).applyMatrix4(n.matrixWorld);
-      xs[k] = v.x; ys[k] = v.y; zs[k] = v.z; k++;
+      xs[k] = v.x; ys[k] = v.y; zs[k] = v.z;
+      if (us) us[k] = v.applyQuaternion(unlean).y;
+      k++;
     }
   }
   // Nur die beiden Ränge, nicht ganz sortiert (selectRank): dieselben Werte,
@@ -4636,7 +4639,10 @@ async function robustBox(root, pause = noPause) {
   const [y0, y1] = q(ys);
   await pause();
   const [z0, z1] = q(zs);
-  return new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
+  const box = new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
+  // Höhenbereich ohne die Neigung auf dem Fahrwerk (Lack im Objektraum, showShip)
+  if (us) { await pause(); box.upright = q(us); }
+  return box;
 }
 
 // Aufstand auf dem Fahrwerk (PC-Lauf „Hangar-Flotte“, Krisz 24.10.2026:
@@ -9569,7 +9575,7 @@ void main() {
     wrap.add(lean);
     const stand = standOn(lean, gearOf(textured ? o.tex : url));
     wrap.updateMatrixWorld(true);
-    const box = await robustBox(wrap, slicer(12, nextTask));
+    const box = await robustBox(wrap, slicer(12, nextTask), stand?.tilt ? lean.quaternion.clone().invert() : null);
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
@@ -9581,7 +9587,7 @@ void main() {
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     // Lack-Uniforms im Objektraum des Modells (Z oben, Meter)
     const u = mat.userData.u;
-    u.uZ.value.set(box.min.y, box.max.y);
+    u.uZ.value.set(...(box.upright ?? [box.min.y, box.max.y]));
     u.uHalfW.value = size.x / 2;
     u.uPanel.value = THREE.MathUtils.clamp(Math.max(size.x, size.z) / 14, 1.2, 9);
     applyPaint(mat, paintFor(makerCode, liveryKey));
