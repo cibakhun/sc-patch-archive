@@ -204,6 +204,51 @@
         "fresh": 1034036
       }
     },
+    "aegs-eclipse": {
+      "url": "/hangar/ships/aegs-eclipse.glb",
+      "v": "dba14d5f",
+      "tris": 203284,
+      "trisRaw": 270703,
+      "textures": 121,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_right": 1,
+        "hardpoint_weapon_left": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 4,
+        "2": 5,
+        "3": 4
+      },
+      "record": "AEGS_Eclipse",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012; landinggear_right: nach landing_gear_extend + landing_gear"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-eclipse.json",
+        "v": "119136c3"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.8
+      },
+      "bytes": 1652868,
+      "pool": {
+        "images": 121,
+        "bytes": 5709206,
+        "fresh": 743860
+      }
+    },
     "aegs-gladius-pir": {
       "url": "/hangar/ships/aegs-gladius-pir.glb",
       "v": "6f4c5331",
@@ -401,6 +446,207 @@
         "images": 132,
         "bytes": 8773070,
         "fresh": 5096750
+      }
+    },
+    "aegs-sabre-comet": {
+      "url": "/hangar/ships/aegs-sabre-comet.glb",
+      "v": "a8d7c958",
+      "tris": 207172,
+      "trisRaw": 279726,
+      "textures": 248,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_right_wing": 1,
+        "hardpoint_weapon_left_wing": 1,
+        "hardpoint_weapon_right_nose": 1,
+        "hardpoint_weapon_left_nose": 1
+      },
+      "swapNodes": 18,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 6
+      },
+      "record": "AEGS_Sabre_Comet",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          -0.001
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-sabre-comet.json",
+        "v": "7c0d5bc2"
+      },
+      "uv": {
+        "rangeBefore": 133,
+        "rangeAfter": 121,
+        "bits": 19,
+        "degenerate": 1.9
+      },
+      "bytes": 2204092,
+      "pool": {
+        "images": 248,
+        "bytes": 10246604,
+        "fresh": 275046
+      }
+    },
+    "aegs-sabre-firebird": {
+      "url": "/hangar/ships/aegs-sabre-firebird.glb",
+      "v": "6b565e90",
+      "tris": 228220,
+      "trisRaw": 283381,
+      "textures": 243,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_left_wing": 1,
+        "hardpoint_weapon_right_wing": 1
+      },
+      "swapNodes": 4,
+      "palette": {
+        "1": 6,
+        "2": 3,
+        "3": 5
+      },
+      "record": "AEGS_Sabre_Firebird",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -1.558,
+          -1.558,
+          0
+        ],
+        "why": "Aufstandspunkte weichen bis 1.558 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-sabre-firebird.json",
+        "v": "caff4bea"
+      },
+      "uv": {
+        "rangeBefore": 747,
+        "rangeAfter": 121,
+        "bits": 19,
+        "degenerate": 0.9
+      },
+      "bytes": 2548340,
+      "pool": {
+        "images": 243,
+        "bytes": 10964248,
+        "fresh": 534916
+      }
+    },
+    "aegs-sabre-peregrine": {
+      "url": "/hangar/ships/aegs-sabre-peregrine.glb",
+      "v": "73c3cfee",
+      "tris": 204565,
+      "trisRaw": 274387,
+      "textures": 202,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 6,
+        "2": 3,
+        "3": 5
+      },
+      "record": "AEGS_Sabre_Peregrine",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -1.559,
+          -1.559,
+          0
+        ],
+        "why": "Aufstandspunkte weichen bis 1.559 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-sabre-peregrine.json",
+        "v": "2e2db176"
+      },
+      "uv": {
+        "rangeBefore": 747,
+        "rangeAfter": 121,
+        "bits": 19,
+        "degenerate": 1.7
+      },
+      "bytes": 2065720,
+      "pool": {
+        "images": 202,
+        "bytes": 9755010,
+        "fresh": 79380
+      }
+    },
+    "aegs-sabre-raven": {
+      "url": "/hangar/ships/aegs-sabre-raven.glb",
+      "v": "cc93745d",
+      "tris": 214828,
+      "trisRaw": 335538,
+      "textures": 243,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_left_wing": 1,
+        "hardpoint_weapon_missilerack_left": 1,
+        "hardpoint_weapon_missilerack_right": 1,
+        "hardpoint_weapon_right_wing": 1
+      },
+      "swapNodes": 12,
+      "palette": {
+        "1": 4,
+        "2": 3,
+        "3": 4
+      },
+      "record": "AEGS_Sabre_Raven",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -1.559,
+          -1.559,
+          0
+        ],
+        "why": "Aufstandspunkte weichen bis 1.559 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-sabre-raven.json",
+        "v": "0e334d11"
+      },
+      "uv": {
+        "rangeBefore": 750,
+        "rangeAfter": 223.99,
+        "bits": 20,
+        "degenerate": 1.6
+      },
+      "bytes": 2317956,
+      "pool": {
+        "images": 243,
+        "bytes": 10183220,
+        "fresh": 330658
       }
     },
     "aegs-sabre": {
@@ -815,6 +1061,58 @@
         "fresh": 297846
       }
     },
+    "anvl-hornet-f7a-mk1": {
+      "url": "/hangar/ships/anvl-hornet-f7a-mk1.glb",
+      "v": "d35769b3",
+      "tris": 212711,
+      "trisRaw": 346209,
+      "textures": 149,
+      "attached": 0,
+      "swap": {
+        "hardpoint_class_4_center": 2,
+        "hardpoint_class_2_right_wing": 1,
+        "hardpoint_class_2_left_wing": 1,
+        "hardpoint_class_4_nose": 2
+      },
+      "swapNodes": 18,
+      "palette": {
+        "1": 10,
+        "2": 6,
+        "3": 2
+      },
+      "record": "ANVL_Hornet_F7A_Mk1",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0.001,
+          0.001
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7a-mk1.json",
+        "v": "894736a6"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.2
+      },
+      "bytes": 2308660,
+      "pool": {
+        "images": 149,
+        "bytes": 7866542,
+        "fresh": 213826
+      }
+    },
     "anvl-hornet-f7a-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk2.glb",
       "v": "d9127d5e",
@@ -915,6 +1213,159 @@
         "images": 161,
         "bytes": 8950396,
         "fresh": 0
+      }
+    },
+    "anvl-hornet-f7c-wildfire": {
+      "url": "/hangar/ships/anvl-hornet-f7c-wildfire.glb",
+      "v": "c01fff53",
+      "tris": 214851,
+      "trisRaw": 193705,
+      "textures": 150,
+      "attached": 0,
+      "swap": {
+        "hardpoint_class_4_center": 1,
+        "hardpoint_class_2_left_wing": 1,
+        "hardpoint_class_2_right_wing": 1
+      },
+      "swapNodes": 16,
+      "palette": {
+        "1": 7,
+        "2": 8,
+        "3": 4
+      },
+      "record": "ANVL_Hornet_F7C_Wildfire",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7c-wildfire.json",
+        "v": "4be10d78"
+      },
+      "uv": {
+        "rangeBefore": 88,
+        "rangeAfter": 88.84,
+        "bits": 19,
+        "degenerate": 1.9
+      },
+      "bytes": 1908340,
+      "pool": {
+        "images": 150,
+        "bytes": 6827916,
+        "fresh": 122376
+      }
+    },
+    "anvl-hornet-f7c": {
+      "url": "/hangar/ships/anvl-hornet-f7c.glb",
+      "v": "84c73543",
+      "tris": 199630,
+      "trisRaw": 203433,
+      "textures": 128,
+      "attached": 0,
+      "swap": {
+        "hardpoint_class_2_left_wing": 1,
+        "hardpoint_class_2_right_wing": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 8,
+        "2": 7,
+        "3": 4
+      },
+      "record": "ANVL_Hornet_F7C",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7c.json",
+        "v": "ebe53a98"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2.2
+      },
+      "bytes": 1754932,
+      "pool": {
+        "images": 128,
+        "bytes": 6761718,
+        "fresh": 0
+      }
+    },
+    "anvl-hornet-f7cm-heartseeker": {
+      "url": "/hangar/ships/anvl-hornet-f7cm-heartseeker.glb",
+      "v": "013c8e8d",
+      "tris": 205820,
+      "trisRaw": 239081,
+      "textures": 161,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_center": 1,
+        "hardpoint_gun_wing_right": 1,
+        "hardpoint_gun_nose": 2,
+        "hardpoint_gun_wing_left": 1
+      },
+      "swapNodes": 12,
+      "palette": {
+        "1": 10,
+        "2": 5,
+        "3": 4
+      },
+      "record": "ANVL_Hornet_F7CM_Heartseeker",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7cm-heartseeker.json",
+        "v": "771fd4c1"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 3.9
+      },
+      "bytes": 2013736,
+      "pool": {
+        "images": 161,
+        "bytes": 6821214,
+        "fresh": 56642
       }
     },
     "anvl-hornet-f7cm-mk2-heartseeker": {
@@ -1020,6 +1471,58 @@
         "fresh": 15866
       }
     },
+    "anvl-hornet-f7cm": {
+      "url": "/hangar/ships/anvl-hornet-f7cm.glb",
+      "v": "25fb80b3",
+      "tris": 212295,
+      "trisRaw": 271164,
+      "textures": 152,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_center": 2,
+        "hardpoint_gun_wing_right": 1,
+        "hardpoint_gun_nose": 2,
+        "hardpoint_gun_wing_left": 1
+      },
+      "swapNodes": 18,
+      "palette": {
+        "1": 7,
+        "2": 7,
+        "3": 5
+      },
+      "record": "ANVL_Hornet_F7CM",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7cm.json",
+        "v": "899a56d3"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 3.5
+      },
+      "bytes": 2123992,
+      "pool": {
+        "images": 152,
+        "bytes": 6731318,
+        "fresh": 85272
+      }
+    },
     "anvl-hornet-f7cr-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cr-mk2.glb",
       "v": "b9899f05",
@@ -1070,6 +1573,56 @@
         "fresh": 8120
       }
     },
+    "anvl-hornet-f7cr": {
+      "url": "/hangar/ships/anvl-hornet-f7cr.glb",
+      "v": "3c798fb9",
+      "tris": 191520,
+      "trisRaw": 197084,
+      "textures": 133,
+      "attached": 0,
+      "swap": {
+        "hardpoint_class_2_left_wing": 1,
+        "hardpoint_class_2_right_wing": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 6,
+        "2": 7,
+        "3": 4
+      },
+      "record": "ANVL_Hornet_F7CR",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7cr.json",
+        "v": "e94c8371"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2.1
+      },
+      "bytes": 1746572,
+      "pool": {
+        "images": 133,
+        "bytes": 6342332,
+        "fresh": 67872
+      }
+    },
     "anvl-hornet-f7cs-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cs-mk2.glb",
       "v": "40d320cf",
@@ -1118,6 +1671,272 @@
         "images": 152,
         "bytes": 8333440,
         "fresh": 2348
+      }
+    },
+    "anvl-hornet-f7cs": {
+      "url": "/hangar/ships/anvl-hornet-f7cs.glb",
+      "v": "5241fd54",
+      "tris": 175787,
+      "trisRaw": 169443,
+      "textures": 128,
+      "attached": 0,
+      "swap": {
+        "hardpoint_class_2_left_wing": 1,
+        "hardpoint_class_2_right_wing": 1
+      },
+      "swapNodes": 12,
+      "palette": {
+        "1": 8,
+        "2": 7,
+        "3": 4
+      },
+      "record": "ANVL_Hornet_F7CS",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hornet-f7cs.json",
+        "v": "a16ea7ae"
+      },
+      "uv": {
+        "rangeBefore": 88,
+        "rangeAfter": 88.84,
+        "bits": 19,
+        "degenerate": 2.3
+      },
+      "bytes": 1620892,
+      "pool": {
+        "images": 128,
+        "bytes": 6267988,
+        "fresh": 0
+      }
+    },
+    "anvl-hurricane": {
+      "url": "/hangar/ships/anvl-hurricane.glb",
+      "v": "9be0c1c2",
+      "tris": 241344,
+      "trisRaw": 424200,
+      "textures": 163,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 4,
+        "hardpoint_gun_nose_left_s4": 1,
+        "hardpoint_gun_nose_right_s4": 1
+      },
+      "swapNodes": 24,
+      "palette": {
+        "1": 8,
+        "2": 4,
+        "3": 4
+      },
+      "record": "ANVL_Hurricane",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-hurricane.json",
+        "v": "e6f98896"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 4.9
+      },
+      "bytes": 2700456,
+      "pool": {
+        "images": 163,
+        "bytes": 7278476,
+        "fresh": 3318
+      }
+    },
+    "anvl-lightning-f8": {
+      "url": "/hangar/ships/anvl-lightning-f8.glb",
+      "v": "953e2c1d",
+      "tris": 213557,
+      "trisRaw": 325847,
+      "textures": 166,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_turret": 2,
+        "hardpoint_weapon_left_nose": 1,
+        "hardpoint_weapon_right_nose": 1,
+        "hardpoint_weapon_right_wing_inner": 1,
+        "hardpoint_weapon_right_wing_outer": 1,
+        "hardpoint_weapon_left_wing_inner": 1,
+        "hardpoint_weapon_left_wing_outer": 1
+      },
+      "swapNodes": 16,
+      "palette": {
+        "1": 2,
+        "2": 5,
+        "3": 5
+      },
+      "record": "ANVL_Lightning_F8",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-lightning-f8.json",
+        "v": "36e4b58c"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.9
+      },
+      "bytes": 2239288,
+      "pool": {
+        "images": 166,
+        "bytes": 8299180,
+        "fresh": 471038
+      }
+    },
+    "anvl-lightning-f8c-exec": {
+      "url": "/hangar/ships/anvl-lightning-f8c-exec.glb",
+      "v": "e866d8d9",
+      "tris": 216912,
+      "trisRaw": 319412,
+      "textures": 161,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_turret": 2,
+        "hardpoint_weapon_left_nose": 1,
+        "hardpoint_weapon_right_nose": 1,
+        "hardpoint_weapon_right_wing_inner": 1,
+        "hardpoint_weapon_right_wing_outer": 1,
+        "hardpoint_weapon_left_wing_inner": 1,
+        "hardpoint_weapon_left_wing_outer": 1
+      },
+      "swapNodes": 44,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 6
+      },
+      "record": "ANVL_Lightning_F8C_Exec",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-lightning-f8c-exec.json",
+        "v": "217a077e"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 2339212,
+      "pool": {
+        "images": 161,
+        "bytes": 6953132,
+        "fresh": 0
+      }
+    },
+    "anvl-lightning-f8c": {
+      "url": "/hangar/ships/anvl-lightning-f8c.glb",
+      "v": "0528e6bb",
+      "tris": 216904,
+      "trisRaw": 319412,
+      "textures": 161,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_turret": 2,
+        "hardpoint_weapon_left_nose": 1,
+        "hardpoint_weapon_right_nose": 1,
+        "hardpoint_weapon_right_wing_inner": 1,
+        "hardpoint_weapon_right_wing_outer": 1,
+        "hardpoint_weapon_left_wing_inner": 1,
+        "hardpoint_weapon_left_wing_outer": 1
+      },
+      "swapNodes": 44,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 5
+      },
+      "record": "ANVL_Lightning_F8C",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-lightning-f8c.json",
+        "v": "2011c275"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 2338060,
+      "pool": {
+        "images": 161,
+        "bytes": 6953132,
+        "fresh": 92452
       }
     },
     "anvl-terrapin-medic": {
@@ -1407,6 +2226,59 @@
         "images": 135,
         "bytes": 6770344,
         "fresh": 1396084
+      }
+    },
+    "banu-defender": {
+      "url": "/hangar/ships/banu-defender.glb",
+      "v": "66017917",
+      "tris": 223878,
+      "trisRaw": 485430,
+      "textures": 145,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_nose_right": 1,
+        "hardpoint_weapon_nose_left": 1,
+        "hardpoint_weapon_wing_right": 1,
+        "hardpoint_weapon_wing_left": 1
+      },
+      "swapNodes": 4,
+      "palette": {
+        "1": 2,
+        "2": 4,
+        "3": 2
+      },
+      "record": "BANU_Defender",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/banu-defender.json",
+        "v": "27a822f3"
+      },
+      "uv": {
+        "rangeBefore": 1158,
+        "rangeAfter": 369.68,
+        "bits": 21,
+        "degenerate": 1.3
+      },
+      "bytes": 2465384,
+      "pool": {
+        "images": 145,
+        "bytes": 6401230,
+        "fresh": 2974794
       }
     },
     "cnou-hoverquad": {
@@ -1757,6 +2629,53 @@
         "fresh": 318972
       }
     },
+    "cnou-nomad": {
+      "url": "/hangar/ships/cnou-nomad.glb",
+      "v": "3984b550",
+      "tris": 207021,
+      "trisRaw": 266848,
+      "textures": 328,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_top_right": 1,
+        "hardpoint_weapon_top_left": 1,
+        "hardpoint_turret": 1,
+        "hardpoint_weapon_bottom": 1
+      },
+      "swapNodes": 32,
+      "palette": {
+        "1": 2,
+        "2": 3,
+        "3": 5
+      },
+      "record": "CNOU_Nomad",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_lg_front_left: keine Animation; hardpoint_lg_front_right: keine Animation; hardpoint_lg_rear_left: keine Animation; hardpoint_lg_rear_right: keine Ani"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/cnou-nomad.json",
+        "v": "20b1f640"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 256.38,
+        "bits": 21,
+        "degenerate": 2.6
+      },
+      "bytes": 2379684,
+      "pool": {
+        "images": 328,
+        "bytes": 12698452,
+        "fresh": 3876124
+      }
+    },
     "crus-intrepid": {
       "url": "/hangar/ships/crus-intrepid.glb",
       "v": "60334827",
@@ -1904,6 +2823,58 @@
         "images": 180,
         "bytes": 10059132,
         "fresh": 716538
+      }
+    },
+    "drak-clipper": {
+      "url": "/hangar/ships/drak-clipper.glb",
+      "v": "07b6d49f",
+      "tris": 496053,
+      "trisRaw": 1360878,
+      "textures": 294,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_right": 1,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_wing_left": 1,
+        "hardpoint_weapon_wing_right": 1
+      },
+      "swapNodes": 14,
+      "palette": {
+        "1": 10,
+        "2": 7,
+        "3": 7
+      },
+      "record": "DRAK_Clipper",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-clipper.json",
+        "v": "b0490ab1"
+      },
+      "uv": {
+        "rangeBefore": 500,
+        "rangeAfter": 291.63,
+        "bits": 21,
+        "degenerate": 1.1
+      },
+      "bytes": 5748660,
+      "pool": {
+        "images": 294,
+        "bytes": 12613134,
+        "fresh": 228546
       }
     },
     "drak-corsair": {
@@ -2359,6 +3330,57 @@
         "fresh": 576748
       }
     },
+    "drak-herald": {
+      "url": "/hangar/ships/drak-herald.glb",
+      "v": "3ca1ec0a",
+      "tris": 214500,
+      "trisRaw": 403502,
+      "textures": 182,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_s02_nose": 1,
+        "hardpoint_weapon_s02_right_wing": 1,
+        "hardpoint_weapon_s02_left_wing": 1
+      },
+      "swapNodes": 9,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 4
+      },
+      "record": "DRAK_Herald",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-herald.json",
+        "v": "bedbdfbc"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2
+      },
+      "bytes": 2361764,
+      "pool": {
+        "images": 182,
+        "bytes": 8921712,
+        "fresh": 476526
+      }
+    },
     "drak-pitbull": {
       "url": "/hangar/ships/drak-pitbull.glb",
       "v": "2b5af602",
@@ -2462,6 +3484,154 @@
         "images": 264,
         "bytes": 10334598,
         "fresh": 1838314
+      }
+    },
+    "espr-talon-shrike": {
+      "url": "/hangar/ships/espr-talon-shrike.glb",
+      "v": "80e3140a",
+      "tris": 260900,
+      "trisRaw": 301395,
+      "textures": 225,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_left": 1,
+        "hardpoint_gun_right": 1
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 4,
+        "2": 6,
+        "3": 4
+      },
+      "record": "ESPR_Talon_Shrike",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/espr-talon-shrike.json",
+        "v": "d313a944"
+      },
+      "uv": {
+        "rangeBefore": 318,
+        "rangeAfter": 316.58,
+        "bits": 21,
+        "degenerate": 1.2
+      },
+      "bytes": 2868696,
+      "pool": {
+        "images": 225,
+        "bytes": 10039280,
+        "fresh": 0
+      }
+    },
+    "espr-talon": {
+      "url": "/hangar/ships/espr-talon.glb",
+      "v": "1b6caf90",
+      "tris": 239696,
+      "trisRaw": 306971,
+      "textures": 231,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_left": 1,
+        "hardpoint_gun_right": 1
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 4,
+        "2": 4,
+        "3": 4
+      },
+      "record": "ESPR_Talon",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/espr-talon.json",
+        "v": "445c542c"
+      },
+      "uv": {
+        "rangeBefore": 318,
+        "rangeAfter": 316.58,
+        "bits": 21,
+        "degenerate": 1.4
+      },
+      "bytes": 2623000,
+      "pool": {
+        "images": 231,
+        "bytes": 10102904,
+        "fresh": 3148158
+      }
+    },
+    "gama-syulen": {
+      "url": "/hangar/ships/gama-syulen.glb",
+      "v": "a16b9807",
+      "tris": 284038,
+      "trisRaw": 512001,
+      "textures": 227,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_bottom": 1,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1
+      },
+      "swapNodes": 12,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 4
+      },
+      "record": "GAMA_Syulen",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_lg_top: nach landing_deploy Fuß bei 15.117, Aufstand 12.253"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/gama-syulen.json",
+        "v": "f002b04a"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 0.9
+      },
+      "bytes": 2968744,
+      "pool": {
+        "images": 227,
+        "bytes": 10193444,
+        "fresh": 3159196
       }
     },
     "glsn-basher": {
@@ -2769,6 +3939,56 @@
         "images": 124,
         "bytes": 4770452,
         "fresh": 215052
+      }
+    },
+    "misc-fortune": {
+      "url": "/hangar/ships/misc-fortune.glb",
+      "v": "c2fb7870",
+      "tris": 320107,
+      "trisRaw": 867196,
+      "textures": 266,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 11,
+        "2": 10,
+        "3": 10
+      },
+      "record": "MISC_Fortune",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0.001,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-fortune.json",
+        "v": "3bd77835"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 4.7
+      },
+      "bytes": 3463468,
+      "pool": {
+        "images": 266,
+        "bytes": 10107310,
+        "fresh": 169464
       }
     },
     "misc-freelancer": {
@@ -3156,6 +4376,369 @@
         "fresh": 404520
       }
     },
+    "misc-reliant-mako": {
+      "url": "/hangar/ships/misc-reliant-mako.glb",
+      "v": "66ed210f",
+      "tris": 207519,
+      "trisRaw": 342398,
+      "textures": 205,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_wing_s1_right": 1,
+        "hardpoint_weapon_wing_s1_left": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 5
+      },
+      "record": "MISC_Reliant_Mako",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          -0.001
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-reliant-mako.json",
+        "v": "98aa962a"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1
+      },
+      "bytes": 2167496,
+      "pool": {
+        "images": 205,
+        "bytes": 8852308,
+        "fresh": 7134
+      }
+    },
+    "misc-reliant-sen": {
+      "url": "/hangar/ships/misc-reliant-sen.glb",
+      "v": "a856b52d",
+      "tris": 209408,
+      "trisRaw": 358216,
+      "textures": 206,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_wing_s1_right": 1,
+        "hardpoint_weapon_wing_s1_left": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 5
+      },
+      "record": "MISC_Reliant_Sen",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          -0.001
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-reliant-sen.json",
+        "v": "0afbdb84"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.1
+      },
+      "bytes": 2210072,
+      "pool": {
+        "images": 206,
+        "bytes": 8944314,
+        "fresh": 41074
+      }
+    },
+    "misc-reliant-tana": {
+      "url": "/hangar/ships/misc-reliant-tana.glb",
+      "v": "a1f670c4",
+      "tris": 215421,
+      "trisRaw": 372314,
+      "textures": 214,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_wing_s1_right": 1,
+        "hardpoint_weapon_wing_tip_s3_right": 1,
+        "hardpoint_weapon_wing_s1_left": 1,
+        "hardpoint_weapon_wing_tip_s3_left": 1
+      },
+      "swapNodes": 16,
+      "palette": {
+        "1": 2,
+        "2": 3,
+        "3": 5
+      },
+      "record": "MISC_Reliant_Tana",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0.007,
+          0,
+          0.013
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-reliant-tana.json",
+        "v": "9d386f2c"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.2
+      },
+      "bytes": 2475432,
+      "pool": {
+        "images": 214,
+        "bytes": 9217866,
+        "fresh": 187272
+      }
+    },
+    "misc-reliant": {
+      "url": "/hangar/ships/misc-reliant.glb",
+      "v": "87550901",
+      "tris": 207711,
+      "trisRaw": 355874,
+      "textures": 221,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_wing_s1_right": 1,
+        "hardpoint_weapon_wing_tip_s3_right": 1,
+        "hardpoint_weapon_wing_s1_left": 1,
+        "hardpoint_weapon_wing_tip_s3_left": 2
+      },
+      "swapNodes": 36,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 5
+      },
+      "record": "MISC_Reliant",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          -0.001
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-reliant.json",
+        "v": "d46ecec3"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1
+      },
+      "bytes": 2247852,
+      "pool": {
+        "images": 221,
+        "bytes": 9070138,
+        "fresh": 473578
+      }
+    },
+    "mrai-guardian-mx": {
+      "url": "/hangar/ships/mrai-guardian-mx.glb",
+      "v": "cfa8fe0d",
+      "tris": 643799,
+      "trisRaw": 1635482,
+      "textures": 271,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_wing_bottom_right": 1,
+        "hardpoint_weapon_wing_top_right": 1,
+        "hardpoint_weapon_wing_top_left": 1,
+        "hardpoint_weapon_wing_bottom_left": 1
+      },
+      "swapNodes": 16,
+      "palette": {
+        "1": 9,
+        "2": 9,
+        "3": 5
+      },
+      "record": "MRAI_Guardian_MX",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          0,
+          -0.949,
+          -0.955
+        ],
+        "why": "Aufstandspunkte weichen bis 0.955 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/mrai-guardian-mx.json",
+        "v": "33c205a0"
+      },
+      "uv": {
+        "rangeBefore": 422,
+        "rangeAfter": 244.69,
+        "bits": 20,
+        "degenerate": 2.3
+      },
+      "bytes": 6978288,
+      "pool": {
+        "images": 271,
+        "bytes": 10651584,
+        "fresh": 511024
+      }
+    },
+    "mrai-guardian-qi": {
+      "url": "/hangar/ships/mrai-guardian-qi.glb",
+      "v": "a163b41f",
+      "tris": 491373,
+      "trisRaw": 1503226,
+      "textures": 279,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_right": 1,
+        "hardpoint_gun_left": 1
+      },
+      "swapNodes": 4,
+      "palette": {
+        "1": 7,
+        "2": 6,
+        "3": 5
+      },
+      "record": "MRAI_Guardian_QI",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          0,
+          -0.755,
+          -0.758
+        ],
+        "why": "Aufstandspunkte weichen bis 0.758 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/mrai-guardian-qi.json",
+        "v": "30d84b53"
+      },
+      "uv": {
+        "rangeBefore": 1242,
+        "rangeAfter": 577.5,
+        "bits": 22,
+        "degenerate": 1.2
+      },
+      "bytes": 5604996,
+      "pool": {
+        "images": 279,
+        "bytes": 11316056,
+        "fresh": 0
+      }
+    },
+    "mrai-guardian": {
+      "url": "/hangar/ships/mrai-guardian.glb",
+      "v": "2a033ba5",
+      "tris": 525726,
+      "trisRaw": 1496710,
+      "textures": 276,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_right": 1,
+        "hardpoint_gun_left": 1
+      },
+      "swapNodes": 4,
+      "palette": {
+        "1": 7,
+        "2": 8,
+        "3": 7
+      },
+      "record": "MRAI_Guardian",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -0.001,
+          -0.754,
+          -0.757
+        ],
+        "why": "Aufstandspunkte weichen bis 0.757 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/mrai-guardian.json",
+        "v": "4dd42641"
+      },
+      "uv": {
+        "rangeBefore": 1242,
+        "rangeAfter": 577.5,
+        "bits": 22,
+        "degenerate": 1.1
+      },
+      "bytes": 6026840,
+      "pool": {
+        "images": 276,
+        "bytes": 11238904,
+        "fresh": 1289848
+      }
+    },
     "mrai-pulse-lx": {
       "url": "/hangar/ships/mrai-pulse-lx.glb",
       "v": "e3233023",
@@ -3437,6 +5020,147 @@
         "images": 147,
         "bytes": 5897334,
         "fresh": 0
+      }
+    },
+    "orig-315p": {
+      "url": "/hangar/ships/orig-315p.glb",
+      "v": "b485bcce",
+      "tris": 200137,
+      "trisRaw": 198374,
+      "textures": 157,
+      "attached": 0,
+      "swap": {
+        "hardpoint_tractor": 1,
+        "hardpoint_weapon_wing_right": 1,
+        "hardpoint_weapon_wing_left": 1
+      },
+      "swapNodes": 44,
+      "palette": {
+        "1": 1,
+        "2": 2,
+        "3": 3
+      },
+      "record": "ORIG_315p",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 97,
+        "rangeAfter": 95.88,
+        "bits": 19,
+        "degenerate": 3
+      },
+      "bytes": 1474876,
+      "pool": {
+        "images": 157,
+        "bytes": 6083168,
+        "fresh": 0
+      }
+    },
+    "orig-325a": {
+      "url": "/hangar/ships/orig-325a.glb",
+      "v": "d7c285db",
+      "tris": 211605,
+      "trisRaw": 195884,
+      "textures": 160,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_nose": 1,
+        "hardpoint_weapon_wing_right": 1,
+        "hardpoint_weapon_wing_left": 1
+      },
+      "swapNodes": 26,
+      "palette": {
+        "1": 1,
+        "2": 3,
+        "3": 5
+      },
+      "record": "ORIG_325a",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 97,
+        "rangeAfter": 95.88,
+        "bits": 19,
+        "degenerate": 2.9
+      },
+      "bytes": 1585604,
+      "pool": {
+        "images": 160,
+        "bytes": 6541040,
+        "fresh": 17642
+      }
+    },
+    "orig-350r": {
+      "url": "/hangar/ships/orig-350r.glb",
+      "v": "36653ac5",
+      "tris": 192949,
+      "trisRaw": 194412,
+      "textures": 117,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_nose": 1,
+        "hardpoint_weapon_wing_right": 1,
+        "hardpoint_weapon_wing_left": 1
+      },
+      "swapNodes": 9,
+      "palette": {
+        "1": 1,
+        "2": 2,
+        "3": 3
+      },
+      "record": "ORIG_350r",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 3.4
+      },
+      "bytes": 1348912,
+      "pool": {
+        "images": 117,
+        "bytes": 5328230,
+        "fresh": 57058
       }
     },
     "orig-400i": {
@@ -4471,6 +6195,53 @@
         "images": 112,
         "bytes": 4792028,
         "fresh": 1898118
+      }
+    },
+    "xnaa-santokyai": {
+      "url": "/hangar/ships/xnaa-santokyai.glb",
+      "v": "0f521743",
+      "tris": 385411,
+      "trisRaw": 663417,
+      "textures": 221,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_top_left": 1,
+        "hardpoint_weapon_top_right": 1,
+        "hardpoint_weapon_bottom_right": 1,
+        "hardpoint_weapon_bottom_left": 1
+      },
+      "swapNodes": 88,
+      "palette": {
+        "1": 4,
+        "2": 4,
+        "3": 6
+      },
+      "record": "XNAA_SanTokYai",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_lg_rear_left: nach xnaa_santokyai_lg_rear_left_deploy Fuß bei 10.617, Aufstand -3.866; hardpoint_lg_rear_right: nach xnaa_santokyai_lg_rear_right_depl"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/xnaa-santokyai.json",
+        "v": "58aff5e1"
+      },
+      "uv": {
+        "rangeBefore": 131,
+        "rangeAfter": 121,
+        "bits": 19,
+        "degenerate": 1.1
+      },
+      "bytes": 3612064,
+      "pool": {
+        "images": 221,
+        "bytes": 11239382,
+        "fresh": 2234722
       }
     }
   },
