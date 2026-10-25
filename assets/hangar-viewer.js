@@ -4867,6 +4867,9 @@ const HOLO_AWAY = [0, 0.5, 1, 1.5, 2.2];  // Weg von der Kamera weg, in Vielfach
 const HOLO_GRID = 64;                // Säulen je Achse für die Oberseite des Rumpfs
 const HOLO_VERTS = 100000;           // so viele Ecken je Bild beim Ablesen der Oberseite
 const HOLO_MS = { on: 700, off: 280 };
+// Steht das Fahrzeug und findet die Tafel so lange keinen Platz, holt die
+// Seite ihren Titelblock zurück (onShow(false)); kürzer flackerte er beim Drehen
+const HOLO_GONE_MS = 600;
 // Oberseite des Rumpfs im Raum der Gruppe: je Säule des Grundrisses der
 // höchste Punkt. Liegt ein Punkt einer Säule im Bild in der Tafel, liegt der
 // höchste darüber (eine senkrechte Linie steigt im Bild), also reichen sie.
@@ -4912,7 +4915,9 @@ function buildHolo(container, reduceMotion) {
   // Seite) und Knöpfe auf der Bühne (rects: { l, t, r, b } in px)
   const safe = { l: HOLO_EDGE, t: HOLO_EDGE, r: HOLO_EDGE, rects: [] };
   // shown: gesetzter Block { id, key, N, max, w, h }; power 0..1
-  let shown = null, power = 0, last = 0, onShow = null, told = false;
+  // told: zuletzt der Seite gemeldet (null: noch nie); gone: seit wann sie
+  // am stehenden Fahrzeug keinen Platz findet
+  let shown = null, power = 0, last = 0, onShow = null, told = null, gone = 0;
   // Oberseite je Rumpf: { G, it, pts }
   let tops = null;
   const disp = { A: new THREE.Vector3(), f: 1, ok: false };
@@ -5127,10 +5132,16 @@ function buildHolo(container, reduceMotion) {
         el.style.transform = `translate(${Math.round(x - shown.w / 2) + jx}px, ${Math.round(y - shown.h)}px) scale(${f.toFixed(3)})`;
         el.style.setProperty('--holo-on', power.toFixed(3));
         el.toggleAttribute('data-run', run);
-        if (!told) { told = true; onShow?.(true); }
       }
       el.hidden = !vis;
-      return power !== was || (power > 0 && power < 1);
+      // Der Seite melden: an, sobald sie steht; aus erst, wenn sie am
+      // stehenden Fahrzeug HOLO_GONE_MS lang keinen Platz findet, nicht im Wechsel
+      if (vis) gone = 0;
+      else if (goal && !at) gone ||= now;
+      else gone = 0;
+      const say = vis ? true : gone && now - gone >= HOLO_GONE_MS ? false : told;
+      if (say !== told) { told = say; onShow?.(say); }
+      return power !== was || (power > 0 && power < 1) || (!!gone && told !== false);
     },
     dispose() { el.remove(); },
   };
@@ -11288,7 +11299,8 @@ void main() {
     setCover(px) { coverTop = Math.max(0, Number(px) || 0); wake(300); },
     // Name als Hologramm über dem Fahrzeug: label(id, { kicker, maker,
     // name, role }) für das Fahrzeug id (show(url, { id, label }) setzt ihn
-    // gleich mit); onHolo(fn): fn(true), sobald es zum ersten Mal erscheint;
+    // gleich mit); onHolo(fn): fn(true), sobald es steht, fn(false), wenn es
+    // am stehenden Fahrzeug keinen Platz findet (dann zeigt die Seite den Namen);
     // setSafe({ l, t, r }): px am Rand der Bühne, die die Oberfläche verdeckt
     label(id, t) { holo.text(id, t); wake(300); },
     onHolo(fn) { holo.onShow = fn; },
