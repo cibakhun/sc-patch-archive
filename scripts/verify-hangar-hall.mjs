@@ -2876,10 +2876,13 @@ if (WK) {
     if (Lg.unten < T.h + T.rahmen) fail(`[18] das Logo rueckt auf ${Lg.unten} m, der Rahmen des Durchgangs reicht bis ${T.h + T.rahmen} m: Es saesse im Rahmen`);
     if (!(B.vor > T.x + B.nische && B.nische > 0 && B.y < T.h && R.x[1] - B.aus > F.x + F.hx + F.rand)) fail('[18] die Bahn der Kamera passt nicht: vor muss vor der Nische liegen (vor > tuer.x + nische), die Hoehe unter dem Durchgang, und der Punkt hinter dem Tor vor dem Feld');
     // Ende der Fahrt hinaus (Krisz 25.10.2026: „einfach durch das tor, dann
-    // leicht nach oben“): auf der Achse im geprueften Anflug (zwischen
-    // Nische und vor, unter der Hoehe des Durchgangs), hoeher als der Weg
-    // durch den Durchgang
-    if (!(B.zurueck[0] > T.x + B.nische && B.zurueck[0] <= B.vor + E && B.zurueck[1] > B.y && B.zurueck[1] < T.h)) fail(`[18] bahn.zurueck (${B.zurueck.join(', ')}) liegt nicht zwischen der Mitte der Nische und dem Ende des Anflugs (x ${T.x + B.nische}..${B.vor}, Hoehe ${B.y}..${T.h} m): Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den Anstieg`);
+    // leicht nach oben“): auf der Achse im geprueften Anflug (vor der
+    // Nische bis vor, unter der Hoehe des Durchgangs), hoeher als der Weg
+    // durch den Durchgang. Vorderkante der Nische: ihre Rueckwand (tuer.x)
+    // plus ihre Tiefe aus WORK_DEKO.nischen (west); ohne Deko ihre Mitte
+    const wn = Array.isArray(dekoBlock?.nischen) ? dekoBlock.nischen.find((n) => n?.name === 'west' && Array.isArray(n.x) && n.x.length === 2 && n.x.every(Number.isFinite)) : null;
+    const nVorn = wn ? T.x + (wn.x[1] - wn.x[0]) : T.x + B.nische;
+    if (!(B.zurueck[0] > nVorn && B.zurueck[0] <= B.vor + E && B.zurueck[1] > B.y && B.zurueck[1] < T.h)) fail(`[18] bahn.zurueck (${B.zurueck.join(', ')}) liegt nicht vor der Nische im Anflug (x ${+nVorn.toFixed(2)}..${B.vor}, Hoehe ${B.y}..${T.h} m${wn ? '' : ', ohne WORK_DEKO.nischen ab ihrer Mitte'}): Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den Anstieg`);
     if (!(GD.gate.nodes?.length && GD.gate.motion?.open?.t?.length > 1 && GD.gate.nodes.every((n) => GD.gate.motion.open.dy?.[n]?.length === GD.gate.motion.open.t.length && GD.gate.motion.close?.dy?.[n]?.length === GD.gate.motion.close.t?.length))) fail('[18] das Tor der Garage hat keine Bahn je Fluegel (gate.motion open und close): Es bliebe zu');
     // Licht von hinten nach vorn: Baender in Garage-z fallend und lueckenlos, jedes mit Leuchten unter der Decke
     const bandOk = WK.reihen.every(([, z1], i) => !i || Math.abs(z1 - WK.reihen[i - 1][0]) < E) && WK.reihen[0][1] >= gi0.z[1] - E && WK.reihen.at(-1)[0] <= toGz(R.x[1]) + E;

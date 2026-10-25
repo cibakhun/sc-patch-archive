@@ -480,10 +480,13 @@ Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt:
 - `werkBlende` umbenannt: „das Tor der Garage ist mal 1.2 groesser als der
   Durchgang, der Viewer baut keine Blende (werkBlende): Von innen saehe man
   neben und ueber dem Durchgang hinter die Nischenwand“
-- `bahn.zurueck` [-60, 5]: „bahn.zurueck (-60, 5) liegt nicht zwischen der
-  Mitte der Nische und dem Ende des Anflugs (x -44..-26, Hoehe 2.4..6.55 m):
-  Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den
-  Anstieg“
+- `bahn.zurueck` [-60, 5], [-40, 5] und [-36,5, 5]: „bahn.zurueck (-40, 5)
+  liegt nicht vor der Nische im Anflug (x -36.1..-26, Hoehe 2.4..6.55 m): Die
+  Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den
+  Anstieg“. Die Vorderkante der Nische kommt aus ihrer Tiefe in
+  `WORK_DEKO.nischen` (west, 14,9 m) ab der Rückwand `tuer.x`; zuerst prüfte
+  die Regel nur ab der Mitte (x −44), ein Ende in der vorderen Hälfte der
+  Nische ging durch (Hinweis aus dem Review)
 - `bahn.zurueck` [-26, 1]: dieselbe Meldung (kein Anstieg)
 - `garage.s` 1,05: „der Durchgang samt Rahmen (16.90 x 6.85 m) passt nicht
   ins offene Tor der Garage mal 1.05 (16.85 x 6.19 m frei)“, dazu raum,
