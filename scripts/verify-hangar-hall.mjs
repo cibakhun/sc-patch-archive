@@ -2879,7 +2879,7 @@ if (WK) {
     // leicht nach oben“): auf der Achse im geprueften Anflug (zwischen
     // Nische und vor, unter der Hoehe des Durchgangs), hoeher als der Weg
     // durch den Durchgang
-    if (!(B.zurueck[0] > T.x + B.nische && B.zurueck[0] <= B.vor + E && B.zurueck[1] > B.y && B.zurueck[1] < T.h)) fail(`[18] bahn.zurueck (${B.zurueck.join(', ')}) liegt nicht vor der Nische im Anflug (x ${T.x + B.nische}..${B.vor}, Hoehe ${B.y}..${T.h} m): Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den Anstieg`);
+    if (!(B.zurueck[0] > T.x + B.nische && B.zurueck[0] <= B.vor + E && B.zurueck[1] > B.y && B.zurueck[1] < T.h)) fail(`[18] bahn.zurueck (${B.zurueck.join(', ')}) liegt nicht zwischen der Mitte der Nische und dem Ende des Anflugs (x ${T.x + B.nische}..${B.vor}, Hoehe ${B.y}..${T.h} m): Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den Anstieg`);
     if (!(GD.gate.nodes?.length && GD.gate.motion?.open?.t?.length > 1 && GD.gate.nodes.every((n) => GD.gate.motion.open.dy?.[n]?.length === GD.gate.motion.open.t.length && GD.gate.motion.close?.dy?.[n]?.length === GD.gate.motion.close.t?.length))) fail('[18] das Tor der Garage hat keine Bahn je Fluegel (gate.motion open und close): Es bliebe zu');
     // Licht von hinten nach vorn: Baender in Garage-z fallend und lueckenlos, jedes mit Leuchten unter der Decke
     const bandOk = WK.reihen.every(([, z1], i) => !i || Math.abs(z1 - WK.reihen[i - 1][0]) < E) && WK.reihen[0][1] >= gi0.z[1] - E && WK.reihen.at(-1)[0] <= toGz(R.x[1]) + E;

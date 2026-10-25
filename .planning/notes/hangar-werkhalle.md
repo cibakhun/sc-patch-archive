@@ -430,12 +430,14 @@ Krisz am Morgen, drei Nachrichten:
 > dragonfly undso gehört auch zur bodenfahrzeugen
 
 Das Bild zur ersten Nachricht kam nicht an. Gelesen als: geradeaus durch
-Tor und Nische, danach leicht hinauf, Ende kurz vor der Nische mit Blick
-zum Schiff, statt quer durch die Halle zu deren Startansicht.
+das Tor, danach leicht hinauf, Ende in der Halle 10 m vor der Nische mit
+Blick zum Schiff, statt quer durch die Halle zu deren Startansicht.
 
 - **Rückfahrt** (`WERK.bahn.zurueck` [-26, 5,0]): werkPath('out') hält die
   Höhe, auf der die Kamera in der Werkhalle steht (höchstens 55 % des
-  Durchgangs), bis zur Nische und steigt erst davor bis zum Endpunkt. Der
+  Durchgangs), durch den Durchgang bis zur Mitte der Westnische (x −44,
+  `bahn.nische` 7 m vor ihrer Rückwand; sie reicht von x −51 bis −36) und
+  steigt von dort bis zum Endpunkt in der Halle, 10 m vor der Nische. Der
   liegt auf der Achse im Anflug, den Tor [18] von Hallengeometrie und
   [17] von Deko frei hält (x bis `bahn.vor`, unter `tuer.h`). Tor und
   Aufzug laufen wie vorher (Warten am Tor, Schiff kommt mit der Kamera
@@ -478,9 +480,10 @@ Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt:
 - `werkBlende` umbenannt: „das Tor der Garage ist mal 1.2 groesser als der
   Durchgang, der Viewer baut keine Blende (werkBlende): Von innen saehe man
   neben und ueber dem Durchgang hinter die Nischenwand“
-- `bahn.zurueck` [-60, 5]: „bahn.zurueck (-60, 5) liegt nicht vor der Nische
-  im Anflug (x -44..-26, Hoehe 2.4..6.55 m): Die Fahrt hinaus endete in der
-  Nische, in ungeprueftem Raum oder ohne den Anstieg“
+- `bahn.zurueck` [-60, 5]: „bahn.zurueck (-60, 5) liegt nicht zwischen der
+  Mitte der Nische und dem Ende des Anflugs (x -44..-26, Hoehe 2.4..6.55 m):
+  Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den
+  Anstieg“
 - `bahn.zurueck` [-26, 1]: dieselbe Meldung (kein Anstieg)
 - `garage.s` 1,05: „der Durchgang samt Rahmen (16.90 x 6.85 m) passt nicht
   ins offene Tor der Garage mal 1.05 (16.85 x 6.19 m frei)“, dazu raum,

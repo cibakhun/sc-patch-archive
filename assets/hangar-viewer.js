@@ -10066,10 +10066,10 @@ void main() {
   }
   // Hinaus: Die Halle richtet sich verborgen für das Schiff ein, es steht
   // unten unter geschlossenem Tor. Die Kamera fliegt aus der Werkhalle
-  // gerade durch den Durchgang zurück und steigt vor der Nische leicht bis
-  // WERK.bahn.zurueck, mit Blick zum Schiff; das kommt mit ihr oben an
-  // (liftUp, so spät angesetzt). Dann schließt das Tor, und die Werkhalle
-  // geht aus.
+  // gerade durch den Durchgang zurück, steigt ab der Mitte der Nische
+  // leicht und endet 10 m vor ihr bei WERK.bahn.zurueck, mit Blick zum
+  // Schiff; das kommt mit ihr oben an (liftUp, so spät angesetzt). Dann
+  // schließt das Tor, und die Werkhalle geht aus.
   async function werkOut(ship, s) {
     const W = realHall.werk, veh = current;
     werkDropParked();
