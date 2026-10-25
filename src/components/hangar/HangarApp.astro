@@ -30,7 +30,7 @@ const de = lang === 'de';
 const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
 // Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
-type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number; gear?: boolean };
+type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number; gear?: boolean; pool?: { images: number; bytes: number; fresh: number } };
 type Gear = { pose: 'aus' | 'ein' | 'keins' | 'offen'; contacts?: number[][]; ground?: number; below?: { depth: number }[] };
 const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }>; geo?: Record<string, Asset>; gear?: Record<string, Gear> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
@@ -175,12 +175,19 @@ const gear = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
   return s ? [...(geo[id] ? [[geo[id].url, s]] : []), ...(tex?.gear === true && !HOLD[id] ? [[tex.url, s]] : [])] : [];
 }));
 
+// Bilder des Werkslacks liegen in der gemeinsamen Ablage /hangar/tex/
+// (scripts/lib/glb-texpool.mjs); ihre Summe je Datei zählt der Ladebalken mit.
+const texBytes = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const t = real.ships?.[id];
+  return t?.pool?.bytes && !HOLD[id] ? [[t.url, t.pool.bytes]] : [];
+}));
+
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
 // `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
 // "</script>" darf ihn nicht beenden.
 const stage = {
   viewer: viewerSrc,
-  opts: { hall, crew, gear },
+  opts: { hall, crew, gear, texBytes },
   models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
     withV(geo[id] ?? meshes[id]),
     real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
