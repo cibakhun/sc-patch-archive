@@ -211,12 +211,19 @@ if (want('ships')) {
         try { sb(['entity', 'export', rec, glb, ...SHIP_ARGS, '--no-interior', '--mem-cap', SHIP_MEM_CAP], limits); }
         catch (e2) {
           console.error(`  ! ${slug}: ${e2.message.split(' | ').at(-1)} — dritter Versuch mit mip 2`);
-          sb(['entity', 'export', rec, glb, ...SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' ? '2' : a)), '--no-interior', '--mem-cap', SHIP_MEM_CAP], limits);
+          try { sb(['entity', 'export', rec, glb, ...SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' ? '2' : a)), '--no-interior', '--mem-cap', SHIP_MEM_CAP], limits); }
+          catch (e3) {
+            // Idris, Ironclad, Perseus: auch das sprengt die Grenze; dann die
+            // gröbere Stufe (LOD 2), die Außenhaut reicht für den Hangar
+            console.error(`  ! ${slug}: ${e3.message.split(' | ').at(-1)} — vierter Versuch mit LOD 2`);
+            sb(['entity', 'export', rec, glb, ...SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' ? '2' : all[i - 1] === '--lod' ? '2' : a)), '--no-interior', '--mem-cap', SHIP_MEM_CAP], limits);
+            info.lod = 2;
+          }
           info.mip = 2;
         }
       }
       const before = new Set(existsSync(`${SHIP_DEC}Packages`) ? readdirSync(`${SHIP_DEC}Packages`) : []);
-      const decArgs = info.mip ? SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' ? String(info.mip) : a)) : SHIP_ARGS;
+      const decArgs = SHIP_ARGS.map((a, i, all) => (all[i - 1] === '--mip' && info.mip ? String(info.mip) : all[i - 1] === '--lod' && info.lod ? String(info.lod) : a));
       sb(['entity', 'export', rec, SHIP_DEC.replace(/\/$/, ''), '--kind', 'decomposed', ...decArgs, '--skip-existing-assets', ...(info.interior ? [] : ['--no-interior']), '--mem-cap', SHIP_MEM_CAP], limits);
       // Das Paket heißt nach dem Record (Unterstriche als Leerzeichen); gibt es
       // den Namen nicht, das neu angelegte

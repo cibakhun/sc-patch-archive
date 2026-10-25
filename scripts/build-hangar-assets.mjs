@@ -35,6 +35,9 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
+import { initGear, poseShip } from './lib/landing-gear.mjs';
+import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openDataCore } from './lib/datacore.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -609,13 +612,60 @@ const DROP_MAT = /headlight_glow|_flare|lens_?flare|light_?(beam|cone|shaft)|RTT
 // trägt den Innenraum (extract-hangar-sources.mjs): jeder Container ist ein
 // Knoten interior_* unter der Wurzel, die Außenhaut hängt daneben.
 const KEEP_INTERIOR = new Set(['aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk2', 'aegs-avenger-titan', 'orig-300i', 'aegs-sabre']);
-function dropInterior(doc, slug) {
+// Hangar-Alle (.planning/notes/hangar-alle-schiffe.md): der Innenraum bleibt
+// auch, wenn Rumpf und Innenraum roh höchstens das 1,5-fache des
+// Dreiecksbudgets haben (dann kostet die Dezimierung den Rumpf kaum etwas);
+// HANGAR_SHIP_NO_INTERIOR=1 nimmt ihn immer (erste Stufe gegen die 16 MB)
+function dropInterior(doc, slug, rawTris = Infinity, budgetTris = 0) {
   if (KEEP_INTERIOR.has(slug)) return 0;
+  if (!process.env.HANGAR_SHIP_NO_INTERIOR && rawTris <= 1.5 * budgetTris) return 0;
   let dropped = 0;
   for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
     for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) { c.traverse((n) => n.setMesh(null)); top.removeChild(c); dropped++; }
   }
   return dropped;
+}
+
+// Budget je Schiff: 200 000 Dreiecke, ab 60 m Länge 400 000; Farbe/Leuchten
+// 1024 px, übrige Karten 512 px. HANGAR_SHIP_TEX / HANGAR_SHIP_Q verkleinern
+// Farbkarten und WebP-Qualität (Stufen gegen die 16 MB je Schiff).
+const SHIP_LEN = new Map(JSON.parse(readFileSync(new URL('../src/data/vehicles.json', import.meta.url), 'utf8')).vehicles.map((v) => [v.id, v.lengthM ?? 0]));
+function shipBudget(slug) {
+  const tex = Number(process.env.HANGAR_SHIP_TEX || BUDGET.ships.tex);
+  return { ...BUDGET.ships, tris: (SHIP_LEN.get(slug) ?? 0) >= 60 ? 400000 : BUDGET.ships.tris, tex, ntex: Math.min(BUDGET.ships.ntex, tex), q: process.env.HANGAR_SHIP_Q ? Number(process.env.HANGAR_SHIP_Q) : null };
+}
+
+// Fahrwerk: dieselbe Pose wie die Geometrie-Fassung (scripts/lib/landing-gear.mjs),
+// auf den Rohexport vor allem Weiteren
+let gearReady = false;
+function shipGear(doc, slug) {
+  const rec = shipSource(slug).record;
+  if (!rec) return null;
+  if (!gearReady) { const p = openP4k(DEFAULT_P4K); initGear(p, openDataCore(p.read(/^Data[\\/]Game2\.dcb$/i))); gearReady = true; }
+  return poseShip(doc, rec);
+}
+// Prüfung an der geschriebenen Webdatei: je Aufstandspunkt die tiefste Ecke im
+// Umkreis von 0,6 m (x/z); gear: true, wenn alle auf 2 cm stimmen
+function gearCheck(written, gear) {
+  if (!gear) return { ok: false, why: 'kein Fahrwerkseintrag' };
+  if (gear.pose !== 'aus') return { ok: false, why: `Fahrwerk ${gear.pose}${gear.why ? `: ${gear.why.slice(0, 160)}` : ''}` };
+  if (gear.contacts.length < 3) return { ok: false, why: `nur ${gear.contacts.length} Aufstandspunkte` };
+  const low = gear.contacts.map(() => Infinity), e = [0, 0, 0];
+  for (const n of written.getRoot().listNodes()) {
+    const m = n.getMesh(); if (!m) continue;
+    const W = n.getWorldMatrix();
+    for (const p of m.listPrimitives()) {
+      const a = p.getAttribute('POSITION'); if (!a) continue;
+      for (let i = 0; i < a.getCount(); i++) {
+        a.getElement(i, e);
+        const x = W[0] * e[0] + W[4] * e[1] + W[8] * e[2] + W[12], y = W[1] * e[0] + W[5] * e[1] + W[9] * e[2] + W[13], z = W[2] * e[0] + W[6] * e[1] + W[10] * e[2] + W[14];
+        gear.contacts.forEach((c, k) => { if (y < low[k] && Math.hypot(x - c[0], z - c[2]) <= 0.6) low[k] = y; });
+      }
+    }
+  }
+  const dev = low.map((y, k) => Math.round((y - gear.contacts[k][1]) * 1000) / 1000);
+  const worst = Math.max(...dev.map((d) => (Number.isFinite(d) ? Math.abs(d) : Infinity)));
+  return { ok: worst <= 0.02, dev, ...(worst > 0.02 ? { why: `Aufstandspunkte weichen bis ${Number.isFinite(worst) ? worst.toFixed(3) : '∞'} m ab` } : {}) };
 }
 
 // Herkunft des Rohexports (Sidecar des Extraktors): welcher Record, welcher
@@ -1390,7 +1440,10 @@ async function buildOne(kind, name, inPath) {
   const lite = isLite(kind, name);
   const lights = kind === 'hall' && !lite ? hallLights(doc, name) : werkRoom ? hallLights(doc, name, { kind, fixtures: werkNodes.fixtures }) : null;
   if (lite) for (const n of root.listNodes()) if (n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)) n.setMesh(null);
-  const interior = kind === 'ships' ? dropInterior(doc, name) : 0;
+  // Schiffe: Fahrwerk ausfahren und einfedern, solange die Knoten noch einzeln sind
+  const gearPose = kind === 'ships' ? shipGear(doc, name) : null;
+  const b = kind === 'ships' ? shipBudget(name) : BUDGET[kind];
+  const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : 0;
   dropJunk(doc);
   let matfix = null, cover = null;
   if (kind === 'hall' || kind === 'lift' || werk) {
@@ -1421,12 +1474,14 @@ async function buildOne(kind, name, inPath) {
   // Die Halle nie: Ihre Bausatzteile sind große ebene Flächen mit Öffnungen;
   // in der Ebene kostet ein Kantenkollaps keinen Fehler, und der Vereinfacher
   // zieht Ränder über Öffnungen und reißt Wände auf (scripts/lib/hall-hull.mjs).
-  const b = BUDGET[kind];
-  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01] : kind === 'hall' || kind === 'lift' || werk ? [] : [0.004, 0.01, 0.02, 0.04];
+  // HANGAR_SHIP_ERR=1: letzte Stufe gegen die 16 MB (Polaris: 1,7 Mio. Dreiecke
+  // Rumpf schon ohne Innenraum), Schwelle bis 4 % und Ränder frei; das Ergebnis wird angesehen
+  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01, ...(process.env.HANGAR_SHIP_ERR ? [0.02, 0.04, 0.08] : [])] :kind === 'hall' || kind === 'lift' || werk ? [] : [0.004, 0.01, 0.02, 0.04];
   for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
-    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: kind === 'ships' }));
+    // ab 2 % auch die Ränder frei: mit festen Rändern blieb die Polaris bei 1,7 Mio.
+    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: kind === 'ships' && error < 0.02 }));
   }
   // Halle: Normalen mit Kantenwinkel neu, sonst helle Keile an jeder Fuge
   // (siehe scripts/lib/crease-normals.mjs).
@@ -1459,8 +1514,8 @@ async function buildOne(kind, name, inPath) {
   // Farbe/Leuchten bis b.tex, alles übrige (Normalen, Masken) bis b.ntex
   await doc.transform(
     prune(),
-    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: 82 }),
-    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: 80 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(baseColor|emissive)/, resize: [b.tex, b.tex], quality: b.q ?? 82 }),
+    textureCompress({ encoder: sharp, targetFormat: 'webp', slots: /^(?!baseColor|emissive)/, resize: [b.ntex, b.ntex], quality: b.q ?? 80 }),
     draco({
       method: 'edgebreaker', quantizeNormal: 10, quantizeTexcoord: uvBits,
       // dichte Kopie: ein Raster für die ganze Halle, 18 Bit (≈ 0,7 mm)
@@ -1479,6 +1534,7 @@ async function buildOne(kind, name, inPath) {
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
+  const gearTest = kind === 'ships' ? gearCheck(written, gearPose) : null;
   const palette = kind === 'ships' ? { 1: 0, 2: 0, 3: 0 } : null;
   if (palette) for (const m of written.getRoot().listMaterials()) { const t = m.getExtras()?.palette_tint; if (t in palette) palette[t]++; }
   const paints = plan ? writePaints(name, plan, new Set(written.getRoot().listMaterials().map((m) => m.getName()))) : null;
@@ -1513,6 +1569,7 @@ async function buildOne(kind, name, inPath) {
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(kind === 'ships' ? shipSource(name, interior) : {}),
+    ...(gearTest ? { ...(gearTest.ok ? { gear: true } : {}), gearCheck: gearTest, budget: { tris: b.tris, tex: b.tex, ...(b.q ? { q: b.q } : {}) } } : {}),
     ...(paints ? { paints: { url: paints.url, v: paints.v } } : {}),
     ...(paints ? { paintReport: paints } : {}),
     ...(crease ? { crease: { corners: crease.corners, changedPct: Math.round(crease.changed / Math.max(1, crease.corners) * 1000) / 10 } } : {}),
