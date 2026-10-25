@@ -716,19 +716,26 @@ export function boot(doc) {
     paintFilterTog();
   }
 
-  // Rolle, Hersteller und Sortierung liegen hinter "Filter"; die Zahl am
-  // Knopf nennt, wie viele davon gerade vom Normalfall abweichen.
+  // Die Rolle steht als Reiter offen in der Zeile; Hersteller und Sortierung
+  // liegen hinter "Filter", die Zahl am Knopf nennt, wie viele davon gerade
+  // vom Normalfall abweichen.
   const filterTog = $('hgx-filtertog');
   const filterBox = $('hgx-filters');
+  const roleBtns = [...doc.querySelectorAll('#hgx-roles [data-role]')];
   function paintFilterTog() {
-    const n = (state.type ? 1 : 0) + (state.maker ? 1 : 0) + (state.sort !== 'name' ? 1 : 0);
+    const n = (state.maker ? 1 : 0) + (state.sort !== 'name' ? 1 : 0);
     $('hgx-filtern').hidden = n === 0;
     $('hgx-filtern').textContent = String(n);
+    for (const b of roleBtns) b.setAttribute('aria-pressed', String(b.dataset.role === state.type));
   }
+  for (const b of roleBtns) b.addEventListener('click', () => {
+    setState({ type: b.dataset.role });
+    b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  });
   filterTog.addEventListener('click', () => {
     filterBox.hidden = !filterBox.hidden;
     filterTog.setAttribute('aria-expanded', String(!filterBox.hidden));
-    if (!filterBox.hidden) $('hg-type').focus({ preventScroll: true });
+    if (!filterBox.hidden) $('hg-maker-f').focus({ preventScroll: true });
   });
 
   function paintRandom() {
@@ -765,6 +772,46 @@ export function boot(doc) {
     e.preventDefault();
     select(a.dataset.id, { scroll: false });
   });
+  // Ein Mausrad rollt senkrecht, die Leiste laeuft waagerecht: das Rad
+  // schiebt sie, und mit der Maus laesst sie sich ziehen. Am Rand gibt das
+  // Rad an die Seite weiter. Nach einem Zug waehlt das Loslassen kein Schiff.
+  const sideways = (el) => el.addEventListener('wheel', (e) => {
+    if (e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+    const max = el.scrollWidth - el.clientWidth;
+    if (max <= 1 || (e.deltaY < 0 && el.scrollLeft <= 0) || (e.deltaY > 0 && el.scrollLeft >= max - 1)) return;
+    e.preventDefault();
+    el.scrollBy({ left: e.deltaY * (e.deltaMode === 1 ? 40 : 1) * 1.5, behavior: reduce ? 'auto' : 'smooth' });
+  }, { passive: false });
+  sideways(strip);
+  sideways($('hgx-roles'));
+  let drag = null;
+  let dragged = false;
+  strip.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button === 0) drag = { x: e.clientX, left: strip.scrollLeft, id: e.pointerId, moved: false };
+  });
+  strip.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x;
+    if (!drag.moved) {
+      if (Math.abs(dx) < 6) return;
+      drag.moved = true;
+      strip.setPointerCapture(e.pointerId);
+      strip.classList.add('is-drag');
+    }
+    strip.scrollLeft = drag.left - dx;
+  });
+  const endDrag = () => {
+    if (drag?.moved) {
+      strip.classList.remove('is-drag');
+      dragged = true;
+      setTimeout(() => { dragged = false; }, 0);
+    }
+    drag = null;
+  };
+  strip.addEventListener('pointerup', endDrag);
+  strip.addEventListener('pointercancel', endDrag);
+  strip.addEventListener('click', (e) => { if (dragged) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  strip.addEventListener('dragstart', (e) => e.preventDefault());
   $('hg-prev').addEventListener('click', () => step(-1));
   $('hg-next').addEventListener('click', () => step(1));
   $('hg-q').addEventListener('input', () => setState({ q: $('hg-q').value }));
@@ -1138,7 +1185,9 @@ export function boot(doc) {
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
     // blendet nur aus, was ihm gehoert.
     bar.style.setProperty('--p', '0%');
-    const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 180);
+    // Nur ein leiser Balken ohne Wort, und erst wenn das Laden spuerbar
+    // dauert: ein schneller Wechsel zeigt gar nichts.
+    const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 1200);
     viewer.show(glb, { maker, tex, ort, id, label: labelOf(id) })
       .then(() => {
         if (my !== showTok) return;
