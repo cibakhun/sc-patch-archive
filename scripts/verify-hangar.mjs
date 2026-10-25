@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   SECHZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   SIEBZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -113,6 +113,13 @@
         Klinke: KLINKE_TON Klaenge. Seit 21.10.2026 (flotter Takt, Klaenge
         geschnitten): Der Anschlag beider Torklaenge (SND_HIT) liegt
         hoechstens TOR_TAKT_LUFT neben dem Ende der Bahn (HALL_GATE.ms).
+    17  Bildablage der Schiffe (seit 25.10.2026, Krisz: alle Schiffe mit
+        echten Texturen). Die Schiffs-GLBs in dist/hangar/ships tragen kein
+        Bild mehr eingebettet, jeder Verweis ../tex/<inhalt>.<endung> liegt
+        in dist/hangar/tex, und jeder Dateiname dort ist sha256 seines
+        Inhalts (16 Zeichen; die URL steht ein Jahr im Cache). Deckel fuer
+        GLB und Ablage zusammen und je Datei, Klinke: Schiffe mit Ablage.
+        Verwaiste Bilder: WARNUNG (Ballast, kein Schaden).
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -138,6 +145,13 @@
      o  in dist/hangar.html data-off des Ton-Schalters entfernen    -> [16]
      p  dist/hangar/ton/tor-zu.mp3 loeschen                         -> [16]
      q  in dist/assets/hangar-viewer.js HALL_GATE.ms auf 15000        -> [16]
+     r  dist/hangar/tex/00027238071d0638.webp loeschen               -> [17]
+        (fehlt fuer rsi-constellation-andromeda.glb)
+     s  dist/hangar/ships/orig-300i.glb durch die Fassung mit
+        eingebetteten Bildern ersetzen                              -> [17]
+        (147 Bilder eingebettet, und Klinke 9 < 10)
+     t  ein Bild der Ablage mit dem Inhalt eines anderen
+        ueberschreiben                                              -> [17]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -856,8 +870,72 @@ say('\n[16] Bildlook, Ausgabe und Ton: Einhaengepunkte in three.js, Naht zu Cont
   }
 }
 
+say('\n[17] Bildablage der Schiffe: jeder Verweis liegt in dist/, Name = Inhalt, kein Bild mehr eingebettet, Groessen');
+// Seit 25.10.2026 tragen die Schiffs-GLBs ihre Bilder nicht mehr selbst,
+// sondern verweisen auf /hangar/tex/<inhalt>.webp (scripts/lib/glb-texpool.mjs,
+// .planning/notes/hangar-alle-schiffe.md): ein Bild, das viele Schiffe nutzen,
+// liegt einmal da. Fehlt eine Datei, bleibt das Material ohne Karte, und das
+// sieht nur, wer genau dieses Schiff waehlt. Klinke: Schiffe mit Bildablage
+// (Start 10, waechst mit jedem Lauf des PCs). Deckel: zusammen BILDER.gesamtMB
+// fuer GLB und Ablage (Repo und Auslieferungs-Image), je Datei BILDER.dateiMB
+// (GitHub warnt ab 50 MB und lehnt ab 100 MB ab).
+const BILDER = { schiffe: 10, gesamtMB: 1600, dateiMB: 50 };
+{
+  const shipDir = join(DIST, 'hangar', 'ships'), texDir = join(DIST, 'hangar', 'tex');
+  const NAME = /^\.\.\/tex\/([0-9a-f]{16})\.(webp|png|jpg|ktx2)$/;
+  const glbs = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).sort() : [];
+  const used = new Map();   // Datei -> Zahl der Schiffe
+  let refs = 0, embedded = 0, pooledShips = 0, glbBytes = 0, big = [];
+  const missing = new Set(), foreign = [];
+  for (const f of glbs) {
+    const buf = readFileSync(join(shipDir, f));
+    glbBytes += buf.length;
+    if (buf.length > BILDER.dateiMB * 1048576) big.push(`${f} ${(buf.length / 1048576).toFixed(1)} MB`);
+    const len = buf.readUInt32LE(12);
+    const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
+    const mine = new Set();
+    let emb = 0;
+    for (const img of gltf.images ?? []) {
+      if (img.bufferView !== undefined) { emb++; continue; }
+      const m = NAME.exec(img.uri ?? '');
+      if (!m) { foreign.push(`${f}: ${String(img.uri).slice(0, 60)}`); continue; }
+      refs++;
+      const file = img.uri.slice('../tex/'.length);
+      mine.add(file);
+      if (!existsSync(join(texDir, file))) missing.add(`${f} -> ${file}`);
+    }
+    for (const x of mine) used.set(x, (used.get(x) ?? 0) + 1);
+    embedded += emb;
+    if (emb) fail(`[17] ${f}: ${emb} Bilder noch eingebettet: node scripts/pool-hangar-textures.mjs (verlustfrei) oder neu bauen (scripts/build-hangar-assets.mjs legt sie selbst ab)`);
+    if (mine.size && !emb) pooledShips++;
+  }
+  const files = existsSync(texDir) ? readdirSync(texDir) : [];
+  let poolBytes = 0;
+  const wrongName = [], orphans = [];
+  for (const f of files) {
+    const b = readFileSync(join(texDir, f));
+    poolBytes += b.length;
+    if (b.length > BILDER.dateiMB * 1048576) big.push(`tex/${f} ${(b.length / 1048576).toFixed(1)} MB`);
+    if (createHash('sha256').update(b).digest('hex').slice(0, 16) !== f.replace(/\.\w+$/, '')) wrongName.push(f);
+    if (!used.has(f)) orphans.push(f);
+  }
+  const shared = [...used.values()].filter((n) => n > 1).length;
+  const totalMB = (glbBytes + poolBytes) / 1048576;
+  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einem Schiff)   eingebettet: ${embedded}`);
+  say(`    GLB ${(glbBytes / 1048576).toFixed(1)} MB + Ablage ${files.length} Dateien ${(poolBytes / 1048576).toFixed(1)} MB = ${totalMB.toFixed(1)} MB`);
+  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
+  sollIst(`Schiffe mit Bildablage >= ${BILDER.schiffe}, jeder Verweis da und Name = sha256 des Inhalts, zusammen <= ${BILDER.gesamtMB} MB, je Datei <= ${BILDER.dateiMB} MB`, `${pooledShips}, ${missing.size} fehlen, ${wrongName.length} falsch benannt, ${totalMB.toFixed(1)} MB, ${big.length} zu gross`);
+  for (const x of [...missing].slice(0, 10)) fail(`[17] ${x} fehlt in dist/hangar/tex: das Material bleibt ohne diese Karte (Ablage nicht mit eingecheckt oder vom Bau zu frueh entfernt?)`);
+  for (const x of wrongName.slice(0, 10)) fail(`[17] dist/hangar/tex/${x}: Name ist nicht der Inhalt (sha256, 16 Zeichen); die URL ist ein Jahr im Cache, ein geaenderter Inhalt unter altem Namen erreicht niemanden`);
+  for (const x of foreign.slice(0, 10)) fail(`[17] ${x}: Bild mit URI ausserhalb der Ablage (../tex/<inhalt>.<endung>)`);
+  for (const x of big.slice(0, 10)) fail(`[17] ${x} ueber ${BILDER.dateiMB} MB: GitHub lehnt ab 100 MB ab; Karten verkleinern oder Schiff teilen`);
+  if (totalMB > BILDER.gesamtMB) fail(`[17] Schiffe mit Ablage zusammen ${totalMB.toFixed(1)} MB ueber dem Deckel von ${BILDER.gesamtMB} MB (Repo und Image): Karten grosser Schiffe kleiner oder Innenraum weg, Budget in .planning/notes/hangar-alle-schiffe.md`);
+  if (pooledShips < BILDER.schiffe) fail(`[17] nur ${pooledShips} Schiffe mit Bildablage (Klinke ${BILDER.schiffe}): fehlt dist/hangar/tex oder ein Schiff traegt seine Bilder wieder selbst?`);
+  ist.bildSchiffe = pooledShips; ist.bildDateien = files.length; ist.bildMB = Math.round(totalMB);
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

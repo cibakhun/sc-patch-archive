@@ -35,7 +35,11 @@
 // { ground }; das Schiff steht dann darauf statt auf dem tiefsten Punkt
 // seines Hüllquaders (standOn).
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, sound?: false }) -> Promise<{
+// BILDER: Schiffe im Werkslack holen ihre Bilder aus der gemeinsamen Ablage
+// /hangar/tex/ (embeddedImages); opts.texBytes nennt je Modelldatei (Pfad
+// ohne ?v=) ihre Summe, damit der Ladebalken sie mitzählt.
+//
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
@@ -236,18 +240,30 @@ const nextTask = () => new Promise((r) => setTimeout(r, 0));
 // des Hauptfadens, Optionen wie ImageBitmapLoader), eins nach dem anderen
 // über alle Dateien; nach `ms` Rechenzeit ist der Browser dran. Bilder mit
 // URI und Browser ohne ImageBitmap gehen den Weg des Loaders.
-function embeddedImages(ms) {
+// Seit 25.10.2026 liegen die Bilder der Schiffe in einer gemeinsamen Ablage
+// (images[].uri ../tex/<inhalt>.webp, scripts/lib/glb-texpool.mjs). Die holt
+// fetch gleich los, dekodiert wird in derselben Reihe; jedes fertige Bild
+// meldet seine Bytes an tally(parser) (Fortschritt des Ladebalkens).
+const pooledImage = (def) => def.bufferView === undefined && typeof def.uri === 'string' && !/^(data|blob):/.test(def.uri);
+function embeddedImages(ms, tally = () => null) {
   const pause = slicer(ms, nextTask);
   let turn = Promise.resolve();
   return (parser) => {
     const load = parser.loadImageSource.bind(parser);
+    const count = tally(parser);
     parser.loadImageSource = (i, loader) => {
       const def = parser.json.images[i];
-      if (parser.sourceCache[i] !== undefined || def.bufferView === undefined || !loader.isImageBitmapLoader) return load(i, loader);
+      const pooled = pooledImage(def);
+      if (parser.sourceCache[i] !== undefined || (def.bufferView === undefined && !pooled) || !loader.isImageBitmapLoader) return load(i, loader);
+      const url = pooled ? THREE.LoaderUtils.resolveURL(def.uri, parser.options.path) : null;
+      const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
+        if (!r.ok) throw new Error(`${r.status} ${url}`);
+        return r.blob();
+      }).then((b) => { count?.(b.size); return b; }) : null;
       const go = (turn = turn.then(pause));
       const p = go
-        .then(() => parser.getDependency('bufferView', def.bufferView))
-        .then((view) => createImageBitmap(new Blob([view], { type: def.mimeType }), { ...loader.options, colorSpaceConversion: 'none' }))
+        .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
+        .then((blob) => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' }))
         .then((bitmap) => {
           const t = new THREE.Texture(bitmap);
           t.needsUpdate = true;
@@ -255,6 +271,7 @@ function embeddedImages(ms) {
           t.userData.mimeType = def.mimeType;
           return t;
         });
+      if (pooled) p.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
       parser.sourceCache[i] = p;
       return p;
     };
@@ -6088,7 +6105,8 @@ export async function initHangar(container, opts = {}) {
   }
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
-  const loader = new GLTFLoader().setDRACOLoader(draco).register(embeddedImages(8));
+  // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
+  const loader = new GLTFLoader().setDRACOLoader(draco).register(embeddedImages(8, (parser) => shipTex.count(parser)));
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   // Höchstens 16 Texturen je Bildshader: so viele erlaubt Chrome unter
@@ -6139,6 +6157,28 @@ export async function initHangar(container, opts = {}) {
     for (const [l, t] of prog.values()) { a += l; b += t; }
     progressFn(b ? Math.min(90, Math.round((a / b) * 90)) : 0);
   }
+  // Bilder des Werkslacks aus der gemeinsamen Ablage: ihre Summe kennt die
+  // Seite (opts.texBytes je Datei, Pfad ohne ?v=), der Balken zählt sie von
+  // Anfang an mit. start() vor dem Laden, count() je GLB mit Ablage-Bildern.
+  const shipTex = {
+    my: null,
+    start(url, my) {
+      const total = opts.texBytes?.[url.split('?')[0]];
+      this.my = Number.isFinite(total) && total > 0 ? my : null;
+      if (this.my !== null) prog.set('ship-tex', [0, total]);
+    },
+    count(parser) {
+      if (this.my === null || !(parser.json.images ?? []).some(pooledImage)) return null;
+      const my = this.my;
+      let got = 0;
+      return (n) => {
+        got += n;
+        if (my !== token) return;
+        const t = prog.get('ship-tex');
+        if (t) { prog.set('ship-tex', [Math.min(got, t[1]), t[1]]); report(); }
+      };
+    },
+  };
   // my: Marke des show(), das lädt. Ein überholtes show() lädt zu Ende,
   // meldet aber keinen Fortschritt mehr: der Balken gehört dem gewählten Schiff.
   const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => new Promise((resolve, reject) => {
@@ -9871,7 +9911,7 @@ void main() {
     if (s.textured) wearPaint(current, liveryKey !== 'werk');
     if (flags.werk) werkVeh = current;
     camFree = null; freeDirty = !flags.werk;
-    prog.delete('ship');
+    prog.delete('ship'); prog.delete('ship-tex');
     reveal();
     if (progressFn) progressFn(100);
   }
@@ -10069,7 +10109,7 @@ void main() {
   async function showShip(url, o) {
     const my = ++token;
     makerCode = o.maker || '';
-    prog.delete('ship');
+    prog.delete('ship'); prog.delete('ship-tex');
     // Eine Fahrt zwischen Halle und Werkhalle fährt zu Ende, dann der nächste Wechsel
     while (trip) await trip.done;
     if (my !== token) return;
@@ -10087,7 +10127,8 @@ void main() {
     // Echter Lack, wenn es ihn gibt; scheitert er, die Geometrie-Fassung.
     let gltf = null, textured = false;
     if (o.tex) {
-      try { gltf = await fetchGltf(o.tex, 'ship', 9e6, my); textured = true; } catch { gltf = null; }
+      shipTex.start(o.tex, my);
+      try { gltf = await fetchGltf(o.tex, 'ship', 9e6, my); textured = true; } catch { gltf = null; prog.delete('ship-tex'); }
       if (my !== token) { if (gltf) disposeObject(gltf.scene); return; }
     }
     // Kommt gar kein Modell, fährt das alte wieder herauf
@@ -10232,7 +10273,7 @@ void main() {
     });
     current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null, lift: up, dim: dimOf(mats), clear };
     if (textured) wearPaint(current, liveryKey !== 'werk');
-    prog.delete('ship');
+    prog.delete('ship'); prog.delete('ship-tex');
     reveal();
     if (progressFn) progressFn(100);
   }

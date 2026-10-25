@@ -24,6 +24,12 @@
    Lauf, der die Halle nicht erreicht, nicht gruen aussieht.
 
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
+     node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
+       (ein anderes Schiff als das erste der Liste; seit 25.10.2026 tragen
+       alle Schiffe ihre echten Materialien, .planning/notes/hangar-alle-schiffe.md)
+     … --shot schiff.png   Aufnahme der Halle am Ende (zum Hinsehen)
+   Dazu FEHLER, wenn ein Bild des Schiffs nicht laedt (Bildablage
+   /hangar/tex/, Meldung des Viewers oder von GLTFLoader).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
    ============================================================ */
 import { existsSync } from 'node:fs';
@@ -32,6 +38,9 @@ import { chromium } from 'playwright-core';
 const argv = process.argv.slice(2);
 const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
 const BASE = flag('--base', process.env.SMOKE_BASE || 'http://localhost:4321').replace(/\/$/, '');
+const SHIP = flag('--ship', null);
+const SHOT = flag('--shot', null);
+if (SHIP && !/^[a-z0-9][a-z0-9-]{0,63}$/.test(SHIP)) { console.error(`\n--ship ${SHIP}: keine Schiffskennung\n`); process.exit(2); }
 const GRENZE = 16;
 // Gemessen 21.10.2026 auf hoch mit der Gladius: 73 Programme, 2 mit
 // Schichttafel (Halle und Grube). Klinken nur nach oben.
@@ -85,7 +94,7 @@ function vorSeite() {
   };
 }
 
-console.log(`\n=== Bildshader des Hangars gegen ${BASE} ===`);
+console.log(`\n=== Bildshader des Hangars gegen ${BASE}${SHIP ? ` (Schiff ${SHIP})` : ''} ===`);
 console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   Grenze: ${GRENZE} Texturen je Bildshader\n`);
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -97,10 +106,12 @@ page.on('console', (m) => {
   if (t.startsWith('[hangar] Hallendeko:')) deko = t;
   if (t.startsWith('[hangar] Texturen je Bildshader:')) viewer = t;
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
+  if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
 });
+const bildFehler = [];
 const fehler = [];
 try {
-  await page.goto(`${BASE}/hangar.html?grafik=hoch`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(`${BASE}/hangar.html?grafik=hoch${SHIP ? `&ship=${SHIP}` : ''}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
   const t0 = Date.now();
   while (!deko && Date.now() - t0 < WARTE_MS) {
     if (await page.evaluate(() => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
@@ -112,6 +123,7 @@ try {
   fehler.push(`Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
 }
 const progs = await page.evaluate(() => window.__texProgramme ?? []).catch(() => []);
+if (SHOT) await page.screenshot({ path: SHOT }).catch((e) => fehler.push(`Aufnahme ${SHOT}: ${e.message.split('\n')[0]}`));
 await browser.close();
 
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
@@ -124,6 +136,8 @@ console.log(`  Viewer meldet: ${viewer ? viewer.slice(9) : '—'}`);
 for (const p of ueber) fehler.push(`${p.name} braucht ${p.n} Texturen, Grenze ${GRENZE}: unter Windows unsichtbar`);
 for (const p of kaputt) fehler.push(p.zaehlung ? `Zaehlung eines Programms fehlgeschlagen (${p.zaehlung}): ungeprueft` : `${p.name} linkt nicht`);
 for (const s of shaderFehler) fehler.push(s);
+for (const b of bildFehler.slice(0, 10)) fehler.push(b);
+if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
 if (deko && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');

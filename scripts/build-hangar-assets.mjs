@@ -10,6 +10,8 @@
 //   .cache/hangar-src/weapons/<datei>.glb    entity export einer Bordwaffe (+ .json)
 // Ausgabe:
 //   public/hangar/{ships,weapons,hall,npc}/<name>.glb   dezimiert, Draco, WebP-Texturen
+//   public/hangar/tex/<inhalt>.webp             Bilder der Schiffe, schiffsübergreifend einmal
+//                                               (scripts/lib/glb-texpool.mjs)
 //   src/data/hangar-assets.json                 Manifest (url, v, tris, bytes)
 //
 // Rohe Spieldateien werden NIE eingecheckt — nur diese Ausgabe.
@@ -32,6 +34,7 @@ import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-is
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
+import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import sharp from 'sharp';
 import { readdirSync, existsSync, mkdirSync, statSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -638,6 +641,12 @@ function shipSource(slug, interiorDropped) {
 // ids: Lackierungen aus src/data/ship-paints.json mit diesem Tag (Kennungen der
 // Werkstatt, hangar-layouts.json); Varianten ohne Lack-Item tragen keine.
 const PAINT_DEC = new URL('ships-dec/', SRC);
+// Gemeinsame Ablage der Schiffsbilder (scripts/lib/glb-texpool.mjs); der
+// Verweis im GLB ist relativ, ships/<slug>.glb -> ../tex/<inhalt>.webp
+const SHIP_POOL = { poolDir: fileURLToPath(new URL('tex/', OUT)), uriPrefix: '../tex/' };
+// Selbstauskunft je Schiff: Bilder, ihre Bytes (geteilte voll gezählt) und
+// was dieses Schiff neu in die Ablage gebracht hat
+const poolShare = (r) => ({ images: r.images.length, bytes: r.images.reduce((a, i) => a + i.bytes, 0), fresh: r.images.filter((i) => i.fresh).reduce((a, i) => a + i.bytes, 0) });
 const PAINT_TEX = 512;
 const SHIP_PAINTS = JSON.parse(readFileSync(new URL('../src/data/ship-paints.json', import.meta.url), 'utf8')).ships;
 const linHex = (c) => '#' + c.slice(0, 3).map((v) => { const s = v <= 0.0031308 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055; return Math.round(Math.max(0, Math.min(1, s)) * 255).toString(16).padStart(2, '0'); }).join('');
@@ -1465,6 +1474,8 @@ async function buildOne(kind, name, inPath) {
   mkdirSync(new URL(`${kind}/`, OUT), { recursive: true });
   const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
   await io.write(outPath, doc);
+  // Schiffe: Bilder in die gemeinsame Ablage, im GLB nur der Verweis
+  const pooled = kind === 'ships' ? poolGlbFile(outPath, SHIP_POOL) : null;
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
@@ -1511,6 +1522,7 @@ async function buildOne(kind, name, inPath) {
     ...(werk ? { materials: written.getRoot().listMaterials().length, nodes: werkNodes.counts } : {}),
     ...(werkJson ? { json: `/hangar/werkhalle/${name}.json`, lightsUrl: `/hangar/werkhalle/${name}.lights.json`, buehne: `/hangar/werkhalle/${name}-buehne.glb`, room: werkJson.summary } : {}),
     bytes: statSync(outPath).size,
+    ...(pooled ? { pool: poolShare(pooled) } : {}),
   };
 }
 
@@ -2607,7 +2619,7 @@ for (const kind of Object.keys(BUDGET)) {
       const r = await buildOne(kind, name, inPath);
       if (kind === 'hall') r.room = HALL_ROOM[name.replace(/-lod1$/, '')] ?? null;
       manifest[slot][name] = r; built++;
-      console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB`);
+      console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB${r.pool ? ` + ${r.pool.images} Bilder ${(r.pool.bytes / 1048576).toFixed(2)} MB (neu in der Ablage ${(r.pool.fresh / 1048576).toFixed(2)} MB)` : ''}`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
       if (r.swap) console.log(`    Tauschteile: ${Object.keys(r.swap).length} Waffen-Ports (${Object.values(r.swap).reduce((a, b) => a + b, 0)} Exemplare, ${r.swapNodes} Knoten)${Object.keys(r.swap).length ? '' : ' — WARNUNG: keine Serienwaffe im Rohexport gefunden'}`);
       if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
@@ -2663,6 +2675,11 @@ if (existsSync(new URL('ships/', SRC)) && existsSync(`${PAINT_DIR}tex`)) {
   const stale = readdirSync(`${PAINT_DIR}tex`).filter((f) => !used.has(f));
   for (const f of stale) rmSync(`${PAINT_DIR}tex/${f}`);
   console.log(`  Lackkarten: ${used.size} in Gebrauch, ${stale.length} verwaiste entfernt`);
+}
+// Schiffsbilder, auf die kein Schiff mehr zeigt, ebenso nur dort entfernen
+if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships')) {
+  const r = prunePool(SHIP_POOL.poolDir, [fileURLToPath(new URL('ships/', OUT))], SHIP_POOL.uriPrefix);
+  console.log(`  Schiffsbilder: ${r.used} in Gebrauch, ${r.removed.length} verwaiste entfernt`);
 }
 // Werkstatt: eigene Quelle (zwei Stufen eines Hangars), nur bei Bedarf neu
 if ((!ONLY || ONLY === 'werkstatt') && !KIND) {
