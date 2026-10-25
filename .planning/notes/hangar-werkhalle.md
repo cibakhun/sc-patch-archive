@@ -494,3 +494,68 @@ Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt:
 - `garage.s` 1,8: Formfehler „garage {id, x, vorn, s (1 bis 1,5)}“
 
 Sauber: „ALLE ZUSICHERUNGEN ERFUELLT“.
+
+## Decke wie Dumper's Depot, Hintergrund eine Spur heller (Krisz, 25.10.2026 12:33)
+
+Krisz mit Bild der Cyclone in der Werkhalle: „so dass der hintergrund so
+dunkel ist ist an sich gut, es könnte minimal heller sein, wir müssen aber
+mehr decken assets machen, kabeln, röhre, geräte sowas halt damit es wie so
+sagen wir mal bei dumbers depot aussieht yk“.
+
+- **Hintergrund**: `WERK_WAND` ab 0,15 → 0,2, rest 0,07 → 0,1. Vier Stufen
+  nebeneinander (a 0,07/0,15, b 0,09/0,15, c 0,1/0,2, d dazu mehr
+  Grundlicht); c gewählt, die linke Wand im Startbild im Mittel 8,1 → 9,7
+  (0–255), etwa 20 % heller, Bühne und Spot unverändert.
+- **Deckenprofil** (senkrechte Strahlen je 0,5 m gegen die Garage):
+  Mittelplatte x −86,5..−55,5, z ±8 bei 9,34 m; Seitenstreifen z ±9,5..12
+  bei 8,25 m; Rinnen z ±12,75 bei 9,6 m; Bucht hinten x −91,5..−93 bei
+  10,04 m. Kamera höchstens 7,3 m, also Unterkante jedes Stücks ab 7,6 m.
+- **Was nicht trägt**: Stücke in der hinteren Bucht und in den Rinnen sieht
+  man von keinem Kamerapunkt (Träger bei x −88 und die Seitenstreifen davor),
+  sie sind wieder raus. Unbeleuchtete Geräte an den dunklen Wänden lesen sich
+  nicht. `heater_large_1_b` trägt ein Material „screen“, das mit dem
+  Lichtband als große weiße Fläche leuchtet: stattdessen 1_c und 1_d.
+- **Was trägt**: Leuchtende Stücke. Deshalb Lampenreihen, die mit ihrem
+  Lichtband (hgWkGlow nach x) von hinten nach vorn angehen; das macht auch
+  das Einschalten deutlicher.
+- **Lagen je Seite** (225 statt 86 Stücke, gebaut mit einem Planer gegen das
+  gemessene Profil):
+  - Luftrohr z ±7,2 mit 4 Leuchtbalken `light_hung_4_box_a` und 4
+    Heizstäben `heater_hanging_1_a` darunter;
+  - Lüftungskanal z ±5,6 mit 16 Hängeleuchten (`light_hung_1/2` im
+    Wechsel, alle 2 m, nicht über den Stößen) und 3 Auslässen zur Mitte;
+  - Wartungsschlauch jetzt z ±6,4, daneben kurze Kabelgirlanden
+    (`cables_a_04x01x01_b`, z ±6,42 und ±2,58);
+  - zweiter Kabelzug `cable_hanging_h` z ±2,85 mit Dosen;
+  - Kettenzüge z ±4,6; Plattenheizer `heater_large_1_c/1_d` z ±3,45
+    zwischen den Leuchtfeldern;
+  - in der Mitte je ein Kabelzug vor und hinter dem Spot mit Dosen;
+  - quer vor der Rückwand zwei Rohrbündel (x −89,5 und −90,4);
+  - an Rück- und Seitenwänden Heizer und Schaltkästen (`relay_electrical_2/3`).
+  Dreiecke im Raum der Werkhalle 359 800 → 557 300, je Material eine
+  Geometrie (107 statt 76 Materialien der Halle samt Decke).
+- **Prüfung** verify:hangar-hall [18]: misst jetzt die Decke der Garage in
+  dist/ über der Achse jedes Stücks (Raster je 1 m, Punkte je ≤ 0,5 m). Ein
+  Stück berührt sie auf 0,1 m und steckt auf höchstens einem Viertel der
+  Punkte tiefer darin, oder es hängt an einem Stück darüber (Oberkante an
+  dessen Unterkante, Mitte unter ihm). Vorher galt nur die Spanne der
+  Deckenhöhen; ein Stück hätte unter der Platte schweben oder ganz im
+  Seitenstreifen stecken können. Klinke `KLINKE_WERK.decke` 86 → 225.
+  Selbstauskunft: „Decke 225 Stuecke (177 an der Decke, auf 1607 Punkten
+  gemessen, 48 an einem Stueck darueber)“.
+
+### Gegenproben [18] Deckenmessung (25.10.2026)
+
+Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt:
+
+- Hängeleuchte bei x −81,5 von z 5,6 (unter dem Kanal) nach z 4,0: „1
+  Stuecke falsch (prop_decke_light_hung_2_lamp_a bei x -81.50 z 4.00
+  (Oberkante 8.179 m) beruehrt die Decke darueber nirgends (schwebt) und
+  haengt an keinem Stueck)“
+- Rohrbündel z 11,3 Oberkante 8,3 → 9,3 (in den Seitenstreifen): Der erste
+  Lauf meldete das als „schwebt“, weil die Regel erst auf Berührung und dann
+  aufs Stecken prüfte; umgestellt. Danach: „8 Stuecke falsch
+  (prop_wand_roomsm_addon_pipe_bottom_a bei x -84.50 z 11.30 (Oberkante 9.3
+  m) steckt auf 9 von 9 Punkten seiner Achse ueber 0,1 m in der Decke; …)“
+
+Sauber: „ALLE ZUSICHERUNGEN ERFUELLT“.

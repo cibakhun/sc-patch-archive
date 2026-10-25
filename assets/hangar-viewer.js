@@ -5474,8 +5474,10 @@ const WERK_LIGHT = {
 // Bühne, Fahrzeug und Spot bleiben, wie sie sind: Die Fahrzeuge (werkLit,
 // HG_WK_FZ) nehmen den Abfall nicht, sonst würden große an Bug und Heck
 // dunkler. Seit 25.10.2026 früher und tiefer (vorher ab 0,35, rest 0,22;
-// Krisz: „die wände etwas dunkler beleuchten“).
-const WERK_WAND = { ab: 0.15, rest: 0.07, glow: 0.5 };
+// Krisz: „die wände etwas dunkler beleuchten“), danach eine Spur zurück
+// (ab 0,15, rest 0,07; Krisz: „so dass der hintergrund so dunkel ist ist an
+// sich gut, es könnte minimal heller sein“; die Wände etwa 20 % heller).
+const WERK_WAND = { ab: 0.2, rest: 0.1, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
 // mit Blitzen über voll, dann glüht sie auf voll aus; der Spot schlägt
@@ -5486,35 +5488,46 @@ const WERK_FLICKER = [[0, 0], [30, 1.5], [70, 0.04], [140, 0.9], [180, 0.08], [2
 const WERK_SPOT_FLICKER = [[0, 0], [35, 1.8], [100, 0.5], [170, 1.6], [650, 1]];
 // Leitungen unter der Decke der Werkhalle (Krisz, 24.10.2026: „decke iwi
 // verbessern, rohre, kablen etc“; 25.10.2026 mit der größeren Garage: „und
-// dann halt viele schläuche, rohre, etc an der decke laufen lassen“).
+// dann halt viele schläuche, rohre, etc an der decke laufen lassen“; dann:
+// „wir müssen aber mehr decken assets machen, kabeln, röhre, geräte sowas
+// halt damit es wie so sagen wir mal bei dumbers depot aussieht“).
 // Stücke aus dem Gerätekatalog des Spiels, gepackt von
 // scripts/build-werkhalle-decke.mjs (props/werkdecke.glb), in Hallenmetern
 // wie WERK. Gemessenes Deckenprofil der Garage mal garage.s (1,2):
-// Mittelplatte (z ±8) 9,3 m hoch von x -86,8 bis -53,8, davor und dahinter
+// Mittelplatte (z ±8) 9,34 m hoch von x -86,5 bis -55,5, davor und dahinter
 // Träger bis 8,2 m herab; Randträger bei z ±9 bis 8,2 m, Seitenstreifen
-// (z ±9,5 bis ±12,5) 8,3 m; über der Rückwand eine Bucht bis 10 m. Unter
-// der Platte, von außen nach innen je Seite: Luftrohr, Lüftungskanal,
-// Wartungsschlauch (zwischen Kanal und Leuchtfeldern bei z ±3,45),
-// Kabelzug mit Anschlussdosen, aufgehängter Luftschlauch neben dem Spot;
-// auf den Seitenstreifen zwei flache Rohrbündel.
+// (z ±9,5 bis ±12) 8,25 m, darüber Rinnen; über der Rückwand eine Bucht bis
+// 10 m, die der Träger bei x -88 von jedem Kamerapunkt aus verdeckt. Unter
+// der Platte, von außen nach innen je Seite: Luftrohr mit Leuchtbalken und
+// Heizstäben, Wartungsschlauch mit kurzen Kabelbögen, Lüftungskanal mit
+// einer Reihe Hängeleuchten (alle 2 m) und Auslässen zur Mitte, daneben
+// Kettenzüge, Heizgeräte zwischen den Leuchtfeldern (z ±3,45), drei
+// Kabelzüge mit Dosen, aufgehängter Luftschlauch neben dem Spot; in der
+// Mitte ein Kabelzug vor und einer hinter dem Spot. Auf den Seitenstreifen
+// zwei flache Rohrbündel, quer vor der Rückwand zwei, oben an Rück- und
+// Seitenwänden Schaltkästen und Heizgeräte. Leuchten und Heizgeräte glühen
+// mit ihrem Lichtband (garMat), gehen also von hinten nach vorn mit an.
 //   laeufe: node Stück an Stück von von bis bis (Länge lang je Stück, auf
 //     der Achse des Laufs), r Drehung um y in Grad (Kanäle, Rohre und
 //     Wartungsschläuche liegen im Modell längs z, Kabel, Luftschläuche und
 //     Rohrbündel längs x)
-//   stuecke: [node, x, oben, z, r] einzeln
+//   stuecke: [node, x, oben, z, r] einzeln; Geräte zeigen mit der Front
+//     (Modell -z) zur Halle
 // Kabel enden in Anschlussdosen an der Decke. Die Luftschläuche liegen
 // gerade an der Platte (die durchhängende Fassung wellte sich wie Girlanden).
-// Höhen sind Oberkanten (oben: an der Decke). Keine Unterkante unter 7,6 m:
-// Die Kamera bleibt unter raum.h - 0,8. verify:hangar-hall [18] prüft
-// Raum, Höhe, Spot und Länge der Läufe gegen den Katalog.
+// Höhen sind Oberkanten: an der Decke darüber, oder an der Unterkante des
+// Stücks, an dem eines hängt (Leuchten unter Kanal und Rohr). Keine
+// Unterkante unter 7,6 m: Die Kamera bleibt unter raum.h - 0,8.
+// verify:hangar-hall [18] misst die Decke über jedem Stück an der Garage
+// und prüft Raum, Höhe, Spot und Länge der Läufe gegen den Katalog.
 const WERK_DECKE = /* work-werkdecke */ {
   "laeufe": [
     { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-86.5, 9.3, 7.2], "bis": [-54.5, 9.3, 7.2], "lang": 4, "r": 90 },
     { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-86.5, 9.3, -7.2], "bis": [-54.5, 9.3, -7.2], "lang": 4, "r": 90 },
     { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-86.5, 9.3, 5.6], "bis": [-54.5, 9.3, 5.6], "lang": 4, "r": 90 },
     { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-86.5, 9.3, -5.6], "bis": [-54.5, 9.3, -5.6], "lang": 4, "r": 90 },
-    { "node": "prop_schlauch_maintenance_hose_1_a", "von": [-86.0, 9.3, 4.5], "bis": [-55.36, 9.3, 4.5], "lang": 15.32, "r": 90 },
-    { "node": "prop_schlauch_maintenance_hose_1_a", "von": [-86.0, 9.3, -4.5], "bis": [-55.36, 9.3, -4.5], "lang": 15.32, "r": 90 },
+    { "node": "prop_schlauch_maintenance_hose_1_a", "von": [-86.0, 9.3, 6.4], "bis": [-55.36, 9.3, 6.4], "lang": 15.32, "r": 90 },
+    { "node": "prop_schlauch_maintenance_hose_1_a", "von": [-86.0, 9.3, -6.4], "bis": [-55.36, 9.3, -6.4], "lang": 15.32, "r": 90 },
     { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-84.25, 9.3, 2.3], "bis": [-59.25, 9.3, 2.3], "lang": 12.5, "r": 0 },
     { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-84.25, 9.3, -2.3], "bis": [-59.25, 9.3, -2.3], "lang": 12.5, "r": 0 },
     { "node": "prop_schlauch_lt_airduct_hose_straight_8m_a", "von": [-86.26, 9.3, 1.5], "bis": [-54.5, 9.3, 1.5], "lang": 7.94, "r": 0 },
@@ -5522,7 +5535,17 @@ const WERK_DECKE = /* work-werkdecke */ {
     { "node": "prop_wand_roomsm_addon_pipe_bottom_b", "von": [-86.5, 8.3, 10.2], "bis": [-54.5, 8.3, 10.2], "lang": 4, "r": 0 },
     { "node": "prop_wand_roomsm_addon_pipe_bottom_b", "von": [-86.5, 8.3, -10.2], "bis": [-54.5, 8.3, -10.2], "lang": 4, "r": 0 },
     { "node": "prop_wand_roomsm_addon_pipe_bottom_a", "von": [-86.5, 8.3, 11.3], "bis": [-54.5, 8.3, 11.3], "lang": 4, "r": 0 },
-    { "node": "prop_wand_roomsm_addon_pipe_bottom_a", "von": [-86.5, 8.3, -11.3], "bis": [-54.5, 8.3, -11.3], "lang": 4, "r": 0 }
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_a", "von": [-86.5, 8.3, -11.3], "bis": [-54.5, 8.3, -11.3], "lang": 4, "r": 0 },
+    { "node": "prop_decke_cable_hanging_h", "von": [-86.0, 9.3, 2.85], "bis": [-61.0, 9.3, 2.85], "lang": 12.5, "r": 0 },
+    { "node": "prop_decke_cable_hanging_h", "von": [-86.0, 9.3, -2.85], "bis": [-61.0, 9.3, -2.85], "lang": 12.5, "r": 0 },
+    { "node": "prop_decke_cable_hanging_h", "von": [-86.25, 9.3, 0.0], "bis": [-73.75, 9.3, 0.0], "lang": 12.5, "r": 0 },
+    { "node": "prop_decke_cable_hanging_h", "von": [-69.85, 9.3, 0.0], "bis": [-57.35, 9.3, 0.0], "lang": 12.5, "r": 0 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-86.0, 9.3, 2.58], "bis": [-59.24, 9.3, 2.58], "lang": 4.46, "r": 0 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-86.0, 9.3, -2.58], "bis": [-59.24, 9.3, -2.58], "lang": 4.46, "r": 0 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-86.0, 9.3, 6.42], "bis": [-59.24, 9.3, 6.42], "lang": 4.46, "r": 0 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-86.0, 9.3, -6.42], "bis": [-59.24, 9.3, -6.42], "lang": 4.46, "r": 0 },
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_a", "von": [-89.5, 8.25, -12.0], "bis": [-89.5, 8.25, 12.0], "lang": 4, "r": 90 },
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_b", "von": [-90.4, 8.3, -12.0], "bis": [-90.4, 8.3, 12.0], "lang": 4, "r": 90 }
   ],
   "stuecke": [
     ["prop_kabel_roomsm_addon_cable_junctionbox_a", -84.25, 9.3, 2.3, 0],
@@ -5530,7 +5553,104 @@ const WERK_DECKE = /* work-werkdecke */ {
     ["prop_kabel_roomsm_addon_cable_junctionbox_a", -59.25, 9.3, 2.3, 0],
     ["prop_kabel_roomsm_addon_cable_junctionbox_a", -84.25, 9.3, -2.3, 0],
     ["prop_kabel_roomsm_addon_cable_junctionbox_a", -71.75, 9.3, -2.3, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -59.25, 9.3, -2.3, 0]
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -59.25, 9.3, -2.3, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_b", -86.0, 9.3, 2.85, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_b", -73.5, 9.3, 2.85, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_b", -61.0, 9.3, 2.85, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_b", -86.0, 9.3, -2.85, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_b", -73.5, 9.3, -2.85, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_b", -61.0, 9.3, -2.85, 0],
+    ["prop_decke_light_hung_2_lamp_a", -85.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -83.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -81.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -79.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -77.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -75.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -73.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -71.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -69.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -67.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -65.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -63.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -61.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -59.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -57.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -55.5, 8.179, 5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -85.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -83.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -81.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -79.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -77.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -75.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -73.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -71.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -69.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -67.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -65.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -63.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -61.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -59.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_2_lamp_a", -57.5, 8.179, -5.6, 0],
+    ["prop_decke_light_hung_1_lamp_a", -55.5, 8.179, -5.6, 0],
+    ["prop_decke_addon_hvac_vent_a", -80.0, 9.33, 4.533, 0],
+    ["prop_decke_addon_hvac_vent_a", -70.0, 9.33, 4.533, 0],
+    ["prop_decke_addon_hvac_vent_a", -60.0, 9.33, 4.533, 0],
+    ["prop_decke_addon_hvac_vent_a", -80.0, 9.33, -4.533, 0],
+    ["prop_decke_addon_hvac_vent_a", -70.0, 9.33, -4.533, 0],
+    ["prop_decke_addon_hvac_vent_a", -60.0, 9.33, -4.533, 0],
+    ["prop_decke_light_hung_4_box_a", -84.5, 8.3, 7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -76.5, 8.3, 7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -68.5, 8.3, 7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -60.5, 8.3, 7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -84.5, 8.3, -7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -76.5, 8.3, -7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -68.5, 8.3, -7.2, 0],
+    ["prop_decke_light_hung_4_box_a", -60.5, 8.3, -7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -80.5, 8.3, 7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -72.5, 8.3, 7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -64.5, 8.3, 7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -56.5, 8.3, 7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -80.5, 8.3, -7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -72.5, 8.3, -7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -64.5, 8.3, -7.2, 0],
+    ["prop_luft_heater_hanging_1_a", -56.5, 8.3, -7.2, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_c", -86.25, 9.3, 0.0, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_c", -73.75, 9.3, 0.0, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_c", -69.85, 9.3, 0.0, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_c", -57.35, 9.3, 0.0, 0],
+    ["prop_decke_nd_addon_a_pulley_a", -84.0, 9.3, 4.6, 0],
+    ["prop_decke_nd_addon_a_pulley_a", -77.0, 9.3, 4.6, 0],
+    ["prop_decke_nd_addon_a_pulley_a", -63.0, 9.3, 4.6, 0],
+    ["prop_decke_nd_addon_a_pulley_a", -84.0, 9.3, -4.6, 0],
+    ["prop_decke_nd_addon_a_pulley_a", -77.0, 9.3, -4.6, 0],
+    ["prop_decke_nd_addon_a_pulley_a", -63.0, 9.3, -4.6, 0],
+    ["prop_luft_heater_large_1_d", -79.6, 9.3, 3.45, 0],
+    ["prop_luft_heater_large_1_c", -70.0, 9.3, 3.45, 0],
+    ["prop_luft_heater_large_1_d", -60.4, 9.3, 3.45, 0],
+    ["prop_luft_heater_large_1_d", -79.6, 9.3, -3.45, 180],
+    ["prop_luft_heater_large_1_c", -70.0, 9.3, -3.45, 180],
+    ["prop_luft_heater_large_1_d", -60.4, 9.3, -3.45, 180],
+    ["prop_luft_heater_large_1_c", -94.194, 8.8, 0.0, 270],
+    ["prop_wand_relay_electrical_2_a", -94.088, 8.8, 2.2, 270],
+    ["prop_luft_heater_large_1_c", -94.194, 8.8, 7.0, 270],
+    ["prop_wand_relay_electrical_3_a", -94.07, 9.0, 10.6, 270],
+    ["prop_luft_heater_large_1_c", -94.194, 9.0, 12.9, 270],
+    ["prop_wand_relay_electrical_2_a", -94.088, 8.8, -2.2, 270],
+    ["prop_luft_heater_large_1_c", -94.194, 8.8, -7.0, 270],
+    ["prop_wand_relay_electrical_3_a", -94.07, 9.0, -10.6, 270],
+    ["prop_luft_heater_large_1_c", -94.194, 9.0, -12.9, 270],
+    ["prop_wand_relay_electrical_2_a", -89.0, 8.8, 14.508, 0],
+    ["prop_luft_heater_large_1_c", -86.6, 8.8, 14.614, 0],
+    ["prop_luft_heater_large_1_c", -80.0, 8.8, 14.614, 0],
+    ["prop_wand_relay_electrical_3_a", -70.0, 8.8, 14.491, 0],
+    ["prop_luft_heater_large_1_c", -68.2, 8.8, 14.614, 0],
+    ["prop_luft_heater_large_1_c", -60.0, 8.8, 14.614, 0],
+    ["prop_wand_relay_electrical_2_a", -89.0, 8.8, -14.508, 180],
+    ["prop_luft_heater_large_1_c", -86.6, 8.8, -14.614, 180],
+    ["prop_luft_heater_large_1_c", -80.0, 8.8, -14.614, 180],
+    ["prop_wand_relay_electrical_3_a", -70.0, 8.8, -14.491, 180],
+    ["prop_luft_heater_large_1_c", -68.2, 8.8, -14.614, 180],
+    ["prop_luft_heater_large_1_c", -60.0, 8.8, -14.614, 180]
   ]
 } /* /work-werkdecke */;
 // Ton der Deckenstücke (Faktor auf die Farbe): Das Rohr trägt im Katalog
