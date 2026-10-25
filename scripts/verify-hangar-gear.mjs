@@ -157,7 +157,8 @@ for (const [p, g] of entries) {
   const pts = await corners(fromUrl(p), id);
   run.ecken += pts.length;
   if (!pts.length) { fail(`[3] ${p} traegt keine Ecken`); continue; }
-  const len = Math.max(...[0, 2].map((k) => Math.max(...pts.map((q) => q[k])) - Math.min(...pts.map((q) => q[k]))));
+  // ohne Spread: die Polaris hat über eine Million Ecken, mehr als der Aufrufstapel trägt
+  const len = Math.max(...[0, 2].map((k) => pts.reduce((a, q) => Math.max(a, q[k]), -Infinity) - pts.reduce((a, q) => Math.min(a, q[k]), Infinity)));
   // Hoehe ueber dem Boden je Ecke: senkrecht zur Ebene y = a·x + b·z + c, oder ueber ground
   let up;
   if (Array.isArray(g.contacts)) {
