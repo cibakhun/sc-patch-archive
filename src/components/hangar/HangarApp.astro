@@ -23,6 +23,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
 import type { StageConfig } from '../../lib/hangar/stage';
+import makerLogos from '../../data/manufacturer-logos.json';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -182,12 +183,19 @@ const texBytes = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
   return t?.pool?.bytes && !HOLD[id] ? [[t.url, t.pool.bytes]] : [];
 }));
 
+// Herstellerlogo je Kürzel für das Hologramm über dem Fahrzeug (buildHolo):
+// dieselben Bilder wie im Datenblatt (ShipDetail.astro), full = mit Schriftzug
+const logos = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const f = shipFacts(id, lang), l = (makerLogos as Record<string, { file: string; w: number; h: number; full?: boolean }>)[f.maker];
+  return l && f.makerCode ? [[f.makerCode, { url: `/assets/manufacturers/${l.file}`, ar: Math.round((l.w / l.h) * 1000) / 1000, full: !!l.full }]] : [];
+}));
+
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
 // `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
 // "</script>" darf ihn nicht beenden.
 const stage = {
   viewer: viewerSrc,
-  opts: { hall, crew, gear, texBytes },
+  opts: { hall, crew, gear, texBytes, logos },
   models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
     withV(geo[id] ?? meshes[id]),
     real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
@@ -225,8 +233,17 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-holo[hidden]{display:none}
 .hg-holo p{margin:0}
 .hg-holo p[hidden]{display:none}
-[data-media-surface] .hg-holo__k{display:flex;align-items:center;justify-content:center;gap:.6em;margin-bottom:.55em!important;font-family:var(--font-ui);font-size:max(11px,.29em);font-weight:700;letter-spacing:var(--ls-14);text-transform:uppercase;color:#f5a623}
-.hg-holo__k::before,.hg-holo__k::after{content:"";width:1.7em;height:2px;border-radius:1px;background:currentColor;box-shadow:0 0 6px rgb(245 166 35/.55)}
+[data-media-surface] .hg-holo__k{display:flex;align-items:center;justify-content:center;gap:.26em;margin-bottom:.16em!important;color:rgb(170 232 255/.85)}
+/* links und rechts je eine Lichtlinie, die zum Logo hin aufleuchtet */
+[data-media-surface] .hg-holo__k::before,[data-media-surface] .hg-holo__k::after{content:"";flex:0 0 1.25em;height:1px;background:linear-gradient(90deg,transparent,currentColor);box-shadow:0 0 6px rgb(110 205 255/.45)}
+[data-media-surface] .hg-holo__k::after{background:linear-gradient(270deg,transparent,currentColor)}
+/* Herstellerlogo als Licht: das Bild ist nur Maske, Farbe und Glanz kommen vom Hologramm; das Glühen sitzt auf der Hülle, die Maske schnitte es sonst ab. Groß genug, dass Zeichen und Schriftzug darin lesbar sind (bei .95em war der Schriftzug nur ein Strich), dahinter ein schwacher Hof */
+[data-media-surface] .hg-holo__logo{position:relative;display:block;height:1.5em;aspect-ratio:var(--logo-ar,1);max-width:4.2em;filter:drop-shadow(0 0 .04em rgb(160 225 255/.9)) drop-shadow(0 0 .3em rgb(90 190 255/.5))}
+.hg-holo__logo[data-full]{height:1.85em;max-width:5.4em}
+[data-media-surface] .hg-holo__logo::before{content:"";position:absolute;inset:-30% -18%;border-radius:50%;background:radial-gradient(closest-side,rgb(110 205 255/.2),rgb(110 205 255/.06) 60%,transparent)}
+[data-media-surface] .hg-holo__logo span{position:relative;display:block;width:100%;height:100%;background:linear-gradient(105deg,transparent 42%,rgb(255 255 255/.9) 50%,transparent 58%) 150% 0/300% 100% no-repeat,linear-gradient(180deg,#f6fcff,#c4ebff 45%,#6cc6ff);-webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat;animation:hg-glint 7s ease-in-out infinite}
+@keyframes hg-glint{0%,64%{background-position:150% 0,0 0}100%{background-position:-50% 0,0 0}}
+.hg-holo[data-still] .hg-holo__logo span{animation:none}
 [data-media-surface] .hg-holo__m{font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-12);text-transform:uppercase;color:rgb(205 230 246/.88)}
 .hg-holo__n{margin:.06em 0 .12em!important;font-family:var(--font-display);font-weight:900;font-size:1em;line-height:1.04;text-wrap:balance;text-shadow:-.025em 0 rgb(255 80 130/.3),.025em 0 rgb(80 205 255/.45),0 0 .16em rgb(130 215 255/.65),0 0 .5em rgb(2 6 12/.55)}
 [data-media-surface] .hg-holo__r{font-size:max(13px,.31em);color:rgb(205 230 246/.85)}
