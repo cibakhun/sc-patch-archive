@@ -5045,7 +5045,9 @@ const WERK_LIGHT = {
 // Spiegelung fallen mit dem Abstand von der Bühne, bezogen auf den Weg bis
 // zur Wand in dieser Richtung (hinten, vorn, Seite), ab diesem Anteil bis
 // auf rest an der Wand; Leuchtflächen halb so stark (sie sind Lampen).
-// Bühne, Fahrzeug und Spot bleiben, wie sie sind.
+// Bühne, Fahrzeug und Spot bleiben, wie sie sind: Die Fahrzeuge (werkLit,
+// HG_WK_FZ) nehmen den Abfall nicht, sonst würden große an Bug und Heck
+// dunkler.
 const WERK_WAND = { ab: 0.35, rest: 0.22, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
@@ -5176,9 +5178,13 @@ varying vec3 vHgWk;
 // Abfall zu den Wänden (WERK_WAND): A Mitte der Bühne x/z, Weg bis zur Wand
 // hinten (-x) und vorn (+x); B Weg zur Seitenwand, ab, rest
 float hgWkVig() {
+#ifdef HG_WK_FZ
+	return 1.0;
+#else
 	vec2 q = vHgWk.xz - hgWkVigA.xy;
 	q /= vec2( q.x < 0.0 ? hgWkVigA.z : hgWkVigA.w, hgWkVigB.x );
 	return mix( 1.0, hgWkVigB.z, smoothstep( hgWkVigB.y, 1.0, length( q ) ) );
+#endif
 }
 #ifdef HG_WK_FOOT
 uniform sampler2D hgWkFoot;
@@ -6993,7 +6999,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     sh.uniforms.hgWkP = werkU.p; sh.uniforms.hgWkC = werkU.c; sh.uniforms.hgWkD = werkU.d;
     sh.uniforms.hgWkAmb = werkU.amb; sh.uniforms.hgWkTor = werkU.tor; sh.uniforms.hgWkK = werkU.k; sh.uniforms.hgWkEnv = werkU.env;
     sh.uniforms.hgWkVigA = werkU.vigA; sh.uniforms.hgWkVigB = werkU.vigB;
-    const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow;
+    const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow, fz = !!m.userData.werkLit;
     if (foot) { sh.uniforms.hgWkFoot = werkU.foot; sh.uniforms.hgWkFootB = werkU.footB; sh.uniforms.hgWkFootK = m.userData.werkFoot === 'pad' ? werkFootPad : werkFootFloor; }
     if (pit) sh.uniforms.hgWkPit = werkU.pit;
     if (glow) { sh.uniforms.hgWkGlow = werkU.glow; sh.uniforms.hgWkGlowX = werkU.glowX; }
@@ -7001,7 +7007,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       .replace('#include <common>', '#include <common>\nuniform float hgWkK;\nvarying vec3 vHgWk;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWk = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz / hgWkK;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${WERK_LIGHTS_GLSL}`)
+      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${fz ? '#define HG_WK_FZ\n' : ''}${WERK_LIGHTS_GLSL}`)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n#ifdef HG_WK_PIT\n\tif ( abs( vHgWk.x - hgWkPit.x ) < hgWkPit.z && abs( vHgWk.z - hgWkPit.y ) < hgWkPit.w && vHgWk.y < 0.25 ) discard;\n#endif')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt() * mix( 1.0, hgWkVig(), ${WERK_WAND.glow.toFixed(2)} );\n#endif`)
       .replace('#include <lights_fragment_begin>', WERK_LIGHTS_BEGIN)

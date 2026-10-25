@@ -2891,6 +2891,8 @@ if (WK) {
     try { DB = ddm ? JSON.parse(ddm[1]) : null; } catch (e) { fail(`[18] WERK_DECKE im Viewer ist kein JSON mehr (${e.message})`); }
     const deckePack = 'node scripts/build-werkhalle-decke.mjs';
     if (!DB) {
+      // ohne Block greift die Klinke nicht: Wer die Decke ausbaut, senkt sie per Commit mit Ursache auf 0
+      if (KLINKE_WERK.decke > 0) fail(`[18] der Viewer traegt keinen Block /* work-werkdecke */ (WERK_DECKE), die Klinke verlangt ${KLINKE_WERK.decke} Stuecke unter der Decke: Die Decke waere wieder kahl (Krisz 24.10.2026). Block zurueck, oder KLINKE_WERK.decke per Commit mit Ursache auf 0`);
       if (existsSync(join(ROOT, 'public/hangar/props/werkdecke.glb'))) fail('[18] public/hangar/props/werkdecke.glb liegt bereit, der Viewer traegt keinen Block /* work-werkdecke */: Zombie. Block zurueck oder die Datei entfernen');
     } else if (!hall.werk.decke?.url) fail('[18] WERK_DECKE steht im Viewer, die Seite gibt die Datei nicht mit (opts.hall.werk.decke): Die Decke bliebe still leer. HangarApp.astro pruefen');
     else {
