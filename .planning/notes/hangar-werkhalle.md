@@ -559,3 +559,58 @@ Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt:
   m) steckt auf 9 von 9 Punkten seiner Achse ueber 0,1 m in der Decke; …)“
 
 Sauber: „ALLE ZUSICHERUNGEN ERFUELLT“.
+
+## Lampen einzeln nacheinander, Spot am Ende (Krisz, 25.10.2026 18:12)
+
+Krisz: „es sollen mehr lampen nacheinander angehen damit wir dieses
+klassische effekt haben und spotlight am ende halt“.
+
+- **Vorher gemessen** (Gladius → Cyclone TR): Licht an nach 4,1 s, fünf
+  Bänder über 1,3 s (Anteile 0,05 bis 0,77 der Spanne bis zur Ankunft),
+  jedes flackerte 0,9 s. So flackerten bis zu vier Bänder zugleich und
+  verschwammen; der Spot kam bei der Ankunft (5,4 s), als die vorderen
+  Bänder noch flackerten.
+- **Jetzt**: `WERK.reihen` hat neun Bänder, je eine Lampenreihe der Garage
+  (die Leuchtkörper stehen alle 4 m, Garage z 3 bis 35; abwechselnd zwei
+  Deckenfelder in der Mitte und zwei Leuchten an den Seiten). Zu jeder
+  Reihe gehören die Hängeleuchten der Decke darunter (2 bis 3 Paare). Je
+  Band zwei Leuchten im Shader (`lampen.je` 2 statt 4); es sind dieselben
+  18 Leuchtkörper wie vorher, das volle Licht bleibt gleich. Auf niedrig
+  eine je Band, mal 1,45 statt 2,6.
+- `WERK_STUFEN { abstand: 200, spot: 400 }`: Alle 200 ms geht ein Band an,
+  von hinten nach vorn, der Spot 400 ms nach dem letzten. Die ganze Folge
+  dauert 2,0 s ab dem Einschalten am Tor (4,1 s), der Spot kommt also rund
+  0,7 s nach der Ankunft der Kamera (5,4 s). Zuerst 250/500 gebaut: Dann
+  stand das Bild nach der Ankunft 1,2 s fast still (die letzten drei Reihen
+  hängen über der Kamera), bis der Spot kam; mit 200 gehen die Reihen 1 bis
+  7 noch während der Fahrt an. `WERK_FLICKER` ist jetzt ein kurzer harter
+  Doppelschlag (voll nach 380 ms statt 900), damit höchstens zwei Reihen
+  zugleich flackern. Den Spot setzt `werkLookIn` zusammen mit den Bändern,
+  nicht mehr `werkIn` bei der Ankunft.
+- **Prüfung** verify:hangar-hall [18]: Klinke `KLINKE_WERK.baender` 9; eine
+  Reihe ist voll (letzter Punkt von WERK_FLICKER), bevor die übernächste
+  kommt; der Spot mindestens 200 ms nach der letzten; Reihen und Spot
+  zusammen höchstens `STUFEN_MAX` 3500 ms (Krisz 21.10.: Tempo vor Effekt).
+  Ersetzt die Regel zu `WERK_ROWS_AT`.
+- **Was man sieht**: Die Reihen 1 bis 7 gehen an, während die Kamera durchs
+  Tor fährt und unter die Decke blickt, dort liest sich die Folge Leuchte
+  für Leuchte. In der Endansicht (x ≈ -57) hängen die Reihen 7 bis 9 über
+  oder hinter der Kamera; sie hellen nur den vorderen Boden auf. Probiert:
+  kürzere Reichweite der Leuchten (10 und 12 statt 15 × Maßstab, Stärke
+  ausgeglichen), damit jede Reihe einen eigenen Lichtfleck wirft. Der
+  Unterschied je Stufe in der Endansicht blieb fast gleich (mittlere
+  Änderung je Bild 1,7 bis 3,9 von 255), also bleibt die Reichweite.
+
+### Gegenproben [18] Stufen (25.10.2026)
+
+Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt
+(gefahren mit dem ersten Stand 250/500; die Regeln sind dieselben):
+
+- altes Flackern (900 ms): „eine Lampenreihe ist erst nach 900 ms voll
+  (WERK_FLICKER), die naechsten kommen alle 250 ms (WERK_STUFEN.abstand)“
+- wieder fünf Bänder: „WERK.reihen hat 5 Baender, die Klinke verlangt 9“
+- Spot 100 ms nach der letzten: „der Spot kommt 100 ms nach der letzten
+  Reihe (WERK_STUFEN.spot): Unter 200 ms ginge er mit ihr an, nicht am Ende“
+- abstand 500: „Reihen und Spot brauchen 4500 ms, hoechstens 3500“
+
+Sauber: „ALLE ZUSICHERUNGEN ERFUELLT“.
