@@ -132,8 +132,12 @@ const workshop = workAsset && workJson && existsSync(workJson)
 const [werkKey, werkAsset] = Object.entries(real.werkhalle ?? {}).find(([, a]) => a.json) ?? [];
 const werkJson = werkAsset?.json ? `public${werkAsset.json}` : '';
 const buehneAsset = werkAsset?.buehne ? Object.values(real.werkhalle ?? {}).find((a) => a.url === werkAsset.buehne) : null;
+// Leitungen unter ihrer Decke (scripts/build-werkhalle-decke.mjs packt sie aus
+// dem Gerätekatalog; nicht im Manifest, wie der Gerätesatz)
+const werkDeckeFile = 'public/hangar/props/werkdecke.glb';
+const werkDecke = existsSync(werkDeckeFile) ? { url: `/hangar/props/werkdecke.glb?v=${contentV([werkDeckeFile])}`, bytes: statSync(werkDeckeFile).size } : null;
 const werk = werkAsset && werkJson && existsSync(werkJson)
-  ? { id: werkKey, url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null }
+  ? { id: werkKey, url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null, decke: werkDecke }
   : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite

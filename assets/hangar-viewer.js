@@ -5042,6 +5042,7 @@ function hangarSound(src = null) {
 //   lampen: Leuchtkörper (Netz, ab Höhe) aus der json, die im Shader
 //     leuchten, je höchstens je Band (niedrig eine je Band)
 //   spot: Strahler über der Bühne, Höhe und Kegel innen/außen in Grad
+//     (weicher Rand: Krisz, 24.10.2026, „den spotlight softer“; vorher 16/30)
 //   logo: Logo der Rückwand (Kasten in Hallenmetern) rückt über den Rahmen:
 //     neue Unterkante unten, Maßstab s um seine Mitte
 //   frei: Möbel der Halle mit Bezugspunkt hier weichen dem Weg zum Durchgang
@@ -5058,39 +5059,104 @@ const WERK = /* werk */ {
   "feld": { "x": -68.5, "z": 0, "hx": 8.2, "hz": 6.4, "tief": 7, "rand": 0.45, "buehne": "buehne_lift_m" },
   "reihen": [[30.5, 41], [23, 30.5], [15, 23], [7, 15], [-1, 7]],
   "lampen": { "netze": ["light_panel_1_d", "light_fixture_rectangular_e"], "ab": 7, "je": 4 },
-  "spot": { "y": 6.4, "innen": 16, "aussen": 30 },
+  "spot": { "y": 6.4, "innen": 5, "aussen": 36 },
   "logo": { "x": [-51.4, -50.6], "y": [4.3, 7.9], "z": [-3.6, 3.4], "unten": 6.95, "s": 0.42 },
   "frei": { "x": [-51, -46.5], "z": [-9.5, 9.5] },
   "bahn": { "vor": -26, "nische": 7, "y": 2.4, "aus": 4 }
 } /* /werk */;
 // Das Fahrzeug steht mit dem Bug zum Durchgang (+x); die Kamera sieht es
-// von vorn rechts oben, mit dem Durchgang im Rücken
+// von vorn, mittig und knapp über Augenhöhe, mit dem Durchgang im Rücken
+// und der Rückwand im Bild (Krisz, 24.10.2026, mit Bild: „in dieser
+// position ungefähr soll die kamera enden“; vorher von vorn links oben)
 const WERK_YAW = Math.PI / 2;
-const WERK_HOME_DIR = new THREE.Vector3(0.74, 0.22, 0.64).normalize();
+const WERK_HOME_DIR = new THREE.Vector3(1, 0.12, 0).normalize();
 // Hebebühne: Fahrzeit hinab und hinauf (wie das Schiffsfeld), unten steht
 // sie 0,5 m über der Sohle der Grube
 const WERK_DOWN_MS = 1900, WERK_UP_MS = 2800;
 const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // Fahrt der Kamera zwischen Halle und Werkhalle: Dauer aus der Weglänge in
-// Hallenmetern (s = a + Weg / v, gedeckelt), Lampenreihen gehen bei diesen
-// Anteilen der Fahrt an, von hinten nach vorn; der Spot genau bei der
-// Ankunft, mit der Bühne. Das erste Band erst, wenn man durch das
-// aufgehende Tor hineinsieht (vorher lief die Folge hinter dem Tor ab)
+// Hallenmetern (s = a + Weg / v, gedeckelt). Das Tor ist so viel früher
+// offen, als die Kamera es erreicht (ms). Die Lampenreihen gehen von hinten
+// nach vorn an, bei diesen Anteilen der Spanne vom ersten Blick durch das
+// aufgehende Tor (42 % offen; vorher lief die Folge hinter dem Tor ab) bis
+// zur Ankunft; der Spot genau bei der Ankunft, mit der Bühne
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
-const WERK_ROWS_AT = [0.5, 0.58, 0.66, 0.74, 0.82];
+const WERK_TOR_VOR = 1200;
+const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
-// dafür mal quer), des Spots und des Hallenlichts vor dem Durchgang;
+// dafür mal quer), des Spots (weicher seit 24.10.2026: 170 statt 260, das
+// Fahrzeug strahlte weiß) und des Hallenlichts vor dem Durchgang;
 // Grundlicht und Spiegelung wachsen mit den Reihen. Aus geht eine Leuchte in
 // WERK_OFF_MS. Leuchtflächen strahlen über der Schwelle des Lichtscheins.
 const WERK_LIGHT = {
-  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 260, spill: [1.0, 0.98, 0.95], spillI: 40,
+  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 170, spill: [1.0, 0.98, 0.95], spillI: 40,
   amb: [0.85, 0.88, 0.95], amb0: 0.012, ambK: 0.4, env0: 0.04, envK: 0.5, torAmb: 0.35, glow: 7, dark: 0.006,
 };
+// Zu den Wänden hin dunkler (Krisz, 24.10.2026: „sonst alles im hintergrund
+// richtung wände dunkler machen“): Licht der Reihen, Grundlicht und
+// Spiegelung fallen mit dem Abstand von der Bühne, bezogen auf den Weg bis
+// zur Wand in dieser Richtung (hinten, vorn, Seite), ab diesem Anteil bis
+// auf rest an der Wand; Leuchtflächen halb so stark (sie sind Lampen).
+// Bühne, Fahrzeug und Spot bleiben, wie sie sind: Die Fahrzeuge (werkLit,
+// HG_WK_FZ) nehmen den Abfall nicht, sonst würden große an Bug und Heck
+// dunkler.
+const WERK_WAND = { ab: 0.35, rest: 0.22, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
 // danach voll; der Spot schlägt kurz über
 const WERK_FLICKER = [[0, 0], [30, 0.9], [70, 0.05], [130, 0.6], [170, 0.1], [260, 0.85], [300, 0.7], [420, 1]];
-const WERK_SPOT_FLICKER = [[0, 0], [40, 1.25], [140, 0.92], [260, 1]];
+const WERK_SPOT_FLICKER = [[0, 0], [40, 1.12], [140, 0.94], [260, 1]];
+// Leitungen unter der Decke der Werkhalle (Krisz, 24.10.2026: „decke iwi
+// verbessern, rohre, kablen etc“). Stücke aus dem Gerätekatalog des Spiels,
+// gepackt von scripts/build-werkhalle-decke.mjs (props/werkdecke.glb), in
+// Hallenmetern wie WERK. Gemessenes Deckenprofil der Garage: Mittelplatte
+// (z ±6,5) 7,8 m hoch von x -81 bis -53,5, davor und dahinter tiefere
+// Träger; Randträger bei z ±7,5 bis 6,8 m herab, Seitenstreifen 6,9 m; über
+// der Rückwand eine Bucht bis 8,4 m (x -86..-85).
+//   laeufe: node Stück an Stück von von bis bis (Länge lang je Stück, auf
+//     der Achse des Laufs), r Drehung um y in Grad (Kanäle und Rohre liegen
+//     im Modell längs z, Kabel längs x)
+//   stuecke: [node, x, oben, z, r] einzeln
+// Kabel enden in Anschlussdosen an der Decke oder im Kanal; Querzüge von
+// Kanal zu Kanal über die Mitte, zwischen den Leuchten.
+// Höhen sind Oberkanten (oben: an der Decke). Keine Unterkante unter 6,3 m:
+// Die Kamera bleibt unter raum.h - 0,8. verify:hangar-hall [18] prüft
+// Raum, Höhe, Spot und Länge der Läufe gegen den Katalog.
+const WERK_DECKE = /* work-werkdecke */ {
+  "laeufe": [
+    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-81.0, 7.8, 4.6], "bis": [-53.0, 7.8, 4.6], "lang": 4, "r": 90 },
+    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-81.0, 7.8, -4.6], "bis": [-53.0, 7.8, -4.6], "lang": 4, "r": 90 },
+    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-81.0, 7.8, 6.0], "bis": [-53.0, 7.8, 6.0], "lang": 4, "r": 90 },
+    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-81.0, 7.8, -6.0], "bis": [-53.0, 7.8, -6.0], "lang": 4, "r": 90 },
+    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-80.5, 7.8, 3.5], "bis": [-55.5, 7.8, 3.5], "lang": 12.5, "r": 0 },
+    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-80.5, 7.8, -3.5], "bis": [-55.5, 7.8, -3.5], "lang": 12.5, "r": 0 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-75.0, 7.8, -4.46], "bis": [-75.0, 7.8, 4.46], "lang": 4.46, "r": 90 },
+    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-61.0, 7.8, -4.46], "bis": [-61.0, 7.8, 4.46], "lang": 4.46, "r": 90 }
+  ],
+  "stuecke": [
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -80.5, 7.8, 3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -68.0, 7.8, 3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -55.5, 7.8, 3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -80.5, 7.8, -3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -68.0, 7.8, -3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -55.5, 7.8, -3.5, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -75.0, 7.8, 0, 90],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -61.0, 7.8, 0, 90]
+  ]
+} /* /work-werkdecke */;
+// Ton der Deckenstücke (Faktor auf die Farbe): Das Rohr trägt im Katalog
+// die Palettenfarbe Weiß (0,87, glänzend) und stand hell wie ein Leuchtbalken
+// unter der schwarzen Decke; die Kanäle (Beige des Depots) dicht an den
+// Leuchten fast weiß
+const WERK_DECKE_TON = [[/pipe_air_processing/, 0.28], [/dumpersdepot/, 0.6]];
+// Plätze der Stücke aus WERK_DECKE: [node, Mitte x, Oberkante, Mitte z, r in Grad]
+const werkDeckePlaetze = (D) => [
+  ...(D.laeufe ?? []).flatMap((L) => {
+    const d = [L.bis[0] - L.von[0], L.bis[2] - L.von[2]], len = Math.hypot(...d), n = Math.max(1, Math.round(len / L.lang));
+    return Array.from({ length: n }, (_, i) => [L.node, L.von[0] + (d[0] * (i + 0.5)) / n, L.von[1], L.von[2] + (d[1] * (i + 0.5)) / n, L.r]);
+  }),
+  ...(D.stuecke ?? []),
+];
 const flicker = (curve, ms) => {
   if (ms <= 0) return 0;
   for (let i = 1; i < curve.length; i++) {
@@ -5159,7 +5225,19 @@ uniform vec4 hgWkD[ HG_WK_N ];
 uniform vec3 hgWkAmb;
 uniform vec4 hgWkTor;
 uniform float hgWkK, hgWkEnv;
+uniform vec4 hgWkVigA, hgWkVigB;
 varying vec3 vHgWk;
+// Abfall zu den Wänden (WERK_WAND): A Mitte der Bühne x/z, Weg bis zur Wand
+// hinten (-x) und vorn (+x); B Weg zur Seitenwand, ab, rest
+float hgWkVig() {
+#ifdef HG_WK_FZ
+	return 1.0;
+#else
+	vec2 q = vHgWk.xz - hgWkVigA.xy;
+	q /= vec2( q.x < 0.0 ? hgWkVigA.z : hgWkVigA.w, hgWkVigB.x );
+	return mix( 1.0, hgWkVigB.z, smoothstep( hgWkVigB.y, 1.0, length( q ) ) );
+#endif
+}
 #ifdef HG_WK_FOOT
 uniform sampler2D hgWkFoot;
 uniform vec4 hgWkFootB;
@@ -5205,6 +5283,7 @@ IncidentLight directLight;
 float hgWkDeep = smoothstep( 0.0, 4.5, - vHgWk.y );
 vec3 hgWkN = inverseTransformDirection( geometryNormal, viewMatrix );
 vec2 hgWkSh = vec2( 1.0 );
+float hgWkV = hgWkVig();
 #ifdef HG_WK_FOOT
 	// nur was nach oben zeigt (Boden, Bühne, Mittelfeld), nicht die Decke darüber
 	if ( hgWkN.y > 0.6 ) hgWkSh = hgWkShade();
@@ -5219,11 +5298,12 @@ for ( int i = 0; i < HG_WK_N; i ++ ) {
 	float att = ( 1.0 - q * q ) * ( 1.0 - q * q ) / ( d2 + 1.0 );
 	if ( c.w > -1.5 ) att *= smoothstep( c.w, d.w, dot( - directLight.direction, normalize( ( viewMatrix * vec4( d.xyz, 0.0 ) ).xyz ) ) );
 	if ( i == HG_WK_N - 1 && vHgWk.x < hgWkTor.x ) att *= hgWkTor.y;
+	if ( i < HG_WK_N - 2 ) att *= hgWkV;
 	directLight.color = c.rgb * att * hgWkSh.x * ( 1.0 - 0.88 * hgWkDeep );
 	directLight.visible = true;
 	RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
 }
-vec3 irradiance = hgWkAmb * ( 0.78 + 0.22 * hgWkN.y ) * hgWkSh.y * ( 1.0 - 0.9 * hgWkDeep );
+vec3 irradiance = hgWkAmb * ( 0.78 + 0.22 * hgWkN.y ) * hgWkSh.y * ( 1.0 - 0.9 * hgWkDeep ) * hgWkV;
 // Hallenlicht im Tunnel und am Tor: von der Halle her, hinter dem Tor nur offen
 irradiance += vec3( hgWkTor.z ) * smoothstep( hgWkTor.x - 3.0, hgWkTor.x + 1.5, vHgWk.x ) * ( vHgWk.x < hgWkTor.x ? hgWkTor.y : 1.0 ) * ( 0.6 + 0.4 * max( hgWkN.x, 0.0 ) );
 vec3 iblIrradiance = vec3( 0.0 );
@@ -6944,6 +7024,9 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     d: { value: Array.from({ length: WK_N }, () => new THREE.Vector4(0, -1, 0, 1)) },    // Richtung, cos Innenkegel
     amb: { value: new THREE.Color(0, 0, 0) },
     tor: { value: new THREE.Vector4(WERK.tor.x, 0, 0, 0) },   // x des Tors, offen 0..1, Hallenlicht am Tor
+    // Abfall zu den Wänden (hgWkVig): Seitenwand aus der json der Garage (werkBauen)
+    vigA: { value: new THREE.Vector4(WERK.feld.x, WERK.feld.z, WERK.feld.x - WERK.raum.x[0], WERK.raum.x[1] - WERK.feld.x) },
+    vigB: { value: new THREE.Vector4(WERK.raum.z[1], WERK_WAND.ab, WERK_WAND.rest, 0) },
     k: { value: 1 }, env: { value: 0 },
     foot: { value: null }, footB: { value: new THREE.Vector4(0, 0, 1, 0) },
     glow: { value: new Array(WK_ROWS).fill(0) },
@@ -6969,7 +7052,8 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     prev?.call(m, sh, r);
     sh.uniforms.hgWkP = werkU.p; sh.uniforms.hgWkC = werkU.c; sh.uniforms.hgWkD = werkU.d;
     sh.uniforms.hgWkAmb = werkU.amb; sh.uniforms.hgWkTor = werkU.tor; sh.uniforms.hgWkK = werkU.k; sh.uniforms.hgWkEnv = werkU.env;
-    const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow;
+    sh.uniforms.hgWkVigA = werkU.vigA; sh.uniforms.hgWkVigB = werkU.vigB;
+    const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow, fz = !!m.userData.werkLit;
     if (foot) { sh.uniforms.hgWkFoot = werkU.foot; sh.uniforms.hgWkFootB = werkU.footB; sh.uniforms.hgWkFootK = m.userData.werkFoot === 'pad' ? werkFootPad : werkFootFloor; }
     if (pit) sh.uniforms.hgWkPit = werkU.pit;
     if (glow) { sh.uniforms.hgWkGlow = werkU.glow; sh.uniforms.hgWkGlowX = werkU.glowX; }
@@ -6977,11 +7061,11 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       .replace('#include <common>', '#include <common>\nuniform float hgWkK;\nvarying vec3 vHgWk;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWk = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz / hgWkK;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${WERK_LIGHTS_GLSL}`)
+      .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${fz ? '#define HG_WK_FZ\n' : ''}${WERK_LIGHTS_GLSL}`)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n#ifdef HG_WK_PIT\n\tif ( abs( vHgWk.x - hgWkPit.x ) < hgWkPit.z && abs( vHgWk.z - hgWkPit.y ) < hgWkPit.w && vHgWk.y < 0.25 ) discard;\n#endif')
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt();\n#endif')
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n#ifdef HG_WK_GLOW\n\ttotalEmissiveRadiance *= hgWkGlowAt() * mix( 1.0, hgWkVig(), ${WERK_WAND.glow.toFixed(2)} );\n#endif`)
       .replace('#include <lights_fragment_begin>', WERK_LIGHTS_BEGIN)
-      .replace('#include <lights_fragment_maps>', '#include <lights_fragment_maps>\n\tiblIrradiance *= hgWkEnv; radiance *= hgWkEnv;');
+      .replace('#include <lights_fragment_maps>', '#include <lights_fragment_maps>\n\tiblIrradiance *= hgWkEnv * hgWkV; radiance *= hgWkEnv * hgWkV;');
   };
   const werkKey = (m) => () => `werk-v2${m.userData.werkFoot ? `|foot-${m.userData.werkFoot}` : ''}${m.userData.werkPit ? '|pit' : ''}${m.userData.werkGlow ? '|glow' : ''}`;
 
@@ -7537,6 +7621,8 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   // füllen den Durchgang von der Halle aus.
   function werkBauen(seen, garage) {
     const T = WERK.tuer, F = WERK.feld, GC = WERK.garage, D = garage.dims;
+    // Seitenwand für den Abfall des Lichts: Innenraum der Garage (ihr x ist hier z)
+    if (D.interior?.x) werkU.vigB.value.x = Math.min(...D.interior.x.map(Math.abs));
     const steelSrc = [...seen].find((m) => m.isMeshStandardMaterial && /mtl_metal_grey_04$/.test(m.name)) ?? null;
     const used = [];
     const werkMat = (m, flags) => {
@@ -7790,7 +7876,7 @@ varying float vT;
 void main() {
 	float f = abs( dot( normalize( vN ), normalize( vV ) ) );
 	float a = f * f * smoothstep( 0.0, 0.15, vT ) * ( 1.0 - vT * 0.65 ) * hgBeam;
-	gl_FragColor = vec4( vec3( 1.0, 0.93, 0.8 ) * a * 0.08, 1.0 );
+	gl_FragColor = vec4( vec3( 1.0, 0.93, 0.8 ) * a * 0.04, 1.0 );
 }`,
       });
       const b = new THREE.Mesh(geo, m);
@@ -7798,6 +7884,52 @@ void main() {
       raum.add(b);
       return b;
     })();
+    // Leitungen unter der Decke (WERK_DECKE): je Material eine Geometrie
+    // aus allen Plätzen, im Licht der Werkhalle wie die Garage
+    let decke = null;
+    if (garage.decke) {
+      const src = new Map(), M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+      garage.decke.traverse((o) => { if (o.name.startsWith('prop_') && !src.has(o.name)) src.set(o.name, o); });
+      const parts = new Map(), dm = new Map(), fehlt = new Set();
+      let n = 0;
+      for (const [node, x, top, z, r] of werkDeckePlaetze(WERK_DECKE)) {
+        const o = src.get(node);
+        if (!o) { fehlt.add(node); continue; }
+        o.updateMatrixWorld(true);
+        const bb = new THREE.Box3().setFromObject(o);
+        M.compose(new THREE.Vector3(x, top - bb.max.y, z), q.setFromAxisAngle(up, r * DEG), new THREE.Vector3(1, 1, 1));
+        o.traverse((c) => {
+          if (!c.isMesh) return;
+          let mat = dm.get(c.material);
+          if (!mat) {
+            mat = garMat(c.material, null, false);
+            const ton = WERK_DECKE_TON.find(([re]) => re.test(mat.name));
+            if (ton && mat.color) mat.color.multiplyScalar(ton[1]);
+            dm.set(c.material, mat);
+          }
+          const g = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone();
+          for (const k of Object.keys(g.attributes)) if (!/^(position|normal|uv)$/.test(k)) g.deleteAttribute(k);
+          g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(M, c.matrixWorld));
+          (parts.get(mat) ?? parts.set(mat, []).get(mat)).push(g);
+        });
+        n++;
+      }
+      decke = { stuecke: n, fehlt: [...fehlt], netze: 0, tris: 0 };
+      for (const [mat, gs] of parts) {
+        const keys = ['position', 'normal', 'uv'].filter((k) => gs.every((g) => g.attributes[k]));
+        const out = new THREE.BufferGeometry();
+        for (const k of keys) {
+          const size = gs[0].attributes[k].itemSize, arr = new Float32Array(gs.reduce((a, g) => a + g.attributes[k].count * size, 0));
+          let off = 0;
+          for (const g of gs) { arr.set(g.attributes[k].array, off); off += g.attributes[k].array.length; g.dispose(); }
+          out.setAttribute(k, new THREE.BufferAttribute(arr, size));
+        }
+        out.computeBoundingBox(); out.computeBoundingSphere();
+        const m = mesh(out, mat, raum);
+        m.name = `werk:decke:${mat.name}`;
+        decke.netze++; decke.tris += out.attributes.position.count / 3;
+      }
+    }
     // Leuchten: Leuchtkörper aus der json je Band (hinten zuerst), höchstens WK_JE
     const toH = (p) => [GC.x - p[2], p[1] - (D.floorY ?? 0), p[0]];
     const picked = WERK.reihen.map(() => []);
@@ -7823,7 +7955,7 @@ void main() {
     werkLamp(WK_SPILL, [T.x + 2.2, 2.6, 0], 30, [-1, -0.1, 0], 30, 72);
     hallDoor.value.set(T.x, T.b / 2, T.h, 1);
     return {
-      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps,
+      group, raum, innen, vorn, pad, padS, leaves, spotMat, beam, beamU, mats: used, hallMats, vornLit: 0, vcGrau, vcWeiss, tris: Math.round(tris), split, lamps, rowLamps, decke,
       gateSec: D.gate?.motion?.open?.seconds ?? 6.667, gateT: D.gate?.motion?.open?.t ?? [],
       // Tor (v: offen 0..1, dir: +1 auf, -1 zu) und Bühne (v: Höhe in
       // Hallenmetern, 0 oben), beide unten (werkMove); Reihen und Spot
@@ -7914,9 +8046,15 @@ void main() {
         fetchGltf(h.werk.url, 'werk', h.werk.bytes || 3.2e6),
         fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`)))),
         h.werk.buehne?.url ? fetchGltf(h.werk.buehne.url, 'buehne', h.werk.buehne.bytes || 5e5) : null,
-      ]).then(([g, dims, b]) => ({ scene: g.scene, dims, buehne: b?.scene ?? null }), (e) => {
+        // Leitungen unter der Decke (WERK_DECKE); ohne sie bleibt die Decke leer
+        h.werk.decke?.url ? fetchGltf(h.werk.decke.url, 'werkdecke', h.werk.decke.bytes || 1e6).catch((e) => {
+          console.warn('[hangar] Decke der Werkhalle nicht geladen', e);
+          prog.delete('werkdecke');
+          return null;
+        }) : null,
+      ]).then(([g, dims, b, d]) => ({ scene: g.scene, dims, buehne: b?.scene ?? null, decke: d?.scene ?? null }), (e) => {
         console.warn('[hangar] Werkhalle nicht geladen', e);
-        prog.delete('werk'); prog.delete('buehne');
+        prog.delete('werk'); prog.delete('buehne'); prog.delete('werkdecke');
         return null;
       })
       : Promise.resolve(null);
@@ -8412,7 +8550,7 @@ void main() {
       if (werkHier) {
         try {
           werk = werkBauen(seen, garage);
-          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht`);
+          console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht; Decke ${werk.decke ? `${werk.decke.stuecke} Stücke in ${werk.decke.netze} Netzen, ${Math.round(werk.decke.tris)} Dreiecke${werk.decke.fehlt.length ? `, fehlen: ${werk.decke.fehlt.join(', ')}` : ''}` : 'leer'}`);
         } catch (e) {
           console.warn('[hangar] Werkhalle nicht gebaut', e);
           werk = null;
@@ -9204,42 +9342,59 @@ void main() {
     };
     return { pts, curve, len, ms, at };
   }
-  function tripStart(plan, look0, look1, ev = [], t0 = performance.now()) {
+  // hold: so lange steht die Kamera erst am Start (das Tor hinter ihr geht
+  // auf) und dreht sich derweil schon zum Weg
+  function tripStart(plan, look0, look1, ev = [], t0 = performance.now(), hold = 0) {
     fly = null; onPoint = false; touched = false;
     controls.enabled = false;
+    // Was die Dämpfung vom letzten Ziehen noch nachlaufen ließe, ist mit der
+    // Fahrt vorbei: einmal ohne Dämpfung ganz angewandt (das Bild setzt gleich
+    // tripStep). Sonst ruhte es während der Fahrt und drehte die Kamera nach
+    // der Ankunft weiter (Aufnahme: 6 m zur Seite).
+    controls.enableDamping = false; controls.update(); controls.enableDamping = true;
     let end;
     const done = new Promise((r) => { end = r; });
     const p0 = plan.curve.getPointAt(0), d0 = look0.clone().sub(p0);
-    trip = { ...plan, t0, look0: look0.clone(), look1: look1.clone(), d0: d0.clone().normalize(), r0: d0.length(), ev: ev.map(([at, fn]) => ({ at, fn, ran: false })), done, end, look: new THREE.Vector3(), ahead: new THREE.Vector3(), here: new THREE.Vector3(), dir: new THREE.Vector3(), dirA: new THREE.Vector3(), dirB: new THREE.Vector3() };
+    trip = { ...plan, t0, hold, side1: {}, side2: {}, look0: look0.clone(), look1: look1.clone(), d0: d0.clone().normalize(), r0: d0.length(), ev: ev.map(([at, fn]) => ({ at, fn, ran: false })), done, end, look: new THREE.Vector3(), ahead: new THREE.Vector3(), here: new THREE.Vector3(), dir: new THREE.Vector3(), dirA: new THREE.Vector3(), dirB: new THREE.Vector3() };
     tripStep(t0);
     return done;
   }
   // Blickrichtung zwischen a und b (Einheitsvektoren) als Schwenk: Gierwinkel
   // auf dem kürzeren Weg, Neigung linear. Ein Mischen der Blickpunkte lief
   // bei der Fahrt hinaus durch die Kamera hindurch, der Blick sprang in
-  // einem Bild um 180 Grad (Garage rückwärts, dann die Halle).
-  function panDir(a, b, t, out) {
+  // einem Bild um 180 Grad (Garage rückwärts, dann die Halle). side: Seite
+  // des Schwenks je Fahrt. Fast genau kehrt (hinaus aus der Ansicht von
+  // vorn) bleibt er auf ihr, der kürzere Weg wechselte sonst zwischen zwei
+  // Bildern von links nach rechts.
+  function panDir(a, b, t, out, side) {
     const ya = Math.atan2(a.x, a.z), yb = Math.atan2(b.x, b.z);
     const pa = Math.asin(THREE.MathUtils.clamp(a.y, -1, 1)), pb = Math.asin(THREE.MathUtils.clamp(b.y, -1, 1));
     let dy = yb - ya;
     dy -= Math.PI * 2 * Math.round(dy / (Math.PI * 2));
+    if (side) {
+      if (side.s && Math.sign(dy) !== side.s && Math.abs(dy) > Math.PI - 0.6) dy += side.s * Math.PI * 2;
+      else if (Math.abs(dy) > 1e-4) side.s = Math.sign(dy);
+    }
     const y = ya + dy * t, p = pa + (pb - pa) * t;
     return out.set(Math.sin(y) * Math.cos(p), Math.sin(p), Math.cos(y) * Math.cos(p));
   }
   function tripStep(now) {
-    const P = trip, k = hallRoot.scale.x, f = THREE.MathUtils.clamp((now - P.t0) / P.ms, 0, 1), u = sine(f);
+    const P = trip, k = hallRoot.scale.x, e = now - P.t0, f = THREE.MathUtils.clamp((e - P.hold) / P.ms, 0, 1), u = sine(f);
     P.curve.getPointAt(u, P.here);
     camera.position.copy(P.here).multiplyScalar(k);
     P.curve.getPointAt(Math.min(1, u + 0.12), P.ahead);
     // Blick: vom Ziel des Starts über den Weg voraus zum Ziel der Ankunft,
-    // als Richtung geschwenkt; der Abstand des Blickpunkts mischt mit
-    const s1 = THREE.MathUtils.smoothstep(u, 0, 0.3), s2 = THREE.MathUtils.smoothstep(u, 0.55, 1);
+    // als Richtung geschwenkt; der Abstand des Blickpunkts mischt mit. Wartet
+    // sie erst (hold), hat sie sich bis zum Losfahren (mindestens 1,2 s) zum
+    // Weg gedreht: Halb gedreht sah sie im Tor auf dessen Rahmen und die
+    // Wand der Nische.
+    const s1 = THREE.MathUtils.smoothstep(Math.max(u / 0.3, P.hold > 0 ? e / Math.max(P.hold, 1200) : 0), 0, 1), s2 = THREE.MathUtils.smoothstep(u, 0.55, 1);
     const ra = Math.max(0.5, P.ahead.distanceTo(P.here)), r1 = P.look1.distanceTo(P.here);
     const dA = P.dirB.subVectors(P.ahead, P.here);
     if (dA.lengthSq() < 1e-8) dA.copy(P.d0); else dA.normalize();
-    panDir(P.d0, dA, s1, P.dir);
+    panDir(P.d0, dA, s1, P.dir, P.side1);
     const d1 = r1 > 1e-4 ? P.dirB.subVectors(P.look1, P.here).divideScalar(r1) : P.dirB.copy(P.dir);
-    panDir(P.dirA.copy(P.dir), d1, s2, P.dir);
+    panDir(P.dirA.copy(P.dir), d1, s2, P.dir, P.side2);
     const r = THREE.MathUtils.lerp(THREE.MathUtils.lerp(P.r0, ra, s1), r1, s2);
     P.look.copy(P.here).addScaledVector(P.dir, r);
     if (f >= 1) P.look.copy(P.look1);
@@ -9288,8 +9443,10 @@ void main() {
   // Weg zwischen einem Punkt in der Halle (hallP) und einem in der
   // Werkhalle (werkP), in Hallenmetern: vor der Nische auf Türhöhe, durch
   // Durchgang und Tunnel, außen um Schiff und Fahrzeug herum. 'in' von der
-  // Halle hinüber, 'out' zurück.
-  function werkPath(dir, hallP, werkP, box, vehInfo) {
+  // Halle hinüber, 'out' zurück. vehSc: Maßstab der Fahrzeuggruppe; hinaus
+  // hat werkRescale sie schon mitgenommen (sonst zählte das Fahrzeug nur so
+  // groß, wie es im Maßstab des Schiffs wäre, und die Kamera fuhr hindurch).
+  function werkPath(dir, hallP, werkP, box, vehInfo, vehSc = 1) {
     const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn, yd = Math.min(B.y, T.h * 0.55);
     const pts = [hallP.clone()];
     if (hallP.x > B.vor) {
@@ -9298,9 +9455,17 @@ void main() {
       if (box && segHits(hallP, a, new THREE.Vector3(), box.sx, box.sy, box.sz)) pts.push(new THREE.Vector3(0, Math.max(hallP.y, yd + 1), (hallP.z > 0.5 ? 1 : -1) * (box.sz + 1.5)));
       pts.push(a);
     }
-    pts.push(new THREE.Vector3(T.x + B.nische, yd, 0), new THREE.Vector3(WERK.raum.x[1] - B.aus, yd + 0.2, 0));
+    // Hinter dem Tor auf der Achse, wenn der Punkt in der Werkhalle tiefer
+    // liegt; nahe am Tor nur, wenn die Gerade zu ihm nicht durch den
+    // Durchgang ginge. Die Ansicht von vorn (WERK_HOME_DIR) steht vor diesem
+    // Punkt: Die Kamera fuhr sonst an ihr vorbei und wieder zurück.
+    const nP = new THREE.Vector3(T.x + B.nische, yd, 0), ax = WERK.raum.x[1] - B.aus;
+    const f = (T.x - nP.x) / Math.min(-1e-3, werkP.x - nP.x), zc = f * werkP.z, yc = yd + f * (werkP.y - yd);
+    pts.push(nP);
+    if (werkP.x < ax - 1) pts.push(new THREE.Vector3(ax, yd + 0.2, 0));
+    else if (Math.abs(zc) > T.b / 2 - 1.5 || yc < 0.6 || yc > T.h - 1) pts.push(new THREE.Vector3(werkP.x, yd + 0.2, 0));
     if (vehInfo) {
-      const vx = vehInfo.len / 2 / k + 2, vz = vehInfo.halfW / k + 2, vy = vehInfo.height / k + 1.2;
+      const q = vehSc / k, vx = (vehInfo.len / 2) * q + 2, vz = vehInfo.halfW * q + 2, vy = vehInfo.height * q + 1.2;
       if (segHits(pts.at(-1), werkP, new THREE.Vector3(F.x, 0, F.z), vx, vy, vz)) pts.push(new THREE.Vector3(F.x + vx * 0.3, Math.max(werkP.y, vy + 0.5), F.z + (werkP.z >= F.z ? 1 : -1) * (vz + 2)));
     }
     pts.push(werkP.clone());
@@ -9405,14 +9570,17 @@ void main() {
     const box = shipBox(old.info, old.group.scale.x, k);
     let plan = planFor(werkPath('in', from, to, null, s.info));
     if (tripHits(plan, t0, box, liftAt)) plan = planFor(werkPath('in', from, to, box, s.info));
-    const cross = plan.at(WERK.tor.x + 1.2);
-    werkMove(W.tor, 1, WERK.tor.ms, t0 + Math.max(0, cross - need));
-    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, t0 + plan.ms * WERK_ROWS_AT[i]));
+    // Das Tor ist offen, bevor die Kamera durch die Nische ist (WERK_TOR_VOR);
+    // die Bänder gehen vom ersten Blick hinein bis zur Ankunft an
+    // (WERK_ROWS_AT): Die Kamera hält gleich hinter dem Tor
+    const cross = plan.at(WERK.tor.x + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR), look = torAt + WERK.tor.ms * 0.42;
+    werkMove(W.tor, 1, WERK.tor.ms, t0 + torAt);
+    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, t0 + look + (plan.ms - look) * WERK_ROWS_AT[i]));
     werkMove(W.buehne, 0, WERK_UP_MS, t0 + plan.ms - WERK_UP_MS);
     lampSet(W.spot, WERK_SPOT_FLICKER, 1, t0 + plan.ms);
     if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
     homeTgt = tgt;
-    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
+    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${(torAt / 1000).toFixed(1)} s, durch bei ${(cross / 1000).toFixed(1)} s, Bänder ${WERK_ROWS_AT.map((r) => ((look + (plan.ms - look) * r) / 1000).toFixed(1)).join('/')} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
     await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [], t0);
     werkMove(W.tor, 0, WERK.tor.ms);
     return true;
@@ -9468,22 +9636,31 @@ void main() {
     adopt(ship, s, { lift: true });
     const tgt = new THREE.Vector3(0, Math.max(1.2, s.info.height * 0.45 + 0.3), 0), end = tgt.clone().addScaledVector(HOME_DIR, homeDist());
     const up = liftUpMs(s.info), need = WERK.tor.ms + 250;
+    // Steht die Kamera gleich hinter dem Tor (Ansicht von vorn), wartet sie,
+    // bis es offen ist, und dreht sich derweil zum Weg (hold). Die Fahrt zu
+    // strecken, bis sie spät genug ans Tor kommt, machte sie von dort aus
+    // zehnmal so lang. Näher als 1,2 m ist sie gleich am Tor: at() fände die
+    // Ebene hinter ihr nie und gäbe das Ende, das Tor ging erst auf, als sie
+    // schon hindurch war.
+    const gx = WERK.tor.x - 1.2, c0 = (p) => (camera.position.x / k > gx ? 0 : p.at(gx));
     const planFor = (pts) => {
-      const p = tripPlan(pts, up + 300), c0 = p.at(WERK.tor.x - 1.2);
-      return c0 < need ? tripPlan(pts, (p.ms * need) / Math.max(1, c0)) : p;
+      const p = tripPlan(pts, up + 300);
+      p.hold = Math.max(0, need - c0(p));
+      return p;
     };
     // Das Schiff wartet unten und kommt erst zum Ende herauf (liftUp bei
-    // plan.ms - up); ab da zählt es in voller Höhe
+    // hold + plan.ms - up); ab da zählt es in voller Höhe
     const t0 = performance.now(), from = end.divideScalar(k), at = camera.position.clone().divideScalar(k);
     const box = shipBox(s.info, ship.scale.x, k), y0 = lift.y;
-    let plan = planFor(werkPath('out', from, at, null, veh.info));
-    if (tripHits(plan, t0, box, (t) => (t < t0 + plan.ms - up ? y0 : 0))) plan = planFor(werkPath('out', from, at, box, veh.info));
-    const cross = plan.at(WERK.tor.x - 1.2);
+    const hits = (p) => tripHits(p, t0 + p.hold, box, (t) => (t < t0 + p.hold + p.ms - up ? y0 : 0));
+    let plan = planFor(werkPath('out', from, at, null, veh.info, veh.group.scale.x));
+    if (hits(plan)) plan = planFor(werkPath('out', from, at, box, veh.info, veh.group.scale.x));
+    const cross = plan.hold + c0(plan), all = plan.hold + plan.ms;
     werkMove(W.tor, 1, WERK.tor.ms, t0 + Math.max(0, cross - need));
-    if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
+    if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = all; }
     homeTgt = tgt;
-    console.info(`[hangar] Fahrt aus der Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Aufzug ab ${((plan.ms - up) / 1000).toFixed(1)} s`);
-    await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [[plan.ms - up, () => liftUp(s.info)]], t0);
+    console.info(`[hangar] Fahrt aus der Werkhalle: ${plan.len.toFixed(0)} m in ${(all / 1000).toFixed(1)} s (${(plan.hold / 1000).toFixed(1)} s Warten am Tor), Tor auf ab ${((cross - need) / 1000).toFixed(1)} s, Aufzug ab ${((all - up) / 1000).toFixed(1)} s`);
+    await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [[all - up, () => liftUp(s.info)]], t0, plan.hold);
     camFree = null; freeDirty = true;
     werkMove(W.tor, 0, WERK.tor.ms).then(() => { if (ort === 'halle' && !trip) werkClear(); });
     return true;
