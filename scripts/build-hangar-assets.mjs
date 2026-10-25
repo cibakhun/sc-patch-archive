@@ -644,6 +644,18 @@ function shipGear(doc, slug) {
   if (!gearReady) { const p = openP4k(DEFAULT_P4K); initGear(p, openDataCore(p.read(/^Data[\\/]Game2\.dcb$/i))); gearReady = true; }
   return poseShip(doc, rec);
 }
+// Knoten, die die Szene nicht erreicht, weg: im Rohexport hängen manche im
+// Kreis (M80, Salvation), dann läuft jede Weltmatrix endlos; gezeichnet
+// würden sie ohnehin nicht
+function dropUnreachable(doc) {
+  const seen = new Set();
+  const walk = (n) => { if (seen.has(n)) return; seen.add(n); n.listChildren().forEach(walk); };
+  for (const s of doc.getRoot().listScenes()) s.listChildren().forEach(walk);
+  const lost = doc.getRoot().listNodes().filter((n) => !seen.has(n));
+  for (const n of lost) for (const c of n.listChildren()) n.removeChild(c);
+  for (const n of lost) n.dispose();
+  return lost.length;
+}
 // Prüfung an der geschriebenen Webdatei: je Aufstandspunkt die tiefste Ecke im
 // Umkreis von 0,6 m (x/z); gear: true, wenn alle auf 2 cm stimmen
 function gearCheck(written, gear) {
@@ -1442,6 +1454,7 @@ async function buildOne(kind, name, inPath) {
   if (lite) for (const n of root.listNodes()) if (n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)) n.setMesh(null);
   // Schiffe: Fahrwerk ausfahren und einfedern, solange die Knoten noch einzeln sind
   const gearPose = kind === 'ships' ? shipGear(doc, name) : null;
+  if (kind === 'ships') dropUnreachable(doc);
   const b = kind === 'ships' ? shipBudget(name) : BUDGET[kind];
   const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : 0;
   dropJunk(doc);
