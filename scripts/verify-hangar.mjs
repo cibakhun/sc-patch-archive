@@ -879,7 +879,7 @@ say('\n[17] Bildablage der Schiffe: jeder Verweis liegt in dist/, Name = Inhalt,
 // (Start 10, waechst mit jedem Lauf des PCs). Deckel: zusammen BILDER.gesamtMB
 // fuer GLB und Ablage (Repo und Auslieferungs-Image), je Datei BILDER.dateiMB
 // (GitHub warnt ab 50 MB und lehnt ab 100 MB ab).
-const BILDER = { schiffe: 160, gesamtMB: 1600, dateiMB: 50 };
+const BILDER = { schiffe: 231, gesamtMB: 1600, dateiMB: 50 };
 {
   const shipDir = join(DIST, 'hangar', 'ships'), texDir = join(DIST, 'hangar', 'tex');
   const NAME = /^\.\.\/tex\/([0-9a-f]{16})\.(webp|png|jpg|ktx2)$/;
