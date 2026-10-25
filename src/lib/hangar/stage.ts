@@ -36,7 +36,7 @@ export interface HallConfig {
   readonly werk?: { id: string; url: string; json: string; bytes?: number; buehne?: { url: string; bytes?: number } | null; decke?: { url: string; bytes?: number } | null } | null;
 }
 
-/** Wo ein Fahrzeug in der Szene steht: Schiffe auf dem Feld der Halle, Bodenfahrzeuge (vehicles.json isSpaceship === false) in der Werkhalle. */
+/** Wo ein Fahrzeug in der Szene steht: Schiffe auf dem Feld der Halle, Bodenfahrzeuge (vehicles.json isSpaceship === false) und Gravlev-Räder (isGravlev) in der Werkhalle. */
 export type StageOrt = 'halle' | 'werk';
 
 export interface StageConfig {
