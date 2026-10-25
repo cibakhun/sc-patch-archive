@@ -1324,9 +1324,12 @@ export function boot(doc) {
         cover();
         // Steht das Hologramm, weicht der Titelblock der Seite (fuer Vorleser
         // bleibt er da). Es bleibt im Bild unter der Kopfzeile, links neben
-        // der Tafel der Seite und neben den Knoepfen auf der Buehne.
-        const side = doc.querySelector('.hg-side'), bar = $('topbar');
-        const hint = $('hg-hint'), keep = [title, $('hg-tools'), hint, $('hgx-tray')];
+        // der Tafel der Seite und neben den Knoepfen auf der Buehne. Vom
+        // Titelblock zaehlt nur, was danach bleibt: die Knopfreihe oben an
+        // seinem Platz. Sonst fand das Hologramm neben dem ganzen Block oft
+        // keinen Platz und erschien nie, und der Block wich nie.
+        const side = doc.querySelector('.hg-side'), bar = $('topbar'), acts = title?.querySelector('.hgx-actions');
+        const hint = $('hg-hint'), keep = [$('hg-tools'), hint, $('hgx-tray')];
         const safe = () => {
           const c = canvas.getBoundingClientRect();
           const on = (el) => {
@@ -1334,14 +1337,16 @@ export function boot(doc) {
             const r = el?.getBoundingClientRect();
             return r && r.width && r.height && r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top ? r : null;
           };
-          const p = on(side), b = on(bar);
+          const p = on(side), b = on(bar), t = on(title), a = t && on(acts);
+          const rects = keep.map(on);
+          if (a) rects.push({ left: a.left, right: a.right, top: t.top, bottom: t.top + a.height });
           v.setSafe?.({
             l: 0, t: b ? b.bottom - c.top + 14 : 0, r: p ? c.right - p.left + 14 : 0,
-            rects: keep.map(on).filter(Boolean).map((r) => ({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top })),
+            rects: rects.filter(Boolean).map((r) => ({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top })),
           });
         };
         v.onHolo?.(() => { main.dataset.holo = 'on'; safe(); });
-        for (const el of [side, canvas, ...keep]) if (el) new ResizeObserver(safe).observe(el);
+        for (const el of [side, canvas, title, ...keep]) if (el) new ResizeObserver(safe).observe(el);
         window.addEventListener('scroll', safe, { passive: true });
         // der Bedienhinweis geht nach dem ersten Anfassen aus (data-hint)
         new MutationObserver(safe).observe(main, { attributes: true, attributeFilter: ['data-hint'] });

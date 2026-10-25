@@ -211,16 +211,18 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
    Titelblock als leuchtende Tafel. Lage und Groesse setzt der Viewer (Schrift
    des Namens --holo-n, Breite --holo-max, Aufbau --holo-on von 0 bis 1);
    aufgebaut wird von unten, an der Kante laeuft eine Abtastlinie (data-run).
-   Feste Farben: Licht ueber der Halle, in beiden Farbschemen gleich. */
-.hg-holo{position:absolute;left:0;top:0;z-index:1;width:max-content;max-width:var(--holo-max);padding:.3em .5em .42em;transform-origin:50% 100%;pointer-events:none;text-align:center;font-size:var(--holo-n,40px);line-height:1;color:#eef8ff;background:radial-gradient(closest-side,rgb(3 9 18/.42),rgb(3 9 18/.24) 62%,transparent);text-shadow:0 0 .3em rgb(2 6 12/.7),0 0 .5em rgb(110 205 255/.4);clip-path:inset(calc((1 - var(--holo-on,1)) * 100%) -2em -2em);-webkit-mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);will-change:transform}
+   Feste Farben: Licht ueber der Halle, in beiden Farbschemen gleich; die
+   Regeln mit Farbe stehen darum unter der dunklen Insel [data-media-surface]
+   (die Buehne), so laesst build-light-overrides sie stehen. */
+[data-media-surface] .hg-holo{position:absolute;left:0;top:0;z-index:1;width:max-content;max-width:var(--holo-max);padding:.3em .5em .42em;transform-origin:50% 100%;pointer-events:none;text-align:center;font-size:var(--holo-n,40px);line-height:1;color:#eef8ff;background:radial-gradient(closest-side,rgb(3 9 18/.42),rgb(3 9 18/.24) 62%,transparent);text-shadow:0 0 .3em rgb(2 6 12/.7),0 0 .5em rgb(110 205 255/.4);clip-path:inset(calc((1 - var(--holo-on,1)) * 100%) -2em -2em);-webkit-mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);will-change:transform}
 .hg-holo[hidden]{display:none}
 .hg-holo p{margin:0}
 .hg-holo p[hidden]{display:none}
-.hg-holo__k{display:flex;align-items:center;justify-content:center;gap:.6em;margin-bottom:.55em!important;font-family:var(--font-ui);font-size:max(11px,.29em);font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#f5a623}
+[data-media-surface] .hg-holo__k{display:flex;align-items:center;justify-content:center;gap:.6em;margin-bottom:.55em!important;font-family:var(--font-ui);font-size:max(11px,.29em);font-weight:700;letter-spacing:var(--ls-14);text-transform:uppercase;color:#f5a623}
 .hg-holo__k::before,.hg-holo__k::after{content:"";width:1.7em;height:2px;border-radius:1px;background:currentColor;box-shadow:0 0 6px rgb(245 166 35/.55)}
-.hg-holo__m{font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:rgb(205 230 246/.88)}
+[data-media-surface] .hg-holo__m{font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-12);text-transform:uppercase;color:rgb(205 230 246/.88)}
 .hg-holo__n{margin:.06em 0 .12em!important;font-family:var(--font-display);font-weight:900;font-size:1em;line-height:1.04;text-wrap:balance;text-shadow:-.025em 0 rgb(255 80 130/.3),.025em 0 rgb(80 205 255/.45),0 0 .16em rgb(130 215 255/.65),0 0 .5em rgb(2 6 12/.55)}
-.hg-holo__r{font-size:max(13px,.31em);color:rgb(205 230 246/.85)}
+[data-media-surface] .hg-holo__r{font-size:max(13px,.31em);color:rgb(205 230 246/.85)}
 /* Austrittskante unter dem Block, Abtastlinie beim Auf- und Abbau */
 .hg-holo::before,.hg-holo::after{content:"";position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgb(160 226 255/.8),transparent)}
 .hg-holo::before{left:14%;right:14%;bottom:0;box-shadow:0 0 6px rgb(110 205 255/.5)}

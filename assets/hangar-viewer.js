@@ -4835,7 +4835,7 @@ function buildSteam(max) {
 // schiff geht“. Der Block steht als Tafel über dem Fahrzeug, parallel zum
 // Bild und in fester Größe am Schirm (HOLO_NAME): Wer heranzoomt, sieht ihn
 // so groß wie aus der Ferne. Lage und Größe kommen aus der Szene, gesetzt
-// ist er als Text über der Leinwand (.hg-holo, Aussehen in HangarPage.astro):
+// ist er als Text über der Leinwand (.hg-holo, Aussehen in HangarApp.astro):
 // als Bild in der Szene war er im Leerlauf so unscharf wie die Bühne
 // (IDLE_SCALE, adapt). Er liegt also immer obenauf und darf nur stehen, wo
 // nichts vor ihm wäre und er durch nichts hindurchginge (place in buildHolo):
@@ -11002,8 +11002,10 @@ void main() {
     else if (rest) rest = reduceMotion || now - c.born > 1300;
     let low = 0, ceil = HALL_H * S * 0.9, boxes = null, more = null, free = null;
     if (c?.werk) {
+      // unter den Leitungen der Decke: WERK_DECKE reicht laut [18] bis
+      // raum.h - 0,5 herab (Kamera bis raum.h - 0,8)
       const F = WERK.feld, Rm = WERK.raum, m = 0.2;
-      ceil = (Rm.h - 0.3) * k;
+      ceil = (Rm.h - 0.7) * k;
       holoRoom.min.set((Rm.x[0] + 0.5) * k, 0, (Rm.z[0] + 0.5) * k);
       holoRoom.max.set((Rm.x[1] - 0.5) * k, ceil, (Rm.z[1] - 0.5) * k);
       holoSpot.min.set((F.x - 0.45 - m) * k, (WERK.spot.y - 0.05 - m) * k, (F.z - 0.45 - m) * k);
