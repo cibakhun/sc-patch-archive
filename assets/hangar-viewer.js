@@ -5398,8 +5398,10 @@ function hangarSound(src = null) {
 //   feld: Hebebühne, Mitte x/z, halbe Maße hx (längs, Bug zum Tor) und hz,
 //     im ebenen Mittelfeld; Grube tief; Rand: Warnstreifen so breit um die
 //     Öffnung; buehne: Knoten der Plattform in der Bühnendatei
-//   reihen: Bänder in Garagen-z, von hinten nach vorn (so gehen sie an):
-//     Leuchten und Leuchtflächen darin gehen zusammen an
+//   reihen: Bänder in Garagen-z, von hinten nach vorn (so gehen sie an,
+//     einzeln nacheinander, WERK_STUFEN): je Band eine Lampenreihe der
+//     Garage (alle 4 m); Leuchten und Leuchtflächen darin, auch die
+//     Hängeleuchten der Decke darunter, gehen zusammen an
 //   lampen: Leuchtkörper (Netz, ab Höhe) aus der json, die im Shader
 //     leuchten, je höchstens je Band (niedrig eine je Band)
 //   spot: Strahler über der Bühne, Höhe und Kegel innen/außen in Grad
@@ -5421,8 +5423,8 @@ const WERK = /* werk */ {
   "tor": { "x": -52.0, "ms": 1800 },
   "raum": { "x": [-99.0, -52.0], "z": [-14.4, 14.4], "h": 8.1 },
   "feld": { "x": -71.8, "z": 0, "hx": 8.2, "hz": 6.4, "tief": 7, "rand": 0.45, "buehne": "buehne_lift_m" },
-  "reihen": [[30.5, 41], [23, 30.5], [15, 23], [7, 15], [-1, 7]],
-  "lampen": { "netze": ["light_panel_1_d", "light_fixture_rectangular_e"], "ab": 7, "je": 4 },
+  "reihen": [[33, 41], [29, 33], [25, 29], [21, 25], [17, 21], [13, 17], [9, 13], [5, 9], [-1, 5]],
+  "lampen": { "netze": ["light_panel_1_d", "light_fixture_rectangular_e"], "ab": 7, "je": 2 },
   "spot": { "y": 7.4, "innen": 5, "aussen": 36 },
   "logo": { "x": [-51.4, -50.6], "y": [4.3, 7.9], "z": [-3.6, 3.4], "unten": 6.95, "s": 0.42 },
   "frei": { "x": [-51, -46.5], "z": [-9.5, 9.5] },
@@ -5440,20 +5442,27 @@ const WERK_DOWN_MS = 1900, WERK_UP_MS = 2800;
 const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // Fahrt der Kamera zwischen Halle und Werkhalle: Dauer aus der Weglänge in
 // Hallenmetern (s = a + Weg / v, gedeckelt). Das Tor ist so viel früher
-// offen, als die Kamera es erreicht (ms). Die Lampenreihen gehen von hinten
-// nach vorn an, bei diesen Anteilen der Spanne vom Einschalten bis zur
-// Ankunft (höchstens WERK_LOOK.max, mindestens .min); der Spot genau bei der
-// Ankunft, mit der Bühne
+// offen, als die Kamera es erreicht (ms).
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
 const WERK_TOR_VOR = 1200;
-const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
+// Die Bänder (WERK.reihen, je eine Lampenreihe der Garage) gehen einzeln
+// nacheinander an, von hinten nach vorn, alle abstand ms eins; der Spot
+// spot ms nach dem letzten (Krisz, 25.10.2026: „es sollen mehr lampen
+// nacheinander angehen damit wir dieses klassische effekt haben und
+// spotlight am ende halt“; vorher fünf Bänder in rund 1,3 s, jedes 0,9 s
+// flackernd, sie verschwammen, und der Spot kam bei der Ankunft mitten
+// hinein). 200 ms, damit möglichst alle Reihen angehen, solange die Kamera
+// noch hineinfährt und die Decke sieht: In der Endansicht hängen die
+// vorderen drei über ihr (mit 250/500 stand das Bild nach der Ankunft
+// 1,2 s fast still bis zum Spot)
+const WERK_STUFEN = { abstand: 200, spot: 400 };
 // Eingeschaltet wird erst, wenn die Kamera nah am Tor ist und gut hineinsieht
 // (Krisz, 25.10.2026: „die lichter in der werkstatt sollen erst angehen wenn
 // wir mit der kamera schon in der nähe vom tor sind und wir gut reingucken
 // können“; vorher schon bei 42 % offenem Tor, die Kamera noch in der Halle):
 // höchstens near Hallenmeter vor dem Tor, Blick höchstens deg Grad neben der
 // Richtung hinein, Tor mindestens tor offen. Kommt das nie, bei der Ankunft.
-const WERK_LOOK = { near: 7, deg: 38, tor: 0.6, min: 700, max: 1800 };
+const WERK_LOOK = { near: 7, deg: 38, tor: 0.6 };
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
 // dafür mal quer), des Spots (weicher seit 24.10.2026: 170 statt 260, das
 // Fahrzeug strahlte weiß; seit 25.10.2026 1 m höher und 380, die Reihen
@@ -5483,8 +5492,11 @@ const WERK_OFF_MS = 350;
 // mit Blitzen über voll, dann glüht sie auf voll aus; der Spot schlägt
 // hart an und klingt ab (Krisz, 25.10.2026: „die lichter wenn die angehen
 // mehr effekt haben“; vorher höchstens 1 und 1,12). Grundlicht, Spiegelung
-// und Leuchtflächen gehen mit: Jeder Blitz hellt den Raum kurz auf.
-const WERK_FLICKER = [[0, 0], [30, 1.5], [70, 0.04], [140, 0.9], [180, 0.08], [290, 1.35], [340, 0.45], [430, 1.6], [900, 1]];
+// und Leuchtflächen gehen mit: Jeder Blitz hellt den Raum kurz auf. Seit
+// den Stufen (WERK_STUFEN) ein kurzer harter Doppelschlag statt 0,9 s
+// Flackern, damit jede Reihe für sich angeht; voll, bevor die übernächste
+// kommt
+const WERK_FLICKER = [[0, 0], [30, 1.6], [70, 0.15], [120, 1.5], [380, 1]];
 const WERK_SPOT_FLICKER = [[0, 0], [35, 1.8], [100, 0.5], [170, 1.6], [650, 1]];
 // Leitungen unter der Decke der Werkhalle (Krisz, 24.10.2026: „decke iwi
 // verbessern, rohre, kablen etc“; 25.10.2026 mit der größeren Garage: „und
@@ -8496,7 +8508,7 @@ void main() {
         lamps++;
         return;
       }
-      // Reichweite knapp zwei Bänder: Jedes Band hellt vor allem seinen Teil auf, die Folge bleibt sichtbar
+      // Reichweite wie vor den Stufen (damals knapp zwei der fünf Bänder): Das volle Licht bleibt, wie es war
       ps.slice(0, WK_JE).forEach((p, j) => { werkLamp(i * WK_JE + j, [p[0], p[1] - 0.3, p[2]], 15 * gs); lamps++; });
     });
     const rowLamps = picked.map((ps) => Math.min(WK_JE, ps.length));
@@ -9676,7 +9688,8 @@ void main() {
   let werkWait = null;
   const lookDir = new THREE.Vector3();
   // Bänder an, wenn die Kamera nah am Tor ist und hineinsieht (WERK_LOOK),
-  // spätestens bei der Ankunft; von hinten nach vorn wie bisher
+  // spätestens bei der Ankunft; einzeln von hinten nach vorn (WERK_STUFEN),
+  // der Spot nach dem letzten
   function werkLookIn(now) {
     const W = realHall.werk, k = hallRoot.scale.x, w = werkWait;
     const ahead = camera.position.x / k - WERK.tor.x;
@@ -9684,10 +9697,11 @@ void main() {
     const deg = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(-lookDir.x, -1, 1)));
     const ok = ahead <= WERK_LOOK.near && deg <= WERK_LOOK.deg && W.tor.v >= WERK_LOOK.tor;
     if (!ok && trip && now < w.arrive) return;
-    const span = THREE.MathUtils.clamp(w.arrive - now, WERK_LOOK.min, WERK_LOOK.max);
-    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, now + span * WERK_ROWS_AT[i]));
+    const last = (W.rows.length - 1) * WERK_STUFEN.abstand;
+    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, now + i * WERK_STUFEN.abstand));
+    lampSet(W.spot, WERK_SPOT_FLICKER, 1, now + last + WERK_STUFEN.spot);
     werkWait = null;
-    console.info(`[hangar] Werkhalle: Licht an nach ${((now - w.t0) / 1000).toFixed(1)} s, ${ahead.toFixed(1)} m vor dem Tor, Blick ${deg.toFixed(0)}° neben der Richtung hinein, Tor ${Math.round(W.tor.v * 100)} % offen${ok ? '' : ' (bei der Ankunft)'}, Bänder über ${(span / 1000).toFixed(1)} s`);
+    console.info(`[hangar] Werkhalle: Licht an nach ${((now - w.t0) / 1000).toFixed(1)} s, ${ahead.toFixed(1)} m vor dem Tor, Blick ${deg.toFixed(0)}° neben der Richtung hinein, Tor ${Math.round(W.tor.v * 100)} % offen${ok ? '' : ' (bei der Ankunft)'}; ${W.rows.length} Bänder je ${WERK_STUFEN.abstand} ms, Spot nach ${((last + WERK_STUFEN.spot) / 1000).toFixed(1)} s (${((now + last + WERK_STUFEN.spot - w.arrive) / 1000).toFixed(1)} s nach der Ankunft)`);
   }
   function werkDropParked() {
     const c = werkParked;
@@ -9828,7 +9842,8 @@ void main() {
     werkStep(W.tor, now); werkStep(W.buehne, now);
     if (werkWait) werkLookIn(now);
     werkU.k.value = k;
-    const rowI = WL.rowI * (WK_JE > 1 ? 1 : 2.6);
+    // niedrig: eine Leuchte je Band statt zwei, zusammen etwa so hell wie zuvor fünf mal 2,6
+    const rowI = WL.rowI * (WK_JE > 1 ? 1 : 1.45);
     let sum = 0;
     W.rows.forEach((L, i) => {
       const v = lampAt(L, WERK_FLICKER, now), I = rowI * v;
@@ -10116,9 +10131,9 @@ void main() {
   }
   // Hinein: Das Schiff fährt in der Halle ab (seit dem Klick), die Kamera
   // fliegt durch die Nische und den Durchgang, das Tor ist offen, bevor sie
-  // es erreicht. Die Reihen gehen von hinten nach vorn an, die Bühne kommt
-  // mit der Kamera oben an und mit beiden der Spot. Dann schließt das Tor
-  // hinter ihr, und die Halle geht aus.
+  // es erreicht. Die Bühne kommt mit der Kamera oben an; die Reihen gehen
+  // einzeln von hinten nach vorn an, zuletzt der Spot. Dann schließt das
+  // Tor hinter ihr, und die Halle geht aus.
   async function werkIn(ship, s) {
     const W = realHall.werk, old = current;
     werkDropParked();
@@ -10148,10 +10163,9 @@ void main() {
     // die Kamera hält gleich hinter dem Tor
     const cross = plan.at(WERK.tor.x + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR);
     werkMove(W.tor, 1, WERK.tor.ms, t0 + torAt);
-    // die Bänder schaltet werkLookIn, sobald die Kamera hineinsieht
+    // Bänder und Spot schaltet werkLookIn, sobald die Kamera hineinsieht
     werkWait = { t0, arrive: t0 + plan.ms };
     werkMove(W.buehne, 0, WERK_UP_MS, t0 + plan.ms - WERK_UP_MS);
-    lampSet(W.spot, WERK_SPOT_FLICKER, 1, t0 + plan.ms);
     if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
     homeTgt = tgt;
     console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${(torAt / 1000).toFixed(1)} s, durch bei ${(cross / 1000).toFixed(1)} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
