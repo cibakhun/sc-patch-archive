@@ -97,6 +97,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-maker,.hg-role{color:color-mix(in srgb,var(--hg-on) 82%,transparent);text-shadow:0 1px 3px var(--bg),0 0 14px var(--bg)}
 .hg-title.is-swap{animation:hg-swap var(--dur-slow) var(--ease-ui)}
 @keyframes hg-swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* Steht der Name als Hologramm ueber dem Fahrzeug (hangar-viewer.js,
+   buildHolo), bleibt vom Titelblock nur die Knopfreihe im Bild; Titel und
+   Name bleiben fuer Vorleser im Dokument. Ohne 3D-Ansicht bleibt er, wie er ist. */
+.hg[data-holo="on"] .hg-title h1,.hg[data-holo="on"] .hg-title .hgx-head{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* Die Spalte rechts: Schalter oben, darunter die gewaehlte Tafel. Werkstatt
    fuellt sie bis zum Buehnenfuss, die Schiffsdaten nur so weit wie ihr Inhalt;
    wo die Spalte leer ist, gehen Klicks zur Leinwand durch. */

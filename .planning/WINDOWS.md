@@ -1459,6 +1459,18 @@ last_updated: 2026-10-24T18:40:00.000Z
     "reason": "",
     "recorded_at": "2026-10-24T00:30:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 113,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Name als Hologramm nach Krisz 24.10.2026 20:41: „das hier soll immer über das fahrzeug in leicht holo sein. die grösse soll sich an die kamera orinatieren so dass es immer gut lesbar ist, achte dabei dass der schrift nicht durch boden, assets, oder gar das schiff geht“): Der Titelblock (Hangar, Hersteller, Name, Rolle) steht jetzt als leicht durchscheinende Holo-Tafel über dem Fahrzeug, in der Halle wie in der Werkhalle, in fester Größe am Schirm (Name 5,6 % der Bühnenhöhe, 22 bis 44 px). Er baut sich mit einer Scanlinie von unten auf, sobald das Fahrzeug steht, und ab, sobald ein anderes gewählt wird. Er steht im Bild nie über dem Rumpf; was vor ihm steht (Deko, Einrichtung, Crew), schiebt ihn höher; er bleibt unter Kopfzeile und Decke, im Raum und neben Tafel und Knöpfen der Bühne. Passt das nirgends (von steil oben oder ganz nah an großen Schiffen), blendet er sich aus, statt das Schiff zu verdecken. Geprüft in der Cloud mit Dragonfly, Gladius, Cutlass, Carrack und Ursa (Werkhalle), je flach, schräg, von oben, nah, fern, seitlich, dazu Handybreite und Wechsel. Zu beurteilen: (1) Größe und Lesbarkeit; (2) der Holo-Look (Glühen, Scanlinien, Aufbau) zu stark oder zu schwach? (3) Ist das Ausblenden von steil oben und ganz nah richtig, oder soll er dann kleiner über dem Schiff bleiben? (4) Steht er auf dem eigenen Rechner auch frei? In der Cloud misst Software-WebGL den Freiraum der Halle falsch, die Aufnahmen setzen dafür den Raum der Halle als Quader ein; Galerie und Säulen prüft also erst die echte Messung auf einer Grafikkarte. Bilder unter hangar-holo im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-24T23:30:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
