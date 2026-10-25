@@ -5432,13 +5432,14 @@ const WERK_TOR_VOR = 1200;
 const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
 // dafür mal quer), des Spots (weicher seit 24.10.2026: 170 statt 260, das
-// Fahrzeug strahlte weiß; seit 25.10.2026 1 m höher und 280, Krisz: „so
-// dass spotlight in der mitte prominenter ist“) und des Hallenlichts vor
+// Fahrzeug strahlte weiß; seit 25.10.2026 1 m höher und 380, die Reihen
+// 40 statt 72, Krisz: „die wände etwas dunkler beleuchten so dass spotlight
+// in der mitte prominenter ist“) und des Hallenlichts vor
 // dem Durchgang; Grundlicht und Spiegelung wachsen mit den Reihen (seit
 // 25.10.2026 schwächer, die Wände dunkler). Aus geht eine Leuchte in
 // WERK_OFF_MS. Leuchtflächen strahlen über der Schwelle des Lichtscheins.
 const WERK_LIGHT = {
-  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 280, spill: [1.0, 0.98, 0.95], spillI: 40,
+  row: [1.0, 0.97, 0.92], rowI: 40, spot: [1.0, 0.93, 0.82], spotI: 380, spill: [1.0, 0.98, 0.95], spillI: 40,
   amb: [0.85, 0.88, 0.95], amb0: 0.012, ambK: 0.3, env0: 0.04, envK: 0.4, torAmb: 0.35, glow: 7, dark: 0.006,
 };
 // Zu den Wänden hin dunkler (Krisz, 24.10.2026: „sonst alles im hintergrund
@@ -5450,7 +5451,7 @@ const WERK_LIGHT = {
 // HG_WK_FZ) nehmen den Abfall nicht, sonst würden große an Bug und Heck
 // dunkler. Seit 25.10.2026 früher und tiefer (vorher ab 0,35, rest 0,22;
 // Krisz: „die wände etwas dunkler beleuchten“).
-const WERK_WAND = { ab: 0.25, rest: 0.1, glow: 0.5 };
+const WERK_WAND = { ab: 0.15, rest: 0.07, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
 // mit Blitzen über voll, dann glüht sie auf voll aus; der Spot schlägt
@@ -5512,7 +5513,7 @@ const WERK_DECKE = /* work-werkdecke */ {
 // die Palettenfarbe Weiß (0,87, glänzend) und stand hell wie ein Leuchtbalken
 // unter der schwarzen Decke; die Kanäle (Beige des Depots) dicht an den
 // Leuchten fast weiß; die Luftschläuche leuchteten gelb über allem
-const WERK_DECKE_TON = [[/pipe_air_processing/, 0.28], [/dumpersdepot/, 0.6], [/airduct_hose/, 0.42]];
+const WERK_DECKE_TON = [[/pipe_air_processing/, 0.28], [/dumpersdepot/, 0.6], [/airduct_hose/, 0.21]];
 // Plätze der Stücke aus WERK_DECKE: [node, Mitte x, Oberkante, Mitte z, r in Grad]
 const werkDeckePlaetze = (D) => [
   ...(D.laeufe ?? []).flatMap((L) => {
