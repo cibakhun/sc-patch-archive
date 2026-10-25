@@ -36,6 +36,7 @@ import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { initGear, poseShip } from './lib/landing-gear.mjs';
+import { gearPlane, GEAR_TILT_MAX } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import sharp from 'sharp';
@@ -663,16 +664,13 @@ function gearCheck(written, gear) {
   if (!gear) return { ok: false, why: 'kein Fahrwerkseintrag' };
   if (gear.pose !== 'aus') return { ok: false, why: `Fahrwerk ${gear.pose}${gear.why ? `: ${gear.why.slice(0, 160)}` : ''}` };
   if (gear.contacts.length < 3) return { ok: false, why: `nur ${gear.contacts.length} Aufstandspunkte` };
-  const low = gear.contacts.map(() => Infinity), e = [0, 0, 0];
-  // Ebene y = a·x + b·z + c durch die Aufstandspunkte (kleinste Quadrate):
-  // Nichts darf tiefer als 20 cm darunter liegen (wie verify:hangar-gear [3]);
+  // Ebene durch die Aufstandspunkte: die des Viewers (gearPlane, auch seine
+  // Grenzen), sonst misst der Bau gegen eine andere als das Tor.
+  // Nichts darf senkrecht mehr als 20 cm darunter liegen (wie verify:hangar-gear [3]);
   // Apollo und Hermes behalten hier Teile, die die Geometrie-Fassung weglässt
-  const C = gear.contacts, S = (f) => C.reduce((s, c) => s + f(c), 0);
-  const M = [[S((c) => c[0] * c[0]), S((c) => c[0] * c[2]), S((c) => c[0])], [S((c) => c[0] * c[2]), S((c) => c[2] * c[2]), S((c) => c[2])], [S((c) => c[0]), S((c) => c[2]), C.length]];
-  const r = [S((c) => c[0] * c[1]), S((c) => c[2] * c[1]), S((c) => c[1])];
-  const det = (m) => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-  const D = det(M), col = (k) => M.map((row, i) => row.map((v, j) => (j === k ? r[i] : v)));
-  const [pa, pb, pc] = Math.abs(D) > 1e-9 ? [0, 1, 2].map((k) => det(col(k)) / D) : [0, 0, S((c) => c[1]) / C.length];
+  const pl = gearPlane(gear.contacts);
+  if (!pl) return { ok: false, why: `keine Ebene durch die Aufstandspunkte (auf einer Linie oder steiler als ${GEAR_TILT_MAX} Grad)` };
+  const low = gear.contacts.map(() => Infinity), e = [0, 0, 0], norm = 1 / Math.hypot(pl.a, 1, pl.b);
   let sink = 0;
   for (const n of written.getRoot().listNodes()) {
     const m = n.getMesh(); if (!m) continue;
@@ -685,7 +683,7 @@ function gearCheck(written, gear) {
         a.getElement(i, e);
         const x = W[0] * e[0] + W[4] * e[1] + W[8] * e[2] + W[12], y = W[1] * e[0] + W[5] * e[1] + W[9] * e[2] + W[13], z = W[2] * e[0] + W[6] * e[1] + W[10] * e[2] + W[14];
         gear.contacts.forEach((c, k) => { if (y < low[k] && Math.hypot(x - c[0], z - c[2]) <= 0.6) low[k] = y; });
-        sink = Math.min(sink, y - (pa * x + pb * z + pc));
+        sink = Math.min(sink, (y - (pl.a * x + pl.b * z + pl.c)) * norm);
       }
     }
   }
