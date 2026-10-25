@@ -651,16 +651,18 @@ export function boot(doc) {
   const cardOf = (id) => strip.querySelector(`.hg-card[data-id="${CSS.escape(id)}"]`);
   // Titelblock als Hologramm ueber dem Fahrzeug (hangar-viewer.js, buildHolo):
   // der Text aus der Bucht, solange sie noch laedt Name und Hersteller von
-  // der Dock-Karte
-  const kicker = title.querySelector('h1')?.textContent.trim() ?? '';
+  // der Dock-Karte. Oben das Herstellerlogo (opts.logos je Kuerzel, aus
+  // HangarApp.astro) statt der Seitenueberschrift (Krisz 25.10.2026: „HANGAR“
+  // kann raus)
+  const logoOf = (id) => stageCfg.opts?.logos?.[stageCfg.models[id]?.[2]] ?? null;
   function labelOf(id) {
     const head = regionNow('head');
     if (head?.dataset.id === id) {
       const txt = (sel) => head.querySelector(sel)?.textContent.trim() ?? '';
-      return { kicker, maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role') };
+      return { logo: logoOf(id), maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role') };
     }
     const card = cardOf(id);
-    return { kicker, maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '' };
+    return { logo: logoOf(id), maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '' };
   }
   // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
   const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);

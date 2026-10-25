@@ -4920,12 +4920,20 @@ function buildHolo(container, reduceMotion) {
   el.setAttribute('aria-hidden', 'true');
   el.hidden = true;
   if (reduceMotion) el.dataset.still = '';
+  // Oben das Herstellerlogo als Licht (Krisz 25.10.2026: „HANGAR“ raus, das
+  // Hologramm mit dem Herstellerlogo schmücken): das Bild ist nur Maske
+  // (CSS --logo), die Farbe kommt vom Hologramm; die äußere Hülle trägt das
+  // Glühen, eine Maske schnitte es sonst ab.
   const rows = ['k', 'm', 'n', 'r'].map((c) => {
     const p = document.createElement('p');
     p.className = `hg-holo__${c}`;
     el.append(p);
     return p;
   });
+  const logo = document.createElement('span');
+  logo.className = 'hg-holo__logo';
+  logo.append(document.createElement('span'));
+  rows[0].append(logo);
   container.append(el);
   const texts = new Map();
   // frei im Bild: Abstand zu den Rändern (l, t, r: Kopfzeile und Tafel der
@@ -4941,13 +4949,22 @@ function buildHolo(container, reduceMotion) {
   const V = new THREE.Vector3(), P = new THREE.Vector3(), Q = new THREE.Vector3(), R = new THREE.Vector3(), U = new THREE.Vector3(), F = new THREE.Vector3(), S = new THREE.Vector3();
   const M = new THREE.Matrix4();
   let sx = new Float32Array(0), sy = sx, sd = sx;
-  const keyOf = (t) => [t.kicker, t.maker, t.name, t.role].join('\u0001');
+  const keyOf = (t) => [t.logo?.url, t.maker, t.name, t.role].join('\u0001');
   // Schriftgröße des Namens für die Bühnenhöhe, Breite höchstens der freie Teil
   const sizeOf = (h) => Math.round(THREE.MathUtils.clamp(h * HOLO_NAME[0], HOLO_NAME[1], HOLO_NAME[2]));
   const maxOf = (w) => Math.round(Math.max(160, (w - safe.l - safe.r) * 0.9));
   function set(id, t, w, h) {
     const N = sizeOf(h), max = maxOf(w);
-    [t.kicker, t.maker, t.name, t.role].forEach((s, i) => { rows[i].textContent = s || ''; rows[i].hidden = !s; });
+    // Der Herstellername bleibt unter dem Logo: dessen Schriftzug ist im
+    // Hologramm zu klein zum Lesen
+    const L = t.logo?.url ? t.logo : null;
+    rows[0].hidden = !L;
+    if (L) {
+      logo.style.setProperty('--logo', `url("${L.url}")`);
+      logo.style.setProperty('--logo-ar', String(L.ar || 1));
+      logo.toggleAttribute('data-full', !!L.full);
+    }
+    [null, t.maker, t.name, t.role].forEach((s, i) => { if (i) { rows[i].textContent = s || ''; rows[i].hidden = !s; } });
     el.style.setProperty('--holo-n', `${N}px`);
     el.style.setProperty('--holo-max', `${max}px`);
     el.style.transform = 'none';
@@ -5424,12 +5441,19 @@ const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // Fahrt der Kamera zwischen Halle und Werkhalle: Dauer aus der Weglänge in
 // Hallenmetern (s = a + Weg / v, gedeckelt). Das Tor ist so viel früher
 // offen, als die Kamera es erreicht (ms). Die Lampenreihen gehen von hinten
-// nach vorn an, bei diesen Anteilen der Spanne vom ersten Blick durch das
-// aufgehende Tor (42 % offen; vorher lief die Folge hinter dem Tor ab) bis
-// zur Ankunft; der Spot genau bei der Ankunft, mit der Bühne
+// nach vorn an, bei diesen Anteilen der Spanne vom Einschalten bis zur
+// Ankunft (höchstens WERK_LOOK.max, mindestens .min); der Spot genau bei der
+// Ankunft, mit der Bühne
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
 const WERK_TOR_VOR = 1200;
 const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
+// Eingeschaltet wird erst, wenn die Kamera nah am Tor ist und gut hineinsieht
+// (Krisz, 25.10.2026: „die lichter in der werkstatt sollen erst angehen wenn
+// wir mit der kamera schon in der nähe vom tor sind und wir gut reingucken
+// können“; vorher schon bei 42 % offenem Tor, die Kamera noch in der Halle):
+// höchstens near Hallenmeter vor dem Tor, Blick höchstens deg Grad neben der
+// Richtung hinein, Tor mindestens tor offen. Kommt das nie, bei der Ankunft.
+const WERK_LOOK = { near: 7, deg: 38, tor: 0.6, min: 700, max: 1800 };
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
 // dafür mal quer), des Spots (weicher seit 24.10.2026: 170 statt 260, das
 // Fahrzeug strahlte weiß; seit 25.10.2026 1 m höher und 380, die Reihen
@@ -9528,6 +9552,23 @@ void main() {
   // das Tor hinter der Kamera zu ist); werkParked: das Schiff, das beim
   // Hineinfahren unten in der Halle bleibt, bis Feld und Tor unten sind
   let werkVeh = null, werkParked = null, hallShown = true;
+  // werkWait: Fahrt hinein, deren Bänder noch aus sind ({ t0, arrive })
+  let werkWait = null;
+  const lookDir = new THREE.Vector3();
+  // Bänder an, wenn die Kamera nah am Tor ist und hineinsieht (WERK_LOOK),
+  // spätestens bei der Ankunft; von hinten nach vorn wie bisher
+  function werkLookIn(now) {
+    const W = realHall.werk, k = hallRoot.scale.x, w = werkWait;
+    const ahead = camera.position.x / k - WERK.tor.x;
+    camera.getWorldDirection(lookDir);
+    const deg = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(-lookDir.x, -1, 1)));
+    const ok = ahead <= WERK_LOOK.near && deg <= WERK_LOOK.deg && W.tor.v >= WERK_LOOK.tor;
+    if (!ok && trip && now < w.arrive) return;
+    const span = THREE.MathUtils.clamp(w.arrive - now, WERK_LOOK.min, WERK_LOOK.max);
+    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, now + span * WERK_ROWS_AT[i]));
+    werkWait = null;
+    console.info(`[hangar] Werkhalle: Licht an nach ${((now - w.t0) / 1000).toFixed(1)} s, ${ahead.toFixed(1)} m vor dem Tor, Blick ${deg.toFixed(0)}° neben der Richtung hinein, Tor ${Math.round(W.tor.v * 100)} % offen${ok ? '' : ' (bei der Ankunft)'}, Bänder über ${(span / 1000).toFixed(1)} s`);
+  }
   function werkDropParked() {
     const c = werkParked;
     werkParked = null;
@@ -9540,6 +9581,7 @@ void main() {
     if (!W) return;
     if (werkVeh && werkVeh !== current) { scene.remove(werkVeh.group); release(werkVeh); }
     werkVeh = null;
+    werkWait = null;
     werkU.foot.value = null;
     for (const L of W.rows) lampNow(L, 0);
     lampNow(W.spot, 0);
@@ -9664,6 +9706,7 @@ void main() {
   function werkFrame(now) {
     const W = realHall.werk, F = WERK.feld, k = hallRoot.scale.x;
     werkStep(W.tor, now); werkStep(W.buehne, now);
+    if (werkWait) werkLookIn(now);
     werkU.k.value = k;
     const rowI = WL.rowI * (WK_JE > 1 ? 1 : 2.6);
     let sum = 0;
@@ -9982,16 +10025,16 @@ void main() {
     let plan = planFor(werkPath('in', from, to, null, s.info));
     if (tripHits(plan, t0, box, liftAt)) plan = planFor(werkPath('in', from, to, box, s.info));
     // Das Tor ist offen, bevor die Kamera durch die Nische ist (WERK_TOR_VOR);
-    // die Bänder gehen vom ersten Blick hinein bis zur Ankunft an
-    // (WERK_ROWS_AT): Die Kamera hält gleich hinter dem Tor
-    const cross = plan.at(WERK.tor.x + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR), look = torAt + WERK.tor.ms * 0.42;
+    // die Kamera hält gleich hinter dem Tor
+    const cross = plan.at(WERK.tor.x + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR);
     werkMove(W.tor, 1, WERK.tor.ms, t0 + torAt);
-    W.rows.forEach((L, i) => lampSet(L, WERK_FLICKER, 1, t0 + look + (plan.ms - look) * WERK_ROWS_AT[i]));
+    // die Bänder schaltet werkLookIn, sobald die Kamera hineinsieht
+    werkWait = { t0, arrive: t0 + plan.ms };
     werkMove(W.buehne, 0, WERK_UP_MS, t0 + plan.ms - WERK_UP_MS);
     lampSet(W.spot, WERK_SPOT_FLICKER, 1, t0 + plan.ms);
     if (fovGlide) { fovGlide.t0 = t0; fovGlide.dur = plan.ms; }
     homeTgt = tgt;
-    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${(torAt / 1000).toFixed(1)} s, durch bei ${(cross / 1000).toFixed(1)} s, Bänder ${WERK_ROWS_AT.map((r) => ((look + (plan.ms - look) * r) / 1000).toFixed(1)).join('/')} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
+    console.info(`[hangar] Fahrt in die Werkhalle: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s, Tor auf ab ${(torAt / 1000).toFixed(1)} s, durch bei ${(cross / 1000).toFixed(1)} s, Bühne ab ${((plan.ms - WERK_UP_MS) / 1000).toFixed(1)} s`);
     await tripStart(plan, controls.target.clone().divideScalar(k), tgt.clone().divideScalar(k), [], t0);
     werkMove(W.tor, 0, WERK.tor.ms);
     return true;
@@ -11391,8 +11434,9 @@ void main() {
     // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
     // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
     setCover(px) { coverTop = Math.max(0, Number(px) || 0); wake(300); },
-    // Name als Hologramm über dem Fahrzeug: label(id, { kicker, maker,
-    // name, role }) für das Fahrzeug id (show(url, { id, label }) setzt ihn
+    // Name als Hologramm über dem Fahrzeug: label(id, { logo, maker,
+    // name, role }) für das Fahrzeug id, logo { url, ar, full } oder null
+    // (show(url, { id, label }) setzt ihn
     // gleich mit); onHolo(fn): fn(true), sobald es steht, fn(false), wenn es
     // am stehenden Fahrzeug keinen Platz findet (dann zeigt die Seite den Namen);
     // setSafe({ l, t, r }): px am Rand der Bühne, die die Oberfläche verdeckt

@@ -123,7 +123,8 @@ try {
   fehler.push(`Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
 }
 const progs = await page.evaluate(() => window.__texProgramme ?? []).catch(() => []);
-if (SHOT) await page.screenshot({ path: SHOT }).catch((e) => fehler.push(`Aufnahme ${SHOT}: ${e.message.split('\n')[0]}`));
+// Software-WebGL braucht für ein Bild der ganzen Halle oft länger als die 30 s von Playwright
+if (SHOT) await page.screenshot({ path: SHOT, timeout: 180000 }).catch((e) => fehler.push(`Aufnahme ${SHOT}: ${e.message.split('\n')[0]}`));
 await browser.close();
 
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
