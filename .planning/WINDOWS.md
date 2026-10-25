@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 76
+open_count: 77
 waived_count: 2
 fixed_count: 37
-total_count: 115
-last_updated: 2026-10-25T02:00:00.000Z
+total_count: 116
+last_updated: 2026-10-25T11:00:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -130,6 +130,7 @@ last_updated: 2026-10-25T02:00:00.000Z
 | 114 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Werkhalle nach Krisz 24.10.2026 17:45/17:47 mit Bildern: „die kamer is iwi in dem schiff drin“ und „in dieser position ungefähr soll die kamera enden und nicht da links oben“): Die Fahrt in die Werkhalle endet jetzt vorn mittig, knapp über Augenhöhe, mit Blick gerade auf das Fahrzeug und die Rückwand (wie auf Krisz' Bild), 1 bis 2 m hinter dem Tor. Das Tor ist offen, bevor die Kamera durch die Nische ist, die Lichter gehen von hinten nach vorn an, während sie hineinfährt, der Spot bei der Ankunft. Zurück zu einem Schiff dreht sich die Kamera erst zum Tor, während es aufgeht (rund 2 s), und fährt dann hinaus. Die Kamera in einer Hülle ließ sich hier nicht nachstellen; behoben sind zwei Fehler, die dahin führen konnten (Weg hinaus durch das Fahrzeug, Weiterdrehen nach der Ankunft). Zu beurteilen: (1) Stimmt die Endposition so? (2) Ist das Warten am Tor beim Hinausfahren zu lang? (3) Sitzt die Kamera noch irgendwo im Schiff oder Fahrzeug, und wenn ja, nach welchem Klick? Bilder unter hangar-werkhalle/endpunkt im Projektordner. | open |  | 2026-10-24T21:00:00.000Z |  |
 | 115 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Werkhalle nach Krisz 24.10.2026 22:56: „decke iwi verbessern, rohre, kablen etc, sonst alles im hintergrund richtung wände dunkler machen, den spotlight softer“): Unter der Decke der Werkhalle hängen jetzt Leitungen aus dem Gerätekatalog des Spiels: zwei Lüftungskanäle und zwei Rohrstränge längs an den Seiten, zwei durchhängende Kabelzüge mit Abzweigdosen über dem Glasfeld und zwei Querkabel, zusammen 44 Stücke, alle über der höchsten Kameraposition. Rohre und Kanäle sind dunkler getönt als im Katalog (dort fast weiß und spiegelnd). Wände, Ecken und Hintergrund werden zum Rand hin dunkler, Bühne und Fahrzeug bleiben hell; der Spot hat einen weichen Rand und etwas weniger Kraft, sein Lichtkegel in der Luft ist halb so stark. Zu beurteilen: (1) Trägt die Decke so, oder soll mehr oder anderes hin (Kabelrinnen, Lampen, Kräne)? (2) Ist der Rand jetzt dunkel genug oder schon zu dunkel? (3) Ist der Spot weich genug? Bilder unter hangar-werkhalle/decke im Projektordner. | open |  | 2026-10-24T23:30:00.000Z |  |
 | 116 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Name als Hologramm nach Krisz 24.10.2026 20:41: „das hier soll immer über das fahrzeug in leicht holo sein. die grösse soll sich an die kamera orinatieren so dass es immer gut lesbar ist, achte dabei dass der schrift nicht durch boden, assets, oder gar das schiff geht“): Der Titelblock (Hangar, Hersteller, Name, Rolle) steht jetzt als leicht durchscheinende Holo-Tafel über dem Fahrzeug, in der Halle wie in der Werkhalle, in fester Größe am Schirm (Name 5,6 % der Bühnenhöhe, 22 bis 44 px). Er baut sich mit einer Scanlinie von unten auf, sobald das Fahrzeug steht, und ab, sobald ein anderes gewählt wird. Er steht im Bild nie über dem Rumpf; was vor ihm steht (Deko, Einrichtung, Crew), schiebt ihn höher; er bleibt unter Kopfzeile und Decke, im Raum und neben Tafel und Knöpfen der Bühne. Passt das nirgends (von steil oben oder ganz nah an großen Schiffen), blendet er sich aus, statt das Schiff zu verdecken, und der Name steht wieder oben links wie bisher. Geprüft in der Cloud mit Dragonfly, Gladius, Cutlass, Carrack und Ursa (Werkhalle), je flach, schräg, von oben, nah, fern, seitlich, dazu Handybreite und Wechsel. Zu beurteilen: (1) Größe und Lesbarkeit; (2) der Holo-Look (Glühen, Scanlinien, Aufbau) zu stark oder zu schwach? (3) Ist das Ausblenden von steil oben und ganz nah richtig, oder soll er dann kleiner über dem Schiff bleiben? (4) Steht er auf dem eigenen Rechner auch frei? In der Cloud misst Software-WebGL den Freiraum der Halle falsch, die Aufnahmen setzen dafür den Raum der Halle als Quader ein; Galerie und Säulen prüft also erst die echte Messung auf einer Grafikkarte. Bilder unter hangar-holo im Projektordner. | open |  | 2026-10-25T02:00:00.000Z |  |
+| 117 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, nach Krisz 25.10.2026 09:26/09:27/09:36: „wofür steht hangar da?“, „ja kann raus, kannst ja das hologramm etwas künstlerisch mit herstellerlogo oder so beschmücken“ und „die lichter in der werkstatt sollen erst angehen wenn wir mit der kamera schon in der nähe vom tor sind und wir gut reingucken können“): Die Zeile „HANGAR“ ist aus dem Hologramm und aus dem Titelblock der Seite verschwunden (die Überschrift bleibt nur für Vorleser und Suche). Oben im Hologramm steht jetzt das Logo des Herstellers als Licht in der Farbe des Hologramms, mit einem schwachen Hof, einem Glanz, der alle 7 s darüberläuft, und je einer Lichtlinie links und rechts; darunter der Herstellername, der Name und die Rolle. Alle 18 Hersteller im Hangar haben ein Logo. Die Lampenreihen der Werkhalle gehen bei der Fahrt hinein erst an, wenn die Kamera höchstens 7 m vor dem Tor ist, höchstens 38° neben der Richtung hinein blickt und das Tor mindestens zu 60 % offen ist, dann von hinten nach vorn über rund 1 s; der Spot wie bisher bei der Ankunft. Gemessen mit Gladius → Cyclone: an nach 4,2 von 5,3 s, 6,8 m vor dem Tor, Blick 2° daneben, Tor ganz offen (vorher schon bei 42 % offenem Tor, die Kamera noch 41 m draußen). Zu beurteilen: (1) Trägt das Logo so, oder soll es größer, farbig (Herstellerfarbe) oder ruhiger sein? (2) Gehen die Lichter jetzt im richtigen Moment an, oder zu spät (die Werkhalle ist bis kurz vor dem Tor dunkel)? Bild hangar/v82-hologramm-logo.png im Projektordner. | open |  | 2026-10-25T11:00:00.000Z |  |
 
 ````json
 [
@@ -1511,6 +1512,18 @@ last_updated: 2026-10-25T02:00:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-25T02:00:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 117,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, nach Krisz 25.10.2026 09:26/09:27/09:36: „wofür steht hangar da?“, „ja kann raus, kannst ja das hologramm etwas künstlerisch mit herstellerlogo oder so beschmücken“ und „die lichter in der werkstatt sollen erst angehen wenn wir mit der kamera schon in der nähe vom tor sind und wir gut reingucken können“): Die Zeile „HANGAR“ ist aus dem Hologramm und aus dem Titelblock der Seite verschwunden (die Überschrift bleibt nur für Vorleser und Suche). Oben im Hologramm steht jetzt das Logo des Herstellers als Licht in der Farbe des Hologramms, mit einem schwachen Hof, einem Glanz, der alle 7 s darüberläuft, und je einer Lichtlinie links und rechts; darunter der Herstellername, der Name und die Rolle. Alle 18 Hersteller im Hangar haben ein Logo. Die Lampenreihen der Werkhalle gehen bei der Fahrt hinein erst an, wenn die Kamera höchstens 7 m vor dem Tor ist, höchstens 38° neben der Richtung hinein blickt und das Tor mindestens zu 60 % offen ist, dann von hinten nach vorn über rund 1 s; der Spot wie bisher bei der Ankunft. Gemessen mit Gladius → Cyclone: an nach 4,2 von 5,3 s, 6,8 m vor dem Tor, Blick 2° daneben, Tor ganz offen (vorher schon bei 42 % offenem Tor, die Kamera noch 41 m draußen). Zu beurteilen: (1) Trägt das Logo so, oder soll es größer, farbig (Herstellerfarbe) oder ruhiger sein? (2) Gehen die Lichter jetzt im richtigen Moment an, oder zu spät (die Werkhalle ist bis kurz vor dem Tor dunkel)? Bild hangar/v82-hologramm-logo.png im Projektordner.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-25T11:00:00.000Z",
     "resolved_at": null
   }
 ]

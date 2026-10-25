@@ -84,8 +84,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-stagewrap{--hg-gut:clamp(16px,3vw,40px);--hg-panelw:min(400px,36vw)}
 .hg-stagewrap{position:relative}
 .hg-title{position:absolute;left:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);max-width:min(520px,60%);pointer-events:none}
-.hg-title h1{display:flex;align-items:center;gap:.55rem;margin:0 0 .55rem;font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--hg-amber);text-shadow:0 1px 3px var(--bg)}
-.hg-title h1::before{content:"";width:1.6rem;height:2px;border-radius:1px;background:var(--hg-amber)}
+/* Die Ueberschrift „Hangar“ nur fuer Vorleser und Suche: als Zeile ueber dem
+   Namen sagte sie nichts (Krisz 25.10.2026: „wofuer steht hangar da?“, „kann
+   raus“); das Hologramm traegt dort das Herstellerlogo. */
+.hg-title h1{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:600;letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--hg-dim)}
 .hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
@@ -100,7 +102,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Steht der Name als Hologramm ueber dem Fahrzeug (hangar-viewer.js,
    buildHolo), bleibt vom Titelblock nur die Knopfreihe im Bild; Titel und
    Name bleiben fuer Vorleser im Dokument. Ohne 3D-Ansicht bleibt er, wie er ist. */
-.hg[data-holo="on"] .hg-title h1,.hg[data-holo="on"] .hg-title .hgx-head{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.hg[data-holo="on"] .hg-title .hgx-head{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* Die Spalte rechts: Schalter oben, darunter die gewaehlte Tafel. Werkstatt
    fuellt sie bis zum Buehnenfuss, die Schiffsdaten nur so weit wie ihr Inhalt;
    wo die Spalte leer ist, gehen Klicks zur Leinwand durch. */
