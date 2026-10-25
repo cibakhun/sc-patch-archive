@@ -402,6 +402,237 @@
         "fresh": 0
       }
     },
+    "aegs-hammerhead-showdown": {
+      "url": "/hangar/ships/aegs-hammerhead-showdown.glb",
+      "v": "783950c1",
+      "tris": 667396,
+      "trisRaw": 2278165,
+      "textures": 293,
+      "attached": 0,
+      "swap": {
+        "turret_side_back_right": 4,
+        "turret_side_back_left": 4,
+        "turret_top": 4,
+        "turret_side_front_left": 4,
+        "turret_side_front_right": 4,
+        "turret_rear": 4
+      },
+      "swapNodes": 96,
+      "palette": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "record": "AEGS_Hammerhead_Showdown",
+      "game": "12913470",
+      "interiorDropped": 14,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-hammerhead-showdown.json",
+        "v": "8cabd426"
+      },
+      "uv": {
+        "rangeBefore": 131,
+        "rangeAfter": 121,
+        "bits": 19,
+        "degenerate": 1.8
+      },
+      "bytes": 6790696,
+      "pool": {
+        "images": 293,
+        "bytes": 15633824,
+        "fresh": 634230
+      }
+    },
+    "aegs-hammerhead": {
+      "url": "/hangar/ships/aegs-hammerhead.glb",
+      "v": "9c127d75",
+      "tris": 683843,
+      "trisRaw": 3401420,
+      "textures": 268,
+      "attached": 0,
+      "swap": {
+        "turret_side_back_right": 4,
+        "turret_side_back_left": 4,
+        "turret_top": 4,
+        "turret_side_front_left": 4,
+        "turret_side_front_right": 4,
+        "turret_rear": 4
+      },
+      "swapNodes": 96,
+      "palette": {
+        "1": 12,
+        "2": 5,
+        "3": 9
+      },
+      "record": "AEGS_Hammerhead_GS",
+      "game": "12913470",
+      "interiorDropped": 18,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-hammerhead.json",
+        "v": "a43f0ab2"
+      },
+      "uv": {
+        "rangeBefore": 164,
+        "rangeAfter": 164,
+        "bits": 20,
+        "degenerate": 2.2
+      },
+      "bytes": 6759864,
+      "pool": {
+        "images": 268,
+        "bytes": 14384366,
+        "fresh": 3375888
+      }
+    },
+    "aegs-idris-m": {
+      "url": "/hangar/ships/aegs-idris-m.glb",
+      "v": "d1e6c2bd",
+      "tris": 597696,
+      "trisRaw": 2019994,
+      "textures": 266,
+      "attached": 0,
+      "swap": {
+        "hardpoint_right_lower_turret": 2,
+        "hardpoint_left_lower_turret": 2,
+        "hardpoint_rear_tail_turret_left": 2,
+        "hardpoint_right_turret": 2,
+        "hardpoint_rear_upper_turret_right": 2,
+        "hardpoint_rear_tail_turret_right": 2,
+        "hardpoint_left_turret": 2,
+        "hardpoint_rear_upper_turret_left": 2,
+        "hardpoint_front_turret": 2,
+        "hardpoint_front_left_turret": 2,
+        "hardpoint_front_right_turret": 2
+      },
+      "swapNodes": 68,
+      "palette": {
+        "1": 16,
+        "2": 11,
+        "3": 4
+      },
+      "record": "AEGS_Idris_M",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -2.124,
+          -0.617,
+          -0.964,
+          -1.296
+        ],
+        "why": "Aufstandspunkte weichen bis 2.124 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 512,
+        "q": 72
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-idris-m.json",
+        "v": "bbc5cae7"
+      },
+      "uv": {
+        "rangeBefore": 549,
+        "rangeAfter": 541,
+        "bits": 22,
+        "degenerate": 6.7
+      },
+      "bytes": 6711744,
+      "pool": {
+        "images": 266,
+        "bytes": 9203434,
+        "fresh": 8989106
+      }
+    },
+    "aegs-idris-p": {
+      "url": "/hangar/ships/aegs-idris-p.glb",
+      "v": "84448219",
+      "tris": 1197657,
+      "trisRaw": 2123261,
+      "textures": 259,
+      "attached": 0,
+      "swap": {
+        "hardpoint_right_lower_turret": 2,
+        "hardpoint_left_lower_turret": 2,
+        "hardpoint_rear_tail_turret_left": 2,
+        "hardpoint_right_turret": 2,
+        "hardpoint_rear_upper_turret_right": 2,
+        "hardpoint_rear_tail_turret_right": 2,
+        "hardpoint_rear_turret_tail": 2,
+        "hardpoint_left_turret": 2,
+        "hardpoint_rear_upper_turret_left": 2,
+        "hardpoint_front_turret": 2,
+        "hardpoint_front_left_turret": 2,
+        "hardpoint_front_right_turret": 2
+      },
+      "swapNodes": 76,
+      "palette": {
+        "1": 17,
+        "2": 14,
+        "3": 4
+      },
+      "record": "AEGS_Idris_P",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -2.252,
+          -2.252,
+          -1.528,
+          -1.528
+        ],
+        "why": "Aufstandspunkte weichen bis 2.252 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 512,
+        "q": 72
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-idris-p.json",
+        "v": "017dbeba"
+      },
+      "uv": {
+        "rangeBefore": 549,
+        "rangeAfter": 541,
+        "bits": 22,
+        "degenerate": 5.5
+      },
+      "bytes": 11337696,
+      "pool": {
+        "images": 259,
+        "bytes": 9147408,
+        "fresh": 3272
+      }
+    },
     "aegs-javelin": {
       "url": "/hangar/ships/aegs-javelin.glb",
       "v": "b3ec680e",
@@ -446,6 +677,106 @@
         "images": 132,
         "bytes": 8773070,
         "fresh": 5096750
+      }
+    },
+    "aegs-reclaimer-showdown": {
+      "url": "/hangar/ships/aegs-reclaimer-showdown.glb",
+      "v": "53090c3c",
+      "tris": 498410,
+      "trisRaw": 981666,
+      "textures": 216,
+      "attached": 0,
+      "swap": {
+        "hardpoint_remote_turret_top": 2,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_remote_turret_rear_left": 2,
+        "hardpoint_remote_turret_rear_right": 2,
+        "hardpoint_turret": 2,
+        "hardpoint_remote_turret_front_left": 2,
+        "hardpoint_remote_turret_front_right": 2
+      },
+      "swapNodes": 56,
+      "palette": {
+        "1": 8,
+        "2": 7,
+        "3": 4
+      },
+      "record": "AEGS_Reclaimer_Showdown",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_main_left: nach lg_foot_deploy_main_left.caf Fuß bei -16.269, Aufstand -22.6; hardpoint_landinggear_main_right: nach lg_foot_deploy_main_r"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-reclaimer-showdown.json",
+        "v": "55f23f78"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 255.49,
+        "bits": 20,
+        "degenerate": 6.1
+      },
+      "bytes": 4824392,
+      "pool": {
+        "images": 216,
+        "bytes": 12573872,
+        "fresh": 4700
+      }
+    },
+    "aegs-reclaimer": {
+      "url": "/hangar/ships/aegs-reclaimer.glb",
+      "v": "d19c92b0",
+      "tris": 498410,
+      "trisRaw": 981666,
+      "textures": 216,
+      "attached": 0,
+      "swap": {
+        "hardpoint_remote_turret_top": 2,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_remote_turret_rear_left": 2,
+        "hardpoint_remote_turret_rear_right": 2,
+        "hardpoint_turret": 2,
+        "hardpoint_remote_turret_front_left": 2,
+        "hardpoint_remote_turret_front_right": 2
+      },
+      "swapNodes": 56,
+      "palette": {
+        "1": 8,
+        "2": 7,
+        "3": 4
+      },
+      "record": "AEGS_Reclaimer",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_main_left: nach lg_foot_deploy_main_left.caf Fuß bei -16.269, Aufstand -22.6; hardpoint_landinggear_main_right: nach lg_foot_deploy_main_r"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-reclaimer.json",
+        "v": "f3a4e74d"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 255.49,
+        "bits": 20,
+        "degenerate": 6.1
+      },
+      "bytes": 4824456,
+      "pool": {
+        "images": 216,
+        "bytes": 12571976,
+        "fresh": 2483200
       }
     },
     "aegs-redeemer": {
@@ -501,6 +832,62 @@
         "images": 282,
         "bytes": 12825852,
         "fresh": 804980
+      }
+    },
+    "aegs-retaliator": {
+      "url": "/hangar/ships/aegs-retaliator.glb",
+      "v": "113f93b7",
+      "tris": 469189,
+      "trisRaw": 1432995,
+      "textures": 237,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_frontbottom": 2,
+        "hardpoint_turret_fronttop": 2,
+        "hardpoint_turret_backbottom": 2,
+        "hardpoint_turret_backtopright": 2,
+        "hardpoint_turret_backtopleft": 2
+      },
+      "swapNodes": 40,
+      "palette": {
+        "1": 7,
+        "2": 3,
+        "3": 5
+      },
+      "record": "AEGS_Retaliator",
+      "game": "12913470",
+      "interiorDropped": 7,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          0,
+          -0.001,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-retaliator.json",
+        "v": "d0d2c15e"
+      },
+      "uv": {
+        "rangeBefore": 545,
+        "rangeAfter": 544.5,
+        "bits": 22,
+        "degenerate": 1.5
+      },
+      "bytes": 5066800,
+      "pool": {
+        "images": 237,
+        "bytes": 9988952,
+        "fresh": 320310
       }
     },
     "aegs-sabre-comet": {
@@ -652,6 +1039,56 @@
         "fresh": 79380
       }
     },
+    "aegs-sabre-raven-ex": {
+      "url": "/hangar/ships/aegs-sabre-raven-ex.glb",
+      "v": "327ef372",
+      "tris": 218786,
+      "trisRaw": 352213,
+      "textures": 262,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_left_wing": 1,
+        "hardpoint_weapon_right_wing": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 6,
+        "2": 3,
+        "3": 4
+      },
+      "record": "AEGS_Sabre_Raven_EX",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -1.558,
+          -1.558,
+          0
+        ],
+        "why": "Aufstandspunkte weichen bis 1.558 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-sabre-raven-ex.json",
+        "v": "083fc4bf"
+      },
+      "uv": {
+        "rangeBefore": 750,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2
+      },
+      "bytes": 2346120,
+      "pool": {
+        "images": 262,
+        "bytes": 11699438,
+        "fresh": 64738
+      }
+    },
     "aegs-sabre-raven": {
       "url": "/hangar/ships/aegs-sabre-raven.glb",
       "v": "cc93745d",
@@ -754,6 +1191,60 @@
         "images": 232,
         "bytes": 9939512,
         "fresh": 1254624
+      }
+    },
+    "aegs-tiburon": {
+      "url": "/hangar/ships/aegs-tiburon.glb",
+      "v": "e4346010",
+      "tris": 706992,
+      "trisRaw": 3183429,
+      "textures": 285,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_mid_right": 1,
+        "hardpoint_turret_mid_left": 1,
+        "hardpoint_weapon": 1,
+        "hardpoint_turret_front_left": 1,
+        "hardpoint_turret_front_right": 1,
+        "turret_rear": 4
+      },
+      "swapNodes": 183,
+      "palette": {
+        "1": 16,
+        "2": 8,
+        "3": 11
+      },
+      "record": "AEGS_Tiburon",
+      "game": "12913470",
+      "interiorDropped": 10,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/aegs-tiburon.json",
+        "v": "d61f6674"
+      },
+      "uv": {
+        "rangeBefore": 166,
+        "rangeAfter": 164,
+        "bits": 20,
+        "degenerate": 2.4
+      },
+      "bytes": 7437120,
+      "pool": {
+        "images": 285,
+        "bytes": 15305026,
+        "fresh": 218240
       }
     },
     "aegs-vanguard-harbinger": {
@@ -1079,6 +1570,126 @@
         "fresh": 258200
       }
     },
+    "anvl-ballista-dunestalker": {
+      "url": "/hangar/ships/anvl-ballista-dunestalker.glb",
+      "v": "82a8b0d5",
+      "tris": 208634,
+      "trisRaw": 207692,
+      "textures": 129,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "record": "ANVL_Ballista_Dunestalker",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 161,
+        "rangeAfter": 159.75,
+        "bits": 20,
+        "degenerate": 0.9
+      },
+      "bytes": 1946744,
+      "pool": {
+        "images": 129,
+        "bytes": 6855750,
+        "fresh": 0
+      }
+    },
+    "anvl-ballista-snowblind": {
+      "url": "/hangar/ships/anvl-ballista-snowblind.glb",
+      "v": "b93e2006",
+      "tris": 208634,
+      "trisRaw": 207692,
+      "textures": 129,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "record": "ANVL_Ballista_Snowblind",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 161,
+        "rangeAfter": 159.75,
+        "bits": 20,
+        "degenerate": 0.9
+      },
+      "bytes": 1946744,
+      "pool": {
+        "images": 129,
+        "bytes": 6855750,
+        "fresh": 0
+      }
+    },
+    "anvl-ballista": {
+      "url": "/hangar/ships/anvl-ballista.glb",
+      "v": "d60a37e1",
+      "tris": 208634,
+      "trisRaw": 207692,
+      "textures": 129,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "record": "ANVL_Ballista",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 161,
+        "rangeAfter": 159.75,
+        "bits": 20,
+        "degenerate": 0.9
+      },
+      "bytes": 1946744,
+      "pool": {
+        "images": 129,
+        "bytes": 6855750,
+        "fresh": 966606
+      }
+    },
     "anvl-c8-pisces": {
       "url": "/hangar/ships/anvl-c8-pisces.glb",
       "v": "bf3e98fd",
@@ -1234,6 +1845,58 @@
         "fresh": 1979006
       }
     },
+    "anvl-carrack-expedition": {
+      "url": "/hangar/ships/anvl-carrack-expedition.glb",
+      "v": "18649494",
+      "tris": 669525,
+      "trisRaw": 2491249,
+      "textures": 268,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_back_rear": 2,
+        "hardpoint_turret_remote_turret": 2,
+        "hardpoint_turret_left": 2,
+        "hardpoint_turret_right": 2
+      },
+      "swapNodes": 32,
+      "palette": {
+        "1": 9,
+        "2": 7,
+        "3": 4
+      },
+      "record": "ANVL_Carrack_Expedition",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          -0.001,
+          -0.001
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-carrack-expedition.json",
+        "v": "bfb6d86e"
+      },
+      "uv": {
+        "rangeBefore": 395,
+        "rangeAfter": 353,
+        "bits": 21,
+        "degenerate": 2
+      },
+      "bytes": 6392092,
+      "pool": {
+        "images": 268,
+        "bytes": 11500700,
+        "fresh": 3388
+      }
+    },
     "anvl-carrack": {
       "url": "/hangar/ships/anvl-carrack.glb",
       "v": "2565ba22",
@@ -1284,6 +1947,51 @@
         "images": 266,
         "bytes": 11497312,
         "fresh": 1875992
+      }
+    },
+    "anvl-centurion": {
+      "url": "/hangar/ships/anvl-centurion.glb",
+      "v": "6f3583c7",
+      "tris": 210202,
+      "trisRaw": 398664,
+      "textures": 273,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 1,
+        "hardpoint_remote_turret": 4
+      },
+      "swapNodes": 17,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 5
+      },
+      "record": "ANVL_Centurion",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-centurion.json",
+        "v": "e8a4adc1"
+      },
+      "uv": {
+        "rangeBefore": 60,
+        "rangeAfter": 42.31,
+        "bits": 18,
+        "degenerate": 2.4
+      },
+      "bytes": 2137344,
+      "pool": {
+        "images": 273,
+        "bytes": 9297090,
+        "fresh": 19262
       }
     },
     "anvl-gladiator": {
@@ -2317,6 +3025,50 @@
         "fresh": 1921632
       }
     },
+    "anvl-spartan": {
+      "url": "/hangar/ships/anvl-spartan.glb",
+      "v": "b3c6bc37",
+      "tris": 210140,
+      "trisRaw": 205094,
+      "textures": 217,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 5,
+        "2": 4,
+        "3": 2
+      },
+      "record": "ANVL_Spartan",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/anvl-spartan.json",
+        "v": "29000c07"
+      },
+      "uv": {
+        "rangeBefore": 40,
+        "rangeAfter": 40.14,
+        "bits": 18,
+        "degenerate": 0.8
+      },
+      "bytes": 1825120,
+      "pool": {
+        "images": 217,
+        "bytes": 7899558,
+        "fresh": 286850
+      }
+    },
     "anvl-terrapin-medic": {
       "url": "/hangar/ships/anvl-terrapin-medic.glb",
       "v": "8dccbf4d",
@@ -2469,6 +3221,216 @@
         "images": 215,
         "bytes": 9772774,
         "fresh": 269518
+      }
+    },
+    "argo-atls-geo-collector-grad01": {
+      "url": "/hangar/ships/argo-atls-geo-collector-grad01.glb",
+      "v": "cbe75f63",
+      "tris": 195239,
+      "trisRaw": 187139,
+      "textures": 93,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 3
+      },
+      "record": "ARGO_ATLS_GEO_Collector_Grad01",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/argo-atls-geo-collector-grad01.json",
+        "v": "6d7bfdc6"
+      },
+      "uv": {
+        "rangeBefore": 155,
+        "rangeAfter": 150.68,
+        "bits": 20,
+        "degenerate": 0.5
+      },
+      "bytes": 1648788,
+      "pool": {
+        "images": 93,
+        "bytes": 4027378,
+        "fresh": 0
+      }
+    },
+    "argo-atls-geo-collector-grad03": {
+      "url": "/hangar/ships/argo-atls-geo-collector-grad03.glb",
+      "v": "0a0c99bd",
+      "tris": 195239,
+      "trisRaw": 187139,
+      "textures": 93,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 3
+      },
+      "record": "ARGO_ATLS_GEO_Collector_Grad03",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/argo-atls-geo-collector-grad03.json",
+        "v": "22b45189"
+      },
+      "uv": {
+        "rangeBefore": 155,
+        "rangeAfter": 150.68,
+        "bits": 20,
+        "degenerate": 0.5
+      },
+      "bytes": 1648804,
+      "pool": {
+        "images": 93,
+        "bytes": 4027378,
+        "fresh": 0
+      }
+    },
+    "argo-atls-geo": {
+      "url": "/hangar/ships/argo-atls-geo.glb",
+      "v": "06573e1a",
+      "tris": 195239,
+      "trisRaw": 187139,
+      "textures": 93,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 3
+      },
+      "record": "ARGO_ATLS_GEO",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/argo-atls-geo.json",
+        "v": "b8f0cd82"
+      },
+      "uv": {
+        "rangeBefore": 155,
+        "rangeAfter": 150.68,
+        "bits": 20,
+        "degenerate": 0.5
+      },
+      "bytes": 1648792,
+      "pool": {
+        "images": 93,
+        "bytes": 4027378,
+        "fresh": 869096
+      }
+    },
+    "argo-atls": {
+      "url": "/hangar/ships/argo-atls.glb",
+      "v": "6f7b015b",
+      "tris": 141960,
+      "trisRaw": 137107,
+      "textures": 42,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 1,
+        "2": 1,
+        "3": 1
+      },
+      "record": "ARGO_ATLS",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/argo-atls.json",
+        "v": "38fe1d22"
+      },
+      "uv": {
+        "rangeBefore": 155,
+        "rangeAfter": 150.68,
+        "bits": 20,
+        "degenerate": 0.4
+      },
+      "bytes": 1226740,
+      "pool": {
+        "images": 42,
+        "bytes": 1982960,
+        "fresh": 375186
+      }
+    },
+    "argo-csv-cargo": {
+      "url": "/hangar/ships/argo-csv-cargo.glb",
+      "v": "ac67c922",
+      "tris": 202285,
+      "trisRaw": 242789,
+      "textures": 122,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 2,
+        "2": 4,
+        "3": 1
+      },
+      "record": "ARGO_CSV_Cargo",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/argo-csv-cargo.json",
+        "v": "eb20adcd"
+      },
+      "uv": {
+        "rangeBefore": 40,
+        "rangeAfter": 23.88,
+        "bits": 17,
+        "degenerate": 2
+      },
+      "bytes": 1453456,
+      "pool": {
+        "images": 122,
+        "bytes": 4976866,
+        "fresh": 491608
       }
     },
     "argo-mole": {
@@ -3409,6 +4371,57 @@
         "fresh": 2588
       }
     },
+    "crus-star-runner": {
+      "url": "/hangar/ships/crus-star-runner.glb",
+      "v": "b63b4560",
+      "tris": 375172,
+      "trisRaw": 1461130,
+      "textures": 238,
+      "attached": 0,
+      "swap": {
+        "hardpoint_front_turret": 2,
+        "hardpoint_turret_bottom_seat": 2,
+        "hardpoint_turret_top_seat": 2
+      },
+      "swapNodes": 24,
+      "palette": {
+        "1": 6,
+        "2": 4,
+        "3": 7
+      },
+      "record": "CRUS_Star_Runner",
+      "game": "12913470",
+      "interiorDropped": 3,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -5.665,
+          -5.695,
+          0
+        ],
+        "why": "Aufstandspunkte weichen bis 5.695 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/crus-star-runner.json",
+        "v": "0c9f7b8e"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 244.75,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 3985400,
+      "pool": {
+        "images": 238,
+        "bytes": 11551418,
+        "fresh": 286830
+      }
+    },
     "crus-starfighter-inferno": {
       "url": "/hangar/ships/crus-starfighter-inferno.glb",
       "v": "8a8b0be2",
@@ -3507,6 +4520,63 @@
         "fresh": 14126
       }
     },
+    "crus-starlifter-a2": {
+      "url": "/hangar/ships/crus-starlifter-a2.glb",
+      "v": "65449365",
+      "tris": 595031,
+      "trisRaw": 1562658,
+      "textures": 209,
+      "attached": 0,
+      "swap": {
+        "hardpoint_forward_left_remote_turret": 1,
+        "hardpoint_forward_right_remote_turret": 1,
+        "hardpoint_rear_left_remote_turret": 2,
+        "hardpoint_rear_right_remote_turret": 2,
+        "hardpoint_bridge_remote_turret": 2,
+        "hardpoint_remote_turret_rear": 2,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_weapon_top_right": 1,
+        "hardpoint_weapon_top_left": 1
+      },
+      "swapNodes": 44,
+      "palette": {
+        "1": 7,
+        "2": 6,
+        "3": 8
+      },
+      "record": "CRUS_Starlifter_A2",
+      "game": "12913470",
+      "interiorDropped": 10,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0.002,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/crus-starlifter-a2.json",
+        "v": "bbf1cba0"
+      },
+      "uv": {
+        "rangeBefore": 733,
+        "rangeAfter": 606.15,
+        "bits": 22,
+        "degenerate": 3.9
+      },
+      "bytes": 5842144,
+      "pool": {
+        "images": 209,
+        "bytes": 8536326,
+        "fresh": 72650
+      }
+    },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
       "v": "459655a3",
@@ -3559,6 +4629,59 @@
         "fresh": 0
       }
     },
+    "crus-starlifter-m2": {
+      "url": "/hangar/ships/crus-starlifter-m2.glb",
+      "v": "7ffc8be1",
+      "tris": 473837,
+      "trisRaw": 1296598,
+      "textures": 190,
+      "attached": 0,
+      "swap": {
+        "hardpoint_bridge_remote_turret": 2,
+        "hardpoint_remote_turret_rear": 2,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_weapon_top_right": 1,
+        "hardpoint_weapon_top_left": 1
+      },
+      "swapNodes": 20,
+      "palette": {
+        "1": 7,
+        "2": 6,
+        "3": 8
+      },
+      "record": "CRUS_Starlifter_M2",
+      "game": "12913470",
+      "interiorDropped": 10,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0.002,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/crus-starlifter-m2.json",
+        "v": "d38b4836"
+      },
+      "uv": {
+        "rangeBefore": 733,
+        "rangeAfter": 606.15,
+        "bits": 22,
+        "degenerate": 4.2
+      },
+      "bytes": 4597484,
+      "pool": {
+        "images": 190,
+        "bytes": 8107936,
+        "fresh": 7898
+      }
+    },
     "drak-buccaneer": {
       "url": "/hangar/ships/drak-buccaneer.glb",
       "v": "65ef6010",
@@ -3605,6 +4728,128 @@
         "images": 180,
         "bytes": 10059132,
         "fresh": 716538
+      }
+    },
+    "drak-caterpillar-pirate": {
+      "url": "/hangar/ships/drak-caterpillar-pirate.glb",
+      "v": "f43aeb48",
+      "tris": 837634,
+      "trisRaw": 3390526,
+      "textures": 368,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_top": 2,
+        "hardpoint_turret_bottom": 2,
+        "hardpoint_tractorbeam_right": 1
+      },
+      "swapNodes": 36,
+      "palette": {
+        "1": 9,
+        "2": 9,
+        "3": 9
+      },
+      "record": "DRAK_Caterpillar_Pirate",
+      "game": "12913470",
+      "interiorDropped": 10,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -3.622
+        ],
+        "why": "Aufstandspunkte weichen bis 3.622 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-caterpillar-pirate.json",
+        "v": "ec1ba06a"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 8434896,
+      "pool": {
+        "images": 368,
+        "bytes": 18007562,
+        "fresh": 866
+      }
+    },
+    "drak-caterpillar": {
+      "url": "/hangar/ships/drak-caterpillar.glb",
+      "v": "b1682372",
+      "tris": 837626,
+      "trisRaw": 3209260,
+      "textures": 370,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_top": 2,
+        "hardpoint_turret_bottom": 2,
+        "hardpoint_tractorbeam_right": 1
+      },
+      "swapNodes": 36,
+      "palette": {
+        "1": 9,
+        "2": 9,
+        "3": 9
+      },
+      "record": "DRAK_Caterpillar",
+      "game": "12913470",
+      "interiorDropped": 9,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -3.622
+        ],
+        "why": "Aufstandspunkte weichen bis 3.622 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-caterpillar.json",
+        "v": "6b7a22fe"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 8431364,
+      "pool": {
+        "images": 370,
+        "bytes": 18009104,
+        "fresh": 1574384
       }
     },
     "drak-clipper": {
@@ -4321,6 +5566,152 @@
         "fresh": 476526
       }
     },
+    "drak-ironclad-assault": {
+      "url": "/hangar/ships/drak-ironclad-assault.glb",
+      "v": "be071fc3",
+      "tris": 1199062,
+      "trisRaw": 2912692,
+      "textures": 433,
+      "attached": 0,
+      "swap": {
+        "hardpoint_manned_turret_right": 2,
+        "hardpoint_manned_turret_left": 2,
+        "hardpoint_assault_remote_turret_left": 4,
+        "hardpoint_assault_remote_turret_right": 4,
+        "hardpoint_manned_turret_bottom": 4,
+        "hardpoint_remote_turret_interior": 2,
+        "hardpoint_remote_turret_left": 2,
+        "hardpoint_remote_turret_right": 2
+      },
+      "swapNodes": 198,
+      "palette": {
+        "1": 17,
+        "2": 12,
+        "3": 10
+      },
+      "record": "DRAK_Ironclad_Assault",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_left_a: p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Animations[\\\\/]Spaceships[\\\\/]Ships[\\\\/]DRAK[\\\\/]ironclad[\\\\/]exterior[\\\\/]landinggear[\\"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 256,
+        "q": 72
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-ironclad-assault.json",
+        "v": "90288ab6"
+      },
+      "uv": {
+        "rangeBefore": 509,
+        "rangeAfter": 439.25,
+        "bits": 21,
+        "degenerate": 4.3
+      },
+      "bytes": 12255432,
+      "pool": {
+        "images": 433,
+        "bytes": 4060622,
+        "fresh": 2782
+      }
+    },
+    "drak-ironclad": {
+      "url": "/hangar/ships/drak-ironclad.glb",
+      "v": "4208ea27",
+      "tris": 1135056,
+      "trisRaw": 2582548,
+      "textures": 428,
+      "attached": 0,
+      "swap": {
+        "hardpoint_tractor_beam_nose": 1,
+        "hardpoint_manned_turret_right": 2,
+        "hardpoint_rail_tractor_beam_01": 1,
+        "hardpoint_manned_turret_bottom": 2,
+        "hardpoint_rail_tractor_beam_02": 1,
+        "hardpoint_remote_turret_interior": 2,
+        "hardpoint_remote_turret_left": 2,
+        "hardpoint_remote_turret_right": 2
+      },
+      "swapNodes": 136,
+      "palette": {
+        "1": 17,
+        "2": 11,
+        "3": 9
+      },
+      "record": "DRAK_Ironclad",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_left_a: p4k: kein Eintrag fuer /(^|[\\\\/])Data[\\\\/]Animations[\\\\/]Spaceships[\\\\/]Ships[\\\\/]DRAK[\\\\/]ironclad[\\\\/]exterior[\\\\/]landinggear[\\"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 256,
+        "q": 72
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-ironclad.json",
+        "v": "788a33c0"
+      },
+      "uv": {
+        "rangeBefore": 509,
+        "rangeAfter": 508.75,
+        "bits": 21,
+        "degenerate": 4.2
+      },
+      "bytes": 11539600,
+      "pool": {
+        "images": 428,
+        "bytes": 4058328,
+        "fresh": 2621370
+      }
+    },
+    "drak-mule": {
+      "url": "/hangar/ships/drak-mule.glb",
+      "v": "09cc162a",
+      "tris": 206428,
+      "trisRaw": 234218,
+      "textures": 163,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 7,
+        "2": 3,
+        "3": 3
+      },
+      "record": "DRAK_Mule",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/drak-mule.json",
+        "v": "ae9e5bf2"
+      },
+      "uv": {
+        "rangeBefore": 92,
+        "rangeAfter": 92.91,
+        "bits": 19,
+        "degenerate": 0.6
+      },
+      "bytes": 1667528,
+      "pool": {
+        "images": 163,
+        "bytes": 6788828,
+        "fresh": 693766
+      }
+    },
     "drak-pitbull": {
       "url": "/hangar/ships/drak-pitbull.glb",
       "v": "2b5af602",
@@ -4629,6 +6020,57 @@
         "fresh": 3148158
       }
     },
+    "gama-railen": {
+      "url": "/hangar/ships/gama-railen.glb",
+      "v": "9ead7389",
+      "tris": 432512,
+      "trisRaw": 1668423,
+      "textures": 248,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_left_1": 1,
+        "hardpoint_weapon_left_2": 1,
+        "hardpoint_weapon_right_1": 1,
+        "hardpoint_weapon_right_2": 1,
+        "hardpoint_turret_left": 2,
+        "hardpoint_turret_right": 2,
+        "hardpoint_tractor_left": 1,
+        "hardpoint_tractor_right": 1
+      },
+      "swapNodes": 72,
+      "palette": {
+        "1": 6,
+        "2": 4,
+        "3": 6
+      },
+      "record": "GAMA_Railen",
+      "game": "12913470",
+      "interiorDropped": 5,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_front_left: nach landing_deploy Fuß bei -6.839, Aufstand -19.033; hardpoint_landinggear_front_right: nach landing_deploy Fuß bei -6.836, A"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/gama-railen.json",
+        "v": "d5f0ebb3"
+      },
+      "uv": {
+        "rangeBefore": 131,
+        "rangeAfter": 121,
+        "bits": 19,
+        "degenerate": 1.1
+      },
+      "bytes": 4512592,
+      "pool": {
+        "images": 248,
+        "bytes": 12746750,
+        "fresh": 2794986
+      }
+    },
     "gama-syulen": {
       "url": "/hangar/ships/gama-syulen.glb",
       "v": "a16b9807",
@@ -4673,6 +6115,58 @@
         "images": 227,
         "bytes": 10193444,
         "fresh": 3159196
+      }
+    },
+    "gama-tyilui": {
+      "url": "/hangar/ships/gama-tyilui.glb",
+      "v": "d5dd6964",
+      "tris": 467077,
+      "trisRaw": 1878472,
+      "textures": 261,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_left": 2,
+        "hardpoint_turret_right": 2,
+        "hardpoint_weapon_left_1": 1,
+        "hardpoint_weapon_left_2": 1,
+        "hardpoint_weapon_right_1": 1,
+        "hardpoint_weapon_right_2": 1,
+        "hardpoint_turret_tractor": 1,
+        "hardpoint_turret_remote_top": 2,
+        "hardpoint_turret_remote_bottom": 2
+      },
+      "swapNodes": 68,
+      "palette": {
+        "1": 7,
+        "2": 7,
+        "3": 8
+      },
+      "record": "GAMA_Tyilui",
+      "game": "12913470",
+      "interiorDropped": 5,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_front_left: nach landing_deploy Fuß bei -6.839, Aufstand -19.033; hardpoint_landinggear_front_right: nach landing_deploy Fuß bei -6.836, A"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/gama-tyilui.json",
+        "v": "09b9f2e8"
+      },
+      "uv": {
+        "rangeBefore": 1578,
+        "rangeAfter": 981.5,
+        "bits": 22,
+        "degenerate": 1.9
+      },
+      "bytes": 5225396,
+      "pool": {
+        "images": 261,
+        "bytes": 13581352,
+        "fresh": 1952966
       }
     },
     "glsn-basher": {
@@ -4780,6 +6274,302 @@
         "images": 342,
         "bytes": 17285720,
         "fresh": 3335558
+      }
+    },
+    "grin-mdc": {
+      "url": "/hangar/ships/grin-mdc.glb",
+      "v": "cd71a043",
+      "tris": 212855,
+      "trisRaw": 245006,
+      "textures": 199,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 9,
+        "2": 6,
+        "3": 6
+      },
+      "record": "GRIN_MDC",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/grin-mdc.json",
+        "v": "9e4d29b0"
+      },
+      "uv": {
+        "rangeBefore": 25,
+        "rangeAfter": 15.89,
+        "bits": 16,
+        "degenerate": 1.2
+      },
+      "bytes": 2111392,
+      "pool": {
+        "images": 199,
+        "bytes": 6846554,
+        "fresh": 875878
+      }
+    },
+    "grin-mtc": {
+      "url": "/hangar/ships/grin-mtc.glb",
+      "v": "1c6047f9",
+      "tris": 215255,
+      "trisRaw": 294592,
+      "textures": 207,
+      "attached": 0,
+      "swap": {
+        "hardpoint_grin_mtc_turret": 2
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 7,
+        "2": 5,
+        "3": 5
+      },
+      "record": "GRIN_MTC",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/grin-mtc.json",
+        "v": "865eef3c"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.2
+      },
+      "bytes": 2598700,
+      "pool": {
+        "images": 207,
+        "bytes": 6856974,
+        "fresh": 35936
+      }
+    },
+    "grin-ptv": {
+      "url": "/hangar/ships/grin-ptv.glb",
+      "v": "efe615d6",
+      "tris": 29554,
+      "trisRaw": 28355,
+      "textures": 29,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "record": "GRIN_PTV",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 214088,
+      "pool": {
+        "images": 29,
+        "bytes": 1801510,
+        "fresh": 359514
+      }
+    },
+    "grin-roc-ds": {
+      "url": "/hangar/ships/grin-roc-ds.glb",
+      "v": "4e079cb9",
+      "tris": 203670,
+      "trisRaw": 230800,
+      "textures": 73,
+      "attached": 0,
+      "swap": {
+        "hardpoint_mining_arm": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 1,
+        "2": 1,
+        "3": 2
+      },
+      "record": "GRIN_ROC_DS",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/grin-roc-ds.json",
+        "v": "aba40ee3"
+      },
+      "uv": {
+        "rangeBefore": 112,
+        "rangeAfter": 111.78,
+        "bits": 19,
+        "degenerate": 1
+      },
+      "bytes": 1503672,
+      "pool": {
+        "images": 73,
+        "bytes": 3858706,
+        "fresh": 16430
+      }
+    },
+    "grin-roc": {
+      "url": "/hangar/ships/grin-roc.glb",
+      "v": "3e0a9e0e",
+      "tris": 111972,
+      "trisRaw": 114033,
+      "textures": 66,
+      "attached": 0,
+      "swap": {
+        "hardpoint_mining_arm": 2
+      },
+      "swapNodes": 16,
+      "palette": {
+        "1": 1,
+        "2": 2,
+        "3": 2
+      },
+      "record": "GRIN_ROC",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/grin-roc.json",
+        "v": "fa0a4ae2"
+      },
+      "uv": {
+        "rangeBefore": 67,
+        "rangeAfter": 67.22,
+        "bits": 19,
+        "degenerate": 0.9
+      },
+      "bytes": 862100,
+      "pool": {
+        "images": 66,
+        "bytes": 3603034,
+        "fresh": 491650
+      }
+    },
+    "grin-stv": {
+      "url": "/hangar/ships/grin-stv.glb",
+      "v": "3dcb7ffb",
+      "tris": 146179,
+      "trisRaw": 146215,
+      "textures": 129,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 5,
+        "2": 5,
+        "3": 4
+      },
+      "record": "GRIN_STV",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/grin-stv.json",
+        "v": "19ab9153"
+      },
+      "uv": {
+        "rangeBefore": 37,
+        "rangeAfter": 34.39,
+        "bits": 18,
+        "degenerate": 3.4
+      },
+      "bytes": 1036492,
+      "pool": {
+        "images": 129,
+        "bytes": 4845870,
+        "fresh": 27514
+      }
+    },
+    "grin-utv": {
+      "url": "/hangar/ships/grin-utv.glb",
+      "v": "c6838ae3",
+      "tris": 205594,
+      "trisRaw": 286472,
+      "textures": 135,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 4,
+        "2": 8,
+        "3": 4
+      },
+      "record": "GRIN_UTV",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/grin-utv.json",
+        "v": "227902bf"
+      },
+      "uv": {
+        "rangeBefore": 426,
+        "rangeAfter": 320.25,
+        "bits": 21,
+        "degenerate": 3.3
+      },
+      "bytes": 1737944,
+      "pool": {
+        "images": 135,
+        "bytes": 4539414,
+        "fresh": 656146
       }
     },
     "krig-l21-wolf": {
@@ -5031,6 +6821,55 @@
         "images": 124,
         "bytes": 4770452,
         "fresh": 215052
+      }
+    },
+    "krig-s65-stingray": {
+      "url": "/hangar/ships/krig-s65-stingray.glb",
+      "v": "d9ea71e9",
+      "tris": 284193,
+      "trisRaw": 712668,
+      "textures": 258,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_fixed_right_outer": 1,
+        "hardpoint_weapon_fixed_right_inner": 1,
+        "hardpoint_weapon_fixed_left_outer": 1,
+        "hardpoint_weapon_fixed_left_inner": 1,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1
+      },
+      "swapNodes": 22,
+      "palette": {
+        "1": 5,
+        "2": 6,
+        "3": 5
+      },
+      "record": "KRIG_S65_Stingray",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landing_gear_front_left: nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674; hardpoint_landing_gear_front_right: nach landing_gear_extend Fuß be"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/krig-s65-stingray.json",
+        "v": "fda07aac"
+      },
+      "uv": {
+        "rangeBefore": 184,
+        "rangeAfter": 183.88,
+        "bits": 20,
+        "degenerate": 1.8
+      },
+      "bytes": 3267160,
+      "pool": {
+        "images": 258,
+        "bytes": 10753402,
+        "fresh": 215900
       }
     },
     "misc-fortune": {
@@ -5474,6 +7313,111 @@
         "fresh": 873854
       }
     },
+    "misc-hull-b": {
+      "url": "/hangar/ships/misc-hull-b.glb",
+      "v": "4eaf9ce0",
+      "tris": 596718,
+      "trisRaw": 1707443,
+      "textures": 294,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_right": 1,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_turret": 2,
+        "hardpoint_tractor_beam_right": 1,
+        "hardpoint_tractor_beam_left": 1
+      },
+      "swapNodes": 56,
+      "palette": {
+        "1": 11,
+        "2": 9,
+        "3": 4
+      },
+      "record": "MISC_Hull_B",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0.004,
+          0.004,
+          0.004,
+          0.003
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-hull-b.json",
+        "v": "7e4539b1"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 6324532,
+      "pool": {
+        "images": 294,
+        "bytes": 11713754,
+        "fresh": 88296
+      }
+    },
+    "misc-hull-c": {
+      "url": "/hangar/ships/misc-hull-c.glb",
+      "v": "a070b3cc",
+      "tris": 518501,
+      "trisRaw": 1409380,
+      "textures": 282,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_front_top": 2,
+        "hardpoint_turret_tractor_beam_top_front": 1,
+        "hardpoint_turret_tractor_beam_bottom_front": 1,
+        "hardpoint_turret_rear_top": 2,
+        "hardpoint_turret_tractor_beam_bottom_rear": 1,
+        "hardpoint_turret_tractor_beam_top_rear": 1,
+        "hardpoint_turret_nose": 2
+      },
+      "swapNodes": 104,
+      "palette": {
+        "1": 6,
+        "2": 4,
+        "3": 4
+      },
+      "record": "MISC_Hull_C",
+      "game": "12913470",
+      "interiorDropped": 9,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_front: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -15.075, Aufstand -11.212"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-hull-c.json",
+        "v": "1e10f23e"
+      },
+      "uv": {
+        "rangeBefore": 688,
+        "rangeAfter": 681.02,
+        "bits": 22,
+        "degenerate": 1.6
+      },
+      "bytes": 4937504,
+      "pool": {
+        "images": 282,
+        "bytes": 11043158,
+        "fresh": 1078904
+      }
+    },
     "misc-prospector": {
       "url": "/hangar/ships/misc-prospector.glb",
       "v": "58c8f40f",
@@ -5881,6 +7825,220 @@
         "images": 221,
         "bytes": 9070138,
         "fresh": 473578
+      }
+    },
+    "misc-starfarer-gemini": {
+      "url": "/hangar/ships/misc-starfarer-gemini.glb",
+      "v": "c8a8c059",
+      "tris": 531424,
+      "trisRaw": 1323996,
+      "textures": 245,
+      "attached": 0,
+      "swap": {
+        "hardpoint_front_turret": 2,
+        "hardpoint_rear_left_turret": 2,
+        "hardpoint_rear_right_turret": 2,
+        "hardpoint_sidecannon_right": 2,
+        "hardpoint_sidecannon_left": 2
+      },
+      "swapNodes": 32,
+      "palette": {
+        "1": 11,
+        "2": 10,
+        "3": 8
+      },
+      "record": "MISC_Starfarer_Gemini",
+      "game": "12913470",
+      "interiorDropped": 6,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          0,
+          -0.656,
+          -3.43,
+          0.001
+        ],
+        "why": "Aufstandspunkte weichen bis 3.430 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-starfarer-gemini.json",
+        "v": "ce91f08c"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.7
+      },
+      "bytes": 5546804,
+      "pool": {
+        "images": 245,
+        "bytes": 13715206,
+        "fresh": 6404
+      }
+    },
+    "misc-starfarer": {
+      "url": "/hangar/ships/misc-starfarer.glb",
+      "v": "18891fb4",
+      "tris": 491944,
+      "trisRaw": 1300946,
+      "textures": 234,
+      "attached": 0,
+      "swap": {
+        "hardpoint_front_turret": 2,
+        "hardpoint_rear_left_turret": 2,
+        "hardpoint_rear_right_turret": 2,
+        "hardpoint_sidecannon_right": 2,
+        "hardpoint_sidecannon_left": 2
+      },
+      "swapNodes": 32,
+      "palette": {
+        "1": 10,
+        "2": 11,
+        "3": 7
+      },
+      "record": "MISC_Starfarer",
+      "game": "12913470",
+      "interiorDropped": 6,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -0.656,
+          -3.43,
+          0.001
+        ],
+        "why": "Aufstandspunkte weichen bis 3.430 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-starfarer.json",
+        "v": "41242fd3"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.8
+      },
+      "bytes": 5109432,
+      "pool": {
+        "images": 234,
+        "bytes": 12468116,
+        "fresh": 662074
+      }
+    },
+    "misc-starlancer-max": {
+      "url": "/hangar/ships/misc-starlancer-max.glb",
+      "v": "f6720780",
+      "tris": 730916,
+      "trisRaw": 2837594,
+      "textures": 242,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_rear": 2,
+        "hardpoint_turret_front": 2,
+        "hardpoint_weapon_left": 2,
+        "hardpoint_weapon_right": 2
+      },
+      "swapNodes": 24,
+      "palette": {
+        "1": 18,
+        "2": 12,
+        "3": 5
+      },
+      "record": "MISC_Starlancer_Max",
+      "game": "12913470",
+      "interiorDropped": 7,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -1.506,
+          0.007
+        ],
+        "why": "Aufstandspunkte weichen bis 1.506 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-starlancer-max.json",
+        "v": "692cd71e"
+      },
+      "uv": {
+        "rangeBefore": 1765,
+        "rangeAfter": 1765.5,
+        "bits": 23,
+        "degenerate": 2.1
+      },
+      "bytes": 7505304,
+      "pool": {
+        "images": 242,
+        "bytes": 10802720,
+        "fresh": 61986
+      }
+    },
+    "misc-starlancer-tac": {
+      "url": "/hangar/ships/misc-starlancer-tac.glb",
+      "v": "989d5293",
+      "tris": 906497,
+      "trisRaw": 3283014,
+      "textures": 272,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_rear": 2,
+        "hardpoint_turret_front": 2,
+        "hardpoint_weapon_left": 2,
+        "hardpoint_weapon_right": 2,
+        "hardpoint_turret_left": 2,
+        "hardpoint_turret_right": 2
+      },
+      "swapNodes": 40,
+      "palette": {
+        "1": 20,
+        "2": 12,
+        "3": 6
+      },
+      "record": "MISC_Starlancer_TAC",
+      "game": "12913470",
+      "interiorDropped": 8,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -1.52,
+          0.006
+        ],
+        "why": "Aufstandspunkte weichen bis 1.520 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/misc-starlancer-tac.json",
+        "v": "807ae697"
+      },
+      "uv": {
+        "rangeBefore": 1888,
+        "rangeAfter": 1234.75,
+        "bits": 23,
+        "degenerate": 1.9
+      },
+      "bytes": 9565676,
+      "pool": {
+        "images": 272,
+        "bytes": 10702724,
+        "fresh": 42962
       }
     },
     "misc-starlite": {
@@ -6565,6 +8723,165 @@
         "fresh": 3223054
       }
     },
+    "orig-600i-bis2951": {
+      "url": "/hangar/ships/orig-600i-bis2951.glb",
+      "v": "dd9fbcc6",
+      "tris": 420408,
+      "trisRaw": 1388430,
+      "textures": 170,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_centre": 1,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1,
+        "hardpoint_remote_turret_top": 2
+      },
+      "swapNodes": 22,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 4
+      },
+      "record": "ORIG_600i_BIS2951",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/orig-600i-bis2951.json",
+        "v": "e5d1b56e"
+      },
+      "uv": {
+        "rangeBefore": 1022,
+        "rangeAfter": 1022.25,
+        "bits": 22,
+        "degenerate": 2.9
+      },
+      "bytes": 3706176,
+      "pool": {
+        "images": 170,
+        "bytes": 8116794,
+        "fresh": 1962
+      }
+    },
+    "orig-600i-touring": {
+      "url": "/hangar/ships/orig-600i-touring.glb",
+      "v": "62913d01",
+      "tris": 416156,
+      "trisRaw": 1249006,
+      "textures": 161,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_centre": 1,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1,
+        "hardpoint_remote_turret_top": 2
+      },
+      "swapNodes": 22,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 4
+      },
+      "record": "ORIG_600i_Touring",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/orig-600i-touring.json",
+        "v": "6731bab7"
+      },
+      "uv": {
+        "rangeBefore": 1022,
+        "rangeAfter": 1022.25,
+        "bits": 22,
+        "degenerate": 2.9
+      },
+      "bytes": 3576116,
+      "pool": {
+        "images": 161,
+        "bytes": 7584998,
+        "fresh": 0
+      }
+    },
+    "orig-600i": {
+      "url": "/hangar/ships/orig-600i.glb",
+      "v": "76e259f2",
+      "tris": 420408,
+      "trisRaw": 1388430,
+      "textures": 171,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_centre": 1,
+        "hardpoint_remote_turret_bottom": 2,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1,
+        "hardpoint_remote_turret_top": 2
+      },
+      "swapNodes": 22,
+      "palette": {
+        "1": 3,
+        "2": 5,
+        "3": 4
+      },
+      "record": "ORIG_600i",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/orig-600i.json",
+        "v": "6e3e3566"
+      },
+      "uv": {
+        "rangeBefore": 1022,
+        "rangeAfter": 1022.25,
+        "bits": 22,
+        "degenerate": 2.9
+      },
+      "bytes": 3706332,
+      "pool": {
+        "images": 171,
+        "bytes": 8119602,
+        "fresh": 992076
+      }
+    },
     "orig-85x": {
       "url": "/hangar/ships/orig-85x.glb",
       "v": "0260ed24",
@@ -6605,6 +8922,53 @@
         "images": 114,
         "bytes": 5107072,
         "fresh": 265250
+      }
+    },
+    "orig-890jump": {
+      "url": "/hangar/ships/orig-890jump.glb",
+      "v": "8eabc8fd",
+      "tris": 777573,
+      "trisRaw": 1059224,
+      "textures": 255,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_lower": 2,
+        "hardpoint_remote_turret_left": 2,
+        "hardpoint_remote_turret_right": 2,
+        "hardpoint_turret_upper": 2
+      },
+      "swapNodes": 24,
+      "palette": {
+        "1": 6,
+        "2": 4,
+        "3": 4
+      },
+      "record": "ORIG_890Jump",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk ein: hardpoint_landinggear_front: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -41.726, Aufstand -25.775; hardpoint_landinggear_left: nach landing_gear"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/orig-890jump.json",
+        "v": "5596550b"
+      },
+      "uv": {
+        "rangeBefore": 1251,
+        "rangeAfter": 1254,
+        "bits": 23,
+        "degenerate": 6.4
+      },
+      "bytes": 7393040,
+      "pool": {
+        "images": 255,
+        "bytes": 11482540,
+        "fresh": 1038736
       }
     },
     "orig-m50": {
@@ -6837,6 +9201,104 @@
         "images": 166,
         "bytes": 8235092,
         "fresh": 1587510
+      }
+    },
+    "rsi-apollo-medivac": {
+      "url": "/hangar/ships/rsi-apollo-medivac.glb",
+      "v": "294ed60b",
+      "tris": 700095,
+      "trisRaw": 1637569,
+      "textures": 309,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1
+      },
+      "swapNodes": 10,
+      "palette": {
+        "1": 7,
+        "2": 7,
+        "3": 6
+      },
+      "record": "RSI_Apollo_Medivac",
+      "game": "12913470",
+      "interiorDropped": 11,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -0.001,
+          -0.001,
+          0
+        ],
+        "sink": -0.388,
+        "why": "ein Teil steckt 39 cm im Boden"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 291,
+        "rangeAfter": 214.88,
+        "bits": 20,
+        "degenerate": 2.8
+      },
+      "bytes": 7441880,
+      "pool": {
+        "images": 309,
+        "bytes": 14514844,
+        "fresh": 0
+      }
+    },
+    "rsi-apollo-triage": {
+      "url": "/hangar/ships/rsi-apollo-triage.glb",
+      "v": "fb20d417",
+      "tris": 675360,
+      "trisRaw": 1656589,
+      "textures": 303,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1
+      },
+      "swapNodes": 10,
+      "palette": {
+        "1": 7,
+        "2": 7,
+        "3": 6
+      },
+      "record": "RSI_Apollo_Triage",
+      "game": "12913470",
+      "interiorDropped": 11,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -0.001,
+          -0.001,
+          0
+        ],
+        "sink": -0.388,
+        "why": "ein Teil steckt 39 cm im Boden"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 291,
+        "rangeAfter": 214.88,
+        "bits": 20,
+        "degenerate": 2.9
+      },
+      "bytes": 7155180,
+      "pool": {
+        "images": 303,
+        "bytes": 15360812,
+        "fresh": 0
       }
     },
     "rsi-aurora-gs-cl": {
@@ -7254,6 +9716,393 @@
         "fresh": 0
       }
     },
+    "rsi-constellation-aquila": {
+      "url": "/hangar/ships/rsi-constellation-aquila.glb",
+      "v": "850ef431",
+      "tris": 730642,
+      "trisRaw": 1504385,
+      "textures": 339,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_laser_top_right": 1,
+        "hardpoint_gun_laser_top_left": 1,
+        "hardpoint_turret_base_lower": 2,
+        "hardpoint_gun_laser_bottom_right": 1,
+        "hardpoint_gun_laser_bottom_left": 1
+      },
+      "swapNodes": 16,
+      "palette": {
+        "1": 11,
+        "2": 12,
+        "3": 6
+      },
+      "record": "RSI_Constellation_Aquila_GS",
+      "game": "12913470",
+      "interiorDropped": 10,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.662,
+          -0.662,
+          -2.103,
+          -0.659,
+          -0.662,
+          -0.662,
+          -0.662,
+          -0.662
+        ],
+        "why": "Aufstandspunkte weichen bis 2.103 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-constellation-aquila.json",
+        "v": "8214dbcc"
+      },
+      "uv": {
+        "rangeBefore": 429,
+        "rangeAfter": 281,
+        "bits": 21,
+        "degenerate": 3.1
+      },
+      "bytes": 7479448,
+      "pool": {
+        "images": 339,
+        "bytes": 15157378,
+        "fresh": 99660
+      }
+    },
+    "rsi-constellation-mk5-centaurus": {
+      "url": "/hangar/ships/rsi-constellation-mk5-centaurus.glb",
+      "v": "09b6344e",
+      "tris": 632856,
+      "trisRaw": 1965220,
+      "textures": 365,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_upper": 4,
+        "hardpoint_turret_lower": 4,
+        "hardpoint_gun_s5_body_right": 1,
+        "hardpoint_gun_s5_body_left": 1,
+        "hardpoint_gun_s5_front_right": 1,
+        "hardpoint_gun_s5_front_left": 1
+      },
+      "swapNodes": 48,
+      "palette": {
+        "1": 22,
+        "2": 12,
+        "3": 9
+      },
+      "record": "RSI_Constellation_Mk5_Centaurus",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.935,
+          -0.941,
+          -0.954,
+          -0.965,
+          -0.931,
+          -0.937
+        ],
+        "why": "Aufstandspunkte weichen bis 0.965 m ab"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 512,
+        "q": 72
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-constellation-mk5-centaurus.json",
+        "v": "ad9e873d"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 3.2
+      },
+      "bytes": 6837724,
+      "pool": {
+        "images": 365,
+        "bytes": 9674136,
+        "fresh": 6619044
+      }
+    },
+    "rsi-constellation-phoenix-emerald": {
+      "url": "/hangar/ships/rsi-constellation-phoenix-emerald.glb",
+      "v": "5658db30",
+      "tris": 554529,
+      "trisRaw": 1211834,
+      "textures": 230,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_laser_top_right": 1,
+        "hardpoint_gun_laser_top_left": 1,
+        "hardpoint_gun_laser_bottom_left": 1,
+        "hardpoint_gun_laser_bottom_right": 1,
+        "hardpoint_turret_base_lower": 2,
+        "hardpoint_turret_base_upper": 2
+      },
+      "swapNodes": 40,
+      "palette": {
+        "1": 6,
+        "2": 6,
+        "3": 5
+      },
+      "record": "RSI_Constellation_Phoenix_Emerald",
+      "game": "12913470",
+      "interiorDropped": 7,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.667,
+          -0.664,
+          -0.792,
+          -0.664,
+          -1.578,
+          -0.664,
+          -4.065,
+          -0.667
+        ],
+        "why": "Aufstandspunkte weichen bis 4.065 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-constellation-phoenix-emerald.json",
+        "v": "907c9691"
+      },
+      "uv": {
+        "rangeBefore": 1065,
+        "rangeAfter": 1065,
+        "bits": 23,
+        "degenerate": 3.1
+      },
+      "bytes": 6532364,
+      "pool": {
+        "images": 230,
+        "bytes": 10593036,
+        "fresh": 808806
+      }
+    },
+    "rsi-constellation-phoenix": {
+      "url": "/hangar/ships/rsi-constellation-phoenix.glb",
+      "v": "8136800c",
+      "tris": 831885,
+      "trisRaw": 1858670,
+      "textures": 368,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_laser_top_right": 1,
+        "hardpoint_gun_laser_top_left": 1,
+        "hardpoint_turret_base_lower": 2,
+        "hardpoint_turret_base_upper": 2,
+        "hardpoint_gun_laser_bottom_left": 1,
+        "hardpoint_gun_laser_bottom_right": 1
+      },
+      "swapNodes": 40,
+      "palette": {
+        "1": 13,
+        "2": 12,
+        "3": 6
+      },
+      "record": "RSI_Constellation_Phoenix_GS",
+      "game": "12913470",
+      "interiorDropped": 11,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.664,
+          -0.665,
+          -2.104,
+          -0.658,
+          -0.664,
+          -0.665,
+          -0.664,
+          -0.665
+        ],
+        "why": "Aufstandspunkte weichen bis 2.104 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-constellation-phoenix.json",
+        "v": "d40e52ee"
+      },
+      "uv": {
+        "rangeBefore": 423,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 3.7
+      },
+      "bytes": 8177896,
+      "pool": {
+        "images": 368,
+        "bytes": 17137008,
+        "fresh": 1195472
+      }
+    },
+    "rsi-constellation-taurus": {
+      "url": "/hangar/ships/rsi-constellation-taurus.glb",
+      "v": "e220828f",
+      "tris": 551284,
+      "trisRaw": 1439434,
+      "textures": 285,
+      "attached": 0,
+      "swap": {
+        "hardpoint_gun_laser_top_left": 1,
+        "hardpoint_gun_laser_top_right": 1,
+        "hardpoint_turret_base_lower": 1,
+        "hardpoint_turret_base_upper": 2,
+        "hardpoint_gun_laser_bottom_left": 1,
+        "hardpoint_gun_laser_bottom_right": 1
+      },
+      "swapNodes": 44,
+      "palette": {
+        "1": 9,
+        "2": 9,
+        "3": 6
+      },
+      "record": "RSI_Constellation_Taurus_GS",
+      "game": "12913470",
+      "interiorDropped": 9,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.663,
+          -0.663,
+          -2.103,
+          -0.657,
+          -0.663,
+          -0.663,
+          -0.663,
+          -0.663
+        ],
+        "why": "Aufstandspunkte weichen bis 2.103 m ab"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-constellation-taurus.json",
+        "v": "89b0766a"
+      },
+      "uv": {
+        "rangeBefore": 423,
+        "rangeAfter": 343.06,
+        "bits": 21,
+        "degenerate": 3.1
+      },
+      "bytes": 5800160,
+      "pool": {
+        "images": 285,
+        "bytes": 12972604,
+        "fresh": 4378
+      }
+    },
+    "rsi-hermes": {
+      "url": "/hangar/ships/rsi-hermes.glb",
+      "v": "d34b92e1",
+      "tris": 688794,
+      "trisRaw": 1480474,
+      "textures": 290,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret": 2,
+        "hardpoint_remote_tractor_turret": 1,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_right": 1
+      },
+      "swapNodes": 44,
+      "palette": {
+        "1": 7,
+        "2": 7,
+        "3": 6
+      },
+      "record": "RSI_Hermes",
+      "game": "12913470",
+      "interiorDropped": 4,
+      "gearCheck": {
+        "ok": false,
+        "dev": [
+          -0.001,
+          -0.001,
+          -0.001,
+          0
+        ],
+        "sink": -0.388,
+        "why": "ein Teil steckt 39 cm im Boden"
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 1024
+      },
+      "uv": {
+        "rangeBefore": 219,
+        "rangeAfter": 214.88,
+        "bits": 20,
+        "degenerate": 2.2
+      },
+      "bytes": 7270336,
+      "pool": {
+        "images": 290,
+        "bytes": 13812988,
+        "fresh": 0
+      }
+    },
+    "rsi-lynx": {
+      "url": "/hangar/ships/rsi-lynx.glb",
+      "v": "ec15c479",
+      "tris": 208256,
+      "trisRaw": 278458,
+      "textures": 209,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_mount": 2
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 2,
+        "2": 5,
+        "3": 5
+      },
+      "record": "RSI_Lynx",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-lynx.json",
+        "v": "2f2045c1"
+      },
+      "uv": {
+        "rangeBefore": 104,
+        "rangeAfter": 104.78,
+        "bits": 19,
+        "degenerate": 3.3
+      },
+      "bytes": 1998736,
+      "pool": {
+        "images": 209,
+        "bytes": 9634944,
+        "fresh": 1745872
+      }
+    },
     "rsi-mantis": {
       "url": "/hangar/ships/rsi-mantis.glb",
       "v": "b4e72447",
@@ -7346,6 +10195,61 @@
         "images": 256,
         "bytes": 11509712,
         "fresh": 334708
+      }
+    },
+    "rsi-perseus": {
+      "url": "/hangar/ships/rsi-perseus.glb",
+      "v": "6a82c755",
+      "tris": 1062770,
+      "trisRaw": 2487044,
+      "textures": 324,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_manned_bottom.0": 2,
+        "hardpoint_turret_manned_bottom.1": 2,
+        "hardpoint_turret_remote_top": 2,
+        "hardpoint_turret_manned_top.0": 2,
+        "hardpoint_turret_manned_top.1": 2,
+        "hardpoint_turret_remote_bottom": 2
+      },
+      "swapNodes": 132,
+      "palette": {
+        "1": 26,
+        "2": 18,
+        "3": 10
+      },
+      "record": "RSI_Perseus",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0.005,
+          -0.001,
+          0.001
+        ]
+      },
+      "budget": {
+        "tris": 400000,
+        "tex": 256,
+        "q": 72
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-perseus.json",
+        "v": "ae87b894"
+      },
+      "uv": {
+        "rangeBefore": 798,
+        "rangeAfter": 760.73,
+        "bits": 22,
+        "degenerate": 7.3
+      },
+      "bytes": 12259420,
+      "pool": {
+        "images": 324,
+        "bytes": 3357942,
+        "fresh": 3357408
       }
     },
     "rsi-polaris": {
@@ -7560,6 +10464,189 @@
         "fresh": 305158
       }
     },
+    "rsi-skylark": {
+      "url": "/hangar/ships/rsi-skylark.glb",
+      "v": "b9ff03d3",
+      "tris": 209989,
+      "trisRaw": 327658,
+      "textures": 231,
+      "attached": 0,
+      "swap": {
+        "hardpoint_weapon_right": 1,
+        "hardpoint_weapon_left": 1,
+        "hardpoint_weapon_bottom": 1
+      },
+      "swapNodes": 12,
+      "palette": {
+        "1": 6,
+        "2": 6,
+        "3": 4
+      },
+      "record": "RSI_Skylark",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gear": true,
+      "gearCheck": {
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ]
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-skylark.json",
+        "v": "2c0cfcfd"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 1.6
+      },
+      "bytes": 2301868,
+      "pool": {
+        "images": 231,
+        "bytes": 11298048,
+        "fresh": 34292
+      }
+    },
+    "rsi-ursa-medivac": {
+      "url": "/hangar/ships/rsi-ursa-medivac.glb",
+      "v": "999c30d0",
+      "tris": 210941,
+      "trisRaw": 275205,
+      "textures": 223,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_mount": 2
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 3,
+        "2": 4,
+        "3": 6
+      },
+      "record": "RSI_Ursa_Medivac",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-ursa-medivac.json",
+        "v": "215d9ac4"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2.3
+      },
+      "bytes": 2084056,
+      "pool": {
+        "images": 223,
+        "bytes": 7270700,
+        "fresh": 1221820
+      }
+    },
+    "rsi-ursa-rover-emerald": {
+      "url": "/hangar/ships/rsi-ursa-rover-emerald.glb",
+      "v": "e8708dac",
+      "tris": 156030,
+      "trisRaw": 173942,
+      "textures": 197,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_mount": 2
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 5,
+        "2": 4,
+        "3": 5
+      },
+      "record": "RSI_Ursa_Rover_Emerald",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-ursa-rover-emerald.json",
+        "v": "55faeecd"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2.8
+      },
+      "bytes": 1544928,
+      "pool": {
+        "images": 197,
+        "bytes": 7238140,
+        "fresh": 123892
+      }
+    },
+    "rsi-ursa-rover": {
+      "url": "/hangar/ships/rsi-ursa-rover.glb",
+      "v": "c9fae1db",
+      "tris": 160075,
+      "trisRaw": 176340,
+      "textures": 179,
+      "attached": 0,
+      "swap": {
+        "hardpoint_turret_mount": 2
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 4,
+        "2": 3,
+        "3": 5
+      },
+      "record": "RSI_Ursa_Rover",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/rsi-ursa-rover.json",
+        "v": "4bc119be"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 2.9
+      },
+      "bytes": 1551948,
+      "pool": {
+        "images": 179,
+        "bytes": 6816654,
+        "fresh": 265658
+      }
+    },
     "rsi-zeus-cl": {
       "url": "/hangar/ships/rsi-zeus-cl.glb",
       "v": "bc1b1be6",
@@ -7661,6 +10748,395 @@
         "images": 278,
         "bytes": 11905328,
         "fresh": 1707068
+      }
+    },
+    "tmbl-cyclone-aa": {
+      "url": "/hangar/ships/tmbl-cyclone-aa.glb",
+      "v": "149c0efd",
+      "tris": 165121,
+      "trisRaw": 164323,
+      "textures": 103,
+      "attached": 0,
+      "swap": {
+        "hardpoint_module_attach.3": 1
+      },
+      "swapNodes": 1,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 2
+      },
+      "record": "TMBL_Cyclone_AA",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-cyclone-aa.json",
+        "v": "8e7414f8"
+      },
+      "uv": {
+        "rangeBefore": 27,
+        "rangeAfter": 27.29,
+        "bits": 17,
+        "degenerate": 1.3
+      },
+      "bytes": 1167608,
+      "pool": {
+        "images": 103,
+        "bytes": 6681720,
+        "fresh": 6858
+      }
+    },
+    "tmbl-cyclone-mt": {
+      "url": "/hangar/ships/tmbl-cyclone-mt.glb",
+      "v": "5f98c23a",
+      "tris": 193454,
+      "trisRaw": 189861,
+      "textures": 114,
+      "attached": 0,
+      "swap": {
+        "hardpoint_module_attach.0": 1
+      },
+      "swapNodes": 8,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 2
+      },
+      "record": "TMBL_Cyclone_MT",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-cyclone-mt.json",
+        "v": "94744d98"
+      },
+      "uv": {
+        "rangeBefore": 124,
+        "rangeAfter": 27.32,
+        "bits": 17,
+        "degenerate": 1.1
+      },
+      "bytes": 1451560,
+      "pool": {
+        "images": 114,
+        "bytes": 7186872,
+        "fresh": 4326
+      }
+    },
+    "tmbl-cyclone-rc": {
+      "url": "/hangar/ships/tmbl-cyclone-rc.glb",
+      "v": "566b3d72",
+      "tris": 148002,
+      "trisRaw": 152367,
+      "textures": 78,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 4,
+        "2": 3,
+        "3": 3
+      },
+      "record": "TMBL_Cyclone_RC",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-cyclone-rc.json",
+        "v": "c2ec40b8"
+      },
+      "uv": {
+        "rangeBefore": 27,
+        "rangeAfter": 27.29,
+        "bits": 17,
+        "degenerate": 1.3
+      },
+      "bytes": 1007044,
+      "pool": {
+        "images": 78,
+        "bytes": 4167930,
+        "fresh": 19212
+      }
+    },
+    "tmbl-cyclone-rn": {
+      "url": "/hangar/ships/tmbl-cyclone-rn.glb",
+      "v": "2cfa5403",
+      "tris": 156989,
+      "trisRaw": 159702,
+      "textures": 78,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 2
+      },
+      "record": "TMBL_Cyclone_RN",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-cyclone-rn.json",
+        "v": "0bf96c03"
+      },
+      "uv": {
+        "rangeBefore": 27,
+        "rangeAfter": 27.29,
+        "bits": 17,
+        "degenerate": 1.5
+      },
+      "bytes": 1063244,
+      "pool": {
+        "images": 78,
+        "bytes": 4837286,
+        "fresh": 6714
+      }
+    },
+    "tmbl-cyclone-tr": {
+      "url": "/hangar/ships/tmbl-cyclone-tr.glb",
+      "v": "78ed78d5",
+      "tris": 162638,
+      "trisRaw": 165509,
+      "textures": 105,
+      "attached": 0,
+      "swap": {
+        "hardpoint_module_attach": 1
+      },
+      "swapNodes": 1,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 2
+      },
+      "record": "TMBL_Cyclone_TR",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-cyclone-tr.json",
+        "v": "2c74751b"
+      },
+      "uv": {
+        "rangeBefore": 124,
+        "rangeAfter": 27.32,
+        "bits": 17,
+        "degenerate": 1.2
+      },
+      "bytes": 1125984,
+      "pool": {
+        "images": 105,
+        "bytes": 5363352,
+        "fresh": 4510
+      }
+    },
+    "tmbl-cyclone": {
+      "url": "/hangar/ships/tmbl-cyclone.glb",
+      "v": "c2b661b7",
+      "tris": 143637,
+      "trisRaw": 146440,
+      "textures": 83,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 3,
+        "2": 3,
+        "3": 2
+      },
+      "record": "TMBL_Cyclone",
+      "game": "12913470",
+      "interiorDropped": 0,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-cyclone.json",
+        "v": "05a91b93"
+      },
+      "uv": {
+        "rangeBefore": 27,
+        "rangeAfter": 27.29,
+        "bits": 17,
+        "degenerate": 1.4
+      },
+      "bytes": 986144,
+      "pool": {
+        "images": 83,
+        "bytes": 5094524,
+        "fresh": 746342
+      }
+    },
+    "tmbl-nova": {
+      "url": "/hangar/ships/tmbl-nova.glb",
+      "v": "f1e6f2c2",
+      "tris": 210221,
+      "trisRaw": 302170,
+      "textures": 166,
+      "attached": 0,
+      "swap": {
+        "hardpoint_primary_turret.0": 1,
+        "hardpoint_secondary_turret": 2
+      },
+      "swapNodes": 12,
+      "palette": {
+        "1": 4,
+        "2": 4,
+        "3": 5
+      },
+      "record": "TMBL_Nova",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-nova.json",
+        "v": "606ea02d"
+      },
+      "uv": {
+        "rangeBefore": 288,
+        "rangeAfter": 241.37,
+        "bits": 20,
+        "degenerate": 4.8
+      },
+      "bytes": 2081984,
+      "pool": {
+        "images": 166,
+        "bytes": 6546168,
+        "fresh": 49292
+      }
+    },
+    "tmbl-storm-aa": {
+      "url": "/hangar/ships/tmbl-storm-aa.glb",
+      "v": "fc2ac17f",
+      "tris": 481585,
+      "trisRaw": 658580,
+      "textures": 183,
+      "attached": 0,
+      "swap": {},
+      "swapNodes": 0,
+      "palette": {
+        "1": 4,
+        "2": 6,
+        "3": 5
+      },
+      "record": "TMBL_Storm_AA",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-storm-aa.json",
+        "v": "30bf215d"
+      },
+      "uv": {
+        "rangeBefore": 60,
+        "rangeAfter": 101,
+        "bits": 19,
+        "degenerate": 1
+      },
+      "bytes": 5099916,
+      "pool": {
+        "images": 183,
+        "bytes": 8243966,
+        "fresh": 43392
+      }
+    },
+    "tmbl-storm": {
+      "url": "/hangar/ships/tmbl-storm.glb",
+      "v": "e1bcf81c",
+      "tris": 221575,
+      "trisRaw": 477614,
+      "textures": 161,
+      "attached": 0,
+      "swap": {
+        "hardpoint_primary_turret": 1
+      },
+      "swapNodes": 2,
+      "palette": {
+        "1": 4,
+        "2": 5,
+        "3": 7
+      },
+      "record": "TMBL_Storm",
+      "game": "12913470",
+      "interiorDropped": 2,
+      "gearCheck": {
+        "ok": false,
+        "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
+      },
+      "budget": {
+        "tris": 200000,
+        "tex": 1024
+      },
+      "paints": {
+        "url": "/hangar/paints/tmbl-storm.json",
+        "v": "3fa12538"
+      },
+      "uv": {
+        "rangeBefore": 60,
+        "rangeAfter": 101,
+        "bits": 19,
+        "degenerate": 1.9
+      },
+      "bytes": 2122776,
+      "pool": {
+        "images": 161,
+        "bytes": 6864620,
+        "fresh": 1157318
       }
     },
     "vncl-blade": {

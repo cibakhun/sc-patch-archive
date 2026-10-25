@@ -145,4 +145,76 @@ Stand mit `check:staging` an der ausgelieferten Seite prüfen.
 
 ## Befund PC
 
-(noch leer)
+PC-Lauf 25.10.2026, Branch `pc/hangar-alle` (Stapel 1 bis 7). Stand je
+Schiff in `.cache/hangar-src/alle-stand.json`, Treiber
+`scripts/build-hangar-alle.mjs` (setzt dort fort, `--only`, `--redo`).
+
+**Ergebnis: alle 231 Web-Schiffe gebaut, 0 Fehler.** Tor [17]: GLB 730,0 MB
++ Ablage 5703 Dateien 209,7 MB = **939,7 MB** (Ziel 1,3 GB, Deckel 1,6 GB).
+Größte Datei: Polaris-GLB 12,8 MB. Klinke „Schiffe mit Bildablage“ kann auf 231.
+
+### Teil A
+
+Alle sechs exportiert, jeweils im dritten Versuch (ohne Innenraum, mip 2;
+mit Innenraum über 24 GB Speicher), den neuen vierten (lod 2) brauchte
+keins: Centaurus 214 MB, Perseus 287 MB, Ironclad 243 MB, Ironclad Assault
+247 MB, Idris M 181 MB, Idris P 176 MB (roh). Fahrwerk und Geometrie-Fassung
+gerechnet: Idris M/P, Centaurus, Perseus „aus“; Ironclad und Assault „ein“
+(Animation des Fahrwerks fehlt im Spiel unter dem erwarteten Pfad).
+
+### Teil B
+
+- Fahrwerk im Web-Bau: `scripts/lib/landing-gear.mjs` (aus
+  `build-hangar-gear.mjs` gelöst, an acht Schiffen gleiche Ergebnisse wie
+  vorher). `build-hangar-assets.mjs` stellt jedes Schiff vor allem anderen in
+  dieselbe Pose und prüft die geschriebene Datei: je Aufstandspunkt die
+  tiefste Ecke im Umkreis 0,6 m auf 2 cm, dazu nichts tiefer als 20 cm unter
+  der Ebene (wie `verify:hangar-gear` [3]).
+- **`gear: true` bei 129 von 231.** Ohne: 44 ohne Landesystem (alle
+  Bodenfahrzeuge, Pulse, Nox, X1, Fury, Scout, Scythe, Javelin …), 21 mit
+  eingefahrenem Fahrwerk (Hawk, Eclipse, Reclaimer, 890 Jump, Mole, Moth,
+  Railen, Syulen, San'tok.yāi, Ironclad …), 31 mit Aufstandspunkten über 2 cm
+  daneben (Constellation-Familie 2,1 m, Starfarer 3,4 m, Caterpillar 3,6 m,
+  Prowler 5,2 m, Paladin 4,8 m, Sabre-Varianten 1,56 m, Guardian 0,76 bis
+  0,96 m; knapp: Freelancer MAX 2,3 cm, Vanguard Sentinel 2,2 cm, Polaris
+  3,1 cm nach der starken Dezimierung), 3 mit nur zwei Aufstandspunkten
+  (Buccaneer, Mantis, Meteor), 3 mit einem Teil 39 cm im Boden (Apollo
+  Medivac/Triage, Hermes: die Web-Fassung behält Teile, die die
+  Geometrie-Fassung weglässt).
+- Teile in Landestellung bewegen (Deploy-Animationen jenseits der Beine):
+  nicht gemacht. Diese Schiffe stehen wie bisher auf ihrem tiefsten Punkt.
+- Innenraum behalten bei 101, entfernt bei 130.
+- Stufen gegen 16 MB: 224 auf Stufe 0. Mehr brauchten Polaris, Perseus,
+  Ironclad, Ironclad Assault (Stufe 5), Idris M, Centaurus (4) und Idris P (3).
+  Die vier Stufen des Auftrags reichten bei der Polaris nicht (29 MB),
+  deshalb zwei weitere: `HANGAR_SHIP_ERR` (Schwelle bis 8 %, ab 2 % Ränder
+  frei) und Karten 256 px. **Polaris bleibt bei 16,6 MB** (1,09 Mio.
+  Dreiecke), alle anderen unter 16 MB.
+- Dreiecke je Schiff 29 554 bis 1 199 062, zusammen 75,3 Mio. Die
+  Ladder-Grenze von 1 % hält große Schiffe über dem Budget (so gewollt seit
+  dem C2). Bilder je Schiff 29 bis 433, Zeit je Schiff 4 bis 450 s,
+  zusammen 92 min.
+- Reihenfolge: Die Gravlev-Räder zählen wie in `HangarApp.astro` zu den
+  Bodenfahrzeugen. Pulse, Nox, X1, Dragonfly und HoverQuad liefen noch im
+  ersten Stapel nach Länge.
+
+### Teil C
+
+Jeder Stapel: `build` und `gate` grün, `check:hangar-shader` an 2 bis 3
+Schiffen. Geprüft: Carrack, Corsair, Polaris, Basher, M80, Blade, Alpha Wolf,
+Guardian MX, Defender, Stinger, Paladin, Idris M, Caterpillar, Perseus,
+Storm AA, Idris P, alle mit höchstens 16 Texturen je Bildshader. Am Ende
+einmal mit `STAGING=1`. Dabei behoben: `verify:hangar-gear` sprengte mit über
+einer Million Ecken (Polaris) den Aufrufstapel; M80 und Salvation trugen
+Knoten im Kreis (der Bau entfernt jetzt alles, was die Szene nicht erreicht).
+`check:hangar-shader` braucht einen Server ohne Clean-URL-Umleitung (`serve`
+wirft sonst `?ship=` weg und zeigt die Gladius).
+
+### Fürs Hinsehen
+
+- Corsair, Polaris und Blade sind im Hangar fast schwarz glänzend: Ihre
+  Hüllmaterialien tragen Grundfarben von 0,02 bis 0,04. Bei der Blade
+  passt das zum Spiel, bei der Polaris nicht. Das ist dieselbe Frage wie
+  WINDOWS 112 (Glanz) und der HOLD der Freelancer; gebaut wie bisher.
+  Stimmig sehen aus: Carrack, Basher, Defender, Paladin, Storm AA.
+- Die Idris wirkt im Bild klein; die Kamera rahmt das ganze Schiff.

@@ -663,6 +663,16 @@ function gearCheck(written, gear) {
   if (gear.pose !== 'aus') return { ok: false, why: `Fahrwerk ${gear.pose}${gear.why ? `: ${gear.why.slice(0, 160)}` : ''}` };
   if (gear.contacts.length < 3) return { ok: false, why: `nur ${gear.contacts.length} Aufstandspunkte` };
   const low = gear.contacts.map(() => Infinity), e = [0, 0, 0];
+  // Ebene y = a·x + b·z + c durch die Aufstandspunkte (kleinste Quadrate):
+  // Nichts darf tiefer als 20 cm darunter liegen (wie verify:hangar-gear [3]);
+  // Apollo und Hermes behalten hier Teile, die die Geometrie-Fassung weglässt
+  const C = gear.contacts, S = (f) => C.reduce((s, c) => s + f(c), 0);
+  const M = [[S((c) => c[0] * c[0]), S((c) => c[0] * c[2]), S((c) => c[0])], [S((c) => c[0] * c[2]), S((c) => c[2] * c[2]), S((c) => c[2])], [S((c) => c[0]), S((c) => c[2]), C.length]];
+  const r = [S((c) => c[0] * c[1]), S((c) => c[2] * c[1]), S((c) => c[1])];
+  const det = (m) => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  const D = det(M), col = (k) => M.map((row, i) => row.map((v, j) => (j === k ? r[i] : v)));
+  const [pa, pb, pc] = Math.abs(D) > 1e-9 ? [0, 1, 2].map((k) => det(col(k)) / D) : [0, 0, S((c) => c[1]) / C.length];
+  let sink = 0;
   for (const n of written.getRoot().listNodes()) {
     const m = n.getMesh(); if (!m) continue;
     const W = n.getWorldMatrix();
@@ -672,12 +682,15 @@ function gearCheck(written, gear) {
         a.getElement(i, e);
         const x = W[0] * e[0] + W[4] * e[1] + W[8] * e[2] + W[12], y = W[1] * e[0] + W[5] * e[1] + W[9] * e[2] + W[13], z = W[2] * e[0] + W[6] * e[1] + W[10] * e[2] + W[14];
         gear.contacts.forEach((c, k) => { if (y < low[k] && Math.hypot(x - c[0], z - c[2]) <= 0.6) low[k] = y; });
+        sink = Math.min(sink, y - (pa * x + pb * z + pc));
       }
     }
   }
   const dev = low.map((y, k) => Math.round((y - gear.contacts[k][1]) * 1000) / 1000);
   const worst = Math.max(...dev.map((d) => (Number.isFinite(d) ? Math.abs(d) : Infinity)));
-  return { ok: worst <= 0.02, dev, ...(worst > 0.02 ? { why: `Aufstandspunkte weichen bis ${Number.isFinite(worst) ? worst.toFixed(3) : '∞'} m ab` } : {}) };
+  const deep = sink < -0.2;
+  const why = worst > 0.02 ? `Aufstandspunkte weichen bis ${Number.isFinite(worst) ? worst.toFixed(3) : '∞'} m ab` : deep ? `ein Teil steckt ${Math.round(-sink * 100)} cm im Boden` : null;
+  return { ok: !why, dev, sink: Math.round(sink * 1000) / 1000, ...(why ? { why } : {}) };
 }
 
 // Herkunft des Rohexports (Sidecar des Extraktors): welcher Record, welcher
