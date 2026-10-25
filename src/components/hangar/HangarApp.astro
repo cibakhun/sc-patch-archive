@@ -230,9 +230,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-holo[data-run]::after{opacity:1}
 /* weniger Bewegung: nur ein- und ausblenden */
 .hg-holo[data-still]{clip-path:none;opacity:var(--holo-on,1)}
-.hg-load{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(260px,60%);text-align:center;font-size:var(--fs-6);color:var(--hg-dim);pointer-events:none}
+.hg-load{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(140px,40%);pointer-events:none;opacity:.7}
+.hg-load span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .hg-load[hidden]{display:none}
-.hg-load b{display:block;height:3px;margin-top:.5rem;background:var(--line-soft);border-radius:2px;overflow:hidden}
+.hg-load b{display:block;height:2px;background:var(--line-soft);border-radius:2px;overflow:hidden}
 .hg-load b i{display:block;height:100%;width:var(--p,0%);background:var(--hg-amber)}
 .hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
 .hg-fallback[hidden]{display:none}
@@ -246,7 +247,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 
     <section class="hg-stage" data-hg-stage aria-label={de ? '3D-Hangar' : '3D hangar'}>
       <div class="hg-canvas" id="hg-canvas"></div>
-      <div class="hg-load" id="hg-load" hidden>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}<b><i></i></b></div>
+      <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b></div>
       {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt */}
       <div class="hg-fallback" id="hg-fallback" role="status" hidden
         data-blocked={de ? 'Dein Browser lässt gerade keine 3D-Grafik zu, meist nach einem Absturz des Grafiktreibers. Dann hilft es, alle seine Fenster zu schließen und ihn neu zu öffnen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is not allowing 3D graphics right now, usually after a graphics driver crash. Closing all of its windows and opening it again fixes that. The figures and the data sheet are still available.'}
