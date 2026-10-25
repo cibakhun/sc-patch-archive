@@ -599,8 +599,10 @@ const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, by
 // 1a878120: 122 Dreiecke (drei Wandmaterialien), 8 Ecken. Gleiche Regel
 // wie oben. Mit der Garage aus dem Spiel ist der Schnitt so gross wie ihr
 // Tor (16,3 x 6,55 m statt des Platzhalters): 740 Dreiecke, angehoben.
-// decke: Stuecke unter der Decke (WERK_DECKE), beim Einbau 24.10.2026.
-const KLINKE_WERK = { wand: 740, logo: 8, decke: 44 };
+// decke: Stuecke unter der Decke (WERK_DECKE), beim Einbau 24.10.2026 44,
+// mit der groesseren Garage 25.10.2026 86 (Krisz: „viele schläuche, rohre,
+// etc an der decke“), angehoben.
+const KLINKE_WERK = { wand: 740, logo: 8, decke: 86 };
 // Schichten der Hallendeko wie KLINKE_SCHICHTEN, beim Einbau 187 Zeilen,
 // 104 mit Blend-, 84 mit Abnutzungs-, 50 mit Detail-, 51 mit Normalenkarte,
 // 55 Karten, 249 971 Ecken mit Zeile, Raster 946 KB. Mit Katalog v3
@@ -2822,11 +2824,11 @@ if (WK) {
   const rowsAt = (() => { const m = /const WERK_ROWS_AT = (\[[\d., ]+\]);/.exec(viewer); try { return m ? JSON.parse(m[1]) : null; } catch { return null; } })();
   // Startansicht der Werkhalle (WERK_HOME_DIR, vom Ziel ueber der Buehne zur Kamera)
   const homeDir = (() => { const m = /const WERK_HOME_DIR = new THREE\.Vector3\(([-\d.]+), ([-\d.]+), ([-\d.]+)\)\.normalize\(\);/.exec(viewer); if (!m) return null; const v = m.slice(1).map(Number), l = Math.hypot(...v); return l > 0 ? v.map((x) => x / l) : null; })();
-  const shape = T && fin(T.x, T.b, T.h, T.tief, T.rahmen, T.vor) && GA && typeof GA.id === 'string' && fin(GA.x, GA.vorn) && G && fin(G.x, G.ms) && R && pair2(R.x) && pair2(R.z) && fin(R.h)
+  const shape = T && fin(T.x, T.b, T.h, T.tief, T.rahmen, T.vor) && GA && typeof GA.id === 'string' && fin(GA.x, GA.vorn) && (GA.s === undefined || (fin(GA.s) && GA.s >= 1 && GA.s <= 1.5)) && G && fin(G.x, G.ms) && R && pair2(R.x) && pair2(R.z) && fin(R.h)
     && F && fin(F.x, F.z, F.hx, F.hz, F.tief, F.rand) && typeof F.buehne === 'string'
     && Array.isArray(WK.reihen) && WK.reihen.length && WK.reihen.every((r) => pair2(r)) && L && Array.isArray(L.netze) && L.netze.length && fin(L.ab, L.je)
     && WK.spot && fin(WK.spot.y, WK.spot.innen, WK.spot.aussen) && Lg && pair2(Lg.x) && pair2(Lg.y) && pair2(Lg.z) && fin(Lg.unten, Lg.s)
-    && Fr && pair2(Fr.x) && pair2(Fr.z) && B && fin(B.vor, B.nische, B.y, B.aus);
+    && Fr && pair2(Fr.x) && pair2(Fr.z) && B && fin(B.vor, B.nische, B.y, B.aus) && Array.isArray(B.zurueck) && B.zurueck.length === 2 && fin(...B.zurueck);
   // Die Garage aus dem Spiel: Masse, Tor und Leuchtkoerper (json neben dem glb, hall.werk der Seite)
   const gJson = hall?.werk?.json ? fromUrl(hall.werk.json) : null;
   let GD = null;
@@ -2834,22 +2836,33 @@ if (WK) {
   if (WK.halle !== hall?.id) fail(`[18] WERK.halle ist ${WK.halle}, die Seite laedt ${hall?.id ?? 'keine Halle'}: Der Viewer baute die Werkhalle nicht (Zombie). Block auf die Halle der Seite umstellen oder entfernen`);
   else if (!werkRun.fahrzeuge) fail('[18] WERK steht im Viewer, aber kein Modell der Seite geht dorthin (Ort werk im vierten Feld von models): Zombie. HangarApp.astro (vehicles.json isSpaceship) pruefen oder den Block entfernen');
   else if (!LIFT || !werkSpot) fail('[18] die Werkhalle braucht das Schiffsfeld (HALL_LIFT): Ihre Masse zaehlen ab dessen Mitte');
-  else if (!shape) fail('[18] WERK braucht tuer {x, b, h, tief, rahmen, vor}, garage {id, x, vorn}, tor {x, ms}, raum {x, z, h}, feld {x, z, hx, hz, tief, rand, buehne}, reihen [[z0, z1], …], lampen {netze, ab, je}, spot {y, innen, aussen}, logo {x, y, z, unten, s}, frei {x, z} und bahn {vor, nische, y, aus}: Block im Viewer nachziehen');
+  else if (!shape) fail('[18] WERK braucht tuer {x, b, h, tief, rahmen, vor}, garage {id, x, vorn, s (1 bis 1,5)}, tor {x, ms}, raum {x, z, h}, feld {x, z, hx, hz, tief, rand, buehne}, reihen [[z0, z1], …], lampen {netze, ab, je}, spot {y, innen, aussen}, logo {x, y, z, unten, s}, frei {x, z} und bahn {vor, nische, y, aus, zurueck [x, y]}: Block im Viewer nachziehen');
   else if (!hall.werk || hall.werk.id !== GA.id) fail(`[18] WERK.garage.id ist ${GA.id}, die Seite liefert ${hall.werk?.id ?? 'keine Garage'} (opts.hall.werk): Der Viewer baute die Werkhalle nicht. HangarApp.astro (Manifest werkhalle) und Block abgleichen`);
   else if (!GD || !GD.interior || !GD.gate || !Array.isArray(GD.fixtures) || !GD.panel || !GD.ceiling) fail(`[18] ${hall.werk.json.split('?')[0]} fehlt in dist/ oder traegt nicht interior, gate, fixtures, panel und ceiling: Garage neu vom PC holen (scripts/extract-hangar-sources.mjs werkhalle)`);
   else {
-    // Garage im Hallenraum: Torebene z 0 bei H x = garage.x, Raum nach -x (WERK_YAW), H z = Garage x
-    const toGz = (hx) => GA.x - hx, gi = GD.interior, gc = GD.ceiling.min - (GD.floorY ?? 0);
-    werkRun.garage = `${GA.id} ${gi.x.map((v) => v.toFixed(1)).join('..')} x ${gi.z.map((v) => v.toFixed(1)).join('..')} m, ${GD.fixtures.length} Leuchtkoerper`;
+    // Garage im Hallenraum: Torebene z 0 bei H x = garage.x, Raum nach -x
+    // (WERK_YAW), H z = Garage x, alles mal garage.s (Krisz 25.10.2026:
+    // Waende und Decke erweitert). toGz: Halle x -> Garage z; gi, gc, cmax,
+    // gate, panel in Hallenmetern
+    const sG = GA.s ?? 1, toGz = (hx) => (GA.x - hx) / sG, gi0 = GD.interior;
+    const gi = { x: gi0.x.map((v) => v * sG), z: gi0.z.map((v) => v * sG) }, gc = (GD.ceiling.min - (GD.floorY ?? 0)) * sG, cmax = (GD.ceiling.max - (GD.floorY ?? 0)) * sG;
+    const gw = GD.gate.width * sG, gh = GD.gate.height * sG, gfrei = (GD.gate.openClear?.height ?? GD.gate.height) * sG;
+    werkRun.garage = `${GA.id} x ${sG}: ${gi.x.map((v) => v.toFixed(1)).join('..')} x ${gi.z.map((v) => v.toFixed(1)).join('..')} m, Decke ${gc.toFixed(2)}..${cmax.toFixed(2)} m, Tor ${gw.toFixed(2)} x ${gh.toFixed(2)} m, ${GD.fixtures.length} Leuchtkoerper`;
     // Masse untereinander
     if (Math.abs(T.x - T.tief - GA.x) > E) fail(`[18] der Tunnel endet bei x ${T.x - T.tief}, die Torebene der Garage steht bei x ${GA.x}: Dazwischen klafft ein Spalt oder die Garage steckt in der Wand. tuer.tief oder garage.x nachziehen`);
     if (Math.abs(G.x - GA.x) > E) fail(`[18] tor.x (${G.x}) ist nicht die Torebene der Garage (${GA.x}): Die Fahrt hielte am falschen Ort`);
     if (!(GD.gate.out?.[2] < -0.9)) fail(`[18] das Tor der Garage zeigt nach ${JSON.stringify(GD.gate.out)}, WERK_YAW erwartet -z (zur Halle): Garage gedreht exportiert?`);
-    if (!(T.b >= GD.gate.width - E && T.h >= GD.gate.height - E)) fail(`[18] der Durchgang (${T.b} x ${T.h} m) ist kleiner als das Tor der Garage (${GD.gate.width} x ${GD.gate.height} m): Man saehe das Tor nur zum Teil`);
-    if (!(R.x[1] <= GA.x + E && toGz(R.x[0]) <= gi.z[1] + E && toGz(R.x[1]) >= gi.z[0] - E && R.z[0] >= gi.x[0] - E && R.z[1] <= gi.x[1] + E && R.h <= gc + E)) fail(`[18] raum (x ${R.x.join('..')}, z ${R.z.join('..')}, h ${R.h}) liegt nicht im Innenraum der Garage (x ${(GA.x - gi.z[1]).toFixed(2)}..${GA.x}, z ${gi.x.join('..')}, Decke ${gc.toFixed(2)} m): Die Kamera flöge durch die Waende`);
+    // Durchgang und Tor: Ist das Tor gleich gross, zeigt der Durchgang es
+    // ganz (bis 25.10.2026). Mit garage.s ist es groesser; dann muss der
+    // Durchgang im offenen Tor liegen (die Fahrt geht frei hindurch), und die
+    // Blende der Garage deckt den Rand dazwischen (werkBlende im Viewer)
+    if (sG === 1 && !(T.b >= gw - E && T.h >= gh - E)) fail(`[18] der Durchgang (${T.b} x ${T.h} m) ist kleiner als das Tor der Garage (${gw} x ${gh} m): Man saehe das Tor nur zum Teil`);
+    if (sG > 1 && !(T.b + 2 * T.rahmen <= gw - E && T.h + T.rahmen <= gfrei - E)) fail(`[18] der Durchgang samt Rahmen (${(T.b + 2 * T.rahmen).toFixed(2)} x ${(T.h + T.rahmen).toFixed(2)} m) passt nicht ins offene Tor der Garage mal ${sG} (${gw.toFixed(2)} x ${gfrei.toFixed(2)} m frei): Die Kamera fuehre ins Tor, oder man saehe seine Kante im Durchgang. garage.s groesser oder den Durchgang kleiner`);
+    if (sG > 1 && !/function werkBlende\(/.test(viewer)) fail(`[18] das Tor der Garage ist mal ${sG} groesser als der Durchgang, der Viewer baut keine Blende (werkBlende): Von innen saehe man neben und ueber dem Durchgang hinter die Nischenwand`);
+    if (!(R.x[1] <= GA.x + E && toGz(R.x[0]) <= gi0.z[1] + E && toGz(R.x[1]) >= gi0.z[0] - E && R.z[0] >= gi.x[0] - E && R.z[1] <= gi.x[1] + E && R.h <= gc + E)) fail(`[18] raum (x ${R.x.join('..')}, z ${R.z.join('..')}, h ${R.h}) liegt nicht im Innenraum der Garage (x ${(GA.x - gi.z[1]).toFixed(2)}..${GA.x}, z ${gi.x.map((v) => v.toFixed(2)).join('..')}, Decke ${gc.toFixed(2)} m): Die Kamera flöge durch die Waende`);
     // Der Schnitt samt Rahmen muss vor der Stirn der Garage liegen: nicht breiter als sie, nicht hoeher als ihr Dach (Decke an der hoechsten Stelle), sonst saehe man daneben oder darueber ins Leere
-    if (!(-T.b / 2 - T.rahmen > gi.x[0] && T.b / 2 + T.rahmen < gi.x[1] && T.h + T.rahmen <= GD.ceiling.max - (GD.floorY ?? 0))) fail(`[18] der Durchgang samt Rahmen (${T.b + 2 * T.rahmen} x ${T.h + T.rahmen} m) ist breiter als die Garage (${(gi.x[1] - gi.x[0]).toFixed(2)} m) oder hoeher als ihr Dach (${(GD.ceiling.max - (GD.floorY ?? 0)).toFixed(2)} m): Man saehe daneben oder darueber ins Leere`);
-    const fz = [toGz(F.x + F.hx + F.rand), toGz(F.x - F.hx - F.rand)], fx = [F.z - F.hz - F.rand, F.z + F.hz + F.rand], P = GD.panel;
+    if (!(-T.b / 2 - T.rahmen > gi.x[0] && T.b / 2 + T.rahmen < gi.x[1] && T.h + T.rahmen <= cmax)) fail(`[18] der Durchgang samt Rahmen (${T.b + 2 * T.rahmen} x ${T.h + T.rahmen} m) ist breiter als die Garage (${(gi.x[1] - gi.x[0]).toFixed(2)} m) oder hoeher als ihr Dach (${cmax.toFixed(2)} m): Man saehe daneben oder darueber ins Leere`);
+    const fz = [toGz(F.x + F.hx + F.rand), toGz(F.x - F.hx - F.rand)], fx = [(F.z - F.hz - F.rand) / sG, (F.z + F.hz + F.rand) / sG], P = GD.panel;
     if (!(fz[0] >= P.z[0] - E && fz[1] <= P.z[1] + E && fx[0] >= P.x[0] - E && fx[1] <= P.x[1] + E)) fail(`[18] die Grube samt Warnrand (Garage x ${fx.map((v) => v.toFixed(2)).join('..')}, z ${fz.map((v) => v.toFixed(2)).join('..')}) liegt nicht im flachen Mittelfeld der Garage (x ${P.x.join('..')}, z ${P.z.join('..')}): Sie schnitte Rinnen und Kanten`);
     if (!(GD.buehnen ?? []).some((b) => b.node === F.buehne)) fail(`[18] feld.buehne ${F.buehne} ist keine Buehne der Garage (${(GD.buehnen ?? []).map((b) => b.node).join(', ') || 'keine'}): Das Fahrzeug stuende ohne Plattform`);
     // Die Plattform selbst laedt der Viewer aus der Buehnendatei der Seite
@@ -2862,10 +2875,18 @@ if (WK) {
     if (!(F.tief > 0.5 && WK.spot.y < gc && WK.spot.innen < WK.spot.aussen)) fail('[18] Grube oder Spot passen nicht in die Garage (Grube tiefer als 0,5 m, Spot unter der Decke, innerer Kegel enger als der aeussere)');
     if (Lg.unten < T.h + T.rahmen) fail(`[18] das Logo rueckt auf ${Lg.unten} m, der Rahmen des Durchgangs reicht bis ${T.h + T.rahmen} m: Es saesse im Rahmen`);
     if (!(B.vor > T.x + B.nische && B.nische > 0 && B.y < T.h && R.x[1] - B.aus > F.x + F.hx + F.rand)) fail('[18] die Bahn der Kamera passt nicht: vor muss vor der Nische liegen (vor > tuer.x + nische), die Hoehe unter dem Durchgang, und der Punkt hinter dem Tor vor dem Feld');
+    // Ende der Fahrt hinaus (Krisz 25.10.2026: „einfach durch das tor, dann
+    // leicht nach oben“): auf der Achse im geprueften Anflug (vor der
+    // Nische bis vor, unter der Hoehe des Durchgangs), hoeher als der Weg
+    // durch den Durchgang. Vorderkante der Nische: ihre Rueckwand (tuer.x)
+    // plus ihre Tiefe aus WORK_DEKO.nischen (west); ohne Deko ihre Mitte
+    const wn = Array.isArray(dekoBlock?.nischen) ? dekoBlock.nischen.find((n) => n?.name === 'west' && Array.isArray(n.x) && n.x.length === 2 && n.x.every(Number.isFinite)) : null;
+    const nVorn = wn ? T.x + (wn.x[1] - wn.x[0]) : T.x + B.nische;
+    if (!(B.zurueck[0] > nVorn && B.zurueck[0] <= B.vor + E && B.zurueck[1] > B.y && B.zurueck[1] < T.h)) fail(`[18] bahn.zurueck (${B.zurueck.join(', ')}) liegt nicht vor der Nische im Anflug (x ${+nVorn.toFixed(2)}..${B.vor}, Hoehe ${B.y}..${T.h} m${wn ? '' : ', ohne WORK_DEKO.nischen ab ihrer Mitte'}): Die Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den Anstieg`);
     if (!(GD.gate.nodes?.length && GD.gate.motion?.open?.t?.length > 1 && GD.gate.nodes.every((n) => GD.gate.motion.open.dy?.[n]?.length === GD.gate.motion.open.t.length && GD.gate.motion.close?.dy?.[n]?.length === GD.gate.motion.close.t?.length))) fail('[18] das Tor der Garage hat keine Bahn je Fluegel (gate.motion open und close): Es bliebe zu');
     // Licht von hinten nach vorn: Baender in Garage-z fallend und lueckenlos, jedes mit Leuchten unter der Decke
-    const bandOk = WK.reihen.every(([, z1], i) => !i || Math.abs(z1 - WK.reihen[i - 1][0]) < E) && WK.reihen[0][1] >= gi.z[1] - E && WK.reihen.at(-1)[0] <= toGz(R.x[1]) + E;
-    if (!bandOk) fail(`[18] WERK.reihen (${WK.reihen.map((r) => r.join('..')).join(', ')}) laufen nicht lueckenlos von der Rueckwand (Garage z ${gi.z[1]}) bis vors Tor (z ${toGz(R.x[1])}): So gehen sie an, das hinterste Band zuerst`);
+    const bandOk = WK.reihen.every(([, z1], i) => !i || Math.abs(z1 - WK.reihen[i - 1][0]) < E) && WK.reihen[0][1] >= gi0.z[1] - E && WK.reihen.at(-1)[0] <= toGz(R.x[1]) + E;
+    if (!bandOk) fail(`[18] WERK.reihen (${WK.reihen.map((r) => r.join('..')).join(', ')}) laufen nicht lueckenlos von der Rueckwand (Garage z ${gi0.z[1]}) bis vors Tor (z ${toGz(R.x[1]).toFixed(2)}): So gehen sie an, das hinterste Band zuerst`);
     const lamps = GD.fixtures.filter((f) => L.netze.includes(f.mesh) && f.pos?.[1] >= L.ab);
     werkRun.baender = WK.reihen.map(([z0, z1]) => lamps.filter((f) => f.pos[2] >= z0 && f.pos[2] < z1).length);
     if (werkRun.baender.some((n) => !n)) fail(`[18] Band ${werkRun.baender.findIndex((n) => !n) + 1} (Garage z ${WK.reihen[werkRun.baender.findIndex((n) => !n)].join('..')}) hat keinen Leuchtkoerper aus lampen.netze (${L.netze.join(', ')}) ab ${L.ab} m: Es bliebe dunkel, die Folge von hinten nach vorn risse`);
@@ -2928,7 +2949,7 @@ if (WK) {
         for (let i = 0; i < n; i++) plaetze.push([L.node, L.von[0] + (d[0] * (i + 0.5)) / n, L.von[1], L.von[2] + (d[1] * (i + 0.5)) / n, L.r]);
       }
       for (const q of DB.stuecke ?? []) plaetze.push(q);
-      const camTop = R.h - 0.8, gx = [GA.x - gi.z[1], GA.x], gz = gi.x, cmax = GD.ceiling.max - (GD.floorY ?? 0);
+      const camTop = R.h - 0.8, gx = [GA.x - gi.z[1], GA.x], gz = gi.x;
       const bad = [];
       for (const [node, x, oben, z, r] of plaetze) {
         const q = kp.get(node);
@@ -3056,7 +3077,7 @@ if (WK) {
           for (let t = 0; t < n; t++) {
             werkRun.garageTris++;
             const zs = I ? [z(I[3 * t]), z(I[3 * t + 1]), z(I[3 * t + 2])] : [z(3 * t), z(3 * t + 1), z(3 * t + 2)];
-            if (GA.x - Math.min(...zs) > T.x + E) { werkRun.garageVor++; if (vor.length < 4 && !vor.includes(node.getName())) vor.push(node.getName()); }
+            if (GA.x - Math.min(...zs) * sG > T.x + E) { werkRun.garageVor++; if (vor.length < 4 && !vor.includes(node.getName())) vor.push(node.getName()); }
           }
         }
       }

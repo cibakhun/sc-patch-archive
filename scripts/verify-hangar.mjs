@@ -20,7 +20,8 @@
         (seitenHangarBuchten), neben allen anderen Seitenzahlen. Seit
         24.10.2026 dazu der Ort: 'werk' (Werkhalle) genau fuer die
         Bodenfahrzeuge aus src/data/vehicles.json (isSpaceship === false),
-        Klinke werkhalle.
+        seit 25.10.2026 samt den Gravlev-Raedern (isGravlev, Krisz:
+        „dragonfly undso gehört auch zur bodenfahrzeugen“), Klinke werkhalle.
      2  Buchtgestalt: main[data-bay-id] gleich Dateiname, genau die drei
         Regionen head, panel, marks und keine weitere (der Controller setzt
         nur diese ein), je Bucht ein Tab-Panel fuer genau die Tabs,
@@ -184,8 +185,8 @@ const KLINKEN = [
     anlass: '3.389 von 3.621 Loadout-Ports tragen einen Bone, keiner verteilt seine Items auf zwei Tabs. Faellt, wenn der Hardpoint-Join oder die Portnamen brechen.',
   },
   {
-    id: 'werkhalle', wert: 31, regel: 'min',
-    anlass: 'Bodenfahrzeuge (vehicles.json isSpaceship === false) mit Hangar-Modell, die in der Werkhalle hinter der Westnische stehen (Krisz 24.10.2026). Faellt die Zahl, stehen sie still wieder auf dem Schiffsfeld.',
+    id: 'werkhalle', wert: 41, regel: 'min',
+    anlass: 'Bodenfahrzeuge (vehicles.json isSpaceship === false, 31) und Gravlev-Raeder (isGravlev, 10: Dragonfly, Nox, X1, Pulse, HoverQuad; Krisz 25.10.2026) mit Hangar-Modell, die in der Werkhalle hinter der Westnische stehen (Krisz 24.10.2026). Faellt die Zahl, stehen sie still wieder auf dem Schiffsfeld.',
   },
   {
     id: 'schiffeMitWaffen', wert: 211, regel: 'min',
@@ -297,7 +298,8 @@ const BAYS = { en: readBays('hangar-bay'), de: readBays('de/hangar-bay') };
 const bayIds = (lang) => new Set(BAYS[lang].map((b) => b.name));
 
 say('\n[1] Eine Id-Menge: Dock, Modellliste, EN-Buchten, DE-Buchten (je Hangarseite); Ort Werkhalle genau fuer Bodenfahrzeuge');
-const BODEN = new Set(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.filter((v) => v.isSpaceship === false).map((v) => v.id));
+// Bodenfahrzeuge samt Gravlev-Raedern (Krisz 25.10.2026), wie HangarApp.astro
+const BODEN = new Set(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.filter((v) => v.isSpaceship === false || v.isGravlev === true).map((v) => v.id));
 const werkZahl = [];
 for (const page of PAGES) {
   const stage = stageModels(page.html);
@@ -305,7 +307,7 @@ for (const page of PAGES) {
     const werk = new Set(stage.werk), falsch = stage.ids.filter((id) => werk.has(id) !== BODEN.has(id));
     say(`    ${page.file}: Werkhalle ${werk.size}, Bodenfahrzeuge mit Modell ${stage.ids.filter((id) => BODEN.has(id)).length}`);
     sollIst('0 falsch zugeordnet', falsch.length);
-    for (const id of falsch) fail(`[1] ${page.file}: ${id} steht ${werk.has(id) ? 'in der Werkhalle, ist aber kein Bodenfahrzeug' : 'auf dem Schiffsfeld, ist aber ein Bodenfahrzeug'} (vehicles.json isSpaceship) — HangarApp.astro`);
+    for (const id of falsch) fail(`[1] ${page.file}: ${id} steht ${werk.has(id) ? 'in der Werkhalle, ist aber kein Bodenfahrzeug' : 'auf dem Schiffsfeld, ist aber ein Bodenfahrzeug'} (vehicles.json isSpaceship, isGravlev) — HangarApp.astro`);
     werkZahl.push(werk.size);
   }
   const places = {

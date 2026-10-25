@@ -5365,7 +5365,8 @@ function hangarSound(src = null) {
 // arbeitend angehen bis schließlich das mittlere spotlight licht angeht,
 // wenn die kamera ankommt und das fahrzeug gleichzeitig angekommen sind.“
 // Bodenfahrzeug heißt Ort 'werk' in der Modellliste der Seite
-// (HangarApp.astro: vehicles.json isSpaceship === false). Eine Ausnahme von
+// (HangarApp.astro: vehicles.json isSpaceship === false, dazu die
+// Gravlev-Räder mit isGravlev, Krisz 25.10.2026). Eine Ausnahme von
 // „keine automatischen Kamerafahrten“ (18.10.2026): nur dieser Ortswechsel.
 //
 // Die Werkhalle ist die große Garage der Hightech-Städte aus dem Spiel
@@ -5380,10 +5381,16 @@ function hangarSound(src = null) {
 //   garage: id im Manifest (werkhalle); x: Torebene (z = 0 der Garage), ihr
 //     Raum reicht nach -x (Garage z -> Halle -x, Garage x -> Halle z), ihr
 //     Boden (floorY) auf 0; vorn: Dreiecke ganz vor dieser Garagen-z
-//     (Rahmen, Torwand) bleiben stehen, wenn die Garage verborgen ist
+//     (Rahmen, Torwand) bleiben stehen, wenn die Garage verborgen ist;
+//     s: Maßstab der Garage um ihre Torebene (Krisz, 25.10.2026: „wir
+//     können die werkstattwände und decke bisschen erweitern“; vorher 1).
+//     Ihre Maße aus der json zählen mal s, Leuchten und Tor wachsen mit;
+//     Bühne, Grube, Spot und Durchgang nicht
 //   tuer: Schnitt in der Rückwand, b breit und h hoch, mittig auf z 0 (im
-//     Torrahmen der Garage, der dahinter steht); tief: bis zur Torebene;
-//     Rahmen rahmen breit und vor weit in die Nische (deckt die Schnittkante)
+//     Tor der Garage, das dahinter steht, mit s größer als der Schnitt: Die
+//     Blende der Garage deckt den Rand dazwischen); tief: bis zur
+//     Torebene; Rahmen rahmen breit und vor weit in die Nische (deckt die
+//     Schnittkante)
 //   tor: Torebene x; die vier Blätter der Garage fahren in ms auf (Bahnen
 //     des Spiels aus der json, schneller abgespielt)
 //   raum: Halle der Garage zwischen den Pfeilern (Kamera bleibt darin), h
@@ -5402,21 +5409,24 @@ function hangarSound(src = null) {
 //   frei: Möbel der Halle mit Bezugspunkt hier weichen dem Weg zum Durchgang
 //   bahn: Weg der Kamera (werkPath): ab x vor in der Halle tief auf Höhe y
 //     (höchstens 55 % der Durchgangshöhe), nische m vor der Rückwand mittig,
-//     aus m hinter der Torebene in der Garage
+//     aus m hinter der Torebene in der Garage; zurueck: Ende der Fahrt
+//     hinaus [x, y] auf der Achse, mit Blick zum Schiff (Krisz, 25.10.2026:
+//     „einfach durch das tor, dann leicht nach oben thats it“; vorher die
+//     Startansicht der Halle quer durch sie), im Anflug (x bis vor)
 // verify:hangar-hall [18] liest diesen Block.
 const WERK = /* werk */ {
   "halle": "revelyork-single",
-  "garage": { "id": "ht-garage-lrg", "x": -52.0, "vorn": 1.0 },
+  "garage": { "id": "ht-garage-lrg", "x": -52.0, "vorn": 1.0, "s": 1.2 },
   "tuer": { "x": -51.0, "b": 16.3, "h": 6.55, "tief": 1.0, "rahmen": 0.3, "vor": 0.15 },
   "tor": { "x": -52.0, "ms": 1800 },
-  "raum": { "x": [-91.2, -52.0], "z": [-12, 12], "h": 6.8 },
-  "feld": { "x": -68.5, "z": 0, "hx": 8.2, "hz": 6.4, "tief": 7, "rand": 0.45, "buehne": "buehne_lift_m" },
+  "raum": { "x": [-99.0, -52.0], "z": [-14.4, 14.4], "h": 8.1 },
+  "feld": { "x": -71.8, "z": 0, "hx": 8.2, "hz": 6.4, "tief": 7, "rand": 0.45, "buehne": "buehne_lift_m" },
   "reihen": [[30.5, 41], [23, 30.5], [15, 23], [7, 15], [-1, 7]],
   "lampen": { "netze": ["light_panel_1_d", "light_fixture_rectangular_e"], "ab": 7, "je": 4 },
-  "spot": { "y": 6.4, "innen": 5, "aussen": 36 },
+  "spot": { "y": 7.4, "innen": 5, "aussen": 36 },
   "logo": { "x": [-51.4, -50.6], "y": [4.3, 7.9], "z": [-3.6, 3.4], "unten": 6.95, "s": 0.42 },
   "frei": { "x": [-51, -46.5], "z": [-9.5, 9.5] },
-  "bahn": { "vor": -26, "nische": 7, "y": 2.4, "aus": 4 }
+  "bahn": { "vor": -26, "nische": 7, "y": 2.4, "aus": 4, "zurueck": [-26, 5.0] }
 } /* /werk */;
 // Das Fahrzeug steht mit dem Bug zum Durchgang (+x); die Kamera sieht es
 // von vorn, mittig und knapp über Augenhöhe, mit dem Durchgang im Rücken
@@ -5446,12 +5456,15 @@ const WERK_ROWS_AT = [0.05, 0.23, 0.41, 0.59, 0.77];
 const WERK_LOOK = { near: 7, deg: 38, tor: 0.6, min: 700, max: 1800 };
 // Licht: Farbe und Stärke je Leuchte der Reihen (niedrig: eine je Reihe,
 // dafür mal quer), des Spots (weicher seit 24.10.2026: 170 statt 260, das
-// Fahrzeug strahlte weiß) und des Hallenlichts vor dem Durchgang;
-// Grundlicht und Spiegelung wachsen mit den Reihen. Aus geht eine Leuchte in
+// Fahrzeug strahlte weiß; seit 25.10.2026 1 m höher und 380, die Reihen
+// 40 statt 72, Krisz: „die wände etwas dunkler beleuchten so dass spotlight
+// in der mitte prominenter ist“) und des Hallenlichts vor
+// dem Durchgang; Grundlicht und Spiegelung wachsen mit den Reihen (seit
+// 25.10.2026 schwächer, die Wände dunkler). Aus geht eine Leuchte in
 // WERK_OFF_MS. Leuchtflächen strahlen über der Schwelle des Lichtscheins.
 const WERK_LIGHT = {
-  row: [1.0, 0.97, 0.92], rowI: 72, spot: [1.0, 0.93, 0.82], spotI: 170, spill: [1.0, 0.98, 0.95], spillI: 40,
-  amb: [0.85, 0.88, 0.95], amb0: 0.012, ambK: 0.4, env0: 0.04, envK: 0.5, torAmb: 0.35, glow: 7, dark: 0.006,
+  row: [1.0, 0.97, 0.92], rowI: 40, spot: [1.0, 0.93, 0.82], spotI: 380, spill: [1.0, 0.98, 0.95], spillI: 40,
+  amb: [0.85, 0.88, 0.95], amb0: 0.012, ambK: 0.3, env0: 0.04, envK: 0.4, torAmb: 0.35, glow: 7, dark: 0.006,
 };
 // Zu den Wänden hin dunkler (Krisz, 24.10.2026: „sonst alles im hintergrund
 // richtung wände dunkler machen“): Licht der Reihen, Grundlicht und
@@ -5460,56 +5473,71 @@ const WERK_LIGHT = {
 // auf rest an der Wand; Leuchtflächen halb so stark (sie sind Lampen).
 // Bühne, Fahrzeug und Spot bleiben, wie sie sind: Die Fahrzeuge (werkLit,
 // HG_WK_FZ) nehmen den Abfall nicht, sonst würden große an Bug und Heck
-// dunkler.
-const WERK_WAND = { ab: 0.35, rest: 0.22, glow: 0.5 };
+// dunkler. Seit 25.10.2026 früher und tiefer (vorher ab 0,35, rest 0,22;
+// Krisz: „die wände etwas dunkler beleuchten“).
+const WERK_WAND = { ab: 0.15, rest: 0.07, glow: 0.5 };
 const WERK_OFF_MS = 350;
 // Einschalten einer Leuchtstoffreihe: Flackern (Zeit in ms, Helligkeit),
-// danach voll; der Spot schlägt kurz über
-const WERK_FLICKER = [[0, 0], [30, 0.9], [70, 0.05], [130, 0.6], [170, 0.1], [260, 0.85], [300, 0.7], [420, 1]];
-const WERK_SPOT_FLICKER = [[0, 0], [40, 1.12], [140, 0.94], [260, 1]];
+// mit Blitzen über voll, dann glüht sie auf voll aus; der Spot schlägt
+// hart an und klingt ab (Krisz, 25.10.2026: „die lichter wenn die angehen
+// mehr effekt haben“; vorher höchstens 1 und 1,12). Grundlicht, Spiegelung
+// und Leuchtflächen gehen mit: Jeder Blitz hellt den Raum kurz auf.
+const WERK_FLICKER = [[0, 0], [30, 1.5], [70, 0.04], [140, 0.9], [180, 0.08], [290, 1.35], [340, 0.45], [430, 1.6], [900, 1]];
+const WERK_SPOT_FLICKER = [[0, 0], [35, 1.8], [100, 0.5], [170, 1.6], [650, 1]];
 // Leitungen unter der Decke der Werkhalle (Krisz, 24.10.2026: „decke iwi
-// verbessern, rohre, kablen etc“). Stücke aus dem Gerätekatalog des Spiels,
-// gepackt von scripts/build-werkhalle-decke.mjs (props/werkdecke.glb), in
-// Hallenmetern wie WERK. Gemessenes Deckenprofil der Garage: Mittelplatte
-// (z ±6,5) 7,8 m hoch von x -81 bis -53,5, davor und dahinter tiefere
-// Träger; Randträger bei z ±7,5 bis 6,8 m herab, Seitenstreifen 6,9 m; über
-// der Rückwand eine Bucht bis 8,4 m (x -86..-85).
+// verbessern, rohre, kablen etc“; 25.10.2026 mit der größeren Garage: „und
+// dann halt viele schläuche, rohre, etc an der decke laufen lassen“).
+// Stücke aus dem Gerätekatalog des Spiels, gepackt von
+// scripts/build-werkhalle-decke.mjs (props/werkdecke.glb), in Hallenmetern
+// wie WERK. Gemessenes Deckenprofil der Garage mal garage.s (1,2):
+// Mittelplatte (z ±8) 9,3 m hoch von x -86,8 bis -53,8, davor und dahinter
+// Träger bis 8,2 m herab; Randträger bei z ±9 bis 8,2 m, Seitenstreifen
+// (z ±9,5 bis ±12,5) 8,3 m; über der Rückwand eine Bucht bis 10 m. Unter
+// der Platte, von außen nach innen je Seite: Luftrohr, Lüftungskanal,
+// Wartungsschlauch (zwischen Kanal und Leuchtfeldern bei z ±3,45),
+// Kabelzug mit Anschlussdosen, aufgehängter Luftschlauch neben dem Spot;
+// auf den Seitenstreifen zwei flache Rohrbündel.
 //   laeufe: node Stück an Stück von von bis bis (Länge lang je Stück, auf
-//     der Achse des Laufs), r Drehung um y in Grad (Kanäle und Rohre liegen
-//     im Modell längs z, Kabel längs x)
+//     der Achse des Laufs), r Drehung um y in Grad (Kanäle, Rohre und
+//     Wartungsschläuche liegen im Modell längs z, Kabel, Luftschläuche und
+//     Rohrbündel längs x)
 //   stuecke: [node, x, oben, z, r] einzeln
-// Kabel enden in Anschlussdosen an der Decke oder im Kanal; Querzüge von
-// Kanal zu Kanal über die Mitte, zwischen den Leuchten.
-// Höhen sind Oberkanten (oben: an der Decke). Keine Unterkante unter 6,3 m:
+// Kabel enden in Anschlussdosen an der Decke. Die Luftschläuche liegen
+// gerade an der Platte (die durchhängende Fassung wellte sich wie Girlanden).
+// Höhen sind Oberkanten (oben: an der Decke). Keine Unterkante unter 7,6 m:
 // Die Kamera bleibt unter raum.h - 0,8. verify:hangar-hall [18] prüft
 // Raum, Höhe, Spot und Länge der Läufe gegen den Katalog.
 const WERK_DECKE = /* work-werkdecke */ {
   "laeufe": [
-    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-81.0, 7.8, 4.6], "bis": [-53.0, 7.8, 4.6], "lang": 4, "r": 90 },
-    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-81.0, 7.8, -4.6], "bis": [-53.0, 7.8, -4.6], "lang": 4, "r": 90 },
-    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-81.0, 7.8, 6.0], "bis": [-53.0, 7.8, 6.0], "lang": 4, "r": 90 },
-    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-81.0, 7.8, -6.0], "bis": [-53.0, 7.8, -6.0], "lang": 4, "r": 90 },
-    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-80.5, 7.8, 3.5], "bis": [-55.5, 7.8, 3.5], "lang": 12.5, "r": 0 },
-    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-80.5, 7.8, -3.5], "bis": [-55.5, 7.8, -3.5], "lang": 12.5, "r": 0 },
-    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-75.0, 7.8, -4.46], "bis": [-75.0, 7.8, 4.46], "lang": 4.46, "r": 90 },
-    { "node": "prop_kabel_cables_a_04x01x01_b", "von": [-61.0, 7.8, -4.46], "bis": [-61.0, 7.8, 4.46], "lang": 4.46, "r": 90 }
+    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-86.5, 9.3, 7.2], "bis": [-54.5, 9.3, 7.2], "lang": 4, "r": 90 },
+    { "node": "prop_wand_pipe_air_processing_1_straight_01x01x04_a", "von": [-86.5, 9.3, -7.2], "bis": [-54.5, 9.3, -7.2], "lang": 4, "r": 90 },
+    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-86.5, 9.3, 5.6], "bis": [-54.5, 9.3, 5.6], "lang": 4, "r": 90 },
+    { "node": "prop_decke_addon_hvac_straight_01x04x01_a", "von": [-86.5, 9.3, -5.6], "bis": [-54.5, 9.3, -5.6], "lang": 4, "r": 90 },
+    { "node": "prop_schlauch_maintenance_hose_1_a", "von": [-86.0, 9.3, 4.5], "bis": [-55.36, 9.3, 4.5], "lang": 15.32, "r": 90 },
+    { "node": "prop_schlauch_maintenance_hose_1_a", "von": [-86.0, 9.3, -4.5], "bis": [-55.36, 9.3, -4.5], "lang": 15.32, "r": 90 },
+    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-84.25, 9.3, 2.3], "bis": [-59.25, 9.3, 2.3], "lang": 12.5, "r": 0 },
+    { "node": "prop_kabel_cables_a_12x01x01_a", "von": [-84.25, 9.3, -2.3], "bis": [-59.25, 9.3, -2.3], "lang": 12.5, "r": 0 },
+    { "node": "prop_schlauch_lt_airduct_hose_straight_8m_a", "von": [-86.26, 9.3, 1.5], "bis": [-54.5, 9.3, 1.5], "lang": 7.94, "r": 0 },
+    { "node": "prop_schlauch_lt_airduct_hose_straight_8m_a", "von": [-86.26, 9.3, -1.5], "bis": [-54.5, 9.3, -1.5], "lang": 7.94, "r": 0 },
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_b", "von": [-86.5, 8.3, 10.2], "bis": [-54.5, 8.3, 10.2], "lang": 4, "r": 0 },
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_b", "von": [-86.5, 8.3, -10.2], "bis": [-54.5, 8.3, -10.2], "lang": 4, "r": 0 },
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_a", "von": [-86.5, 8.3, 11.3], "bis": [-54.5, 8.3, 11.3], "lang": 4, "r": 0 },
+    { "node": "prop_wand_roomsm_addon_pipe_bottom_a", "von": [-86.5, 8.3, -11.3], "bis": [-54.5, 8.3, -11.3], "lang": 4, "r": 0 }
   ],
   "stuecke": [
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -80.5, 7.8, 3.5, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -68.0, 7.8, 3.5, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -55.5, 7.8, 3.5, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -80.5, 7.8, -3.5, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -68.0, 7.8, -3.5, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -55.5, 7.8, -3.5, 0],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -75.0, 7.8, 0, 90],
-    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -61.0, 7.8, 0, 90]
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -84.25, 9.3, 2.3, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -71.75, 9.3, 2.3, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -59.25, 9.3, 2.3, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -84.25, 9.3, -2.3, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -71.75, 9.3, -2.3, 0],
+    ["prop_kabel_roomsm_addon_cable_junctionbox_a", -59.25, 9.3, -2.3, 0]
   ]
 } /* /work-werkdecke */;
 // Ton der Deckenstücke (Faktor auf die Farbe): Das Rohr trägt im Katalog
 // die Palettenfarbe Weiß (0,87, glänzend) und stand hell wie ein Leuchtbalken
 // unter der schwarzen Decke; die Kanäle (Beige des Depots) dicht an den
-// Leuchten fast weiß
-const WERK_DECKE_TON = [[/pipe_air_processing/, 0.28], [/dumpersdepot/, 0.6]];
+// Leuchten fast weiß; die Luftschläuche leuchteten gelb über allem
+const WERK_DECKE_TON = [[/pipe_air_processing/, 0.28], [/dumpersdepot/, 0.6], [/airduct_hose/, 0.21]];
 // Plätze der Stücke aus WERK_DECKE: [node, Mitte x, Oberkante, Mitte z, r in Grad]
 const werkDeckePlaetze = (D) => [
   ...(D.laeufe ?? []).flatMap((L) => {
@@ -5571,6 +5599,18 @@ function werkBaukasten(tiles) {
     return g;
   };
   return { quad, box, geometry, keys: () => [...parts.keys()] };
+}
+
+// Blende der Werkhalle (garage.s > 1): Das Tor der Garage ist größer als
+// der Durchgang der Nische; von innen sah man neben und über dem Rahmen
+// durch die Rückseite der Nischenwand in die Halle. Die Blende deckt den
+// Rand von der Torkante (zo, yo) bis an den Rahmen (zi, yi) in der Ebene x,
+// zur Garage hin (-x); von der Halle aus ist sie nicht zu sehen.
+function werkBlende(B, key, x, zo, yo, zi, yi) {
+  const q = (za, zb, ya, yb) => B.quad(key, [x, ya, za], [x, ya, zb], [x, yb, zb], [x, yb, za], [-1, 0, 0]);
+  q(-zo, -zi, 0, yo);
+  q(zi, zo, 0, yo);
+  q(-zi, zi, yi, yo);
 }
 
 // Licht der Werkhalle (eigene Lampen statt der Szenenlichter): Der Shader
@@ -7415,7 +7455,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     foot: { value: null }, footB: { value: new THREE.Vector4(0, 0, 1, 0) },
     glow: { value: new Array(WK_ROWS).fill(0) },
     // Unterkante je Band in x, aufsteigend (Band 0 hinten)
-    glowX: { value: WERK.reihen.map(([, z1], i) => (i ? WERK.garage.x - z1 : -1e4)) },
+    glowX: { value: WERK.reihen.map(([, z1], i) => (i ? WERK.garage.x - z1 * (WERK.garage.s ?? 1) : -1e4)) },
     pit: { value: new THREE.Vector4(WERK.feld.x, WERK.feld.z, WERK.feld.hx - 0.01, WERK.feld.hz - 0.01) },
   };
   // Schatten des Fahrzeugs: auf der Bühne immer, auf dem Hallenboden erst, wenn sie oben ist
@@ -8004,9 +8044,9 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   // Rahmen und Torwand der Garage (vorn) und die Torblätter bleiben, sie
   // füllen den Durchgang von der Halle aus.
   function werkBauen(seen, garage) {
-    const T = WERK.tuer, F = WERK.feld, GC = WERK.garage, D = garage.dims;
+    const T = WERK.tuer, F = WERK.feld, GC = WERK.garage, D = garage.dims, gs = GC.s ?? 1;
     // Seitenwand für den Abfall des Lichts: Innenraum der Garage (ihr x ist hier z)
-    if (D.interior?.x) werkU.vigB.value.x = Math.min(...D.interior.x.map(Math.abs));
+    if (D.interior?.x) werkU.vigB.value.x = Math.min(...D.interior.x.map(Math.abs)) * gs;
     const steelSrc = [...seen].find((m) => m.isMeshStandardMaterial && /mtl_metal_grey_04$/.test(m.name)) ?? null;
     const used = [];
     const werkMat = (m, flags) => {
@@ -8060,11 +8100,12 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const raum = new THREE.Group();
     raum.name = 'werk:raum';
     group.add(raum);
-    // Garage: z -> -x, x -> z (Drehung um y), Torebene auf GC.x, Boden auf 0
+    // Garage: z -> -x, x -> z (Drehung um y), Torebene auf GC.x, Boden auf 0, mal gs
     const gar = garage.scene;
     gar.name = 'werk:garage';
     gar.rotation.y = -Math.PI / 2;
-    gar.position.set(GC.x, -(D.floorY ?? 0), 0);
+    gar.scale.setScalar(gs);
+    gar.position.set(GC.x, -(D.floorY ?? 0) * gs, 0);
     group.add(gar);
     gar.updateMatrixWorld(true);
     const toGar = new THREE.Matrix4().copy(gar.matrixWorld).invert(), rel = new THREE.Matrix4(), v = new THREE.Vector3();
@@ -8155,7 +8196,11 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     B.quad('grube', [hx1, -Dp, hz1], [hx0, -Dp, hz1], [hx0, 0, hz1], [hx1, 0, hz1], [0, 0, -1]);
     B.quad('grube', [hx0, -Dp, hz1], [hx1, -Dp, hz1], [hx1, -Dp, hz0], [hx0, -Dp, hz0], [0, 1, 0]);
     // Rahmen um den Schnitt in der Nischenwand, von der Garage bis vor die Wand, im Licht der Halle
-    const fr = T.rahmen, fx0 = T.x - T.tief + 0.75, fx1 = T.x + T.vor;
+    // Ist das Tor mal gs größer als der Durchgang, reicht der Rahmen bis zur
+    // Torebene, und die Blende deckt den Rand dazwischen (werkBlende)
+    const gw = (D.gate?.width ?? 0) * gs, gh = (D.gate?.height ?? 0) * gs, blende = gw > T.b + 2 * T.rahmen + 0.01;
+    const fr = T.rahmen, fx0 = blende ? GC.x : T.x - T.tief + 0.75, fx1 = T.x + T.vor;
+    if (blende) werkBlende(B, 'grube', GC.x - 0.01, gw / 2 + 0.15, gh + 0.15, T.b / 2 + fr, T.h + fr);
     B.box('rahmen', [fx0, 0, T.b / 2], [fx1, T.h + fr, T.b / 2 + fr], 'XzY');
     B.box('rahmen', [fx0, 0, -T.b / 2 - fr], [fx1, T.h + fr, -T.b / 2], 'XZY');
     B.box('rahmen', [fx0, T.h, -T.b / 2 - fr], [fx1, T.h + fr, T.b / 2 + fr], 'XyY');
@@ -8228,7 +8273,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     // Spot über der Bühne an einer Stange von der Decke
     const spotMat = new THREE.MeshBasicMaterial({ color: 0x101214 });
     spotMat.name = 'werk:spot';
-    const ceil = Math.max(WERK.spot.y + 0.9, (D.ceiling?.median ?? 7.8) - (D.floorY ?? 0));
+    const ceil = Math.max(WERK.spot.y + 0.9, ((D.ceiling?.median ?? 7.8) - (D.floorY ?? 0)) * gs);
     {
       const bk = werkBaukasten({ grube: 2 });
       bk.box('grube', [F.x - 0.45, WERK.spot.y, F.z - 0.45], [F.x + 0.45, WERK.spot.y + 0.75, F.z + 0.45], 'xXyzZ');
@@ -8315,7 +8360,7 @@ void main() {
       }
     }
     // Leuchten: Leuchtkörper aus der json je Band (hinten zuerst), höchstens WK_JE
-    const toH = (p) => [GC.x - p[2], p[1] - (D.floorY ?? 0), p[0]];
+    const toH = (p) => [GC.x - p[2] * gs, (p[1] - (D.floorY ?? 0)) * gs, p[0] * gs];
     const picked = WERK.reihen.map(() => []);
     for (const f of D.fixtures ?? []) {
       if (!WERK.lampen.netze.includes(f.mesh) || f.pos[1] < WERK.lampen.ab) continue;
@@ -8327,12 +8372,12 @@ void main() {
       if (!ps.length) return;
       if (WK_JE === 1) {
         const c = ps.reduce((a, p) => a.map((x, j) => x + p[j] / ps.length), [0, 0, 0]);
-        werkLamp(i, [c[0], c[1] - 0.3, 0], 22);
+        werkLamp(i, [c[0], c[1] - 0.3, 0], 22 * gs);
         lamps++;
         return;
       }
       // Reichweite knapp zwei Bänder: Jedes Band hellt vor allem seinen Teil auf, die Folge bleibt sichtbar
-      ps.slice(0, WK_JE).forEach((p, j) => { werkLamp(i * WK_JE + j, [p[0], p[1] - 0.3, p[2]], 15); lamps++; });
+      ps.slice(0, WK_JE).forEach((p, j) => { werkLamp(i * WK_JE + j, [p[0], p[1] - 0.3, p[2]], 15 * gs); lamps++; });
     });
     const rowLamps = picked.map((ps) => Math.min(WK_JE, ps.length));
     werkLamp(WK_SPOT, [F.x, WERK.spot.y - 0.05, F.z], 24, [0, -1, 0], WERK.spot.innen, WERK.spot.aussen);
@@ -9721,8 +9766,10 @@ void main() {
     const W = realHall?.werk;
     if (!W) return false;
     if (W.tor.dur || W.buehne.dur) return true;
-    for (const L of W.rows) if (now - L.t < 700 && now > L.t - 60000) return true;
-    return now - W.spot.t < 700 && now > W.spot.t - 60000;
+    // bis die Lampe ausgeflackert ist (WERK_FLICKER, WERK_SPOT_FLICKER) oder aus
+    const n = Math.max(WERK_FLICKER.at(-1)[0], WERK_SPOT_FLICKER.at(-1)[0], WERK_OFF_MS) + 100;
+    for (const L of W.rows) if (now - L.t < n && now > L.t - 60000) return true;
+    return now - W.spot.t < n && now > W.spot.t - 60000;
   };
 
   // Fahrt der Kamera, in Hallenmetern: durch pts, mit dem Blick von look0
@@ -9850,7 +9897,11 @@ void main() {
   // hat werkRescale sie schon mitgenommen (sonst zählte das Fahrzeug nur so
   // groß, wie es im Maßstab des Schiffs wäre, und die Kamera fuhr hindurch).
   function werkPath(dir, hallP, werkP, box, vehInfo, vehSc = 1) {
-    const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn, yd = Math.min(B.y, T.h * 0.55);
+    const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn;
+    // hinein tief durch den Durchgang; hinaus auf der Höhe, auf der die
+    // Kamera in der Werkhalle steht (höchstens 55 % des Durchgangs), dann
+    // erst vor der Nische hinauf zu hallP
+    const yd = dir === 'out' ? THREE.MathUtils.clamp(werkP.y, B.y, T.h * 0.55) : Math.min(B.y, T.h * 0.55);
     const pts = [hallP.clone()];
     if (hallP.x > B.vor) {
       const a = new THREE.Vector3(B.vor, THREE.MathUtils.lerp(yd, hallP.y, 0.45), hallP.z * 0.3);
@@ -10014,9 +10065,11 @@ void main() {
     return true;
   }
   // Hinaus: Die Halle richtet sich verborgen für das Schiff ein, es steht
-  // unten unter geschlossenem Tor. Die Kamera fliegt aus der Werkhalle durch
-  // den Durchgang zurück, das Schiff kommt mit ihr oben an (liftUp, so spät
-  // angesetzt). Dann schließt das Tor, und die Werkhalle geht aus.
+  // unten unter geschlossenem Tor. Die Kamera fliegt aus der Werkhalle
+  // gerade durch den Durchgang zurück, steigt ab der Mitte der Nische
+  // leicht und endet 10 m vor ihr bei WERK.bahn.zurueck, mit Blick zum
+  // Schiff; das kommt mit ihr oben an (liftUp, so spät angesetzt). Dann
+  // schließt das Tor, und die Werkhalle geht aus.
   async function werkOut(ship, s) {
     const W = realHall.werk, veh = current;
     werkDropParked();
@@ -10037,7 +10090,7 @@ void main() {
     ship.position.y = ship.userData.baseY;
     scene.add(ship);
     adopt(ship, s, { lift: true });
-    const tgt = new THREE.Vector3(0, Math.max(1.2, s.info.height * 0.45 + 0.3), 0), end = tgt.clone().addScaledVector(HOME_DIR, homeDist());
+    const tgt = new THREE.Vector3(0, Math.max(1.2, s.info.height * 0.45 + 0.3), 0);
     const up = liftUpMs(s.info), need = WERK.tor.ms + 250;
     // Steht die Kamera gleich hinter dem Tor (Ansicht von vorn), wartet sie,
     // bis es offen ist, und dreht sich derweil zum Weg (hold). Die Fahrt zu
@@ -10053,7 +10106,7 @@ void main() {
     };
     // Das Schiff wartet unten und kommt erst zum Ende herauf (liftUp bei
     // hold + plan.ms - up); ab da zählt es in voller Höhe
-    const t0 = performance.now(), from = end.divideScalar(k), at = camera.position.clone().divideScalar(k);
+    const t0 = performance.now(), from = new THREE.Vector3(WERK.bahn.zurueck[0], WERK.bahn.zurueck[1], 0), at = camera.position.clone().divideScalar(k);
     const box = shipBox(s.info, ship.scale.x, k), y0 = lift.y;
     const hits = (p) => tripHits(p, t0 + p.hold, box, (t) => (t < t0 + p.hold + p.ms - up ? y0 : 0));
     let plan = planFor(werkPath('out', from, at, null, veh.info, veh.group.scale.x));

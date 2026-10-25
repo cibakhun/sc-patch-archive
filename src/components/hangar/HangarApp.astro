@@ -200,8 +200,11 @@ const stage = {
     withV(geo[id] ?? meshes[id]),
     real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
     shipFacts(id, lang).makerCode,
-    // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026); Gravlev-Räder sind Raumschiffe und bleiben auf dem Feld
-    shipData(id).isSpaceship === false ? 'werk' : 'halle',
+    // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026), dazu die
+    // Gravlev-Räder (Dragonfly, Nox, X1, Pulse, HoverQuad), obwohl sie im
+    // Spiel als Raumschiff zählen (Krisz 25.10.2026: „dragonfly undso
+    // gehört auch zur bodenfahrzeugen“)
+    shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle',
   ] as const])),
 } satisfies StageConfig;
 const payload = JSON.stringify(stage).replace(/</g, '\\u003c');

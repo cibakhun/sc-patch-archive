@@ -413,3 +413,84 @@ den spotlight softer“.
   jedes Stück im Katalog, in der Garage, Oberkante an der Decke, Unterkante
   0,3 m über der Kamera, frei vom Spot, Läufe Stück an Stück, Klinke
   `KLINKE_WERK.decke`.
+
+## Größer, mehr Leitungen, Licht, Rückfahrt, Gravlev-Räder (Krisz, 25.10.2026)
+
+Krisz am Morgen, drei Nachrichten:
+
+> die kamera wenn wir zurück vom bodenfahrzeug zu den schiffen gehen soll
+> ungefähr da sein bzw halt einfach durch das tor, dann leicht nach oben
+> thats it.
+
+> wir können die werkstattwände und decke bisschen erweitern, und dann halt
+> viele schläuche, rohre, etc an der decke laufen lassen, die wände etwas
+> dunkler beleuchten so dass spotlight in der mitte prominenter ist, und die
+> lichter wenn die angehen mehr effekt haben
+
+> dragonfly undso gehört auch zur bodenfahrzeugen
+
+Das Bild zur ersten Nachricht kam nicht an. Gelesen als: geradeaus durch
+das Tor, danach leicht hinauf, Ende in der Halle 10 m vor der Nische mit
+Blick zum Schiff, statt quer durch die Halle zu deren Startansicht.
+
+- **Rückfahrt** (`WERK.bahn.zurueck` [-26, 5,0]): werkPath('out') hält die
+  Höhe, auf der die Kamera in der Werkhalle steht (höchstens 55 % des
+  Durchgangs), durch den Durchgang bis zur Mitte der Westnische (x −44,
+  `bahn.nische` 7 m vor ihrer Rückwand; sie reicht von x −51 bis −36) und
+  steigt von dort bis zum Endpunkt in der Halle, 10 m vor der Nische. Der
+  liegt auf der Achse im Anflug, den Tor [18] von Hallengeometrie und
+  [17] von Deko frei hält (x bis `bahn.vor`, unter `tuer.h`). Tor und
+  Aufzug laufen wie vorher (Warten am Tor, Schiff kommt mit der Kamera
+  oben an).
+- **Größer** (`garage.s` 1,2): Die Garage wächst um ihre Torebene, alles aus
+  ihrer json zählt mal s (Innenraum 38,9 × 47 m, Decke der Mittelplatte 9,3
+  statt 7,8 m, Leuchten, Reichweiten, Bänder des Abfalls). Bühne, Grube und
+  Durchgang der Nische bleiben; die Grube rückt mit der Mitte des Glasfelds
+  auf x −71,8. Das Tor ist jetzt 19,3 × 7,4 m und größer als der Durchgang
+  (16,3 × 6,55 m): Von innen sah man neben und über dem Rahmen durch die
+  Rückseite der Nischenwand in die Halle. `werkBlende` deckt den Rand in der
+  Torebene, der Rahmen reicht bis dorthin. Logo und Nische bleiben, wie
+  Krisz sie gesehen hat.
+- **Decke** (86 statt 44 Stücke): je Seite Luftrohr (z ±7,2), Lüftungskanal
+  (±5,6), Wartungsschlauch (±4,5), Kabelzug mit Dosen (±2,3), Luftschlauch
+  (±1,5, gerade an der Platte; die durchhängende Fassung wellte sich wie eine
+  Girlande und leuchtete gelb, jetzt ×0,21; dicht an den Leuchten blieb er
+  auch mit ×0,42 der hellste Strich im Bild); auf den Seitenstreifen zwei
+  flache Rohrbündel (±10,2 und ±11,3, 8,3 m). Deckenprofil neu gemessen
+  (Strahlen senkrecht je 0,5 m).
+- **Licht**: Abfall zu den Wänden ab 15 % des Wegs bis auf 7 % an der Wand
+  (vorher 35 % und 22 %), Grundlicht und Spiegelung schwächer; Reihen 40
+  statt 72, Spot 1 m höher (7,4 m) und 380 statt 170, damit er in der Mitte
+  trägt. Vier Stufen nebeneinander verglichen (Reihen 72/52/40/32, Spot
+  280/330/380/420): Bei 72 lag die Bühne so hell wie der Boden davor und der
+  Spot ging unter; bei 32 versank der Boden vorn im Schwarz. Gewählt 40.
+- **Einschalten**: Die Reihen flackern mit Blitzen über voll (bis 1,6) und
+  glühen in 0,9 s auf voll aus; Grundlicht, Spiegelung und Leuchtflächen
+  gehen mit, jeder Blitz hellt den Raum kurz auf. Der Spot schlägt mit 1,8
+  an und klingt ab.
+- **Gravlev-Räder** (vehicles.json `isGravlev`, 10: Dragonfly, Nox, X1,
+  Pulse, HoverQuad) stehen in der Werkhalle, obwohl das Spiel sie als
+  Raumschiff führt. verify:hangar [1] und die Klinke `werkhalle` (41) zählen
+  sie mit.
+
+### Gegenproben [18] am Artefakt (25.10.2026)
+
+Je eine Änderung an `dist/assets/hangar-viewer.js`, Lauf, zurückgesetzt:
+
+- `werkBlende` umbenannt: „das Tor der Garage ist mal 1.2 groesser als der
+  Durchgang, der Viewer baut keine Blende (werkBlende): Von innen saehe man
+  neben und ueber dem Durchgang hinter die Nischenwand“
+- `bahn.zurueck` [-60, 5], [-40, 5] und [-36,5, 5]: „bahn.zurueck (-40, 5)
+  liegt nicht vor der Nische im Anflug (x -36.1..-26, Hoehe 2.4..6.55 m): Die
+  Fahrt hinaus endete in der Nische, in ungeprueftem Raum oder ohne den
+  Anstieg“. Die Vorderkante der Nische kommt aus ihrer Tiefe in
+  `WORK_DEKO.nischen` (west, 14,9 m) ab der Rückwand `tuer.x`; zuerst prüfte
+  die Regel nur ab der Mitte (x −44), ein Ende in der vorderen Hälfte der
+  Nische ging durch (Hinweis aus dem Review)
+- `bahn.zurueck` [-26, 1]: dieselbe Meldung (kein Anstieg)
+- `garage.s` 1,05: „der Durchgang samt Rahmen (16.90 x 6.85 m) passt nicht
+  ins offene Tor der Garage mal 1.05 (16.85 x 6.19 m frei)“, dazu raum,
+  Grube/Spot und 54 Deckenstücke außerhalb der kleineren Garage
+- `garage.s` 1,8: Formfehler „garage {id, x, vorn, s (1 bis 1,5)}“
+
+Sauber: „ALLE ZUSICHERUNGEN ERFUELLT“.
