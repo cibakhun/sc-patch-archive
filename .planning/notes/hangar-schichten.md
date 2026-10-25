@@ -69,4 +69,50 @@ neu ablegen.
 
 ## Befund PC
 
-(leer)
+Lauf „Hangar-Flotte“, Teil D, 24.10.2026, Branch `pc/hangar-flotte`.
+
+### S1. Abnutzungskarten
+
+`scripts/build-hangar-wearmaps.mjs` (neu) legt jede TexSlot11-Karte, die ein Material in `katalog.json` nennt, als `public/hangar/props/schichten/<Dateiname>.webp` ab: ≤ 256 px, mip 1, Name wie TexSlot11, klein, Endung `.webp`.
+
+- 62 Karten genannt, 1 lag schon (`universal_shared_4_a_wear`), 61 sind neu, keine fehlt.
+- Darunter alle neun aus der Tabelle oben.
+- Bei Glas und Displays (GlassPBR, DisplayScreen) ist TexSlot11 die Schmutzkarte (`…_dirt_diff`). Sie liegt mit im Ordner.
+- Neue Requisiten bekommen ihre Karte, wenn das Skript nach dem Katalog-Bau noch einmal läuft.
+
+### S2. Schmutz
+
+Bei LayerBlend_V2 steht kein Schmutz in den Daten:
+- **Material:** Keines der 647 LayerBlend_V2-Materialien im Katalog (von 1 110) trägt Schmutzwerte. Weder `DirtColor`, `DirtBlendBase`, `DirtBlendFalloff` noch eine Schmutzkarte.
+- **Schicht-Dateien:** Sie tragen nur `WearDirtBlendFalloff`, einen gemeinsamen Übergang für Abnutzung und Schmutz, in allen 186 Schicht-.mtl. Werte stehen in `schichten[path].params`.
+- **Shader-Definition:** Sie nennt nur die Maske `%WEAR_DIRT_AO_VERTEX`.
+
+Damit kommt der Schmutz bei LayerBlend vermutlich aus der Vertexfarbe; der Kanal ist nicht belegt (Hangar-Werte, siehe `hangar-requisiten.md`, vermutlich G), und eine Schmutzfarbe steht nicht in den Spieldateien (vermutlich eine Vorgabe der Engine, ebenfalls nicht belegt). Eine Karte oder Farbe für `materials[].dirt` gibt es nicht.
+
+Eigene Schmutzwerte haben nur andere Shader:
+- GlassPBR und DisplayScreen: `DirtBlendBase`, `DirtBlendFalloff`, `DirtTiling`, `DirtBlendMask` und die Schmutzkarte in TexSlot11 (18 Materialien).
+- HardSurface mit `WEAR_LAYER`: `DirtColor` (2 Materialien).
+
+### S3. Abnutzung: Richtung
+
+Für LayerBlend_V2 nicht belegbar.
+- Kein LayerBlend-Material trägt `WearBlendBase` oder `WearBlendFalloff`. Diese Werte stehen nur bei HardSurface (`WearBlendBase` 46), GlassPBR, DisplayScreen und MeshDecal.
+- Eine Vorgabe des Shaders liegt nicht im Spiel. `ShaderCache_EXT.pak` enthält nur die Masken mit Beschreibung, keine Quelltexte.
+- Belegt ist bei LayerBlend nur:
+  - die Abnutzungskarte in TexSlot11;
+  - die eigene Abnutzungsschicht `WearLayer1` in den MatLayers, mit Tönung und Glätte;
+  - je Schicht-Datei die Werte für die abgenutzte Stelle (`WearDiffuseColor`, `WearSpecularColor`, `WearGlossiness`) und `WearDirtBlendFalloff`.
+- Ob dunkle oder helle Stellen der Karte zuerst abnutzen, steht nirgends. Die Annahme der Cloud bleibt Annahme.
+
+### S4. Glatte Normalenkarten
+
+Die drei geprüften Karten sind im Spiel glatt; für sie hat der Export nichts verloren. Volle Stufe (mip 0, 512 px) direkt aus dem Archiv dekodiert:
+
+| Karte | R | G | Alpha (Glätte) |
+|---|---|---|---|
+| `noise_speckled_01_ddna` | 127, Streuung 0,0 | 127, Streuung 0,0 | Mittel 237, Streuung 9,6 |
+| `polished_surface_02_ddna` | 127, Streuung 0,1 | 127, Streuung 0,1 | Mittel 221, Streuung 3,4 |
+| `grunge_medium_01_ddna` | 127, Streuung 0,0 | 127, Streuung 0,0 | Mittel 231, Streuung 11,8 |
+| Gegenprobe `noise_scratched_01_ddna` | 124, Streuung 7,6 | 126, Streuung 6,4 | Streuung 22,7 |
+
+Das Muster steckt bei diesen Karten nur in der Glätte.
