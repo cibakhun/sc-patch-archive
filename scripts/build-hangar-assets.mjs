@@ -615,7 +615,8 @@ const KEEP_INTERIOR = new Set(['aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk
 // Hangar-Alle (.planning/notes/hangar-alle-schiffe.md): der Innenraum bleibt
 // auch, wenn Rumpf und Innenraum roh höchstens das 1,5-fache des
 // Dreiecksbudgets haben (dann kostet die Dezimierung den Rumpf kaum etwas);
-// HANGAR_SHIP_NO_INTERIOR=1 nimmt ihn immer (erste Stufe gegen die 16 MB)
+// HANGAR_SHIP_NO_INTERIOR=1 nimmt ihn sonst immer (erste Stufe gegen die 16 MB).
+// KEEP_INTERIOR geht vor: dort sähe man durch die Haube ein leeres Cockpit
 function dropInterior(doc, slug, rawTris = Infinity, budgetTris = 0) {
   if (KEEP_INTERIOR.has(slug)) return 0;
   if (!process.env.HANGAR_SHIP_NO_INTERIOR && rawTris <= 1.5 * budgetTris) return 0;
@@ -667,8 +668,10 @@ function gearCheck(written, gear) {
     const m = n.getMesh(); if (!m) continue;
     const W = n.getWorldMatrix();
     for (const p of m.listPrimitives()) {
-      const a = p.getAttribute('POSITION'); if (!a) continue;
+      // nur Ecken, die ein Dreieck nutzt, wie in poseShip
+      const a = p.getAttribute('POSITION'), idx = p.getIndices(); if (!a) continue; const used = idx ? new Set(idx.getArray()) : null;
       for (let i = 0; i < a.getCount(); i++) {
+        if (used && !used.has(i)) continue;
         a.getElement(i, e);
         const x = W[0] * e[0] + W[4] * e[1] + W[8] * e[2] + W[12], y = W[1] * e[0] + W[5] * e[1] + W[9] * e[2] + W[13], z = W[2] * e[0] + W[6] * e[1] + W[10] * e[2] + W[14];
         gear.contacts.forEach((c, k) => { if (y < low[k] && Math.hypot(x - c[0], z - c[2]) <= 0.6) low[k] = y; });

@@ -293,7 +293,7 @@ export function poseShip(doc, record, { skip = defaultSkip } = {}) {
   let pose, why = null, contacts;
   if (!game.gears?.length) {
     pose = 'keins';
-    why = game.landingSystem ? 'Landesystem ohne Beine' : 'kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)';
+    why = game.error ?? (game.landingSystem ? 'Landesystem ohne Beine' : 'kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)');
   } else if (!withGeo.length) {
     pose = 'keins'; why = 'Fahrwerk im Export ohne Geometrie';
   } else if (withGeo.every(down)) pose = 'aus';

@@ -51,7 +51,9 @@ for (const slug of order) {
   const t0 = Date.now();
   let entry = null, size = 0, step = 0, err = null;
   for (step = 0; step < STEPS.length; step++) {
-    const r = spawnSync(process.execPath, ['--max-old-space-size=28000', f('scripts/build-hangar-assets.mjs'), '--kind', 'ships', '--ships', slug, '--only', slug, '--force'], { env: { ...process.env, ...STEPS[step] }, encoding: 'utf8', maxBuffer: 1 << 28 });
+    // Stufe 0 ohne mitgebrachte HANGAR_SHIP_*, sonst nennt step nicht, wie gebaut wurde
+    const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^HANGAR_SHIP_/.test(k)));
+    const r = spawnSync(process.execPath, ['--max-old-space-size=28000', f('scripts/build-hangar-assets.mjs'), '--kind', 'ships', '--ships', slug, '--only', slug, '--force'], { env: { ...env, ...STEPS[step] }, encoding: 'utf8', maxBuffer: 1 << 28 });
     entry = JSON.parse(readFileSync(MANIFEST, 'utf8')).ships?.[slug] ?? null;
     if (r.status !== 0 || !entry) { err = (r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' | '); break; }
     const after = poolFiles();
