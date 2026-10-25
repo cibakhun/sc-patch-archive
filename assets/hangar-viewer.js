@@ -4827,6 +4827,326 @@ function buildSteam(max) {
   };
 }
 
+// ─── Name als Hologramm ───────────────────────────────────────────────────
+// 24.10.2026, Krisz zum Titelblock der Seite (Hangar, Hersteller, Name,
+// Rolle): „das hier soll immer über das fahrzeug in leicht holo sein. die
+// grösse soll sich an die kamera orinatieren so dass es immer gut lesbar
+// ist, achte dabei dass der schrift nicht durch boden, assets, oder gar das
+// schiff geht“. Der Block steht als Tafel über dem Fahrzeug, parallel zum
+// Bild und in fester Größe am Schirm (HOLO_NAME): Wer heranzoomt, sieht ihn
+// so groß wie aus der Ferne. Lage und Größe kommen aus der Szene, gesetzt
+// ist er als Text über der Leinwand (.hg-holo, Aussehen in HangarApp.astro):
+// als Bild in der Szene war er im Leerlauf so unscharf wie die Bühne
+// (IDLE_SCALE, adapt). Er liegt also immer obenauf und darf nur stehen, wo
+// nichts vor ihm wäre und er durch nichts hindurchginge (place in buildHolo):
+// - Unterkante über Rumpf, Wartungsplatz und Crew (low), mit Luft;
+// - im Bild über keinem Teil des Rumpfs: Liegt ein Punkt seiner Oberseite
+//   (Säulen, holoTops) in ihrer Breite höher als ihre Unterkante, steigt
+//   sie, bis der ganze Rumpf darunter bleibt. Passt das nicht ins Bild
+//   (nah, Dock offen), zählen nur die Teile, die vor ihr liegen: Was sie
+//   dann im Bild überdeckt, liegt wirklich hinter ihr;
+// - was näher an der Kamera steht als sie und sie im Bild berührt
+//   (Hindernisse als Quader: Einrichtung, Deko und Crew der Halle, Spot der
+//   Werkhalle), läge vor der Schrift: Sie steigt darüber;
+// - Oberkante unter der Decke (ceil), kein Punkt der Tafel außerhalb des
+//   Raums (free: Wände, in der Halle der Freiraum der Kamera);
+// - ganz im Bild, unter der Kopfzeile, neben Tafel und Knöpfen der Seite
+//   (safe).
+// Dazu rückt sie von der Kamera weg hinter das Fahrzeug (HOLO_AWAY), wo sie
+// weniger steigen muss, und wird kleiner (HOLO_TRY); geht nichts davon,
+// geht sie aus, statt irgendwo durchzustoßen. Sie baut sich von unten auf,
+// sobald das Fahrzeug steht, und von oben ab, sobald jemand ein anderes
+// wählt.
+const HOLO_NAME = [0.056, 22, 44];   // Schriftgröße des Namens: Anteil der Bühnenhöhe, px von .. bis
+const HOLO_GAP = [10, 0.3];          // Luft unter der Tafel: px am Schirm, mindestens m
+const HOLO_EDGE = 14;                // px zu Bühnenrand, Tafel der Seite und Rumpf
+// Versuche der Reihe nach: Größe der Tafel und ob sie im Bild über Teilen
+// des Rumpfs stehen darf, die hinter ihr liegen (sonst über keinem)
+const HOLO_TRY = [[1, 0], [0.86, 0], [1, 1], [0.86, 1], [0.74, 0], [0.74, 1]];
+const HOLO_AWAY = [0, 0.5, 1, 1.5, 2.2];  // Weg von der Kamera weg, in Vielfachen bis zum Rand des Grundrisses
+const HOLO_GRID = 64;                // Säulen je Achse für die Oberseite des Rumpfs
+const HOLO_VERTS = 100000;           // so viele Ecken je Bild beim Ablesen der Oberseite
+const HOLO_MS = { on: 700, off: 280 };
+// Steht das Fahrzeug und findet die Tafel so lange keinen Platz, holt die
+// Seite ihren Titelblock zurück (onShow(false)); kürzer flackerte er beim Drehen
+const HOLO_GONE_MS = 600;
+// Oberseite des Rumpfs im Raum der Gruppe: je Säule des Grundrisses der
+// höchste Punkt. Liegt ein Punkt einer Säule im Bild in der Tafel, liegt der
+// höchste darüber (eine senkrechte Linie steigt im Bild), also reichen sie.
+function* holoTops(G, info) {
+  const n = HOLO_GRID, hw = info.halfW, hl = info.len / 2, top = new Float32Array(n * n * 3).fill(NaN);
+  const inv = new THREE.Matrix4(), m = new THREE.Matrix4(), v = new THREE.Vector3();
+  const meshes = [];
+  G.traverse((o) => { if (o.isMesh && o.visible && o.geometry?.attributes.position) meshes.push(o); });
+  let done = 0;
+  for (const o of meshes) {
+    G.updateMatrixWorld(true);
+    m.multiplyMatrices(inv.copy(G.matrixWorld).invert(), o.matrixWorld);
+    const a = o.geometry.attributes.position;
+    for (let i = 0; i < a.count; i++) {
+      v.fromBufferAttribute(a, i).applyMatrix4(m);
+      const cx = Math.min(n - 1, Math.max(0, Math.floor(((v.x + hw) / (2 * hw)) * n)));
+      const cz = Math.min(n - 1, Math.max(0, Math.floor(((v.z + hl) / (2 * hl)) * n)));
+      const j = (cz * n + cx) * 3;
+      if (!(top[j + 1] >= v.y)) { top[j] = v.x; top[j + 1] = v.y; top[j + 2] = v.z; }
+      if (++done % HOLO_VERTS === 0) yield;
+    }
+  }
+  const out = [];
+  for (let j = 0; j < top.length; j += 3) if (top[j + 1] === top[j + 1]) out.push(top[j], top[j + 1], top[j + 2]);
+  return new Float32Array(out);
+}
+
+function buildHolo(container, reduceMotion) {
+  const el = document.createElement('div');
+  el.className = 'hg-holo';
+  el.setAttribute('aria-hidden', 'true');
+  el.hidden = true;
+  if (reduceMotion) el.dataset.still = '';
+  const rows = ['k', 'm', 'n', 'r'].map((c) => {
+    const p = document.createElement('p');
+    p.className = `hg-holo__${c}`;
+    el.append(p);
+    return p;
+  });
+  container.append(el);
+  const texts = new Map();
+  // frei im Bild: Abstand zu den Rändern (l, t, r: Kopfzeile und Tafel der
+  // Seite) und Knöpfe auf der Bühne (rects: { l, t, r, b } in px)
+  const safe = { l: HOLO_EDGE, t: HOLO_EDGE, r: HOLO_EDGE, rects: [] };
+  // shown: gesetzter Block { id, key, N, max, w, h }; power 0..1
+  // told: zuletzt der Seite gemeldet (null: noch nie); gone: seit wann sie
+  // am stehenden Fahrzeug keinen Platz findet
+  let shown = null, power = 0, last = 0, onShow = null, told = null, gone = 0;
+  // Oberseite je Rumpf: { G, it, pts }
+  let tops = null;
+  const disp = { A: new THREE.Vector3(), f: 1, ok: false };
+  const V = new THREE.Vector3(), P = new THREE.Vector3(), Q = new THREE.Vector3(), R = new THREE.Vector3(), U = new THREE.Vector3(), F = new THREE.Vector3(), S = new THREE.Vector3();
+  const M = new THREE.Matrix4();
+  let sx = new Float32Array(0), sy = sx, sd = sx;
+  const keyOf = (t) => [t.kicker, t.maker, t.name, t.role].join('\u0001');
+  // Schriftgröße des Namens für die Bühnenhöhe, Breite höchstens der freie Teil
+  const sizeOf = (h) => Math.round(THREE.MathUtils.clamp(h * HOLO_NAME[0], HOLO_NAME[1], HOLO_NAME[2]));
+  const maxOf = (w) => Math.round(Math.max(160, (w - safe.l - safe.r) * 0.9));
+  function set(id, t, w, h) {
+    const N = sizeOf(h), max = maxOf(w);
+    [t.kicker, t.maker, t.name, t.role].forEach((s, i) => { rows[i].textContent = s || ''; rows[i].hidden = !s; });
+    el.style.setProperty('--holo-n', `${N}px`);
+    el.style.setProperty('--holo-max', `${max}px`);
+    el.style.transform = 'none';
+    el.hidden = false;
+    shown = { id, key: keyOf(t), N, max, w: el.offsetWidth, h: el.offsetHeight };
+  }
+  // Hindernisse im Bild (c.boxes, c.more): je Quader Rechteck am Schirm
+  // (x0, x1, y0, y1) und kleinste Tiefe vor der Kamera; was hinter die
+  // Kamera reicht, wird an der Nahebene abgeschnitten. NaN: ganz dahinter
+  const NEAR = 0.05;
+  const BOX_EDGES = [0, 1, 2, 3, 4, 5, 6, 7, 0, 2, 1, 3, 4, 6, 5, 7, 0, 4, 1, 5, 2, 6, 3, 7];
+  const cx = new Float32Array(8), cy = new Float32Array(8), cw = new Float32Array(8);
+  let bs = new Float32Array(0), bj = 0;
+  function bsAdd(x, y, w, W, H) {
+    const sx = ((x / w + 1) / 2) * W, sy = ((1 - y / w) / 2) * H;
+    if (sx < bs[bj]) bs[bj] = sx;
+    if (sx > bs[bj + 1]) bs[bj + 1] = sx;
+    if (sy < bs[bj + 2]) bs[bj + 2] = sy;
+    if (sy > bs[bj + 3]) bs[bj + 3] = sy;
+    if (w < bs[bj + 4]) bs[bj + 4] = w;
+  }
+  function boxesOnScreen(lists, e, W, H) {
+    let n = 0;
+    for (const l of lists) n += l?.length ?? 0;
+    if (bs.length < n * 5) bs = new Float32Array(n * 5 + 80);
+    bj = 0;
+    for (const l of lists) for (const b of l ?? []) {
+      // w der Projektion ist die Tiefe vor der Kamera
+      for (let i = 0; i < 8; i++) {
+        const x = i & 1 ? b.max.x : b.min.x, y = i & 2 ? b.max.y : b.min.y, z = i & 4 ? b.max.z : b.min.z;
+        cx[i] = e[0] * x + e[4] * y + e[8] * z + e[12];
+        cy[i] = e[1] * x + e[5] * y + e[9] * z + e[13];
+        cw[i] = e[3] * x + e[7] * y + e[11] * z + e[15];
+      }
+      bs[bj] = bs[bj + 2] = bs[bj + 4] = Infinity;
+      bs[bj + 1] = bs[bj + 3] = -Infinity;
+      for (let i = 0; i < 8; i++) if (cw[i] > NEAR) bsAdd(cx[i], cy[i], cw[i], W, H);
+      for (let i = 0; i < 24; i += 2) {
+        const p = BOX_EDGES[i], q = BOX_EDGES[i + 1];
+        if ((cw[p] > NEAR) === (cw[q] > NEAR)) continue;
+        const t = (NEAR - cw[p]) / (cw[q] - cw[p]);
+        bsAdd(cx[p] + (cx[q] - cx[p]) * t, cy[p] + (cy[q] - cy[p]) * t, NEAR, W, H);
+      }
+      if (bs[bj + 4] === Infinity) bs[bj + 4] = NaN;
+      bj += 5;
+    }
+    return bj / 5;
+  }
+  // Wo die Tafel steht: Anker A (Mitte der Unterkante, Welt) und Größe f;
+  // null: nirgends ohne Berührung
+  function place(c) {
+    const cam = c.camera, G = c.group, info = c.info, W = c.w, H = c.h;
+    cam.updateMatrixWorld();
+    G.updateMatrixWorld(true);
+    const fullH = cam.view?.enabled ? cam.view.fullHeight : H;
+    const tanH = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+    const camP = P.setFromMatrixPosition(cam.matrixWorld);
+    R.setFromMatrixColumn(cam.matrixWorld, 0).normalize();
+    U.setFromMatrixColumn(cam.matrixWorld, 1).normalize();
+    F.setFromMatrixColumn(cam.matrixWorld, 2).normalize().negate();
+    const depth = (p) => (p.x - camP.x) * F.x + (p.y - camP.y) * F.y + (p.z - camP.z) * F.z;
+    const wpp = (p) => (2 * depth(p) * tanH) / fullH;
+    const scr = (p, out) => { V.copy(p).project(cam); out.x = ((V.x + 1) / 2) * W; out.y = ((1 - V.y) / 2) * H; return out; };
+    // Oberseite des Rumpfs im Bild
+    const pts = tops?.G === G && !tops.it ? tops.pts : null, n = pts ? pts.length / 3 : 0;
+    M.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+    const nb = boxesOnScreen([c.boxes, c.more], M.elements, W, H);
+    if (pts) {
+      if (sx.length < n) { sx = new Float32Array(n); sy = new Float32Array(n); sd = new Float32Array(n); }
+      M.multiply(G.matrixWorld);
+      const e = M.elements;
+      for (let i = 0, j = 0; i < n; i++, j += 3) {
+        const x = pts[j], y = pts[j + 1], z = pts[j + 2];
+        const w = e[3] * x + e[7] * y + e[11] * z + e[15];
+        sx[i] = w > 0 ? (((e[0] * x + e[4] * y + e[8] * z + e[12]) / w + 1) / 2) * W : NaN;
+        sy[i] = w > 0 ? ((1 - (e[1] * x + e[5] * y + e[9] * z + e[13]) / w) / 2) * H : NaN;
+        sd[i] = w;
+      }
+    }
+    const C = G.position, k = G.scale.x;
+    const low = Math.max(C.y + info.height * G.scale.y, c.low);
+    // von der Kamera weg, waagrecht; Weg bis zum Rand des Grundrisses
+    S.set(F.x, 0, F.z);
+    const sl = S.length();
+    let reach = 0;
+    if (sl > 0.05) {
+      S.divideScalar(sl);
+      const a = -G.rotation.y, lx = S.x * Math.cos(a) - S.z * Math.sin(a), lz = S.x * Math.sin(a) + S.z * Math.cos(a);
+      reach = k / Math.sqrt((lx / Math.max(0.1, info.halfW)) ** 2 + (lz / Math.max(0.1, info.len / 2)) ** 2);
+    }
+    const E = HOLO_EDGE, at = { x: 0, y: 0 };
+    for (const [f, behind] of HOLO_TRY) {
+      const lw = shown.w * f, lh = shown.h * f;
+      for (const sf of HOLO_AWAY) {
+        if (sf && !reach) break;
+        const bx = C.x + S.x * reach * sf, bz = C.z + S.z * reach * sf;
+        const w0 = wpp(Q.set(bx, low, bz));
+        if (!(w0 > 0)) continue;
+        let y = low + Math.max(HOLO_GAP[1], HOLO_GAP[0] * w0), sh = 0, ok = false;
+        const top = Number.isFinite(c.ceil) ? c.ceil : y + 1000;
+        const anchor = (yy) => Q.set(bx, yy, bz).addScaledVector(R, sh);
+        for (let it = 0; it < 6 && y <= top; it++) {
+          const wp = wpp(anchor(y));
+          if (!(wp > 0)) break;
+          scr(Q, at);
+          // waagrecht in den freien Teil des Bilds: zwischen den Rändern und
+          // den Knöpfen in ihrer Höhe; passt sie nicht dazwischen, hier nicht
+          let lo = safe.l, hi = W - safe.r;
+          for (const q of safe.rects) {
+            if (q.b <= at.y - lh - E || q.t >= at.y + E) continue;
+            if ((q.l + q.r) / 2 < at.x) lo = Math.max(lo, q.r + E); else hi = Math.min(hi, q.l - E);
+          }
+          if (lw > hi - lo) break;
+          const d = Math.min(0, hi - (at.x + lw / 2)) + Math.max(0, lo - (at.x - lw / 2));
+          if (Math.abs(d) > 0.5) { sh += d * wp; scr(anchor(y), at); }
+          // im Bild in ihrer Breite: der ganze Rumpf darunter, und was vor ihr
+          // steht und sie im Bild berührt, auch
+          let need = Infinity;
+          const x0 = at.x - lw / 2 - E, x1 = at.x + lw / 2 + E, y0 = at.y - lh - E, y1 = at.y + E, dl = depth(Q);
+          for (let i = 0; i < n; i++) if (sx[i] > x0 && sx[i] < x1 && sy[i] < need && !(behind && sd[i] > dl)) need = sy[i];
+          for (let i = 0, j = 0; i < nb; i++, j += 5) {
+            if (!(bs[j + 4] < dl) || bs[j + 1] < x0 || bs[j] > x1 || bs[j + 3] < y0 || bs[j + 2] > y1) continue;
+            if (bs[j + 2] < need) need = bs[j + 2];
+          }
+          if (at.y <= need - E) { ok = true; break; }
+          // so hoch, dass die Unterkante im Bild bei need - E liegt
+          if (scr(anchor(top), at).y > need - E) break;
+          let a = y, b = top;
+          for (let i = 0; i < 18; i++) {
+            const mid = (a + b) / 2;
+            if (scr(anchor(mid), at).y > need - E) a = mid; else b = mid;
+          }
+          y = b;
+        }
+        if (!ok) continue;
+        // ganz im Bild
+        scr(anchor(y), at);
+        if (at.y - lh < safe.t) continue;
+        // Decke und Raum: Punkte der Tafel
+        const wp = wpp(Q), hw = lh * wp, ww = lw * wp;
+        if (y + U.y * hw > c.ceil) continue;
+        let out = false;
+        if (c.free) for (let i = 0; i <= 4 && !out; i++) for (let j = 0; j <= 3 && !out; j++) {
+          V.copy(Q).addScaledVector(R, (i / 4 - 0.5) * ww).addScaledVector(U, (j / 3) * hw);
+          out = !c.free(V);
+        }
+        if (out) continue;
+        return { A: anchor(y).clone(), f };
+      }
+    }
+    return null;
+  }
+  return {
+    el,
+    set onShow(fn) { onShow = fn; },
+    text(id, t) { if (id && t?.name) texts.set(id, t); },
+    safe(s) {
+      for (const k of ['l', 't', 'r']) if (Number.isFinite(s?.[k])) safe[k] = Math.max(HOLO_EDGE, s[k]);
+      if (Array.isArray(s?.rects)) safe.rects = s.rects;
+    },
+    // je Bild nach der Kamera; c: { camera, w, h, rest, group, info, low,
+    // ceil, boxes, more, free }. true, solange sie sich auf- oder abbaut
+    frame(now, c) {
+      // Auf- und Abbau nach der Uhr, auch wenn Bilder ausfallen; Gleiten gedeckelt
+      // Stand sie still, lief womöglich lange kein Bild: dann zählt erst
+      // dieses, sonst wäre sie beim Wechsel nach einer Pause sofort weg
+      const steady = power === 0 || power === 1;
+      const step = steady ? 1 / 60 : Math.min(1, Math.max(0, (now - last) / 1000)), dt = Math.min(0.1, step);
+      last = now;
+      const G = c.group, id = G?.userData.id ?? null, t = id ? texts.get(id) : null;
+      // Oberseite des Rumpfs ablesen, ein Stück je Bild
+      if (G && c.info && tops?.G !== G) tops = { G, it: holoTops(G, c.info), pts: null };
+      if (tops?.it) {
+        const r = tops.it.next();
+        if (r.done) { tops.pts = r.value; tops.it = null; }
+      }
+      // gewollt: dieser Text; ein anderer erst nach dem Abbau des alten
+      let goal = c.rest && t && tops && !tops.it ? id : null;
+      if (goal && shown && power > 0 && (shown.id !== id || shown.key !== keyOf(t))) goal = null;
+      if (goal && (!shown || shown.id !== id || shown.key !== keyOf(t) || shown.N !== sizeOf(c.h) || shown.max !== maxOf(c.w))) set(id, t, c.w, c.h);
+      const at = goal ? place(c) : null;
+      const was = power;
+      power = THREE.MathUtils.clamp(power + (at ? step / (HOLO_MS.on / 1000) : -step / (HOLO_MS.off / 1000)), 0, 1);
+      if (at) {
+        // im ersten Bild sitzt sie, danach gleitet sie
+        const k = !was || !disp.ok ? 1 : 1 - Math.exp(-dt * 12);
+        disp.A.lerp(at.A, k); disp.f += (at.f - disp.f) * k; disp.ok = true;
+      }
+      if (!power) disp.ok = false;
+      let vis = power > 0 && !!shown && disp.ok;
+      if (vis) {
+        const cam = c.camera;
+        V.copy(disp.A).project(cam);
+        vis = V.z < 1;
+        const x = ((V.x + 1) / 2) * c.w, y = ((1 - V.y) / 2) * c.h, f = disp.f;
+        const run = power < 1 && !reduceMotion;
+        // beim Aufbau ein Zittern um ein, zwei Bildpunkte
+        const jx = run ? Math.round((Math.random() - 0.5) * 3) : 0;
+        el.style.transform = `translate(${Math.round(x - shown.w / 2) + jx}px, ${Math.round(y - shown.h)}px) scale(${f.toFixed(3)})`;
+        el.style.setProperty('--holo-on', power.toFixed(3));
+        el.toggleAttribute('data-run', run);
+      }
+      el.hidden = !vis;
+      // Der Seite melden: an, sobald sie steht; aus erst, wenn sie am
+      // stehenden Fahrzeug HOLO_GONE_MS lang keinen Platz findet, nicht im Wechsel
+      if (vis) gone = 0;
+      else if (goal && !at) gone ||= now;
+      else gone = 0;
+      const say = vis ? true : gone && now - gone >= HOLO_GONE_MS ? false : told;
+      if (say !== told) { told = say; onShow?.(say); }
+      return power !== was || (power > 0 && power < 1) || (!!gone && told !== false);
+    },
+    dispose() { el.remove(); },
+  };
+}
+
 // ─── Geräusche ────────────────────────────────────────────────────────────
 // Die Originalklänge des Hangars (Krisz 20.10.2026 abends, nach drei
 // abgelehnten Fassungen aus einem Synthesizer im Browser: „okay nehme die
@@ -9669,7 +9989,10 @@ void main() {
   async function show(url, o = {}) {
     wake(1500);
     busyStart();
-    try { return await showShip(url, o); } finally { busyEnd(); }
+    // Das Hologramm des alten geht gleich ab, das neue steht erst mit dem Fahrzeug
+    holo.text(o.id, o.label);
+    holoShows++;
+    try { return await showShip(url, o); } finally { busyEnd(); holoShows--; }
   }
   // Material eines Teils mit echtem Lack herrichten (Schiff und getauschte
   // Bordwaffe gleich). false: das Teil bleibt unsichtbar.
@@ -9772,6 +10095,7 @@ void main() {
     const ship = new THREE.Group();
     ship.add(wrap);
     ship.rotation.y = SHIP_YAW;
+    ship.userData.id = o.id ?? null;
     const drop = () => { if (textured) for (const m of new Set(hull.map(([, x]) => x))) for (const k of TEX_SLOTS) if (m[k] && !isNeutral(m[k])) m[k].dispose(); mat.dispose(); disposeObject(ship); };
     // Das Bodenfahrzeug wartet auf die Halle (mit ihr kommt die Werkhalle)
     // und bekommt deren Licht, bevor es übersetzt wird. Ohne Frist wie beim
@@ -10657,6 +10981,62 @@ void main() {
     hallRefl.on.value = 1;
   }
 
+  // Name als Hologramm (buildHolo): steht, wenn das Fahrzeug steht, kein
+  // Wechsel und keine Fahrt läuft. Unter der Tafel Rumpf, Wartungsplatz
+  // und Crew; um sie der Raum: in der Halle Wände und Decke, sobald
+  // gemessen auch der Freiraum, den die Kamera hat (hallOk), dazu
+  // Einrichtung und Deko als Quader wie für sie, in der Werkhalle Wände und
+  // Decke und der Spot über der Bühne.
+  const holo = buildHolo(container, reduceMotion);
+  let holoShows = 0;
+  const holoSpot = new THREE.Box3(), holoRoom = new THREE.Box3();
+  const holoIn = (p) => holoRoom.containsPoint(p), holoHall = (p) => holoRoom.containsPoint(p) && hallOk(p);
+  // je Crew ein Quader um die Figur, so hoch wie CREW_HEAD mit Luft
+  const holoCrew = [], holoV = new THREE.Vector3(), holoS = new THREE.Vector3();
+  function crewBoxes() {
+    const list = life.root.children;
+    while (holoCrew.length < list.length) holoCrew.push(new THREE.Box3());
+    holoCrew.length = list.length;
+    list.forEach((w, i) => {
+      w.getWorldPosition(holoV);
+      const s = w.getWorldScale(holoS).y, r = 0.45 * s;
+      holoCrew[i].min.set(holoV.x - r, holoV.y, holoV.z - r);
+      holoCrew[i].max.set(holoV.x + r, holoV.y + (CREW_HEAD + 0.1) * s, holoV.z + r);
+    });
+    return holoCrew;
+  }
+  function holoStep(now) {
+    const c = current, k = hallRoot.scale.x, B = realHall?.werk?.buehne;
+    let rest = !!c && revealed && !holoShows && !trip && !leaving;
+    if (rest && c.werk) rest = !B || (!B.dur && Math.abs(B.v) < 1e-4);
+    else if (rest && c.lift) rest = !lift.dur && Math.abs(lift.y) < 1e-4;
+    else if (rest) rest = reduceMotion || now - c.born > 1300;
+    let low = 0, ceil = HALL_H * S * 0.9, boxes = null, more = null, free = null;
+    if (c?.werk) {
+      // unter den Leitungen der Decke: WERK_DECKE reicht laut [18] bis
+      // raum.h - 0,5 herab (Kamera bis raum.h - 0,8)
+      const F = WERK.feld, Rm = WERK.raum, m = 0.2;
+      ceil = (Rm.h - 0.7) * k;
+      holoRoom.min.set((Rm.x[0] + 0.5) * k, 0, (Rm.z[0] + 0.5) * k);
+      holoRoom.max.set((Rm.x[1] - 0.5) * k, ceil, (Rm.z[1] - 0.5) * k);
+      holoSpot.min.set((F.x - 0.45 - m) * k, (WERK.spot.y - 0.05 - m) * k, (F.z - 0.45 - m) * k);
+      holoSpot.max.set((F.x + 0.45 + m) * k, Rm.h * k, (F.z + 0.45 + m) * k);
+      boxes = [holoSpot]; free = holoIn;
+    } else if (realHall) {
+      // Raum im Modell, das Modell liegt mit dem Aufzug im Ursprung
+      const Rm = realHall.room, mp = realHall.model.position, cx = Rm.center[0] + mp.x, cz = Rm.center[2] + mp.z;
+      low = Math.max(c?.info.dienstTop ?? 0, life.root.visible ? CREW_HEAD + 0.1 : 0);
+      ceil = (Rm.height - 1) * k;
+      // die Wände auch, bevor der Freiraum gemessen ist
+      holoRoom.min.set((cx - Rm.halfW + 1) * k, 0, (cz - Rm.halfL + 1) * k);
+      holoRoom.max.set((cx + Rm.halfW - 1) * k, ceil, (cz + Rm.halfL - 1) * k);
+      free = camFree ? holoHall : holoIn;
+      if (camFree) boxes = camFree.boxes;
+      if (life.root.visible) more = crewBoxes();
+    }
+    return holo.frame(now, { camera, w: W(), h: H(), rest, group: c?.group ?? null, info: c?.info ?? null, low, ceil, boxes, more, free });
+  }
+
   // Steht auf dem Aufzug und fährt mit ihm, im Schacht abgedunkelt
   function rideLift(c) {
     const g = c.group, k = hallRoot.scale.x;
@@ -10850,6 +11230,7 @@ void main() {
     adapt(now, cap);
     renderMirror();
     renderer.shadowMap.needsUpdate = shadowsDue();
+    if (holoStep(now)) wake(300);
     if (composer) composer.render(); else renderer.render(scene, camera);
     if (frameFn) frameFn();
   }
@@ -10916,6 +11297,14 @@ void main() {
     // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
     // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
     setCover(px) { coverTop = Math.max(0, Number(px) || 0); wake(300); },
+    // Name als Hologramm über dem Fahrzeug: label(id, { kicker, maker,
+    // name, role }) für das Fahrzeug id (show(url, { id, label }) setzt ihn
+    // gleich mit); onHolo(fn): fn(true), sobald es steht, fn(false), wenn es
+    // am stehenden Fahrzeug keinen Platz findet (dann zeigt die Seite den Namen);
+    // setSafe({ l, t, r }): px am Rand der Bühne, die die Oberfläche verdeckt
+    label(id, t) { holo.text(id, t); wake(300); },
+    onHolo(fn) { holo.onShow = fn; },
+    setSafe(s) { holo.safe(s); wake(300); },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
@@ -10934,6 +11323,7 @@ void main() {
       document.removeEventListener('keydown', unlockSound, { capture: true });
       sound.dispose();
       steam?.dispose();
+      holo.dispose();
       ro.disconnect(); io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('focus', onFocus);

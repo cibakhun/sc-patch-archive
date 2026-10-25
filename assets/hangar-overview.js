@@ -487,6 +487,7 @@ export function boot(doc) {
       title.classList.remove('is-swap');
       void title.offsetWidth;
       title.classList.add('is-swap');
+      viewer?.label?.(id, labelOf(id));
       say(regionNow('head').dataset.announce);
       prefetchNeighbours(id);
     } catch {
@@ -512,6 +513,7 @@ export function boot(doc) {
     head.querySelector('.hg-name').textContent = card?.querySelector('span')?.textContent ?? id;
     head.querySelector('.hg-maker').textContent = card?.querySelector('small')?.textContent ?? '';
     head.querySelector('.hg-role').textContent = '';
+    viewer?.label?.(id, labelOf(id));
     regionNow('panel').hidden = true;
     bayErr.hidden = false;
   }
@@ -647,6 +649,19 @@ export function boot(doc) {
   });
 
   const cardOf = (id) => strip.querySelector(`.hg-card[data-id="${CSS.escape(id)}"]`);
+  // Titelblock als Hologramm ueber dem Fahrzeug (hangar-viewer.js, buildHolo):
+  // der Text aus der Bucht, solange sie noch laedt Name und Hersteller von
+  // der Dock-Karte
+  const kicker = title.querySelector('h1')?.textContent.trim() ?? '';
+  function labelOf(id) {
+    const head = regionNow('head');
+    if (head?.dataset.id === id) {
+      const txt = (sel) => head.querySelector(sel)?.textContent.trim() ?? '';
+      return { kicker, maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role') };
+    }
+    const card = cardOf(id);
+    return { kicker, maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '' };
+  }
   // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
   const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);
 
@@ -1124,7 +1139,7 @@ export function boot(doc) {
     // blendet nur aus, was ihm gehoert.
     bar.style.setProperty('--p', '0%');
     const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 180);
-    viewer.show(glb, { maker, tex, ort })
+    viewer.show(glb, { maker, tex, ort, id, label: labelOf(id) })
       .then(() => {
         if (my !== showTok) return;
         placed = id;
@@ -1148,6 +1163,7 @@ export function boot(doc) {
   const RESTORE_KEY = 'vb.hangar.restore';
   function noStage(why, detail) {
     loadEl.hidden = true;
+    delete main.dataset.holo;
     if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
     fallback.hidden = false;
     $('hg-reset').hidden = true;
@@ -1285,6 +1301,7 @@ export function boot(doc) {
         // Adresse. Hoechstens einmal je Minute, sonst bleibt die Meldung.
         v.onLost((lost) => {
           if (lost) {
+            delete main.dataset.holo;
             fallback.textContent = fallback.dataset.lost;
             fallback.hidden = false;
             console.warn('[hangar] Zeichenkontext verloren');
@@ -1305,6 +1322,40 @@ export function boot(doc) {
         if (title) new ResizeObserver(cover).observe(title);
         narrow.addEventListener('change', cover);
         cover();
+        // Steht das Hologramm, weicht der Titelblock der Seite (fuer Vorleser
+        // bleibt er da); findet es am stehenden Fahrzeug keinen Platz, kommt
+        // er zurueck, damit der Name sichtbar bleibt. Es bleibt im Bild unter der Kopfzeile, links neben
+        // der Tafel der Seite und neben den Knoepfen auf der Buehne. Vom
+        // Titelblock zaehlt nur, was danach bleibt: die Knopfreihe oben an
+        // seinem Platz. Sonst fand das Hologramm neben dem ganzen Block oft
+        // keinen Platz und erschien nie, und der Block wich nie.
+        const side = doc.querySelector('.hg-side'), nav = $('topbar'), acts = title?.querySelector('.hgx-actions');
+        const hint = $('hg-hint'), keep = [$('hg-tools'), hint, $('hgx-tray')];
+        const safe = () => {
+          const c = canvas.getBoundingClientRect();
+          const on = (el) => {
+            if (el === hint && main.dataset.hint === 'seen') return null;
+            const r = el?.getBoundingClientRect();
+            return r && r.width && r.height && r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top ? r : null;
+          };
+          const p = on(side), b = on(nav), t = on(title), a = t && on(acts);
+          const rects = keep.map(on);
+          if (a) rects.push({ left: a.left, right: a.right, top: t.top, bottom: t.top + a.height });
+          v.setSafe?.({
+            l: 0, t: b ? b.bottom - c.top + 14 : 0, r: p ? c.right - p.left + 14 : 0,
+            rects: rects.filter(Boolean).map((r) => ({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top })),
+          });
+        };
+        v.onHolo?.((on) => {
+          if (on) main.dataset.holo = 'on';
+          else delete main.dataset.holo;
+          safe();
+        });
+        for (const el of [side, canvas, title, ...keep]) if (el) new ResizeObserver(safe).observe(el);
+        window.addEventListener('scroll', safe, { passive: true });
+        // der Bedienhinweis geht nach dem ersten Anfassen aus (data-hint)
+        new MutationObserver(safe).observe(main, { attributes: true, attributeFilter: ['data-hint'] });
+        safe();
         $('hg-reset').addEventListener('click', () => {
           if (state.hp) setState({ hp: null });
           else v.resetView();
