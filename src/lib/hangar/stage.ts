@@ -32,8 +32,8 @@ export interface HallConfig {
   readonly lift?: { url: string; json: string; bytes?: number; gate?: { url: string; json: string; bytes?: number } | null; rand?: { url: string; json: string; bytes?: number } | null; sound?: { dir: string; v: string } | null } | null;
   /** Werkstatt: Requisiten (glb), Boden-Decals (boden, eigene Datei fuers Telefon), Anordnung (json), placeWorkshop im Viewer; dienst: Geraetesatz fuer den Wartungsplatz am Schiff (scripts/build-hangar-dienst.mjs), layDienst im Viewer; deko: Satz der Hallendeko (build-hangar-dienst.mjs deko), buildDeko im Viewer */
   readonly workshop?: { url: string; json: string; bytes?: number; boden?: { url: string; bytes?: number } | null; dienst?: { url: string; bytes?: number } | null; deko?: { url: string; bytes?: number } | null } | null;
-  /** Werkhalle fuer Bodenfahrzeuge: Garage aus dem Spiel (glb), ihre Masse, Tor und Leuchtkoerper (json), Bühnen (buehne, glb); WERK im Viewer stellt sie hinter die Westnische */
-  readonly werk?: { id: string; url: string; json: string; bytes?: number; buehne?: { url: string; bytes?: number } | null } | null;
+  /** Werkhalle fuer Bodenfahrzeuge: Garage aus dem Spiel (glb), ihre Masse, Tor und Leuchtkoerper (json), Bühnen (buehne, glb), Leitungen unter der Decke (decke, glb, WERK_DECKE); WERK im Viewer stellt sie hinter die Westnische */
+  readonly werk?: { id: string; url: string; json: string; bytes?: number; buehne?: { url: string; bytes?: number } | null; decke?: { url: string; bytes?: number } | null } | null;
 }
 
 /** Wo ein Fahrzeug in der Szene steht: Schiffe auf dem Feld der Halle, Bodenfahrzeuge (vehicles.json isSpaceship === false) in der Werkhalle. */
@@ -44,6 +44,6 @@ export interface StageConfig {
   readonly viewer: string;
   /** Wird unverändert in initHangar(container, { reduceMotion, ...opts }) gespreizt: neue Szenen-Optionen brauchen keine Oberflaechen-Aenderung. */
   readonly opts: { readonly hall?: HallConfig | null; readonly crew?: { url: string } | null } & Readonly<Record<string, unknown>>;
-  /** Je Id aus HANGAR_IDS: [Geometrie-glb, Werkslack-glb oder null, Herstellerkuerzel, Ort] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. */
+  /** Je Id aus HANGAR_IDS: [Geometrie-glb (Hangar-Geometrie aus geo, sonst Holo; ob das Schiff auf dem Fahrwerk steht, sagt opts.gear), Werkslack-glb oder null, Herstellerkuerzel, Ort] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. */
   readonly models: Readonly<Record<ShipId, readonly [glb: string, tex: string | null, maker: string, ort: StageOrt]>>;
 }

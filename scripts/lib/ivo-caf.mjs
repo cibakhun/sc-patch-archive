@@ -16,7 +16,15 @@
 //   Position 0xC0: float x, y, z je Schlüssel
 //   Position 0xC2: Kopf 3 float Skalierung, 3 float Versatz; Achsen mit
 //              Skalierung FLT_MAX sind konstant (= Versatz), die übrigen
-//              tragen je Schlüssel ein u16: Wert = Versatz + u16 · Skalierung
+//              tragen je Schlüssel ein u16: Wert = Versatz + u16 · Skalierung;
+//              die Kanäle liegen nacheinander (erst alle Schlüssel des ersten
+//              laufenden Kanals, dann des nächsten)
+//   Position 0xC1: derselbe Kopf, dann je Schlüssel drei u16 für x, y, z
+//              (verschränkt, auch konstante Kanäle)
+//   Beide Lesarten belegt am Fahrwerk (.dba): letztes Bild von extend =
+//   erstes von compress, 79 von 79 Positionen.
+//   Zeit 0x40: keine lesbare Zeitspur (der Versatz zeigt teils in fremde
+//              Daten); Anfang und Ende der Werte sind trotzdem gültig
 //   Drehung 0x82: 48-Bit-Quaternion je Schlüssel (6 Byte, „SmallTree48Bit“):
 //              als 48-Bit-Zahl gelesen tragen Bit 46–47 den Index der
 //              größten Komponente (x, y, z, w = 0…3), die drei übrigen
@@ -49,12 +57,20 @@ function times(b, p, count, fmt) {
 function positions(b, p, count, fmt) {
   const df = fmt >> 8;
   if (df === 0xc0) return [...Array(count)].map((_, k) => [0, 1, 2].map((i) => b.readFloatLE(p + k * 12 + i * 4)));
+  // 0xC1: derselbe Kopf, dann je Schlüssel drei u16 (alle Kanäle, verschränkt).
+  // Belegt am Fahrwerk: letztes Bild von extend = erstes von compress.
+  if (df === 0xc1) {
+    const sc = [0, 1, 2].map((i) => b.readFloatLE(p + i * 4)), off = [0, 1, 2].map((i) => b.readFloatLE(p + 12 + i * 4));
+    return [...Array(count)].map((_, k) => [0, 1, 2].map((i) => off[i] + b.readUInt16LE(p + 24 + (k * 3 + i) * 2) * (sc[i] < FLT_MAX ? sc[i] : 0)));
+  }
   if (df === 0xc2) {
     const sc = [0, 1, 2].map((i) => b.readFloatLE(p + i * 4)), off = [0, 1, 2].map((i) => b.readFloatLE(p + 12 + i * 4));
     const live = [0, 1, 2].filter((i) => sc[i] < FLT_MAX);
     return [...Array(count)].map((_, k) => [0, 1, 2].map((i) => {
       const j = live.indexOf(i);
-      return j < 0 ? off[i] : off[i] + b.readUInt16LE(p + 24 + (k * live.length + j) * 2) * sc[i];
+      // Kanäle nacheinander (erst alle Schlüssel von y, dann von z), nicht verschränkt:
+      // am Prospector-Fahrwerk ergibt nur das glatte Kurven
+      return j < 0 ? off[i] : off[i] + b.readUInt16LE(p + 24 + (j * count + k) * 2) * sc[i];
     }));
   }
   return null;
@@ -80,6 +96,27 @@ export function readCaf(buf, boneNames = []) {
   const fps = info ? buf.readUInt16LE(info.off + 4) : null, frames = info ? buf.readUInt32LE(info.off + 0x10) : null;
   const o = anim.off;
   if (buf.toString('latin1', o, o + 4) !== '#caf') throw new Error('kein #caf');
+  return { fps, frames, bones: readBlock(buf, o, boneNames) };
+}
+
+// Animations-Datenbank (.dba, $TracksDatabase der .chrparams): Chunk
+// 0x194FBC50 trägt nacheinander Blöcke „#dba“, jeder aufgebaut wie der
+// #caf-Block oben (Knochenzahl, Hashes, 24-Byte-Controller, Versätze relativ
+// zum Controller). Am Dateiende stehen die Pfade der .caf, aus denen die
+// Datenbank gebaut ist, in derselben Reihenfolge wie die Blöcke (Prospector:
+// front_compress, front_extend, left_compress, …).
+export function readDba(buf, boneNames = []) {
+  if (buf.toString('latin1', 0, 4) !== '#ivo') throw new Error('kein IVO');
+  const at = [];
+  for (let p = buf.indexOf('#dba'); p >= 0; p = buf.indexOf('#dba', p + 4)) if (buf.readUInt16LE(p + 6) === 0xaa55) at.push(p);
+  const names = [...buf.toString('latin1').matchAll(/[\w/.-]+\.caf(?=\0)/gi)].map((m) => m[0]);
+  // Zuordnung nach Lage: Bei ungleicher Zahl verrutschen die Namen. Die Wahl
+  // je Bein prüft den Fuß gegen die Feder (0,6 m), die Lücke soll aber sichtbar sein
+  if (names.length !== at.length) console.warn(`[dba] ${at.length} Blöcke, ${names.length} .caf-Pfade: Namen nach Lage zugeordnet, ab der Lücke unsicher`);
+  return at.map((o, i) => ({ name: names[i] ?? null, bones: readBlock(buf, o, boneNames) }));
+}
+
+function readBlock(buf, o, boneNames) {
   const n = buf.readUInt16LE(o + 4);
   const byHash = new Map();
   for (const nm of boneNames) for (const v of [nm, nm.toLowerCase()]) byHash.set(crc32(Buffer.from(v)) >>> 0, nm);
@@ -95,7 +132,7 @@ export function readCaf(buf, boneNames = []) {
     const rot = rk ? { keys: rk, times: times(buf, p + rto, rk, rf), values: rq, format: rf.toString(16), decoded: !!rq } : null;
     bones.push({ hash: hash.toString(16), name: byHash.get(hash) ?? null, pos, rot });
   }
-  return { fps, frames, bones };
+  return bones;
 }
 
 // Drehung eines Kanals zum Bild f (normiertes lineares Mischen, kürzester Weg)
