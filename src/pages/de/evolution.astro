@@ -70,117 +70,9 @@ a{color:inherit;text-decoration:none}
 
 <SiteNav crumbs={[{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Evolution' }]} hasEn={true} />
 
-<main class="evo">
-  <header class="evo__head">
-    <span class="evo__kicker">Systeme × Patches</span>
-    <h1>Evolution</h1>
-    <p class="evo__sub">
-      Wie sich jedes Spielsystem von Alpha 4.0.0 bis {patches[patches.length - 1].data.version} entwickelt hat.
-      Jede Spalte trägt die Farbe ihres Patches — Zelle anklicken für die Details.
-    </p>
-    <dl class="evo__metrics">
-      <div><dt>Änderungen</dt><dd>{total}</dd></div>
-      <div><dt>Systeme</dt><dd>{systems.length}</dd></div>
-      <div><dt>Patches</dt><dd>{patches.length}</dd></div>
-      <div><dt>Ären</dt><dd>{eraCount}</dd></div>
-    </dl>
-  </header>
-
-  <div class="evo__matrix" data-evo-matrix>
-  <div class="evo__legend">
-    <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
-    <span>Intensität = Aktivität</span>
-    <span class="evo__legdot" aria-hidden="true">·</span>
-    <span>Zahl = Einträge · Klick = Details</span>
-    <span class="evo__legmore" data-evo-hint>Seitwärts scrollen für die neueren Patches →</span>
-  </div>
-
-  <div class="evo__scrollwrap">
-  <div class="evo__scroll" tabindex="0" aria-label="Evolutions-Matrix (horizontal scrollbar)">
-    <table class="evo__table">
-      <thead>
-        <tr>
-          <th class="evo__syshead" scope="col">System</th>
-          {patches.map((p, pi) => (
-            <th scope="col" class={`evo__col${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
-              {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
-              <a href={`/de/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
-                {p.data.version}
-              </a>
-            </th>
-          ))}
-          <th scope="col" class="evo__tot" title="Einträge gesamt">Σ</th>
-        </tr>
-      </thead>
-      <tbody>
-        {systems.map((sys, si) => (
-          <tr>
-            <th scope="row" class="evo__sys">{sys}</th>
-            {patches.map((p, pi) => {
-              const feats = cell(sys, p);
-              return (
-                <td class={`evo__td${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`}>
-                  {feats.length > 0 ? (
-                    <button
-                      class="evo__cell"
-                      style={`--c:${p.data.palette.accent}`}
-                      data-ed={`ed-${si}-${pi}`}
-                      data-tier={tierOf(feats.length)}
-                      aria-expanded="false"
-                      aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} Änderung${feats.length > 1 ? 'en' : ''}`}
-                    >{feats.length}</button>
-                  ) : (
-                    <span class="evo__dot" aria-hidden="true">·</span>
-                  )}
-                </td>
-              );
-            })}
-            <td class="evo__totcell">×{rowTotal(sys)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-  </div>
-  </div>
-
-  <div class="evo__detail" id="evo-detail" hidden>
-    {systems.map((sys, si) =>
-      patches.map((p, pi) => {
-        const feats = cell(sys, p);
-        if (!feats.length) return null;
-        return (
-          <div class="edet" id={`ed-${si}-${pi}`} hidden style={`--c:${p.data.palette.accent}`}>
-            <header class="edet__head">
-              <span class="edet__sys">{sys}</span>
-              <span class="edet__meta">
-                <a class="edet__patch" href={`/de/patches/sc-${p.id}.html`}>
-                  Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
-                </a>
-                <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
-              </span>
-            </header>
-            {feats.map((f) => (
-              <article class="edet__feat">
-                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="unbestätigt">*</abbr>}</h3>
-                <p>{f.desc}</p>
-                {(f.facts?.length ?? 0) > 0 && (
-                  <dl class="edet__facts">
-                    {f.facts!.map((x) => (
-                      <div><dt>{x.label}</dt><dd>{x.value}</dd></div>
-                    ))}
-                  </dl>
-                )}
-                {f.topicSlug && <a class="edet__link" href={`/de/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
-              </article>
-            ))}
-          </div>
-        );
-      })
-    )}
-  </div>
-</main>
-
+{/* Das Stilblatt der Matrix steht VOR dem Markup (27.10.2026): dahinter malte
+    der Browser die gut 200 KB Tabelle erst ungestylt und sprang dann um
+    (gemessen CLS 0,35). Die Reihenfolge der Stilblaetter bleibt dieselbe. */}
 <style is:inline>
 .evo{--gut:clamp(1.25rem,4vw,3rem);max-width:var(--maxw);margin:0 auto;padding:8rem var(--gut) 5rem}
 .evo__head{margin-bottom:1.8rem}
@@ -355,6 +247,117 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
   .evo__col{min-width:52px}
   .evo__sys{white-space:normal}
 }</style>
+
+<main class="evo">
+  <header class="evo__head">
+    <span class="evo__kicker">Systeme × Patches</span>
+    <h1>Evolution</h1>
+    <p class="evo__sub">
+      Wie sich jedes Spielsystem von Alpha 4.0.0 bis {patches[patches.length - 1].data.version} entwickelt hat.
+      Jede Spalte trägt die Farbe ihres Patches — Zelle anklicken für die Details.
+    </p>
+    <dl class="evo__metrics">
+      <div><dt>Änderungen</dt><dd>{total}</dd></div>
+      <div><dt>Systeme</dt><dd>{systems.length}</dd></div>
+      <div><dt>Patches</dt><dd>{patches.length}</dd></div>
+      <div><dt>Ären</dt><dd>{eraCount}</dd></div>
+    </dl>
+  </header>
+
+  <div class="evo__matrix" data-evo-matrix>
+  <div class="evo__legend">
+    <span class="evo__lg" aria-hidden="true"><i class="t1"></i><i class="t2"></i><i class="t3"></i></span>
+    <span>Intensität = Aktivität</span>
+    <span class="evo__legdot" aria-hidden="true">·</span>
+    <span>Zahl = Einträge · Klick = Details</span>
+    <span class="evo__legmore" data-evo-hint>Seitwärts scrollen für die neueren Patches →</span>
+  </div>
+
+  <div class="evo__scrollwrap">
+  <div class="evo__scroll" tabindex="0" aria-label="Evolutions-Matrix (horizontal scrollbar)">
+    <table class="evo__table">
+      <thead>
+        <tr>
+          <th class="evo__syshead" scope="col">System</th>
+          {patches.map((p, pi) => (
+            <th scope="col" class={`evo__col${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
+              {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
+              <a href={`/de/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
+                {p.data.version}
+              </a>
+            </th>
+          ))}
+          <th scope="col" class="evo__tot" title="Einträge gesamt">Σ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {systems.map((sys, si) => (
+          <tr>
+            <th scope="row" class="evo__sys">{sys}</th>
+            {patches.map((p, pi) => {
+              const feats = cell(sys, p);
+              return (
+                <td class={`evo__td${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`}>
+                  {feats.length > 0 ? (
+                    <button
+                      class="evo__cell"
+                      style={`--c:${p.data.palette.accent}`}
+                      data-ed={`ed-${si}-${pi}`}
+                      data-tier={tierOf(feats.length)}
+                      aria-expanded="false"
+                      aria-label={`${sys} in Alpha ${p.data.version}: ${feats.length} Änderung${feats.length > 1 ? 'en' : ''}`}
+                    >{feats.length}</button>
+                  ) : (
+                    <span class="evo__dot" aria-hidden="true">·</span>
+                  )}
+                </td>
+              );
+            })}
+            <td class="evo__totcell">×{rowTotal(sys)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  </div>
+  </div>
+
+  <div class="evo__detail" id="evo-detail" hidden>
+    {systems.map((sys, si) =>
+      patches.map((p, pi) => {
+        const feats = cell(sys, p);
+        if (!feats.length) return null;
+        return (
+          <div class="edet" id={`ed-${si}-${pi}`} hidden style={`--c:${p.data.palette.accent}`}>
+            <header class="edet__head">
+              <span class="edet__sys">{sys}</span>
+              <span class="edet__meta">
+                <a class="edet__patch" href={`/de/patches/sc-${p.id}.html`}>
+                  Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
+                </a>
+                <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
+              </span>
+            </header>
+            {feats.map((f) => (
+              <article class="edet__feat">
+                <h3>{f.name}{f.unverified && <abbr class="edet__unv" title="unbestätigt">*</abbr>}</h3>
+                <p>{f.desc}</p>
+                {(f.facts?.length ?? 0) > 0 && (
+                  <dl class="edet__facts">
+                    {f.facts!.map((x) => (
+                      <div><dt>{x.label}</dt><dd>{x.value}</dd></div>
+                    ))}
+                  </dl>
+                )}
+                {f.topicSlug && <a class="edet__link" href={`/de/topics/${f.topicSlug}.html`}>Deep-Dive ansehen →</a>}
+              </article>
+            ))}
+          </div>
+        );
+      })
+    )}
+  </div>
+</main>
 
 <script is:inline>
 (function () {
