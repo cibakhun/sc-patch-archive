@@ -747,6 +747,34 @@ async function paintTexture(rel, made) {
 // Lack ändert; cleanMaterials markiert sie, damit dedup() sie nicht mit
 // gleich aussehenden zusammenlegt und ihr Name bleibt), writePaints() danach
 // gegen die Materialien des geschriebenen GLB.
+// Fehlt einer Variante die Palette im eigenen Paket (600i BIS2951: Cold Forge,
+// Sterling), dieselbe Lackierung (gleicher Tag) aus einem Schwesterpaket mit
+// Palette, zuerst aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i)
+let sisterIndex = null;
+function sisterPalette(pkg, tag) {
+  if (!tag) return null;
+  if (!sisterIndex) {
+    sisterIndex = new Map();
+    const dir = new URL('Packages/', PAINT_DEC);
+    for (const p of existsSync(dir) ? readdirSync(dir) : []) {
+      const f = (n) => new URL(`Packages/${p}/${n}`, PAINT_DEC);
+      if (!existsSync(f('paints.json')) || !existsSync(f('palettes.json'))) continue;
+      const pals = new Map(JSON.parse(readFileSync(f('palettes.json'), 'utf8')).palettes.map((x) => [x.id, x]));
+      for (const v of JSON.parse(readFileSync(f('paints.json'), 'utf8')).paint_variants ?? []) {
+        const pal = pals.get(v.palette_id), k = v.subgeometry_tag?.toLowerCase();
+        if (!pal || !k) continue;
+        if (!sisterIndex.has(k)) sisterIndex.set(k, []);
+        sisterIndex.get(k).push({ pkg: p, pal });
+      }
+    }
+  }
+  const fam = (p) => p.split(/[ _]/).slice(0, 2).join(' ').toLowerCase();
+  const hits = sisterIndex.get(tag.toLowerCase())?.filter((h) => h.pkg !== pkg) ?? [];
+  const hit = hits.find((h) => fam(h.pkg) === fam(pkg)) ?? hits[0];
+  if (hit) sisterUsed.push(`${pkg}: ${tag} aus ${hit.pkg}`);
+  return hit?.pal ?? null;
+}
+const sisterUsed = [];
 async function paintPlan(slug) {
   const index = existsSync(new URL('index.json', PAINT_DEC)) ? JSON.parse(readFileSync(new URL('index.json', PAINT_DEC), 'utf8')) : {};
   // Paketname wie StarBreaker ihn bildet: Record, Unterstriche als Leerzeichen
@@ -775,7 +803,7 @@ async function paintPlan(slug) {
   const targets = new Set();
   const paints = [];
   for (const v of variants) {
-    const pal = palettes.get(v.palette_id);
+    const pal = palettes.get(v.palette_id) ?? sisterPalette(pkg, v.subgeometry_tag);
     const ids = (SHIP_PAINTS[slug]?.paints ?? []).filter((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase()).map((p) => p.id);
     const look = { tag: v.subgeometry_tag, ids, name: v.display_name ?? null, palette: null, materials: {} };
     // Ohne Palette im zerlegten Export (Freelancer Storm Surge): die Lackkanäle
@@ -2711,6 +2739,7 @@ for (const kind of Object.keys(BUDGET)) {
       const pr = r.paintReport;
       delete r.paintReport;
       if (kind === 'ships') console.log(pr ? `    Lacke: ${pr.paints} (${pr.linked} mit Lack-Item, ${pr.patterned} mit eigenem Material: ${pr.stencils} Stencil-, ${pr.layerSwaps} Schichtwechsel), ${pr.textures} Karten${pr.missing ? `; ${pr.missing} Lack-Materialien nicht im Web-Modell (Innenraum, Glühen u. ä. weggelassen: ${pr.missingNames.slice(0, 6).join(', ')})` : ''}` : '    Lacke: keine Lackvarianten im zerlegten Export (oder kein Export, Extraktor-Teil ships)');
+      if (kind === 'ships' && sisterUsed.length) console.log(`    Paletten aus Schwesterpaketen: ${sisterUsed.splice(0).join('; ')}`);
       if (r.anchorBy) console.log(`    Befestigung über ${r.anchorBy === 'name' ? 'den Entity-Namen' : r.anchorBy === 'kind' ? 'das einzige Kind der Wurzel' : 'die Szenenwurzel — WARNUNG: Lage am Schiff ungeprüft'}`);
       if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       if (r.hull) {

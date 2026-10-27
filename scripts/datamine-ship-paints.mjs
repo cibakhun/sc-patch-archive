@@ -84,7 +84,7 @@ const slugs = readJson('vehicles.json').vehicles.map((v) => v.id).filter((id) =>
 const shipByName = new Map();
 for (const r of entityRecs) { const n = r.name.toLowerCase(); if (!shipByName.has(n)) shipByName.set(n, r); }
 
-const noRecord = [], noBase = [], sameName = [];
+const noRecord = [], noBase = [], sameName = [], factoryPaint = [];
 let subNoPalette = 0, dupDropped = 0;
 const ships = {};
 for (const slug of slugs) {
@@ -96,8 +96,19 @@ for (const slug of slugs) {
     .map((sub) => ({ sub, items: tokens(sub.Tags).flatMap((t) => paintsByTag.get(t.toLowerCase()) ?? []) }))
     .filter((m) => m.items.length);
   if (!matched.length) continue;
-  const base = paletteColours(geo.Geometry?.Palette);
+  let base = paletteColours(geo.Geometry?.Palette);
   if (!base) { noBase.push(slug); continue; }
+  // Ab Werk lackiert: Steckt in der Standardausrüstung ein Lack (hardpoint_paint,
+  // Gladius Pirate und Valiant), trägt das Schiff dessen Palette, nicht die
+  // Grundpalette seiner Geometrie
+  const factory = (component(db.readRecord(rec, { typed: true, maxDepth: 6 }), 'SEntityComponentDefaultLoadoutParams')?.loadout?.entries ?? []).find((e) => /paint/i.test(e?.itemPortName ?? '') && e.entityClassName);
+  if (factory) {
+    const item = shipByName.get(`entityclassdefinition.${factory.entityClassName.toLowerCase()}`);
+    const tags = new Set(tokens(component(item && db.readRecord(item, { typed: true, maxDepth: 6 }), 'SAttachableComponentParams')?.AttachDef?.Tags).map((t) => t.replace(/^@/, '').toLowerCase()));
+    const sub = (geo.SubGeometry ?? []).find((s) => tokens(s.Tags).some((t) => tags.has(t.toLowerCase())));
+    const c = sub && paletteColours(sub.Geometry?.Palette);
+    if (c) { base = c; factoryPaint.push(`${slug} (${factory.entityClassName})`); }
+  }
 
   const byId = new Map();
   for (const { sub, items } of matched) {
@@ -136,6 +147,7 @@ console.log(`Schiffe geschrieben:           ${Object.keys(ships).length}`);
 console.log(`Lackierungen gesamt:           ${all.length} (mit Muster: ${withPattern}, nur Palette: ${all.length - withPattern})`);
 console.log(`ChildPath nicht gefunden:      ${childPathFallbacks} (Wurzel der Palette genommen)`);
 console.log(`SubGeometry ohne Palette:      ${subNoPalette} (Grundfarben des Schiffs genommen)`);
+console.log(`Ab Werk lackiert:              ${factoryPaint.length}${factoryPaint.length ? '  ' + factoryPaint.join(', ') : ''} (Grundfarben = Lack der Standardausrüstung)`);
 console.log(`Doppelte verworfen:            ${dupDropped} (gleicher Name, gleiche Farben, niedrigste Id bleibt)`);
 console.log(`Gleicher Name, andere Farben:  ${sameName.length}`);
 for (const s of sameName) console.log(`  ${s.slug}: ${s.name} -> ${s.looks.map((p) => `${p.a} ${p.b} ${p.c}${p.pattern ? ' Muster' : ''}`).join(' | ')}`);
