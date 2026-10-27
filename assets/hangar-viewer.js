@@ -4678,8 +4678,10 @@ async function robustBox(root, pause = noPause, unlean = null) {
 // dunkler Tönung hat ihre Gleichung dann zwei Lösungen und nimmt die mit
 // Metall (Corsair-Grau #3b3b3b: 0,23, Polaris: 0,67, jeder dunkle Lack über
 // 0,5; Befund PC 27.10.2026). Gleich aussehen würden beide nur ohne Bild;
-// mit Farbbild schwankte die Glanzfarbe mit dem Bild. Metall im Spiel liegt
-// bei 155 und mehr (Corsair-Stahl #9b9b9b).
+// mit Farbbild schwankte die Glanzfarbe mit dem Bild. Von 100 bis 155
+// (METAL_MIN, Corsair-Stahl #9b9b9b) blendet das Metall weich ein, damit
+// eine Glanzfarbe knapp über 100 nicht auf einmal fast ganz Metall ist
+// (dunkle Tönung bei 101: 0,91; rund 430 Lackfarben liegen dazwischen).
 // Dieselbe Rechnung nimmt der Bau (scripts/build-hangar-assets.mjs) für die
 // Serienpalette im GLB, der Viewer für jede Lackierung, auch die ab Werk
 // (dressTextured rechnet sie aus extras.palette nach).
@@ -4691,13 +4693,14 @@ export function palettePbr(tint, specular, gloss) {
   });
   const DIEL = 0.04, EPS = 1e-6, clamp = (v) => Math.min(1, Math.max(0, v));
   const lum = (c) => Math.sqrt(0.299 * c[0] ** 2 + 0.587 * c[1] ** 2 + 0.114 * c[2] ** 2);
-  const DIEL_MAX = lum(lin('#646464'));
+  const DIEL_MAX = lum(lin('#646464')), METAL_MIN = lum(lin('#9b9b9b'));
   const d = lin(tint), s = lin(specular ?? '#3b3b3b');
   const keep = 1 - Math.max(...s), ls = lum(s);
   let metal = 0;
   if (ls > DIEL_MAX) {
     const b = (lum(d) * keep) / (1 - DIEL) + ls - 2 * DIEL, c = DIEL - ls;
-    metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL));
+    const t = clamp((ls - DIEL_MAX) / (METAL_MIN - DIEL_MAX));
+    metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL)) * t * t * (3 - 2 * t);
   }
   const color = d.map((v, i) => {
     const fromD = (v * keep) / (1 - DIEL) / Math.max(1 - metal, EPS);
