@@ -6165,19 +6165,25 @@ export async function initHangar(container, opts = {}) {
 
   // Echte Halle: wird geladen, sobald die Bühne steht. room = Innenraum im
   // Modellraum (Bodenmitte, halbe Breite/Länge, Höhe).
-  // Maßstab der echten Halle: Originalgröße, solange Schiff samt Gerät
-  // hineinpasst; das Gerät steht bis PAD_R*S + 9 m von der Mitte.
-  // Dazu muss die Kamera im Umlauf drinbleiben: ihr waagrechter Abstand
-  // (0,94 x Entfernung) bleibt unter 90 % der halben Breite, und der
-  // Mindestabstand fürs ganze Schiff (span * 1.1 + 4) soll darin Platz haben.
+  // Maßstab der echten Halle: Originalgröße, solange das Schiff hineinpasst
+  // (mit Aufzug: aufs Feld, liftScale; sonst in den Raum, 2 m Rand, 4 m
+  // Luft unter der Decke). Krisz 27.10.2026: „ich möchte dass alle schiffe
+  // deren echte originalgrösse haben“. Bis dahin wuchs die Halle schon ab
+  // 28 m Spannweite mit, damit die Kamera das ganze Schiff mit Abstand
+  // umrunden kann (Constellation k 2,1, Carrack 4,1); so sah jedes Schiff
+  // in der Halle gleich groß aus. Jetzt stehen 176 von 231 in der Halle in
+  // Spielgröße; passt ein Schiff nicht mit Abstand ins Bild, weitet sich
+  // der Blickwinkel (fitFov), und die Kamera bleibt im Raum (camRoom: ihr
+  // waagrechter Abstand, 0,94 x Entfernung, unter 90 % der halben Breite).
+  // Gerät und Crew stellen sich aufs Feld und frei vom Rumpf (layDienst).
   const camRoom = (room, k) => (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94;
   // Mit Aufzug steht das Schiff ganz auf dem Feld, mit 1 m Rand.
   const liftScale = () => {
     const L = realHall?.liftL;
     return L && lastInfo ? Math.max((2 * lastInfo.halfW + 2) / (L.to[0] - L.from[0]), (lastInfo.len + 2) / (L.to[1] - L.from[1])) : 0;
   };
-  const realHallScale = (room) => Math.max(1, (PAD_R * S + 9) / room.halfW, (span * 1.15) / (2 * room.halfL),
-    (span * 1.1 + 4) / camRoom(room, 1), liftScale());
+  const realHallScale = (room) => Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
+    (lastInfo.len + 4) / (2 * room.halfL), (lastInfo.height + 4) / room.height) : 0);
 
   // Einrichtung und Deko stehen in Originalgröße: gelegt für den Maßstab kk
   // (1/kk im Modell der Halle), im Ruhezustand kk = k. propGlide { a, t0,
