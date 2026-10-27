@@ -216,7 +216,7 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
   (Gravplatten), Prowler Utility, Hull C, 85X, 890 Jump, Glaive, San'tok.yāi,
   Ironclad ×2: Die `.chrparams` der Beine nennt
   `drak_ironclad_landing_gear_side_01_extend_A.caf` usw., keine dieser
-  Dateien liegt im Spiel. Teile in Flugstellung bleiben bei 39 Schiffen.
+  Dateien liegt im Spiel. Teile in Flugstellung bleiben bei 35 Schiffen.
 
 Aufnahmen (`check:hangar-shader --shot`, höchstens 16 Texturen je
 Bildshader): Railen, Syulen, Corsair, Polaris, Freelancer, Andromeda. Die
@@ -255,3 +255,13 @@ Grundpalette zurück. Bitte über den Verweis auflösen und in der
 Selbstauskunft zählen. `sisterPalette` nimmt jetzt nur einen Treffer aus
 derselben Familie oder einen einzigen; mehrere fremde Pakete gelten als
 mehrdeutig (Cloud 27.10.).
+
+**Cloud 27.10.2026 abends, zur Frage nach `palettePbr`:** Lack bleibt
+Nichtmetall bis Glanzfarbe 100 (`DIEL_MAX`); darüber rechnet die Umrechnung
+wie bisher (Corsair-Stahl #9b9b9b: metallic 1, Grundfarbe 0,33). Corsair-Grau
+#3b3b3b und Polaris (Tönung 43, Glanz 70) kommen damit auf metallic 0. Der
+Viewer rechnet die Serienpalette beim Laden aus `extras.palette` selbst nach
+(`dressTextured`); die Faktoren im GLB dürfen also aus dem laufenden Neubau
+stammen, ein zweiter Neubau ist dafür nicht nötig. Die Selbstauskunft
+„Metall in 1246 Lackierungen“ fällt mit der neuen Fassung deutlich kleiner
+aus; bitte beim nächsten Lauf mit ihr neu zählen.

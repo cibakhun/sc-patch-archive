@@ -4673,8 +4673,17 @@ async function robustBox(root, pause = noPause, unlean = null) {
 // der Helligkeit von Diffus- und Glanzfarbe, Grundfarbe dazwischen gemischt,
 // Rauheit 1 − Glätte. color linear [r, g, b]; ohne specular Lack (59),
 // roughness null ohne gloss.
+// Nichtmetall bis Glanzfarbe 100 (DIEL_MAX): Lack liegt um 59, also linear
+// 0,0437 und knapp über den 4 %, mit denen die Umrechnung rechnet. Bei
+// dunkler Tönung hat ihre Gleichung dann zwei Lösungen und nimmt die mit
+// Metall (Corsair-Grau #3b3b3b: 0,23, Polaris: 0,67, jeder dunkle Lack über
+// 0,5; Befund PC 27.10.2026). Gleich aussehen würden beide nur ohne Bild;
+// mit Farbbild schwankte die Glanzfarbe mit dem Bild. Metall im Spiel liegt
+// bei 155 und mehr (Corsair-Stahl #9b9b9b).
 // Dieselbe Rechnung nimmt der Bau (scripts/build-hangar-assets.mjs) für die
-// Serienpalette im GLB, der Viewer (paint) für jede andere Lackierung.
+// Serienpalette im GLB, der Viewer für jede Lackierung, auch die ab Werk
+// (dressTextured rechnet sie aus extras.palette nach).
+const HEX6 = /^#[0-9a-f]{6}$/i;
 export function palettePbr(tint, specular, gloss) {
   const lin = (h) => [1, 3, 5].map((i) => {
     const s = parseInt(h.slice(i, i + 2), 16) / 255;
@@ -4682,10 +4691,11 @@ export function palettePbr(tint, specular, gloss) {
   });
   const DIEL = 0.04, EPS = 1e-6, clamp = (v) => Math.min(1, Math.max(0, v));
   const lum = (c) => Math.sqrt(0.299 * c[0] ** 2 + 0.587 * c[1] ** 2 + 0.114 * c[2] ** 2);
+  const DIEL_MAX = lum(lin('#646464'));
   const d = lin(tint), s = lin(specular ?? '#3b3b3b');
   const keep = 1 - Math.max(...s), ls = lum(s);
   let metal = 0;
-  if (ls > DIEL) {
+  if (ls > DIEL_MAX) {
     const b = (lum(d) * keep) / (1 - DIEL) + ls - 2 * DIEL, c = DIEL - ls;
     metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL));
   }
@@ -10319,6 +10329,14 @@ void main() {
     // Palettenmaterialien (extras.palette) tragen die Werte des Spiels.
     if (!m.map && !m.userData?.palette && m.color.r + m.color.g + m.color.b < 0.06) {
       m.color.setHex(0x3a3d42); m.metalness = 0.6; m.roughness = 0.45;
+    }
+    // Serienpalette nach derselben Rechnung wie jede andere Lackierung,
+    // unabhängig davon, mit welcher Fassung von palettePbr das GLB gebaut ist
+    const pal = m.userData?.palette;
+    if (pal && HEX6.test(pal.tint ?? '')) {
+      const q = palettePbr(pal.tint, HEX6.test(pal.specular ?? '') ? pal.specular : undefined, Number.isFinite(pal.gloss) ? pal.gloss : undefined);
+      m.color.setRGB(...q.color, THREE.LinearSRGBColorSpace); m.metalness = q.metalness;
+      if (q.roughness != null) m.roughness = q.roughness;
     }
     m.envMapIntensity = 0.9;
     for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
