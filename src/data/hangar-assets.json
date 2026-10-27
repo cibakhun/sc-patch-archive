@@ -521,8 +521,8 @@
     },
     "aegs-idris-m": {
       "url": "/hangar/ships/aegs-idris-m.glb",
-      "v": "d1e6c2bd",
-      "tris": 597696,
+      "v": "6b52fed7",
+      "tris": 1185844,
       "trisRaw": 2019994,
       "textures": 266,
       "attached": 0,
@@ -551,12 +551,13 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -2.124,
-          -0.617,
-          -0.964,
-          -1.296
+          -2.249,
+          0.092,
+          -0.001,
+          -0.001
         ],
-        "why": "Aufstandspunkte weichen bis 2.124 m ab"
+        "sink": -2.274,
+        "why": "Aufstandspunkte weichen bis 2.249 m ab"
       },
       "budget": {
         "tris": 400000,
@@ -571,19 +572,19 @@
         "rangeBefore": 549,
         "rangeAfter": 541,
         "bits": 22,
-        "degenerate": 6.7
+        "degenerate": 5.6
       },
-      "bytes": 6711744,
+      "bytes": 11302820,
       "pool": {
         "images": 266,
         "bytes": 9203434,
-        "fresh": 8989106
+        "fresh": 59298
       }
     },
     "aegs-idris-p": {
       "url": "/hangar/ships/aegs-idris-p.glb",
-      "v": "84448219",
-      "tris": 1197657,
+      "v": "aa885fd1",
+      "tris": 1197721,
       "trisRaw": 2123261,
       "textures": 259,
       "attached": 0,
@@ -613,12 +614,13 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -2.252,
-          -2.252,
-          -1.528,
-          -1.528
+          -2.249,
+          0.092,
+          -0.001,
+          -0.001
         ],
-        "why": "Aufstandspunkte weichen bis 2.252 m ab"
+        "sink": -2.274,
+        "why": "Aufstandspunkte weichen bis 2.249 m ab"
       },
       "budget": {
         "tris": 400000,
@@ -635,7 +637,7 @@
         "bits": 22,
         "degenerate": 5.5
       },
-      "bytes": 11337696,
+      "bytes": 11342612,
       "pool": {
         "images": 259,
         "bytes": 9147408,
@@ -7987,8 +7989,8 @@
     },
     "misc-starlancer-max": {
       "url": "/hangar/ships/misc-starlancer-max.glb",
-      "v": "f6720780",
-      "tris": 730916,
+      "v": "d129c661",
+      "tris": 730904,
       "trisRaw": 2837594,
       "textures": 242,
       "attached": 0,
@@ -8011,10 +8013,11 @@
         "ok": false,
         "dev": [
           -0.001,
-          -1.506,
-          0.007
+          0.033,
+          0.006
         ],
-        "why": "Aufstandspunkte weichen bis 1.506 m ab"
+        "sink": -0.014,
+        "why": "Aufstandspunkte weichen bis 0.033 m ab"
       },
       "budget": {
         "tris": 400000,
@@ -8030,17 +8033,17 @@
         "bits": 23,
         "degenerate": 2.1
       },
-      "bytes": 7505304,
+      "bytes": 7504892,
       "pool": {
         "images": 242,
         "bytes": 10802720,
-        "fresh": 61986
+        "fresh": 0
       }
     },
     "misc-starlancer-tac": {
       "url": "/hangar/ships/misc-starlancer-tac.glb",
-      "v": "989d5293",
-      "tris": 906497,
+      "v": "f074af61",
+      "tris": 906529,
       "trisRaw": 3283014,
       "textures": 272,
       "attached": 0,
@@ -8065,10 +8068,11 @@
         "ok": false,
         "dev": [
           -0.001,
-          -1.52,
+          0.033,
           0.006
         ],
-        "why": "Aufstandspunkte weichen bis 1.520 m ab"
+        "sink": -0.014,
+        "why": "Aufstandspunkte weichen bis 0.033 m ab"
       },
       "budget": {
         "tris": 400000,
@@ -8084,11 +8088,11 @@
         "bits": 23,
         "degenerate": 1.9
       },
-      "bytes": 9565676,
+      "bytes": 9565536,
       "pool": {
         "images": 272,
         "bytes": 10702724,
-        "fresh": 42962
+        "fresh": 0
       }
     },
     "misc-starlite": {
@@ -9711,8 +9715,8 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "549e537f",
-      "tris": 824770,
+      "v": "fcab7e7b",
+      "tris": 824772,
       "trisRaw": 1960624,
       "textures": 329,
       "attached": 0,
@@ -9736,15 +9740,16 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -0.663,
-          -0.663,
+          0.001,
+          0.001,
           -2.103,
-          -0.66,
-          -0.663,
-          -0.663,
-          -0.663,
-          -0.663
+          0.165,
+          -0.619,
+          0.001,
+          0.001,
+          0.001
         ],
+        "sink": -2.103,
         "why": "Aufstandspunkte weichen bis 2.103 m ab"
       },
       "budget": {
@@ -9761,7 +9766,7 @@
         "bits": 21,
         "degenerate": 2.7
       },
-      "bytes": 8571056,
+      "bytes": 8572344,
       "pool": {
         "images": 329,
         "bytes": 14764412,
@@ -9770,8 +9775,8 @@
     },
     "rsi-constellation-aquila": {
       "url": "/hangar/ships/rsi-constellation-aquila.glb",
-      "v": "850ef431",
-      "tris": 730642,
+      "v": "1476a9d6",
+      "tris": 730580,
       "trisRaw": 1504385,
       "textures": 339,
       "attached": 0,
@@ -9794,15 +9799,16 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -0.662,
-          -0.662,
+          0.001,
+          0.001,
           -2.103,
-          -0.659,
-          -0.662,
-          -0.662,
-          -0.662,
-          -0.662
+          0.004,
+          -0.618,
+          0,
+          0.004,
+          0.004
         ],
+        "sink": -2.103,
         "why": "Aufstandspunkte weichen bis 2.103 m ab"
       },
       "budget": {
@@ -9819,19 +9825,19 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 7479448,
+      "bytes": 7480828,
       "pool": {
         "images": 339,
         "bytes": 15157378,
-        "fresh": 99660
+        "fresh": 0
       }
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/ships/rsi-constellation-mk5-centaurus.glb",
-      "v": "09b6344e",
-      "tris": 632856,
+      "v": "ad430d29",
+      "tris": 1273591,
       "trisRaw": 1965220,
-      "textures": 365,
+      "textures": 379,
       "attached": 0,
       "swap": {
         "hardpoint_turret_upper": 4,
@@ -9850,17 +9856,18 @@
       "record": "RSI_Constellation_Mk5_Centaurus",
       "game": "12913470",
       "interiorDropped": 0,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
+        "ok": true,
         "dev": [
-          -0.935,
-          -0.941,
-          -0.954,
-          -0.965,
-          -0.931,
-          -0.937
+          0,
+          -0.001,
+          0.012,
+          -0.002,
+          0,
+          -0.001
         ],
-        "why": "Aufstandspunkte weichen bis 0.965 m ab"
+        "sink": -0.003
       },
       "budget": {
         "tris": 200000,
@@ -9875,19 +9882,19 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 3.2
+        "degenerate": 2.6
       },
-      "bytes": 6837724,
+      "bytes": 12590256,
       "pool": {
-        "images": 365,
-        "bytes": 9674136,
-        "fresh": 6619044
+        "images": 379,
+        "bytes": 10514126,
+        "fresh": 7233538
       }
     },
     "rsi-constellation-phoenix-emerald": {
       "url": "/hangar/ships/rsi-constellation-phoenix-emerald.glb",
-      "v": "5658db30",
-      "tris": 554529,
+      "v": "d69ed467",
+      "tris": 554525,
       "trisRaw": 1211834,
       "textures": 230,
       "attached": 0,
@@ -9911,15 +9918,16 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -0.667,
-          -0.664,
-          -0.792,
-          -0.664,
-          -1.578,
-          -0.664,
+          0.001,
+          0,
+          0.011,
+          -0.001,
+          -0.65,
+          0,
           -4.065,
           -0.667
         ],
+        "sink": -4.065,
         "why": "Aufstandspunkte weichen bis 4.065 m ab"
       },
       "budget": {
@@ -9936,17 +9944,17 @@
         "bits": 23,
         "degenerate": 3.1
       },
-      "bytes": 6532364,
+      "bytes": 6532856,
       "pool": {
         "images": 230,
         "bytes": 10593036,
-        "fresh": 808806
+        "fresh": 0
       }
     },
     "rsi-constellation-phoenix": {
       "url": "/hangar/ships/rsi-constellation-phoenix.glb",
-      "v": "8136800c",
-      "tris": 831885,
+      "v": "3249632d",
+      "tris": 831911,
       "trisRaw": 1858670,
       "textures": 368,
       "attached": 0,
@@ -9970,15 +9978,16 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -0.664,
-          -0.665,
+          -0.002,
+          0.001,
           -2.104,
-          -0.658,
-          -0.664,
-          -0.665,
-          -0.664,
-          -0.665
+          0.004,
+          -0.62,
+          0.002,
+          -0.002,
+          0.002
         ],
+        "sink": -2.104,
         "why": "Aufstandspunkte weichen bis 2.104 m ab"
       },
       "budget": {
@@ -9995,17 +10004,17 @@
         "bits": 20,
         "degenerate": 3.7
       },
-      "bytes": 8177896,
+      "bytes": 8180128,
       "pool": {
         "images": 368,
         "bytes": 17137008,
-        "fresh": 1195472
+        "fresh": 0
       }
     },
     "rsi-constellation-taurus": {
       "url": "/hangar/ships/rsi-constellation-taurus.glb",
-      "v": "e220828f",
-      "tris": 551284,
+      "v": "223cbbcc",
+      "tris": 551308,
       "trisRaw": 1439434,
       "textures": 285,
       "attached": 0,
@@ -10029,15 +10038,16 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -0.663,
-          -0.663,
+          0.002,
+          0.002,
           -2.103,
-          -0.657,
-          -0.663,
-          -0.663,
-          -0.663,
-          -0.663
+          0.006,
+          -0.616,
+          -0.001,
+          0.002,
+          0.003
         ],
+        "sink": -2.103,
         "why": "Aufstandspunkte weichen bis 2.103 m ab"
       },
       "budget": {
@@ -10054,11 +10064,11 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 5800160,
+      "bytes": 5801772,
       "pool": {
         "images": 285,
         "bytes": 12972604,
-        "fresh": 4378
+        "fresh": 0
       }
     },
     "rsi-hermes": {
@@ -11329,8 +11339,8 @@
     },
     "vncl-stinger": {
       "url": "/hangar/ships/vncl-stinger.glb",
-      "v": "624feb9b",
-      "tris": 267310,
+      "v": "2384fbb6",
+      "tris": 267332,
       "trisRaw": 551962,
       "textures": 249,
       "attached": 0,
@@ -11352,15 +11362,16 @@
       "record": "VNCL_Stinger",
       "game": "12913470",
       "interiorDropped": 8,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
+        "ok": true,
         "dev": [
-          -0.91,
-          -0.91,
-          -0.803,
-          -0.79
+          0.004,
+          0.002,
+          0.002,
+          0
         ],
-        "why": "Aufstandspunkte weichen bis 0.910 m ab"
+        "sink": -0.005
       },
       "budget": {
         "tris": 200000,
@@ -11376,11 +11387,11 @@
         "bits": 19,
         "degenerate": 1.6
       },
-      "bytes": 3062288,
+      "bytes": 3062056,
       "pool": {
         "images": 249,
         "bytes": 14425176,
-        "fresh": 7548136
+        "fresh": 0
       }
     },
     "xian-nox-kue": {
@@ -14475,7 +14486,7 @@
           "prims": 59,
           "snapped": 198043,
           "groups": 63068,
-          "maxShift": 9.616595352204252e-05
+          "maxShift": 0.00009616595352204252
         },
         "written": {
           "boundaryVerts": 270825,
@@ -16096,6 +16107,7 @@
           {
             "bone": "hardpoint_back_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               -1.742,
               -4.434,
@@ -16117,6 +16129,7 @@
           {
             "bone": "hardpoint_back_landing_gear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               2.017,
               -4.434,
@@ -16258,6 +16271,7 @@
           {
             "bone": "hardpoint_back_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               -1.742,
               -4.434,
@@ -16279,6 +16293,7 @@
           {
             "bone": "hardpoint_back_landing_gear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               2.017,
               -4.434,
@@ -16420,6 +16435,7 @@
           {
             "bone": "hardpoint_back_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               -1.742,
               -4.434,
@@ -16441,6 +16457,7 @@
           {
             "bone": "hardpoint_back_landing_gear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               2.017,
               -4.434,
@@ -16582,6 +16599,7 @@
           {
             "bone": "hardpoint_back_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               -1.742,
               -4.434,
@@ -16603,6 +16621,7 @@
           {
             "bone": "hardpoint_back_landing_gear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.956, Aufstand -2.023",
             "foot": [
               2.017,
               -4.434,
@@ -17346,6 +17365,7 @@
           {
             "bone": "hardpoint_landinggear_main_left",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_main_left.caf Fuß bei -32.546, Aufstand -22.6",
             "foot": [
               -41.011,
               -22.6,
@@ -17367,6 +17387,7 @@
           {
             "bone": "hardpoint_landinggear_main_right",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_main_right.caf Fuß bei -32.52, Aufstand -22.6",
             "foot": [
               40.868,
               -22.6,
@@ -17388,6 +17409,7 @@
           {
             "bone": "hardpoint_landinggear_aux_left",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_aux_left.caf Fuß bei -31.402, Aufstand -22.6",
             "foot": [
               -27.511,
               -22.6,
@@ -17409,6 +17431,7 @@
           {
             "bone": "hardpoint_landinggear_aux_right",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_aux_right.caf Fuß bei -31.348, Aufstand -22.6",
             "foot": [
               27.379,
               -22.6,
@@ -17501,6 +17524,7 @@
           {
             "bone": "hardpoint_landinggear_main_left",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_main_left.caf Fuß bei -32.546, Aufstand -22.6",
             "foot": [
               -41.011,
               -22.6,
@@ -17522,6 +17546,7 @@
           {
             "bone": "hardpoint_landinggear_main_right",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_main_right.caf Fuß bei -32.52, Aufstand -22.6",
             "foot": [
               40.868,
               -22.6,
@@ -17543,6 +17568,7 @@
           {
             "bone": "hardpoint_landinggear_aux_left",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_aux_left.caf Fuß bei -31.402, Aufstand -22.6",
             "foot": [
               -27.511,
               -22.6,
@@ -17564,6 +17590,7 @@
           {
             "bone": "hardpoint_landinggear_aux_right",
             "pose": "ruhelage",
+            "animError": "nach lg_foot_compress_aux_right.caf Fuß bei -31.348, Aufstand -22.6",
             "foot": [
               27.379,
               -22.6,
@@ -18289,6 +18316,7 @@
           {
             "bone": "landinggear_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -4.012, Aufstand -2.742",
             "mismatch": 1.559,
             "foot": [
               0.638,
@@ -18311,6 +18339,7 @@
           {
             "bone": "landinggear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -4.012, Aufstand -2.742",
             "mismatch": 1.559,
             "foot": [
               -5.173,
@@ -18420,6 +18449,7 @@
           {
             "bone": "landinggear_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -4.012, Aufstand -2.742",
             "mismatch": 1.559,
             "foot": [
               0.637,
@@ -18442,6 +18472,7 @@
           {
             "bone": "landinggear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -4.012, Aufstand -2.742",
             "mismatch": 1.559,
             "foot": [
               -5.174,
@@ -18551,6 +18582,7 @@
           {
             "bone": "landinggear_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.83, Aufstand -2.56",
             "mismatch": 1.559,
             "foot": [
               0.638,
@@ -18573,6 +18605,7 @@
           {
             "bone": "landinggear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.83, Aufstand -2.56",
             "mismatch": 1.559,
             "foot": [
               -5.173,
@@ -18682,6 +18715,7 @@
           {
             "bone": "landinggear_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.83, Aufstand -2.56",
             "mismatch": 1.559,
             "foot": [
               0.638,
@@ -18704,6 +18738,7 @@
           {
             "bone": "landinggear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.83, Aufstand -2.56",
             "mismatch": 1.559,
             "foot": [
               -5.173,
@@ -22693,6 +22728,7 @@
           {
             "bone": "hardpoint_landing_gear_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -6.8, Aufstand -4",
             "mismatch": 3.212,
             "foot": [
               -0.606,
@@ -22715,6 +22751,7 @@
           {
             "bone": "hardpoint_landing_gear_rear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -6.805, Aufstand -2.625",
             "mismatch": 4.79,
             "foot": [
               -5.712,
@@ -22737,6 +22774,7 @@
           {
             "bone": "hardpoint_landing_gear_rear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -6.805, Aufstand -2.625",
             "mismatch": 4.79,
             "foot": [
               8.138,
@@ -26024,6 +26062,7 @@
           {
             "bone": "hardpoint_front_landing_gear",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -14.829, Aufstand -8.406",
             "mismatch": 5.665,
             "foot": [
               0.983,
@@ -26046,6 +26085,7 @@
           {
             "bone": "hardpoint_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -14.829, Aufstand -8.376",
             "mismatch": 5.695,
             "foot": [
               -15.704,
@@ -27207,6 +27247,7 @@
           {
             "bone": "hardpoint_turret_bottom",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -6.375, Aufstand -2.75",
             "mismatch": 3.625,
             "foot": [
               0.443,
@@ -27648,6 +27689,7 @@
           {
             "bone": "hardpoint_turret_bottom",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -6.375, Aufstand -2.75",
             "mismatch": 3.625,
             "foot": [
               0.443,
@@ -27907,6 +27949,7 @@
           {
             "bone": "hardpoint_body_landing_gear_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -9.307, Aufstand -5.261",
             "mismatch": 1.222,
             "foot": [
               -0.835,
@@ -27929,6 +27972,7 @@
           {
             "bone": "hardpoint_tail_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -11.32, Aufstand -5.267",
             "mismatch": 1.802,
             "foot": [
               -1.46,
@@ -27951,6 +27995,7 @@
           {
             "bone": "hardpoint_tail_landing_gear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -11.858, Aufstand -5.267",
             "mismatch": 1.802,
             "foot": [
               3.13,
@@ -29882,6 +29927,7 @@
           {
             "bone": "hardpoint_wing_landing_gear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -15.92, Aufstand -7.286",
             "foot": [
               -13.922,
               -7.286,
@@ -29903,6 +29949,7 @@
           {
             "bone": "hardpoint_wing_landing_gear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -12.86, Aufstand -7.286",
             "foot": [
               13.924,
               -7.286,
@@ -29924,6 +29971,7 @@
           {
             "bone": "hardpoint_landing_gear_phalange_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7.793, Aufstand -2",
             "mismatch": 4.775,
             "foot": [
               -15.527,
@@ -29946,6 +29994,7 @@
           {
             "bone": "hardpoint_landing_gear_phalange_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7.797, Aufstand -2",
             "mismatch": 4.777,
             "foot": [
               15.529,
@@ -30851,6 +30900,7 @@
           {
             "bone": "hardpoint_lg_top",
             "pose": "ruhelage",
+            "animError": "nach landing_compress Fuß bei 10.948, Aufstand 12.253",
             "mismatch": 1.277,
             "foot": [
               0.001,
@@ -35153,6 +35203,7 @@
           {
             "bone": "misc_starfarer_landinggear_right_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -16.25, Aufstand -12.2",
             "mismatch": 0.658,
             "foot": [
               16.533,
@@ -35175,6 +35226,7 @@
           {
             "bone": "misc_starfarer_landinggear_left_rear",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -13.173, Aufstand -12.236",
             "mismatch": 3.461,
             "foot": [
               -22.408,
@@ -35308,6 +35360,7 @@
           {
             "bone": "misc_starfarer_landinggear_right_front",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -16.25, Aufstand -12.2",
             "mismatch": 0.658,
             "foot": [
               16.533,
@@ -35330,6 +35383,7 @@
           {
             "bone": "misc_starfarer_landinggear_left_rear",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -13.173, Aufstand -12.236",
             "mismatch": 3.461,
             "foot": [
               -22.408,
@@ -35389,9 +35443,9 @@
           -18.194
         ],
         [
-          -1.244,
+          -5.889,
           -8.01,
-          15.13
+          10.5
         ],
         [
           1.235,
@@ -35399,65 +35453,20 @@
           15.907
         ]
       ],
-      "ground": -8.064,
+      "ground": -8.062,
       "tilt": [
-        -0.063,
-        0.201
+        -0.151,
+        0.199
       ],
       "below": [
         {
-          "node": "sole_left",
-          "depth": 1.537,
-          "gear": true
-        },
-        {
           "node": "sole_toe_left",
-          "depth": 1.529,
-          "gear": true
-        },
-        {
-          "node": "DEC_LINE_023_left",
-          "depth": 1.485,
-          "gear": true
-        },
-        {
-          "node": "DEC_LINE_002_left",
-          "depth": 1.461,
-          "gear": true
-        },
-        {
-          "node": "top_cover_plate_rear_left",
-          "depth": 1.374,
-          "gear": true
-        },
-        {
-          "node": "footplate_left",
-          "depth": 1.339,
-          "gear": true
-        },
-        {
-          "node": "frame_left",
-          "depth": 1.047,
-          "gear": true
-        },
-        {
-          "node": "rear_piston_bottom_a_geo_left",
-          "depth": 0.974,
-          "gear": true
-        },
-        {
-          "node": "rear_piston_bottom_c_geo_left",
-          "depth": 0.97,
-          "gear": true
-        },
-        {
-          "node": "rear_piston_top_geo_left",
-          "depth": 0.141,
+          "depth": 0.023,
           "gear": true
         }
       ],
-      "belowCount": 11,
-      "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
+      "belowCount": 1,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "MISC_Starlancer_LandingSystem",
         "landingOffset": [
@@ -35474,7 +35483,7 @@
           "fragment": "Landing_Gear/Deploy",
           "anim": "misc_starlancer_landinggear_deploy",
           "bones": 1,
-          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.537 m statt aus, 1.537 m)"
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.023 m statt aus, 0.023 m)"
         },
         "legs": [
           {
@@ -35500,12 +35509,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_left",
-            "pose": "ruhelage",
-            "mismatch": 1.537,
+            "pose": "landing_gear_compress 0.395",
             "foot": [
-              -1.244,
-              -9.547,
-              15.13
+              -5.889,
+              -8.01,
+              10.5
             ],
             "y": -8.01,
             "yMax": -8.403,
@@ -35560,9 +35568,9 @@
           -18.194
         ],
         [
-          -1.244,
+          -5.889,
           -8.01,
-          15.13
+          10.5
         ],
         [
           1.235,
@@ -35570,65 +35578,20 @@
           15.907
         ]
       ],
-      "ground": -8.065,
+      "ground": -8.063,
       "tilt": [
-        -0.063,
+        -0.153,
         0.202
       ],
       "below": [
         {
-          "node": "sole_left",
-          "depth": 1.536,
-          "gear": true
-        },
-        {
           "node": "sole_toe_left",
-          "depth": 1.529,
-          "gear": true
-        },
-        {
-          "node": "DEC_LINE_023_left",
-          "depth": 1.484,
-          "gear": true
-        },
-        {
-          "node": "DEC_LINE_002_left",
-          "depth": 1.46,
-          "gear": true
-        },
-        {
-          "node": "top_cover_plate_rear_left",
-          "depth": 1.373,
-          "gear": true
-        },
-        {
-          "node": "footplate_left",
-          "depth": 1.339,
-          "gear": true
-        },
-        {
-          "node": "frame_left",
-          "depth": 1.046,
-          "gear": true
-        },
-        {
-          "node": "rear_piston_bottom_a_geo_left",
-          "depth": 0.973,
-          "gear": true
-        },
-        {
-          "node": "rear_piston_bottom_c_geo_left",
-          "depth": 0.969,
-          "gear": true
-        },
-        {
-          "node": "rear_piston_top_geo_left",
-          "depth": 0.14,
+          "depth": 0.023,
           "gear": true
         }
       ],
-      "belowCount": 11,
-      "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
+      "belowCount": 1,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "MISC_Starlancer_TAC_LandingSystem",
         "landingOffset": [
@@ -35645,7 +35608,7 @@
           "fragment": "Landing_Gear/Deploy",
           "anim": "misc_starlancer_tac_landinggear_deploy",
           "bones": 1,
-          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.536 m statt aus, 1.536 m)"
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.023 m statt aus, 0.023 m)"
         },
         "legs": [
           {
@@ -35671,12 +35634,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_left",
-            "pose": "ruhelage",
-            "mismatch": 1.537,
+            "pose": "landing_gear_compress 0.395",
             "foot": [
-              -1.244,
-              -9.547,
-              15.13
+              -5.889,
+              -8.01,
+              10.5
             ],
             "y": -8.01,
             "yMax": -8.403,
@@ -35989,6 +35951,7 @@
           {
             "bone": "hardpoint_landing_gear_rear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.846, Aufstand -2.852",
             "mismatch": 0.696,
             "foot": [
               -4.067,
@@ -36011,6 +35974,7 @@
           {
             "bone": "hardpoint_landing_gear_rear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.55, Aufstand -2.849",
             "mismatch": 0.701,
             "foot": [
               4.055,
@@ -36500,6 +36464,7 @@
           {
             "bone": "hardpoint_landing_gear_rear_left",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.846, Aufstand -2.852",
             "mismatch": 0.696,
             "foot": [
               -4.067,
@@ -36522,6 +36487,7 @@
           {
             "bone": "hardpoint_landing_gear_rear_right",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -3.55, Aufstand -2.849",
             "mismatch": 0.701,
             "foot": [
               4.055,
@@ -40117,14 +40083,14 @@
       "pose": "aus",
       "contacts": [
         [
-          -9.157,
+          -8.106,
           -5.32,
-          5.532
+          5.523
         ],
         [
-          7.775,
+          8.826,
           -5.32,
-          5.54
+          5.53
         ],
         [
           -7.818,
@@ -40132,29 +40098,29 @@
           12.999
         ],
         [
-          7.745,
+          7.746,
           -5.32,
           6.666
         ],
         [
-          -9.157,
+          -7.77,
           -5.32,
-          17.255
+          15.091
         ],
         [
-          7.775,
+          9.162,
           -5.32,
-          17.262
+          15.098
         ],
         [
-          -9.157,
+          -7.771,
           -5.32,
-          22.56
+          17.485
         ],
         [
-          7.775,
+          9.161,
           -5.32,
-          22.567
+          17.492
         ]
       ],
       "ground": -5.32,
@@ -40169,52 +40135,22 @@
           "gear": true
         },
         {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
           "node": "LG_Rear2_Foot",
           "depth": 0.662,
           "gear": true
         },
         {
-          "node": "LG_Rear2_Foot",
-          "depth": 0.662,
+          "node": "LG_Rear2_PistonBottomRear",
+          "depth": 0.317,
           "gear": true
         },
         {
-          "node": "LG_Rear1_PistonBottomRear",
-          "depth": 0.474,
+          "node": "LG_Rear2_PistonBottomFront",
+          "depth": 0.317,
           "gear": true
         }
       ],
-      "belowCount": 23,
+      "belowCount": 4,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "RSI_Constellation_GS_LandingSystem",
@@ -40237,12 +40173,11 @@
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              -9.157,
-              -5.983,
-              5.532
+              -8.106,
+              -5.32,
+              5.523
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40259,12 +40194,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              7.775,
-              -5.983,
-              5.54
+              8.826,
+              -5.32,
+              5.53
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40282,6 +40216,7 @@
           {
             "bone": "hardpoint_LG_LeftRear2",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7.499, Aufstand -5.32",
             "mismatch": 2.104,
             "foot": [
               -7.818,
@@ -40303,11 +40238,10 @@
           },
           {
             "bone": "hardpoint_LG_RightRear2",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.32",
             "foot": [
-              7.745,
-              -5.982,
+              7.746,
+              -5.32,
               6.666
             ],
             "y": -5.32,
@@ -40325,12 +40259,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              -9.157,
-              -5.983,
-              17.255
+              -7.77,
+              -5.32,
+              15.091
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40347,12 +40280,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              7.775,
-              -5.983,
-              17.262
+              9.162,
+              -5.32,
+              15.098
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40369,12 +40301,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              -9.157,
-              -5.983,
-              22.56
+              -7.771,
+              -5.32,
+              17.485
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40391,12 +40322,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              7.775,
-              -5.983,
-              22.567
+              9.161,
+              -5.32,
+              17.492
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40422,14 +40352,14 @@
       "pose": "aus",
       "contacts": [
         [
-          -9.157,
+          -8.106,
           -5.32,
-          5.532
+          5.523
         ],
         [
-          7.775,
+          8.826,
           -5.32,
-          5.54
+          5.53
         ],
         [
           -7.818,
@@ -40437,29 +40367,29 @@
           12.999
         ],
         [
-          7.745,
+          7.746,
           -5.32,
           6.666
         ],
         [
-          -9.157,
+          -7.77,
           -5.32,
-          17.255
+          15.091
         ],
         [
-          7.775,
+          9.162,
           -5.32,
-          17.262
+          15.098
         ],
         [
-          -9.157,
+          -7.771,
           -5.32,
-          22.56
+          17.485
         ],
         [
-          7.775,
+          9.161,
           -5.32,
-          22.567
+          17.492
         ]
       ],
       "ground": -5.32,
@@ -40474,52 +40404,22 @@
           "gear": true
         },
         {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
           "node": "LG_Rear2_Foot",
           "depth": 0.662,
           "gear": true
         },
         {
-          "node": "LG_Rear2_Foot",
-          "depth": 0.662,
+          "node": "LG_Rear2_PistonBottomRear",
+          "depth": 0.317,
           "gear": true
         },
         {
-          "node": "LG_Rear1_PistonBottomRear",
-          "depth": 0.474,
+          "node": "LG_Rear2_PistonBottomFront",
+          "depth": 0.317,
           "gear": true
         }
       ],
-      "belowCount": 23,
+      "belowCount": 4,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "RSI_Constellation_GS_LandingSystem",
@@ -40542,12 +40442,11 @@
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              -9.157,
-              -5.983,
-              5.532
+              -8.106,
+              -5.32,
+              5.523
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40564,12 +40463,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              7.775,
-              -5.983,
-              5.54
+              8.826,
+              -5.32,
+              5.53
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40587,6 +40485,7 @@
           {
             "bone": "hardpoint_LG_LeftRear2",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7.499, Aufstand -5.32",
             "mismatch": 2.104,
             "foot": [
               -7.818,
@@ -40608,11 +40507,10 @@
           },
           {
             "bone": "hardpoint_LG_RightRear2",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.32",
             "foot": [
-              7.745,
-              -5.982,
+              7.746,
+              -5.32,
               6.666
             ],
             "y": -5.32,
@@ -40630,12 +40528,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              -9.157,
-              -5.983,
-              17.255
+              -7.77,
+              -5.32,
+              15.091
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40652,12 +40549,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              7.775,
-              -5.983,
-              17.262
+              9.162,
+              -5.32,
+              15.098
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40674,12 +40570,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              -9.157,
-              -5.983,
-              22.56
+              -7.771,
+              -5.32,
+              17.485
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40696,12 +40591,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              7.775,
-              -5.983,
-              22.567
+              9.161,
+              -5.32,
+              17.492
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -40727,14 +40621,14 @@
       "pose": "aus",
       "contacts": [
         [
-          -10.158,
+          -9.108,
           -4.82,
-          5.469
+          5.46
         ],
         [
-          8.776,
+          9.826,
           -4.819,
-          5.477
+          5.467
         ],
         [
           -8.819,
@@ -40742,29 +40636,29 @@
           12.936
         ],
         [
-          8.745,
+          8.746,
           -4.819,
           6.603
         ],
         [
-          -10.158,
+          -8.771,
           -4.82,
-          17.192
+          15.028
         ],
         [
-          8.776,
+          10.162,
           -4.819,
-          17.199
+          15.035
         ],
         [
-          -10.158,
+          -8.772,
           -4.82,
-          22.497
+          17.422
         ],
         [
-          8.776,
+          10.161,
           -4.819,
-          22.504
+          17.429
         ]
       ],
       "ground": -4.819,
@@ -40779,52 +40673,22 @@
           "gear": true
         },
         {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.664,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.664,
-          "gear": true
-        },
-        {
           "node": "LG_Rear2_Foot",
           "depth": 0.664,
           "gear": true
         },
         {
-          "node": "LG_Rear2_Foot",
-          "depth": 0.664,
+          "node": "LG_Rear2_PistonBottomRear",
+          "depth": 0.318,
           "gear": true
         },
         {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.664,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.664,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.664,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.664,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear1_PistonBottomRear",
-          "depth": 0.475,
+          "node": "LG_Rear2_PistonBottomFront",
+          "depth": 0.318,
           "gear": true
         }
       ],
-      "belowCount": 23,
+      "belowCount": 4,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "RSI_Constellation_Phoenix_GS_LandingSystem",
@@ -40847,12 +40711,11 @@
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              -10.158,
-              -5.483,
-              5.469
+              -9.108,
+              -4.82,
+              5.46
             ],
             "y": -4.82,
             "yMax": -5.128,
@@ -40869,12 +40732,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              8.776,
-              -5.482,
-              5.477
+              9.826,
+              -4.819,
+              5.467
             ],
             "y": -4.819,
             "yMax": -5.127,
@@ -40892,6 +40754,7 @@
           {
             "bone": "hardpoint_LG_LeftRear2",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7, Aufstand -4.82",
             "mismatch": 2.104,
             "foot": [
               -8.819,
@@ -40913,11 +40776,10 @@
           },
           {
             "bone": "hardpoint_LG_RightRear2",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.32",
             "foot": [
-              8.745,
-              -5.482,
+              8.746,
+              -4.819,
               6.603
             ],
             "y": -4.819,
@@ -40935,12 +40797,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              -10.158,
-              -5.483,
-              17.192
+              -8.771,
+              -4.82,
+              15.028
             ],
             "y": -4.82,
             "yMax": -5.128,
@@ -40957,12 +40818,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              8.776,
-              -5.482,
-              17.199
+              10.162,
+              -4.819,
+              15.035
             ],
             "y": -4.819,
             "yMax": -5.127,
@@ -40979,12 +40839,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              -10.158,
-              -5.484,
-              22.497
+              -8.772,
+              -4.82,
+              17.422
             ],
             "y": -4.82,
             "yMax": -5.128,
@@ -41001,12 +40860,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              8.776,
-              -5.483,
-              22.504
+              10.161,
+              -4.819,
+              17.429
             ],
             "y": -4.819,
             "yMax": -5.127,
@@ -41032,34 +40890,34 @@
       "pose": "aus",
       "contacts": [
         [
-          -9.989,
+          -9.988,
           -4.82,
-          -0.478
+          -0.479
         ],
         [
           8.945,
           -4.819,
-          -0.47
+          -0.472
         ],
         [
-          -7.528,
+          -9.587,
           -4.82,
-          5.579
+          8.71
         ],
         [
-          8.891,
+          9.347,
           -4.819,
-          9.44
+          8.718
         ],
         [
-          -8.984,
+          -8.983,
           -4.82,
-          12.898
+          13.125
         ],
         [
-          8.788,
+          10.175,
           -4.819,
-          13.439
+          11.275
         ],
         [
           -8.945,
@@ -41084,26 +40942,6 @@
           "gear": true
         },
         {
-          "node": "BONE_LG_Rear3_PistonBottom",
-          "depth": 1.577,
-          "gear": true
-        },
-        {
-          "node": "BONE_LG_Rear2_PistonBottomRear",
-          "depth": 0.792,
-          "gear": true
-        },
-        {
-          "node": "BONE_LG_Rear1_Foot",
-          "depth": 0.667,
-          "gear": true
-        },
-        {
-          "node": "BONE_LG_Rear1_Foot",
-          "depth": 0.667,
-          "gear": true
-        },
-        {
           "node": "LG_Rear4_Root",
           "depth": 0.666,
           "gear": true
@@ -41114,22 +40952,22 @@
           "gear": true
         },
         {
-          "node": "BONE_LG_Rear2_Foot",
-          "depth": 0.665,
+          "node": "BONE_LG_Rear4_Toe",
+          "depth": 0.64,
           "gear": true
         },
         {
-          "node": "BONE_LG_Rear2_Foot",
-          "depth": 0.665,
+          "node": "BONE_LG_Rear4_Foot",
+          "depth": 0.631,
           "gear": true
         },
         {
-          "node": "BONE_LG_Rear3_Foot",
-          "depth": 0.665,
+          "node": "BONE_LG_Rear4_Foot",
+          "depth": 0.631,
           "gear": true
         }
       ],
-      "belowCount": 21,
+      "belowCount": 6,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "RSI_Constellation_Phoenix_LandingSystem",
@@ -41152,12 +40990,11 @@
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.666,
+            "pose": "landing_gear_compress 0.322",
             "foot": [
-              -9.989,
-              -5.486,
-              -0.478
+              -9.988,
+              -4.82,
+              -0.479
             ],
             "y": -4.82,
             "yMax": -5.128,
@@ -41174,12 +41011,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.666,
+            "pose": "landing_gear_compress 0.322",
             "foot": [
               8.945,
-              -5.485,
-              -0.47
+              -4.819,
+              -0.472
             ],
             "y": -4.819,
             "yMax": -5.127,
@@ -41196,12 +41032,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear2",
-            "pose": "ruhelage",
-            "mismatch": 0.791,
+            "pose": "landing_gear_compress 1",
             "foot": [
-              -7.528,
-              -5.611,
-              5.579
+              -9.587,
+              -4.82,
+              8.71
             ],
             "y": -4.82,
             "yMax": -5.128,
@@ -41218,12 +41053,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear2",
-            "pose": "ruhelage",
-            "mismatch": 0.664,
+            "pose": "landing_gear_compress 1",
             "foot": [
-              8.891,
-              -5.484,
-              9.44
+              9.347,
+              -4.819,
+              8.718
             ],
             "y": -4.819,
             "yMax": -5.127,
@@ -41240,12 +41074,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear3",
-            "pose": "ruhelage",
-            "mismatch": 1.576,
+            "pose": "landing_gear_compress 1",
             "foot": [
-              -8.984,
-              -6.397,
-              12.898
+              -8.983,
+              -4.82,
+              13.125
             ],
             "y": -4.82,
             "yMax": -5.128,
@@ -41262,12 +41095,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.664,
+            "pose": "landing_gear_compress 0.525",
             "foot": [
-              8.788,
-              -5.484,
-              13.439
+              10.175,
+              -4.819,
+              11.275
             ],
             "y": -4.819,
             "yMax": -5.127,
@@ -41285,6 +41117,7 @@
           {
             "bone": "hardpoint_LG_LeftRear4",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7.629, Aufstand -4.82",
             "mismatch": 4.065,
             "foot": [
               -8.945,
@@ -41307,6 +41140,7 @@
           {
             "bone": "hardpoint_LG_RightRear4",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -5.485, Aufstand -4.819",
             "mismatch": 0.666,
             "foot": [
               9.988,
@@ -41327,7 +41161,11 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          0.318,
+          0.318,
+          0.202
+        ]
       },
       "hullLowest": -3.724,
       "record": "RSI_Constellation_Phoenix_Emerald",
@@ -41337,14 +41175,14 @@
       "pose": "aus",
       "contacts": [
         [
-          -9.157,
+          -8.106,
           -5.32,
-          12.674
+          12.665
         ],
         [
-          7.775,
+          8.826,
           -5.32,
-          12.682
+          12.672
         ],
         [
           -7.818,
@@ -41352,29 +41190,29 @@
           20.141
         ],
         [
-          7.745,
+          7.746,
           -5.32,
           13.808
         ],
         [
-          -9.157,
+          -7.77,
           -5.32,
-          24.397
+          22.233
         ],
         [
-          7.775,
+          9.162,
           -5.32,
-          24.404
+          22.24
         ],
         [
-          -9.157,
+          -7.771,
           -5.32,
-          29.702
+          24.627
         ],
         [
-          7.775,
+          9.161,
           -5.32,
-          29.709
+          24.634
         ]
       ],
       "ground": -5.32,
@@ -41389,52 +41227,22 @@
           "gear": true
         },
         {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear1_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear3_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
-          "node": "LG_Rear4_Foot",
-          "depth": 0.663,
-          "gear": true
-        },
-        {
           "node": "LG_Rear2_Foot",
           "depth": 0.662,
           "gear": true
         },
         {
-          "node": "LG_Rear2_Foot",
-          "depth": 0.662,
+          "node": "LG_Rear2_PistonBottomRear",
+          "depth": 0.317,
           "gear": true
         },
         {
-          "node": "LG_Rear1_PistonBottomRear",
-          "depth": 0.474,
+          "node": "LG_Rear2_PistonBottomFront",
+          "depth": 0.317,
           "gear": true
         }
       ],
-      "belowCount": 23,
+      "belowCount": 4,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "RSI_Constellation_Taurus_GS_LandingSystem",
@@ -41457,12 +41265,11 @@
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              -9.157,
-              -5.983,
-              12.674
+              -8.106,
+              -5.32,
+              12.665
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -41479,12 +41286,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear1",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.447",
             "foot": [
-              7.775,
-              -5.983,
-              12.682
+              8.826,
+              -5.32,
+              12.672
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -41502,6 +41308,7 @@
           {
             "bone": "hardpoint_LG_LeftRear2",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -7.499, Aufstand -5.32",
             "mismatch": 2.104,
             "foot": [
               -7.818,
@@ -41523,11 +41330,10 @@
           },
           {
             "bone": "hardpoint_LG_RightRear2",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.32",
             "foot": [
-              7.745,
-              -5.982,
+              7.746,
+              -5.32,
               13.808
             ],
             "y": -5.32,
@@ -41545,12 +41351,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              -9.157,
-              -5.983,
-              24.397
+              -7.77,
+              -5.32,
+              22.233
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -41567,12 +41372,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear3",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.524",
             "foot": [
-              7.775,
-              -5.983,
-              24.404
+              9.162,
+              -5.32,
+              22.24
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -41589,12 +41393,11 @@
           },
           {
             "bone": "hardpoint_LG_LeftRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              -9.157,
-              -5.983,
-              29.702
+              -7.771,
+              -5.32,
+              24.627
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -41611,12 +41414,11 @@
           },
           {
             "bone": "hardpoint_LG_RightRear4",
-            "pose": "ruhelage",
-            "mismatch": 0.663,
+            "pose": "landing_gear_compress 0.347",
             "foot": [
-              7.775,
-              -5.983,
-              29.709
+              9.161,
+              -5.32,
+              24.634
             ],
             "y": -5.32,
             "yMax": -5.628,
@@ -43915,24 +43717,24 @@
       "pose": "aus",
       "contacts": [
         [
-          -14.233,
+          -14.257,
           -5,
-          -7.652
+          -7.495
         ],
         [
-          14.233,
+          14.257,
           -5,
-          -7.652
+          -7.495
         ],
         [
-          -3.71,
+          -5.093,
           -5,
-          4.808
+          5.676
         ],
         [
-          4.692,
+          4.765,
           -5,
-          4.351
+          4.419
         ]
       ],
       "ground": -5,
@@ -43940,50 +43742,9 @@
         0,
         0
       ],
-      "below": [
-        {
-          "node": "anim_foot_front_left",
-          "depth": 0.91,
-          "gear": true
-        },
-        {
-          "node": "anim_foot_front_right",
-          "depth": 0.91,
-          "gear": true
-        },
-        {
-          "node": "anim_foot_rear_left",
-          "depth": 0.803,
-          "gear": true
-        },
-        {
-          "node": "anim_foot_rear_right",
-          "depth": 0.79,
-          "gear": true
-        },
-        {
-          "node": "anim_tibia_front_left",
-          "depth": 0.511,
-          "gear": true
-        },
-        {
-          "node": "anim_tibia_front_right",
-          "depth": 0.511,
-          "gear": true
-        },
-        {
-          "node": "anim_ankle_rear_right",
-          "depth": 0.424,
-          "gear": true
-        },
-        {
-          "node": "anim_ankle_rear_left",
-          "depth": 0.419,
-          "gear": true
-        }
-      ],
-      "belowCount": 8,
-      "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
+      "below": [],
+      "belowCount": 0,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "VNCL_Stinger_LandingSystem",
         "landingOffset": [
@@ -44000,17 +43761,16 @@
           "fragment": "Landing_Gear/Deploy",
           "anim": "landing_gear_deploy",
           "bones": 12,
-          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.91 m statt aus, 0.91 m)"
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
         },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front_left",
-            "pose": "ruhelage",
-            "mismatch": 0.91,
+            "pose": "landing_gear_compress 0.994",
             "foot": [
-              -14.233,
-              -5.91,
-              -7.652
+              -14.257,
+              -5,
+              -7.495
             ],
             "y": -5,
             "yMax": -6.656,
@@ -44027,12 +43787,11 @@
           },
           {
             "bone": "hardpoint_landinggear_front_right",
-            "pose": "ruhelage",
-            "mismatch": 0.91,
+            "pose": "landing_gear_compress 0.994",
             "foot": [
-              14.233,
-              -5.91,
-              -7.652
+              14.257,
+              -5,
+              -7.495
             ],
             "y": -5,
             "yMax": -6.656,
@@ -44049,12 +43808,11 @@
           },
           {
             "bone": "hardpoint_landinggear_rear_left",
-            "pose": "ruhelage",
-            "mismatch": 0.803,
+            "pose": "landing_gear_compress 1",
             "foot": [
-              -3.71,
-              -5.803,
-              4.808
+              -5.093,
+              -5,
+              5.676
             ],
             "y": -5,
             "yMax": -6.656,
@@ -44071,12 +43829,11 @@
           },
           {
             "bone": "hardpoint_landinggear_rear_right",
-            "pose": "ruhelage",
-            "mismatch": 0.79,
+            "pose": "landing_gear_compress 1",
             "foot": [
-              4.692,
-              -5.79,
-              4.351
+              4.765,
+              -5,
+              4.419
             ],
             "y": -5,
             "yMax": -6.656,
@@ -44092,7 +43849,10 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          0.003,
+          0.007
+        ]
       },
       "hullLowest": -5.005,
       "record": "VNCL_Stinger",
@@ -44636,79 +44396,79 @@
           -53.833
         ],
         [
-          22.288,
+          23.949,
           -25.43,
-          -53.281
+          -34.601
         ],
         [
-          -16.886,
+          -17.241,
           -26.168,
-          51.908
+          42.416
         ],
         [
-          16.333,
+          17.235,
           -26.168,
-          51.908
+          42.397
         ]
       ],
-      "ground": -25.805,
+      "ground": -25.808,
       "tilt": [
-        0.003,
-        -0.401
+        0.129,
+        -0.483
       ],
       "below": [
         {
-          "node": "LG_R_Front_UpLeg_Ankle2_Skin_bn",
-          "depth": 2.252,
-          "gear": true
-        },
-        {
           "node": "LG_L_Front_UpLeg_Ankle2_Skin_bn",
-          "depth": 2.249,
+          "depth": 2.274,
           "gear": true
         },
         {
           "node": "Front_Landing_Gear_Left",
-          "depth": 2.223,
-          "gear": true
-        },
-        {
-          "node": "LG_R_Front_UpLeg_Foot_Skin_bn",
-          "depth": 2.146,
+          "depth": 2.249,
           "gear": true
         },
         {
           "node": "LG_L_Front_UpLeg_Foot_Skin_bn",
-          "depth": 2.144,
-          "gear": true
-        },
-        {
-          "node": "LG_R_Rear_UpLeg_Foot_Skin_bn",
-          "depth": 1.624,
-          "gear": true
-        },
-        {
-          "node": "LG_L_Rear_UpLeg_Foot_Skin_bn",
-          "depth": 1.623,
-          "gear": true
-        },
-        {
-          "node": "LG_R_Rear_UpLeg_Ankle_Skin_bn",
-          "depth": 1.591,
-          "gear": true
-        },
-        {
-          "node": "LG_L_Rear_UpLeg_Ankle_Skin_bn",
-          "depth": 1.59,
+          "depth": 2.148,
           "gear": true
         },
         {
           "node": "LG_L_Front_UpLeg_Ankle1_Skin_bn",
-          "depth": 1.205,
+          "depth": 1.21,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootRPiston1b_Skin_bn",
+          "depth": 0.89,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_HeelRPiston1_Skin_bn",
+          "depth": 0.871,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootLPiston4_Skin_bn",
+          "depth": 0.475,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_HeelLPiston2_Skin_bn",
+          "depth": 0.456,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootRPiston3_Skin_bn",
+          "depth": 0.371,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootLPiston3_Skin_bn",
+          "depth": 0.337,
           "gear": true
         }
       ],
-      "belowCount": 29,
+      "belowCount": 11,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "AEGS_Idris_LandingSystem",
@@ -44729,6 +44489,7 @@
           {
             "bone": "Hardpoint_LandingGear_FL",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -27.65, Aufstand -25.43",
             "mismatch": 2.249,
             "foot": [
               -22.33,
@@ -44750,12 +44511,11 @@
           },
           {
             "bone": "Hardpoint_LandingGear_FR",
-            "pose": "ruhelage",
-            "mismatch": 2.249,
+            "pose": "landing_gear_compress 0.596",
             "foot": [
-              22.288,
-              -27.679,
-              -53.281
+              23.949,
+              -25.43,
+              -34.601
             ],
             "y": -25.43,
             "yMax": -31.1,
@@ -44772,12 +44532,11 @@
           },
           {
             "bone": "Hardpoint_LandingGear_RL",
-            "pose": "ruhelage",
-            "mismatch": 1.528,
+            "pose": "landing_gear_compress 0.575",
             "foot": [
-              -16.886,
-              -27.696,
-              51.908
+              -17.241,
+              -26.168,
+              42.416
             ],
             "y": -26.168,
             "yMax": -32.848,
@@ -44794,12 +44553,11 @@
           },
           {
             "bone": "Hardpoint_LandingGear_RR",
-            "pose": "ruhelage",
-            "mismatch": 1.528,
+            "pose": "landing_gear_compress 0.575",
             "foot": [
-              16.333,
-              -27.696,
-              51.908
+              17.235,
+              -26.168,
+              42.397
             ],
             "y": -26.168,
             "yMax": -32.848,
@@ -44815,7 +44573,9 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          0
+        ]
       },
       "hullLowest": -17.93,
       "record": "AEGS_Idris_M",
@@ -44830,79 +44590,79 @@
           -53.833
         ],
         [
-          22.288,
+          23.949,
           -25.43,
-          -53.281
+          -34.601
         ],
         [
-          -16.886,
+          -17.241,
           -26.168,
-          51.908
+          42.416
         ],
         [
-          16.333,
+          17.235,
           -26.168,
-          51.908
+          42.397
         ]
       ],
-      "ground": -25.805,
+      "ground": -25.808,
       "tilt": [
-        0.003,
-        -0.401
+        0.129,
+        -0.483
       ],
       "below": [
         {
-          "node": "LG_R_Front_UpLeg_Ankle2_Skin_bn",
-          "depth": 2.252,
-          "gear": true
-        },
-        {
           "node": "LG_L_Front_UpLeg_Ankle2_Skin_bn",
-          "depth": 2.249,
+          "depth": 2.274,
           "gear": true
         },
         {
           "node": "Front_Landing_Gear_Left",
-          "depth": 2.223,
-          "gear": true
-        },
-        {
-          "node": "LG_R_Front_UpLeg_Foot_Skin_bn",
-          "depth": 2.146,
+          "depth": 2.249,
           "gear": true
         },
         {
           "node": "LG_L_Front_UpLeg_Foot_Skin_bn",
-          "depth": 2.144,
-          "gear": true
-        },
-        {
-          "node": "LG_R_Rear_UpLeg_Foot_Skin_bn",
-          "depth": 1.624,
-          "gear": true
-        },
-        {
-          "node": "LG_L_Rear_UpLeg_Foot_Skin_bn",
-          "depth": 1.623,
-          "gear": true
-        },
-        {
-          "node": "LG_R_Rear_UpLeg_Ankle_Skin_bn",
-          "depth": 1.591,
-          "gear": true
-        },
-        {
-          "node": "LG_L_Rear_UpLeg_Ankle_Skin_bn",
-          "depth": 1.59,
+          "depth": 2.148,
           "gear": true
         },
         {
           "node": "LG_L_Front_UpLeg_Ankle1_Skin_bn",
-          "depth": 1.205,
+          "depth": 1.21,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootRPiston1b_Skin_bn",
+          "depth": 0.89,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_HeelRPiston1_Skin_bn",
+          "depth": 0.871,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootLPiston4_Skin_bn",
+          "depth": 0.475,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_HeelLPiston2_Skin_bn",
+          "depth": 0.456,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootRPiston3_Skin_bn",
+          "depth": 0.371,
+          "gear": true
+        },
+        {
+          "node": "LG_L_Front_FootLPiston3_Skin_bn",
+          "depth": 0.337,
           "gear": true
         }
       ],
-      "belowCount": 29,
+      "belowCount": 11,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "AEGS_Idris_LandingSystem",
@@ -44923,6 +44683,7 @@
           {
             "bone": "Hardpoint_LandingGear_FL",
             "pose": "ruhelage",
+            "animError": "nach landing_gear_compress Fuß bei -27.65, Aufstand -25.43",
             "mismatch": 2.249,
             "foot": [
               -22.33,
@@ -44944,12 +44705,11 @@
           },
           {
             "bone": "Hardpoint_LandingGear_FR",
-            "pose": "ruhelage",
-            "mismatch": 2.249,
+            "pose": "landing_gear_compress 0.596",
             "foot": [
-              22.288,
-              -27.679,
-              -53.281
+              23.949,
+              -25.43,
+              -34.601
             ],
             "y": -25.43,
             "yMax": -31.1,
@@ -44966,12 +44726,11 @@
           },
           {
             "bone": "Hardpoint_LandingGear_RL",
-            "pose": "ruhelage",
-            "mismatch": 1.528,
+            "pose": "landing_gear_compress 0.575",
             "foot": [
-              -16.886,
-              -27.696,
-              51.908
+              -17.241,
+              -26.168,
+              42.416
             ],
             "y": -26.168,
             "yMax": -32.848,
@@ -44988,12 +44747,11 @@
           },
           {
             "bone": "Hardpoint_LandingGear_RR",
-            "pose": "ruhelage",
-            "mismatch": 1.528,
+            "pose": "landing_gear_compress 0.575",
             "foot": [
-              16.333,
-              -27.696,
-              51.908
+              17.235,
+              -26.168,
+              42.397
             ],
             "y": -26.168,
             "yMax": -32.848,
@@ -45009,7 +44767,9 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          0
+        ]
       },
       "hullLowest": -17.93,
       "record": "AEGS_Idris_P",
@@ -45637,95 +45397,44 @@
       "pose": "aus",
       "contacts": [
         [
-          -10.797,
+          -10.715,
           -13.504,
           2.294
         ],
         [
-          10.812,
+          10.728,
           -13.493,
           2.294
         ],
         [
-          -10.562,
+          -10.938,
           -13.504,
-          -0.505
+          -2.31
         ],
         [
-          10.576,
+          10.971,
           -13.493,
-          -4.954
+          -2.091
         ],
         [
-          -10.591,
+          -10.511,
           -13.494,
-          13.668
+          13.685
         ],
         [
-          10.606,
+          10.523,
           -13.483,
-          13.668
+          13.681
         ]
       ],
       "ground": -13.498,
       "tilt": [
-        0.032,
-        0.037
+        0.029,
+        0.039
       ],
-      "below": [
-        {
-          "node": "dec_lg_foot_mid_left_b001",
-          "depth": 0.969,
-          "gear": true
-        },
-        {
-          "node": "DEC_QUAD_018",
-          "depth": 0.967,
-          "gear": true
-        },
-        {
-          "node": "geo_foot_a_base_top004",
-          "depth": 0.965,
-          "gear": true
-        },
-        {
-          "node": "geo_lg_foot_c_side_plate_left",
-          "depth": 0.962,
-          "gear": true
-        },
-        {
-          "node": "dec_lg_foot_c_side_plate_left",
-          "depth": 0.96,
-          "gear": true
-        },
-        {
-          "node": "dec_lg_foot_b_side_plate_left",
-          "depth": 0.958,
-          "gear": true
-        },
-        {
-          "node": "geo_lg_foot_c_side_plate_right",
-          "depth": 0.954,
-          "gear": true
-        },
-        {
-          "node": "geo_lg_foot_a_side_plate_right003",
-          "depth": 0.953,
-          "gear": true
-        },
-        {
-          "node": "geo_lg_foot_base_front_left003_mirror",
-          "depth": 0.946,
-          "gear": true
-        },
-        {
-          "node": "dec_g_foot_a_side_plate_inside_right",
-          "depth": 0.946,
-          "gear": true
-        }
-      ],
-      "belowCount": 103,
-      "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
+      "below": [],
+      "belowCount": 0,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "RSI_Constellation_Mk5_LandingSystem",
         "landingOffset": [
@@ -45738,14 +45447,19 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "Landing_Deploy",
+          "bones": 20,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_center_left",
-            "pose": "ruhelage",
-            "mismatch": 0.963,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.596",
             "foot": [
-              -10.797,
-              -14.467,
+              -10.715,
+              -13.504,
               2.294
             ],
             "y": -13.504,
@@ -45763,11 +45477,10 @@
           },
           {
             "bone": "hardpoint_landing_gear_center_right",
-            "pose": "ruhelage",
-            "mismatch": 0.966,
+            "pose": "landing_gear_compress 0.597",
             "foot": [
-              10.812,
-              -14.459,
+              10.728,
+              -13.493,
               2.294
             ],
             "y": -13.493,
@@ -45785,12 +45498,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_front_left",
-            "pose": "ruhelage",
-            "mismatch": 0.967,
+            "pose": "landing_gear_compress 0.848",
             "foot": [
-              -10.562,
-              -14.471,
-              -0.505
+              -10.938,
+              -13.504,
+              -2.31
             ],
             "y": -13.504,
             "yMax": -14.944,
@@ -45807,12 +45519,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_front_right",
-            "pose": "ruhelage",
-            "mismatch": 0.963,
+            "pose": "landing_gear_compress 0.866",
             "foot": [
-              10.576,
-              -14.457,
-              -4.954
+              10.971,
+              -13.493,
+              -2.091
             ],
             "y": -13.493,
             "yMax": -14.933,
@@ -45829,12 +45540,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_left",
-            "pose": "ruhelage",
-            "mismatch": 0.943,
+            "pose": "landing_gear_compress 0.762",
             "foot": [
-              -10.591,
-              -14.437,
-              13.668
+              -10.511,
+              -13.494,
+              13.685
             ],
             "y": -13.494,
             "yMax": -14.966,
@@ -45851,12 +45561,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_right",
-            "pose": "ruhelage",
-            "mismatch": 0.946,
+            "pose": "landing_gear_compress 0.756",
             "foot": [
-              10.606,
-              -14.429,
-              13.668
+              10.523,
+              -13.483,
+              13.681
             ],
             "y": -13.483,
             "yMax": -14.955,
@@ -45872,7 +45581,11 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          0,
+          0,
+          0
+        ]
       },
       "hullLowest": -10.667,
       "record": "RSI_Constellation_Mk5_Centaurus",
@@ -46924,15 +46637,15 @@
     },
     "misc-starlancer-max": {
       "url": "/hangar/geo/misc-starlancer-max.glb",
-      "tris": 63893,
-      "bytes": 524516,
-      "v": "6757f045"
+      "tris": 62675,
+      "bytes": 522956,
+      "v": "b7bace9b"
     },
     "misc-starlancer-tac": {
       "url": "/hangar/geo/misc-starlancer-tac.glb",
-      "tris": 62076,
-      "bytes": 551392,
-      "v": "d5521d42"
+      "tris": 61662,
+      "bytes": 548068,
+      "v": "1633d2c3"
     },
     "misc-starlite": {
       "url": "/hangar/geo/misc-starlite.glb",
@@ -47146,33 +46859,33 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/geo/rsi-constellation-andromeda.glb",
-      "tris": 91546,
-      "bytes": 599968,
-      "v": "f3d9c94e"
+      "tris": 91597,
+      "bytes": 600516,
+      "v": "2b1a3b4d"
     },
     "rsi-constellation-aquila": {
       "url": "/hangar/geo/rsi-constellation-aquila.glb",
-      "tris": 88800,
-      "bytes": 591936,
-      "v": "000a115b"
+      "tris": 88667,
+      "bytes": 592684,
+      "v": "226acb2c"
     },
     "rsi-constellation-phoenix": {
       "url": "/hangar/geo/rsi-constellation-phoenix.glb",
-      "tris": 80219,
-      "bytes": 578060,
-      "v": "0f5b9ad9"
+      "tris": 80410,
+      "bytes": 578892,
+      "v": "f2122e17"
     },
     "rsi-constellation-phoenix-emerald": {
       "url": "/hangar/geo/rsi-constellation-phoenix-emerald.glb",
-      "tris": 70717,
-      "bytes": 510556,
-      "v": "4b68a7f2"
+      "tris": 70425,
+      "bytes": 509532,
+      "v": "9e2360c8"
     },
     "rsi-constellation-taurus": {
       "url": "/hangar/geo/rsi-constellation-taurus.glb",
-      "tris": 73244,
-      "bytes": 499064,
-      "v": "5a929c4d"
+      "tris": 73000,
+      "bytes": 498824,
+      "v": "de22d54c"
     },
     "rsi-hermes": {
       "url": "/hangar/geo/rsi-hermes.glb",
@@ -47302,9 +47015,9 @@
     },
     "vncl-stinger": {
       "url": "/hangar/geo/vncl-stinger.glb",
-      "tris": 85315,
-      "bytes": 385924,
-      "v": "36c5a38e"
+      "tris": 84763,
+      "bytes": 384336,
+      "v": "9e86f77d"
     },
     "xian-nox": {
       "url": "/hangar/geo/xian-nox.glb",
@@ -47350,15 +47063,15 @@
     },
     "aegs-idris-m": {
       "url": "/hangar/geo/aegs-idris-m.glb",
-      "tris": 89328,
-      "bytes": 445712,
-      "v": "c4b3017f"
+      "tris": 89451,
+      "bytes": 447720,
+      "v": "afac83b3"
     },
     "aegs-idris-p": {
       "url": "/hangar/geo/aegs-idris-p.glb",
-      "tris": 73428,
-      "bytes": 357788,
-      "v": "ac669276"
+      "tris": 73549,
+      "bytes": 359892,
+      "v": "6d455ca1"
     },
     "drak-ironclad": {
       "url": "/hangar/geo/drak-ironclad.glb",
@@ -47374,9 +47087,9 @@
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/geo/rsi-constellation-mk5-centaurus.glb",
-      "tris": 62166,
-      "bytes": 383716,
-      "v": "75e88f2c"
+      "tris": 63301,
+      "bytes": 390576,
+      "v": "c36e428a"
     },
     "rsi-perseus": {
       "url": "/hangar/geo/rsi-perseus.glb",
