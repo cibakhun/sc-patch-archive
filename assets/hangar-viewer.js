@@ -11133,7 +11133,12 @@ void main() {
   const mSize = new THREE.Vector2(), mClear = new THREE.Color();
   const mBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
   function renderMirror() {
+    // Ohne Karte, solange er zeichnet: Teile mit Hallenmaterial, die nicht in
+    // realHall.model hängen (Rand, Schacht, Werkhalle), läsen sonst das Ziel,
+    // in das sie gerade zeichnen. WebGL verwarf diese Aufrufe (Rückkopplung,
+    // je Bild eine Warnung), ihr Spiegelbild fehlte.
     hallRefl.on.value = 0;
+    hallRefl.tex.value = null;
     if (!MIRROR || level !== 'hoch' || !composer || !realHall?.model || !realHall.envOn || !current || trip || ort === 'werk') return;
     camera.updateMatrixWorld();
     mC.setFromMatrixPosition(camera.matrixWorld);
