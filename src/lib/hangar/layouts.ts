@@ -100,18 +100,24 @@ export interface LayoutData {
 
 /**
  * Lackierungen eines Schiffs: base = Serienpalette [Haupt, Zweit, Akzent] als
- * #rrggbb, list = [kennung, name, haupt, zweit, akzent, muster 1|0]. muster:
- * die Lackierung bringt eigene Texturen mit, die Vorschau zeigt nur ihre Farben.
+ * #rrggbb, list = [kennung, name, haupt, zweit, akzent, muster 1|0, glanz?].
+ * muster: die Lackierung bringt eigene Texturen mit, die Vorschau zeigt nur
+ * ihre Farben. glanz: je Kanal [Glanzfarbe #rrggbb, Glaette 0..255], wo die
+ * Daten sie tragen; damit rechnet der Viewer Metall und Rauheit (palettePbr).
  */
+export type PaintFinish = readonly [specular: string, gloss: number];
 export interface ShipPaints {
   readonly base: readonly [string, string, string];
-  readonly list: readonly (readonly [id: string, name: string, a: string, b: string, c: string, pattern: 1 | 0])[];
+  readonly list: readonly (readonly [id: string, name: string, a: string, b: string, c: string, pattern: 1 | 0, fin?: readonly [PaintFinish, PaintFinish, PaintFinish]])[];
 }
 
 // Optional: src/data/ship-paints.json entsteht auf dem Rechner mit den
 // Spieldaten (npm run datamine:paints). Ohne die Datei baut die Seite weiter,
 // die Werkstatt zeigt dann keinen Reiter Lackierung.
-type PaintRow = { id: string; name: string; a: string; b: string; c: string; pattern?: boolean };
+// finish (optional, je Kanal): Glanzfarbe und Glaette der Palette, Schluessel
+// wie palette.finish in den Lack-Bauplaenen (public/hangar/paints/<schiff>.json).
+type Finish = Partial<Record<'a' | 'b' | 'c', { specular?: string; gloss?: number }>>;
+type PaintRow = { id: string; name: string; a: string; b: string; c: string; pattern?: boolean; finish?: Finish };
 type PaintFile = { ships?: Record<string, { base: { a: string; b: string; c: string }; paints: PaintRow[] }> };
 const PAINT_FILE = (Object.values(import.meta.glob('../../data/ship-paints.json', { eager: true, import: 'default' }))[0] ?? {}) as PaintFile;
 const HEX = /^#[0-9a-f]{6}$/;
@@ -406,7 +412,12 @@ function build(): LayoutData {
       const col = [hx(r.a), hx(r.b), hx(r.c)];
       const id = String(r.id ?? '').toLowerCase();
       if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id) || typeof r.name !== 'string' || !r.name.trim() || col.some((c) => !c)) return [];
-      return [[id, r.name.trim(), col[0]!, col[1]!, col[2]!, r.pattern ? 1 : 0] as const];
+      const fin = (['a', 'b', 'c'] as const).map((k) => {
+        const f = r.finish?.[k], sp = hx(f?.specular), g = f?.gloss;
+        return sp && Number.isFinite(g) && g! >= 0 && g! <= 255 ? ([sp, Math.round(g!)] as const) : null;
+      });
+      const row = [id, r.name.trim(), col[0]!, col[1]!, col[2]!, r.pattern ? 1 : 0] as const;
+      return [fin.every(Boolean) ? ([...row, fin as [PaintFinish, PaintFinish, PaintFinish]] as const) : row];
     });
     if (list.length) paints[id] = { base: base as [string, string, string], list };
   }

@@ -206,8 +206,8 @@
     },
     "aegs-eclipse": {
       "url": "/hangar/ships/aegs-eclipse.glb",
-      "v": "dba14d5f",
-      "tris": 203284,
+      "v": "3bdb52f5",
+      "tris": 203310,
       "trisRaw": 270703,
       "textures": 121,
       "attached": 0,
@@ -224,9 +224,15 @@
       "record": "AEGS_Eclipse",
       "game": "12913470",
       "interiorDropped": 0,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
-        "why": "Fahrwerk ein: landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012; landinggear_right: nach landing_gear_extend + landing_gear"
+        "ok": true,
+        "dev": [
+          -0.001,
+          0,
+          0
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -242,11 +248,11 @@
         "bits": 20,
         "degenerate": 0.8
       },
-      "bytes": 1652868,
+      "bytes": 1662808,
       "pool": {
         "images": 121,
         "bytes": 5709206,
-        "fresh": 743860
+        "fresh": 0
       }
     },
     "aegs-gladius-pir": {
@@ -277,7 +283,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -328,7 +335,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -433,7 +441,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -453,7 +462,7 @@
       "pool": {
         "images": 293,
         "bytes": 15633824,
-        "fresh": 634230
+        "fresh": 0
       }
     },
     "aegs-hammerhead": {
@@ -2048,8 +2057,8 @@
     },
     "anvl-hawk": {
       "url": "/hangar/ships/anvl-hawk.glb",
-      "v": "a2b29a28",
-      "tris": 219030,
+      "v": "8745daf0",
+      "tris": 219276,
       "trisRaw": 396052,
       "textures": 143,
       "attached": 0,
@@ -2071,9 +2080,15 @@
       "record": "ANVL_Hawk",
       "game": "12913470",
       "interiorDropped": 3,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
-        "why": "Fahrwerk ein: hardpoint_landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -5.141, Aufstand -3.447"
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0.001
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2089,11 +2104,11 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2295016,
+      "bytes": 2310720,
       "pool": {
         "images": 143,
         "bytes": 5746646,
-        "fresh": 297846
+        "fresh": 0
       }
     },
     "anvl-hornet-f7a-mk1": {
@@ -6022,8 +6037,8 @@
     },
     "gama-railen": {
       "url": "/hangar/ships/gama-railen.glb",
-      "v": "9ead7389",
-      "tris": 432512,
+      "v": "3abebea0",
+      "tris": 432522,
       "trisRaw": 1668423,
       "textures": 248,
       "attached": 0,
@@ -6046,9 +6061,16 @@
       "record": "GAMA_Railen",
       "game": "12913470",
       "interiorDropped": 5,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
-        "why": "Fahrwerk ein: hardpoint_landinggear_front_left: nach landing_deploy Fuß bei -6.839, Aufstand -19.033; hardpoint_landinggear_front_right: nach landing_deploy Fuß bei -6.836, A"
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -6064,17 +6086,17 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 4512592,
+      "bytes": 4521236,
       "pool": {
         "images": 248,
         "bytes": 12746750,
-        "fresh": 2794986
+        "fresh": 0
       }
     },
     "gama-syulen": {
       "url": "/hangar/ships/gama-syulen.glb",
-      "v": "a16b9807",
-      "tris": 284038,
+      "v": "e2825bc4",
+      "tris": 284170,
       "trisRaw": 512001,
       "textures": 227,
       "attached": 0,
@@ -6094,7 +6116,7 @@
       "interiorDropped": 2,
       "gearCheck": {
         "ok": false,
-        "why": "Fahrwerk ein: hardpoint_lg_top: nach landing_deploy Fuß bei 15.117, Aufstand 12.253"
+        "why": "keine Ebene durch die Aufstandspunkte (auf einer Linie oder steiler als 15 Grad)"
       },
       "budget": {
         "tris": 200000,
@@ -6110,17 +6132,17 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2968744,
+      "bytes": 2993568,
       "pool": {
         "images": 227,
         "bytes": 10193444,
-        "fresh": 3159196
+        "fresh": 0
       }
     },
     "gama-tyilui": {
       "url": "/hangar/ships/gama-tyilui.glb",
-      "v": "d5dd6964",
-      "tris": 467077,
+      "v": "e3fd816e",
+      "tris": 466965,
       "trisRaw": 1878472,
       "textures": 261,
       "attached": 0,
@@ -6146,7 +6168,14 @@
       "interiorDropped": 5,
       "gearCheck": {
         "ok": false,
-        "why": "Fahrwerk ein: hardpoint_landinggear_front_left: nach landing_deploy Fuß bei -6.839, Aufstand -19.033; hardpoint_landinggear_front_right: nach landing_deploy Fuß bei -6.836, A"
+        "dev": [
+          0,
+          0,
+          0.022,
+          0.028
+        ],
+        "sink": 0,
+        "why": "Aufstandspunkte weichen bis 0.028 m ab"
       },
       "budget": {
         "tris": 400000,
@@ -6162,11 +6191,11 @@
         "bits": 22,
         "degenerate": 1.9
       },
-      "bytes": 5225396,
+      "bytes": 5222984,
       "pool": {
         "images": 261,
         "bytes": 13581352,
-        "fresh": 1952966
+        "fresh": 0
       }
     },
     "glsn-basher": {
@@ -6825,8 +6854,8 @@
     },
     "krig-s65-stingray": {
       "url": "/hangar/ships/krig-s65-stingray.glb",
-      "v": "d9ea71e9",
-      "tris": 284193,
+      "v": "3e510a62",
+      "tris": 285147,
       "trisRaw": 712668,
       "textures": 258,
       "attached": 0,
@@ -6847,9 +6876,15 @@
       "record": "KRIG_S65_Stingray",
       "game": "12913470",
       "interiorDropped": 2,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
-        "why": "Fahrwerk ein: hardpoint_landing_gear_front_left: nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674; hardpoint_landing_gear_front_right: nach landing_gear_extend Fuß be"
+        "ok": true,
+        "dev": [
+          0,
+          0,
+          0
+        ],
+        "sink": -0.02
       },
       "budget": {
         "tris": 200000,
@@ -6865,11 +6900,11 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 3267160,
+      "bytes": 3298156,
       "pool": {
         "images": 258,
         "bytes": 10753402,
-        "fresh": 215900
+        "fresh": 0
       }
     },
     "misc-fortune": {
@@ -8094,8 +8129,8 @@
     },
     "mrai-guardian-mx": {
       "url": "/hangar/ships/mrai-guardian-mx.glb",
-      "v": "cfa8fe0d",
-      "tris": 643799,
+      "v": "2276b28f",
+      "tris": 643659,
       "trisRaw": 1635482,
       "textures": 271,
       "attached": 0,
@@ -8114,15 +8149,16 @@
       "record": "MRAI_Guardian_MX",
       "game": "12913470",
       "interiorDropped": 2,
+      "gear": true,
       "gearCheck": {
-        "ok": false,
+        "ok": true,
         "dev": [
-          -0.001,
           0,
-          -0.949,
-          -0.955
+          0,
+          0.001,
+          0
         ],
-        "why": "Aufstandspunkte weichen bis 0.955 m ab"
+        "sink": -0.003
       },
       "budget": {
         "tris": 200000,
@@ -8138,11 +8174,11 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 6978288,
+      "bytes": 6975524,
       "pool": {
         "images": 271,
         "bytes": 10651584,
-        "fresh": 511024
+        "fresh": 0
       }
     },
     "mrai-guardian-qi": {
@@ -8753,7 +8789,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -8761,7 +8798,7 @@
       },
       "paints": {
         "url": "/hangar/paints/orig-600i-bis2951.json",
-        "v": "e5d1b56e"
+        "v": "6cf91124"
       },
       "uv": {
         "rangeBefore": 1022,
@@ -8773,7 +8810,7 @@
       "pool": {
         "images": 170,
         "bytes": 8116794,
-        "fresh": 1962
+        "fresh": 0
       }
     },
     "orig-600i-touring": {
@@ -10254,8 +10291,8 @@
     },
     "rsi-polaris": {
       "url": "/hangar/ships/rsi-polaris.glb",
-      "v": "e1d6dd42",
-      "tris": 1087109,
+      "v": "e1fa7a38",
+      "tris": 1087337,
       "trisRaw": 2356245,
       "textures": 304,
       "attached": 0,
@@ -10284,6 +10321,7 @@
           0.031,
           0.031
         ],
+        "sink": 0,
         "why": "Aufstandspunkte weichen bis 0.031 m ab"
       },
       "budget": {
@@ -10301,11 +10339,11 @@
         "bits": 22,
         "degenerate": 3.5
       },
-      "bytes": 13381444,
+      "bytes": 13383804,
       "pool": {
         "images": 304,
         "bytes": 4052686,
-        "fresh": 0
+        "fresh": 3213928
       }
     },
     "rsi-salvation": {
@@ -10466,8 +10504,8 @@
     },
     "rsi-skylark": {
       "url": "/hangar/ships/rsi-skylark.glb",
-      "v": "b9ff03d3",
-      "tris": 209989,
+      "v": "dc2b3272",
+      "tris": 210001,
       "trisRaw": 327658,
       "textures": 231,
       "attached": 0,
@@ -10492,7 +10530,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -10508,11 +10547,11 @@
         "bits": 20,
         "degenerate": 1.6
       },
-      "bytes": 2301868,
+      "bytes": 2301780,
       "pool": {
         "images": 231,
         "bytes": 11298048,
-        "fresh": 34292
+        "fresh": 0
       }
     },
     "rsi-ursa-medivac": {
@@ -11189,7 +11228,7 @@
     },
     "vncl-glaive": {
       "url": "/hangar/ships/vncl-glaive.glb",
-      "v": "8113b25e",
+      "v": "f52d6f09",
       "tris": 212226,
       "trisRaw": 197981,
       "textures": 86,
@@ -11223,11 +11262,11 @@
         "bits": 16,
         "degenerate": 0.9
       },
-      "bytes": 1450308,
+      "bytes": 1450316,
       "pool": {
         "images": 86,
         "bytes": 3876326,
-        "fresh": 542526
+        "fresh": 0
       }
     },
     "vncl-scythe": {
@@ -14421,7 +14460,7 @@
           "prims": 59,
           "snapped": 198043,
           "groups": 63068,
-          "maxShift": 0.00009616595352204252
+          "maxShift": 9.616595352204252e-05
         },
         "written": {
           "boundaryVerts": 270825,
@@ -15433,6 +15472,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -15547,6 +15592,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "misc_prospector_landinggear_extend",
+          "bones": 40,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -15667,6 +15718,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -15713,6 +15767,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LG_Front",
@@ -15814,57 +15874,12 @@
       ],
       "below": [
         {
-          "node": "M_DET_Rear_Mesh_Thruster_Fin_Tip_Bot_Left",
-          "depth": 5.918,
-          "gear": false
-        },
-        {
-          "node": "M_DET_Rear_Mesh_Thruster_Fin_Tip_Bot_Right",
-          "depth": 5.918,
-          "gear": false
-        },
-        {
-          "node": "StaticGlow_DET_Rear_Mesh_Thruster_Fin_Bot_Left",
-          "depth": 5.647,
-          "gear": false
-        },
-        {
-          "node": "StaticGlow_DET_Rear_Mesh_Thruster_Fin_Bot_Right",
-          "depth": 5.647,
-          "gear": false
-        },
-        {
-          "node": "M_DET_Rear_Mesh_Thruster_Fin_Bot_Right",
-          "depth": 2.08,
-          "gear": false
-        },
-        {
-          "node": "M_DET_Rear_Mesh_Thruster_Fin_Bot_Left",
-          "depth": 2.079,
-          "gear": false
-        },
-        {
-          "node": "M_DET_Rear_Mesh_Thruster_Piston_Bot_Left",
-          "depth": 1.455,
-          "gear": false
-        },
-        {
-          "node": "M_DET_Rear_Mesh_Thruster_Piston_Bot_Right",
-          "depth": 1.448,
-          "gear": false
-        },
-        {
           "node": "Glow_thruster_retro_rear_left_middle",
           "depth": 0.547,
           "gear": false
-        },
-        {
-          "node": "M_DET_Rear_Mesh_Thruster_Cap_Bot_Left",
-          "depth": 0.341,
-          "gear": false
         }
       ],
-      "belowCount": 11,
+      "belowCount": 1,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "RSI_Polaris_LandingSystem",
@@ -15878,6 +15893,11 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "Landing_Deploy",
+          "bones": 102
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_left",
@@ -15945,7 +15965,7 @@
         ],
         "compress": null
       },
-      "hullLowest": -24.09,
+      "hullLowest": -18.719,
       "record": "RSI_Polaris",
       "gameBuild": "12913470"
     },
@@ -15988,6 +16008,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "LandingGear_Retract",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear_front",
@@ -16144,6 +16170,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "LandingGear_Retract",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear_front",
@@ -16300,6 +16332,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "LandingGear_Retract",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear_front",
@@ -16456,6 +16494,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "LandingGear_Retract",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear_front",
@@ -16574,8 +16618,7 @@
       "gameBuild": "12913470"
     },
     "aegs-eclipse": {
-      "pose": "ein",
-      "why": "landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012; landinggear_right: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012",
+      "pose": "aus",
       "contacts": [
         [
           0.243,
@@ -16583,24 +16626,24 @@
           -5.319
         ],
         [
-          -11.838,
+          -12.73,
           -3.012,
-          7.299
+          6.319
         ],
         [
-          11.839,
+          12.14,
           -3.012,
-          7.3
+          8.507
         ]
       ],
       "ground": -3.005,
       "tilt": [
-        0,
+        0.005,
         -0.054
       ],
       "below": [],
       "belowCount": 0,
-      "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "AEGS_Eclipse_LandingSystem",
         "landingOffset": [
@@ -16613,13 +16656,18 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 14
+        },
         "legs": [
           {
             "bone": "landinggear_front",
             "pose": "ruhelage",
             "foot": [
               0.243,
-              -2.986,
+              -3,
               -5.319
             ],
             "y": -3,
@@ -16638,11 +16686,10 @@
           {
             "bone": "landinggear_left",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012",
             "foot": [
-              -11.838,
-              -1.447,
-              7.299
+              -12.73,
+              -3.012,
+              6.319
             ],
             "y": -3.012,
             "yMax": -3.323,
@@ -16660,11 +16707,10 @@
           {
             "bone": "landinggear_right",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -4.399, Aufstand -3.012",
             "foot": [
-              11.839,
-              -1.445,
-              7.3
+              12.14,
+              -3.012,
+              8.507
             ],
             "y": -3.012,
             "yMax": -3.323,
@@ -16680,9 +16726,13 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          -0.015,
+          -0.004,
+          -0.009
+        ]
       },
-      "hullLowest": -1.839,
+      "hullLowest": -2.434,
       "record": "AEGS_Eclipse",
       "gameBuild": "12913470"
     },
@@ -16725,6 +16775,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -16839,6 +16895,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -16953,6 +17015,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_left",
@@ -17067,6 +17135,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_deploy nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_left",
@@ -17187,6 +17258,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -17239,6 +17313,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lg_arm_deploy_main_left + lg_arm_deploy_main_right + lg_arm_deploy_aux_left + lg_arm_deploy_aux_right + lg_foot_deploy_main_left + lg_foot_deploy_main_right + lg_foot_deploy_aux_left + lg_foot_deploy_aux_right",
+          "bones": 220,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt aus, 8.186 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_main_left",
@@ -17380,6 +17460,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lg_arm_deploy_main_left + lg_arm_deploy_main_right + lg_arm_deploy_aux_left + lg_arm_deploy_aux_right + lg_foot_deploy_main_left + lg_foot_deploy_main_right + lg_foot_deploy_aux_left + lg_foot_deploy_aux_right",
+          "bones": 220,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt aus, 8.186 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_main_left",
@@ -17526,6 +17612,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 14,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 12.746 m statt aus, 12.746 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -17677,6 +17769,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_retract",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landinggears_front_r",
@@ -17899,6 +17997,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "aegs_sabre_landing_gear_deploy",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -18013,6 +18117,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "aegs_sabre_landing_gear_deploy",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -18138,6 +18248,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "doors_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.559 m statt aus, 1.559 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -18263,6 +18379,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "doors_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.559 m statt aus, 1.559 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -18388,6 +18510,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "doors_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.559 m statt aus, 1.559 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -18513,6 +18641,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "doors_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.559 m statt aus, 1.559 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -18627,6 +18761,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_left",
@@ -18741,6 +18881,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Landing_Gear_Front",
@@ -18855,6 +19001,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Landing_Gear_Front",
@@ -18969,6 +19121,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Landing_Gear_Front",
@@ -19083,6 +19241,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Landing_Gear_Front",
@@ -19197,6 +19361,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "anvl_arrow_landinggear_door_open",
+          "bones": 20,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -19322,6 +19492,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "anvl_valkyrie_landing_deploy",
+          "bones": 2,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.929 m statt aus, 0.929 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_Front_Left",
@@ -19464,6 +19640,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -19516,6 +19695,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -19568,6 +19750,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -19619,6 +19804,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_FrontLeft",
@@ -19760,6 +19951,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_FrontLeft",
@@ -19901,6 +20098,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_FrontLeft",
@@ -20037,6 +20240,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LG_Front",
@@ -20157,6 +20366,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -20208,6 +20420,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -20306,8 +20524,7 @@
       "gameBuild": "12913470"
     },
     "anvl-hawk": {
-      "pose": "ein",
-      "why": "hardpoint_landinggear_left: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -5.141, Aufstand -3.447",
+      "pose": "aus",
       "contacts": [
         [
           -0.169,
@@ -20315,24 +20532,24 @@
           4.09
         ],
         [
-          -7.315,
+          -4.425,
           -3.447,
-          -3.147
+          -0.576
         ],
         [
-          2.478,
+          4.439,
           -3.443,
-          -3.586
+          -0.555
         ]
       ],
       "ground": -3.445,
       "tilt": [
-        0.022,
-        -0.022
+        0.026,
+        -0.024
       ],
       "below": [],
       "belowCount": 0,
-      "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "ANVL_Hawk_LandingSystem",
         "landingOffset": [
@@ -20345,13 +20562,18 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "anvl_hawk_landinggear_doors_open",
+          "bones": 24
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_rear",
             "pose": "ruhelage",
             "foot": [
               -0.169,
-              -3.289,
+              -3.447,
               4.09
             ],
             "y": -3.447,
@@ -20370,11 +20592,10 @@
           {
             "bone": "hardpoint_landinggear_left",
             "pose": "ruhelage",
-            "animError": "nach landing_gear_extend + landing_gear_compress 1 Fuß bei -5.141, Aufstand -3.447",
             "foot": [
-              -7.315,
-              -2.762,
-              -3.147
+              -4.425,
+              -3.447,
+              -0.576
             ],
             "y": -3.447,
             "yMax": -3.917,
@@ -20391,11 +20612,11 @@
           },
           {
             "bone": "hardpoint_landinggear_right",
-            "pose": "landing_gear_extend + landing_gear_compress 0.392",
+            "pose": "ruhelage",
             "foot": [
-              2.478,
+              4.439,
               -3.443,
-              -3.586
+              -0.555
             ],
             "y": -3.443,
             "yMax": -3.912,
@@ -20411,9 +20632,13 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          -0.158,
+          -0.117,
+          -0.128
+        ]
       },
-      "hullLowest": -2.778,
+      "hullLowest": -2.965,
       "record": "ANVL_Hawk",
       "gameBuild": "12913470"
     },
@@ -20456,6 +20681,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -20570,6 +20801,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 35,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -20684,6 +20921,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy + wings_sweep_back",
+          "bones": 36,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -20798,6 +21041,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 35,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -20912,6 +21161,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy + wings_sweep_back",
+          "bones": 36,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -21026,6 +21281,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -21140,6 +21401,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -21254,6 +21521,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 35,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -21368,6 +21641,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 35,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -21482,6 +21761,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 35,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -21596,6 +21881,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy + wings_sweep_back",
+          "bones": 36,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -21710,6 +22001,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 35,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -21824,6 +22121,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 10,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -21938,6 +22241,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lightning_f8_landingdoor_close",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -22052,6 +22361,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lightning_f8_landingdoor_close",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -22166,6 +22481,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lightning_f8_landingdoor_close",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landinggear_front",
@@ -22331,6 +22652,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_deploy",
+          "bones": 24,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 4.922 m statt aus, 4.922 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -22450,6 +22777,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -22501,6 +22831,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -22642,6 +22978,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -22783,6 +23125,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "anvl_valkyrie_landing_deploy",
+          "bones": 2,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_Front_Left",
@@ -22917,6 +23265,9 @@
         "landingSystem": null,
         "landingOffset": null,
         "landingRotationOffset": null,
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -22961,6 +23312,9 @@
         "landingSystem": null,
         "landingOffset": null,
         "landingRotationOffset": null,
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -23005,6 +23359,9 @@
         "landingSystem": null,
         "landingOffset": null,
         "landingRotationOffset": null,
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -23049,6 +23406,9 @@
         "landingSystem": null,
         "landingOffset": null,
         "landingRotationOffset": null,
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -23096,6 +23456,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt aus, 2.498 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -23253,6 +23619,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt aus, 2.498 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -23409,6 +23781,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -23523,6 +23898,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_left",
@@ -23637,6 +24015,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -23756,6 +24137,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_FL_LandingGear",
@@ -23892,6 +24279,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -24011,6 +24404,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend + landing_gear_extend_2",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_Left_Wing",
@@ -24203,6 +24602,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravlev_front_left",
@@ -24339,6 +24741,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 45,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -24453,6 +24861,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 45,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -24567,6 +24981,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 45,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -24681,6 +25101,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 45,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -24795,6 +25221,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 45,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -24909,6 +25341,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 45,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -25029,6 +25467,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lg_arm_deploy_main_left + lg_arm_deploy_main_right",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt ein, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_front_left",
@@ -25164,6 +25608,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "LandingGear/Deploy",
+          "anim": "door_close",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -25278,6 +25728,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "LandingGear/Deploy",
+          "anim": "door_open",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -25392,6 +25848,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "LandingGear/Deploy",
+          "anim": "door_open",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -25517,6 +25979,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 5.695 m statt aus, 5.695 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear",
@@ -25631,6 +26099,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "crus_starfighter_landinggear_door_open",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_center",
@@ -25745,6 +26219,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "crus_starfighter_landinggear_door_open",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_center",
@@ -25859,6 +26339,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -25973,6 +26459,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -26087,6 +26579,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -26196,6 +26694,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_retract",
+          "bones": 9,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Landing_Gear_Front",
@@ -26406,6 +26910,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.899 m statt aus, 0.899 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Landing_Gear_Left_05",
@@ -26841,6 +27351,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.899 m statt aus, 0.899 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Landing_Gear_Left_05",
@@ -27175,6 +27691,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 32,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_f",
@@ -27340,6 +27862,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 9,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.802 m statt aus, 1.802 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_body_landing_gear_front",
@@ -27453,6 +27981,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "door_open",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_Landing_Gear_Front",
@@ -27567,6 +28101,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "door_open",
+          "bones": 3,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_Landing_Gear_Front",
@@ -27681,6 +28221,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "door_open",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_Landing_Gear_Front",
@@ -27795,6 +28341,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "door_open",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_Landing_Gear_Front",
@@ -27909,6 +28461,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend, door_open nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_f",
@@ -28023,6 +28578,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend, door_open nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_f",
@@ -28137,6 +28695,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend, door_open nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_f",
@@ -28257,6 +28818,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravplate_front_left",
@@ -28394,6 +28958,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravplate_front_left",
@@ -28531,6 +29098,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "drak_golem_landinggear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.646 m statt aus, 0.646 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -28641,6 +29214,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "drak_golemox_landinggear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -28751,6 +29330,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Front_Landing_Gear",
@@ -28871,6 +29456,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -28917,6 +29505,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -29032,6 +29626,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "drak_vulture_landing_gear_door_open",
+          "bones": 10,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -29234,6 +29834,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "espr_prowler_landing_mode_deploy_left + espr_prowler_landing_mode_deploy_right",
+          "bones": 22,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 2.827 m statt aus, 4.443 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_wing_landing_gear_left",
@@ -29461,6 +30067,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "espr_prowler_utility_landing_mode_deploy_left, espr_prowler_utility_landing_mode_deploy_right, landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_wing_landing_gear_left",
@@ -29599,6 +30208,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 44,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -29774,6 +30389,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 44,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -29906,28 +30527,27 @@
       "gameBuild": "12913470"
     },
     "gama-railen": {
-      "pose": "ein",
-      "why": "hardpoint_landinggear_front_left: nach landing_deploy Fuß bei -6.839, Aufstand -19.033; hardpoint_landinggear_front_right: nach landing_deploy Fuß bei -6.836, Aufstand -19.033",
+      "pose": "aus",
       "contacts": [
         [
-          -9.675,
+          -10.504,
           -19.033,
-          -10.358
+          -23.906
         ],
         [
-          9.675,
+          10.504,
           -19.033,
-          -10.358
+          -23.906
         ],
         [
-          -20.019,
+          -14.345,
           -19.033,
-          -5.747
+          9.912
         ],
         [
-          20.18,
+          14.341,
           -19.033,
-          -5.974
+          9.913
         ]
       ],
       "ground": -19.033,
@@ -29935,60 +30555,9 @@
         0,
         0
       ],
-      "below": [
-        {
-          "node": "dbr_wing_bottom_right_piece_001",
-          "depth": 16.715,
-          "gear": false
-        },
-        {
-          "node": "dbr_wing_bottom_left_piece_001",
-          "depth": 16.709,
-          "gear": false
-        },
-        {
-          "node": "geo_arm_bottom_left",
-          "depth": 16.658,
-          "gear": false
-        },
-        {
-          "node": "arm_bottom_right",
-          "depth": 16.658,
-          "gear": false
-        },
-        {
-          "node": "geo_arm_bottom_right",
-          "depth": 16.637,
-          "gear": false
-        },
-        {
-          "node": "anim_gearplate_bottom_left",
-          "depth": 14.932,
-          "gear": true
-        },
-        {
-          "node": "anim_gearplate_bottom_right",
-          "depth": 14.932,
-          "gear": true
-        },
-        {
-          "node": "glow_wing_bottom_left_piece_001",
-          "depth": 14.456,
-          "gear": false
-        },
-        {
-          "node": "anim_tractorbeam_plate_c_right",
-          "depth": 14.211,
-          "gear": false
-        },
-        {
-          "node": "anim_tractorbeam_plate_c_left",
-          "depth": 14.21,
-          "gear": false
-        }
-      ],
-      "belowCount": 74,
-      "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
+      "below": [],
+      "belowCount": 0,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "GAMA_Railen_LandingSystem",
         "landingOffset": [
@@ -30001,15 +30570,19 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_deploy",
+          "bones": 29
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front_left",
-            "pose": "ruhelage",
-            "animError": "nach landing_deploy Fuß bei -6.839, Aufstand -19.033",
+            "pose": "landing_deploy + landing_compress 0.73",
             "foot": [
-              -9.675,
-              4.317,
-              -10.358
+              -10.504,
+              -19.033,
+              -23.906
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30026,12 +30599,11 @@
           },
           {
             "bone": "hardpoint_landinggear_front_right",
-            "pose": "ruhelage",
-            "animError": "nach landing_deploy Fuß bei -6.836, Aufstand -19.033",
+            "pose": "landing_deploy + landing_compress 0.73",
             "foot": [
-              9.675,
-              4.317,
-              -10.358
+              10.504,
+              -19.033,
+              -23.906
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30048,11 +30620,11 @@
           },
           {
             "bone": "hardpoint_landinggear_rear_left",
-            "pose": "ruhelage",
+            "pose": "landing_deploy + landing_compress 0.593",
             "foot": [
-              -20.019,
-              -33.965,
-              -5.747
+              -14.345,
+              -19.033,
+              9.912
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30069,11 +30641,11 @@
           },
           {
             "bone": "hardpoint_landinggear_rear_right",
-            "pose": "ruhelage",
+            "pose": "landing_deploy + landing_compress 0.594",
             "foot": [
-              20.18,
-              -33.965,
-              -5.974
+              14.341,
+              -19.033,
+              9.913
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30091,89 +30663,88 @@
         ],
         "compress": null
       },
-      "hullLowest": -35.748,
+      "hullLowest": -18.531,
       "record": "GAMA_Railen",
       "gameBuild": "12913470"
     },
     "gama-syulen": {
-      "pose": "ein",
-      "why": "hardpoint_lg_top: nach landing_deploy Fuß bei 15.117, Aufstand 12.253",
+      "pose": "aus",
       "contacts": [
         [
-          -13.103,
+          -10.248,
           -6.127,
-          1.113
+          7.846
         ],
         [
-          13.091,
+          10.244,
           -6.126,
-          1.105
+          7.844
         ],
         [
-          0.376,
+          0.001,
           12.253,
-          0.12
+          8.518
         ]
       ],
-      "ground": 14.485,
+      "ground": -220.372,
       "tilt": [
-        -0.323,
-        -86.92
+        0.156,
+        87.903
       ],
       "below": [
         {
-          "node": "Canopy",
-          "depth": 153.003,
+          "node": "Wings_Large_Right_Gear_Plate",
+          "depth": 21.949,
           "gear": false
         },
         {
-          "node": "Wing_Large_Left_Fin_Left",
-          "depth": 144.852,
+          "node": "Wings_Large_Left_Gear_Plate",
+          "depth": 21.895,
           "gear": false
         },
         {
-          "node": "Wing_Large_Right_Fin_Right",
-          "depth": 144.849,
-          "gear": false
+          "node": "BONE_ToeGeo_Right",
+          "depth": 21.669,
+          "gear": true
         },
         {
-          "node": "Mesh_Front",
-          "depth": 143.879,
-          "gear": false
+          "node": "BONE_FootGeo",
+          "depth": 21.557,
+          "gear": true
         },
         {
-          "node": "Wing_Large_Left_Fin_Right",
-          "depth": 139.292,
-          "gear": false
+          "node": "BONE_FootGeo",
+          "depth": 21.475,
+          "gear": true
         },
         {
-          "node": "Wing_Large_Right_Fin_Left",
-          "depth": 139.255,
-          "gear": false
+          "node": "BONE_ToeGeo_Left",
+          "depth": 21.451,
+          "gear": true
         },
         {
-          "node": "Wing_Large_Top_Fin_Left",
-          "depth": 139.056,
-          "gear": false
+          "node": "BONE_Piston_Upper",
+          "depth": 20.914,
+          "gear": true
         },
         {
-          "node": "Wing_Large_Top_Fin_Right",
-          "depth": 139.019,
-          "gear": false
+          "node": "BONE_Piston_Upper",
+          "depth": 20.904,
+          "gear": true
         },
         {
-          "node": "350r_tail_winglets_left",
-          "depth": 132.224,
-          "gear": false
+          "node": "BONE_ToeGeo_Right",
+          "depth": 20.511,
+          "gear": true
         },
         {
-          "node": "350r_nose_winglet_right",
-          "depth": 130.151,
-          "gear": false
+          "node": "BONE_ToeGeo_Left",
+          "depth": 20.469,
+          "gear": true
         }
       ],
-      "belowCount": 281,
-      "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
+      "belowCount": 19,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "GAMA_Syulen_LandingSystem",
         "landingOffset": [
@@ -30186,14 +30757,19 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_deploy + GAMA_Syulen_lg_top_deploy + GAMA_Syulen_lg_left_deploy + GAMA_Syulen_lg_right_deploy",
+          "bones": 69
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_left",
             "pose": "ruhelage",
             "foot": [
-              -13.103,
-              -8.532,
-              1.113
+              -10.248,
+              -6.127,
+              7.846
             ],
             "y": -6.127,
             "yMax": -6.127,
@@ -30212,9 +30788,9 @@
             "bone": "hardpoint_lg_right",
             "pose": "ruhelage",
             "foot": [
-              13.091,
-              -8.538,
-              1.105
+              10.244,
+              -6.126,
+              7.844
             ],
             "y": -6.126,
             "yMax": -6.126,
@@ -30232,11 +30808,11 @@
           {
             "bone": "hardpoint_lg_top",
             "pose": "ruhelage",
-            "animError": "nach landing_deploy Fuß bei 15.117, Aufstand 12.253",
+            "mismatch": 1.306,
             "foot": [
-              0.376,
-              15.117,
-              0.12
+              0.001,
+              10.947,
+              8.518
             ],
             "y": 12.253,
             "yMax": 12.253,
@@ -30252,35 +30828,37 @@
             }
           }
         ],
-        "compress": null
+        "compress": [
+          0.376,
+          0.397
+        ]
       },
-      "hullLowest": -8.976,
+      "hullLowest": -7.339,
       "record": "GAMA_Syulen",
       "gameBuild": "12913470"
     },
     "gama-tyilui": {
-      "pose": "ein",
-      "why": "hardpoint_landinggear_front_left: nach landing_deploy Fuß bei -6.839, Aufstand -19.033; hardpoint_landinggear_front_right: nach landing_deploy Fuß bei -6.836, Aufstand -19.033",
+      "pose": "aus",
       "contacts": [
         [
-          -9.675,
+          -10.504,
           -19.033,
-          -10.358
+          -23.906
         ],
         [
-          9.675,
+          10.504,
           -19.033,
-          -10.358
+          -23.906
         ],
         [
-          -20.019,
+          -14.345,
           -19.033,
-          -5.747
+          9.912
         ],
         [
-          20.019,
+          14.341,
           -19.033,
-          -5.747
+          9.913
         ]
       ],
       "ground": -19.033,
@@ -30288,60 +30866,9 @@
         0,
         0
       ],
-      "below": [
-        {
-          "node": "dbr_arm_bottom_right_000",
-          "depth": 16.715,
-          "gear": false
-        },
-        {
-          "node": "dbr_arm_bottom_left_000",
-          "depth": 16.712,
-          "gear": false
-        },
-        {
-          "node": "arm_top_left_218",
-          "depth": 16.658,
-          "gear": false
-        },
-        {
-          "node": "arm_top_right_218",
-          "depth": 16.658,
-          "gear": false
-        },
-        {
-          "node": "geo_arm_bottom_right",
-          "depth": 16.651,
-          "gear": false
-        },
-        {
-          "node": "geo_arm_bottom_left",
-          "depth": 16.64,
-          "gear": false
-        },
-        {
-          "node": "anim_gearplate_bottom_left",
-          "depth": 14.932,
-          "gear": true
-        },
-        {
-          "node": "anim_gearplate_bottom_right",
-          "depth": 14.932,
-          "gear": true
-        },
-        {
-          "node": "anim_gearplate_bottom_a_left",
-          "depth": 13.856,
-          "gear": true
-        },
-        {
-          "node": "anim_gearplate_bottom_a_right",
-          "depth": 13.856,
-          "gear": true
-        }
-      ],
-      "belowCount": 20,
-      "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
+      "below": [],
+      "belowCount": 0,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "GAMA_Tyilui_LandingSystem",
         "landingOffset": [
@@ -30354,15 +30881,19 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_deploy",
+          "bones": 20
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front_left",
-            "pose": "ruhelage",
-            "animError": "nach landing_deploy Fuß bei -6.839, Aufstand -19.033",
+            "pose": "landing_deploy + landing_compress 0.73",
             "foot": [
-              -9.675,
-              4.317,
-              -10.358
+              -10.504,
+              -19.033,
+              -23.906
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30379,12 +30910,11 @@
           },
           {
             "bone": "hardpoint_landinggear_front_right",
-            "pose": "ruhelage",
-            "animError": "nach landing_deploy Fuß bei -6.836, Aufstand -19.033",
+            "pose": "landing_deploy + landing_compress 0.73",
             "foot": [
-              9.675,
-              4.317,
-              -10.358
+              10.504,
+              -19.033,
+              -23.906
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30401,11 +30931,11 @@
           },
           {
             "bone": "hardpoint_landinggear_rear_left",
-            "pose": "ruhelage",
+            "pose": "landing_deploy + landing_compress 0.593",
             "foot": [
-              -20.019,
-              -33.965,
-              -5.747
+              -14.345,
+              -19.033,
+              9.912
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30422,11 +30952,11 @@
           },
           {
             "bone": "hardpoint_landinggear_rear_right",
-            "pose": "ruhelage",
+            "pose": "landing_deploy + landing_compress 0.594",
             "foot": [
-              20.019,
-              -33.965,
-              -5.747
+              14.341,
+              -19.033,
+              9.913
             ],
             "y": -19.033,
             "yMax": -20.116,
@@ -30444,7 +30974,7 @@
         ],
         "compress": null
       },
-      "hullLowest": -35.748,
+      "hullLowest": -18.529,
       "record": "GAMA_Tyilui",
       "gameBuild": "12913470"
     },
@@ -30497,6 +31027,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -30655,6 +31191,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_Landing_Gear_Front",
@@ -30775,6 +31317,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -30827,6 +31372,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -30879,6 +31427,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -30931,6 +31482,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -30983,6 +31537,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -31035,6 +31592,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -31087,6 +31647,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -31184,6 +31747,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.153 m statt aus, 0.153 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_rear",
@@ -31349,6 +31918,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.153 m statt aus, 0.153 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_rear",
@@ -31463,6 +32038,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 4.199 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -31577,6 +32158,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 4.199 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -31691,6 +32278,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 4.199 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -31767,8 +32360,7 @@
       "gameBuild": "12913470"
     },
     "krig-s65-stingray": {
-      "pose": "ein",
-      "why": "hardpoint_landing_gear_front_left: nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674; hardpoint_landing_gear_front_right: nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674",
+      "pose": "aus",
       "contacts": [
         [
           0.181,
@@ -31776,24 +32368,24 @@
           6.106
         ],
         [
-          -4.485,
+          -5.443,
           -2.674,
-          -0.136
+          -0.269
         ],
         [
-          4.485,
+          5.814,
           -2.674,
-          -0.136
+          -0.275
         ]
       ],
-      "ground": -2.654,
+      "ground": -2.635,
       "tilt": [
-        0,
-        8.438
+        0.004,
+        8.261
       ],
       "below": [],
       "belowCount": 0,
-      "source": "Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein",
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "KRIG_s65_Stingray_LandingSystem",
         "landingOffset": [
@@ -31806,6 +32398,11 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_deploy",
+          "bones": 77
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_rear",
@@ -31830,12 +32427,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_front_left",
-            "pose": "ruhelage",
-            "animError": "nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674",
+            "pose": "landing_gear_extend + landing_gear_compress 0.69",
             "foot": [
-              -4.485,
-              -0.271,
-              -0.136
+              -5.443,
+              -2.674,
+              -0.269
             ],
             "y": -2.674,
             "yMax": -3.124,
@@ -31852,12 +32448,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_front_right",
-            "pose": "ruhelage",
-            "animError": "nach landing_gear_extend Fuß bei -0.294, Aufstand -2.674",
+            "pose": "landing_gear_extend + landing_gear_compress 0.691",
             "foot": [
-              4.485,
-              -0.271,
-              -0.136
+              5.814,
+              -2.674,
+              -0.275
             ],
             "y": -2.674,
             "yMax": -3.124,
@@ -31918,6 +32513,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landinggear_doors_open",
+          "bones": 22,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -32042,6 +32643,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -32210,6 +32817,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -32368,6 +32981,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -32492,6 +33108,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -32656,6 +33278,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "VTOL_Deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (keins, tiefstes Teil 0 m statt keins, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_FL",
@@ -32777,6 +33405,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "VTOL_Deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (keins, tiefstes Teil 0 m statt keins, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_FL",
@@ -32898,6 +33532,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "VTOL_Deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (keins, tiefstes Teil 0 m statt keins, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_FL",
@@ -33029,6 +33669,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 20,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.152 m statt aus, 0.152 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -33191,6 +33837,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.143 m statt aus, 0.143 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -33349,6 +34001,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "lg_door_open",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt ein, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -33460,6 +34118,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear",
@@ -33574,6 +34238,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear",
@@ -33688,6 +34358,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 8,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear",
@@ -33807,6 +34483,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Body_Landing_Gear_Left",
@@ -33948,6 +34630,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Body_Landing_Gear_Left",
@@ -34089,6 +34777,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Body_Landing_Gear_Left",
@@ -34230,6 +34924,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 16,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Body_Landing_Gear_Left",
@@ -34382,6 +35082,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "misc_starfarer_landinggear_left_front",
@@ -34534,6 +35237,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_extend nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "misc_starfarer_landinggear_left_front",
@@ -34721,6 +35427,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "misc_starlancer_landinggear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.537 m statt aus, 1.537 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -34886,6 +35598,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "misc_starlancer_tac_landinggear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 1.536 m statt aus, 1.536 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -35000,6 +35718,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -35170,6 +35894,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_wings_deploy",
+          "bones": 23,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.848 m statt aus, 1.018 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -35303,6 +36033,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy + wings_sweep_back",
+          "bones": 36,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_front_helper",
@@ -35423,6 +36159,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -35434,85 +36173,34 @@
       "pose": "aus",
       "contacts": [
         [
-          -4.871,
+          -4.868,
           -3.883,
-          -6.295
+          -6.888
         ],
         [
-          4.872,
+          4.982,
           -3.889,
-          -6.292
+          -6.622
         ],
         [
-          -5.572,
+          -5.639,
           -3.891,
-          3.652
+          3.396
         ],
         [
-          5.583,
+          5.496,
           -3.886,
-          3.657
+          -0.203
         ]
       ],
       "ground": -3.888,
       "tilt": [
-        -0.001,
-        -0.014
+        -0.005,
+        -0.024
       ],
-      "below": [
-        {
-          "node": "geo_guardian_mx_wing_bottom_right",
-          "depth": 1.199,
-          "gear": false
-        },
-        {
-          "node": "geo_guardian_mx_wing_bottom_left",
-          "depth": 1.199,
-          "gear": false
-        },
-        {
-          "node": "dec_guardian_mx_wing_bottom_right",
-          "depth": 1.192,
-          "gear": false
-        },
-        {
-          "node": "dec_guardian_mx_wing_bottom_left",
-          "depth": 1.192,
-          "gear": false
-        },
-        {
-          "node": "geo_landing_wing_bottom_rear_right",
-          "depth": 1.101,
-          "gear": false
-        },
-        {
-          "node": "geo_landing_wing_bottom_rear_left",
-          "depth": 1.101,
-          "gear": false
-        },
-        {
-          "node": "geo_lg_panel_a_rear_left",
-          "depth": 1.048,
-          "gear": false
-        },
-        {
-          "node": "geo_lg_panel_a_rear_right",
-          "depth": 1.047,
-          "gear": false
-        },
-        {
-          "node": "geo_lg_housing_rear_right",
-          "depth": 1.009,
-          "gear": false
-        },
-        {
-          "node": "geo_lg_housing_rear_left",
-          "depth": 1.009,
-          "gear": false
-        }
-      ],
-      "belowCount": 62,
-      "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
+      "below": [],
+      "belowCount": 0,
+      "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "MRAI_Guardian_MX_LandingSystem",
         "landingOffset": [
@@ -35525,14 +36213,19 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_wings_deploy",
+          "bones": 95
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
-            "pose": "landing_gear_deploy + landing_gear_compress 1",
+            "pose": "landing_gear_deploy + landing_gear_compress 0.836",
             "foot": [
-              -4.871,
+              -4.868,
               -3.883,
-              -6.295
+              -6.888
             ],
             "y": -3.883,
             "yMax": -4.414,
@@ -35549,11 +36242,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_front_right",
-            "pose": "landing_gear_deploy + landing_gear_compress 1",
+            "pose": "landing_gear_deploy + landing_gear_compress 0.516",
             "foot": [
-              4.872,
+              4.982,
               -3.889,
-              -6.292
+              -6.622
             ],
             "y": -3.889,
             "yMax": -4.42,
@@ -35570,12 +36263,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_left",
-            "pose": "ruhelage",
-            "mismatch": 0.682,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.893",
             "foot": [
-              -5.572,
-              -4.573,
-              3.652
+              -5.639,
+              -3.891,
+              3.396
             ],
             "y": -3.891,
             "yMax": -4.42,
@@ -35592,12 +36284,11 @@
           },
           {
             "bone": "hardpoint_landing_gear_rear_right",
-            "pose": "ruhelage",
-            "mismatch": 0.675,
+            "pose": "landing_gear_deploy + landing_gear_compress 0.886",
             "foot": [
-              5.583,
-              -4.561,
-              3.657
+              5.496,
+              -3.886,
+              -0.203
             ],
             "y": -3.886,
             "yMax": -4.415,
@@ -35613,12 +36304,9 @@
             }
           }
         ],
-        "compress": [
-          0.544,
-          0.541
-        ]
+        "compress": null
       },
-      "hullLowest": -5.089,
+      "hullLowest": -3.423,
       "record": "MRAI_Guardian_MX",
       "gameBuild": "12913470"
     },
@@ -35717,6 +36405,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_wings_deploy",
+          "bones": 23,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.848 m statt aus, 1.018 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -35856,6 +36550,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_spring_front_left",
@@ -35977,6 +36674,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_spring_front_left",
@@ -36092,6 +36792,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 20,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -36206,6 +36912,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 20,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -36320,6 +37032,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 20,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -36440,6 +37158,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "ausgenommen: Scharniere landen lose vor dem Rumpf (300er-Reihe)"
+        },
         "legs": [
           {
             "bone": "LandingGear_Front_Helper",
@@ -36560,6 +37281,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "ausgenommen: Scharniere landen lose vor dem Rumpf (300er-Reihe)"
+        },
         "legs": [
           {
             "bone": "LandingGear_Front_Helper",
@@ -36680,6 +37404,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "ausgenommen: Scharniere landen lose vor dem Rumpf (300er-Reihe)"
+        },
         "legs": [
           {
             "bone": "LandingGear_Front_Helper",
@@ -36800,6 +37527,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "ausgenommen: Scharniere landen lose vor dem Rumpf (300er-Reihe)"
+        },
         "legs": [
           {
             "bone": "LandingGear_Front_Helper",
@@ -36914,6 +37644,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "LandingGear_Deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -37028,6 +37764,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 3,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "front_landinggear_hardpoint",
@@ -37142,6 +37884,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 3,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "front_landinggear_hardpoint",
@@ -37256,6 +38004,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 3,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "front_landinggear_hardpoint",
@@ -37371,6 +38125,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_extend",
+          "bones": 3,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt ein, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -37495,6 +38255,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_retract",
+          "bones": 7,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 5.62 m statt ein, 5.62 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -37607,6 +38373,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 28,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_front_landing_gear",
@@ -37721,6 +38493,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front",
@@ -37837,6 +38615,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravlev_front_left",
@@ -37958,6 +38739,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravlev_front_left",
@@ -38079,6 +38863,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravlev_front_left",
@@ -38199,6 +38986,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 15,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -38340,6 +39133,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 15,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -38476,6 +39275,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Nose_Landing_Gear",
@@ -38589,6 +39394,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Nose_Landing_Gear",
@@ -38702,6 +39513,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Nose_Landing_Gear",
@@ -38815,6 +39632,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Nose_Landing_Gear",
@@ -38928,6 +39751,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Nose_Landing_Gear",
@@ -39041,6 +39870,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "Hardpoint_Nose_Landing_Gear",
@@ -39154,6 +39989,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 24,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -39344,6 +40185,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 2.103 m statt aus, 2.103 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
@@ -39643,6 +40490,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 2.103 m statt aus, 2.103 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
@@ -39942,6 +40795,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 2,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 2.104 m statt aus, 2.104 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
@@ -40241,6 +41100,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "rsi_constellation_nacelle_bottom_deploy",
+          "bones": 2,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 4.066 m statt aus, 4.066 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
@@ -40540,6 +41405,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 2,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 2.103 m statt aus, 2.103 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_LG_LeftRear1",
@@ -40768,6 +41639,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 15,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front_left",
@@ -40910,6 +41787,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -40951,6 +41831,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "rsi_mantis_landing_gear_open",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_left",
@@ -41080,6 +41966,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_left",
@@ -41219,6 +42111,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "Gruppe Landing_Gear nicht im Mannequin"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front_left",
@@ -41355,6 +42250,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -41469,6 +42370,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 4,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "helper_landing_gear_front",
@@ -41568,14 +42475,8 @@
         0,
         0
       ],
-      "below": [
-        {
-          "node": "root",
-          "depth": 0.171,
-          "gear": false
-        }
-      ],
-      "belowCount": 1,
+      "below": [],
+      "belowCount": 0,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z",
       "game": {
         "landingSystem": "RSI_Skylark_LandingSystem",
@@ -41589,6 +42490,11 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "Landing_Deploy",
+          "bones": 25
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_front",
@@ -41660,7 +42566,7 @@
           0.017
         ]
       },
-      "hullLowest": -1.742,
+      "hullLowest": -1.454,
       "record": "RSI_Skylark",
       "gameBuild": "12913470"
     },
@@ -41709,6 +42615,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -41761,6 +42670,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -41813,6 +42725,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -41859,6 +42774,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -41973,6 +42894,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 6,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -42093,6 +43020,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42145,6 +43075,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42197,6 +43130,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42249,6 +43185,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42301,6 +43240,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42353,6 +43295,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42405,6 +43350,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42457,6 +43405,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [],
         "compress": null
       },
@@ -42503,6 +43454,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_mode_enter",
+          "bones": 18,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "back_landinggear_hardpoint",
@@ -42593,7 +43550,7 @@
           -17.492
         ],
         [
-          -12.118,
+          -9.889,
           -4.903,
           -9.261
         ],
@@ -42610,58 +43567,58 @@
       ],
       "ground": -4.742,
       "tilt": [
-        0,
+        -0.006,
         0.858
       ],
       "below": [
         {
           "node": "wing_rightA",
-          "depth": 1.087,
+          "depth": 1.085,
           "gear": false
         },
         {
           "node": "wing_leftA",
-          "depth": 1.06,
+          "depth": 1.062,
           "gear": false
         },
         {
           "node": "VNCL_Scythe_MissileRack_S02_Left_Geo",
-          "depth": 0.997,
+          "depth": 0.998,
           "gear": false
         },
         {
           "node": "vncl_bullet",
-          "depth": 0.996,
+          "depth": 0.995,
           "gear": false
         },
         {
           "node": "vncl_bullet",
-          "depth": 0.967,
+          "depth": 0.969,
           "gear": false
         },
         {
           "node": "wing_rightA_featherA_end",
-          "depth": 0.89,
+          "depth": 0.889,
           "gear": false
         },
         {
           "node": "wing_leftA_featherA_end",
-          "depth": 0.863,
+          "depth": 0.865,
           "gear": false
         },
         {
           "node": "missile_rack_cover_right",
-          "depth": 0.794,
+          "depth": 0.793,
           "gear": false
         },
         {
           "node": "missile_rack_cover_left",
-          "depth": 0.771,
+          "depth": 0.773,
           "gear": false
         },
         {
           "node": "wing_rightA_featherB_end",
-          "depth": 0.771,
+          "depth": 0.77,
           "gear": false
         }
       ],
@@ -42679,6 +43636,11 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 2
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_rear",
@@ -42728,8 +43690,8 @@
             "pose": "ruhelage",
             "animError": "nach landing_gear_deploy Fuß bei -3.214, Aufstand -4.903",
             "foot": [
-              -12.118,
-              -4.329,
+              -9.889,
+              -3.214,
               -9.261
             ],
             "y": -4.903,
@@ -42841,6 +43803,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 19,
+          "rejected": "ohne Rumpfanimation besser (keins, tiefstes Teil 0 m statt keins, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_left_attach",
@@ -42985,6 +43953,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 12,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0.91 m statt aus, 0.91 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_front_left",
@@ -43126,6 +44100,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravplate_center",
@@ -43247,6 +44224,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "kein Mannequin oder keine Geometrie"
+        },
         "legs": [
           {
             "bone": "hardpoint_gravplate_center",
@@ -43368,6 +44348,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 38,
+          "rejected": "ohne Rumpfanimation besser (keins, tiefstes Teil 0 m statt keins, 0 m)"
+        },
         "legs": [
           {
             "bone": "landing_gear_right_attach",
@@ -43498,6 +44484,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "xnaa_santokyai_body_transform + xnaa_santokyai_wing_left_transform + xnaa_santokyai_wing_right_transform",
+          "bones": 53,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 5.992 m statt ein, 5.993 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_lg_front_left",
@@ -43687,6 +44679,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_deploy nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_FL",
@@ -43878,6 +44873,9 @@
           0,
           0
         ],
+        "hullAnim": {
+          "error": "landing_gear_deploy nicht in der Schiffsgeometrie"
+        },
         "legs": [
           {
             "bone": "Hardpoint_LandingGear_FL",
@@ -44049,6 +45047,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt ein, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_left_a",
@@ -44352,6 +45356,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "landing_gear_deploy",
+          "bones": 1,
+          "rejected": "ohne Rumpfanimation besser (ein, tiefstes Teil 0 m statt ein, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landinggear_left_a",
@@ -44864,6 +45874,12 @@
           0,
           0
         ],
+        "hullAnim": {
+          "fragment": "Landing_Gear/Deploy",
+          "anim": "Landing_Deploy",
+          "bones": 40,
+          "rejected": "ohne Rumpfanimation besser (aus, tiefstes Teil 0 m statt aus, 0 m)"
+        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_front",
@@ -44965,9 +45981,9 @@
     },
     "rsi-polaris": {
       "url": "/hangar/geo/rsi-polaris.glb",
-      "tris": 70721,
-      "bytes": 430040,
-      "v": "622208f1"
+      "tris": 70344,
+      "bytes": 424644,
+      "v": "91039901"
     },
     "aegs-avenger-stalker": {
       "url": "/hangar/geo/aegs-avenger-stalker.glb",
@@ -44995,9 +46011,9 @@
     },
     "aegs-eclipse": {
       "url": "/hangar/geo/aegs-eclipse.glb",
-      "tris": 76450,
-      "bytes": 323072,
-      "v": "0177af24"
+      "tris": 82521,
+      "bytes": 353332,
+      "v": "aad5d5cd"
     },
     "aegs-gladius-pir": {
       "url": "/hangar/geo/aegs-gladius-pir.glb",
@@ -45187,9 +46203,9 @@
     },
     "anvl-hawk": {
       "url": "/hangar/geo/anvl-hawk.glb",
-      "tris": 81755,
-      "bytes": 404272,
-      "v": "5ba138b2"
+      "tris": 73279,
+      "bytes": 373212,
+      "v": "f5ce9f57"
     },
     "anvl-hornet-f7a-mk1": {
       "url": "/hangar/geo/anvl-hornet-f7a-mk1.glb",
@@ -45637,21 +46653,21 @@
     },
     "gama-railen": {
       "url": "/hangar/geo/gama-railen.glb",
-      "tris": 69183,
-      "bytes": 505404,
-      "v": "43b72461"
+      "tris": 72067,
+      "bytes": 525136,
+      "v": "964a0654"
     },
     "gama-syulen": {
       "url": "/hangar/geo/gama-syulen.glb",
-      "tris": 88644,
-      "bytes": 473712,
-      "v": "38386493"
+      "tris": 74556,
+      "bytes": 431052,
+      "v": "607cacae"
     },
     "gama-tyilui": {
       "url": "/hangar/geo/gama-tyilui.glb",
-      "tris": 66262,
-      "bytes": 509756,
-      "v": "8bd339b6"
+      "tris": 66603,
+      "bytes": 509560,
+      "v": "b444f580"
     },
     "glsn-basher": {
       "url": "/hangar/geo/glsn-basher.glb",
@@ -45739,9 +46755,9 @@
     },
     "krig-s65-stingray": {
       "url": "/hangar/geo/krig-s65-stingray.glb",
-      "tris": 79651,
-      "bytes": 428280,
-      "v": "7a7b8be0"
+      "tris": 69374,
+      "bytes": 388304,
+      "v": "869c9a98"
     },
     "misc-fortune": {
       "url": "/hangar/geo/misc-fortune.glb",
@@ -45901,9 +46917,9 @@
     },
     "mrai-guardian-mx": {
       "url": "/hangar/geo/mrai-guardian-mx.glb",
-      "tris": 79649,
-      "bytes": 475400,
-      "v": "b04a46b5"
+      "tris": 76150,
+      "bytes": 454996,
+      "v": "04a823c7"
     },
     "mrai-guardian-qi": {
       "url": "/hangar/geo/mrai-guardian-qi.glb",
@@ -46153,9 +47169,9 @@
     },
     "rsi-skylark": {
       "url": "/hangar/geo/rsi-skylark.glb",
-      "tris": 87462,
-      "bytes": 440684,
-      "v": "feff21da"
+      "tris": 86858,
+      "bytes": 434952,
+      "v": "ebd76166"
     },
     "rsi-ursa-medivac": {
       "url": "/hangar/geo/rsi-ursa-medivac.glb",
@@ -46231,9 +47247,9 @@
     },
     "vncl-glaive": {
       "url": "/hangar/geo/vncl-glaive.glb",
-      "tris": 78385,
-      "bytes": 321896,
-      "v": "3e10db30"
+      "tris": 78381,
+      "bytes": 321692,
+      "v": "68d13c38"
     },
     "vncl-scythe": {
       "url": "/hangar/geo/vncl-scythe.glb",

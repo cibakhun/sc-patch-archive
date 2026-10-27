@@ -713,11 +713,12 @@ export function initWorkshop(doc, bridge) {
     bridge.say(row ? row[1] : m('paint.stock'));
   }
   // Am Modell: die Toene der Lackierung samt Serienpalette, nach der der
-  // Viewer die Palettenmaterialien erkennt; null = Serienlack.
+  // Viewer die Palettenmaterialien erkennt, und Glanz je Kanal, wo die Daten
+  // ihn tragen; null = Serienlack.
   function paintModel() {
     const sp = data.paints?.[draft.ship];
     const row = draft.paint && sp?.list.find((r) => r[0] === draft.paint);
-    bridge.paint?.(draft.ship, row ? { cols: row.slice(2, 5), base: sp.base } : null);
+    bridge.paint?.(draft.ship, row ? { cols: row.slice(2, 5), base: sp.base, fin: row[6] ?? null } : null);
   }
 
   // Marker am Schiff im Werkstatt-Modus: nur die Hardpoints mit Slot im
