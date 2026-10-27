@@ -1564,6 +1564,18 @@ last_updated: 2026-10-25T19:00:00.000Z
     "reason": "",
     "recorded_at": "2026-10-25T19:00:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 121,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "scripts/lib/landing-gear.mjs",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Landestellung nach Krisz 25.10.2026 18:15 „steht der railen so ingame?“, PC-Lauf Hangar-Landung Zwischenstand 1): Vor den Beinen spielt der Bau jetzt die Landeanimation des Rumpfs aus dem Spiel ab. Railen und Tyilui stehen auf ihren vier Beinen statt auf den Flügelspitzen, Eclipse, Hawk und S65 Stingray mit ausgefahrenem statt eingefahrenem Fahrwerk, Polaris-Flossen fast angelegt. Zu beurteilen: Stehen sie so wie im Spiel gelandet? Die Streifen der Railen und Tyilui sind die Lackfarben, nicht die Stellung (kommt mit der Metall-Umrechnung). Centaurus zurückgestellt (doppelt so viele Dreiecke). Maschinell: verify:hangar-gear grün, 172 Schiffe ausgefahren statt 166. Bild: /mnt/project-files/hangar/v85-landestellung.png.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-27T14:10:00.000Z",
+    "resolved_at": null
   }
 ]
 ````

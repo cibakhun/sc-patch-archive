@@ -9813,10 +9813,10 @@
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/ships/rsi-constellation-mk5-centaurus.glb",
-      "v": "1458da1c",
-      "tris": 1273671,
+      "v": "09b6344e",
+      "tris": 632856,
       "trisRaw": 1965220,
-      "textures": 379,
+      "textures": 365,
       "attached": 0,
       "swap": {
         "hardpoint_turret_upper": 4,
@@ -9838,15 +9838,14 @@
       "gearCheck": {
         "ok": false,
         "dev": [
-          -0.874,
-          -0.874,
-          -0.854,
-          -0.85,
-          -0.844,
-          -0.843
+          -0.935,
+          -0.941,
+          -0.954,
+          -0.965,
+          -0.931,
+          -0.937
         ],
-        "sink": -0.874,
-        "why": "Aufstandspunkte weichen bis 0.874 m ab"
+        "why": "Aufstandspunkte weichen bis 0.965 m ab"
       },
       "budget": {
         "tris": 200000,
@@ -9861,13 +9860,13 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2.6
+        "degenerate": 3.2
       },
-      "bytes": 12581956,
+      "bytes": 6837724,
       "pool": {
-        "images": 379,
-        "bytes": 10514126,
-        "fresh": 7233538
+        "images": 365,
+        "bytes": 9674136,
+        "fresh": 6619044
       }
     },
     "rsi-constellation-phoenix-emerald": {
@@ -14461,7 +14460,7 @@
           "prims": 59,
           "snapped": 198043,
           "groups": 63068,
-          "maxShift": 0.00009616595352204252
+          "maxShift": 9.616595352204252e-05
         },
         "written": {
           "boundaryVerts": 270825,
@@ -45595,94 +45594,94 @@
       "pose": "aus",
       "contacts": [
         [
-          -12.527,
-          -13.912,
-          2.515
+          -10.797,
+          -13.504,
+          2.294
         ],
         [
-          12.542,
-          -13.902,
-          2.514
+          10.812,
+          -13.493,
+          2.294
         ],
         [
-          -13.204,
-          -13.912,
+          -10.562,
+          -13.504,
           -0.505
         ],
         [
-          12.049,
-          -13.901,
-          -0.987
+          10.576,
+          -13.493,
+          -4.954
         ],
         [
-          -12.331,
-          -13.912,
-          14.145
+          -10.591,
+          -13.494,
+          13.668
         ],
         [
-          12.347,
-          -13.903,
-          14.144
+          10.606,
+          -13.483,
+          13.668
         ]
       ],
-      "ground": -13.907,
+      "ground": -13.498,
       "tilt": [
-        0.023,
-        -0.004
+        0.032,
+        0.037
       ],
       "below": [
         {
-          "node": "geo_foot_a_base_top004",
-          "depth": 0.874,
-          "gear": true
-        },
-        {
           "node": "dec_lg_foot_mid_left_b001",
-          "depth": 0.871,
-          "gear": true
-        },
-        {
-          "node": "DEC_QUAD_023",
-          "depth": 0.856,
-          "gear": true
-        },
-        {
-          "node": "DEC_LINE_002",
-          "depth": 0.851,
+          "depth": 0.969,
           "gear": true
         },
         {
           "node": "DEC_QUAD_018",
-          "depth": 0.851,
+          "depth": 0.967,
           "gear": true
         },
         {
-          "node": "dec_foot_a_base_top_mirror",
-          "depth": 0.85,
-          "gear": true
-        },
-        {
-          "node": "dec_lg_foot_toe_hinge_bottom_right",
-          "depth": 0.85,
-          "gear": true
-        },
-        {
-          "node": "dec_lg_toe002",
-          "depth": 0.849,
-          "gear": true
-        },
-        {
-          "node": "geo_lg_foot_toe_front_mirror",
-          "depth": 0.848,
+          "node": "geo_foot_a_base_top004",
+          "depth": 0.965,
           "gear": true
         },
         {
           "node": "geo_lg_foot_c_side_plate_left",
-          "depth": 0.846,
+          "depth": 0.962,
+          "gear": true
+        },
+        {
+          "node": "dec_lg_foot_c_side_plate_left",
+          "depth": 0.96,
+          "gear": true
+        },
+        {
+          "node": "dec_lg_foot_b_side_plate_left",
+          "depth": 0.958,
+          "gear": true
+        },
+        {
+          "node": "geo_lg_foot_c_side_plate_right",
+          "depth": 0.954,
+          "gear": true
+        },
+        {
+          "node": "geo_lg_foot_a_side_plate_right003",
+          "depth": 0.953,
+          "gear": true
+        },
+        {
+          "node": "geo_lg_foot_base_front_left003_mirror",
+          "depth": 0.946,
+          "gear": true
+        },
+        {
+          "node": "dec_g_foot_a_side_plate_inside_right",
+          "depth": 0.946,
           "gear": true
         }
       ],
-      "belowCount": 102,
+      "belowCount": 103,
       "source": "Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)",
       "game": {
         "landingSystem": "RSI_Constellation_Mk5_LandingSystem",
@@ -45696,23 +45695,18 @@
           0,
           0
         ],
-        "hullAnim": {
-          "fragment": "Landing_Gear/Deploy",
-          "anim": "Landing_Deploy",
-          "bones": 20
-        },
         "legs": [
           {
             "bone": "hardpoint_landing_gear_center_left",
             "pose": "ruhelage",
-            "mismatch": 0.874,
+            "mismatch": 0.963,
             "foot": [
-              -12.527,
-              -14.786,
-              2.515
+              -10.797,
+              -14.467,
+              2.294
             ],
-            "y": -13.912,
-            "yMax": -15.308,
+            "y": -13.504,
+            "yMax": -14.895,
             "spring": {
               "target": 7.13,
               "min": 6.025,
@@ -45727,14 +45721,14 @@
           {
             "bone": "hardpoint_landing_gear_center_right",
             "pose": "ruhelage",
-            "mismatch": 0.871,
+            "mismatch": 0.966,
             "foot": [
-              12.542,
-              -14.773,
-              2.514
+              10.812,
+              -14.459,
+              2.294
             ],
-            "y": -13.902,
-            "yMax": -15.298,
+            "y": -13.493,
+            "yMax": -14.884,
             "spring": {
               "target": 7.13,
               "min": 6.025,
@@ -45749,14 +45743,14 @@
           {
             "bone": "hardpoint_landing_gear_front_left",
             "pose": "ruhelage",
-            "mismatch": 0.857,
+            "mismatch": 0.967,
             "foot": [
-              -13.204,
-              -14.768,
+              -10.562,
+              -14.471,
               -0.505
             ],
-            "y": -13.912,
-            "yMax": -15.357,
+            "y": -13.504,
+            "yMax": -14.944,
             "spring": {
               "target": 7.13,
               "min": 6.027,
@@ -45771,14 +45765,14 @@
           {
             "bone": "hardpoint_landing_gear_front_right",
             "pose": "ruhelage",
-            "mismatch": 0.85,
+            "mismatch": 0.963,
             "foot": [
-              12.049,
-              -14.752,
-              -0.987
+              10.576,
+              -14.457,
+              -4.954
             ],
-            "y": -13.901,
-            "yMax": -15.346,
+            "y": -13.493,
+            "yMax": -14.933,
             "spring": {
               "target": 7.13,
               "min": 6.027,
@@ -45793,14 +45787,14 @@
           {
             "bone": "hardpoint_landing_gear_rear_left",
             "pose": "ruhelage",
-            "mismatch": 0.844,
+            "mismatch": 0.943,
             "foot": [
-              -12.331,
-              -14.756,
-              14.145
+              -10.591,
+              -14.437,
+              13.668
             ],
-            "y": -13.912,
-            "yMax": -15.39,
+            "y": -13.494,
+            "yMax": -14.966,
             "spring": {
               "target": 7.13,
               "min": 6.012,
@@ -45815,14 +45809,14 @@
           {
             "bone": "hardpoint_landing_gear_rear_right",
             "pose": "ruhelage",
-            "mismatch": 0.842,
+            "mismatch": 0.946,
             "foot": [
-              12.347,
-              -14.745,
-              14.144
+              10.606,
+              -14.429,
+              13.668
             ],
-            "y": -13.903,
-            "yMax": -15.381,
+            "y": -13.483,
+            "yMax": -14.955,
             "spring": {
               "target": 7.13,
               "min": 6.012,
@@ -45837,7 +45831,7 @@
         ],
         "compress": null
       },
-      "hullLowest": -11.263,
+      "hullLowest": -10.667,
       "record": "RSI_Constellation_Mk5_Centaurus",
       "gameBuild": "12913470"
     },
@@ -47337,9 +47331,9 @@
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/geo/rsi-constellation-mk5-centaurus.glb",
-      "tris": 62120,
-      "bytes": 384944,
-      "v": "acd2b8e2"
+      "tris": 62166,
+      "bytes": 383716,
+      "v": "75e88f2c"
     },
     "rsi-perseus": {
       "url": "/hangar/geo/rsi-perseus.glb",

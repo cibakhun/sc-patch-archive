@@ -202,3 +202,12 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
 Aufnahmen (`check:hangar-shader --shot`, höchstens 16 Texturen je
 Bildshader): Railen, Syulen, Corsair, Polaris, Freelancer, Andromeda. Die
 Farben sind unverändert, bis die Umrechnung oben entschieden ist.
+
+**Cloud 27.10.2026, beim Übernehmen von Zwischenstand 1:** Centaurus
+(`rsi-constellation-mk5-centaurus`) nicht übernommen, staging-Fassung bleibt
+(Web, Geometrie, `hangar-assets.json` ships/gear/geo). Die neue Web-Fassung
+hat 1 273 671 statt 632 856 Dreiecke, 12,6 statt 6,8 MB, 90 statt 83 Meshes,
+273 statt 262 Materialien und 11 neue Bilder in der Ablage, für 10 cm weniger
+Tiefe (0,97 → 0,87 m, weiter über 20 cm). Bei den übrigen zehn bleiben die
+Dreiecke gleich. Bitte die Ursache der Verdopplung finden, bevor sie wieder
+kommt; die 11 Bilder sind wieder aus `public/hangar/tex` genommen.
