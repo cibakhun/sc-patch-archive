@@ -194,10 +194,18 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
 - Abgelehnt, weil schlechter: Reclaimer (beide), Mole, Moth (Rumpf fährt die
   Beine aus, ohne sie einzufedern: 2,5 bis 8,2 m im Boden), Guardian und QI,
   Corsair (gleich).
-- **Noch offen** (ein): Reclaimer ×2, Mole, Moth, Nomad (Beine ohne
-  Animation), Dragonfly ×2 (Gravplatten), Prowler Utility, Hull C, 85X,
-  890 Jump, Glaive, San'tok.yāi, Ironclad ×2 (Animation nicht unter dem
-  erwarteten Pfad). Teile in Flugstellung bleiben bei 39 Schiffen.
+- **Einfedern über den Rumpf** (Zwischenstand 2): Fährt der Rumpf die Beine
+  aus, spielt `poseShip` danach jede Compress-Animation der Gruppe so weit,
+  dass die Füße, die sie bewegt, im Mittel auf der Federhöhe stehen
+  (Halbierung über den Anteil). Reclaimer und Reclaimer Showdown: ein → aus,
+  nichts im Boden, `gear: true` (angesehen). Stand danach: aus 174, ein 13,
+  tiefer als 20 cm 39; Rumpfanimation angenommen bei 14 Schiffen.
+- **Noch offen** (ein): Mole, Moth (Rumpf fährt das linke Bein 2,5 m zu weit
+  aus, Compress bewegt es nicht), Nomad (Beine ohne Animation), Dragonfly ×2
+  (Gravplatten), Prowler Utility, Hull C, 85X, 890 Jump, Glaive, San'tok.yāi,
+  Ironclad ×2: Die `.chrparams` der Beine nennt
+  `drak_ironclad_landing_gear_side_01_extend_A.caf` usw., keine dieser
+  Dateien liegt im Spiel. Teile in Flugstellung bleiben bei 39 Schiffen.
 
 Aufnahmen (`check:hangar-shader --shot`, höchstens 16 Texturen je
 Bildshader): Railen, Syulen, Corsair, Polaris, Freelancer, Andromeda. Die
