@@ -236,320 +236,10 @@ try {
 const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 ---
 
-<section class="cdb" id="cdb">
-  <!-- Tab Switcher -->
-  <div class="cdb-tabs">
-    <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
-    <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
-  </div>
-
-  <div id="cdb-tab-db-content">
-  <ToolHelp tool="crafting" lang={lang} steps={4} />
-  <!-- Toolbar -->
-  <div class="cdb-bar">
-    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
-    <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
-      <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
-    </div>
-    <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
-      <span class="cdb-sr">{S.sort}</span>
-      <select id="cdb-sort">
-        <option value="name">{S.sortName}</option>
-        <option value="name-desc">{S.sortNameDesc}</option>
-        <option value="time-asc">{S.sortTimeAsc}</option>
-        <option value="time-desc">{S.sortTimeDesc}</option>
-        <option value="ings-desc">{S.sortIngs}</option>
-      </select>
-    </label>
-    <div class="cdb-viewtog" role="group" aria-label={S.view} data-help={h('crafting.ctl.view')}>
-      <button class="cdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
-      <button class="cdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
-    </div>
-    <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle} data-help={h('crafting.ctl.planner')}>
-      ⚙ {S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
-    </button>
-    {/* Speicher-Status für Besitz + Planer. Ohne Konto: „Nur auf diesem Gerät"
-        + Anmelde-Link; angemeldet zeigt crafting-app.js hier den Sync-Zustand.
-        data-state wird vom JS gesetzt (local | syncing | synced | error). */}
-    <div class="cdb-sync" data-state="local" title={S.syncTitle} aria-live="polite">
-      <span class="cdb-sync__dot" aria-hidden="true"></span>
-      <span class="cdb-sync__txt">{S.syncLocal}</span>
-      <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
-      <button type="button" class="cdb-sync__retry" hidden>{S.syncRetry}</button>
-    </div>
-  </div>
-
-  <div class="cdb-layout">
-    <!-- Filter sidebar -->
-    {/* data-offcanvas: assets/offcanvas.js ergaenzt Verdunkler, Scroll-Sperre,
-        Esc, Tippen-daneben und Wischen — einmal fuer alle Panels der Seite. */}
-    <aside class="cdb-sidebar" id="cdb-sidebar" aria-label={S.filters} data-offcanvas>
-      <div class="cdb-side-hd">
-        <span>{S.filters}</span>
-        <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
-      </div>
-
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')}>
-        <h4>{S.category}</h4>
-        {catList.map((c) => (
-          <details class="cdb-cat-details">
-            <summary class="cdb-cat-summary">
-              <label class="cdb-check cdb-check--top" onclick="event.stopPropagation()">
-                <input type="checkbox" class="cdb-cat" value={c.top} />
-                <span>{c.top} <em>{c.count}</em></span>
-              </label>
-            </summary>
-            <div class="cdb-subs">
-              {c.subs.map((s) => (
-                <label class="cdb-check cdb-check--sub">
-                  <input type="checkbox" class="cdb-sub" data-top={c.top} value={`${c.top}||${s}`} />
-                  <span>{s}</span>
-                </label>
-              ))}
-            </div>
-          </details>
-        ))}
-      </div>
-
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
-        <h4>{S.resource}</h4>
-        <div class="cdb-res-search-wrap">
-          <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder="Ressource suchen..." autocomplete="off" />
-        </div>
-        <div class="cdb-res-list">
-          {resources.map((r) => (
-            <label class="cdb-check">
-              <input type="checkbox" class="cdb-res-cb" value={r.toLowerCase()} />
-              <span>{r}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')}>
-        <h4>{it('specSize')}</h4>
-        {sizeList.map((sz) => (
-          <label class="cdb-check">
-            <input type="checkbox" class="cdb-size" value={sz} />
-            <span>S{sz} <em>{sizeCounts[sz]}</em></span>
-          </label>
-        ))}
-      </div>
-
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')}>
-        <h4>{it('specGrade')}</h4>
-        {gradeList.map((gr) => (
-          <label class="cdb-check">
-            <input type="checkbox" class="cdb-grade" value={gr} />
-            <span>{gr} <em>{gradeCounts[gr]}</em></span>
-          </label>
-        ))}
-      </div>
-
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')}>
-        <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
-        <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
-      </div>
-
-      <button id="cdb-reset" class="cdb-reset">{S.reset}</button>
-    </aside>
-
-    <!-- Results -->
-    <div class="cdb-main">
-      <div class="cdb-count-row">
-        <span><b id="cdb-count">{total}</b> / {total} {S.results}</span>
-      </div>
-      <div class="cdb-grid vb-scrollbox" id="cdb-grid">
-        {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
-            waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
-            mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js
-            hebt sie beim Init selbst ins dataset. Nur data-i (localStorage-Key
-            für Besitz/Planer, muss DB-stabil bleiben) und data-time (Craft-Zeit
-            steht sichtbar nur als gerundetes Label) bleiben im Markup. Die
-            ★/＋-Buttons sind ohne JS funktionslos → injiziert ebenfalls das JS. */}
-        {cardsData.map((c) => (
-          <article
-            class="cbp"
-            data-i={c.i}
-            data-time={c.time}
-          >
-            <div class="cbp__top">
-              <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>
-            </div>
-            <h3 class="cbp__name"><a href={c.url}>{c.name}</a></h3>
-            <div class="cbp__meta">
-              <span title={S.craftTime}>⏱ {c.timeLabel}</span>
-              <span title={S.ings}>◆ {c.nIng}</span>
-              {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
-            </div>
-            {/* Groesse/Grade/Ton auf jeder Karte, fuer die es die Angabe gibt
-                (blueprintSpecs() liefert null bei Namenskollision D-09 oder
-                fehlender Angabe). Fehlt eine Angabe, fehlt das <li> ersatzlos
-                statt zu raten oder "—" zu zeigen (D-06). Der Ton-Text kommt
-                aus den Spieldaten und wird deshalb ueber set:text gesetzt,
-                nicht als rohes {ausdruck}-Kind. */}
-            {c.sp && (c.sp.sizes.length > 0 || c.sp.grade || c.sp.tone) && (
-              <ul class="cbp__spec">
-                {c.sp.sizes.length > 0 && (
-                  <li set:text={c.sp.sizes.map((n) => `S${n}`).join(' / ')} />
-                )}
-                {c.sp.grade && (<li>{c.sp.grade}</li>)}
-                {c.sp.tone && (<li class="tone" set:text={c.sp.tone} />)}
-              </ul>
-            )}
-            {/* Ressourcen-Chips werden von crafting-app.js zu Links auf das
-                Mineral-Datenblatt gemacht („wo baue ich das ab?"). Wie die
-                ★/＋-Buttons bewusst NICHT serverseitig: 4197 Chips × ~100
-                Zeichen Link-Markup wären ~0,4 MB tote Fracht pro Sprachseite.
-                Die crawlbaren Material→Mining-Links stehen auf den statischen
-                Blueprint-Seiten (BlueprintDetail.astro). */}
-            {c.resNames.length > 0 && (
-              <ul class="cbp__res">
-                {c.resNames.slice(0, 5).map((r) => (<li>{r}</li>))}
-                {c.resNames.length > 5 && (<li class="more">+{c.resNames.length - 5}</li>)}
-              </ul>
-            )}
-          </article>
-        ))}
-      </div>
-      <p class="cdb-empty" id="cdb-empty" hidden>{S.empty}</p>
-    </div>
-  </div>
-  </div> <!-- End #cdb-tab-db-content -->
-
-  <!-- Dismantling Calculator tab -->
-  <div id="cdb-tab-dismantle-content" hidden>
-    <div class="calc-layout">
-      <!-- Inputs sidebar -->
-      <aside class="calc-sidebar">
-        <h4>{S.calcSelectMats}</h4>
-        
-        <!-- Material search & list -->
-        <div class="calc-fgroup">
-          <div class="cdb-res-search-wrap">
-            <input type="text" id="calc-mat-search" class="cdb-res-search" placeholder={S.calcSearchPlaceholder} autocomplete="off" />
-          </div>
-          <div class="calc-mat-list">
-            <!-- Loaded dynamically via JS -->
-          </div>
-        </div>
-
-        <h4 style="margin-top:1.5rem;">{S.calcParameters}</h4>
-        
-        <!-- Target Quantity -->
-        <div class="calc-fgroup">
-          <label style="display:block;font-size:var(--fs-7);color:var(--muted,#9ba2ae);margin-bottom:0.4rem;">{S.calcTargetQty}</label>
-          <input type="number" id="calc-target-qty" class="cdb-res-search" value="1.0" min="0.01" step="0.1" style="width:100%;" />
-        </div>
-
-        <!-- Yield Rate -->
-        <div class="calc-fgroup">
-          <div style="display:flex;justify-content:space-between;font-size:var(--fs-7);color:var(--muted,#9ba2ae);margin-bottom:0.4rem;">
-            <span>{S.calcYieldRate}</span>
-            <span id="calc-yield-val">{defaultYield}%</span>
-          </div>
-          {/* Default = Basis-Effizienz aus dem Spiel (GlobalGenericDismantle),
-              nicht mehr hartes 50. */}
-          <input type="range" id="calc-yield-rate" min="1" max="100" value={defaultYield} style="width:100%;accent-color:var(--accent,#FF5E1A);" />
-        </div>
-        
-        <button id="calc-reset" class="cdb-reset" style="margin-top:1rem;">{S.calcReset}</button>
-      </aside>
-
-      <!-- Outputs list -->
-      <div class="calc-results-wrap" style="flex:1 1 auto; min-width:0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;">
-          <h2 style="display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-display,inherit);font-weight:900;font-size:var(--fs-14);color:#fff;margin:0;"><span style="display:inline-flex;color:var(--accent,#FF5E1A);" aria-hidden="true"><Fragment set:html={ICON_DISMANTLE} /></span>{S.calcTitle}</h2>
-          <span id="calc-results-count" style="font-size:var(--fs-7);color:var(--muted,#9ba2ae);">0 Items gefunden</span>
-        </div>
-
-        <div class="calc-search-row">
-          <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
-        </div>
-
-        {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,
-            dass die Blacklist-Daten fehlen (alte JSON / DB-Fetch gescheitert) —
-            dann kann der Rechner Seltenheit nicht garantieren. Normal hidden. */}
-        <p id="calc-datanote" role="alert" hidden style="margin:0 0 1rem;padding:.7rem .9rem;border:1px solid #ff5b5b;border-left-width:3px;border-radius:6px;background:rgba(255,91,91,.09);color:var(--text,#eef1f5);font-size:var(--fs-7);line-height:1.45;">{S.calcDataIncomplete}</p>
-
-        <div id="calc-results" class="calc-grid vb-scrollbox">
-          <!-- Results rendered dynamically via JS -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Detail modal -->
-  <div class="cdb-modal" id="cdb-modal" hidden>
-    <div class="cdb-modal__box" role="dialog" aria-modal="true">
-      {/* Siehe MiningApp: Zurueck-Pfeil nur bei nachgewiesener Herkunft von
-          aussen (Deep-Link ?bp= / ?res=), sonst waere er ein zweites X. */}
-      <button class="cdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
-        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <button class="cdb-modal__x" data-close aria-label={S.close}>✕</button>
-      <div class="cdb-modal__body" id="cdb-modal-body"></div>
-    </div>
-  </div>
-
-  <!-- Planner drawer -->
-  {/* data-offcanvas greift hier NUR unter 820 px (siehe offcanvas.js): am
-      Desktop bleibt der Planer wie er ist, mobil bekommt er Verdunkler und
-      Scroll-Sperre — ohne sie scrollte die Blueprint-Liste dahinter weg. */}
-  <aside class="cdb-drawer" id="cdb-planner" aria-hidden="true" aria-label={S.plannerTitle} data-offcanvas>
-    <div class="cdb-drawer__hd">
-      <span>{S.plannerTitle}</span>
-      <button class="cdb-x" data-planner-close aria-label={S.close}>✕</button>
-    </div>
-    <ul class="cdb-plan-list" id="cdb-plan-list"></ul>
-    <div class="cdb-plan-sum">
-      <div class="cdb-plan-time-row"><span>{S.totalTime}</span><b id="cdb-plan-time">—</b></div>
-      <h4>{S.shoppingList}</h4>
-      <div id="cdb-plan-shop" class="cdb-plan-shop"></div>
-      {/* Zweite Statusanzeige: im Planer sieht man den Speicherort dort, wo die
-          Liste steht — nicht nur oben in der Toolbar. */}
-      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle}>
-        <span class="cdb-sync__dot" aria-hidden="true"></span>
-        <span class="cdb-sync__txt">{S.syncLocal}</span>
-        <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
-        <button type="button" class="cdb-sync__retry" hidden>{S.syncRetry}</button>
-      </div>
-      <button id="cdb-plan-clear" class="cdb-plan-clear">{S.clearPlan}</button>
-    </div>
-  </aside>
-
-  {/* Kurzmeldung, z. B. nach der einmaligen Übernahme lokaler Daten ins Konto. */}
-  <div class="cdb-toast" id="cdb-toast" role="status" hidden></div>
-</section>
-
-{/* Daten-URLs mit dem Patch-Stand versioniert (?v=<DB.version>): nginx cacht
-    JSON 1 Tag; ohne Version sähe neues Markup nach einem Datamine-Lauf u. U.
-    die alte crafting-db.json OHNE dismantle_blacklist — die App fiele dann auf
-    „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
-    jeder Aufruf so die zum Markup passende Datenversion. */}
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({
-  lang,
-  dbUrl: '/assets/crafting-db.json?v=' + version,
-  dismantleUrl: '/assets/dismantling-items.json?v=' + version,
-  dismantleEfficiency: dismantleEff,
-  icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE },
-  // Materialname (Schreibweise wie im Rezept) -> Mineral, für die Abbau-Links
-  // im Detail-Modal und in der Einkaufsliste des Planers (rendert das JS).
-  mine: { url: miningUrl, names: mineralOf },
-  t: JS_T,
-})};`} />
-{/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe
-    Verfahren wie /assets/account-lite.js in SiteNav): das JS hängt eng am
-    Markup — altes gecachtes Skript auf neuem HTML bräche Karten-Diät, Zerlege-
-    Rechner und Konto-Sync. Ein vergessener Bump war live nicht sichtbar, weil
-    der Dev-Server nie cacht; der Hash kann nicht vergessen werden.
-
-    defer: crafting-app.js braucht window.VBAccount aus account-lite.js (Session
-    + PostgREST). Beide sind defer, und SiteNav steht im Dokument vor dieser
-    Komponente — damit läuft account-lite garantiert zuerst. Zusätzlich wartet
-    das Skript notfalls auf das Event 'vb-account-ready'. */}
-<script is:inline src={craftAppSrc} defer></script>
-
+{/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
+    die ganze App knapp 0,8 s lang ungestylt (rohe Listen, Kontrollkaestchen),
+    bis er sich durch ~830 KB Markup bis hierher gelesen hatte. Die Reihenfolge
+    der Stilblaetter untereinander bleibt dieselbe. */}
 <style is:inline>
   /* ===== Crafting-DB — funktionale App ===== */
   /* Breitbild-Zuschlag (theme.css § 5): bis 1920 px 0. Auf 3440 px stehen
@@ -921,3 +611,317 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 :root[data-theme="light"] .calc-card__yield-tag.target{border-color:rgba(4,124,201,.58)}
 :root[data-theme="light"] .calc-card__warning{color:#a7001d}
 </style>
+
+<section class="cdb" id="cdb">
+  <!-- Tab Switcher -->
+  <div class="cdb-tabs">
+    <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
+    <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
+  </div>
+
+  <div id="cdb-tab-db-content">
+  <ToolHelp tool="crafting" lang={lang} steps={4} />
+  <!-- Toolbar -->
+  <div class="cdb-bar">
+    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
+    <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
+      <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
+    </div>
+    <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
+      <span class="cdb-sr">{S.sort}</span>
+      <select id="cdb-sort">
+        <option value="name">{S.sortName}</option>
+        <option value="name-desc">{S.sortNameDesc}</option>
+        <option value="time-asc">{S.sortTimeAsc}</option>
+        <option value="time-desc">{S.sortTimeDesc}</option>
+        <option value="ings-desc">{S.sortIngs}</option>
+      </select>
+    </label>
+    <div class="cdb-viewtog" role="group" aria-label={S.view} data-help={h('crafting.ctl.view')}>
+      <button class="cdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
+      <button class="cdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
+    </div>
+    <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle} data-help={h('crafting.ctl.planner')}>
+      ⚙ {S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
+    </button>
+    {/* Speicher-Status für Besitz + Planer. Ohne Konto: „Nur auf diesem Gerät"
+        + Anmelde-Link; angemeldet zeigt crafting-app.js hier den Sync-Zustand.
+        data-state wird vom JS gesetzt (local | syncing | synced | error). */}
+    <div class="cdb-sync" data-state="local" title={S.syncTitle} aria-live="polite">
+      <span class="cdb-sync__dot" aria-hidden="true"></span>
+      <span class="cdb-sync__txt">{S.syncLocal}</span>
+      <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
+      <button type="button" class="cdb-sync__retry" hidden>{S.syncRetry}</button>
+    </div>
+  </div>
+
+  <div class="cdb-layout">
+    <!-- Filter sidebar -->
+    {/* data-offcanvas: assets/offcanvas.js ergaenzt Verdunkler, Scroll-Sperre,
+        Esc, Tippen-daneben und Wischen — einmal fuer alle Panels der Seite. */}
+    <aside class="cdb-sidebar" id="cdb-sidebar" aria-label={S.filters} data-offcanvas>
+      <div class="cdb-side-hd">
+        <span>{S.filters}</span>
+        <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')}>
+        <h4>{S.category}</h4>
+        {catList.map((c) => (
+          <details class="cdb-cat-details">
+            <summary class="cdb-cat-summary">
+              <label class="cdb-check cdb-check--top" onclick="event.stopPropagation()">
+                <input type="checkbox" class="cdb-cat" value={c.top} />
+                <span>{c.top} <em>{c.count}</em></span>
+              </label>
+            </summary>
+            <div class="cdb-subs">
+              {c.subs.map((s) => (
+                <label class="cdb-check cdb-check--sub">
+                  <input type="checkbox" class="cdb-sub" data-top={c.top} value={`${c.top}||${s}`} />
+                  <span>{s}</span>
+                </label>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
+        <h4>{S.resource}</h4>
+        <div class="cdb-res-search-wrap">
+          <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder="Ressource suchen..." autocomplete="off" />
+        </div>
+        <div class="cdb-res-list">
+          {resources.map((r) => (
+            <label class="cdb-check">
+              <input type="checkbox" class="cdb-res-cb" value={r.toLowerCase()} />
+              <span>{r}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')}>
+        <h4>{it('specSize')}</h4>
+        {sizeList.map((sz) => (
+          <label class="cdb-check">
+            <input type="checkbox" class="cdb-size" value={sz} />
+            <span>S{sz} <em>{sizeCounts[sz]}</em></span>
+          </label>
+        ))}
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')}>
+        <h4>{it('specGrade')}</h4>
+        {gradeList.map((gr) => (
+          <label class="cdb-check">
+            <input type="checkbox" class="cdb-grade" value={gr} />
+            <span>{gr} <em>{gradeCounts[gr]}</em></span>
+          </label>
+        ))}
+      </div>
+
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')}>
+        <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
+        <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
+      </div>
+
+      <button id="cdb-reset" class="cdb-reset">{S.reset}</button>
+    </aside>
+
+    <!-- Results -->
+    <div class="cdb-main">
+      <div class="cdb-count-row">
+        <span><b id="cdb-count">{total}</b> / {total} {S.results}</span>
+      </div>
+      <div class="cdb-grid vb-scrollbox" id="cdb-grid">
+        {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
+            waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
+            mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js
+            hebt sie beim Init selbst ins dataset. Nur data-i (localStorage-Key
+            für Besitz/Planer, muss DB-stabil bleiben) und data-time (Craft-Zeit
+            steht sichtbar nur als gerundetes Label) bleiben im Markup. Die
+            ★/＋-Buttons sind ohne JS funktionslos → injiziert ebenfalls das JS. */}
+        {cardsData.map((c) => (
+          <article
+            class="cbp"
+            data-i={c.i}
+            data-time={c.time}
+          >
+            <div class="cbp__top">
+              <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>
+            </div>
+            <h3 class="cbp__name"><a href={c.url}>{c.name}</a></h3>
+            <div class="cbp__meta">
+              <span title={S.craftTime}>⏱ {c.timeLabel}</span>
+              <span title={S.ings}>◆ {c.nIng}</span>
+              {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
+            </div>
+            {/* Groesse/Grade/Ton auf jeder Karte, fuer die es die Angabe gibt
+                (blueprintSpecs() liefert null bei Namenskollision D-09 oder
+                fehlender Angabe). Fehlt eine Angabe, fehlt das <li> ersatzlos
+                statt zu raten oder "—" zu zeigen (D-06). Der Ton-Text kommt
+                aus den Spieldaten und wird deshalb ueber set:text gesetzt,
+                nicht als rohes {ausdruck}-Kind. */}
+            {c.sp && (c.sp.sizes.length > 0 || c.sp.grade || c.sp.tone) && (
+              <ul class="cbp__spec">
+                {c.sp.sizes.length > 0 && (
+                  <li set:text={c.sp.sizes.map((n) => `S${n}`).join(' / ')} />
+                )}
+                {c.sp.grade && (<li>{c.sp.grade}</li>)}
+                {c.sp.tone && (<li class="tone" set:text={c.sp.tone} />)}
+              </ul>
+            )}
+            {/* Ressourcen-Chips werden von crafting-app.js zu Links auf das
+                Mineral-Datenblatt gemacht („wo baue ich das ab?"). Wie die
+                ★/＋-Buttons bewusst NICHT serverseitig: 4197 Chips × ~100
+                Zeichen Link-Markup wären ~0,4 MB tote Fracht pro Sprachseite.
+                Die crawlbaren Material→Mining-Links stehen auf den statischen
+                Blueprint-Seiten (BlueprintDetail.astro). */}
+            {c.resNames.length > 0 && (
+              <ul class="cbp__res">
+                {c.resNames.slice(0, 5).map((r) => (<li>{r}</li>))}
+                {c.resNames.length > 5 && (<li class="more">+{c.resNames.length - 5}</li>)}
+              </ul>
+            )}
+          </article>
+        ))}
+      </div>
+      <p class="cdb-empty" id="cdb-empty" hidden>{S.empty}</p>
+    </div>
+  </div>
+  </div> <!-- End #cdb-tab-db-content -->
+
+  <!-- Dismantling Calculator tab -->
+  <div id="cdb-tab-dismantle-content" hidden>
+    <div class="calc-layout">
+      <!-- Inputs sidebar -->
+      <aside class="calc-sidebar">
+        <h4>{S.calcSelectMats}</h4>
+        
+        <!-- Material search & list -->
+        <div class="calc-fgroup">
+          <div class="cdb-res-search-wrap">
+            <input type="text" id="calc-mat-search" class="cdb-res-search" placeholder={S.calcSearchPlaceholder} autocomplete="off" />
+          </div>
+          <div class="calc-mat-list">
+            <!-- Loaded dynamically via JS -->
+          </div>
+        </div>
+
+        <h4 style="margin-top:1.5rem;">{S.calcParameters}</h4>
+        
+        <!-- Target Quantity -->
+        <div class="calc-fgroup">
+          <label style="display:block;font-size:var(--fs-7);color:var(--muted,#9ba2ae);margin-bottom:0.4rem;">{S.calcTargetQty}</label>
+          <input type="number" id="calc-target-qty" class="cdb-res-search" value="1.0" min="0.01" step="0.1" style="width:100%;" />
+        </div>
+
+        <!-- Yield Rate -->
+        <div class="calc-fgroup">
+          <div style="display:flex;justify-content:space-between;font-size:var(--fs-7);color:var(--muted,#9ba2ae);margin-bottom:0.4rem;">
+            <span>{S.calcYieldRate}</span>
+            <span id="calc-yield-val">{defaultYield}%</span>
+          </div>
+          {/* Default = Basis-Effizienz aus dem Spiel (GlobalGenericDismantle),
+              nicht mehr hartes 50. */}
+          <input type="range" id="calc-yield-rate" min="1" max="100" value={defaultYield} style="width:100%;accent-color:var(--accent,#FF5E1A);" />
+        </div>
+        
+        <button id="calc-reset" class="cdb-reset" style="margin-top:1rem;">{S.calcReset}</button>
+      </aside>
+
+      <!-- Outputs list -->
+      <div class="calc-results-wrap" style="flex:1 1 auto; min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;">
+          <h2 style="display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-display,inherit);font-weight:900;font-size:var(--fs-14);color:#fff;margin:0;"><span style="display:inline-flex;color:var(--accent,#FF5E1A);" aria-hidden="true"><Fragment set:html={ICON_DISMANTLE} /></span>{S.calcTitle}</h2>
+          <span id="calc-results-count" style="font-size:var(--fs-7);color:var(--muted,#9ba2ae);">0 Items gefunden</span>
+        </div>
+
+        <div class="calc-search-row">
+          <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
+        </div>
+
+        {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,
+            dass die Blacklist-Daten fehlen (alte JSON / DB-Fetch gescheitert) —
+            dann kann der Rechner Seltenheit nicht garantieren. Normal hidden. */}
+        <p id="calc-datanote" role="alert" hidden style="margin:0 0 1rem;padding:.7rem .9rem;border:1px solid #ff5b5b;border-left-width:3px;border-radius:6px;background:rgba(255,91,91,.09);color:var(--text,#eef1f5);font-size:var(--fs-7);line-height:1.45;">{S.calcDataIncomplete}</p>
+
+        <div id="calc-results" class="calc-grid vb-scrollbox">
+          <!-- Results rendered dynamically via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail modal -->
+  <div class="cdb-modal" id="cdb-modal" hidden>
+    <div class="cdb-modal__box" role="dialog" aria-modal="true">
+      {/* Siehe MiningApp: Zurueck-Pfeil nur bei nachgewiesener Herkunft von
+          aussen (Deep-Link ?bp= / ?res=), sonst waere er ein zweites X. */}
+      <button class="cdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="cdb-modal__x" data-close aria-label={S.close}>✕</button>
+      <div class="cdb-modal__body" id="cdb-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Planner drawer -->
+  {/* data-offcanvas greift hier NUR unter 820 px (siehe offcanvas.js): am
+      Desktop bleibt der Planer wie er ist, mobil bekommt er Verdunkler und
+      Scroll-Sperre — ohne sie scrollte die Blueprint-Liste dahinter weg. */}
+  <aside class="cdb-drawer" id="cdb-planner" aria-hidden="true" aria-label={S.plannerTitle} data-offcanvas>
+    <div class="cdb-drawer__hd">
+      <span>{S.plannerTitle}</span>
+      <button class="cdb-x" data-planner-close aria-label={S.close}>✕</button>
+    </div>
+    <ul class="cdb-plan-list" id="cdb-plan-list"></ul>
+    <div class="cdb-plan-sum">
+      <div class="cdb-plan-time-row"><span>{S.totalTime}</span><b id="cdb-plan-time">—</b></div>
+      <h4>{S.shoppingList}</h4>
+      <div id="cdb-plan-shop" class="cdb-plan-shop"></div>
+      {/* Zweite Statusanzeige: im Planer sieht man den Speicherort dort, wo die
+          Liste steht — nicht nur oben in der Toolbar. */}
+      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle}>
+        <span class="cdb-sync__dot" aria-hidden="true"></span>
+        <span class="cdb-sync__txt">{S.syncLocal}</span>
+        <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
+        <button type="button" class="cdb-sync__retry" hidden>{S.syncRetry}</button>
+      </div>
+      <button id="cdb-plan-clear" class="cdb-plan-clear">{S.clearPlan}</button>
+    </div>
+  </aside>
+
+  {/* Kurzmeldung, z. B. nach der einmaligen Übernahme lokaler Daten ins Konto. */}
+  <div class="cdb-toast" id="cdb-toast" role="status" hidden></div>
+</section>
+
+{/* Daten-URLs mit dem Patch-Stand versioniert (?v=<DB.version>): nginx cacht
+    JSON 1 Tag; ohne Version sähe neues Markup nach einem Datamine-Lauf u. U.
+    die alte crafting-db.json OHNE dismantle_blacklist — die App fiele dann auf
+    „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
+    jeder Aufruf so die zum Markup passende Datenversion. */}
+<script is:inline set:html={`window.__CRAFT=${JSON.stringify({
+  lang,
+  dbUrl: '/assets/crafting-db.json?v=' + version,
+  dismantleUrl: '/assets/dismantling-items.json?v=' + version,
+  dismantleEfficiency: dismantleEff,
+  icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE },
+  // Materialname (Schreibweise wie im Rezept) -> Mineral, für die Abbau-Links
+  // im Detail-Modal und in der Einkaufsliste des Planers (rendert das JS).
+  mine: { url: miningUrl, names: mineralOf },
+  t: JS_T,
+})};`} />
+{/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe
+    Verfahren wie /assets/account-lite.js in SiteNav): das JS hängt eng am
+    Markup — altes gecachtes Skript auf neuem HTML bräche Karten-Diät, Zerlege-
+    Rechner und Konto-Sync. Ein vergessener Bump war live nicht sichtbar, weil
+    der Dev-Server nie cacht; der Hash kann nicht vergessen werden.
+
+    defer: crafting-app.js braucht window.VBAccount aus account-lite.js (Session
+    + PostgREST). Beide sind defer, und SiteNav steht im Dokument vor dieser
+    Komponente — damit läuft account-lite garantiert zuerst. Zusätzlich wartet
+    das Skript notfalls auf das Event 'vb-account-ready'. */}
+<script is:inline src={craftAppSrc} defer></script>

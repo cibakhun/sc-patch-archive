@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import DiscordCard from '../../components/DiscordCard.astro';
 import { getCollection } from 'astro:content';
+import { avifDa, avifSet } from '../../../scripts/lib/avif.mjs';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -13,6 +14,10 @@ const first = patches[0];
 
 // Hero still image: cinematic wide render (ship, station, planet)
 const HERO_IMG = '/assets/t-polaris-5.jpg';
+// AVIF-Fassungen (scripts/lib/avif.mjs): halb so schwer, gleiche Auflösung;
+// ohne gebaute Datei bleibt es beim JPG
+const HERO_AVIF = avifDa(HERO_IMG);
+const bg = (v: string, img: string) => { const set = avifSet(img); return `--${v}:url('${img}')${set ? `;--${v}-set:${set}` : ''}`; };
 
 // Werkzeuge als Bild-Kacheln (Bento). Kein Text-Ballast, kein Zahlen-Soup —
 // je Kachel nur Name + Kurzlabel, das Bild trägt die Optik.
@@ -31,7 +36,7 @@ const tools = [
 ];
 ---
 <Layout title={"VerseBase — das Star-Citizen-Kompendium"} description={"VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder mit Preisen & Fundorten, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv der Alpha-4-Ära. Game-akkurat, zweisprachig."} themeColor="#04060c" footer={true} translated={true}>
-<link slot="head" rel="preload" as="image" href={HERO_IMG} fetchpriority="high" />
+<link slot="head" rel="preload" as="image" href={HERO_AVIF ?? HERO_IMG} type={HERO_AVIF ? 'image/avif' : undefined} fetchpriority="high" />
 <style is:inline>
   :root{
     --bg:#04060c;--bg-2:#080d18;--surface:#0e1626;
@@ -64,8 +69,9 @@ const tools = [
      flex-start statt center, weil die Hoehe unten ueber die Innenkante
      gerechnet wird — siehe .hero__inner. */
   .hero{position:relative;min-height:94svh;display:flex;align-items:flex-start;overflow:hidden;isolation:isolate}
-  .hero__img{position:absolute;inset:0;z-index:-2;background:var(--media-void) center right/cover no-repeat;
-    background-image:var(--hero);transform:scale(1.06);animation:kenburns 34s ease-in-out infinite alternate}
+  .hero__img{position:absolute;inset:0;z-index:-2;background:var(--media-void);
+    transform:scale(1.06);animation:kenburns 34s ease-in-out infinite alternate}
+  .hero__img img{display:block;width:100%;height:100%;object-fit:cover;object-position:center right}
   @keyframes kenburns{from{transform:scale(1.06)}to{transform:scale(1.15) translate3d(-1.5%,-1%,0)}}
   /* Der Schleier bleibt in beiden Modi dunkel — das Motiv ist dunkel und der
      Text darauf hell. Nur der untere Verlauf endet auf var(--bg) und blendet
@@ -257,6 +263,14 @@ const tools = [
     background:var(--media-void);color:var(--on-media);transition:border-color var(--dur-slow) var(--ease-ui),box-shadow var(--dur-slow) var(--ease-ui),transform var(--dur-slow) var(--ease-ui)}
   .tool::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--img) center/cover no-repeat;
     filter:saturate(.8) brightness(.66);transform:scale(1.03);transition:transform .7s ease,filter .7s ease}
+  /* AVIF über image-set() (27.10.2026): nur wo der Browser type() versteht,
+     sonst bliebe das Bild leer statt aufs JPG zurückzufallen (eine ungültige
+     var() setzt die Eigenschaft auf none). --*-set fehlt ohne AVIF-Datei.
+     Steht HINTER .tool::before: dessen background-Kurzform setzte das Bild
+     sonst wieder auf var(--img) zurück. */
+  @supports (background-image:image-set("a.avif" type("image/avif"))){
+    .tool::before{background-image:var(--img-set,var(--img))}
+  }
   .tool::after{content:"";position:absolute;inset:0;z-index:-1;
     background:linear-gradient(to top,var(--scrim-6) 4%,var(--scrim-4) 42%,var(--scrim-0) 100%)}
   .tool:hover,.tool:focus-visible{transform:translateY(-4px);border-color:var(--accent);
@@ -344,7 +358,14 @@ const tools = [
 <div class="hero__mark"><h1>VerseBase</h1></div>
 
 <header class="hero">
-  <div class="hero__img" style={`--hero:url('${HERO_IMG}')`} aria-hidden="true"></div>
+  {/* <picture> statt Hintergrundbild (27.10.2026): Vorladen (type="image/avif")
+      und Anzeige entscheiden so nach derselben Frage, ob der Browser AVIF kann.
+      Mit image-set() luden Browser mit AVIF, aber ohne type() (Safari 16,
+      Chrome vor 113), das vorgeladene AVIF UND danach das JPG. */}
+  <picture class="hero__img" aria-hidden="true">
+    {HERO_AVIF && <source srcset={HERO_AVIF} type="image/avif" />}
+    <img src={HERO_IMG} alt="" fetchpriority="high" />
+  </picture>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
     <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">
@@ -371,7 +392,7 @@ const tools = [
     <div class="sec__head"><h2>Werkzeuge</h2><span class="rule"></span></div>
     <div class="tools">
       {tools.map((t) => (
-        <a class={`tool tool--${t.size}`} style={`--img:url('${t.img}')`} href={t.href}>
+        <a class={`tool tool--${t.size}`} style={bg('img', t.img)} href={t.href}>
           <span class="tool__arrow" aria-hidden="true">→</span>
           <span class="tool__name">{t.name}</span>
           <span class="tool__sub">{t.sub}</span>

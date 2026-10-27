@@ -13,5 +13,9 @@ import Body from '../components/ships/ShipsOverview.astro';
   translated={true}
   ogImage="/assets/img-hammerhead.jpg"
 >
+{/* Die Filterleiste steht in Rajdhani 600 (font-ui). Ohne Vorladen kam die
+    Schrift erst nach dem ersten Bild, die Auswahlfelder wurden schmaler und
+    die Leiste brach neu um: gemessen CLS 0,31 → 0,06 (27.10.2026). */}
+<link slot="head" rel="preload" href="/assets/fonts/rajdhani-600-latin.woff2" as="font" type="font/woff2" crossorigin />
 <Body />
 </Layout>
