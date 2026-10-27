@@ -44,7 +44,11 @@ export function gameGear(record) {
   const v3 = (p) => (p ? [p.x, p.y, p.z].map(r3) : null);
   const ls = vc?.landingSystem?.__ref ? db.recordById.get(vc.landingSystem.__ref) : null;
   const lso = ls ? db.readRecord(ls, { maxDepth: 8, typed: true }) : null;
+  const deep = db.readRecord(rec, { maxDepth: 8, typed: true });
+  const comp = (t) => (deep.Components || []).find((c) => c?.__type === t);
   return {
+    geometry: comp('SGeometryResourceParams')?.Geometry?.Geometry?.Geometry?.path ?? null,
+    adb: comp('SAnimationControllerParams')?.AnimationDatabase ?? null,
     landingSystem: ls?.name?.replace(/^VehicleLandingGearSystem\./, '') ?? null,
     fragments: lso ? { name: lso.fragment, deploy: lso.fragmentDeploy, retract: lso.fragmentRetract, compress: lso.fragmentCompress } : null,
     landingOffset: v3(vc?.landingOffset), landingRotationOffset: v3(vc?.landingRotationOffset),
@@ -65,8 +69,11 @@ const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const pathRe = (p) => new RegExp(`(^|[\\\\/])${esc(p.replace(/\\/g, '/')).replace(/\//g, '[\\\\/]')}$`, 'i');
 const xmlAttrs = (buf) => (buf.toString('latin1', 0, 7) === 'CryXmlB' ? parseCryXmlNodes(buf).map((n) => ({ tag: n.tag, a: n.attr || {} })) : [...buf.toString('utf8').matchAll(/<(\w+)\b([^>]*)>/g)].map((m) => ({ tag: m[1], a: Object.fromEntries([...m[2].matchAll(/(\w+)="([^"]*)"/g)].map((x) => [x[1], x[2]])) })));
 const animCache = new Map();
-function legAnims(cdfPath) {
-  if (animCache.has(cdfPath)) return animCache.get(cdfPath);
+// names: { extend, compress } = Animationsnamen aus dem Mannequin (Rumpf);
+// ohne sie die erste extend/deploy- und compress-Animation der .chrparams
+function legAnims(cdfPath, names = null) {
+  const key = names ? `${cdfPath}|${names.extend}|${names.compress}` : cdfPath;
+  if (animCache.has(key)) return animCache.get(key);
   let out = null;
   try {
     const rel = (p) => `Data/${String(p).replace(/\\/g, '/').replace(/^data\//i, '')}`;
@@ -80,7 +87,17 @@ function legAnims(cdfPath) {
     const dbaPath = anims.find((a) => a.name === '$TracksDatabase')?.path;
     const dir = anims.find((a) => a.name === '#filepath')?.path ?? '';
     const pick = (re) => anims.find((a) => re.test(a.name || '') && !/retract/i.test(a.name || '') && /\.caf$/i.test(a.path || ''));
-    const ext = pick(/extend|deploy/i), comp = pick(/compress/i);
+    const named = (n) => (n ? anims.find((a) => (a.name || '').toLowerCase() === n.toLowerCase() && /\.caf$/i.test(a.path || '')) : null);
+    const ext = names ? named(names.extend) : pick(/extend|deploy/i), comp = names ? named(names.compress) : pick(/compress/i);
+    // „*“ = alle der Datenbank (300i): Block nach dem Dateinamen der .caf
+    if (names && !ext && dbaPath && anims.some((a) => a.name === '*')) {
+      const all = readDba(p4k.read(pathRe(rel(dbaPath))));
+      const blk = (n) => (n ? all.find((b) => b.name?.toLowerCase().split('/').pop() === `${n.toLowerCase()}.caf`) ?? null : null);
+      const e = blk(names.extend);
+      out = e ? { src: dbaPath, extend: e, compress: blk(names.compress), extendName: names.extend, compressName: names.compress } : { error: `${names.extend} nicht in ${dbaPath}` };
+      animCache.set(key, out);
+      return out;
+    }
     if (!ext && dbaPath && anims.some((a) => a.name === '*')) out = { src: dbaPath, all: readDba(p4k.read(pathRe(rel(dbaPath)))) };
     else if (!ext) out = { error: 'keine extend-Animation' };
     else if (dbaPath) {
@@ -92,8 +109,48 @@ function legAnims(cdfPath) {
       out = { src: dir, extend: caf(ext), compress: caf(comp), extendName: ext.name, compressName: comp?.name ?? null };
     }
   } catch (e) { out = { error: e.message }; }
-  animCache.set(cdfPath, out);
+  animCache.set(key, out);
   return out;
+}
+// Landestellung des Rumpfs: Das Mannequin des Schiffs (SAnimationController-
+// Params.AnimationDatabase, .adb) spielt beim Landen das Fragment des
+// Landesystems (fragment/fragmentDeploy, z. B. Landing_Gear/Deploy) im
+// Bereich „Ship“ ab, also auf dem Skelett des Schiffs selbst: Bei der Railen
+// klappt landing_deploy die unteren Flügel an. Die .adb ordnet nach Gruppen
+// (Element = FragmentID, z. B. <Landing_Gear>); darin je Fragment Tags
+// (Zustand/Bereich) und FragTags (Deploy …). Eine Gruppe trägt oft ein
+// Fragment für die Beine (Tags=Landing_Gear) und eins ohne Tags für den
+// Rumpf (Polaris: Landing_Deploy). Gespielt wird jede Deploy-Animation der
+// Gruppe, die die .chrparams der Schiffsgeometrie kennt (.dba oder .caf).
+function adbTree(buf) {
+  if (buf.toString('latin1', 0, 7) === 'CryXmlB') return parseCryXmlNodes(buf)[0];
+  const root = { tag: '#', attr: {}, children: [] }, stack = [root];
+  for (const m of buf.toString('utf8').matchAll(/<(\/?)([\w.-]+)([^>]*?)(\/?)>/g)) {
+    if (m[1]) { stack.pop(); continue; }
+    const n = { tag: m[2], attr: Object.fromEntries([...m[3].matchAll(/([\w.-]+)="([^"]*)"/g)].map((x) => [x[1], x[2]])), children: [] };
+    stack[stack.length - 1].children.push(n);
+    if (!m[4]) stack.push(n);
+  }
+  return root;
+}
+function shipAnims(game) {
+  if (!game.adb || !game.geometry || !game.fragments?.name) return { error: 'kein Mannequin oder keine Geometrie' };
+  try {
+    const find = (n, tag) => (n.tag === tag ? n : n.children.map((c) => find(c, tag)).find(Boolean) ?? null);
+    const group = find(adbTree(p4k.read(pathRe(`Data/Animations/Mannequin/ADB/${game.adb}`))), game.fragments.name);
+    if (!group) return { error: `Gruppe ${game.fragments.name} nicht im Mannequin` };
+    const anims = (frag) => {
+      const out = [];
+      const walk = (n) => { if (n.tag === 'Animation' && n.attr.name) out.push(n.attr.name); n.children.forEach(walk); };
+      for (const f of group.children) if (f.tag === 'Fragment' && f.attr.FragTags === frag) walk(f);
+      return [...new Set(out)];
+    };
+    const dep = anims(game.fragments.deploy || 'Deploy'), cmp = anims(game.fragments.compress || 'Compress');
+    if (!dep.length) return { error: `${game.fragments.name}/${game.fragments.deploy} nicht im Mannequin` };
+    // je Deploy-Animation die Spur der Schiffsgeometrie; compress = gleicher Index, sonst keine
+    const list = dep.map((d, i) => legAnims(game.geometry, { extend: d, compress: cmp[i] ?? null })).filter((a) => a?.extend);
+    return list.length ? { list, fragment: `${game.fragments.name}/${game.fragments.deploy}` } : { error: `${dep.join(', ')} nicht in der Schiffsgeometrie` };
+  } catch (e) { return { error: e.message }; }
 }
 // Endlage des Ausfahrens je Knochen und Kanal; belegt: letztes Bild von
 // extend = erstes von compress. Fehlt eine Spur, kommt der Wert aus der anderen.
@@ -122,14 +179,17 @@ function compressAt(comp, f) {
   }
   return out;
 }
+// Gleichnamige Knoten bekommen alle die Lage (zwei Einbauten derselben .cga)
 function applyPose(pose, nodes) {
-  const byHash = new Map(nodes.map((n) => [(crc32(Buffer.from(n.getName())) >>> 0).toString(16), n]));
+  const byHash = new Map();
+  for (const n of nodes) { const h = (crc32(Buffer.from(n.getName())) >>> 0).toString(16); if (!byHash.has(h)) byHash.set(h, []); byHash.get(h).push(n); }
   let hit = 0;
   for (const [hash, e] of pose) {
-    const n = byHash.get(hash); if (!n) continue;
-    if (e.q) n.setRotation(e.q);
-    if (e.t) n.setTranslation(e.t);
-    hit++;
+    for (const n of byHash.get(hash) ?? []) {
+      if (e.q) n.setRotation(e.q);
+      if (e.t) n.setTranslation(e.t);
+      hit++;
+    }
   }
   return hit;
 }
@@ -219,9 +279,41 @@ function lowestClusters(nodes, skip) {
 }
 
 // ─── Pose und Aufstand ──────────────────────────────────────────────────
-export function poseShip(doc, record, { skip = defaultSkip } = {}) {
+// Mit und ohne Landestellung des Rumpfs rechnen und die bessere behalten:
+// erst „aus“ vor „ein“ vor „keins“, dann weniger tief Steckendes. So
+// verschlechtert die Rumpfanimation kein Schiff (Syulen: sie verdreht Teile)
+// (eine Ebene steiler als 15° ist keine Landung: Syulen mit Bein oben, 89°;
+// ausgefahren, aber über 1 m im Boden, ist schlechter als eingefahren:
+// Reclaimer, Mole, deren Beine der Rumpf ausfährt, ohne einzufedern)
+const deepOf = (g) => Math.max(0, ...(g.below ?? []).map((b) => b.depth));
+const score = (g) => ({ aus: 0, ein: 2, keins: 3 }[g.pose] ?? 4) + (Math.max(...(g.tilt ?? [0]).map(Math.abs)) > 15 ? 3 : 0) + (deepOf(g) > 0.2 ? 1 : 0) + (g.pose === 'aus' && deepOf(g) > 1 ? 1.5 : 0) + Math.min(0.9, deepOf(g) / 100);
+// Rumpfanimation, die das Bild verschlechtert, obwohl die Messung besser wird:
+// orig_300i_landing_gear_open legt die Fahrwerksscharniere lose vor den Rumpf
+// (angesehen 27.10.2026); die Knoten hängen im Export anders als im Skelett
+const HULL_SKIP = /^ORIG_3\d\d/i;
+export function poseShip(doc, record, opts = {}) {
+  const nodes = doc.getRoot().listNodes();
+  const keep = nodes.map((n) => [n, n.getTranslation().slice(), n.getRotation().slice(), n.getScale().slice()]);
+  const withHull = poseOnce(doc, record, { ...opts, useHull: true });
+  if (!withHull.game.hullAnim?.bones) return withHull;
+  const after = nodes.map((n) => [n, n.getTranslation().slice(), n.getRotation().slice(), n.getScale().slice()]);
+  for (const [n, t, r, s] of keep) n.setTranslation(t).setRotation(r).setScale(s);
+  const without = poseOnce(doc, record, { ...opts, useHull: false });
+  if (score(without) <= score(withHull)) { without.game.hullAnim = { ...withHull.game.hullAnim, rejected: `ohne Rumpfanimation besser (${without.pose}, tiefstes Teil ${Math.max(0, ...without.below.map((b) => b.depth))} m statt ${withHull.pose}, ${Math.max(0, ...withHull.below.map((b) => b.depth))} m)` }; return without; }
+  for (const [n, t, r, s] of after) n.setTranslation(t).setRotation(r).setScale(s);
+  return withHull;
+}
+function poseOnce(doc, record, { skip = defaultSkip, useHull = true } = {}) {
   const game = gameGear(record);
   const root = doc.getRoot();
+  // erst der Rumpf in Landestellung (Flügel, Klappen), dann die Beine
+  const ha = !useHull ? { error: 'nicht angewandt' } : HULL_SKIP.test(record) ? { error: 'ausgenommen: Scharniere landen lose vor dem Rumpf (300er-Reihe)' } : shipAnims(game);
+  let hullAnim;
+  if (ha.list) {
+    let bones = 0;
+    for (const a of ha.list) bones += applyPose(deployedPose(a.extend, a.compress).pose, root.listNodes());
+    hullAnim = { fragment: ha.fragment, anim: ha.list.map((a) => a.extendName).join(' + '), bones };
+  } else hullAnim = { error: ha.error };
   const byLower = new Map(root.listNodes().map((n) => [n.getName().toLowerCase(), n]));
   const legs = [];
   const gearNodes = new Set();
@@ -338,7 +430,7 @@ export function poseShip(doc, record, { skip = defaultSkip } = {}) {
     below: below.slice(0, 10), belowCount: below.length,
     source: pose === 'aus' ? (geoOnly ? 'Feder des Spiels (lengthTarget) für die Höhe, x/z vom Bein; einzelne Beine weichen in der Geometrie ab (legs[].mismatch, below)' : 'Feder des Spiels (lengthTarget) für die Höhe, tiefster Punkt je Bein für x/z') : pose === 'ein' ? 'Feder des Spiels für die Höhe; Fahrwerk der Geometrie-Fassung eingefahren (siehe why), x/z vom eingefahrenen Bein' : 'tiefste Punkte des Rumpfs',
     game: {
-      landingSystem: game.landingSystem, landingOffset: game.landingOffset, landingRotationOffset: game.landingRotationOffset,
+      landingSystem: game.landingSystem, landingOffset: game.landingOffset, landingRotationOffset: game.landingRotationOffset, hullAnim,
       legs: legs.map((l) => ({ bone: l.bone, ...(l.missing ? { missing: l.missing } : { pose: l.from, ...(l.animError ? { animError: l.animError } : {}), ...(l.mismatch != null ? { mismatch: l.mismatch } : {}), foot: l.foot ? l.foot.map(r3) : null, y: r3(l.game.y), yMax: r3(l.game.yMax), spring: { target: r3(l.spring.target), min: r3(l.spring.min ?? 0), max: r3(l.spring.max), offset: l.spring.offset.map(r3) } }) })),
       compress: shifts.length ? shifts : null,
     },
