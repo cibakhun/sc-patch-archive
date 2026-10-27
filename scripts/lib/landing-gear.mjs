@@ -149,7 +149,9 @@ function shipAnims(game) {
     if (!dep.length) return { error: `${game.fragments.name}/${game.fragments.deploy} nicht im Mannequin` };
     // je Deploy-Animation die Spur der Schiffsgeometrie; compress = gleicher Index, sonst keine
     const list = dep.map((d, i) => legAnims(game.geometry, { extend: d, compress: cmp[i] ?? null })).filter((a) => a?.extend);
-    return list.length ? { list, fragment: `${game.fragments.name}/${game.fragments.deploy}` } : { error: `${dep.join(', ')} nicht in der Schiffsgeometrie` };
+    // Einfedern über den Rumpf (Reclaimer: lg_arm_compress_main_left …), Spur je Animation
+    const comps = cmp.filter((c) => !dep.includes(c)).map((c) => legAnims(game.geometry, { extend: c, compress: null })).filter((a) => a?.extend).map((a) => ({ name: a.extendName, track: a.extend }));
+    return list.length ? { list, comps, fragment: `${game.fragments.name}/${game.fragments.deploy}` } : { error: `${dep.join(', ')} nicht in der Schiffsgeometrie` };
   } catch (e) { return { error: e.message }; }
 }
 // Endlage des Ausfahrens je Knochen und Kanal; belegt: letztes Bild von
@@ -373,6 +375,40 @@ function poseOnce(doc, record, { skip = defaultSkip, useHull = true } = {}) {
       }
     }
     legs.push(leg);
+  }
+  // Hat der Rumpf die Beine zu weit ausgefahren (Fuß unter der Feder), jede
+  // Compress-Animation der Gruppe so weit spielen, bis die Füße, die sie
+  // bewegt, im Mittel auf der Federhöhe stehen (Halbierung über den Anteil)
+  if (ha.comps?.length) {
+    const all = root.listNodes();
+    const feet = () => legs.map((l) => (l.parts ? lowest(l.parts, skip) : null));
+    const used = [];
+    for (const c of ha.comps) {
+      const hashes = new Set(c.track.bones.map((b) => b.hash));
+      const touched = all.filter((n) => hashes.has((crc32(Buffer.from(n.getName())) >>> 0).toString(16)));
+      const save = touched.map((n) => [n, n.getTranslation().slice(), n.getRotation().slice()]);
+      const restore = () => { for (const [n, t, r] of save) n.setTranslation(t).setRotation(r); };
+      const f0 = feet();
+      applyPose(compressAt(c.track, 1), touched);
+      const f1 = feet();
+      restore();
+      const mine = legs.map((l, i) => i).filter((i) => f0[i] && f1[i] && Math.abs(f1[i][1] - f0[i][1]) > 0.01 && f0[i][1] < legs[i].game.y - 0.02);
+      if (!mine.length) continue;
+      const err = (fs) => mine.reduce((s, i) => s + (fs[i][1] - legs[i].game.y), 0) / mine.length;
+      let lo = 0, hi = 1;
+      for (let it = 0; it < 14; it++) {
+        const mid = (lo + hi) / 2;
+        restore(); applyPose(compressAt(c.track, mid), touched);
+        if (err(feet()) < 0) lo = mid; else hi = mid;
+      }
+      restore(); applyPose(compressAt(c.track, (lo + hi) / 2), touched);
+      used.push(`${c.name} ${r3((lo + hi) / 2)}`);
+    }
+    if (used.length) {
+      const fs = feet();
+      legs.forEach((l, i) => { if (fs[i]) l.foot = fs[i]; });
+      hullAnim.compress = used;
+    }
   }
   const hullNodes = root.listNodes().filter((n) => n.getMesh() && !gearNodes.has(n));
   const hull = lowest(hullNodes, skip);
