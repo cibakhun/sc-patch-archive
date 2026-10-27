@@ -132,4 +132,162 @@ PR auf staging, `check:staging` vom PC.
 
 ## Befund PC
 
-(offen)
+PC-Lauf 27.10.2026, Branch `pc/hangar-innenraum` (Basis 9b6fe426),
+Worktree `.claude/worktrees/hangar-innenraum`, Spielstand der Rohexporte
+CL 12913470. Rohbestand `ships/`, `ships-dec/` aus dem Haupt-Checkout
+(Junctions), `tex-m1/` aus wot-hangar.
+
+**Ergebnis: Dreiecke ohne Material über alle 231 Web-Schiffe 390 151 → 56.**
+23 der 26 Schiffe haben keine mehr; die 56 übrigen sind Lücken im Spiel
+selbst (unten). Alle 26 in Stufe 0 gebaut (kein Abstrich gegen die 16 MB),
+0 Fehler. Tor [17]: GLB 741,3 MB + Ablage 210,6 MB = **951,9 MB** (Deckel
+1600 MB); die 26 Schiffe GLB 74,1 → 75,5 MB, Ablage +38 Bilder, 0,29 MB.
+
+### Teil A: Nachtrag im Extraktor
+
+1. StarBreaker 0.3.2 hat keine Option für den Rückfall auf das Material der
+   Geometrie (`entity export --help`: nur `--materials none|colors|textures|all`,
+   `--kind`, `--lod`, `--mip`, `--no-interior` u. a.). Also Punkt 2.
+2. Neuer Teil `ships-matfix` (`node scripts/extract-hangar-sources.mjs
+   ships-matfix --ships <slugs>`), Funktion `shipMaterialFix`:
+   - **Material:** Jede Geometrie nennt ihr `.mtl` selbst, in drei
+     Schreibweisen: `Data/Objects/…/Custom_Paint/orig_300_seat_black_wood.mtl`
+     (Sitz 300i, mit `Data/` und Endung), `Objects/…/ORIG_300i_int.mtl`
+     (Innenraum), bloß `BigBox.mtl` (StorAll-Box der Hornet F7C, liegt im
+     Ordner der Geometrie). Fahrwerk (`.skin`) und Triebwerke nennen das
+     Außen-`.mtl` (`ORIG_300i_ext`).
+   - **Quelle je Mesh:** Vorfahrenknoten mit dem Namen einer Geometrie der
+     zerlegten Szene (beim Fahrwerk ohne „_SKIN“), sonst der Entity-Knoten
+     (M50-Haupttriebwerk hängt direkt an `ORIG_M50_Thruster_Main`), im
+     Innenraum der Mesh-Name (Pfad oder Dateiname), zuletzt die übrigen
+     Geometrien im Ordner des Kandidaten.
+   - **Untermaterial je Primitiv:** nicht über Reihenfolge oder
+     Dreieckszahl, sondern über den **Eckenbereich**. Alle Primitive eines
+     Meshes teilen den Vertex-Puffer der Datei; die Teilnetz-Tabelle der
+     `_lod1.cgam/.cgfm/.skinm` (48-Byte-Zeilen) trägt bei +12 `first_vertex`,
+     bei +20 `num_vertices` (`readSubsets` liest beides jetzt mit). Ein
+     Primitiv einer `.cga/.cgf` deckt sein Teilnetz genau; die je Knochen
+     zerlegten Meshes einer `.skin` (Fahrwerk: 11 Meshes auf einem Puffer
+     von 7367 Ecken) liegen darin. Bei den `.cdf`-Haupttriebwerken (350r,
+     M50) trägt ein Puffer Düse und Gehäuse hintereinander: Versatz =
+     Ecken der Düse (M50 11 748, Gehäuse `ORIG_M50_Main_Thruster_Housing`).
+   - Schreibt `ships/<slug>.matfix.json` (je Mesh-Name `[{ mtl, ids, tris,
+     geometry, lod, offset? }]`, je `.mtl` die Untermaterialien wie bei der
+     Halle, dazu `decal`, `glow`, `layers`) und `ships/<slug>.layers.json`;
+     dekodiert nur die Karten der Untermaterialien, die der Export noch
+     nicht trägt.
+3. Selbstauskunft (Rohexport, je Exemplar gezählt): 300i 82 352 → 0,
+   315p 87 945 → 0, 325a 85 563 → 0, 350r 72 768 → 0, Hornet F7C 20 118 → 0,
+   Mantis 22 038 → 0, Nox/Nox Kue je 9 749 → 0, M50 2 592 → 0, Meteor
+   2 236 → 0, Hornet Mk II (6) je 448 → 0, Talon/Shrike je 304 → 0, Syulen
+   122 → 0, P-52 20 → 0, Constellation Andromeda/Aquila je 20 → 0.
+   **Was nicht aufgeht:**
+   - Caterpillar (beide) `Camera02`, 22 Dreiecke:
+     `DRAK_Caterpillar_Exterior.mtl` hat kein Untermaterial 54 (nur 53).
+   - Scorpius Antares `TempBox`, 12 Dreiecke:
+     `rsi_scorpius_antares_missile_turret.cga` nennt kein `.mtl`
+     (Platzhalterbox).
+   - Javelin: 630 044 Dreiecke im Rohbau-Innenraum nennen
+     `Javelin_blockout1`, `aegs_javelin_hangar`,
+     `aegs_javelin_gauntlet_hangar` — die `.mtl` gibt es im Spiel nicht.
+     Die Web-Fassung lässt den Innenraum weg; dort sind es 0.
+
+### Teil B: Bau
+
+4. `scripts/build-hangar-assets.mjs`: `applyMatFix(doc, fix, { ship: true })`
+   **vor** `dropJunk` (sonst bleiben nachgetragene `RTT_`/Stencil-Materialien
+   stehen; Mantis −942, Meteor −80 Dreiecke), Treffer auf Materialien des
+   Exports ohne Groß/Klein, neue Materialien heißen wie die des Exports
+   (`_0<index>`) und tragen `extras.matfix`. Nur an diese gehen
+   `applyLayers` und `attachHallTextures` (Parameter `only`); eingebettete
+   Schiffskarten und Lackkanäle bleiben unberührt, kein `palette_tint`,
+   Decals `BLEND`, Glow leuchtet (`extras.glow` wie beim Export). Manifest
+   je Schiff `matfix` (fixed, reused, created, layered, dropped) und
+   `cover` (vorher/nachher).
+5. `node scripts/build-hangar-alle.mjs --only <26> --redo`: alle Stufe 0.
+   Danach in jeder Web-Fassung Dreiecke ohne Material = 0, außer den drei
+   oben. 23 GLBs geändert; beide Caterpillar und die Scorpius Antares
+   kommen bytegleich zu staging heraus (nichts nachzutragen).
+
+| Schiff | ohne Material vorher | nachher | neue Materialien | GLB MB vorher → nachher | neu in Ablage MB | Stufe | Karten je Material max. |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| orig-315p | 87 799 | 0 | 22 | 1,41 → 1,70 | 0,00 | 0 | 4 |
+| orig-325a | 85 417 | 0 | 20 | 1,51 → 1,82 | 0,00 | 0 | 4 |
+| orig-300i | 82 294 | 0 | 24 | 1,22 → 1,50 | 0,10 | 0 | 4 |
+| orig-350r | 72 582 | 0 | 22 | 1,29 → 1,59 | 0,01 | 0 | 4 |
+| anvl-hornet-f7c | 20 118 | 0 | 5 | 1,67 → 1,76 | 0,05 | 0 | 4 |
+| rsi-mantis | 15 133 | 0 | 0 | 2,18 → 2,21 | 0,00 | 0 | 5 |
+| xian-nox-kue | 9 749 | 0 | 3 | 0,51 → 0,54 | 0,05 | 0 | 4 |
+| xian-nox | 9 749 | 0 | 1 | 0,80 → 0,83 | 0,00 | 0 | 4 |
+| orig-m50 | 2 592 | 0 | 0 | 1,73 → 1,74 | 0,00 | 0 | 4 |
+| rsi-meteor | 2 036 | 0 | 1 | 2,63 → 2,63 | 0,00 | 0 | 5 |
+| anvl-hornet-f7a-mk2 | 448 | 0 | 0 | 1,83 → 1,83 | 0,00 | 0 | 5 |
+| anvl-hornet-f7c-mk2 | 406 | 0 | 0 | 1,76 → 1,76 | 0,00 | 0 | 5 |
+| anvl-hornet-f7cs-mk2 | 390 | 0 | 0 | 1,78 → 1,78 | 0,00 | 0 | 5 |
+| anvl-hornet-f7cr-mk2 | 360 | 0 | 0 | 1,86 → 1,86 | 0,00 | 0 | 5 |
+| anvl-hornet-f7cm-mk2-heartseeker | 254 | 0 | 0 | 2,30 → 2,30 | 0,00 | 0 | 5 |
+| anvl-hornet-f7cm-mk2 | 238 | 0 | 0 | 2,35 → 2,35 | 0,00 | 0 | 5 |
+| aegs-javelin | 130 | 0 | 1 | 3,02 → 3,02 | 0,06 | 0 | 5 |
+| espr-talon-shrike | 130 | 0 | 6 | 2,74 → 2,74 | 0,02 | 0 | 5 |
+| espr-talon | 130 | 0 | 6 | 2,50 → 2,51 | 0,00 | 0 | 5 |
+| gama-syulen | 106 | 0 | 4 | 2,85 → 2,86 | 0,00 | 0 | 5 |
+| drak-caterpillar-pirate | 22 | 22 | 0 | 8,04 → 8,04 | 0,00 | 0 | 5 |
+| drak-caterpillar | 22 | 22 | 0 | 8,04 → 8,04 | 0,00 | 0 | 5 |
+| krig-p52-merlin | 18 | 0 | 1 | 1,86 → 1,86 | 0,00 | 0 | 5 |
+| rsi-scorpius-antares | 12 | 12 | 0 | 2,93 → 2,93 | 0,00 | 0 | 5 |
+| rsi-constellation-andromeda | 8 | 0 | 1 | 8,18 → 8,18 | 0,00 | 0 | 5 |
+| rsi-constellation-aquila | 8 | 0 | 1 | 7,13 → 7,13 | 0,00 | 0 | 5 |
+
+„Neue Materialien“ = aus dem `.mtl` angelegt; die übrigen Primitive gehen
+auf Materialien, die der Export schon trägt (Mantis 33, M50 1, Hornet Mk II
+je 4: dieselben Untermaterialien wie am Rumpf, mit dessen Karten).
+„Ohne Material vorher“ = Web-Fassung auf staging, je Exemplar gezählt.
+
+6. `check:hangar-shader` gegen `dist/` (Software-WebGL, Grenze 16), je
+   Schiff höchstens 16 Texturen (die meisten haben Hallenmaterialien):
+   325a ✓ 98 Programme, 300i ✓ 97, Hornet F7C ✓ 97, Nox ✓ 95. Der erste
+   Lauf von 300i und Hornet meldete 2 bzw. 1 „Bild nicht geladen“, während
+   das Tor daneben lief; die drei Bilder sind alte Ablage-Dateien (von 22
+   bzw. 136 Schiffen geteilt), liegen in `dist/`, kommen mit 200 und
+   dekodieren im Browser. Ohne Last daneben beide grün.
+
+   Tore: `npm run build` grün, `npm run gate` 29 von 29 (Schiene A).
+   `npm run gate:data` braucht die unversionierte Zwischenstufe von
+   `datamine:loadouts` und `datamine:vehicles`; beide gefahren, Schiene B
+   4 von 4 grün, danach `vehicles.json`, `ship-loadouts.json` und
+   `ship-paints.json` auf den committeten Stand zurückgesetzt (der Lauf
+   gehört nicht zu diesem Auftrag; die lokale Data.p4k ist CL 12913470,
+   der Katalog CL 12881860).
+
+7. Bilder (`hangar-innenraum/`, Blick von hinten über den Sitz, Haube
+   ausgeblendet, eigene Render-Seite mit three.js): `325a-vorher.jpg` /
+   `325a-nachher.jpg` (Sitz, Konsolen, Wände: weiß → schwarzes Leder mit
+   Origin-Schriftzug, blaue Leuchtstreifen); Hornet F7C:
+   `hornet-f7c-vorher/nachher.jpg` (Cockpit unverändert, dort war nichts
+   ohne Material) und `hornet-f7c-fracht-vorher/nachher.jpg`
+   (StorAll-Frachtluke weiß → Spielmaterial).
+
+### Nebenbefunde
+
+- **Fahrwerk der Origin 300er:** `ships.<slug>.gear` fällt bei 300i, 315p,
+  325a, 350r von `true` auf `false` („ein Teil steckt 370 cm im Boden“).
+  Das kommt nicht vom Nachtrag: Ein Bau ohne `matfix.json` (300i, A/B)
+  liefert dieselben Bytes wie staging und dasselbe Urteil. Die
+  Senk-Prüfung in `gearCheck` kam mit d225cf8f, die staging-Dateien sind
+  älter. `gear.below` nennt das Scharnier `lg_hinge_front_left` (3,70 m)
+  schon auf staging; `standFor` stellt diese vier deshalb heute schon nicht
+  aufs Fahrwerk. Sichtbar ändert sich nichts. Alle übrigen `gear`-Werte wie
+  auf staging.
+- **Hornet F7C, Cockpit:** die zwei hellen Blöcke neben dem Sitz tragen
+  `ANVL_Hornet_mtl_cockpit_atlas_017` mit Karte (Strahl auf die Fläche);
+  kein Fall für diesen Lauf.
+- **Meteor:** das neue Material des Täuschkörperwerfers (`metal_atlas`,
+  HardSurface) zeigt die Farbe seiner ersten Schicht (`ship_mf_paint_a`),
+  nicht den Lackkanal, weil nachgetragene Materialien kein `palette_tint`
+  bekommen (Auftrag).
+- **Überschneidung:** Im wot-hangar-Worktree lief zur selben Zeit ein
+  `build-hangar-alle --redo` über alle 231 Schiffe mit nicht committeten
+  Änderungen (`cleanMaterials`: Serienpalette über `palettePbr`). Wer
+  zuletzt einmischt, baut die 26 auf dem vereinten Stand neu:
+  `node scripts/build-hangar-alle.mjs --only <26> --redo`. Die
+  `matfix.json` liegen im gemeinsamen Rohbestand `ships/`.
