@@ -201,7 +201,9 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
 
 Aufnahmen (`check:hangar-shader --shot`, höchstens 16 Texturen je
 Bildshader): Railen, Syulen, Corsair, Polaris, Freelancer, Andromeda. Die
-Farben sind unverändert, bis die Umrechnung oben entschieden ist.
+Aufnahmen zeigen noch die alten Farben. Die Umrechnung ist inzwischen
+entschieden (Teil A oben), der Viewer-Teil steht; sichtbar wird sie mit dem
+Bau-Teil (`extras.palette`) und `finish` in `ship-paints.json`.
 
 **Cloud 27.10.2026, beim Übernehmen von Zwischenstand 1:** Centaurus
 (`rsi-constellation-mk5-centaurus`) nicht übernommen, staging-Fassung bleibt
@@ -211,3 +213,12 @@ hat 1 273 671 statt 632 856 Dreiecke, 12,6 statt 6,8 MB, 90 statt 83 Meshes,
 Tiefe (0,97 → 0,87 m, weiter über 20 cm). Bei den übrigen zehn bleiben die
 Dreiecke gleich. Bitte die Ursache der Verdopplung finden, bevor sie wieder
 kommt; die 11 Bilder sind wieder aus `public/hangar/tex` genommen.
+
+Aus der Durchsicht von PR #219 (cubic) für den PC, ohne Spieldaten in der
+Cloud nicht prüfbar: Der Lack ab Werk in `datamine-ship-paints.mjs` liest nur
+Einträge mit `entityClassName`; Einträge der Standardausrüstung, die das
+Teil nur über `entityClassReference` nennen, fallen still auf die
+Grundpalette zurück. Bitte über den Verweis auflösen und in der
+Selbstauskunft zählen. `sisterPalette` nimmt jetzt nur einen Treffer aus
+derselben Familie oder einen einzigen; mehrere fremde Pakete gelten als
+mehrdeutig (Cloud 27.10.).

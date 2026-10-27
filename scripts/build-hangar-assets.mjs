@@ -749,7 +749,8 @@ async function paintTexture(rel, made) {
 // gegen die Materialien des geschriebenen GLB.
 // Fehlt einer Variante die Palette im eigenen Paket (600i BIS2951: Cold Forge,
 // Sterling), dieselbe Lackierung (gleicher Tag) aus einem Schwesterpaket mit
-// Palette, zuerst aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i)
+// Palette, aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i) oder
+// aus dem einzigen anderen Paket mit dem Tag; mehrere fremde sind mehrdeutig
 let sisterIndex = null;
 function sisterPalette(pkg, tag) {
   if (!tag) return null;
@@ -770,7 +771,8 @@ function sisterPalette(pkg, tag) {
   }
   const fam = (p) => p.split(/[ _]/).slice(0, 2).join(' ').toLowerCase();
   const hits = sisterIndex.get(tag.toLowerCase())?.filter((h) => h.pkg !== pkg) ?? [];
-  const hit = hits.find((h) => fam(h.pkg) === fam(pkg)) ?? hits[0];
+  // Nur eindeutig: eigene Familie, sonst ein einziges Paket mit dem Tag
+  const hit = hits.find((h) => fam(h.pkg) === fam(pkg)) ?? (hits.length === 1 ? hits[0] : null);
   if (hit) sisterUsed.push(`${pkg}: ${tag} aus ${hit.pkg}`);
   return hit?.pal ?? null;
 }
