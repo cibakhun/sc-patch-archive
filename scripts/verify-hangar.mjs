@@ -121,6 +121,10 @@
         Inhalts (16 Zeichen; die URL steht ein Jahr im Cache). Deckel fuer
         GLB und Ablage zusammen und je Datei, Klinke: Schiffe mit Ablage.
         Verwaiste Bilder: WARNUNG (Ballast, kein Schaden).
+    18  Platzhaltermaterial (seit 27.10.2026, Krisz: weisses Cockpit der
+        325a). Dreiecke der Schiffs-GLBs ohne Material oder mit namenlosem
+        Material (Ersatz des Exports, im Hangar reinweiss) zaehlen; Deckel
+        PLATZHALTER, der nur sinkt.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -153,6 +157,9 @@
         (147 Bilder eingebettet, und Klinke 9 < 10)
      t  ein Bild der Ablage mit dem Inhalt eines anderen
         ueberschreiben                                              -> [17]
+     u  in dist/hangar/ships/aegs-gladius.glb dem Material
+        metal_steel_025 den Namen nehmen (27.10.2026: 415223 in 27,
+        Deckel 390151 in 26)                                        -> [18]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -941,8 +948,47 @@ const BILDER = { schiffe: 231, gesamtMB: 1600, dateiMB: 50 };
   ist.bildSchiffe = pooledShips; ist.bildDateien = files.length; ist.bildMB = Math.round(totalMB);
 }
 
+say('\n[18] Schiffe ohne Platzhaltermaterial: keine Flaeche, fuer die der Export kein Spielmaterial fand');
+// Findet der Export zu einer Geometrie kein Material, setzt er ein namenloses
+// Ersatzmaterial ein (Grundfarbe 0,8, Rauheit 0,5, keine Karte). Im Hangar
+// ist das reines Weiss: Krisz, 27.10.2026, Cockpit der 325a: „was ist mit
+// schiff interior?“ Ursache und Nachtrag: .planning/notes/hangar-innenraum.md.
+// Gezaehlt werden Dreiecke ohne Material oder mit namenlosem Material.
+// Deckel: der gemessene Stand, er sinkt nur (Senken mit dem Lauf, der die
+// Materialien nachtraegt; Heben nur per Commit mit Ursache).
+const PLATZHALTER = { dreiecke: 390151, schiffe: 26 };
+{
+  const shipDir = join(DIST, 'hangar', 'ships');
+  const glbs = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).sort() : [];
+  const hit = [];
+  let tris = 0;
+  for (const f of glbs) {
+    const buf = readFileSync(join(shipDir, f));
+    if (buf.toString('utf8', 16, 20) !== 'JSON') continue;
+    const gltf = JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12)));
+    let t = 0, all = 0;
+    for (const me of gltf.meshes ?? []) for (const p of me.primitives ?? []) {
+      const acc = gltf.accessors?.[p.indices ?? p.attributes?.POSITION];
+      const n = (acc?.count ?? 0) / 3;
+      all += n;
+      const m = p.material == null ? null : gltf.materials?.[p.material];
+      if (!m?.name) t += n;
+    }
+    if (t) { hit.push({ f, t, pct: (100 * t) / all }); tris += t; }
+  }
+  hit.sort((a, b) => b.t - a.t);
+  say(`    Schiffe geprueft: ${glbs.length}   mit Platzhalter: ${hit.length}   Dreiecke mit Platzhalter: ${Math.round(tris)}`);
+  for (const h of hit.slice(0, 8)) say(`      ${h.f.padEnd(40)} ${String(Math.round(h.t)).padStart(7)} Dreiecke (${h.pct.toFixed(1)} %)`);
+  sollIst(`Dreiecke mit Platzhalter <= ${PLATZHALTER.dreiecke} in <= ${PLATZHALTER.schiffe} Schiffen, alle ${BILDER.schiffe} Schiffe geprueft`, `${Math.round(tris)} in ${hit.length} von ${glbs.length}`);
+  if (glbs.length < BILDER.schiffe) fail(`[18] nur ${glbs.length} Schiffe in dist/hangar/ships geprueft (Klinke ${BILDER.schiffe})`);
+  if (tris > PLATZHALTER.dreiecke || hit.length > PLATZHALTER.schiffe) {
+    fail(`[18] ${Math.round(tris)} Dreiecke in ${hit.length} Schiffen tragen das Platzhaltermaterial des Exports (Deckel ${PLATZHALTER.dreiecke} in ${PLATZHALTER.schiffe}), zuerst ${hit.slice(0, 3).map((h) => h.f.replace(/\.glb$/, '')).join(', ')}: im Hangar reinweiss. Materialnachtrag ships/<slug>.matfix.json (extract-hangar-sources.mjs ships-matfix), dann neu bauen`);
+  }
+  ist.platzhalter = Math.round(tris); ist.platzhalterSchiffe = hit.length;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
