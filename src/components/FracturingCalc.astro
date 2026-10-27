@@ -154,120 +154,10 @@ const payload = {
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
-<section class="fc" id="calc" data-fc
-         style={`--fc-frame:url('${chassisFrame}');--fc-plug:url('${chassisPlug}')`}>
-  {/* Gehaeuse: EIN Bild mit festem Seitenverhaeltnis, Bildflaeche als
-      Prozentkasten. Begruendung, Messwerte und der verworfene 9-Slice-Weg
-      stehen in .planning/sketches/010-chassis-asset/README.md. */}
-  {/* Die Wand hinter dem Geraet — ECHTES Element (verify:layers, Zusicherung 5),
-      steht vor dem Gehaeuse im Markup und mit z-index 0 dahinter. */}
-  <span class="fc__wall" aria-hidden="true"></span>
-
-  <div class="fc__chassis">
-    <h1 class="fc__ctitle" set:text={title} />
-
-    <div class="fc__cscreen">
-      {/* Schirm-Schleier als ECHTES Element, nicht als `::before` — eine
-          Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu Recht
-          als Fund ohne Registry-Eintrag. Begruendung in der Werkbank. */}
-      <span class="fc__glare" aria-hidden="true"></span>
-      <p class="fc__clead" set:text={lead} />
-  <div class="fc__grid">
-
-    <!-- ============================================ Spalte 1: die 37 Erze -->
-    <div class="fc__pane fc__pane--list chamf">
-      <div class="fc__filters">
-        <ToolHelp tool="fracturing" lang={lang} steps={4} />
-        <div class="fc__frow">
-          <input class="fc__search" id="fc-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
-          <span class="fc__c" id="fc-count">{minerals.length}</span>
-        </div>
-        <div class="fc__chips" data-help={hlp('system')}>
-          {systems.map((s) => (<button type="button" class="fc__chip" data-sys={s} set:text={s} />))}
-          <button type="button" class="fc__chip" data-only="break" data-help={hlp('breakable')} set:text={S.onlyBreakable} />
-        </div>
-      </div>
-      {/* Jede Kachel traegt ihr Verhaeltnis. Der Punkt allein sagt nur „geht /
-          geht nicht"; die Zahl sagt, wie knapp — und genau darum geht es hier. */}
-      <div class="fc__scroll" id="fc-list">
-        <div class="fc__tiles" data-help={hlp('tiles')}>
-          {minerals.map((m) => {
-            const v = ssr(m);
-            return (
-              <div class={`fc__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
-                <span class={`fc__dot is-${v.cls}`} aria-hidden="true"></span>
-                <span class="fc__tn" set:text={m.name} />
-                <span class="fc__tr num" set:text={v.ratio === null ? '—' : `×${num(v.ratio)}`} />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================= Spalte 2: Urteil + Weg -->
-    <div class="fc__pane fc__pane--main chamf">
-      <div class="fc__head">
-        <h2 id="fc-name" set:text={sel.name} />
-        <div class="fc__tags" id="fc-tags"></div>
-      </div>
-
-      <div class="fc__scroll">
-        <div class="fc__gauge" id="fc-gauge" data-help={hlp('verdict')}>
-          <div class="fc__gtop">
-            <span class="fc__gst"><span class="fc__dot" id="fc-vddot"></span><span id="fc-vdlbl"></span></span>
-            <b class="num" id="fc-vdratio"></b>
-          </div>
-          <div class="fc__scale" id="fc-scale"></div>
-          <div class="fc__gfoot">
-            <span class="fc__lbl">0</span>
-            <span class="fc__lbl" set:text={S.grenzZone} />
-            <span class="fc__lbl" set:text={S.guteZone} />
-            <span class="fc__lbl" set:text={de ? '2,0' : '2.0'} />
-          </div>
-        </div>
-
-        <div class="fc__sec"><h4 set:text={S.math} /><div class="fc__math" id="fc-math" data-help={hlp('math')}></div></div>
-        <div class="fc__sec"><h4 set:text={S.physics} /><div class="fc__stats" id="fc-stats"></div></div>
-        <div class="fc__sec">
-          <a class="fc__back" id="fc-back" href={miningPath}>
-            <span class="fc__back__t"><span set:text={S.backLead} /> <b id="fc-back-ore" set:text={sel.name} /></span>
-            <span class="fc__back__go" set:text={S.backGo} />
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================== Spalte 3: Ausruestung -->
-    <div class="fc__pane fc__pane--rig chamf">
-      <div class="fc__rig">
-        <label class="fc__rgrp"><span class="fc__lbl" set:text={S.laser} />
-          <select class="fc__sel" id="fc-laser" data-help={hlp('laser')}>{lasers.map((l, i) => (<option value={String(i)} set:text={`${l.n.replace(' Mining Laser', '')} · S${l.size}`} />))}</select>
-        </label>
-        <div class="fc__rgrp">
-          <span class="fc__lbl"><span set:text={S.modules} /> · <span id="fc-slotcount">0</span> <span set:text={S.slots} /></span>
-          <div class="fc__slots" id="fc-slots" data-help={hlp('modules')}></div>
-        </div>
-        <label class="fc__rgrp"><span class="fc__lbl" set:text={S.gadget} />
-          <select class="fc__sel" id="fc-gadget" data-help={hlp('gadget')}><option value="-1" set:text={S.none} />{gadgets.map((g, i) => (<option value={String(i)} set:text={g.n} />))}</select>
-        </label>
-        <div class="fc__rgrp"><span class="fc__lbl" set:text={S.rock} />
-          <div class="fc__chips" id="fc-mass" data-help={hlp('mass')}>{MASS_PRESETS.map((p) => (<button type="button" class={`fc__chip${p.m === DEFAULT_MASS ? ' is-on' : ''}`} data-mass={String(p.m)} set:text={p[lang]} />))}</div>
-        </div>
-        <div class="fc__rstat">
-          <span class="fc__kv"><span class="fc__lbl" set:text={S.laserDps} /><b class="num" id="fc-dps">—</b></span>
-          <span class="fc__kv"><span class="fc__lbl">Res-Mod</span><b class="num" id="fc-resmod">—</b></span>
-        </div>
-      </div>
-    </div>
-  </div>
-    </div>{/* .fc__cscreen */}
-  </div>{/* .fc__chassis */}
-</section>
-
-<script type="application/json" id="fc-data" set:html={JSON.stringify(payload)}></script>
-<script is:inline src={versioned('assets/fracturing-calc.js', '/assets/fracturing-calc.js')}></script>
-
+{/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
+    das Geraet erst ungestylt, solange er auf fracturing-calc.js wartete, das
+    synchron dazwischen laedt, und sprang dann um (gemessen CLS 0,83). Die
+    Reihenfolge der Stilblaetter untereinander bleibt dieselbe. */}
 <style is:inline>
 .fc{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
   padding:0 clamp(16px,2.6vw,56px) 1.4rem;
@@ -609,3 +499,117 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 :root[data-theme="light"] .fc__gauge.is-bad{color:#9b2a10}
 :root[data-theme="light"] .fc__slot.is-full{color:#036b26}
 </style>
+
+<section class="fc" id="calc" data-fc
+         style={`--fc-frame:url('${chassisFrame}');--fc-plug:url('${chassisPlug}')`}>
+  {/* Gehaeuse: EIN Bild mit festem Seitenverhaeltnis, Bildflaeche als
+      Prozentkasten. Begruendung, Messwerte und der verworfene 9-Slice-Weg
+      stehen in .planning/sketches/010-chassis-asset/README.md. */}
+  {/* Die Wand hinter dem Geraet — ECHTES Element (verify:layers, Zusicherung 5),
+      steht vor dem Gehaeuse im Markup und mit z-index 0 dahinter. */}
+  <span class="fc__wall" aria-hidden="true"></span>
+
+  <div class="fc__chassis">
+    <h1 class="fc__ctitle" set:text={title} />
+
+    <div class="fc__cscreen">
+      {/* Schirm-Schleier als ECHTES Element, nicht als `::before` — eine
+          Pseudo-Selektor-Familie mit Verlauf meldet `verify:layers` zu Recht
+          als Fund ohne Registry-Eintrag. Begruendung in der Werkbank. */}
+      <span class="fc__glare" aria-hidden="true"></span>
+      <p class="fc__clead" set:text={lead} />
+  <div class="fc__grid">
+
+    <!-- ============================================ Spalte 1: die 37 Erze -->
+    <div class="fc__pane fc__pane--list chamf">
+      <div class="fc__filters">
+        <ToolHelp tool="fracturing" lang={lang} steps={4} />
+        <div class="fc__frow">
+          <input class="fc__search" id="fc-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
+          <span class="fc__c" id="fc-count">{minerals.length}</span>
+        </div>
+        <div class="fc__chips" data-help={hlp('system')}>
+          {systems.map((s) => (<button type="button" class="fc__chip" data-sys={s} set:text={s} />))}
+          <button type="button" class="fc__chip" data-only="break" data-help={hlp('breakable')} set:text={S.onlyBreakable} />
+        </div>
+      </div>
+      {/* Jede Kachel traegt ihr Verhaeltnis. Der Punkt allein sagt nur „geht /
+          geht nicht"; die Zahl sagt, wie knapp — und genau darum geht es hier. */}
+      <div class="fc__scroll" id="fc-list">
+        <div class="fc__tiles" data-help={hlp('tiles')}>
+          {minerals.map((m) => {
+            const v = ssr(m);
+            return (
+              <div class={`fc__tile${m.name === sel.name ? ' is-sel' : ''}`} data-min={m.name} role="button" tabindex="0" title={m.name}>
+                <span class={`fc__dot is-${v.cls}`} aria-hidden="true"></span>
+                <span class="fc__tn" set:text={m.name} />
+                <span class="fc__tr num" set:text={v.ratio === null ? '—' : `×${num(v.ratio)}`} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================= Spalte 2: Urteil + Weg -->
+    <div class="fc__pane fc__pane--main chamf">
+      <div class="fc__head">
+        <h2 id="fc-name" set:text={sel.name} />
+        <div class="fc__tags" id="fc-tags"></div>
+      </div>
+
+      <div class="fc__scroll">
+        <div class="fc__gauge" id="fc-gauge" data-help={hlp('verdict')}>
+          <div class="fc__gtop">
+            <span class="fc__gst"><span class="fc__dot" id="fc-vddot"></span><span id="fc-vdlbl"></span></span>
+            <b class="num" id="fc-vdratio"></b>
+          </div>
+          <div class="fc__scale" id="fc-scale"></div>
+          <div class="fc__gfoot">
+            <span class="fc__lbl">0</span>
+            <span class="fc__lbl" set:text={S.grenzZone} />
+            <span class="fc__lbl" set:text={S.guteZone} />
+            <span class="fc__lbl" set:text={de ? '2,0' : '2.0'} />
+          </div>
+        </div>
+
+        <div class="fc__sec"><h4 set:text={S.math} /><div class="fc__math" id="fc-math" data-help={hlp('math')}></div></div>
+        <div class="fc__sec"><h4 set:text={S.physics} /><div class="fc__stats" id="fc-stats"></div></div>
+        <div class="fc__sec">
+          <a class="fc__back" id="fc-back" href={miningPath}>
+            <span class="fc__back__t"><span set:text={S.backLead} /> <b id="fc-back-ore" set:text={sel.name} /></span>
+            <span class="fc__back__go" set:text={S.backGo} />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== Spalte 3: Ausruestung -->
+    <div class="fc__pane fc__pane--rig chamf">
+      <div class="fc__rig">
+        <label class="fc__rgrp"><span class="fc__lbl" set:text={S.laser} />
+          <select class="fc__sel" id="fc-laser" data-help={hlp('laser')}>{lasers.map((l, i) => (<option value={String(i)} set:text={`${l.n.replace(' Mining Laser', '')} · S${l.size}`} />))}</select>
+        </label>
+        <div class="fc__rgrp">
+          <span class="fc__lbl"><span set:text={S.modules} /> · <span id="fc-slotcount">0</span> <span set:text={S.slots} /></span>
+          <div class="fc__slots" id="fc-slots" data-help={hlp('modules')}></div>
+        </div>
+        <label class="fc__rgrp"><span class="fc__lbl" set:text={S.gadget} />
+          <select class="fc__sel" id="fc-gadget" data-help={hlp('gadget')}><option value="-1" set:text={S.none} />{gadgets.map((g, i) => (<option value={String(i)} set:text={g.n} />))}</select>
+        </label>
+        <div class="fc__rgrp"><span class="fc__lbl" set:text={S.rock} />
+          <div class="fc__chips" id="fc-mass" data-help={hlp('mass')}>{MASS_PRESETS.map((p) => (<button type="button" class={`fc__chip${p.m === DEFAULT_MASS ? ' is-on' : ''}`} data-mass={String(p.m)} set:text={p[lang]} />))}</div>
+        </div>
+        <div class="fc__rstat">
+          <span class="fc__kv"><span class="fc__lbl" set:text={S.laserDps} /><b class="num" id="fc-dps">—</b></span>
+          <span class="fc__kv"><span class="fc__lbl">Res-Mod</span><b class="num" id="fc-resmod">—</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>{/* .fc__cscreen */}
+  </div>{/* .fc__chassis */}
+</section>
+
+<script type="application/json" id="fc-data" set:html={JSON.stringify(payload)}></script>
+<script is:inline src={versioned('assets/fracturing-calc.js', '/assets/fracturing-calc.js')}></script>
