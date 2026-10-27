@@ -54,18 +54,49 @@ Roh-Exporte, kein `.mtl`-XML und keine Rohtexturen im Repo.
 
 ### Teil A: Grundfarben
 
-1. Im TintPaletteTree der betroffenen Schiffe nachsehen, wie `ChildPath`
-   wirklich aufgelöst wird (Groß/Klein, Trenner, Namen mit Präfix, Pfad über
-   mehrere Ebenen), und `paletteColours()` so ändern, dass er den Knoten
-   findet. Ohne Treffer nicht die Wurzel nehmen: dann die Palette desselben
-   Tags aus dem zerlegten Export (`ships-dec/…/palettes.json`), sonst die
-   Grundpalette des Schiffs, und das in der Selbstauskunft zählen.
-2. Gegenprobe je Schiff: Grundpalette aus `ship-paints.json` gegen die
+**Stand 27.10.2026 (Zwischenbefund PC):** Die `ChildPath`-Annahme oben trifft
+nicht zu (`ChildPath nicht gefunden: 0`, die Wurzel ist die Palette). Die
+Werte stimmen; das Spiel arbeitet mit Glanzfarbe: `tintColor` Diffusfarbe,
+`specColor` Glanzfarbe (Lack 59, Metall Tönung 0 und helle Glanzfarbe),
+`glossiness` 0–255. Der Bau setzt Tönung als Grundfarbe und metallic 0,
+darum wird jedes Metall schwarz (Corsair, Freelancer, Railen, Perseus, Nomad,
+Cutlass Steel, Xi'an Scout, die 52 Chrom- und Metalllacke). Die Polaris ist
+echt dunkelgrau (Tönung 43/60, Glanz 70, Glätte 210).
+
+Aufteilung: **PC Bau und Daten, Cloud Viewer.** Die Umrechnung steht einmal
+in `assets/hangar-viewer.js` als `palettePbr(tint, specular, gloss)` (wie
+`gearPlane`); der Bau importiert sie, damit Serie im GLB und Umlackieren im
+Viewer dieselbe Rechnung nehmen. Ergebnis: `color` linear [r, g, b],
+`metalness`, `roughness` (null ohne gloss); ohne `specular` gilt Lack (59).
+
+Vertrag:
+
+- **GLB** (`build-hangar-assets.mjs`): Jedes Palettenmaterial der eigenen
+  Palette trägt `extras.palette = { ch: 1|2|3, tint: '#rrggbb', specular:
+  '#rrggbb', gloss: 0..255 }` mit den Rohwerten der Serie; `palette_tint`
+  bleibt. `baseColorFactor` = `palettePbr(...).color`, `metallicFactor` und
+  `roughnessFactor` aus demselben Ergebnis. Der Viewer (`hullTint`) findet
+  die Kanäle dann allein über `extras.palette.ch`, nicht mehr über den
+  Farbton; `verify:hangar` [14] zählt genauso. Ohne `extras.palette` bleibt
+  alles wie bisher.
+- **`src/data/ship-paints.json`** (`datamine:paints`): `base` und jede
+  Lackierung bekommen wahlweise `finish: { a: { specular, gloss }, b: …,
+  c: … }`, Schlüssel wie `palette.finish` in den Lack-Bauplänen. Fehlt ein
+  Kanal, fällt die ganze Lackierung auf den bisherigen Weg zurück (nur Farbe).
+  `layouts.ts` reicht ihn als siebtes Feld `[[specular, gloss] × 3]` an die
+  Seite, die Seite an `viewer.paint`, der Viewer rechnet mit `palettePbr`
+  (alles schon gebaut, Cloud 27.10.2026).
+
+Aufträge:
+
+1. Bau: `extras.palette` und Faktoren wie oben, für alle Schiffe mit eigener
+   Palette.
+2. `datamine:paints`: `finish` je Kanal für `base` und jede Lackierung,
+   dann `npm run gate:data`. Selbstauskunft: wie viele Lackierungen mit
+   vollem `finish`, wie viele mit Metall (metallic > 0,5).
+3. Gegenprobe je Schiff: Grundpalette aus `ship-paints.json` gegen die
    Palette der eigenen Lackierung im zerlegten Export (`liveries.json`, die
    mit `EntityClassDefinition.`). Abweichungen auflisten.
-3. `npm run datamine:paints`, `npm run gate:data`. Im Befund: Fälle ohne
-   `ChildPath`-Treffer vorher und nachher, alle Schiffe mit geänderter
-   Grundpalette mit alt und neu.
 4. `writePaints` in `scripts/build-hangar-assets.mjs`: Fehlt einer Variante
    die Palette im eigenen Paket, die Palette desselben Tags aus einem
    Schwesterpaket nehmen (600i BIS2951 aus `ORIG 600i`), statt Finish, Glas

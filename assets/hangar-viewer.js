@@ -4662,6 +4662,41 @@ async function robustBox(root, pause = noPause, unlean = null) {
   return box;
 }
 
+// Lack des Spiels auf Metall und Rauheit (PC-Lauf „Hangar-Landung“,
+// 27.10.2026). Die Palette des Spiels arbeitet mit Glanzfarbe: tint ist die
+// Diffusfarbe, specular die Glanzfarbe (Lack um 59, also rund 4 %; Metall hat
+// Tönung 0 und eine helle Glanzfarbe), gloss die Glätte 0–255, Farben als
+// #rrggbb wie finish in ship-paints.json und in den Lack-Bauplänen. Mit tint
+// als Grundfarbe und metallic 0 wird jedes Metall schwarz (Corsair,
+// Freelancer, Railen, die Chromlacke).
+// Umrechnung wie für KHR_materials_pbrSpecularGlossiness üblich: metallic aus
+// der Helligkeit von Diffus- und Glanzfarbe, Grundfarbe dazwischen gemischt,
+// Rauheit 1 − Glätte. color linear [r, g, b]; ohne specular Lack (59),
+// roughness null ohne gloss.
+// Dieselbe Rechnung nimmt der Bau (scripts/build-hangar-assets.mjs) für die
+// Serienpalette im GLB, der Viewer (paint) für jede andere Lackierung.
+export function palettePbr(tint, specular, gloss) {
+  const lin = (h) => [1, 3, 5].map((i) => {
+    const s = parseInt(h.slice(i, i + 2), 16) / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  const DIEL = 0.04, EPS = 1e-6, clamp = (v) => Math.min(1, Math.max(0, v));
+  const lum = (c) => Math.sqrt(0.299 * c[0] ** 2 + 0.587 * c[1] ** 2 + 0.114 * c[2] ** 2);
+  const d = lin(tint), s = lin(specular ?? '#3b3b3b');
+  const keep = 1 - Math.max(...s), ls = lum(s);
+  let metal = 0;
+  if (ls > DIEL) {
+    const b = (lum(d) * keep) / (1 - DIEL) + ls - 2 * DIEL, c = DIEL - ls;
+    metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL));
+  }
+  const color = d.map((v, i) => {
+    const fromD = (v * keep) / (1 - DIEL) / Math.max(1 - metal, EPS);
+    const fromS = (s[i] - DIEL * (1 - metal)) / Math.max(metal, EPS);
+    return clamp(fromD + (fromS - fromD) * metal * metal);
+  });
+  return { color, metalness: metal, roughness: Number.isFinite(gloss) ? clamp(1 - gloss / 255) : null };
+}
+
 // Aufstand auf dem Fahrwerk (PC-Lauf „Hangar-Flotte“, Krisz 24.10.2026:
 // „alle schiffe korrekt auf dem boden … mit deren landinggear“). contacts
 // sind die tiefsten Punkte der Räder, Füße und Kufen im Raum der Webdatei
@@ -10275,7 +10310,8 @@ void main() {
     // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
     // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
     // ist im Spiel fast immer, was dort sitzt.
-    if (!m.map && m.color.r + m.color.g + m.color.b < 0.06) {
+    // Palettenmaterialien (extras.palette) tragen die Werte des Spiels.
+    if (!m.map && !m.userData?.palette && m.color.r + m.color.g + m.color.b < 0.06) {
       m.color.setHex(0x3a3d42); m.metalness = 0.6; m.roughness = 0.45;
     }
     m.envMapIntensity = 0.9;
@@ -10490,12 +10526,16 @@ void main() {
     if (reduceMotion || performance.now() - current.born < 300) { applyPaint(current.mat, p); fade.to = null; }
   }
 
-  // Layout-Werkstatt: Lackierung aus der Palette des Spiels. p = { cols, base },
-  // je [Haupt, Zweit, Akzent] als #rrggbb, oder null fuer den Serienlack.
-  // Echter Lack: Die Palettenmaterialien tragen den Serienton als Grundfarbe
-  // (baseColorFactor = linear(Serienton), am Gladius exakt); welche das sind,
-  // sagt dieser Ton, bestaetigt durch extras.palette_tint, wo der Build es
-  // mitgibt. Sie bekommen den neuen Ton, Texturen und Muster bleiben. Die
+  // Layout-Werkstatt: Lackierung aus der Palette des Spiels. p = { cols, base,
+  // fin }, cols und base je [Haupt, Zweit, Akzent] als #rrggbb, fin je Kanal
+  // [Glanzfarbe, Glätte] oder fehlend; p null fuer den Serienlack.
+  // Echter Lack: Welche Materialien die Palette tragen, sagt der Bau in
+  // extras.palette (Kanal 1..3, dazu die Rohwerte der Serie); diese bekommen
+  // Grundfarbe, Metall und Rauheit aus palettePbr, wie der Bau die Serie
+  // umrechnet. Aeltere Bauten ohne extras.palette: die Palettenmaterialien
+  // tragen den Serienton als Grundfarbe (baseColorFactor = linear(Serienton),
+  // am Gladius exakt), bestaetigt durch extras.palette_tint, wo der Build es
+  // mitgibt; dort wechselt nur die Farbe. Texturen und Muster bleiben. Die
   // Geometrie-Fassung nimmt die drei Toene in den Shader-Lack.
   // Gilt fuer das geladene Schiff; die Oberflaeche ruft es nach jedem show().
   // Liefert die Zahl umgefaerbter Materialien (Shader-Lack: 1).
@@ -10509,23 +10549,44 @@ void main() {
     }
     const map = hullTint(current, on?.base);
     if (!map) return 0;
-    for (const [m, t] of map) m.color.copy(on ? new THREE.Color(on.cols[t.slot]) : t.c0);
+    for (const [m, t] of map) {
+      if (!on || !t.pbr) {
+        m.color.copy(on ? new THREE.Color(on.cols[t.slot]) : t.c0);
+        if (t.pbr) { m.metalness = t.metal0; m.roughness = t.rough0; }
+        continue;
+      }
+      const [specular, gloss] = on.fin?.[t.slot] ?? [];
+      const q = palettePbr(on.cols[t.slot], specular, gloss);
+      m.color.setRGB(...q.color, THREE.LinearSRGBColorSpace);
+      m.metalness = q.metalness;
+      m.roughness = q.roughness ?? t.rough0;
+    }
     return map.size;
   }
-  // Palettenmaterialien des echten Lacks: Material -> { slot 0..2, Serienfarbe }.
-  // Einmal je Schiff, beim ersten paint() mit Serienpalette. Traegt das Modell
-  // Lackkanaele (extras.palette_tint, nur an der eigenen Palette des Schiffs,
-  // nicht an Halterungen, Sitzen, Beibooten), zaehlt nur ein Material mit
-  // passendem Kanal: eine weisse Serienpalette (Avenger Titan) traefe sonst
-  // jedes reine Texturmaterial.
+  // Palettenmaterialien des echten Lacks: Material -> { slot 0..2, Serienwerte }.
+  // Einmal je Schiff, beim ersten paint() mit Serienpalette. Traegt der Bau
+  // extras.palette, gilt allein dessen Kanal (pbr: Metall und Rauheit
+  // wechseln mit). Sonst traegt das Modell vielleicht Lackkanaele
+  // (extras.palette_tint, nur an der eigenen Palette des Schiffs, nicht an
+  // Halterungen, Sitzen, Beibooten): dann zaehlt nur ein Material mit
+  // passendem Kanal und Serienton, eine weisse Serienpalette (Avenger Titan)
+  // traefe sonst jedes reine Texturmaterial.
   function hullTint(c, base) {
     if (c.tint || !base) return c.tint ?? null;
-    const want = base.map((h) => new THREE.Color(h));
-    const near = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 3e-3;
     const mats = new Set();
     for (const [, orig] of c.hull) for (const m of [].concat(orig)) if (m?.color) mats.add(m);
-    const tagged = [...mats].some((m) => m.userData?.palette_tint != null);
     const map = new Map();
+    if ([...mats].some((m) => m.userData?.palette)) {
+      for (const m of mats) {
+        const ch = m.userData?.palette?.ch;
+        if ([1, 2, 3].includes(ch)) map.set(m, { slot: ch - 1, c0: m.color.clone(), metal0: m.metalness, rough0: m.roughness, pbr: true });
+      }
+      c.tint = map;
+      return map;
+    }
+    const want = base.map((h) => new THREE.Color(h));
+    const near = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 3e-3;
+    const tagged = [...mats].some((m) => m.userData?.palette_tint != null);
     for (const m of mats) {
       const pt = m.userData?.palette_tint;
       const slot = want.findIndex((w, i) => (tagged ? pt === i + 1 : true) && near(w, m.color));

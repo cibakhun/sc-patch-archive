@@ -82,12 +82,13 @@
         Modelle und Ports mit Tauschteilen.
     14  Lackierungen der Werkstatt: paints in dist/hangar-layouts.json je
         Schiff (auch ohne tauschbare Bauteile), Serienpalette und jede Lackierung mit drei
-        #rrggbb-Toenen, eindeutiger Kennung und Namen. Je Schiff mit Lack
-        (dist/hangar/ships) zaehlt die Pruefung die Materialien, deren
-        baseColorFactor ein Ton der Serienpalette ist (linear, wie der
-        Viewer sie in paint() sucht): ohne Treffer faerbt die Lackierung am
-        Modell nichts um. Klinken: Schiffe, Lackierungen, umfaerbbare
-        Schiffe mit Lack.
+        #rrggbb-Toenen, eindeutiger Kennung und Namen, Glanz je Kanal
+        wahlweise als [#glanzfarbe, glaette 0..255]. Je Schiff mit Lack
+        (dist/hangar/ships) zaehlt die Pruefung die Palettenmaterialien wie
+        der Viewer sie in paint() sucht: mit extras.palette nach dessen
+        Kanal, sonst die, deren baseColorFactor ein Ton der Serienpalette
+        ist (linear). Ohne Treffer faerbt die Lackierung am Modell nichts
+        um. Klinken: Schiffe, Lackierungen, umfaerbbare Schiffe mit Lack.
     15  Raketen der Werkstatt: jeder Raketen-, Torpedo- und Bombenslot in
         dist/hangar-layouts.json hat ein Serienteil im Katalog derselben
         Art und Groesse, die Gruppe passt zur Art (Bombe zu bomb, sonst
@@ -647,8 +648,9 @@ say('\n[14] Lackierungen: Daten der Werkstatt und Palettenmaterialien der Schiff
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Datenlauf am
 // 18.10.2026 (datamine:paints): 207 Schiffe, 2068 Lackierungen; von den zehn
 // Schiffen mit Lack sind neun umfaerbbar (die 300i hat keine Serienpalette
-// und keine Lackierungen).
-const LACK = { schiffe: 207, lackierungen: 2068, umfaerbbar: 9 };
+// und keine Lackierungen). 27.10.2026 nach Hangar-Alle: 2103 Lackierungen,
+// 203 von 231 Schiffen mit Lack umfaerbbar.
+const LACK = { schiffe: 207, lackierungen: 2103, umfaerbbar: 203 };
 {
   const lf = join(DIST, 'hangar-layouts.json');
   const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
@@ -662,15 +664,18 @@ const LACK = { schiffe: 207, lackierungen: 2068, umfaerbbar: 9 };
     for (const r of p.list ?? []) {
       rows++;
       if (r[5] === 1) pattern++;
-      const ok = Array.isArray(r) && r.length === 6 && /^[a-z0-9][a-z0-9-]{0,63}$/.test(r[0]) && typeof r[1] === 'string' && r[1].trim()
+      // Glanz je Kanal (optional): [[#glanzfarbe, glaette 0..255] x3]
+      const fin = (f) => Array.isArray(f) && f.length === 3 && f.every((x) => Array.isArray(x) && x.length === 2 && HEXC.test(x[0]) && Number.isInteger(x[1]) && x[1] >= 0 && x[1] <= 255);
+      const ok = Array.isArray(r) && (r.length === 6 || (r.length === 7 && fin(r[6]))) && /^[a-z0-9][a-z0-9-]{0,63}$/.test(r[0]) && typeof r[1] === 'string' && r[1].trim()
         && r.slice(2, 5).every((c) => HEXC.test(c)) && (r[5] === 0 || r[5] === 1);
-      if (!ok) fail(`[14] ${ship}: Lackierung ${JSON.stringify(r).slice(0, 120)} hat nicht die Form [kennung, name, #haupt, #zweit, #akzent, 0|1]`);
+      if (!ok) fail(`[14] ${ship}: Lackierung ${JSON.stringify(r).slice(0, 120)} hat nicht die Form [kennung, name, #haupt, #zweit, #akzent, 0|1, glanz?]`);
       if (ids.has(r[0])) fail(`[14] ${ship}: Kennung ${r[0]} doppelt`);
       ids.add(r[0]);
     }
   }
-  // Wie der Viewer (hullTint): Ton der Serienpalette, sRGB nach linear, Summe
-  // der Abstaende < 3e-3; traegt das Modell Lackkanaele, nur mit passendem Kanal.
+  // Wie der Viewer (hullTint): Traegt der Bau extras.palette, zaehlt allein
+  // dessen Kanal. Sonst Ton der Serienpalette, sRGB nach linear, Summe der
+  // Abstaende < 3e-3; traegt das Modell Lackkanaele, nur mit passendem Kanal.
   const lin = (h) => [1, 3, 5].map((i) => { const v = parseInt(h.slice(i, i + 2), 16) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
   const shipDir = join(DIST, 'hangar', 'ships');
   const tex = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).map((x) => x.replace(/\.glb$/, '')) : [];
@@ -685,7 +690,9 @@ const LACK = { schiffe: 207, lackierungen: 2068, umfaerbbar: 9 };
     const want = p.base.map(lin);
     const hits = [0, 0, 0];
     const tagged = (gltf.materials ?? []).some((m) => m.extras?.palette_tint != null);
+    const pal = (gltf.materials ?? []).some((m) => m.extras?.palette);
     for (const m of gltf.materials ?? []) {
+      if (pal) { const ch = m.extras?.palette?.ch; if ([1, 2, 3].includes(ch)) hits[ch - 1]++; continue; }
       const f = m.pbrMetallicRoughness?.baseColorFactor ?? [1, 1, 1, 1];
       const pt = m.extras?.palette_tint;
       const i = want.findIndex((w, k) => (tagged ? pt === k + 1 : true) && Math.abs(w[0] - f[0]) + Math.abs(w[1] - f[1]) + Math.abs(w[2] - f[2]) < 3e-3);
