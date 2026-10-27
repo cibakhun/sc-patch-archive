@@ -342,14 +342,41 @@ function poseOnce(doc, record, { skip = defaultSkip, useHull = true } = {}) {
     // Ruhelage eingefahren (Fuß mehr als 0,5 m über dem Aufstand): Endlage von
     // extend, dann compress bis zur Federlänge; gilt, wenn der Fuß danach
     // höchstens 0,6 m vom Aufstand liegt, sonst bleibt das Bein, wie es ist
-    if (leg.foot && leg.foot[1] > leg.game.y + 0.5 && leg.geometry) {
-      let an = legAnims(leg.geometry);
-      if (an?.all) {
-        const hashes = new Set(parts.map((n) => (crc32(Buffer.from(n.getName())) >>> 0).toString(16)));
-        const best = (re) => an.all.filter((b) => re.test(b.name || '') && !/retract/i.test(b.name || '')).map((b) => [b, b.bones.filter((x) => hashes.has(x.hash)).length]).filter(([, k]) => k > 0).sort((p, q) => q[1] - p[1])[0]?.[0] ?? null;
-        const e = best(/extend|deploy/i), c = best(/compress/i);
-        an = e ? { src: an.src, extend: e, compress: c, extendName: e.name.split('/').pop(), compressName: c?.name.split('/').pop() ?? null } : { error: 'keine extend-Animation für dieses Bein' };
+    const legAnim = () => {
+      const an = legAnims(leg.geometry);
+      if (!an?.all) return an;
+      const hashes = new Set(parts.map((n) => (crc32(Buffer.from(n.getName())) >>> 0).toString(16)));
+      const best = (re) => an.all.filter((b) => re.test(b.name || '') && !/retract/i.test(b.name || '')).map((b) => [b, b.bones.filter((x) => hashes.has(x.hash)).length]).filter(([, k]) => k > 0).sort((p, q) => q[1] - p[1])[0]?.[0] ?? null;
+      const e = best(/extend|deploy/i), c = best(/compress/i);
+      return e ? { src: an.src, extend: e, compress: c, extendName: e.name.split('/').pop(), compressName: c?.name.split('/').pop() ?? null } : { error: 'keine extend-Animation für dieses Bein' };
+    };
+    // Ruhelage zu lang (Fuß mehr als 0,6 m unter der Feder: Constellation,
+    // Idris, Sabre-Varianten …): compress des Beins, bis der Fuß auf der
+    // Federhöhe steht; gilt, wenn er danach höchstens 0,6 m daneben liegt
+    if (leg.foot && leg.foot[1] < leg.game.y - 0.6 && leg.geometry) {
+      const an = legAnim();
+      if (an?.compress) {
+        const keep = parts.map((n) => [n, n.getTranslation().slice(), n.getRotation().slice()]);
+        const restore = () => { for (const [n, t, r] of keep) n.setTranslation(t).setRotation(r); };
+        // Ausgangslage: wie exportiert, oder Endlage von extend (Corsair: compress
+        // setzt das ausgefahrene Bein voraus)
+        const dp = an.extend ? deployedPose(an.extend, an.compress) : null;
+        let best = null;
+        for (const base of [null, dp?.missingRot ? null : dp?.pose].filter((b, i) => i === 0 || b)) {
+          const at = (f) => { restore(); if (base) applyPose(base, parts); applyPose(compressAt(an.compress, f), parts); return lowest(parts, skip); };
+          let lo = 0, hi = 1;
+          for (let it = 0; it < 14; it++) { const mid = (lo + hi) / 2; const fm = at(mid); if (!fm) break; if (fm[1] < leg.game.y) lo = mid; else hi = mid; }
+          const f = (lo + hi) / 2, fm = at(f);
+          if (fm && (!best || Math.abs(fm[1] - leg.game.y) < Math.abs(best.fm[1] - leg.game.y))) best = { base, f, fm };
+        }
+        if (best && Math.abs(best.fm[1] - leg.game.y) <= 0.6) {
+          restore(); if (best.base) applyPose(best.base, parts); applyPose(compressAt(an.compress, best.f), parts);
+          leg.foot = best.fm; leg.from = `${best.base ? `${an.extendName} + ` : ''}${an.compressName} ${r3(best.f)}`;
+        } else { restore(); leg.animError = `nach ${an.compressName} Fuß bei ${best ? r3(best.fm[1]) : '?'}, Aufstand ${r3(leg.game.y)}`; }
       }
+    }
+    if (leg.foot && leg.foot[1] > leg.game.y + 0.5 && leg.geometry) {
+      const an = legAnim();
       const dp = an?.extend ? deployedPose(an.extend, an.compress) : null;
       if (!an?.extend) leg.animError = an?.error ?? 'keine Animation';
       else if (dp.missingRot) leg.animError = `${dp.missingRot} Drehungen ohne lesbare Endlage (${an.extendName})`;

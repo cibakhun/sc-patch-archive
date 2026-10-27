@@ -168,6 +168,17 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
   (Halbierung über den Anteil). Reclaimer und Reclaimer Showdown: ein → aus,
   nichts im Boden, `gear: true` (angesehen). Stand danach: aus 174, ein 13,
   tiefer als 20 cm 39; Rumpfanimation angenommen bei 14 Schiffen.
+- **Zu lange Beine einfedern** (Zwischenstand 3): Steht ein Fuß in der
+  Ruhelage mehr als 0,6 m unter der Feder, spielt `poseShip` die
+  Compress-Animation des Beins (Ausgangslage wie exportiert oder Endlage von
+  extend, die bessere), bis er auf der Federhöhe steht. Starlancer MAX und TAC
+  (1,54 m → 0,02), Stinger (0,91 → 0), Centaurus (0,87 → 0, jetzt
+  `gear: true`, ebenso Stinger); Constellation-Familie 7 von 8 Beinen,
+  Idris M/P 3 von 4. Je ein Bein bleibt zu lang: Constellation hinten links 2
+  (2,1 m), Idris vorn links (2,2 m); Corsair, Sabre-Varianten, Star Runner,
+  Paladin: Schon der Anfang der Compress-Animation steht tiefer als die
+  Ruhelage, Feder und Geometrie passen nicht zusammen. Stand: tiefer als
+  20 cm 39 → 35. Tor [17] 950,2 MB.
 - **Noch offen** (ein): Mole, Moth (Rumpf fährt das linke Bein 2,5 m zu weit
   aus, Compress bewegt es nicht), Nomad (Beine ohne Animation), Dragonfly ×2
   (Gravplatten), Prowler Utility, Hull C, 85X, 890 Jump, Glaive, San'tok.yāi,
