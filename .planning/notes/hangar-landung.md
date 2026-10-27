@@ -194,10 +194,29 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
 - Abgelehnt, weil schlechter: Reclaimer (beide), Mole, Moth (Rumpf fährt die
   Beine aus, ohne sie einzufedern: 2,5 bis 8,2 m im Boden), Guardian und QI,
   Corsair (gleich).
-- **Noch offen** (ein): Reclaimer ×2, Mole, Moth, Nomad (Beine ohne
-  Animation), Dragonfly ×2 (Gravplatten), Prowler Utility, Hull C, 85X,
-  890 Jump, Glaive, San'tok.yāi, Ironclad ×2 (Animation nicht unter dem
-  erwarteten Pfad). Teile in Flugstellung bleiben bei 39 Schiffen.
+- **Einfedern über den Rumpf** (Zwischenstand 2): Fährt der Rumpf die Beine
+  aus, spielt `poseShip` danach jede Compress-Animation der Gruppe so weit,
+  dass die Füße, die sie bewegt, im Mittel auf der Federhöhe stehen
+  (Halbierung über den Anteil). Reclaimer und Reclaimer Showdown: ein → aus,
+  nichts im Boden, `gear: true` (angesehen). Stand danach: aus 174, ein 13,
+  tiefer als 20 cm 39; Rumpfanimation angenommen bei 14 Schiffen.
+- **Zu lange Beine einfedern** (Zwischenstand 3): Steht ein Fuß in der
+  Ruhelage mehr als 0,6 m unter der Feder, spielt `poseShip` die
+  Compress-Animation des Beins (Ausgangslage wie exportiert oder Endlage von
+  extend, die bessere), bis er auf der Federhöhe steht. Starlancer MAX und TAC
+  (1,54 m → 0,02), Stinger (0,91 → 0), Centaurus (0,87 → 0, jetzt
+  `gear: true`, ebenso Stinger); Constellation-Familie 7 von 8 Beinen,
+  Idris M/P 3 von 4. Je ein Bein bleibt zu lang: Constellation hinten links 2
+  (2,1 m), Idris vorn links (2,2 m); Corsair, Sabre-Varianten, Star Runner,
+  Paladin: Schon der Anfang der Compress-Animation steht tiefer als die
+  Ruhelage, Feder und Geometrie passen nicht zusammen. Stand: tiefer als
+  20 cm 39 → 35. Tor [17] 950,2 MB.
+- **Noch offen** (ein): Mole, Moth (Rumpf fährt das linke Bein 2,5 m zu weit
+  aus, Compress bewegt es nicht), Nomad (Beine ohne Animation), Dragonfly ×2
+  (Gravplatten), Prowler Utility, Hull C, 85X, 890 Jump, Glaive, San'tok.yāi,
+  Ironclad ×2: Die `.chrparams` der Beine nennt
+  `drak_ironclad_landing_gear_side_01_extend_A.caf` usw., keine dieser
+  Dateien liegt im Spiel. Teile in Flugstellung bleiben bei 39 Schiffen.
 
 Aufnahmen (`check:hangar-shader --shot`, höchstens 16 Texturen je
 Bildshader): Railen, Syulen, Corsair, Polaris, Freelancer, Andromeda. Die
@@ -213,6 +232,20 @@ hat 1 273 671 statt 632 856 Dreiecke, 12,6 statt 6,8 MB, 90 statt 83 Meshes,
 Tiefe (0,97 → 0,87 m, weiter über 20 cm). Bei den übrigen zehn bleiben die
 Dreiecke gleich. Bitte die Ursache der Verdopplung finden, bevor sie wieder
 kommt; die 11 Bilder sind wieder aus `public/hangar/tex` genommen.
+
+**Cloud 27.10.2026, beim Übernehmen von Zwischenstand 3:** Ursache der
+Verdopplung gefunden, kein Fehler im Bau: `build-hangar-alle.mjs` zählt
+gegen die 16 MB nur Bilder, die *neu* in die Ablage kommen. Beim ersten Bau
+waren alle Bilder neu, Centaurus und Idris M rutschten deshalb auf Stufe 4
+(`HANGAR_SHIP_ERR`, Schwelle bis 8 %, Ränder frei; dabei fallen auch kleine
+Teile ganz weg, daher 7 Meshes, 11 Materialien und 14 Bilder weniger). Beim
+Neubau liegen die Bilder schon in der Ablage, Stufe 3 reicht, und es bleiben
+rund doppelt so viele Dreiecke (Centaurus 1 273 591 statt 632 856, 12,6 MB;
+Idris M 1 185 844 statt 597 696, 11,3 MB; Idris P stand schon so auf
+staging). Beide liegen unter 16 MB und sind weniger grob dezimiert, darum
+jetzt übernommen, samt den 11 Bildern der Centaurus. Wer künftig gleich
+dezimiert haben will, baut ein Schiff mit der Stufe aus `alle-stand.json`
+neu, nicht mit der Leiter von vorn.
 
 Aus der Durchsicht von PR #219 (cubic) für den PC, ohne Spieldaten in der
 Cloud nicht prüfbar: Der Lack ab Werk in `datamine-ship-paints.mjs` liest nur
