@@ -5987,11 +5987,13 @@ export async function initHangar(container, opts = {}) {
 
   // Dampf und Geräusche der Mechanik (fx): ohne Bewegung (reduceMotion)
   // fährt nichts, also auch kein Dampf; die niedrige Stufe mit weniger
-  // Teilchen (Füllrate: große, durchscheinende Flächen). 220 statt 160 seit
-  // 27.10.2026: Die Ballen am Feldrand stehen dichter und länger (fx), als
-  // Bank statt einzelner Wölkchen
+  // Teilchen (Füllrate: große, durchscheinende Flächen). 260 statt 160 seit
+  // 27./28.10.2026: Die Ballen am Feldrand stehen dichter und länger (fx), als
+  // Bank statt einzelner Wölkchen; im dichtesten Moment (Abfahrt, Schwaden,
+  // Fuge und Ankunft zugleich) leben rund 200, ein volles Band überschriebe
+  // lebende Ballen, und die verschwänden mitten im Bild
   const steamK = Q0 === 'niedrig' ? 0.5 : Q0 === 'mittel' ? 0.75 : 1;
-  const steam = reduceMotion ? null : buildSteam(Math.round(220 * steamK));
+  const steam = reduceMotion ? null : buildSteam(Math.round(260 * steamK));
   if (steam) scene.add(steam.mesh);
   const sound = hangarSound(opts.hall?.lift?.sound ?? null);
   if (opts.sound === false) sound.set(false);
@@ -9497,11 +9499,15 @@ void main() {
         // eine Reihe gleicher Ballen am Rand
         // klein und dicht aus dem Spalt, rasch breit und dünn
         const z = ((i + rnd(-0.3, 1.3)) / n * 2 - 1) * zl, b = t + rnd(0, 0.3) * rnd(0, 1), f = rnd(0.55, 1.25);
-        steam.puff(b, [sx * (hx + rnd(-0.2, 0.3) * k), rnd(0.05, 0.25) * k, z], [sx * rnd(3, 6) * w * k * f, rnd(1.5, 3.5) * w * k * f, rnd(-1, 1) * k],
-          rnd(2.5, 4) * (0.7 + 0.3 * w), rnd(0.8, 1.5) * k, rnd(3, 6) * k * (0.6 + 0.4 * w), rnd(0.7, 0.95) * w, rnd(0.5, 0.9) * k, rnd(0.4, 0.9) * k);
-        // flach über den Boden nach außen rollend
-        if (i % 2 === 0) steam.puff(b + 0.08, [sx * (hx + 0.4 * k), 0.25 * k, z], [sx * rnd(1.5, 2.6) * w * k, rnd(0.05, 0.2) * k, rnd(-0.4, 0.4) * k],
-          rnd(4, 5.5), rnd(1, 1.6) * k, rnd(5, 8) * k * (0.6 + 0.4 * w), rnd(0.3, 0.4) * w, 0.1 * k, 0.6 * k);
+        // Startgröße und Drift längs des Rands so, dass sich Nachbarn von
+        // Anfang an überlappen: von der anderen Feldseite aus sah eine Reihe
+        // getrennter Ballen sonst wie aufgefädelte Watte aus
+        steam.puff(b, [sx * (hx + rnd(-0.2, 0.3) * k), rnd(0.05, 0.25) * k, z], [sx * rnd(3, 6) * w * k * f, rnd(1.5, 3.5) * w * k * f, rnd(-1.6, 1.6) * k],
+          rnd(2.5, 4) * (0.7 + 0.3 * w), rnd(1.2, 2) * k, rnd(3, 6) * k * (0.6 + 0.4 * w), rnd(0.7, 0.95) * w, rnd(0.5, 0.9) * k, rnd(0.4, 0.9) * k);
+        // flach über den Boden nach außen rollend, unter jedem Stoß: der
+        // Teppich verbindet die Ballen darüber
+        steam.puff(b + 0.08, [sx * (hx + 0.4 * k), 0.25 * k, z + rnd(-0.5, 0.5) * zl / n], [sx * rnd(1.5, 2.6) * w * k, rnd(0.05, 0.2) * k, rnd(-0.6, 0.6) * k],
+          rnd(4, 5.5), rnd(1.4, 2.2) * k, rnd(5, 8) * k * (0.6 + 0.4 * w), rnd(0.3, 0.4) * w, 0.1 * k, 0.6 * k);
       }
     },
     // Mittelfuge des Tors: beim Einrasten quillt der Dampf hoch
@@ -9533,7 +9539,7 @@ void main() {
     liftGo(dir, late) {
       if (late > 400 || !fxOk('liftGo')) return;
       sound.rideStart();
-      if (dir === 'down') this.edges((performance.now() - T0) / 1000, 6, 0.55);
+      if (dir === 'down') this.edges((performance.now() - T0) / 1000, 10, 0.55);
     },
     liftHalt(dir, late) {
       if (late > 400) { sound.hush(); return; }
