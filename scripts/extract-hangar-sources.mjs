@@ -255,8 +255,11 @@ if (want('ships-matfix')) {
     const glb = `${SRC}ships/${slug}.glb`;
     if (!existsSync(glb)) { console.error(`  ! ${slug}: kein Rohexport`); continue; }
     const out = (x) => `${SRC}ships/${slug}.${x}.json`;
+    // ohne Szene fehlen die Geometriepfade der Entities: lieber kein
+    // matfix.json als ein halbes
     const sceneFile = `${SHIP_DEC}Packages/${decIndex[slug]?.package}/scene.json`;
-    const fix = shipMaterialFix(await io.read(glb), existsSync(sceneFile) ? JSON.parse(readFileSync(sceneFile, 'utf8')) : null);
+    if (!decIndex[slug]?.package || !existsSync(sceneFile)) { console.error(`  ! ${slug}: keine Szene im zerlegten Export (ships-dec/index.json), erst Teil ships`); continue; }
+    const fix = shipMaterialFix(await io.read(glb), JSON.parse(readFileSync(sceneFile, 'utf8')));
     if (!fix) {
       for (const x of ['matfix', 'layers']) if (existsSync(out(x))) rmSync(out(x));
       console.log(`  = ${slug}: alle Primitive mit Material`);

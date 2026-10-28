@@ -973,7 +973,7 @@ const PLATZHALTER_AUSNAHMEN = {
   let tris = 0;
   for (const f of glbs) {
     const buf = readFileSync(join(shipDir, f));
-    if (buf.toString('utf8', 16, 20) !== 'JSON') continue;
+    if (buf.toString('utf8', 16, 20) !== 'JSON') { fail(`[18] ${f}: kein JSON-Block am Anfang, Schiff nicht geprueft`); continue; }
     const gltf = JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12)));
     let t = 0, all = 0;
     for (const me of gltf.meshes ?? []) for (const p of me.primitives ?? []) {

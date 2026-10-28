@@ -268,7 +268,8 @@ auf Materialien, die der Export schon trägt (Mantis 33, M50 1, Hornet Mk II
 je 4: dieselben Untermaterialien wie am Rumpf, mit dessen Karten).
 „Ohne Material vorher“ = Web-Fassung auf staging, je Exemplar gezählt.
 
-6. `check:hangar-shader` gegen `dist/` (Software-WebGL, Grenze 16), je
+6. `check:hangar-shader` gegen `dist/` (Software-WebGL, die selbst 32
+   erlaubt; geprüft gegen die Grenze 16 von Chrome unter Windows), je
    Schiff höchstens 16 Texturen (die meisten haben Hallenmaterialien):
    325a ✓ 98 Programme, 300i ✓ 97, Hornet F7C ✓ 97, Nox ✓ 95. Der erste
    Lauf von 300i und Hornet meldete 2 bzw. 1 „Bild nicht geladen“, während
