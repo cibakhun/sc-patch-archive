@@ -151,7 +151,7 @@ Viewer ansehen (325a, 300i, Hornet F7C, Nox), PR auf staging,
   `orig_300i_ext_mtl_hull_d_014` (Lackfläche, Farbe e1e1e1); grünlich-graue
   Kästen oben auf der Nox = `VNCL_Scythe_mtl_vs_panels_b_02` (gleiche
   Dreieckszahl vorher und nachher).
-- Sichturteil an Krisz: `.planning/WINDOWS.md` #123.
+- Sichturteil an Krisz: `.planning/WINDOWS.md` #126.
 - `check:staging` geht aus der Cloud nicht (Cloudflare 403); nach dem Merge
   vom PC.
 

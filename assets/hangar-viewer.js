@@ -2369,6 +2369,19 @@ const LEITUNG_SCHNITT = 0.1;
 // Bezugspunkt auf ihrer Linie: In größeren Hallen rückt jede Zone zu ihrem
 // Bezugspunkt, so bleiben sie am Rand des Durchgangs, statt vor ihn zu
 // wandern. Reifenlager und Lichtbalken-Werkbank an der Südwand bleiben.
+// Nach Zweck eingerichtet am 27.10.2026 (Krisz: „mach mal sinnvolle
+// einrichtung, momentan ist es einfach asset ausstellung“): Jede Aufgabe
+// steht einmal, dort wo sie gebraucht wird. Am Tor die Fracht, daneben im
+// Osten die Tankstelle und die Stromverteilung fürs Schiff, im Westen
+// Hubbühne und Gerüst, die Werkstatt und die Munition; die Ostnische ist
+// das Lager (Hochregal, Teilelager, Ladeinsel, Stapler), die Westnische die
+// Zufahrt, am Feld im Osten der Leitstand, vor der Galerie Pausenecke und
+// Automat. Gegangen sind die Doppelten: vier weitere Werkstätten und
+// Werkbänke, zweite Tankstelle, Generatoren, drei weitere Lager, die
+// Stellplätze mit Staplern und Wagen ohne Arbeit, Lüftung, Reifenlager und
+// was vor dem Tor stand. An den vier Türen der Aufzugstürme bleiben
+// Sicherheitspunkt, Konsole und Licht; Bank, Wasser und Eimer stehen nur in
+// der Pausenecke.
 // Fest in der
 // Halle (fährt nicht mit dem Aufzug), in Originalgröße wie die Werkstatt:
 // Wächst die Halle mit großen Schiffen, rückt die Zone an ihren Bezugspunkt
@@ -2424,17 +2437,6 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_05m_a", 2.65, -7.6, 0.5, 0], ["decal_linie_lowtech_a_int_decal_4m_a", -5.6, -5.4, 4, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -5.6, -7.65, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 2.6, -5.4, 4, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 2.6, -7.65, 0.5, 90]] },
-    { "name": "gas-west", "stufe": "hoch", "aus": "kabel+reinigung+sicherheit+treibstoff", "wand": "w", "at": [3.5, -103.5], "glieder": [
-      ["prop_treibstoff_tank_gas_3_05x025x025_a", 1.2, -1.542, 0], ["prop_treibstoff_tank_gas_1_0125x0125x0125_a", -2.25, -0.946, 6],
-      ["prop_treibstoff_cell_fuel_1_a", 4.3, -0.5, 1], ["prop_treibstoff_cell_fuel_1_a", 4.64, -0.56, 92],
-      ["prop_treibstoff_cell_fuel_1_a", 4.42, -0.88, 177], ["prop_treibstoff_cell_fuel_1_a", 4.8, -0.92, 271],
-      ["prop_sicherheit_cone_2_a", -1.6, -3.6, 12], ["prop_sicherheit_cone_2_a", 2.1, -3.75, 330],
-      ["prop_sicherheit_sign_warning_1_freestanding_a", 0.6, -3.6, 345], ["prop_schlauch_hose_reel_2_a", 4, -4.4, 154],
-      ["prop_transport_trolley_cargo_4_a", -1.1, -6.9, 305], ["prop_treibstoff_tank_gas_1_005x005x005_a", -1.551, -6.585, 315, 0.2],
-      ["prop_treibstoff_tank_gas_1_005x005x005_a", -1.018, -6.957, 285, 0.2], ["prop_sicherheit_tool_fire_extinguisher_1_a", -2.4, -3.3, 0]], "spuren": [
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -0.9, -3.15, 3.8, 0],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 2.9, -3.15, 3.8, 0]], "leitungen": [
-      { "name": "tank-rolle", "node": "prop_schlauch_maintenance_hose_1_a", "von": [3.853, -4.076, 0.235, 244], "nach": [3.2, -2.761, 0.4, 90] }] },
     { "name": "geruestplatz-west", "stufe": "hoch", "aus": "maschine+reinigung", "wand": "w", "at": [3.5, -93.75], "glieder": [
       ["prop_maschine_construction_scaffold_base_04x02x02_a", -1, -1.416, 0],
       ["prop_maschine_construction_scaffold_mid_04x02x02_a", -1, -1.416, 0, 2.012],
@@ -2470,12 +2472,6 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_sicherheit_cone_2_a", 4.75, -10.6, 350]], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -2.5, -10.95, 3.95, 0],
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.45, -10.95, 3.95, 0]] },
-    { "name": "munition-ausgabe-west", "stufe": "hoch", "aus": "munition", "wand": "w", "at": [3.5, -35.3], "glieder": [
-      ["prop_werkzeug_workbench_table_1_a", 2.2, -8.75, 0], ["prop_munition_ammo_box_1_ballistic_open_1x05x025_a", 0.7, -8.75, 3, 1],
-      ["prop_munition_ammo_box_1_ballistic_05x025x025_a", 1.9, -8.95, 352, 1], ["prop_diagnose_computer_1_b", 2.9, -8.85, 348, 1],
-      ["prop_lager_box_plastic_4_ammo_0025x005x0025_a", 3.8, -8.75, 6, 1], ["prop_crew_console_desk_1_chair", 2.05, -10.1, 165],
-      ["prop_munition_crate_weapon_2_015x0075x0075_a", 3.7, -10.05, 2], ["prop_munition_crate_weapon_2_015x0075x0075_a", 3.7, -10.05, 359, 0.751],
-      ["prop_munition_crate_weapon_4_open_015x0075x0075_a", 3.7, -10.05, 3, 1.502], ["prop_munition_ammo_box_1_closed_a", -1.15, -8.85, 88]] },
     { "name": "zufahrt-west", "stufe": "mittel", "aus": "tor", "wand": "w", "at": [-14.6, -72], "freihalten": [[-8.4, -28.1, 8.4, -0.55]], "glieder": [], "spuren": [
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -1.35833, -0.85, 2.71667, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 1.35833, -0.85, 2.71667, 0],
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -4.075, -0.85, 2.71667, 0], ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 4.075, -0.85, 2.71667, 0],
@@ -2520,30 +2516,6 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_diagnose_console_diagnostic_2_a", 2.8, -8.4, 131], ["prop_crew_steat_stool_1_a", 3.9, -7.3, 40],
       ["prop_lager_drum_dry_1_a", 5.3, -3.1, 0], ["prop_werkzeug_bag_toolbox_2_a", 0.6, -9, 33]], "spuren": [
       ["decal_parkfeld_roomsm_floor_decal_06x12x0025_a", -0.4, -6, 7.6, 90]] },
-    { "name": "werkzeugwand-west", "stufe": "hoch", "aus": "werkzeug", "wand": "n", "at": [-7, -87.25], "glieder": [
-      ["prop_regal_shelf_wall_1_a", 1.05, -0.601, 180], ["prop_regal_shelf_wall_1_a", -1.15, -0.601, 180],
-      ["prop_werkzeug_bag_toolbox_1_a", 0.55, -0.601, 0, 1], ["prop_werkzeug_tool_socket_set_closed_1_a", 1.45, -0.601, 4, 1],
-      ["prop_werkzeug_storage_toolbox_a", 1.25, -0.601, 90, 1.5], ["prop_werkzeug_tool_power_1_drill_a", 0.4, -0.601, 300, 1.5],
-      ["prop_werkzeug_bag_toolbox_2_a", -1.6, -0.601, 0, 1], ["prop_werkzeug_tool_power_1_drill_a", -0.65, -0.601, 30, 1],
-      ["prop_werkzeug_tool_tester_1_a", -1.35, -0.601, 0, 1.5], ["prop_werkzeug_bag_toolbox_1_a", -0.6, -0.601, 357, 1.5],
-      ["prop_werkzeug_tool_drawer_1_a", -3, -0.513, 2], ["prop_luft_heater_freestanding_1_a", 3, -0.701, 3],
-      ["prop_werkzeug_tool_socket_set_closed_1_a", -1.85, -0.601, 356, 1.5], ["prop_heben_ladder_step_1_a", -4, -0.75, 357],
-      ["prop_sicherheit_tool_fire_extinguisher_1_a", -4.7, -0.35, 0], ["prop_werkzeug_tool_welder_a", 4.6, -1.1, 96],
-      ["prop_kabel_cable_terminal_1_floor_a", 5.6, -0.535, 0]], "leitungen": [
-      { "name": "terminal-schweissgeraet", "node": "prop_kabel_maintenance_cable_1_a", "von": [5.6, -0.869, 0.3, 90], "nach": [4.992, -1.141, 0.3, 6] }] },
-    { "name": "energie-west", "stufe": "mittel", "aus": "energie+luft+reinigung+sicherheit+treibstoff", "wand": "w", "at": [3.5, -20.5], "glieder": [
-      ["prop_energie_generator_mining_1_a", -6.6, -1.102, 0], ["prop_energie_roomsm_addon_generator_c", -4.9, -0.445, 0],
-      ["prop_energie_roomsm_addon_generator_c", -3.65, -0.445, 0], ["prop_energie_roomsm_addon_generator_c", -2.4, -0.445, 0],
-      ["prop_lager_cell_power_1_rack_a", 4.4, -1.214, 0], ["prop_kabel_cable_terminal_1_floor_a", -0.9, -0.635, 0],
-      ["prop_transport_machine_forklift_1_b", -2.8, -5.5, 178], ["prop_transport_machine_forklift_1_extension_tank_a", 0.8, -3.6, 12],
-      ["prop_transport_machine_forklift_1_extension_console_a", 1.5, -5.2, 354], ["prop_kabel_cable_reel_6_a", -6.3, -3.6, 25]], "spuren": [
-      ["decal_linie_lowtech_a_int_decal_4m_a", -4.9, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_2m_a", -4.9, -7.6, 2, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", -4.9, -8.85, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -0.8, -4.6, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", -0.8, -7.6, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -0.8, -8.85, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 3.3, -4.6, 4, 90], ["decal_linie_lowtech_a_int_decal_2m_a", 3.3, -7.6, 2, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 3.3, -8.85, 0.5, 90], ["decal_ziffer_secondary_number_1", -2.85, -8.6, 0.8, 0],
-      ["decal_ziffer_secondary_number_2", 1.25, -8.6, 0.8, 0]], "leitungen": [
-      { "name": "terminal-stapler", "node": "prop_kabel_maintenance_cable_1_a", "von": [-0.9, -0.969, 0.3, 90], "nach": [-2.032, -4.566, 0.5, 268] }] },
     { "name": "tankstelle-ost", "stufe": "mittel", "aus": "sicherheit+treibstoff", "wand": "o", "at": [68.5, -116.5], "glieder": [
       ["prop_schlauch_hose_reel_1_065x045x045_a", 2.8, -2.647, 0], ["prop_treibstoff_tank_gas_3_05x025x025_a", -3.4, -1.542, 0],
       ["prop_sicherheit_extinguisher_cabinet_1_a", -0.55, -0.298, 0], ["prop_treibstoff_cell_fuel_1_a", -5.9, -4.3, 0],
@@ -2554,33 +2526,6 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -4.8, -3.2, 2.8, 0],
       ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", -2, -3.2, 2.8, 0]], "leitungen": [
       { "name": "tank-rolle", "node": "prop_schlauch_maintenance_hose_1_a", "von": [-1.6, -2.763, 0.4, 90], "nach": [-0.17, -3.647, 0.6, 180] }] },
-    { "name": "luft-ost", "stufe": "hoch", "aus": "schlauch", "wand": "o", "at": [68.5, -103.5], "glieder": [
-      ["prop_schlauch_lt_airduct_hose_junction_a", 0.2, -0.858, 90], ["prop_schlauch_lt_airduct_hose_straight_8m_a", 0.104, -5.455, 90],
-      ["prop_schlauch_lt_airduct_hose_corner_1m_a", 0.524, -10.075, 270], ["prop_schlauch_lt_airduct_hose_stepdown_0_025m_a", 2.174, -10.436, 0],
-      ["prop_schlauch_lt_sm_airduct_fan_a_b", 3.733, -10.413, 0], ["prop_luft_heater_freestanding_1_a", -3, -5.8, 20],
-      ["prop_luft_heater_freestanding_1_b", 3.2, -6.6, 330], ["prop_reinigung_tank_water_3_waste_0125x0125x0125_a", -3.6, -0.875, 0],
-      ["prop_reinigung_tank_water_3_waste_0125x0125x0125_a", -2.2, -0.875, 3], ["prop_reinigung_tool_mop_1_bucket_a", 3.2, -0.7, 5],
-      ["prop_reinigung_tool_mop_1_a", 3.8, -0.35, 0], ["prop_crew_waste_bin_1_a", -2.9, -2.2, 14],
-      ["prop_transport_prop_dumper_transport_pallet_a", 3.6, -3.4, 348], ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 2.83, -2.95, 350, 0.25],
-      ["prop_lager_crate_multipurpose_1_0125x0125x0125_a", 4.121, -2.676, 347, 0.25],
-      ["prop_lager_crate_plastic_1_005x01x005_a", 2.83, -2.95, 355, 1.51], ["prop_lager_crate_plastic_1_005x01x005_a", 3.256, -4.189, 344, 0.25],
-      ["prop_sicherheit_cone_2_a", -1.4, -10, 20], ["prop_sicherheit_cone_2_a", 3.3, -9.3, 320]] },
-    { "name": "werkzeugecke-ost", "stufe": "mittel", "aus": "werkzeug", "wand": "o", "at": [86.6, -83], "glieder": [
-      ["prop_werkzeug_cabinet_tool_1_a", 3.4, -0.4, 180], ["prop_regal_shelf_wall_1_a", 1.55, -0.28, 180],
-      ["prop_werkzeug_bag_toolbox_2_a", 1.17, -0.36, 184, 1], ["prop_werkzeug_tool_socket_set_closed_1_a", 1.97, -0.36, 3, 1],
-      ["prop_werkzeug_storage_toolbox_a", 1.07, -0.36, 90, 1.5], ["prop_werkzeug_tool_power_1_drill_a", 1.87, -0.36, 120, 1.5],
-      ["prop_regal_shelf_wall_1_a", -0.68, -0.28, 180], ["prop_werkzeug_storage_toolbox_a", -1.13, -0.36, 270, 1],
-      ["prop_werkzeug_bag_toolbox_1_a", -0.33, -0.36, 6, 1], ["prop_werkzeug_bag_toolbox_2_a", -0.68, -0.36, 178, 1.5],
-      ["prop_werkzeug_tool_drawer_1_a", -2.15, -0.2, 0], ["prop_werkzeug_tool_drawer_1_a", -2.97, -0.2, 0],
-      ["prop_werkzeug_workbench_table_1_a", -1.25, -3.8, 3], ["prop_bauteile_cool_aegs_s03_pl01", -1.38, -3.793, 3, 1],
-      ["prop_werkzeug_tool_socket_set_closed_1_a", -3.134, -3.451, 15, 0.55], ["prop_werkzeug_tool_power_1_drill_a", 0.482, -4.191, 299, 0.55],
-      ["prop_werkzeug_tool_manual_1_ratchet_a", 0.716, -3.553, 83, 0.55], ["prop_crew_steat_stool_1_a", -2.4, -5.15, 25],
-      ["prop_werkzeug_tool_drawer_1_a", -3.7, -5.8, 18], ["prop_werkzeug_bag_toolbox_1_a", -3.7, -5.8, 43, 1.2],
-      ["prop_werkzeug_workbench_mobile_1_a", -0.4, -8, 84], ["prop_werkzeug_tool_manual_1_screwdriver_a", -0.892, -8.102, 109, 1],
-      ["prop_werkzeug_tool_manual_1_pliers_a", -0.036, -8.113, 144, 1], ["prop_transport_trolley_creeper_1_a", -3.4, -7.3, 60]], "spuren": [
-      ["decal_linie_lowtech_a_int_decal_4m_a", -2, -9.5, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 2, -9.5, 4, 0],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -4, -5.5, 4, 270], ["decal_linie_lowtech_a_int_decal_2m_a", -4, -8.5, 2, 270],
-      ["decal_schraffur_decal_line_caution_yellow_04x0025x001_a", 0.3, -1.2, 4, 0]] },
     { "name": "werkzeugregal-ost", "stufe": "hoch", "aus": "lager+werkzeug", "wand": "o", "at": [86.6, -83], "glieder": [
       ["prop_regal_storage_rack_1_02x0575x08_a", 3.1, -4.7, 90], ["prop_werkzeug_tool_drawer_1_a", 3.1, -2.7, 90, 0.4],
       ["prop_werkzeug_tool_drawer_1_a", 3.1, -3.55, 90, 0.4], ["prop_werkzeug_bag_toolbox_2_a", 3.1, -4.7, 93, 0.4],
@@ -2615,7 +2560,7 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_2m_a", -1.3, -6.7, 2, 270], ["decal_linie_lowtech_a_int_decal_1m_a", -1.3, -8.2, 1, 270],
       ["decal_linie_lowtech_a_int_decal_05m_a", -1.3, -8.95, 0.5, 270], ["decal_linie_lowtech_a_int_decal_05m_a", -1.3, -9.45, 0.5, 270],
       ["decal_linie_lowtech_a_int_decal_2m_a", -2.3, -9.3, 2, 180], ["decal_linie_lowtech_a_int_decal_05m_a", -3.55, -9.3, 0.5, 180]] },
-    { "name": "ladeinsel-ost", "stufe": "hoch", "aus": "lager+transport", "wand": "o", "at": [83.3, -72], "glieder": [
+    { "name": "ladeinsel-ost", "stufe": "mittel", "aus": "lager+transport", "wand": "o", "at": [83.3, -72], "glieder": [
       ["prop_transport_prop_dumper_transport_pallet_a", -1.3, -2.8, 8], ["prop_fracht_crate_dry_1_0125x0125x0125_a", -1.87, -2.043, 8.5, 0.25],
       ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -1.87, -2.043, 10.5, 1.504],
       ["prop_fracht_crate_metal_4_0125x0125x0125_a", -0.543, -2.23, 6.5, 0.25], ["prop_fracht_crate_dry_1_0125x0125x0125_c", -2.057, -3.37, 8.5, 0.25],
@@ -2635,56 +2580,7 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_1m_a", -5.548, -11.503, 0.8, 82.57], ["decal_linie_lowtech_a_int_decal_1m_a", -5.367, -10.115, 0.8, 82.57],
       ["decal_linie_lowtech_a_int_decal_1m_a", -5.186, -8.727, 0.8, 82.57], ["decal_linie_lowtech_a_int_decal_1m_a", 4.451, -8.629, 0.8, 111.8],
       ["decal_linie_lowtech_a_int_decal_1m_a", 3.931, -7.329, 0.8, 111.8], ["decal_linie_lowtech_a_int_decal_1m_a", 3.412, -6.029, 0.8, 111.8]] },
-    { "name": "werkplatz-ost", "stufe": "mittel", "aus": "energie+werkzeug", "wand": "o", "at": [68.5, -48.25], "glieder": [
-      ["prop_werkzeug_cabinet_tool_1_a", -4.9, -0.715, 180], ["prop_werkzeug_tool_drawer_1_a", -3.7, -0.513, 0],
-      ["prop_werkzeug_workbench_table_1_light_a", -1.4, -0.609, 0], ["prop_energie_generator_mobile_1_d", 3.6, -0.937, 0],
-      ["prop_maschine_col_lift_platform_small_a", 0.8, -5.4, 350], ["prop_bauteile_cool_aegs_s02_pl03", 0.8, -5.4, 354, 1.769],
-      ["prop_heben_ladder_step_1_a", -1.3, -6, 60], ["prop_werkzeug_bag_toolbox_2_a", -0.3, -7.5, 345],
-      ["prop_werkzeug_tool_socket_set_closed_1_a", 0.7, -7.7, 30], ["prop_kabel_cable_reel_6_a", 3.4, -3.9, 340],
-      ["prop_licht_light_portable_tripod_1_base_a", -3.4, -4.3, 30], ["prop_transport_trolley_creeper_1_a", 2.8, -7, 12],
-      ["prop_werkzeug_workbench_mobile_1_a", -3.7, -7.5, 285], ["prop_werkzeug_tool_socket_set_1_a", -4.666, -7.241, 295, 1.215],
-      ["prop_werkzeug_tool_circularsaw_1_a", -3.603, -7.526, 255, 1.215], ["prop_werkzeug_tool_manual_1_screwdriver_a", -2.863, -7.466, 345, 1.215],
-      ["prop_werkzeug_tool_allenkey_1_a", -2.593, -8.004, 270, 1.215], ["prop_licht_light_work_light_1_a", -0.6, -3, 0]] },
-    { "name": "lager-ost", "stufe": "hoch", "aus": "lager+reinigung", "wand": "o", "at": [68.5, -20.5], "glieder": [
-      ["prop_lager_salvage_shelf_1_a", -7.625, -0.388, 0], ["prop_lager_salvage_shelf_1_b", -6.855, -0.388, 0],
-      ["prop_lager_salvage_shelf_1_a", -6.085, -0.388, 0], ["prop_lager_salvage_shelf_1_a", -5.315, -0.388, 0],
-      ["prop_lager_salvage_shelf_1_b", -4.545, -0.388, 0], ["prop_lager_salvage_shelf_1_a", -3.775, -0.388, 0],
-      ["prop_munition_ammo_box_1_ballistic_05x025x025_a", -7.625, -0.388, 0, 0.4], ["prop_werkzeug_bag_toolbox_1_a", -7.625, -0.388, 0, 0.75],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -7.805, -0.388, 0, 1.15],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -7.445, -0.388, 0, 1.15], ["prop_werkzeug_storage_toolbox_a", -7.625, -0.388, 90, 1.5],
-      ["prop_munition_ammo_box_1_ballistic_05x025x025_a", -6.855, -0.388, 0, 0.75], ["prop_werkzeug_bag_toolbox_1_a", -6.085, -0.388, 0, 0.4],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -6.265, -0.388, 0, 0.75],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -5.905, -0.388, 0, 0.75], ["prop_werkzeug_storage_toolbox_a", -6.085, -0.388, 90, 1.15],
-      ["prop_munition_ammo_box_1_ballistic_05x025x025_a", -5.315, -0.388, 0, 0.4], ["prop_werkzeug_bag_toolbox_1_a", -5.315, -0.388, 0, 0.75],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -5.495, -0.388, 0, 1.15],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -5.135, -0.388, 0, 1.15], ["prop_werkzeug_storage_toolbox_a", -5.315, -0.388, 90, 1.5],
-      ["prop_munition_ammo_box_1_ballistic_05x025x025_a", -4.545, -0.388, 0, 0.75], ["prop_werkzeug_bag_toolbox_1_a", -3.775, -0.388, 0, 0.4],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -3.955, -0.388, 0, 0.75],
-      ["prop_kabel_roomsm_addon_cable_junctionbox_a", -3.595, -0.388, 0, 0.75], ["prop_werkzeug_storage_toolbox_a", -3.775, -0.388, 90, 1.15],
-      ["prop_lager_drum_dry_1_a", 3.4, -0.5, 4], ["prop_lager_drum_dry_1_a", 4, -0.45, 356], ["prop_lager_drum_dry_1_a", 3.7, -1.05, 2],
-      ["prop_lager_crate_stack_1_025x0125x00625_a", 6.4, -1.6, 90], ["prop_lager_crate_dry_2_0125x0125x0125_a", -1.6, -4, 6],
-      ["prop_lager_crate_dry_1_0125x0125x00625_a", -1.6, -4, 2, 1.25], ["prop_fracht_crate_metal_4_0125x0125x0125_a", -0.2, -3.9, 357],
-      ["prop_fracht_cargo_multipurpose_1_0125x0125x0125_a", -0.2, -3.9, 2, 1.26], ["prop_lager_crate_plastic_1_005x01x005_a", -0.2, -3.9, 353, 2.517],
-      ["prop_lager_crate_weapon_4_015x0075x0075_a", -2.6, -5.6, 18], ["prop_lager_crate_weapon_4_015x0075x0075_a", 1, -5.4, 351],
-      ["prop_lager_crate_weapon_4_015x0075x0075_a", 1, -5.4, 354, 0.749], ["prop_reinigung_tool_mop_1_bucket_a", 6.4, -3.6, 0],
-      ["prop_fracht_container_dry_3_025x025x025_a", -1, -1.508, 2], ["prop_lager_crate_plastic_1_005x01x005_a", -0.486, -1.126, 356, 2.514],
-      ["prop_transport_prop_dumper_transport_pallet_a", 3.5, -7, 350], ["prop_fracht_crate_metal_4_0125x0125x0125_a", 2.724, -6.457, 351, 0.25],
-      ["prop_lager_crate_dry_2_0125x0125x0125_a", 4.043, -6.224, 348.5, 0.25],
-      ["prop_fracht_crate_metal_4_0125x0125x0125_a", 4.043, -6.224, 349.5, 1.5],
-      ["prop_fracht_crate_dry_1_0125x0125x0125_a", 2.957, -7.776, 349, 0.25], ["prop_transport_trolley_pallet_1_a", 6.4, -8.8, 320]] },
-    { "name": "containerlager-galerie", "stufe": "hoch", "aus": "lager+transport", "wand": "s", "at": [22, -1.5], "glieder": [
-      ["prop_lager_storage_container_1_025x05x025_a", -1, -1.462, 90], ["prop_lager_storage_container_1_025x05x025_a", -1, -1.562, 91, 2.504],
-      ["prop_transport_prop_dumper_transport_pallet_a", 3, -4.6, 9], ["prop_fracht_crate_dry_1_0125x0125x0125_a", 2.443, -3.833, 9.5, 0.25],
-      ["prop_fracht_crate_dry_1_0125x0125x0125_c", 2.443, -3.833, 11.5, 1.504],
-      ["prop_fracht_crate_metal_4_0125x0125x0125_a", 3.767, -4.043, 7.5, 0.25], ["prop_fracht_crate_dry_1_0125x0125x0125_b", 3.557, -5.367, 9.5, 0.25],
-      ["prop_fracht_crate_metal_4_0125x0125x0125_a", 3.557, -5.367, 7.5, 1.508], ["prop_transport_trolley_pallet_1_a", 0.4, -4.8, 345],
-      ["prop_fracht_cargo_multipurpose_1_025x025x025_a", 3.4, -1.454, 2], ["prop_fracht_cargo_multipurpose_1_025x025x0125_a", 3.4, -1.454, 0, 2.499]], "spuren": [
-      ["decal_linie_lowtech_a_int_decal_4m_a", 3.2, -6.6, 4, 0], ["decal_linie_lowtech_a_int_decal_05m_a", 5.45, -6.6, 0.5, 0],
-      ["decal_linie_lowtech_a_int_decal_2m_a", 1.2, -4, 2, 90], ["decal_linie_lowtech_a_int_decal_1m_a", 1.2, -5.5, 1, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 1.2, -6.25, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 1.2, -6.75, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", 5.4, -4, 2, 90], ["decal_linie_lowtech_a_int_decal_1m_a", 5.4, -5.5, 1, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -6.25, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -6.75, 0.5, 90]] },
-    { "name": "pausenecke-galerie", "stufe": "hoch", "aus": "crew", "wand": "s", "at": [49.5, -1.5], "glieder": [
+    { "name": "pausenecke-galerie", "stufe": "mittel", "aus": "crew", "wand": "s", "at": [49.5, -1.5], "glieder": [
       ["prop_crew_machine_water_cooler_1_a", -1, -0.444, 0], ["prop_crew_waste_trashcan_3_a", 0, -0.485, 0],
       ["prop_crew_storage_locker_keypad_1_a", 3.6, -0.496, 0], ["prop_crew_storage_locker_keypad_1_a", 4.26, -0.496, 0],
       ["prop_crew_storage_locker_keypad_1_a", 4.92, -0.496, 0], ["prop_crew_table_bar_table_2_watertank_b", -0.6, -3.3, 15],
@@ -2698,68 +2594,34 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_crew_machine_vending_01x01x02_a", -2.4, -0.778, 0]], "spuren": [
       ["decal_linie_lowtech_a_int_decal_4m_a", -3.5, -2.4, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -3.5, -6.4, 4, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -3.5, -8.65, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -3.5, -9.15, 0.5, 90]] },
-    { "name": "maschinenpark-galerie", "stufe": "hoch", "aus": "maschine", "wand": "s", "at": [36.75, -1.5], "glieder": [
-      ["prop_maschine_lift_scissor_1_a", -15.85, -12.4, 92], ["prop_maschine_forklift_machine_1_a", -12.85, -12.1, 356],
-      ["prop_maschine_col_lift_platform_small_a", -9.85, -11.2, 3], ["prop_maschine_trolley_pallet_powered_1_a", -6.7, -14.3, 20]], "spuren": [
-      ["decal_linie_lowtech_a_int_decal_4m_a", -15.35, -9.4, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", -11.35, -9.4, 4, 0],
-      ["decal_linie_lowtech_a_int_decal_4m_a", -7.35, -9.4, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", -17.35, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", -17.35, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -14.35, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", -14.35, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -11.35, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", -11.35, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -8.35, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", -8.35, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -5.35, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", -5.35, -14.4, 2, 90], ["decal_ziffer_secondary_number_1", -15.85, -10, 0.8, 0],
-      ["decal_ziffer_secondary_number_2", -12.85, -10, 0.8, 0], ["decal_ziffer_secondary_number_3", -9.85, -10, 0.8, 0],
-      ["decal_ziffer_secondary_number_4", -6.85, -10, 0.8, 0]] },
-    { "name": "fahrzeugplatz-galerie", "stufe": "hoch", "aus": "transport", "wand": "s", "at": [36.75, -1.5], "glieder": [
-      ["prop_transport_trolley_mobile_1_a", 7.6, -12.5, 356], ["prop_transport_machine_forklift_1_a", 11.6, -12.2, 176],
-      ["prop_transport_trolley_cargo_3_b", 15.5, -12.6, 8], ["prop_lager_crate_plastic_1_005x01x005_a", 15.611, -11.808, 11, 0.5],
-      ["prop_lager_crate_plastic_1_005x01x005_a", 15.444, -12.996, 6, 0.5]], "spuren": [
-      ["decal_linie_lowtech_a_int_decal_4m_a", 7.6, -9.4, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 11.6, -9.4, 4, 0],
-      ["decal_linie_lowtech_a_int_decal_4m_a", 15.6, -9.4, 4, 0], ["decal_linie_lowtech_a_int_decal_4m_a", 5.6, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", 5.6, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 9.6, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", 9.6, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 13.6, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", 13.6, -14.4, 2, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 17.6, -11.4, 4, 90],
-      ["decal_linie_lowtech_a_int_decal_2m_a", 17.6, -14.4, 2, 90], ["decal_ziffer_secondary_number_5", 7.6, -10, 0.8, 0],
-      ["decal_ziffer_secondary_number_6", 11.6, -10, 0.8, 0], ["decal_ziffer_secondary_number_7", 15.6, -10, 0.8, 0]] },
     { "name": "eingang-nw", "stufe": "mittel", "aus": "crew+sicherheit", "wand": "w", "at": [8.55, -131.5], "freihalten": [[-2, -6.45, 2, 0.55]], "glieder": [
-      ["prop_crew_util_ugf_lob_seat_bench_b_right_a", -3.75, -2.2, 270], ["prop_crew_util_ugf_lob_seat_bench_b_mid_a", -3.75, -3.27, 270],
-      ["prop_crew_util_ugf_lob_seat_bench_b_left_a", -3.75, -4.34, 270], ["prop_crew_table_bar_table_2_watertank_a", -3.65, -6.05, 270],
-      ["prop_crew_waste_bin_1_a", -3.6, -7.35, 270], ["prop_sicherheit_fire_hose_1_a", 2.9, -0.231, 0],
-      ["prop_sicherheit_medical_kit_1_a", 2.8, -0.231, 356, 0.623], ["prop_sicherheit_tool_fire_extinguisher_1_mount_a", 3.85, -0.17, 0],
-      ["prop_diagnose_console_diagnostic_1_a", 4.2, -2.45, 300], ["prop_licht_light_work_light_2_a", -2.4, -1.75, 20],
-      ["prop_licht_light_work_light_2_a", 2.4, -1.75, 345]], "spuren": [
+      ["prop_sicherheit_fire_hose_1_a", 2.9, -0.231, 0], ["prop_sicherheit_medical_kit_1_a", 2.8, -0.231, 356, 0.623],
+      ["prop_sicherheit_tool_fire_extinguisher_1_mount_a", 3.85, -0.17, 0], ["prop_diagnose_console_diagnostic_1_a", 4.2, -2.45, 300],
+      ["prop_licht_light_work_light_2_a", -2.4, -1.75, 20], ["prop_licht_light_work_light_2_a", 2.4, -1.75, 345]], "spuren": [
       ["decal_schraffur_caution_worn_yellow_02", -1, -0.45, 2, 0], ["decal_schraffur_caution_worn_yellow_02", 1, -0.45, 2, 0],
       ["decal_linie_lowtech_a_int_decal_4m_a", -1.6, -3.55, 4, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -1.6, -5.8, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -1.6, -6.3, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 1.6, -3.55, 4, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 1.6, -5.8, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 1.6, -6.3, 0.5, 90],
       ["decal_pfeil_decal_arrow_0075x0075x001_a", 0, -3.05, 0.86, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 0, -5.05, 0.86, 270]] },
     { "name": "eingang-no", "stufe": "mittel", "aus": "crew+sicherheit", "wand": "o", "at": [63.45, -131.5], "freihalten": [[-2, -6.45, 2, 0.55]], "glieder": [
-      ["prop_crew_bench_security_1_start_a", -3.6, -2.35, 270], ["prop_crew_bench_security_1_straight_a", -3.6, -3.35, 270],
-      ["prop_crew_bench_security_1_end_a", -3.6, -4.35, 270], ["prop_crew_machine_water_cooler_1_a", -3.85, -5.55, 270],
-      ["prop_crew_waste_trashcan_3_a", -3.85, -6.45, 270], ["prop_sicherheit_fire_hose_1_b", 2.9, -0.231, 0],
-      ["prop_sicherheit_medical_kit_1_a", 3, -0.231, 3, 0.623], ["prop_sicherheit_extinguisher_cabinet_1_a", 3.9, -0.148, 0],
-      ["prop_diagnose_console_diagnostic_1_a", 3.1, -3.65, 120], ["prop_licht_light_work_light_2_a", 2.4, -1.75, 340],
-      ["prop_licht_light_work_light_2_a", -2.4, -1.75, 15]], "spuren": [
+      ["prop_sicherheit_fire_hose_1_b", 2.9, -0.231, 0], ["prop_sicherheit_medical_kit_1_a", 3, -0.231, 3, 0.623],
+      ["prop_sicherheit_extinguisher_cabinet_1_a", 3.9, -0.148, 0], ["prop_diagnose_console_diagnostic_1_a", 3.1, -3.65, 120],
+      ["prop_licht_light_work_light_2_a", 2.4, -1.75, 340], ["prop_licht_light_work_light_2_a", -2.4, -1.75, 15]], "spuren": [
       ["decal_schraffur_caution_worn_yellow_02", -1, -0.45, 2, 0], ["decal_schraffur_caution_worn_yellow_02", 1, -0.45, 2, 0],
       ["decal_linie_lowtech_a_int_decal_4m_a", -1.6, -3.55, 4, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -1.6, -5.8, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -1.6, -6.3, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 1.6, -3.55, 4, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 1.6, -5.8, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 1.6, -6.3, 0.5, 90],
       ["decal_pfeil_decal_arrow_0075x0075x001_a", 0, -3.05, 0.86, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 0, -5.05, 0.86, 270]] },
     { "name": "eingang-sw", "stufe": "mittel", "aus": "crew+sicherheit", "wand": "w", "at": [8.55, -4.5], "freihalten": [[-2, -6.45, 2, 0.55]], "glieder": [
-      ["prop_crew_util_ugf_lob_seat_bench_b_left_a", 2.8, -4.05, 90], ["prop_crew_util_ugf_lob_seat_bench_b_mid_a", 2.8, -5.12, 90],
-      ["prop_crew_util_ugf_lob_seat_bench_b_right_a", 2.8, -6.19, 90], ["prop_crew_machine_water_cooler_1_a", 2.95, -7.45, 90],
-      ["prop_crew_waste_bin_1_a", 2.8, -8.45, 90], ["prop_sicherheit_fire_hose_1_a", 2.95, -1.6, 90],
-      ["prop_sicherheit_medical_kit_1_a", 2.95, -1.7, 95, 0.623], ["prop_sicherheit_tool_fire_extinguisher_1_mount_a", 3, -2.4, 90],
-      ["prop_diagnose_console_diagnostic_1_a", -4.4, -2.65, 240], ["prop_licht_light_work_light_2_a", -2.4, -1.75, 10],
-      ["prop_licht_light_work_light_2_a", 2.4, -1.75, 335]], "spuren": [
+      ["prop_sicherheit_fire_hose_1_a", 2.95, -1.6, 90], ["prop_sicherheit_medical_kit_1_a", 2.95, -1.7, 95, 0.623],
+      ["prop_sicherheit_tool_fire_extinguisher_1_mount_a", 3, -2.4, 90], ["prop_diagnose_console_diagnostic_1_a", -4.4, -2.65, 240],
+      ["prop_licht_light_work_light_2_a", -2.4, -1.75, 10], ["prop_licht_light_work_light_2_a", 2.4, -1.75, 335]], "spuren": [
       ["decal_schraffur_caution_worn_yellow_02", -1, -0.45, 2, 0], ["decal_schraffur_caution_worn_yellow_02", 1, -0.45, 2, 0],
       ["decal_linie_lowtech_a_int_decal_4m_a", -1.6, -3.55, 4, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -1.6, -5.8, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -1.6, -6.3, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 1.6, -3.55, 4, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", 1.6, -5.8, 0.5, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 1.6, -6.3, 0.5, 90],
       ["decal_pfeil_decal_arrow_0075x0075x001_a", 0, -3.05, 0.86, 270], ["decal_pfeil_decal_arrow_0075x0075x001_a", 0, -5.05, 0.86, 270]] },
     { "name": "eingang-so", "stufe": "mittel", "aus": "crew+sicherheit", "wand": "o", "at": [63.45, -4.5], "freihalten": [[-2, -6.45, 2, 0.55]], "glieder": [
-      ["prop_crew_bench_security_1_start_a", -2.8, -3.85, 270], ["prop_crew_bench_security_1_straight_a", -2.8, -4.85, 270],
-      ["prop_crew_bench_security_1_end_a", -2.8, -5.85, 270], ["prop_crew_table_bar_table_2_watertank_b", -2.55, -7.25, 270],
       ["prop_sicherheit_fire_hose_1_b", 2.9, -0.231, 0], ["prop_sicherheit_medical_kit_1_a", 2.8, -0.231, 357, 0.623],
       ["prop_sicherheit_extinguisher_cabinet_1_a", 3.9, -0.148, 0], ["prop_diagnose_console_diagnostic_1_a", 4.4, -2.65, 120],
       ["prop_licht_light_work_light_2_a", -2.4, -1.75, 25], ["prop_licht_light_work_light_2_a", 2.4, -1.75, 350]], "spuren": [
@@ -2773,9 +2635,8 @@ const WORK_DEKO = /* work-deko */ {
       ["prop_sicherheit_barrier_caution_005x005x0125_a", -5.4, -2.7, 0], ["prop_sicherheit_barrier_caution_005x005x0125_a", 5.4, -2.7, 0],
       ["prop_sicherheit_canister_medical_1_stand_b", -8, -0.513, 0], ["prop_sicherheit_medical_canister_1_a", -9.2, -0.345, 0],
       ["prop_sicherheit_fire_hose_1_a", -6.85, -0.382, 0], ["prop_sicherheit_medical_kit_1_a", -6.8, -0.382, 2, 0.623],
-      ["prop_sicherheit_tool_fire_extinguisher_1_mount_a", -6, -0.32, 0], ["prop_transport_prop_dumper_int_transport_pallet_a", -8.2, -2.4, 346],
-      ["prop_crew_util_ugf_lob_seat_bench_b_right_a", 6.85, -0.59, 0], ["prop_crew_util_ugf_lob_seat_bench_b_mid_a", 7.92, -0.587, 0],
-      ["prop_crew_util_ugf_lob_seat_bench_b_left_a", 8.99, -0.59, 0]], "spuren": [
+      ["prop_sicherheit_tool_fire_extinguisher_1_mount_a", -6, -0.32, 0], ["prop_crew_util_ugf_lob_seat_bench_b_right_a", 6.85, -0.59, 0],
+      ["prop_crew_util_ugf_lob_seat_bench_b_mid_a", 7.92, -0.587, 0], ["prop_crew_util_ugf_lob_seat_bench_b_left_a", 8.99, -0.59, 0]], "spuren": [
       ["decal_schraffur_caution_worn_yellow_02", -3, -0.75, 2, 0], ["decal_schraffur_caution_worn_yellow_02", -1, -0.75, 2, 0],
       ["decal_schraffur_caution_worn_yellow_02", 1, -0.75, 2, 0], ["decal_schraffur_caution_worn_yellow_02", 3, -0.75, 2, 0],
       ["decal_linie_lowtech_a_int_decal_4m_a", -3.1, -4.1, 4, 90], ["decal_linie_lowtech_a_int_decal_4m_a", -3.1, -8.1, 4, 90],
@@ -2791,12 +2652,6 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_pfeil_decal_arrow_025x015x001_a", 1.55, -5.5, 2, 90], ["decal_pfeil_decal_arrow_025x015x001_a", -1.55, -10.5, 2, 270],
       ["decal_pfeil_decal_arrow_025x015x001_a", 1.55, -10.5, 2, 90], ["decal_pfeil_decal_arrow_025x015x001_a", -1.55, -15, 2, 270],
       ["decal_pfeil_decal_arrow_025x015x001_a", 1.55, -15, 2, 90]] },
-    { "name": "tor-west", "stufe": "hoch", "aus": "lager+transport", "wand": "n", "at": [18, -136], "glieder": [
-      ["prop_lager_storage_container_1_025x05x025_a", -0.8, -1.562, 90], ["prop_lager_storage_container_1_025x05x025_a", -0.8, -1.612, 88.5, 2.504]] },
-    { "name": "tor-ost", "stufe": "hoch", "aus": "kabel+transport", "wand": "n", "at": [54, -136], "glieder": [
-      ["prop_energie_generator_mobile_1_b", -0.6, -1.2, 0], ["prop_kabel_cable_reel_6_a", 1.8, -4.1, 345],
-      ["prop_licht_light_portable_tripod_1_base_a", -2.2, -4, 160]], "leitungen": [
-      { "name": "generator-licht", "node": "prop_kabel_maintenance_cable_1_a", "von": [-2.05, -1.785, 0.6, 90], "nach": [-2.275, -3.793, 0.55, 250] }] },
     { "name": "verteilung-ost", "stufe": "hoch", "aus": "kabel+werkzeug", "wand": "o", "at": [68.5, -94.2], "glieder": [
       ["prop_lager_cell_power_1_rack_a", -2.5, -1.264, 0], ["prop_wand_relay_electrical_1_a", 0.75, -0.637, 0],
       ["prop_wand_fuse_mounted_1_c", 2.6, -0.454, 0], ["prop_kabel_cable_terminal_1_floor_b", 4.1, -0.479, 0],
@@ -2824,22 +2679,7 @@ const WORK_DEKO = /* work-deko */ {
       ["decal_linie_lowtech_a_int_decal_2m_a", -6.6, -5.3, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", -6.6, -6.55, 0.5, 90],
       ["decal_linie_lowtech_a_int_decal_05m_a", -6.6, -7.05, 0.5, 90], ["decal_linie_lowtech_a_int_decal_4m_a", 5.4, -2.3, 4, 90],
       ["decal_linie_lowtech_a_int_decal_2m_a", 5.4, -5.3, 2, 90], ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -6.55, 0.5, 90],
-      ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -7.05, 0.5, 90]] },
-    { "name": "reifenlager-west", "stufe": "hoch", "aus": "reifen", "wand": "s", "at": [-11.5, -57], "glieder": [
-      ["prop_regal_storage_rack_1_02x0575x03_a", 0.025, -1.1, 0], ["prop_reifen_ptv_tire", -2.5, -1.55, 0, 0.4],
-      ["prop_reifen_ptv_tire", -1.72, -1.55, 11, 0.4], ["prop_reifen_ptv_tire", -0.94, -1.55, 22, 0.4], ["prop_reifen_ptv_tire", -0.16, -1.55, 8, 0.4],
-      ["prop_reifen_ptv_tire", 0.62, -1.55, 19, 0.4], ["prop_reifen_ptv_tire", 1.4, -1.55, 5, 0.4], ["prop_reifen_ptv_tire", 2.18, -1.55, 16, 0.4],
-      ["prop_reifen_landing_wheel_1_a", -2.45, -1.1, 0, 2.25], ["prop_reifen_landing_wheel_1_a", -1.75, -1.1, 15, 2.25],
-      ["prop_reifen_landing_wheel_3_a", -1.05, -1.1, 30, 2.25], ["prop_werkzeug_bag_toolbox_2_a", -0.3, -1.1, 4, 2.25],
-      ["prop_werkzeug_storage_toolbox_a", 0.45, -1.1, 90, 2.25], ["prop_werkzeug_bag_toolbox_2_a", 1.25, -1.1, 357, 2.25],
-      ["prop_reifen_landing_wheel_1_a", 2.1, -1.1, 40, 2.25], ["prop_reifen_ptv_tire", 3.45, -0.45, 0],
-      ["prop_reifen_ptv_tire", 3.45, -0.45, 9, 0.321], ["prop_reifen_ptv_tire", 3.45, -0.45, 18, 0.642],
-      ["prop_reifen_ptv_tire", 3.45, -0.45, 27, 0.963], ["prop_reifen_ptv_tire", 3.43, -1.2, 17], ["prop_reifen_ptv_tire", 3.43, -1.2, 26, 0.321],
-      ["prop_reifen_ptv_tire", 3.43, -1.2, 5, 0.642]] },
-    { "name": "werkbank-sued-west", "stufe": "mittel", "aus": "werkzeug", "wand": "s", "at": [-4.5, -57], "glieder": [
-      ["prop_wand_cable_terminal_2_wall_a", -2.7, -0.195, 0], ["prop_werkzeug_workbench_table_1_light_a", -0.5, -0.609, 0],
-      ["prop_werkzeug_cabinet_tool_1_a", 2.1, -0.615, 180], ["prop_werkzeug_bag_toolbox_1_a", 1.95, -0.6, 2, 2.314],
-      ["prop_werkzeug_tool_drawer_1_a", 3.3, -0.415, 2]] }
+      ["decal_linie_lowtech_a_int_decal_05m_a", 5.4, -7.05, 0.5, 90]] }
   ]
 } /* /work-deko */;
 // Drehung des Platzes je Wand (Grad um y): z des Platzes zeigt zur Wand
@@ -4673,8 +4513,19 @@ async function robustBox(root, pause = noPause, unlean = null) {
 // der Helligkeit von Diffus- und Glanzfarbe, Grundfarbe dazwischen gemischt,
 // Rauheit 1 − Glätte. color linear [r, g, b]; ohne specular Lack (59),
 // roughness null ohne gloss.
+// Nichtmetall bis Glanzfarbe 100 (DIEL_MAX): Lack liegt um 59, also linear
+// 0,0437 und knapp über den 4 %, mit denen die Umrechnung rechnet. Bei
+// dunkler Tönung hat ihre Gleichung dann zwei Lösungen und nimmt die mit
+// Metall (Corsair-Grau #3b3b3b: 0,23, Polaris: 0,67, jeder dunkle Lack über
+// 0,5; Befund PC 27.10.2026). Gleich aussehen würden beide nur ohne Bild;
+// mit Farbbild schwankte die Glanzfarbe mit dem Bild. Von 100 bis 155
+// (METAL_MIN, Corsair-Stahl #9b9b9b) blendet das Metall weich ein, damit
+// eine Glanzfarbe knapp über 100 nicht auf einmal fast ganz Metall ist
+// (dunkle Tönung bei 101: 0,91; rund 430 Lackfarben liegen dazwischen).
 // Dieselbe Rechnung nimmt der Bau (scripts/build-hangar-assets.mjs) für die
-// Serienpalette im GLB, der Viewer (paint) für jede andere Lackierung.
+// Serienpalette im GLB, der Viewer für jede Lackierung, auch die ab Werk
+// (dressTextured rechnet sie aus extras.palette nach).
+const HEX6 = /^#[0-9a-f]{6}$/i;
 export function palettePbr(tint, specular, gloss) {
   const lin = (h) => [1, 3, 5].map((i) => {
     const s = parseInt(h.slice(i, i + 2), 16) / 255;
@@ -4682,12 +4533,14 @@ export function palettePbr(tint, specular, gloss) {
   });
   const DIEL = 0.04, EPS = 1e-6, clamp = (v) => Math.min(1, Math.max(0, v));
   const lum = (c) => Math.sqrt(0.299 * c[0] ** 2 + 0.587 * c[1] ** 2 + 0.114 * c[2] ** 2);
+  const DIEL_MAX = lum(lin('#646464')), METAL_MIN = lum(lin('#9b9b9b'));
   const d = lin(tint), s = lin(specular ?? '#3b3b3b');
   const keep = 1 - Math.max(...s), ls = lum(s);
   let metal = 0;
-  if (ls > DIEL) {
+  if (ls > DIEL_MAX) {
     const b = (lum(d) * keep) / (1 - DIEL) + ls - 2 * DIEL, c = DIEL - ls;
-    metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL));
+    const t = clamp((ls - DIEL_MAX) / (METAL_MIN - DIEL_MAX));
+    metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL)) * t * t * (3 - 2 * t);
   }
   const color = d.map((v, i) => {
     const fromD = (v * keep) / (1 - DIEL) / Math.max(1 - metal, EPS);
@@ -4758,22 +4611,35 @@ function disposeObject(o) {
 // Bahn: Der Stoß bremst in der Luft (STEAM_DRAG, 1/s), danach treibt der
 // Dampf mit seiner Steiggeschwindigkeit nach oben (aV.w: Lebensdauer).
 const STEAM_DRAG = 2.2;
+// Aussehen am 27.10.2026 (Krisz mit Bild eines Reaktorraums aus dem Spiel:
+// „unser dampf oder rauch effekt soll mindestens auf diesem niveu sein“):
+// eine dichte, weiche Bank, oben hell im Licht, unten und in den Falten im
+// eigenen Schatten, die beim Verwehen zu Schleiern aufreißt. Die Ballen
+// kommen aus einem Rauschbild in der Welt (steamNoise): Jedes Viereck zeigt
+// davon, was um seine Mitte liegt, nach außen nur noch die dichten Stellen,
+// so verbinden sich überlappende Vierecke, statt als einzelne Wattebäusche
+// in einer Reihe zu stehen (so sah es in der ersten Fassung aus). Ein
+// zweiter Blick ins Rauschen ein Stück höher sagt, wie viel Dampf über dem
+// Punkt liegt (Selbstschatten). Mit Nachbearbeitung zeichnet er nach der Verdeckung in einem eigenen Pass und
+// liest die Tiefe des Bildes: Wo er in Boden, Rumpf oder Wand steckt, läuft
+// er weich aus, statt an einer harten Linie abzubrechen.
 // Farbe (linear, vor der Belichtung): oben im Licht der Halle, unten im
 // eigenen Schatten, kühl wie das Streulicht der weißen Wände
-const STEAM_LIT = [1.5, 1.47, 1.43];
-const STEAM_SHADE = [0.62, 0.66, 0.72];
+const STEAM_LIT = [1.55, 1.52, 1.48];
+const STEAM_SHADE = [0.36, 0.39, 0.44];
 const STEAM_VS = /* glsl */ `
 attribute vec4 aP;   // Start (Welt, m), Geburt (s)
 attribute vec4 aV;   // Stoß (m/s), Lebensdauer (s)
 attribute vec4 aS;   // Größe am Anfang und am Ende (m), Zufall, Deckkraft
 attribute vec2 aR;   // Steiggeschwindigkeit (m/s), Wirbel (m)
 uniform float uTime;
-varying vec2 vUv, vUp;
-varying float vA, vSeed, vAge, vY;
+varying vec2 vUv;
+varying vec3 vW;
+varying float vA, vSeed, vAge, vY, vZ, vS, vWt;
 void main() {
   float age = uTime - aP.w, k = age / aV.w;
   vUv = position.xy + 0.5;
-  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0;
+  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0; vZ = 1.0; vS = 1.0; vW = vec3(0.0); vWt = 0.5;
   if (k < 0.0 || k >= 1.0) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
   float d = (1.0 - exp(-${STEAM_DRAG.toFixed(1)} * age)) / ${STEAM_DRAG.toFixed(1)};
   vec3 p = aP.xyz + aV.xyz * d;
@@ -4784,49 +4650,124 @@ void main() {
   float s = mix(aS.x, aS.y, 1.0 - (1.0 - k) * (1.0 - k));
   float a = aS.z * 6.2832 + age * (aS.z - 0.5) * 0.8;
   vec2 c = mat2(cos(a), sin(a), -sin(a), cos(a)) * position.xy * s;
-  // Oben der Welt in den Achsen des gedrehten Vierecks (Licht von oben)
-  vec2 u = normalize(vec2(viewMatrix[1][0], viewMatrix[1][1]) + vec2(0.0, 1e-4));
-  vUp = vec2(dot(u, vec2(cos(a), sin(a))), dot(u, vec2(-sin(a), cos(a))));
   vec4 mv = viewMatrix * vec4(p, 1.0);
   mv.xy += c;
   gl_Position = projectionMatrix * mv;
-  // Höhe des Bildpunkts über dem Boden (Ecken über die Achsen der Kamera)
-  vY = p.y + c.x * viewMatrix[1][0] + c.y * viewMatrix[1][1];
+  vZ = -mv.z; vS = s;
+  // Ort des Bildpunkts in der Welt (Ecken über die Achsen der Kamera): Höhe
+  // über dem Boden und Lage für das Rauschen der Ballen (steigt mit dem
+  // Dampf), damit sich überlappende Ballen zu einer Bank verbinden. vWt
+  // wiegt die beiden senkrechten Ebenen nach der Blickrichtung: Beim Drehen
+  // blendet das Rauschen über, statt mit der Kamera zu wandern.
+  vec3 R = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]), U = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+  vec3 wp = p + R * c.x + U * c.y;
+  vY = wp.y;
+  vW = vec3(wp.x, wp.y - uTime * 0.35, wp.z);
+  vWt = abs(R.x) / (abs(R.x) + abs(R.z) + 1e-4);
   // rasch da, lang verweht; dünner, je größer er wird: Der Dampf mischt
-  // sich mit Luft, die Menge im Ballen bleibt, die Dichte fällt mit der
-  // Fläche (sonst wachsen dichte Wattebäusche heran)
-  vA = aS.w * smoothstep(0.0, 0.04, k) * (1.0 - smoothstep(0.35, 1.0, k)) * aS.x / s;
+  // sich mit Luft. Mit der Fläche fiele die Dichte so schnell, dass nur
+  // kleine Ballen dicht wären; darunter (Potenz 0,6) bleibt ein großer
+  // Schwaden dicht wie im Spiel und reißt erst mit dem Alter auf
+  vA = aS.w * smoothstep(0.0, 0.18, k) * (1.0 - smoothstep(0.4, 1.0, k)) * pow(aS.x / s, 0.6);
 }`;
 const STEAM_FS = /* glsl */ `
 uniform vec3 uLit, uShade;
-uniform float uFloor;
-varying vec2 vUv, vUp;
-varying float vA, vSeed, vAge, vY;
-float sHash(vec2 p) { p = fract(p * vec2(0.1031, 0.1030)); p += dot(p, p.yx + 33.33); return fract((p.x + p.y) * p.x); }
-float sNoise(vec2 x) {
-  vec2 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(sHash(i), sHash(i + vec2(1.0, 0.0)), f.x), mix(sHash(i + vec2(0.0, 1.0)), sHash(i + vec2(1.0, 1.0)), f.x), f.y);
+uniform float uFloor, uSoft, uNear, uFar;
+uniform vec2 uRes;
+uniform sampler2D uNoise, uDepth;
+varying vec2 vUv;
+varying vec3 vW;
+varying float vA, vSeed, vAge, vY, vZ, vS, vWt;
+// Rauschen in der Welt, auf den beiden senkrechten Ebenen
+vec4 world(float k, vec2 off) {
+  return mix(texture2D(uNoise, vW.zy * k + off), texture2D(uNoise, vW.xy * k + off), vWt);
 }
 void main() {
-  vec2 q = vUv * 2.0 - 1.0;
-  float r0 = dot(q, q);
+  vec2 q0 = vUv * 2.0 - 1.0;
+  float r0 = dot(q0, q0);
   if (r0 >= 1.0 || vA <= 0.0) discard;
-  // Schleier statt Ballen: weich nach außen (Gauß), innen Schlieren aus
-  // verzerrtem Rauschen, die mit dem Alter aufreißen. Ein ausgefranster
-  // Umriss mit dunkler Unterseite las sich als Wattewolke (Render 20.10.)
-  vec2 o = vec2(vSeed * 37.0, vSeed * 11.0 - vAge * 0.9);
-  vec2 wq = vUv * 2.3 + o + 0.8 * vec2(sNoise(vUv * 1.7 + o.yx), sNoise(vUv * 1.7 - o));
-  float n = 0.5 * sNoise(wq) + 0.3 * sNoise(wq * 2.1 - o) + 0.2 * sNoise(wq * 4.3 + o.yx);
-  float dens = exp(-3.2 * r0) * (1.0 - smoothstep(0.75, 1.0, r0));
-  dens *= clamp(0.25 + 1.5 * n * n - vAge * 0.45 * (1.0 - n), 0.0, 1.0);
-  // Licht von oben (Hallendecke), schwach: Dampf streut das Licht nach allen Seiten
-  vec3 col = mix(uShade, uLit, clamp(0.7 + 0.25 * dot(q, vUp) + (n - 0.5) * 0.4, 0.0, 1.0));
-  float a = dens * vA * smoothstep(uFloor - 0.05, uFloor + 0.5, vY);
+  vec2 o = vec2(vSeed * 7.31, vSeed * 3.17 - vAge * 0.3), st = vUv * 0.8 + o;
+  // Umriss grob verbeult, damit kein Ballen rund aussieht
+  vec4 g = texture2D(uNoise, vUv * 0.3 + o.yx);
+  vec2 q = q0 * 1.08 + (g.ba - 0.5) * 0.7;
+  // Ballen aus der Welt (Kacheln von 2,9 m und 1,1 m, steigen mit dem
+  // Dampf: Überlappende Ballen verbinden sich zu einer Bank) und ein Teil
+  // aus dem Ballen selbst
+  vec4 n1 = texture2D(uNoise, st), n2 = world(0.35, vec2(vSeed * 0.07)), n3 = world(0.9, vec2(0.5));
+  float bl = smoothstep(0.15, 0.85, n2.r * 0.55 + n3.g * 0.15 + n1.b * 0.3);
+  // nach außen nur noch, was die Ballen tragen: der Umriss folgt ihnen
+  float thr = dot(q, q) * 0.8 + 0.15 * vAge, s = bl - thr;
+  float dens = smoothstep(0.0, 0.45, s) * (1.0 - smoothstep(0.6, 1.0, r0));
+  // verweht: Schlieren reißen den Ballen auf
+  float w = texture2D(uNoise, vUv * 0.8 - o.yx).b;
+  dens *= mix(1.0, smoothstep(0.2, 0.75, w + 0.5 * (1.0 - vAge)), smoothstep(0.25, 0.9, vAge));
+  if (dens < 0.004) discard;
+  // Selbstschatten: Dichter Dampf 0,8 m höher hält das Licht ab, der dünne
+  // Rand lässt es durch; oben im Schwaden ist er heller als am Boden
+  float up = world(0.35, vec2(vSeed * 0.07, 0.28)).r;
+  float lit = 1.0 - smoothstep(0.45, 0.85, up) * (1.0 - dot(q, q));
+  float h = smoothstep(uFloor, uFloor + 2.0 + 2.0 * vAge, vY);
+  float L = clamp(0.2 + 0.35 * h + 0.2 * lit + 0.3 * (1.0 - smoothstep(0.0, 0.35, s)), 0.0, 1.0);
+  vec3 col = mix(uShade, uLit, L);
+  // Deckkraft wie durch ein Medium (Beer-Lambert): dichter Kern deckt, der
+  // Rand bleibt durchscheinend
+  float a = (1.0 - exp(-2.8 * dens * vA)) * smoothstep(uFloor - 0.05, uFloor + 0.5, vY);
+  // weich, wo er in Boden, Rumpf oder Wand steckt (Tiefe des Bildes)
+  if (uSoft > 0.5) {
+    float z = texture2D(uDepth, gl_FragCoord.xy / uRes).x;
+    float sz = uNear * uFar / ((uFar - uNear) * z - uFar);
+    a *= clamp((-sz - vZ) / max(0.3 * vS, 0.1), 0.0, 1.0);
+  }
+  // die Kamera mitten im Schwaden sieht keine graue Wand
+  a *= smoothstep(0.3, 2.5, vZ);
   gl_FragColor = vec4(col, a);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
   gl_FragColor.rgb *= gl_FragColor.a;
 }`;
+// Rauschbild des Dampfs, nahtlos kachelnd, einmal beim Bau gerechnet: r
+// Ballen (umgekehrtes Worley-Rauschen in drei Maßstäben, runde Buckel wie
+// ein Quellwolkenrand), g die mittleren und feinen davon, b weiches Wertrauschen für die
+// Schlieren, a ein zweites (mit b die Verbeulung des Umrisses). 128²
+// Bildpunkte, ein paar Millisekunden.
+function steamNoise(N = 128) {
+  let seed = 0x5eed;
+  const rand = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const worley = (cells) => {
+    const pt = Float32Array.from({ length: cells * cells * 2 }, rand);
+    return (u, v) => {
+      const x = u * cells, y = v * cells, cx = Math.floor(x), cy = Math.floor(y);
+      let m = 9;
+      for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
+        const gx = cx + i, gy = cy + j, wx = ((gx % cells) + cells) % cells, wy = ((gy % cells) + cells) % cells, c = (wy * cells + wx) * 2;
+        const dx = gx + pt[c] - x, dy = gy + pt[c + 1] - y;
+        m = Math.min(m, dx * dx + dy * dy);
+      }
+      return Math.min(1, Math.sqrt(m));
+    };
+  };
+  const value = (cells) => {
+    const g = Float32Array.from({ length: cells * cells }, rand), at = (i, j) => g[(((j % cells) + cells) % cells) * cells + (((i % cells) + cells) % cells)];
+    return (u, v) => {
+      const x = u * cells, y = v * cells, i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+      return (at(i, j) * (1 - sx) + at(i + 1, j) * sx) * (1 - sy) + (at(i, j + 1) * (1 - sx) + at(i + 1, j + 1) * sx) * sy;
+    };
+  };
+  const w3 = worley(3), w6 = worley(6), w12 = worley(12), v4 = value(4), v8 = value(8), v16 = value(16), u4 = value(4), u8 = value(8);
+  const data = new Uint8Array(N * N * 4);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const u = x / N, v = y / N, i = (y * N + x) * 4;
+    data[i] = Math.round(255 * ((1 - w3(u, v)) * 0.6 + (1 - w6(u, v)) * 0.28 + (1 - w12(u, v)) * 0.12));
+    data[i + 1] = Math.round(255 * ((1 - w6(u, v)) * 0.6 + (1 - w12(u, v)) * 0.4));
+    data[i + 2] = Math.round(255 * (v4(u, v) * 0.5 + v8(u, v) * 0.3 + v16(u, v) * 0.2));
+    data[i + 3] = Math.round(255 * (u4(u, v) * 0.65 + u8(u, v) * 0.35));
+  }
+  const t = new THREE.DataTexture(data, N, N, THREE.RGBAFormat);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
+  t.needsUpdate = true;
+  return t;
+}
 function buildSteam(max) {
   const g = new THREE.InstancedBufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]), 3));
@@ -4840,9 +4781,11 @@ function buildSteam(max) {
   // alle schon verweht
   for (let i = 0; i < max; i++) { A.aP.array[i * 4 + 3] = -1e5; A.aV.array[i * 4 + 3] = 1; }
   g.instanceCount = max;
+  const noise = steamNoise();
   const u = {
     uTime: { value: 0 }, uFloor: { value: 0 },
     uLit: { value: new THREE.Color(...STEAM_LIT) }, uShade: { value: new THREE.Color(...STEAM_SHADE) },
+    uNoise: { value: noise }, uDepth: { value: null }, uSoft: { value: 0 }, uNear: { value: 0.1 }, uFar: { value: 1000 }, uRes: { value: new THREE.Vector2(1, 1) },
   };
   const mat = new THREE.ShaderMaterial({
     name: 'steam', uniforms: u, vertexShader: STEAM_VS, fragmentShader: STEAM_FS,
@@ -4875,7 +4818,12 @@ function buildSteam(max) {
       for (const k in A) A[k].needsUpdate = true;
       dirty = false;
     },
-    dispose() { g.dispose(); mat.dispose(); },
+    // Tiefe des Bildes für den weichen Rand (null: ohne, im Bild der Szene)
+    soft(depth, cam, w, h) {
+      u.uSoft.value = depth ? 1 : 0; u.uDepth.value = depth;
+      if (depth) { u.uNear.value = cam.near; u.uFar.value = cam.far; u.uRes.value.set(w, h); }
+    },
+    dispose() { g.dispose(); mat.dispose(); noise.dispose(); },
   };
 }
 
@@ -6039,9 +5987,11 @@ export async function initHangar(container, opts = {}) {
 
   // Dampf und Geräusche der Mechanik (fx): ohne Bewegung (reduceMotion)
   // fährt nichts, also auch kein Dampf; die niedrige Stufe mit weniger
-  // Teilchen (Füllrate: große, durchscheinende Flächen)
+  // Teilchen (Füllrate: große, durchscheinende Flächen). 220 statt 160 seit
+  // 27.10.2026: Die Ballen am Feldrand stehen dichter und länger (fx), als
+  // Bank statt einzelner Wölkchen
   const steamK = Q0 === 'niedrig' ? 0.5 : Q0 === 'mittel' ? 0.75 : 1;
-  const steam = reduceMotion ? null : buildSteam(Math.round(160 * steamK));
+  const steam = reduceMotion ? null : buildSteam(Math.round(220 * steamK));
   if (steam) scene.add(steam.mesh);
   const sound = hangarSound(opts.hall?.lift?.sound ?? null);
   if (opts.sound === false) sound.set(false);
@@ -6165,19 +6115,25 @@ export async function initHangar(container, opts = {}) {
 
   // Echte Halle: wird geladen, sobald die Bühne steht. room = Innenraum im
   // Modellraum (Bodenmitte, halbe Breite/Länge, Höhe).
-  // Maßstab der echten Halle: Originalgröße, solange Schiff samt Gerät
-  // hineinpasst; das Gerät steht bis PAD_R*S + 9 m von der Mitte.
-  // Dazu muss die Kamera im Umlauf drinbleiben: ihr waagrechter Abstand
-  // (0,94 x Entfernung) bleibt unter 90 % der halben Breite, und der
-  // Mindestabstand fürs ganze Schiff (span * 1.1 + 4) soll darin Platz haben.
+  // Maßstab der echten Halle: Originalgröße, solange das Schiff hineinpasst
+  // (mit Aufzug: aufs Feld, liftScale; sonst in den Raum, 2 m Rand, 4 m
+  // Luft unter der Decke). Krisz 27.10.2026: „ich möchte dass alle schiffe
+  // deren echte originalgrösse haben“. Bis dahin wuchs die Halle schon ab
+  // 28 m Spannweite mit, damit die Kamera das ganze Schiff mit Abstand
+  // umrunden kann (Constellation k 2,1, Carrack 4,1); so sah jedes Schiff
+  // in der Halle gleich groß aus. Jetzt stehen 176 von 231 in der Halle in
+  // Spielgröße; passt ein Schiff nicht mit Abstand ins Bild, weitet sich
+  // der Blickwinkel (fitFov), und die Kamera bleibt im Raum (camRoom: ihr
+  // waagrechter Abstand, 0,94 x Entfernung, unter 90 % der halben Breite).
+  // Gerät und Crew stellen sich aufs Feld und frei vom Rumpf (layDienst).
   const camRoom = (room, k) => (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94;
   // Mit Aufzug steht das Schiff ganz auf dem Feld, mit 1 m Rand.
   const liftScale = () => {
     const L = realHall?.liftL;
     return L && lastInfo ? Math.max((2 * lastInfo.halfW + 2) / (L.to[0] - L.from[0]), (lastInfo.len + 2) / (L.to[1] - L.from[1])) : 0;
   };
-  const realHallScale = (room) => Math.max(1, (PAD_R * S + 9) / room.halfW, (span * 1.15) / (2 * room.halfL),
-    (span * 1.1 + 4) / camRoom(room, 1), liftScale());
+  const realHallScale = (room) => Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
+    (lastInfo.len + 4) / (2 * room.halfL), (lastInfo.height + 4) / room.height) : 0);
 
   // Einrichtung und Deko stehen in Originalgröße: gelegt für den Maßstab kk
   // (1/kk im Modell der Halle), im Ruhezustand kk = k. propGlide { a, t0,
@@ -9291,6 +9247,27 @@ void main() {
       c.addPass(ao);
       const aoMix = aoMedianPass(ao, Pass, FullScreenQuad);
       c.addPass(aoMix);
+      // Dampf nach der Verdeckung, die ihn sonst mit abdunkelte, und mit der
+      // Tiefe des Bildes für den weichen Rand (buildSteam). Er zeichnet in das
+      // Ziel ohne Tiefe, das aoMix beschrieben hat, und liest die von rt; die
+      // Szene des RenderPass trägt ihn so lange nicht (zurück, wenn er wegfällt)
+      if (steam) {
+        const steamScene = new THREE.Scene();
+        class SteamPass extends Pass {
+          constructor() { super(); this.needsSwap = false; }
+          render(r, writeBuffer, readBuffer) {
+            if (!steam.mesh.visible || readBuffer === rt) return;
+            steam.soft(rt.depthTexture, camera, readBuffer.width, readBuffer.height);
+            const ac = r.autoClear;
+            r.autoClear = false;
+            r.setRenderTarget(readBuffer);
+            r.render(steamScene, camera);
+            r.autoClear = ac;
+          }
+        }
+        steamScene.add(steam.mesh);
+        c.addPass(new SteamPass());
+      }
       // Lichtschein um Lampen, Leuchtleisten und Triebwerke: nur was
       // deutlich heller als Weiß ist, damit helle Wände nicht mitglühen.
       c.addPass(new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.25, 0.35, 6));
@@ -9337,7 +9314,10 @@ void main() {
       plane.dispose();
       c.render();
       composer = c;
-    } catch { /* ohne Verdeckung weiter */ }
+    } catch {
+      // ohne Verdeckung weiter, der Dampf dann wieder in der Szene
+      if (steam && steam.mesh.parent !== scene) { scene.add(steam.mesh); steam.soft(null); }
+    }
   }
 
   let current = null;      // { group, model, born, mat, info, lift? }
@@ -9518,10 +9498,10 @@ void main() {
         // klein und dicht aus dem Spalt, rasch breit und dünn
         const z = ((i + rnd(-0.3, 1.3)) / n * 2 - 1) * zl, b = t + rnd(0, 0.3) * rnd(0, 1), f = rnd(0.55, 1.25);
         steam.puff(b, [sx * (hx + rnd(-0.2, 0.3) * k), rnd(0.05, 0.25) * k, z], [sx * rnd(3, 6) * w * k * f, rnd(1.5, 3.5) * w * k * f, rnd(-1, 1) * k],
-          rnd(1.8, 3) * (0.7 + 0.3 * w), rnd(0.4, 1) * k, rnd(3, 6) * k * (0.6 + 0.4 * w), rnd(0.7, 0.95) * w, rnd(0.5, 0.9) * k, rnd(0.4, 0.9) * k);
+          rnd(2.5, 4) * (0.7 + 0.3 * w), rnd(0.8, 1.5) * k, rnd(3, 6) * k * (0.6 + 0.4 * w), rnd(0.7, 0.95) * w, rnd(0.5, 0.9) * k, rnd(0.4, 0.9) * k);
         // flach über den Boden nach außen rollend
         if (i % 2 === 0) steam.puff(b + 0.08, [sx * (hx + 0.4 * k), 0.25 * k, z], [sx * rnd(1.5, 2.6) * w * k, rnd(0.05, 0.2) * k, rnd(-0.4, 0.4) * k],
-          rnd(3, 4), rnd(1, 1.6) * k, rnd(5, 8) * k * (0.6 + 0.4 * w), rnd(0.3, 0.4) * w, 0.1 * k, 0.6 * k);
+          rnd(4, 5.5), rnd(1, 1.6) * k, rnd(5, 8) * k * (0.6 + 0.4 * w), rnd(0.3, 0.4) * w, 0.1 * k, 0.6 * k);
       }
     },
     // Mittelfuge des Tors: beim Einrasten quillt der Dampf hoch
@@ -9532,8 +9512,8 @@ void main() {
       n = Math.max(3, Math.round(n * steamK));
       for (let i = 0; i < n; i++) {
         const z = ((i + rnd(-0.4, 1.4)) / n * 2 - 1) * zl, f = rnd(0.5, 1.3);
-        steam.puff(t + rnd(0, 0.25) * rnd(0, 1), [rnd(-0.4, 0.4) * k, rnd(0.05, 0.2) * k, z], [rnd(-1.2, 1.2) * k, rnd(3, 5.5) * k * f, rnd(-0.5, 0.5) * k],
-          rnd(1.6, 2.8), rnd(0.35, 0.9) * k, rnd(3.5, 6.5) * k, rnd(0.7, 0.95), rnd(0.4, 0.8) * k, rnd(0.3, 0.8) * k);
+        steam.puff(t + rnd(0, 0.25) * rnd(0, 1), [rnd(-0.4, 0.4) * k, rnd(0.05, 0.2) * k, z], [rnd(-1.5, 1.5) * k, rnd(2, 4) * k * f, rnd(-0.5, 0.5) * k],
+          rnd(2.4, 3.8), rnd(0.6, 1.2) * k, rnd(4, 7) * k, rnd(0.5, 0.75), rnd(0.4, 0.8) * k, rnd(0.3, 0.8) * k);
       }
     },
     // Schwaden aus dem Schacht, solange das Tor aufgeht (warme Luft von unten)
@@ -9561,7 +9541,7 @@ void main() {
     },
     liftStop(dir, late) {
       if (late > 400 || !fxOk('liftStop')) return;
-      if (dir === 'up') this.edges((performance.now() - T0) / 1000, 18, 1);
+      if (dir === 'up') this.edges((performance.now() - T0) / 1000, 22, 1);
     },
     // ms: Rest der Bahn ab dem Einsatz, late: so lange läuft sie schon. Der
     // Anschlag der Aufnahme fällt auf das Ende der Bahn.
@@ -10314,6 +10294,14 @@ void main() {
     if (!m.map && !m.userData?.palette && m.color.r + m.color.g + m.color.b < 0.06) {
       m.color.setHex(0x3a3d42); m.metalness = 0.6; m.roughness = 0.45;
     }
+    // Serienpalette nach derselben Rechnung wie jede andere Lackierung,
+    // unabhängig davon, mit welcher Fassung von palettePbr das GLB gebaut ist
+    const pal = m.userData?.palette;
+    if (pal && HEX6.test(pal.tint ?? '')) {
+      const q = palettePbr(pal.tint, HEX6.test(pal.specular ?? '') ? pal.specular : undefined, Number.isFinite(pal.gloss) ? pal.gloss : undefined);
+      m.color.setRGB(...q.color, THREE.LinearSRGBColorSpace); m.metalness = q.metalness;
+      if (q.roughness != null) m.roughness = q.roughness;
+    }
     m.envMapIntensity = 0.9;
     for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
     unifyMaps(m);
@@ -10825,6 +10813,8 @@ void main() {
           for (const ps of composer?.passes ?? []) ps.dispose?.();
           composer?.dispose();
           composer = null;
+          // Dampf wieder in die Szene, ohne Tiefe des Bildes
+          if (steam) { scene.add(steam.mesh); steam.soft(null); }
           mirrorRT?.dispose(); mirrorRT = null;
           hallRefl.on.value = 0;
         });
@@ -11266,7 +11256,12 @@ void main() {
   const mSize = new THREE.Vector2(), mClear = new THREE.Color();
   const mBias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
   function renderMirror() {
+    // Ohne Karte, solange er zeichnet: Teile mit Hallenmaterial, die nicht in
+    // realHall.model hängen (Rand, Schacht, Werkhalle), läsen sonst das Ziel,
+    // in das sie gerade zeichnen. WebGL verwarf diese Aufrufe (Rückkopplung,
+    // je Bild eine Warnung), ihr Spiegelbild fehlte.
     hallRefl.on.value = 0;
+    hallRefl.tex.value = null;
     if (!MIRROR || level !== 'hoch' || !composer || !realHall?.model || !realHall.envOn || !current || trip || ort === 'werk') return;
     camera.updateMatrixWorld();
     mC.setFromMatrixPosition(camera.matrixWorld);
