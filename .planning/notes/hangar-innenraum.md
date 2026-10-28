@@ -125,10 +125,35 @@ Karten je Material. Summe GLB + Ablage gegen den Deckel von Tor [17].
 
 ## Cloud danach
 
-`pc/hangar-innenraum` einmischen, in `verify:hangar` [17] eine Klinke
-„Dreiecke ohne Material“ über alle Web-Schiffe (FEHLER über dem Stand,
-vorgeführt rot), Cockpits im Viewer ansehen (325a, 300i, Hornet F7C, Nox),
-PR auf staging, `check:staging` vom PC.
+Plan war: `pc/hangar-innenraum` einmischen, in `verify:hangar` eine Klinke
+„Dreiecke ohne Material“ über alle Web-Schiffe (vorgeführt rot), Cockpits im
+Viewer ansehen (325a, 300i, Hornet F7C, Nox), PR auf staging,
+`check:staging` vom PC. Stand 28.10.2026:
+
+- Eingemischt (Merge 4ccde68). Die Prüfung ist Tor **[18]** geworden, nicht
+  [17] (das ist die Ablage). Erst als Deckel 390 151 in 26 Schiffen
+  (089cde3), nach dem Nachtrag umgebaut: kein Schiff trägt Platzhalter außer
+  `PLATZHALTER_AUSNAHMEN` (Caterpillar und Caterpillar Pirate je 22,
+  Scorpius Antares 12, jede mit Anlass). Mehr Dreiecke als die Ausnahme
+  deckt ist FEHLER, keine mehr auch (Zombie). Vorgeführt rot: Gladius-
+  Material `metal_steel_025` ohne Namen → `aegs-gladius 25072 Dreiecke`;
+  Scorpius-Platzhalter mit Namen → „Ausnahme … ohne Anlass … streichen“.
+- Im echten Viewer (Software-WebGL, Stufe niedrig, Haube durchsichtig)
+  angesehen: 325a Sitz schwarzes Leder, Konsolen mit blauen Leuchtstreifen,
+  Triebwerksgondel schwarz mit „325A“ (vorher alles reinweiß); 300i Sitz,
+  Steuer und Innenraum dunkel; Hornet F7C StorAll-Frachtluke dunkel mit
+  Spielmaterial; Nox in der Werkhalle.
+- Fahrwerk 300er (`gear: true` → `false`): an staging nachgemessen,
+  `lg_hinge_front_left` steckt dort schon 3,70 m unter dem Boden, weit über
+  `GEAR_SINK` 0,2, `standFor` gibt also heute schon `null`. Unsichtbar.
+- Nicht von diesem Lauf (im Viewer per Strahl zugeordnet, Material schon
+  auf staging): helle Platte oben am Heck der 300i =
+  `orig_300i_ext_mtl_hull_d_014` (Lackfläche, Farbe e1e1e1); grünlich-graue
+  Kästen oben auf der Nox = `VNCL_Scythe_mtl_vs_panels_b_02` (gleiche
+  Dreieckszahl vorher und nachher).
+- Sichturteil an Krisz: `.planning/WINDOWS.md` #123.
+- `check:staging` geht aus der Cloud nicht (Cloudflare 403); nach dem Merge
+  vom PC.
 
 ## Befund PC
 
