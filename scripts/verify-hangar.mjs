@@ -121,6 +121,11 @@
         Inhalts (16 Zeichen; die URL steht ein Jahr im Cache). Deckel fuer
         GLB und Ablage zusammen und je Datei, Klinke: Schiffe mit Ablage.
         Verwaiste Bilder: WARNUNG (Ballast, kein Schaden).
+    18  Platzhaltermaterial (seit 27.10.2026, Krisz: weisses Cockpit der
+        325a). Dreiecke der Schiffs-GLBs ohne Material oder mit namenlosem
+        Material (Ersatz des Exports, im Hangar reinweiss) zaehlen. Seit dem
+        Nachtrag keines mehr, ausser den Luecken im Spiel selbst
+        (PLATZHALTER_AUSNAHMEN, je mit Anlass und Zombie-Waechter).
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -153,6 +158,11 @@
         (147 Bilder eingebettet, und Klinke 9 < 10)
      t  ein Bild der Ablage mit dem Inhalt eines anderen
         ueberschreiben                                              -> [17]
+     u  in dist/hangar/ships/aegs-gladius.glb dem Material
+        metal_steel_025 den Namen nehmen (27.10.2026, nach dem
+        Nachtrag: aegs-gladius 25072 Dreiecke)                      -> [18]
+     v  in dist/hangar/ships/rsi-scorpius-antares.glb dem namenlosen
+        Material einen Namen geben (Ausnahme ohne Anlass)            -> [18]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -941,8 +951,61 @@ const BILDER = { schiffe: 231, gesamtMB: 1600, dateiMB: 50 };
   ist.bildSchiffe = pooledShips; ist.bildDateien = files.length; ist.bildMB = Math.round(totalMB);
 }
 
+say('\n[18] Schiffe ohne Platzhaltermaterial: keine Flaeche, fuer die der Export kein Spielmaterial fand');
+// Findet der Export zu einer Geometrie kein Material, setzt er ein namenloses
+// Ersatzmaterial ein (Grundfarbe 0,8, Rauheit 0,5, keine Karte). Im Hangar
+// ist das reines Weiss: Krisz, 27.10.2026, Cockpit der 325a: „was ist mit
+// schiff interior?“ Ursache und Nachtrag: .planning/notes/hangar-innenraum.md.
+// Gezaehlt werden Dreiecke ohne Material oder mit namenlosem Material. Seit
+// dem Nachtrag (pc/hangar-innenraum, 390151 -> 56) gilt: kein Schiff traegt
+// welche, ausser den benannten Luecken im Spiel selbst. Eine Ausnahme mit
+// mehr Dreiecken ist FEHLER, eine ohne (Zombie) auch: dann ist sie zu
+// streichen.
+const PLATZHALTER_AUSNAHMEN = {
+  'drak-caterpillar': { dreiecke: 22, anlass: 'Camera02: DRAK_Caterpillar_Exterior.mtl hat kein Untermaterial 54 (nur 53)' },
+  'drak-caterpillar-pirate': { dreiecke: 22, anlass: 'Camera02: DRAK_Caterpillar_Exterior.mtl hat kein Untermaterial 54 (nur 53)' },
+  'rsi-scorpius-antares': { dreiecke: 12, anlass: 'TempBox: rsi_scorpius_antares_missile_turret.cga nennt kein .mtl (Platzhalterbox)' },
+};
+{
+  const shipDir = join(DIST, 'hangar', 'ships');
+  const glbs = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).sort() : [];
+  const hit = [];
+  let tris = 0;
+  for (const f of glbs) {
+    const buf = readFileSync(join(shipDir, f));
+    if (buf.toString('utf8', 16, 20) !== 'JSON') { fail(`[18] ${f}: kein JSON-Block am Anfang, Schiff nicht geprueft`); continue; }
+    const gltf = JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12)));
+    let t = 0, all = 0;
+    for (const me of gltf.meshes ?? []) for (const p of me.primitives ?? []) {
+      const acc = gltf.accessors?.[p.indices ?? p.attributes?.POSITION];
+      const n = (acc?.count ?? 0) / 3;
+      all += n;
+      const m = p.material == null ? null : gltf.materials?.[p.material];
+      if (!m?.name) t += n;
+    }
+    if (t) { hit.push({ slug: f.replace(/\.glb$/, ''), t: Math.round(t), pct: (100 * t) / all }); tris += t; }
+  }
+  hit.sort((a, b) => b.t - a.t);
+  const erlaubt = Object.values(PLATZHALTER_AUSNAHMEN).reduce((n, a) => n + a.dreiecke, 0);
+  say(`    Schiffe geprueft: ${glbs.length}   mit Platzhalter: ${hit.length}   Dreiecke mit Platzhalter: ${Math.round(tris)}   benannte Ausnahmen: ${Object.keys(PLATZHALTER_AUSNAHMEN).length} (${erlaubt} Dreiecke)`);
+  for (const h of hit.slice(0, 8)) say(`      ${h.slug.padEnd(40)} ${String(h.t).padStart(7)} Dreiecke (${h.pct.toFixed(1)} %)${PLATZHALTER_AUSNAHMEN[h.slug] ? `  Ausnahme: ${PLATZHALTER_AUSNAHMEN[h.slug].anlass}` : ''}`);
+  sollIst(`kein Schiff mit Platzhalter ausser ${Object.keys(PLATZHALTER_AUSNAHMEN).length} benannten (je hoechstens ihre Zahl), alle ${BILDER.schiffe} Schiffe geprueft`, `${Math.round(tris)} Dreiecke in ${hit.length} von ${glbs.length}`);
+  if (glbs.length < BILDER.schiffe) fail(`[18] nur ${glbs.length} Schiffe in dist/hangar/ships geprueft (Klinke ${BILDER.schiffe})`);
+  const fremd = hit.filter((h) => !PLATZHALTER_AUSNAHMEN[h.slug]);
+  if (fremd.length) {
+    fail(`[18] ${fremd.length} Schiffe tragen das Platzhaltermaterial des Exports (${fremd.slice(0, 4).map((h) => `${h.slug} ${h.t}`).join(', ')}${fremd.length > 4 ? ', …' : ''} Dreiecke): im Hangar reinweiss. Materialnachtrag: node scripts/extract-hangar-sources.mjs ships-matfix --ships <slug>, dann neu bauen (.planning/notes/hangar-innenraum.md)`);
+  }
+  for (const [slug, a] of Object.entries(PLATZHALTER_AUSNAHMEN)) {
+    const h = hit.find((x) => x.slug === slug);
+    if (!glbs.includes(`${slug}.glb`)) fail(`[18] Ausnahme ${slug}: Schiff nicht mehr in dist/hangar/ships, Ausnahme streichen`);
+    else if (!h) fail(`[18] Ausnahme ${slug} (${a.anlass}) ohne Anlass: das Schiff traegt keinen Platzhalter mehr, Ausnahme in PLATZHALTER_AUSNAHMEN streichen`);
+    else if (h.t > a.dreiecke) fail(`[18] ${slug}: ${h.t} Dreiecke mit Platzhalter, die Ausnahme deckt ${a.dreiecke} (${a.anlass})`);
+  }
+  ist.platzhalter = Math.round(tris); ist.platzhalterSchiffe = hit.length;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
