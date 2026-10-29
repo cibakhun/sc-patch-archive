@@ -176,11 +176,11 @@ function boot(root: HTMLElement) {
   /* -------------------------------------------------------- Meine Daten --- */
   // Alles, was diesem Konto gehört, als eine Datei (Auskunft und Mitnahme).
   // Nachrichten seitenweise, weil PostgREST je Abfrage höchstens 1000
-  // Zeilen liefert.
+  // Zeilen liefert; ohne Obergrenze, bis eine Seite kürzer ist.
   const exportBtn = $('secExport') as HTMLButtonElement | null;
   const paged = async (table: string, order: string) => {
     const out: unknown[] = [];
-    for (let from = 0; from < 50000; from += 1000) {
+    for (let from = 0; ; from += 1000) {
       const { data, error } = await supabase.from(table).select('*').order(order).range(from, from + 999);
       if (error) throw error;
       out.push(...(data || []));

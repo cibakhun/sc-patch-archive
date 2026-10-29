@@ -254,7 +254,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         if (fresh) { chatWith = fresh; renderChatHead(); } else closeChat();
       }
       renderList();
-      if (chatFromUrl) {
+      // Erst einlösen, wenn der Freund in der Liste steht: eine fehlgeschlagene
+      // erste Abfrage soll den Link nicht verbrauchen.
+      if (chatFromUrl && friends.some((f) => f.id === chatFromUrl)) {
         const id = chatFromUrl;
         chatFromUrl = null;
         try {
@@ -262,7 +264,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
           u.searchParams.delete('chat');
           history.replaceState(history.state, '', u.pathname + u.search + u.hash);
         } catch { /* egal */ }
-        if (friends.some((f) => f.id === id)) openChat(id);
+        openChat(id);
       }
     });
 

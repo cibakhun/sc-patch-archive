@@ -1114,6 +1114,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         supabase.from('friend_requests').select('id, sender_id').eq('status', 'pending').in('sender_id', [me, them]).in('receiver_id', [me, them]),
         supabase.from('profiles').select('handle').eq('id', me).maybeSingle(),
       ]);
+      // Ohne verlässliche Antwort lieber keinen Knopf als einen falschen.
+      if (fr.error || rq.error) { acts.hidden = true; return; }
       const req = (rq.data || [])[0] as { id: string; sender_id: string } | undefined;
       if (fr.data?.length) {
         acts.innerHTML = `<a class="pp-act pp-act--go" href="${account}?chat=${encodeURIComponent(them)}#friends">${ICO.chat}${esc(COPY.message)}</a>`
