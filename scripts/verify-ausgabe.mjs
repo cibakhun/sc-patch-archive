@@ -73,20 +73,15 @@ const rel = (p) => relative(ROOT, p).replaceAll('\\', '/');
 // kleineren Build, und schon der Wegfall einer einzigen Blockart auf den
 // Datenseiten (gut 17.000 Bloecke) faellt weit darunter.
 // 20 seit HangarPage.astro die Suchwoerter per jsonForScript einbettet.
-const MIN_HELFER_STELLEN = 20;
+// 21 seit ShipDetail.astro den holodata-Block per jsonForScript einbettet.
+const MIN_HELFER_STELLEN = 21;
 const MIN_MASKIERER = 30;
 const MIN_JSON_BLOECKE = 50000;
 const MIN_FENSTER_BLOECKE = 10;
 
 // Benannte Ausnahmen fuer Zusicherung 2. Jede braucht einen Anlass; trifft
 // sie keinen JSON.stringify-Ausdruck mehr, ist sie ein Zombie und reisst.
-const AUSNAHMEN = [
-  {
-    datei: 'src/components/ShipDetail.astro',
-    anlass:
-      'maskiert "<" bereits von Hand (.replace(/</g, …)), aber nicht U+2028/U+2029; die Umstellung auf jsonForScript steht aus, weil die Datei bei der Einfuehrung des Helfers in anderer Bearbeitung war',
-  },
-];
+const AUSNAHMEN = [];
 
 const fail = [];
 const warn = [];
