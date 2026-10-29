@@ -474,8 +474,11 @@ const KLINKE_RAND = { teile: 42 };
 // mindestens ueber seiner Mitte (Boden-, Wand- und Deckenplatten, Leisten,
 // Rohre, die beim Wachsen laenger werden). Gleiche Regel wie oben.
 // Gemessen 29.10.2026 an revelyork-single-lod1.glb (die Stufe, die die
-// Seite laedt): 6593/6804/2881/3582/3474.
-const KLINKE_WACHSEN = { 'revelyork-single': { quer: [6500, 6700, 2800, 3500, 3400] } };
+// Seite laedt): 3844/3952/2881/3588/3478, nachdem [19] die Halle wie
+// shiftHallFloor je Dreieck umsetzt. Je Ecke umgesetzt zaehlte es ueber den
+// x-Streifen rund 2750 Dreiecke mehr (6593/6804), Stuecke ueber den
+// Schnitten von HALL_SHIFT, die der Viewer nie zeichnet; deshalb gesenkt.
+const KLINKE_WACHSEN = { 'revelyork-single': { quer: [3800, 3900, 2800, 3500, 3400] } };
 const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Hallendeko ([17], seit 21.10.2026; Betreiber 21.10.2026: „wir dekorieren
 // mal bisschen das hangar, also nicht nur bisschen sondern heavy“): Zonen
@@ -3262,7 +3265,13 @@ const GROW = hall?.id ? growAll[hall.id] ?? null : null;
 const growRun = { zonen: 0, stufen: [], kachel: null };
 if (GROW && !LIFT) fail(`[19] HALL_GROW["${hall.id}"] ohne Schiffsfeld in HALL_LIFT: Der Viewer laesst die Halle nur mit Aufzug wachsen`);
 if (LIFT && grm && !GROW) fail(`[19] die Halle ${hall.id} hat ein Schiffsfeld, HALL_GROW keinen Eintrag: Grosse Schiffe vergroesserten wieder die ganze Halle samt Tueren und Aufzug`);
-if (GROW && LIFT) {
+// erst mit gueltigem HALL_LIFT ([10]) und HALL_SHIFT ([13]): sonst stuerzte
+// das Tor hier ab, statt dort zu melden
+const pair2 = (q) => Array.isArray(q) && q.length === 2 && q.every(Number.isFinite);
+const liftShape = !!LIFT && pair2(LIFT.from) && pair2(LIFT.to) && pair2(LIFT.y);
+const shiftShape = !SHIFT || (Number.isFinite(SHIFT.field) && pair2(SHIFT.z) && pair2(SHIFT.y) && Array.isArray(SHIFT.strips) && SHIFT.strips.length > 0 && SHIFT.strips.every((q) => Array.isArray(q) && q.length === 3 && q.every(Number.isFinite) && q[0] < q[1]));
+if (GROW && LIFT && !(liftShape && shiftShape)) fail('[19] HALL_LIFT oder HALL_SHIFT ist unvollstaendig (siehe [10], [13]): Ohne Feld und Verschiebung ist das Wachsen nicht pruefbar');
+if (GROW && liftShape && shiftShape) {
   const K = KLINKE_WACHSEN[hall.id];
   if (!K) fail(`[19] die Halle ${hall.id} hat keine KLINKE_WACHSEN in diesem Tor: gemessene Werte eintragen`);
   const zoneOk = (z) => Array.isArray(z) && z.length === 3 && z.every(Number.isFinite) && z[0] < z[1];
@@ -3298,7 +3307,7 @@ if (GROW && LIFT) {
         const west = Math.max(WK.raum?.x?.[1], WK.tuer?.x, WK.tor?.x, WK.garage?.x, WK.bahn?.vor, WK.bahn?.zurueck?.[0], WK.frei?.x?.[1]) + cx;
         if (!(west < xl[0])) fail(`[19] die Werkhalle reicht bis x ${west.toFixed(2)} (Modell), der westliche Streifen beginnt bei ${xl[0]}: Sie rueckt als Ganzes, ihr Weg und ihr Durchgang gingen auseinander`);
       }
-      // Je Stufe und Datei wie hallGrowPrep: Ecken nach HALL_SHIFT (je Ecke),
+      // Je Stufe und Datei wie hallGrowPrep: Dreiecke nach HALL_SHIFT,
       // ohne Moebel; je Streifen die Dreiecke ueber seiner Mitte (werden
       // laenger) und die Teile mit einer Ecke darin, bei Leuchten auch die
       // ueber der Mitte (zusammenhaengend ueber Ecken auf 1 mm, je
@@ -3307,13 +3316,51 @@ if (GROW && LIFT) {
       // darin wuerden verzogen
       const zones = [];
       spec.forEach((zs, a) => zs.forEach(([p, q]) => zones.push({ a, p, q, mid: (p + q) / 2 })));
-      const shiftX = (x, y, z) => {
-        if (!SHIFT || y < SHIFT.y[0] || y > SHIFT.y[1] || z < SHIFT.z[0] || z >= SHIFT.z[1]) return x;
-        if (x >= LIFT.from[0] && x < LIFT.to[0] && z >= LIFT.from[1] && z < LIFT.to[1]) return x + SHIFT.field;
-        for (const [a, b, by] of SHIFT.strips) if (x >= a && x < b) return x + by;
-        return x;
+      // Lage nach HALL_SHIFT wie shiftHallFloor, je Dreieck statt je Ecke:
+      // ganz im Band an den Schnitten geteilt, jedes Stueck nach seinem
+      // Streifen umgesetzt; was nicht ganz im Band liegt, mehrfach gestellt
+      // oder ohne Index ist, bleibt stehen; das Feld faehrt mit dem Aufzug
+      // (wie [13]). Je Ecke umgesetzt lagen ueber den Schnitten 40 m lange
+      // Dreiecke, die der Viewer nie zeichnet (cubic zu #245)
+      const E = LIFT_E, strips = SHIFT?.strips ?? [], cuts = [...new Set(strips.flatMap(([a, b]) => [a, b]))].sort((p, q) => p - q);
+      const stripOf = (lo, hi) => strips.findIndex(([a, b]) => lo >= a - E && hi <= b + E);
+      const inLift = (q) => q.every(([x, y, z]) => x >= LIFT.from[0] - E && x <= LIFT.to[0] + E && z >= LIFT.from[1] - E && z <= LIFT.to[1] + E && y >= LIFT.y[0] && y <= LIFT.y[1]);
+      const inBand = (q, lo, hi) => !!SHIFT && q.every(([, y, z]) => y >= SHIFT.y[0] && y <= SHIFT.y[1] && z >= SHIFT.z[0] - E && z <= SHIFT.z[1] + E) && hi > cuts[0] + E && lo < cuts[cuts.length - 1] - E;
+      const by = (q, dx) => q.map(([x, y, z]) => [x + dx, y, z]);
+      const shifted = (q, stage, can) => {
+        if (SHIFT && stage && can && inLift(q)) return [by(q, SHIFT.field)];
+        const xs = q.map((v) => v[0]), lo = Math.min(...xs), hi = Math.max(...xs);
+        if (!can || !inBand(q, lo, hi)) return [q];
+        const s = stripOf(lo, hi);
+        if (s >= 0) return [by(q, strips[s][2])];
+        let ps = [q];
+        for (const k of cuts) {
+          if (!(lo < k - E && hi > k + E)) continue;
+          const next = [];
+          for (const poly of ps) {
+            const L = [], R = [];
+            poly.forEach((p0, i) => {
+              const p1 = poly[(i + 1) % poly.length], x0 = p0[0] - k, x1 = p1[0] - k;
+              (x0 < 0 ? L : R).push(p0);
+              if ((x0 < 0) !== (x1 < 0)) { const f = x0 / (x0 - x1), v = p0.map((c, r) => c + (p1[r] - c) * f); L.push(v); R.push(v); }
+            });
+            for (const g of [L, R]) if (g.length >= 3) next.push(g);
+          }
+          ps = next;
+        }
+        const out = [];
+        for (const poly of ps) {
+          const px = poly.map((v) => v[0]), s2 = stripOf(Math.min(...px), Math.max(...px)), g = s2 >= 0 ? by(poly, strips[s2][2]) : poly;
+          for (let i = 1; i + 1 < g.length; i++) out.push([g[0], g[i], g[i + 1]]);
+        }
+        return out;
       };
       for (const [u, doc] of [...stageDocs, ...extraDocs]) {
+        const stage = stageDocs.has(u);
+        // wie [13]: mehrfach gestellte Geometrie und solche ohne Index setzt der Viewer nicht um
+        const acc = new Map(), refs = new Map();
+        const geo = (q) => [q.getIndices(), q.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
+        for (const nd of doc.getRoot().listNodes()) for (const q of nd.getMesh()?.listPrimitives() ?? []) refs.set(geo(q), (refs.get(geo(q)) || 0) + 1);
         const run = { u, quer: zones.map(() => 0), starr: zones.map(() => 0), platten: zones.map(() => 0), leuchten: zones.map(() => 0), gross: zones.map(() => 0), ex: [] };
         for (const node of doc.getRoot().listNodes()) {
           const mesh = node.getMesh();
@@ -3324,13 +3371,17 @@ if (GROW && LIFT) {
           for (const prim of mesh.listPrimitives()) {
             const P = prim.getAttribute('POSITION')?.getArray(), I = prim.getIndices()?.getArray();
             if (!P) continue;
-            const n = P.length / 3, X = new Float64Array(n * 3);
-            for (let i = 0; i < n; i++) {
+            const can = !!I && !(refs.get(geo(prim)) > 1);
+            const wv = (i) => {
               const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
-              const wx = w[0] * x + w[4] * y + w[8] * z + w[12], wy = w[1] * x + w[5] * y + w[9] * z + w[13], wz = w[2] * x + w[6] * y + w[10] * z + w[14];
-              X[i * 3] = shiftX(wx, wy, wz); X[i * 3 + 1] = wy; X[i * 3 + 2] = wz;
+              return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
+            };
+            // Dreiecke einzeln (je drei Ecken), wie sie nach dem Umsetzen stehen
+            const soup = [];
+            for (let t = 0, T0 = I ? I.length / 3 : P.length / 9; t < T0; t++) {
+              for (const tri of shifted([0, 1, 2].map((k) => wv(I ? I[t * 3 + k] : t * 3 + k)), stage, can)) for (const v of tri) soup.push(v[0], v[1], v[2]);
             }
-            const T = I ? I.length / 3 : n / 3, at = (t, k) => (I ? I[t * 3 + k] : t * 3 + k);
+            const X = Float64Array.from(soup), n = X.length / 3, T = n / 3, at = (t, k) => t * 3 + k;
             const mat = prim.getMaterial(), lamp = LAMP.test(mat?.getName() ?? '') || !!mat?.getEmissiveTexture();
             const touch = zones.map(() => []);
             for (let t = 0; t < T; t++) zones.forEach((Z, j) => {
@@ -3378,7 +3429,7 @@ if (GROW && LIFT) {
           }
         }
         growRun.stufen.push(run);
-        const isStage = stageDocs.has(u);
+        const isStage = stage;
         say(`    ${u}: ${zones.map((Z, j) => `${'xyz'[Z.a]} ${Z.p}..${Z.q}: ${run.quer[j]} Dreiecke darueber, ${run.platten[j]} Platten und Staebe laenger, ${run.starr[j]} Teile und ${run.leuchten[j]} Leuchten starr, ${run.gross[j]} gross`).join('; ')}`);
         if (run.gross.some((g) => g)) fail(`[19] ${u}: ${run.gross.reduce((s, g) => s + g, 0)} grosse Teile (ab ${GROW.small} m laengs der Achse) haben eine Ecke in einem Streifen (z. B. ${run.ex.join('; ')}): Sie wuerden beim Wachsen verzogen. Halle neu gebaut oder verschoben? Die Streifen in HALL_GROW (assets/hangar-viewer.js) neu suchen, an einer Stelle ohne Ecke eines grossen Teils`);
         if (isStage && K) zones.forEach((Z, j) => {
