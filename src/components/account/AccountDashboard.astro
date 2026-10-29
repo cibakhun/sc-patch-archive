@@ -48,7 +48,7 @@ const COPY = {
     secDanger: 'Konto löschen',
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
-    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
+    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Mit einem Handle ist deine Pilotenseite öffentlich: Anzeigename, Bilder, Bio, Status und verlinkte Profile sieht dann jeder.',
     bio: 'Biografie / Über mich', bioPh: 'Erzähle der Flotte etwas über dich, deine Schiffe oder Missionen …',
     bannerSelect: 'Banner-Vorlage wählen',
     bannerUrl: 'Oder eigene Banner-Bild-URL',
@@ -157,10 +157,11 @@ const COPY = {
     reauthDcErr: 'Die Bestätigung mit Discord hat nicht geklappt. Bitte erneut versuchen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
-    dangerBody: 'Löscht dein Konto mit Profil, Loadouts, Favoriten, Freunden und Nachrichten endgültig. Das lässt sich nicht rückgängig machen.',
+    dangerBody: 'Löscht dein Konto mit Profil, Loadouts, Favoriten, Werkzeug-Daten, Freunden, Nachrichten und hochgeladenen Bildern endgültig. Das lässt sich nicht rückgängig machen.',
     dangerConfirmLabel: 'Zum Bestätigen „LÖSCHEN" eintippen',
     dangerWord: 'LÖSCHEN',
     dangerBtn: 'Konto endgültig löschen', dangerBusy: 'Lösche Konto …',
+    removeErr: 'Das Bild konnte nicht entfernt werden — bitte erneut versuchen.',
     errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
     errRate: 'Zu viele Anfragen — bitte kurz warten.',
     modalTitle: 'Öffentliche Profil-Vorschau',
@@ -210,7 +211,7 @@ const COPY = {
     secDanger: 'Delete account',
     name: 'Display name', namePh: 'e.g. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
-    handleHint: '3–24 characters: lowercase letters, digits, underscore. Unique on VerseBase.',
+    handleHint: '3–24 characters: lowercase letters, digits, underscore. With a handle your pilot page is public: anyone can see your display name, images, bio, status and linked profiles.',
     bio: 'Bio / About me', bioPh: 'Tell the fleet about yourself, your ships, or missions …',
     bannerSelect: 'Choose banner preset',
     bannerUrl: 'Or custom banner image URL',
@@ -319,10 +320,11 @@ const COPY = {
     reauthDcErr: 'Confirming with Discord did not work. Please try again.',
     errMatch: 'The passwords do not match.',
     errSame: 'The new password must differ from the old one.',
-    dangerBody: 'Permanently deletes your account with profile, loadouts, favorites, friends and messages. This cannot be undone.',
+    dangerBody: 'Permanently deletes your account with profile, loadouts, favorites, tool data, friends, messages and uploaded images. This cannot be undone.',
     dangerConfirmLabel: 'Type “DELETE” to confirm',
     dangerWord: 'DELETE',
     dangerBtn: 'Delete account permanently', dangerBusy: 'Deleting account …',
+    removeErr: 'Could not remove the image — please try again.',
     errNet: 'That did not work — please try again.',
     errRate: 'Too many requests — please wait a moment.',
     modalTitle: 'Public Profile Preview',
@@ -411,6 +413,7 @@ const SEC = {
     js: {
       cancel: 'Abbrechen', notLinked: 'Nicht verbunden', sure: 'Sicher?', err: 'Das hat nicht geklappt.',
       othersDone: 'Andere Geräte sind abgemeldet.', exportBusy: 'Sammle …', exportDone: 'Datei geladen.',
+      exportPartial: 'Datei geladen, aber nicht vollständig: was sich nicht lesen ließ, steht darin unter „errors“.',
       change: 'Ändern', set: 'Setzen', noPass: 'Nicht gesetzt', rsiNone: 'Nicht verifiziert', rsiOpen: 'Prüfen',
     },
   },
@@ -426,6 +429,7 @@ const SEC = {
     js: {
       cancel: 'Cancel', notLinked: 'Not connected', sure: 'Sure?', err: 'That did not work.',
       othersDone: 'Other devices are signed out.', exportBusy: 'Collecting …', exportDone: 'File downloaded.',
+      exportPartial: 'File downloaded, but incomplete: what could not be read is listed in it under “errors”.',
       change: 'Change', set: 'Set', noPass: 'Not set', rsiNone: 'Not verified', rsiOpen: 'Verify',
     },
   },
@@ -478,6 +482,7 @@ const SEC = {
   data-msg-upload-toobig={COPY.uploadTooBig}
   data-msg-upload-badtype={COPY.uploadBadType}
   data-msg-upload-err={COPY.uploadErr}
+  data-msg-remove-err={COPY.removeErr}
   data-crop-title-avatar={COPY.cropTitleAvatar}
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
@@ -531,6 +536,7 @@ const SEC = {
       <g id="ic-id" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="1"/><path d="M7 10h4M7 14h7"/><circle cx="16.5" cy="10" r="1.6"/></g>
       <g id="ic-org" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6l6-2.5V21"/><path d="M10 8h8a2 2 0 0 1 2 2v11"/><path d="M13 12h3M13 16h3"/></g>
       <g id="ic-power" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"/><path d="M6.4 6.9a8 8 0 1 0 11.2 0"/></g>
+      <g id="ic-download" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19.5h14"/></g>
     </defs>
   </svg>
 
@@ -710,7 +716,8 @@ const SEC = {
                 </div>
                 <div class="field">
                   <label for="pfHandle">{COPY.handle} <span class="hint">{COPY.optional}</span></label>
-                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} /></div>
+                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} aria-describedby="pfHandleHint" /></div>
+                  <p class="acx-hint" id="pfHandleHint">{COPY.handleHint}</p>
                 </div>
                 <div class="field" style="margin-bottom:0">
                   <label for="pfBio">{COPY.bio}</label>

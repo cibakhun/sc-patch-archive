@@ -222,8 +222,9 @@ body{font-family:var(--font-body)}
       Bist du angemeldet, liegen in deinem Browser außerdem deine Sitzung (Zugangs- und
       Erneuerungsschlüssel samt Konto-Angaben wie E-Mail-Adresse und gegebenenfalls den Angaben von
       Discord), für die Dauer des Tabs deine Konto-Rolle samt Konto-ID (höchstens alle fünf Minuten
-      neu vom Server abgefragt), eine Kopie deines Profils und, sobald du das Konto-Dashboard einmal
-      geöffnet hast, dein <a href="#rsi">RSI-Code</a>, auch wenn du nie ein Handle verifizierst.
+      neu vom Server abgefragt) und eine Kopie deines Profils (nach einer erfolgreichen
+      <a href="#rsi">RSI-Prüfung</a> samt Prüfcode). Während einer Anmeldung mit Discord liegt dort
+      außerdem kurz ein einmaliger Prüfwert (PKCE), den die Rückkehr zur Website verbraucht.
       Crafting-Planer und „Im Besitz“-Markierungen,
       Flotte und Hangar-Layouts speichern ihre Inhalte dann zusätzlich in deinem
       <a href="#accounts">Benutzerkonto</a>, damit sie auf allen Geräten bereitstehen, und dieser
@@ -352,8 +353,8 @@ body{font-family:var(--font-body)}
         Org-Name, ein Discord-Tag (nur für dich sichtbar; ist Discord verbunden, trägt das Konto es
         selbst ein, siehe <a href="#discord">Discord</a>), deine Namen bei Twitch, YouTube und X
         sowie dein <a href="#rsi">RSI-Handle</a>. Den Anzeigenamen setzt das Konto beim Anlegen vorläufig
-        selbst, wenn du keinen angibst: deinen Discord-Namen oder, ohne Discord, den Teil deiner
-        E-Mail-Adresse vor dem @. Du kannst ihn jederzeit ändern; öffentlich wird er erst mit
+        selbst, wenn du keinen angibst: deinen Discord-Namen oder, ohne Discord, „Pilot“. Du kannst
+        ihn jederzeit ändern; öffentlich wird er erst mit
         einem Handle (siehe <a href="#profile">Piloten-Profil</a>).</li>
       <li><strong>Hochgeladene Bilder</strong> (Profilbild, Banner): Dein Browser schneidet sie
         zu und rechnet sie neu, Metadaten des Originals wie Kamera- oder Standortangaben werden
@@ -370,8 +371,8 @@ body{font-family:var(--font-body)}
         <a href="#friends">Freunde und Nachrichten</a>)</li>
       <li>dein <a href="#presence"><strong>Online-Status</strong></a> und die Angabe, was du
         gerade machst, solange du angemeldet bist</li>
-      <li>dein <a href="#rsi">RSI-Verifizierungscode</a>, sobald du das Konto-Dashboard einmal
-        geöffnet hast (auch wenn du nie verifizierst), nach einer Prüfung auch das Prüfergebnis;
+      <li>dein <a href="#rsi">RSI-Prüfcode</a>, sobald du für ein RSI-Handle eine Prüfung
+        anforderst, mit dem Prüfergebnis;
         als <a href="#testpilots">Testpilot</a> die zugehörigen Angaben</li>
       <li>technisch bedingt <strong>Sitzungs- und Sicherheitsdaten</strong>: für jede Anmeldung
         IP-Adresse, Browserkennung und Zeitpunkte, bis du dich auf diesem Gerät abmeldest, die
@@ -402,11 +403,12 @@ body{font-family:var(--font-body)}
       Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, gesendete und empfangene Nachrichten
       (auch beim Gegenüber), die Verknüpfung mit Discord samt gespeicherter Discord-ID,
       Testpilot-Angaben und den ins Konto übernommenen Werten vom Discord-Server (die Daten des
-      Bots selbst bleiben, siehe <a href="#discord-server">Discord-Server und Bot</a>), sowie die
-      Kopien deiner Daten in diesem Browser. <strong>Hochgeladene Profilbilder und Banner</strong> bleiben derzeit als Datei
-      erhalten, wenn du sie im Dashboard entfernst oder das Konto löschst; schreib uns eine E-Mail,
-      dann löschen wir sie. Einen Verifizierungscode in deiner RSI-Bio entfernst du selbst auf
-      robertsspaceindustries.com.
+      Bots selbst bleiben, siehe <a href="#discord-server">Discord-Server und Bot</a>; ein
+      Sperrvermerk für die Testvorschau bleibt mit deiner Discord-ID stehen, siehe
+      <a href="#testpilots">Testpiloten</a>), <strong>hochgeladene Profilbilder und Banner</strong>
+      samt Datei sowie die Kopien deiner Daten in diesem Browser. Entfernst du ein hochgeladenes
+      Bild im Dashboard, wird auch die Datei gelöscht. Einen Verifizierungscode in deiner RSI-Bio
+      entfernst du selbst auf robertsspaceindustries.com.
     </p>
     <p>
       Als Betreiber der Datenbank haben wir technisch Zugriff auf alle gespeicherten Kontodaten,
@@ -472,14 +474,14 @@ body{font-family:var(--font-body)}
       <a href="#discord-server">Discord-Server</a>.
     </p>
     <p>
-      Trennst du Discord im Dashboard, löst das nur die Anmeldeverbindung. Übernommene Angaben
-      (Name, Bildadresse, Discord-Tag) bleiben im Konto stehen, bis du sie änderst oder das Konto
-      löschst. Auch die Zuordnung deiner Discord-ID bleibt bestehen und wirkt weiter: Unser
-      <a href="#discord-server">Discord-Bot</a> überträgt weiterhin deine Werte vom Discord-Server
-      und ob du die Rolle „Test Pilots“ trägst in dein Konto, und davon hängt weiter dein Zugang zur
-      <a href="#staging">Testvorschau</a> ab; nur Level, Rang und Prestige sind dann nicht mehr
-      öffentlich abrufbar. Das endet erst, wenn du das Konto löschst oder wir die Zuordnung auf
-      deine Anfrage per E-Mail entfernen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Discord
+      Trennst du Discord im Dashboard, löst das die Anmeldeverbindung und die Zuordnung deiner
+      Discord-ID. Das Konto entfernt dabei das Discord-Tag, ein aus Discord übernommenes Profilbild
+      (ein selbst hochgeladenes bleibt), die ins Konto übernommenen Werte vom
+      <a href="#discord-server">Discord-Server</a> und den Testpilot-Vermerk; unser Discord-Bot
+      überträgt danach nichts mehr in dein Konto, und den Zugang zur
+      <a href="#staging">Testvorschau</a> über die Rolle „Test Pilots“ hast du erst wieder, wenn du
+      Discord erneut verbindest. Einen übernommenen Namen behältst du, bis du ihn änderst.
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Discord
       verarbeitet Daten auch in den USA und nimmt nach eigenen Angaben am EU-US Data Privacy
       Framework teil; für die Anmeldung bei Discord gilt dessen Datenschutzerklärung:
       <a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>.
@@ -620,19 +622,21 @@ body{font-family:var(--font-body)}
       gehört, richtet sich nach der Rolle „Test Pilots“ auf unserem
       <a href="#discord-server">Discord-Server</a>. Ist deine Discord-ID deinem Konto zugeordnet,
       meldet unser Discord-Bot an das Konto-System, ob du diese Rolle trägst (ja oder nein), bei
-      jeder Änderung und regelmäßig zum Abgleich, auch nachdem du Discord im Dashboard getrennt
-      hast (siehe <a href="#discord">Discord</a>); solange du die Rolle trägst, bleibt dir damit der
+      jeder Änderung und regelmäßig zum Abgleich, solange Discord mit deinem Konto verbunden ist
+      (siehe <a href="#discord">Discord</a>); solange du die Rolle trägst, bleibt dir damit der
       Zugang zur Testvorschau. Gespeichert werden dazu deine Discord-ID, ob du
       die Rolle trägst, und der Zeitpunkt deines letzten Besuchs der Testvorschau. Administratoren
       sehen in einer Übersicht Handle, Anzeigename, Discord-ID und letzten Besuch aller
-      Testpiloten. Um jemandem den Zugang zu entziehen, kann ein Sperrvermerk mit Begründung
-      gespeichert werden.
+      Testpiloten. Um jemandem den Zugang zu entziehen, kann ein Sperrvermerk mit Begründung und
+      der Discord-ID gespeichert werden. Mit der Discord-ID bleibt er auch nach dem Löschen des
+      Kontos stehen, damit ein neues Konto mit demselben Discord-Konto nicht wieder Zugang
+      bekommt.
     </p>
     <p>
       Öffentlich sein kann als Testpilot zweierlei. Beides richtet sich nach einem
       Testpilot-Vermerk in deinem Profil, den nur wir serverseitig setzen, nie dein Browser. Er
       folgt der Rolle „Test Pilots“ derzeit nicht automatisch: Verlierst du die Rolle, bleibt er
-      stehen, bis wir ihn entfernen. Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
+      stehen, bis wir ihn entfernen oder du Discord trennst. Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
       „Testpilot“; nur dann erscheint im Dashboard auch der Schalter „Meinen Namen bei den
       Testpiloten nennen“. Schaltest du ihn ein (Vorgabe aus), steht dein Anzeigename (ohne ihn
       dein Handle) mit einem Link auf dein Profil in der Testpiloten-Liste der Seite <a href="/de/feedback.html">Feedback</a>.
@@ -680,8 +684,8 @@ body{font-family:var(--font-body)}
       <a href="#testpilots">Testpiloten</a>). Ist deine Discord-ID einem Website-Konto zugeordnet,
       überträgt er deine Werte in dieses Konto: Level, Rang, Prestige, Erfahrungspunkte,
       Nachrichten, Sprachzeit, Platz auf der Bestenliste und ob du gerade Mitglied des Servers bist,
-      beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg. Das gilt auch nach
-      dem Trennen von Discord, bis die Zuordnung entfernt ist (siehe <a href="#discord">Discord</a>).
+      beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg, solange Discord mit
+      deinem Konto verbunden ist (siehe <a href="#discord">Discord</a>).
       Solange Discord verbunden ist und du Mitglied des Servers bist, zeigt dein
       <a href="#profile">Piloten-Profil</a> Level, Rang und Prestige jedem als Rang-Abzeichen, und
       jeder kann sie über die öffentliche Datenbank-Schnittstelle abrufen; angemeldeten Nutzern
@@ -810,8 +814,9 @@ body{font-family:var(--font-body)}
       Discord-Servers bist, die Werte des Bots); auf Anfrage erteilen wir Auskunft oder löschen sie,
       soweit wir sie dir zuordnen können. Mit Konto siehst und änderst du deine Profildaten im
       Dashboard, lädst unter Sicherheit &amp; Konto → Meine Daten die Daten deines Kontos als Datei
-      herunter (Profil, Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, Nachrichten und die
-      Werte vom Discord-Server; die Datei entsteht in deinem Browser) und löschst dort das ganze
+      herunter (Profil, Konto-Rolle, Favoriten, Werkzeug-Daten, Freundschaften und Anfragen,
+      Nachrichten, die Werte vom Discord-Server und die Liste deiner hochgeladenen Bilder; die Datei
+      entsteht in deinem Browser) und löschst dort das ganze
       Konto; was dabei bleibt, steht unter
       <a href="#accounts">Benutzerkonto</a> und <a href="#discord-server">Discord-Server und
       Bot</a>. Kontodaten speichern wir, bis du sie änderst oder das Konto löschst. Für alles Weitere, etwa eine vollständige Auskunft, schreib uns eine E-Mail.

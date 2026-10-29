@@ -26,9 +26,13 @@
 # `supabase functions deploy register` wuerde die Kontoanmeldung stillschweigend
 # abschalten. Deshalb steht es hier ausdruecklich drin.
 #
-# delete-account und verify-rsi stehen bewusst NICHT hier: beide laufen live
-# mit verify_jwt = true, und das ist der Standard fuer Unaufgefuehrte. Ein
-# Eintrag waere ueberfluessig, ein FALSCHER Eintrag waere ein Loch.
+# delete-account steht seit dem 30.10.2026 hier, AUSDRUECKLICH mit
+# verify_jwt = true (live seit jeher so, list_edge_functions): ihr Quelltext
+# liegt jetzt im Repo und wird von hier aus deployt. Der Eintrag aendert am
+# Verhalten nichts, er macht den Wert nur sichtbar. Gefaehrlich waere allein
+# ein FALSCHER Eintrag (false) -- dann waere die Kontoloeschung ohne Sitzung
+# erreichbar.
+# verify-rsi steht weiter NICHT hier und bekommt den Standard true.
 #
 # tests/e2e/support-trust.test.js haelt genau diese Aufteilung fest.
 #
@@ -131,3 +135,6 @@ verify_jwt = false
 # zeitkonstant) und faellt ohne es mit 503 geschlossen aus.
 [functions.bot-role-sync]
 verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = true

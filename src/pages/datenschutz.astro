@@ -206,8 +206,10 @@ body{font-family:var(--font-body)}
       When you are signed in, your browser also holds your session (access and refresh keys plus
       account details such as your e-mail address and, where applicable, the details from Discord),
       your account role together with your account ID for the lifetime of the tab (re-fetched from
-      the server at most every five minutes), a copy of your profile and, once you have opened the
-      account dashboard, your <a href="#rsi">RSI code</a>, even if you never verify a handle. The
+      the server at most every five minutes) and a copy of your profile (after a successful
+      <a href="#rsi">RSI check</a> including the check code). While you sign in with Discord, it
+      also briefly holds a one-time check value (PKCE) that is used up when you return to the
+      website. The
       crafting planner and “owned” marks, the fleet and hangar
       loadouts then also store their contents in your <a href="#accounts">user account</a> so they
       are available on all devices, and this browser keeps a copy. Whatever you had created in this
@@ -334,7 +336,7 @@ body{font-family:var(--font-body)}
         <a href="#discord">Discord</a>), your names on Twitch, YouTube and X, and your
         <a href="#rsi">RSI handle</a>. If you do not enter a display
         name, the account sets a provisional one when it is created: your Discord name or, without
-        Discord, the part of your e-mail address before the @. You can change it at any time; it
+        Discord, “Pilot”. You can change it at any time; it
         only becomes public with a handle (see <a href="#profile">pilot profile</a>).</li>
       <li><strong>uploaded images</strong> (profile picture, banner): your browser crops and
         re-encodes them, so metadata of the original such as camera or location details is not
@@ -349,8 +351,8 @@ body{font-family:var(--font-body)}
         <a href="#friends">friends and messages</a>)</li>
       <li>your <a href="#presence"><strong>online status</strong></a> and the note on what you are
         doing, while you are signed in</li>
-      <li>your <a href="#rsi">RSI verification code</a> once you have opened the account dashboard
-        (even if you never verify), and after a check also the check result; as a
+      <li>your <a href="#rsi">RSI check code</a> once you request a check for an RSI handle,
+        with the check result; as a
         <a href="#testpilots">test pilot</a> the related details</li>
       <li>technically, <strong>session and security data</strong>: for each sign-in the IP address,
         browser identifier and times, until you sign out on that device, end the session in the
@@ -379,11 +381,11 @@ body{font-family:var(--font-body)}
       requests, sent and received messages (also on the other person's side), the Discord link
       including the stored Discord ID, test pilot details and the values copied into the account
       from the Discord server (the bot's own data remains, see
-      <a href="#discord-server">Discord server and bot</a>), as well as the copies of your data in
-      this browser. <strong>Uploaded profile pictures and
-      banners</strong> currently remain as files when you remove them in the dashboard or delete the
-      account; send us an e-mail and we will delete them. You remove a verification code in your RSI
-      bio yourself on robertsspaceindustries.com.
+      <a href="#discord-server">Discord server and bot</a>; a block note for the test preview stays
+      with your Discord ID, see <a href="#testpilots">test pilots</a>), <strong>uploaded profile
+      pictures and banners</strong> including their files, and the copies of your data in this
+      browser. If you remove an uploaded image in the dashboard, its file is deleted too. You remove
+      a verification code in your RSI bio yourself on robertsspaceindustries.com.
     </p>
     <p>
       As operator of the database we technically have access to all stored account data, including
@@ -445,14 +447,13 @@ body{font-family:var(--font-body)}
       the <a href="#discord-server">Discord server</a>.
     </p>
     <p>
-      If you disconnect Discord in the dashboard, this only removes the sign-in connection. The
-      details taken over (name, picture address, Discord tag) remain in the account until you change
-      them or delete the account. The mapping of your Discord ID also remains and stays in effect:
-      our <a href="#discord-server">Discord bot</a> keeps transferring your values from the Discord
-      server and whether you hold the “Test Pilots” role into your account, and your access to the
-      <a href="#staging">test preview</a> still depends on that; only level, rank and prestige are
-      then no longer publicly readable. This ends only when you delete the account or we remove the
-      mapping at your request by e-mail. The legal basis is Art. 6 (1) (b) GDPR. Discord also
+      If you disconnect Discord in the dashboard, this removes the sign-in connection and the
+      mapping of your Discord ID. The account then removes the Discord tag, a profile picture taken
+      over from Discord (one you uploaded yourself stays), the values copied into the account from
+      the <a href="#discord-server">Discord server</a> and the test-pilot mark; our Discord bot no
+      longer transfers anything into your account, and you only regain access to the
+      <a href="#staging">test preview</a> through the “Test Pilots” role once you connect Discord
+      again. You keep a name taken over until you change it. The legal basis is Art. 6 (1) (b) GDPR. Discord also
       processes data in the USA and, by its own account, participates in the EU-U.S. Data Privacy
       Framework; Discord's privacy policy applies to signing in with Discord:
       <a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>.
@@ -584,18 +585,20 @@ body{font-family:var(--font-body)}
       Test pilots try out new features on the <a href="#staging">test preview</a>. Who belongs to
       them follows the “Test Pilots” role on our <a href="#discord-server">Discord server</a>. If
       your Discord ID is mapped to your account, our Discord bot reports to the account system
-      whether you hold this role (yes or no), on every change and regularly for reconciliation,
-      also after you disconnect Discord in the dashboard (see <a href="#discord">Discord</a>); while
-      you hold the role, this keeps your access to the test preview.
+      whether you hold this role (yes or no), on every change and regularly for reconciliation, as
+      long as Discord is connected to your account (see <a href="#discord">Discord</a>); while you
+      hold the role, this keeps your access to the test preview.
       Stored for this are your Discord ID, whether you hold the role, and the time of your last
       visit to the test preview. Administrators see handle, display name, Discord ID and last visit
-      of all test pilots in an overview. To revoke someone's access, a block note with a reason can
-      be stored.
+      of all test pilots in an overview. To revoke someone's access, a block note with a reason and
+      the Discord ID can be stored. With the Discord ID it stays in place even after the account is
+      deleted, so that a new account with the same Discord account does not regain access.
     </p>
     <p>
       As a test pilot, two things can be public. Both depend on a test-pilot mark in your profile
       that only we set on the server side, never your browser. It does not currently follow the
-      “Test Pilots” role automatically: if you lose the role, it stays in place until we remove it.
+      “Test Pilots” role automatically: if you lose the role, it stays in place until we remove it
+      or you disconnect Discord.
       If your profile carries it and
       you have a handle, your pilot profile shows the “Test Pilot” badge; only then does the
       dashboard also show the switch “List my name among the Test Pilots”. If you switch it on (off
@@ -642,8 +645,8 @@ body{font-family:var(--font-body)}
       <a href="#testpilots">test pilots</a>). If your Discord ID is mapped to a website account, it
       transfers your values into that account: level, rank, prestige, experience points, messages,
       voice time, leaderboard position and whether you are currently a member of the server, when
-      the bot starts, then every 5 minutes and right after each level-up. This also applies after
-      you disconnect Discord, until the mapping is removed (see <a href="#discord">Discord</a>).
+      the bot starts, then every 5 minutes and right after each level-up, as long as Discord is
+      connected to your account (see <a href="#discord">Discord</a>).
       While Discord is connected and you are a member of the server, your
       <a href="#profile">pilot profile</a> shows level, rank and prestige to anyone as a rank badge,
       and anyone can read them through the public database interface; to signed-in users the
@@ -768,9 +771,9 @@ body{font-family:var(--font-body)}
       measurement, feedback messages, donations and, if you are a member of our Discord server, the
       bot's values); on request we provide access to it or delete it, as far as we can attribute it
       to you. With an account, you view and change your profile data in the dashboard, download
-      your account's data as a file under Security &amp; Account → My data (profile, favorites, tool
-      data, friendships and requests, messages and the values from the Discord server; the file is
-      created in your browser) and delete the whole account there; what remains is described under
+      your account's data as a file under Security &amp; Account → My data (profile, account role,
+      favorites, tool data, friendships and requests, messages, the values from the Discord server
+      and the list of your uploaded images; the file is created in your browser) and delete the whole account there; what remains is described under
       <a href="#accounts">user account</a> and <a href="#discord-server">Discord server and
       bot</a>. We keep account data until you change it or delete the account. For anything else, such as full access to your data, send us an e-mail.
     </p>

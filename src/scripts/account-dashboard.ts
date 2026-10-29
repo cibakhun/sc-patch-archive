@@ -7,6 +7,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
+  import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -153,6 +154,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
       if (userErr) {
         const st = (userErr as { status?: number }).status;
         if (st === 401 || st === 403) {
+          clearAccountTraces(session.user.id, 'signout', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.replace(D.login!);
           return;
@@ -160,6 +162,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
         throw userErr;
       }
       if (!userData.user) {
+        clearAccountTraces(session.user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.replace(D.login!);
         return;
@@ -417,7 +420,9 @@ import { escapeHtml as escHtml } from '../lib/escape';
 
       // Live Profile Card Renderer
       const updateCard = () => {
-        const dName = nameInput.value.trim() || user.email?.split('@')[0] || 'Citizen';
+        // Wie die oeffentliche Seite (display_name, sonst Handle); nie ein
+        // Teil der Mailadresse, auch nicht in der Vorschau.
+        const dName = nameInput.value.trim() || handleInput.value.trim() || 'Citizen';
         const dHandle = handleInput.value.trim() ? `@${handleInput.value.trim()}` : '@citizen';
 
         document.getElementById('pcName')!.textContent = dName;
@@ -1001,13 +1006,41 @@ import { escapeHtml as escHtml } from '../lib/escape';
           });
         }
 
+        // Entfernen loescht die hochgeladene Datei, nicht nur den Verweis:
+        // erst die Profilzeile leeren (keine Seite zeigt dann mehr auf das
+        // Bild), dann <uid>/<art> im Bucket entfernen. Steht im Feld eine
+        // fremde Adresse (Discord-Bild, Vorlage), gibt es dort meist nichts zu
+        // loeschen; remove() meldet das nicht als Fehler.
         if (removeEl) {
-          removeEl.addEventListener('click', () => {
-            o.urlInput.value = '';
-            profileState[o.stateKey] = '';
-            updateCard();
-            syncRemove();
+          removeEl.addEventListener('click', async () => {
+            removeEl.disabled = true;
             setStatus('');
+            let cleared = false;
+            try {
+              const { error: dbErr } = await supabase.from('profiles')
+                .update({ [o.stateKey]: null }).eq('id', user.id);
+              if (dbErr) throw dbErr;
+              cleared = true;
+              o.urlInput.value = '';
+              profileState[o.stateKey] = '';
+              try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+              // change: die Discord-Bild-Auswahl (markDcAvatar) sieht das leere Feld
+              o.urlInput.dispatchEvent(new Event('change'));
+              updateCard();
+              syncRemove();
+              const { error: rmErr } = await supabase.storage.from(o.bucket).remove([`${user.id}/${o.kind}`]);
+              if (rmErr) throw rmErr;
+              setStatus('✓', 'ok');
+              setTimeout(() => setStatus(''), 1600);
+            } catch (err) {
+              console.warn('image remove failed', err);
+              // Verweis schon weg, Datei noch da: Knopf sichtbar lassen, damit
+              // "erneut versuchen" auch geht.
+              if (cleared) removeEl.hidden = false;
+              setStatus(D.msgRemoveErr || 'Could not remove the image.', 'err');
+            } finally {
+              removeEl.disabled = false;
+            }
           });
         }
       };
@@ -1743,42 +1776,25 @@ import { escapeHtml as escHtml } from '../lib/escape';
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
 
-      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Dashboard
-      // im Browser ablegt: die ganze Profilzeile (samt RSI-Code und
-      // Discord-Tag) und den RSI-Code. Bis 29.10.2026 blieben beide nach
-      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung sagt,
-      // was mit dem Konto geht, ist weg. vb_share_ ist der Schalterstand,
-      // den account-lite.js für den Puls im Tab merkt.
-      // Dazu die Konto-Spiegel der Werkzeuge (Flotte, Crafting, Hangar-
-      // Layouts). Flotte und Crafting räumen ihren Spiegel selbst weg, aber
-      // erst, wenn eine ihrer Seiten abgemeldet läuft; den Layout-Spiegel
-      // räumte niemand weg. Gleiche Regel wie dropMirrors() in fleet.js und
-      // crafting-app.js: nach dem Abmelden sieht auf einem geteilten Rechner
-      // niemand mehr, was der Vorgänger besitzt oder plant.
-      const MIRROR_PREFIXES = ['vb.fleet.v1.', 'craft.state.v2.', 'vb.layouts.v1.'];
-      const forgetLocalCopies = () => {
-        try { localStorage.removeItem(localKey); localStorage.removeItem('vb_rsi_code'); } catch { /* egal */ }
-        // vb_user_role: die Konto-Rolle aus account-lite.js, sonst bliebe sie
-        // samt Konto-ID im Tab liegen (Datenschutzerklärung #storage).
-        try { sessionStorage.removeItem(`vb_share_${user.id}`); sessionStorage.removeItem('vb_user_role'); } catch { /* egal */ }
-        try {
-          const doomed: string[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k && MIRROR_PREFIXES.some((p) => k.startsWith(p))) doomed.push(k);
-          }
-          doomed.forEach((k) => localStorage.removeItem(k));
-        } catch { /* egal */ }
-      };
+      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Konto im
+      // Browser ablegt: Profilzeile (samt RSI-Code und Discord-Tag), RSI-Code,
+      // Rolle, Schalterstand des Pulses und die Konto-Spiegel der Werkzeuge
+      // (Flotte, Crafting, Hangar-Layouts). Bis 29.10.2026 blieben sie nach
+      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung (#storage)
+      // sagt, was mit dem Konto geht, ist weg. Welche Schlüssel das sind,
+      // steht an einer Stelle: src/lib/account-cleanup.ts.
+      const forgetLocalCopies = () => { clearAccountTraces(user.id, 'signout', browserStores()); };
       // „Überall abmelden" (account-security.ts) räumt denselben Bestand weg.
       document.addEventListener('vb:forget-local', forgetLocalCopies);
 
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
+      // Danach die Spuren des Kontos im Browser entfernen (Profil-Cache,
+      // RSI-Code, gemerkte Rolle; lib/account-cleanup.ts), fuer geteilte Geraete.
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
         try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null, activity_at: null }).eq('id', user.id); } catch { /* egal */ }
-        forgetLocalCopies();
+        clearAccountTraces(user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1807,7 +1823,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
-          forgetLocalCopies();
+          clearAccountTraces(user.id, 'delete', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
         } catch (err) {
@@ -1826,6 +1842,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           delBtn.disabled = false;
         }
       });
+
 
       // Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten. Die
       // Rechtepruefung sitzt IN tester_overview() (siehe Migration), aber der
@@ -2030,9 +2047,11 @@ import { escapeHtml as escHtml } from '../lib/escape';
             const pic = dcAvatarOf(dc);
             if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
             const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            // Vorgabename ersetzen: 'Pilot' (handle_new_user seit
+            // 20261030132000) bzw. bei aelteren Konten der Mail-Lokalteil.
             const mailName = (user.email || '').split('@')[0];
             const curName = (profileState.display_name || '').trim();
-            if (nick && (!curName || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (nick && (!curName || curName === 'Pilot' || curName === mailName)) patch.display_name = nick.slice(0, 60);
             if (Object.keys(patch).length) {
               await dcSave(patch);
               if (patch.avatar_url) {
@@ -2087,6 +2106,19 @@ import { escapeHtml as escHtml } from '../lib/escape';
             const { error } = await (supabase.auth as any).unlinkIdentity(dc);
             dcBusy(dcOff, false);
             if (error) { dcSay(D.dcLinkErr || '', 'err'); return; }
+            // Aus Discord uebernommene Felder auch im Formular leeren. Die
+            // Datenbank tut dasselbe per Trigger (trg_unsync_discord_identity);
+            // ohne das hier schriebe das naechste Speichern sie zurueck.
+            const unlinkPatch: Record<string, any> = { discord_tag: null };
+            if (/^https:\/\/cdn\.discordapp\.com\//.test(avatarUrlInput.value.trim())) unlinkPatch.avatar_url = null;
+            await dcSave(unlinkPatch);
+            discordInput.value = '';
+            if ('avatar_url' in unlinkPatch) {
+              avatarUrlInput.value = '';
+              const rm = document.getElementById('pfAvatarRemove');
+              if (rm) rm.hidden = true;
+            }
+            updateCard();
             dcSay(D.dcUnlinkDone || '', 'ok');
             await dcRender();
           } catch {
