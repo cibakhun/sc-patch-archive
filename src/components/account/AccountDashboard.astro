@@ -158,7 +158,7 @@ const COPY = {
     ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
     ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert',
     ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Job: %x%',
-    ovActEmpty: 'Noch keine Aktivität — leg mit einem Favoriten oder einer Freundschaftsanfrage los.',
+    ovActEmpty: 'Noch keine Aktivität.',
   },
   en: {
     loading: 'Loading your account …',
@@ -305,7 +305,7 @@ const COPY = {
     ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
     ovRsiYes: 'Verified', ovRsiNo: 'Not verified',
     ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
-    ovActEmpty: 'No activity yet — start with a favorite or a friend request.',
+    ovActEmpty: 'No activity yet.',
   },
 }[lang];
 
@@ -637,8 +637,10 @@ const SEC = {
             </section>
             <section class="ck-col" aria-labelledby="ckActH">
               <h3 class="ck-h" id="ckActH">{COPY.ovRecent}</h3>
-              <div class="card log ck-log" id="ovActivity">
-                <p class="acx-hint" id="ovActEmpty" style="padding:14px 8px;margin:0">{COPY.ovActEmpty}</p>
+              <div class="card log ck-log" id="ovActivity"></div>
+              <div class="ck-empty" id="ovActEmpty" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-hex"/></svg>
+                <p>{COPY.ovActEmpty}</p>
               </div>
             </section>
           </div>

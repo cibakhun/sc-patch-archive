@@ -1583,3 +1583,47 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
   .sec-form,.sec-msg{margin-left:0}
   .sec-facts{grid-template-columns:minmax(0,1fr)}
 }
+
+/* ============================================================================
+   HELLMODUS (Runde G)
+   Diese Datei war Dark-only. theme.css tauscht im Hellmodus die Palette
+   (:root[data-theme="light"] schlägt das :root oben), der Grund unten blieb
+   aber fest schwarz: helle Karten auf Schwarz, Titel in Dunkel auf Dunkel,
+   Namen in Weiß auf Weiß. Hier: heller Grund, Weltraumbild nur als Hauch,
+   und jedes feste Weiß, das auf einer Fläche (nicht auf Bild oder Akzent)
+   steht, folgt der Textfarbe.
+   ========================================================================== */
+:root[data-theme="light"] .dsr{background:var(--bg);
+  /* .dsr setzt --muted oben zweimal fest hell (Lesbarkeit auf Schwarz);
+     Status- und Rangfarben sind Leuchttöne für Schwarz. Hier dieselben
+     Töne, papiertauglich dunkel. */
+  --muted:#4d596c;--gold:#9a640a;--amber:#8f6c00;--orange:#a8560c;--ok:#147a3a}
+:root[data-theme="light"] .dsr::before{opacity:.05;filter:blur(6px) saturate(.6) brightness(1.4)}
+:root[data-theme="light"] .dsr::after{background:
+  radial-gradient(1200px 780px at 82% -8%, color-mix(in srgb,var(--accent) 7%,transparent), transparent 58%),
+  radial-gradient(1000px 700px at 0% 14%, color-mix(in srgb,var(--accent) 5%,transparent), transparent 55%)}
+:root[data-theme="light"] .dsr ::selection{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+:root[data-theme="light"] :is(.btn:hover,.dsr .acx-upload__btn:hover,.dsr .acc-nav .tab[aria-selected="true"],.fd-row.has-unread .fd-txt b,.dsr .ck-chip:hover,.ck-chat.has-unread .ck-chat__h b,.dsr .sv-act:hover,.acc-id__name,.ck-rank__title b){color:var(--text)}
+
+:root[data-theme="light"] .btn.primary{background:var(--accent)}
+:root[data-theme="light"] .btn.primary:hover{background:color-mix(in srgb,var(--accent) 86%,#000)}
+/* Schrift auf Bildern (Poster-Karten, Banner-Vorlagen) bleibt hell: diese
+   Flächen sind dunkle Inseln wie [data-media-surface] in theme.css. */
+:root[data-theme="light"] .dsr :is(.fav--poster,.banner-opt,.banner-thumb-card){color-scheme:dark;
+  --text:#e8eefc;--muted:#b6c3db;--accent:#2dd4ff;--gold:#e6b25c;--hot:#f4708a;
+  --surface:#0f1524;--surface-2:#141c30;--bg-2:#0a0e18;--line:rgba(110,168,255,.16);--ink:#04121a}
+:root[data-theme="light"] .dsr .fav:not(.fav--poster) :is(.fkind,.fname){text-shadow:none}
+:root[data-theme="light"] .dsr .fav:not(.fav--poster) .fkind{color:color-mix(in srgb,var(--kc,var(--accent)) 60%,#000)}
+:root[data-theme="light"] :is(.acc-dc__txt b,.dsr .inp.is-linked,.ck-k svg,.sec-row.is-on .sec-ic--dc){color:#4752c4}
+:root[data-theme="light"] :is(.fc-msg.is-me p,.rec-remarks p){color:var(--text)}
+:root[data-theme="light"] .ck-pres{color:#a3168f;text-shadow:none}
+
+/* ============================================================================
+   HANDY/SCHMAL (Runde G): Steht man nicht in der Übersicht, schrumpft die
+   Ausweiskarte oben auf Name + Status und die Discord-Karte entfällt (sie
+   steht in Übersicht und Sicherheit). So beginnt der Bereich auf dem
+   ersten Bildschirm statt nach anderthalb Bildschirmen Ausweis.
+   ========================================================================== */
+@media (max-width:1099.98px), (max-height:599.98px){
+  .dsr .acc:has(#tab-panel-overview[hidden]) :is(.acc-id__bio,.acc-id__chips,.acc-id__soc,.acc-id__since,.acc-dc){display:none}
+}

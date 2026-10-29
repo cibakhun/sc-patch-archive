@@ -601,7 +601,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-act--state.is-ok { color: #4ade80; border-color: rgba(34, 197, 94, 0.45); }
   .pp-acts__msg { flex: 1 0 100%; margin: 0; font-size: var(--fs-6); color: var(--muted); }
   .pp-acts__msg[hidden] { display: none; }
-  :root[data-theme='light'] .pp-act--state.is-ok { color: #15803d; border-color: rgba(21, 128, 61, 0.45); }
 
   /* ---------- Content-Wrapper ---------- */
   .pp-wrap { max-width: var(--maxw); margin: 0 auto; padding: 1.8rem clamp(1.25rem, 5vw, 4rem) 4.5rem; }
@@ -812,11 +811,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     .pp-hero__sweep { display: none; }
   }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .pp-chrome{color:#485879}
-:root[data-theme="light"] .pp-verified{color:#046a34}
-:root[data-theme="light"] .pp-transmission{color:#485879}
-:root[data-theme="light"] .pp-bio{color:#4c586f}
-:root[data-theme="light"] .pp-since{color:#485879}
 :root[data-theme="light"] .pp-ship__voidname{color:rgba(2,98,121,.73)}
 </style>
 
