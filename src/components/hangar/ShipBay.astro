@@ -37,6 +37,11 @@ const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ')
 {region === 'panel' && (
   <div class="hgx-tps" data-bay="panel" data-id={bay.id}>
     <section class="hgx-tp" role="tabpanel" id="hgx-tp-overview" aria-labelledby="hgx-tab-overview" tabindex="0">
+      {[bay.overview.head, bay.overview.dims].map((tiles) => (
+        <dl class="hgx-tiles">
+          {tiles.map((x) => <div class={x.value === null ? 'hgx-tile is-na' : 'hgx-tile'} data-k={x.key}><dt>{x.label}</dt><dd>{x.value ?? '–'}</dd></div>)}
+        </dl>
+      ))}
       <dl class="hgx-stats">
         {bay.overview.rows.map((r) => (
           <div class={r.value === null ? 'hg-row is-na' : 'hg-row'} data-k={r.key}>
@@ -45,6 +50,9 @@ const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ')
             <span class="hg-bar" aria-hidden="true"><i style={`--w:${r.pct ?? 0}%`}></i></span>
           </div>
         ))}
+      </dl>
+      <dl class="hgx-tiles">
+        {bay.overview.turn.map((x) => <div class={x.value === null ? 'hgx-tile is-na' : 'hgx-tile'} data-k={x.key}><dt>{x.label}</dt><dd>{x.value ?? '–'}</dd></div>)}
       </dl>
       <p class="hg-note">{bay.overview.note}</p>
     </section>

@@ -227,6 +227,31 @@ export function compareCell(value, base, row, loc) {
   return out;
 }
 
+/**
+ * Die Teile einer Bucht je Gruppe, so wie die Tabs Waffen und Systeme sie
+ * zeigen: Stueckzahl, Groesse und Name je Zeile, gelesen aus dem Markup von
+ * ShipBay.astro (.hgx-grp[data-g] .hgx-slot mit .hgx-sz und .hgx-nm; der
+ * Name traegt ab zwei Stueck das Praefix „2× “, die Unterzeile steht in
+ * <small>). Ohne Groesse steht dort ein Punkt, hier ''.
+ *   bayParts(panel).get('pilot')
+ *   -> [{ n: 1, size: 'S3', name: 'Mantis GT-220 Gatling' }, { n: 2, size: 'S3', name: 'CF-337 Panther Repeater' }]
+ * @param {ParentNode} panel
+ * @returns {Map<string, { n: number, size: string, name: string }[]>}
+ */
+export function bayParts(panel) {
+  const out = new Map();
+  for (const grp of panel.querySelectorAll('.hgx-grp[data-g]')) {
+    out.set(grp.dataset.g, [...grp.querySelectorAll('.hgx-slot')].map((li) => {
+      const nm = li.querySelector('.hgx-nm');
+      const raw = nm ? [...nm.childNodes].filter((x) => x.nodeType === 3).map((x) => x.textContent).join('').trim() : '';
+      const m = /^(\d+)× (.+)$/.exec(raw);
+      const size = li.querySelector('.hgx-sz')?.textContent.trim() ?? '';
+      return { n: m ? Number(m[1]) : 1, size: size === '·' ? '' : size, name: m ? m[2] : raw };
+    }));
+  }
+  return out;
+}
+
 const roundTo = (x, digits) => Math.round(x * 10 ** digits) / 10 ** digits;
 const withUnit = (s, unit) => (unit ? `${s} ${unit}` : s);
 
@@ -1498,9 +1523,11 @@ export function boot(doc) {
   const trayMsg = $('hgx-tray-msg');
   const dlg = $('hgx-cmp');
   const cmpTable = $('hgx-cmp-table');
-  // Einheit, Stellen und Richtung je Kennwert, gebaut an den Zeilen der Tabelle;
-  // die Werte auf den sortierten Dock-Karten lesen dieselben.
-  const rowOf = new Map([...cmpTable.tBodies[0].rows].map((tr) => [tr.dataset.k, { digits: Number(tr.dataset.d), unit: tr.dataset.u, better: Number(tr.dataset.better) }]));
+  // Einheit, Stellen und Richtung je Kennwert, gebaut an den Zahlenzeilen der
+  // Tabelle; die Werte auf den sortierten Dock-Karten lesen dieselben.
+  const cmpRows = [...cmpTable.querySelectorAll('tbody tr')];
+  const rowOf = new Map(cmpRows.filter((tr) => tr.dataset.k).map((tr) => [tr.dataset.k, { digits: Number(tr.dataset.d), unit: tr.dataset.u, better: Number(tr.dataset.better) }]));
+  const sizeLabel = new Map(vocab.size.map((e) => [e.k, e.l]));
   let carry = null;
   let opener = null;
 
@@ -1544,13 +1571,32 @@ export function boot(doc) {
         el('span', { class: 'hgx-cmp__acts' }, el('button', { type: 'button', class: 'hgx-linkbtn', 'data-cmp-show': id }, m.show), removeBtn(id, m)),
       ));
     }
-    for (const tr of cmpTable.tBodies[0].rows) {
+    const cls = (id) => (id === base ? 'is-base' : '');
+    for (const tr of cmpRows) {
+      if (tr.classList.contains('hgx-cmp__sec')) {
+        tr.cells[0].colSpan = state.cmp.length + 1;
+        continue;
+      }
       while (tr.cells.length > 1) tr.deleteCell(-1);
+      // Wortzeilen (Fokus, Groesse) aus dem Dock, ohne Abweichung.
+      if (tr.dataset.t) {
+        for (const id of state.cmp) {
+          const li = dock.get(id).li;
+          const text = tr.dataset.t === 'role' ? li.querySelector('.hg-card__s em')?.textContent : sizeLabel.get(li.dataset.sz);
+          tr.append(el('td', { class: cls(id) }, el('span', { class: 'hgx-cmp__v' }, text || '–')));
+        }
+        continue;
+      }
+      // Hardpoints und Bauteile kommen aus den Buchten (paintParts).
+      if (tr.dataset.g) {
+        for (const id of state.cmp) tr.append(el('td', { class: `${cls(id)} is-wait`.trim() }, m.loading));
+        continue;
+      }
       const row = rowOf.get(tr.dataset.k);
       const b = dock.get(base).stat[tr.dataset.k];
       for (const id of state.cmp) {
         const c = compareCell(dock.get(id).stat[tr.dataset.k], id === base ? null : b, row, loc);
-        const td = el('td', { class: id === base ? 'is-base' : '' }, el('span', { class: 'hgx-cmp__v' }, c.value));
+        const td = el('td', { class: cls(id) }, el('span', { class: 'hgx-cmp__v' }, c.value));
         if (c.delta) {
           const word = c.tone === 'up' ? m.better : c.tone === 'down' ? m.worse : null;
           td.append(el('span', { class: `hgx-delta is-${c.tone}` }, c.delta, ...(word ? [el('span', { class: 'hgx-sr' }, ` ${word}`)] : [])));
@@ -1558,7 +1604,40 @@ export function boot(doc) {
         tr.append(td);
       }
     }
+    paintParts();
     if (f && !f.isConnected) ((again && cmpTable.querySelector(again)) || dlg.querySelector('.hgx-cmp__name') || $('hgx-cmp-close')).focus();
+  }
+
+  // Bewaffnung und Systeme je Schiff aus seiner Bucht (dieselben Gruppen wie
+  // in den Tabs Waffen und Systeme), geholt ueber den Cache des Hallenwechsels.
+  // Eine Zeile, die keines der Schiffe fuehrt (Bomben, PDC), faellt weg;
+  // eine Bucht, die nicht kommt, zeigt den Strich statt ewig „Laedt“.
+  let partsTok = 0;
+  function paintParts() {
+    const my = ++partsTok;
+    const ids = state.cmp;
+    Promise.allSettled(ids.map((id) => loadBay(id))).then((res) => {
+      if (my !== partsTok) return;
+      const parts = res.map((r) => (r.status === 'fulfilled' ? bayParts(r.value.panel) : null));
+      for (const tr of cmpRows) {
+        if (!tr.dataset.g) continue;
+        const lists = parts.map((p) => p?.get(tr.dataset.g) ?? []);
+        tr.hidden = parts.every(Boolean) && lists.every((l) => !l.length);
+        lists.forEach((list, i) => {
+          const td = tr.cells[i + 1];
+          td.classList.remove('is-wait');
+          td.replaceChildren(...(list.length
+            ? list.map((x) => el('span', { class: 'hgx-cmp__hp' }, el('b', {}, `${x.n}×${x.size ? ` ${x.size}` : ''}`), ' ', el('span', {}, x.name)))
+            : ['–']));
+        });
+      }
+      for (const body of cmpTable.tBodies) {
+        const rows = [...body.rows].filter((tr) => !tr.classList.contains('hgx-cmp__sec'));
+        body.hidden = rows.length > 0 && rows.every((tr) => tr.hidden);
+        const jump = dlg.querySelector(`[data-cmp-jump="${body.dataset.sec}"]`);
+        if (jump) jump.hidden = body.hidden;
+      }
+    });
   }
 
   function paintView() {
@@ -1615,7 +1694,12 @@ export function boot(doc) {
   dlg.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
-    if (b.id === 'hgx-cmp-close') closeCompare();
+    if (b.dataset.cmpJump) {
+      // Unter den klebenden Kopf der Spalten, nicht dahinter.
+      const sec = cmpTable.querySelector(`tbody[data-sec="${b.dataset.cmpJump}"]`);
+      const box = sec?.closest('.hgx-cmp__scroll');
+      if (box && !sec.hidden) box.scrollTo({ top: sec.offsetTop - cmpTable.tHead.offsetHeight, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    } else if (b.id === 'hgx-cmp-close') closeCompare();
     else if (b.dataset.cmpShow) closeCompare({ ship: b.dataset.cmpShow, hp: null });
     else if (b.dataset.cmpBase && b.dataset.cmpBase !== state.cmp[0]) setState({ cmp: [b.dataset.cmpBase, ...state.cmp.filter((id) => id !== b.dataset.cmpBase)] });
     else if (b.dataset.cmpRemove) {
