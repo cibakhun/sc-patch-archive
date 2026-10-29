@@ -2168,17 +2168,21 @@ span.sd__ref{color:var(--muted)}
         {localVid && (
           /* Selbst-gehosteter, stummer Loop: KEIN Player-Chrome, kein Start-Icon.
              poster = Schiffs-Standbild (deckt bis zum ersten Frame ab); der
-             Bild-Boden dahinter fängt einen Ladefehler auf -> nie schwarz. */
+             Bild-Boden dahinter fängt einen Ladefehler auf -> nie schwarz.
+             ⚠ Ohne autoplay und mit preload="none": Die Bühne startet im Holo,
+             und mit autoplay + preload="auto" zog jeder Aufruf die 4,6 MB,
+             auch bei Bewegungsreduzierung, Datensparmodus oder auf dem
+             Telefon — gegen die Zusage in der Datenschutzerklärung. Geladen
+             wird erst, wenn applyMode() in den Video-Modus wechselt. */
           <video
             class="holo__localvid"
             id="hololocalvid"
             src={localVid}
             poster={gallery[0]?.src}
-            autoplay
             muted
             loop
             playsinline
-            preload="auto"
+            preload="none"
             aria-hidden="true"
           ></video>
         )}

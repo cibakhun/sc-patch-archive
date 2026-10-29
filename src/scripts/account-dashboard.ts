@@ -1553,9 +1553,24 @@ import { supabase } from '../lib/supabase';
       // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung sagt,
       // was mit dem Konto geht, ist weg. vb_share_ ist der Schalterstand,
       // den account-lite.js für den Puls im Tab merkt.
+      // Dazu die Konto-Spiegel der Werkzeuge (Flotte, Crafting, Hangar-
+      // Layouts). Flotte und Crafting räumen ihren Spiegel selbst weg, aber
+      // erst, wenn eine ihrer Seiten abgemeldet läuft; den Layout-Spiegel
+      // räumte niemand weg. Gleiche Regel wie dropMirrors() in fleet.js und
+      // crafting-app.js: nach dem Abmelden sieht auf einem geteilten Rechner
+      // niemand mehr, was der Vorgänger besitzt oder plant.
+      const MIRROR_PREFIXES = ['vb.fleet.v1.', 'craft.state.v2.', 'vb.layouts.v1.'];
       const forgetLocalCopies = () => {
         try { localStorage.removeItem(localKey); localStorage.removeItem('vb_rsi_code'); } catch { /* egal */ }
         try { sessionStorage.removeItem(`vb_share_${user.id}`); } catch { /* egal */ }
+        try {
+          const doomed: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && MIRROR_PREFIXES.some((p) => k.startsWith(p))) doomed.push(k);
+          }
+          doomed.forEach((k) => localStorage.removeItem(k));
+        } catch { /* egal */ }
       };
 
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.

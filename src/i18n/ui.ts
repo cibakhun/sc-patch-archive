@@ -159,7 +159,7 @@ const UI = {
     'ship.view.switch': 'Darstellung wechseln',
     'ship.video.play': 'Commercial abspielen',
     // Klick-Schranke vor dem YouTube-Player (ShipDetail #holoytgate)
-    'ship.video.note': 'Der Klick lädt das Video von YouTube (youtube-nocookie.com).',
+    'ship.video.note': 'Der Klick lädt das Video von YouTube, also von Google.',
     'ship.video.fallback': 'Auf YouTube ansehen',
     'ship.holo.drag': '3D-Ansicht — ziehen zum Drehen',
     'ship.holo.loading': '3D-Modell lädt … %p% %',
@@ -570,7 +570,7 @@ const UI = {
     'ship.view.switch': 'Switch view',
     'ship.video.play': 'Play commercial',
     // click gate in front of the YouTube player (ShipDetail #holoytgate)
-    'ship.video.note': 'The click loads the video from YouTube (youtube-nocookie.com).',
+    'ship.video.note': 'The click loads the video from YouTube, i.e. from Google.',
     'ship.video.fallback': 'Watch on YouTube',
     'ship.holo.drag': '3D view — drag to rotate',
     'ship.holo.loading': 'Loading 3D model … %p% %',
