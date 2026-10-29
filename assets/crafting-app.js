@@ -832,6 +832,13 @@
       apply();
     });
   });
+  // Ein Klick auf das Haekchen einer Kategorie (es sitzt in der <summary>)
+  // darf nicht bis zur Gruppe durchgehen. Stand frueher als onclick-Attribut
+  // am <label>; Inline-Handler laesst die Content-Security-Policy nicht mehr
+  // zu (script-src-attr).
+  $$('.cdb-check--top').forEach(function (l) {
+    l.addEventListener('click', function (e) { e.stopPropagation(); });
+  });
   $$('.cdb-sub').forEach(function (cb) {
     cb.addEventListener('change', function () { state.subs[cb.value] = cb.checked; apply(); });
   });

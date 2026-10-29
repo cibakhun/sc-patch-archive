@@ -670,7 +670,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         {catList.map((c) => (
           <details class="cdb-cat-details">
             <summary class="cdb-cat-summary">
-              <label class="cdb-check cdb-check--top" onclick="event.stopPropagation()">
+              <label class="cdb-check cdb-check--top">
                 <input type="checkbox" class="cdb-cat" value={c.top} />
                 <span>{c.top} <em>{c.count}</em></span>
               </label>
