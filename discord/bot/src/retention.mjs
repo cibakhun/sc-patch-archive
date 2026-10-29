@@ -65,18 +65,18 @@ export function reconcileLeavers(db, guildId, memberIds, now = Date.now()) {
   return { seen, marked, cleared };
 }
 
-/**
- * Zeilen aus Gilden, in denen der Bot nicht mehr ist, laufen in dieselbe
- * Frist. Die Heim-Gilde nie: fehlt sie, ist der Bot dort eher versehentlich
- * draussen oder der Zugang falsch, und ihre Raenge sollen das ueberstehen.
- * Rein (kein Discord-Aufruf), damit selftest.mjs es pruefen kann.
- */
 // Gilt die Gilde als verlassen? Dieselbe Regel fuers Vormerken und fuers
 // Loeschen. In keiner Gilde: eher falscher Zugang als Abschied. Ohne
 // gueltige Heim-Gilden-ID auch nie: dann waere die Heim-Gilde von einer
 // fremden nicht zu unterscheiden.
 export const ohneBot = (presentIds, homeId) => (g) => presentIds.size > 0 && !!homeId && g !== homeId && !presentIds.has(g);
 
+/**
+ * Zeilen aus Gilden, in denen der Bot nicht mehr ist, laufen in dieselbe
+ * Frist. Die Heim-Gilde nie: fehlt sie, ist der Bot dort eher versehentlich
+ * draussen oder der Zugang falsch, und ihre Raenge sollen das ueberstehen.
+ * Rein (kein Discord-Aufruf), damit selftest.mjs es pruefen kann.
+ */
 export function markOrphanedGuilds(db, presentIds, homeId, now = Date.now()) {
   const weg = ohneBot(presentIds, homeId);
   let marked = 0;
