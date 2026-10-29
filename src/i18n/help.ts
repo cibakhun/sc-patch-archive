@@ -193,7 +193,7 @@ export const HELP = {
     'hangar.title': 'Wie funktioniert der Hangar?',
     'hangar.purpose':
       'Zeigt jedes Schiff in einer 3D-Halle, mit Kennwerten und mit Waffen, Systemen und Fracht je Hardpoint — dazu ein Vergleich von bis zu drei Schiffen, die eigene Flotte und eine Werkstatt für eigene Layouts.',
-    'hangar.step1': 'Unten die Schiffsauswahl aufklappen und ein Schiff wählen: per Suche, Filter, Sortierung oder Zufall. Die Pfeiltasten wechseln es auch zugeklappt.',
+    'hangar.step1': 'Links die Schiffsauswahl aufklappen (am Handy steht sie unten) und ein Schiff wählen: per Suche, Filter, Sortierung oder Zufall. Die Pfeiltasten wechseln es auch zugeklappt.',
     'hangar.step2': 'In der Tafel zwischen Überblick, Waffen, Systemen und Fracht wechseln; eine Zeile zeigt ihren Hardpoint am Schiff.',
     'hangar.step3': '„Vergleichen" sammelt bis zu drei Schiffe im Korb, der sie nebeneinander öffnet.',
     'hangar.step4': '„Zur Flotte" merkt sich ein Schiff, ohne Konto in diesem Browser, mit Konto überall.',
@@ -407,7 +407,7 @@ export const HELP = {
     'hangar.title': 'How does the hangar work?',
     'hangar.purpose':
       'Shows every ship in a 3D hall with its key figures and its weapons, systems and cargo per hardpoint — plus a side-by-side comparison of up to three ships, a personal fleet and a workshop for your own loadouts.',
-    'hangar.step1': 'Open the ship selection below and pick a ship: by search, filter, sort order or chance. The arrow keys change it while closed too.',
+    'hangar.step1': 'Open the ship selection on the left (at the bottom on phones) and pick a ship: by search, filter, sort order or chance. The arrow keys change it while closed too.',
     'hangar.step2': 'Switch the panel between overview, weapons, systems and cargo; a row points at its hardpoint on the ship.',
     'hangar.step3': '“Compare” collects up to three ships in the tray, which opens them side by side.',
     'hangar.step4': '“Add to fleet” keeps a ship, in this browser without an account and everywhere with one.',
