@@ -155,14 +155,17 @@ import { SUPABASE, DISCORD } from '../consts';
 
       // Nur SAME-ORIGIN-Rücksprungziele akzeptieren (kein offener Redirect,
       // T-14-05): genau ein führender "/", kein "//" (Protokoll-relativ).
-      // Zusätzlich gegen die eigene Origin aufgelöst, Muster aus
-      // AuthLogin.astro übernommen.
+      // Zusätzlich gegen die eigene Origin aufgelöst, und auch der FERTIGE
+      // Pfad muss mit genau einem "/" beginnen. Dieselbe Regel wie
+      // src/lib/safe-next.ts (hier als Kopie, die Seite ist bundlerfrei).
       function safeNext(raw) {
         if (!raw || raw.charAt(0) !== '/' || raw.charAt(1) === '/') return '/';
         try {
           var u = new URL(raw, location.origin);
           if (u.origin !== location.origin) return '/';
-          return u.pathname + u.search + u.hash;
+          var rel = u.pathname + u.search + u.hash;
+          if (rel.charAt(1) === '/' || rel.charAt(1) === '\\') return '/';
+          return rel;
         } catch (e) {
           return '/';
         }
@@ -190,28 +193,126 @@ import { SUPABASE, DISCORD } from '../consts';
         });
       }
 
+      // Gespeicherte Sitzung, bei Bedarf erneuert. Das Zugangstoken lebt nur
+      // eine Stunde; wer nach Tagen wiederkommt, hat ein abgelaufenes, und
+      // /_gate/mint wies es still ab (Supabase 401 -> 403) — der Testpilot
+      // musste sich neu anmelden, obwohl sein refresh_token noch galt.
+      // Erneuert wird wie in assets/account-lite.js (refresh/swap): gleicher
+      // Endpunkt, gleiche Ablageform, gleicher Riegel gegen einen zweiten
+      // Refresh aus einem anderen Tab. Zurueckgeschrieben wird PFLICHT:
+      // refresh_tokens rotieren, ein verworfenes Ergebnis liesse die
+      // Kontoseite mit einem verbrauchten Token zurueck. Geschrieben wird nur,
+      // solange noch die Sitzung gespeichert ist, fuer die gefragt wurde.
+      // Ergebnis: eine Sitzung mit gueltigem Zugangstoken oder null.
+      var REFRESH_LOCK = 'sb-lite-refresh-lock';
+      // Restlaufzeit in Sekunden: expires_at der Ablage, sonst exp aus dem
+      // Token selbst; ohne beides unbekannt (Infinity) — dann entscheidet
+      // /_gate/mint wie bisher.
+      function expiresIn(sess) {
+        var at = sess && sess.expires_at;
+        if (!at) at = jwtClaim(sess && sess.access_token, 'exp');
+        return typeof at === 'number' && at > 0 ? at - Math.floor(Date.now() / 1000) : Infinity;
+      }
+      function usable(sess) {
+        return sess && sess.access_token && expiresIn(sess) > 0 ? sess : null;
+      }
+      // Warum freshSession() zuletzt keine Sitzung lieferte: 'rejected' (das
+      // refresh_token gilt nicht mehr) oder 'down' (Supabase nicht erreichbar).
+      var refreshFail = '';
+      // force: auch ein nach der Uhr noch gueltiges Token erneuern.
+      function freshSession(force) {
+        refreshFail = '';
+        var sess = readSession();
+        if (!sess || !sess.access_token) return Promise.resolve(null);
+        if (!force && expiresIn(sess) > 60) return Promise.resolve(sess);
+        if (!sess.refresh_token) return Promise.resolve(usable(sess));
+        var lock = 0;
+        try { lock = +localStorage.getItem(REFRESH_LOCK) || 0; } catch (e) { /* noop */ }
+        if (Date.now() - lock < 10000) {
+          // Ein anderer Tab erneuert gerade: kurz warten, dann dessen Ergebnis.
+          return new Promise(function (res) { setTimeout(res, 1500); }).then(function () { return usable(readSession()); });
+        }
+        try { localStorage.setItem(REFRESH_LOCK, String(Date.now())); } catch (e) { /* noop */ }
+        return fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+          method: 'POST',
+          headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: sess.refresh_token }),
+        })
+          .then(function (r) {
+            var stored = readSession();
+            if (!stored || stored.refresh_token !== sess.refresh_token) return usable(stored);
+            // Abgelehntes refresh_token: die Sitzung ist tot, wie account-lite.js
+            // raeumt die Seite sie weg. 5xx/429 lassen sie liegen.
+            if (r.status === 400 || r.status === 401 || r.status === 403) {
+              try { localStorage.removeItem(STORE); } catch (e) { /* noop */ }
+              refreshFail = 'rejected';
+              return null;
+            }
+            if (!r.ok) { refreshFail = 'down'; return usable(stored); }
+            return r.json().then(function (fresh) {
+              if (!fresh || !fresh.access_token) return usable(readSession());
+              var now = readSession();
+              if (!now || now.refresh_token !== sess.refresh_token) return usable(now);
+              storeSession(fresh);
+              return fresh;
+            });
+          })
+          .catch(function () { refreshFail = 'down'; return usable(readSession()); });
+      }
+
       // Schon angemeldet (Sitzung aus einem frueheren Besuch oder von
       // account-lite.js aktualisiert)? Dann direkt minten und weiterspringen.
       // Laeuft erst, wenn kein Discord-Ruecksprung zu behandeln ist (unten).
-      function tryEnter() {
-        var sess = readSession();
-        if (!sess || !sess.access_token) return;
-        mint(sess.access_token).then(function (r) {
-          if (r.ok) { location.replace(next); return; }
-          // Abgewiesen, Sitzung noch ohne Code, Konto mit Authenticator
-          // (Admin-Zweig verlangt aal2): den Code anbieten.
-          var f = r.status === 403 ? codeFactors(sess) : null;
-          if (f) askGateCode(sess, f, 'Enter the code from your authenticator app to continue.');
+      // rejected: das Zugangstoken, das /_gate/mint eben abgewiesen hat
+      // (nur beim einen Wiederholungsversuch gesetzt).
+      function tryEnter(rejected) {
+        freshSession(!!rejected).then(function (sess) {
+          // Erneuern ging nicht (Supabase gestoert, anderer Tab noch dabei):
+          // dasselbe Token kaeme wieder zurueck, also nicht noch einmal minten.
+          if (sess && rejected && sess.access_token === rejected) {
+            showDiscordStatus('Could not renew your sign-in — please try again in a moment.', 'error');
+            return;
+          }
+          if (!sess) {
+            if (refreshFail === 'rejected') showDiscordStatus('Your sign-in has expired — please sign in again.', 'error');
+            else if (refreshFail === 'down') showDiscordStatus('Could not renew your sign-in — please try again in a moment.', 'error');
+            return;
+          }
+          return mint(sess.access_token).then(function (r) {
+            if (r.ok) { location.replace(next); return; }
+            if (r.status !== 403) return;
+            return r.json().then(function (b) { return (b && b.grund) || ''; }, function () { return ''; }).then(function (grund) {
+              // 'kein-zugang': der Anmeldedienst hat das Token selbst
+              // abgewiesen, obwohl es nach der Uhr dieses Geraets noch gilt
+              // (Uhr verstellt, Sitzung anderswo beendet). Einmal erneuern
+              // und neu versuchen; ein Konto ohne Zugang kommt mit
+              // 'kein-testpilot' oder 'gesperrt' und erneuert nicht.
+              if (grund === 'kein-zugang' && !rejected && sess.refresh_token) { tryEnter(sess.access_token); return; }
+              if (grund === 'kein-zugang') { showDiscordStatus('Your sign-in has expired — please sign in again.', 'error'); return; }
+              // Abgewiesen, Sitzung noch ohne Code, Konto mit Authenticator
+              // (Admin-Zweig verlangt aal2): den Code anbieten.
+              var f = codeFactors(sess);
+              if (f) { askGateCode(sess, f, 'Enter the code from your authenticator app to continue.'); return; }
+              // Gueltige Sitzung, aber kein Zugang: sagen statt still stehen.
+              showDiscordStatus('You are signed in, but this account has no Test Pilot access.', 'error');
+            });
+          });
         }).catch(function () { /* bleibt auf der Torseite */ });
       }
 
       // ---- Zweiter Faktor (TOTP) ------------------------------------------
-      function jwtAal(token) {
+      // Ein Feld aus der Nutzlast des Zugangstokens, ungeprueft gelesen: nur
+      // fuer Entscheidungen dieser Seite (Code abfragen, erneuern), nie fuer
+      // den Zugang — den entscheidet /_gate/mint.
+      function jwtClaim(token, name) {
         try {
           var p = String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
           while (p.length % 4) p += '=';
-          return JSON.parse(atob(p)).aal || '';
-        } catch (e) { return ''; }
+          return JSON.parse(atob(p))[name];
+        } catch (e) { return undefined; }
+      }
+      function jwtAal(token) {
+        return jwtClaim(token, 'aal') || '';
       }
       // Bestaetigte TOTP-Faktoren, wenn die Sitzung noch den Code braucht;
       // sonst null. Die Faktoren stehen im user-Objekt der Token-Antwort.
@@ -260,9 +361,20 @@ import { SUPABASE, DISCORD } from '../consts';
         if (tone) mfaStatus.setAttribute('data-tone', tone);
         else mfaStatus.removeAttribute('data-tone');
       }
+      // Nach einer endgueltigen Absage (kein Testpilot, Anmeldung abgelaufen)
+      // fuehrt der Code-Schritt nirgends mehr hin: Feld und Knopf aus, die
+      // Meldung bleibt stehen. Weiter geht es nur mit einer neuen Anmeldung.
+      function closeMfa() {
+        mfaPending = null;
+        mfaBtn.disabled = true;
+        mfaBtnTxt.textContent = 'Verify';
+        try { document.getElementById('gateMfaCode').disabled = true; } catch (e) { /* noop */ }
+      }
       function askGateCode(sess, factors, msg) {
         mfaPending = { sess: sess, factors: factors };
         mfaForm.hidden = false;
+        mfaBtn.disabled = false;
+        try { document.getElementById('gateMfaCode').disabled = false; } catch (e) { /* noop */ }
         showMfaStatus(msg || '');
         try { document.getElementById('gateMfaCode').focus(); } catch (e) { /* noop */ }
       }
@@ -285,6 +397,7 @@ import { SUPABASE, DISCORD } from '../consts';
                   : 'Could not verify the code — please try again.',
                 'error'
               );
+              if (res.status === 401) { closeMfa(); return; }
               mfaBtn.disabled = false;
               mfaBtnTxt.textContent = 'Verify';
               return;
@@ -296,13 +409,14 @@ import { SUPABASE, DISCORD } from '../consts';
                 location.replace(next);
                 return;
               }
-              mfaPending = null;
-              showMfaStatus(
-                r.status === 403
-                  ? 'Signed in, but this account has no Test Pilot access.'
-                  : 'Could not verify access — please try again.',
-                'error'
-              );
+              if (r.status === 403) {
+                showMfaStatus('Signed in, but this account has no Test Pilot access.', 'error');
+                closeMfa();
+                return;
+              }
+              // Sonst bleibt der Code-Schritt offen: ein neuer Code aus der
+              // App versucht es noch einmal mit derselben Anmeldung.
+              showMfaStatus('Could not verify access — please try again with the next code.', 'error');
               mfaBtn.disabled = false;
               mfaBtnTxt.textContent = 'Verify';
             });
@@ -328,10 +442,11 @@ import { SUPABASE, DISCORD } from '../consts';
         else status.removeAttribute('data-tone');
       }
 
-      // innerHTML ist hier unbedenklich: msg ist IMMER eine der drei
-      // handgeschriebenen Konstanten unten, NIE error_description roh.
+      // textContent: keine Meldung dieser Seite traegt mehr Markup (der Link
+      // zur E-Mail-Registrierung ist weg), und error_description kommt so
+      // auch kuenftig nie als HTML an.
       function showDiscordStatus(msg, tone) {
-        discordStatus.innerHTML = msg;
+        discordStatus.textContent = msg;
         if (tone) discordStatus.setAttribute('data-tone', tone);
         else discordStatus.removeAttribute('data-tone');
       }
@@ -339,13 +454,38 @@ import { SUPABASE, DISCORD } from '../consts';
       // PKCE ohne SDK (RFC 7636, S256): base64url ohne Auffuellung. Der
       // Verifier liegt im localStorage, nicht im sessionStorage: oeffnet die
       // Discord-App den Ruecksprung in einem neuen Tab, ist er dort sonst
-      // weg. Er ist nur zusammen mit dem Code nutzbar und wird beim ersten
-      // Ruecksprung verbraucht.
+      // weg. Je Anmeldung ein Eintrag unter einer Zufallskennung (f), die
+      // als einziger Parameter im redirect_to mitreist: zwei Tabs stoeren
+      // sich nicht, und das Rueckziel (next) bleibt im Browser, statt ueber
+      // den Anmeldedienst und Discord zu laufen. Ein Eintrag ist nur
+      // zusammen mit dem Code nutzbar, wird beim ersten Ruecksprung
+      // verbraucht und verfaellt nach 15 Minuten.
       var PKCE_KEY = 'vb_gate_pkce';
+      var PKCE_TTL_MS = 15 * 60 * 1000;
+      var FLOW_RE = /^[A-Za-z0-9_-]{16}$/;
       function b64url(bytes) {
         var s = '';
         for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
         return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+      // Laufende Anmeldungen dieses Browsers; Abgelaufenes und Unlesbares
+      // (auch das fruehere Format, ein blosser Verifier) faellt dabei weg.
+      function readFlows() {
+        var all = null;
+        try { all = JSON.parse(localStorage.getItem(PKCE_KEY) || 'null'); } catch (e) { all = null; }
+        var live = {};
+        if (!all || typeof all !== 'object' || Array.isArray(all)) return live;
+        var now = Date.now();
+        Object.keys(all).forEach(function (k) {
+          var f = all[k];
+          if (FLOW_RE.test(k) && f && typeof f.v === 'string' && typeof f.n === 'string' &&
+              typeof f.t === 'number' && f.t <= now && now - f.t < PKCE_TTL_MS) live[k] = f;
+        });
+        return live;
+      }
+      function writeFlows(flows) {
+        if (Object.keys(flows).length) localStorage.setItem(PKCE_KEY, JSON.stringify(flows));
+        else localStorage.removeItem(PKCE_KEY);
       }
 
       discordBtn.addEventListener('click', function () {
@@ -353,17 +493,22 @@ import { SUPABASE, DISCORD } from '../consts';
         discordBtnTxt.textContent = 'Redirecting …';
         // Keine zusaetzlichen Scopes -- identify+email ist die
         // Provider-Vorgabe (D-03, siehe Koordinator-Gegenprobe:
-        // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst
-        // (next bleibt erhalten), damit der Ruecksprung SDK-frei vom
-        // bestehenden Inline-Skript gelesen werden kann.
-        var redirectTo = location.origin + '/gate.html?next=' + encodeURIComponent(next);
-        var verifier;
+        // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst,
+        // damit der Ruecksprung SDK-frei vom bestehenden Inline-Skript
+        // gelesen werden kann; next steht im Eintrag, nicht in der Adresse.
+        var verifier, flow;
         try {
           var raw = new Uint8Array(32);
           crypto.getRandomValues(raw);
           verifier = b64url(raw);
-          localStorage.setItem(PKCE_KEY, verifier);
+          var id = new Uint8Array(12);
+          crypto.getRandomValues(id);
+          flow = b64url(id);
+          var flows = readFlows();
+          flows[flow] = { v: verifier, n: next, t: Date.now() };
+          writeFlows(flows);
         } catch (e) { verifier = null; }
+        var redirectTo = location.origin + '/gate.html?f=' + flow;
         if (!verifier || !crypto.subtle) {
           showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
           discordBtn.disabled = false;
@@ -382,18 +527,20 @@ import { SUPABASE, DISCORD } from '../consts';
         });
       });
 
-      // D-02: unbekanntes Discord-Konto -> Weg nennen, nicht den Rohtext der
-      // Datenbank. GoTrue verpackt die im Trigger geworfene Ausnahme
-      // mancherorts generisch ("Database error saving new user",
-      // error_code "unexpected_failure") statt den eigenen Text
-      // durchzureichen (offener Punkt .planning/WINDOWS.md id 16) -- darum
-      // wird auf BEIDE Formen reagiert.
-      function looksLikeSignupBlocked(desc, code) {
+      // Konto liess sich nicht anlegen: GoTrue meldet einen Fehler aus dem
+      // Anlege-Trigger generisch ("Database error saving new user",
+      // error_code "unexpected_failure"). Bis 29.10.2026 hiess das "Discord
+      // darf kein Konto anlegen" (D-02) und die Seite schickte zur
+      // E-Mail-Registrierung. D-02 ist aufgehoben
+      // (20261029121956_allow_discord_signup.sql), und die E-Mail-
+      // Registrierung ist pausiert (register antwortet 503). Der Hinweis
+      // folgt jetzt der Anmeldeseite (AuthLogin.astro, errDiscordBlocked):
+      // der haeufigste Grund ist eine E-Mail-Adresse, die schon einem Konto
+      // gehoert, und dafuer steht das Formular darunter.
+      function looksLikeAccountSetupFailed(desc, code) {
         var d = (desc || '').toLowerCase();
         var c = (code || '').toLowerCase();
-        return d.indexOf('kein konto auf verse-base.com') !== -1 ||
-          d.indexOf('database error saving new user') !== -1 ||
-          c === 'unexpected_failure';
+        return d.indexOf('database error saving new user') !== -1 || c === 'unexpected_failure';
       }
 
       // Rueckgabe: true, wenn ein Discord-Ruecksprung behandelt wird (dann
@@ -410,29 +557,36 @@ import { SUPABASE, DISCORD } from '../consts';
         var tokensInUrl = hp.has('access_token') || hp.has('refresh_token') ||
           qp.has('access_token') || qp.has('refresh_token');
         if (!code && !oauthErr && !tokensInUrl && !hp.has('error_description')) return false;
-        // Verbraucht wird der Verifier nur bei einem Ruecksprung mit Code
-        // oder Fehler; ein blosser Aufruf der Torseite (zweiter Tab) laesst
-        // eine laufende Anmeldung in Ruhe.
+        // Verbraucht wird ein Eintrag nur bei einem Ruecksprung mit Code
+        // oder Fehler, und nur der dieser Anmeldung (f); ein blosser Aufruf
+        // der Torseite (zweiter Tab) laesst laufende Anmeldungen in Ruhe.
+        // Das Rueckziel kommt aus dem Eintrag und geht erneut durch safeNext.
         var verifier = null;
         if (code || oauthErr) {
-          try { verifier = localStorage.getItem(PKCE_KEY); localStorage.removeItem(PKCE_KEY); } catch (e) { /* noop */ }
+          try {
+            var flowId = qp.get('f') || '';
+            var flows = readFlows();
+            var entry = FLOW_RE.test(flowId) ? flows[flowId] : null;
+            if (entry) delete flows[flowId];
+            writeFlows(flows);
+            if (entry) { verifier = entry.v; next = safeNext(entry.n); }
+          } catch (e) { /* noop */ }
         }
 
         // Adresse sofort bereinigen (T-14-23): kein Code, Token oder
         // Fehlertext im Verlauf, in einem Lesezeichen oder Bildschirmfoto.
-        // Nur next bleibt stehen.
+        // Nur next bleibt stehen (auch das aus dem Eintrag, fuer ein
+        // Neuladen nach einem Fehler).
         var keep = new URLSearchParams();
-        if (qp.has('next')) keep.set('next', qp.get('next'));
+        if (next !== '/') keep.set('next', next);
         var ks = keep.toString();
         history.replaceState(null, '', location.pathname + (ks ? '?' + ks : ''));
 
         if (oauthErr) {
-          if (looksLikeSignupBlocked(errDesc, errCode)) {
+          if (looksLikeAccountSetupFailed(errDesc, errCode)) {
             showDiscordStatus(
-              'There is no verse-base.com account linked to this Discord account yet. ' +
-              'Register with e-mail and password first on ' +
-              '<a href="https://verse-base.com/account/register.html">the live site</a>, ' +
-              'then link Discord in your account.',
+              'Discord did not work. Do you already have a VerseBase account with the same e-mail? ' +
+              'Then sign in with e-mail and password below.',
               'error'
             );
           } else {
@@ -499,6 +653,9 @@ import { SUPABASE, DISCORD } from '../consts';
         return true;
       }
 
+      // Abgelaufene oder unlesbare Anmelde-Eintraege bei jedem Aufruf
+      // wegraeumen; laufende Anmeldungen anderer Tabs bleiben stehen.
+      try { if (localStorage.getItem(PKCE_KEY) !== null) writeFlows(readFlows()); } catch (e) { /* noop */ }
       if (!handleOauthReturn()) tryEnter();
 
       form.addEventListener('submit', function (e) {

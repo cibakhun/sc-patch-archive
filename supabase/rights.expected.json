@@ -45,6 +45,7 @@
       "authenticated": ["EXECUTE"],
       "warum": "RLS-Policy dm_insert ruft sie fuer authenticated auf; ohne EXECUTE scheitert jede Nachricht"
     },
+    "function public.checkout_rate_ok(p_ip_key text)": { "warum": "nur Edge Function create-checkout-session (service_role), 20261030160000" },
     "function public.direct_messages_guard()": { "warum": "Triggerfunktion; EXECUTE wird beim Feuern nicht geprueft" },
     "function public.donations_bump_progress()": { "warum": "Triggerfunktion (stripe-webhook, service_role)" },
     "function public.gate_verdict()": {
@@ -90,6 +91,7 @@
       "warum": "PostgREST braucht USAGE; CREATE hat nur der Besitzer"
     },
 
+    "sequence private.checkout_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence private.register_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence private.rsi_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence public.direct_messages_id_seq": { "warum": "identity: Postgres prueft beim Einfuegen kein Sequenzrecht" },
@@ -97,6 +99,7 @@
     "sequence public.favorites_id_seq": { "warum": "identity" },
     "sequence public.refinery_jobs_id_seq": { "warum": "identity" },
 
+    "table private.checkout_attempts": { "warum": "nur checkout_rate_ok (security definer)" },
     "table private.register_attempts": { "warum": "nur register_rate_ok (security definer)" },
     "table private.rsi_attempts": { "warum": "nur rsi_rate_ok (service_role)" },
     "table private.rsi_challenges": { "warum": "nur Edge Function verify-rsi (service_role)" },
@@ -159,6 +162,11 @@
       "anon": ["SELECT"],
       "authenticated": ["SELECT"],
       "warum": "PilotPage (oeffentlich); View mit Besitzerrechten"
+    },
+    "view public.public_showcase": {
+      "anon": ["SELECT"],
+      "authenticated": ["SELECT"],
+      "warum": "PilotPage (oeffentlich): angeheftete Loadouts; View mit Besitzerrechten (20261029205000)"
     },
     "view public.public_profiles": {
       "anon": ["SELECT"],

@@ -30,8 +30,10 @@
 -- .rpc(..), VBAccount.rest(..), fetch(../rest/v1/..) -- und aus den
 -- RLS-Policies (fuer jede Policy, die authenticated erreicht, das passende
 -- Recht). Ohne Anmeldung liest die Seite nur public_profiles,
--- public_favorites, tester_credits und support_progress. Schreiben ohne
--- Anmeldung gibt es nirgends.
+-- public_favorites, public_showcase, tester_credits und support_progress.
+-- Schreiben ohne Anmeldung gibt es nirgends. public_showcase ist live seit
+-- 29.10.2026 (20261029205000_profile_showcase) und muss vor dieser Migration
+-- da sein, sonst bricht ihr GRANT die ganze Migration ab.
 --
 -- WAS ES FUER DIE SEITE BEDEUTET: nichts, solange sie tut, was sie heute tut.
 -- In der lokalen Replik der Live-Datenbank laufen alle 54 nachgebauten
@@ -59,7 +61,7 @@
 --     die REST-Schnittstelle mit "permission denied", auch Realtime liefert
 --     dann nichts.
 --   * Die oeffentlichen Views (public_profiles, public_favorites,
---     tester_credits) lesen profiles mit den Rechten ihres Besitzers. Wer sie
+--     public_showcase, tester_credits) lesen profiles mit den Rechten ihres Besitzers. Wer sie
 --     auf security_invoker umstellt (etwa wegen eines Advisor-Hinweises),
 --     braucht fuer anon zusaetzlich SELECT auf profiles/favorites und eine
 --     passende Lese-Policy -- sonst bleibt die Pilotenseite leer.
@@ -110,6 +112,7 @@ revoke all on all routines in schema public from anon, authenticated, public;
 -- Ohne Anmeldung (anon): Pilotenseite, Feedback-Danke, Unterstuetzen-Balken.
 grant select on public.public_profiles  to anon, authenticated;  -- PilotPage
 grant select on public.public_favorites to anon, authenticated;  -- PilotPage
+grant select on public.public_showcase  to anon, authenticated;  -- PilotPage (Schaufenster)
 grant select on public.tester_credits   to anon, authenticated;  -- FeedbackForm
 grant select on public.support_progress to anon, authenticated;  -- SupportBody (Policy: true)
 
