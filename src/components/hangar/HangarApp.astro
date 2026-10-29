@@ -37,8 +37,9 @@ const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Re
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
+// Die Freelancer ist seit dem Neubau mit Glanzfarbe (29.10.2026, PC-Lauf
+// Hangar-Landung Teil A) frei: Ihr Metallrumpf war vorher schwarz.
 const HOLD: Record<string, string> = {
-  'misc-freelancer': 'Rumpf als schwarz glänzende, verlaufene Flächen; die Lackschichten löst der Export nicht auf',
   'rsi-constellation-andromeda': 'Rumpf nach Neuexport sauber, aber fast schwarzbraun; Freigabe ist Sichturteil des Betreibers',
 };
 const [hallKey, hallAsset] = Object.entries(real.hall ?? {})[0] ?? [];
