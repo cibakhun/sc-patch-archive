@@ -92,7 +92,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
 <script>
   import { STATUS_STATES } from '../../lib/profilePresets';
-  import { resolveStatusKey } from '../../lib/presence';
+  import { resolveStatusKey, formatActivity } from '../../lib/presence';
   import { supabase } from '../../lib/supabase';
 
   const root = document.getElementById('friendsDock') as HTMLElement | null;
@@ -110,6 +110,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       id: string; handle: string; display_name: string | null;
       avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
       status_state: string | null; status_text: string | null; presence: string | null;
+      activity?: string | null;
     };
     type Entry = { p: Prof };
     type Msg = { id: number; sender_id: string; receiver_id: string; body: string; created_at: string; read_at: string | null };
@@ -136,6 +137,14 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     const presOf = (p: Prof) => (p.presence === 'online' || p.presence === 'away' ? p.presence : 'offline');
     const stOf = (p: Prof) => ST[resolveStatusKey(presOf(p), p.status_state)] || ST.offline;
     const labelOf = (p: Prof) => { const st = stOf(p); return lang === 'de' ? st.labelDe : st.labelEn; };
+    // Unterzeile: was der Freund gerade auf der Seite macht (Rich Presence)
+    // vor seinem eigenen Statustext vor dem reinen Präsenz-Wort.
+    const subOf = (p: Prof): { text: string; act: boolean } => {
+      if (presOf(p) === 'offline') return { text: labelOf(p), act: false };
+      const act = formatActivity(p.activity, lang);
+      if (act) return { text: act, act: true };
+      return { text: p.status_text || labelOf(p), act: false };
+    };
 
     const avatarInto = (av: HTMLElement, p: Prof) => {
       av.textContent = '';
@@ -174,8 +183,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       const nm = document.createElement('b');
       nm.textContent = nameOf(p);
       const sub = document.createElement('small');
-      // Was macht der Freund gerade? Eigener Statustext gewinnt, solange er da ist.
-      sub.textContent = pres !== 'offline' && p.status_text ? p.status_text : labelOf(p);
+      const so = subOf(p);
+      sub.textContent = so.text;
+      sub.classList.toggle('is-act', so.act);
       txt.append(nm, sub);
       a.append(av, txt);
       const n = unread.get(p.id) || 0;
@@ -295,7 +305,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       if (!chatWith) return;
       avatarInto($('fcAv')!, chatWith);
       $('fcName')!.textContent = nameOf(chatWith);
-      $('fcSub')!.textContent = presOf(chatWith) !== 'offline' && chatWith.status_text ? chatWith.status_text : labelOf(chatWith);
+      const so = subOf(chatWith);
+      $('fcSub')!.textContent = so.text;
+      $('fcSub')!.classList.toggle('is-act', so.act);
       const prof = $('fcProf') as HTMLAnchorElement;
       prof.hidden = !chatWith.handle;
       if (chatWith.handle) prof.href = (D.pilotBase || '/pilot/') + chatWith.handle;

@@ -4,6 +4,7 @@
 import { supabase, FAV_PATH } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { resolveStatusKey } from '../lib/presence';
+  import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -191,6 +192,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         org_name: '',
         is_tester: false,
         tester_credit: false,
+        share_activity: true,
+        social_twitch: '',
+        social_youtube: '',
+        social_x: '',
       };
 
       // Zähler für den Stats-Readout (werden nach dem jeweiligen Load gesetzt)
@@ -288,6 +293,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const rsiHandleInput = document.getElementById('pfRsiHandle') as HTMLInputElement;
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
+      const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const socialInputs = {
+        social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
+        social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
+        social_x: document.getElementById('pfX') as HTMLInputElement | null,
+      };
 
       nameInput.value = profileState.display_name || '';
       handleInput.value = profileState.handle || '';
@@ -303,6 +314,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       rsiHandleInput.value = profileState.rsi_handle || '';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
+      if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
+      const ovSoc = document.getElementById('ovSocials');
+      if (ovSoc) renderSocialLinks(ovSoc, profileState);
 
       // Testpilot-Zustimmungsschalter (D-22): nur sichtbar, wenn das Konto
       // die Eigenschaft traegt. Wer die Rolle nicht hat, sieht keinen
@@ -1236,6 +1251,22 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           show(pfStatus as HTMLElement, D.msgHandleFormat!);
           return;
         }
+        // Socials: eingefügte Adressen auf den Namen kürzen; was nicht passt,
+        // wird nicht gespeichert, sondern beim Feld gemeldet.
+        const socialVals: Record<string, string> = {};
+        for (const s of SOCIALS) {
+          const el = socialInputs[s.key];
+          if (!el) { socialVals[s.key] = profileState[s.key] || ''; continue; }
+          const v = normalizeSocial(s.key, el.value);
+          if (v === null) {
+            show(pfStatus as HTMLElement, (D.msgSocialBad || '%s').replace('%s', s.label));
+            el.focus();
+            return;
+          }
+          el.value = v;
+          socialVals[s.key] = v;
+        }
+        const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1268,6 +1299,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           discord_tag: discordInput.value.trim(),
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          ...socialVals,
         });
 
         const payload: Record<string, any> = {
@@ -1286,6 +1319,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           org_name: profileState.org_name || null,
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          social_twitch: socialVals.social_twitch || null,
+          social_youtube: socialVals.social_youtube || null,
+          social_x: socialVals.social_x || null,
         };
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
@@ -1296,6 +1333,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+        { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
         try {
           const { error } = await supabase

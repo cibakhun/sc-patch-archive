@@ -443,7 +443,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       id: string; handle: string; display_name: string | null;
       avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
       role: string | null; status_state: string | null; status_text: string | null; presence: string | null;
-      rsi_verified: boolean | null;
+      rsi_verified: boolean | null; activity?: string | null;
     };
 
     let me = '';
@@ -782,14 +782,17 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         [...friends, ...incoming, ...outgoing].map((x) => x.p && x.p.id).filter(Boolean) as string[],
       )];
       if (!ids.length) return;
-      const { data } = await supabase.from('social_profiles').select('id, presence, status_state').in('id', ids);
+      // '*' statt fester Spalten: neue Felder (z. B. activity, Rich Presence)
+      // kommen so mit, ohne dass diese Abfrage vor der Datenbank bricht.
+      const { data } = await supabase.from('social_profiles').select('*').in('id', ids);
       if (!data) return;
-      const map = new Map(
-        (data as Array<{ id: string; presence: string | null; status_state: string | null }>).map((r) => [r.id, r]),
-      );
+      const map = new Map((data as Prof[]).map((r) => [r.id, r]));
       const upd = (x: { p: Prof }) => {
         const r = map.get(x.p.id);
-        if (r) { x.p.presence = r.presence; x.p.status_state = r.status_state; }
+        if (r) {
+          x.p.presence = r.presence; x.p.status_state = r.status_state;
+          x.p.status_text = r.status_text; x.p.activity = r.activity ?? null;
+        }
       };
       friends.forEach(upd); incoming.forEach(upd); outgoing.forEach(upd);
       (fmWrap || document).querySelectorAll<HTMLElement>('.fm-dot[data-uid]').forEach((dot) => {

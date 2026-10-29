@@ -288,12 +288,55 @@
   // (account-lite ist überall eingebunden), frische Session pro Write.
   var HB_MS = 30000, hbLastActivity = Date.now(), hbStarted = false;
   function hbMarkActivity() { hbLastActivity = Date.now(); }
+
+  // Rich Presence: WAS man gerade macht, als 'art|Name' (Anzeige formt
+  // src/lib/presence.ts formatActivity). Nur aus der Adresse und der Seite
+  // selbst gelesen, kein Eingriff in Hangar- oder Loadout-Skripte: beide
+  // tragen das Schiff in ?ship=. Sichtbar nur fuer Freunde (social_profiles).
+  function shipName(slug) {
+    if (!slug) return '';
+    var t = String(slug).toLowerCase().split('-').filter(Boolean);
+    if (t.length > 1 && /^[a-z]{3,4}$/.test(t[0])) t.shift();     // Herstellerkuerzel (aegs-, drak-, rsi-)
+    return t.map(function (w) {
+      if (/^(i|ii|iii|iv|v|vi)$/.test(w) || /^[a-z]+\d/.test(w)) return w.toUpperCase();
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ').slice(0, 60);
+  }
+  function currentActivity() {
+    var p = location.pathname.replace(/^\/de(?=\/)/, '');
+    var ship = '';
+    try { ship = new URLSearchParams(location.search).get('ship') || ''; } catch (e) { /* noop */ }
+    if (p === '/hangar.html') return 'hangar|' + shipName(ship);
+    if (p === '/hangar-loadout.html') return 'loadout|' + shipName(ship);
+    var m = /^\/schiffe\/([a-z0-9-]+)\.html$/.exec(p);
+    if (m) {
+      var h1 = document.querySelector('h1');
+      var name = h1 && h1.textContent ? h1.textContent.trim().replace(/\s+/g, ' ') : '';
+      return 'ship|' + (name && name.length <= 60 ? name : shipName(m[1]));
+    }
+    if (/^\/(topics\/mining|mining|refinery)/.test(p)) return 'mining|';
+    return null;
+  }
+
+  // Kennt die Datenbank activity (noch) nicht, antwortet PostgREST 400 --
+  // dann ohne activity nachsenden und es in diesem Tab nicht mehr versuchen,
+  // damit die Praesenz nie an der Zusatzangabe haengt.
+  var hbActivityOk = true;
   function hbWrite() {
     ensureSession().then(function (sess) {
       if (!sess || !sess.user || !sess.user.id) return;
-      rest(sess, 'PATCH', 'profiles?id=eq.' + sess.user.id, {
+      var base = {
         last_seen: new Date().toISOString(),
         last_active: new Date(hbLastActivity).toISOString()
+      };
+      var path = 'profiles?id=eq.' + sess.user.id;
+      if (!hbActivityOk) { rest(sess, 'PATCH', path, base).catch(function () { /* noop */ }); return; }
+      var body = { last_seen: base.last_seen, last_active: base.last_active, activity: currentActivity(), activity_at: base.last_seen };
+      rest(sess, 'PATCH', path, body).then(function (r) {
+        if (r && r.status === 400) {
+          hbActivityOk = false;
+          return rest(sess, 'PATCH', path, base);
+        }
       }).catch(function () { /* noop */ });
     }).catch(function () { /* noop */ });
   }
