@@ -1513,3 +1513,118 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .rk-badge--c{gap:3px;padding:0 6px 0 4px}
 :root[data-theme="light"] .rk-badge{color:color-mix(in srgb,var(--rc) 55%,#000)}
 :root[data-theme="light"] .rk-badge em{color:color-mix(in srgb,var(--pc) 55%,#000)}
+
+/* ================= SICHERHEIT (Runde E, 29.10.2026) =================
+   Vier Kästen Anmeldung | Verbundene Konten | Sitzungen | Meine Daten, je
+   aus Zeilen: Zeichen, Bezeichnung über Wert, rechts ein Knopf. Formulare
+   klappen erst auf Klick unter ihrer Zeile auf. Löschen ist eine Zeile mit
+   rotem Zeichen, die Bestätigung erst nach „Löschen …". */
+.sec{display:flex;flex-direction:column;gap:16px;min-height:100%}
+.sec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.sec-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px 16px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+.sec-card--wide{grid-column:1 / -1}
+.sec-card[hidden]{display:none}
+.sec-h{display:flex;align-items:center;gap:9px;margin:0 0 4px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);letter-spacing:var(--ls-4);text-transform:none;color:var(--muted)}
+.sec-h svg{width:16px;height:16px;color:var(--accent)}
+.sec-row{display:flex;align-items:center;gap:12px;min-width:0;padding:8px 0}
+.sec-row + .sec-row,.sec-form + .sec-row,.sec-msg + .sec-row{border-top:1px solid var(--line-soft,var(--line))}
+.sec-ic{flex:none;width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--muted)}
+.sec-ic svg{width:18px;height:18px}
+.sec-ic--dc svg{width:20px;height:16px}
+.sec-row.is-on .sec-ic,.sec-ic--ok{border-color:color-mix(in srgb,var(--ok) 50%,transparent);background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--ok)}
+.sec-row.is-on .sec-ic--dc{border-color:color-mix(in srgb,#5865f2 60%,transparent);background:color-mix(in srgb,#5865f2 18%,transparent);color:#8b95ff}
+.sec-row.is-off .sec-v{color:var(--gold)}
+.sec-ic--hot{border-color:color-mix(in srgb,var(--hot) 45%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent);color:var(--hot)}
+.sec-kv{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:1px}
+.sec-k{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);color:var(--text)}
+.sec-v{font-size:var(--fs-6);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sec-row.is-on .sec-v{color:var(--text)}
+.sec-live{flex:none;width:9px;height:9px;margin-right:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 20%,transparent)}
+.dsr .sec-btn{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--text);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);white-space:nowrap;cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.sec-btn svg{width:15px;height:15px}
+.dsr .sec-btn:hover{border-color:var(--accent)}
+.dsr .sec-btn:disabled{opacity:.55;cursor:default}
+.dsr .sec-btn[aria-expanded=true]{color:var(--muted)}
+.dsr .sec-btn--go{border-color:var(--accent);background:var(--accent);color:var(--ink)}
+.dsr .sec-btn--go:hover{filter:brightness(1.1)}
+.dsr .sec-btn--hot{border-color:color-mix(in srgb,var(--hot) 55%,transparent);color:var(--hot)}
+.dsr .sec-btn--hot:hover,.dsr .sec-btn--hot.is-armed{border-color:var(--hot);background:color-mix(in srgb,var(--hot) 16%,transparent)}
+.dsr .sec-btn--hot.is-armed{background:var(--hot);color:var(--ink)}
+.sec-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 8px 50px}
+.sec-form[hidden]{display:none}
+.dsr .sec-form .inp{flex:1 1 12rem;min-width:0;height:38px}
+.sec-form .acx-status{flex:1 0 100%;margin:0}
+.sec-form .rsi-row{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px}
+.sec-form .inp-affix{flex:1 1 12rem;min-width:0}
+.dsr .sec-form .rsi-verified-indicator{margin-top:0;font-size:var(--fs-7)}
+.sec-note{flex:1 0 100%;margin:0;font-size:var(--fs-6);color:var(--muted)}
+.sec-msg{margin:0 0 6px 50px}
+.sec-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 8px}
+.sec-facts div{padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.sec-facts dt{font-size:var(--fs-5);color:var(--muted)}
+.sec-facts dd{margin:0;font-family:var(--font-mono);font-size:var(--fs-7);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:auto}
+.sec-incl{list-style:none;margin:2px 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.sec-incl li{padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:var(--fs-6);color:color-mix(in srgb,var(--text) 70%,var(--muted))}
+.sec-fmt{font-size:var(--fs-5);color:var(--muted)}
+.sec-scroll{max-height:12rem;overflow:auto}
+.tbl-tester{width:100%;border-collapse:collapse;font-size:var(--fs-7)}
+.tbl-tester th{position:sticky;top:0;padding:6px 12px 6px 0;background:var(--surface-2);text-align:left;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);color:var(--muted)}
+.tbl-tester td{padding:7px 12px 7px 0;border-top:1px solid var(--line-soft,var(--line));color:var(--text);white-space:nowrap}
+.tbl-tester td.mono{font-size:var(--fs-6);color:color-mix(in srgb,var(--text) 70%,var(--muted))}
+.sec-danger{border-color:color-mix(in srgb,var(--hot) 35%,transparent);background:color-mix(in srgb,var(--hot) 5%,var(--surface-2));padding-top:6px;padding-bottom:6px}
+.sec-danger .sec-k{color:var(--hot)}
+.dsr .sec-danger .sec-form .inp{flex:0 1 14rem}
+.acc-main #testerOverviewCard{order:0}
+@media (max-width:820px){
+  .sec-grid{grid-template-columns:minmax(0,1fr)}
+  .dsr .sec-btn{height:44px}
+  .dsr .sec-form .inp{height:46px}
+  .sec-form,.sec-msg{margin-left:0}
+  .sec-facts{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ============================================================================
+   HELLMODUS (Runde G)
+   Diese Datei war Dark-only. theme.css tauscht im Hellmodus die Palette
+   (:root[data-theme="light"] schlägt das :root oben), der Grund unten blieb
+   aber fest schwarz: helle Karten auf Schwarz, Titel in Dunkel auf Dunkel,
+   Namen in Weiß auf Weiß. Hier: heller Grund, Weltraumbild nur als Hauch,
+   und jedes feste Weiß, das auf einer Fläche (nicht auf Bild oder Akzent)
+   steht, folgt der Textfarbe.
+   ========================================================================== */
+:root[data-theme="light"] .dsr{background:var(--bg);
+  /* .dsr setzt --muted oben zweimal fest hell (Lesbarkeit auf Schwarz);
+     Status- und Rangfarben sind Leuchttöne für Schwarz. Hier dieselben
+     Töne, papiertauglich dunkel. */
+  --muted:#4d596c;--gold:#9a640a;--amber:#8f6c00;--orange:#a8560c;--ok:#147a3a}
+/* Das Nebelbild wirkt auf Papier wie Flecken (theme.css: Atmosphäre im Hellmodus fast aus) */
+:root[data-theme="light"] .dsr::before{display:none}
+:root[data-theme="light"] .dsr::after{background:
+  radial-gradient(1200px 780px at 82% -8%, color-mix(in srgb,var(--accent) 7%,transparent), transparent 58%),
+  radial-gradient(1000px 700px at 0% 14%, color-mix(in srgb,var(--accent) 5%,transparent), transparent 55%)}
+:root[data-theme="light"] .dsr ::selection{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+:root[data-theme="light"] :is(.btn:not(.primary,.gold,.danger,.ok):hover,.dsr .acx-upload__btn:hover,.dsr .acc-nav .tab[aria-selected="true"],.fd-row.has-unread .fd-txt b,.dsr .ck-chip:hover,.ck-chat.has-unread .ck-chat__h b,.dsr .sv-act:hover,.acc-id__name,.ck-rank__title b){color:var(--text)}
+
+:root[data-theme="light"] .btn.primary{background:var(--accent)}
+:root[data-theme="light"] .btn.primary:hover{background:color-mix(in srgb,var(--accent) 86%,#000)}
+/* Schrift auf Bildern (Poster-Karten, Banner-Vorlagen) bleibt hell: diese
+   Flächen sind dunkle Inseln wie [data-media-surface] in theme.css. */
+:root[data-theme="light"] .dsr :is(.fav--poster,.banner-opt,.banner-thumb-card){color-scheme:dark;
+  --text:#e8eefc;--muted:#b6c3db;--accent:#2dd4ff;--gold:#e6b25c;--hot:#f4708a;
+  --surface:#0f1524;--surface-2:#141c30;--bg-2:#0a0e18;--line:rgba(110,168,255,.16);--ink:#04121a}
+:root[data-theme="light"] .dsr .fav:not(.fav--poster) :is(.fkind,.fname){text-shadow:none}
+:root[data-theme="light"] .dsr .fav:not(.fav--poster) .fkind{color:color-mix(in srgb,var(--kc,var(--accent)) 60%,#000)}
+:root[data-theme="light"] :is(.acc-dc__txt b,.dsr .inp.is-linked,.ck-k svg,.sec-row.is-on .sec-ic--dc){color:#4752c4}
+:root[data-theme="light"] :is(.fc-msg.is-me p,.rec-remarks p){color:var(--text)}
+:root[data-theme="light"] .ck-pres{color:#a3168f;text-shadow:none}
+
+/* ============================================================================
+   HANDY/SCHMAL (Runde G): Steht man nicht in der Übersicht, schrumpft die
+   Ausweiskarte oben auf Name + Status und die Discord-Karte entfällt (sie
+   steht in Übersicht und Sicherheit). So beginnt der Bereich auf dem
+   ersten Bildschirm statt nach anderthalb Bildschirmen Ausweis.
+   ========================================================================== */
+@media (max-width:1099.98px), (max-height:599.98px){
+  .dsr .acc:has(#tab-panel-overview[hidden]) :is(.acc-id__bio,.acc-id__chips,.acc-id__soc,.acc-id__since,.acc-dc){display:none}
+}

@@ -52,8 +52,11 @@ function respond(status, body) {
  * refreshes: je Refresh-Anfrage { answer(status, body), offline() }.
  * reads (nur mit holdReads): je Name- oder Rollenabfrage
  * { uid, kind: 'name' | 'role', answer(status = 200) }.
+ * shareActivity (true/false, oder { uid: true/false } je Konto): Stand des
+ * Schalters profiles.share_activity, den der Heartbeat in seiner Antwort
+ * erfährt; ohne Angabe bleibt es bei 204.
  */
-export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) {
+export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareActivity } = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 12, 0, 0), timers: [], seq: 0 };
   const data = new Map();
   const tabs = [];
@@ -78,7 +81,15 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
 
   function authServer(url, init) {
     if (!url.includes('/auth/v1/token')) {
-      if (init.method === 'PATCH') return Promise.resolve(respond(204));
+      if (init.method === 'PATCH') {
+        // Mit shareActivity antwortet der Puls wie PostgREST mit
+        // return=representation auf select=share_activity; sonst 204.
+        const owner = (url.match(/id=eq\.([^&]+)/) || [])[1];
+        const share = shareActivity && typeof shareActivity === 'object' ? shareActivity[owner] : shareActivity;
+        if (typeof share === 'boolean' && url.includes('select=share_activity'))
+          return Promise.resolve(respond(200, [{ share_activity: share }]));
+        return Promise.resolve(respond(204));
+      }
       const uid = (url.match(/id=eq\.([^&]+)/) || [])[1];
       const who = PEOPLE[uid];
       if (url.includes('/rest/v1/profiles?')) return read(uid, 'name', who ? [{ display_name: who.name, handle: null }] : []);
@@ -106,7 +117,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
     clock,
     refreshes,
     reads,
-    storage: { get: (k) => (data.has(k) ? data.get(k) : null) },
+    storage: { get: (k) => (data.has(k) ? data.get(k) : null), set: (k, v) => { data.set(k, String(v)); } },
     /** Antwort von GoTrue auf einen Refresh: neues Token, ohne expires_at. */
     fresh: (n, uid = 'user-1') => ({ access_token: `token-${n}`, refresh_token: `refresh-${n}`, token_type: 'bearer', expires_in: 3600, user: { id: uid } }),
     /** Abmelden auf /account/: GoTrue löscht die Sitzung samt ihren Refresh-Tokens. */
@@ -189,7 +200,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false } = {}) 
           addEventListener() {},
         },
         fetch: (url, init) => {
-          tab.requests.push({ method: init.method, url, signal: init.signal });
+          tab.requests.push({ method: init.method, url, signal: init.signal, body: init.body });
           const never = () => new Promise(() => {});
           return authServer(url, init).then((r) => (tab.gone ? never() : r), (e) => (tab.gone ? never() : Promise.reject(e)));
         },

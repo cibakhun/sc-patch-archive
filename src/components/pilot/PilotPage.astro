@@ -61,6 +61,9 @@ const COPY = lang === 'de'
       kinds: { mission: 'Missionen', mineral: 'Mineralien', item: 'Items', patch: 'Patches', topic: 'Themen' } as Record<string, string>,
       ctaText: 'Profil auf VerseBase — sichere dir deine eigene Piloten-Seite mit Flotte, Status und VersePass.',
       ctaBtn: 'Eigenes Profil erstellen',
+      addFriend: 'Freund hinzufügen', requested: 'Anfrage gesendet', accept: 'Anfrage annehmen',
+      message: 'Nachricht', isFriend: 'Freunde', editProfile: 'Profil bearbeiten',
+      needHandle: 'Setze zuerst dein eigenes Handle.', err: 'Das hat nicht geklappt.',
       locale: 'de-DE',
     }
   : {
@@ -88,10 +91,14 @@ const COPY = lang === 'de'
       kinds: { mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' } as Record<string, string>,
       ctaText: 'Profile on VerseBase — claim your own pilot page with fleet, status and VersePass.',
       ctaBtn: 'Create your profile',
+      addFriend: 'Add friend', requested: 'Request sent', accept: 'Accept request',
+      message: 'Message', isFriend: 'Friends', editProfile: 'Edit profile',
+      needHandle: 'Set your own handle first.', err: 'That did not work.',
       locale: 'en-US',
     };
 
 const registerHref = href('/account/register.html', lang);
+const accountHref = lang === 'de' ? '/de/account.html' : '/account.html';
 const homeHref = lang === 'de' ? '/de.html' : '/';
 const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
@@ -118,7 +125,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 <SiteNav crumbs={[{ label: 'Pilot' }]} hasEn={true} />
 
 <main id="main" data-lang={lang}>
-  <div id="ppApp" data-register={registerHref} data-home={homeHref}>
+  <div id="ppApp" data-register={registerHref} data-home={homeHref} data-account={accountHref}>
 
     <!-- Loading-Skeleton (Kartenform, pulsierend) -->
     <div class="pp-skel" id="ppLoading" role="status" aria-label={COPY.loadingLabel}>
@@ -219,6 +226,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
             <p class="pp-bio" id="ppBio" hidden></p>
             <div class="pp-soc" id="ppSocials" hidden></div>
             <div class="pp-since" id="ppSince"></div>
+            <div class="pp-acts" id="ppActs" hidden></div>
           </div>
         </div>
       </section>
@@ -574,6 +582,26 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     text-transform: uppercase; color: #8a99b8;
   }
 
+  /* Freund / Nachricht (nur angemeldet, Kontoseite Runde F) */
+  .pp-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.4rem; }
+  .pp-acts[hidden] { display: none !important; }
+  .pp-act {
+    display: inline-flex; align-items: center; gap: 0.5rem; height: 40px; padding: 0 1.05rem;
+    border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--surface) 70%, transparent);
+    color: var(--text); font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-7);
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: border-color var(--dur-fast) var(--ease-ui), filter var(--dur-fast) var(--ease-ui);
+  }
+  .pp-act svg { width: 17px; height: 17px; flex: none; }
+  .pp-act:hover { border-color: var(--accent); }
+  .pp-act:disabled { opacity: 0.6; cursor: default; }
+  .pp-act--go { border-color: var(--accent); background: var(--accent); color: var(--ink); }
+  .pp-act--go:hover { filter: brightness(1.1); }
+  .pp-act--state { cursor: default; color: var(--muted); }
+  .pp-act--state.is-ok { color: #4ade80; border-color: rgba(34, 197, 94, 0.45); }
+  .pp-acts__msg { flex: 1 0 100%; margin: 0; font-size: var(--fs-6); color: var(--muted); }
+  .pp-acts__msg[hidden] { display: none; }
+
   /* ---------- Content-Wrapper ---------- */
   .pp-wrap { max-width: var(--maxw); margin: 0 auto; padding: 1.8rem clamp(1.25rem, 5vw, 4rem) 4.5rem; }
 
@@ -597,6 +625,12 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-badge--tester { border-color: rgba(255, 94, 26, 0.5); color: #ff5e1a; }
   .pp-badge--tester svg { color: #ff5e1a; }
   .pp-badge--era { border-color: var(--line-soft); color: var(--muted); }
+  /* Discord-Rang (Farbe der Rangstufe als --rc, Leiter aus ranks.mjs) */
+  .pp-badge--rank { border-color: color-mix(in srgb, var(--rc) 55%, transparent); color: var(--rc); }
+  .pp-badge--rank b { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+  .pp-badge--rank em { font-style: normal; color: var(--pc); }
+  :root[data-theme='light'] .pp-badge--rank { color: color-mix(in srgb, var(--rc) 55%, #000); }
+  :root[data-theme='light'] .pp-badge--rank em { color: color-mix(in srgb, var(--pc) 55%, #000); }
   .pp-badge--era svg { color: var(--muted); }
 
   /* ---------- Stats-Readout ---------- */
@@ -732,6 +766,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     background: color-mix(in srgb, var(--accent) 6%, var(--surface));
     clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   }
+  .pp-cta[hidden] { display: none; }
   .pp-cta__text { color: var(--muted); font-size: var(--fs-8); }
   .pp-cta__btn {
     font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6);
@@ -776,11 +811,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     .pp-hero__sweep { display: none; }
   }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .pp-chrome{color:#485879}
-:root[data-theme="light"] .pp-verified{color:#046a34}
-:root[data-theme="light"] .pp-transmission{color:#485879}
-:root[data-theme="light"] .pp-bio{color:#4c586f}
-:root[data-theme="light"] .pp-since{color:#485879}
 :root[data-theme="light"] .pp-ship__voidname{color:rgba(2,98,121,.73)}
 </style>
 
@@ -789,6 +819,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   import { CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
   import { resolveStatusKey } from '../../lib/presence';
   import { renderSocialLinks } from '../../lib/socials';
+  import { rankOf, rankTitle } from '../../lib/rankBadge';
+  import { PRESTIGE } from '../../../discord/bot/src/ranks.mjs';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -953,6 +985,12 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       if (p.is_tester === true) {
         badges.push(`<span class="pp-badge pp-badge--tester"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l1.9 4.3 4.6.5-3.4 3.2.9 4.6-4-2.3-4 2.3.9-4.6-3.4-3.2 4.6-.5z"/></svg>${COPY.testPilot}</span>`);
       }
+      // Discord-Rang (nur solange verknüpft und auf dem Server, sonst null)
+      const rk = rankOf(p);
+      if (rk) {
+        const stars = rk.prestige ? `<em style="--pc:${PRESTIGE.color}">${PRESTIGE.star}${rk.prestige > 1 ? rk.prestige : ''}</em>` : '';
+        badges.push(`<span class="pp-badge pp-badge--rank" style="--rc:${esc(rk.rank.color)}" title="Discord · ${esc(rankTitle(p))}"><span aria-hidden="true">${esc(rk.rank.insignia)}</span>${esc(rk.rank.name)} <b>LV ${rk.level}</b>${stars}</span>`);
+      }
       if (role) {
         badges.push(`<span class="pp-badge"><span aria-hidden="true">${role.symbol}</span>${esc(lang === 'de' ? role.labelDe : role.labelEn)}</span>`);
       }
@@ -1036,6 +1074,75 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       // Umschalten: Skeleton raus, Profil rein
       $('ppLoading')!.hidden = true;
       $('ppRoot')!.hidden = false;
+
+      paintActs().catch(() => {});
+    };
+
+    // Freund hinzufügen / Anfrage annehmen / Nachricht (nur angemeldet). Die
+    // Konto-ID gibt es erst über social_profiles (nur für Angemeldete lesbar).
+    const ICO = {
+      add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M15 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9" cy="7.5" r="3.5"/><path d="M19 8v6M16 11h6"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4z"/></svg>',
+      ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+    };
+    const account = app.dataset.account || '/account.html';
+    const paintActs = async () => {
+      const acts = $('ppActs')!;
+      const { data: sess } = await supabase.auth.getSession();
+      const me = sess.session?.user?.id;
+      if (!me) return;
+      // Wer schon ein Konto hat, braucht den Werbekasten unten nicht.
+      document.querySelector<HTMLElement>('.pp-cta')?.setAttribute('hidden', '');
+      const { data: sp } = await supabase.from('social_profiles').select('id').eq('handle', handle).maybeSingle();
+      if (!sp) return;
+      const them = sp.id as string;
+      const say = (msg: string) => {
+        let m = acts.querySelector<HTMLElement>('.pp-acts__msg');
+        if (!m) { m = document.createElement('p'); m.className = 'pp-acts__msg'; m.setAttribute('role', 'status'); acts.appendChild(m); }
+        m.textContent = msg;
+        m.hidden = !msg;
+      };
+      if (them === me) {
+        acts.innerHTML = `<a class="pp-act" href="${account}#profile">${ICO.edit}${esc(COPY.editProfile)}</a>`;
+        acts.hidden = false;
+        return;
+      }
+      const [fr, rq, mine] = await Promise.all([
+        // Eine Zeile je Freundschaft, Richtung je nachdem, wer angenommen hat.
+        supabase.from('friends').select('id').in('user_id', [me, them]).in('friend_id', [me, them]).limit(1),
+        supabase.from('friend_requests').select('id, sender_id').eq('status', 'pending').in('sender_id', [me, them]).in('receiver_id', [me, them]),
+        supabase.from('profiles').select('handle').eq('id', me).maybeSingle(),
+      ]);
+      // Ohne verlässliche Antwort lieber keinen Knopf als einen falschen.
+      if (fr.error || rq.error) { acts.hidden = true; return; }
+      const req = (rq.data || [])[0] as { id: string; sender_id: string } | undefined;
+      if (fr.data?.length) {
+        acts.innerHTML = `<a class="pp-act pp-act--go" href="${account}?chat=${encodeURIComponent(them)}#friends">${ICO.chat}${esc(COPY.message)}</a>`
+          + `<span class="pp-act pp-act--state is-ok">${ICO.ok}${esc(COPY.isFriend)}</span>`;
+      } else if (req && req.sender_id === me) {
+        acts.innerHTML = `<span class="pp-act pp-act--state">${ICO.ok}${esc(COPY.requested)}</span>`;
+      } else if (req) {
+        acts.innerHTML = `<button type="button" class="pp-act pp-act--go" id="ppAccept">${ICO.add}${esc(COPY.accept)}</button>`;
+        $('ppAccept')!.addEventListener('click', async (e) => {
+          const b = e.currentTarget as HTMLButtonElement;
+          b.disabled = true;
+          const { error } = await supabase.rpc('accept_friend_request', { req_id: req.id });
+          if (error) { say(COPY.err); b.disabled = false; return; }
+          paintActs().catch(() => {});
+        });
+      } else {
+        acts.innerHTML = `<button type="button" class="pp-act pp-act--go" id="ppAdd">${ICO.add}${esc(COPY.addFriend)}</button>`;
+        $('ppAdd')!.addEventListener('click', async (e) => {
+          const b = e.currentTarget as HTMLButtonElement;
+          if (!mine.data?.handle) { say(COPY.needHandle); return; }
+          b.disabled = true;
+          const { error } = await supabase.from('friend_requests').insert({ sender_id: me, receiver_id: them });
+          if (error) { say(COPY.err); b.disabled = false; return; }
+          paintActs().catch(() => {});
+        });
+      }
+      acts.hidden = false;
     };
 
     load().catch((err) => {
