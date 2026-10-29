@@ -53,7 +53,10 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // check-gate aus Phase 14 Plan 09).
 // Stand 23.08.2026 (18-04-PLAN.md): 24 — Zugang verify-datastand.mjs (D-04,
 // Kreuzvergleich der committeten Patch-Kennungen).
-const MIN_SCRIPTS = 24;
+// Stand 29.10.2026: 35 — Zugang verify-supply-chain.mjs (Befund zur
+// Lieferkette). Die Klinke hing bis dahin bei 24, obwohl laengst 34 Dateien
+// im Bestand lagen; sie steht jetzt auf dem Ist-Stand.
+const MIN_SCRIPTS = 35;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };

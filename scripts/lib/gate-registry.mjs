@@ -88,7 +88,16 @@ export const CHECKS = [
     npm: 'verify:vendor',
     script: 'scripts/verify-vendor-three.mjs',
     rail: 'A',
-    checks: 'das handkopierte three.js passt zur devDependency',
+    checks: 'das handkopierte three.js passt zur devDependency und ist Datei fuer Datei (SHA-256) bitgleich zu node_modules/three, bis auf benannte Korrekturen',
+  },
+  {
+    // Direkt nach verify:vendor — beide betreffen die Herkunft fremden Codes.
+    // Liest .github/ mit: deshalb steht .github NICHT mehr in .dockerignore.
+    id: 'verify:supply-chain',
+    npm: 'verify:supply-chain',
+    script: 'scripts/verify-supply-chain.mjs',
+    rail: 'A',
+    checks: 'Pakete nur von registry.npmjs.org mit sha512, Actions per Commit-SHA und Basis-Images per Digest angeheftet, jeder Workflow mit eigenen Rechten und Checkouts ohne hinterlegtes Token, kein Compiler im Bot-Laufzeit-Image, Dependabot zieht alles nach',
   },
   {
     id: 'audit:csp',
