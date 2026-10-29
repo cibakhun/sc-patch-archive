@@ -392,11 +392,20 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       return items.map((it) => `${it.ore} ${fmtScu(it.rawScu, lang)}${it.yieldScu ? '→' + fmtScu(it.yieldScu, lang) : ''}`).join(' · ');
     }
 
-    function tile(k: string, v: string, opts: { sub?: string; hot?: boolean; cls?: string } = {}) {
+    // Alles, was hier ins DOM geht, laeuft als Text (textContent/append), nie
+    // als HTML: Methode, Station und Erze stehen in refinery_jobs und kommen
+    // damit vom Konto, nicht aus dem Build. Das entstehende Markup ist
+    // dasselbe wie frueher per innerHTML (<small>-Einheit, <b>-Zahl, Klassen,
+    // style-Attribut).
+    // Bezeichnung + Wert: <span class="rfd-fig__k">…</span><span class="rfd-fig__v">…</span>
+    const fig = (k: string, v: string, vCls?: string) =>
+      [el('span', 'rfd-fig__k', k), el('span', 'rfd-fig__v' + (vCls ? ' ' + vCls : ''), v)];
+
+    function tile(k: string, v: string, opts: { unit?: string; sub?: string; hot?: boolean; cls?: string } = {}) {
       const t = el('div', 'rfd-tile' + (opts.hot ? ' rfd-tile--hot' : ''));
       t.appendChild(el('div', 'rfd-tile__k', k));
-      const val = el('div', 'rfd-tile__v' + (opts.cls ? ' ' + opts.cls : ''));
-      val.innerHTML = v;
+      const val = el('div', 'rfd-tile__v' + (opts.cls ? ' ' + opts.cls : ''), v);
+      if (opts.unit != null) val.appendChild(el('small', undefined, opts.unit));
       t.appendChild(val);
       if (opts.sub) t.appendChild(el('div', 'rfd-tile__sub', opts.sub));
       return t;
@@ -429,14 +438,14 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       statsWrap.innerHTML = '';
       statsWrap.appendChild(tile(C.stActive, String(active.length), { hot: active.length > 0 }));
       statsWrap.appendChild(tile(C.stReady, String(ready.length), { hot: ready.length > 0 }));
-      statsWrap.appendChild(tile(C.stPipeScu, `${fmtScu(pipeScu, lang)}<small>${C.scu}</small>`));
-      statsWrap.appendChild(tile(C.stPipeVal, `${fmtAuec(pipeVal, lang)}<small>aUEC</small>`));
+      statsWrap.appendChild(tile(C.stPipeScu, fmtScu(pipeScu, lang), { unit: C.scu }));
+      statsWrap.appendChild(tile(C.stPipeVal, fmtAuec(pipeVal, lang), { unit: 'aUEC' }));
       if (done.length) {
         statsWrap.appendChild(el('div', 'rfd-statgroup', C.lifetime));
         statsWrap.appendChild(tile(C.stDone, String(done.length)));
-        statsWrap.appendChild(tile(C.stRefined, `${fmtScu(refined, lang)}<small>${C.scu}</small>`));
-        statsWrap.appendChild(tile(C.stValue, `${fmtAuec(valueTotal, lang)}<small>aUEC</small>`));
-        statsWrap.appendChild(tile(C.stProfit, `${fmtAuec(profit, lang)}<small>aUEC</small>`, { cls: profit > 0 ? 'pos' : profit < 0 ? 'neg' : '' }));
+        statsWrap.appendChild(tile(C.stRefined, fmtScu(refined, lang), { unit: C.scu }));
+        statsWrap.appendChild(tile(C.stValue, fmtAuec(valueTotal, lang), { unit: 'aUEC' }));
+        statsWrap.appendChild(tile(C.stProfit, fmtAuec(profit, lang), { unit: 'aUEC', cls: profit > 0 ? 'pos' : profit < 0 ? 'neg' : '' }));
         statsWrap.appendChild(tile(C.stTopMethod, topMethod || C.none, { sub: C.stTopStation + ': ' + topStationShort }));
       }
     }
@@ -464,7 +473,13 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
         const ow = el('div', 'rfd-job__ores');
         for (const it of j.items) {
           const p = el('span', 'rfd-orepill');
-          p.innerHTML = `${it.ore} <b>${fmtScu(it.yieldScu || it.rawScu, lang)}</b> <span>${it.yieldScu ? C.yieldLbl : C.fRaw} ${C.scu}</span>`;
+          // Unbekannte Erze bleiben sichtbar (Umbenennung im Patch), nur eben als Text.
+          p.append(
+            String(it.ore ?? '') + ' ',
+            el('b', undefined, fmtScu(it.yieldScu || it.rawScu, lang)),
+            ' ',
+            el('span', undefined, `${it.yieldScu ? C.yieldLbl : C.fRaw} ${C.scu}`),
+          );
           ow.appendChild(p);
         }
         card.appendChild(ow);
@@ -482,11 +497,11 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       meta.appendChild(cd);
       const figs = el('div', 'rfd-job__figs');
       const y = el('div');
-      y.innerHTML = `<span class="rfd-fig__k">${C.yieldLbl}</span><span class="rfd-fig__v">${fmtScu(Number(j.yield_scu), lang)} ${C.scu}</span>`;
+      y.append(...fig(C.yieldLbl, `${fmtScu(Number(j.yield_scu), lang)} ${C.scu}`));
       figs.appendChild(y);
       if (j.est_value != null) {
         const v = el('div');
-        v.innerHTML = `<span class="rfd-fig__k">${C.valueLbl}</span><span class="rfd-fig__v">${fmtAuec(j.est_value, lang)}</span>`;
+        v.append(...fig(C.valueLbl, fmtAuec(j.est_value, lang)));
         figs.appendChild(v);
       }
       meta.appendChild(figs);
@@ -532,10 +547,15 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       const val = j.sold_value ?? j.est_value ?? 0;
       const profit = Number(val) - Number(j.cost || 0);
       const figs = el('div', 'rfd-hrow__figs');
-      figs.innerHTML =
-        `<div><span class="rfd-fig__k">${C.yieldLbl}</span><span class="rfd-fig__v">${fmtScu(Number(j.yield_scu), lang)}</span></div>` +
-        `<div><span class="rfd-fig__k">${j.sold_value != null ? C.soldFor : C.valueLbl}</span><span class="rfd-fig__v">${fmtAuec(val, lang)}</span></div>` +
-        `<div><span class="rfd-fig__k">${C.profit}</span><span class="rfd-fig__v ${profit >= 0 ? 'pos' : 'neg'}" style="color:${profit >= 0 ? '#9be8a8' : '#ff8a8a'}">${fmtAuec(profit, lang)}</span></div>`;
+      const fYield = el('div');
+      fYield.append(...fig(C.yieldLbl, fmtScu(Number(j.yield_scu), lang)));
+      const fVal = el('div');
+      fVal.append(...fig(j.sold_value != null ? C.soldFor : C.valueLbl, fmtAuec(val, lang)));
+      const fProfit = el('div');
+      const profitPair = fig(C.profit, fmtAuec(profit, lang), profit >= 0 ? 'pos' : 'neg');
+      profitPair[1].setAttribute('style', `color:${profit >= 0 ? '#9be8a8' : '#ff8a8a'}`);
+      fProfit.append(...profitPair);
+      figs.append(fYield, fVal, fProfit);
 
       const act = el('div', 'rfd-hrow__act');
       const soldBtn = el('button', 'rfd-mini', C.setSold) as HTMLButtonElement;
@@ -591,11 +611,11 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       if (remaining <= 0) {
         card.classList.add('is-ready');
         if (badge) badge.hidden = false;
-        if (cd) cd.innerHTML = `${C.readyNow}<span class="rfd-cd__sub">${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}</span>`;
+        if (cd) { cd.textContent = C.readyNow; cd.appendChild(el('span', 'rfd-cd__sub', `${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}`)); }
       } else {
         card.classList.remove('is-ready');
         if (badge) badge.hidden = true;
-        if (cd) cd.innerHTML = `${fmtCountdown(remaining / 1000)}<span class="rfd-cd__sub">${C.remaining} · ${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}</span>`;
+        if (cd) { cd.textContent = fmtCountdown(remaining / 1000); cd.appendChild(el('span', 'rfd-cd__sub', `${C.remaining} · ${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}`)); }
       }
     }
     setInterval(() => {
@@ -680,7 +700,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
         if (isFinite(sell)) bits.push(C.oreHintPrice.replace('%p', fmtAuec(sell, lang)));
         if (best) bits.push(C.oreHintBest.replace('%s', best).replace('%b', (Number(bonus) > 0 ? '+' : '') + bonus));
         if (loc) bits.push(C.oreHintSell.replace('%s', loc));
-        if (bits.length) { hint.innerHTML = bits.join(' · '); hint.hidden = false; } else hint.hidden = true;
+        if (bits.length) { hint.textContent = bits.join(' · '); hint.hidden = false; } else hint.hidden = true;
         updatePreview();
       });
       row.querySelector('[data-role="raw"]')!.addEventListener('input', updatePreview);
@@ -706,10 +726,13 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
     methodSel.addEventListener('change', () => {
       const m = methodByName(methodSel.value);
       if (!m) { mtags.hidden = true; return; }
-      mtags.innerHTML =
-        `<span><b>${C.tagYield}:</b> ${C.lvl[m.yield] || m.yield}</span>` +
-        `<span><b>${C.tagSpeed}:</b> ${C.lvl[m.speed] || m.speed}</span>` +
-        `<span><b>${C.tagCost}:</b> ${C.lvl[m.cost] || m.cost}</span>`;
+      const mtag = (k: string, v: string) => { const s = el('span'); s.append(el('b', undefined, k + ':'), ' ' + v); return s; };
+      mtags.textContent = '';
+      mtags.append(
+        mtag(C.tagYield, C.lvl[m.yield] || m.yield),
+        mtag(C.tagSpeed, C.lvl[m.speed] || m.speed),
+        mtag(C.tagCost, C.lvl[m.cost] || m.cost),
+      );
       mtags.hidden = false;
     });
     [hoursEl, minsEl, costEl].forEach((e) => e.addEventListener('input', updatePreview));
