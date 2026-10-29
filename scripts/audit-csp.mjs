@@ -56,18 +56,7 @@ const MIN_INLINE_SKRIPTE = 100000;
 // das Bild (Hörer im Kopf von Layout.astro). Verschwindet der Handler aus
 // dist/, verliert der Eintrag seinen Anlass und das Tor reißt
 // (Zombie-Wächter) — dann den Eintrag entfernen.
-const HANDLER_AUSNAHMEN = [
-  {
-    tag: 'img', attr: 'onerror',
-    wert: "if(this.srcset){this.removeAttribute('srcset');return}if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb')}else{this.dataset.bad='1';this.style.display='none'}",
-    anlass: 'Galerie-Rückfallkette in src/components/ShipDetail.astro — Umbau auf data-img-fail="chain" steht aus (Datei in dieser Runde gesperrt)',
-  },
-  {
-    tag: 'img', attr: 'onerror',
-    wert: "this.closest('figure').style.display='none'",
-    anlass: 'Lackierungs-Kacheln in src/components/ShipDetail.astro — Umbau auf data-img-fail="figure" steht aus (Datei in dieser Runde gesperrt)',
-  },
-];
+const HANDLER_AUSNAHMEN = [];
 
 // ---------------------------------------------------------------- Richtlinie --
 const conf = readFileSync(CONF, 'utf8');
