@@ -88,7 +88,7 @@
   }
 
   /* 128 -- muss mit der Pruefklausel der Migration
-     supabase/migrations/20260815090000_mining_preset_locations.sql
+     supabase/migrations/20260815014016_mining_preset_locations.sql
      (check array_length(locations,1) <= 128) uebereinstimmen. Hebt sich einer,
      muss sich der andere mitheben (T-09-07). */
   var LOCPIN_MAX = 128;
@@ -650,7 +650,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
 
      Seit Phase 9 traegt EIN Preset BEIDE Listen — Signaturen (`minerals`)
      UND Fundort-Paare (`locations`, Format "Erz||Fundort", Migration
-     20260815090000_mining_preset_locations.sql). Ein Preset, das vor dieser
+     20260815014016_mining_preset_locations.sql). Ein Preset, das vor dieser
      Spalte gespeichert wurde, liefert kein `locations`-Feld oder `null`;
      `(r.locations || [])` ergibt dafuer die leere Merkliste, keinen Fehler
      (D-04).
@@ -662,7 +662,7 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
      = Neuanlage, sonst der alte Name, der per PATCH umbenannt wird (D-02,
      Form 1). Das Umbenennen verschiebt damit den Primaerschluessel
      `(user_id, name)` — ein einzelner PATCH auf `?name=eq.<alt>`, weil die
-     UPDATE-Politik der Migration 20260812040000 (Zeilen 41-44) ausschliesslich
+     UPDATE-Politik der Migration 20260812142337 (Zeilen 46-49) ausschliesslich
      `user_id` prueft, nie den Namen; der einzige Fehlerfall ist die
      Eindeutigkeitsverletzung, die PostgREST als HTTP 409 meldet.
 

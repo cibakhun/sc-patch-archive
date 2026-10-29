@@ -37,6 +37,86 @@
 # `supabase link` bzw. --project-ref.
 project_id = "verse-base"
 
+# ============================================================================
+# [auth] -- NUR DOKUMENTATION, ALLES AUSKOMMENTIERT (Stand 29.10.2026)
+# ============================================================================
+# !!! KEIN `supabase config push`, solange dieser Block nicht Zeile fuer Zeile
+# !!! mit dem Dashboard (Authentication -> URL Configuration, Providers,
+# !!! Sign In / Providers -> Email, Passwords, Rate Limits) abgeglichen ist.
+# !!! Ein Push setzt jedes Auth-Feld, das hier fehlt oder auskommentiert ist,
+# !!! auf den CLI-Standard zurueck: Site URL, Redirect-Liste, SMTP,
+# !!! Rate-Limits, Discord-Anbieter. Das bricht Anmeldung, Passwort-Reset und
+# !!! Discord-Verknuepfung fuer alle Konten, staging und live zugleich (beide
+# !!! haengen an derselben Anlage).
+#
+# Zweck: festhalten, welche Auth-Einstellungen die Seite VORAUSSETZT, damit
+# sie pruefbar sind. Die Ist-Werte der Anlage stehen nirgends im Repo; wo sie
+# nicht gelesen werden konnten, steht <im Dashboard pruefen>. Lesbar sind sie
+# ueber die Management API (GET /v1/projects/<ref>/config/auth, mit einem
+# persoenlichen Zugangstoken; Geheimnisse vor dem Einchecken entfernen).
+# Erst wenn der Ist-Stand hier steht und `supabase config push` im Diff NUR
+# die gewollten Aenderungen zeigt, darf ein Block einkommentiert werden.
+#
+# Soll-Werte, abgeleitet aus dem Code (Fundstelle in Klammern):
+#
+# [auth]
+# site_url = "https://verse-base.com"         # Ist: <im Dashboard pruefen>
+#                                             # (SITE.url in src/consts.ts)
+# additional_redirect_urls = [                # Ist: <im Dashboard pruefen>
+#   # Login und Discord-Anmeldung kehren auf die Login-Seite zurueck, mit
+#   # Query (AuthLogin.astro, AuthRegister.astro); Mail-Wechsel auf
+#   # login.html?confirmed=1 (account-dashboard.ts); Discord verknuepfen auf
+#   # die Kontoseite (account-dashboard.ts, linkIdentity); Passwort-Reset auf
+#   # update-password.html, immer mit der Live-Adresse (AuthReset.astro).
+#   "https://verse-base.com/account/**",
+#   "https://verse-base.com/de/account/**",
+#   "https://staging.verse-base.com/account/**",
+#   "https://staging.verse-base.com/de/account/**",
+#   # Testpilot-Tor: gate.html?next=<Ziel> (src/pages/gate.astro). `**`,
+#   # weil `*` an "." und "/" haltmacht und das Ziel beides enthaelt.
+#   "https://staging.verse-base.com/gate.html**",
+#   # KEIN localhost, KEIN 127.0.0.1 und kein Wildcard-Host wie
+#   # https://*.verse-base.com -- jeder Eintrag hier ist ein Ziel, an das
+#   # Anmelde- und Reset-Tokens gehen duerfen.
+# ]
+# jwt_expiry = <im Dashboard pruefen>
+# enable_refresh_token_rotation = true        # Ist: <im Dashboard pruefen>
+# refresh_token_reuse_interval = <im Dashboard pruefen>
+# enable_signup = <im Dashboard pruefen>      # Discord-Registrierung ist
+#                                             # seit 29.10.2026 gewollt
+#                                             # (20261029121956)
+# enable_anonymous_sign_ins = false           # Ist: <im Dashboard pruefen>
+# enable_manual_linking = true                # Ist: <im Dashboard pruefen>
+#                                             # (linkIdentity braucht es)
+# minimum_password_length = 12                # Ist: <im Dashboard pruefen>
+# password_requirements = "lower_upper_letters_digits"
+#                                             # Ist: <im Dashboard pruefen>
+# # Leaked-Password-Schutz (HaveIBeenPwned): Soll AN, Ist im Dashboard bzw.
+# # im Security Advisor pruefen (ein Schluessel dafuer ist hier nicht belegt).
+# # minimum_password_length 12 erst, wenn die Passwortpruefungen der Seite
+# # (Registrierung, Passwort aendern, Reset) und der Function register
+# # dieselbe Grenze haben -- sonst lehnt die Anlage ab, was die Seite erlaubt.
+#
+# [auth.email]
+# enable_signup = <im Dashboard pruefen>
+# enable_confirmations = true                 # Ist: <im Dashboard pruefen>
+# double_confirm_changes = true               # Ist: <im Dashboard pruefen>
+# secure_password_change = true               # Ist: <im Dashboard pruefen>
+# max_frequency = <im Dashboard pruefen>
+#
+# [auth.rate_limit]
+# # alle Werte <im Dashboard pruefen>
+#
+# [auth.external.discord]
+# enabled = true                              # Ist: <im Dashboard pruefen>
+# client_id = "env(SUPABASE_AUTH_EXTERNAL_DISCORD_CLIENT_ID)"
+# secret = "env(SUPABASE_AUTH_EXTERNAL_DISCORD_SECRET)"
+# # Werte NIE hier eintragen, nur ueber die Umgebung.
+#
+# SMTP ([auth.email.smtp]), E-Mail-Vorlagen und Auth-Hooks: <im Dashboard
+# pruefen>; sie stehen bewusst gar nicht hier.
+# ============================================================================
+
 [functions.register]
 verify_jwt = false
 
