@@ -31,8 +31,9 @@
 // bleibt der von D-04 verlangte Discord-unabhängige Weg. Der OAuth-Ablauf ist
 // PKCE, SDK-frei wie der Rest der Seite (Pitfall 6 — kein /_astro/-Bündel):
 // vor dem Sprung zu Discord entsteht ein code_verifier, der nur im
-// sessionStorage DIESES Tabs liegt; /auth/v1/authorize bekommt dessen
-// SHA-256 als code_challenge. Der Rücksprung trägt `?code=`, den nur
+// localStorage DIESES Browsers liegt (wie bei supabase-js: auch ein
+// Rücksprung in einem neuen Tab, etwa aus der Discord-App, findet ihn);
+// /auth/v1/authorize bekommt dessen SHA-256 als code_challenge. Der Rücksprung trägt `?code=`, den nur
 // /auth/v1/token?grant_type=pkce zusammen mit dem Verifier einlöst. Ein
 // Rücksprung ohne gespeicherten Verifier wird verworfen, Sitzungs-Tokens im
 // Fragment werden nie übernommen, und gespeichert wird eine Sitzung erst,
@@ -205,7 +206,11 @@ import { SUPABASE, DISCORD } from '../consts';
         else discordStatus.removeAttribute('data-tone');
       }
 
-      // PKCE ohne SDK (RFC 7636, S256): base64url ohne Auffuellung.
+      // PKCE ohne SDK (RFC 7636, S256): base64url ohne Auffuellung. Der
+      // Verifier liegt im localStorage, nicht im sessionStorage: oeffnet die
+      // Discord-App den Ruecksprung in einem neuen Tab, ist er dort sonst
+      // weg. Er ist nur zusammen mit dem Code nutzbar und wird beim ersten
+      // Ruecksprung verbraucht.
       var PKCE_KEY = 'vb_gate_pkce';
       function b64url(bytes) {
         var s = '';
@@ -227,7 +232,7 @@ import { SUPABASE, DISCORD } from '../consts';
           var raw = new Uint8Array(32);
           crypto.getRandomValues(raw);
           verifier = b64url(raw);
-          sessionStorage.setItem(PKCE_KEY, verifier);
+          localStorage.setItem(PKCE_KEY, verifier);
         } catch (e) { verifier = null; }
         if (!verifier || !crypto.subtle) {
           showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
@@ -274,9 +279,14 @@ import { SUPABASE, DISCORD } from '../consts';
         // (PKCE) und werden nicht uebernommen -- nur weggeraeumt.
         var tokensInUrl = hp.has('access_token') || hp.has('refresh_token') ||
           qp.has('access_token') || qp.has('refresh_token');
-        var verifier = null;
-        try { verifier = sessionStorage.getItem(PKCE_KEY); sessionStorage.removeItem(PKCE_KEY); } catch (e) { /* noop */ }
         if (!code && !oauthErr && !tokensInUrl && !hp.has('error_description')) return false;
+        // Verbraucht wird der Verifier nur bei einem Ruecksprung mit Code
+        // oder Fehler; ein blosser Aufruf der Torseite (zweiter Tab) laesst
+        // eine laufende Anmeldung in Ruhe.
+        var verifier = null;
+        if (code || oauthErr) {
+          try { verifier = localStorage.getItem(PKCE_KEY); localStorage.removeItem(PKCE_KEY); } catch (e) { /* noop */ }
+        }
 
         // Adresse sofort bereinigen (T-14-23): kein Code, Token oder
         // Fehlertext im Verlauf, in einem Lesezeichen oder Bildschirmfoto.
@@ -303,9 +313,9 @@ import { SUPABASE, DISCORD } from '../consts';
         }
         if (!code) return false; // nur Tokens im Fragment: verworfen, normal weiter
         if (!verifier) {
-          // Kein Verifier in diesem Tab: der Ruecksprung gehoert nicht zu
-          // einer hier gestarteten Anmeldung.
-          showDiscordStatus('Discord sign-in could not be completed in this tab — please try again.', 'error');
+          // Kein Verifier in diesem Browser: der Ruecksprung gehoert nicht
+          // zu einer hier gestarteten Anmeldung.
+          showDiscordStatus('Discord sign-in could not be completed in this browser — please try again.', 'error');
           return true;
         }
 
