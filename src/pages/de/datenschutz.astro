@@ -655,7 +655,13 @@ body{font-family:var(--font-body)}
     <p>
       Unter staging.verse-base.com betreiben wir eine Testvorschau, die nur
       <a href="#testpilots">Testpiloten</a> und Administratoren offensteht. Am Eingang meldest du
-      dich mit deinem Konto an; die Eingangsseite verbindet sich dafür mit Supabase. Der Server
+      dich mit deinem Konto an; die Eingangsseite verbindet sich dafür mit Supabase und erneuert
+      dabei eine abgelaufene gespeicherte Anmeldung mit dem Erneuerungsschlüssel. Meldest du dich
+      dort mit Discord an, merkt sich dein Browser bis zur Rückkehr neben dem Prüfwert (PKCE) die
+      Seite der Vorschau, die du aufrufen wolltest; Supabase und Discord sehen statt dieser Seite
+      nur eine zufällige Kennung der Anmeldung. Die Rückkehr verbraucht den Eintrag; ein nicht
+      eingelöster gilt nach 15 Minuten nicht mehr und wird beim nächsten Aufruf der Eingangsseite
+      gelöscht. Der Server
       fragt dann beim Konto-System, ob du Zugang hast, speichert den Zeitpunkt deines Besuchs und
       setzt zwei technisch notwendige Cookies: <code>vb_gate</code> (der Zutrittsnachweis mit
       deiner Konto-ID, vom Server signiert, für Skripte nicht lesbar) und <code>vb_gate_exp</code>
@@ -733,6 +739,18 @@ body{font-family:var(--font-body)}
       Zeitpunkt. Stripe verarbeitet die Zahlung als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung.
       Rechtsgrundlage für die Übermittlung, die den Vorgang anstößt, ist Art. 6 Abs. 1 lit. b DSGVO
       (Durchführung der von dir ausgelösten Zahlung).
+    </p>
+    <p>
+      Damit niemand den Knopf automatisiert missbraucht, nimmt die Funktion je Internetanschluss
+      höchstens zehn Aufrufe in der Stunde an und legt also höchstens zehn Bezahlseiten an. Dafür
+      speichert sie zu jedem angenommenen Aufruf einen Prüfwert, gebildet aus deiner IP-Adresse
+      (bei IPv6 nur aus deren ersten 56 Bit) und einem Geheimwert, der nur serverseitig vorliegt
+      und nicht in der Datenbank steht, und den Zeitpunkt. Die IP-Adresse selbst wird nicht
+      gespeichert, und ohne den Geheimwert lässt sie sich aus dem Prüfwert nicht zurückgewinnen.
+      Einträge, die älter als eine Stunde sind, löscht die Funktion beim nächsten Aufruf, für den
+      sie einen Prüfwert bildet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+      DSGVO; das berechtigte Interesse ist der Schutz des Spendenwegs und des Stripe-Kontos vor
+      massenhaft angelegten Bezahlseiten.
     </p>
     <p>
       Schließt du die Bezahlung ab, schickt Stripe dem Serverteil dieses Projekts eine Nachricht

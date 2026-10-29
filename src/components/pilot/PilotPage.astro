@@ -837,6 +837,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
   import { RANKS, nextRank, prestigeStars } from '../../../discord/bot/src/ranks.mjs';
   import { encodeLayout } from '../../../assets/hangar-layouts.js';
   import { escapeHtml as esc } from '../../lib/escape';
+  import { cssUrl } from '../../lib/cssUrl';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -913,7 +914,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       // schwarz und die Seite sähe kaputt aus, obwohl nur ein Bild fehlt.
       const BANNER_FALLBACK = '/assets/t-pyro-2.jpg';
       const bannerEl = $('ppBannerImg') as HTMLElement;
-      const setBanner = (url: string) => { bannerEl.style.backgroundImage = `url('${url}')`; };
+      // cssUrl: die Adresse schreibt der Besitzer des Profils, nicht die Seite.
+      const setBanner = (url: string) => { const v = cssUrl(url); if (v) bannerEl.style.backgroundImage = v; };
       setBanner(BANNER_FALLBACK);
       if (p.banner_url && p.banner_url !== BANNER_FALLBACK) {
         const probe = new Image();
@@ -1044,8 +1046,10 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
         let code = '';
         try { code = encodeLayout(e); } catch { /* altes Format: nur das Schiff */ }
         const href = `${pre}/hangar.html?ship=${encodeURIComponent(e.ship)}${code ? '&layout=' + code : ''}`;
-        const img = thumbs[e.ship] || SHIPS[e.ship]?.i || '';
-        const style = img ? ` style="--img:url('${esc(img)}')"` : '';
+        // cssUrl: der Schluessel kommt aus dem Profil; ein Wert, der kein
+        // Bild ist (auch ein Prototyp-Eintrag), ergibt eine Kachel ohne Bild.
+        const img = cssUrl(thumbs[e.ship] || SHIPS[e.ship]?.i);
+        const style = img ? ` style="--img:${esc(img)}"` : '';
         return `<a class="pp-tile is-lo${img ? '' : ' no-img'}" href="${esc(href)}"${style}>${img ? '' : ic('pi-ship')}`
           + `<span class="pp-tile__k">${ic('pi-hex')}${esc(COPY.loadout)}${e.name ? ' · ' + esc(shipName) : ''}</span><b>${esc(e.name || shipName)}</b></a>`;
       });
@@ -1053,8 +1057,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       $('ppHangarGrid')!.innerHTML = loTiles.join('') + ships.map((f: { slug: string; label: string }) => {
         const info = SHIPS[f.slug];
         const shipName = info?.n || f.label || f.slug;
-        const img = thumbs[f.slug] || info?.i || '';
-        const style = img ? ` style="--img:url('${esc(img)}')"` : '';
+        const img = cssUrl(thumbs[f.slug] || info?.i);
+        const style = img ? ` style="--img:${esc(img)}"` : '';
         return `<a class="pp-tile${img ? '' : ' no-img'}" href="${favPath('ship', f.slug)}"${style}>${img ? '' : ic('pi-ship')}`
           + `<span class="pp-tile__k">${ic('pi-ship')}${esc(COPY.kindsAll.ship)}</span><b>${esc(shipName)}</b></a>`;
       }).join('');
