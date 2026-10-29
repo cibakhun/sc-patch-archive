@@ -21,6 +21,41 @@ import { defineConfig } from 'astro/config';
 export const TUNNEL_HOSTS = ['.loca.lt', '.trycloudflare.com'];
 const TUNNEL = /^(1|true)$/i.test(process.env.VB_TUNNEL ?? '');
 
+// Vites Host-Schutz sieht nur den Host-Header. Schreibt ein Tunnel ihn auf
+// localhost um (etwa cloudflared --http-host-header localhost), käme
+// `astro dev` trotzdem nach außen. Deshalb weist der Dev-Server zusätzlich
+// jede Anfrage ab, die eine Weiterleitungs-Kopfzeile trägt. Ein Browser setzt
+// keine davon von sich aus; Proxys und die meisten Tunnel setzen sie
+// (cloudflared immer Cf-Connecting-IP und Cf-Ray). Ein Tunnel, der gar nichts
+// anfügt UND den Host umschreibt, käme weiter durch — die Regel bleibt:
+// nie einen Tunnel auf den Dev-Port. `astro preview` ist davon nicht
+// betroffen (das Plugin gilt nur für den Dev-Server).
+export const PROXY_HEADERS = ['forwarded', 'x-forwarded-for', 'x-forwarded-host', 'x-real-ip', 'cf-connecting-ip', 'cf-ray'];
+/** @param {Record<string, unknown> | undefined} headers */
+export function viaProxy(headers) {
+  return PROXY_HEADERS.some((h) => headers?.[h] !== undefined);
+}
+
+/** @returns {import('vite').Plugin} */
+export function devLocalOnly() {
+  return {
+    name: 'vb-dev-local-only',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!viaProxy(req.headers)) return next();
+        res.statusCode = 403;
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.end(
+          '403 Forbidden\n' +
+            'astro dev ist nur lokal erreichbar. Geteilt wird die gebaute Seite: npm run build, VB_TUNNEL=1 setzen, npm run preview.\n' +
+            'astro dev is local only. Share the built site instead: npm run build, set VB_TUNNEL=1, npm run preview.\n',
+        );
+      });
+    },
+  };
+}
+
 // Vites Dev-Server bietet `/__open-in-editor` ohne Anmeldung an; der Endpunkt
 // startet auf dem Rechner einen Editor-Prozess. Dieses Projekt braucht ihn
 // nicht (es fehlen nur die „im Editor öffnen"-Links im Fehler-Overlay und in
@@ -80,6 +115,6 @@ export default defineConfig({
     allowedHosts: TUNNEL && command === 'preview' ? TUNNEL_HOSTS : [],
   }),
   vite: {
-    plugins: [blockOpenInEditor()],
+    plugins: [blockOpenInEditor(), devLocalOnly()],
   },
 });

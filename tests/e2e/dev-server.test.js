@@ -9,6 +9,8 @@
 // 2. Tunnel-Hosts nur fuer `astro preview` und nur mit VB_TUNNEL. Ohne die
 //    Variable bleibt `allowedHosts` leer (Vite-Standard: localhost und
 //    IP-Adressen); `astro dev` bekommt die Tunnel-Hosts nie.
+// 3. `astro dev` weist Anfragen mit Weiterleitungs-Kopfzeilen ab (Tunnel,
+//    der den Host-Header auf localhost umschreibt).
 //
 // Geprueft wird die echte Konfiguration, nicht eine Abschrift: der Test
 // importiert astro.config.mjs und ruft das Plugin mit einem Attrappen-Server
@@ -45,7 +47,7 @@ function middlewareOf(plugin) {
 }
 
 /** Eine Anfrage durch die Middleware schicken. */
-function run(mw, url) {
+function run(mw, url, headers = {}) {
   const res = {
     statusCode: 200,
     headers: {},
@@ -54,7 +56,7 @@ function run(mw, url) {
     end(b) { this.body = b ?? ''; },
   };
   let passed = false;
-  mw({ url, headers: {} }, res, () => { passed = true; });
+  mw({ url, headers }, res, () => { passed = true; });
   return { passed, res };
 }
 
@@ -127,5 +129,54 @@ describe('Dev-Server: Tunnel-Hosts nur fuer astro preview mit VB_TUNNEL', () => 
   test('7. VB_TUNNEL=1 gibt astro dev keine Tunnel-Hosts', async () => {
     const { default: cfg } = await loadConfig('1');
     assert.deepStrictEqual(hostsFor(cfg, 'dev'), [], 'astro dev haengt mit VB_TUNNEL=1 am Tunnel');
+  });
+});
+
+// Kopfzeilen, wie Node sie liefert (Namen klein). Bewusst hier ausgeschrieben
+// und nicht aus PROXY_HEADERS gelesen: eine geleerte Liste soll rot werden,
+// nicht still mitziehen.
+const VIA_TUNNEL = [
+  { 'cf-connecting-ip': '203.0.113.7' },
+  { 'cf-ray': '8f00000000000000-FRA' },
+  { 'x-forwarded-for': '203.0.113.7' },
+  { 'x-forwarded-host': 'abc.trycloudflare.com' },
+  { forwarded: 'for=203.0.113.7;proto=https' },
+  { 'x-real-ip': '203.0.113.7' },
+];
+const LOKAL = [
+  {},
+  { host: 'localhost:4321', 'user-agent': 'Mozilla/5.0', accept: 'text/html' },
+  { host: '127.0.0.1:4321', origin: 'http://localhost:4321', referer: 'http://localhost:4321/de/' },
+  { host: 'localhost:4321', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', connection: 'keep-alive' },
+];
+
+describe('Dev-Server: nur lokal, keine Anfragen ueber Tunnel oder Proxy', async () => {
+  const mod = await loadConfig(undefined);
+  const plugin = (mod.default.vite?.plugins ?? []).find((p) => p && p.name === 'vb-dev-local-only');
+
+  test('8. Plugin vb-dev-local-only steht in vite.plugins und gilt fuer den Dev-Server', () => {
+    assert.ok(plugin, 'vb-dev-local-only fehlt in astro.config.mjs vite.plugins');
+    assert.strictEqual(plugin.apply, 'serve');
+  });
+
+  test(`9. ${VIA_TUNNEL.length} Weiterleitungs-Kopfzeilen bekommen 403`, () => {
+    const mw = middlewareOf(plugin);
+    for (const headers of VIA_TUNNEL) {
+      const { passed, res } = run(mw, '/', { host: 'localhost:4321', ...headers });
+      const name = Object.keys(headers)[0];
+      assert.strictEqual(passed, false, `${name}: an Vite durchgereicht`);
+      assert.strictEqual(res.statusCode, 403, `${name}: Status ${res.statusCode}`);
+      assert.match(String(res.body), /nur lokal[\s\S]*npm run preview/, `${name}: Antwort ohne deutschen Hinweis auf npm run preview`);
+      assert.match(String(res.body), /local only[\s\S]*npm run preview/, `${name}: Antwort ohne englischen Hinweis auf npm run preview`);
+    }
+  });
+
+  test(`10. ${LOKAL.length} lokale Anfragen laufen unberuehrt weiter`, () => {
+    const mw = middlewareOf(plugin);
+    for (const headers of LOKAL) {
+      const { passed, res } = run(mw, '/', headers);
+      assert.strictEqual(passed, true, `${JSON.stringify(headers)} wurde abgefangen`);
+      assert.strictEqual(res.body, null, `${JSON.stringify(headers)}: Antwort wurde geschrieben`);
+    }
   });
 });
