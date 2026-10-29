@@ -94,6 +94,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   import { STATUS_STATES } from '../../lib/profilePresets';
   import { resolveStatusKey, formatActivity } from '../../lib/presence';
   import { supabase } from '../../lib/supabase';
+  import { rankBadge } from '../../lib/rankBadge';
 
   const root = document.getElementById('friendsDock') as HTMLElement | null;
   if (root) {
@@ -111,6 +112,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
       status_state: string | null; status_text: string | null; presence: string | null;
       activity?: string | null;
+      discord_level?: number | null; discord_rank?: string | null; discord_prestige?: number | null;
     };
     type Entry = { p: Prof };
     type Msg = { id: number; sender_id: string; receiver_id: string; body: string; created_at: string; read_at: string | null };
@@ -180,13 +182,19 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
       const txt = document.createElement('span');
       txt.className = 'fd-txt';
+      const nmRow = document.createElement('span');
+      nmRow.className = 'fd-nm';
       const nm = document.createElement('b');
       nm.textContent = nameOf(p);
+      nmRow.appendChild(nm);
+      // Discord-Rang klein hinter dem Namen (nur Zeichen + Level)
+      const rk = rankBadge(p, true);
+      if (rk) nmRow.appendChild(rk);
       const sub = document.createElement('small');
       const so = subOf(p);
       sub.textContent = so.text;
       sub.classList.toggle('is-act', so.act);
-      txt.append(nm, sub);
+      txt.append(nmRow, sub);
       a.append(av, txt);
       const n = unread.get(p.id) || 0;
       if (n) {
