@@ -58,7 +58,11 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // im Bestand lagen; sie steht jetzt auf dem Ist-Stand.
 // Stand 29.10.2026 abends: 36 — Zugang verify-redirects.mjs aus staging.
 // Stand 29.10.2026 spaet: 37 — Zugang verify-vorklick.mjs aus staging.
-const MIN_SCRIPTS = 37;
+// Stand 29.10.2026: 40 — nach den Sicherheitspaketen (u. a. verify-redirects,
+// verify-zaehler, verify-ausgabe, verify-db-rights, audit-csp, check-headers).
+// Stand 29.10.2026 nachts: 41 — beide Zweige zusammengefuehrt (Sicherheits-
+// pakete aus staging plus verify-supply-chain.mjs).
+const MIN_SCRIPTS = 41;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
@@ -69,7 +73,7 @@ const rel = (p) => p.replaceAll('\\', '/');
 // namentlich genannte Ausreisser. `browser-smoke.mjs` heisst so, weil es
 // keine Datei prueft, sondern eine laufende Seite — es gehoert trotzdem
 // unter dieselbe Bijektionspflicht.
-const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs', 'check-gate.mjs'];
+const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs', 'check-gate.mjs', 'check-headers.mjs'];
 const DATEIEN = readdirSync(resolve(ROOT, 'scripts'))
   .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n) || PRUEFER_AUSSER_DER_REIHE.includes(n))
   .map((n) => `scripts/${n}`)

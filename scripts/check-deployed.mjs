@@ -59,8 +59,17 @@ function sollSha() {
   }
 }
 
-const SOLL = sollSha();
+const SOLL = sollSha()?.toLowerCase() ?? null;
+if (SOLL !== null && !/^[0-9a-f]{7,40}$/.test(SOLL)) {
+  console.error(`check-deployed: --sha "${SOLL}" ist keine Commit-Kennung (7 bis 40 Hex-Zeichen).`);
+  process.exit(2);
+}
 const kurz = (s) => (s ? s.slice(0, 7) : '—');
+// --sha darf gekuerzt sein (mind. 7 Zeichen), build.json traegt immer die
+// volle Kennung: verglichen wird deshalb ueber den Anfang. Am 29.10.2026 lief
+// `--sha 59d2421` volle zehn Minuten in die Wartegrenze und meldete dann
+// "liefert 59d2421 aus, erwartet war 59d2421" als FEHLER.
+const istSoll = (ist) => !!ist && String(ist).toLowerCase().startsWith(SOLL);
 
 // ⚠ MIT Zeitlimit. Ohne das haengt der Aufruf, wenn die Gegenstelle die
 // Verbindung offen haelt statt zu antworten — und ein Wartelauf in CI, der
@@ -86,7 +95,7 @@ let stempel = null, letzterFehler = null, gesperrt = false;
 for (;;) {
   try {
     stempel = await hole();
-    if (!SOLL || stempel.sha === SOLL) break;
+    if (!SOLL || istSoll(stempel.sha)) break;
     letzterFehler = `ausgeliefert ${kurz(stempel.sha)}, erwartet ${kurz(SOLL)}`;
   } catch (e) {
     letzterFehler = e.message;
@@ -140,7 +149,7 @@ if (stempel) {
     console.log('    uebersprungen: keine Soll-Kennung ermittelbar');
   } else {
     console.log(`    Soll: ${kurz(SOLL)}   Ist: ${stempel.kurz}`);
-    if (stempel.sha !== SOLL)
+    if (!istSoll(stempel.sha))
       fail.push(
         `die Seite liefert ${kurz(stempel.sha)} aus, erwartet war ${kurz(SOLL)} — ` +
           `der Deploy ist noch nicht durch oder ein Build ist fehlgeschlagen. "CI gruen" heisst nicht "ausgeliefert".`,

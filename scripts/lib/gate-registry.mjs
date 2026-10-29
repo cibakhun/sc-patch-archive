@@ -104,7 +104,7 @@ export const CHECKS = [
     npm: 'audit:csp',
     script: 'scripts/audit-csp.mjs',
     rail: 'A',
-    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers',
+    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', \'unsafe-eval\', * und reine Schema-Quellen, jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), jede Seite mit data-img-fail traegt den Bild-Hoerer davor, der Zaehl-Host steht nur in connect-src, und kein add_header ausserhalb des server-Blocks oder ohne always',
   },
   {
     // Direkt nach audit:csp — beide betreffen nginx/default.conf.
@@ -265,6 +265,18 @@ export const CHECKS = [
     checks: 'der Mauszeiger-Schein ist getilgt, der FX-Umschalter-Vertrag haelt, und beide Sprachfassungen tragen ihn gleich',
   },
   {
+    // Neuzugang (29.10.2026), schnell (wenige Sekunden): liest src/, assets/
+    // und dist/ als Text. Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess im Skript — die Helfer aus src/lib/ werden wie bei
+    // verify:crafting mit esbuild gebuendelt und importiert.
+    id: 'verify:ausgabe',
+    npm: 'verify:ausgabe',
+    script: 'scripts/verify-ausgabe.mjs',
+    rail: 'A',
+    checks:
+      'Ausgabekodierung: JSON in <script>-Bloecken laeuft ueber jsonForScript (src/lib/safeJson.ts; maskiert <, U+2028, U+2029 und ist fuer Daten ohne diese Zeichen byte-gleich mit JSON.stringify), kein set:html-Ausdruck ruft JSON.stringify auf (benannte Ausnahmen mit Zombie-Waechter), jede HTML-Maskierer-Kopie deckt & < > " \' ab, und in dist/ ist jeder application/(ld+)json- und window.__X-Block gueltiges JSON ohne rohes < (Klinken fuer Helferstellen, Maskierer und Bloecke)',
+  },
+  {
     // Neuzugang, vor dem langen audit:site: dekodiert die ausgelieferte
     // Halle (gut 10 MB, wenige Sekunden). Kein env-Feld: kein git, kein
     // Netz, kein Kindprozess — liest dist/ und fuer [12] dazu das Manifest
@@ -298,6 +310,17 @@ export const CHECKS = [
     rail: 'A',
     checks:
       'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Inline-Skripte und JS-Dateien duerfen diese Hosts nur an benannten Klick-Bindungen nennen (mit Zombie-Waechter); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
+  },
+  {
+    // Neuzugang (29.10.2026), vor dem langen audit:site: liest die
+    // gebauten Seiten als Text (gut 2 s). Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — node:vm fuehrt nur den Haken aus dist/ aus.
+    id: 'verify:zaehler',
+    npm: 'verify:zaehler',
+    script: 'scripts/verify-zaehler.mjs',
+    rail: 'A',
+    checks:
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen und Zaehler-Kopien; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
   },
   {
     id: 'audit:site',
@@ -397,6 +420,21 @@ export const CHECKS = [
       'zieht je Hangar-Schiff die Lackierungen mit ihren Palettenfarben A/B/C nach src/data/ship-paints.json und reisst, wenn der Leser kein Schiff oder keine Lackierung findet',
     env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B',
   },
+  {
+    // Kein Datenlauf, aber dieselbe Umgebung: Zugang, den es nur auf dem
+    // Betreiber-Rechner gibt. Anlass: 20261029123218 (Profil-Views fuer
+    // Anonyme beschreibbar, Ursache Supabase-Standardrechte) und
+    // 20261030100000 (Rechte nur nach Bedarf). Vorgefuehrt rot gegen den
+    // Live-Stand vor der Migration, gruen gegen die lokale Replik danach.
+    id: 'verify:db-rights',
+    npm: 'verify:db-rights',
+    script: 'scripts/verify-db-rights.mjs',
+    rail: 'B',
+    checks:
+      'die wirksamen Datenbankrechte von anon, authenticated und PUBLIC (Tabellen, Views, Sequenzen, Funktionen, Spalten, Schemas, Standardrechte fuer neue Objekte, Rollenattribute) gehen nicht ueber supabase/rights.expected.json hinaus (sonst FEHLER), fehlende Soll-Rechte sind WARNUNG, benannte Ausnahmen tragen ihren Anlass (Zombie-Waechter), Klinke fuer die Zahl der geprueften Objekte',
+    env:
+      'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.
@@ -432,6 +470,17 @@ export const CHECKS = [
       'die Vorschau-Domain liefert wirklich den zuletzt gebauten Stand aus (dist/build.json gegen origin/staging) und traegt einen Vorschau-Build, keinen Live-Build',
     env:
       'Netz: fetch() gegen <base>/build.json. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
+  },
+
+  {
+    id: 'check:headers',
+    npm: 'check:headers',
+    script: 'scripts/check-headers.mjs',
+    rail: 'C',
+    checks:
+      'die AUSGELIEFERTEN Antworten (eine je location-Block, 200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), ohne \'unsafe-eval\', * und reine Schema-Quellen in script-src, mit default-src, object-src \'none\' und base-uri/frame-ancestors \'self\' oder \'none\', und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
+    env:
+      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng.',
   },
 
   {

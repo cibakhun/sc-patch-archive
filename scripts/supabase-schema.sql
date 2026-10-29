@@ -1,4 +1,39 @@
 -- ============================================================================
+-- VERALTET -- NICHT AUSFUEHREN (Stand 29.10.2026)
+-- ============================================================================
+-- Diese Datei ist ein frueher Entwurf aus der Zeit vor den Migrationen. Sie
+-- beschreibt NICHT die lebende Datenbank und widerspricht ihr an mehreren
+-- Stellen, unter anderem:
+--   * friend_requests: hier darf auch der Absender aendern und der Status
+--     heisst 'rejected'; live (20260723204107_friends_system) nur der
+--     Empfaenger ueber accept_friend_request, Status 'declined'.
+--   * friends, friend_requests: andere Policy-Namen als live.
+--   * user_roles: Check nur 'user'/'admin'; live seit
+--     20260724143938_user_roles_allow_beta auch 'beta'.
+--   * Rechte: nichts hier nimmt den Supabase-Standardrechten etwas weg.
+-- Abschnitt 4 (user_roles) ist live offenbar einmal von Hand gelaufen: der
+-- Policy-Name ist identisch, und keine Migration legt die Tabelle an. Als
+-- Ganzes lief die Datei nie (friends/friend_requests entstanden erst mit
+-- 20260723204107_friends_system).
+--
+-- QUELLE DES SCHEMAS ist ausschliesslich supabase/migrations/. Seit dem
+-- 29.10.2026 bildet das Verzeichnis die Live-Historie vollstaendig ab,
+-- einschliesslich 20260718192135_nachtrag_user_roles_rsi_spalten fuer das,
+-- was hier einmal von Hand lief.
+--
+-- Die Datei bleibt nur stehen, weil aeltere Migrationen und Planungsnotizen
+-- auf sie verweisen. Der alte Inhalt steht deshalb vollstaendig in einem
+-- Blockkommentar (/* ... */ bis zum Dateiende) und ist fuer keinen Client
+-- ausfuehrbarer Text. Ein Abbruch per raise allein reicht nicht: psql -f
+-- laeuft ohne ON_ERROR_STOP nach einem Fehler mit der naechsten Anweisung
+-- weiter. Die einzige ausfuehrbare Anweisung ist die Meldung darunter.
+-- ============================================================================
+do $$ begin
+  raise exception 'scripts/supabase-schema.sql ist veraltet und wird nicht ausgefuehrt. Schema-Quelle: supabase/migrations/';
+end $$;
+
+/* ALTER INHALT, NUR ZUM NACHLESEN -- nicht ausfuehren.
+-- ============================================================================
 -- VERSEBASE SUPABASE DATABASE MIGRATION SCRIPT
 -- Kopiere diesen Code und führe ihn im Supabase SQL Editor aus (https://supabase.com/dashboard/project/trgjhmbnodoarnfmlcqx/sql)
 -- ============================================================================
@@ -88,3 +123,4 @@ SELECT id, 'admin'
 FROM auth.users
 WHERE email = 'krysx141@gmail.com'
 ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+*/

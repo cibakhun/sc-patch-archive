@@ -22,8 +22,22 @@
 // zu spaet, liefert Stripe erneut. Abgefangen wird das nicht hier, sondern von
 // der Eindeutigkeitsbedingung auf stripe_event_id in der Datenbank. Ein
 // zweiter Versuch laeuft dort auf einen Konflikt und wird still uebergangen.
-import Stripe from 'npm:stripe@^22';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+//
+// Versionen EXAKT gepinnt (vorher npm:stripe@^22 bzw.
+// https://esm.sh/@supabase/supabase-js@2): ein Bereich
+// loest beim naechsten Deploy auf die dann neueste Version auf, und diese
+// Function haelt Geheimnisse. stripe 22.4.0 war am Tag des Live-Deploys
+// (03.08.2026) die neueste 22.x (22.5.0 kam am 10.08.); ihre eingebaute
+// API-Version ist genau API_VERSION unten (ab 22.6.0 ist es 2026-08-26.dahlia,
+// dann waere API_VERSION ein Typfehler). stripe hat keine eigenen
+// Abhaengigkeiten, der Pin friert es also ganz ein. Anheben nur bewusst und
+// zusammen mit API_VERSION.
+// supabase-js 2.118.0: neueste 2.x am 29.10.2026, dieselbe Fassung wie in
+// delete-account. Die @supabase-Unterpakete pinnt das Paket selbst exakt;
+// offen bleibt nur iceberg-js (von storage-js, Bereich ^0.8.1), bis es ein
+// deno.lock fuer diese Function gibt.
+import Stripe from 'npm:stripe@22.4.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
 const API_VERSION = '2026-07-29.dahlia';
 

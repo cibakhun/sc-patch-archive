@@ -5,6 +5,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { SITE } from '../../consts';
 import { HTML_LANG, localeFromPath } from '../../i18n/ui';
+import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   patch: CollectionEntry<'patches'>['data'];
@@ -30,4 +31,4 @@ const ld = {
   publisher: { '@type': 'Organization', name: SITE.name },
 };
 ---
-<script type="application/ld+json" set:html={JSON.stringify(ld)} />
+<script type="application/ld+json" set:html={jsonForScript(ld)} />

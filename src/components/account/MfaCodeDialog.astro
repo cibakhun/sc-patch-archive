@@ -1,0 +1,60 @@
+---
+// Abfrage des Codes aus der Authenticator-App (zweiter Faktor, TOTP).
+// Geteilt DE/EN. Steht einmal je Seite (Anmeldung, Passwort zuruecksetzen,
+// Konto); geoeffnet wird er nur ueber askCode() in src/lib/mfa-dialog.ts,
+// und nur, wenn das Konto einen bestaetigten Faktor hat und die Sitzung noch
+// ohne Code ist (src/lib/mfa.ts, needsCode).
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+
+const COPY = {
+  de: {
+    title: 'Code aus der Authenticator-App',
+    body: 'Dieses Konto ist mit einem zweiten Faktor geschützt. Gib den sechsstelligen Code aus deiner Authenticator-App ein.',
+    code: 'Code',
+    submit: 'Bestätigen', busy: 'Prüfe …', cancel: 'Abbrechen',
+    errFormat: 'Bitte die sechs Ziffern aus der App eingeben.',
+    errWrong: 'Der Code stimmt nicht. Er wechselt alle 30 Sekunden — nimm den aktuellen.',
+    errRate: 'Zu viele Versuche — bitte kurz warten und erneut probieren.',
+    errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
+  },
+  en: {
+    title: 'Code from your authenticator app',
+    body: 'This account is protected with a second factor. Enter the six-digit code from your authenticator app.',
+    code: 'Code',
+    submit: 'Verify', busy: 'Checking …', cancel: 'Cancel',
+    errFormat: 'Please enter the six digits from the app.',
+    errWrong: 'That code is not right. It changes every 30 seconds — use the current one.',
+    errRate: 'Too many attempts — please wait a moment and try again.',
+    errNet: 'That did not work — please try again.',
+  },
+}[lang];
+---
+
+<dialog id="mfaDialog" class="acx-modal" aria-labelledby="mfaDialogTitle"
+  data-msg-format={COPY.errFormat}
+  data-msg-wrong={COPY.errWrong}
+  data-msg-rate={COPY.errRate}
+  data-msg-net={COPY.errNet}
+  data-busy={COPY.busy}
+  data-submit={COPY.submit}
+>
+  <form id="mfaDialogForm" novalidate>
+    <div class="acx-modal-head">
+      <span class="acx-modal-icon" aria-hidden="true">◆</span>
+      <h3 id="mfaDialogTitle">{COPY.title}</h3>
+    </div>
+    <p class="acx-hint">{COPY.body}</p>
+    <div class="acx-field" style="margin-top:1.1rem">
+      <label class="acx-label" for="mfaDialogCode">{COPY.code}</label>
+      <input class="acx-input mono" id="mfaDialogCode" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="9" spellcheck="false" required />
+    </div>
+    <div class="acx-actions">
+      <button class="acx-submit" type="submit" id="mfaDialogBtn">{COPY.submit}</button>
+      <button class="acx-submit acx-submit--ghost" type="button" id="mfaDialogCancel">{COPY.cancel}</button>
+    </div>
+    <p class="acx-status" id="mfaDialogStatus" role="alert" aria-live="assertive" hidden></p>
+  </form>
+</dialog>

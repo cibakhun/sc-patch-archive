@@ -13,8 +13,8 @@
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
   function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
   // "50× MG Scrip" → "MG Scrip" (gleiche Normalisierung wie im Item Finder)

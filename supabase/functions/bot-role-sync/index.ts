@@ -6,11 +6,14 @@
 // Vollzugriff auf ALLE Tabellen, an RLS vorbei. Jetzt haelt der Bot nur noch
 // ein eigenes Geheimnis, und dieses Geheimnis kann genau drei Dinge:
 //
-//   {"op":"list"[, "discord_user_id":"…"]}
+//   {"op":"list"[, "discord_user_id":"…"][, "offset":n]}
 //       -> 200 {"rows":[{discord_user_id, is_tester, in_guild, level, xp,
 //          total_xp, prestige, rank_key, messages, voice_seconds,
 //          server_rank, server_members}, …]}
 //          nur Zeilen mit discord_user_id, nur diese Spalten — keine user_id.
+//          Seitenweise: hoechstens PAGE Zeilen, sortiert nach discord_user_id,
+//          ab offset (Ganzzahl >= 0, Vorgabe 0). Weniger als PAGE Zeilen =
+//          letzte Seite.
 //   {"op":"set","discord_user_id":"…","is_tester":true|false}
 //       -> 200 {"updated":n}   setzt is_tester und updated_at.
 //   {"op":"stats","discord_user_id":"…","patch":{…}}
@@ -30,9 +33,12 @@
 // nicht exakt einer der drei Formen entspricht (unbekannte Schluessel, falsche
 // Typen, leeres patch, Rumpf ueber 2 KB), 500 Datenbankfehler (nur im Log
 // beschriftet). Kein CORS: reine Server-zu-Server-Schnittstelle.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Version fest gepinnt wie in stripe-webhook und delete-account (vorher @2,
+// also jeweils die neueste 2.x zum Zeitpunkt des Deploys).
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
 const MAX_BODY = 2048;
+const PAGE = 1000;
 const DISCORD_ID_RE = /^\d{17,20}$/;
 const RANK_KEY_RE = /^[a-z0-9-]{1,32}$/;
 const INT4_MAX = 2147483647;
@@ -101,12 +107,15 @@ Deno.serve(async (req: Request) => {
 
   try {
     if (body.op === 'list') {
-      if (!onlyKeys(body, ['op', 'discord_user_id'])) return reply(400, { error: 'unknown_field' });
+      if (!onlyKeys(body, ['op', 'discord_user_id', 'offset'])) return reply(400, { error: 'unknown_field' });
       if (id !== undefined && !(typeof id === 'string' && DISCORD_ID_RE.test(id))) {
         return reply(400, { error: 'invalid_discord_user_id' });
       }
+      const offset = body.offset ?? 0;
+      if (!nonNegInt(INT4_MAX)(offset)) return reply(400, { error: 'invalid_offset' });
       let q = admin.from('discord_role_state').select(LIST_COLUMNS).not('discord_user_id', 'is', null);
       if (typeof id === 'string') q = q.eq('discord_user_id', id);
+      q = q.order('discord_user_id').range(offset as number, (offset as number) + PAGE - 1);
       const { data, error } = await q;
       if (error) throw error;
       return reply(200, { rows: data ?? [] });

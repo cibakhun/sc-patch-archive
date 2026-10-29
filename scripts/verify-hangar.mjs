@@ -503,8 +503,14 @@ for (const page of PAGES) {
 if (ctrl && !msgIds.length) fail('[9] keine msg(…)-Aufrufe im Controller gefunden — der Leser ist kaputt, nicht der Controller leer');
 
 say('\n[10] Dock-Daten: data-v in der Folge von data-stats, gegen Vergleichstabelle, Sortierung und Ueberblick (beide Hangarseiten)');
-// Zahl einer Zeile des EN-Ueberblicks ("1,944.5 DPS", "21 m", "1"); der Strich ist unbekannt.
-const enNumber = (text) => (text.trim() === '–' ? null : Number(text.replace(/,/g, '').trim().split(' ')[0]));
+// Zahl einer Zeile des EN-Ueberblicks ("48,552 kg", "226 m/s", "1"); der Strich ist unbekannt.
+// Die Besatzung steht als Spanne wie bei CIG ("2–4"); data-v traegt die Hoechstbesatzung.
+const enNumber = (text) => {
+  if (text.trim() === '–') return null;
+  const first = text.replace(/,/g, '').trim().split(' ')[0];
+  const span = /^(\d+)–(\d+)$/.exec(first);
+  return Number(span ? span[2] : first);
+};
 const overviewBy = new Map(BAYS.en.map((b) => [b.name, b.overview]));
 for (const page of PAGES) {
   const { keys, cards, figures } = DOCK[page.lang];
