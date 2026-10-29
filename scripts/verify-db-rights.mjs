@@ -61,7 +61,8 @@ export const ABFRAGE_DATEI = 'supabase/rights.snapshot.sql';
 // 20261030130000/131000 (drei Triggerfunktionen) und 20261030133000 (zwei
 // Spaltenrechte); auf der Replik mit allen Migrationen gemessen.
 // 65 mit profiles_guard_times() aus 20261030140000.
-export const KLINKE_OBJEKTE = 65;
+// 66 mit der View public_showcase aus 20261029205000 (live seit 29.10.2026 20:51).
+export const KLINKE_OBJEKTE = 66;
 
 export const ROLLEN = ['anon', 'authenticated', 'public'];
 

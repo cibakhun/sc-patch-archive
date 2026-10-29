@@ -173,19 +173,155 @@
   // ---- Nav-Status (alle Elemente mit .js-nav-acct) -------------------------
   // uname optional: Anzeigename/Handle aus profiles — ersetzt das generische
   // "Konto"-Label, sobald der Zusatz-Request (fetchUsername) zurück ist.
+  var navName = '';
   function paintNav(sess, uname) {
     var els = document.querySelectorAll('.js-nav-acct');
+    navName = (sess && uname) || '';
     if (!els.length) return;
     var loggedIn = !!sess;
     for (var i = 0; i < els.length; i++) {
       var el = els[i];
-      el.href = loggedIn ? el.getAttribute('data-dash') : el.getAttribute('data-login');
       var txt = el.querySelector('.js-nav-acct-txt');
       if (txt) txt.textContent = loggedIn ? (uname || el.getAttribute('data-l-acct')) : el.getAttribute('data-l-login');
-      el.title = uname || '';
       el.classList.toggle('is-authed', loggedIn);
     }
+    paintBadge();
   }
+
+  // ---- Zahl am Konto-Knopf -------------------------------------------------
+  // Offene Freundschaftsanfragen an mich + ungelesene Nachrichten von
+  // Freunden, auf jeder Seite. Gezaehlt wird wie in der Freundesleiste der
+  // Kontoseite (FriendsDock): Nachrichten eines Ex-Freundes bleiben lesbar,
+  // stehen dort aber in keiner Liste mehr -- hier mitgezaehlt, liesse sich
+  // die Zahl nie wegklicken. Steht eine Zahl, fuehrt der Knopf direkt in den
+  // Bereich Freunde. Abgefragt beim Laden, alle 60 s bei sichtbarem Tab und
+  // bei Rueckkehr auf den Tab; auf der Kontoseite melden Freundesliste und
+  // Chat ihren Stand sofort (vb:friends, vb:chat-unread).
+  var BADGE_MS = 60000;
+  var badge = { req: 0, msg: 0 };
+  var badgeTimer = null;
+  // Je Konto eine laufende Abfrage. Ein Kontowechsel zaehlt badgeGen hoch:
+  // die Abfrage fuers alte Konto haelt den Riegel dann nicht mehr fest.
+  var badgeGen = 1;
+  var badgeBusy = 0;
+
+  function badgeSummary() {
+    var parts = [];
+    if (badge.req) parts.push(badge.req + (IS_DE ? (badge.req === 1 ? ' neue Freundschaftsanfrage' : ' neue Freundschaftsanfragen') : (badge.req === 1 ? ' friend request' : ' friend requests')));
+    if (badge.msg) parts.push(badge.msg + (IS_DE ? (badge.msg === 1 ? ' ungelesene Nachricht' : ' ungelesene Nachrichten') : (badge.msg === 1 ? ' unread message' : ' unread messages')));
+    return parts.join(' · ');
+  }
+
+  function badgeShort() {
+    var parts = [];
+    if (badge.req) parts.push(badge.req + (IS_DE ? (badge.req === 1 ? ' Anfrage' : ' Anfragen') : (badge.req === 1 ? ' request' : ' requests')));
+    if (badge.msg) parts.push(badge.msg + (IS_DE ? (badge.msg === 1 ? ' Nachricht' : ' Nachrichten') : (badge.msg === 1 ? ' message' : ' messages')));
+    return parts.join(' · ');
+  }
+
+  function paintBadge() {
+    var loggedIn = !!shown;
+    var n = loggedIn ? badge.req + badge.msg : 0;
+    var label = n > 99 ? '99+' : String(n);
+    var sum = n ? badgeSummary() : '';
+    var dots = document.querySelectorAll('.js-nav-badge');
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].textContent = n ? label : '';
+      dots[i].hidden = !n;
+    }
+    var els = document.querySelectorAll('.js-nav-acct');
+    for (var j = 0; j < els.length; j++) {
+      var el = els[j];
+      var dash = el.getAttribute('data-dash');
+      el.href = loggedIn ? (n ? dash + '#friends' : dash) : el.getAttribute('data-login');
+      el.title = [navName, sum].filter(Boolean).join(' · ');
+      el.classList.toggle('has-badge', !!n);
+      ariaWith(el, sum);
+      // Im Menue steht unter dem Namen dann, was wartet, statt der Rubriken.
+      var sub = el.querySelector('.snav-deck__sub');
+      if (sub) {
+        if (!sub.hasAttribute('data-sub0')) sub.setAttribute('data-sub0', sub.textContent);
+        sub.textContent = n ? badgeShort() : sub.getAttribute('data-sub0');
+      }
+    }
+    var menu = document.getElementById('snavMenuBtn');
+    if (menu) ariaWith(menu, sum);
+  }
+
+  // Die Zahl selbst ist aria-hidden; Vorleser hoeren sie am Knopf mit.
+  function ariaWith(el, sum) {
+    if (!el.hasAttribute('data-aria0')) {
+      if (!el.hasAttribute('aria-label')) return;
+      el.setAttribute('data-aria0', el.getAttribute('aria-label'));
+    }
+    var base = el.getAttribute('data-aria0');
+    el.setAttribute('aria-label', sum ? base + ' (' + sum + ')' : base);
+  }
+
+  function setBadge(req, msg) {
+    if (req === badge.req && msg === badge.msg) return;
+    badge.req = req;
+    badge.msg = msg;
+    paintBadge();
+  }
+
+  function rows(r) { return r && r.ok ? r.json() : Promise.reject(r && r.status); }
+
+  // Eine gescheiterte Abfrage laesst die letzte Zahl stehen, statt sie zu
+  // loeschen: lieber eine Minute alt als ein falsches "nichts Neues".
+  function fetchBadge() {
+    if (badgeBusy === badgeGen || !shown) return;
+    var gen = badgeBusy = badgeGen;
+    ensureSession().then(function (sess) {
+      var me = userOf(sess);
+      if (!me || me !== userOf(shown)) return null;
+      return Promise.all([
+        rest(sess, 'GET', 'friend_requests?select=id&receiver_id=eq.' + me + '&status=eq.pending&limit=100').then(rows),
+        rest(sess, 'GET', 'direct_messages?select=sender_id&receiver_id=eq.' + me + '&read_at=is.null&limit=500').then(rows),
+      ]).then(function (res) {
+        var senders = res[1] || [];
+        if (!senders.length) return [res[0].length, 0];
+        return rest(sess, 'GET', 'friends?select=user_id,friend_id&limit=1000').then(rows).then(function (fr) {
+          var mine = {};
+          for (var i = 0; i < fr.length; i++) mine[fr[i].user_id === me ? fr[i].friend_id : fr[i].user_id] = 1;
+          var n = 0;
+          for (var j = 0; j < senders.length; j++) if (mine[senders[j].sender_id]) n++;
+          return [res[0].length, n];
+        });
+      }).then(function (out) {
+        if (out && gen === badgeGen && me === userOf(shown)) setBadge(out[0], out[1]);
+      });
+    }).catch(function () { /* naechster Takt */ }).then(function () { if (badgeBusy === gen) badgeBusy = 0; });
+  }
+
+  function startBadge() {
+    if (badgeTimer) return;
+    fetchBadge();
+    badgeTimer = setInterval(function () {
+      if (document.visibilityState === 'visible') fetchBadge();
+    }, BADGE_MS);
+  }
+
+  function stopBadge() {
+    if (badgeTimer) { clearInterval(badgeTimer); badgeTimer = null; }
+    badgeGen++;
+    badge.req = 0;
+    badge.msg = 0;
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && badgeTimer) fetchBadge();
+  });
+  // Kontoseite: Freundesliste und Chat kennen den Stand zuerst (Annehmen,
+  // Lesen, neue Nachricht per Realtime). Ihre Zahlen gelten sofort.
+  document.addEventListener('vb:friends', function (e) {
+    var d = e && e.detail;
+    if (shown && d && d.incoming) setBadge(d.incoming.length, badge.msg);
+  });
+  document.addEventListener('vb:chat-unread', function (e) {
+    var n = e ? Number(e.detail) : NaN;
+    if (shown && n >= 0) setBadge(badge.req, n);
+  });
 
   // Die eigene Profilzeile in EINER Abfrage: der Name fuer die Nav und die
   // Praesenz-Einstellungen fuer den Puls (siehe hbLearn). Kennt die
@@ -459,12 +595,15 @@
   function userOf(sess) { return (sess && sess.user && sess.user.id) || null; }
 
   function show(sess) {
+    var was = userOf(shown);
     shown = sess;
+    if (!sess || userOf(sess) !== was) stopBadge();
     paintNav(sess);
     if (sess) {
       var profile = fetchProfile(sess);
       hbReady = profile;
       startHeartbeat();
+      startBadge();
       profile.then(function (p) {
         var uname = nameOf(p);
         if (uname && userOf(shown) === userOf(sess)) paintNav(sess, uname);
