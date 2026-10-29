@@ -492,12 +492,12 @@ body{font-family:var(--font-body)}
       ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
       Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
       das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
-      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte. Bist
+      dein <a href="#presence">Online-Status</a>, wenn du ihn für alle freigegeben hast, und alle deine Favoriten samt Schiffsflotte. Bist
       du mit Discord verknüpft und Mitglied unseres Discord-Servers, zeigt das Profil außerdem ein
       Rang-Abzeichen mit deinem Rang, Level und Prestige dort (siehe
       <a href="#discord-server">Discord-Server</a>). Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
-      genauen Zeitpunkt, zu dem du das Konto angelegt und jeden Favoriten gespeichert hast, und
-      zwar für alle Profile mit Handle auf einmal.
+      Monat, in dem du das Konto angelegt hast, und dem Tag, an dem du jeden Favoriten gespeichert
+      hast, und zwar für alle Profile mit Handle auf einmal.
     </p>
     <p>
       Angemeldete Nutzer können über die Schnittstelle zusätzlich die interne Konto-ID jedes
@@ -552,7 +552,8 @@ body{font-family:var(--font-body)}
       offen war und wann du zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen,
       Berühren; das Laden der Seite und die Rückkehr auf den Tab zählen mit). Das geschieht beim
       Laden, danach alle 30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder
-      Rückkehr auf den Tab.
+      Rückkehr auf den Tab. Hast du den Online-Status auf „Niemand“ gestellt (siehe unten),
+      schreibt dein Browser keine Zeitpunkte.
     </p>
     <p>
       Auf einigen Seiten kommt eine kurze Angabe dazu, was du gerade machst, mit ihrem Zeitpunkt:
@@ -569,10 +570,15 @@ body{font-family:var(--font-body)}
       Andere sehen nicht die Zeitpunkte, sondern nur einen daraus abgeleiteten Status:
       <em>online</em> (Seite offen und in den letzten 3 Minuten benutzt), <em>abwesend</em>
       (Seite offen, aber länger unbenutzt, oder vor weniger als 3 Minuten geschlossen) oder
-      <em>offline</em>. Berechnet wird dieser Status nur, wenn du ein Handle gesetzt hast. Dann
-      ist er für jeden lesbar: auf deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden
-      auffrischt, und über die öffentliche Schnittstelle für alle Profile mit Handle. Angemeldeten
-      Nutzern zeigt die Website ihn bei Freunden und offenen Anfragen. Meldest du dich im
+      <em>offline</em>. Berechnet wird dieser Status nur, wenn du ein Handle gesetzt hast. Wer ihn
+      sieht, stellst du im Konto-Dashboard ein („Wer meinen Online-Status sieht“). Standardmäßig
+      sehen ihn nur deine bestätigten Freunde, wenn sie angemeldet sind: in ihrer Freundesliste und
+      auf deinem Piloten-Profil. Mit „Alle“ ist er für jeden lesbar, auch ohne Anmeldung: auf
+      deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden auffrischt, über die öffentliche
+      Schnittstelle und bei offenen Anfragen. Mit „Niemand“ sieht ihn keiner; die gespeicherten
+      Zeitpunkte und die Angabe werden dann sofort geleert, und es wird nichts mehr gespeichert,
+      solange die Einstellung gilt. Die Angabe, was du gerade machst, sehen auch bei „Alle“ nur
+      deine Freunde. Meldest du dich im
       Konto-Dashboard ab (auch mit „Überall abmelden“), versucht die Seite zuerst, die Zeitpunkte und die Angabe zu leeren, und
       meldet dich danach in jedem Fall ab. Gelingt das Leeren nicht (etwa ohne Netz), schreibt
       dieser Browser keine weiteren Zeitpunkte, und der Status wechselt nach spätestens 3 Minuten

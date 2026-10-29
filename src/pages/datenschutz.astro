@@ -465,11 +465,11 @@ body{font-family:var(--font-body)}
       display name, bio, profile picture or icon, banner, role, status and status text, org name,
       RSI handle and whether it is verified, where applicable the “Test Pilot” badge, your names on
       Twitch, YouTube and X, since when you have been a member, your
-      <a href="#presence">online status</a> and all your favorites including your ship fleet. If you
+      <a href="#presence">online status</a> if you have shared it with everyone, and all your favorites including your ship fleet. If you
       are linked with Discord and a member of our Discord server, the profile also shows a rank
       badge with your rank, level and prestige there (see
       <a href="#discord-server">Discord server</a>). The website's public database interface
-      returns the same details, with the exact time you created the account and saved each
+      returns the same details, with the month you created the account and the day you saved each
       favorite, and for all profiles with a handle at once.
     </p>
     <p>
@@ -522,7 +522,8 @@ body{font-family:var(--font-body)}
       writes timestamps to your profile: when the page was last open and when you last interacted
       with it (mouse, keyboard, scrolling, touch; loading the page and returning to the tab count as
       well). This happens on load, then every 30 seconds, even while the tab is in the background,
-      and whenever you return to the tab.
+      and whenever you return to the tab. If you have set your online status to “No one” (see
+      below), your browser writes no timestamps.
     </p>
     <p>
       On some pages a short note on what you are doing is added, with its time: in the hangar (with
@@ -538,9 +539,13 @@ body{font-family:var(--font-body)}
       Others do not see the timestamps, only a status derived from them: <em>online</em> (page open
       and used within the last 3 minutes), <em>away</em> (page open but unused for longer, or closed
       less than 3 minutes ago) or <em>offline</em>. This status is only computed once you have set a
-      handle. It is then readable by anyone: on your public pilot profile, which refreshes it every
-      40 seconds, and through the public interface for all profiles with a handle. To signed-in
-      users, the website shows it for friends and open requests. When you sign out in the account
+      handle. You choose who sees it in the account dashboard (“Who sees my online status”). By
+      default only your confirmed friends see it while signed in: in their friends list and on your
+      pilot profile. With “Everyone” it is readable by anyone, also without signing in: on your
+      public pilot profile, which refreshes it every 40 seconds, through the public interface and
+      for open requests. With “No one” nobody sees it; the stored timestamps and the note are then
+      cleared at once, and nothing is stored while the setting applies. Even with “Everyone”, only
+      your friends see the note on what you are doing. When you sign out in the account
       dashboard (also with “Sign out everywhere”), the page first tries to clear the timestamps and the note and then signs you out
       regardless. If clearing fails (for example without a network), this browser writes no further
       timestamps, and the status switches to offline within 3 minutes unless a page of this website

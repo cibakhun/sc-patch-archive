@@ -126,6 +126,8 @@ const COPY = {
     dcUnlinkNeedsTwo: 'Zum Lösen brauchst du einen zweiten Anmeldeweg. Setze zuerst ein Passwort.',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
     shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', socialBad: 'Dieser Name passt nicht zu %s.',
+    presenceVis: 'Wer meinen Online-Status sieht', presenceVisFriends: 'Nur Freunde (Standard)',
+    presenceVisAll: 'Alle, auch auf meinem öffentlichen Profil', presenceVisNone: 'Niemand (auch keine Aktivität)',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
@@ -283,6 +285,8 @@ const COPY = {
     dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in. Set a password first.',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
     shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', socialBad: 'That name does not fit %s.',
+    presenceVis: 'Who sees my online status', presenceVisFriends: 'Friends only (default)',
+    presenceVisAll: 'Everyone, also on my public profile', presenceVisNone: 'No one (no activity either)',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
@@ -790,6 +794,14 @@ const SEC = {
                   <div class="field">
                     <label for="pfOrg">{COPY.orgName}</label>
                     <input class="inp" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
+                  </div>
+                  <div class="field">
+                    <label for="pfPresenceVis">{COPY.presenceVis}</label>
+                    <select class="ctrl" id="pfPresenceVis">
+                      <option value="friends">{COPY.presenceVisFriends}</option>
+                      <option value="all">{COPY.presenceVisAll}</option>
+                      <option value="none">{COPY.presenceVisNone}</option>
+                    </select>
                   </div>
                 </div>
                 <label class="pf-check">

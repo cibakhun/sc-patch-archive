@@ -205,6 +205,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
         is_tester: false,
         tester_credit: false,
         share_activity: true,
+        presence_visibility: 'friends',
         social_twitch: '',
         social_youtube: '',
         social_x: '',
@@ -225,6 +226,9 @@ import { escapeHtml as escHtml } from '../lib/escape';
         } catch {}
       }
 
+      // Spalten der geladenen Zeile: daran sieht das Formular, ob die
+      // Datenbank eine neuere Einstellung (presence_visibility) schon kennt.
+      let profileCols: string[] | null = null;
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -232,7 +236,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile) Object.assign(profileState, profile);
+        if (profile) { Object.assign(profileState, profile); profileCols = Object.keys(profile); }
       } catch (err) {
         const { data: basicProfile } = await supabase
           .from('profiles')
@@ -306,6 +310,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
       const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const presVisSelect = document.getElementById('pfPresenceVis') as HTMLSelectElement | null;
       const socialInputs = {
         social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
         social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
@@ -327,6 +332,28 @@ import { escapeHtml as escHtml } from '../lib/escape';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
       if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      // Wer den Online-Status sieht (profiles.presence_visibility); alles
+      // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
+      const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
+      // Kennt die Datenbank die Einstellung noch nicht (der geladenen Zeile
+      // fehlt die Spalte), bleibt die Auswahl verborgen und wird nicht
+      // gesendet: eine Wahl, die nichts bewirkt, darf nicht wie gespeichert
+      // aussehen.
+      let presVisKnown = !profileCols || profileCols.includes('presence_visibility');
+      // Bei "Niemand" sieht auch kein Freund die Aktivität: Schalter ausgegraut.
+      const syncShareAct = () => { if (shareActInput && presVisSelect) shareActInput.disabled = presVisKnown && presVisSelect.value === 'none'; };
+      const hidePresVis = () => {
+        presVisKnown = false;
+        const field = presVisSelect ? presVisSelect.closest<HTMLElement>('.field') : null;
+        if (field) field.style.display = 'none';
+        syncShareAct();
+      };
+      if (presVisSelect) {
+        presVisSelect.value = presVisOf(profileState.presence_visibility);
+        presVisSelect.addEventListener('change', syncShareAct);
+      }
+      if (!presVisKnown) hidePresVis();
+      syncShareAct();
       SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
       const ovSoc = document.getElementById('ovSocials');
       if (ovSoc) renderSocialLinks(ovSoc, profileState);
@@ -1295,6 +1322,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           socialVals[s.key] = v;
         }
         const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
+        const presVisVal = presVisOf(presVisSelect ? presVisSelect.value : profileState.presence_visibility);
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1328,6 +1356,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          presence_visibility: presVisVal,
           ...socialVals,
         });
 
@@ -1348,6 +1377,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          presence_visibility: presVisVal,
           social_twitch: socialVals.social_twitch || null,
           social_youtube: socialVals.social_youtube || null,
           social_x: socialVals.social_x || null,
@@ -1355,6 +1385,10 @@ import { escapeHtml as escHtml } from '../lib/escape';
         // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
         // nicht erst beim naechsten Puls.
         if (!shareActVal) payload.activity = null;
+        if (!presVisKnown) delete payload.presence_visibility;
+        // Niemand: die Zeitpunkte gleich mit leeren (die Datenbank tut es bei
+        // 'none' ohnehin), damit der Status sofort verschwindet.
+        if (presVisKnown && presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
           payload.rsi_verified = false;
@@ -1366,10 +1400,25 @@ import { escapeHtml as escHtml } from '../lib/escape';
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
         { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
+        // stored: die volle Nutzlast ist in der Datenbank. Nur dann gilt die
+        // Einstellung als gespeichert; der Rueckfall unten rettet bloss Name
+        // und Handle.
+        let stored = false;
         try {
-          const { error } = await supabase
+          let { error } = await supabase
             .from('profiles')
             .upsert(payload);
+          // Kennt die Datenbank presence_visibility noch nicht (PGRST204:
+          // Spalte fehlt im Schema-Cache): ohne die Einstellung speichern,
+          // statt alle anderen Eingaben zu verlieren, und die Auswahl
+          // ausblenden. Jeder andere Fehler laesst die Einstellung in der
+          // Nutzlast, sonst stuende eine nie gespeicherte Wahl als gespeichert da.
+          if (error && error.code === 'PGRST204' && 'presence_visibility' in payload
+            && String(error.message || '').includes('presence_visibility')) {
+            hidePresVis();
+            delete payload.presence_visibility;
+            ({ error } = await supabase.from('profiles').upsert(payload));
+          }
           pfBtn.disabled = false;
 
           if (error) {
@@ -1378,12 +1427,25 @@ import { escapeHtml as escHtml } from '../lib/escape';
               return;
             }
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
+          } else {
+            stored = true;
           }
         } catch {
           await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           pfBtn.disabled = false;
         }
 
+        if (!stored) {
+          show(pfStatus as HTMLElement, D.msgNet!);
+          return;
+        }
+        // Der Puls (account-lite.js) in diesem Tab richtet sich sofort danach;
+        // andere Tabs erfahren es über den Profil-Cache (storage).
+        window.dispatchEvent(new CustomEvent('vb-account-prefs', {
+          detail: 'presence_visibility' in payload
+            ? { presence_visibility: presVisVal, share_activity: shareActVal }
+            : { share_activity: shareActVal },
+        }));
         show(pfStatus as HTMLElement, D.msgSaved!, true);
       });
 
