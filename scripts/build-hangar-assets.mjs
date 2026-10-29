@@ -35,7 +35,7 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
-import { initGear, poseShip } from './lib/landing-gear.mjs';
+import { initGear, poseShip, underInterior } from './lib/landing-gear.mjs';
 import { gearPlane, GEAR_TILT_MAX, palettePbr } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
@@ -145,7 +145,7 @@ function applyMatFix(doc, fix, { ship = false } = {}) {
         .setBaseColorFactor([...dif.slice(0, 3), 1]).setRoughnessFactor(Math.max(0.2, 1 - Number(sub.shininess || 128) / 255))
         .setExtras({
           diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend, vc: sub.vc, is_glass: /glass/i.test(sub.shader || ''),
-          semantic: { authored_attributes: [{ name: 'Shader', value: sub.shader }, { name: 'Specular', value: sub.specular }, { name: 'Shininess', value: sub.shininess }] },
+          semantic: { authored_attributes: [{ name: 'Shader', value: sub.shader }, { name: 'Specular', value: sub.specular }, { name: 'Shininess', value: sub.shininess }, { name: 'MtlFlags', value: sub.flags }] },
           matfix: true,
           ...(ship ? { glow: sub.glow, layers: sub.layers } : {}),
         });
@@ -379,7 +379,11 @@ async function attachHallTextures(doc, only = null) {
 // Metall und Rauheit kommen aus palettePbr (assets/hangar-viewer.js), wie der
 // Viewer jede Lackierung rechnet. Sonst wird Metall mit Tönung 0 schwarz
 // (.planning/notes/hangar-landung.md, Teil A).
-function cleanMaterials(doc, { paletteOwner, paintTargets, series } = {}) {
+// twoSided (Schiffe, .planning/notes/hangar-cockpit-hohl.md): zweiseitig wie
+// im Spiel. Das .mtl setzt dafür MtlFlags Bit 0x2 (MTL_FLAG_2SIDED),
+// StarBreaker trägt es nicht nach doubleSided; von innen fehlten dann
+// Rückwand und Seiten des Cockpits, der Blick ging durch das Schiff.
+function cleanMaterials(doc, { paletteOwner, paintTargets, series, twoSided = false } = {}) {
   const pbr = { materials: 0, metal: 0, conductor: 0, offTone: 0 };
   const root = doc.getRoot();
   for (const m of root.listMaterials()) {
@@ -391,6 +395,8 @@ function cleanMaterials(doc, { paletteOwner, paintTargets, series } = {}) {
       m.setBaseColorFactor([c[0] * 0.25, c[1] * 0.3, c[2] * 0.35, 0.28]).setAlphaMode('BLEND')
         .setMetallicFactor(0.1).setRoughnessFactor(0.05).setDoubleSided(false);
     }
+    const flags = Number((x.semantic?.authored_attributes || []).find((t) => t.name === 'MtlFlags')?.value ?? 0);
+    if (twoSided && !glass && flags & 2) m.setDoubleSided(true);
     // CryEngine-Metall: die Diffuse-Textur „conductor“ ist fast schwarz, die
     // Farbe steckt in der Specular-Farbe. In glTF: Metall mit dieser Grundfarbe.
     if (/conductor/i.test(x.diffuse_tex || '')) {
@@ -658,15 +664,85 @@ const KEEP_INTERIOR = new Set(['aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk
 // auch, wenn Rumpf und Innenraum roh höchstens das 1,5-fache des
 // Dreiecksbudgets haben (dann kostet die Dezimierung den Rumpf kaum etwas);
 // HANGAR_SHIP_NO_INTERIOR=1 nimmt ihn sonst immer (erste Stufe gegen die 16 MB).
-// KEEP_INTERIOR geht vor: dort sähe man durch die Haube ein leeres Cockpit
+// KEEP_INTERIOR geht vor: dort sähe man durch die Haube ein leeres Cockpit.
+// Sonst bleibt, was man durch Glas sieht (.planning/notes/hangar-cockpit-hohl.md):
+// jeder Knoten eines Containers, dessen Hüllquader den eines Außenglases
+// (Haube, Brücke) um GLASS_REACH erweitert schneidet. interiorDropped zählt
+// die Container, die dabei ganz oder teilweise weggefallen sind.
+// HANGAR_SHIP_NO_GLASS_INTERIOR=1 nimmt auch das weg (Stufe gegen die 16 MB,
+// vor kleineren Karten: Guardian, Aurora Mk II).
+const GLASS_REACH = 2.5;
 function dropInterior(doc, slug, rawTris = Infinity, budgetTris = 0) {
-  if (KEEP_INTERIOR.has(slug)) return 0;
-  if (!process.env.HANGAR_SHIP_NO_INTERIOR && rawTris <= 1.5 * budgetTris) return 0;
-  let dropped = 0;
+  const none = { dropped: 0, keptNodes: 0, keptTris: 0 };
+  if (KEEP_INTERIOR.has(slug)) return none;
+  if (!process.env.HANGAR_SHIP_NO_INTERIOR && rawTris <= 1.5 * budgetTris) return none;
+  const glass = process.env.HANGAR_SHIP_NO_GLASS_INTERIOR ? [] : glassBoxes(doc).map((b) => ({ min: b.min.map((v) => v - GLASS_REACH), max: b.max.map((v) => v + GLASS_REACH) }));
+  const seen = (b) => b && glass.some((g) => [0, 1, 2].every((k) => b.min[k] <= g.max[k] && b.max[k] >= g.min[k]));
+  const r = { ...none };
   for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
-    for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) { c.traverse((n) => n.setMesh(null)); top.removeChild(c); dropped++; }
+    for (const c of top.listChildren()) {
+      if (!/^interior_/i.test(c.getName())) continue;
+      let kept = 0, cut = 0;
+      c.traverse((n) => {
+        if (!n.getMesh()) return;
+        if (seen(usedBox(n))) { kept++; r.keptTris += n.getMesh().listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0); }
+        else { n.setMesh(null); cut++; }
+      });
+      if (!kept) top.removeChild(c);
+      if (cut) r.dropped++;
+      r.keptNodes += kept;
+    }
   }
-  return dropped;
+  return r;
+}
+
+// Innenraumteile, die auch nach dem Materialnachtrag keines tragen, gibt es im
+// Spiel so nicht zu sehen: ihr .mtl fehlt dort (Javelin: Rohbau-Innenraum mit
+// Blockout-Materialien). Weg, statt hinter dem Glas weiß zu stehen; ein Mesh,
+// das auch außerhalb der Container hängt, bleibt.
+function dropBareInterior(doc) {
+  const users = new Map();
+  for (const n of doc.getRoot().listNodes()) if (n.getMesh()) users.set(n.getMesh(), [...(users.get(n.getMesh()) || []), n]);
+  let tris = 0;
+  for (const [mesh, nodes] of users) {
+    if (!nodes.every(underInterior)) continue;
+    for (const p of mesh.listPrimitives()) {
+      if (p.getMaterial()?.getName()) continue;
+      tris += ((p.getIndices()?.getCount() ?? 0) / 3) * nodes.length;
+      mesh.removePrimitive(p); p.dispose();
+    }
+  }
+  return Math.round(tris);
+}
+
+// Hüllquader (Welt) der Ecken, die die Dreiecke eines Knotens nutzen: die
+// Primitive einer .cga teilen einen Vertex-Puffer, dessen min/max täuscht.
+// glass = nur die Primitive mit Glasmaterial.
+function usedBox(n, glass = null) {
+  const W = n.getWorldMatrix(), e = [0, 0, 0];
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (const p of n.getMesh().listPrimitives()) {
+    if (glass && !glass(p.getMaterial())) continue;
+    const a = p.getAttribute('POSITION'), idx = p.getIndices();
+    if (!a) continue;
+    for (const i of idx ? new Set(idx.getArray()) : Array.from({ length: a.getCount() }, (_, k) => k)) {
+      a.getElement(i, e);
+      for (let k = 0; k < 3; k++) {
+        const v = W[k] * e[0] + W[4 + k] * e[1] + W[8 + k] * e[2] + W[12 + k];
+        if (v < min[k]) min[k] = v;
+        if (v > max[k]) max[k] = v;
+      }
+    }
+  }
+  return min[0] <= max[0] ? { min, max } : null;
+}
+
+// Außenglas: Glasmaterialien außerhalb der interior_*-Container, ohne
+// Scheinwerfer- und Lampengläser (dieselbe Erkennung wie
+// scripts/measure-hangar-cockpit.mjs)
+function glassBoxes(doc) {
+  const isGlass = (m) => { const name = m?.getName() || ''; return (m?.getExtras()?.is_glass || /glass|canopy|window/i.test(name)) && !/headlight|light_glass|lamp|lens|bulb/i.test(name); };
+  return doc.getRoot().listNodes().filter((n) => n.getMesh() && !underInterior(n)).map((n) => usedBox(n, isGlass)).filter(Boolean);
 }
 
 // Budget je Schiff: 200 000 Dreiecke, ab 60 m Länge 400 000; Farbe/Leuchten
@@ -1556,7 +1632,7 @@ async function buildOne(kind, name, inPath) {
   const gearPose = kind === 'ships' ? shipGear(doc, name) : null;
   if (kind === 'ships') dropUnreachable(doc);
   const b = kind === 'ships' ? shipBudget(name) : BUDGET[kind];
-  const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : 0;
+  const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : null;
   let matfix = null, cover = null;
   const fixFile = fileURLToPath(new URL(`${kind}/${name}.matfix.json`, SRC));
   // Schiffe (.planning/notes/hangar-innenraum.md): Nachtrag vor dropJunk,
@@ -1566,6 +1642,7 @@ async function buildOne(kind, name, inPath) {
     cover = { before: coverage(doc) };
     matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')), { ship: true });
   }
+  const bareInterior = kind === 'ships' ? dropBareInterior(doc) : 0;
   dropJunk(doc);
   if (kind === 'hall' || kind === 'lift' || werk) {
     cover = { before: coverage(doc) };
@@ -1580,7 +1657,7 @@ async function buildOne(kind, name, inPath) {
   const liftUv = liftParts ? uvReport(doc) : null;
   // Palette des Schiffs = Record des Rohexports (Constellation: …_andromeda_gs)
   const plan = kind === 'ships' ? await paintPlan(name) : null;
-  const pbr = cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, series: SHIP_PAINTS[name]?.base } : {});
+  const pbr = cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, series: SHIP_PAINTS[name]?.base, twoSided: true } : {});
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' || werk }), weld());
@@ -1695,7 +1772,9 @@ async function buildOne(kind, name, inPath) {
     ...(swap ? { swap: swap.ports, swapNodes: swap.nodes } : {}),
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
-    ...(kind === 'ships' ? shipSource(name, interior) : {}),
+    ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
+    ...(interior?.keptNodes && interior.dropped ? { interiorKept: { nodes: interior.keptNodes, tris: Math.round(interior.keptTris) } } : {}),
+    ...(bareInterior ? { interiorBare: bareInterior } : {}),
     ...(gearTest ? { ...(gearTest.ok ? { gear: true } : {}), gearCheck: gearTest, budget: { tris: b.tris, tex: b.tex, ...(b.q ? { q: b.q } : {}) } } : {}),
     ...(paints ? { paints: { url: paints.url, v: paints.v } } : {}),
     ...(paints ? { paintReport: paints } : {}),
@@ -2807,7 +2886,7 @@ for (const kind of Object.keys(BUDGET)) {
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
       if (r.swap) console.log(`    Tauschteile: ${Object.keys(r.swap).length} Waffen-Ports (${Object.values(r.swap).reduce((a, b) => a + b, 0)} Exemplare, ${r.swapNodes} Knoten)${Object.keys(r.swap).length ? '' : ' — WARNUNG: keine Serienwaffe im Rohexport gefunden'}`);
       if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
-      if (kind === 'ships') console.log(`    Quelle: ${r.record ?? 'Rohexport ohne Sidecar'}${r.game ? ` (CL ${r.game})` : ''}, Innenraum ${r.interiorDropped ? `${r.interiorDropped} Container entfernt` : 'behalten'}`);
+      if (kind === 'ships') console.log(`    Quelle: ${r.record ?? 'Rohexport ohne Sidecar'}${r.game ? ` (CL ${r.game})` : ''}, Innenraum ${r.interiorDropped ? `${r.interiorDropped} Container entfernt${r.interiorKept ? `, hinter Glas behalten ${r.interiorKept.nodes} Knoten mit ${r.interiorKept.tris} Dreiecken` : ''}` : 'behalten'}`);
       if (kind === 'ships' && r.matfix) console.log(`    Materialnachtrag: ${r.matfix.fixed} Primitive (${r.matfix.reused} auf Materialien des Exports, ${r.matfix.created} neue Materialien, ${r.matfix.layered ?? 0} mit Schichtkarten), ${r.matfix.dropped} NoDraw entfernt; ohne Material ${r.cover.before.trisOhneMaterial} -> ${r.cover.after.trisOhneMaterial} Dreiecke`);
       const pr = r.paintReport;
       delete r.paintReport;

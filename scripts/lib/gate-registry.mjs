@@ -292,6 +292,13 @@ export const CHECKS = [
     checks: 'jedes Schiff, das die Hangarseite aufs Fahrwerk stellt, steht mit der Ebene des ausgelieferten Viewers auf Ecken seiner Datei (kein Bein schwebt, kein Teil steckt tiefer als die Grenze im Boden), Fahrzeuge ohne Fahrwerk stehen waagrecht auf ihrer tiefsten Ecke, jedes andere Schiff hat einen Grund aus dem Manifest, Klinken fuer beide Arten',
   },
   {
+    id: 'verify:hangar-cockpit',
+    npm: 'verify:hangar-cockpit',
+    script: 'scripts/verify-hangar-cockpit.mjs',
+    rail: 'A',
+    checks: 'durch die Haube jedes Schiffs der Hangarseite sieht man nicht durch das Schiff in die Halle: Strahlen durch das Haubenglas, die hinter einer Rueckseite nichts mehr treffen, was der Viewer zeichnet, je Schiff unter seiner Klinke (Krisz 29.10.2026: Gladius von innen hohl)',
+  },
+  {
     // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
     // audit:site: liest jede gebaute Seite einmal als Text, wenige Sekunden.
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — nur dist/.
@@ -494,6 +501,15 @@ export const CHECKS = [
     rail: null,
     checks: 'zaehlt Schriftgrade, Laufweiten und Uebergaenge im Quellbestand',
     why: 'Erhebungswerkzeug aus Phase 2 (Grundlage der Skala), kein Pruefer — es faellt kein Urteil und hat bewusst keinen Exit-Code',
+  },
+  {
+    id: 'measure-hangar-cockpit',
+    script: 'scripts/measure-hangar-cockpit.mjs',
+    rail: null,
+    checks: 'misst je Schiffsmodell eines Ordners, wie viele Blicke durch das Haubenglas auf eine Rueckseite treffen (hohl) und wie viele dahinter in die Halle gehen (durch)',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-cockpit-hohl.md (Krisz, 29.10.2026: Gladius von innen hohl): vergleicht Rohexport und Web-Fassung auf dem PC, auch ausserhalb von dist/. ' +
+      'Dieselbe Rechnung (scripts/lib/cockpit-rays.mjs) prueft verify:hangar-cockpit als Tor gegen die ausgelieferten Modelle.',
   },
   {
     id: 'verify-hardpoints',

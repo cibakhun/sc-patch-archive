@@ -1983,10 +1983,14 @@ import { cssUrl } from '../lib/cssUrl';
 
         // Eigenes Discord-Bild der Identität. Discords Standardbild
         // (cdn.discordapp.com/embed/avatars/…) ist das blaue Logo, das jeder
-        // ohne eigenes Bild hat — als Profilbild taugt es nicht.
+        // ohne eigenes Bild hat — als Profilbild taugt es nicht. Das Muster
+        // ist wortgleich mit der Regel profiles_avatar_url_source der
+        // Datenbank: was hier durchgeht, nimmt sie auch an, sonst scheitert
+        // der gemeinsame Patch mit dem Anzeigenamen.
+        const DC_AVATAR_RE = /^https:\/\/cdn\.discordapp\.com\/avatars\/[0-9]{5,25}\/[A-Za-z0-9_]{1,80}\.(png|jpe?g|webp|gif)(\?[A-Za-z0-9=&_-]{0,60})?$/;
         const dcAvatarOf = (idn: any): string => {
           const u = String(((idn && idn.identity_data) || {}).avatar_url || '');
-          return /^https:\/\/cdn\.discordapp\.com\/avatars\//.test(u) ? u : '';
+          return DC_AVATAR_RE.test(u) ? u : '';
         };
         // Discord-Benutzername (full_name in den Supabase-Rohdaten) und der
         // Anzeigename, den man bei Discord selbst gewählt hat (global_name).
