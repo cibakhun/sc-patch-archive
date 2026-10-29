@@ -1589,21 +1589,21 @@
           "id": "c7425b92b175f52ca669a088b85f0a9e",
           "name": "600i Cold Forge Livery",
           "tag": "Paint_600i_IAE_2952_Black_Red",
-          "a": "#03070c",
-          "b": "#252526",
-          "c": "#252526",
+          "a": "#2f2f2f",
+          "b": "#881c1e",
+          "c": "#881c1e",
           "finish": {
             "a": {
-              "specular": "#3166a7",
-              "gloss": 113
+              "specular": "#3b3b3b",
+              "gloss": 248
             },
             "b": {
-              "specular": "#3b3b3b",
-              "gloss": 132
+              "specular": "#313131",
+              "gloss": 212
             },
             "c": {
               "specular": "#3b3b3b",
-              "gloss": 250
+              "gloss": 209
             }
           },
           "pattern": false
@@ -1658,21 +1658,21 @@
           "id": "cd4759416a4287b78d4c21e61e1a3791",
           "name": "600i Sterling Livery",
           "tag": "Paint_600i_IAE_2952_Metal",
-          "a": "#03070c",
-          "b": "#252526",
-          "c": "#252526",
+          "a": "#000000",
+          "b": "#000000",
+          "c": "#000000",
           "finish": {
             "a": {
-              "specular": "#3166a7",
-              "gloss": 113
+              "specular": "#909090",
+              "gloss": 209
             },
             "b": {
-              "specular": "#3b3b3b",
-              "gloss": 132
+              "specular": "#909090",
+              "gloss": 210
             },
             "c": {
-              "specular": "#3b3b3b",
-              "gloss": 250
+              "specular": "#909090",
+              "gloss": 210
             }
           },
           "pattern": true
@@ -14607,21 +14607,21 @@
           "id": "da43abdc38b107909e8d46f6da4ff493",
           "name": "Cutlass Cypress Livery",
           "tag": "Paint_Cutlass_Cypress_LightGreen_Camo",
-          "a": "#434649",
-          "b": "#2e2e2e",
-          "c": "#808282",
+          "a": "#5a5139",
+          "b": "#263221",
+          "c": "#1e271a",
           "finish": {
             "a": {
-              "specular": "#404040",
-              "gloss": 222
+              "specular": "#3b3b3b",
+              "gloss": 170
             },
             "b": {
               "specular": "#3b3b3b",
-              "gloss": 194
+              "gloss": 170
             },
             "c": {
               "specular": "#3b3b3b",
-              "gloss": 217
+              "gloss": 170
             }
           },
           "pattern": true

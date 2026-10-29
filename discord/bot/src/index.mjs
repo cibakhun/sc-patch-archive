@@ -18,6 +18,7 @@ import { startVoiceSweep } from './voice.mjs';
 import { startPatchWatch } from './patch-watch.mjs';
 import { registerRoleSync } from './role-sync.mjs';
 import { reconcileRoles, startPeriodicReconcile } from './role-reconcile.mjs';
+import { startRankSync } from './rank-sync.mjs';
 import { registerBugThreadXp } from './bug-thread-xp.mjs';
 import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
@@ -107,7 +108,10 @@ client.once(Events.ClientReady, async (c) => {
   // (der erste Tick feuert ohnehin erst nach einem vollen Intervall), damit
   // kein Abgleich-Sturm beim Boot entsteht.
   startPeriodicReconcile(ctx);
-  console.log('  · voice XP sweep + patch watch + periodic role reconcile started — bot is live.');
+  // Rangspiegel fuer die Kontoseite: Level/Rang/XP verbundener Konten nach
+  // discord_role_state (rank-sync.mjs). Ohne Supabase-Schluessel inaktiv.
+  startRankSync(ctx);
+  console.log('  · voice XP sweep + patch watch + periodic role reconcile + rank mirror started — bot is live.');
 });
 
 client.on(Events.GuildCreate, async (guild) => {

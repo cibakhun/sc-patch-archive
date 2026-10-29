@@ -174,8 +174,8 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
   `finish { a/b/c: { specular, gloss } }` für `base` und jede Lackierung:
   2103 von 2103 Lackierungen und 207 von 207 Grundpaletten vollständig, mit
   Metall (metallic > 0,5 nach `palettePbr`) 1246 bzw. 114 (gezählt vor
-  `DIEL_MAX`; mit der Fassung auf staging nachgezählt, Cloud 29.10.: 588 bzw.
-  51). Lack ab Werk auch
+  `DIEL_MAX`; nachgezählt siehe Cloud 29.10. abends unten: 863 bzw. 61,
+  ohne Sättigungsregel 589 bzw. 51). Lack ab Werk auch
   über `entityClassReference` (1: Hornet F7C-M Mk II Heartseeker; ab Werk
   lackiert jetzt 4). Der Bau schreibt an jedes Palettenmaterial der eigenen
   Palette `extras.palette { ch, tint, specular, gloss }` (Werte aus
@@ -283,17 +283,248 @@ stammen, ein zweiter Neubau ist dafür nicht nötig. Die Selbstauskunft
 „Metall in 1246 Lackierungen“ fällt mit der neuen Fassung deutlich kleiner
 aus; bitte beim nächsten Lauf mit ihr neu zählen.
 
-**Cloud 29.10.2026, Befund aus dem Review von PR #238 (für den nächsten
-PC-Lauf):** Das Schwesterpaket in `writePaints` gibt Lacken eine fremde
-Palette, wo `datamine:paints` bei der Serienpalette bleibt. Beispiele: Cutlass
-Steel „Hawthorn“ trägt im Bauplan die Palette der Cutlass Red (#323232 /
-#1a1918 / #414236, Glanz 170), `ship-paints.json` die eigene Serienpalette
-(#000000, Glanzfarbe #969696, Metall); Mustang Beta „Vindicator“
-(CitizenCon2018) trägt Palette und Schablone der Alpha statt #354753 /
-#b47528 / #2a2a2a. Bauplan und Daten sollen dieselbe Antwort geben. Der Zweig
-`pc/hangar-lack` (15817982) aus einer anderen PC-Sitzung hat dafür schon die
-engere Regel (Schwester nur bei gleichem Material und echter Lackpalette;
-Mustang Vindicator und Cutlass Hawthorn bleiben auf der Serienpalette):
-bitte mit diesem Stand zusammenführen und die Lack-Baupläne neu schreiben.
-Die Freelancer sieht nach dem Neubau hell aus (Metallrumpf); sie bleibt in
-`HOLD`, bis Krisz sie freigibt (WINDOWS 129).
+## Lauf 29.10.2026 (Hangar-Lack)
+
+PC-Lauf, Branch `pc/hangar-lack` von `origin/staging` (b230dd42), eigener
+Worktree `.claude/worktrees/hangar-lack`, Spielquellen per Junction. Anlass:
+Krisz 29.10.2026 13:17 „ja“ zum Lack-Datenlauf. 51 Metall- und Chromlacke
+(Sabre Blue Steel, Carrack Purple Haze, Hammerhead Fortuna …) färbten das
+Schiff mattschwarz: Ihre Tönung ist im Spiel #000000, die Farbe steckt in der
+Glanzfarbe, und die fehlte der Seite. Teil A, Aufträge 1 bis 4 oben. Kein
+Neubau aller Schiffe; die Probe-GLBs sind nicht committet.
+
+### Daten (`datamine:paints`)
+
+- **finish je Kanal** für `base` und jede Lackierung in
+  `src/data/ship-paints.json`: `{ a: { specular: '#rrggbb', gloss: 0..255 },
+  b, c }` aus `specColor` und `glossiness` des TintPaletteTree, nur wenn alle
+  drei Kanäle ihn tragen (kein Teil-finish gefunden). Selbstauskunft:
+  2103 Lackierungen, alle mit vollem finish, davon 589 Metall
+  (`palettePbr` aus `assets/hangar-viewer.js`, metalness > 0,5 in mindestens
+  einem Kanal); Grundpaletten 207 von 207 mit finish, davon 51 Metall.
+- **Erwartungswerte** stimmen: Sabre Blue Steel (`Paint_Sabre_Metal_Metal_Metal`)
+  alle drei #9d9d9d/255; Purple Haze (`…_Halloween2024_Blood`, Carrack,
+  Syulen, Terrapin, Zeus) #412686/201, #412686/200, #462a93/255; Hammerhead
+  Fortuna (`Paint_Hammerhead_StellaFortuna_Green`) #354b35/133,
+  #4a724a/131, #354b35/131. Tönung jeweils #000000.
+- **Gegenprobe** gegen `palette` desselben Tags in den Lack-Bauplänen
+  (`public/hangar/paints/<schiff>.json`, verglichen wird, was der Bauplan
+  trägt): 2103 verglichen, 2102 gleich, 1 abweichend. Davon 2025 mit vollem
+  finish, 34 ohne Glätte (der zerlegte Export lässt `glossiness` bei manchen
+  Paletten weg, z. B. 100i, Aurora Mk II, Lynx, Nomad; die Glanzfarbe stimmt
+  dort, die Glätte steht nur in `ship-paints.json`), 44 nur Farben
+  (Rückfall-Baupläne). Die eine Abweichung ist Cutlass Black Cypress: Der
+  Bauplan trägt noch den alten Rückfall (Grundfarben der Black), die Daten
+  jetzt die Palette der Steel (siehe unten); der nächste Bau der Black zieht
+  nach. Nicht verglichen: 7 Bauplan-Einträge ohne Palette, 171 Tags ohne
+  Eintrag in den Daten (Lacke ohne echten Namen, Schiffe ohne Grundpalette).
+- **Schwester** (Auftrag 2a): Die Regel aus `sisterPalette` (gleiche Familie
+  oder eindeutig) traf in der ersten Fassung zwölf Einträge, darunter falsche.
+  Sie gilt jetzt in Daten und Bau nur für dieselbe Lackierung: gleiches
+  Material (Muster) wie der eigene Eintrag, und eine Lackpalette, nicht die
+  Serienpalette der Schwester (nach Werten, die Paletten-Kennungen der Pakete
+  bildet der Export selbst). Bleiben 3:
+  - 600i BIS2951 Cold Forge #2f2f2f/#881c1e/#881c1e (Glanz #3b3b3b,
+    248/212/209) und Sterling #000000 × 3 (Glanz #909090/209, Metall) aus
+    ORIG 600i und 600i Touring (dieselbe Palette, dasselbe Material).
+  - Cutlass Black Cypress #5a5139/#263221/#1e271a aus Cutlass Steel: Die
+    Black nennt dasselbe Material `DRAK_Cutlass_Steel_Cypress_LightGreen_Camo.mtl`,
+    nur ohne Palette.
+  - Verworfen: Mustang Beta, Delta, Gamma, Omega Vindicator (`CitizenCon2018`)
+    aus der Mustang Alpha CitizenCon2018. Deren Eintrag nennt die
+    Grundpalette der Alpha (`TintPaletteTree.cnou_mustang_alpha`), keine
+    Lackpalette; das Spiel behält bei einem Eintrag ohne Palette die des
+    Schiffs.
+- **Freelancer Storm Surge** (`Paint_Freelancer_Invictus_Camo`, Auftrag 2b):
+  ein Rückfall, aber der richtige. Keine der vier Freelancer-Varianten und
+  kein anderer Record im Spiel (auch KI-, Bergungs- und Missionsfassungen)
+  trägt für den Tag eine Palette; alle nennen dasselbe Muster
+  `misc_freelancer_mis_ext_camo_stencil_blue.mtl`. Ohne Palette im Eintrag
+  bleibt die des Schiffs, also #000000/#393b39/#484848 mit der Glanzfarbe der
+  Serie (A #e3e3e3/214, Metall). Mit `finish` zeichnet die Seite das jetzt
+  als Metall statt Schwarz.
+- **Cutlass Steel Hawthorn** (`Paint_Cutlass_Hawthorn_Green_Camo`, Auftrag 2c):
+  keine Palette zu finden, mit Grund. Die vier Cutlass tragen Hawthorn mit
+  drei verschiedenen Materialien: Black und Steel
+  `DRAK_Cutlass_Steel_Hawthorn_Green_Camo.mtl`, Blue
+  `Drak_Cutlass_Blue_Hawthorne_Green_Camo.mtl`, Red
+  `Drak_Cutlass_Red_Hawthorne_Green_Camo.mtl`. Nur die Red (und ihre
+  Ableger) hat eine Palette (`drak_cutlass_hawthorne_green`
+  #323232/#1a1918/#414236), und die gehört zu ihrem eigenen Muster. Die Blue
+  hat keine, anders als oben vermutet. Steel, Black und Blue behalten ihre
+  Serienpalette (Steel #000000 × 3, Glanz #969696, Metall). Ebenso Cutlass
+  Blue Cypress (eigenes Material ohne Palette).
+- **Ab Werk über den Verweis** (Auftrag 2d, cubic #219):
+  `entityClassReference` gilt zuerst (Datensatz, sonst sein Name, sonst seine
+  Datei), dann `entityClassName`. Ab Werk lackiert: 4, über Verweis 1 (Hornet
+  F7C-M Mk II Heartseeker, `Paint_Hornet_F7CM_Mk2_Heartseeker`), über Namen 3
+  (Gladius Pirate, Gladius Valiant, Hammerhead Showdown). Im ganzen DataCore
+  nennen 42 Lack-Einträge der Standardausrüstung das Teil über den Namen und
+  2 nur über den Verweis (die Heartseeker und eine KI-Arrow, nicht im Hangar).
+- **Rückfall auf die Serienpalette** bleibt bei 43 Einträgen ohne Palette:
+  die Invictus-Tarnlacke (Arrow, Avenger × 3, Freelancer × 4, Starfarer × 2,
+  Retaliator, Valkyrie), Mole Grey und Black VIP, Storm × 8, Vanguard × 12,
+  Cutlass (Black, Blue, Steel Hawthorn; Blue Cypress), Mustang Vindicator × 5.
+  Alle mit eigenem Muster-Material; die Farben stimmen, wenn das Spiel wie
+  oben die Palette des Schiffs behält (nicht im Spiel angesehen).
+- Geänderte Farben gegen staging: 3 (BIS2951 Cold Forge und Sterling, Cutlass
+  Black Cypress). `npm run gate:data` grün (4 von 4; vorher
+  `datamine:loadouts` und `datamine:vehicles`, deren Kataloge danach
+  zurückgesetzt).
+
+### Bau (Probe, nicht committet)
+
+- `build-hangar-assets.mjs`, `cleanMaterials`: Jedes eigene Palettenmaterial
+  außer Glas trägt `extras.palette = { ch, tint, specular, gloss }` mit der
+  Serienpalette aus `ship-paints.json` (`base`, mit finish), dazu
+  `baseColorFactor`, `metallicFactor` und `roughnessFactor` aus `palettePbr`
+  (importiert aus `assets/hangar-viewer.js`); `palette_tint` bleibt. Ohne
+  Serienpalette (300i, die acht ohne Grundpalette) bleibt alles wie bisher.
+  Selbstauskunft je Schiff: Materialien mit `extras.palette` im GLB, davon
+  Metall, und wie viele der Export nicht im Serienton lieferte.
+- Gebaut mit der Stufe aus `alle-stand.json` (Polaris Stufe 5, die übrigen 0):
+
+  | Schiff | extras.palette | Metall | Dreiecke (wie staging) |
+  | --- | ---: | ---: | ---: |
+  | Sabre | 12 | 0 | 205 471 |
+  | Hammerhead | 26 | 0 | 683 843 |
+  | Carrack | 20 | 0 | 669 509 |
+  | Corsair | 14 | 5 | 723 523 |
+  | Railen | 16 | 6 | 432 522 |
+  | Polaris | 20 | 0 | 1 087 337 |
+
+  Export nicht im Serienton: 0 bei allen sechs, also dieselben Materialien,
+  die der Viewer bisher über den Farbton fand. Keine neuen Bilder in der
+  Ablage, Lack-Baupläne inhaltlich gleich.
+- `sisterPalette` mit derselben Verschärfung wie die Daten (Material,
+  Lackpalette); wirkt erst beim nächsten Bau der betroffenen Schiffe.
+- `check:hangar-shader --layout <code>`: lädt die Seite mit einem Layout der
+  Werkstatt (`?layout=`, etwa eine Lackierung als viertes Feld von
+  `encodeLayout`); `--ohne-ui` blendet vor der Aufnahme alles außer der Halle
+  aus (Hilfe und Werkstatt verdeckten das Schiff).
+
+### Prüfung
+
+- `npm run build` mit den sechs Probe-GLBs, dann `verify:hangar`: alle
+  Zusicherungen erfüllt. [14] zählt die sechs über `extras.palette`, je
+  Kanal so viele wie Lackkanäle im Manifest (Sabre 3/4/5, Hammerhead 12/5/9,
+  Carrack 9/7/4, Corsair 5/4/5, Railen 6/4/6, Polaris 5/8/7). Ist 207
+  Schiffe, 2103 Lackierungen, 205 umfärbbar (Klinke 203). Die sechs waren auf
+  staging schon über den Farbton umfärbbar; die 205 kommen also nicht von
+  der Probe, die Klinke bleibt.
+- `check:hangar-shader` (Software-WebGL, Grafikkarte vorgetäuscht) mit der
+  Sabre: kein Bildshader über 16 Texturen (95 Programme). Python
+  `http.server` weist unter der Last der Halle Verbindungen ab (einzelne
+  Bilder „nicht geladen“, `ERR_CONNECTION_REFUSED`); mit `astro preview`
+  (launch.json „hangar-lack-dist“, Port 8443) nicht.
+- **Lack aus dem Link kommt beim Laden nicht am Modell an** (Viewer/Seite,
+  für die Cloud): Mit `?ship=…&layout=<Code mit Lack>` steht der Lack in der
+  Werkstatt als gewählt, das Modell zeigt aber die Serie. Ein Klick auf
+  „Stock paint“ und dann auf den Lack färbt es um. Das gilt auch für ein Schiff
+  ohne Probe-Bau: Gladius Pirate über den Link grün (Serie), nach dem Klick
+  rot (`gladius-pirate-link.jpg`, `gladius-pirate-klick.jpg`). Also nicht von
+  `extras.palette`. Ursache nicht gesucht.
+
+Aufnahmen in [`hangar-lack/`](hangar-lack/) (Probe-GLBs, Serie ohne
+Bedienelemente; die Lacke per Klick in der Werkstatt):
+
+- `aegs-sabre.jpg` / `aegs-sabre-blue-steel.jpg`: Serie dunkelgrau mit
+  roten Streifen; Blue Steel silbernes Metall über den ganzen Rumpf.
+- `anvl-carrack.jpg` / `anvl-carrack-purple-haze.jpg` und
+  `aegs-hammerhead.jpg` / `aegs-hammerhead-fortuna.jpg`: Serie wie bisher;
+  Purple Haze und Fortuna schwarz statt lila bzw. grün (siehe unten).
+- `drak-corsair.jpg`: Kanal A jetzt Stahl (Glanz #9b9b9b), nicht mehr schwarz.
+- `gama-railen.jpg`: weiter das Zebramuster; A ist Weiß mit weißer
+  Glanzfarbe (Chrom) auf der Steinlinien-Textur, B Schwarz fast ohne Metall.
+- `rsi-polaris.jpg`: dunkel wie die Daten (Tönung 43/60, Glanz #464646, kein
+  Metall).
+- `gladius-pirate-link.jpg` / `gladius-pirate-klick.jpg`: der Fehler mit dem
+  Link oben.
+
+**Purple Haze, Fortuna und Disco bleiben schwarz** (für die Cloud,
+`palettePbr`): Ihre Tönung ist #000000, die Farbe steckt allein in einer
+dunklen, farbigen Glanzfarbe (Purple Haze #412686/#412686/#462a93, Fortuna
+#354b35/#4a724a/#354b35, Disco #566375/#323232/#7c2f2f). Deren Helligkeit
+liegt unter `DIEL_MAX` (#646464), `palettePbr` rechnet sie als Lack
+(metallic 0), und mit Tönung 0 bleibt Schwarz; die Glanzfarbe geht verloren.
+Von den 53 Lackierungen mit Tönung #000000 in allen Kanälen zeichnet
+`palettePbr` 25 ganz als Metall (Blue Steel, Meridian, Sterling, Noble,
+Nightrider, Stormfire …), 6 gemischt (Best in Show: schwarz mit Cyan-Metall in
+C, das ist so in den Daten) und 22 ohne Metall: Purple Haze × 7, Disco × 11
+und Fortuna × 3 ganz schwarz, Meteor Bolide fast. Ein Nichtmetall hat eine graue Glanzfarbe um 4 %;
+eine farbige Glanzfarbe gibt es nur bei Metall. Vorschlag, nicht umgesetzt:
+die Schwelle über die Sättigung oder den hellsten Kanal statt über die
+Helligkeit legen (Corsair-Grau #3b3b3b und Polaris #464646 sind grau und
+blieben Lack).
+
+### Offen
+
+- Neubau aller Schiffe mit `extras.palette` (zweiter Teil, nach
+  `pc/hangar-cockpit` auf staging). Danach zieht auch der Bauplan der Cutlass
+  Black Cypress nach, und `sisterPalette` wirkt mit der neuen Regel.
+- ~~Cloud: Lack aus `?layout=` beim Laden; dunkle farbige Glanzfarben in
+  `palettePbr` (beides oben).~~ Erledigt, siehe unten.
+- Die 43 Einträge ohne Palette nehmen die Serienpalette; im Spiel angesehen
+  ist das nicht.
+
+**Cloud 29.10.2026, beim Übernehmen von `pc/hangar-lack`:**
+
+- **Farbige Glanzfarbe ist Metall** (`palettePbr`): Neben der Helligkeit
+  blendet jetzt auch die Sättigung der Glanzfarbe das Metall ein (linear,
+  (max − min) / max, ab 0,3 weich, ab 0,5 ganz). Nichtmetalle spiegeln grau;
+  in den Daten liegen 5 403 dunkle Kanäle bei Sättigung 0 und nur 36 zwischen
+  0,1 und 0,3, die farbigen fast alle über 0,5. Grauer Lack (Corsair #3b3b3b,
+  Polaris #464646) bleibt Lack. Ergebnis über `ship-paints.json`: Alle 53
+  Lackierungen mit Tönung #000000 tragen jetzt Metall in mindestens einem
+  Kanal (Purple Haze und Fortuna ganz, Disco in A und C, Meteor Bolide in B
+  und C). Insgesamt ändert sich das Metall in 561 von 6 930 Kanälen (369
+  Lackierungen, 18 Grundpaletten, darunter Railen, Xi'an Scout, Tyilui,
+  Stinger). Der Viewer rechnet die Serie aus `extras.palette` nach
+  (`dressTextured`), der Bau nimmt dieselbe Funktion; sichtbar wird es mit
+  dem Neubau aller Schiffe.
+- **Lack aus `?layout=` beim Laden:** `paint()` kam an (11 Materialien an
+  der Gladius umgefärbt), aber noch während der Auffahrt. `dimIn` dunkelt das
+  Schiff im Schacht ab und schreibt dabei jedes Bild aus `dim.base`, den
+  Farben beim Laden; der Lack war damit beim nächsten Schritt wieder die
+  Serie. Nach dem Klick war die Auffahrt vorbei, darum ging es dort. Jetzt
+  ändert `paint()` die ungedimmte Farbe in `dim.base` und legt das Abdunkeln
+  neu darüber; `hullTint` liest Serienton und Rückfall ebenfalls ungedimmt.
+  Geprüft mit Gladius Pirate über den Link (rot), dann „Stock paint“ (grün)
+  und wieder Pirate (rot).
+- **Nach dem Review (PR #234):** Die Sättigung zählt erst ab hellstem Kanal
+  #080808 (ganz ab #181818), sonst wäre #000001 volles Metall; der dunkelste
+  farbige Glanz in den Daten hat #1c (Wolf #0a101c), die 561 Kanäle bleiben
+  gleich. `sisterPalette` im Bau wählt jetzt wie `sisterColours` im Datenlauf
+  (gleiche Paletten zählen als eine, aus der Familie nur eindeutig, sonst nur
+  eine einzige überhaupt; mehrdeutige stehen im Baulog). Vorher nahm der Bau
+  den ersten Familientreffer. Die Zähler des Datenlaufs zählen Paletten statt
+  Aufrufe. Die Lack-Baupläne (`public/hangar/paints/`) tragen noch die alten
+  Schwesterfarben (Cutlass Black Cypress #434649 statt #5a5139 wie Steel und
+  Red); sie werden beim Neubau aller Schiffe neu geschrieben.
+
+**Cloud 29.10.2026 abends, beim Zusammenführen mit `pc/hangar-landung`
+(PR #238, Teil A mit allen 231 Schiffen):** Beide PC-Läufe haben Teil A
+gebaut. Übernommen sind Datenlauf, Bau-Code und `ship-paints.json` aus
+PR #234 (oben, engere Schwesterregel); `ship-paints.json` aus
+`pc/hangar-landung` war bis auf die drei Farben oben gleich. Die 231 GLBs
+kommen aus `pc/hangar-landung`: Ihre `extras.palette` stimmt bei allen
+Schiffen mit `base` in `ship-paints.json` überein, Glas trägt keine.
+Abweichend vom Bau-Code hier tragen Apollo Medivac, Apollo Triage und
+Hermes `extras.palette` aus dem Rohexport (dort gab es einen Rückfall ohne
+`base`); der nächste Bau lässt sie weg. Für den nächsten PC-Lauf:
+
+- **Lack-Baupläne neu schreiben** (`public/hangar/paints/`): Sie stammen aus
+  dem Bau mit der alten Schwesterregel. 8 von 2103 Einträgen weichen von
+  `ship-paints.json` ab: Mustang Beta, Delta, Gamma und Omega „Vindicator“
+  tragen Palette und Schablone der Alpha; Cutlass Black, Blue und Steel
+  „Hawthorn“ die Palette der Red (#323232 / #1a1918 / #414236); Cutlass Blue
+  „Cypress“ die der Steel. Nach der Regel oben bleiben sie auf ihrer
+  Serienpalette (cubic zu PR #238). Cutlass Black Cypress trägt schon die
+  Steel-Palette wie die Daten. Betroffen: `cnou-mustang-beta`, `-delta`,
+  `-gamma`, `-omega`, `drak-cutlass-black`, `-blue`, `-steel`.
+- **Metall gezählt** mit `palettePbr` nach PR #234 (Sättigung): 863 von 2103
+  Lackierungen, Grundpaletten 61 von 207; ohne die Sättigungsregel 589 bzw.
+  51. 18 Grundpaletten ändern ihr Metall, darunter Railen und Tyilui (Kanal C
+  0,29 → 1), Xi'an Scout, Santok.yāi, Talon Shrike, Alpha Wolf.
+- Die Freelancer sieht nach dem Neubau hell aus (Metallrumpf); sie bleibt in
+  `HOLD`, bis Krisz sie freigibt (WINDOWS 130).
