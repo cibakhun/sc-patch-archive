@@ -94,8 +94,13 @@ function mapDefault(varName) {
 // aus dist/ an der Stelle, an die das Dockerfile dist/ kopiert.
 const fehler = [];
 const wurzel = /^\s*root\s+(\S+);/m.exec(conf)?.[1]?.replace(/\/$/, '');
+// undefined: kein Dockerfile (lokaler Lauf ohne Image) — dann gibt es
+// nichts zu vergleichen. null: Dockerfile da, aber keine COPY-Zeile, die
+// dist/ aus der Bau-Stufe holt (auch mit --chown/--link davor oder danach
+// erkannt) — dann ist nicht belegt, dass die Hash-Dateien ankommen.
 const dockerZiel = existsSync('Dockerfile')
-  ? /^COPY\s+--from=\S+\s+\S*\/dist\/?\s+(\S+)\s*$/m.exec(readFileSync('Dockerfile', 'utf8'))?.[1]?.replace(/\/$/, '')
+  ? ([...readFileSync('Dockerfile', 'utf8').matchAll(/^COPY\s+((?:--\S+\s+)+)\S*\/dist\/?\s+(\S+)\s*$/gm)]
+      .find((z) => /(?:^|\s)--from=/.test(z[1]))?.[2]?.replace(/\/$/, '') ?? null)
   : undefined;
 if (!wurzel) fehler.push(`${CONF}: keine root-Zeile gefunden — ohne sie lässt sich nicht sagen, wo nginx die Hash-Dateien sucht`);
 if (dockerZiel !== undefined && dockerZiel !== wurzel)
