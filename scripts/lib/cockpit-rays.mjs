@@ -40,8 +40,10 @@ const mul = (a, b) => {
 
 // strahl(o, d, art, t): je gezaehltem Strahl Ursprung, Richtung (Raum der
 // Datei), Art (zu, hohl, durch, frei) und Abstand der ersten Flaeche; zum
-// Nachstellen einzelner Blicke im Viewer
-export function measure(doc, { strahl } = {}) {
+// Nachstellen einzelner Blicke im Viewer.
+// verborgen(materialname): Teile, die der Viewer nicht zeichnet
+// (isDamageMesh aus assets/hangar-viewer.js: Schadensnetze), zaehlen nicht.
+export function measure(doc, { strahl, verborgen = () => false } = {}) {
   // Dreiecke in Weltkoordinaten; Art: 0 einseitig, 1 zweiseitig, 2 Glas, 3 sonst durchsichtig
   // nur Knoten, die die Szene erreicht: was der Viewer zeichnet (lose
   // Knoten im Kreis, Hornet F7C-R, CSV-Cargo: verify-hangar-gear.mjs)
@@ -51,7 +53,7 @@ export function measure(doc, { strahl } = {}) {
     seen.add(node);
     const W = mul(parent, node.getMatrix());
     for (const p of node.getMesh()?.listPrimitives() ?? []) {
-      if (p.getMode() !== 4 || !p.getAttribute('POSITION')) continue;
+      if (p.getMode() !== 4 || !p.getAttribute('POSITION') || verborgen(p.getMaterial()?.getName() || '')) continue;
       const n = Math.floor((p.getIndices()?.getCount() ?? p.getAttribute('POSITION').getCount()) / 3);
       parts.push({ W, p, n }); T += n;
     }

@@ -314,3 +314,67 @@ den echten Grundfarben aus #238 und diesem Zweig), alle 231 Schiffe mit
   Frage der Lackregel, nicht dieses Zweigs.
 - `check:hangar-shader` gegen `npx serve`: Gladius ✓ 105 Programme,
   Cutlass Black ✓ 107, Hammerhead ✓ 109, je höchstens 16 Texturen.
+
+## Cloud (29.10.2026 abends): Blick in die Halle, Tor, Zusammenführen
+
+- **Zusammengeführt** mit staging 13c98b77 (#245, #246: Schadensnetze aus,
+  Freelancer und Andromeda frei, Halle wächst an Streifen). Die Modelle aus
+  Teil C bleiben; staging hat seit 5d512205 kein Schiffsmodell und keinen
+  Bau-Code mehr geändert.
+- **Neue Zahl „durch“** (`scripts/lib/cockpit-rays.mjs`, für Werkzeug und
+  Tor gleich): Ein Strahl, der hinter dem Glas zuerst eine Rückseite trifft,
+  zählt als durch, wenn dahinter bis 30 m nichts kommt, was der Viewer
+  zeichnet. Das ist Krisz' Bild: Blick durch das Schiff in die Halle.
+  „hohl“ allein zählt auch Blicke durch eine einseitige Innenverkleidung
+  auf weiteren Innenraum; die zeigt das Spiel genauso (Arrow `internal_pom`,
+  0x3000080). Gemessen wird nur, was der ausgelieferte Viewer zeichnet
+  (`isDamageMesh` verbirgt Schadensnetze), nur von der Szene erreichbare
+  Knoten. Ein Hüllquaderbaum macht die Messung rund viermal schneller,
+  alle 231 Schiffe in 93 s auf 4 Kernen.
+
+  | | vorher (staging) | nachher |
+  |---|---:|---:|
+  | durch im Mittel, 230 Schiffe mit Haube | 6,4 % | 0,8 % |
+  | Schiffe über 10 % durch | 50 | 2 |
+  | Gladius / Hornet F7C Mk II / L-21 Wolf | 10 / 18 / 76 von 160 | 0 / 0 / 0 |
+
+  Die 23 Schiffe, deren „hohl“ steigt (Reliant, 600i, Cutlass, Defender …),
+  zeigen durch ihre einseitige Innenverkleidung den behaltenen Innenraum,
+  keinen Blick in die Halle (durch 0 bis 3 %); im Viewer entlang solcher
+  Strahlen angesehen (600i: Lounge mit Holzboden statt Halle, Cutlass:
+  Laderaum durch die Cockpitwand).
+- **Tor `verify:hangar-cockpit`** (Schiene A): je Werkslack-Datei der
+  Hangarseite „durch“ gegen die Klinke je Schiff in
+  `scripts/lib/hangar-cockpit-klinke.json` (+3 Strahlen Spiel), über 10 %
+  nur mit benannter Ausnahme, Zombie-Wächter für Ausnahmen und Einträge.
+  Gleicher Fingerabdruck der Datei und gleiche Fassung der Messung → der
+  Wert gilt ohne neue Messung, das Tor braucht dann Sekunden. Nach einem
+  Neubau misst es die geänderten Schiffe (alle Kerne) und verlangt
+  `node scripts/verify-hangar-cockpit.mjs --nachziehen`.
+  **Vorgeführt rot:** ohne Klinke gegen die staging-Modelle 50 FEHLER (alle
+  Schiffe über 10 %); mit Klinke Gladius und Wolf in `dist/` gegen die
+  alten getauscht: 4 FEHLER (Gladius 10 statt 0, Wolf 76 statt 0, Wolf
+  über 10 % ohne Ausnahme, [3] 3 statt 2), `--nachziehen` verweigert
+  („3 Werte stiegen“). Zurückgetauscht: grün.
+- **Zwei benannte Ausnahmen, beide offen:**
+  - Vanduul Blade 39 von 160 (vorher gleich): Rippenrumpf, zwischen den
+    Rippen hinter der Haube offen. Ob das Spiel dort schließt, ist
+    ungeprüft.
+  - Hammerhead Showdown 18 von 160 (vorher 19), Hammerhead 15 (knapp unter
+    10 %): Blick durch das Bugglas nach hinten unten, unter den
+    Brückensitzen fehlt der Boden, man sieht den Hallenboden. Folgeauftrag
+    PC: Fehlt der Brückenboden schon im Rohexport, oder fällt er in
+    `dropInterior` (außerhalb Glas + 2,5 m)?
+- **Lackpläne** gegen `src/data/ship-paints.json` (je Lack a/b/c):
+  Cutlass Black, Blue, Steel 0 Abweichungen (auf staging 1, 2, 1:
+  Hawthorn, Cypress); Mustang Beta, Delta, Gamma, Omega je „CitizenCon2018“
+  weiter mit der Palette der Mustang Alpha CitizenCon2018, wie auf staging
+  (an den Lack-Thread).
+- **Serienpalette, GLB gegen GLB:** 29 Schiffe weichen von staging ab, 26
+  davon mit mehr Palettenmaterialien (behaltener Innenraum: Caterpillar
+  27 → 37) oder mehr Metall (Alpha Wolf 0 → 15, Mustang Gamma 15 → 27,
+  Aurora GS SE 10 → 18 …): Die staging-Modelle stammen aus 708595ee, vor
+  den Review-Änderungen an `palettePbr`; jetzt rechnet derselbe Code wie
+  der Viewer. Weniger nur Apollo Medivac, Triage, Hermes (angekündigt).
+- Bilder: `/mnt/project-files/hangar-cockpit/` (Gladius aus Krisz' Sicht,
+  Hornet F7C Mk II, vorher/nachher). Sichturteil: WINDOWS #135.

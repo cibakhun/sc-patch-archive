@@ -21,6 +21,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { measure } from './lib/cockpit-rays.mjs';
+import { isDamageMesh } from '../assets/hangar-viewer.js';
 
 const args = process.argv.slice(2);
 const jsonAt = args.indexOf('--json');
@@ -33,7 +34,7 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
 const files = readdirSync(dir).filter((f) => f.endsWith('.glb') && (!only || only.test(f))).sort();
 const out = {};
 for (const f of files) {
-  const r = measure(await io.read(`${dir}/${f}`));
+  const r = measure(await io.read(`${dir}/${f}`), { verborgen: isDamageMesh });
   out[f.replace(/\.glb$/, '')] = r;
   console.log(f.padEnd(44), r.glass ? `Glas ${String(r.glass).padStart(5)}  hohl ${String(r.hohlPct).padStart(3)} %  durch ${String(r.durchPct).padStart(3)} %  (zu ${r.zu}, hohl ${r.hohl} davon durch ${r.durch}, frei ${r.frei} von ${r.rays}; ${r.innen} Startpunkte auf Innenglas verworfen)` : 'kein Haubenglas');
 }
