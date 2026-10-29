@@ -6,11 +6,12 @@
 //
 // Das Risiko liegt NICHT bei den zwei neuen Functions, sondern bei den drei
 // alten: register (Kontoanlage), delete-account (Kontoloeschung) und
-// verify-rsi (RSI-Verifizierung) laufen live und verlassen sich darauf, dass
-// der Standard verify_jwt = true fuer sie gilt. Steht eine von ihnen
-// versehentlich in dieser Datei, waere sie ohne Anmeldung aufrufbar — und
-// nichts im Bau, im Verify-Lauf oder im Seiten-Audit wuerde das bemerken.
-// Deshalb dieser Test.
+// verify-rsi (RSI-Verifizierung) laufen live. delete-account und verify-rsi
+// verlangen ein Session-JWT. Steht eine von ihnen versehentlich mit false in
+// dieser Datei, waere sie ohne Anmeldung aufrufbar — und nichts im Bau, im
+// Verify-Lauf oder im Seiten-Audit wuerde das bemerken. Deshalb dieser Test.
+// (delete-account steht seit dem 30.10.2026 ausdruecklich mit true hier,
+// verify-rsi weiter gar nicht.)
 //
 // Er prueft ABSCHNITTSKOEPFE, nicht blosses Vorkommen: die Namen der drei
 // bestehenden Functions stehen als Prosa im Kommentarblock der Datei (genau
@@ -48,13 +49,35 @@ function verifyJwtOf(text, name) {
 describe('Vertrauensgrenze: supabase/config.toml', () => {
   const sections = functionSections(raw);
 
-  test('genau die drei Functions ohne JWT sind aufgefuehrt', () => {
+  test('genau die drei Functions ohne JWT stehen auf false', () => {
     assert.deepStrictEqual(
-      [...sections].sort(),
+      sections.filter((fn) => verifyJwtOf(raw, fn) === 'false').sort(),
       ['create-checkout-session', 'register', 'stripe-webhook'],
-      'config.toml muss GENAU die Functions auffuehren, die live OHNE JWT ' +
-        'laufen. Eine zu wenig -> der naechste Deploy schaltet sie ab. Eine ' +
+      'config.toml muss GENAU die Functions mit false auffuehren, die live OHNE ' +
+        'JWT laufen. Eine zu wenig -> der naechste Deploy schaltet sie ab. Eine ' +
         'zu viel -> sie wird ohne Anmeldung erreichbar.'
+    );
+  });
+
+  test('jeder Abschnitt nennt verify_jwt ausdruecklich', () => {
+    for (const fn of sections) {
+      assert.ok(
+        ['true', 'false'].includes(verifyJwtOf(raw, fn)),
+        `[functions.${fn}] ohne verify_jwt: der Deploy nimmt dann den Standard, ` +
+          'und niemand sieht beim Lesen, was gilt.'
+      );
+    }
+  });
+
+  // Seit dem 30.10.2026 liegt der Quelltext von delete-account im Repo; die
+  // Function steht deshalb AUSDRUECKLICH mit true in der Datei. Ein Eintrag mit
+  // false waere genau das Loch, vor dem dieser Test warnt.
+  test('delete-account ist aufgefuehrt und steht auf true', () => {
+    assert.strictEqual(
+      verifyJwtOf(raw, 'delete-account'),
+      'true',
+      'delete-account laeuft LIVE mit verify_jwt = true. Mit false waere die ' +
+        'Kontoloeschung ohne Anmeldung erreichbar.'
     );
   });
 
@@ -72,7 +95,7 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     );
   });
 
-  for (const fn of ['delete-account', 'verify-rsi']) {
+  for (const fn of ['verify-rsi']) {
     test(`${fn} bleibt unaufgefuehrt und behaelt damit verify_jwt = true`, () => {
       assert.ok(
         !sections.includes(fn),

@@ -1,7 +1,17 @@
 // VerseBase — Self-Service-Account-Löschung.
 // Aufruf nur mit gültigem User-JWT (verify_jwt=true + eigene getUser-Prüfung).
-// Löscht den auth.users-Eintrag; profiles/favorites fallen per ON DELETE CASCADE.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Entfernt zuerst die hochgeladenen Profilbilder (Buckets avatars/banners,
+// Ordner <uid>/), dann den auth.users-Eintrag. Alle Tabellen in public mit
+// Bezug auf das Konto (profiles, favorites, Werkzeug-Daten, Freunde,
+// Nachrichten, discord_role_state, user_roles) hängen per ON DELETE CASCADE
+// an auth.users; Storage-Objekte tun das nicht, deshalb purge.ts.
+// Scheitert das Aufräumen der Bilder, bleibt das Konto bestehen (500), damit
+// keine Dateien eines gelöschten Kontos öffentlich zurückbleiben.
+//
+// Version fest gepinnt (vorher jsr:@supabase/supabase-js@2, also jeweils die
+// neueste 2.x zum Zeitpunkt des Deploys).
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
+import { purgeUserFiles } from './purge.ts';
 
 const ALLOWED_ORIGINS = new Set([
   'https://verse-base.com',
@@ -50,7 +60,16 @@ Deno.serve(async (req: Request) => {
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
     );
+
+    // Erst die Bilder, dann das Konto. Nur der Ordner des Aufrufers.
+    const purge = await purgeUserFiles(admin.storage, user.id);
+    if (!purge.ok) {
+      console.error('storage cleanup failed', purge.bucket, purge.stage, purge.message);
+      return new Response(JSON.stringify({ error: 'storage_cleanup_failed' }), { status: 500, headers });
+    }
+
     const { error: delErr } = await admin.auth.admin.deleteUser(user.id);
     if (delErr) {
       console.error('deleteUser failed', delErr);
