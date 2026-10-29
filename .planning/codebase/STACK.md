@@ -77,7 +77,7 @@
 - CI secrets: `COOLIFY_DEPLOY_WEBHOOK`, `COOLIFY_BOT_DEPLOY_WEBHOOK`, `COOLIFY_API_TOKEN`, `GITHUB_TOKEN`
 
 **Build:**
-- `astro.config.mjs` - site URL `https://verse-base.com`, `build.format: 'file'`, i18n, `server.allowedHosts` for tunnel previews (`.loca.lt`, `.trycloudflare.com`)
+- `astro.config.mjs` - site URL `https://verse-base.com`, `build.format: 'file'`, i18n, `server` as a function of the command: tunnel hosts (`.loca.lt`, `.trycloudflare.com`) only for `astro preview` with `VB_TUNNEL=1`, never for `astro dev`; two dev-only Vite plugins: `/__open-in-editor` answers 403, and requests carrying forwarding headers (`X-Forwarded-For`, `Cf-Connecting-IP`, …) answer 403
 - `tsconfig.json` - extends `astro/tsconfigs/strict`, excludes `dist`
 - `Dockerfile` / `.dockerignore` - build image
 - `nginx/default.conf` - security headers (HSTS, nosniff, Referrer-Policy), content-type-based `Cache-Control` map, `/en/` → root 301s, `format:'file'` directory redirects (`/de`, `/account`, `/items`, `/crafting`), `/pilot/<handle>` rewrite, real 404. Validated at image build (`RUN nginx -t`).
