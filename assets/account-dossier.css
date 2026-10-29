@@ -1509,9 +1509,10 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .rk-badge{flex:none;display:inline-flex;align-items:center;gap:4px;padding:1px 8px 1px 5px;border:1px solid color-mix(in srgb,var(--rc) 55%,transparent);border-radius:999px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);line-height:1.5;white-space:nowrap}
 .rk-badge i{font-style:normal;font-size:var(--fs-6)}
 .rk-badge .rk-lv{font-family:var(--font-mono);font-weight:600;color:var(--text);opacity:.85}
-.rk-badge em{font-style:normal}
+.rk-badge em{font-style:normal;color:var(--pc)}
 .rk-badge--c{gap:3px;padding:0 6px 0 4px}
 :root[data-theme="light"] .rk-badge{color:color-mix(in srgb,var(--rc) 55%,#000)}
+:root[data-theme="light"] .rk-badge em{color:color-mix(in srgb,var(--pc) 55%,#000)}
 
 /* ================= SICHERHEIT (Runde E, 29.10.2026) =================
    Vier Kästen Anmeldung | Verbundene Konten | Sitzungen | Meine Daten, je
