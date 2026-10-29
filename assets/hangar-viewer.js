@@ -486,6 +486,305 @@ function hallSpot(h) {
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
 }
 
+// Die Halle wächst mit dem Schiff, alles darin bleibt in Spielgröße
+// (29.10.2026). Krisz: „momentan ist es so dass die assets in der hangar
+// kleiner werden somit simuliert man dass der hangar grösser ist, aber dabei
+// sind solche sachen wie aufzug, control room oder seiten durchgang zb zur
+// werkstatt gleich gross“, dazu „nicht nur von mir genannten sachen sondern
+// halt alles“. Bis dahin wuchs für große Schiffe die ganze Halle um k
+// (Carrack 3,9-fach): Türen, Treppen, Geländer, Galerie, Aufzug,
+// Kontrollraum und Durchgang mit, nur Einrichtung und Deko schrumpften
+// zurück. Jetzt bleibt die Halle im Maßstab 1 und wird an festen Ebenen
+// auseinandergezogen: je Achse und Seite ein Streifen [von, bis, f]
+// (Modellraum nach HALL_SHIFT), in dem kein großes Teil der Halle eine Ecke
+// hat (gesucht an der Stufe, die die Seite lädt, lod1; verify:hangar-hall
+// [19] prüft jede geladene Stufe). Was hinter der Mitte des Streifens liegt,
+// rückt als Ganzes um f mal den Zuwachs nach außen (Wände, Nischen, Galerie,
+// Decke); Dreiecke über ihr (Boden-, Wand- und Deckenplatten, Leisten,
+// Rohre) werden länger, ihre Textur läuft weiter, statt sich zu dehnen.
+// Kleinere Teile als `small` m fahren als Ganzes (hallGrowPrep). Die
+// Nischen der Längswände (WORK_DEKO.nischen, z −87 … −57) liegen zwischen
+// den z-Streifen und bleiben, wie sie sind. `step`: Zuwachs je Seite in
+// Schritten von so viel Metern, einer Kachel der Hallentexturen (4 m); so
+// trifft die weiterlaufende Textur an der Kante der gestreckten Platte
+// wieder auf die der nächsten.
+const HALL_GROW = /* hall-grow */ {
+  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[40.624, 40.733, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4 }
+} /* /hall-grow */;
+
+// Streifen aus HALL_GROW in einem Raum, der um org gegen den Modellraum
+// verschoben ist: je Achse die Mitte der Seite lo (f < 0) und hi (f > 0),
+// f je Seite, die Streifen selbst
+function growSpec(h, org = [0, 0, 0]) {
+  const G = HALL_GROW[h.id];
+  if (!G) return null;
+  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4 };
+  ['x', 'y', 'z'].forEach((a, i) => {
+    for (const [p, q, f] of G[a] ?? []) {
+      const z = [p - org[i], q - org[i]], mid = (z[0] + z[1]) / 2;
+      s.zones[i].push(z);
+      if (f < 0) { s.lo[i] = mid; s.flo[i] = f; } else { s.hi[i] = mid; s.fhi[i] = f; }
+    }
+  });
+  return s;
+}
+// Anteil am Zuwachs für die Lage v auf Achse i (wie hgFrac im Shader)
+const growFrac = (s, v, i) => (v <= s.lo[i] ? s.flo[i] : v >= s.hi[i] ? s.fhi[i] : 0);
+// Matrix vom Raum des Knotens o in den von root (oder ganz hinauf, wenn
+// root kein Vorfahre ist: was noch eingehängt wird)
+function relMatrix(root, o, out = new THREE.Matrix4()) {
+  out.identity();
+  for (let p = o; p && p !== root; p = p.parent) {
+    if (p.matrixAutoUpdate) p.updateMatrix();
+    out.premultiply(p.matrix);
+  }
+  return out;
+}
+
+// Vorbereitung der Streckung beim Laden (s: growSpec im Raum von root).
+// Je Mesh bleiben die Dreiecke, die ganz auf einer Seite jeder Ebene
+// liegen, wie sie sind; der Shader rückt jede Ecke nach ihrer Seite. Zwei
+// Arten kommen in eigene Meshes neben dem alten (gleiches Material, gleiche
+// Lage):
+// - kleine Teile (zusammenhängend über Ecken an derselben Stelle, längs der
+//   Achse kürzer als small) fahren als Ganzes nach der Seite ihrer Mitte
+//   (hgRig.xyz = 2 · Anteil, w 0): Leuchten, die über einer Ebene liegen,
+//   und Teile mit einer Ecke in einem Streifen, außer fortlaufenden
+//   (growPlate). Eine Bodenplatte, die als Ganzes fuhr, ließ hinter sich ein
+//   Loch (29.10.2026: Mittelbahn des Felds); eine Leuchte, die mitwüchse,
+//   würde ein 20 m langer Lichtstreifen.
+// - Dreiecke über einer Ebene: eigene Ecken (hgRig.w 2) und je Achse der
+//   Versatz der Texturkoordinaten je Schritt (hgU, hgV, auf ganze Kacheln
+//   gerundet), damit die Textur weiterläuft
+// Geteilte Geometrie wird für ein Mesh, das einen Streifen trifft, kopiert.
+// Liefert { meshes, rigid, span, plates, lamps } (Meshes, Dreiecke; Platten
+// und Leuchten als Teile) und hängt die neuen Meshes ein (userData.growFrom:
+// das alte).
+// Fortlaufend: eine Platte (dünn, unter 0,2 m, und in der zweiten Richtung
+// mindestens 3 m: Boden, Wand, Decke) oder ein Stab längs der Achse
+// (mindestens doppelt so lang wie breit und hoch: Schiene, Leiste, Rohr).
+// Es wird länger; als Ganzes führe es von seinem Nachbarn weg.
+// verify:hangar-hall [19] rechnet dieselbe Regel.
+const GROW_PLATE = { thin: 0.2, wide: 3, rod: 2 };
+const growPlate = (mn, mx, ax) => {
+  const d = [0, 1, 2].map((a) => mx[a] - mn[a]), e = [...d].sort((p, q) => p - q);
+  return (e[0] < GROW_PLATE.thin && e[1] >= GROW_PLATE.wide) || ax.some((a) => d[a] >= GROW_PLATE.rod * Math.max(...d.filter((_, b) => b !== a)));
+};
+// Leuchte: Material mit Licht im Namen oder eigener Leuchtkarte
+const growLamp = (m) => /light|glow|lamp|neon|emissive/i.test(m?.name || '') || !!m?.emissiveMap;
+async function hallGrowPrep(root, list, s, pause = noPause) {
+  const out = { meshes: 0, rigid: 0, span: 0, shared: 0, skipped: 0, plates: 0, lamps: 0 };
+  if (!s) return out;
+  root.updateMatrixWorld(true);
+  const uses = new Map();
+  root.traverse((n) => { if (n.isMesh) uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1); });
+  const M = new THREE.Matrix4(), bb = new THREE.Box3(), v = new THREE.Vector3();
+  const crosses = (b) => [0, 1, 2].some((i) => s.zones[i].some(([p, q]) => b.min.getComponent(i) < q && b.max.getComponent(i) > p));
+  for (const mesh of list) {
+    await pause();
+    if (!mesh.isMesh || mesh.isInstancedMesh || mesh.isBatchedMesh || mesh.isSkinnedMesh || mesh.userData.growDone) continue;
+    mesh.userData.growDone = true;
+    let g = mesh.geometry;
+    if (!g.attributes.position || g.groups.length || Array.isArray(mesh.material) || g.morphAttributes.position) { out.skipped++; continue; }
+    relMatrix(root, mesh, M);
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (!crosses(bb.copy(g.boundingBox).applyMatrix4(M))) continue;
+    if (uses.get(g) > 1) { g = mesh.geometry = g.clone(); out.shared++; }
+    const P = g.attributes.position, n = P.count, X = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) v.fromBufferAttribute(P, i).applyMatrix4(M).toArray(X, i * 3);
+    const I = g.index ? g.index.array : null, T = I ? I.length / 3 : Math.floor(n / 3);
+    const at = (t, k) => (I ? I[t * 3 + k] : t * 3 + k);
+    // je Ecke und Achse: Anteil (2 · f) und ob sie in einem Streifen liegt
+    const C = new Int8Array(n * 3), Z = new Uint8Array(n);
+    for (let i = 0; i < n; i++) for (let a = 0; a < 3; a++) {
+      const x = X[i * 3 + a];
+      C[i * 3 + a] = Math.round(2 * growFrac(s, x, a));
+      if (s.zones[a].some(([p, q]) => x > p && x < q)) Z[i] |= 1 << a;
+    }
+    // 0 bleibt, 1 über einer Ebene, 2 berührt einen Streifen, 3 starr
+    const cls = new Uint8Array(T), lamp = growLamp(mesh.material);
+    // Achsen, deren Ebene ein Dreieck kreuzt (Bits)
+    const crossAx = (a, b, c) => { let m = 0; for (let k = 0; k < 3; k++) if (C[a * 3 + k] !== C[b * 3 + k] || C[a * 3 + k] !== C[c * 3 + k]) m |= 1 << k; return m; };
+    let touch = 0;
+    for (let t = 0; t < T; t++) {
+      const a = at(t, 0), b = at(t, 1), c = at(t, 2);
+      if (Z[a] | Z[b] | Z[c]) { cls[t] = 2; touch++; continue; }
+      if (crossAx(a, b, c)) { cls[t] = 1; if (lamp) touch++; }
+    }
+    // kleine Teile: über Ecken an derselben Stelle (1 mm) zusammenhängend,
+    // von den berührenden Dreiecken aus gesucht (bei Leuchten auch von denen
+    // über einer Ebene); wird eins zu lang oder ist es eine Platte, zählen
+    // seine Dreiecke als gewöhnliche
+    const rig = new Int8Array(T * 3);
+    if (touch) {
+      const lo = [0, 1, 2].map((a) => { let m = Infinity; for (let i = 0; i < n; i++) m = Math.min(m, X[i * 3 + a]); return m; });
+      const span = [0, 1, 2].map((a) => { let m = -Infinity; for (let i = 0; i < n; i++) m = Math.max(m, X[i * 3 + a]); return m - lo[a]; });
+      let q = 1000;
+      while (q > 1 && (span[0] * q + 2) * (span[1] * q + 2) * (span[2] * q + 2) > 2 ** 52) q /= 2;
+      const nx = Math.round(span[0] * q) + 2, ny = Math.round(span[1] * q) + 2;
+      const weld = new Map(), W = new Int32Array(n);
+      for (let i = 0; i < n; i++) {
+        const key = Math.round((X[i * 3] - lo[0]) * q) + nx * (Math.round((X[i * 3 + 1] - lo[1]) * q) + ny * Math.round((X[i * 3 + 2] - lo[2]) * q));
+        let w = weld.get(key);
+        if (w === undefined) { w = weld.size; weld.set(key, w); }
+        W[i] = w;
+      }
+      // Dreiecke je geschweißter Ecke (CSR)
+      const nw = weld.size, cnt = new Int32Array(nw + 1);
+      for (let t = 0; t < T; t++) for (let k = 0; k < 3; k++) cnt[W[at(t, k)] + 1]++;
+      for (let i = 0; i < nw; i++) cnt[i + 1] += cnt[i];
+      const fill = cnt.slice(0, nw), adj = new Int32Array(T * 3);
+      for (let t = 0; t < T; t++) for (let k = 0; k < 3; k++) adj[fill[W[at(t, k)]]++] = t;
+      // bigT: Dreieck eines zu langen Teils; trifft die Suche darauf, ist auch dieses zu lang
+      const seen = new Uint8Array(T), bigT = new Uint8Array(T), queue = [];
+      for (let t0 = 0; t0 < T; t0++) {
+        if (seen[t0] || !(cls[t0] === 2 || (lamp && cls[t0] === 1))) continue;
+        if (!(t0 & 1023)) await pause();
+        const comp = [t0], mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+        let axes = 0, big = false;
+        seen[t0] = 1; queue.length = 0; queue.push(t0);
+        while (queue.length && !big) {
+          const t = queue.pop();
+          for (let k = 0; k < 3; k++) {
+            const i = at(t, k);
+            axes |= Z[i];
+            for (let a = 0; a < 3; a++) { const x = X[i * 3 + a]; if (x < mn[a]) mn[a] = x; if (x > mx[a]) mx[a] = x; }
+          }
+          axes |= crossAx(at(t, 0), at(t, 1), at(t, 2));
+          for (let a = 0; a < 3; a++) if ((axes >> a) & 1 && mx[a] - mn[a] >= s.small) big = true;
+          if (comp.length > 60000) big = true;
+          for (let k = 0; k < 3 && !big; k++) {
+            const w = W[at(t, k)];
+            for (let j = cnt[w]; j < cnt[w + 1]; j++) {
+              const u = adj[j];
+              if (seen[u]) { if (bigT[u]) big = true; continue; }
+              seen[u] = 1; comp.push(u); queue.push(u);
+            }
+          }
+        }
+        // Platte und Stab werden länger, eine Leuchte fährt als Ganzes
+        if (!big && !lamp && growPlate(mn, mx, [0, 1, 2].filter((a) => (axes >> a) & 1))) { big = true; out.plates++; }
+        if (big) {
+          // zu lang: die Dreiecke nach ihren Ecken (über einer Ebene oder nicht)
+          for (const t of comp) {
+            bigT[t] = 1;
+            if (cls[t] !== 2) continue;
+            const a = at(t, 0), b = at(t, 1), c = at(t, 2);
+            cls[t] = 0;
+            for (let k = 0; k < 3; k++) if (C[a * 3 + k] !== C[b * 3 + k] || C[a * 3 + k] !== C[c * 3 + k]) { cls[t] = 1; break; }
+          }
+          continue;
+        }
+        const cc = [0, 1, 2].map((a) => Math.round(2 * growFrac(s, (mn[a] + mx[a]) / 2, a)));
+        for (const t of comp) { cls[t] = 3; rig[t * 3] = cc[0]; rig[t * 3 + 1] = cc[1]; rig[t * 3 + 2] = cc[2]; }
+        if (lamp) out.lamps++;
+      }
+    }
+    let nr = 0, ns = 0;
+    for (let t = 0; t < T; t++) { if (cls[t] === 3) nr++; else if (cls[t] === 1) ns++; }
+    if (!nr && !ns) continue;
+    const names = Object.keys(g.attributes);
+    const copyInto = (dst, j, src, i) => {
+      for (const name of names) {
+        const a = src.attributes[name], b = dst.attributes[name];
+        if (!a.isInterleavedBufferAttribute) { const sz = a.itemSize; b.array.set(a.array.subarray(i * sz, i * sz + sz), j * sz); }
+        else for (let c = 0; c < a.itemSize; c++) b.setComponent(j, c, a.getComponent(i, c));
+      }
+    };
+    const blank = (count) => {
+      const ng = new THREE.BufferGeometry();
+      for (const name of names) {
+        const a = g.attributes[name], A = a.isInterleavedBufferAttribute ? a.data.array.constructor : a.array.constructor;
+        ng.setAttribute(name, new THREE.BufferAttribute(new A(count * a.itemSize), a.itemSize, a.normalized));
+      }
+      return ng;
+    };
+    const place = (ng, kind) => {
+      ng.computeBoundingBox(); ng.computeBoundingSphere();
+      const m = new THREE.Mesh(ng, mesh.material);
+      m.name = `${mesh.name || 'halle'}:${kind}`;
+      m.matrixAutoUpdate = mesh.matrixAutoUpdate;
+      m.position.copy(mesh.position); m.quaternion.copy(mesh.quaternion); m.scale.copy(mesh.scale);
+      m.matrix.copy(mesh.matrix); m.matrixWorld.copy(mesh.matrixWorld);
+      m.visible = mesh.visible; m.renderOrder = mesh.renderOrder;
+      m.castShadow = mesh.castShadow; m.receiveShadow = mesh.receiveShadow;
+      m.userData.growFrom = mesh; m.userData.growDone = true;
+      mesh.parent?.add(m);
+      return m;
+    };
+    if (nr) {
+      // starr: eigene Ecken für die Ecken dieser Teile
+      const map = new Int32Array(n).fill(-1);
+      let nv = 0;
+      for (let t = 0; t < T; t++) if (cls[t] === 3) for (let k = 0; k < 3; k++) { const i = at(t, k); if (map[i] < 0) map[i] = nv++; }
+      const ng = blank(nv), R = new Int8Array(nv * 4), idx = new Uint32Array(nr * 3);
+      for (let i = 0; i < n; i++) if (map[i] >= 0) copyInto(ng, map[i], g, i);
+      for (let t = 0, o = 0; t < T; t++) {
+        if (cls[t] !== 3) continue;
+        for (let k = 0; k < 3; k++) {
+          const j = map[at(t, k)];
+          idx[o++] = j;
+          R[j * 4] = rig[t * 3]; R[j * 4 + 1] = rig[t * 3 + 1]; R[j * 4 + 2] = rig[t * 3 + 2];
+        }
+      }
+      ng.setAttribute('hgRig', new THREE.BufferAttribute(R, 4));
+      ng.setIndex(new THREE.BufferAttribute(idx, 1));
+      place(ng, 'starr');
+    }
+    if (ns) {
+      // über einer Ebene: drei eigene Ecken je Dreieck
+      const ng = blank(ns * 3), R = new Int8Array(ns * 12), Uu = new Float32Array(ns * 9), Uv = new Float32Array(ns * 9);
+      const UV = g.attributes.uv;
+      for (let t = 0, j = 0; t < T; t++) {
+        if (cls[t] !== 1) continue;
+        const ia = at(t, 0), ib = at(t, 1), ic = at(t, 2);
+        copyInto(ng, j, g, ia); copyInto(ng, j + 1, g, ib); copyInto(ng, j + 2, g, ic);
+        for (let k = 0; k < 3; k++) R[(j + k) * 4 + 3] = 2;
+        if (UV) {
+          // Texturkoordinaten je Meter längs jeder Achse in der Ebene des Dreiecks
+          const e1 = [0, 1, 2].map((a) => X[ib * 3 + a] - X[ia * 3 + a]), e2 = [0, 1, 2].map((a) => X[ic * 3 + a] - X[ia * 3 + a]);
+          const g11 = e1[0] * e1[0] + e1[1] * e1[1] + e1[2] * e1[2], g12 = e1[0] * e2[0] + e1[1] * e2[1] + e1[2] * e2[2], g22 = e2[0] * e2[0] + e2[1] * e2[1] + e2[2] * e2[2];
+          const det = g11 * g22 - g12 * g12;
+          const du1 = UV.getX(ib) - UV.getX(ia), dv1 = UV.getY(ib) - UV.getY(ia), du2 = UV.getX(ic) - UV.getX(ia), dv2 = UV.getY(ic) - UV.getY(ia);
+          for (let a = 0; a < 3; a++) {
+            if (C[ia * 3 + a] === C[ib * 3 + a] && C[ia * 3 + a] === C[ic * 3 + a]) continue;
+            if (!(det > 1e-12)) continue;
+            const al = (g22 * e1[a] - g12 * e2[a]) / det, be = (g11 * e2[a] - g12 * e1[a]) / det;
+            const gu = Math.round((al * du1 + be * du2) * s.step), gv = Math.round((al * dv1 + be * dv2) * s.step);
+            for (let k = 0; k < 3; k++) { Uu[(j + k) * 3 + a] = gu; Uv[(j + k) * 3 + a] = gv; }
+          }
+        }
+        j += 3;
+      }
+      ng.setAttribute('hgRig', new THREE.BufferAttribute(R, 4));
+      ng.setAttribute('hgU', new THREE.BufferAttribute(Uu, 3));
+      ng.setAttribute('hgV', new THREE.BufferAttribute(Uv, 3));
+      place(ng, 'streck');
+    }
+    // im alten Mesh bleiben die übrigen
+    const keep = new Uint32Array((T - nr - ns) * 3);
+    for (let t = 0, o = 0; t < T; t++) if (!cls[t] || cls[t] === 2) { keep[o++] = at(t, 0); keep[o++] = at(t, 1); keep[o++] = at(t, 2); }
+    g.setIndex(new THREE.BufferAttribute(n > 65535 ? keep : Uint16Array.from(keep), 1));
+    out.meshes++; out.rigid += nr; out.span += ns;
+  }
+  return out;
+}
+
+// Möbel aus mergeFurniture fahren als Ganzes nach der Seite ihres
+// Bezugspunkts (at: Lage des Raums der Bezugspunkte in dem von s)
+function growRigFurniture(list, s, at = [0, 0, 0]) {
+  if (!s) return;
+  for (const f of list) {
+    const r = new Int8Array(f.mesh.geometry.attributes.position.count * 4);
+    for (const [i0, i1, ax, ay, az] of f.pieces) {
+      const c = [ax, ay, az].map((x, i) => Math.round(2 * growFrac(s, x + at[i], i)));
+      for (let i = i0; i < i1; i++) { r[i * 4] = c[0]; r[i * 4 + 1] = c[1]; r[i * 4 + 2] = c[2]; }
+    }
+    f.mesh.geometry.setAttribute('hgRig', new THREE.BufferAttribute(r, 4));
+    f.growAt = at;
+  }
+}
+
 // Liefert { group, tris, parts } oder null. Teilt die Ecken mit der Halle
 // (ein Puffer auf der Grafikkarte), nur die Dreiecksliste ist geteilt.
 async function cutHallLift(model, L, skip, pause = noPause) {
@@ -3233,8 +3532,9 @@ function boxProject(m, mPerUv) {
   m.onBeforeCompile = (sh, r) => {
     prev?.call(m, sh, r);
     sh.uniforms.uBoxScale = { value: 1 / mPerUv };
+    // HG_BOX: gestreckte Dreiecke rechnen ihren Versatz aus der Projektion (HG_SPAN_UV)
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float uBoxScale;')
+      .replace('#include <common>', '#include <common>\n#define HG_BOX\nuniform float uBoxScale;')
       .replace('#include <uv_vertex>', `#include <uv_vertex>
   {
     vec3 bn = abs(normal);
@@ -6049,6 +6349,7 @@ uniform vec3 hgWkAmb;
 uniform vec4 hgWkTor;
 uniform float hgWkK, hgWkEnv;
 uniform vec4 hgWkVigA, hgWkVigB;
+uniform vec3 hgWkOff;
 varying vec3 vHgWk;
 // Abfall zu den Wänden (WERK_WAND): A Mitte der Bühne x/z, Weg bis zur Wand
 // hinten (-x) und vorn (+x); B Weg zur Seitenwand, ab, rest
@@ -6114,7 +6415,7 @@ float hgWkV = hgWkVig();
 for ( int i = 0; i < HG_WK_N; i ++ ) {
 	vec4 p = hgWkP[ i ], c = hgWkC[ i ], d = hgWkD[ i ];
 	if ( dot( c.rgb, vec3( 1.0 ) ) <= 0.0 ) continue;
-	vec3 lv = ( viewMatrix * vec4( p.xyz * hgWkK, 1.0 ) ).xyz - geometryPosition;
+	vec3 lv = ( viewMatrix * vec4( ( p.xyz + hgWkOff ) * hgWkK, 1.0 ) ).xyz - geometryPosition;
 	float d2 = dot( lv, lv ) / ( hgWkK * hgWkK ), q = d2 * p.w;
 	if ( q >= 1.0 ) continue;
 	directLight.direction = normalize( lv );
@@ -6386,6 +6687,18 @@ export async function initHangar(container, opts = {}) {
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
   let fly = null;          // { a: Spherical, b: Spherical, ta, tb, t0, dur }
+  // Abstandsgrenzen des neuen Schiffs während seiner Kamerafahrt (camHold):
+  // die Fahrt bringt die Kamera hinein, OrbitControls setzte sie sonst im
+  // ersten Bild auf den neuen Mindest- oder Höchstabstand. Früher nahm das
+  // Skalieren der Halle die Kamera mit; seit die Halle wächst, sprang sie
+  // (29.10.2026, Gladius -> Carrack 34 auf 51 m in einem Bild).
+  let camHold = null;
+  function holdCam() {
+    const L = camera.position.distanceTo(controls.target);
+    camHold = { min: controls.minDistance, max: controls.maxDistance };
+    controls.minDistance = Math.min(camHold.min, L);
+    controls.maxDistance = Math.max(camHold.max, L);
+  }
   const sph = (pos, tgt) => new THREE.Spherical().setFromVector3(pos.clone().sub(tgt));
   function flyTo(tgt, pos, dur = 900) {
     if (reduceMotion) { controls.target.copy(tgt); camera.position.copy(pos); fly = null; return; }
@@ -6443,8 +6756,172 @@ export async function initHangar(container, opts = {}) {
     const L = realHall?.liftL;
     return L && lastInfo ? Math.max((2 * lastInfo.halfW + 2) / (L.to[0] - L.from[0]), (lastInfo.len + 2) / (L.to[1] - L.from[1])) : 0;
   };
-  const realHallScale = (room) => Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
-    (lastInfo.len + 4) / (2 * room.halfL), (lastInfo.height + 4) / room.height) : 0);
+  // Wächst die Halle (HALL_GROW), bleibt sie im Maßstab 1
+  const realHallScale = (room) => (realHall?.grow ? 1 : Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
+    (lastInfo.len + 4) / (2 * room.halfL), (lastInfo.height + 4) / room.height) : 0));
+
+  // Zuwachs der Halle (HALL_GROW, hallGrowPrep): grow.d gilt gerade
+  // (Modellmeter je Achse), grow.to ist der für das Schiff (scaleWorld).
+  // Beim Wechsel auf dem Aufzug gleitet die Halle unter geschlossenem Tor
+  // dorthin (growTo, growStep in der Bildschleife), sonst springt sie
+  // (growApply). Der Shader rückt die Halle; was nicht im Hallenshader
+  // steht (Lampen, Deko, Schachtlicht, Tor, Hüllen), rückt growApply.
+  // Gleiten: GROW_SPEED m/s, in den Grenzen GROW_MS.
+  const GROW_MS = [900, 2200], GROW_SPEED = 30;
+  const grow = { d: new THREE.Vector3(), to: new THREE.Vector3(), glide: null };
+  const growV = new THREE.Vector3(), growW = new THREE.Vector3(), growT = new THREE.Vector3(), growBox = new THREE.Box3();
+  // Versatz eines Punkts im Raum der Halle (Modellmeter ab Feldmitte, Boden 0) beim Zuwachs d
+  function growOff(x, y, z, out = new THREE.Vector3(), d = grow.d) {
+    const s = realHall?.grow?.s;
+    if (!s) return out.set(0, 0, 0);
+    return out.set(growFrac(s, x, 0) * d.x, growFrac(s, y, 1) * d.y, growFrac(s, z, 2) * d.z);
+  }
+  // Versatz der Werkhalle in x (Hallenmeter), sie rückt mit der Westwand
+  const wkX = () => werkU.off.value.x;
+  // ein Punkt der Halle dorthin, wo er gestreckt steht, und zurück (im
+  // gestreckten Stück auf die Ebene)
+  const growMap = (p, out = new THREE.Vector3(), d = grow.d) => out.copy(p).add(growOff(p.x, p.y, p.z, growW, d));
+  function growUnmap(p, out = new THREE.Vector3(), d = grow.d) {
+    out.copy(p);
+    const s = realHall?.grow?.s;
+    if (!s) return out;
+    for (let i = 0; i < 3; i++) {
+      const v = p.getComponent(i), di = d.getComponent(i), hi = s.hi[i] + s.fhi[i] * di, lo = s.lo[i] + s.flo[i] * di;
+      out.setComponent(i, v >= hi ? v - s.fhi[i] * di : v <= lo ? v - s.flo[i] * di : Math.min(Math.max(v, s.lo[i]), s.hi[i]));
+    }
+    return out;
+  }
+  // Zuwachs für ein Schiff: mit 1 m Rand aufs Feld, 4 m unter die Decke; je
+  // Seite in ganzen Schritten (HALL_GROW.step)
+  function growFor(info) {
+    const G = realHall?.grow, L = realHall?.liftL, out = new THREE.Vector3();
+    if (!G || !L) return out;
+    const st = G.s.step, q = (need, f) => (need > 1e-6 && f > 0 ? (Math.ceil((need * f) / st - 1e-6) * st) / f : 0);
+    return out.set(q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), G.s.fhi[0]), q(info.height + 4 - realHall.room.height, G.s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), G.s.fhi[2]));
+  }
+  // Raum der Halle mit Zuwachs d (Hälften, Höhe), Mitte wie im Manifest
+  const grownRoom = (d = grow.d) => {
+    const R = realHall.room;
+    return { center: R.center, halfW: R.halfW + d.x / 2, halfL: R.halfL + d.z / 2, height: R.height + d.y };
+  };
+  function growApply(d) {
+    const G = realHall?.grow;
+    grow.d.copy(d);
+    if (!G) return;
+    // Ebenen der Streckung (Mitten der Streifen) und Anteile je Seite, im Raum der Halle
+    hallGrow.lo.value.fromArray(G.s.lo); hallGrow.hi.value.fromArray(G.s.hi);
+    hallGrow.flo.value.fromArray(G.s.flo); hallGrow.fhi.value.fromArray(G.s.fhi);
+    hallGrow.d.value.set(d.x, d.y, d.z, 1 / G.s.step);
+    const hx = d.x / 2, hz = d.z / 2;
+    // Spiellampen (Modellraum, ihre Gruppe steht um org verschoben)
+    if (hallLamps) for (const q of hallLamps.children) {
+      if (!q.isLight) continue;
+      const b = (q.userData.growAt ??= q.position.clone());
+      growOff(b.x - G.org.x, b.y - G.org.y, b.z - G.org.z, growV, d);
+      q.position.copy(b).add(growV);
+      if (q.target && q.target.parent === hallLamps) q.target.position.copy(q.target.userData.growAt ??= q.target.position.clone()).add(growV);
+    }
+    // ausgesparter Boden unter dem Rand, Durchgang zur Werkhalle (Wand der Westnische)
+    const C = G.cut;
+    if (C.z > 0) hallCut.value.set(C.x + hx, C.y + hz, C.z + hx, C.w + hz);
+    if (G.door.w > 0) hallDoor.value.x = G.door.x + growFrac(G.s, G.door.x, 0) * d.x;
+    const sh = realHall.shaft;
+    if (sh) {
+      // Schacht: Nische, Licht und Dunst nach seinen Maßen, Lampen an den Wänden
+      hallPocket.value.x = sh.hx + hx; hallPocket.value.y = sh.hz + hz;
+      hallShaft.a.value.x = sh.hx + hx; hallShaft.a.value.y = sh.hz + hz;
+      sh.around = 4 * (sh.hx + hx + sh.hz + hz);
+      hallShaft.e.value.x = Math.round(sh.around / SHAFT_RUN_GAP) / sh.around;
+      (sh.lights || []).forEach((q, i) => {
+        growOff(q.pos[0], q.pos[1], q.pos[2], growV, d);
+        hallPit.a.value[i].x = q.pos[0] + growV.x; hallPit.a.value[i].y = q.pos[1] + growV.y; hallPit.a.value[i].z = q.pos[2] + growV.z;
+      });
+      if (sh.fx) for (const c of sh.fx.children) {
+        const b = (c.userData.growAt ??= c.position.clone());
+        c.position.copy(b).add(growOff(b.x, b.y, b.z, growV, d));
+      }
+      // Das Tor dehnt sich über der Öffnung (hgGateOf), seine Karten
+      // bleiben im Maßstab des Bodens. Die Flügel verschiebt erst der
+      // Shader: three.js prüft sie dann nicht einzeln gegen das Bild
+      hallGate.value.set(1 + hx / sh.hx, 1 + hz / sh.hz, sh.hx, sh.hz);
+      if (sh.gate) for (const b of sh.gate.batches) {
+        b.userData.growCull ??= [b.frustumCulled, b.perObjectFrustumCulled];
+        const zero = !d.x && !d.z;
+        b.frustumCulled = zero && b.userData.growCull[0]; b.perObjectFrustumCulled = zero && b.userData.growCull[1];
+      }
+    }
+    if (realHall.werk) {
+      const g = realHall.werk.group;
+      growOff(WERK.feld.x, 1, WERK.feld.z, werkU.off.value, d);
+      g.position.copy(g.userData.growAt ??= g.position.clone()).add(werkU.off.value);
+    }
+    if (realHall.deko) layDeko(realHall.deko, realHall.deko.k || hallRoot.scale.x, d);
+    growBounds(d);
+  }
+  // Hüllen für die Sichtprüfung von three.js: je mitwachsendem Mesh der
+  // Quader in Ruhe, im Raum der Halle verschoben. Geteilte Geometrie (eine
+  // Hülle für mehrere Lagen) wird bei Zuwachs nie ausgeblendet.
+  function growBoundsInit() {
+    const G = realHall?.grow;
+    if (!G) return;
+    const uses = new Map(), list = [];
+    hallRoot.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(hallRoot.matrixWorld).invert();
+    hallRoot.traverse((n) => { if (n.isMesh) uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1); });
+    hallRoot.traverse((n) => {
+      if (!n.isMesh || n.isBatchedMesh || n.isInstancedMesh || ![].concat(n.material).some((m) => m.userData.grow)) return;
+      const g = n.geometry;
+      if (!g.boundingBox) g.computeBoundingBox();
+      const M = new THREE.Matrix4().multiplyMatrices(inv, n.matrixWorld);
+      list.push({ mesh: n, M, Mi: M.clone().invert(), box: g.boundingBox.clone(), cull: n.frustumCulled, shared: uses.get(g) > 1 });
+    });
+    G.list = list;
+  }
+  function growBounds(d) {
+    const G = realHall?.grow;
+    if (!G) return;
+    const zero = !d.x && !d.y && !d.z;
+    for (const e of G.list) {
+      if (e.shared) { e.mesh.frustumCulled = zero && e.cull; continue; }
+      growBox.copy(e.box).applyMatrix4(e.M);
+      const { min: a, max: b } = growBox;
+      growOff(a.x, a.y, a.z, growV, d); growOff(b.x, b.y, b.z, growW, d);
+      a.add(growV); b.add(growW);
+      growBox.applyMatrix4(e.Mi);
+      const g = e.mesh.geometry;
+      (g.boundingBox ??= new THREE.Box3()).copy(growBox);
+      g.boundingSphere = growBox.getBoundingSphere(g.boundingSphere ?? new THREE.Sphere());
+    }
+  }
+  // Gleiten zum Zuwachs b; das Versprechen hält, bis die Halle steht (oder
+  // ein neues Gleiten beginnt)
+  function growTo(b) {
+    grow.glide?.done();
+    grow.glide = null;
+    const dist = b.distanceTo(grow.d);
+    if (dist < 1e-6) return Promise.resolve();
+    const dur = THREE.MathUtils.clamp((dist / GROW_SPEED) * 1000, GROW_MS[0], GROW_MS[1]);
+    return new Promise((done) => { grow.glide = { a: grow.d.clone(), b: b.clone(), t0: performance.now(), dur, shade: performance.now(), done }; });
+  }
+  function growStep(now) {
+    const g = grow.glide;
+    if (!g) return;
+    const t = Math.min(1, (now - g.t0) / g.dur);
+    growApply(growT.copy(g.a).lerp(g.b, inOut3(t)));
+    // die festen Schatten gleiten mit (wie propStep), am Ende genau
+    if (t >= 1 || now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(); }
+    if (t < 1) return;
+    grow.glide = null;
+    g.done();
+    growSettled();
+  }
+  // Die Halle steht im neuen Zuwachs: Spiegelungskugel, Freiraum der Kamera
+  // und Grundflächen der Crew für sie
+  function growSettled() {
+    if (hallEnv && !realHall.probe) captureHallEnv(true);
+    camFree = null; freeDirty = true;
+    life.setBlocks([...(realHall.dienst?.blocks ?? []), ...(realHall.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [])], realHall.dienst?.hull ?? null);
+  }
 
   // Einrichtung und Deko stehen in Originalgröße: gelegt für den Maßstab kk
   // (1/kk im Modell der Halle), im Ruhezustand kk = k. propGlide { a, t0,
@@ -6481,7 +6958,7 @@ export async function initHangar(container, opts = {}) {
     const t = Math.min(1, (now - propGlide.t0) / propGlide.dur);
     const b = hallRoot.scale.x;
     layProps(t >= 1 ? b : propGlide.a * Math.pow(b / propGlide.a, inOut3(t)), t < 1);
-    if (t >= 1 || now - propGlide.shade >= PROP_SHADOW_MS) { propGlide.shade = now; statK = 0; renderHallShadows(); }
+    if (t >= 1 || now - propGlide.shade >= PROP_SHADOW_MS) { propGlide.shade = now; statK = ''; renderHallShadows(); }
     if (t >= 1) propGlide = null;
   };
 
@@ -6524,11 +7001,21 @@ export async function initHangar(container, opts = {}) {
       const k = hallScale(shipInfo);
       hallRoot.scale.setScalar(k);
       hallNoTileInvK.value = 1 / k;
+      // Die Halle wächst um das Schiff (HALL_GROW): auf dem Aufzug gleitet
+      // sie unter geschlossenem Tor dorthin (show), sonst steht sie gleich
+      // so. In der Werkhalle bleibt sie, wie sie ist.
+      let grew = false;
+      if (realHall.grow && ort !== 'werk') {
+        grow.to.copy(growFor(shipInfo));
+        if (!hold && !grow.to.equals(grow.d)) { grow.glide?.done(); grow.glide = null; growApply(grow.to); grew = true; }
+      }
       if (!hold) { propGlide = null; layProps(k); }
       if (realHall.dienst && !keep) layDienst(realHall.dienst, shipInfo, k);
       // Kein Dunst im hellen Innenraum: erst die Stirnwände verschwimmen leicht.
-      scene.fog.near = realHall.room.halfL * k * 1.2; scene.fog.far = realHall.room.halfL * k * 4;
+      const R = realHall.grow ? grownRoom(grow.to) : realHall.room;
+      scene.fog.near = R.halfL * k * 1.2; scene.fog.far = R.halfL * k * 4;
       scaleLamps();
+      if (grew) growSettled();
     }
     key.position.set(9 * S, HALL_H * S * 0.92, 12 * S);
     key.target.position.set(0, shipInfo.height * 0.4, 0);
@@ -6542,12 +7029,13 @@ export async function initHangar(container, opts = {}) {
     controls.maxDistance = HALL_R * S * 0.95;
     camLimit = Infinity;
     if (realHall) {
-      const k = hallRoot.scale.x;
-      camLimit = ort === 'werk' && realHall.werk ? werkRoom(k) : camRoom(realHall.room, k);
+      const k = hallRoot.scale.x, R = realHall.grow ? grownRoom(grow.to) : realHall.room;
+      camLimit = ort === 'werk' && realHall.werk ? werkRoom(k) : camRoom(R, k);
       controls.maxDistance = Math.max(controls.minDistance, camLimit);
-      camera.far = Math.max(realHall.room.halfL, realHall.room.height) * k * 4;
+      camera.far = Math.max(R.halfL, R.height) * k * 4;
       camera.updateProjectionMatrix();
     }
+    if (camHold && fly) holdCam();
     fitFov();
     // Staub füllt den Raum um das Schiff bis über den Rumpf; Punktgröße in
     // Welteinheiten mitstrecken, sonst wird er bei großen Schiffen zu Sand.
@@ -6559,7 +7047,7 @@ export async function initHangar(container, opts = {}) {
     // Deko, wo sie nach dem Gleiten steht (propGlide): Die Crew stellt sich jetzt auf
     if (keep) return;
     life.root.scale.setScalar(1);
-    life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...(realHall?.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [])], realHall?.dienst?.hull ?? null);
+    life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...(realHall?.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x, grow.to) : [])], realHall?.dienst?.hull ?? null);
     life.layout(S, shipInfo);
   }
 
@@ -7113,15 +7601,19 @@ export async function initHangar(container, opts = {}) {
     rt.depthTexture.minFilter = rt.depthTexture.magFilter = THREE.LinearFilter;
     return rt;
   };
-  let statK = 0;
+  // Die Deko rückt je Zone als Ganzes (layDeko): im zweiten Zug ohne
+  // Streckung, nur sie (Ebene STAT_DEKO), in dieselben Karten
+  let statK = '';
+  const STAT_DEKO = 7;
   function renderHallShadows() {
-    const k = hallRoot.scale.x;
-    if (!realHall?.model || !hallLamps || statK === k) return;
-    statK = k;
+    const k = hallRoot.scale.x, key = `${k}|${grow.d.x}|${grow.d.y}|${grow.d.z}`;
+    if (!realHall?.model || !hallLamps || statK === key) return;
+    statK = key;
     const t0 = performance.now();
     const lamps = hallLamps.children.filter((q) => shadowLamps.includes(q)).slice(0, 2);
-    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY, o = realHall.spot;
-    statClip.constant = (c[1] - f + HALL_STAT_TOP * height) * k;
+    // Die Decke fehlt in Ruhe ab 70 % der Höhe; was darüber liegt, steigt mit ihr (HALL_GROW)
+    statClip.constant = (realHall.room.center[1] - realHall.floorY + HALL_STAT_TOP * realHall.room.height) * k;
+    const { center: c, halfW, halfL } = realHall.grow ? grownRoom() : realHall.room, f = realHall.floorY, o = realHall.spot;
     const corners = [];
     for (const x of [-halfW, halfW]) for (const z of [-halfL, halfL]) corners.push(new THREE.Vector3((c[0] - o[0] + x) * k, (c[1] - f) * k, (c[2] - o[2] + z) * k));
     const hide = [current?.group, leaving?.group, life.root].filter((o) => o && o.visible);
@@ -7144,8 +7636,13 @@ export async function initHangar(container, opts = {}) {
     if (realHall.shaft?.gate?.group.visible) hide.push(realHall.shaft.gate.group);
     // die Werkhalle liegt hinter der Wand, ihre Torblätter fahren
     if (realHall.werk?.group.visible) hide.push(realHall.werk.group);
+    const deko = realHall.grow && realHall.deko?.group.visible && !hide.includes(realHall.deko.group) ? realHall.deko.group : null;
+    if (deko) {
+      hide.push(deko);
+      deko.traverse((n) => { if (n.isMesh) n.layers.enable(STAT_DEKO); });
+    }
     for (const o of hide) o.visible = false;
-    const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled;
+    const bg = scene.background, shadowUpd = renderer.shadowMap.needsUpdate, clip = renderer.localClippingEnabled, ac = renderer.autoClear;
     scene.background = null; scene.overrideMaterial = statMat;
     renderer.shadowMap.needsUpdate = false; renderer.localClippingEnabled = true;
     const p = new THREE.Vector3(), t = new THREE.Vector3(), d = new THREE.Vector3(), K = new THREE.Matrix4().makeScale(k, k, k);
@@ -7164,7 +7661,14 @@ export async function initHangar(container, opts = {}) {
       const rt = statRT[i] ??= statTarget(HALL_STAT_SIZE);
       renderer.setRenderTarget(rt);
       renderer.clear();
+      statGrowOn.value = 1;
       renderer.render(scene, statCam);
+      if (deko) {
+        deko.visible = true; statGrowOn.value = 0; renderer.autoClear = false;
+        statCam.layers.set(STAT_DEKO);
+        renderer.render(scene, statCam);
+        statCam.layers.set(0); renderer.autoClear = ac; statGrowOn.value = 1; deko.visible = false;
+      }
       hallStat.map[i].value = rt.depthTexture;
       hallStat.mat[i].value.copy(statBias).multiply(statCam.projectionMatrix).multiply(statCam.matrixWorldInverse).multiply(K);
     });
@@ -7239,7 +7743,8 @@ export async function initHangar(container, opts = {}) {
     const pm = new THREE.PMREMGenerator(renderer);
     // Schatten ohne Schiff und Crew, wie die Aufnahme sie sieht
     renderer.shadowMap.needsUpdate = true;
-    const rt = pm.fromScene(scene, 0, 0.1, Math.max(realHall.room.halfL, realHall.room.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
+    const R = realHall.grow ? grownRoom() : realHall.room;
+    const rt = pm.fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     pm.dispose();
     // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
     shadowSig = '';
@@ -7251,7 +7756,7 @@ export async function initHangar(container, opts = {}) {
     hallEnv = rt;
     scene.environment = rt.texture;
     setHallEnv(rt.texture);
-    const { center: c, halfW, halfL, height } = realHall.room, f = realHall.floorY, o = realHall.spot;
+    const { center: c, halfW, halfL, height } = realHall.grow ? grownRoom() : realHall.room, f = realHall.floorY, o = realHall.spot;
     hallBox.min.value.set(c[0] - o[0] - halfW, c[1] - f, c[2] - o[2] - halfL);
     hallBox.max.value.set(c[0] - o[0] + halfW, c[1] + height - f, c[2] - o[2] + halfL);
     hallBox.pos.value.set(0, 2.5, 0);
@@ -7350,6 +7855,8 @@ export async function initHangar(container, opts = {}) {
   const HALL_NO_TILE_CELL = 8;
   const HALL_NO_TILE_GLSL = `uniform float hgNoTile;
 varying vec3 vHgP;
+// Lage vor der Streckung (HALL_GROW): Rauschen und Lichtgitter bleiben an der Fläche
+varying vec3 vHgS;
 float hgHash( vec3 p ) { p = fract( p * 0.1031 ); p += dot( p, p.zyx + 31.32 ); return fract( ( p.x + p.y ) * p.z ); }
 float hgNoise( vec3 x ) {
 	vec3 i = floor( x ), f = fract( x );
@@ -7382,6 +7889,60 @@ vec3 hgVolume( vec3 p, vec3 n ) {
   // Achsen, gleiche Teile in zwei Knoten bekämen im Knotenraum dasselbe
   // Rauschen. Ein Wert für alle Hallenmaterialien, scaleWorld setzt ihn.
   const hallNoTileInvK = { value: 1 };
+  // Streckung der Halle (HALL_GROW, hallGrowPrep) im Raum der Halle
+  // (Modellmeter ab Feldmitte, Boden y 0): je Achse die Mitte der Seiten lo
+  // und hi, ihre Anteile, und d = Zuwachs (xyz) und 1 / Schritt (w). Was
+  // nicht mitwächst (Tor, Wartungsplatz, Deko, Schiff), liest hgGrowOn 0.
+  const hallGrow = {
+    lo: { value: new THREE.Vector3(-1e9, -1e9, -1e9) }, hi: { value: new THREE.Vector3(1e9, 1e9, 1e9) },
+    flo: { value: new THREE.Vector3() }, fhi: { value: new THREE.Vector3() },
+    d: { value: new THREE.Vector4(0, 0, 0, 0.25) },
+  };
+  // Schachttor (hgGateOf): über der Öffnung gedehnt (x, z: Faktor), in der
+  // Nische verschoben; z, w die halben Maße der Öffnung in Ruhe
+  const hallGate = { value: new THREE.Vector4(1, 1, 1, 1) };
+  const growUniforms = (sh, on) => {
+    sh.uniforms.hgGLo = hallGrow.lo; sh.uniforms.hgGHi = hallGrow.hi;
+    sh.uniforms.hgGFLo = hallGrow.flo; sh.uniforms.hgGFHi = hallGrow.fhi;
+    sh.uniforms.hgGrow = hallGrow.d; sh.uniforms.hgGrowOn = on; sh.uniforms.hgGate = hallGate;
+  };
+  // hgRig (hallGrowPrep): w 0 starr mit xyz = 2 · Anteil, w 2 über einer
+  // Ebene; ohne das Attribut liest der Shader w = 1 (Vorgabe von WebGL),
+  // dann gilt die Lage der Ecke
+  const HALL_GROW_VERT = `uniform vec3 hgGLo, hgGHi, hgGFLo, hgGFHi;
+uniform vec4 hgGrow, hgGate;
+uniform float hgGrowOn;
+attribute vec4 hgRig;
+attribute vec3 hgU, hgV;
+vec3 hgFrac( vec3 p ) { return mix( mix( vec3( 0.0 ), hgGFHi, step( hgGHi, p ) ), hgGFLo, step( p, hgGLo ) ); }
+vec3 hgGrowOf( vec3 s ) { return hgGrowOn * ( hgRig.w < 0.5 ? hgRig.xyz * 0.5 : hgFrac( s ) ) * hgGrow.xyz; }
+// Die Flügel fahren durch die Fuge: gedehnt, soweit sie über der Öffnung liegen, sonst verschoben
+vec3 hgGateOf( vec3 s ) { return hgGrowOn * vec3( clamp( s.x, - hgGate.z, hgGate.z ) * ( hgGate.x - 1.0 ), 0.0, clamp( s.z, - hgGate.w, hgGate.w ) * ( hgGate.y - 1.0 ) ); }`;
+  // Verschiebung hgD (Welt) vor der Kamera, auch für Schatten und Umgebung
+  const HG_PROJECT = THREE.ShaderChunk.project_vertex.replace('mvPosition = modelViewMatrix * mvPosition;', 'mvPosition = viewMatrix * ( modelMatrix * mvPosition + vec4( hgD, 0.0 ) );');
+  const HG_WORLDPOS = THREE.ShaderChunk.worldpos_vertex.replace('worldPosition = modelMatrix * worldPosition;', 'worldPosition = modelMatrix * worldPosition;\n\tworldPosition.xyz += hgD;');
+  if (HG_PROJECT === THREE.ShaderChunk.project_vertex || HG_WORLDPOS === THREE.ShaderChunk.worldpos_vertex) console.warn('[hangar] Streckung der Halle: Shaderteile von three.js geändert, die Halle wächst nicht mit');
+  const HG_UV = [['MAP', 'vMapUv', 'mapTransform'], ['NORMALMAP', 'vNormalMapUv', 'normalMapTransform'], ['ROUGHNESSMAP', 'vRoughnessMapUv', 'roughnessMapTransform'],
+    ['METALNESSMAP', 'vMetalnessMapUv', 'metalnessMapTransform'], ['EMISSIVEMAP', 'vEmissiveMapUv', 'emissiveMapTransform'], ['AOMAP', 'vAoMapUv', 'aoMapTransform'], ['ALPHAMAP', 'vAlphaMapUv', 'alphaMapTransform']];
+  const hgUvAdd = (o) => HG_UV.map(([d, v, t]) => `#ifdef USE_${d}\n\t${v} += ( ${t} * vec3( ${o}, 0.0 ) ).xy;\n#endif`).join('\n');
+  // Gestreckte Dreiecke: Die Textur läuft um den Weg der Ecke weiter (hgU,
+  // hgV je Schritt und Achse). Projizierte Materialien (boxProject, HG_BOX)
+  // rechnen dasselbe aus ihrer Projektion, auf ganze Kacheln je Schritt.
+  const HG_SPAN_UV = `if ( hgRig.w > 1.5 && hgGrowOn > 0.5 ) {
+	vec2 hgUo = vec2( 0.0 );
+#ifdef HG_BOX
+	mat3 hgIM = inverse( mat3( modelMatrix ) ) / hgInvK;
+	vec3 hgBn = abs( normal );
+	for ( int a = 0; a < 3; a ++ ) {
+		vec3 l = hgIM[ a ];
+		vec2 q = ( hgBn.x > hgBn.y && hgBn.x > hgBn.z ? l.zy : ( hgBn.y > hgBn.z ? l.xz : l.xy ) ) * uBoxScale;
+		hgUo += floor( q / hgGrow.w + 0.5 ) * hgG[ a ] * hgGrow.w;
+	}
+#else
+	hgUo = vec2( dot( hgU, hgG ), dot( hgV, hgG ) ) * hgGrow.w;
+#endif
+${hgUvAdd('hgUo')}
+}`;
   // Nische unter dem Hallenboden rund um die Öffnung (Torschlitz): x, z
   // halbe Feldmaße, z an, w Sohle der Nische (Modellmeter, Feldmitte 0)
   const hallPocket = { value: new THREE.Vector4(0, 0, 0, 0) };
@@ -7410,11 +7971,16 @@ void hgCutOut( vec3 p ) {
 }`;
   // In den Tiefenkarten der Halle (statMat) fehlt der Boden dort ebenso,
   // sonst läge der Steg im Schatten eines Bodens, den man nicht mehr sieht
+  // Gestreckt wie die Halle (HALL_GROW); was nicht mitwächst, zeichnet
+  // renderHallShadows in einem zweiten Zug mit statGrowOn 0
+  const statGrowOn = { value: 1 };
   statMat.onBeforeCompile = (sh) => {
     sh.uniforms.hgInvK = hallNoTileInvK; sh.uniforms.hgCut = hallCut; sh.uniforms.hgDoor = hallDoor; sh.uniforms.hgCutOn = { value: 1 };
+    growUniforms(sh, statGrowOn);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 hgPos = vec4( position, 1.0 );\n#ifdef USE_BATCHING\nhgPos = batchingMatrix * hgPos;\n#endif\n#ifdef USE_INSTANCING\nhgPos = instanceMatrix * hgPos;\n#endif\nvHgP = ( modelMatrix * hgPos ).xyz * hgInvK;');
+      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nvarying vec3 vHgP;\n' + HALL_GROW_VERT)
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 hgPos = vec4( position, 1.0 );\n#ifdef USE_BATCHING\nhgPos = batchingMatrix * hgPos;\n#endif\n#ifdef USE_INSTANCING\nhgPos = instanceMatrix * hgPos;\n#endif\nvHgP = ( modelMatrix * hgPos ).xyz * hgInvK;\nvec3 hgG = hgGrowOf( vHgP );\nvec3 hgD = hgG / hgInvK;\nvHgP += hgG;')
+      .replace('#include <project_vertex>', HG_PROJECT);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vHgP;\n' + HALL_CUT_GLSL)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n\thgCutOut( vHgP );');
@@ -7761,10 +8327,28 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
     sh.uniforms.hgStatMat0 = hallStat.mat[0]; sh.uniforms.hgStatMat1 = hallStat.mat[1];
     sh.uniforms.hgVolA = hallVol.a; sh.uniforms.hgVolB = hallVol.b; sh.uniforms.hgVolOn = hallVol.on;
     sh.uniforms.hgVolMin = hallVol.min; sh.uniforms.hgVolInv = hallVol.inv; sh.uniforms.hgVolRes = hallVol.res;
+    // Streckung (HALL_GROW): an für Halle, Feld, Schacht, Rand und Tor (userData.grow)
+    growUniforms(sh, { value: m.userData.grow ? 1 : 0 });
+    // Werkhalle im Licht der Halle: sie rückt als Ganzes (werkU.off), Rauschen und Lichtgitter in Ruhe
+    if (m.userData.werkHall) sh.uniforms.hgWkOff = werkU.off;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float hgInvK;\nuniform float hgLiftY;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying vec3 vHgN;\nvarying float vHgShade;')
-      // im BatchedMesh (Wartungsplatz) dazu die Matrix des Stücks
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvec4 hgPos = vec4( position, 1.0 );\n#ifdef USE_BATCHING\nhgPos = batchingMatrix * hgPos;\n#endif\nvHgP = ( modelMatrix * hgPos ).xyz * hgInvK;\nvHgN = vHgP - vec3( 0.0, hgLiftY, 0.0 );\nvHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;');
+      .replace('#include <common>', '#include <common>\nuniform float hgInvK;' + (m.userData.werkHall ? '\nuniform vec3 hgWkOff;' : '') + '\nuniform float hgLiftY;\nuniform float hgShadeOn;\nattribute vec3 hgShade;\nvarying vec3 vHgP;\nvarying vec3 vHgN;\nvarying vec3 vHgS;\nvarying float vHgShade;\n' + HALL_GROW_VERT)
+      // im BatchedMesh (Wartungsplatz) dazu die Matrix des Stücks; vHgP liegt
+      // gestreckt (Licht, Schatten, Spiegelung), vHgS davor (Rauschen, Lichtgitter)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+vec4 hgPos = vec4( position, 1.0 );
+#ifdef USE_BATCHING
+hgPos = batchingMatrix * hgPos;
+#endif
+vHgS = ( modelMatrix * hgPos ).xyz * hgInvK;
+vec3 hgG = ${m.userData.gate ? 'hgGateOf' : 'hgGrowOf'}( vHgS );
+vec3 hgD = hgG / hgInvK;
+vHgP = vHgS + hgG;${m.userData.werkHall ? '\nvHgS -= hgWkOff;' : ''}
+vHgN = vHgS - vec3( 0.0, hgLiftY, 0.0 );
+vHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;
+${HG_SPAN_UV}`)
+      .replace('#include <project_vertex>', HG_PROJECT)
+      .replace('#include <worldpos_vertex>', HG_WORLDPOS);
     // Unter dem Boden (das abgefahrene Schiffsfeld) wird es mit der Tiefe
     // dunkel wie in liftShade; was selbst leuchtet, bleibt hell.
     // Im Schacht und auf dem abgefahrenen Feld dazu die Schachtlampen.
@@ -7810,7 +8394,7 @@ vec3 getIBLRadiance( const in vec3 viewDir, const in vec3 normal, const in float
 	material.roughness = max( material.roughness, ${HALL_ROUGH_MIN.toFixed(2)} );
 ${HALL_LIGHTS_BEGIN}
 	material.roughness = hgRoughRefl;
-	if ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgP, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );`);
+	if ( hgVolOn > 0.5 ) irradiance += hgVolume( vHgS, transformNormalByInverseViewMatrix( geometryNormal, viewMatrix ) );`);
     if (m.userData.shaft && !m.userData.shaftUv) {
       sh.fragmentShader = sh.fragmentShader
         .replace(/vec4 sampledDiffuseColor = [^;]*;/, `vec4 sampledDiffuseColor = ${HG_MEAN('map')};`)
@@ -7844,7 +8428,10 @@ ${HALL_LIGHTS_BEGIN}
     // Wiederholung (hgNoTile) liest die Lage im geschlossenen Stand aus den
     // Kachelkoordinaten, sonst wanderten die Flecken mit der Fahrt
     if (m.userData.gateFloor) sh.vertexShader = sh.vertexShader.replace('vHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;', `vHgShade = hgShadeOn > 0.5 ? hgShade.r : 1.0;
-vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
+vHgN = vec3( uv.x * hgGate.x, 0.0, uv.y * hgGate.y ) * ${GATE_FLOOR.tile.toFixed(1)};`)
+      // die Karten im Maßstab des Bodens, auch über der gedehnten Öffnung
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+${HG_UV.map(([d, v]) => `#ifdef USE_${d}\n\t${v} *= hgGate.xy;\n#endif`).join('\n')}`);
     if (m.userData.gate) sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `outgoingLight = ( outgoingLight - totalEmissiveRadiance ) * mix( 1.0, ${SHAFT_POCKET[3].toFixed(2)}, smoothstep( ${GATE_SLOT[0].toFixed(2)}, ${GATE_SLOT[1].toFixed(2)}, - vHgP.y ) ) + totalEmissiveRadiance;
 	#include <opaque_fragment>`);
     if (m.userData.gate && Gr) {
@@ -7852,7 +8439,7 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
       sh.vertexShader = sh.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec2 vHgGrUv;')
         .replace('#include <begin_vertex>', `#include <begin_vertex>
-	{ vec3 gn = abs( normal ); vHgGrUv = ( gn.x > gn.y && gn.x > gn.z ? position.zy : ( gn.y > gn.z ? position.xz : position.xy ) ) / ${GATE_GRIME[0].toFixed(2)}; }`);
+	{ vec3 gn = abs( normal ), gp = position * vec3( hgGate.x, 1.0, hgGate.y ); vHgGrUv = ( gn.x > gn.y && gn.x > gn.z ? gp.zy : ( gn.y > gn.z ? gp.xz : gp.xy ) ) / ${GATE_GRIME[0].toFixed(2)}; }`);
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', '#include <common>\nvarying vec2 vHgGrUv;\nuniform sampler2D hgGrimeMap;')
         .replace('#include <color_fragment>', `#include <color_fragment>
@@ -7891,6 +8478,9 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     // Unterkante je Band in x, aufsteigend (Band 0 hinten)
     glowX: { value: WERK.reihen.map(([, z1], i) => (i ? WERK.garage.x - z1 * (WERK.garage.s ?? 1) : -1e4)) },
     pit: { value: new THREE.Vector4(WERK.feld.x, WERK.feld.z, WERK.feld.hx - 0.01, WERK.feld.hz - 0.01) },
+    // Versatz der Werkhalle mit der Westwand, wenn die Halle wächst (growApply,
+    // Hallenmeter): Licht und Maße bleiben in WERK, vHgWk zieht ihn ab
+    off: { value: new THREE.Vector3() },
   };
   // Schatten des Fahrzeugs: auf der Bühne immer, auf dem Hallenboden erst, wenn sie oben ist
   const werkFootFloor = { value: 0 }, werkFootPad = { value: 0 };
@@ -7910,14 +8500,14 @@ vHgN = vec3( uv.x, 0.0, uv.y ) * ${GATE_FLOOR.tile.toFixed(1)};`);
     prev?.call(m, sh, r);
     sh.uniforms.hgWkP = werkU.p; sh.uniforms.hgWkC = werkU.c; sh.uniforms.hgWkD = werkU.d;
     sh.uniforms.hgWkAmb = werkU.amb; sh.uniforms.hgWkTor = werkU.tor; sh.uniforms.hgWkK = werkU.k; sh.uniforms.hgWkEnv = werkU.env;
-    sh.uniforms.hgWkVigA = werkU.vigA; sh.uniforms.hgWkVigB = werkU.vigB;
+    sh.uniforms.hgWkVigA = werkU.vigA; sh.uniforms.hgWkVigB = werkU.vigB; sh.uniforms.hgWkOff = werkU.off;
     const foot = !!m.userData.werkFoot, pit = !!m.userData.werkPit, glow = !!m.userData.werkGlow, fz = !!m.userData.werkLit;
     if (foot) { sh.uniforms.hgWkFoot = werkU.foot; sh.uniforms.hgWkFootB = werkU.footB; sh.uniforms.hgWkFootK = m.userData.werkFoot === 'pad' ? werkFootPad : werkFootFloor; }
     if (pit) sh.uniforms.hgWkPit = werkU.pit;
     if (glow) { sh.uniforms.hgWkGlow = werkU.glow; sh.uniforms.hgWkGlowX = werkU.glowX; }
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float hgWkK;\nvarying vec3 vHgWk;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWk = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz / hgWkK;');
+      .replace('#include <common>', '#include <common>\nuniform float hgWkK;\nuniform vec3 hgWkOff;\nvarying vec3 vHgWk;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHgWk = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz / hgWkK - hgWkOff;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>\n#define HG_WK_N ${WK_N}\n#define HG_WK_ROWS ${WK_ROWS}\n${foot ? '#define HG_WK_FOOT\n' : ''}${pit ? '#define HG_WK_PIT\n' : ''}${glow ? '#define HG_WK_GLOW\n' : ''}${fz ? '#define HG_WK_FZ\n' : ''}${WERK_LIGHTS_GLSL}`)
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n#ifdef HG_WK_PIT\n\tif ( abs( vHgWk.x - hgWkPit.x ) < hgWkPit.z && abs( vHgWk.z - hgWkPit.y ) < hgWkPit.w && vHgWk.y < 0.25 ) discard;\n#endif')
@@ -8242,20 +8832,27 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
   }
   // Matrizen der Deko im Modell für den Maßstab k der Halle: jedes Stück
   // um den Bezugspunkt seiner Zone auf der Wand in 1/k, also in Metern wie
-  // in der Welt.
-  function layDeko(d, k) {
-    if (d.k === k) return;
+  // in der Welt. Wächst die Halle um gd (HALL_GROW), rückt jede Zone mit
+  // ihrem Bezugspunkt als Ganzes (dekoOff).
+  const dekoV = new THREE.Vector3();
+  function dekoOff(d, zone, gd, out = dekoV) {
+    const G = realHall?.grow, [ax, az] = WORK_DEKO.zonen[zone].at;
+    return G ? growOff(ax - G.org.x, d.floorY - G.org.y, az - G.org.z, out, gd) : out.set(0, 0, 0);
+  }
+  function layDeko(d, k, gd = grow.d) {
+    if (d.k === k && d.gd?.equals(gd)) return;
     d.k = k;
+    (d.gd ??= new THREE.Vector3()).copy(gd);
     const M = new THREE.Matrix4(), R = new THREE.Matrix4(), S0 = new THREE.Matrix4(), T0 = new THREE.Matrix4();
     for (const u of d.uses) {
-      const e = d.parts.get(u.node), [ax, az] = WORK_DEKO.zonen[u.zone].at;
+      const e = d.parts.get(u.node), [ax, az] = WORK_DEKO.zonen[u.zone].at, q = dekoOff(d, u.zone, gd);
       if (u.kind === 'leitung') {
-        M.makeTranslation(ax, d.floorY, az).multiply(S0.makeScale(1 / k, 1 / k, 1 / k));
+        M.makeTranslation(ax + q.x, d.floorY + q.y, az + q.z).multiply(S0.makeScale(1 / k, 1 / k, 1 / k));
         for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
         continue;
       }
       T0.makeTranslation(-e.centre.x, -e.box.min.y, -e.centre.z);
-      M.makeTranslation(ax + (u.at[0] - ax) / k, d.floorY + u.y / k, az + (u.at[1] - az) / k)
+      M.makeTranslation(ax + q.x + (u.at[0] - ax) / k, d.floorY + q.y + u.y / k, az + q.z + (u.at[1] - az) / k)
         .multiply(R.makeRotationY(u.a)).multiply(S0.makeScale(u.sc / k, 1 / k, u.sc / k)).multiply(T0);
       for (const id of u.ids) id.b.setMatrixAt(id.iid, M);
     }
@@ -8263,18 +8860,19 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     d.group.updateWorldMatrix(true, false);
   }
   // Grundflächen der Deko für die Crew (Weltmeter), gelegt für den Maßstab k
-  function dekoBlocks(d, k) {
-    return dekoBoxes(d, 0, k).map((b) => ({ x: (b.min.x + b.max.x) / 2, z: (b.min.z + b.max.z) / 2, ex: (b.max.x - b.min.x) / 2, ez: (b.max.z - b.min.z) / 2 }));
+  // und den Zuwachs gd
+  function dekoBlocks(d, k, gd) {
+    return dekoBoxes(d, 0, k, gd).map((b) => ({ x: (b.min.x + b.max.x) / 2, z: (b.min.z + b.max.z) / 2, ex: (b.max.x - b.min.x) / 2, ez: (b.max.z - b.min.z) / 2 }));
   }
   // Hüllquader der stehenden Stücke in der Welt, um m größer (Kamera, Crew),
   // so wie sie für k liegen (sonst wie sie gerade liegen)
-  function dekoBoxes(d, m, k = d.k || 1) {
+  function dekoBoxes(d, m, k = d.k || 1, gd = d.gd ?? grow.d) {
     const out = [];
     d.group.updateWorldMatrix(true, false);
     for (const u of d.uses) {
       if (u.kind !== 'glied') continue;
-      const [ax, az] = WORK_DEKO.zonen[u.zone].at, e = d.parts.get(u.node);
-      const x = ax + (u.at[0] - ax) / k, z = az + (u.at[1] - az) / k, y = d.floorY + u.y / k;
+      const [ax, az] = WORK_DEKO.zonen[u.zone].at, e = d.parts.get(u.node), q = dekoOff(d, u.zone, gd);
+      const x = ax + q.x + (u.at[0] - ax) / k, z = az + q.z + (u.at[1] - az) / k, y = d.floorY + q.y + u.y / k;
       out.push(new THREE.Box3(new THREE.Vector3(x - u.ex / k, y, z - u.ez / k), new THREE.Vector3(x + u.ex / k, y + e.size.y / k, z + u.ez / k)).applyMatrix4(d.group.matrixWorld).expandByScalar(m));
     }
     return out;
@@ -8296,9 +8894,10 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     d.group.rotation.y = SHIP_YAW;
     const dx = (o[0] - fc[0]) * k, dz = (o[2] - fc[1]) * k, cy = Math.cos(SHIP_YAW), sy = Math.sin(SHIP_YAW);
     const sx = dx * cy - dz * sy, sz = dx * sy + dz * cy;
-    const FX = ((L.to[0] - L.from[0]) * k) / 2 - DIENST_EDGE, FZ = ((L.to[1] - L.from[1]) * k) / 2 - DIENST_EDGE;
+    // das Feld wächst mit der Halle (HALL_GROW, Zuwachs für dieses Schiff)
+    const FX = ((L.to[0] - L.from[0] + grow.to.x) * k) / 2 - DIENST_EDGE, FZ = ((L.to[1] - L.from[1] + grow.to.z) * k) / 2 - DIENST_EDGE;
     const W = info.halfW, Lh = info.len / 2, U = info.under, [CH, CV] = DIENST_CLEAR;
-    const sig = `${k.toFixed(4)}|${W}|${Lh}|${info.height}|${!!U}`;
+    const sig = `${k.toFixed(4)}|${W}|${Lh}|${info.height}|${!!U}|${grow.to.x}|${grow.to.z}`;
     // gleiche Maße, aber ein anderes Schiff (eigener Grundriss): neu stellen
     if (sig === d.sig && U === d.under) { info.dienstTop = d.top; return; }
     d.sig = sig; d.under = U;
@@ -8514,11 +9113,11 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     const garHall = (w) => {
       const m = w.clone();
       m.name = w.name.replace(/^werk:/, 'werk-halle:');
-      m.userData = { cut: false, hgShade: false, lift: false, boxUv: null, noTile: false };
+      m.userData = { cut: false, hgShade: false, lift: false, boxUv: null, noTile: false, werkHall: true };
       m.vertexColors = false;
       if (m.emissiveIntensity > 0 && w.userData.werkGlow) m.emissiveIntensity = 2;
       m.onBeforeCompile = hallShader(m);
-      m.customProgramCacheKey = hallKey;
+      m.customProgramCacheKey = () => 'hall-v2|werk';
       unifyMaps(m);
       hallMats.push(m); used.push(m);
       return m;
@@ -9010,6 +9609,8 @@ void main() {
         else console.warn('[hangar] Feldmitte: Streifen treffen keine Dreiecke');
         await pause();
       }
+      // Streckung (HALL_GROW): Streifen im Modellraum (Vorbereitung) und im Raum der Halle (Shader, Lage)
+      const gs = lift ? growSpec(h) : null, gsL = gs ? growSpec(h, [o[0], floorY, o[2]]) : null;
       // Der Weg zum Durchgang bleibt frei (WERK.frei): die Pflanzkübel vor der Rückwand
       if (werkHier) {
         const weg = werkFrei(model, furn, o, floorY);
@@ -9041,6 +9642,7 @@ void main() {
       // den Hallenmaterialien unten, wie der Wartungsplatz.
       const work = L ? await workReady : null;
       const dekoKit = L ? await dekoReady : null;
+      const rideMeshes = [];
       let grid = null, gridOk = true, deko = null;
       if ((work || dekoKit) && WB.props > 0) {
         try {
@@ -9071,6 +9673,8 @@ void main() {
           // Bezugspunkte der Feld-Decals in den Raum der Aufzugsgruppe
           if (lift) for (const n of w.field) n.userData.anchor = n.userData.anchor.map((q, i) => q - lift.group.position.getComponent(i));
           const ride = lift && w.field.length ? await mergeFurniture(lift.group, w.field, pause) : [];
+          growRigFurniture(ride, gs, lift ? lift.group.position.toArray() : [0, 0, 0]);
+          for (const f of ride) rideMeshes.push(f.mesh);
           for (const n of [...w.nodes, ...w.field]) {
             let left = false;
             n.traverse((o) => { if (o.isMesh) left = true; });
@@ -9109,6 +9713,16 @@ void main() {
       });
       if (shaded) console.info(`[hangar] Halle: ${shaded} Meshes mit Abdunkelung aus dem Spiel${padded ? `, ${padded} ohne eigene auf hell gesetzt` : ''}`);
       await pause();
+      // Streckung: Möbel fahren nach ihrem Bezugspunkt, die Halle wird an den Streifen vorbereitet
+      if (gs) {
+        const t9 = performance.now();
+        growRigFurniture(furniture, gs);
+        const skip = new Set([...furniture.map((f) => f.mesh), ...rideMeshes]), list = [];
+        model.traverse((n) => { if (n.isMesh && !skip.has(n)) list.push(n); });
+        const gp = await hallGrowPrep(model, list, gs, pause);
+        console.info(`[hangar] Halle wächst mit: ${gp.meshes} Meshes an den Streifen vorbereitet, ${gp.span} Dreiecke gestreckt (${gp.plates} Platten), ${gp.rigid} in kleinen Teilen starr (${gp.lamps} Leuchten)${gp.shared ? `, ${gp.shared} geteilte Geometrien kopiert` : ''}${gp.skipped ? `, ${gp.skipped} Meshes ohne (Gruppen, Morph)` : ''}; ${furniture.length + rideMeshes.length} Möbelmeshes nach Bezugspunkt; ${Math.round(performance.now() - t9)} ms`);
+        await pause();
+      }
       const uvStats = await hallUvStats(model, pause);
       await pause();
       const boxed = new Set(), seen = new Set();
@@ -9156,6 +9770,7 @@ void main() {
           m.userData.noTile = !!m.map && HALL_NO_TILE.test(m.name);
           m.userData.gloss = !!m.roughnessMap && HALL_GLOSS.test(m.name);
           m.userData.cut = true;
+          m.userData.grow = !!gs;
           m.onBeforeCompile = hallShader(m);
           m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
@@ -9229,7 +9844,7 @@ void main() {
               m.userData.hgWear = { map: wm.map, color: wm.color.clone(), roughness: wm.roughness };
               m.userData.hgTex = [wm.map];
             }
-            m.userData.hgShade = true; m.userData.shaft = true;
+            m.userData.hgShade = true; m.userData.shaft = true; m.userData.grow = !!gs;
             // Die Vertexfarbe des Bausatzes steckt in hgShade (buildShaft legt
             // kein color an). Mit vertexColors läse der Shader ein fehlendes
             // Attribut als Schwarz: Die Wände nähmen dann kein Licht an, nur
@@ -9321,7 +9936,7 @@ void main() {
                 m.vertexColors = false; m.userData.hgShade = true;
                 if (/glow/i.test(m.name) && m.emissiveMap) { m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = GATE_GLOW; }
                 for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
-                m.userData.gate = true; m.userData.hgGrime = grime;
+                m.userData.gate = true; m.userData.hgGrime = grime; m.userData.grow = !!gs;
                 if (floorM && GATE_FLOOR.re.test(m.name)) {
                   // farbige Lacke (der blaue) behalten ihre Farbe, die grauen nehmen die des Bodens
                   if (!matHue(m.color)) m.color.copy(floorM.color);
@@ -9369,7 +9984,7 @@ void main() {
                 m.envMapIntensity = 0.05;
                 if (m.isMeshStandardMaterial) m.envMap = envRT.texture;
                 if (m.metalness > 0.4) m.metalness = 0.4;
-                m.vertexColors = false; m.userData.hgShade = true;
+                m.vertexColors = false; m.userData.hgShade = true; m.userData.grow = !!gs;
                 if (/glow/i.test(m.name) && (m.emissiveMap || m.map)) { m.emissiveMap = m.emissiveMap || m.map; m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = RAND_GLOW; }
                 if (m.transparent) { m.depthWrite = false; }
                 for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
@@ -9386,6 +10001,24 @@ void main() {
             } catch (e) {
               console.warn('[hangar] Rand nicht gebaut', e);
             }
+          }
+          // Streckung: Schacht, Rand und Stirn wie die Halle (das Tor wächst als Ganzes, growApply)
+          if (gs) {
+            const sh0 = shaft, under = (n, g) => { for (let p = n; p; p = p.parent) if (p === g) return true; return false; };
+            const list = [];
+            sh0.group.traverse((n) => { if (n.isMesh && !under(n, sh0.gate?.group) && !under(n, sh0.fx)) list.push(n); });
+            const gp = await hallGrowPrep(model, list, gs, pause);
+            console.info(`[hangar] Schacht wächst mit: ${gp.meshes} Meshes vorbereitet, ${gp.span} Dreiecke gestreckt (${gp.plates} Platten), ${gp.rigid} starr (${gp.lamps} Leuchten)`);
+            // tiefer (fit): neue Wände ebenso, die gestreckten der alten gehen mit ihnen
+            const fit0 = sh0.fit;
+            sh0.fit = (d) => {
+              const r = fit0(d);
+              if (r) {
+                for (const m of [...sh0.pit.children]) if (m.userData.growFrom && m.userData.growFrom.parent !== sh0.pit) { sh0.pit.remove(m); m.geometry.dispose(); }
+                hallGrowPrep(model, sh0.pit.children.filter((m) => m.isMesh && !m.userData.growDone), gs).then(() => { if (realHall?.grow) growBoundsInit(); });
+              }
+              return r;
+            };
           }
           model.add(shaft.group);
           console.info(`[hangar] Schacht: ${shaft.tris + shaft.restTris} Dreiecke in ${shaft.parts + 4} Teilen, ${shaft.depth} m tief; Beiwerk ${shaft.decoParts ?? 0} Teile, ${shaft.decoTris ?? 0} Dreiecke; ${pk.lights.length} von ${pk.groups} Lampengruppen, ${pk.field} davon auch aufs Feld (${all.length} Lampen aus dem Spiel, Platz für ${PIT_N}); Rand: ${slab ? `Bodenplatte ${slab.t} m (${slab.mat.name}) mit Stirn` : 'keine Bodenplatte gefunden, ohne Stirn'}, Nische ${SHAFT_RIM_DEPTH} m unter ${SHAFT_SLOT_LIP} m Lippe, dunkel nach hinten (Suche ${Math.round(t5 - t4)} ms); ${Math.round(performance.now() - t3)} ms`);
@@ -9412,6 +10045,7 @@ void main() {
       let werk = null;
       if (werkHier) {
         try {
+          // rückt mit der Westwand der Halle, wenn sie wächst (growApply, werkU.off)
           werk = werkBauen(seen, garage);
           console.info(`[hangar] Werkhalle: Garage ${WERK.garage.id}, ${werk.tris} Dreiecke, ${werk.mats.length} Materialien, ${werk.split} Netze am Tor geteilt (${werk.vorn.length} bleiben stehen), ${werk.leaves.length} Torblätter, Vertexfarben ${werk.vcGrau} als Abdunklung, ${werk.vcWeiss} weiß, Bühne ${werk.padS ? `${WERK.feld.buehne} ×${werk.padS.toFixed(3)}` : 'fehlt'}; ${werk.lamps} Leuchten im Shader (${werk.rowLamps.join('/')} in ${WERK.reihen.length} Bändern, hinten zuerst), Spot, Hallenlicht; Decke ${werk.decke ? `${werk.decke.stuecke} Stücke in ${werk.decke.netze} Netzen, ${Math.round(werk.decke.tris)} Dreiecke${werk.decke.fehlt.length ? `, fehlen: ${werk.decke.fehlt.join(', ')}` : ''}` : 'leer'}`);
         } catch (e) {
@@ -9441,7 +10075,9 @@ void main() {
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
       for (const m of werk?.hallMats ?? []) mats.add(m);
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk };
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk,
+        grow: gsL ? { s: gsL, org: new THREE.Vector3(o[0], floorY, o[2]), cut: hallCut.value.clone(), door: hallDoor.value.clone(), list: [] } : null };
+      if (realHall.grow) { growBoundsInit(); growApply(grow.d); }
       // Dampf gleich mit übersetzen: sein erster Stoß soll nicht ruckeln
       if (steam && lift) prepare(steam.mesh).catch(() => {});
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
@@ -9792,7 +10428,8 @@ void main() {
     field() {
       const L = realHall?.liftL;
       if (!L || !steam) return null;
-      const k = hallRoot.scale.x, hx = (L.to[0] - L.from[0]) * k / 2, hz = (L.to[1] - L.from[1]) * k / 2;
+      // das Feld wächst mit der Halle (HALL_GROW)
+      const k = hallRoot.scale.x, hx = (L.to[0] - L.from[0] + grow.d.x) * k / 2, hz = (L.to[1] - L.from[1] + grow.d.z) * k / 2;
       const zl = Math.min(hz, ((current?.info.len ?? 20) / 2 + 7) * Math.max(1, k * 0.6));
       return { k, hx, hz, zl };
     },
@@ -10085,7 +10722,7 @@ void main() {
   // der Spot nach dem letzten
   function werkLookIn(now) {
     const W = realHall.werk, k = hallRoot.scale.x, w = werkWait;
-    const ahead = camera.position.x / k - WERK.tor.x;
+    const ahead = camera.position.x / k - WERK.tor.x - wkX();
     camera.getWorldDirection(lookDir);
     const deg = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(-lookDir.x, -1, 1)));
     const ok = ahead <= WERK_LOOK.near && deg <= WERK_LOOK.deg && W.tor.v >= WERK_LOOK.tor;
@@ -10172,9 +10809,9 @@ void main() {
     const k = hallRoot.scale.x, F = WERK.feld;
     ship.userData.baseY = 0.02; ship.userData.yaw = WERK_YAW;
     ship.rotation.y = WERK_YAW;
-    ship.position.set(F.x * k, 0.02 + realHall.werk.buehne.v * k, F.z * k);
+    ship.position.set((F.x + wkX()) * k, 0.02 + realHall.werk.buehne.v * k, F.z * k);
   }
-  const werkTarget = (info) => new THREE.Vector3(WERK.feld.x * hallRoot.scale.x, Math.max(1.2, info.height * 0.45 + 0.3), WERK.feld.z * hallRoot.scale.x);
+  const werkTarget = (info) => new THREE.Vector3((WERK.feld.x + wkX()) * hallRoot.scale.x, Math.max(1.2, info.height * 0.45 + 0.3), WERK.feld.z * hallRoot.scale.x);
 
   // Schatten des Fahrzeugs auf Boden und Bühne (hgWkFoot): einmal je
   // Fahrzeug von oben, weiß auf schwarz, in der Ruhelage auf der Bühne.
@@ -10191,9 +10828,10 @@ void main() {
     }
     footCam.left = -h; footCam.right = h; footCam.top = h; footCam.bottom = -h;
     footCam.near = 1; footCam.far = 200 * k;
-    footCam.position.set(F.x * k, 100 * k, F.z * k);
+    const fx = (F.x + wkX()) * k;
+    footCam.position.set(fx, 100 * k, F.z * k);
     footCam.up.set(0, 0, -1);
-    footCam.lookAt(F.x * k, 0, F.z * k);
+    footCam.lookAt(fx, 0, F.z * k);
     footCam.updateProjectionMatrix(); footCam.updateMatrixWorld();
     const pose = [g.position.y, g.visible];
     g.position.y = g.userData.baseY; g.visible = true; g.updateMatrixWorld(true);
@@ -10277,7 +10915,7 @@ void main() {
     W.beamU.hgBeam.value = sv;
     if (werkVeh) {
       const g = werkVeh.group;
-      g.position.set(F.x * k, g.userData.baseY + W.buehne.v * k, F.z * k);
+      g.position.set((F.x + wkX()) * k, g.userData.baseY + W.buehne.v * k, F.z * k);
       g.rotation.y = WERK_YAW;
       g.visible = inside;
     }
@@ -10425,14 +11063,15 @@ void main() {
   // hat werkRescale sie schon mitgenommen (sonst zählte das Fahrzeug nur so
   // groß, wie es im Maßstab des Schiffs wäre, und die Kamera fuhr hindurch).
   function werkPath(dir, hallP, werkP, box, vehInfo, vehSc = 1) {
-    const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn;
+    // alles westlich der Halle rückt mit ihrer Westwand (wx, HALL_GROW)
+    const k = hallRoot.scale.x, T = WERK.tuer, F = WERK.feld, B = WERK.bahn, wx = wkX();
     // hinein tief durch den Durchgang; hinaus auf der Höhe, auf der die
     // Kamera in der Werkhalle steht (höchstens 55 % des Durchgangs), dann
     // erst vor der Nische hinauf zu hallP
     const yd = dir === 'out' ? THREE.MathUtils.clamp(werkP.y, B.y, T.h * 0.55) : Math.min(B.y, T.h * 0.55);
     const pts = [hallP.clone()];
-    if (hallP.x > B.vor) {
-      const a = new THREE.Vector3(B.vor, THREE.MathUtils.lerp(yd, hallP.y, 0.45), hallP.z * 0.3);
+    if (hallP.x > B.vor + wx) {
+      const a = new THREE.Vector3(B.vor + wx, THREE.MathUtils.lerp(yd, hallP.y, 0.45), hallP.z * 0.3);
       // box (shipBox): außen um das Schiff herum, wenn die Fahrt es sonst trifft (tripHits)
       if (box && segHits(hallP, a, new THREE.Vector3(), box.sx, box.sy, box.sz)) pts.push(new THREE.Vector3(0, Math.max(hallP.y, yd + 1), (hallP.z > 0.5 ? 1 : -1) * (box.sz + 1.5)));
       pts.push(a);
@@ -10441,14 +11080,14 @@ void main() {
     // liegt; nahe am Tor nur, wenn die Gerade zu ihm nicht durch den
     // Durchgang ginge. Die Ansicht von vorn (WERK_HOME_DIR) steht vor diesem
     // Punkt: Die Kamera fuhr sonst an ihr vorbei und wieder zurück.
-    const nP = new THREE.Vector3(T.x + B.nische, yd, 0), ax = WERK.raum.x[1] - B.aus;
+    const nP = new THREE.Vector3(T.x + B.nische + wx, yd, 0), ax = WERK.raum.x[1] - B.aus + wx;
     const f = (T.x - nP.x) / Math.min(-1e-3, werkP.x - nP.x), zc = f * werkP.z, yc = yd + f * (werkP.y - yd);
     pts.push(nP);
     if (werkP.x < ax - 1) pts.push(new THREE.Vector3(ax, yd + 0.2, 0));
     else if (Math.abs(zc) > T.b / 2 - 1.5 || yc < 0.6 || yc > T.h - 1) pts.push(new THREE.Vector3(werkP.x, yd + 0.2, 0));
     if (vehInfo) {
       const q = vehSc / k, vx = (vehInfo.len / 2) * q + 2, vz = vehInfo.halfW * q + 2, vy = vehInfo.height * q + 1.2;
-      if (segHits(pts.at(-1), werkP, new THREE.Vector3(F.x, 0, F.z), vx, vy, vz)) pts.push(new THREE.Vector3(F.x + vx * 0.3, Math.max(werkP.y, vy + 0.5), F.z + (werkP.z >= F.z ? 1 : -1) * (vz + 2)));
+      if (segHits(pts.at(-1), werkP, new THREE.Vector3(F.x + wx, 0, F.z), vx, vy, vz)) pts.push(new THREE.Vector3(F.x + wx + vx * 0.3, Math.max(werkP.y, vy + 0.5), F.z + (werkP.z >= F.z ? 1 : -1) * (vz + 2)));
     }
     pts.push(werkP.clone());
     return dir === 'in' ? pts : pts.reverse();
@@ -10458,14 +11097,18 @@ void main() {
   // (moving), gehen im selben Verhältnis um den Ursprung mit. keep: Die
   // Kamera ist noch in der Halle, Einrichtung, Wartungsplatz und Crew
   // bleiben, wie sie stehen (die Crew wächst mit).
+  // Wächst die Halle dabei (hinaus, HALL_GROW), rückt die Werkhalle mit
+  // der Westwand: Kamera und Fahrzeug in ihr gehen mit (dw)
   function werkRescale(info, keep, moving = []) {
-    const k0 = hallRoot.scale.x, fov0 = baseFov;
+    const k0 = hallRoot.scale.x, fov0 = baseFov, w0 = wkX();
     scaleWorld(info, keep, keep);
-    const kr = hallRoot.scale.x / k0;
-    if (Math.abs(kr - 1) > 1e-9) {
+    const kr = hallRoot.scale.x / k0, dw = (wkX() - w0) * hallRoot.scale.x;
+    if (Math.abs(kr - 1) > 1e-9 || dw) {
       camera.position.multiplyScalar(kr); controls.target.multiplyScalar(kr);
       homeTgt?.multiplyScalar(kr);
-      for (const g of moving) { g.position.multiplyScalar(kr); g.scale.multiplyScalar(kr); }
+      camera.position.x += dw; controls.target.x += dw;
+      if (homeTgt) homeTgt.x += dw;
+      for (const g of moving) { g.position.multiplyScalar(kr); g.position.x += dw; g.scale.multiplyScalar(kr); }
       if (keep) life.root.scale.multiplyScalar(kr);
     }
     if (!reduceMotion && Math.abs(baseFov - fov0) > 0.01) { fovGlide = { a: fov0, t0: performance.now(), dur: 700 }; fitFov(); }
@@ -10543,7 +11186,7 @@ void main() {
     const tgt = werkTarget(s.info), end = tgt.clone().addScaledVector(WERK_HOME_DIR, homeDist());
     const need = WERK.tor.ms + 250;
     const planFor = (pts) => {
-      const p = tripPlan(pts, WERK_UP_MS + 600), c0 = p.at(WERK.tor.x + 1.2);
+      const p = tripPlan(pts, WERK_UP_MS + 600), c0 = p.at(WERK.tor.x + wkX() + 1.2);
       return c0 < need ? tripPlan(pts, (p.ms * need) / Math.max(1, c0)) : p;
     };
     // das alte Schiff fährt seit dem Klick hinab: erst der gerade Weg, um
@@ -10554,7 +11197,7 @@ void main() {
     if (tripHits(plan, t0, box, liftAt)) plan = planFor(werkPath('in', from, to, box, s.info));
     // Das Tor ist offen, bevor die Kamera durch die Nische ist (WERK_TOR_VOR);
     // die Kamera hält gleich hinter dem Tor
-    const cross = plan.at(WERK.tor.x + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR);
+    const cross = plan.at(WERK.tor.x + wkX() + 1.2), torAt = Math.max(0, cross - WERK.tor.ms - WERK_TOR_VOR);
     werkMove(W.tor, 1, WERK.tor.ms, t0 + torAt);
     // Bänder und Spot schaltet werkLookIn, sobald die Kamera hineinsieht
     werkWait = { t0, arrive: t0 + plan.ms };
@@ -10625,7 +11268,7 @@ void main() {
     // zehnmal so lang. Näher als 1,2 m ist sie gleich am Tor: at() fände die
     // Ebene hinter ihr nie und gäbe das Ende, das Tor ging erst auf, als sie
     // schon hindurch war.
-    const gx = WERK.tor.x - 1.2, c0 = (p) => (camera.position.x / k > gx ? 0 : p.at(gx));
+    const gx = WERK.tor.x + wkX() - 1.2, c0 = (p) => (camera.position.x / k > gx ? 0 : p.at(gx));
     const planFor = (pts) => {
       const p = tripPlan(pts, up + 300);
       p.hold = Math.max(0, need - c0(p));
@@ -10633,7 +11276,7 @@ void main() {
     };
     // Das Schiff wartet unten und kommt erst zum Ende herauf (liftUp bei
     // hold + plan.ms - up); ab da zählt es in voller Höhe
-    const t0 = performance.now(), from = new THREE.Vector3(WERK.bahn.zurueck[0], WERK.bahn.zurueck[1], 0), at = camera.position.clone().divideScalar(k);
+    const t0 = performance.now(), from = new THREE.Vector3(WERK.bahn.zurueck[0] + wkX(), WERK.bahn.zurueck[1], 0), at = camera.position.clone().divideScalar(k);
     const box = shipBox(s.info, ship.scale.x, k), y0 = lift.y;
     const hits = (p) => tripHits(p, t0 + p.hold, box, (t) => (t < t0 + p.hold + p.ms - up ? y0 : 0));
     let plan = planFor(werkPath('out', from, at, null, veh.info, veh.group.scale.x));
@@ -10834,6 +11477,11 @@ void main() {
       camera.position.multiplyScalar(kr); controls.target.multiplyScalar(kr);
       propGlide = { a: propK, t0: performance.now(), dur: PROP_GLIDE_MS, shade: performance.now() };
     }
+    // Wächst die Halle (HALL_GROW), gleitet sie jetzt unter geschlossenem
+    // Tor auf die Größe des neuen Schiffs; die Kamera fährt im selben Takt,
+    // erst dann kommt das Schiff herauf
+    const growing = up && current && realHall?.grow && !grow.to.equals(grow.d) ? growTo(grow.to) : null;
+    const camMs = growing ? Math.max(700, grow.glide.dur) : 700;
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
@@ -10850,8 +11498,9 @@ void main() {
       const off = camAim.pos.clone().sub(camAim.tgt);
       const r = THREE.MathUtils.clamp(camAim.rel * homeDist(), controls.minDistance, controls.maxDistance);
       onPoint = false;
-      flyTo(tgt, off.setLength(r).add(tgt), 700);
-      if (!reduceMotion && Math.abs(baseFov - fov0) > 0.01) { fovGlide = { a: fov0, t0: performance.now(), dur: 700 }; fitFov(); }
+      flyTo(tgt, off.setLength(r).add(tgt), camMs);
+      if (fly) holdCam();
+      if (!reduceMotion && Math.abs(baseFov - fov0) > 0.01) { fovGlide = { a: fov0, t0: performance.now(), dur: camMs }; fitFov(); }
     }
 
     if (leaving) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
@@ -10862,7 +11511,8 @@ void main() {
     }
     if (up) {
       lift.dur = 0; lift.y = -liftDepth(info); lift.regroup = true;
-      liftUp(info);
+      if (growing) growing.then(() => { if (my === token) liftUp(info); });
+      else liftUp(info);
     }
     scene.add(ship);
     homeTgt = tgt;
@@ -11316,19 +11966,29 @@ void main() {
   // einnimmt). Rendertarget und Material bleiben je Art für die nächste
   // Messung.
   const cubeKit = {};
+  // je gezeichnetem Teil: gestreckt, wenn sein Material mit der Halle
+  // wächst (das Tor nicht, es fehlt ohnehin, solange die Halle ruht)
+  function cubeGrow(mat) {
+    mat.onBeforeRender = (r, sc, cam, geo, obj) => {
+      const on = [].concat(obj.material).some((m) => m?.userData?.grow && !m.userData.gate) ? 1 : 0;
+      if (mat.uniforms.hgGrowOn.value !== on) { mat.uniforms.hgGrowOn.value = on; mat.uniformsNeedUpdate = true; }
+    };
+    return mat;
+  }
   function cubeDist(kind, o, root, skip, last, near, far, poses = [null]) {
     const N = FREE_N;
     const kit = cubeKit[kind] || (cubeKit[kind] = {
       rt: new THREE.WebGLRenderTarget(N, N * 6),
       cam: new THREE.PerspectiveCamera(90, 1),
-      // Abstand zu o als 24 Bit, Alpha 0 heißt: nichts getroffen
-      mat: new THREE.ShaderMaterial({
-        uniforms: { uO: { value: new THREE.Vector3() }, uFar: { value: 1 } },
-        vertexShader: 'varying vec3 vW;\nvoid main() { vec4 w = modelMatrix * vec4( position, 1.0 ); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+      // Abstand zu o als 24 Bit, Alpha 0 heißt: nichts getroffen. Die Halle
+      // gestreckt wie im Bild (HALL_GROW, je Teil an oder aus: cubeGrow)
+      mat: cubeGrow(new THREE.ShaderMaterial({
+        uniforms: { uO: { value: new THREE.Vector3() }, uFar: { value: 1 }, hgInvK: hallNoTileInvK, hgGLo: hallGrow.lo, hgGHi: hallGrow.hi, hgGFLo: hallGrow.flo, hgGFHi: hallGrow.fhi, hgGrow: hallGrow.d, hgGate: hallGate, hgGrowOn: { value: 0 } },
+        vertexShader: `uniform float hgInvK;\n${HALL_GROW_VERT}\nvarying vec3 vW;\nvoid main() { vec4 w = modelMatrix * vec4( position, 1.0 ); w.xyz += hgGrowOf( w.xyz * hgInvK ) / hgInvK; vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
         fragmentShader: 'uniform vec3 uO;\nuniform float uFar;\nvarying vec3 vW;\nvoid main() { float d = floor( clamp( distance( vW, uO ) / uFar, 0.0, 1.0 ) * 16777215.0 ); float r = floor( d / 65536.0 ); float g = floor( ( d - r * 65536.0 ) / 256.0 ); gl_FragColor = vec4( r, g, d - r * 65536.0 - g * 256.0, 255.0 ) / 255.0; }',
         side: THREE.DoubleSide,
         depthFunc: last ? THREE.GreaterDepth : THREE.LessEqualDepth,
-      }),
+      })),
     });
     const { rt, mat, cam } = kit;
     cam.near = near; cam.far = far; cam.updateProjectionMatrix();
@@ -11377,7 +12037,7 @@ void main() {
   // Die Halle vom Ziel der Startansicht aus, ohne Möbel
   function measureFree() {
     // gemessen wird die Einrichtung in Originalgröße, also nach propGlide
-    if (propGlide) return;
+    if (propGlide || grow.glide) return;
     freeDirty = false;
     if (!realHall || !homeTgt || freeBusy || ort === 'werk') return;
     const hall = realHall, k = hall.group.scale.x, o = homeTgt.clone(), t0 = performance.now();
@@ -11550,12 +12210,16 @@ void main() {
         });
       }
       f.mesh.updateWorldMatrix(true, false);
+      // wächst die Halle, rückt jedes Stück mit seinem Bezugspunkt (growRigFurniture)
+      const G = realHall?.grow, at = f.growAt ?? [0, 0, 0];
       f.pieces.forEach(([, , ax, ay, az], j) => {
         const b = f.box0[j], A = [ax, ay, az];
         const box = new THREE.Box3(
           new THREE.Vector3(...[0, 1, 2].map((a) => A[a] + (b[a] - A[a]) * f.s)),
           new THREE.Vector3(...[0, 1, 2].map((a) => A[a] + (b[a + 3] - A[a]) * f.s)));
-        out.push(box.applyMatrix4(f.mesh.matrixWorld).expandByScalar(m));
+        box.applyMatrix4(f.mesh.matrixWorld);
+        if (G) box.translate(growOff(ax + at[0] - G.org.x, ay + at[1] - G.org.y, az + at[2] - G.org.z, growV).multiplyScalar(hallRoot.scale.x));
+        out.push(box.expandByScalar(m));
       });
     }
     return out;
@@ -11647,11 +12311,11 @@ void main() {
   // In der Werkhalle bleibt die Kamera im Raum (mit Rand vor Wänden, Boden
   // und Decke): auf der Linie vom Blickziel nach außen bis zur ersten Wand
   function keepWerk() {
-    const c = camera.position, t = controls.target, k = hallRoot.scale.x, R = WERK.raum, m = 0.8;
+    const c = camera.position, t = controls.target, k = hallRoot.scale.x, R = WERK.raum, m = 0.8, wx = wkX();
     let L = keepD.subVectors(c, t).length();
     if (L < 1e-6) return;
     keepD.divideScalar(L);
-    for (const [a, lo, hi] of [['x', R.x[0] + m, R.x[1] - m], ['y', 0.4, R.h - 0.8], ['z', R.z[0] + m, R.z[1] - m]]) {
+    for (const [a, lo, hi] of [['x', R.x[0] + m + wx, R.x[1] - m + wx], ['y', 0.4, R.h - 0.8], ['z', R.z[0] + m, R.z[1] - m]]) {
       const d = keepD[a], p = t[a] / k;
       if (d > 1e-9) L = Math.min(L, ((hi - p) * k) / d);
       else if (d < -1e-9) L = Math.min(L, ((lo - p) * k) / d);
@@ -11762,16 +12426,16 @@ void main() {
     if (c?.werk) {
       // unter den Leitungen der Decke: WERK_DECKE reicht laut [18] bis
       // raum.h - 0,5 herab (Kamera bis raum.h - 0,8)
-      const F = WERK.feld, Rm = WERK.raum, m = 0.2;
+      const F = WERK.feld, Rm = WERK.raum, m = 0.2, wx = wkX();
       ceil = (Rm.h - 0.7) * k;
-      holoRoom.min.set((Rm.x[0] + 0.5) * k, 0, (Rm.z[0] + 0.5) * k);
-      holoRoom.max.set((Rm.x[1] - 0.5) * k, ceil, (Rm.z[1] - 0.5) * k);
-      holoSpot.min.set((F.x - 0.45 - m) * k, (WERK.spot.y - 0.05 - m) * k, (F.z - 0.45 - m) * k);
-      holoSpot.max.set((F.x + 0.45 + m) * k, Rm.h * k, (F.z + 0.45 + m) * k);
+      holoRoom.min.set((Rm.x[0] + 0.5 + wx) * k, 0, (Rm.z[0] + 0.5) * k);
+      holoRoom.max.set((Rm.x[1] - 0.5 + wx) * k, ceil, (Rm.z[1] - 0.5) * k);
+      holoSpot.min.set((F.x - 0.45 - m + wx) * k, (WERK.spot.y - 0.05 - m) * k, (F.z - 0.45 - m) * k);
+      holoSpot.max.set((F.x + 0.45 + m + wx) * k, Rm.h * k, (F.z + 0.45 + m) * k);
       boxes = [holoSpot]; free = holoIn;
     } else if (realHall) {
       // Raum im Modell, das Modell liegt mit dem Aufzug im Ursprung
-      const Rm = realHall.room, mp = realHall.model.position, cx = Rm.center[0] + mp.x, cz = Rm.center[2] + mp.z;
+      const Rm = realHall.grow ? grownRoom() : realHall.room, mp = realHall.model.position, cx = Rm.center[0] + mp.x, cz = Rm.center[2] + mp.z;
       low = Math.max(c?.info.dienstTop ?? 0, life.root.visible ? CREW_HEAD + 0.1 : 0);
       ceil = (Rm.height - 1) * k;
       // die Wände auch, bevor der Freiraum gemessen ist
@@ -11810,7 +12474,7 @@ void main() {
     // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
     // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
     // Laden, das hängt, hält sie nicht länger als 60 s wach.
-    if ((busy && now - busyAt < 60000) || dragging || fly || trip || fovGlide || propGlide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
+    if ((busy && now - busyAt < 60000) || dragging || fly || trip || fovGlide || propGlide || grow.glide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
@@ -11886,7 +12550,7 @@ void main() {
       }
       // Wer auf dem Schiffsfeld steht, fährt mit; festgelegt in Ruhelage und
       // unten beim Tausch, damit niemand unterwegs an den Rand springt
-      const L = realHall.liftL, k = hallRoot.scale.x, hx = (L.to[0] - L.from[0]) * k / 2, hz = (L.to[1] - L.from[1]) * k / 2;
+      const L = realHall.liftL, k = hallRoot.scale.x, hx = (L.to[0] - L.from[0] + grow.d.x) * k / 2, hz = (L.to[1] - L.from[1] + grow.d.z) * k / 2;
       const pick = lift.y === 0 || lift.regroup;
       lift.regroup = false;
       for (const w of life.root.children) {
@@ -11954,8 +12618,10 @@ void main() {
       if (Math.abs(camWant - r) > 1e-3) camera.position.sub(controls.target).setLength(r + (camWant - r) * (reduceMotion ? 1 : Math.min(1, dt * 5))).add(controls.target);
     }
     if (fly) flyStep(now);
+    if (camHold && !fly) { controls.minDistance = camHold.min; controls.maxDistance = camHold.max; camHold = null; }
     if (fovGlide) fitFov(now);
     if (propGlide) propStep(now);
+    if (grow.glide) growStep(now);
     if (now - texAt > 2000) { texAt = now; texBudget(); }
     // die Fahrt zur Werkhalle führt die Kamera allein (tripStep)
     if (!trip) {
