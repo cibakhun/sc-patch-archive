@@ -1547,11 +1547,23 @@ import { supabase } from '../lib/supabase';
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
 
+      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Dashboard
+      // im Browser ablegt: die ganze Profilzeile (samt RSI-Code und
+      // Discord-Tag) und den RSI-Code. Bis 29.10.2026 blieben beide nach
+      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung sagt,
+      // was mit dem Konto geht, ist weg. vb_share_ ist der Schalterstand,
+      // den account-lite.js für den Puls im Tab merkt.
+      const forgetLocalCopies = () => {
+        try { localStorage.removeItem(localKey); localStorage.removeItem('vb_rsi_code'); } catch { /* egal */ }
+        try { sessionStorage.removeItem(`vb_share_${user.id}`); } catch { /* egal */ }
+      };
+
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
-        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', user.id); } catch { /* egal */ }
+        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null, activity_at: null }).eq('id', user.id); } catch { /* egal */ }
+        forgetLocalCopies();
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1573,6 +1585,7 @@ import { supabase } from '../lib/supabase';
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
+          forgetLocalCopies();
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
         } catch {
