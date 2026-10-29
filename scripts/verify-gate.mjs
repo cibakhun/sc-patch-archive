@@ -8,7 +8,7 @@
    Auslieferungs-Image verhindern (Grundsatz 4,
    docs/maschinelle-validierung.md § 4).
 
-   Sieben Zusicherungen, jede mit einer Soll/Ist-Zeile:
+   Acht Zusicherungen, jede mit einer Soll/Ist-Zeile:
 
      1  Jede Ausnahme traegt ihren Anlass: Zeilen im Format
         "# GATE-AUSNAHME: <pfad> — <anlass>" muessen einen unmittelbar
@@ -53,6 +53,13 @@
         return lieferte alles, was die Regel nicht trifft, ohne
         Torpruefung aus dem root aus. Ein Block mit einer verschachtelten
         location gilt als offen.
+     8  Die Vorschau bleibt aus fremden Caches: auf server-Ebene steht
+        `add_header Cache-Control $vb_cc_vorschau always;`, die map gibt
+        bei Tor an "private" (Umleitungen "private, no-store"), und kein
+        location-Block hat ein eigenes add_header (das verwirft alle
+        add_header des server-Blocks, also auch dieses). Cloudflare
+        schluesselt nicht nach Cookies; ohne "private" koennte die Kante
+        ein Buendel eines Testpiloten an Besucher ohne Ausweis geben.
 
    Kopfzeile: geprueft Ausnahmen, geprueft Ressourcen der Torseite,
    geprueftes Artefakt (dist/). Untergrenzen als Sperrklinken — sie
@@ -365,6 +372,7 @@ const serverEnde = serverStart === -1 ? -1 : blockEnde(confOhne, confOhne.indexO
 const ausnahmeZeilen = new Set(ausnahmen.map((a) => a.zeile + 1));
 const TOR_RE = /^if\s*\(\s*\$vb_gate_ok\s*=\s*"0"\s*\)\s*\{\s*return\s+302\s+\/gate\.html\?next=\$vb_next;\s*\}$/;
 const orte = [];
+let serverCacheZeile = false;
 if (serverEnde !== -1) {
   const serverInhalt = confOhne.slice(confOhne.indexOf('{', serverStart) + 1, serverEnde);
   const basis = confOhne.indexOf('{', serverStart) + 1;
@@ -372,6 +380,7 @@ if (serverEnde !== -1) {
   for (const a of anweisungen(serverInhalt)) {
     const start = serverInhalt.indexOf(a.text, pos);
     pos = start + a.text.length;
+    if (a.wort === 'add_header' && /^add_header\s+Cache-Control\s+\$vb_cc_vorschau\s+always\s*;$/.test(a.text)) serverCacheZeile = true;
     if (a.wort !== 'location') continue;
     const zeile = confOhne.slice(0, basis + start).split('\n').length;
     const kopf = a.text.slice(0, a.text.indexOf('{')).replace(/\s+/g, ' ').trim();
@@ -388,7 +397,7 @@ if (serverEnde !== -1) {
     else if (inhalt.length && inhalt.every((x) => !x.block && (x.wort === 'return' || umschreibenOk(x))) && inhalt[inhalt.length - 1].wort === 'return')
       art = 'weiterleitung';
     else art = 'offen';
-    orte.push({ kopf, zeile, art });
+    orte.push({ kopf, zeile, art, addHeader: inhalt.some((x) => x.wort === 'add_header') });
   }
 }
 const zaehl = (art) => orte.filter((o) => o.art === art).length;
@@ -407,6 +416,25 @@ if (orte.length < MIN_LOCATIONS)
 console.log(`    davon mit Torabfrage — Untergrenze: ${MIN_LOCATIONS_MIT_TOR}   Ist: ${zaehl('tor')}`);
 if (zaehl('tor') < MIN_LOCATIONS_MIT_TOR)
   fail(`nur ${zaehl('tor')} location-Bloecke mit Torabfrage, Untergrenze ist ${MIN_LOCATIONS_MIT_TOR} — Ursache klaeren, nicht die Untergrenze senken`);
+
+/* ---- [8] Die Vorschau bleibt aus fremden Caches ---- */
+console.log('\n[8] Vorschau-Antworten sind "private" (kein Cloudflare-Cache am Tor vorbei)');
+const mapVorschau = /map\s+"\$vb_gate_on:\$status"\s+\$vb_cc_vorschau\s*\{([^}]*)\}/.exec(confOhne);
+const mapOk =
+  !!mapVorschau &&
+  /default\s+""\s*;/.test(mapVorschau[1]) &&
+  /"~\^1:"\s+"private"\s*;/.test(mapVorschau[1]) &&
+  /"~\^1:30\[1278\]\$"\s+"private, no-store"\s*;/.test(mapVorschau[1]);
+const eigeneAddHeader = orte.filter((o) => o.addHeader);
+console.log(`    map $vb_cc_vorschau (leer live, private bzw. private, no-store bei Tor an) — Soll: ja   Ist: ${mapOk ? 'ja' : 'nein'}`);
+console.log(`    add_header Cache-Control $vb_cc_vorschau always; auf server-Ebene — Soll: ja   Ist: ${serverCacheZeile ? 'ja' : 'nein'}`);
+console.log(`    location-Bloecke mit eigenem add_header — Soll: 0   Ist: ${eigeneAddHeader.length} von ${orte.length}`);
+if (!mapOk)
+  fail(`${NGINX_CONF}: map "$vb_gate_on:$status" $vb_cc_vorschau fehlt oder gibt bei Tor an nicht "private" (Umleitungen "private, no-store") — Cloudflare koennte Antworten der Vorschau am Tor vorbei ausliefern`);
+if (!serverCacheZeile)
+  fail(`${NGINX_CONF}: "add_header Cache-Control $vb_cc_vorschau always;" fehlt auf server-Ebene`);
+for (const o of eigeneAddHeader)
+  fail(`${NGINX_CONF}:${o.zeile} "${o.kopf}" hat ein eigenes add_header — damit fallen dort alle add_header des server-Blocks weg, auch Cache-Control private und die Sicherheits-Header`);
 
 console.log(`\nverify-gate: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);
 if (!ok) process.exit(1);
