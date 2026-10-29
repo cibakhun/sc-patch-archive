@@ -21,7 +21,8 @@
         Datei mit ausdruecklichem `permissions:`; kein
         `pull_request_target`; jeder Checkout ohne hinterlegtes Token
         (`persist-credentials: false`); kein Fremdtext aus dem Ereignis
-        (Titel, Rumpf, Zweigname …) direkt in einer `run:`-Zeile.
+        (Titel, Rumpf, Zweigname …) direkt in einer `run:`-Zeile (die
+        Skripte liest ein YAML-Leser, js-yaml aus dem Lockfile).
      3  Dockerfiles: jedes Basis-Image per @sha256 angeheftet; in der
         LETZTEN Stufe (dem Image, das laeuft) wird kein Compiler
         installiert.
@@ -99,8 +100,107 @@ const einr = (z) => z.match(/^\s*/)[0].length;
 const ohneKommentar = (z) => (/^\s*#/.test(z) ? '' : z);
 // Fremdtext aus dem Ausloeser — in `run:` wird er zu Shell-Code. Zahlen
 // und Kennungen (…number, …id, …sha) sind kein Fremdtext.
-const FREMDTEXT = /\$\{\{\s*(github\.head_ref|github\.event\.[\w.\[\]'"*-]+)\s*\}\}/g;
-const HARMLOS = /\.(number|id|sha|size|draft|merged|run_id|run_number)$/;
+// Gesucht wird in JEDEM Ausdruck, nicht nur im nackten `${{ pfad }}`:
+// `${{ github.head_ref || 'x' }}`, `${{ toJSON(github.event) }}`, die
+// Klammerform (`github['event']['issue']['title']`), Leerzeichen zwischen
+// den Teilen, jede Schreibweise (Actions unterscheidet bei Namen nicht nach
+// Gross/Klein) und der ganze Kontext (`toJSON(github)`, `github.*`) setzen
+// denselben Text ein. Ein Ausdruck endet wie bei Actions erst am `}}`
+// ausserhalb von '…' — `format('{{"a":"{0}"}}', …)` baut so JSON. '…' ist
+// eine Zeichenkette, kein Zugriff; als Index (`x['name']`) wird daraus der
+// Zugriff `x.name`, damit `steps['github']` nicht als Kontext gilt.
+const AUSDRUCK = /\$\{\{((?:'[^']*'|[^'}]|\}(?!\}))*)\}\}/g;
+const ohneText = (x) => x.replace(/\[\s*'([\w-]+)'\s*\]|'[^']*'/g, (m, idx) => (idx !== undefined ? `.${idx}` : "''"));
+const FREMDTEXT = /(?<![\w.-])github\s*(?:\.\s*head_ref\b|\.\s*event\b(?:\s*\.\s*[\w-]+|\s*\[[^\]]*\]|\s*\.\s*\*)*)/gi;
+const GANZ = /(?<![\w.-])github\b(?!\s*[.[])|(?<![\w.-])github\s*\.\s*\*/gi;
+const HARMLOS = /\.(number|id|sha|size|draft|merged|run_id|run_number)$/i;
+// Liefert der Ausdruck nur true/false, kommt kein Fremdtext ins Skript: ein
+// Vergleich oder `!…` auf oberster Ebene ohne && / || (die liefern einen
+// ihrer Operanden, also Text), oder ein Aufruf von contains, startsWith
+// oder endsWith (dahinter kann in gueltiger Syntax nur ein Operator stehen,
+// und die sind oben schon behandelt). Erwartet den Ausdruck nach ohneText.
+function nurWahrheitswert(x) {
+  let tiefe = 0, vergleich = false;
+  for (let i = 0; i < x.length; i++) {
+    const c = x[i], zwei = x.slice(i, i + 2);
+    if (c === '(' || c === '[') tiefe++;
+    else if (c === ')' || c === ']') tiefe--;
+    else if (tiefe === 0) {
+      if (zwei === '&&' || zwei === '||') return false;
+      if (['==', '!=', '<=', '>='].includes(zwei)) { vergleich = true; i++; } else if (c === '<' || c === '>') vergleich = true;
+    }
+  }
+  const t = x.trim();
+  return vergleich || t.startsWith('!') || /^(?:contains|startsWith|endsWith)\s*\(/i.test(t);
+}
+const fremd = (s) => [...s.matchAll(AUSDRUCK)].flatMap(([, roh]) => {
+  const x = ohneText(roh);
+  if (nurWahrheitswert(x)) return [];
+  const pfade = [...x.matchAll(FREMDTEXT)].map((t) => t[0].replace(/\s+/g, '')).filter((p) => !HARMLOS.test(p));
+  return [...pfade, ...[...x.matchAll(GANZ)].map((t) => t[0].replace(/\s+/g, ''))];
+});
+
+// Jeder `run:`-Schritt mit dem Skript, das Actions daraus macht. Gelesen
+// wird mit einem YAML-Leser statt mit Zeilenregeln: ob eine `#`-Zeile
+// Shell-Kommentar (wird ersetzt) oder YAML-Kommentar (wird es nicht) ist,
+// wie weit `|2` einrueckt, was in "…" oder hinter `!!str` steht, entscheidet
+// so der Leser wie bei GitHub. js-yaml kommt mit astro (package-lock.json).
+let yaml = null;
+try { yaml = (await import('js-yaml')).default; } catch (e) {
+  need(false, `js-yaml laesst sich nicht laden (${e.code || e.message}) — ohne YAML-Leser bleiben run:-Bloecke ungeprueft. Kommt mit astro; npm ci gelaufen?`);
+}
+function runSkripte(text, name) {
+  if (!yaml) return [];
+  let doc;
+  try { doc = yaml.load(text); } catch (e) {
+    fail.push(`${name}: kein gueltiges YAML (${e.reason || e.message}) — GitHub lehnt den Workflow ebenso ab`);
+    return [];
+  }
+  const out = [];
+  for (const [job, def] of Object.entries(doc?.jobs || {})) {
+    (Array.isArray(def?.steps) ? def.steps : []).forEach((st, n) => {
+      // Auch Skripte, die eine Action als Eingabe nimmt (`with: run:` bei
+      // Container- und VM-Actions, `with: script:` bei github-script).
+      for (const [quelle, text] of [['', st?.run], [' with.run', st?.with?.run], [' with.script', st?.with?.script]]) {
+        if (typeof text === 'string') out.push({ ort: `Job ${job}, Schritt ${n + 1}${st.name ? ` (${st.name})` : ''}${quelle}`, text });
+      }
+    });
+  }
+  return out;
+}
+
+// Selbstprobe: faellt ein Muster auf eine engere oder weitere Form zurueck,
+// merkt es sonst niemand — die Workflows enthalten heute keinen Treffer.
+for (const s of ['${{ github.head_ref || github.ref_name }}', "${{ github.event.pull_request.title || '' }}",
+  '${{ toJSON(github.event) }}', "${{ github.event['pull_request']['title'] }}", '${{ github.event.issue.body }}',
+  `\${{ format('{{"a":"{0}"}}', github.event.issue.title) }}`, "${{ format('}}', github.event.issue.title) }}",
+  '${{ GitHub.head_ref }}', '${{ github.EVENT.issue.title }}', "${{ github['event']['issue']['title'] }}", "${{ github['head_ref'] }}",
+  "${{ github['EVENT'].issue.title }}", '${{ github . event . issue . title }}', "${{ github ['event'].issue.title }}",
+  '${{ toJSON(github) }}', '${{ github.* }}', '${{ fromJSON(toJSON(github)).event.issue.title }}',
+  "${{ contains(github.event.issue.labels.*.name, 'bug') || github.event.issue.title }}",
+  "${{ format('{0}{1}', github.event.issue.title, 1 == 1) }}", "${{ github.event.issue.title == 'a' && github.event.issue.body }}"])
+  need(fremd(s).length > 0, `Selbstprobe: ${s} wird nicht als Fremdtext erkannt — AUSDRUCK/FREMDTEXT/GANZ pruefen`);
+for (const s of ['${{ github.event_name }}', '${{ GITHUB.EVENT_NAME }}', '${{ github.event.pull_request.number || 0 }}',
+  '${{ github.event.pull_request.NUMBER }}', '${{ github . event . pull_request . number }}', '${{ steps.a.outputs.b }}',
+  "${{ contains(github.event_name, 'github') }}", "${{ format('github.event.issue.title {0}', github.run_id) }}",
+  '${{ secrets.GITHUB_TOKEN }}', '${{ steps.github.outputs.event }}', '${{ github.token }}',
+  "${{ format('{0}}}', github.run_id) }} github.event.issue.title }}",
+  "${{ steps['github'].outputs.x }}", "${{ needs['github-pages'].outputs.url }}", "${{ x['github.event.issue.title'] }}",
+  "${{ contains(github.event.issue.labels.*.name, 'bug') }}", "${{ startsWith(github.head_ref, 'dependabot/') }}",
+  '${{ github.event.pull_request.head.repo.full_name == github.repository }}', '${{ !github.event.issue.title }}'])
+  need(fremd(s).length === 0, `Selbstprobe: ${s} gilt faelschlich als Fremdtext — AUSDRUCK/FREMDTEXT/GANZ pruefen`);
+const probe = (...schritte) => runSkripte(['on: push', 'permissions: {}', 'jobs:', '  j:', '    runs-on: x', '    steps:', ...schritte].join('\n'), 'Selbstprobe')
+  .flatMap((b) => fremd(b.text));
+for (const [soll, wozu, schritte] of [
+  [1, 'Shell-Kommentar in `run: |`', ['      - run: |', '          # ${{ github.event.issue.body }}', '          echo hi']],
+  [0, 'YAML-Kommentar unter `run: befehl`', ['      - run: npm test', '        # nicht ${{ github.event.issue.title }}']],
+  [0, 'flacherer YAML-Kommentar nach `run: |`', ['      - run: |', '          echo hi', '         # ${{ github.head_ref }}']],
+  [1, 'Einrueckungsangabe `run: |2`', ['      - run: |2', '            echo first', '          echo "${{ github.event.issue.title }}"']],
+  [1, '`#`-Zeile in "…"', ['      - run: "echo a', '          # ${{ github.event.issue.title }}', '          echo b"']],
+  [1, '`run: !!str |`', ['      - run: !!str |', '          # ${{ github.event.issue.body }}']],
+  [1, '`with: run:` einer Action', ['      - uses: a/b@c', '        with:', '          run: echo "${{ github.event.issue.title }}"']],
+  [1, '`with: script:` (github-script)', ['      - uses: a/b@c', '        with:', '          script: console.log("${{ github.event.issue.title }}")']],
+]) need(probe(...schritte).length === soll, `Selbstprobe: ${wozu} — erwartet ${soll} Treffer, runSkripte pruefen`);
 
 const wfDir = join(ROOT, WORKFLOW_DIR);
 const wfs = existsSync(wfDir) ? readdirSync(wfDir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
@@ -142,21 +242,13 @@ for (const f of wfs) {
         else need(ohneToken, `${name}:${i + 1}: Checkout ohne \`persist-credentials: false\` — das Token liegt sonst in .git/config, lesbar fuer jeden folgenden Schritt und jedes installierte Paket`);
       }
     }
-    const r = /^(\s*)(?:-\s+)?run:\s*(.*)$/.exec(z);
-    if (r) {
-      zahl.runBloecke++;
-      // Tiefe = Spalte des Schluessels `run`, nicht des Zeilenanfangs: bei
-      // `- run: …` stehen env:/shell:/if: desselben Schritts zwei Spalten
-      // tiefer als der Strich und gehoeren NICHT zum Skript.
-      const tiefe = z.indexOf('run:');
-      let block = r[2];
-      for (let k = i + 1; k < code.length && (code[k].trim() === '' || einr(code[k]) > tiefe); k++) block += '\n' + code[k];
-      for (const t of block.matchAll(FREMDTEXT)) {
-        if (HARMLOS.test(t[1])) continue;
-        fail.push(`${name}:${i + 1}: \${{ ${t[1]} }} steht direkt in \`run:\` — Fremdtext wird so zu Shell-Code. Ueber \`env:\` hereinreichen und als "$VARIABLE" verwenden.`);
-      }
-    }
   });
+  for (const { ort, text } of runSkripte(zeilen.join('\n'), name)) {
+    zahl.runBloecke++;
+    for (const pfad of fremd(text)) {
+      fail.push(`${name}: ${ort}: ${pfad} steht in einem \${{ }}-Ausdruck direkt im Skript — Fremdtext wird so zu Code. Ueber \`env:\` hereinreichen und als "$VARIABLE" (in github-script: process.env.VARIABLE) verwenden.`);
+    }
+  }
 }
 for (const [f, warum] of Object.entries(CHECKOUT_MIT_TOKEN)) {
   need(wfs.includes(f), `Ausnahme CHECKOUT_MIT_TOKEN["${f}"] (${warum}): die Datei gibt es nicht mehr — Eintrag entfernen`);
