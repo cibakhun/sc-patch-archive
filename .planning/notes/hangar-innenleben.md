@@ -118,3 +118,48 @@ mit Grund.
   (Klinke, vorgeführt rot).
 - Ansehen im echten Viewer, `check:hangar-shader` für die Innenräume mit
   den meisten Karten, Sichturteil an Krisz nach `.planning/WINDOWS.md`.
+
+## Befund PC
+
+PC-Lauf 29./30.10.2026, Branch `pc/hangar-innenleben`. Stand je Schiff in
+`.cache/hangar-src/alle-innen.json`, Treiber
+`node scripts/build-hangar-alle.mjs --kind interior [--only …] [--redo]`.
+
+### Teil A, die ersten fünf
+
+`scripts/build-hangar-assets.mjs` kennt die Art `interior` (nur mit
+`--kind interior` gebaut). Quelle ist der Rohexport in `ships/`, dieselbe
+Strecke wie der Rumpf (Fahrwerk und Landestellung, Materialnachtrag,
+Schichten, Paletten mit `extras.palette`, `DROP_MAT`, Schadensnetze), nur die
+Auswahl umgekehrt (`keepInteriorOnly`): Unter jedem obersten Knoten bleiben
+die Container `interior_*`, Wurzel und Szene unverändert, also derselbe
+Modellraum wie `public/hangar/ships/<slug>.glb`. Kein Lack-Bauplan, keine
+Tauschteile. Die Bildablage räumt jetzt gegen `ships/` und `interior/` auf.
+
+- **Lichter:** Der Rohexport trägt sie als `KHR_lights_punctual` in den
+  Containern. Sie stehen im Manifest unter `interior.<slug>.lights`
+  (`type, color, intensity, range, p`, Modellraum).
+- **Einstiegspunkte:** Die Helfer des Schiffs hängen am Rumpf, nicht in
+  den Containern (`hardpoint_seat_pilot`, `hardpoint_seat_access_*`,
+  `hardpoint_door_*`, Aufzug). Gelesen werden sie deshalb über das ganze
+  Modell vor dem Ausdünnen, als `spots = [{ kind: seat|access|door|ramp|
+  ladder|elevator, name, p }]`, Pilot zuerst.
+- **Außerhalb der Hülle:** Einzelteile der Container reichen weit über
+  den Rumpf hinaus (Carrack eins 111 m zur Seite, Andromeda 14 Teile bis
+  14,5 m). Was mehr als 0,5 m über den Hüllquader des Rohrumpfs ragt, fällt
+  weg und wird gezählt (`outside`, `outsideTop`). Danach liegen alle fünf
+  im Hüllquader der Web-Rumpfdatei (`inHull.ok`).
+
+| Schiff | Container | Dreiecke roh → Web | MB | Stufe | Lichter | Punkte |
+|---|---|---|---|---|---|---|
+| Railen | 5 | 1 037 779 → 822 325 | 7,2 | 0 | 509 | 20 |
+| Freelancer | 4 | 292 516 → 278 818 | 2,1 | 0 | 175 | 17 |
+| Cutlass Black | 3 | 233 033 → 232 312 | 2,2 | 0 | 225 | 49 |
+| Carrack | 4 | 3 641 440 → 1 082 801 | 14,3 | 2 | 2 181 | 26 |
+| Andromeda | 10 | 523 066 → 506 346 | 3,6 | 0 | 371 | 21 |
+
+Angesehen (eigener Viewer, Software-WebGL): Railen-Gang hinter dem Cockpit,
+Cutlass-Laderaum und Carrack-Struktur, alle mit Spieltexturen. Summe auf
+der Platte: Rumpf 741,7 MB + Innenraum 29,3 MB + Ablage 236,9 MB =
+1008 MB. Die Ablage wächst um rund 23 MB, die Innenräume bringen eigene
+Karten mit.
