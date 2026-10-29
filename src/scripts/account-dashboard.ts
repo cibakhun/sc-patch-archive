@@ -1350,6 +1350,13 @@ import { supabase, FAV_PATH } from '../lib/supabase';
               show(pfStatus as HTMLElement, D.msgHandleTaken!);
               return;
             }
+            // Wert ausserhalb der Regeln der Datenbank (CHECK, 23514): melden,
+            // statt still nur Name und Handle zu sichern.
+            if (error.code === '23514') {
+              show(pfStatus as HTMLElement, /profiles_handle_reserved/.test(error.message || '')
+                ? D.msgHandleReserved! : D.msgProfileInvalid!);
+              return;
+            }
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           }
         } catch {

@@ -128,6 +128,8 @@ const COPY = {
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
+    errHandleReserved: 'Dieses Handle ist reserviert — bitte ein anderes wählen.',
+    errProfileInvalid: 'Nicht gespeichert: ein Feld enthält einen Wert, den das Profil nicht annimmt (zu lang oder kein Bild aus deinem Upload bzw. von Discord).',
     favsEmpty: 'Noch keine Favoriten. Nimm Schiffe im 3D-Hangar oder auf ihrem Datenblatt in deine Flotte auf — sie erscheinen dann hier.',
     favsHangar: 'Zum 3D-Hangar →',
     favRemove: 'Entfernen',
@@ -285,6 +287,8 @@ const COPY = {
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
+    errHandleReserved: 'This handle is reserved — please pick another one.',
+    errProfileInvalid: 'Not saved: a field holds a value the profile does not accept (too long, or an image that is neither your upload nor from Discord).',
     favsEmpty: 'No favorites yet. Add ships to your fleet in the 3D hangar or on their data sheet and they will show up here.',
     favsHangar: 'Open the 3D hangar →',
     favRemove: 'Remove',
@@ -350,6 +354,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-kinds={JSON.stringify(COPY.kind)}
   data-msg-handle-taken={COPY.errHandleTaken}
   data-msg-handle-format={COPY.errHandleFormat}
+  data-msg-handle-reserved={COPY.errHandleReserved}
+  data-msg-profile-invalid={COPY.errProfileInvalid}
   data-msg-saved={COPY.savedProfile}
   data-msg-email-sent={COPY.emailSent}
   data-msg-pass-saved={COPY.passSaved}
