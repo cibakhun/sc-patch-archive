@@ -23,16 +23,19 @@
  * Schluessel hat eine URL-Form, Vorgaben fehlen in der URL.
  * @typedef {{
  *   ship: string, tab: string, hp: string|null, cmp: string[], view: 'stage'|'compare',
- *   lo: string|null, pane: 'layout'|'ship', fleetOnly: boolean, sort: string, q: string, type: string, maker: string,
+ *   lo: string|null, pane: 'layout'|'ship', fleetOnly: boolean, sort: string, q: string,
+ *   pur: string, grp: string, size: string[], crew: string, cargo: number, price: number, maker: string,
  * }} HangarState
  */
 /**
  * Wogegen parseState prueft. boot() liest es aus dem gebauten DOM, damit der
- * Client keine zweite Liste von Schiffen, Tabs, Sortierungen, Typen oder
- * Herstellern fuehrt. Der erste Tab und die erste Sortierung sind die Vorgabe.
+ * Client keine zweite Liste von Schiffen, Tabs, Sortierungen, Zwecken,
+ * Unterrollen oder Filterstufen fuehrt. Der erste Tab und die erste
+ * Sortierung sind die Vorgabe. grps nennt Unterrollen als 'zweck:rolle'.
  * @typedef {{
- *   ids: ReadonlySet<string>, defaultShip: string, tabs: readonly string[],
- *   sorts: readonly string[], types: ReadonlySet<string>, makers: ReadonlySet<string>,
+ *   ids: ReadonlySet<string>, defaultShip: string, tabs: readonly string[], sorts: readonly string[],
+ *   purs: ReadonlySet<string>, grps: ReadonlySet<string>, sizes: readonly string[], crews: ReadonlySet<string>,
+ *   cargos: ReadonlySet<number>, prices: ReadonlySet<number>, makers: ReadonlySet<string>,
  * }} StateContext
  */
 
@@ -57,6 +60,7 @@ export const EMPTY_LAYOUT = 'WzEsIiIse31d';
  */
 export function normalize(s, ctx) {
   const tab = ctx.tabs.includes(s.tab) ? s.tab : ctx.tabs[0];
+  const pur = ctx.purs.has(s.pur) ? s.pur : '';
   const cmp = [...new Set((s.cmp ?? []).filter((id) => ctx.ids.has(id)))].slice(0, MAX_COMPARE);
   return {
     ship: ctx.ids.has(s.ship) ? s.ship : ctx.defaultShip,
@@ -69,7 +73,13 @@ export function normalize(s, ctx) {
     fleetOnly: s.fleetOnly === true,
     sort: ctx.sorts.includes(s.sort) ? s.sort : ctx.sorts[0],
     q: String(s.q ?? '').trim().slice(0, 80),
-    type: ctx.types.has(s.type) ? s.type : '',
+    pur,
+    // Eine Unterrolle gibt es nur unter ihrem Zweck.
+    grp: pur && ctx.grps.has(`${pur}:${s.grp}`) ? s.grp : '',
+    size: ctx.sizes.filter((z) => (s.size ?? []).includes(z)),
+    crew: ctx.crews.has(s.crew) ? s.crew : '',
+    cargo: ctx.cargos.has(Number(s.cargo)) ? Number(s.cargo) : 0,
+    price: ctx.prices.has(Number(s.price)) ? Number(s.price) : 0,
     maker: ctx.makers.has(s.maker) ? s.maker : '',
   };
 }
@@ -97,14 +107,20 @@ export function parseState(search, hash, ctx) {
     fleetOnly: p.get('fleet') === '1',
     sort: p.get('sort'),
     q: p.get('q') ?? '',
-    type: p.get('type') ?? '',
+    pur: p.get('pur') ?? '',
+    grp: p.get('grp') ?? '',
+    size: (p.get('size') ?? '').split(','),
+    crew: p.get('crew') ?? '',
+    cargo: p.get('cargo'),
+    price: p.get('price'),
     maker: p.get('maker') ?? '',
   }, ctx);
 }
 
 /**
  * HangarState nach '?…', Vorgaben weggelassen, feste Schluesselfolge (ship,
- * tab, hp, cmp, view, layout, pane, fleet, sort, q, type, maker): gleiche Zustaende
+ * tab, hp, cmp, view, layout, pane, fleet, sort, q, pur, grp, size, crew,
+ * cargo, price, maker): gleiche Zustaende
  * ergeben gleiche URLs. scope 'share' (Link kopieren) nennt immer das Schiff
  * und laesst die persoenlichen Dock-Filter weg; der Empfaenger hat eine andere
  * Flotte. Das Layout der Werkstatt reist mit: es ist, was geteilt werden soll.
@@ -129,7 +145,12 @@ export function serializeState(s, ctx, scope = 'location') {
     if (s.fleetOnly) put('fleet', '1');
     if (s.sort !== ctx.sorts[0]) put('sort', s.sort);
     if (s.q) put('q', s.q);
-    if (s.type) put('type', s.type);
+    if (s.pur) put('pur', s.pur);
+    if (s.grp) put('grp', s.grp);
+    if (s.size.length) out.push(`size=${s.size.join(',')}`);
+    if (s.crew) put('crew', s.crew);
+    if (s.cargo) put('cargo', s.cargo);
+    if (s.price) put('price', s.price);
     if (s.maker) put('maker', s.maker);
   }
   return out.length ? `?${out.join('&')}` : '';
@@ -245,6 +266,207 @@ export function pickRandom(ids, current, rnd = Math.random) {
   return pool.length ? pool[Math.floor(rnd() * pool.length)] : null;
 }
 
+// ---- Schiffssuche (Krisz 29.10.2026: „man kann ohne manufacturer name oder
+// schiff name kaum nach etwas suchen“). Das Vokabular (Zwecke, Unterrollen,
+// Groessen, Crew, Hersteller, Spitznamen) baut src/lib/hangar/finder.ts und
+// legt es als JSON in #hgx-vocab; hier steht nur, wie gelesen und gesucht wird.
+
+/**
+ * Klein, ohne Akzente, ß als ss, Apostrophe weg; dieselbe Faltung wie fold()
+ * in src/lib/hangar/finder.ts, mit der data-q gebaut ist (verify-hangar [19]).
+ *   fold('  Großer  JÄGER ') === 'grosser jager'
+ * @param {string} s
+ */
+export function fold(s) {
+  return String(s ?? '').toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/['’`´]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Tippfehler-Abstand (Levenshtein mit Vertauschung benachbarter Zeichen). Er
+ * bricht ab, sobald er max sicher uebersteigt, und liefert dann max + 1.
+ *   editDistance('prospektor', 'prospector') === 1
+ * @param {string} a @param {string} b @param {number} [max]
+ */
+export function editDistance(a, b, max = 2) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev2 = null;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    let low = i;
+    for (let j = 1; j <= b.length; j++) {
+      let v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (prev2 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, prev2[j - 2] + 1);
+      cur[j] = v;
+      if (v < low) low = v;
+    }
+    if (low > max) return max + 1;
+    prev2 = prev;
+    prev = cur;
+  }
+  return Math.min(prev[b.length], max + 1);
+}
+
+/** Wie viele Tippfehler ein Wort dieser Laenge haben darf. */
+const slack = (n) => (n >= 8 ? 2 : n >= 4 ? 1 : 0);
+
+const amount = (n, unit) => Number(String(n).replace(',', '.')) * (/^(k|tsd)/.test(unit ?? '') ? 1e3 : /^(m|mio|mil)/.test(unit ?? '') ? 1e6 : 1);
+
+/**
+ * Liest die Suche. Was das Vokabular kennt (Zweck, Unterrolle, Groesse, Crew,
+ * Hersteller) und Zahlen mit Einheit („100 scu“, „unter 2 mio“) werden
+ * Treffer einer Art (hits); der Rest bleibt als Woerter fuer Name, Hersteller
+ * und Rolle (words). Laengere Wendungen gehen vor („schwerer jäger“ vor
+ * „jäger“). Spitznamen werden zum Wort im Namen („cutty“ -> „cutlass“). Ein
+ * Treffer behaelt seinen Text (t, gefaltet), damit die Seite ihn als Chip
+ * zeigen und wieder aus der Suche nehmen kann.
+ *   parseQuery('bergbau solo', vocab)
+ *   -> { hits: [{ kind: 'pur', key: 'bergbau', t: 'bergbau' }, { kind: 'crew', key: 'solo', t: 'solo' }], words: [] }
+ * @param {string} q
+ * @param {{ pur?: {k:string,w:string[]}[], grp?: {k:string,w:string[]}[], size?: {k:string,w:string[]}[], crew?: {k:string,w:string[]}[], maker?: {k:string,w:string[]}[], nick?: Record<string,string> }} vocab
+ * @returns {{ hits: { kind: string, key: string|number, t: string }[], words: string[] }}
+ */
+export function parseQuery(q, vocab) {
+  let s = ` ${fold(q)} `;
+  const hits = [];
+  s = s.replace(/(?:\s(?:ab|uber|ueber|mind|mindestens|min|over|from|at least)\s*|\s|>=?)\s*(\d+(?:[.,]\d+)?)\s*(k|tsd)?\s*\+?\s*scu(?=\s)/g, (m, n, u) => {
+    hits.push({ kind: 'cargo', key: amount(n, u), t: m.trim() });
+    return ' ';
+  });
+  s = s.replace(/\s(?:unter|bis|max|maximal|under|below|<=?)\s*(\d+(?:[.,]\d+)?)\s*(k|tsd|m|mio|millionen|million|mil)?\s*(?:auec)?(?=\s)/g, (m, n, u) => {
+    // „unter 3“ ohne Einheit meint Millionen: kein Schiff kostet unter 1000 aUEC.
+    hits.push({ kind: 'price', key: amount(n, u ?? (Number(n) < 1000 ? 'm' : '')), t: m.trim() });
+    return ' ';
+  });
+  const phrases = [];
+  for (const kind of ['grp', 'pur', 'size', 'crew', 'maker']) for (const e of vocab[kind] ?? []) for (const w of e.w) phrases.push({ kind, key: e.k, w: fold(w) });
+  phrases.sort((a, b) => b.w.length - a.w.length);
+  for (const p of phrases) {
+    const at = p.w ? s.indexOf(` ${p.w} `) : -1;
+    if (at < 0) continue;
+    if (!hits.some((h) => h.kind === p.kind && h.key === p.key)) hits.push({ kind: p.kind, key: p.key, t: p.w });
+    s = `${s.slice(0, at)} ${s.slice(at + p.w.length + 1)}`;
+  }
+  const words = s.split(' ').filter(Boolean).map((w) => fold(vocab.nick?.[w] ?? w));
+  return { hits, words };
+}
+
+/**
+ * Ein Schiff, wie die Suche es liest: Name und Hersteller als gefaltete
+ * Woerter (Bindestrich-Teile einzeln dazu, „f7c-m“ trifft „f7c“), data-q als
+ * Rollenwoerter beider Sprachen.
+ *   findWords('F7C-M Super Hornet', 'Anvil Aerospace', 'jager schwerer')
+ *   -> { name: ['f7c-m', 'super', 'hornet', 'f7c', 'm'], makerW: ['anvil', 'aerospace'], tags: ['jager', 'schwerer'], full: 'f7c-m super hornet anvil aerospace' }
+ * @param {string} name @param {string} maker @param {string} tags
+ */
+export function findWords(name, maker, tags) {
+  const raw = fold(name).split(' ').filter(Boolean);
+  return {
+    name: [...new Set([...raw, ...raw.flatMap((w) => w.split(/[-/.]/))])].filter(Boolean),
+    makerW: fold(maker).split(' ').filter(Boolean),
+    tags: String(tags ?? '').split(' ').filter(Boolean),
+    full: fold(`${name} ${maker}`),
+  };
+}
+
+/**
+ * Eine Dock-Karte als Eintrag der Suche: aus ihren Attributen (data-mk,
+ * data-q, data-p, data-g, data-sz), dem Namen und den Kennwerten. Dieselbe
+ * Abbildung liest verify-hangar [19] aus dem gebauten dist/.
+ * @param {{ id: string, name: string, mk?: string, q?: string, p?: string, g?: string, sz?: string }} a
+ * @param {Record<string, number|null>} stat
+ * @returns {FindShip}
+ */
+export function findShip(a, stat) {
+  const words = (v) => (v ? v.split(' ') : []);
+  return { id: a.id, ...findWords(a.name, a.mk ?? '', a.q ?? ''), maker: a.mk ?? '', pur: words(a.p), grp: words(a.g), size: a.sz ?? '', stat };
+}
+
+/**
+ * Trifft ein Wort ein Schiff, und wie gut? Name vor Hersteller vor Rolle;
+ * ganzes Wort vor Wortanfang vor Teilstueck vor Tippfehler. 0 = nein.
+ * Tippfehler zaehlen nur mit typos (dockSearch fragt erst ohne).
+ *   wordScore('cutlass', findWords('Cutlass Black', 'Drake Interplanetary', ''), false) === 100
+ * @param {string} w @param {{ name: string[], makerW: string[], tags: string[], full: string }} ship @param {boolean} [typos]
+ */
+export function wordScore(w, ship, typos = true) {
+  let best = 0;
+  const k = slack(w.length);
+  for (const [list, whole, start, typo] of [[ship.name, 100, 80, 35], [ship.makerW, 60, 45, 20], [ship.tags, 40, 30, 15]]) {
+    for (const x of list) {
+      if (x === w) best = Math.max(best, whole);
+      else if (x.startsWith(w)) best = Math.max(best, start);
+      else if (w.length >= 3 && x.includes(w)) best = Math.max(best, start - 20);
+      else if (typos && k && Math.min(editDistance(w, x, k), editDistance(w, x.slice(0, w.length), k)) <= k) best = Math.max(best, typo);
+    }
+  }
+  if (!best && w.length >= 3 && ship.full.includes(w)) best = 40;
+  return best;
+}
+
+/**
+ * Die Treffer des Docks mit ihrer Guete (Id -> Punkte, nur Treffer). Die
+ * Filter aus Kacheln und Pillen grenzen hart ein. Treffer der Suche einer Art
+ * gelten als „oder“ („klein mittel“), verschiedene Arten als „und“; ein
+ * erkanntes Wort zaehlt auch, wenn es im Namen steht („expedition“ findet die
+ * Pisces Expedition, auch wenn sie keine Expeditionsrolle hat). Jedes freie
+ * Wort muss treffen; Tippfehler zaehlen nur fuer ein Wort, das ohne sie gar
+ * nichts traefe (sonst faende „mole“ auch die Mule).
+ * @param {ReadonlyArray<FindShip>} ships
+ * @param {FindSpec} f
+ * @param {Readonly<Record<string, { min: number, max: number|null }>>} crew  Stufen der Crew je Schluessel
+ * @returns {Map<string, number>}
+ *
+ * @typedef {{ id: string, name: string[], makerW: string[], tags: string[], full: string, maker: string,
+ *   pur: readonly string[], grp: readonly string[], size: string, stat: Record<string, number|null> }} FindShip
+ * @typedef {{ pur?: string, grp?: string, size?: readonly string[], crew?: string, cargo?: number, price?: number,
+ *   maker?: string, only?: ReadonlySet<string>|null, hits?: ReturnType<typeof parseQuery>['hits'], words?: readonly string[] }} FindSpec
+ */
+export function dockSearch(ships, f, crew) {
+  const inCrew = (s, k) => {
+    const c = crew[k];
+    const n = s.stat.crew;
+    return !!c && n != null && n >= c.min && (c.max == null || n <= c.max);
+  };
+  const cargoOk = (s, n) => s.stat.cargo != null && s.stat.cargo >= n;
+  const priceOk = (s, n) => s.stat.price != null && s.stat.price <= n;
+  const fits = (s, h) => (h.kind === 'pur' ? s.pur.includes(h.key) : h.kind === 'grp' ? s.grp.includes(h.key)
+    : h.kind === 'size' ? s.size === h.key : h.kind === 'crew' ? inCrew(s, h.key) : h.kind === 'maker' ? s.maker === h.key
+      : h.kind === 'cargo' ? cargoOk(s, h.key) : h.kind === 'price' ? priceOk(s, h.key) : false);
+  const named = (s, h) => h.kind !== 'cargo' && h.kind !== 'price' && h.t.split(' ').every((x) => s.name.includes(x));
+  const kinds = new Map();
+  for (const h of f.hits ?? []) kinds.set(h.kind, [...(kinds.get(h.kind) ?? []), h]);
+  const base = [];
+  for (const s of ships) {
+    if ((f.pur && !s.pur.includes(f.pur)) || (f.grp && !s.grp.includes(f.grp)) || (f.size?.length && !f.size.includes(s.size))
+      || (f.crew && !inCrew(s, f.crew)) || (f.cargo && !cargoOk(s, f.cargo)) || (f.price && !priceOk(s, f.price))
+      || (f.maker && s.maker !== f.maker) || (f.only && !f.only.has(s.id))) continue;
+    let score = 0;
+    let ok = true;
+    for (const group of kinds.values()) {
+      const v = Math.max(...group.map((h) => (named(s, h) ? 100 : fits(s, h) ? 10 : 0)));
+      if (!v) { ok = false; break; }
+      score += v;
+    }
+    if (ok) base.push([s, score]);
+  }
+  const per = (f.words ?? []).map((w) => {
+    const exact = base.map(([s]) => wordScore(w, s, false));
+    return exact.some(Boolean) ? exact : base.map(([s]) => wordScore(w, s, true));
+  });
+  const out = new Map();
+  base.forEach(([s, score], i) => {
+    let sum = score;
+    for (const m of per) {
+      if (!m[i]) return;
+      sum += m[i];
+    }
+    out.set(s.id, sum);
+  });
+  return out;
+}
+
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
 export function boot(doc) {
   const $ = (id) => doc.getElementById(id);
@@ -267,26 +489,34 @@ export function boot(doc) {
   // Leerzeichen macht ihn zur Aenderung.
   const say = (text) => { live.textContent = live.textContent === text ? `${text}\u00a0` : text; };
 
+  const opts = (f) => [...doc.querySelectorAll(`.hgx-opt[data-f="${f}"]`)].map((b) => b.dataset.v);
   /** @type {StateContext} */
   const ctx = {
     ids: new Set(items.map((li) => li.dataset.id)),
     defaultShip: main.dataset.defaultShip,
     tabs: tabs.map((b) => b.dataset.tab),
     sorts: [...$('hgx-sort').options].map((o) => o.value),
-    types: new Set([...$('hg-type').options].map((o) => o.value).filter(Boolean)),
-    makers: new Set([...$('hg-maker-f').options].map((o) => o.value).filter(Boolean)),
+    purs: new Set(opts('pur')),
+    grps: new Set([...doc.querySelectorAll('#hgx-subs [data-of]')].map((b) => `${b.dataset.of}:${b.dataset.grp}`)),
+    sizes: opts('size'),
+    crews: new Set(opts('crew')),
+    cargos: new Set(opts('cargo').map(Number)),
+    prices: new Set(opts('price').map(Number)),
+    makers: new Set(opts('maker')),
   };
 
-  // Die Dock-Karten tragen die Zahlen fuer Flotte, Vergleich und Sortierung;
-  // einmal gelesen, danach nur noch diese Abbildung.
+  // Die Dock-Karten tragen die Zahlen fuer Flotte, Vergleich und Sortierung
+  // und die Woerter der Suche; einmal gelesen, danach nur noch diese Abbildung.
   const statKeys = strip.dataset.stats.split(' ');
-  const dock = new Map(items.map((li) => [li.dataset.id, {
-    id: li.dataset.id,
-    li,
-    name: li.querySelector('.hg-card span').textContent,
-    fam: li.dataset.fam ? li.dataset.fam.split(' ') : [],
-    stat: figuresOf(statKeys, li.dataset.v),
-  }]));
+  const words = (v) => (v ? v.split(' ') : []);
+  const dock = new Map(items.map((li) => {
+    const name = li.querySelector('.hg-card__n').textContent;
+    const stat = figuresOf(statKeys, li.dataset.v);
+    const fp = words(li.dataset.fp).map(Number);
+    const find = findShip({ ...li.dataset, name }, stat);
+    return [li.dataset.id, { id: li.dataset.id, li, name, fam: words(li.dataset.fam), stat, find, fp: fp.length === 2 ? { w: fp[0], l: fp[1] } : null }];
+  }));
+  const pool = [...dock.values()].map((s) => s.find);
 
   // Leistungsstufe von Hand: ?grafik=hoch|mittel|niedrig (auto = Automatik)
   // oder die gemerkte Wahl aus dem Grafik-Schalter der Buehne
@@ -311,18 +541,13 @@ export function boot(doc) {
   // und den Zufall, ohne dass man ihn sieht.
   const DOCK_KEY = 'hg-dock';
   const dockTog = $('hgx-docktog');
-  const filtered = () => !!(state.q || state.type || state.maker || state.fleetOnly);
+  const narrowed = () => !!(state.q || state.pur || state.size.length || state.crew || state.cargo || state.price || state.maker);
+  const filtered = () => narrowed() || state.fleetOnly;
   function setDock(open, remember) {
     const was = main.dataset.dock !== 'closed';
     main.dataset.dock = open ? 'open' : 'closed';
     dockTog.setAttribute('aria-expanded', String(open));
-    // Zugeklappt hat der Streifen keine Breite; erst offen findet er die Karte,
-    // und zwar sofort: weich glitte er ueber Dutzende Karten (scroll-behavior).
-    if (open && !was) {
-      strip.style.scrollBehavior = 'auto';
-      scrollToCard(state.ship, 'auto');
-      strip.style.scrollBehavior = '';
-    }
+    if (!open && was) hideQv();
     if (!remember) return;
     try {
       if (open) localStorage.setItem(DOCK_KEY, 'open');
@@ -395,11 +620,14 @@ export function boot(doc) {
       if (prev.tab !== state.tab || prev.hp !== state.hp) applyHp();
     }
     if (prev.fleetOnly !== state.fleetOnly) paintFleetFilter();
-    if (prev.sort !== state.sort) applySort();
-    if (prev.q !== state.q || prev.type !== state.type || prev.maker !== state.maker || prev.fleetOnly !== state.fleetOnly) {
+    const finding = ['q', 'pur', 'grp', 'crew', 'cargo', 'price', 'maker', 'fleetOnly'].some((k) => prev[k] !== state[k]) || prev.size.join() !== state.size.join();
+    if (finding) {
       applyDock();
       if (filtered()) setDock(true, false);
-    } else if (prev.ship !== state.ship) paintRandom();
+      // Neue Treffer beginnen oben.
+      rail.scrollTop = 0;
+    } else if (prev.sort !== state.sort) applySort();
+    if (prev.ship !== state.ship && !finding) paintRandom();
     if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.pane !== state.pane) paintWorkshop();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
@@ -666,19 +894,27 @@ export function boot(doc) {
   }
   // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
   const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);
+  const visibleCards = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.firstElementChild);
 
   function markCards(id) {
     for (const a of strip.querySelectorAll('.hg-card')) a.setAttribute('aria-current', a.dataset.id === id ? 'true' : 'false');
   }
-  // Ab 761 px ist die Leiste eine Spalte links und rollt senkrecht, schmal
-  // ein Streifen, der waagerecht laeuft: beide Ziele gesetzt, die Achse ohne
-  // Bildlauf klemmt der Browser auf 0.
+  // Die Liste rollt in der Rolle des Docks (ab 761 px die Spalte links,
+  // schmal ein Kasten unter der Tafel). Gerollt wird nur, wenn die Zeile
+  // nicht ohnehin zu sehen ist, und nie unter den klebenden Kopf der Liste.
+  const rail = $('hg-rail');
   function scrollToCard(id, behavior = reduce ? 'auto' : 'smooth') {
     const li = cardOf(id)?.parentElement;
-    if (li) strip.scrollTo({ left: li.offsetLeft - strip.clientWidth / 2 + li.clientWidth / 2, top: li.offsetTop - strip.clientHeight / 2 + li.clientHeight / 2, behavior });
+    if (!li || li.hidden || !rail.clientHeight || rail.scrollHeight <= rail.clientHeight) return;
+    const head = rail.querySelector('.hgx-listhead').offsetHeight;
+    const top = li.offsetTop;
+    const bottom = top + li.offsetHeight;
+    if (top < rail.scrollTop + head) rail.scrollTo({ top: top - head - 6, behavior });
+    else if (bottom > rail.scrollTop + rail.clientHeight) rail.scrollTo({ top: bottom - rail.clientHeight + 6, behavior });
   }
   function select(id, { scroll = true } = {}) {
     if (scroll) scrollToCard(id);
+    hideQv();
     setState({ ship: id, hp: null });
   }
   function step(d) {
@@ -688,60 +924,340 @@ export function boot(doc) {
     select(ids[(i < 0 ? 0 : i + d + ids.length) % ids.length]);
   }
 
+  // ---- Suche, Zweck und Filter -------------------------------------------
+  const vocab = JSON.parse($('hgx-vocab').textContent);
+  const crewDefs = Object.fromEntries(vocab.crew.map((c) => [c.k, c]));
+  const nf = new Intl.NumberFormat(loc);
+  const compact = new Intl.NumberFormat(loc, { notation: 'compact', maximumFractionDigits: 1 });
+  let parsed = { q: null, hits: [], words: [] };
+  const parse = () => {
+    if (parsed.q !== state.q) parsed = { q: state.q, ...parseQuery(state.q, vocab) };
+    return parsed;
+  };
+  /** Die Suche, wie der Zustand sie verlangt; over ersetzt einzelne Filter (fuer die Zahlen an Kacheln und Stufen). */
+  const specOf = (over = {}) => {
+    const p = parse();
+    return {
+      pur: state.pur, grp: state.grp ? `${state.pur}:${state.grp}` : '', size: state.size, crew: state.crew, cargo: state.cargo,
+      price: state.price, maker: state.maker, only: state.fleetOnly ? fleetIds : null, hits: p.hits, words: p.words, ...over,
+    };
+  };
+  const countOf = (over) => dockSearch(pool, specOf(over), crewDefs).size;
+  let scores = new Map();
+
   function applyDock() {
-    const q = state.q.toLowerCase();
-    let n = 0;
-    for (const li of items) {
-      const ok = (!q || li.dataset.q.includes(q)) && (!state.type || li.dataset.t === state.type)
-        && (!state.maker || li.dataset.mk === state.maker) && (!state.fleetOnly || fleetIds.has(li.dataset.id));
-      li.hidden = !ok;
-      if (ok) n++;
-    }
+    scores = dockSearch(pool, specOf(), crewDefs);
+    for (const li of items) li.hidden = !scores.has(li.dataset.id);
+    const n = scores.size;
     $('hg-count').textContent = fillMessage(msg('count'), { n }, loc);
     // Leer, weil die Flotte leer ist, sagt etwas anderes als ein zu enger Filter.
     const noFleet = state.fleetOnly && fleetSummary(fleetIds, dock).n === 0;
     $('hgx-empty-fleet').hidden = !noFleet;
     $('hg-empty').hidden = n > 0 || noFleet;
+    applySort();
+    paintFind();
     paintRandom();
-    paintFilterTog();
   }
 
-  // Die Karten wandern im DOM; nach einem Kennwert sortiert, traegt jede
-  // ihren Wert (data-sv), damit die Folge sich selbst erklaert.
+  // Die Karten wandern im DOM. Mit Suchwoertern und der Vorgabe 'name' stehen
+  // die besten Treffer oben (die Option heisst dann „Beste Treffer“); nach
+  // einem Kennwert sortiert traegt jede Karte ihren Wert (data-sv), damit
+  // die Folge sich selbst erklaert.
+  const sortSel = $('hgx-sort');
   function applySort() {
     const key = state.sort;
     const row = key === 'name' ? null : rowOf.get(key);
-    strip.append(...dockOrder(items.map((li) => dock.get(li.dataset.id)), key).map((id) => dock.get(id).li));
+    let order = dockOrder(items.map((li) => dock.get(li.dataset.id)), key);
+    const best = key === 'name' && !!state.q;
+    if (best) {
+      const at = new Map(order.map((id, i) => [id, i]));
+      order = [...order].sort((a, b) => (scores.get(b) ?? -1) - (scores.get(a) ?? -1) || at.get(a) - at.get(b));
+    }
+    strip.append(...order.map((id) => dock.get(id).li));
     for (const s of dock.values()) {
       const v = row ? s.stat[key] : null;
       if (v == null) delete s.li.firstElementChild.dataset.sv;
       else s.li.firstElementChild.dataset.sv = figureText(v, row, loc);
     }
-    scrollToCard(state.ship, 'auto');
-    paintFilterTog();
+    const first = sortSel.options[0];
+    first.textContent = best ? first.dataset.best : first.dataset.name;
   }
 
-  // Die Rolle steht als Reiter offen in der Zeile; Hersteller und Sortierung
-  // liegen hinter "Filter", die Zahl am Knopf nennt, wie viele davon gerade
-  // vom Normalfall abweichen.
-  const filterTog = $('hgx-filtertog');
-  const filterBox = $('hgx-filters');
-  const roleBtns = [...doc.querySelectorAll('#hgx-roles [data-role]')];
-  function paintFilterTog() {
-    const n = (state.maker ? 1 : 0) + (state.sort !== 'name' ? 1 : 0);
-    $('hgx-filtern').hidden = n === 0;
-    $('hgx-filtern').textContent = String(n);
-    for (const b of roleBtns) b.setAttribute('aria-pressed', String(b.dataset.role === state.type));
+  const subs = $('hgx-subs');
+  const subBtns = [...subs.querySelectorAll('[data-grp]')];
+  const pills = [...doc.querySelectorAll('.hgx-pill')];
+  const pops = [...doc.querySelectorAll('.hgx-pop')];
+  const optBtns = [...doc.querySelectorAll('.hgx-opt')];
+  const listTitle = $('hgx-listtitle');
+  const listAll = listTitle.textContent;
+  const optLabel = (f, v) => optBtns.find((b) => b.dataset.f === f && b.dataset.v === String(v))?.querySelector('span').textContent ?? String(v);
+  const vocabLabel = (kind, key) => vocab[kind]?.find((e) => e.k === key)?.l ?? String(key);
+  const hitLabel = (h) => {
+    const m = msg('find');
+    if (h.kind === 'cargo') return fillMessage({ other: m.cargo }, { n: nf.format(h.key) }, loc);
+    if (h.kind === 'price') return fillMessage({ other: m.price }, { n: compact.format(h.key) }, loc);
+    return vocabLabel(h.kind, h.key);
+  };
+  const facetValue = (f) => (f === 'size' ? state.size : state[f]);
+  const facetOn = (f) => (f === 'size' ? state.size.length > 0 : !!state[f]);
+
+  /**
+   * Nimmt einen erkannten Begriff aus der Suche, im Wortlaut des Besuchers:
+   * gesucht wird die Wortfolge, deren Faltung der Begriff ist.
+   */
+  function dropFromQuery(t) {
+    const raw = state.q.split(/\s+/).filter(Boolean);
+    const want = t.split(' ').length;
+    for (let i = 0; i + want <= raw.length; i++) {
+      if (fold(raw.slice(i, i + want).join(' ')) === t) return [...raw.slice(0, i), ...raw.slice(i + want)].join(' ');
+    }
+    return fold(state.q).replace(t, ' ').replace(/\s+/g, ' ').trim();
   }
-  for (const b of roleBtns) b.addEventListener('click', () => {
-    setState({ type: b.dataset.role });
+
+  // Chips, Unterrollen, Pillen und Titel der Liste aus dem Zustand.
+  function paintFind() {
+    const m = msg('find');
+    const p = parse();
+    const chips = [];
+    for (const h of p.hits) {
+      const name = hitLabel(h);
+      chips.push(el('li', {}, name, el('button', { type: 'button', class: 'hgx-x', 'data-drop': 'q', 'data-t': h.t, 'aria-label': fillMessage({ other: m.remove }, { name }, loc) }, '×')));
+    }
+    $('hgx-active-list').replaceChildren(...chips);
+    const facets = pills.some((b) => facetOn(b.dataset.facet));
+    $('hgx-active').hidden = !chips.length && !facets && !state.q;
+    const ofPur = subBtns.filter((b) => b.dataset.of === state.pur);
+    subs.hidden = !ofPur.length;
+    if (!subs.hidden) {
+      for (const b of subBtns) {
+        b.hidden = !!b.dataset.of && b.dataset.of !== state.pur;
+        if (b.hidden) continue;
+        b.setAttribute('aria-pressed', String(b.dataset.grp === state.grp));
+        b.querySelector('.hgx-n').textContent = nf.format(countOf({ grp: b.dataset.grp ? `${state.pur}:${b.dataset.grp}` : '' }));
+      }
+    }
+    for (const b of pills) {
+      const f = b.dataset.facet;
+      const on = facetOn(f);
+      b.classList.toggle('is-on', on);
+      const pv = b.querySelector('.hgx-pv');
+      pv.hidden = !on;
+      pv.textContent = on ? (f === 'size' ? state.size.map((z) => optLabel('size', z)).join(', ') : optLabel(f, state[f])) : '';
+    }
+    for (const b of optBtns) {
+      const v = facetValue(b.dataset.f);
+      b.setAttribute('aria-pressed', String(Array.isArray(v) ? v.includes(b.dataset.v) : String(v) === b.dataset.v));
+    }
+    const open = pops.find((x) => !x.hidden);
+    if (open) countOpts(open);
+    listTitle.textContent = narrowed() || state.fleetOnly ? fillMessage(msg('find-hits'), { n: scores.size }, loc) : listAll;
+  }
+
+  // Die Zahl je Stufe: wie viele Schiffe blieben, gaelte statt der Wahl
+  // dieser Pille diese Stufe.
+  function countOpts(pop) {
+    const f = pop.dataset.facet;
+    for (const b of pop.querySelectorAll('.hgx-opt')) {
+      const v = b.dataset.v;
+      const n = countOf({ [f]: f === 'size' ? [v] : f === 'cargo' || f === 'price' ? Number(v) : v, ...(f === 'pur' && { grp: '' }) });
+      b.querySelector('.hgx-n').textContent = nf.format(n);
+      b.classList.toggle('is-zero', n === 0);
+    }
+  }
+  function openPop(f) {
+    for (const pop of pops) {
+      const on = pop.dataset.facet === f && pop.hidden;
+      if (on) countOpts(pop);
+      pop.hidden = !on;
+    }
+    for (const b of pills) b.setAttribute('aria-expanded', String(!pops.find((x) => x.dataset.facet === b.dataset.facet).hidden));
+  }
+  for (const b of pills) b.addEventListener('click', () => openPop(b.dataset.facet));
+  for (const b of optBtns) b.addEventListener('click', () => {
+    const f = b.dataset.f;
+    const v = b.dataset.v;
+    if (f === 'size') {
+      setState({ size: state.size.includes(v) ? state.size.filter((z) => z !== v) : [...state.size, v] });
+      return;
+    }
+    const now = String(state[f]) === v;
+    // Ein neuer Zweck beginnt ohne Unterrolle.
+    setState({ [f]: now ? (f === 'cargo' || f === 'price' ? 0 : '') : f === 'cargo' || f === 'price' ? Number(v) : v, ...(f === 'pur' && { grp: '' }) });
+    openPop(null);
+    $(`hgx-pill-${f}`).focus({ preventScroll: true });
+  });
+  // Zu geht eine Tafel mit Escape, einem Klick daneben oder dem Fokus woanders.
+  doc.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest?.('.hgx-pop, .hgx-pill')) openPop(null);
+  });
+  $('hgx-active').parentElement.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = pops.find((x) => !x.hidden);
+    if (!open) return;
+    e.preventDefault();
+    openPop(null);
+    $(`hgx-pill-${open.dataset.facet}`).focus({ preventScroll: true });
+  });
+  $('hgx-active').parentElement.addEventListener('focusout', (e) => {
+    if (!e.relatedTarget?.closest?.('.hgx-find')) openPop(null);
+  });
+
+  $('hgx-active-list').addEventListener('click', (e) => {
+    const x = e.target.closest('[data-drop]');
+    if (!x) return;
+    setState({ q: dropFromQuery(x.dataset.t) });
+    $('hg-q').value = state.q;
+    $('hg-q').focus({ preventScroll: true });
+  });
+  $('hgx-reset').addEventListener('click', () => {
+    setState({ q: '', pur: '', grp: '', size: [], crew: '', cargo: 0, price: 0, maker: '' });
+    $('hg-q').value = '';
+    openPop(null);
+    $('hg-q').focus({ preventScroll: true });
+  });
+  for (const b of subBtns) b.addEventListener('click', () => {
+    setState({ grp: b.dataset.grp });
     b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
   });
-  filterTog.addEventListener('click', () => {
-    filterBox.hidden = !filterBox.hidden;
-    filterTog.setAttribute('aria-expanded', String(!filterBox.hidden));
-    if (!filterBox.hidden) $('hg-maker-f').focus({ preventScroll: true });
+
+  // ---- Schnellansicht (ab 761 px, nur mit Maus oder Tastatur) ------------
+  // Zeigt das Schiff unter der Maus oder dem Fokus der Liste neben dem Dock:
+  // Kennzahlen mit der Abweichung zum Schiff in der Halle und beide
+  // Draufsichten im selben Massstab. Ein Wechsel in der Halle dauert
+  // Sekunden; ansehen kostet hier nichts. Mit der Maus traegt die Karte
+  // „In die Halle“, „+ Vergleich“ und den Stern der Flotte.
+  const qv = $('hgx-qv');
+  const qvWide = window.matchMedia('(min-width: 761px)');
+  const dockEl = main.querySelector('.hg-dock');
+  let qvId = null;
+  let qvAnchor = null;
+  let qvTimer = 0;
+  const topSrc = (id) => {
+    const src = dock.get(id).li.querySelector('img')?.getAttribute('src') ?? '';
+    return /\/hangar\/cards\/[^/?]+\.webp/.test(src) ? src.replace('/hangar/cards/', '/hangar/cards/top/') : null;
+  };
+  // Knoepfe der Karte; den Stern zeichnet fleet.js nach data-fleet-ship.
+  function paintQvActs() {
+    if (!qvId) return;
+    const go = qv.querySelector('[data-qv="go"]');
+    go.disabled = qvId === state.ship;
+    qv.querySelector('[data-qv="cmp"]').setAttribute('aria-pressed', String(state.cmp.includes(qvId)));
+    const fav = qv.querySelector('[data-fleet-ship]');
+    fav.dataset.fleetLabel = dock.get(qvId).name;
+    fav.dataset.fleetShip = qvId;
+  }
+  function fillQv(id) {
+    const s = dock.get(id);
+    const hall = dock.get(state.ship);
+    paintQvActs();
+    qv.querySelector('.hgx-qv__pic').src = s.li.querySelector('img')?.getAttribute('src') ?? '';
+    qv.querySelector('.hgx-qv__maker').textContent = s.li.querySelector('small').textContent;
+    qv.querySelector('.hgx-qv__name').textContent = s.name;
+    qv.querySelector('.hgx-qv__role').textContent = s.li.querySelector('.hg-card__s em')?.textContent ?? '';
+    for (const box of qv.querySelectorAll('.hgx-qv__figs [data-k]')) {
+      const k = box.dataset.k;
+      const row = rowOf.get(k);
+      const cell = compareCell(s.stat[k] ?? null, id === state.ship ? null : hall.stat[k] ?? null, row, loc);
+      const b = box.querySelector('b');
+      b.textContent = cell.value;
+      // Preise kurz: „8,4 Mio.“ mit kleiner Einheit passt in die Spalte,
+      // „8.398.000 aUEC“ nicht.
+      if (k === 'price' && s.stat.price != null) {
+        b.textContent = compact.format(s.stat.price);
+        b.append(Object.assign(doc.createElement('small'), { textContent: row.unit }));
+        if (cell.delta) cell.delta = `${s.stat.price > hall.stat.price ? '+' : '-'}${compact.format(Math.abs(s.stat.price - hall.stat.price))}`;
+      }
+      const d = box.querySelector('i');
+      d.textContent = cell.delta ?? '';
+      d.className = cell.tone ? `is-${cell.tone}` : '';
+    }
+    const size = qv.querySelector('.hgx-qv__size');
+    const both = [[s, 'this'], [hall, 'hall']];
+    size.hidden = !s.fp || !hall.fp || !topSrc(s.id) || !topSrc(hall.id);
+    if (size.hidden) return;
+    const figs = qv.querySelector('.hgx-qv__sils');
+    const same = id === state.ship;
+    const box = { w: figs.clientWidth / (same ? 1 : 2) - 12, h: figs.clientHeight - 44 };
+    const scale = Math.min(box.h / Math.max(s.fp.l, same ? 0 : hall.fp.l), box.w / Math.max(s.fp.w, same ? 0 : hall.fp.w));
+    for (const [x, who] of both) {
+      const fig = figs.querySelector(`[data-who="${who}"]`);
+      fig.hidden = who === 'hall' && same;
+      if (fig.hidden) continue;
+      const sil = fig.querySelector('.hgx-sil');
+      sil.style.setProperty('--w', `${Math.max(3, x.fp.w * scale).toFixed(1)}px`);
+      sil.style.setProperty('--h', `${Math.max(3, x.fp.l * scale).toFixed(1)}px`);
+      sil.style.setProperty('--m', `url("${topSrc(x.id)}")`);
+      const [name, len] = fig.querySelectorAll('figcaption span');
+      name.textContent = who === 'hall' || same ? fillMessage({ other: msg('find').here }, { name: x.name }, loc) : x.name;
+      len.textContent = figureText(x.stat.len ?? x.fp.l, rowOf.get('len'), loc);
+    }
+  }
+  function placeQv() {
+    if (qv.hidden || !qvAnchor?.isConnected) return;
+    const d = dockEl.getBoundingClientRect();
+    const r = qvAnchor.getBoundingClientRect();
+    const h = qv.offsetHeight;
+    const top = Math.min(Math.max(r.top - d.top + r.height / 2 - h / 2, 0), Math.max(0, d.height - h));
+    qv.style.setProperty('--qv-top', `${Math.round(top)}px`);
+  }
+  function showQv(anchor) {
+    clearTimeout(qvTimer);
+    const id = anchor.dataset.id;
+    if (!qvWide.matches || main.dataset.dock === 'closed' || dlg.open || !dock.has(id)) return;
+    qvAnchor = anchor;
+    if (qv.hidden || qvId !== id) {
+      qvId = id;
+      qv.hidden = false;
+      fillQv(id);
+    }
+    placeQv();
+  }
+  function hideQv() {
+    clearTimeout(qvTimer);
+    qv.hidden = true;
+    qvId = null;
+    qvAnchor = null;
+  }
+  // Mit der Maus zeigt die Karte das Schiff, auf dem der Zeiger ruht:
+  // vorbeifahren zeigt nichts, und wer schraeg ueber andere Zeilen zu den
+  // Knoepfen der Karte faehrt, behaelt sein Schiff.
+  rail.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    clearTimeout(qvTimer);
+    const a = e.target.closest('.hg-card');
+    if (!a) return;
+    if (!qv.hidden && a.dataset.id === qvId) { qvAnchor = a; return; }
+    qvTimer = setTimeout(() => showQv(a), qv.hidden ? 220 : 110);
+  }, { passive: true });
+  const leave = (e) => {
+    if (e.pointerType !== 'mouse' || e.relatedTarget?.closest?.('#hgx-qv, #hg-rail')) return;
+    clearTimeout(qvTimer);
+    qvTimer = setTimeout(hideQv, 160);
+  };
+  rail.addEventListener('pointerleave', (e) => {
+    if (e.relatedTarget?.closest?.('#hgx-qv')) clearTimeout(qvTimer);
+    leave(e);
   });
+  qv.addEventListener('pointerenter', () => clearTimeout(qvTimer));
+  qv.addEventListener('pointerleave', leave);
+  qv.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-qv]');
+    if (!b || !qvId) return;
+    if (b.dataset.qv === 'go') {
+      const id = qvId;
+      hideQv();
+      select(id, { scroll: false });
+    } else toggleCompare(qvId);
+  });
+  rail.addEventListener('focusin', (e) => {
+    const a = e.target.closest('.hg-card');
+    if (a?.matches(':focus-visible')) showQv(a);
+  });
+  rail.addEventListener('focusout', (e) => {
+    if (!e.relatedTarget?.closest?.('.hg-card')) hideQv();
+  });
+  rail.addEventListener('scroll', placeQv, { passive: true });
+  qvWide.addEventListener('change', hideQv);
 
   function paintRandom() {
     $('hgx-random').disabled = !visibleIds().some((id) => id !== state.ship);
@@ -755,7 +1271,7 @@ export function boot(doc) {
   // aus dem Fenster liefe, steht sie rechtsbuendig (is-end): Auch
   // unsichtbar zaehlt sie zur Breite der Seite, am Zufallsknopf am
   // Zeilenende machte sie die Seite bei 360 px 32 px breiter als das Fenster.
-  // Neu gemessen, sobald die Filterzeile anders umbricht.
+  // Neu gemessen, sobald die Kopfzeile anders umbricht.
   const tips = [...main.querySelectorAll('.hgx-tip')];
   const fitTips = () => {
     for (const t of tips) t.classList.remove('is-end');
@@ -766,9 +1282,7 @@ export function boot(doc) {
 
   function syncControls() {
     $('hg-q').value = state.q;
-    $('hg-type').value = state.type;
-    $('hg-maker-f').value = state.maker;
-    $('hgx-sort').value = state.sort;
+    sortSel.value = state.sort;
   }
 
   strip.addEventListener('click', (e) => {
@@ -777,59 +1291,65 @@ export function boot(doc) {
     e.preventDefault();
     select(a.dataset.id, { scroll: false });
   });
-  // Ein Mausrad rollt senkrecht, der Streifen schmaler Fenster laeuft
-  // waagerecht: das Rad schiebt ihn, und mit der Maus laesst er sich ziehen.
-  // Am Rand gibt das Rad an die Seite weiter. Die Spalte links (ab 761 px)
-  // rollt selbst senkrecht, dort hat sie keine waagerechte Strecke und das
-  // Rad bleibt beim Browser. Nach einem Zug waehlt das Loslassen kein Schiff.
-  const sideways = (el) => el.addEventListener('wheel', (e) => {
+  // Die Unterrollen laufen waagerecht weiter: das Mausrad schiebt sie, am Rand
+  // gibt es an die Rolle weiter.
+  subs.addEventListener('wheel', (e) => {
     if (e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
-    const max = el.scrollWidth - el.clientWidth;
-    if (max <= 1 || (e.deltaY < 0 && el.scrollLeft <= 0) || (e.deltaY > 0 && el.scrollLeft >= max - 1)) return;
+    const max = subs.scrollWidth - subs.clientWidth;
+    if (max <= 1 || (e.deltaY < 0 && subs.scrollLeft <= 0) || (e.deltaY > 0 && subs.scrollLeft >= max - 1)) return;
     e.preventDefault();
-    el.scrollBy({ left: e.deltaY * (e.deltaMode === 1 ? 40 : 1) * 1.5, behavior: reduce ? 'auto' : 'smooth' });
+    subs.scrollBy({ left: e.deltaY * (e.deltaMode === 1 ? 40 : 1) * 1.5, behavior: reduce ? 'auto' : 'smooth' });
   }, { passive: false });
-  sideways(strip);
-  sideways($('hgx-roles'));
-  // Gezogen wird entlang der Achse, auf der die Leiste rollt: in der Spalte
-  // links senkrecht, im Streifen schmaler Fenster waagerecht.
-  let drag = null;
-  let dragged = false;
-  strip.addEventListener('pointerdown', (e) => {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return;
-    const down = strip.scrollHeight - strip.clientHeight > strip.scrollWidth - strip.clientWidth;
-    drag = { at: down ? e.clientY : e.clientX, from: down ? strip.scrollTop : strip.scrollLeft, down, id: e.pointerId, moved: false };
-  });
-  strip.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const d = (drag.down ? e.clientY : e.clientX) - drag.at;
-    if (!drag.moved) {
-      if (Math.abs(d) < 6) return;
-      drag.moved = true;
-      strip.setPointerCapture(e.pointerId);
-      strip.classList.add('is-drag');
+  const q = $('hg-q');
+  q.addEventListener('input', () => setState({ q: q.value }));
+  sortSel.addEventListener('change', () => setState({ sort: sortSel.value }));
+
+  // Tastatur: / sucht, aus der Suche fuehrt ↓ in die Liste, Enter nimmt den
+  // ersten Treffer, Escape leert die Suche. In der Liste blaettern ↑ ↓ den
+  // Fokus (die Schnellansicht folgt), Enter waehlt wie ein Klick.
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      const first = visibleCards()[0];
+      if (!first) return;
+      e.preventDefault();
+      first.focus();
+    } else if (e.key === 'Enter') {
+      const first = visibleIds()[0];
+      if (!first) return;
+      e.preventDefault();
+      select(first);
+    } else if (e.key === 'Escape' && q.value) {
+      e.preventDefault();
+      q.value = '';
+      setState({ q: '' });
     }
-    if (drag.down) strip.scrollTop = drag.from - d;
-    else strip.scrollLeft = drag.from - d;
   });
-  const endDrag = () => {
-    if (drag?.moved) {
-      strip.classList.remove('is-drag');
-      dragged = true;
-      setTimeout(() => { dragged = false; }, 0);
-    }
-    drag = null;
-  };
-  strip.addEventListener('pointerup', endDrag);
-  strip.addEventListener('pointercancel', endDrag);
-  strip.addEventListener('click', (e) => { if (dragged) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
-  strip.addEventListener('dragstart', (e) => e.preventDefault());
-  $('hg-prev').addEventListener('click', () => step(-1));
-  $('hg-next').addEventListener('click', () => step(1));
-  $('hg-q').addEventListener('input', () => setState({ q: $('hg-q').value }));
-  $('hg-type').addEventListener('change', () => setState({ type: $('hg-type').value }));
-  $('hg-maker-f').addEventListener('change', () => setState({ maker: $('hg-maker-f').value }));
-  $('hgx-sort').addEventListener('change', () => setState({ sort: $('hgx-sort').value }));
+  strip.addEventListener('keydown', (e) => {
+    const a = e.target.closest('.hg-card');
+    if (!a || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.key === 'Escape') { hideQv(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const cards = visibleCards();
+    const i = cards.indexOf(a);
+    const next = cards[i + (e.key === 'ArrowDown' ? 1 : -1)];
+    if (next) {
+      next.focus({ preventScroll: true });
+      next.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') q.focus();
+  });
+  // In der Einfangphase am Fenster: vor der Seitensuche (SearchOverlay.astro),
+  // die / sonst fuer sich nimmt und eine verhinderte Vorgabe stehen laesst.
+  // Strg+K bleibt die Seitensuche.
+  doc.defaultView.addEventListener('keydown', (e) => {
+    if (e.key !== '/' || e.altKey || e.ctrlKey || e.metaKey || dlg.open) return;
+    const t = e.target;
+    if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.closest?.('[role="dialog"]:not([hidden])')) return;
+    e.preventDefault();
+    setDock(true, false);
+    q.focus();
+    q.select();
+  }, true);
 
   // Pfeiltasten wechseln das Schiff nur, wenn der Fokus auf der Seite, der
   // Buehne oder einer Dock-Karte liegt: jedes Bedienelement, das Pfeile selbst
@@ -1003,6 +1523,7 @@ export function boot(doc) {
     cmpOpen.hidden = state.cmp.length < 2;
     cmpOpen.textContent = fillMessage(msg('cmp-open'), { n: state.cmp.length }, loc);
     cmpToggle.setAttribute('aria-pressed', String(state.cmp.includes(state.ship)));
+    paintQvActs();
   }
 
   function paintCompare() {
@@ -1068,14 +1589,17 @@ export function boot(doc) {
     } else setState({ ...patch, view: 'stage' });
   }
 
-  cmpToggle.addEventListener('click', () => {
-    if (state.cmp.includes(state.ship)) setState({ cmp: state.cmp.filter((id) => id !== state.ship) });
-    else if (state.cmp.length < MAX_COMPARE) setState({ cmp: [...state.cmp, state.ship] });
+  // Vom Knopf an der Buehne fuer das Schiff in der Halle, von der
+  // Schnellansicht fuer das gezeigte.
+  function toggleCompare(id) {
+    if (state.cmp.includes(id)) setState({ cmp: state.cmp.filter((x) => x !== id) });
+    else if (state.cmp.length < MAX_COMPARE) setState({ cmp: [...state.cmp, id] });
     else {
       trayMsg.hidden = false;
       say(trayMsg.textContent);
     }
-  });
+  }
+  cmpToggle.addEventListener('click', () => toggleCompare(state.ship));
   tray.addEventListener('click', (e) => {
     const x = e.target.closest('[data-cmp-remove]');
     if (!x) return;
@@ -1442,9 +1966,10 @@ export function boot(doc) {
   paintTray();
   paintWorkshop();
   if (state.view === 'compare') paintView();
-  if (state.sort !== ctx.sorts[0]) applySort();
   applyDock();
-  scrollToCard(state.ship, 'auto');
+  // Mit einem Filter aus der Adresse steht das gezeigte Schiff oft weiter
+  // unten in der Liste; ohne steht oben „Wofür?“, und dort bleibt die Rolle.
+  if (narrowed()) scrollToCard(state.ship, 'auto');
   if (state.ship !== ctx.defaultShip) showShip(state.ship);
   else {
     markCards(state.ship);
