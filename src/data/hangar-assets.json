@@ -3,7 +3,7 @@
   "ships": {
     "aegs-avenger-stalker": {
       "url": "/hangar/ships/aegs-avenger-stalker.glb",
-      "v": "1b2ee6ba",
+      "v": "bbb18989",
       "tris": 213632,
       "trisRaw": 259616,
       "textures": 336,
@@ -29,7 +29,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -45,7 +46,7 @@
         "bits": 17,
         "degenerate": 1.7
       },
-      "bytes": 2092644,
+      "bytes": 2094360,
       "pool": {
         "images": 336,
         "bytes": 15366328,
@@ -78,7 +79,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -98,12 +100,12 @@
       "pool": {
         "images": 320,
         "bytes": 13916430,
-        "fresh": 186896
+        "fresh": 0
       }
     },
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "4b24b924",
+      "v": "5b434dcd",
       "tris": 214745,
       "trisRaw": 289558,
       "textures": 336,
@@ -129,7 +131,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -145,7 +148,7 @@
         "bits": 17,
         "degenerate": 1.7
       },
-      "bytes": 2109352,
+      "bytes": 2111068,
       "pool": {
         "images": 336,
         "bytes": 15366328,
@@ -154,7 +157,7 @@
     },
     "aegs-avenger-warlock": {
       "url": "/hangar/ships/aegs-avenger-warlock.glb",
-      "v": "9b08f7e7",
+      "v": "7f81092f",
       "tris": 212587,
       "trisRaw": 296161,
       "textures": 343,
@@ -181,7 +184,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -197,16 +201,16 @@
         "bits": 17,
         "degenerate": 2
       },
-      "bytes": 2150688,
+      "bytes": 2152404,
       "pool": {
         "images": 343,
         "bytes": 16011418,
-        "fresh": 1034036
+        "fresh": 0
       }
     },
     "aegs-eclipse": {
       "url": "/hangar/ships/aegs-eclipse.glb",
-      "v": "3bdb52f5",
+      "v": "2fed6946",
       "tris": 203310,
       "trisRaw": 270703,
       "textures": 121,
@@ -248,7 +252,7 @@
         "bits": 20,
         "degenerate": 0.8
       },
-      "bytes": 1662808,
+      "bytes": 1664184,
       "pool": {
         "images": 121,
         "bytes": 5709206,
@@ -361,7 +365,7 @@
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "89762214",
+      "v": "59283073",
       "tris": 233147,
       "trisRaw": 417041,
       "textures": 283,
@@ -387,7 +391,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -403,7 +408,7 @@
         "bits": 20,
         "degenerate": 2.7
       },
-      "bytes": 2637568,
+      "bytes": 2638736,
       "pool": {
         "images": 283,
         "bytes": 10598884,
@@ -467,7 +472,7 @@
     },
     "aegs-hammerhead": {
       "url": "/hangar/ships/aegs-hammerhead.glb",
-      "v": "9c127d75",
+      "v": "c9b30e1e",
       "tris": 683843,
       "trisRaw": 3401420,
       "textures": 268,
@@ -496,7 +501,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -512,16 +518,16 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 6759864,
+      "bytes": 6762148,
       "pool": {
         "images": 268,
         "bytes": 14384366,
-        "fresh": 3375888
+        "fresh": 0
       }
     },
     "aegs-idris-m": {
       "url": "/hangar/ships/aegs-idris-m.glb",
-      "v": "6b52fed7",
+      "v": "48765e18",
       "tris": 1185844,
       "trisRaw": 2019994,
       "textures": 266,
@@ -574,7 +580,7 @@
         "bits": 22,
         "degenerate": 5.6
       },
-      "bytes": 11302820,
+      "bytes": 11306148,
       "pool": {
         "images": 266,
         "bytes": 9203434,
@@ -583,7 +589,7 @@
     },
     "aegs-idris-p": {
       "url": "/hangar/ships/aegs-idris-p.glb",
-      "v": "aa885fd1",
+      "v": "d91d663c",
       "tris": 1197721,
       "trisRaw": 2123261,
       "textures": 259,
@@ -637,7 +643,7 @@
         "bits": 22,
         "degenerate": 5.5
       },
-      "bytes": 11342612,
+      "bytes": 11346336,
       "pool": {
         "images": 259,
         "bytes": 9147408,
@@ -719,12 +725,12 @@
       "pool": {
         "images": 135,
         "bytes": 9471008,
-        "fresh": 60328
+        "fresh": 0
       }
     },
     "aegs-reclaimer-showdown": {
       "url": "/hangar/ships/aegs-reclaimer-showdown.glb",
-      "v": "bf1053cf",
+      "v": "363b5732",
       "tris": 498200,
       "trisRaw": 981666,
       "textures": 216,
@@ -772,7 +778,7 @@
         "bits": 20,
         "degenerate": 6.1
       },
-      "bytes": 4824988,
+      "bytes": 4826652,
       "pool": {
         "images": 216,
         "bytes": 12573872,
@@ -781,7 +787,7 @@
     },
     "aegs-reclaimer": {
       "url": "/hangar/ships/aegs-reclaimer.glb",
-      "v": "fea72e76",
+      "v": "42c0b109",
       "tris": 498200,
       "trisRaw": 981666,
       "textures": 216,
@@ -829,7 +835,7 @@
         "bits": 20,
         "degenerate": 6.1
       },
-      "bytes": 4825048,
+      "bytes": 4826984,
       "pool": {
         "images": 216,
         "bytes": 12571976,
@@ -838,7 +844,7 @@
     },
     "aegs-redeemer": {
       "url": "/hangar/ships/aegs-redeemer.glb",
-      "v": "a7093f22",
+      "v": "a463b0c7",
       "tris": 465097,
       "trisRaw": 1223647,
       "textures": 282,
@@ -860,15 +866,16 @@
       "record": "AEGS_Redeemer",
       "game": "12913470",
       "interiorDropped": 2,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
           0.003,
           0.004,
           0.004,
           0.002
-        ]
+        ],
+        "sink": -12.746,
+        "why": "ein Teil steckt 1275 cm im Boden"
       },
       "budget": {
         "tris": 200000,
@@ -884,16 +891,16 @@
         "bits": 19,
         "degenerate": 2.4
       },
-      "bytes": 4516592,
+      "bytes": 4518524,
       "pool": {
         "images": 282,
         "bytes": 12825852,
-        "fresh": 804980
+        "fresh": 0
       }
     },
     "aegs-retaliator": {
       "url": "/hangar/ships/aegs-retaliator.glb",
-      "v": "113f93b7",
+      "v": "3b96d3df",
       "tris": 469189,
       "trisRaw": 1432995,
       "textures": 237,
@@ -924,7 +931,8 @@
           0,
           -0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 400000,
@@ -940,16 +948,16 @@
         "bits": 22,
         "degenerate": 1.5
       },
-      "bytes": 5066800,
+      "bytes": 5068140,
       "pool": {
         "images": 237,
         "bytes": 9988952,
-        "fresh": 320310
+        "fresh": 0
       }
     },
     "aegs-sabre-comet": {
       "url": "/hangar/ships/aegs-sabre-comet.glb",
-      "v": "a8d7c958",
+      "v": "2a5331a8",
       "tris": 207172,
       "trisRaw": 279726,
       "textures": 248,
@@ -976,7 +984,8 @@
           -0.001,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -992,16 +1001,16 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 2204092,
+      "bytes": 2205592,
       "pool": {
         "images": 248,
         "bytes": 10246604,
-        "fresh": 275046
+        "fresh": 0
       }
     },
     "aegs-sabre-firebird": {
       "url": "/hangar/ships/aegs-sabre-firebird.glb",
-      "v": "6b565e90",
+      "v": "10934a7c",
       "tris": 228220,
       "trisRaw": 283381,
       "textures": 243,
@@ -1026,6 +1035,7 @@
           -1.558,
           0
         ],
+        "sink": -1.558,
         "why": "Aufstandspunkte weichen bis 1.558 m ab"
       },
       "budget": {
@@ -1042,16 +1052,16 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2548340,
+      "bytes": 2549824,
       "pool": {
         "images": 243,
         "bytes": 10964248,
-        "fresh": 534916
+        "fresh": 0
       }
     },
     "aegs-sabre-peregrine": {
       "url": "/hangar/ships/aegs-sabre-peregrine.glb",
-      "v": "73c3cfee",
+      "v": "6cf48923",
       "tris": 204565,
       "trisRaw": 274387,
       "textures": 202,
@@ -1073,6 +1083,7 @@
           -1.559,
           0
         ],
+        "sink": -1.559,
         "why": "Aufstandspunkte weichen bis 1.559 m ab"
       },
       "budget": {
@@ -1089,16 +1100,16 @@
         "bits": 19,
         "degenerate": 1.7
       },
-      "bytes": 2065720,
+      "bytes": 2067016,
       "pool": {
         "images": 202,
         "bytes": 9755010,
-        "fresh": 79380
+        "fresh": 0
       }
     },
     "aegs-sabre-raven-ex": {
       "url": "/hangar/ships/aegs-sabre-raven-ex.glb",
-      "v": "327ef372",
+      "v": "8670c72c",
       "tris": 218786,
       "trisRaw": 352213,
       "textures": 262,
@@ -1123,6 +1134,7 @@
           -1.558,
           0
         ],
+        "sink": -1.558,
         "why": "Aufstandspunkte weichen bis 1.558 m ab"
       },
       "budget": {
@@ -1139,11 +1151,11 @@
         "bits": 20,
         "degenerate": 2
       },
-      "bytes": 2346120,
+      "bytes": 2347508,
       "pool": {
         "images": 262,
         "bytes": 11699438,
-        "fresh": 64738
+        "fresh": 0
       }
     },
     "aegs-sabre-raven": {
@@ -1175,6 +1187,7 @@
           -1.559,
           0
         ],
+        "sink": -1.559,
         "why": "Aufstandspunkte weichen bis 1.559 m ab"
       },
       "budget": {
@@ -1195,12 +1208,12 @@
       "pool": {
         "images": 243,
         "bytes": 10183220,
-        "fresh": 330658
+        "fresh": 0
       }
     },
     "aegs-sabre": {
       "url": "/hangar/ships/aegs-sabre.glb",
-      "v": "96888c09",
+      "v": "da75e2e9",
       "tris": 205471,
       "trisRaw": 309062,
       "textures": 232,
@@ -1227,7 +1240,8 @@
           -0.001,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -1243,16 +1257,16 @@
         "bits": 20,
         "degenerate": 1.9
       },
-      "bytes": 2168220,
+      "bytes": 2169488,
       "pool": {
         "images": 232,
         "bytes": 9939512,
-        "fresh": 1254624
+        "fresh": 0
       }
     },
     "aegs-tiburon": {
       "url": "/hangar/ships/aegs-tiburon.glb",
-      "v": "e4346010",
+      "v": "6497f2da",
       "tris": 706992,
       "trisRaw": 3183429,
       "textures": 285,
@@ -1281,7 +1295,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -1297,16 +1312,16 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 7437120,
+      "bytes": 7440440,
       "pool": {
         "images": 285,
         "bytes": 15305026,
-        "fresh": 218240
+        "fresh": 0
       }
     },
     "aegs-vanguard-harbinger": {
       "url": "/hangar/ships/aegs-vanguard-harbinger.glb",
-      "v": "7f9ab0a9",
+      "v": "fa948c93",
       "tris": 228835,
       "trisRaw": 610652,
       "textures": 278,
@@ -1335,7 +1350,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -1351,16 +1367,16 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 2489448,
+      "bytes": 2490420,
       "pool": {
         "images": 278,
         "bytes": 11025424,
-        "fresh": 414978
+        "fresh": 0
       }
     },
     "aegs-vanguard-hoplite": {
       "url": "/hangar/ships/aegs-vanguard-hoplite.glb",
-      "v": "e2e4f916",
+      "v": "c7cdb669",
       "tris": 213078,
       "trisRaw": 613607,
       "textures": 283,
@@ -1389,7 +1405,8 @@
           0,
           0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -1405,16 +1422,16 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2384340,
+      "bytes": 2385404,
       "pool": {
         "images": 283,
         "bytes": 10235308,
-        "fresh": 106524
+        "fresh": 0
       }
     },
     "aegs-vanguard-sentinel": {
       "url": "/hangar/ships/aegs-vanguard-sentinel.glb",
-      "v": "d4eaa99e",
+      "v": "a59f4529",
       "tris": 254461,
       "trisRaw": 638721,
       "textures": 315,
@@ -1444,6 +1461,7 @@
           0.002,
           0.002
         ],
+        "sink": 0,
         "why": "Aufstandspunkte weichen bis 0.022 m ab"
       },
       "budget": {
@@ -1460,16 +1478,16 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2819628,
+      "bytes": 2820876,
       "pool": {
         "images": 315,
         "bytes": 12282066,
-        "fresh": 421516
+        "fresh": 0
       }
     },
     "aegs-vanguard": {
       "url": "/hangar/ships/aegs-vanguard.glb",
-      "v": "772ac40b",
+      "v": "af0a8bcf",
       "tris": 227212,
       "trisRaw": 612070,
       "textures": 284,
@@ -1498,7 +1516,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -1514,16 +1533,16 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2549580,
+      "bytes": 2550688,
       "pool": {
         "images": 284,
         "bytes": 10215918,
-        "fresh": 509106
+        "fresh": 0
       }
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
-      "v": "85d62411",
+      "v": "e5219a0b",
       "tris": 196090,
       "trisRaw": 189516,
       "textures": 161,
@@ -1549,7 +1568,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -1565,7 +1585,7 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 1954536,
+      "bytes": 1955604,
       "pool": {
         "images": 161,
         "bytes": 6850894,
@@ -1574,7 +1594,7 @@
     },
     "anvl-asgard": {
       "url": "/hangar/ships/anvl-asgard.glb",
-      "v": "5c2c24ed",
+      "v": "1860166b",
       "tris": 505459,
       "trisRaw": 1273921,
       "textures": 312,
@@ -1596,15 +1616,16 @@
       "record": "ANVL_Asgard",
       "game": "12913470",
       "interiorDropped": 3,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
           -0.001,
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.929,
+        "why": "ein Teil steckt 93 cm im Boden"
       },
       "budget": {
         "tris": 200000,
@@ -1620,11 +1641,11 @@
         "bits": 21,
         "degenerate": 1
       },
-      "bytes": 5699936,
+      "bytes": 5701572,
       "pool": {
         "images": 312,
         "bytes": 13090782,
-        "fresh": 258200
+        "fresh": 0
       }
     },
     "anvl-ballista-dunestalker": {
@@ -1744,12 +1765,12 @@
       "pool": {
         "images": 129,
         "bytes": 6855750,
-        "fresh": 966606
+        "fresh": 0
       }
     },
     "anvl-c8-pisces": {
       "url": "/hangar/ships/anvl-c8-pisces.glb",
-      "v": "bf3e98fd",
+      "v": "c1db6b61",
       "tris": 184184,
       "trisRaw": 180361,
       "textures": 168,
@@ -1775,7 +1796,8 @@
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -1791,16 +1813,16 @@
         "bits": 20,
         "degenerate": 4.1
       },
-      "bytes": 1672256,
+      "bytes": 1673364,
       "pool": {
         "images": 168,
         "bytes": 7868188,
-        "fresh": 62332
+        "fresh": 0
       }
     },
     "anvl-c8r-pisces": {
       "url": "/hangar/ships/anvl-c8r-pisces.glb",
-      "v": "d5a8a0f7",
+      "v": "3bb917f8",
       "tris": 203869,
       "trisRaw": 237453,
       "textures": 237,
@@ -1826,7 +1848,8 @@
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -1842,16 +1865,16 @@
         "bits": 21,
         "degenerate": 3.8
       },
-      "bytes": 1916640,
+      "bytes": 1917916,
       "pool": {
         "images": 237,
         "bytes": 8981988,
-        "fresh": 981508
+        "fresh": 0
       }
     },
     "anvl-c8x-pisces-expedition": {
       "url": "/hangar/ships/anvl-c8x-pisces-expedition.glb",
-      "v": "5c26078c",
+      "v": "d9f6e54e",
       "tris": 206962,
       "trisRaw": 196680,
       "textures": 183,
@@ -1879,7 +1902,8 @@
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -1895,16 +1919,16 @@
         "bits": 20,
         "degenerate": 3.7
       },
-      "bytes": 1856868,
+      "bytes": 1857224,
       "pool": {
         "images": 183,
         "bytes": 7895694,
-        "fresh": 1979006
+        "fresh": 0
       }
     },
     "anvl-carrack-expedition": {
       "url": "/hangar/ships/anvl-carrack-expedition.glb",
-      "v": "18649494",
+      "v": "af221d16",
       "tris": 669525,
       "trisRaw": 2491249,
       "textures": 268,
@@ -1931,7 +1955,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.003
       },
       "budget": {
         "tris": 400000,
@@ -1947,16 +1972,16 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 6392092,
+      "bytes": 6394208,
       "pool": {
         "images": 268,
         "bytes": 11500700,
-        "fresh": 3388
+        "fresh": 0
       }
     },
     "anvl-carrack": {
       "url": "/hangar/ships/anvl-carrack.glb",
-      "v": "2565ba22",
+      "v": "eea63e98",
       "tris": 669509,
       "trisRaw": 2491249,
       "textures": 266,
@@ -1983,7 +2008,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.003
       },
       "budget": {
         "tris": 400000,
@@ -1999,11 +2025,11 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 6389616,
+      "bytes": 6391708,
       "pool": {
         "images": 266,
         "bytes": 11497312,
-        "fresh": 1875992
+        "fresh": 0
       }
     },
     "anvl-centurion": {
@@ -2048,12 +2074,12 @@
       "pool": {
         "images": 273,
         "bytes": 9297090,
-        "fresh": 19262
+        "fresh": 0
       }
     },
     "anvl-gladiator": {
       "url": "/hangar/ships/anvl-gladiator.glb",
-      "v": "b1eafce3",
+      "v": "61f24762",
       "tris": 206743,
       "trisRaw": 283452,
       "textures": 136,
@@ -2080,7 +2106,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.007
       },
       "budget": {
         "tris": 200000,
@@ -2096,16 +2123,16 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 2243788,
+      "bytes": 2244816,
       "pool": {
         "images": 136,
         "bytes": 5940954,
-        "fresh": 75830
+        "fresh": 0
       }
     },
     "anvl-hawk": {
       "url": "/hangar/ships/anvl-hawk.glb",
-      "v": "8745daf0",
+      "v": "14ca7bf3",
       "tris": 219276,
       "trisRaw": 396052,
       "textures": 143,
@@ -2152,7 +2179,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2310720,
+      "bytes": 2311888,
       "pool": {
         "images": 143,
         "bytes": 5746646,
@@ -2161,7 +2188,7 @@
     },
     "anvl-hornet-f7a-mk1": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk1.glb",
-      "v": "d35769b3",
+      "v": "7cf602d7",
       "tris": 212711,
       "trisRaw": 346209,
       "textures": 149,
@@ -2188,7 +2215,8 @@
           0,
           0.001,
           0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2204,16 +2232,16 @@
         "bits": 20,
         "degenerate": 1.2
       },
-      "bytes": 2308660,
+      "bytes": 2310636,
       "pool": {
         "images": 149,
         "bytes": 7866542,
-        "fresh": 213826
+        "fresh": 0
       }
     },
     "anvl-hornet-f7a-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk2.glb",
-      "v": "398501f5",
+      "v": "de449fa6",
       "tris": 213429,
       "trisRaw": 227066,
       "textures": 166,
@@ -2289,7 +2317,7 @@
         "bits": 18,
         "degenerate": 1.7
       },
-      "bytes": 1923912,
+      "bytes": 1925428,
       "pool": {
         "images": 166,
         "bytes": 8705146,
@@ -2298,7 +2326,7 @@
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "a4b78bf0",
+      "v": "47c692be",
       "tris": 203607,
       "trisRaw": 219205,
       "textures": 161,
@@ -2372,7 +2400,7 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1850532,
+      "bytes": 1852104,
       "pool": {
         "images": 161,
         "bytes": 8950396,
@@ -2381,7 +2409,7 @@
     },
     "anvl-hornet-f7c-wildfire": {
       "url": "/hangar/ships/anvl-hornet-f7c-wildfire.glb",
-      "v": "c01fff53",
+      "v": "224d3364",
       "tris": 214851,
       "trisRaw": 193705,
       "textures": 150,
@@ -2407,7 +2435,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2423,16 +2452,16 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 1908340,
+      "bytes": 1910776,
       "pool": {
         "images": 150,
         "bytes": 6827916,
-        "fresh": 122376
+        "fresh": 0
       }
     },
     "anvl-hornet-f7c": {
       "url": "/hangar/ships/anvl-hornet-f7c.glb",
-      "v": "18c89008",
+      "v": "2527b39c",
       "tris": 199630,
       "trisRaw": 203433,
       "textures": 134,
@@ -2506,16 +2535,16 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 1848184,
+      "bytes": 1850696,
       "pool": {
         "images": 134,
         "bytes": 6895950,
-        "fresh": 53808
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cm-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-heartseeker.glb",
-      "v": "013c8e8d",
+      "v": "cf1743a0",
       "tris": 205820,
       "trisRaw": 239081,
       "textures": 161,
@@ -2542,7 +2571,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.007
       },
       "budget": {
         "tris": 200000,
@@ -2558,11 +2588,11 @@
         "bits": 20,
         "degenerate": 3.9
       },
-      "bytes": 2013736,
+      "bytes": 2015500,
       "pool": {
         "images": 161,
         "bytes": 6821214,
-        "fresh": 56642
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cm-mk2-heartseeker": {
@@ -2651,7 +2681,7 @@
     },
     "anvl-hornet-f7cm-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2.glb",
-      "v": "c1843716",
+      "v": "7baa4a58",
       "tris": 217659,
       "trisRaw": 377198,
       "textures": 165,
@@ -2727,7 +2757,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2461220,
+      "bytes": 2462912,
       "pool": {
         "images": 165,
         "bytes": 8276960,
@@ -2736,7 +2766,7 @@
     },
     "anvl-hornet-f7cm": {
       "url": "/hangar/ships/anvl-hornet-f7cm.glb",
-      "v": "25fb80b3",
+      "v": "4e23d927",
       "tris": 212295,
       "trisRaw": 271164,
       "textures": 152,
@@ -2763,7 +2793,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.007
       },
       "budget": {
         "tris": 200000,
@@ -2779,16 +2810,16 @@
         "bits": 20,
         "degenerate": 3.5
       },
-      "bytes": 2123992,
+      "bytes": 2125996,
       "pool": {
         "images": 152,
         "bytes": 6731318,
-        "fresh": 85272
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cr-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cr-mk2.glb",
-      "v": "f2bb0a8f",
+      "v": "edac8537",
       "tris": 210779,
       "trisRaw": 247495,
       "textures": 152,
@@ -2862,7 +2893,7 @@
         "bits": 18,
         "degenerate": 1.9
       },
-      "bytes": 1953356,
+      "bytes": 1955124,
       "pool": {
         "images": 152,
         "bytes": 8336076,
@@ -2871,7 +2902,7 @@
     },
     "anvl-hornet-f7cr": {
       "url": "/hangar/ships/anvl-hornet-f7cr.glb",
-      "v": "3c798fb9",
+      "v": "440bbd3e",
       "tris": 191520,
       "trisRaw": 197084,
       "textures": 133,
@@ -2896,7 +2927,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2912,16 +2944,16 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 1746572,
+      "bytes": 1748388,
       "pool": {
         "images": 133,
         "bytes": 6342332,
-        "fresh": 67872
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cs-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cs-mk2.glb",
-      "v": "95633024",
+      "v": "4e928ec5",
       "tris": 205515,
       "trisRaw": 228045,
       "textures": 152,
@@ -2995,7 +3027,7 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1869328,
+      "bytes": 1871448,
       "pool": {
         "images": 152,
         "bytes": 8333440,
@@ -3004,7 +3036,7 @@
     },
     "anvl-hornet-f7cs": {
       "url": "/hangar/ships/anvl-hornet-f7cs.glb",
-      "v": "5241fd54",
+      "v": "15e47ae9",
       "tris": 175787,
       "trisRaw": 169443,
       "textures": 128,
@@ -3029,7 +3061,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -3045,7 +3078,7 @@
         "bits": 19,
         "degenerate": 2.3
       },
-      "bytes": 1620892,
+      "bytes": 1622752,
       "pool": {
         "images": 128,
         "bytes": 6267988,
@@ -3054,7 +3087,7 @@
     },
     "anvl-hurricane": {
       "url": "/hangar/ships/anvl-hurricane.glb",
-      "v": "9be0c1c2",
+      "v": "26dcca6f",
       "tris": 241344,
       "trisRaw": 424200,
       "textures": 163,
@@ -3080,7 +3113,8 @@
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -3096,16 +3130,16 @@
         "bits": 20,
         "degenerate": 4.9
       },
-      "bytes": 2700456,
+      "bytes": 2702156,
       "pool": {
         "images": 163,
         "bytes": 7278476,
-        "fresh": 3318
+        "fresh": 0
       }
     },
     "anvl-lightning-f8": {
       "url": "/hangar/ships/anvl-lightning-f8.glb",
-      "v": "953e2c1d",
+      "v": "a6b683d0",
       "tris": 213557,
       "trisRaw": 325847,
       "textures": 166,
@@ -3135,7 +3169,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -3151,16 +3186,16 @@
         "bits": 20,
         "degenerate": 1.9
       },
-      "bytes": 2239288,
+      "bytes": 2241052,
       "pool": {
         "images": 166,
         "bytes": 8299180,
-        "fresh": 471038
+        "fresh": 0
       }
     },
     "anvl-lightning-f8c-exec": {
       "url": "/hangar/ships/anvl-lightning-f8c-exec.glb",
-      "v": "e866d8d9",
+      "v": "669b83af",
       "tris": 216912,
       "trisRaw": 319412,
       "textures": 161,
@@ -3190,7 +3225,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -3206,7 +3242,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2339212,
+      "bytes": 2341128,
       "pool": {
         "images": 161,
         "bytes": 6953132,
@@ -3215,7 +3251,7 @@
     },
     "anvl-lightning-f8c": {
       "url": "/hangar/ships/anvl-lightning-f8c.glb",
-      "v": "0528e6bb",
+      "v": "1b387658",
       "tris": 216904,
       "trisRaw": 319412,
       "textures": 161,
@@ -3245,7 +3281,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -3261,16 +3298,16 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2338060,
+      "bytes": 2339452,
       "pool": {
         "images": 161,
         "bytes": 6953132,
-        "fresh": 92452
+        "fresh": 0
       }
     },
     "anvl-paladin": {
       "url": "/hangar/ships/anvl-paladin.glb",
-      "v": "4b391fb8",
+      "v": "5c5bcfa9",
       "tris": 650090,
       "trisRaw": 1651492,
       "textures": 247,
@@ -3296,6 +3333,7 @@
           -4.79,
           -4.79
         ],
+        "sink": -4.903,
         "why": "Aufstandspunkte weichen bis 4.790 m ab"
       },
       "budget": {
@@ -3312,16 +3350,16 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 6839184,
+      "bytes": 6840776,
       "pool": {
         "images": 247,
         "bytes": 9891418,
-        "fresh": 1921632
+        "fresh": 0
       }
     },
     "anvl-spartan": {
       "url": "/hangar/ships/anvl-spartan.glb",
-      "v": "b3c6bc37",
+      "v": "f1a77602",
       "tris": 210140,
       "trisRaw": 205094,
       "textures": 217,
@@ -3356,16 +3394,16 @@
         "bits": 18,
         "degenerate": 0.8
       },
-      "bytes": 1825120,
+      "bytes": 1826208,
       "pool": {
         "images": 217,
         "bytes": 7899558,
-        "fresh": 286850
+        "fresh": 0
       }
     },
     "anvl-terrapin-medic": {
       "url": "/hangar/ships/anvl-terrapin-medic.glb",
-      "v": "8dccbf4d",
+      "v": "bbac6d18",
       "tris": 256801,
       "trisRaw": 575783,
       "textures": 232,
@@ -3390,7 +3428,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -3406,16 +3445,16 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 3042688,
+      "bytes": 3045568,
       "pool": {
         "images": 232,
         "bytes": 9563622,
-        "fresh": 1938
+        "fresh": 0
       }
     },
     "anvl-terrapin": {
       "url": "/hangar/ships/anvl-terrapin.glb",
-      "v": "4c34dc7b",
+      "v": "5fe0e6bc",
       "tris": 263350,
       "trisRaw": 569382,
       "textures": 222,
@@ -3440,7 +3479,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -3456,16 +3496,16 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 3089956,
+      "bytes": 3091996,
       "pool": {
         "images": 222,
         "bytes": 9179920,
-        "fresh": 393628
+        "fresh": 0
       }
     },
     "anvl-valkyrie": {
       "url": "/hangar/ships/anvl-valkyrie.glb",
-      "v": "5ddd3b7c",
+      "v": "8bcc10b7",
       "tris": 354820,
       "trisRaw": 911931,
       "textures": 215,
@@ -3494,7 +3534,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -3510,16 +3551,16 @@
         "bits": 21,
         "degenerate": 1.2
       },
-      "bytes": 3611528,
+      "bytes": 3612872,
       "pool": {
         "images": 215,
         "bytes": 9772774,
-        "fresh": 269518
+        "fresh": 0
       }
     },
     "argo-atls-geo-collector-grad01": {
       "url": "/hangar/ships/argo-atls-geo-collector-grad01.glb",
-      "v": "cbe75f63",
+      "v": "bceddd89",
       "tris": 195239,
       "trisRaw": 187139,
       "textures": 93,
@@ -3552,7 +3593,7 @@
         "bits": 20,
         "degenerate": 0.5
       },
-      "bytes": 1648788,
+      "bytes": 1649700,
       "pool": {
         "images": 93,
         "bytes": 4027378,
@@ -3561,7 +3602,7 @@
     },
     "argo-atls-geo-collector-grad03": {
       "url": "/hangar/ships/argo-atls-geo-collector-grad03.glb",
-      "v": "0a0c99bd",
+      "v": "c3b53fae",
       "tris": 195239,
       "trisRaw": 187139,
       "textures": 93,
@@ -3594,7 +3635,7 @@
         "bits": 20,
         "degenerate": 0.5
       },
-      "bytes": 1648804,
+      "bytes": 1649704,
       "pool": {
         "images": 93,
         "bytes": 4027378,
@@ -3603,7 +3644,7 @@
     },
     "argo-atls-geo": {
       "url": "/hangar/ships/argo-atls-geo.glb",
-      "v": "06573e1a",
+      "v": "a3608705",
       "tris": 195239,
       "trisRaw": 187139,
       "textures": 93,
@@ -3636,16 +3677,16 @@
         "bits": 20,
         "degenerate": 0.5
       },
-      "bytes": 1648792,
+      "bytes": 1649576,
       "pool": {
         "images": 93,
         "bytes": 4027378,
-        "fresh": 869096
+        "fresh": 0
       }
     },
     "argo-atls": {
       "url": "/hangar/ships/argo-atls.glb",
-      "v": "6f7b015b",
+      "v": "c8739b87",
       "tris": 141960,
       "trisRaw": 137107,
       "textures": 42,
@@ -3678,16 +3719,16 @@
         "bits": 20,
         "degenerate": 0.4
       },
-      "bytes": 1226740,
+      "bytes": 1227024,
       "pool": {
         "images": 42,
         "bytes": 1982960,
-        "fresh": 375186
+        "fresh": 0
       }
     },
     "argo-csv-cargo": {
       "url": "/hangar/ships/argo-csv-cargo.glb",
-      "v": "ac67c922",
+      "v": "30ac609e",
       "tris": 202285,
       "trisRaw": 242789,
       "textures": 122,
@@ -3720,16 +3761,16 @@
         "bits": 17,
         "degenerate": 2
       },
-      "bytes": 1453456,
+      "bytes": 1454072,
       "pool": {
         "images": 122,
         "bytes": 4976866,
-        "fresh": 491608
+        "fresh": 0
       }
     },
     "argo-mole": {
       "url": "/hangar/ships/argo-mole.glb",
-      "v": "344dc9fe",
+      "v": "711bb277",
       "tris": 425713,
       "trisRaw": 1199248,
       "textures": 273,
@@ -3768,16 +3809,16 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 4595676,
+      "bytes": 4597824,
       "pool": {
         "images": 273,
         "bytes": 11601686,
-        "fresh": 170624
+        "fresh": 0
       }
     },
     "argo-moth": {
       "url": "/hangar/ships/argo-moth.glb",
-      "v": "4fcacaf9",
+      "v": "f8aadb16",
       "tris": 446875,
       "trisRaw": 1380489,
       "textures": 283,
@@ -3813,16 +3854,16 @@
         "bits": 21,
         "degenerate": 2.2
       },
-      "bytes": 4639740,
+      "bytes": 4642368,
       "pool": {
         "images": 283,
         "bytes": 11801778,
-        "fresh": 2326324
+        "fresh": 0
       }
     },
     "argo-mpuv-1t": {
       "url": "/hangar/ships/argo-mpuv-1t.glb",
-      "v": "d7fe6fc0",
+      "v": "f621574a",
       "tris": 196401,
       "trisRaw": 192629,
       "textures": 202,
@@ -3847,7 +3888,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.014
       },
       "budget": {
         "tris": 200000,
@@ -3863,16 +3905,16 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 1799720,
+      "bytes": 1800680,
       "pool": {
         "images": 202,
         "bytes": 8271878,
-        "fresh": 108122
+        "fresh": 0
       }
     },
     "argo-mpuv-transport": {
       "url": "/hangar/ships/argo-mpuv-transport.glb",
-      "v": "cc0cfd9e",
+      "v": "20876f19",
       "tris": 210526,
       "trisRaw": 202446,
       "textures": 162,
@@ -3894,7 +3936,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.014
       },
       "budget": {
         "tris": 200000,
@@ -3910,16 +3953,16 @@
         "bits": 19,
         "degenerate": 1.8
       },
-      "bytes": 1716624,
+      "bytes": 1717496,
       "pool": {
         "images": 162,
         "bytes": 7677214,
-        "fresh": 648068
+        "fresh": 0
       }
     },
     "argo-mpuv": {
       "url": "/hangar/ships/argo-mpuv.glb",
-      "v": "8982dc49",
+      "v": "8fb8aadb",
       "tris": 169954,
       "trisRaw": 170134,
       "textures": 135,
@@ -3941,7 +3984,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.015
       },
       "budget": {
         "tris": 200000,
@@ -3957,16 +4001,16 @@
         "bits": 19,
         "degenerate": 3.6
       },
-      "bytes": 1324708,
+      "bytes": 1325404,
       "pool": {
         "images": 135,
         "bytes": 6770344,
-        "fresh": 1396084
+        "fresh": 0
       }
     },
     "argo-raft": {
       "url": "/hangar/ships/argo-raft.glb",
-      "v": "bb95da1e",
+      "v": "a418d397",
       "tris": 326717,
       "trisRaw": 1072176,
       "textures": 234,
@@ -3992,7 +4036,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4008,16 +4053,16 @@
         "bits": 19,
         "degenerate": 1.5
       },
-      "bytes": 3145508,
+      "bytes": 3146496,
       "pool": {
         "images": 234,
         "bytes": 9351510,
-        "fresh": 239488
+        "fresh": 0
       }
     },
     "argo-srv": {
       "url": "/hangar/ships/argo-srv.glb",
-      "v": "f13906d9",
+      "v": "e6cd016b",
       "tris": 279811,
       "trisRaw": 1281854,
       "textures": 213,
@@ -4041,7 +4086,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4057,16 +4103,16 @@
         "bits": 22,
         "degenerate": 3.5
       },
-      "bytes": 2938380,
+      "bytes": 2939824,
       "pool": {
         "images": 213,
         "bytes": 8916332,
-        "fresh": 500678
+        "fresh": 0
       }
     },
     "banu-defender": {
       "url": "/hangar/ships/banu-defender.glb",
-      "v": "66017917",
+      "v": "129a4c5a",
       "tris": 223878,
       "trisRaw": 485430,
       "textures": 145,
@@ -4094,7 +4140,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4110,16 +4157,16 @@
         "bits": 21,
         "degenerate": 1.3
       },
-      "bytes": 2465384,
+      "bytes": 2466180,
       "pool": {
         "images": 145,
         "bytes": 6401230,
-        "fresh": 2974794
+        "fresh": 0
       }
     },
     "cnou-hoverquad": {
       "url": "/hangar/ships/cnou-hoverquad.glb",
-      "v": "1fad58d6",
+      "v": "36546122",
       "tris": 125032,
       "trisRaw": 127586,
       "textures": 100,
@@ -4142,6 +4189,7 @@
           0,
           0
         ],
+        "sink": -0.334,
         "why": "Aufstandspunkte weichen bis 0.148 m ab"
       },
       "budget": {
@@ -4158,16 +4206,16 @@
         "bits": 17,
         "degenerate": 4
       },
-      "bytes": 887360,
+      "bytes": 889716,
       "pool": {
         "images": 100,
         "bytes": 3183454,
-        "fresh": 14106
+        "fresh": 0
       }
     },
     "cnou-mustang-alpha-citizencon2018": {
       "url": "/hangar/ships/cnou-mustang-alpha-citizencon2018.glb",
-      "v": "e17c9e8f",
+      "v": "95847269",
       "tris": 200252,
       "trisRaw": 227781,
       "textures": 165,
@@ -4191,7 +4239,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4207,16 +4256,16 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 1975660,
+      "bytes": 1976816,
       "pool": {
         "images": 165,
         "bytes": 8200876,
-        "fresh": 173836
+        "fresh": 0
       }
     },
     "cnou-mustang-alpha": {
       "url": "/hangar/ships/cnou-mustang-alpha.glb",
-      "v": "46faca78",
+      "v": "b52893d2",
       "tris": 200252,
       "trisRaw": 227781,
       "textures": 161,
@@ -4240,7 +4289,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4248,7 +4298,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-alpha.json",
-        "v": "2f8b8967"
+        "v": "5c5cb446"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4256,16 +4306,16 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 1973560,
+      "bytes": 1975880,
       "pool": {
         "images": 161,
         "bytes": 7948670,
-        "fresh": 1900058
+        "fresh": 0
       }
     },
     "cnou-mustang-beta": {
       "url": "/hangar/ships/cnou-mustang-beta.glb",
-      "v": "8f0cb292",
+      "v": "26fdf9d2",
       "tris": 214568,
       "trisRaw": 239632,
       "textures": 197,
@@ -4289,7 +4339,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4297,7 +4348,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-beta.json",
-        "v": "84385f60"
+        "v": "84f7ece8"
       },
       "uv": {
         "rangeBefore": 793,
@@ -4305,16 +4356,16 @@
         "bits": 22,
         "degenerate": 1.9
       },
-      "bytes": 2109976,
+      "bytes": 2111580,
       "pool": {
         "images": 197,
         "bytes": 8440820,
-        "fresh": 61412
+        "fresh": 0
       }
     },
     "cnou-mustang-delta": {
       "url": "/hangar/ships/cnou-mustang-delta.glb",
-      "v": "9f286eac",
+      "v": "e7917a21",
       "tris": 202168,
       "trisRaw": 261607,
       "textures": 174,
@@ -4342,7 +4393,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4350,7 +4402,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-delta.json",
-        "v": "beea4821"
+        "v": "1caa49e9"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4358,16 +4410,16 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 1977540,
+      "bytes": 1979296,
       "pool": {
         "images": 174,
         "bytes": 8335258,
-        "fresh": 445638
+        "fresh": 0
       }
     },
     "cnou-mustang-gamma": {
       "url": "/hangar/ships/cnou-mustang-gamma.glb",
-      "v": "56222b57",
+      "v": "9c5f51d3",
       "tris": 204626,
       "trisRaw": 234246,
       "textures": 170,
@@ -4392,7 +4444,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4400,7 +4453,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-gamma.json",
-        "v": "6cc5ebb9"
+        "v": "d5707603"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4408,16 +4461,16 @@
         "bits": 21,
         "degenerate": 3.3
       },
-      "bytes": 1969564,
+      "bytes": 1972708,
       "pool": {
         "images": 170,
         "bytes": 8352670,
-        "fresh": 346504
+        "fresh": 0
       }
     },
     "cnou-mustang-omega": {
       "url": "/hangar/ships/cnou-mustang-omega.glb",
-      "v": "f53291e8",
+      "v": "41c90e7c",
       "tris": 204626,
       "trisRaw": 234246,
       "textures": 172,
@@ -4442,7 +4495,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4450,7 +4504,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-omega.json",
-        "v": "251c37c0"
+        "v": "9f7efae5"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4458,16 +4512,16 @@
         "bits": 21,
         "degenerate": 3.3
       },
-      "bytes": 1959472,
+      "bytes": 1961744,
       "pool": {
         "images": 172,
         "bytes": 8611822,
-        "fresh": 318972
+        "fresh": 0
       }
     },
     "cnou-nomad": {
       "url": "/hangar/ships/cnou-nomad.glb",
-      "v": "3984b550",
+      "v": "8b7fd6ec",
       "tris": 207021,
       "trisRaw": 266848,
       "textures": 328,
@@ -4505,16 +4559,16 @@
         "bits": 21,
         "degenerate": 2.6
       },
-      "bytes": 2379684,
+      "bytes": 2381452,
       "pool": {
         "images": 328,
         "bytes": 12698452,
-        "fresh": 3876124
+        "fresh": 0
       }
     },
     "crus-intrepid": {
       "url": "/hangar/ships/crus-intrepid.glb",
-      "v": "60334827",
+      "v": "4ba771d6",
       "tris": 385179,
       "trisRaw": 1225239,
       "textures": 287,
@@ -4538,7 +4592,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4554,16 +4609,16 @@
         "bits": 23,
         "degenerate": 2.2
       },
-      "bytes": 4923468,
+      "bytes": 4925408,
       "pool": {
         "images": 287,
         "bytes": 11765502,
-        "fresh": 1883378
+        "fresh": 0
       }
     },
     "crus-spirit-a1": {
       "url": "/hangar/ships/crus-spirit-a1.glb",
-      "v": "8261c124",
+      "v": "fe3b87b3",
       "tris": 536811,
       "trisRaw": 1279497,
       "textures": 274,
@@ -4590,7 +4645,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4606,16 +4662,16 @@
         "bits": 20,
         "degenerate": 4.2
       },
-      "bytes": 5293848,
+      "bytes": 5296060,
       "pool": {
         "images": 274,
         "bytes": 11245570,
-        "fresh": 478566
+        "fresh": 0
       }
     },
     "crus-spirit-c1": {
       "url": "/hangar/ships/crus-spirit-c1.glb",
-      "v": "d13949ec",
+      "v": "8c950f65",
       "tris": 402813,
       "trisRaw": 1050597,
       "textures": 256,
@@ -4642,7 +4698,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4658,16 +4715,16 @@
         "bits": 20,
         "degenerate": 3.3
       },
-      "bytes": 4092724,
+      "bytes": 4094880,
       "pool": {
         "images": 256,
         "bytes": 10364094,
-        "fresh": 2588
+        "fresh": 0
       }
     },
     "crus-star-runner": {
       "url": "/hangar/ships/crus-star-runner.glb",
-      "v": "b63b4560",
+      "v": "620816d3",
       "tris": 375172,
       "trisRaw": 1461130,
       "textures": 238,
@@ -4693,6 +4750,7 @@
           -5.695,
           0
         ],
+        "sink": -5.695,
         "why": "Aufstandspunkte weichen bis 5.695 m ab"
       },
       "budget": {
@@ -4709,16 +4767,16 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 3985400,
+      "bytes": 3987184,
       "pool": {
         "images": 238,
         "bytes": 11551418,
-        "fresh": 286830
+        "fresh": 0
       }
     },
     "crus-starfighter-inferno": {
       "url": "/hangar/ships/crus-starfighter-inferno.glb",
-      "v": "8a8b0be2",
+      "v": "4bbb1b04",
       "tris": 239028,
       "trisRaw": 344567,
       "textures": 226,
@@ -4742,7 +4800,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4758,16 +4817,16 @@
         "bits": 19,
         "degenerate": 2.9
       },
-      "bytes": 2512560,
+      "bytes": 2514880,
       "pool": {
         "images": 226,
         "bytes": 9304714,
-        "fresh": 600904
+        "fresh": 0
       }
     },
     "crus-starfighter-ion": {
       "url": "/hangar/ships/crus-starfighter-ion.glb",
-      "v": "45d6b328",
+      "v": "3abfbacf",
       "tris": 241893,
       "trisRaw": 346679,
       "textures": 225,
@@ -4791,7 +4850,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -4807,16 +4867,16 @@
         "bits": 19,
         "degenerate": 2.9
       },
-      "bytes": 2515744,
+      "bytes": 2518084,
       "pool": {
         "images": 225,
         "bytes": 9047218,
-        "fresh": 14126
+        "fresh": 0
       }
     },
     "crus-starlifter-a2": {
       "url": "/hangar/ships/crus-starlifter-a2.glb",
-      "v": "65449365",
+      "v": "817df4dd",
       "tris": 595031,
       "trisRaw": 1562658,
       "textures": 209,
@@ -4848,7 +4908,8 @@
           0.002,
           0,
           0
-        ]
+        ],
+        "sink": -0.005
       },
       "budget": {
         "tris": 400000,
@@ -4864,16 +4925,16 @@
         "bits": 22,
         "degenerate": 3.9
       },
-      "bytes": 5842144,
+      "bytes": 5843980,
       "pool": {
         "images": 209,
         "bytes": 8536326,
-        "fresh": 72650
+        "fresh": 0
       }
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "459655a3",
+      "v": "c6e084a0",
       "tris": 471460,
       "trisRaw": 1221469,
       "textures": 206,
@@ -4900,7 +4961,8 @@
           0.002,
           0,
           0
-        ]
+        ],
+        "sink": -0.005
       },
       "budget": {
         "tris": 400000,
@@ -4916,7 +4978,7 @@
         "bits": 22,
         "degenerate": 4
       },
-      "bytes": 4602400,
+      "bytes": 4604268,
       "pool": {
         "images": 206,
         "bytes": 9047078,
@@ -4925,7 +4987,7 @@
     },
     "crus-starlifter-m2": {
       "url": "/hangar/ships/crus-starlifter-m2.glb",
-      "v": "7ffc8be1",
+      "v": "74defc2c",
       "tris": 473837,
       "trisRaw": 1296598,
       "textures": 190,
@@ -4953,7 +5015,8 @@
           0.002,
           0,
           0
-        ]
+        ],
+        "sink": -0.005
       },
       "budget": {
         "tris": 400000,
@@ -4969,16 +5032,16 @@
         "bits": 22,
         "degenerate": 4.2
       },
-      "bytes": 4597484,
+      "bytes": 4599324,
       "pool": {
         "images": 190,
         "bytes": 8107936,
-        "fresh": 7898
+        "fresh": 0
       }
     },
     "drak-buccaneer": {
       "url": "/hangar/ships/drak-buccaneer.glb",
-      "v": "65ef6010",
+      "v": "95af01dc",
       "tris": 207635,
       "trisRaw": 250602,
       "textures": 180,
@@ -5017,16 +5080,16 @@
         "bits": 22,
         "degenerate": 0.7
       },
-      "bytes": 2181644,
+      "bytes": 2183084,
       "pool": {
         "images": 180,
         "bytes": 10059132,
-        "fresh": 716538
+        "fresh": 0
       }
     },
     "drak-caterpillar-pirate": {
       "url": "/hangar/ships/drak-caterpillar-pirate.glb",
-      "v": "f43aeb48",
+      "v": "6aa3c776",
       "tris": 837634,
       "trisRaw": 3390526,
       "textures": 368,
@@ -5111,7 +5174,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 8434896,
+      "bytes": 8437900,
       "pool": {
         "images": 368,
         "bytes": 18007562,
@@ -5120,7 +5183,7 @@
     },
     "drak-caterpillar": {
       "url": "/hangar/ships/drak-caterpillar.glb",
-      "v": "b1682372",
+      "v": "b1f9b48c",
       "tris": 837626,
       "trisRaw": 3209260,
       "textures": 370,
@@ -5205,7 +5268,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 8431364,
+      "bytes": 8434292,
       "pool": {
         "images": 370,
         "bytes": 18009104,
@@ -5214,7 +5277,7 @@
     },
     "drak-clipper": {
       "url": "/hangar/ships/drak-clipper.glb",
-      "v": "07b6d49f",
+      "v": "1cfe95e2",
       "tris": 496053,
       "trisRaw": 1360878,
       "textures": 294,
@@ -5241,7 +5304,8 @@
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.011
       },
       "budget": {
         "tris": 200000,
@@ -5257,16 +5321,16 @@
         "bits": 21,
         "degenerate": 1.1
       },
-      "bytes": 5748660,
+      "bytes": 5751164,
       "pool": {
         "images": 294,
         "bytes": 12613134,
-        "fresh": 228546
+        "fresh": 0
       }
     },
     "drak-corsair": {
       "url": "/hangar/ships/drak-corsair.glb",
-      "v": "0b99071c",
+      "v": "82989833",
       "tris": 723523,
       "trisRaw": 2694496,
       "textures": 273,
@@ -5298,6 +5362,7 @@
           -1.802,
           -1.802
         ],
+        "sink": -1.802,
         "why": "Aufstandspunkte weichen bis 1.802 m ab"
       },
       "budget": {
@@ -5314,16 +5379,16 @@
         "bits": 22,
         "degenerate": 2.6
       },
-      "bytes": 6868792,
+      "bytes": 6870432,
       "pool": {
         "images": 273,
         "bytes": 11106496,
-        "fresh": 1252600
+        "fresh": 0
       }
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "ea101ae5",
+      "v": "c0bf824f",
       "tris": 325165,
       "trisRaw": 749280,
       "textures": 239,
@@ -5352,7 +5417,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -5360,7 +5426,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-black.json",
-        "v": "26e04ef2"
+        "v": "35730d3c"
       },
       "uv": {
         "rangeBefore": 288,
@@ -5368,7 +5434,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 3702664,
+      "bytes": 3703844,
       "pool": {
         "images": 239,
         "bytes": 10726208,
@@ -5377,7 +5443,7 @@
     },
     "drak-cutlass-blue": {
       "url": "/hangar/ships/drak-cutlass-blue.glb",
-      "v": "5942d822",
+      "v": "f9fb5878",
       "tris": 377589,
       "trisRaw": 841018,
       "textures": 249,
@@ -5405,7 +5471,8 @@
           0,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -5413,7 +5480,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-blue.json",
-        "v": "016e3410"
+        "v": "cfab9c97"
       },
       "uv": {
         "rangeBefore": 288,
@@ -5421,16 +5488,16 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 4338976,
+      "bytes": 4340516,
       "pool": {
         "images": 249,
         "bytes": 11131228,
-        "fresh": 641146
+        "fresh": 0
       }
     },
     "drak-cutlass-red": {
       "url": "/hangar/ships/drak-cutlass-red.glb",
-      "v": "e92323ec",
+      "v": "88b0e80f",
       "tris": 259152,
       "trisRaw": 714774,
       "textures": 216,
@@ -5457,7 +5524,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -5473,16 +5541,16 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 2875784,
+      "bytes": 2876956,
       "pool": {
         "images": 216,
         "bytes": 10809922,
-        "fresh": 168268
+        "fresh": 0
       }
     },
     "drak-cutlass-steel": {
       "url": "/hangar/ships/drak-cutlass-steel.glb",
-      "v": "7af722ae",
+      "v": "13ae743e",
       "tris": 402513,
       "trisRaw": 766581,
       "textures": 233,
@@ -5510,7 +5578,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -5518,7 +5587,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-steel.json",
-        "v": "7466db6b"
+        "v": "600d70c1"
       },
       "uv": {
         "rangeBefore": 288,
@@ -5526,16 +5595,16 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 4207376,
+      "bytes": 4210188,
       "pool": {
         "images": 233,
         "bytes": 11222798,
-        "fresh": 692964
+        "fresh": 0
       }
     },
     "drak-cutter-rambler": {
       "url": "/hangar/ships/drak-cutter-rambler.glb",
-      "v": "7d2c4679",
+      "v": "9a57ae6f",
       "tris": 325722,
       "trisRaw": 750291,
       "textures": 263,
@@ -5560,7 +5629,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.002
       },
       "budget": {
         "tris": 200000,
@@ -5576,7 +5646,7 @@
         "bits": 20,
         "degenerate": 4.5
       },
-      "bytes": 3352184,
+      "bytes": 3356500,
       "pool": {
         "images": 263,
         "bytes": 11733500,
@@ -5585,7 +5655,7 @@
     },
     "drak-cutter-scout": {
       "url": "/hangar/ships/drak-cutter-scout.glb",
-      "v": "09312bd4",
+      "v": "28fc1131",
       "tris": 278701,
       "trisRaw": 747341,
       "textures": 214,
@@ -5610,7 +5680,8 @@
           0,
           0.001,
           0.001
-        ]
+        ],
+        "sink": -0.002
       },
       "budget": {
         "tris": 200000,
@@ -5626,16 +5697,16 @@
         "bits": 20,
         "degenerate": 5.4
       },
-      "bytes": 2846096,
+      "bytes": 2848844,
       "pool": {
         "images": 214,
         "bytes": 10280960,
-        "fresh": 142684
+        "fresh": 0
       }
     },
     "drak-cutter": {
       "url": "/hangar/ships/drak-cutter.glb",
-      "v": "135f50f5",
+      "v": "2516e65a",
       "tris": 303652,
       "trisRaw": 729650,
       "textures": 282,
@@ -5660,7 +5731,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.002
       },
       "budget": {
         "tris": 200000,
@@ -5676,16 +5748,16 @@
         "bits": 20,
         "degenerate": 4.7
       },
-      "bytes": 3163492,
+      "bytes": 3166328,
       "pool": {
         "images": 282,
         "bytes": 12489826,
-        "fresh": 616488
+        "fresh": 0
       }
     },
     "drak-dragonfly-yellow": {
       "url": "/hangar/ships/drak-dragonfly-yellow.glb",
-      "v": "1389b92c",
+      "v": "5ae6a7e4",
       "tris": 166292,
       "trisRaw": 155821,
       "textures": 117,
@@ -5721,16 +5793,16 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 1077240,
+      "bytes": 1077508,
       "pool": {
         "images": 117,
         "bytes": 5046556,
-        "fresh": 110042
+        "fresh": 0
       }
     },
     "drak-dragonfly": {
       "url": "/hangar/ships/drak-dragonfly.glb",
-      "v": "7ae80a93",
+      "v": "1c606313",
       "tris": 166292,
       "trisRaw": 155821,
       "textures": 114,
@@ -5766,16 +5838,16 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 1075368,
+      "bytes": 1075644,
       "pool": {
         "images": 114,
         "bytes": 4936514,
-        "fresh": 600044
+        "fresh": 0
       }
     },
     "drak-golem-ox": {
       "url": "/hangar/ships/drak-golem-ox.glb",
-      "v": "1718ccea",
+      "v": "a2a96394",
       "tris": 276468,
       "trisRaw": 478918,
       "textures": 248,
@@ -5801,7 +5873,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -5817,7 +5890,7 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 3364900,
+      "bytes": 3366092,
       "pool": {
         "images": 248,
         "bytes": 11468194,
@@ -5826,7 +5899,7 @@
     },
     "drak-golem": {
       "url": "/hangar/ships/drak-golem.glb",
-      "v": "51464d32",
+      "v": "e2d7888b",
       "tris": 349152,
       "trisRaw": 587232,
       "textures": 243,
@@ -5845,14 +5918,15 @@
       "record": "DRAK_Golem",
       "game": "12913470",
       "interiorDropped": 2,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.646,
+        "why": "ein Teil steckt 65 cm im Boden"
       },
       "budget": {
         "tris": 200000,
@@ -5868,16 +5942,16 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 3851728,
+      "bytes": 3852744,
       "pool": {
         "images": 243,
         "bytes": 11754238,
-        "fresh": 576748
+        "fresh": 0
       }
     },
     "drak-herald": {
       "url": "/hangar/ships/drak-herald.glb",
-      "v": "3ca1ec0a",
+      "v": "353f5177",
       "tris": 214500,
       "trisRaw": 403502,
       "textures": 182,
@@ -5903,7 +5977,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -5919,16 +5994,16 @@
         "bits": 20,
         "degenerate": 2
       },
-      "bytes": 2361764,
+      "bytes": 2362824,
       "pool": {
         "images": 182,
         "bytes": 8921712,
-        "fresh": 476526
+        "fresh": 0
       }
     },
     "drak-ironclad-assault": {
       "url": "/hangar/ships/drak-ironclad-assault.glb",
-      "v": "be071fc3",
+      "v": "90898184",
       "tris": 1199062,
       "trisRaw": 2912692,
       "textures": 433,
@@ -5971,7 +6046,7 @@
         "bits": 21,
         "degenerate": 4.3
       },
-      "bytes": 12255432,
+      "bytes": 12259476,
       "pool": {
         "images": 433,
         "bytes": 4060622,
@@ -5980,7 +6055,7 @@
     },
     "drak-ironclad": {
       "url": "/hangar/ships/drak-ironclad.glb",
-      "v": "4208ea27",
+      "v": "713a00e7",
       "tris": 1135056,
       "trisRaw": 2582548,
       "textures": 428,
@@ -6010,7 +6085,7 @@
       },
       "budget": {
         "tris": 400000,
-        "tex": 256,
+        "tex": 512,
         "q": 72
       },
       "paints": {
@@ -6023,16 +6098,16 @@
         "bits": 21,
         "degenerate": 4.2
       },
-      "bytes": 11539600,
+      "bytes": 11543440,
       "pool": {
         "images": 428,
-        "bytes": 4058328,
-        "fresh": 2621370
+        "bytes": 9788886,
+        "fresh": 4673692
       }
     },
     "drak-mule": {
       "url": "/hangar/ships/drak-mule.glb",
-      "v": "09cc162a",
+      "v": "4850951c",
       "tris": 206428,
       "trisRaw": 234218,
       "textures": 163,
@@ -6065,16 +6140,16 @@
         "bits": 19,
         "degenerate": 0.6
       },
-      "bytes": 1667528,
+      "bytes": 1668704,
       "pool": {
         "images": 163,
         "bytes": 6788828,
-        "fresh": 693766
+        "fresh": 0
       }
     },
     "drak-pitbull": {
       "url": "/hangar/ships/drak-pitbull.glb",
-      "v": "2b5af602",
+      "v": "b1f43e54",
       "tris": 254368,
       "trisRaw": 587415,
       "textures": 216,
@@ -6103,7 +6178,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -6119,16 +6195,16 @@
         "bits": 20,
         "degenerate": 1.4
       },
-      "bytes": 2878304,
+      "bytes": 2880888,
       "pool": {
         "images": 216,
         "bytes": 10262594,
-        "fresh": 1149334
+        "fresh": 0
       }
     },
     "drak-vulture": {
       "url": "/hangar/ships/drak-vulture.glb",
-      "v": "b7c57f39",
+      "v": "091bc0af",
       "tris": 383068,
       "trisRaw": 911110,
       "textures": 264,
@@ -6154,7 +6230,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -6170,16 +6247,16 @@
         "bits": 20,
         "degenerate": 1.4
       },
-      "bytes": 3748280,
+      "bytes": 3749904,
       "pool": {
         "images": 264,
         "bytes": 10334598,
-        "fresh": 1838314
+        "fresh": 0
       }
     },
     "espr-prowler-utility": {
       "url": "/hangar/ships/espr-prowler-utility.glb",
-      "v": "f09de746",
+      "v": "4e1d20a8",
       "tris": 454199,
       "trisRaw": 848149,
       "textures": 271,
@@ -6217,16 +6294,16 @@
         "bits": 22,
         "degenerate": 2
       },
-      "bytes": 5280640,
+      "bytes": 5283312,
       "pool": {
         "images": 271,
         "bytes": 11914688,
-        "fresh": 7378
+        "fresh": 0
       }
     },
     "espr-prowler": {
       "url": "/hangar/ships/espr-prowler.glb",
-      "v": "01fc32e2",
+      "v": "ea07bb74",
       "tris": 339675,
       "trisRaw": 697014,
       "textures": 234,
@@ -6272,7 +6349,7 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 3709272,
+      "bytes": 3711040,
       "pool": {
         "images": 234,
         "bytes": 10935778,
@@ -6281,7 +6358,7 @@
     },
     "espr-talon-shrike": {
       "url": "/hangar/ships/espr-talon-shrike.glb",
-      "v": "6e00c718",
+      "v": "83cc1354",
       "tris": 260930,
       "trisRaw": 301395,
       "textures": 236,
@@ -6357,11 +6434,11 @@
         "bits": 21,
         "degenerate": 1.2
       },
-      "bytes": 2876604,
+      "bytes": 2877960,
       "pool": {
         "images": 236,
         "bytes": 10270458,
-        "fresh": 18882
+        "fresh": 0
       }
     },
     "espr-talon": {
@@ -6451,7 +6528,7 @@
     },
     "gama-railen": {
       "url": "/hangar/ships/gama-railen.glb",
-      "v": "3abebea0",
+      "v": "c1f74f63",
       "tris": 432522,
       "trisRaw": 1668423,
       "textures": 248,
@@ -6500,7 +6577,7 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 4521236,
+      "bytes": 4523400,
       "pool": {
         "images": 248,
         "bytes": 12746750,
@@ -6509,7 +6586,7 @@
     },
     "gama-syulen": {
       "url": "/hangar/ships/gama-syulen.glb",
-      "v": "b1fbc98d",
+      "v": "6a3b3426",
       "tris": 284174,
       "trisRaw": 512001,
       "textures": 230,
@@ -6578,7 +6655,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2996768,
+      "bytes": 2998504,
       "pool": {
         "images": 230,
         "bytes": 10202968,
@@ -6587,7 +6664,7 @@
     },
     "gama-tyilui": {
       "url": "/hangar/ships/gama-tyilui.glb",
-      "v": "e3fd816e",
+      "v": "be52cfce",
       "tris": 466965,
       "trisRaw": 1878472,
       "textures": 261,
@@ -6637,7 +6714,7 @@
         "bits": 22,
         "degenerate": 1.9
       },
-      "bytes": 5222984,
+      "bytes": 5226020,
       "pool": {
         "images": 261,
         "bytes": 13581352,
@@ -6646,7 +6723,7 @@
     },
     "glsn-basher": {
       "url": "/hangar/ships/glsn-basher.glb",
-      "v": "7ee5c518",
+      "v": "3309448e",
       "tris": 242981,
       "trisRaw": 418864,
       "textures": 287,
@@ -6677,7 +6754,8 @@
           0,
           0.006,
           0.006
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -6693,16 +6771,16 @@
         "bits": 22,
         "degenerate": 1
       },
-      "bytes": 2990268,
+      "bytes": 2992976,
       "pool": {
         "images": 287,
         "bytes": 15206980,
-        "fresh": 4931604
+        "fresh": 0
       }
     },
     "glsn-shiv": {
       "url": "/hangar/ships/glsn-shiv.glb",
-      "v": "2ad2a0a8",
+      "v": "10ed093e",
       "tris": 377711,
       "trisRaw": 905526,
       "textures": 342,
@@ -6728,7 +6806,8 @@
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -6744,16 +6823,16 @@
         "bits": 19,
         "degenerate": 1.2
       },
-      "bytes": 4174220,
+      "bytes": 4176660,
       "pool": {
         "images": 342,
         "bytes": 17285720,
-        "fresh": 3335558
+        "fresh": 0
       }
     },
     "grin-mdc": {
       "url": "/hangar/ships/grin-mdc.glb",
-      "v": "cd71a043",
+      "v": "1af37445",
       "tris": 212855,
       "trisRaw": 245006,
       "textures": 199,
@@ -6786,16 +6865,16 @@
         "bits": 16,
         "degenerate": 1.2
       },
-      "bytes": 2111392,
+      "bytes": 2113472,
       "pool": {
         "images": 199,
         "bytes": 6846554,
-        "fresh": 875878
+        "fresh": 0
       }
     },
     "grin-mtc": {
       "url": "/hangar/ships/grin-mtc.glb",
-      "v": "1c6047f9",
+      "v": "33a5d7a0",
       "tris": 215255,
       "trisRaw": 294592,
       "textures": 207,
@@ -6830,11 +6909,11 @@
         "bits": 20,
         "degenerate": 1.2
       },
-      "bytes": 2598700,
+      "bytes": 2600188,
       "pool": {
         "images": 207,
         "bytes": 6856974,
-        "fresh": 35936
+        "fresh": 0
       }
     },
     "grin-ptv": {
@@ -6872,12 +6951,12 @@
       "pool": {
         "images": 29,
         "bytes": 1801510,
-        "fresh": 359514
+        "fresh": 0
       }
     },
     "grin-roc-ds": {
       "url": "/hangar/ships/grin-roc-ds.glb",
-      "v": "4e079cb9",
+      "v": "4044d236",
       "tris": 203670,
       "trisRaw": 230800,
       "textures": 73,
@@ -6912,16 +6991,16 @@
         "bits": 19,
         "degenerate": 1
       },
-      "bytes": 1503672,
+      "bytes": 1504100,
       "pool": {
         "images": 73,
         "bytes": 3858706,
-        "fresh": 16430
+        "fresh": 0
       }
     },
     "grin-roc": {
       "url": "/hangar/ships/grin-roc.glb",
-      "v": "3e0a9e0e",
+      "v": "29bef16e",
       "tris": 111972,
       "trisRaw": 114033,
       "textures": 66,
@@ -6956,16 +7035,16 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 862100,
+      "bytes": 862640,
       "pool": {
         "images": 66,
         "bytes": 3603034,
-        "fresh": 491650
+        "fresh": 0
       }
     },
     "grin-stv": {
       "url": "/hangar/ships/grin-stv.glb",
-      "v": "3dcb7ffb",
+      "v": "27b5fb7a",
       "tris": 146179,
       "trisRaw": 146215,
       "textures": 129,
@@ -6998,16 +7077,16 @@
         "bits": 18,
         "degenerate": 3.4
       },
-      "bytes": 1036492,
+      "bytes": 1038032,
       "pool": {
         "images": 129,
         "bytes": 4845870,
-        "fresh": 27514
+        "fresh": 0
       }
     },
     "grin-utv": {
       "url": "/hangar/ships/grin-utv.glb",
-      "v": "c6838ae3",
+      "v": "5d4e6e18",
       "tris": 205594,
       "trisRaw": 286472,
       "textures": 135,
@@ -7040,16 +7119,16 @@
         "bits": 21,
         "degenerate": 3.3
       },
-      "bytes": 1737944,
+      "bytes": 1739684,
       "pool": {
         "images": 135,
         "bytes": 4539414,
-        "fresh": 656146
+        "fresh": 0
       }
     },
     "krig-l21-wolf": {
       "url": "/hangar/ships/krig-l21-wolf.glb",
-      "v": "a5a60ae8",
+      "v": "328b03cb",
       "tris": 328726,
       "trisRaw": 531698,
       "textures": 222,
@@ -7074,7 +7153,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.15
       },
       "budget": {
         "tris": 200000,
@@ -7090,16 +7170,16 @@
         "bits": 19,
         "degenerate": 2.8
       },
-      "bytes": 3753344,
+      "bytes": 3755956,
       "pool": {
         "images": 222,
         "bytes": 10173664,
-        "fresh": 672890
+        "fresh": 0
       }
     },
     "krig-l22-alphawolf": {
       "url": "/hangar/ships/krig-l22-alphawolf.glb",
-      "v": "107548f8",
+      "v": "8412defb",
       "tris": 353956,
       "trisRaw": 571910,
       "textures": 222,
@@ -7124,7 +7204,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.15
       },
       "budget": {
         "tris": 200000,
@@ -7140,16 +7221,16 @@
         "bits": 19,
         "degenerate": 3.1
       },
-      "bytes": 4068876,
+      "bytes": 4070724,
       "pool": {
         "images": 222,
         "bytes": 10136622,
-        "fresh": 143402
+        "fresh": 0
       }
     },
     "krig-p52-merlin": {
       "url": "/hangar/ships/krig-p52-merlin.glb",
-      "v": "fa322b5e",
+      "v": "03aee038",
       "tris": 214558,
       "trisRaw": 277630,
       "textures": 125,
@@ -7224,7 +7305,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 1951872,
+      "bytes": 1953140,
       "pool": {
         "images": 125,
         "bytes": 4609418,
@@ -7233,7 +7314,7 @@
     },
     "krig-p72-archimedes-emerald": {
       "url": "/hangar/ships/krig-p72-archimedes-emerald.glb",
-      "v": "df839f16",
+      "v": "bbd688b7",
       "tris": 215944,
       "trisRaw": 342886,
       "textures": 124,
@@ -7258,7 +7339,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -7274,7 +7356,7 @@
         "bits": 20,
         "degenerate": 2.7
       },
-      "bytes": 1970580,
+      "bytes": 1971588,
       "pool": {
         "images": 124,
         "bytes": 4770452,
@@ -7283,7 +7365,7 @@
     },
     "krig-p72-archimedes": {
       "url": "/hangar/ships/krig-p72-archimedes.glb",
-      "v": "00fbfe73",
+      "v": "8c27db60",
       "tris": 215944,
       "trisRaw": 342886,
       "textures": 124,
@@ -7308,7 +7390,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -7324,16 +7407,16 @@
         "bits": 20,
         "degenerate": 2.7
       },
-      "bytes": 1970536,
+      "bytes": 1971716,
       "pool": {
         "images": 124,
         "bytes": 4770452,
-        "fresh": 215052
+        "fresh": 0
       }
     },
     "krig-s65-stingray": {
       "url": "/hangar/ships/krig-s65-stingray.glb",
-      "v": "3e510a62",
+      "v": "6d07de66",
       "tris": 285147,
       "trisRaw": 712668,
       "textures": 258,
@@ -7379,7 +7462,7 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 3298156,
+      "bytes": 3299588,
       "pool": {
         "images": 258,
         "bytes": 10753402,
@@ -7388,7 +7471,7 @@
     },
     "misc-fortune": {
       "url": "/hangar/ships/misc-fortune.glb",
-      "v": "c2fb7870",
+      "v": "2667fa2a",
       "tris": 320107,
       "trisRaw": 867196,
       "textures": 266,
@@ -7413,7 +7496,8 @@
           0.001,
           0,
           0
-        ]
+        ],
+        "sink": -0.004
       },
       "budget": {
         "tris": 200000,
@@ -7429,16 +7513,16 @@
         "bits": 20,
         "degenerate": 4.7
       },
-      "bytes": 3463468,
+      "bytes": 3466896,
       "pool": {
         "images": 266,
         "bytes": 10107310,
-        "fresh": 169464
+        "fresh": 0
       }
     },
     "misc-freelancer-dur": {
       "url": "/hangar/ships/misc-freelancer-dur.glb",
-      "v": "385409eb",
+      "v": "7c9ceba7",
       "tris": 243118,
       "trisRaw": 627880,
       "textures": 285,
@@ -7466,7 +7550,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -7482,16 +7567,16 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 2733316,
+      "bytes": 2734884,
       "pool": {
         "images": 285,
         "bytes": 9975900,
-        "fresh": 389136
+        "fresh": 0
       }
     },
     "misc-freelancer-max": {
       "url": "/hangar/ships/misc-freelancer-max.glb",
-      "v": "107962f1",
+      "v": "839e06e7",
       "tris": 231366,
       "trisRaw": 642584,
       "textures": 249,
@@ -7517,6 +7602,7 @@
           0.023,
           0.023
         ],
+        "sink": -0.001,
         "why": "Aufstandspunkte weichen bis 0.023 m ab"
       },
       "budget": {
@@ -7533,16 +7619,16 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 2561800,
+      "bytes": 2563272,
       "pool": {
         "images": 249,
         "bytes": 10539290,
-        "fresh": 304376
+        "fresh": 0
       }
     },
     "misc-freelancer-mis": {
       "url": "/hangar/ships/misc-freelancer-mis.glb",
-      "v": "f25e1d8e",
+      "v": "cb799986",
       "tris": 300094,
       "trisRaw": 702183,
       "textures": 243,
@@ -7570,7 +7656,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -7586,7 +7673,7 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 3094940,
+      "bytes": 3096544,
       "pool": {
         "images": 243,
         "bytes": 9999644,
@@ -7595,7 +7682,7 @@
     },
     "misc-freelancer": {
       "url": "/hangar/ships/misc-freelancer.glb",
-      "v": "f972fe20",
+      "v": "2b409aa5",
       "tris": 237515,
       "trisRaw": 651045,
       "textures": 252,
@@ -7623,7 +7710,8 @@
           0,
           -0.001,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -7639,7 +7727,7 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 2560964,
+      "bytes": 2562896,
       "pool": {
         "images": 252,
         "bytes": 10538882,
@@ -7648,7 +7736,7 @@
     },
     "misc-fury-lx": {
       "url": "/hangar/ships/misc-fury-lx.glb",
-      "v": "c031ed9d",
+      "v": "ac91b876",
       "tris": 209870,
       "trisRaw": 297863,
       "textures": 168,
@@ -7681,16 +7769,16 @@
         "bits": 17,
         "degenerate": 1.6
       },
-      "bytes": 1837912,
+      "bytes": 1838764,
       "pool": {
         "images": 168,
         "bytes": 7247812,
-        "fresh": 49598
+        "fresh": 0
       }
     },
     "misc-fury-miru": {
       "url": "/hangar/ships/misc-fury-miru.glb",
-      "v": "e0f5e9f7",
+      "v": "21b3e87c",
       "tris": 245779,
       "trisRaw": 304798,
       "textures": 175,
@@ -7723,16 +7811,16 @@
         "bits": 17,
         "degenerate": 1.7
       },
-      "bytes": 2213036,
+      "bytes": 2213996,
       "pool": {
         "images": 175,
         "bytes": 7789598,
-        "fresh": 27016
+        "fresh": 0
       }
     },
     "misc-fury": {
       "url": "/hangar/ships/misc-fury.glb",
-      "v": "2bd0d2fc",
+      "v": "7ae7a96f",
       "tris": 221423,
       "trisRaw": 367862,
       "textures": 194,
@@ -7770,16 +7858,16 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 2317220,
+      "bytes": 2318224,
       "pool": {
         "images": 194,
         "bytes": 8083376,
-        "fresh": 977998
+        "fresh": 0
       }
     },
     "misc-hull-a": {
       "url": "/hangar/ships/misc-hull-a.glb",
-      "v": "3d91f8b1",
+      "v": "11f78e40",
       "tris": 258673,
       "trisRaw": 530044,
       "textures": 247,
@@ -7804,6 +7892,7 @@
           0,
           -0.105
         ],
+        "sink": -0.152,
         "why": "Aufstandspunkte weichen bis 0.105 m ab"
       },
       "budget": {
@@ -7820,16 +7909,16 @@
         "bits": 20,
         "degenerate": 2
       },
-      "bytes": 2707176,
+      "bytes": 2709908,
       "pool": {
         "images": 247,
         "bytes": 11378070,
-        "fresh": 873854
+        "fresh": 0
       }
     },
     "misc-hull-b": {
       "url": "/hangar/ships/misc-hull-b.glb",
-      "v": "4eaf9ce0",
+      "v": "d9855751",
       "tris": 596718,
       "trisRaw": 1707443,
       "textures": 294,
@@ -7859,7 +7948,8 @@
           0.004,
           0.004,
           0.003
-        ]
+        ],
+        "sink": -0.143
       },
       "budget": {
         "tris": 400000,
@@ -7875,16 +7965,16 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 6324532,
+      "bytes": 6327644,
       "pool": {
         "images": 294,
         "bytes": 11713754,
-        "fresh": 88296
+        "fresh": 0
       }
     },
     "misc-hull-c": {
       "url": "/hangar/ships/misc-hull-c.glb",
-      "v": "a070b3cc",
+      "v": "26e2f8af",
       "tris": 518501,
       "trisRaw": 1409380,
       "textures": 282,
@@ -7925,16 +8015,16 @@
         "bits": 22,
         "degenerate": 1.6
       },
-      "bytes": 4937504,
+      "bytes": 4939320,
       "pool": {
         "images": 282,
         "bytes": 11043158,
-        "fresh": 1078904
+        "fresh": 0
       }
     },
     "misc-prospector": {
       "url": "/hangar/ships/misc-prospector.glb",
-      "v": "58c8f40f",
+      "v": "ad8946bf",
       "tris": 218815,
       "trisRaw": 384742,
       "textures": 206,
@@ -7960,7 +8050,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.002
       },
       "budget": {
         "tris": 200000,
@@ -7976,16 +8067,16 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 2453268,
+      "bytes": 2455312,
       "pool": {
         "images": 206,
         "bytes": 9656334,
-        "fresh": 3967048
+        "fresh": 0
       }
     },
     "misc-razor-ex": {
       "url": "/hangar/ships/misc-razor-ex.glb",
-      "v": "55714cf3",
+      "v": "4d547144",
       "tris": 206315,
       "trisRaw": 212073,
       "textures": 183,
@@ -8010,7 +8101,8 @@
           0,
           0.001,
           0.001
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8026,16 +8118,16 @@
         "bits": 15,
         "degenerate": 1
       },
-      "bytes": 1520396,
+      "bytes": 1521240,
       "pool": {
         "images": 183,
         "bytes": 7467640,
-        "fresh": 173736
+        "fresh": 0
       }
     },
     "misc-razor-lx": {
       "url": "/hangar/ships/misc-razor-lx.glb",
-      "v": "cad2a000",
+      "v": "f86e0851",
       "tris": 204188,
       "trisRaw": 220410,
       "textures": 189,
@@ -8060,7 +8152,8 @@
           0,
           0.001,
           0.001
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8076,7 +8169,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1700248,
+      "bytes": 1701732,
       "pool": {
         "images": 189,
         "bytes": 7926508,
@@ -8085,7 +8178,7 @@
     },
     "misc-razor": {
       "url": "/hangar/ships/misc-razor.glb",
-      "v": "c0ed7944",
+      "v": "a210da13",
       "tris": 204180,
       "trisRaw": 220410,
       "textures": 188,
@@ -8110,7 +8203,8 @@
           0,
           0.001,
           0.001
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8126,16 +8220,16 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1699716,
+      "bytes": 1700560,
       "pool": {
         "images": 188,
         "bytes": 7777120,
-        "fresh": 404520
+        "fresh": 0
       }
     },
     "misc-reliant-mako": {
       "url": "/hangar/ships/misc-reliant-mako.glb",
-      "v": "66ed210f",
+      "v": "272cd8e3",
       "tris": 207519,
       "trisRaw": 342398,
       "textures": 205,
@@ -8161,7 +8255,8 @@
           0,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -8177,16 +8272,16 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 2167496,
+      "bytes": 2168688,
       "pool": {
         "images": 205,
         "bytes": 8852308,
-        "fresh": 7134
+        "fresh": 0
       }
     },
     "misc-reliant-sen": {
       "url": "/hangar/ships/misc-reliant-sen.glb",
-      "v": "a856b52d",
+      "v": "9c9e870a",
       "tris": 209408,
       "trisRaw": 358216,
       "textures": 206,
@@ -8212,7 +8307,8 @@
           0,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -8228,16 +8324,16 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 2210072,
+      "bytes": 2211268,
       "pool": {
         "images": 206,
         "bytes": 8944314,
-        "fresh": 41074
+        "fresh": 0
       }
     },
     "misc-reliant-tana": {
       "url": "/hangar/ships/misc-reliant-tana.glb",
-      "v": "a1f670c4",
+      "v": "019cba96",
       "tris": 215421,
       "trisRaw": 372314,
       "textures": 214,
@@ -8265,7 +8361,8 @@
           0.007,
           0,
           0.013
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8281,16 +8378,16 @@
         "bits": 20,
         "degenerate": 1.2
       },
-      "bytes": 2475432,
+      "bytes": 2476484,
       "pool": {
         "images": 214,
         "bytes": 9217866,
-        "fresh": 187272
+        "fresh": 0
       }
     },
     "misc-reliant": {
       "url": "/hangar/ships/misc-reliant.glb",
-      "v": "87550901",
+      "v": "6d7ab8c7",
       "tris": 207711,
       "trisRaw": 355874,
       "textures": 221,
@@ -8318,7 +8415,8 @@
           0,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -8334,16 +8432,16 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 2247852,
+      "bytes": 2249252,
       "pool": {
         "images": 221,
         "bytes": 9070138,
-        "fresh": 473578
+        "fresh": 0
       }
     },
     "misc-starfarer-gemini": {
       "url": "/hangar/ships/misc-starfarer-gemini.glb",
-      "v": "c8a8c059",
+      "v": "f8a76602",
       "tris": 531424,
       "trisRaw": 1323996,
       "textures": 245,
@@ -8372,6 +8470,7 @@
           -3.43,
           0.001
         ],
+        "sink": -3.429,
         "why": "Aufstandspunkte weichen bis 3.430 m ab"
       },
       "budget": {
@@ -8388,16 +8487,16 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 5546804,
+      "bytes": 5549856,
       "pool": {
         "images": 245,
         "bytes": 13715206,
-        "fresh": 6404
+        "fresh": 0
       }
     },
     "misc-starfarer": {
       "url": "/hangar/ships/misc-starfarer.glb",
-      "v": "18891fb4",
+      "v": "acfa060b",
       "tris": 491944,
       "trisRaw": 1300946,
       "textures": 234,
@@ -8426,6 +8525,7 @@
           -3.43,
           0.001
         ],
+        "sink": -3.429,
         "why": "Aufstandspunkte weichen bis 3.430 m ab"
       },
       "budget": {
@@ -8442,16 +8542,16 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 5109432,
+      "bytes": 5112520,
       "pool": {
         "images": 234,
         "bytes": 12468116,
-        "fresh": 662074
+        "fresh": 0
       }
     },
     "misc-starlancer-max": {
       "url": "/hangar/ships/misc-starlancer-max.glb",
-      "v": "d129c661",
+      "v": "f850befe",
       "tris": 730904,
       "trisRaw": 2837594,
       "textures": 242,
@@ -8495,7 +8595,7 @@
         "bits": 23,
         "degenerate": 2.1
       },
-      "bytes": 7504892,
+      "bytes": 7508944,
       "pool": {
         "images": 242,
         "bytes": 10802720,
@@ -8504,7 +8604,7 @@
     },
     "misc-starlancer-tac": {
       "url": "/hangar/ships/misc-starlancer-tac.glb",
-      "v": "f074af61",
+      "v": "b8dcb080",
       "tris": 906529,
       "trisRaw": 3283014,
       "textures": 272,
@@ -8550,7 +8650,7 @@
         "bits": 23,
         "degenerate": 1.9
       },
-      "bytes": 9565536,
+      "bytes": 9569452,
       "pool": {
         "images": 272,
         "bytes": 10702724,
@@ -8559,7 +8659,7 @@
     },
     "misc-starlite": {
       "url": "/hangar/ships/misc-starlite.glb",
-      "v": "eb033d40",
+      "v": "7819e752",
       "tris": 402035,
       "trisRaw": 1090312,
       "textures": 262,
@@ -8585,7 +8685,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8601,16 +8702,16 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 4264680,
+      "bytes": 4267800,
       "pool": {
         "images": 262,
         "bytes": 11289472,
-        "fresh": 237822
+        "fresh": 0
       }
     },
     "mrai-guardian-mx": {
       "url": "/hangar/ships/mrai-guardian-mx.glb",
-      "v": "2276b28f",
+      "v": "3fd56d97",
       "tris": 643659,
       "trisRaw": 1635482,
       "textures": 271,
@@ -8655,7 +8756,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 6975524,
+      "bytes": 6977972,
       "pool": {
         "images": 271,
         "bytes": 10651584,
@@ -8664,7 +8765,7 @@
     },
     "mrai-guardian-qi": {
       "url": "/hangar/ships/mrai-guardian-qi.glb",
-      "v": "a163b41f",
+      "v": "98c28480",
       "tris": 491373,
       "trisRaw": 1503226,
       "textures": 279,
@@ -8690,6 +8791,7 @@
           -0.755,
           -0.758
         ],
+        "sink": -0.845,
         "why": "Aufstandspunkte weichen bis 0.758 m ab"
       },
       "budget": {
@@ -8706,7 +8808,7 @@
         "bits": 22,
         "degenerate": 1.2
       },
-      "bytes": 5604996,
+      "bytes": 5607264,
       "pool": {
         "images": 279,
         "bytes": 11316056,
@@ -8715,7 +8817,7 @@
     },
     "mrai-guardian": {
       "url": "/hangar/ships/mrai-guardian.glb",
-      "v": "2a033ba5",
+      "v": "3a5400d3",
       "tris": 525726,
       "trisRaw": 1496710,
       "textures": 276,
@@ -8741,6 +8843,7 @@
           -0.754,
           -0.757
         ],
+        "sink": -0.845,
         "why": "Aufstandspunkte weichen bis 0.757 m ab"
       },
       "budget": {
@@ -8757,16 +8860,16 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 6026840,
+      "bytes": 6029180,
       "pool": {
         "images": 276,
         "bytes": 11238904,
-        "fresh": 1289848
+        "fresh": 0
       }
     },
     "mrai-pulse-lx": {
       "url": "/hangar/ships/mrai-pulse-lx.glb",
-      "v": "e3233023",
+      "v": "d14645d0",
       "tris": 118118,
       "trisRaw": 122483,
       "textures": 156,
@@ -8799,16 +8902,16 @@
         "bits": 18,
         "degenerate": 1.5
       },
-      "bytes": 954140,
+      "bytes": 956364,
       "pool": {
         "images": 156,
         "bytes": 5309714,
-        "fresh": 460822
+        "fresh": 0
       }
     },
     "mrai-pulse": {
       "url": "/hangar/ships/mrai-pulse.glb",
-      "v": "52046ae6",
+      "v": "2c71a4fb",
       "tris": 118978,
       "trisRaw": 123343,
       "textures": 141,
@@ -8843,16 +8946,16 @@
         "bits": 18,
         "degenerate": 0.9
       },
-      "bytes": 945220,
+      "bytes": 947140,
       "pool": {
         "images": 141,
         "bytes": 4565432,
-        "fresh": 1275536
+        "fresh": 0
       }
     },
     "orig-100i": {
       "url": "/hangar/ships/orig-100i.glb",
-      "v": "1b4dc02a",
+      "v": "c0ee41a0",
       "tris": 210220,
       "trisRaw": 243042,
       "textures": 241,
@@ -8877,7 +8980,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8893,16 +8997,16 @@
         "bits": 21,
         "degenerate": 2.1
       },
-      "bytes": 1885452,
+      "bytes": 1886660,
       "pool": {
         "images": 241,
         "bytes": 9291668,
-        "fresh": 514722
+        "fresh": 0
       }
     },
     "orig-125a": {
       "url": "/hangar/ships/orig-125a.glb",
-      "v": "5325dc1c",
+      "v": "4f349ba3",
       "tris": 217091,
       "trisRaw": 250750,
       "textures": 239,
@@ -8927,7 +9031,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8943,16 +9048,16 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 1988392,
+      "bytes": 1989452,
       "pool": {
         "images": 239,
         "bytes": 9494436,
-        "fresh": 118644
+        "fresh": 0
       }
     },
     "orig-135c": {
       "url": "/hangar/ships/orig-135c.glb",
-      "v": "fe89994e",
+      "v": "97c9031a",
       "tris": 216048,
       "trisRaw": 259139,
       "textures": 236,
@@ -8977,7 +9082,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -8993,11 +9099,11 @@
         "bits": 21,
         "degenerate": 2.2
       },
-      "bytes": 1942888,
+      "bytes": 1943944,
       "pool": {
         "images": 236,
         "bytes": 9312148,
-        "fresh": 3900
+        "fresh": 0
       }
     },
     "orig-300i": {
@@ -9077,7 +9183,7 @@
       "pool": {
         "images": 164,
         "bytes": 6194730,
-        "fresh": 102534
+        "fresh": 0
       }
     },
     "orig-315p": {
@@ -9317,12 +9423,12 @@
       "pool": {
         "images": 138,
         "bytes": 5665224,
-        "fresh": 15588
+        "fresh": 0
       }
     },
     "orig-400i": {
       "url": "/hangar/ships/orig-400i.glb",
-      "v": "31003d0d",
+      "v": "b102b22f",
       "tris": 355435,
       "trisRaw": 807523,
       "textures": 242,
@@ -9349,7 +9455,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -9365,16 +9472,16 @@
         "bits": 24,
         "degenerate": 1.9
       },
-      "bytes": 3994404,
+      "bytes": 3994832,
       "pool": {
         "images": 242,
         "bytes": 11352682,
-        "fresh": 3223054
+        "fresh": 0
       }
     },
     "orig-600i-bis2951": {
       "url": "/hangar/ships/orig-600i-bis2951.glb",
-      "v": "dd9fbcc6",
+      "v": "98118728",
       "tris": 420408,
       "trisRaw": 1388430,
       "textures": 170,
@@ -9419,7 +9526,7 @@
         "bits": 22,
         "degenerate": 2.9
       },
-      "bytes": 3706176,
+      "bytes": 3707536,
       "pool": {
         "images": 170,
         "bytes": 8116794,
@@ -9428,7 +9535,7 @@
     },
     "orig-600i-touring": {
       "url": "/hangar/ships/orig-600i-touring.glb",
-      "v": "62913d01",
+      "v": "9886c168",
       "tris": 416156,
       "trisRaw": 1249006,
       "textures": 161,
@@ -9456,7 +9563,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -9472,7 +9580,7 @@
         "bits": 22,
         "degenerate": 2.9
       },
-      "bytes": 3576116,
+      "bytes": 3577320,
       "pool": {
         "images": 161,
         "bytes": 7584998,
@@ -9481,7 +9589,7 @@
     },
     "orig-600i": {
       "url": "/hangar/ships/orig-600i.glb",
-      "v": "76e259f2",
+      "v": "8a7e4619",
       "tris": 420408,
       "trisRaw": 1388430,
       "textures": 171,
@@ -9509,7 +9617,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 400000,
@@ -9525,11 +9634,11 @@
         "bits": 22,
         "degenerate": 2.9
       },
-      "bytes": 3706332,
+      "bytes": 3707536,
       "pool": {
         "images": 171,
         "bytes": 8119602,
-        "fresh": 992076
+        "fresh": 0
       }
     },
     "orig-85x": {
@@ -9571,7 +9680,7 @@
       "pool": {
         "images": 114,
         "bytes": 5107072,
-        "fresh": 265250
+        "fresh": 0
       }
     },
     "orig-890jump": {
@@ -9618,12 +9727,12 @@
       "pool": {
         "images": 255,
         "bytes": 11482540,
-        "fresh": 1038736
+        "fresh": 0
       }
     },
     "orig-m50": {
       "url": "/hangar/ships/orig-m50.glb",
-      "v": "06ca5472",
+      "v": "ab661818",
       "tris": 216412,
       "trisRaw": 211774,
       "textures": 142,
@@ -9697,7 +9806,7 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 1822488,
+      "bytes": 1823964,
       "pool": {
         "images": 142,
         "bytes": 6240298,
@@ -9706,7 +9815,7 @@
     },
     "orig-m80": {
       "url": "/hangar/ships/orig-m80.glb",
-      "v": "4ec7ad04",
+      "v": "739485bf",
       "tris": 343808,
       "trisRaw": 771119,
       "textures": 273,
@@ -9733,7 +9842,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.003
       },
       "budget": {
         "tris": 200000,
@@ -9749,7 +9859,7 @@
         "bits": 22,
         "degenerate": 2.3
       },
-      "bytes": 4187796,
+      "bytes": 4190664,
       "pool": {
         "images": 273,
         "bytes": 11627920,
@@ -9758,7 +9868,7 @@
     },
     "orig-x1-force": {
       "url": "/hangar/ships/orig-x1-force.glb",
-      "v": "215cdb1b",
+      "v": "2c261de2",
       "tris": 200348,
       "trisRaw": 220801,
       "textures": 176,
@@ -9768,8 +9878,8 @@
       },
       "swapNodes": 8,
       "palette": {
-        "1": 9,
-        "2": 6,
+        "1": 13,
+        "2": 7,
         "3": 2
       },
       "record": "ORIG_X1_Force",
@@ -9793,7 +9903,7 @@
         "bits": 20,
         "degenerate": 3.7
       },
-      "bytes": 1498968,
+      "bytes": 1512660,
       "pool": {
         "images": 176,
         "bytes": 7724202,
@@ -9802,7 +9912,7 @@
     },
     "orig-x1-velocity": {
       "url": "/hangar/ships/orig-x1-velocity.glb",
-      "v": "bdcffe39",
+      "v": "9edb7bae",
       "tris": 186372,
       "trisRaw": 186074,
       "textures": 149,
@@ -9810,8 +9920,8 @@
       "swap": {},
       "swapNodes": 0,
       "palette": {
-        "1": 6,
-        "2": 7,
+        "1": 11,
+        "2": 8,
         "3": 4
       },
       "record": "ORIG_X1_Velocity",
@@ -9835,7 +9945,7 @@
         "bits": 18,
         "degenerate": 2.5
       },
-      "bytes": 1281980,
+      "bytes": 1296748,
       "pool": {
         "images": 149,
         "bytes": 7178080,
@@ -9883,12 +9993,12 @@
       "pool": {
         "images": 166,
         "bytes": 8235092,
-        "fresh": 1587510
+        "fresh": 0
       }
     },
     "rsi-apollo-medivac": {
       "url": "/hangar/ships/rsi-apollo-medivac.glb",
-      "v": "294ed60b",
+      "v": "d4543636",
       "tris": 700095,
       "trisRaw": 1637569,
       "textures": 309,
@@ -9928,7 +10038,7 @@
         "bits": 20,
         "degenerate": 2.8
       },
-      "bytes": 7441880,
+      "bytes": 7443000,
       "pool": {
         "images": 309,
         "bytes": 14514844,
@@ -9937,7 +10047,7 @@
     },
     "rsi-apollo-triage": {
       "url": "/hangar/ships/rsi-apollo-triage.glb",
-      "v": "fb20d417",
+      "v": "02ebf0f3",
       "tris": 675360,
       "trisRaw": 1656589,
       "textures": 303,
@@ -9977,7 +10087,7 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 7155180,
+      "bytes": 7156312,
       "pool": {
         "images": 303,
         "bytes": 15360812,
@@ -9986,7 +10096,7 @@
     },
     "rsi-aurora-gs-cl": {
       "url": "/hangar/ships/rsi-aurora-gs-cl.glb",
-      "v": "d3f0e96b",
+      "v": "817ce8da",
       "tris": 210288,
       "trisRaw": 354774,
       "textures": 231,
@@ -10011,7 +10121,8 @@
           0,
           0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -10027,16 +10138,16 @@
         "bits": 20,
         "degenerate": 3.2
       },
-      "bytes": 2295404,
+      "bytes": 2297764,
       "pool": {
         "images": 231,
         "bytes": 11050972,
-        "fresh": 804408
+        "fresh": 0
       }
     },
     "rsi-aurora-gs-es": {
       "url": "/hangar/ships/rsi-aurora-gs-es.glb",
-      "v": "2d845521",
+      "v": "ddd643c2",
       "tris": 209416,
       "trisRaw": 336284,
       "textures": 231,
@@ -10061,7 +10172,8 @@
           0,
           0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -10077,16 +10189,16 @@
         "bits": 19,
         "degenerate": 2.7
       },
-      "bytes": 2322412,
+      "bytes": 2324876,
       "pool": {
         "images": 231,
         "bytes": 10975916,
-        "fresh": 238666
+        "fresh": 0
       }
     },
     "rsi-aurora-gs-ln": {
       "url": "/hangar/ships/rsi-aurora-gs-ln.glb",
-      "v": "04459c66",
+      "v": "036ff16b",
       "tris": 211738,
       "trisRaw": 396661,
       "textures": 228,
@@ -10113,7 +10225,8 @@
           0,
           0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -10129,16 +10242,16 @@
         "bits": 20,
         "degenerate": 3.2
       },
-      "bytes": 2323840,
+      "bytes": 2326152,
       "pool": {
         "images": 228,
         "bytes": 11048540,
-        "fresh": 94120
+        "fresh": 0
       }
     },
     "rsi-aurora-gs-lx": {
       "url": "/hangar/ships/rsi-aurora-gs-lx.glb",
-      "v": "8ddc40b9",
+      "v": "971370a1",
       "tris": 211136,
       "trisRaw": 352471,
       "textures": 244,
@@ -10163,7 +10276,8 @@
           0,
           0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -10179,16 +10293,16 @@
         "bits": 20,
         "degenerate": 3.2
       },
-      "bytes": 2293916,
+      "bytes": 2296396,
       "pool": {
         "images": 244,
         "bytes": 11058760,
-        "fresh": 1154
+        "fresh": 0
       }
     },
     "rsi-aurora-gs-mr": {
       "url": "/hangar/ships/rsi-aurora-gs-mr.glb",
-      "v": "038d8e62",
+      "v": "7c187b2f",
       "tris": 210212,
       "trisRaw": 354323,
       "textures": 234,
@@ -10213,7 +10327,8 @@
           0,
           0.001,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -10229,7 +10344,7 @@
         "bits": 20,
         "degenerate": 3.3
       },
-      "bytes": 2297996,
+      "bytes": 2300072,
       "pool": {
         "images": 234,
         "bytes": 11497578,
@@ -10238,7 +10353,7 @@
     },
     "rsi-aurora-gs-se": {
       "url": "/hangar/ships/rsi-aurora-gs-se.glb",
-      "v": "9b31b2c0",
+      "v": "5df75a01",
       "tris": 215023,
       "trisRaw": 401029,
       "textures": 226,
@@ -10265,7 +10380,8 @@
           0,
           0,
           -0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -10281,16 +10397,16 @@
         "bits": 20,
         "degenerate": 3.1
       },
-      "bytes": 2362396,
+      "bytes": 2365020,
       "pool": {
         "images": 226,
         "bytes": 10718108,
-        "fresh": 36770
+        "fresh": 0
       }
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
-      "v": "4c9daddd",
+      "v": "f1eeb3a1",
       "tris": 442325,
       "trisRaw": 1319916,
       "textures": 287,
@@ -10317,7 +10433,8 @@
           0.003,
           0,
           0
-        ]
+        ],
+        "sink": -0.003
       },
       "budget": {
         "tris": 200000,
@@ -10333,7 +10450,7 @@
         "bits": 22,
         "degenerate": 3.4
       },
-      "bytes": 5275264,
+      "bytes": 5279088,
       "pool": {
         "images": 287,
         "bytes": 13885076,
@@ -10342,7 +10459,7 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "07062f1a",
+      "v": "adfdcaef",
       "tris": 824772,
       "trisRaw": 1960624,
       "textures": 331,
@@ -10425,7 +10542,7 @@
         "bits": 21,
         "degenerate": 2.7
       },
-      "bytes": 8572804,
+      "bytes": 8575444,
       "pool": {
         "images": 331,
         "bytes": 14771424,
@@ -10434,7 +10551,7 @@
     },
     "rsi-constellation-aquila": {
       "url": "/hangar/ships/rsi-constellation-aquila.glb",
-      "v": "c27ce03e",
+      "v": "0e4e5fea",
       "tris": 730580,
       "trisRaw": 1504385,
       "textures": 341,
@@ -10516,7 +10633,7 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 7481288,
+      "bytes": 7483920,
       "pool": {
         "images": 341,
         "bytes": 15164390,
@@ -10525,7 +10642,7 @@
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/ships/rsi-constellation-mk5-centaurus.glb",
-      "v": "ad430d29",
+      "v": "ad9a5513",
       "tris": 1273591,
       "trisRaw": 1965220,
       "textures": 379,
@@ -10575,16 +10692,16 @@
         "bits": 20,
         "degenerate": 2.6
       },
-      "bytes": 12590256,
+      "bytes": 12596420,
       "pool": {
         "images": 379,
         "bytes": 10514126,
-        "fresh": 7233538
+        "fresh": 4754746
       }
     },
     "rsi-constellation-phoenix-emerald": {
       "url": "/hangar/ships/rsi-constellation-phoenix-emerald.glb",
-      "v": "d69ed467",
+      "v": "59599904",
       "tris": 554525,
       "trisRaw": 1211834,
       "textures": 230,
@@ -10635,7 +10752,7 @@
         "bits": 23,
         "degenerate": 3.1
       },
-      "bytes": 6532856,
+      "bytes": 6534652,
       "pool": {
         "images": 230,
         "bytes": 10593036,
@@ -10644,7 +10761,7 @@
     },
     "rsi-constellation-phoenix": {
       "url": "/hangar/ships/rsi-constellation-phoenix.glb",
-      "v": "3249632d",
+      "v": "35b3cede",
       "tris": 831911,
       "trisRaw": 1858670,
       "textures": 368,
@@ -10695,7 +10812,7 @@
         "bits": 20,
         "degenerate": 3.7
       },
-      "bytes": 8180128,
+      "bytes": 8182876,
       "pool": {
         "images": 368,
         "bytes": 17137008,
@@ -10704,7 +10821,7 @@
     },
     "rsi-constellation-taurus": {
       "url": "/hangar/ships/rsi-constellation-taurus.glb",
-      "v": "223cbbcc",
+      "v": "2f6a2e0e",
       "tris": 551308,
       "trisRaw": 1439434,
       "textures": 285,
@@ -10755,7 +10872,7 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 5801772,
+      "bytes": 5804928,
       "pool": {
         "images": 285,
         "bytes": 12972604,
@@ -10764,7 +10881,7 @@
     },
     "rsi-hermes": {
       "url": "/hangar/ships/rsi-hermes.glb",
-      "v": "d34b92e1",
+      "v": "9c17f9a5",
       "tris": 688794,
       "trisRaw": 1480474,
       "textures": 290,
@@ -10805,7 +10922,7 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 7270336,
+      "bytes": 7271476,
       "pool": {
         "images": 290,
         "bytes": 13812988,
@@ -10814,7 +10931,7 @@
     },
     "rsi-lynx": {
       "url": "/hangar/ships/rsi-lynx.glb",
-      "v": "ec15c479",
+      "v": "5a577d88",
       "tris": 208256,
       "trisRaw": 278458,
       "textures": 209,
@@ -10849,16 +10966,16 @@
         "bits": 19,
         "degenerate": 3.3
       },
-      "bytes": 1998736,
+      "bytes": 2000376,
       "pool": {
         "images": 209,
         "bytes": 9634944,
-        "fresh": 1745872
+        "fresh": 0
       }
     },
     "rsi-mantis": {
       "url": "/hangar/ships/rsi-mantis.glb",
-      "v": "4328d868",
+      "v": "78953287",
       "tris": 211431,
       "trisRaw": 341595,
       "textures": 239,
@@ -10926,7 +11043,7 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 2321584,
+      "bytes": 2323980,
       "pool": {
         "images": 239,
         "bytes": 11212840,
@@ -10935,7 +11052,7 @@
     },
     "rsi-meteor": {
       "url": "/hangar/ships/rsi-meteor.glb",
-      "v": "2f42f1bc",
+      "v": "f8e4cf49",
       "tris": 237450,
       "trisRaw": 431261,
       "textures": 257,
@@ -11008,7 +11125,7 @@
         "bits": 19,
         "degenerate": 2.5
       },
-      "bytes": 2756652,
+      "bytes": 2758444,
       "pool": {
         "images": 257,
         "bytes": 11513236,
@@ -11017,7 +11134,7 @@
     },
     "rsi-perseus": {
       "url": "/hangar/ships/rsi-perseus.glb",
-      "v": "6a82c755",
+      "v": "78095faa",
       "tris": 1062770,
       "trisRaw": 2487044,
       "textures": 324,
@@ -11046,11 +11163,12 @@
           0.005,
           -0.001,
           0.001
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 400000,
-        "tex": 256,
+        "tex": 512,
         "q": 72
       },
       "paints": {
@@ -11063,16 +11181,16 @@
         "bits": 22,
         "degenerate": 7.3
       },
-      "bytes": 12259420,
+      "bytes": 12265144,
       "pool": {
         "images": 324,
-        "bytes": 3357942,
-        "fresh": 3357408
+        "bytes": 9200262,
+        "fresh": 755880
       }
     },
     "rsi-polaris": {
       "url": "/hangar/ships/rsi-polaris.glb",
-      "v": "e1fa7a38",
+      "v": "e926d58a",
       "tris": 1087337,
       "trisRaw": 2356245,
       "textures": 304,
@@ -11120,16 +11238,16 @@
         "bits": 22,
         "degenerate": 3.5
       },
-      "bytes": 13383804,
+      "bytes": 13385940,
       "pool": {
         "images": 304,
         "bytes": 4052686,
-        "fresh": 3213928
+        "fresh": 3214106
       }
     },
     "rsi-salvation": {
       "url": "/hangar/ships/rsi-salvation.glb",
-      "v": "83889d78",
+      "v": "608bdad1",
       "tris": 225986,
       "trisRaw": 395610,
       "textures": 241,
@@ -11155,7 +11273,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -11171,7 +11290,7 @@
         "bits": 21,
         "degenerate": 1.9
       },
-      "bytes": 2784568,
+      "bytes": 2785652,
       "pool": {
         "images": 241,
         "bytes": 10323558,
@@ -11180,7 +11299,7 @@
     },
     "rsi-scorpius-antares": {
       "url": "/hangar/ships/rsi-scorpius-antares.glb",
-      "v": "81d80f0a",
+      "v": "9e17a4f7",
       "tris": 293181,
       "trisRaw": 503280,
       "textures": 230,
@@ -11257,7 +11376,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 3072284,
+      "bytes": 3073344,
       "pool": {
         "images": 230,
         "bytes": 10301538,
@@ -11266,7 +11385,7 @@
     },
     "rsi-scorpius": {
       "url": "/hangar/ships/rsi-scorpius.glb",
-      "v": "4151c5df",
+      "v": "8b370eb7",
       "tris": 405115,
       "trisRaw": 569896,
       "textures": 224,
@@ -11293,7 +11412,8 @@
           0,
           0.007,
           0.007
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -11309,16 +11429,16 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 3938792,
+      "bytes": 3939828,
       "pool": {
         "images": 224,
         "bytes": 9703352,
-        "fresh": 305158
+        "fresh": 0
       }
     },
     "rsi-skylark": {
       "url": "/hangar/ships/rsi-skylark.glb",
-      "v": "dc2b3272",
+      "v": "651dd435",
       "tris": 210001,
       "trisRaw": 327658,
       "textures": 231,
@@ -11361,7 +11481,7 @@
         "bits": 20,
         "degenerate": 1.6
       },
-      "bytes": 2301780,
+      "bytes": 2303960,
       "pool": {
         "images": 231,
         "bytes": 11298048,
@@ -11370,7 +11490,7 @@
     },
     "rsi-ursa-medivac": {
       "url": "/hangar/ships/rsi-ursa-medivac.glb",
-      "v": "999c30d0",
+      "v": "5b5bcbf6",
       "tris": 210941,
       "trisRaw": 275205,
       "textures": 223,
@@ -11405,16 +11525,16 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 2084056,
+      "bytes": 2085216,
       "pool": {
         "images": 223,
         "bytes": 7270700,
-        "fresh": 1221820
+        "fresh": 0
       }
     },
     "rsi-ursa-rover-emerald": {
       "url": "/hangar/ships/rsi-ursa-rover-emerald.glb",
-      "v": "e8708dac",
+      "v": "fc010f80",
       "tris": 156030,
       "trisRaw": 173942,
       "textures": 197,
@@ -11449,16 +11569,16 @@
         "bits": 20,
         "degenerate": 2.8
       },
-      "bytes": 1544928,
+      "bytes": 1546424,
       "pool": {
         "images": 197,
         "bytes": 7238140,
-        "fresh": 123892
+        "fresh": 0
       }
     },
     "rsi-ursa-rover": {
       "url": "/hangar/ships/rsi-ursa-rover.glb",
-      "v": "c9fae1db",
+      "v": "bbe61832",
       "tris": 160075,
       "trisRaw": 176340,
       "textures": 179,
@@ -11493,16 +11613,16 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 1551948,
+      "bytes": 1553256,
       "pool": {
         "images": 179,
         "bytes": 6816654,
-        "fresh": 265658
+        "fresh": 0
       }
     },
     "rsi-zeus-cl": {
       "url": "/hangar/ships/rsi-zeus-cl.glb",
-      "v": "bc1b1be6",
+      "v": "705bfe32",
       "tris": 465116,
       "trisRaw": 1410705,
       "textures": 293,
@@ -11529,7 +11649,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -11545,7 +11666,7 @@
         "bits": 22,
         "degenerate": 1.4
       },
-      "bytes": 5127532,
+      "bytes": 5130296,
       "pool": {
         "images": 293,
         "bytes": 12363768,
@@ -11554,7 +11675,7 @@
     },
     "rsi-zeus-es": {
       "url": "/hangar/ships/rsi-zeus-es.glb",
-      "v": "cfdbeee3",
+      "v": "8efa31d8",
       "tris": 429579,
       "trisRaw": 1170451,
       "textures": 278,
@@ -11580,7 +11701,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -11596,16 +11718,16 @@
         "bits": 22,
         "degenerate": 1.3
       },
-      "bytes": 4672992,
+      "bytes": 4675552,
       "pool": {
         "images": 278,
         "bytes": 11905328,
-        "fresh": 1707068
+        "fresh": 0
       }
     },
     "tmbl-cyclone-aa": {
       "url": "/hangar/ships/tmbl-cyclone-aa.glb",
-      "v": "149c0efd",
+      "v": "c64bb1dd",
       "tris": 165121,
       "trisRaw": 164323,
       "textures": 103,
@@ -11640,16 +11762,16 @@
         "bits": 17,
         "degenerate": 1.3
       },
-      "bytes": 1167608,
+      "bytes": 1168320,
       "pool": {
         "images": 103,
         "bytes": 6681720,
-        "fresh": 6858
+        "fresh": 0
       }
     },
     "tmbl-cyclone-mt": {
       "url": "/hangar/ships/tmbl-cyclone-mt.glb",
-      "v": "5f98c23a",
+      "v": "225d3f09",
       "tris": 193454,
       "trisRaw": 189861,
       "textures": 114,
@@ -11684,16 +11806,16 @@
         "bits": 17,
         "degenerate": 1.1
       },
-      "bytes": 1451560,
+      "bytes": 1452408,
       "pool": {
         "images": 114,
         "bytes": 7186872,
-        "fresh": 4326
+        "fresh": 0
       }
     },
     "tmbl-cyclone-rc": {
       "url": "/hangar/ships/tmbl-cyclone-rc.glb",
-      "v": "566b3d72",
+      "v": "409a8b3c",
       "tris": 148002,
       "trisRaw": 152367,
       "textures": 78,
@@ -11726,16 +11848,16 @@
         "bits": 17,
         "degenerate": 1.3
       },
-      "bytes": 1007044,
+      "bytes": 1007940,
       "pool": {
         "images": 78,
         "bytes": 4167930,
-        "fresh": 19212
+        "fresh": 0
       }
     },
     "tmbl-cyclone-rn": {
       "url": "/hangar/ships/tmbl-cyclone-rn.glb",
-      "v": "2cfa5403",
+      "v": "09d2c44b",
       "tris": 156989,
       "trisRaw": 159702,
       "textures": 78,
@@ -11768,16 +11890,16 @@
         "bits": 17,
         "degenerate": 1.5
       },
-      "bytes": 1063244,
+      "bytes": 1063960,
       "pool": {
         "images": 78,
         "bytes": 4837286,
-        "fresh": 6714
+        "fresh": 0
       }
     },
     "tmbl-cyclone-tr": {
       "url": "/hangar/ships/tmbl-cyclone-tr.glb",
-      "v": "78ed78d5",
+      "v": "72147c3c",
       "tris": 162638,
       "trisRaw": 165509,
       "textures": 105,
@@ -11812,16 +11934,16 @@
         "bits": 17,
         "degenerate": 1.2
       },
-      "bytes": 1125984,
+      "bytes": 1126684,
       "pool": {
         "images": 105,
         "bytes": 5363352,
-        "fresh": 4510
+        "fresh": 0
       }
     },
     "tmbl-cyclone": {
       "url": "/hangar/ships/tmbl-cyclone.glb",
-      "v": "c2b661b7",
+      "v": "8dd0cb6c",
       "tris": 143637,
       "trisRaw": 146440,
       "textures": 83,
@@ -11854,11 +11976,11 @@
         "bits": 17,
         "degenerate": 1.4
       },
-      "bytes": 986144,
+      "bytes": 986852,
       "pool": {
         "images": 83,
         "bytes": 5094524,
-        "fresh": 746342
+        "fresh": 0
       }
     },
     "tmbl-nova": {
@@ -11903,12 +12025,12 @@
       "pool": {
         "images": 166,
         "bytes": 6546168,
-        "fresh": 49292
+        "fresh": 0
       }
     },
     "tmbl-storm-aa": {
       "url": "/hangar/ships/tmbl-storm-aa.glb",
-      "v": "fc2ac17f",
+      "v": "ca0c1dd0",
       "tris": 481585,
       "trisRaw": 658580,
       "textures": 183,
@@ -11941,16 +12063,16 @@
         "bits": 19,
         "degenerate": 1
       },
-      "bytes": 5099916,
+      "bytes": 5101352,
       "pool": {
         "images": 183,
         "bytes": 8243966,
-        "fresh": 43392
+        "fresh": 0
       }
     },
     "tmbl-storm": {
       "url": "/hangar/ships/tmbl-storm.glb",
-      "v": "e1bcf81c",
+      "v": "56a4f04f",
       "tris": 221575,
       "trisRaw": 477614,
       "textures": 161,
@@ -11985,11 +12107,11 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 2122776,
+      "bytes": 2124192,
       "pool": {
         "images": 161,
         "bytes": 6864620,
-        "fresh": 1157318
+        "fresh": 0
       }
     },
     "vncl-blade": {
@@ -12021,7 +12143,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -12037,7 +12160,7 @@
       "pool": {
         "images": 149,
         "bytes": 9240614,
-        "fresh": 6409984
+        "fresh": 0
       }
     },
     "vncl-glaive": {
@@ -12128,7 +12251,7 @@
     },
     "vncl-stinger": {
       "url": "/hangar/ships/vncl-stinger.glb",
-      "v": "2384fbb6",
+      "v": "28d70ffb",
       "tris": 267332,
       "trisRaw": 551962,
       "textures": 249,
@@ -12176,7 +12299,7 @@
         "bits": 19,
         "degenerate": 1.6
       },
-      "bytes": 3062056,
+      "bytes": 3063612,
       "pool": {
         "images": 249,
         "bytes": 14425176,
@@ -12254,12 +12377,12 @@
       "pool": {
         "images": 84,
         "bytes": 3961746,
-        "fresh": 49350
+        "fresh": 0
       }
     },
     "xian-nox": {
       "url": "/hangar/ships/xian-nox.glb",
-      "v": "09746dae",
+      "v": "aecfde7c",
       "tris": 89009,
       "trisRaw": 101475,
       "textures": 113,
@@ -12327,7 +12450,7 @@
         "bits": 20,
         "degenerate": 4.5
       },
-      "bytes": 869512,
+      "bytes": 869832,
       "pool": {
         "images": 113,
         "bytes": 4794240,
@@ -12336,7 +12459,7 @@
     },
     "xian-scout": {
       "url": "/hangar/ships/xian-scout.glb",
-      "v": "b570712f",
+      "v": "88210082",
       "tris": 187075,
       "trisRaw": 192695,
       "textures": 103,
@@ -12372,16 +12495,16 @@
         "bits": 18,
         "degenerate": 2.5
       },
-      "bytes": 1572920,
+      "bytes": 1574408,
       "pool": {
         "images": 103,
         "bytes": 4274924,
-        "fresh": 998930
+        "fresh": 0
       }
     },
     "xnaa-santokyai": {
       "url": "/hangar/ships/xnaa-santokyai.glb",
-      "v": "0f521743",
+      "v": "9dfa68ab",
       "tris": 385411,
       "trisRaw": 663417,
       "textures": 221,
@@ -12419,11 +12542,11 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 3612064,
+      "bytes": 3614344,
       "pool": {
         "images": 221,
         "bytes": 11239382,
-        "fresh": 2234722
+        "fresh": 0
       }
     }
   },
