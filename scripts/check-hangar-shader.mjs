@@ -28,6 +28,11 @@
        (ein anderes Schiff als das erste der Liste; seit 25.10.2026 tragen
        alle Schiffe ihre echten Materialien, .planning/notes/hangar-alle-schiffe.md)
      … --shot schiff.png   Aufnahme der Halle am Ende (zum Hinsehen)
+     … --layout <code>     mit Layout aus der Werkstatt (?layout=, encodeLayout in
+       assets/hangar-layouts.js), etwa einer Lackierung als viertem Feld. Die
+       steht dann in der Werkstatt, kommt beim Laden aber nicht am Modell an
+       (erst ein Klick auf den Lack; .planning/notes/hangar-landung.md, 29.10.2026)
+     … --ohne-ui           Aufnahme nur der Halle, Bedienelemente ausgeblendet
    Dazu FEHLER, wenn ein Bild des Schiffs nicht laedt (Bildablage
    /hangar/tex/, Meldung des Viewers oder von GLTFLoader).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
@@ -40,7 +45,10 @@ const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
 const BASE = flag('--base', process.env.SMOKE_BASE || 'http://localhost:4321').replace(/\/$/, '');
 const SHIP = flag('--ship', null);
 const SHOT = flag('--shot', null);
+const LAYOUT = flag('--layout', null);
+const OHNE_UI = argv.includes('--ohne-ui');
 if (SHIP && !/^[a-z0-9][a-z0-9-]{0,63}$/.test(SHIP)) { console.error(`\n--ship ${SHIP}: keine Schiffskennung\n`); process.exit(2); }
+if (LAYOUT && !/^[A-Za-z0-9_-]{1,4000}$/.test(LAYOUT)) { console.error(`\n--layout ${LAYOUT}: kein Link-Code\n`); process.exit(2); }
 const GRENZE = 16;
 // Gemessen 21.10.2026 auf hoch mit der Gladius: 73 Programme, 2 mit
 // Schichttafel (Halle und Grube). Klinken nur nach oben.
@@ -111,7 +119,7 @@ page.on('console', (m) => {
 const bildFehler = [];
 const fehler = [];
 try {
-  await page.goto(`${BASE}/hangar.html?grafik=hoch${SHIP ? `&ship=${SHIP}` : ''}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(`${BASE}/hangar.html?grafik=hoch${SHIP ? `&ship=${SHIP}` : ''}${LAYOUT ? `&layout=${LAYOUT}` : ''}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
   const t0 = Date.now();
   while (!deko && Date.now() - t0 < WARTE_MS) {
     if (await page.evaluate(() => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
@@ -123,6 +131,14 @@ try {
   fehler.push(`Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
 }
 const progs = await page.evaluate(() => window.__texProgramme ?? []).catch(() => []);
+// --ohne-ui: nur die Halle, ohne Hilfe, Werkstatt und Leisten, die das Schiff verdecken
+if (SHOT && OHNE_UI) {
+  await page.evaluate(() => {
+    const cv = [...document.querySelectorAll('canvas')].sort((a, b) => b.width * b.height - a.width * a.height)[0];
+    for (const e of document.body.querySelectorAll('*')) if (cv && !e.contains(cv)) e.style.visibility = 'hidden';
+  }).catch((e) => fehler.push(`Bedienelemente ausblenden: ${e.message.split('\n')[0]}`));
+  await page.waitForTimeout(2000);
+}
 // Software-WebGL braucht für ein Bild der ganzen Halle oft länger als die 30 s von Playwright
 if (SHOT) await page.screenshot({ path: SHOT, timeout: 180000 }).catch((e) => fehler.push(`Aufnahme ${SHOT}: ${e.message.split('\n')[0]}`));
 await browser.close();
