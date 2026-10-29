@@ -242,6 +242,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       document.dispatchEvent(new CustomEvent('vb:chat-unread', { detail: total }));
     };
 
+    // „Nachricht" auf einer Pilotenseite führt hierher mit ?chat=<id>: den
+    // Chat öffnen, sobald die Freundesliste da ist, und die Adresse aufräumen.
+    let chatFromUrl = new URLSearchParams(location.search).get('chat');
     document.addEventListener('vb:friends', (e) => {
       const d = (e as CustomEvent).detail as { friends: Entry[]; incoming: Entry[] };
       friends = (d.friends || []).map((f) => f.p).filter(Boolean);
@@ -251,6 +254,18 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         if (fresh) { chatWith = fresh; renderChatHead(); } else closeChat();
       }
       renderList();
+      // Erst einlösen, wenn der Freund in der Liste steht: eine fehlgeschlagene
+      // erste Abfrage soll den Link nicht verbrauchen.
+      if (chatFromUrl && friends.some((f) => f.id === chatFromUrl)) {
+        const id = chatFromUrl;
+        chatFromUrl = null;
+        try {
+          const u = new URL(location.href);
+          u.searchParams.delete('chat');
+          history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+        } catch { /* egal */ }
+        openChat(id);
+      }
     });
 
     // ---- Chat -------------------------------------------------------------

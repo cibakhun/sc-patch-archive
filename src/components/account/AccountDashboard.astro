@@ -136,7 +136,7 @@ const COPY = {
     errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
-    dangerBody: 'Löscht dein Konto samt Profil und Favoriten endgültig. Das lässt sich nicht rückgängig machen.',
+    dangerBody: 'Löscht dein Konto mit Profil, Loadouts, Favoriten, Freunden und Nachrichten endgültig. Das lässt sich nicht rückgängig machen.',
     dangerConfirmLabel: 'Zum Bestätigen „LÖSCHEN" eintippen',
     dangerWord: 'LÖSCHEN',
     dangerBtn: 'Konto endgültig löschen', dangerBusy: 'Lösche Konto …',
@@ -158,7 +158,7 @@ const COPY = {
     ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
     ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert',
     ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Job: %x%',
-    ovActEmpty: 'Noch keine Aktivität — leg mit einem Favoriten oder einer Freundschaftsanfrage los.',
+    ovActEmpty: 'Noch keine Aktivität.',
   },
   en: {
     loading: 'Loading your account …',
@@ -283,7 +283,7 @@ const COPY = {
     errShort: 'The password needs at least 8 characters.',
     errMatch: 'The passwords do not match.',
     errSame: 'The new password must differ from the old one.',
-    dangerBody: 'Permanently deletes your account including profile and favorites. This cannot be undone.',
+    dangerBody: 'Permanently deletes your account with profile, loadouts, favorites, friends and messages. This cannot be undone.',
     dangerConfirmLabel: 'Type “DELETE” to confirm',
     dangerWord: 'DELETE',
     dangerBtn: 'Delete account permanently', dangerBusy: 'Deleting account …',
@@ -305,7 +305,7 @@ const COPY = {
     ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
     ovRsiYes: 'Verified', ovRsiNo: 'Not verified',
     ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
-    ovActEmpty: 'No activity yet — start with a favorite or a friend request.',
+    ovActEmpty: 'No activity yet.',
   },
 }[lang];
 
@@ -319,7 +319,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
 const CK = {
   de: {
     rank: 'Discord-Rang', pos: 'Platz', msgs: 'Nachrichten', voice: 'Sprache',
-    lv: 'Lv %n%', xp: '%a% / %b% XP', next: 'Ab Lv %n%: %r%', max: 'Höchster Rang', of: 'von %n%',
+    lv: 'Lv %n%', xp: '%a% / %b% XP', next: 'Ab Lv %n%: %r%', max: 'Höchster Rang', of: 'von %n%', preview: 'Vorschau',
     noLink: 'Verbinde Discord und dein Rang vom Server steht hier.', noLinkBtn: 'Discord verbinden',
     noGuild: 'Du bist noch nicht auf dem VerseBase-Server.', noGuildBtn: 'Server beitreten',
     waiting: 'Dein Rang kommt in ein paar Minuten.', waitingBtn: 'Zum Server',
@@ -330,7 +330,7 @@ const CK = {
   },
   en: {
     rank: 'Discord rank', pos: 'Rank', msgs: 'Messages', voice: 'Voice',
-    lv: 'Lv %n%', xp: '%a% / %b% XP', next: 'At Lv %n%: %r%', max: 'Top rank', of: 'of %n%',
+    lv: 'Lv %n%', xp: '%a% / %b% XP', next: 'At Lv %n%: %r%', max: 'Top rank', of: 'of %n%', preview: 'Preview',
     noLink: 'Connect Discord and your server rank shows up here.', noLinkBtn: 'Connect Discord',
     noGuild: 'You are not on the VerseBase server yet.', noGuildBtn: 'Join the server',
     waiting: 'Your rank arrives in a few minutes.', waitingBtn: 'Open server',
@@ -358,6 +358,40 @@ const SV = {
     remove: 'Delete', removed: '"%s" deleted', undo: 'Undo', failed: 'That did not work.',
     syncErr: 'Not synced with your account yet', empty: 'Nothing saved yet.', emptyHint: 'Save loadouts in the hangar or star ships to keep them here.', toHangar: 'Go to hangar',
     kinds: { ship: 'Ships', mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' },
+  },
+}[lang];
+// Bereich „Sicherheit & Konto" (account-security.ts): Zeilen statt Karten,
+// Formulare erst auf Klick.
+const SEC = {
+  de: {
+    login: 'Anmeldung', linked: 'Verbundene Konten', sessions: 'Sitzungen', data: 'Meine Daten',
+    email: 'E-Mail', pass: 'Passwort', change: 'Ändern', set: 'Setzen', noPass: 'Nicht gesetzt',
+    newEmail: 'Neue E-Mail', send: 'Bestätigung senden', save: 'Speichern',
+    connect: 'Verbinden', unlink: 'Lösen', rsiNone: 'Nicht verifiziert', rsiOpen: 'Prüfen', rsiOk: 'Verifiziert',
+    device: 'Dieses Gerät', last: 'Letzte Anmeldung', since: 'Konto seit',
+    others: 'Andere Geräte abmelden', all: 'Überall abmelden',
+    incl: ['Profil', 'Loadouts', 'Favoriten', 'Freunde', 'Nachrichten', 'Refinery', 'Crafting', 'Mining'],
+    dl: 'Als Datei laden', dangerShort: 'Endgültig, samt allen Daten', del: 'Löschen …',
+    js: {
+      cancel: 'Abbrechen', notLinked: 'Nicht verbunden', sure: 'Sicher?', err: 'Das hat nicht geklappt.',
+      othersDone: 'Andere Geräte sind abgemeldet.', exportBusy: 'Sammle …', exportDone: 'Datei geladen.',
+      change: 'Ändern', set: 'Setzen', noPass: 'Nicht gesetzt', rsiNone: 'Nicht verifiziert', rsiOpen: 'Prüfen',
+    },
+  },
+  en: {
+    login: 'Sign-in', linked: 'Connected accounts', sessions: 'Sessions', data: 'My data',
+    email: 'E-mail', pass: 'Password', change: 'Change', set: 'Set', noPass: 'Not set',
+    newEmail: 'New e-mail', send: 'Send confirmation', save: 'Save',
+    connect: 'Connect', unlink: 'Unlink', rsiNone: 'Not verified', rsiOpen: 'Verify', rsiOk: 'Verified',
+    device: 'This device', last: 'Last sign-in', since: 'Member since',
+    others: 'Sign out other devices', all: 'Sign out everywhere',
+    incl: ['Profile', 'Loadouts', 'Favorites', 'Friends', 'Messages', 'Refinery', 'Crafting', 'Mining'],
+    dl: 'Download file', dangerShort: 'Permanent, with all your data', del: 'Delete …',
+    js: {
+      cancel: 'Cancel', notLinked: 'Not connected', sure: 'Sure?', err: 'That did not work.',
+      othersDone: 'Other devices are signed out.', exportBusy: 'Collecting …', exportDone: 'File downloaded.',
+      change: 'Change', set: 'Set', noPass: 'Not set', rsiNone: 'Not verified', rsiOpen: 'Verify',
+    },
   },
 }[lang];
 ---
@@ -439,6 +473,8 @@ const SV = {
       <g id="ic-link" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></g>
       <g id="ic-chat" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5a7.5 7.5 0 0 1-11.1 6.6L4 20.5l1.4-4.6A7.5 7.5 0 1 1 20 12.5z"/><path d="M8.5 12.5h.01M12.5 12.5h.01M16.5 12.5h.01"/></g>
       <g id="ic-user-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9" cy="7.5" r="3.5"/><path d="M19 8v6M16 11h6"/></g>
+      <g id="ic-monitor" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16.5V20"/></g>
+      <g id="ic-download" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5h14"/></g>
       <g id="ic-x" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></g>
       <g id="ic-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></g>
       <g id="ic-lock" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="1"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><path d="M12 14.5v2.5"/></g>
@@ -601,8 +637,10 @@ const SV = {
             </section>
             <section class="ck-col" aria-labelledby="ckActH">
               <h3 class="ck-h" id="ckActH">{COPY.ovRecent}</h3>
-              <div class="card log ck-log" id="ovActivity">
-                <p class="acx-hint" id="ovActEmpty" style="padding:14px 8px;margin:0">{COPY.ovActEmpty}</p>
+              <div class="card log ck-log" id="ovActivity"></div>
+              <div class="ck-empty" id="ovActEmpty" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-hex"/></svg>
+                <p>{COPY.ovActEmpty}</p>
               </div>
             </section>
           </div>
@@ -806,75 +844,111 @@ const SV = {
 
       <!-- ============================ SICHERHEIT ============================ -->
       <section id="tab-panel-security" class="acx-tab-panel" hidden>
-        <div class="dsec"><h2>{COPY.secSecurity}</h2></div>
-        <div class="seccols">
+        <div class="sec" id="sec" data-lang={lang} data-home={homeHref} data-copy={JSON.stringify(SEC.js)}>
+          <div class="sv-bar"><h2 class="sv-h">{COPY.tabSecurity}</h2></div>
+          <div class="sec-grid">
 
-          <div class="seccard">
-            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span><h3>{COPY.secRsi}</h3></div>
-            <p class="sc-desc">{lang === 'de' ? 'Verknüpfe dein RSI-Citizen-Handle mit diesem Konto. Die Prüfung läuft serverseitig über deine RSI-Bio.' : 'Link your RSI citizen handle to this account. Verification runs server-side against your RSI bio.'}</p>
-            <div class="field" style="margin-bottom:0">
-              <label for="pfRsiHandle">{COPY.rsiHandle}</label>
-              <div class="rsi-row">
-                <div class="inp-affix" style="flex:1;min-width:200px"><span class="pre">@</span><input class="inp mono" id="pfRsiHandle" type="text" maxlength="32" placeholder={COPY.rsiPh} /></div>
-                <button type="button" class="btn ok" id="btnRsiVerifyModal"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> {COPY.rsiVerifyBtn}</button>
+            <div class="sec-card">
+              <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-lock"/></svg>{SEC.login}</h3>
+              <div class="sec-row">
+                <span class="sec-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-mail"/></svg></span>
+                <span class="sec-kv"><span class="sec-k">{SEC.email}</span><span class="sec-v mono" id="idEmail">—</span></span>
+                <button type="button" class="sec-btn" data-sec-open="emailForm" aria-controls="emailForm" aria-expanded="false">{SEC.change}</button>
               </div>
-              <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
-                <span>✓ {COPY.rsiVerifiedText}</span>
-                <button type="button" id="btnResetRsiVerify">({COPY.rsiReset})</button>
+              <form id="emailForm" class="sec-form" novalidate hidden>
+                <input class="inp mono" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} aria-label={SEC.newEmail} />
+                <button class="sec-btn sec-btn--go" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={SEC.send}>{SEC.send}</button>
+                <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
+              </form>
+              <div class="sec-row" id="secPassRow">
+                <span class="sec-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-lock"/></svg></span>
+                <span class="sec-kv"><span class="sec-k">{SEC.pass}</span><span class="sec-v" id="secPassVal">••••••••</span></span>
+                <button type="button" class="sec-btn" id="secPassBtn" data-sec-open="passForm" aria-controls="passForm" aria-expanded="false">{SEC.change}</button>
+              </div>
+              <form id="passForm" class="sec-form" novalidate hidden>
+                <input class="inp" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} aria-label={COPY.pass} />
+                <input class="inp" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} aria-label={COPY.pass2} />
+                <button class="sec-btn sec-btn--go" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={SEC.save}>{SEC.save}</button>
+                <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
+              </form>
+            </div>
+
+            <div class="sec-card">
+              <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-link"/></svg>{SEC.linked}</h3>
+              <div class="sec-row" id="secDc">
+                <span class="sec-ic sec-ic--dc" aria-hidden="true"><svg viewBox="0 0 127.14 96.36"><use href="#ic-discord"/></svg></span>
+                <span class="sec-kv"><span class="sec-k">Discord</span><span class="sec-v" id="secDcVal">—</span></span>
+                <button type="button" class="sec-btn sec-btn--go" id="secDcLink" hidden>{SEC.connect}</button>
+                <button type="button" class="sec-btn" id="secDcUnlink" hidden>{SEC.unlink}</button>
+              </div>
+              <p class="acx-status sec-msg" id="secDcMsg" role="status" aria-live="polite" hidden></p>
+              <div class="sec-row" id="secRsi">
+                <span class="sec-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span>
+                <span class="sec-kv"><span class="sec-k">RSI</span><span class="sec-v" id="secRsiVal">{SEC.rsiNone}</span></span>
+                <button type="button" class="sec-btn" id="secRsiBtn" data-sec-open="secRsiForm" aria-controls="secRsiForm" aria-expanded="false">{SEC.rsiOpen}</button>
+              </div>
+              <div class="sec-form" id="secRsiForm" hidden>
+                <div class="rsi-row">
+                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfRsiHandle" type="text" maxlength="32" placeholder={COPY.rsiPh} aria-label={COPY.rsiHandle} /></div>
+                  <button type="button" class="sec-btn sec-btn--go" id="btnRsiVerifyModal"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-check"/></svg> {COPY.rsiVerifyBtn}</button>
+                </div>
+                <div id="rsiVerifiedStatus" class="rsi-verified-indicator" hidden>
+                  <span>✓ {COPY.rsiVerifiedText}</span>
+                  <button type="button" id="btnResetRsiVerify">({COPY.rsiReset})</button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
-               von tester_overview() wird fuer alle anderen gar nicht erst
-               abgesetzt (siehe account-dashboard.ts). Div statt section: die
-               globale section-Regel dieses Projekts erbt 99/72px Polsterung. -->
-          <div class="seccard" id="testerOverviewCard" style="grid-column:1/-1" hidden>
-            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg></span><h3>{COPY.secTesterOverview}</h3></div>
-            <p class="sc-desc">{COPY.testerOverviewDesc}</p>
-            <div id="testerOverviewBody"></div>
-          </div>
-
-          <div class="seccard">
-            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-mail"/></svg></span><h3>{COPY.email}</h3></div>
-            <p class="sc-desc">{lang === 'de' ? 'Für Konto-Wiederherstellung und Benachrichtigungen. Erfordert Bestätigung auf beiden Adressen.' : 'Used for account recovery and notifications. Requires confirmation on both addresses.'}</p>
-            <form id="emailForm" novalidate>
-              <div class="field"><label>{lang === 'de' ? 'Aktuelle E-Mail' : 'Current e-mail'}</label><div class="sec-current mono" id="idEmail">—</div></div>
-              <div class="field"><label for="seEmail">{lang === 'de' ? 'Neue E-Mail' : 'New e-mail'}</label><input class="inp mono" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} /></div>
-              <div class="sc-foot"><button class="btn" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={COPY.emailBtn}>{COPY.emailBtn}</button></div>
-              <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
-            </form>
-          </div>
-
-          <div class="seccard">
-            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-lock"/></svg></span><h3>{COPY.pass}</h3></div>
-            <p class="sc-desc">{lang === 'de' ? 'Wähle eine starke Passphrase. Andere Sitzungen bleiben angemeldet.' : 'Choose a strong passphrase.'}</p>
-            <form id="passForm" novalidate>
-              <div class="field"><label for="sePass">{COPY.pass}</label><input class="inp" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} /></div>
-              <div class="field"><label for="sePass2">{COPY.pass2}</label><input class="inp" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} /></div>
-              <div class="sc-foot"><button class="btn" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={COPY.passBtn}>{COPY.passBtn}</button></div>
-              <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
-            </form>
-          </div>
-
-          <div class="danger-card" style="grid-column:1/-1">
-            <div class="dz-hazard"></div>
-            <span class="stamp">{lang === 'de' ? 'Unwiderruflich' : 'Irreversible'}</span>
-            <div class="dz-body">
-              <div>
-                <h3><svg viewBox="0 0 24 24" style="width:18px;height:18px"><use href="#ic-trash"/></svg> {COPY.secDanger}</h3>
-                <p>{COPY.dangerBody}</p>
-                <form id="deleteForm" novalidate>
-                  <div class="dz-input">
-                    <input class="inp mono" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} />
-                    <button class="btn danger" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
-                  </div>
-                  <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>
-                </form>
+            <div class="sec-card">
+              <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-power"/></svg>{SEC.sessions}</h3>
+              <div class="sec-row">
+                <span class="sec-ic sec-ic--ok" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-monitor"/></svg></span>
+                <span class="sec-kv"><span class="sec-k">{SEC.device}</span><span class="sec-v" id="secDevice">—</span></span>
+                <span class="sec-live" aria-hidden="true"></span>
+              </div>
+              <dl class="sec-facts">
+                <div><dt>{SEC.last}</dt><dd id="secLast">—</dd></div>
+                <div><dt>{SEC.since}</dt><dd id="secSince">—</dd></div>
+              </dl>
+              <div class="sec-acts">
+                <button type="button" class="sec-btn" id="secOthers">{SEC.others}</button>
+                <button type="button" class="sec-btn sec-btn--hot" id="secAll"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-power"/></svg> {SEC.all}</button>
               </div>
             </div>
-          </div>
 
+            <div class="sec-card">
+              <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-download"/></svg>{SEC.data}</h3>
+              <ul class="sec-incl">{SEC.incl.map((x) => <li>{x}</li>)}</ul>
+              <div class="sec-acts">
+                <button type="button" class="sec-btn sec-btn--go" id="secExport"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-download"/></svg> {SEC.dl}</button>
+                <span class="sec-fmt mono">JSON</span>
+              </div>
+            </div>
+
+            <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
+                 von tester_overview() wird fuer alle anderen gar nicht erst
+                 abgesetzt (siehe account-dashboard.ts). -->
+            <div class="sec-card sec-card--wide" id="testerOverviewCard" hidden>
+              <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>{COPY.secTesterOverview}</h3>
+              <div class="sec-scroll" id="testerOverviewBody"></div>
+            </div>
+
+            <div class="sec-card sec-card--wide sec-danger">
+              <div class="sec-row">
+                <span class="sec-ic sec-ic--hot" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#ic-trash"/></svg></span>
+                <span class="sec-kv"><span class="sec-k">{COPY.secDanger}</span><span class="sec-v">{SEC.dangerShort}</span></span>
+                <button type="button" class="sec-btn sec-btn--hot" data-sec-open="deleteForm" aria-controls="deleteForm" aria-expanded="false">{SEC.del}</button>
+              </div>
+              <form id="deleteForm" class="sec-form" novalidate hidden>
+                <p class="sec-note">{COPY.dangerBody}</p>
+                <input class="inp mono" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} aria-label={COPY.dangerConfirmLabel} />
+                <button class="sec-btn sec-btn--hot" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
+                <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>
+              </form>
+            </div>
+
+          </div>
+          <div class="sv-toast" id="secToast" role="status" aria-live="polite" hidden><span id="secToastMsg"></span></div>
         </div>
       </section>
 
@@ -1064,5 +1138,6 @@ const SV = {
 import '../../scripts/account-dashboard';
 import '../../scripts/account-cockpit';
 import '../../scripts/account-saved';
+import '../../scripts/account-security';
 </script>
 
