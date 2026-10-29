@@ -57,7 +57,8 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // Lieferkette). Die Klinke hing bis dahin bei 24, obwohl laengst 34 Dateien
 // im Bestand lagen; sie steht jetzt auf dem Ist-Stand.
 // Stand 29.10.2026 abends: 36 — Zugang verify-redirects.mjs aus staging.
-const MIN_SCRIPTS = 36;
+// Stand 29.10.2026 spaet: 37 — Zugang verify-vorklick.mjs aus staging.
+const MIN_SCRIPTS = 37;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
