@@ -76,7 +76,10 @@ export function isOpenInEditor(url) {
   }
   // includes statt startsWith: fängt auch die Absolutform
   // (`GET http://host/__open-in-editor`), die connect ebenfalls zuordnet.
-  return p.toLowerCase().includes('/__open-in-editor');
+  // `\` wie `/`: connect zerlegt die Absolutform mit url.parse, und das macht
+  // aus `\` vor dem `?` einen `/`. Node 22 lehnt solche Anfragen heute schon
+  // mit 400 ab; der Riegel soll davon aber nicht abhängen.
+  return p.replace(/\\/g, '/').toLowerCase().includes('/__open-in-editor');
 }
 
 /** @returns {import('vite').Plugin} */

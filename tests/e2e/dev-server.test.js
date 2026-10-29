@@ -67,6 +67,7 @@ const GESPERRT = [
   '/__OPEN-IN-EDITOR?file=x',
   '/%5F%5Fopen-in-editor?file=x',
   'http://127.0.0.1:4321/__open-in-editor?file=x',
+  'http://127.0.0.1:4321\\__open-in-editor?file=x',
 ];
 const FREI = ['/', '/robots.txt', '/de/', '/@vite/client', '/src/pages/index.astro?x=/__open-in-editor', '/open-in-editor'];
 
