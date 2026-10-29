@@ -1,0 +1,26 @@
+-- Sicherheits-Istzustand 29.10.2026: Freundschaftsanfragen sind fuer Clients
+-- nicht mehr aenderbar. Live eingespielt am 29.10.2026 (Version
+-- 20261029145718), nach Freigabe durch den Betreiber.
+--
+-- DAS LOCH: Die UPDATE-Policy freq_update liess den Empfaenger seine Anfrage
+-- aendern, pruefte aber nur, dass er danach noch Empfaenger ist — nicht, dass
+-- sender_id gleich bleibt. Damit liess sich der Absender auf ein beliebiges
+-- Konto umschreiben und die Anfrage anschliessend ueber accept_friend_request
+-- annehmen: eine Freundschaft, die der andere nie angefragt hat. Seit den
+-- Freundes-Chats und der Rich Presence (PR #231) oeffnet eine Freundschaft
+-- Direktnachrichten und den Aktivitaetsstatus.
+--
+-- DIE KORREKTUR: Der Client aendert Anfragen nie direkt. Annehmen und
+-- Ablehnen laufen ueber accept_friend_request/decline_friend_request
+-- (SECURITY DEFINER), Zurueckziehen ueber DELETE. Also gibt es fuer anon und
+-- authenticated gar kein UPDATE mehr. Die Policy freq_update bleibt vorerst
+-- stehen, ist ohne das Recht aber wirkungslos; sie faellt mit einer eigenen
+-- Migration weg.
+--
+-- NACHWEIS: als authenticated in einer Transaktion
+--   update public.friend_requests set status = status where false
+--   -> "permission denied for table friend_requests"
+-- Ein Abgleich am selben Tag fand keine Anfrage, deren Absender nachtraeglich
+-- geaendert worden waere.
+
+revoke update on public.friend_requests from anon, authenticated, public;
