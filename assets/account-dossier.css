@@ -927,10 +927,7 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .frm{border:1px solid var(--line)}
 .dsr .tab{border-right:1px solid var(--line-soft)}
 .dsr .tab:first-child{border-left:1px solid var(--line-soft)}
-.dsr .fm-btn{border:1px solid var(--line);background:none;color:var(--muted)}
-.dsr .fm-btn--primary{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
-.dsr .fm-btn--primary:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
-.dsr .fm-btn--danger:hover{border-color:#f87171;color:#f87171}
+/* Freunde-Knöpfe: siehe Block FREUNDE am Ende */
 
 /* Metrik-Karten als klickbare Divs (behalten Rand; keyboard via JS) */
 .dsr .metric[role="button"],.dsr .metric[data-tab-jump]{cursor:pointer}
@@ -1160,6 +1157,8 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .fd-dot.pulse{animation:pulse 1.9s ease-in-out infinite}
 .fd-txt{min-width:0;display:flex;flex-direction:column;line-height:1.3}
 .fd-txt b{font-weight:600;font-size:var(--fs-8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-nm{display:flex;align-items:center;gap:6px;min-width:0}
+.fd-nm .rk-badge{font-size:var(--fs-4)}
 .fd-txt small{font-size:var(--fs-5);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fd-txt small.is-act{color:var(--accent);font-weight:600}
 .fd-row.is-off .fd-av{opacity:.5}
@@ -1430,3 +1429,87 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 @media (max-width:560px){.sv-search{margin-left:0;width:100%}}
 /* Handy: Fingerkuppen-Maß wie mobile-ux.css, für Link und Knöpfe gleich */
 @media (max-width:820px){.dsr .sv-act{width:44px;height:44px}.sv-act svg{width:17px;height:17px}}
+
+/* ================= FREUNDE (Runde D, 29.10.2026) =================
+   Eine Kopfzeile wie bei „Gespeichert": Titel, Unterbereiche als Chips,
+   rechts Hinzufügen mit Trefferliste beim Tippen. Darunter kompakte Karten
+   (Avatar mit Präsenzpunkt, Name + Rang-Abzeichen, eine Unterzeile,
+   Zeichen-Knöpfe rechts), gruppiert nach Online/Offline. */
+.fm{display:flex;flex-direction:column;gap:16px;min-height:100%}
+.fm-panel{display:flex;flex-direction:column;gap:20px}
+.fm-add{margin-left:auto;position:relative;display:flex;align-items:center;width:min(21rem,100%)}
+.fm-add > svg{position:absolute;left:13px;width:17px;height:17px;color:var(--muted);pointer-events:none}
+.dsr .fm-add .inp{width:100%;height:40px;padding:0 46px 0 39px;border-radius:999px}
+.dsr .fm-add__go{position:absolute;right:4px;width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:999px;background:var(--accent);color:var(--ink);cursor:pointer;transition:filter var(--dur-fast) var(--ease-ui)}
+.fm-add__go svg{width:16px;height:16px}
+.dsr .fm-add__go:hover{filter:brightness(1.12)}
+.dsr .fm-add__go:disabled{opacity:.5;cursor:default}
+.fm-lookup{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;list-style:none;margin:0;padding:6px;display:flex;flex-direction:column;gap:2px;border:1px solid var(--line-2);border-radius:14px;background:var(--surface-2);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.fm-lookup__none{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;margin:0;padding:12px 14px;border:1px solid var(--line-2);border-radius:14px;background:var(--surface-2);color:var(--muted);font-size:var(--fs-7)}
+.fm-hit{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:10px;cursor:pointer}
+.fm-hit.is-cur,.fm-hit:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.fm-hit .fm-av{width:34px;height:34px;font-size:var(--fs-8)}
+.fm-hit__st{margin-left:auto;flex:none;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);color:var(--accent)}
+.fm-hit__st.is-done{color:var(--muted);font-weight:600}
+.fm-nohandle{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:0;padding:8px 8px 8px 14px;border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:12px;background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--text);font-size:var(--fs-7)}
+.fm-filter{margin-left:0;align-self:flex-end}
+.sv-chip b.fm-hot{color:var(--gold);opacity:1}
+.sv-chip[aria-pressed=true] b.fm-hot{color:var(--ink)}
+.fm-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(19rem,100%),1fr));gap:10px}
+.fm-card{container-type:inline-size;display:flex;align-items:center;gap:12px;min-width:0;padding:10px 10px 10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);transition:border-color var(--dur-fast) var(--ease-ui)}
+.fm-card:hover{border-color:var(--line-2)}
+.fm-card.is-off .fm-av{opacity:.55}
+.fm-card.is-off .fm-name > b{color:var(--muted)}
+.fm-avlink{flex:none;display:block;border-radius:50%}
+.fm-av{position:relative;width:44px;height:44px;flex:none;display:grid;place-items:center;border:2px solid var(--ac,var(--accent));border-radius:50%;background:var(--surface);color:var(--ac,var(--accent));font-size:var(--fs-11);line-height:1}
+.fm-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.fm-dot{position:absolute;right:-2px;bottom:-2px;width:13px;height:13px;border:2px solid var(--surface-2);border-radius:50%}
+.fm-main{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.fm-name{display:flex;align-items:center;gap:7px;min-width:0}
+.fm-name > b{flex:0 1 auto;min-width:3ch;font-weight:700;font-size:var(--fs-9);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-ver{flex:none;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:color-mix(in srgb,var(--ok) 22%,transparent);color:var(--ok)}
+.fm-ver svg{width:11px;height:11px}
+.fm-sub{font-size:var(--fs-6);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-sub.is-act{color:var(--accent);font-weight:600}
+.fm-why{display:flex;flex-wrap:nowrap;gap:5px;overflow:hidden}
+/* Schmale Karte: Rang nur als Zeichen + Level, der Name hat Vorrang */
+@container (max-width:24rem){.fm-name .rk-nm{display:none}}
+.fm-why__c{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:var(--fs-5);color:var(--muted)}
+.fm-why__c svg{width:12px;height:12px}
+.fm-acts{flex:none;display:flex;align-items:center;gap:6px}
+.dsr .fm-ib{position:relative;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:none;color:var(--muted);cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.fm-ib svg{width:16px;height:16px}
+.dsr .fm-ib:hover{color:var(--text);border-color:var(--accent)}
+.dsr .fm-ib--chat{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.dsr .fm-ib--chat:hover{color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.dsr .fm-ib--rm:hover,.dsr .fm-ib--rm.is-armed{color:var(--hot);border-color:var(--hot);background:color-mix(in srgb,var(--hot) 14%,transparent)}
+.fm-ib__q{display:none}
+/* „Entfernen?" scharf: die anderen Knöpfe treten zur Seite */
+.fm-acts:has(.is-armed) > :not(.is-armed){display:none}
+.dsr .fm-ib--rm.is-armed{width:auto;display:flex;gap:6px;padding:0 10px}
+.fm-ib--rm.is-armed .fm-ib__q{display:inline;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6)}
+.dsr .fm-btn{height:34px;padding:0 13px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--muted);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-7);white-space:nowrap;cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.dsr .fm-btn:hover{color:var(--text);border-color:var(--accent)}
+.dsr .fm-btn:disabled{opacity:.55;cursor:default}
+.dsr .fm-btn--primary{border-color:var(--accent);background:var(--accent);color:var(--ink)}
+.dsr .fm-btn--primary:hover{color:var(--ink);filter:brightness(1.1)}
+.fm-empty{min-height:16rem}
+@media (max-width:820px){
+  .dsr .fm-ib{width:44px;height:44px}
+  .dsr .fm-btn{height:44px}
+  .fm-add{width:100%;margin-left:0}
+  .dsr .fm-add .inp{height:50px;padding-right:56px}
+  .dsr .fm-add__go{right:3px;width:44px;height:44px}
+  /* Profil öffnet dort der Avatar; so bleibt Platz für Name und Rang */
+  .fm-acts > a.fm-ib{display:none}
+}
+
+/* Discord-Rang als Abzeichen (src/lib/rankBadge.ts): Zeichen, Name, Level in
+   Rangfarbe; --c ohne Namen für enge Zeilen (Dock). */
+.rk-badge{flex:none;display:inline-flex;align-items:center;gap:4px;padding:1px 8px 1px 5px;border:1px solid color-mix(in srgb,var(--rc) 55%,transparent);border-radius:999px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);line-height:1.5;white-space:nowrap}
+.rk-badge i{font-style:normal;font-size:var(--fs-6)}
+.rk-badge .rk-lv{font-family:var(--font-mono);font-weight:600;color:var(--text);opacity:.85}
+.rk-badge em{font-style:normal;color:var(--pc)}
+.rk-badge--c{gap:3px;padding:0 6px 0 4px}
+:root[data-theme="light"] .rk-badge{color:color-mix(in srgb,var(--rc) 55%,#000)}
+:root[data-theme="light"] .rk-badge em{color:color-mix(in srgb,var(--pc) 55%,#000)}
