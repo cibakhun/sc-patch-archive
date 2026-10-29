@@ -45,7 +45,7 @@ const SCALARS = [
   ['sizeDe', 'sizeDe'], ['crewMin', 'crewMin'], ['crewMax', 'crewMax'], ['cargoSCU', 'cargoSCU'],
   ['scmSpeed', 'scmSpeed'], ['maxSpeed', 'maxSpeed'], ['boostForward', 'boostForward'],
   ['pitch', 'pitch'], ['yaw', 'yaw'], ['roll', 'roll'],
-  ['hullHp', 'hullHp'], ['shieldHp', 'shieldHp'], ['qtSpeedMs', 'qtSpeedMs'],
+  ['hullHp', 'hullHp'], ['massKg', 'massKg'], ['shieldHp', 'shieldHp'], ['qtSpeedMs', 'qtSpeedMs'],
   ['insClaimMin', 'insClaimMin'], ['insExpediteMin', 'insExpediteMin'], ['insExpediteCost', 'insExpediteCost'],
   ['cmLaunchers', 'cmLaunchers'],
 ];

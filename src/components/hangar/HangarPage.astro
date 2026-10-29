@@ -761,7 +761,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
           <thead><tr><th scope="col"><span class="hgx-sr">{t('cmp.stat')}</span></th></tr></thead>
           {COMPARE.map((sec) => (
             <tbody data-sec={sec.key}>
-              <tr class="hgx-cmp__sec"><th scope="colgroup">{t(`cmp.sec.${sec.key}`)}</th></tr>
+              <tr class="hgx-cmp__sec"><th scope="rowgroup">{t(`cmp.sec.${sec.key}`)}</th></tr>
               {sec.text.map((k) => <tr data-t={k}><th scope="row">{t(k === 'role' ? 'cmp.role' : 'ov.size')}</th></tr>)}
               {sec.stats.map((k) => STAT[k]).map((s) => (
                 <tr data-k={s.key} data-u={s.unit} data-d={s.digits} data-better={s.better}><th scope="row">{t(`stat.${s.key}`)}</th></tr>
