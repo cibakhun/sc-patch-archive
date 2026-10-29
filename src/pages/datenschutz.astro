@@ -155,8 +155,9 @@ body{font-family:var(--font-body)}
       <p class="note">
         Your choice is remembered by the technical cookie <code>vb_noanalytics</code> in this
         browser and only for this address; its entire content is a 1 or a 0, and it lasts 400 days.
-        It takes effect from the next page load and covers both services: the server then no longer
-        allows the measurement scripts, so they never load at all. If you clear your cookies, you
+        It takes effect from the next page load and covers both services: the Cloudflare script is then no
+        longer allowed to load, and the page sends nothing to our measurement server, because the
+        browser blocks that connection as well. If you clear your cookies, you
         have to opt out here again. For administrator accounts the site sets the same cookie by
         itself after sign-in, unless you previously chose “Count me again” in this browser; this
         browser is then no longer counted from the following page load on, even after signing
@@ -170,7 +171,7 @@ body{font-family:var(--font-body)}
         const status = document.getElementById('rum-status');
         const btn = document.getElementById('rum-toggle');
         if (!status || !btn) return;
-        // The preview build loads no counter (empty CSP), cookie or not.
+        // The preview build counts nothing (data-domains, empty connect-src), cookie or not.
         const staging = document.getElementById('opt-out')?.dataset.staging === '1';
         const render = (hint) => {
           status.textContent = (staging

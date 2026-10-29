@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro dev",
-    "build": "node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build && node scripts/_write-build-stamp.mjs",
+    "build": "node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build && node scripts/_write-build-stamp.mjs && node scripts/_write-csp-hashes.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "gate": "node scripts/run-gate.mjs",
@@ -15,6 +15,7 @@
     "check:staging": "node scripts/check-deployed.mjs --base https://staging.verse-base.com --vorschau",
     "check:live": "node scripts/check-deployed.mjs --base https://verse-base.com --live",
     "check:gate": "node scripts/check-gate.mjs --base https://staging.verse-base.com",
+    "check:headers": "node scripts/check-headers.mjs --base https://staging.verse-base.com",
     "verify": "node scripts/_verify.mjs",
     "verify:wiring": "node scripts/verify-wiring.mjs",
     "verify:metrics": "node scripts/verify-metrics.mjs",

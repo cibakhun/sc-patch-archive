@@ -169,8 +169,9 @@ body{font-family:var(--font-body)}
       <p class="note">
         Die Entscheidung merkt sich der technische Cookie <code>vb_noanalytics</code> in genau
         diesem Browser und nur für diese Adresse; sein ganzer Inhalt ist eine 1 oder eine 0, und er
-        gilt 400 Tage. Er wirkt ab dem nächsten Seitenaufruf und betrifft beide Dienste: der Server
-        erlaubt die Messskripte dann nicht mehr, sie laden gar nicht erst. Löschst du deine
+        gilt 400 Tage. Er wirkt ab dem nächsten Seitenaufruf und betrifft beide Dienste: das Cloudflare-Skript
+        darf dann nicht mehr laden, und die Seite schickt nichts mehr an unseren Messserver, weil der
+        Browser auch die Verbindung dorthin sperrt. Löschst du deine
         Cookies, musst du hier erneut widersprechen. Für Administrator-Konten setzt die Seite
         denselben Cookie nach der Anmeldung von selbst, außer du hast in diesem Browser zuvor
         „Wieder mitzählen“ gewählt; dieser Browser wird dann ab dem folgenden Aufruf nicht mehr

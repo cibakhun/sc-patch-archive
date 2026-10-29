@@ -13,7 +13,7 @@
    diesen Seiten laeuft seither kein Skript eines Nebenhosts, und auf allen
    anderen geht die Adresse ohne Abfrage und ohne Fragment an den Zaehler.
 
-   Fuenf Zusicherungen, jede mit Soll/Ist-Zeile:
+   Sechs Zusicherungen, jede mit Soll/Ist-Zeile:
 
      1  Jede Layout-Seite laedt den Zaehler — ausser den benannten
         Ausnahmen unten (KEIN_ZAEHLER). Eine Layout-Seite ohne Zaehler
@@ -31,13 +31,25 @@
      4  Jeder Zaehler-Tag traegt data-exclude-hash="true" und
         data-exclude-search="true", nennt in data-before-send einen Haken,
         und dieselbe Seite definiert ihn inline (window.<name> = …).
-        Fehlt der Haken, schickt Umami ungefiltert.
+        Fehlt der Haken, schickt Umami ungefiltert. Seit 29.10.2026
+        ausserdem: das Skript kommt vom EIGENEN Ursprung (src beginnt mit
+        "/", die gepinnte Kopie unter public/vendor/umami/), und
+        data-host-url nennt das https-Ziel der Zaehlung.
      5  Jede verschiedene Fassung des Hakens aus dem gebauten Stand laeuft
         in node:vm: Abfrage und Fragment verschwinden aus url und
         referrer, als volle Adresse wie als reiner Pfad (aeltere Umami-
         Fassungen schicken nur den Pfad), eine Adresse ohne beides kommt
-        unveraendert durch, und ein Aufruf ohne url/referrer wirft nicht
-        (ein Wurf im Haken legt die Zaehlung still).
+        unveraendert durch, ein Aufruf ohne url/referrer wirft nicht
+        (ein Wurf im Haken legt die Zaehlung still), und mit dem
+        Widerspruchs-Cookie vb_noanalytics=1 liefert er null.
+     6  Die gepinnte Kopie des Zaehlers: die Datei, auf die der Tag zeigt,
+        liegt in dist/, ihr Rumpf passt zur Pruefsumme im Kopf
+        (scripts/vendor-umami.mjs schreibt beide — eine Abweichung heisst
+        Handarbeit an fremdem Code), und sie laeuft in node:vm mit dem
+        Haken der Seite: genau ein POST an <data-host-url>/api/send mit
+        der Website-Kennung und einer Adresse ohne Abfrage und Fragment;
+        kein einziger mit Widerspruchs-Cookie und keiner auf einem
+        fremden Hostnamen (Vorschau, data-domains).
 
    Den Zaehler erkennt das Tor am Umami-Merkmal `data-website-id`, nicht
    am Host — zieht das Skript auf einen anderen Host um, bleibt das Tor
@@ -54,6 +66,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
+import { createHash } from 'node:crypto';
 
 const DIST = 'dist';
 
@@ -66,6 +79,7 @@ const DIST = 'dist';
 const MIN_LAYOUT_SEITEN = 17000;
 const MIN_ZAEHLER_SEITEN = 17000;
 const MIN_HAKEN_FASSUNGEN = 1;
+const MIN_ZAEHLER_KOPIEN = 1;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
 // traegt die Seite hier ein; faellt der Anlass weg, reisst [2]. Auch
@@ -129,6 +143,7 @@ seiten.sort();
 
 const ausnahmeNach = new Map(KEIN_ZAEHLER.map((a) => [a.seite, a]));
 const hakenFassungen = new Map(); // Quelltext -> erste Seite
+const zaehlerKopien = new Map();  // src ohne Abfrage -> { seite, tag, haken }
 let layoutSeiten = 0, zaehlerSeiten = 0, zaehlerTags = 0;
 const layoutOhneZaehler = [];
 const kontoMitZaehler = [];
@@ -161,7 +176,13 @@ for (const s of seiten) {
       const quelle = [...html.matchAll(INLINE_SKRIPT)].map((m) => m[1]).find((js) => def.test(js));
       if (!quelle) maengel.push(`die Seite definiert den Haken window.${haken} nicht — Umami schickt dann ungefiltert`);
       else if (!hakenFassungen.has(quelle)) hakenFassungen.set(quelle, { seite: s, name: haken });
+      const src = attr(tag, 'src') ?? '';
+      if (!/^\/(?!\/)/.test(src))
+        maengel.push(`src="${src}" — das Zaehlskript kommt vom eigenen Ursprung (gepinnte Kopie public/vendor/umami/script.js, siehe scripts/vendor-umami.mjs), nicht von einem fremden Host`);
+      else if (quelle && !zaehlerKopien.has(src.split('?')[0])) zaehlerKopien.set(src.split('?')[0], { seite: s, tag, haken: quelle });
     }
+    if (!/^https:\/\/[^/"]+\/?$/.test(attr(tag, 'data-host-url') ?? ''))
+      maengel.push('data-host-url fehlt oder ist keine https-Adresse ohne Pfad — Umami schickte die Zaehlung an den eigenen Ursprung');
     if (maengel.length) tagMaengel.push(`${s}: ${maengel.join('; ')}`);
   }
 }
@@ -214,11 +235,12 @@ if (tagMaengel.length > 20) fail(`… und ${tagMaengel.length - 20} weitere mang
 
 /* ---- [5] Der ausgelieferte Haken, ausgefuehrt ---- */
 console.log('\n[5] Der ausgelieferte Haken schneidet Abfrage und Fragment ab (node:vm)');
-function fahre(quelle, name) {
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
+function fahre(quelle, name, cookie = '') {
   const ctx = {
-    navigator: { webdriver: false, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36' },
+    navigator: { webdriver: false, userAgent: UA },
     screen: { width: 1920, height: 1080 },
-    document: { referrer: 'https://example.org/' },
+    document: { referrer: 'https://example.org/', cookie },
   };
   ctx.window = ctx;
   vm.createContext(ctx);
@@ -262,18 +284,103 @@ for (const [quelle, { seite, name }] of hakenFassungen) {
     (r) => (!r ? 'liefert null fuer einen normalen Aufruf' : r.url !== 'https://verse-base.com/support.html' ? `url wird zu "${r.url}"` : null),
   );
   probe('Aufruf ohne url/referrer', { website: 'w', name: 'probe' }, () => null);
+  try {
+    const r = fahre(quelle, name, 'vb_theme=dark; vb_noanalytics=1')({ url: 'https://verse-base.com/support.html', website: 'w' });
+    if (r !== null && r !== undefined && r !== false)
+      fail(`${seite}: mit Widerspruchs-Cookie vb_noanalytics=1 liefert der Haken trotzdem Daten — die Datenschutzseite verspricht, dass dann nichts gezaehlt wird`);
+  } catch (e) { fail(`${seite}: Haken wirft mit Widerspruchs-Cookie (${e.message})`); }
 }
-console.log(`    Haken-Fassungen ausgefuehrt: ${hakenGeprueft}   je 4 Proben`);
+console.log(`    Haken-Fassungen ausgefuehrt: ${hakenGeprueft}   je 5 Proben`);
+
+/* ---- [6] Die gepinnte Kopie des Zaehlers, ausgefuehrt ---- */
+console.log('\n[6] Gepinnte Zaehler-Kopie: Pruefsumme und Lauf in node:vm');
+const sha256 = (t) => createHash('sha256').update(t, 'utf8').digest('hex');
+const KOPF_ENDE = ' * --- Ende des Kopfes --- */\n';
+async function zaehle(quelle, haken, tag, src, { href, cookie = '', referrer = '' }) {
+  const u = new URL(href);
+  const aufrufe = [];
+  const attrs = new Map([...tag.matchAll(/\s([a-z][a-z0-9-]*)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+  const ctx = {
+    navigator: { webdriver: false, userAgent: UA, language: 'de-DE' },
+    screen: { width: 1920, height: 1080 },
+    location: { hostname: u.hostname, href: u.href, origin: u.origin },
+    history: { pushState() {}, replaceState() {} },
+    localStorage: { getItem: () => null },
+    URL, setTimeout, clearTimeout,
+  };
+  ctx.document = {
+    referrer, cookie, title: 'Probe', readyState: 'complete', addEventListener() {},
+    currentScript: { src: `${u.origin}${src}`, getAttribute: (n) => attrs.get(n) ?? null },
+  };
+  ctx.window = ctx;
+  ctx.top = ctx;
+  // Netz gibt es hier nicht: der Stub nimmt den Aufruf nur entgegen.
+  ctx.fetch = async (ziel, opts) => { aufrufe.push({ ziel: String(ziel), opts }); return { json: async () => ({}) }; };
+  vm.createContext(ctx);
+  vm.runInContext(haken, ctx, { timeout: 1000 });
+  vm.runInContext(quelle, ctx, { timeout: 1000 });
+  await new Promise((r) => setTimeout(r, 30));
+  return { aufrufe, attrs };
+}
+let kopienGeprueft = 0;
+for (const [src, { seite, tag, haken }] of zaehlerKopien) {
+  const datei = join(DIST, src);
+  if (!existsSync(datei)) { fail(`${seite}: Zaehler-Tag zeigt auf ${src}, die Datei fehlt in dist/ — Umami laedt nicht`); continue; }
+  kopienGeprueft++;
+  // Pruefsumme ueber LF-Zeilenenden: ein Windows-Checkout mit
+  // core.autocrlf=true liefert die Datei mit CRLF aus, der Inhalt ist derselbe.
+  const text = readFileSync(datei, 'utf8').replace(/\r\n?/g, '\n');
+  const teil = text.indexOf(KOPF_ENDE);
+  const soll = /Rumpf-sha256:\s*([0-9a-f]{64})/.exec(teil < 0 ? '' : text.slice(0, teil))?.[1];
+  const rumpf = teil < 0 ? '' : text.slice(teil + KOPF_ENDE.length);
+  const fassung = /Fassung:\s*(\S+)/.exec(text)?.[1] ?? '?';
+  if (!soll) fail(`${src}: Kopf mit Rumpf-sha256 fehlt — die Kopie nur mit scripts/vendor-umami.mjs erneuern`);
+  else if (sha256(rumpf) !== soll) fail(`${src}: Rumpf passt nicht zur Pruefsumme im Kopf (von Hand geaendert?) — mit scripts/vendor-umami.mjs neu erzeugen, Diff lesen`);
+  let lauf;
+  try {
+    lauf = await zaehle(rumpf || text, haken, tag, src, {
+      href: 'https://verse-base.com/schiffe/probe.html?code=1&type=x#access_token=geheim',
+      referrer: 'https://example.org/suche?q=1#x',
+    });
+  } catch (e) { fail(`${src}: laeuft in node:vm nicht (${e.message})`); continue; }
+  const ziel = `${(lauf.attrs.get('data-host-url') ?? '').replace(/\/$/, '')}/api/send`;
+  console.log(`    ${src} (${fassung}, ${rumpf.length} Zeichen Rumpf): Aufrufe ${lauf.aufrufe.length} -> ${lauf.aufrufe.map((a) => a.ziel).join(', ') || '—'}`);
+  if (lauf.aufrufe.length !== 1) fail(`${src}: Seitenaufruf erzeugt ${lauf.aufrufe.length} Zaehl-Aufrufe, Soll genau 1`);
+  for (const a of lauf.aufrufe) {
+    let body = null;
+    try { body = JSON.parse(a.opts?.body ?? ''); } catch { /* unten */ }
+    const p = body?.payload ?? {};
+    if (a.ziel !== ziel) fail(`${src}: zaehlt an ${a.ziel}, Soll ${ziel} (data-host-url)`);
+    if (a.opts?.method !== 'POST') fail(`${src}: Zaehl-Aufruf mit Methode ${a.opts?.method}, Soll POST`);
+    if (p.website !== lauf.attrs.get('data-website-id')) fail(`${src}: Website-Kennung "${p.website}" statt der aus data-website-id`);
+    if (typeof p.url !== 'string' || /[?#]/.test(p.url)) fail(`${src}: url "${p.url}" traegt Abfrage oder Fragment`);
+    if (typeof p.referrer === 'string' && /[?#]/.test(p.referrer)) fail(`${src}: referrer "${p.referrer}" traegt Abfrage oder Fragment`);
+  }
+  const still = [
+    ['Widerspruchs-Cookie', { href: 'https://verse-base.com/support.html', cookie: 'vb_noanalytics=1' }],
+    ['fremder Hostname (Vorschau)', { href: 'https://staging.verse-base.com/support.html' }],
+  ];
+  for (const [titel, opt] of still) {
+    try {
+      const r = await zaehle(rumpf || text, haken, tag, src, opt);
+      console.log(`      ${titel}: Aufrufe — Soll: 0   Ist: ${r.aufrufe.length}`);
+      if (r.aufrufe.length) fail(`${src}: ${titel} — der Zaehler schickt trotzdem (${r.aufrufe[0].ziel})`);
+    } catch (e) { fail(`${src}: ${titel} — laeuft in node:vm nicht (${e.message})`); }
+  }
+}
+console.log(`    Zaehler-Kopien geprueft: ${kopienGeprueft}   je 3 Laeufe`);
 
 /* ---- Selbstauskunft + Klinken ---- */
 console.log('\nSelbstauskunft');
-console.log(`    Layout-Seiten: ${layoutSeiten} (Klinke ${MIN_LAYOUT_SEITEN})   mit Zaehler: ${zaehlerSeiten} (Klinke ${MIN_ZAEHLER_SEITEN})   Haken-Fassungen: ${hakenGeprueft} (Klinke ${MIN_HAKEN_FASSUNGEN})`);
+console.log(`    Layout-Seiten: ${layoutSeiten} (Klinke ${MIN_LAYOUT_SEITEN})   mit Zaehler: ${zaehlerSeiten} (Klinke ${MIN_ZAEHLER_SEITEN})   Haken-Fassungen: ${hakenGeprueft} (Klinke ${MIN_HAKEN_FASSUNGEN})   Zaehler-Kopien: ${kopienGeprueft} (Klinke ${MIN_ZAEHLER_KOPIEN})`);
 if (layoutSeiten < MIN_LAYOUT_SEITEN)
   fail(`nur ${layoutSeiten} Layout-Seiten erkannt, Klinke ${MIN_LAYOUT_SEITEN} — die theme-color-Zeile aus Layout.astro hat sich geaendert oder der Build ist unvollstaendig; Ursache klaeren, nicht die Klinke senken`);
 if (zaehlerSeiten < MIN_ZAEHLER_SEITEN)
   fail(`nur ${zaehlerSeiten} Seiten mit Zaehler, Klinke ${MIN_ZAEHLER_SEITEN} — der Tag ist verloren gegangen oder hat sein data-website-id verloren`);
 if (hakenGeprueft < MIN_HAKEN_FASSUNGEN)
   fail(`keine Fassung des Hakens ausgefuehrt — ohne Probe ist [5] nicht gelaufen`);
+if (kopienGeprueft < MIN_ZAEHLER_KOPIEN)
+  fail(`keine Zaehler-Kopie ausgefuehrt — ohne Lauf ist [6] nicht gelaufen`);
 
 if (fehler.length) {
   console.error(`\nverify-zaehler: ${fehler.length} FEHLER\n`);
