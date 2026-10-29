@@ -167,6 +167,7 @@ function runGate({ search = '', hash = '', session = {}, local = {}, answers = {
       calls.push({ url, init });
       if (url.startsWith(SB + '/auth/v1/token?grant_type=pkce')) return respond(...(answers.pkce || [200, { access_token: 'AT', refresh_token: 'RT', expires_in: 3600, token_type: 'bearer' }]));
       if (url.startsWith(SB + '/auth/v1/token?grant_type=password')) return respond(200, { access_token: 'PW', refresh_token: 'R2' });
+      if (url.startsWith(SB + '/auth/v1/token?grant_type=refresh_token')) return respond(...(answers.refresh || [200, { access_token: 'NEW', refresh_token: 'NEWR', expires_in: 3600, token_type: 'bearer' }]));
       if (url === '/_gate/mint') return respond(...(answers.mint || [204, {}]));
       return respond(404, {});
     },
@@ -232,7 +233,7 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
     await settle();
     assert.equal(g.ls.size, 0);
     assert.equal(g.page.replaced, null);
-    assert.match(g.getEl('gateDiscordStatus').innerHTML, /no Test Pilot access/);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /no Test Pilot access/);
   });
 
   test('Tokens im Fragment werden nie übernommen, nur weggeräumt', async () => {
@@ -259,13 +260,18 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
     assert.equal(g.calls.length, 0);
     assert.equal(g.ls.size, 0);
     assert.equal(g.loc.search, '');
-    assert.match(g.getEl('gateDiscordStatus').innerHTML, /could not be completed/);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /could not be completed/);
   });
 
   test('Fehler kommt bei PKCE in der Query an', async () => {
     const g = runGate({ search: '?error=server_error&error_code=unexpected_failure&error_description=Database+error+saving+new+user' });
     await settle();
-    assert.match(g.getEl('gateDiscordStatus').innerHTML, /no verse-base\.com account/);
+    const msg = g.getEl('gateDiscordStatus').textContent;
+    assert.match(msg, /Discord did not work\. Do you already have a VerseBase account with the same e-mail\?/);
+    assert.equal(g.getEl('gateDiscordStatus').innerHTML, '', 'Meldungen gehen als Text, nie als HTML');
+    // Discord legt seit 29.10.2026 selbst Konten an, die E-Mail-Registrierung
+    // ist pausiert: kein Verweis mehr auf register.html.
+    assert.doesNotMatch(msg, /register/i);
     assert.equal(g.loc.search, '');
   });
 
@@ -275,5 +281,100 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
     await settle();
     assert.ok(g.calls.some((c) => c.url.includes('grant_type=password')));
     assert.equal(g.ls.size, 0);
+  });
+});
+
+describe('Torseite: gespeicherte Sitzung wird erneuert', () => {
+  const now = () => Math.floor(Date.now() / 1000);
+  const stored = (o) => ({ 'sb-test-auth-token': JSON.stringify({ access_token: 'OLD', refresh_token: 'OLDR', token_type: 'bearer', ...o }) });
+  const mintsOf = (g) => g.calls.filter((c) => c.url === '/_gate/mint').map((c) => c.init.headers.Authorization);
+  const refreshes = (g) => g.calls.filter((c) => c.url.includes('grant_type=refresh_token'));
+
+  test('abgelaufenes Zugangstoken: erst erneuern, zurückschreiben, dann mint mit dem neuen', async () => {
+    const g = runGate({ search: '?next=%2Fpilot%2Fabc', local: stored({ expires_at: now() - 600 }) });
+    await settle();
+    assert.equal(refreshes(g).length, 1);
+    assert.deepEqual(JSON.parse(refreshes(g)[0].init.body), { refresh_token: 'OLDR' });
+    assert.deepEqual(mintsOf(g), ['Bearer NEW']);
+    const saved = JSON.parse(g.ls.get('sb-test-auth-token'));
+    assert.equal(saved.refresh_token, 'NEWR', 'rotiertes refresh_token liegt wieder in der Ablage');
+    assert.ok(saved.expires_at > now(), 'expires_at ergänzt');
+    assert.equal(g.page.replaced, '/pilot/abc');
+  });
+
+  test('noch gültiges Token: kein Refresh, direkt mint', async () => {
+    const g = runGate({ local: stored({ expires_at: now() + 1800 }) });
+    await settle();
+    assert.equal(refreshes(g).length, 0);
+    assert.deepEqual(mintsOf(g), ['Bearer OLD']);
+  });
+
+  test('refresh_token abgelehnt: Sitzung weg, kein mint mit dem toten Token', async () => {
+    const g = runGate({ local: stored({ expires_at: now() - 600 }), answers: { refresh: [400, { error: 'invalid_grant' }] } });
+    await settle();
+    assert.equal(g.ls.has('sb-test-auth-token'), false);
+    assert.deepEqual(mintsOf(g), []);
+    assert.equal(g.page.replaced, null);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /sign-in has expired/);
+  });
+
+  test('Serverfehler beim Refresh: Sitzung bleibt liegen, kein mint mit abgelaufenem Token', async () => {
+    const g = runGate({ local: stored({ expires_at: now() - 600 }), answers: { refresh: [503, {}] } });
+    await settle();
+    assert.equal(JSON.parse(g.ls.get('sb-test-auth-token')).refresh_token, 'OLDR');
+    assert.deepEqual(mintsOf(g), []);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /Could not renew/);
+  });
+
+  test('anderer Tab erneuert gerade: kein zweiter Refresh, dessen Ergebnis wird genommen', async () => {
+    const local = { ...stored({ expires_at: now() - 600 }), 'sb-lite-refresh-lock': String(Date.now()) };
+    const g = runGate({ local });
+    // Der andere Tab schreibt waehrend der Wartezeit die erneuerte Sitzung.
+    g.ls.set('sb-test-auth-token', JSON.stringify({ access_token: 'TAB', refresh_token: 'TABR', expires_at: now() + 3600 }));
+    await new Promise((r) => setTimeout(r, 1700));
+    assert.equal(refreshes(g).length, 0);
+    assert.deepEqual(mintsOf(g), ['Bearer TAB']);
+  });
+
+  test('gültige Sitzung ohne Testpilot-Zugang: Hinweis statt Stille', async () => {
+    const g = runGate({ local: stored({ expires_at: now() + 1800 }), answers: { mint: [403, {}] } });
+    await settle();
+    assert.match(g.getEl('gateDiscordStatus').textContent, /no Test Pilot access/);
+    assert.equal(g.page.replaced, null);
+  });
+});
+
+describe('Rücksprungziel ?next= bleibt auf der eigenen Origin', () => {
+  const ORIGIN = 'https://staging.verse-base.com';
+  const FREMD = ['/.//evil.example', '/..//evil.example', '/%2e//evil.example', '/./\\evil.example', '/x/..//evil.example', '//evil.example', '/\\evil.example', 'https://evil.example/', '\t/evil.example'];
+  const GUT = [['/pilot/star_runner?ref=discord', '/pilot/star_runner?ref=discord'], ['/schiffe/a.html?x=1#y', '/schiffe/a.html?x=1#y'], ['/de/pilot/x', '/de/pilot/x'], ['/', '/']];
+
+  test('src/lib/safe-next.ts: fremde Ziele -> Rückfall, eigene bleiben', async () => {
+    const { safeNext } = await loadTs('src/lib/safe-next.ts');
+    for (const raw of FREMD) assert.equal(safeNext(raw, ORIGIN, '/dash'), '/dash', raw);
+    for (const [raw, soll] of GUT) assert.equal(safeNext(raw, ORIGIN, '/dash'), soll, raw);
+    assert.equal(safeNext('', ORIGIN, '/dash'), '/dash');
+  });
+
+  test('Torseite: mit Sitzung springt sie nie auf einen fremden Host', async () => {
+    for (const raw of FREMD) {
+      const g = runGate({ search: '?next=' + encodeURIComponent(raw), local: { 'sb-test-auth-token': JSON.stringify({ access_token: 'AT', refresh_token: 'R', expires_at: 9999999999 }) } });
+      await settle();
+      assert.equal(g.page.replaced, '/', raw);
+    }
+  });
+
+  test('Torseite: Pfad und Query aus ?next= kommen unverändert an', async () => {
+    for (const [raw, soll] of GUT) {
+      const g = runGate({ search: '?next=' + encodeURIComponent(raw), local: { 'sb-test-auth-token': JSON.stringify({ access_token: 'AT', refresh_token: 'R', expires_at: 9999999999 }) } });
+      await settle();
+      assert.equal(g.page.replaced, soll, raw);
+    }
+  });
+
+  test('AuthLogin.astro nutzt die gemeinsame Regel', () => {
+    const s = fs.readFileSync(path.resolve('src/components/account/AuthLogin.astro'), 'utf8');
+    assert.match(s, /import \{ safeNext \} from '\.\.\/\.\.\/lib\/safe-next';/);
+    assert.match(s, /const next = safeNext\(rawNext, location\.origin, D\.dash!\);/);
   });
 });

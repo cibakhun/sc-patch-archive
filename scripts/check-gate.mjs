@@ -29,7 +29,9 @@
    Sechs Zusicherungen, jede mit Soll/Ist:
 
      1  Gesperrt ist gesperrt: jede gesperrte Stichprobe antwortet OHNE
-        Cookie mit 302 auf /gate.html. Ein 200 ist FEHLER.
+        Cookie mit 302 auf /gate.html. Ein 200 ist FEHLER. Dazu der
+        Ruecksprung: /pilot/<handle>?probe=1 (intern umgeschrieben) traegt
+        genau diese Adresse als next= — sonst FEHLER.
      2  Offen ist offen: jeder Eintrag der Ausnahmeliste antwortet ohne
         Cookie mit 200 (bei /_gate/mint genuegt "nicht 302", weil er
         ohne Kopfzeile 401 gibt, siehe nginx/gate.js mint()). Ein 302
@@ -250,6 +252,27 @@ for (const pfad of gesperrteStichproben) {
   }
 }
 console.log(`    Gepruefte gesperrte Stichproben: ${gesperrteStichproben.length}   302 auf /gate.html — Soll: ${gesperrteStichproben.length}   Ist: ${gesperrtOk}`);
+
+// Ruecksprungziel: /pilot/<handle> wird intern zu /pilot.html?h=<handle>
+// umgeschrieben. Das Tor muss sich die Adresse WIE ANGEFRAGT merken, samt
+// Query ($request_uri in nginx/gate.js next()), sonst landet der Testpilot
+// nach der Anmeldung auf einer leeren Pilotenseite. Prueft, dass das
+// ausgelieferte njs request_uri wirklich liefert (Schiene A kann das nur
+// nachspielen, siehe verify-redirects [5]).
+{
+  const angefragt = '/pilot/vb-gate-probe?probe=1';
+  try {
+    const r = await holen(angefragt);
+    const location = r.headers.get('location') || '';
+    let zurueck = null;
+    try { zurueck = new URL(location, BASE).searchParams.get('next'); } catch { /* bleibt null */ }
+    console.log(`    Ruecksprung von ${angefragt} — Soll: next=${angefragt}   Ist: ${r.status} next=${zurueck}`);
+    if (!(r.status === 302 && zurueck === angefragt))
+      fail(`${angefragt}: Soll 302 mit next=${angefragt}, Ist ${r.status} Location: ${location || '-'} — Pfad oder Query geht am Tor verloren`);
+  } catch (e) {
+    fail(`${angefragt}: Anfrage fehlgeschlagen (${e.message})`);
+  }
+}
 
 /* ---- [2] Offen ist offen ---- */
 console.log('\n[2] Offen ist offen');
