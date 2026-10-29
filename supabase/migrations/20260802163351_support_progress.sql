@@ -1,3 +1,11 @@
+-- Live-Abgleich 29.10.2026: Version und Name wie in der Anlage
+-- (supabase_migrations.schema_migrations). Der ausgefuehrte SQL-Text ist an
+-- den dort gespeicherten Wortlaut angeglichen. Die fruehere Repo-Fassung
+-- liess die Spalte updated_by weg und schrieb den Tabellenkommentar mit
+-- Umlauten; live legte diese Migration updated_by noch an, und
+-- 20260802163957 entfernte sie sechs Minuten spaeter. Endstand gleich. Die
+-- Erlaeuterungen unten sind die der frueheren Repo-Fassung.
+--
 -- Unterstützen-Seite: der erreichte Stand, von Hand gepflegt.
 --
 -- WARUM VON HAND und nicht automatisch: Der Zahlungsweg der Seite ist ein
@@ -23,11 +31,12 @@ create table if not exists public.support_progress (
   goal_cents   integer     not null check (goal_cents > 0 and goal_cents <= 100000000),
   raised_cents integer     not null default 0 check (raised_cents >= 0 and raised_cents <= 100000000),
   note         text        check (note is null or char_length(note) <= 200),
-  updated_at   timestamptz not null default now()
+  updated_at   timestamptz not null default now(),
+  updated_by   uuid        references auth.users(id) on delete set null
 );
 
 comment on table public.support_progress is
-  'Erreichter Stand der Unterstützen-Seite. Von Hand gepflegt, weil ein PayPal.me-Link keine Rückmeldung liefert. Öffentlich lesbar, nur von Admins änderbar.';
+  'Erreichter Stand der Unterstuetzen-Seite. Von Hand gepflegt, weil ein PayPal.me-Link keine Rueckmeldung liefert. Oeffentlich lesbar, nur von Admins aenderbar.';
 
 alter table public.support_progress enable row level security;
 
@@ -60,10 +69,12 @@ create policy support_progress_insert_admin on public.support_progress
 -- veralteter Stand mit frischem Datum erscheinen — genau die Unehrlichkeit,
 -- gegen die der Stempel gedacht ist.
 --
--- KEIN updated_by: die select-Regel gilt für ALLE Spalten, die Nutzer-ID des
--- Admins wäre also öffentlich lesbar. Für eine Seite mit einem Admin trägt sie
--- keine Information, die das wert wäre. (Gemessen: ein anonymer Abruf mit
--- select=* lieferte die Spalte mit aus.)
+-- updated_by legte diese Migration live noch an. Die Folgemigration
+-- 20260802163957_support_progress_drop_updated_by entfernt die Spalte wieder:
+-- die select-Regel gilt für ALLE Spalten, die Nutzer-ID des Admins wäre also
+-- öffentlich lesbar. Für eine Seite mit einem Admin trägt sie keine
+-- Information, die das wert wäre. (Gemessen: ein anonymer Abruf mit select=*
+-- lieferte die Spalte mit aus.)
 create or replace function public.support_progress_stamp()
 returns trigger
 language plpgsql
@@ -71,6 +82,7 @@ set search_path = public
 as $$
 begin
   new.updated_at := now();
+  new.updated_by := auth.uid();
   new.slug := old.slug;  -- Schlüssel ist nicht änderbar
   return new;
 end;

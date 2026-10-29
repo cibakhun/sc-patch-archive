@@ -16,6 +16,7 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
   label: string;
@@ -585,7 +586,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </footer>
   </div>
 </div>
-{crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
+{crumbLd && <script type="application/ld+json" set:html={jsonForScript(crumbLd)} />}
 {/* Nur auf Blattseiten mit Zurück-Element geladen — Naben und Startseite
     bekommen kein zusätzliches Skript. Gleiche Herkunft, CSP bleibt grün. */}
 {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}

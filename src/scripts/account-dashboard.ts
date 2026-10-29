@@ -2,9 +2,14 @@
 // Wird vom <script> der Komponente importiert; Astro bündelt es mit.
 
 import { supabase } from '../lib/supabase';
+import { escapeHtml as escHtml } from '../lib/escape';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
+  import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
+  import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
+  import { needsCode, needsAal2Error } from '../lib/mfa';
+  import { askCode } from '../lib/mfa-dialog';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -15,7 +20,6 @@ import { supabase } from '../lib/supabase';
     // Übersicht-Panel: trägt die dynamischen i18n-Templates als data-l-* Attribute
     const ovPanel = document.getElementById('tab-panel-overview');
     const ovTpl = (k: string) => (ovPanel && ovPanel.dataset[k]) || '';
-    const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
     const fmtAuec = (n: number) => {
       if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + '<small>M aUEC</small>';
       if (n >= 1000) return Math.round(n / 1000) + '<small>k aUEC</small>';
@@ -152,6 +156,7 @@ import { supabase } from '../lib/supabase';
       if (userErr) {
         const st = (userErr as { status?: number }).status;
         if (st === 401 || st === 403) {
+          clearAccountTraces(session.user.id, 'signout', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.replace(D.login!);
           return;
@@ -159,11 +164,25 @@ import { supabase } from '../lib/supabase';
         throw userErr;
       }
       if (!userData.user) {
+        clearAccountTraces(session.user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.replace(D.login!);
         return;
       }
       const user = userData.user;
+
+      // Zweiter Faktor: hat das Konto einen bestätigten Authenticator und
+      // steht diese Sitzung noch ohne Code (z. B. nach „Mit Discord
+      // bestätigen“ oder dem Verbinden von Discord), kommt zuerst der Code.
+      // Abbruch meldet ab — wie auf der Anmeldeseite.
+      if (await needsCode(supabase, true)) {
+        if (!(await askCode(supabase))) {
+          await supabase.auth.signOut({ scope: 'local' });
+          location.replace(D.login! + '?next=' + encodeURIComponent(location.pathname + location.search));
+          return;
+        }
+        document.dispatchEvent(new CustomEvent('vb:aal2'));
+      }
 
       // Header Identity
       document.getElementById('idEmail')!.textContent = user.email || '—';
@@ -205,6 +224,7 @@ import { supabase } from '../lib/supabase';
         tester_credit: false,
         share_activity: true,
         show_favorites: true,
+        presence_visibility: 'friends',
         social_twitch: '',
         social_youtube: '',
         social_x: '',
@@ -225,6 +245,9 @@ import { supabase } from '../lib/supabase';
         } catch {}
       }
 
+      // Spalten der geladenen Zeile: daran sieht das Formular, ob die
+      // Datenbank eine neuere Einstellung (presence_visibility) schon kennt.
+      let profileCols: string[] | null = null;
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -232,7 +255,7 @@ import { supabase } from '../lib/supabase';
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile) Object.assign(profileState, profile);
+        if (profile) { Object.assign(profileState, profile); profileCols = Object.keys(profile); }
       } catch (err) {
         const { data: basicProfile } = await supabase
           .from('profiles')
@@ -255,41 +278,45 @@ import { supabase } from '../lib/supabase';
       // 'verify-rsi' — die Site ist statisch (Docker/nginx auf Coolify) und
       // kann selbst keinen Server-Code ausführen; Browser-Aufrufe auf RSI
       // werden von Cloudflare CORS/Bot-Protection blockiert. supabase-js hängt
-      // das Session-JWT automatisch an; die Function persistiert das Ergebnis
-      // serverseitig per Service Role (ein DB-Trigger verbietet Client-Writes
-      // auf rsi_verified=true).
-      // Rückgabe: { verified, error?, persisted? } oder null, wenn die
-      // Function nicht erreicht werden konnte (dann darf NICHT revokiert
-      // werden).
-      const serverVerify = async (rHandle: string, rCode: string): Promise<{ verified: boolean; error?: string; persisted?: boolean } | null> => {
+      // das Session-JWT automatisch an. Den Prüfcode stellt der Server aus
+      // ({ action: 'challenge', rsi_handle }) und bindet ihn an Konto und
+      // Handle; geprüft wird mit { action: 'verify', rsi_handle? } — Handle und
+      // Code liest die Function dann selbst aus der Datenbank, und sie hält das
+      // Ergebnis auch selbst fest (Abzeichen setzen oder entziehen).
+      // Rückgabe: HTTP-Status und JSON. status 0 = nicht erreichbar. Nur 200
+      // ist ein Prüfergebnis; alles andere (429 gedrosselt, 502/504 RSI nicht
+      // erreichbar, 409/410 kein oder abgelaufener Code) ändert nichts.
+      const RSI_HANDLE_RE = /^[A-Za-z0-9_-]{3,60}$/;
+      const cleanRsiHandle = (v: string) => v.trim().replace(/^@+/, '');
+      const rsiCall = async (body: Record<string, unknown>): Promise<{ status: number; data: any }> => {
         try {
-          const { data, error } = await supabase.functions.invoke('verify-rsi', {
-            body: { rsi_handle: rHandle, rsi_code: rCode }
-          });
-          if (!error && data && typeof data.verified === 'boolean') {
-            return { verified: data.verified, error: data.error, persisted: data.persisted };
+          const { data, error } = await supabase.functions.invoke('verify-rsi', { body, timeout: 20000 });
+          if (!error) return { status: 200, data };
+          const ctx = (error as { context?: unknown }).context;
+          if (ctx instanceof Response) {
+            let payload: any = null;
+            try { payload = await ctx.json(); } catch {}
+            return { status: ctx.status, data: payload };
           }
         } catch (efErr) {
           console.warn('verify-rsi edge function call failed:', efErr);
         }
-
-        return null;
+        return { status: 0, data: null };
       };
+      // Altlast des früheren Ablaufs (Code im Browser erzeugt) aufräumen.
+      try { localStorage.removeItem('vb_rsi_code'); } catch {}
 
-      // Silent Re-verification check if user is marked verified (Auto-Revocation)
-      if (profileState.rsi_verified === true && profileState.rsi_handle && profileState.rsi_code) {
+      // Stille Nachprüfung, wenn das Konto verifiziert ist. Nur ein eindeutiges
+      // "Code steht nicht mehr in der Bio" (200, verified:false) nimmt das
+      // Abzeichen — die Function hat es dann schon serverseitig entzogen.
+      if (profileState.rsi_verified === true && profileState.rsi_handle) {
         (async () => {
-          try {
-            const result = await serverVerify(profileState.rsi_handle, profileState.rsi_code);
-            // Nur bei einem definitiv erfolgreichen Server-Check OHNE Code-Fund revokieren —
-            // bei Netzwerk-/Server-Fehlern (result === null oder error gesetzt) bleibt das Badge.
-            if (result && result.verified === false && !result.error) {
-              console.warn('Re-verification failed: RSI bio code missing. Revoking badge.');
-              profileState.rsi_verified = false;
-              await supabase.from('profiles').update({ rsi_verified: false }).eq('id', user.id);
-              updateCard();
-            }
-          } catch (reErr) { console.warn('Background re-verify check skipped:', reErr); }
+          const r = await rsiCall({ action: 'verify' });
+          if (r.status === 200 && r.data && r.data.verified === false) {
+            console.warn('Re-verification: RSI bio code missing, badge revoked server-side.');
+            profileState.rsi_verified = false;
+            updateCard();
+          }
         })();
       }
 
@@ -307,6 +334,7 @@ import { supabase } from '../lib/supabase';
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
       const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
       const showFavsInput = document.getElementById('pfShowFavs') as HTMLInputElement | null;
+      const presVisSelect = document.getElementById('pfPresenceVis') as HTMLSelectElement | null;
       const socialInputs = {
         social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
         social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
@@ -329,6 +357,28 @@ import { supabase } from '../lib/supabase';
       orgInput.value = profileState.org_name || '';
       if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
       if (showFavsInput) showFavsInput.checked = profileState.show_favorites !== false;
+      // Wer den Online-Status sieht (profiles.presence_visibility); alles
+      // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
+      const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
+      // Kennt die Datenbank die Einstellung noch nicht (der geladenen Zeile
+      // fehlt die Spalte), bleibt die Auswahl verborgen und wird nicht
+      // gesendet: eine Wahl, die nichts bewirkt, darf nicht wie gespeichert
+      // aussehen.
+      let presVisKnown = !profileCols || profileCols.includes('presence_visibility');
+      // Bei "Niemand" sieht auch kein Freund die Aktivität: Schalter ausgegraut.
+      const syncShareAct = () => { if (shareActInput && presVisSelect) shareActInput.disabled = presVisKnown && presVisSelect.value === 'none'; };
+      const hidePresVis = () => {
+        presVisKnown = false;
+        const field = presVisSelect ? presVisSelect.closest<HTMLElement>('.field') : null;
+        if (field) field.style.display = 'none';
+        syncShareAct();
+      };
+      if (presVisSelect) {
+        presVisSelect.value = presVisOf(profileState.presence_visibility);
+        presVisSelect.addEventListener('change', syncShareAct);
+      }
+      if (!presVisKnown) hidePresVis();
+      syncShareAct();
       SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
       const ovSoc = document.getElementById('ovSocials');
       if (ovSoc) renderSocialLinks(ovSoc, profileState);
@@ -388,7 +438,9 @@ import { supabase } from '../lib/supabase';
 
       // Live Profile Card Renderer
       const updateCard = () => {
-        const dName = nameInput.value.trim() || user.email?.split('@')[0] || 'Citizen';
+        // Wie die oeffentliche Seite (display_name, sonst Handle); nie ein
+        // Teil der Mailadresse, auch nicht in der Vorschau.
+        const dName = nameInput.value.trim() || handleInput.value.trim() || 'Citizen';
         const dHandle = handleInput.value.trim() ? `@${handleInput.value.trim()}` : '@citizen';
 
         document.getElementById('pcName')!.textContent = dName;
@@ -972,13 +1024,41 @@ import { supabase } from '../lib/supabase';
           });
         }
 
+        // Entfernen loescht die hochgeladene Datei, nicht nur den Verweis:
+        // erst die Profilzeile leeren (keine Seite zeigt dann mehr auf das
+        // Bild), dann <uid>/<art> im Bucket entfernen. Steht im Feld eine
+        // fremde Adresse (Discord-Bild, Vorlage), gibt es dort meist nichts zu
+        // loeschen; remove() meldet das nicht als Fehler.
         if (removeEl) {
-          removeEl.addEventListener('click', () => {
-            o.urlInput.value = '';
-            profileState[o.stateKey] = '';
-            updateCard();
-            syncRemove();
+          removeEl.addEventListener('click', async () => {
+            removeEl.disabled = true;
             setStatus('');
+            let cleared = false;
+            try {
+              const { error: dbErr } = await supabase.from('profiles')
+                .update({ [o.stateKey]: null }).eq('id', user.id);
+              if (dbErr) throw dbErr;
+              cleared = true;
+              o.urlInput.value = '';
+              profileState[o.stateKey] = '';
+              try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+              // change: die Discord-Bild-Auswahl (markDcAvatar) sieht das leere Feld
+              o.urlInput.dispatchEvent(new Event('change'));
+              updateCard();
+              syncRemove();
+              const { error: rmErr } = await supabase.storage.from(o.bucket).remove([`${user.id}/${o.kind}`]);
+              if (rmErr) throw rmErr;
+              setStatus('✓', 'ok');
+              setTimeout(() => setStatus(''), 1600);
+            } catch (err) {
+              console.warn('image remove failed', err);
+              // Verweis schon weg, Datei noch da: Knopf sichtbar lassen, damit
+              // "erneut versuchen" auch geht.
+              if (cleared) removeEl.hidden = false;
+              setStatus(D.msgRemoveErr || 'Could not remove the image.', 'err');
+            } finally {
+              removeEl.disabled = false;
+            }
           });
         }
       };
@@ -1012,27 +1092,48 @@ import { supabase } from '../lib/supabase';
       const btnCheckRsiNow = document.getElementById('btnCheckRsiNow')!;
       const rsiVerifyMsg = document.getElementById('rsiVerifyMsg')!;
 
-      // Fester, eindeutiger Verifizierungscode pro Nutzer: DB-Wert hat Vorrang,
-      // dann localStorage; ein neu generierter Code wird sofort serverseitig
-      // persistiert, damit er geräteübergreifend und bei jedem Aufruf gleich bleibt.
-      const codeFromDb = typeof profileState.rsi_code === 'string' && profileState.rsi_code.length > 0;
-      let activeCode = codeFromDb ? profileState.rsi_code
-        : (localStorage.getItem('vb_rsi_code') || `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
-      try { localStorage.setItem('vb_rsi_code', activeCode); } catch {}
-      profileState.rsi_code = activeCode;
-      if (!codeFromDb) {
-        supabase.from('profiles').upsert({ id: user.id, rsi_code: activeCode })
-          .then(({ error }) => { if (error) console.warn('Could not persist rsi_code:', error); })
-          .catch(() => {});
-      }
+      // Der Prüfcode kommt vom Server und gilt für Konto + Handle. Für dasselbe
+      // Handle gibt der Server denselben Code wieder aus (bestätigt: dauerhaft,
+      // offen: 24 Stunden), damit ein schon in die Bio kopierter Code gilt.
+      let rsiChallenge: { handle: string; code: string } | null = null;
+      const rsiMsg = (text: string, kind: '' | 'ok' | 'err' = '') => {
+        rsiVerifyMsg.textContent = text;
+        rsiVerifyMsg.className = 'acx-status' + (kind ? ' acx-status--' + kind : '');
+        rsiVerifyMsg.hidden = false;
+      };
+      const rsiErrText = (r: { status: number; data: any }) =>
+        r.status === 429 ? D.msgRsiRate!
+          : (r.status === 400 && r.data && r.data.error === 'invalid_handle') ? D.msgRsiBadHandle!
+            : D.msgRsiServerErr!;
+      const loadRsiChallenge = async (handle: string): Promise<boolean> => {
+        rsiChallenge = null;
+        rsiCodeEl.textContent = '…';
+        (btnCopyRsiCode as HTMLButtonElement).disabled = true;
+        (btnCheckRsiNow as HTMLButtonElement).disabled = true;
+        const r = await rsiCall({ action: 'challenge', rsi_handle: handle });
+        if (r.status === 200 && r.data && typeof r.data.code === 'string') {
+          rsiChallenge = { handle: typeof r.data.rsi_handle === 'string' ? r.data.rsi_handle : handle, code: r.data.code };
+          rsiCodeEl.textContent = rsiChallenge.code;
+          (btnCopyRsiCode as HTMLButtonElement).disabled = false;
+          (btnCheckRsiNow as HTMLButtonElement).disabled = false;
+          return true;
+        }
+        rsiCodeEl.textContent = '—';
+        rsiMsg(rsiErrText(r), 'err');
+        return false;
+      };
 
       btnRsiVerifyModal.addEventListener('click', () => {
-        const handle = rsiHandleInput.value.trim();
+        const handle = cleanRsiHandle(rsiHandleInput.value);
         const targetHandleEl = document.getElementById('rsiModalTargetHandle');
         const profileLinkEl = document.getElementById('rsiModalProfileLink') as HTMLAnchorElement;
 
         if (!handle) {
           show(pfStatus as HTMLElement, D.msgRsiEnterHandle!);
+          return;
+        }
+        if (!RSI_HANDLE_RE.test(handle)) {
+          show(pfStatus as HTMLElement, D.msgRsiBadHandle!);
           return;
         }
 
@@ -1041,10 +1142,10 @@ import { supabase } from '../lib/supabase';
           profileLinkEl.href = `https://robertsspaceindustries.com/account/profile`;
         }
 
-        rsiCodeEl.textContent = activeCode;
         rsiVerifyMsg.hidden = true;
         rsiVerifyMsg.className = 'acx-status';
         if (rsiModal.showModal) rsiModal.showModal();
+        loadRsiChallenge(handle);
       });
 
       btnCloseRsiModal.addEventListener('click', () => rsiModal.close());
@@ -1178,64 +1279,62 @@ import { supabase } from '../lib/supabase';
       }
 
       btnCopyRsiCode.addEventListener('click', () => {
-        navigator.clipboard.writeText(activeCode);
+        if (!rsiChallenge) return;
+        navigator.clipboard.writeText(rsiChallenge.code);
         btnCopyRsiCode.textContent = D.rsiCopied || 'Copied! ✓';
         setTimeout(() => btnCopyRsiCode.textContent = D.rsiCopy || 'Copy', 2000);
       });
 
       btnCheckRsiNow.addEventListener('click', async () => {
-        const rsiHandle = rsiHandleInput.value.trim();
-        if (!rsiHandle) {
-          rsiVerifyMsg.textContent = D.msgRsiNoHandle!;
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          rsiVerifyMsg.hidden = false;
+        const ch = rsiChallenge;
+        if (!ch) {
+          rsiMsg(D.msgRsiNoHandle!, 'err');
           return;
         }
 
-        btnCheckRsiNow.disabled = true;
-        rsiVerifyMsg.className = 'acx-status';
-        rsiVerifyMsg.textContent = D.msgRsiChecking!.replace('%handle%', rsiHandle);
-        rsiVerifyMsg.hidden = false;
+        (btnCheckRsiNow as HTMLButtonElement).disabled = true;
+        rsiMsg(D.msgRsiChecking!.replace('%handle%', ch.handle));
 
-        try {
-          // Ausschließlich serverseitige Prüfung (CF Function → Supabase Edge Function).
-          // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
-          // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
-          const result = await serverVerify(rsiHandle, activeCode);
-          const verified = result?.verified === true;
-          const errorMessage = result?.error || '';
+        // Ausschließlich serverseitige Prüfung (Supabase Edge Function).
+        // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
+        // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
+        const r = await rsiCall({ action: 'verify', rsi_handle: ch.handle });
 
-          if (verified) {
-            profileState.rsi_verified = true;
-            profileState.rsi_handle = rsiHandle;
+        if (r.status === 200 && r.data && r.data.verified === true) {
+          // Gesetzt hat das Abzeichen die Function (Service Role); der Client
+          // schreibt rsi_verified NICHT selbst, ein DB-Trigger verbietet das.
+          const verifiedHandle = typeof r.data.rsi_handle === 'string' ? r.data.rsi_handle : ch.handle;
+          profileState.rsi_verified = true;
+          profileState.rsi_handle = verifiedHandle;
+          rsiHandleInput.value = verifiedHandle;
+          rsiMsg('✓ ' + D.msgRsiSuccess!, 'ok');
+          updateCard();
 
-            // DB-Persistierung läuft ausschließlich serverseitig in der Edge
-            // Function (mit Session-JWT) — der Client schreibt rsi_verified
-            // NICHT selbst, ein DB-Trigger verbietet das.
-            if (result && result.persisted === false) {
-              console.warn('RSI verify: Edge Function konnte nicht persistieren (JWT/Service-Role prüfen).');
-            }
-
-            rsiVerifyMsg.textContent = '✓ ' + D.msgRsiSuccess!;
-            rsiVerifyMsg.className = 'acx-status acx-status--ok';
-            updateCard();
-
-            setTimeout(() => {
-              rsiModal.close();
-              btnCheckRsiNow.disabled = false;
-            }, 1200);
-          } else {
-            rsiVerifyMsg.textContent = result === null
-              ? D.msgRsiServerErr!
-              : (errorMessage || D.msgRsiNotFound!.replace('%code%', activeCode).replace('%handle%', rsiHandle));
-            rsiVerifyMsg.className = 'acx-status acx-status--err';
-            btnCheckRsiNow.disabled = false;
-          }
-        } catch (err: any) {
-          rsiVerifyMsg.textContent = D.msgRsiServerErr! + ' (' + (err.message || err) + ')';
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          btnCheckRsiNow.disabled = false;
+          setTimeout(() => {
+            rsiModal.close();
+            (btnCheckRsiNow as HTMLButtonElement).disabled = false;
+          }, 1200);
+          return;
         }
+
+        if (r.status === 200 || (r.status === 409 && r.data && r.data.error === 'code_outside_bio')) {
+          // 409 code_outside_bio: der Code steht auf der RSI-Seite, aber nicht
+          // in der Bio -- für den Nutzer dasselbe wie "nicht gefunden".
+          if (r.data && r.data.revoked === true) {
+            // Der Code, an dem das Abzeichen hing, steht nicht mehr in der Bio.
+            profileState.rsi_verified = false;
+            updateCard();
+          }
+          rsiMsg(D.msgRsiNotFound!.replace('%code%', ch.code).replace('%handle%', ch.handle), 'err');
+        } else if (r.status === 410 || (r.status === 409 && r.data
+          && (r.data.error === 'challenge_changed' || r.data.error === 'no_challenge'))) {
+          // Code abgelaufen oder inzwischen ersetzt: neuen holen und anzeigen.
+          if (await loadRsiChallenge(ch.handle)) rsiMsg(D.msgRsiNewCode!, 'err');
+          return;
+        } else {
+          rsiMsg(rsiErrText(r), 'err');
+        }
+        (btnCheckRsiNow as HTMLButtonElement).disabled = false;
       });
 
       // Reset RSI Verification Handler
@@ -1298,6 +1397,7 @@ import { supabase } from '../lib/supabase';
         }
         const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
         const showFavsVal = showFavsInput ? showFavsInput.checked : profileState.show_favorites !== false;
+        const presVisVal = presVisOf(presVisSelect ? presVisSelect.value : profileState.presence_visibility);
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1311,7 +1411,19 @@ import { supabase } from '../lib/supabase';
         // MITgesendet.
         // Das RSI-Handle wird normal persistiert; weicht es vom verifizierten
         // Handle ab, erlischt die Verknüpfung (Revoke in Richtung false).
-        const rsiHandleVal = rsiHandleInput.value.trim() || null;
+        const rsiHandleVal = cleanRsiHandle(rsiHandleInput.value) || null;
+        if (rsiHandleVal && !RSI_HANDLE_RE.test(rsiHandleVal)) {
+          show(pfStatus as HTMLElement, D.msgRsiBadHandle!);
+          rsiHandleInput.focus();
+          return;
+        }
+        // Handle-Wechsel nimmt das Abzeichen (die Datenbank tut das selbst,
+        // guard_rsi_verified). Der Vergleich steht VOR dem Object.assign
+        // darunter, das profileState.rsi_handle überschreibt.
+        if (profileState.rsi_verified === true
+          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
+          profileState.rsi_verified = false;
+        }
         const testerCreditVal = testerCreditInput ? testerCreditInput.checked : profileState.tester_credit === true;
 
         // Alle sichtbaren Profilfelder aus Inputs + Picker-State übernehmen,
@@ -1332,6 +1444,7 @@ import { supabase } from '../lib/supabase';
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
           show_favorites: showFavsVal,
+          presence_visibility: presVisVal,
           ...socialVals,
         });
 
@@ -1353,6 +1466,7 @@ import { supabase } from '../lib/supabase';
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
           show_favorites: showFavsVal,
+          presence_visibility: presVisVal,
           social_twitch: socialVals.social_twitch || null,
           social_youtube: socialVals.social_youtube || null,
           social_x: socialVals.social_x || null,
@@ -1360,21 +1474,34 @@ import { supabase } from '../lib/supabase';
         // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
         // nicht erst beim naechsten Puls.
         if (!shareActVal) payload.activity = null;
-        if (profileState.rsi_verified === true
-          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
-          payload.rsi_verified = false;
-          profileState.rsi_verified = false;
-          updateCard();
-        }
+        if (!presVisKnown) delete payload.presence_visibility;
+        // Niemand: die Zeitpunkte gleich mit leeren (die Datenbank tut es bei
+        // 'none' ohnehin), damit der Status sofort verschwindet.
+        if (presVisKnown && presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
         { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
+        // stored: die volle Nutzlast ist in der Datenbank. Nur dann gilt die
+        // Einstellung als gespeichert; der Rueckfall unten rettet bloss Name
+        // und Handle.
+        let stored = false;
         try {
-          const { error } = await supabase
+          let { error } = await supabase
             .from('profiles')
             .upsert(payload);
+          // Kennt die Datenbank presence_visibility noch nicht (PGRST204:
+          // Spalte fehlt im Schema-Cache): ohne die Einstellung speichern,
+          // statt alle anderen Eingaben zu verlieren, und die Auswahl
+          // ausblenden. Jeder andere Fehler laesst die Einstellung in der
+          // Nutzlast, sonst stuende eine nie gespeicherte Wahl als gespeichert da.
+          if (error && error.code === 'PGRST204' && 'presence_visibility' in payload
+            && String(error.message || '').includes('presence_visibility')) {
+            hidePresVis();
+            delete payload.presence_visibility;
+            ({ error } = await supabase.from('profiles').upsert(payload));
+          }
           pfBtn.disabled = false;
 
           if (error) {
@@ -1382,13 +1509,33 @@ import { supabase } from '../lib/supabase';
               show(pfStatus as HTMLElement, D.msgHandleTaken!);
               return;
             }
+            // Wert ausserhalb der Regeln der Datenbank (CHECK, 23514): melden,
+            // statt still nur Name und Handle zu sichern.
+            if (error.code === '23514') {
+              show(pfStatus as HTMLElement, /profiles_handle_reserved/.test(error.message || '')
+                ? D.msgHandleReserved! : D.msgProfileInvalid!);
+              return;
+            }
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
+          } else {
+            stored = true;
           }
         } catch {
           await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           pfBtn.disabled = false;
         }
 
+        if (!stored) {
+          show(pfStatus as HTMLElement, D.msgNet!);
+          return;
+        }
+        // Der Puls (account-lite.js) in diesem Tab richtet sich sofort danach;
+        // andere Tabs erfahren es über den Profil-Cache (storage).
+        window.dispatchEvent(new CustomEvent('vb-account-prefs', {
+          detail: 'presence_visibility' in payload
+            ? { presence_visibility: presVisVal, share_activity: shareActVal }
+            : { share_activity: shareActVal },
+        }));
         show(pfStatus as HTMLElement, D.msgSaved!, true);
       });
 
@@ -1503,6 +1650,96 @@ import { supabase } from '../lib/supabase';
         }
       }
 
+      // ── Erneute Bestätigung vor heiklen Änderungen ─────────────────────
+      // E-Mail-Wechsel, Passwortwechsel und Löschen verlangen das aktuelle
+      // Passwort: eine frische Anmeldung per signInWithPassword gegen die
+      // eigene Adresse (beim Passwortwechsel geht es zusätzlich als
+      // current_password mit, das prüft Supabase selbst, sobald „Require
+      // current password" eingeschaltet ist). Konten ohne Passwort (nur
+      // Discord) bestätigen stattdessen mit einer frischen Discord-Anmeldung.
+      // Gezählt wird dann der Anmelde-Zeitstempel im Token (amr), den der
+      // Server signiert hat, kein Wert aus dem Browser.
+      const hasPassword = (user.identities || []).some((i) => i.provider === 'email')
+        || ((user.app_metadata?.providers as string[] | undefined) || []).includes('email');
+      document.querySelectorAll<HTMLElement>('[data-reauth="pw"]').forEach((el) => { el.hidden = !hasPassword; });
+      document.querySelectorAll<HTMLElement>('[data-reauth="dc"]').forEach((el) => { el.hidden = hasPassword; });
+      const reauthWindow = Number(D.reauthWindow) || 600;
+      const minPass = Number(D.minPass) || 12;
+      const reauthStatus = document.getElementById('seReauthStatus') as HTMLElement | null;
+
+      const signedInRecently = (token: string): boolean => {
+        try {
+          const b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          const claims = JSON.parse(atob(b + '='.repeat((4 - (b.length % 4)) % 4)));
+          const now = Date.now() / 1000;
+          return Array.isArray(claims.amr) &&
+            claims.amr.some((m: { timestamp?: number }) => m && now - Number(m.timestamp) < reauthWindow);
+        } catch { return false; }
+      };
+
+      /** Leerer Text = bestätigt, sonst die Meldung für den Nutzer. */
+      const confirmIdentity = async (current: string): Promise<string> => {
+        if (hasPassword) {
+          if (!current) return D.msgCurPass!;
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email: user.email || '', password: current });
+            if (error) {
+              const code = (error as { code?: string }).code || '';
+              return code === 'invalid_credentials' ? D.msgCurWrong!
+                : code.includes('rate_limit') ? D.msgRate! : D.msgNet!;
+            }
+            if (!data.user || data.user.id !== user.id) return D.msgNet!;
+          } catch { return D.msgNet!; }
+        } else {
+          const { data } = await supabase.auth.getSession();
+          const s = data.session;
+          if (!(s && s.user.id === user.id && signedInRecently(s.access_token))) return D.msgReauthNeed!;
+        }
+        // Die frische Anmeldung steht auf aal1. Für ein Konto mit
+        // Authenticator nimmt Supabase E-Mail und Passwort nur aus einer
+        // Sitzung mit Code an (insufficient_aal) — also gleich nachfragen.
+        if ((await needsCode(supabase)) && !(await askCode(supabase))) return D.msgMfaNeed!;
+        return '';
+      };
+
+      // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
+      document.querySelectorAll<HTMLButtonElement>('.js-reauth-dc').forEach((b) => {
+        b.addEventListener('click', async () => {
+          b.disabled = true;
+          b.textContent = b.dataset.busy || '';
+          try { sessionStorage.setItem('vb.reauth', user.id); } catch { /* dann ohne Hinweis */ }
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'discord',
+            options: { redirectTo: location.origin + location.pathname },
+          });
+          if (!error) return; // Weiterleitung zu Discord läuft
+          try { sessionStorage.removeItem('vb.reauth'); } catch { /* egal */ }
+          b.disabled = false;
+          b.textContent = b.dataset.idle || '';
+          if (reauthStatus) show(reauthStatus, D.msgReauthErr!);
+        });
+      });
+      // Zurück von dieser Bestätigung?
+      let reauthFor = '';
+      try { reauthFor = sessionStorage.getItem('vb.reauth') || ''; sessionStorage.removeItem('vb.reauth'); } catch { /* egal */ }
+      if (reauthFor) {
+        activateSection('security');
+        if (reauthStatus) {
+          if (AUTH_URL.error) show(reauthStatus, D.msgReauthErr!);
+          else if (reauthFor !== user.id) show(reauthStatus, D.msgReauthOther!);
+          else show(reauthStatus, D.msgReauthOk!, true);
+        }
+      }
+
+      const curValue = (id: string) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        return el ? el.value : '';
+      };
+      const clearValue = (id: string) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        if (el) el.value = '';
+      };
+
       // Security Forms
       const emailForm = document.getElementById('emailForm') as HTMLFormElement;
       const emailStatus = document.getElementById('seEmailStatus')!;
@@ -1514,17 +1751,21 @@ import { supabase } from '../lib/supabase';
         if (!email || email === user.email) return;
         emailBtn.disabled = true;
         emailBtn.textContent = emailBtn.dataset.busy!;
+        const idle = () => { emailBtn.disabled = false; emailBtn.textContent = emailBtn.dataset.idle!; };
+        const why = await confirmIdentity(curValue('seEmailCur'));
+        if (why) { idle(); show(emailStatus as HTMLElement, why); return; }
         const { error } = await supabase.auth.updateUser(
           { email },
           { emailRedirectTo: location.origin + D.confirmRedirect! },
         );
-        emailBtn.disabled = false;
-        emailBtn.textContent = emailBtn.dataset.idle!;
+        idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate! : D.msgNet!);
+          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate!
+            : needsAal2Error(error) ? D.msgMfaNeed! : D.msgNet!);
           return;
         }
+        clearValue('seEmailCur');
         show(emailStatus as HTMLElement, D.msgEmailSent!, true);
       });
 
@@ -1536,59 +1777,54 @@ import { supabase } from '../lib/supabase';
         passStatus.hidden = true;
         const p1 = (document.getElementById('sePass') as HTMLInputElement).value;
         const p2 = (document.getElementById('sePass2') as HTMLInputElement).value;
-        if (p1.length < 8) { show(passStatus as HTMLElement, D.msgShort!); return; }
+        if (p1.length < minPass) { show(passStatus as HTMLElement, D.msgShort!); return; }
         if (p1 !== p2) { show(passStatus as HTMLElement, D.msgMatch!); return; }
         passBtn.disabled = true;
         passBtn.textContent = passBtn.dataset.busy!;
-        const { error } = await supabase.auth.updateUser({ password: p1 });
-        passBtn.disabled = false;
-        passBtn.textContent = passBtn.dataset.idle!;
+        const idle = () => { passBtn.disabled = false; passBtn.textContent = passBtn.dataset.idle!; };
+        const current = curValue('sePassCur');
+        const why = await confirmIdentity(current);
+        if (why) { idle(); show(passStatus as HTMLElement, why); return; }
+        const attrs: { password: string; current_password?: string } = { password: p1 };
+        if (hasPassword) attrs.current_password = current;
+        const { error } = await supabase.auth.updateUser(attrs);
+        idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(passStatus as HTMLElement, code === 'same_password' ? D.msgSame! : D.msgNet!);
+          show(passStatus as HTMLElement,
+            code === 'same_password' ? D.msgSame!
+            : code === 'weak_password' ? D.msgWeak!
+            : code.includes('current_password') ? D.msgCurWrong!
+            : code === 'reauthentication_needed' ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : needsAal2Error(error) ? D.msgMfaNeed!
+            : D.msgNet!);
           return;
         }
-        (document.getElementById('sePass') as HTMLInputElement).value = '';
-        (document.getElementById('sePass2') as HTMLInputElement).value = '';
+        clearValue('sePassCur');
+        clearValue('sePass');
+        clearValue('sePass2');
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
 
-      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Dashboard
-      // im Browser ablegt: die ganze Profilzeile (samt RSI-Code und
-      // Discord-Tag) und den RSI-Code. Bis 29.10.2026 blieben beide nach
-      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung sagt,
-      // was mit dem Konto geht, ist weg. vb_share_ ist der Schalterstand,
-      // den account-lite.js für den Puls im Tab merkt.
-      // Dazu die Konto-Spiegel der Werkzeuge (Flotte, Crafting, Hangar-
-      // Layouts). Flotte und Crafting räumen ihren Spiegel selbst weg, aber
-      // erst, wenn eine ihrer Seiten abgemeldet läuft; den Layout-Spiegel
-      // räumte niemand weg. Gleiche Regel wie dropMirrors() in fleet.js und
-      // crafting-app.js: nach dem Abmelden sieht auf einem geteilten Rechner
-      // niemand mehr, was der Vorgänger besitzt oder plant.
-      const MIRROR_PREFIXES = ['vb.fleet.v1.', 'craft.state.v2.', 'vb.layouts.v1.'];
-      const forgetLocalCopies = () => {
-        try { localStorage.removeItem(localKey); localStorage.removeItem('vb_rsi_code'); } catch { /* egal */ }
-        // vb_user_role: die Konto-Rolle aus account-lite.js, sonst bliebe sie
-        // samt Konto-ID im Tab liegen (Datenschutzerklärung #storage).
-        try { sessionStorage.removeItem(`vb_share_${user.id}`); sessionStorage.removeItem('vb_user_role'); } catch { /* egal */ }
-        try {
-          const doomed: string[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k && MIRROR_PREFIXES.some((p) => k.startsWith(p))) doomed.push(k);
-          }
-          doomed.forEach((k) => localStorage.removeItem(k));
-        } catch { /* egal */ }
-      };
+      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Konto im
+      // Browser ablegt: Profilzeile (samt RSI-Code und Discord-Tag), RSI-Code,
+      // Rolle, Schalterstand des Pulses und die Konto-Spiegel der Werkzeuge
+      // (Flotte, Crafting, Hangar-Layouts). Bis 29.10.2026 blieben sie nach
+      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung (#storage)
+      // sagt, was mit dem Konto geht, ist weg. Welche Schlüssel das sind,
+      // steht an einer Stelle: src/lib/account-cleanup.ts.
+      const forgetLocalCopies = () => { clearAccountTraces(user.id, 'signout', browserStores()); };
       // „Überall abmelden" (account-security.ts) räumt denselben Bestand weg.
       document.addEventListener('vb:forget-local', forgetLocalCopies);
 
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
+      // Danach die Spuren des Kontos im Browser entfernen (Profil-Cache,
+      // RSI-Code, gemerkte Rolle; lib/account-cleanup.ts), fuer geteilte Geraete.
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
         try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null, activity_at: null }).eq('id', user.id); } catch { /* egal */ }
-        forgetLocalCopies();
+        clearAccountTraces(user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1607,18 +1843,36 @@ import { supabase } from '../lib/supabase';
         delStatus.hidden = true;
         delBtn.disabled = true;
         delBtn.textContent = delBtn.dataset.busy!;
+        const why = await confirmIdentity(curValue('delCur'));
+        if (why) {
+          show(delStatus as HTMLElement, why);
+          delBtn.textContent = delBtn.dataset.idle!;
+          delBtn.disabled = false;
+          return;
+        }
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
-          forgetLocalCopies();
+          clearAccountTraces(user.id, 'delete', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
-        } catch {
-          show(delStatus as HTMLElement, D.msgNet!);
+        } catch (err) {
+          // Verlangt delete-account serverseitig eine frische Anmeldung
+          // (401 reauth_required) oder den Code (401 mfa_required), den
+          // passenden Hinweis statt "hat nicht geklappt" zeigen.
+          let code = '';
+          const ctx = (err as { context?: Response }).context;
+          if (ctx && ctx.status === 401) {
+            try { code = ((await ctx.json()) as { error?: string }).error || ''; } catch { /* noop */ }
+          }
+          show(delStatus as HTMLElement, code === 'reauth_required'
+            ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : code === 'mfa_required' ? D.msgMfaNeed! : D.msgNet!);
           delBtn.textContent = delBtn.dataset.idle!;
           delBtn.disabled = false;
         }
       });
+
 
       // Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten. Die
       // Rechtepruefung sitzt IN tester_overview() (siehe Migration), aber der
@@ -1627,7 +1881,7 @@ import { supabase } from '../lib/supabase';
       // is-admin ausdrueckt — hier direkt gegen user_roles gepruft, weil
       // account-lite.js auf /account/-Seiten nicht laeuft (volles
       // supabase-js). Fire-and-forget, blockiert die Dashboard-Anzeige nicht.
-      (async () => {
+      const loadTesterOverview = async () => {
         const overviewCard = document.getElementById('testerOverviewCard');
         const overviewBody = document.getElementById('testerOverviewBody');
         if (!overviewCard || !overviewBody) return;
@@ -1640,8 +1894,16 @@ import { supabase } from '../lib/supabase';
           if (!roleRow || roleRow.role !== 'admin') return; // Karte bleibt verborgen, KEIN Aufruf von tester_overview()
 
           const { data: rows, error } = await supabase.rpc('tester_overview');
-          // Schlaegt der Aufruf fehl (Rolle waehrenddessen entzogen o.ae.),
-          // bleibt die Karte verborgen statt eine Fehlermeldung zu zeigen.
+          // Admin ohne Code (seit 20261030142000_admin_second_factor): Hinweis
+          // statt Liste. Jeder andere Fehler (Rolle waehrenddessen entzogen
+          // o.ae.) laesst die Karte verborgen statt eine Meldung zu zeigen.
+          if (error && (error as { hint?: string }).hint === 'aal2') {
+            overviewBody.textContent = D.testerNeedsCode || '';
+            overviewCard.hidden = false;
+            // Code in der Zwei-Faktor-Karte eingegeben: Liste neu laden.
+            document.addEventListener('vb:aal2', () => { void loadTesterOverview(); }, { once: true });
+            return;
+          }
           if (error) return;
           const list: Array<{ handle: string; display_name: string | null; discord_user_id: string | null; last_staging_seen: string | null }> =
             Array.isArray(rows) ? rows : [];
@@ -1668,7 +1930,8 @@ import { supabase } from '../lib/supabase';
           }
           overviewCard.hidden = false;
         } catch { /* verborgen bei jedem Fehler -- keine Fehlermeldung */ }
-      })();
+      };
+      void loadTesterOverview();
 
       // ── Discord-Verbindung (linkIdentity) ──────────────────────────────
       // Warum nicht "mit Discord anmelden": das verknuepft nur, wenn die
@@ -1807,6 +2070,15 @@ import { supabase } from '../lib/supabase';
         // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
         let justLinked = false;
         try { justLinked = sessionStorage.getItem('vb.dcLinking') === '1'; sessionStorage.removeItem('vb.dcLinking'); } catch {}
+        // Abgewiesenes Verbinden: der Fehler kommt bei PKCE als ?error=… in
+        // der Query (lib/auth-url.ts hat ihn gelesen und weggeräumt).
+        if (justLinked && AUTH_URL.error) {
+          const c = AUTH_URL.errorCode.toLowerCase();
+          dcSay(c === 'identity_already_exists' ? (D.dcLinkErrTaken || '')
+            : c === 'manual_linking_disabled' ? (D.dcLinkErrDisabled || '')
+            : (D.dcLinkErr || ''), 'err');
+          justLinked = false;
+        }
         if (justLinked) {
           const dc = (await dcIdentities()).find((i) => i.provider === 'discord');
           if (dc) {
@@ -1814,9 +2086,11 @@ import { supabase } from '../lib/supabase';
             const pic = dcAvatarOf(dc);
             if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
             const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            // Vorgabename ersetzen: 'Pilot' (handle_new_user seit
+            // 20261030132000) bzw. bei aelteren Konten der Mail-Lokalteil.
             const mailName = (user.email || '').split('@')[0];
             const curName = (profileState.display_name || '').trim();
-            if (nick && (!curName || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (nick && (!curName || curName === 'Pilot' || curName === mailName)) patch.display_name = nick.slice(0, 60);
             if (Object.keys(patch).length) {
               await dcSave(patch);
               if (patch.avatar_url) {
@@ -1871,6 +2145,19 @@ import { supabase } from '../lib/supabase';
             const { error } = await (supabase.auth as any).unlinkIdentity(dc);
             dcBusy(dcOff, false);
             if (error) { dcSay(D.dcLinkErr || '', 'err'); return; }
+            // Aus Discord uebernommene Felder auch im Formular leeren. Die
+            // Datenbank tut dasselbe per Trigger (trg_unsync_discord_identity);
+            // ohne das hier schriebe das naechste Speichern sie zurueck.
+            const unlinkPatch: Record<string, any> = { discord_tag: null };
+            if (/^https:\/\/cdn\.discordapp\.com\//.test(avatarUrlInput.value.trim())) unlinkPatch.avatar_url = null;
+            await dcSave(unlinkPatch);
+            discordInput.value = '';
+            if ('avatar_url' in unlinkPatch) {
+              avatarUrlInput.value = '';
+              const rm = document.getElementById('pfAvatarRemove');
+              if (rm) rm.hidden = true;
+            }
+            updateCard();
             dcSay(D.dcUnlinkDone || '', 'ok');
             await dcRender();
           } catch {

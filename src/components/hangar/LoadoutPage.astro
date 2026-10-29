@@ -15,6 +15,7 @@ import { localeFromPath, href } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
 import { layoutDataHref } from '../../lib/hangar/layouts';
 import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, shipFacts } from '../../lib/hangar/catalog';
+import { jsonForScript } from '../../lib/safeJson';
 
 const lang = localeFromPath(Astro.url.pathname);
 const loc = lang === 'de' ? 'de-DE' : 'en-US';
@@ -467,7 +468,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   </dialog>
   <div class="lo-toast" id="lo-toast" role="status"><span id="lo-toast-txt"></span><button type="button" id="lo-undo" hidden>{l('msg.undo')}</button></div>
 
-  <script type="application/json" id="lo-ships" set:html={JSON.stringify(ships).replace(/</g, '\\u003c')}></script>
+  <script type="application/json" id="lo-ships" set:html={jsonForScript(ships)}></script>
   <div id="lo-msg" hidden>
     {LAYOUT_KEYS.map((k) => <span data-m={k}>{l(k)}</span>)}
     {BAY_MSG.map((k) => <span data-m={k}>{t(k)}</span>)}

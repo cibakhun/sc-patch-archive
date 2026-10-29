@@ -129,6 +129,7 @@ eine schon ausgelieferte Seite: `npm run smoke -- --base https://staging.verse-b
 ```bash
 npm run check:staging     # gegen staging.verse-base.com
 npm run check:live        # gegen verse-base.com
+npm run check:headers     # Sicherheits-Kopfzeilen und CSP der ausgelieferten Seite
 ```
 
 Jeder Build schreibt `dist/build.json` mit der Commit-Kennung. `check:*` holt
@@ -162,6 +163,16 @@ keine Links als tot, die der Server sehr wohl ausliefert.
 externen Hosts, Blob-Worker und WebAssembly-Nutzungen tatsächlich vorkommen und
 ob die Richtlinie sie deckt. Eine zu enge CSP bricht nicht beim Deploy, sondern
 still im Browser des Besuchers — deshalb läuft die Prüfung im Qualitätstor mit.
+
+Inline-Skripte laufen seit 29.10.2026 per Hash statt `'unsafe-inline'`: der
+letzte Schritt von `npm run build` (`scripts/_write-csp-hashes.mjs`) rechnet
+die sha256 aller Inline-Skripte nach `dist/_csp/`, nginx liest sie per
+`include`. `audit:csp` sichert zu, dass jedes Inline-Skript seinen Hash hat
+und kein Inline-Handler (`onclick=…`) ohne benannte Ausnahme im Build steht —
+neue Handler gehören als Listener nach `assets/`, Bild-Rückfälle als
+`data-img-fail` ans `<img>`. Der Umami-Zähler kommt als gepinnte Kopie vom
+eigenen Ursprung (`public/vendor/umami/script.js`, erneuern mit
+`node scripts/vendor-umami.mjs <tag>`, Anleitung im Kopf der Datei).
 
 ## Ausliefern
 

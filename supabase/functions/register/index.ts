@@ -20,7 +20,9 @@
 // `signup_paused`, BEVOR sie irgendetwas anlegt. Anmeldung bestehender
 // Konten und Discord-Anmeldung laufen unverändert. Der Rest bleibt als
 // Referenz stehen, bis die Funktion gelöscht wird.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Version fest gepinnt wie in stripe-webhook und delete-account (vorher @2,
+// also jeweils die neueste 2.x zum Zeitpunkt des Deploys).
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
 const SIGNUP_PAUSED = true;
 
@@ -71,7 +73,8 @@ Deno.serve(async (req: Request) => {
     if (!EMAIL_RE.test(email) || email.length > 254) {
       return new Response(JSON.stringify({ error: 'email_address_invalid' }), { status: 400, headers });
     }
-    if (password.length < 8 || password.length > 128) {
+    // 12 wie in Registrierung, Konto und Zuruecksetzen (MIN_PASS).
+    if (password.length < 12 || password.length > 128) {
       return new Response(JSON.stringify({ error: 'weak_password' }), { status: 400, headers });
     }
 

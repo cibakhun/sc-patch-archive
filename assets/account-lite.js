@@ -323,18 +323,38 @@
     if (shown && n >= 0) setBadge(badge.req, n);
   });
 
-  // Anzeigename bevorzugt vor Handle (Handle ist optional/eindeutig, aber
-  // der Anzeigename ist das, was der User selbst als "seinen Namen" versteht).
-  function fetchUsername(sess) {
+  // Die eigene Profilzeile in EINER Abfrage: der Name fuer die Nav und die
+  // Praesenz-Einstellungen fuer den Puls (siehe hbLearn). Kennt die
+  // Datenbank eine Einstellung noch nicht (400), fragt dieser Tab danach eine
+  // Stufe schlichter: erst ohne presence_visibility, zuletzt nur den Namen.
+  var PROFILE_COLS = ['display_name,handle', 'display_name,handle,share_activity', 'display_name,handle,presence_visibility,share_activity'];
+  var profileLevel = 2;
+  function fetchProfile(sess) {
     if (!sess || !sess.user || !sess.user.id) return Promise.resolve(null);
-    return rest(sess, 'GET', 'profiles?select=display_name,handle&id=eq.' + sess.user.id)
+    var uid = sess.user.id;
+    function get() {
+      var level = profileLevel;
+      return rest(sess, 'GET', 'profiles?select=' + PROFILE_COLS[level] + '&id=eq.' + uid).then(function (r) {
+        if (r.status !== 400 || level === 0) return r;
+        if (profileLevel === level) profileLevel = level - 1;
+        return get();
+      });
+    }
+    return get()
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
-        var p = rows && rows[0];
-        if (!p) return null;
-        return p.display_name || (p.handle ? '@' + p.handle : null);
+        var p = (rows && rows[0]) || null;
+        if (p) hbLearn(uid, p);
+        return p;
       })
       .catch(function () { return null; });
+  }
+
+  // Anzeigename bevorzugt vor Handle (Handle ist optional/eindeutig, aber
+  // der Anzeigename ist das, was der User selbst als "seinen Namen" versteht).
+  function nameOf(p) {
+    if (!p) return null;
+    return p.display_name || (p.handle ? '@' + p.handle : null);
   }
 
   // ---- Rollen-basierter Zugriffs-Guard (user_roles Tabelle) ----------------
@@ -454,35 +474,52 @@
     return null;
   }
 
-  // Kennt die Datenbank activity (noch) nicht, antwortet PostgREST 400 --
-  // dann ohne activity nachsenden und es in diesem Tab nicht mehr versuchen,
-  // damit die Praesenz nie an der Zusatzangabe haengt.
-  var hbActivityOk = true;
+  // Wer den Status sieht, stellt man im Konto-Dashboard ein
+  // (profiles.presence_visibility): 'friends' (Vorgabe), 'all' oder 'none'.
+  // Bei 'none' pulst dieser Tab gar nicht: die Zeitpunkte haetten keinen
+  // Zweck, weil niemand den Status sieht. Die Datenbank leert sie bei 'none'
+  // ohnehin (Trigger presence_none_clears), auch fuer aeltere Seitenstaende.
   // Schalter "Freunde sehen, was ich gerade mache" (profiles.share_activity):
   // ist er aus, schickt der Puls gar keine Angabe mit, statt sie nur vom View
-  // verstecken zu lassen. Quelle: die Antwort des letzten Pulses (fuer die
-  // naechste Seite im selben Tab in sessionStorage gemerkt), davor der
-  // Profil-Cache des Konto-Dashboards, dessen "aus" immer gewinnt.
-  // ⚠ Unbekannt galt hier als "an" (Vorgabe der Spalte). Ein Browser ohne
-  // Dashboard-Cache schickte damit beim ersten Puls JEDER Seite die Angabe
-  // mit und schrieb sie ins Profil, auch bei ausgeschaltetem Schalter —
-  // die Datenschutzerklaerung sagt "nicht mehr mitgeschickt" (Gegenpruefung
-  // 29.10.2026). Jetzt heisst unbekannt null: der Puls geht ohne Angabe
-  // raus, und erst die Antwort entscheidet, ob ein zweiter sie nachreicht.
-  // Der Wert im Speicher gehoert dem Konto, dessen Puls ihn erfahren hat
-  // (hbShareUid): meldet sich in einem anderen Tab jemand anderes an, liest
-  // diese Seite die neue Sitzung, und das "an" des Vorgaengers darf nicht
-  // fuer den Nachfolger gelten (cubic #239). Und das "aus" des Dashboards
-  // wird vor dem Speicher gefragt, damit es auch mitten in der Seite gewinnt.
-  var hbShare = null;
-  var hbShareUid = null;
+  // verstecken zu lassen.
+  // Quelle beider Einstellungen: die eigene Profilzeile, die der Tab beim
+  // Laden ohnehin fuer den Namen holt (der erste Puls wartet auf sie), danach
+  // die Antwort jedes Pulses und die Meldung vb-account-prefs des Dashboards;
+  // ohne Antwort der Profil-Cache des Dashboards.
+  // Sichtbarkeit unbekannt = Vorgabe (pulsen). Schalter unbekannt = null, NIE
+  // "an": bis 29.10.2026 galt er als an, und ein Browser ohne Dashboard-Cache
+  // schickte beim ersten Puls jeder Seite die Angabe mit, auch bei
+  // ausgeschaltetem Schalter. Unbekannt geht der Puls ohne Angabe raus, und
+  // erst seine Antwort entscheidet, ob ein zweiter sie nachreicht. Das "aus"
+  // des Dashboard-Caches gewinnt immer, auch mitten in der Seite. Gelerntes
+  // gehoert dem Konto, dessen Zeile es nannte (hbPrefs.uid): meldet sich in
+  // einem anderen Tab jemand anderes an, gilt das "an" des Vorgaengers nicht
+  // fuer den Nachfolger (cubic #239). Fuer die naechste Seite im selben Tab
+  // merkt sich der Schalter in sessionStorage (vb_share_<uid>).
+  var VIS = { friends: 1, all: 1, none: 1 };
+  var hbPrefs = { uid: null, vis: null, share: null };
+  var hbReady = null;
   var HB_SHARE_KEY = 'vb_share_';
+  function hbLearn(uid, p) {
+    if (!p) return;
+    if (hbPrefs.uid !== uid) hbPrefs = { uid: uid, vis: null, share: null };
+    if (VIS[p.presence_visibility] === 1) hbPrefs.vis = p.presence_visibility;
+    if (typeof p.share_activity === 'boolean') {
+      hbPrefs.share = p.share_activity;
+      try { sessionStorage.setItem(HB_SHARE_KEY + uid, p.share_activity ? '1' : '0'); } catch (e) { /* noop */ }
+    }
+  }
+  function hbCached(uid) {
+    try { return JSON.parse(localStorage.getItem('vb_profile_' + uid) || 'null') || {}; } catch (e) { return {}; }
+  }
+  function hbVisOf(uid) {
+    if (hbPrefs.uid === uid && hbPrefs.vis) return hbPrefs.vis;
+    var v = hbCached(uid).presence_visibility;
+    return VIS[v] === 1 ? v : null;
+  }
   function hbShareOf(uid) {
-    try {
-      var p = JSON.parse(localStorage.getItem('vb_profile_' + uid) || 'null');
-      if (p && p.share_activity === false) return false;
-    } catch (e) { /* noop */ }
-    if (hbShare !== null && hbShareUid === uid) return hbShare;
+    if (hbCached(uid).share_activity === false) return false;
+    if (hbPrefs.uid === uid && hbPrefs.share !== null) return hbPrefs.share;
     try {
       var s = sessionStorage.getItem(HB_SHARE_KEY + uid);
       if (s === '1') return true;
@@ -490,36 +527,49 @@
     } catch (e) { /* noop */ }
     return null;
   }
+
+  // Kennt die Datenbank eine Angabe (noch) nicht, antwortet PostgREST 400 --
+  // dann eine Stufe schlichter nachsenden und es in diesem Tab dabei
+  // belassen, damit die Praesenz nie an einer Zusatzangabe haengt:
+  //   2 = mit Aktivitaet, Antwort traegt share_activity + presence_visibility
+  //   1 = mit Aktivitaet, Antwort traegt share_activity
+  //   0 = nur die zwei Zeitpunkte
+  var hbLevel = 2;
+  var HB_SELECT = ['', '&select=share_activity', '&select=share_activity,presence_visibility'];
+  function hbSend(sess) {
+    var uid = sess.user.id;
+    if (hbVisOf(uid) === 'none') return;
+    var seen = new Date().toISOString();
+    var body = { last_seen: seen, last_active: new Date(hbLastActivity).toISOString() };
+    var path = 'profiles?id=eq.' + uid;
+    var level = hbLevel;
+    if (level === 0) { rest(sess, 'PATCH', path, body).catch(function () { /* noop */ }); return; }
+    // Schalter unbekannt: activity gar nicht anfassen (kein Leeren, kein
+    // Schreiben) -- der Puls fragt nur nach dem Schalter.
+    var share = hbShareOf(uid);
+    if (share !== null) {
+      body.activity = share ? currentActivity() : null;
+      body.activity_at = seen;
+    }
+    rest(sess, 'PATCH', path + HB_SELECT[level], body, 'return=representation').then(function (r) {
+      if (r && r.status === 400) {
+        if (hbLevel === level) hbLevel = level - 1;
+        return hbSend(sess);
+      }
+      if (r && r.ok) {
+        return r.json().then(function (rows) {
+          if (!rows || !rows[0]) return;
+          hbLearn(uid, rows[0]);
+          // gleich nachreichen: an -> Angabe, aus -> geleert
+          if (share === null && hbShareOf(uid) !== null) hbSend(sess);
+        }).catch(function () { /* noop */ });
+      }
+    }).catch(function () { /* noop */ });
+  }
   function hbWrite() {
     ensureSession().then(function (sess) {
       if (!sess || !sess.user || !sess.user.id) return;
-      var base = {
-        last_seen: new Date().toISOString(),
-        last_active: new Date(hbLastActivity).toISOString()
-      };
-      var path = 'profiles?id=eq.' + sess.user.id;
-      if (!hbActivityOk) { rest(sess, 'PATCH', path, base).catch(function () { /* noop */ }); return; }
-      var uid = sess.user.id;
-      var share = hbShareOf(uid);
-      // Schalter unbekannt: activity gar nicht anfassen (kein Leeren, kein
-      // Schreiben) — der Puls fragt nur nach dem Schalter.
-      var body = share === null ? base
-        : { last_seen: base.last_seen, last_active: base.last_active, activity: share ? currentActivity() : null, activity_at: base.last_seen };
-      rest(sess, 'PATCH', path + '&select=share_activity', body, 'return=representation').then(function (r) {
-        if (r && r.status === 400) {
-          hbActivityOk = false;
-          return rest(sess, 'PATCH', path, base);
-        }
-        if (r && r.ok) {
-          return r.json().then(function (rows) {
-            if (!rows || !rows[0] || typeof rows[0].share_activity !== 'boolean') return;
-            hbShare = rows[0].share_activity;
-            hbShareUid = uid;
-            try { sessionStorage.setItem(HB_SHARE_KEY + uid, hbShare ? '1' : '0'); } catch (e) { /* noop */ }
-            if (share === null) hbWrite();     // gleich nachreichen: an -> Angabe, aus -> geleert
-          }).catch(function () { /* noop */ });
-        }
-      }).catch(function () { /* noop */ });
+      return (hbReady || Promise.resolve()).then(function () { hbSend(sess); });
     }).catch(function () { /* noop */ });
   }
   function startHeartbeat() {
@@ -550,9 +600,12 @@
     if (!sess || userOf(sess) !== was) stopBadge();
     paintNav(sess);
     if (sess) {
+      var profile = fetchProfile(sess);
+      hbReady = profile;
       startHeartbeat();
       startBadge();
-      fetchUsername(sess).then(function (uname) {
+      profile.then(function (p) {
+        var uname = nameOf(p);
         if (uname && userOf(shown) === userOf(sess)) paintNav(sess, uname);
       });
       fetchUserRole(sess).then(function (role) {
@@ -584,6 +637,18 @@
     // gerade scheiternde Rollenabfrage einem Admin die Rolle.
     addEventListener('storage', function (e) {
       if (e.key === STORE) follow();
+      // Ein anderer Tab hat im Dashboard gespeichert: ab jetzt gilt der Cache,
+      // bis der naechste Puls die Zeile wieder selbst nennt.
+      else if (e.key && shown && e.key === 'vb_profile_' + userOf(shown)) hbPrefs = { uid: null, vis: null, share: null };
+    });
+    // Das Dashboard in DIESEM Tab hat gespeichert (storage hoert hier nichts):
+    // die Einstellung gilt sofort, und wer wieder sichtbar ist, pulst gleich.
+    addEventListener('vb-account-prefs', function (e) {
+      var uid = userOf(shown);
+      var d = e && e.detail;
+      if (!uid || !d) return;
+      hbLearn(uid, d);
+      if (hbVisOf(uid) !== 'none') hbWrite();
     });
     // Aus dem bfcache zurueck (Zurueck-Knopf): storage-Ereignisse, waehrend
     // die Seite dort lag, kamen nie an. Hat sich der Besucher inzwischen

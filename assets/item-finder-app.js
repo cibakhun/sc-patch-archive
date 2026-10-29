@@ -36,8 +36,8 @@
 
   // ---- Helfer ----
   function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
   function fmtNum(n) { return Number(n).toLocaleString(CFG.lang === 'de' ? 'de-DE' : 'en-US'); }

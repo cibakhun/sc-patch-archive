@@ -14,6 +14,13 @@
 // legt die Seite in den bfcache: sie hört kein Ereignis und keinen Zeitgeber,
 // bis restore() sie mit pageshow (persisted) zurückholt, wie der Zurück-Knopf.
 //
+// Die Profilzeile von user-1 (profile: weitere Spalten wie presence_visibility,
+// browser.profile ändert sie mitten im Test, wie ein anderes Gerät) liefert
+// PostgREST nur mit den Spalten, die select nennt; ein PATCH mit
+// return=representation bekommt sie ebenso zurück. Spalten in `missing` kennt
+// die Datenbank nicht: wer sie im select oder im Körper nennt, bekommt 400
+// wie von PostgREST. requests trägt je Anfrage auch den Körper.
+//
 // Mit inbox warten auf user-1 Freundschaftsanfragen und Nachrichten für die
 // Zahl am Konto-Knopf (badge()); inbox.down = true beantwortet diese drei
 // Abfragen mit 503. fireDoc() sendet ein Ereignis an document, wie die
@@ -60,17 +67,18 @@ function respond(status, body) {
  * { uid, kind: 'name' | 'role', answer(status = 200) }.
  * shareActivity (true/false, oder { uid: true/false } je Konto): Stand des
  * Schalters profiles.share_activity, den der Heartbeat in seiner Antwort
- * erfährt; ohne Angabe bleibt es bei 204.
+ * erfährt (die Profilzeile nennt ihn dann nicht).
  * inbox: { requests: [{ id, sender_id, receiver_id, status }],
  * messages: [{ sender_id, receiver_id, read_at }], friends: [{ user_id, friend_id }] },
  * danach als browser.inbox änderbar.
  */
-export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareActivity, inbox = null } = {}) {
+export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile = {}, missing = [], shareActivity, inbox = null } = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 12, 0, 0), timers: [], seq: 0 };
   const data = new Map();
   const tabs = [];
   const refreshes = [];
   const reads = [];
+  const row = { ...profile };
   data.set(STORE, JSON.stringify({
     access_token: 'token-1', refresh_token: 'refresh-1', token_type: 'bearer',
     expires_at: Math.floor(clock.now / 1000) + expiresIn, user: { id: 'user-1' },
@@ -88,20 +96,34 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareAc
     });
   }
 
+  const selected = (url) => {
+    const m = url.match(/[?&]select=([^&]*)/);
+    return m ? decodeURIComponent(m[1]).split(',').filter(Boolean) : [];
+  };
+  const pick = (cols, uid) => {
+    const out = {};
+    for (const c of cols) if (uid === 'user-1' && c in row) out[c] = row[c];
+    return out;
+  };
+
   function authServer(url, init) {
     if (!url.includes('/auth/v1/token')) {
-      if (init.method === 'PATCH') {
-        // Mit shareActivity antwortet der Puls wie PostgREST mit
-        // return=representation auf select=share_activity; sonst 204.
-        const owner = (url.match(/id=eq\.([^&]+)/) || [])[1];
-        const share = shareActivity && typeof shareActivity === 'object' ? shareActivity[owner] : shareActivity;
-        if (typeof share === 'boolean' && url.includes('select=share_activity'))
-          return Promise.resolve(respond(200, [{ share_activity: share }]));
-        return Promise.resolve(respond(204));
-      }
       const uid = (url.match(/id=eq\.([^&]+)/) || [])[1];
       const who = PEOPLE[uid];
-      if (url.includes('/rest/v1/profiles?')) return read(uid, 'name', who ? [{ display_name: who.name, handle: null }] : []);
+      const named = [...selected(url), ...Object.keys(init.body ? JSON.parse(init.body) : {})];
+      if (url.includes('/rest/v1/profiles?') && named.some((c) => missing.includes(c))) {
+        return Promise.resolve(respond(400, { code: 'PGRST204', message: 'column not found' }));
+      }
+      if (init.method === 'PATCH') {
+        if (!/return=representation/.test(init.headers?.Prefer || '')) return Promise.resolve(respond(204));
+        // shareActivity: nur die Antwort des Pulses nennt den Schalter (die
+        // Profilzeile nicht) -- ein Tab, der ihn erst vom Puls erfährt.
+        const share = shareActivity && typeof shareActivity === 'object' ? shareActivity[uid] : shareActivity;
+        const out = who ? pick(selected(url), uid) : {};
+        if (typeof share === 'boolean' && selected(url).includes('share_activity')) out.share_activity = share;
+        return Promise.resolve(respond(200, who || typeof share === 'boolean' ? [out] : []));
+      }
+      if (url.includes('/rest/v1/profiles?')) return read(uid, 'name', who ? [{ display_name: who.name, handle: null, ...pick(selected(url), uid) }] : []);
       if (url.includes('/rest/v1/user_roles?')) return read(uid, 'role', who ? [{ role: who.role }] : []);
       const box = browser.inbox;
       const to = (url.match(/receiver_id=eq\.([^&]+)/) || [])[1];
@@ -136,6 +158,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareAc
 
   const browser = {
     clock,
+    /** Die Profilzeile von user-1 auf dem Server; ändern = ein anderes Gerät hat gespeichert. */
+    profile: row,
     refreshes,
     reads,
     inbox,
@@ -227,7 +251,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareAc
           addEventListener: (type, fn) => { (docListeners[type] ||= []).push(fn); },
         },
         fetch: (url, init) => {
-          tab.requests.push({ method: init.method, url, signal: init.signal, body: init.body });
+          tab.requests.push({ method: init.method, url, signal: init.signal, body: init.body ? JSON.parse(init.body) : undefined });
           const never = () => new Promise(() => {});
           return authServer(url, init).then((r) => (tab.gone ? never() : r), (e) => (tab.gone ? never() : Promise.reject(e)));
         },
@@ -248,6 +272,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareAc
       };
       sandbox.window = sandbox;
       tab.fire = (type, init) => { if (tab.frozen) return; for (const fn of (listeners[type] || []).slice()) fn({ type, ...init }); };
+      /** Schreibt wie das Konto-Dashboard in DIESEM Tab in den localStorage (storage hören nur die anderen Tabs). */
+      tab.setItem = (k, v) => sandbox.localStorage.setItem(k, v);
       const ctx = vm.createContext(sandbox);
       vm.runInContext(HEAD, ctx);
       const headAdmin = root.set.has('is-admin');
