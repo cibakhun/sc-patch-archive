@@ -790,13 +790,16 @@ async function paintTexture(rel, made) {
 // gegen die Materialien des geschriebenen GLB.
 // Fehlt einer Variante die Palette im eigenen Paket (600i BIS2951: Cold Forge,
 // Sterling), dieselbe Lackierung (gleicher Tag) aus einem Schwesterpaket mit
-// Palette, aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i) oder
-// aus dem einzigen anderen Paket mit dem Tag; mehrere fremde sind mehrdeutig.
+// Palette: aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i),
+// sonst nur, wenn es genau eine Palette für den Tag gibt; gleiche Paletten
+// mehrerer Pakete zählen als eine, verschiedene sind mehrdeutig.
 // Nur dieselbe Lackierung: gleiches Material (exterior_material_sidecar) und
 // eine Palette des Lacks, nicht die Serienpalette des Schwesterpakets (Cutlass
 // Hawthorn je Variante mit eigenem Material, Mustang Vindicator; dieselbe Regel
 // wie scripts/datamine-ship-paints.mjs)
 let sisterIndex = null;
+// nach Werten: die Kennungen bildet der Export aus Tag und Record, nicht aus der Palette des Spiels
+const paletteLook = (x) => JSON.stringify([x?.primary, x?.secondary, x?.tertiary, x?.finish]);
 function sisterPalette(pkg, variant) {
   const tag = variant?.subgeometry_tag;
   if (!tag) return null;
@@ -808,12 +811,10 @@ function sisterPalette(pkg, variant) {
       if (!existsSync(f('paints.json')) || !existsSync(f('palettes.json'))) continue;
       const pals = new Map(JSON.parse(readFileSync(f('palettes.json'), 'utf8')).palettes.map((x) => [x.id, x]));
       const liveries = existsSync(f('liveries.json')) ? JSON.parse(readFileSync(f('liveries.json'), 'utf8')).liveries ?? [] : [];
-      // nach Werten: die Kennungen bildet der Export aus Tag und Record, nicht aus der Palette des Spiels
-      const look = (x) => JSON.stringify([x?.primary, x?.secondary, x?.tertiary, x?.finish]);
-      const serie = look(pals.get(liveries.find((l) => l.entity_names.some((n) => n.startsWith('EntityClassDefinition.')))?.palette_id));
+      const serie = paletteLook(pals.get(liveries.find((l) => l.entity_names.some((n) => n.startsWith('EntityClassDefinition.')))?.palette_id));
       for (const v of JSON.parse(readFileSync(f('paints.json'), 'utf8')).paint_variants ?? []) {
         const pal = pals.get(v.palette_id), k = v.subgeometry_tag?.toLowerCase();
-        if (!pal || !k || look(pal) === serie) continue;
+        if (!pal || !k || paletteLook(pal) === serie) continue;
         if (!sisterIndex.has(k)) sisterIndex.set(k, []);
         sisterIndex.get(k).push({ pkg: p, pal, mtl: v.exterior_material_sidecar?.toLowerCase() ?? null });
       }
@@ -822,10 +823,14 @@ function sisterPalette(pkg, variant) {
   const fam = (p) => p.split(/[ _]/).slice(0, 2).join(' ').toLowerCase();
   const mtl = variant.exterior_material_sidecar?.toLowerCase() ?? null;
   const hits = sisterIndex.get(tag.toLowerCase())?.filter((h) => h.pkg !== pkg && h.mtl === mtl) ?? [];
-  // Nur eindeutig: eigene Familie, sonst ein einziges Paket mit dem Tag
-  const hit = hits.find((h) => fam(h.pkg) === fam(pkg)) ?? (hits.length === 1 ? hits[0] : null);
-  if (hit) sisterUsed.push(`${pkg}: ${tag} aus ${hit.pkg}`);
-  return hit?.pal ?? null;
+  // je verschiedene Palette die Pakete, die sie tragen
+  const distinct = (hs) => [...Map.groupBy(hs, (h) => paletteLook(h.pal)).values()];
+  const own = distinct(hits.filter((h) => fam(h.pkg) === fam(pkg))), all = distinct(hits);
+  const hit = own.length === 1 ? own[0] : !own.length && all.length === 1 ? all[0] : null;
+  const names = (g) => g.map((h) => h.pkg).join(', ');
+  if (hit) sisterUsed.push(`${pkg}: ${tag} aus ${names(hit)}`);
+  else if (hits.length) sisterUsed.push(`${pkg}: ${tag} mehrdeutig (${(own.length ? own : all).map((g) => `[${names(g)}]`).join(' ')}), nicht genommen`);
+  return hit?.[0].pal ?? null;
 }
 const sisterUsed = [];
 async function paintPlan(slug) {
@@ -2807,7 +2812,7 @@ for (const kind of Object.keys(BUDGET)) {
       const pr = r.paintReport;
       delete r.paintReport;
       if (kind === 'ships') console.log(pr ? `    Lacke: ${pr.paints} (${pr.linked} mit Lack-Item, ${pr.patterned} mit eigenem Material: ${pr.stencils} Stencil-, ${pr.layerSwaps} Schichtwechsel), ${pr.textures} Karten${pr.missing ? `; ${pr.missing} Lack-Materialien nicht im Web-Modell (Innenraum, Glühen u. ä. weggelassen: ${pr.missingNames.slice(0, 6).join(', ')})` : ''}` : '    Lacke: keine Lackvarianten im zerlegten Export (oder kein Export, Extraktor-Teil ships)');
-      if (kind === 'ships' && sisterUsed.length) console.log(`    Paletten aus Schwesterpaketen: ${sisterUsed.splice(0).join('; ')}`);
+      if (kind === 'ships' && sisterUsed.length) console.log(`    Schwesterpakete: ${sisterUsed.splice(0).join('; ')}`);
       if (r.anchorBy) console.log(`    Befestigung über ${r.anchorBy === 'name' ? 'den Entity-Namen' : r.anchorBy === 'kind' ? 'das einzige Kind der Wurzel' : 'die Szenenwurzel — WARNUNG: Lage am Schiff ungeprüft'}`);
       if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       if (r.hull) {

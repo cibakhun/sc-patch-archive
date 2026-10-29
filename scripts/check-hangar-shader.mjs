@@ -29,9 +29,9 @@
        alle Schiffe ihre echten Materialien, .planning/notes/hangar-alle-schiffe.md)
      … --shot schiff.png   Aufnahme der Halle am Ende (zum Hinsehen)
      … --layout <code>     mit Layout aus der Werkstatt (?layout=, encodeLayout in
-       assets/hangar-layouts.js), etwa einer Lackierung als viertem Feld. Die
-       steht dann in der Werkstatt, kommt beim Laden aber nicht am Modell an
-       (erst ein Klick auf den Lack; .planning/notes/hangar-landung.md, 29.10.2026)
+       assets/hangar-layouts.js), etwa einer Lackierung als viertem Feld; sie
+       liegt nach dem Laden am Modell (bis 29.10.2026 erst nach einem Klick auf
+       den Lack, .planning/notes/hangar-landung.md)
      … --ohne-ui           Aufnahme nur der Halle, Bedienelemente ausgeblendet
    Dazu FEHLER, wenn ein Bild des Schiffs nicht laedt (Bildablage
    /hangar/tex/, Meldung des Viewers oder von GLTFLoader).

@@ -474,3 +474,13 @@ blieben Lack).
   neu darüber; `hullTint` liest Serienton und Rückfall ebenfalls ungedimmt.
   Geprüft mit Gladius Pirate über den Link (rot), dann „Stock paint“ (grün)
   und wieder Pirate (rot).
+- **Nach dem Review (PR #234):** Die Sättigung zählt erst ab hellstem Kanal
+  #080808 (ganz ab #181818), sonst wäre #000001 volles Metall; der dunkelste
+  farbige Glanz in den Daten hat #1c (Wolf #0a101c), die 561 Kanäle bleiben
+  gleich. `sisterPalette` im Bau wählt jetzt wie `sisterColours` im Datenlauf
+  (gleiche Paletten zählen als eine, aus der Familie nur eindeutig, sonst nur
+  eine einzige überhaupt; mehrdeutige stehen im Baulog). Vorher nahm der Bau
+  den ersten Familientreffer. Die Zähler des Datenlaufs zählen Paletten statt
+  Aufrufe. Die Lack-Baupläne (`public/hangar/paints/`) tragen noch die alten
+  Schwesterfarben (Cutlass Black Cypress #434649 statt #5a5139 wie Steel und
+  Red); sie werden beim Neubau aller Schiffe neu geschrieben.

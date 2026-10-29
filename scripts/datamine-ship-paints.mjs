@@ -61,8 +61,10 @@ for (const r of entityRecs) {
 // den Lack-Bauplänen. Das Spiel zeichnet mit Glanzfarbe; Metall hat Tönung 0
 // und eine helle Glanzfarbe (.planning/notes/hangar-landung.md, Teil A).
 // finish nur, wenn alle drei Kanäle ihn tragen: Fehlt einer, rechnen Seite und
-// Viewer die ganze Lackierung auf dem alten Weg (nur Farbe).
-let childPathFallbacks = 0, finishPartial = 0;
+// Viewer die ganze Lackierung auf dem alten Weg (nur Farbe). Die Zähler
+// sammeln Paletten (Record und ChildPath), nicht Aufrufe: Die Schwestersuche
+// liest dieselbe Palette mehrfach.
+const childPathFallbacks = new Set(), finishPartial = new Set();
 const hex = (c) => '#' + [c.r, c.g, c.b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
 const treeRoots = new Map();
 function paletteColours(pal) {
@@ -71,16 +73,17 @@ function paletteColours(pal) {
   if (!treeRoots.has(rec.id)) treeRoots.set(rec.id, db.readRecord(rec, { typed: true, maxDepth: 10 })?.root ?? null);
   const root = treeRoots.get(rec.id);
   if (!root) return null;
+  const key = `${rec.id}|${pal.ChildPath ?? ''}`;
   let node = root;
   for (const step of (pal.ChildPath || '').split('/').filter(Boolean)) {
     node = node?.children?.find((ch) => ch?.name?.toLowerCase() === step.toLowerCase());
   }
-  if (!node) { childPathFallbacks++; node = root; }
+  if (!node) { childPathFallbacks.add(key); node = root; }
   const entries = { a: node.entryA, b: node.entryB, c: node.entryC };
   const fin = (e) => (e?.specColor && Number.isFinite(e.glossiness) ? { specular: hex(e.specColor), gloss: Math.max(0, Math.min(255, Math.round(e.glossiness))) } : null);
   const finish = Object.fromEntries(Object.entries(entries).map(([k, e]) => [k, fin(e)]));
   const full = Object.values(finish).every(Boolean);
-  if (!full && Object.values(finish).some(Boolean)) finishPartial++;
+  if (!full && Object.values(finish).some(Boolean)) finishPartial.add(key);
   return { a: hex(entries.a.tintColor), b: hex(entries.b.tintColor), c: hex(entries.c.tintColor), ...(full ? { finish } : {}) };
 }
 
@@ -253,8 +256,8 @@ console.log(`Schiffe geschrieben:           ${Object.keys(ships).length}`);
 console.log(`Lackierungen gesamt:           ${all.length} (mit Muster: ${withPattern}, nur Palette: ${all.length - withPattern})`);
 console.log(`  mit vollem finish:           ${all.filter((p) => p.finish).length}, davon Metall: ${all.filter(metal).length} (palettePbr metalness > 0,5 in mindestens einem Kanal)`);
 console.log(`Grundpaletten mit finish:      ${bases.filter((b) => b.finish).length} von ${bases.length}, davon Metall: ${bases.filter(metal).length}`);
-console.log(`Paletten mit Teil-finish:      ${finishPartial} (ohne finish geschrieben)`);
-console.log(`ChildPath nicht gefunden:      ${childPathFallbacks} (Wurzel der Palette genommen)`);
+console.log(`Paletten mit Teil-finish:      ${finishPartial.size} (ohne finish geschrieben)`);
+console.log(`ChildPath nicht gefunden:      ${childPathFallbacks.size} (Wurzel der Palette genommen)`);
 console.log(`SubGeometry ohne Palette:      ${subNoPalette} (Schwester: ${sisterUsed.length}, Grundfarben des Schiffs: ${baseFallback.length})`);
 for (const s of sisterUsed) console.log(`  Schwester  ${s}`);
 for (const s of sisterAmbiguous) console.log(`  mehrdeutig ${s} (nicht genommen)`);

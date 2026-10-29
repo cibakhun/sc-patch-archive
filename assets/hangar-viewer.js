@@ -4532,7 +4532,11 @@ async function robustBox(root, pause = noPause, unlean = null) {
 // Sättigung (linear, (max − min) / max) von SAT_MIN blendet das Metall wie
 // über der Helligkeit weich ein, ab SAT_FULL gilt die Gleichung ganz. In
 // den Daten ist Lack-Glanz grau (5 403 dunkle Kanäle bei Sättigung 0, 36
-// zwischen 0,1 und 0,3), farbiger fast immer über 0,5.
+// zwischen 0,1 und 0,3), farbiger fast immer über 0,5. Fast schwarz ist der
+// Farbton nur Rundung (#000001 hätte Sättigung 1): Die Sättigung zählt erst
+// ab hellstem Kanal #080808 und ganz ab #181818; der dunkelste farbige Glanz
+// in den Daten hat #1c (Wolf #0a101c, Spirit Ruby #0e162a, gleich hoch
+// gesetzt würde die Schwelle diese wieder schwarz machen).
 const HEX6 = /^#[0-9a-f]{6}$/i;
 export function palettePbr(tint, specular, gloss) {
   const lin = (h) => [1, 3, 5].map((i) => {
@@ -4542,10 +4546,12 @@ export function palettePbr(tint, specular, gloss) {
   const DIEL = 0.04, EPS = 1e-6, clamp = (v) => Math.min(1, Math.max(0, v));
   const lum = (c) => Math.sqrt(0.299 * c[0] ** 2 + 0.587 * c[1] ** 2 + 0.114 * c[2] ** 2);
   const DIEL_MAX = lum(lin('#646464')), METAL_MIN = lum(lin('#9b9b9b')), SAT_MIN = 0.3, SAT_FULL = 0.5;
+  const HUE_MIN = lin('#080808')[0], HUE_FULL = lin('#181818')[0];
   const d = lin(tint), s = lin(specular ?? '#3b3b3b');
-  const keep = 1 - Math.max(...s), ls = lum(s);
-  const sat = Math.max(...s) > EPS ? (Math.max(...s) - Math.min(...s)) / Math.max(...s) : 0;
-  const t = Math.max(clamp((ls - DIEL_MAX) / (METAL_MIN - DIEL_MAX)), clamp((sat - SAT_MIN) / (SAT_FULL - SAT_MIN)));
+  const top = Math.max(...s), keep = 1 - top, ls = lum(s);
+  const sat = top > EPS ? (top - Math.min(...s)) / top : 0;
+  const hue = clamp((sat - SAT_MIN) / (SAT_FULL - SAT_MIN)) * clamp((top - HUE_MIN) / (HUE_FULL - HUE_MIN));
+  const t = Math.max(clamp((ls - DIEL_MAX) / (METAL_MIN - DIEL_MAX)), hue);
   let metal = 0;
   if (t > 0) {
     const b = (lum(d) * keep) / (1 - DIEL) + ls - 2 * DIEL, c = DIEL - ls;
