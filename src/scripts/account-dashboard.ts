@@ -1486,9 +1486,9 @@ import { supabase } from '../lib/supabase';
       const ovAct = document.getElementById('ovActivity');
       const ovActEmpty = document.getElementById('ovActEmpty');
       if (ovAct) {
-        if (!activity.length) { if (ovActEmpty) ovActEmpty.hidden = false; }
-        else {
-          if (ovActEmpty) ovActEmpty.hidden = true;
+        ovAct.hidden = !activity.length;
+        if (ovActEmpty) ovActEmpty.hidden = !!activity.length;
+        if (activity.length) {
           activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
           const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
           ovAct.innerHTML = activity.slice(0, 5).map(it =>
@@ -1547,11 +1547,42 @@ import { supabase } from '../lib/supabase';
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
 
+      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Dashboard
+      // im Browser ablegt: die ganze Profilzeile (samt RSI-Code und
+      // Discord-Tag) und den RSI-Code. Bis 29.10.2026 blieben beide nach
+      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung sagt,
+      // was mit dem Konto geht, ist weg. vb_share_ ist der Schalterstand,
+      // den account-lite.js für den Puls im Tab merkt.
+      // Dazu die Konto-Spiegel der Werkzeuge (Flotte, Crafting, Hangar-
+      // Layouts). Flotte und Crafting räumen ihren Spiegel selbst weg, aber
+      // erst, wenn eine ihrer Seiten abgemeldet läuft; den Layout-Spiegel
+      // räumte niemand weg. Gleiche Regel wie dropMirrors() in fleet.js und
+      // crafting-app.js: nach dem Abmelden sieht auf einem geteilten Rechner
+      // niemand mehr, was der Vorgänger besitzt oder plant.
+      const MIRROR_PREFIXES = ['vb.fleet.v1.', 'craft.state.v2.', 'vb.layouts.v1.'];
+      const forgetLocalCopies = () => {
+        try { localStorage.removeItem(localKey); localStorage.removeItem('vb_rsi_code'); } catch { /* egal */ }
+        // vb_user_role: die Konto-Rolle aus account-lite.js, sonst bliebe sie
+        // samt Konto-ID im Tab liegen (Datenschutzerklärung #storage).
+        try { sessionStorage.removeItem(`vb_share_${user.id}`); sessionStorage.removeItem('vb_user_role'); } catch { /* egal */ }
+        try {
+          const doomed: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && MIRROR_PREFIXES.some((p) => k.startsWith(p))) doomed.push(k);
+          }
+          doomed.forEach((k) => localStorage.removeItem(k));
+        } catch { /* egal */ }
+      };
+      // „Überall abmelden" (account-security.ts) räumt denselben Bestand weg.
+      document.addEventListener('vb:forget-local', forgetLocalCopies);
+
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
-        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', user.id); } catch { /* egal */ }
+        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null, activity_at: null }).eq('id', user.id); } catch { /* egal */ }
+        forgetLocalCopies();
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1573,6 +1604,7 @@ import { supabase } from '../lib/supabase';
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
+          forgetLocalCopies();
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
         } catch {

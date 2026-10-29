@@ -287,6 +287,17 @@ export const CHECKS = [
     checks: 'durch die Haube jedes Schiffs der Hangarseite sieht man nicht durch das Schiff in die Halle: Strahlen durch das Haubenglas, die hinter einer Rueckseite nichts mehr treffen, was der Viewer zeichnet, je Schiff unter seiner Klinke (Krisz 29.10.2026: Gladius von innen hohl)',
   },
   {
+    // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
+    // audit:site: liest jede gebaute Seite einmal als Text, wenige Sekunden.
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — nur dist/.
+    id: 'verify:vorklick',
+    npm: 'verify:vorklick',
+    script: 'scripts/verify-vorklick.mjs',
+    rail: 'A',
+    checks:
+      'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Inline-Skripte und JS-Dateien duerfen diese Hosts nur an benannten Klick-Bindungen nennen (mit Zombie-Waechter); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
+  },
+  {
     id: 'audit:site',
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',

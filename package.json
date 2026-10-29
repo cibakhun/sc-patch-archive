@@ -82,6 +82,7 @@
     "theme": "node scripts/build-light-palettes.mjs && node scripts/tokenize-theme-colors.mjs && node scripts/build-light-overrides.mjs",
     "audit:site": "node scripts/audit-site.mjs",
     "audit:csp": "node scripts/audit-csp.mjs",
+    "verify:vorklick": "node scripts/verify-vorklick.mjs",
     "verify:gate": "node scripts/verify-gate.mjs",
     "verify:redirects": "node scripts/verify-redirects.mjs",
     "verify:windows": "node scripts/verify-windows.mjs",
