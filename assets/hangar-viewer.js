@@ -4604,13 +4604,33 @@ function disposeObject(o) {
 // aus der Mittelfuge, wenn das Schachttor einrastet, als warmer Schwaden
 // aus dem Schacht, wenn es aufgeht, und in Stößen an den Kanten des Felds,
 // wenn die Plattform oben einrastet oder unten losfährt (fx in
-// initHangar). Jedes Teilchen ist ein zur Kamera gedrehtes Viereck; seine
-// Bahn rechnet der Shader aus Startpunkt, Geschwindigkeit und Alter, der
-// Prozessor schreibt nur beim Ausstoß ein paar Zahlen in einen Ringpuffer.
-// Ist nichts in der Luft, zeichnet er nichts.
-// Bahn: Der Stoß bremst in der Luft (STEAM_DRAG, 1/s), danach treibt der
-// Dampf mit seiner Steiggeschwindigkeit nach oben (aV.w: Lebensdauer).
+// initHangar). Jedes Teilchen ist ein zur Kamera gedrehtes Viereck in einem
+// Ringpuffer. Ist nichts in der Luft, zeichnet und rechnet er nichts.
+// Bahn (29.10.2026, Krisz zu einer Dampfsäule über dem offenen Schacht:
+// „smoke soll phiscs haben, also wenn die platform auf und zu geht soll ja
+// sich die luft bewegen und der rauch sich mitbewegen, momentan siehts sehr
+// ridget aus“): Bis dahin rechnete der Shader jede Bahn fest aus Stoß, Alter
+// und Steiggeschwindigkeit, der Dampf wusste nichts von der Mechanik. Jetzt
+// rechnet der Prozessor die Teilchen je Bild durch ein Luftfeld (steamAir):
+// Die fahrende Plattform drückt die Luft im Schacht durch die Öffnung
+// hinaus oder saugt sie hinein, um so schneller, je enger das Tor sie
+// lässt; die Flügel des Tors ziehen die Luft über sich mit und schieben sie
+// vor ihren Kanten her; das Schiff auf der Plattform verdrängt sie, über und
+// unter sich mit, zu seinen Seiten zurück (Umströmung einer bewegten Kugel,
+// auf seine Maße gezogen); Wirbel aus einem quellenfreien Rauschfeld werden
+// stärker, wo die Luft schnell ist, und drehen die Ballen. Die Luft hat
+// Trägheit: Hält die Plattform, strömt sie noch kurz nach und kommt zur
+// Ruhe. Jeder Ballen folgt der Luft mit STEAM_DRAG (1/s) plus seinem
+// Auftrieb, liegt auf Boden und Plattform auf und weicht dem Rumpf aus;
+// sein Rauschbild fährt mit ihm, schnelle Ballen ziehen sich zur Fahne.
+// Rund 260 Teilchen kosten so je Bild deutlich unter einer Millisekunde.
 const STEAM_DRAG = 2.2;
+// Luftfeld (Weltmaße mal Hallenmaßstab k, wo vermerkt): Anteil der
+// Kolbenströmung, die den Dampf trifft (der Rest entweicht seitlich), ihre
+// Höchstgeschwindigkeit (m/s je k) und wie schnell sie über der Öffnung
+// nachlässt (m je k); Mitnahme durch die Torflügel; Grundwirbel (m/s je k)
+// und Wirbel je m/s Strömung; Trägheit der Luft (s) für Plattform und Tor
+const STEAM_AIR = { piston: 0.35, cap: 5, rise: 5, gate: 0.6, turb: 0.12, turbPer: 0.3, lagLift: 0.45, lagGate: 0.2 };
 // Aussehen am 27.10.2026 (Krisz mit Bild eines Reaktorraums aus dem Spiel:
 // „unser dampf oder rauch effekt soll mindestens auf diesem niveu sein“):
 // eine dichte, weiche Bank, oben hell im Licht, unten und in den Falten im
@@ -4628,54 +4648,61 @@ const STEAM_DRAG = 2.2;
 const STEAM_LIT = [1.55, 1.52, 1.48];
 const STEAM_SHADE = [0.36, 0.39, 0.44];
 const STEAM_VS = /* glsl */ `
-attribute vec4 aP;   // Start (Welt, m), Geburt (s)
-attribute vec4 aV;   // Stoß (m/s), Lebensdauer (s)
+attribute vec4 aP;   // Lage (Welt, m), Alter durch Lebensdauer (0..1, sonst nicht da)
+attribute vec4 aD;   // Weg seit der Geburt (m), Drehung (rad)
 attribute vec4 aS;   // Größe am Anfang und am Ende (m), Zufall, Deckkraft
-attribute vec2 aR;   // Steiggeschwindigkeit (m/s), Wirbel (m)
+attribute vec3 aE;   // Geschwindigkeit (m/s)
 uniform float uTime;
-varying vec2 vUv;
+varying vec2 vUv, vXZ;
 varying vec3 vW;
 varying float vA, vSeed, vAge, vY, vZ, vS, vWt;
 void main() {
-  float age = uTime - aP.w, k = age / aV.w;
+  float k = aP.w;
   vUv = position.xy + 0.5;
-  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0; vZ = 1.0; vS = 1.0; vW = vec3(0.0); vWt = 0.5;
+  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0; vZ = 1.0; vS = 1.0; vW = vec3(0.0); vWt = 0.5; vXZ = vec2(0.0);
   if (k < 0.0 || k >= 1.0) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
-  float d = (1.0 - exp(-${STEAM_DRAG.toFixed(1)} * age)) / ${STEAM_DRAG.toFixed(1)};
-  vec3 p = aP.xyz + aV.xyz * d;
-  p.y += aR.x * max(0.0, age - d);
-  float w = aR.y * k;
-  p.x += sin(age * 1.7 + aS.z * 40.0) * w;
-  p.z += cos(age * 1.3 + aS.z * 23.0) * w;
+  vec3 p = aP.xyz;
   float s = mix(aS.x, aS.y, 1.0 - (1.0 - k) * (1.0 - k));
-  float a = aS.z * 6.2832 + age * (aS.z - 0.5) * 0.8;
+  vec3 R = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]), U = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+  float a = aD.w;
   vec2 c = mat2(cos(a), sin(a), -sin(a), cos(a)) * position.xy * s;
+  // schneller Dampf zieht sich in Flugrichtung zur Fahne, quer wird er
+  // schmaler, die Fläche wächst nur mit der Wurzel
+  vec2 e = vec2(dot(aE, R), dot(aE, U));
+  float sp = length(e), st = 1.0 + min(0.7, 0.12 * sp);
+  vec2 ed = sp > 1e-3 ? e / sp : vec2(1.0, 0.0);
+  float al = dot(c, ed);
+  c = ed * al * st + (c - ed * al) * inversesqrt(st);
   vec4 mv = viewMatrix * vec4(p, 1.0);
   mv.xy += c;
   gl_Position = projectionMatrix * mv;
   vZ = -mv.z; vS = s;
   // Ort des Bildpunkts in der Welt (Ecken über die Achsen der Kamera): Höhe
-  // über dem Boden und Lage für das Rauschen der Ballen (steigt mit dem
-  // Dampf), damit sich überlappende Ballen zu einer Bank verbinden. vWt
+  // über dem Boden und Lage für das Rauschen der Ballen. Das Rauschen fährt
+  // zur Hälfte mit dem Ballen (aD: sein Weg seit der Geburt), so trägt er
+  // seine Form ein Stück durch die Strömung; ganz mitgeführt sähen Ballen,
+  // die eben noch verschieden schnell aus dem Spalt kamen, an derselben
+  // Stelle verschiedene Muster und stünden als Klumpen nebeneinander statt
+  // als eine Bank (so in der Seite am 29.10.). Dazu quillt es langsam. vWt
   // wiegt die beiden senkrechten Ebenen nach der Blickrichtung: Beim Drehen
   // blendet das Rauschen über, statt mit der Kamera zu wandern.
-  vec3 R = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]), U = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
   vec3 wp = p + R * c.x + U * c.y;
-  vY = wp.y;
-  vW = vec3(wp.x, wp.y - uTime * 0.35, wp.z);
+  vY = wp.y; vXZ = wp.xz;
+  vW = wp - aD.xyz * 0.45;
+  vW.y -= uTime * 0.08;
   vWt = abs(R.x) / (abs(R.x) + abs(R.z) + 1e-4);
   // rasch da, lang verweht; dünner, je größer er wird: Der Dampf mischt
   // sich mit Luft. Mit der Fläche fiele die Dichte so schnell, dass nur
   // kleine Ballen dicht wären; darunter (Potenz 0,6) bleibt ein großer
   // Schwaden dicht wie im Spiel und reißt erst mit dem Alter auf
-  vA = aS.w * smoothstep(0.0, 0.18, k) * (1.0 - smoothstep(0.4, 1.0, k)) * pow(aS.x / s, 0.6);
+  vA = aS.w * smoothstep(0.0, 0.18, k) * (1.0 - smoothstep(0.4, 1.0, k)) * pow(aS.x / s, 0.6) * inversesqrt(st);
 }`;
 const STEAM_FS = /* glsl */ `
-uniform vec3 uLit, uShade;
+uniform vec3 uLit, uShade, uGap;
 uniform float uFloor, uSoft, uNear, uFar;
 uniform vec2 uRes;
 uniform sampler2D uNoise, uDepth;
-varying vec2 vUv;
+varying vec2 vUv, vXZ;
 varying vec3 vW;
 varying float vA, vSeed, vAge, vY, vZ, vS, vWt;
 // Rauschen in der Welt, auf den beiden senkrechten Ebenen
@@ -4711,7 +4738,10 @@ void main() {
   vec3 col = mix(uShade, uLit, L);
   // Deckkraft wie durch ein Medium (Beer-Lambert): dichter Kern deckt, der
   // Rand bleibt durchscheinend
-  float a = (1.0 - exp(-2.8 * dens * vA)) * smoothstep(uFloor - 0.05, uFloor + 0.5, vY);
+  // über der offenen Öffnung liegt der Boden unten auf der Plattform (uGap:
+  // halbe Weite der Öffnung quer und längs, Höhe der Plattform)
+  float fl = abs(vXZ.x) < uGap.x && abs(vXZ.y) < uGap.y ? min(uFloor, uGap.z) : uFloor;
+  float a = (1.0 - exp(-2.8 * dens * vA)) * smoothstep(fl - 0.05, fl + 0.5, vY);
   // weich, wo er in Boden, Rumpf oder Wand steckt (Tiefe des Bildes)
   if (uSoft > 0.5) {
     float z = texture2D(uDepth, gl_FragCoord.xy / uRes).x;
@@ -4768,22 +4798,114 @@ function steamNoise(N = 128) {
   t.needsUpdate = true;
   return t;
 }
+// Wirbel: quellenfreies Feld aus sechs Wellen (Rotation eines
+// Vektorpotentials, daher ohne Quellen und Senken: Der Dampf verdichtet
+// sich nicht an einer Stelle). Wellenzahl je m für k = 1, Kreisfrequenz 1/s
+const STEAM_CURL = (() => {
+  let s = 0x7a11;
+  const r = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  const unit = () => { const z = r() * 2 - 1, a = r() * Math.PI * 2, q = Math.sqrt(1 - z * z); return [q * Math.cos(a), z, q * Math.sin(a)]; };
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = unit(), m = 0.7 + 0.25 * i, A = unit();
+    // k × A, auf eine Wellenamplitude von rund 1/√6 gezogen
+    const c = [d[1] * A[2] - d[2] * A[1], d[2] * A[0] - d[0] * A[2], d[0] * A[1] - d[1] * A[0]], n = Math.hypot(...c) * Math.sqrt(6) || 1;
+    return { k: d.map((v) => v * m), c: c.map((v) => v / n), ph: r() * Math.PI * 2, w: 0.35 + 0.4 * r() };
+  });
+})();
+// Luft an (x, y, z) zur Zeit t nach out (m/s, Welt). air: Lage der Mechanik
+// aus fx.airAt (null: keine Halle, nur Wirbel); Boden bei y = 0, Feld mittig
+// um den Ursprung, Tor schließt quer (x) zur Mittelfuge; tm: Anteil der
+// Wirbel (je Ballen). Gibt die Stärke der gerichteten Strömung zurück.
+function steamAir(out, x, y, z, t, air, tm = 1) {
+  let ux = 0, uy = 0, uz = 0;
+  const k = air?.k ?? 1;
+  if (air) {
+    const { hx, hz, open, jw, U, gv } = air, ax = Math.abs(x), az = Math.abs(z), sx = Math.sign(x) || 1, sz = Math.sign(z) || 1;
+    // Kolben: Was die Plattform an Luft schiebt (U, m/s durch die Öffnung,
+    // + hinaus), steigt über der Öffnung als Strahl, der sich weitet und
+    // nachlässt, und zieht die Luft daneben an seinen Fuß; hinein saugt er
+    // von allen Seiten zur Öffnung hin. Hat die Plattform die Öffnung eben
+    // geschlossen, strömt die Luft über ihr noch nach (jw: letzte Weite)
+    if (Math.abs(U) > 1e-3 && jw > 1e-3) {
+      const dz = Math.max(0, az - hz), gz = Math.exp(-dz / (1.5 * k));
+      if (y < 0 && ax < hx && az < hz) {
+        // im Schacht: die ganze Säule zieht mit, unter den Flügeln zur
+        // Öffnung hin
+        uy += U * (open / hx);
+        ux += ax > open ? -sx * Math.abs(U) * 0.5 * Math.min(1, (ax - open) / k) : 0;
+      } else if (U > 0) {
+        const open = jw;
+        const h = Math.max(0, y), b = open + 0.2 * h, dx = Math.max(0, ax - b);
+        const core = Math.sqrt(open / b) * Math.exp(-h / (STEAM_AIR.rise * k)) * Math.exp(-(dx * dx) / (k * k)) * gz;
+        uy += U * core;
+        ux += sx * 0.2 * Math.min(1, ax / b) * U * core;
+        // Mitnahme am Fuß des Strahls
+        const dx0 = Math.max(0, ax - open);
+        ux -= sx * 0.25 * U * Math.exp(-dx0 / (2 * k)) * Math.exp(-h / (2 * k)) * (dx0 > 0 ? 1 : 0) * gz;
+      } else {
+        // Senke: zum nächsten Punkt der Öffnung, mit dem Abstand schwächer
+        const px = Math.min(ax, jw), pz = Math.min(az, hz);
+        let vx = sx * (px - ax), vy = -Math.max(0, y), vz = sz * (pz - az);
+        const r = Math.hypot(vx, vy, vz) + 1e-4, f = -U * Math.pow(k / (r + k), 1.5);
+        if (r < 0.05) { vx = 0; vy = -1; vz = 0; } else { vx /= r; vy /= r; vz /= r; }
+        ux += vx * f; uy += vy * f; uz += vz * f;
+      }
+    }
+    // Torflügel: liegen quer zwischen der Öffnung und dem Schachtrand, die
+    // Luft dicht über ihnen fährt mit, vor den Kanten wird sie geschoben und
+    // steigt dort auf; schließt das Tor, treffen sich beide Wülste in der Fuge
+    if (Math.abs(gv) > 1e-3 && az < hz + k && y > -0.2 * k) {
+      // die Flügel laufen rund 15 m/s: Mitgerissen wird nur eine dünne
+      // Schicht, gedeckelt wie der Kolben
+      const gv = Math.max(-1, Math.min(1, air.gv / (STEAM_AIR.cap * k))) * STEAM_AIR.cap * k;
+      const h = Math.max(0, y), lay = Math.exp(-h / (0.5 * k));
+      if (ax > open && ax < hx) ux += sx * gv * STEAM_AIR.gate * lay;
+      const de = (ax - open) / (0.7 * k), bow = Math.exp(-de * de);
+      ux += sx * gv * bow * Math.exp(-h / k);
+      uy += Math.abs(gv) * 0.5 * bow * Math.exp(-h / k);
+    }
+    // Schiff: Umströmung einer bewegten Kugel (Dipol), auf die Halbachsen
+    // des Rumpfs gezogen: über und unter ihm zieht die Luft mit, an seinen
+    // Seiten strömt sie zurück; dahinter ein Nachlauf, der mitgerissen wird
+    const S = air.ship;
+    if (S && Math.abs(S.va) > 1e-3) {
+      const qx = x / S.rx, qy = (y - S.yc) / S.ry, qz = z / S.rz, r = Math.max(1, Math.hypot(qx, qy, qz));
+      if (r < 4) {
+        const nx = qx / r, ny = qy / r, nz = qz / r, f = 1 / (2 * r * r * r), Uy = S.va;
+        ux += f * 3 * Uy * ny * nx; uy += f * (3 * Uy * ny * ny - Uy); uz += f * 3 * Uy * ny * nz;
+        if (ny * Math.sign(Uy) < -0.5) uy += Uy * 0.5 * Math.exp(-(r - 1) * 1.5);
+      }
+    }
+  }
+  const sp = Math.hypot(ux, uy, uz), amp = (STEAM_AIR.turb * k + STEAM_AIR.turbPer * sp) * tm;
+  for (const w of STEAM_CURL) {
+    const c = Math.cos((w.k[0] * x + w.k[1] * y + w.k[2] * z) / k + w.ph + w.w * t) * amp;
+    ux += w.c[0] * c; uy += w.c[1] * c; uz += w.c[2] * c;
+  }
+  out[0] = ux; out[1] = uy; out[2] = uz;
+  return sp;
+}
+
 function buildSteam(max) {
   const g = new THREE.InstancedBufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]), 3));
   g.setIndex([0, 1, 2, 0, 2, 3]);
   const A = {};
-  for (const [k, w] of [['aP', 4], ['aV', 4], ['aS', 4], ['aR', 2]]) {
+  for (const [k, w] of [['aP', 4], ['aD', 4], ['aS', 4], ['aE', 3]]) {
     A[k] = new THREE.InstancedBufferAttribute(new Float32Array(max * w), w);
     A[k].setUsage(THREE.DynamicDrawUsage);
     g.setAttribute(k, A[k]);
   }
-  // alle schon verweht
-  for (let i = 0; i < max; i++) { A.aP.array[i * 4 + 3] = -1e5; A.aV.array[i * 4 + 3] = 1; }
+  // Zustand je Teilchen (Prozessor): Lage, Lage bei der Geburt,
+  // Geschwindigkeit, Geburt und Lebensdauer (s), Auftrieb (m/s), Wirbel (m),
+  // Drehung und Drehrate (rad, rad/s). Geburt -1e9: alle schon verweht
+  const X = new Float32Array(max * 3), X0 = new Float32Array(max * 3), V = new Float32Array(max * 3);
+  const B = new Float32Array(max).fill(-1e9), L = new Float32Array(max).fill(1), Rs = new Float32Array(max), Sw = new Float32Array(max), Th = new Float32Array(max), Om = new Float32Array(max);
+  for (let i = 0; i < max; i++) A.aP.array[i * 4 + 3] = -1;
   g.instanceCount = max;
   const noise = steamNoise();
   const u = {
-    uTime: { value: 0 }, uFloor: { value: 0 },
+    uTime: { value: 0 }, uFloor: { value: 0 }, uGap: { value: new THREE.Vector3(0, 0, 0) },
     uLit: { value: new THREE.Color(...STEAM_LIT) }, uShade: { value: new THREE.Color(...STEAM_SHADE) },
     uNoise: { value: noise }, uDepth: { value: null }, uSoft: { value: 0 }, uNear: { value: 0.1 }, uFar: { value: 1000 }, uRes: { value: new THREE.Vector2(1, 1) },
   };
@@ -4796,27 +4918,101 @@ function buildSteam(max) {
   mesh.frustumCulled = false;
   mesh.renderOrder = 5;
   mesh.visible = false;
-  let n = 0, until = -1, dirty = false;
+  let n = 0, until = -1, dirty = false, last = -1, tick = 0;
+  const ua = [0, 0, 0], ub = [0, 0, 0];
+  // ein Schritt h (s) für Teilchen i: der Luft nach, auf Boden und
+  // Plattform liegen bleiben, dem Rumpf ausweichen
+  function step(i, t, h, air) {
+    const j = i * 3, k = air?.k ?? 1;
+    let x = X[j], y = X[j + 1], z = X[j + 2];
+    const yp = y;
+    // eigene Wirbel (Sw ~ 0,4..0,9 m je k): kleine Ballen tanzen mehr
+    const age = t - B[i];
+    steamAir(ua, x, y, z, t, air, Math.min(2, Math.max(0.3, Sw[i] / (0.6 * k))));
+    // der Luft nach, dazu der Auftrieb, sobald der Stoß verbraucht ist
+    const f = 1 - Math.exp(-STEAM_DRAG * h), ty = ua[1] + Rs[i] * Math.min(1, age * 2);
+    V[j] += (ua[0] - V[j]) * f; V[j + 1] += (ty - V[j + 1]) * f; V[j + 2] += (ua[2] - V[j + 2]) * f;
+    x += V[j] * h; y += V[j + 1] * h; z += V[j + 2] * h;
+    // Boden: über der offenen Öffnung die Plattform, sonst der Hallenboden;
+    // unter dem Boden bleibt er im Schacht (unter den Torflügeln nicht weiter
+    // als die Öffnung)
+    let fl = 0.12 * k;
+    if (air && Math.abs(z) < air.hz && Math.abs(x) < air.hx && (yp < 0 || Math.abs(x) < air.open)) {
+      // im Schacht (Wände, unter den Torflügeln die Decke) oder über der
+      // Öffnung: Boden ist die Plattform
+      if (yp < 0) {
+        x = Math.max(-0.98 * air.hx, Math.min(0.98 * air.hx, x));
+        z = Math.max(-0.98 * air.hz, Math.min(0.98 * air.hz, z));
+        if (Math.abs(x) >= air.open && y > -0.1 * k) { y = -0.1 * k; if (V[j + 1] > 0) V[j + 1] = 0; }
+      }
+      fl = Math.min(0, air.ly) + 0.12 * k;
+    }
+    if (y < fl) { y = fl; if (V[j + 1] < 0) V[j + 1] *= -0.2; }
+    // Rumpf: aus der Hülle (Ellipsoid etwas größer als der Rumpf) hinaus,
+    // senkrecht zur Hülle so schnell wie das Schiff
+    const S = air?.ship;
+    if (S) {
+      const qx = x / S.rx, qy = (y - S.yc) / S.ry, qz = z / S.rz, r = Math.hypot(qx, qy, qz);
+      if (r < 1 && r > 1e-4) {
+        x = (qx / r) * S.rx; y = S.yc + (qy / r) * S.ry; z = (qz / r) * S.rz;
+        const nx = qx / S.rx, ny = qy / S.ry, nz = qz / S.rz, nn = Math.hypot(nx, ny, nz);
+        const vn = (V[j] * nx + (V[j + 1] - S.va) * ny + V[j + 2] * nz) / nn;
+        if (vn < 0) { V[j] -= vn * nx / nn; V[j + 1] -= vn * ny / nn; V[j + 2] -= vn * nz / nn; }
+      }
+    }
+    X[j] = x; X[j + 1] = y; X[j + 2] = z;
+    // Drehung: halbe Wirbelstärke um die Blickachse (aus der Luft neben dem
+    // Ballen, quer und hoch im Bild), dazu der eigene Drall vom Ausstoß;
+    // jeder Ballen nur jedes zweite Mal (spart vier Blicke in die Luft)
+    if (air?.R && ((i + tick) & 1) === 0) {
+      const e = 0.4 * k, R = air.R, Uc = air.U3;
+      steamAir(ua, x + R[0] * e, y + R[1] * e, z + R[2] * e, t, air);
+      steamAir(ub, x - R[0] * e, y - R[1] * e, z - R[2] * e, t, air);
+      const dUdR = ((ua[0] - ub[0]) * Uc[0] + (ua[1] - ub[1]) * Uc[1] + (ua[2] - ub[2]) * Uc[2]) / (2 * e);
+      steamAir(ua, x + Uc[0] * e, y + Uc[1] * e, z + Uc[2] * e, t, air);
+      steamAir(ub, x - Uc[0] * e, y - Uc[1] * e, z - Uc[2] * e, t, air);
+      const dRdU = ((ua[0] - ub[0]) * R[0] + (ua[1] - ub[1]) * R[1] + (ua[2] - ub[2]) * R[2]) / (2 * e);
+      Om[i] += (0.5 * (dUdR - dRdU) - Om[i]) * (1 - Math.exp(-3 * h));
+    }
+    Th[i] += Om[i] * h;
+  }
   return {
     mesh,
     get until() { return until; },
     // t: Geburt (s, Uhr der Bühne); p Start, v Stoß (m/s); life s; s0, s1 m;
     // a Deckkraft; rise m/s; swirl m
     puff(t, p, v, life, s0, s1, a, rise = 0.6, swirl = 0.5) {
-      const i = n++ % max;
-      A.aP.array.set([p[0], p[1], p[2], t], i * 4);
-      A.aV.array.set([v[0], v[1], v[2], life], i * 4);
+      const i = n++ % max, j = i * 3;
+      X.set(p, j); X0.set(p, j); V.set(v, j);
+      B[i] = t; L[i] = life; Rs[i] = rise; Sw[i] = swirl;
+      Th[i] = Math.random() * Math.PI * 2; Om[i] = (Math.random() - 0.5) * 0.8;
       A.aS.array.set([s0, s1, Math.random(), a], i * 4);
-      A.aR.array.set([rise, swirl], i * 2);
       until = Math.max(until, t + life);
       dirty = true;
     },
-    frame(t) {
+    // je Bild: Teilchen durch die Luft (air aus fx.airAt) bis t; Schritte
+    // höchstens 1/30 s, damit auch wenige Bilder je Sekunde dieselbe Bahn
+    // ergeben; nach einer Pause (Seite verborgen) höchstens 0,25 s nach
+    frame(t, air = null) {
       u.uTime.value = t;
       mesh.visible = t < until;
-      if (!dirty) return;
-      for (const k in A) A[k].needsUpdate = true;
-      dirty = false;
+      const dt = last < 0 ? 0 : Math.min(0.25, Math.max(0, t - last));
+      last = t;
+      if (air) u.uGap.value.set(air.open, air.hz, Math.min(0, air.ly));
+      if (!mesh.visible) return;
+      tick++;
+      const P = A.aP.array, D = A.aD.array, E = A.aE.array;
+      for (let i = 0; i < max; i++) {
+        const age = t - B[i], j = i * 3;
+        if (age < 0 || age >= L[i]) { P[i * 4 + 3] = -1; continue; }
+        const run = Math.min(age, dt), steps = Math.ceil(run * 30 - 1e-6);
+        for (let s = 0; s < steps; s++) step(i, t - run + ((s + 1) * run) / steps, run / steps, air);
+        P[i * 4] = X[j]; P[i * 4 + 1] = X[j + 1]; P[i * 4 + 2] = X[j + 2]; P[i * 4 + 3] = age / L[i];
+        D[i * 4] = X[j] - X0[j]; D[i * 4 + 1] = X[j + 1] - X0[j + 1]; D[i * 4 + 2] = X[j + 2] - X0[j + 2]; D[i * 4 + 3] = Th[i];
+        E[j] = V[j]; E[j + 1] = V[j + 1]; E[j + 2] = V[j + 2];
+      }
+      A.aP.needsUpdate = A.aD.needsUpdate = A.aE.needsUpdate = true;
+      if (dirty) { A.aS.needsUpdate = true; dirty = false; }
     },
     // Tiefe des Bildes für den weichen Rand (null: ohne, im Bild der Szene)
     soft(depth, cam, w, h) {
@@ -9561,12 +9757,56 @@ void main() {
       if (late > 400 || !fxOk('gateStop')) return;
       if (dir === 'close' && fxOk('seam')) this.seam((performance.now() - T0) / 1000, 40);
     },
-    // je Bild: Teilchen auf die Uhr; der Ton folgt der Mechanik. Fehlt er zu
-    // einem laufenden Tor oder einer Fahrt (Seite war verborgen, Ton eben
+    // Lage der Mechanik für die Luft des Dampfs (steamAir), je Bild: Weite
+    // der Öffnung quer (open, m: 0 zu, hx ganz offen; schließt das Tor, ist
+    // das Feld ab G.cover der Bahn gedeckt, beim Öffnen gibt es die Öffnung
+    // erst nach dem Entriegeln frei), Höhe der Plattform, die Kolbenströmung
+    // durch die Öffnung (U) und die Kanten des Tors (gv, + öffnend), beide
+    // mit der Trägheit der Luft geglättet, und das Schiff auf der Plattform
+    // (Halbachsen der Hülle um den Rumpf, steigt mit ihr)
+    air: { t: -1, ly: 0, open: 0, jw: 0, U: 0, gv: 0, lv: 0, ship: null, hull: { rx: 1, ry: 1, rz: 1, yc: 0, va: 0 }, R: [1, 0, 0], U3: [0, 1, 0] },
+    airAt(now, t) {
+      const F = this.field(), A = this.air;
+      if (!F) return null;
+      const { k, hx, hz } = F, ly = lift.y * k, G = realHall?.shaft?.gate;
+      let open = ly < -0.05 * k ? hx : 0;
+      if (G?.run) {
+        const r = G.run, tau = Math.min(G.T, Math.max(0, r.tau0 + ((now - r.t0) * G.T) / HALL_GATE.ms));
+        open = hx * (r.dir === 'close' ? 1 - Math.min(1, tau / G.cover) : Math.min(1, Math.max(0, (tau - (G.T - G.cover)) / G.cover)));
+      } else if (G?.state === 'closed') open = 0;
+      const dt = A.t < 0 ? 0 : t - A.t;
+      if (dt > 1e-4 && dt < 0.5) {
+        // die Kanten des Tors nur, solange es läuft: Schließt die ankommende
+        // Plattform die Öffnung, bewegt sich kein Flügel
+        const lv = (ly - A.ly) / dt, gv = G?.run ? (open - A.open) / dt : 0;
+        // Kolben: Querschnitt des Schachts durch die Öffnung, gedeckelt
+        const Ut = open > 1e-3 ? Math.max(-1, Math.min(1, (STEAM_AIR.piston * lv * hx) / (open * STEAM_AIR.cap * k))) * STEAM_AIR.cap * k : 0;
+        A.U += (Ut - A.U) * (1 - Math.exp(-dt / STEAM_AIR.lagLift));
+        A.gv += (gv - A.gv) * (1 - Math.exp(-dt / STEAM_AIR.lagGate));
+        A.lv += (lv - A.lv) * (1 - Math.exp(-dt / 0.1));
+      } else if (dt >= 0.5 || dt < 0) { A.U = 0; A.gv = 0; A.lv = 0; }
+      A.t = t; A.ly = ly; A.open = open; A.k = k; A.hx = hx; A.hz = hz;
+      if (open > 1e-3) A.jw = open;
+      const c = current;
+      if (c?.lift && c.group.visible && c.info) {
+        const sc = c.group.scale.x, hy = (c.info.height * sc) / 2;
+        const S = (A.ship = A.hull);
+        S.rx = c.info.halfW * sc * 1.1 + 0.3 * k; S.rz = (c.info.len / 2) * sc * 1.1 + 0.3 * k; S.ry = hy * 1.15 + 0.2 * k; S.yc = ly + hy;
+        // die Luft um den Rumpf höchstens so schnell wie anderthalb Kolben:
+        // Bei voller Fahrt (rund 30 m/s) flöge der Dampf sonst in einem Bild
+        // aus dem Blick
+        S.va = Math.max(-1.5, Math.min(1.5, A.lv / (STEAM_AIR.cap * k))) * STEAM_AIR.cap * k;
+      } else A.ship = null;
+      const m = camera.matrixWorld.elements;
+      A.R[0] = m[0]; A.R[1] = m[1]; A.R[2] = m[2]; A.U3[0] = m[4]; A.U3[1] = m[5]; A.U3[2] = m[6];
+      return A;
+    },
+    // je Bild: Teilchen durch die Luft; der Ton folgt der Mechanik. Fehlt er
+    // zu einem laufenden Tor oder einer Fahrt (Seite war verborgen, Ton eben
     // eingeschaltet, Klänge erst jetzt geladen), setzt er dort ein, wo die
     // Bewegung steht.
     frame(now, t) {
-      if (steam) steam.frame(t);
+      if (steam) steam.frame(t, this.airAt(now, t));
       const G = realHall?.shaft?.gate;
       let cover = 0;
       if (G?.run) {
