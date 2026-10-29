@@ -31,7 +31,7 @@ const LAYOUT_MSG: LayoutKey[] = [
   'dt.p', 'dt.e', 'dt.d', 'trk.i', 'trk.e', 'trk.c',
   'msg.saved', 'msg.copied', 'msg.copyFallback', 'msg.reset', 'msg.fitted', 'msg.deleted', 'msg.undo',
   'msg.dropped.one', 'msg.dropped.other', 'msg.full',
-  'saved.empty', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
+  'saved.empty', 'saved.account', 'saved.guest', 'saved.login', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
   'grp.paint', 'paint.stock', 'paint.pattern', 'pick.head',
 ];
 const BAY_MSG: HangarKey[] = [
@@ -200,6 +200,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgl-mini.is-main{background:var(--hg-amber);border-color:var(--hg-amber);color:var(--ink)}
 .hgl-mini.is-main:hover,.hgl-mini.is-main:focus-visible{background:color-mix(in srgb,var(--hg-amber) 82%,var(--text));color:var(--ink)}
 .hgl-mini[data-del]{padding:.3rem .45rem}
+.hgl-where{margin:.8rem .5rem .2rem;font-size:var(--fs-6);color:var(--hg-dim);text-align:center}
+.hgl-where a{color:var(--hg-amber)}
 .hgl-empty{margin:1.2rem .5rem;text-align:center;font-size:var(--fs-7);color:var(--hg-dim)}
 /* Fuss: Speichern ist der Weg, Teilen der Spass, Serie die Notbremse. */
 .hgl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;padding:.7rem .8rem .8rem;border-top:1px solid var(--hg-hair);background:color-mix(in srgb,var(--bg) 55%,transparent)}
@@ -290,6 +292,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     </div>
     <div class="hgl-pane" id="hgl-saved" role="region" aria-labelledby="hgl-v-saved" hidden>
       <ul class="hgl-list" id="hgl-list"></ul>
+      <p class="hgl-where" id="hgl-where"></p>
     </div>
   </div>
   <div class="hgl-foot" data-help={h('hangar.ctl.layoutSave')}>

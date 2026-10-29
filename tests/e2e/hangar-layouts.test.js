@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
   sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
+  syncLayouts, layoutKey, sessionUid, accountStore,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -230,5 +231,143 @@ describe('Werkstatt: Ablage', () => {
     assert.deepEqual(store.list(), []);
     assert.equal(store.save({ id: 'dddd4444', ship: 'aegs-gladius', name: '', slots: {} }), null);
     assert.equal(createStore(null).save({ id: 'dddd4444', ship: 'aegs-gladius', name: '', slots: {} }), null);
+  });
+});
+
+// Konto (Krisz 10-29): angemeldet liegt die Ablage im Spiegel des Kontos und
+// wird mit hangar_layouts abgeglichen. Ein Server im Speicher steht fuer
+// PostgREST: GET liefert alle Zeilen des Kontos, POST ist ein Upsert.
+describe('Werkstatt: Ablage im Konto', () => {
+  const UID = '0f9c2b1e-1111-4a2b-9c3d-123456789abc';
+  const memory = () => {
+    const m = new Map();
+    return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), raw: m };
+  };
+  const server = () => {
+    const rows = new Map();
+    let fail = false;
+    const rest = async (method, path, body) => {
+      if (fail) return { ok: false, json: async () => ({}) };
+      if (method === 'GET') return { ok: true, json: async () => [...rows.values()].map((r) => JSON.parse(JSON.stringify(r))) };
+      assert.equal(method, 'POST');
+      assert.match(path, /on_conflict=user_id,id/);
+      for (const r of body) { assert.equal(r.user_id, UID); rows.set(r.id, { id: r.id, rev: r.rev, deleted: r.deleted, entry: r.entry }); }
+      return { ok: true, json: async () => null };
+    };
+    return { rows, rest, setFail: (v) => { fail = v; } };
+  };
+  const lay = (id, name) => ({ id, ship: 'aegs-gladius', name, slots: { gun_nose: 'revenant' } });
+
+  test('Schluessel: Gast hat den alten, das Konto einen eigenen Spiegel', () => {
+    assert.equal(layoutKey(null), STORE_KEY);
+    assert.equal(layoutKey(UID), `${STORE_KEY}.${UID}`);
+    assert.equal(sessionUid({ user: { id: UID } }), UID);
+    assert.equal(sessionUid({ user: { id: '../x' } }), null);
+    assert.equal(sessionUid(null), null);
+  });
+
+  test('beim ersten Abgleich wandern die Gast-Layouts ins Konto und verlassen den Gastspeicher', async () => {
+    const mem = memory();
+    const srv = server();
+    createStore(mem, () => 10).save(lay('aaaa1111', 'Gast'));
+    const res = await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 20 });
+    assert.equal(res.ok, true);
+    assert.equal(res.migrated, 1);
+    assert.equal(srv.rows.get('aaaa1111').entry.name, 'Gast');
+    assert.deepEqual(createStore(mem, () => 0, STORE_KEY).list(), []);
+    assert.deepEqual(createStore(mem, () => 0, layoutKey(UID)).list().map((e) => e.name), ['Gast']);
+  });
+
+  test('scheitert der Server, bleibt das Gast-Layout im Gastspeicher und nichts geht verloren', async () => {
+    const mem = memory();
+    const srv = server();
+    srv.setFail(true);
+    createStore(mem, () => 10).save(lay('aaaa1111', 'Gast'));
+    const res = await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 20 });
+    assert.equal(res.ok, false);
+    assert.equal(createStore(mem).list().length, 1);
+    srv.setFail(false);
+    assert.equal((await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 30 })).ok, true);
+    assert.equal(srv.rows.size, 1);
+    assert.deepEqual(createStore(mem).list(), []);
+  });
+
+  test('zweites Geraet: holt die Layouts, Aenderung und Loeschen ziehen hin und her', async () => {
+    const srv = server();
+    const pc = memory();
+    const phone = memory();
+    const pcStore = createStore(pc, () => 100, layoutKey(UID));
+    pcStore.save(lay('aaaa1111', 'Eins'));
+    pcStore.save(lay('bbbb2222', 'Zwei'));
+    await syncLayouts({ storage: pc, uid: UID, rest: srv.rest, now: () => 110 });
+
+    const r1 = await syncLayouts({ storage: phone, uid: UID, rest: srv.rest, now: () => 120 });
+    assert.equal(r1.changed, true);
+    const phoneStore = createStore(phone, () => 200, layoutKey(UID));
+    assert.deepEqual(phoneStore.list().map((e) => e.name).sort(), ['Eins', 'Zwei']);
+
+    // Handy benennt um und loescht, der PC zieht nach.
+    phoneStore.save({ ...phoneStore.get('aaaa1111'), name: 'Eins neu' });
+    phoneStore.remove('bbbb2222');
+    await syncLayouts({ storage: phone, uid: UID, rest: srv.rest, now: () => 210 });
+    assert.equal(srv.rows.get('bbbb2222').deleted, true);
+    assert.equal(srv.rows.get('bbbb2222').entry, null);
+    const r2 = await syncLayouts({ storage: pc, uid: UID, rest: srv.rest, now: () => 220 });
+    assert.equal(r2.changed, true);
+    assert.deepEqual(pcStore.list().map((e) => e.name), ['Eins neu']);
+    // Ein weiterer Lauf laedt das geloeschte Layout nicht wieder hoch.
+    await syncLayouts({ storage: pc, uid: UID, rest: srv.rest, now: () => 230 });
+    assert.equal(srv.rows.get('bbbb2222').deleted, true);
+    assert.ok(!('gone' in JSON.parse(pc.getItem(layoutKey(UID)))));
+  });
+
+  test('zurueckgeholt nach dem Abgleich schlaegt den Grabstein; der juengere Stand gewinnt', async () => {
+    const srv = server();
+    const mem = memory();
+    let t = 100;
+    const store = createStore(mem, () => t, layoutKey(UID));
+    const a = store.save(lay('aaaa1111', 'Eins'));
+    await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => t });
+    t = 200;
+    const gone = store.remove(a.id);
+    await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => t });
+    t = 300;
+    store.restore(gone);
+    await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => t });
+    assert.equal(srv.rows.get('aaaa1111').deleted, false);
+    assert.equal(store.get('aaaa1111').updated, 100);
+    // Ein aelterer Stand auf dem Server ueberschreibt den juengeren hier nicht.
+    srv.rows.set('aaaa1111', { id: 'aaaa1111', rev: 50, deleted: false, entry: { ...store.get('aaaa1111'), name: 'Alt' } });
+    await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 310 });
+    assert.equal(store.get('aaaa1111').name, 'Eins');
+    assert.equal(srv.rows.get('aaaa1111').entry.name, 'Eins');
+  });
+
+  test('kaputte Zeilen vom Server fallen weg, statt den Spiegel zu verderben', async () => {
+    const srv = server();
+    const mem = memory();
+    srv.rows.set('x', { id: 'x', rev: 1, deleted: false, entry: { id: 'x' } });
+    srv.rows.set('cccc3333', { id: 'cccc3333', rev: 'nope', deleted: false, entry: lay('cccc3333', 'a') });
+    srv.rows.set('dddd4444', { id: 'dddd4444', rev: 5, deleted: false, entry: { ...lay('eeee5555', 'falsche id') } });
+    const r = await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 10 });
+    assert.equal(r.ok, true);
+    assert.deepEqual(createStore(mem, () => 0, layoutKey(UID)).list(), []);
+  });
+
+  test('die Seite folgt der Sitzung: Gast schreibt in den Gastspeicher, angemeldet in den Spiegel', () => {
+    const mem = memory();
+    let sess = null;
+    const account = { peek: () => sess, session: async () => sess, rest: async () => ({ ok: false }) };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    acct.store.save(lay('aaaa1111', 'Gast'));
+    assert.equal(acct.signedIn(), false);
+    assert.ok(mem.raw.has(STORE_KEY));
+    sess = { user: { id: UID } };
+    assert.equal(acct.signedIn(), true);
+    assert.deepEqual(acct.store.list(), []);
+    acct.store.save(lay('bbbb2222', 'Konto'));
+    assert.ok(mem.raw.has(layoutKey(UID)));
+    sess = null;
+    assert.deepEqual(acct.store.list().map((e) => e.name), ['Gast']);
   });
 });

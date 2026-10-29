@@ -224,6 +224,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .lo-saved p b{color:var(--lo-on)}
 .lo-tag{margin-left:.4rem;padding:0 .35rem;border-radius:4px;background:color-mix(in srgb,var(--lo-a) 18%,transparent);color:var(--lo-a);font-size:var(--fs-5)}
 .lo-saved__acts{display:flex;gap:.35rem}
+.lo-where{margin:0;padding:0 1rem 1rem;font-size:var(--fs-6);color:var(--lo-dim)}
+.lo-where a{color:var(--lo-a)}
 .lo-empty{color:var(--lo-dim)}
 .lo-toast{position:fixed;left:50%;bottom:1.2rem;z-index:20;display:flex;align-items:center;gap:.8rem;max-width:min(32rem,calc(100% - 2rem));padding:.65rem .9rem;border:1px solid var(--lo-a);border-radius:10px;background:var(--bg-2);color:var(--lo-on);font-size:var(--fs-6);box-shadow:0 12px 30px -12px var(--shadow-color);transform:translate(-50%,1rem);opacity:0;visibility:hidden;pointer-events:none;transition:visibility var(--dur-fast),opacity var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
 .lo-toast.is-on{opacity:1;visibility:visible;transform:translate(-50%,0);pointer-events:auto}
@@ -461,6 +463,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   <dialog class="lo-dlg" id="lo-saved" aria-labelledby="lo-saved-h">
     <div class="lo-dlg__h"><h2 id="lo-saved-h">{l('view.saved')}</h2><button type="button" class="lo-btn" id="lo-saved-x">{l('win.close')}</button></div>
     <ul class="lo-list" id="lo-list"></ul>
+    <p class="lo-where" id="lo-where"></p>
   </dialog>
   <div class="lo-toast" id="lo-toast" role="status"><span id="lo-toast-txt"></span><button type="button" id="lo-undo" hidden>{l('msg.undo')}</button></div>
 
