@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://cubic.dev/schema/cubic-repository-config.schema.json
+#
+# KI-Review durch cubic (https://docs.cubic.dev/configure/cubic-yaml).
+# cubic liest diese Datei nur vom Standard-Branch (main); auf staging allein
+# wirkt sie nicht.
+#
+# Das Kontingent zählt geprüfte Zeilen. Am 29.10.2026 war es zu rund 90 %
+# verbraucht: Gut die Hälfte der seit dem 1.10. geänderten Zeilen auf staging
+# (146 000 von 247 000) stammte aus zwei erzeugten Dateien, ship-paints.json
+# und hangar-assets.json. Krisz hat entschieden: erzeugte Daten und fremden
+# Code nicht prüfen, PRs nach main nicht automatisch prüfen.
+#
+# Prüfung nach jedem Push bleibt an (incremental_commits, Vorgabe true): Vor
+# jedem Merge werden alle cubic-Kommentare abgearbeitet, auch die zum letzten
+# Push. Die Lack-Baupläne (public/hangar/paints/) bleiben in der Prüfung: eine
+# Zeile je Datei, und cubic hat dort echte Fehler gefunden (#215, #216).
+version: 1
+
+reviews:
+  ignore:
+    files:
+      # Von Skripten geschrieben (datamine:*, sync:*, build-hangar-*);
+      # geprüft wird das Skript, nicht seine Ausgabe.
+      - src/data/ship-paints.json
+      - src/data/hangar-assets.json
+      - src/data/hangar-cards.json
+      - src/data/missions.json
+      - src/data/item-prices.json
+      - src/data/vehicles.json
+      - src/data/ship-hardpoints.json
+      - src/data/ship-extras.json
+      - src/data/ship-loadouts.json
+      # Mitgelieferte three.js-Kopie
+      - public/vendor/
+    base_branches:
+      # Nach main kommt nur, was auf staging schon geprüft wurde.
+      - main
