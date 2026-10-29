@@ -35,7 +35,7 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
-import { initGear, poseShip, underInterior } from './lib/landing-gear.mjs';
+import { initGear, poseShip, underInterior, worldOf } from './lib/landing-gear.mjs';
 import { gearPlane, GEAR_TILT_MAX, palettePbr } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
@@ -62,6 +62,9 @@ const FORCE = argv.includes('--force');
 // Budget je Art: Dreiecke nach der Dezimierung, Kantenlänge der Texturen.
 const BUDGET = {
   ships: { tris: 200000, tex: 1024, ntex: 512 },
+  // begehbarer Innenraum je Schiff (Quelle: derselbe Rohexport in ships/,
+  // nur mit --kind interior gebaut; .planning/notes/hangar-innenleben.md)
+  interior: { tris: 500000, tex: 1024, ntex: 512 },
   // Halle wird nie dezimiert (siehe buildOne); die Zahl ist nur die
   // Warnschwelle. Die gelockerte Schwelle (bis 4 % der Hallengröße ≈ 7 m)
   // riss Kanten auf, und als die volle Stufe (1,24 Mio. Rohdreiecke) über
@@ -743,6 +746,90 @@ function usedBox(n, glass = null) {
 function glassBoxes(doc) {
   const isGlass = (m) => { const name = m?.getName() || ''; return (m?.getExtras()?.is_glass || /glass|canopy|window/i.test(name)) && !/headlight|light_glass|lamp|lens|bulb/i.test(name); };
   return doc.getRoot().listNodes().filter((n) => n.getMesh() && !underInterior(n)).map((n) => usedBox(n, isGlass)).filter(Boolean);
+}
+
+// Innenraum zum Begehen (.planning/notes/hangar-innenleben.md): Umkehrung von
+// dropInterior. Unter jedem obersten Knoten bleiben nur die Container
+// interior_*; Wurzel und Szene bleiben, wie sie sind, damit die Datei im
+// Modellraum der Rumpfdatei liegt. Vorher werden Lichter und Einstiegspunkte
+// der Container im Modellraum gelesen.
+function keepInteriorOnly(doc) {
+  const out = { containers: 0, spots: [], lights: [] };
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const pos = (n) => { const w = worldOf(n); return w ? [w[12], w[13], w[14]].map(r3) : null; };
+  // Einstiegspunkte: die Helfer des Schiffs (hardpoint_seat_pilot,
+  // hardpoint_door_front, hardpoint_seat_access_*, …) hängen am Rumpf, nicht in
+  // den Containern; darum vor dem Ausdünnen über das ganze Modell
+  const seen = new Set();
+  for (const n of doc.getRoot().listNodes()) {
+    const nm = n.getName();
+    const m = /^hardpoint_.*?(seat_?access|seat|door|ramp|ladder|elevator|lift)/i.exec(nm);
+    if (!m || seen.has(nm.toLowerCase())) continue;
+    seen.add(nm.toLowerCase());
+    const k = m[1].toLowerCase().replace('_', '');
+    const p = pos(n);
+    if (p) out.spots.push({ kind: k === 'seataccess' ? 'access' : k === 'lift' ? 'elevator' : k, name: nm, p });
+  }
+  // Hüllquader des Rumpfs (alles außer den Containern), vor dem Ausdünnen
+  const hull = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
+  for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) for (const c of top.listChildren()) {
+    if (/^interior_/i.test(c.getName())) continue;
+    let bb; try { bb = getBounds(c); } catch { continue; }
+    for (let i = 0; i < 3; i++) if (Number.isFinite(bb.min[i])) { hull.min[i] = Math.min(hull.min[i], bb.min[i]); hull.max[i] = Math.max(hull.max[i], bb.max[i]); }
+  }
+  const cont = [];
+  for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
+    for (const c of top.listChildren()) {
+      if (/^interior_/i.test(c.getName())) { cont.push(c); continue; }
+      c.traverse((n) => n.setMesh(null)); top.removeChild(c);
+    }
+    // was am obersten Knoten selbst hängt, gehört zum Rumpf
+    top.setMesh(null);
+  }
+  out.containers = cont.length;
+  // Teile außerhalb der Hülle (Carrack: eins 111 m zur Seite, Andromeda 47 m
+  // nach hinten) gehören nicht zum begehbaren Raum; 0,5 m Rand
+  out.outside = [];
+  if (Number.isFinite(hull.min[0])) for (const c of cont) c.traverse((n) => {
+    if (!n.getMesh()) return;
+    let bb; try { bb = getBounds(n); } catch { return; }
+    const over = Math.max(...[0, 1, 2].map((i) => Math.max(hull.min[i] - 0.5 - bb.min[i], bb.max[i] - hull.max[i] - 0.5)));
+    if (over > 0) { out.outside.push({ name: n.getName(), over: r3(over) }); n.setMesh(null); }
+  });
+  out.outside.sort((a, b) => b.over - a.over);
+  for (const c of cont) c.traverse((n) => {
+    const light = n.getExtension('KHR_lights_punctual');
+    if (light) { const p = pos(n); if (p) out.lights.push({ type: light.getType(), color: light.getColor().map((v) => r3(v)), intensity: r3(light.getIntensity()), range: light.getRange() != null ? r3(light.getRange()) : null, p }); }
+  });
+  // Pilot zuerst, dann übrige Sitze, dann der Rest
+  const rank = (s) => (s.kind === 'seat' ? (/pilot/i.test(s.name) ? 0 : 1) : s.kind === 'access' ? 2 : 3);
+  out.spots.sort((a, b) => rank(a) - rank(b));
+  return out;
+}
+// Prüfung vor dem Zählen: Hüllquader des Innenraums im Hüllquader des Rumpfs
+// (0,5 m Rand), beide geschriebenen Dateien; sonst stimmt der Modellraum nicht
+async function insideHull(written, slug) {
+  const hullPath = fileURLToPath(new URL(`ships/${slug}.glb`, OUT));
+  if (!existsSync(hullPath)) return { ok: false, why: 'keine Rumpfdatei' };
+  const a = getBounds(written.getRoot().listScenes()[0]), h = getBounds((await io.read(hullPath)).getRoot().listScenes()[0]);
+  const out = [0, 1, 2].map((i) => Math.max(h.min[i] - 0.5 - a.min[i], a.max[i] - h.max[i] - 0.5, 0));
+  const r = (v) => v.map((x) => Math.round(x * 100) / 100);
+  return { ok: Math.max(...out) === 0, min: r(a.min), max: r(a.max), hullMin: r(h.min), hullMax: r(h.max), ...(Math.max(...out) > 0 ? { why: `ragt ${Math.round(Math.max(...out) * 100) / 100} m über die Hülle` } : {}) };
+}
+// Rumpfbau: Knoten der Container interior_* mit extras.interior kennzeichnen;
+// der Viewer blendet sie aus, sobald die scharfe Innenraum-Datei geladen ist
+function markInterior(doc) {
+  let n = 0;
+  for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
+    for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) c.traverse((x) => { if (x.getMesh()) { x.setExtras({ ...(x.getExtras() || {}), interior: true }); n++; } });
+  }
+  return n;
+}
+// Budget für die Nähe: 500 000 Dreiecke, ab 60 m Länge 1 000 000; Stufen
+// gegen die 16 MB wie beim Rumpf (HANGAR_SHIP_TEX / _Q / _ERR)
+function interiorBudget(slug) {
+  const tex = Number(process.env.HANGAR_SHIP_TEX || BUDGET.interior.tex);
+  return { ...BUDGET.interior, tris: (SHIP_LEN.get(slug) ?? 0) >= 60 ? 1000000 : BUDGET.interior.tris, tex, ntex: Math.min(BUDGET.interior.ntex, tex), q: process.env.HANGAR_SHIP_Q ? Number(process.env.HANGAR_SHIP_Q) : null };
 }
 
 // Budget je Schiff: 200 000 Dreiecke, ab 60 m Länge 400 000; Farbe/Leuchten
@@ -1629,15 +1716,24 @@ async function buildOne(kind, name, inPath) {
   const lights = kind === 'hall' && !lite ? hallLights(doc, name) : werkRoom ? hallLights(doc, name, { kind, fixtures: werkNodes.fixtures }) : null;
   if (lite) for (const n of root.listNodes()) if (n.getMesh() && FURNITURE.test(`${n.getName()} ${n.getMesh().getName()}`)) n.setMesh(null);
   // Schiffe: Fahrwerk ausfahren und einfedern, solange die Knoten noch einzeln sind
-  const gearPose = kind === 'ships' ? shipGear(doc, name) : null;
-  if (kind === 'ships') dropUnreachable(doc);
-  const b = kind === 'ships' ? shipBudget(name) : BUDGET[kind];
+  // Innenraum (kind 'interior'): derselbe Rohexport und dieselbe Strecke wie
+  // der Rumpf, nur die Auswahl umgekehrt; Quelle und Nachtrag aus ships/
+  const inner = kind === 'interior', ship = kind === 'ships' || inner, srcKind = inner ? 'ships' : kind;
+  const gearPose = ship ? shipGear(doc, name) : null;
+  if (ship) dropUnreachable(doc);
+  const b = inner ? interiorBudget(name) : kind === 'ships' ? shipBudget(name) : BUDGET[kind];
   const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : null;
+  // was vom Innenraum im Rumpf bleibt (ganz oder hinter dem Glas), trägt extras.interior
+  const interiorMarked = kind === 'ships' ? markInterior(doc) : 0;
+  const innerInfo = inner ? keepInteriorOnly(doc) : null;
+  if (inner && !innerInfo.containers) throw new Error('Rohexport ohne Container interior_* (kein Innenraum)');
+  // Dreiecke des Innenraums roh: nur Netze an Knoten (die abgehängten des Rumpfs zählen nicht)
+  const trisInner = inner ? root.listNodes().reduce((t, n) => t + (n.getMesh()?.listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0) ?? 0), 0) : null;
   let matfix = null, cover = null;
-  const fixFile = fileURLToPath(new URL(`${kind}/${name}.matfix.json`, SRC));
+  const fixFile = fileURLToPath(new URL(`${srcKind}/${name}.matfix.json`, SRC));
   // Schiffe (.planning/notes/hangar-innenraum.md): Nachtrag vor dropJunk,
   // damit DROP_MAT auch nachgetragene RTT- und Stencil-Materialien trifft
-  const shipFix = kind === 'ships' && existsSync(fixFile);
+  const shipFix = ship && existsSync(fixFile);
   if (shipFix) {
     cover = { before: coverage(doc) };
     matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')), { ship: true });
@@ -1649,18 +1745,18 @@ async function buildOne(kind, name, inPath) {
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
   const fixedOnly = (m) => !!m.getExtras()?.matfix;
-  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, kind, fixedOnly) : null;
+  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
   const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
-  const vertexColors = stripAttributes(doc, werk ? 'hall' : kind);
+  const vertexColors = stripAttributes(doc, werk ? 'hall' : srcKind);
   const liftUv = liftParts ? uvReport(doc) : null;
   // Palette des Schiffs = Record des Rohexports (Constellation: …_andromeda_gs)
-  const plan = kind === 'ships' ? await paintPlan(name) : null;
-  const pbr = cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, series: SHIP_PAINTS[name]?.base, twoSided: true } : {});
+  const plan = ship ? await paintPlan(name) : null;
+  const pbr = cleanMaterials(doc, ship ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, series: SHIP_PAINTS[name]?.base, twoSided: true } : {});
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
-  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' || werk }), weld());
+  await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || ship || werk }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
   // Dezimieren auf das Budget: Ratio aus der aktuellen Zahl, Fehler-
@@ -1675,12 +1771,12 @@ async function buildOne(kind, name, inPath) {
   // zieht Ränder über Öffnungen und reißt Wände auf (scripts/lib/hall-hull.mjs).
   // HANGAR_SHIP_ERR=1: letzte Stufe gegen die 16 MB (Polaris: 1,7 Mio. Dreiecke
   // Rumpf schon ohne Innenraum), Schwelle bis 4 % und Ränder frei; das Ergebnis wird angesehen
-  const ladder = kind === 'ships' ? [0.002, 0.005, 0.01, ...(process.env.HANGAR_SHIP_ERR ? [0.02, 0.04, 0.08] : [])] :kind === 'hall' || kind === 'lift' || werk ? [] : [0.004, 0.01, 0.02, 0.04];
+  const ladder = ship ? [0.002, 0.005, 0.01, ...(process.env.HANGAR_SHIP_ERR ? [0.02, 0.04, 0.08] : [])] :kind === 'hall' || kind === 'lift' || werk ? [] : [0.004, 0.01, 0.02, 0.04];
   for (const error of ladder) {
     const now = countTris(root);
     if (now <= b.tris * 1.1) break;
     // ab 2 % auch die Ränder frei: mit festen Rändern blieb die Polaris bei 1,7 Mio.
-    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: kind === 'ships' && error < 0.02 }));
+    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: b.tris / now, error, lockBorder: ship && error < 0.02 }));
   }
   // Halle: Normalen mit Kantenwinkel neu, sonst helle Keile an jeder Fuge
   // (siehe scripts/lib/crease-normals.mjs).
@@ -1729,19 +1825,19 @@ async function buildOne(kind, name, inPath) {
   const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
   await io.write(outPath, doc);
   // Schiffe: Bilder in die gemeinsame Ablage, im GLB nur der Verweis
-  const pooled = kind === 'ships' ? poolGlbFile(outPath, SHIP_POOL) : null;
+  const pooled = ship ? poolGlbFile(outPath, SHIP_POOL) : null;
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
   const gearTest = kind === 'ships' ? gearCheck(written, gearPose) : null;
-  const palette = kind === 'ships' ? { 1: 0, 2: 0, 3: 0 } : null;
+  const palette = ship ? { 1: 0, 2: 0, 3: 0 } : null;
   if (palette) for (const m of written.getRoot().listMaterials()) { const t = m.getExtras()?.palette_tint; if (t in palette) palette[t]++; }
   // extras.palette im geschriebenen GLB (dedup legt gleiche zusammen), dazu je Material vor dem Zusammenlegen
   if (kind === 'ships') {
     const withPal = written.getRoot().listMaterials().filter((m) => m.getExtras()?.palette);
     console.log(`    Serienpalette (extras.palette): ${withPal.length} Materialien im GLB, ${withPal.filter((m) => m.getMetallicFactor() > 0.5).length} Metall; vorher ${pbr.materials} (Metall ${pbr.metal}, Export nicht im Serienton ${pbr.offTone}, conductor ${pbr.conductor})${SHIP_PAINTS[name]?.base ? '' : ' — keine Serienpalette in ship-paints.json'}`);
   }
-  const paints = plan ? writePaints(name, plan, new Set(written.getRoot().listMaterials().map((m) => m.getName()))) : null;
+  const paints = plan && kind === 'ships' ? writePaints(name, plan, new Set(written.getRoot().listMaterials().map((m) => m.getName()))) : null;
   if (seams) seams.written = seamStats(written);
   // Halle: Dichtheit der Hülle und Bodenhöhe (der Viewer lotet sie sonst
   // beim Laden selbst nach), beides gegen das geschriebene GLB
@@ -1775,6 +1871,8 @@ async function buildOne(kind, name, inPath) {
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
     ...(interior?.keptNodes && interior.dropped ? { interiorKept: { nodes: interior.keptNodes, tris: Math.round(interior.keptTris) } } : {}),
     ...(bareInterior ? { interiorBare: bareInterior } : {}),
+    ...(interiorMarked ? { interiorMarked } : {}),
+    ...(inner ? { containers: innerInfo.containers, trisInterior: trisInner, lights: innerInfo.lights, spots: innerInfo.spots, outside: innerInfo.outside.length, outsideTop: innerInfo.outside.slice(0, 5), inHull: await insideHull(written, name) } : {}),
     ...(gearTest ? { ...(gearTest.ok ? { gear: true } : {}), gearCheck: gearTest, budget: { tris: b.tris, tex: b.tex, ...(b.q ? { q: b.q } : {}) } } : {}),
     ...(paints ? { paints: { url: paints.url, v: paints.v } } : {}),
     ...(paints ? { paintReport: paints } : {}),
@@ -2841,17 +2939,18 @@ try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lau
 // den ersten Eintrag unter hall als Halle.
 const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
-const manifest = { ships: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
+const manifest = { ships: {}, interior: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
 let built = 0, reused = 0;
 const webShip = (name) => !!prev.ships?.[name] || SHIPS_ARG.includes(name) || SHIPS_ARG.includes('all');
 for (const kind of Object.keys(BUDGET)) {
-  const dir = new URL(`${kind}/`, SRC);
+  // Innenraum: Quelle ist der Rohexport der Schiffe; gebaut nur auf Verlangen (--kind interior)
+  const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
-  if (!existsSync(dir) || (KIND && KIND !== kind)) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
+  if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
   for (const f of readdirSync(dir).filter((x) => x.toLowerCase().endsWith('.glb'))) {
     const name = f.replace(/\.glb$/i, '');
     const slot = slotOf(kind, name);
-    if (kind === 'ships' && !webShip(name)) continue;
+    if ((kind === 'ships' || kind === 'interior') && !webShip(name)) continue;
     if (ONLY && name !== ONLY) { if (prev[slot]?.[name]) manifest[slot][name] = prev[slot][name]; continue; }
     const inPath = fileURLToPath(new URL(f, dir));
     const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
@@ -2867,7 +2966,7 @@ for (const kind of Object.keys(BUDGET)) {
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     // bei Schiffen auch der Lack-Bauplan: Lackliste, Index des zerlegten
     // Exports und Sidecar des Rohexports müssen älter sein als Modell und Bauplan
-    if (kind === 'ships') side.push(...[fileURLToPath(new URL('../src/data/ship-paints.json', import.meta.url)), fileURLToPath(new URL('index.json', PAINT_DEC)), ...['json', 'matfix.json', 'layers.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir)))].filter((x) => existsSync(x)));
+    if (kind === 'ships' || kind === 'interior') side.push(...[fileURLToPath(new URL('../src/data/ship-paints.json', import.meta.url)), fileURLToPath(new URL('index.json', PAINT_DEC)), ...['json', 'matfix.json', 'layers.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir)))].filter((x) => existsSync(x)));
     const paintOut = kind === 'ships' && prev.ships?.[name]?.paints ? fileURLToPath(new URL(`paints/${name}.json`, OUT)) : null;
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (!paintOut || (existsSync(paintOut) && [inPath, ...side].every((x) => statSync(paintOut).mtimeMs > statSync(x).mtimeMs)))
@@ -2875,7 +2974,7 @@ for (const kind of Object.keys(BUDGET)) {
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
     // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu
-    if (!FORCE && prev[slot]?.[name] && fresh && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette))) {
+    if (!FORCE && prev[slot]?.[name] && fresh && kind !== 'interior' && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette))) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
     try {
@@ -2918,9 +3017,11 @@ for (const kind of Object.keys(BUDGET)) {
         for (const t of r.parts) console.log(`    Teil ${t.role.padEnd(11)} ${String(t.tris).padStart(6)} Dreiecke  ${t.materials} Materialien  aus ${t.from.join(' + ')}`);
         console.log(`    Aufzug: ${r.parts.length} Teile, ${r.tris.toLocaleString()} Dreiecke, ${r.lightCount} Lampen, ${r.deco} Beiwerk-Arten, ${r.decals} Decal-Arten, ${r.projectors} Projektormuster -> ${r.json}`);
       }
+      if (kind === 'interior') console.log(`    Innenraum: ${r.containers} Container, ${r.trisInterior.toLocaleString()} Dreiecke roh, ${r.lights.length} Lichter, ${r.spots.length} Einstiegspunkte (${[...new Set(r.spots.map((x) => x.kind))].join(', ')}), ${r.outside} Teile außerhalb der Hülle entfernt${r.outside ? ` (${r.outsideTop.map((o) => `${o.name} ${o.over} m`).join(', ')})` : ''}, im Rumpf: ${r.inHull.ok ? 'ja' : `NEIN (${r.inHull.why})`}`);
+      if (kind === 'ships' && r.interiorMarked) console.log(`    Innenraum im Rumpf gekennzeichnet: ${r.interiorMarked} Knoten (extras.interior)`);
       if (r.lights?.missing) {
         console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
-      } else if (r.lights) {
+      } else if (r.lights && !Array.isArray(r.lights)) {
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
         console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture != null ? `${r.furniture} Einrichtungsobjekte, ` : ''}${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp${r.lights.withFixture != null ? `, ${r.lights.withFixture} an einem Leuchtkörper` : ''}), ${(r.bytes / 1048576).toFixed(2)} MB`);
         const o = r.lights.orient;
@@ -2942,8 +3043,8 @@ if (existsSync(new URL('ships/', SRC)) && existsSync(`${PAINT_DIR}tex`)) {
   console.log(`  Lackkarten: ${used.size} in Gebrauch, ${stale.length} verwaiste entfernt`);
 }
 // Schiffsbilder, auf die kein Schiff mehr zeigt, ebenso nur dort entfernen
-if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships')) {
-  const r = prunePool(SHIP_POOL.poolDir, [fileURLToPath(new URL('ships/', OUT))], SHIP_POOL.uriPrefix);
+if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships' || KIND === 'interior')) {
+  const r = prunePool(SHIP_POOL.poolDir, ['ships/', 'interior/'].map((d) => fileURLToPath(new URL(d, OUT))).filter((d) => existsSync(d)), SHIP_POOL.uriPrefix);
   console.log(`  Schiffsbilder: ${r.used} in Gebrauch, ${r.removed.length} verwaiste entfernt`);
 }
 // Werkstatt: eigene Quelle (zwei Stufen eines Hangars), nur bei Bedarf neu
