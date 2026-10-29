@@ -322,6 +322,19 @@
   // dann ohne activity nachsenden und es in diesem Tab nicht mehr versuchen,
   // damit die Praesenz nie an der Zusatzangabe haengt.
   var hbActivityOk = true;
+  // Schalter "Freunde sehen, was ich gerade mache" (profiles.share_activity):
+  // ist er aus, schickt der Puls gar keine Angabe mit, statt sie nur vom View
+  // verstecken zu lassen. Quelle: die Antwort des letzten Pulses, vorher der
+  // Profil-Cache des Konto-Dashboards; unbekannt = an (Vorgabe der Spalte).
+  var hbShare = null;
+  function hbShareOf(uid) {
+    if (hbShare !== null) return hbShare;
+    try {
+      var p = JSON.parse(localStorage.getItem('vb_profile_' + uid) || 'null');
+      if (p && p.share_activity === false) return false;
+    } catch (e) { /* noop */ }
+    return true;
+  }
   function hbWrite() {
     ensureSession().then(function (sess) {
       if (!sess || !sess.user || !sess.user.id) return;
@@ -331,11 +344,17 @@
       };
       var path = 'profiles?id=eq.' + sess.user.id;
       if (!hbActivityOk) { rest(sess, 'PATCH', path, base).catch(function () { /* noop */ }); return; }
-      var body = { last_seen: base.last_seen, last_active: base.last_active, activity: currentActivity(), activity_at: base.last_seen };
-      rest(sess, 'PATCH', path, body).then(function (r) {
+      var act = hbShareOf(sess.user.id) ? currentActivity() : null;
+      var body = { last_seen: base.last_seen, last_active: base.last_active, activity: act, activity_at: base.last_seen };
+      rest(sess, 'PATCH', path + '&select=share_activity', body, 'return=representation').then(function (r) {
         if (r && r.status === 400) {
           hbActivityOk = false;
           return rest(sess, 'PATCH', path, base);
+        }
+        if (r && r.ok) {
+          return r.json().then(function (rows) {
+            if (rows && rows[0] && typeof rows[0].share_activity === 'boolean') hbShare = rows[0].share_activity;
+          }).catch(function () { /* noop */ });
         }
       }).catch(function () { /* noop */ });
     }).catch(function () { /* noop */ });

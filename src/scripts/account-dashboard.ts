@@ -1324,6 +1324,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           social_youtube: socialVals.social_youtube || null,
           social_x: socialVals.social_x || null,
         };
+        // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
+        // nicht erst beim naechsten Puls.
+        if (!shareActVal) payload.activity = null;
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
           payload.rsi_verified = false;
@@ -1575,7 +1578,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
-        try { await supabase.from('profiles').update({ last_seen: null, last_active: null }).eq('id', user.id); } catch { /* egal */ }
+        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', user.id); } catch { /* egal */ }
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
