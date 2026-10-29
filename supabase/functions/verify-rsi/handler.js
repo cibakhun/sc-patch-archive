@@ -19,10 +19,12 @@
 //   4. GET https://robertsspaceindustries.com/citizens/<handle>: 8 s Zeitlimit,
 //      hoechstens 2 MB gelesen, die Endadresse nach Weiterleitungen muss auf
 //      demselben Host und derselben Citizen-Seite liegen. Der Code zaehlt nur
-//      im Bio-Abschnitt (pageVerdict).
-//   5. Ergebnis festhalten (public.rsi_challenge_result): gefunden -> Abzeichen
-//      an genau dieses Handle; nicht gefunden beim verifizierten Handle ->
-//      Abzeichen weg.
+//      im Bio-Abschnitt und nur als ganzes Wort (pageVerdict, containsCode).
+//   5. Ergebnis festhalten (public.rsi_challenge_result): ein neuer Code
+//      gefunden -> Abzeichen an genau dieses Handle; fehlt er, aendert sich
+//      nichts. Ist das Konto fuer das Handle schon verifiziert, entscheidet
+//      daneben der Code, an dem das Abzeichen haengt: steht er noch in der
+//      Bio, bleibt es, sonst faellt es.
 //
 // ANTWORTEN: 200 nur mit einem echten Pruefergebnis { verified, ... }. Alles
 // andere (Drosselung 429, Zeitlimit 504, RSI nicht erreichbar 502, kein Code
@@ -112,38 +114,57 @@ export function isProfileUrl(finalUrl, handle) {
 /** Laenge des Ausschnitts hinter der Bio-Marke, in dem der Code stehen muss. */
 export const BIO_WINDOW = 20000;
 
-/**
- * Der Bio-Abschnitt der Citizen-Seite: ab dem Element mit den Klassen "entry"
- * und "bio" bis zum naechsten "entry"-Element, hoechstens BIO_WINDOW Zeichen.
- * Keine Marke -> null.
- */
-export function bioSection(html) {
+/** Index des ersten Elements ab `from`, dessen Klassenliste genau "entry" (und optional "bio") enthaelt, sonst -1. */
+function entryIndex(html, from, withBio) {
   const cls = /class\s*=\s*["']([^"']*)["']/gi;
+  cls.lastIndex = from;
   let m;
   while ((m = cls.exec(html))) {
     const list = m[1].toLowerCase().split(/\s+/);
-    if (list.includes('entry') && list.includes('bio')) {
-      const start = m.index + m[0].length;
-      let end = Math.min(html.length, start + BIO_WINDOW);
-      const next = /class\s*=\s*["'][^"']*\bentry\b/gi;
-      next.lastIndex = start;
-      const n = next.exec(html);
-      if (n && n.index < end) end = n.index;
-      return html.slice(start, end);
-    }
+    if (list.includes('entry') && (!withBio || list.includes('bio'))) return m.index + (withBio ? m[0].length : 0);
   }
-  return null;
+  return -1;
 }
 
 /**
- * 'found' | 'missing' | 'unrecognized'. Unrecognized heisst: das ist nicht
- * erkennbar die Profilseite (Zwischenseite, Handle fehlt, kein Bio-Abschnitt)
- * -- dann wird weder verifiziert noch entzogen.
- *
- * Gesucht wird NUR im Bio-Abschnitt: andere Teile der Citizen-Seite (Name und
- * Rangbezeichnung der Organisation) legen Dritte fest. Aendert RSI den
- * Seitenaufbau, faellt die Pruefung auf 'unrecognized' (502) und nimmt
- * niemandem das Abzeichen; neue Verifizierungen scheitern dann sichtbar.
+ * Der Bio-Abschnitt der Citizen-Seite: ab dem Element mit den Klassen "entry"
+ * und "bio" (ersatzweise ab der Beschriftung "Bio") bis zum naechsten
+ * "entry"-Element, hoechstens BIO_WINDOW Zeichen. Keine Marke -> null.
+ * Klassen zaehlen nur als ganze Eintraege der Klassenliste ("entry-value"
+ * ist kein "entry").
+ */
+export function bioSection(html) {
+  let start = entryIndex(html, 0, true);
+  if (start < 0) {
+    // Ersatzmarke: die Beschriftung "Bio" (Element mit Klasse "label"), wie
+    // sie die Citizen-Seite vor dem Bio-Text zeigt. Beschriftungen setzt RSI,
+    // nicht der Nutzer oder eine Organisation.
+    const label = /<([a-z][a-z0-9]*)\b[^>]*\bclass\s*=\s*["']([^"']*)["'][^>]*>\s*bio\s*<\/\1\s*>/gi;
+    let m;
+    while ((m = label.exec(html))) {
+      if (m[2].toLowerCase().split(/\s+/).includes('label')) { start = m.index + m[0].length; break; }
+    }
+    if (start < 0) return null;
+  }
+  let end = Math.min(html.length, start + BIO_WINDOW);
+  const n = entryIndex(html, start, false);
+  if (n >= 0 && n < end) end = n;
+  return html.slice(start, end);
+}
+
+/**
+ * 'found' | 'missing' | 'elsewhere' | 'unrecognized'.
+ *   found        der Code steht im Bio-Abschnitt.
+ *   missing      der Code steht nirgends auf der Seite.
+ *   elsewhere    der Code steht auf der Seite, aber nicht im Bio-Abschnitt
+ *                (z. B. im Rang der Organisation, den Dritte festlegen). Das
+ *                verifiziert nicht -- und nimmt auch kein Abzeichen, falls
+ *                der Bio-Abschnitt hier falsch abgegrenzt waere.
+ *   unrecognized nicht erkennbar die Profilseite (Zwischenseite, Handle
+ *                fehlt, kein Bio-Abschnitt): weder verifizieren noch entziehen.
+ * Aendert RSI den Seitenaufbau, faellt die Pruefung auf 'unrecognized' (502)
+ * und nimmt niemandem das Abzeichen; neue Verifizierungen scheitern dann
+ * sichtbar.
  */
 export function pageVerdict(html, code, handle) {
   const lower = html.toLowerCase();
@@ -151,7 +172,24 @@ export function pageVerdict(html, code, handle) {
   if (!lower.includes(handle.toLowerCase())) return 'unrecognized';
   const bio = bioSection(html);
   if (bio === null) return 'unrecognized';
-  return bio.toLowerCase().includes(code.toLowerCase()) ? 'found' : 'missing';
+  if (containsCode(bio, code)) return 'found';
+  return containsCode(html, code) ? 'elsewhere' : 'missing';
+}
+
+/**
+ * Steht `code` als ganzes Wort in `text` (gross/klein egal)? Direkt danach
+ * darf kein Buchstabe und keine Ziffer folgen: ein kuerzerer Altcode
+ * (VERSEBASE-VERIFY-AB12) zaehlt nicht als Treffer im laengeren
+ * (VERSEBASE-VERIFY-AB12CD) eines anderen.
+ */
+export function containsCode(text, code) {
+  const t = text.toLowerCase();
+  const c = code.toLowerCase();
+  if (!c) return false;
+  for (let i = t.indexOf(c); i !== -1; i = t.indexOf(c, i + 1)) {
+    if (!/[a-z0-9]/.test(t.charAt(i + c.length))) return true;
+  }
+  return false;
 }
 
 /** Ruft die Citizen-Seite ab. Ergebnis { kind, html? }. */
@@ -298,22 +336,28 @@ export function createHandler({ env, fetch: fetchImpl, log = () => {} }) {
       if (!target) return fail(409, 'no_handle');
       if (!HANDLE_RE.test(target)) return fail(409, 'invalid_handle');
 
-      let code = null;
-      if (typeof s.code === 'string' && s.code) {
-        if (s.expired === true) return fail(410, 'challenge_expired');
-        code = s.code;
-      } else if (s.profile_verified === true && typeof s.profile_code === 'string' && LEGACY_CODE_RE.test(s.profile_code)) {
-        // Altfall: vor diesem Umbau verifiziert. Nachpruefen mit dem Code aus
-        // dem Profil; kann das Abzeichen nur behalten oder nehmen.
-        code = s.profile_code;
-      } else if (cfg.legacy && typeof body.rsi_code === 'string' && LEGACY_CODE_RE.test(body.rsi_code)) {
-        // Uebergang: altes Dashboard, Code aus dem Browser. Nur mit RSI_LEGACY_FLOW=1.
-        code = body.rsi_code;
-      } else {
-        return fail(409, 'no_challenge');
+      // bound: der Code, an dem das Abzeichen fuer dieses Handle haengt
+      //   (Nachpruefung; kann das Abzeichen nur behalten oder nehmen).
+      // pending: ein ausgestellter, noch nicht bestaetigter Code (neue
+      //   Verifizierung; fehlt er, aendert sich nichts).
+      const bound = s.profile_verified === true && typeof s.profile_code === 'string'
+        && (CODE_RE.test(s.profile_code) || LEGACY_CODE_RE.test(s.profile_code))
+        ? s.profile_code : null;
+      let pending = null;
+      if (typeof s.code === 'string' && s.code && s.code !== bound) {
+        if (s.expired !== true) pending = s.code;
+        else if (!bound) return fail(410, 'challenge_expired');
+      }
+      if (!pending && !bound) {
+        if (cfg.legacy && typeof body.rsi_code === 'string' && LEGACY_CODE_RE.test(body.rsi_code)) {
+          // Uebergang: altes Dashboard, Code aus dem Browser. Nur mit RSI_LEGACY_FLOW=1.
+          pending = body.rsi_code;
+        } else {
+          return fail(409, 'no_challenge');
+        }
       }
 
-      if (s.profile_verified === true && s.confirmed === true && s.checked_recently === true) {
+      if (!pending && s.confirmed === true && s.checked_recently === true) {
         return reply(200, { verified: true, persisted: true, rsi_handle: target, cached: true });
       }
 
@@ -323,15 +367,27 @@ export function createHandler({ env, fetch: fetchImpl, log = () => {} }) {
         const [status, error] = PAGE_ERRORS[page.kind] || [502, 'rsi_unreachable'];
         return fail(status, error);
       }
-      const verdict = pageVerdict(page.html, code, target);
-      if (verdict === 'unrecognized') return fail(502, 'rsi_unrecognized');
+      if (pageVerdict(page.html, pending || bound, target) === 'unrecognized') {
+        return fail(502, 'rsi_unrecognized');
+      }
 
-      // 7. Festhalten
+      // 7. Festhalten. Der neue Code zuerst; fehlt er, entscheidet bei einem
+      // verifizierten Konto der Code, an dem das Abzeichen haengt.
+      let code = pending || bound;
+      let verdict = pageVerdict(page.html, code, target);
+      if (pending && verdict !== 'found' && bound) {
+        code = bound;
+        verdict = pageVerdict(page.html, bound, target);
+      }
+      // Der Code des Abzeichens steht auf der Seite, nur nicht im Bio-Abschnitt:
+      // weder bestaetigen noch entziehen.
+      if (code === bound && verdict === 'elsewhere') return fail(409, 'code_outside_bio');
+      const found = verdict === 'found';
       const outcome = await rpc('rsi_challenge_result', {
         p_user: user.id,
         p_handle: target,
         p_code: code,
-        p_found: verdict === 'found',
+        p_found: found,
       });
       switch (outcome) {
         case 'verified':

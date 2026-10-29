@@ -1211,7 +1211,14 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           return;
         }
 
-        if (r.status === 200) {
+        if (r.status === 200 || (r.status === 409 && r.data && r.data.error === 'code_outside_bio')) {
+          // 409 code_outside_bio: der Code steht auf der RSI-Seite, aber nicht
+          // in der Bio -- für den Nutzer dasselbe wie "nicht gefunden".
+          if (r.data && r.data.revoked === true) {
+            // Der Code, an dem das Abzeichen hing, steht nicht mehr in der Bio.
+            profileState.rsi_verified = false;
+            updateCard();
+          }
           rsiMsg(D.msgRsiNotFound!.replace('%code%', ch.code).replace('%handle%', ch.handle), 'err');
         } else if (r.status === 410 || (r.status === 409 && r.data
           && (r.data.error === 'challenge_changed' || r.data.error === 'no_challenge'))) {

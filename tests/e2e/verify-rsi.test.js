@@ -261,10 +261,53 @@ describe('verify-rsi: Code vom Server', () => {
   });
 
   test('frische Nachpruefung (unter 6 h) ruft RSI nicht ab', async () => {
-    const w = world({ rpc: { rsi_challenge_get: { rsi_handle: 'Pilot_One', code: CODE, confirmed: true, checked_recently: true, profile_verified: true } } });
+    const w = world({ rpc: { rsi_challenge_get: { rsi_handle: 'Pilot_One', code: CODE, confirmed: true, checked_recently: true, profile_verified: true, profile_code: CODE } } });
     const r = await w.call({ action: 'verify' });
     assert.deepStrictEqual([r.status, r.data.verified, r.data.cached], [200, true, true]);
     assert.strictEqual(w.calls.rsi.length, 0);
+  });
+});
+
+describe('verify-rsi: verifiziertes Konto mit offenem neuem Code', () => {
+  // Das Abzeichen haengt am Altcode; im Dialog wurde ein neuer Code geholt,
+  // der (noch) nicht in der Bio steht.
+  const OLD = 'VERSEBASE-VERIFY-AB12CD';
+  const get = { rsi_handle: 'Pilot_One', code: CODE, expired: false, confirmed: false, checked_recently: true, profile_verified: true, profile_code: OLD };
+  const outcome = (a) => (a.p_code === OLD ? (a.p_found ? 'verified' : 'revoked') : (a.p_found ? 'verified' : 'not_found'));
+
+  test('neuer Code fehlt, Altcode steht noch: Abzeichen bleibt (Nachpruefung mit dem Altcode)', async () => {
+    const w = world({ rpc: { rsi_challenge_get: get, rsi_challenge_result: outcome }, rsi: (url) => response(200, page({ bio: OLD }), { url }) });
+    const r = await w.call({ action: 'verify' });
+    assert.deepStrictEqual([r.status, r.data.verified], [200, true]);
+    assert.deepStrictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args, { p_user: USER, p_handle: 'Pilot_One', p_code: OLD, p_found: true });
+    assert.strictEqual(w.calls.rsi.length, 1, 'ein Abruf fuer beide Codes');
+  });
+
+  test('neuer Code steht in der Bio: er wird verifiziert', async () => {
+    const w = world({ rpc: { rsi_challenge_get: get, rsi_challenge_result: outcome }, rsi: (url) => response(200, page({ bio: CODE }), { url }) });
+    const r = await w.call({ action: 'verify', rsi_handle: 'Pilot_One' });
+    assert.deepStrictEqual([r.status, r.data.verified], [200, true]);
+    assert.strictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_code, CODE);
+  });
+
+  test('beide fehlen: entzogen wird ueber den Code, an dem das Abzeichen hing', async () => {
+    const w = world({ rpc: { rsi_challenge_get: get, rsi_challenge_result: outcome }, rsi: (url) => response(200, page({ bio: 'nichts' }), { url }) });
+    const r = await w.call({ action: 'verify' });
+    assert.deepStrictEqual([r.status, r.data.revoked], [200, true]);
+    assert.deepStrictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args, { p_user: USER, p_handle: 'Pilot_One', p_code: OLD, p_found: false });
+  });
+
+  test('neuer Code abgelaufen: Nachpruefung mit dem Altcode statt 410', async () => {
+    const w = world({ rpc: { rsi_challenge_get: { ...get, expired: true }, rsi_challenge_result: outcome }, rsi: (url) => response(200, page({ bio: OLD }), { url }) });
+    const r = await w.call({ action: 'verify' });
+    assert.deepStrictEqual([r.status, r.data.verified], [200, true]);
+    assert.strictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_code, OLD);
+  });
+
+  test('offener neuer Code: kein Ergebnis aus dem Zwischenspeicher', async () => {
+    const w = world({ rpc: { rsi_challenge_get: { ...get, confirmed: true }, rsi_challenge_result: outcome }, rsi: (url) => response(200, page({ bio: OLD }), { url }) });
+    await w.call({ action: 'verify' });
+    assert.strictEqual(w.calls.rsi.length, 1);
   });
 });
 
@@ -284,6 +327,11 @@ describe('verify-rsi: alter Ablauf (main bis zum naechsten Release)', () => {
     const r = await w.call({ rsi_handle: 'Pilot_One', rsi_code: 'VERSEBASE-VERIFY-AB12CD' });
     assert.deepStrictEqual([r.status, r.data.verified], [200, true]);
     assert.strictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_code, 'VERSEBASE-VERIFY-AB12CD');
+    // Ein Praefix eines fremden Altcodes in der Bio ist kein Treffer.
+    const w3 = world({ rpc: { rsi_challenge_get: legacyGet, rsi_challenge_result: (a) => (a.p_found ? 'verified' : 'not_found') }, rsi: legacyPage, env: { RSI_LEGACY_FLOW: '1' } });
+    const r3 = await w3.call({ rsi_handle: 'Pilot_One', rsi_code: 'VERSEBASE-VERIFY-AB12' });
+    assert.deepStrictEqual([r3.status, r3.data.verified], [200, false]);
+    assert.strictEqual(w3.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_found, false);
     for (const code of ['<html', ' ', 'Pilot_One', 'VB-1111-2222-3333', 'VERSEBASE-VERIFY-', 'versebase-verify-ab12cd']) {
       const w2 = world({ rpc: { rsi_challenge_get: legacyGet }, rsi: legacyPage, env: { RSI_LEGACY_FLOW: '1' } });
       const r2 = await w2.call({ rsi_handle: 'Pilot_One', rsi_code: code });
@@ -392,16 +440,53 @@ describe('verify-rsi: wo der Code stehen muss', () => {
   test('nur im Bio-Abschnitt zaehlt er, nicht im Rang der Organisation', () => {
     assert.strictEqual(pageVerdict(page({ bio: `Hallo ${CODE}` }), CODE, 'Pilot_One'), 'found');
     assert.strictEqual(pageVerdict(page({ bio: `hallo ${CODE.toLowerCase()}` }), CODE, 'Pilot_One'), 'found');
-    assert.strictEqual(pageVerdict(page({ orgRank: CODE, bio: 'nichts' }), CODE, 'Pilot_One'), 'missing');
+    assert.strictEqual(pageVerdict(page({ orgRank: CODE, bio: 'nichts' }), CODE, 'Pilot_One'), 'elsewhere');
     assert.strictEqual(pageVerdict(page({ bio: '' }), CODE, 'Pilot_One'), 'missing');
+  });
+
+  test('der Code zaehlt nur als ganzes Wort: ein kuerzerer Altcode ist kein Treffer im laengeren', () => {
+    const bio = page({ bio: 'Mein Code: VERSEBASE-VERIFY-AB12CD.' });
+    assert.strictEqual(pageVerdict(bio, 'VERSEBASE-VERIFY-AB12CD', 'Pilot_One'), 'found');
+    assert.strictEqual(pageVerdict(bio, 'VERSEBASE-VERIFY-AB12', 'Pilot_One'), 'missing');
+    assert.strictEqual(pageVerdict(bio, 'VERSEBASE-VERIFY-A', 'Pilot_One'), 'missing');
+    assert.strictEqual(pageVerdict(page({ bio: `${CODE}x` }), CODE, 'Pilot_One'), 'missing');
+    assert.strictEqual(pageVerdict(page({ bio: `<p>${CODE}</p>` }), CODE, 'Pilot_One'), 'found');
+    assert.strictEqual(pageVerdict(page({ bio: `${CODE.slice(0, -1)}X ${CODE}` }), CODE, 'Pilot_One'), 'found');
   });
 
   test('der Bio-Abschnitt endet am naechsten Eintrag', () => {
     const html = page({ bio: 'nichts' }).replace('Jan 1, 2950', CODE);
-    assert.strictEqual(pageVerdict(html, CODE, 'Pilot_One'), 'missing');
+    assert.strictEqual(pageVerdict(html, CODE, 'Pilot_One'), 'elsewhere');
     assert.ok(bioSection(html).includes('nichts'));
     assert.strictEqual(bioSection('<div class="entry">x</div>'), null);
     assert.ok(bioSection("<div class='bio entry'><div class=\"value\">x</div></div>").includes('x'));
+    // "entry-value" ist kein "entry": der Abschnitt endet dort nicht.
+    assert.ok(bioSection('<div class="entry bio"><div class="value entry-value">abc</div></div><p class="entry">z</p>').includes('abc'));
+  });
+
+  test('Ersatzmarke: Beschriftung "Bio", wenn die Klasse "entry bio" fehlt', () => {
+    const alt = page({ bio: `Hi ${CODE}`, orgRank: 'Boss' }).replace('class="entry bio"', 'class="entry"');
+    assert.strictEqual(pageVerdict(alt, CODE, 'Pilot_One'), 'found');
+    const altOrg = page({ bio: 'nichts', orgRank: CODE }).replace('class="entry bio"', 'class="entry"');
+    assert.strictEqual(pageVerdict(altOrg, CODE, 'Pilot_One'), 'elsewhere');
+    assert.strictEqual(bioSection('<p class="entry"><span class="label">Biography</span>x</p>'), null);
+  });
+
+  test('Code nur ausserhalb der Bio: neue Verifizierung 200 verified:false, Nachpruefung 409 ohne Ergebnis', async () => {
+    const w = world({
+      rpc: { rsi_challenge_result: (a) => (a.p_found ? 'verified' : 'not_found') },
+      rsi: (url) => response(200, page({ orgRank: CODE, bio: 'nichts' }), { url }),
+    });
+    const r = await w.call({ action: 'verify', rsi_handle: 'Pilot_One' });
+    assert.deepStrictEqual([r.status, r.data.verified], [200, false]);
+    assert.strictEqual(w.calls.rpc.find((c) => c.fn === 'rsi_challenge_result').args.p_found, false);
+    const w2 = world({
+      rpc: { rsi_challenge_get: { rsi_handle: 'Pilot_One', code: CODE, confirmed: true, checked_recently: false, profile_verified: true, profile_code: CODE } },
+      rsi: (url) => response(200, page({ orgRank: CODE, bio: 'nichts' }), { url }),
+    });
+    const r2 = await w2.call({ action: 'verify' });
+    assert.deepStrictEqual([r2.status, r2.data], [409, { error: 'code_outside_bio' }]);
+    assert.ok(!w2.fns().includes('rsi_challenge_result'), 'nichts festgehalten');
   });
 });
 

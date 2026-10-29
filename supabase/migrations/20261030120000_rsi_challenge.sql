@@ -53,6 +53,9 @@
 --     bestaetigten Code, wenn er noch in der RSI-Bio steht; sonst faellt das
 --     Abzeichen wie bisher. Gezaehlt wird nur noch der Bio-Abschnitt der
 --     Citizen-Seite (supabase/functions/verify-rsi/handler.js, pageVerdict).
+--     Oeffnet ein verifiziertes Konto den Dialog, bekommt es den Code, an dem
+--     sein Abzeichen haengt, und keinen neuen. Entzogen wird nur, wenn genau
+--     dieser Code fehlt; ein fehlender neuer Code nimmt kein Abzeichen.
 --
 -- ACHTUNG BEIM TESTEN VON HAND: rsi_challenge_result setzt rsi_verified=true.
 -- Der Trigger laesst das nur zu, wenn die JWT-Claims service_role tragen (so
@@ -115,8 +118,10 @@ begin
 end;
 $$;
 
--- Code fuer (Konto, Handle) ausgeben: einen bestehenden (offen und frisch,
--- oder bestaetigt) wieder, sonst einen neuen.
+-- Code fuer (Konto, Handle) ausgeben. Ist das Profil fuer genau dieses Handle
+-- schon verifiziert, der Code, mit dem das Abzeichen vergeben wurde (auch ein
+-- Altcode ohne Zeile hier); sonst ein bestehender (offen und frisch, oder
+-- bestaetigt) wieder, sonst ein neuer.
 create or replace function public.rsi_challenge_issue(p_user uuid, p_handle text)
 returns jsonb
 language plpgsql
@@ -127,11 +132,27 @@ declare
   v_key text;
   v_hex text;
   v_row private.rsi_challenges;
+  v_bound_handle text;
+  v_bound_code text;
 begin
   if p_user is null or p_handle is null or p_handle !~ '^[A-Za-z0-9_-]{3,60}$' then
     raise exception 'rsi_challenge_issue: ungueltige Eingabe' using errcode = '22023';
   end if;
   v_key := lower(p_handle);
+
+  select p.rsi_handle, p.rsi_code into v_bound_handle, v_bound_code
+  from public.profiles p
+  where p.id = p_user
+    and p.rsi_verified
+    and lower(p.rsi_handle) = v_key
+    and p.rsi_code ~ '^(VB-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}|VERSEBASE-VERIFY-[A-Z0-9]{1,6})$';
+  if v_bound_code is not null then
+    return jsonb_build_object(
+      'rsi_handle', v_bound_handle,
+      'code', v_bound_code,
+      'confirmed', true,
+      'expires_at', null);
+  end if;
 
   delete from private.rsi_challenges
   where user_id = p_user
@@ -213,6 +234,16 @@ $$;
 
 -- Ergebnis einer Pruefung festhalten. p_found = Code stand auf der RSI-Seite.
 -- Rueckgabe: verified | revoked | not_found | stale | taken | no_profile.
+--
+-- Zwei Faelle:
+--   * Nachpruefung: p_code ist der Code, mit dem das Profil fuer dieses Handle
+--     verifiziert ist. Fehlt er, faellt das Abzeichen ('revoked'); steht er
+--     noch da, bleibt es ('verified'). Ein offener neuer Code fuer dasselbe
+--     Handle bleibt dabei unangetastet.
+--   * Neue Verifizierung: p_code ist der ausgestellte Code (oder, nur im
+--     Uebergang, ein Altcode aus dem Browser). Fehlt er, aendert sich nichts
+--     ('not_found') -- auch nicht an einem bestehenden Abzeichen, das an einem
+--     anderen Code haengt.
 create or replace function public.rsi_challenge_result(p_user uuid, p_handle text, p_code text, p_found boolean)
 returns text
 language plpgsql
@@ -223,6 +254,7 @@ declare
   v_key text;
   v_row private.rsi_challenges;
   v_has boolean;
+  v_bound boolean;
 begin
   if p_user is null or p_found is null
      or p_handle is null or p_handle !~ '^[A-Za-z0-9_-]{3,60}$'
@@ -238,19 +270,52 @@ begin
   for update;
   v_has := found;
 
-  -- Inzwischen wurde ein anderer Code ausgestellt, oder ein VB-Code kommt
-  -- nicht aus rsi_challenge_issue: nichts festhalten.
-  if (v_has and v_row.code <> p_code) or (not v_has and p_code !~ '^VERSEBASE-VERIFY-') then
+  -- Nachpruefung des Codes, an dem das Abzeichen haengt.
+  perform 1
+  from public.profiles p
+  where p.id = p_user
+    and p.rsi_verified
+    and lower(p.rsi_handle) = v_key
+    and p.rsi_code = p_code
+  for update;
+  v_bound := found;
+
+  if v_bound then
+    if not p_found then
+      update public.profiles
+         set rsi_verified = false
+       where id = p_user;
+      return 'revoked';
+    end if;
+    if v_has then
+      if v_row.code = p_code then
+        update private.rsi_challenges
+           set verified_at = coalesce(verified_at, now()),
+               checked_at = now()
+         where user_id = p_user and handle_key = v_key;
+      end if;
+      return 'verified';
+    end if;
+    -- Altfall (vor diesem Umbau verifiziert): Code als bestaetigt
+    -- uebernehmen. Traegt ein anderes, unverifiziertes Konto denselben
+    -- Altcode (der alte Browser-Code lag geraeteweit im localStorage), aendert
+    -- das nichts: ueber den Altweg kann es ihn nicht beanspruchen (siehe unten).
+    insert into private.rsi_challenges (user_id, handle_key, rsi_handle, code, verified_at, checked_at)
+    values (p_user, v_key, p_handle, p_code, now(), now())
+    on conflict (user_id, handle_key) do nothing;
+    return 'verified';
+  end if;
+
+  -- Neue Verifizierung. Inzwischen wurde ein anderer Code ausgestellt, der
+  -- offene Code ist abgelaufen, oder ein VB-Code kommt nicht aus
+  -- rsi_challenge_issue: nichts festhalten.
+  if (v_has and v_row.code <> p_code)
+     or (v_has and v_row.verified_at is null and v_row.created_at < now() - interval '24 hours')
+     or (not v_has and p_code !~ '^VERSEBASE-VERIFY-') then
     return 'stale';
   end if;
 
   if not p_found then
-    update public.profiles
-       set rsi_verified = false
-     where id = p_user and rsi_verified and lower(rsi_handle) = v_key;
-    if found then
-      return 'revoked';
-    end if;
     return 'not_found';
   end if;
 
@@ -266,6 +331,10 @@ begin
     return 'taken';
   end if;
 
+  if not exists (select 1 from public.profiles p where p.id = p_user) then
+    return 'no_profile';
+  end if;
+
   update public.profiles
      set rsi_verified = false
    where rsi_verified and lower(rsi_handle) = v_key and id <> p_user;
@@ -275,9 +344,6 @@ begin
          rsi_code = p_code,
          rsi_verified = true
    where id = p_user;
-  if not found then
-    return 'no_profile';
-  end if;
 
   insert into private.rsi_challenges as c (user_id, handle_key, rsi_handle, code, verified_at, checked_at)
   values (p_user, v_key, coalesce(v_row.rsi_handle, p_handle), p_code, now(), now())
