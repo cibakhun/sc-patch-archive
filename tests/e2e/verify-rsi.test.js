@@ -496,7 +496,7 @@ describe('Dashboard: kein Code mehr aus dem Browser', () => {
   test('kein selbst erzeugter Code, kein gespeicherter Code im Browser', () => {
     assert.ok(!/VERSEBASE-VERIFY-\$\{/.test(src), 'Code-Generator im Dashboard');
     assert.ok(!/setItem\(\s*['"]vb_rsi_code/.test(src), 'vb_rsi_code wird noch geschrieben');
-    assert.ok(!/rsi_code\s*:/.test(src), 'rsi_code wird noch gesendet oder geschrieben');
+    assert.ok(!/\brsi_code\b/.test(src), 'rsi_code wird noch gesendet oder geschrieben');
   });
 
   test('der Code kommt aus der Function (action challenge), gepruefte wird per action verify', () => {

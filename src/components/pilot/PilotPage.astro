@@ -946,11 +946,12 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       applyPresence(p.presence, p.status_state);
       // public_profiles nennt den Status nur bei "Alle". Angemeldet fragt die
       // Seite social_profiles: dort sehen ihn auch Freunde und man selbst.
-      // Scheitert das (etwa abgelaufene Sitzung), bleibt es bei public_profiles.
+      // Scheitert das einmal (etwa Netz, abgelaufene Sitzung), faellt nur diese
+      // Abfrage auf public_profiles zurueck; die naechste fragt wieder social_profiles.
       let presenceView: 'public_profiles' | 'social_profiles' = 'public_profiles';
-      const pollPresence = async () => {
-        const { data, error } = await supabase.from(presenceView).select('presence, status_state').eq('handle', handle).maybeSingle();
-        if (error && presenceView === 'social_profiles') { presenceView = 'public_profiles'; return pollPresence(); }
+      const pollPresence = async (view = presenceView): Promise<void> => {
+        const { data, error } = await supabase.from(view).select('presence, status_state').eq('handle', handle).maybeSingle();
+        if (error && view === 'social_profiles') return pollPresence('public_profiles');
         if (data) applyPresence(data.presence, data.status_state);
       };
       supabase.auth.getSession().then(({ data: auth }) => {
@@ -958,7 +959,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       }).catch(() => { /* bleibt public_profiles */ });
       // Live-Präsenz: alle 40s neu abfragen (offline entsteht durch Zeitablauf,
       // kein DB-Event -> Polling statt Realtime).
-      setInterval(pollPresence, 40000);
+      setInterval(() => void pollPresence(), 40000);
 
       // Identity
       $('ppName')!.textContent = name;

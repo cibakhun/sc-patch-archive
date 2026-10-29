@@ -176,6 +176,11 @@ function runGate({ search = '', hash = '', session = {}, local = {}, answers = {
   return { els, getEl, ss, ls, calls, page, loc };
 }
 const settle = () => new Promise((r) => setTimeout(r, 30));
+// Der Klick wartet auf crypto.subtle.digest, bevor er die Adresse setzt:
+// warten, bis sie steht (hoechstens 2 s), statt auf eine feste Zeit.
+const until = async (cond) => {
+  for (let t = 0; t < 2000 && !cond(); t += 10) await new Promise((r) => setTimeout(r, 10));
+};
 const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
 describe('Torseite: Discord-Anmeldung per PKCE', () => {
@@ -184,7 +189,7 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
   test('Sprung zu Discord trägt code_challenge = S256(Verifier); der Verifier liegt im Browser', async () => {
     const g = runGate({ search: '?next=%2Fpatches.html' });
     g.getEl('gateDiscordBtn').fire('click');
-    await settle();
+    await until(() => !!g.page.href);
     const verifier = g.ls.get('vb_gate_pkce');
     assert.match(verifier || '', /^[A-Za-z0-9_-]{43,128}$/);
     const u = new URL(g.page.href);

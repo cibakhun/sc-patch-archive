@@ -205,8 +205,8 @@ create or replace view public.public_favorites with (security_barrier = true) as
 -- RUECKBAU (in dieser Reihenfolge; Spalten und Typen bleiben gleich, also
 -- geht alles per create or replace, die Rechte bleiben erhalten):
 --   1. die drei Views mit den Definitionen aus 20261029150000_discord_rank.sql
---      (social_profiles, public_profiles) bzw. 20260723000000 (public_favorites,
---      f.created_at) neu setzen, danach
+--      (social_profiles, public_profiles) bzw. 20260723182258_public_profile_views.sql
+--      (public_favorites, f.created_at) neu setzen, danach
 --      alter view public.social_profiles reset (security_barrier);
 --   2. drop trigger if exists trg_presence_none_clears on public.profiles;
 --      drop function if exists public.presence_none_clears();

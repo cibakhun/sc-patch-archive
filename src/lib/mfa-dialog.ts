@@ -20,8 +20,14 @@ export function askCode(client: Pick<SupabaseClient, 'auth'>): Promise<boolean> 
   const D = dlg.dataset;
 
   open = new Promise<boolean>((resolve) => {
+    // Abbrechen ist auch waehrend der Pruefung moeglich. Kommt deren Ergebnis
+    // danach, gehoert es zu dieser (beendeten) Sitzung und darf einen neu
+    // geoeffneten Dialog weder schliessen noch beschriften.
+    let settled = false;
     const say = (msg: string) => { status.textContent = msg; status.hidden = !msg; };
     const done = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
       form.removeEventListener('submit', onSubmit);
       cancel.removeEventListener('click', onCancel);
       dlg.removeEventListener('cancel', onCancel);
@@ -42,6 +48,7 @@ export function askCode(client: Pick<SupabaseClient, 'auth'>): Promise<boolean> 
       btn.textContent = D.busy || '';
       say('');
       const r = await verifyCode(client, code);
+      if (settled) return;
       btn.disabled = false;
       btn.textContent = D.submit || '';
       // 'none': der Faktor ist inzwischen weg (anderes Geraet), es gibt

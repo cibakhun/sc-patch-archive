@@ -57,7 +57,7 @@ async function collect(bucket: BucketApi, prefix: string, depth: number, out: st
     try {
       res = await bucket.list(prefix, { limit: PAGE, offset, sortBy: { column: 'name', order: 'asc' } });
     } catch (e) {
-      return e instanceof Error ? e.message : 'list_failed';
+      return (e instanceof Error && e.message) || 'list_failed';
     }
     if (res.error) return res.error.message || 'list_failed';
     const rows = res.data ?? [];
@@ -101,16 +101,16 @@ export async function purgeUserFiles(storage: StorageApi, uid: string): Promise<
       try {
         res = await bucket.remove(paths.slice(i, i + PAGE));
       } catch (e) {
-        return { ok: false, bucket: name, stage: 'remove', message: e instanceof Error ? e.message : 'remove_failed' };
+        return { ok: false, bucket: name, stage: 'remove', message: (e instanceof Error && e.message) || 'remove_failed' };
       }
       if (res.error) return { ok: false, bucket: name, stage: 'remove', message: res.error.message || 'remove_failed' };
     }
     removed += paths.length;
   }
 
-  // 3. Gegenprobe: unter <uid>/ darf nichts mehr stehen.
-  for (const { name, bucket, paths } of found) {
-    if (!paths.length) continue;
+  // 3. Gegenprobe: unter <uid>/ darf nichts mehr stehen -- auch in einem
+  // Bucket, der beim Auflisten leer war (Hochladen waehrend des Loeschens).
+  for (const { name, bucket } of found) {
     const left: string[] = [];
     const verifyErr = await collect(bucket, uid, 0, left);
     if (verifyErr) return { ok: false, bucket: name, stage: 'verify', message: verifyErr };

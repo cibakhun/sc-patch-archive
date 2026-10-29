@@ -47,7 +47,7 @@ describe('verify:db-rights — das Soll', () => {
 
   test('anon schreibt nirgends, und kein TRUNCATE/REFERENCES/TRIGGER fuer anon oder authenticated', () => {
     for (const [key, e] of Object.entries(soll.objekte)) {
-      if (e.ausnahme !== undefined || !/^(table|view) /.test(key)) continue;
+      if (e.ausnahme !== undefined || !/^(table|view|column|sequence) /.test(key)) continue;
       for (const p of e.anon ?? []) assert.strictEqual(p, 'SELECT', `${key}: anon ${p}`);
       for (const g of ['anon', 'authenticated']) {
         for (const p of e[g] ?? []) {

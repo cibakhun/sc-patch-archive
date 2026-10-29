@@ -74,7 +74,8 @@ export function parseAuthUrl(href: string, keepLegacy: (pathname: string) => boo
   const rawHash = u.hash.startsWith('#') ? u.hash.slice(1) : u.hash;
   const h = new URLSearchParams(rawHash);
 
-  const hashIsAuth = [...SESSION_KEYS, ...INFO_KEYS].some((k) => h.has(k));
+  // Nur mit Wert: ein Sprungziel wie #error oder #message ist kein Rücksprung.
+  const hashIsAuth = [...SESSION_KEYS, ...INFO_KEYS].some((k) => !!h.get(k));
   const pick = (k: string): string => q.get(k) || (hashIsAuth ? h.get(k) : null) || '';
 
   const out: AuthUrl = {
