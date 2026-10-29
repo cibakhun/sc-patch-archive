@@ -480,7 +480,7 @@ export const CHECKS = [
     script: 'scripts/check-gate.mjs',
     rail: 'C',
     checks:
-      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html, /pilot/<handle>?probe=1 behaelt Pfad und Query als next=, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07), und ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57)',
+      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html ohne Cache-Zeit, /pilot/<handle>?probe=1 behaelt Pfad und Query als next=, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07), und ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57)',
     env:
       'Netz: fetch() gegen <base>/…, redirect:"manual" (der 302 muss SICHTBAR bleiben, nicht gefolgt werden) — dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:staging (401/403/429), deshalb --weich im Workflow, streng vom Entwicklungsrechner aus. Sonst beruehrt es nichts ausserhalb der Umgebung: die Stichproben kommen ausschliesslich aus dist/ und aus dem Text von nginx/default.conf, nicht aus einer zweiten, handgepflegten Liste.',
   },

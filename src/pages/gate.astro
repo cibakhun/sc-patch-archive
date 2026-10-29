@@ -219,10 +219,11 @@ import { SUPABASE, DISCORD } from '../consts';
       // Warum freshSession() zuletzt keine Sitzung lieferte: 'rejected' (das
       // refresh_token gilt nicht mehr) oder 'down' (Supabase nicht erreichbar).
       var refreshFail = '';
-      function freshSession() {
+      // force: auch ein nach der Uhr noch gueltiges Token erneuern.
+      function freshSession(force) {
         var sess = readSession();
         if (!sess || !sess.access_token) return Promise.resolve(null);
-        if (expiresIn(sess) > 60) return Promise.resolve(sess);
+        if (!force && expiresIn(sess) > 60) return Promise.resolve(sess);
         if (!sess.refresh_token) return Promise.resolve(usable(sess));
         var lock = 0;
         try { lock = +localStorage.getItem(REFRESH_LOCK) || 0; } catch (e) { /* noop */ }
@@ -261,8 +262,8 @@ import { SUPABASE, DISCORD } from '../consts';
       // Schon angemeldet (Sitzung aus einem frueheren Besuch oder von
       // account-lite.js aktualisiert)? Dann direkt minten und weiterspringen.
       // Laeuft erst, wenn kein Discord-Ruecksprung zu behandeln ist (unten).
-      function tryEnter() {
-        freshSession().then(function (sess) {
+      function tryEnter(retried) {
+        freshSession(!!retried).then(function (sess) {
           if (!sess) {
             if (refreshFail === 'rejected') showDiscordStatus('Your sign-in has expired — please sign in again.', 'error');
             else if (refreshFail === 'down') showDiscordStatus('Could not renew your sign-in — please try again in a moment.', 'error');
@@ -271,12 +272,21 @@ import { SUPABASE, DISCORD } from '../consts';
           return mint(sess.access_token).then(function (r) {
             if (r.ok) { location.replace(next); return; }
             if (r.status !== 403) return;
-            // Abgewiesen, Sitzung noch ohne Code, Konto mit Authenticator
-            // (Admin-Zweig verlangt aal2): den Code anbieten.
-            var f = codeFactors(sess);
-            if (f) { askGateCode(sess, f, 'Enter the code from your authenticator app to continue.'); return; }
-            // Gueltige Sitzung, aber kein Zugang: sagen statt still stehen.
-            showDiscordStatus('You are signed in, but this account has no Test Pilot access.', 'error');
+            return r.json().then(function (b) { return (b && b.grund) || ''; }, function () { return ''; }).then(function (grund) {
+              // 'kein-zugang': der Anmeldedienst hat das Token selbst
+              // abgewiesen, obwohl es nach der Uhr dieses Geraets noch gilt
+              // (Uhr verstellt, Sitzung anderswo beendet). Einmal erneuern
+              // und neu versuchen; ein Konto ohne Zugang kommt mit
+              // 'kein-testpilot' oder 'gesperrt' und erneuert nicht.
+              if (grund === 'kein-zugang' && !retried && sess.refresh_token) { tryEnter(true); return; }
+              if (grund === 'kein-zugang') { showDiscordStatus('Your sign-in has expired — please sign in again.', 'error'); return; }
+              // Abgewiesen, Sitzung noch ohne Code, Konto mit Authenticator
+              // (Admin-Zweig verlangt aal2): den Code anbieten.
+              var f = codeFactors(sess);
+              if (f) { askGateCode(sess, f, 'Enter the code from your authenticator app to continue.'); return; }
+              // Gueltige Sitzung, aber kein Zugang: sagen statt still stehen.
+              showDiscordStatus('You are signed in, but this account has no Test Pilot access.', 'error');
+            });
           });
         }).catch(function () { /* bleibt auf der Torseite */ });
       }

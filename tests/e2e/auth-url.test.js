@@ -170,7 +170,10 @@ function runGate({ search = '', hash = '', session = {}, local = {}, answers = {
       if (url.startsWith(SB + '/auth/v1/token?grant_type=pkce')) return respond(...(answers.pkce || [200, { access_token: 'AT', refresh_token: 'RT', expires_in: 3600, token_type: 'bearer' }]));
       if (url.startsWith(SB + '/auth/v1/token?grant_type=password')) return respond(200, { access_token: 'PW', refresh_token: 'R2' });
       if (url.startsWith(SB + '/auth/v1/token?grant_type=refresh_token')) return respond(...(answers.refresh || [200, { access_token: 'NEW', refresh_token: 'NEWR', expires_in: 3600, token_type: 'bearer' }]));
-      if (url === '/_gate/mint') return respond(...(answers.mint || [204, {}]));
+      if (url === '/_gate/mint') {
+        const m = typeof answers.mint === 'function' ? answers.mint(init.headers && init.headers.Authorization) : answers.mint;
+        return respond(...(m || [204, {}]));
+      }
       return respond(404, {});
     },
     crypto: webcrypto, TextEncoder, URL, URLSearchParams, btoa, encodeURIComponent, parseInt, Math, Date, JSON, setTimeout,
@@ -393,6 +396,29 @@ describe('Torseite: gespeicherte Sitzung wird erneuert', () => {
     await new Promise((r) => setTimeout(r, 1700));
     assert.equal(refreshes(g).length, 0);
     assert.deepEqual(mintsOf(g), ['Bearer TAB']);
+  });
+
+  test('Token nach der Uhr gültig, vom Anmeldedienst abgewiesen: einmal erneuern, dann hinein', async () => {
+    const g = runGate({ search: '?next=%2Fpatches.html', local: stored({ expires_at: now() + 1800 }), answers: { mint: (a) => (a === 'Bearer NEW' ? [204, {}] : [403, { ok: false, grund: 'kein-zugang' }]) } });
+    await settle();
+    assert.deepEqual(mintsOf(g), ['Bearer OLD', 'Bearer NEW']);
+    assert.equal(refreshes(g).length, 1);
+    assert.equal(JSON.parse(g.ls.get('sb-test-auth-token')).access_token, 'NEW');
+    assert.equal(g.page.replaced, '/patches.html');
+  });
+
+  test('abgewiesen auch nach dem Erneuern: Hinweis, kein dritter Versuch', async () => {
+    const g = runGate({ local: stored({ expires_at: now() + 1800 }), answers: { mint: [403, { ok: false, grund: 'kein-zugang' }] } });
+    await settle();
+    assert.deepEqual(mintsOf(g), ['Bearer OLD', 'Bearer NEW']);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /expired/);
+  });
+
+  test('kein Testpilot: kein Erneuern, Hinweis', async () => {
+    const g = runGate({ local: stored({ expires_at: now() + 1800 }), answers: { mint: [403, { ok: false, grund: 'kein-testpilot' }] } });
+    await settle();
+    assert.equal(refreshes(g).length, 0);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /no Test Pilot access/);
   });
 
   test('gültige Sitzung ohne Testpilot-Zugang: Hinweis statt Stille', async () => {
