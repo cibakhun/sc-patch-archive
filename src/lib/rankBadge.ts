@@ -55,7 +55,7 @@ export function rankBadge(p: RankFields | null | undefined, compact = false): HT
   if (r.prestige) {
     const st = document.createElement('em');
     st.textContent = PRESTIGE.star + (r.prestige > 1 ? r.prestige : '');
-    st.style.color = PRESTIGE.color;
+    st.style.setProperty('--pc', PRESTIGE.color);
     el.appendChild(st);
   }
   // Für Screenreader ein Satz statt Zeichen-Salat.
