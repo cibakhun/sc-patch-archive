@@ -313,6 +313,9 @@ console.log('\n▸ Rank mirror (Kontoseite)');
     assert.equal(homeGuild([b], ''), b, 'single server');
     assert.equal(homeGuild([a, b], ''), a, 'several: the largest');
     assert.equal(homeGuild([b, a], ''), a, 'several: the largest, whatever the order');
+    const t10 = { id: '10', memberCount: 3 }, t9 = { id: '9', memberCount: 3 };
+    assert.equal(homeGuild([t10, t9], ''), t9, 'ties: numerically smaller ID');
+    assert.equal(homeGuild([t9, t10], ''), t9, 'ties: whatever the order');
     assert.equal(homeGuild([], ''), null);
   });
 }

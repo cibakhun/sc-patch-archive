@@ -84,7 +84,14 @@ export function homeGuild(guilds, guildId = process.env.GUILD_ID) {
   const list = [...guilds];
   if (guildId) return list.find((g) => g.id === guildId) || null;
   if (list.length <= 1) return list[0] || null;
-  return list.reduce((a, b) => ((b.memberCount || 0) > (a.memberCount || 0) || ((b.memberCount || 0) === (a.memberCount || 0) && b.id < a.id) ? b : a));
+  return list.reduce((a, b) => ((b.memberCount || 0) > (a.memberCount || 0) || ((b.memberCount || 0) === (a.memberCount || 0) && kleinereId(b.id, a.id)) ? b : a));
+}
+
+// Discord-IDs sind Dezimalzahlen als Text: erst die Laenge, dann der Text
+// (sonst laege "10" vor "9").
+function kleinereId(x, y) {
+  const a = String(x), b = String(y);
+  return a.length !== b.length ? a.length < b.length : a < b;
 }
 
 // Alle Abgleiche (Fuenf-Minuten-Lauf und Sofort-Abgleich nach einem
