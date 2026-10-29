@@ -50,7 +50,7 @@ const STEPS = [{}, { HANGAR_SHIP_NO_INTERIOR: '1' }, { HANGAR_SHIP_NO_INTERIOR: 
   // über den Auftrag hinaus: stärker dezimieren (build-hangar-assets.mjs, HANGAR_SHIP_ERR)
   { HANGAR_SHIP_NO_INTERIOR: '1', HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' },
   { HANGAR_SHIP_NO_INTERIOR: '1', HANGAR_SHIP_TEX: '256', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' }];
-if (INNER) STEPS.splice(0, STEPS.length, {}, { HANGAR_SHIP_TEX: '512' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' });
+if (INNER) STEPS.splice(0, STEPS.length, {}, { HANGAR_SHIP_TEX: '512' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' }, { HANGAR_SHIP_TEX: '256', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' });
 let done = 0;
 for (const slug of order) {
   if (done >= MAX) break;
