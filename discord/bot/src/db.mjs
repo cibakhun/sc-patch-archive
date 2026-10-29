@@ -4,6 +4,11 @@
 //  One file, three concerns: per-user XP/level/prestige/stats, per-guild config
 //  overrides (stored as one JSON blob, merged over DEFAULT_CONFIG on read), and
 //  the leaderboard/position queries. Prepared statements are created once.
+//
+//  Aufbewahrung (retention.mjs): verlaesst jemand den Server, bekommt seine
+//  Zeile ein left_at. Nach der Frist (LEAVER_RETENTION_DAYS) loescht der
+//  taegliche Lauf sie samt Fehlerbericht-Sperren; ein Wiedereintritt vor
+//  Fristende nimmt die Marke zurueck, der Rang bleibt dann erhalten.
 // ═══════════════════════════════════════════════════════════════════════════
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
@@ -55,6 +60,11 @@ export function openDb(path) {
     );
   `);
 
+  // Bestandsdatenbanken vor der Aufbewahrungsfrist kennen left_at noch nicht.
+  // ALTER TABLE ADD COLUMN ist in SQLite billig und laesst alle Zeilen auf NULL.
+  const userCols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
+  if (!userCols.includes('left_at')) db.exec('ALTER TABLE users ADD COLUMN left_at INTEGER');
+
   const S = {
     get:         db.prepare('SELECT * FROM users WHERE guild_id=? AND user_id=?'),
     bump:        db.prepare(`INSERT INTO users (guild_id,user_id,xp,total_xp,messages,voice_seconds,updated_at)
@@ -68,9 +78,11 @@ export function openDb(path) {
                              ON CONFLICT(guild_id,user_id) DO UPDATE SET xp=@xp, updated_at=@ts`),
     setPrestige: db.prepare('UPDATE users SET prestige=@prestige, xp=@xp, updated_at=@ts WHERE guild_id=@g AND user_id=@u'),
     del:         db.prepare('DELETE FROM users WHERE guild_id=? AND user_id=?'),
-    board:       db.prepare('SELECT * FROM users WHERE guild_id=? ORDER BY prestige DESC, xp DESC LIMIT ? OFFSET ?'),
-    ahead:       db.prepare('SELECT COUNT(*) AS n FROM users WHERE guild_id=@g AND (prestige > @p OR (prestige=@p AND xp > @x))'),
-    count:       db.prepare('SELECT COUNT(*) AS n FROM users WHERE guild_id=?'),
+    // Ausgetretene (left_at gesetzt) stehen waehrend der Frist nicht mehr auf
+    // der Bestenliste und zaehlen nicht mit.
+    board:       db.prepare('SELECT * FROM users WHERE guild_id=? AND left_at IS NULL ORDER BY prestige DESC, xp DESC LIMIT ? OFFSET ?'),
+    ahead:       db.prepare('SELECT COUNT(*) AS n FROM users WHERE guild_id=@g AND left_at IS NULL AND (prestige > @p OR (prestige=@p AND xp > @x))'),
+    count:       db.prepare('SELECT COUNT(*) AS n FROM users WHERE guild_id=? AND left_at IS NULL'),
     getCfg:      db.prepare('SELECT json FROM guild_config WHERE guild_id=?'),
     setCfg:      db.prepare(`INSERT INTO guild_config (guild_id,json) VALUES (?,?)
                              ON CONFLICT(guild_id) DO UPDATE SET json=excluded.json`),
@@ -79,6 +91,12 @@ export function openDb(path) {
                              ON CONFLICT(guild_id,key) DO UPDATE SET value=excluded.value`),
     getBugXp:    db.prepare('SELECT 1 FROM bug_xp_threads WHERE thread_id=?'),
     setBugXp:    db.prepare('INSERT INTO bug_xp_threads (thread_id,guild_id,user_id,granted_at) VALUES (?,?,?,?)'),
+    markLeft:    db.prepare('UPDATE users SET left_at=@ts WHERE guild_id=@g AND user_id=@u AND left_at IS NULL'),
+    clearLeft:   db.prepare('UPDATE users SET left_at=NULL WHERE guild_id=? AND user_id=? AND left_at IS NOT NULL'),
+    members:     db.prepare('SELECT user_id, left_at FROM users WHERE guild_id=?'),
+    expired:     db.prepare('SELECT guild_id, user_id FROM users WHERE left_at IS NOT NULL AND left_at <= ?'),
+    delBugXpOf:  db.prepare('DELETE FROM bug_xp_threads WHERE guild_id=? AND user_id=?'),
+    delBugXpOld: db.prepare('DELETE FROM bug_xp_threads WHERE granted_at <= ?'),
   };
 
   const zero = (g, u) => ({ guild_id: g, user_id: u, xp: 0, prestige: 0, total_xp: 0, messages: 0, voice_seconds: 0, updated_at: 0 });
@@ -130,7 +148,7 @@ export function openDb(path) {
     /** 1-based position on the leaderboard, or null if the user has no row. */
     position(g, u) {
       const row = S.get.get(g, u);
-      if (!row) return null;
+      if (!row || row.left_at != null) return null;
       return S.ahead.get({ g, p: row.prestige, x: row.xp }).n + 1;
     },
 
@@ -174,6 +192,40 @@ export function openDb(path) {
      * erfolgreichen grantXp() aufgerufen (siehe bug-thread-xp.mjs). */
     markBugXp(threadId, guildId, userId) {
       S.setBugXp.run(threadId, guildId, userId, Date.now());
+    },
+
+    /** Austritt vormerken (Frist laeuft ab jetzt). Nur wer eine Zeile hat. */
+    markLeft(g, u, ts = Date.now()) {
+      return S.markLeft.run({ g, u, ts }).changes;
+    },
+
+    /** Wiedereintritt vor Fristende: Marke weg, Rang bleibt. */
+    clearLeft(g, u) {
+      return S.clearLeft.run(g, u).changes;
+    },
+
+    /** Alle Nutzerzeilen einer Gilde mit ihrer Austrittsmarke (oder null). */
+    knownUsers(g) {
+      return S.members.all(g);
+    },
+
+    /**
+     * Loescht alles, was die Frist ueberschritten hat: Zeilen ausgetretener
+     * Mitglieder (Austritt vor `leftBefore`) samt ihren Fehlerbericht-
+     * Sperren, und Sperren, die aelter als `locksBefore` sind (die Sperre
+     * braucht es nur, solange ThreadCreate fuer denselben Thread noch
+     * einmal feuern koennte). Eine Transaktion.
+     */
+    purgeExpired(leftBefore, locksBefore) {
+      return db.transaction(() => {
+        const rows = S.expired.all(leftBefore);
+        for (const r of rows) {
+          S.del.run(r.guild_id, r.user_id);
+          S.delBugXpOf.run(r.guild_id, r.user_id);
+        }
+        const locks = S.delBugXpOld.run(locksBefore).changes;
+        return { users: rows.length, locks };
+      })();
     },
 
     close() {

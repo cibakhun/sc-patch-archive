@@ -12,6 +12,7 @@ import { STRINGS, LOCALES, t as tr, resolveLocale } from './i18n.mjs';
 
 let n = 0;
 const t = (name, fn) => { fn(); n++; console.log(`  \x1b[32m✓\x1b[0m ${name}`); };
+const ta = async (name, fn) => { await fn(); n++; console.log(`  \x1b[32m✓\x1b[0m ${name}`); };
 
 console.log('\n▸ Leveling math');
 t('xpToNext(0) = 100 and grows', () => {
@@ -308,6 +309,178 @@ console.log('\n▸ Rank mirror (Kontoseite)');
   });
 }
 
+console.log('\n▸ Heim-Gilde und Testpilot-Rolle');
+{
+  const { resolveHomeGuild, isHomeGuild, resolveTesterRole } = await import('./home-guild.mjs');
+  const A = '111111111111111111', B = '222222222222222222';
+  t('HOME_GUILD_ID wins, GUILD_ID next, site-invite last', () => {
+    assert.equal(resolveHomeGuild({ HOME_GUILD_ID: A, GUILD_ID: A }).id, A);
+    const both = resolveHomeGuild({ HOME_GUILD_ID: A, GUILD_ID: B });
+    assert.equal(both.id, A);
+    assert.ok(both.warning, 'divergent GUILD_ID is reported');
+    assert.equal(resolveHomeGuild({ GUILD_ID: B }).id, B);
+    const fallback = resolveHomeGuild({});
+    assert.match(fallback.id, /^\d{17,20}$/);
+    assert.equal(fallback.source, 'discord/site-invite.mjs');
+  });
+  t('a set but invalid id fails closed instead of falling through', () => {
+    assert.equal(resolveHomeGuild({ HOME_GUILD_ID: 'nope', GUILD_ID: B }).id, null);
+    assert.equal(resolveHomeGuild({ GUILD_ID: '12' }).id, null);
+  });
+  t('isHomeGuild accepts only the home id', () => {
+    const ctx = { home: { id: A } };
+    assert.equal(isHomeGuild(ctx, { id: A }), true);
+    assert.equal(isHomeGuild(ctx, { id: B }), false);
+    assert.equal(isHomeGuild({ home: { id: null } }, { id: A }), false);
+  });
+  const role = (id, name, managed = false) => [id, { id, name, managed }];
+  const guild = (...rs) => ({ name: 'G', roles: { cache: new Map(rs) } });
+  t('tester role: one name hit pins its id, two hits fail closed', () => {
+    assert.equal(resolveTesterRole(guild(role(A, 'Test Pilots')), 'Test Pilots', {}).id, A);
+    assert.equal(resolveTesterRole(guild(role(A, 'Test Pilots'), role(B, 'Test Pilots')), 'Test Pilots', {}).id, null);
+    assert.equal(resolveTesterRole(guild(role(A, 'Test Pilots', true)), 'Test Pilots', {}).id, null, 'managed roles never count');
+    assert.equal(resolveTesterRole(guild(), 'Test Pilots', {}).id, null);
+  });
+  t('TESTER_ROLE_ID beats the name and must exist', () => {
+    const g = guild(role(A, 'Test Pilots'), role(B, 'Test Pilots'));
+    assert.equal(resolveTesterRole(g, 'Test Pilots', { TESTER_ROLE_ID: B }).id, B);
+    assert.equal(resolveTesterRole(g, 'Test Pilots', { TESTER_ROLE_ID: '333333333333333333' }).id, null);
+  });
+  t('the @everyone role (id = server id) is never the tester role', () => {
+    const G = '444444444444444444';
+    const g = { id: G, name: 'G', roles: { cache: new Map([role(G, '@everyone'), role(A, 'Test Pilots')]) } };
+    const r = resolveTesterRole(g, 'Test Pilots', { TESTER_ROLE_ID: G });
+    assert.equal(r.id, null);
+    assert.match(r.error, /@everyone/);
+  });
+
+  try {
+    const { pinTesterRole } = await import('./role-reconcile.mjs');
+    const { registerRoleSync } = await import('./role-sync.mjs');
+    t('a deleted pinned role is looked up again instead of staying pinned', () => {
+      const g = guild(role(A, 'Test Pilots'));
+      const ctx = { mirror: { roleId: null } };
+      const quiet = console.warn; const loud = console.log; console.warn = () => {}; console.log = () => {};
+      try {
+        assert.equal(pinTesterRole(ctx, g), A);
+        g.roles.cache.delete(A);
+        g.roles.cache.set(B, { id: B, name: 'Test Pilots', managed: false });
+        assert.equal(pinTesterRole(ctx, g), B);
+      } finally { console.warn = quiet; console.log = loud; }
+    });
+    await ta('leaving the home guild revokes the pass even while the mirror is off', async () => {
+      const handlers = {};
+      const writes = [];
+      const ctx = {
+        client: { on: (ev, fn) => { handlers[ev] = fn; } },
+        home: { id: A },
+        mirror: { roleId: null }, // z. B. Rolle doppelt vorhanden -> Spiegel aus
+        siteDb: { setTester: async (id, v) => { writes.push([id, v]); return { updated: 1 }; } },
+      };
+      registerRoleSync(ctx);
+      const loud = console.log; console.log = () => {};
+      try {
+        await handlers.guildMemberRemove({ id: '999999999999999999', guild: { id: A } });
+        await handlers.guildMemberRemove({ id: '888888888888888888', guild: { id: B } });
+      } finally { console.log = loud; }
+      assert.deepEqual(writes, [['999999999999999999', false]], 'home guild revokes, a foreign guild writes nothing');
+    });
+  } catch (e) {
+    if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install` for discord.js)');
+    else throw e;
+  }
+}
+
+console.log('\n▸ Website-Spiegel (site-db)');
+{
+  const { createSiteDb } = await import('./site-db.mjs');
+  const ID = '123456789012345678';
+  const calls = [];
+  const fake = (responses) => async (url, init) => {
+    calls.push({ url, init });
+    const r = responses.shift();
+    return { ok: r.status < 300, status: r.status, text: async () => r.body, json: async () => JSON.parse(r.body) };
+  };
+  const base = { SUPABASE_URL: 'https://x.supabase.co' };
+  t('no secret, no key: mirror inactive', () => {
+    assert.equal(createSiteDb({}).db, null);
+  });
+  await ta('secret set: function is used, key stays unused', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's3cret' }, { fetchImpl: fake([{ status: 200, body: '{"updated":1}' }]) });
+    assert.equal(db.mode, 'function');
+    const r = await db.setTester(ID, true);
+    assert.equal(r.updated, 1);
+    assert.equal(calls[0].url, 'https://x.supabase.co/functions/v1/bot-role-sync');
+    assert.equal(calls[0].init.headers.Authorization, 'Bearer s3cret');
+    assert.deepEqual(JSON.parse(calls[0].init.body), { op: 'set', discord_user_id: ID, is_tester: true });
+  });
+  await ta('function missing (404) falls back to the legacy key once per call', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb(
+      { ...base, BOT_ROLE_SYNC_SECRET: 's', SUPABASE_SERVICE_ROLE_KEY: 'k' },
+      { fetchImpl: fake([{ status: 404, body: 'not found' }, { status: 200, body: '[{"discord_user_id":"x"}]' }]), log: () => {} },
+    );
+    const r = await db.setTester(ID, false);
+    assert.equal(r.updated, 1);
+    assert.match(calls[1].url, /\/rest\/v1\/discord_role_state\?discord_user_id=eq\./);
+  });
+  await ta('wrong secret (401) does NOT fall back', async () => {
+    const { db } = createSiteDb(
+      { ...base, BOT_ROLE_SYNC_SECRET: 's', SUPABASE_SERVICE_ROLE_KEY: 'k' },
+      { fetchImpl: fake([{ status: 401, body: 'unauthorized' }]), log: () => {} },
+    );
+    await assert.rejects(() => db.setTester(ID, true), /401/);
+  });
+  await ta('stats only carries whitelisted fields', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([{ status: 200, body: '{"updated":1}' }]) });
+    await db.setStats(ID, { level: 3, is_tester: true, user_id: 'evil' });
+    assert.deepEqual(JSON.parse(calls[0].init.body).patch, { level: 3 });
+  });
+  await ta('ids that are not Discord snowflakes are refused before any request', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([]) });
+    await assert.rejects(() => db.setTester('1 or 1=1', true), /Discord-ID/);
+    assert.equal(calls.length, 0);
+  });
+}
+
+console.log('\n▸ Datenfrist (retention)');
+try {
+  const { openDb } = await import('./db.mjs');
+  const { reconcileLeavers, retentionDays } = await import('./retention.mjs');
+  const d = openDb(':memory:');
+  const G = 'g1', DAY = 86_400_000, now = 100 * DAY;
+  d.addXp(G, 'stay', 500); d.addXp(G, 'gone', 900); d.addXp(G, 'back', 300);
+  d.markBugXp('thread-gone', G, 'gone');
+  t('leavers are marked, returners cleared, present members untouched', () => {
+    d.markLeft(G, 'back', now - 5 * DAY);
+    const r = reconcileLeavers(d, G, new Set(['stay', 'back']), now - 40 * DAY);
+    assert.deepEqual(r, { seen: 3, marked: 1, cleared: 1 });
+    assert.equal(d.count(G), 2, 'a leaver drops off the board');
+    assert.equal(d.position(G, 'gone'), null);
+  });
+  t('purge removes expired leavers and their bug locks, keeps the rest', () => {
+    const out = d.purgeExpired(now - 30 * DAY, now - 30 * DAY);
+    assert.equal(out.users, 1);
+    assert.equal(d.getUser(G, 'gone').xp, 0);
+    assert.equal(d.hasBugXp('thread-gone'), false);
+    assert.equal(d.getUser(G, 'stay').xp, 500);
+    assert.equal(d.getUser(G, 'back').xp, 300);
+  });
+  t('LEAVER_RETENTION_DAYS: default 30, 0 allowed, junk ignored', () => {
+    assert.equal(retentionDays({}), 30);
+    assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '0' }), 0);
+    assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '-3' }), 30);
+    assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: 'viel' }), 30);
+  });
+  d.close();
+} catch (e) {
+  if (e.code === 'ERR_MODULE_NOT_FOUND' || /better-sqlite3|bindings/.test(e.message)) console.log('  · skipped (run `npm install` for better-sqlite3)');
+  else throw e;
+}
+
 try {
   const { latestPatch, localizedPatch, findShip, localizedShip } = await import('./data.mjs');
   const p = latestPatch();
@@ -337,4 +510,12 @@ try {
   else console.log(`  · skipped (${e.message})`);
 }
 
+// Sperrklinke fuer den Lauf im Bot-Image (discord/bot/Dockerfile setzt
+// SELFTEST_MIN): ein Abschnitt, der dort still "skipped" meldet, weil eine
+// Abhaengigkeit fehlt, soll den Bau reissen statt durchzuwinken.
+const min = Number(process.env.SELFTEST_MIN || 0);
+if (n < min) {
+  console.error(`\n\x1b[31;1m✗ nur ${n} Pruefungen gelaufen, erwartet mindestens ${min} — ein Abschnitt wurde uebersprungen.\x1b[0m\n`);
+  process.exit(1);
+}
 console.log(`\n\x1b[32;1m✓ ${n} checks passed.\x1b[0m\n`);

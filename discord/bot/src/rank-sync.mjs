@@ -7,8 +7,11 @@
 //  Gleiches Muster wie role-sync.mjs / role-reconcile.mjs:
 //    - Gelesen wird nur, wer in discord_role_state steht (verbunden hat).
 //      Alle anderen Mitglieder verlassen den Bot nie.
-//    - Geschrieben wird per PostgREST-PATCH auf discord_user_id, NUR wenn
-//      sich etwas geaendert hat -- ein ruhiger Server erzeugt keine Writes.
+//    - Geschrieben wird ueber site-db.mjs (setStats) per discord_user_id,
+//      NUR wenn sich etwas geaendert hat -- ein ruhiger Server erzeugt
+//      keine Writes.
+//    - NUR die Heim-Gilde (home-guild.mjs): jeder weitere Server schriebe
+//      sonst seine eigenen Zahlen in dieselbe Zeile.
 //    - Jeder Netzfehler wird protokolliert und verschluckt; der naechste
 //      Durchlauf holt nach. Der Bot laeuft ohne Supabase unveraendert.
 //
@@ -17,8 +20,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 import { levelForXp } from './leveling.mjs';
 import { rankForLevel } from './ranks.mjs';
-
-const FIELDS = ['in_guild', 'level', 'xp', 'total_xp', 'prestige', 'rank_key', 'messages', 'voice_seconds', 'server_rank', 'server_members'];
+import { isHomeGuild } from './home-guild.mjs';
+import { STATS_FIELDS as FIELDS } from './site-db.mjs';
 
 /**
  * Der Stand eines Mitglieds, wie er in discord_role_state steht. Rein --
@@ -54,26 +57,6 @@ export function changedFields(stored, snap) {
   return out;
 }
 
-function headers(supabase, extra = {}) {
-  return { apikey: supabase.key, Authorization: `Bearer ${supabase.key}`, ...extra };
-}
-
-async function fetchLinked(supabase, onlyId) {
-  const filter = onlyId ? `discord_user_id=eq.${encodeURIComponent(onlyId)}` : 'discord_user_id=not.is.null';
-  const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?select=discord_user_id,${FIELDS.join(',')}&${filter}`, { headers: headers(supabase) });
-  if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${await res.text().catch(() => '')}`);
-  return res.json();
-}
-
-async function writeRow(supabase, discordId, patch) {
-  const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?discord_user_id=eq.${encodeURIComponent(discordId)}`, {
-    method: 'PATCH',
-    headers: headers(supabase, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-    body: JSON.stringify({ ...patch, stats_at: new Date().toISOString() }),
-  });
-  if (!res.ok) throw new Error(`Supabase-PATCH ${res.status}: ${await res.text().catch(() => '')}`);
-}
-
 /** true/false, ob die ID Mitglied ist; null, wenn Discord gerade nicht antwortet. */
 async function memberState(guild, id) {
   if (guild.members.cache.has(id)) return true;
@@ -90,10 +73,10 @@ async function memberState(guild, id) {
  * Aufstieg). Wirft nie.
  */
 export async function syncRanks(ctx, guild, onlyId = null) {
-  const { supabase, db } = ctx;
-  if (!supabase) return;
+  const { siteDb, db } = ctx;
+  if (!siteDb || !isHomeGuild(ctx, guild)) return;
   let rows;
-  try { rows = await fetchLinked(supabase, onlyId); }
+  try { rows = await siteDb.listLinked(onlyId ? { discordUserId: onlyId } : {}); }
   catch (e) { console.warn(`  ! Rangspiegel: Lesen fehlgeschlagen: ${e.message}`); return; }
 
   let written = 0;
@@ -103,7 +86,7 @@ export async function syncRanks(ctx, guild, onlyId = null) {
     const snap = rankSnapshot(db, guild.id, id, await memberState(guild, id));
     const patch = changedFields(stored, snap);
     if (!Object.keys(patch).length) continue;
-    try { await writeRow(supabase, id, patch); written += 1; }
+    try { const { updated } = await siteDb.setStats(id, patch); if (updated) written += 1; }
     catch (e) { console.warn(`  ! Rangspiegel: Schreiben fuer ${id} fehlgeschlagen: ${e.message}`); }
   }
   // Selbstauskunft: ohne diese Zeile sieht ein leerlaufender Spiegel aus wie ein echter.
@@ -112,7 +95,7 @@ export async function syncRanks(ctx, guild, onlyId = null) {
 
 /** Sofort-Abgleich fuer ein Mitglied (nach Level-Aufstieg). Wirft nie. */
 export function pushRank(ctx, guild, discordId) {
-  if (process.env.GUILD_ID && guild.id !== process.env.GUILD_ID) return;
+  if (!isHomeGuild(ctx, guild)) return;
   syncRanks(ctx, guild, discordId).catch(() => {});
 }
 
@@ -120,17 +103,14 @@ const INTERVALL_MS = 5 * 60 * 1000;
 let laeuft = false;
 
 export function startRankSync(ctx) {
-  if (!ctx.supabase) return;
+  if (!ctx.siteDb) return;
   const tick = async () => {
     if (laeuft) return;
     laeuft = true;
     try {
-      // Ein Bot, ein Server: mit GUILD_ID nur dieser (sonst schriebe jeder
-      // weitere Server seine eigenen Zahlen in dieselbe Zeile).
-      for (const guild of ctx.client.guilds.cache.values()) {
-        if (process.env.GUILD_ID && guild.id !== process.env.GUILD_ID) continue;
-        await syncRanks(ctx, guild);
-      }
+      // Ein Bot, ein Server: nur die Heim-Gilde.
+      const guild = ctx.client.guilds.cache.get(ctx.home?.id);
+      if (guild) await syncRanks(ctx, guild);
     } finally { laeuft = false; }
   };
   tick();

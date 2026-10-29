@@ -21,50 +21,57 @@
 //  Scheitert der Abgleich (Supabase weg, Mitgliederabruf haengt), wird er
 //  protokolliert und uebersprungen; der Bot startet trotzdem. Er ist eine
 //  Reparatur, keine Startbedingung (T-14-46).
+//
+//  Er laeuft NUR fuer die Heim-Gilde (home-guild.mjs) und vergleicht die
+//  Rolle ueber ihre ID.
 // ═══════════════════════════════════════════════════════════════════════════
 import { TESTER_ROLE_NAME, writeIsTester } from './role-sync.mjs';
+import { isHomeGuild, resolveTesterRole } from './home-guild.mjs';
 
 const FETCH_TIMEOUT_MS = 10_000;
 
-async function fetchMirrorRows(supabase) {
-  const res = await fetch(
-    `${supabase.url}/rest/v1/discord_role_state?select=discord_user_id,is_tester&discord_user_id=not.is.null`,
-    {
-      headers: {
-        apikey: supabase.key,
-        Authorization: `Bearer ${supabase.key}`,
-      },
-    },
-  );
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Supabase-GET fehlgeschlagen (${res.status}): ${detail}`);
+/**
+ * Die Testpilot-Rolle der Heim-Gilde festhalten (ctx.mirror.roleId). Laeuft
+ * beim Start und bei jedem Nachlauf -- so greift der Spiegel auch, wenn die
+ * Rolle erst spaeter angelegt wird. Eine gefundene ID bleibt, solange es die
+ * Rolle gibt (eine Umbenennung aendert nichts). Wird sie geloescht, wird neu
+ * gesucht; sonst verglichen alle Ereignisse bis zum naechsten Neustart gegen
+ * eine Rolle, die niemand mehr tragen kann, und alte Ausweise blieben stehen.
+ */
+export function pinTesterRole(ctx, guild) {
+  ctx.mirror ??= { roleId: null };
+  if (ctx.mirror.roleId && guild.roles.cache.has(ctx.mirror.roleId)) return ctx.mirror.roleId;
+  if (ctx.mirror.roleId) {
+    console.warn(`  ! Testpilot-Rolle ${ctx.mirror.roleId} gibt es auf ${guild.name} nicht mehr -- suche neu.`);
+    ctx.mirror.roleId = null;
   }
-  return res.json();
+  const r = resolveTesterRole(guild, TESTER_ROLE_NAME);
+  if (r.id) {
+    ctx.mirror.roleId = r.id;
+    console.log(`  · Testpilot-Rolle ${r.id} in ${guild.name} (gefunden ueber ${r.source}).`);
+  } else if (ctx.mirror.lastError !== r.error) {
+    console.warn(`  ! Rollenspiegel aus -- ${r.error}.`);
+  }
+  ctx.mirror.lastError = r.error ?? null;
+  return ctx.mirror.roleId;
 }
 
 /**
- * Vollabgleich fuer EINE Gilde. Wirft nie -- jeder Fehlerfall wird
+ * Vollabgleich fuer die Heim-Gilde. Wirft nie -- jeder Fehlerfall wird
  * protokolliert und die Funktion kehrt zurueck, damit die ClientReady-
  * Sequenz unbeeintraechtigt weiterlaeuft.
  */
 export async function reconcileRoles(ctx, guild) {
-  const { supabase } = ctx;
+  const { siteDb } = ctx;
 
-  if (!supabase) {
-    console.log('  · Rollenabgleich uebersprungen -- SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY fehlen, Spiegelung inaktiv.');
-    return;
-  }
-  if (!TESTER_ROLE_NAME) {
-    console.warn('  ! Rollenabgleich uebersprungen -- Rolle "tester" nicht im Blueprint gefunden.');
+  if (!isHomeGuild(ctx, guild)) return; // fremde Gilde: nie Quelle fuer den Spiegel
+  if (!siteDb) {
+    console.log('  · Rollenabgleich uebersprungen -- kein Zugang zur Website-Datenbank, Spiegelung inaktiv.');
     return;
   }
 
-  const role = guild.roles.cache.find((r) => r.name === TESTER_ROLE_NAME && !r.managed);
-  if (!role) {
-    console.warn(`  ! Rollenabgleich uebersprungen -- Rolle "${TESTER_ROLE_NAME}" existiert nicht auf ${guild.name}.`);
-    return;
-  }
+  const roleId = pinTesterRole(ctx, guild);
+  if (!roleId) return; // pinTesterRole hat den Grund schon genannt
 
   let members;
   try {
@@ -78,12 +85,12 @@ export async function reconcileRoles(ctx, guild) {
   }
 
   const holderIds = new Set(
-    [...members.values()].filter((m) => m.roles.cache.has(role.id)).map((m) => m.id),
+    [...members.values()].filter((m) => m.roles.cache.has(roleId)).map((m) => m.id),
   );
 
   let mirrorRows;
   try {
-    mirrorRows = await fetchMirrorRows(supabase);
+    mirrorRows = await siteDb.listLinked();
   } catch (e) {
     console.warn(`  ! Rollenabgleich uebersprungen -- Spiegel-Lesezugriff: ${e.message}`);
     return;
@@ -91,16 +98,17 @@ export async function reconcileRoles(ctx, guild) {
 
   let changes = 0;
   for (const row of mirrorRows) {
+    if (!row.discord_user_id) continue;
     const shouldBeTester = holderIds.has(row.discord_user_id);
     if (shouldBeTester === row.is_tester) continue; // bereits deckungsgleich
-    const { written } = await writeIsTester(supabase, row.discord_user_id, shouldBeTester);
+    const { written } = await writeIsTester(siteDb, row.discord_user_id, shouldBeTester);
     if (written) changes += 1;
   }
 
   // Selbstauskunft -- ohne diese Zeile ist ein leerlaufender Abgleich von
   // einem echten nicht zu unterscheiden (dieselbe Regel wie fuer die
   // Schienen-A-Tore der Website, CLAUDE.md § 4).
-  console.log(`  · Rollenabgleich: ${members.size} Mitglieder gelesen, ${holderIds.size} Traeger, ${changes} Aenderungen geschrieben.`);
+  console.log(`  · Rollenabgleich: ${members.size} Mitglieder gelesen, ${holderIds.size} Traeger, ${mirrorRows.length} verknuepfte Konten, ${changes} Aenderungen geschrieben.`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -135,7 +143,7 @@ const INTERVALL_MS = 2 * 60 * 1000;
 let laeuftBereits = false;
 
 /**
- * Startet den periodischen Nachlauf fuer ALLE Gilden des Clients. Der erste
+ * Startet den periodischen Nachlauf fuer die Heim-Gilde. Der erste
  * Tick feuert erst NACH einem vollen Intervall -- der Start-Vollabgleich in
  * ClientReady (index.mjs) ist gerade erst gelaufen; ein sofortiger zweiter
  * Durchlauf waere ein Abgleich-Sturm beim Boot ohne Nutzen. `laeuftBereits`
@@ -150,7 +158,8 @@ export function startPeriodicReconcile(ctx) {
     }
     laeuftBereits = true;
     try {
-      for (const guild of ctx.client.guilds.cache.values()) {
+      const guild = ctx.client.guilds.cache.get(ctx.home?.id);
+      if (guild) {
         try { await reconcileRoles(ctx, guild); }
         catch (e) { console.warn(`  ! periodischer Rollenabgleich in ${guild.name}: ${e.message}`); }
       }
