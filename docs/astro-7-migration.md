@@ -84,8 +84,11 @@ Ein eigenes Vite-Plugin: `vb-block-open-in-editor` in `astro.config.mjs`, nur
 `tests/e2e/dev-server.test.js` hält es fest; nach dem Sprung trotzdem einmal
 `astro dev` starten und `curl -i http://localhost:4321/__open-in-editor` → 403
 prüfen, denn der Test sieht die Reihenfolge der Middlewares nicht.
-Außerdem `server.allowedHosts` (Astro-Ebene, nicht `vite.server`, Tunnel-Hosts
-nur mit `VB_TUNNEL=1`) — der frühere Fallstrick ist also schon umgangen.
+Außerdem `server` (Astro-Ebene, nicht `vite.server`) als Funktion des Befehls:
+Tunnel-Hosts nur für `astro preview` mit `VB_TUNNEL=1`, für `astro dev` nie —
+der frühere Fallstrick ist also schon umgangen. Nach dem Sprung prüfen, dass
+Astro die Funktion weiter mit `{ command }` aufruft (Test 7 in
+`tests/e2e/dev-server.test.js` sieht nur die Konfiguration, nicht Astro).
 Restrisiko: Wie Vite die `_astro/*`-Bundles benennt und aufteilt. Da unsere
 URLs gehasht sind, ist das folgenlos.
 

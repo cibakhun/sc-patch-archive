@@ -12,17 +12,19 @@ import { defineConfig } from 'astro/config';
 // GitHub Pages *project* path, add: base: '/sc-patch-archive'
 // Cloudflare Pages (recommended in the blueprint) serves at root -> no base needed.
 
-// Tunnel-Vorschau nur auf ausdrückliche Ansage. Ohne VB_TUNNEL lassen
-// `astro dev` und `astro preview` nur localhost und IP-Adressen zu
-// (Vite-Standard), eine Tunnel-URL bekommt 403. Geteilt wird die gebaute
-// Seite, nicht der Dev-Server — `astro preview` liefert nur dist/:
+// Tunnel-Vorschau nur auf ausdrückliche Ansage und nur für die gebaute Seite.
+// `astro dev` lässt immer nur localhost und IP-Adressen zu (Vite-Standard),
+// auch mit VB_TUNNEL — der Dev-Server liefert den ganzen Quellbaum aus und
+// gehört nie hinter einen Tunnel. `astro preview` (liefert nur dist/) lässt
+// die Tunnel-Hosts erst mit VB_TUNNEL=1 zu; ohne bekommt eine Tunnel-URL 403:
 //   PowerShell:  npm.cmd run build; $env:VB_TUNNEL = '1'; npm.cmd run preview
 export const TUNNEL_HOSTS = ['.loca.lt', '.trycloudflare.com'];
 const TUNNEL = /^(1|true)$/i.test(process.env.VB_TUNNEL ?? '');
 
 // Vites Dev-Server bietet `/__open-in-editor` ohne Anmeldung an; der Endpunkt
 // startet auf dem Rechner einen Editor-Prozess. Dieses Projekt braucht ihn
-// nicht (es fehlt nur der „im Editor öffnen"-Link im Fehler-Overlay).
+// nicht (es fehlen nur die „im Editor öffnen"-Links im Fehler-Overlay und in
+// der Dev-Toolbar, Apps Audit und Inspect).
 // Middlewares, die ein Plugin direkt in configureServer einhängt, laufen vor
 // Vites eigenen — der Riegel antwortet also zuerst. `LAUNCH_EDITOR=none` wäre
 // kein Ersatz: der Wert wird nur zum Namen des gestarteten Programms.
@@ -69,13 +71,14 @@ export default defineConfig({
     locales: ['de', 'en'],
     routing: { prefixDefaultLocale: false },
   },
-  // Tunnel-Hosts (loca.lt/cloudflared), nur mit VB_TUNNEL (siehe oben).
-  // Astro-Level `server.allowedHosts` (seit 5.4) gilt für `astro dev` UND
+  // Tunnel-Hosts (loca.lt/cloudflared), nur `astro preview` mit VB_TUNNEL
+  // (siehe oben). Astro-Level `server` (seit 5.4) gilt für `astro dev` UND
   // `astro preview` — die frühere vite.server-Variante griff nur im
-  // Dev-Server (preview: 403).
-  server: {
-    allowedHosts: TUNNEL ? TUNNEL_HOSTS : [],
-  },
+  // Dev-Server (preview: 403). Als Funktion bekommt es den Befehl mit
+  // (`dev` oder `preview`) und unterscheidet die beiden.
+  server: ({ command }) => ({
+    allowedHosts: TUNNEL && command === 'preview' ? TUNNEL_HOSTS : [],
+  }),
   vite: {
     plugins: [blockOpenInEditor()],
   },

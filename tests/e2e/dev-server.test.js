@@ -6,8 +6,9 @@
 //    genau die Art Zeile, die bei einem Umbau (Astro-7-Migration, neue
 //    Vite-Optionen) leise verloren geht, ohne dass ein Build oder eine Seite
 //    davon etwas merkt.
-// 2. Tunnel-Hosts nur mit VB_TUNNEL. Ohne die Variable bleibt `allowedHosts`
-//    leer (Vite-Standard: localhost und IP-Adressen).
+// 2. Tunnel-Hosts nur fuer `astro preview` und nur mit VB_TUNNEL. Ohne die
+//    Variable bleibt `allowedHosts` leer (Vite-Standard: localhost und
+//    IP-Adressen); `astro dev` bekommt die Tunnel-Hosts nie.
 //
 // Geprueft wird die echte Konfiguration, nicht eine Abschrift: der Test
 // importiert astro.config.mjs und ruft das Plugin mit einem Attrappen-Server
@@ -97,21 +98,34 @@ describe('Dev-Server: Riegel vor /__open-in-editor', async () => {
   });
 });
 
-describe('Dev-Server: Tunnel-Hosts nur mit VB_TUNNEL', () => {
-  test('4. ohne VB_TUNNEL ist allowedHosts leer', async () => {
+/** allowedHosts so, wie Astro sie fuer den Befehl aufloest (server darf Objekt oder Funktion sein). */
+function hostsFor(cfg, command) {
+  const server = typeof cfg.server === 'function' ? cfg.server({ command }) : cfg.server;
+  return server?.allowedHosts;
+}
+
+describe('Dev-Server: Tunnel-Hosts nur fuer astro preview mit VB_TUNNEL', () => {
+  test('4. ohne VB_TUNNEL ist allowedHosts fuer dev und preview leer', async () => {
     const { default: cfg } = await loadConfig(undefined);
-    assert.deepStrictEqual(cfg.server?.allowedHosts, []);
+    assert.deepStrictEqual(hostsFor(cfg, 'dev'), [], 'astro dev');
+    assert.deepStrictEqual(hostsFor(cfg, 'preview'), [], 'astro preview');
   });
 
   test('5. VB_TUNNEL=0 schaltet nichts frei', async () => {
     const { default: cfg } = await loadConfig('0');
-    assert.deepStrictEqual(cfg.server?.allowedHosts, []);
+    assert.deepStrictEqual(hostsFor(cfg, 'dev'), [], 'astro dev');
+    assert.deepStrictEqual(hostsFor(cfg, 'preview'), [], 'astro preview');
   });
 
-  test('6. VB_TUNNEL=1 laesst genau die Tunnel-Hosts zu, nie alle', async () => {
+  test('6. VB_TUNNEL=1 laesst fuer astro preview genau die Tunnel-Hosts zu, nie alle', async () => {
     const mod = await loadConfig('1');
     assert.ok(mod.TUNNEL_HOSTS.length > 0);
-    assert.deepStrictEqual(mod.default.server?.allowedHosts, mod.TUNNEL_HOSTS);
-    assert.notStrictEqual(mod.default.server?.allowedHosts, true);
+    assert.deepStrictEqual(hostsFor(mod.default, 'preview'), mod.TUNNEL_HOSTS);
+    assert.notStrictEqual(hostsFor(mod.default, 'preview'), true);
+  });
+
+  test('7. VB_TUNNEL=1 gibt astro dev keine Tunnel-Hosts', async () => {
+    const { default: cfg } = await loadConfig('1');
+    assert.deepStrictEqual(hostsFor(cfg, 'dev'), [], 'astro dev haengt mit VB_TUNNEL=1 am Tunnel');
   });
 });
