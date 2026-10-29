@@ -508,8 +508,13 @@ function hallSpot(h) {
 // Schritten von so viel Metern, einer Kachel der Hallentexturen (4 m); so
 // trifft die weiterlaufende Textur an der Kante der gestreckten Platte
 // wieder auf die der nächsten.
+// Der y-Streifen liegt unter den Lichtwannen, die über dem Feld an Seilen
+// hängen (Unterkante 36,48 im Modell): Lag er darüber (40,6), blieben sie
+// beim Wachsen hängen und schnitten die Idris auf Deckhöhe. `clear`: so
+// hoch ist das Feld frei (m über dem Boden, bis zu den Wannen); growFor
+// hält das Schiff 4 m darunter.
 const HALL_GROW = /* hall-grow */ {
-  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[40.624, 40.733, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4 }
+  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[34.067, 34.221, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4, "clear": 35.48 }
 } /* /hall-grow */;
 
 // Streifen aus HALL_GROW in einem Raum, der um org gegen den Modellraum
@@ -518,7 +523,7 @@ const HALL_GROW = /* hall-grow */ {
 function growSpec(h, org = [0, 0, 0]) {
   const G = HALL_GROW[h.id];
   if (!G) return null;
-  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4 };
+  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4, clear: G.clear ?? null };
   ['x', 'y', 'z'].forEach((a, i) => {
     for (const [p, q, f] of G[a] ?? []) {
       const z = [p - org[i], q - org[i]], mid = (z[0] + z[1]) / 2;
@@ -4791,6 +4796,12 @@ function selectRank(a, r, lo, hi) {
 // abseits des Rumpfs (Exportreste). Ein strenger Quader liesse das Schiff
 // darum über der Plattform schweben; gezählt wird deshalb vom 0,5. bis zum
 // 99,5. Perzentil je Achse. Mit pause in Häppchen (slicer).
+// box.hull reicht von dort weiter nach außen, solange die Stichprobe ohne
+// Lücke über HULL_GAP weiterläuft: Die Perzentile schneiden sonst, was
+// wenige Ecken hat und doch am Rumpf hängt (Brückenturm der Idris 11 m,
+// Flügelspitzen von 122 der 231 Schiffe über 3 m). Splitter liegen mit
+// Lücke davor (Innenteil der 325a 33 m neben dem Rumpf).
+const HULL_GAP = 3;
 async function robustBox(root, pause = noPause, unlean = null) {
   // Stichprobe je Teil wie gehabt; sortiert wird in typisierten Feldern ohne
   // Vergleichsfunktion (beim Gladius gut 0,4 s weniger beim Einfahren).
@@ -4818,20 +4829,27 @@ async function robustBox(root, pause = noPause, unlean = null) {
     }
   }
   // Nur die beiden Ränge, nicht ganz sortiert (selectRank): dieselben Werte,
-  // beim Schiff 1,7 Mio. Ecken je Achse in einem Bruchteil der Zeit
-  const q = (a) => {
+  // beim Schiff 1,7 Mio. Ecken je Achse in einem Bruchteil der Zeit. Für
+  // box.hull nur die Ränder davor und dahinter (je 0,5 %) sortiert
+  const q = (a, hull) => {
     const lo = Math.floor(k * 0.005), hi = Math.ceil(k * 0.995) - 1;
     selectRank(a, lo, 0, k - 1);
     selectRank(a, hi, lo, k - 1);
-    return [a[lo], a[hi]];
+    if (!hull) return [a[lo], a[hi]];
+    const below = a.subarray(0, lo).sort(), above = a.subarray(hi + 1, k).sort();
+    let l = a[lo], h = a[hi];
+    for (let i = below.length - 1; i >= 0 && l - below[i] <= HULL_GAP; i--) l = below[i];
+    for (let i = 0; i < above.length && above[i] - h <= HULL_GAP; i++) h = above[i];
+    return [a[lo], a[hi], l, h];
   };
   await pause();
-  const [x0, x1] = q(xs);
+  const [x0, x1, hx0, hx1] = q(xs, true);
   await pause();
-  const [y0, y1] = q(ys);
+  const [y0, y1, hy0, hy1] = q(ys, true);
   await pause();
-  const [z0, z1] = q(zs);
+  const [z0, z1, hz0, hz1] = q(zs, true);
   const box = new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
+  box.hull = new THREE.Box3(new THREE.Vector3(hx0, hy0, hz0), new THREE.Vector3(hx1, hy1, hz1));
   // Höhenbereich ohne die Neigung auf dem Fahrwerk (Lack im Objektraum, showShip)
   if (us) { await pause(); box.upright = q(us); }
   return box;
@@ -6791,14 +6809,26 @@ export async function initHangar(container, opts = {}) {
     }
     return out;
   }
-  // Zuwachs für ein Schiff: mit 1 m Rand aufs Feld, 4 m unter die Decke; je
-  // Seite in ganzen Schritten (HALL_GROW.step)
+  // Zuwachs für ein Schiff: mit 1 m Rand aufs Feld, 4 m unter die Decke
+  // (über dem Feld: HALL_GROW.clear); je Seite in ganzen Schritten (HALL_GROW.step)
   function growFor(info) {
     const G = realHall?.grow, L = realHall?.liftL, out = new THREE.Vector3();
     if (!G || !L) return out;
     const st = G.s.step, q = (need, f) => (need > 1e-6 && f > 0 ? (Math.ceil((need * f) / st - 1e-6) * st) / f : 0);
-    return out.set(q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), G.s.fhi[0]), q(info.height + 4 - realHall.room.height, G.s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), G.s.fhi[2]));
+    return out.set(q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), G.s.fhi[0]), q(info.height + 4 - (G.s.clear ?? realHall.room.height), G.s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), G.s.fhi[2]));
   }
+  // Maßstab der Hallenlampen (scaleLamps, growApply). Wächst die Halle an
+  // Streifen, bleibt sie im Maßstab 1, die sechs Lampen aber rücken um die
+  // Feldmitte so weit auseinander und hinauf, wie das Feld gewachsen ist,
+  // Reichweite und Stärke wie beim Maßstab. An ihrem Platz an der Decke
+  // standen sie 4 m über dem Brückenturm der Idris: Ihr Kegel traf nur ihn,
+  // Rumpf und Feld blieben schwarz.
+  const lampK = (d = grow.d) => {
+    const L = realHall?.liftL;
+    if (!realHall?.grow || !L) return hallRoot.scale.x;
+    const w = L.to[0] - L.from[0], l = L.to[1] - L.from[1], h = realHall.room.height;
+    return Math.max(1, (w + d.x) / w, (l + d.z) / l, (h + d.y) / h);
+  };
   // Raum der Halle mit Zuwachs d (Hälften, Höhe), Mitte wie im Manifest
   const grownRoom = (d = grow.d) => {
     const R = realHall.room;
@@ -6813,13 +6843,15 @@ export async function initHangar(container, opts = {}) {
     hallGrow.flo.value.fromArray(G.s.flo); hallGrow.fhi.value.fromArray(G.s.fhi);
     hallGrow.d.value.set(d.x, d.y, d.z, 1 / G.s.step);
     const hx = d.x / 2, hz = d.z / 2;
-    // Spiellampen (Modellraum, ihre Gruppe steht um org verschoben)
+    // Spiellampen (Modellraum, ihre Gruppe steht um org verschoben): um die
+    // Feldmitte auseinander und hinauf (lampK)
+    const kL = lampK(d);
     if (hallLamps) for (const q of hallLamps.children) {
       if (!q.isLight) continue;
       const b = (q.userData.growAt ??= q.position.clone());
-      growOff(b.x - G.org.x, b.y - G.org.y, b.z - G.org.z, growV, d);
-      q.position.copy(b).add(growV);
-      if (q.target && q.target.parent === hallLamps) q.target.position.copy(q.target.userData.growAt ??= q.target.position.clone()).add(growV);
+      q.position.copy(b).sub(G.org).multiplyScalar(kL).add(G.org);
+      if (q.target && q.target.parent === hallLamps) q.target.position.copy(q.target.userData.growAt ??= q.target.position.clone()).sub(G.org).multiplyScalar(kL).add(G.org);
+      q.intensity = q.userData.base.I * kL * kL; q.distance = q.userData.base.dist * kL;
     }
     // ausgesparter Boden unter dem Rand, Durchgang zur Werkhalle (Wand der Westnische)
     const C = G.cut;
@@ -7555,10 +7587,10 @@ export async function initHangar(container, opts = {}) {
   }
 
   // Lampen wachsen mit der Halle: Reichweite mal k, Stärke mal k², damit die
-  // Beleuchtungsstärke (I/d²) bei jedem Maßstab gleich bleibt.
+  // Beleuchtungsstärke (I/d²) bei jedem Maßstab gleich bleibt (lampK).
   function scaleLamps() {
     if (!hallLamps) return;
-    const k = hallRoot.scale.x;
+    const k = lampK();
     for (const q of hallLamps.children) if (q.isLight) { q.intensity = q.userData.base.I * k * k; q.distance = q.userData.base.dist * k; }
     // Schattenkegel nur so weit, dass er das Schiff deckt: Der volle Kegel
     // des Spiels (bis 150°) gäbe einen groben, verwaschenen Schatten.
@@ -11451,7 +11483,11 @@ void main() {
       await Promise.race([hallSettled, sleep(6000)]);
       if (my !== token) { drop(); return; }
     }
-    const info = { len: size.z, halfW: size.x / 2, height: size.y, under };
+    // Maße für Halle, Tor, Aufzug und Gerät aus box.hull, um die Mitte des
+    // Hüllquaders gemessen und ab dem Boden: Mit den Perzentilen allein ragte
+    // der Brückenturm der Idris durch die Decke.
+    const hb = box.hull ?? box, wp = wrap.position;
+    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under };
     // in die Werkhalle, in ihr von Fahrzeug zu Fahrzeug oder aus ihr hinaus
     if (toWerk || current?.werk) {
       if (await werkShow(ship, { model, mat, info, textured, hull, my, drop, lowered, covered, padDown, toWerk })) return;
