@@ -80,7 +80,9 @@ const MIN_HTML = 1;
 // Ein Jahr, wie nginx/default.conf es setzt. Darunter laesst ein Browser
 // die HTTPS-Pflicht zu frueh fallen.
 const MIN_HSTS = 31536000;
-const REFERRER_OK = new Set(['strict-origin-when-cross-origin', 'strict-origin', 'same-origin', 'no-referrer']);
+// Alles, was fremden Seiten hoechstens den Ursprung nennt (origin und
+// origin-when-cross-origin auch ueber http, dort gibt es hier nichts).
+const REFERRER_OK = new Set(['strict-origin-when-cross-origin', 'strict-origin', 'same-origin', 'no-referrer', 'origin', 'origin-when-cross-origin']);
 
 // Eine Adresse je location-Block. Die "…-probe"-Adressen gibt es nicht:
 // live endet das als 404 (ueber error_page in location /), auf der
@@ -111,6 +113,11 @@ const fehler = [];
 const warnungen = [];
 const fail = (m) => fehler.push(m);
 const warn = (m) => warnungen.push(m);
+// Mit --weich: Stichproben, die von hier aus nicht durchkamen (Netz, Bot-
+// Schutz). Sie sind keine Aussage ueber die Kopfzeilen, also kein FEHLER;
+// dafuer entfallen am Ende die Mengen-Klinken, und der Lauf sagt, dass er
+// nur teilweise geprueft hat.
+const gesperrt = [];
 
 // Wegwerf-Parameter: Cloudflare nimmt die Abfrage in den Cache-Schluessel,
 // nginx ignoriert sie fuer die location-Wahl.
@@ -173,7 +180,12 @@ let astroDazu = false;
 for (let i = 0; i < STICHPROBEN.length; i++) {
   const s = STICHPROBEN[i];
   let r;
-  try { r = await holen(s.pfad); } catch (e) { fail(`${s.pfad}: Anfrage fehlgeschlagen (${e.cause?.code ?? e.message})`); continue; }
+  try { r = await holen(s.pfad); } catch (e) {
+    const grund = `${s.pfad}: Anfrage fehlgeschlagen (${e.cause?.code ?? e.message})`;
+    if (WEICH) gesperrt.push(grund); else fail(grund);
+    continue;
+  }
+  if (WEICH && [401, 403, 429].includes(r.status)) { gesperrt.push(`${s.pfad}: Bot-Schutz (HTTP ${r.status})`); continue; }
   const h = r.headers;
   const ort = h.get('location') ?? '';
   proStatus.set(r.status, (proStatus.get(r.status) ?? 0) + 1);
@@ -208,11 +220,13 @@ for (let i = 0; i < STICHPROBEN.length; i++) {
   const skriptSrc = pol.get('script-src') ?? pol.get('default-src') ?? [];
   const attrSrc = pol.get('script-src-attr') ?? skriptSrc;
   const mitHash = (liste) => liste.some((q) => /^'sha(256|384|512)-/.test(q));
-  if (skriptSrc.includes("'unsafe-inline'"))
+  // Schluesselwoerter wie 'unsafe-inline' gelten in jeder Schreibweise.
+  const traegt = (liste, wort) => liste.some((q) => q.toLowerCase() === wort);
+  if (traegt(skriptSrc, "'unsafe-inline'"))
     fail(`${wo}: script-src traegt 'unsafe-inline' — nginx steht auf dem Rueckfall, die Hash-Dateien unter /usr/share/nginx/html/_csp/ fehlen im Image`);
   else if (!mitHash(skriptSrc)) fail(`${wo}: script-src ohne einen einzigen Hash`);
   if (!pol.has('script-src-attr')) fail(`${wo}: script-src-attr fehlt — Inline-Handler fielen auf script-src zurueck`);
-  if (attrSrc.includes("'unsafe-inline'")) fail(`${wo}: script-src-attr traegt 'unsafe-inline'`);
+  if (traegt(attrSrc, "'unsafe-inline'")) fail(`${wo}: script-src-attr traegt 'unsafe-inline'`);
   if (!pol.has('default-src')) fail(`${wo}: default-src fehlt — jede nicht eigens genannte Ladeart waere offen`);
   for (const q of skriptSrc)
     if (VERBOTEN_IN_SCRIPT_SRC.has(q.toLowerCase())) fail(`${wo}: script-src traegt ${q} — damit liefe fremder bzw. eingeschleuster Code wie eigener`);
@@ -227,8 +241,8 @@ for (let i = 0; i < STICHPROBEN.length; i++) {
   if (!/text\/html/i.test(h.get('content-type') ?? '') || r.status >= 300 && r.status < 400) continue;
   // Ohne Hash in der Liste gilt ein 'unsafe-inline' daneben: dann laeuft
   // jedes Inline-Skript, und der Befund steht schon unter [2].
-  const skriptHashModus = mitHash(skriptSrc) || !skriptSrc.includes("'unsafe-inline'");
-  const attrHashModus = mitHash(attrSrc) || !attrSrc.includes("'unsafe-inline'");
+  const skriptHashModus = mitHash(skriptSrc) || !traegt(skriptSrc, "'unsafe-inline'");
+  const attrHashModus = mitHash(attrSrc) || !traegt(attrSrc, "'unsafe-inline'");
   const html = await r.text();
   const { skripte, handler } = zerlege(html);
   htmlGeprueft++;
@@ -254,7 +268,7 @@ for (let i = 0; i < STICHPROBEN.length; i++) {
   const attrErlaubt = new Set(attrSrc);
   for (const x of handler) {
     handlerGeprueft++;
-    if (attrHashModus && (!attrErlaubt.has("'unsafe-hashes'") || !attrErlaubt.has(x.hash)))
+    if (attrHashModus && (!traegt(attrSrc, "'unsafe-hashes'") || !attrErlaubt.has(x.hash)))
       fail(`${wo}: Inline-Handler ${x.attr} an <${x.tag}> (${x.hash}) ist in script-src-attr nicht freigegeben`);
   }
 }
@@ -273,10 +287,15 @@ console.log(`    HTML-Antworten: ${htmlGeprueft}   Inline-Skripte: ${skripteGepr
 
 console.log('\nSelbstauskunft');
 console.log(`    Antworten: ${n} (Klinke ${MIN_ANTWORTEN})   HTML-Antworten: ${htmlGeprueft} (Klinke ${MIN_HTML})`);
-if (n < MIN_ANTWORTEN) fail(`nur ${n} Antworten geprueft, Klinke ${MIN_ANTWORTEN} — Ursache klaeren, nicht die Klinke senken`);
-if (htmlGeprueft < MIN_HTML) fail(`keine HTML-Antwort geprueft (Klinke ${MIN_HTML}) — [3] ist leer gelaufen`);
-if (![...proStatus.keys()].some((s) => s >= 200 && s < 300)) fail('keine 2xx-Antwort unter den Stichproben');
-if (![...proStatus.keys()].some((s) => s >= 300 && s < 400)) fail('keine Weiterleitung unter den Stichproben');
+if (gesperrt.length) {
+  console.log(`    ${gesperrt.length} Stichprobe(n) von hier aus nicht durchgekommen (--weich), Mengen-Klinken entfallen:`);
+  for (const g of gesperrt) console.log(`      ${g}`);
+} else {
+  if (n < MIN_ANTWORTEN) fail(`nur ${n} Antworten geprueft, Klinke ${MIN_ANTWORTEN} — Ursache klaeren, nicht die Klinke senken`);
+  if (htmlGeprueft < MIN_HTML) fail(`keine HTML-Antwort geprueft (Klinke ${MIN_HTML}) — [3] ist leer gelaufen`);
+  if (![...proStatus.keys()].some((s) => s >= 200 && s < 300)) fail('keine 2xx-Antwort unter den Stichproben');
+  if (![...proStatus.keys()].some((s) => s >= 300 && s < 400)) fail('keine Weiterleitung unter den Stichproben');
+}
 
 for (const w of warnungen) console.log(`    WARNUNG ${w}`);
 if (fehler.length) {
@@ -284,5 +303,9 @@ if (fehler.length) {
   for (const f of fehler) console.error(`  · ${f}`);
   console.error('');
   process.exit(1);
+}
+if (gesperrt.length) {
+  console.log(`\ncheck-headers: TEILWEISE geprueft — ${n} Antworten ohne Befund, ${gesperrt.length} Stichprobe(n) von hier aus nicht erreichbar (--weich)\n`);
+  process.exit(0);
 }
 console.log(`\ncheck-headers: ALLE ZUSICHERUNGEN ERFUELLT ✓${warnungen.length ? ` (${warnungen.length} WARNUNG)` : ''}\n`);

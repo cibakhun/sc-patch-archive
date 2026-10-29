@@ -33,7 +33,9 @@ function fakeClient(rowsByTable = {}, opts = {}) {
                   call.range = [a, b];
                   if (opts.failTable === table) return Promise.resolve({ data: null, error: { message: 'kaputt' } });
                   const all = rowsByTable[table] || [];
-                  return Promise.resolve({ data: all.slice(a, b + 1), error: null });
+                  // opts.cap: der Server liefert hoechstens so viele Zeilen je Antwort (max_rows).
+                  const end = opts.cap ? Math.min(b + 1, a + opts.cap) : b + 1;
+                  return Promise.resolve({ data: all.slice(a, end), error: null });
                 },
               };
             },
@@ -99,14 +101,23 @@ test('jede Abfrage filtert ausdruecklich auf das eigene Konto', async () => {
   for (const s of c.calls.filter((x) => x.bucket)) assert.equal(s.prefix, UID, 'nur der eigene Ordner');
 });
 
-test('liest seitenweise, bis eine Seite kuerzer ist', async () => {
+test('liest seitenweise, bis eine Seite leer ist', async () => {
   const many = Array.from({ length: PAGE + 3 }, (_, i) => ({ id: i }));
   const c = fakeClient({ direct_messages: many });
   const out = await buildAccountExport(c, { id: UID });
   assert.equal(out.tables.direct_messages_sent.length, PAGE + 3);
   const pages = c.calls.filter((x) => x.table === 'direct_messages' && x.filters[0][1] === 'sender_id');
-  assert.deepEqual(pages.map((p) => p.range), [[0, PAGE - 1], [PAGE, 2 * PAGE - 1]]);
+  assert.deepEqual(pages.map((p) => p.range), [[0, PAGE - 1], [PAGE, 2 * PAGE - 1], [PAGE + 3, 2 * PAGE + 2]]);
   assert.ok(pages.every((p) => p.order[0] === 'id' && p.order[1] === true), 'stabile Sortierung');
+});
+
+test('kappt der Server die Antworten unter PAGE, fehlt trotzdem keine Zeile', async () => {
+  const many = Array.from({ length: 1234 }, (_, i) => ({ id: i }));
+  const c = fakeClient({ direct_messages: many }, { cap: 500 });
+  const out = await buildAccountExport(c, { id: UID });
+  assert.equal(out.tables.direct_messages_sent.length, 1234);
+  assert.deepEqual(out.tables.direct_messages_sent.map((r) => r.id), many.map((r) => r.id));
+  assert.equal(out.errors, undefined);
 });
 
 test('ein Fehler landet unter errors, der Rest kommt trotzdem', async () => {

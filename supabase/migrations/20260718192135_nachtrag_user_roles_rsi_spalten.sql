@@ -20,10 +20,13 @@
 -- VERSION: frei gewaehlt, nur fuer die Reihenfolge, direkt nach der ersten
 -- Migration. Die RSI-Spalten muessen VOR 20260723182225 kommen, sonst
 -- stimmt die Spaltenreihenfolge nicht; user_roles vor 20260724143938.
--- Die Anlage kennt diese Version noch nicht. Bis sie dort eingetragen ist
--- (Hinweis im Uebergabebericht), meldet `supabase db push` sie als
--- ausstehend; eingespielt waere sie wirkungslos, weil jede Anweisung
--- vorher prueft, ob es das Objekt schon gibt.
+-- Die Anlage kennt diese Version noch nicht. Weil sie aelter ist als die
+-- letzte dort angewandte, verweigert `supabase db push` den Lauf und
+-- verlangt --include-all, das ALLE ausstehenden Dateien einspielen wuerde.
+-- Deshalb vor dem naechsten db push nur eintragen, nicht einspielen:
+--   supabase migration repair --status applied 20260718192135
+-- Eingespielt waere sie ohnehin wirkungslos, weil jede Anweisung vorher
+-- prueft, ob es das Objekt schon gibt.
 --
 -- WAS ES FUER DIE SEITE BEDEUTET: nichts, live ist alles schon da.
 --

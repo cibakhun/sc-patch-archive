@@ -60,10 +60,14 @@ async function boot(card: HTMLElement) {
     return t ? new Date(t).toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   };
 
-  const paint = async () => {
+  /** keep: Karte sichtbar lassen, weil gleich eine Meldung darin erscheint. */
+  const paint = async (keep = false) => {
     const fs = await totpFactors(supabase);
-    verified = fs ? fs.verified : [];
-    card.hidden = !(isAdmin || verified.length > 0 || (fs && fs.pending.length > 0));
+    // Liste nicht lesbar: den bisherigen Stand stehen lassen, statt
+    // "kein Geraet" zu behaupten.
+    if (!fs) { if (!card.hidden) say(C.errNet); return; }
+    verified = fs.verified;
+    card.hidden = !(keep || isAdmin || verified.length > 0 || fs.pending.length > 0);
     if (card.hidden) return;
     stateEl.textContent = verified.length === 0 ? C.off
       : verified.length === 1 ? C.on1 : (C.onN || '').replace('%n%', String(verified.length));
@@ -112,7 +116,7 @@ async function boot(card: HTMLElement) {
     if (!(await ensureAal2())) { btn.disabled = false; return; }
     let r = await removeFactor(supabase, f.id);
     if (r === 'aal' && (await askCode(supabase))) r = await removeFactor(supabase, f.id);
-    await paint();
+    await paint(true);
     if (r === 'ok') say(verified.length ? C.okRemoved : C.okRemovedLast, true);
     else say(r === 'aal' ? C.errAal : C.errNet);
   };
@@ -152,6 +156,7 @@ async function boot(card: HTMLElement) {
   });
 
   const confirmEnroll = async () => {
+    if (okBtn.disabled) return; // Enter waehrend die Bestaetigung laeuft
     say('');
     const code = normalizeCode(codeIn.value);
     if (!code) { say(C.errFormat); codeIn.focus(); return; }

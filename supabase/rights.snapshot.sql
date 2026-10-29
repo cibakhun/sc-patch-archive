@@ -3,15 +3,17 @@
 -- Liest nur den Katalog (keine Nutzerdaten) und liefert je Objekt EINE Zeile:
 --   kind | obj | anon | authenticated | public
 -- Die drei Rechtespalten sind kommagetrennt und sortiert, leer = kein Recht.
--- Gemessen wird das WIRKSAME Recht (has_*_privilege), also inklusive dessen,
--- was eine Rolle ueber PUBLIC oder eine Mitgliedschaft erbt -- nicht nur die
--- ACL-Eintraege, die eine Migration hingeschrieben hat.
+-- Fuer Tabellen, Views, Sequenzen, Funktionen und Schemas gilt das WIRKSAME
+-- Recht (has_*_privilege), also inklusive dessen, was eine Rolle ueber PUBLIC
+-- oder eine Mitgliedschaft erbt. Spalten- und Standardrechte sind die
+-- ACL-Eintraege selbst: was dort an PUBLIC geht, steht in der Spalte public,
+-- und eine Mitgliedschaft von anon/authenticated zeigen die role-Zeilen.
 --
 -- Erfasst:
 --   table/view/sequence/function  alles in den Schemas public und private
---   column                        Spaltenrechte (attacl), wo es welche gibt
+--   column                        Spaltenrechte (attacl-Eintraege), wo es welche gibt
 --   schema                        USAGE/CREATE auf public und private
---   default                       wirksame Standardrechte, die ein NEUES
+--   default                       Standardrechte (ACL-Eintraege), die ein NEUES
 --                                 Objekt von postgres bzw. supabase_admin in
 --                                 public bekaeme (global + schemabezogen)
 --   role                          Attribute und Mitgliedschaften von anon und

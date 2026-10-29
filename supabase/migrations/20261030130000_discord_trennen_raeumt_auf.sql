@@ -40,7 +40,9 @@
 -- zurueckschreibt.
 --
 -- BESTAND: Zeilen mit einer Discord-ID, zu der es keine passende Identitaet
--- mehr gibt, werden einmal genauso geloest (am 29.10.2026 gezaehlt: 0).
+-- mehr gibt, bekommen einmal Schritt 1 (Bindung loesen, is_tester = false);
+-- Rang-Angaben und Profilfelder bleiben dort stehen (am 29.10.2026 gezaehlt:
+-- 0 solche Zeilen).
 
 create or replace function public.unsync_discord_identity()
 returns trigger

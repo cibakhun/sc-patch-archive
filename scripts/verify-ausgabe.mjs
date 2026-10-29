@@ -248,9 +248,9 @@ for (const f of astroDateien) {
   const s = readFileSync(f, 'utf8');
   const fm = s.startsWith('---') ? s.slice(0, s.indexOf('\n---', 3)) : '';
   const nutzung = (v) => new RegExp(`set:html=\\{\\s*${v}\\s*\\}`, 'g');
-  const helferVars = [...fm.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*jsonForScript\s*\(/g)].map((x) => x[1]);
+  const helferVars = [...fm.matchAll(/(?:const|let|var)\s+(\w+)\s*(?::[^=;\n]+)?=\s*jsonForScript\s*\(/g)].map((x) => x[1]);
   for (const v of helferVars) if (nutzung(v).test(s)) helferStellen++;
-  const rohVars = [...fm.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*JSON\.stringify\s*\(/g)].map((x) => x[1]);
+  const rohVars = [...fm.matchAll(/(?:const|let|var)\s+(\w+)\s*(?::[^=;\n]+)?=\s*JSON\.stringify\s*\(/g)].map((x) => x[1]);
   for (const v of rohVars) {
     const re = nutzung(v);
     let m;

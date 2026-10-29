@@ -88,7 +88,7 @@ begin
   if (select count(*) from storage.buckets
        where id in ('avatars', 'banners') and public
          and allowed_mime_types = array['image/webp', 'image/png']
-         and file_size_limit <= 4194304) <> 2 then
+         and file_size_limit = case id when 'avatars' then 2097152 else 4194304 end) <> 2 then
     raise exception 'profile_images_own_folder: Buckets avatars/banners nicht wie erwartet';
   end if;
   if exists (select 1 from pg_catalog.pg_policies

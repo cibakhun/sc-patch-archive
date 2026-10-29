@@ -81,7 +81,10 @@ async function readTable(client: ExportClient, spec: ExportSpec, uid: string): P
     if (res.error) return { rows, error: res.error.message || 'Abfrage fehlgeschlagen' };
     const page = res.data ?? [];
     rows.push(...page);
-    if (page.length < PAGE) return { rows };
+    // Erst eine leere Seite heisst "fertig": kappt der Server Antworten
+    // unter PAGE (max_rows im Projekt), ist eine kurze Seite nicht die letzte.
+    if (page.length === 0) return { rows };
+    from += page.length - PAGE;
   }
   return { rows, error: `mehr als ${MAX_ROWS} Zeilen, gekuerzt` };
 }

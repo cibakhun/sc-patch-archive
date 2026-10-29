@@ -72,8 +72,8 @@ test('ohne Uploads: kein remove, Ergebnis ok', async () => {
   assert.equal(s.calls.filter((c) => c.op === 'remove').length, 0);
   assert.deepEqual(
     s.calls.map((c) => c.bucket),
-    ['avatars', 'banners'],
-    'beide Buckets werden angesehen'
+    ['avatars', 'banners', 'avatars', 'banners'],
+    'beide Buckets werden angesehen und nach dem Entfernen noch einmal geprueft'
   );
 });
 
