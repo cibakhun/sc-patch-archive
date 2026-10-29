@@ -2,7 +2,7 @@
 -- Entscheidungskarte "Sollen neue Leute sich direkt mit Discord registrieren
 -- können?" -> "Ja, mit Discord registrieren").
 --
--- Hebt D-02 auf (siehe 20260818002000_block_discord_signup.sql): der
+-- Hebt D-02 auf (siehe 20260818000243_block_discord_signup_in_handle_new_user.sql): der
 -- Discord-Knopf legt jetzt ein Konto an, wenn es zu dem Discord-Konto noch
 -- keines gibt. Der Preis, den D-02 vermeiden wollte, ist bewusst angenommen:
 -- ein Testpilot kann jetzt ein Konto haben, dessen E-Mail-Adresse von Discord

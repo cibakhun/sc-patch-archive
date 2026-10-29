@@ -6,6 +6,8 @@
 // Anzeige-Profile kommen aus der View social_profiles (nur Profile MIT Handle,
 // nur für eingeloggte Nutzer; Präsenz und Aktivität nur unter Freunden,
 // Discord-Rang nur mit verknüpftem Konto auf dem Server).
+// presence ist dort null, wenn der andere seinen Status diesem Nutzer nicht
+// zeigt (profiles.presence_visibility, Vorgabe nur Freunde): dann kein Punkt.
 // Annehmen läuft über die SECURITY-DEFINER-Funktion accept_friend_request(),
 // damit Status-Update und Freundschaft atomar zusammen passieren.
 //
@@ -295,7 +297,12 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       if (act) return { text: act, act: true };
       return { text: p.status_text || labelOf(p), act: false };
     };
+    // presence null = Status nicht freigegeben: Punkt ausblenden statt
+    // "Offline" zu behaupten (z. B. bei Anfragen von Nicht-Freunden).
     const applyDot = (dot: HTMLElement, p: Prof) => {
+      const shown = p.presence === 'online' || p.presence === 'away' || p.presence === 'offline';
+      dot.hidden = !shown;
+      if (!shown) { dot.title = ''; return; }
       const st = stOf(p);
       dot.style.background = st.color;
       dot.title = labelOf(p);

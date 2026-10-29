@@ -24,6 +24,7 @@ import { createHash } from 'node:crypto';
 import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
 import type { StageConfig } from '../../lib/hangar/stage';
 import makerLogos from '../../data/manufacturer-logos.json';
+import { jsonForScript } from '../../lib/safeJson';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -208,7 +209,7 @@ const stage = {
     shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle',
   ] as const])),
 } satisfies StageConfig;
-const payload = JSON.stringify(stage).replace(/</g, '\\u003c');
+const payload = jsonForScript(stage);
 ---
 <style is:inline>
 /* theme.css bringt die --font-*-Tokens nicht mit (jede Seite ihren Stapel,

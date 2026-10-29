@@ -11,6 +11,7 @@ import { RENDERS, stripName } from '../../lib/shipRenders';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { href } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
+import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   lang?: 'de' | 'en';
@@ -100,7 +101,6 @@ const COPY = lang === 'de'
 const registerHref = href('/account/register.html', lang);
 const accountHref = lang === 'de' ? '/de/account.html' : '/account.html';
 const homeHref = lang === 'de' ? '/de.html' : '/';
-const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
 
 <Layout
@@ -216,7 +216,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
                 <span id="ppRoleIcon" aria-hidden="true">◆</span>
                 <span id="ppRoleText"></span>
               </span>
-              <div class="pp-transmission">
+              <div class="pp-transmission" id="ppTransmission">
                 <span class="pp-transmission__tag">{COPY.transmission}</span>
                 <span class="pp-transmission__state" id="ppStatusState"></span>
                 <span class="pp-transmission__sep" id="ppStatusSep" hidden>·</span>
@@ -340,8 +340,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 
 <Attribution sources={[]} />
 
-<script type="application/json" id="ppCopyData" set:html={jsonSafe(COPY)}></script>
-<script type="application/json" id="ppShipData" set:html={jsonSafe(SHIPS)}></script>
+<script type="application/json" id="ppCopyData" set:html={jsonForScript(COPY)}></script>
+<script type="application/json" id="ppShipData" set:html={jsonForScript(SHIPS)}></script>
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 
 <style is:global>
@@ -510,6 +510,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     box-shadow: 0 0 12px currentColor;
   }
   .pp-status-dot.pulse { animation: ppStatusPulse 2s infinite; }
+  .pp-status-dot[hidden] { display: none !important; }
   @keyframes ppStatusPulse {
     0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8); }
     70%  { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
@@ -553,6 +554,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     font-family: var(--font-mono); font-size: var(--fs-6); letter-spacing: var(--ls-10);
     text-transform: uppercase; color: #8a99b8; hyphens: none;
   }
+  .pp-transmission[hidden], .pp-transmission__state[hidden] { display: none !important; }
   .pp-transmission__tag {
     color: var(--accent-media); border: 1px solid rgba(45, 212, 255, 0.3);
     padding: 0.02rem 0.4rem; font-size: var(--fs-2); letter-spacing: var(--ls-15);
@@ -821,6 +823,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   import { renderSocialLinks } from '../../lib/socials';
   import { rankOf, rankTitle } from '../../lib/rankBadge';
   import { PRESTIGE } from '../../../discord/bot/src/ranks.mjs';
+  import { escapeHtml as esc } from '../../lib/escape';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -830,9 +833,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     const COPY = JSON.parse($('ppCopyData')?.textContent || '{}');
     const SHIPS: Record<string, { n: string; i: string | null; m: string | null }> =
       JSON.parse($('ppShipData')?.textContent || '{}');
-
-    const esc = (s: string) =>
-      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
     const favPath = (kind: string, slug: string) => {
       const tpl = FAV_PATH[kind] || '/index.html';
@@ -922,27 +922,44 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       // (p.presence online/away/offline) + optionale manuelle Aktivität
       // (status_state ingame/mission überschreibt "online"). Wird per Poll live
       // aktualisiert, damit man Statuswechsel ohne Refresh sieht.
+      // presence null = der Pilot zeigt seinen Status diesem Besucher nicht
+      // (profiles.presence_visibility). Dann weder Punkt noch Wort: ein
+      // "Offline" wäre eine Aussage, die niemand gemacht hat. Der eigene
+      // Statustext bleibt, er ist öffentlich wie die Bio.
+      const statusText = p.status_text ? String(p.status_text) : '';
+      $('ppStatusText')!.textContent = statusText;
       const applyPresence = (presenceVal: string | null, activityVal: string | null) => {
-        const presence = (presenceVal === 'online' || presenceVal === 'away') ? presenceVal : 'offline';
-        const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[resolveStatusKey(presence, activityVal)]
-          || STATUS_STATES.offline;
+        const known = presenceVal === 'online' || presenceVal === 'away' || presenceVal === 'offline' ? presenceVal : null;
         const dot = $('ppStatusDot') as HTMLElement;
+        dot.hidden = !known;
+        $('ppStatusState')!.hidden = !known;
+        $('ppStatusSep')!.hidden = !(known && statusText);
+        $('ppTransmission')!.hidden = !known && !statusText;
+        if (!known) return;
+        const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[resolveStatusKey(known, activityVal)]
+          || STATUS_STATES.offline;
         dot.style.background = st.color;
         dot.style.boxShadow = `0 0 12px ${st.color}`;
         dot.classList.toggle('pulse', st.pulse);
         $('ppStatusState')!.textContent = lang === 'de' ? st.labelDe : st.labelEn;
       };
       applyPresence(p.presence, p.status_state);
-      if (p.status_text) {
-        $('ppStatusSep')!.hidden = false;
-        $('ppStatusText')!.textContent = p.status_text;
-      }
+      // public_profiles nennt den Status nur bei "Alle". Angemeldet fragt die
+      // Seite social_profiles: dort sehen ihn auch Freunde und man selbst.
+      // Scheitert das einmal (etwa Netz, abgelaufene Sitzung), faellt nur diese
+      // Abfrage auf public_profiles zurueck; die naechste fragt wieder social_profiles.
+      let presenceView: 'public_profiles' | 'social_profiles' = 'public_profiles';
+      const pollPresence = async (view = presenceView): Promise<void> => {
+        const { data, error } = await supabase.from(view).select('presence, status_state').eq('handle', handle).maybeSingle();
+        if (error && view === 'social_profiles') return pollPresence('public_profiles');
+        if (data) applyPresence(data.presence, data.status_state);
+      };
+      supabase.auth.getSession().then(({ data: auth }) => {
+        if (auth?.session) { presenceView = 'social_profiles'; pollPresence(); }
+      }).catch(() => { /* bleibt public_profiles */ });
       // Live-Präsenz: alle 40s neu abfragen (offline entsteht durch Zeitablauf,
       // kein DB-Event -> Polling statt Realtime).
-      setInterval(async () => {
-        const { data } = await supabase.from('public_profiles').select('presence, status_state').eq('handle', handle).maybeSingle();
-        if (data) applyPresence(data.presence, data.status_state);
-      }, 40000);
+      setInterval(() => void pollPresence(), 40000);
 
       // Identity
       $('ppName')!.textContent = name;

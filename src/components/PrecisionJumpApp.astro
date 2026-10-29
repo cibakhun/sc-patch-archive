@@ -14,6 +14,7 @@ import {
 } from '../data/precision-jump';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props {
   lang: 'de' | 'en';
@@ -932,7 +933,7 @@ const CLIENT = {
   </div>
 </section>
 
-<script is:inline set:html={`window.__PJUMP=${JSON.stringify(CLIENT)};`} />
+<script is:inline set:html={`window.__PJUMP=${jsonForScript(CLIENT)};`} />
 
 <script is:inline>
 (function () {
