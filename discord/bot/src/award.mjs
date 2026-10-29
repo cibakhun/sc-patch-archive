@@ -7,6 +7,7 @@ import { EmbedBuilder } from 'discord.js';
 import { levelForXp, progress } from './leveling.mjs';
 import { rankForLevel, nextRank, prestigeStars, rankBlurb } from './ranks.mjs';
 import { resolveLocale, t } from './i18n.mjs';
+import { pushRank } from './rank-sync.mjs';
 
 /**
  * Grant XP to a member and handle any resulting level-up.
@@ -36,6 +37,8 @@ async function onLevelUp(ctx, { member, guild, beforeLevel, afterLevel, row, cur
   const prevRank = rankForLevel(beforeLevel);
   const rank = await ctx.roles.sync(member, afterLevel, row.prestige, config);
   const rankChanged = rank.key !== prevRank.key;
+  // Kontoseite sofort nachziehen, nicht erst beim naechsten 5-Minuten-Lauf.
+  pushRank(ctx, guild, member.id);
   // The announcement is about this member and pings them → render in THEIR
   // language (their 🇩🇪/🇬🇧 role), the closest we get to per-user for a broadcast.
   const locale = resolveLocale(member);
