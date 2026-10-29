@@ -117,6 +117,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       ev.preventDefault(); arr[n].focus(); arr[n].click();
     });
 
+    // Sprung aus dem Cockpit (Profil-Check): Bereich öffnen und das Feld
+    // zeigen, das fehlt. Ohne Bereich (Discord-Karte am Rand) nur hinzeigen.
+    document.addEventListener('vb:tab', (e) => {
+      const d = ((e as CustomEvent).detail || {}) as { tab?: string; el?: string };
+      if (d.tab) activateSection(d.tab);
+      const el = d.el ? document.getElementById(d.el) : null;
+      if (!el) return;
+      requestAnimationFrame(() => {
+        try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView(); }
+        const f = el.matches('input,textarea,select,button') ? el : el.querySelector<HTMLElement>('input:not([type=hidden]),textarea,select,button');
+        f?.focus({ preventScroll: true });
+        el.classList.remove('ck-flash');
+        void el.offsetWidth;
+        el.classList.add('ck-flash');
+        setTimeout(() => el.classList.remove('ck-flash'), 1600);
+      });
+    });
+
     document.querySelectorAll<HTMLElement>('[data-tab-jump]').forEach(btn => {
       btn.addEventListener('click', () => activateSection(btn.dataset.tabJump));
       // Klickbare Metrik-Karten (role=button) auch per Enter/Space bedienen
@@ -585,6 +603,22 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           ovRsi.classList.toggle('no', !isVerified);
         }
         ovTxt('ovRsiSub', rsiHandle ? '@' + rsiHandle : '');
+
+        // Profil-Check im Cockpit (account-cockpit.ts): dieselben zehn Felder
+        // wie der Ring, je mit dem Ort, an dem man es ausfüllt.
+        const ck = (k: string, i: number, tab: string, el: string) => ({ k, ok: !!completeFields[i], tab, el });
+        document.dispatchEvent(new CustomEvent('vb:profile-check', { detail: [
+          ck('handle', 1, 'profile', 'pfHandle'),
+          ck('avatar', 4, 'profile', 'avatarGridPicker'),
+          ck('bio', 2, 'profile', 'pfBio'),
+          ck('status', 9, 'profile', 'pfStatusText'),
+          ck('role', 5, 'profile', 'pfRole'),
+          ck('org', 8, 'profile', 'pfOrg'),
+          ck('rsi', 6, 'security', 'pfRsiHandle'),
+          ck('discord', 7, '', 'discordLinkCard'),
+          ck('banner', 3, 'profile', 'bannerGridPicker'),
+          ck('name', 0, 'profile', 'pfName'),
+        ] }));
       };
 
       [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput].forEach(el => {
@@ -1774,6 +1808,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             else { dcAv.hidden = true; dcLogo.hidden = false; }
           }
           dcCard.classList.toggle('is-linked', !!dc);
+          document.dispatchEvent(new CustomEvent('vb:discord', { detail: { linked: !!dc } }));
           if (dc) {
             dcState.textContent = (D.dcLinkOne || 'Connected as %name%').replace('%name%', dcName(dc));
             dcBtn.hidden = true;
