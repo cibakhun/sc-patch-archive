@@ -1,7 +1,7 @@
 // Account-Dashboard-Logik — ausgelagert aus AccountDashboard.astro.
 // Wird vom <script> der Komponente importiert; Astro bündelt es mit.
 
-import { supabase, FAV_PATH } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
@@ -11,7 +11,6 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     const D = (dash as HTMLElement).dataset;
     const lang = D.lang === 'de' ? 'de' : 'en';
     const loadingEl = document.getElementById('dashLoading')!;
-    const KINDS: Record<string, string> = JSON.parse(D.kinds || '{}');
 
     // Übersicht-Panel: trägt die dynamischen i18n-Templates als data-l-* Attribute
     const ovPanel = document.getElementById('tab-panel-overview');
@@ -21,12 +20,6 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + '<small>M aUEC</small>';
       if (n >= 1000) return Math.round(n / 1000) + '<small>k aUEC</small>';
       return Math.round(n) + '<small> aUEC</small>';
-    };
-
-    const favPath = (kind: string, slug: string) => {
-      const tpl = FAV_PATH[kind] || '/index.html';
-      const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
-      return lang === 'de' ? '/de' + p : p;
     };
 
     const show = (el: HTMLElement, msg: string, ok = false) => {
@@ -1393,73 +1386,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         show(pfStatus as HTMLElement, D.msgSaved!, true);
       });
 
-      // Load Favorites
-      const favList = document.getElementById('favList')!;
-      const favEmpty = document.getElementById('favEmpty')!;
+      // Favoriten: gezeichnet (mit Filter, Suche, Rückgängig) werden sie in
+      // account-saved.ts; hier nur die Zahl und der Aktivitäts-Feed.
       const { data: favs } = await supabase
         .from('favorites')
-        .select('id, kind, slug, label')
+        .select('id, kind, slug, label, created_at')
         .order('created_at', { ascending: false });
-
-      // Schiffbild-Manifest (id -> Bild-URL) für Poster-Karten; leise/non-blocking
-      const shipThumbs: Record<string, string> = await fetch('/assets/ship-thumbs.json')
-        .then(r => (r.ok ? r.json() : {})).catch(() => ({}));
-
-      // Icon + Akzentfarbe je Favoriten-Art (Dossier-Kartendesign)
-      const FAV_ICON: Record<string, { ic: string; c: string }> = {
-        ship: { ic: 'ic-ship', c: 'var(--accent)' },
-        mineral: { ic: 'ic-gem', c: 'var(--gold)' },
-        mission: { ic: 'ic-target', c: 'var(--accent-2)' },
-        item: { ic: 'ic-item', c: '#a855f7' },
-        patch: { ic: 'ic-tag', c: 'var(--ok)' },
-        topic: { ic: 'ic-hash', c: 'var(--muted)' },
-      };
-      const renderFavs = (rows: Array<{ id: number; kind: string; slug: string; label: string | null }>) => {
-        favList.innerHTML = '';
-        favEmpty.hidden = rows.length > 0;
-        for (const f of rows) {
-          const meta = FAV_ICON[f.kind] || { ic: 'ic-star', c: 'var(--accent)' };
-          const name = f.label || f.slug;
-          const img = f.kind === 'ship' ? shipThumbs[f.slug] : null;
-          const li = document.createElement('li');
-          li.className = img ? 'fav fav--poster' : 'fav';
-          const nameBlock =
-            `<span class="fmain"><span class="fkind" style="--kc:${meta.c}">${escHtml(KINDS[f.kind] || f.kind)}</span>` +
-            `<span class="fname">${escHtml(name)}</span></span>`;
-          // Ganze Karte klickbar: Overlay-Link deckt die Karte ab (Remove-Button liegt darueber).
-          const cardLink = `<a class="fav__link" href="${favPath(f.kind, f.slug)}" aria-label="${escHtml(name)}"></a>`;
-          li.innerHTML = (img
-            ? `<span class="fav__bg" style="background-image:url('${img}')" aria-hidden="true"></span>` +
-              `<span class="fav__scrim" aria-hidden="true"></span>${nameBlock}`
-            : `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>${nameBlock}`) + cardLink;
-          const rm = document.createElement('button');
-          rm.className = 'frm';
-          rm.type = 'button';
-          rm.title = D.favRemove || 'Remove';
-          rm.setAttribute('aria-label', (D.favRemove || 'Remove') + ' — ' + name);
-          rm.innerHTML = '<svg viewBox="0 0 24 24"><use href="#ic-x"/></svg>';
-          rm.addEventListener('click', async () => {
-            rm.disabled = true;
-            const { error } = await supabase.from('favorites').delete().eq('id', f.id);
-            if (!error) {
-              li.classList.add('removing');
-              setTimeout(() => li.remove(), 260);
-              favCount = Math.max(0, favCount - 1);
-              const statFavsEl = document.getElementById('pcStatFavs');
-              if (statFavsEl) statFavsEl.textContent = String(favCount);
-              const ovFavsEl2 = document.getElementById('ovStatFavs');
-              if (ovFavsEl2) ovFavsEl2.textContent = String(favCount);
-              const navFav = document.getElementById('navFavCount');
-              if (navFav) { navFav.textContent = String(favCount); navFav.hidden = favCount <= 0; }
-              if (favCount <= 0) favEmpty.hidden = false;
-            }
-            else rm.disabled = false;
-          });
-          li.appendChild(rm);
-          favList.appendChild(li);
-        }
-      };
-      renderFavs(favs || []);
       favCount = (favs || []).length;
 
       // Echte Freundes-Anzahl aus der DB (ersetzt den frueheren localStorage-Zaehler)
@@ -1473,9 +1405,16 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
       // ---- Übersicht: Kennzahlen, Sidebar-Badges, Aktivitäts-Feed ----
       const setBadge = (id: string, n: number) => { const el = document.getElementById(id); if (!el) return; el.textContent = String(n); el.hidden = n <= 0; };
-      setBadge('navFavCount', favCount);
+      // navFavCount (Favoriten + Loadouts) setzt account-saved.ts.
       setBadge('navFriendCount', friendCount);
       const ovFavsEl = document.getElementById('ovStatFavs'); if (ovFavsEl) ovFavsEl.textContent = String(favCount);
+      document.addEventListener('vb:saved', (e) => {
+        const n = (e as CustomEvent).detail?.favs;
+        if (typeof n !== 'number') return;
+        favCount = n;
+        updateCard();
+        const el = document.getElementById('ovStatFavs'); if (el) el.textContent = String(n);
+      });
       const ovFriEl = document.getElementById('ovStatFriends'); if (ovFriEl) ovFriEl.textContent = String(friendCount);
 
       const activity: Array<{ g: string; html: string; ts: number }> = [];
@@ -1538,9 +1477,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         if (jobs[0]) activity.push({ g: 'i-hex', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
       } catch {}
 
-      // Neueste Favoriten (created_at nicht im Select → als aktuelle Ergänzungen)
+      // Neueste Favoriten
       for (const f of (favs || []).slice(0, 3)) {
-        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: 0 });
+        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: Date.parse(f.created_at) || 0 });
       }
 
       // Aktivität rendern (ts absteigend; Einträge ohne ts ans Ende)
@@ -1795,8 +1734,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           discordInput.title = dcUser ? (D.dcFromLink || '') : '';
           if (dcUser) {
             const tag = '@' + dcUser;
+            const was = discordInput.value;
             discordInput.value = tag;
             if ((profileState.discord_tag || '') !== tag) await dcSave({ discord_tag: tag });
+            // Programmatisch gesetzt löst kein input aus: Karte, Ring und
+            // Profil-Check im Cockpit sonst erst beim nächsten Tippen aktuell.
+            if (was !== tag) updateCard();
           }
           // Discord-Avatar statt Logo, sobald verbunden (kommt aus den
           // OAuth-Rohdaten, kein zusätzlicher Discord-Aufruf).

@@ -7,10 +7,10 @@
 // Rang und Leiter kommen aus derselben Datei wie im Discord-Bot
 // (discord/bot/src/ranks.mjs), damit Seite und Server nie verschiedene
 // Namen oder Farben zeigen.
-import { supabase, FAV_PATH } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { RANKS, rankForLevel, nextRank, prestigeStars } from '../../discord/bot/src/ranks.mjs';
 import { progress } from '../../discord/bot/src/leveling.mjs';
-import { encodeLayout } from '../../assets/hangar-layouts.js';
+import { layoutList, startLayouts, shipLabel, KIND_IC, favHref, hangarLink } from './account-layouts';
 
 type Copy = Record<string, any>;
 type Prof = { id: string; handle: string | null; display_name: string | null; avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null };
@@ -55,8 +55,12 @@ function boot(root: HTMLElement) {
     $('ckRankMsg')!.textContent = msg;
     const b = $('ckRankBtn') as HTMLAnchorElement;
     b.textContent = btn;
-    if (hrefTo) { b.href = hrefTo; b.target = '_blank'; b.onclick = null; }
-    else { b.removeAttribute('href'); b.removeAttribute('target'); b.onclick = (e) => { e.preventDefault(); action(); }; }
+    if (hrefTo) { b.href = hrefTo; b.target = '_blank'; b.removeAttribute('role'); b.onclick = null; }
+    else {
+      // href bleibt (sonst nicht mehr per Tab erreichbar), Klick/Enter löst die Aktion aus.
+      b.href = '#'; b.removeAttribute('target'); b.setAttribute('role', 'button');
+      b.onclick = (e) => { e.preventDefault(); action(); };
+    }
     ($('ckRankName') as HTMLElement).textContent = C.rank;
     $('ckRankIns')!.textContent = '◆';
     rankEl.style.setProperty('--rc', '#5865f2');
@@ -69,11 +73,12 @@ function boot(root: HTMLElement) {
       showCta('nolink', C.noLink, C.noLinkBtn, () => (document.getElementById('btnDiscordLink') as HTMLButtonElement | null)?.click());
       return;
     }
-    if (!row || row.in_guild === false) {
+    if (row?.in_guild === false) {
       showCta('noguild', C.noGuild, C.noGuildBtn, () => {}, invite);
       return;
     }
-    if (!row.stats_at || row.level == null) {
+    // Noch keine Zeile oder noch kein Abgleich: der Bot kommt in ≤ 5 Minuten.
+    if (!row || !row.stats_at || row.level == null) {
       showCta('waiting', C.waiting, C.waitingBtn, () => {}, invite);
       return;
     }
@@ -120,12 +125,20 @@ function boot(root: HTMLElement) {
   document.addEventListener('vb:discord', (e) => {
     dcLinked = !!(e as CustomEvent).detail?.linked;
     renderRank(rankRow);
+    renderCheck();
     if (dcLinked) loadRank();
   });
 
   /* ----------------------------------------------------- Profil-Check --- */
+  type CheckItem = { k: string; ok: boolean; tab: string; el: string };
+  let checkItems: CheckItem[] = [];
   document.addEventListener('vb:profile-check', (e) => {
-    const items = ((e as CustomEvent).detail || []) as Array<{ k: string; ok: boolean; tab: string; el: string }>;
+    checkItems = ((e as CustomEvent).detail || []) as CheckItem[];
+    renderCheck();
+  });
+  function renderCheck() {
+    // „Discord" zählt erst mit echter Verbindung, nicht mit einem getippten Namen.
+    const items = checkItems.map((i) => (i.k === 'discord' && dcLinked === false ? { ...i, ok: false } : i));
     const ul = $('ckTodo')!;
     ul.replaceChildren(...items.filter((i) => !i.ok).map((i) => {
       const li = document.createElement('li');
@@ -138,7 +151,7 @@ function boot(root: HTMLElement) {
       return li;
     }));
     root.querySelector('.ck-check')?.classList.toggle('is-done', !ul.childElementCount);
-  });
+  }
 
   /* -------------------------------------------------------- Avatare --- */
   const avatar = (p: Prof | undefined, fallback: string) => {
@@ -220,13 +233,22 @@ function boot(root: HTMLElement) {
       return li;
     }));
     $('ckChatsEmpty')!.hidden = rows.length > 0;
-    const total = [...unread.values()].reduce((a, b) => a + b, 0);
+    if (dockUnread == null) setUnread([...unread.values()].reduce((a, b) => a + b, 0));
+  };
+  // Die Gesamtzahl zählt das Dock über alle Nachrichten; die Zeilen oben
+  // sehen nur die letzten 120 und dienen bis dahin als Näherung.
+  let dockUnread: number | null = null;
+  const setUnread = (n: number) => {
     const nEl = $('ckChatsN')!;
-    nEl.textContent = String(total);
-    nEl.hidden = total <= 0;
+    nEl.textContent = n > 99 ? '99+' : String(n);
+    nEl.hidden = n <= 0;
   };
   const chatsSoon = () => { clearTimeout(chatTimer); chatTimer = window.setTimeout(loadChats, 400); };
-  document.addEventListener('vb:chat-unread', chatsSoon);
+  document.addEventListener('vb:chat-unread', (e) => {
+    dockUnread = Number((e as CustomEvent).detail) || 0;
+    setUnread(dockUnread);
+    chatsSoon();
+  });
   document.addEventListener('vb:friends', (e) => {
     const d = (e as CustomEvent).detail || {};
     for (const f of (d.friends || []) as Array<{ p?: Prof } | Prof>) {
@@ -237,56 +259,29 @@ function boot(root: HTMLElement) {
   });
 
   /* ---------------------------------------------- Gespeichertes ------- */
-  const shipLabel = (slug: string) => {
-    const t = String(slug || '').toLowerCase().split('-').filter(Boolean);
-    if (t.length > 1 && /^[a-z]{3,4}$/.test(t[0])) t.shift();
-    return t.map((w) => (/^(i|ii|iii|iv|v|vi)$/.test(w) || /^[a-z]+\d/.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1))).join(' ');
-  };
-  const hangarBase = lang === 'de' ? '/de/hangar.html' : '/hangar.html';
-  // Wie favPath in account-dashboard.ts: FAV_PATH sind Vorlagen mit %s.
-  const favPath = (kind: string, slug: string) => {
-    const tpl = (FAV_PATH as Record<string, string>)[kind] || '/index.html';
-    const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
-    return lang === 'de' ? '/de' + p : p;
-  };
-  // Wie im Bereich Favoriten: Zeichen + Farbe je Art (für Kacheln ohne Bild)
-  const KIND_IC: Record<string, { ic: string; c: string }> = {
-    ship: { ic: 'ic-ship', c: 'var(--accent)' },
-    mineral: { ic: 'ic-gem', c: 'var(--gold)' },
-    mission: { ic: 'ic-target', c: 'var(--accent-2)' },
-    item: { ic: 'ic-item', c: '#a855f7' },
-    patch: { ic: 'ic-tag', c: 'var(--ok)' },
-    topic: { ic: 'ic-hash', c: 'var(--muted)' },
-  };
-  const loadSaved = async () => {
-    const [thumbs, favRes, layRes] = await Promise.all([
-      fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
-      supabase.from('favorites').select('id, kind, slug, label, created_at').order('created_at', { ascending: false }).limit(12),
-      supabase.from('hangar_layouts').select('id, entry, updated_at').eq('deleted', false).order('updated_at', { ascending: false }).limit(12),
-    ]);
+  // Loadouts aus der Hangar-Ablage (account-layouts.ts), Favoriten aus der
+  // Tabelle; beide neu bei 'vb:layouts' bzw. 'vb:saved' (Bereich Gespeichert).
+  let thumbs: Record<string, string> | null = null;
+  type FavRow = { kind: string; slug: string; label: string | null; created_at: string };
+  let favRows: FavRow[] = [];
+  const renderSaved = () => {
     type Tile = { href: string; img: string; name: string; kind: string; ic: string; c: string; isLayout: boolean; ts: number };
-    const tiles: Tile[] = [];
-    const layouts = ((layRes.data || []) as Array<{ entry: any; updated_at: string }>).filter((l) => l.entry && l.entry.ship);
-    for (const l of layouts) {
-      const e = l.entry;
-      let code = '';
-      try { code = encodeLayout(e); } catch { /* altes Format: nur das Schiff öffnen */ }
-      tiles.push({
-        href: `${hangarBase}?ship=${encodeURIComponent(e.ship)}${code ? '&layout=' + code : ''}`,
-        img: thumbs[e.ship] || '', name: e.name || shipLabel(e.ship), kind: C.layout, ic: 'ic-ship', c: 'var(--gold)', isLayout: true, ts: Date.parse(l.updated_at) || 0,
-      });
-    }
-    for (const f of (favRes.data || []) as Array<{ kind: string; slug: string; label: string | null; created_at: string }>) {
+    const th = thumbs || {};
+    const los = layoutList();
+    const tiles: Tile[] = los.map((e) => ({
+      href: hangarLink(e, lang), img: th[e.ship] || '', name: e.name || shipLabel(e.ship), kind: C.layout,
+      ic: 'ic-ship', c: 'var(--gold)', isLayout: true, ts: e.updated || 0,
+    }));
+    for (const f of favRows) {
       const meta = KIND_IC[f.kind] || { ic: 'ic-star', c: 'var(--accent)' };
       tiles.push({
-        ic: meta.ic, c: meta.c,
-        href: favPath(f.kind, f.slug), img: f.kind === 'ship' ? thumbs[f.slug] || '' : '', name: f.label || f.slug,
-        kind: (C.kinds || {})[f.kind] || f.kind, isLayout: false, ts: Date.parse(f.created_at) || 0,
+        href: favHref(f.kind, f.slug, lang), img: f.kind === 'ship' ? th[f.slug] || '' : '', name: f.label || f.slug,
+        kind: (C.kinds || {})[f.kind] || f.kind, ic: meta.ic, c: meta.c, isLayout: false, ts: Date.parse(f.created_at) || 0,
       });
     }
     tiles.sort((a, b) => b.ts - a.ts);
     const n = $('ckStatLayouts');
-    if (n) n.textContent = String(layouts.length);
+    if (n) n.textContent = String(los.length);
     const ul = $('ckFavs')!;
     ul.replaceChildren(...tiles.slice(0, 12).map((t) => {
       const li = document.createElement('li');
@@ -315,6 +310,17 @@ function boot(root: HTMLElement) {
     }));
     $('ckFavsEmpty')!.hidden = tiles.length > 0;
   };
+  const loadSaved = async () => {
+    const [th, favRes] = await Promise.all([
+      fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
+      supabase.from('favorites').select('kind, slug, label, created_at').order('created_at', { ascending: false }).limit(12),
+    ]);
+    thumbs = th;
+    favRows = (favRes.data || []) as FavRow[];
+    renderSaved();
+  };
+  document.addEventListener('vb:layouts', () => { if (thumbs) renderSaved(); });
+  document.addEventListener('vb:saved', (e) => { if (me && (e as CustomEvent).detail?.changed) loadSaved(); });
 
   /* ----------------------------------------------------------- Start --- */
   (async () => {
@@ -323,6 +329,7 @@ function boot(root: HTMLElement) {
     if (!user) return;
     me = user.id;
     if (dcLinked === null) dcLinked = !!(user.identities || []).some((i) => i.provider === 'discord');
+    startLayouts();
     await Promise.all([loadRank(), loadChats(), loadSaved()]);
   })();
 }

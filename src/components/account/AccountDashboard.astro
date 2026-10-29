@@ -22,7 +22,7 @@ const COPY = {
     logout: 'Abmelden',
     tabProfile: 'Profil & Identität',
     tabFriends: 'Freunde & Social',
-    tabFavs: 'Favoriten',
+    tabFavs: 'Gespeichert',
     tabSecurity: 'Sicherheit & Konto',
     secProfile: 'Profil-Anpassung',
     secDesign: 'Banner & Avatar Design',
@@ -169,7 +169,7 @@ const COPY = {
     logout: 'Sign out',
     tabProfile: 'Profile & Identity',
     tabFriends: 'Friends & Social',
-    tabFavs: 'Favorites',
+    tabFavs: 'Saved',
     tabSecurity: 'Security & Account',
     secProfile: 'Profile Customization',
     secDesign: 'Banner & Avatar Design',
@@ -340,6 +340,26 @@ const CK = {
     now: 'now', min: '%n%m', hrs: '%n%h', days: '%n%d',
   },
 }[lang];
+
+// Bereich „Gespeichert" (account-saved.ts): Loadouts + Favoriten.
+const SV = {
+  de: {
+    title: 'Gespeichert', all: 'Alle', loadouts: 'Loadouts', loadout: 'Loadout', favs: 'Favoriten', search: 'Suchen', filter: 'Filter',
+    none: 'Nichts gefunden.', changes: '%n% Änderungen', change1: '1 Änderung', stock: 'Serie',
+    open: 'Im Hangar öffnen', advanced: 'Advanced Loadout', copy: 'Link kopieren', copied: 'Link kopiert',
+    remove: 'Löschen', removed: '„%s" gelöscht', undo: 'Rückgängig', failed: 'Das hat nicht geklappt.',
+    syncErr: 'Noch nicht mit dem Konto abgeglichen', empty: 'Noch nichts gespeichert.', emptyHint: 'Speichere Loadouts im Hangar oder markiere Schiffe mit dem Stern.', toHangar: 'Zum Hangar',
+    kinds: { ship: 'Schiffe', mission: 'Missionen', mineral: 'Minerale', item: 'Items', patch: 'Patches', topic: 'Themen' },
+  },
+  en: {
+    title: 'Saved', all: 'All', loadouts: 'Loadouts', loadout: 'Loadout', favs: 'Favorites', search: 'Search', filter: 'Filter',
+    none: 'Nothing found.', changes: '%n% changes', change1: '1 change', stock: 'Stock',
+    open: 'Open in hangar', advanced: 'Advanced Loadout', copy: 'Copy link', copied: 'Link copied',
+    remove: 'Delete', removed: '"%s" deleted', undo: 'Undo', failed: 'That did not work.',
+    syncErr: 'Not synced with your account yet', empty: 'Nothing saved yet.', emptyHint: 'Save loadouts in the hangar or star ships to keep them here.', toHangar: 'Go to hangar',
+    kinds: { ship: 'Ships', mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' },
+  },
+}[lang];
 ---
 <div id="dashLoading" class="acx-hint">{COPY.loading}</div>
 
@@ -414,6 +434,9 @@ const CK = {
       <g id="ic-item" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6l8.5 4v6.8L12 21.4 3.5 13.4V6.6z"/><path d="M3.5 6.6L12 11l8.5-4.4M12 11v10.4"/></g>
       <g id="ic-tag" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3.5h8L21 13.5l-7.5 7.5L3.5 11.5z"/><circle cx="7.3" cy="7.8" r="1.1"/></g>
       <g id="ic-hash" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15M4 15h15M10.5 3L8 21M16 3l-2.5 18"/></g>
+      <g id="ic-search" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></g>
+      <g id="ic-sliders" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></g>
+      <g id="ic-link" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></g>
       <g id="ic-x" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></g>
       <g id="ic-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></g>
       <g id="ic-lock" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="1"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><path d="M12 14.5v2.5"/></g>
@@ -745,11 +768,32 @@ const CK = {
 
       <!-- ============================ FAVORITEN ============================ -->
       <section id="tab-panel-favs" class="acx-tab-panel" hidden>
-        <div class="dsec"><h2>{COPY.secFavs}</h2></div>
-        <ul class="acx-favs favgrid" id="favList"></ul>
-        <div id="favEmpty" hidden>
-          <p class="acx-hint">{COPY.favsEmpty}</p>
-          <div class="acx-links"><a href={hangarHref}>{COPY.favsHangar}</a></div>
+        <div class="sv" id="sv" data-copy={JSON.stringify(SV)} data-kinds={JSON.stringify(COPY.kind)} data-lang={lang}>
+          <div class="sv-bar">
+            <h2 class="sv-h">{SV.title}</h2>
+            <div class="sv-filter" id="svFilter" role="group" aria-label={SV.filter}></div>
+            <label class="sv-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-search"/></svg>
+              <input class="inp" id="svSearch" type="search" placeholder={SV.search} aria-label={SV.search} autocomplete="off" spellcheck="false" />
+            </label>
+          </div>
+          <div class="sv-body" id="svBody">
+            <section class="sv-sec" id="svLoSec" aria-labelledby="svLoH" hidden>
+              <h3 class="sv-sh" id="svLoH"><span>{SV.loadouts}</span><b id="svLoN"></b><em class="sv-sync" id="svSync" hidden>{SV.syncErr}</em></h3>
+              <ul class="sv-grid" id="svLoadouts"></ul>
+            </section>
+            <section class="sv-sec" id="svFavSec" aria-labelledby="svFavH" hidden>
+              <h3 class="sv-sh" id="svFavH"><span>{SV.favs}</span><b id="svFavN"></b></h3>
+              <ul class="sv-grid" id="favList"></ul>
+            </section>
+            <div class="ck-empty sv-empty" id="favEmpty" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star"/></svg>
+              <p><b>{SV.empty}</b><br/>{SV.emptyHint}</p>
+              <a class="btn sm" href={hangarHref}>{SV.toHangar}</a>
+            </div>
+            <p class="sv-none" id="svNone" hidden>{SV.none}</p>
+          </div>
+          <div class="sv-toast" id="svToast" role="status" aria-live="polite" hidden><span id="svToastMsg"></span><button type="button" id="svUndo" hidden>{SV.undo}</button></div>
         </div>
       </section>
 
@@ -1018,5 +1062,6 @@ const CK = {
 <script>
 import '../../scripts/account-dashboard';
 import '../../scripts/account-cockpit';
+import '../../scripts/account-saved';
 </script>
 
