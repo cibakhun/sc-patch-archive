@@ -21,7 +21,7 @@
    Manifest src/data/hangar-assets.json. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess.
 
-   ACHTZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   NEUNZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Jeder Schluessel in HALL_DROP ist die Halle der Seite (sonst ist
         der Eintrag ein Zombie: die Halle gibt es nicht mehr).
      2  Jeder Eintrag traegt why, reach, seen und min, und seen liegt in
@@ -312,6 +312,29 @@
         bis bahn.vor in seiner Breite frei von Hallendeko, auch in
         groesseren Hallen (k bis 6, die Zonen ruecken zu ihrem
         Bezugspunkt, der Durchgang waechst mit).
+    19  Die Halle waechst um grosse Schiffe, alles darin bleibt in
+        Spielgroesse (seit 29.10.2026; Krisz: „aufzug, control room oder
+        seiten durchgang zb zur werkstatt gleich gross“, „nicht nur von mir
+        genannten sachen sondern halt alles“). HALL_GROW im Viewer (Block
+        zwischen den Marken hall-grow und /hall-grow) nennt je Achse Streifen
+        im Modellraum nach HALL_SHIFT; was hinter der Mitte eines Streifens
+        liegt, rueckt beim Wachsen als Ganzes nach aussen, Dreiecke ueber ihr
+        werden laenger. Das traegt nur, solange kein grosses Teil (ab small
+        m laengs der Achse) eine Ecke im Streifen hat: Es wuerde verzogen
+        (eine Tuer doppelt so breit). Kleinere Teile mit einer Ecke darin
+        und Leuchten ueber der Mitte fahren als Ganzes, Platten und Staebe
+        (GROW_PLATE) werden laenger: Eine Bodenplatte, die als Ganzes fuhr, liess am Ende
+        des Felds ein 20 m langes Loch (29.10.2026). Geprueft: Schluessel ist die Halle der
+        Seite und hat ein Feld; x und z je ein Streifen links (-0.5) und
+        rechts (0.5), im Feld beiderseits seiner Mitte (Schacht, Rand und Tor
+        ruecken als Ganzes), y einer (1) zwischen Boden und Decke; step ein
+        Vielfaches der Bodenkachel (GATE_FLOOR.tile); die Werkhalle samt Weg
+        und Durchgang westlich des Streifens (sie rueckt als Ganzes). Je
+        Hallenstufe und Datei der Seite (ohne Moebel, die mit ihrem
+        Bezugspunkt ruecken): 0 grosse Teile mit Ecke in einem Streifen,
+        ueber jedem Streifen mindestens KLINKE_WACHSEN Dreiecke (sonst
+        schneidet er Boden und Waende nicht mehr, und beim Wachsen klafft
+        eine Luecke).
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -446,6 +469,13 @@ const OBERGRENZE_TOR = { tris: 30000, mats: 6, bytes: 2e6 };
 // Einbau: 4 Ecken mit Leuchte, je Seite Stege und Leuchten, zwei
 // Bodenleuchten). In Ruhe immer zu sehen, also knapp halten.
 const KLINKE_RAND = { teile: 42 };
+// Wachsen der Halle ([19], seit 29.10.2026): je Streifen aus HALL_GROW (in
+// dessen Reihenfolge x, y, z) so viele Dreiecke liegen in jeder Hallenstufe
+// mindestens ueber seiner Mitte (Boden-, Wand- und Deckenplatten, Leisten,
+// Rohre, die beim Wachsen laenger werden). Gleiche Regel wie oben.
+// Gemessen 29.10.2026 an revelyork-single-lod1.glb (die Stufe, die die
+// Seite laedt): 6593/6804/2881/3582/3474.
+const KLINKE_WACHSEN = { 'revelyork-single': { quer: [6500, 6700, 2800, 3500, 3400] } };
 const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // Hallendeko ([17], seit 21.10.2026; Betreiber 21.10.2026: „wir dekorieren
 // mal bisschen das hangar, also nicht nur bisschen sondern heavy“): Zonen
@@ -3219,8 +3249,153 @@ if (WK) {
 sollIst(WK ? `Block fuer die Halle der Seite, Modelle mit Ort werk, Garage der Seite mit Massen in dist/; Masse stimmig (Tunnel bis zur Torebene der Garage, Durchgang mindestens so gross wie ihr Tor, Raum in ihrem Innenraum, Grube samt Rand im flachen Mittelfeld, Buehne in der json und als Knoten in der Buehnendatei der Seite, Startansicht vorn mittig knapp ueber Augenhoehe, mindestens ${KLINKE_WERK.decke} Stuecke unter der Decke aus dem Katalog im Satz der Seite (an der Decke darueber gemessen oder an einem Stueck darueber, ueber der Kamera, frei vom Spot, Laeufe Stueck an Stueck), Logo ueber dem Rahmen, Bahn vor Nische und Feld, Torbahn je Fluegel); Baender lueckenlos von der Rueckwand bis vors Tor, jedes mit Leuchten, mindestens ${KLINKE_WERK.baender}, einzeln nacheinander (jedes voll vor dem uebernaechsten, Spot mindestens 200 ms nach dem letzten, bis der Spot voll brennt hoechstens ${STUFEN_MAX} ms); Durchgang auf einer Nischenrueckwand, Raum ausserhalb der Halle; je Hallenstufe mindestens ${KLINKE_WERK.wand} Dreiecke Wand im Schnitt und ${KLINKE_WERK.logo} Ecken Logo; 0 Dreiecke der Halle in Tunnel, Anflug und Raum; 0 Dreiecke der Garage vor der Nischenwand; frei nimmt mindestens 1 Moebel; 0 Deko in der Flugschneise (k 1 bis 6)` : (werkRun.fahrzeuge ? 'Block fuer die Modelle mit Ort werk' : 'keine Werkhalle'),
   WK ? `${werkRun.fahrzeuge} Modelle mit Ort werk; Garage ${werkRun.garage ?? '-'}, Buehne ${werkRun.buehne ?? '-'}, Startansicht ${werkRun.ansicht ?? '-'}, Decke ${werkRun.decke ?? '-'} Stuecke (${werkRun.deckeAn ? `${werkRun.deckeAn.decke} an der Decke, auf ${werkRun.deckeAn.punkte} Punkten gemessen, ${werkRun.deckeAn.stueck} an einem Stueck darueber` : '-'}), Leuchten je Band ${werkRun.baender?.join(', ') ?? '-'} (${werkRun.stufen ? `alle ${werkRun.stufen.abstand} ms, voll nach ${werkRun.stufen.voll} ms, bis der Spot voll brennt ${werkRun.stufen.folge} ms` : '-'}), ${werkRun.garageVor ?? '-'} von ${werkRun.garageTris ?? '-'} Dreiecken vor der Wand; Wand ${werkRun.wand.join(', ') || '-'} Dreiecke, Logo ${werkRun.logo.join(', ') || '-'} Ecken; Tunnel ${werkRun.tunnel}, Anflug ${werkRun.davor}, Raum ${werkRun.raum} Dreiecke von ${werkRun.tris} geprueft; frei nimmt ${werkRun.frei} Moebel (${werkRun.freiNamen.join(', ') || '-'}); Flugschneise: ${werkRun.imWeg.size} Stuecke darin, ${werkRun.schneise} Lagen in ${werkRun.schneiseK} Massstaeben geprueft` : `${werkRun.fahrzeuge} Modelle mit Ort werk`);
 
+say('\n[19] Die Halle waechst um grosse Schiffe: ihre Streifen frei von grossen Teilen, im Feld, die Werkhalle dahinter');
+// Der Block steht im Viewer zwischen /* hall-grow */ und /* /hall-grow */ und ist JSON
+const grm = /\/\* hall-grow \*\/([\s\S]*?)\/\* \/hall-grow \*\//.exec(viewer);
+let growAll = null;
+try { growAll = grm ? JSON.parse(grm[1]) : null; } catch (e) { fail(`[19] HALL_GROW im Viewer ist kein JSON mehr (${e.message})`); }
+if (viewer && LIFT && !grm) fail('[19] der Viewer traegt keinen Block /* hall-grow */ … /* /hall-grow */ mehr: Fuer grosse Schiffe wuechse wieder die ganze Halle samt Tueren, Aufzug und Durchgang — umbenannt oder entfernt? Dann dieses Tor mitnehmen');
+growAll ??= {};
+for (const k of Object.keys(growAll).filter((k) => k !== hall?.id)) fail(`[19] HALL_GROW["${k}"]: die Seite laedt diese Halle nicht; Eintrag entfernen oder die Halle zurueck`);
+for (const k of Object.keys(KLINKE_WACHSEN).filter((k) => k !== hall?.id)) fail(`[19] KLINKE_WACHSEN["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
+const GROW = hall?.id ? growAll[hall.id] ?? null : null;
+const growRun = { zonen: 0, stufen: [], kachel: null };
+if (GROW && !LIFT) fail(`[19] HALL_GROW["${hall.id}"] ohne Schiffsfeld in HALL_LIFT: Der Viewer laesst die Halle nur mit Aufzug wachsen`);
+if (LIFT && grm && !GROW) fail(`[19] die Halle ${hall.id} hat ein Schiffsfeld, HALL_GROW keinen Eintrag: Grosse Schiffe vergroesserten wieder die ganze Halle samt Tueren und Aufzug`);
+if (GROW && LIFT) {
+  const K = KLINKE_WACHSEN[hall.id];
+  if (!K) fail(`[19] die Halle ${hall.id} hat keine KLINKE_WACHSEN in diesem Tor: gemessene Werte eintragen`);
+  const zoneOk = (z) => Array.isArray(z) && z.length === 3 && z.every(Number.isFinite) && z[0] < z[1];
+  const spec = ['x', 'y', 'z'].map((a) => GROW[a] ?? []);
+  const km = /const GATE_FLOOR = \{ re: [^\n]*?, tile: ([\d.]+) \};/.exec(viewer);
+  growRun.kachel = km ? +km[1] : null;
+  // Platten und Leuchten wie hallGrowPrep (GROW_PLATE, growLamp im Viewer)
+  const pm = /const GROW_PLATE = \{ thin: ([\d.]+), wide: ([\d.]+), rod: ([\d.]+) \};/.exec(viewer), lm = /const growLamp = \(m\) => \/(.+?)\/i\.test/.exec(viewer);
+  if (!pm || !lm) fail('[19] GROW_PLATE oder growLamp steht nicht mehr im Viewer: Ohne sie ist nicht pruefbar, welche Teile beim Wachsen laenger werden und welche als Ganzes fahren');
+  const PLATE = pm ? { thin: +pm[1], wide: +pm[2], rod: +pm[3] } : { thin: 0.2, wide: 3, rod: 2 }, LAMP = new RegExp(lm ? lm[1] : 'light|glow', 'i');
+  if (!spec.every((zs) => Array.isArray(zs) && zs.every(zoneOk)) || !(Number.isFinite(GROW.small) && GROW.small > 0) || !(Number.isFinite(GROW.step) && GROW.step > 0)) {
+    fail(`[19] HALL_GROW["${hall.id}"] braucht je Achse [[von, bis, Anteil], …], small und step (m)`);
+  } else {
+    // x und z: je Seite ein Streifen, jede Seite rueckt um die Haelfte; y: einer, die Decke steigt ganz
+    const lo = spec.map((zs) => zs.filter((z) => z[2] < 0)), hi = spec.map((zs) => zs.filter((z) => z[2] > 0)), zero = spec.flat().filter((z) => z[2] === 0);
+    const sideOk = [0, 2].every((i) => lo[i].length === 1 && hi[i].length === 1 && lo[i][0][2] === -0.5 && hi[i][0][2] === 0.5 && lo[i][0][1] < hi[i][0][0]) && !lo[1].length && hi[1].length === 1 && hi[1][0][2] === 1 && !zero.length;
+    if (!sideOk) fail(`[19] HALL_GROW["${hall.id}"]: x und z brauchen je einen Streifen mit -0.5 und einen mit 0.5 (der erste weiter innen links), y genau einen mit 1; so rechnen growFor und der Shader (hgFrac)`);
+    growRun.zonen = spec.flat().length;
+    if (!growRun.kachel) fail('[19] GATE_FLOOR.tile steht nicht mehr im Viewer: Ohne die Kachel des Bodens ist step nicht pruefbar');
+    else if (Math.abs(GROW.step / growRun.kachel - Math.round(GROW.step / growRun.kachel)) > 1e-9) fail(`[19] step ${GROW.step} m ist kein Vielfaches der Bodenkachel (${growRun.kachel} m): An der Kante jeder gestreckten Platte liefe die Textur versetzt weiter`);
+    if (sideOk) {
+      // im Feld, wie es nach HALL_SHIFT steht: Schacht, Rand und Tor liegen
+      // draussen und ruecken als Ganzes, der Boden des Felds wird laenger
+      const d = SHIFT?.field ?? 0, fx = [LIFT.from[0] + d, LIFT.to[0] + d], fz = [LIFT.from[1], LIFT.to[1]], cx = (fx[0] + fx[1]) / 2, cz = (fz[0] + fz[1]) / 2;
+      const [xl, xh, zl, zh, yz] = [lo[0][0], hi[0][0], lo[2][0], hi[2][0], hi[1][0]];
+      if (!(xl[0] > fx[0] && xh[1] < fx[1] && xl[1] < cx && xh[0] > cx)) fail(`[19] die x-Streifen (${xl[0]}..${xl[1]}, ${xh[0]}..${xh[1]}) liegen nicht im Feld (${fx[0]}..${fx[1]}) beiderseits seiner Mitte ${cx}: Schachtwand und Tor ruecken dann nicht als Ganzes`);
+      if (!(zl[0] > fz[0] && zh[1] < fz[1] && zl[1] < cz && zh[0] > cz)) fail(`[19] die z-Streifen (${zl[0]}..${zl[1]}, ${zh[0]}..${zh[1]}) liegen nicht im Feld (${fz[0]}..${fz[1]}) beiderseits seiner Mitte ${cz}: Schachtwand und Tor ruecken dann nicht als Ganzes`);
+      const R = hall.room, f0 = Number.isFinite(hall.floor) ? hall.floor : R?.center?.[1];
+      if (!(Number.isFinite(f0) && Number.isFinite(R?.height) && yz[0] > f0 + LIFT.y[1] && yz[1] < f0 + R.height)) fail(`[19] der y-Streifen (${yz[0]}..${yz[1]}) liegt nicht zwischen Boden und Decke des Raums: Die Decke stiege nicht oder der Boden mit`);
+      // Die Werkhalle rueckt als Ganzes mit der Westwand (werkU.off): alles,
+      // was der Viewer in ihr und auf dem Weg dorthin rechnet, westlich des Streifens
+      if (WK) {
+        const west = Math.max(WK.raum?.x?.[1], WK.tuer?.x, WK.tor?.x, WK.garage?.x, WK.bahn?.vor, WK.bahn?.zurueck?.[0], WK.frei?.x?.[1]) + cx;
+        if (!(west < xl[0])) fail(`[19] die Werkhalle reicht bis x ${west.toFixed(2)} (Modell), der westliche Streifen beginnt bei ${xl[0]}: Sie rueckt als Ganzes, ihr Weg und ihr Durchgang gingen auseinander`);
+      }
+      // Je Stufe und Datei wie hallGrowPrep: Ecken nach HALL_SHIFT (je Ecke),
+      // ohne Moebel; je Streifen die Dreiecke ueber seiner Mitte (werden
+      // laenger) und die Teile mit einer Ecke darin, bei Leuchten auch die
+      // ueber der Mitte (zusammenhaengend ueber Ecken auf 1 mm, je
+      // Primitive): kuerzer als small fahren als Ganzes, ausser Platten und
+      // Staeben laengs der Achse (werden laenger); groessere mit einer Ecke
+      // darin wuerden verzogen
+      const zones = [];
+      spec.forEach((zs, a) => zs.forEach(([p, q]) => zones.push({ a, p, q, mid: (p + q) / 2 })));
+      const shiftX = (x, y, z) => {
+        if (!SHIFT || y < SHIFT.y[0] || y > SHIFT.y[1] || z < SHIFT.z[0] || z >= SHIFT.z[1]) return x;
+        if (x >= LIFT.from[0] && x < LIFT.to[0] && z >= LIFT.from[1] && z < LIFT.to[1]) return x + SHIFT.field;
+        for (const [a, b, by] of SHIFT.strips) if (x >= a && x < b) return x + by;
+        return x;
+      };
+      for (const [u, doc] of [...stageDocs, ...extraDocs]) {
+        const run = { u, quer: zones.map(() => 0), starr: zones.map(() => 0), platten: zones.map(() => 0), leuchten: zones.map(() => 0), gross: zones.map(() => 0), ex: [] };
+        for (const node of doc.getRoot().listNodes()) {
+          const mesh = node.getMesh();
+          let furn = false;
+          for (let a = node; a && !furn; a = a.getParentNode()) furn = Array.isArray(a.getExtras()?.anchor);
+          if (!mesh || furn) continue;
+          const w = node.getWorldMatrix();
+          for (const prim of mesh.listPrimitives()) {
+            const P = prim.getAttribute('POSITION')?.getArray(), I = prim.getIndices()?.getArray();
+            if (!P) continue;
+            const n = P.length / 3, X = new Float64Array(n * 3);
+            for (let i = 0; i < n; i++) {
+              const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+              const wx = w[0] * x + w[4] * y + w[8] * z + w[12], wy = w[1] * x + w[5] * y + w[9] * z + w[13], wz = w[2] * x + w[6] * y + w[10] * z + w[14];
+              X[i * 3] = shiftX(wx, wy, wz); X[i * 3 + 1] = wy; X[i * 3 + 2] = wz;
+            }
+            const T = I ? I.length / 3 : n / 3, at = (t, k) => (I ? I[t * 3 + k] : t * 3 + k);
+            const mat = prim.getMaterial(), lamp = LAMP.test(mat?.getName() ?? '') || !!mat?.getEmissiveTexture();
+            const touch = zones.map(() => []);
+            for (let t = 0; t < T; t++) zones.forEach((Z, j) => {
+              let mn = Infinity, mx = -Infinity, inside = false;
+              for (let k = 0; k < 3; k++) { const v = X[at(t, k) * 3 + Z.a]; mn = Math.min(mn, v); mx = Math.max(mx, v); if (v > Z.p && v < Z.q) inside = true; }
+              const over = mn < Z.mid && mx > Z.mid;
+              if (over) run.quer[j]++;
+              if (inside || (lamp && over)) touch[j].push([t, inside]);
+            });
+            if (!touch.some((l) => l.length)) continue;
+            // Teile: Ecken auf 1 mm verschweisst, Dreiecke ueber gemeinsame Ecken
+            const key = new Map(), vid = new Int32Array(n);
+            for (let i = 0; i < n; i++) {
+              const kk = `${Math.round(X[i * 3] * 1000)}|${Math.round(X[i * 3 + 1] * 1000)}|${Math.round(X[i * 3 + 2] * 1000)}`;
+              let v = key.get(kk);
+              if (v === undefined) { v = key.size; key.set(kk, v); }
+              vid[i] = v;
+            }
+            const par = new Int32Array(key.size).map((_, i) => i);
+            const find = (a) => { while (par[a] !== a) { par[a] = par[par[a]]; a = par[a]; } return a; };
+            for (let t = 0; t < T; t++) { const a = find(vid[at(t, 0)]), b = find(vid[at(t, 1)]), c = find(vid[at(t, 2)]); par[a] = c; par[b] = c; }
+            const box = new Map();
+            for (let t = 0; t < T; t++) {
+              const r = find(vid[at(t, 0)]);
+              let B = box.get(r);
+              if (!B) box.set(r, (B = { n: 0, mn: [Infinity, Infinity, Infinity], mx: [-Infinity, -Infinity, -Infinity] }));
+              B.n++;
+              for (let k = 0; k < 3; k++) for (let a = 0; a < 3; a++) { const v = X[at(t, k) * 3 + a]; if (v < B.mn[a]) B.mn[a] = v; if (v > B.mx[a]) B.mx[a] = v; }
+            }
+            touch.forEach((list, j) => {
+              // je Teil: ob es eine Ecke im Streifen hat
+              const comps = new Map();
+              for (const [t, inside] of list) { const r = find(vid[at(t, 0)]); comps.set(r, comps.get(r) || inside); }
+              for (const [r, inside] of comps) {
+                const B = box.get(r), a = zones[j].a, d = [0, 1, 2].map((q) => B.mx[q] - B.mn[q]), e = [...d].sort((p, q) => p - q);
+                if (B.mx[a] - B.mn[a] >= GROW.small || B.n > 60000) {
+                  if (!inside) continue;
+                  run.gross[j]++;
+                  if (run.ex.length < 3) run.ex.push(`${mat?.getName()?.split('_mtl_').pop() ?? '?'} ${B.mn.map((v) => v.toFixed(1)).join(' ')} .. ${B.mx.map((v) => v.toFixed(1)).join(' ')} (${'xyz'[a]} ${zones[j].p}..${zones[j].q})`);
+                } else if (lamp) run.leuchten[j]++;
+                else if ((e[0] < PLATE.thin && e[1] >= PLATE.wide) || d[a] >= PLATE.rod * Math.max(...d.filter((_, b) => b !== a))) run.platten[j]++;
+                else run.starr[j]++;
+              }
+            });
+          }
+        }
+        growRun.stufen.push(run);
+        const isStage = stageDocs.has(u);
+        say(`    ${u}: ${zones.map((Z, j) => `${'xyz'[Z.a]} ${Z.p}..${Z.q}: ${run.quer[j]} Dreiecke darueber, ${run.platten[j]} Platten und Staebe laenger, ${run.starr[j]} Teile und ${run.leuchten[j]} Leuchten starr, ${run.gross[j]} gross`).join('; ')}`);
+        if (run.gross.some((g) => g)) fail(`[19] ${u}: ${run.gross.reduce((s, g) => s + g, 0)} grosse Teile (ab ${GROW.small} m laengs der Achse) haben eine Ecke in einem Streifen (z. B. ${run.ex.join('; ')}): Sie wuerden beim Wachsen verzogen. Halle neu gebaut oder verschoben? Die Streifen in HALL_GROW (assets/hangar-viewer.js) neu suchen, an einer Stelle ohne Ecke eines grossen Teils`);
+        if (isStage && K) zones.forEach((Z, j) => {
+          const min = K.quer?.[j];
+          if (!Number.isInteger(min)) fail(`[19] KLINKE_WACHSEN["${hall.id}"].quer[${j}] fehlt (Streifen ${'xyz'[Z.a]} ${Z.p}..${Z.q})`);
+          else if (run.quer[j] < min) fail(`[19] ${u}: ueber dem Streifen ${'xyz'[Z.a]} ${Z.p}..${Z.q} liegen nur ${run.quer[j]} Dreiecke, die Klinke verlangt ${min}: Schneidet er noch Boden, Waende und Decke? Sonst klafft beim Wachsen eine Luecke. HALL_GROW nachmessen; die Klinke nur per Commit mit Ursache senken`);
+        });
+      }
+      if (!stageDocs.size) fail('[19] HALL_GROW, aber keine Hallenstufe gemessen ([3])');
+    }
+  }
+}
+sollIst(GROW ? `x und z je zwei Streifen (-0.5/0.5), y einer (1), im Feld beiderseits seiner Mitte, Decke darueber, Werkhalle westlich; step ein Vielfaches der Bodenkachel; Platten und Leuchten nach GROW_PLATE und growLamp des Viewers; je Stufe und Datei 0 grosse Teile mit Ecke in einem Streifen, ueber jedem Streifen mindestens ${KLINKE_WACHSEN[hall?.id]?.quer?.join('/') ?? '-'} Dreiecke` : 'die Halle waechst nicht (kein Aufzug)',
+  growRun.stufen.map((r) => `${r.u}: ${r.quer.join('/')} darueber, ${r.platten.reduce((s, g) => s + g, 0)} Platten und Staebe laenger, ${r.starr.reduce((s, g) => s + g, 0)} starr, ${r.leuchten.reduce((s, g) => s + g, 0)} Leuchten starr, ${r.gross.reduce((s, g) => s + g, 0)} gross`).join('; ') || '(nichts gemessen)');
+
 say('\n[Selbstauskunft]');
-say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss   Werkhalle: ${werkRun.fahrzeuge} Modelle, Garage ${werkRun.garageTris ?? 0} Dreiecke, Leuchten je Band ${werkRun.baender?.join('/') ?? 0}, Wand ${werkRun.wand.join(', ') || 0} Dreiecke, ${werkRun.tris} Dreiecke geprueft, ${werkRun.schneise} Lagen in der Flugschneise`);
+say(`    Halle: ${hall?.id ?? '(keine)'}   Eintraege: ${entries.length}   Hallenstufen gemessen: ${measured}   Moebel: ${inHall + inFile}   Ergaenzung: ${ergTris} Dreiecke   Fuellung: ${fillTris} Dreiecke   Telefon: ${patchTris} Dreiecke   Randecken: ${seamRuns.map((r) => r.boundaryVerts).join(', ') || 0}   Aufzug: ${liftRuns.map((r) => r.moved).join(', ') || 0} Dreiecke   Schacht: ${shaftRun.parts} Teile, ${shaftRun.tris} Dreiecke, ${shaftRun.lights} Lampen, ${shaftRun.wornTris} mit Abnutzung, ${shaftRun.deco} Beiwerk   Werkstatt: ${workRun.props} Geraete, ${workRun.decals} Decals, ${workRun.items} Plaetze, ${workRun.field} Feldspuren, Spielboden ${workRun.pad.join(', ') || 0} Dreiecke   Wartungsplatz: ${dienstRun.stationen} Plaetze, ${dienstRun.glieder} Glieder, ${dienstRun.leitungen} Leitungen, ${dienstRun.spuren} Spuren, ${dienstRun.props} Requisiten, ${dienstRun.mats} Materialien, ${dienstRun.tris} Dreiecke, ${dienstRun.schichten.zeilen} Schichtzeilen, ${dienstRun.schichten.karten} Karten   Schachttor: ${gateRun.teile} Teile, ${gateRun.zellen} Zellen, ${gateRun.tris} Dreiecke, ${gateRun.mats} Materialien, ${gateRun.lacke} Palettenlacke   Rand: ${randRun.seiten} Seiten, ${randRun.stege} Stege, ${randRun.teile} Teile, ${randRun.tris} Dreiecke, ${randRun.mats} Materialien   Hallendeko: ${dekoRun.zonen} Zonen, ${dekoRun.glieder} Glieder, ${dekoRun.spuren} Spuren, ${dekoRun.arten} Arten, ${dekoRun.mats} Materialien, ${Math.round(dekoRun.tris.hoch)} Dreiecke, ${dekoRun.geprueft} gegen den Grundriss   Werkhalle: ${werkRun.fahrzeuge} Modelle, Garage ${werkRun.garageTris ?? 0} Dreiecke, Leuchten je Band ${werkRun.baender?.join('/') ?? 0}, Wand ${werkRun.wand.join(', ') || 0} Dreiecke, ${werkRun.tris} Dreiecke geprueft, ${werkRun.schneise} Lagen in der Flugschneise   Wachsen: ${growRun.zonen} Streifen, ${growRun.stufen.length} Dateien, darueber ${growRun.stufen.map((r) => r.quer.reduce((s, g) => s + g, 0)).join(', ') || 0} Dreiecke, ${growRun.stufen.map((r) => r.starr.reduce((s, g) => s + g, 0)).join(', ') || 0} starre Teile, ${growRun.stufen.map((r) => r.platten.reduce((s, g) => s + g, 0)).join(', ') || 0} Platten, ${growRun.stufen.map((r) => r.leuchten.reduce((s, g) => s + g, 0)).join(', ') || 0} Leuchten`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-hall: ${findings.length} FEHLER\n`);
