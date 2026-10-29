@@ -38,10 +38,11 @@ const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Re
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
-const HOLD: Record<string, string> = {
-  'misc-freelancer': 'seit dem Neubau mit Glanzfarbe (29.10.2026) heller Metallrumpf statt schwarz; Freigabe ist Sichturteil des Betreibers (WINDOWS 130)',
-  'rsi-constellation-andromeda': 'Rumpf nach Neuexport sauber, aber fast schwarzbraun; Freigabe ist Sichturteil des Betreibers',
-};
+// Freelancer und Andromeda sind seit dem 29.10.2026 frei: Krisz schickte
+// Bilder beider Geometrie-Fassungen (grau ohne Lack, bei der Andromeda
+// zerfallene, verschobene Rumpfteile aus dem Ausdünnen). Die Werkslack-
+// Fassungen tragen das ganze Modell.
+const HOLD: Record<string, string> = {};
 const [hallKey, hallAsset] = Object.entries(real.hall ?? {})[0] ?? [];
 // Lampen der Halle aus dem Spiel (vom Build neben das GLB gelegt, Name nach
 // der Halle, nicht nach der Datei: die LOD-Fassung teilt sie); Version aus

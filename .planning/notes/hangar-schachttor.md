@@ -398,4 +398,4 @@ Krisz, 21:31, mit zwei Bildern vom Ende des Schachts: „siehstr du wie es einfa
 
 **Nachgesehen:** dieselben Bildfolgen vorher und nachher, je 4 Zeitpunkte an Ende und Längsseite. Die Längsseite „vorher“ stammt vom Stand mit nur der Sichtbarkeitsänderung; für die Flügel ist das derselbe Ablauf wie auf staging. Bild `hangar-schachttor/schacht-nische-vorher-nachher.png` im Projektordner.
 
-**Offen** (Sichturteil, WINDOWS 95): Kommt beim Wechsel noch etwas aus dem Nichts? Lesen sich Platten und Flügel, dunkel in der Nische, als bereitliegende Teile des Tors? Die Stirnplatten fahren jetzt rund 2,7-mal so langsam wie im Spiel, die Flügel etwas schneller als zuvor.
+**Beurteilt** (WINDOWS 95): Krisz am 29.10. zum Stand auf staging: „passt“. Nichts mehr aus dem Nichts, Platten und Flügel in der Nische bleiben, die Stirnplatten fahren weiter rund 2,7-mal so langsam wie im Spiel.
