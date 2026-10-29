@@ -55,6 +55,8 @@ let done = 0;
 for (const slug of order) {
   if (done >= MAX) break;
   if (!REDO && stand[slug]?.ok && stand[slug].rawMtime === statSync(`${RAW}${slug}.glb`).mtimeMs) continue;
+  // ohne Container interior_* im Rohexport gibt es nichts zu bauen
+  if (!REDO && /kein Innenraum/.test(stand[slug]?.error ?? '')) continue;
   const before = poolFiles();
   const t0 = Date.now();
   let entry = null, size = 0, step = 0, err = null;
