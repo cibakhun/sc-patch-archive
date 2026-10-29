@@ -14,8 +14,9 @@
 // Ablauf: in beiden Buckets alles unter "<uid>/" auflisten (seitenweise,
 // Unterordner eingeschlossen), erst danach entfernen, dann noch einmal
 // auflisten. Scheitert ein Schritt oder steht danach noch etwas dort, gilt
-// das als Fehler: die Function bricht dann ab, BEVOR sie das Konto loescht. Ein Konto, das noch da ist, kann man erneut loeschen; Bilder
-// eines geloeschten Kontos findet niemand mehr ueber die Oberflaeche.
+// das als Fehler: die Function bricht dann ab, BEVOR sie das Konto loescht.
+// Ein Konto, das noch da ist, kann man erneut loeschen; Bilder eines
+// geloeschten Kontos findet niemand mehr ueber die Oberflaeche.
 
 export const USER_BUCKETS = ['avatars', 'banners'] as const;
 

@@ -54,8 +54,11 @@ $function$;
 revoke all on function public.handle_new_user() from public, anon, authenticated;
 
 -- ============================================================================
--- RUECKBAU: die Fassung aus 20261029120000_allow_discord_signup.sql erneut
--- einspielen (dort steht die Zeile
+-- RUECKBAU: die Live-Fassung von vor dieser Migration erneut einspielen (vor
+-- dem Einspielen per pg_get_functiondef sichern; im Repo
+-- 20261029120000_allow_discord_signup.sql, nach der Umbenennung auf die
+-- Live-Version 20261029121956_allow_discord_signup.sql). Sie ist diese Datei
+-- plus die Zeile
 --   nullif(split_part(coalesce(new.email, ''), '@', 1), ''),
--- vor 'Pilot').
+-- vor 'Pilot'.
 -- ============================================================================

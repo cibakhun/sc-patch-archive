@@ -4,7 +4,9 @@
 // Ordner <uid>/), dann den auth.users-Eintrag. Alle Tabellen in public mit
 // Bezug auf das Konto (profiles, favorites, Werkzeug-Daten, Freunde,
 // Nachrichten, discord_role_state, user_roles) hängen per ON DELETE CASCADE
-// an auth.users; Storage-Objekte tun das nicht, deshalb purge.ts.
+// an auth.users; Storage-Objekte tun das nicht, deshalb purge.ts. Einzige
+// Ausnahme: ein Eintrag in tester_blocklist mit Discord-ID bleibt als
+// Sperrgrund stehen, nur user_id wird leer (20261030131000).
 // Scheitert das Aufräumen der Bilder, bleibt das Konto bestehen (500), damit
 // keine Dateien eines gelöschten Kontos öffentlich zurückbleiben.
 //

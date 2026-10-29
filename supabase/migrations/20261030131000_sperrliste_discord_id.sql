@@ -249,7 +249,10 @@ $function$;
 --   alter table public.tester_blocklist alter column user_id set not null;
 --   alter table public.tester_blocklist add constraint tester_blocklist_pkey primary key (user_id);
 --   alter table public.tester_blocklist drop column id, drop column discord_user_id;
---   gate_verdict und sync_discord_identity: die Fassungen aus
+--   gate_verdict und sync_discord_identity: die Live-Fassungen von vor
+--   dieser Migration erneut einspielen (vor dem Einspielen per
+--   pg_get_functiondef sichern). Im Repo stehen sie in
 --   20260820210000_admin_schlaegt_sperrliste.sql bzw.
---   20260818000000_discord_tester_gate.sql erneut einspielen.
+--   20260818000000_discord_tester_gate.sql (nach der Umbenennung auf die
+--   Live-Versionen: 20260821071105_... bzw. 20260817192747_...).
 -- ============================================================================
