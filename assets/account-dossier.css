@@ -1031,3 +1031,155 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 /* Unterzeilen (aktive Jobs / offene Felder / RSI-Handle) einen Tick heller */
 .dsr .metric .sub,.dsr .metric .versub,.dsr .metric .rmeta{color:color-mix(in srgb,var(--text) 62%,var(--muted));font-size:var(--fs-6)}
 .dsr .metric .rmeta b{color:var(--text)}
+
+/* ================= KONTO-RAHMEN (29.10.2026) =================
+   Wie Discord: links du + Discord + Bereiche, Mitte der gewaehlte Bereich,
+   rechts die Freundesliste. Ersetzt Hero + Top-Tabs (die den ersten
+   Bildschirm fast ganz fuer das Banner verbrauchten). Breite Schirme
+   (>=1100x600): die Seite selbst scrollt nicht, nur Kaesten scrollen.
+   Handy/Tablet: alles untereinander, die Seite scrollt. */
+/* ohne Hero liegt der Rahmen direkt unter der festen Seitenleiste */
+.dsr{padding-top:var(--nav)}
+.acc{max-width:2560px;margin:0 auto;padding:14px clamp(12px,3vw,24px) 40px;display:flex;flex-direction:column;gap:14px}
+.acc-main.dpanels{padding:0;min-width:0}
+.acc-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.acc-dock{display:none}
+
+/* --- Identitaet --- */
+.acc-id{position:relative;overflow:hidden;isolation:isolate;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--surface) 88%,transparent);padding:12px 14px 14px}
+.acc-id__banner{position:absolute;inset:0 0 auto 0;height:78px;z-index:-1;background:var(--media-void) center/cover no-repeat;opacity:.6;-webkit-mask-image:linear-gradient(180deg,#000 35%,transparent);mask-image:linear-gradient(180deg,#000 35%,transparent)}
+.acc-id__row{display:flex;align-items:flex-end;gap:12px;margin-top:30px}
+.dsr .acc-id__av{width:62px;flex:none;border-radius:14px}
+.dsr .acc-id__av span{font-size:var(--fs-17)}
+.dsr .acc-id__av img{width:100%;height:100%;object-fit:cover;border-radius:13px}
+.acc-id__who{min-width:0;display:flex;flex-direction:column;gap:2px;padding-bottom:2px}
+.acc-id__name{margin:0;font-family:var(--font-display);font-weight:900;font-size:var(--fs-14);line-height:1.05;letter-spacing:var(--ls-4);color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-id__handle{font-family:var(--font-mono);font-size:var(--fs-7);color:var(--accent-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-id__status{margin-top:10px;font-size:var(--fs-7);font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-id__chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.acc-id__chips:not(:has(> :not([hidden]))){display:none}
+.acc-chip{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:3px 9px;border:1px solid var(--line-2);border-radius:999px;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);letter-spacing:var(--ls-5);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-chip b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.acc-chip svg{width:12px;height:12px;flex:none}
+.acc-chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,transparent)}
+.acc-id__bio{margin:10px 0 0;font-size:var(--fs-7);line-height:1.45;color:color-mix(in srgb,var(--text) 72%,var(--muted));display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.acc-id__since{display:block;margin-top:10px;font-family:var(--font-mono);font-size:var(--fs-3);letter-spacing:var(--ls-8);color:var(--muted)}
+
+/* --- Discord --- */
+.acc-dc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(88,101,242,.5);background:linear-gradient(135deg,rgba(88,101,242,.24),rgba(88,101,242,.07))}
+.acc-dc__logo{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:#4752c4;color:#fff}
+.acc-dc__logo svg{width:20px;height:16px;fill:currentColor}
+.dsr .acc-dc__av{width:36px;height:36px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #4752c4}
+.acc-dc__txt{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.acc-dc__txt b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:#c3c8fa}
+.acc-dc__txt span{font-size:var(--fs-8);font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsr .acc-dc .btn.ok{background:#4752c4;border-color:transparent;color:#fff}
+.dsr .acc-dc .btn.ok:hover{background:#5865f2}
+.dsr .acc-dc__off{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);color:var(--muted);padding:4px 2px}
+.dsr .acc-dc__off:hover{color:var(--hot)}
+.acc-dc .acx-status{grid-column:1/-1;margin:0;font-size:var(--fs-6)}
+
+/* --- Bereiche --- */
+.acc-nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.acc-nav::-webkit-scrollbar{display:none}
+.dsr .acc-nav .tab{flex:none;gap:10px;padding:9px 12px;border:0;border-radius:10px;color:var(--muted)}
+.dsr .acc-nav .tab:first-child{border-left:0}
+.acc-nav .tab svg{width:18px;height:18px;flex:none}
+.dsr .acc-nav .tab .lbl{font-family:var(--font-ui);font-weight:600;text-transform:none;letter-spacing:var(--ls-4);font-size:var(--fs-9)}
+.acc-nav .tab::after{display:none}
+.dsr .acc-nav .tab:hover{background:rgba(45,212,255,.06);color:var(--text)}
+.dsr .acc-nav .tab[aria-selected="true"]{background:rgba(45,212,255,.13);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.acc-nav .tab[aria-selected="true"] svg{color:var(--accent)}
+.dsr .acc-nav .tab .badge{margin-left:auto}
+
+.acc-side__foot{display:flex;gap:8px;align-items:center}
+.acc-side__foot .btn{flex:1 1 auto;justify-content:center}
+.dsr .acc-side__foot .logout{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 12px;flex:none;border:1px solid color-mix(in srgb,var(--hot) 50%,transparent);border-radius:10px;color:var(--hot);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6)}
+.dsr .acc-side__foot .logout:hover{color:#fff;background:var(--hot);border-color:var(--hot)}
+.acc-side__foot .logout svg{width:16px;height:16px}
+
+/* --- Bereiche in der Mitte: ruhiger, weniger Text --- */
+/* detail.css gibt jeder <section> 3-5rem Polsterung: die Bereiche sind sections */
+.dsr .acc-main > .acx-tab-panel{padding:0}
+/* Die große Live-Karte entfaellt: links die Identitaet aktualisiert sich beim
+   Tippen schon live, und "Öffentliches Profil" zeigt die ganze Karte. */
+.acc-main .livecard{display:none}
+.acc-main .form2{grid-template-columns:minmax(0,1fr)}
+.acc-main .pf-avatar-row{grid-template-columns:minmax(0,1fr)}
+.acc-main .sp-tester .hint{display:none}
+.dsr .acc-main .sp-tester label{justify-content:flex-start}
+.dsr .acc-main .rsi-verified-indicator{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.acc-main .dsec{margin:0 0 12px}
+.acc-main .dsec h2{font-size:var(--fs-13);letter-spacing:var(--ls-4)}
+.acc-main .seccard .sc-desc{display:none}
+.acc-main #testerOverviewCard{order:1}
+.acc-main .danger-card{order:2}
+.acc-main .field label .hint{display:none}
+.acc-main .pf-grid2{grid-template-columns:repeat(auto-fit,minmax(min(12rem,100%),1fr))}
+.acc-main .favgrid{grid-template-columns:repeat(auto-fill,minmax(min(15rem,100%),1fr))}
+
+/* --- Freundesleiste rechts --- */
+.fd{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--surface) 88%,transparent);overflow:hidden}
+.fd-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 12px 10px 16px;border-bottom:1px solid var(--line-soft)}
+.fd-head h2{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--text)}
+.fd-count{margin-left:4px;color:var(--muted);font-weight:600}
+.dsr .fd-add{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:10px;color:var(--accent)}
+.dsr .fd-add:hover{background:rgba(45,212,255,.12);border-color:var(--accent)}
+.fd-add svg{width:16px;height:16px}
+.dsr .fd-req{display:flex;align-items:center;gap:9px;margin:10px 10px 0;padding:8px 10px;border:1px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:10px;background:color-mix(in srgb,var(--gold) 13%,transparent);color:var(--gold);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-8);text-align:left}
+.dsr .fd-req:hover{background:color-mix(in srgb,var(--gold) 22%,transparent)}
+.fd-req__n{min-width:22px;height:22px;padding:0 6px;display:grid;place-items:center;border-radius:11px;background:var(--gold);color:var(--ink);font-weight:700;font-size:var(--fs-5)}
+.fd-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 8px 12px;scrollbar-width:thin}
+.fd-sec{margin:12px 8px 6px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.fd-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:10px;color:var(--text)}
+.fd-row:hover{background:rgba(45,212,255,.08)}
+.fd-av{position:relative;flex:none;width:38px;height:38px;display:grid;place-items:center;border:2px solid;border-radius:50%;background:var(--bg-2);font-size:var(--fs-10)}
+.dsr .fd-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.fd-dot{position:absolute;right:-4px;bottom:-4px;width:15px;height:15px;border-radius:50%;border:3px solid var(--surface)}
+.fd-dot.pulse{animation:pulse 1.9s ease-in-out infinite}
+.fd-txt{min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.fd-txt b{font-weight:600;font-size:var(--fs-8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-txt small{font-size:var(--fs-5);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-row.is-off .fd-av{opacity:.5}
+.fd-row.is-off .fd-txt b{color:var(--muted)}
+.fd-empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 16px;color:var(--muted);font-size:var(--fs-8);text-align:center}
+.fd-empty svg{width:40px;height:40px;opacity:.5}
+@media(prefers-reduced-motion:reduce){.fd-dot.pulse{animation:none}}
+
+/* --- Handy/Tablet: untereinander; Abmelden ans Ende statt mitten hinein,
+   die Bereichsleiste klebt beim Scrollen oben --- */
+@media (max-width:1099.98px), (max-height:599.98px){
+  .acc-side{display:contents}
+  .acc-id,.acc-dc{order:0}
+  .acc-nav{order:1;position:sticky;top:var(--nav);z-index:5;margin:0 -4px;padding:6px 4px;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .acc-main{order:2}
+  .acc-side__foot{order:3;margin-top:8px}
+}
+@media (max-width:700px){
+  .acc-main .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .acc-main .metrics > :last-child:nth-child(odd){grid-column:1/-1}
+}
+
+/* --- Breite Schirme: ein Bildschirm, nur Kaesten scrollen --- */
+@media (min-width:1100px) and (min-height:600px){
+  .dsr{box-sizing:border-box;height:100dvh;min-height:0;overflow:hidden}
+  .acc{height:100%;display:grid;grid-template-columns:clamp(15rem,15vw,24rem) minmax(0,1fr) clamp(15rem,14.5vw,23rem);gap:clamp(12px,1vw,20px);padding:clamp(12px,1vw,20px) clamp(14px,1.4vw,28px)}
+  .acc-side{min-height:0;overflow-y:auto;scrollbar-width:none}
+  .acc-side::-webkit-scrollbar{display:none}
+  .acc-nav{flex-direction:column;overflow:visible}
+  .dsr .acc-nav .tab{padding:10px 12px}
+  .acc-side__foot{margin-top:auto}
+  .acc-dock{display:flex;flex-direction:column;min-height:0}
+  .acc-main{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin}
+  .acc-main > .acx-tab-panel{min-height:100%}
+  .acc-main .metrics{gap:12px}
+  .dsr .acc-main .metric{min-height:0}
+  /* Profil: drei Spalten nebeneinander (Identitaet | Status | Aussehen) */
+  .acc-main #profileForm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto 1fr;gap:14px;align-items:start}
+  .acc-main #profileForm .subpanel + .subpanel{margin-top:0}
+  .acc-main .sp-id{grid-column:1;grid-row:1}
+  .acc-main .sp-status{grid-column:2;grid-row:1 / span 2}
+  .acc-main .sp-design{grid-column:3;grid-row:1 / span 2}
+  .acc-main .sp-tester{grid-column:1;grid-row:2}
+  .acc-main .seccols{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
