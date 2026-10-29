@@ -9,6 +9,7 @@ import { href } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
 import { REFINERY, stationsBySystem } from '../../lib/refinery';
+import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   lang: 'de' | 'en';
@@ -119,7 +120,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 <div id="rfd-loading" class="acx-hint" style="text-align:center">{COPY.loading}</div>
 
 <div id="rfd" hidden data-lang={lang} data-login={loginHref}>
-  <script type="application/json" id="rfd-copy" is:inline set:html={JSON.stringify(COPY)} />
+  <script type="application/json" id="rfd-copy" is:inline set:html={jsonForScript(COPY)} />
 
   <div class="rfd-top">
     <a class="rfd-back" href={miningHref}>{COPY.backToMining}</a>

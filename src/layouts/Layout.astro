@@ -9,6 +9,7 @@ import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui'
 import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
 import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props {
   title: string;
@@ -199,7 +200,7 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={jsonForScript({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: SITE.name,
@@ -218,7 +219,7 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify({
+      set:html={jsonForScript({
         '@context': 'https://schema.org',
         '@type': 'ItemPage',
         name: itemPage.name ?? title,

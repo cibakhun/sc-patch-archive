@@ -24,6 +24,7 @@ import Layout from '../layouts/Layout.astro';
 import { versioned } from '../lib/assetVersion';
 import { SITE } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
+import { jsonForScript } from '../lib/safeJson';
 
 export interface Crumb {
   label: string;
@@ -116,9 +117,9 @@ const crumbLd = {
   itemPage={{ modified, name: ldName }}
 >
   <link slot="head" rel="stylesheet" href={cssHref} />
-  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(crumbLd)} />
+  <script slot="head" type="application/ld+json" is:inline set:html={jsonForScript(crumbLd)} />
   {jsonLd.map((node) => (
-    <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(node)} />
+    <script slot="head" type="application/ld+json" is:inline set:html={jsonForScript(node)} />
   ))}
   <style is:inline>
 :root{--bg:#0d0c14;--bg-2:#14121c;--surface:#17151f;--surface-2:#1e1b29;--accent:#A78BFA;--accent-2:#FFB84D;--hot:#A78BFA;--text:#eef1f5;--muted:#9d9cb0;--line:rgba(167,139,250,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(167,139,250,.28);--ink:#0d0c14;--maxw:1080px;}

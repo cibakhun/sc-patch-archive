@@ -177,8 +177,8 @@
   var type = 'all';
 
   function esc(s) {
-    return s.replace(/[&<>"]/g, function (ch) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch];
+    return s.replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
     });
   }
   // Highlight every occurrence of the query. Text comes from our own build, but

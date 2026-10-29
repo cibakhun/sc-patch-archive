@@ -55,6 +55,7 @@ import { blueprintsPerMineral, craftingPath } from '../lib/miningLinks';
 import { buildMiningShips } from '../lib/miningShips';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
+import { jsonForScript } from '../lib/safeJson';
 
 /* Titelstreifen der Seite ist ins Gehaeuse gewandert (15.08.2026): das Kopfband
    der Grafik traegt ihn, und dadurch faellt der separate `.hero` weg — genau
@@ -1894,5 +1895,5 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   </div>{/* .wb__chassis */}
 </section>
 
-<script type="application/json" id="wb-data" set:html={JSON.stringify(payload)}></script>
+<script type="application/json" id="wb-data" set:html={jsonForScript(payload)}></script>
 <script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>

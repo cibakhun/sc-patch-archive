@@ -15,6 +15,7 @@ import { ITEM_UI } from '../i18n/itemText';
 import { useTranslations } from '../i18n/ui';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props { lang?: 'de' | 'en' }
 const { lang = 'en' } = Astro.props;
@@ -1031,6 +1032,6 @@ const JS_T = ITEM_UI[lang];
 :root[data-theme="light"] .uif-setbadge.is-ok{color:#026a35}
 </style>
 
-<script is:inline set:html={`window.__UIF=${JSON.stringify({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
+<script is:inline set:html={`window.__UIF=${jsonForScript({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />
 <script is:inline src={appJs}></script>
 <script is:inline defer src={backJs}></script>
