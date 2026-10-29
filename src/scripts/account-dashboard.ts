@@ -6,6 +6,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
   import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
+  import { buildAccountExport, exportFileName, type ExportClient } from '../lib/account-export';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -1636,6 +1637,47 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           delBtn.disabled = false;
         }
       });
+
+      // Meine Daten herunterladen (Art. 15/20 DSGVO): liest mit der eigenen
+      // Sitzung unter RLS alles, was das Konto gespeichert hat, und gibt es
+      // als JSON-Datei aus (lib/account-export.ts). Kein Server-Code noetig.
+      const exportBtn = document.getElementById('exportBtn') as HTMLButtonElement | null;
+      const exportStatus = document.getElementById('exportStatus');
+      if (exportBtn && exportStatus) {
+        exportBtn.addEventListener('click', async () => {
+          exportStatus.hidden = true;
+          exportBtn.disabled = true;
+          exportBtn.textContent = exportBtn.dataset.busy || '';
+          try {
+            const { data: fresh, error: uErr } = await supabase.auth.getUser();
+            if (uErr || !fresh.user || fresh.user.id !== user.id) throw uErr || new Error('session');
+            // ExportClient ist die schmale Form, die account-export.ts braucht;
+            // der Vergleich mit den generischen supabase-js-Typen ist tsc zu
+            // tief, darum der Umweg ueber unknown.
+            const data = await buildAccountExport(
+              supabase as unknown as ExportClient,
+              fresh.user as unknown as { id: string } & Record<string, unknown>,
+            );
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = exportFileName(lang);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10_000);
+            if (data.errors) show(exportStatus as HTMLElement, D.msgExportPartial || '');
+            else show(exportStatus as HTMLElement, D.msgExportDone || '', true);
+          } catch (err) {
+            console.warn('data export failed', err);
+            show(exportStatus as HTMLElement, D.msgNet!);
+          } finally {
+            exportBtn.disabled = false;
+            exportBtn.textContent = exportBtn.dataset.idle || '';
+          }
+        });
+      }
 
       // Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten. Die
       // Rechtepruefung sitzt IN tester_overview() (siehe Migration), aber der
