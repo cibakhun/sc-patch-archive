@@ -55,7 +55,10 @@ const NGINX_GATE_JS = arg('--gate-js', 'nginx/gate.js');
 const DIST = arg('--dist', 'dist');
 
 // Untergrenzen. Duerfen nur nach OBEN wandern (Grundsatz 5).
-// Stand 29.10.2026: 12 Weiterleitungen, 18.222 Seiten.
+// Stand 29.10.2026: 12 Weiterleitungen (mit dem Tor vor /hangar/), 18.222
+// Seiten. main traegt bis zum naechsten Zusammenfuehren mit staging eine
+// eigene Fassung dieser Datei mit 11 (dort fehlt das Hangar-Tor noch); mit
+// dem Zusammenfuehren kommen Tor und Klinke gemeinsam an.
 const MIN_WEITERLEITUNGEN = 12;
 const MIN_SEITEN = 17000;
 

@@ -20,7 +20,16 @@
 // (rk_…) mit genau einem Recht: Checkout Sessions schreiben. Ein abgegriffener
 // Secret Key koennte Rueckerstattungen ausloesen und Auszahlungen umleiten —
 // dieser kann eine Bezahlseite anlegen und sonst nichts.
-import Stripe from 'npm:stripe@^22';
+//
+// Versionen EXAKT gepinnt (vorher npm:stripe@^22): ein Bereich
+// loest beim naechsten Deploy auf die dann neueste Version auf, und diese
+// Function haelt Geheimnisse. stripe 22.4.0 war am Tag des Live-Deploys
+// (03.08.2026) die neueste 22.x (22.5.0 kam am 10.08.); ihre eingebaute
+// API-Version ist genau API_VERSION unten (ab 22.6.0 ist es 2026-08-26.dahlia,
+// dann waere API_VERSION ein Typfehler). stripe hat keine eigenen
+// Abhaengigkeiten, der Pin friert es also ganz ein. Anheben nur bewusst und
+// zusammen mit API_VERSION.
+import Stripe from 'npm:stripe@22.4.0';
 
 /** Gepinnt: ohne feste Version aendert Stripe das Antwortformat unter uns weg. */
 const API_VERSION = '2026-07-29.dahlia';

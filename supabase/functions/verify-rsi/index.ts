@@ -3,109 +3,44 @@
 //
 // Warum Edge Function: verse-base.com ist eine statische Site (Astro-Build in
 // Docker, ausgeliefert per nginx auf Coolify; Cloudflare macht nur DNS/Proxy/
-// TLS davor). Es gibt KEIN Cloudflare-Pages-Projekt — serverseitiger Code kann
-// nur hier laufen, analog zu den bestehenden Functions 'delete-account' und
-// 'register'.
+// TLS davor). Serverseitiger Code kann nur hier laufen, analog zu
+// 'delete-account' und 'register'. Browser-Aufrufe auf robertsspaceindustries.com
+// blockiert dort Cloudflare (CORS/Bot-Schutz), daher der Abruf von hier aus.
 //
-// Ablauf:
-//   1. Server-zu-Server GET auf robertsspaceindustries.com/citizens/<handle>
-//      (Browser-Clients werden dort von Cloudflare CORS/Bot-Protection blockiert).
-//   2. Prueft, ob <rsi_code> im HTML der Profilseite (Bio) enthalten ist.
-//   3. Die User-ID kommt aus dem Session-JWT (Authorization-Header), NIEMALS
-//      aus dem Request-Body. Persistiert wird mit der Service Role — ein
-//      DB-Trigger (supabase/migrations/*guard_rsi_verified.sql) verbietet
-//      Client-Writes auf rsi_verified=true, die Persistierung MUSS daher
-//      serverseitig erfolgen.
+// Die Logik steht in handler.js (reines JavaScript, ohne Deno-Abhaengigkeit,
+// geprueft von tests/e2e/verify-rsi.test.js). Diese Datei reicht nur Umgebung,
+// fetch und Log hinein. Keine Fremdbibliothek: Sitzung und RPCs laufen ueber
+// fetch gegen /auth/v1 und /rest/v1, wie supabase-js es auch taete.
 //
-// Aufruf: supabase.functions.invoke('verify-rsi', { body: { rsi_handle, rsi_code } })
-// (supabase-js haengt das Session-JWT automatisch an; die Function verlangt
-// gueltiges JWT — Supabase-Gateway-Default.)
+// Aufrufe (supabase.functions.invoke haengt das Session-JWT an; das Gateway
+// verlangt es, verify_jwt = true ist der Standard, siehe supabase/config.toml):
+//   { action: 'challenge', rsi_handle }  -> { rsi_handle, code, confirmed, expires_at }
+//   { action: 'verify', rsi_handle? }    -> { verified, persisted, rsi_handle, revoked?, cached? }
+//   { rsi_handle, rsi_code }             -> altes Dashboard (main bis zum naechsten
+//                                           Release), siehe RSI_LEGACY_FLOW
+//
+// Datenbank: Migration 20261030120000_rsi_challenge.sql (private.rsi_challenges,
+// private.rsi_attempts, public.rsi_rate_ok/rsi_challenge_issue/rsi_challenge_get/
+// rsi_challenge_result, nur service_role). Sie muss VOR diesem Deploy live sein,
+// sonst antwortet jede Anfrage mit 500 (Abzeichen nimmt die Function dabei keine).
+//
+// DEPLOY-HINWEIS
+//   * Dateien: index.ts und handler.js (beide!), Einstieg index.ts,
+//     verify_jwt = true (wie live v5; die Function steht bewusst nicht in
+//     supabase/config.toml).
+//   * Secrets: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY stellt
+//     Supabase selbst. RSI_LEGACY_FLOW=1 setzen, solange main noch das alte
+//     Dashboard ausliefert (Code aus dem Browser); entfernen, sobald main das
+//     neue Dashboard hat. Ohne den Schalter bekommt das alte Dashboard bei einer
+//     ERSTpruefung 409 und zeigt "Server nicht erreichbar"; Nachpruefungen
+//     schon verifizierter Konten laufen in beiden Faellen.
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from './handler.js';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const { rsi_handle, rsi_code } = await req.json();
-
-    if (!rsi_handle || !rsi_code) {
-      return new Response(
-        JSON.stringify({ verified: false, error: 'rsi_handle and rsi_code are required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    // Server-to-server fetch of the RSI profile (bypasses browser blocks)
-    const rsiUrl = `https://robertsspaceindustries.com/citizens/${encodeURIComponent(rsi_handle)}`;
-    const rsiRes = await fetch(rsiUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9'
-      }
-    });
-
-    if (!rsiRes.ok) {
-      return new Response(
-        JSON.stringify({ verified: false, error: `RSI Profile HTTP ${rsiRes.status}` }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-      );
-    }
-
-    const html = await rsiRes.text();
-    const verified = html.includes(rsi_code);
-
-    // Persistierung: User aus dem JWT aufloesen, mit Service Role schreiben.
-    let persisted = false;
-    const authHeader = req.headers.get('Authorization') ?? '';
-    if (authHeader) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-      const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-
-      const userClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } }
-      });
-      const { data: { user } } = await userClient.auth.getUser();
-
-      if (user) {
-        const supabaseAdmin = createClient(
-          supabaseUrl,
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
-
-        const { error: upsertError } = await supabaseAdmin.from('profiles').upsert({
-          id: user.id,
-          rsi_handle,
-          rsi_code,
-          rsi_verified: verified,
-          updated_at: new Date().toISOString()
-        });
-        persisted = !upsertError;
-      }
-    }
-
-    return new Response(
-      JSON.stringify({
-        verified,
-        persisted,
-        rsi_handle,
-        message: verified ? 'RSI Account successfully verified!' : `Code "${rsi_code}" not found in RSI bio.`
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
-  } catch (err: any) {
-    return new Response(
-      JSON.stringify({ verified: false, error: err.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
-  }
-});
+Deno.serve(
+  createHandler({
+    env: (name: string) => Deno.env.get(name),
+    fetch: (input: string, init?: RequestInit) => fetch(input, init),
+    log: (...args: unknown[]) => console.error(...args),
+  }),
+);

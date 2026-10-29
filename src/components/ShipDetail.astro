@@ -15,6 +15,7 @@ import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
 import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
+import { jsonForScript } from '../lib/safeJson';
 import type { Visuals } from '../lib/shipVisuals';
 import { pickHero } from '../lib/shipRenders';
 import {
@@ -2158,7 +2159,7 @@ span.sd__ref{color:var(--muted)}
                 class={i === 0 ? 'is-active' : undefined}
                 alt={g.paint ? altPaint(g.paint) : altView}
                 referrerpolicy="no-referrer"
-                onerror="if(this.srcset){this.removeAttribute('srcset');return}if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb')}else{this.dataset.bad='1';this.style.display='none'}"
+                data-img-fail="chain"
               />
             ))
           ) : (
@@ -2730,7 +2731,7 @@ span.sd__ref{color:var(--muted)}
             <figure class="sd__paint">
               <div class="im">
                 <img src={p.image} alt={altPaint(p.name)} loading="lazy" referrerpolicy="no-referrer"
-                  onerror="this.closest('figure').style.display='none'" />
+                  data-img-fail="figure" />
               </div>
               <figcaption class="nm">{p.name}</figcaption>
             </figure>
@@ -2797,9 +2798,9 @@ span.sd__ref{color:var(--muted)}
       type="application/json"
       id="holodata"
       is:inline
-      set:html={JSON.stringify(
+      set:html={jsonForScript(
         holoData ?? { url: holoUrl, mesh: null, ax: null, ports: [], groups: [], defaultOn: [], kinds: {}, grpLabels: {}, icons: {}, masse: null, loc, finder: L('/item-finder.html') }
-      ).replace(/</g, '\\u003c')}
+      )}
     />
   )}
 

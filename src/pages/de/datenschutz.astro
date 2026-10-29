@@ -152,6 +152,7 @@ body{font-family:var(--font-body)}
       der Pfad, ohne angehängte Parameter und Sprungmarken), der Seitentitel, die Verweisquelle,
       Bildschirmgröße und Browsersprache, Gerätetyp, Browser und Betriebssystem, das aus der
       IP-Adresse abgeleitete Land mit Region und Stadt sowie Zeitpunkte und Verweildauer.
+      Konto- und Anmeldeseiten zählt Umami gar nicht.
       <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert.</strong> Um
       Besuche auseinanderzuhalten, bildet der Server eine Prüfsumme aus IP-Adresse, Browserkennung
       und einem Geheimwert, der jeden Monat wechselt; die IP-Adresse selbst wird nicht gespeichert.
@@ -168,8 +169,9 @@ body{font-family:var(--font-body)}
       <p class="note">
         Die Entscheidung merkt sich der technische Cookie <code>vb_noanalytics</code> in genau
         diesem Browser und nur für diese Adresse; sein ganzer Inhalt ist eine 1 oder eine 0, und er
-        gilt 400 Tage. Er wirkt ab dem nächsten Seitenaufruf und betrifft beide Dienste: der Server
-        erlaubt die Messskripte dann nicht mehr, sie laden gar nicht erst. Löschst du deine
+        gilt 400 Tage. Er wirkt ab dem nächsten Seitenaufruf und betrifft beide Dienste: das Cloudflare-Skript
+        darf dann nicht mehr laden, und die Seite schickt nichts mehr an unseren Messserver, weil der
+        Browser auch die Verbindung dorthin sperrt. Löschst du deine
         Cookies, musst du hier erneut widersprechen. Für Administrator-Konten setzt die Seite
         denselben Cookie nach der Anmeldung von selbst, außer du hast in diesem Browser zuvor
         „Wieder mitzählen“ gewählt; dieser Browser wird dann ab dem folgenden Aufruf nicht mehr
@@ -222,8 +224,9 @@ body{font-family:var(--font-body)}
       Bist du angemeldet, liegen in deinem Browser außerdem deine Sitzung (Zugangs- und
       Erneuerungsschlüssel samt Konto-Angaben wie E-Mail-Adresse und gegebenenfalls den Angaben von
       Discord), für die Dauer des Tabs deine Konto-Rolle samt Konto-ID (höchstens alle fünf Minuten
-      neu vom Server abgefragt), eine Kopie deines Profils und, sobald du das Konto-Dashboard einmal
-      geöffnet hast, dein <a href="#rsi">RSI-Code</a>, auch wenn du nie ein Handle verifizierst.
+      neu vom Server abgefragt) und eine Kopie deines Profils (nach einer erfolgreichen
+      <a href="#rsi">RSI-Prüfung</a> samt Prüfcode). Während einer Anmeldung mit Discord liegt dort
+      außerdem kurz ein einmaliger Prüfwert (PKCE), den die Rückkehr zur Website verbraucht.
       Crafting-Planer und „Im Besitz“-Markierungen,
       Flotte und Hangar-Layouts speichern ihre Inhalte dann zusätzlich in deinem
       <a href="#accounts">Benutzerkonto</a>, damit sie auf allen Geräten bereitstehen, und dieser
@@ -347,13 +350,17 @@ body{font-family:var(--font-body)}
         Konto mit Discord an, stammt die E-Mail-Adresse von Discord, und es gibt zunächst kein
         Passwort. Setzt du später im Konto-Dashboard eins, wird es ebenso nur als Hash gespeichert,
         und du kannst dich dann auch mit E-Mail-Adresse und Passwort anmelden.</li>
+      <li><strong>Zwei-Faktor-Anmeldung</strong>, falls eingerichtet: der Name, den du dem
+        Gerät gibst, das gemeinsame Geheimnis der Authenticator-App und die Zeitpunkte von
+        Einrichtung und Nutzung. Entfernst du den Faktor oder löschst du das Konto, wird beides
+        gelöscht.</li>
       <li><strong>Profildaten</strong>, die du selbst angibst: Anzeigename, Handle,
         Kurzbeschreibung, Profilbild oder Symbol mit Farbe, Banner, Rolle, Status und Statustext,
         Org-Name, ein Discord-Tag (nur für dich sichtbar; ist Discord verbunden, trägt das Konto es
         selbst ein, siehe <a href="#discord">Discord</a>), deine Namen bei Twitch, YouTube und X
         sowie dein <a href="#rsi">RSI-Handle</a>. Den Anzeigenamen setzt das Konto beim Anlegen vorläufig
-        selbst, wenn du keinen angibst: deinen Discord-Namen oder, ohne Discord, den Teil deiner
-        E-Mail-Adresse vor dem @. Du kannst ihn jederzeit ändern; öffentlich wird er erst mit
+        selbst, wenn du keinen angibst: deinen Discord-Namen oder, ohne Discord, „Pilot“. Du kannst
+        ihn jederzeit ändern; öffentlich wird er erst mit
         einem Handle (siehe <a href="#profile">Piloten-Profil</a>).</li>
       <li><strong>Hochgeladene Bilder</strong> (Profilbild, Banner): Dein Browser schneidet sie
         zu und rechnet sie neu, Metadaten des Originals wie Kamera- oder Standortangaben werden
@@ -370,8 +377,8 @@ body{font-family:var(--font-body)}
         <a href="#friends">Freunde und Nachrichten</a>)</li>
       <li>dein <a href="#presence"><strong>Online-Status</strong></a> und die Angabe, was du
         gerade machst, solange du angemeldet bist</li>
-      <li>dein <a href="#rsi">RSI-Verifizierungscode</a>, sobald du das Konto-Dashboard einmal
-        geöffnet hast (auch wenn du nie verifizierst), nach einer Prüfung auch das Prüfergebnis;
+      <li>dein <a href="#rsi">RSI-Prüfcode</a>, sobald du für ein RSI-Handle eine Prüfung
+        anforderst, mit dem Prüfergebnis;
         als <a href="#testpilots">Testpilot</a> die zugehörigen Angaben</li>
       <li>technisch bedingt <strong>Sitzungs- und Sicherheitsdaten</strong>: für jede Anmeldung
         IP-Adresse, Browserkennung und Zeitpunkte, bis du dich auf diesem Gerät abmeldest, die
@@ -402,11 +409,12 @@ body{font-family:var(--font-body)}
       Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, gesendete und empfangene Nachrichten
       (auch beim Gegenüber), die Verknüpfung mit Discord samt gespeicherter Discord-ID,
       Testpilot-Angaben und den ins Konto übernommenen Werten vom Discord-Server (die Daten des
-      Bots selbst bleiben, siehe <a href="#discord-server">Discord-Server und Bot</a>), sowie die
-      Kopien deiner Daten in diesem Browser. <strong>Hochgeladene Profilbilder und Banner</strong> bleiben derzeit als Datei
-      erhalten, wenn du sie im Dashboard entfernst oder das Konto löschst; schreib uns eine E-Mail,
-      dann löschen wir sie. Einen Verifizierungscode in deiner RSI-Bio entfernst du selbst auf
-      robertsspaceindustries.com.
+      Bots selbst bleiben, siehe <a href="#discord-server">Discord-Server und Bot</a>; ein
+      Sperrvermerk für die Testvorschau bleibt mit deiner Discord-ID stehen, siehe
+      <a href="#testpilots">Testpiloten</a>), <strong>hochgeladene Profilbilder und Banner</strong>
+      samt Datei sowie die Kopien deiner Daten in diesem Browser. Entfernst du ein hochgeladenes
+      Bild im Dashboard, wird auch die Datei gelöscht. Einen Verifizierungscode in deiner RSI-Bio
+      entfernst du selbst auf robertsspaceindustries.com.
     </p>
     <p>
       Als Betreiber der Datenbank haben wir technisch Zugriff auf alle gespeicherten Kontodaten,
@@ -472,14 +480,14 @@ body{font-family:var(--font-body)}
       <a href="#discord-server">Discord-Server</a>.
     </p>
     <p>
-      Trennst du Discord im Dashboard, löst das nur die Anmeldeverbindung. Übernommene Angaben
-      (Name, Bildadresse, Discord-Tag) bleiben im Konto stehen, bis du sie änderst oder das Konto
-      löschst. Auch die Zuordnung deiner Discord-ID bleibt bestehen und wirkt weiter: Unser
-      <a href="#discord-server">Discord-Bot</a> überträgt weiterhin deine Werte vom Discord-Server
-      und ob du die Rolle „Test Pilots“ trägst in dein Konto, und davon hängt weiter dein Zugang zur
-      <a href="#staging">Testvorschau</a> ab; nur Level, Rang und Prestige sind dann nicht mehr
-      öffentlich abrufbar. Das endet erst, wenn du das Konto löschst oder wir die Zuordnung auf
-      deine Anfrage per E-Mail entfernen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Discord
+      Trennst du Discord im Dashboard, löst das die Anmeldeverbindung und die Zuordnung deiner
+      Discord-ID. Das Konto entfernt dabei das Discord-Tag, ein aus Discord übernommenes Profilbild
+      (ein selbst hochgeladenes bleibt), die ins Konto übernommenen Werte vom
+      <a href="#discord-server">Discord-Server</a> und den Testpilot-Vermerk; unser Discord-Bot
+      überträgt danach nichts mehr in dein Konto, und den Zugang zur
+      <a href="#staging">Testvorschau</a> über die Rolle „Test Pilots“ hast du erst wieder, wenn du
+      Discord erneut verbindest. Einen übernommenen Namen behältst du, bis du ihn änderst.
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Discord
       verarbeitet Daten auch in den USA und nimmt nach eigenen Angaben am EU-US Data Privacy
       Framework teil; für die Anmeldung bei Discord gilt dessen Datenschutzerklärung:
       <a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>.
@@ -492,12 +500,12 @@ body{font-family:var(--font-body)}
       ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
       Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
       das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
-      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte. Bist
+      dein <a href="#presence">Online-Status</a>, wenn du ihn für alle freigegeben hast, und alle deine Favoriten samt Schiffsflotte. Bist
       du mit Discord verknüpft und Mitglied unseres Discord-Servers, zeigt das Profil außerdem ein
       Rang-Abzeichen mit deinem Rang, Level und Prestige dort (siehe
       <a href="#discord-server">Discord-Server</a>). Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
-      genauen Zeitpunkt, zu dem du das Konto angelegt und jeden Favoriten gespeichert hast, und
-      zwar für alle Profile mit Handle auf einmal.
+      Monat, in dem du das Konto angelegt hast, und dem Tag, an dem du jeden Favoriten gespeichert
+      hast, und zwar für alle Profile mit Handle auf einmal.
     </p>
     <p>
       Angemeldete Nutzer können über die Schnittstelle zusätzlich die interne Konto-ID jedes
@@ -552,7 +560,8 @@ body{font-family:var(--font-body)}
       offen war und wann du zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen,
       Berühren; das Laden der Seite und die Rückkehr auf den Tab zählen mit). Das geschieht beim
       Laden, danach alle 30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder
-      Rückkehr auf den Tab.
+      Rückkehr auf den Tab. Hast du den Online-Status auf „Niemand“ gestellt (siehe unten),
+      schreibt dein Browser keine Zeitpunkte.
     </p>
     <p>
       Auf einigen Seiten kommt eine kurze Angabe dazu, was du gerade machst, mit ihrem Zeitpunkt:
@@ -569,10 +578,15 @@ body{font-family:var(--font-body)}
       Andere sehen nicht die Zeitpunkte, sondern nur einen daraus abgeleiteten Status:
       <em>online</em> (Seite offen und in den letzten 3 Minuten benutzt), <em>abwesend</em>
       (Seite offen, aber länger unbenutzt, oder vor weniger als 3 Minuten geschlossen) oder
-      <em>offline</em>. Berechnet wird dieser Status nur, wenn du ein Handle gesetzt hast. Dann
-      ist er für jeden lesbar: auf deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden
-      auffrischt, und über die öffentliche Schnittstelle für alle Profile mit Handle. Angemeldeten
-      Nutzern zeigt die Website ihn bei Freunden und offenen Anfragen. Meldest du dich im
+      <em>offline</em>. Berechnet wird dieser Status nur, wenn du ein Handle gesetzt hast. Wer ihn
+      sieht, stellst du im Konto-Dashboard ein („Wer meinen Online-Status sieht“). Standardmäßig
+      sehen ihn nur deine bestätigten Freunde, wenn sie angemeldet sind: in ihrer Freundesliste und
+      auf deinem Piloten-Profil. Mit „Alle“ ist er für jeden lesbar, auch ohne Anmeldung: auf
+      deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden auffrischt, über die öffentliche
+      Schnittstelle und bei offenen Anfragen. Mit „Niemand“ sieht ihn keiner; die gespeicherten
+      Zeitpunkte und die Angabe werden dann sofort geleert, und es wird nichts mehr gespeichert,
+      solange die Einstellung gilt. Die Angabe, was du gerade machst, sehen auch bei „Alle“ nur
+      deine Freunde. Meldest du dich im
       Konto-Dashboard ab (auch mit „Überall abmelden“), versucht die Seite zuerst, die Zeitpunkte und die Angabe zu leeren, und
       meldet dich danach in jedem Fall ab. Gelingt das Leeren nicht (etwa ohne Netz), schreibt
       dieser Browser keine weiteren Zeitpunkte, und der Status wechselt nach spätestens 3 Minuten
@@ -584,18 +598,24 @@ body{font-family:var(--font-body)}
     <h2 id="rsi">RSI-Verifizierung (nur mit Konto)</h2>
     <p>
       Im Dashboard kannst du freiwillig dein Citizen-Handle bei Roberts Space Industries (RSI)
-      eintragen und bestätigen, dass es dir gehört. Dafür teilt dir das Konto beim ersten Öffnen
-      des Dashboards einen persönlichen Code (VERSEBASE-VERIFY-…) zu und speichert ihn; du trägst
-      ihn in deine öffentliche Bio auf robertsspaceindustries.com ein. Auf deinen Klick ruft unser
+      eintragen und bestätigen, dass es dir gehört. Dafür stellt dir unser Serverteil für dieses
+      Handle einen persönlichen Prüfcode (VB-…) aus und speichert ihn; ein noch nicht bestätigter
+      Code gilt 24 Stunden. Du trägst ihn in deine öffentliche Bio auf robertsspaceindustries.com
+      ein. Auf deinen Klick ruft unser
       Serverteil (eine Supabase-Funktion) die öffentliche Profilseite
       robertsspaceindustries.com/citizens/&lt;Handle&gt; ab und sucht dort den Code. RSI (Roberts
       Space Industries International Limited, Vereinigtes Königreich) erfährt dabei nur das Handle, und zwar von einem Server von Supabase aus; deine IP-Adresse,
-      E-Mail-Adresse oder Konto-ID erfährt RSI nicht. Ist das Handle verifiziert, wiederholt das
-      Dashboard die Prüfung bei jedem Aufruf; steht der Code nicht mehr in der Bio, wird die
-      Verifizierung aufgehoben.
+      E-Mail-Adresse oder Konto-ID erfährt RSI nicht. Ist das Handle verifiziert, prüft das
+      Dashboard bei jedem Aufruf nach; RSI wird dafür höchstens alle 6 Stunden abgefragt. Steht der
+      Code nicht mehr in der Bio, wird die Verifizierung aufgehoben. Ein verifiziertes RSI-Handle
+      gehört höchstens einem Konto: Bestätigt ein anderes Konto dasselbe Handle mit seinem Code,
+      verliert deines das Abzeichen. Änderst du das RSI-Handle, entfällt die Verifizierung.
     </p>
     <p>
-      Gespeichert werden RSI-Handle, Code und Prüfergebnis. Hast du ein Handle bei uns gesetzt,
+      Gespeichert werden RSI-Handle, Code, Prüfergebnis und die Zeitpunkte, zu denen der Code
+      ausgestellt, bestätigt und zuletzt nachgeprüft wurde; damit niemand RSI in kurzer Folge
+      abfragen lässt, außerdem für 24 Stunden die Zeitpunkte deiner Prüfaufrufe (höchstens 30 je
+      Stunde). Hast du ein Handle bei uns gesetzt,
       sind dein RSI-Handle (auch unverifiziert, als Link zu RSI) und das Abzeichen „RSI
       verifiziert“ auf deinem <a href="#profile">Piloten-Profil</a> öffentlich; den Code siehst
       nur du. Leerst du das Feld und speicherst, ist das RSI-Handle gelöscht; „Verifizierung
@@ -608,19 +628,21 @@ body{font-family:var(--font-body)}
       gehört, richtet sich nach der Rolle „Test Pilots“ auf unserem
       <a href="#discord-server">Discord-Server</a>. Ist deine Discord-ID deinem Konto zugeordnet,
       meldet unser Discord-Bot an das Konto-System, ob du diese Rolle trägst (ja oder nein), bei
-      jeder Änderung und regelmäßig zum Abgleich, auch nachdem du Discord im Dashboard getrennt
-      hast (siehe <a href="#discord">Discord</a>); solange du die Rolle trägst, bleibt dir damit der
+      jeder Änderung und regelmäßig zum Abgleich, solange Discord mit deinem Konto verbunden ist
+      (siehe <a href="#discord">Discord</a>); solange du die Rolle trägst, bleibt dir damit der
       Zugang zur Testvorschau. Gespeichert werden dazu deine Discord-ID, ob du
       die Rolle trägst, und der Zeitpunkt deines letzten Besuchs der Testvorschau. Administratoren
       sehen in einer Übersicht Handle, Anzeigename, Discord-ID und letzten Besuch aller
-      Testpiloten. Um jemandem den Zugang zu entziehen, kann ein Sperrvermerk mit Begründung
-      gespeichert werden.
+      Testpiloten. Um jemandem den Zugang zu entziehen, kann ein Sperrvermerk mit Begründung und
+      der Discord-ID gespeichert werden. Mit der Discord-ID bleibt er auch nach dem Löschen des
+      Kontos stehen, damit ein neues Konto mit demselben Discord-Konto nicht wieder Zugang
+      bekommt.
     </p>
     <p>
       Öffentlich sein kann als Testpilot zweierlei. Beides richtet sich nach einem
       Testpilot-Vermerk in deinem Profil, den nur wir serverseitig setzen, nie dein Browser. Er
       folgt der Rolle „Test Pilots“ derzeit nicht automatisch: Verlierst du die Rolle, bleibt er
-      stehen, bis wir ihn entfernen. Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
+      stehen, bis wir ihn entfernen oder du Discord trennst. Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
       „Testpilot“; nur dann erscheint im Dashboard auch der Schalter „Meinen Namen bei den
       Testpiloten nennen“. Schaltest du ihn ein (Vorgabe aus), steht dein Anzeigename (ohne ihn
       dein Handle) mit einem Link auf dein Profil in der Testpiloten-Liste der Seite <a href="/de/feedback.html">Feedback</a>.
@@ -668,8 +690,8 @@ body{font-family:var(--font-body)}
       <a href="#testpilots">Testpiloten</a>). Ist deine Discord-ID einem Website-Konto zugeordnet,
       überträgt er deine Werte in dieses Konto: Level, Rang, Prestige, Erfahrungspunkte,
       Nachrichten, Sprachzeit, Platz auf der Bestenliste und ob du gerade Mitglied des Servers bist,
-      beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg. Das gilt auch nach
-      dem Trennen von Discord, bis die Zuordnung entfernt ist (siehe <a href="#discord">Discord</a>).
+      beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg, solange Discord mit
+      deinem Konto verbunden ist (siehe <a href="#discord">Discord</a>).
       Solange Discord verbunden ist und du Mitglied des Servers bist, zeigt dein
       <a href="#profile">Piloten-Profil</a> Level, Rang und Prestige jedem als Rang-Abzeichen, und
       jeder kann sie über die öffentliche Datenbank-Schnittstelle abrufen; angemeldeten Nutzern
@@ -776,8 +798,8 @@ body{font-family:var(--font-body)}
         EU-US Data Privacy Framework teil</li>
       <li><strong>Roberts Space Industries</strong> (Roberts Space Industries International
         Limited, Vereinigtes Königreich, nach eigenen Angaben auch mit Servern in den USA): dein
-        RSI-Handle bei der <a href="#rsi">RSI-Verifizierung</a> und, solange es verifiziert ist, bei
-        jedem Aufruf des Dashboards; für das Vereinigte Königreich gilt ein Angemessenheitsbeschluss
+        RSI-Handle bei der <a href="#rsi">RSI-Verifizierung</a> und, solange es verifiziert ist,
+        höchstens alle 6 Stunden beim Aufruf des Dashboards; für das Vereinigte Königreich gilt ein Angemessenheitsbeschluss
         der EU-Kommission</li>
       <li><strong>Stripe</strong> und <strong>PayPal</strong>: Spenden, nach deren eigenen
         Datenschutzerklärungen auch in den USA</li>
@@ -798,8 +820,9 @@ body{font-family:var(--font-body)}
       Discord-Servers bist, die Werte des Bots); auf Anfrage erteilen wir Auskunft oder löschen sie,
       soweit wir sie dir zuordnen können. Mit Konto siehst und änderst du deine Profildaten im
       Dashboard, lädst unter Sicherheit &amp; Konto → Meine Daten die Daten deines Kontos als Datei
-      herunter (Profil, Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, Nachrichten und die
-      Werte vom Discord-Server; die Datei entsteht in deinem Browser) und löschst dort das ganze
+      herunter (Profil, Konto-Rolle, Favoriten, Werkzeug-Daten, Freundschaften und Anfragen,
+      Nachrichten, die Werte vom Discord-Server und die Liste deiner hochgeladenen Bilder; die Datei
+      entsteht in deinem Browser) und löschst dort das ganze
       Konto; was dabei bleibt, steht unter
       <a href="#accounts">Benutzerkonto</a> und <a href="#discord-server">Discord-Server und
       Bot</a>. Kontodaten speichern wir, bis du sie änderst oder das Konto löschst. Für alles Weitere, etwa eine vollständige Auskunft, schreib uns eine E-Mail.

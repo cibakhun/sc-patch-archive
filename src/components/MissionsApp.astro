@@ -13,6 +13,7 @@ import type { Locale } from '../i18n/ui';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -168,7 +169,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
     </div>
 
     <!-- Filter -->
-    <form class="mx__bar" id="mx-bar" role="search" onsubmit="return false" data-offcanvas data-offcanvas-flach>
+    <form class="mx__bar" id="mx-bar" role="search" data-offcanvas data-offcanvas-flach>
       <div class="mx__side-hd">
         <span>{S.filterBtn}</span>
         <button type="button" id="mx-filter-close" class="mx__x" aria-label={S.close}>✕</button>
@@ -306,7 +307,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
 
 {/* searchUrl versioniert mit dem DB-Stand: neuer Datamine-Lauf -> neue URL ->
     kein 1-Tag-alter Suchindex zu frischen Karten. */}
-<script is:inline set:html={`window.__MX=${JSON.stringify({ lang, searchUrl: `/missions-search.json?v=${db.meta.generated}`, t: { results: S.results } })};`} />
+<script is:inline set:html={`window.__MX=${jsonForScript({ lang, searchUrl: `/missions-search.json?v=${db.meta.generated}`, t: { results: S.results } })};`} />
 {/* Inhaltshash statt des frueheren festen ?v=2: das Skript muss zum Markup
     passen (erst Karten ohne data-search/data-name, jetzt Karten in Bloecken
     .mc-grp) — altes gecachtes JS (1 Tag) haelte die Bloecke fuer Karten.

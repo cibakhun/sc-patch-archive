@@ -12,16 +12,20 @@ interface Props {
 }
 const { lang } = Astro.props;
 
+// Mindestlänge wie im Konto und beim Zurücksetzen (MIN_PASS dort); die
+// verbindliche Grenze setzen Supabase (Auth -> Passwords) und register.
+const MIN_PASS = 12;
+
 const COPY = {
   de: {
     name: 'Anzeigename', optional: '— optional', namePh: 'z. B. StarRunner',
     nameHint: 'Wird im Dashboard angezeigt. Später jederzeit änderbar.',
     email: 'E-Mail', emailPh: 'du@beispiel.de',
-    pass: 'Passwort', passPh: 'Mindestens 8 Zeichen',
+    pass: 'Passwort', passPh: 'Mindestens 12 Zeichen',
     pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
     submit: 'Konto erstellen', busy: 'Erstelle Konto …',
     privacyPre: 'Mit der Registrierung stimmst du der Verarbeitung laut', privacy: 'Datenschutzerklärung', privacyPost: 'zu.',
-    errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
+    errShort: 'Das Passwort braucht mindestens 12 Zeichen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errExists: 'Diese E-Mail ist bereits registriert — melde dich an oder setze dein Passwort zurück.',
     errInvalidMail: 'Diese E-Mail-Adresse wird nicht akzeptiert — bitte prüfe die Schreibweise.',
@@ -38,11 +42,11 @@ const COPY = {
     name: 'Display name', optional: '— optional', namePh: 'e.g. StarRunner',
     nameHint: 'Shown in your dashboard. Can be changed anytime.',
     email: 'E-mail', emailPh: 'you@example.com',
-    pass: 'Password', passPh: 'At least 8 characters',
+    pass: 'Password', passPh: 'At least 12 characters',
     pass2: 'Repeat password', pass2Ph: 'Same password again',
     submit: 'Create account', busy: 'Creating account …',
     privacyPre: 'By registering you agree to the processing described in our', privacy: 'privacy policy', privacyPost: '.',
-    errShort: 'The password needs at least 8 characters.',
+    errShort: 'The password needs at least 12 characters.',
     errMatch: 'The passwords do not match.',
     errExists: 'This e-mail is already registered — sign in or reset your password.',
     errInvalidMail: 'This e-mail address was not accepted — please check the spelling.',
@@ -98,11 +102,11 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     </div>
     <div class="acx-field">
       <label class="acx-label" for="rgPass">{COPY.pass} <span class="reqm">*</span></label>
-      <input class="acx-input" id="rgPass" name="password" type="password" required minlength="8" autocomplete="new-password" placeholder={COPY.passPh} />
+      <input class="acx-input" id="rgPass" name="password" type="password" required minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.passPh} />
     </div>
     <div class="acx-field">
       <label class="acx-label" for="rgPass2">{COPY.pass2} <span class="reqm">*</span></label>
-      <input class="acx-input" id="rgPass2" name="password2" type="password" required minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} />
+      <input class="acx-input" id="rgPass2" name="password2" type="password" required minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.pass2Ph} />
     </div>
     <div class="acx-actions">
       <button class="acx-submit" type="submit" id="rgBtn"><span id="rgBtnTxt">{COPY.submit}</span></button>
@@ -173,7 +177,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
       const password = (form.elements.namedItem('password') as HTMLInputElement).value;
       const password2 = (form.elements.namedItem('password2') as HTMLInputElement).value;
 
-      if (password.length < 8) { setStatus(D.msgShort!); return; }
+      if (password.length < 12) { setStatus(D.msgShort!); return; } // = MIN_PASS
       if (password !== password2) { setStatus(D.msgMatch!); return; }
 
       btn.disabled = true;

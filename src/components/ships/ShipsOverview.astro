@@ -456,7 +456,7 @@ a{color:inherit;text-decoration:none}
         <div class="fcard__media">
           {thumb ? (
             <img src={thumb.src} alt="" loading="lazy" referrerpolicy="no-referrer"
-              onerror="this.style.display='none'" />
+              data-img-fail="hide" />
           ) : (
             <span class="fcard__noimg" aria-hidden="true">{de ? 'Kein Bild' : 'No image'}</span>
           )}
