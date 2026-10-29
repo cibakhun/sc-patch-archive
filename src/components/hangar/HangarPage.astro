@@ -26,8 +26,8 @@ import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
 import { versioned } from '../../lib/assetVersion';
 import { jsonForScript } from '../../lib/safeJson';
-import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
-import { buildBay, TABS } from '../../lib/hangar/bay';
+import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STAT, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
+import { buildBay, COMPARE, TABS } from '../../lib/hangar/bay';
 import { PURPOSES, ROLE_GROUPS, SIZES, CREW, CARGO_STEPS, PRICE_STEPS, shipFinder, vocab, label, fold } from '../../lib/hangar/finder';
 import hangarCards from '../../data/hangar-cards.json';
 
@@ -185,6 +185,16 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-bar i{display:block;height:100%;width:var(--w,0%);border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--hg-amber) 55%,transparent),var(--hg-amber));transition:width var(--dur-slow) var(--ease-ui)}
 .hg-row.is-na dd{color:var(--hg-dim);font-weight:400}
 .hg-note{margin:.8rem 0 0;font-size:var(--fs-5);color:var(--hg-dim)}
+/* Kacheln des Ueberblicks: je drei Werte nebeneinander, so wie CIG sie auf
+   der Schiffsseite zeigt (Groesse, Status, Preis; Laenge, Breite, Hoehe;
+   Nicken, Gieren, Rollen). Die Zeilen mit Rangbalken stehen dazwischen. */
+.hgx-tiles{margin:0 0 .5rem;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem}
+.hgx-stats+.hgx-tiles{margin:.75rem 0 0}
+.hgx-tile{min-width:0;padding:.4rem .55rem .45rem;border:1px solid var(--line-soft);border-radius:6px;background:color-mix(in srgb,var(--hg-on) 3%,transparent)}
+.hgx-tile dt{color:var(--hg-dim);font-size:var(--fs-5);line-height:1.3}
+.hgx-tile dd{margin:.1rem 0 0;color:var(--hg-on);font-size:var(--fs-7);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.3;overflow-wrap:anywhere}
+.hgx-tile.is-na dd{color:var(--hg-dim);font-weight:400}
+.hgx-tiles+.hgx-stats{margin-top:.75rem}
 .hg-sheet{display:flex;justify-content:center;margin-top:.9rem;padding:.65rem 1rem;background:var(--hg-amber);color:var(--ink);font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;border-radius:8px;text-decoration:none}
 .hg-sheet:hover,.hg-sheet:focus-visible{background:color-mix(in srgb,var(--hg-amber) 82%,var(--text))}
 .hg-btn{appearance:none;border:1px solid var(--hg-hair);background:var(--hg-panel);color:var(--hg-on);font:inherit;font-size:var(--fs-6);padding:.45rem .8rem;border-radius:4px;cursor:pointer}
@@ -246,8 +256,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-tray__msg{flex-basis:100%;margin:0;color:color-mix(in srgb,var(--hot) 55%,var(--hg-on))}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
 .hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden],.hgx-tray[hidden],.hgx-tray__open[hidden],#hg-reset[hidden]{display:none}
-/* Vergleich: eine Spalte je Schiff, Zeilen aus dem Kennwert-Verzeichnis. Die
-   Abweichung zur Basis traegt den Ton nach der Richtung von "besser". */
+/* Vergleich: eine Spalte je Schiff, Abschnitte und Zeilen aus COMPARE
+   (bay.ts). Die Abweichung zur Basis traegt den Ton nach der Richtung
+   von "besser". */
 .hgx-cmp{width:min(1000px,calc(100% - 2 * var(--hg-gut)));max-width:none;max-height:calc(100dvh - var(--hg-top) - 24px);margin:calc(var(--hg-top) + 8px) auto 16px;padding:0;overflow:hidden;border:1px solid var(--hg-hair);border-radius:6px;background:var(--bg-2);color:var(--hg-on)}
 .hgx-cmp[open]{display:flex;flex-direction:column}
 .hgx-cmp::backdrop{background:var(--overlay-backdrop)}
@@ -271,6 +282,19 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-delta.is-up{color:var(--hg-amber)}
 .hgx-delta.is-down{color:color-mix(in srgb,var(--hot) 55%,var(--hg-on))}
 .hgx-delta.is-flat{color:var(--hg-dim)}
+/* Abschnitte des Vergleichs (Kenndaten, Flug, Kampfwerte, Bewaffnung,
+   Systeme): eine Kopfzeile ueber die ganze Breite, wie die Gruppen der Tafel. */
+.hgx-cmp__table .hgx-cmp__sec th{padding:.95rem .8rem .35rem;border-bottom:1px solid var(--hg-hair);text-align:left;color:var(--hg-amber);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;white-space:nowrap}
+.hgx-cmp__jump{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:.25rem 1.1rem}
+.hgx-cmp__jump .hgx-linkbtn{color:var(--hg-dim);text-decoration:none}
+.hgx-cmp__jump [hidden]{display:none}
+.hgx-cmp__jump .hgx-linkbtn:hover,.hgx-cmp__jump .hgx-linkbtn:focus-visible{color:var(--hg-amber)}
+/* Hardpoints und Bauteile: eine Zeile je Teil, „2× S3“ fett vor dem Namen. */
+.hgx-cmp__hp{display:block;line-height:1.35}
+.hgx-cmp__hp+.hgx-cmp__hp{margin-top:.2rem}
+.hgx-cmp__hp b{font-weight:600;white-space:nowrap}
+.hgx-cmp__hp span{color:var(--hg-dim)}
+.hgx-cmp__table td.is-wait{color:var(--hg-dim)}
 .hgx-copyfield{width:min(320px,100%);min-width:0;font:inherit;font-size:var(--fs-6);background:var(--hg-panel);color:var(--hg-on);border:1px solid var(--hg-hair);border-radius:4px;padding:.4rem .55rem}
 .hg-title.is-busy .hgx-head,.hgx-scroll[aria-busy="true"] .hgx-tps{opacity:.45;transition:opacity var(--dur-fast) var(--ease-ui)}
 /* Tabs nach dem WAI-ARIA-Muster; der aktive traegt die Akzentkante. */
@@ -591,6 +615,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgx-cmp__table{font-size:var(--fs-6)}
   .hgx-cmp__table th,.hgx-cmp__table td{padding:.45rem .3rem}
   .hgx-cmp__table tbody th,.hgx-cmp__v,.hgx-delta{white-space:normal}
+  /* Lange Woerter („Höchstgeschwindigkeit“, Teilenamen) trennen statt die
+     Tabelle seitlich aus dem Fenster zu schieben. */
+  .hgx-cmp__table tbody th,.hgx-cmp__table td{hyphens:auto;overflow-wrap:anywhere}
   .hgx-cmp__name{font-size:var(--fs-7)}
   .hg-hint{display:none}
   /* Schmal ist das Dock ein Kasten unter der Tafel: die Liste rollt darin,
@@ -715,23 +742,34 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     </div>
     <noscript><style>.hg .hg-stats{display:flex!important}.hg .hgl,.hg .hg-pane,.hg .hgx-docktog,.hg .hgx-find{display:none!important}</style></noscript>
     {/* Modal ueber der Buehne (showModal: Fokus bleibt drin, Escape ist "cancel").
-        Zeilen aus dem Kennwert-Verzeichnis, Spalten setzt der Controller aus
-        den Dock-Daten, ohne eine Bucht zu holen. In der Insel, damit er auch
+        Abschnitte und Zeilen aus COMPARE (bay.ts). Zahlen und Textzeilen
+        setzt der Controller aus den Dock-Daten, die Zeilen der Bewaffnung und
+        der Systeme (data-g) aus den Buchten der verglichenen Schiffe; was
+        keines der Schiffe fuehrt, blendet er aus. In der Insel, damit er auch
         im Hellmodus dunkel bleibt wie die Halle darunter. */}
     <dialog class="hgx-cmp" id="hgx-cmp" aria-labelledby="hgx-cmp-title">
       <div class="hgx-cmp__head">
         <h2 id="hgx-cmp-title">{t('cmp.title')}</h2>
         <p class="hgx-cmp__note">{t('cmp.note')}</p>
         <button type="button" class="hg-btn" id="hgx-cmp-close">{t('cmp.close')}</button>
+        {/* Die Tabelle ist lang; die Abschnitte sind einen Klick entfernt. */}
+        <nav class="hgx-cmp__jump" aria-label={t('cmp.jump')}>
+          {COMPARE.map((sec) => <button type="button" class="hgx-linkbtn" data-cmp-jump={sec.key}>{t(`cmp.sec.${sec.key}`)}</button>)}
+        </nav>
       </div>
       <div class="hgx-cmp__scroll">
         <table class="hgx-cmp__table" id="hgx-cmp-table">
           <thead><tr><th scope="col"><span class="hgx-sr">{t('cmp.stat')}</span></th></tr></thead>
-          <tbody>
-            {STATS.filter((s) => s.comparable).map((s) => (
-              <tr data-k={s.key} data-u={s.unit} data-d={s.digits} data-better={s.better}><th scope="row">{t(`stat.${s.key}`)}</th></tr>
-            ))}
-          </tbody>
+          {COMPARE.map((sec) => (
+            <tbody data-sec={sec.key}>
+              <tr class="hgx-cmp__sec"><th scope="rowgroup">{t(`cmp.sec.${sec.key}`)}</th></tr>
+              {sec.text.map((k) => <tr data-t={k}><th scope="row">{t(k === 'role' ? 'cmp.role' : 'ov.size')}</th></tr>)}
+              {sec.stats.map((k) => STAT[k]).map((s) => (
+                <tr data-k={s.key} data-u={s.unit} data-d={s.digits} data-better={s.better}><th scope="row">{t(`stat.${s.key}`)}</th></tr>
+              ))}
+              {sec.groups.map((g) => <tr data-g={g}><th scope="row">{t(`grp.${g}`)}</th></tr>)}
+            </tbody>
+          ))}
         </table>
       </div>
       <span id="hgx-cmp-basedesc" hidden>{t('cmp.makeBase')}</span>
@@ -918,7 +956,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     <span data-msg="cmp-open" data-other={t('msg.cmp.open')}></span>
     <span data-msg="find-hits" data-one={t('msg.find.hits.one')} data-other={t('msg.find.hits.other')}></span>
     <span data-msg="find" data-remove={t('msg.find.remove')} data-cargo={t('msg.find.cargo')} data-price={t('msg.find.price')} data-here={t('msg.qv.here')}></span>
-    <span data-msg="cmp" data-show={t('cmp.show')} data-base={t('cmp.base')} data-better={t('cmp.better')} data-worse={t('cmp.worse')} data-remove={t('msg.cmp.remove')}></span>
+    <span data-msg="cmp" data-show={t('cmp.show')} data-base={t('cmp.base')} data-better={t('cmp.better')} data-worse={t('cmp.worse')} data-remove={t('msg.cmp.remove')} data-loading={t('cmp.loading')}></span>
   </div>
 </main>
 

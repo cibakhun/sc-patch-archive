@@ -16,7 +16,8 @@ import { href, type Locale } from '../../i18n/ui';
 import { hangarT, type HangarKey } from '../../i18n/hangarText';
 import { displayName, hasMeaningfulGrade, itemPath, items, num, pageItemIds, type Item, type ItemStats } from '../items';
 import { statRows } from '../itemStats';
-import { STATS, formatStat, percentile, shipData, shipFacts, type ShipId } from './catalog';
+import { formatStat, percentile, shipData, shipFacts, type ShipId, type StatKey } from './catalog';
+import { vSize, vStatus } from '../../i18n/vehicleText';
 import { shipGeometry, type PortName, type StockItem, type Vec3 } from './ports';
 
 /** Die eine Tab-Liste. Die Seite rendert daraus die Tab-Knoepfe, ShipBay je Tab ein Panel. */
@@ -82,6 +83,27 @@ const GROUP_ORDER: Readonly<Record<SlotTabKey, readonly GroupKey[]>> = {
   systems: ['power', 'cooler', 'shield', 'quantum', 'radar', 'fuel'],
   cargo: ['ore'],
 };
+/**
+ * Die Abschnitte des Vergleichs, in Folge: zuerst die Kenndaten, wie CIG sie
+ * auf der Schiffsseite fuehrt, dann Flug und Kampfwerte, zuletzt Bewaffnung
+ * und Systeme als Hardpoints mit Groesse und Serienteil (Krisz 29.10.2026:
+ * „da sollen auch waffen hardpoints dabei sein“). `text` sind Wortzeilen aus
+ * dem Dock (Fokus, Groesse), `stats` Zahlenzeilen aus STATS, `groups` die
+ * Gruppen der Tabs, gelesen aus den Buchten der verglichenen Schiffe.
+ */
+export const COMPARE: readonly {
+  readonly key: 'specs' | 'flight' | 'combat' | 'weapons' | 'systems';
+  readonly text: readonly ('role' | 'size')[];
+  readonly stats: readonly StatKey[];
+  readonly groups: readonly GroupKey[];
+}[] = [
+  { key: 'specs', text: ['role', 'size'], stats: ['len', 'wid', 'hgt', 'mass', 'cargo', 'crew', 'pledge', 'price'], groups: [] },
+  { key: 'flight', text: [], stats: ['scm', 'max', 'boost', 'pitch', 'yaw', 'roll', 'qtSpeed', 'qtRange', 'h2'], groups: [] },
+  { key: 'combat', text: [], stats: ['hull', 'shield', 'dps', 'tdps', 'missiles'], groups: [] },
+  { key: 'weapons', text: [], stats: [], groups: ['pilot', 'manned', 'remote', 'pdc', 'missile', 'bomb', 'cm'] },
+  { key: 'systems', text: [], stats: [], groups: ['power', 'cooler', 'shield', 'quantum', 'radar'] },
+];
+
 const ROW_PREFIX: Readonly<Record<SlotTabKey, string>> = { weapons: 'w', systems: 's', cargo: 'c' };
 const TURRET_KIND: Readonly<Record<NonNullable<StockItem['turretKind']>, SlotKind>> = {
   manned: 'mannedTurret', remote: 'remoteTurret', pdc: 'pdcTurret',
@@ -104,7 +126,7 @@ export interface Bay {
   /** Kopf des Buchtdokuments: title, description (>= 50 Zeichen), h1. */
   readonly doc: { readonly title: string; readonly description: string; readonly h1: string };
   readonly head: BayHead;
-  readonly overview: { readonly rows: readonly StatRow[]; readonly note: string };
+  readonly overview: Overview;
   readonly slots: Readonly<Record<SlotTabKey, SlotPanel>>;
   readonly marks: Marks;
 }
@@ -118,6 +140,33 @@ export interface BayHead {
   readonly sheetHref: string;
   /** Text fuer die hoefliche Live-Region nach einem Wechsel: 'Gladius, Aegis Dynamics'. */
   readonly announce: string;
+}
+
+/**
+ * Der Ueberblick zeigt die Werte, die CIG auf seiner Schiffsseite fuehrt
+ * (Ship Matrix, Krisz 29.10.2026: „stats vorschau soll die werte geben die cig
+ * selber auf der webseite zeigt“): Groesse, Status, Pledge-Preis, Laenge,
+ * Breite, Hoehe, Masse, Fracht, Besatzung, SCM- und Hoechstgeschwindigkeit,
+ * Nicken, Gieren, Rollen. Die Kampfwerte (Rumpf, Schild, Feuerkraft) stehen
+ * in den Tabs Waffen und Systeme und im Vergleich.
+ */
+export interface Overview {
+  /** Groesse, Status, Pledge-Preis: Kacheln ohne Balken. */
+  readonly head: readonly Tile[];
+  /** Laenge, Breite, Hoehe. */
+  readonly dims: readonly Tile[];
+  /** Masse, Fracht, Besatzung, SCM, Hoechstgeschwindigkeit, mit Rangbalken. */
+  readonly rows: readonly StatRow[];
+  /** Nicken, Gieren, Rollen. */
+  readonly turn: readonly Tile[];
+  readonly note: string;
+}
+
+export interface Tile {
+  readonly key: string;
+  readonly label: string;
+  /** null druckt den Strich. */
+  readonly value: string | null;
 }
 
 export interface StatRow {
@@ -273,6 +322,24 @@ const GROUP_TOTAL: Readonly<Record<GroupKey, (v: Vehicle, lang: Locale) => strin
   ore: () => null,
 };
 
+/** Kennwertzeile mit Rangbalken; 0 und unbekannt drucken den Strich. */
+function statRow(key: StatKey, x: number | null, lang: Locale, t: T): StatRow {
+  const n = pos(x);
+  return { key, label: t(`stat.${key}`), value: formatStat(key, n, lang), pct: percentile(key, n) };
+}
+
+function tile(key: StatKey, x: number | null, lang: Locale, t: T): Tile {
+  return { key, label: t(`stat.${key}`), value: formatStat(key, pos(x), lang) };
+}
+
+/** "1", "2–4"; ohne bekannte Hoechstbesatzung nur die Mindestbesatzung. */
+function crewText(v: Vehicle, lang: Locale): string | null {
+  const lo = pos(v.crewMin);
+  const hi = pos(v.crewMax);
+  if (lo == null) return hi == null ? null : num(hi, lang);
+  return hi != null && hi > lo ? `${num(lo, lang)}–${num(hi, lang)}` : num(lo, lang);
+}
+
 /** Zwischenstand einer Zeile vor der Schluesselvergabe. */
 interface Draft {
   readonly kind: SlotKind;
@@ -395,8 +462,10 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
     weapons: weapons.length
       ? { kind: 'groups', facts: [], groups: weapons }
       : { kind: 'empty', message: t(hasLoadout ? 'empty.weapons' : 'empty.noLoadout') },
+    // Der Rumpf steht ueber den Bauteilen, die ihn schuetzen; die
+    // Schildsumme traegt schon die Gruppe der Schildgeneratoren.
     systems: systems.length
-      ? { kind: 'groups', facts: [], groups: systems }
+      ? { kind: 'groups', facts: [statRow('hull', facts.stat.hull, lang, t)], groups: systems }
       : { kind: 'empty', message: t(hasLoadout ? 'empty.systems' : 'empty.noLoadout') },
     cargo: pos(cargoScu) != null || ore != null || cargoGroups.length
       ? {
@@ -442,10 +511,22 @@ export function buildBay(id: ShipId, lang: Locale): Bay {
       announce: [facts.name, facts.maker].filter(Boolean).join(', '),
     },
     overview: {
-      rows: STATS.filter((s) => s.sortable).map((s) => {
-        const x = pos(facts.stat[s.key]);
-        return { key: s.key, label: t(`stat.${s.key}`), value: formatStat(s.key, x, lang), pct: percentile(s.key, x) };
-      }),
+      head: [
+        { key: 'size', label: t('ov.size'), value: vSize(v, lang) },
+        { key: 'status', label: t('ov.status'), value: vStatus(v, lang) },
+        tile('pledge', facts.stat.pledge, lang, t),
+      ],
+      dims: (['len', 'wid', 'hgt'] as const).map((k) => tile(k, facts.stat[k], lang, t)),
+      rows: [
+        statRow('mass', facts.stat.mass, lang, t),
+        statRow('cargo', facts.stat.cargo, lang, t),
+        // Besatzung als Spanne wie bei CIG ("2–4"); der Balken rechnet mit
+        // der Hoechstbesatzung, so wie Dock und Vergleich.
+        { ...statRow('crew', facts.stat.crew, lang, t), value: crewText(v, lang) },
+        statRow('scm', facts.stat.scm, lang, t),
+        statRow('max', facts.stat.max, lang, t),
+      ],
+      turn: (['pitch', 'yaw', 'roll'] as const).map((k) => tile(k, facts.stat[k], lang, t)),
       note: t('overview.note'),
     },
     slots,
