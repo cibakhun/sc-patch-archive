@@ -6188,11 +6188,13 @@ export async function initHangar(container, opts = {}) {
 
   // Dampf und Geräusche der Mechanik (fx): ohne Bewegung (reduceMotion)
   // fährt nichts, also auch kein Dampf; die niedrige Stufe mit weniger
-  // Teilchen (Füllrate: große, durchscheinende Flächen). 260 statt 160 seit
-  // 27./28.10.2026: Die Ballen am Feldrand stehen dichter und länger (fx), als
-  // Bank statt einzelner Wölkchen; im dichtesten Moment (Abfahrt, Schwaden,
-  // Fuge und Ankunft zugleich) leben rund 200, ein volles Band überschriebe
-  // lebende Ballen, und die verschwänden mitten im Bild
+  // Teilchen (Füllrate: große, durchscheinende Flächen). 520 seit dem
+  // 29.10.2026 (vorher 260): doppelt so viele, kleinere Ballen, dazu der
+  // Strom aus dem Schacht. Ein Wechsel stößt rund 270 aus (Abfahrt 40,
+  // Schwaden 60, Strom 40, Fuge 40, Ankunft 88), im dichtesten Moment leben
+  // fast alle; das Band reicht auch für einen zweiten Wechsel kurz danach.
+  // Ein volles Band überschriebe lebende Ballen, und die verschwänden mitten
+  // im Bild
   const steamK = Q0 === 'niedrig' ? 0.5 : Q0 === 'mittel' ? 0.75 : 1;
   const steam = reduceMotion ? null : buildSteam(Math.round(520 * steamK));
   if (steam) scene.add(steam.mesh);

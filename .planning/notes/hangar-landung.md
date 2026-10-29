@@ -173,7 +173,9 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
 - **Teil A nach Vertrag (PC, 29.10.2026):** `datamine:paints` schreibt
   `finish { a/b/c: { specular, gloss } }` für `base` und jede Lackierung:
   2103 von 2103 Lackierungen und 207 von 207 Grundpaletten vollständig, mit
-  Metall (metallic > 0,5 nach `palettePbr`) 1246 bzw. 114. Lack ab Werk auch
+  Metall (metallic > 0,5 nach `palettePbr`) 1246 bzw. 114 (gezählt vor
+  `DIEL_MAX`; mit der Fassung auf staging nachgezählt, Cloud 29.10.: 588 bzw.
+  51). Lack ab Werk auch
   über `entityClassReference` (1: Hornet F7C-M Mk II Heartseeker; ab Werk
   lackiert jetzt 4). Der Bau schreibt an jedes Palettenmaterial der eigenen
   Palette `extras.palette { ch, tint, specular, gloss }` (Werte aus
@@ -280,3 +282,18 @@ Viewer rechnet die Serienpalette beim Laden aus `extras.palette` selbst nach
 stammen, ein zweiter Neubau ist dafür nicht nötig. Die Selbstauskunft
 „Metall in 1246 Lackierungen“ fällt mit der neuen Fassung deutlich kleiner
 aus; bitte beim nächsten Lauf mit ihr neu zählen.
+
+**Cloud 29.10.2026, Befund aus dem Review von PR #238 (für den nächsten
+PC-Lauf):** Das Schwesterpaket in `writePaints` gibt Lacken eine fremde
+Palette, wo `datamine:paints` bei der Serienpalette bleibt. Beispiele: Cutlass
+Steel „Hawthorn“ trägt im Bauplan die Palette der Cutlass Red (#323232 /
+#1a1918 / #414236, Glanz 170), `ship-paints.json` die eigene Serienpalette
+(#000000, Glanzfarbe #969696, Metall); Mustang Beta „Vindicator“
+(CitizenCon2018) trägt Palette und Schablone der Alpha statt #354753 /
+#b47528 / #2a2a2a. Bauplan und Daten sollen dieselbe Antwort geben. Der Zweig
+`pc/hangar-lack` (15817982) aus einer anderen PC-Sitzung hat dafür schon die
+engere Regel (Schwester nur bei gleichem Material und echter Lackpalette;
+Mustang Vindicator und Cutlass Hawthorn bleiben auf der Serienpalette):
+bitte mit diesem Stand zusammenführen und die Lack-Baupläne neu schreiben.
+Die Freelancer sieht nach dem Neubau hell aus (Metallrumpf); sie bleibt in
+`HOLD`, bis Krisz sie freigibt (WINDOWS 129).
