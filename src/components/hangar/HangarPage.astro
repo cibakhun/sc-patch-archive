@@ -25,6 +25,7 @@ import { localeFromPath, href, useTranslations } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
 import { versioned } from '../../lib/assetVersion';
+import { jsonForScript } from '../../lib/safeJson';
 import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
 import { buildBay, TABS } from '../../lib/hangar/bay';
 import { PURPOSES, ROLE_GROUPS, SIZES, CREW, CARGO_STEPS, PRICE_STEPS, shipFinder, vocab, label, fold } from '../../lib/hangar/finder';
@@ -58,14 +59,14 @@ const tagsOf = (id: (typeof ships)[number]['id']) => {
 const makerCodes = new Map(ships.map((s) => [s.maker, s.makerCode]));
 const lex = vocab(makers.map((m) => ({ name: m, code: makerCodes.get(m) ?? '' })));
 const L = (w: { de: string; en: string }) => label(w, lang);
-const vocabJson = JSON.stringify({
+const vocabJson = jsonForScript({
   pur: lex.pur.map((e) => ({ ...e, l: L(PURPOSES.find((p) => p.key === e.k)!.label) })),
   grp: lex.grp.map((e) => ({ ...e, l: L(ROLE_GROUPS.find((g) => `${g.purpose}:${g.key}` === e.k)!.label) })),
   size: lex.size.map((e) => ({ ...e, l: L(SIZES.find((z) => z.key === e.k)!.label) })),
   crew: lex.crew.map((e) => { const c = CREW.find((x) => x.key === e.k)!; return { ...e, l: L(c.label), min: c.min, max: Number.isFinite(c.max) ? c.max : null }; }),
   maker: lex.maker.map((e) => ({ ...e, l: e.k })),
   nick: lex.nick,
-}).replace(/</g, '\\u003c');
+});
 // Kurzer Hersteller fuer die Zeile der Liste: das erste Wort, die beiden
 // langen Namen so, wie man sie im Spiel sagt. Der volle Name steht in der
 // Schnellansicht und fuer Vorleser.
