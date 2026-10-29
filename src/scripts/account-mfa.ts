@@ -95,6 +95,7 @@ async function boot(card: HTMLElement) {
     if (!verified.length || (await hasAal2(supabase))) return true;
     const ok = await askCode(supabase);
     if (!ok) say(C.errAal);
+    else document.dispatchEvent(new CustomEvent('vb:aal2'));
     return ok;
   };
 
@@ -169,6 +170,8 @@ async function boot(card: HTMLElement) {
     nameIn.value = '';
     await paint();
     say(verified.length > 1 ? C.okAdded : C.okAddedOne, true);
+    // Die Sitzung steht jetzt auf aal2 (z. B. fuer die Testpiloten-Liste).
+    document.dispatchEvent(new CustomEvent('vb:aal2'));
   };
   okBtn.addEventListener('click', () => void confirmEnroll());
   codeIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); void confirmEnroll(); } });

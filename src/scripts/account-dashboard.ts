@@ -1762,7 +1762,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // is-admin ausdrueckt — hier direkt gegen user_roles gepruft, weil
       // account-lite.js auf /account/-Seiten nicht laeuft (volles
       // supabase-js). Fire-and-forget, blockiert die Dashboard-Anzeige nicht.
-      (async () => {
+      const loadTesterOverview = async () => {
         const overviewCard = document.getElementById('testerOverviewCard');
         const overviewBody = document.getElementById('testerOverviewBody');
         if (!overviewCard || !overviewBody) return;
@@ -1781,6 +1781,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           if (error && (error as { hint?: string }).hint === 'aal2') {
             overviewBody.textContent = D.testerNeedsCode || '';
             overviewCard.hidden = false;
+            // Code in der Zwei-Faktor-Karte eingegeben: Liste neu laden.
+            document.addEventListener('vb:aal2', () => { void loadTesterOverview(); }, { once: true });
             return;
           }
           if (error) return;
@@ -1809,7 +1811,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           }
           overviewCard.hidden = false;
         } catch { /* verborgen bei jedem Fehler -- keine Fehlermeldung */ }
-      })();
+      };
+      void loadTesterOverview();
 
       // ── Discord-Verbindung (linkIdentity) ──────────────────────────────
       // Warum nicht "mit Discord anmelden": das verknuepft nur, wenn die
