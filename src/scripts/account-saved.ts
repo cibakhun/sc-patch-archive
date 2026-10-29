@@ -69,6 +69,23 @@ function boot(root: HTMLElement) {
     document.dispatchEvent(new CustomEvent('vb:saved', { detail: { favs: favs.length, changed } }));
   };
 
+  /* --------------------------------------- Schaufenster (Pilotenseite) --- */
+  // Bis zu drei Loadouts hängen am öffentlichen Profil (profiles.showcase,
+  // nur die IDs; die Pilotenseite liest sie über die View public_showcase).
+  // null = noch nicht geladen oder Spalte fehlt: dann gibt es keinen Knopf.
+  const MAX_PIN = 3;
+  let pinned: string[] | null = null;
+  const savePins = async (next: string[]) => {
+    const before = pinned;
+    pinned = next;
+    render();
+    const { error } = await supabase.from('profiles').update({ showcase: next }).eq('id', me);
+    if (error) { pinned = before; render(); toast(C.failed); return false; }
+    return true;
+  };
+  // Nur IDs, die es noch gibt (ein gelöschtes Loadout belegt sonst einen Platz).
+  const livePins = () => (pinned || []).filter((id) => layoutList().some((l) => l.id === id));
+
   /* ------------------------------------------------------ Kartenbauer --- */
   const poster = (li: HTMLElement, img: string, ic: string, c: string) => {
     li.style.setProperty('--kc', c);
@@ -124,11 +141,26 @@ function boot(root: HTMLElement) {
     rm.addEventListener('click', () => {
       const gone = layouts.store.remove(e.id);
       if (!gone) { toast(C.failed); return; }
+      if (pinned?.includes(e.id)) savePins(livePins());
       render();
       announce();
       toast(C.removed.replace('%s', name), () => { layouts.store.restore(gone); render(); announce(); });
     });
     acts.append(adv, copy, rm);
+    if (pinned) {
+      const on = pinned.includes(e.id);
+      li.classList.toggle('is-pinned', on);
+      const pin = actBtn('ic-pin', on ? C.unpin : C.pin, on ? 'sv-act--on' : '');
+      pin.setAttribute('aria-pressed', String(on));
+      pin.addEventListener('click', async () => {
+        const cur = livePins();
+        if (on) { if (await savePins(cur.filter((id) => id !== e.id))) toast(C.unpinned); return; }
+        if (cur.length >= MAX_PIN) { toast(C.pinFull); return; }
+        if (await savePins([...cur, e.id])) toast(C.pinned);
+      });
+      acts.prepend(pin);
+      if (on) main.prepend(el('span', 'sv-pin', C.onProfile));
+    }
     li.append(main, link, acts);
     return li;
   };
@@ -237,11 +269,13 @@ function boot(root: HTMLElement) {
     me = user.id;
     startLayouts();
     render();
-    const [th, res] = await Promise.all([
+    const [th, res, sc] = await Promise.all([
       fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
       supabase.from('favorites').select('id, kind, slug, label, created_at').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('showcase').eq('id', me).maybeSingle(),
     ]);
     thumbs = th || {};
+    if (!sc.error) pinned = Array.isArray(sc.data?.showcase) ? (sc.data!.showcase as unknown[]).map(String) : [];
     favs = (res.data || []) as Fav[];
     favsLoaded = true;
     render();

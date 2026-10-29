@@ -204,6 +204,7 @@ import { supabase } from '../lib/supabase';
         is_tester: false,
         tester_credit: false,
         share_activity: true,
+        show_favorites: true,
         social_twitch: '',
         social_youtube: '',
         social_x: '',
@@ -305,6 +306,7 @@ import { supabase } from '../lib/supabase';
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
       const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const showFavsInput = document.getElementById('pfShowFavs') as HTMLInputElement | null;
       const socialInputs = {
         social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
         social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
@@ -326,6 +328,7 @@ import { supabase } from '../lib/supabase';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
       if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      if (showFavsInput) showFavsInput.checked = profileState.show_favorites !== false;
       SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
       const ovSoc = document.getElementById('ovSocials');
       if (ovSoc) renderSocialLinks(ovSoc, profileState);
@@ -1294,6 +1297,7 @@ import { supabase } from '../lib/supabase';
           socialVals[s.key] = v;
         }
         const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
+        const showFavsVal = showFavsInput ? showFavsInput.checked : profileState.show_favorites !== false;
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1327,6 +1331,7 @@ import { supabase } from '../lib/supabase';
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          show_favorites: showFavsVal,
           ...socialVals,
         });
 
@@ -1347,6 +1352,7 @@ import { supabase } from '../lib/supabase';
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          show_favorites: showFavsVal,
           social_twitch: socialVals.social_twitch || null,
           social_youtube: socialVals.social_youtube || null,
           social_x: socialVals.social_x || null,

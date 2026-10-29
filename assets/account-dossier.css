@@ -1418,6 +1418,11 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .sv-act svg{width:15px;height:15px}
 .dsr .sv-act:hover{border-color:var(--accent);color:#fff;background:rgba(45,212,255,.25)}
 .dsr .sv-act--rm:hover{border-color:var(--hot);color:var(--hot);background:rgba(244,112,138,.22)}
+/* Aufs öffentliche Profil geheftet (Schaufenster, höchstens drei) */
+.dsr .sv-act--on{border-color:var(--gold);background:var(--gold);color:#1a1205}
+.dsr .sv-act--on:hover{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 82%,#fff);color:#1a1205}
+.dsr .sv-lo.is-pinned{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 22px -8px var(--gold)}
+.sv-pin{display:inline-block;margin-bottom:5px;padding:2px 8px;border-radius:999px;background:var(--gold);color:#1a1205;font-family:var(--font-ui);font-weight:800;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase}
 .sv-empty{min-height:18rem}
 .sv-empty p{line-height:1.5}
 .sv-empty b{color:var(--text)}

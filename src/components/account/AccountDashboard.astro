@@ -119,7 +119,7 @@ const COPY = {
     dcLinkErr: 'Hat nicht geklappt. Bitte später erneut versuchen.',
     dcUnlinkNeedsTwo: 'Zum Lösen brauchst du einen zweiten Anmeldeweg. Setze zuerst ein Passwort.',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
-    shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', socialBad: 'Dieser Name passt nicht zu %s.',
+    shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', showFavs: 'Favoriten auf meiner öffentlichen Seite zeigen', socialBad: 'Dieser Name passt nicht zu %s.',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
@@ -266,7 +266,7 @@ const COPY = {
     dcLinkErr: 'Connecting did not work — please try again later.',
     dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in. Set a password first.',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
-    shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', socialBad: 'That name does not fit %s.',
+    shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', showFavs: 'Show favorites on my public page', socialBad: 'That name does not fit %s.',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
@@ -348,6 +348,7 @@ const SV = {
     none: 'Nichts gefunden.', changes: '%n% Änderungen', change1: '1 Änderung', stock: 'Serie',
     open: 'Im Hangar öffnen', advanced: 'Advanced Loadout', copy: 'Link kopieren', copied: 'Link kopiert',
     remove: 'Löschen', removed: '„%s" gelöscht', undo: 'Rückgängig', failed: 'Das hat nicht geklappt.',
+    pin: 'Aufs öffentliche Profil heften', unpin: 'Vom Profil nehmen', pinned: 'Auf deinem Profil', unpinned: 'Vom Profil genommen', pinFull: 'Höchstens drei Loadouts auf dem Profil.', onProfile: 'Profil',
     syncErr: 'Noch nicht mit dem Konto abgeglichen', empty: 'Noch nichts gespeichert.', emptyHint: 'Speichere Loadouts im Hangar oder markiere Schiffe mit dem Stern.', toHangar: 'Zum Hangar',
     kinds: { ship: 'Schiffe', mission: 'Missionen', mineral: 'Minerale', item: 'Items', patch: 'Patches', topic: 'Themen' },
   },
@@ -356,6 +357,7 @@ const SV = {
     none: 'Nothing found.', changes: '%n% changes', change1: '1 change', stock: 'Stock',
     open: 'Open in hangar', advanced: 'Advanced Loadout', copy: 'Copy link', copied: 'Link copied',
     remove: 'Delete', removed: '"%s" deleted', undo: 'Undo', failed: 'That did not work.',
+    pin: 'Pin to public profile', unpin: 'Remove from profile', pinned: 'On your profile', unpinned: 'Removed from profile', pinFull: 'At most three loadouts on your profile.', onProfile: 'Profile',
     syncErr: 'Not synced with your account yet', empty: 'Nothing saved yet.', emptyHint: 'Save loadouts in the hangar or star ships to keep them here.', toHangar: 'Go to hangar',
     kinds: { ship: 'Ships', mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' },
   },
@@ -470,6 +472,7 @@ const SEC = {
       <g id="ic-hash" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15M4 15h15M10.5 3L8 21M16 3l-2.5 18"/></g>
       <g id="ic-search" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></g>
       <g id="ic-sliders" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></g>
+      <g id="ic-pin" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5h6l-.8 5.5 3.8 4H6l3.8-4z"/><path d="M12 13v7.5"/></g>
       <g id="ic-link" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></g>
       <g id="ic-chat" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5a7.5 7.5 0 0 1-11.1 6.6L4 20.5l1.4-4.6A7.5 7.5 0 1 1 20 12.5z"/><path d="M8.5 12.5h.01M12.5 12.5h.01M16.5 12.5h.01"/></g>
       <g id="ic-user-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9" cy="7.5" r="3.5"/><path d="M19 8v6M16 11h6"/></g>
@@ -760,6 +763,10 @@ const SEC = {
                 <label class="pf-check">
                   <input type="checkbox" id="pfShareActivity" checked />
                   <span>{COPY.shareActivity}</span>
+                </label>
+                <label class="pf-check">
+                  <input type="checkbox" id="pfShowFavs" checked />
+                  <span>{COPY.showFavs}</span>
                 </label>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
                   <button class="btn primary" type="submit" id="pfBtn"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> <span id="pfBtnTxt">{COPY.saveProfile}</span></button>
