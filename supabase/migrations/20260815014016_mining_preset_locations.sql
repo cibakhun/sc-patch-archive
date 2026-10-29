@@ -11,7 +11,7 @@
 --   1. Verlustfreiheit schlaegt die saubere Trennung. `add column ...
 --      default '{}'::text[]` fuellt Postgres bei JEDER bestehenden Zeile
 --      ohne Tabellenumbau — Nutzer haben dort bereits Signaturen-Sets
---      liegen (Migration 20260812040000), und die bleiben zeichengleich
+--      liegen (Migration 20260812142337), und die bleiben zeichengleich
 --      gueltig. Eine getrennte Preset-Liste je Reiter haette ein drittes
 --      Feld (etwa `kind`) IM Primaerschluessel gebraucht: Schluessel
 --      abbauen, Bestand nachtragen, Schluessel neu setzen — drei Schritte

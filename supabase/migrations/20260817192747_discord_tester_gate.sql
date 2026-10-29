@@ -92,7 +92,7 @@ comment on column public.profiles.tester_credit is
 
 -- ============================================================================
 -- 4. Schreibsperre auf is_tester -- uebertragen aus guard_rsi_verified
---    (supabase/migrations/20260722200000_guard_rsi_verified.sql), nur der
+--    (supabase/migrations/20260723004328_guard_rsi_verified.sql), nur der
 --    Feldname wechselt. tester_credit steht AUSDRUECKLICH NICHT unter dieser
 --    Sperre -- der Nutzer darf seinen eigenen Zustimmungsschalter setzen.
 -- ============================================================================
@@ -142,11 +142,11 @@ create trigger trg_guard_is_tester
 --
 --    ⚠ WARNUNG fuer kuenftige Leser/Aenderer dieser View: die Spaltenliste
 --    ist ueber DREI Migrationen gewachsen, nicht nur eine:
---      1. supabase/migrations/20260723000000_public_profile_views.sql
+--      1. supabase/migrations/20260723182258_public_profile_views.sql
 --         -- Urfassung, 14 Spalten, endet auf created_at.
---      2. supabase/migrations/20260725000000_add_last_seen_presence.sql
+--      2. supabase/migrations/20260725032319_add_last_seen_presence.sql
 --         -- + presence (CASE-Ausdruck aus last_seen).
---      3. supabase/migrations/20260725110000_presence_two_signal.sql
+--      3. supabase/migrations/20260725110727_presence_two_signal.sql
 --         -- presence auf ein Zwei-Signal-Modell (last_seen + last_active)
 --         umgestellt. DIES ist die aktuell lebende Fassung -- wer diese View
 --         ersetzt, MUSS von HIER aus weiterbauen, nicht von Datei 1.

@@ -1,3 +1,10 @@
+-- Live-Abgleich 29.10.2026: Dateiname jetzt mit Version und Name der Anlage
+-- (supabase_migrations.schema_migrations); der Absatz unten, nach dem sich
+-- Dateiname und Anlagenname nicht decken, ist damit ueberholt. Einziger
+-- Unterschied im ausgefuehrten SQL war der Funktionskommentar (comment on
+-- function); er ist an den Live-Wortlaut angeglichen. Die Funktion selbst
+-- ersetzt seit 29.10.2026 20261029121956_allow_discord_signup.
+--
 -- Testpilot-Zugang (Phase 14, Plan 03): Riegel gegen die stille
 -- Kontoerstellung ueber den Discord-Weg (D-02).
 --
@@ -96,7 +103,7 @@
 -- ausschliesslich dann, wenn Supabase im Begriff ist, ueber den Discord-Weg
 -- ein NEUES Konto in `auth.users` anzulegen -- wortwoertlich der Fall, den
 -- D-02 verbietet. Der `trg_sync_discord_identity`-Trigger aus Plan 02
--- (supabase/migrations/20260818000000_discord_tester_gate.sql, AFTER INSERT
+-- (supabase/migrations/20260817192747_discord_tester_gate.sql, AFTER INSERT
 -- ON auth.identities) spiegelt die Discord-ID unabhaengig davon weiter, ob
 -- die Identitaet aus einer Neuanmeldung oder aus einer Verknuepfung stammt --
 -- dieser Riegel kommt ihm nicht in die Quere, weil er auf einer anderen
@@ -181,12 +188,12 @@ end;
 $function$;
 
 comment on function public.handle_new_user() is
-  'D-02 (14-03-PLAN.md): weist die stille Kontoerstellung ueber den '
-  'Discord-Weg ab, bevor das Konto-Profil angelegt wird. Aufgerufen vom '
-  'bestehenden Trigger on_auth_user_created (AFTER INSERT ON auth.users, '
-  'nicht Teil dieser Migration -- siehe Kopfkommentar der Datei fuer den '
-  '42501-Befund, der diese Bauform statt eines eigenen Triggers erzwingt). '
-  'SET search_path TO ''''; jede Referenz MUSS voll qualifiziert sein.';
+  'Legt beim Registrieren das Profil an UND traegt seit dem 18.08.2026 den '
+  'D-02-Riegel: eine Kontoerstellung ueber den Discord-Provider wird '
+  'abgewiesen (Discord meldet an, legt nie an). Der Riegel sitzt hier statt '
+  'in einem eigenen Trigger, weil auth.users supabase_auth_admin gehoert und '
+  'keine eigenen Trigger zulaesst (42501). Aendern nur mit vorgefuehrt roter '
+  'Gegenprobe in BEIDE Richtungen -- ein Fehler hier sperrt jede Registrierung.';
 
 -- ============================================================================
 -- RUECKBAU -- Fassung VOR dieser Migration (pg_get_functiondef, ebenfalls

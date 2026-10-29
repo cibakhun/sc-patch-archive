@@ -116,7 +116,7 @@ for (const [kind, arr] of NAME_GROUPS) {
 
 // 12) Wachposten gegen "|" in Mineral- oder Fundortnamen (Phase 9, D-07).
 // mining-workbench.js baut den Schluessel eines angehefteten Fundort-Paares
-// als "<Erz>||<Fundort>" (Migration 20260815090000_mining_preset_locations.sql,
+// als "<Erz>||<Fundort>" (Migration 20260815014016_mining_preset_locations.sql,
 // comment on column). Truege ein Name selbst ein "|", liesse sich der
 // Schluessel beim Trennen nicht mehr eindeutig in Erz und Fundort zerlegen —
 // das zerlegt gespeicherte Merklisten von Nutzern. FEHLER, nicht WARNUNG: die
