@@ -98,6 +98,7 @@ const resetHref = href('/account/reset.html', lang);
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { safeNext } from '../../lib/safe-next';
 
   const form = document.getElementById('loginForm') as HTMLFormElement | null;
   if (form) {
@@ -112,19 +113,10 @@ const resetHref = href('/account/reset.html', lang);
     // genau einem Slash, der Browser normalisiert „\" aber zu „/" -> protokoll-
     // relativ -> Fremd-Origin. Robust: gegen die eigene Origin auflösen und
     // die Origin vergleichen; nur den normalisierten Pfad weiterverwenden.
+    // Gemeinsame Regel mit der Torseite: src/lib/safe-next.ts.
     const params = new URLSearchParams(location.search);
     const rawNext = params.get('next') || '';
-    const safeNext = (raw: string): string => {
-      if (!raw) return D.dash!;
-      try {
-        const u = new URL(raw, location.origin);
-        if (u.origin !== location.origin) return D.dash!;
-        return u.pathname + u.search + u.hash;
-      } catch {
-        return D.dash!;
-      }
-    };
-    const next = safeNext(rawNext);
+    const next = safeNext(rawNext, location.origin, D.dash!);
 
     const go = () => location.replace(next);
 
