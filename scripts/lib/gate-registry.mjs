@@ -95,7 +95,7 @@ export const CHECKS = [
     npm: 'audit:csp',
     script: 'scripts/audit-csp.mjs',
     rail: 'A',
-    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers',
+    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), der Zaehl-Host steht nur in connect-src, und kein add_header ausserhalb des server-Blocks',
   },
   {
     // Direkt nach audit:csp — beide betreffen nginx/default.conf.
@@ -277,7 +277,7 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad (in node:vm ausgefuehrt), Klinken fuer Layout-Seiten, Zaehler-Seiten und Haken-Fassungen; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen und Zaehler-Kopien; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
   },
   {
     id: 'audit:site',
