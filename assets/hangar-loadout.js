@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, deltaPct, sameLayout, changeCount, createStore, newId, WEAPON_TYPES, STORE_KEY } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -29,7 +29,9 @@ const fill = (tpl, vals) => tpl.replace(/\{(\w+)\}/g, (x, k) => (k in vals ? Str
 const plural = (base, n) => fill(m(`${base}.${pr.select(n) === 'one' ? 'one' : 'other'}`), { n: nf.format(n) });
 let storage = null;
 try { storage = window.localStorage; } catch { storage = null; }
-const store = createStore(storage);
+// Gast: dieser Browser; angemeldet: Spiegel des Kontos + Abgleich (assets/hangar-layouts.js).
+const acct = accountStore({ storage, account: null, onChange: () => repaintSaved() });
+const store = acct.store;
 const SHIPS = JSON.parse($('lo-ships').textContent);
 const shipById = new Map(SHIPS.map((s) => [s.id, s]));
 const shipName = (id) => shipById.get(id)?.name ?? id;
@@ -665,6 +667,9 @@ function paintSaved() {
   const all = store.list();
   $('lo-count').textContent = nf.format(all.length);
   if (!dlg.open) return;
+  const st = acct.state();
+  if (st !== 'guest') $('lo-where').replaceChildren(m(st === 'synced' ? 'saved.account' : st === 'error' ? 'saved.error' : 'saved.pending'));
+  else $('lo-where').replaceChildren(`${m('saved.guest')} `, el('a', { href: window.VBAccount?.loginHref() ?? `${de ? '/de' : ''}/account/login.html` }, m('saved.login')));
   if (!all.length) { $('lo-list').replaceChildren(el('li', { class: 'lo-empty' }, m('saved.empty'))); return; }
   const here = all.filter((e) => e.ship === draft.ship);
   const rest = all.filter((e) => e.ship !== draft.ship);
@@ -703,12 +708,20 @@ dlg.addEventListener('click', (e) => {
     toast(fill(m('msg.deleted'), { name: gone.name }), () => { store.restore(gone); paintSaved(); paintTop(); });
   }
 });
-// Ein zweiter Tab (oder der Hangar) speichert mit.
-window.addEventListener('storage', (e) => {
-  if (e.key !== STORE_KEY || !data) return;
+// Ein zweiter Tab (oder der Hangar) speichert mit; An- und Abmelden wechselt die Ablage.
+function repaintSaved() {
+  if (!data) return;
   paintSaved();
   paintTop();
+}
+window.addEventListener('storage', (e) => {
+  if (e.key === store.key()) repaintSaved();
+  else if (e.key && /^sb-.*-auth-token$/.test(e.key)) { repaintSaved(); acct.sync(); }
 });
+window.addEventListener('vb-account-session', () => { repaintSaved(); acct.sync(); });
+if (window.VBAccount) acct.sync();
+else window.addEventListener('vb-account-ready', () => acct.sync(), { once: true });
+doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'visible') acct.sync(); });
 
 /* ---------------------------------------------------------- Hinweis --- */
 

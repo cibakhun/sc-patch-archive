@@ -4525,6 +4525,18 @@ async function robustBox(root, pause = noPause, unlean = null) {
 // Dieselbe Rechnung nimmt der Bau (scripts/build-hangar-assets.mjs) für die
 // Serienpalette im GLB, der Viewer für jede Lackierung, auch die ab Werk
 // (dressTextured rechnet sie aus extras.palette nach).
+// Farbige Glanzfarbe ist immer Metall: Nichtmetalle spiegeln farblos, nur
+// Metall färbt seinen Glanz (Purple Haze #412686, Fortuna #354b35, Disco).
+// Diese liegen oft unter DIEL_MAX und blieben mit Tönung 0 schwarz (PC-Lauf
+// „Hangar-Lack“, 29.10.2026: 22 der 53 ganz schwarzen Lacke). Ab einer
+// Sättigung (linear, (max − min) / max) von SAT_MIN blendet das Metall wie
+// über der Helligkeit weich ein, ab SAT_FULL gilt die Gleichung ganz. In
+// den Daten ist Lack-Glanz grau (5 403 dunkle Kanäle bei Sättigung 0, 36
+// zwischen 0,1 und 0,3), farbiger fast immer über 0,5. Fast schwarz ist der
+// Farbton nur Rundung (#000001 hätte Sättigung 1): Die Sättigung zählt erst
+// ab hellstem Kanal #080808 und ganz ab #181818; der dunkelste farbige Glanz
+// in den Daten hat #1c (Wolf #0a101c, Spirit Ruby #0e162a, gleich hoch
+// gesetzt würde die Schwelle diese wieder schwarz machen).
 const HEX6 = /^#[0-9a-f]{6}$/i;
 export function palettePbr(tint, specular, gloss) {
   const lin = (h) => [1, 3, 5].map((i) => {
@@ -4533,13 +4545,16 @@ export function palettePbr(tint, specular, gloss) {
   });
   const DIEL = 0.04, EPS = 1e-6, clamp = (v) => Math.min(1, Math.max(0, v));
   const lum = (c) => Math.sqrt(0.299 * c[0] ** 2 + 0.587 * c[1] ** 2 + 0.114 * c[2] ** 2);
-  const DIEL_MAX = lum(lin('#646464')), METAL_MIN = lum(lin('#9b9b9b'));
+  const DIEL_MAX = lum(lin('#646464')), METAL_MIN = lum(lin('#9b9b9b')), SAT_MIN = 0.3, SAT_FULL = 0.5;
+  const HUE_MIN = lin('#080808')[0], HUE_FULL = lin('#181818')[0];
   const d = lin(tint), s = lin(specular ?? '#3b3b3b');
-  const keep = 1 - Math.max(...s), ls = lum(s);
+  const top = Math.max(...s), keep = 1 - top, ls = lum(s);
+  const sat = top > EPS ? (top - Math.min(...s)) / top : 0;
+  const hue = clamp((sat - SAT_MIN) / (SAT_FULL - SAT_MIN)) * clamp((top - HUE_MIN) / (HUE_FULL - HUE_MIN));
+  const t = Math.max(clamp((ls - DIEL_MAX) / (METAL_MIN - DIEL_MAX)), hue);
   let metal = 0;
-  if (ls > DIEL_MAX) {
+  if (t > 0) {
     const b = (lum(d) * keep) / (1 - DIEL) + ls - 2 * DIEL, c = DIEL - ls;
-    const t = clamp((ls - DIEL_MAX) / (METAL_MIN - DIEL_MAX));
     metal = clamp((-b + Math.sqrt(Math.max(b * b - 4 * DIEL * c, 0))) / (2 * DIEL)) * t * t * (3 - 2 * t);
   }
   const color = d.map((v, i) => {
@@ -4604,13 +4619,34 @@ function disposeObject(o) {
 // aus der Mittelfuge, wenn das Schachttor einrastet, als warmer Schwaden
 // aus dem Schacht, wenn es aufgeht, und in Stößen an den Kanten des Felds,
 // wenn die Plattform oben einrastet oder unten losfährt (fx in
-// initHangar). Jedes Teilchen ist ein zur Kamera gedrehtes Viereck; seine
-// Bahn rechnet der Shader aus Startpunkt, Geschwindigkeit und Alter, der
-// Prozessor schreibt nur beim Ausstoß ein paar Zahlen in einen Ringpuffer.
-// Ist nichts in der Luft, zeichnet er nichts.
-// Bahn: Der Stoß bremst in der Luft (STEAM_DRAG, 1/s), danach treibt der
-// Dampf mit seiner Steiggeschwindigkeit nach oben (aV.w: Lebensdauer).
+// initHangar). Jedes Teilchen ist ein zur Kamera gedrehtes Viereck in einem
+// Ringpuffer. Ist nichts in der Luft, zeichnet und rechnet er nichts.
+// Bahn (29.10.2026, Krisz zu einer Dampfsäule über dem offenen Schacht:
+// „smoke soll phiscs haben, also wenn die platform auf und zu geht soll ja
+// sich die luft bewegen und der rauch sich mitbewegen, momentan siehts sehr
+// ridget aus“): Bis dahin rechnete der Shader jede Bahn fest aus Stoß, Alter
+// und Steiggeschwindigkeit, der Dampf wusste nichts von der Mechanik. Jetzt
+// rechnet der Prozessor die Teilchen je Bild durch ein Luftfeld (steamAir):
+// Die fahrende Plattform drückt die Luft im Schacht durch die Öffnung
+// hinaus oder saugt sie hinein, um so schneller, je enger das Tor sie
+// lässt; die Flügel des Tors ziehen die Luft über sich mit und schieben sie
+// vor ihren Kanten her; das Schiff auf der Plattform verdrängt sie, über und
+// unter sich mit, zu seinen Seiten zurück (Umströmung einer bewegten Kugel,
+// auf seine Maße gezogen); Wirbel aus einem quellenfreien Rauschfeld werden
+// stärker, wo die Luft schnell ist. Die Luft hat
+// Trägheit: Hält die Plattform, strömt sie noch kurz nach und kommt zur
+// Ruhe. Jeder Ballen folgt der Luft mit STEAM_DRAG (1/s) plus seinem
+// Auftrieb, liegt auf Boden und Plattform auf und weicht dem Rumpf aus;
+// sein Rauschbild fährt mit ihm, schnelle Ballen ziehen sich zur Fahne.
+// Rund 520 Teilchen (doppelt so viele, kleinere seit dem 29.10.: so viele
+// Ballen, dass keiner einzeln dasteht) kosten je Bild rund 0,3 ms.
 const STEAM_DRAG = 2.2;
+// Luftfeld (Weltmaße mal Hallenmaßstab k, wo vermerkt): Anteil der
+// Kolbenströmung, die den Dampf trifft (der Rest entweicht seitlich), ihre
+// Höchstgeschwindigkeit (m/s je k) und wie schnell sie über der Öffnung
+// nachlässt (m je k); Mitnahme durch die Torflügel; Grundwirbel (m/s je k)
+// und Wirbel je m/s Strömung; Trägheit der Luft (s) für Plattform und Tor
+const STEAM_AIR = { piston: 0.35, cap: 5, rise: 5, gate: 0.6, turb: 0.12, turbPer: 0.3, lagLift: 0.45, lagGate: 0.2 };
 // Aussehen am 27.10.2026 (Krisz mit Bild eines Reaktorraums aus dem Spiel:
 // „unser dampf oder rauch effekt soll mindestens auf diesem niveu sein“):
 // eine dichte, weiche Bank, oben hell im Licht, unten und in den Falten im
@@ -4623,95 +4659,131 @@ const STEAM_DRAG = 2.2;
 // Punkt liegt (Selbstschatten). Mit Nachbearbeitung zeichnet er nach der Verdeckung in einem eigenen Pass und
 // liest die Tiefe des Bildes: Wo er in Boden, Rumpf oder Wand steckt, läuft
 // er weich aus, statt an einer harten Linie abzubrechen.
+// 29.10.2026 (Krisz mit Bild vom Feldrand aus der Nähe: „dampf oder rauch
+// sieht sehr unfluid aus. sehr unnatürlich“): Aus der Nähe zerfiel der
+// Dampf in Körnchen, und die Bank lag als flache Flecken auf dem Boden wie
+// Watte oder Schnee. Die Körnchen kamen von der feinsten Stufe des
+// Zellrauschens (Zellen um 9 cm) hinter einer harten Schwelle; von oben
+// kam dazu, dass die beiden stehenden Ebenen schräg gesehen gestaucht
+// werden. Jetzt trägt den Dampf weiches Wertrauschen mit breitem Übergang
+// (kein Detail unter rund 30 cm): durchscheinend wie im Bild, mit dem Alter
+// in Schleiern. Der Dampf liest die drei Ebenen nach der Blickrichtung.
+// Ein langsam
+// drehendes Feld verzerrt das Rauschen, so quillt das Innere, statt starr
+// mitzufahren. Was am Boden rollt, sitzt höher, damit es Höhe zeigt statt
+// eines Flecks.
 // Farbe (linear, vor der Belichtung): oben im Licht der Halle, unten im
-// eigenen Schatten, kühl wie das Streulicht der weißen Wände
-const STEAM_LIT = [1.55, 1.52, 1.48];
-const STEAM_SHADE = [0.36, 0.39, 0.44];
+// eigenen Schatten, kühl wie das Streulicht der weißen Wände; nicht so hell,
+// dass er weiß ausbrennt (dann wirkt er wie Watte)
+const STEAM_LIT = [1.22, 1.21, 1.19];
+const STEAM_SHADE = [0.4, 0.43, 0.48];
 const STEAM_VS = /* glsl */ `
-attribute vec4 aP;   // Start (Welt, m), Geburt (s)
-attribute vec4 aV;   // Stoß (m/s), Lebensdauer (s)
+attribute vec4 aP;   // Lage (Welt, m), Alter durch Lebensdauer (0..1, sonst nicht da)
+attribute vec4 aD;   // Weg seit der Geburt (m), Drehung (rad)
 attribute vec4 aS;   // Größe am Anfang und am Ende (m), Zufall, Deckkraft
-attribute vec2 aR;   // Steiggeschwindigkeit (m/s), Wirbel (m)
+attribute vec3 aE;   // Geschwindigkeit (m/s)
 uniform float uTime;
-varying vec2 vUv;
+varying vec2 vUv, vXZ;
 varying vec3 vW;
-varying float vA, vSeed, vAge, vY, vZ, vS, vWt;
+varying vec3 vPw;
+varying float vA, vSeed, vAge, vY, vZ, vS, vPc;
 void main() {
-  float age = uTime - aP.w, k = age / aV.w;
+  float k = aP.w;
   vUv = position.xy + 0.5;
-  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0; vZ = 1.0; vS = 1.0; vW = vec3(0.0); vWt = 0.5;
+  vSeed = aS.z; vAge = k; vA = 0.0; vY = 0.0; vZ = 1.0; vS = 1.0; vW = vec3(0.0); vPw = vec3(0.0, 1.0, 0.0); vPc = 1.0; vXZ = vec2(0.0);
   if (k < 0.0 || k >= 1.0) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
-  float d = (1.0 - exp(-${STEAM_DRAG.toFixed(1)} * age)) / ${STEAM_DRAG.toFixed(1)};
-  vec3 p = aP.xyz + aV.xyz * d;
-  p.y += aR.x * max(0.0, age - d);
-  float w = aR.y * k;
-  p.x += sin(age * 1.7 + aS.z * 40.0) * w;
-  p.z += cos(age * 1.3 + aS.z * 23.0) * w;
+  vec3 p = aP.xyz;
   float s = mix(aS.x, aS.y, 1.0 - (1.0 - k) * (1.0 - k));
-  float a = aS.z * 6.2832 + age * (aS.z - 0.5) * 0.8;
+  vec3 R = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]), U = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+  float a = aD.w;
   vec2 c = mat2(cos(a), sin(a), -sin(a), cos(a)) * position.xy * s;
+  // schneller Dampf zieht sich in Flugrichtung zur Fahne, quer wird er
+  // schmaler, die Fläche wächst nur mit der Wurzel
+  vec2 e = vec2(dot(aE, R), dot(aE, U));
+  float sp = length(e), st = 1.0 + min(0.7, 0.12 * sp);
+  vec2 ed = sp > 1e-3 ? e / sp : vec2(1.0, 0.0);
+  float al = dot(c, ed);
+  c = ed * al * st + (c - ed * al) * inversesqrt(st);
   vec4 mv = viewMatrix * vec4(p, 1.0);
   mv.xy += c;
   gl_Position = projectionMatrix * mv;
   vZ = -mv.z; vS = s;
   // Ort des Bildpunkts in der Welt (Ecken über die Achsen der Kamera): Höhe
-  // über dem Boden und Lage für das Rauschen der Ballen (steigt mit dem
-  // Dampf), damit sich überlappende Ballen zu einer Bank verbinden. vWt
-  // wiegt die beiden senkrechten Ebenen nach der Blickrichtung: Beim Drehen
-  // blendet das Rauschen über, statt mit der Kamera zu wandern.
-  vec3 R = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]), U = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+  // über dem Boden und Lage für das Rauschen der Ballen. Das Rauschen fährt
+  // zur Hälfte mit dem Ballen (aD: sein Weg seit der Geburt), so trägt er
+  // seine Form ein Stück durch die Strömung; ganz mitgeführt sähen Ballen,
+  // die eben noch verschieden schnell aus dem Spalt kamen, an derselben
+  // Stelle verschiedene Muster und stünden als Klumpen nebeneinander statt
+  // als eine Bank (so in der Seite am 29.10.). Dazu quillt es langsam. vPw
+  // wiegt die drei Ebenen der Welt nach der Blickrichtung: Von oben liest
+  // der Dampf die liegende, von der Seite die stehenden; eine Ebene schräg
+  // zum Blick gäbe gestauchtes Rauschen, also Streifen (so mit nur den
+  // stehenden Ebenen von oben). Beim Drehen blendet es über, statt mit der
+  // Kamera zu wandern; vPc hält die Mischung so kräftig wie eine Ebene.
   vec3 wp = p + R * c.x + U * c.y;
-  vY = wp.y;
-  vW = vec3(wp.x, wp.y - uTime * 0.35, wp.z);
-  vWt = abs(R.x) / (abs(R.x) + abs(R.z) + 1e-4);
+  vY = wp.y; vXZ = wp.xz;
+  vW = wp - aD.xyz * 0.45;
+  vW.y -= uTime * 0.08;
+  vec3 F = vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), pw = F * F;
+  pw *= pw;
+  vPw = pw / (pw.x + pw.y + pw.z);
+  vPc = inversesqrt(dot(vPw, vPw));
   // rasch da, lang verweht; dünner, je größer er wird: Der Dampf mischt
   // sich mit Luft. Mit der Fläche fiele die Dichte so schnell, dass nur
   // kleine Ballen dicht wären; darunter (Potenz 0,6) bleibt ein großer
   // Schwaden dicht wie im Spiel und reißt erst mit dem Alter auf
-  vA = aS.w * smoothstep(0.0, 0.18, k) * (1.0 - smoothstep(0.4, 1.0, k)) * pow(aS.x / s, 0.6);
+  vA = aS.w * smoothstep(0.0, 0.18, k) * (1.0 - smoothstep(0.4, 1.0, k)) * pow(aS.x / s, 0.6) * inversesqrt(st);
 }`;
 const STEAM_FS = /* glsl */ `
-uniform vec3 uLit, uShade;
-uniform float uFloor, uSoft, uNear, uFar;
+uniform vec3 uLit, uShade, uGap;
+uniform float uTime, uFloor, uSoft, uNear, uFar;
 uniform vec2 uRes;
 uniform sampler2D uNoise, uDepth;
-varying vec2 vUv;
+varying vec2 vUv, vXZ;
 varying vec3 vW;
-varying float vA, vSeed, vAge, vY, vZ, vS, vWt;
-// Rauschen in der Welt, auf den beiden senkrechten Ebenen
-vec4 world(float k, vec2 off) {
-  return mix(texture2D(uNoise, vW.zy * k + off), texture2D(uNoise, vW.xy * k + off), vWt);
+varying vec3 vPw;
+varying float vA, vSeed, vAge, vY, vZ, vS, vPc;
+// Rauschen in der Welt am Punkt p, auf den drei Ebenen nach vPw gemischt
+vec4 world(vec3 p, float k, vec2 off) {
+  vec4 s = texture2D(uNoise, p.zy * k + off) * vPw.x + texture2D(uNoise, p.xz * k + off) * vPw.y + texture2D(uNoise, p.xy * k + off) * vPw.z;
+  return 0.5 + (s - 0.5) * vPc;
 }
 void main() {
   vec2 q0 = vUv * 2.0 - 1.0;
   float r0 = dot(q0, q0);
   if (r0 >= 1.0 || vA <= 0.0) discard;
-  vec2 o = vec2(vSeed * 7.31, vSeed * 3.17 - vAge * 0.3), st = vUv * 0.8 + o;
-  // Umriss grob verbeult, damit kein Ballen rund aussieht
-  vec4 g = texture2D(uNoise, vUv * 0.3 + o.yx);
-  vec2 q = q0 * 1.08 + (g.ba - 0.5) * 0.7;
-  // Ballen aus der Welt (Kacheln von 2,9 m und 1,1 m, steigen mit dem
-  // Dampf: Überlappende Ballen verbinden sich zu einer Bank) und ein Teil
-  // aus dem Ballen selbst
-  vec4 n1 = texture2D(uNoise, st), n2 = world(0.35, vec2(vSeed * 0.07)), n3 = world(0.9, vec2(0.5));
-  float bl = smoothstep(0.15, 0.85, n2.r * 0.55 + n3.g * 0.15 + n1.b * 0.3);
-  // nach außen nur noch, was die Ballen tragen: der Umriss folgt ihnen
-  float thr = dot(q, q) * 0.8 + 0.15 * vAge, s = bl - thr;
-  float dens = smoothstep(0.0, 0.45, s) * (1.0 - smoothstep(0.6, 1.0, r0));
-  // verweht: Schlieren reißen den Ballen auf
-  float w = texture2D(uNoise, vUv * 0.8 - o.yx).b;
-  dens *= mix(1.0, smoothstep(0.2, 0.75, w + 0.5 * (1.0 - vAge)), smoothstep(0.25, 0.9, vAge));
+  vec2 o = vec2(vSeed * 7.31, vSeed * 3.17);
+  // Strömung im Dampf: ein großes, langsam drehendes Feld in der Welt
+  // verschiebt, wo das Rauschen gelesen wird, so quellen und verwirbeln
+  // die Falten mit der Zeit, alte Schwaden stärker
+  vec2 wv = (world(vW, 0.09, vec2(uTime * 0.021, -uTime * 0.034)).gb - 0.5) * 0.4 * (1.0 + 0.8 * vAge);
+  // Umriss: weicher Hügel, grob verbeult, damit kein Ballen rund aussieht
+  vec2 q = q0 + (texture2D(uNoise, vUv * 0.25 + o.yx).gb - 0.5) * 0.9;
+  float core = exp(-2.4 * dot(q, q)) * (1.0 - smoothstep(0.55, 1.0, r0));
+  // Dichte aus weichem Rauschen in der Welt (Kacheln 5,5 m und 2,2 m):
+  // Überlappende Ballen zeigen an derselben Stelle dasselbe und verbinden
+  // sich zur Bank
+  vec4 w1 = world(vW, 0.18, wv + o * 0.013);
+  float fb = w1.g * 0.62 + world(vW, 0.45, wv * 1.6 + vec2(0.37)).b * 0.38;
+  // breiter Übergang: durchscheinend wie im Bild aus dem Spiel, keine
+  // Körnchen; mit dem Alter frisst die Luft den Schwaden an: Schleier
+  float e = 0.3 + 0.28 * vAge;
+  float dens = core * smoothstep(e - 0.28, e + 0.3, fb);
   if (dens < 0.004) discard;
-  // Selbstschatten: Dichter Dampf 0,8 m höher hält das Licht ab, der dünne
-  // Rand lässt es durch; oben im Schwaden ist er heller als am Boden
-  float up = world(0.35, vec2(vSeed * 0.07, 0.28)).r;
-  float lit = 1.0 - smoothstep(0.45, 0.85, up) * (1.0 - dot(q, q));
-  float h = smoothstep(uFloor, uFloor + 2.0 + 2.0 * vAge, vY);
-  float L = clamp(0.2 + 0.35 * h + 0.2 * lit + 0.3 * (1.0 - smoothstep(0.0, 0.35, s)), 0.0, 1.0);
+  // Selbstschatten: dichter Dampf rund 0,7 m höher hält das Licht ab
+  // (von oben sieht man auf die beleuchtete Seite); oben im Schwaden ist
+  // er heller als am Boden, dünne Ränder streuen Licht
+  float up = world(vW + vec3(0.0, 0.7, 0.0), 0.18, wv + o * 0.013).g;
+  float lit = 1.0 - smoothstep(0.42, 0.8, up) * core * (1.0 - vPw.y);
+  float h = smoothstep(uFloor, uFloor + 2.5 + 2.0 * vAge, vY);
+  float L = clamp(0.28 + 0.38 * h + 0.24 * lit + 0.12 * (1.0 - smoothstep(0.0, 0.45, dens)), 0.0, 1.0);
   vec3 col = mix(uShade, uLit, L);
   // Deckkraft wie durch ein Medium (Beer-Lambert): dichter Kern deckt, der
   // Rand bleibt durchscheinend
-  float a = (1.0 - exp(-2.8 * dens * vA)) * smoothstep(uFloor - 0.05, uFloor + 0.5, vY);
+  // über der offenen Öffnung liegt der Boden unten auf der Plattform (uGap:
+  // halbe Weite der Öffnung quer und längs, Höhe der Plattform)
+  float fl = abs(vXZ.x) < uGap.x && abs(vXZ.y) < uGap.y ? min(uFloor, uGap.z) : uFloor;
+  float a = (1.0 - exp(-2.4 * dens * vA)) * smoothstep(fl - 0.05, fl + 0.5, vY);
   // weich, wo er in Boden, Rumpf oder Wand steckt (Tiefe des Bildes)
   if (uSoft > 0.5) {
     float z = texture2D(uDepth, gl_FragCoord.xy / uRes).x;
@@ -4725,27 +4797,16 @@ void main() {
   #include <colorspace_fragment>
   gl_FragColor.rgb *= gl_FragColor.a;
 }`;
-// Rauschbild des Dampfs, nahtlos kachelnd, einmal beim Bau gerechnet: r
-// Ballen (umgekehrtes Worley-Rauschen in drei Maßstäben, runde Buckel wie
-// ein Quellwolkenrand), g die mittleren und feinen davon, b weiches Wertrauschen für die
-// Schlieren, a ein zweites (mit b die Verbeulung des Umrisses). 128²
-// Bildpunkte, ein paar Millisekunden.
+// Rauschbild des Dampfs, nahtlos kachelnd, einmal beim Bau gerechnet: vier
+// weiche, mehrstufige Wertrauschen (4 bis 32 Zellen je Kachel, jede Stufe
+// halb so stark), jedes auf den vollen Umfang gestreckt; g und b tragen die
+// Dichte, g und b auch Strömung und Umriss. Kein Zellrauschen mehr: Dessen
+// feinste Stufe (Zellen um 9 cm) gab hinter einer harten Schwelle aus der
+// Nähe Körnchen, die runden Buckel Blumenkohl-Ränder. 128² Bildpunkte, rund
+// 20 ms.
 function steamNoise(N = 128) {
   let seed = 0x5eed;
   const rand = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  const worley = (cells) => {
-    const pt = Float32Array.from({ length: cells * cells * 2 }, rand);
-    return (u, v) => {
-      const x = u * cells, y = v * cells, cx = Math.floor(x), cy = Math.floor(y);
-      let m = 9;
-      for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
-        const gx = cx + i, gy = cy + j, wx = ((gx % cells) + cells) % cells, wy = ((gy % cells) + cells) % cells, c = (wy * cells + wx) * 2;
-        const dx = gx + pt[c] - x, dy = gy + pt[c + 1] - y;
-        m = Math.min(m, dx * dx + dy * dy);
-      }
-      return Math.min(1, Math.sqrt(m));
-    };
-  };
   const value = (cells) => {
     const g = Float32Array.from({ length: cells * cells }, rand), at = (i, j) => g[(((j % cells) + cells) % cells) * cells + (((i % cells) + cells) % cells)];
     return (u, v) => {
@@ -4753,14 +4814,14 @@ function steamNoise(N = 128) {
       return (at(i, j) * (1 - sx) + at(i + 1, j) * sx) * (1 - sy) + (at(i, j + 1) * (1 - sx) + at(i + 1, j + 1) * sx) * sy;
     };
   };
-  const w3 = worley(3), w6 = worley(6), w12 = worley(12), v4 = value(4), v8 = value(8), v16 = value(16), u4 = value(4), u8 = value(8);
+  const fbm = () => { const o = [4, 8, 16, 32].map(value); return (u, v) => o[0](u, v) * 0.533 + o[1](u, v) * 0.267 + o[2](u, v) * 0.133 + o[3](u, v) * 0.067; };
+  const ch = [fbm(), fbm(), fbm(), fbm()], raw = new Float32Array(N * N * 4);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) for (let c = 0; c < 4; c++) raw[(y * N + x) * 4 + c] = ch[c](x / N, y / N);
   const data = new Uint8Array(N * N * 4);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const u = x / N, v = y / N, i = (y * N + x) * 4;
-    data[i] = Math.round(255 * ((1 - w3(u, v)) * 0.6 + (1 - w6(u, v)) * 0.28 + (1 - w12(u, v)) * 0.12));
-    data[i + 1] = Math.round(255 * ((1 - w6(u, v)) * 0.6 + (1 - w12(u, v)) * 0.4));
-    data[i + 2] = Math.round(255 * (v4(u, v) * 0.5 + v8(u, v) * 0.3 + v16(u, v) * 0.2));
-    data[i + 3] = Math.round(255 * (u4(u, v) * 0.65 + u8(u, v) * 0.35));
+  for (let c = 0; c < 4; c++) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = c; i < raw.length; i += 4) { lo = Math.min(lo, raw[i]); hi = Math.max(hi, raw[i]); }
+    for (let i = c; i < raw.length; i += 4) data[i] = Math.round((255 * (raw[i] - lo)) / Math.max(1e-6, hi - lo));
   }
   const t = new THREE.DataTexture(data, N, N, THREE.RGBAFormat);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -4768,22 +4829,114 @@ function steamNoise(N = 128) {
   t.needsUpdate = true;
   return t;
 }
+// Wirbel: quellenfreies Feld aus sechs Wellen (Rotation eines
+// Vektorpotentials, daher ohne Quellen und Senken: Der Dampf verdichtet
+// sich nicht an einer Stelle). Wellenzahl je m für k = 1, Kreisfrequenz 1/s
+const STEAM_CURL = (() => {
+  let s = 0x7a11;
+  const r = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  const unit = () => { const z = r() * 2 - 1, a = r() * Math.PI * 2, q = Math.sqrt(1 - z * z); return [q * Math.cos(a), z, q * Math.sin(a)]; };
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = unit(), m = 0.7 + 0.25 * i, A = unit();
+    // k × A, auf eine Wellenamplitude von rund 1/√6 gezogen
+    const c = [d[1] * A[2] - d[2] * A[1], d[2] * A[0] - d[0] * A[2], d[0] * A[1] - d[1] * A[0]], n = Math.hypot(...c) * Math.sqrt(6) || 1;
+    return { k: d.map((v) => v * m), c: c.map((v) => v / n), ph: r() * Math.PI * 2, w: 0.35 + 0.4 * r() };
+  });
+})();
+// Luft an (x, y, z) zur Zeit t nach out (m/s, Welt). air: Lage der Mechanik
+// aus fx.airAt (null: keine Halle, nur Wirbel); Boden bei y = 0, Feld mittig
+// um den Ursprung, Tor schließt quer (x) zur Mittelfuge; tm: Anteil der
+// Wirbel (je Ballen). Gibt die Stärke der gerichteten Strömung zurück.
+function steamAir(out, x, y, z, t, air, tm = 1) {
+  let ux = 0, uy = 0, uz = 0;
+  const k = air?.k ?? 1;
+  if (air) {
+    const { hx, hz, open, jw, U, gv } = air, ax = Math.abs(x), az = Math.abs(z), sx = Math.sign(x) || 1, sz = Math.sign(z) || 1;
+    // Kolben: Was die Plattform an Luft schiebt (U, m/s durch die Öffnung,
+    // + hinaus), steigt über der Öffnung als Strahl, der sich weitet und
+    // nachlässt, und zieht die Luft daneben an seinen Fuß; hinein saugt er
+    // von allen Seiten zur Öffnung hin. Hat die Plattform die Öffnung eben
+    // geschlossen, strömt die Luft über ihr noch nach (jw: letzte Weite)
+    if (Math.abs(U) > 1e-3 && jw > 1e-3) {
+      const dz = Math.max(0, az - hz), gz = Math.exp(-dz / (1.5 * k));
+      if (y < 0 && ax < hx && az < hz) {
+        // im Schacht: die ganze Säule zieht mit, unter den Flügeln zur
+        // Öffnung hin
+        uy += U * (open / hx);
+        ux += ax > open ? -sx * Math.abs(U) * 0.5 * Math.min(1, (ax - open) / k) : 0;
+      } else if (U > 0) {
+        const open = jw;
+        const h = Math.max(0, y), b = open + 0.2 * h, dx = Math.max(0, ax - b);
+        const core = Math.sqrt(open / b) * Math.exp(-h / (STEAM_AIR.rise * k)) * Math.exp(-(dx * dx) / (k * k)) * gz;
+        uy += U * core;
+        ux += sx * 0.2 * Math.min(1, ax / b) * U * core;
+        // Mitnahme am Fuß des Strahls
+        const dx0 = Math.max(0, ax - open);
+        ux -= sx * 0.25 * U * Math.exp(-dx0 / (2 * k)) * Math.exp(-h / (2 * k)) * (dx0 > 0 ? 1 : 0) * gz;
+      } else {
+        // Senke: zum nächsten Punkt der Öffnung, mit dem Abstand schwächer
+        const px = Math.min(ax, jw), pz = Math.min(az, hz);
+        let vx = sx * (px - ax), vy = -Math.max(0, y), vz = sz * (pz - az);
+        const r = Math.hypot(vx, vy, vz) + 1e-4, f = -U * Math.pow(k / (r + k), 1.5);
+        if (r < 0.05) { vx = 0; vy = -1; vz = 0; } else { vx /= r; vy /= r; vz /= r; }
+        ux += vx * f; uy += vy * f; uz += vz * f;
+      }
+    }
+    // Torflügel: liegen quer zwischen der Öffnung und dem Schachtrand, die
+    // Luft dicht über ihnen fährt mit, vor den Kanten wird sie geschoben und
+    // steigt dort auf; schließt das Tor, treffen sich beide Wülste in der Fuge
+    if (Math.abs(gv) > 1e-3 && az < hz + k && y > -0.2 * k) {
+      // die Flügel laufen rund 15 m/s: Mitgerissen wird nur eine dünne
+      // Schicht, gedeckelt wie der Kolben
+      const gv = Math.max(-1, Math.min(1, air.gv / (STEAM_AIR.cap * k))) * STEAM_AIR.cap * k;
+      const h = Math.max(0, y), lay = Math.exp(-h / (0.5 * k));
+      if (ax > open && ax < hx) ux += sx * gv * STEAM_AIR.gate * lay;
+      const de = (ax - open) / (0.7 * k), bow = Math.exp(-de * de);
+      ux += sx * gv * bow * Math.exp(-h / k);
+      uy += Math.abs(gv) * 0.5 * bow * Math.exp(-h / k);
+    }
+    // Schiff: Umströmung einer bewegten Kugel (Dipol), auf die Halbachsen
+    // des Rumpfs gezogen: über und unter ihm zieht die Luft mit, an seinen
+    // Seiten strömt sie zurück; dahinter ein Nachlauf, der mitgerissen wird
+    const S = air.ship;
+    if (S && Math.abs(S.va) > 1e-3) {
+      const qx = x / S.rx, qy = (y - S.yc) / S.ry, qz = z / S.rz, r = Math.max(1, Math.hypot(qx, qy, qz));
+      if (r < 4) {
+        const nx = qx / r, ny = qy / r, nz = qz / r, f = 1 / (2 * r * r * r), Uy = S.va;
+        ux += f * 3 * Uy * ny * nx; uy += f * (3 * Uy * ny * ny - Uy); uz += f * 3 * Uy * ny * nz;
+        if (ny * Math.sign(Uy) < -0.5) uy += Uy * 0.5 * Math.exp(-(r - 1) * 1.5);
+      }
+    }
+  }
+  const sp = Math.hypot(ux, uy, uz), amp = (STEAM_AIR.turb * k + STEAM_AIR.turbPer * sp) * tm;
+  for (const w of STEAM_CURL) {
+    const c = Math.cos((w.k[0] * x + w.k[1] * y + w.k[2] * z) / k + w.ph + w.w * t) * amp;
+    ux += w.c[0] * c; uy += w.c[1] * c; uz += w.c[2] * c;
+  }
+  out[0] = ux; out[1] = uy; out[2] = uz;
+  return sp;
+}
+
 function buildSteam(max) {
   const g = new THREE.InstancedBufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]), 3));
   g.setIndex([0, 1, 2, 0, 2, 3]);
   const A = {};
-  for (const [k, w] of [['aP', 4], ['aV', 4], ['aS', 4], ['aR', 2]]) {
+  for (const [k, w] of [['aP', 4], ['aD', 4], ['aS', 4], ['aE', 3]]) {
     A[k] = new THREE.InstancedBufferAttribute(new Float32Array(max * w), w);
     A[k].setUsage(THREE.DynamicDrawUsage);
     g.setAttribute(k, A[k]);
   }
-  // alle schon verweht
-  for (let i = 0; i < max; i++) { A.aP.array[i * 4 + 3] = -1e5; A.aV.array[i * 4 + 3] = 1; }
+  // Zustand je Teilchen (Prozessor): Lage, Lage bei der Geburt,
+  // Geschwindigkeit, Geburt und Lebensdauer (s), Auftrieb (m/s), Wirbel (m),
+  // Drehung und Drehrate (rad, rad/s). Geburt -1e9: alle schon verweht
+  const X = new Float32Array(max * 3), X0 = new Float32Array(max * 3), V = new Float32Array(max * 3);
+  const B = new Float32Array(max).fill(-1e9), L = new Float32Array(max).fill(1), Rs = new Float32Array(max), Sw = new Float32Array(max), Th = new Float32Array(max), Om = new Float32Array(max);
+  for (let i = 0; i < max; i++) A.aP.array[i * 4 + 3] = -1;
   g.instanceCount = max;
   const noise = steamNoise();
   const u = {
-    uTime: { value: 0 }, uFloor: { value: 0 },
+    uTime: { value: 0 }, uFloor: { value: 0 }, uGap: { value: new THREE.Vector3(0, 0, 0) },
     uLit: { value: new THREE.Color(...STEAM_LIT) }, uShade: { value: new THREE.Color(...STEAM_SHADE) },
     uNoise: { value: noise }, uDepth: { value: null }, uSoft: { value: 0 }, uNear: { value: 0.1 }, uFar: { value: 1000 }, uRes: { value: new THREE.Vector2(1, 1) },
   };
@@ -4796,27 +4949,90 @@ function buildSteam(max) {
   mesh.frustumCulled = false;
   mesh.renderOrder = 5;
   mesh.visible = false;
-  let n = 0, until = -1, dirty = false;
+  let n = 0, until = -1, dirty = false, last = -1;
+  const ua = [0, 0, 0];
+  // ein Schritt h (s) für Teilchen i: der Luft nach, auf Boden und
+  // Plattform liegen bleiben, dem Rumpf ausweichen
+  function step(i, t, h, air) {
+    const j = i * 3, k = air?.k ?? 1;
+    let x = X[j], y = X[j + 1], z = X[j + 2];
+    const yp = y;
+    // eigene Wirbel (Sw ~ 0,4..0,9 m je k): kleine Ballen tanzen mehr
+    const age = t - B[i];
+    steamAir(ua, x, y, z, t, air, Math.min(2, Math.max(0.3, Sw[i] / (0.6 * k))));
+    // der Luft nach, dazu der Auftrieb, sobald der Stoß verbraucht ist
+    const f = 1 - Math.exp(-STEAM_DRAG * h), ty = ua[1] + Rs[i] * Math.min(1, age * 2);
+    V[j] += (ua[0] - V[j]) * f; V[j + 1] += (ty - V[j + 1]) * f; V[j + 2] += (ua[2] - V[j + 2]) * f;
+    x += V[j] * h; y += V[j + 1] * h; z += V[j + 2] * h;
+    // Boden: über der offenen Öffnung die Plattform, sonst der Hallenboden;
+    // unter dem Boden bleibt er im Schacht (unter den Torflügeln nicht weiter
+    // als die Öffnung)
+    let fl = 0.12 * k;
+    if (air && Math.abs(z) < air.hz && Math.abs(x) < air.hx && (yp < 0 || Math.abs(x) < air.open)) {
+      // im Schacht (Wände, unter den Torflügeln die Decke) oder über der
+      // Öffnung: Boden ist die Plattform
+      if (yp < 0) {
+        x = Math.max(-0.98 * air.hx, Math.min(0.98 * air.hx, x));
+        z = Math.max(-0.98 * air.hz, Math.min(0.98 * air.hz, z));
+        if (Math.abs(x) >= air.open && y > -0.1 * k) { y = -0.1 * k; if (V[j + 1] > 0) V[j + 1] = 0; }
+      }
+      fl = Math.min(0, air.ly) + 0.12 * k;
+    }
+    if (y < fl) { y = fl; if (V[j + 1] < 0) V[j + 1] *= -0.2; }
+    // Rumpf: aus der Hülle (Ellipsoid etwas größer als der Rumpf) hinaus,
+    // senkrecht zur Hülle so schnell wie das Schiff
+    const S = air?.ship;
+    if (S) {
+      const qx = x / S.rx, qy = (y - S.yc) / S.ry, qz = z / S.rz, r = Math.hypot(qx, qy, qz);
+      if (r < 1 && r > 1e-4) {
+        x = (qx / r) * S.rx; y = S.yc + (qy / r) * S.ry; z = (qz / r) * S.rz;
+        const nx = qx / S.rx, ny = qy / S.ry, nz = qz / S.rz, nn = Math.hypot(nx, ny, nz);
+        const vn = (V[j] * nx + (V[j + 1] - S.va) * ny + V[j + 2] * nz) / nn;
+        if (vn < 0) { V[j] -= vn * nx / nn; V[j + 1] -= vn * ny / nn; V[j + 2] -= vn * nz / nn; }
+      }
+    }
+    X[j] = x; X[j + 1] = y; X[j + 2] = z;
+    // Drehung: der eigene Drall vom Ausstoß. Die Wirbelstärke der Luft
+    // kostete je Ballen vier Blicke mehr in die Luft und war an den weichen,
+    // runden Ballen kaum zu sehen; dafür gibt es doppelt so viele Ballen
+    Th[i] += Om[i] * h;
+  }
   return {
     mesh,
     get until() { return until; },
     // t: Geburt (s, Uhr der Bühne); p Start, v Stoß (m/s); life s; s0, s1 m;
     // a Deckkraft; rise m/s; swirl m
     puff(t, p, v, life, s0, s1, a, rise = 0.6, swirl = 0.5) {
-      const i = n++ % max;
-      A.aP.array.set([p[0], p[1], p[2], t], i * 4);
-      A.aV.array.set([v[0], v[1], v[2], life], i * 4);
+      const i = n++ % max, j = i * 3;
+      X.set(p, j); X0.set(p, j); V.set(v, j);
+      B[i] = t; L[i] = life; Rs[i] = rise; Sw[i] = swirl;
+      Th[i] = Math.random() * Math.PI * 2; Om[i] = (Math.random() - 0.5) * 0.8;
       A.aS.array.set([s0, s1, Math.random(), a], i * 4);
-      A.aR.array.set([rise, swirl], i * 2);
       until = Math.max(until, t + life);
       dirty = true;
     },
-    frame(t) {
+    // je Bild: Teilchen durch die Luft (air aus fx.airAt) bis t; Schritte
+    // höchstens 1/30 s, damit auch wenige Bilder je Sekunde dieselbe Bahn
+    // ergeben; nach einer Pause (Seite verborgen) höchstens 0,25 s nach
+    frame(t, air = null) {
       u.uTime.value = t;
       mesh.visible = t < until;
-      if (!dirty) return;
-      for (const k in A) A[k].needsUpdate = true;
-      dirty = false;
+      const dt = last < 0 ? 0 : Math.min(0.25, Math.max(0, t - last));
+      last = t;
+      if (air) u.uGap.value.set(air.open, air.hz, Math.min(0, air.ly));
+      if (!mesh.visible) return;
+      const P = A.aP.array, D = A.aD.array, E = A.aE.array;
+      for (let i = 0; i < max; i++) {
+        const age = t - B[i], j = i * 3;
+        if (age < 0 || age >= L[i]) { P[i * 4 + 3] = -1; continue; }
+        const run = Math.min(age, dt), steps = Math.ceil(run * 30 - 1e-6);
+        for (let s = 0; s < steps; s++) step(i, t - run + ((s + 1) * run) / steps, run / steps, air);
+        P[i * 4] = X[j]; P[i * 4 + 1] = X[j + 1]; P[i * 4 + 2] = X[j + 2]; P[i * 4 + 3] = age / L[i];
+        D[i * 4] = X[j] - X0[j]; D[i * 4 + 1] = X[j + 1] - X0[j + 1]; D[i * 4 + 2] = X[j + 2] - X0[j + 2]; D[i * 4 + 3] = Th[i];
+        E[j] = V[j]; E[j + 1] = V[j + 1]; E[j + 2] = V[j + 2];
+      }
+      A.aP.needsUpdate = A.aD.needsUpdate = A.aE.needsUpdate = true;
+      if (dirty) { A.aS.needsUpdate = true; dirty = false; }
     },
     // Tiefe des Bildes für den weichen Rand (null: ohne, im Bild der Szene)
     soft(depth, cam, w, h) {
@@ -5987,13 +6203,15 @@ export async function initHangar(container, opts = {}) {
 
   // Dampf und Geräusche der Mechanik (fx): ohne Bewegung (reduceMotion)
   // fährt nichts, also auch kein Dampf; die niedrige Stufe mit weniger
-  // Teilchen (Füllrate: große, durchscheinende Flächen). 260 statt 160 seit
-  // 27./28.10.2026: Die Ballen am Feldrand stehen dichter und länger (fx), als
-  // Bank statt einzelner Wölkchen; im dichtesten Moment (Abfahrt, Schwaden,
-  // Fuge und Ankunft zugleich) leben rund 200, ein volles Band überschriebe
-  // lebende Ballen, und die verschwänden mitten im Bild
+  // Teilchen (Füllrate: große, durchscheinende Flächen). 520 seit dem
+  // 29.10.2026 (vorher 260): doppelt so viele, kleinere Ballen, dazu der
+  // Strom aus dem Schacht. Ein Wechsel stößt rund 270 aus (Abfahrt 40,
+  // Schwaden 60, Strom 40, Fuge 40, Ankunft 88), im dichtesten Moment leben
+  // fast alle; das Band reicht auch für einen zweiten Wechsel kurz danach.
+  // Ein volles Band überschriebe lebende Ballen, und die verschwänden mitten
+  // im Bild
   const steamK = Q0 === 'niedrig' ? 0.5 : Q0 === 'mittel' ? 0.75 : 1;
-  const steam = reduceMotion ? null : buildSteam(Math.round(260 * steamK));
+  const steam = reduceMotion ? null : buildSteam(Math.round(520 * steamK));
   if (steam) scene.add(steam.mesh);
   const sound = hangarSound(opts.hall?.lift?.sound ?? null);
   if (opts.sound === false) sound.set(false);
@@ -9498,16 +9716,21 @@ void main() {
         // unregelmäßig: Lage, Zeit, Größe und Wucht streuen, sonst steht
         // eine Reihe gleicher Ballen am Rand
         // klein und dicht aus dem Spalt, rasch breit und dünn
-        const z = ((i + rnd(-0.3, 1.3)) / n * 2 - 1) * zl, b = t + rnd(0, 0.3) * rnd(0, 1), f = rnd(0.55, 1.25);
+        // ein Schwall statt eines Knalls: die Geburten über gut eine halbe
+        // Sekunde, die meisten früh
+        const z = ((i + rnd(-0.3, 1.3)) / n * 2 - 1) * zl, b = t + 0.65 * rnd(0, 1) ** 2, f = rnd(0.55, 1.25);
         // Startgröße und Drift längs des Rands so, dass sich Nachbarn von
         // Anfang an überlappen: von der anderen Feldseite aus sah eine Reihe
         // getrennter Ballen sonst wie aufgefädelte Watte aus
         steam.puff(b, [sx * (hx + rnd(-0.2, 0.3) * k), rnd(0.05, 0.25) * k, z], [sx * rnd(3, 6) * w * k * f, rnd(1.5, 3.5) * w * k * f, rnd(-1.6, 1.6) * k],
           rnd(2.5, 4) * (0.7 + 0.3 * w), rnd(1.2, 2) * k, rnd(3, 6) * k * (0.6 + 0.4 * w), rnd(0.7, 0.95) * w, rnd(0.5, 0.9) * k, rnd(0.4, 0.9) * k);
-        // flach über den Boden nach außen rollend, unter jedem Stoß: der
-        // Teppich verbindet die Ballen darüber
-        steam.puff(b + 0.08, [sx * (hx + 0.4 * k), 0.25 * k, z + rnd(-0.5, 0.5) * zl / n], [sx * rnd(1.5, 2.6) * w * k, rnd(0.05, 0.2) * k, rnd(-0.6, 0.6) * k],
-          rnd(4, 5.5), rnd(1.4, 2.2) * k, rnd(5, 8) * k * (0.6 + 0.4 * w), rnd(0.3, 0.4) * w, 0.1 * k, 0.6 * k);
+        // über den Boden nach außen rollend, unter jedem Stoß: der Teppich
+        // verbindet die Ballen darüber. Seine Mitte sitzt so hoch wie ein
+        // Drittel seiner Größe: tiefer stak er zur Hälfte im Boden und lag
+        // als flacher Fleck da (Krisz 29.10., Bild vom Feldrand)
+        const sc = rnd(3.5, 5) * k * (0.6 + 0.4 * w);
+        steam.puff(b + 0.08, [sx * (hx + 0.4 * k), 0.3 * sc, z + rnd(-0.5, 0.5) * zl / n], [sx * rnd(1.5, 2.6) * w * k, rnd(0.05, 0.2) * k, rnd(-0.6, 0.6) * k],
+          rnd(4, 5.5), rnd(1.2, 1.8) * k, sc, rnd(0.3, 0.4) * w, 0.15 * k, 0.6 * k);
       }
     },
     // Mittelfuge des Tors: beim Einrasten quillt der Dampf hoch
@@ -9530,8 +9753,23 @@ void main() {
       n = Math.max(3, Math.round(n * steamK));
       for (let i = 0; i < n; i++) {
         const z = rnd(-1, 1) * zl, f = i / n;
-        steam.puff(t + f * ms / 1000 * 0.55, [rnd(-1, 1) * hx * (0.15 + 0.6 * f), -0.6 * k, z], [rnd(-0.4, 0.4) * k, rnd(1, 1.8) * k, rnd(-0.4, 0.4) * k],
-          rnd(3.5, 5), rnd(2, 3) * k, rnd(6, 10) * k, rnd(0.14, 0.22), 0.6 * k, 1 * k);
+        steam.puff(t + f * ms / 1000 * 0.8, [rnd(-1, 1) * hx * (0.15 + 0.6 * f), -0.6 * k, z], [rnd(-0.4, 0.4) * k, rnd(1, 1.8) * k, rnd(-0.4, 0.4) * k],
+          rnd(3.5, 5), rnd(1.4, 2.2) * k, rnd(4.5, 7) * k, rnd(0.18, 0.28), 0.6 * k, 1 * k);
+      }
+    },
+    // Fährt die Plattform hoch, schiebt sie den warmen Dampf aus dem
+    // Schacht vor sich her (die Luft trägt ihn, steamAir): ein Strom über
+    // die erste Hälfte der Fahrt aus der ganzen Öffnung, statt dass nur
+    // der Schwaden vom Öffnen dasteht
+    push(t, n, ms) {
+      const F = this.field();
+      if (!F) return;
+      const { k, hx, zl } = F;
+      n = Math.max(3, Math.round(n * steamK));
+      for (let i = 0; i < n; i++) {
+        const f = (i + rnd(0, 1)) / n;
+        steam.puff(t + f * ms / 1000 * 0.5, [rnd(-0.85, 0.85) * hx, -0.8 * k, rnd(-1, 1) * zl], [rnd(-0.3, 0.3) * k, rnd(0.5, 1.2) * k, rnd(-0.3, 0.3) * k],
+          rnd(3, 4.5), rnd(1.2, 2) * k, rnd(4, 6.5) * k, rnd(0.16, 0.26) * (1 - 0.5 * f), 0.5 * k, 0.9 * k);
       }
     },
     // Klänge: siehe hangarSound. Anfahren und Fahrschleife beim Losfahren;
@@ -9540,6 +9778,7 @@ void main() {
       if (late > 400 || !fxOk('liftGo')) return;
       sound.rideStart();
       if (dir === 'down') this.edges((performance.now() - T0) / 1000, 10, 0.55);
+      else if (realHall?.shaft?.gate) this.push((performance.now() - T0) / 1000, 40, lift.dur);
     },
     liftHalt(dir, late) {
       if (late > 400) { sound.hush(); return; }
@@ -9554,19 +9793,61 @@ void main() {
     gateGo(dir, ms, late) {
       sound.gate(dir, (ms - Math.max(0, late)) / 1000);
       if (late > 400 || dir !== 'open' || !fxOk('vapour')) return;
-      this.vapour((performance.now() - T0) / 1000, 30, ms);
+      this.vapour((performance.now() - T0) / 1000, 60, ms);
     },
     gateStop(dir, late) {
       sound.gateDone();
       if (late > 400 || !fxOk('gateStop')) return;
       if (dir === 'close' && fxOk('seam')) this.seam((performance.now() - T0) / 1000, 40);
     },
-    // je Bild: Teilchen auf die Uhr; der Ton folgt der Mechanik. Fehlt er zu
-    // einem laufenden Tor oder einer Fahrt (Seite war verborgen, Ton eben
+    // Lage der Mechanik für die Luft des Dampfs (steamAir), je Bild: Weite
+    // der Öffnung quer (open, m: 0 zu, hx ganz offen; schließt das Tor, ist
+    // das Feld ab G.cover der Bahn gedeckt, beim Öffnen gibt es die Öffnung
+    // erst nach dem Entriegeln frei), Höhe der Plattform, die Kolbenströmung
+    // durch die Öffnung (U) und die Kanten des Tors (gv, + öffnend), beide
+    // mit der Trägheit der Luft geglättet, und das Schiff auf der Plattform
+    // (Halbachsen der Hülle um den Rumpf, steigt mit ihr)
+    air: { t: -1, ly: 0, open: 0, jw: 0, U: 0, gv: 0, lv: 0, ship: null, hull: { rx: 1, ry: 1, rz: 1, yc: 0, va: 0 } },
+    airAt(now, t) {
+      const F = this.field(), A = this.air;
+      if (!F) return null;
+      const { k, hx, hz } = F, ly = lift.y * k, G = realHall?.shaft?.gate;
+      let open = ly < -0.05 * k ? hx : 0;
+      if (G?.run) {
+        const r = G.run, tau = Math.min(G.T, Math.max(0, r.tau0 + ((now - r.t0) * G.T) / HALL_GATE.ms));
+        open = hx * (r.dir === 'close' ? 1 - Math.min(1, tau / G.cover) : Math.min(1, Math.max(0, (tau - (G.T - G.cover)) / G.cover)));
+      } else if (G?.state === 'closed') open = 0;
+      const dt = A.t < 0 ? 0 : t - A.t;
+      if (dt > 1e-4 && dt < 0.5) {
+        // die Kanten des Tors nur, solange es läuft: Schließt die ankommende
+        // Plattform die Öffnung, bewegt sich kein Flügel
+        const lv = (ly - A.ly) / dt, gv = G?.run ? (open - A.open) / dt : 0;
+        // Kolben: Querschnitt des Schachts durch die Öffnung, gedeckelt
+        const Ut = open > 1e-3 ? Math.max(-1, Math.min(1, (STEAM_AIR.piston * lv * hx) / (open * STEAM_AIR.cap * k))) * STEAM_AIR.cap * k : 0;
+        A.U += (Ut - A.U) * (1 - Math.exp(-dt / STEAM_AIR.lagLift));
+        A.gv += (gv - A.gv) * (1 - Math.exp(-dt / STEAM_AIR.lagGate));
+        A.lv += (lv - A.lv) * (1 - Math.exp(-dt / 0.1));
+      } else if (dt >= 0.5 || dt < 0) { A.U = 0; A.gv = 0; A.lv = 0; }
+      A.t = t; A.ly = ly; A.open = open; A.k = k; A.hx = hx; A.hz = hz;
+      if (open > 1e-3) A.jw = open;
+      const c = current;
+      if (c?.lift && c.group.visible && c.info) {
+        const sc = c.group.scale.x, hy = (c.info.height * sc) / 2;
+        const S = (A.ship = A.hull);
+        S.rx = c.info.halfW * sc * 1.1 + 0.3 * k; S.rz = (c.info.len / 2) * sc * 1.1 + 0.3 * k; S.ry = hy * 1.15 + 0.2 * k; S.yc = ly + hy;
+        // die Luft um den Rumpf höchstens so schnell wie anderthalb Kolben:
+        // Bei voller Fahrt (rund 30 m/s) flöge der Dampf sonst in einem Bild
+        // aus dem Blick
+        S.va = Math.max(-1.5, Math.min(1.5, A.lv / (STEAM_AIR.cap * k))) * STEAM_AIR.cap * k;
+      } else A.ship = null;
+      return A;
+    },
+    // je Bild: Teilchen durch die Luft; der Ton folgt der Mechanik. Fehlt er
+    // zu einem laufenden Tor oder einer Fahrt (Seite war verborgen, Ton eben
     // eingeschaltet, Klänge erst jetzt geladen), setzt er dort ein, wo die
     // Bewegung steht.
     frame(now, t) {
-      if (steam) steam.frame(t);
+      if (steam) steam.frame(t, this.airAt(now, t));
       const G = realHall?.shaft?.gate;
       let cover = 0;
       if (G?.run) {
@@ -10544,18 +10825,35 @@ void main() {
     const map = hullTint(current, on?.base);
     if (!map) return 0;
     for (const [m, t] of map) {
+      const col = litColor(current, m);
       if (!on || !t.pbr) {
-        m.color.copy(on ? new THREE.Color(on.cols[t.slot]) : t.c0);
+        col.copy(on ? new THREE.Color(on.cols[t.slot]) : t.c0);
         if (t.pbr) { m.metalness = t.metal0; m.roughness = t.rough0; }
         continue;
       }
       const [specular, gloss] = on.fin?.[t.slot] ?? [];
       const q = palettePbr(on.cols[t.slot], specular, gloss);
-      m.color.setRGB(...q.color, THREE.LinearSRGBColorSpace);
+      col.setRGB(...q.color, THREE.LinearSRGBColorSpace);
       m.metalness = q.metalness;
       m.roughness = q.roughness ?? t.rough0;
     }
+    redim(current);
     return map.size;
+  }
+  // Farbe eines Schiffsmaterials bei vollem Licht. Im Schacht dunkelt dimIn
+  // jedes Bild nach dim.base ab; ein Lack, der nur m.color setzte, wäre beim
+  // nächsten Schritt der Auffahrt wieder die Serie (Lack aus ?layout= beim
+  // Laden, PC-Lauf „Hangar-Lack“ 29.10.2026). Darum ändert paint() die
+  // ungedimmte Farbe und legt das Abdunkeln danach neu darüber.
+  function litColor(c, m) {
+    return c.dim?.base.get(m)?.c ?? m.color;
+  }
+  function redim(c) {
+    const d = c.dim;
+    if (!d) return;
+    const { f, cool } = d;
+    d.f = NaN;
+    dimIn(d, f, cool);
   }
   // Palettenmaterialien des echten Lacks: Material -> { slot 0..2, Serienwerte }.
   // Einmal je Schiff, beim ersten paint() mit Serienpalette. Traegt der Bau
@@ -10573,7 +10871,7 @@ void main() {
     if ([...mats].some((m) => m.userData?.palette)) {
       for (const m of mats) {
         const ch = m.userData?.palette?.ch;
-        if ([1, 2, 3].includes(ch)) map.set(m, { slot: ch - 1, c0: m.color.clone(), metal0: m.metalness, rough0: m.roughness, pbr: true });
+        if ([1, 2, 3].includes(ch)) map.set(m, { slot: ch - 1, c0: litColor(c, m).clone(), metal0: m.metalness, rough0: m.roughness, pbr: true });
       }
       c.tint = map;
       return map;
@@ -10583,8 +10881,9 @@ void main() {
     const tagged = [...mats].some((m) => m.userData?.palette_tint != null);
     for (const m of mats) {
       const pt = m.userData?.palette_tint;
-      const slot = want.findIndex((w, i) => (tagged ? pt === i + 1 : true) && near(w, m.color));
-      if (slot >= 0) map.set(m, { slot, c0: m.color.clone() });
+      const lit = litColor(c, m);
+      const slot = want.findIndex((w, i) => (tagged ? pt === i + 1 : true) && near(w, lit));
+      if (slot >= 0) map.set(m, { slot, c0: lit.clone() });
     }
     c.tint = map;
     return map;

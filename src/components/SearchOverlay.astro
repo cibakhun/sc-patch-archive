@@ -514,7 +514,9 @@ const indexUrl = href('/search-index.json', lang);
         return;
       }
       if (root.hidden) {
-        if (e.key === '/' && !/^(input|textarea|select)$/i.test((e.target && e.target.tagName) || '')) {
+        // Eine Seite mit eigener Suche darf / fuer sich nehmen (der Hangar fuer
+        // seine Schiffsauswahl): sie verhindert die Vorgabe, bevor dies laeuft.
+        if (e.key === '/' && !e.defaultPrevented && !/^(input|textarea|select)$/i.test((e.target && e.target.tagName) || '')) {
           e.preventDefault();
           open();
         }

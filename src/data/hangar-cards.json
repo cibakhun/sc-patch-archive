@@ -1,0 +1,1399 @@
+{
+ "view": {
+  "az": 140,
+  "el": 18
+ },
+ "card": {
+  "w": 480,
+  "h": 270
+ },
+ "topMax": 320,
+ "ships": {
+  "aegs-avenger-stalker": {
+   "v": "d46e42fc",
+   "w": 16.9,
+   "l": 24.6,
+   "h": 19.5
+  },
+  "aegs-avenger-titan": {
+   "v": "36e6ca90",
+   "w": 16.9,
+   "l": 24.6,
+   "h": 19.5
+  },
+  "aegs-avenger-titan-renegade": {
+   "v": "82e72be2",
+   "w": 16.9,
+   "l": 24.5,
+   "h": 14.5
+  },
+  "aegs-avenger-warlock": {
+   "v": "9cada143",
+   "w": 16.9,
+   "l": 24.6,
+   "h": 19.5
+  },
+  "aegs-eclipse": {
+   "v": "15196415",
+   "w": 26.3,
+   "l": 19.8,
+   "h": 16.6
+  },
+  "aegs-gladius": {
+   "v": "285aca61",
+   "w": 17.4,
+   "l": 21.4,
+   "h": 9.3
+  },
+  "aegs-gladius-pir": {
+   "v": "3f574aba",
+   "w": 17.4,
+   "l": 21.4,
+   "h": 6.7
+  },
+  "aegs-gladius-valiant": {
+   "v": "7b0dddf0",
+   "w": 17.4,
+   "l": 21.8,
+   "h": 6.7
+  },
+  "aegs-hammerhead": {
+   "v": "562eaa6a",
+   "w": 67.2,
+   "l": 116.3,
+   "h": 25.1
+  },
+  "aegs-hammerhead-showdown": {
+   "v": "f1c68e39",
+   "w": 66.8,
+   "l": 116.5,
+   "h": 57.6
+  },
+  "aegs-idris-m": {
+   "v": "a24e5f5b",
+   "w": 127.4,
+   "l": 232.9,
+   "h": 111.2
+  },
+  "aegs-idris-p": {
+   "v": "7314cc28",
+   "w": 127.4,
+   "l": 232.9,
+   "h": 111.2
+  },
+  "aegs-javelin": {
+   "v": "4cf89969",
+   "w": 218.2,
+   "l": 429.7,
+   "h": 143.6
+  },
+  "aegs-reclaimer": {
+   "v": "8d5dffba",
+   "w": 110.3,
+   "l": 158.4,
+   "h": 125.8
+  },
+  "aegs-reclaimer-showdown": {
+   "v": "d0f26883",
+   "w": 110.3,
+   "l": 158.4,
+   "h": 125.8
+  },
+  "aegs-redeemer": {
+   "v": "0d433c8b",
+   "w": 28.8,
+   "l": 50.6,
+   "h": 45.3
+  },
+  "aegs-retaliator": {
+   "v": "83693321",
+   "w": 39.4,
+   "l": 69.6,
+   "h": 25.4
+  },
+  "aegs-sabre": {
+   "v": "c46c3513",
+   "w": 24.6,
+   "l": 23.9,
+   "h": 5
+  },
+  "aegs-sabre-comet": {
+   "v": "3022f877",
+   "w": 24.6,
+   "l": 23.9,
+   "h": 5
+  },
+  "aegs-sabre-firebird": {
+   "v": "48ffcc46",
+   "w": 20,
+   "l": 23.6,
+   "h": 5.7
+  },
+  "aegs-sabre-peregrine": {
+   "v": "3341e6f0",
+   "w": 20,
+   "l": 23.6,
+   "h": 5.7
+  },
+  "aegs-sabre-raven": {
+   "v": "8d55db43",
+   "w": 19.8,
+   "l": 23.6,
+   "h": 5.7
+  },
+  "aegs-sabre-raven-ex": {
+   "v": "324b285e",
+   "w": 19.8,
+   "l": 23.6,
+   "h": 5.9
+  },
+  "aegs-tiburon": {
+   "v": "06ef48dc",
+   "w": 68.4,
+   "l": 120.9,
+   "h": 50.5
+  },
+  "aegs-vanguard": {
+   "v": "f382feb6",
+   "w": 38.1,
+   "l": 41.6,
+   "h": 14.4
+  },
+  "aegs-vanguard-harbinger": {
+   "v": "c6a17308",
+   "w": 38.1,
+   "l": 41.6,
+   "h": 14.4
+  },
+  "aegs-vanguard-hoplite": {
+   "v": "05b1a328",
+   "w": 38.1,
+   "l": 41.6,
+   "h": 14.4
+  },
+  "aegs-vanguard-sentinel": {
+   "v": "f5f6b6d9",
+   "w": 38,
+   "l": 42.8,
+   "h": 14.4
+  },
+  "anvl-arrow": {
+   "v": "47039499",
+   "w": 12.1,
+   "l": 17.1,
+   "h": 6
+  },
+  "anvl-asgard": {
+   "v": "6c685ef1",
+   "w": 33.9,
+   "l": 48.6,
+   "h": 31.3
+  },
+  "anvl-ballista": {
+   "v": "eb1e95c0",
+   "w": 7.3,
+   "l": 17,
+   "h": 5.4
+  },
+  "anvl-ballista-dunestalker": {
+   "v": "9bcbbeba",
+   "w": 7.3,
+   "l": 17,
+   "h": 5.4
+  },
+  "anvl-ballista-snowblind": {
+   "v": "9bcbbeba",
+   "w": 7.3,
+   "l": 17,
+   "h": 5.4
+  },
+  "anvl-c8-pisces": {
+   "v": "676f2f6c",
+   "w": 8.6,
+   "l": 12.6,
+   "h": 9.3
+  },
+  "anvl-c8r-pisces": {
+   "v": "48cb372e",
+   "w": 8.6,
+   "l": 12.6,
+   "h": 9.5
+  },
+  "anvl-c8x-pisces-expedition": {
+   "v": "4f6f23e6",
+   "w": 8.8,
+   "l": 12.9,
+   "h": 9.3
+  },
+  "anvl-carrack": {
+   "v": "5c39031f",
+   "w": 72.5,
+   "l": 125.4,
+   "h": 63.6
+  },
+  "anvl-carrack-expedition": {
+   "v": "e4ecba2d",
+   "w": 72.5,
+   "l": 125.4,
+   "h": 63.6
+  },
+  "anvl-centurion": {
+   "v": "1ee641ee",
+   "w": 6.8,
+   "l": 16.8,
+   "h": 5.1
+  },
+  "anvl-gladiator": {
+   "v": "d087e6cc",
+   "w": 21.8,
+   "l": 21.3,
+   "h": 6.1
+  },
+  "anvl-hawk": {
+   "v": "554611e2",
+   "w": 14.1,
+   "l": 17.1,
+   "h": 16.5
+  },
+  "anvl-hornet-f7a-mk1": {
+   "v": "d18f0d19",
+   "w": 19.3,
+   "l": 19.9,
+   "h": 6.7
+  },
+  "anvl-hornet-f7a-mk2": {
+   "v": "93f249df",
+   "w": 17.9,
+   "l": 18.6,
+   "h": 11.4
+  },
+  "anvl-hornet-f7c": {
+   "v": "7f9a7af7",
+   "w": 19.3,
+   "l": 18.6,
+   "h": 6
+  },
+  "anvl-hornet-f7c-mk2": {
+   "v": "9d447df3",
+   "w": 17.9,
+   "l": 18.6,
+   "h": 12.1
+  },
+  "anvl-hornet-f7c-wildfire": {
+   "v": "1f9017c0",
+   "w": 19.5,
+   "l": 18.6,
+   "h": 6.9
+  },
+  "anvl-hornet-f7cm": {
+   "v": "ae3b1e2e",
+   "w": 21.1,
+   "l": 20.5,
+   "h": 14.7
+  },
+  "anvl-hornet-f7cm-heartseeker": {
+   "v": "8968c244",
+   "w": 21.1,
+   "l": 20.5,
+   "h": 14.7
+  },
+  "anvl-hornet-f7cm-mk2": {
+   "v": "1692e3b0",
+   "w": 18.8,
+   "l": 20.6,
+   "h": 11.3
+  },
+  "anvl-hornet-f7cm-mk2-heartseeker": {
+   "v": "b78a2ab1",
+   "w": 18.8,
+   "l": 20.6,
+   "h": 11.4
+  },
+  "anvl-hornet-f7cr": {
+   "v": "3057c62e",
+   "w": 19.3,
+   "l": 18.6,
+   "h": 6
+  },
+  "anvl-hornet-f7cr-mk2": {
+   "v": "945dec48",
+   "w": 17.9,
+   "l": 21.1,
+   "h": 10.4
+  },
+  "anvl-hornet-f7cs": {
+   "v": "898b02ca",
+   "w": 19.1,
+   "l": 18.6,
+   "h": 6
+  },
+  "anvl-hornet-f7cs-mk2": {
+   "v": "5fc2ed52",
+   "w": 17.9,
+   "l": 18.6,
+   "h": 10.4
+  },
+  "anvl-hurricane": {
+   "v": "4ed8b926",
+   "w": 18.4,
+   "l": 23.3,
+   "h": 6
+  },
+  "anvl-lightning-f8": {
+   "v": "c4826eee",
+   "w": 25.8,
+   "l": 24.4,
+   "h": 10.3
+  },
+  "anvl-lightning-f8c": {
+   "v": "a1f33643",
+   "w": 25.8,
+   "l": 24.1,
+   "h": 10.2
+  },
+  "anvl-lightning-f8c-exec": {
+   "v": "00cd8d28",
+   "w": 25.8,
+   "l": 24.1,
+   "h": 10.2
+  },
+  "anvl-paladin": {
+   "v": "b5bdda24",
+   "w": 37.4,
+   "l": 53.1,
+   "h": 15.6
+  },
+  "anvl-spartan": {
+   "v": "7802bcc6",
+   "w": 6.5,
+   "l": 16.8,
+   "h": 5.3
+  },
+  "anvl-terrapin": {
+   "v": "7b613631",
+   "w": 16.5,
+   "l": 20.4,
+   "h": 13.4
+  },
+  "anvl-terrapin-medic": {
+   "v": "d7d0211d",
+   "w": 16.5,
+   "l": 20.4,
+   "h": 12.1
+  },
+  "anvl-valkyrie": {
+   "v": "a2c33dcd",
+   "w": 34.7,
+   "l": 47.6,
+   "h": 20.7
+  },
+  "argo-atls": {
+   "v": "4f584c5a",
+   "w": 1.8,
+   "l": 2.1,
+   "h": 3
+  },
+  "argo-atls-geo": {
+   "v": "1c3cf0c6",
+   "w": 1.9,
+   "l": 2.8,
+   "h": 3
+  },
+  "argo-atls-geo-collector-grad01": {
+   "v": "693a7755",
+   "w": 1.9,
+   "l": 2.8,
+   "h": 3
+  },
+  "argo-atls-geo-collector-grad03": {
+   "v": "1cb92c75",
+   "w": 1.9,
+   "l": 2.8,
+   "h": 3
+  },
+  "argo-csv-cargo": {
+   "v": "b5b47239",
+   "w": 4.3,
+   "l": 6.3,
+   "h": 5.7
+  },
+  "argo-mole": {
+   "v": "708ab22e",
+   "w": 25.8,
+   "l": 42.7,
+   "h": 23.1
+  },
+  "argo-moth": {
+   "v": "0a6ed94c",
+   "w": 25.9,
+   "l": 45,
+   "h": 21
+  },
+  "argo-mpuv": {
+   "v": "1fb18c2a",
+   "w": 8,
+   "l": 9.3,
+   "h": 4.4
+  },
+  "argo-mpuv-1t": {
+   "v": "36cadf74",
+   "w": 7.9,
+   "l": 9.3,
+   "h": 8.1
+  },
+  "argo-mpuv-transport": {
+   "v": "6b98d0dd",
+   "w": 7.9,
+   "l": 9.6,
+   "h": 8.9
+  },
+  "argo-raft": {
+   "v": "c636b241",
+   "w": 23.4,
+   "l": 40.3,
+   "h": 20.6
+  },
+  "argo-srv": {
+   "v": "24829599",
+   "w": 21.1,
+   "l": 31.6,
+   "h": 9.4
+  },
+  "banu-defender": {
+   "v": "86aa2dd5",
+   "w": 22.9,
+   "l": 24,
+   "h": 18.1
+  },
+  "cnou-hoverquad": {
+   "v": "aee87e7c",
+   "w": 2.4,
+   "l": 4.4,
+   "h": 1.6
+  },
+  "cnou-mustang-alpha": {
+   "v": "ef07ef3f",
+   "w": 18,
+   "l": 22.9,
+   "h": 14
+  },
+  "cnou-mustang-alpha-citizencon2018": {
+   "v": "1718f8b7",
+   "w": 18,
+   "l": 22.9,
+   "h": 14
+  },
+  "cnou-mustang-beta": {
+   "v": "c784443b",
+   "w": 17.9,
+   "l": 23,
+   "h": 11.1
+  },
+  "cnou-mustang-delta": {
+   "v": "fd5746fc",
+   "w": 18,
+   "l": 22.9,
+   "h": 14
+  },
+  "cnou-mustang-gamma": {
+   "v": "577dffad",
+   "w": 18,
+   "l": 21.3,
+   "h": 14
+  },
+  "cnou-mustang-omega": {
+   "v": "cfec47ed",
+   "w": 17.9,
+   "l": 21.3,
+   "h": 13
+  },
+  "cnou-nomad": {
+   "v": "4f2cbb56",
+   "w": 18.4,
+   "l": 25.9,
+   "h": 11.7
+  },
+  "crus-intrepid": {
+   "v": "25ea155b",
+   "w": 20.4,
+   "l": 23.1,
+   "h": 13
+  },
+  "crus-spirit-a1": {
+   "v": "a7fba028",
+   "w": 45.2,
+   "l": 46.5,
+   "h": 41.5
+  },
+  "crus-spirit-c1": {
+   "v": "e1d2e6a9",
+   "w": 45.2,
+   "l": 46.5,
+   "h": 41.5
+  },
+  "crus-star-runner": {
+   "v": "cd225b7c",
+   "w": 50,
+   "l": 54.3,
+   "h": 26.2
+  },
+  "crus-starfighter-inferno": {
+   "v": "c25b5d91",
+   "w": 29.9,
+   "l": 26.6,
+   "h": 18.6
+  },
+  "crus-starfighter-ion": {
+   "v": "b16acd2a",
+   "w": 29.9,
+   "l": 26.6,
+   "h": 18.6
+  },
+  "crus-starlifter-a2": {
+   "v": "1076d814",
+   "w": 78.6,
+   "l": 94.3,
+   "h": 79.7
+  },
+  "crus-starlifter-c2": {
+   "v": "05d0b307",
+   "w": 78.6,
+   "l": 94.3,
+   "h": 79.7
+  },
+  "crus-starlifter-m2": {
+   "v": "73e9aba4",
+   "w": 78.6,
+   "l": 94.3,
+   "h": 79.7
+  },
+  "drak-buccaneer": {
+   "v": "db24be60",
+   "w": 16,
+   "l": 14.6,
+   "h": 5.1
+  },
+  "drak-caterpillar": {
+   "v": "1e99330c",
+   "w": 39,
+   "l": 111.6,
+   "h": 15.7
+  },
+  "drak-caterpillar-pirate": {
+   "v": "1b1845b9",
+   "w": 39,
+   "l": 111.6,
+   "h": 15.7
+  },
+  "drak-clipper": {
+   "v": "fbf0390b",
+   "w": 49.5,
+   "l": 25.2,
+   "h": 20.8
+  },
+  "drak-corsair": {
+   "v": "ce5399f9",
+   "w": 31.2,
+   "l": 52.6,
+   "h": 49.1
+  },
+  "drak-cutlass-black": {
+   "v": "9f79282e",
+   "w": 26.3,
+   "l": 35.8,
+   "h": 16.9
+  },
+  "drak-cutlass-blue": {
+   "v": "f8f69d6f",
+   "w": 26.1,
+   "l": 35.8,
+   "h": 22.3
+  },
+  "drak-cutlass-red": {
+   "v": "141f54ff",
+   "w": 26.1,
+   "l": 36,
+   "h": 10.6
+  },
+  "drak-cutlass-steel": {
+   "v": "7ecf2753",
+   "w": 26.3,
+   "l": 35.8,
+   "h": 20.1
+  },
+  "drak-cutter": {
+   "v": "479ffac5",
+   "w": 12.8,
+   "l": 20.9,
+   "h": 14
+  },
+  "drak-cutter-rambler": {
+   "v": "8b879b25",
+   "w": 12.8,
+   "l": 20.5,
+   "h": 14
+  },
+  "drak-cutter-scout": {
+   "v": "c6d3fdeb",
+   "w": 12.9,
+   "l": 20.4,
+   "h": 14
+  },
+  "drak-dragonfly": {
+   "v": "5816901f",
+   "w": 2.3,
+   "l": 6.6,
+   "h": 2.3
+  },
+  "drak-dragonfly-yellow": {
+   "v": "acc56944",
+   "w": 2.3,
+   "l": 6.6,
+   "h": 2.3
+  },
+  "drak-golem": {
+   "v": "f9ef26d9",
+   "w": 7.5,
+   "l": 15.5,
+   "h": 5.5
+  },
+  "drak-golem-ox": {
+   "v": "d8a51eef",
+   "w": 10.1,
+   "l": 15.5,
+   "h": 8.9
+  },
+  "drak-herald": {
+   "v": "e6547d8f",
+   "w": 12.3,
+   "l": 23.6,
+   "h": 9.6
+  },
+  "drak-ironclad": {
+   "v": "7ad90ef4",
+   "w": 45.7,
+   "l": 116.8,
+   "h": 37.2
+  },
+  "drak-ironclad-assault": {
+   "v": "e19fca85",
+   "w": 45.7,
+   "l": 116.4,
+   "h": 46
+  },
+  "drak-mule": {
+   "v": "6348bd1c",
+   "w": 3,
+   "l": 4.3,
+   "h": 3.2
+  },
+  "drak-pitbull": {
+   "v": "4304908d",
+   "w": 6.3,
+   "l": 6.3,
+   "h": 4.7
+  },
+  "drak-vulture": {
+   "v": "e2b213c4",
+   "w": 15.9,
+   "l": 33,
+   "h": 16.1
+  },
+  "espr-prowler": {
+   "v": "3f875d63",
+   "w": 31.9,
+   "l": 33.4,
+   "h": 29.5
+  },
+  "espr-prowler-utility": {
+   "v": "0feda548",
+   "w": 26.8,
+   "l": 33.3,
+   "h": 21.5
+  },
+  "espr-talon": {
+   "v": "0d2489e6",
+   "w": 23.1,
+   "l": 24.5,
+   "h": 12.7
+  },
+  "espr-talon-shrike": {
+   "v": "83d37174",
+   "w": 23.1,
+   "l": 24.5,
+   "h": 15.6
+  },
+  "gama-railen": {
+   "v": "2570a9a2",
+   "w": 52.3,
+   "l": 60.6,
+   "h": 68.2
+  },
+  "gama-syulen": {
+   "v": "dde485fa",
+   "w": 22.6,
+   "l": 15.3,
+   "h": 29.7
+  },
+  "gama-tyilui": {
+   "v": "bc56a334",
+   "w": 51.9,
+   "l": 69,
+   "h": 46.6
+  },
+  "glsn-basher": {
+   "v": "5052bda0",
+   "w": 11.3,
+   "l": 13.5,
+   "h": 5.9
+  },
+  "glsn-shiv": {
+   "v": "840274b1",
+   "w": 27.8,
+   "l": 35.8,
+   "h": 24.1
+  },
+  "grin-mdc": {
+   "v": "4e85600f",
+   "w": 5.3,
+   "l": 7.4,
+   "h": 5.8
+  },
+  "grin-mtc": {
+   "v": "e6d23efa",
+   "w": 5.3,
+   "l": 7.1,
+   "h": 3.6
+  },
+  "grin-ptv": {
+   "v": "4b75a591",
+   "w": 2,
+   "l": 3.3,
+   "h": 2
+  },
+  "grin-roc": {
+   "v": "7b1ae9d9",
+   "w": 3.9,
+   "l": 9.4,
+   "h": 3
+  },
+  "grin-roc-ds": {
+   "v": "7bee5ef2",
+   "w": 4.9,
+   "l": 6.6,
+   "h": 3.2
+  },
+  "grin-stv": {
+   "v": "c70780de",
+   "w": 2.8,
+   "l": 4.3,
+   "h": 3.8
+  },
+  "grin-utv": {
+   "v": "3cf7bf95",
+   "w": 2.6,
+   "l": 4,
+   "h": 3.3
+  },
+  "krig-l21-wolf": {
+   "v": "dcaaa627",
+   "w": 10.5,
+   "l": 21.3,
+   "h": 8
+  },
+  "krig-l22-alphawolf": {
+   "v": "69cf7125",
+   "w": 10.6,
+   "l": 21.4,
+   "h": 9.6
+  },
+  "krig-p52-merlin": {
+   "v": "a42acae2",
+   "w": 6.8,
+   "l": 12,
+   "h": 3.5
+  },
+  "krig-p72-archimedes": {
+   "v": "ff6de95f",
+   "w": 8.3,
+   "l": 12.3,
+   "h": 3.5
+  },
+  "krig-p72-archimedes-emerald": {
+   "v": "5de8690f",
+   "w": 8.3,
+   "l": 12.3,
+   "h": 3.5
+  },
+  "krig-s65-stingray": {
+   "v": "0fdef5fb",
+   "w": 15.3,
+   "l": 19.6,
+   "h": 11
+  },
+  "misc-fortune": {
+   "v": "cc21cd1c",
+   "w": 15.4,
+   "l": 25.3,
+   "h": 9.4
+  },
+  "misc-freelancer": {
+   "v": "e601ebcc",
+   "w": 23,
+   "l": 36.8,
+   "h": 15.9
+  },
+  "misc-freelancer-dur": {
+   "v": "ceb35277",
+   "w": 23,
+   "l": 37,
+   "h": 16.3
+  },
+  "misc-freelancer-max": {
+   "v": "454adb58",
+   "w": 31.5,
+   "l": 36.8,
+   "h": 17.9
+  },
+  "misc-freelancer-mis": {
+   "v": "ec96b6e0",
+   "w": 23,
+   "l": 37,
+   "h": 15.2
+  },
+  "misc-fury": {
+   "v": "e56fd3de",
+   "w": 3.9,
+   "l": 6.1,
+   "h": 4.1
+  },
+  "misc-fury-lx": {
+   "v": "06f3f815",
+   "w": 3.6,
+   "l": 6.5,
+   "h": 3.1
+  },
+  "misc-fury-miru": {
+   "v": "4c466c89",
+   "w": 3.8,
+   "l": 6.1,
+   "h": 4.1
+  },
+  "misc-hull-a": {
+   "v": "13bbf71f",
+   "w": 10.4,
+   "l": 26.9,
+   "h": 10.3
+  },
+  "misc-hull-b": {
+   "v": "d3ab352a",
+   "w": 16.8,
+   "l": 46.7,
+   "h": 34
+  },
+  "misc-hull-c": {
+   "v": "505d6e43",
+   "w": 35.9,
+   "l": 92.5,
+   "h": 75.5
+  },
+  "misc-prospector": {
+   "v": "a5a37ddb",
+   "w": 15.4,
+   "l": 28.3,
+   "h": 9.1
+  },
+  "misc-razor": {
+   "v": "2ac28453",
+   "w": 8,
+   "l": 11.5,
+   "h": 3.1
+  },
+  "misc-razor-ex": {
+   "v": "1c729415",
+   "w": 8,
+   "l": 11.5,
+   "h": 3.1
+  },
+  "misc-razor-lx": {
+   "v": "4d355c1f",
+   "w": 8,
+   "l": 11.5,
+   "h": 3.1
+  },
+  "misc-reliant": {
+   "v": "a74812b9",
+   "w": 30.4,
+   "l": 15.5,
+   "h": 12.4
+  },
+  "misc-reliant-mako": {
+   "v": "bfba2128",
+   "w": 29.3,
+   "l": 15.6,
+   "h": 12.4
+  },
+  "misc-reliant-sen": {
+   "v": "f3efa492",
+   "w": 29.3,
+   "l": 15.6,
+   "h": 12.4
+  },
+  "misc-reliant-tana": {
+   "v": "0f1ac515",
+   "w": 31,
+   "l": 15.5,
+   "h": 12.4
+  },
+  "misc-starfarer": {
+   "v": "85c1fe79",
+   "w": 48.9,
+   "l": 101.1,
+   "h": 73.9
+  },
+  "misc-starfarer-gemini": {
+   "v": "e7161879",
+   "w": 48.9,
+   "l": 101.1,
+   "h": 73.9
+  },
+  "misc-starlancer-max": {
+   "v": "c6c9d8e7",
+   "w": 51.4,
+   "l": 83.5,
+   "h": 38
+  },
+  "misc-starlancer-tac": {
+   "v": "f25489f2",
+   "w": 51.4,
+   "l": 83.5,
+   "h": 46
+  },
+  "misc-starlite": {
+   "v": "7b4b3d14",
+   "w": 20.3,
+   "l": 32.4,
+   "h": 23
+  },
+  "mrai-guardian": {
+   "v": "460f5089",
+   "w": 16.9,
+   "l": 25.3,
+   "h": 16.9
+  },
+  "mrai-guardian-mx": {
+   "v": "5ab71b6e",
+   "w": 20.5,
+   "l": 25,
+   "h": 24.2
+  },
+  "mrai-guardian-qi": {
+   "v": "e7730839",
+   "w": 16.9,
+   "l": 25.4,
+   "h": 16.9
+  },
+  "mrai-pulse": {
+   "v": "48ea23f8",
+   "w": 0.8,
+   "l": 2.4,
+   "h": 2.2
+  },
+  "mrai-pulse-lx": {
+   "v": "c0f8e0eb",
+   "w": 0.8,
+   "l": 2.6,
+   "h": 2.3
+  },
+  "orig-100i": {
+   "v": "af9fbb76",
+   "w": 11.8,
+   "l": 19.5,
+   "h": 6.3
+  },
+  "orig-125a": {
+   "v": "9a1a622f",
+   "w": 11.8,
+   "l": 19.5,
+   "h": 6.3
+  },
+  "orig-135c": {
+   "v": "7c7b8b67",
+   "w": 11.8,
+   "l": 19.5,
+   "h": 6.3
+  },
+  "orig-300i": {
+   "v": "66f9498d",
+   "w": 16.4,
+   "l": 24.9,
+   "h": 21.4
+  },
+  "orig-315p": {
+   "v": "e58bba45",
+   "w": 16.4,
+   "l": 24.9,
+   "h": 13.7
+  },
+  "orig-325a": {
+   "v": "e620b64d",
+   "w": 16.4,
+   "l": 27.5,
+   "h": 16
+  },
+  "orig-350r": {
+   "v": "68f6d54f",
+   "w": 16.4,
+   "l": 28.9,
+   "h": 10.9
+  },
+  "orig-400i": {
+   "v": "d118539a",
+   "w": 33.2,
+   "l": 59.2,
+   "h": 41
+  },
+  "orig-600i": {
+   "v": "6dac6009",
+   "w": 52.4,
+   "l": 91.6,
+   "h": 30.2
+  },
+  "orig-600i-bis2951": {
+   "v": "b98c51f8",
+   "w": 52.4,
+   "l": 91.6,
+   "h": 30.2
+  },
+  "orig-600i-touring": {
+   "v": "ff8882a5",
+   "w": 52.4,
+   "l": 91.6,
+   "h": 30.2
+  },
+  "orig-85x": {
+   "v": "0a632fe6",
+   "w": 10.1,
+   "l": 13.1,
+   "h": 3.1
+  },
+  "orig-890jump": {
+   "v": "d6f43984",
+   "w": 76.2,
+   "l": 206,
+   "h": 63.3
+  },
+  "orig-m50": {
+   "v": "8e3614f9",
+   "w": 10.1,
+   "l": 12.4,
+   "h": 3.8
+  },
+  "orig-m80": {
+   "v": "2406c955",
+   "w": 17.6,
+   "l": 31.9,
+   "h": 15.2
+  },
+  "orig-x1": {
+   "v": "91bcc411",
+   "w": 1.4,
+   "l": 4.8,
+   "h": 2.1
+  },
+  "orig-x1-force": {
+   "v": "120cee71",
+   "w": 1.4,
+   "l": 5.8,
+   "h": 2.1
+  },
+  "orig-x1-velocity": {
+   "v": "c2c506da",
+   "w": 1.4,
+   "l": 4.6,
+   "h": 2.1
+  },
+  "rsi-apollo-medivac": {
+   "v": "0dbe2d94",
+   "w": 55.1,
+   "l": 64.6,
+   "h": 44
+  },
+  "rsi-apollo-triage": {
+   "v": "74b25374",
+   "w": 55.1,
+   "l": 64.6,
+   "h": 44
+  },
+  "rsi-aurora-gs-cl": {
+   "v": "0e11a487",
+   "w": 8.3,
+   "l": 18.5,
+   "h": 11.3
+  },
+  "rsi-aurora-gs-es": {
+   "v": "49f07cc5",
+   "w": 8.3,
+   "l": 18.5,
+   "h": 11.3
+  },
+  "rsi-aurora-gs-ln": {
+   "v": "55c868d8",
+   "w": 8.3,
+   "l": 18.5,
+   "h": 11.3
+  },
+  "rsi-aurora-gs-lx": {
+   "v": "b66ca994",
+   "w": 8.3,
+   "l": 18.5,
+   "h": 11.3
+  },
+  "rsi-aurora-gs-mr": {
+   "v": "5babfbe2",
+   "w": 8.3,
+   "l": 18.5,
+   "h": 11.3
+  },
+  "rsi-aurora-gs-se": {
+   "v": "336d7678",
+   "w": 8.3,
+   "l": 18.5,
+   "h": 11.3
+  },
+  "rsi-aurora-mk2": {
+   "v": "5eaff0fa",
+   "w": 10.8,
+   "l": 27.3,
+   "h": 10.7
+  },
+  "rsi-constellation-andromeda": {
+   "v": "78b903d8",
+   "w": 26.6,
+   "l": 61.3,
+   "h": 36.1
+  },
+  "rsi-constellation-aquila": {
+   "v": "7ad00a6c",
+   "w": 26.4,
+   "l": 60.6,
+   "h": 38.4
+  },
+  "rsi-constellation-mk5-centaurus": {
+   "v": "17a58787",
+   "w": 47,
+   "l": 82.1,
+   "h": 62.6
+  },
+  "rsi-constellation-phoenix": {
+   "v": "0c1bbaee",
+   "w": 28.6,
+   "l": 66.8,
+   "h": 58.3
+  },
+  "rsi-constellation-phoenix-emerald": {
+   "v": "f4c248cb",
+   "w": 28.5,
+   "l": 66.8,
+   "h": 28.6
+  },
+  "rsi-constellation-taurus": {
+   "v": "cd357fda",
+   "w": 26.7,
+   "l": 68.8,
+   "h": 38.3
+  },
+  "rsi-hermes": {
+   "v": "39f417b0",
+   "w": 55.1,
+   "l": 67,
+   "h": 45.1
+  },
+  "rsi-lynx": {
+   "v": "8a00d08a",
+   "w": 5.6,
+   "l": 7.8,
+   "h": 5.2
+  },
+  "rsi-mantis": {
+   "v": "4191d3ca",
+   "w": 16.9,
+   "l": 29.8,
+   "h": 13.5
+  },
+  "rsi-meteor": {
+   "v": "4890c9fb",
+   "w": 16.9,
+   "l": 29.8,
+   "h": 11.3
+  },
+  "rsi-perseus": {
+   "v": "e1758589",
+   "w": 56.5,
+   "l": 100.2,
+   "h": 29.9
+  },
+  "rsi-polaris": {
+   "v": "0a307d04",
+   "w": 85.5,
+   "l": 165.1,
+   "h": 111.9
+  },
+  "rsi-salvation": {
+   "v": "d3c9a6ba",
+   "w": 8.5,
+   "l": 13,
+   "h": 5.9
+  },
+  "rsi-scorpius": {
+   "v": "cbd63058",
+   "w": 13.4,
+   "l": 30,
+   "h": 8.2
+  },
+  "rsi-scorpius-antares": {
+   "v": "0d42f389",
+   "w": 13.4,
+   "l": 30,
+   "h": 8.2
+  },
+  "rsi-skylark": {
+   "v": "bb30dc84",
+   "w": 4.8,
+   "l": 7,
+   "h": 4.3
+  },
+  "rsi-ursa-medivac": {
+   "v": "eef4ae67",
+   "w": 5.5,
+   "l": 9.3,
+   "h": 4.7
+  },
+  "rsi-ursa-rover": {
+   "v": "75dd0f80",
+   "w": 5.6,
+   "l": 7.8,
+   "h": 4.6
+  },
+  "rsi-ursa-rover-emerald": {
+   "v": "f4eec9f7",
+   "w": 5.6,
+   "l": 7.8,
+   "h": 6.8
+  },
+  "rsi-zeus-cl": {
+   "v": "dfccca08",
+   "w": 26.3,
+   "l": 45.7,
+   "h": 28.1
+  },
+  "rsi-zeus-es": {
+   "v": "de919c47",
+   "w": 26.4,
+   "l": 45.8,
+   "h": 28.1
+  },
+  "tmbl-cyclone": {
+   "v": "5d6cf81f",
+   "w": 3.9,
+   "l": 5.8,
+   "h": 5.2
+  },
+  "tmbl-cyclone-aa": {
+   "v": "09176698",
+   "w": 3.9,
+   "l": 5.8,
+   "h": 5.2
+  },
+  "tmbl-cyclone-mt": {
+   "v": "63baf39d",
+   "w": 3.9,
+   "l": 5.8,
+   "h": 5.6
+  },
+  "tmbl-cyclone-rc": {
+   "v": "f480e761",
+   "w": 3.9,
+   "l": 5.8,
+   "h": 5.2
+  },
+  "tmbl-cyclone-rn": {
+   "v": "85ba62e8",
+   "w": 3.9,
+   "l": 5.8,
+   "h": 5.2
+  },
+  "tmbl-cyclone-tr": {
+   "v": "89c2cfc2",
+   "w": 3.9,
+   "l": 5.8,
+   "h": 5.6
+  },
+  "tmbl-nova": {
+   "v": "0b69ffc7",
+   "w": 7.4,
+   "l": 13.4,
+   "h": 6.8
+  },
+  "tmbl-storm": {
+   "v": "eb218f95",
+   "w": 7.6,
+   "l": 10.3,
+   "h": 6.6
+  },
+  "tmbl-storm-aa": {
+   "v": "5a8ca6ad",
+   "w": 7.6,
+   "l": 10.3,
+   "h": 7.2
+  },
+  "vncl-blade": {
+   "v": "977194ff",
+   "w": 20.6,
+   "l": 19.4,
+   "h": 7
+  },
+  "vncl-glaive": {
+   "v": "7798dbc9",
+   "w": 30.8,
+   "l": 30.5,
+   "h": 23.1
+  },
+  "vncl-scythe": {
+   "v": "78c8cb98",
+   "w": 17.1,
+   "l": 30.6,
+   "h": 8.4
+  },
+  "vncl-stinger": {
+   "v": "298eece8",
+   "w": 31.3,
+   "l": 34.6,
+   "h": 38.7
+  },
+  "xian-nox": {
+   "v": "b27c5f29",
+   "w": 1.6,
+   "l": 5,
+   "h": 1.4
+  },
+  "xian-nox-kue": {
+   "v": "1382fefb",
+   "w": 1.6,
+   "l": 5,
+   "h": 1.4
+  },
+  "xian-scout": {
+   "v": "1486503e",
+   "w": 18.5,
+   "l": 12.9,
+   "h": 29.5
+  },
+  "xnaa-santokyai": {
+   "v": "be2c9344",
+   "w": 22.1,
+   "l": 21,
+   "h": 32.1
+  }
+ }
+}

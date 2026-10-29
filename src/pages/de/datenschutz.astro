@@ -171,7 +171,9 @@ body{font-family:var(--font-body)}
       bleibt ohne Anmeldung in diesem Browser; meldest du dich an, wandert sie als Favoriten in
       dein Konto. Solange du angemeldet bist, behält dieser Browser zusätzlich eine Kopie der
       Flotte. Hast du ein Handle gesetzt, erscheint die Flotte auf deinem öffentlichen
-      Piloten-Profil.
+      Piloten-Profil. Gespeicherte Hangar-Layouts (Loadouts) halten es genauso: ohne Anmeldung
+      bleiben sie in diesem Browser; meldest du dich an, wandern sie in dein Konto und stehen auf
+      jedem Gerät bereit, auf dem du angemeldet bist, während dieser Browser eine Kopie behält.
     </p>
 
     <h2>Extern eingebundene Bilder</h2>
@@ -239,7 +241,16 @@ body{font-family:var(--font-body)}
     <ul>
       <li><strong>E-Mail-Adresse</strong> und <strong>Passwort</strong> (das Passwort wird
         ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext)</li>
-      <li><strong>Profildaten</strong>, die du selbst angibst (Anzeigename, Handle — beides optional)</li>
+      <li><strong>Profildaten</strong>, die du selbst angibst (Anzeigename, Handle — beides optional;
+        dazu freiwillig Namen bei Twitch, YouTube und X, die als Links auf deinem öffentlichen
+        Piloten-Profil stehen)</li>
+      <li>bei der freiwilligen <strong>Anmeldung mit Discord</strong> oder wenn du Discord im Konto
+        verbindest: die Angaben, die Discord dafür übermittelt (Discord-ID, Benutzername,
+        Anzeigename, Profilbild, E-Mail-Adresse); Name und Bild übernimmt das Konto als Vorschlag
+        in dein Profil</li>
+      <li><strong>Nachrichten</strong>, die du im Chat an bestätigte Freunde schreibst, mit
+        Absender, Empfänger, Zeitpunkt und Lesestatus; lesen können sie nur Absender und
+        Empfänger</li>
       <li><strong>Favoriten</strong>, die du aktiv speicherst, darunter deine Schiffsflotte; sobald
         du ein Handle gesetzt hast, sind sie auf deinem öffentlichen Piloten-Profil sichtbar</li>
       <li><strong>Werkzeug-Daten</strong>, die du aktiv anlegst (Crafting-Planer und
@@ -253,7 +264,8 @@ body{font-family:var(--font-body)}
       Wunsch). Die Anmeldung erfolgt ohne Cookies: das Sitzungs-Token wird ausschließlich lokal in
       deinem Browser gespeichert (localStorage). Du kannst dein Konto jederzeit selbst im
       <a href="/de/account.html">Konto-Dashboard</a> endgültig löschen — dabei werden alle
-      zugehörigen Daten (Profil, Favoriten, Werkzeug-Daten, Anmeldedaten) unwiderruflich entfernt.
+      zugehörigen Daten (Profil, Favoriten, Werkzeug-Daten, gesendete und empfangene Nachrichten,
+      Anmeldedaten) unwiderruflich entfernt.
     </p>
     <p class="muted">
       Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
@@ -279,8 +291,13 @@ body{font-family:var(--font-body)}
       zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen, Berühren; das Laden der Seite
       und die Rückkehr auf den Tab zählen mit). Das geschieht beim Laden, danach alle
       30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder Rückkehr auf den Tab.
-      Welche Seite du ansiehst und was du dort tust, wird dabei nicht übermittelt. Ohne
-      Anmeldung wird nichts geschrieben.
+      Auf einigen Seiten kommt eine kurze Angabe dazu, was du gerade machst: im Hangar, beim
+      Loadout-Bauen oder auf einer Schiffsseite (jeweils mit dem Schiffsnamen) oder bei der
+      Mining-Planung; auf allen anderen Seiten wird sie geleert. Diese Angabe sehen nur deine
+      bestätigten Freunde, und nur solange sie frisch ist (3 Minuten). Im Konto-Dashboard
+      kannst du sie abschalten („Freunde sehen, was ich gerade mache“); dann wird sie geleert
+      und nicht mehr mitgeschickt. Weitere Angaben dazu, welche Seite du ansiehst und was du
+      dort tust, werden nicht übermittelt. Ohne Anmeldung wird nichts geschrieben.
     </p>
     <p>
       Andere sehen nicht die Zeitpunkte, sondern nur einen daraus abgeleiteten Status:
@@ -289,7 +306,7 @@ body{font-family:var(--font-body)}
       <em>offline</em>. Sichtbar ist dieser Status nur, wenn du ein Handle gesetzt hast: für
       jeden auf deinem öffentlichen Piloten-Profil und für angemeldete Nutzer im Freundes- und
       Piloten-Verzeichnis. Meldest du dich im Konto-Dashboard ab, versucht die Seite zuerst,
-      beide Zeitpunkte zu leeren, und meldet dich danach in jedem Fall ab. Gelingt das Leeren
+      beide Zeitpunkte und die Angabe zu leeren, und meldet dich danach in jedem Fall ab. Gelingt das Leeren
       nicht (etwa ohne Netz), schreibt dieser Browser keine weiteren Zeitpunkte, und der Status
       wechselt nach spätestens 3 Minuten auf offline, sofern nicht auf einem anderen Gerät, auf
       dem du angemeldet bist, noch eine Seite dieser Website offen ist. Beim Löschen des Kontos verschwinden die Zeitpunkte mit dem Profil.

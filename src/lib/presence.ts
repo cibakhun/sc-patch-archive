@@ -20,3 +20,27 @@ export function resolveStatusKey(presence: Presence, activity?: string | null): 
   if (presence === 'online' && (activity === 'ingame' || activity === 'mission')) return activity;
   return presence;
 }
+
+// Rich Presence (Kontoseite Runde 4): der Präsenz-Puls in account-lite.js
+// schreibt nach profiles.activity, WAS man gerade auf der Seite macht, als
+// 'art|Name' (z. B. 'hangar|Gladius'). Sprachneutral gespeichert, damit ein
+// englischer Freund denselben Eintrag englisch liest. social_profiles gibt
+// den Wert nur an Freunde und nur frisch (3 min) heraus.
+const ACTIVITY: Record<string, { de: [string, string]; en: [string, string] }> = {
+  hangar: { de: ['Im Hangar · %s', 'Im Hangar'], en: ['In the hangar · %s', 'In the hangar'] },
+  loadout: { de: ['Loadout für %s', 'Baut ein Loadout'], en: ['Loadout for %s', 'Building a loadout'] },
+  ship: { de: ['Schaut sich %s an', 'Stöbert in Schiffen'], en: ['Looking at %s', 'Browsing ships'] },
+  mining: { de: ['Plant Mining', 'Plant Mining'], en: ['Planning mining', 'Planning mining'] },
+};
+
+/** 'art|Name' -> Anzeigetext; unbekannte Arten ergeben '' (dann gilt der Status). */
+export function formatActivity(raw: string | null | undefined, lang: 'de' | 'en'): string {
+  if (!raw) return '';
+  const i = raw.indexOf('|');
+  const kind = i < 0 ? raw : raw.slice(0, i);
+  const name = i < 0 ? '' : raw.slice(i + 1).trim();
+  const t = ACTIVITY[kind];
+  if (!t) return '';
+  const [withName, plain] = t[lang];
+  return name ? withName.replace('%s', name) : plain;
+}

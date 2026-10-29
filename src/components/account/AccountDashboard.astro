@@ -3,7 +3,9 @@
 import { href } from '../../i18n/ui';
 import ProfileCard from './ProfileCard.astro';
 import FriendsManager from './FriendsManager.astro';
+import FriendsDock from './FriendsDock.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
+import { DISCORD } from '../../consts';
 
 interface Props {
   lang: 'de' | 'en';
@@ -20,7 +22,7 @@ const COPY = {
     logout: 'Abmelden',
     tabProfile: 'Profil & Identität',
     tabFriends: 'Freunde & Social',
-    tabFavs: 'Favoriten',
+    tabFavs: 'Gespeichert',
     tabSecurity: 'Sicherheit & Konto',
     secProfile: 'Profil-Anpassung',
     secDesign: 'Banner & Avatar Design',
@@ -102,21 +104,22 @@ const COPY = {
     rsiEnterHandle: 'Bitte trage zuerst dein RSI Citizen Handle im Feld oben ein (z. B. Roberts).',
     rsiNotFound: 'Code "%code%" wurde noch nicht in der Bio von @%handle% auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI (die Anzeige kann 1–2 Minuten dauern).',
     rsiServerErr: 'Der Verifizierungsserver ist gerade nicht erreichbar — bitte später erneut versuchen.',
-    discordTag: 'Discord Tag', discordPh: 'z. B. Pilot#1234 oder @pilot',
+    discordTag: 'Discord', discordPh: 'z. B. @pilot', discordFromLink: 'Kommt aus deiner Discord-Verbindung', avatarDiscord: 'Discord-Bild',
     secDiscordLink: 'Discord-Konto verbinden',
-    dcLinkDesc: 'Verbinde dein Discord-Konto mit diesem Konto. Welche E-Mail-Adresse du bei Discord benutzt, spielt dabei keine Rolle — die Verbindung laeuft ueber Discord selbst. Erst dadurch weiss die Seite, welche Discord-Rollen dir gehoeren (z. B. Test Pilots fuer die Vorschau).',
+    dcLinkDesc: 'Verbinde dein Discord-Konto. Erst dann kennt die Seite deine Discord-Rollen (z. B. Testpilot). Die E-Mail-Adresse bei Discord spielt keine Rolle.',
     dcLinkNone: 'Nicht verbunden',
-    dcLinkOne: 'Verbunden mit %name%',
-    dcLinkBtn: 'Mit Discord verbinden',
+    dcLinkOne: '%name%',
+    dcLinkBtn: 'Verbinden',
     dcLinkBusy: 'Weiterleitung zu Discord …',
-    dcUnlinkBtn: 'Verbindung loesen',
-    dcUnlinkBusy: 'Loese …',
-    dcUnlinkDone: 'Verbindung geloest. Discord-Rollen wirken damit nicht mehr auf dieser Seite.',
-    dcLinkErrDisabled: 'Das Verbinden ist auf dem Server nicht freigeschaltet. Bitte dem Betreiber melden.',
-    dcLinkErrTaken: 'Dieses Discord-Konto ist bereits mit einem anderen Konto auf verse-base.com verbunden.',
-    dcLinkErr: 'Das Verbinden hat nicht geklappt — bitte spaeter erneut versuchen.',
-    dcUnlinkNeedsTwo: 'Zum Loesen brauchst du noch einen zweiten Anmeldeweg — setze zuerst ein Passwort fuer dieses Konto.',
+    dcUnlinkBtn: 'Lösen',
+    dcUnlinkBusy: 'Löse …',
+    dcUnlinkDone: 'Verbindung gelöst.',
+    dcLinkErrDisabled: 'Verbinden ist auf dem Server aus. Bitte dem Betreiber melden.',
+    dcLinkErrTaken: 'Dieses Discord-Konto hängt schon an einem anderen Konto.',
+    dcLinkErr: 'Hat nicht geklappt. Bitte später erneut versuchen.',
+    dcUnlinkNeedsTwo: 'Zum Lösen brauchst du einen zweiten Anmeldeweg. Setze zuerst ein Passwort.',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
+    shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', socialBad: 'Dieser Name passt nicht zu %s.',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
@@ -146,23 +149,14 @@ const COPY = {
     publicPageCopy: 'Link kopieren',
     publicPageCopied: 'Kopiert! ✓',
     publicPageNoHandle: 'Setze ein Handle, um deine öffentliche Seite zu aktivieren.',
-    ovWelcome: 'Willkommen zurück',
-    ovLead: 'Dein Cockpit — Profil, Netzwerk und Werkzeuge auf einen Blick.',
     ovAtAGlance: 'Auf einen Blick',
-    ovQuick: 'Schnellzugriff',
     ovRecent: 'Letzte Aktivität',
     ovTFavs: 'Favoriten', ovTFriends: 'Freunde', ovTRefValue: 'Refinery-Wert',
     ovTComplete: 'Profil-Vollständigkeit', ovTRsi: 'RSI-Status',
-    ovJProfile: 'Profil bearbeiten', ovJProfileSub: 'Name, Avatar, Banner, Rolle',
-    ovJFavs: 'Favoriten ansehen', ovJFavsSub: 'Schiffe, Items & Missionen',
-    ovJFriends: 'Freunde verwalten', ovJFriendsSub: 'Netzwerk & Anfragen',
-    ovJRefinery: 'Refinery-Tracker', ovJRefinerySub: 'Erz-Jobs & Ausbeute',
-    ovJShare: 'Öffentliches Profil teilen', ovJShareSub: 'Deine Pilotenkarte',
-    ovJSecurity: 'Sicherheit', ovJSecuritySub: 'E-Mail, Passwort, Konto',
     ovPending: '%n% offene Anfragen', ovPending1: '1 offene Anfrage', ovNoPending: 'Keine offenen Anfragen',
     ovActive: '%n% laufende Jobs', ovActive1: '1 laufender Job', ovNoActive: 'Keine laufenden Jobs',
     ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
-    ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert', ovNav: 'Konto', ovTools: 'Werkzeuge',
+    ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert',
     ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Job: %x%',
     ovActEmpty: 'Noch keine Aktivität — leg mit einem Favoriten oder einer Freundschaftsanfrage los.',
   },
@@ -175,7 +169,7 @@ const COPY = {
     logout: 'Sign out',
     tabProfile: 'Profile & Identity',
     tabFriends: 'Friends & Social',
-    tabFavs: 'Favorites',
+    tabFavs: 'Saved',
     tabSecurity: 'Security & Account',
     secProfile: 'Profile Customization',
     secDesign: 'Banner & Avatar Design',
@@ -257,21 +251,22 @@ const COPY = {
     rsiEnterHandle: 'Please enter your RSI Citizen handle in the field above first (e.g. Roberts).',
     rsiNotFound: 'Code "%code%" was not found in @%handle%\'s bio on robertsspaceindustries.com yet. Please save your bio on RSI (it can take 1–2 minutes to show up).',
     rsiServerErr: 'The verification server is currently unreachable — please try again later.',
-    discordTag: 'Discord Tag', discordPh: 'e.g. Pilot#1234 or @pilot',
+    discordTag: 'Discord', discordPh: 'e.g. @pilot', discordFromLink: 'Comes from your Discord connection', avatarDiscord: 'Discord picture',
     secDiscordLink: 'Connect Discord account',
-    dcLinkDesc: 'Connect your Discord account to this one. It does not matter which e-mail address you use on Discord — the connection runs through Discord itself. Only then does the site know which Discord roles are yours (for example Test Pilots for the preview).',
+    dcLinkDesc: 'Connect your Discord account. Only then does the site know your Discord roles (e.g. Test Pilot). Your Discord e-mail address does not matter.',
     dcLinkNone: 'Not connected',
-    dcLinkOne: 'Connected as %name%',
-    dcLinkBtn: 'Connect with Discord',
+    dcLinkOne: '%name%',
+    dcLinkBtn: 'Connect',
     dcLinkBusy: 'Redirecting to Discord …',
     dcUnlinkBtn: 'Disconnect',
     dcUnlinkBusy: 'Disconnecting …',
-    dcUnlinkDone: 'Disconnected. Discord roles no longer apply on this site.',
+    dcUnlinkDone: 'Disconnected.',
     dcLinkErrDisabled: 'Connecting is not enabled on the server. Please tell the operator.',
-    dcLinkErrTaken: 'This Discord account is already connected to a different verse-base.com account.',
+    dcLinkErrTaken: 'This Discord account is already tied to another account.',
     dcLinkErr: 'Connecting did not work — please try again later.',
-    dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in — set a password for this account first.',
+    dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in. Set a password first.',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
+    shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', socialBad: 'That name does not fit %s.',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
@@ -301,23 +296,14 @@ const COPY = {
     publicPageCopy: 'Copy link',
     publicPageCopied: 'Copied! ✓',
     publicPageNoHandle: 'Set a handle to activate your public page.',
-    ovWelcome: 'Welcome back',
-    ovLead: 'Your cockpit — profile, network and tools at a glance.',
     ovAtAGlance: 'At a glance',
-    ovQuick: 'Quick access',
     ovRecent: 'Recent activity',
     ovTFavs: 'Favorites', ovTFriends: 'Friends', ovTRefValue: 'Refinery value',
     ovTComplete: 'Profile completeness', ovTRsi: 'RSI status',
-    ovJProfile: 'Edit profile', ovJProfileSub: 'Name, avatar, banner, role',
-    ovJFavs: 'View favorites', ovJFavsSub: 'Ships, items & missions',
-    ovJFriends: 'Manage friends', ovJFriendsSub: 'Network & requests',
-    ovJRefinery: 'Refinery tracker', ovJRefinerySub: 'Ore jobs & yield',
-    ovJShare: 'Share public profile', ovJShareSub: 'Your pilot card',
-    ovJSecurity: 'Security', ovJSecuritySub: 'E-mail, password, account',
     ovPending: '%n% pending requests', ovPending1: '1 pending request', ovNoPending: 'No pending requests',
     ovActive: '%n% active jobs', ovActive1: '1 active job', ovNoActive: 'No active jobs',
     ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
-    ovRsiYes: 'Verified', ovRsiNo: 'Not verified', ovNav: 'Account', ovTools: 'Tools',
+    ovRsiYes: 'Verified', ovRsiNo: 'Not verified',
     ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
     ovActEmpty: 'No activity yet — start with a favorite or a friend request.',
   },
@@ -328,6 +314,52 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
 const hangarHref = href('/hangar.html', lang);
 const refineryHref = href('/refinery.html', lang);
 const confirmRedirect = loginHref + '?confirmed=1';
+
+// Übersicht (Cockpit): Texte für account-cockpit.ts, als JSON am Wurzelknoten.
+const CK = {
+  de: {
+    rank: 'Discord-Rang', pos: 'Platz', msgs: 'Nachrichten', voice: 'Sprache',
+    lv: 'Lv %n%', xp: '%a% / %b% XP', next: 'Ab Lv %n%: %r%', max: 'Höchster Rang', of: 'von %n%',
+    noLink: 'Verbinde Discord und dein Rang vom Server steht hier.', noLinkBtn: 'Discord verbinden',
+    noGuild: 'Du bist noch nicht auf dem VerseBase-Server.', noGuildBtn: 'Server beitreten',
+    waiting: 'Dein Rang kommt in ein paar Minuten.', waitingBtn: 'Zum Server',
+    profile: 'Profil', todo: { handle: 'Handle', avatar: 'Bild', bio: 'Über mich', status: 'Status', role: 'Rolle', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
+    loadouts: 'Loadouts', chats: 'Nachrichten', chatsEmpty: 'Noch keine Nachrichten.', chatsCta: 'Freunde öffnen', you: 'Du',
+    saved: 'Gespeichert', savedEmpty: 'Noch nichts gespeichert.', savedCta: 'Zum Hangar', layout: 'Loadout', kinds: { ship: 'Schiff', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Thema' },
+    now: 'jetzt', min: '%n% Min.', hrs: '%n% Std.', days: '%n% T.',
+  },
+  en: {
+    rank: 'Discord rank', pos: 'Rank', msgs: 'Messages', voice: 'Voice',
+    lv: 'Lv %n%', xp: '%a% / %b% XP', next: 'At Lv %n%: %r%', max: 'Top rank', of: 'of %n%',
+    noLink: 'Connect Discord and your server rank shows up here.', noLinkBtn: 'Connect Discord',
+    noGuild: 'You are not on the VerseBase server yet.', noGuildBtn: 'Join the server',
+    waiting: 'Your rank arrives in a few minutes.', waitingBtn: 'Open server',
+    profile: 'Profile', todo: { handle: 'Handle', avatar: 'Picture', bio: 'About me', status: 'Status', role: 'Role', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
+    loadouts: 'Loadouts', chats: 'Messages', chatsEmpty: 'No messages yet.', chatsCta: 'Open friends', you: 'You',
+    saved: 'Saved', savedEmpty: 'Nothing saved yet.', savedCta: 'Go to hangar', layout: 'Loadout', kinds: { ship: 'Ship', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Topic' },
+    now: 'now', min: '%n%m', hrs: '%n%h', days: '%n%d',
+  },
+}[lang];
+
+// Bereich „Gespeichert" (account-saved.ts): Loadouts + Favoriten.
+const SV = {
+  de: {
+    title: 'Gespeichert', all: 'Alle', loadouts: 'Loadouts', loadout: 'Loadout', favs: 'Favoriten', search: 'Suchen', filter: 'Filter',
+    none: 'Nichts gefunden.', changes: '%n% Änderungen', change1: '1 Änderung', stock: 'Serie',
+    open: 'Im Hangar öffnen', advanced: 'Advanced Loadout', copy: 'Link kopieren', copied: 'Link kopiert',
+    remove: 'Löschen', removed: '„%s" gelöscht', undo: 'Rückgängig', failed: 'Das hat nicht geklappt.',
+    syncErr: 'Noch nicht mit dem Konto abgeglichen', empty: 'Noch nichts gespeichert.', emptyHint: 'Speichere Loadouts im Hangar oder markiere Schiffe mit dem Stern.', toHangar: 'Zum Hangar',
+    kinds: { ship: 'Schiffe', mission: 'Missionen', mineral: 'Minerale', item: 'Items', patch: 'Patches', topic: 'Themen' },
+  },
+  en: {
+    title: 'Saved', all: 'All', loadouts: 'Loadouts', loadout: 'Loadout', favs: 'Favorites', search: 'Search', filter: 'Filter',
+    none: 'Nothing found.', changes: '%n% changes', change1: '1 change', stock: 'Stock',
+    open: 'Open in hangar', advanced: 'Advanced Loadout', copy: 'Copy link', copied: 'Link copied',
+    remove: 'Delete', removed: '"%s" deleted', undo: 'Undo', failed: 'That did not work.',
+    syncErr: 'Not synced with your account yet', empty: 'Nothing saved yet.', emptyHint: 'Save loadouts in the hangar or star ships to keep them here.', toHangar: 'Go to hangar',
+    kinds: { ship: 'Ships', mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' },
+  },
+}[lang];
 ---
 <div id="dashLoading" class="acx-hint">{COPY.loading}</div>
 
@@ -374,6 +406,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-dc-link-err-taken={COPY.dcLinkErrTaken}
   data-dc-link-err={COPY.dcLinkErr}
   data-dc-unlink-needs-two={COPY.dcUnlinkNeedsTwo}
+  data-dc-from-link={COPY.discordFromLink}
+  data-msg-social-bad={COPY.socialBad}
   data-tester-overview-empty={COPY.testerOverviewEmpty}
   data-tester-never-seen={COPY.testerNeverSeen}
   data-tester-col-name={COPY.testerColName}
@@ -387,6 +421,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
       <g id="ic-edit" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></g>
       <g id="ic-star" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L12 17.2 6.4 20.5l1.4-6.2L3 10l6.4-.6z"/></g>
       <g id="ic-users" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M17 4a3.2 3.2 0 0 1 0 6.3M21 20v-1a4 4 0 0 0-3-3.8"/></g>
+      <g id="ic-discord" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21H.55A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></g>
       <g id="ic-refinery" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v6l-5.2 9.2A2 2 0 0 0 5.6 21h12.8a2 2 0 0 0 1.8-2.8L15 9V3"/><path d="M8 3h8M7 14.5h10"/></g>
       <g id="ic-share" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.3M8.3 13.3l7.4 4.3"/></g>
       <g id="ic-shield" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></g>
@@ -399,6 +434,9 @@ const confirmRedirect = loginHref + '?confirmed=1';
       <g id="ic-item" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6l8.5 4v6.8L12 21.4 3.5 13.4V6.6z"/><path d="M3.5 6.6L12 11l8.5-4.4M12 11v10.4"/></g>
       <g id="ic-tag" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3.5h8L21 13.5l-7.5 7.5L3.5 11.5z"/><circle cx="7.3" cy="7.8" r="1.1"/></g>
       <g id="ic-hash" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15M4 15h15M10.5 3L8 21M16 3l-2.5 18"/></g>
+      <g id="ic-search" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></g>
+      <g id="ic-sliders" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></g>
+      <g id="ic-link" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></g>
       <g id="ic-x" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></g>
       <g id="ic-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></g>
       <g id="ic-lock" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="1"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><path d="M12 14.5v2.5"/></g>
@@ -412,52 +450,63 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
   <div class="dsr">
 
-    <!-- ===== cinematic pilot hero (echte Daten via ov*) ===== -->
-    <header class="phero">
-      <div class="ph__img" id="ovBanner" aria-hidden="true"></div>
-      <div class="ph__scrim" aria-hidden="true"></div>
-      <div class="dwrap ph__in">
-        <span class="ph__kicker">{lang === 'de' ? 'UEE Citizen Registry · Piloten-Dossier' : 'UEE Citizen Registry · Pilot Dossier'}</span>
-        <div class="ph__row">
-          <div class="ph__av" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /><span class="ph__avdot" id="ovStatusDot" aria-hidden="true"></span></div>
-          <h1 class="ph__name" id="ovName">Citizen</h1>
-        </div>
-        <div class="ph__chips">
-          <span class="ph__handle" id="ovHandle">@citizen</span>
-          <span class="ph__chip ok" id="ovVerified" hidden><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> {lang === 'de' ? 'RSI verifiziert' : 'RSI Verified'}</span>
-          <span class="ph__chip" id="ovRolePill" hidden><svg viewBox="0 0 24 24"><use href="#ic-hex"/></svg> <b id="ovRoleText"></b></span>
-          <span class="ph__chip" id="ovStatusPill"><span id="ovStatusLabel"></span></span>
-          <span class="ph__chip" id="ovOrgPill" hidden><svg viewBox="0 0 24 24"><use href="#ic-org"/></svg> <span id="ovOrgText"></span></span>
-        </div>
-        <p class="ph__lede" id="ovLede" hidden></p>
-        <div class="ph__meta">
-          <span><b>{COPY.memberSince}</b> <span id="idSince">—</span></span>
-          <span><b>{lang === 'de' ? 'Registrierung' : 'Registry'}</b> <span id="ovRegId">VB-••••••••</span></span>
-        </div>
-        <div class="ph__acts">
-          <button type="button" class="btn primary" id="ovBtnShare"><svg viewBox="0 0 24 24"><use href="#ic-id"/></svg> {lang === 'de' ? 'Öffentliches Profil' : 'Public Profile'}</button>
-          <button type="button" class="btn" data-tab-jump="profile"><svg viewBox="0 0 24 24"><use href="#ic-edit"/></svg> {COPY.ovJProfile}</button>
-        </div>
-      </div>
-    </header>
-
-    <!-- ===== tabs ===== -->
-    <nav class="fullbleed tabsbar" aria-label={lang === 'de' ? 'Konto-Bereiche' : 'Account sections'}>
-      <div class="dwrap" style="padding-inline:0">
-        <div class="tabs" role="tablist">
-          <button type="button" class="tab" role="tab" aria-selected="true" data-tab="overview"><span class="lbl">{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
-          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="profile"><span class="lbl">{COPY.tabProfile}</span></button>
-          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="favs"><span class="lbl">{COPY.tabFavs}</span><span class="badge" id="navFavCount" hidden>0</span></button>
-          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><span class="lbl">{COPY.tabFriends}</span><span class="badge" id="navFriendCount" hidden>0</span></button>
-          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="security"><span class="lbl">{COPY.tabSecurity}</span></button>
-          <div class="tabs__acct">
-            <button type="button" class="logout" id="btnLogout" title={COPY.logout} aria-label={COPY.logout}><svg viewBox="0 0 24 24"><use href="#ic-power"/></svg> <span>{COPY.logout}</span></button>
+    <!-- ===== Konto-Rahmen (wie Discord): links du + Discord + Bereiche,
+         Mitte der gewählte Bereich, rechts die Freundesliste. Breite Schirme
+         zeigen alles auf einem Bildschirm; nur Listen scrollen in ihrem
+         Kasten. Die ov*-IDs füllt account-dashboard.ts (live beim Tippen). ===== -->
+    <div class="acc">
+    <aside class="acc-side">
+      <div class="acc-id">
+        <div class="acc-id__banner" id="ovBanner" aria-hidden="true"></div>
+        <div class="acc-id__row">
+          <div class="ph__av acc-id__av" id="ovAvatarBox"><span id="ovAvatarText">◆</span><img id="ovAvatarImg" src="" alt="" hidden /><span class="ph__avdot" id="ovStatusDot" aria-hidden="true"></span></div>
+          <div class="acc-id__who">
+            <h1 class="acc-id__name" id="ovName">Citizen</h1>
+            <span class="acc-id__handle" id="ovHandle">@citizen</span>
           </div>
         </div>
+        <div class="acc-id__status" id="ovStatusPill"><span id="ovStatusLabel"></span></div>
+        <div class="acc-id__chips">
+          <span class="acc-chip ok" id="ovVerified" hidden title={lang === 'de' ? 'RSI verifiziert' : 'RSI verified'}><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> RSI</span>
+          <span class="acc-chip" id="ovRolePill" hidden><b id="ovRoleText"></b></span>
+          <span class="acc-chip" id="ovOrgPill" hidden><svg viewBox="0 0 24 24"><use href="#ic-org"/></svg> <span id="ovOrgText"></span></span>
+        </div>
+        <p class="acc-id__bio" id="ovLede" hidden></p>
+        <div class="acc-id__soc" id="ovSocials" hidden></div>
+        <span class="acc-id__since">{COPY.memberSince} <span id="idSince">—</span><span id="ovRegId" hidden>VB-••••••••</span></span>
       </div>
-    </nav>
 
-    <div class="dwrap dpanels">
+      <!-- Discord-Verbindung: vorne statt unter "Sicherheit". Der Freitext
+           "Discord Tag" im Profil ist nur eine Behauptung; HIER entsteht der
+           Nachweis (linkIdentity -> Trigger sync_discord_identity ->
+           discord_role_state), an dem der Bot das Konto findet. -->
+      <div class="acc-dc" id="discordLinkCard" title={COPY.dcLinkDesc}>
+        <span class="acc-dc__logo" id="dcLogo" aria-hidden="true"><svg viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21H.55A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg></span>
+        <img class="acc-dc__av" id="dcAvatar" src="" alt="" hidden />
+        <div class="acc-dc__txt">
+          <b>Discord</b>
+          <span id="dcLinkState">{COPY.dcLinkNone}</span>
+        </div>
+        <button type="button" class="btn ok sm" id="btnDiscordLink" data-idle={COPY.dcLinkBtn} data-busy={COPY.dcLinkBusy}>{COPY.dcLinkBtn}</button>
+        <button type="button" class="acc-dc__off" id="btnDiscordUnlink" data-idle={COPY.dcUnlinkBtn} data-busy={COPY.dcUnlinkBusy} hidden>{COPY.dcUnlinkBtn}</button>
+        <p class="acx-status" id="dcLinkStatus" role="status" aria-live="polite" hidden></p>
+      </div>
+
+      <nav class="acc-nav" role="tablist" aria-label={lang === 'de' ? 'Konto-Bereiche' : 'Account sections'} aria-orientation="vertical">
+        <button type="button" class="tab" role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24"><use href="#ic-hex"/></svg><span class="lbl">{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="profile"><svg viewBox="0 0 24 24"><use href="#ic-edit"/></svg><span class="lbl">{COPY.tabProfile}</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="favs"><svg viewBox="0 0 24 24"><use href="#ic-star"/></svg><span class="lbl">{COPY.tabFavs}</span><span class="badge" id="navFavCount" hidden>0</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg><span class="lbl">{COPY.tabFriends}</span><span class="badge" id="navFriendCount" hidden>0</span><span class="badge badge--chat" id="navChatUnread" hidden>0</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="security"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg><span class="lbl">{COPY.tabSecurity}</span></button>
+      </nav>
+
+      <div class="acc-side__foot">
+        <button type="button" class="btn sm" id="ovBtnShare"><svg viewBox="0 0 24 24"><use href="#ic-id"/></svg> {lang === 'de' ? 'Öffentliches Profil' : 'Public profile'}</button>
+        <button type="button" class="logout" id="btnLogout" title={COPY.logout} aria-label={COPY.logout}><svg viewBox="0 0 24 24"><use href="#ic-power"/></svg> <span>{COPY.logout}</span></button>
+      </div>
+    </aside>
+
+    <div class="acc-main dpanels">
 
       <!-- ============================ ÜBERSICHT ============================ -->
       <section id="tab-panel-overview" class="acx-tab-panel"
@@ -466,61 +515,94 @@ const confirmRedirect = loginHref + '?confirmed=1';
         data-l-missing={COPY.ovMissing} data-l-missing1={COPY.ovMissing1} data-l-complete={COPY.ovComplete}
         data-l-rsi-yes={COPY.ovRsiYes} data-l-rsi-no={COPY.ovRsiNo}
         data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}>
-        <div class="stack">
+        <div class="ck" id="ck" data-copy={JSON.stringify(CK)} data-invite={DISCORD.invite} data-lang={lang}>
 
-          <div>
-            <div class="dsec"><h2>{COPY.ovAtAGlance}</h2></div>
-            <div class="metrics">
-              <div class="metric" role="button" tabindex="0" data-tab-jump="favs" aria-label={COPY.ovTFavs}>
-                <div class="mlabel"><span class="k">{COPY.ovTFavs}</span><span class="micon"><svg viewBox="0 0 24 24"><use href="#ic-star"/></svg></span></div>
-                <div class="big tnum" id="ovStatFavs">0</div>
-              </div>
-              <div class="metric" role="button" tabindex="0" data-tab-jump="friends" aria-label={COPY.ovTFriends}>
-                <div class="mlabel"><span class="k">{COPY.ovTFriends}</span><span class="micon"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg></span></div>
-                <div class="big tnum" id="ovStatFriends">0</div>
-                <div class="sub" id="ovFriendsSub"></div>
-              </div>
-              <a class="metric" href={refineryHref} aria-label={COPY.ovTRefValue}>
-                <div class="mlabel"><span class="k">{COPY.ovTRefValue}</span><span class="micon" style="color:var(--gold)"><svg viewBox="0 0 24 24"><use href="#ic-refinery"/></svg></span></div>
-                <div class="big gold tnum" id="ovRefValue" style="font-size:var(--fs-18)">—</div>
-                <div class="spark" aria-hidden="true"><svg id="ovRefSpark" viewBox="0 0 120 26" preserveAspectRatio="none"></svg></div>
-                <div class="sub" id="ovRefSub"></div>
-              </a>
-              <div class="metric" role="button" tabindex="0" data-tab-jump="profile" aria-label={COPY.ovTComplete}>
-                <div class="mlabel"><span class="k">{COPY.ovTComplete}</span><span class="micon"><svg viewBox="0 0 24 24"><use href="#ic-id"/></svg></span></div>
-                <div class="ringwrap">
-                  <svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true">
-                    <circle cx="29" cy="29" r="18" fill="none" stroke="var(--line)" stroke-width="5"/>
-                    <circle id="ovRing" cx="29" cy="29" r="18" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 29 29)"/>
-                  </svg>
-                  <div class="rmeta"><b id="ovComplete">0%</b><br/><span id="ovCompleteSub"></span></div>
+          <div class="ck-top">
+            <!-- Discord-Rang: Stand kommt vom Rang-Bot (discord_role_state) -->
+            <article class="ck-rank" id="ckRank" data-state="loading" style="--rc:var(--accent)">
+              <div class="ck-rank__badge" aria-hidden="true"><span id="ckRankIns">◆</span><svg viewBox="0 0 127.14 96.36"><use href="#ic-discord"/></svg></div>
+              <div class="ck-rank__main">
+                <div class="ck-k"><svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#ic-discord"/></svg>{CK.rank}</div>
+                <div class="ck-rank__title"><b id="ckRankName">—</b><span class="ck-lv" id="ckRankLv" hidden></span><span class="ck-pres" id="ckPrestige" hidden></span></div>
+                <div class="ck-rank__live" id="ckRankLive">
+                  <div class="ck-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="ckBarWrap"><i id="ckBar"></i></div>
+                  <div class="ck-rank__row"><span id="ckXp"></span><span id="ckNext"></span></div>
+                  <ol class="ck-ladder" id="ckLadder" aria-hidden="true"></ol>
+                </div>
+                <div class="ck-rank__cta" id="ckRankCta" hidden>
+                  <p id="ckRankMsg"></p>
+                  <a class="btn sm ok" id="ckRankBtn" href="#" target="_blank" rel="noopener"></a>
                 </div>
               </div>
-              <div class="metric" role="button" tabindex="0" data-tab-jump="security" aria-label={COPY.ovTRsi}>
-                <div class="mlabel"><span class="k">{COPY.ovTRsi}</span><span class="micon" style="color:var(--ok)"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span></div>
-                <div class="verline" id="ovRsi">—</div>
-                <div class="versub" id="ovRsiSub"></div>
+              <dl class="ck-rank__stats" id="ckRankStats">
+                <div><dt>{CK.pos}</dt><dd id="ckPos">—</dd></div>
+                <div><dt>{CK.msgs}</dt><dd id="ckMsgs">—</dd></div>
+                <div><dt>{CK.voice}</dt><dd id="ckVoice">—</dd></div>
+              </dl>
+            </article>
+
+            <!-- Profil-Check: Ring + was noch fehlt (Klick springt hin) -->
+            <article class="ck-check" id="ckCheck">
+              <div class="ck-ring" role="button" tabindex="0" data-tab-jump="profile" aria-label={COPY.ovTComplete}>
+                <svg width="76" height="76" viewBox="0 0 58 58" aria-hidden="true">
+                  <circle cx="29" cy="29" r="18" fill="none" stroke="var(--line)" stroke-width="5"/>
+                  <circle id="ovRing" cx="29" cy="29" r="18" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 29 29)"/>
+                </svg>
+                <b id="ovComplete">0%</b>
               </div>
-            </div>
+              <div class="ck-check__body">
+                <div class="ck-k">{CK.profile}</div>
+                <p class="ck-check__sub" id="ovCompleteSub"></p>
+                <ul class="ck-todo" id="ckTodo"></ul>
+                <div class="ck-rsi" role="button" tabindex="0" data-tab-jump="security" aria-label={COPY.ovTRsi}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-shield"/></svg>
+                  <span>RSI</span><b id="ovRsi">—</b><span class="ck-rsi__h" id="ovRsiSub"></span>
+                </div>
+              </div>
+            </article>
           </div>
 
-          <div class="ov-cols">
-            <div>
-              <div class="dsec"><h2>{COPY.ovQuick}</h2></div>
-              <div class="qgrid">
-                <button type="button" class="qcard" data-tab-jump="profile"><span class="qi"><svg viewBox="0 0 24 24"><use href="#ic-edit"/></svg></span><span><span class="qt">{COPY.ovJProfile}</span><span class="qd">{COPY.ovJProfileSub}</span></span></button>
-                <button type="button" class="qcard" data-tab-jump="favs"><span class="qi"><svg viewBox="0 0 24 24"><use href="#ic-star"/></svg></span><span><span class="qt">{COPY.ovJFavs}</span><span class="qd">{COPY.ovJFavsSub}</span></span></button>
-                <button type="button" class="qcard" data-tab-jump="friends"><span class="qi"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg></span><span><span class="qt">{COPY.ovJFriends}</span><span class="qd">{COPY.ovJFriendsSub}</span></span></button>
-                <button type="button" class="qcard" id="ovBtnShare2"><span class="qi"><svg viewBox="0 0 24 24"><use href="#ic-share"/></svg></span><span><span class="qt">{COPY.ovJShare}</span><span class="qd">{COPY.ovJShareSub}</span></span></button>
-                <button type="button" class="qcard" data-tab-jump="security"><span class="qi"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span><span><span class="qt">{COPY.ovJSecurity}</span><span class="qd">{COPY.ovJSecuritySub}</span></span></button>
-              </div>
+          <div class="ck-strip">
+            <div class="ck-stat" role="button" tabindex="0" data-tab-jump="favs" aria-label={COPY.ovTFavs}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star"/></svg><b class="tnum" id="ovStatFavs">0</b><span>{COPY.ovTFavs}</span>
             </div>
-            <div>
-              <div class="dsec"><h2>{COPY.ovRecent}</h2></div>
-              <div class="card log" id="ovActivity">
+            <div class="ck-stat" role="button" tabindex="0" data-tab-jump="friends" aria-label={COPY.ovTFriends}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg><b class="tnum" id="ovStatFriends">0</b><span>{COPY.ovTFriends}</span><em id="ovFriendsSub"></em>
+            </div>
+            <a class="ck-stat" href={hangarHref} aria-label={CK.loadouts}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-hex"/></svg><b class="tnum" id="ckStatLayouts">0</b><span>{CK.loadouts}</span>
+            </a>
+            <a class="ck-stat ck-stat--gold" href={refineryHref} aria-label={COPY.ovTRefValue}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-refinery"/></svg><b class="tnum" id="ovRefValue">—</b><span>{COPY.ovTRefValue}</span><em id="ovRefSub"></em>
+              <svg class="ck-spark" id="ovRefSpark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+            </a>
+          </div>
+
+          <div class="ck-cols">
+            <section class="ck-col" aria-labelledby="ckChatsH">
+              <h3 class="ck-h" id="ckChatsH">{CK.chats}<span class="ck-h__n" id="ckChatsN" hidden></span></h3>
+              <ul class="ck-list" id="ckChats"></ul>
+              <div class="ck-empty" id="ckChatsEmpty" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
+                <p>{CK.chatsEmpty}</p>
+                <button type="button" class="btn sm" data-tab-jump="friends">{CK.chatsCta}</button>
+              </div>
+            </section>
+            <section class="ck-col" aria-labelledby="ckFavsH">
+              <h3 class="ck-h" id="ckFavsH">{CK.saved}</h3>
+              <ul class="ck-tiles" id="ckFavs"></ul>
+              <div class="ck-empty" id="ckFavsEmpty" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star"/></svg>
+                <p>{CK.savedEmpty}</p>
+                <a class="btn sm" href={hangarHref}>{CK.savedCta}</a>
+              </div>
+            </section>
+            <section class="ck-col" aria-labelledby="ckActH">
+              <h3 class="ck-h" id="ckActH">{COPY.ovRecent}</h3>
+              <div class="card log ck-log" id="ovActivity">
                 <p class="acx-hint" id="ovActEmpty" style="padding:14px 8px;margin:0">{COPY.ovActEmpty}</p>
               </div>
-            </div>
+            </section>
           </div>
 
         </div>
@@ -532,7 +614,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         <div class="form2">
           <div>
             <form id="profileForm" novalidate>
-              <div class="subpanel">
+              <div class="subpanel sp-id">
                 <h3 class="subhead">{lang === 'de' ? 'Öffentliche Identität' : 'Public Identity'}</h3>
                 <div class="field">
                   <label for="pfName">{COPY.name}</label>
@@ -548,7 +630,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 </div>
               </div>
 
-              <div class="subpanel">
+              <div class="subpanel sp-design">
                 <h3 class="subhead">{COPY.secDesign}</h3>
                 <div class="field">
                   <label>{COPY.bannerSelect}</label>
@@ -583,6 +665,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
                       <div class="acx-upload" data-kind="avatar">
                         <input type="file" id="pfAvatarFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
                         <button type="button" class="acx-upload__btn" id="pfAvatarUploadBtn"><span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadAvatar}</span></button>
+                        <button type="button" class="acx-upload__btn acx-upload__dc" id="pfAvatarDiscord" hidden><img id="pfAvatarDiscordImg" src="" alt="" /> <span>{COPY.avatarDiscord}</span></button>
                         <button type="button" class="acx-upload__remove" id="pfAvatarRemove" hidden>{COPY.uploadRemove}</button>
                         <span class="acx-upload__status" id="pfAvatarUploadStatus" role="status" aria-live="polite"></span>
                       </div>
@@ -601,7 +684,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 </div>
               </div>
 
-              <div class="subpanel">
+              <div class="subpanel sp-status">
                 <h3 class="subhead">{COPY.secRoleStatus}</h3>
                 <div class="pf-grid2">
                   <div class="field">
@@ -634,6 +717,10 @@ const confirmRedirect = loginHref + '?confirmed=1';
                     <input class="inp" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
                   </div>
                 </div>
+                <label class="pf-check">
+                  <input type="checkbox" id="pfShareActivity" checked />
+                  <span>{COPY.shareActivity}</span>
+                </label>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
                   <button class="btn primary" type="submit" id="pfBtn"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> <span id="pfBtnTxt">{COPY.saveProfile}</span></button>
                 </div>
@@ -643,7 +730,23 @@ const confirmRedirect = loginHref + '?confirmed=1';
               <!-- Testpilot-Zustimmungsschalter (D-22) — nur sichtbar fuer
                    Konten mit is_tester=true; per JS ein/ausgeblendet, siehe
                    account-dashboard.ts. Standard AUS (DB-Vorgabewert). -->
-              <div class="subpanel" id="pfTesterPanel" hidden>
+              <div class="subpanel sp-social">
+                <h3 class="subhead">Socials</h3>
+                <div class="field">
+                  <label for="pfTwitch" class="pf-soc-l pf-soc-l--tw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.3 3 3 6.4v13.1h4.5V22h2.5l2.4-2.5h3.6L21 14.6V3H4.3Zm14.9 10.7-2.8 2.8h-4.5l-2.4 2.4v-2.4H5.7V4.8h13.5v8.9ZM16.4 7.6h-1.8v5.1h1.8V7.6Zm-4.9 0H9.7v5.1h1.8V7.6Z"/></svg> Twitch</label>
+                  <div class="inp-affix"><span class="pre">twitch.tv/</span><input class="inp mono" id="pfTwitch" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
+                </div>
+                <div class="field">
+                  <label for="pfYoutube" class="pf-soc-l pf-soc-l--yt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg> YouTube</label>
+                  <div class="inp-affix"><span class="pre">youtube.com/@</span><input class="inp mono" id="pfYoutube" type="text" maxlength="80" autocapitalize="off" spellcheck="false" /></div>
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label for="pfX" class="pf-soc-l pf-soc-l--x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7 4.2H5l12 16Z"/></svg> X</label>
+                  <div class="inp-affix"><span class="pre">x.com/</span><input class="inp mono" id="pfX" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
+                </div>
+              </div>
+
+              <div class="subpanel sp-tester" id="pfTesterPanel" hidden>
                 <h3 class="subhead">{COPY.secTester}</h3>
                 <div class="field" style="margin-bottom:0">
                   <label style="display:flex;align-items:center;gap:0.55rem;font-weight:400">
@@ -665,11 +768,32 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
       <!-- ============================ FAVORITEN ============================ -->
       <section id="tab-panel-favs" class="acx-tab-panel" hidden>
-        <div class="dsec"><h2>{COPY.secFavs}</h2></div>
-        <ul class="acx-favs favgrid" id="favList"></ul>
-        <div id="favEmpty" hidden>
-          <p class="acx-hint">{COPY.favsEmpty}</p>
-          <div class="acx-links"><a href={hangarHref}>{COPY.favsHangar}</a></div>
+        <div class="sv" id="sv" data-copy={JSON.stringify(SV)} data-kinds={JSON.stringify(COPY.kind)} data-lang={lang}>
+          <div class="sv-bar">
+            <h2 class="sv-h">{SV.title}</h2>
+            <div class="sv-filter" id="svFilter" role="group" aria-label={SV.filter}></div>
+            <label class="sv-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-search"/></svg>
+              <input class="inp" id="svSearch" type="search" placeholder={SV.search} aria-label={SV.search} autocomplete="off" spellcheck="false" />
+            </label>
+          </div>
+          <div class="sv-body" id="svBody">
+            <section class="sv-sec" id="svLoSec" aria-labelledby="svLoH" hidden>
+              <h3 class="sv-sh" id="svLoH"><span>{SV.loadouts}</span><b id="svLoN"></b><em class="sv-sync" id="svSync" hidden>{SV.syncErr}</em></h3>
+              <ul class="sv-grid" id="svLoadouts"></ul>
+            </section>
+            <section class="sv-sec" id="svFavSec" aria-labelledby="svFavH" hidden>
+              <h3 class="sv-sh" id="svFavH"><span>{SV.favs}</span><b id="svFavN"></b></h3>
+              <ul class="sv-grid" id="favList"></ul>
+            </section>
+            <div class="ck-empty sv-empty" id="favEmpty" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star"/></svg>
+              <p><b>{SV.empty}</b><br/>{SV.emptyHint}</p>
+              <a class="btn sm" href={hangarHref}>{SV.toHangar}</a>
+            </div>
+            <p class="sv-none" id="svNone" hidden>{SV.none}</p>
+          </div>
+          <div class="sv-toast" id="svToast" role="status" aria-live="polite" hidden><span id="svToastMsg"></span><button type="button" id="svUndo" hidden>{SV.undo}</button></div>
         </div>
       </section>
 
@@ -684,7 +808,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         <div class="dsec"><h2>{COPY.secSecurity}</h2></div>
         <div class="seccols">
 
-          <div class="seccard" style="grid-column:1/-1">
+          <div class="seccard">
             <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span><h3>{COPY.secRsi}</h3></div>
             <p class="sc-desc">{lang === 'de' ? 'Verknüpfe dein RSI-Citizen-Handle mit diesem Konto. Die Prüfung läuft serverseitig über deine RSI-Bio.' : 'Link your RSI citizen handle to this account. Verification runs server-side against your RSI bio.'}</p>
             <div class="field" style="margin-bottom:0">
@@ -698,24 +822,6 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 <button type="button" id="btnResetRsiVerify">({COPY.rsiReset})</button>
               </div>
             </div>
-          </div>
-
-          <!-- Discord-Verbindung. Der Freitext "Discord Tag" im Profil bleibt
-               daneben bestehen, ist aber eine BEHAUPTUNG; hier entsteht ein
-               NACHWEIS. Ohne ihn kann keine Discord-Rolle auf dieses Konto
-               wirken: der Bot gleicht ausschliesslich Zeilen ab, die eine
-               discord_user_id tragen, und die entsteht erst durch diese
-               Verbindung (Trigger sync_discord_identity auf auth.identities).
-               Div statt section: die globale section-Regel erbt 99/72px. -->
-          <div class="seccard" id="discordLinkCard" style="grid-column:1/-1">
-            <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-id"/></svg></span><h3>{COPY.secDiscordLink}</h3></div>
-            <p class="sc-desc">{COPY.dcLinkDesc}</p>
-            <div class="rsi-row">
-              <div class="sec-current mono" id="dcLinkState">{COPY.dcLinkNone}</div>
-              <button type="button" class="btn ok" id="btnDiscordLink" data-idle={COPY.dcLinkBtn} data-busy={COPY.dcLinkBusy}>{COPY.dcLinkBtn}</button>
-              <button type="button" class="btn" id="btnDiscordUnlink" data-idle={COPY.dcUnlinkBtn} data-busy={COPY.dcUnlinkBusy} hidden>{COPY.dcUnlinkBtn}</button>
-            </div>
-            <p class="acx-status" id="dcLinkStatus" role="status" aria-live="polite" hidden></p>
           </div>
 
           <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
@@ -771,6 +877,11 @@ const confirmRedirect = loginHref + '?confirmed=1';
         </div>
       </section>
 
+    </div>
+
+    <aside class="acc-dock" aria-label={COPY.tabFriends}>
+      <FriendsDock lang={lang} />
+    </aside>
     </div>
   </div>
 
@@ -950,5 +1061,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
 
 <script>
 import '../../scripts/account-dashboard';
+import '../../scripts/account-cockpit';
+import '../../scripts/account-saved';
 </script>
 

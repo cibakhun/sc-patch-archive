@@ -1,16 +1,16 @@
 // Account-Dashboard-Logik — ausgelagert aus AccountDashboard.astro.
 // Wird vom <script> der Komponente importiert; Astro bündelt es mit.
 
-import { supabase, FAV_PATH } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { resolveStatusKey } from '../lib/presence';
+  import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
 
   const dash = document.getElementById('dash');
   if (dash) {
     const D = (dash as HTMLElement).dataset;
     const lang = D.lang === 'de' ? 'de' : 'en';
     const loadingEl = document.getElementById('dashLoading')!;
-    const KINDS: Record<string, string> = JSON.parse(D.kinds || '{}');
 
     // Übersicht-Panel: trägt die dynamischen i18n-Templates als data-l-* Attribute
     const ovPanel = document.getElementById('tab-panel-overview');
@@ -20,12 +20,6 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + '<small>M aUEC</small>';
       if (n >= 1000) return Math.round(n / 1000) + '<small>k aUEC</small>';
       return Math.round(n) + '<small> aUEC</small>';
-    };
-
-    const favPath = (kind: string, slug: string) => {
-      const tpl = FAV_PATH[kind] || '/index.html';
-      const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
-      return lang === 'de' ? '/de' + p : p;
     };
 
     const show = (el: HTMLElement, msg: string, ok = false) => {
@@ -70,18 +64,35 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     const tabPanels = document.querySelectorAll<HTMLElement>('.acx-tab-panel');
     const activateSection = (target: string | undefined) => {
       if (!target) return;
+      if (!document.getElementById(`tab-panel-${target}`)) return;
       navItems.forEach(b => b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false'));
       tabPanels.forEach(p => { p.hidden = p.id !== `tab-panel-${target}`; });
-      // Sanft zur Tab-Leiste scrollen, wenn man darüber steht — Inhalt sichtbar
-      // machen, ohne über dem Hero hängen zu bleiben.
-      const bar = document.querySelector('.tabsbar') as HTMLElement | null;
+      // Bereich in der Adresse merken (#friends …): Neu laden und Links von
+      // außen landen im selben Bereich.
+      try { history.replaceState(null, '', target === 'overview' ? location.pathname + location.search : '#' + target); } catch { /* egal */ }
+      // Breite Schirme: der Bereich scrollt in seinem Kasten, also dort nach
+      // oben. Handy: die Seite scrollt — zum Bereich springen, wenn man
+      // darunter steht.
+      const main = document.querySelector('.acc-main') as HTMLElement | null;
+      if (!main) return;
+      main.scrollTop = 0;
       const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav')) || 64;
-      if (bar) {
-        const y = Math.max(0, bar.getBoundingClientRect().top + window.pageYOffset - navH);
-        if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
-      }
+      const y = Math.max(0, main.getBoundingClientRect().top + window.pageYOffset - navH - 8);
+      if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
+    if (location.hash.length > 1) activateSection(location.hash.slice(1));
+    // Ungelesene Chat-Nachrichten (FriendsDock zählt) am Reiter „Freunde":
+    // dann weicht die Freundeszahl dem goldenen Zähler.
+    document.addEventListener('vb:chat-unread', (e) => {
+      const n = Number((e as CustomEvent).detail) || 0;
+      const u = document.getElementById('navChatUnread');
+      const f = document.getElementById('navFriendCount');
+      if (!u) return;
+      u.textContent = n > 99 ? '99+' : String(n);
+      u.hidden = n <= 0;
+      if (f) f.classList.toggle('is-muted', n > 0);
+    });
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -97,6 +108,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       else if (ev.key === 'End') n = arr.length - 1;
       else return;
       ev.preventDefault(); arr[n].focus(); arr[n].click();
+    });
+
+    // Sprung aus dem Cockpit (Profil-Check): Bereich öffnen und das Feld
+    // zeigen, das fehlt. Ohne Bereich (Discord-Karte am Rand) nur hinzeigen.
+    document.addEventListener('vb:tab', (e) => {
+      const d = ((e as CustomEvent).detail || {}) as { tab?: string; el?: string };
+      if (d.tab) activateSection(d.tab);
+      const el = d.el ? document.getElementById(d.el) : null;
+      if (!el) return;
+      requestAnimationFrame(() => {
+        try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView(); }
+        const f = el.matches('input,textarea,select,button') ? el : el.querySelector<HTMLElement>('input:not([type=hidden]),textarea,select,button');
+        f?.focus({ preventScroll: true });
+        el.classList.remove('ck-flash');
+        void el.offsetWidth;
+        el.classList.add('ck-flash');
+        setTimeout(() => el.classList.remove('ck-flash'), 1600);
+      });
     });
 
     document.querySelectorAll<HTMLElement>('[data-tab-jump]').forEach(btn => {
@@ -174,6 +203,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         org_name: '',
         is_tester: false,
         tester_credit: false,
+        share_activity: true,
+        social_twitch: '',
+        social_youtube: '',
+        social_x: '',
       };
 
       // Zähler für den Stats-Readout (werden nach dem jeweiligen Load gesetzt)
@@ -271,6 +304,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const rsiHandleInput = document.getElementById('pfRsiHandle') as HTMLInputElement;
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
+      const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const socialInputs = {
+        social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
+        social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
+        social_x: document.getElementById('pfX') as HTMLInputElement | null,
+      };
 
       nameInput.value = profileState.display_name || '';
       handleInput.value = profileState.handle || '';
@@ -286,6 +325,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       rsiHandleInput.value = profileState.rsi_handle || '';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
+      if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
+      const ovSoc = document.getElementById('ovSocials');
+      if (ovSoc) renderSocialLinks(ovSoc, profileState);
 
       // Testpilot-Zustimmungsschalter (D-22): nur sichtbar, wenn das Konto
       // die Eigenschaft traegt. Wer die Rolle nicht hat, sieht keinen
@@ -553,6 +596,22 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           ovRsi.classList.toggle('no', !isVerified);
         }
         ovTxt('ovRsiSub', rsiHandle ? '@' + rsiHandle : '');
+
+        // Profil-Check im Cockpit (account-cockpit.ts): dieselben zehn Felder
+        // wie der Ring, je mit dem Ort, an dem man es ausfüllt.
+        const ck = (k: string, i: number, tab: string, el: string) => ({ k, ok: !!completeFields[i], tab, el });
+        document.dispatchEvent(new CustomEvent('vb:profile-check', { detail: [
+          ck('handle', 1, 'profile', 'pfHandle'),
+          ck('avatar', 4, 'profile', 'avatarGridPicker'),
+          ck('bio', 2, 'profile', 'pfBio'),
+          ck('status', 9, 'profile', 'pfStatusText'),
+          ck('role', 5, 'profile', 'pfRole'),
+          ck('org', 8, 'profile', 'pfOrg'),
+          ck('rsi', 6, 'security', 'pfRsiHandle'),
+          ck('discord', 7, '', 'discordLinkCard'),
+          ck('banner', 3, 'profile', 'bannerGridPicker'),
+          ck('name', 0, 'profile', 'pfName'),
+        ] }));
       };
 
       [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput].forEach(el => {
@@ -1219,6 +1278,22 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           show(pfStatus as HTMLElement, D.msgHandleFormat!);
           return;
         }
+        // Socials: eingefügte Adressen auf den Namen kürzen; was nicht passt,
+        // wird nicht gespeichert, sondern beim Feld gemeldet.
+        const socialVals: Record<string, string> = {};
+        for (const s of SOCIALS) {
+          const el = socialInputs[s.key];
+          if (!el) { socialVals[s.key] = profileState[s.key] || ''; continue; }
+          const v = normalizeSocial(s.key, el.value);
+          if (v === null) {
+            show(pfStatus as HTMLElement, (D.msgSocialBad || '%s').replace('%s', s.label));
+            el.focus();
+            return;
+          }
+          el.value = v;
+          socialVals[s.key] = v;
+        }
+        const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1251,6 +1326,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           discord_tag: discordInput.value.trim(),
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          ...socialVals,
         });
 
         const payload: Record<string, any> = {
@@ -1269,7 +1346,14 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           org_name: profileState.org_name || null,
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          social_twitch: socialVals.social_twitch || null,
+          social_youtube: socialVals.social_youtube || null,
+          social_x: socialVals.social_x || null,
         };
+        // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
+        // nicht erst beim naechsten Puls.
+        if (!shareActVal) payload.activity = null;
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
           payload.rsi_verified = false;
@@ -1279,6 +1363,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+        { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
         try {
           const { error } = await supabase
@@ -1301,73 +1386,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         show(pfStatus as HTMLElement, D.msgSaved!, true);
       });
 
-      // Load Favorites
-      const favList = document.getElementById('favList')!;
-      const favEmpty = document.getElementById('favEmpty')!;
+      // Favoriten: gezeichnet (mit Filter, Suche, Rückgängig) werden sie in
+      // account-saved.ts; hier nur die Zahl und der Aktivitäts-Feed.
       const { data: favs } = await supabase
         .from('favorites')
-        .select('id, kind, slug, label')
+        .select('id, kind, slug, label, created_at')
         .order('created_at', { ascending: false });
-
-      // Schiffbild-Manifest (id -> Bild-URL) für Poster-Karten; leise/non-blocking
-      const shipThumbs: Record<string, string> = await fetch('/assets/ship-thumbs.json')
-        .then(r => (r.ok ? r.json() : {})).catch(() => ({}));
-
-      // Icon + Akzentfarbe je Favoriten-Art (Dossier-Kartendesign)
-      const FAV_ICON: Record<string, { ic: string; c: string }> = {
-        ship: { ic: 'ic-ship', c: 'var(--accent)' },
-        mineral: { ic: 'ic-gem', c: 'var(--gold)' },
-        mission: { ic: 'ic-target', c: 'var(--accent-2)' },
-        item: { ic: 'ic-item', c: '#a855f7' },
-        patch: { ic: 'ic-tag', c: 'var(--ok)' },
-        topic: { ic: 'ic-hash', c: 'var(--muted)' },
-      };
-      const renderFavs = (rows: Array<{ id: number; kind: string; slug: string; label: string | null }>) => {
-        favList.innerHTML = '';
-        favEmpty.hidden = rows.length > 0;
-        for (const f of rows) {
-          const meta = FAV_ICON[f.kind] || { ic: 'ic-star', c: 'var(--accent)' };
-          const name = f.label || f.slug;
-          const img = f.kind === 'ship' ? shipThumbs[f.slug] : null;
-          const li = document.createElement('li');
-          li.className = img ? 'fav fav--poster' : 'fav';
-          const nameBlock =
-            `<span class="fmain"><span class="fkind" style="--kc:${meta.c}">${escHtml(KINDS[f.kind] || f.kind)}</span>` +
-            `<span class="fname">${escHtml(name)}</span></span>`;
-          // Ganze Karte klickbar: Overlay-Link deckt die Karte ab (Remove-Button liegt darueber).
-          const cardLink = `<a class="fav__link" href="${favPath(f.kind, f.slug)}" aria-label="${escHtml(name)}"></a>`;
-          li.innerHTML = (img
-            ? `<span class="fav__bg" style="background-image:url('${img}')" aria-hidden="true"></span>` +
-              `<span class="fav__scrim" aria-hidden="true"></span>${nameBlock}`
-            : `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>${nameBlock}`) + cardLink;
-          const rm = document.createElement('button');
-          rm.className = 'frm';
-          rm.type = 'button';
-          rm.title = D.favRemove || 'Remove';
-          rm.setAttribute('aria-label', (D.favRemove || 'Remove') + ' — ' + name);
-          rm.innerHTML = '<svg viewBox="0 0 24 24"><use href="#ic-x"/></svg>';
-          rm.addEventListener('click', async () => {
-            rm.disabled = true;
-            const { error } = await supabase.from('favorites').delete().eq('id', f.id);
-            if (!error) {
-              li.classList.add('removing');
-              setTimeout(() => li.remove(), 260);
-              favCount = Math.max(0, favCount - 1);
-              const statFavsEl = document.getElementById('pcStatFavs');
-              if (statFavsEl) statFavsEl.textContent = String(favCount);
-              const ovFavsEl2 = document.getElementById('ovStatFavs');
-              if (ovFavsEl2) ovFavsEl2.textContent = String(favCount);
-              const navFav = document.getElementById('navFavCount');
-              if (navFav) { navFav.textContent = String(favCount); navFav.hidden = favCount <= 0; }
-              if (favCount <= 0) favEmpty.hidden = false;
-            }
-            else rm.disabled = false;
-          });
-          li.appendChild(rm);
-          favList.appendChild(li);
-        }
-      };
-      renderFavs(favs || []);
       favCount = (favs || []).length;
 
       // Echte Freundes-Anzahl aus der DB (ersetzt den frueheren localStorage-Zaehler)
@@ -1381,9 +1405,16 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
       // ---- Übersicht: Kennzahlen, Sidebar-Badges, Aktivitäts-Feed ----
       const setBadge = (id: string, n: number) => { const el = document.getElementById(id); if (!el) return; el.textContent = String(n); el.hidden = n <= 0; };
-      setBadge('navFavCount', favCount);
+      // navFavCount (Favoriten + Loadouts) setzt account-saved.ts.
       setBadge('navFriendCount', friendCount);
       const ovFavsEl = document.getElementById('ovStatFavs'); if (ovFavsEl) ovFavsEl.textContent = String(favCount);
+      document.addEventListener('vb:saved', (e) => {
+        const n = (e as CustomEvent).detail?.favs;
+        if (typeof n !== 'number') return;
+        favCount = n;
+        updateCard();
+        const el = document.getElementById('ovStatFavs'); if (el) el.textContent = String(n);
+      });
       const ovFriEl = document.getElementById('ovStatFriends'); if (ovFriEl) ovFriEl.textContent = String(friendCount);
 
       const activity: Array<{ g: string; html: string; ts: number }> = [];
@@ -1446,9 +1477,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         if (jobs[0]) activity.push({ g: 'i-hex', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
       } catch {}
 
-      // Neueste Favoriten (created_at nicht im Select → als aktuelle Ergänzungen)
+      // Neueste Favoriten
       for (const f of (favs || []).slice(0, 3)) {
-        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: 0 });
+        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: Date.parse(f.created_at) || 0 });
       }
 
       // Aktivität rendern (ts absteigend; Einträge ohne ts ans Ende)
@@ -1520,7 +1551,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
-        try { await supabase.from('profiles').update({ last_seen: null, last_active: null }).eq('id', user.id); } catch { /* egal */ }
+        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', user.id); } catch { /* egal */ }
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1646,9 +1677,81 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           return String(d.user_name || d.preferred_username || d.full_name || d.name || idn.id || '?');
         };
 
+        // Eigenes Discord-Bild der Identität. Discords Standardbild
+        // (cdn.discordapp.com/embed/avatars/…) ist das blaue Logo, das jeder
+        // ohne eigenes Bild hat — als Profilbild taugt es nicht.
+        const dcAvatarOf = (idn: any): string => {
+          const u = String(((idn && idn.identity_data) || {}).avatar_url || '');
+          return /^https:\/\/cdn\.discordapp\.com\/avatars\//.test(u) ? u : '';
+        };
+        // Discord-Benutzername (full_name in den Supabase-Rohdaten) und der
+        // Anzeigename, den man bei Discord selbst gewählt hat (global_name).
+        const dcUserOf = (idn: any): string => String(((idn && idn.identity_data) || {}).full_name || '').trim();
+        const dcGlobalOf = (idn: any): string =>
+          String((((idn && idn.identity_data) || {}).custom_claims || {}).global_name || '').trim();
+
+        // Schreibt nur die genannten Felder; derselbe Cache wie beim Speichern.
+        const dcSave = async (patch: Record<string, any>) => {
+          Object.assign(profileState, patch);
+          try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+          try { await supabase.from('profiles').update(patch).eq('id', user.id); } catch {}
+        };
+
+        const pfDcBtn = document.getElementById('pfAvatarDiscord') as HTMLButtonElement | null;
+        const pfDcImg = document.getElementById('pfAvatarDiscordImg') as HTMLImageElement | null;
+        const markDcAvatar = () => {
+          if (pfDcBtn) pfDcBtn.classList.toggle('is-on', !!pfDcImg && !!pfDcImg.src && avatarUrlInput.value.trim() === pfDcBtn.dataset.url);
+        };
+        pfDcBtn?.addEventListener('click', () => {
+          const url = pfDcBtn.dataset.url || '';
+          if (!url) return;
+          avatarUrlInput.value = url;
+          profileState.avatar_url = url;
+          const rm = document.getElementById('pfAvatarRemove');
+          if (rm) rm.hidden = false;
+          updateCard();
+          markDcAvatar();
+        });
+        avatarUrlInput.addEventListener('change', markDcAvatar);
+        document.getElementById('pfAvatarRemove')?.addEventListener('click', () => setTimeout(markDcAvatar));
+
         const dcRender = async () => {
           const ids = await dcIdentities();
           const dc = ids.find((i) => i.provider === 'discord');
+          // Discord-Bild als Profilbild anbieten (ein Klick, Speichern wie sonst).
+          const dcPic = dc ? dcAvatarOf(dc) : '';
+          if (pfDcBtn && pfDcImg) {
+            pfDcBtn.hidden = !dcPic;
+            pfDcBtn.dataset.url = dcPic;
+            if (dcPic) pfDcImg.src = dcPic;
+            markDcAvatar();
+          }
+          // Discord-Name im Profil kommt aus der Verbindung, nicht von Hand:
+          // ein getippter Name kann jeder sein, der verbundene ist bestätigt.
+          const dcUser = dc ? dcUserOf(dc) : '';
+          discordInput.readOnly = !!dcUser;
+          discordInput.classList.toggle('is-linked', !!dcUser);
+          discordInput.title = dcUser ? (D.dcFromLink || '') : '';
+          if (dcUser) {
+            const tag = '@' + dcUser;
+            const was = discordInput.value;
+            discordInput.value = tag;
+            if ((profileState.discord_tag || '') !== tag) await dcSave({ discord_tag: tag });
+            // Programmatisch gesetzt löst kein input aus: Karte, Ring und
+            // Profil-Check im Cockpit sonst erst beim nächsten Tippen aktuell.
+            if (was !== tag) updateCard();
+          }
+          // Discord-Avatar statt Logo, sobald verbunden (kommt aus den
+          // OAuth-Rohdaten, kein zusätzlicher Discord-Aufruf).
+          const dcAv = document.getElementById('dcAvatar') as HTMLImageElement | null;
+          const dcLogo = document.getElementById('dcLogo');
+          const avUrl = dc ? String((dc.identity_data || {}).avatar_url || '') : '';
+          if (dcAv && dcLogo) {
+            if (avUrl) { dcAv.src = avUrl; dcAv.hidden = false; dcLogo.hidden = true; }
+            else { dcAv.hidden = true; dcLogo.hidden = false; }
+          }
+          dcCard.classList.toggle('is-linked', !!dc);
+          document.dispatchEvent(new CustomEvent('vb:discord', { detail: { linked: !!dc } }));
           if (dc) {
             dcState.textContent = (D.dcLinkOne || 'Connected as %name%').replace('%name%', dcName(dc));
             dcBtn.hidden = true;
@@ -1661,6 +1764,35 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         };
         await dcRender();
 
+        // Zurück von Discord nach dem Verbinden: Bild und Name übernehmen,
+        // aber nur dort, wo noch nichts Eigenes steht. Ein selbst
+        // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
+        let justLinked = false;
+        try { justLinked = sessionStorage.getItem('vb.dcLinking') === '1'; sessionStorage.removeItem('vb.dcLinking'); } catch {}
+        if (justLinked) {
+          const dc = (await dcIdentities()).find((i) => i.provider === 'discord');
+          if (dc) {
+            const patch: Record<string, any> = {};
+            const pic = dcAvatarOf(dc);
+            if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
+            const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            const mailName = (user.email || '').split('@')[0];
+            const curName = (profileState.display_name || '').trim();
+            if (nick && (!curName || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (Object.keys(patch).length) {
+              await dcSave(patch);
+              if (patch.avatar_url) {
+                avatarUrlInput.value = patch.avatar_url;
+                const rm = document.getElementById('pfAvatarRemove');
+                if (rm) rm.hidden = false;
+              }
+              if (patch.display_name) nameInput.value = patch.display_name;
+              updateCard();
+              markDcAvatar();
+            }
+          }
+        }
+
         dcBtn.addEventListener('click', async () => {
           dcSay('');
           dcBusy(dcBtn, true);
@@ -1668,11 +1800,13 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der
             // Rueckweg auf der Site-URL, und der Nutzer stuende nach dem
             // Verbinden woanders als dort, wo er den Knopf gedrueckt hat.
+            try { sessionStorage.setItem('vb.dcLinking', '1'); } catch {}
             const { error } = await (supabase.auth as any).linkIdentity({
               provider: 'discord',
               options: { redirectTo: window.location.origin + window.location.pathname },
             });
             if (!error) return; // Erfolg = Weiterleitung zu Discord, hier geht es nicht weiter
+            try { sessionStorage.removeItem('vb.dcLinking'); } catch {}
             dcBusy(dcBtn, false);
             const m = String(error.message || '').toLowerCase();
             if (m.includes('manual linking') || m.includes('not enabled') || m.includes('disabled')) dcSay(D.dcLinkErrDisabled || '', 'err');

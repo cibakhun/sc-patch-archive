@@ -1,0 +1,476 @@
+---
+// Freundesleiste rechts im Konto (wie die Mitgliederliste bei Discord):
+// wer gerade da ist, oben; wer offline ist, gedimmt darunter. Lädt die
+// Freunde NICHT selbst — FriendsManager meldet seine Daten per Ereignis
+// 'vb:friends', damit Liste und Freunde-Bereich nie auseinanderlaufen. Kein
+// Text, der erklärt: Punkt + Name + was der Freund gerade macht.
+//
+// Klick auf einen Freund öffnet den Chat an derselben Stelle (die Liste
+// weicht, Zurück-Pfeil holt sie wieder). Nachrichten liegen in
+// public.direct_messages (supabase/migrations/20261029130000_direct_messages.sql):
+// lesen nur Absender und Empfänger, schreiben nur an bestätigte Freunde.
+// Neue Nachrichten kommen per Realtime; steht die Verbindung nicht, fragt
+// die Leiste in Abständen nach. Auf dem Handy liegt der Chat als volle Fläche
+// über der Seite.
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+const COPY = {
+  de: {
+    title: 'Freunde', add: 'Freund hinzufügen', online: 'Online', offline: 'Offline',
+    req1: 'offene Anfrage', reqN: 'offene Anfragen', empty: 'Noch keine Freunde',
+    back: 'Zurück zur Liste', profile: 'Profil ansehen', send: 'Senden',
+    chatPh: 'Nachricht an %name%', chatEmpty: 'Noch keine Nachrichten. Sag hallo!',
+    today: 'Heute', yesterday: 'Gestern', unread: 'ungelesen',
+    errSend: 'Nicht gesendet. Nochmal versuchen?', errFlood: 'Kurz durchatmen: zu viele Nachrichten auf einmal.',
+    errLoad: 'Chat gerade nicht erreichbar.',
+  },
+  en: {
+    title: 'Friends', add: 'Add friend', online: 'Online', offline: 'Offline',
+    req1: 'open request', reqN: 'open requests', empty: 'No friends yet',
+    back: 'Back to list', profile: 'View profile', send: 'Send',
+    chatPh: 'Message %name%', chatEmpty: 'No messages yet. Say hi!',
+    today: 'Today', yesterday: 'Yesterday', unread: 'unread',
+    errSend: 'Not sent. Try again?', errFlood: 'Slow down: too many messages at once.',
+    errLoad: 'Chat is unavailable right now.',
+  },
+}[lang];
+const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
+---
+<div class="fd" id="friendsDock"
+  data-lang={lang}
+  data-pilot-base={pilotBase}
+  data-l-online={COPY.online}
+  data-l-offline={COPY.offline}
+  data-l-req1={COPY.req1}
+  data-l-reqn={COPY.reqN}
+  data-l-chat-ph={COPY.chatPh}
+  data-l-chat-empty={COPY.chatEmpty}
+  data-l-today={COPY.today}
+  data-l-yesterday={COPY.yesterday}
+  data-l-unread={COPY.unread}
+  data-l-err-send={COPY.errSend}
+  data-l-err-flood={COPY.errFlood}
+  data-l-err-load={COPY.errLoad}
+>
+  <div class="fd-head">
+    <h2>{COPY.title} <span class="fd-count" id="fdCount"></span></h2>
+    <button type="button" class="fd-add" id="fdAdd" title={COPY.add} aria-label={COPY.add}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-plus"/></svg>
+    </button>
+  </div>
+  <button type="button" class="fd-req" id="fdReq" hidden><span class="fd-req__n" id="fdReqN">0</span><span id="fdReqLbl"></span></button>
+  <div class="fd-list" id="fdList"></div>
+  <div class="fd-empty" id="fdEmpty" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
+    <span>{COPY.empty}</span>
+    <button type="button" class="btn sm" id="fdAddEmpty">{COPY.add}</button>
+  </div>
+
+  <div class="fc" id="fcChat" role="region" hidden aria-labelledby="fcName">
+    <div class="fc-head">
+      <button type="button" class="fc-back" id="fcBack" title={COPY.back} aria-label={COPY.back}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="fd-av" id="fcAv"></span>
+      <span class="fd-txt"><b id="fcName"></b><small id="fcSub"></small></span>
+      <a class="fc-prof" id="fcProf" href="#" title={COPY.profile} aria-label={COPY.profile}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-id"/></svg>
+      </a>
+    </div>
+    <div class="fc-log" id="fcLog" role="log" aria-live="polite"></div>
+    <p class="fc-err" id="fcErr" role="alert" hidden></p>
+    <form class="fc-form" id="fcForm">
+      <textarea id="fcInput" rows="1" maxlength="2000" autocomplete="off"></textarea>
+      <button type="submit" class="fc-send" id="fcSend" title={COPY.send} aria-label={COPY.send}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  import { STATUS_STATES } from '../../lib/profilePresets';
+  import { resolveStatusKey, formatActivity } from '../../lib/presence';
+  import { supabase } from '../../lib/supabase';
+
+  const root = document.getElementById('friendsDock') as HTMLElement | null;
+  if (root) {
+    const D = root.dataset;
+    const lang = D.lang === 'de' ? 'de' : 'en';
+    const $ = (id: string) => document.getElementById(id);
+    const list = $('fdList')!;
+    const empty = $('fdEmpty')!;
+    const count = $('fdCount')!;
+    const req = $('fdReq') as HTMLButtonElement;
+    const dock = root.closest('.acc-dock') as HTMLElement | null;
+
+    type Prof = {
+      id: string; handle: string; display_name: string | null;
+      avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
+      status_state: string | null; status_text: string | null; presence: string | null;
+      activity?: string | null;
+    };
+    type Entry = { p: Prof };
+    type Msg = { id: number; sender_id: string; receiver_id: string; body: string; created_at: string; read_at: string | null };
+    const ST = STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string; pulse: boolean }>;
+
+    let me = '';
+    let friends: Prof[] = [];
+    let incomingN = 0;
+    const unread = new Map<string, number>();
+    let chatWith: Prof | null = null;
+    let lastId = 0;
+
+    // In den Freunde-Bereich springen; FriendsManager wählt dort den Unter-Reiter.
+    const goFriends = (sub: 'friends' | 'requests') => {
+      (document.querySelector('.tab[data-tab="friends"]') as HTMLElement | null)?.click();
+      document.dispatchEvent(new CustomEvent('vb:friends-show', { detail: sub }));
+    };
+    $('fdAdd')!.addEventListener('click', () => goFriends('friends'));
+    $('fdAddEmpty')!.addEventListener('click', () => goFriends('friends'));
+    req.addEventListener('click', () => goFriends('requests'));
+
+    const rank = (pres: string) => (pres === 'online' ? 0 : pres === 'away' ? 1 : 2);
+    const nameOf = (p: Prof) => p.display_name || p.handle || '?';
+    const presOf = (p: Prof) => (p.presence === 'online' || p.presence === 'away' ? p.presence : 'offline');
+    const stOf = (p: Prof) => ST[resolveStatusKey(presOf(p), p.status_state)] || ST.offline;
+    const labelOf = (p: Prof) => { const st = stOf(p); return lang === 'de' ? st.labelDe : st.labelEn; };
+    // Unterzeile: was der Freund gerade auf der Seite macht (Rich Presence)
+    // vor seinem eigenen Statustext vor dem reinen Präsenz-Wort.
+    const subOf = (p: Prof): { text: string; act: boolean } => {
+      if (presOf(p) === 'offline') return { text: labelOf(p), act: false };
+      const act = formatActivity(p.activity, lang);
+      if (act) return { text: act, act: true };
+      return { text: p.status_text || labelOf(p), act: false };
+    };
+
+    const avatarInto = (av: HTMLElement, p: Prof) => {
+      av.textContent = '';
+      const col = p.avatar_color || '#2dd4ff';
+      av.style.color = col;
+      av.style.borderColor = col;
+      if (p.avatar_url) {
+        const img = document.createElement('img');
+        img.src = p.avatar_url; img.alt = ''; img.loading = 'lazy';
+        av.appendChild(img);
+      } else {
+        av.textContent = p.avatar_icon || nameOf(p).charAt(0).toUpperCase();
+      }
+      const st = stOf(p);
+      const dot = document.createElement('i');
+      dot.className = 'fd-dot' + (st.pulse ? ' pulse' : '');
+      dot.style.background = st.color;
+      dot.style.setProperty('--dot', st.color);
+      dot.title = labelOf(p);
+      av.appendChild(dot);
+    };
+
+    const row = (p: Prof) => {
+      const pres = presOf(p);
+      const a = document.createElement('button');
+      a.type = 'button';
+      a.className = 'fd-row' + (pres === 'offline' ? ' is-off' : '');
+      a.addEventListener('click', () => openChat(p.id));
+
+      const av = document.createElement('span');
+      av.className = 'fd-av';
+      avatarInto(av, p);
+
+      const txt = document.createElement('span');
+      txt.className = 'fd-txt';
+      const nm = document.createElement('b');
+      nm.textContent = nameOf(p);
+      const sub = document.createElement('small');
+      const so = subOf(p);
+      sub.textContent = so.text;
+      sub.classList.toggle('is-act', so.act);
+      txt.append(nm, sub);
+      a.append(av, txt);
+      const n = unread.get(p.id) || 0;
+      if (n) {
+        const b = document.createElement('span');
+        b.className = 'fd-unread';
+        b.textContent = n > 99 ? '99+' : String(n);
+        b.title = `${n} ${D.lUnread || ''}`;
+        a.appendChild(b);
+        a.classList.add('has-unread');
+      }
+      a.title = nameOf(p) + (p.handle ? ' · @' + p.handle : '');
+      return a;
+    };
+
+    const section = (label: string, n: number) => {
+      const h = document.createElement('h3');
+      h.className = 'fd-sec';
+      h.textContent = `${label} — ${n}`;
+      return h;
+    };
+
+    const renderList = () => {
+      const sorted = friends.slice().sort((x, y) => {
+        const px = rank(x.presence || ''), py = rank(y.presence || '');
+        return px - py || nameOf(x).localeCompare(nameOf(y));
+      });
+      const on = sorted.filter((p) => presOf(p) !== 'offline');
+      const off = sorted.filter((p) => presOf(p) === 'offline');
+
+      list.innerHTML = '';
+      if (on.length) { list.appendChild(section(D.lOnline || 'Online', on.length)); on.forEach((p) => list.appendChild(row(p))); }
+      if (off.length) { list.appendChild(section(D.lOffline || 'Offline', off.length)); off.forEach((p) => list.appendChild(row(p))); }
+      const chatOpen = !!chatWith;
+      empty.hidden = chatOpen || friends.length > 0;
+      list.hidden = chatOpen || friends.length === 0;
+      count.textContent = friends.length ? String(friends.length) : '';
+
+      req.hidden = chatOpen || incomingN === 0;
+      $('fdReqN')!.textContent = String(incomingN);
+      $('fdReqLbl')!.textContent = incomingN === 1 ? (D.lReq1 || '') : (D.lReqn || '');
+
+      // Ungelesene Nachrichten gesamt auch am Reiter "Freunde" links.
+      let total = 0;
+      unread.forEach((n, id) => { if (friends.some((f) => f.id === id)) total += n; });
+      document.dispatchEvent(new CustomEvent('vb:chat-unread', { detail: total }));
+    };
+
+    document.addEventListener('vb:friends', (e) => {
+      const d = (e as CustomEvent).detail as { friends: Entry[]; incoming: Entry[] };
+      friends = (d.friends || []).map((f) => f.p).filter(Boolean);
+      incomingN = (d.incoming || []).length;
+      if (chatWith) {
+        const fresh = friends.find((f) => f.id === chatWith!.id);
+        if (fresh) { chatWith = fresh; renderChatHead(); } else closeChat();
+      }
+      renderList();
+    });
+
+    // ---- Chat -------------------------------------------------------------
+    const chat = $('fcChat')!;
+    const log = $('fcLog')!;
+    const form = $('fcForm') as HTMLFormElement;
+    const input = $('fcInput') as HTMLTextAreaElement;
+    const errEl = $('fcErr')!;
+    const say = (msg: string) => { errEl.textContent = msg; errEl.hidden = !msg; };
+
+    const dayKey = (iso: string) => new Date(iso).toDateString();
+    const dayLabel = (iso: string) => {
+      const d = new Date(iso);
+      const t = new Date();
+      const y = new Date(); y.setDate(t.getDate() - 1);
+      if (d.toDateString() === t.toDateString()) return D.lToday || '';
+      if (d.toDateString() === y.toDateString()) return D.lYesterday || '';
+      return d.toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'short' });
+    };
+    const timeOf = (iso: string) =>
+      new Date(iso).toLocaleTimeString(lang === 'de' ? 'de-DE' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    const atBottom = () => log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+    const toBottom = () => { log.scrollTop = log.scrollHeight; };
+
+    // Eine Nachricht anhängen. Aufeinanderfolgende vom selben Absender rücken
+    // zusammen (wie bei Discord); ein neuer Tag bekommt eine Trennzeile.
+    const append = (m: Msg) => {
+      if (log.querySelector(`[data-id="${m.id}"]`)) return;
+      log.querySelector('.fc-empty')?.remove();
+      const last = log.lastElementChild as HTMLElement | null;
+      if (!last || last.dataset.day !== dayKey(m.created_at)) {
+        const sep = document.createElement('div');
+        sep.className = 'fc-day';
+        sep.dataset.day = dayKey(m.created_at);
+        sep.textContent = dayLabel(m.created_at);
+        log.appendChild(sep);
+      }
+      const mine = m.sender_id === me;
+      const prev = log.lastElementChild as HTMLElement | null;
+      const b = document.createElement('div');
+      b.className = 'fc-msg' + (mine ? ' is-me' : '');
+      if (prev && prev.classList.contains('fc-msg') && prev.dataset.from === m.sender_id
+        && new Date(m.created_at).getTime() - Number(prev.dataset.t || 0) < 5 * 60e3) b.classList.add('is-cont');
+      b.dataset.id = String(m.id);
+      b.dataset.from = m.sender_id;
+      b.dataset.t = String(new Date(m.created_at).getTime());
+      b.dataset.day = dayKey(m.created_at);
+      const p = document.createElement('p');
+      p.textContent = m.body;
+      const t = document.createElement('time');
+      t.dateTime = m.created_at;
+      t.textContent = timeOf(m.created_at);
+      b.append(p, t);
+      log.appendChild(b);
+      if (m.id > lastId) lastId = m.id;
+    };
+
+    const renderChatHead = () => {
+      if (!chatWith) return;
+      avatarInto($('fcAv')!, chatWith);
+      $('fcName')!.textContent = nameOf(chatWith);
+      const so = subOf(chatWith);
+      $('fcSub')!.textContent = so.text;
+      $('fcSub')!.classList.toggle('is-act', so.act);
+      const prof = $('fcProf') as HTMLAnchorElement;
+      prof.hidden = !chatWith.handle;
+      if (chatWith.handle) prof.href = (D.pilotBase || '/pilot/') + chatWith.handle;
+      input.placeholder = (D.lChatPh || '').replace('%name%', nameOf(chatWith));
+    };
+
+    const pairFilter = (other: string) =>
+      `and(sender_id.eq.${me},receiver_id.eq.${other}),and(sender_id.eq.${other},receiver_id.eq.${me})`;
+
+    const markRead = async (other: string) => {
+      unread.delete(other);
+      renderList();
+      try { await supabase.rpc('mark_messages_read', { friend: other }); } catch { /* nächstes Öffnen */ }
+    };
+
+    const openChat = async (id: string) => {
+      const p = friends.find((f) => f.id === id);
+      if (!p || !me) return;
+      chatWith = p;
+      lastId = 0;
+      say('');
+      log.innerHTML = '';
+      renderChatHead();
+      chat.hidden = false;
+      root.classList.add('is-chat');
+      dock?.classList.add('is-chat');
+      renderList();
+      input.value = '';
+      autoGrow();
+      if (matchMedia('(pointer:fine)').matches) input.focus();
+      try {
+        const { data, error } = await supabase.from('direct_messages')
+          .select('id,sender_id,receiver_id,body,created_at,read_at')
+          .or(pairFilter(id))
+          .order('id', { ascending: false })
+          .limit(100);
+        if (chatWith?.id !== id) return;
+        if (error) throw error;
+        const rows = ((data || []) as Msg[]).reverse();
+        rows.forEach(append);
+        if (!rows.length) {
+          const e = document.createElement('p');
+          e.className = 'fc-empty';
+          e.textContent = D.lChatEmpty || '';
+          log.appendChild(e);
+        }
+        toBottom();
+        if (unread.get(id)) markRead(id);
+      } catch {
+        say(D.lErrLoad || '');
+      }
+    };
+
+    const closeChat = () => {
+      chatWith = null;
+      chat.hidden = true;
+      root.classList.remove('is-chat');
+      dock?.classList.remove('is-chat');
+      say('');
+      renderList();
+    };
+    $('fcBack')!.addEventListener('click', closeChat);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && chatWith) closeChat(); });
+    // Andere Stellen (Freunde-Bereich: „Nachricht") öffnen den Chat hier.
+    document.addEventListener('vb:chat-open', (e) => openChat(String((e as CustomEvent).detail || '')));
+
+    // Eingabefeld wächst mit bis zu fünf Zeilen; Enter sendet, Shift+Enter bricht um.
+    const autoGrow = () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 132) + 'px';
+    };
+    input.addEventListener('input', autoGrow);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); }
+    });
+
+    let sending = false;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = input.value.trim();
+      if (!body || !chatWith || sending) return;
+      sending = true;
+      say('');
+      const to = chatWith.id;
+      try {
+        const { data, error } = await supabase.from('direct_messages')
+          .insert({ sender_id: me, receiver_id: to, body })
+          .select('id,sender_id,receiver_id,body,created_at,read_at')
+          .single();
+        if (error) throw error;
+        if (chatWith?.id === to) {
+          input.value = '';
+          autoGrow();
+          append(data as Msg);
+          toBottom();
+        }
+      } catch (err) {
+        const m = String((err as { message?: string })?.message || '');
+        say(/zu viele/i.test(m) ? (D.lErrFlood || '') : (D.lErrSend || ''));
+      } finally {
+        sending = false;
+      }
+    });
+
+    // Eingang: Realtime schiebt neue Nachrichten an mich; ist der Chat mit dem
+    // Absender offen, erscheinen sie sofort, sonst zählt die Liste mit.
+    const incoming = (m: Msg) => {
+      if (m.receiver_id !== me) return;
+      if (chatWith && m.sender_id === chatWith.id && !document.hidden) {
+        const stick = atBottom();
+        append(m);
+        if (stick) toBottom();
+        markRead(m.sender_id);
+      } else {
+        unread.set(m.sender_id, (unread.get(m.sender_id) || 0) + 1);
+        renderList();
+      }
+    };
+
+    const loadUnread = async () => {
+      try {
+        const { data, error } = await supabase.from('direct_messages')
+          .select('sender_id').eq('receiver_id', me).is('read_at', null).limit(1000);
+        if (error) return;
+        unread.clear();
+        (data || []).forEach((r: { sender_id: string }) => {
+          if (chatWith && r.sender_id === chatWith.id) return;
+          unread.set(r.sender_id, (unread.get(r.sender_id) || 0) + 1);
+        });
+        renderList();
+      } catch { /* still */ }
+    };
+
+    // Rückfall ohne Websocket: offenen Chat alle 8 s nachladen, Ungelesenes alle 30 s.
+    const pollOpen = async () => {
+      if (!chatWith || document.hidden) return;
+      const id = chatWith.id;
+      try {
+        const { data } = await supabase.from('direct_messages')
+          .select('id,sender_id,receiver_id,body,created_at,read_at')
+          .or(pairFilter(id)).gt('id', lastId).order('id', { ascending: true }).limit(100);
+        if (chatWith?.id !== id || !data || !data.length) return;
+        const stick = atBottom();
+        (data as Msg[]).forEach(append);
+        if (stick) toBottom();
+        if ((data as Msg[]).some((m) => m.sender_id === id)) markRead(id);
+      } catch { /* nächster Takt */ }
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      me = data.session?.user?.id || '';
+      if (!me) return;
+      loadUnread();
+      setInterval(pollOpen, 8000);
+      setInterval(() => { if (!document.hidden) loadUnread(); }, 30000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) { loadUnread(); pollOpen(); } });
+      try {
+        supabase.channel('dm-' + me)
+          .on('postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${me}` },
+            (payload) => incoming(payload.new as Msg))
+          .subscribe();
+      } catch { /* Abfrage im Takt trägt weiter */ }
+    });
+  }
+</script>

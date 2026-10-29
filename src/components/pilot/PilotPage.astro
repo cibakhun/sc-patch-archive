@@ -217,6 +217,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
               </div>
             </div>
             <p class="pp-bio" id="ppBio" hidden></p>
+            <div class="pp-soc" id="ppSocials" hidden></div>
             <div class="pp-since" id="ppSince"></div>
           </div>
         </div>
@@ -557,6 +558,17 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     border-left: 2px solid var(--accent-media); padding-left: 0.9rem;
   }
   .pp-bio[hidden] { display: none !important; }
+  /* Socials (Kontoseite Runde 5): nur Symbole; Farbe je Netz kommt als --soc
+     aus src/lib/socials.ts, darum hier keine festen Farbwerte. */
+  .pp-soc { display: flex; gap: 8px; margin-top: 0.7rem; }
+  .pp-soc[hidden] { display: none !important; }
+  .pp-soc .soc-link {
+    width: 34px; height: 34px; display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 10px; color: var(--soc);
+    transition: border-color var(--dur-fast) var(--ease-ui);
+  }
+  .pp-soc .soc-link:hover { border-color: var(--soc); }
+  .pp-soc .soc-link svg { width: 17px; height: 17px; fill: currentColor; }
   .pp-since {
     font-family: var(--font-mono); font-size: var(--fs-4); letter-spacing: var(--ls-13);
     text-transform: uppercase; color: #8a99b8;
@@ -776,6 +788,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   import { supabase, FAV_PATH } from '../../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
   import { resolveStatusKey } from '../../lib/presence';
+  import { renderSocialLinks } from '../../lib/socials';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -918,6 +931,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         bioEl.hidden = false;
         bioEl.textContent = p.bio;
       }
+      renderSocialLinks($('ppSocials')!, p as Record<string, unknown>);
 
       // Dabei seit
       let sinceYear = '';

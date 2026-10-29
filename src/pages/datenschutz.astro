@@ -161,7 +161,9 @@ body{font-family:var(--font-body)}
       available across devices. Your ship fleet (on the ship data sheets and in the 3D hangar)
       stays in this browser while you are signed out; when you sign in, it moves into your account
       as favorites. While you are signed in, this browser also keeps a copy of the fleet. If you have
-      set a handle, the fleet appears on your public pilot profile.
+      set a handle, the fleet appears on your public pilot profile. Saved hangar loadouts work the
+      same way: signed out they stay in this browser; when you sign in, they move into your account
+      and are available on every device where you are signed in, while this browser keeps a copy.
     </p>
 
     <h2>Externally embedded images</h2>
@@ -225,7 +227,14 @@ body{font-family:var(--font-body)}
     <ul>
       <li><strong>e-mail address</strong> and <strong>password</strong> (the password is stored
         exclusively as a cryptographic hash, never in plain text)</li>
-      <li><strong>profile data</strong> you enter yourself (display name, handle — both optional)</li>
+      <li><strong>profile data</strong> you enter yourself (display name, handle — both optional;
+        optionally also names on Twitch, YouTube and X, shown as links on your public pilot
+        profile)</li>
+      <li>when you voluntarily <strong>sign in with Discord</strong> or connect Discord in your
+        account: the details Discord transmits for this (Discord ID, username, display name,
+        avatar, e-mail address); the account suggests the name and avatar for your profile</li>
+      <li><strong>messages</strong> you write in the chat to confirmed friends, with sender,
+        recipient, time and read status; only the sender and the recipient can read them</li>
       <li><strong>favorites</strong> you actively save, including your ship fleet; once you have set a
         handle, they are visible on your public pilot profile</li>
       <li><strong>tool data</strong> you actively create (crafting planner and “owned” marks,
@@ -239,7 +248,7 @@ body{font-family:var(--font-body)}
       Sign-in works without cookies: the session token is stored exclusively locally in your browser
       (localStorage). You can permanently delete your account yourself at any time in the
       <a href="/account.html">account dashboard</a> — this irreversibly removes all associated
-      data (profile, favorites, tool data, credentials).
+      data (profile, favorites, tool data, sent and received messages, credentials).
     </p>
     <p class="muted">
       Processor: Supabase, Inc.; data residency in the EU (AWS eu-central-1, Frankfurt). For details
@@ -263,8 +272,13 @@ body{font-family:var(--font-body)}
       writes two timestamps to your profile: when the page was last open and when you last interacted with it
       (mouse, keyboard, scrolling, touch; loading the page and returning to the tab count as
       well). This happens on load, then every 30 seconds, even while the tab is in the background,
-      and whenever you return to the tab. Which page you are viewing and what you do there is not
-      transmitted. Nothing is written when you are not signed in.
+      and whenever you return to the tab. On some pages a short note on what you are doing is added: in
+      the hangar, building a loadout or on a ship page (each with the ship name) or planning
+      mining; on all other pages it is cleared. Only your confirmed friends see this note, and
+      only while it is fresh (3 minutes). You can switch it off in the account dashboard
+      (“Friends see what I am doing”); it is then cleared and no longer sent. No other details
+      about which page you are viewing or what you do there are transmitted. Nothing is written
+      when you are not signed in.
     </p>
     <p>
       Others do not see the timestamps, only a status derived from them: <em>online</em> (page
@@ -272,7 +286,7 @@ body{font-family:var(--font-body)}
       closed less than 3 minutes ago) or <em>offline</em>. This status is only visible once you
       have set a handle: to anyone on your public pilot profile and to signed-in users in the
       friends and pilot directory. When you sign out in the account dashboard, the page first
-      tries to clear both timestamps and then signs you out regardless. If clearing fails (for
+      tries to clear both timestamps and the note and then signs you out regardless. If clearing fails (for
       example without a network), this browser writes no further timestamps, and the status
       switches to offline within 3 minutes unless a page of this website is still open while you
       are signed in on another device.
