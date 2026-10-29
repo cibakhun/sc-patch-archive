@@ -78,8 +78,10 @@ jobs:
         run: |
           if OUT=$(gh api "repos/$REPO/dependency-graph/compare/$BASE...$HEAD" 2>&1 >/dev/null); then
             echo "on=true" >> "$GITHUB_OUTPUT"
-          elif printf '%s' "$OUT" | grep -q 'HTTP 403'; then
-            echo "::warning::Abhaengigkeitsgraph ist aus, die Abhaengigkeitspruefung entfaellt. Einschalten: Settings -> Code security -> Dependency graph."
+          elif printf '%s' "$OUT" | grep -q 'HTTP 403' && printf '%s' "$OUT" | grep -qiE 'dependency graph|not supported|security_analysis|advanced security'; then
+            # Nur die Antwort "Graph ist aus" wird zur Warnung. Jede andere
+            # 403 (Ratenlimit, fehlendes Recht) bleibt ein Fehler.
+            echo "::warning::Abhaengigkeitsgraph nicht verfuegbar, die Abhaengigkeitspruefung entfaellt ($OUT). Einschalten: Settings -> Code security -> Dependency graph."
             echo "on=false" >> "$GITHUB_OUTPUT"
           else
             echo "::error::Abhaengigkeitsvergleich nicht abrufbar: $OUT"

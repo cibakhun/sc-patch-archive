@@ -13,6 +13,14 @@
 #             den jeder Workflow-Lauf mit packages:write ueberschreiben
 #             koennte. Braucht ein Token mit Recht "write" statt nur "deploy"
 #             und den Image-Typ "Docker Image" in Coolify.
+#             Abschalten stellt NICHT zurueck: Coolify behaelt den zuletzt
+#             gesetzten Tag, und jeder weitere Deploy zieht dieses alte
+#             Image, denn neue Builds landen nie mehr unter diesem Tag.
+#             Reihenfolge beim Abschalten: ZUERST COOLIFY_PIN_IMAGE_TAG
+#             abschalten, danach (wenn kein Lauf mehr unterwegs ist) in
+#             Coolify den Image-Tag der Anwendung von Hand zuruecksetzen
+#             (live und Bot: latest, Vorschau: staging) und neu deployen.
+#             Umgekehrt heftet ein Lauf dazwischen wieder an.
 #
 # Fehlt HOOK oder TOKEN, wird bewusst NICHT rot (ein Fork ohne Coolify soll
 # bauen koennen), aber als ::warning:: — ein gesetztes, aber LEERES Secret

@@ -87,6 +87,8 @@ jobs:
       # is unset it warns — then click "Redeploy" in Coolify manually. Every
       # call has a time limit (on 29.10.2026 the webhook call hung for seven
       # minutes before failing). Optional immutable tag: COOLIFY_PIN_IMAGE_TAG=true.
+      # Switching it off again does not unpin: switch it off first, then (with no run in flight) reset
+      # the tag in Coolify to latest by hand and redeploy (see coolify-deploy.sh).
       - name: Trigger Coolify redeploy
         env:
           HOOK: ${{ secrets.COOLIFY_BOT_DEPLOY_WEBHOOK }}
