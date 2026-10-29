@@ -291,6 +291,17 @@ export const CHECKS = [
       'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Inline-Skripte und JS-Dateien duerfen diese Hosts nur an benannten Klick-Bindungen nennen (mit Zombie-Waechter); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
   },
   {
+    // Neuzugang (29.10.2026), vor dem langen audit:site: liest die
+    // gebauten Seiten als Text (gut 2 s). Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — node:vm fuehrt nur den Haken aus dist/ aus.
+    id: 'verify:zaehler',
+    npm: 'verify:zaehler',
+    script: 'scripts/verify-zaehler.mjs',
+    rail: 'A',
+    checks:
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad (in node:vm ausgefuehrt), Klinken fuer Layout-Seiten, Zaehler-Seiten und Haken-Fassungen; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+  },
+  {
     id: 'audit:site',
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',
