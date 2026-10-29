@@ -28,6 +28,7 @@ const COPY = {
     errWeak: 'Das Passwort ist zu schwach — bitte wähle ein längeres.',
     errRate: 'Zu viele Registrierungen von deiner Verbindung — bitte später erneut versuchen.',
     errNet: 'Das hat nicht geklappt — bitte später erneut versuchen.',
+    errPaused: 'Die Registrierung per E-Mail ist gerade pausiert — registriere dich bitte mit Discord.',
     okLogin: 'Konto erstellt! Du wirst angemeldet …',
     toLogin: 'Schon ein Konto? Anmelden',
     discordBtn: 'Mit Discord registrieren', orMail: 'oder mit E-Mail',
@@ -48,6 +49,7 @@ const COPY = {
     errWeak: 'This password is too weak — please pick a longer one.',
     errRate: 'Too many sign-ups from your connection — please try again later.',
     errNet: 'That did not work — please try again later.',
+    errPaused: 'Sign-up by e-mail is paused right now — please sign up with Discord.',
     okLogin: 'Account created! Signing you in …',
     toLogin: 'Already have an account? Sign in',
     discordBtn: 'Sign up with Discord', orMail: 'or with e-mail',
@@ -80,6 +82,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     data-msg-weak={COPY.errWeak}
     data-msg-rate={COPY.errRate}
     data-msg-net={COPY.errNet}
+    data-msg-paused={COPY.errPaused}
     data-msg-ok={COPY.okLogin}
     data-busy={COPY.busy}
     data-submit={COPY.submit}
@@ -191,6 +194,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
             : code === 'email_address_invalid' ? D.msgInvalidMail!
             : code === 'weak_password' ? D.msgWeak!
             : code === 'over_request_rate_limit' ? D.msgRate!
+            : code === 'signup_paused' ? D.msgPaused!
             : D.msgNet!,
           );
           return;

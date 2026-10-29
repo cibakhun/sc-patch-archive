@@ -332,10 +332,23 @@ function mint(r) {
   }
 }
 
+/* $vb_next: das Ruecksprungziel fuer /gate.html?next=…, prozentkodiert.
+   r.uri ist der dekodierte Pfad; roh in die Location gesetzt, wuerden
+   kodierte Zeilenumbrueche zu echten Kopfzeilen. "/" bleibt lesbar stehen,
+   safeNext() in src/pages/gate.astro dekodiert ueber URLSearchParams.
+   encodeURIComponent wirft bei kaputtem UTF-8 — dann zurueck zur Startseite. */
+function next(r) {
+  try {
+    return encodeURIComponent(r.uri).replace(/%2F/g, '/');
+  } catch (e) {
+    return '%2F';
+  }
+}
+
 /* njs erlaubt fuer js_import AUSSCHLIESSLICH einen Default-Export — ein
    benannter Export ("export function check", "export function mint")
    bricht den Bau mit "SyntaxError: Non-default export is not supported"
    (gefunden durch die E2E-Sonde, Lauf 32045452259, RUN nginx -t). Referenz
    in nginx/default.conf bleibt trotzdem gate.check / gate.mint — njs
    loest das ueber den Default-Export auf. */
-export default { check, mint };
+export default { check, mint, next };

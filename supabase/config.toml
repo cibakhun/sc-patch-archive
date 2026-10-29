@@ -45,3 +45,9 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+# bot-role-sync: der Discord-Bot hat keine Supabase-Sitzung. Die Function
+# prueft selbst ein eigenes Geheimnis (BOT_ROLE_SYNC_SECRET, Bearer,
+# zeitkonstant) und faellt ohne es mit 503 geschlossen aus.
+[functions.bot-role-sync]
+verify_jwt = false
