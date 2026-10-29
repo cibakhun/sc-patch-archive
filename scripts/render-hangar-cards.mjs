@@ -44,8 +44,9 @@ const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? pro
 const only = arg('--only')?.split(',').filter(Boolean) ?? null;
 
 const ids = Object.keys(JSON.parse(readFileSync(path.join(ROOT, 'src/data/holo-meshes.json'), 'utf8')).meshes);
-const todo = (only ?? ids).filter((id) => ids.includes(id));
-if (!todo.length) { console.error('render-hangar-cards: keine bekannte Id'); process.exit(2); }
+const unknown = (only ?? []).filter((id) => !ids.includes(id));
+if (unknown.length) { console.error(`render-hangar-cards: unbekannte Id ${unknown.join(', ')}`); process.exit(2); }
+const todo = only ?? ids;
 
 const BROWSER = [process.env.CHROME_PATH, '/opt/pw-browsers/chromium', 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean).find((p) => existsSync(p));
 if (!BROWSER) { console.error('render-hangar-cards: kein Browser gefunden, CHROME_PATH setzen'); process.exit(2); }
@@ -79,7 +80,7 @@ window.shot = async (url, az, el, ppm, maxPx) => {
   r.setSize(1440, 810, false);
   const cam = new THREE.PerspectiveCamera(fov, canvas.width / canvas.height, rad / 100, rad * 100);
   const a = THREE.MathUtils.degToRad(az), e = THREE.MathUtils.degToRad(el);
-  cam.position.copy(c).addScaledVector(new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)), rad / Math.sin(THREE.MathUtils.degToRad(fov / 2)) * 0.7);
+  cam.position.copy(c).addScaledVector(new THREE.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)), rad / Math.sin(THREE.MathUtils.degToRad(fov / 2)) * 1.05);
   cam.lookAt(c);
   r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.35;
   r.render(scene, cam);
@@ -99,14 +100,16 @@ window.shot = async (url, az, el, ppm, maxPx) => {
 window.ready = true;
 </script></body></html>`;
 
+const PAGE_ENV = path.join(ROOT, 'node_modules/three/examples/jsm/environments/RoomEnvironment.js');
 const TYPES = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.wasm': 'application/wasm', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
 const server = createServer(async (req, res) => {
   const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   let file = null;
   if (url === '/render.html') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(PAGE); return; }
-  if (url === '/env/RoomEnvironment.js') file = path.join(ROOT, 'node_modules/three/examples/jsm/environments/RoomEnvironment.js');
+  if (url === '/env/RoomEnvironment.js') file = PAGE_ENV;
   else if (url.startsWith('/vendor/') || url.startsWith('/hangar/')) file = path.join(ROOT, 'public', url);
-  if (!file || !file.startsWith(ROOT) || !existsSync(file)) { res.writeHead(404); res.end(); return; }
+  // Nach dem Dekodieren kann ein „..%2f“ aus public/ fuehren: nur was darin liegt.
+  if (!file || !(file === PAGE_ENV || file.startsWith(path.join(ROOT, 'public') + path.sep)) || !existsSync(file)) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
   res.end(await readFile(file));
 });
@@ -126,6 +129,9 @@ await mkdir(path.join(OUT, 'top'), { recursive: true });
 const prev = existsSync(DATA) ? JSON.parse(await readFile(DATA, 'utf8')) : { ships: {} };
 const ships = { ...prev.ships };
 const png = (d) => Buffer.from(d.split(',')[1], 'base64');
+// Nach jedem Schiff geschrieben: bricht der Lauf ab, passen Bilder und
+// Kennungen trotzdem zusammen (verify:hangar [19] prueft v gegen den Inhalt).
+const saveData = () => writeFile(DATA, `${JSON.stringify({ view: VIEW, card: { w: CARD.w, h: CARD.h }, topMax: TOP_MAX, ships: Object.fromEntries(Object.keys(ships).sort().map((k) => [k, ships[k]])) }, null, 1)}\n`);
 const round = (x) => Math.round(x * 10) / 10;
 
 /**
@@ -200,6 +206,7 @@ for (const id of todo) {
     await writeFile(path.join(OUT, 'top', `${id}.webp`), plan);
     const v = createHash('sha256').update(card).update(plan).digest('hex').slice(0, 8);
     ships[id] = { v, w: round(pm.width / ppm), l: round(pm.height / ppm), h: round(r.size[1]) };
+    await saveData();
     done++;
     console.log(`  ${id.padEnd(40)} ${String(Date.now() - t0).padStart(5)} ms  ${(card.length / 1024).toFixed(0)} + ${(plan.length / 1024).toFixed(0)} KB${shot.dropped + top.dropped ? `  ${shot.dropped + top.dropped} lose Teile weg` : ''}`);
   } catch (e) {
@@ -210,7 +217,6 @@ for (const id of todo) {
 }
 await browser.close();
 server.close();
-const sorted = Object.fromEntries(Object.keys(ships).sort().map((k) => [k, ships[k]]));
-await writeFile(DATA, `${JSON.stringify({ view: VIEW, card: { w: CARD.w, h: CARD.h }, topMax: TOP_MAX, ships: sorted }, null, 1)}\n`);
-console.log(`\nrender-hangar-cards: ${done} Schiffe gerendert, ${failed} fehlgeschlagen, ${Object.keys(sorted).length} in ${path.relative(ROOT, DATA)}`);
+await saveData();
+console.log(`\nrender-hangar-cards: ${done} Schiffe gerendert, ${failed} fehlgeschlagen, ${Object.keys(ships).length} in ${path.relative(ROOT, DATA)}`);
 if (failed) process.exit(1);

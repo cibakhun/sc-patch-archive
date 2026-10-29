@@ -20,7 +20,7 @@ import vehicleRoles from '../../data/vehicle-roles.json';
 import type { Locale } from '../../i18n/ui';
 import { shipData, type ShipId } from './catalog';
 
-type RoleEntry = { roleKeys?: string[]; families?: string[]; feat?: string[] };
+type RoleEntry = { careerKey?: string; roleKeys?: string[]; families?: string[]; feat?: string[] };
 const ROLES_BY_ID = (vehicleRoles as unknown as { vehicles: Record<string, RoleEntry> }).vehicles;
 
 type Words = { readonly de: string; readonly en: string };
@@ -155,6 +155,9 @@ export interface ShipFinder {
 }
 
 const memo = new Map<string, ShipFinder>();
+const CAREER_PURPOSE: Readonly<Record<string, PurposeKey>> = {
+  combat: 'kampf', transporter: 'fracht', exploration: 'erkundung', resources: 'bergbau', competition: 'rennen', ground: 'boden',
+};
 
 export function shipFinder(id: ShipId): ShipFinder {
   const hit = memo.get(id);
@@ -162,8 +165,12 @@ export function shipFinder(id: ShipId): ShipFinder {
   const r = ROLES_BY_ID[id] ?? {};
   const fam = new Set(r.families ?? []);
   const roles = new Set(r.roleKeys ?? []);
-  const ground = (r.feat ?? []).includes('ground');
-  const purposes = PURPOSES.filter((p) => p.families.some((f) => fam.has(f)) || (p.ground && ground)).map((p) => p.key);
+  // Bodenfahrzeug auch ohne Eintrag in vehicle-roles.json (die vier ATLS).
+  const ground = (r.feat ?? []).includes('ground') || /^ground$/i.test(shipData(id).typeEn ?? '');
+  let purposes = PURPOSES.filter((p) => p.families.some((f) => fam.has(f)) || (p.ground && ground)).map((p) => p.key);
+  // Ohne Familie, die ein Zweck kennt („mehrzweck“: Retaliator, Clipper),
+  // zaehlt die Laufbahn, damit jedes Schiff unter einem Zweck steht.
+  if (!purposes.length && r.careerKey && CAREER_PURPOSE[r.careerKey]) purposes = [CAREER_PURPOSE[r.careerKey]];
   const groups = ROLE_GROUPS.filter((g) => purposes.includes(g.purpose) && g.roles.some((x) => roles.has(x))).map((g) => `${g.purpose}:${g.key}`);
   const sizeDe = shipData(id).sizeDe;
   const size = SIZES.find((s) => s.sizeDe === sizeDe)?.key ?? null;
@@ -185,7 +192,7 @@ export function vocab(makers: readonly { name: string; code: string }[]) {
     pur: PURPOSES.map((p) => ({ k: p.key, w: uniq([...both(p.label), ...p.words]) })),
     grp: ROLE_GROUPS.map((g) => ({ k: `${g.purpose}:${g.key}`, w: uniq([...both(g.label), ...g.words]) })),
     size: SIZES.map((s) => ({ k: s.key, w: uniq([...both(s.label), ...s.words]) })),
-    crew: CREW.map((c) => ({ k: c.key, w: uniq(c.words) })),
+    crew: CREW.map((c) => ({ k: c.key, w: uniq([...both(c.label), ...c.words]) })),
     maker: makers.map((m) => ({ k: m.name, w: uniq([m.name, m.name.split(' ')[0], m.code]) })),
     nick: NICKNAMES,
   };

@@ -136,7 +136,8 @@
         Controllers unveraendert (sonst trifft die Suche diese Woerter nie),
         jeder Zweck aus data-p ist eine Stufe der Pille Wofuer, jede
         Unterrolle aus data-g eine Taste in #hgx-subs, jede Groesse eine
-        Stufe der Pille Groesse. Dazu Proben durch die ausgelieferte Suche
+        Stufe der Pille Groesse, und jedes Schiff hat einen Zweck (sonst
+        findet es keine Stufe der Pille Wofuer). Dazu Proben durch die ausgelieferte Suche
         (#hgx-vocab, parseQuery, findShip, dockSearch) ueber die Karten aus
         dist/, je Sprache: Spitzname, Zweck mit Crew, Fracht, Preis,
         Tippfehler. Klinken: Karten mit eigenem Bild, Proben.
@@ -181,6 +182,9 @@
      x  in dist/hangar.html einem data-q ein „Jäger“ geben           -> [19]
      y  in dist/hangar.html im #hgx-vocab den Spitznamen cutty
         streichen (29.10.2026: „cutty“ -> drak-cutter vorn)          -> [19]
+     z  Bau vor dem Nachtrag in finder.ts (Laufbahn, Boden ohne
+        Rollendaten): 6 Schiffe ohne Zweck (vier ATLS, Clipper,
+        Retaliator)                                                  -> [19]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1063,7 +1067,7 @@ const WAHL = { karten: 231, proben: 12 };
     const grps = new Set([...html.matchAll(/class="hgx-sub" data-of="([^"]+)" data-grp="([^"]+)"/g)].map((m) => `${m[1]}:${m[2]}`));
     const total = dockIds(html).length;
     let mine = 0;
-    const ohne = [], bild = [], wort = [], stufe = [];
+    const ohne = [], bild = [], wort = [], stufe = [], zwecklos = [];
     const pool = [];
     for (const [, id, a, src, nameRaw] of lis) {
       const m = /^\/hangar\/cards\/([^/?]+)\.webp\?v=([0-9a-f]{8})$/.exec(src ?? '');
@@ -1078,6 +1082,7 @@ const WAHL = { karten: 231, proben: 12 };
       }
       const q = attr(a, 'q');
       if (mod && mod.fold(q) !== q) wort.push(`${id}: data-q „${q.slice(0, 60)}“ aendert sich unter fold()`);
+      if (!attr(a, 'p')) zwecklos.push(id);
       for (const p of attr(a, 'p').split(' ').filter(Boolean)) if (!purs.has(p)) stufe.push(`${id}: Zweck ${p} ist keine Stufe der Pille Wofuer`);
       for (const g of attr(a, 'g').split(' ').filter(Boolean)) if (!grps.has(g)) stufe.push(`${id}: Unterrolle ${g} hat keine Taste in #hgx-subs`);
       const sz = attr(a, 'sz');
@@ -1085,12 +1090,13 @@ const WAHL = { karten: 231, proben: 12 };
       if (mod) pool.push(mod.findShip({ id, name: ent(nameRaw), mk: attr(a, 'mk'), q, p: attr(a, 'p'), g: attr(a, 'g'), sz }, mod.figuresOf(keys, attr(a, 'v'))));
     }
     if (page.lang === 'en') eigen = mine;
-    say(`    ${page.file}: ${lis.length} von ${total} Karten gelesen, ${mine} mit eigenem Bild, Stufen: ${purs.size} Zwecke, ${grps.size} Unterrollen, ${sizes.size} Groessen`);
+    say(`    ${page.file}: ${lis.length} von ${total} Karten gelesen, ${mine} mit eigenem Bild, ${lis.length - zwecklos.length} mit Zweck, Stufen: ${purs.size} Zwecke, ${grps.size} Unterrollen, ${sizes.size} Groessen`);
     if (lis.length !== total) fail(`[19] ${page.file}: ${total - lis.length} Karten ohne die Form li > a.hg-card > img + .hg-card__n — der Leser ist kaputt oder die Karte umgebaut`);
     if (ohne.length) say(`    WARNUNG: ${ohne.length} Karten zeigen das Bild des Wikis statt eines eigenen (${ohne.slice(0, 4).join(', ')}${ohne.length > 4 ? ', …' : ''}): node scripts/render-hangar-cards.mjs --only <id> (Schiene C)`);
     for (const b of bild.slice(0, 6)) fail(`[19] ${page.file}: ${b}`);
     for (const w of wort.slice(0, 6)) fail(`[19] ${page.file}: ${w} (finder.ts tagsOf faltet anders als der Controller)`);
     for (const x of stufe.slice(0, 6)) fail(`[19] ${page.file}: ${x}`);
+    if (zwecklos.length) fail(`[19] ${page.file}: ${zwecklos.length} Schiffe ohne Zweck (${zwecklos.slice(0, 6).join(', ')}): unter keiner Stufe der Pille Wofuer zu finden — shipFinder in src/lib/hangar/finder.ts (Familien, Laufbahn, Boden)`);
     if (!purs.size || !sizes.size || !grps.size) fail(`[19] ${page.file}: Pillen oder Unterrollen fehlen (Wofuer ${purs.size}, Groesse ${sizes.size}, Unterrollen ${grps.size})`);
     // Proben durch die ausgelieferte Suche, mit dem Vokabular dieser Seite.
     let vocab = null;
