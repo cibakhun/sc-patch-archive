@@ -1341,14 +1341,14 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .ck-unread{flex:none;min-width:22px;height:22px;padding:0 7px;display:grid;place-items:center;border-radius:11px;background:var(--gold);color:var(--ink);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4)}
 .ck-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(10.5rem,100%),1fr));grid-auto-rows:clamp(84px,7vw,124px);align-content:start;gap:8px;padding:10px}
 .ck-tile{position:relative;overflow:hidden;isolation:isolate;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:1px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2) center/cover no-repeat;transition:border-color var(--dur-base) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
-.ck-tile::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,7,13,0) 22%,rgba(5,7,13,.62) 55%,rgba(5,7,13,.94))}
+.ck-tile::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--scrim-6) 4%,var(--scrim-5) 45%,var(--scrim-0) 100%)}
 .ck-tile.no-img{background-image:radial-gradient(120% 120% at 100% 0%,color-mix(in srgb,var(--kc,var(--accent)) 18%,transparent),transparent 62%)}
 .ck-tile > svg{position:absolute;right:-6px;top:-6px;z-index:-2;width:64%;height:auto;max-height:110%;color:var(--kc,var(--accent));opacity:.16}
 .ck-tile.is-layout{border-color:color-mix(in srgb,var(--gold) 45%,transparent)}
 .ck-tile:hover{border-color:var(--accent);transform:translateY(-2px)}
-.ck-tile small{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--kc,var(--accent));text-shadow:0 1px 6px rgba(0,0,0,.9)}
-.ck-tile.is-layout small{color:var(--gold)}
-.ck-tile b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);line-height:1.15;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ck-tile small{display:flex;align-items:center;gap:6px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--on-media-dim)}
+.ck-tile small i{width:7px;height:7px;flex:none;border-radius:50%;background:var(--kc,var(--accent));box-shadow:0 0 6px var(--kc,var(--accent))}
+.ck-tile b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);line-height:1.15;color:var(--on-media);text-shadow:0 1px 8px rgba(0,0,0,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ck-empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:22px 16px;text-align:center;color:var(--muted);font-size:var(--fs-8)}
 .ck-empty p{margin:0}
 .ck-empty svg{width:38px;height:38px;opacity:.45}

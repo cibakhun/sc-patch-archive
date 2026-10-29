@@ -304,7 +304,7 @@ function boot(root: HTMLElement) {
         a.appendChild(svg);
       }
       const k = document.createElement('small');
-      k.textContent = t.kind;
+      k.append(document.createElement('i'), t.kind);
       const b = document.createElement('b');
       b.textContent = t.name;
       a.append(k, b);
