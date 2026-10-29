@@ -1,0 +1,179 @@
+---
+// Konto -> Sicherheit: Zwei-Faktor-Anmeldung (TOTP, Authenticator-App).
+// Geteilt DE/EN. Einrichten (QR-Code und Schluessel, erster Code), Liste der
+// Geraete, Entfernen. Sichtbar fuer Admin-Konten und fuer jedes Konto, das
+// schon einen Faktor hat (damit es ihn auch wieder los wird); die Logik
+// steht in src/scripts/account-mfa.ts, die Supabase-Aufrufe in
+// src/lib/mfa.ts. Die Code-Abfrage selbst ist MfaCodeDialog.astro.
+//
+// `variant` waehlt die Klassen der umgebenden Sicherheitsseite:
+// 'classic' (.seccard/.sc-h/.btn) oder 'sec' (.sec-card/.sec-h/.sec-btn).
+interface Props {
+  lang: 'de' | 'en';
+  variant?: 'classic' | 'sec';
+}
+const { lang, variant = 'classic' } = Astro.props;
+const sec = variant === 'sec';
+const K = {
+  card: sec ? 'sec-card' : 'seccard',
+  btn: sec ? 'sec-btn' : 'btn',
+  go: sec ? 'sec-btn sec-btn--go' : 'btn ok',
+  hot: sec ? 'sec-btn sec-btn--hot' : 'btn danger',
+  // sc-desc blendet das Konto-Layout in den Karten aus; der Hinweis auf
+  // zwei Geraete und fehlende Wiederherstellungscodes soll sichtbar bleiben.
+  note: sec ? 'sec-note' : 'mfa-note',
+};
+
+const COPY = {
+  de: {
+    title: 'Zwei-Faktor-Anmeldung',
+    desc: 'Mit einer Authenticator-App (z. B. Aegis, 2FAS, Google Authenticator oder einem Passwort-Manager) fragt die Anmeldung nach Passwort oder Discord zusätzlich nach einem sechsstelligen Code. Richte am besten zwei Geräte ein — Wiederherstellungscodes gibt es nicht.',
+    off: 'Nicht eingerichtet',
+    on1: 'Aktiv · 1 Gerät',
+    onN: 'Aktiv · %n% Geräte',
+    sessAal2: 'Diese Sitzung ist mit Code angemeldet.',
+    sessAal1: 'Diese Sitzung ist noch ohne Code angemeldet.',
+    stepUp: 'Code eingeben',
+    since: 'seit %d%',
+    remove: 'Entfernen',
+    removeSure: 'Wirklich entfernen?',
+    nameLabel: 'Name des Geräts',
+    namePh: 'z. B. Handy',
+    nameFallback: 'Authenticator',
+    add: 'Authenticator einrichten',
+    addMore: 'Weiteres Gerät hinzufügen',
+    adding: 'Bereite vor …',
+    step1: 'Scanne den QR-Code mit deiner Authenticator-App.',
+    step2: 'Oder tippe den Schlüssel von Hand ab:',
+    step3: 'Gib den ersten Code aus der App ein:',
+    qrAlt: 'QR-Code für die Authenticator-App',
+    codeLabel: 'Code aus der App',
+    confirm: 'Bestätigen',
+    confirming: 'Prüfe …',
+    cancel: 'Abbrechen',
+    okAdded: 'Eingerichtet. Ab jetzt fragt die Anmeldung nach dem Code.',
+    okAddedOne: 'Eingerichtet. Ab jetzt fragt die Anmeldung nach dem Code. Richte noch ein zweites Gerät ein, falls dieses verloren geht.',
+    okRemoved: 'Entfernt.',
+    okRemovedLast: 'Entfernt. Die Anmeldung fragt nicht mehr nach einem Code.',
+    errFormat: 'Bitte die sechs Ziffern aus der App eingeben.',
+    errWrong: 'Der Code stimmt nicht. Prüfe die Uhrzeit des Geräts und nimm den aktuellen Code.',
+    errAal: 'Dafür braucht diese Sitzung zuerst den Code eines eingerichteten Geräts.',
+    errLimit: 'Es sind schon so viele Geräte eingerichtet, wie Supabase erlaubt. Entferne zuerst eines.',
+    errDisabled: 'Die Zwei-Faktor-Anmeldung ist für dieses Projekt gerade abgeschaltet.',
+    errRate: 'Zu viele Versuche — bitte kurz warten und erneut probieren.',
+    errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
+  },
+  en: {
+    title: 'Two-factor sign-in',
+    desc: 'With an authenticator app (e.g. Aegis, 2FAS, Google Authenticator or a password manager), signing in with password or Discord also asks for a six-digit code. Best set up two devices — there are no recovery codes.',
+    off: 'Not set up',
+    on1: 'Active · 1 device',
+    onN: 'Active · %n% devices',
+    sessAal2: 'This session is signed in with a code.',
+    sessAal1: 'This session is not signed in with a code yet.',
+    stepUp: 'Enter code',
+    since: 'since %d%',
+    remove: 'Remove',
+    removeSure: 'Really remove?',
+    nameLabel: 'Device name',
+    namePh: 'e.g. phone',
+    nameFallback: 'Authenticator',
+    add: 'Set up authenticator',
+    addMore: 'Add another device',
+    adding: 'Preparing …',
+    step1: 'Scan the QR code with your authenticator app.',
+    step2: 'Or type the key in by hand:',
+    step3: 'Enter the first code from the app:',
+    qrAlt: 'QR code for the authenticator app',
+    codeLabel: 'Code from the app',
+    confirm: 'Confirm',
+    confirming: 'Checking …',
+    cancel: 'Cancel',
+    okAdded: 'Set up. From now on, signing in asks for the code.',
+    okAddedOne: 'Set up. From now on, signing in asks for the code. Set up a second device in case this one gets lost.',
+    okRemoved: 'Removed.',
+    okRemovedLast: 'Removed. Signing in no longer asks for a code.',
+    errFormat: 'Please enter the six digits from the app.',
+    errWrong: 'That code is not right. Check the device clock and use the current code.',
+    errAal: 'This session first needs the code of a device that is already set up.',
+    errLimit: 'As many devices are set up as Supabase allows. Remove one first.',
+    errDisabled: 'Two-factor sign-in is currently switched off for this project.',
+    errRate: 'Too many attempts — please wait a moment and try again.',
+    errNet: 'That did not work — please try again.',
+  },
+}[lang];
+---
+
+<div class={`${K.card} mfa-card`} id="mfaCard" hidden
+  data-lang={lang}
+  data-copy={JSON.stringify(COPY)}
+  data-cls-btn={K.btn}
+  data-cls-hot={K.hot}
+>
+  {sec ? (
+    <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-shield"/></svg>{COPY.title}</h3>
+  ) : (
+    <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span><h3>{COPY.title}</h3></div>
+  )}
+  <p class={K.note}>{COPY.desc}</p>
+  <p class="mfa-state"><strong id="mfaState">{COPY.off}</strong> <span id="mfaSession"></span>
+    <button type="button" class={K.btn} id="mfaStepUp" hidden>{COPY.stepUp}</button></p>
+  <ul class="mfa-list" id="mfaList"></ul>
+
+  <div class="mfa-add" id="mfaAddRow">
+    <div class="field">
+      <label for="mfaName">{COPY.nameLabel}</label>
+      <input class="inp" id="mfaName" type="text" maxlength="40" autocomplete="off" placeholder={COPY.namePh} />
+    </div>
+    <button type="button" class={K.go} id="mfaAdd">{COPY.add}</button>
+  </div>
+
+  <div class="mfa-enroll" id="mfaEnroll" hidden>
+    <ol class="mfa-steps">
+      <li>
+        <span>{COPY.step1}</span>
+        <img class="mfa-qr" id="mfaQr" alt={COPY.qrAlt} width="184" height="184" />
+      </li>
+      <li>
+        <span>{COPY.step2}</span>
+        <code class="mfa-secret mono" id="mfaSecret"></code>
+      </li>
+      <li>
+        <label for="mfaEnrollCode">{COPY.step3}</label>
+        <div class="mfa-confirm">
+          <input class="inp mono" id="mfaEnrollCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="9" spellcheck="false" aria-label={COPY.codeLabel} />
+          <button type="button" class={K.go} id="mfaEnrollOk">{COPY.confirm}</button>
+          <button type="button" class={K.btn} id="mfaEnrollCancel">{COPY.cancel}</button>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <p class="acx-status" id="mfaStatus" role="status" aria-live="polite" hidden></p>
+</div>
+
+<style>
+  /* Volle Breite im Raster: QR-Code, Schluessel und Liste brauchen Platz. */
+  .mfa-card { grid-column: 1 / -1; }
+  .mfa-card > p, .mfa-list, .mfa-add, .mfa-steps { max-width: 40rem; }
+  .mfa-note { margin: 0.5rem 0 0; color: var(--muted); font-size: var(--fs-7); line-height: 1.55; }
+  .mfa-state { margin: 0.6rem 0 0; line-height: 1.6; }
+  .mfa-state button { margin-left: 0.5rem; }
+  .mfa-list { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
+  .mfa-list :global(li) { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; padding: 0.55rem 0.7rem; border: 1px solid var(--line); border-radius: 6px; }
+  .mfa-list :global(.mfa-name) { font-weight: 700; }
+  .mfa-list :global(.mfa-since) { color: var(--muted); font-size: var(--fs-7); }
+  .mfa-list :global(button) { margin-left: auto; }
+  .mfa-add { display: flex; align-items: flex-end; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.9rem; }
+  .mfa-add .field { margin: 0; flex: 1 1 12rem; }
+  .mfa-steps { margin: 0.9rem 0 0; padding-left: 1.2rem; display: grid; gap: 0.9rem; }
+  .mfa-steps li { display: grid; gap: 0.5rem; justify-items: start; }
+  .mfa-qr { display: block; width: 184px; height: 184px; border-radius: 6px; }
+  .mfa-secret { word-break: break-all; letter-spacing: var(--ls-6); }
+  .mfa-confirm { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .mfa-confirm .inp { width: 9rem; }
+</style>
+
+<script>
+  import '../../scripts/account-mfa';
+</script>

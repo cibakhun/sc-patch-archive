@@ -6,6 +6,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
+  import { needsCode, needsAal2Error } from '../lib/mfa';
+  import { askCode } from '../lib/mfa-dialog';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -154,6 +156,19 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         return;
       }
       const user = userData.user;
+
+      // Zweiter Faktor: hat das Konto einen bestätigten Authenticator und
+      // steht diese Sitzung noch ohne Code (z. B. nach „Mit Discord
+      // bestätigen“ oder dem Verbinden von Discord), kommt zuerst der Code.
+      // Abbruch meldet ab — wie auf der Anmeldeseite.
+      if (await needsCode(supabase, true)) {
+        if (!(await askCode(supabase))) {
+          await supabase.auth.signOut({ scope: 'local' });
+          location.replace(D.login! + '?next=' + encodeURIComponent(location.pathname + location.search));
+          return;
+        }
+        document.dispatchEvent(new CustomEvent('vb:aal2'));
+      }
 
       // Header Identity
       document.getElementById('idEmail')!.textContent = user.email || '—';
@@ -1570,12 +1585,18 @@ import { supabase, FAV_PATH } from '../lib/supabase';
               return code === 'invalid_credentials' ? D.msgCurWrong!
                 : code.includes('rate_limit') ? D.msgRate! : D.msgNet!;
             }
-            return data.user && data.user.id === user.id ? '' : D.msgNet!;
+            if (!data.user || data.user.id !== user.id) return D.msgNet!;
           } catch { return D.msgNet!; }
+        } else {
+          const { data } = await supabase.auth.getSession();
+          const s = data.session;
+          if (!(s && s.user.id === user.id && signedInRecently(s.access_token))) return D.msgReauthNeed!;
         }
-        const { data } = await supabase.auth.getSession();
-        const s = data.session;
-        return s && s.user.id === user.id && signedInRecently(s.access_token) ? '' : D.msgReauthNeed!;
+        // Die frische Anmeldung steht auf aal1. Für ein Konto mit
+        // Authenticator nimmt Supabase E-Mail und Passwort nur aus einer
+        // Sitzung mit Code an (insufficient_aal) — also gleich nachfragen.
+        if ((await needsCode(supabase)) && !(await askCode(supabase))) return D.msgMfaNeed!;
+        return '';
       };
 
       // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
@@ -1637,7 +1658,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate! : D.msgNet!);
+          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate!
+            : needsAal2Error(error) ? D.msgMfaNeed! : D.msgNet!);
           return;
         }
         clearValue('seEmailCur');
@@ -1671,6 +1693,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             : code === 'weak_password' ? D.msgWeak!
             : code.includes('current_password') ? D.msgCurWrong!
             : code === 'reauthentication_needed' ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : needsAal2Error(error) ? D.msgMfaNeed!
             : D.msgNet!);
           return;
         }
@@ -1752,8 +1775,14 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           if (!roleRow || roleRow.role !== 'admin') return; // Karte bleibt verborgen, KEIN Aufruf von tester_overview()
 
           const { data: rows, error } = await supabase.rpc('tester_overview');
-          // Schlaegt der Aufruf fehl (Rolle waehrenddessen entzogen o.ae.),
-          // bleibt die Karte verborgen statt eine Fehlermeldung zu zeigen.
+          // Admin ohne Code (seit 20261030142000_admin_second_factor): Hinweis
+          // statt Liste. Jeder andere Fehler (Rolle waehrenddessen entzogen
+          // o.ae.) laesst die Karte verborgen statt eine Meldung zu zeigen.
+          if (error && (error as { hint?: string }).hint === 'aal2') {
+            overviewBody.textContent = D.testerNeedsCode || '';
+            overviewCard.hidden = false;
+            return;
+          }
           if (error) return;
           const list: Array<{ handle: string; display_name: string | null; discord_user_id: string | null; last_staging_seen: string | null }> =
             Array.isArray(rows) ? rows : [];
