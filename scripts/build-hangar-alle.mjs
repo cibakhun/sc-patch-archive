@@ -7,7 +7,11 @@
 // Je Schiff höchstens 16 MB (GLB plus neu in der Ablage); darüber in dieser
 // Folge: Innenraum weg, Farbkarten 512 px, WebP-Qualität 72, stärker dezimiert.
 //
-// Usage: node scripts/build-hangar-alle.mjs [--max <n>] [--only a,b] [--redo]
+// --kind interior (.planning/notes/hangar-innenleben.md): begehbare Innenräume,
+// public/hangar/interior/<slug>.glb, Stand in alle-innen.json; Stufen gegen
+// die 16 MB: Farbkarten 512 px, WebP-Qualität 72, stärker dezimiert.
+//
+// Usage: node scripts/build-hangar-alle.mjs [--kind interior] [--max <n>] [--only a,b] [--redo]
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -17,9 +21,10 @@ const arg = (k) => (argv.includes(k) ? argv[argv.indexOf(k) + 1] : null);
 const MAX = Number(arg('--max') ?? Infinity);
 const ONLY = arg('--only')?.split(',') ?? null;
 const REDO = argv.includes('--redo');
+const INNER = arg('--kind') === 'interior', KIND = INNER ? 'interior' : 'ships';
 const ROOT = new URL('../', import.meta.url);
 const f = (p) => fileURLToPath(new URL(p, ROOT));
-const STAND = f('.cache/hangar-src/alle-stand.json');
+const STAND = f(`.cache/hangar-src/${INNER ? 'alle-innen' : 'alle-stand'}.json`);
 const MANIFEST = f('src/data/hangar-assets.json');
 const POOL = f('public/hangar/tex/');
 const RAW = f('.cache/hangar-src/ships/');
@@ -35,7 +40,9 @@ const rest = raw.filter((s) => !have.includes(s) && !FIRST.includes(s));
 // Bodenfahrzeuge wie in HangarApp.astro: auch die Gravlev-Räder (Krisz 25.10.2026)
 const ground = (s) => vehicles.get(s)?.isSpaceship === false || vehicles.get(s)?.isGravlev === true;
 rest.sort((a, b) => (ground(a) - ground(b)) || ((vehicles.get(a)?.lengthM ?? 999) - (vehicles.get(b)?.lengthM ?? 999)) || a.localeCompare(b));
-const order = (ONLY ?? [...have, ...FIRST.filter((s) => raw.includes(s)), ...rest]).filter((s, i, all) => all.indexOf(s) === i && raw.includes(s));
+// Innenräume: zuerst die fünf, an denen die Cloud das Einsteigen baut, dann die Web-Schiffe
+const FIRST_INNER = ['gama-railen', 'misc-freelancer', 'drak-cutlass-black', 'anvl-carrack', 'rsi-constellation-andromeda'];
+const order = (ONLY ?? (INNER ? [...FIRST_INNER, ...have] : [...have, ...FIRST.filter((s) => raw.includes(s)), ...rest])).filter((s, i, all) => all.indexOf(s) === i && raw.includes(s));
 
 const stand = existsSync(STAND) ? JSON.parse(readFileSync(STAND, 'utf8')) : {};
 const poolFiles = () => new Map(readdirSync(POOL).map((x) => [x, statSync(`${POOL}${x}`).size]));
@@ -43,6 +50,7 @@ const STEPS = [{}, { HANGAR_SHIP_NO_INTERIOR: '1' }, { HANGAR_SHIP_NO_INTERIOR: 
   // über den Auftrag hinaus: stärker dezimieren (build-hangar-assets.mjs, HANGAR_SHIP_ERR)
   { HANGAR_SHIP_NO_INTERIOR: '1', HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' },
   { HANGAR_SHIP_NO_INTERIOR: '1', HANGAR_SHIP_TEX: '256', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' }];
+if (INNER) STEPS.splice(0, STEPS.length, {}, { HANGAR_SHIP_TEX: '512' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' });
 let done = 0;
 for (const slug of order) {
   if (done >= MAX) break;
@@ -53,8 +61,8 @@ for (const slug of order) {
   for (step = 0; step < STEPS.length; step++) {
     // Stufe 0 ohne mitgebrachte HANGAR_SHIP_*, sonst nennt step nicht, wie gebaut wurde
     const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^HANGAR_SHIP_/.test(k)));
-    const r = spawnSync(process.execPath, ['--max-old-space-size=28000', f('scripts/build-hangar-assets.mjs'), '--kind', 'ships', '--ships', slug, '--only', slug, '--force'], { env: { ...env, ...STEPS[step] }, encoding: 'utf8', maxBuffer: 1 << 28 });
-    entry = JSON.parse(readFileSync(MANIFEST, 'utf8')).ships?.[slug] ?? null;
+    const r = spawnSync(process.execPath, ['--max-old-space-size=28000', f('scripts/build-hangar-assets.mjs'), '--kind', KIND, '--ships', slug, '--only', slug, '--force'], { env: { ...env, ...STEPS[step] }, encoding: 'utf8', maxBuffer: 1 << 28 });
+    entry = JSON.parse(readFileSync(MANIFEST, 'utf8'))[KIND]?.[slug] ?? null;
     if (r.status !== 0 || !entry) { err = (r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' | '); break; }
     const after = poolFiles();
     const fresh = [...after].filter(([k]) => !before.has(k)).reduce((a, [, b]) => a + b, 0);
@@ -68,10 +76,12 @@ for (const slug of order) {
     ok: true, rawMtime: statSync(`${RAW}${slug}.glb`).mtimeMs, bytes: entry.bytes, fresh: size - entry.bytes, total: size, over16: size > LIMIT,
     step: Math.min(step, STEPS.length - 1), tris: entry.tris, images: entry.pool?.images ?? null, interiorDropped: entry.interiorDropped ?? null,
     gear: !!entry.gear, gearWhy: entry.gear ? null : entry.gearCheck?.why ?? null, s,
+    ...(INNER ? { containers: entry.containers, trisRaw: entry.trisInterior, lights: entry.lights?.length ?? 0, spots: entry.spots?.length ?? 0, inHull: entry.inHull?.ok ?? null, inHullWhy: entry.inHull?.why ?? null } : {}),
   };
   writeFileSync(STAND, JSON.stringify(stand, null, 1));
   done++;
   const x = stand[slug];
+  if (INNER && x.ok) { console.log(`${slug.padEnd(34)} ${(x.total / 1048576).toFixed(1).padStart(5)} MB (GLB ${(x.bytes / 1048576).toFixed(1)}, neu ${(x.fresh / 1048576).toFixed(1)})  ${x.trisRaw} -> ${x.tris} Dr.  Stufe ${x.step}  ${x.containers} Container  ${x.lights} Lichter  ${x.spots} Punkte  im Rumpf ${x.inHull ? 'ja' : `NEIN (${x.inHullWhy})`}  ${s} s`); continue; }
   console.log(x.ok ? `${slug.padEnd(34)} ${(x.total / 1048576).toFixed(1).padStart(5)} MB (GLB ${(x.bytes / 1048576).toFixed(1)}, neu ${(x.fresh / 1048576).toFixed(1)})  ${String(x.tris).padStart(7)} Dr.  Stufe ${x.step}  Innenraum ${x.interiorDropped ? 'weg' : 'ja'}  gear ${x.gear ? 'ja' : `nein (${x.gearWhy})`}  ${s} s` : `${slug}: FEHLER ${x.error}`);
 }
 const ok = Object.values(stand).filter((x) => x.ok);
