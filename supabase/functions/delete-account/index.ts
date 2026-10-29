@@ -9,11 +9,14 @@
 // Sperrgrund stehen, nur user_id wird leer (20261030131000).
 // Scheitert das Aufräumen der Bilder, bleibt das Konto bestehen (500), damit
 // keine Dateien eines gelöschten Kontos öffentlich zurückbleiben.
+// Ohne frische Anmeldung (fresh.ts) antwortet die Funktion 401
+// reauth_required und löscht nichts.
 //
 // Version fest gepinnt (vorher jsr:@supabase/supabase-js@2, also jeweils die
 // neueste 2.x zum Zeitpunkt des Deploys).
 import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 import { purgeUserFiles } from './purge.ts';
+import { signedInRecently } from './fresh.ts';
 
 const ALLOWED_ORIGINS = new Set([
   'https://verse-base.com',
@@ -57,6 +60,9 @@ Deno.serve(async (req: Request) => {
     const user = userData?.user;
     if (userErr || !user) {
       return new Response(JSON.stringify({ error: 'invalid_token' }), { status: 401, headers });
+    }
+    if (!signedInRecently(jwt, Date.now() / 1000)) {
+      return new Response(JSON.stringify({ error: 'reauth_required' }), { status: 401, headers });
     }
 
     const admin = createClient(
