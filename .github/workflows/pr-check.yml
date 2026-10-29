@@ -1,0 +1,69 @@
+# Pruefung jedes Pull Requests gegen staging oder main — VOR dem Merge statt
+# erst danach im Deploy. Derselbe Baustein wie die Deploys
+# (build-site-image.yml): das Image wird gebaut, das Tor im Dockerfile
+# laeuft, Indexierbarkeit und Browser-Rauchtest am fertigen Image. Es wird
+# nichts hochgeladen und nichts veroeffentlicht.
+#
+# Absichtlich `pull_request` und NICHT `pull_request_target`: ein PR aus
+# einem Fork laeuft so ohne Secrets und mit Leserecht. pull_request_target
+# wuerde fremden Code mit den Rechten dieses Repos ausfuehren.
+#
+# Vorschau oder Live? PRs nach staging werden als Vorschau gebaut (Tor
+# scharf, check-gate laeuft mit), PRs nach main als Live-Build.
+name: PR-Pruefung
+
+on:
+  pull_request:
+    branches: [staging, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  site:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-site-image.yml
+    with:
+      staging: ${{ github.base_ref == 'staging' }}
+      tags: |
+        sc-patch-archive:pr-${{ github.event.pull_request.number }}
+
+  # Der Bot hat kein Tor im Seiten-Image; sein Selbsttest und die
+  # Importprobe laufen im Bot-Dockerfile. Gebaut wird nur, nichts geschoben.
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Bot-Image bauen (mit Selbsttest)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: discord/bot/Dockerfile
+          push: false
+          provenance: false
+          tags: verse-base-rank-bot:pr-${{ github.event.pull_request.number }}
+
+  # Neue oder angehobene Abhaengigkeiten mit bekannter Luecke ab "high"
+  # halten den PR auf.
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        with:
+          fail-on-severity: high

@@ -71,3 +71,13 @@ skills-lock.json
 
 # Messdaten und Aufnahmen der Aufloesungs-Werkzeuge (16 MB, reproduzierbar)
 /.planning/sketches/tools/out/
+
+# Lokale Umgebungsdateien mit Geheimnissen (Tokens, Schluessel) — NIE
+# einchecken. Das Repo ist oeffentlich, und ein einmal gepushtes Geheimnis
+# gilt als verbrannt, auch wenn der Commit danach verschwindet. Nur die
+# Vorlagen ohne Werte gehoeren ins Repo.
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example

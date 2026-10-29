@@ -1,6 +1,11 @@
 # Build the static Astro site in CI (plenty of RAM), then serve it with nginx.
 # Coolify pulls this prebuilt image — no build on the memory-constrained server.
-FROM node:22-alpine AS build
+#
+# Beide Basis-Images per Digest angeheftet: ein Tag wie `nginx:alpine` zeigt
+# morgen auf ein anderes Image, und was dann gebaut wird, hat niemand
+# geprueft. Dependabot (.github/dependabot.yml) hebt den Digest woechentlich
+# als PR an, verify:supply-chain reisst bei einem FROM ohne Digest.
+FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -50,7 +55,7 @@ RUN npm run build
 # den letzten guten Stand.
 RUN npm run gate
 
-FROM nginx:alpine
+FROM nginx:alpine@sha256:785835ea65db4bba6f021acc0f3be91b0fef76a53fe41f8588c6698d2aed0606
 # Testpilot-Tuersteher (Phase 14 Plan 01, D-23): dasselbe Blech wie live, nur
 # der Schalter unten entscheidet, ob er greift. OHNE Bedingung installiert —
 # D-23 verlangt ausdruecklich dasselbe Image fuer live und Vorschau; ein
