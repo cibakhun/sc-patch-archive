@@ -13,8 +13,8 @@
 -- ist jetzt eigener Anzeigename, Discord-Anzeigename (global_name),
 -- Discord-Benutzername, sonst 'Pilot'. Grundlage ist die Live-Fassung
 -- (pg_get_functiondef am 29.10.2026; live als Version 20261029121956
--- allow_discord_signup gefuehrt, im Repo
--- 20261029120000_allow_discord_signup.sql); alles andere ist wortgleich.
+-- allow_discord_signup gefuehrt, im Repo unter demselben Namen
+-- 20261029121956_allow_discord_signup.sql); alles andere ist wortgleich.
 --
 -- WAS ES FUER DIE SEITE BEDEUTET: wer sich ohne Anzeigenamen registriert,
 -- heisst zunaechst "Pilot" und waehlt seinen Namen im Dashboard. Bestehende
