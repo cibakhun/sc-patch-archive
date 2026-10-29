@@ -33,7 +33,9 @@
 // nicht exakt einer der drei Formen entspricht (unbekannte Schluessel, falsche
 // Typen, leeres patch, Rumpf ueber 2 KB), 500 Datenbankfehler (nur im Log
 // beschriftet). Kein CORS: reine Server-zu-Server-Schnittstelle.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Version fest gepinnt wie in stripe-webhook und delete-account (vorher @2,
+// also jeweils die neueste 2.x zum Zeitpunkt des Deploys).
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
 const MAX_BODY = 2048;
 const PAGE = 1000;

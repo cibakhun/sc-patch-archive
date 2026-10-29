@@ -1457,12 +1457,6 @@ import { escapeHtml as escHtml } from '../lib/escape';
         // Niemand: die Zeitpunkte gleich mit leeren (die Datenbank tut es bei
         // 'none' ohnehin), damit der Status sofort verschwindet.
         if (presVisKnown && presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
-        if (profileState.rsi_verified === true
-          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
-          payload.rsi_verified = false;
-          profileState.rsi_verified = false;
-          updateCard();
-        }
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}

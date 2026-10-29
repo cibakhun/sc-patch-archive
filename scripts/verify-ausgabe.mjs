@@ -72,7 +72,8 @@ const rel = (p) => relative(ROOT, p).replaceAll('\\', '/');
 // Bloecke nicht mehr erkannt) — dafuer reicht 50.000: rund 5 % unter dem
 // kleineren Build, und schon der Wegfall einer einzigen Blockart auf den
 // Datenseiten (gut 17.000 Bloecke) faellt weit darunter.
-const MIN_HELFER_STELLEN = 19;
+// 20 seit HangarPage.astro die Suchwoerter per jsonForScript einbettet.
+const MIN_HELFER_STELLEN = 20;
 const MIN_MASKIERER = 30;
 const MIN_JSON_BLOECKE = 50000;
 const MIN_FENSTER_BLOECKE = 10;

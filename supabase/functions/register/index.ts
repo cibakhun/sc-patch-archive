@@ -20,7 +20,9 @@
 // `signup_paused`, BEVOR sie irgendetwas anlegt. Anmeldung bestehender
 // Konten und Discord-Anmeldung laufen unverändert. Der Rest bleibt als
 // Referenz stehen, bis die Funktion gelöscht wird.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Version fest gepinnt wie in stripe-webhook und delete-account (vorher @2,
+// also jeweils die neueste 2.x zum Zeitpunkt des Deploys).
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
 const SIGNUP_PAUSED = true;
 
