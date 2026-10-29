@@ -170,6 +170,21 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
   eigenen Familie (600i BIS2951 aus ORIG 600i). Alle acht Lacke der BIS2951
   tragen jetzt Palette und Finish.
 
+- **Teil A nach Vertrag (PC, 29.10.2026):** `datamine:paints` schreibt
+  `finish { a/b/c: { specular, gloss } }` für `base` und jede Lackierung:
+  2103 von 2103 Lackierungen und 207 von 207 Grundpaletten vollständig, mit
+  Metall (metallic > 0,5 nach `palettePbr`) 1246 bzw. 114. Lack ab Werk auch
+  über `entityClassReference` (1: Hornet F7C-M Mk II Heartseeker; ab Werk
+  lackiert jetzt 4). Der Bau schreibt an jedes Palettenmaterial der eigenen
+  Palette `extras.palette { ch, tint, specular, gloss }` (Werte aus
+  `ship-paints.json`, sonst aus dem Rohexport) und setzt Grundfarbe, Metall
+  und Rauheit aus `palettePbr` (importiert aus `assets/hangar-viewer.js`).
+  Alle 231 Web-Schiffe auf dem mit PR #223 (Innenraum) vereinten Stand neu
+  gebaut, damit auch dessen 26 Schiffe. Corsair primär: Stahl (metallic 1,
+  Grundfarbe 0,33, Rauheit 0,41) statt Schwarz; im Hangar hell (angesehen).
+  Railen bleibt gestreift: Kanal A Weiß tönt die Steinlinien, B und C sind
+  Metall.
+
 ### Teil B: Landestellung
 
 - **Rumpf zuerst:** `poseShip` (`scripts/lib/landing-gear.mjs`) spielt vor
