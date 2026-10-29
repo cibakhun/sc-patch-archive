@@ -79,10 +79,15 @@ eintragen — damit verhält sich 7 wie bisher und die Migration bleibt bei eine
 Sache. Der Wechsel auf `'jsx'` ist danach ein eigener, optischer Durchgang.
 
 ### 5. Vite 7 (v6) und Vite 8 (v7)
-Keine eigenen Vite-Plugins im Projekt. `astro.config.mjs` nutzt nur
-`server.allowedHosts` (Astro-Ebene, nicht `vite.server`) — der frühere Fallstrick
-ist also schon umgangen. Restrisiko: Wie Vite die `_astro/*`-Bundles benennt und
-aufteilt. Da unsere URLs gehasht sind, ist das folgenlos.
+Ein eigenes Vite-Plugin: `vb-block-open-in-editor` in `astro.config.mjs`, nur
+`configureServer`, nur im Dev-Server (sperrt `/__open-in-editor` mit 403).
+`tests/e2e/dev-server.test.js` hält es fest; nach dem Sprung trotzdem einmal
+`astro dev` starten und `curl -i http://localhost:4321/__open-in-editor` → 403
+prüfen, denn der Test sieht die Reihenfolge der Middlewares nicht.
+Außerdem `server.allowedHosts` (Astro-Ebene, nicht `vite.server`, Tunnel-Hosts
+nur mit `VB_TUNNEL=1`) — der frühere Fallstrick ist also schon umgangen.
+Restrisiko: Wie Vite die `_astro/*`-Bundles benennt und aufteilt. Da unsere
+URLs gehasht sind, ist das folgenlos.
 
 ### 6. `i18n.routing.redirectToDefaultLocale` wird `false` (v6)
 Wir setzen `prefixDefaultLocale: false`, EN liegt präfixlos auf der Wurzel — die

@@ -11,6 +11,53 @@ import { defineConfig } from 'astro/config';
 // Deploy target still open (user picked manual build). If this ends up on a
 // GitHub Pages *project* path, add: base: '/sc-patch-archive'
 // Cloudflare Pages (recommended in the blueprint) serves at root -> no base needed.
+
+// Tunnel-Vorschau nur auf ausdrückliche Ansage. Ohne VB_TUNNEL lassen
+// `astro dev` und `astro preview` nur localhost und IP-Adressen zu
+// (Vite-Standard), eine Tunnel-URL bekommt 403. Geteilt wird die gebaute
+// Seite, nicht der Dev-Server — `astro preview` liefert nur dist/:
+//   PowerShell:  npm.cmd run build; $env:VB_TUNNEL = '1'; npm.cmd run preview
+export const TUNNEL_HOSTS = ['.loca.lt', '.trycloudflare.com'];
+const TUNNEL = /^(1|true)$/i.test(process.env.VB_TUNNEL ?? '');
+
+// Vites Dev-Server bietet `/__open-in-editor` ohne Anmeldung an; der Endpunkt
+// startet auf dem Rechner einen Editor-Prozess. Dieses Projekt braucht ihn
+// nicht (es fehlt nur der „im Editor öffnen"-Link im Fehler-Overlay).
+// Middlewares, die ein Plugin direkt in configureServer einhängt, laufen vor
+// Vites eigenen — der Riegel antwortet also zuerst. `LAUNCH_EDITOR=none` wäre
+// kein Ersatz: der Wert wird nur zum Namen des gestarteten Programms.
+// Geprüft in tests/e2e/dev-server.test.js.
+/** @param {string | undefined} url */
+export function isOpenInEditor(url) {
+  let p = String(url ?? '');
+  const cut = p.search(/[?#]/);
+  if (cut !== -1) p = p.slice(0, cut);
+  try {
+    p = decodeURIComponent(p);
+  } catch {
+    // kaputte %-Folge: roh weiterprüfen
+  }
+  // includes statt startsWith: fängt auch die Absolutform
+  // (`GET http://host/__open-in-editor`), die connect ebenfalls zuordnet.
+  return p.toLowerCase().includes('/__open-in-editor');
+}
+
+/** @returns {import('vite').Plugin} */
+export function blockOpenInEditor() {
+  return {
+    name: 'vb-block-open-in-editor',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!isOpenInEditor(req.url)) return next();
+        res.statusCode = 403;
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.end('403 Forbidden\n');
+      });
+    },
+  };
+}
+
 export default defineConfig({
   site: 'https://verse-base.com',
   build: { format: 'file' },
@@ -22,10 +69,14 @@ export default defineConfig({
     locales: ['de', 'en'],
     routing: { prefixDefaultLocale: false },
   },
-  // Tunnel-Hosts (loca.lt/cloudflared). Astro-Level `server.allowedHosts`
-  // (seit 5.4) gilt für `astro dev` UND `astro preview` — die frühere
-  // vite.server-Variante griff nur im Dev-Server (preview: 403).
+  // Tunnel-Hosts (loca.lt/cloudflared), nur mit VB_TUNNEL (siehe oben).
+  // Astro-Level `server.allowedHosts` (seit 5.4) gilt für `astro dev` UND
+  // `astro preview` — die frühere vite.server-Variante griff nur im
+  // Dev-Server (preview: 403).
   server: {
-    allowedHosts: ['.loca.lt', '.trycloudflare.com'],
+    allowedHosts: TUNNEL ? TUNNEL_HOSTS : [],
+  },
+  vite: {
+    plugins: [blockOpenInEditor()],
   },
 });
