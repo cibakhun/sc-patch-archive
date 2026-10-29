@@ -96,12 +96,12 @@ const COPY = {
     rsiModalTitle: 'RSI Account Verifizierung',
     rsiModalIntroPre: 'Verifiziere deinen Star Citizen Account',
     rsiModalIntroPost: 'auf Roberts Space Industries.',
-    rsiStep1: 'Kopiere diesen persönlichen Verifizierungscode (er bleibt dauerhaft gleich):',
+    rsiStep1: 'Kopiere deinen Verifizierungscode für dieses Handle (er bleibt für das Handle gleich):',
     rsiCopy: 'Kopieren',
     rsiCopied: 'Kopiert! ✓',
     rsiStep2Pre: 'Öffne deine',
     rsiStep2Link: 'RSI Profil-Einstellungen',
-    rsiStep2Post: 'und füge den Code in das Textfeld Bio ein (Account → Profile) und speichere.',
+    rsiStep2Post: 'und füge den Code in das Textfeld Bio ein (Account → Profile) und speichere. Lass ihn dort stehen: VerseBase prüft ihn ab und zu erneut.',
     rsiStep3: 'Klicke auf Prüfen — VerseBase sucht serverseitig in deiner RSI Bio nach dem Code.',
     rsiCheckNow: 'RSI Bio jetzt prüfen',
     rsiClose: 'Schließen',
@@ -110,6 +110,9 @@ const COPY = {
     rsiEnterHandle: 'Bitte trage zuerst dein RSI Citizen Handle im Feld oben ein (z. B. Roberts).',
     rsiNotFound: 'Code "%code%" wurde noch nicht in der Bio von @%handle% auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI (die Anzeige kann 1–2 Minuten dauern).',
     rsiServerErr: 'Der Verifizierungsserver ist gerade nicht erreichbar — bitte später erneut versuchen.',
+    rsiBadHandle: 'Ein RSI-Handle hat 3–60 Zeichen: Buchstaben, Ziffern, _ und -.',
+    rsiRate: 'Zu viele Prüfungen in kurzer Zeit. Bitte versuche es in einer Stunde erneut.',
+    rsiNewCode: 'Dein bisheriger Code gilt nicht mehr. Oben steht ein neuer: bitte ersetze ihn in deiner RSI-Bio und prüfe dann erneut.',
     discordTag: 'Discord', discordPh: 'z. B. @pilot', discordFromLink: 'Kommt aus deiner Discord-Verbindung', avatarDiscord: 'Discord-Bild',
     secDiscordLink: 'Discord-Konto verbinden',
     dcLinkDesc: 'Verbinde dein Discord-Konto. Erst dann kennt die Seite deine Discord-Rollen (z. B. Testpilot). Die E-Mail-Adresse bei Discord spielt keine Rolle.',
@@ -255,12 +258,12 @@ const COPY = {
     rsiModalTitle: 'RSI Account Verification',
     rsiModalIntroPre: 'Verify your Star Citizen account',
     rsiModalIntroPost: 'on Roberts Space Industries.',
-    rsiStep1: 'Copy your personal verification code (it always stays the same):',
+    rsiStep1: 'Copy your verification code for this handle (it stays the same for this handle):',
     rsiCopy: 'Copy',
     rsiCopied: 'Copied! ✓',
     rsiStep2Pre: 'Open your',
     rsiStep2Link: 'RSI profile settings',
-    rsiStep2Post: 'and paste the code into the Bio text field (Account → Profile), then save.',
+    rsiStep2Post: 'and paste the code into the Bio text field (Account → Profile), then save. Leave it there: VerseBase re-checks it from time to time.',
     rsiStep3: 'Click Check — VerseBase searches your RSI bio for the code server-side.',
     rsiCheckNow: 'Check RSI bio now',
     rsiClose: 'Close',
@@ -269,6 +272,9 @@ const COPY = {
     rsiEnterHandle: 'Please enter your RSI Citizen handle in the field above first (e.g. Roberts).',
     rsiNotFound: 'Code "%code%" was not found in @%handle%\'s bio on robertsspaceindustries.com yet. Please save your bio on RSI (it can take 1–2 minutes to show up).',
     rsiServerErr: 'The verification server is currently unreachable — please try again later.',
+    rsiBadHandle: 'An RSI handle has 3–60 characters: letters, digits, _ and -.',
+    rsiRate: 'Too many checks in a short time. Please try again in an hour.',
+    rsiNewCode: 'Your previous code is no longer valid. A new one is shown above: please replace it in your RSI bio, then check again.',
     discordTag: 'Discord', discordPh: 'e.g. @pilot', discordFromLink: 'Comes from your Discord connection', avatarDiscord: 'Discord picture',
     secDiscordLink: 'Connect Discord account',
     dcLinkDesc: 'Connect your Discord account. Only then does the site know your Discord roles (e.g. Test Pilot). Your Discord e-mail address does not matter.',
@@ -465,6 +471,9 @@ const SEC = {
   data-msg-rsi-reset-ok={COPY.rsiResetOk}
   data-rsi-copy={COPY.rsiCopy}
   data-rsi-copied={COPY.rsiCopied}
+  data-msg-rsi-bad-handle={COPY.rsiBadHandle}
+  data-msg-rsi-rate={COPY.rsiRate}
+  data-msg-rsi-new-code={COPY.rsiNewCode}
   data-msg-uploading={COPY.uploading}
   data-msg-upload-toobig={COPY.uploadTooBig}
   data-msg-upload-badtype={COPY.uploadBadType}
@@ -1033,7 +1042,7 @@ const SEC = {
           <div class="step-txt">
             <span>{COPY.rsiStep1}</span>
             <div class="rsi-code-box" style="margin-top:0.4rem">
-              <code id="rsiVerifyCode">VERSEBASE-VERIFY-LOADING</code>
+              <code id="rsiVerifyCode">…</code>
               <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">{COPY.rsiCopy}</button>
             </div>
           </div>

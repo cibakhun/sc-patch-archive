@@ -590,18 +590,24 @@ body{font-family:var(--font-body)}
     <h2 id="rsi">RSI-Verifizierung (nur mit Konto)</h2>
     <p>
       Im Dashboard kannst du freiwillig dein Citizen-Handle bei Roberts Space Industries (RSI)
-      eintragen und bestätigen, dass es dir gehört. Dafür teilt dir das Konto beim ersten Öffnen
-      des Dashboards einen persönlichen Code (VERSEBASE-VERIFY-…) zu und speichert ihn; du trägst
-      ihn in deine öffentliche Bio auf robertsspaceindustries.com ein. Auf deinen Klick ruft unser
+      eintragen und bestätigen, dass es dir gehört. Dafür stellt dir unser Serverteil für dieses
+      Handle einen persönlichen Prüfcode (VB-…) aus und speichert ihn; ein noch nicht bestätigter
+      Code gilt 24 Stunden. Du trägst ihn in deine öffentliche Bio auf robertsspaceindustries.com
+      ein. Auf deinen Klick ruft unser
       Serverteil (eine Supabase-Funktion) die öffentliche Profilseite
       robertsspaceindustries.com/citizens/&lt;Handle&gt; ab und sucht dort den Code. RSI (Roberts
       Space Industries International Limited, Vereinigtes Königreich) erfährt dabei nur das Handle, und zwar von einem Server von Supabase aus; deine IP-Adresse,
-      E-Mail-Adresse oder Konto-ID erfährt RSI nicht. Ist das Handle verifiziert, wiederholt das
-      Dashboard die Prüfung bei jedem Aufruf; steht der Code nicht mehr in der Bio, wird die
-      Verifizierung aufgehoben.
+      E-Mail-Adresse oder Konto-ID erfährt RSI nicht. Ist das Handle verifiziert, prüft das
+      Dashboard bei jedem Aufruf nach; RSI wird dafür höchstens alle 6 Stunden abgefragt. Steht der
+      Code nicht mehr in der Bio, wird die Verifizierung aufgehoben. Ein verifiziertes RSI-Handle
+      gehört höchstens einem Konto: Bestätigt ein anderes Konto dasselbe Handle mit seinem Code,
+      verliert deines das Abzeichen. Änderst du das RSI-Handle, entfällt die Verifizierung.
     </p>
     <p>
-      Gespeichert werden RSI-Handle, Code und Prüfergebnis. Hast du ein Handle bei uns gesetzt,
+      Gespeichert werden RSI-Handle, Code, Prüfergebnis und die Zeitpunkte, zu denen der Code
+      ausgestellt, bestätigt und zuletzt nachgeprüft wurde; damit niemand RSI in kurzer Folge
+      abfragen lässt, außerdem für 24 Stunden die Zeitpunkte deiner Prüfaufrufe (höchstens 30 je
+      Stunde). Hast du ein Handle bei uns gesetzt,
       sind dein RSI-Handle (auch unverifiziert, als Link zu RSI) und das Abzeichen „RSI
       verifiziert“ auf deinem <a href="#profile">Piloten-Profil</a> öffentlich; den Code siehst
       nur du. Leerst du das Feld und speicherst, ist das RSI-Handle gelöscht; „Verifizierung
@@ -782,8 +788,8 @@ body{font-family:var(--font-body)}
         EU-US Data Privacy Framework teil</li>
       <li><strong>Roberts Space Industries</strong> (Roberts Space Industries International
         Limited, Vereinigtes Königreich, nach eigenen Angaben auch mit Servern in den USA): dein
-        RSI-Handle bei der <a href="#rsi">RSI-Verifizierung</a> und, solange es verifiziert ist, bei
-        jedem Aufruf des Dashboards; für das Vereinigte Königreich gilt ein Angemessenheitsbeschluss
+        RSI-Handle bei der <a href="#rsi">RSI-Verifizierung</a> und, solange es verifiziert ist,
+        höchstens alle 6 Stunden beim Aufruf des Dashboards; für das Vereinigte Königreich gilt ein Angemessenheitsbeschluss
         der EU-Kommission</li>
       <li><strong>Stripe</strong> und <strong>PayPal</strong>: Spenden, nach deren eigenen
         Datenschutzerklärungen auch in den USA</li>

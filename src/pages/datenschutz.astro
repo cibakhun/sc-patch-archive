@@ -557,18 +557,22 @@ body{font-family:var(--font-body)}
     <h2 id="rsi">RSI verification (account only)</h2>
     <p>
       In the dashboard you can voluntarily enter your citizen handle at Roberts Space Industries
-      (RSI) and confirm that it belongs to you. For this, the account assigns you a personal code
-      (VERSEBASE-VERIFY-…) the first time you open the dashboard and stores it; you put it into your
-      public bio on robertsspaceindustries.com. On your click, our server component (a Supabase
+      (RSI) and confirm that it belongs to you. For this, our server component issues a personal
+      check code (VB-…) for this handle and stores it; a code not yet confirmed is valid for 24
+      hours. You put it into your public bio on robertsspaceindustries.com. On your click, our server component (a Supabase
       function) fetches the public profile page robertsspaceindustries.com/citizens/&lt;handle&gt;
       and looks for the code there. RSI (Roberts Space Industries International Limited, United
       Kingdom) only learns the handle, and does so from a Supabase server;
       RSI does not learn your IP address, e-mail address or account ID. Once the handle is verified,
-      the dashboard repeats the check on every visit; if the code is no longer in the bio, the
-      verification is removed.
+      the dashboard re-checks it on every visit; RSI is queried for this at most every 6 hours. If
+      the code is no longer in the bio, the verification is removed. A verified RSI handle belongs
+      to one account at most: if another account confirms the same handle with its code, yours
+      loses the badge. If you change the RSI handle, the verification lapses.
     </p>
     <p>
-      Stored are RSI handle, code and check result. If you have set a handle with us, your RSI
+      Stored are RSI handle, code, check result and the times the code was issued, confirmed and
+      last re-checked; to stop anyone from having RSI queried in quick succession, also the times of
+      your check requests for 24 hours (at most 30 per hour). If you have set a handle with us, your RSI
       handle (even unverified, as a link to RSI) and the “RSI verified” badge are public on your
       <a href="#profile">pilot profile</a>; only you see the code. If you empty the field and save,
       the RSI handle is deleted; “Revoke verification” only removes the status. The legal basis is
@@ -745,8 +749,8 @@ body{font-family:var(--font-body)}
         in the EU-U.S. Data Privacy Framework</li>
       <li><strong>Roberts Space Industries</strong> (Roberts Space Industries International
         Limited, United Kingdom, by its own account also with servers in the USA): your RSI handle
-        during <a href="#rsi">RSI verification</a> and, while it is verified, on every dashboard
-        visit; an EU Commission adequacy decision applies to the United Kingdom</li>
+        during <a href="#rsi">RSI verification</a> and, while it is verified, at most every 6 hours
+        on a dashboard visit; an EU Commission adequacy decision applies to the United Kingdom</li>
       <li><strong>Stripe</strong> and <strong>PayPal</strong>: donations, according to their own
         privacy policies also in the USA</li>
     </ul>
