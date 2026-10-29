@@ -112,47 +112,63 @@ const ohneKommentar = (z) => (/^\s*#/.test(z) ? '' : z);
 const AUSDRUCK = /\$\{\{((?:'[^']*'|[^'}]|\}(?!\}))*)\}\}/g;
 const ohneText = (x) => x.replace(/\[\s*'([\w-]+)'\s*\]|'[^']*'/g, (m, idx) => (idx !== undefined ? `.${idx}` : "''"));
 const FREMDTEXT = /(?<![\w.-])github\s*(?:\.\s*head_ref\b|\.\s*event\b(?:\s*\.\s*[\w-]+|\s*\[[^\]]*\]|\s*\.\s*\*)*)/gi;
-const GANZ = /(?<![\w.-])github\b(?!\s*[.[])|(?<![\w.-])github\s*\.\s*\*/gi;
+// Ein `[` hinter `github`, das ohneText stehen liess, ist ein berechneter
+// Index (`github[format('{0}', 'head_ref')]`) und damit wieder der ganze Kontext.
+const GANZ = /(?<![\w.-])github\b(?!\s*\.)|(?<![\w.-])github\s*\.\s*\*/gi;
 const HARMLOS = /\.(number|id|sha|size|draft|merged|run_id|run_number)$/i;
-// Liefert der Ausdruck nur true/false oder ein festes Literal, kommt kein
-// Fremdtext ins Skript. && und || liefern einen ihrer Operanden, also gilt
-// das nur, wenn es fuer JEDEN Operanden gilt: ein Vergleich oder `!…` auf
-// oberster Ebene, ein Aufruf von contains, startsWith oder endsWith
-// (dahinter kann in gueltiger Syntax nur ein Operator stehen), ein Literal
-// ('', true, false, null, Zahl) oder eine Klammer um so etwas. So bleiben
-// `a == 'x' && '--flag' || ''` frei und `a == 'x' && github.event.issue.body`
-// ein Treffer. Erwartet den Ausdruck nach ohneText.
-function operanden(x) {
+// In das Skript kommt nur der WERT des Ausdrucks, und gesucht wird nur in
+// den Operanden, die zu ihm werden koennen. || liefert einen seiner
+// Operanden; && liefert den linken nur, wenn er falsy ist ('', 0, false,
+// null, NaN: kein Fremdtext), sonst den rechten. Je ||-Teil zaehlt also
+// nur das letzte &&-Glied. Ein Glied, das nur true/false liefert (ein
+// Vergleich oder `!…` auf oberster Ebene, ein Aufruf von contains,
+// startsWith oder endsWith; dahinter kann in gueltiger Syntax nur ein
+// Operator stehen), traegt nichts ein; eine Klammer um einen ganzen
+// Ausdruck wird ebenso zerlegt. Literale enthalten nach ohneText keinen
+// Pfad mehr. So bleiben `a == 'x' && '--flag' || ''` und
+// `github.head_ref && 'pr' || 'push'` frei, `a == 'x' && github.event.issue.body`
+// ist ein Treffer. Erwartet den Ausdruck nach ohneText.
+function teilen(x, op) {
   const out = [];
   let tiefe = 0, start = 0;
   for (let i = 0; i < x.length; i++) {
-    const c = x[i], zwei = x.slice(i, i + 2);
+    const c = x[i];
     if (c === '(' || c === '[') tiefe++;
     else if (c === ')' || c === ']') tiefe--;
-    else if (tiefe === 0 && (zwei === '&&' || zwei === '||')) { out.push(x.slice(start, i)); start = i + 2; i++; }
+    else if (tiefe === 0 && x.startsWith(op, i)) { out.push(x.slice(start, i)); start = i + op.length; i++; }
   }
   return [...out, x.slice(start)];
 }
-function wahrheitswertOderLiteral(x) {
-  const t = x.trim();
-  if (/^(?:''|true|false|null|-?(?:0x[\da-f]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?))$/i.test(t)) return true;
-  let tiefe = 0, zu = -1;
+function nurWahrheitswert(t) {
+  let tiefe = 0;
   for (let i = 0; i < t.length; i++) {
     const c = t[i], zwei = t.slice(i, i + 2);
     if (c === '(' || c === '[') tiefe++;
-    else if (c === ')' || c === ']') { if (--tiefe === 0 && zu < 0) zu = i; }
+    else if (c === ')' || c === ']') tiefe--;
     else if (tiefe === 0 && (['==', '!=', '<=', '>='].includes(zwei) || c === '<' || c === '>')) return true;
   }
-  if (t.startsWith('(') && zu === t.length - 1) return nurWahrheitswert(t.slice(1, -1));
   return t.startsWith('!') || /^(?:contains|startsWith|endsWith)\s*\(/i.test(t);
 }
-const nurWahrheitswert = (x) => operanden(x).every(wahrheitswertOderLiteral);
-const fremd = (s) => [...s.matchAll(AUSDRUCK)].flatMap(([, roh]) => {
-  const x = ohneText(roh);
-  if (nurWahrheitswert(x)) return [];
+function ganzGeklammert(t) {
+  if (!t.startsWith('(')) return false;
+  let tiefe = 0;
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] === '(' || t[i] === '[') tiefe++;
+    else if ((t[i] === ')' || t[i] === ']') && --tiefe === 0) return i === t.length - 1;
+  }
+  return false;
+}
+function wertGlieder(x) {
+  return teilen(x, '||').flatMap((teil) => {
+    const glied = teilen(teil, '&&').at(-1).trim();
+    if (nurWahrheitswert(glied)) return [];
+    return ganzGeklammert(glied) ? wertGlieder(glied.slice(1, -1)) : [glied];
+  });
+}
+const fremd = (s) => [...s.matchAll(AUSDRUCK)].flatMap(([, roh]) => wertGlieder(ohneText(roh)).flatMap((x) => {
   const pfade = [...x.matchAll(FREMDTEXT)].map((t) => t[0].replace(/\s+/g, '')).filter((p) => !HARMLOS.test(p));
   return [...pfade, ...[...x.matchAll(GANZ)].map((t) => t[0].replace(/\s+/g, ''))];
-});
+}));
 
 // Jeder `run:`-Schritt mit dem Skript, das Actions daraus macht. Gelesen
 // wird mit einem YAML-Leser statt mit Zeilenregeln: ob eine `#`-Zeile
@@ -194,7 +210,11 @@ for (const s of ['${{ github.head_ref || github.ref_name }}', "${{ github.event.
   "${{ contains(github.event.issue.labels.*.name, 'bug') || github.event.issue.title }}",
   "${{ format('{0}{1}', github.event.issue.title, 1 == 1) }}", "${{ github.event.issue.title == 'a' && github.event.issue.body }}",
   '${{ (github.event.issue.title) }}', "${{ github.event.inputs.x == 'true' && github.event.inputs.y || '' }}",
-  "${{ (github.event.issue.title == 'a') || github.event.issue.body }}", "${{ '' || github.head_ref }}"])
+  "${{ (github.event.issue.title == 'a') || github.event.issue.body }}", "${{ '' || github.head_ref }}",
+  "${{ steps.a.outputs.b && github.event.issue.body }}", "${{ (github.event_name == 'x' && github.event.issue.body) || '' }}",
+  "${{ github.event.issue.title || 'It''s' }}", "${{ (github.event.issue.title).x }}",
+  "${{ case(github.event_name == 'push' && !contains(github.ref, 'x'), 'prod', github.head_ref) }}",
+  "${{ github[format('{0}', 'head_ref')] }}", "${{ toJSON(github[('event')]) }}"])
   need(fremd(s).length > 0, `Selbstprobe: ${s} wird nicht als Fremdtext erkannt — AUSDRUCK/FREMDTEXT/GANZ pruefen`);
 for (const s of ['${{ github.event_name }}', '${{ GITHUB.EVENT_NAME }}', '${{ github.event.pull_request.number || 0 }}',
   '${{ github.event.pull_request.NUMBER }}', '${{ github . event . pull_request . number }}', '${{ steps.a.outputs.b }}',
@@ -207,7 +227,11 @@ for (const s of ['${{ github.event_name }}', '${{ GITHUB.EVENT_NAME }}', '${{ gi
   "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}",
   "${{ contains(github.event.pull_request.labels.*.name, 'skip-e2e') && '--skip' || '' }}",
   "${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}", "${{ (github.event.issue.title == 'x') }}",
-  "${{ (contains(github.event.issue.labels.*.name, 'bug')) }}", "${{ github.event.pull_request.merged == true && 1 || 0 }}"])
+  "${{ (contains(github.event.issue.labels.*.name, 'bug')) }}", "${{ github.event.pull_request.merged == true && 1 || 0 }}",
+  "${{ startsWith(github.head_ref, 'release/') && env.RELEASE_URL || env.DEV_URL }}",
+  "${{ github.event.action == 'published' && steps.meta.outputs.tag || 'nightly' }}",
+  "${{ github.head_ref && 'pr' || 'push' }}", "${{ github.event.issue.pull_request && 'pr' || 'issue' }}",
+  "${{ github.event.inputs.x == 'a' && 'It''s' || '' }}", "${{ (github.event_name == 'x' && 'a') || 'b' }}"])
   need(fremd(s).length === 0, `Selbstprobe: ${s} gilt faelschlich als Fremdtext — AUSDRUCK/FREMDTEXT/GANZ pruefen`);
 const probe = (...schritte) => runSkripte(['on: push', 'permissions: {}', 'jobs:', '  j:', '    runs-on: x', '    steps:', ...schritte].join('\n'), 'Selbstprobe')
   .flatMap((b) => fremd(b.text));

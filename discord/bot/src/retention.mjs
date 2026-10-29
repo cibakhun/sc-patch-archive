@@ -72,8 +72,10 @@ export function reconcileLeavers(db, guildId, memberIds, now = Date.now()) {
  * Rein (kein Discord-Aufruf), damit selftest.mjs es pruefen kann.
  */
 // Gilt die Gilde als verlassen? Dieselbe Regel fuers Vormerken und fuers
-// Loeschen. In keiner Gilde: eher falscher Zugang als Abschied.
-export const ohneBot = (presentIds, homeId) => (g) => presentIds.size > 0 && g !== homeId && !presentIds.has(g);
+// Loeschen. In keiner Gilde: eher falscher Zugang als Abschied. Ohne
+// gueltige Heim-Gilden-ID auch nie: dann waere die Heim-Gilde von einer
+// fremden nicht zu unterscheiden.
+export const ohneBot = (presentIds, homeId) => (g) => presentIds.size > 0 && !!homeId && g !== homeId && !presentIds.has(g);
 
 export function markOrphanedGuilds(db, presentIds, homeId, now = Date.now()) {
   const weg = ohneBot(presentIds, homeId);
@@ -174,7 +176,8 @@ export async function runRetention(ctx, now = Date.now(), env = process.env, sch
   // markiert hat, ist nie schon abgelaufen, auch bei 0 Tagen nicht
   // ("am naechsten taeglichen Lauf loeschen").
   const purged = ctx.db.purgeExpired(now - days * DAY_MS - 1, now - LOCK_DAYS * DAY_MS, (g) => geprueft.has(g) || weg(g));
-  if (ctx.home?.id && !present.has(ctx.home.id)) console.warn(`  ! Datenfrist: der Bot ist nicht in der Heim-Gilde ${ctx.home.id} -- dort weder Abgleich noch Loeschen.`);
+  if (!ctx.home?.id) console.warn('  ! Datenfrist: keine gueltige Heim-Gilde -- Gilden ohne Bot werden weder vorgemerkt noch geloescht.');
+  else if (!present.has(ctx.home.id)) console.warn(`  ! Datenfrist: der Bot ist nicht in der Heim-Gilde ${ctx.home.id} -- dort weder Abgleich noch Loeschen.`);
   console.log(`  · Datenfrist (${days} Tage): ${seen} Zeilen abgeglichen, ${marked} als ausgetreten markiert${orphaned ? ` (davon ${orphaned} aus Gilden ohne Bot)` : ''}, ${cleared} zurueckgekehrt${restored ? `, ${restored} nach Rueckkehr des Bots zurueckgeholt` : ''}, ${purged.users} Ehemalige und ${purged.locks} alte Sperren geloescht${ausgelassen.size ? `, ${ausgelassen.size} Gilde(n) ausgelassen (dort nichts geloescht)` : ''}.`);
 }
 

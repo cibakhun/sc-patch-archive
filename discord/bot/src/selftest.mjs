@@ -711,6 +711,18 @@ try {
       assert.equal(h.getUser('gX', 'x').xp, 0, 'a server without the bot still runs into the deadline');
     });
     h.close();
+    // Heim-Gilden-ID ungueltig (Tippfehler in HOME_GUILD_ID): ohne sie ist
+    // die Heim-Gilde nicht von einer fremden zu unterscheiden.
+    const k = openDb(':memory:');
+    k.addXp('home', 'U', 900);
+    await runRetention({ db: k, home: { id: null }, client: { guilds: { cache: new Map([gilde('gY', [])]) } } }, T0, {});
+    await runRetention({ db: k, home: { id: null }, client: { guilds: { cache: new Map([gilde('gY', [])]) } } }, T0 + 31 * DAY, {});
+    t('without a valid home server ID no server counts as left by the bot', () => {
+      assert.equal(k.getUser('home', 'U').xp, 900);
+      assert.equal(k.position('home', 'U'), 1, 'not even marked');
+      assert.equal(markOrphanedGuilds(k, new Set(['gY']), null, T0), 0);
+    });
+    k.close();
     // Discord bremst den vollen Mitgliederabruf (einer je Gilde und 30 s):
     // einmal abwarten, dann gilt der Abgleich; ein zweites Mal nicht.
     const q = openDb(':memory:');

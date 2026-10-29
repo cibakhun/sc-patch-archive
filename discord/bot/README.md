@@ -112,7 +112,7 @@ manufacturers arrive.
 cd discord/bot
 cp .env.example .env      # then paste DISCORD_TOKEN (and GUILD_ID for instant commands)
 npm install
-npm run selftest          # optional: 75 offline checks (also run in the Docker build)
+npm run selftest          # optional: 76 offline checks (also run in the Docker build)
 npm run register          # push slash commands (instant if GUILD_ID is set)
 npm start                 # go live
 ```
@@ -242,7 +242,8 @@ Rows from a server the bot is no longer in (other than the home
 server) run into the same deadline; if the bot is added back, exactly those
 marks are taken back (on join, on reconnect and at each daily run). While the
 bot is not in the home server, nothing is checked or deleted there; while it
-is in no server at all, nothing is marked or deleted anywhere. Rejoining
+is in no server at all, or the home server ID is invalid, no server counts as
+left by the bot. Rejoining
 before the deadline keeps the rank. Each run logs how many rows it checked,
 marked, restored and deleted. The privacy policy (`src/pages/datenschutz.astro`
 and `src/pages/de/datenschutz.astro`, section `#discord-server`) states the

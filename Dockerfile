@@ -79,6 +79,9 @@ FROM nginx:alpine@sha256:785835ea65db4bba6f021acc0f3be91b0fef76a53fe41f8588c6698
 # ECHTE Supabase-Endpunkt (HTTPS, Bahn A) scheiterte.
 RUN apk add --no-cache nginx-module-njs ca-certificates
 COPY --from=build /app/dist /usr/share/nginx/html
+# Die Fehlerseite des Basis-Images verraet Server und Version und gehoert
+# nicht zur Seite (default.conf verweist nicht auf sie).
+RUN rm -f /usr/share/nginx/html/50x.html
 # Custom server config: security headers (HSTS et al.) + real 404 page.
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 # Der Tuersteher selbst (nginx/gate.js) — Ausfuhren `check`/`mint`, siehe
