@@ -112,7 +112,7 @@ manufacturers arrive.
 cd discord/bot
 cp .env.example .env      # then paste DISCORD_TOKEN (and GUILD_ID for instant commands)
 npm install
-npm run selftest          # optional: 61 offline checks (also run in the Docker build)
+npm run selftest          # optional: 63 offline checks (also run in the Docker build)
 npm run register          # push slash commands (instant if GUILD_ID is set)
 npm start                 # go live
 ```

@@ -69,10 +69,6 @@ async function memberState(guild, id) {
   }
 }
 
-// PostgREST liefert hoechstens so viele Zeilen je Abruf. Der Uebergangsweg
-// liest seitenweise (site-db.mjs); die Function liefert bisher eine Seite.
-const SEITE = 1000;
-
 // Alle Abgleiche (Fuenf-Minuten-Lauf und Sofort-Abgleich nach einem
 // Aufstieg) laufen nacheinander: sonst koennte ein aelterer Stand einen
 // neueren ueberschreiben, wenn zwei Aufstiege kurz hintereinander kommen.
@@ -89,9 +85,6 @@ export async function syncRanks(ctx, guild, onlyId = null) {
   let rows;
   try { rows = await siteDb.listLinked(onlyId ? { discordUserId: onlyId } : {}); }
   catch (e) { console.warn(`  ! Rangspiegel: Lesen fehlgeschlagen: ${e.message}`); return; }
-  if (!onlyId && rows.length >= SEITE) {
-    console.warn(`  ! Rangspiegel: ${rows.length} Zeilen in einer Antwort -- vermutlich abgeschnitten, Konten dahinter bleiben stehen.`);
-  }
 
   let written = 0;
   for (const stored of rows) {

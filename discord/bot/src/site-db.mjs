@@ -49,7 +49,7 @@ function cleanStats(patch) {
 
 class FunctionMissing extends Error {}
 
-function functionBackend({ url, secret }, fetchImpl) {
+function functionBackend({ url, secret }, fetchImpl, log = console.warn) {
   async function call(body) {
     const res = await fetchImpl(url, {
       method: 'POST',
@@ -67,10 +67,32 @@ function functionBackend({ url, secret }, fetchImpl) {
   return {
     mode: 'function',
     async listLinked({ discordUserId } = {}) {
-      if (discordUserId) assertId(discordUserId);
-      const out = await call(discordUserId ? { op: 'list', discord_user_id: String(discordUserId) } : { op: 'list' });
-      if (!Array.isArray(out?.rows)) throw new Error('bot-role-sync list: kein rows-Feld');
-      return out.rows;
+      if (discordUserId) {
+        assertId(discordUserId);
+        const out = await call({ op: 'list', discord_user_id: String(discordUserId) });
+        if (!Array.isArray(out?.rows)) throw new Error('bot-role-sync list: kein rows-Feld');
+        return out.rows;
+      }
+      // Seitenweise ueber "offset" (hoechstens PAGE Zeilen je Antwort). Die
+      // erste Seite fragt ohne offset, damit auch eine Function ohne offset
+      // weiter antwortet; kennt sie es nicht (400 unknown_field), bleibt es
+      // bei der ersten Seite, und das Protokoll sagt es.
+      const all = [];
+      for (let offset = 0; ; offset += PAGE) {
+        let out;
+        try {
+          out = await call(offset ? { op: 'list', offset } : { op: 'list' });
+        } catch (e) {
+          if (offset && /\b400\b/.test(e.message) && /unknown_field/.test(e.message)) {
+            log(`  ! Website-Spiegel: bot-role-sync kennt "offset" noch nicht — nur die ersten ${all.length} Konten gelesen. Function neu deployen.`);
+            return all;
+          }
+          throw e;
+        }
+        if (!Array.isArray(out?.rows)) throw new Error('bot-role-sync list: kein rows-Feld');
+        all.push(...out.rows);
+        if (out.rows.length < PAGE) return all;
+      }
     },
     async setTester(discordUserId, isTester) {
       assertId(discordUserId);
@@ -174,7 +196,7 @@ export function createSiteDb(env = process.env, { fetchImpl = globalThis.fetch, 
       return { db: null, notes };
     }
     if (key) notes.push('SUPABASE_SERVICE_ROLE_KEY ist noch gesetzt — nur noch Rueckfall, bitte aus der Bot-Umgebung entfernen, sobald bot-role-sync live ist.');
-    return { db: withFallback(functionBackend({ url: fnUrl, secret }, fetchImpl), legacy, log), notes };
+    return { db: withFallback(functionBackend({ url: fnUrl, secret }, fetchImpl, log), legacy, log), notes };
   }
   if (legacy) {
     notes.push('Website-Spiegel laeuft ueber SUPABASE_SERVICE_ROLE_KEY (Uebergang). Ziel: BOT_ROLE_SYNC_SECRET setzen, Schluessel entfernen.');

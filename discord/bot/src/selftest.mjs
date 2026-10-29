@@ -472,6 +472,26 @@ console.log('\n▸ Website-Spiegel (site-db)');
     await assert.rejects(() => db.setTester('1 or 1=1', true), /Discord-ID/);
     assert.equal(calls.length, 0);
   });
+  await ta('function list reads page by page via offset', async () => {
+    calls.length = 0;
+    const page = JSON.stringify({ rows: Array.from({ length: 1000 }, (_, i) => ({ discord_user_id: String(i) })) });
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([{ status: 200, body: page }, { status: 200, body: '{"rows":[{"discord_user_id":"x"}]}' }]) });
+    const rows = await db.listLinked();
+    assert.equal(rows.length, 1001);
+    assert.deepEqual(JSON.parse(calls[0].init.body), { op: 'list' }, 'first page without offset');
+    assert.deepEqual(JSON.parse(calls[1].init.body), { op: 'list', offset: 1000 });
+  });
+  await ta('a function without offset keeps the first page and says so', async () => {
+    calls.length = 0;
+    const said = [];
+    const page = JSON.stringify({ rows: Array.from({ length: 1000 }, (_, i) => ({ discord_user_id: String(i) })) });
+    const { db } = createSiteDb(
+      { ...base, BOT_ROLE_SYNC_SECRET: 's' },
+      { fetchImpl: fake([{ status: 200, body: page }, { status: 400, body: '{"error":"unknown_field"}' }]), log: (m) => said.push(m) },
+    );
+    assert.equal((await db.listLinked()).length, 1000);
+    assert.match(said.join('\n'), /offset/);
+  });
   await ta('legacy list reads page by page past the 1000-row cap', async () => {
     calls.length = 0;
     const page = JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ discord_user_id: String(i) })));
