@@ -51,6 +51,10 @@ drop policy if exists hangar_layouts_delete_own on public.hangar_layouts;
 create policy hangar_layouts_delete_own on public.hangar_layouts
   for delete using ((select auth.uid()) = user_id);
 
+-- Älterer Stand überschreibt keinen jüngeren: laufen zwei Geräte gleichzeitig,
+-- kann ein Upsert mit kleinerem rev nach dem größeren ankommen. Dann bleibt die
+-- Zeile, wie sie ist (BEFORE-Trigger liefert NULL = Zeile übersprungen), und
+-- der nächste Abgleich des älteren Geräts holt sich den jüngeren Stand.
 -- updated_at serverseitig, und eine Obergrenze je Konto (Grabsteine zählen
 -- mit): die Seite hält höchstens 200 Layouts, 1000 Zeilen lassen viel Luft
 -- und verhindern, dass jemand die Tabelle als beliebige Ablage missbraucht.
@@ -60,6 +64,9 @@ language plpgsql
 set search_path = ''
 as $$
 begin
+  if tg_op = 'UPDATE' and new.rev < old.rev then
+    return null;
+  end if;
   new.updated_at := now();
   if tg_op = 'INSERT' and (select count(*) from public.hangar_layouts where user_id = new.user_id) >= 1000 then
     raise exception 'hangar_layouts: zu viele Layouts' using errcode = 'check_violation';

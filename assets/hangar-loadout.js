@@ -667,7 +667,8 @@ function paintSaved() {
   const all = store.list();
   $('lo-count').textContent = nf.format(all.length);
   if (!dlg.open) return;
-  if (acct.signedIn()) $('lo-where').replaceChildren(m('saved.account'));
+  const st = acct.state();
+  if (st !== 'guest') $('lo-where').replaceChildren(m(st === 'synced' ? 'saved.account' : st === 'error' ? 'saved.error' : 'saved.pending'));
   else $('lo-where').replaceChildren(`${m('saved.guest')} `, el('a', { href: window.VBAccount?.loginHref() ?? `${de ? '/de' : ''}/account/login.html` }, m('saved.login')));
   if (!all.length) { $('lo-list').replaceChildren(el('li', { class: 'lo-empty' }, m('saved.empty'))); return; }
   const here = all.filter((e) => e.ship === draft.ship);
@@ -717,6 +718,7 @@ window.addEventListener('storage', (e) => {
   if (e.key === store.key()) repaintSaved();
   else if (e.key && /^sb-.*-auth-token$/.test(e.key)) { repaintSaved(); acct.sync(); }
 });
+window.addEventListener('vb-account-session', () => { repaintSaved(); acct.sync(); });
 if (window.VBAccount) acct.sync();
 else window.addEventListener('vb-account-ready', () => acct.sync(), { once: true });
 doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'visible') acct.sync(); });

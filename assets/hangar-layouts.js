@@ -382,6 +382,7 @@ export async function syncLayouts({ storage, uid, rest, now = Date.now }) {
   const g = guest.snapshot();
   const st = mirror.snapshot();
   const migrated = [];
+  const seen = new Map(g.list.map((e) => [e.id, e.updated]));
   let moved = false;
   for (const e of g.list) {
     // Schon im Spiegel (ein frueherer Lauf scheiterte am Server): nur noch aufraeumen.
@@ -391,7 +392,7 @@ export async function syncLayouts({ storage, uid, rest, now = Date.now }) {
     st.rev[e.id] = t0;
     moved = true;
   }
-  if (moved) mirror.replace(st);
+  if (moved && !mirror.replace(st)) return { ok: false, changed: false, migrated: 0 };
 
   // 2. Server lesen.
   let rows;
@@ -430,6 +431,13 @@ export async function syncLayouts({ storage, uid, rest, now = Date.now }) {
         delete cur.rev[id];
         delete cur.gone[id];
       }
+    } else if (r.rev === myRev && !r.entry && mine) {
+      // Gleichstand zwischen Layout und Grabstein: der Grabstein gewinnt.
+      changed = true;
+      local.delete(id);
+      delete cur.rev[id];
+    } else if (r.rev === myRev && r.entry && !mine) {
+      push.push({ id, rev: myRev, deleted: true, entry: null });
     } else if (r.rev < myRev) {
       push.push(mine ? { id, rev: myRev, deleted: false, entry: mine } : { id, rev: myRev, deleted: true, entry: null });
     } else if (!mine) {
@@ -464,7 +472,8 @@ export async function syncLayouts({ storage, uid, rest, now = Date.now }) {
   }
   if (migrated.length) {
     const left = guest.snapshot();
-    left.list = left.list.filter((e) => !migrated.includes(e.id));
+    // Nur, was seit dem Uebernehmen unveraendert ist (ein abgemeldeter Tab kann mitschreiben).
+    left.list = left.list.filter((e) => !migrated.includes(e.id) || seen.get(e.id) !== e.updated);
     guest.replace(left);
   }
   return { ok: true, changed, migrated: migrated.length };
@@ -491,6 +500,8 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
   const store = { ...base, save: after(base.save), remove: after(base.remove), restore: after(base.restore) };
   let running = null;
   let again = false;
+  let last = null; // Ergebnis des letzten Abgleichs dieses Kontos
+  let lastUid = null;
   let timer = 0;
   const run = async () => {
     const a = acct();
@@ -499,7 +510,9 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
     const sess = await a.session();
     if (!sessionUid(sess) || sessionUid(sess) !== id) return null;
     const res = await syncLayouts({ storage, uid: id, rest: (method, path, body, prefer) => a.rest(sess, method, path, body, prefer) });
-    if (res.changed || res.migrated) onChange();
+    last = res.ok;
+    lastUid = id;
+    onChange();
     return res;
   };
   const sync = () => {
@@ -509,6 +522,9 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
         const lock = win.navigator?.locks;
         return lock ? await lock.request('vb.layouts.sync', run) : await run();
       } catch {
+        last = false;
+        lastUid = uid();
+        try { onChange(); } catch { /* Seite malt beim naechsten Mal */ }
         return null;
       } finally {
         running = null;
@@ -519,9 +535,20 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
   };
   function touched() {
     clearTimeout(timer);
-    if (uid()) timer = setTimeout(sync, 400);
+    timer = 0;
+    if (uid()) timer = setTimeout(() => { timer = 0; sync(); }, 400);
   }
-  return { store, signedIn: () => !!uid(), sync, touched };
+  /**
+   * 'guest' | 'synced' (letzter Abgleich ok und seither nichts offen)
+   * | 'pending' (angemeldet, Abgleich laeuft oder steht aus) | 'error'.
+   */
+  const state = () => {
+    const id = uid();
+    if (!id) return 'guest';
+    if (lastUid !== id || last === null || timer) return 'pending';
+    return last ? 'synced' : 'error';
+  };
+  return { store, signedIn: () => !!uid(), state, sync, touched };
 }
 
 export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '0123456789abcdefghijklmnopqrstuvwxyz'[Math.floor(rnd() * 36)]).join('');
@@ -1307,7 +1334,8 @@ export function initWorkshop(doc, bridge) {
   // Wo die Layouts liegen: im Konto, oder nur hier mit dem Weg zur Anmeldung.
   function paintWhere(p) {
     if (!p) return;
-    if (acct.signedIn()) { p.replaceChildren(m('saved.account')); return; }
+    const st = acct.state();
+    if (st !== 'guest') { p.replaceChildren(m(st === 'synced' ? 'saved.account' : st === 'error' ? 'saved.error' : 'saved.pending')); return; }
     const href = window.VBAccount?.loginHref() ?? `${de ? '/de' : ''}/account/login.html`;
     p.replaceChildren(`${m('saved.guest')} `, el('a', { href }, m('saved.login')));
   }
@@ -1349,6 +1377,7 @@ export function initWorkshop(doc, bridge) {
     if (e.key === store.key()) repaint();
     else if (e.key && /^sb-.*-auth-token$/.test(e.key)) { repaint(); acct.sync(); }
   });
+  window.addEventListener('vb-account-session', () => { repaint(); acct.sync(); });
   if (window.VBAccount) acct.sync();
   else window.addEventListener('vb-account-ready', () => acct.sync(), { once: true });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acct.sync(); });

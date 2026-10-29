@@ -251,7 +251,12 @@ describe('Werkstatt: Ablage im Konto', () => {
       if (method === 'GET') return { ok: true, json: async () => [...rows.values()].map((r) => JSON.parse(JSON.stringify(r))) };
       assert.equal(method, 'POST');
       assert.match(path, /on_conflict=user_id,id/);
-      for (const r of body) { assert.equal(r.user_id, UID); rows.set(r.id, { id: r.id, rev: r.rev, deleted: r.deleted, entry: r.entry }); }
+      for (const r of body) {
+        assert.equal(r.user_id, UID);
+        // Wie der Trigger touch_hangar_layout: ein aelterer rev ueberschreibt keinen juengeren.
+        if (rows.has(r.id) && r.rev < rows.get(r.id).rev) continue;
+        rows.set(r.id, { id: r.id, rev: r.rev, deleted: r.deleted, entry: r.entry });
+      }
       return { ok: true, json: async () => null };
     };
     return { rows, rest, setFail: (v) => { fail = v; } };
@@ -341,6 +346,46 @@ describe('Werkstatt: Ablage im Konto', () => {
     await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 310 });
     assert.equal(store.get('aaaa1111').name, 'Eins');
     assert.equal(srv.rows.get('aaaa1111').entry.name, 'Eins');
+  });
+
+  test('zwei Geraete gleichzeitig: der aeltere Upsert ueberschreibt den juengeren nicht, der naechste Lauf zieht nach', async () => {
+    const srv = server();
+    const a = memory();
+    const b = memory();
+    const sa = createStore(a, () => 100, layoutKey(UID));
+    sa.save(lay('aaaa1111', 'A'));
+    await syncLayouts({ storage: a, uid: UID, rest: srv.rest, now: () => 100 });
+    await syncLayouts({ storage: b, uid: UID, rest: srv.rest, now: () => 100 });
+    const sb = createStore(b, () => 300, layoutKey(UID));
+    sb.save({ ...sb.get('aaaa1111'), name: 'B neu' });
+    createStore(a, () => 200, layoutKey(UID)).save({ ...sa.get('aaaa1111'), name: 'A alt' });
+    // B schreibt zuerst (rev 300), dann kommt A mit rev 200 an.
+    await syncLayouts({ storage: b, uid: UID, rest: srv.rest, now: () => 310 });
+    const gotA = await syncLayouts({ storage: a, uid: UID, rest: srv.rest, now: () => 320 });
+    assert.equal(gotA.changed, true);
+    assert.equal(srv.rows.get('aaaa1111').entry.name, 'B neu');
+    assert.equal(sa.get('aaaa1111').name, 'B neu');
+    // Auch ein verspaeteter Upsert direkt am Server bleibt wirkungslos.
+    await srv.rest('POST', 'hangar_layouts?on_conflict=user_id,id', [{ user_id: UID, id: 'aaaa1111', rev: 150, deleted: true, entry: null }]);
+    assert.equal(srv.rows.get('aaaa1111').deleted, false);
+  });
+
+  test('Gleichstand zwischen Layout und Grabstein: der Grabstein gewinnt auf beiden Seiten', async () => {
+    const srv = server();
+    const mem = memory();
+    const store = createStore(mem, () => 500, layoutKey(UID));
+    store.save(lay('aaaa1111', 'Eins'));
+    srv.rows.set('aaaa1111', { id: 'aaaa1111', rev: 500, deleted: true, entry: null });
+    await syncLayouts({ storage: mem, uid: UID, rest: srv.rest, now: () => 600 });
+    assert.equal(store.get('aaaa1111'), null);
+    const mem2 = memory();
+    const s2 = createStore(mem2, () => 700, layoutKey(UID));
+    s2.save(lay('bbbb2222', 'Zwei'));
+    s2.remove('bbbb2222');
+    srv.rows.set('bbbb2222', { id: 'bbbb2222', rev: 700, deleted: false, entry: { ...lay('bbbb2222', 'Zwei'), created: 1, updated: 1 } });
+    await syncLayouts({ storage: mem2, uid: UID, rest: srv.rest, now: () => 800 });
+    assert.equal(srv.rows.get('bbbb2222').deleted, true);
+    assert.equal(s2.get('bbbb2222'), null);
   });
 
   test('kaputte Zeilen vom Server fallen weg, statt den Spiegel zu verderben', async () => {
