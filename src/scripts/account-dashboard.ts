@@ -214,6 +214,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         } catch {}
       }
 
+      // Spalten der geladenen Zeile: daran sieht das Formular, ob die
+      // Datenbank eine neuere Einstellung (presence_visibility) schon kennt.
+      let profileCols: string[] | null = null;
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -221,7 +224,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile) Object.assign(profileState, profile);
+        if (profile) { Object.assign(profileState, profile); profileCols = Object.keys(profile); }
       } catch (err) {
         const { data: basicProfile } = await supabase
           .from('profiles')
@@ -320,12 +323,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // Wer den Online-Status sieht (profiles.presence_visibility); alles
       // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
       const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
+      // Kennt die Datenbank die Einstellung noch nicht (der geladenen Zeile
+      // fehlt die Spalte), bleibt die Auswahl verborgen und wird nicht
+      // gesendet: eine Wahl, die nichts bewirkt, darf nicht wie gespeichert
+      // aussehen.
+      let presVisKnown = !profileCols || profileCols.includes('presence_visibility');
       // Bei "Niemand" sieht auch kein Freund die Aktivität: Schalter ausgegraut.
-      const syncShareAct = () => { if (shareActInput && presVisSelect) shareActInput.disabled = presVisSelect.value === 'none'; };
+      const syncShareAct = () => { if (shareActInput && presVisSelect) shareActInput.disabled = presVisKnown && presVisSelect.value === 'none'; };
+      const hidePresVis = () => {
+        presVisKnown = false;
+        const field = presVisSelect ? presVisSelect.closest<HTMLElement>('.field') : null;
+        if (field) field.style.display = 'none';
+        syncShareAct();
+      };
       if (presVisSelect) {
         presVisSelect.value = presVisOf(profileState.presence_visibility);
         presVisSelect.addEventListener('change', syncShareAct);
       }
+      if (!presVisKnown) hidePresVis();
       syncShareAct();
       SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
       const ovSoc = document.getElementById('ovSocials');
@@ -1342,9 +1357,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
         // nicht erst beim naechsten Puls.
         if (!shareActVal) payload.activity = null;
+        if (!presVisKnown) delete payload.presence_visibility;
         // Niemand: die Zeitpunkte gleich mit leeren (die Datenbank tut es bei
         // 'none' ohnehin), damit der Status sofort verschwindet.
-        if (presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
+        if (presVisKnown && presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
           payload.rsi_verified = false;
@@ -1356,13 +1372,22 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
         { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
+        // stored: die volle Nutzlast ist in der Datenbank. Nur dann gilt die
+        // Einstellung als gespeichert; der Rueckfall unten rettet bloss Name
+        // und Handle.
+        let stored = false;
         try {
           let { error } = await supabase
             .from('profiles')
             .upsert(payload);
-          // Kennt die Datenbank presence_visibility noch nicht: ohne die
-          // Einstellung speichern, statt alle anderen Eingaben zu verlieren.
-          if (error && error.code !== '23505' && 'presence_visibility' in payload) {
+          // Kennt die Datenbank presence_visibility noch nicht (PGRST204:
+          // Spalte fehlt im Schema-Cache): ohne die Einstellung speichern,
+          // statt alle anderen Eingaben zu verlieren, und die Auswahl
+          // ausblenden. Jeder andere Fehler laesst die Einstellung in der
+          // Nutzlast, sonst stuende eine nie gespeicherte Wahl als gespeichert da.
+          if (error && error.code === 'PGRST204' && 'presence_visibility' in payload
+            && String(error.message || '').includes('presence_visibility')) {
+            hidePresVis();
             delete payload.presence_visibility;
             ({ error } = await supabase.from('profiles').upsert(payload));
           }
@@ -1374,16 +1399,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
               return;
             }
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
+          } else {
+            stored = true;
           }
         } catch {
           await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           pfBtn.disabled = false;
         }
 
+        if (!stored) {
+          show(pfStatus as HTMLElement, D.msgNet!);
+          return;
+        }
         // Der Puls (account-lite.js) in diesem Tab richtet sich sofort danach;
         // andere Tabs erfahren es über den Profil-Cache (storage).
         window.dispatchEvent(new CustomEvent('vb-account-prefs', {
-          detail: { presence_visibility: presVisVal, share_activity: shareActVal },
+          detail: 'presence_visibility' in payload
+            ? { presence_visibility: presVisVal, share_activity: shareActVal }
+            : { share_activity: shareActVal },
         }));
         show(pfStatus as HTMLElement, D.msgSaved!, true);
       });
