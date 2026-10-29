@@ -423,6 +423,29 @@ console.log('\n▸ Heim-Gilde und Testpilot-Rolle');
       assert.deepEqual(writes, [[U, false]], 'never grants while off, keeps one of two, ignores foreign guilds, revokes the last');
     });
     const { reconcileRoles } = await import('./role-reconcile.mjs');
+    // Ein fremder Server (etwa einer, in den jemand den Bot eingeladen hat)
+    // darf nie einen Testzugang vergeben, auch mit einer Rolle gleicher ID.
+    await ta('a foreign guild never grants: neither on join nor in the reconcile', async () => {
+      const handlers = {};
+      const writes = [];
+      let abgerufen = 0;
+      const U = '999999999999999999';
+      const siteDb = { listLinked: async () => [{ discord_user_id: U, is_tester: false }], setTester: async (id, v) => { writes.push([id, v]); return { updated: 1 }; } };
+      const ctx = { client: { on: (ev, fn) => { handlers[ev] = fn; } }, home: { id: A }, mirror: { roleId: A }, siteDb };
+      registerRoleSync(ctx);
+      const mitRolle = (gid) => ({ id: U, guild: { id: gid }, roles: { cache: new Map([role(A, 'Test Pilots')]) } });
+      const fremd = { id: B, name: 'B', roles: { cache: new Map([role(A, 'Test Pilots')]) },
+        members: { fetch: async () => { abgerufen++; return new Map([[U, { id: U, roles: { cache: { has: (id) => id === A } } }]]); } } };
+      const quiet = console.warn; const loud = console.log; console.warn = () => {}; console.log = () => {};
+      try {
+        await handlers.guildMemberAdd(mitRolle(B));
+        await reconcileRoles(ctx, fremd);
+        assert.deepEqual(writes, [], 'nothing written from a foreign guild');
+        assert.equal(abgerufen, 0, 'the reconcile does not even read its members');
+        await handlers.guildMemberAdd(mitRolle(A));
+        assert.deepEqual(writes, [[U, true]], 'rejoining the home guild with the role restores the pass');
+      } finally { console.warn = quiet; console.log = loud; }
+    });
     await ta('a deleted tester role without a replacement revokes every pass; one never found leaves them', async () => {
       const U = '999999999999999999';
       const g = { id: '444444444444444444', name: 'G', roles: { cache: new Map([role(A, 'Test Pilots')]) } };

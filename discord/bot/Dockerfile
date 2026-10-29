@@ -92,7 +92,7 @@ COPY assets/manufacturers /app/logos
 # entsteht kein Image. SELFTEST_MIN ist die Sperrklinke: meldet ein Abschnitt
 # "skipped", weil hier etwas fehlt, laufen weniger Pruefungen und der Bau
 # reisst. Nur nach oben anheben.
-RUN DATA_DIR=/app/gamedata SELFTEST_MIN=76 node src/selftest.mjs
+RUN DATA_DIR=/app/gamedata SELFTEST_MIN=77 node src/selftest.mjs
 
 ENV NODE_ENV=production \
     DATA_DIR=/app/gamedata \
