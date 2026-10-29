@@ -740,19 +740,33 @@ for (const m of malformed) fail(`[2] ${m}`);
 if (entries.length < klinke) fail(`[2] HALL_DROP["${hall.id}"] traegt ${entries.length} Eintraege, die Klinke verlangt ${klinke}: ein Eintrag ist verschwunden, und sein Teil steht wieder in der Halle. Zurueckholen, oder KLINKE_EINTRAEGE in diesem Tor per Commit mit Ursache senken`);
 for (const k of staleKlinke) fail(`[2] KLINKE_EINTRAEGE["${k}"]: die Seite laedt diese Halle nicht; den Eintrag hier per Commit mit Ursache entfernen`);
 
+// Welche Primitive der Viewer als eine geteilte Geometrie bekommt: Die
+// laesst er unberuehrt (dropHallParts, Schnitt am Feld, shiftHallFloor).
+// GLTFLoader teilt sie, wenn mehrere Knoten dasselbe Mesh stellen (er klont
+// den Knoten, nicht die Geometrie), und wenn Primitive denselben Schluessel
+// tragen wie in seinem createPrimitiveKey: Index, alle Attribute, Modus und
+// Morph-Ziele. Nur Index und POSITION hielte zwei Primitive mit eigenen
+// Normalen oder UVs fuer geteilt, die der Viewer beide umsetzt (cubic zu
+// PR #245). Unter draco schluesselt GLTFLoader nach dem draco-Puffer; in den
+// Hallendateien gehoert jeder Puffer genau einer Primitive (gemessen
+// 29.10.2026 an allen vier), der Accessor-Schluessel ist dort derselbe.
+// Geometriegruppen legt GLTFLoader nicht an. Gezaehlt wird je Knoten.
+function sharedGeometry(...docs) {
+  const acc = new Map(), refs = new Map();
+  const id = (a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1);
+  const attrs = (t) => t.listSemantics().sort().map((k) => `${k}=${id(t.getAttribute(k))}`).join(',');
+  const key = (p) => [id(p.getIndices()), attrs(p), p.getMode(), ...p.listTargets().map(attrs)].join(':');
+  for (const doc of docs) for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(key(p), (refs.get(key(p)) || 0) + 1);
+  return (p) => refs.get(key(p)) > 1;
+}
+
 // Die Regel des Viewers (dropHallParts) gegen eine Hallenstufe
 async function measure(file, list) {
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
   const doc = await io.read(file);
-  // Dieselben Geometrien wie dropHallParts: Eine Geometrie, die mehrere
-  // Meshes tragen, bleibt im Viewer unberuehrt, ebenso Primitive ohne Index.
-  // GLTFLoader teilt sie, wenn mehrere Knoten dasselbe Mesh stellen (er
-  // klont den Knoten, nicht die Geometrie) und wenn Primitive dieselben
-  // Accessoren nennen; gezaehlt wird darum je Knoten das Paar aus Index und
-  // POSITION. Geometriegruppen legt GLTFLoader nicht an.
-  const acc = new Map(), refs = new Map();
-  const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
-  for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
+  // Dieselben Geometrien wie dropHallParts: Eine geteilte Geometrie
+  // (sharedGeometry) bleibt im Viewer unberuehrt, ebenso Primitive ohne Index.
+  const shared = sharedGeometry(doc);
   const tris = [];
   let skipped = 0;
   for (const node of doc.getRoot().listNodes()) {
@@ -762,7 +776,7 @@ async function measure(file, list) {
     for (const p of mesh.listPrimitives()) {
       const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
       if (!P) continue;
-      if (!I || refs.get(geo(p)) > 1) { skipped++; continue; }
+      if (!I || shared(p)) { skipped++; continue; }
       const pos = new Float64Array(P.length);
       for (let i = 0; i < P.length; i += 3) {
         const x = P[i], y = P[i + 1], z = P[i + 2];
@@ -1220,9 +1234,7 @@ if (LIFT) {
     for (const [u, doc] of stageDocs) {
       // Dieselben Geometrien wie der Viewer: mehrfach gestellte und solche
       // ohne Index schneidet er nicht, dort zaehlt jede Ecke im Feld als Riss
-      const acc = new Map(), refs = new Map();
-      const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
-      for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
+      const shared = sharedGeometry(doc);
       let moved = 0, torn = 0;
       const ex = [], mats = new Map();
       for (const node of doc.getRoot().listNodes()) {
@@ -1235,7 +1247,7 @@ if (LIFT) {
         for (const p of mesh.listPrimitives()) {
           const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
           if (!P) continue;
-          const cuts = !!I && !(refs.get(geo(p)) > 1);
+          const cuts = !!I && !shared(p);
           const at = (i) => {
             const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
             return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
@@ -1598,9 +1610,7 @@ if (SHIFT && LIFT) {
       const stage = stageDocs.has(u);
       // wie der Viewer (shiftHallFloor): mehrfach gestellte Geometrie und
       // solche ohne Index setzt er nicht um, Moebel wandern ueber ihren Bezugspunkt
-      const acc = new Map(), refs = new Map();
-      const geo = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
-      for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geo(p), (refs.get(geo(p)) || 0) + 1);
+      const shared = sharedGeometry(doc);
       const moved = strips.map(() => 0);
       let split = 0, edge = 0, stuck = 0, deep = 0, furn = 0;
       const ex = [];
@@ -1619,7 +1629,7 @@ if (SHIFT && LIFT) {
         for (const p of mesh.listPrimitives()) {
           const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
           if (!P) continue;
-          const can = !!I && !(refs.get(geo(p)) > 1);
+          const can = !!I && !shared(p);
           const at = (i) => {
             const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
             return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
@@ -2744,9 +2754,7 @@ if (DK && dekoBlock) {
         return out;
       };
       // wie [13]: mehrfach gestellte Geometrie und solche ohne Index setzt der Viewer nicht um
-      const acc = new Map(), refs = new Map();
-      const geoKey = (p) => [p.getIndices(), p.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
-      for (const doc of [stageDoc, furnDoc].filter(Boolean)) for (const node of doc.getRoot().listNodes()) for (const p of node.getMesh()?.listPrimitives() ?? []) refs.set(geoKey(p), (refs.get(geoKey(p)) || 0) + 1);
+      const shared = sharedGeometry(...[stageDoc, furnDoc].filter(Boolean));
       // Moebel mit Anker: Streifen wie shiftHallFloor, dann vom Rand wie
       // clearRandFurniture (Grundriss ueber alle seine Teile; was am Boden
       // steht und in den Rand reicht, rueckt senkrecht zur naechsten
@@ -2791,7 +2799,7 @@ if (DK && dekoBlock) {
         for (const p of mesh.listPrimitives()) {
           const P = p.getAttribute('POSITION')?.getArray(), I = p.getIndices()?.getArray();
           if (!P) continue;
-          const gone = doc === stageDoc ? goneOf.get(p) : null, shifts = !anchor && SHIFT && !!I && !(refs.get(geoKey(p)) > 1);
+          const gone = doc === stageDoc ? goneOf.get(p) : null, shifts = !anchor && SHIFT && !!I && !shared(p);
           const at = (i) => { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; return [w[0] * x + w[4] * y + w[8] * z + w[12] + dx, w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14] + dz]; };
           const n = I ? I.length : P.length / 3;
           for (let t = 0; t + 2 < n; t += 3) {
@@ -3358,9 +3366,7 @@ if (GROW && liftShape && shiftShape) {
       for (const [u, doc] of [...stageDocs, ...extraDocs]) {
         const stage = stageDocs.has(u);
         // wie [13]: mehrfach gestellte Geometrie und solche ohne Index setzt der Viewer nicht um
-        const acc = new Map(), refs = new Map();
-        const geo = (q) => [q.getIndices(), q.getAttribute('POSITION')].map((a) => (a ? acc.get(a) ?? acc.set(a, acc.size).get(a) : -1)).join(':');
-        for (const nd of doc.getRoot().listNodes()) for (const q of nd.getMesh()?.listPrimitives() ?? []) refs.set(geo(q), (refs.get(geo(q)) || 0) + 1);
+        const shared = sharedGeometry(doc);
         const run = { u, quer: zones.map(() => 0), starr: zones.map(() => 0), platten: zones.map(() => 0), leuchten: zones.map(() => 0), gross: zones.map(() => 0), ex: [] };
         for (const node of doc.getRoot().listNodes()) {
           const mesh = node.getMesh();
@@ -3371,7 +3377,7 @@ if (GROW && liftShape && shiftShape) {
           for (const prim of mesh.listPrimitives()) {
             const P = prim.getAttribute('POSITION')?.getArray(), I = prim.getIndices()?.getArray();
             if (!P) continue;
-            const can = !!I && !(refs.get(geo(prim)) > 1);
+            const can = !!I && !shared(prim);
             const wv = (i) => {
               const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
               return [w[0] * x + w[4] * y + w[8] * z + w[12], w[1] * x + w[5] * y + w[9] * z + w[13], w[2] * x + w[6] * y + w[10] * z + w[14]];
