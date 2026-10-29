@@ -36,7 +36,7 @@ import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { initGear, poseShip } from './lib/landing-gear.mjs';
-import { gearPlane, GEAR_TILT_MAX } from '../assets/hangar-viewer.js';
+import { gearPlane, GEAR_TILT_MAX, palettePbr } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import sharp from 'sharp';
@@ -354,7 +354,7 @@ async function attachHallTextures(doc) {
 // Ohne Quellangabe zählt das Material zum Schiff (Rumpf der 300i).
 // paintTargets: Materialien, die ein Lack ändert (paintPlan), tragen
 // extras.paint = ihr Name und bleiben so eigenständig.
-function cleanMaterials(doc, { paletteOwner, paintTargets } = {}) {
+function cleanMaterials(doc, { paletteOwner, paintTargets, base } = {}) {
   const root = doc.getRoot();
   for (const m of root.listMaterials()) {
     const x = m.getExtras() || {};
@@ -383,7 +383,25 @@ function cleanMaterials(doc, { paletteOwner, paintTargets } = {}) {
     }
     const source = x.semantic?.palette?.source_name;
     const ownTint = paletteOwner && [1, 2, 3].includes(x.palette_tint) && (source == null || source.toLowerCase() === paletteOwner);
-    m.setExtras({ ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
+    // Serienpalette im Specular-Workflow des Spiels (Hangar-Landung, Vertrag in
+    // .planning/notes/hangar-landung.md): extras.palette mit den Rohwerten,
+    // Grundfarbe, Metall und Rauheit aus palettePbr wie im Viewer. Werte aus
+    // ship-paints.json (base, finish), ohne sie aus dem Rohexport
+    let palette = null;
+    if (ownTint) {
+      const k = 'abc'[x.palette_tint - 1];
+      const raw = x.semantic?.palette, toHex = (v) => '#' + v.map((c) => Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)).toString(16).padStart(2, '0')).join('');
+      const tint = base?.[k] ?? (Array.isArray(raw?.resolved_color) ? toHex(raw.resolved_color) : null);
+      const specular = base?.finish?.[k]?.specular ?? (Array.isArray(raw?.resolved_finish?.specular) ? toHex(raw.resolved_finish.specular) : null);
+      const gloss = base?.finish?.[k]?.gloss ?? raw?.resolved_finish?.glossiness ?? null;
+      if (tint && specular) {
+        palette = { ch: x.palette_tint, tint, specular, ...(gloss != null ? { gloss } : {}) };
+        const p = palettePbr(tint, specular, gloss);
+        m.setBaseColorFactor([...p.color, m.getBaseColorFactor()[3]]).setMetallicFactor(p.metalness);
+        if (p.roughness != null) m.setRoughnessFactor(p.roughness);
+      }
+    }
+    m.setExtras({ ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(palette ? { palette } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
   }
   for (const e of root.listExtensionsUsed()) {
     if (/lights_punctual|materials_(ior|transmission|volume)/.test(e.extensionName)) e.dispose();
@@ -1515,7 +1533,7 @@ async function buildOne(kind, name, inPath) {
   const liftUv = liftParts ? uvReport(doc) : null;
   // Palette des Schiffs = Record des Rohexports (Constellation: …_andromeda_gs)
   const plan = kind === 'ships' ? await paintPlan(name) : null;
-  cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets } : {});
+  cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, base: SHIP_PAINTS[name]?.base } : {});
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' || werk }), weld());
