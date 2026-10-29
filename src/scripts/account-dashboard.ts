@@ -1574,6 +1574,8 @@ import { supabase } from '../lib/supabase';
           doomed.forEach((k) => localStorage.removeItem(k));
         } catch { /* egal */ }
       };
+      // „Überall abmelden" (account-security.ts) räumt denselben Bestand weg.
+      document.addEventListener('vb:forget-local', forgetLocalCopies);
 
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach

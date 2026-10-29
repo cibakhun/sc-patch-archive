@@ -87,7 +87,8 @@ body{font-family:var(--font-body)}
       images come from <a href="#images">external providers</a>, and some pages read public data
       from the account system. Everything else happens only when you trigger it: when you start a
       <a href="#youtube">YouTube video</a>, send <a href="#feedback">feedback</a>, use a
-      <a href="#accounts">user account</a> or <a href="#support">donate</a>. This website itself
+      <a href="#accounts">user account</a>, <a href="#support">donate</a> or are a member of our
+      <a href="#discord-server">Discord server</a>. This website itself
       sets only one cookie, the one for your opt-out (two more on the
       <a href="#staging">test preview</a>); in addition, <a href="#cloudflare">Cloudflare</a> sets
       protection cookies to fend off automated access. Details follow below.
@@ -212,7 +213,8 @@ body{font-family:var(--font-body)}
       are available on all devices, and this browser keeps a copy. Whatever you had created in this
       browser while signed out moves into the account at the first sync; the fleet becomes
       favorites there. Mining presets and refinery jobs live only in the account. When you sign out
-      in the account dashboard or delete your account, the site removes the session, the account
+      in the account dashboard (also with “Sign out everywhere”) or delete your account, the site
+      removes the session, the account
       role, the profile copy, the RSI code and the account copies of the tools from this browser.
     </p>
 
@@ -351,7 +353,9 @@ body{font-family:var(--font-body)}
         (even if you never verify), and after a check also the check result; as a
         <a href="#testpilots">test pilot</a> the related details</li>
       <li>technically, <strong>session and security data</strong>: for each sign-in the IP address,
-        browser identifier and times, until you sign out on that device or delete the account; also
+        browser identifier and times, until you sign out on that device, end the session in the
+        dashboard under Security &amp; Account with “Sign out other devices” or “Sign out
+        everywhere”, or delete the account; also
         the time the account was created and of the last sign-in. Supabase additionally logs
         requests with IP addresses for a short period set by the provider.</li>
     </ul>
@@ -361,7 +365,7 @@ body{font-family:var(--font-body)}
       browser (see <a href="#storage">storage in your browser</a>). Only for administrator accounts
       does the site also set the cookie <code>vb_noanalytics</code> after sign-in, so that this
       browser is not counted (see <a href="#opt-out">opt-out</a>). After signing in with Discord,
-      the session also contains the two keys Discord issued for it (an access key and a refresh
+      and after connecting Discord in the dashboard, the session also contains the two keys Discord issued for it (an access key and a refresh
       key) until it is first renewed: after about an hour if you have the website open then,
       otherwise on your next visit. The website neither uses nor sends them. If you request a new
       password, Supabase sends an e-mail with a one-time link to that address on our behalf. If you
@@ -434,8 +438,9 @@ body{font-family:var(--font-body)}
       tag. If you connect Discord later, it takes over picture and name unless you have already set a
       picture and name of your own; it keeps the Discord tag up to date while the connection exists.
       Only you see the Discord tag. The profile picture remains an address on Discord's server
-      (cdn.discordapp.com): anyone who sees your profile, your friends list or the chat loads it
-      directly from there (see <a href="#images">externally embedded images</a>). The account also
+      (cdn.discordapp.com): anyone who sees your profile or is shown you in their own dashboard (as
+      a friend, request, search hit, suggestion or in the chat) loads it directly from there (see
+      <a href="#images">externally embedded images</a>). The account also
       stores your Discord ID for the <a href="#testpilots">test pilot sync</a> and the values from
       the <a href="#discord-server">Discord server</a>.
     </p>
@@ -460,21 +465,26 @@ body{font-family:var(--font-body)}
       display name, bio, profile picture or icon, banner, role, status and status text, org name,
       RSI handle and whether it is verified, where applicable the “Test Pilot” badge, your names on
       Twitch, YouTube and X, since when you have been a member, your
-      <a href="#presence">online status</a> and all your favorites including your ship fleet. The
-      website's public database interface returns the same details, with the exact time you created
-      the account and saved each favorite, and for all profiles with a handle at once. If you are
-      linked with Discord and a member of our Discord server, it also returns your level, rank and
-      prestige there (see <a href="#discord-server">Discord server</a>); your profile page loads
-      these values but does not currently display them.
+      <a href="#presence">online status</a> and all your favorites including your ship fleet. If you
+      are linked with Discord and a member of our Discord server, the profile also shows a rank
+      badge with your rank, level and prestige there (see
+      <a href="#discord-server">Discord server</a>). The website's public database interface
+      returns the same details, with the exact time you created the account and saved each
+      favorite, and for all profiles with a handle at once.
     </p>
     <p>
       Signed-in users can additionally read the internal account ID of every profile with a handle
       through the interface. If you have uploaded your own profile picture or banner, the ID is also
       part of its address, together with the time of the upload, and can therefore be read by
-      anyone (see
-      <a href="#accounts">user account</a>). On the website you only find others by their exact
-      handle. Not public are your e-mail address, your Discord tag, your verification code, your tool data and hangar
-      loadouts and your messages; the website shows your friends list only to you. If you use your Discord picture as profile
+      anyone (see <a href="#accounts">user account</a>). Signed-in users, even without a handle of
+      their own, can also find profiles with a handle in the account dashboard: from two typed
+      characters on, the search for adding friends shows up to six profiles whose handle or display
+      name starts that way, and “Suggestions” lists up to twelve profiles with the same org or role
+      or with a rank from the Discord server. Hits and suggestions show display name, handle,
+      profile picture or icon, whether the RSI handle is verified, where applicable the rank badge
+      and, for suggestions, the shared org or role. Not public are your e-mail address, your
+      Discord tag, your verification code, your tool data and hangar loadouts and your messages;
+      the website shows your friends list only to you. If you use your Discord picture as profile
       picture, every browser that shows your profile loads the picture directly from Discord; the
       picture address contains your Discord ID, which is therefore publicly readable as well. The
       profile page is blocked for search engines (noindex). If you remove the handle, the profile is
@@ -484,10 +494,14 @@ body{font-family:var(--font-body)}
 
     <h2 id="friends">Friends and messages (account only)</h2>
     <p>
-      Signed in and with a handle of your own, you can send other pilots a friend request using
-      their exact handle. Stored are sender, recipient, status and the times of request and reply,
+      Signed in and with a handle of your own, you can send other pilots with a handle a friend
+      request: in the account dashboard through the search by handle or display name or through
+      the suggestions (see <a href="#profile">pilot profile</a>), and with “Add friend” on their
+      pilot profile, where you can also accept a request sent to you. The characters you type into
+      the search are sent to Supabase as a search query. Stored are sender, recipient, status and the times of request and reply,
       and for a friendship both accounts and when it began. Only the two people involved can see
-      these details, and the website does not display a friends list publicly anywhere. Declining or withdrawing deletes the request,
+      these details, and the website does not display a friends list publicly anywhere. Declining
+      or withdrawing deletes the request,
       “Remove” deletes the friendship together with all requests between you.
     </p>
     <p>
@@ -527,7 +541,7 @@ body{font-family:var(--font-body)}
       handle. It is then readable by anyone: on your public pilot profile, which refreshes it every
       40 seconds, and through the public interface for all profiles with a handle. To signed-in
       users, the website shows it for friends and open requests. When you sign out in the account
-      dashboard, the page first tries to clear the timestamps and the note and then signs you out
+      dashboard (also with “Sign out everywhere”), the page first tries to clear the timestamps and the note and then signs you out
       regardless. If clearing fails (for example without a network), this browser writes no further
       timestamps, and the status switches to offline within 3 minutes unless a page of this website
       is still open on another device where you are signed in. Deleting your account removes the
@@ -571,7 +585,9 @@ body{font-family:var(--font-body)}
     </p>
     <p>
       As a test pilot, two things can be public. Both depend on a test-pilot mark in your profile
-      that only the account system itself sets, never your browser. If your profile carries it and
+      that only we set on the server side, never your browser. It does not currently follow the
+      “Test Pilots” role automatically: if you lose the role, it stays in place until we remove it.
+      If your profile carries it and
       you have a handle, your pilot profile shows the “Test Pilot” badge; only then does the
       dashboard also show the switch “List my name among the Test Pilots”. If you switch it on (off
       by default), your display name (without one, your handle) appears with a link to your
@@ -603,9 +619,11 @@ body{font-family:var(--font-body)}
       the current run and in total), prestige, the number of your messages, your time in voice
       channels and the time of the last change; it calculates level and rank from these. Each post
       you open in the bug-reports forum earns bonus points once; for this the bot records the post's
-      ID, your Discord ID and the time. It does not read the content of messages, but it does write
-      the title of such a bug report together with your Discord ID into its operating log on our
-      server. All members of the server can see your level, rank, prestige, experience points and
+      ID, your Discord ID and the time. It does not read the content of messages. Into its
+      operating log on our server, however, it writes the title of such a bug report together with
+      your Discord ID and, whenever you leave the server, your “Test Pilots” role changes or a
+      reconciliation with the account system fails, your Discord ID and whether it is mapped to a
+      website account. All members of the server can see your level, rank, prestige, experience points and
       leaderboard position, via <code>/rank</code>, which works for any member, and via the
       leaderboard; your rank is also shown as a Discord role, and the bot announces level-ups on the
       server. The bot does not show the number of your messages or your voice time there.
@@ -617,13 +635,16 @@ body{font-family:var(--font-body)}
       voice time, leaderboard position and whether you are currently a member of the server, when
       the bot starts, then every 5 minutes and right after each level-up. This also applies after
       you disconnect Discord, until the mapping is removed (see <a href="#discord">Discord</a>).
-      While Discord is connected and you are a member of the server, anyone can read level, rank
-      and prestige together with your <a href="#profile">pilot profile</a> through the public
-      database interface (the profile page itself does not currently display them); the website
-      shows the other values only to you. For the reconciliation the bot sends your Discord ID to
+      While Discord is connected and you are a member of the server, your
+      <a href="#profile">pilot profile</a> shows level, rank and prestige to anyone as a rank badge,
+      and anyone can read them through the public database interface; to signed-in users the
+      website also shows the badge for friends and in requests, search hits and suggestions. The
+      website shows the other values only to you. For the reconciliation the bot sends your Discord ID to
       the account system at Supabase, even if you have no website account: when you leave the
       server, when your “Test Pilots” role changes and when you level up. If the Discord ID is not
-      mapped to any account, nothing is stored there.
+      mapped to any account, the account system creates nothing for it; the request including the
+      Discord ID then only appears in Supabase's access log, for a short period set by the
+      provider.
     </p>
     <p>
       The bot's data is kept in a separate database on our server. We keep it for as long as we run
@@ -737,10 +758,12 @@ body{font-family:var(--font-body)}
       Even without a user account we process the data described above (server logs, reach
       measurement, feedback messages, donations and, if you are a member of our Discord server, the
       bot's values); on request we provide access to it or delete it, as far as we can attribute it
-      to you. With an account, you view and change your profile data in the dashboard and delete the
-      whole account there; what remains is described under <a href="#accounts">user account</a> and
-      <a href="#discord-server">Discord server and bot</a>. We keep account data until you change it or delete the
-      account. For anything else, such as full access to your data, send us an e-mail.
+      to you. With an account, you view and change your profile data in the dashboard, download
+      your account's data as a file under Security &amp; Account → My data (profile, favorites, tool
+      data, friendships and requests, messages and the values from the Discord server; the file is
+      created in your browser) and delete the whole account there; what remains is described under
+      <a href="#accounts">user account</a> and <a href="#discord-server">Discord server and
+      bot</a>. We keep account data until you change it or delete the account. For anything else, such as full access to your data, send us an e-mail.
     </p>
   </div>
 </main>

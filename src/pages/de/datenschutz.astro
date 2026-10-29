@@ -96,7 +96,8 @@ body{font-family:var(--font-body)}
       <a href="#images">externen Anbietern</a>, und einige Seiten lesen öffentliche Daten aus dem
       Konto-System. Alles Weitere geschieht nur, wenn du es auslöst: wenn du ein
       <a href="#youtube">YouTube-Video</a> startest, <a href="#feedback">Feedback</a> schickst, ein
-      <a href="#accounts">Benutzerkonto</a> nutzt oder <a href="#support">spendest</a>. Diese Website
+      <a href="#accounts">Benutzerkonto</a> nutzt, <a href="#support">spendest</a> oder Mitglied
+      unseres <a href="#discord-server">Discord-Servers</a> bist. Diese Website
       setzt selbst nur einen Cookie, den für deinen Widerspruch (auf der
       <a href="#staging">Testvorschau</a> zwei weitere); dazu kommen Schutz-Cookies, die
       <a href="#cloudflare">Cloudflare</a> zur Abwehr automatisierter Zugriffe setzt. Einzelheiten
@@ -228,8 +229,8 @@ body{font-family:var(--font-body)}
       <a href="#accounts">Benutzerkonto</a>, damit sie auf allen Geräten bereitstehen, und dieser
       Browser behält eine Kopie. Was du ohne Anmeldung in diesem Browser angelegt hattest, wandert
       beim ersten Abgleich ins Konto; die Flotte wird dort zu Favoriten. Mining-Vorlagen und
-      Refinery-Aufträge liegen nur im Konto. Meldest du dich im Konto-Dashboard ab oder löschst das
-      Konto, entfernt die Seite Sitzung, Konto-Rolle, Profilkopie, RSI-Code und die Konto-Kopien
+      Refinery-Aufträge liegen nur im Konto. Meldest du dich im Konto-Dashboard ab (auch mit
+      „Überall abmelden“) oder löschst das Konto, entfernt die Seite Sitzung, Konto-Rolle, Profilkopie, RSI-Code und die Konto-Kopien
       der Werkzeuge aus diesem Browser.
     </p>
 
@@ -373,8 +374,9 @@ body{font-family:var(--font-body)}
         geöffnet hast (auch wenn du nie verifizierst), nach einer Prüfung auch das Prüfergebnis;
         als <a href="#testpilots">Testpilot</a> die zugehörigen Angaben</li>
       <li>technisch bedingt <strong>Sitzungs- und Sicherheitsdaten</strong>: für jede Anmeldung
-        IP-Adresse, Browserkennung und Zeitpunkte, bis du dich auf diesem Gerät abmeldest oder das
-        Konto löschst; dazu Zeitpunkt der Kontoerstellung und der letzten Anmeldung. Supabase
+        IP-Adresse, Browserkennung und Zeitpunkte, bis du dich auf diesem Gerät abmeldest, die
+        Sitzung im Dashboard unter Sicherheit &amp; Konto mit „Andere Geräte abmelden“ oder
+        „Überall abmelden“ beendest oder das Konto löschst; dazu Zeitpunkt der Kontoerstellung und der letzten Anmeldung. Supabase
         protokolliert Zugriffe mit IP-Adresse außerdem für eine kurze, vom Anbieter festgelegte
         Zeit.</li>
     </ul>
@@ -384,8 +386,8 @@ body{font-family:var(--font-body)}
       liegt in deinem Browser (siehe <a href="#storage">Speicherung im Browser</a>). Nur bei
       Administrator-Konten setzt die Seite nach der Anmeldung zusätzlich den Cookie
       <code>vb_noanalytics</code>, damit dieser Browser nicht mitgezählt wird (siehe
-      <a href="#opt-out">Widerspruch</a>). Nach einer Anmeldung mit Discord enthält die Sitzung
-      außerdem die beiden Schlüssel, die Discord dafür ausgestellt hat (Zugangs- und
+      <a href="#opt-out">Widerspruch</a>). Nach einer Anmeldung mit Discord und nach dem Verbinden
+      von Discord im Dashboard enthält die Sitzung außerdem die beiden Schlüssel, die Discord dafür ausgestellt hat (Zugangs- und
       Erneuerungsschlüssel), bis sie zum ersten Mal erneuert wird: nach etwa einer Stunde, wenn du
       die Website dann geöffnet hast, sonst bei deinem nächsten Besuch. Die Website nutzt und
       versendet sie nicht. Forderst du ein neues Passwort an, schickt Supabase für uns eine E-Mail
@@ -462,8 +464,9 @@ body{font-family:var(--font-body)}
       Verbindest du Discord später, übernimmt es Bild und Namen, sofern du noch kein eigenes Bild
       und keinen eigenen Namen gesetzt hast; das Discord-Tag hält es aktuell, solange die
       Verbindung besteht. Das Discord-Tag siehst nur du. Das Profilbild bleibt eine Adresse auf
-      dem Server von Discord (cdn.discordapp.com): wer dein Profil, deine Freundesliste oder den
-      Chat sieht, lädt es direkt von dort (siehe <a href="#images">extern eingebundene Bilder</a>).
+      dem Server von Discord (cdn.discordapp.com): wer dein Profil sieht oder dich im eigenen
+      Dashboard angezeigt bekommt (als Freund, Anfrage, Suchtreffer, Vorschlag oder im Chat), lädt
+      es direkt von dort (siehe <a href="#images">extern eingebundene Bilder</a>).
       Deine Discord-ID speichert das Konto außerdem für den
       <a href="#testpilots">Testpilot-Abgleich</a> und die Werte vom
       <a href="#discord-server">Discord-Server</a>.
@@ -489,22 +492,25 @@ body{font-family:var(--font-body)}
       ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
       Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
       das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
-      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte.
-      Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
+      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte. Bist
+      du mit Discord verknüpft und Mitglied unseres Discord-Servers, zeigt das Profil außerdem ein
+      Rang-Abzeichen mit deinem Rang, Level und Prestige dort (siehe
+      <a href="#discord-server">Discord-Server</a>). Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
       genauen Zeitpunkt, zu dem du das Konto angelegt und jeden Favoriten gespeichert hast, und
-      zwar für alle Profile mit Handle auf einmal. Bist du mit Discord verknüpft und Mitglied
-      unseres Discord-Servers, liefert sie außerdem dein Level, deinen Rang und dein Prestige dort
-      (siehe <a href="#discord-server">Discord-Server</a>); deine Profilseite lädt diese Werte mit,
-      zeigt sie derzeit aber nicht an.
+      zwar für alle Profile mit Handle auf einmal.
     </p>
     <p>
       Angemeldete Nutzer können über die Schnittstelle zusätzlich die interne Konto-ID jedes
       Profils mit Handle lesen. Hast du ein eigenes Profilbild oder Banner hochgeladen, steht sie
       außerdem in dessen Adresse, zusammen mit dem Zeitpunkt des Hochladens, und ist damit für
       jeden lesbar (siehe
-      <a href="#accounts">Benutzerkonto</a>). Auf der Website findest du andere nur über ihr genaues
-      Handle.
-      Nicht öffentlich sind deine E-Mail-Adresse, dein Discord-Tag, dein Verifizierungscode, deine
+      <a href="#accounts">Benutzerkonto</a>). Angemeldete Nutzer, auch ohne eigenes Handle, finden
+      Profile mit Handle außerdem im Konto-Dashboard: Ab zwei getippten Zeichen zeigt die Suche zum
+      Hinzufügen von Freunden bis zu sechs Profile, deren Handle oder Anzeigename so beginnt, und
+      unter „Vorschläge“ stehen bis zu zwölf Profile mit derselben Org oder Rolle oder mit einem
+      Rang vom Discord-Server. Treffer und Vorschläge zeigen Anzeigename, Handle, Profilbild oder
+      Symbol, ob das RSI-Handle verifiziert ist, gegebenenfalls das Rang-Abzeichen und bei
+      Vorschlägen die gemeinsame Org oder Rolle. Nicht öffentlich sind deine E-Mail-Adresse, dein Discord-Tag, dein Verifizierungscode, deine
       Werkzeug-Daten und Hangar-Layouts und deine Nachrichten; deine Freundesliste zeigt die
       Website nur dir. Nutzt du dein
       Discord-Bild als Profilbild, lädt jeder Browser, der dein Profil zeigt, das Bild direkt von
@@ -516,8 +522,11 @@ body{font-family:var(--font-body)}
 
     <h2 id="friends">Freunde und Nachrichten (nur mit Konto)</h2>
     <p>
-      Angemeldet und mit eigenem Handle kannst du anderen Piloten über ihr genaues Handle eine
-      Freundschaftsanfrage schicken. Gespeichert werden Absender, Empfänger, Status und die
+      Angemeldet und mit eigenem Handle kannst du anderen Piloten mit Handle eine
+      Freundschaftsanfrage schicken: im Konto-Dashboard über die Suche nach Handle oder Anzeigename
+      oder über die Vorschläge (siehe <a href="#profile">Piloten-Profil</a>) und mit „Freund
+      hinzufügen“ auf ihrem Piloten-Profil; dort kannst du auch eine Anfrage an dich annehmen. Die
+      getippten Zeichen der Suche gehen dabei als Suchanfrage an Supabase. Gespeichert werden Absender, Empfänger, Status und die
       Zeitpunkte von Anfrage und Antwort, für eine Freundschaft beide Konten und ihr Beginn. Diese
       Einzelheiten sehen nur die beiden Beteiligten, und eine Freundesliste zeigt die Website
       nirgends öffentlich an. Ablehnen
@@ -564,7 +573,7 @@ body{font-family:var(--font-body)}
       ist er für jeden lesbar: auf deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden
       auffrischt, und über die öffentliche Schnittstelle für alle Profile mit Handle. Angemeldeten
       Nutzern zeigt die Website ihn bei Freunden und offenen Anfragen. Meldest du dich im
-      Konto-Dashboard ab, versucht die Seite zuerst, die Zeitpunkte und die Angabe zu leeren, und
+      Konto-Dashboard ab (auch mit „Überall abmelden“), versucht die Seite zuerst, die Zeitpunkte und die Angabe zu leeren, und
       meldet dich danach in jedem Fall ab. Gelingt das Leeren nicht (etwa ohne Netz), schreibt
       dieser Browser keine weiteren Zeitpunkte, und der Status wechselt nach spätestens 3 Minuten
       auf offline, sofern nicht auf einem anderen Gerät, auf dem du angemeldet bist, noch eine
@@ -609,11 +618,12 @@ body{font-family:var(--font-body)}
     </p>
     <p>
       Öffentlich sein kann als Testpilot zweierlei. Beides richtet sich nach einem
-      Testpilot-Vermerk in deinem Profil, den nur das Konto-System selbst setzt, nie dein Browser.
-      Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
+      Testpilot-Vermerk in deinem Profil, den nur wir serverseitig setzen, nie dein Browser. Er
+      folgt der Rolle „Test Pilots“ derzeit nicht automatisch: Verlierst du die Rolle, bleibt er
+      stehen, bis wir ihn entfernen. Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
       „Testpilot“; nur dann erscheint im Dashboard auch der Schalter „Meinen Namen bei den
-      Testpiloten nennen“. Schaltest du ihn ein (Vorgabe aus), steht dein Anzeigename (ohne ihn dein Handle) mit einem Link auf
-      dein Profil in der Testpiloten-Liste der Seite <a href="/de/feedback.html">Feedback</a>.
+      Testpiloten nennen“. Schaltest du ihn ein (Vorgabe aus), steht dein Anzeigename (ohne ihn
+      dein Handle) mit einem Link auf dein Profil in der Testpiloten-Liste der Seite <a href="/de/feedback.html">Feedback</a>.
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, für die Liste deine Einwilligung (Art. 6
       Abs. 1 lit. a DSGVO), die du mit dem Schalter jederzeit widerrufst. Alles hier wird mit dem
       Konto gelöscht.
@@ -643,9 +653,11 @@ body{font-family:var(--font-body)}
       deiner Nachrichten, deine Zeit in Sprachkanälen und den Zeitpunkt der letzten Änderung; Level
       und Rang berechnet er daraus. Für jeden Beitrag, den du im Forum für Fehlerberichte eröffnest,
       gibt es einmal Bonuspunkte; dazu vermerkt er die Kennung des Beitrags, deine Discord-ID und
-      den Zeitpunkt. Den Inhalt von Nachrichten liest er nicht; den Titel eines solchen
-      Fehlerberichts schreibt er aber zusammen mit deiner Discord-ID in sein Betriebsprotokoll auf
-      unserem Server. Level, Rang, Prestige, Erfahrungspunkte und deinen Platz auf der Bestenliste
+      den Zeitpunkt. Den Inhalt von Nachrichten liest er nicht. In sein Betriebsprotokoll auf
+      unserem Server schreibt er aber den Titel eines solchen Fehlerberichts zusammen mit deiner
+      Discord-ID und außerdem, wenn du den Server verlässt, sich deine Rolle „Test Pilots“ ändert
+      oder ein Abgleich mit dem Konto-System fehlschlägt, deine Discord-ID und ob ihr ein
+      Website-Konto zugeordnet ist. Level, Rang, Prestige, Erfahrungspunkte und deinen Platz auf der Bestenliste
       sehen alle Mitglieder des Servers, über <code>/rank</code>, das sich für jedes Mitglied
       abrufen lässt, und über die Bestenliste; deinen Rang zeigt außerdem eine Discord-Rolle, und
       Aufstiege meldet der Bot im Server. Die Zahl deiner Nachrichten und deine Sprachzeit zeigt er
@@ -658,13 +670,16 @@ body{font-family:var(--font-body)}
       Nachrichten, Sprachzeit, Platz auf der Bestenliste und ob du gerade Mitglied des Servers bist,
       beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg. Das gilt auch nach
       dem Trennen von Discord, bis die Zuordnung entfernt ist (siehe <a href="#discord">Discord</a>).
-      Solange Discord verbunden ist und du Mitglied des Servers bist, kann jeder Level, Rang und
-      Prestige zusammen mit deinem <a href="#profile">Piloten-Profil</a> über die öffentliche
-      Datenbank-Schnittstelle abrufen (die Profilseite selbst zeigt sie derzeit nicht an); die
-      übrigen Werte zeigt die Website nur dir. Für den Abgleich schickt der Bot deine Discord-ID an
+      Solange Discord verbunden ist und du Mitglied des Servers bist, zeigt dein
+      <a href="#profile">Piloten-Profil</a> Level, Rang und Prestige jedem als Rang-Abzeichen, und
+      jeder kann sie über die öffentliche Datenbank-Schnittstelle abrufen; angemeldeten Nutzern
+      zeigt die Website das Abzeichen auch bei Freunden, in Anfragen, Suchtreffern und
+      Vorschlägen. Die übrigen Werte zeigt die Website nur dir. Für den Abgleich schickt der Bot deine Discord-ID an
       das Konto-System bei Supabase, auch wenn du kein Website-Konto hast: wenn du den Server
       verlässt, wenn sich deine Rolle „Test Pilots“ ändert und wenn du ein Level aufsteigst. Ist die
-      Discord-ID mit keinem Konto verbunden, wird dort nichts gespeichert.
+      Discord-ID mit keinem Konto verbunden, legt das Konto-System dazu nichts an; die Anfrage samt
+      Discord-ID steht dann nur im Zugriffsprotokoll von Supabase, für eine kurze, vom Anbieter
+      festgelegte Zeit.
     </p>
     <p>
       Die Daten des Bots liegen in einer eigenen Datenbank auf unserem Server. Wir bewahren sie
@@ -782,10 +797,12 @@ body{font-family:var(--font-body)}
       Reichweitenmessung, Feedback-Nachrichten, Spendenvorgänge und, wenn du Mitglied unseres
       Discord-Servers bist, die Werte des Bots); auf Anfrage erteilen wir Auskunft oder löschen sie,
       soweit wir sie dir zuordnen können. Mit Konto siehst und änderst du deine Profildaten im
-      Dashboard und löschst dort das ganze Konto; was dabei bleibt, steht unter
+      Dashboard, lädst unter Sicherheit &amp; Konto → Meine Daten die Daten deines Kontos als Datei
+      herunter (Profil, Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, Nachrichten und die
+      Werte vom Discord-Server; die Datei entsteht in deinem Browser) und löschst dort das ganze
+      Konto; was dabei bleibt, steht unter
       <a href="#accounts">Benutzerkonto</a> und <a href="#discord-server">Discord-Server und
-      Bot</a>. Kontodaten speichern wir, bis du sie änderst oder das
-      Konto löschst. Für alles Weitere, etwa eine vollständige Auskunft, schreib uns eine E-Mail.
+      Bot</a>. Kontodaten speichern wir, bis du sie änderst oder das Konto löschst. Für alles Weitere, etwa eine vollständige Auskunft, schreib uns eine E-Mail.
     </p>
   </div>
 </main>
