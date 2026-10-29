@@ -379,7 +379,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-filter .tool-help:not([open]) .tool-help__summary::before{content:'?';font-size:var(--fs-8);font-weight:800;line-height:1}
 /* Ab 761 px klappt die Hilfe als Tafel ueber der Halle auf, rechts neben dem
    Dock und links der Tafel der Werkstatt, oben buendig mit dem Dock: in der
-   Spalte schoebe sie die Karten unter den Fuss. Was nicht passt, rollt in
+   Spalte schoebe sie die Karten unter den Fuss. Breit wird sie nur so weit,
+   wie die Luecke bis zur Tafel reicht (bei 761 px und offenem Dock rund
+   170 px), sonst laege sie ueber deren Knoepfen. Was nicht passt, rollt in
    der Tafel. Das Fragezeichen bleibt in der Zeile und traegt den Akzent,
    solange sie offen ist. */
 @media (min-width:761px){
@@ -387,7 +389,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hg-filter .tool-help[open]{flex-basis:auto;border-radius:999px;border-color:var(--accent)}
   .hg-filter .tool-help[open] .tool-help__summary{width:2.3rem;height:2.3rem;padding:0;justify-content:center;gap:0;font-size:0}
   .hg .hg-dock .hg-filter .tool-help[open] .tool-help__summary::before{content:'?';font-size:var(--fs-8);font-weight:800;line-height:1;transform:none}
-  .hg-filter .tool-help__body{position:absolute;left:calc(100% + 12px);top:-1px;z-index:4;width:max(280px,min(640px,calc(100vw - 2 * var(--hg-gut) - var(--hg-dockw) - var(--hg-panelw) - 40px)));max-height:min(560px,calc(100% + 2px));overflow-y:auto;overscroll-behavior:contain;padding:.2rem 1.1rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);box-shadow:0 18px 44px -22px var(--shadow-color)}
+  .hg-filter .tool-help__body{position:absolute;left:calc(100% + 12px);top:-1px;z-index:4;width:min(640px,calc(100vw - 2 * var(--hg-gut) - var(--hg-dockw) - var(--hg-panelw) - 40px));max-height:min(560px,calc(100% + 2px));overflow-y:auto;overscroll-behavior:contain;padding:.2rem 1.1rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);box-shadow:0 18px 44px -22px var(--shadow-color)}
 }
 /* Zugeklappt bleibt vom Dock schmal eine Zeile (Hilfe und Schalter) unter der
    Tafel, ab 761 px eine schmale Leiste links ueber der Halle (siehe unten).
