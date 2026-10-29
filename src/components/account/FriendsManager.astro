@@ -4,6 +4,8 @@
 // Tabellen: friends (eine Zeile je Freundschaft, beide Seiten sehen sie per RLS)
 // und friend_requests (pending). Anzeige-Profile kommen aus der View
 // social_profiles (nur Profile MIT Handle, nur fuer eingeloggte Nutzer).
+// presence ist dort null, wenn der andere seinen Status diesem Nutzer nicht
+// zeigt (profiles.presence_visibility: Vorgabe nur Freunde): dann kein Punkt.
 // Annehmen laeuft ueber die SECURITY-DEFINER-Funktion accept_friend_request(),
 // damit Status-Update und Freundschaft atomar zusammen passieren.
 interface Props {
@@ -518,9 +520,13 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       render();
     };
 
-    // Präsenz-Punkt stylen (geteilt von avatarNode + Live-Poll)
+    // Präsenz-Punkt stylen (geteilt von avatarNode + Live-Poll). presence
+    // null = Status nicht freigegeben: Punkt ausblenden statt "Offline" zu
+    // behaupten (z. B. bei Anfragen von Nicht-Freunden).
     const applyDot = (dot: HTMLElement, presence: string | null, activity: string | null) => {
-      const pres = (presence === 'online' || presence === 'away') ? presence : 'offline';
+      const pres = (presence === 'online' || presence === 'away' || presence === 'offline') ? presence : null;
+      dot.style.display = pres ? '' : 'none';
+      if (!pres) { dot.title = ''; return; }
       const st = (STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string }>)[resolveStatusKey(pres, activity)];
       if (!st) return;
       dot.style.background = st.color;

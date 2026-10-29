@@ -193,6 +193,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         is_tester: false,
         tester_credit: false,
         share_activity: true,
+        presence_visibility: 'friends',
         social_twitch: '',
         social_youtube: '',
         social_x: '',
@@ -294,6 +295,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
       const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const presVisSelect = document.getElementById('pfPresenceVis') as HTMLSelectElement | null;
       const socialInputs = {
         social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
         social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
@@ -315,6 +317,16 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
       if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      // Wer den Online-Status sieht (profiles.presence_visibility); alles
+      // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
+      const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
+      // Bei "Niemand" sieht auch kein Freund die Aktivität: Schalter ausgegraut.
+      const syncShareAct = () => { if (shareActInput && presVisSelect) shareActInput.disabled = presVisSelect.value === 'none'; };
+      if (presVisSelect) {
+        presVisSelect.value = presVisOf(profileState.presence_visibility);
+        presVisSelect.addEventListener('change', syncShareAct);
+      }
+      syncShareAct();
       SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
       const ovSoc = document.getElementById('ovSocials');
       if (ovSoc) renderSocialLinks(ovSoc, profileState);
@@ -1267,6 +1279,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           socialVals[s.key] = v;
         }
         const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
+        const presVisVal = presVisOf(presVisSelect ? presVisSelect.value : profileState.presence_visibility);
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1300,6 +1313,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          presence_visibility: presVisVal,
           ...socialVals,
         });
 
@@ -1320,6 +1334,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          presence_visibility: presVisVal,
           social_twitch: socialVals.social_twitch || null,
           social_youtube: socialVals.social_youtube || null,
           social_x: socialVals.social_x || null,
@@ -1327,6 +1342,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
         // nicht erst beim naechsten Puls.
         if (!shareActVal) payload.activity = null;
+        // Niemand: die Zeitpunkte gleich mit leeren (die Datenbank tut es bei
+        // 'none' ohnehin), damit der Status sofort verschwindet.
+        if (presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
           payload.rsi_verified = false;
@@ -1339,9 +1357,15 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
         try {
-          const { error } = await supabase
+          let { error } = await supabase
             .from('profiles')
             .upsert(payload);
+          // Kennt die Datenbank presence_visibility noch nicht: ohne die
+          // Einstellung speichern, statt alle anderen Eingaben zu verlieren.
+          if (error && error.code !== '23505' && 'presence_visibility' in payload) {
+            delete payload.presence_visibility;
+            ({ error } = await supabase.from('profiles').upsert(payload));
+          }
           pfBtn.disabled = false;
 
           if (error) {
@@ -1356,6 +1380,11 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           pfBtn.disabled = false;
         }
 
+        // Der Puls (account-lite.js) in diesem Tab richtet sich sofort danach;
+        // andere Tabs erfahren es über den Profil-Cache (storage).
+        window.dispatchEvent(new CustomEvent('vb-account-prefs', {
+          detail: { presence_visibility: presVisVal, share_activity: shareActVal },
+        }));
         show(pfStatus as HTMLElement, D.msgSaved!, true);
       });
 
