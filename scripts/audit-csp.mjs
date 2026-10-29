@@ -147,6 +147,14 @@ const capChecks = [
     pattern: /identity_data[^\n]*avatar_url/,
     need: ['img-src', 'https://cdn.discordapp.com'],
     why: 'Discord-Bild der verbundenen Identität (identity_data.avatar_url) liegt auf cdn.discordapp.com' },
+  // Der Chat der Kontoseite hört per Supabase Realtime auf neue Nachrichten.
+  // Das ist ein Websocket (wss://…/realtime/v1/websocket), und eine
+  // https://-Quelle deckt nach CSP3 KEIN wss:// ab. Ohne den Eintrag stünde
+  // der Chat still auf dem Rückfall-Takt, ohne dass es jemand merkt.
+  { files: ['src/components/account/FriendsDock.astro'],
+    pattern: /postgres_changes/,
+    need: ['connect-src', supabaseUrl.replace(/^https:/, 'wss:')],
+    why: 'der Chat empfängt neue Nachrichten über den Realtime-Websocket von Supabase' },
 ];
 
 // ------------------------------------------------------------------ Bericht --

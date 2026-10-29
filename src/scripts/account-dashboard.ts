@@ -88,6 +88,17 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
     if (location.hash.length > 1) activateSection(location.hash.slice(1));
+    // Ungelesene Chat-Nachrichten (FriendsDock zählt) am Reiter „Freunde":
+    // dann weicht die Freundeszahl dem goldenen Zähler.
+    document.addEventListener('vb:chat-unread', (e) => {
+      const n = Number((e as CustomEvent).detail) || 0;
+      const u = document.getElementById('navChatUnread');
+      const f = document.getElementById('navFriendCount');
+      if (!u) return;
+      u.textContent = n > 99 ? '99+' : String(n);
+      u.hidden = n <= 0;
+      if (f) f.classList.toggle('is-muted', n > 0);
+    });
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');

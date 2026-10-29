@@ -30,7 +30,7 @@ const COPY = {
     decline: 'Ablehnen',
     cancelReq: 'Zurückziehen',
     removeFriend: 'Entfernen',
-    viewProfile: 'Profil ansehen',
+    viewProfile: 'Profil ansehen', chat: 'Nachricht',
     loading: 'Lade dein Netzwerk …',
     needHandle: 'Setze zuerst ein Handle in „Profil & Identität" — ohne Handle können andere Piloten dich nicht finden und du kannst keine Anfragen senden.',
     errSelf: 'Du kannst dir nicht selbst eine Anfrage senden.',
@@ -62,7 +62,7 @@ const COPY = {
     decline: 'Decline',
     cancelReq: 'Withdraw',
     removeFriend: 'Remove',
-    viewProfile: 'View profile',
+    viewProfile: 'View profile', chat: 'Message',
     loading: 'Loading your network …',
     needHandle: 'Set a handle in “Profile & Identity” first — without one other pilots cannot find you and you cannot send requests.',
     errSelf: 'You cannot send a friend request to yourself.',
@@ -100,6 +100,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   data-lbl-cancel={COPY.cancelReq}
   data-lbl-remove={COPY.removeFriend}
   data-lbl-view={COPY.viewProfile}
+  data-lbl-chat={COPY.chat}
   data-lbl-since={COPY.friendSince}
   data-lbl-requested={COPY.requested}
   data-txt-empty-friends={COPY.emptyFriends}
@@ -662,9 +663,12 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
         const acts = document.createElement('div');
         acts.className = 'fm-card-actions';
+        // Chat öffnet in der Freundesleiste (FriendsDock), auf dem Handy als volle Fläche.
+        acts.appendChild(mkBtn(D.lblChat || 'Message', 'fm-btn--primary',
+          () => { document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: f.p.id })); }));
         if (f.p.handle) {
           const a = document.createElement('a');
-          a.className = 'fm-btn fm-btn--primary';
+          a.className = 'fm-btn';
           a.href = pilotBase + f.p.handle;
           a.textContent = D.lblView || 'Profile';
           acts.appendChild(a);
