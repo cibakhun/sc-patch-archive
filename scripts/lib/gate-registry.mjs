@@ -425,6 +425,15 @@ export const CHECKS = [
     why: 'Erhebungswerkzeug aus Phase 2 (Grundlage der Skala), kein Pruefer — es faellt kein Urteil und hat bewusst keinen Exit-Code',
   },
   {
+    id: 'measure-hangar-cockpit',
+    script: 'scripts/measure-hangar-cockpit.mjs',
+    rail: null,
+    checks: 'misst je Schiffsmodell, wie viele Blicke durch das Haubenglas hinter dem Glas auf eine Rueckseite treffen (man sieht durch das Schiff hindurch)',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-cockpit-hohl.md (Krisz, 29.10.2026: Gladius von innen hohl): vergleicht Rohexport und Web-Fassung auf dem PC und zeigt die betroffenen Schiffe. ' +
+      'Wird zum Tor (Schiene A, Klinke je Schiff), sobald die Ursache behoben ist und ein Stand feststeht, gegen den die Klinke greifen kann.',
+  },
+  {
     id: 'verify-hardpoints',
     script: 'scripts/verify-hardpoints.mjs',
     rail: null,
