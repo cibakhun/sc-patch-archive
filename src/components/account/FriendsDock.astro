@@ -1,0 +1,151 @@
+---
+// Freundesleiste rechts im Konto (wie die Mitgliederliste bei Discord):
+// wer gerade da ist, oben; wer offline ist, gedimmt darunter. Lädt NICHT
+// selbst — FriendsManager meldet seine Daten per Ereignis 'vb:friends',
+// damit Liste und Freunde-Bereich nie auseinanderlaufen. Kein Text, der
+// erklärt: Punkt + Name + was der Freund gerade macht.
+interface Props {
+  lang: 'de' | 'en';
+}
+const { lang } = Astro.props;
+const COPY = {
+  de: {
+    title: 'Freunde', add: 'Freund hinzufügen', online: 'Online', offline: 'Offline',
+    req1: 'offene Anfrage', reqN: 'offene Anfragen', empty: 'Noch keine Freunde',
+  },
+  en: {
+    title: 'Friends', add: 'Add friend', online: 'Online', offline: 'Offline',
+    req1: 'open request', reqN: 'open requests', empty: 'No friends yet',
+  },
+}[lang];
+const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
+---
+<div class="fd" id="friendsDock"
+  data-lang={lang}
+  data-pilot-base={pilotBase}
+  data-l-online={COPY.online}
+  data-l-offline={COPY.offline}
+  data-l-req1={COPY.req1}
+  data-l-reqn={COPY.reqN}
+>
+  <div class="fd-head">
+    <h2>{COPY.title} <span class="fd-count" id="fdCount"></span></h2>
+    <button type="button" class="fd-add" id="fdAdd" title={COPY.add} aria-label={COPY.add}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-plus"/></svg>
+    </button>
+  </div>
+  <button type="button" class="fd-req" id="fdReq" hidden><span class="fd-req__n" id="fdReqN">0</span><span id="fdReqLbl"></span></button>
+  <div class="fd-list" id="fdList"></div>
+  <div class="fd-empty" id="fdEmpty" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
+    <span>{COPY.empty}</span>
+    <button type="button" class="btn sm" id="fdAddEmpty">{COPY.add}</button>
+  </div>
+</div>
+
+<script>
+  import { STATUS_STATES } from '../../lib/profilePresets';
+  import { resolveStatusKey } from '../../lib/presence';
+
+  const root = document.getElementById('friendsDock') as HTMLElement | null;
+  if (root) {
+    const D = root.dataset;
+    const lang = D.lang === 'de' ? 'de' : 'en';
+    const $ = (id: string) => document.getElementById(id);
+    const list = $('fdList')!;
+    const empty = $('fdEmpty')!;
+    const count = $('fdCount')!;
+    const req = $('fdReq') as HTMLButtonElement;
+
+    type Prof = {
+      id: string; handle: string; display_name: string | null;
+      avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
+      status_state: string | null; status_text: string | null; presence: string | null;
+    };
+    type Entry = { p: Prof };
+    const ST = STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string; pulse: boolean }>;
+
+    // In den Freunde-Bereich springen; FriendsManager wählt dort den Unter-Reiter.
+    const goFriends = (sub: 'friends' | 'requests') => {
+      (document.querySelector('.tab[data-tab="friends"]') as HTMLElement | null)?.click();
+      document.dispatchEvent(new CustomEvent('vb:friends-show', { detail: sub }));
+    };
+    $('fdAdd')!.addEventListener('click', () => goFriends('friends'));
+    $('fdAddEmpty')!.addEventListener('click', () => goFriends('friends'));
+    req.addEventListener('click', () => goFriends('requests'));
+
+    const rank = (pres: string) => (pres === 'online' ? 0 : pres === 'away' ? 1 : 2);
+    const nameOf = (p: Prof) => p.display_name || p.handle || '?';
+
+    const row = (p: Prof) => {
+      const pres = p.presence === 'online' || p.presence === 'away' ? p.presence : 'offline';
+      const key = resolveStatusKey(pres, p.status_state);
+      const st = ST[key] || ST.offline;
+      const label = lang === 'de' ? st.labelDe : st.labelEn;
+      const a = document.createElement(p.handle ? 'a' : 'div');
+      a.className = 'fd-row' + (pres === 'offline' ? ' is-off' : '');
+      if (p.handle) (a as HTMLAnchorElement).href = (D.pilotBase || '/pilot/') + p.handle;
+
+      const av = document.createElement('span');
+      av.className = 'fd-av';
+      const col = p.avatar_color || '#2dd4ff';
+      av.style.color = col;
+      av.style.borderColor = col;
+      if (p.avatar_url) {
+        const img = document.createElement('img');
+        img.src = p.avatar_url; img.alt = ''; img.loading = 'lazy';
+        av.appendChild(img);
+      } else {
+        av.textContent = p.avatar_icon || nameOf(p).charAt(0).toUpperCase();
+      }
+      const dot = document.createElement('i');
+      dot.className = 'fd-dot' + (st.pulse ? ' pulse' : '');
+      dot.style.background = st.color;
+      dot.style.setProperty('--dot', st.color);
+      dot.title = label;
+      av.appendChild(dot);
+
+      const txt = document.createElement('span');
+      txt.className = 'fd-txt';
+      const nm = document.createElement('b');
+      nm.textContent = nameOf(p);
+      const sub = document.createElement('small');
+      // Was macht der Freund gerade? Eigener Statustext gewinnt, solange er da ist.
+      sub.textContent = pres !== 'offline' && p.status_text ? p.status_text : label;
+      txt.append(nm, sub);
+      a.append(av, txt);
+      a.title = nameOf(p) + (p.handle ? ' · @' + p.handle : '');
+      return a;
+    };
+
+    const section = (label: string, n: number) => {
+      const h = document.createElement('h3');
+      h.className = 'fd-sec';
+      h.textContent = `${label} — ${n}`;
+      return h;
+    };
+
+    document.addEventListener('vb:friends', (e) => {
+      const d = (e as CustomEvent).detail as { friends: Entry[]; incoming: Entry[] };
+      const all = (d.friends || []).map((f) => f.p).filter(Boolean);
+      const sorted = all.slice().sort((x, y) => {
+        const px = rank(x.presence || ''), py = rank(y.presence || '');
+        return px - py || nameOf(x).localeCompare(nameOf(y));
+      });
+      const on = sorted.filter((p) => p.presence === 'online' || p.presence === 'away');
+      const off = sorted.filter((p) => !(p.presence === 'online' || p.presence === 'away'));
+
+      list.innerHTML = '';
+      if (on.length) { list.appendChild(section(D.lOnline || 'Online', on.length)); on.forEach((p) => list.appendChild(row(p))); }
+      if (off.length) { list.appendChild(section(D.lOffline || 'Offline', off.length)); off.forEach((p) => list.appendChild(row(p))); }
+      empty.hidden = all.length > 0;
+      list.hidden = all.length === 0;
+      count.textContent = all.length ? String(all.length) : '';
+
+      const nIn = (d.incoming || []).length;
+      req.hidden = nIn === 0;
+      $('fdReqN')!.textContent = String(nIn);
+      $('fdReqLbl')!.textContent = nIn === 1 ? (D.lReq1 || '') : (D.lReqn || '');
+    });
+  }
+</script>

@@ -51,6 +51,10 @@ waren bereits vor Anlage der Phase getroffen und stehen so in der ROADMAP.md.
   oder Trigger auf `auth.users`), **nicht** im Client.
   ⚠ Dieser Riegel sitzt an der Anmeldung: ein Fehler dort sperrt im Zweifel
   *alle* aus. Er ist vorgeführt rot zu fahren, bevor er scharf geht.
+  **Aufgehoben 29.10.2026** (Betreiber per Entscheidungskarte: „Ja, mit
+  Discord registrieren"): der Discord-Knopf legt jetzt ein Konto an, Name und
+  Bild kommen von Discord. Siehe
+  `supabase/migrations/20261029120000_allow_discord_signup.sql`.
 
 - **D-03:** Die Discord-Identität wird **einmal** per OAuth bewiesen; danach
   beantwortet der **Bot-Token** server-zu-server, ob die Rolle vorliegt. Der

@@ -70,18 +70,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     const tabPanels = document.querySelectorAll<HTMLElement>('.acx-tab-panel');
     const activateSection = (target: string | undefined) => {
       if (!target) return;
+      if (!document.getElementById(`tab-panel-${target}`)) return;
       navItems.forEach(b => b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false'));
       tabPanels.forEach(p => { p.hidden = p.id !== `tab-panel-${target}`; });
-      // Sanft zur Tab-Leiste scrollen, wenn man darüber steht — Inhalt sichtbar
-      // machen, ohne über dem Hero hängen zu bleiben.
-      const bar = document.querySelector('.tabsbar') as HTMLElement | null;
+      // Bereich in der Adresse merken (#friends …): Neu laden und Links von
+      // außen landen im selben Bereich.
+      try { history.replaceState(null, '', target === 'overview' ? location.pathname + location.search : '#' + target); } catch { /* egal */ }
+      // Breite Schirme: der Bereich scrollt in seinem Kasten, also dort nach
+      // oben. Handy: die Seite scrollt — zum Bereich springen, wenn man
+      // darunter steht.
+      const main = document.querySelector('.acc-main') as HTMLElement | null;
+      if (!main) return;
+      main.scrollTop = 0;
       const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav')) || 64;
-      if (bar) {
-        const y = Math.max(0, bar.getBoundingClientRect().top + window.pageYOffset - navH);
-        if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
-      }
+      const y = Math.max(0, main.getBoundingClientRect().top + window.pageYOffset - navH - 8);
+      if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
+    if (location.hash.length > 1) activateSection(location.hash.slice(1));
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -1646,9 +1652,76 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           return String(d.user_name || d.preferred_username || d.full_name || d.name || idn.id || '?');
         };
 
+        // Eigenes Discord-Bild der Identität. Discords Standardbild
+        // (cdn.discordapp.com/embed/avatars/…) ist das blaue Logo, das jeder
+        // ohne eigenes Bild hat — als Profilbild taugt es nicht.
+        const dcAvatarOf = (idn: any): string => {
+          const u = String(((idn && idn.identity_data) || {}).avatar_url || '');
+          return /^https:\/\/cdn\.discordapp\.com\/avatars\//.test(u) ? u : '';
+        };
+        // Discord-Benutzername (full_name in den Supabase-Rohdaten) und der
+        // Anzeigename, den man bei Discord selbst gewählt hat (global_name).
+        const dcUserOf = (idn: any): string => String(((idn && idn.identity_data) || {}).full_name || '').trim();
+        const dcGlobalOf = (idn: any): string =>
+          String((((idn && idn.identity_data) || {}).custom_claims || {}).global_name || '').trim();
+
+        // Schreibt nur die genannten Felder; derselbe Cache wie beim Speichern.
+        const dcSave = async (patch: Record<string, any>) => {
+          Object.assign(profileState, patch);
+          try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+          try { await supabase.from('profiles').update(patch).eq('id', user.id); } catch {}
+        };
+
+        const pfDcBtn = document.getElementById('pfAvatarDiscord') as HTMLButtonElement | null;
+        const pfDcImg = document.getElementById('pfAvatarDiscordImg') as HTMLImageElement | null;
+        const markDcAvatar = () => {
+          if (pfDcBtn) pfDcBtn.classList.toggle('is-on', !!pfDcImg && !!pfDcImg.src && avatarUrlInput.value.trim() === pfDcBtn.dataset.url);
+        };
+        pfDcBtn?.addEventListener('click', () => {
+          const url = pfDcBtn.dataset.url || '';
+          if (!url) return;
+          avatarUrlInput.value = url;
+          profileState.avatar_url = url;
+          const rm = document.getElementById('pfAvatarRemove');
+          if (rm) rm.hidden = false;
+          updateCard();
+          markDcAvatar();
+        });
+        avatarUrlInput.addEventListener('change', markDcAvatar);
+        document.getElementById('pfAvatarRemove')?.addEventListener('click', () => setTimeout(markDcAvatar));
+
         const dcRender = async () => {
           const ids = await dcIdentities();
           const dc = ids.find((i) => i.provider === 'discord');
+          // Discord-Bild als Profilbild anbieten (ein Klick, Speichern wie sonst).
+          const dcPic = dc ? dcAvatarOf(dc) : '';
+          if (pfDcBtn && pfDcImg) {
+            pfDcBtn.hidden = !dcPic;
+            pfDcBtn.dataset.url = dcPic;
+            if (dcPic) pfDcImg.src = dcPic;
+            markDcAvatar();
+          }
+          // Discord-Name im Profil kommt aus der Verbindung, nicht von Hand:
+          // ein getippter Name kann jeder sein, der verbundene ist bestätigt.
+          const dcUser = dc ? dcUserOf(dc) : '';
+          discordInput.readOnly = !!dcUser;
+          discordInput.classList.toggle('is-linked', !!dcUser);
+          discordInput.title = dcUser ? (D.dcFromLink || '') : '';
+          if (dcUser) {
+            const tag = '@' + dcUser;
+            discordInput.value = tag;
+            if ((profileState.discord_tag || '') !== tag) await dcSave({ discord_tag: tag });
+          }
+          // Discord-Avatar statt Logo, sobald verbunden (kommt aus den
+          // OAuth-Rohdaten, kein zusätzlicher Discord-Aufruf).
+          const dcAv = document.getElementById('dcAvatar') as HTMLImageElement | null;
+          const dcLogo = document.getElementById('dcLogo');
+          const avUrl = dc ? String((dc.identity_data || {}).avatar_url || '') : '';
+          if (dcAv && dcLogo) {
+            if (avUrl) { dcAv.src = avUrl; dcAv.hidden = false; dcLogo.hidden = true; }
+            else { dcAv.hidden = true; dcLogo.hidden = false; }
+          }
+          dcCard.classList.toggle('is-linked', !!dc);
           if (dc) {
             dcState.textContent = (D.dcLinkOne || 'Connected as %name%').replace('%name%', dcName(dc));
             dcBtn.hidden = true;
@@ -1661,6 +1734,35 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         };
         await dcRender();
 
+        // Zurück von Discord nach dem Verbinden: Bild und Name übernehmen,
+        // aber nur dort, wo noch nichts Eigenes steht. Ein selbst
+        // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
+        let justLinked = false;
+        try { justLinked = sessionStorage.getItem('vb.dcLinking') === '1'; sessionStorage.removeItem('vb.dcLinking'); } catch {}
+        if (justLinked) {
+          const dc = (await dcIdentities()).find((i) => i.provider === 'discord');
+          if (dc) {
+            const patch: Record<string, any> = {};
+            const pic = dcAvatarOf(dc);
+            if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
+            const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            const mailName = (user.email || '').split('@')[0];
+            const curName = (profileState.display_name || '').trim();
+            if (nick && (!curName || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (Object.keys(patch).length) {
+              await dcSave(patch);
+              if (patch.avatar_url) {
+                avatarUrlInput.value = patch.avatar_url;
+                const rm = document.getElementById('pfAvatarRemove');
+                if (rm) rm.hidden = false;
+              }
+              if (patch.display_name) nameInput.value = patch.display_name;
+              updateCard();
+              markDcAvatar();
+            }
+          }
+        }
+
         dcBtn.addEventListener('click', async () => {
           dcSay('');
           dcBusy(dcBtn, true);
@@ -1668,11 +1770,13 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der
             // Rueckweg auf der Site-URL, und der Nutzer stuende nach dem
             // Verbinden woanders als dort, wo er den Knopf gedrueckt hat.
+            try { sessionStorage.setItem('vb.dcLinking', '1'); } catch {}
             const { error } = await (supabase.auth as any).linkIdentity({
               provider: 'discord',
               options: { redirectTo: window.location.origin + window.location.pathname },
             });
             if (!error) return; // Erfolg = Weiterleitung zu Discord, hier geht es nicht weiter
+            try { sessionStorage.removeItem('vb.dcLinking'); } catch {}
             dcBusy(dcBtn, false);
             const m = String(error.message || '').toLowerCase();
             if (m.includes('manual linking') || m.includes('not enabled') || m.includes('disabled')) dcSay(D.dcLinkErrDisabled || '', 'err');
