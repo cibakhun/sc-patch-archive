@@ -348,6 +348,7 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { clearAccountTraces, browserStores } from '../../lib/account-cleanup';
   import {
     REFINERY, oreByName, estimateValue, fmtCountdown, fmtDuration, fmtAuec, fmtScu,
     type RefineryJob, type RefineryItem,
@@ -793,10 +794,16 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr) {
         const st = (userErr as { status?: number }).status;
-        if (st === 401 || st === 403) { await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return; }
+        if (st === 401 || st === 403) {
+          clearAccountTraces(data.session.user.id, 'signout', browserStores());
+          await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return;
+        }
         throw userErr;
       }
-      if (!userData.user) { await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return; }
+      if (!userData.user) {
+        clearAccountTraces(data.session.user.id, 'signout', browserStores());
+        await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return;
+      }
 
       const { data: rows, error } = await supabase
         .from('refinery_jobs')
