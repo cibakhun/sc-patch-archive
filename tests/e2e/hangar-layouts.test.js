@@ -84,7 +84,7 @@ describe('Werkstatt: Link-Code', () => {
   });
 
   test('?layout= reist durch den Zustand des Controllers, beim Teilen eingeschlossen', () => {
-    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], types: new Set(), makers: new Set() };
+    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
     const code = encodeLayout({ name: 'Glaskanone', slots: { gun_nose: 'revenant' } });
     const s = parseState(`?ship=anvl-arrow&layout=${code}&q=arrow`, '', ctx);
     assert.equal(s.lo, code);
@@ -94,7 +94,7 @@ describe('Werkstatt: Link-Code', () => {
   });
 
   test('Serie kostet keine Adresse; die Schiffsdaten stehen als ?pane=ship, geteilt nie', () => {
-    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], types: new Set(), makers: new Set() };
+    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
     assert.equal(parseState(`?layout=${EMPTY_CODE}`, '', ctx).lo, null);
     assert.equal(parseState('', '', ctx).pane, 'layout');
     assert.equal(parseState('?pane=nope', '', ctx).pane, 'layout');

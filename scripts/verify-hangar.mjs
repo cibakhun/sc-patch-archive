@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   SIEBZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   NEUNZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -126,6 +126,20 @@
         Material (Ersatz des Exports, im Hangar reinweiss) zaehlen. Seit dem
         Nachtrag keines mehr, ausser den Luecken im Spiel selbst
         (PLATZHALTER_AUSNAHMEN, je mit Anlass und Zombie-Waechter).
+    19  Schiffswahl (seit 29.10.2026, Krisz: „painy“; Entwurf 2). Je
+        Hangarseite: jede Karte zeigt ihr gerendertes Bild
+        /hangar/cards/<id>.webp?v=, Bild und Umriss (top/) liegen in dist/,
+        v ist sha256 beider Dateien (die URL steht lange im Cache), data-fp
+        sind Breite und Laenge in Metern (zwei Zahlen > 0); eine Karte ohne
+        eigenes Bild zeigt das des Wikis: WARNUNG, render-hangar-cards
+        nachholen (Schiene C). data-q ist unter fold() des ausgelieferten
+        Controllers unveraendert (sonst trifft die Suche diese Woerter nie),
+        jeder Zweck aus data-p ist eine Stufe der Pille Wofuer, jede
+        Unterrolle aus data-g eine Taste in #hgx-subs, jede Groesse eine
+        Stufe der Pille Groesse. Dazu Proben durch die ausgelieferte Suche
+        (#hgx-vocab, parseQuery, findShip, dockSearch) ueber die Karten aus
+        dist/, je Sprache: Spitzname, Zweck mit Crew, Fracht, Preis,
+        Tippfehler. Klinken: Karten mit eigenem Bild, Proben.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -163,6 +177,10 @@
         Nachtrag: aegs-gladius 25072 Dreiecke)                      -> [18]
      v  in dist/hangar/ships/rsi-scorpius-antares.glb dem namenlosen
         Material einen Namen geben (Ausnahme ohne Anlass)            -> [18]
+     w  dist/hangar/cards/top/aegs-gladius.webp loeschen             -> [19]
+     x  in dist/hangar.html einem data-q ein „Jäger“ geben           -> [19]
+     y  in dist/hangar.html im #hgx-vocab den Spitznamen cutty
+        streichen (29.10.2026: „cutty“ -> drak-cutter vorn)          -> [19]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1004,8 +1022,103 @@ const PLATZHALTER_AUSNAHMEN = {
   ist.platzhalter = Math.round(tris); ist.platzhalterSchiffe = hit.length;
 }
 
+say('\n[19] Schiffswahl: Bilder und Umrisse der Karten, Woerter und Stufen der Suche, Proben durch die ausgelieferte Suche');
+// Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 29.10.2026:
+// alle 231 Hangar-Schiffe mit eigenem Bild, 6 Proben je Sprache.
+const WAHL = { karten: 231, proben: 12 };
+{
+  const ent = (v) => v.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  let mod = null;
+  try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[19] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  for (const fn of ['fold', 'parseQuery', 'findShip', 'dockSearch', 'figuresOf']) if (mod && typeof mod[fn] !== 'function') { fail(`[19] der Controller exportiert ${fn} nicht mehr`); mod = null; }
+  // Proben je Sprache: Suchtext und was jeder Treffer erfuellen muss. Wer
+  // die Suche bewusst aendert, aendert sie hier mit.
+  const PROBEN = {
+    en: [
+      ['cutty', 1, (hits, best) => best.includes('drak-cutlass-black'), 'Spitzname: die Cutlass Black unter den besten'],
+      ['mining solo', 2, (hits, best, s) => hits.every((id) => s(id).pur.includes('bergbau') && s(id).stat.crew === 1), 'jeder Treffer Bergbau mit Crew 1'],
+      ['100 scu', 10, (hits, best, s) => hits.every((id) => s(id).stat.cargo >= 100), 'jeder Treffer ab 100 SCU'],
+      ['under 2m', 10, (hits, best, s) => hits.every((id) => s(id).stat.price != null && s(id).stat.price <= 2e6), 'jeder Treffer bis 2 Mio. aUEC'],
+      ['prospecter', 1, (hits, best) => best.includes('misc-prospector'), 'Tippfehler: die Prospector vorn'],
+      ['heavy fighter', 3, (hits, best, s) => hits.every((id) => s(id).grp.includes('kampf:schwer') || s(id).name.includes('heavy')), 'jeder Treffer schwerer Jaeger'],
+    ],
+    de: [
+      ['cutty', 1, (hits, best) => best.includes('drak-cutlass-black'), 'Spitzname: die Cutlass Black unter den besten'],
+      ['bergbau solo', 2, (hits, best, s) => hits.every((id) => s(id).pur.includes('bergbau') && s(id).stat.crew === 1), 'jeder Treffer Bergbau mit Crew 1'],
+      ['ab 100 scu', 10, (hits, best, s) => hits.every((id) => s(id).stat.cargo >= 100), 'jeder Treffer ab 100 SCU'],
+      ['unter 2 mio', 10, (hits, best, s) => hits.every((id) => s(id).stat.price != null && s(id).stat.price <= 2e6), 'jeder Treffer bis 2 Mio. aUEC'],
+      ['prospektor', 1, (hits, best) => best.includes('misc-prospector'), 'Tippfehler: die Prospector vorn'],
+      ['schwerer jäger', 3, (hits, best, s) => hits.every((id) => s(id).grp.includes('kampf:schwer') || s(id).name.includes('schwerer')), 'jeder Treffer schwerer Jaeger'],
+    ],
+  };
+  let eigen = 0, proben = 0;
+  for (const page of PAGES) {
+    const html = page.html;
+    const { keys } = DOCK[page.lang];
+    const lis = [...html.matchAll(/<li data-id="([^"]+)"([^>]*)>\s*<a class="hg-card"[^>]*>\s*(?:<img src="([^"]*)"[^>]*>|<i class="hg-noimg"><\/i>)\s*<span class="hg-card__n">([^<]*)<\/span>/g)];
+    const attr = (a, k) => ent(new RegExp(`\\sdata-${k}="([^"]*)"`).exec(a)?.[1] ?? '');
+    const opts = (f) => new Set([...html.matchAll(new RegExp(`class="hgx-opt" data-f="${f}" data-v="([^"]*)"`, 'g'))].map((m) => ent(m[1])));
+    const purs = opts('pur'), sizes = opts('size');
+    const grps = new Set([...html.matchAll(/class="hgx-sub" data-of="([^"]+)" data-grp="([^"]+)"/g)].map((m) => `${m[1]}:${m[2]}`));
+    const total = dockIds(html).length;
+    let mine = 0;
+    const ohne = [], bild = [], wort = [], stufe = [];
+    const pool = [];
+    for (const [, id, a, src, nameRaw] of lis) {
+      const m = /^\/hangar\/cards\/([^/?]+)\.webp\?v=([0-9a-f]{8})$/.exec(src ?? '');
+      if (!m || m[1] !== id) ohne.push(id);
+      else {
+        mine++;
+        const card = join(DIST, 'hangar', 'cards', `${id}.webp`), top = join(DIST, 'hangar', 'cards', 'top', `${id}.webp`);
+        if (!existsSync(card) || !existsSync(top)) bild.push(`${id}: ${!existsSync(card) ? 'Bild' : 'Umriss'} fehlt in dist/hangar/cards`);
+        else if (createHash('sha256').update(readFileSync(card)).update(readFileSync(top)).digest('hex').slice(0, 8) !== m[2]) bild.push(`${id}: v=${m[2]} ist nicht der Inhalt von Bild und Umriss (src/data/hangar-cards.json veraltet?)`);
+        const fpv = attr(a, 'fp').split(' ').map(Number);
+        if (fpv.length !== 2 || !fpv.every((x) => Number.isFinite(x) && x > 0)) bild.push(`${id}: data-fp „${attr(a, 'fp')}“ sind nicht zwei Masze in Metern`);
+      }
+      const q = attr(a, 'q');
+      if (mod && mod.fold(q) !== q) wort.push(`${id}: data-q „${q.slice(0, 60)}“ aendert sich unter fold()`);
+      for (const p of attr(a, 'p').split(' ').filter(Boolean)) if (!purs.has(p)) stufe.push(`${id}: Zweck ${p} ist keine Stufe der Pille Wofuer`);
+      for (const g of attr(a, 'g').split(' ').filter(Boolean)) if (!grps.has(g)) stufe.push(`${id}: Unterrolle ${g} hat keine Taste in #hgx-subs`);
+      const sz = attr(a, 'sz');
+      if (sz && !sizes.has(sz)) stufe.push(`${id}: Groesse ${sz} ist keine Stufe der Pille Groesse`);
+      if (mod) pool.push(mod.findShip({ id, name: ent(nameRaw), mk: attr(a, 'mk'), q, p: attr(a, 'p'), g: attr(a, 'g'), sz }, mod.figuresOf(keys, attr(a, 'v'))));
+    }
+    if (page.lang === 'en') eigen = mine;
+    say(`    ${page.file}: ${lis.length} von ${total} Karten gelesen, ${mine} mit eigenem Bild, Stufen: ${purs.size} Zwecke, ${grps.size} Unterrollen, ${sizes.size} Groessen`);
+    if (lis.length !== total) fail(`[19] ${page.file}: ${total - lis.length} Karten ohne die Form li > a.hg-card > img + .hg-card__n — der Leser ist kaputt oder die Karte umgebaut`);
+    if (ohne.length) say(`    WARNUNG: ${ohne.length} Karten zeigen das Bild des Wikis statt eines eigenen (${ohne.slice(0, 4).join(', ')}${ohne.length > 4 ? ', …' : ''}): node scripts/render-hangar-cards.mjs --only <id> (Schiene C)`);
+    for (const b of bild.slice(0, 6)) fail(`[19] ${page.file}: ${b}`);
+    for (const w of wort.slice(0, 6)) fail(`[19] ${page.file}: ${w} (finder.ts tagsOf faltet anders als der Controller)`);
+    for (const x of stufe.slice(0, 6)) fail(`[19] ${page.file}: ${x}`);
+    if (!purs.size || !sizes.size || !grps.size) fail(`[19] ${page.file}: Pillen oder Unterrollen fehlen (Wofuer ${purs.size}, Groesse ${sizes.size}, Unterrollen ${grps.size})`);
+    // Proben durch die ausgelieferte Suche, mit dem Vokabular dieser Seite.
+    let vocab = null;
+    try { vocab = JSON.parse(/<script type="application\/json" id="hgx-vocab">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? 'null'); } catch { vocab = null; }
+    if (!vocab) { fail(`[19] ${page.file}: #hgx-vocab fehlt oder ist kein JSON`); continue; }
+    if (!mod) continue;
+    const crew = Object.fromEntries(vocab.crew.map((c) => [c.k, c]));
+    const byId = new Map(pool.map((x) => [x.id, x]));
+    for (const [text, min, ok, what] of PROBEN[page.lang]) {
+      const p = mod.parseQuery(text, vocab);
+      const res = mod.dockSearch(pool, { hits: p.hits, words: p.words }, crew);
+      const hits = [...res.keys()];
+      const top = Math.max(...res.values());
+      const best = hits.filter((id) => res.get(id) === top);
+      const pass = hits.length >= min && ok(hits, best, (id) => byId.get(id));
+      say(`      „${text}“ -> ${hits.length} Treffer, vorn ${best.slice(0, 3).join(', ') || '–'}${pass ? '' : '   <- FALSCH'}`);
+      if (pass) proben++;
+      else fail(`[19] ${page.file}: Probe „${text}“: ${hits.length} Treffer (mindestens ${min}), erwartet: ${what} — parseQuery/dockSearch im Controller oder vocab() in finder.ts`);
+    }
+  }
+  sollIst(`Karten mit eigenem Bild >= ${WAHL.karten}, Proben >= ${WAHL.proben}, kein Bild-, Wort- oder Stufenfehler`, `${eigen} Karten, ${proben} Proben`);
+  if (eigen < WAHL.karten) fail(`[19] nur ${eigen} Karten mit eigenem Bild (Klinke ${WAHL.karten}): src/data/hangar-cards.json oder public/hangar/cards fehlen?`);
+  if (proben < WAHL.proben && !findings.some((f) => f.startsWith('[19]'))) fail(`[19] nur ${proben} Proben bestanden (Klinke ${WAHL.proben})`);
+  ist.wahlKarten = eigen; ist.wahlProben = proben;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
