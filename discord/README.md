@@ -109,8 +109,11 @@ Pick your new server, keep **Administrator** ticked, authorise.
 > switches **on** exactly Manage Roles, View Channels, Send Messages, Embed Links,
 > Attach Files, Read Message History and Use Application Commands. Then Server
 > Settings → **Roles** → the bot's role → switch **Administrator off**. Switch it
-> back on only while one of the scripts above runs, then off again. A leaked bot
-> token is then a role manager, not a server owner.
+> back on only while one of the scripts above runs, then off again. That keeps
+> the always-on bot from holding more than it needs. It does not make a leaked
+> token harmless: Manage Roles can still hand out every role that sits below the
+> bot's own. Guard the token like the owner's password and reset it at once if
+> it leaks.
 
 ---
 

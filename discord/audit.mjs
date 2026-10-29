@@ -128,7 +128,7 @@ else ok(`bot is in exactly 1 guild`);
 // Manage Roles plus the basics (bot/README.md). Off is the normal state —
 // but then Discord withholds AutoMod, onboarding and invites from this
 // report, so it says so instead of pretending to be complete.
-if (!me.permissions.has(PermissionFlagsBits.ManageRoles)) err('bot', 'bot lacks Manage Roles — rank roles and the Testpilot mirror cannot work', 'Server Settings → Roles → bot role → Manage Roles');
+if (!me.permissions.has(PermissionFlagsBits.ManageRoles)) err('bot', 'bot lacks Manage Roles — rank roles cannot be assigned', 'Server Settings → Roles → bot role → Manage Roles');
 if (me.permissions.has(PermissionFlagsBits.Administrator)) warn('bot', 'bot holds Administrator — fine while build/order/audit run, switch it off again afterwards', 'Server Settings → Roles → bot role → Administrator off (Manage Roles stays)');
 else info('bot', 'bot runs without Administrator (normal state) — switch it on briefly for build/order/audit; without it AutoMod, onboarding, welcome screen and invites are skipped below');
 // The bot user avatar and the application icon are two separate images; Discord
