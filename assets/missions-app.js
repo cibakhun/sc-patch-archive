@@ -9,6 +9,10 @@
   var grid = document.getElementById('mx-grid');
   var bar = document.getElementById('mx-bar');
   if (!grid || !bar) return;
+  // Die Filterleiste ist ein <form role="search">: Enter im Suchfeld laedt
+  // die Seite nicht neu. Stand frueher als onsubmit-Attribut am <form>;
+  // Inline-Handler laesst die Content-Security-Policy nicht mehr zu.
+  bar.addEventListener('submit', function (e) { e.preventDefault(); });
 
   var q = document.getElementById('mx-q');
   var selType = document.getElementById('mx-type');

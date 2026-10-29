@@ -53,7 +53,9 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // check-gate aus Phase 14 Plan 09).
 // Stand 23.08.2026 (18-04-PLAN.md): 24 — Zugang verify-datastand.mjs (D-04,
 // Kreuzvergleich der committeten Patch-Kennungen).
-const MIN_SCRIPTS = 24;
+// Stand 29.10.2026: 40 — nach den Sicherheitspaketen (u. a. verify-redirects,
+// verify-zaehler, verify-ausgabe, verify-db-rights, audit-csp, check-headers).
+const MIN_SCRIPTS = 40;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };
@@ -64,7 +66,7 @@ const rel = (p) => p.replaceAll('\\', '/');
 // namentlich genannte Ausreisser. `browser-smoke.mjs` heisst so, weil es
 // keine Datei prueft, sondern eine laufende Seite — es gehoert trotzdem
 // unter dieselbe Bijektionspflicht.
-const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs', 'check-gate.mjs'];
+const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs', 'check-gate.mjs', 'check-headers.mjs'];
 const DATEIEN = readdirSync(resolve(ROOT, 'scripts'))
   .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n) || PRUEFER_AUSSER_DER_REIHE.includes(n))
   .map((n) => `scripts/${n}`)

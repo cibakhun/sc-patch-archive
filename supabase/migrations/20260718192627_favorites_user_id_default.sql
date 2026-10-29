@@ -1,0 +1,19 @@
+-- favorites_user_id_default: aus der Live-Anlage uebernommen am 29.10.2026.
+--
+-- Quelle: supabase_migrations.schema_migrations, Version 20260718192627, Name
+-- favorites_user_id_default, angewandt 18.07.2026 19:26 UTC. Alles unterhalb
+-- der Trennlinie ist der dort gespeicherte Wortlaut (statements, mit ';\n'
+-- verbunden), zeichengleich.
+-- md5 des Wortlauts: 5f02f37b829e5a121caa921567255a37
+--
+-- WARUM DIESE DATEI: die Migration lief direkt gegen die Anlage (Management
+-- API) und lag bis heute nicht im Repo. Ohne sie bildet supabase/migrations/
+-- die Anlage nicht ab, und `supabase db push` haelt die Live-Historie fuer
+-- fremd.
+--
+-- WAS SIE FUER DIE SEITE BEDEUTET: nichts. Sie ist live angewandt und wird
+-- nicht erneut eingespielt. Wortlaut nicht aendern; Korrekturen gehoeren in
+-- eine neue Migration.
+-- ============================================================================
+-- Client-Inserts ohne explizite user_id: Default = eingeloggter User.
+alter table public.favorites alter column user_id set default auth.uid();

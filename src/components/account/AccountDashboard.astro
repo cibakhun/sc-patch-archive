@@ -4,6 +4,8 @@ import { href } from '../../i18n/ui';
 import ProfileCard from './ProfileCard.astro';
 import FriendsManager from './FriendsManager.astro';
 import FriendsDock from './FriendsDock.astro';
+import MfaSettings from './MfaSettings.astro';
+import MfaCodeDialog from './MfaCodeDialog.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 import { DISCORD } from '../../consts';
 
@@ -11,6 +13,12 @@ interface Props {
   lang: 'de' | 'en';
 }
 const { lang } = Astro.props;
+
+// Mindestlänge für neue Passwörter, gleich wie auf update-password.html; die
+// verbindliche Grenze setzt Supabase (Auth -> Passwords).
+const MIN_PASS = 12;
+// So lange gilt eine Bestätigung per Discord für heikle Änderungen (Sekunden).
+const REAUTH_WINDOW = 600;
 
 const COPY = {
   de: {
@@ -35,6 +43,7 @@ const COPY = {
     testerOverviewDesc: 'Wer die Rolle trägt und wann derjenige zuletzt auf der Vorschau war.',
     testerOverviewEmpty: 'Aktuell trägt niemand die Testpilot-Rolle.',
     testerNeverSeen: 'noch nie',
+    testerNeedsCode: 'Die Testpiloten-Liste gibt es nur in einer Sitzung mit Code aus der Authenticator-App. Richte unter „Zwei-Faktor-Anmeldung“ einen Authenticator ein oder gib dort den Code ein.',
     testerColName: 'Name', testerColHandle: 'Handle', testerColDiscord: 'Discord-ID', testerColSeen: 'Zuletzt auf der Vorschau',
     secSocial: 'Social Links & Organisation',
     secFavs: 'Deine Favoriten',
@@ -42,7 +51,7 @@ const COPY = {
     secDanger: 'Konto löschen',
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
-    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
+    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Mit einem Handle ist deine Pilotenseite öffentlich: Anzeigename, Bilder, Bio, Status und verlinkte Profile sieht dann jeder.',
     bio: 'Biografie / Über mich', bioPh: 'Erzähle der Flotte etwas über dich, deine Schiffe oder Missionen …',
     bannerSelect: 'Banner-Vorlage wählen',
     bannerUrl: 'Oder eigene Banner-Bild-URL',
@@ -90,12 +99,12 @@ const COPY = {
     rsiModalTitle: 'RSI Account Verifizierung',
     rsiModalIntroPre: 'Verifiziere deinen Star Citizen Account',
     rsiModalIntroPost: 'auf Roberts Space Industries.',
-    rsiStep1: 'Kopiere diesen persönlichen Verifizierungscode (er bleibt dauerhaft gleich):',
+    rsiStep1: 'Kopiere deinen Verifizierungscode für dieses Handle (er bleibt für das Handle gleich):',
     rsiCopy: 'Kopieren',
     rsiCopied: 'Kopiert! ✓',
     rsiStep2Pre: 'Öffne deine',
     rsiStep2Link: 'RSI Profil-Einstellungen',
-    rsiStep2Post: 'und füge den Code in das Textfeld Bio ein (Account → Profile) und speichere.',
+    rsiStep2Post: 'und füge den Code in das Textfeld Bio ein (Account → Profile) und speichere. Lass ihn dort stehen: VerseBase prüft ihn ab und zu erneut.',
     rsiStep3: 'Klicke auf Prüfen — VerseBase sucht serverseitig in deiner RSI Bio nach dem Code.',
     rsiCheckNow: 'RSI Bio jetzt prüfen',
     rsiClose: 'Schließen',
@@ -104,6 +113,9 @@ const COPY = {
     rsiEnterHandle: 'Bitte trage zuerst dein RSI Citizen Handle im Feld oben ein (z. B. Roberts).',
     rsiNotFound: 'Code "%code%" wurde noch nicht in der Bio von @%handle% auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI (die Anzeige kann 1–2 Minuten dauern).',
     rsiServerErr: 'Der Verifizierungsserver ist gerade nicht erreichbar — bitte später erneut versuchen.',
+    rsiBadHandle: 'Ein RSI-Handle hat 3–60 Zeichen: Buchstaben, Ziffern, _ und -.',
+    rsiRate: 'Zu viele Prüfungen in kurzer Zeit. Bitte versuche es in einer Stunde erneut.',
+    rsiNewCode: 'Dein bisheriger Code gilt nicht mehr. Oben steht ein neuer: bitte ersetze ihn in deiner RSI-Bio und prüfe dann erneut.',
     discordTag: 'Discord', discordPh: 'z. B. @pilot', discordFromLink: 'Kommt aus deiner Discord-Verbindung', avatarDiscord: 'Discord-Bild',
     secDiscordLink: 'Discord-Konto verbinden',
     dcLinkDesc: 'Verbinde dein Discord-Konto. Erst dann kennt die Seite deine Discord-Rollen (z. B. Testpilot). Die E-Mail-Adresse bei Discord spielt keine Rolle.',
@@ -120,9 +132,14 @@ const COPY = {
     dcUnlinkNeedsTwo: 'Zum Lösen brauchst du einen zweiten Anmeldeweg. Setze zuerst ein Passwort.',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
     shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', socialBad: 'Dieser Name passt nicht zu %s.',
+    presenceVis: 'Wer meinen Online-Status sieht', presenceVisFriends: 'Nur Freunde (Standard)',
+    presenceVisAll: 'Alle, auch auf meinem öffentlichen Profil', presenceVisNone: 'Niemand (auch keine Aktivität)',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
+    errHandleReserved: 'Dieses Handle ist reserviert — bitte ein anderes wählen.',
+    errProfileInvalid: 'Nicht gespeichert: ein Feld enthält einen Wert, den das Profil nicht annimmt (zu lang oder kein Bild aus deinem Upload bzw. von Discord).',
+    errMfaNeed: 'Ohne den Code aus der Authenticator-App lässt sich das nicht ändern.',
     favsEmpty: 'Noch keine Favoriten. Nimm Schiffe im 3D-Hangar oder auf ihrem Datenblatt in deine Flotte auf — sie erscheinen dann hier.',
     favsHangar: 'Zum 3D-Hangar →',
     favRemove: 'Entfernen',
@@ -130,16 +147,27 @@ const COPY = {
     email: 'E-Mail-Adresse ändern', emailPh: 'neue@beispiel.de',
     emailBtn: 'E-Mail ändern', emailBusy: 'Sende Bestätigung …',
     emailSent: 'Bestätigungs-Mails sind unterwegs — der Wechsel wird nach dem Bestätigen wirksam.',
-    pass: 'Neues Passwort', passPh: 'Mindestens 8 Zeichen',
+    pass: 'Neues Passwort', passPh: `Mindestens ${MIN_PASS} Zeichen`,
     pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
     passBtn: 'Passwort ändern', passBusy: 'Speichere …', passSaved: 'Passwort geändert.',
-    errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
+    errShort: `Das Passwort braucht mindestens ${MIN_PASS} Zeichen.`,
+    errWeak: 'Dieses Passwort ist zu schwach — bitte wähle ein anderes.',
+    curPass: 'Aktuelles Passwort', curPassPh: 'Zur Bestätigung',
+    errCurPass: 'Bitte gib zur Bestätigung dein aktuelles Passwort ein.',
+    errCurWrong: 'Das aktuelle Passwort stimmt nicht.',
+    reauthDcHint: 'Dein Konto meldet sich über Discord an. Zur Bestätigung meldest du dich kurz neu mit Discord an.',
+    reauthDcBtn: 'Mit Discord bestätigen', reauthDcBusy: 'Weiterleitung zu Discord …',
+    reauthDcNeed: 'Bitte bestätige zuerst mit Discord.',
+    reauthDcOk: `Bestätigt — du hast jetzt ${REAUTH_WINDOW / 60} Minuten für die Änderung.`,
+    reauthDcOther: 'Das war ein anderes Discord-Konto. Du bist jetzt mit dem dazugehörigen Konto angemeldet — prüfe die Adresse oben.',
+    reauthDcErr: 'Die Bestätigung mit Discord hat nicht geklappt. Bitte erneut versuchen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
-    dangerBody: 'Löscht dein Konto mit Profil, Loadouts, Favoriten, Freunden und Nachrichten endgültig. Das lässt sich nicht rückgängig machen.',
+    dangerBody: 'Löscht dein Konto mit Profil, Loadouts, Favoriten, Werkzeug-Daten, Freunden, Nachrichten und hochgeladenen Bildern endgültig. Das lässt sich nicht rückgängig machen.',
     dangerConfirmLabel: 'Zum Bestätigen „LÖSCHEN" eintippen',
     dangerWord: 'LÖSCHEN',
     dangerBtn: 'Konto endgültig löschen', dangerBusy: 'Lösche Konto …',
+    removeErr: 'Das Bild konnte nicht entfernt werden — bitte erneut versuchen.',
     errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
     errRate: 'Zu viele Anfragen — bitte kurz warten.',
     modalTitle: 'Öffentliche Profil-Vorschau',
@@ -182,6 +210,7 @@ const COPY = {
     testerOverviewDesc: 'Who holds the role and when they were last on the preview.',
     testerOverviewEmpty: 'Nobody currently holds the Test Pilot role.',
     testerNeverSeen: 'never yet',
+    testerNeedsCode: 'The Test Pilot list is only available in a session signed in with a code from your authenticator app. Set up an authenticator under “Two-factor sign-in” or enter the code there.',
     testerColName: 'Name', testerColHandle: 'Handle', testerColDiscord: 'Discord ID', testerColSeen: 'Last seen on preview',
     secSocial: 'Social Links & Organization',
     secFavs: 'Your Favorites',
@@ -189,7 +218,7 @@ const COPY = {
     secDanger: 'Delete account',
     name: 'Display name', namePh: 'e.g. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
-    handleHint: '3–24 characters: lowercase letters, digits, underscore. Unique on VerseBase.',
+    handleHint: '3–24 characters: lowercase letters, digits, underscore. With a handle your pilot page is public: anyone can see your display name, images, bio, status and linked profiles.',
     bio: 'Bio / About me', bioPh: 'Tell the fleet about yourself, your ships, or missions …',
     bannerSelect: 'Choose banner preset',
     bannerUrl: 'Or custom banner image URL',
@@ -237,12 +266,12 @@ const COPY = {
     rsiModalTitle: 'RSI Account Verification',
     rsiModalIntroPre: 'Verify your Star Citizen account',
     rsiModalIntroPost: 'on Roberts Space Industries.',
-    rsiStep1: 'Copy your personal verification code (it always stays the same):',
+    rsiStep1: 'Copy your verification code for this handle (it stays the same for this handle):',
     rsiCopy: 'Copy',
     rsiCopied: 'Copied! ✓',
     rsiStep2Pre: 'Open your',
     rsiStep2Link: 'RSI profile settings',
-    rsiStep2Post: 'and paste the code into the Bio text field (Account → Profile), then save.',
+    rsiStep2Post: 'and paste the code into the Bio text field (Account → Profile), then save. Leave it there: VerseBase re-checks it from time to time.',
     rsiStep3: 'Click Check — VerseBase searches your RSI bio for the code server-side.',
     rsiCheckNow: 'Check RSI bio now',
     rsiClose: 'Close',
@@ -251,6 +280,9 @@ const COPY = {
     rsiEnterHandle: 'Please enter your RSI Citizen handle in the field above first (e.g. Roberts).',
     rsiNotFound: 'Code "%code%" was not found in @%handle%\'s bio on robertsspaceindustries.com yet. Please save your bio on RSI (it can take 1–2 minutes to show up).',
     rsiServerErr: 'The verification server is currently unreachable — please try again later.',
+    rsiBadHandle: 'An RSI handle has 3–60 characters: letters, digits, _ and -.',
+    rsiRate: 'Too many checks in a short time. Please try again in an hour.',
+    rsiNewCode: 'Your previous code is no longer valid. A new one is shown above: please replace it in your RSI bio, then check again.',
     discordTag: 'Discord', discordPh: 'e.g. @pilot', discordFromLink: 'Comes from your Discord connection', avatarDiscord: 'Discord picture',
     secDiscordLink: 'Connect Discord account',
     dcLinkDesc: 'Connect your Discord account. Only then does the site know your Discord roles (e.g. Test Pilot). Your Discord e-mail address does not matter.',
@@ -267,9 +299,14 @@ const COPY = {
     dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in. Set a password first.',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
     shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', socialBad: 'That name does not fit %s.',
+    presenceVis: 'Who sees my online status', presenceVisFriends: 'Friends only (default)',
+    presenceVisAll: 'Everyone, also on my public profile', presenceVisNone: 'No one (no activity either)',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
+    errHandleReserved: 'This handle is reserved — please pick another one.',
+    errProfileInvalid: 'Not saved: a field holds a value the profile does not accept (too long, or an image that is neither your upload nor from Discord).',
+    errMfaNeed: 'This cannot be changed without the code from your authenticator app.',
     favsEmpty: 'No favorites yet. Add ships to your fleet in the 3D hangar or on their data sheet and they will show up here.',
     favsHangar: 'Open the 3D hangar →',
     favRemove: 'Remove',
@@ -277,16 +314,27 @@ const COPY = {
     email: 'Change e-mail address', emailPh: 'new@example.com',
     emailBtn: 'Change e-mail', emailBusy: 'Sending confirmation …',
     emailSent: 'Confirmation e-mails are on their way — the change takes effect after confirming.',
-    pass: 'New password', passPh: 'At least 8 characters',
+    pass: 'New password', passPh: `At least ${MIN_PASS} characters`,
     pass2: 'Repeat password', pass2Ph: 'Same password again',
     passBtn: 'Change password', passBusy: 'Saving …', passSaved: 'Password changed.',
-    errShort: 'The password needs at least 8 characters.',
+    errShort: `The password needs at least ${MIN_PASS} characters.`,
+    errWeak: 'This password is too weak — please choose another one.',
+    curPass: 'Current password', curPassPh: 'To confirm',
+    errCurPass: 'Please enter your current password to confirm.',
+    errCurWrong: 'The current password is wrong.',
+    reauthDcHint: 'Your account signs in with Discord. To confirm, sign in with Discord again.',
+    reauthDcBtn: 'Confirm with Discord', reauthDcBusy: 'Redirecting to Discord …',
+    reauthDcNeed: 'Please confirm with Discord first.',
+    reauthDcOk: `Confirmed — you now have ${REAUTH_WINDOW / 60} minutes for the change.`,
+    reauthDcOther: 'That was a different Discord account. You are now signed in to the account that belongs to it — check the address above.',
+    reauthDcErr: 'Confirming with Discord did not work. Please try again.',
     errMatch: 'The passwords do not match.',
     errSame: 'The new password must differ from the old one.',
-    dangerBody: 'Permanently deletes your account with profile, loadouts, favorites, friends and messages. This cannot be undone.',
+    dangerBody: 'Permanently deletes your account with profile, loadouts, favorites, tool data, friends, messages and uploaded images. This cannot be undone.',
     dangerConfirmLabel: 'Type “DELETE” to confirm',
     dangerWord: 'DELETE',
     dangerBtn: 'Delete account permanently', dangerBusy: 'Deleting account …',
+    removeErr: 'Could not remove the image — please try again.',
     errNet: 'That did not work — please try again.',
     errRate: 'Too many requests — please wait a moment.',
     modalTitle: 'Public Profile Preview',
@@ -375,6 +423,7 @@ const SEC = {
     js: {
       cancel: 'Abbrechen', notLinked: 'Nicht verbunden', sure: 'Sicher?', err: 'Das hat nicht geklappt.',
       othersDone: 'Andere Geräte sind abgemeldet.', exportBusy: 'Sammle …', exportDone: 'Datei geladen.',
+      exportPartial: 'Datei geladen, aber nicht vollständig: was sich nicht lesen ließ, steht darin unter „errors“.',
       change: 'Ändern', set: 'Setzen', noPass: 'Nicht gesetzt', rsiNone: 'Nicht verifiziert', rsiOpen: 'Prüfen',
     },
   },
@@ -390,6 +439,7 @@ const SEC = {
     js: {
       cancel: 'Cancel', notLinked: 'Not connected', sure: 'Sure?', err: 'That did not work.',
       othersDone: 'Other devices are signed out.', exportBusy: 'Collecting …', exportDone: 'File downloaded.',
+      exportPartial: 'File downloaded, but incomplete: what could not be read is listed in it under “errors”.',
       change: 'Change', set: 'Set', noPass: 'Not set', rsiNone: 'Not verified', rsiOpen: 'Verify',
     },
   },
@@ -405,10 +455,22 @@ const SEC = {
   data-kinds={JSON.stringify(COPY.kind)}
   data-msg-handle-taken={COPY.errHandleTaken}
   data-msg-handle-format={COPY.errHandleFormat}
+  data-msg-handle-reserved={COPY.errHandleReserved}
+  data-msg-profile-invalid={COPY.errProfileInvalid}
+  data-msg-mfa-need={COPY.errMfaNeed}
   data-msg-saved={COPY.savedProfile}
   data-msg-email-sent={COPY.emailSent}
   data-msg-pass-saved={COPY.passSaved}
   data-msg-short={COPY.errShort}
+  data-msg-weak={COPY.errWeak}
+  data-min-pass={MIN_PASS}
+  data-reauth-window={REAUTH_WINDOW}
+  data-msg-cur-pass={COPY.errCurPass}
+  data-msg-cur-wrong={COPY.errCurWrong}
+  data-msg-reauth-need={COPY.reauthDcNeed}
+  data-msg-reauth-ok={COPY.reauthDcOk}
+  data-msg-reauth-other={COPY.reauthDcOther}
+  data-msg-reauth-err={COPY.reauthDcErr}
   data-msg-match={COPY.errMatch}
   data-msg-same={COPY.errSame}
   data-msg-net={COPY.errNet}
@@ -426,10 +488,14 @@ const SEC = {
   data-msg-rsi-reset-ok={COPY.rsiResetOk}
   data-rsi-copy={COPY.rsiCopy}
   data-rsi-copied={COPY.rsiCopied}
+  data-msg-rsi-bad-handle={COPY.rsiBadHandle}
+  data-msg-rsi-rate={COPY.rsiRate}
+  data-msg-rsi-new-code={COPY.rsiNewCode}
   data-msg-uploading={COPY.uploading}
   data-msg-upload-toobig={COPY.uploadTooBig}
   data-msg-upload-badtype={COPY.uploadBadType}
   data-msg-upload-err={COPY.uploadErr}
+  data-msg-remove-err={COPY.removeErr}
   data-crop-title-avatar={COPY.cropTitleAvatar}
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
@@ -444,6 +510,7 @@ const SEC = {
   data-msg-social-bad={COPY.socialBad}
   data-tester-overview-empty={COPY.testerOverviewEmpty}
   data-tester-never-seen={COPY.testerNeverSeen}
+  data-tester-needs-code={COPY.testerNeedsCode}
   data-tester-col-name={COPY.testerColName}
   data-tester-col-handle={COPY.testerColHandle}
   data-tester-col-discord={COPY.testerColDiscord}
@@ -662,7 +729,8 @@ const SEC = {
                 </div>
                 <div class="field">
                   <label for="pfHandle">{COPY.handle} <span class="hint">{COPY.optional}</span></label>
-                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} /></div>
+                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} aria-describedby="pfHandleHint" /></div>
+                  <p class="acx-hint" id="pfHandleHint">{COPY.handleHint}</p>
                 </div>
                 <div class="field" style="margin-bottom:0">
                   <label for="pfBio">{COPY.bio}</label>
@@ -756,6 +824,14 @@ const SEC = {
                     <label for="pfOrg">{COPY.orgName}</label>
                     <input class="inp" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
                   </div>
+                  <div class="field">
+                    <label for="pfPresenceVis">{COPY.presenceVis}</label>
+                    <select class="ctrl" id="pfPresenceVis">
+                      <option value="friends">{COPY.presenceVisFriends}</option>
+                      <option value="all">{COPY.presenceVisAll}</option>
+                      <option value="none">{COPY.presenceVisNone}</option>
+                    </select>
+                  </div>
                 </div>
                 <label class="pf-check">
                   <input type="checkbox" id="pfShareActivity" checked />
@@ -846,6 +922,7 @@ const SEC = {
       <section id="tab-panel-security" class="acx-tab-panel" hidden>
         <div class="sec" id="sec" data-lang={lang} data-home={homeHref} data-copy={JSON.stringify(SEC.js)}>
           <div class="sv-bar"><h2 class="sv-h">{COPY.tabSecurity}</h2></div>
+          <p class="acx-status" id="seReauthStatus" role="status" aria-live="polite" hidden></p>
           <div class="sec-grid">
 
             <div class="sec-card">
@@ -857,6 +934,8 @@ const SEC = {
               </div>
               <form id="emailForm" class="sec-form" novalidate hidden>
                 <input class="inp mono" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} aria-label={SEC.newEmail} />
+                <input class="inp" id="seEmailCur" name="current_password" type="password" autocomplete="current-password" placeholder={COPY.curPassPh} aria-label={COPY.curPass} data-reauth="pw" />
+                <div class="sec-reauth" data-reauth="dc" hidden><p class="sec-note">{COPY.reauthDcHint}</p><button type="button" class="sec-btn js-reauth-dc" data-busy={COPY.reauthDcBusy} data-idle={COPY.reauthDcBtn}>{COPY.reauthDcBtn}</button></div>
                 <button class="sec-btn sec-btn--go" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={SEC.send}>{SEC.send}</button>
                 <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
               </form>
@@ -866,8 +945,10 @@ const SEC = {
                 <button type="button" class="sec-btn" id="secPassBtn" data-sec-open="passForm" aria-controls="passForm" aria-expanded="false">{SEC.change}</button>
               </div>
               <form id="passForm" class="sec-form" novalidate hidden>
-                <input class="inp" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} aria-label={COPY.pass} />
-                <input class="inp" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} aria-label={COPY.pass2} />
+                <input class="inp" id="sePassCur" name="current_password" type="password" autocomplete="current-password" placeholder={COPY.curPassPh} aria-label={COPY.curPass} data-reauth="pw" />
+                <div class="sec-reauth" data-reauth="dc" hidden><p class="sec-note">{COPY.reauthDcHint}</p><button type="button" class="sec-btn js-reauth-dc" data-busy={COPY.reauthDcBusy} data-idle={COPY.reauthDcBtn}>{COPY.reauthDcBtn}</button></div>
+                <input class="inp" id="sePass" name="password" type="password" minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.passPh} aria-label={COPY.pass} />
+                <input class="inp" id="sePass2" name="password2" type="password" minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.pass2Ph} aria-label={COPY.pass2} />
                 <button class="sec-btn sec-btn--go" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={SEC.save}>{SEC.save}</button>
                 <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
               </form>
@@ -928,6 +1009,8 @@ const SEC = {
             <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
                  von tester_overview() wird fuer alle anderen gar nicht erst
                  abgesetzt (siehe account-dashboard.ts). -->
+            <MfaSettings lang={lang} variant="sec" />
+
             <div class="sec-card sec-card--wide" id="testerOverviewCard" hidden>
               <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>{COPY.secTesterOverview}</h3>
               <div class="sec-scroll" id="testerOverviewBody"></div>
@@ -941,6 +1024,8 @@ const SEC = {
               </div>
               <form id="deleteForm" class="sec-form" novalidate hidden>
                 <p class="sec-note">{COPY.dangerBody}</p>
+                <input class="inp" id="delCur" name="current_password" type="password" autocomplete="current-password" placeholder={COPY.curPassPh} aria-label={COPY.curPass} data-reauth="pw" />
+                <div class="sec-reauth" data-reauth="dc" hidden><p class="sec-note">{COPY.reauthDcHint}</p><button type="button" class="sec-btn js-reauth-dc" data-busy={COPY.reauthDcBusy} data-idle={COPY.reauthDcBtn}>{COPY.reauthDcBtn}</button></div>
                 <input class="inp mono" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} aria-label={COPY.dangerConfirmLabel} />
                 <button class="sec-btn sec-btn--hot" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
                 <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>
@@ -979,7 +1064,7 @@ const SEC = {
           <div class="step-txt">
             <span>{COPY.rsiStep1}</span>
             <div class="rsi-code-box" style="margin-top:0.4rem">
-              <code id="rsiVerifyCode">VERSEBASE-VERIFY-LOADING</code>
+              <code id="rsiVerifyCode">…</code>
               <button type="button" class="acx-btn-copy" id="btnCopyRsiCode">{COPY.rsiCopy}</button>
             </div>
           </div>
@@ -1133,6 +1218,10 @@ const SEC = {
     </div>
   </dialog>
 </div>
+
+<!-- Code-Dialog ausserhalb von #dash: er wird schon gebraucht, solange #dash
+     noch verborgen ist (Sitzung ohne zweiten Faktor beim Laden). -->
+<MfaCodeDialog lang={lang} />
 
 <script>
 import '../../scripts/account-dashboard';

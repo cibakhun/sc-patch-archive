@@ -1,3 +1,9 @@
+-- Live-Abgleich 29.10.2026: Version und Name wie in der Anlage
+-- (supabase_migrations.schema_migrations). Einziger Unterschied im
+-- ausgefuehrten SQL war der Funktionskommentar (comment on function): live
+-- ohne den Einschub zum Rettungsanker. Er ist hier angeglichen; die
+-- Begruendung steht unveraendert im Kopfkommentar darunter.
+--
 -- Betreiberentscheidung 20.08.2026 (WINDOWS.md id 39): der Admin-Riegel
 -- schlaegt die Sperrliste, nicht umgekehrt.
 --
@@ -90,8 +96,7 @@ comment on function public.gate_verdict() is
   'Torurteil in einem Aufruf (D-04/D-08/D-10/D-13). Parameterlos -- die '
   'Nutzer-ID kommt ausschliesslich aus auth.uid(). Reihenfolge seit '
   '20.08.2026: admin schlaegt die Sperrliste (Betreiberentscheidung, '
-  'WINDOWS.md id 39 -- der Admin-Weg ist der einzige Rettungsanker und darf '
-  'nicht kappbar sein); fuer alle anderen schlaegt die Sperrliste jede Rolle. '
+  'WINDOWS.md id 39); fuer alle anderen schlaegt die Sperrliste jede Rolle. '
   'Ein erlaubendes Urteil schreibt last_staging_seen fort.';
 
 revoke all on function public.gate_verdict() from public;

@@ -1558,6 +1558,9 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .sec-form .inp-affix{flex:1 1 12rem;min-width:0}
 .dsr .sec-form .rsi-verified-indicator{margin-top:0;font-size:var(--fs-7)}
 .sec-note{flex:1 0 100%;margin:0;font-size:var(--fs-6);color:var(--muted)}
+/* Bestätigung per Discord statt Passwort (Konten ohne Passwort) */
+.sec-reauth{flex:1 0 100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sec > .acx-status{margin:0 0 12px}
 .sec-msg{margin:0 0 6px 50px}
 .sec-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 8px}
 .sec-facts div{padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
