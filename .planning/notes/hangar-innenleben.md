@@ -163,3 +163,30 @@ Cutlass-Laderaum und Carrack-Struktur, alle mit Spieltexturen. Summe auf
 der Platte: Rumpf 741,7 MB + Innenraum 29,3 MB + Ablage 236,9 MB =
 1008 MB. Die Ablage wächst um rund 23 MB, die Innenräume bringen eigene
 Karten mit.
+
+## Cloud, 29.10.2026 nach dem ersten Push
+
+- `pc/hangar-innenleben` (692d5d67) ist in `claude/wot-hangar-hzs46w`
+  gemergt, zusammen mit staging. Darin liegt **#257** aus einem anderen
+  Thread („Schiffe von innen nicht mehr hohl“): alle 231 Rümpfe neu gebaut,
+  zweiseitig wie im Spiel, und `dropInterior` lässt jetzt den Innenraum
+  stehen, den man durch Glas sieht (Glas plus 2,5 m; liefert
+  `{ dropped, keptNodes, keptTris }`, Manifest `interiorKept`). Die
+  Konflikte in `build-hangar-assets.mjs` und `build-hangar-alle.mjs` sind
+  gelöst: `markInterior` läuft bei jedem Rumpf und kennzeichnet, was vom
+  Innenraum darin bleibt (ganz oder hinter dem Glas); der Innenraum wird
+  wie der Rumpf zweiseitig (`twoSided: true`); die Stufen `NG` bleiben,
+  `INNER` ersetzt sie.
+- **Vor dem nächsten Push** `origin/claude/wot-hangar-hzs46w` in
+  `pc/hangar-innenleben` mergen und die Konfliktlösung übernehmen. Ein
+  Rumpfbau vom alten Stand nähme #257 zurück (einseitig, kein Innenraum
+  hinter dem Glas).
+- **Teil B ist jetzt dringlich**: Die fünf Rümpfe tragen hinter dem Glas
+  schon einen groben Innenraum (Carrack 739 Knoten, 607 000 Dreiecke;
+  Andromeda 133 / 503 000; Cutlass 20 / 226 000; Freelancer 15 / 184 000;
+  Railen 10 / 103 000). Ohne `extras.interior` kann der Viewer ihn beim
+  Einsteigen nicht ausblenden, grob und scharf liegen dann übereinander.
+  Also Teil B (Rümpfe mit `extras.interior`, vom gemergten Stand) vor den
+  übrigen Innenraum-Dateien, zuerst die fünf.
+- Prüfung in der Cloud nach dem Merge: alle 1 224 Bildverweise der fünf
+  Innenräume und alle 53 520 der 231 Rümpfe liegen in `public/hangar/tex`.
